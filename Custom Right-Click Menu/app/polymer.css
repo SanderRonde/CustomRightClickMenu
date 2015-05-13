@@ -1,0 +1,694 @@
+/*Majorly stripped from originals, license below*/
+/*
+Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+*/
+
+
+/*#region all-paper-button*/
+
+/*#region paper-ripple */
+
+paper-ripple {
+  display: block;
+  position: relative;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+paper-ripple .bg, paper-ripple .waves, paper-ripple .wave-container, paper-ripple .wave {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+paper-ripple .bg, paper-ripple .wave {
+  opacity: 0;
+}
+
+paper-ripple .waves, paper-ripple .wave {
+  overflow: hidden;
+}
+
+paper-ripple .wave-container, paper-ripple .wave {
+  border-radius: 50%;
+}
+
+  
+/*#endregion */
+
+/*#region paper-button*/
+
+paper-button {
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  min-width: 5.14em;
+  margin: 0 0.29em;
+  background: transparent;
+  text-align: center;
+  font: inherit;
+  text-transform: uppercase;
+  outline: none;
+  border-radius: 3px;
+  user-select: none;
+  cursor: pointer;
+  z-index: 0;
+}
+
+	paper-button[disabled] {
+		pointer-events: none;
+		background-color: rgb(234,234,234);
+		color: rgb(168,168,168);
+		cursor: auto;
+	}
+
+paper-button::content * {
+  text-transform: inherit;
+}
+
+paper-button .bg, paper-button .shadow {
+  border-radius: inherit;
+}
+
+paper-button .ripple {
+  pointer-events: none;
+  z-index: -1;
+}
+
+paper-button .button-content {
+  padding: 0.7em 0.57em
+}
+
+paper-button polyfill-next-selector { content: '.button-content > a'; }
+
+paper-button::content > a {
+  height: 100%;
+  padding: 0.7em 0.57em;
+  margin: -0.7em -0.57em;
+  /* flex */
+  flex: 1;
+  flex-basis: 0.000000001px;
+}
+
+
+/*#endregion */
+
+/*#endregion */
+
+
+
+
+/*#region paper-shadow*/
+
+paper-shadow {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	bottom: 0;
+	border-radius: inherit;
+	display: block;
+}
+
+paper-shadow .shadow-top, paper-shadow .shadow-bot {
+	transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+	border-radius: inherit;
+	pointer-events: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	bottom: 0;
+}
+
+paper-shadow .shadow-top {
+	box-shadow: 0 1px 4px 0 rgba(0,0,0,0.37);
+}
+
+paper-shadow .shadow-bot {
+	box-shadow: none;
+}
+
+paper-shadow .button-content {
+	justify-content: center;
+	align-items: center;
+	flex-direction: row;
+	display: flex;
+	position: relative;
+	padding: 0.7em 0.57em;
+	display: block;
+}
+
+
+/*#endregion */
+
+/*#region all-paper-checkbox*/
+
+/*#region paper-checkbox*/
+
+paper-checkbox {
+	display: inline-block;
+	white-space: nowrap;
+}
+
+	paper-checkbox:focus {
+		outline: 0;
+	}
+
+paper-checkbox .hidden {
+  display: none;
+}
+
+paper-checkbox .checkboxContainer {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  transform: translateZ(0);
+}
+
+paper-checkbox .CheckboxContainer.labeled {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+paper-checkbox .ink {
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  width: 48px;
+  height: 48px;
+  color: #5a5f5a;
+}
+
+paper-checkbox .ink[checked] {
+  color: #B2DFDB;
+}
+
+paper-checkbox .checkbox {
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  border: solid 2px #5a5a5a;
+  border-radius: 2px;
+  pointer-events: none;
+  transition: background-color 140ms, border-color 140ms;
+}
+
+/* checkbox checked animations */
+paper-checkbox[checked] .checkmark {
+  animation: checkmark-expand 140ms ease-out forwards;
+}
+
+@keyframes checkmark-expand {
+  0% {
+	top: 9px;
+	left: 6px;
+	width: 0px;
+	height: 0px;
+  }
+  100% {
+	top: -1px;
+	left: 4px;
+	width: 5px;
+	height: 10px;
+  }
+}
+
+paper-checkbox .checkbox.checked {
+  background-color: #009688;
+  border-color: #009688;
+}
+
+paper-checkbox .checkmark {
+  transform: rotate(45deg);
+  position: absolute;
+  top: -1px;
+  left: 4px;
+  width: 5px;
+  height: 10px;
+  border-style: solid;
+  border-top: none;
+  border-left: none;
+  border-right-width: 2px;
+  border-bottom-width: 2px;
+  border-color: white;
+  display:none;
+}
+
+/* label */
+paper-checkbox .checkboxLabel {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  padding-left: 8px;
+  white-space: normal;
+  pointer-events: none;
+}
+
+paper-checkbox .checkboxLabel[hidden] {
+  display: none;
+}
+
+paper-checkbox paper-ripple {
+	width: 48px;
+	height: 48px;
+	position: absolute;
+	top: -15px;
+	left: -15px;
+	color: #5a5f5a;
+}
+
+paper-checkbox paper-ripple .bg,
+paper-checkbox paper-ripple .waves {
+  border-radius: 50%;
+}
+
+paper-checkbox paper-ripple .wave-container {
+  overflow: hidden;
+}
+
+
+/*#endregion*/
+	
+/*#endregion */
+
+
+
+
+/*#region start all-paper-slider*/
+
+/*#region start paper-slider*/
+
+paper-slider {
+  display: inline-block;
+  width: 300px;
+  cursor: default;
+  user-select: none;
+  cursor:pointer;
+}
+
+paper-slider:focus {
+  outline: none;
+}
+
+paper-slider .sliderContainer {
+	position: relative;
+	width: calc(100% - 70px);
+	height: 32px;
+	float:left;
+}
+
+paper-slider .sliderContainer.editable {
+  float: left;
+  width: calc(100% - 72px);
+  margin: 12px 0;
+}
+
+paper-slider .bar-container {
+  position: absolute;
+  top: 0;
+  left: 16px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+paper-slider .ring > .bar-container {
+  left: 20px;
+  width: calc(100% - 4px);
+  transition: left 0.18s ease, width 0.18s ease;
+}
+
+paper-slider .ring.expand:not(.pin) > .bar-container {
+  left: 30px;
+  width: calc(100% - 14px);
+}
+
+paper-slider .ring.expand.dragging > .bar-container {
+  transition: none;
+}
+
+paper-slider .sliderBar {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  padding: 8px 0;
+  margin: -8px 0;
+}
+
+paper-slider .ring .sliderBar {
+  left: -4px;
+  width: calc(100% + 4px);
+}
+
+paper-slider .ring.expand:not(.pin) .sliderBar {
+  left: -14px;
+  width: calc(100% + 14px);
+}
+
+paper-slider .slider-markers {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  height: 2px;
+  width: calc(100% + 2px);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+paper-slider .slider-markers::after, paper-slider .slider-marker::after {
+  content: "";
+  display: block;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background-color: black;
+}
+
+paper-slider .sliderBar::shadow .activeProgress {
+  background-color: #3f51b5;
+}
+
+paper-slider .transiting .sliderBar::shadow .activeProgress {
+  transition: transform 0.08s ease;
+}
+
+paper-slider .sliderKnob {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  display:flex;
+  align-items:center;
+  margin-top:2px;
+}
+
+paper-slider .transiting > .sliderKnob {
+  transition: left 0.08s ease;
+}
+
+paper-slider .sliderKnob:focus {
+  outline: none;
+}
+
+paper-slider .sliderKnob.dragging {
+  transition: none;
+}
+
+paper-slider .snaps > .sliderKnob.dragging {
+  transition: transform 0.08s ease;
+}
+
+paper-slider .sliderKnobInner {
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  border-radius: 50%;
+  background-color: #3f51b5;
+  transition: height 0.18s ease, width 0.18s ease;
+  margin-right:auto;
+  margin-left:auto;
+}
+
+paper-slider .expand:not(.pin) > .sliderKnob > .sliderKnobInner {
+  width: 100%;
+  height: 100%;
+  transform: translateZ(0);
+}
+
+paper-slider .ring > .sliderKnob > .sliderKnobInner {
+  background-color: transparent;
+  border: 2px solid #c8c8c8;
+}
+
+paper-slider .sliderKnobInner::before {
+  background-color: #3f51b5;
+}
+
+paper-slider .pin > .sliderKnob > .sliderKnobInner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  margin-left: 3px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg) scale(0) translate(0);
+}
+
+paper-slider .sliderKnobInner::before, paper-slider .sliderKnobInner::after {
+  transition: transform .2s ease, background-color .18s ease;
+}
+
+paper-slider .pin.ring > .sliderKnob > .sliderKnobInner::before {
+  background-color: #c8c8c8;
+}
+
+paper-slider .pin.expand > .sliderKnob > .sliderKnobInner::before {
+  transform: rotate(-45deg) scale(1) translate(17px, -17px);
+}
+
+paper-slider .pin > .sliderKnob > .sliderKnobInner::after {
+  content: attr(value);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 26px;
+  text-align: center;
+  color: #fff;
+  font-size: 10px;
+  transform: scale(0) translate(0);
+}
+
+	paper-slider .progress {
+		height: 4px;
+		background-color: #3f51b5;
+		width:0;
+	}
+
+paper-slider .pin.expand > .sliderKnob > .sliderKnobInner::after {
+  transform: scale(1) translate(0, -17px);
+}
+
+paper-slider .slider-input {
+  width: 40px;
+  float: right;
+  overflow: hidden;
+}
+
+/*#endregion*/
+
+/*#region paper-progress*/
+
+/*
+Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+*/
+
+paper-progress {
+  display: inline-block;
+  width: 100%;
+  height: 4px;
+  margin-top:16px;
+}
+
+paper-progress .progressContainer {
+  position: relative;
+  height: 100%;
+  background-color: #c8c8c8;
+  overflow: hidden;
+}
+
+paper-progress .activeProgress,
+paper-progress .secondaryProgress {
+  transform-origin: left center;
+  transform: scaleX(0);
+}
+
+paper-progress .activeProgress {
+  background-color: #0f9d58;
+}
+
+paper-progress .secondaryProgress {
+  background-color: #87ceac;
+}
+
+paper-progress .activeProgress.indeterminate {
+  transform-origin: center center;
+  animation: indeterminate-bar 1s linear infinite;
+}
+
+@keyframes indeterminate-bar {
+  0% {
+	transform: translate(-50%) scaleX(0);
+  }
+  50% {
+	transform: translate(0%) scaleX(0.3);
+  }
+  100% {
+	transform: translate(50%) scaleX(0);
+  }
+}
+
+/*endregion*/
+
+paper-input {
+	display: inline-block;
+	float:right;
+	width:40px;
+	overflow:hidden;
+	cursor:text;
+	color:inherit;
+}
+
+/*#region paper-input-decorator*/
+
+paper-input-decorator {
+  outline: none;
+  text-align: inherit;
+  padding-top:20px;
+  padding-bottom:1px;
+  display:flex;
+  flex-direction:column;
+  color:inherit;
+  cursor:text;
+}
+
+paper-input-decorator polyfill-next-selector {
+  content: '.input-body > :not(.label)';
+}
+
+paper-input-decorator ::content > *,
+paper-input-decorator ::content > input[is="core-input"] {
+  padding: 0;
+  margin: 0.5em 0 0.25em;
+  width: 100%;
+  color:inherit;
+}
+
+paper-input-decorator polyfill-next-selector {
+  content: 'input, textarea';
+}
+paper-input-decorator ::content input,
+paper-input-decorator ::content input[is=core-input],
+paper-input-decorator ::content textarea {
+  font: inherit;
+  color: inherit;
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+
+paper-input-decoratorpolyfill-next-selector {
+  content: ':invalid';
+}
+paper-input-decorator ::content input:invalid,
+paper-input-decorator ::content textarea:invalid {
+  box-shadow: none;
+}
+
+paper-input-decorator polyfill-next-selector {
+  content: 'textarea';
+}
+paper-input-decorator ::content textarea {
+  resize: none;
+}
+
+paper-input-decorator {
+  color:inherit;
+}
+
+paper-input-decorator [invisible] {
+  visibility: hidden;
+}
+
+paper-input-decorator [animated] {
+  visibility: visible !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+paper-input-decorator .mirror-text {
+  padding: 0.5em 0 0.25em;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+paper-input-decorator .underline {
+  height: 1px;
+  overflow: visible;
+}
+
+paper-input-decorator .unfocused-underline {
+  height: 1px;
+  background-color:#757575;
+}
+
+paper-input-decorator .focused-underline {
+  height: 2px;
+  transform: none;
+  margin-left:auto;
+  margin-right:auto;
+  width:0;
+  background-color:#FFFFFF;
+}
+
+paper-input-decorator .focused-underline[invisible] {
+  transform: scale3d(0,1,1);
+}
+
+paper-input-decorator .error-text {
+  font-size: 0.75em;
+  padding: 0.5em 0;
+}
+
+paper-input-decorator .error-icon {
+  height: 20px;
+  width: 20px;
+}
+
+paper-input-decorator .actualinput {
+	background-color: transparent;
+	border: none;
+	text-align: center;
+	outline: none;
+	padding-bottom: 0.25em;
+  color:inherit;
+}
+
+/*#endregion*/
+
+/*#region paper-error*/
+.error-text, .error-icon {
+  color: rgb(255, 145, 0);
+  display:inline;
+}
+
+.error-icon {
+	fill: rgb(255, 145, 0);
+	float: right;
+}
+
+	.error-icon svg {
+		display: inline;
+	}
+
+/*#endregion*/
