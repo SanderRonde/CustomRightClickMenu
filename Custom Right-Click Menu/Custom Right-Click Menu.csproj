@@ -53,6 +53,7 @@
     <Content Include="app\options.js" />
     <Content Include="app\polymer.css" />
     <Content Include="app\polymer.js" />
+    <Content Include="elements.html" />
     <Content Include="Properties\build\lib\Ionic.Zip.DLL" />
     <Content Include="Properties\build\lib\MSBuild.ExtensionPack.dll" />
     <Content Include="DebugSettings.template.xml" />
