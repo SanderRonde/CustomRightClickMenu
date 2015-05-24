@@ -1,4 +1,6 @@
-/*Majorly stripped from originals, license below*/
+/*
+ * Majorly stripped from originals, license below
+ */
 /*
 Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
@@ -17,7 +19,7 @@ function ripplestuff(element, e, circleornot) {
 		var cancelled = false;
 		var waveMaxRadius;
 		if (circleornot) {
-			if ($(element).parent().attr("class") === "addmemes" || $(element).parent().attr("class") === "acceptupload" || $(element).parent().attr("class") === "declineupload" || $(element).parent().attr("class") === "fab") {
+			if ($(element).parent().attr("class") === "fab") {
 				waveMaxRadius = 19;
 			}
 			else {
@@ -39,7 +41,7 @@ function ripplestuff(element, e, circleornot) {
 			var ww = anim.width, hh = anim.height;
 			// use diagonal size of container to avoid floating point math sadness
 			var waveRadius = Math.min(Math.sqrt(ww * ww + hh * hh), waveMaxRadius) * 1.1 + 5;
-			var duration = 1.1 - .2 * (waveRadius / waveMaxRadius);
+			var duration = 1.1 - 0.2 * (waveRadius / waveMaxRadius);
 			var tt = (totalElapsed / duration);
 
 			var size = waveRadius * (1 - Math.pow(80, -tt));
@@ -74,7 +76,7 @@ function ripplestuff(element, e, circleornot) {
 			// If the wave opacity is 0 and the radius exceeds the bounds
 			// of the element, then this is finished.
 			return waveOpacity < 0.01 && radius >= Math.min(wave.maxRadius, waveMaxRadius);
-		};
+		}
 
 		function waveAtMaximum(wave, radius, anim) {
 			var waveOpacity = waveOpacityFn(wave.tDown, wave.tUp, anim);
@@ -147,7 +149,7 @@ function ripplestuff(element, e, circleornot) {
 				// FIXME cache nodes
 				wave.wc.remove();
 			}
-		};
+		}
 
 		// Shortcuts.
 		var pow = Math.pow;
@@ -158,7 +160,7 @@ function ripplestuff(element, e, circleornot) {
 
 		function cssColorWithAlpha(cssColor, alpha) {
 			var parts = cssColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-			if (typeof alpha == "undefined") {
+			if (typeof alpha === "undefined") {
 				alpha = 1;
 			}
 			if (!parts) {
@@ -285,7 +287,7 @@ function ripplestuff(element, e, circleornot) {
 					opacityDecayVelocity: this.opacityDecayVelocity,
 					height: ctx.height,
 					width: ctx.width
-				}
+				};
 				var i;
 				var wave;
 				for (i = 0; i < this.waves.length; i++) {
@@ -372,13 +374,6 @@ function ripplestuff(element, e, circleornot) {
 
 var callbacks = [];
 var els = [];
-
-function addcallbacktoslider(sliderelement, func) {
-
-	callbacks[callbacks.length] = func;
-	els[els.length] = sliderelement;
-
-}
 
 function changeInputTo(papersliderel, val) {
 
@@ -630,7 +625,7 @@ function sliderKnobMousedown() {
 		}, 100);
 }
 
-function barContainerMousedown() {
+function barContainerMousedown(e) {
 	/// <summary>
 	/// The mousedown handler for the bar-container
 	/// </summary>
@@ -849,7 +844,7 @@ function bindPaperEls(container) {
 		.each(function () {
 
 			var paperslider = $(this).parent().parent()[0];
-			if ($(paperslider).attr("value") != undefined) {
+			if ($(paperslider).attr("value") !== undefined) {
 				var val = parseInt($(paperslider).attr("value"), 10);
 				changeToValue(paperslider, val);
 			}

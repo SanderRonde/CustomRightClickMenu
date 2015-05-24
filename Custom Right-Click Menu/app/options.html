@@ -1,6 +1,7 @@
 <html>
 <head>
 	<title>Options</title>
+	<link rel="stylesheet" href="polymer.css"/>
 	<link rel="stylesheet" href="css.css"/>
 </head>
 <body>
@@ -21,7 +22,7 @@
 		</div>
 		<div class="options">
 			<checkbox-text>
-				<paper-checkbox on="false">
+				<paper-checkbox on="true" class="showOptionsLinkCheckbox">
 					<div class="checkboxcontainer">
 						<paper-ripple class="cirle recenteringTouch">
 							<div class="bg"></div>
@@ -36,11 +37,31 @@
 					Show options link in right-click menu
 				</div>
 			</checkbox-text>
+			<checkbox-text>
+				<paper-checkbox on="false" class="openLinkInCurrentTabCheckbox">
+					<div class="checkboxcontainer">
+						<paper-ripple class="cirle recenteringTouch">
+							<div class="bg"></div>
+							<div class="waves"></div>
+						</paper-ripple>
+						<div class="checkbox openLinkInCurrentTab">
+							<div class="checkmark"></div>
+						</div>
+					</div>
+				</paper-checkbox>
+				<div class="checkboxtext">
+					Open any pressed link in the current tab instead of a new one
+				</div>
+			</checkbox-text>
+		</div>
+		<div class="trailingBrs">
+			<br/><br/><br/>
 		</div>
 	</div>
 </div>
 <script src="jquery-2.0.3.min.js"></script>
 <script src="jquery.color-2.1.2.min.js"></script>
+<script src="polymer.js"></script>
 <script src="options.js"></script>
 </body>
 </html>
