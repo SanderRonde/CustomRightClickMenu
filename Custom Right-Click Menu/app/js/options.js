@@ -1,5 +1,5 @@
-///<reference path="polymer.js"/>
-
+/// <reference path="../../scripts/_references.js"/>
+/// <reference path="jquery-2.0.3.min.js" />
 (function () {
 
 	/**
@@ -31,7 +31,7 @@
 	 */
 	function setValue(key, value) {
 		storage.set(key, value);
-		settings.update();
+		settings._update();
 	}
 
 	/**
@@ -80,11 +80,20 @@
 	 */
 	function execForArray(toExecute, arrays, params, order) {
 		var paramsDefault = createParamsString(params, order);
-		var parameters = "";
+		var parameters;
 		for (var i = 0; i < arrays[0].length; i++) {
 			parameters = paramsDefault;
 			eval("toExecute(" + parameters + ")");
 		}
+	}
+
+	/**
+	 * @fn function buildPageCrm()
+	 *
+	 * @brief Builds this page's crm
+	 */
+	function buildPageCrm() {
+
 	}
 
 	/**
@@ -97,6 +106,7 @@
 	 * @param name The name of the item.
 	 * @param additionalParams Additional parameters in object form
 	 */
+	// ReSharper disable once InconsistentNaming
 	function CRMItem(type, value, name, additionalParams) {
 		if (!isEmpty(additionalParams)) {
 			for (var key in additionalParams) {
@@ -178,14 +188,14 @@
 		 */
 		this._add = function (value, position) {
 			if (position === "first") {
-				insertInto(value, 0);
+				this._insertInto(value, 0);
 			}
 			else if (position === "last" || position === undefined) {
 				this[this.length] = value;
 				this.length++;
 			}
 			else {
-				insertInto(value, position);
+				this._insertInto(value, position);
 			}
 			if (this._uploadOnUpdate) {
 				this._upload();
@@ -203,7 +213,7 @@
 			for (var i = position; i < this.length; i++) {
 				this[i] = this[i + 1];
 			}
-			this[i + 1] = null;
+			this[this.length] = null;
 			this.length--;
 			if (this._uploadOnUpdate) {
 				this._upload();
@@ -236,14 +246,14 @@
 			}
 		};
 
-		this.crm;
-
 		for (var key in setValues) {
-			if (key == "crm") {
-				this.crm = new CustomRightClickMenu(setValues.crm);
-			}
-			else {
-				this[key] = setValues[key];
+			if (setValues.hasOwnProperty(key)) {
+				if (key === "crm") {
+					this.crm = new CustomRightClickMenu(setValues.crm);
+				}
+				else {
+					this[key] = setValues[key];
+				}
 			}
 		}
 		var _optionsToSet = [
@@ -289,8 +299,10 @@
 		this._upload = function () {
 			var dataObject = {};
 			for (var key in this) {
-				if (key.indexOf("_") !== 0 && key !== "crm") {
-					dataObject[key] = this[key];
+				if (this.hasOwnProperty(key)) {
+					if (key.indexOf("_") !== 0 && key !== "crm") {
+						dataObject[key] = this[key];
+					}
 				}
 			}
 			dataObject.crm = settings.crm._export();
@@ -306,11 +318,13 @@
 		this._update = function () {
 			storage.get(function (items) {
 				for (var key in items) {
-					if (key == "crm") {
-						this.crm = new CustomRightClickMenu(setValues.crm);
-					}
-					else {
-						this[key] = items[key];
+					if (items.hasOwnProperty(key)) {
+						if (key === "crm") {
+							this.crm = new CustomRightClickMenu(setValues.crm);
+						}
+						else {
+							this[key] = items[key];
+						}
 					}
 				}
 			});
@@ -340,7 +354,6 @@
 	 * @brief Adds default link to the CRM
 	 */
 	function addDefaultLink() {
-		var elem = this;
 		var defaultLinkItem = $(this).parent().parent();
 		var link = defaultLinkItem.find(".defaultLinkHref").html().trim();
 		var name = defaultLinkItem.find("input").find("input").val();
@@ -367,6 +380,7 @@
 	 */
 	function bindEvents() {
 		$(".addDefaultLink").on("click", addDefaultLink);
+		var thingy = '$.contextMenu({selector: ' + "'#" + selector + "',callback: function () {	alert(" + '"This menu is for previewing only and won' + "'t do anything on clicking" + '");},items: {' + optionsstring + "}});";
 	};
 
 	/**
@@ -377,6 +391,7 @@
 	function main() {
 		updateInputs();
 		bindEvents();
+		buildPageCrm();
 	}
 
 	/**

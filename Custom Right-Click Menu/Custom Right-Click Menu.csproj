@@ -38,26 +38,28 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="app\background.js" />
-    <Content Include="app\contentscript.js" />
-    <Content Include="app\crmapi.js" />
+    <Content Include="app\js\background.js" />
+    <Content Include="app\js\contentscript.js" />
+    <Content Include="app\js\crmapi.js" />
     <Content Include="app\css.css" />
     <Content Include="app\icon-large.png" />
     <Content Include="app\icon-small.png" />
     <Content Include="app\icon-supersmall.png" />
-    <Content Include="app\iframecontentscript.js" />
+    <Content Include="app\js\iframecontentscript.js" />
     <Content Include="app\img\icon.png" />
-    <Content Include="app\jquery-2.0.3.min.js" />
-    <Content Include="app\jquery.color-2.1.2.min.js" />
+    <Content Include="app\js\jquery-2.0.3.min.js" />
+    <Content Include="app\js\jquery.color-2.1.2.min.js" />
+    <Content Include="app\js\jquery.contextMenu.js" />
     <Content Include="app\options.html" />
-    <Content Include="app\options.js" />
+    <Content Include="app\js\options.js" />
     <Content Include="app\polymer.css" />
-    <Content Include="app\polymer.js" />
+    <Content Include="app\js\polymer.js" />
     <Content Include="elements.html" />
     <Content Include="Properties\build\lib\Ionic.Zip.DLL" />
     <Content Include="Properties\build\lib\MSBuild.ExtensionPack.dll" />
     <Content Include="DebugSettings.template.xml" />
     <Content Include="Properties\build\ligershark.chrome.targets" />
+    <Content Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
   </ItemGroup>
