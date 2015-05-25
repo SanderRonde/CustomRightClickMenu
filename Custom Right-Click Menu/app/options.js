@@ -9,6 +9,19 @@
 	var storage = chrome.storage.sync;
 
 	/**
+	 * @fn function isEmpty(value)
+	 *
+	 * @brief Returns whether given value is empty
+	 *
+	 * @param value The value to be checked
+	 *
+	 * @return A boolean; true if the value is empty, false if not
+	 */
+	function isEmpty(value) {
+		return (value === undefined || value === null);
+	}
+
+	/**
 	 * @fn function setValue(key, value)
 	 *
 	 * @brief Sets a value to the storage
@@ -38,42 +51,14 @@
 			if (i !== 0) {
 				paramsDefault += ", ";
 			}
-			if (order[i].type == "array") {
-				paramsDefault += "arr" + order[i].index;
+			if (order[i].type === "array") {
+				paramsDefault += "arrays[" + i + "][i]";
 			}
 			else {
 				paramsDefault += "params[" + order[i].index + "]";
 			}
 		}
 		return paramsDefault;
-	}
-
-	/**
-	 * @fn	function fillParamsString(arrays, iterator, paramsString)
-	 *
-	 * @brief	Fills the parameter string with the actual values
-	 *
-	 * @param	arrays			The arrays to be looped through.
-	 * @param	iterator		The iterator.
-	 * @param	paramsString	The parameters string to be filled.
-	 *
-	 * @return	The filled parameters string.
-	 */
-	function fillParamsString(arrays, iterator, paramsString) {
-		var valToWrite;
-		for (var i = 0; i < 100; i++) {
-			if (paramsString.indexOf("arr" + i) > -1) {
-				valToWrite = arrays[i][iterator];
-				if (typeof valToWrite === "string") {
-					valToWrite = '"' + valToWrite + '"';
-				}
-				paramsString = paramsString.replace("arr" + i, valToWrite);
-			}
-			else {
-				break;
-			}
-		}
-		return paramsString;
 	}
 
 	/**
@@ -97,9 +82,135 @@
 		var paramsDefault = createParamsString(params, order);
 		var parameters = "";
 		for (var i = 0; i < arrays[0].length; i++) {
-			parameters = fillParamsString(arrays, i, paramsDefault);
+			parameters = paramsDefault;
 			eval("toExecute(" + parameters + ")");
 		}
+	}
+
+	/**
+	 * @fn function CRMItem(type, value)
+	 *
+	 * @brief An item in the custom right-click menu
+	 *
+	 * @param type  The type of the item.
+	 * @param value The value of the item.
+	 * @param name The name of the item.
+	 * @param additionalParams Additional parameters in object form
+	 */
+	function CRMItem(type, value, name, additionalParams) {
+		if (!isEmpty(additionalParams)) {
+			for (var key in additionalParams) {
+				this[key] = additionalParams[key];
+			}
+		}
+		this.type = type;
+		this.value = value;
+		this.index;
+		this.parent;
+		this.children;
+	}
+
+	/**
+	 * @fn function CustomRightClickMenu(values)
+	 *
+	 * @brief The custom right-click menu object
+	 *
+	 * @param values The default values to set it with
+	 */
+	function CustomRightClickMenu(values) {
+		this.length = values.length || 1;
+		for (var i = 0; i < values.length; i++) {
+			this[i] = values[i];
+		}
+		this._uploadOnUpdate = true;
+
+		/**
+		 * @fn this._export = function ()
+		 *
+		 * @brief Exports this object
+		 *
+		 * @return The object with all values in it
+		 */
+		this._export = function () {
+			var exportVals = [];
+			for (var i = 0; i < this.length; i++) {
+				exportVals[i] = this[i];
+			}
+			return exportVals;
+		};
+
+		/**
+		 * @fn this._upload = function ()
+		 *
+		 * @brief Uploads this object to chrome.storage
+		 */
+		this._upload = function () {
+			settings._upload();
+		}
+
+		/**
+		 * @fn function insertInto(value, position)
+		 *
+		 * @brief Inserts a value into position X 
+		 *
+		 * @param value    The value to be inserted.
+		 * @param position The position the item has to be inserted into.
+		 */
+		this._insertInto = function (value, position) {
+			var temp1;
+			var temp2 = value;
+			for (var i = position || 0; i < this.length + 1; i++) {
+				temp1 = this[i];
+				this[i] = temp2;
+				temp2 = temp1;
+			}
+			this.length++;
+		};
+
+		/**
+		 * @fn function this._add(value)
+		 *
+		 * @brief Adds value to the custom right-click menu
+		 *
+		 * @param value The value to add, is of type crmItem
+		 * @param position Whether to insert at the beginning, end or a
+		 *		specific item
+		 */
+		this._add = function (value, position) {
+			if (position === "first") {
+				insertInto(value, 0);
+			}
+			else if (position === "last" || position === undefined) {
+				this[this.length] = value;
+				this.length++;
+			}
+			else {
+				insertInto(value, position);
+			}
+			if (this._uploadOnUpdate) {
+				this._upload();
+			}
+		};
+
+		/**
+		 * @fn function this._remove(position)
+		 *
+		 * @brief Removes the CRM-item at the given position
+		 *
+		 * @param position The position to remove
+		 */
+		this._remove = function (position) {
+			for (var i = position; i < this.length; i++) {
+				this[i] = this[i + 1];
+			}
+			this[i + 1] = null;
+			this.length--;
+			if (this._uploadOnUpdate) {
+				this._upload();
+			}
+		};
+
+		console.log(this);
 	}
 
 	/**
@@ -119,24 +230,42 @@
 		* @param value  The value to be given if the option is not set.
 		*/
 		this._ifUnsetSet = function (option, value, settingsObj) {
-			if (settingsObj === undefined) {
-				settingsObj = this;
-			}
+			settingsObj = settingsObj || this;
 			if (!settingsObj[option]) {
 				settingsObj[option] = value;
 			}
-		}
+		};
+
+		this.crm;
 
 		for (var key in setValues) {
-			this[key] = setValues[key];
+			if (key == "crm") {
+				this.crm = new CustomRightClickMenu(setValues.crm);
+			}
+			else {
+				this[key] = setValues[key];
+			}
 		}
 		var _optionsToSet = [
 			"showOptions",
-			"openInCurrentTab"
+			"openInCurrentTab",
+			"crm"
 		];
 		var _defaultValues = [
 			true,
-			false
+			false,
+			new CustomRightClickMenu(
+				[
+					{
+						"type": "link",
+						"value": "http://www.example.com",
+						"name": "example",
+						"index": 0,
+						"parent": null,
+						"children": null
+					}
+				]
+			)
 		];
 		var _order = [
 			{
@@ -157,45 +286,66 @@
 		*
 		* @brief Uploads this object to chrome.storage
 		*/
-		this._upload = function() {
+		this._upload = function () {
 			var dataObject = {};
 			for (var key in this) {
-				if (key.indexOf("_") !== 0) {
+				if (key.indexOf("_") !== 0 && key !== "crm") {
 					dataObject[key] = this[key];
 				}
 			}
+			dataObject.crm = settings.crm._export();
+			console.log(dataObject);
 			storage.set(dataObject);
-		}
+		};
 
 		/**
 		* @fn function this._update()
 		*
 		* @brief Updates this object to the latest values
 		*/
-		this._update = function() {
-			storage.get(function(items) {
+		this._update = function () {
+			storage.get(function (items) {
 				for (var key in items) {
-					this[key] = items[key];
+					if (key == "crm") {
+						this.crm = new CustomRightClickMenu(setValues.crm);
+					}
+					else {
+						this[key] = items[key];
+					}
 				}
 			});
-		}
+		};
 
 		/**
 		* @fn function this._checkSettings()
 		*
 		* @brief Check the settings object for any errors or missing values.
 		*/
-		this._checkSettings = function() {
+		this._checkSettings = function () {
 			execForArray(this._ifUnsetSet, [
 				_optionsToSet, _defaultValues
 			], [
 				this
 			], _order);
-		}
+		};
 
 		this._checkSettings();
 
 		console.log(this);
+	}
+
+	/**
+	 * @fn function addDefaultLink()
+	 *
+	 * @brief Adds default link to the CRM
+	 */
+	function addDefaultLink() {
+		var elem = this;
+		var defaultLinkItem = $(this).parent().parent();
+		var link = defaultLinkItem.find(".defaultLinkHref").html().trim();
+		var name = defaultLinkItem.find("input").find("input").val();
+		var newItem = new CRMItem("link", link, name);
+		settings.crm._add(newItem);
 	}
 
 	/**
@@ -207,7 +357,17 @@
 		$(".showOptionsLinkCheckbox").attr("on", settings.showOptions.toString());
 		$(".openLinkInCurrentTabCheckbox").attr("on", settings.openInCurrentTab.toString());
 		bindstuff($(".options"));
+		bindstuff($(".defaultLinks"));
 	}
+
+	/**
+	 * @fn function bindEvents()
+	 *
+	 * @brief Bind all event listeners to all targets
+	 */
+	function bindEvents() {
+		$(".addDefaultLink").on("click", addDefaultLink);
+	};
 
 	/**
 	 * @fn function main()
@@ -216,6 +376,7 @@
 	 */
 	function main() {
 		updateInputs();
+		bindEvents();
 	}
 
 	/**

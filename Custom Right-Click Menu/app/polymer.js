@@ -12,6 +12,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 function ripplestuff(element, e, circleornot) {
 
+	console.log("YOLO");
+
 	var elem = element;
 
 	(function () {
@@ -98,8 +100,8 @@ function ripplestuff(element, e, circleornot) {
 			var dx = x - (ctx.containerWidth / 2);
 			var dy = y - (ctx.containerHeight / 2);
 
-			ctx.wc.style.webkitTransform = "translate3d(" + dx + "px," + dy + "px,0)";
-			ctx.wc.style.transform = "translate3d(" + dx + "px," + dy + "px,0)";
+			//ctx.wc.style.webkitTransform = "translate3d(" + dx + "px," + dy + "px,0)";
+			//ctx.wc.style.transform = "translate3d(" + dx + "px," + dy + "px,0)";
 
 			// 2d transform for safari because of border-radius and overflow:hidden clipping bug.
 			// https://bugs.webkit.org/show_bug.cgi?id=98538
@@ -251,9 +253,7 @@ function ripplestuff(element, e, circleornot) {
 				$(wave.wc).animate({
 					opacity: 0
 				}, 1000, function () {
-
-					$(this).remove();
-
+					//$(this).remove();
 				});
 
 				this.waves.push(wave);
@@ -560,7 +560,10 @@ function paperButtonMousedown(e) {
 	/// The onclick for the paper-button
 	/// </summary>
 	/// <param name="e">Mouse-down-event</param>
+	console.log("paper-buton-click");
+	console.log(e);
 	$(this).children("paper-ripple").each(function () {
+		console.log("IES");
 		ripplestuff(this, e, false);
 	});
 }

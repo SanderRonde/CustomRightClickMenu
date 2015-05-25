@@ -5,63 +5,374 @@
 	<link rel="stylesheet" href="css.css"/>
 </head>
 <body>
-<div class="container">
-	<div class="titleCont">
-		<div class="bigTxt">
-			Custom Right-Click Menu
+	<div class="container">
+		<div class="titleCont">
+			<div class="bigTxt">
+				Custom Right-Click Menu
+			</div>
+			<div class="mainDescr">
+				Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it.
+			</div>
 		</div>
-		<div class="mainDescr">
-			Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it.
-		</div>
-	</div>
-	<br/>
-	<br/>
-	<div class="optionsCont">
-		<div class="bigTxt">
-			Options
-		</div>
-		<div class="options">
-			<checkbox-text>
-				<paper-checkbox on="true" class="showOptionsLinkCheckbox">
-					<div class="checkboxcontainer">
-						<paper-ripple class="cirle recenteringTouch">
-							<div class="bg"></div>
-							<div class="waves"></div>
-						</paper-ripple>
-						<div class="checkbox showOptionsLink">
-							<div class="checkmark"></div>
+		<br />
+		<br />
+		<div class="optionsCont">
+			<div class="bigTxt">
+				Options
+			</div>
+			<div class="options">
+				<checkbox-text>
+					<paper-checkbox on="true" class="showOptionsLinkCheckbox">
+						<div class="checkboxcontainer">
+							<paper-ripple class="cirle recenteringTouch">
+								<div class="bg"></div>
+								<div class="waves"></div>
+							</paper-ripple>
+							<div class="checkbox showOptionsLink">
+								<div class="checkmark"></div>
+							</div>
+						</div>
+					</paper-checkbox>
+					<div class="checkboxtext">
+						Show options link in right-click menu
+					</div>
+				</checkbox-text>
+				<checkbox-text>
+					<paper-checkbox on="false" class="openLinkInCurrentTabCheckbox">
+						<div class="checkboxcontainer">
+							<paper-ripple class="cirle recenteringTouch">
+								<div class="bg"></div>
+								<div class="waves"></div>
+							</paper-ripple>
+							<div class="checkbox openLinkInCurrentTab">
+								<div class="checkmark"></div>
+							</div>
+						</div>
+					</paper-checkbox>
+					<div class="checkboxtext">
+						Open any pressed link in the current tab instead of a new one
+					</div>
+				</checkbox-text>
+			</div>
+			<div class="CustomRightClickMenuConfig">
+
+			</div>
+			<div class="defaultCRMLinks">
+				<div class="bigTxt">
+					Commonly Used Links
+				</div>
+				<div class="defaultsDescr">
+					Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
+				</div>
+				<br/>
+				<div class="defaultLinks">
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.google.com" target="_blank">
+									https://www.google.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Google" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
 						</div>
 					</div>
-				</paper-checkbox>
-				<div class="checkboxtext">
-					Show options link in right-click menu
-				</div>
-			</checkbox-text>
-			<checkbox-text>
-				<paper-checkbox on="false" class="openLinkInCurrentTabCheckbox">
-					<div class="checkboxcontainer">
-						<paper-ripple class="cirle recenteringTouch">
-							<div class="bg"></div>
-							<div class="waves"></div>
-						</paper-ripple>
-						<div class="checkbox openLinkInCurrentTab">
-							<div class="checkmark"></div>
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.facebook.com" target="_blank">
+									https://www.facebook.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Facebook" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
 						</div>
 					</div>
-				</paper-checkbox>
-				<div class="checkboxtext">
-					Open any pressed link in the current tab instead of a new one
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.twitter.com" target="_blank">
+									https://www.twitter.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Twitter" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
+						</div>
+					</div>
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.youtube.com" target="_blank">
+									https://www.youtube.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Youtube" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
+						</div>
+					</div>
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.yahoo.com" target="_blank">
+									https://www.yahoo.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Yahoo" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
+						</div>
+					</div>
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.wikipedia.org" target="_blank">
+									https://www.wikipedia.org
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Wikipedia" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
+						</div>
+					</div>
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.amazon.com" target="_blank">
+									https://www.amazon.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Amazon" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
+						</div>
+					</div>
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.ebay.com" target="_blank">
+									https://www.ebay.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Ebay" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
+						</div>
+					</div>
+					<div class="defaultLink">
+						<div class="defaultLinkLinkCont">
+							<div class="defaultLinkLink">
+								<a class="defaultLinkHref" href="https://www.reddit.com" target="_blank">
+									https://www.reddit.com
+								</a>
+							</div>
+						</div>
+						<div class="defaultLinkName">
+							<paper-input>
+								<paper-input-decorator>
+									<input value="Reddit" class="actualinput" />
+									<div class="underline">
+										<div class="unfocused-underline"></div>
+										<div class="focusedUnderline focused-underline"></div>
+									</div>
+								</paper-input-decorator>
+							</paper-input>
+						</div>
+						<div class="defaultLinkButton">
+							<paper-button class="addDefaultLink" raised>
+								<paper-ripple>
+									<div class="bg"></div>
+									<div class="waves"></div>
+									<div class="button-content">ADD</div>
+								</paper-ripple>
+								<paper-shadow>
+									<div class="shadow-bot"></div>
+									<div class="shadow-top"></div>
+								</paper-shadow>
+							</paper-button>
+						</div>
+					</div>
 				</div>
-			</checkbox-text>
-		</div>
-		<div class="trailingBrs">
-			<br/><br/><br/>
+			</div>
+			<div class="trailingBrs">
+				<br /><br /><br />
+			</div>
 		</div>
 	</div>
-</div>
-<script src="jquery-2.0.3.min.js"></script>
-<script src="jquery.color-2.1.2.min.js"></script>
-<script src="polymer.js"></script>
-<script src="options.js"></script>
+	<script src="jquery-2.0.3.min.js"></script>
+	<script src="jquery.color-2.1.2.min.js"></script>
+	<script src="polymer.js"></script>
+	<script src="options.js"></script>
 </body>
 </html>
