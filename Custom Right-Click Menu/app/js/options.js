@@ -1,5 +1,5 @@
 /// <reference path="../../scripts/_references.js"/>
-/// <reference path="jquery-2.0.3.min.js" />
+/// <reference path="../../scripts/jquery-2.1.4.min.map" />
 (function () {
 
 	/**
@@ -380,7 +380,18 @@
 	 */
 	function bindEvents() {
 		$(".addDefaultLink").on("click", addDefaultLink);
-		var thingy = '$.contextMenu({selector: ' + "'#" + selector + "',callback: function () {	alert(" + '"This menu is for previewing only and won' + "'t do anything on clicking" + '");},items: {' + optionsstring + "}});";
+		var items = {};
+
+		$.contextMenu({
+			'selector': 'body',
+			'callback': function (key) {
+				console.log('');
+				console.log(key);
+				console.log('clicked');
+			},
+			'items': items
+		});
+			//var thingy = '$.contextMenu({selector: ' + "'#" + selector + "',callback: function () {	alert(" + '"This menu is for previewing only and won' + "'t do anything on clicking" + '");},items: {' + optionsstring + "}});";
 	};
 
 	/**

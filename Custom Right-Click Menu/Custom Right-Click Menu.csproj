@@ -59,7 +59,7 @@
     <Content Include="Properties\build\lib\MSBuild.ExtensionPack.dll" />
     <Content Include="DebugSettings.template.xml" />
     <Content Include="Properties\build\ligershark.chrome.targets" />
-    <Content Include="scripts\jquery-2.1.4.min.map" />
+    <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
   </ItemGroup>
