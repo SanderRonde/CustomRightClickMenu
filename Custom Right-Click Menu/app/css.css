@@ -51,3 +51,7 @@ body {
 paper-input-decorator .focused-underline {
 	background-color: #000000;
 }
+
+.contextMenu {
+	position: absolute;
+}

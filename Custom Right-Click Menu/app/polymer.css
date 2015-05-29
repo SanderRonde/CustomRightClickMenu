@@ -181,7 +181,7 @@ paper-checkbox .checkboxContainer {
   transform: translateZ(0);
 }
 
-paper-checkbox .CheckboxContainer.labeled {
+paper-checkbox .checkboxContainer.labeled {
   display: inline-block;
   vertical-align: middle;
 }

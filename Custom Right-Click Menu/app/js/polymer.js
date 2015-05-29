@@ -12,8 +12,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 function ripplestuff(element, e, circleornot) {
 
-	console.log("YOLO");
-
 	var elem = element;
 
 	(function () {
@@ -578,14 +576,14 @@ function paperCheckboxMousedown() {
 			.children("paper-ripple")
 			.css("color", "#5a5f5a");
 		$(this)
-			.children(".checkboxcontainer")
+			.children(".checkboxContainer")
 			.children(".checkbox")
 			.animate({
 				backgroundColor: "rgba(0,0,0,0)",
 				borderColor: "#5a5a5a"
 			}, 50);
 		$(this)
-			.children(".checkboxcontainer")
+			.children(".checkboxContainer")
 			.children(".checkbox")
 			.children(".checkmark")
 			.css("display", "none");
@@ -595,16 +593,16 @@ function paperCheckboxMousedown() {
 		$(this)
 			.children(".checkboxContainer")
 			.children("paper-ripple")
-			.css("color", "#B2DFDB");
+			.css("color", "rgb(178, 180, 223)");
 		$(this)
-			.children(".checkboxcontainer")
+			.children(".checkboxContainer")
 			.children(".checkbox")
 			.animate({
-				backgroundColor: "#009688",
-				borderColor: "#009688"
+				backgroundColor: "rgb(63, 81, 181)",
+				borderColor: "rgb(63, 81, 181)"
 			}, 50);
 		$(this)
-			.children(".checkboxcontainer")
+			.children(".checkboxContainer")
 			.children(".checkbox")
 			.children(".checkmark")
 			.css("display", "block")
@@ -612,7 +610,7 @@ function paperCheckboxMousedown() {
 		$(this).attr("on", "true");
 	}
 
-	ripplestuff($(this).children(".checkboxcontainer").children("paper-ripple")[0], "", true);
+	ripplestuff($(this).children(".checkboxContainer").children("paper-ripple")[0], "", true);
 }
 
 function sliderKnobMousedown() {
@@ -824,16 +822,16 @@ function bindPaperEls(container) {
 					$(this)
 						.children(".checkboxContainer")
 						.children("paper-ripple")
-						.css("color", "#B2DFDB");
+						.css("color", "rgb(178, 180, 223)");
 					$(this)
-						.children(".checkboxcontainer")
+						.children(".checkboxContainer")
 						.children(".checkbox")
 						.animate({
-							backgroundColor: "#009688",
-							borderColor: "#009688"
+							backgroundColor: "rgb(63, 81, 181)",
+							borderColor: "rgb(63, 81, 181)"
 						}, 50);
 					$(this)
-						.children(".checkboxcontainer")
+						.children(".checkboxContainer")
 						.children(".checkbox")
 						.children(".checkmark")
 						.css("display", "block")

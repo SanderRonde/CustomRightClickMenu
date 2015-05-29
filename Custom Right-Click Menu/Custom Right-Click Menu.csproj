@@ -38,6 +38,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="app\jquery.contextMenu.css" />
     <Content Include="app\js\background.js" />
     <Content Include="app\js\contentscript.js" />
     <Content Include="app\js\crmapi.js" />

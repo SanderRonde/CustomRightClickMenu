@@ -7,18 +7,18 @@
 	"version": "2.0",
 
 	"background": {
-		"scripts": [ "jquery-2.0.3.min.js", "background.js", "crmapi.js" ]
+		"scripts": [ "js/jquery-2.0.3.min.js", "js/background.js", "js/crmapi.js" ]
 	},
 
 	"content_scripts": [
 		{
 			"matches": [ "http://*/*", "https://*/*" ],
-			"js": [ "jquery-2.0.3.min.js", "contentscript.js", "crmapi.js" ]
+			"js": [ "js/jquery-2.0.3.min.js", "js/contentscript.js", "js/crmapi.js" ]
 		},
 		{
 			"matches": [ "http://*/*" ],
 			"all_frames": true,
-			"js": [ "jquery-2.0.3.min.js", "iframecontentscript.js" ]
+			"js": [ "js/jquery-2.0.3.min.js", "js/iframecontentscript.js" ]
 		}
 	],
 
@@ -33,10 +33,10 @@
 	],
 
 	"web_accessible_resources": [
-		"jquery-2.0.3.min.map",
-		"jquery-2.0.3.min.js",
-		"jquery-2.0.3.js",
-		"crmapi.js"
+		"js/jquery-2.0.3.min.map",
+		"js/jquery-2.0.3.min.js",
+		"js/jquery-2.0.3.js",
+		"js/crmapi.js"
 	],
 
 	"optional_permissions": [
