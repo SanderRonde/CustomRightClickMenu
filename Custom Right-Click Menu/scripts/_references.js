@@ -4,3 +4,4 @@
 /// <reference path="/app/js/polymer.js"/>
 /// <reference path="jquery-2.1.4.min.map"/>
 /// <reference path="/app/js/jquery.contextMenu.js" />
+/// <reference path="~/app/bower_components/polymer/polymer-micro.js" />

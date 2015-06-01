@@ -1,0 +1,31 @@
+﻿<html>
+<head>
+</head>
+<body>
+	<dom-module id="default-link" attributes="href defaultName">
+		<template>
+			<link rel="import" href="../../bower_components/polymer/polymer.html" />
+			<link rel="import" href="../../bower_components/paper-input/paper-input.html" />
+			<link rel="import" href="../../bower_components/paper-button/paper-button.html" />
+			<link rel="stylesheet" type="css" href="default-link.css">
+			<div class="defaultLinkCont">
+				<div class="defaultLinkLinkCont">
+					<div class="defaultLinkLink">
+						<a class="defaultLinkHref" href="{{href}}" target="_blank">{{href}}</a>
+					</div>
+				</div>
+				<div class="defaultLinkName" flex>
+					<paper-input-container>
+						<label>Link Name</label>
+						<input is="iron-input" id="input" bind-value="{{defaultName}}" value="{{defaultName}}" />
+					</paper-input-container>
+				</div>
+				<div class="defaultLinkButton">
+					<paper-button raised on-tap="onClick">ADD</paper-button>
+				</div>
+			</div>
+		</template>
+	</dom-module>
+	<script src="default-link.js"></script>
+</body>
+</html>

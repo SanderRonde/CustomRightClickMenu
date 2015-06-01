@@ -1682,5 +1682,4 @@ $.contextMenu.types = types;
 $.contextMenu.handle = handle;
 $.contextMenu.op = op;
 $.contextMenu.menus = menus;
-
 })(jQuery);
