@@ -1,0 +1,104 @@
+﻿.bigTxt {
+	font-size: 300%;
+}
+
+.container {
+	font-size:150%;
+	width: 1000px;
+	overflow-x:hidden;
+	overflow-y:hidden;
+	margin-left:auto;
+	margin-right:auto;
+}
+
+.contextMenu {
+	position: absolute;
+}
+
+.CRMEditColumn {
+	float:left;
+	position: relative;
+}
+
+.CRMEditDivider, .CRMEditLink, .CRMEditMenu, .CRMEditScript {
+	width: 200px;
+	height: 50px;
+	margin-bottom: 1px;
+	cursor: pointer;
+	font-size: 150%;
+	text-align: center;
+	line-height: 50px;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.CRMEditCont:first-child {
+	margin-left: 3px;
+}
+
+	.CRMEditDivider:hover, .CRMEditLink:hover, .CRMEditMenu:hover, .CRMEditScript:hover {
+		background-color:rgb(245, 245, 245);
+	}
+
+/*.CRMEditLink {
+	border-color: blue;
+}
+
+.CRMEditScript {
+	border-color: red;
+}
+
+.CRMEditDivider {
+	border-color: yellow;
+}
+
+.CRMEditMenu {
+	border-color: green;
+}*/
+
+paper-shadow {
+	pointer-events: none;
+}
+
+.menuArrow {
+	display:inline-block;
+	position: absolute;
+	right: 0;
+	width: 20px;
+	height: 50px;
+	background-color: rgb(255, 0, 0);
+}
+
+	.menuArrow:hover {
+		background-color:rgb(245, 245, 245);
+	}
+
+.editContent {
+	display: inline-block;
+}
+
+.paper-icon-button-0 {
+	width: 35px;
+	height: 35px;
+}
+
+.iron-icon-0 {
+	margin: 0;
+}
+
+.title {
+	text-align: center;
+	font-size:300%!important;
+	height:35px;
+}
+
+paper-checkbox #ink[checked] {
+	color: rgb(63, 81, 181);
+}
+
+paper-checkbox.paper-checkbox-0 #checkbox.checked.paper-checkbox {
+	background-color: rgb(63, 81, 181);
+	border-color: rgb(63, 81, 181);
+}

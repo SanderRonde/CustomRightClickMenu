@@ -1,0 +1,71 @@
+﻿<dom-module id="crm-options">
+	<template>
+		<link rel="import" href="../../elements/elements.html"/>
+		<link rel="stylesheet" href="../../jquery.contextMenu.css"/>
+		<link rel="stylesheet" href="crm-options.css" />
+		<paper-toolbar>
+			<div flex title class="title">Custom Right-Click Menu</div>
+		</paper-toolbar>
+
+		<div class="container">
+			<br/>
+			<div class="titleCont">
+				<div class="bigTxt">
+					Custom Right-Click Menu
+				</div>
+				<div class="mainDescr">
+					Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it. You can right-click anywhere on this page to view the custom right-click menu (this will be wrapped in a "Custom Menu" subsection on other pages.
+				</div>
+			</div>
+			<br/>
+			<br/>
+			<div class="optionsCont">
+				<div class="bigTxt">
+					Options
+				</div>
+				<div class="options">
+					<paper-toggle-option text="Show options link in right-click menu" id="showOptions"></paper-toggle-option>
+					<paper-toggle-option text="Open any pressed link in the current tab instead of a new one" id="openInCurrentTab"></paper-toggle-option>
+					<paper-toggle-option text="Edit the Custom Right-Click Menu by clicking on the respective elements when right-clicking on this page" id="editCRMInRM"></paper-toggle-option>
+				</div>
+			</div>
+			<br/><br/>
+			<div class="customRightClickMenuConfig">
+				<div class="bigTxt">
+					Editing the Custom Right-Click Menu
+				</div>
+				<div class="customRightClickMenuEdit">
+				</div>
+			</div>
+			<br/><br/>
+			<div class="defaultCRMLinks">
+				<div class="bigTxt">
+					Commonly Used Links
+				</div>
+				<div class="defaultsDescr">
+					Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
+				</div>
+				<br/>
+				<div class="defaultLinks">
+					<default-link href="http://www.google.com" default-name="Google"></default-link>
+					<default-link href="http://www.facebook.com" default-name="Facebook"></default-link>
+					<default-link href="http://www.twitter.com" default-name="Twitter"></default-link>
+					<default-link href="http://www.youtube.com" default-name="Youtube"></default-link>
+					<default-link href="http://www.yahoo.com" default-name="Yahoo"></default-link>
+					<default-link href="http://www.wikipedia.org" default-name="Wikipedia"></default-link>
+					<default-link href="http://www.amazon.com" default-name="Amazon"></default-link>
+					<default-link href="http://www.ebay.com" default-name="Ebay"></default-link>
+					<default-link href="http://www.reddit.com" default-name="Reddit"></default-link>
+				</div>
+			</div>
+			<div class="trailingBrs">
+				<br/><br/><br/>
+			</div>
+		</div>
+		<script src="../../js/jquery-2.0.3.min.js"></script>
+		<script src="../../js/jquery.contextMenu.js"></script>
+	</template>
+</dom-module>
+<script src="../../js/jquery-2.0.3.min.js"></script>
+<script src="../../js/jquery.contextMenu.js"></script>
+<script src="crm-options.js"></script>
