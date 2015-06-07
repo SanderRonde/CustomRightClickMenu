@@ -5,19 +5,12 @@
 .container {
 	font-size:150%;
 	width: 1000px;
-	overflow-x:hidden;
-	overflow-y:hidden;
 	margin-left:auto;
 	margin-right:auto;
 }
 
 .contextMenu {
 	position: absolute;
-}
-
-.CRMEditColumn {
-	float:left;
-	position: relative;
 }
 
 .CRMEditDivider, .CRMEditLink, .CRMEditMenu, .CRMEditScript {
@@ -62,19 +55,6 @@ paper-shadow {
 	pointer-events: none;
 }
 
-.menuArrow {
-	display:inline-block;
-	position: absolute;
-	right: 0;
-	width: 20px;
-	height: 50px;
-	background-color: rgb(255, 0, 0);
-}
-
-	.menuArrow:hover {
-		background-color:rgb(245, 245, 245);
-	}
-
 .editContent {
 	display: inline-block;
 }
@@ -101,4 +81,8 @@ paper-checkbox #ink[checked] {
 paper-checkbox.paper-checkbox-0 #checkbox.checked.paper-checkbox {
 	background-color: rgb(63, 81, 181);
 	border-color: rgb(63, 81, 181);
+}
+
+paper-ripple {
+	pointer-events: none;
 }

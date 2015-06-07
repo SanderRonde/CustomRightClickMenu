@@ -4,7 +4,7 @@
  * A shorthand name for chrome.storage.sync
  */
 var storage = chrome.storage.sync;
-var options = document.getElementsByTagName("crm-options")[0];
+var options = document.getElementsByTagName('crm-options')[0];
 var contextMenuItems = {'example': { 'name': 'example' } };
 
 /**
@@ -31,94 +31,6 @@ function isEmpty(value) {
 }
 
 /**
- * Builds one column of the crm settings edit item
- * 
- * @param index Value whose children to take.
- * @param cont The container of the items.
- * @param parentIndex The index of the parent in its parent.
- * @param isMenu Whether the column to build is a menu or the first column
- */
-function buildColumn(index, cont, parentIndex, isMenu) {
-
-	var column = $('<div class="CRMEditColumn"></div>')
-		.css('margin-top', (50 * parentIndex) + 'px')
-		.appendTo(cont);
-
-	$('<paper-shadow>' +
-			'<div class="shadow-top"></div>' +
-			'</paper-shadow>')
-		.appendTo(column);
-
-	//Find last menu if it exists
-	var lastMenu = -1;
-	var i;
-	var items = [];
-	if (index === -1) {
-		for (i = 0; i < settings.crm.length; i++) {
-			items[i] = i;
-		}
-	} else {
-		items = settings.crm[index].children;
-	}
-	for (i = 0; i < items.length; i++) {
-		if ((isMenu ? items[i].type : settings.crm[items[i]].type) === 'menu') {
-			lastMenu = i;
-		}
-	}
-
-	var value;
-	var className;
-	for (i = 0; i < items.length; i++) {
-		value = (isMenu ? items[i] : settings.crm[items[i]]);
-		switch (value.type) {
-			case 'link':
-				className = 'CRMEditLink';
-				break;
-			case 'script':
-				className = 'CRMEditScript';
-				break;
-			case 'divider':
-				className = 'CRMEditDivider';
-				break;
-			default:
-				className = 'CRMEditMenu';
-				console.log(lastMenu);
-				if (i === lastMenu) {
-					buildColumn((isMenu ? i : items[i]), cont, i, true);
-				}
-				break;
-		}
-		$('<div class="' + className + '"><div class="dragger"></div>' +
-				'<div class="editContent">' +
-				'<paper-ripple>' +
-				'<div class="bg"></div>' +
-				'<div class="waves"></div>' +
-				'<div class="button-content">' +
-				value.name +
-				'</div>' +
-				'</paper-ripple></div>' +
-				(value.type === "menu" ?
-					'<div class="menuArrow"><div class="menuArrowArrow"></div></div>'
-					: '') + '</div>')
-			.appendTo(column)
-			.mousedown(function (e) {
-				ripplestuff($(this).find("paper-ripple")[0], e, false);
-			});
-	}
-}
-
-/**
- * Builds crm settings and places it in the options page
- */
-function buildCrmSettings() {
-	$(".CRMEditCont").remove();
-	var cont = $('<div class="CRMEditCont"></div>')
-		.appendTo($('.customRightClickMenuEdit'));
-
-	buildColumn(-1, cont, 0, false);
-}
-
-/**
  * @fn function addDefaultLink()
  *
  * @brief Adds default link to the CRM
@@ -126,9 +38,9 @@ function buildCrmSettings() {
 function addDefaultLink() {
 	var defaultLinkItem = $(this).parent().parent();
 	console.log(defaultLinkItem);
-	var link = defaultLinkItem.find(".defaultLinkHref").html().trim();
-	var name = defaultLinkItem.find("input").val();
-	var newItem = new CRMItem("link", link, name);
+	var link = defaultLinkItem.find('.defaultLinkHref').html().trim();
+	var name = defaultLinkItem.find('input').val();
+	var newItem = new CRMItem('link', link, name);
 	settings.crm._add(newItem);
 }
 
@@ -150,7 +62,7 @@ function bindEvents() {
  */
 function linkHandler(toOpen) {
 	return function () {
-		window.open(toOpen, "_blank");
+		window.open(toOpen, '_blank');
 	}
 }
 
@@ -212,7 +124,7 @@ function addScript(items, toAdd, iterator) {
  */
 function addDivider(items, toAdd, iterator) {
 	var item = {};
-	item = "---------";
+	item = '---------';
 	items[iterator] = item;
 	return items;
 }
@@ -227,30 +139,25 @@ function addDivider(items, toAdd, iterator) {
  * @return The items with the new item in it.
  */
 function addMenu(items, toAdd, iterator) {
-	console.log("menu", iterator);
 	var item = {};
 	item.name = toAdd.name;
 	var childItems = {};
-	console.log(toAdd);
-	console.log(toAdd.children);
-	for (var i = 0; i < toAdd.children.length; i++) {
-		switch (toAdd.children[i].type) {
-			case "link":
-				childItems = addLink(childItems, toAdd.children[i], i);
+	toAdd.children.forEach(function (item, index) {
+		switch (item.type) {
+			case 'link':
+				childItems = addLink(childItems, item,index);
 				break;
-			case "script":
-				childItems = addScript(childItems, toAdd.children[i], i);
+			case 'script':
+				childItems = addScript(childItems, item,index);
 				break;
-			case "divider":
-				childItems = addDivider(childItems, toAdd.children[i], i);
+			case 'divider':
+				childItems = addDivider(childItems, item,index);
 				break;
-			case "menu":
-				childItems = addMenu(childItems, toAdd.children[i], i);
+			case 'menu':
+				childItems = addMenu(childItems, item,index);
 				break;
 		}
-	}
-	console.log(item);
-	console.log(childItems);
+	});
 	item.items = childItems;
 	items[iterator] = item;
 	return items;
@@ -262,34 +169,30 @@ function addMenu(items, toAdd, iterator) {
 function buildContextMenu() {
 	var items = {};
 	var crm = options.settings.crm;
-	for (var i = 0; i < crm.length; i++) {
-		switch (crm[i].type) {
-		case "link":
-			items = addLink(items, crm[i], i);
-			break;
-		case "script":
-			items = addScript(items, crm[i], i);
-			break;
-		case "divider":
-			items = addDivider(items, crm[i], i);
-			break;
-		case "menu":
-			items = addMenu(items, crm[i], i);
-			break;
+	crm.forEach(function (item, index) {
+		switch (item.type) {
+			case 'link':
+				items = addLink(items, item, index);
+				break;
+			case 'script':
+				items = addScript(items, item, index);
+				break;
+			case 'divider':
+				items = addDivider(items, item, index);
+				break;
+			case 'menu':
+				items = addMenu(items, item, index);
+				break;
 		}
-	}
-
+	});
 	contextMenuItems = items;
 }
-
 /**
- * @fn function main()
+ * @fn function bindContextMenu()
  *
- * @brief Main function, called when javascript is ready to be executed
+ * @brief Bind context men to page.
  */
-function main() {
-	console.log("main");
-	buildContextMenu();
+function bindContextMenu() {
 	$.contextMenu({
 		selector: 'body',
 		build: function () {
@@ -298,6 +201,17 @@ function main() {
 			};
 		}
 	});
+}
+
+/**
+ * @fn function main()
+ *
+ * @brief Main function, called when javascript is ready to be executed
+ */
+function main() {
+	console.log('main');
+	buildContextMenu();
+	//bindContextMenu();
 	//bindEvents();
 	//buildCrmSettings();
 }
@@ -326,13 +240,52 @@ function insertInto(toAdd, target, position) {
 }
 
 Polymer({
-	is: "crm-options",
+	is: 'crm-options',
 
 	properties: {
 		settings: {
 			type: Object,
-			notify: true
+			notify: true,
+			observer: 'settingsChanged'
+		},
+		elementListeners: {
+			type: Array,
+			value: []
+		},
+		prevCRM: {
+			value: {},
+			type: Object
 		}
+	},
+
+	/**
+	 * @fn settingsChanged: function ()
+	 *
+	 * @brief The settings object has changed, launch al listeners
+	 */
+	settingsChanged: function () {
+		var crmChanged = false;
+		if (this.prevCRM !== this.settings.crm) {
+			crmChanged = true;
+		}
+		this.prevCRM = this.settings.crm;
+		this.elementListeners.forEach(function (item) {
+			if (item.type === 'settings' || crmChanged) {
+				item.function();
+			}
+		});
+	},
+
+	/**
+	 * @fn addListener: function(callback)
+	 *
+	 * @brief Adds a listener for the settings or crm object
+	 *
+	 * @param data Data object.
+	 */
+	addListener: function (data) {
+		console.log(this.elementListeners);
+		this.elementListeners.push(data);
 	},
 
 	/**
@@ -377,9 +330,9 @@ Polymer({
 		 * @param position The position to add it in
 		 */
 		add: function(value, position) {
-			if (position === "first") {
+			if (position === 'first') {
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm, 0);
-			} else if (position === "last" || position === undefined) {
+			} else if (position === 'last' || position === undefined) {
 				this.parent.settings.crm[this.parent.settings.crm.length] = value;
 			} else {
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm, position);

@@ -25,7 +25,7 @@ Polymer.IronControlState = {
 		}
 	},
 	observers: [
-      '_changedControlState(focused, disabled)'
+	  '_changedControlState(focused, disabled)'
 	],
 	listeners: {
 		focus: '_focusHandler',
@@ -55,10 +55,10 @@ Polymer.IronControlState = {
 			this.tabIndex = this._oldTabIndex;
 		}
 	},
-	_changedControlState: function () {
+	_changedControlState: function (focused, disabled) {
 		// _controlStateChanged is abstract, follow-on behaviors may implement it
 		if (this._controlStateChanged) {
-			this._controlStateChanged();
+			this._controlStateChanged(focused, disabled);
 		}
 	}
 };
