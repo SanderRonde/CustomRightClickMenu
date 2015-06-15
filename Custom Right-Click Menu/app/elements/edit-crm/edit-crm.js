@@ -42,6 +42,8 @@ function buildCRMEditObj(setMenus) {
 		columnNum = 0,
 		column;
 
+	console.log(setMenus);
+
 	var list = options.settings.crm;
 
 	while (lastMenu !== -1) {
@@ -58,6 +60,10 @@ function buildCRMEditObj(setMenus) {
 
 		if (lastMenu !== -1) {
 			indentTop += lastMenu;
+			list.forEach(function(item) {
+				item.expanded = false;
+			});
+			list[lastMenu].expanded = true;
 			list = list[lastMenu].children;
 		}
 
@@ -75,8 +81,6 @@ function buildCRMEditObj(setMenus) {
 		crmEditObj.push(column);
 		columnNum++;
 	}
-
-	console.log(crmEditObj);
 
 	return crmEditObj;
 }
@@ -98,11 +102,14 @@ Polymer({
 	 * @brief Builds the crm object
 	 * 		  
 	 * @param setItems Set choices for menus by the user
+	 * 
+	 * @return The object to be sent to Polymer
 	 */
 	build: function (setItems) {
 		setItems = setItems || [];
-		this.crm = [];
-		this.push('crm', buildCRMEditObj(setItems));
+		var obj = buildCRMEditObj(setItems);
+		this.crm = obj;
+		return obj;
 	},
 
 	ready: function() {

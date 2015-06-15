@@ -217,26 +217,39 @@ function main() {
 }
 
 /**
- * Inserts an the value into given array
+ * Inserts the value into given array
  *
  * @param toAdd    Value to add.
  * @param target   Array to add into.
- * @param position The positionat which to add.
+ * @param position The position at which to add.
  *
  * @return Complete array
  */
 function insertInto(toAdd, target, position) {
-	console.log(toAdd);
-	console.log(target);
-	console.log(position);
-	var temp1;
+	var temp1, i;
 	var temp2 = toAdd;
-	for (var i = position; i < target.length; i++) {
+	for (i = position; i < target.length; i++) {
 		temp1 = target[i];
 		target[i] = temp2;
 		temp2 = temp1;
 	}
+	target[i] = temp2;
 	return target;
+}
+
+/**
+ * 
+ * @param path The path to translate
+ * @returns The string version to eval
+ */
+function getPathString(path) {
+	var pathString = '';
+	var i;
+	for (i = 0; i < path.length - 1; i++) {
+		pathString += '[' + path[i] + '].children';
+	}
+	pathString += '[' + path[i] + ']';
+	return pathString;
 }
 
 Polymer({
@@ -263,13 +276,13 @@ Polymer({
 	 *
 	 * @brief The settings object has changed, launch al listeners
 	 */
-	settingsChanged: function () {
+	settingsChanged: function() {
 		var crmChanged = false;
 		if (this.prevCRM !== this.settings.crm) {
 			crmChanged = true;
 		}
 		this.prevCRM = this.settings.crm;
-		this.elementListeners.forEach(function (item) {
+		this.elementListeners.forEach(function(item) {
 			if (item.type === 'settings' || crmChanged) {
 				item.function();
 			}
@@ -283,7 +296,7 @@ Polymer({
 	 *
 	 * @param data Data object.
 	 */
-	addListener: function (data) {
+	addListener: function(data) {
 		console.log(this.elementListeners);
 		this.elementListeners.push(data);
 	},
@@ -338,6 +351,24 @@ Polymer({
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm, position);
 			}
 			this.parent.upload();
+		},
+
+		/**
+		 * Moves a value in the CRM from one place to another
+		 *
+		 * @param toMove    The value to move's location (in path form)
+		 * @param target	Where to move the item to (in path form)
+		 */
+		move: function(toMove, target) {
+			var toMoveString = getPathString(toMove);
+			var originalTarget = eval('options.settings.crm' + toMoveString);
+			var originalIndex = toMove.splice(toMove.length - 1, 1);
+			var newIndex = target.splice(target.length - 1, 1);
+			var newTarget = eval('options.settings.crm' + toMoveString);
+
+			insertInto(originalTarget, newTarget, newIndex);
+
+			eval('options.settings.crm' + toMoveString + '.splice(originalIndex,1)');
 		}
 	}
 });

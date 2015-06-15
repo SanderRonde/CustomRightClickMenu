@@ -1,209 +1,545 @@
+function createWrapper(thisObject, method) {
+	return function () {
+		return method.call(thisObject);
+	};
+}
+
 Polymer({
 	is: 'edit-crm-item',
+
+	/**
+	  * The name of this item
+	  *
+	  * @attribute name
+	  * @type string
+	  * @default ''
+	  */
+	name: '',
+
+	/**
+	  * Whether this item is a menu or not
+	  *
+	  * @attribute isMenu
+	  * @type boolean
+	  * @default false
+	  */
+	isMenu: false,
+
+	/**
+	  * Whether this item is currently being dragged
+	  *
+	  * @attribute dragging
+	  * @type boolean
+	  * @default false
+	  */
+	dragging: false,
+
+	/**
+	  * Whether this item is currently being dragged
+	  *
+	  * @attribute dragging
+	  * @type boolean
+	  * @default false
+	  */
+	cursorPosChanged: true,
+
+	/**
+     * The last recorded position of the mouse
+     * 
+     * @attribute lastRecordedPos
+     * @type Object
+     * @default { X: 0, Y: 0 }
+     */
+	lastRecordedPos: {
+		X: 0,
+		Y: 0
+	},
+
+	/**
+     * The position at which the user started to drag the curent item
+     * 
+     * @attribute dragStart
+     * @type Object
+     * @default { X: 0, Y: 0 }
+     */
+	dragStart: {
+		X: 0,
+		Y: 0
+	},
+
+	/**
+     * The position the mouse was relative to the corner when the drag started
+     * 
+     * @attribute mouseToCorner
+     * @type Object
+     * @default { X: 0, Y: 0 }
+     */
+	mouseToCorner: {
+		X: 0,
+		Y: 0
+	},
+
+	/**
+     * Whether the element is ready for a mouse-up event
+     * 
+     * @attribute readyForMouseUp
+     * @type Boolean
+     * @default true
+     */
+	readyForMouseUp: true,
+
+	/**
+     * Whether the element should execute a mouse-up event when ready for it
+     * 
+     * @attribute execMouseUp
+     * @type Boolean
+     * @default false
+     */
+	execMouseUp: false,
+
+	/**
+     * What the getBoundingClientRect().top was for the CRM-container on drag
+     * start
+     * 
+     * @attribute scrollStart
+     * @type Object
+     * @default { X: 0, Y: 0 }
+     */
+	scrollStart: {
+		X: 0,
+		Y: 0
+	},
+
+	/**
+     * The function that gets called when the body is dragged
+     * 
+     * @attribute bodyDragFunction
+     * @type Function
+     * @default function(){}
+     */
+	bodyDragFunction: function() {},
+
+	/**
+     * The function that gets called when the body is scrolled on
+     * 
+     * @attribute bodyScrollFunction
+     * @type Function
+     * @default function(){}
+     */
+	bodyScrollFunction: function() {},
+
+	/**
+     * The function that gets called when the window is blurred (out of focus)
+     * 
+     * @attribute blurFunction
+     * @type Function
+     * @default function(){}
+     */
+	blurFunction: function() {},
+
+	/**
+     * The function that gets called when the body is dragged on
+     * 
+     * @attribute bodyDragWrapper
+     * @type Function
+     * @default function() {}
+     */
+	bodyDragWrapper: function() {},
+
+	/**
+     * The function that gets called when the user scroll sideways
+     * 
+     * @attribute sideScrollFunction
+     * @type Function
+     * @default function() {}
+     */
+	sideScrollFunction: function() {},
+
+	/**
+     * The filler element
+     * 
+     * @attribute filler
+     * @type Element
+     * @default undefined
+     */
+	filler: undefined,
 
 	properties: {
 		item: {
 			type: Object,
 			notify: true
-		},
-		name: String,
-		isMenu: Boolean,
-		dragging: {
-			type: Boolean,
-			value: false
-		},
-		lastRecordedPos: {
-			type: Object,
-			value: {
-				X: 0,
-				Y: 0
-			}
-		},
-		dragStart: {
-			type: Object,
-			value: {
-				X: 0,
-				Y: 0
-			}
-		},
-		mouseToCorner: {
-			type: Object,
-			value: {
-				X: 0,
-				Y: 0
-			}
-		},
-		scrollStartY: Number,
-		element: Object,
-		bodyDragFunction: Function,
-		bodyScrollFunction: Function,
-		blurFunction: Function,
-		filler: {
-			type: Element
 		}
+	},
+
+	changeDraggingState: function(newState) {
+		this.dragging = newState;
+		this.parentNode.parentNode.parentNode.dragging = newState;
+		this.parentNode.parentNode.parentNode.draggingItem = this;
 	},
 
 	ready: function() {
 		this.name = this.item.name;
 		this.isMenu = this.item.type === 'menu';
+		this.itemIndex = this.index;
 		var elem = this;
 		$(this.$.dragger)
+			.off('mousedown')
 			.on('mousedown', function(e) {
 				if (e.which === 1) {
-					elem.dragItem(e);
+					elem.readyForMouseUp = false;
+					elem.startDrag(e);
+					elem.readyForMouseUp = true;
+					if (elem.execMouseUp) {
+						elem.stopDrag();
+					}
 				}
 			})
+			.off('mouseup')
 			.on('mouseup', function(e) {
 				if (e.which === 1) {
-					elem.stopDrag();
+					e.stopPropagation();
+					if (elem.readyForMouseUp) {
+						elem.stopDrag();
+					} else {
+						elem.execMouseUp = true;
+					}
 				}
 			});
-		this.element = this;
+		this.bodyDragWrapper = createWrapper(this, this.bodyDrag);
+		//Used to preserve 'this', passing data via jquery doesnt' seem to work
+		this.bodyDragFunction = function(e) {
+			elem.bodyDrag(e);
+		}
+		this.bodyScrollFunction = function() {
+			elem.bodyScroll();
+		}
+		this.blurFunction = function() {
+			elem.stopDrag();
+		}
+		this.stopDragFunction = function() {
+			if (elem.dragging) {
+				elem.stopDrag();
+			}
+		}
+		this.mouseMovementFunction = function(event) {
+			elem.recordMouseMovemenent(event);
+		}
+		this.sideScrollFunction = function() {
+			elem.sideDrag();
+		}
+	},
+	
+	recalculateIndex: function (itemsObj) {
+		this.index = $(this.parentNode).children().toArray().indexOf(this);
+		console.log(itemsObj);
+		this.item = itemsObj[$(this.parentNode.parentNode.parentNode).children().toArray().indexOf(this.parentNode.parentNode)].list[this.index];
+		console.log(this.index);
 	},
 
 	openEditPage: function(e) {
 		console.log(e);
 	},
 
-	openMenu: function() {
-		console.log(this.item.path);
+	openMenu: function () {
+		console.log(this.item);
 		options.editCRM.build(this.item.path);
 	},
+	
+	menuMouseOver: function () {
+		console.log(this.item);
+		if (this.parentNode.parentNode.parentNode.dragging && !this.parentNode.items[this.index].expanded) {
+			//Get the difference between the current column's bottom and the new column's bot
+			var draggingEl = this.parentNode.parentNode.parentNode.draggingItem;
 
-	bodyScroll: function() {
-		var newScroll = $('body').scrollTop();
-		var difference = newScroll - this.scrollStartY;
-		this.dragStart.Y = this.dragStart.Y - difference;
-		this.lastRecordedPos.Y = this.lastRecordedPos.Y - difference;
-		this.scrollStartY = newScroll;
-		this.bodyDrag({
-			clientX: this.lastRecordedPos.X,
-			clientY: this.lastRecordedPos.Y
-		});
+			//Create new column
+			var oldItemsObj = this.parentNode.parentNode.parentNode.parentNode.crm;
+			var newItemsObj = options.editCRM.build(this.item.path);
+
+			//Now fix the spacing from the top
+			var columnIndex = $(this.parentNode.parentNode.parentNode).children().toArray().indexOf(draggingEl.parentNode.parentNode);
+
+			var oldColumn = oldItemsObj[columnIndex];
+			var newColumn = newItemsObj[columnIndex];
+
+			var oldColumnHeight = (oldColumn.indent.length * 50) + (oldColumn.list.length * 50);
+			var newColumnHeight = (newColumn.indent.length * 50) + (newColumn.list.length * 50);
+
+			var diff = newColumnHeight - oldColumnHeight;
+			draggingEl.dragStart.Y += diff;
+		}
 	},
 
-	dragItem: function(event) {
+	bodyScroll: function () {
+		var newScroll = $('body').scrollTop();
+		var difference = newScroll - this.scrollStart.Y;
+		this.dragStart.Y -= difference;
+		this.lastRecordedPos.Y -= difference;
+		this.scrollStart.Y = newScroll;
+		this.bodyDrag();
+	},
+	
+	sideDrag: function() {
+		var newScroll = $('.CRMEditColumnCont')[0].getBoundingClientRect().left;
+		var difference = newScroll - this.scrollStart.X;
+		this.dragStart.X -= difference;
+		this.lastRecordedPos.X -= difference;
+		this.scrollStart.X = newScroll;
+		this.bodyDrag();
+	},
+
+	startDrag: function (event) {
+		//Do calculations
+		this.$$("paper-ripple").style.display = 'none';
+		var extraSpacing = (($(this.parentNode).children("edit-crm-item").toArray().length - this.index) * 50);
+		console.log(this.index);
+		console.log($(this.parentNode).children("edit-crm-item").toArray().length);
+		this.style.pointerEvents = 'none';
 		this.dragStart.X = event.clientX;
-		this.dragStart.Y = event.clientY;
-		this.scrollStartY = $('body').scrollTop();
+		this.dragStart.Y = event.clientY + extraSpacing;
+		this.lastRecordedPos.X = event.clientX;
+		this.lastRecordedPos.Y = event.clientY;
+		this.scrollStart.Y = $('body').scrollTop();
+		this.scrollStart.X = $('.CRMEditColumnCont')[0].getBoundingClientRect().left;
 		var boundingClientRect = this.getBoundingClientRect();
 		this.mouseToCorner.X = event.clientX - boundingClientRect.left;
 		this.mouseToCorner.Y = event.clientY - boundingClientRect.top;
 
-		this.dragging = true;
+		this.changeDraggingState(true);
 		this.style.position = 'absolute';
 		this.filler = $('<div class="crmItemFiller"></div>');
-		this.filler.insertBefore($(this.parentNode).children()[this.index]);
 		this.filler.index = this.index;
 		var elem = this;
 
-		//Used to preserve 'this', passing data via jquery doesnt' seem to work
-		this.bodyDragFunction = function(e) {
-			elem.bodyDrag(e);
-		}
-		this.bodyScrollFunction = function(e) {
-			console.log('meemd');
-			elem.bodyScroll(e);
-		}
-		this.blurFunction = function() {
-			elem.bodyDrag({
-				clientX: elem.dragStart.X,
-				clientY: elem.dragStart.Y
-			});
-			elem.stopDrag();
-		}
-
-		console.log(this.bodyDragFunction);
-
 		$('body')
-			.on('mousemove', elem.bodyDragFunction)
-			.on('scroll', elem.bodyScrollFunction)
+			.on('mouseup', elem.stopDragFunction)
+			.on('mousemove', elem.mouseMovementFunction)
 			.css('-webkit-user-select', 'none');
 
 		$(window)
 			.on('scroll', elem.bodyScrollFunction)
 			.on('blur', elem.blurFunction);
 
+		$('#mainCont')
+			.on('scroll', elem.sideScrollFunction);
+
+
+		//Do visual stuff as to decrease delay between the visual stuff
+		if (this.isMenu && this.parentNode.items[this.index].expanded) {
+			//Collapse any columns to the right of this
+			var columnIndex = $(this.parentNode.parentNode.parentNode).children().toArray().indexOf(this.parentNode.parentNode);
+			for (var i = columnIndex + 1; i < this.parentNode.parentNode.parentNode.children.length - 2; i++) {
+				this.parentNode.parentNode.parentNode.children[i].style.display = 'none';
+			}
+		}
+		this.filler.insertBefore(this);
 		this.parentNode.appendChild(this);
+		this.$.itemCont.style.marginTop = extraSpacing + 'px';
+
+		elem.bodyDrag();
 	},
 
 	stopDrag: function() {
-		this.dragging = false;
+		this.$$("paper-ripple").style.display = 'block';
+		this.style.pointerEvents = 'all';
+		this.changeDraggingState(false);
 		var elem = this;
 		$('body')
+			.off('mouseup', elem.stopDragFunction)
 			.off('mousemove', elem.bodyDragFunction)
 			.css('-webkit-user-select', 'initial');
 
 		$(window)
 			.off('scroll', elem.bodyScrollFunction)
 			.off('blur', elem.blurFunction);
+
+		$('#mainCont')
+			.on('scroll', elem.sideScrollFunction);
+
 		this.snapItem();
+		this.rebuildMenu();
 	},
 
-	bodyDrag: function(event) {
-		var elem = this;
+	recordMouseMovemenent: function(event) {
 		this.lastRecordedPos.X = event.clientX;
 		this.lastRecordedPos.Y = event.clientY;
-		this.$.itemCont.style.marginLeft = (event.clientX - elem.dragStart.X) + 'px';
-		var spacingTop = event.clientY - elem.dragStart.Y;
-		this.$.itemCont.style.marginTop = spacingTop + 'px';
-		var thisTop = event.clientY - this.mouseToCorner.Y;
-		var thisLeft = event.clientX - this.mouseToCorner.X;
+		this.cursorPosChanged = true;
+	},
 
-		//Vertically space elements
-		var parentChildrenList = $(this.parentNode).children('edit-crm-item');
-		var prev = parentChildrenList[this.filler.index - 1];
-		var next = parentChildrenList[this.filler.index];
-		var fillerPrevTop;
-		if (prev) {
-			fillerPrevTop = prev.getBoundingClientRect().top;
-		}
-		else {
-			fillerPrevTop = -999;
-		}
-		console.log(fillerPrevTop);
-		if (thisTop < fillerPrevTop + 25) {
-			this.filler.index--;
-			this.filler.insertBefore(prev);
-		}
-		else if (next) {
-			var fillerNextTop = next.getBoundingClientRect().top;
-			if (thisTop > fillerNextTop - 25) {
-				if (parentChildrenList.toArray().length !== this.filler.index + 1) {
-					this.filler.insertBefore(parentChildrenList[this.filler.index + 1]);
+	bodyDrag: function() {
+		if (this.cursorPosChanged && this.dragging) {
+			this.cursorPosChanged = false;
+			this.$.itemCont.style.marginLeft = (this.lastRecordedPos.X - this.dragStart.X) + 'px';
+			var spacingTop = this.lastRecordedPos.Y - this.dragStart.Y;
+			this.$.itemCont.style.marginTop = spacingTop + 'px';
+			var thisBoundingClientRect = this.getBoundingClientRect();
+			var thisTop = (this.lastRecordedPos.Y - this.mouseToCorner.Y);
+			var thisLeft = (this.lastRecordedPos.X - this.mouseToCorner.X) - thisBoundingClientRect.left;
+
+			//Vertically space elements
+			var parentChildrenList = $(this.parentNode).children('edit-crm-item');
+			var prev = parentChildrenList[this.filler.index - 1];
+			var next = parentChildrenList[this.filler.index];
+			var fillerPrevTop;
+			if (prev) {
+				fillerPrevTop = prev.getBoundingClientRect().top;
+			} else {
+				fillerPrevTop = -999;
+			}
+			if (thisTop < fillerPrevTop + 25) {
+				this.filler.index--;
+				this.filler.insertBefore(prev);
+			} else if (next) {
+				var fillerNextTop = next.getBoundingClientRect().top;
+				if (thisTop > fillerNextTop - 25) {
+					if (parentChildrenList.toArray().length !== this.filler.index + 1) {
+						this.filler.insertBefore(parentChildrenList[this.filler.index + 1]);
+					} else {
+						this.filler.insertBefore(parentChildrenList[this.filler.index]);
+					}
+					this.filler.index++;
 				}
-				else {
-					this.filler.insertBefore(parentChildrenList[this.filler.index]);
+			}
+
+
+			//Horizontally space elements
+			var newColumn,
+				newColumnChildren,
+				newColumnLength,
+				fillerIndex,
+				currentChild,
+				currentBoundingClientRect,
+				newBot,
+				oldBot,
+				i;
+			if (thisLeft > 150) {
+				var nextColumnCont = $(this.parentNode.parentNode).next('.CRMEditColumnCont');
+				if (nextColumnCont[0]) {
+					if (nextColumnCont[0].style.display !== 'none') {
+						this.dragStart.X += 200;
+						newColumn = nextColumnCont.children('.CRMEditColumn')[0];
+						newColumnChildren = newColumn.children;
+						newColumnLength = newColumnChildren.length - 1;
+						fillerIndex = 0;
+						if (newColumnLength > 0) {
+							if (this.lastRecordedPos.Y > newColumnChildren[newColumnLength].getBoundingClientRect().top - 25) {
+								fillerIndex = newColumnLength;
+							} else {
+								for (i = 0; i < newColumnLength; i++) {
+									currentChild = newColumn.children[i];
+									currentBoundingClientRect = currentChild.getBoundingClientRect();
+									if (this.lastRecordedPos.Y >= currentBoundingClientRect.top && this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
+										fillerIndex = i;
+										break;
+									}
+								}
+							}
+							this.filler.index = fillerIndex;
+							this.index = fillerIndex;
+							newBot = newColumn.getBoundingClientRect().bottom;
+							oldBot = this.parentNode.getBoundingClientRect().bottom - 50;
+							this.dragStart.Y += (newBot - oldBot);
+
+							this.filler.insertBefore(newColumnChildren[fillerIndex]);
+							newColumn.appendChild(this);
+						}
+					}
 				}
-				this.filler.index++;
+			}
+			else if (thisLeft < -50) {
+				var prevColumnCont = $(this.parentNode.parentNode).prev('.CRMEditColumnCont');
+				if (prevColumnCont[0]) {
+					this.dragStart.X -= 200;
+					newColumn = prevColumnCont.children('.CRMEditColumn')[0];
+					newColumnChildren = newColumn.children;
+					newColumnLength = newColumnChildren.length - 1;
+					fillerIndex = 0;
+					if (this.lastRecordedPos.Y > newColumnChildren[newColumnLength - 1].getBoundingClientRect().top - 25) {
+						fillerIndex = newColumnLength;
+					} else {
+						for (i = 0; i < newColumnLength; i++) {
+							currentChild = newColumn.children[i];
+							currentBoundingClientRect = currentChild.getBoundingClientRect();
+							if (this.lastRecordedPos.Y >= currentBoundingClientRect.top && this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
+								fillerIndex = i;
+								break;
+							}
+						}
+					}
+					this.filler.index = fillerIndex;
+					this.index = fillerIndex;
+					newBot = newColumn.getBoundingClientRect().bottom;
+					oldBot = this.parentNode.getBoundingClientRect().bottom - 50;
+					this.dragStart.Y += (newBot - oldBot);
+
+					this.filler.insertBefore(newColumnChildren[fillerIndex]);
+					newColumn.appendChild(this);
+				}
 			}
 		}
-
-
-		//Horizontally space elements
-		if (thisLeft > 150) {
-
+		if (this.dragging) {
+			window.requestAnimationFrame(this.bodyDragWrapper);
 		}
 	},
 
 	snapItem: function() {
 		//Get the filler's current index and place the current item there
 		var parentChildrenList = $(this.parentNode).children('edit-crm-item');
-		$(this).insertBefore(parentChildrenList[this.filler.index]);
+		if (this.filler) {
+			$(this).insertBefore(parentChildrenList[this.filler.index]);
 
-		var elem = this;
-		setTimeout(function() {
-			elem.filler.remove();
-			elem.$.itemCont.style.position = 'relative';
-			elem.style.position = 'relative';
-			elem.$.itemCont.style.marginTop = '0';
-			$(elem.$.itemCont).css('margin-left', '0');
-
-			//Redo indexes
-			parentChildrenList = $(elem.parentNode).children('edit-crm-item').toArray();
-			parentChildrenList.forEach(function (value, index) {
-				value.index = index;
+			var elem = this;
+			setTimeout(function() {
+				elem.filler.remove();
+				elem.$.itemCont.style.position = 'relative';
+				elem.style.position = 'relative';
+				elem.$.itemCont.style.marginTop = '0';
+				$(elem.$.itemCont).css('margin-left', '0');
+			}, 0);
+		}
+	},
+	
+	rebuildMenu: function() {
+		//Get original object
+		var newPath;
+		var prev = $(this).prev();
+		while (prev[0] && prev[0].tagName !== 'EDIT-CRM-ITEM') {
+			prev = prev.prev();
+		}
+		prev = prev[0];
+		var next = $(this).next();
+		while (next[0] && next[0].tagName !== 'EDIT-CRM-ITEM') {
+			next = next.next();
+		}
+		next = next[0];
+		if (prev) {
+			//A previous item exists, newpath is that path with + 1 on the last index
+			newPath = prev.item.path;
+			newPath[newPath.length - 1] += 1;
+		}
+		else if (next) {
+			//The next item exists, newpath is that path
+			newPath = next.item.path;
+		} else {
+			//No items exist yet, go to prev column and find the only expanded menu
+			$(this.parentNode.parentNode.parentNode).prev().children('.CRMEditColumn').children('edit-crm-item').toArray().forEach(function(item) {
+				if (item.item.expanded) {
+					newPath = item.item.path;
+					newPath.push(0);
+				}
 			});
-		}, 0);
-	}
+		}
+		options.crm.move(this.item.path, newPath);
+		var newPathMinusOne = newPath;
+		newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
+		var newObj = options.editCRM.build(newPathMinusOne);
+
+		setTimeout(function() {
+			//Make every node re-run "ready"
+			console.log($(options.editCRM));
+			console.log($(options.editCRM).find('edit-crm-item'));
+			$(options.editCRM).find('edit-crm-item').each(function () {
+				console.log(this);
+				this.recalculateIndex(newObj);
+			});
+		}, 0);}
 });
