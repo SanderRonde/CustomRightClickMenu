@@ -192,7 +192,7 @@ Polymer({
 
 
 
-	//Start of dragging-related functions
+	//Start of dragging-related functions 
 
 	changeDraggingState: function(newState) {
 		this.dragging = newState;
