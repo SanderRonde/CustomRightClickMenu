@@ -2,32 +2,32 @@
 <head>
 </head>
 <body>
-	<dom-module id="edit-crm-item" attributes="item">
-		<template>
-			<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html"/>
-			<link rel="import" href="../../bower_components/iron-icons/iron-icons.html" />
-			<link rel="import" href="../../bower_components/iron-icon/iron-icon.html"/>
-			<link rel="stylesheet" type="css" href="edit-crm-item.css">
-			<div id="itemCont">
-				<div class="item">
-					<div id="dragger">
-						<div class="draggerImg"></div>
-					</div>
-					<div class="CRMItemtitle" ismenu$="{{isMenu}}" on-tap="openEditPage">
-						<span>{{name}}</span>
-						<paper-ripple></paper-ripple>
-					</div>
-					<template is="dom-if" if="{{isMenu}}">
-						<div on-click="openMenu" on-mouseenter="menuMouseOver" class="menuArrowCont">
-							<div class="menuArrow">
-								<paper-ripple></paper-ripple>
-							</div>
-						</div>
-					</template>
+<dom-module id="edit-crm-item" attributes="item">
+	<template>
+		<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html"/>
+		<link rel="import" href="../../bower_components/iron-icons/iron-icons.html"/>
+		<link rel="import" href="../../bower_components/iron-icon/iron-icon.html"/>
+		<link rel="stylesheet" type="css" href="edit-crm-item.css">
+		<div id="itemCont">
+			<div class="item">
+				<div id="dragger">
+					<div class="draggerImg"></div>
 				</div>
+				<div class="CRMItemtitle" ismenu$="{{isMenu}}" on-tap="openEditPage">
+					<span>{{name}}</span>
+					<paper-ripple></paper-ripple>
+				</div>
+				<template is="dom-if" if="{{isMenu}}">
+					<div on-click="openMenu" on-mouseenter="menuMouseOver" class="menuArrowCont">
+						<div class="menuArrow">
+							<paper-ripple></paper-ripple>
+						</div>
+					</div>
+				</template>
 			</div>
-		</template>
-	</dom-module>
-	<script src="edit-crm-item.js"></script>
+		</div>
+	</template>
+</dom-module>
+<script src="edit-crm-item.js"></script>
 </body>
 </html>

@@ -164,6 +164,15 @@ Polymer({
      */
 	filler: undefined,
 
+	/**
+     * The index of the item's column
+     * 
+     * @attribute column
+     * @type Number
+     * @default -1
+     */
+	column: -1,
+
 	properties: {
 		item: {
 			type: Object,
@@ -227,13 +236,12 @@ Polymer({
 		this.sideScrollFunction = function() {
 			elem.sideDrag();
 		}
+		this.column = this.parentNode.index;
 	},
 	
 	recalculateIndex: function (itemsObj) {
 		this.index = $(this.parentNode).children().toArray().indexOf(this);
-		console.log(itemsObj);
 		this.item = itemsObj[$(this.parentNode.parentNode.parentNode).children().toArray().indexOf(this.parentNode.parentNode)].list[this.index];
-		console.log(this.index);
 	},
 
 	openEditPage: function(e) {
@@ -241,12 +249,10 @@ Polymer({
 	},
 
 	openMenu: function () {
-		console.log(this.item);
 		options.editCRM.build(this.item.path);
 	},
 	
 	menuMouseOver: function () {
-		console.log(this.item);
 		if (this.parentNode.parentNode.parentNode.dragging && !this.parentNode.items[this.index].expanded) {
 			//Get the difference between the current column's bottom and the new column's bot
 			var draggingEl = this.parentNode.parentNode.parentNode.draggingItem;
@@ -289,10 +295,8 @@ Polymer({
 
 	startDrag: function (event) {
 		//Do calculations
-		this.$$("paper-ripple").style.display = 'none';
-		var extraSpacing = (($(this.parentNode).children("edit-crm-item").toArray().length - this.index) * 50);
-		console.log(this.index);
-		console.log($(this.parentNode).children("edit-crm-item").toArray().length);
+		this.$$('paper-ripple').style.display = 'none';
+		var extraSpacing = (($(this.parentNode).children('edit-crm-item').toArray().length - this.index) * 50);
 		this.style.pointerEvents = 'none';
 		this.dragStart.X = event.clientX;
 		this.dragStart.Y = event.clientY + extraSpacing;
@@ -326,20 +330,20 @@ Polymer({
 		//Do visual stuff as to decrease delay between the visual stuff
 		if (this.isMenu && this.parentNode.items[this.index].expanded) {
 			//Collapse any columns to the right of this
-			var columnIndex = $(this.parentNode.parentNode.parentNode).children().toArray().indexOf(this.parentNode.parentNode);
-			for (var i = columnIndex + 1; i < this.parentNode.parentNode.parentNode.children.length - 2; i++) {
-				this.parentNode.parentNode.parentNode.children[i].style.display = 'none';
+			var columnContChildren = $(this.parentNode.parentNode.parentNode).children('.CRMEditColumnCont ').toArray();
+			for (var i = this.column + 1; i < columnContChildren.length; i++) {
+				columnContChildren[i].style.display = 'none';
 			}
 		}
-		this.filler.insertBefore(this);
-		this.parentNode.appendChild(this);
-		this.$.itemCont.style.marginTop = extraSpacing + 'px';
 
+		this.filler.insertBefore(this);
+		this.$.itemCont.style.marginTop = extraSpacing + 'px';
+		this.parentNode.appendChild(this);
 		elem.bodyDrag();
 	},
 
 	stopDrag: function() {
-		this.$$("paper-ripple").style.display = 'block';
+		this.$$('paper-ripple').style.display = 'block';
 		this.style.pointerEvents = 'all';
 		this.changeDraggingState(false);
 		var elem = this;
@@ -497,7 +501,7 @@ Polymer({
 			}, 0);
 		}
 	},
-	
+
 	rebuildMenu: function() {
 		//Get original object
 		var newPath;
@@ -519,7 +523,8 @@ Polymer({
 		else if (next) {
 			//The next item exists, newpath is that path
 			newPath = next.item.path;
-		} else {
+		}
+		else {
 			//No items exist yet, go to prev column and find the only expanded menu
 			$(this.parentNode.parentNode.parentNode).prev().children('.CRMEditColumn').children('edit-crm-item').toArray().forEach(function(item) {
 				if (item.item.expanded) {
@@ -528,18 +533,19 @@ Polymer({
 				}
 			});
 		}
-		options.crm.move(this.item.path, newPath);
-		var newPathMinusOne = newPath;
-		newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
-		var newObj = options.editCRM.build(newPathMinusOne);
+		if (this.item) {
+			options.crm.move(this.item.path, newPath, (this.parentNode.index === this.column));
+			var newPathMinusOne = newPath;
+			newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
+			var newObj = options.editCRM.build(newPathMinusOne);
+			$(this.parentNode.parentNode.parentNode).children().css('display', 'table');
 
-		setTimeout(function() {
-			//Make every node re-run "ready"
-			console.log($(options.editCRM));
-			console.log($(options.editCRM).find('edit-crm-item'));
-			$(options.editCRM).find('edit-crm-item').each(function () {
-				console.log(this);
-				this.recalculateIndex(newObj);
-			});
-		}, 0);}
+			setTimeout(function() {
+				//Make every node re-run "ready"
+				$(options.editCRM).find('edit-crm-item').each(function() {
+					this.recalculateIndex(newObj);
+				});
+			}, 0);
+		}
+	}
 });

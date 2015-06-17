@@ -42,8 +42,6 @@ function buildCRMEditObj(setMenus) {
 		columnNum = 0,
 		column;
 
-	console.log(setMenus);
-
 	var list = options.settings.crm;
 
 	while (lastMenu !== -1) {
@@ -57,6 +55,7 @@ function buildCRMEditObj(setMenus) {
 		column.indent = [];
 		column.indent[indentTop - 1] = undefined;
 		column.list = list;
+		column.index = columnNum;
 
 		if (lastMenu !== -1) {
 			indentTop += lastMenu;
@@ -109,6 +108,7 @@ Polymer({
 		setItems = setItems || [];
 		var obj = buildCRMEditObj(setItems);
 		this.crm = obj;
+		this.notifyPath('crm', this.crm);
 		return obj;
 	},
 

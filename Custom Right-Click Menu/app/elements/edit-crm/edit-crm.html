@@ -8,12 +8,12 @@
 			<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html" />
 			<link rel="stylesheet" type="css" href="edit-crm.css">
 			<div id="mainCont">
-				<template is="dom-repeat" items="{{crm}}" as="column">
+				<template is="dom-repeat" items="[[crm]]" as="column">
 					<div class="CRMEditColumnCont">
 						<template is="dom-repeat" items="{{column.indent}}">
 							<div class="indentFiller"></div>
 						</template>
-						<div class="CRMEditColumn" items="{{column.list}}">
+						<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
 							<template is="dom-repeat" items="{{column.list}}" as="row">
 								<edit-crm-item index="{{row.index}}" item="{{row}}"></edit-crm-item>
 							</template>

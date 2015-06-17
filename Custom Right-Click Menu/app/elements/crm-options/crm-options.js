@@ -30,19 +30,19 @@ function isEmpty(value) {
 	return (value === undefined || value === null);
 }
 
-/**
- * @fn function addDefaultLink()
- *
- * @brief Adds default link to the CRM
- */
-function addDefaultLink() {
-	var defaultLinkItem = $(this).parent().parent();
-	console.log(defaultLinkItem);
-	var link = defaultLinkItem.find('.defaultLinkHref').html().trim();
-	var name = defaultLinkItem.find('input').val();
-	var newItem = new CRMItem('link', link, name);
-	settings.crm._add(newItem);
-}
+//TODO Implement this function with new CRM-system
+///**
+// * @fn function addDefaultLink()
+// *
+// * @brief Adds default link to the CRM
+// */
+//function addDefaultLink() {
+//	var defaultLinkItem = $(this).parent().parent();
+//	var link = defaultLinkItem.find('.defaultLinkHref').html().trim();
+//	var name = defaultLinkItem.find('input').val();
+//	var newItem = new CRMItem('link', link, name);
+//	settings.crm._add(newItem);
+//}
 
 /**
  * @fn function bindEvents()
@@ -237,21 +237,6 @@ function insertInto(toAdd, target, position) {
 	return target;
 }
 
-/**
- * 
- * @param path The path to translate
- * @returns The string version to eval
- */
-function getPathString(path) {
-	var pathString = '';
-	var i;
-	for (i = 0; i < path.length - 1; i++) {
-		pathString += '[' + path[i] + '].children';
-	}
-	pathString += '[' + path[i] + ']';
-	return pathString;
-}
-
 Polymer({
 	is: 'crm-options',
 
@@ -332,6 +317,7 @@ Polymer({
 		this.upload();
 	},
 
+
 	/**
 	 * CRM functions.
 	 */
@@ -358,17 +344,37 @@ Polymer({
 		 *
 		 * @param toMove    The value to move's location (in path form)
 		 * @param target	Where to move the item to (in path form)
+		 * @param sameColumn Whether the item has stayed in the same column
 		 */
-		move: function(toMove, target) {
-			var toMoveString = getPathString(toMove);
-			var originalTarget = eval('options.settings.crm' + toMoveString);
-			var originalIndex = toMove.splice(toMove.length - 1, 1);
-			var newIndex = target.splice(target.length - 1, 1);
-			var newTarget = eval('options.settings.crm' + toMoveString);
+		move: function (toMove, target, sameColumn) {
+			var i;
+			var toMoveContainer = toMove;
+			var toMoveIndex = toMoveContainer.splice(toMove.length - 1, 1);
 
-			insertInto(originalTarget, newTarget, newIndex);
+			var toMoveItem = options.settings.crm;
+			for (i = 0; i < toMoveContainer.length; i++) {
+				toMoveItem = toMoveItem[toMoveContainer[i]].children;
+			}
+			toMoveContainer = toMoveItem;
+			toMoveItem = toMoveItem[toMoveIndex];
 
-			eval('options.settings.crm' + toMoveString + '.splice(originalIndex,1)');
+			var newTarget = options.settings.crm;
+			var targetContainer = target;
+			var targetIndex = targetContainer.splice(target.length - 1, 1);
+			for (i = 0; i < targetContainer.length; i++) {
+				newTarget = newTarget[targetContainer[i]].children;
+			}
+
+			if (sameColumn && toMoveIndex > targetIndex) {
+				insertInto(toMoveItem, newTarget, targetIndex);
+				toMoveContainer.splice(parseInt(toMoveIndex, 10) + 1, 1);
+			}
+			else {
+				insertInto(toMoveItem, newTarget, targetIndex);
+				toMoveContainer.splice(toMoveIndex, 1);
+			}
+			for (i = 0; i < options.settings.crm.length; i++) {
+			}
 		}
 	}
 });
