@@ -26,6 +26,17 @@ Polymer({
 	isMenu: false,
 
 	/**
+	 * The index of the item's column
+	 * 
+	 * @attribute column
+	 * @type Number
+	 * @default -1
+	 */
+	column: -1,
+
+	//Start of dragging-related properties
+
+	/**
 	  * Whether this item is currently being dragged
 	  *
 	  * @attribute dragging
@@ -164,21 +175,24 @@ Polymer({
      */
 	filler: undefined,
 
-	/**
-     * The index of the item's column
-     * 
-     * @attribute column
-     * @type Number
-     * @default -1
-     */
-	column: -1,
-
 	properties: {
 		item: {
 			type: Object,
 			notify: true
 		}
 	},
+
+	//End of dragging-related properties
+
+
+
+	//Start of edit-page related properties
+
+	//End of edit-page related properties
+
+
+
+	//Start of dragging-related functions
 
 	changeDraggingState: function(newState) {
 		this.dragging = newState;
@@ -242,10 +256,6 @@ Polymer({
 	recalculateIndex: function (itemsObj) {
 		this.index = $(this.parentNode).children().toArray().indexOf(this);
 		this.item = itemsObj[$(this.parentNode.parentNode.parentNode).children().toArray().indexOf(this.parentNode.parentNode)].list[this.index];
-	},
-
-	openEditPage: function(e) {
-		console.log(e);
 	},
 
 	openMenu: function () {
@@ -547,5 +557,17 @@ Polymer({
 				});
 			}, 0);
 		}
+	},
+
+	//End of dragging-related functions
+
+
+
+	//Start of edit-page related functions
+
+	openEditPage: function(e) {
+		console.log(e);
 	}
+
+	//End of edit-page related functions
 });
