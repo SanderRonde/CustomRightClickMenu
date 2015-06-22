@@ -497,6 +497,9 @@
     <Content Include="app\bower_components\webcomponentsjs\webcomponents-lite.min.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.min.js" />
+    <Content Include="app\elements\crm-edit-page\crm-edit-page.css" />
+    <Content Include="app\elements\crm-edit-page\crm-edit-page.html" />
+    <Content Include="app\elements\crm-edit-page\crm-edit-page.js" />
     <Content Include="app\elements\crm-options\crm-options.css" />
     <Content Include="app\elements\crm-options\crm-options.html" />
     <Content Include="app\elements\crm-options\crm-options.js" />
@@ -510,9 +513,15 @@
     <Content Include="app\elements\edit-crm\edit-crm.html" />
     <Content Include="app\elements\edit-crm\edit-crm.js" />
     <Content Include="app\elements\elements.html" />
+    <Content Include="app\elements\link-edit\link-edit.css" />
+    <Content Include="app\elements\link-edit\link-edit.html" />
+    <Content Include="app\elements\link-edit\link-edit.js" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.css" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.html" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.js" />
+    <Content Include="app\elements\type-switcher\type-switcher.css" />
+    <Content Include="app\elements\type-switcher\type-switcher.html" />
+    <Content Include="app\elements\type-switcher\type-switcher.js" />
     <Content Include="app\fonts\fonts.css" />
     <Content Include="app\images\chromearrow.png" />
     <Content Include="app\images\drag.svg" />
@@ -530,6 +539,7 @@
     <Content Include="app\js\jquery.color-2.1.2.min.js" />
     <Content Include="app\js\jquery.contextMenu.js" />
     <Content Include="app\options.html" />
+    <Content Include="Gruntfile.js" />
     <Content Include="Properties\build\lib\Ionic.Zip.DLL" />
     <Content Include="Properties\build\lib\MSBuild.ExtensionPack.dll" />
     <Content Include="DebugSettings.template.xml">
@@ -720,6 +730,7 @@
     <Content Include="app\fonts\Inconsolata-Regular.ttf" />
     <Content Include="app\fonts\Roboto-Bold.ttf" />
     <Content Include="app\fonts\Roboto-Regular.ttf" />
+    <Content Include="package.json" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />

@@ -1,0 +1,63 @@
+﻿.TSContainer {
+	width: 200px;
+	margin-left:-193px;
+	height:50px;
+	color:white;
+	text-align: center;
+}
+
+.TSContainer[link] {
+	background-color: #3F51B5;
+}
+
+.TSContainer[script] {
+	background-color: #F44336;
+}
+
+.TSContainer[menu] {
+	background-color: #4CAF50;
+}
+
+.TSContainer[divider] {
+	background-color: #FFEB3B;
+}
+
+.typeSwitchChoice {
+	width: 200px;
+	height:50px;
+	color:white;
+	text-align: center;
+}
+
+.typeSwitchChoice[link] {
+	background-color: #3F51B5;
+}
+
+.typeSwitchChoice[script] {
+	background-color: #F44336;
+}
+
+.typeSwitchChoice[menu] {
+	background-color: #4CAF50;
+}
+
+.typeSwitchChoice[divider] {
+	background-color: #FFEB3B;
+}
+
+#typeText, .typeSwitchChoiceText {
+	font-size: 141%;
+	text-transform: uppercase;
+}
+
+#typeSwitchArrow {
+	  background-image: url('../../images/whitearrow.png');
+	  transform: rotate(180deg);
+	  width: 5px;
+	  height: 9px;
+	  display: inline-block;
+	  background-size: contain;
+	  float: right;
+	  margin-right: 12px;
+	  margin-top: 20px;
+}

@@ -116,6 +116,7 @@ Polymer({
 		var el = this;
 		options.addListener({'type': 'crm', 'function': el.build});
 		this.build();
+		this.show = false;
 		options.editCRM = this;
 	}
 

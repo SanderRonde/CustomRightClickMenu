@@ -240,19 +240,47 @@ function insertInto(toAdd, target, position) {
 Polymer({
 	is: 'crm-options',
 
+	/**
+	 * A collection of all event listeners on the settings and crm object
+	 * 
+	 * @attribute elementListeners
+	 * @type Array
+	 * @default []
+	 */
+	elementListeners: [],
+
+	/**
+	 * The previous crm object
+	 * 
+	 * @attribute prevCRM
+	 * @type Object
+	 * @default {}
+	 */
+	prevCRM: {},
+
+	/**
+	  * Whether to show the item-edit-page
+	  *
+	  * @attribute show
+	  * @type Boolean
+	  * @default false
+	  */
+	show: false,
+
+	/**
+	  * What item to show in the item-edit-page
+	  *
+	  * @attribute item
+	  * @type Object
+	  * @default {}
+	  */
+	item: {},
+
 	properties: {
 		settings: {
 			type: Object,
 			notify: true,
 			observer: 'settingsChanged'
-		},
-		elementListeners: {
-			type: Array,
-			value: []
-		},
-		prevCRM: {
-			value: {},
-			type: Object
 		}
 	},
 
@@ -304,6 +332,12 @@ Polymer({
 		}
 
 		chrome.storage.sync.get(callback);
+
+		setTimeout(function () {
+			console.log('top kek');
+			el.show = true;
+			el.item = {'type': 'dummy'};
+		}, 1500);
 	},
 
 	/**

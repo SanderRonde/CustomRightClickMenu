@@ -1,0 +1,24 @@
+﻿<html>
+<head>
+</head>
+<body>
+	<dom-module id="type-switcher" attributes="type">
+		<template>
+			<link rel="import" href="../../bower_components/polymer/polymer.html" />
+			<link rel="stylesheet" type="css" href="type-switcher.css" />
+			<div on-tap="toggleTypeSwitch" link$="{{isLink}}" script$="{{isScript}}" divider$="{{isDivider}}" menu$="{{isMenu}}" class="TSContainer">
+				<span id="typeTxt"></span>
+				<div id="typeSwitchArrow"></div>
+			</div>
+			<div id="typeSwitchChoicesContainer">
+				<template is="dom-repeat" items="{{remainingTypes}}" as="remainingType">
+					<div class="typeSwitchChoice">
+						<span class="typeSwitchChoiceTxt">[[remainingType]]</span>
+					</div>
+				</template>
+			</div>
+		</template>
+	</dom-module>
+	<script src="type-switcher.js"></script>
+</body>
+</html>

@@ -1,7 +1,120 @@
+/* global options */
 function createWrapper(thisObject, method) {
 	return function () {
 		return method.call(thisObject);
 	};
+}
+
+var polymerEl;
+
+function AnimationIn(element, callback, prevProgress) {
+	this.element = element;
+	this.callback = callback;
+	this.prevProgress = prevProgress || 0;
+	this.startTime = null;
+	this.passedHalf = false;
+	this.type = 'in';
+
+	this.continue = true;
+
+	var thisAnimation = this;
+	this.animation = function (timestamp) {
+		if (thisAnimation.continue) {
+			if (!thisAnimation.startTime) {
+				thisAnimation.startTime = timestamp - (300 * thisAnimation.prevProgress);
+			}
+			thisAnimation.diff = timestamp - thisAnimation.startTime;
+			if (thisAnimation.diff < 300) {
+				thisAnimation.diffRelative = thisAnimation.diff / 300;
+				if (thisAnimation.passedHalf) {
+					thisAnimation.newWidth = Math.sqrt(thisAnimation.diffRelative);
+				}
+				else {
+					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
+					if (thisAnimation.square >= 0.63) {
+						thisAnimation.passedHalf = true;
+					}
+					thisAnimation.newWidth = thisAnimation.square;
+				}
+				thisAnimation.element.style.marginLeft = -193 + (193 * thisAnimation.newWidth);
+				window.requestAnimationFrame(thisAnimation.animation);
+			}
+			else {
+				thisAnimation.startTime = null;
+				thisAnimation.element.style.marginLeft = 0;
+				thisAnimation.passedHalf = false;
+				thisAnimation.callback();
+			}
+		}
+	}
+
+	this.start = function() {
+		this.continue = true;
+		window.requestAnimationFrame(this.animation);
+	}
+
+	this.stop = function () {
+		this.continue = false;
+		return this.diffRelative;
+	}
+}
+
+function AnimationOut(element, callback, prevProgress) {
+	this.callback = callback;
+	this.element = element;
+	this.startTime = null;
+	this.passedHalf = false;
+	this.type = 'out';
+	if (prevProgress) {
+		this.prevProgress = 1 - prevProgress;
+	}
+	else {
+		this.prevProgress = 0;
+	}
+
+	this.continue = true;
+
+	var thisAnimation = this;
+
+	this.animation = function (timestamp) {
+		if (thisAnimation.continue) {
+			if (!thisAnimation.startTime) {
+				thisAnimation.startTime = timestamp - (300 * thisAnimation.prevProgress);
+			}
+			thisAnimation.diff = timestamp - thisAnimation.startTime;
+			if (thisAnimation.diff < 300) {
+				thisAnimation.diffRelative = thisAnimation.diff / 300;
+				if (thisAnimation.passedHalf) {
+					thisAnimation.newWidth = Math.sqrt(thisAnimation.diffRelative);
+				}
+				else {
+					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
+					if (thisAnimation.square >= 0.63) {
+						thisAnimation.passedHalf = true;
+					}
+					thisAnimation.newWidth = thisAnimation.square;
+				}
+				thisAnimation.element.style.marginLeft = (-193 * thisAnimation.newWidth);
+				window.requestAnimationFrame(thisAnimation.animation);
+			}
+			else {
+				thisAnimation.startTime = null;
+				thisAnimation.element.style.marginLeft = -193;
+				thisAnimation.passedHalf = false;
+				thisAnimation.callback();
+			}
+		}
+	}
+
+	this.start = function () {
+		this.continue = true;
+		window.requestAnimationFrame(this.animation);
+	}
+
+	this.stop = function () {
+		this.continue = false;
+		return 1 - this.diffRelative;
+	}
 }
 
 Polymer({
@@ -15,6 +128,15 @@ Polymer({
 	  * @default ''
 	  */
 	name: '',
+	
+	/**
+	  * The type of this item
+	  *
+	  * @attribute type
+	  * @type string
+	  * @default ''
+	  */
+	type: '',
 
 	/**
 	  * Whether this item is a menu or not
@@ -24,6 +146,33 @@ Polymer({
 	  * @default false
 	  */
 	isMenu: false,
+	
+	/**
+	 * Whether the item is a link
+	 * 
+	 * @attribute isLink
+	 * @type Boolean
+	 * @default false
+	 */
+	isLink: false,
+
+	/**
+	 * Whether the item is a script
+	 * 
+	 * @attribute isScript
+	 * @type Boolean
+	 * @default false
+	 */
+	isScript: false,
+
+	/**
+	 * Whether the item is a divider
+	 * 
+	 * @attribute isDivider
+	 * @type Boolean
+	 * @default false
+	 */
+	isDivider: false,
 
 	/**
 	 * The index of the item's column
@@ -34,8 +183,7 @@ Polymer({
 	 */
 	column: -1,
 
-	//Start of dragging-related properties
-
+	//#region DraggingProperties
 	/**
 	  * Whether this item is currently being dragged
 	  *
@@ -181,19 +329,26 @@ Polymer({
 			notify: true
 		}
 	},
+	//#endregion
 
-	//End of dragging-related properties
+	//#region editPageProperties
 
+	//#endregion
 
+	//#region typeIndicatorProperties 
 
-	//Start of edit-page related properties
+	/**
+     * The current animation going (if any)
+     * 
+     * @attribute animation
+     * @type Object
+     * @default undefined
+     */
+	animation: undefined,
 
-	//End of edit-page related properties
+	//#endregion
 
-
-
-	//Start of dragging-related functions 
-
+	//#region draggingFunctions
 	changeDraggingState: function(newState) {
 		this.dragging = newState;
 		this.parentNode.parentNode.parentNode.dragging = newState;
@@ -203,7 +358,11 @@ Polymer({
 	ready: function() {
 		this.name = this.item.name;
 		this.isMenu = this.item.type === 'menu';
+		this.isLink = this.item.type === 'link';
+		this.isScript = this.item.type === 'script';
+		this.isDivider = this.item.type === 'divider';
 		this.itemIndex = this.index;
+		this.type = this.item.type;
 		var elem = this;
 		$(this.$.dragger)
 			.off('mousedown')
@@ -251,6 +410,7 @@ Polymer({
 			elem.sideDrag();
 		}
 		this.column = this.parentNode.index;
+		polymerEl = this;
 	},
 	
 	recalculateIndex: function (itemsObj) {
@@ -558,16 +718,65 @@ Polymer({
 			}, 0);
 		}
 	},
+	//#endregion
 
-	//End of dragging-related functions
+	//#region editPageFunctions
+	openEditPage: function (e) {
+		var path = e.path;
+		var item = path[0];
+		for (var i = 0; i < path.length && item.tagName !== 'EDIT-CRM-ITEM'; i++) {
+			item = path[i];
+		}
+		item = item.item;
+		options.item = item;
+		options.show = true;
+		var element;
+		var elWaiter = window.setInterval(function () {
+			element = $('crm-edit-page');
+			if (element[0]) {
+				element[0].init();
+				window.clearInterval(elWaiter);
+			}
+		}, 50);
+	},
+	//#endregion
+	
+	//#region typeIndicatorFunctions
 
+	removeAnimations: function() {
+		if (this.animation.stop) {
+			var lastVal = this.animation.stop();
+			this.animation = undefined;
+			return lastVal;
+		}
+	},
 
+	typeIndicatorMouseOver: function () {
+		var element = this.$$('type-switcher').$$('.TSContainer');
+		var el = this;
+		if (this.animation) {
+			var prevProgress = this.animation.stop();
+			this.animation = new AnimationIn(element, el.removeAnimations, prevProgress);
+		}
+		else {
+			this.animation = new AnimationIn(element, el.removeAnimations);
+		}
+		this.animation.start();
+	},
 
-	//Start of edit-page related functions
-
-	openEditPage: function(e) {
-		console.log(e);
+	typeIndicatorMouseLeave: function () {
+		var element = this.$$('type-switcher').$$('.TSContainer');
+		var el = this;
+		if (this.animation) {
+			var prevProgress = this.animation.stop();
+			this.animation = new AnimationOut(element, el.removeAnimations, prevProgress);
+		}
+		else {
+			this.animation = new AnimationOut(element, el.removeAnimations);
+		}
+		this.animation.start();
 	}
 
-	//End of edit-page related functions
+	//#endregion
+
 });

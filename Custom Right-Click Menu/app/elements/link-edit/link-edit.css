@@ -1,0 +1,12 @@
+﻿.changeNameText, .changeLinkText {
+	font-weight: bold;
+	font-size: 200%;
+}
+
+.changeNameInput, .changeLinkInput {
+	width: 450px;
+}
+
+input {
+	font-size: 150%;
+}

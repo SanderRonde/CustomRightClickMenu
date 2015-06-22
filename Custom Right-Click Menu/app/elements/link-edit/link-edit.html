@@ -1,0 +1,28 @@
+﻿<html>
+<head>
+</head>
+<body>
+	<dom-module id="link-edit" attributes="item">
+		<template>
+			<link rel="import" href="../../bower_components/polymer/polymer.html" />
+			<link rel="stylesheet" type="css" href="link-edit.css" />
+			<div id="linkEditCont">
+				<div class="changeName">
+					<div class="changeNameText">Name: </div>
+					<div class="changeNameInput">
+						<paper-input value="{{item.name}}"></paper-input>
+					</div>
+				</div>
+				<div class="changeLink">
+					<div class="changeLinkText">Link: </div>
+					<div class="changeLinkInput">
+						<paper-input value="{{item.value}}"></paper-input>
+					</div>
+				</div>
+				<type-switcher></type-switcher>
+			</div>
+		</template>
+	</dom-module>
+	<script src="link-edit.js"></script>
+</body>
+</html>

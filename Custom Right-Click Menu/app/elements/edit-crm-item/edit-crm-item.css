@@ -9,6 +9,16 @@
 	font-size: 150%;
 	line-height: 50px;
 	cursor: pointer;
+	overflow-x: hidden;
+}
+
+#typeSwitcher {
+	height: 100%;
+	text-transform: uppercase;
+	text-align: center;
+	color: white;
+	width: 200px;
+	margin-left: -193px;
 }
 
 .CRMItemTitle {
@@ -69,5 +79,5 @@
 }
 
 .item {
-	display: flex;
+	display: -webkit-inline-box;
 }
