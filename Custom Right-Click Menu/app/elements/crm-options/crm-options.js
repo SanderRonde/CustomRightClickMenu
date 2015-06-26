@@ -8,6 +8,163 @@ var options = document.getElementsByTagName('crm-options')[0];
 var contextMenuItems = {'example': { 'name': 'example' } };
 
 /**
+ * 
+ * @param elements Array of elements to animate
+ * @param callerEl The element from which this is called
+ * @param callback The function to call after animating
+ * @param toAnimate An array of animations
+ * @param duration The duration of the animation
+ */
+function AnimationIn(elements, callerEl, callback, toAnimate, duration) {
+	this.elements = elements;
+	this.callback = callback;
+	this.startTime = null;
+	this.passedHalf = false;
+	this.type = 'in';
+	this.toAnimate = toAnimate;
+	this.callerEl = callerEl;
+	this.continue = true;
+	this.duration = duration || 300;
+
+	var thisAnimation = this;
+	this.animation = function (timestamp) {
+		if (thisAnimation.continue) {
+			var i;
+			if (!thisAnimation.startTime) {
+				var firstElement = thisAnimation.elements[0];
+				var firstAnimation = thisAnimation.toAnimate[0];
+				var style = '';
+				for (i = 0; i < firstAnimation.style.length; i++) {
+					if (firstAnimation.style[i].match(/[A-Z]/)) {
+						style += '-' + firstAnimation.style[i].toLowerCase();
+					} else {
+						style += firstAnimation.style[i];
+					}
+				}
+				var currentProgress = parseInt($(firstElement).css(style), 10);
+				var progressFromStart = currentProgress - firstAnimation.start;
+				var percentage = progressFromStart / firstAnimation.progress;
+				thisAnimation.startTime = timestamp - (thisAnimation.duration * percentage);
+			}
+			thisAnimation.diff = timestamp - thisAnimation.startTime;
+			if (thisAnimation.diff < thisAnimation.duration) {
+				thisAnimation.diffRelative = thisAnimation.diff / thisAnimation.duration;
+				if (thisAnimation.passedHalf) {
+					thisAnimation.newVal = Math.sqrt(thisAnimation.diffRelative);
+				}
+				else {
+					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
+					if (thisAnimation.square >= 0.63) {
+						thisAnimation.passedHalf = true;
+					}
+					thisAnimation.newVal = thisAnimation.square;
+				}
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start) + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal);
+				}
+				window.requestAnimationFrame(thisAnimation.animation);
+			}
+			else {
+				thisAnimation.startTime = null;
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress);
+				}
+				thisAnimation.passedHalf = false;
+				thisAnimation.callback(thisAnimation.callerEl);
+			}
+		}
+	}
+
+	this.start = function () {
+		this.continue = true;
+		window.requestAnimationFrame(this.animation);
+	}
+
+	this.stop = function () {
+		this.continue = false;
+	}
+}
+
+/**
+ * 
+ * @param elements The elements to animate
+ * @param callerEl The element from which this is called
+ * @param callback The function to call after animating
+ * @param toAnimate An array of animations
+ * @param duration The duration of the animation
+ */
+function AnimationOut(elements, callerEl, callback, toAnimate, duration) {
+	this.callback = callback;
+	this.elements = elements;
+	this.startTime = null;
+	this.passedHalf = false;
+	this.type = 'out';
+	this.toAnimate = toAnimate;
+	this.callerEl = callerEl;
+	this.continue = true;
+	this.duration = duration || 300;
+
+	var thisAnimation = this;
+
+	this.animation = function (timestamp) {
+		if (thisAnimation.continue) {
+			var i;
+			if (!thisAnimation.startTime) {
+				var firstElement = thisAnimation.elements[0];
+				var firstAnimation = thisAnimation.toAnimate[0];
+				var style = '';
+				for (i = 0; i < firstAnimation.style.length; i++) {
+					if (firstAnimation.style[i].match(/[A-Z]/)) {
+						style += '-' + firstAnimation.style[i].toLowerCase();
+					} else {
+						style += firstAnimation.style[i];
+					}
+				}
+				var currentProgress = parseInt($(firstElement).css(style), 10);
+				var progressFromStart = currentProgress - firstAnimation.start;
+				var percentage = progressFromStart / firstAnimation.progress;
+				thisAnimation.startTime = timestamp - (thisAnimation.duration * percentage);
+			}
+			thisAnimation.diff = timestamp - thisAnimation.startTime;
+			if (thisAnimation.diff < thisAnimation.duration) {
+				thisAnimation.diffRelative = thisAnimation.diff / thisAnimation.duration;
+				if (thisAnimation.passedHalf) {
+					thisAnimation.newVal = Math.sqrt(thisAnimation.diffRelative);
+				}
+				else {
+					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
+					if (thisAnimation.square >= 0.63) {
+						thisAnimation.passedHalf = true;
+					}
+					thisAnimation.newVal = thisAnimation.square;
+				}
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start) + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal);
+				}
+				window.requestAnimationFrame(thisAnimation.animation);
+			}
+			else {
+				thisAnimation.startTime = null;
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress);
+				}
+				thisAnimation.passedHalf = false;
+				thisAnimation.callback(thisAnimation.callerEl);
+			}
+		}
+	}
+
+	this.start = function () {
+		this.continue = true;
+		window.requestAnimationFrame(this.animation);
+	}
+
+	this.stop = function () {
+		this.continue = false;
+	}
+}
+
+/**
  * A shorthand version of $('settings-element')[0], allows for easy access to
  *	settings object (s.settings instead of something like
  *	$('settings-element')[0].settings
@@ -123,8 +280,7 @@ function addScript(items, toAdd, iterator) {
  * @return The items with the new item in it.
  */
 function addDivider(items, toAdd, iterator) {
-	var item = {};
-	item = '---------';
+	var item = '---------';
 	items[iterator] = item;
 	return items;
 }
@@ -209,7 +365,6 @@ function bindContextMenu() {
  * @brief Main function, called when javascript is ready to be executed
  */
 function main() {
-	console.log('main');
 	buildContextMenu();
 	//bindContextMenu();
 	//bindEvents();
@@ -310,7 +465,6 @@ Polymer({
 	 * @param data Data object.
 	 */
 	addListener: function(data) {
-		console.log(this.elementListeners);
 		this.elementListeners.push(data);
 	},
 
@@ -334,7 +488,6 @@ Polymer({
 		chrome.storage.sync.get(callback);
 
 		setTimeout(function () {
-			console.log('top kek');
 			el.show = true;
 			el.item = {'type': 'dummy'};
 		}, 1500);
@@ -387,7 +540,12 @@ Polymer({
 
 			var toMoveItem = options.settings.crm;
 			for (i = 0; i < toMoveContainer.length; i++) {
-				toMoveItem = toMoveItem[toMoveContainer[i]].children;
+				if (options.settings.shadowStart && toMoveItem[toMoveContainer[i]].menuVal) {
+					toMoveItem = toMoveItem[toMoveContainer[i]].menuVal;
+				}
+				else {
+					toMoveItem = toMoveItem[toMoveContainer[i]].children;
+				}
 			}
 			toMoveContainer = toMoveItem;
 			toMoveItem = toMoveItem[toMoveIndex];
@@ -396,7 +554,11 @@ Polymer({
 			var targetContainer = target;
 			var targetIndex = targetContainer.splice(target.length - 1, 1);
 			for (i = 0; i < targetContainer.length; i++) {
-				newTarget = newTarget[targetContainer[i]].children;
+				if (options.settings.shadowStart && newTarget[targetContainer[i]].menuVal) {
+					newTarget = newTarget[targetContainer[i]].menuVal;
+				} else {
+					newTarget = newTarget[targetContainer[i]].children;
+				}
 			}
 
 			if (sameColumn && toMoveIndex > targetIndex) {
@@ -407,8 +569,7 @@ Polymer({
 				insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
-			for (i = 0; i < options.settings.crm.length; i++) {
-			}
+			options.upload();
 		}
 	}
 });

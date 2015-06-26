@@ -19,7 +19,7 @@
 }
 
 .TSContainer[divider] {
-	background-color: #FFEB3B;
+	background-color: #FFC107;
 }
 
 .typeSwitchChoice {
@@ -29,20 +29,20 @@
 	text-align: center;
 }
 
-.typeSwitchChoice[link] {
+.typeSwitchChoice[type=link] {
 	background-color: #3F51B5;
 }
 
-.typeSwitchChoice[script] {
+.typeSwitchChoice[type=script] {
 	background-color: #F44336;
 }
 
-.typeSwitchChoice[menu] {
+.typeSwitchChoice[type=menu] {
 	background-color: #4CAF50;
 }
 
-.typeSwitchChoice[divider] {
-	background-color: #FFEB3B;
+.typeSwitchChoice[type=divider] {
+	background-color: #FFC107;
 }
 
 #typeText, .typeSwitchChoiceText {
@@ -51,13 +51,21 @@
 }
 
 #typeSwitchArrow {
-	  background-image: url('../../images/whitearrow.png');
-	  transform: rotate(180deg);
-	  width: 5px;
-	  height: 9px;
-	  display: inline-block;
-	  background-size: contain;
-	  float: right;
-	  margin-right: 12px;
-	  margin-top: 20px;
+	-moz-transform: rotate(180deg);
+	-ms-transform: rotate(180deg);
+	-o-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	transform: rotate(180deg);
+	width: 15px;
+	height: 24px;
+	display: inline-block;
+	background-size: contain;
+	float: right;
+	margin-right: 7px;
+	margin-top: 13px;
+	fill: white;
 }
+
+#typeSwitchChoicesContainer {
+	display: none;
+}	

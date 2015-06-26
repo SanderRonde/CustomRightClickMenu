@@ -2,7 +2,7 @@
 <head>
 </head>
 <body>
-	<dom-module id="edit-crm-item" attributes="item">
+	<dom-module id="edit-crm-item" attributes="item shadow">
 		<template>
 			<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html" />
 			<link rel="import" href="../../bower_components/iron-icons/iron-icons.html" />
@@ -10,7 +10,7 @@
 			<link rel="stylesheet" type="css" href="edit-crm-item.css">
 			<div id="itemCont">
 				<div class="item">
-					<type-switcher on-mouseenter="typeIndicatorMouseOver" on-mouseleave="typeIndicatorMouseLeave" type="{{type}}"></type-switcher>
+					<type-switcher id="typeSwitcher" on-mouseenter="typeIndicatorMouseOver" on-mouseleave="typeIndicatorMouseLeave" type="{{type}}"></type-switcher>
 					<div id="dragger">
 						<div class="draggerImg"></div>
 					</div>
@@ -21,6 +21,9 @@
 					<template is="dom-if" if="{{isMenu}}">
 						<div on-click="openMenu" on-mouseenter="menuMouseOver" class="menuArrowCont">
 							<div class="menuArrow">
+								<svg class="menuArrowImage" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+									<path d="M16 10v28l22-14z"/>
+								</svg>
 								<paper-ripple></paper-ripple>
 							</div>
 						</div>

@@ -15,7 +15,7 @@
 						</template>
 						<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
 							<template is="dom-repeat" items="{{column.list}}" as="row">
-								<edit-crm-item index="{{row.index}}" item="{{row}}"></edit-crm-item>
+								<edit-crm-item shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
 							</template>
 						</div>
 					</div>

@@ -103,3 +103,9 @@ paper-ripple {
 	opacity: 0;
 	z-index: 5;
 }
+
+#menuSwitchUndoButton {
+	color: rgb(238, 255, 65);
+	margin: 10px;
+	cursor: pointer;
+}

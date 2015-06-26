@@ -5,118 +5,6 @@ function createWrapper(thisObject, method) {
 	};
 }
 
-var polymerEl;
-
-function AnimationIn(element, callback, prevProgress) {
-	this.element = element;
-	this.callback = callback;
-	this.prevProgress = prevProgress || 0;
-	this.startTime = null;
-	this.passedHalf = false;
-	this.type = 'in';
-
-	this.continue = true;
-
-	var thisAnimation = this;
-	this.animation = function (timestamp) {
-		if (thisAnimation.continue) {
-			if (!thisAnimation.startTime) {
-				thisAnimation.startTime = timestamp - (300 * thisAnimation.prevProgress);
-			}
-			thisAnimation.diff = timestamp - thisAnimation.startTime;
-			if (thisAnimation.diff < 300) {
-				thisAnimation.diffRelative = thisAnimation.diff / 300;
-				if (thisAnimation.passedHalf) {
-					thisAnimation.newWidth = Math.sqrt(thisAnimation.diffRelative);
-				}
-				else {
-					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
-					if (thisAnimation.square >= 0.63) {
-						thisAnimation.passedHalf = true;
-					}
-					thisAnimation.newWidth = thisAnimation.square;
-				}
-				thisAnimation.element.style.marginLeft = -193 + (193 * thisAnimation.newWidth);
-				window.requestAnimationFrame(thisAnimation.animation);
-			}
-			else {
-				thisAnimation.startTime = null;
-				thisAnimation.element.style.marginLeft = 0;
-				thisAnimation.passedHalf = false;
-				thisAnimation.callback();
-			}
-		}
-	}
-
-	this.start = function() {
-		this.continue = true;
-		window.requestAnimationFrame(this.animation);
-	}
-
-	this.stop = function () {
-		this.continue = false;
-		return this.diffRelative;
-	}
-}
-
-function AnimationOut(element, callback, prevProgress) {
-	this.callback = callback;
-	this.element = element;
-	this.startTime = null;
-	this.passedHalf = false;
-	this.type = 'out';
-	if (prevProgress) {
-		this.prevProgress = 1 - prevProgress;
-	}
-	else {
-		this.prevProgress = 0;
-	}
-
-	this.continue = true;
-
-	var thisAnimation = this;
-
-	this.animation = function (timestamp) {
-		if (thisAnimation.continue) {
-			if (!thisAnimation.startTime) {
-				thisAnimation.startTime = timestamp - (300 * thisAnimation.prevProgress);
-			}
-			thisAnimation.diff = timestamp - thisAnimation.startTime;
-			if (thisAnimation.diff < 300) {
-				thisAnimation.diffRelative = thisAnimation.diff / 300;
-				if (thisAnimation.passedHalf) {
-					thisAnimation.newWidth = Math.sqrt(thisAnimation.diffRelative);
-				}
-				else {
-					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
-					if (thisAnimation.square >= 0.63) {
-						thisAnimation.passedHalf = true;
-					}
-					thisAnimation.newWidth = thisAnimation.square;
-				}
-				thisAnimation.element.style.marginLeft = (-193 * thisAnimation.newWidth);
-				window.requestAnimationFrame(thisAnimation.animation);
-			}
-			else {
-				thisAnimation.startTime = null;
-				thisAnimation.element.style.marginLeft = -193;
-				thisAnimation.passedHalf = false;
-				thisAnimation.callback();
-			}
-		}
-	}
-
-	this.start = function () {
-		this.continue = true;
-		window.requestAnimationFrame(this.animation);
-	}
-
-	this.stop = function () {
-		this.continue = false;
-		return 1 - this.diffRelative;
-	}
-}
-
 Polymer({
 	is: 'edit-crm-item',
 
@@ -341,10 +229,19 @@ Polymer({
      * The current animation going (if any)
      * 
      * @attribute animation
-     * @type Object
-     * @default undefined
+     * @type Function
+     * @default null
      */
-	animation: undefined,
+	animation: null,
+
+	/**
+     * The element to be animated
+     * 
+     * @attribute animationEl
+     * @type Element
+     * @default null
+     */
+	animationEl: null,
 
 	//#endregion
 
@@ -355,14 +252,10 @@ Polymer({
 		this.parentNode.parentNode.parentNode.draggingItem = this;
 	},
 
-	ready: function() {
+	ready: function () {
 		this.name = this.item.name;
-		this.isMenu = this.item.type === 'menu';
-		this.isLink = this.item.type === 'link';
-		this.isScript = this.item.type === 'script';
-		this.isDivider = this.item.type === 'divider';
+		this.calculateType();
 		this.itemIndex = this.index;
-		this.type = this.item.type;
 		var elem = this;
 		$(this.$.dragger)
 			.off('mousedown')
@@ -410,7 +303,7 @@ Polymer({
 			elem.sideDrag();
 		}
 		this.column = this.parentNode.index;
-		polymerEl = this;
+		this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 	},
 	
 	recalculateIndex: function (itemsObj) {
@@ -574,6 +467,7 @@ Polymer({
 				}
 			}
 
+			//TODO If (newIndex === prevIndex + 1) { this.eersteIntent.display=none }, bij apply, alle indent fillers display=block of wat het ook is
 
 			//Horizontally space elements
 			var newColumn,
@@ -722,59 +616,106 @@ Polymer({
 
 	//#region editPageFunctions
 	openEditPage: function (e) {
-		var path = e.path;
-		var item = path[0];
-		for (var i = 0; i < path.length && item.tagName !== 'EDIT-CRM-ITEM'; i++) {
-			item = path[i];
-		}
-		item = item.item;
-		options.item = item;
-		options.show = true;
-		var element;
-		var elWaiter = window.setInterval(function () {
-			element = $('crm-edit-page');
-			if (element[0]) {
-				element[0].init();
-				window.clearInterval(elWaiter);
+		if (!this.shadow) {
+			var path = e.path;
+			var item = path[0];
+			for (var i = 0; i < path.length && item.tagName !== 'EDIT-CRM-ITEM'; i++) {
+				item = path[i];
 			}
-		}, 50);
+			item = item.item;
+			options.item = item;
+			options.show = true;
+			var element;
+			var elWaiter = window.setInterval(function() {
+				element = $('crm-edit-page');
+				if (element[0]) {
+					element[0].init();
+					window.clearInterval(elWaiter);
+				}
+			}, 50);
+		}
 	},
 	//#endregion
 	
 	//#region typeIndicatorFunctions
 
-	removeAnimations: function() {
-		if (this.animation.stop) {
-			var lastVal = this.animation.stop();
-			this.animation = undefined;
-			return lastVal;
+	calculateType: function () {
+		this.type = this.item.type;
+		this.isMenu = this.item.type === 'menu';
+		this.isLink = this.item.type === 'link';
+		this.isScript = this.item.type === 'script';
+		this.isDivider = this.item.type === 'divider';
+	},
+
+	removeAnimations: function (elem) {
+		if (elem.animation) {
+			if (elem.animation.stop) {
+				elem.animation.stop();
+			}
 		}
+		elem.animation = null;
 	},
 
 	typeIndicatorMouseOver: function () {
-		var element = this.$$('type-switcher').$$('.TSContainer');
-		var el = this;
-		if (this.animation) {
-			var prevProgress = this.animation.stop();
-			this.animation = new AnimationIn(element, el.removeAnimations, prevProgress);
+		if (!this.shadow) {
+			this.animationEl = this.animationEl || [this.$$('type-switcher').$$('.TSContainer')];
+			var el = this;
+			var animation = [
+				{
+					'style': 'marginLeft',
+					'start': -193,
+					'progress': 193
+				}
+			];
+			if (this.animation) {
+				this.removeAnimations(this);
+			}
+			this.animation = new AnimationIn(this.animationEl, el, el.removeAnimations, animation, 300);
+			this.animation.start();
 		}
-		else {
-			this.animation = new AnimationIn(element, el.removeAnimations);
+	},
+
+	animateOut(el) {
+		var animation = [
+			{
+				'style': 'marginLeft',
+				'start': 0,
+				'progress': -193
+			}
+		];
+		if (el.animation) {
+			el.removeAnimations(el);
 		}
-		this.animation.start();
+		el.animation = new AnimationIn(el.animationEl, el, el.removeAnimations, animation, 300);
+		el.animation.start();
 	},
 
 	typeIndicatorMouseLeave: function () {
-		var element = this.$$('type-switcher').$$('.TSContainer');
-		var el = this;
-		if (this.animation) {
-			var prevProgress = this.animation.stop();
-			this.animation = new AnimationOut(element, el.removeAnimations, prevProgress);
+		if (!this.shadow) {
+			var el = this;
+			var typeSwitcher = this.$.typeSwitcher;
+			if (typeSwitcher.toggledOpen) {
+				if (typeSwitcher.animation) {
+					typeSwitcher.removeAnimations(typeSwitcher);
+				}
+				this.animation = new AnimationIn([this.$.itemCont], el, function(el) {
+					el.removeAnimations(el);
+					typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
+					typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
+					el.animateOut(el);
+				}, [
+					{
+						'style': 'height',
+						'start': 200,
+						'progress': -150
+					}
+				], 80);
+				typeSwitcher.toggledOpen = false;
+				this.animation.start();
+			} else {
+				this.animateOut(this);
+			}
 		}
-		else {
-			this.animation = new AnimationOut(element, el.removeAnimations);
-		}
-		this.animation.start();
 	}
 
 	//#endregion

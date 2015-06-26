@@ -14,7 +14,7 @@
 				<div flex title class="title">Custom Right-Click Menu</div>
 			</paper-toolbar>
 			<div class="container">
-				<br />
+				<br/>
 				<div class="titleCont">
 					<div class="bigTxt">
 						Custom Right-Click Menu
@@ -23,8 +23,8 @@
 						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it. You can right-click anywhere on this page to view the custom right-click menu (this will be wrapped in a "Custom Menu" subsection on other pages.
 					</div>
 				</div>
-				<br />
-				<br />
+				<br/>
+				<br/>
 				<div class="optionsCont">
 					<div class="bigTxt">
 						Options
@@ -35,7 +35,7 @@
 						<paper-toggle-option text="Edit the Custom Right-Click Menu by clicking on the respective elements when right-clicking on this page" id="editCRMInRM"></paper-toggle-option>
 					</div>
 				</div>
-				<br /><br />
+				<br/><br/>
 				<div class="customRightClickMenuConfig">
 					<div class="bigTxt">
 						Editing the Custom Right-Click Menu
@@ -44,7 +44,7 @@
 						<edit-crm></edit-crm>
 					</div>
 				</div>
-				<br /><br />
+				<br/><br/>
 				<div class="defaultCRMLinks">
 					<div class="bigTxt">
 						Commonly Used Links
@@ -52,7 +52,7 @@
 					<div class="defaultsDescr">
 						Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
 					</div>
-					<br />
+					<br/>
 					<div class="defaultLinks">
 						<default-link href="http://www.google.com" default-name="Google"></default-link>
 						<default-link href="http://www.facebook.com" default-name="Facebook"></default-link>
@@ -66,9 +66,12 @@
 					</div>
 				</div>
 				<div class="trailingBrs">
-					<br /><br /><br />
+					<br/><br/><br/>
 				</div>
 			</div>
+			<paper-toast id="paperToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
+				<span id="menuSwitchUndoButton" role="button">UNDO</span>
+			</paper-toast>
 		</div>
 		<script src="../../js/jquery-2.0.3.min.js"></script>
 		<script src="../../js/jquery.contextMenu.js"></script>

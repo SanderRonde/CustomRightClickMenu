@@ -39,6 +39,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="app\bower_components\iron-a11y-announcer\.gitignore" />
+    <Content Include="app\bower_components\iron-a11y-announcer\demo\index.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\demo\x-announces.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\index.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\iron-a11y-announcer.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\test\index.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\test\iron-a11y-announcer.html" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\.gitignore" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\demo\index.html" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\demo\x-key-aware.html" />
@@ -467,6 +474,11 @@
     <Content Include="app\bower_components\paper-styles\paper-styles.html" />
     <Content Include="app\bower_components\paper-styles\shadow.html" />
     <Content Include="app\bower_components\paper-styles\typography.html" />
+    <Content Include="app\bower_components\paper-toast\.gitignore" />
+    <Content Include="app\bower_components\paper-toast\demo\index.html" />
+    <Content Include="app\bower_components\paper-toast\hero.svg" />
+    <Content Include="app\bower_components\paper-toast\index.html" />
+    <Content Include="app\bower_components\paper-toast\paper-toast.html" />
     <Content Include="app\bower_components\paper-toolbar\.gitignore" />
     <Content Include="app\bower_components\paper-toolbar\demo\index.html" />
     <Content Include="app\bower_components\paper-toolbar\index.html" />
@@ -523,6 +535,7 @@
     <Content Include="app\elements\type-switcher\type-switcher.html" />
     <Content Include="app\elements\type-switcher\type-switcher.js" />
     <Content Include="app\fonts\fonts.css" />
+    <Content Include="app\images\arrow.svg" />
     <Content Include="app\images\chromearrow.png" />
     <Content Include="app\images\drag.svg" />
     <Content Include="app\images\whitearrow.png" />
@@ -731,6 +744,12 @@
     <Content Include="app\fonts\Roboto-Bold.ttf" />
     <Content Include="app\fonts\Roboto-Regular.ttf" />
     <Content Include="package.json" />
+    <Content Include="app\bower_components\iron-a11y-announcer\.bower.json" />
+    <Content Include="app\bower_components\iron-a11y-announcer\bower.json" />
+    <Content Include="app\bower_components\iron-a11y-announcer\README.md" />
+    <Content Include="app\bower_components\paper-toast\.bower.json" />
+    <Content Include="app\bower_components\paper-toast\bower.json" />
+    <Content Include="app\bower_components\paper-toast\README.md" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
@@ -738,7 +757,9 @@
   <ItemGroup>
     <Content Include="app\manifest.json" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="app\bower_components\bower_components\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

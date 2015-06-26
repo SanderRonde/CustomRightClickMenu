@@ -15,12 +15,22 @@ options.settings.crm = options.settings.crm;
  */
 function getLastMenu(list) {
 	var lastMenu = -1;
+	var lastFilledMenu = -1;
+	console.log(list);
 	//Find last menu to auto-expand
-	list.forEach(function (item, index) {
-		if (item.type === 'menu') {
-			lastMenu = index;
+	if (list) {
+		list.forEach(function(item, index) {
+			if (item.type === 'menu' || (options.settings.shadowStart && item.menuVal)) {
+				lastMenu = index;
+				if (item.children.length > 0) {
+					lastFilledMenu = index;
+				}
+			}
+		});
+		if (lastFilledMenu !== -1) {
+			return lastFilledMenu;
 		}
-	});
+	}
 	return lastMenu;
 }
 
@@ -56,6 +66,9 @@ function buildCRMEditObj(setMenus) {
 		column.indent[indentTop - 1] = undefined;
 		column.list = list;
 		column.index = columnNum;
+		if (options.settings.shadowStart && options.settings.shadowStart <= columnNum) {
+			column.shadow = true;
+		}
 
 		if (lastMenu !== -1) {
 			indentTop += lastMenu;
@@ -63,7 +76,11 @@ function buildCRMEditObj(setMenus) {
 				item.expanded = false;
 			});
 			list[lastMenu].expanded = true;
-			list = list[lastMenu].children;
+			if (options.settings.shadowStart && list[lastMenu].menuVal) {
+				list = list[lastMenu].menuVal;
+			} else {
+				list = list[lastMenu].children;
+			}
 		}
 
 		column.list.map(function (currentVal, index) {
