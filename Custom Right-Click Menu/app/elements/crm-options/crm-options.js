@@ -360,11 +360,94 @@ function bindContextMenu() {
 }
 
 /**
+ * Creates a new settings object
+ */
+function setupFirstTime() {
+	options.init = true;
+	options.settings.crm = [
+		{
+			'name': 'example',
+			'type': 'link',
+			'value': 'http://www.example.com'
+		}
+	];
+	options.upload();
+}
+
+/**
+ * 
+ * @param {} toCheck 
+ * @returns {} 
+ */
+function checkArray(toCheck) {
+	var changes = false;
+	var result;
+	toCheck.forEach(function(item) {
+		if (!item.name) {
+			changes = true;
+			item.name = 'name';
+		}
+		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu')) {
+			changes = true;
+			item.type = 'link';
+		}
+		if (!item.value) {
+			changes = true;
+			item.value = 'http://www.example.com';
+		}
+		if (item.children) {
+			result = checkArray(item.children);
+			if (result !== false) {
+				item.children = result;
+				changes = true;
+			}
+		}
+	});
+	if (changes) {
+		return toCheck;
+	}
+	return false;
+}
+
+/**
+ * Checks whether the given settings object is valid
+ * 
+ * @param settings The settings object to check
+ */
+function checkSettings(settings) {
+	var changes = false;
+	if (settings.init) {
+		if (!settings.crm) {
+			changes = true;
+			settings.crm = [
+				{
+					'name': 'example',
+					'type': 'link',
+					'value': 'http://www.example.com'
+				}
+			];
+		}
+		else {
+			var result = checkArray(settings.crm)
+		}
+
+		if (changes) {
+			options.settings = settings;
+			options.upload();
+		}
+	}
+	else {
+		setupFirstTime();
+	}
+}
+
+/**
  * @fn function main()
  *
  * @brief Main function, called when javascript is ready to be executed
  */
 function main() {
+	checkSettings(options.settings);
 	buildContextMenu();
 	//bindContextMenu();
 	//bindEvents();

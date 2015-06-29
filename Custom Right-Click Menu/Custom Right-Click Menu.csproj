@@ -553,12 +553,9 @@
     <Content Include="app\js\jquery.contextMenu.js" />
     <Content Include="app\options.html" />
     <Content Include="Gruntfile.js" />
-    <Content Include="Properties\build\lib\Ionic.Zip.DLL" />
-    <Content Include="Properties\build\lib\MSBuild.ExtensionPack.dll" />
     <Content Include="DebugSettings.template.xml">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Properties\build\ligershark.chrome.targets" />
     <Content Include="app\bower.json" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\.bower.json" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\bower.json" />
@@ -759,6 +756,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="app\bower_components\bower_components\" />
+    <Folder Include="Properties\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -777,8 +775,6 @@
   </PropertyGroup>
   <ItemGroup>
     <AppFileNameItem Include="$(OutputPath)$(AppFilename)" />
-    <AppFolderItem Include="$(AppFolder)" />
-    <ScriptsFolderItem Include="$(ScriptsFolder)" />
   </ItemGroup>
   <PropertyGroup>
     <LigerSharkChromeTargetsPath>$(BuildFolder)\ligershark.chrome.targets</LigerSharkChromeTargetsPath>

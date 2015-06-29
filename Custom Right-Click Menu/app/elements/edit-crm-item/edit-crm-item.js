@@ -1,3 +1,4 @@
+/// <reference path="../../../typings/jquery/jquery.d.ts"/>
 /* global options */
 function createWrapper(thisObject, method) {
 	return function () {
@@ -16,7 +17,7 @@ Polymer({
 	  * @default ''
 	  */
 	name: '',
-	
+
 	/**
 	  * The type of this item
 	  *
@@ -34,10 +35,10 @@ Polymer({
 	  * @default false
 	  */
 	isMenu: false,
-	
+
 	/**
 	 * Whether the item is a link
-	 * 
+	 *
 	 * @attribute isLink
 	 * @type Boolean
 	 * @default false
@@ -46,7 +47,7 @@ Polymer({
 
 	/**
 	 * Whether the item is a script
-	 * 
+	 *
 	 * @attribute isScript
 	 * @type Boolean
 	 * @default false
@@ -55,7 +56,7 @@ Polymer({
 
 	/**
 	 * Whether the item is a divider
-	 * 
+	 *
 	 * @attribute isDivider
 	 * @type Boolean
 	 * @default false
@@ -64,7 +65,7 @@ Polymer({
 
 	/**
 	 * The index of the item's column
-	 * 
+	 *
 	 * @attribute column
 	 * @type Number
 	 * @default -1
@@ -92,7 +93,7 @@ Polymer({
 
 	/**
      * The last recorded position of the mouse
-     * 
+     *
      * @attribute lastRecordedPos
      * @type Object
      * @default { X: 0, Y: 0 }
@@ -104,7 +105,7 @@ Polymer({
 
 	/**
      * The position at which the user started to drag the curent item
-     * 
+     *
      * @attribute dragStart
      * @type Object
      * @default { X: 0, Y: 0 }
@@ -116,7 +117,7 @@ Polymer({
 
 	/**
      * The position the mouse was relative to the corner when the drag started
-     * 
+     *
      * @attribute mouseToCorner
      * @type Object
      * @default { X: 0, Y: 0 }
@@ -128,7 +129,7 @@ Polymer({
 
 	/**
      * Whether the element is ready for a mouse-up event
-     * 
+     *
      * @attribute readyForMouseUp
      * @type Boolean
      * @default true
@@ -137,7 +138,7 @@ Polymer({
 
 	/**
      * Whether the element should execute a mouse-up event when ready for it
-     * 
+     *
      * @attribute execMouseUp
      * @type Boolean
      * @default false
@@ -147,7 +148,7 @@ Polymer({
 	/**
      * What the getBoundingClientRect().top was for the CRM-container on drag
      * start
-     * 
+     *
      * @attribute scrollStart
      * @type Object
      * @default { X: 0, Y: 0 }
@@ -159,7 +160,7 @@ Polymer({
 
 	/**
      * The function that gets called when the body is dragged
-     * 
+     *
      * @attribute bodyDragFunction
      * @type Function
      * @default function(){}
@@ -168,7 +169,7 @@ Polymer({
 
 	/**
      * The function that gets called when the body is scrolled on
-     * 
+     *
      * @attribute bodyScrollFunction
      * @type Function
      * @default function(){}
@@ -177,7 +178,7 @@ Polymer({
 
 	/**
      * The function that gets called when the window is blurred (out of focus)
-     * 
+     *
      * @attribute blurFunction
      * @type Function
      * @default function(){}
@@ -186,7 +187,7 @@ Polymer({
 
 	/**
      * The function that gets called when the body is dragged on
-     * 
+     *
      * @attribute bodyDragWrapper
      * @type Function
      * @default function() {}
@@ -195,7 +196,7 @@ Polymer({
 
 	/**
      * The function that gets called when the user scroll sideways
-     * 
+     *
      * @attribute sideScrollFunction
      * @type Function
      * @default function() {}
@@ -204,7 +205,7 @@ Polymer({
 
 	/**
      * The filler element
-     * 
+     *
      * @attribute filler
      * @type Element
      * @default undefined
@@ -223,11 +224,11 @@ Polymer({
 
 	//#endregion
 
-	//#region typeIndicatorProperties 
+	//#region typeIndicatorProperties
 
 	/**
      * The current animation going (if any)
-     * 
+     *
      * @attribute animation
      * @type Function
      * @default null
@@ -236,7 +237,7 @@ Polymer({
 
 	/**
      * The element to be animated
-     * 
+     *
      * @attribute animationEl
      * @type Element
      * @default null
@@ -305,7 +306,7 @@ Polymer({
 		this.column = this.parentNode.index;
 		this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 	},
-	
+
 	recalculateIndex: function (itemsObj) {
 		this.index = $(this.parentNode).children().toArray().indexOf(this);
 		this.item = itemsObj[$(this.parentNode.parentNode.parentNode).children().toArray().indexOf(this.parentNode.parentNode)].list[this.index];
@@ -314,7 +315,7 @@ Polymer({
 	openMenu: function () {
 		options.editCRM.build(this.item.path);
 	},
-	
+
 	menuMouseOver: function () {
 		if (this.parentNode.parentNode.parentNode.dragging && !this.parentNode.items[this.index].expanded) {
 			//Get the difference between the current column's bottom and the new column's bot
@@ -346,7 +347,7 @@ Polymer({
 		this.scrollStart.Y = newScroll;
 		this.bodyDrag();
 	},
-	
+
 	sideDrag: function() {
 		var newScroll = $('.CRMEditColumnCont')[0].getBoundingClientRect().left;
 		var difference = newScroll - this.scrollStart.X;
@@ -506,6 +507,9 @@ Polymer({
 							newBot = newColumn.getBoundingClientRect().bottom;
 							oldBot = this.parentNode.getBoundingClientRect().bottom - 50;
 							this.dragStart.Y += (newBot - oldBot);
+							if (this.column + 1 === nextColumnCont.index) {
+								this.dragStart.Y -= 50;
+							}
 
 							this.filler.insertBefore(newColumnChildren[fillerIndex]);
 							newColumn.appendChild(this);
@@ -636,7 +640,7 @@ Polymer({
 		}
 	},
 	//#endregion
-	
+
 	//#region typeIndicatorFunctions
 
 	calculateType: function () {
