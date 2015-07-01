@@ -16,10 +16,9 @@ options.settings.crm = options.settings.crm;
 function getLastMenu(list) {
 	var lastMenu = -1;
 	var lastFilledMenu = -1;
-	console.log(list);
 	//Find last menu to auto-expand
 	if (list) {
-		list.forEach(function(item, index) {
+		list.forEach(function (item, index) {
 			if (item.type === 'menu' || (options.settings.shadowStart && item.menuVal)) {
 				lastMenu = index;
 				if (item.children.length > 0) {
@@ -72,7 +71,7 @@ function buildCRMEditObj(setMenus) {
 
 		if (lastMenu !== -1) {
 			indentTop += lastMenu;
-			list.forEach(function(item) {
+			list.forEach(function (item) {
 				item.expanded = false;
 			});
 			list[lastMenu].expanded = true;
@@ -133,8 +132,30 @@ Polymer({
 		var el = this;
 		options.addListener({'type': 'crm', 'function': el.build});
 		this.build();
-		this.show = false;
 		options.editCRM = this;
-	}
+	},
+	
+	addItem: function () {
+		var newIndex = options.settings.crm.length;
+		var newItem = {
+			'name': 'name',
+			'type': 'link',
+			'value': 'http://www.example.com',
+			'expanded': false,
+			'index': newIndex,
+			'path': [newIndex]
+		};
+		options.crm.add(newItem);
 
+		//Artificially add a new item
+		var firstColumnChildren = options.editCRM.$.mainCont.children[0].children[1].children;
+		var newElement = $('<edit-crm-item class="wait"></edit-crm-item>').insertBefore(firstColumnChildren[firstColumnChildren.length - 1]);
+		newElement = newElement[0];
+		newElement.item = newItem;
+		newElement.index = newIndex;
+		newElement.classList.toggle('wait');
+		newElement.classList.add('style-scope');
+		newElement.classList.add('edit-crm');
+		newElement.ready();
+	}
 });

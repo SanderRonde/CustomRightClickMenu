@@ -382,8 +382,16 @@ function setupFirstTime() {
 function checkArray(toCheck) {
 	var changes = false;
 	var result;
-	toCheck.forEach(function(item) {
-		if (!item.name) {
+	toCheck.map(function (item, index) {
+		if (!item) {
+			console.log('error tho ' + index);
+			changes = true;
+			item = {};
+			item.name = 'name';
+			item.type = 'link';
+			item.value = 'http://www.example.com';
+		}
+		if (item.name === undefined) {
 			changes = true;
 			item.name = 'name';
 		}
@@ -391,9 +399,13 @@ function checkArray(toCheck) {
 			changes = true;
 			item.type = 'link';
 		}
-		if (!item.value) {
+		if (item.value === undefined) {
 			changes = true;
 			item.value = 'http://www.example.com';
+		}
+		if (item.index === undefined) {
+			changes = true;
+			item.index = index;
 		}
 		if (item.children) {
 			result = checkArray(item.children);
@@ -402,6 +414,7 @@ function checkArray(toCheck) {
 				changes = true;
 			}
 		}
+		toCheck[index] = item;
 	});
 	if (changes) {
 		return toCheck;
@@ -429,6 +442,10 @@ function checkSettings(settings) {
 		}
 		else {
 			var result = checkArray(settings.crm)
+			if (result !== false) {
+				changes = true;
+				settings.crm = result;
+			}
 		}
 
 		if (changes) {
@@ -564,6 +581,8 @@ Polymer({
 		this.crm.parent = this;
 
 		function callback(items) {
+			console.log(items);
+			console.log(items.crm);
 			el.settings = items;
 			main();
 		}
@@ -574,6 +593,10 @@ Polymer({
 			el.show = true;
 			el.item = {'type': 'dummy'};
 		}, 1500);
+	},
+	
+	build: function(setItems) {
+		buildCRMEditObj(setItems);
 	},
 
 	/**
@@ -606,7 +629,7 @@ Polymer({
 			} else {
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm, position);
 			}
-			this.parent.upload();
+			options.upload();
 		},
 
 		/**
@@ -652,6 +675,16 @@ Polymer({
 				insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
+			options.upload();
+		},
+
+		remove: function (index) {
+			var obj = options.settings.crm;
+			var i;
+			for (i = 0; i < index.length - 1; i++) {
+				obj = obj[index[i]].children;
+			}
+			obj.splice(index[i], 1);
 			options.upload();
 		}
 	}

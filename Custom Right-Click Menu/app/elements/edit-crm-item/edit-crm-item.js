@@ -6,6 +6,14 @@ function createWrapper(thisObject, method) {
 	};
 }
 
+function toArray(toConvert) {
+	var array = [];
+	for (var i = 0; i < toConvert.length; i++) {
+		array[i] = toConvert[i];
+	}
+	return array;
+}
+
 Polymer({
 	is: 'edit-crm-item',
 
@@ -254,57 +262,61 @@ Polymer({
 	},
 
 	ready: function () {
-		this.name = this.item.name;
-		this.calculateType();
-		this.itemIndex = this.index;
-		var elem = this;
-		$(this.$.dragger)
-			.off('mousedown')
-			.on('mousedown', function(e) {
-				if (e.which === 1) {
-					elem.readyForMouseUp = false;
-					elem.startDrag(e);
-					elem.readyForMouseUp = true;
-					if (elem.execMouseUp) {
-						elem.stopDrag();
+		if (this.classList[0] !== 'wait') {
+			this.itemIndex = this.index;
+			this.item = this.item;
+			this.name = this.item.name;
+			this.calculateType();
+			this.itemIndex = this.index;
+			var elem = this;
+			$(this.$.dragger)
+				.off('mousedown')
+				.on('mousedown', function (e) {
+					if (e.which === 1) {
+						elem.readyForMouseUp = false;
+						elem.startDrag(e);
+						elem.readyForMouseUp = true;
+						if (elem.execMouseUp) {
+							elem.stopDrag();
+						}
 					}
-				}
-			})
-			.off('mouseup')
-			.on('mouseup', function(e) {
-				if (e.which === 1) {
-					e.stopPropagation();
-					if (elem.readyForMouseUp) {
-						elem.stopDrag();
-					} else {
-						elem.execMouseUp = true;
+				})
+				.off('mouseup')
+				.on('mouseup', function (e) {
+					if (e.which === 1) {
+						e.stopPropagation();
+						if (elem.readyForMouseUp) {
+							elem.stopDrag();
+						} else {
+							elem.execMouseUp = true;
+						}
 					}
-				}
-			});
-		this.bodyDragWrapper = createWrapper(this, this.bodyDrag);
-		//Used to preserve 'this', passing data via jquery doesnt' seem to work
-		this.bodyDragFunction = function(e) {
-			elem.bodyDrag(e);
-		}
-		this.bodyScrollFunction = function() {
-			elem.bodyScroll();
-		}
-		this.blurFunction = function() {
-			elem.stopDrag();
-		}
-		this.stopDragFunction = function() {
-			if (elem.dragging) {
+				});
+			this.bodyDragWrapper = createWrapper(this, this.bodyDrag);
+			//Used to preserve 'this', passing data via jquery doesnt' seem to work
+			this.bodyDragFunction = function (e) {
+				elem.bodyDrag(e);
+			}
+			this.bodyScrollFunction = function () {
+				elem.bodyScroll();
+			}
+			this.blurFunction = function () {
 				elem.stopDrag();
 			}
+			this.stopDragFunction = function () {
+				if (elem.dragging) {
+					elem.stopDrag();
+				}
+			}
+			this.mouseMovementFunction = function (event) {
+				elem.recordMouseMovemenent(event);
+			}
+			this.sideScrollFunction = function () {
+				elem.sideDrag();
+			}
+			this.column = this.parentNode.index;
+			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 		}
-		this.mouseMovementFunction = function(event) {
-			elem.recordMouseMovemenent(event);
-		}
-		this.sideScrollFunction = function() {
-			elem.sideDrag();
-		}
-		this.column = this.parentNode.index;
-		this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 	},
 
 	recalculateIndex: function (itemsObj) {
@@ -467,8 +479,6 @@ Polymer({
 					this.filler.index++;
 				}
 			}
-
-			//TODO If (newIndex === prevIndex + 1) { this.eersteIntent.display=none }, bij apply, alle indent fillers display=block of wat het ook is
 
 			//Horizontally space elements
 			var newColumn,

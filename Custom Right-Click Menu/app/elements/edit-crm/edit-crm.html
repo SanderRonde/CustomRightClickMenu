@@ -5,7 +5,6 @@
 	<dom-module id="edit-crm">
 		<template>
 			<link rel="import" href="../../bower_components/polymer/polymer.html" />
-			<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html" />
 			<link rel="stylesheet" type="css" href="edit-crm.css">
 			<div id="mainCont">
 				<template is="dom-repeat" items="[[crm]]" as="column">
@@ -15,11 +14,14 @@
 						</template>
 						<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
 							<template is="dom-repeat" items="{{column.list}}" as="row">
-								<edit-crm-item shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
+								<edit-crm-item columnthing="{{column}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
 							</template>
 						</div>
 					</div>
 				</template>
+			</div>
+			<div id="crmButtons">
+				<paper-button id="addButton" on-tap="addItem" raised>Add</paper-button>
 			</div>
 		</template>
 	</dom-module>

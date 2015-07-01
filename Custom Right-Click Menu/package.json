@@ -1,9 +1,11 @@
 {
 	"name": "CustomRight-ClickMenu",
 	"description": "Create a custom right-click menu.",
-	"repository":  "https://github.com/BarryBamibal/CustomRightClickMenu",
+	"repository": {"url": "https://github.com/BarryBamibal/CustomRightClickMenu"},
+	"license": "MIT",
 	"version": "2.0.0",
 	"devDependencies": {
+		"angular": "^1.3.16",
 		"grunt": "~0.4.5",
 		"grunt-banner": "^0.4.0",
 		"grunt-contrib-copy": "^0.8.0",
