@@ -1,0 +1,25 @@
+﻿#editPageCont {
+	opacity: 0;
+	transform: scale(0);
+	background-color: white;
+	padding: 10px;
+	pointer-events:all;
+	box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.2),
+              0 6px 10px 0 rgba(0, 0, 0, 0.3);
+}
+
+#horizontalCenterer {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	width:100vw;
+	height:100vh;
+	position: fixed;
+	pointer-events:none;
+}
+
+#verticalCenterer {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
