@@ -8,6 +8,163 @@ var options = document.getElementsByTagName('crm-options')[0];
 var contextMenuItems = {'example': { 'name': 'example' } };
 
 /**
+ * 
+ * @param elements Array of elements to animate
+ * @param callerEl The element from which this is called
+ * @param callback The function to call after animating
+ * @param toAnimate An array of animations
+ * @param duration The duration of the animation
+ */
+function AnimationIn(elements, callerEl, callback, toAnimate, duration) {
+	this.elements = elements;
+	this.callback = callback;
+	this.startTime = null;
+	this.passedHalf = false;
+	this.type = 'in';
+	this.toAnimate = toAnimate;
+	this.callerEl = callerEl;
+	this.continue = true;
+	this.duration = duration || 300;
+
+	var thisAnimation = this;
+	this.animation = function (timestamp) {
+		if (thisAnimation.continue) {
+			var i;
+			if (!thisAnimation.startTime) {
+				var firstElement = thisAnimation.elements[0];
+				var firstAnimation = thisAnimation.toAnimate[0];
+				var style = '';
+				for (i = 0; i < firstAnimation.style.length; i++) {
+					if (firstAnimation.style[i].match(/[A-Z]/)) {
+						style += '-' + firstAnimation.style[i].toLowerCase();
+					} else {
+						style += firstAnimation.style[i];
+					}
+				}
+				var currentProgress = parseInt($(firstElement).css(style), 10);
+				var progressFromStart = currentProgress - firstAnimation.start;
+				var percentage = progressFromStart / firstAnimation.progress;
+				thisAnimation.startTime = timestamp - (thisAnimation.duration * percentage);
+			}
+			thisAnimation.diff = timestamp - thisAnimation.startTime;
+			if (thisAnimation.diff < thisAnimation.duration) {
+				thisAnimation.diffRelative = thisAnimation.diff / thisAnimation.duration;
+				if (thisAnimation.passedHalf) {
+					thisAnimation.newVal = Math.sqrt(thisAnimation.diffRelative);
+				}
+				else {
+					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
+					if (thisAnimation.square >= 0.63) {
+						thisAnimation.passedHalf = true;
+					}
+					thisAnimation.newVal = thisAnimation.square;
+				}
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start) + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal);
+				}
+				window.requestAnimationFrame(thisAnimation.animation);
+			}
+			else {
+				thisAnimation.startTime = null;
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress);
+				}
+				thisAnimation.passedHalf = false;
+				thisAnimation.callback(thisAnimation.callerEl);
+			}
+		}
+	}
+
+	this.start = function () {
+		this.continue = true;
+		window.requestAnimationFrame(this.animation);
+	}
+
+	this.stop = function () {
+		this.continue = false;
+	}
+}
+
+/**
+ * 
+ * @param elements The elements to animate
+ * @param callerEl The element from which this is called
+ * @param callback The function to call after animating
+ * @param toAnimate An array of animations
+ * @param duration The duration of the animation
+ */
+function AnimationOut(elements, callerEl, callback, toAnimate, duration) {
+	this.callback = callback;
+	this.elements = elements;
+	this.startTime = null;
+	this.passedHalf = false;
+	this.type = 'out';
+	this.toAnimate = toAnimate;
+	this.callerEl = callerEl;
+	this.continue = true;
+	this.duration = duration || 300;
+
+	var thisAnimation = this;
+
+	this.animation = function (timestamp) {
+		if (thisAnimation.continue) {
+			var i;
+			if (!thisAnimation.startTime) {
+				var firstElement = thisAnimation.elements[0];
+				var firstAnimation = thisAnimation.toAnimate[0];
+				var style = '';
+				for (i = 0; i < firstAnimation.style.length; i++) {
+					if (firstAnimation.style[i].match(/[A-Z]/)) {
+						style += '-' + firstAnimation.style[i].toLowerCase();
+					} else {
+						style += firstAnimation.style[i];
+					}
+				}
+				var currentProgress = parseInt($(firstElement).css(style), 10);
+				var progressFromStart = currentProgress - firstAnimation.start;
+				var percentage = progressFromStart / firstAnimation.progress;
+				thisAnimation.startTime = timestamp - (thisAnimation.duration * percentage);
+			}
+			thisAnimation.diff = timestamp - thisAnimation.startTime;
+			if (thisAnimation.diff < thisAnimation.duration) {
+				thisAnimation.diffRelative = thisAnimation.diff / thisAnimation.duration;
+				if (thisAnimation.passedHalf) {
+					thisAnimation.newVal = Math.sqrt(thisAnimation.diffRelative);
+				}
+				else {
+					thisAnimation.square = (thisAnimation.diffRelative * thisAnimation.diffRelative) * 2;
+					if (thisAnimation.square >= 0.63) {
+						thisAnimation.passedHalf = true;
+					}
+					thisAnimation.newVal = thisAnimation.square;
+				}
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start) + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal);
+				}
+				window.requestAnimationFrame(thisAnimation.animation);
+			}
+			else {
+				thisAnimation.startTime = null;
+				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress);
+				}
+				thisAnimation.passedHalf = false;
+				thisAnimation.callback(thisAnimation.callerEl);
+			}
+		}
+	}
+
+	this.start = function () {
+		this.continue = true;
+		window.requestAnimationFrame(this.animation);
+	}
+
+	this.stop = function () {
+		this.continue = false;
+	}
+}
+
+/**
  * A shorthand version of $('settings-element')[0], allows for easy access to
  *	settings object (s.settings instead of something like
  *	$('settings-element')[0].settings
@@ -123,8 +280,7 @@ function addScript(items, toAdd, iterator) {
  * @return The items with the new item in it.
  */
 function addDivider(items, toAdd, iterator) {
-	var item = {};
-	item = '---------';
+	var item = '---------';
 	items[iterator] = item;
 	return items;
 }
@@ -204,12 +360,111 @@ function bindContextMenu() {
 }
 
 /**
+ * Creates a new settings object
+ */
+function setupFirstTime() {
+	options.init = true;
+	options.settings.crm = [
+		{
+			'name': 'example',
+			'type': 'link',
+			'value': 'http://www.example.com'
+		}
+	];
+	options.upload();
+}
+
+/**
+ * 
+ * @param {} toCheck 
+ * @returns {} 
+ */
+function checkArray(toCheck) {
+	var changes = false;
+	var result;
+	toCheck.map(function (item, index) {
+		if (!item) {
+			console.log('error tho ' + index);
+			changes = true;
+			item = {};
+			item.name = 'name';
+			item.type = 'link';
+			item.value = 'http://www.example.com';
+		}
+		if (item.name === undefined) {
+			changes = true;
+			item.name = 'name';
+		}
+		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu')) {
+			changes = true;
+			item.type = 'link';
+		}
+		if (item.value === undefined) {
+			changes = true;
+			item.value = 'http://www.example.com';
+		}
+		if (item.index === undefined) {
+			changes = true;
+			item.index = index;
+		}
+		if (item.children) {
+			result = checkArray(item.children);
+			if (result !== false) {
+				item.children = result;
+				changes = true;
+			}
+		}
+		toCheck[index] = item;
+	});
+	if (changes) {
+		return toCheck;
+	}
+	return false;
+}
+
+/**
+ * Checks whether the given settings object is valid
+ * 
+ * @param settings The settings object to check
+ */
+function checkSettings(settings) {
+	var changes = false;
+	if (settings.init) {
+		if (!settings.crm) {
+			changes = true;
+			settings.crm = [
+				{
+					'name': 'example',
+					'type': 'link',
+					'value': 'http://www.example.com'
+				}
+			];
+		}
+		else {
+			var result = checkArray(settings.crm)
+			if (result !== false) {
+				changes = true;
+				settings.crm = result;
+			}
+		}
+
+		if (changes) {
+			options.settings = settings;
+			options.upload();
+		}
+	}
+	else {
+		setupFirstTime();
+	}
+}
+
+/**
  * @fn function main()
  *
  * @brief Main function, called when javascript is ready to be executed
  */
 function main() {
-	console.log('main');
+	checkSettings(options.settings);
 	buildContextMenu();
 	//bindContextMenu();
 	//bindEvents();
@@ -240,19 +495,47 @@ function insertInto(toAdd, target, position) {
 Polymer({
 	is: 'crm-options',
 
+	/**
+	 * A collection of all event listeners on the settings and crm object
+	 * 
+	 * @attribute elementListeners
+	 * @type Array
+	 * @default []
+	 */
+	elementListeners: [],
+
+	/**
+	 * The previous crm object
+	 * 
+	 * @attribute prevCRM
+	 * @type Object
+	 * @default {}
+	 */
+	prevCRM: {},
+
+	/**
+	  * Whether to show the item-edit-page
+	  *
+	  * @attribute show
+	  * @type Boolean
+	  * @default false
+	  */
+	show: false,
+
+	/**
+	  * What item to show in the item-edit-page
+	  *
+	  * @attribute item
+	  * @type Object
+	  * @default {}
+	  */
+	item: {},
+
 	properties: {
 		settings: {
 			type: Object,
 			notify: true,
 			observer: 'settingsChanged'
-		},
-		elementListeners: {
-			type: Array,
-			value: []
-		},
-		prevCRM: {
-			value: {},
-			type: Object
 		}
 	},
 
@@ -282,7 +565,6 @@ Polymer({
 	 * @param data Data object.
 	 */
 	addListener: function(data) {
-		console.log(this.elementListeners);
 		this.elementListeners.push(data);
 	},
 
@@ -299,11 +581,22 @@ Polymer({
 		this.crm.parent = this;
 
 		function callback(items) {
+			console.log(items);
+			console.log(items.crm);
 			el.settings = items;
 			main();
 		}
 
 		chrome.storage.sync.get(callback);
+
+		setTimeout(function () {
+			el.show = true;
+			el.item = {'type': 'dummy'};
+		}, 1500);
+	},
+	
+	build: function(setItems) {
+		buildCRMEditObj(setItems);
 	},
 
 	/**
@@ -336,7 +629,7 @@ Polymer({
 			} else {
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm, position);
 			}
-			this.parent.upload();
+			options.upload();
 		},
 
 		/**
@@ -353,7 +646,12 @@ Polymer({
 
 			var toMoveItem = options.settings.crm;
 			for (i = 0; i < toMoveContainer.length; i++) {
-				toMoveItem = toMoveItem[toMoveContainer[i]].children;
+				if (options.settings.shadowStart && toMoveItem[toMoveContainer[i]].menuVal) {
+					toMoveItem = toMoveItem[toMoveContainer[i]].menuVal;
+				}
+				else {
+					toMoveItem = toMoveItem[toMoveContainer[i]].children;
+				}
 			}
 			toMoveContainer = toMoveItem;
 			toMoveItem = toMoveItem[toMoveIndex];
@@ -362,7 +660,11 @@ Polymer({
 			var targetContainer = target;
 			var targetIndex = targetContainer.splice(target.length - 1, 1);
 			for (i = 0; i < targetContainer.length; i++) {
-				newTarget = newTarget[targetContainer[i]].children;
+				if (options.settings.shadowStart && newTarget[targetContainer[i]].menuVal) {
+					newTarget = newTarget[targetContainer[i]].menuVal;
+				} else {
+					newTarget = newTarget[targetContainer[i]].children;
+				}
 			}
 
 			if (sameColumn && toMoveIndex > targetIndex) {
@@ -373,8 +675,17 @@ Polymer({
 				insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
-			for (i = 0; i < options.settings.crm.length; i++) {
+			options.upload();
+		},
+
+		remove: function (index) {
+			var obj = options.settings.crm;
+			var i;
+			for (i = 0; i < index.length - 1; i++) {
+				obj = obj[index[i]].children;
 			}
+			obj.splice(index[i], 1);
+			options.upload();
 		}
 	}
 });

@@ -86,3 +86,26 @@ paper-checkbox.paper-checkbox-0 #checkbox.checked.paper-checkbox {
 paper-ripple {
 	pointer-events: none;
 }
+
+.popupCont {
+	position: absolute;
+	z-index:10;
+}
+
+.overlayCont {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: none;
+	background-color: black;
+	opacity: 0;
+	z-index: 5;
+}
+
+#menuSwitchUndoButton {
+	color: rgb(238, 255, 65);
+	margin: 10px;
+	cursor: pointer;
+}
