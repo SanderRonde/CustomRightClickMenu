@@ -39,6 +39,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="app\bower_components\iron-a11y-announcer\.gitignore" />
+    <Content Include="app\bower_components\iron-a11y-announcer\demo\index.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\demo\x-announces.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\index.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\iron-a11y-announcer.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\test\index.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\test\iron-a11y-announcer.html" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\.gitignore" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\demo\index.html" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\demo\x-key-aware.html" />
@@ -467,6 +474,11 @@
     <Content Include="app\bower_components\paper-styles\paper-styles.html" />
     <Content Include="app\bower_components\paper-styles\shadow.html" />
     <Content Include="app\bower_components\paper-styles\typography.html" />
+    <Content Include="app\bower_components\paper-toast\.gitignore" />
+    <Content Include="app\bower_components\paper-toast\demo\index.html" />
+    <Content Include="app\bower_components\paper-toast\hero.svg" />
+    <Content Include="app\bower_components\paper-toast\index.html" />
+    <Content Include="app\bower_components\paper-toast\paper-toast.html" />
     <Content Include="app\bower_components\paper-toolbar\.gitignore" />
     <Content Include="app\bower_components\paper-toolbar\demo\index.html" />
     <Content Include="app\bower_components\paper-toolbar\index.html" />
@@ -497,6 +509,9 @@
     <Content Include="app\bower_components\webcomponentsjs\webcomponents-lite.min.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.min.js" />
+    <Content Include="app\elements\crm-edit-page\crm-edit-page.css" />
+    <Content Include="app\elements\crm-edit-page\crm-edit-page.html" />
+    <Content Include="app\elements\crm-edit-page\crm-edit-page.js" />
     <Content Include="app\elements\crm-options\crm-options.css" />
     <Content Include="app\elements\crm-options\crm-options.html" />
     <Content Include="app\elements\crm-options\crm-options.js" />
@@ -510,10 +525,17 @@
     <Content Include="app\elements\edit-crm\edit-crm.html" />
     <Content Include="app\elements\edit-crm\edit-crm.js" />
     <Content Include="app\elements\elements.html" />
+    <Content Include="app\elements\link-edit\link-edit.css" />
+    <Content Include="app\elements\link-edit\link-edit.html" />
+    <Content Include="app\elements\link-edit\link-edit.js" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.css" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.html" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.js" />
+    <Content Include="app\elements\type-switcher\type-switcher.css" />
+    <Content Include="app\elements\type-switcher\type-switcher.html" />
+    <Content Include="app\elements\type-switcher\type-switcher.js" />
     <Content Include="app\fonts\fonts.css" />
+    <Content Include="app\images\arrow.svg" />
     <Content Include="app\images\chromearrow.png" />
     <Content Include="app\images\drag.svg" />
     <Content Include="app\images\whitearrow.png" />
@@ -530,12 +552,10 @@
     <Content Include="app\js\jquery.color-2.1.2.min.js" />
     <Content Include="app\js\jquery.contextMenu.js" />
     <Content Include="app\options.html" />
-    <Content Include="Properties\build\lib\Ionic.Zip.DLL" />
-    <Content Include="Properties\build\lib\MSBuild.ExtensionPack.dll" />
+    <Content Include="Gruntfile.js" />
     <Content Include="DebugSettings.template.xml">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Properties\build\ligershark.chrome.targets" />
     <Content Include="app\bower.json" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\.bower.json" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\bower.json" />
@@ -720,6 +740,13 @@
     <Content Include="app\fonts\Inconsolata-Regular.ttf" />
     <Content Include="app\fonts\Roboto-Bold.ttf" />
     <Content Include="app\fonts\Roboto-Regular.ttf" />
+    <Content Include="package.json" />
+    <Content Include="app\bower_components\iron-a11y-announcer\.bower.json" />
+    <Content Include="app\bower_components\iron-a11y-announcer\bower.json" />
+    <Content Include="app\bower_components\iron-a11y-announcer\README.md" />
+    <Content Include="app\bower_components\paper-toast\.bower.json" />
+    <Content Include="app\bower_components\paper-toast\bower.json" />
+    <Content Include="app\bower_components\paper-toast\README.md" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
@@ -727,7 +754,10 @@
   <ItemGroup>
     <Content Include="app\manifest.json" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="app\bower_components\bower_components\" />
+    <Folder Include="Properties\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -745,8 +775,6 @@
   </PropertyGroup>
   <ItemGroup>
     <AppFileNameItem Include="$(OutputPath)$(AppFilename)" />
-    <AppFolderItem Include="$(AppFolder)" />
-    <ScriptsFolderItem Include="$(ScriptsFolder)" />
   </ItemGroup>
   <PropertyGroup>
     <LigerSharkChromeTargetsPath>$(BuildFolder)\ligershark.chrome.targets</LigerSharkChromeTargetsPath>
