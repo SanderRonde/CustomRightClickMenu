@@ -1,0 +1,71 @@
+﻿.TSContainer {
+	width: 200px;
+	margin-left:-193px;
+	height:50px;
+	color:white;
+	text-align: center;
+}
+
+.TSContainer[link] {
+	background-color: #3F51B5;
+}
+
+.TSContainer[script] {
+	background-color: #F44336;
+}
+
+.TSContainer[menu] {
+	background-color: #4CAF50;
+}
+
+.TSContainer[divider] {
+	background-color: #FFC107;
+}
+
+.typeSwitchChoice {
+	width: 200px;
+	height:50px;
+	color:white;
+	text-align: center;
+}
+
+.typeSwitchChoice[type=link] {
+	background-color: #3F51B5;
+}
+
+.typeSwitchChoice[type=script] {
+	background-color: #F44336;
+}
+
+.typeSwitchChoice[type=menu] {
+	background-color: #4CAF50;
+}
+
+.typeSwitchChoice[type=divider] {
+	background-color: #FFC107;
+}
+
+#typeText, .typeSwitchChoiceText {
+	font-size: 141%;
+	text-transform: uppercase;
+}
+
+#typeSwitchArrow {
+	-moz-transform: rotate(180deg);
+	-ms-transform: rotate(180deg);
+	-o-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	transform: rotate(180deg);
+	width: 15px;
+	height: 24px;
+	display: inline-block;
+	background-size: contain;
+	float: right;
+	margin-right: 7px;
+	margin-top: 13px;
+	fill: white;
+}
+
+#typeSwitchChoicesContainer {
+	display: none;
+}	
