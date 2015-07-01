@@ -9,6 +9,21 @@
 	font-size: 150%;
 	line-height: 50px;
 	cursor: pointer;
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+
+	edit-crm-item[shadow] #itemCont {
+		opacity: 0.5;
+	}
+
+#typeSwitcher {
+	height: 100%;
+	text-transform: uppercase;
+	text-align: center;
+	color: white;
+	width: 200px;
+	margin-left: -193px;
 }
 
 .CRMItemTitle {
@@ -44,10 +59,16 @@
 .menuArrow {
 	margin-top: 21px;
 	margin-left: 8px;
-	background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAICAQAAACb+P2wAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAABp0RVh0U29mdHdhcmUAUGFpbnQuTkVUIHYzLjUuMTFH80I3AAAARklEQVQIHQXBoRVAYBgAwPsZQPeeykp2MIBFmEgSZYIgsICEz11utrs88Fh0SonwOgyaJMBtygAhCJ/TqOa16lUyNq1C4gcWPhWL2DV9rQAAAABJRU5ErkJggg==') /*../../images/chromearrow.png*/;
 	background-size:cover;
 	width:5px;
 	height:8px;
+}
+
+.menuArrowImage {
+	height: 24px;
+	width: 15px;
+	margin-left: -9px;
+	margin-top: -8px;
 }
 
 #dragger {
@@ -69,5 +90,5 @@
 }
 
 .item {
-	display: flex;
+	display: -webkit-inline-box;
 }
