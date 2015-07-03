@@ -27,12 +27,18 @@
 	
 	ready: function() {
 		this.originalVals.name = this.item.name;
-		this.originalVals.value = this.item.value;
+		this.originalVals.value = [];
+		for (var i = 0; i < this.item.value.length; i++) {
+			this.originalVals.value[i] = {
+				//'value': = this.item.value[i];
+
+			}
+		}
+		console.log(this.originalVals.value);
 		var el = this;
 		setTimeout(function() {
 			$(el).find('input')[0].focus();
 		}, 350);
-		this.checkboxStateChange(null, true);
 	},
 
 	closePage: function() {
@@ -47,7 +53,19 @@
 	removeChanges: function () {
 		if (this.canceled) {
 			this.$.nameInput.value = this.originalVals.name;
-			this.$.linkInput.value = this.originalVals.value;
+			var i = 0;
+			var el = this;
+			console.log(this);
+			$(this.$.linksContainer).find('paper-checkbox').each(function () {
+				el.originalVals.value[i].newTab ? this.removeAttribute('checked') : this.setAttribute('checked', true);
+				i++;
+			});
+			i = 0;
+			$(this.$.linksContainer).find('paper-input').each(function () {
+				console.log(el.originalVals.value);
+				this.value = el.originalVals.value[i].value;
+				i++;
+			});
 		}
 	},
 
@@ -71,19 +89,15 @@
 		e.keyCode === 13 && this.saveChanges();
 	},
 
-	checkboxStateChange(e, dontCheckCurrent) {
-		console.log(dontCheckCurrent);
-		var checkbox;
-		if (!dontCheckCurrent) {
-			//Get this checkbox
-			var pathIndex = 0;
-			while (e.path[pathIndex].tagName !== 'PAPER-CHECKBOX') {
-				pathIndex++;
-			}
-			checkbox = e.path[pathIndex];
+	checkboxStateChange: function (e) {
+		//Get this checkbox
+		var pathIndex = 0;
+		while (e.path[pathIndex].tagName !== 'PAPER-CHECKBOX') {
+			pathIndex++;
 		}
+		var checkbox = e.path[pathIndex];
 		$(this.$.linksContainer).find('paper-checkbox').each(function () {
-			if (dontCheckCurrent || this !== checkbox) {
+			if (this !== checkbox) {
 				this.removeAttribute('checked');
 			}
 		});

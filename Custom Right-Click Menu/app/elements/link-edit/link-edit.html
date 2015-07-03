@@ -20,7 +20,7 @@
 						<template is="dom-repeat" items="{{item.value}}" as="link" observe="value newTab">
 							<div class="linkChangeCont">
 								<paper-input class="linkInput" on-keydown="inputKeyPress" value="{{link.value}}"></paper-input>
-								<paper-checkbox on-tap="checkboxStateChange" checked$="[[!link.newTab]]" class="linkNewTabToggle"></paper-checkbox> &nbsp; <div on-tap="	toggleCheckbox" class="checkboxText">Open in current tab</div>
+								<paper-checkbox on-tap="checkboxStateChange" checked$="[[!link.newTab]]" class="linkNewTabToggle"></paper-checkbox> &nbsp; <div on-tap="toggleCheckbox" class="checkboxText">Open in current tab</div>
 							</div>
 						</template>
 					</div>
