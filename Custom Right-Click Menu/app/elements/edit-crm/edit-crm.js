@@ -140,7 +140,12 @@ Polymer({
 		var newItem = {
 			'name': 'name',
 			'type': 'link',
-			'value': 'http://www.example.com',
+			'value': [
+				{
+					'value': 'http://www.example.com',
+					'newTab': true
+				}
+			],
 			'expanded': false,
 			'index': newIndex,
 			'path': [newIndex]

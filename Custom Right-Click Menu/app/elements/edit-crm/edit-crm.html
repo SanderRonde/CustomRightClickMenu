@@ -7,13 +7,13 @@
 			<link rel="import" href="../../bower_components/polymer/polymer.html" />
 			<link rel="stylesheet" type="css" href="edit-crm.css">
 			<div id="mainCont">
-				<template is="dom-repeat" items="[[crm]]" as="column">
+				<template is="dom-repeat" items="[[crm]]" as="column" observe="indent list">
 					<div class="CRMEditColumnCont">
 						<template is="dom-repeat" items="{{column.indent}}">
 							<div class="indentFiller"></div>
 						</template>
 						<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
-							<template is="dom-repeat" items="{{column.list}}" as="row">
+							<template is="dom-repeat" items="{{column.list}}" as="row" observe="name value type index path children">
 								<edit-crm-item shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
 							</template>
 						</div>
@@ -22,6 +22,8 @@
 			</div>
 			<div id="crmButtons">
 				<paper-button id="addButton" on-tap="addItem" raised>Add</paper-button>
+				<paper-button id="selectButton" on-tap="selectItems" raised>Select</paper-button>
+				<paper-button id="removeButton" on-tap="removeItem" raised>Remove</paper-button>
 			</div>
 		</template>
 	</dom-module>

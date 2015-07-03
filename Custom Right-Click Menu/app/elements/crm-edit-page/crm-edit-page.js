@@ -1,4 +1,5 @@
-﻿var startTime, element, overlayEl, diff, polymerEl, opacityDiff;
+﻿'use strict';
+var startTime, element, overlayEl, diff, crmEditPage, opacityDiff;
 
 function animatePageOut(timestamp) {
 	if (!startTime) {
@@ -12,7 +13,7 @@ function animatePageOut(timestamp) {
 		opacityDiff = diff / 150;
 		element.style.transform = 'scale(' + (1 - opacityDiff) + ')';
 		element.style.opacity = 1 - (opacityDiff);
-		if (!polymerEl.isDummy) {
+		if (!crmEditPage.isDummy) {
 			overlayEl.style.opacity = 0.2 - (opacityDiff / 5);
 		}
 		window.requestAnimationFrame(animatePageOut);
@@ -23,8 +24,8 @@ function animatePageOut(timestamp) {
 		element.style.opacity = 1;
 		overlayEl.style.opacity = 0;
 		overlayEl.style.display = 'none';
-		if (polymerEl.isDummy) {
-			polymerEl.style.opacity = 1;
+		if (crmEditPage.isDummy) {
+			crmEditPage.style.opacity = 1;
 		}
 		options.show = false;
 	}
@@ -39,7 +40,7 @@ function animatePageIn(timestamp) {
 		opacityDiff = diff / 150;
 		element.style.transform = 'scale(' + opacityDiff + ')';
 		element.style.opacity = opacityDiff * opacityDiff;
-		if (!polymerEl.isDummy) {
+		if (!crmEditPage.isDummy) {
 			overlayEl.style.opacity = opacityDiff / 5;
 		}
 		window.requestAnimationFrame(animatePageIn);
@@ -48,7 +49,7 @@ function animatePageIn(timestamp) {
 		startTime = null;
 		element.style.transform = 'scale(1)';
 		element.style.opacity = 1;
-		if (polymerEl.isDummy) {
+		if (crmEditPage.isDummy) {
 			window.requestAnimationFrame(animatePageOut);
 		}
 		else {
@@ -62,7 +63,7 @@ function animatePageIn(timestamp) {
 
 Polymer({
 	is: 'crm-edit-page',
-	
+
 	/**
 	 * The item to edit
 	 * 
@@ -118,28 +119,123 @@ Polymer({
 	isMenu: false,
 
 	/**
-	 * Whether the item is a dummy to smoothen the animation the next time
+	 * Any running animations (if any)
 	 * 
-	 * @attribute isDummy
-	 * @type Boolean
-	 * @default false
+	 * @attribute animation
+	 * @type Object
+	 * @default {}
 	 */
-	isDummy: false,
+	animation: {},
+
+	removeAnimations: function (elem) {
+		if (elem.animation) {
+			if (elem.animation.stop) {
+				elem.animation.stop();
+			}
+		}
+		elem.animation = null;
+	},
 
 	/**
 	 * @param eventSourceElement The element that was clicked on
 	 */
 	animateIn: function () {
-		element = this.$.editPageCont;
 		overlayEl = $('.overlayCont')[0];
 		overlayEl.style.display = 'block';
-		window.requestAnimationFrame(function() {
-			window.requestAnimationFrame(animatePageIn);
-		});
+		//this.style.display = 'block';
+		options.show = true;
+
+		var el = this;
+		var elements = [
+			this.$.editPageCont,
+			this.$.editPageCont,
+			$('.overlayCont')[0]
+		];
+
+		var animation = [
+			{
+				'style': 'transform',
+				'start': 0,
+				'progress': 1,
+				'prefix': 'scale(',
+				'postfix': ')'
+			},
+			{
+				'style': 'opacity',
+				'start': 0,
+				'progress': 1,
+				'prefix': '',
+				'postfix': ''
+			},
+			{
+				'style': 'opacity',
+				'start': 0,
+				'progress': 0.2,
+				'prefix': '',
+				'postfix': ''
+			}
+		];
+		var callback = function() {
+			el.removeAnimations(el);
+			$(elements[2]).on('click', function() {
+				$(el.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].cancelChanges();
+			});
+		};
+
+		if (this.animation) {
+			this.removeAnimations(this);
+		}
+		this.animation = new AnimationIn(elements, el, callback, animation, 300);
+		this.animation.start();
 	},
 	
 	animateOut: function () {
-		window.requestAnimationFrame(animatePageOut);
+		var overlayEl = $('.overlayCont').off('click')[0];
+		var el = this;
+		var elements = [
+			this.$.editPageCont,
+			this.$.editPageCont,
+			$('.overlayCont')[0]
+		];
+
+		var animation = [
+			{
+				'style': 'transform',
+				'start': 1,
+				'progress': -1,
+				'prefix': 'scale(',
+				'postfix': ')'
+			},
+			{
+				'style': 'opacity',
+				'start': 1,
+				'progress': -1,
+				'prefix': '',
+				'postfix': ''
+			},
+			{
+				'style': 'opacity',
+				'start': 0.2,
+				'progress': -0.2,
+				'prefix': '',
+				'postfix': ''
+			}
+		];
+		var callback = function() {
+			el.removeAnimations(el);
+			elements[0].style.transform = 'scale(0)';
+			elements[0].style.opacity = 1;
+			overlayEl.style.opacity = 0;
+			overlayEl.style.display = 'none';
+			$(el.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].removeChanges();
+			options.show = false;
+		};
+
+		if (this.animation) {
+			this.removeAnimations(this);
+		}
+		this.animation = new AnimationOut(elements, el, callback, animation, 300);
+		this.animation.start();
 	},
 
 	ready: function () {
@@ -150,15 +246,11 @@ Polymer({
 	},
 	
 	init: function() {
-		polymerEl = this;
+		crmEditPage = this;
 		this.isLink = (this.item.type === 'link');
 		this.isMenu = (this.item.type === 'menu');
 		this.isScript = (this.item.type === 'script');
 		this.isDivider = (this.item.type === 'divider');
-		this.isDummy = (this.item.type === 'dummy');
-		if (this.isDummy) {
-			this.style.opacity = 0;
-		}
 		this.animateIn();
 	}
 });

@@ -678,7 +678,9 @@ Polymer({
 				{
 					'style': 'marginLeft',
 					'start': -193,
-					'progress': 193
+					'progress': 193,
+					'prefix': '',
+					'postfix': ''
 				}
 			];
 			if (this.animation) {
@@ -694,7 +696,9 @@ Polymer({
 			{
 				'style': 'marginLeft',
 				'start': 0,
-				'progress': -193
+				'progress': -193,
+				'prefix': '',
+				'postfix': ''
 			}
 		];
 		if (el.animation) {
@@ -721,7 +725,9 @@ Polymer({
 					{
 						'style': 'height',
 						'start': 200,
-						'progress': -150
+						'progress': -150,
+						'prefix': '',
+						'postfix': ''
 					}
 				], 80);
 				typeSwitcher.toggledOpen = false;

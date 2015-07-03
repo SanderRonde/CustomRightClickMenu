@@ -1,12 +1,36 @@
-﻿.changeNameText, .changeLinkText {
-	font-weight: bold;
+﻿#changeNameText, #changeLinkText {
+	font-weight: 500;
 	font-size: 200%;
 }
 
-.changeNameInput, .changeLinkInput {
+#changeNameInput, #changeLinkInput {
 	width: 450px;
 }
 
 input {
 	font-size: 150%;
+}
+
+#buttons {
+	float: right;
+}
+
+#saveButton, #cancelButton {
+	font-size: 125%;
+	color: rgb(38, 153, 244);
+	font-weight: 500;
+	width: 6em;
+}
+
+.linkInput {
+	display: inline-block;
+	width: 305px;
+}
+
+#linksContainer .floated-label-placeholder {
+	display: none;
+}
+
+.checkboxText {
+	display: inline-block;
 }

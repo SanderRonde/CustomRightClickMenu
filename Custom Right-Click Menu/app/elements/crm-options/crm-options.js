@@ -7,6 +7,10 @@ var storage = chrome.storage.sync;
 var options = document.getElementsByTagName('crm-options')[0];
 var contextMenuItems = {'example': { 'name': 'example' } };
 
+function isNotSet(value) {
+	return value === undefined || value === null;
+}
+
 /**
  * 
  * @param elements Array of elements to animate
@@ -44,7 +48,8 @@ function AnimationIn(elements, callerEl, callback, toAnimate, duration) {
 				var currentProgress = parseInt($(firstElement).css(style), 10);
 				var progressFromStart = currentProgress - firstAnimation.start;
 				var percentage = progressFromStart / firstAnimation.progress;
-				thisAnimation.startTime = timestamp - (thisAnimation.duration * percentage);
+				var modifiedStart = thisAnimation.duration * percentage;
+				thisAnimation.startTime = timestamp - (modifiedStart !== NaN ? 0 : modifiedStart);
 			}
 			thisAnimation.diff = timestamp - thisAnimation.startTime;
 			if (thisAnimation.diff < thisAnimation.duration) {
@@ -60,14 +65,14 @@ function AnimationIn(elements, callerEl, callback, toAnimate, duration) {
 					thisAnimation.newVal = thisAnimation.square;
 				}
 				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
-					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start) + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal);
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = thisAnimation.toAnimate[i].prefix + (thisAnimation.toAnimate[i].start + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal)) + thisAnimation.toAnimate[i].postfix;
 				}
 				window.requestAnimationFrame(thisAnimation.animation);
 			}
 			else {
 				thisAnimation.startTime = null;
 				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
-					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress);
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = thisAnimation.toAnimate[i].prefix + (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress) + thisAnimation.toAnimate[i].postfix;
 				}
 				thisAnimation.passedHalf = false;
 				thisAnimation.callback(thisAnimation.callerEl);
@@ -123,7 +128,8 @@ function AnimationOut(elements, callerEl, callback, toAnimate, duration) {
 				var currentProgress = parseInt($(firstElement).css(style), 10);
 				var progressFromStart = currentProgress - firstAnimation.start;
 				var percentage = progressFromStart / firstAnimation.progress;
-				thisAnimation.startTime = timestamp - (thisAnimation.duration * percentage);
+				var modifiedStart = thisAnimation.duration * percentage;
+				thisAnimation.startTime = timestamp - (modifiedStart !== NaN ? 0 : modifiedStart);
 			}
 			thisAnimation.diff = timestamp - thisAnimation.startTime;
 			if (thisAnimation.diff < thisAnimation.duration) {
@@ -139,14 +145,14 @@ function AnimationOut(elements, callerEl, callback, toAnimate, duration) {
 					thisAnimation.newVal = thisAnimation.square;
 				}
 				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
-					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start) + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal);
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = thisAnimation.toAnimate[i].prefix + (thisAnimation.toAnimate[i].start + (thisAnimation.toAnimate[i].progress * thisAnimation.newVal)) + thisAnimation.toAnimate[i].postfix;
 				}
 				window.requestAnimationFrame(thisAnimation.animation);
 			}
 			else {
 				thisAnimation.startTime = null;
 				for (i = 0; i < thisAnimation.toAnimate.length; i++) {
-					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress);
+					thisAnimation.elements[i].style[thisAnimation.toAnimate[i].style] = thisAnimation.toAnimate[i].prefix + (thisAnimation.toAnimate[i].start + thisAnimation.toAnimate[i].progress) + thisAnimation.toAnimate[i].postfix;
 				}
 				thisAnimation.passedHalf = false;
 				thisAnimation.callback(thisAnimation.callerEl);
@@ -218,8 +224,10 @@ function bindEvents() {
  * @return the function to execute on click
  */
 function linkHandler(toOpen) {
-	return function () {
-		window.open(toOpen, '_blank');
+	return function() {
+		for (var i = 0; i < toOpen.length; i++) {
+			window.open(toOpen[i], '_blank');
+		}
 	}
 }
 
@@ -368,7 +376,12 @@ function setupFirstTime() {
 		{
 			'name': 'example',
 			'type': 'link',
-			'value': 'http://www.example.com'
+			'value': [
+				{
+					'value': 'http://www.example.com',
+					'newTab': true
+				}
+			]
 		}
 	];
 	options.upload();
@@ -383,35 +396,76 @@ function checkArray(toCheck) {
 	var changes = false;
 	var result;
 	toCheck.map(function (item, index) {
-		if (!item) {
-			console.log('error tho ' + index);
-			changes = true;
+		if (isNotSet(item)) {
+			changes = true;;
 			item = {};
 			item.name = 'name';
 			item.type = 'link';
-			item.value = 'http://www.example.com';
+			item.value = [
+				{
+					'value': 'http://www.example.com',
+					'newTab': true
+				}
+			];
 		}
-		if (item.name === undefined) {
-			changes = true;
+		if (isNotSet(item.name)) {
+			changes = true;;
 			item.name = 'name';
 		}
 		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu')) {
-			changes = true;
+			changes = true;;
 			item.type = 'link';
 		}
-		if (item.value === undefined) {
-			changes = true;
-			item.value = 'http://www.example.com';
+		if (isNotSet(item.value)) {
+			changes = true;;
+			item.value = [
+				{
+					'value': 'http://www.example.com',
+					'newTab': true
+				}
+			];
 		}
-		if (item.index === undefined) {
-			changes = true;
+		else {
+			if (item.type === 'link') {
+				if (typeof item.value !== 'object') {
+					item.value = [
+						{
+							'value': 'http://www.example.com',
+							'newTab': true
+						}
+					];
+				}
+				else {
+					for (var i = 0; i < item.value.length; i++) {
+						if (isNotSet(item.value[i])) {
+							changes = true;;
+							item.value[i] = {
+								'value': 'http://www.example.com',
+								'newTab': true
+							};
+						}
+						if (isNotSet(item.value[i].value)) {
+							changes = true;
+							item.value[i].value = 'http:/www.example.com';
+						}
+						if (isNotSet(item.value[i].newTab)) {
+							changes = true;;
+							item.value[i].newTab = true;
+						}
+					}
+				}
+			}
+			//TODO check other data types
+		}
+		if (isNotSet(item.index)) {
+			changes = true;;
 			item.index = index;
 		}
-		if (item.children) {
+		if (item.children && item.children.length > 0) {
 			result = checkArray(item.children);
 			if (result !== false) {
 				item.children = result;
-				changes = true;
+				changes = true;;
 			}
 		}
 		toCheck[index] = item;
@@ -436,12 +490,17 @@ function checkSettings(settings) {
 				{
 					'name': 'example',
 					'type': 'link',
-					'value': 'http://www.example.com'
+					'value': [
+						{
+							'value': 'http://www.example.com',
+							'newTab': true
+						}
+					]
 				}
 			];
 		}
 		else {
-			var result = checkArray(settings.crm)
+			var result = checkArray(settings.crm);
 			if (result !== false) {
 				changes = true;
 				settings.crm = result;
@@ -450,7 +509,7 @@ function checkSettings(settings) {
 
 		if (changes) {
 			options.settings = settings;
-			options.upload();
+			//options.upload();
 		}
 	}
 	else {
@@ -571,7 +630,7 @@ Polymer({
 	/**
 	 * Uploads this object to chrome.storage
 	 */
-	upload: function() {
+	upload: function () {
 		chrome.storage.sync.set(this.settings);
 		buildContextMenu();
 	},
@@ -581,22 +640,11 @@ Polymer({
 		this.crm.parent = this;
 
 		function callback(items) {
-			console.log(items);
-			console.log(items.crm);
 			el.settings = items;
 			main();
 		}
 
 		chrome.storage.sync.get(callback);
-
-		setTimeout(function () {
-			el.show = true;
-			el.item = {'type': 'dummy'};
-		}, 1500);
-	},
-	
-	build: function(setItems) {
-		buildCRMEditObj(setItems);
 	},
 
 	/**
@@ -615,6 +663,20 @@ Polymer({
 	 * CRM functions.
 	 */
 	crm: {
+		lookup: function(path, returnArray) {
+			var obj = options.settings.crm;
+			var i;
+			for (i = 0; i < path.length - 1; i++) {
+				if (options.settings.shadowStart && obj[path[i]].menuVal) {
+					obj = obj[path[i]].menuVal;
+				}
+				else {
+					obj = obj[path[i]].children;
+				}
+			}
+			return (returnArray ? obj : obj[path[i]]);
+		},
+
 		/**
 		 * Adds value to the CRM
 		 *
@@ -640,32 +702,12 @@ Polymer({
 		 * @param sameColumn Whether the item has stayed in the same column
 		 */
 		move: function (toMove, target, sameColumn) {
-			var i;
-			var toMoveContainer = toMove;
+			var toMoveContainer = this.lookup(toMove, true);
 			var toMoveIndex = toMoveContainer.splice(toMove.length - 1, 1);
+			var toMoveItem = toMoveContainer[toMoveIndex];
 
-			var toMoveItem = options.settings.crm;
-			for (i = 0; i < toMoveContainer.length; i++) {
-				if (options.settings.shadowStart && toMoveItem[toMoveContainer[i]].menuVal) {
-					toMoveItem = toMoveItem[toMoveContainer[i]].menuVal;
-				}
-				else {
-					toMoveItem = toMoveItem[toMoveContainer[i]].children;
-				}
-			}
-			toMoveContainer = toMoveItem;
-			toMoveItem = toMoveItem[toMoveIndex];
-
-			var newTarget = options.settings.crm;
-			var targetContainer = target;
-			var targetIndex = targetContainer.splice(target.length - 1, 1);
-			for (i = 0; i < targetContainer.length; i++) {
-				if (options.settings.shadowStart && newTarget[targetContainer[i]].menuVal) {
-					newTarget = newTarget[targetContainer[i]].menuVal;
-				} else {
-					newTarget = newTarget[targetContainer[i]].children;
-				}
-			}
+			var newTarget = this.lookup(target, true);
+			var targetIndex = target.splice(target.length - 1, 1);
 
 			if (sameColumn && toMoveIndex > targetIndex) {
 				insertInto(toMoveItem, newTarget, targetIndex);
@@ -679,12 +721,7 @@ Polymer({
 		},
 
 		remove: function (index) {
-			var obj = options.settings.crm;
-			var i;
-			for (i = 0; i < index.length - 1; i++) {
-				obj = obj[index[i]].children;
-			}
-			obj.splice(index[i], 1);
+			this.lookup(index,true).splice(index[index.length - 1], 1);
 			options.upload();
 		}
 	}

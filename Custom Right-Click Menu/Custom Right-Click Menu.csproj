@@ -44,6 +44,7 @@
     <Content Include="app\bower_components\iron-a11y-announcer\demo\x-announces.html" />
     <Content Include="app\bower_components\iron-a11y-announcer\index.html" />
     <Content Include="app\bower_components\iron-a11y-announcer\iron-a11y-announcer.html" />
+    <Content Include="app\bower_components\iron-a11y-announcer\iron-a11y-announcer.js" />
     <Content Include="app\bower_components\iron-a11y-announcer\test\index.html" />
     <Content Include="app\bower_components\iron-a11y-announcer\test\iron-a11y-announcer.html" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\.gitignore" />
@@ -479,6 +480,7 @@
     <Content Include="app\bower_components\paper-toast\hero.svg" />
     <Content Include="app\bower_components\paper-toast\index.html" />
     <Content Include="app\bower_components\paper-toast\paper-toast.html" />
+    <Content Include="app\bower_components\paper-toast\paper-toast.js" />
     <Content Include="app\bower_components\paper-toolbar\.gitignore" />
     <Content Include="app\bower_components\paper-toolbar\demo\index.html" />
     <Content Include="app\bower_components\paper-toolbar\index.html" />
@@ -547,7 +549,6 @@
     <Content Include="app\icon-small.png" />
     <Content Include="app\icon-supersmall.png" />
     <Content Include="app\js\iframecontentscript.js" />
-    <Content Include="app\img\icon.png" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
     <Content Include="app\js\jquery.color-2.1.2.min.js" />
     <Content Include="app\js\jquery.contextMenu.js" />
@@ -747,6 +748,7 @@
     <Content Include="app\bower_components\paper-toast\.bower.json" />
     <Content Include="app\bower_components\paper-toast\bower.json" />
     <Content Include="app\bower_components\paper-toast\README.md" />
+    <Content Include="app\fonts\Roboto-Medium.ttf" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
