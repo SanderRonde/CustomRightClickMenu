@@ -11,6 +11,15 @@ function isNotSet(value) {
 	return value === undefined || value === null;
 }
 
+function runOrAddAsCallback(toRun, thisElement) {
+	if (options.settings) {
+		toRun.apply(thisElement);
+	}
+	else {
+		options.addSettingsReadyCallback(toRun, thisElement);
+	}
+}
+
 /**
  * 
  * @param elements Array of elements to animate
@@ -593,38 +602,19 @@ Polymer({
 	properties: {
 		settings: {
 			type: Object,
-			notify: true,
-			observer: 'settingsChanged'
+			notify: true
+		},
+		onSettingsReadyCallbacks: {
+			type: Array,
+			value: []
 		}
 	},
-
-	/**
-	 * @fn settingsChanged: function ()
-	 *
-	 * @brief The settings object has changed, launch al listeners
-	 */
-	settingsChanged: function() {
-		var crmChanged = false;
-		if (this.prevCRM !== this.settings.crm) {
-			crmChanged = true;
-		}
-		this.prevCRM = this.settings.crm;
-		this.elementListeners.forEach(function(item) {
-			if (item.type === 'settings' || crmChanged) {
-				item.function();
-			}
+	
+	addSettingsReadyCallback: function(callback, thisElement) {
+		this.onSettingsReadyCallbacks.push({
+			'callback': callback,
+			'thisElement': thisElement
 		});
-	},
-
-	/**
-	 * @fn addListener: function(callback)
-	 *
-	 * @brief Adds a listener for the settings or crm object
-	 *
-	 * @param data Data object.
-	 */
-	addListener: function(data) {
-		this.elementListeners.push(data);
 	},
 
 	/**
@@ -641,6 +631,9 @@ Polymer({
 
 		function callback(items) {
 			el.settings = items;
+			for (var i = 0; i < el.onSettingsReadyCallbacks.length; i++) {
+				el.onSettingsReadyCallbacks[i].callback.apply(el.onSettingsReadyCallbacks[i].thisElement);
+			}
 			main();
 		}
 

@@ -27,13 +27,7 @@
 	
 	ready: function() {
 		this.originalVals.name = this.item.name;
-		this.originalVals.value = [];
-		for (var i = 0; i < this.item.value.length; i++) {
-			this.originalVals.value[i] = {
-				//'value': = this.item.value[i];
-
-			}
-		}
+		this.originalVals.value = this.item.value;
 		console.log(this.originalVals.value);
 		var el = this;
 		setTimeout(function() {
@@ -51,6 +45,7 @@
 	},
 
 	removeChanges: function () {
+		console.log(this.canceled);
 		if (this.canceled) {
 			this.$.nameInput.value = this.originalVals.name;
 			var i = 0;
@@ -62,22 +57,35 @@
 			});
 			i = 0;
 			$(this.$.linksContainer).find('paper-input').each(function () {
-				console.log(el.originalVals.value);
+				console.log(el.originalVals.value[i].value);
 				this.value = el.originalVals.value[i].value;
 				i++;
 			});
 		}
 	},
 
-	saveChanges: function() {
+	saveChanges: function () {
 		var lookedUp = options.crm.lookup(this.item.path);
-		lookedUp.name = this.item.name;
-		lookedUp.value = this.item.value;
+		//Get new "item"
+		var newItem = {};
+		newItem.name = this.item.name;
+		newItem.value = [];
+		$(this.$.linksContainer).find('.linkChangeCont').each(function () {
+			newItem.value.push({
+				'value': $(this).children('paper-input')[0].value,
+				'newTab': ($(this).children('paper-checkbox').attr('aria-checked') !== 'true')
+			});
+		});
+		//for (var i = 0; i < this.item.value.length; i++) {
+		//	newItem.value[i] = {
+		//		'value': 
+		lookedUp.name = newItem.name;
+		lookedUp.value = newItem.value;
 
 		//Polymer pls...
-		var itemInEditPage = $(options.editCRM.$.mainCont.children[this.item.path.length - 1]).children('.CRMEditColumn')[0].children[this.item.path[this.item.path.length - 1]];
-		itemInEditPage.item = this.item;
-		itemInEditPage.$$('.CRMItemtitle').children[0].innerHTML = this.item.name;
+		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('.CRMEditColumn')[0].children[lookedUp.path[lookedUp.path.length - 1]];
+		itemInEditPage.item = lookedUp;
+		itemInEditPage.$$('.CRMItemtitle').children[0].innerHTML = newItem.name;
 
 		options.upload();
 
