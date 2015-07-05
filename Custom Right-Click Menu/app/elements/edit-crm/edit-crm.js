@@ -1,8 +1,8 @@
-﻿///<reference path="../../../scripts/_references.js"/>
+﻿/// <reference path="../../../scripts/_references.js"/>
+/// <reference path="~/app/elements/crm-options/crm-options.js" />
 'use strict';
 var options;
 options.settings = options.settings;
-options.settings.crm = options.settings.crm;
 
 /**
  * @fn function getLastMenu(list)
@@ -130,8 +130,7 @@ Polymer({
 
 	ready: function() {
 		var el = this;
-		options.addListener({'type': 'crm', 'function': el.build});
-		this.build();
+		runOrAddAsCallback(el.build, this);
 		options.editCRM = this;
 	},
 	
@@ -140,7 +139,12 @@ Polymer({
 		var newItem = {
 			'name': 'name',
 			'type': 'link',
-			'value': 'http://www.example.com',
+			'value': [
+				{
+					'value': 'http://www.example.com',
+					'newTab': true
+				}
+			],
 			'expanded': false,
 			'index': newIndex,
 			'path': [newIndex]
