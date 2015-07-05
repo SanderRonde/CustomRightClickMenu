@@ -5,15 +5,6 @@ Polymer({
 	is: 'type-switcher',
 
 	/**
-	 * The animation currently running
-	 * 
-	 * @attribute animation
-	 * @type Function
-	 * @default null
-	 */
-	animation: null,
-
-	/**
 	 * The type of this item
 	 * 
 	 * @attribute type
@@ -109,31 +100,20 @@ Polymer({
 		});
 	},
 
-	removeAnimations: function(elem) {
-		elem.animation.stop && elem.animation.stop();
-		elem.animation = null;
-	},
-
-	closeTypeSwitchContainer: function (quick) {
-		var elements = [];
-		elements[0] = this.parentNode.parentNode;
-
-		var animations = [
-			{
-				'style': 'height',
-				'start': 200,
-				'progress': -150
-			}
-		];
-
+	closeTypeSwitchContainer: function (quick, callback) {
 		var el = this;
-		this.animation && this.removeAnimations(this);
-		this.animation = new AnimationIn(elements, el, function(el) {
-			el.removeAnimations(el);
-			el.$.typeSwitchChoicesContainer.style.display = 'none';
-			el.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
-		}, animations, (quick ? 80 : 300));
-		this.animation.start();
+		$(this.parentNode.parentNode).stop().animate({
+			'height': 50
+		}, {
+			'easing': 'easeInCubic',
+			'duration': (quick ? 80 : 300),
+			'complete': function() {
+				el.$.typeSwitchChoicesContainer.style.display = 'none';
+				el.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
+				console.log(callback);
+				callback && callback();
+			}
+		});
 	},
 
 	openTypeSwitchContainer: function() {
@@ -141,23 +121,14 @@ Polymer({
 			this.colorTypeChoices();
 			this.colored = true;
 		}
-		var elements = [];
-		elements[0] = this.parentNode.parentNode;
 		this.$.typeSwitchChoicesContainer.style.display = 'block';
 		this.$.typeSwitchArrow.style.transform = 'rotate(90deg)';
-
-		var animations = [
-			{
-				'style': 'height',
-				'start': 50,
-				'progress': 150
-			}
-		];
-
-		var el = this;
-		this.animation && this.removeAnimations(this);
-		this.animation = new AnimationIn(elements, el, el.removeAnimations, animations, 300);
-		this.animation.start();
+		$(this.parentNode.parentNode).stop().animate({
+			'height': 200
+		}, {
+			'easing': 'easeOutCubic',
+			'duration': 300
+		});
 	},
 
 	toggleTypeSwitch: function() {
