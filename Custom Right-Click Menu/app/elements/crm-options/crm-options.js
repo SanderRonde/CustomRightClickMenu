@@ -54,11 +54,15 @@ function AnimationIn(elements, callerEl, callback, toAnimate, duration) {
 						style += firstAnimation.style[i];
 					}
 				}
+				console.log($(firstElement));
+				console.log(style);
 				var currentProgress = parseInt($(firstElement).css(style), 10);
+				console.log(currentProgress);
 				var progressFromStart = currentProgress - firstAnimation.start;
 				var percentage = progressFromStart / firstAnimation.progress;
 				var modifiedStart = thisAnimation.duration * percentage;
 				thisAnimation.startTime = timestamp - (modifiedStart !== NaN ? 0 : modifiedStart);
+				console.log('in ' + percentage);
 			}
 			thisAnimation.diff = timestamp - thisAnimation.startTime;
 			if (thisAnimation.diff < thisAnimation.duration) {
@@ -90,6 +94,7 @@ function AnimationIn(elements, callerEl, callback, toAnimate, duration) {
 	}
 
 	this.start = function () {
+		console.log('in');
 		this.continue = true;
 		window.requestAnimationFrame(this.animation);
 	}
@@ -134,10 +139,14 @@ function AnimationOut(elements, callerEl, callback, toAnimate, duration) {
 						style += firstAnimation.style[i];
 					}
 				}
+				console.log($(firstElement));
+				console.log(style);
 				var currentProgress = parseInt($(firstElement).css(style), 10);
+				console.log(currentProgress);
 				var progressFromStart = currentProgress - firstAnimation.start;
 				var percentage = progressFromStart / firstAnimation.progress;
 				var modifiedStart = thisAnimation.duration * percentage;
+				console.log('out ' + percentage);
 				thisAnimation.startTime = timestamp - (modifiedStart !== NaN ? 0 : modifiedStart);
 			}
 			thisAnimation.diff = timestamp - thisAnimation.startTime;
@@ -170,6 +179,7 @@ function AnimationOut(elements, callerEl, callback, toAnimate, duration) {
 	}
 
 	this.start = function () {
+		console.log('out');
 		this.continue = true;
 		window.requestAnimationFrame(this.animation);
 	}
@@ -621,7 +631,11 @@ Polymer({
 	 * Uploads this object to chrome.storage
 	 */
 	upload: function () {
+		console.log(this.settings);
 		chrome.storage.sync.set(this.settings);
+		chrome.storage.sync.get(function(e) {
+			console.log(e);
+		});
 		buildContextMenu();
 	},
 

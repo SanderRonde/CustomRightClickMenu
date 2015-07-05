@@ -550,8 +550,10 @@
     <Content Include="app\icon-supersmall.png" />
     <Content Include="app\js\iframecontentscript.js" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
+    <Content Include="app\js\jquery-ui.min.js" />
     <Content Include="app\js\jquery.color-2.1.2.min.js" />
     <Content Include="app\js\jquery.contextMenu.js" />
+    <Content Include="app\js\jquery.requestAnimationFrame.min.js" />
     <Content Include="app\options.html" />
     <Content Include="Gruntfile.js" />
     <Content Include="DebugSettings.template.xml">

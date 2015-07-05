@@ -45,7 +45,6 @@
 	},
 
 	removeChanges: function () {
-		console.log(this.canceled);
 		if (this.canceled) {
 			this.$.nameInput.value = this.originalVals.name;
 			var i = 0;
@@ -57,7 +56,6 @@
 			});
 			i = 0;
 			$(this.$.linksContainer).find('paper-input').each(function () {
-				console.log(el.originalVals.value[i].value);
 				this.value = el.originalVals.value[i].value;
 				i++;
 			});
@@ -76,9 +74,6 @@
 				'newTab': ($(this).children('paper-checkbox').attr('aria-checked') !== 'true')
 			});
 		});
-		//for (var i = 0; i < this.item.value.length; i++) {
-		//	newItem.value[i] = {
-		//		'value': 
 		lookedUp.name = newItem.name;
 		lookedUp.value = newItem.value;
 

@@ -235,15 +235,6 @@ Polymer({
 	//#region typeIndicatorProperties
 
 	/**
-     * The current animation going (if any)
-     *
-     * @attribute animation
-     * @type Function
-     * @default null
-     */
-	animation: null,
-
-	/**
      * The element to be animated
      *
      * @attribute animationEl
@@ -661,51 +652,25 @@ Polymer({
 		this.isDivider = this.item.type === 'divider';
 	},
 
-	removeAnimations: function (elem) {
-		if (elem.animation) {
-			if (elem.animation.stop) {
-				elem.animation.stop();
-			}
-		}
-		elem.animation = null;
-	},
-
 	typeIndicatorMouseOver: function () {
 		if (!this.shadow) {
 			this.animationEl = this.animationEl || [this.$$('type-switcher').$$('.TSContainer')];
-			var el = this;
-			var animation = [
-				{
-					'style': 'marginLeft',
-					'start': -193,
-					'progress': 193,
-					'prefix': '',
-					'postfix': ''
-				}
-			];
-			if (this.animation) {
-				this.removeAnimations(this);
-			}
-			this.animation = new AnimationIn(this.animationEl, el, el.removeAnimations, animation, 300);
-			this.animation.start();
+			$(this.animationEl).stop().animate({
+				'marginLeft': 0
+			}, {
+				'easing': 'easeOutCubic',
+				'duration': 300
+			});
 		}
 	},
 
 	animateOut(el) {
-		var animation = [
-			{
-				'style': 'marginLeft',
-				'start': 0,
-				'progress': -193,
-				'prefix': '',
-				'postfix': ''
-			}
-		];
-		if (el.animation) {
-			el.removeAnimations(el);
-		}
-		el.animation = new AnimationIn(el.animationEl, el, el.removeAnimations, animation, 300);
-		el.animation.start();
+		$(el.animationEl).stop().animate({
+			'marginLeft': -193
+		}, {
+			'easing': 'easeInCubic',
+			'duration': 300
+		});
 	},
 
 	typeIndicatorMouseLeave: function () {
@@ -713,26 +678,14 @@ Polymer({
 			var el = this;
 			var typeSwitcher = this.$.typeSwitcher;
 			if (typeSwitcher.toggledOpen) {
-				if (typeSwitcher.animation) {
-					typeSwitcher.removeAnimations(typeSwitcher);
-				}
-				this.animation = new AnimationIn([this.$.itemCont], el, function(el) {
-					el.removeAnimations(el);
+				typeSwitcher.closeTypeSwitchContainer(true, function() {
+					typeSwitcher.toggledOpen = false;
 					typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
 					typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
 					el.animateOut(el);
-				}, [
-					{
-						'style': 'height',
-						'start': 200,
-						'progress': -150,
-						'prefix': '',
-						'postfix': ''
-					}
-				], 80);
-				typeSwitcher.toggledOpen = false;
-				this.animation.start();
-			} else {
+				});
+			}
+			else {
 				this.animateOut(this);
 			}
 		}
