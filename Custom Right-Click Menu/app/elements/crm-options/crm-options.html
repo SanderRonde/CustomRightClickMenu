@@ -4,7 +4,7 @@
 		<link rel="stylesheet" href="../../jquery.contextMenu.css"/>
 		<link rel="stylesheet" href="crm-options.css"/>
 		<div class="popupCont">
-			<template is="dom-if" if="{{show}}">
+			<template is="dom-if" if="{{show}}" restamp="true">
 				<crm-edit-page id="editPage" item="{{item}}"></crm-edit-page>
 			</template>
 		</div>
@@ -73,10 +73,10 @@
 				<span id="menuSwitchUndoButton" role="button">UNDO</span>
 			</paper-toast>
 		</div>
-		<script src="../../js/jquery-2.0.3.min.js"></script>
-		<script src="../../js/jquery.contextMenu.js"></script>
 	</template>
 </dom-module>
 <script src="../../js/jquery-2.0.3.min.js"></script>
+<script src="../../js/jquery-ui.min.js"></script>
+<script src="../../js/jquery.requestAnimationFrame.min.js"></script>
 <script src="../../js/jquery.contextMenu.js"></script>
 <script src="crm-options.js"></script>
