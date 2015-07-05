@@ -1,68 +1,9 @@
-﻿var startTime, element, overlayEl, diff, polymerEl, opacityDiff;
-
-function animatePageOut(timestamp) {
-	if (!startTime) {
-		startTime = timestamp;
-		overlayEl.removeEventListener('click', function () {
-			window.requestAnimationFrame(animatePageOut);
-		});
-	}
-	if (timestamp - startTime <= 150) {
-		var diff = timestamp - startTime;
-		opacityDiff = diff / 150;
-		element.style.transform = 'scale(' + (1 - opacityDiff) + ')';
-		element.style.opacity = 1 - (opacityDiff);
-		if (!polymerEl.isDummy) {
-			overlayEl.style.opacity = 0.2 - (opacityDiff / 5);
-		}
-		window.requestAnimationFrame(animatePageOut);
-	}
-	else {
-		startTime = null;
-		element.style.transform = 'scale(0)';
-		element.style.opacity = 1;
-		overlayEl.style.opacity = 0;
-		overlayEl.style.display = 'none';
-		if (polymerEl.isDummy) {
-			polymerEl.style.opacity = 1;
-		}
-		options.show = false;
-	}
-}
-
-function animatePageIn(timestamp) {
-	if (!startTime) {
-		startTime = timestamp;
-	}
-	if (timestamp - startTime <= 150) {
-		var diff = timestamp - startTime;
-		opacityDiff = diff / 150;
-		element.style.transform = 'scale(' + opacityDiff + ')';
-		element.style.opacity = opacityDiff * opacityDiff;
-		if (!polymerEl.isDummy) {
-			overlayEl.style.opacity = opacityDiff / 5;
-		}
-		window.requestAnimationFrame(animatePageIn);
-	}
-	else {
-		startTime = null;
-		element.style.transform = 'scale(1)';
-		element.style.opacity = 1;
-		if (polymerEl.isDummy) {
-			window.requestAnimationFrame(animatePageOut);
-		}
-		else {
-			overlayEl.style.opacity = 0.2;
-			overlayEl.addEventListener('click', function() {
-				window.requestAnimationFrame(animatePageOut);
-			});
-		}
-	}
-}
+﻿'use strict';
+var crmEditPage;
 
 Polymer({
 	is: 'crm-edit-page',
-	
+
 	/**
 	 * The item to edit
 	 * 
@@ -118,28 +59,55 @@ Polymer({
 	isMenu: false,
 
 	/**
-	 * Whether the item is a dummy to smoothen the animation the next time
-	 * 
-	 * @attribute isDummy
-	 * @type Boolean
-	 * @default false
-	 */
-	isDummy: false,
-
-	/**
 	 * @param eventSourceElement The element that was clicked on
 	 */
 	animateIn: function () {
-		element = this.$.editPageCont;
-		overlayEl = $('.overlayCont')[0];
-		overlayEl.style.display = 'block';
-		window.requestAnimationFrame(function() {
-			window.requestAnimationFrame(animatePageIn);
-		});
+		var el = this;
+		setTimeout(function() {
+			var overlayEl = $('.overlayCont')[0];
+			overlayEl.style.display = 'block';
+			options.show = true;
+			var overlayCont = $('.overlayCont')[0];
+			$(el.$.editPageCont).stop().animate({
+				'opacity': 1
+			}, {
+				'easing': 'easeInCubic',
+				'duration': 300,
+				'step': function(progress) {
+					this.style.transform = 'scale(' + progress + ')';
+					overlayCont.style.opacity = progress / 5;
+				},
+				'complete': function() {
+					$(overlayCont).on('click', function() {
+						$(el.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].cancelChanges();
+					});
+				}
+			});
+		}, 150);
 	},
 	
 	animateOut: function () {
-		window.requestAnimationFrame(animatePageOut);
+		var el = this;
+		var overlayEl = $('.overlayCont').off('click')[0];
+		var overlayCont = $('.overlayCont')[0];
+		$(this.$.editPageCont).stop().animate({
+			'opacity': 0
+		}, {
+			'easing': 'easeInCubic',
+			'duration': 300,
+			'step': function(progress) {
+				this.style.transform = 'scale(' + progress + ')';
+				overlayCont.style.opacity = progress / 5;
+			},
+			'complete': function() {
+				this.style.transform = 'scale(0)';
+				this.style.opacity = 1;
+				overlayEl.style.opacity = 0;
+				overlayEl.style.display = 'none';
+				$(el.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].removeChanges();
+				options.show = false;
+			}
+		});
 	},
 
 	ready: function () {
@@ -150,15 +118,11 @@ Polymer({
 	},
 	
 	init: function() {
-		polymerEl = this;
+		crmEditPage = this;
 		this.isLink = (this.item.type === 'link');
 		this.isMenu = (this.item.type === 'menu');
 		this.isScript = (this.item.type === 'script');
 		this.isDivider = (this.item.type === 'divider');
-		this.isDummy = (this.item.type === 'dummy');
-		if (this.isDummy) {
-			this.style.opacity = 0;
-		}
 		this.animateIn();
 	}
 });
