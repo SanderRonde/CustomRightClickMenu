@@ -656,20 +656,20 @@ Polymer({
 		if (!this.shadow) {
 			this.animationEl = this.animationEl || [this.$$('type-switcher').$$('.TSContainer')];
 			$(this.animationEl).stop().animate({
-				'marginLeft': 0
+				marginLeft: 0
 			}, {
-				'easing': 'easeOutCubic',
-				'duration': 300
+				easing: 'easeOutCubic',
+				duration: 300
 			});
 		}
 	},
 
 	animateOut(el) {
 		$(el.animationEl).stop().animate({
-			'marginLeft': -193
+			marginLeft: -193
 		}, {
-			'easing': 'easeInCubic',
-			'duration': 300
+			easing: 'easeInCubic',
+			duration: 300
 		});
 	},
 

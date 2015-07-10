@@ -1,0 +1,32 @@
+﻿<html>
+<head>
+</head>
+<body>
+	<dom-module id="paper-js-textarea" attributes="data">
+		<template>
+			<link rel="stylesheet" href="paper-js-textarea.css" />
+			<div id="container">
+				<div id="flexRow">
+					<template is="dom-if" if="{{showRibbon}}">
+						<div id="ribbon">
+							
+						</div>
+					</template>
+					<div id="flexColumn">
+						<template is="dom-if" if="{{showTopTitle}}">
+							<div id="topTitle">
+
+							</div>
+						</template>
+						<div id="editorCont">
+							<div id="editor" contenteditable on-keypress="editorKeyDown"></div>
+							<div id="editorSettings"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</template>
+	</dom-module>
+	<script src="paper-js-textarea.js"></script>
+</body>
+</html>

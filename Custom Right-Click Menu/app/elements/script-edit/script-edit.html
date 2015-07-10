@@ -1,0 +1,58 @@
+﻿<html>
+<head></head>
+<body>
+	<dom-module id="script-edit" attributes="item">
+		<template>
+			<link rel="stylesheet" href="script-edit.css" />
+			<div id="scriptEditCont">
+				<div id="settingsCont">
+					<div id="settings">
+						<div id="nameChangeCont">
+							<div id="nameInputText">Name:</div>
+							<paper-input id="nameChange" value="[[item.name]]" on-keydown="inputKeyPress"></paper-input>
+						</div>
+						<br/>
+						<div id="triggersCont">
+							<div id="triggersText">
+								Trigger(s):
+							</div>
+							<br/>
+							<paper-dropdown-menu selected="[[item.value.launchMode]]">
+								<paper-menu selected="[[item.value.launchMode]]">
+									<paper-item id="executeOnClickOption" class="scriptLaunchOption">Execute on clicking</paper-item>
+									<paper-item id="executeAlwaysOption" class="scriptLaunchOption">Always execute</paper-item>
+									<paper-item id="execyteOnSpecified" class="scriptLaunchOption">Execute when visiting specified sites</paper-item>
+								</paper-menu>
+							</paper-dropdown-menu>
+							<div id="executionTriggersContainer">
+								<div id="executionTriggersText">
+									Execute on:
+								</div>
+								<br/>
+								<template is="dom-repeat" items="[[item.value.triggers]]" as="trigger">
+									<div class="executionTrigger">
+										<paper-input class="triggerInput" value="[[trigger.url]]"></paper-input>
+										<paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button>
+									</div>
+								</template>
+							</div>
+						</div>
+					</div>
+					<div id="scriptEditorCont">
+						<div id="scriptInputText">Script:</div>
+						<paper-js-textarea id="scriptEditor" data="[[item.value]]"></paper-js-textarea>
+						<div id="scriptEditorButtons">
+
+						</div>
+					</div>
+				</div>
+				<div id="buttons">
+					<paper-button id="cancelButton" on-tap="cancelChanges">Cancel</paper-button>
+					<paper-button id="saveButton" on-tap="saveChanges">Save</paper-button>
+				</div>
+			</div>
+		</template>
+	</dom-module>
+	<script src="script-edit.js"></script>
+</body>
+</html>

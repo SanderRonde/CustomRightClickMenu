@@ -1,0 +1,50 @@
+﻿#nameInputText, #scriptInputText, #triggersText, #executionTriggersText {
+	font-weight: 500;
+	font-size: 200%;
+}
+
+#nameChange, #changeLinkInput {
+	width: 450px;
+}
+
+#scriptEditCont {
+	max-height: 100vh;
+	max-width: 100vw;
+}
+
+input {
+	font-size: 150%;
+}
+
+#buttons {
+	float: right;
+}
+
+#saveButton, #cancelButton {
+	font-size: 125%;
+	color: rgb(38, 153, 244);
+	font-weight: 500;
+	width: 6em;
+}
+
+#scriptEditorCont {
+	margin-left: 30px;
+	width: 500px;
+}
+
+#settingsCont {
+	display: flex;
+}
+
+#executionTriggersContainer .floated-label-placeholder {
+	display: none;
+}
+
+.executionTrigger {
+	display: flex;
+}
+
+.triggerInput {
+	display: inline-block;
+	flex-grow: 5;
+}

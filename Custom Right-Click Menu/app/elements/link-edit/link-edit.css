@@ -34,3 +34,8 @@ input {
 .checkboxText {
 	display: inline-block;
 }
+
+#linkEditCont {
+	max-height: 100vh;
+	max-width: 100vw;
+}
