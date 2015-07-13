@@ -30,6 +30,8 @@ input {
 #scriptEditorCont {
 	margin-left: 30px;
 	width: 500px;
+	display: flex;
+	flex-direction: column;
 }
 
 #settingsCont {
@@ -47,4 +49,95 @@ input {
 .triggerInput {
 	display: inline-block;
 	flex-grow: 5;
+}
+
+#container, #flexRow, #flexColumn, #editorCont, .CodeMirror, .CodeMirror-scroll, #editorPlaceholder {
+	flex-grow: 100;
+	display: flex;
+	flex-direction: column;
+}
+
+.CodeMirror, .CodeMirror-focused {
+	font-size: 125%;
+}
+
+.CodeMirror {
+	animation-name: borderblur;
+	animation-duration: 300ms;
+	border: 1px solid rgb(195, 214, 255);
+}
+
+.CodeMirror-focused {
+	animation-name: borderfocus;
+	animation-duration: 300ms;
+	border: 1px solid rgb(76, 139, 255);
+}
+
+.CodeMirror-gutters {
+	height: 100%!important;
+}
+
+.CodeMirror-sizer {
+	margin-left: 30px!important;
+}
+
+.CodeMirror-linenumber {
+	border-right: 1px solid rgb(190,190,190);
+	margin-left: -30px;
+}
+
+.CodeMirror-gutter-wrapper {
+	left: 0!important;
+}
+
+@keyframes borderfocus {
+	from {
+		border: 1px solid rgb(195, 214, 255);
+	}
+
+	to {
+		border: 1px solid rgb(76, 139, 255);
+	}
+}
+
+@keyframes borderblur {
+	from {
+		border: 1px solid rgb(76, 139, 255);
+	}
+
+	to {
+		border: 1px solid rgb(195, 214, 255);
+	}
+}
+
+#editorSettings, #editorFullScreen {
+	z-index: 50;
+	position: fixed;
+}
+
+#editorFullScreen {
+	bottom: 55px;
+	right: 28px;
+}
+
+#editorSettings {
+	right: 30px;
+}
+
+#editorPlaceholder paper-spinner {
+	width: 50px;
+	height: 50px;
+}
+
+#editorPlaceholder, #editorPlaceHolderCenterer {
+	justify-content: center;
+}
+
+#editorPlaceholder {
+	background-color: rgb(240,240,240);
+}
+
+#editorPlaceHolderCenterer {
+	display: flex;
+	flex-direction: row;
 }

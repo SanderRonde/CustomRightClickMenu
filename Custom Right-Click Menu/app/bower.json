@@ -34,6 +34,7 @@
     "paper-ripple": "PolymerElements/paper-ripple#^1.0.0",
     "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0",
     "paper-drawer-panel": "PolymerElements/paper-drawer-panel#1.0.0",
-    "paper-toast": "PolymerElements/paper-toast#^1.0.0"
+    "paper-toast": "PolymerElements/paper-toast#^1.0.0",
+    "paper-spinner": "PolymerElements/paper-spinner#^1.0.0"
   }
 }

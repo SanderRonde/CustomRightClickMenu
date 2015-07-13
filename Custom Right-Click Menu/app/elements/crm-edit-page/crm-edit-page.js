@@ -123,6 +123,10 @@ Polymer({
 		this.isMenu = (this.item.type === 'menu');
 		this.isScript = (this.item.type === 'script');
 		this.isDivider = (this.item.type === 'divider');
-		this.animateIn();
+		if (this.isScript) {
+			setTimeout(function() {
+				crmEditPage.animateIn();
+			}, 500);
+		}
 	}
 });

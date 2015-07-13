@@ -24,14 +24,10 @@
 	}
 
 	function animateBoxShadowOut(timestamp) {
-		console.log('ayy lmoa');
 		if (!startTime) {
 			startTime = timestamp;
 		}
-		console.log(startTime);
-		console.log(timestamp);
 		if (timestamp - 100 < startTime) {
-			console.log('yo');
 			scale = 1 - (((timestamp - startTime) / 100));
 			doubleScale = scale * 2;
 			paperMenu.style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
@@ -40,7 +36,6 @@
 			dropdownSelectedCont.style.marginLeft = scale * 15;
 			window.requestAnimationFrame(animateBoxShadowOut);
 		} else {
-			console.log('ayyy');
 			startTime = null;
 			paperMenu.style.boxShadow = 'rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0';
 			paperDropdownEl.$.dropdownArrow.style.transform = 'rotate(90deg)';
