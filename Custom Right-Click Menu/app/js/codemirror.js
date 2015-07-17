@@ -437,7 +437,7 @@
 			var needsV = measure.scrollHeight > measure.clientHeight + 1;
 			var sWidth = measure.nativeBarWidth;
 
-			window.scriptEdit.scrollbarsUpdate.apply(window.scriptEdit, [needsV, needsH]);
+			window.scriptEdit.scrollbarsUpdate.apply(window.scriptEdit, [needsV]);
 
 			if (needsV) {
 				this.vert.style.display = 'block';

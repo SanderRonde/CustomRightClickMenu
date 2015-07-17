@@ -109,3 +109,8 @@ paper-ripple {
 	margin: 10px;
 	cursor: pointer;
 }
+
+#fullscreenEditor {
+	position: fixed;
+	z-index:100;
+}

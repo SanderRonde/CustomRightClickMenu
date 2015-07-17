@@ -8,53 +8,44 @@
 			<div id="settingsCont">
 				<div id="settings">
 					<div id="nameChangeCont">
-						<div id="nameInputText">Name:</div>
+						<div id="nameInputText">Name</div>
 						<paper-input id="nameChange" value="[[item.name]]" on-keydown="inputKeyPress"></paper-input>
 					</div>
 					<br/>
 					<div id="triggersCont">
 						<div id="triggersText">
-							Trigger(s):
+							Trigger(s)
 						</div>
 						<br/>
-						<paper-dropdown-menu selected="[[item.value.launchMode]]">
+						<paper-dropdown-menu id="dropdownMenu" selected="[[item.value.launchMode]]">
 							<paper-menu selected="[[item.value.launchMode]]">
 								<paper-item id="executeOnClickOption" class="scriptLaunchOption">Execute on clicking</paper-item>
 								<paper-item id="executeAlwaysOption" class="scriptLaunchOption">Always execute</paper-item>
 								<paper-item id="execyteOnSpecified" class="scriptLaunchOption">Execute when visiting specified sites</paper-item>
 							</paper-menu>
 						</paper-dropdown-menu>
+						<br/>
 						<div id="executionTriggersContainer">
 							<div id="executionTriggersText">
 								Execute on:
 							</div>
-							<br/>
+							<br />
 							<template is="dom-repeat" items="[[item.value.triggers]]" as="trigger">
 								<div class="executionTrigger">
 									<paper-input class="triggerInput" value="[[trigger.url]]"></paper-input>
 									<paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button>
 								</div>
 							</template>
+							<paper-button on-tap="addTrigger" raised id="addTrigger">Add</paper-button>
 						</div>
 					</div>
 				</div>
 				<div id="scriptEditorCont">
-					<div id="scriptInputText">Script:</div>
+					<div id="scriptInputText">Script</div>
 					<div id="container">
 						<div id="flexRow">
-							<template is="dom-if" if="{{showRibbon}}">
-								<div id="ribbon">
-
-								</div>
-							</template>
 							<div id="flexColumn">
-								<template is="dom-if" if="{{showTopTitle}}">
-									<div id="topTitle">
-
-									</div>
-								</template>
 								<div id="editorCont">
-									<!--Will be replaced with the actual editor-->
 									<div id="editorPlaceholder">
 										<div id="editorPlaceHolderCenterer">
 											<paper-spinner active></paper-spinner>

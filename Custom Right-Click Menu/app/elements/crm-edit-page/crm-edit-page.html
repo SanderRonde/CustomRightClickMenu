@@ -8,7 +8,7 @@
 			<link rel="stylesheet" type="css" href="crm-edit-page.css"/>
 				<div id="horizontalCenterer">
 					<div id="verticalCenterer">
-						<div id="editPageCont">
+						<paper-material elevation="5" id="editPageCont">
 							<template is="dom-if" if="{{isLink}}">
 								<link-edit item="{{item}}"></link-edit>
 							</template>
@@ -21,7 +21,7 @@
 							<template is="dom-if" if="{{isMenu}}">
 								<menu-edit item="{{item}}"></menu-edit>
 							</template>
-						</div>
+						</paper-material>
 					</div>
 				</div>
 		</template>

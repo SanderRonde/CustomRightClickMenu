@@ -3,10 +3,6 @@
 	font-size: 200%;
 }
 
-#nameChange, #changeLinkInput {
-	width: 450px;
-}
-
 #scriptEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
@@ -31,11 +27,13 @@ input {
 	margin-left: 30px;
 	width: 500px;
 	display: flex;
+	-ms-flex-direction: column;
 	flex-direction: column;
 }
 
 #settingsCont {
 	display: flex;
+	padding-bottom: 11px;
 }
 
 #executionTriggersContainer .floated-label-placeholder {
@@ -54,6 +52,7 @@ input {
 #container, #flexRow, #flexColumn, #editorCont, .CodeMirror, .CodeMirror-scroll, #editorPlaceholder {
 	flex-grow: 100;
 	display: flex;
+	-ms-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -62,23 +61,27 @@ input {
 }
 
 .CodeMirror {
+	-moz-animation-name: borderblur;
+	-o-animation-name: borderblur;
+	-webkit-animation-name: borderblur;
 	animation-name: borderblur;
+	-moz-animation-duration: 300ms;
+	-o-animation-duration: 300ms;
+	-webkit-animation-duration: 300ms;
 	animation-duration: 300ms;
 	border: 1px solid rgb(195, 214, 255);
 }
 
 .CodeMirror-focused {
+	-moz-animation-name: borderfocus;
+	-o-animation-name: borderfocus;
+	-webkit-animation-name: borderfocus;
 	animation-name: borderfocus;
+	-moz-animation-duration: 300ms;
+	-o-animation-duration: 300ms;
+	-webkit-animation-duration: 300ms;
 	animation-duration: 300ms;
 	border: 1px solid rgb(76, 139, 255);
-}
-
-.CodeMirror-gutters {
-	height: 100%!important;
-}
-
-.CodeMirror-sizer {
-	margin-left: 30px!important;
 }
 
 .CodeMirror-linenumber {
@@ -88,6 +91,26 @@ input {
 
 .CodeMirror-gutter-wrapper {
 	left: 0!important;
+}
+
+@-moz-keyframes borderfocus {
+	from {
+		border: 1px solid rgb(195, 214, 255);
+	}
+
+	to {
+		border: 1px solid rgb(76, 139, 255);
+	}
+}
+
+@-webkit-keyframes borderfocus {
+	from {
+		border: 1px solid rgb(195, 214, 255);
+	}
+
+	to {
+		border: 1px solid rgb(76, 139, 255);
+	}
 }
 
 @keyframes borderfocus {
@@ -110,18 +133,13 @@ input {
 	}
 }
 
-#editorSettings, #editorFullScreen {
+#buttonsContainer {
 	z-index: 50;
-	position: fixed;
-}
-
-#editorFullScreen {
-	bottom: 55px;
-	right: 28px;
-}
-
-#editorSettings {
-	right: 30px;
+	overflow:hidden;
+	padding:2px;
+	display: flex;
+	margin-top:-2px;
+	margin-right:-1px;
 }
 
 #editorPlaceholder paper-spinner {
@@ -135,9 +153,135 @@ input {
 
 #editorPlaceholder {
 	background-color: rgb(240,240,240);
+	z-index: 50;
 }
 
 #editorPlaceHolderCenterer {
 	display: flex;
+	-ms-flex-direction: row;
 	flex-direction: row;
+}
+
+#editorCont {
+	min-height: 302px;
+}
+
+#executionTriggersContainer {
+	width: 100%;
+}
+
+#editorSettings svg {
+	padding: 7px;
+}
+
+#editorFullScreen svg {
+	padding: 4px;
+}
+
+#editorFullScreen, #editorSettings {
+	cursor: pointer;
+	background-color: white;
+}
+
+	#editorFullScreen:hover, #editorSettings:hover {
+		background-color: rgb(230,230,230);
+	}
+
+#addTrigger {
+	font-size: 125%;
+}
+
+#scriptInputText {
+	padding-bottom: 10px;
+}
+
+#editorOptionsContainer {
+	overflow: hidden;
+	pointer-events: all;
+}
+
+#editorSettings {
+	height: 39px;
+	z-index:60;
+}
+
+#editorOptions {
+	z-index: 30;
+	background-color: rgb(255, 255, 255);
+	font-family: 'Roboto';
+	padding: 10px;
+	height: calc(100% - 137px);
+	margin-left:-400px;
+}
+
+#buttonShadow {
+	display: inline-block;
+	right: 10px;
+	position: fixed;
+	z-index: 50;
+}
+
+#settingsShadow {
+	position: absolute;
+	z-index: 30;
+	font-family: 'Roboto';
+	border-radius: 50%;
+	width:0;
+	height: 0;
+	right: 10px;
+	pointer-events: none;
+}
+
+#editorThemeSettingTxt, #editorThemeSettingChoicesCont, .editorThemeSetting, #editorTabsOrSpacesTxt, #editorTabsOrSpacesCheckbox, #editorUseLineNumbersCheckbox, #editorUseLineNumbersTxt {
+	display: inline-block;
+}
+
+.editorThemeSetting {
+	border: 2px solid rgb(128,128,128);
+	width: 16px;
+	height: 16px;
+	margin-left: 5px;
+	margin-bottom: -3px;
+	cursor: pointer;
+}
+
+	.editorThemeSetting.currentTheme {
+		border: 2px solid rgb(255,165,0);
+	}
+
+#editorThemeSettingWhite {
+	background-color: white;
+}
+
+#editorThemeSettingDark {
+	background-color: rgb(30,30,30);
+}
+
+#editorSettingsTxt {
+	font-size: 250%;
+	font-weight: 500;
+	padding-bottom: 30px;
+}
+
+#editorTabsOrSpacesTxt, #editorUseLineNumbersTxt {
+	margin-left: 10px;
+}
+
+#editorOptionsContainer paper-checkbox {
+	margin-left: 2px;
+	pointer-events: all;
+}
+
+#editorTabSizeInput {
+	width: 250px;
+}
+
+#settingsContainer {
+	font-size: 140%;
+	width: 477px;
+	height: calc(100% - 136px);
+}
+
+.CodeMirror-gutters {
+	min-height: 100%!important;
 }

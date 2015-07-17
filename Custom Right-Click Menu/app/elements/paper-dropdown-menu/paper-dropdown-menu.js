@@ -53,7 +53,16 @@
 			}
 		},
 
-			/**
+		/**
+		 * The listeners for this element
+		 * 
+		 * @attribute listeners
+		 * @type Array
+		 * @default []
+		 */
+		listeners: [],
+
+		/**
 		 * Whether the menu is expanded
 		 * 
 		 * @attribute expanded
@@ -61,32 +70,41 @@
 		 * @default false
 		*/
 		expanded: false,
+		
+		addListener: function(listener, thisArg) {
+			this.listeners.push({
+				listener,
+				thisArg
+			});
+		},
 
-		dropdownSelectChange: function(el) {
-			var paperItems = $(el).find('paper-item');
-			console.log($(el).find('paper-menu')[0].selected);
-			console.log(paperItems);
-			el.$.dropdownSelected.innerHTML = paperItems[$(el).find('paper-menu')[0].selected].innerHTML;
+		dropdownSelectChange: function(_this) {
+			var paperItems = $(_this).find('paper-item');
+			var newState = $(_this).find('paper-menu')[0].selected;
+			this.listeners.forEach(function(item) {
+				item.listener.apply(item.thisArg, [newState]);
+			});
+			_this.$.dropdownSelected.innerHTML = paperItems[newState].innerHTML;
 		},
 
 		ready: function() {
-			var el = this;
+			var _this = this;
 			var paperItems = $(this).find('paper-item').on('click', function () {
 				setTimeout(function() {
-					el.dropdownSelectChange(el);
+					_this.dropdownSelectChange(_this);
 				}, 0);
 			});
 			this.$.dropdownSelected.innerHTML = paperItems[this.selected].innerHTML;
 			paperDropdownEl = this;
 			paperMenu = $(this).find('paper-menu')[0];;
 			setTimeout(function() {
-				$(el.$.dropdownSelectedCont).insertBefore($(el).find('.content'));
+				$(_this.$.dropdownSelectedCont).insertBefore($(_this).find('.content'));
 			}, 200);
 			dropdownSelectedCont = $(this).find('#dropdownSelectedCont')[0];
 		},
 
 		toggleDropdown: function() {
-			var el = this;
+			var _this = this;
 			
 			if (this.expanded) {
 				this.expanded = false;
@@ -104,13 +122,13 @@
 				this.expanded = true;
 				window.requestAnimationFrame(animateBoxShadowIn);
 				setTimeout(function() {
-					$(el).find('paper-menu').find('.content').css('display', 'block').stop().animate({
+					$(_this).find('paper-menu').find('.content').css('display', 'block').stop().animate({
 						height: 144
 					}, {
 						easing: 'easeOutCubic',
 						duration: 300,
 						complete: function() {
-							el.$.dropdownArrow.style.transform = 'rotate(270deg)';
+							_this.$.dropdownArrow.style.transform = 'rotate(270deg)';
 						}
 					});
 				}, 100);

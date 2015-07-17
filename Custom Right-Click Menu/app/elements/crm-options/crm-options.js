@@ -472,13 +472,13 @@ Polymer({
 	},
 
 	ready: function() {
-		var el = this;
+		var _this = this;
 		this.crm.parent = this;
 
 		function callback(items) {
-			el.settings = items;
-			for (var i = 0; i < el.onSettingsReadyCallbacks.length; i++) {
-				el.onSettingsReadyCallbacks[i].callback.apply(el.onSettingsReadyCallbacks[i].thisElement);
+			_this.settings = items;
+			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
 			main();
 		}

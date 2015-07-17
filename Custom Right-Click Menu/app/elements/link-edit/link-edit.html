@@ -7,13 +7,13 @@
 			<link rel="stylesheet" type="css" href="link-edit.css" />
 			<div id="linkEditCont">
 				<div id="changeName">
-					<div id="changeNameText">Name: </div>
+					<div id="changeNameText">Name </div>
 					<div id="changeNameInput">
 						<paper-input id="nameInput" on-keydown="inputKeyPress" value="{{item.name}}"></paper-input>
 					</div>
 				</div>
 				<div id="changeLink">
-					<div id="changeLinkText">Link(s): </div>
+					<div id="changeLinkText">Link(s) </div>
 					<br />
 					<div id="linksContainer">
 						<template is="dom-repeat" items="{{item.value}}" as="link" observe="value newTab">

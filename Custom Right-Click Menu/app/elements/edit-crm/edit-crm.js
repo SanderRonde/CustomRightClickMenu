@@ -129,8 +129,8 @@ Polymer({
 	},
 
 	ready: function() {
-		var el = this;
-		runOrAddAsCallback(el.build, this);
+		var _this = this;
+		runOrAddAsCallback(_this.build, this);
 		options.editCRM = this;
 	},
 	

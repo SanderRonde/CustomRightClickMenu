@@ -524,6 +524,7 @@
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.min.js" />
     <Content Include="app\codemirror.css" />
     <Content Include="app\images\fullscreen.svg" />
+    <Content Include="app\images\fullscreenExit.svg" />
     <Content Include="app\images\settings.svg" />
     <Content Include="app\js\codemirror.js" />
     <Content Include="app\js\codemirrorJs.js" />

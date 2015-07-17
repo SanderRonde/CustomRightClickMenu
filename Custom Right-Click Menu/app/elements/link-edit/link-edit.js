@@ -29,9 +29,9 @@
 		this.originalVals.name = this.item.name;
 		this.originalVals.value = this.item.value;
 		console.log(this.originalVals.value);
-		var el = this;
+		var _this = this;
 		setTimeout(function() {
-			$(el).find('input')[0].focus();
+			$(_this).find('input')[0].focus();
 		}, 350);
 	},
 
@@ -48,15 +48,15 @@
 		if (this.canceled) {
 			this.$.nameInput.value = this.originalVals.name;
 			var i = 0;
-			var el = this;
+			var _this = this;
 			console.log(this);
 			$(this.$.linksContainer).find('paper-checkbox').each(function () {
-				el.originalVals.value[i].newTab ? this.removeAttribute('checked') : this.setAttribute('checked', true);
+				_this.originalVals.value[i].newTab ? this.removeAttribute('checked') : this.setAttribute('checked', true);
 				i++;
 			});
 			i = 0;
 			$(this.$.linksContainer).find('paper-input').each(function () {
-				this.value = el.originalVals.value[i].value;
+				this.value = _this.originalVals.value[i].value;
 				i++;
 			});
 		}
