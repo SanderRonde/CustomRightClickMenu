@@ -523,8 +523,15 @@
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.min.js" />
     <Content Include="app\codemirror.css" />
+    <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.html" />
+    <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.js" />
+    <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.css" />
+    <Content Include="app\elements\paper-libraries-selector\paper-libraries-selector.css" />
+    <Content Include="app\elements\paper-libraries-selector\paper-libraries-selector.html" />
+    <Content Include="app\elements\paper-libraries-selector\paper-libraries-selector.js" />
     <Content Include="app\images\fullscreen.svg" />
     <Content Include="app\images\fullscreenExit.svg" />
+    <Content Include="app\images\checkmark.svg" />
     <Content Include="app\images\settings.svg" />
     <Content Include="app\js\codemirror.js" />
     <Content Include="app\js\codemirrorJs.js" />
@@ -547,7 +554,6 @@
     <Content Include="app\elements\link-edit\link-edit.css" />
     <Content Include="app\elements\link-edit\link-edit.html" />
     <Content Include="app\elements\link-edit\link-edit.js" />
-    <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.css" />
     <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.html" />
     <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.js" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.css" />

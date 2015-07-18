@@ -228,8 +228,8 @@ input {
 	border-radius: 50%;
 	width:0;
 	height: 0;
-	right: 10px;
 	pointer-events: none;
+	right: 0;
 }
 
 #editorThemeSettingTxt, #editorThemeSettingChoicesCont, .editorThemeSetting, #editorTabsOrSpacesTxt, #editorTabsOrSpacesCheckbox, #editorUseLineNumbersCheckbox, #editorUseLineNumbersTxt {
@@ -277,11 +277,21 @@ input {
 }
 
 #settingsContainer {
-	font-size: 140%;
 	width: 477px;
 	height: calc(100% - 136px);
 }
 
 .CodeMirror-gutters {
 	min-height: 100%!important;
+}
+
+#bubbleCont {
+	width: 508px !important;
+	position: absolute;
+	overflow: hidden;
+	right: 0;
+}
+
+.CodeMirror.fullscreen #settingsContainer {
+	font-size: 140%;
 }

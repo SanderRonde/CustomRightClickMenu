@@ -167,10 +167,39 @@
 	},
 
 	//#region fullscreen
+	fillEditorToolsRibbon: function ($ribbon) {
+		var libraries = $('<paper-dropdown-menu></paper-dropdown-menu>');
+		//Libraries, introduce libraries
+		//Get page xxxx
+		//Get element
+		//Set style
+		//Animate element to style
+		//Wait
+		//Alert message
+		//Create element
+		//Write in external editor
+		//Run JSLint
+		//Use CRMAPI
+	},
+
+	popInRibbons: function() {
+		//Introduce title at the top
+		$('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').insertBefore(this.editor.display.wrapper);
+
+		//Introduce left ribbon
+		var toolsRibbon = $('<div id="editorToolsRibbon"></div>');
+		this.fillEditorToolsRibbon(toolsRibbon);
+		toolsRibbon.insertBefore(this.editor.display.wrapper);
+	},
+
+	popOutRibbons: function() {
+
+	},
+
 	enterFullScreen: function() {
 		var _this = this;
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
-		var editorCont = options.$.fullscreenEditor;
+		var editorCont = window.options.$.fullscreenEditor;
 		var editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = rect.left;
 		editorContStyle.marginTop = rect.top;
@@ -182,6 +211,7 @@
 		var buttonShadow = $editorWrapper.find('#buttonShadow')[0];
 		buttonShadow.style.position = 'absolute';
 		buttonShadow.style.right = '0';
+		this.editor.display.wrapper.classList.add('fullscreen');
 
 		$editorWrapper.appendTo(editorCont);
 		var $horizontalCenterer = $('#horizontalCenterer');
@@ -205,17 +235,15 @@
 				_this.editor.refresh();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
+				if (window.options.settings.editor.showRibbons) {
+					_this.popInRibbons();
+				}
 			}
 		});
-		//Introduce title at the top
-		//$('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').appendTo(
-
-		//Introduce left ribbon
-		//$('<div id="editorLeftRibbon">
 	},
 
 	exitFullScreen: function() {
-
+		this.editor.display.wrapper.classList.remove('fullscreen');
 	},
 
 	toggleFullScreen: function() {
@@ -227,12 +255,14 @@
 	//#region options
 	showOptions: function() {
 		var _this = this;
-		this.unchangedEditorSettings = jQuery.extend(true, {}, options.settings.editor);
+		this.unchangedEditorSettings = jQuery.extend(true, {}, window.options.settings.editor);
 		var editorWidth = $('.CodeMirror').width();
 		var editorHeight = $('.CodeMirror').height();
 		var circleRadius;
+		
+		//Add a bit just in case
 		if (this.fullscreen) {
-			circleRadius = Math.sqrt((477 * 477) + (editorHeight * editorHeight));
+			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight));
 		} else {
 			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight));
 		}
@@ -241,7 +271,7 @@
 		this.settingsShadow[0].parentNode.style.width = editorWidth;
 		this.settingsShadow[0].parentNode.style.height = editorHeight;
 		this.fullscreenEl.style.display = 'none';
-		var settingsInitialMarginLeft = (options.settings.editor.lineNumbers ? -518 : -488);
+		var settingsInitialMarginLeft = (window.options.settings.editor.lineNumbers ? -500 : -470);
 		this.settingsShadow.css({
 			width: '50px',
 			height: '50px',
@@ -265,7 +295,7 @@
 
 	hideOptions: function () {
 		var _this = this;
-		var settingsInitialMarginLeft = (options.settings.editor.lineNumbers ? -518 : -488);
+		var settingsInitialMarginLeft = (window.options.settings.editor.lineNumbers ? -500 : -470);
 		this.fullscreenEl.style.display = 'block';
 		this.settingsShadow.animate({
 			width: 0,
@@ -280,7 +310,7 @@
 				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now;
 			},
 			complete: function () {
-				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(options.settings.editor)) {
+				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.options.settings.editor)) {
 					_this.reloadEditor();
 				}
 			}
@@ -365,24 +395,24 @@
 			'<br>').appendTo(settingsContainer);
 
 		//The white theme option
-		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (options.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
+		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.options.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
 			.click(function() {
 				var themes = this.parentNode.children;
 				console.log(themes);
 				themes[0].classList.add('currentTheme');
 				themes[1].classList.remove('currentTheme');
-				options.settings.editor.theme = 'white';
-				options.upload();
+				window.options.settings.editor.theme = 'white';
+				window.options.upload();
 			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
 		
 		//The dark theme option
-		$('<div id="editorThemeSettingDark" class="editorThemeSetting' + (options.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
+		$('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.options.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
 			.click(function() {
 				var themes = this.parentNode.children;
 				themes[0].classList.remove('currentTheme');
 				themes[1].classList.add('currentTheme');
-				options.settings.editor.theme = 'dark';
-				options.upload();
+				window.options.settings.editor.theme = 'dark';
+				window.options.upload();
 			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
 
 		//The option to use tabs or spaces
@@ -396,9 +426,9 @@
 			'<br>').appendTo(settingsContainer);
 
 		//The main checkbox for the tabs or spaces option
-		$('<paper-checkbox ' + (options.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function() {
-			options.settings.editor.useTabs = !options.settings.editor.useTabs;
-			options.upload();
+		$('<paper-checkbox ' + (window.options.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function() {
+			window.options.settings.editor.useTabs = !window.options.settings.editor.useTabs;
+			window.options.upload();
 		}).appendTo(tabsOrSpaces.find('#editorTabsOrSpacesCheckbox'));
 
 		//The option for the size of tabs
@@ -406,7 +436,7 @@
 			'<div id="editorTabSizeInput">' +
 			'<paper-input-container>' +
 			'<label>Tab size</label>' +
-			'<input min="1" is="iron-input" type="number" value="' + options.settings.editor.tabSize + '"/>' +
+			'<input min="1" is="iron-input" type="number" value="' + window.options.settings.editor.tabSize + '"/>' +
 			'</paper-input-container>' +
 			'</div>' +
 			'</div>' +
@@ -416,8 +446,8 @@
 		tabSize.find('input').change(function() {
 			var input = $(this);
 			setTimeout(function() {
-				options.settings.editor.tabSize = input.val();
-				options.upload();
+				window.options.settings.editor.tabSize = input.val();
+				window.options.upload();
 			}, 0);
 		});
 
@@ -431,9 +461,9 @@
 			'</div>').appendTo(settingsContainer);
 
 		//The main checkbox for the line numbers option
-		$('<paper-checkbox ' + (options.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
-			options.settings.editor.lineNumbers = !options.settings.editor.lineNumbers;
-			options.upload();
+		$('<paper-checkbox ' + (window.options.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
+			window.options.settings.editor.lineNumbers = !window.options.settings.editor.lineNumbers;
+			window.options.upload();
 		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
 	},
 
@@ -441,7 +471,9 @@
 		var _this = this;
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
-		var $shadow = this.settingsShadow = $('<div id="settingsShadow"></div>').insertBefore($buttonShadow);
+		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
+		//The bubble on settings open
+		var $shadow = this.settingsShadow = $('<paper-material elevation="5" id="settingsShadow"></paper-material>').appendTo(bubbleCont);
 		var $editorOptionsContainer = $('<div id="editorOptionsContainer"></div>').appendTo($shadow);
 		this.editorOptions = $('<paper-material id="editorOptions" elevation="5"></paper-material>').appendTo($editorOptionsContainer);
 		this.fillEditorOptions();
@@ -465,12 +497,12 @@
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
-		this.editor = new CodeMirror(this.$.editorCont, {
-			lineNumbers: options.settings.editor.lineNumbers,
+		this.editor = new window.CodeMirror(this.$.editorCont, {
+			lineNumbers: window.options.settings.editor.lineNumbers,
 			value: this.item.value.value,
-			theme: (options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-			indentUnit: options.settings.editor.tabSize,
-			indentWithTabs: options.settings.editor.useTabs
+			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+			indentUnit: window.options.settings.editor.tabSize,
+			indentWithTabs: window.options.settings.editor.useTabs
 		});
 
 		//HIERZO
@@ -483,7 +515,7 @@
 		this.newSettings = this.item;
 		window.scriptEdit = this;
 		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
-		this.$.dropdownMenu.addListener(this.selectorStateChange, this);
+		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
 		setTimeout(function() {
 			_this.loadEditor();
 		}, 1250);

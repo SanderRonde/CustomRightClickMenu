@@ -45,6 +45,14 @@ paper-menu .content {
 	display: none;
 }
 
+.menuSelectedCheckmark {
+	display: none;
+}
+
+.menuOptionName {
+	padding-left: 38px;
+}
+
 paper-item[aria-selected=true] .menuSelectedCheckmark {
 	display: block;
 }

@@ -1,10 +1,8 @@
-﻿/// <reference path="../../../scripts/_references.js"/>
-/// <reference path="../../../scripts/jquery-2.1.4.min.map" />
-/**
+﻿/**
  * A shorthand name for chrome.storage.sync
  */
-var storage = chrome.storage.sync;
-var options = document.getElementsByTagName('crm-options')[0];
+window.storage = chrome.storage.sync;
+window.options = document.getElementsByTagName('crm-options')[0];
 var contextMenuItems = {
 	example: {
 		name: 'example'
@@ -16,11 +14,11 @@ function isNotSet(value) {
 }
 
 function runOrAddAsCallback(toRun, thisElement) {
-	if (options.settings) {
+	if (window.options.settings) {
 		toRun.apply(thisElement);
 	}
 	else {
-		options.addSettingsReadyCallback(toRun, thisElement);
+		window.options.addSettingsReadyCallback(toRun, thisElement);
 	}
 }
 
@@ -464,8 +462,8 @@ Polymer({
 	 */
 	upload: function() {
 		console.log(this.settings);
-		chrome.storage.sync.set(this.settings);
-		chrome.storage.sync.get(function(e) {
+		window.storage.set(this.settings);
+		window.storage.sync.get(function(e) {
 			console.log(e);
 		});
 		buildContextMenu();
@@ -474,6 +472,15 @@ Polymer({
 	ready: function() {
 		var _this = this;
 		this.crm.parent = this;
+		this.libz = [
+			{
+				name: 'jQuery'
+			}, {
+				name: 'mooTools'
+			}, {
+				name: 'Angular'
+			}
+		];
 
 		function callback(items) {
 			_this.settings = items;
@@ -483,7 +490,7 @@ Polymer({
 			main();
 		}
 
-		chrome.storage.sync.get(callback);
+		storage.get(callback);
 	},
 
 	/**

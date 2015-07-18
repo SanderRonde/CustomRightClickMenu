@@ -19,9 +19,24 @@
 						<br/>
 						<paper-dropdown-menu id="dropdownMenu" selected="[[item.value.launchMode]]">
 							<paper-menu selected="[[item.value.launchMode]]">
-								<paper-item id="executeOnClickOption" class="scriptLaunchOption">Execute on clicking</paper-item>
-								<paper-item id="executeAlwaysOption" class="scriptLaunchOption">Always execute</paper-item>
-								<paper-item id="execyteOnSpecified" class="scriptLaunchOption">Execute when visiting specified sites</paper-item>
+								<paper-item id="executeOnClickOption" class="scriptLaunchOption">
+									<div class="menuSelectedCheckmark">
+										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+									</div>
+									<span class="menuOptionName">Execute on clicking</span>
+								</paper-item>
+								<paper-item id="executeAlwaysOption" class="scriptLaunchOption">
+									<div class="menuSelectedCheckmark">
+										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+									</div>
+									<span class="menuOptionName">Always execute</span>
+								</paper-item>
+								<paper-item id="execyteOnSpecified" class="scriptLaunchOption">
+									<div class="menuSelectedCheckmark">
+										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+									</div>
+									<span class="menuOptionName">Execute when visiting specified sites</span>
+								</paper-item>
 							</paper-menu>
 						</paper-dropdown-menu>
 						<br/>
