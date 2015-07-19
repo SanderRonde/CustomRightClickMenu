@@ -1,22 +1,24 @@
-﻿/// <reference path="../../../scripts/_references.js"/>
-/// <reference path="../../../scripts/jquery-2.1.4.min.map" />
-/**
+﻿/**
  * A shorthand name for chrome.storage.sync
  */
-var storage = chrome.storage.sync;
-var options = document.getElementsByTagName('crm-options')[0];
-var contextMenuItems = {'example': { 'name': 'example' } };
+window.storage = chrome.storage.sync;
+window.options = document.getElementsByTagName('crm-options')[0];
+var contextMenuItems = {
+	example: {
+		name: 'example'
+	}
+};
 
 function isNotSet(value) {
 	return value === undefined || value === null;
 }
 
 function runOrAddAsCallback(toRun, thisElement) {
-	if (options.settings) {
+	if (window.options.settings) {
 		toRun.apply(thisElement);
 	}
 	else {
-		options.addSettingsReadyCallback(toRun, thisElement);
+		window.options.addSettingsReadyCallback(toRun, thisElement);
 	}
 }
 
@@ -224,12 +226,12 @@ function setupFirstTime() {
 	options.init = true;
 	options.settings.crm = [
 		{
-			'name': 'example',
-			'type': 'link',
-			'value': [
+			name: 'example',
+			type: 'link',
+			value: [
 				{
-					'value': 'http://www.example.com',
-					'newTab': true
+					value: 'http://www.example.com',
+					newTab: true
 				}
 			]
 		}
@@ -245,53 +247,51 @@ function setupFirstTime() {
 function checkArray(toCheck) {
 	var changes = false;
 	var result;
-	toCheck.map(function (item, index) {
+	toCheck.map(function(item, index) {
 		if (isNotSet(item)) {
-			changes = true;;
+			changes = true;
 			item = {};
 			item.name = 'name';
 			item.type = 'link';
 			item.value = [
 				{
-					'value': 'http://www.example.com',
-					'newTab': true
+					value: 'http://www.example.com',
+					newTab: true
 				}
 			];
 		}
 		if (isNotSet(item.name)) {
-			changes = true;;
+			changes = true;
 			item.name = 'name';
 		}
 		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu')) {
-			changes = true;;
+			changes = true;
 			item.type = 'link';
 		}
 		if (isNotSet(item.value)) {
-			changes = true;;
+			changes = true;
 			item.value = [
 				{
-					'value': 'http://www.example.com',
-					'newTab': true
+					value: 'http://www.example.com',
+					newTab: true
 				}
 			];
-		}
-		else {
+		} else {
 			if (item.type === 'link') {
 				if (typeof item.value !== 'object') {
 					item.value = [
 						{
-							'value': 'http://www.example.com',
-							'newTab': true
+							value: 'http://www.example.com',
+							newTab: true
 						}
 					];
-				}
-				else {
+				} else {
 					for (var i = 0; i < item.value.length; i++) {
 						if (isNotSet(item.value[i])) {
-							changes = true;;
+							changes = true;
 							item.value[i] = {
-								'value': 'http://www.example.com',
-								'newTab': true
+								value: 'http://www.example.com',
+								newTab: true
 							};
 						}
 						if (isNotSet(item.value[i].value)) {
@@ -299,7 +299,7 @@ function checkArray(toCheck) {
 							item.value[i].value = 'http:/www.example.com';
 						}
 						if (isNotSet(item.value[i].newTab)) {
-							changes = true;;
+							changes = true;
 							item.value[i].newTab = true;
 						}
 					}
@@ -308,16 +308,17 @@ function checkArray(toCheck) {
 			//TODO check other data types
 		}
 		if (isNotSet(item.index)) {
-			changes = true;;
+			changes = true;
 			item.index = index;
 		}
 		if (item.children && item.children.length > 0) {
 			result = checkArray(item.children);
 			if (result !== false) {
 				item.children = result;
-				changes = true;;
+				changes = true;
 			}
 		}
+		changes && console.log('changes');
 		toCheck[index] = item;
 	});
 	if (changes) {
@@ -338,18 +339,17 @@ function checkSettings(settings) {
 			changes = true;
 			settings.crm = [
 				{
-					'name': 'example',
-					'type': 'link',
-					'value': [
+					name: 'example',
+					type: 'link',
+					value: [
 						{
-							'value': 'http://www.example.com',
-							'newTab': true
+							value: 'http://www.example.com',
+							newTab: true
 						}
 					]
 				}
 			];
-		}
-		else {
+		} else {
 			var result = checkArray(settings.crm);
 			if (result !== false) {
 				changes = true;
@@ -361,8 +361,7 @@ function checkSettings(settings) {
 			options.settings = settings;
 			//options.upload();
 		}
-	}
-	else {
+	} else {
 		setupFirstTime();
 	}
 }
@@ -372,7 +371,7 @@ function checkSettings(settings) {
  *
  * @brief Main function, called when javascript is ready to be executed
  */
-function main() {
+ function main() {
 	checkSettings(options.settings);
 	buildContextMenu();
 	//bindContextMenu();
@@ -450,39 +449,39 @@ Polymer({
 			value: []
 		}
 	},
-	
+
 	addSettingsReadyCallback: function(callback, thisElement) {
 		this.onSettingsReadyCallbacks.push({
-			'callback': callback,
-			'thisElement': thisElement
+			callback: callback,
+			thisElement: thisElement
 		});
 	},
 
 	/**
 	 * Uploads this object to chrome.storage
 	 */
-	upload: function () {
+	upload: function() {
 		console.log(this.settings);
-		chrome.storage.sync.set(this.settings);
-		chrome.storage.sync.get(function(e) {
+		window.storage.set(this.settings);
+		window.storage.sync.get(function(e) {
 			console.log(e);
 		});
 		buildContextMenu();
 	},
 
 	ready: function() {
-		var el = this;
+		var _this = this;
 		this.crm.parent = this;
 
 		function callback(items) {
-			el.settings = items;
-			for (var i = 0; i < el.onSettingsReadyCallbacks.length; i++) {
-				el.onSettingsReadyCallbacks[i].callback.apply(el.onSettingsReadyCallbacks[i].thisElement);
+			_this.settings = items;
+			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
 			main();
 		}
 
-		chrome.storage.sync.get(callback);
+		window.storage.get(callback);
 	},
 
 	/**
@@ -507,8 +506,7 @@ Polymer({
 			for (i = 0; i < path.length - 1; i++) {
 				if (options.settings.shadowStart && obj[path[i]].menuVal) {
 					obj = obj[path[i]].menuVal;
-				}
-				else {
+				} else {
 					obj = obj[path[i]].children;
 				}
 			}
@@ -539,7 +537,7 @@ Polymer({
 		 * @param target	Where to move the item to (in path form)
 		 * @param sameColumn Whether the item has stayed in the same column
 		 */
-		move: function (toMove, target, sameColumn) {
+		move: function(toMove, target, sameColumn) {
 			var toMoveContainer = this.lookup(toMove, true);
 			var toMoveIndex = toMoveContainer.splice(toMove.length - 1, 1);
 			var toMoveItem = toMoveContainer[toMoveIndex];
@@ -550,16 +548,15 @@ Polymer({
 			if (sameColumn && toMoveIndex > targetIndex) {
 				insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(parseInt(toMoveIndex, 10) + 1, 1);
-			}
-			else {
+			} else {
 				insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
 			options.upload();
 		},
 
-		remove: function (index) {
-			this.lookup(index,true).splice(index[index.length - 1], 1);
+		remove: function(index) {
+			this.lookup(index, true).splice(index[index.length - 1], 1);
 			options.upload();
 		}
 	}
