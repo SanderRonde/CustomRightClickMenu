@@ -6,8 +6,7 @@ The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
 The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-<link rel="import" href="../polymer/polymer.html">
+--><html><head><link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-autogrow-textarea/iron-autogrow-textarea.html">
 <link rel="import" href="../iron-form-element-behavior/iron-form-element-behavior.html">
 <link rel="import" href="paper-input-behavior.html">
@@ -32,17 +31,14 @@ See `Polymer.PaperInputContainer` for a list of custom properties used to
 style this element.
 -->
 
-<dom-module id="paper-textarea">
+</head><body><dom-module id="paper-textarea">
   <template>
 
     <paper-input-container no-label-float$="[[noLabelFloat]]" auto-validate$="[[autoValidate]]" disabled$="[[disabled]]" invalid="[[invalid]]">
 
       <label hidden$="[[!label]]">[[label]]</label>
 
-      <iron-autogrow-textarea id="input" class="paper-input-input"
-        bind-value="{{value}}"
-        required$="[[required]]"
-        maxlength$="[[maxlength]]"></iron-autogrow-textarea>
+      <iron-autogrow-textarea id="input" class="paper-input-input" bind-value="{{value}}" required$="[[required]]" maxlength$="[[maxlength]]"></iron-autogrow-textarea>
 
       <template is="dom-if" if="[[errorMessage]]">
         <paper-input-error>[[errorMessage]]</paper-input-error>
@@ -58,43 +54,4 @@ style this element.
 
 </dom-module>
 
-<script>
-
-(function() {
-
-  Polymer({
-
-    is: 'paper-textarea',
-
-    behaviors: [
-      Polymer.PaperInputBehavior,
-      Polymer.IronFormElementBehavior
-    ],
-
-    properties: {
-
-      _ariaLabelledBy: {
-        observer: '_ariaLabelledByChanged',
-        type: String
-      },
-
-      _ariaDescribedBy: {
-        observer: '_ariaDescribedByChanged',
-        type: String
-      }
-
-    },
-
-    _ariaLabelledByChanged: function(ariaLabelledBy) {
-      this.$.input.textarea.setAttribute('aria-labelledby', ariaLabelledBy);
-    },
-
-    _ariaDescribedByChanged: function(ariaDescribedBy) {
-      this.$.input.textarea.setAttribute('aria-describedby', ariaDescribedBy);
-    }
-
-  });
-
-})();
-
-</script>
+<script src="paper-textarea.js"></script></body></html>
