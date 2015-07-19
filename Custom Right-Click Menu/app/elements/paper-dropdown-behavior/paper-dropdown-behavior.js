@@ -1,9 +1,17 @@
 ﻿Polymer.PaperDropdownBehavior = {
 	properties: {
+		/**
+		 * The selected item
+		 * 
+		 * @attribute selected
+		 * @type Number
+		 * @default 0
+		 */
 		selected: {
 			type: Number,
 			value: 0,
-			notify: true
+			notify: true,
+			reflectToAttribute: true
 		}
 	},
 
@@ -61,6 +69,18 @@
 	*/
 	_expanded: false,
 
+	/**
+	* Whether the menu should have an indent from the left part of the screen
+	* 
+	* @attribute indent
+	* @type Boolean
+	* @default true
+	*/
+	indent: true,
+
+	/*
+	 * Adds a listener that fires when a new value is selected
+	 */
 	_addListener: function(listener, thisArg) {
 		this._listeners.push({
 			listener,
@@ -68,7 +88,13 @@
 		});
 	},
 
-	_fireListeners: function(_this) {
+	/*
+	 * Fires all added listeners, triggers when a new value is selected
+	 */
+	_fireListeners: function (_this) {
+		if (_this.tagName === 'PAPER-DROPDOWN-MENU') {
+			_this.selected = _this._paperMenu.selected;
+		}
 		_this._listeners.forEach(function (item) {
 			item.listener.apply(item.thisArg, [_this._paperMenu.selected]);
 		});
@@ -90,10 +116,16 @@
 			$(_this.$.dropdownSelectedCont).insertBefore($(_this).find('.content'));
 		}, 200);
 		this._dropdownSelectedCont = $(this).find('#dropdownSelectedCont')[0];
-		console.log('created', this);
-		console.log(this._dropdownSelectedCont);
+		if (this.getAttribute('indent') === 'false') {
+			this.indent = false;
+		}
+		console.log(this, this.indent);
+		console.log(this.getAttribute('indent'));
 	},
 
+	/*
+	 * Animates the box-shadow in on clicking the main blue text
+	 */
 	_animateBoxShadowIn: function(timestamp, _this) {
 		if (!_this._startTime) {
 			_this._startTime = timestamp;
@@ -104,7 +136,9 @@
 			_this._paperMenu.style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
 				' 0 ' + scale + 'px ' + (5 * scale) + 'px 0 rgba(0,0,0,0.12),' +
 				' 0 ' + (scale * 3) + 'px ' + scale + 'px ' + -doubleScale + 'px rgba(0,0,0,0.2)';
-			_this._dropdownSelectedCont.style.marginLeft = scale * 15;
+			if (!_this.indent) {
+				_this._dropdownSelectedCont.style.marginLeft = scale * 15;
+			}
 			window.requestAnimationFrame(function(time) {
 				_this._animateBoxShadowIn(time, _this);
 			});
@@ -115,6 +149,9 @@
 		}
 	},
 
+	/*
+	 * Animates the box-shadow out on clicking the main blue text again
+	 */
 	_animateBoxShadowOut: function(timestamp, _this) {
 		if (!_this._startTime) {
 			_this._startTime = timestamp;
@@ -125,7 +162,9 @@
 			_this._paperMenu.style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
 				' 0 ' + scale + 'px ' + (5 * scale) + 'px 0 rgba(0,0,0,0.12),' +
 				' 0 ' + (scale * 3) + 'px ' + scale + 'px ' + -doubleScale + 'px rgba(0,0,0,0.2)';
-			_this._dropdownSelectedCont.style.marginLeft = scale * 15;
+			if (!_this.indent) {
+				_this._dropdownSelectedCont.style.marginLeft = scale * 15;
+			}
 			window.requestAnimationFrame(function (time) {
 				_this._animateBoxShadowOut(time, _this);
 			});
@@ -137,6 +176,9 @@
 		}
 	},
 
+	/*
+	 * Toggles the dropdown menu, tirggers on clicking the main blue text
+	 */
 	_toggleDropdown: function() {
 		var _this = this;
 
@@ -173,5 +215,16 @@
 				});
 			}, 100);
 		}
+	},
+
+	/**
+	 * Gets the currently selected item(s)
+	 * @returns {Array} The currently selected item(s) in array form
+	 */
+	getSelected: function () {
+		if (typeof this.selected === 'number') {
+			return [this.selected];
+		}
+		return this.selected;
 	}
 };

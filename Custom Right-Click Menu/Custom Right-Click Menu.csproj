@@ -532,6 +532,7 @@
     <Content Include="app\images\fullscreen.svg" />
     <Content Include="app\images\fullscreenExit.svg" />
     <Content Include="app\images\checkmark.svg" />
+    <Content Include="app\images\add.svg" />
     <Content Include="app\images\settings.svg" />
     <Content Include="app\js\codemirror.js" />
     <Content Include="app\js\codemirrorJs.js" />

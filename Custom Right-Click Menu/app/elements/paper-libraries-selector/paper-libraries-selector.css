@@ -2,9 +2,11 @@
 	width: 340px;
 	box-shadow: rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0;
 	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
-
-/*box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);*/
 
 #dropdownArrow {
 	-moz-transform: rotate(90deg);
@@ -26,6 +28,7 @@
 	user-select: none;
 	margin-bottom: 10px;
 	margin-top: 10px;
+	margin-left: 15px;
 }
 
 	#dropdownSelectedCont:hover {
@@ -57,6 +60,14 @@ paper-item[aria-selected=true] .menuSelectedCheckmark {
 	display: block;
 }
 
-paper-item[aria-selected=true] .menuOptionName {
+paper-item[aria-selected=true] .menuOptionName, paper-item[addlibrary] .menuOptionName {
 	padding-left: 8px;
+}
+
+paper-libraries-selector[indent=false] #dropdownSelectedCont {
+	margin-left: 0;
+}
+
+.menuSelectedCheckmark, .addLibraryPlusImg, span {
+	margin-right: 0 !important;
 }

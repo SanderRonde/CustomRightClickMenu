@@ -137,6 +137,10 @@
 	unchangedEditorSettings: {},
 	//#endregion
 
+	/*
+	 * Clears the trigger that is currently clicked on
+	 * @param {event} The event that triggers this (click event)
+	 */
 	clearTrigger: function(e) {
 		var target = e.target;
 		if (target.tagName === 'PAPER-ICON-BUTTON') {
@@ -154,6 +158,9 @@
 		}
 	},
 
+	/*
+	 * Adds a trigger to the list of triggers for the script
+	 */
 	addTrigger: function() {
 		var _this = this;
 		var newEl = $('<div class="executionTrigger"><paper-input class="triggerInput" value="example.com"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
@@ -167,8 +174,12 @@
 	},
 
 	//#region fullscreen
+	/*
+	 * Fills the editor-tools-ribbon on the left of the editor with elements
+	 * @param {element} The ribbon element to fill
+	 */
 	fillEditorToolsRibbon: function ($ribbon) {
-		var libraries = $('<paper-dropdown-menu></paper-dropdown-menu>');
+		var libraries = $('<paper-libraries-selector></paper-libraries-selector>');
 		//Libraries, introduce libraries
 		//Get page xxxx
 		//Get element
@@ -182,6 +193,9 @@
 		//Use CRMAPI
 	},
 
+	/*
+	 * Pops in the ribbons with an animation
+	 */
 	popInRibbons: function() {
 		//Introduce title at the top
 		$('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').insertBefore(this.editor.display.wrapper);
@@ -192,10 +206,16 @@
 		toolsRibbon.insertBefore(this.editor.display.wrapper);
 	},
 
+	/*
+	 * Pops out the ribbons with an animation
+	 */
 	popOutRibbons: function() {
 
 	},
 
+	/*
+	 * Enters fullscreen mode for the editor
+	 */
 	enterFullScreen: function() {
 		var _this = this;
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
@@ -242,10 +262,16 @@
 		});
 	},
 
+	/*
+	 * Exits the editor's fullscreen mode
+	 */
 	exitFullScreen: function() {
 		this.editor.display.wrapper.classList.remove('fullscreen');
 	},
 
+	/*
+	 * Toggles fullscreen mode for the editor
+	 */
 	toggleFullScreen: function() {
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
 		this.fullscreen = !this.fullscreen;
@@ -253,6 +279,9 @@
 	//#endregion
 
 	//#region options
+	/*
+	 * Shows the options for the editor
+	 */
 	showOptions: function() {
 		var _this = this;
 		this.unchangedEditorSettings = jQuery.extend(true, {}, window.options.settings.editor);
@@ -293,6 +322,9 @@
 		});
 	},
 
+	/*
+	 * Hides the options for the editor
+	 */
 	hideOptions: function () {
 		var _this = this;
 		var settingsInitialMarginLeft = (window.options.settings.editor.lineNumbers ? -500 : -470);
@@ -317,12 +349,19 @@
 		});
 	},
 
+	/*
+	 * Toggles the editor's options
+	 */
 	toggleOptions: function() {
 		(this.optionsShown ? this.hideOptions() : this.showOptions());
 		this.optionsShown = !this.optionsShown;
 	},
 	//#endregion
 
+	/*
+	 * Is triggered when the option "Execute when visiting specified sites" is 
+	 * selected in the triggers dropdown menu and animates the specified sites in
+	 */
 	selectorStateChange: function(state) {
 		var _this = this;
 		var show = (state === 2 || state === '2');
@@ -357,6 +396,11 @@
 		}
 	},
 
+	/*
+	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the 
+	 * icons' positions
+	 * @param {boolean} Whether the vertical scrollbar is now visible
+	 */
 	scrollbarsUpdate: function(vertical) {
 		if (vertical !== this.verticalVisible) {
 			if (vertical) {
@@ -368,18 +412,22 @@
 		}
 	},
 
+	/*
+	 * Reloads the editor completely (to apply new settings)
+	 */
 	reloadEditor: function() {
 		$(this.editor.display.wrapper).remove();
 		this.editor = null;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
 		this.$.editorPlaceholder.style.position = 'absolute';
-		/*_this.editor.display.wrapper.classList.remove('cm-s-dark');
-				_this.editor.display.wrapper.classList.add('cm-s-default');*/
 		console.log('reloading');
 		this.loadEditor();
 	},
 
+	/*
+	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
+	 */
 	fillEditorOptions: function() {
 		var settingsContainer = $('<div id="settingsContainer"></div>').appendTo(this.editorOptions);
 		$('<div id="editorSettingsTxt">Editor Settings</div>').appendTo(settingsContainer);
@@ -467,6 +515,9 @@
 		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
 	},
 
+	/*
+	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
+	 */
 	cmLoaded: function(element) {
 		var _this = this;
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
@@ -493,6 +544,9 @@
 		});
 	},
 
+	/*
+	 * Loads the codeMirror editor
+	 */
 	loadEditor: function() {
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
@@ -504,10 +558,6 @@
 			indentUnit: window.options.settings.editor.tabSize,
 			indentWithTabs: window.options.settings.editor.useTabs
 		});
-
-		//HIERZO
-		//als je eerst options doet en drna fullscreen fuckt ie.
-		//Als je options doet in fullscreen is er geen leuke bubbel
 	},
 
 	ready: function() {

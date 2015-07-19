@@ -23,17 +23,20 @@ Polymer({
 		});
 		var libraries = [];
 		var selected = [];
-		options.settings.editor.libraries.forEach(function(item) {
+		var itemCopy;
+		options.settings.editor.libraries.forEach(function (item) {
+			itemCopy = {};
+			itemCopy.name = item.name;
+			itemCopy.isLibrary = true;
 			if (selectedObj[item.name]) {
-				item.classes = 'library iron-selected';
-				item.selected = 'true';
+				itemCopy.classes = 'library iron-selected';
+				itemCopy.selected = 'true';
 			}
 			else {
-				item.classes = 'library';
-				item.selected = 'false';
+				itemCopy.classes = 'library';
+				itemCopy.selected = 'false';
 			}
-			console.log(item);
-			libraries.push(item);
+			libraries.push(itemCopy);
 		});
 		libraries.sort(function (first, second) {
 			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
@@ -44,6 +47,12 @@ Polymer({
 			}
 		});
 		this.selected = selected;
+		libraries.push({
+			name: 'Add your own',
+			classes: 'library addLibrary',
+			selected: false,
+			isLibrary: false
+		});
 		this.libraries = libraries;
 	},
 
