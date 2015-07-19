@@ -13,9 +13,9 @@ Polymer({
 	},
 
 	ready: function () {
-		var el = this;
+		var _this = this;
 		runOrAddAsCallback(function() {
-			el.toggled = options.settings[$(el).attr('id')];
+			_this.toggled = options.settings[$(_this).attr('id')];
 		}, this);
 	},
 
