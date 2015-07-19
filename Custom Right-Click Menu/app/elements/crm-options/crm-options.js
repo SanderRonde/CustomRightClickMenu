@@ -463,9 +463,6 @@ Polymer({
 	upload: function() {
 		console.log(this.settings);
 		window.storage.set(this.settings);
-		window.storage.sync.get(function(e) {
-			console.log(e);
-		});
 		buildContextMenu();
 	},
 
