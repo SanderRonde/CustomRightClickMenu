@@ -62,13 +62,13 @@ Polymer({
 	 * @param eventSourceElement The element that was clicked on
 	 */
 	animateIn: function () {
-		var el = this;
+		var _this = this;
 		setTimeout(function() {
 			var overlayEl = $('.overlayCont')[0];
 			overlayEl.style.display = 'block';
 			options.show = true;
 			var overlayCont = $('.overlayCont')[0];
-			$(el.$.editPageCont).stop().animate({
+			$(_this.$.editPageCont).stop().animate({
 				'opacity': 1
 			}, {
 				'easing': 'easeInCubic',
@@ -79,7 +79,7 @@ Polymer({
 				},
 				'complete': function() {
 					$(overlayCont).on('click', function() {
-						$(el.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].cancelChanges();
+						$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].cancelChanges();
 					});
 				}
 			});
@@ -87,7 +87,7 @@ Polymer({
 	},
 	
 	animateOut: function () {
-		var el = this;
+		var _this = this;
 		var overlayEl = $('.overlayCont').off('click')[0];
 		var overlayCont = $('.overlayCont')[0];
 		$(this.$.editPageCont).stop().animate({
@@ -104,7 +104,7 @@ Polymer({
 				this.style.opacity = 1;
 				overlayEl.style.opacity = 0;
 				overlayEl.style.display = 'none';
-				$(el.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].removeChanges();
+				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].removeChanges();
 				options.show = false;
 			}
 		});
@@ -118,11 +118,13 @@ Polymer({
 	},
 	
 	init: function() {
-		crmEditPage = this;
-		this.isLink = (this.item.type === 'link');
-		this.isMenu = (this.item.type === 'menu');
-		this.isScript = (this.item.type === 'script');
-		this.isDivider = (this.item.type === 'divider');
-		this.animateIn();
+		crmEditPage = this
+		setTimeout(function() {
+			crmEditPage.isLink = (crmEditPage.item.type === 'link');
+			crmEditPage.isMenu = (crmEditPage.item.type === 'menu');
+			crmEditPage.isScript = (crmEditPage.item.type === 'script');
+			crmEditPage.isDivider = (crmEditPage.item.type === 'divider');
+			crmEditPage.animateIn();
+		}, 100);
 	}
 });
