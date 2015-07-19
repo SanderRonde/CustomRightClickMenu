@@ -1,0 +1,84 @@
+﻿<html>
+<head></head>
+<body>
+<dom-module id="script-edit" attributes="item">
+	<template>
+		<link rel="stylesheet" href="script-edit.css"/>
+		<div id="scriptEditCont">
+			<div id="settingsCont">
+				<div id="settings">
+					<div id="nameChangeCont">
+						<div id="nameInputText">Name</div>
+						<paper-input id="nameChange" value="[[item.name]]" on-keydown="inputKeyPress"></paper-input>
+					</div>
+					<br/>
+					<div id="triggersCont">
+						<div id="triggersText">
+							Trigger(s)
+						</div>
+						<br/>
+						<paper-dropdown-menu indent="false" id="dropdownMenu" selected="[[item.value.launchMode]]">
+							<paper-menu selected="[[item.value.launchMode]]">
+								<paper-item id="executeOnClickOption" class="scriptLaunchOption">
+									<div class="menuSelectedCheckmark">
+										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+									</div>
+									<span class="menuOptionName">Execute on clicking</span>
+								</paper-item>
+								<paper-item id="executeAlwaysOption" class="scriptLaunchOption">
+									<div class="menuSelectedCheckmark">
+										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+									</div>
+									<span class="menuOptionName">Always execute</span>
+								</paper-item>
+								<paper-item id="execyteOnSpecified" class="scriptLaunchOption">
+									<div class="menuSelectedCheckmark">
+										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+									</div>
+									<span class="menuOptionName">Execute when visiting specified sites</span>
+								</paper-item>
+							</paper-menu>
+						</paper-dropdown-menu>
+						<br/>
+						<div id="executionTriggersContainer">
+							<div id="executionTriggersText">
+								Execute on:
+							</div>
+							<br />
+							<template is="dom-repeat" items="[[item.value.triggers]]" as="trigger">
+								<div class="executionTrigger">
+									<paper-input class="triggerInput" value="[[trigger.url]]"></paper-input>
+									<paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button>
+								</div>
+							</template>
+							<paper-button on-tap="addTrigger" raised id="addTrigger">Add</paper-button>
+						</div>
+					</div>
+				</div>
+				<div id="scriptEditorCont">
+					<div id="scriptInputText">Script</div>
+					<div id="container">
+						<div id="flexRow">
+							<div id="flexColumn">
+								<div id="editorCont">
+									<div id="editorPlaceholder">
+										<div id="editorPlaceHolderCenterer">
+											<paper-spinner active></paper-spinner>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div id="buttons">
+				<paper-button id="cancelButton" on-tap="cancelChanges">Cancel</paper-button>
+				<paper-button id="saveButton" on-tap="saveChanges">Save</paper-button>
+			</div>
+		</div>
+	</template>
+</dom-module>
+<script src="script-edit.js"></script>
+</body>
+</html>
