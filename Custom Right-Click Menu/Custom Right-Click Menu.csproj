@@ -149,6 +149,7 @@
     <Content Include="app\bower_components\iron-menu-behavior\demo\simple-menubar.html" />
     <Content Include="app\bower_components\iron-menu-behavior\index.html" />
     <Content Include="app\bower_components\iron-menu-behavior\iron-menu-behavior.html" />
+    <Content Include="app\bower_components\iron-menu-behavior\iron-menu-behavior.js" />
     <Content Include="app\bower_components\iron-menu-behavior\iron-menubar-behavior.html" />
     <Content Include="app\bower_components\iron-menu-behavior\test\index.html" />
     <Content Include="app\bower_components\iron-menu-behavior\test\iron-menu-behavior.html" />
@@ -423,6 +424,7 @@
     <Content Include="app\bower_components\paper-input\paper-input.html" />
     <Content Include="app\bower_components\paper-input\paper-input.js" />
     <Content Include="app\bower_components\paper-input\paper-textarea.html" />
+    <Content Include="app\bower_components\paper-input\paper-textarea.js" />
     <Content Include="app\bower_components\paper-input\test\index.html" />
     <Content Include="app\bower_components\paper-input\test\letters-only.html" />
     <Content Include="app\bower_components\paper-input\test\paper-input-char-counter.html" />
@@ -453,6 +455,7 @@
     <Content Include="app\bower_components\paper-menu\hero.svg" />
     <Content Include="app\bower_components\paper-menu\index.html" />
     <Content Include="app\bower_components\paper-menu\paper-menu.html" />
+    <Content Include="app\bower_components\paper-menu\paper-menu.js" />
     <Content Include="app\bower_components\paper-menu\test\index.html" />
     <Content Include="app\bower_components\paper-menu\test\paper-menu.html" />
     <Content Include="app\bower_components\paper-ripple\.gitignore" />
@@ -463,6 +466,14 @@
     <Content Include="app\bower_components\paper-ripple\paper-ripple.js" />
     <Content Include="app\bower_components\paper-ripple\test\index.html" />
     <Content Include="app\bower_components\paper-ripple\test\paper-ripple.html" />
+    <Content Include="app\bower_components\paper-spinner\demo\index.html" />
+    <Content Include="app\bower_components\paper-spinner\hero.svg" />
+    <Content Include="app\bower_components\paper-spinner\index.html" />
+    <Content Include="app\bower_components\paper-spinner\paper-spinner.css" />
+    <Content Include="app\bower_components\paper-spinner\paper-spinner.html" />
+    <Content Include="app\bower_components\paper-spinner\paper-spinner.js" />
+    <Content Include="app\bower_components\paper-spinner\test\index.html" />
+    <Content Include="app\bower_components\paper-spinner\test\paper-spinner.html" />
     <Content Include="app\bower_components\paper-styles\classes\global.html" />
     <Content Include="app\bower_components\paper-styles\classes\shadow-layout.html" />
     <Content Include="app\bower_components\paper-styles\classes\shadow.html" />
@@ -511,6 +522,20 @@
     <Content Include="app\bower_components\webcomponentsjs\webcomponents-lite.min.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.min.js" />
+    <Content Include="app\codemirror.css" />
+    <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.html" />
+    <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.js" />
+    <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.css" />
+    <Content Include="app\elements\paper-libraries-selector\paper-libraries-selector.css" />
+    <Content Include="app\elements\paper-libraries-selector\paper-libraries-selector.html" />
+    <Content Include="app\elements\paper-libraries-selector\paper-libraries-selector.js" />
+    <Content Include="app\images\fullscreen.svg" />
+    <Content Include="app\images\fullscreenExit.svg" />
+    <Content Include="app\images\checkmark.svg" />
+    <Content Include="app\images\add.svg" />
+    <Content Include="app\images\settings.svg" />
+    <Content Include="app\js\codemirror.js" />
+    <Content Include="app\js\codemirrorJs.js" />
     <Content Include="app\elements\crm-edit-page\crm-edit-page.css" />
     <Content Include="app\elements\crm-edit-page\crm-edit-page.html" />
     <Content Include="app\elements\crm-edit-page\crm-edit-page.js" />
@@ -530,9 +555,14 @@
     <Content Include="app\elements\link-edit\link-edit.css" />
     <Content Include="app\elements\link-edit\link-edit.html" />
     <Content Include="app\elements\link-edit\link-edit.js" />
+    <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.html" />
+    <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.js" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.css" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.html" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.js" />
+    <Content Include="app\elements\script-edit\script-edit.css" />
+    <Content Include="app\elements\script-edit\script-edit.html" />
+    <Content Include="app\elements\script-edit\script-edit.js" />
     <Content Include="app\elements\type-switcher\type-switcher.css" />
     <Content Include="app\elements\type-switcher\type-switcher.html" />
     <Content Include="app\elements\type-switcher\type-switcher.js" />
@@ -751,6 +781,8 @@
     <Content Include="app\bower_components\paper-toast\bower.json" />
     <Content Include="app\bower_components\paper-toast\README.md" />
     <Content Include="app\fonts\Roboto-Medium.ttf" />
+    <Content Include="app\bower_components\paper-spinner\bower.json" />
+    <Content Include="app\bower_components\paper-spinner\README.md" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
@@ -777,9 +809,6 @@
     <BuildLib Condition=" '$(BuildLib)'=='' ">$(BuildFolder)Lib\</BuildLib>
     <ScriptsFolder Condition=" '$(ScriptsFolder)'=='' ">scripts\</ScriptsFolder>
   </PropertyGroup>
-  <ItemGroup>
-    <AppFileNameItem Include="$(OutputPath)$(AppFilename)" />
-  </ItemGroup>
   <PropertyGroup>
     <LigerSharkChromeTargetsPath>$(BuildFolder)\ligershark.chrome.targets</LigerSharkChromeTargetsPath>
   </PropertyGroup>
