@@ -129,25 +129,25 @@ Polymer({
 	},
 
 	ready: function() {
-		var el = this;
-		runOrAddAsCallback(el.build, this);
+		var _this = this;
+		runOrAddAsCallback(_this.build, this);
 		options.editCRM = this;
 	},
 	
-	addItem: function () {
+	addItem: function() {
 		var newIndex = options.settings.crm.length;
 		var newItem = {
-			'name': 'name',
-			'type': 'link',
-			'value': [
+			name: 'name',
+			type: 'link',
+			value: [
 				{
-					'value': 'http://www.example.com',
-					'newTab': true
+					value: 'http://www.example.com',
+					newTab: true
 				}
 			],
-			'expanded': false,
-			'index': newIndex,
-			'path': [newIndex]
+			expanded: false,
+			index: newIndex,
+			path: [newIndex]
 		};
 		options.crm.add(newItem);
 

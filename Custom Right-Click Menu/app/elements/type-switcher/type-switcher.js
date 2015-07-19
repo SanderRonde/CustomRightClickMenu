@@ -1,7 +1,4 @@
-﻿/* global Polymer */
-'use strict';
-
-Polymer({
+﻿Polymer({
 	is: 'type-switcher',
 
 	/**
@@ -101,15 +98,15 @@ Polymer({
 	},
 
 	closeTypeSwitchContainer: function (quick, callback) {
-		var el = this;
+		var _this = this;
 		$(this.parentNode.parentNode).stop().animate({
-			'height': 50
+			height: 50
 		}, {
-			'easing': 'easeInCubic',
-			'duration': (quick ? 80 : 300),
-			'complete': function() {
-				el.$.typeSwitchChoicesContainer.style.display = 'none';
-				el.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
+			easing: 'easeInCubic',
+			duration: (quick ? 80 : 300),
+			complete: function () {
+				_this.$.typeSwitchChoicesContainer.style.display = 'none';
+				_this.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
 				console.log(callback);
 				callback && callback();
 			}
@@ -124,10 +121,10 @@ Polymer({
 		this.$.typeSwitchChoicesContainer.style.display = 'block';
 		this.$.typeSwitchArrow.style.transform = 'rotate(90deg)';
 		$(this.parentNode.parentNode).stop().animate({
-			'height': 200
+			height: 200
 		}, {
-			'easing': 'easeOutCubic',
-			'duration': 300
+			easing: 'easeOutCubic',
+			duration: 300
 		});
 	},
 
@@ -141,7 +138,7 @@ Polymer({
 	},
 
 	changeType: function(e) {
-		var el = this;
+		var _this = this;
 		var type;
 		if (e.path[0].tagName === 'SPAN') {
 			type = e.path[0].innerHTML;
@@ -171,7 +168,32 @@ Polymer({
 		if (type === 'menu') {
 			item.children = [];
 		}
-		item.value = '';
+		if (item[prevType + 'Val']) {
+			item.value = item[prevType + 'Val'];
+		} else {
+			switch (prevType) {
+				case 'link':
+					item.value = [
+						{
+							value: 'http://www.example.com',
+							newTab: true
+						}
+					];
+					break;
+				case 'script':
+					//TODO Update to new script values when done
+					item.value = {
+						value: ''
+					};
+					break;
+				case 'divider':
+					item.value = '';
+					break;
+				case 'menu':
+					item.value = '';
+					break;
+			}
+		}
 
 		//Update color
 		editCrmEl.type = item.type;
@@ -207,9 +229,9 @@ Polymer({
 				}
 				editCrmEl.type = prevType;
 				editCrmEl.calculateType();
-				el.ready();
-				for (i = 0; i < el.remainingTypes.length; i++) {
-					typeChoices[i].setAttribute('type', el.remainingTypes[i]);
+				_this.ready();
+				for (i = 0; i < _this.remainingTypes.length; i++) {
+					typeChoices[i].setAttribute('type', _this.remainingTypes[i]);
 				}
 
 				//Un-shadow items

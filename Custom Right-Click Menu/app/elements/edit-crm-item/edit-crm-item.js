@@ -259,16 +259,16 @@ Polymer({
 			this.name = this.item.name;
 			this.calculateType();
 			this.itemIndex = this.index;
-			var elem = this;
+			var _this = this;
 			$(this.$.dragger)
 				.off('mousedown')
 				.on('mousedown', function (e) {
 					if (e.which === 1) {
-						elem.readyForMouseUp = false;
-						elem.startDrag(e);
-						elem.readyForMouseUp = true;
-						if (elem.execMouseUp) {
-							elem.stopDrag();
+						_this.readyForMouseUp = false;
+						_this.startDrag(e);
+						_this.readyForMouseUp = true;
+						if (_this.execMouseUp) {
+							_this.stopDrag();
 						}
 					}
 				})
@@ -276,34 +276,34 @@ Polymer({
 				.on('mouseup', function (e) {
 					if (e.which === 1) {
 						e.stopPropagation();
-						if (elem.readyForMouseUp) {
-							elem.stopDrag();
+						if (_this.readyForMouseUp) {
+							_this.stopDrag();
 						} else {
-							elem.execMouseUp = true;
+							_this.execMouseUp = true;
 						}
 					}
 				});
 			this.bodyDragWrapper = createWrapper(this, this.bodyDrag);
 			//Used to preserve 'this', passing data via jquery doesnt' seem to work
 			this.bodyDragFunction = function (e) {
-				elem.bodyDrag(e);
+				_this.bodyDrag(e);
 			}
 			this.bodyScrollFunction = function () {
-				elem.bodyScroll();
+				_this.bodyScroll();
 			}
 			this.blurFunction = function () {
-				elem.stopDrag();
+				_this.stopDrag();
 			}
 			this.stopDragFunction = function () {
-				if (elem.dragging) {
-					elem.stopDrag();
+				if (_this.dragging) {
+					_this.stopDrag();
 				}
 			}
 			this.mouseMovementFunction = function (event) {
-				elem.recordMouseMovemenent(event);
+				_this.recordMouseMovemenent(event);
 			}
 			this.sideScrollFunction = function () {
-				elem.sideDrag();
+				_this.sideDrag();
 			}
 			this.column = this.parentNode.index;
 			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
@@ -379,19 +379,19 @@ Polymer({
 		this.style.position = 'absolute';
 		this.filler = $('<div class="crmItemFiller"></div>');
 		this.filler.index = this.index;
-		var elem = this;
+		var _this = this;
 
 		$('body')
-			.on('mouseup', elem.stopDragFunction)
-			.on('mousemove', elem.mouseMovementFunction)
+			.on('mouseup', _this.stopDragFunction)
+			.on('mousemove', _this.mouseMovementFunction)
 			.css('-webkit-user-select', 'none');
 
 		$(window)
-			.on('scroll', elem.bodyScrollFunction)
-			.on('blur', elem.blurFunction);
+			.on('scroll', _this.bodyScrollFunction)
+			.on('blur', _this.blurFunction);
 
 		$('#mainCont')
-			.on('scroll', elem.sideScrollFunction);
+			.on('scroll', _this.sideScrollFunction);
 
 
 		//Do visual stuff as to decrease delay between the visual stuff
@@ -406,25 +406,25 @@ Polymer({
 		this.filler.insertBefore(this);
 		this.$.itemCont.style.marginTop = extraSpacing + 'px';
 		this.parentNode.appendChild(this);
-		elem.bodyDrag();
+		_this.bodyDrag();
 	},
 
 	stopDrag: function() {
 		this.$$('paper-ripple').style.display = 'block';
 		this.style.pointerEvents = 'all';
 		this.changeDraggingState(false);
-		var elem = this;
+		var _this = this;
 		$('body')
-			.off('mouseup', elem.stopDragFunction)
-			.off('mousemove', elem.bodyDragFunction)
+			.off('mouseup', _this.stopDragFunction)
+			.off('mousemove', _this.bodyDragFunction)
 			.css('-webkit-user-select', 'initial');
 
 		$(window)
-			.off('scroll', elem.bodyScrollFunction)
-			.off('blur', elem.blurFunction);
+			.off('scroll', _this.bodyScrollFunction)
+			.off('blur', _this.blurFunction);
 
 		$('#mainCont')
-			.on('scroll', elem.sideScrollFunction);
+			.on('scroll', _this.sideScrollFunction);
 
 		this.snapItem();
 		this.rebuildMenu();
@@ -482,11 +482,11 @@ Polymer({
 				oldBot,
 				i;
 			if (thisLeft > 150) {
-				var nextColumnCont = $(this.parentNode.parentNode).next('.CRMEditColumnCont');
-				if (nextColumnCont[0]) {
-					if (nextColumnCont[0].style.display !== 'none') {
+				var $nextColumnCont = $(this.parentNode.parentNode).next('.CRMEditColumnCont');
+				if ($nextColumnCont[0]) {
+					if ($nextColumnCont[0].style.display !== 'none') {
 						this.dragStart.X += 200;
-						newColumn = nextColumnCont.children('.CRMEditColumn')[0];
+						newColumn = $nextColumnCont.children('.CRMEditColumn')[0];
 						newColumnChildren = newColumn.children;
 						newColumnLength = newColumnChildren.length - 1;
 						fillerIndex = 0;
@@ -508,7 +508,7 @@ Polymer({
 							newBot = newColumn.getBoundingClientRect().bottom;
 							oldBot = this.parentNode.getBoundingClientRect().bottom - 50;
 							this.dragStart.Y += (newBot - oldBot);
-							if (this.column + 1 === nextColumnCont.index) {
+							if (this.column + 1 === $nextColumnCont.index) {
 								this.dragStart.Y -= 50;
 							}
 
@@ -519,10 +519,10 @@ Polymer({
 				}
 			}
 			else if (thisLeft < -50) {
-				var prevColumnCont = $(this.parentNode.parentNode).prev('.CRMEditColumnCont');
-				if (prevColumnCont[0]) {
+				var $prevColumnCont = $(this.parentNode.parentNode).prev('.CRMEditColumnCont');
+				if ($prevColumnCont[0]) {
 					this.dragStart.X -= 200;
-					newColumn = prevColumnCont.children('.CRMEditColumn')[0];
+					newColumn = $prevColumnCont.children('.CRMEditColumn')[0];
 					newColumnChildren = newColumn.children;
 					newColumnLength = newColumnChildren.length - 1;
 					fillerIndex = 0;
@@ -560,13 +560,13 @@ Polymer({
 		if (this.filler) {
 			$(this).insertBefore(parentChildrenList[this.filler.index]);
 
-			var elem = this;
+			var _this = this;
 			setTimeout(function() {
-				elem.filler.remove();
-				elem.$.itemCont.style.position = 'relative';
-				elem.style.position = 'relative';
-				elem.$.itemCont.style.marginTop = '0';
-				$(elem.$.itemCont).css('margin-left', '0');
+				_this.filler.remove();
+				_this.$.itemCont.style.position = 'relative';
+				_this.style.position = 'relative';
+				_this.$.itemCont.style.marginTop = '0';
+				$(_this.$.itemCont).css('margin-left', '0');
 			}, 0);
 		}
 	},
@@ -574,24 +574,24 @@ Polymer({
 	rebuildMenu: function() {
 		//Get original object
 		var newPath;
-		var prev = $(this).prev();
-		while (prev[0] && prev[0].tagName !== 'EDIT-CRM-ITEM') {
-			prev = prev.prev();
+		var $prev = $(this).prev();
+		while ($prev[0] && $prev[0].tagName !== 'EDIT-CRM-ITEM') {
+			$prev = $prev.prev();
 		}
-		prev = prev[0];
-		var next = $(this).next();
-		while (next[0] && next[0].tagName !== 'EDIT-CRM-ITEM') {
-			next = next.next();
+		$prev = $prev[0];
+		var $next = $(this).next();
+		while ($next[0] && $next[0].tagName !== 'EDIT-CRM-ITEM') {
+			$next = $next.next();
 		}
-		next = next[0];
-		if (prev) {
+		$next = $next[0];
+		if ($prev) {
 			//A previous item exists, newpath is that path with + 1 on the last index
-			newPath = prev.item.path;
+			newPath = $prev.item.path;
 			newPath[newPath.length - 1] += 1;
 		}
-		else if (next) {
+		else if ($next) {
 			//The next item exists, newpath is that path
-			newPath = next.item.path;
+			newPath = $next.item.path;
 		}
 		else {
 			//No items exist yet, go to prev column and find the only expanded menu
@@ -630,11 +630,11 @@ Polymer({
 			item = item.item;
 			options.item = item;
 			options.show = true;
-			var element;
+			var $element;
 			var elWaiter = window.setInterval(function() {
-				element = $('crm-edit-page');
-				if (element[0]) {
-					element[0].init();
+				$element = $('crm-edit-page');
+				if ($element[0]) {
+					$element[0].init();
 					window.clearInterval(elWaiter);
 				}
 			}, 50);
@@ -656,33 +656,33 @@ Polymer({
 		if (!this.shadow) {
 			this.animationEl = this.animationEl || [this.$$('type-switcher').$$('.TSContainer')];
 			$(this.animationEl).stop().animate({
-				'marginLeft': 0
+				marginLeft: 0
 			}, {
-				'easing': 'easeOutCubic',
-				'duration': 300
+				easing: 'easeOutCubic',
+				duration: 300
 			});
 		}
 	},
 
-	animateOut(el) {
-		$(el.animationEl).stop().animate({
-			'marginLeft': -193
+	animateOut(_this) {
+		$(_this.animationEl).stop().animate({
+			marginLeft: -193
 		}, {
-			'easing': 'easeInCubic',
-			'duration': 300
+			easing: 'easeInCubic',
+			duration: 300
 		});
 	},
 
 	typeIndicatorMouseLeave: function () {
 		if (!this.shadow) {
-			var el = this;
+			var _this = this;
 			var typeSwitcher = this.$.typeSwitcher;
 			if (typeSwitcher.toggledOpen) {
 				typeSwitcher.closeTypeSwitchContainer(true, function() {
 					typeSwitcher.toggledOpen = false;
 					typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
 					typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
-					el.animateOut(el);
+					_this.animateOut(_this);
 				});
 			}
 			else {
