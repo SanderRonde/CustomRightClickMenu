@@ -222,6 +222,9 @@
 	 * @returns {Array} The currently selected item(s) in array form
 	 */
 	getSelected: function () {
+		if ($(this).find('.iron-selected.addLibrary')[0]) {
+			this.selected.pop();
+		}
 		if (typeof this.selected === 'number') {
 			return [this.selected];
 		}

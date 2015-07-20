@@ -1,11 +1,14 @@
 ﻿paper-menu {
-	width: 340px;
 	box-shadow: rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0;
 	cursor: pointer;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+}
+
+paper-dropdown-menu paper-menu {
+	width: 340px;
 }
 
 #dropdownArrow {

@@ -628,8 +628,8 @@ Polymer({
 				item = path[i];
 			}
 			item = item.item;
-			options.item = item;
-			options.show = true;
+			window.options.item = item;
+			window.options.show = true;
 			var $element;
 			var elWaiter = window.setInterval(function() {
 				$element = $('crm-edit-page');

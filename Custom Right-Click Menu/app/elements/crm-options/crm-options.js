@@ -2,7 +2,6 @@
  * A shorthand name for chrome.storage.sync
  */
 window.storage = chrome.storage.sync;
-window.options = document.getElementsByTagName('crm-options')[0];
 var contextMenuItems = {
 	example: {
 		name: 'example'
@@ -471,13 +470,38 @@ Polymer({
 		this.crm.parent = this;
 
 		function callback(items) {
-			_this.settings = items;
+			//TODO remove this
+			//To help intellisense determine what's inside window.options.settings.editor
+			_this.settings = items || {
+				editor: {
+					"libraries": [
+						{
+							"location": 'jQuery.js',
+							"name": 'jQuery'
+						}, {
+							"location": 'mooTools.js',
+							"name": 'mooTools'
+						}, {
+							"location": 'YUI.js',
+							"name": 'YUI'
+						}, {
+							"location": 'Angular.js',
+							"name": 'Angular'
+						}
+					],
+					"lineNumbers": true,
+					"showToolsRibbon": true,
+					"tabSize": 4,
+					"theme": 'dark',
+					"useTabs": true
+				}
+			};
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
 			main();
 		}
-
+		window.options = this;
 		window.storage.get(callback);
 	},
 

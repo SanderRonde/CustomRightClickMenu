@@ -3,6 +3,16 @@
 
 	behaviors: [Polymer.PaperDropdownBehavior],
 
+	/**
+     * The currently selected item
+     * 
+     * @attribute selected
+     * @type Number
+     * @default 0
+     */
+	selected: 0,
+
+
 	/*
 	 * Fires when the selected item changes
 	 */

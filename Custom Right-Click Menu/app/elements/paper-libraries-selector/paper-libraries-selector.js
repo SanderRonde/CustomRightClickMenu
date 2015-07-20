@@ -56,5 +56,12 @@ Polymer({
 		this.libraries = libraries;
 	},
 
+	click: function(e) {
+		if (e.target.classList.contains('addLibrary')) {
+			//Add new library dialog
+
+		}
+	},
+
 	behaviors: [Polymer.PaperDropdownBehavior]
 });
