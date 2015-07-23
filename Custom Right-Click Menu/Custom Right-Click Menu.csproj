@@ -370,13 +370,6 @@
     <Content Include="app\bower_components\paper-dialog-behavior\test\index.html" />
     <Content Include="app\bower_components\paper-dialog-behavior\test\paper-dialog-behavior.html" />
     <Content Include="app\bower_components\paper-dialog-behavior\test\test-dialog.html" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\demo\index.html" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\hero.svg" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\index.html" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\paper-dialog-scrollable.html" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\paper-dialog-scrollable.js" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\test\index.html" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\test\paper-dialog-scrollable.html" />
     <Content Include="app\bower_components\paper-dialog\.gitignore" />
     <Content Include="app\bower_components\paper-dialog\demo\index.html" />
     <Content Include="app\bower_components\paper-dialog\hero.svg" />
@@ -813,8 +806,6 @@
     <Content Include="app\bower_components\paper-radio-group\README.md" />
     <Content Include="app\bower_components\paper-radio-button\bower.json" />
     <Content Include="app\bower_components\paper-radio-button\README.md" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\bower.json" />
-    <Content Include="app\bower_components\paper-dialog-scrollable\README.md" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
