@@ -161,7 +161,6 @@
 		if (executionTriggers.length === 1) {
 			executionTriggers[0].style.display = 'none';
 		} else {
-			console.log(executionTriggers);
 			executionTriggers.forEach(function(item) {
 				item.style.display = 'block';
 			});
@@ -189,7 +188,7 @@
 	 * @param {element} The ribbon element to fill
 	 */
 	fillEditorToolsRibbon: function ($ribbon) {
-		var libraries = 0;//$('<paper-libraries-selector></paper-libraries-selector>');
+		var $libraries = $('<paper-libraries-selector usedlibraries=' + JSON.stringify(this.item.value.libraries) + '></paper-libraries-selector>').appendTo($ribbon);
 		//Libraries, introduce libraries
 		//Get page xxxx
 		//Get element
@@ -208,19 +207,106 @@
 	 */
 	popInRibbons: function() {
 		//Introduce title at the top
-		$('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').insertBefore(this.editor.display.wrapper);
+		var animateTo = {
+			marginTop: 0
+		};
+		var scriptTitle = $('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').insertBefore(window.doc.fullscreenEditorHorizontal);
+		if (window.options.settings.editor.showToolsRibbon) {
+			scriptTitle.css('margin-left', '-200px');
+			animateTo.marginLeft = 0;
+		}
 
-		//Introduce left ribbon
-		var toolsRibbon = $('<div id="editorToolsRibbon"></div>');
+		if (window.options.settings.editor.showToolsRibbon) {
+			//Introduce left ribbon
+			var toolsRibbon = $('<div id="editorToolsRibbon" class="visible"></div>');
+			this.fillEditorToolsRibbon(toolsRibbon);
+			toolsRibbon.insertBefore(this.editor.display.wrapper);
+			setTimeout(function() {
+				toolsRibbon.animate({
+					marginLeft: 0
+				}, {
+					duration: 500,
+					easing: 'easeOutCubic'
+				});
+			}, 200);
+		}
+		setTimeout(function() {
+			scriptTitle.animate(animateTo, {
+				duration: 500,
+				easing: 'easeOutCubic'
+			});
+		}, 200);
+	},
+
+	/*
+	 * Pops in only the tools ribbon
+	 */
+	popInToolsRibbon: function() {
+		var toolsRibbon = $('<div id="editorToolsRibbon" class="visible"></div>');
 		this.fillEditorToolsRibbon(toolsRibbon);
 		toolsRibbon.insertBefore(this.editor.display.wrapper);
+		toolsRibbon.animate({
+			marginLeft: 0
+		}, {
+			duration: 800,
+			easing: 'easeOutCubic'
+		});
+	},
+
+	/*
+	 * Pops out only the tools ribbon
+	 */
+	popOutToolsRibbon: function() {
+		$('#editorToolsRibbon').animate({
+			marginLeft: '200px'
+		}, {
+			duration: 800,
+			easing: 'easeInCubic',
+			complete: function() {
+				this.classList.remove('visible');
+			}
+		});
 	},
 
 	/*
 	 * Pops out the ribbons with an animation
 	 */
 	popOutRibbons: function() {
-		
+		var scriptTitle = $('#editorCurrentScriptTitle');
+		var toolsRibbon = $('#editorToolsRibbon');
+		if (window.options.settings.editor.showToolsRibbon && toolsRibbon[0] && toolsRibbon[0].classList.contains('visible')) {
+			scriptTitle.animate({
+				marginLeft: '-200px',
+				marginTop: '-51px'
+			}, {
+				duration: 800,
+				easing: 'easeInCubic',
+				complete: function() {
+					$(this).remove();
+				}
+			});
+			toolsRibbon.animate({
+				marginLeft: '-200px'
+			}, {
+				duration: 800,
+				easing: 'easeInCubic',
+				complete: function() {
+					$(this).remove();
+				}
+			});
+		}
+		else {
+			scriptTitle.animate({
+				marginTop: '-51px'
+			}, {
+				duration: 800,
+				easing: 'easeInCubic',
+				complete: function() {
+					$(this).remove();
+					toolsRibbon.remove();
+				}
+			});
+		}
 	},
 
 	/*
@@ -229,7 +315,7 @@
 	enterFullScreen: function() {
 		var _this = this;
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
-		var editorCont = window.options.$.fullscreenEditor;
+		var editorCont = window.doc.fullscreenEditor;
 		var editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left;
 		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top;
@@ -243,7 +329,7 @@
 		buttonShadow.style.right = '0';
 		this.editor.display.wrapper.classList.add('fullscreen');
 
-		$editorWrapper.appendTo(editorCont);
+		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
 		var $horizontalCenterer = $('#horizontalCenterer');
 		var viewportWidth = $horizontalCenterer.width();
 		var viewPortHeight = $horizontalCenterer.height();
@@ -265,9 +351,9 @@
 				_this.editor.refresh();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
-				if (window.options.settings.editor.showRibbons) {
-					//_this.popInRibbons();
-				}
+				setTimeout(function() {
+					_this.popInRibbons();
+				}, 250);
 			}
 		});
 	},
@@ -277,35 +363,36 @@
 	 */
 	exitFullScreen: function () {
 		var _this = this;
-		this.editor.display.wrapper.classList.remove('fullscreen');
-		var editorCont = window.options.$.fullscreenEditor;
-		this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
-		console.log(this.preFullscreenEditorDimensions);
-		var $wrapper = $(this.editor.display.wrapper);
-		var $buttonShadow = $wrapper.find('#buttonShadow');
-		$buttonShadow[0].style.position = 'absolute';
-		$(editorCont).animate({
-			width: this.preFullscreenEditorDimensions.width,
-			height: this.preFullscreenEditorDimensions.height,
-			marginTop: this.preFullscreenEditorDimensions.marginTop,
-			marginLeft: this.preFullscreenEditorDimensions.marginLeft
-		}, {
-			duration: 500,
-			easing: 'easeOutCubic',
-			complete: function () {
-				editorCont.style.marginLeft = 0;
-				editorCont.style.marginTop = 0;
-				editorCont.style.width = 0;
-				editorCont.style.height = 0;
-				$(_this.editor.display.wrapper).appendTo(_this.$.editorCont).css({
-					//width: _this.preFullscreenEditorDimensions.width,
-					height: _this.preFullscreenEditorDimensions.height,
-					marginTop: 0,
-					marginLeft: 0
-				});
-				$buttonShadow.css('right', '10px').css('position', 'fixed');
-			}
-		});
+		this.popOutRibbons();
+		setTimeout(function() {
+			_this.editor.display.wrapper.classList.remove('fullscreen');
+			var editorCont = window.doc.fullscreenEditor;
+			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
+			var $wrapper = $(_this.editor.display.wrapper);
+			var $buttonShadow = $wrapper.find('#buttonShadow');
+			$buttonShadow[0].style.position = 'absolute';
+			$(editorCont).animate({
+				width: _this.preFullscreenEditorDimensions.width,
+				height: _this.preFullscreenEditorDimensions.height,
+				marginTop: _this.preFullscreenEditorDimensions.marginTop,
+				marginLeft: _this.preFullscreenEditorDimensions.marginLeft
+			}, {
+				duration: 500,
+				easing: 'easeOutCubic',
+				complete: function() {
+					editorCont.style.marginLeft = 0;
+					editorCont.style.marginTop = 0;
+					editorCont.style.width = 0;
+					editorCont.style.height = 0;
+					$(_this.editor.display.wrapper).appendTo(_this.$.editorCont).css({
+						height: _this.preFullscreenEditorDimensions.height,
+						marginTop: 0,
+						marginLeft: 0
+					});
+					$buttonShadow.css('right', '10px').css('position', 'fixed');
+				}
+			});
+		}, 800);
 	},
 
 	/*
@@ -456,16 +543,23 @@
 	 */
 	reloadEditor: function() {
 		$(this.editor.display.wrapper).remove();
-		this.editor = null;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
 		this.$.editorPlaceholder.style.position = 'absolute';
-		console.log('reloading');
+
+		this.newSettings.value.value = [];
+		var lines = this.editor.doc.lineCount();
+		for (var i = 0; i < lines; i++) {
+			this.newSettings.value.value.push(this.editor.doc.getLine(i));
+		}
+		this.newSettings.value.value = this.newSettings.value.value.join('\n');
+		this.editor = null;
+
 		if (this.fullscreen) {
-			this.loadEditor(window.options.$.fullscreenEditor);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value);
 		}
 		else {
-			this.loadEditor(this.$.editorCont);
+			this.loadEditor(this.$.editorCont, this.newSettings.value.value);
 		}
 	},
 
@@ -490,7 +584,6 @@
 		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.options.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
 			.click(function() {
 				var themes = this.parentNode.children;
-				console.log(themes);
 				themes[0].classList.add('currentTheme');
 				themes[1].classList.remove('currentTheme');
 				window.options.settings.editor.theme = 'white';
@@ -600,13 +693,13 @@
 	/*
 	 * Loads the codeMirror editor
 	 */
-	loadEditor: function(container) {
+	loadEditor: function(container, content) {
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
-			value: this.item.value.value,
+			value: content || this.item.value.value,
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
 			indentWithTabs: window.options.settings.editor.useTabs
@@ -616,7 +709,7 @@
 	ready: function () {
 		//TODO make saving and cancelling changes possible
 		var _this = this;
-		this.newSettings = this.item;
+		this.newSettings = $.extend(true, {}, this.item);
 		window.scriptEdit = this;
 		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
 		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
