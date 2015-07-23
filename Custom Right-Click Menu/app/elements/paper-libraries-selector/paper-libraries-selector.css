@@ -12,23 +12,23 @@ paper-libraries-selector[indent=false] #dropdownSelectedCont {
 	margin-left: 0;
 }
 
-paper-libraries-selector .menuSelectedCheckmark, .addLibraryPlusImg, span {
+.menuSelectedCheckmark, .addLibraryPlusImg, span {
 	margin-right: 0 !important;
 }
 
-paper-libraries-selector .menuSelectedCheckmark {
+.menuSelectedCheckmark {
 	display: none;
 }
 
-paper-libraries-selector .menuOptionName {
+.menuOptionName {
 	padding-left: 38px;
 }
 
-paper-libraries-selector paper-item[aria-selected=true] .menuSelectedCheckmark {
+paper-item[aria-selected=true] .menuSelectedCheckmark {
 	display: block;
 }
 
-paper-libraries-selector paper-item[aria-selected=true] .menuOptionName, paper-item[addlibrary] .menuOptionName {
+paper-item[aria-selected=true] .menuOptionName, paper-item[addlibrary] .menuOptionName {
 	padding-left: 8px;
 }
 

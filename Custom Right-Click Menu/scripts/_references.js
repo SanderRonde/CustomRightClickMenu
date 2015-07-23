@@ -12,7 +12,6 @@
 /// <reference path="../app/elements/paper-toggle-option/paper-toggle-option.js" />
 /// <reference path="../app/elements/script-edit/script-edit.js" />
 /// <reference path="../app/elements/type-switcher/type-switcher.js" />
-/// <reference path="../app/elements/paper-checkbox-list/paper-checkbox-list.js" />
 /// <reference path="../app/js/codemirror.js" />
 /// <reference path="../app/js/jquery-ui.min.js" />
 /// <reference path="../app/js/jquery.color-2.1.2.min.js" />

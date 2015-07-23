@@ -161,7 +161,6 @@
 		if (executionTriggers.length === 1) {
 			executionTriggers[0].style.display = 'none';
 		} else {
-			console.log(executionTriggers);
 			executionTriggers.forEach(function(item) {
 				item.style.display = 'block';
 			});
@@ -189,10 +188,6 @@
 	 * @param {element} The ribbon element to fill
 	 */
 	fillEditorToolsRibbon: function ($ribbon) {
-		console.log(this);
-		console.log(this.item);
-		console.log(this.item.value);
-		console.log(this.item.value.libraries);
 		var $libraries = $('<paper-libraries-selector usedlibraries=' + JSON.stringify(this.item.value.libraries) + '></paper-libraries-selector>').appendTo($ribbon);
 		//Libraries, introduce libraries
 		//Get page xxxx
@@ -215,30 +210,32 @@
 		var animateTo = {
 			marginTop: 0
 		};
-		var scriptTitle = $('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').insertBefore(window.options.$.fullscreenEditorHorizontal);
+		var scriptTitle = $('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').insertBefore(window.doc.fullscreenEditorHorizontal);
 		if (window.options.settings.editor.showToolsRibbon) {
 			scriptTitle.css('margin-left', '-200px');
 			animateTo.marginLeft = 0;
 		}
 
-		console.log('hallo');
 		if (window.options.settings.editor.showToolsRibbon) {
-			console.log('ja');
 			//Introduce left ribbon
 			var toolsRibbon = $('<div id="editorToolsRibbon" class="visible"></div>');
 			this.fillEditorToolsRibbon(toolsRibbon);
 			toolsRibbon.insertBefore(this.editor.display.wrapper);
-			toolsRibbon.animate({
-				marginLeft: 0
-			}, {
-				duration: 800,
+			setTimeout(function() {
+				toolsRibbon.animate({
+					marginLeft: 0
+				}, {
+					duration: 500,
+					easing: 'easeOutCubic'
+				});
+			}, 200);
+		}
+		setTimeout(function() {
+			scriptTitle.animate(animateTo, {
+				duration: 500,
 				easing: 'easeOutCubic'
 			});
-		}
-		scriptTitle.animate(animateTo, {
-			duration: 800,
-			easing: 'easeOutCubic'
-		});
+		}, 200);
 	},
 
 	/*
@@ -280,7 +277,7 @@
 		if (window.options.settings.editor.showToolsRibbon && toolsRibbon[0] && toolsRibbon[0].classList.contains('visible')) {
 			scriptTitle.animate({
 				marginLeft: '-200px',
-				marginTop: '-35px'
+				marginTop: '-51px'
 			}, {
 				duration: 800,
 				easing: 'easeInCubic',
@@ -300,7 +297,7 @@
 		}
 		else {
 			scriptTitle.animate({
-				marginTop: '-35px'
+				marginTop: '-51px'
 			}, {
 				duration: 800,
 				easing: 'easeInCubic',
@@ -318,7 +315,7 @@
 	enterFullScreen: function() {
 		var _this = this;
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
-		var editorCont = window.options.$.fullscreenEditor;
+		var editorCont = window.doc.fullscreenEditor;
 		var editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left;
 		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top;
@@ -332,7 +329,7 @@
 		buttonShadow.style.right = '0';
 		this.editor.display.wrapper.classList.add('fullscreen');
 
-		$editorWrapper.appendTo(window.options.$.fullscreenEditorHorizontal);
+		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
 		var $horizontalCenterer = $('#horizontalCenterer');
 		var viewportWidth = $horizontalCenterer.width();
 		var viewPortHeight = $horizontalCenterer.height();
@@ -369,7 +366,7 @@
 		this.popOutRibbons();
 		setTimeout(function() {
 			_this.editor.display.wrapper.classList.remove('fullscreen');
-			var editorCont = window.options.$.fullscreenEditor;
+			var editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			var $wrapper = $(_this.editor.display.wrapper);
 			var $buttonShadow = $wrapper.find('#buttonShadow');
@@ -559,7 +556,7 @@
 		this.editor = null;
 
 		if (this.fullscreen) {
-			this.loadEditor(window.options.$.fullscreenEditorHorizontal, this.newSettings.value.value);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value);
 		}
 		else {
 			this.loadEditor(this.$.editorCont, this.newSettings.value.value);
@@ -587,7 +584,6 @@
 		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.options.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
 			.click(function() {
 				var themes = this.parentNode.children;
-				console.log(themes);
 				themes[0].classList.add('currentTheme');
 				themes[1].classList.remove('currentTheme');
 				window.options.settings.editor.theme = 'white';

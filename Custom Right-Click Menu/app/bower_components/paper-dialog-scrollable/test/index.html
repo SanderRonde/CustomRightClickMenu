@@ -1,3 +1,4 @@
+<!doctype html>
 <!--
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
@@ -7,33 +8,27 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
+<html>
+  <head>
 
-<link rel="import" href="../polymer/polymer.html">
+    <title>paper-dialog tests</title>
 
-<style is="custom-style">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
 
-  :root {
+    <script src="../../web-component-tester/browser.js"></script>
 
-	--dark-primary-color: #303f9f;
+  </head>
+  <body>
 
-	--default-primary-color: rgb(38, 153, 244);
+    <script>
 
-    --light-primary-color: #c5cae9;
+      WCT.loadSuites([
+        'paper-dialog-scrollable.html'
+      ]);
 
-    --text-primary-color: #ffffff;
+    </script>
 
-    --accent-color: #4539ff;
-
-    --primary-background-color: #ffffff;
-
-    --primary-text-color: #212121;
-
-    --secondary-text-color: #757575;
-
-    --disabled-text-color: #bdbdbd;
-
-    --divider-color: #e0e0e0;
-
-  }
-
-</style>
+  </body>
+</html>

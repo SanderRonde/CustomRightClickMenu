@@ -51,6 +51,18 @@ paper-menu .content {
 	display: none;
 }
 
+.menuSelectedCheckmark, .addLibraryPlusImg, span {
+	margin-right: 0 !important;
+}
+
+.menuSelectedCheckmark {
+	display: none;
+}
+
+.menuOptionName {
+	padding-left: 38px;
+}
+
 paper-item[aria-selected=true] .menuSelectedCheckmark {
 	display: block;
 }

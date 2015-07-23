@@ -124,7 +124,7 @@ function addLink(items, toAdd, iterator) {
 function addScript(items, toAdd, iterator) {
 	var item = {};
 	item.name = toAdd.name;
-	item.callback = scriptHandler(toAdd.value);
+	item.callback = scriptHandler(toAdd.value.value);
 	items[iterator] = item;
 	return items;
 }
@@ -317,7 +317,6 @@ function checkArray(toCheck) {
 				changes = true;
 			}
 		}
-		changes && console.log('changes');
 		toCheck[index] = item;
 	});
 	if (changes) {
@@ -365,14 +364,35 @@ function checkSettings(settings) {
 	}
 }
 
+/*
+ * Binds all the listeners to any elements on the options page that need it
+ */
+function bindListeners() {
+	console.log('binding');
+	var urlInput = $('#addLibraryUrlInput')[0];
+	var manualInput = $('#addLibraryManualInput')[0];
+	$('#addLibraryUrlOption').on('change', function () {
+		manualInput.style.display = 'none';
+		urlInput.style.display = 'block';
+	});
+	$('#addLibraryManualOption').on('change', function() {
+		urlInput.style.display = 'none';
+		manualInput.style.display = 'block';
+	});
+	$('#addLibraryDialog').on('iron-overlay-closed', function() {
+		$(this).find('#addLibraryButton, #addLibraryConfirmAddition, #addLibraryDenyConfirmation').off('click');
+	});
+}
+
 /**
  * @fn function main()
  *
  * @brief Main function, called when javascript is ready to be executed
  */
- function main() {
+function main() {
 	checkSettings(options.settings);
 	buildContextMenu();
+	bindListeners();
 	//bindContextMenu();
 	//bindEvents();
 	//buildCrmSettings();
@@ -459,9 +479,13 @@ Polymer({
 	/**
 	 * Uploads this object to chrome.storage
 	 */
-	upload: function() {
+	upload: function(errorCallback) {
 		console.log(this.settings);
-		window.storage.set(this.settings);
+		window.storage.set(this.settings, function() {
+			if (chrome.runtime.lastError) {
+				errorCallback(chrome.runtime.lastError);
+			}
+		});
 		buildContextMenu();
 	},
 
@@ -502,6 +526,7 @@ Polymer({
 			main();
 		}
 		window.options = this;
+		window.doc = window.options.$;
 		window.storage.get(callback);
 	},
 

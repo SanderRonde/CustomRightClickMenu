@@ -83,8 +83,8 @@
 	 */
 	_addListener: function(listener, thisArg) {
 		this._listeners.push({
-			listener,
-			thisArg
+			listener: listener,
+			thisArg: thisArg
 		});
 	},
 
@@ -119,8 +119,6 @@
 		if (this.getAttribute('indent') === 'false') {
 			this.indent = false;
 		}
-		console.log(this, this.indent);
-		console.log(this.getAttribute('indent'));
 	},
 
 	/*

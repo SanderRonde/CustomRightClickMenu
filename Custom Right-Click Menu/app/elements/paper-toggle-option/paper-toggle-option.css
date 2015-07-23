@@ -1,8 +1,4 @@
-﻿.checkboxtext {
-	display: inline-block;
-}
-
-paper-toggle-option {
+﻿paper-toggle-option {
 	display: block;
 	margin-top:8px;
 	margin-bottom:8px;
