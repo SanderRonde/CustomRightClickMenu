@@ -29,7 +29,8 @@
 		"<all_urls>",
 		"activeTab",
 		"storage",
-		"contextMenus"
+		"contextMenus",
+		"unlimitedStorage"
 	],
 
 	"web_accessible_resources": [
