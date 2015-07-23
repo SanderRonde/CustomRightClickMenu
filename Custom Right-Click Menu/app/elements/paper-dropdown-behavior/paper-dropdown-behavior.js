@@ -83,8 +83,8 @@
 	 */
 	_addListener: function(listener, thisArg) {
 		this._listeners.push({
-			listener,
-			thisArg
+			listener: listener,
+			thisArg: thisArg
 		});
 	},
 
@@ -119,8 +119,6 @@
 		if (this.getAttribute('indent') === 'false') {
 			this.indent = false;
 		}
-		console.log(this, this.indent);
-		console.log(this.getAttribute('indent'));
 	},
 
 	/*
@@ -222,6 +220,9 @@
 	 * @returns {Array} The currently selected item(s) in array form
 	 */
 	getSelected: function () {
+		if ($(this).find('.iron-selected.addLibrary')[0]) {
+			this.selected.pop();
+		}
 		if (typeof this.selected === 'number') {
 			return [this.selected];
 		}
