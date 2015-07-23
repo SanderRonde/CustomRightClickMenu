@@ -2,7 +2,6 @@
  * A shorthand name for chrome.storage.sync
  */
 window.storage = chrome.storage.sync;
-window.options = document.getElementsByTagName('crm-options')[0];
 var contextMenuItems = {
 	example: {
 		name: 'example'
@@ -125,7 +124,7 @@ function addLink(items, toAdd, iterator) {
 function addScript(items, toAdd, iterator) {
 	var item = {};
 	item.name = toAdd.name;
-	item.callback = scriptHandler(toAdd.value);
+	item.callback = scriptHandler(toAdd.value.value);
 	items[iterator] = item;
 	return items;
 }
@@ -318,7 +317,6 @@ function checkArray(toCheck) {
 				changes = true;
 			}
 		}
-		changes && console.log('changes');
 		toCheck[index] = item;
 	});
 	if (changes) {
@@ -366,14 +364,35 @@ function checkSettings(settings) {
 	}
 }
 
+/*
+ * Binds all the listeners to any elements on the options page that need it
+ */
+function bindListeners() {
+	console.log('binding');
+	var urlInput = $('#addLibraryUrlInput')[0];
+	var manualInput = $('#addLibraryManualInput')[0];
+	$('#addLibraryUrlOption').on('change', function () {
+		manualInput.style.display = 'none';
+		urlInput.style.display = 'block';
+	});
+	$('#addLibraryManualOption').on('change', function() {
+		urlInput.style.display = 'none';
+		manualInput.style.display = 'block';
+	});
+	$('#addLibraryDialog').on('iron-overlay-closed', function() {
+		$(this).find('#addLibraryButton, #addLibraryConfirmAddition, #addLibraryDenyConfirmation').off('click');
+	});
+}
+
 /**
  * @fn function main()
  *
  * @brief Main function, called when javascript is ready to be executed
  */
- function main() {
+function main() {
 	checkSettings(options.settings);
 	buildContextMenu();
+	bindListeners();
 	//bindContextMenu();
 	//bindEvents();
 	//buildCrmSettings();
@@ -460,9 +479,13 @@ Polymer({
 	/**
 	 * Uploads this object to chrome.storage
 	 */
-	upload: function() {
+	upload: function(errorCallback) {
 		console.log(this.settings);
-		window.storage.set(this.settings);
+		window.storage.set(this.settings, function() {
+			if (chrome.runtime.lastError) {
+				errorCallback(chrome.runtime.lastError);
+			}
+		});
 		buildContextMenu();
 	},
 
@@ -471,13 +494,39 @@ Polymer({
 		this.crm.parent = this;
 
 		function callback(items) {
-			_this.settings = items;
+			//TODO remove this
+			//To help intellisense determine what's inside window.options.settings.editor
+			_this.settings = items || {
+				editor: {
+					"libraries": [
+						{
+							"location": 'jQuery.js',
+							"name": 'jQuery'
+						}, {
+							"location": 'mooTools.js',
+							"name": 'mooTools'
+						}, {
+							"location": 'YUI.js',
+							"name": 'YUI'
+						}, {
+							"location": 'Angular.js',
+							"name": 'Angular'
+						}
+					],
+					"lineNumbers": true,
+					"showToolsRibbon": true,
+					"tabSize": 4,
+					"theme": 'dark',
+					"useTabs": true
+				}
+			};
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
 			main();
 		}
-
+		window.options = this;
+		window.doc = window.options.$;
 		window.storage.get(callback);
 	},
 
