@@ -11,7 +11,7 @@
 			</div>
 			<paper-menu selected-values="{{selected}}" multi role="menu">
 				<template is="dom-repeat" items="{{libraries}}" as="library">
-					<paper-item tabindex="-1" addlibrary$="[[!library.isLibrary]]" aria-selected$="[[library.selected]]" class$="[[library.classes]]">
+					<paper-item on-tap="click" tabindex="-1" addlibrary$="[[!library.isLibrary]]" aria-selected$="[[library.selected]]" class$="[[library.classes]]">
 						<template is="dom-if" if="[[library.isLibrary]]">
 							<div class="menuSelectedCheckmark">
 								<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
