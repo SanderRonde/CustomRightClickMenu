@@ -1,3 +1,4 @@
+<!doctype html>
 <!--
 @license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
@@ -7,33 +8,18 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-
-<link rel="import" href="../polymer/polymer.html">
-
-<style is="custom-style">
-
-  :root {
-
-	--dark-primary-color: #303f9f;
-
-	--default-primary-color: rgb(38, 153, 244);
-
-    --light-primary-color: #c5cae9;
-
-    --text-primary-color: #ffffff;
-
-    --accent-color: #4539ff;
-
-    --primary-background-color: #ffffff;
-
-    --primary-text-color: #212121;
-
-    --secondary-text-color: #757575;
-
-    --disabled-text-color: #bdbdbd;
-
-    --divider-color: #e0e0e0;
-
-  }
-
-</style>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+    <title>paper-radio-group tests</title>
+    <script src="../../web-component-tester/browser.js"></script>
+  </head>
+  <body>
+    <script>
+      WCT.loadSuites([
+        'basic.html'
+      ]);
+    </script>
+  </body>
+</html>
