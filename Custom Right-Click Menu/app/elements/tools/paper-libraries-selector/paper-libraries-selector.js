@@ -58,7 +58,7 @@ Polymer({
 				name: 'Add your own',
 				classes: 'library addLibrary',
 				selected: 'false',
-				isLibrary: 'false'
+				isLibrary: false
 			});
 			_this.libraries = libraries;
 		});
