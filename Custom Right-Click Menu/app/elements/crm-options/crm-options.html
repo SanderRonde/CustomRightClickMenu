@@ -75,7 +75,7 @@
 			<paper-toast id="paperToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
 				<span id="menuSwitchUndoButton" role="button">UNDO</span>
 			</paper-toast>
-			<paper-dialog with-backdrop id="addLibraryDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+			<paper-dialog no-cancel-on-esc-key="true" with-backdrop id="addLibraryDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 				<div id="addLibraryLoadingDialog">
 					<div id="addLibraryLoadingDialogCenterer">
 						<paper-spinner active></paper-spinner>
