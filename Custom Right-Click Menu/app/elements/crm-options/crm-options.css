@@ -133,7 +133,7 @@ paper-ripple {
 #editorToolsRibbon {
 	margin-left: -200px;
 	width: 200px;
-	background-color: rgb(204,204,240);
+	background-color: white;
 }
 
 paper-toolbar {
@@ -209,7 +209,7 @@ iron-overlay-backdrop {
 	background-color:white;
 }
 
-.checkmark {
+#addLibraryDialog .checkmark {
 	-webkit-transform: rotate(45deg);
 	-moz-transform: rotate(45deg);
 	-ms-transform: rotate(45deg);
@@ -228,14 +228,14 @@ iron-overlay-backdrop {
 	color: white;
 }
 
-	.checkmark.animateIn {
-		-webkit-animation: checkmark-expand 140ms ease-out forwards;
-		-moz-animation: checkmark-expand 140ms ease-out forwards;
-		-o-animation: checkmark-expand 140ms ease-out forwards;
-		animation: checkmark-expand 140ms ease-out forwards;
+	#addLibraryDialog .checkmark.animateIn {
+		-webkit-animation: expand-checkmark 140ms ease-out forwards;
+		-moz-animation: expand-checkmark 140ms ease-out forwards;
+		-o-animation: expand-checkmark 140ms ease-out forwards;
+		animation: expand-checkmark 140ms ease-out forwards;
 	}
 
-@-webkit-keyframes checkmark-expand {
+@-webkit-keyframes expand-checkmark {
 	0% {
 		top: 144px;
 		left: 96px;
@@ -250,7 +250,7 @@ iron-overlay-backdrop {
 	}
 }
 
-@-moz-keyframes checkmark-expand {
+@-moz-keyframes expand-checkmark {
 	0% {
 		top: 180px;
 		left: 120px;
@@ -265,7 +265,7 @@ iron-overlay-backdrop {
 	}
 }
 
-@keyframes checkmark-expand {
+@keyframes expand-checkmark {
 	0% {
 		top: 180px;
 		left: 120px;
@@ -287,4 +287,8 @@ iron-overlay-backdrop {
 	margin-top: 267px;
 	color:white;
 	font-size:250%;
+}
+
+.ribbonTool > paper-menu {
+	border-top: 1px solid rgb(239, 239, 239);
 }
