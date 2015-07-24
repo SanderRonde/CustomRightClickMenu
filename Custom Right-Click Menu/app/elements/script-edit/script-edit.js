@@ -182,19 +182,34 @@
 		}
 	},
 
+	/*
+	 * Inserts given snippet of code into the editor
+	 * @param {element} _this The scriptEdit element/object
+	 * @param {string} snippet The snippet to be pasted
+	 */
+	insertSnippet: function (_this, snippet) {
+		console.log(snippet);
+		this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
+	},
+
 	//#region fullscreen
 	/*
 	 * Fills the editor-tools-ribbon on the left of the editor with elements
 	 * @param {element} The ribbon element to fill
 	 */
 	fillEditorToolsRibbon: function ($ribbon) {
-		var $libraries = $('<paper-libraries-selector usedlibraries=' + JSON.stringify(this.item.value.libraries) + '></paper-libraries-selector>').appendTo($ribbon);
-		//Libraries, introduce libraries
+		var _this = this;
+		$('<paper-libraries-selector class="ribbonTool" usedlibraries=' + JSON.stringify(this.item.value.libraries) + '></paper-libraries-selector>').appendTo($ribbon);
+		//Search website
+		$('<paper-get-page-properties class="ribbonTool"></paper-get-page-properties>').appendTo($ribbon)[0].addEventListener('addsnippet', function(snippet) {
+			_this.insertSnippet(_this, snippet.snippet);
+		});
 		//Get page xxxx
 		//Get element
 		//Set style
 		//Animate element to style
 		//Wait
+		//Log to console
 		//Alert message
 		//Create element
 		//Write in external editor
