@@ -228,10 +228,6 @@ Polymer({
 	},
 	//#endregion
 
-	//#region editPageProperties
-
-	//#endregion
-
 	//#region typeIndicatorProperties
 
 	/**
@@ -242,6 +238,15 @@ Polymer({
      * @default null
      */
 	animationEl: null,
+
+	/**
+     * The showing animation of the type indicator
+     * 
+     * @attribute typeIndicatorAnimation
+     * @type Animation
+     * @default null
+     */
+	typeIndicatorAnimation: null,
 
 	//#endregion
 
@@ -629,15 +634,13 @@ Polymer({
 			}
 			item = item.item;
 			window.options.item = item;
-			window.options.show = true;
-			var $element;
-			var elWaiter = window.setInterval(function() {
-				$element = $('crm-edit-page');
-				if ($element[0]) {
-					$element[0].init();
-					window.clearInterval(elWaiter);
-				}
-			}, 50);
+			if (item.type === 'script') {
+				window.options.scriptItem = item;
+			}
+			else {
+				window.options.scriptItem = {};
+			}
+			window.crmEditPage.init();
 		}
 	},
 	//#endregion
@@ -646,51 +649,50 @@ Polymer({
 
 	calculateType: function () {
 		this.type = this.item.type;
-		this.isMenu = this.item.type === 'menu';
-		this.isLink = this.item.type === 'link';
-		this.isScript = this.item.type === 'script';
-		this.isDivider = this.item.type === 'divider';
+		((this.isScript = this.item.type === 'script') && (this.isLink = this.isMenu = this.isDivider = false)) || ((this.isLink = this.item.type === 'link') && (this.isMenu = this.isDivider = false)) || ((this.isMenu = this.item.type === 'menu') && (this.isDivider = false)) || (this.isDivider = true);
 	},
 
 	typeIndicatorMouseOver: function () {
 		if (!this.shadow) {
-			this.animationEl = this.animationEl || [this.$$('type-switcher').$$('.TSContainer')];
-			$(this.animationEl).stop().animate({
-				marginLeft: 0
-			}, {
-				easing: 'easeOutCubic',
-				duration: 300
-			});
+			this.animationEl = this.animationEl || this.$$('type-switcher').$$('.TSContainer');
+			(this.typeIndicatorAnimation && this.typeIndicatorAnimation.play()) || (this.typeIndicatorAnimation = this.animationEl.animate([
+					{
+						marginLeft: -193
+					}, {
+						marginLeft: 0
+					}
+				], {
+					duration: 300,
+					fill: 'both',
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				}
+			));
 		}
 	},
 
-	animateOut(_this) {
-		$(_this.animationEl).stop().animate({
-			marginLeft: -193
-		}, {
-			easing: 'easeInCubic',
-			duration: 300
-		});
+	animateOut: function () {
+		this.typeIndicatorAnimation.reverse();
 	},
 
 	typeIndicatorMouseLeave: function () {
+		var _this = this;
 		if (!this.shadow) {
-			var _this = this;
 			var typeSwitcher = this.$.typeSwitcher;
 			if (typeSwitcher.toggledOpen) {
 				typeSwitcher.closeTypeSwitchContainer(true, function() {
 					typeSwitcher.toggledOpen = false;
 					typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
 					typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
-					_this.animateOut(_this);
+					_this.animateOut();
 				});
 			}
 			else {
-				this.animateOut(this);
+				this.animateOut();
 			}
 		}
 	}
 
 	//#endregion
+
 
 });
