@@ -458,6 +458,15 @@ Polymer({
 	  */
 	item: {},
 
+	/**
+	 * The item to show, if it is a script
+	 *
+	 * @attribute scriptItem
+	 * @type Object
+	 * @default {}
+	 */
+	scriptItem: {},
+
 	properties: {
 		settings: {
 			type: Object,
@@ -467,6 +476,11 @@ Polymer({
 			type: Array,
 			value: []
 		}
+	},
+
+	launchSearchWebsiteTool: function () {
+		this.$.paperSearchWebsiteDialog.init();
+		this.$.paperSearchWebsiteDialog.show();
 	},
 
 	addSettingsReadyCallback: function(callback, thisElement) {
@@ -489,10 +503,9 @@ Polymer({
 		buildContextMenu();
 	},
 
-	ready: function() {
+	ready: function () {
 		var _this = this;
 		this.crm.parent = this;
-
 		function callback(items) {
 			//TODO remove this
 			//To help intellisense determine what's inside window.options.settings.editor
@@ -525,6 +538,8 @@ Polymer({
 			}
 			main();
 		}
+
+		this.show = false;
 		window.options = this;
 		window.doc = window.options.$;
 		window.storage.get(callback);
