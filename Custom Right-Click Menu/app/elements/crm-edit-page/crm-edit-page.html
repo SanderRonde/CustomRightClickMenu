@@ -1,31 +1,23 @@
-﻿<html>
+﻿	<html>
 <head>
 </head>
-<body>
-	<dom-module id="crm-edit-page" attributes="item">
-		<template>
-			<link rel="import" href="../../bower_components/polymer/polymer.html" />
-			<link rel="stylesheet" type="css" href="crm-edit-page.css"/>
+	<body>
+		<dom-module id="crm-edit-page" attributes="item">
+			<template>
+				<link rel="import" href="../../bower_components/polymer/polymer.html" />
+				<link rel="stylesheet" type="css" href="crm-edit-page.css" />
 				<div id="horizontalCenterer">
 					<div id="verticalCenterer">
 						<paper-material elevation="5" id="editPageCont">
-							<template is="dom-if" if="{{isLink}}">
-								<link-edit item="{{item}}"></link-edit>
-							</template>
-							<template is="dom-if" if="{{isScript}}">
-								<script-edit item="{{item}}"></script-edit>
-							</template>
-							<template is="dom-if" if={{isDivider}}>
-								<divider-edit item="{{item}}"></divider-edit>
-							</template>
-							<template is="dom-if" if="{{isMenu}}">
-								<menu-edit item="{{item}}"></menu-edit>
-							</template>
+							<link-edit hidden$="[[!isLink]]" item="{{linkItem}}"></link-edit>
+							<script-edit hidden$="[[!isScript]]" item="{{scriptItem}}"></script-edit>
+							<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
+							<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
 						</paper-material>
 					</div>
 				</div>
-		</template>
-	</dom-module>
-	<script src="crm-edit-page.js"></script>
-</body>
+			</template>
+		</dom-module>
+		<script src="crm-edit-page.js"></script>
+	</body>
 </html>
