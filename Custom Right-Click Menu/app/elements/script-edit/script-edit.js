@@ -7,9 +7,9 @@
 	* 
 	* @attribute editor
 	* @type Object
-	* @default {}
+	* @default null
 	*/
-	editor: {},
+	editor: null,
 
 	/**
      * Whether the vertical scrollbar is already shown
@@ -144,7 +144,54 @@
      * @default {}
      */
 	preFullscreenEditorDimensions: {},
-    
+
+	//#region Animations
+	/**
+	 * The fullscreen animation
+	 *
+	 * @attribute fullscreenAnimation
+	 * @type Animation
+	 * @default null
+	 */
+	fullscreenAnimation: null,
+
+	/**
+	 * The show options animation player
+	 *
+	 * @attribute optionsAnimations
+	 * @type Array
+	 * @default []
+	 */
+	optionsAnimations: [],
+
+	/**
+	 * The dropdown to right animation
+	 *
+	 * @attribute dropdownToRightAnimation
+	 * @type Animation
+	 * @default null
+	 */
+	dropdownToRightAnimation: null,
+
+	/**
+	 * The dropdown to top animation
+	 *
+	 * @attribute dropdownToTopAnimation
+	 * @type Animation
+	 * @default null
+	 */
+	dropdownToTopAnimation: null,
+
+	/**
+	 * The animation for the editor's placeholder
+	 *
+	 * @attribute editorPlaceHolderAnimation
+	 * @type Animation
+	 * @default null
+	 */
+	editorPlaceHolderAnimation: null,
+	//#endregion
+
 	//#endregion
 
 	/*
@@ -182,6 +229,7 @@
 		}
 	},
 
+	//#region fullscreen
 	/*
 	 * Inserts given snippet of code into the editor
 	 * @param {element} _this The scriptEdit element/object
@@ -192,16 +240,16 @@
 		this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
 	},
 
-	//#region fullscreen
 	/*
 	 * Fills the editor-tools-ribbon on the left of the editor with elements
 	 * @param {element} The ribbon element to fill
 	 */
-	fillEditorToolsRibbon: function ($ribbon) {
+	initToolsRibbon: function () {
 		var _this = this;
-		$('<paper-libraries-selector class="ribbonTool" usedlibraries=' + JSON.stringify(this.item.value.libraries) + '></paper-libraries-selector>').appendTo($ribbon);
-		//Search website
-		$('<paper-get-page-properties class="ribbonTool"></paper-get-page-properties>').appendTo($ribbon)[0].addEventListener('addsnippet', function(snippet) {
+		//TODO crmApi.getSelection()
+		window.options.$.paperLibrariesSelector.init();
+		window.options.$.paperGetPageProperties.init();
+		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function (snippet) {
 			_this.insertSnippet(_this, snippet.snippet);
 		});
 		//Get page xxxx
@@ -222,34 +270,49 @@
 	 */
 	popInRibbons: function() {
 		//Introduce title at the top
-		var animateTo = {
-			marginTop: 0
-		};
-		var scriptTitle = $('<div id="editorCurrentScriptTitle">' + this.item.name + '</div>').insertBefore(window.doc.fullscreenEditorHorizontal);
+		var scriptTitle = window.options.$.editorCurrentScriptTitle;
+		scriptTitle.style.display = 'block';
+		var scriptTitleAnimation = [
+			{
+				marginTop: '-51px'
+			}, {
+				marginTop: 0
+			}
+		];
+		console.log('animating');
 		if (window.options.settings.editor.showToolsRibbon) {
-			scriptTitle.css('margin-left', '-200px');
-			animateTo.marginLeft = 0;
-		}
+			scriptTitle.style.marginLeft = '-200px';
+			scriptTitleAnimation[0].marginLeft = '-200px';
+			scriptTitleAnimation[1].marginLeft = 0;
 
-		if (window.options.settings.editor.showToolsRibbon) {
-			//Introduce left ribbon
-			var toolsRibbon = $('<div id="editorToolsRibbon" class="visible"></div>');
-			this.fillEditorToolsRibbon(toolsRibbon);
-			toolsRibbon.insertBefore(this.editor.display.wrapper);
-			setTimeout(function() {
-				toolsRibbon.animate({
-					marginLeft: 0
-				}, {
+			this.initToolsRibbon();
+			setTimeout(function () {
+				window.options.$.editorToolsRibbon.style.display = 'block';
+				window.options.$.editorToolsRibbon.animate([
+					{
+						marginLeft: '-200px'
+					}, {
+						marginLeft: 0
+					}
+				], {
 					duration: 500,
-					easing: 'easeOutCubic'
-				});
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				}).onfinish = function() {
+					window.options.$.editorToolsRibbon.style.marginLeft = 0;
+					window.options.$.editorToolsRibbon.classList.add('visible');
+				};
 			}, 200);
 		}
 		setTimeout(function() {
-			scriptTitle.animate(animateTo, {
+			scriptTitle.animate(scriptTitleAnimation, {
 				duration: 500,
-				easing: 'easeOutCubic'
-			});
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function() {
+				scriptTitle.style.marginTop = 0;
+				if (scriptTitleAnimation.marginLeft) {
+					scriptTitle.style.marginLeft = 0;
+				}
+			};
 		}, 200);
 	},
 
@@ -257,70 +320,94 @@
 	 * Pops in only the tools ribbon
 	 */
 	popInToolsRibbon: function() {
-		var toolsRibbon = $('<div id="editorToolsRibbon" class="visible"></div>');
-		this.fillEditorToolsRibbon(toolsRibbon);
-		toolsRibbon.insertBefore(this.editor.display.wrapper);
-		toolsRibbon.animate({
-			marginLeft: 0
-		}, {
+		window.options.$.editorToolsRibbon.style.display = 'block';
+		window.options.$.editorToolsRibbon.animate([
+			{
+				marginLeft: '-200px'
+			}, {
+				marginLeft: 0
+			}
+		], {
 			duration: 800,
-			easing: 'easeOutCubic'
-		});
+			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+		}).onfinish = function() {
+			this.effect.target.style.marginLeft = 0;
+		}
 	},
 
 	/*
 	 * Pops out only the tools ribbon
 	 */
-	popOutToolsRibbon: function() {
-		$('#editorToolsRibbon').animate({
-			marginLeft: '200px'
-		}, {
-			duration: 800,
-			easing: 'easeInCubic',
-			complete: function() {
-				this.classList.remove('visible');
+	popOutToolsRibbon: function () {
+		$('#editorToolsRibbon')[0].animate([
+			{
+				marginLeft: 0
+			}, {
+				marginLeft: '-200px'
 			}
-		});
+		], {
+			duration: 800,
+			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+		}).onfinish = function() {
+			this.effect.target.style.marginLeft = '-200px';
+			this.effect.target.classList.remove('visible');
+		};
 	},
 
 	/*
 	 * Pops out the ribbons with an animation
 	 */
 	popOutRibbons: function() {
-		var scriptTitle = $('#editorCurrentScriptTitle');
-		var toolsRibbon = $('#editorToolsRibbon');
-		if (window.options.settings.editor.showToolsRibbon && toolsRibbon[0] && toolsRibbon[0].classList.contains('visible')) {
-			scriptTitle.animate({
-				marginLeft: '-200px',
-				marginTop: '-51px'
-			}, {
-				duration: 800,
-				easing: 'easeInCubic',
-				complete: function() {
-					$(this).remove();
+		var scriptTitle = window.options.$.editorCurrentScriptTitle;
+		var toolsRibbon = window.options.$.editorToolsRibbon;
+		if (window.options.settings.editor.showToolsRibbon && toolsRibbon && toolsRibbon.classList.contains('visible')) {
+			scriptTitle.animate([
+				{
+					marginTop: 0,
+					marginLeft: 0
+				}, {
+					marginTop: '-51px',
+					marginLeft: '-200px'
 				}
-			});
-			toolsRibbon.animate({
-				marginLeft: '-200px'
-			}, {
+			], {
 				duration: 800,
-				easing: 'easeInCubic',
-				complete: function() {
-					$(this).remove();
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function() {
+				scriptTitle.style.marginTop = '-51px';
+				scriptTitle.style.marginLeft = '-200px';
+			};
+			toolsRibbon.animate([
+				{
+					marginLeft: 0
+				}, {
+					marginLeft: '-200px'
 				}
-			});
+			], {
+				duration: 800,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function () {
+				scriptTitle.style.display = 'none';
+				toolsRibbon.style.display = 'none';
+				toolsRibbon.style.marginLeft = '-200px';
+			};
 		}
 		else {
-			scriptTitle.animate({
-				marginTop: '-51px'
-			}, {
-				duration: 800,
-				easing: 'easeInCubic',
-				complete: function() {
-					$(this).remove();
-					toolsRibbon.remove();
+			scriptTitle.animate([
+				{
+					marginTop: 0
+				}, {
+					marginTop: '-51px'
 				}
-			});
+			], {
+				duration: 800,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function() {
+				this.effect.target.remove();
+				scriptTitle.style.display = 'none';
+				toolsRibbon.style.display = 'none';
+				scriptTitle.style.marginTop = '-51px';
+				toolsRibbon.remove();
+			}
 		}
 	},
 
@@ -352,6 +439,7 @@
 		$editorWrapper[0].style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
 
+		editorCont.style.display = 'block';
 		//Animate to corners
 		$(editorCont).animate({
 			width: viewportWidth,
@@ -361,12 +449,11 @@
 		}, {
 			duration: 500,
 			easing: 'easeOutCubic',
-			complete: function() {
-				buttonShadow.style.position = 'fixed';
+			complete: function () {
 				_this.editor.refresh();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
-				setTimeout(function() {
+				setTimeout(function () {
 					_this.popInRibbons();
 				}, 250);
 			}
@@ -379,7 +466,7 @@
 	exitFullScreen: function () {
 		var _this = this;
 		this.popOutRibbons();
-		setTimeout(function() {
+		setTimeout(function () {
 			_this.editor.display.wrapper.classList.remove('fullscreen');
 			var editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
@@ -394,7 +481,7 @@
 			}, {
 				duration: 500,
 				easing: 'easeOutCubic',
-				complete: function() {
+				complete: function () {
 					editorCont.style.marginLeft = 0;
 					editorCont.style.marginTop = 0;
 					editorCont.style.width = 0;
@@ -404,7 +491,6 @@
 						marginTop: 0,
 						marginLeft: 0
 					});
-					$buttonShadow.css('right', '10px').css('position', 'fixed');
 				}
 			});
 		}, 800);
@@ -429,7 +515,7 @@
 		var editorWidth = $('.CodeMirror').width();
 		var editorHeight = $('.CodeMirror').height();
 		var circleRadius;
-		
+
 		//Add a bit just in case
 		if (this.fullscreen) {
 			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight));
@@ -456,7 +542,7 @@
 		}, {
 			duration: 500,
 			easing: 'easeOutCubic',
-			progress: function(animation) {
+			progress: function (animation) {
 				_this.editorOptions[0].style.marginLeft = settingsInitialMarginLeft - animation.tweens[3].now;
 				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now;
 			}
@@ -508,30 +594,103 @@
 		var show = (state === 2 || state === '2');
 		if (show !== this.showTriggers) {
 			var element = $(this.$.executionTriggersContainer);
+			var domElement = element[0];
+			var originalHeight = element.height();
 			if (show) {
-				var domElement = element[0];
 				domElement.style.height = 'auto';
-
-				var originalHeight = element.height();
-				domElement.style.height = 0;
 				domElement.style.display = 'block';
-				element.stop().animate({
-					height: originalHeight
-				}, 300, 'easeOutCubic', function() {
-					$(this).stop().animate({
-						marginLeft: 0
-					}, 200, 'easeOutCubic');
-				});
-			} else {
-				element.stop().animate({
-					marginLeft: '-100%'
-				}, 200, 'easeInCubic', function() {
-					$(this).stop().animate({
-						height: 0
-					}, 300, 'easeInCubic', function() {
-						this.style.display = 'none';
+
+				if (this.dropdownToTopAnimation) {
+					this.dropdownToTopAnimation.show = true;
+					this.dropdownToRightAnimation.hide = false;
+					this.dropdownToTopAnimation.reverse();
+				}
+				else {
+					this.dropdownToTopAnimation = domElement.animate([
+						{
+							height: 0
+						}, {
+							height: originalHeight
+						}
+					], {
+						duration: 300,
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+						fill: 'both'
 					});
-				});
+					setTimeout(function() {
+						_this.dropdownToRightAnimation = domElement.animate([
+							{
+								marginLeft: '-100%'
+							}, {
+								marginLeft: 0
+							}
+						], {
+							duration: 200,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+							fill: 'both'
+						});
+						setTimeout(function() {
+							_this.dropdownToRightAnimation.onfinish = function () {
+								if (this.hide) {
+									_this.dropdownToTopAnimation.reverse();
+								}
+							};
+							_this.dropdownToTopAnimation.onfinish = function () {
+								if (this.show) {
+									_this.dropdownToRightAnimation.reverse();
+								}
+							}
+							_this.dropdownToTopAnimation.show = true;
+							_this.dropdownToTopAnimation.hide = false;
+						}, 200);
+					}, 300);
+				}
+			} else {
+				if (this.dropdownToTopAnimation) {
+					this.dropdownToRightAnimation.hide = true;
+					this.dropdownToTopAnimation.show = false;
+					this.dropdownToRightAnimation.reverse();
+				}
+				else {
+					this.dropdownToRightAnimation = domElement.animate([
+						{
+							marginLeft: 0
+						}, {
+							marginLeft: '-100%'
+						}
+					], {
+						duration: 200,
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+						fill: 'both'
+					});
+					setTimeout(function() {
+						_this.dropdownToTopAnimation = domElement.animate([
+							{
+								height: originalHeight
+							}, {
+								height: 0
+							}
+						], {
+							duration: 300,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+							fill: 'both'
+						});
+						setTimeout(function() {
+							_this.dropdownToTopAnimation.hide = true;
+							_this.dropdownToTopAnimation.show = false;
+							_this.dropdownToTopAnimation.onfinish = function() {
+								if (this.show) {
+									_this.dropdownToRightAnimation.reverse();
+								}
+							}
+							_this.dropdownToRightAnimation.onfinish = function () {
+								if (this.hide) {
+									_this.dropdownToTopAnimation.reverse();
+								}
+							};
+						}, 300);
+					}, 200);
+				}
 			}
 			_this.showTriggers = show;
 		}
@@ -697,11 +856,24 @@
 			this.$.editorPlaceholder.style.height = this.editorHeight;
 			this.$.editorPlaceholder.style.width = this.editorWidth;
 			this.$.editorPlaceholder.style.position = 'absolute';
-			$(this.$.editorPlaceholder).css('opacity', 1).animate({
-				opacity: 0
-			}, 300, 'easeInCubic', function() {
-				this.style.display = 'none';
-			});
+			if (this.editorPlaceHolderAnimation) {
+				this.editorPlaceHolderAnimation.play();
+			}
+			else {
+				this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
+					{
+						opacity: 1
+					}, {
+						opacity: 0
+					}
+				], {
+					duration: 300,
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				});
+				this.editorPlaceHolderAnimation.onfinish = function() {
+					this.effect.target.style.display = 'none';
+				}
+			}
 		}
 	},
 
@@ -721,14 +893,21 @@
 		});
 	},
 
-	ready: function () {
+	init: function () {
 		//TODO make saving and cancelling changes possible
 		var _this = this;
 		this.newSettings = $.extend(true, {}, this.item);
 		window.scriptEdit = this;
+		this.$.editorPlaceholder.style.display = 'flex';
+		this.$.editorPlaceholder.style.opacity = 1;
 		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
 		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
-		setTimeout(function() {
+		if (this.editor) {
+			console.log(this.editor);
+			this.editor.display.wrapper.remove();
+			this.editor = null;
+		}
+		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
 		}, 1250);
 	}
