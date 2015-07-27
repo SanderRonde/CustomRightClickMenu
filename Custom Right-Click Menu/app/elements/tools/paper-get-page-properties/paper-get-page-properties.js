@@ -25,36 +25,38 @@
 		console.log(option);
 		switch (option) {
 		case 'Url':
-			this.triggerEvent('window.location.href');
+			this.triggerEvent('window.location.href;');
 			break;
 		case 'Host':
-			this.triggerEvent('window.location.host');
+			this.triggerEvent('window.location.host;');
 			break;
 		case 'Path':
-			this.triggerEvent('window.location.path');
+			this.triggerEvent('window.location.path;');
 			break;
 		case 'Protocol':
-			this.triggerEvent('window.location.protocol');
+			this.triggerEvent('window.location.protocol;');
 			break;
 		case 'Width':
-			this.triggerEvent('window.innerWidth');
+			this.triggerEvent('window.innerWidth;');
 			break;
 		case 'Height':
-			this.triggerEvent('window.innerHeight');
+			this.triggerEvent('window.innerHeight;');
 			break;
 		case 'Pixels':
-			this.triggerEvent('window.scrollY');
+			this.triggerEvent('window.scrollY;');
 			break;
 		case 'Title':
-			this.triggerEvent('document.title');
+			this.triggerEvent('document.title;');
 			break;
 		}
 	},
 
+	init: function () {
+		this.removeEventListener('addsnippet');
+		this.close();
+	},
+
 	ready: function() {
-		console.log(this);
-		console.log(this.selected);
-		console.log(this.getSelected());
 		this.options = [
 			{
 				name: 'Url',
