@@ -73,22 +73,24 @@
 	 */
 	colored: false,
 
-	ready: function() {
-		this.isLink = (this.type === 'link');
-		this.isMenu = (this.type === 'menu');
-		this.isScript = (this.type === 'script');
-		this.isDivider = (this.type === 'divider');
-		this.$.typeTxt.innerHTML = this.type;
-
-		if (this.isLink) {
-			this.remainingTypes = ['script', 'divider', 'menu'];
-		} else if (this.isScript) {
+	ready: function () {
+		if ((this.isScript = this.type === 'script')) {
+			this.isLink = this.isMenu = this.isDivider = false;
 			this.remainingTypes = ['link', 'divider', 'menu'];
-		} else if (this.isMenu) {
+		}
+		else if ((this.isLink = this.type === 'link')) {
+			this.isMenu = this.isDivider = false;
+			this.remainingTypes = ['script', 'divider', 'menu'];
+		}
+		else if ((this.isMenu = this.type === 'menu')) {
+			this.isDivider = false;
 			this.remainingTypes = ['link', 'script', 'divider'];
-		} else if (this.isDivider) {
+		}
+		else {
+			this.isDivider = true;
 			this.remainingTypes = ['link', 'script', 'menu'];
 		}
+		this.$.typeTxt.innerHTML = this.type;
 	},
 
 	colorTypeChoices: function() {
