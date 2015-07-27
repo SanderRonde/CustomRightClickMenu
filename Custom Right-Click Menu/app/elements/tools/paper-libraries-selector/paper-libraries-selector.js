@@ -2,24 +2,64 @@ Polymer({
 	is: 'paper-libraries-selector',
 
 	properties: {
+		/**
+		 * The libraries currently in use by the script
+		 *
+		 * @attribute usedlibraries
+		 * @type Array
+		 * @default null
+		 */
 		usedlibraries: {
 			type: Array,
 			notify: true
 		},
+		/**
+		 * The libraries for use in the HTML, already marked up
+		 *
+		 * @attribute libraries
+		 * @type Array
+		 * @default null
+		 */
 		libraries: {
 			type: Array,
 			notify: true
 		},
+		/**
+		 * The currently selected (used) libraries' indexes
+		 *
+		 * @attribute selected
+		 * @type Array
+		 * @default null
+		 */
 		selected: {
 			type: Array,
 			notify: true
 		},
+		/**
+		 * The libraries installed in the extension
+		 *
+		 * @attribute installedLibraries
+		 * @type Array
+		 * @default null
+		 */
 		installedLibraries: {
 			type: Array
 		}
 	},
 
-	ready: function () {
+	ready: function() {
+		var _this = this;
+		chrome.storage.local.get('libraries', function(keys) {
+			_this.installedLibraries = keys.libraries;
+		});
+		chrome.storage.onChanged.addListener(function(changes, areaName) {
+			if (areaName === 'local' && changes.libraries) {
+				_this.installedLibraries = changes.libraries.newValue;
+			}
+		});
+	},
+
+	init: function() {
 		var _this = this;
 		var selectedObj = {};
 		this.usedlibraries.forEach(function(item) {
@@ -28,40 +68,36 @@ Polymer({
 		var libraries = [];
 		var selected = [];
 		var itemCopy;
-		this.installedLibraries;
-		chrome.storage.local.get(function (keys) {
-			console.log(keys);
-			_this.installedLibraries = keys.libraries;
-			_this.installedLibraries.forEach(function (item) {
-				itemCopy = {};
-				itemCopy.name = item.name;
-				itemCopy.isLibrary = true;
-				if (selectedObj[item.name]) {
-					itemCopy.classes = 'library iron-selected';
-					itemCopy.selected = 'true';
-				} else {
-					itemCopy.classes = 'library';
-					itemCopy.selected = 'false';
-				}
-				libraries.push(itemCopy);
-			});
-			libraries.sort(function(first, second) {
-				return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
-			});
-			libraries.forEach(function(item, index) {
-				if (item.selected === 'true') {
-					selected.push(index);
-				}
-			});
-			_this.selected = selected;
-			libraries.push({
-				name: 'Add your own',
-				classes: 'library addLibrary',
-				selected: 'false',
-				isLibrary: false
-			});
-			_this.libraries = libraries;
+		_this.installedLibraries.forEach(function(item) {
+			itemCopy = {};
+			itemCopy.name = item.name;
+			itemCopy.isLibrary = true;
+			if (selectedObj[item.name]) {
+				itemCopy.classes = 'library iron-selected';
+				itemCopy.selected = 'true';
+			}
+			else {
+				itemCopy.classes = 'library';
+				itemCopy.selected = 'false';
+			}
+			libraries.push(itemCopy);
 		});
+		libraries.sort(function(first, second) {
+			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
+		});
+		libraries.forEach(function(item, index) {
+			if (item.selected === 'true') {
+				selected.push(index);
+			}
+		});
+		_this.selected = selected;
+		libraries.push({
+			name: 'Add your own',
+			classes: 'library addLibrary',
+			selected: 'false',
+			isLibrary: false
+		});
+		_this.libraries = libraries;
 	},
 
 	confirmLibraryFile: function (_this, name, code, url) {
