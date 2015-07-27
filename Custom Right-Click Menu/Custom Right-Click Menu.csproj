@@ -542,6 +542,9 @@
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.min.js" />
     <Content Include="app\codemirror.css" />
+    <Content Include="app\elements\center-element\center-element.css" />
+    <Content Include="app\elements\center-element\center-element.html" />
+    <Content Include="app\elements\center-element\center-element.js" />
     <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.html" />
     <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.js" />
     <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.css" />
@@ -551,6 +554,11 @@
     <Content Include="app\elements\tools\paper-libraries-selector\paper-libraries-selector.css" />
     <Content Include="app\elements\tools\paper-libraries-selector\paper-libraries-selector.html" />
     <Content Include="app\elements\tools\paper-libraries-selector\paper-libraries-selector.js" />
+    <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-deep.css" />
+    <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-dialog.css" />
+    <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-dialog.html" />
+    <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-dialog.js" />
+    <Content Include="app\elements\tools\paper-search-website-dialog\searchEngineWorker.js" />
     <Content Include="app\images\fullscreen.svg" />
     <Content Include="app\images\fullscreenExit.svg" />
     <Content Include="app\images\checkmark.svg" />
