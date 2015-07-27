@@ -175,29 +175,13 @@
 	},
 
 	/*
-	 * Toggles the dropdown menu, tirggers on clicking the main blue text
+	 * Open the dropdown menu
 	 */
-	_toggleDropdown: function() {
+	open: function() {
 		var _this = this;
-
-		if (this._expanded) {
-			this._expanded = false;
-			$(this).find('paper-menu').find('.content').stop().animate({
-				height: 0
-			}, {
-				easing: 'easeInCubic',
-				duration: 300,
-				complete: function() {
-					this.style.display = 'none';
-					window.requestAnimationFrame(function (time) {
-						_this._animateBoxShadowOut(time, _this);
-					});
-				}
-			});
-		}
-		else {
+		if (!this._expanded) {
 			this._expanded = true;
-			window.requestAnimationFrame(function (time) {
+			window.requestAnimationFrame(function(time) {
 				_this._animateBoxShadowIn(time, _this);
 			});
 			setTimeout(function() {
@@ -213,6 +197,35 @@
 				});
 			}, 100);
 		}
+	},
+
+	/*
+	 * Close the dropdown menu
+	 */
+	close: function() {
+		var _this = this;
+		if (this._expanded) {
+			this._expanded = false;
+			$(this).find('paper-menu').find('.content').stop().animate({
+				height: 0
+			}, {
+				easing: 'easeInCubic',
+				duration: 300,
+				complete: function() {
+					this.style.display = 'none';
+					window.requestAnimationFrame(function(time) {
+						_this._animateBoxShadowOut(time, _this);
+					});
+				}
+			});
+		}
+	},
+
+	/*
+	 * Toggles the dropdown menu, tirggers on clicking the main blue text
+	 */
+	_toggleDropdown: function() {
+		(this._expanded ? this.close() : this.open());
 	},
 
 	/**
