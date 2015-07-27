@@ -35,22 +35,6 @@
 		background-color:rgb(245, 245, 245);
 	}
 
-/*.CRMEditLink {
-	border-color: blue;
-}
-
-.CRMEditScript {
-	border-color: red;
-}
-
-.CRMEditDivider {
-	border-color: yellow;
-}
-
-.CRMEditMenu {
-	border-color: green;
-}*/
-
 paper-shadow {
 	pointer-events: none;
 }
@@ -123,6 +107,7 @@ paper-ripple {
 	padding: 4px 0;
 	margin-top: -51px;
 	margin-left:-200px;
+	display: none;
 }
 
 #fullscreenEditorHorizontal {
@@ -133,6 +118,7 @@ paper-ripple {
 #editorToolsRibbon {
 	margin-left: -200px;
 	width: 200px;
+	display: none;
 	background-color: white;
 }
 
@@ -209,7 +195,7 @@ iron-overlay-backdrop {
 	background-color:white;
 }
 
-#addLibraryDialog .checkmark {
+#addLibraryDialog .checkmark, #paperSearchWebsiteDialog .checkmark {
 	-webkit-transform: rotate(45deg);
 	-moz-transform: rotate(45deg);
 	-ms-transform: rotate(45deg);
@@ -229,41 +215,8 @@ iron-overlay-backdrop {
 }
 
 	#addLibraryDialog .checkmark.animateIn {
-		-webkit-animation: expand-checkmark 140ms ease-out forwards;
-		-moz-animation: expand-checkmark 140ms ease-out forwards;
-		-o-animation: expand-checkmark 140ms ease-out forwards;
 		animation: expand-checkmark 140ms ease-out forwards;
 	}
-
-@-webkit-keyframes expand-checkmark {
-	0% {
-		top: 144px;
-		left: 96px;
-		width: 0;
-		height: 0;
-	}
-	100% {
-		top: -16px;
-		left: 64px;
-		width: 80px;
-		height: 160px;
-	}
-}
-
-@-moz-keyframes expand-checkmark {
-	0% {
-		top: 180px;
-		left: 120px;
-		width: 0;
-		height: 0;
-	}
-	100% {
-		top: -20px;
-		left: 80px;
-		width: 100px;
-		height: 200px;
-	}
-}
 
 @keyframes expand-checkmark {
 	0% {
@@ -289,6 +242,42 @@ iron-overlay-backdrop {
 	font-size:250%;
 }
 
-.ribbonTool > paper-menu {
+.ribbonTool > paper-menu, div.ribbonTool {
 	border-top: 1px solid rgb(239, 239, 239);
+}
+
+#paperSearchWebsitesToolTrigger {
+	color: rgb(38, 153, 244);
+	height: 75px;
+	font-size: 250%;
+	vertical-align: middle;
+	display: table-cell;
+	width: 200px;
+	padding-left: 16px;
+	font-weight: 500;
+	cursor: pointer;
+}
+
+	#paperSearchWebsitesToolTrigger:hover {
+		text-decoration: underline;
+	}
+
+a:focus::before {
+	background-color: rgba(0,0,0,.1);
+	border-radius: 2px;
+	bottom: -4px;
+	content: ' ';
+	left: -4px;
+	margin: auto;
+	padding: 4px;
+	position: absolute;
+	right: -4px;
+	top: -4px;
+	z-index: -1;
+}
+
+a {
+	position: relative;
+	text-decoration: none;
+	color: rgb(0, 119, 255);
 }
