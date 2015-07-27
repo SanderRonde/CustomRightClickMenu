@@ -216,8 +216,8 @@ input {
 
 #buttonShadow {
 	display: inline-block;
-	right: 10px;
-	position: fixed;
+	right: 0;
+	position: absolute;
 	z-index: 50;
 }
 
