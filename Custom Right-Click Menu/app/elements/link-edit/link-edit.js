@@ -24,8 +24,8 @@
 			value: false
 		}
 	},
-	
-	ready: function() {
+
+	init: function () {
 		this.originalVals.name = this.item.name;
 		this.originalVals.value = this.item.value;
 		console.log(this.originalVals.value);
