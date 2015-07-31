@@ -57,7 +57,7 @@
 }
 
 .menuArrow {
-	margin-top: 21px;
+	margin-top: 4px;
 	margin-left: 8px;
 	background-size:cover;
 	width:5px;
@@ -92,3 +92,7 @@
 .item {
 	display: -webkit-inline-box;
 }
+
+	.item:hover {
+		background-color: rgb(230,230,230);
+	}
