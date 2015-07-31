@@ -467,6 +467,15 @@ Polymer({
 	 */
 	scriptItem: {},
 
+	/**
+	 * The tern server for the codeMirror editor
+	 *
+	 * @attribute ternServer
+	 * @type ternServer
+	 * @default null
+	 */
+	ternServer: null,
+
 	properties: {
 		settings: {
 			type: Object,
