@@ -148,16 +148,15 @@ Polymer({
 	_onNeonAnimationFinish: function () {
 		var _this = this;
 		if (this.opened) {
-			console.log('end', 'opened');
 			this.$overlayEl.on('click', function () {
 				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].cancelChanges();
 			});
 		}
 		else {
-			console.log('end');
 			this.$overlayEl[0].style.display = 'none';
 			this.$.editPageCont.style.display = 'none';
 			$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].removeChanges();
+			document.body.style.overflow = 'auto';
 			options.show = false;
 		}
 	},
@@ -179,6 +178,7 @@ Polymer({
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 		}));
 			
+		document.body.style.overflow = 'hidden';
 		options.show = true;
 		this.opened = true;
 		this.$.editPageCont.style.display = 'block';

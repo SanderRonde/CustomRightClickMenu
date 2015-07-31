@@ -1,0 +1,54 @@
+﻿
+
+.cm-s-dark #codeMirrorSearchDialog {
+	color: white;
+	fill: white;
+}
+
+.cm-s-white #codeMirrorSearchDialog {
+	color: black;
+	fill: black;
+}
+
+#codeMirrorSearchDialogSearchCont {
+	display: flex;
+	flex-direction: row;
+	margin-top: 30px;
+	justify-content: center;
+}
+
+#codeMirrorSearchDialogArrow {
+	margin-top: 11px;
+	cursor: pointer;
+}
+
+	#codeMirrorSearchDialogArrow svg {
+		width: 30px;
+		transform: rotate(-90deg);
+	}
+
+#codeMirrorSearchDialogButtons, #codeMirrorSearchDialogReplaceButtons {
+	display: flex;
+	flex-direction: row;
+}
+
+#codeMirrorCloseDialogButtonCont {
+	margin-top: 7px;
+	right: 0;
+	flex-grow: 100;
+}
+
+#codeMirrorCloseDialogButton {
+	right: 0;
+	margin-top: -7px;
+	width: 28px;
+	height: 28px;
+	position: absolute;
+}
+
+#codeMirrorSearchDialogReplaceCont {
+	display: flex;
+	flex-direction: row;
+	margin-top: -6px;
+	margin-left: 30px;
+}
