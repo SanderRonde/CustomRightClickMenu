@@ -10,7 +10,7 @@
 					<div id="editorToolsRibbon">
 						<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
 						<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool"></paper-get-page-properties>
-						<div on-tap="launchSearchWebsiteTool" class="ribbonTool" id="paperSearchWebsitesToolTrigger">Add search</div>
+						<div on-tap="launchSearchWebsiteTool" class="ribbonTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
 					</div>
 				</div>
 			</div>
@@ -114,6 +114,7 @@
 				</div>
 			</paper-dialog>
 			<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
+			<div id="dummy"></div>
 		</div>
 	</template>
 </dom-module>
@@ -121,4 +122,5 @@
 <script src="../../js/jquery-ui.min.js"></script>
 <script src="../../js/jquery.requestAnimationFrame.min.js"></script>
 <script src="../../js/jquery.contextMenu.js"></script>
+<script src="../../js/jquery.bez.js"></script>
 <script src="crm-options.js"></script>

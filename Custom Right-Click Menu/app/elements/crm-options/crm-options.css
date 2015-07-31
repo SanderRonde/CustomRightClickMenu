@@ -249,7 +249,7 @@ iron-overlay-backdrop {
 #paperSearchWebsitesToolTrigger {
 	color: rgb(38, 153, 244);
 	height: 75px;
-	font-size: 250%;
+	font-size: 196%;
 	vertical-align: middle;
 	display: table-cell;
 	width: 200px;
@@ -280,4 +280,8 @@ a {
 	position: relative;
 	text-decoration: none;
 	color: rgb(0, 119, 255);
+}
+
+#dummy {
+	display: none;
 }
