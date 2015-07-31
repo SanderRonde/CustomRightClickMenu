@@ -279,7 +279,6 @@
 				marginTop: 0
 			}
 		];
-		console.log('animating');
 		if (window.options.settings.editor.showToolsRibbon) {
 			scriptTitle.style.marginLeft = '-200px';
 			scriptTitleAnimation[0].marginLeft = '-200px';
@@ -287,8 +286,8 @@
 
 			this.initToolsRibbon();
 			setTimeout(function () {
-				window.options.$.editorToolsRibbon.style.display = 'block';
-				window.options.$.editorToolsRibbon.animate([
+				window.doc.editorToolsRibbon.style.display = 'block';
+				window.doc.editorToolsRibbon.animate([
 					{
 						marginLeft: '-200px'
 					}, {
@@ -298,18 +297,27 @@
 					duration: 500,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}).onfinish = function() {
-					window.options.$.editorToolsRibbon.style.marginLeft = 0;
-					window.options.$.editorToolsRibbon.classList.add('visible');
+					window.doc.editorToolsRibbon.style.marginLeft = 0;
+					window.doc.editorToolsRibbon.classList.add('visible');
 				};
 			}, 200);
 		}
-		setTimeout(function() {
+		setTimeout(function () {
+			$(window.doc.dummy).animate({
+				height: '50px'
+			}, {
+				duration: 500,
+				easing: $.bez([0.215,0.610,0.355,1.000]),
+				step: function (now) {
+					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
+				}
+			});
 			scriptTitle.animate(scriptTitleAnimation, {
 				duration: 500,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			}).onfinish = function() {
 				scriptTitle.style.marginTop = 0;
-				if (scriptTitleAnimation.marginLeft) {
+				if (scriptTitleAnimation[0].marginLeft !== undefined) {
 					scriptTitle.style.marginLeft = 0;
 				}
 			};
@@ -320,8 +328,8 @@
 	 * Pops in only the tools ribbon
 	 */
 	popInToolsRibbon: function() {
-		window.options.$.editorToolsRibbon.style.display = 'block';
-		window.options.$.editorToolsRibbon.animate([
+		window.doc.editorToolsRibbon.style.display = 'block';
+		window.doc.editorToolsRibbon.animate([
 			{
 				marginLeft: '-200px'
 			}, {
@@ -392,6 +400,16 @@
 			};
 		}
 		else {
+			window.doc.dummy.style.height = '50px';
+			$(window.doc.dummy).animate({
+				height: 0
+			}, {
+				duration: 800,
+				easing: $.bez([0.215, 0.610, 0.355, 1.000]),
+				step: function(now) {
+					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
+				}
+			});
 			scriptTitle.animate([
 				{
 					marginTop: 0
@@ -428,7 +446,7 @@
 		var $editorWrapper = $(this.editor.display.wrapper);
 		var buttonShadow = $editorWrapper.find('#buttonShadow')[0];
 		buttonShadow.style.position = 'absolute';
-		buttonShadow.style.right = '0';
+		buttonShadow.style.right = '-1px';
 		this.editor.display.wrapper.classList.add('fullscreen');
 
 		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
@@ -453,6 +471,8 @@
 				_this.editor.refresh();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
+				buttonShadow.style.position = 'fixed';
+				options.$.fullscreenEditorHorizontal.style.height = '100vh';
 				setTimeout(function () {
 					_this.popInRibbons();
 				}, 250);
@@ -466,13 +486,13 @@
 	exitFullScreen: function () {
 		var _this = this;
 		this.popOutRibbons();
+		var $wrapper = $(_this.editor.display.wrapper);
+		var $buttonShadow = $wrapper.find('#buttonShadow');
+		$buttonShadow[0].style.position = 'absolute';
 		setTimeout(function () {
 			_this.editor.display.wrapper.classList.remove('fullscreen');
 			var editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
-			var $wrapper = $(_this.editor.display.wrapper);
-			var $buttonShadow = $wrapper.find('#buttonShadow');
-			$buttonShadow[0].style.position = 'absolute';
 			$(editorCont).animate({
 				width: _this.preFullscreenEditorDimensions.width,
 				height: _this.preFullscreenEditorDimensions.height,
@@ -827,10 +847,43 @@
 	},
 
 	/*
+	 * Initializes the keybindings for the editor
+	 */
+	initTernKeyBindings: function () {
+		this.editor.setOption('extraKeys', {
+			"Ctrl-Space": function (cm) {
+				window.options.ternServer.complete(cm);
+			},
+			"Ctrl-I": function (cm) {
+				window.options.ternServer.showType(cm);
+			},
+			"Ctrl-O": function (cm) {
+				window.options.ternServer.showDocs(cm);
+			},
+			"Alt-.": function (cm) {
+				window.options.ternServer.jumpToDef(cm);
+			},
+			"Alt-,": function (cm) {
+				window.options.ternServer.jumpBack(cm);
+			},
+			"Ctrl-Q": function (cm) {
+				window.options.ternServer.rename(cm);
+			},
+			"Ctrl-.": function (cm) {
+				window.options.ternServer.selectName(cm);
+			}
+		});
+		this.editor.on('cursorActivity', function (cm) {
+			window.options.ternServer.updateArgHints(cm);
+		});
+	},
+
+	/*
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
 	cmLoaded: function(element) {
 		var _this = this;
+		this.editor = element;
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
@@ -848,13 +901,13 @@
 		if (this.fullscreen) {
 			element.display.wrapper.style.height = 'auto';
 			this.$.editorPlaceholder.style.display = 'none';
-			$buttonShadow[0].style.right = '0';
+			$buttonShadow[0].style.right = '-1px';
 			$buttonShadow[0].style.position = 'absolute';
 			this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		}
 		else {
-			this.$.editorPlaceholder.style.height = this.editorHeight;
-			this.$.editorPlaceholder.style.width = this.editorWidth;
+			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
+			this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
 			this.$.editorPlaceholder.style.position = 'absolute';
 			if (this.editorPlaceHolderAnimation) {
 				this.editorPlaceHolderAnimation.play();
@@ -875,6 +928,7 @@
 				}
 			}
 		}
+		this.initTernKeyBindings();
 	},
 
 	/*
@@ -884,9 +938,12 @@
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
+		console.log(this.editorHeight, this.editorWidth);
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
 			value: content || this.item.value.value,
+			scrollbarStyle: 'simple',
+			lineWrapping: true,
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
 			indentWithTabs: window.options.settings.editor.useTabs
@@ -896,6 +953,9 @@
 	init: function () {
 		//TODO make saving and cancelling changes possible
 		var _this = this;
+		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
+			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
+		});
 		this.newSettings = $.extend(true, {}, this.item);
 		window.scriptEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
