@@ -437,10 +437,10 @@
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
 		var editorCont = window.doc.fullscreenEditor;
 		var editorContStyle = editorCont.style;
-		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left;
-		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top;
-		editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height;
-		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width;
+		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
+		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
+		editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
+		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
 		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.fullscreenEl.style.display = 'none';
 		var $editorWrapper = $(this.editor.display.wrapper);
@@ -457,7 +457,7 @@
 		$editorWrapper[0].style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
 
-		editorCont.style.display = 'block';
+		editorCont.style.display = 'flex';
 		//Animate to corners
 		$(editorCont).animate({
 			width: viewportWidth,

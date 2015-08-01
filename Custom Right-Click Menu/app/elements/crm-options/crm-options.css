@@ -97,6 +97,7 @@ paper-ripple {
 #fullscreenEditor {
 	position: fixed;
 	z-index:100;
+	flex-direction: column;
 }
 
 #editorCurrentScriptTitle {
@@ -113,6 +114,7 @@ paper-ripple {
 #fullscreenEditorHorizontal {
 	display:flex;
 	flex-direction: row;
+	flex-grow: 100;
 }
 
 #editorToolsRibbon {
