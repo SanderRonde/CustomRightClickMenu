@@ -58,7 +58,7 @@ Polymer({
 			}
 		});
 	},
-
+	
 	init: function() {
 		var _this = this;
 		var selectedObj = {};

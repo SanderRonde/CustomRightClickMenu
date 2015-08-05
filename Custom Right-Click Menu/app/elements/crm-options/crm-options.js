@@ -223,6 +223,7 @@ function bindContextMenu() {
  */
 function setupFirstTime() {
 	options.init = true;
+	options.scriptEditingId = 1234;
 	options.settings.crm = [
 		{
 			name: 'example',
@@ -476,6 +477,15 @@ Polymer({
 	 */
 	ternServer: null,
 
+	/*
+	 * The file that is used to write to when using an exteral editor
+	 *
+	 * @attribute file
+	 * @type fileEntry
+	 * @value null
+	 */
+	file: null,
+
 	properties: {
 		settings: {
 			type: Object,
@@ -490,6 +500,11 @@ Polymer({
 	launchSearchWebsiteTool: function () {
 		this.$.paperSearchWebsiteDialog.init();
 		this.$.paperSearchWebsiteDialog.show();
+	},
+	
+	launchExternalEditorDialog: function() {
+		this.$.useExternalEditorDialog.init();
+		this.$.useExternalEditorDialog.show();
 	},
 
 	addSettingsReadyCallback: function(callback, thisElement) {

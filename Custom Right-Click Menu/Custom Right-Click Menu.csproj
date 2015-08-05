@@ -559,6 +559,9 @@
     <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-dialog.html" />
     <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-dialog.js" />
     <Content Include="app\elements\tools\paper-search-website-dialog\searchEngineWorker.js" />
+    <Content Include="app\elements\tools\use-external-editor-dialog\use-external-editor-dialog.css" />
+    <Content Include="app\elements\tools\use-external-editor-dialog\use-external-editor-dialog.html" />
+    <Content Include="app\elements\tools\use-external-editor-dialog\use-external-editor-dialog.js" />
     <Content Include="app\images\close.svg" />
     <Content Include="app\images\fullscreen.svg" />
     <Content Include="app\images\fullscreenExit.svg" />

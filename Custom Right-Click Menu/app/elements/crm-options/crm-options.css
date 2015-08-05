@@ -248,7 +248,7 @@ iron-overlay-backdrop {
 	border-top: 1px solid rgb(239, 239, 239);
 }
 
-#paperSearchWebsitesToolTrigger {
+#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger {
 	color: rgb(38, 153, 244);
 	height: 75px;
 	font-size: 196%;
@@ -260,7 +260,11 @@ iron-overlay-backdrop {
 	cursor: pointer;
 }
 
-	#paperSearchWebsitesToolTrigger:hover {
+#externalEditorDialogTrigger {
+	font-size: 167%;
+}
+
+	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover {
 		text-decoration: underline;
 	}
 

@@ -8,6 +8,7 @@
 				<div id="editorCurrentScriptTitle">[[scriptItem.name]]</div>
 				<div id="fullscreenEditorHorizontal">
 					<div id="editorToolsRibbon">
+						<div on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
 						<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
 						<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool"></paper-get-page-properties>
 						<div on-tap="launchSearchWebsiteTool" class="ribbonTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
@@ -114,6 +115,7 @@
 				</div>
 			</paper-dialog>
 			<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
+			<use-external-editor-dialog id="useExternalEditorDialog"></use-external-editor-dialog>
 			<div id="dummy"></div>
 		</div>
 	</template>
