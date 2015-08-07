@@ -207,11 +207,12 @@ Polymer({
 	establishConnection: function () {
 		//TODO Change ID
 		var _this = this;
-		this.appPort = chrome.runtime.connect('gbfbinhlfpjckadedmfinepfioodgcll');
+		this.appPort = chrome.runtime.connect('gjmgdmomggpaiecllfmfgbbfhnlpbpic'); //gbfbinhlfpjckadedmfinepfioodgcll');
 		this.connection.status = 'connecting';
 		this.connection.stage = 0;
 		new Promise(function(resolve) {
 			function promiseListener(msg) {
+				console.log('msged', msg);
 				if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
 					_this.appPort.onMessage.removeListener(promiseListener);
 					resolve();
@@ -223,11 +224,13 @@ Polymer({
 				_this.messageHandler.apply(_this, [msg]);
 			});
 
+			console.log('posting;');
 			_this.appPort.postMessage({
 				status: 'connecting',
 				message: 'hi',
 				stage: 0
 			});
+			
 
 		}).then(function() {
 			_this.connection.stage = 2; //We have sent confirmation that we are there
