@@ -197,11 +197,12 @@ input {
 
 #editorOptionsContainer {
 	overflow: hidden;
+	height: 250vh;
 	pointer-events: all;
 }
 
 #editorSettings {
-	height: 39px;
+	height: 41px;
 	z-index:60;
 }
 
@@ -229,6 +230,7 @@ input {
 	width:0;
 	height: 0;
 	pointer-events: none;
+	overflow: hidden;
 	right: 0;
 }
 
@@ -287,6 +289,7 @@ input {
 
 #bubbleCont {
 	width: 508px !important;
+	height: 100vh!important;
 	position: absolute;
 	overflow: hidden;
 	right: 0;

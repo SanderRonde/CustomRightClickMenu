@@ -503,8 +503,9 @@ Polymer({
 	},
 	
 	launchExternalEditorDialog: function() {
-		this.$.useExternalEditorDialog.init();
-		this.$.useExternalEditorDialog.show();
+		window.externalEditor.init();
+		window.externalEditor.editingCRMItem = window.scriptEdit.item; //Change to window.scriptEdit.item
+		window.externalEditor.setupExternalEditing();
 	},
 
 	addSettingsReadyCallback: function(callback, thisElement) {

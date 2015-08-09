@@ -473,9 +473,7 @@
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
 				options.$.fullscreenEditorHorizontal.style.height = '100vh';
-				setTimeout(function () {
-					_this.popInRibbons();
-				}, 250);
+				_this.popInRibbons();
 			}
 		});
 	},
@@ -538,9 +536,9 @@
 
 		//Add a bit just in case
 		if (this.fullscreen) {
-			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight));
+			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight)) + 100;
 		} else {
-			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight));
+			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 100;
 		}
 		var negHalfRadius = -circleRadius;
 		circleRadius = circleRadius * 2;
@@ -561,10 +559,10 @@
 			marginRight: negHalfRadius
 		}, {
 			duration: 500,
-			easing: 'easeOutCubic',
+			easing: 'linear',
 			progress: function (animation) {
-				_this.editorOptions[0].style.marginLeft = settingsInitialMarginLeft - animation.tweens[3].now;
-				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now;
+				_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
 			}
 		});
 	},
@@ -583,10 +581,10 @@
 			marginRight: 0
 		}, {
 			duration: 500,
-			easing: 'easeInCubic',
+			easing: 'linear',
 			progress: function (animation) {
-				_this.editorOptions[0].style.marginLeft = settingsInitialMarginLeft - animation.tweens[3].now;
-				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now;
+				_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: function () {
 				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.options.settings.editor)) {
@@ -732,10 +730,19 @@
 		}
 	},
 
+	disableEditor: function() {
+
+	},
+
+	enableEditor: function() {
+
+	},
+
 	/*
 	 * Reloads the editor completely (to apply new settings)
 	 */
-	reloadEditor: function() {
+	reloadEditor: function (disable) {
+		console.log(disable);
 		$(this.editor.display.wrapper).remove();
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
@@ -750,10 +757,10 @@
 		this.editor = null;
 
 		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value, disable);
 		}
 		else {
-			this.loadEditor(this.$.editorCont, this.newSettings.value.value);
+			this.loadEditor(this.$.editorCont, this.newSettings.value.value, disable);
 		}
 	},
 
@@ -898,6 +905,9 @@
 		this.settingsEl = $('<div id="editorSettings"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>').appendTo(this.buttonsContainer).click(function() {
 			_this.toggleOptions.apply(_this);
 		})[0];
+		if (element.getOption('readOnly') === 'nocursor') {
+			element.display.wrapper.style.backgroundColor = '#D8D8D8';
+		}
 		if (this.fullscreen) {
 			element.display.wrapper.style.height = 'auto';
 			this.$.editorPlaceholder.style.display = 'none';
@@ -934,7 +944,8 @@
 	/*
 	 * Loads the codeMirror editor
 	 */
-	loadEditor: function(container, content) {
+	loadEditor: function (container, content, disable) {
+		console.log(disable);
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
@@ -944,6 +955,7 @@
 			value: content || this.item.value.value,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
+			readOnly: (disable ? 'nocursor' : false),
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
 			indentWithTabs: window.options.settings.editor.useTabs
