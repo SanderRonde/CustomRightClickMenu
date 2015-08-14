@@ -1,8 +1,8 @@
 ﻿<dom-module id="crm-options">
 	<template>
-		<link rel="import" href="../../elements/elements.html"/>
-		<link rel="stylesheet" href="../../jquery.contextMenu.css"/>
-		<link rel="stylesheet" href="crm-options.css"/>
+		<link rel="import" href="../../elements/elements.html" />
+		<link rel="stylesheet" href="../../jquery.contextMenu.css" />
+		<link rel="stylesheet" href="crm-options.css" />
 		<div class="popupCont">
 			<div id="fullscreenEditor">
 				<div id="editorCurrentScriptTitle">[[scriptItem.name]]</div>
@@ -23,7 +23,7 @@
 				<div flex title class="title">Custom Right-Click Menu</div>
 			</paper-toolbar>
 			<div class="container">
-				<br/>
+				<br />
 				<div class="titleCont">
 					<div class="bigTxt">
 						Custom Right-Click Menu
@@ -32,8 +32,8 @@
 						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it. You can right-click anywhere on this page to view the custom right-click menu (this will be wrapped in a "Custom Menu" subsection on other pages.
 					</div>
 				</div>
-				<br/>
-				<br/>
+				<br />
+				<br />
 				<div class="optionsCont">
 					<div class="bigTxt">
 						Options
@@ -44,7 +44,7 @@
 						<paper-toggle-option text="Edit the Custom Right-Click Menu by clicking on the respective elements when right-clicking on this page" id="editCRMInRM"></paper-toggle-option>
 					</div>
 				</div>
-				<br/><br/>
+				<br /><br />
 				<div class="customRightClickMenuConfig">
 					<div class="bigTxt">
 						Editing the Custom Right-Click Menu
@@ -53,7 +53,7 @@
 						<edit-crm></edit-crm>
 					</div>
 				</div>
-				<br/><br/>
+				<br /><br />
 				<div class="defaultCRMLinks">
 					<div class="bigTxt">
 						Commonly Used Links
@@ -61,7 +61,7 @@
 					<div class="defaultsDescr">
 						Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
 					</div>
-					<br/>
+					<br />
 					<div class="defaultLinks">
 						<default-link href="http://www.google.com" default-name="Google"></default-link>
 						<default-link href="http://www.facebook.com" default-name="Facebook"></default-link>
@@ -75,12 +75,54 @@
 					</div>
 				</div>
 				<div class="trailingBrs">
-					<br/><br/><br/>
+					<br /><br /><br />
 				</div>
 			</div>
 			<paper-toast id="paperToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
 				<span id="menuSwitchUndoButton" role="button">UNDO</span>
 			</paper-toast>
+			<!--
+				//TODO place link
+			-->
+			<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed <-LINK->" duration="10000">
+				<span id="externalEditorTryAgainButton" role="button">RETRY</span>
+			</paper-toast>
+			<paper-dialog no-cancel-on-esc-key="true" id="externalEditorChooseScript" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<div id="chooseScriptMainDialog">
+					<h2>Choose the script you want to keep</h2>
+					<paper-radio-group selected="local" id="chooseScriptRadioGroup">
+						<paper-radio-button name="local">The script in this editor</paper-radio-button>
+						<paper-radio-button name="external">The script that is currently in the file</paper-radio-button>
+					</paper-radio-group>
+					<br/>
+					<paper-button raised id="chooseScriptMerge">Merge</paper-button>
+					<div class="buttons">
+						<paper-button class="closeChooseScriptDialog">Cancel</paper-button>
+						<paper-button id="chooseScriptChooseFirst" dialog-confirm>Confirm</paper-button>
+					</div>
+				</div>
+				<div id="chooseScriptMerger">
+					<h1>Merge the script to how you want it</h1>
+					<div id="chooseScriptMergerText">
+						<div id="chooseScriptCurrentTxt">CRM Editor</div>
+						<div id="chooseScriptResultTxt">Result</div>
+						<div id="chooseScriptNewTxt">File</div>
+					</div>
+					<div id="chooseScriptMergerEditor">
+						<div id="chooseScriptMergerPlaceholder">
+							<center-element fullscreen="true">
+								<paper-spinner active></paper-spinner>
+							</center-element>
+						</div>
+						<div id="chooseScriptmergerContainer"></div>
+					</div>
+					<div class="buttons">
+						<paper-button class="closeChooseScriptDialog">Cancel</paper-button>
+						<paper-button id="chooseScriptStopMerging">Stop merging</paper-button>
+						<paper-button id="chooseScriptChooseMerge" dialog-confirm>Confirm</paper-button>
+					</div>
+				</div>
+			</paper-dialog>
 			<paper-dialog no-cancel-on-esc-key="true" with-backdrop id="addLibraryDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 				<div id="addLibraryLoadingDialog">
 					<div id="addLibraryLoadingDialogCenterer">

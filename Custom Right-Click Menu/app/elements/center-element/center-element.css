@@ -1,5 +1,5 @@
 ﻿:host {
-	display: block;
+	display: flex;
 	pointer-events: none;
 }
 
@@ -15,6 +15,7 @@
 }
 
 #centerVertical {
+	flex-grow: 100;
 	flex-direction: column;
 }
 

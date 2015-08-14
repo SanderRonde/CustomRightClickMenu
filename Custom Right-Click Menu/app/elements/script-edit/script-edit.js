@@ -194,6 +194,18 @@
 
 	//#endregion
 
+	cancelChanges: function () {
+		window.externalEditor.cancelOpenFiles();
+	},
+
+	removeChanges: function () {
+		window.externalEditor.cancelOpenFiles();
+	},
+
+	saveChanges: function () {
+		window.externalEditor.cancelOpenFiles();
+	},
+
 	/*
 	 * Clears the trigger that is currently clicked on
 	 * @param {event} The event that triggers this (click event)
@@ -730,14 +742,6 @@
 		}
 	},
 
-	disableEditor: function() {
-
-	},
-
-	enableEditor: function() {
-
-	},
-
 	/*
 	 * Reloads the editor completely (to apply new settings)
 	 */
@@ -979,6 +983,8 @@
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}
+		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
+		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
 		}, 1250);

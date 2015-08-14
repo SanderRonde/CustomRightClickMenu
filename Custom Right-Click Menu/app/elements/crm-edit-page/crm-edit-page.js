@@ -147,16 +147,21 @@ Polymer({
 
 	_onNeonAnimationFinish: function () {
 		var _this = this;
+		console.log('dit dus');
 		if (this.opened) {
 			this.$overlayEl.on('click', function () {
-				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].cancelChanges();
+				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit').not('[hidden]')[0].cancelChanges();
+				console.log('called');
+				console.log($(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit').not('[hidden]'));
 			});
 		}
 		else {
 			this.$overlayEl[0].style.display = 'none';
 			this.$.editPageCont.style.display = 'none';
-			$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit')[0].removeChanges();
+			$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit').not('[hidden]')[0].removeChanges();
 			document.body.style.overflow = 'auto';
+			console.log('called');
+			console.log($(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit'));
 			options.show = false;
 		}
 	},

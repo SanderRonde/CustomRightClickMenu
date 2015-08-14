@@ -127,7 +127,11 @@
 		if (webkit && options.lineWrapping && getComputedStyle(display.lineDiv).textRendering == 'optimizelegibility') {
 			display.lineDiv.style.textRendering = 'auto';
 		}
-		window.scriptEdit.cmLoaded.apply(window.scriptEdit, [this]);
+		if (options.messageExternal) {
+			window.externalEditor.cmLoaded.apply(window.externalEditor, [this]);
+		} else {
+			window.scriptEdit.cmLoaded.apply(window.scriptEdit, [this]);
+		}
 	}
 
 	// DISPLAY CONSTRUCTOR
