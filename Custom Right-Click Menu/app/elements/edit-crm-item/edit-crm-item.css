@@ -11,6 +11,7 @@
 	cursor: pointer;
 	overflow-x: hidden;
 	overflow-y: hidden;
+	background-color: black;
 }
 
 	edit-crm-item[shadow] #itemCont {
@@ -91,6 +92,7 @@
 
 .item {
 	display: -webkit-inline-box;
+	background-color: white;
 }
 
 	.item:hover {

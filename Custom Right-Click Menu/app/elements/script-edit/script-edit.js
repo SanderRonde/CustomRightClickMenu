@@ -3,6 +3,24 @@
 
 	//#region PolymerProperties
 	/**
+	* AN interval to save any work not discarder or saved (say if your browser/pc crashes)
+	* 
+	* @attribute savingInterval
+	* @type Object
+	* @default null
+	*/
+	savingInterval: false,
+
+	/**
+	* Whether this thing is active
+	* 
+	* @attribute active
+	* @type Boolean
+	* @default false
+	*/
+	active: false,
+
+	/**
 	* The editor
 	* 
 	* @attribute editor
@@ -195,14 +213,17 @@
 	//#endregion
 
 	cancelChanges: function () {
+		this.active = false;
 		window.externalEditor.cancelOpenFiles();
 	},
 
 	removeChanges: function () {
+		this.active = false;
 		window.externalEditor.cancelOpenFiles();
 	},
 
 	saveChanges: function () {
+		this.active = false;
 		window.externalEditor.cancelOpenFiles();
 	},
 
@@ -910,7 +931,7 @@
 			_this.toggleOptions.apply(_this);
 		})[0];
 		if (element.getOption('readOnly') === 'nocursor') {
-			element.display.wrapper.style.backgroundColor = '#D8D8D8';
+			element.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
 		}
 		if (this.fullscreen) {
 			element.display.wrapper.style.height = 'auto';
@@ -962,7 +983,8 @@
 			readOnly: (disable ? 'nocursor' : false),
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
-			indentWithTabs: window.options.settings.editor.useTabs
+			indentWithTabs: window.options.settings.editor.useTabs,
+			messageScriptEdit: true
 		});
 	},
 
@@ -983,8 +1005,35 @@
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}
-		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
-		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
+		window.externalEditor.init();
+		chrome.storage.local.set({
+			editing: {
+				val: this.item.value.value,
+				crmPath: this.item.path
+			}
+		});
+		this.savingInterval = window.setInterval(function() {
+			if (_this.active) {
+				//Save
+				var val;
+				try {
+					val = _this.editor.getValue();
+					chrome.storage.local.set({
+						editing: {
+							val: val,
+							crmPath: _this.item.path
+						}
+					});
+				} catch (e) { }
+			} else {
+				//Stop this interval
+				chrome.storage.local.set({
+					editing: false
+				});
+				window.clearInterval(_this.savingInterval);
+			}
+		}, 5000);
+		this.active = true;
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
 		}, 1250);

@@ -88,7 +88,7 @@ paper-ripple {
 	z-index: 5;
 }
 
-#menuSwitchUndoButton, #externalEditorTryAgainButton {
+#menuSwitchUndoButton, #externalEditorTryAgainButton, #externalEditoOpenLocationInBrowser {
 	color: rgb(238, 255, 65);
 	margin: 10px;
 	cursor: pointer;
@@ -413,3 +413,34 @@ a {
 	text-align: center;
 	font-size: 120%;
 }
+
+paper-toast {
+	z-index: 9000;
+}
+
+#restoreChangesOldCode, #restoreChangesUnsavedCode {
+	display: none;
+	width: 800px;
+	height: 600px;
+	flex-direction: column;
+}
+
+.restoreChangesOption {
+	color: rgb(0,119,255);
+	font-weight: bold;
+	cursor: pointer;
+}
+
+	.restoreChangesOption:hover {
+		text-decoration: underline;
+	}
+
+#restoreChangesOldCodeCont, #restoreChangeUnsaveddCodeCont {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 100;
+}
+
+	#restoreChangesOldCodeCont .CodeMirror, #restoreChangeUnsaveddCodeCont .CodeMirror {
+		flex-grow: 100;
+	}

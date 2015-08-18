@@ -694,5 +694,4 @@ Polymer({
 
 	//#endregion
 
-
 });

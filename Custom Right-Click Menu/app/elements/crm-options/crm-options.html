@@ -87,7 +87,45 @@
 			<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed <-LINK->" duration="10000">
 				<span id="externalEditorTryAgainButton" role="button">RETRY</span>
 			</paper-toast>
-			<paper-dialog no-cancel-on-esc-key="true" id="externalEditorChooseScript" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+			<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
+				<a href="file:///C:/" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
+			</paper-toast>
+			<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<div id="restoreChangesMain">
+					<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
+					<br/>
+					<div id="highlightChangedScript" class="restoreChangesOption">What script?</div>
+					<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
+					<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
+					<div class="buttons">
+						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+						<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+					</div>
+				</div>
+				<div id="restoreChangesOldCode">
+					<h2>
+						Old Code
+					</h2>
+					<div id="restoreChangesOldCodeCont"></div>
+					<div class="buttons">
+						<paper-button class="restoreChangesBack">Back</paper-button>
+						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+						<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+					</div>
+				</div>
+				<div id="restoreChangesUnsavedCode">
+					<h2>
+						Unsaved Code
+					</h2>
+					<div id="restoreChangeUnsaveddCodeCont"></div>
+					<div class="buttons">
+						<paper-button class="restoreChangesBack">Back</paper-button>
+						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+						<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+					</div>
+				</div>
+			</paper-dialog>
+			<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseScript" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 				<div id="chooseScriptMainDialog">
 					<h2>Choose the script you want to keep</h2>
 					<paper-radio-group selected="local" id="chooseScriptRadioGroup">

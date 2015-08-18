@@ -116,7 +116,8 @@ Polymer({
 	 * Initialize for use
 	 */
 	init: function() {
-		
+		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
+		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
 	},
 	
 	/*
@@ -150,7 +151,8 @@ Polymer({
 		}
 	},
 
-	cancelOpenFiles: function() {
+	cancelOpenFiles: function () {
+		console.log('called');
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
 		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
 
@@ -160,7 +162,8 @@ Polymer({
 				action: 'disconnect'
 			});
 		} catch (e) { }
-		//Remove
+		this.appPort = null;
+		window.scriptEdit.reloadEditor();
 	},
 
 	createEditingOverlay: function () {
@@ -173,31 +176,49 @@ Polymer({
 		var $cont = $('<div id="externalEditingToolsButtonsCont"></div>').appendTo($toolsCont);
 
 		$('<div id="externalEditingToolsDisconnect">' +
-			'<paper-material elevation="1">' +
-			'<paper-ripple></paper-ripple>' +
-			'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
-			'<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>' +
-			'<path d="M0 0h24v24H0z" fill="none"/>' +
-			'</svg>' +
-			'</paper-material>' +
-			'<div class="externalEditingToolText">' +
-			'Stop' +
-			'</div>' +
-			'</div>').click(function() {
-				_this.cancelOpenFiles();
-			}).appendTo($cont);
+				'<paper-material elevation="1">' +
+				'<paper-ripple></paper-ripple>' +
+				'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
+				'<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>' +
+				'<path d="M0 0h24v24H0z" fill="none"/>' +
+				'</svg>' +
+				'</paper-material>' +
+				'<div class="externalEditingToolText">' +
+				'Stop' +
+				'</div>' +
+				'</div>')
+			.click(function() {
+				console.log('call');
+				_this.cancelOpenFiles.apply(_this, []);
+			})
+			.appendTo($cont);
 		$('<div id="externalEditingToolsShowLocation">' +
-			'<paper-material elevation="1">' +
-			'<paper-ripple></paper-ripple>' +
-			'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
-			'<path d="M0 0h24v24H0z" fill="none"/>' +
-			'<path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>' +
-			'</svg>' +
-			'</paper-material>' +
-			'<div class="externalEditingToolText">' +
-			'Location' +
-			'</div>' +
-			'</div>').appendTo($cont);
+				'<paper-material elevation="1">' +
+				'<paper-ripple></paper-ripple>' +
+				'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
+				'<path d="M0 0h24v24H0z" fill="none"/>' +
+				'<path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>' +
+				'</svg>' +
+				'</paper-material>' +
+				'<div class="externalEditingToolText">' +
+				'Location' +
+				'</div>' +
+				'</div>')
+			.click(function() {
+				//Show location toast
+				var location = _this.connection.filePath;
+				location = location.split('\\');
+				if (typeof location === 'string') {
+					location = location.split('/');
+				}
+				location.pop();
+				location.push('');
+				location = location.join('/');
+				window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
+				window.doc.externalEditorLocationToast.text = 'yolo ' + location;
+				window.doc.externalEditorLocationToast.show();
+			})
+			.appendTo($cont);
 		$('<div id="externalEditingToolsCreateNewFile">' +
 			'<paper-material elevation="1">' +
 			'<paper-ripple></paper-ripple>' +
@@ -222,6 +243,7 @@ Polymer({
 			'</div>' +
 			'</div>').appendTo($cont);
 
+		console.log($toolsCont);
 		$toolsCont.appendTo($(window.scriptEdit.editor.display.wrapper).find('.CodeMirror-scroll'))[0].animate([
 			{
 				bottom: '-152px',
@@ -252,6 +274,7 @@ Polymer({
 							path: msg.path
 						}
 					}
+					console.log(msg.path);
 					_this.connection.filePath = msg.path;
 					options.upload();
 					_this.connection.fileConnected = true;
@@ -346,7 +369,7 @@ Polymer({
 	establishConnection: function (retry) {
 		//TODO Change ID
 		var _this = this;
-		this.appPort = chrome.runtime.connect('gjmgdmomggpaiecllfmfgbbfhnlpbpic'); //gbfbinhlfpjckadedmfinepfioodgcll');
+		this.appPort = chrome.runtime.connect('gbfbinhlfpjckadedmfinepfioodgcll'); //gjmgdmomggpaiecllfmfgbbfhnlpbpic');
 		this.connection.status = 'connecting';
 		this.connection.stage = 0;
 		this.connection.fileConnected = false;

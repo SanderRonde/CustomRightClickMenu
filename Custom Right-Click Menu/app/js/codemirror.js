@@ -129,7 +129,7 @@
 		}
 		if (options.messageExternal) {
 			window.externalEditor.cmLoaded.apply(window.externalEditor, [this]);
-		} else {
+		} else if (options.messageScriptEdit) {
 			window.scriptEdit.cmLoaded.apply(window.scriptEdit, [this]);
 		}
 	}

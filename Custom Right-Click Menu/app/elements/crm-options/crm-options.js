@@ -365,26 +365,6 @@ function checkSettings(settings) {
 	}
 }
 
-/*
- * Binds all the listeners to any elements on the options page that need it
- */
-function bindListeners() {
-	console.log('binding');
-	var urlInput = $('#addLibraryUrlInput')[0];
-	var manualInput = $('#addLibraryManualInput')[0];
-	$('#addLibraryUrlOption').on('change', function () {
-		manualInput.style.display = 'none';
-		urlInput.style.display = 'block';
-	});
-	$('#addLibraryManualOption').on('change', function() {
-		urlInput.style.display = 'none';
-		manualInput.style.display = 'block';
-	});
-	$('#addLibraryDialog').on('iron-overlay-closed', function() {
-		$(this).find('#addLibraryButton, #addLibraryConfirmAddition, #addLibraryDenyConfirmation').off('click');
-	});
-}
-
 /**
  * @fn function main()
  *
@@ -393,7 +373,6 @@ function bindListeners() {
 function main() {
 	checkSettings(options.settings);
 	buildContextMenu();
-	bindListeners();
 	//bindContextMenu();
 	//bindEvents();
 	//buildCrmSettings();
@@ -530,9 +509,208 @@ Polymer({
 		buildContextMenu();
 	},
 
+	bindListeners: function() {
+		var urlInput = window.doc.addLibraryUrlInput;
+		var manualInput = window.doc.addLibraryManualInput;
+		window.doc.addLibraryUrlOption.addEventListener('change', function () {
+			manualInput.style.display = 'none';
+			urlInput.style.display = 'block';
+		});
+		window.doc.addLibraryManualOption.addEventListener('change', function () {
+			urlInput.style.display = 'none';
+			manualInput.style.display = 'block';
+		});
+		$('#addLibraryDialog').on('iron-overlay-closed', function () {
+			$(this).find('#addLibraryButton, #addLibraryConfirmAddition, #addLibraryDenyConfirmation').off('click');
+		});
+	},
+
+	restoreUnsavedInstances: function (editingObj, errs) {
+		var _this = this;
+		errs = errs + 1 || 0;
+		if (errs < 5) {
+			try {
+				var crmItem = this.crm.lookup(editingObj.crmPath);
+				$('.keepChangesButton').on('click', function() {
+					crmItem.value.value = editingObj.val;
+					chrome.storage.local.set({
+						editing: null
+					});
+					chrome.storage.local.get(function(items) {
+						console.log(items);
+						console.log(items.editing);
+					});
+				});
+				$('.restoreChangesBack').on('click', function() {
+					window.doc.restoreChangesOldCode.style.display = 'none';
+					window.doc.restoreChangesUnsavedCode.style.display = 'none';
+					window.doc.restoreChangesMain.style.display = 'block';
+					window.doc.restoreChangesDialog.fit();
+				});
+				$('.discardButton').click(function() {
+					chrome.storage.local.set({
+						editing: null
+					});
+				});
+				window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+				window.doc.restoreChangesOldCodeCont.innerHTML = '';
+				var oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
+					lineNumbers: window.options.settings.editor.lineNumbers,
+					value: crmItem.value.value,
+					scrollbarStyle: 'simple',
+					lineWrapping: true,
+					readOnly: 'nocursor',
+					theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+					indentUnit: window.options.settings.editor.tabSize,
+					indentWithTabs: window.options.settings.editor.useTabs
+				});
+				var unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
+					lineNumbers: window.options.settings.editor.lineNumbers,
+					value: crmItem.value.value,
+					scrollbarStyle: 'simple',
+					lineWrapping: true,
+					readOnly: 'nocursor',
+					theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+					indentUnit: window.options.settings.editor.tabSize,
+					indentWithTabs: window.options.settings.editor.useTabs
+				});
+				window.doc.restoreChangesDialog.addEventListener('iron-overlay-closed', function() {
+					//Remove the CodeMirror instances for performance
+					window.doc.restoreChangesOldCodeCont.innerHTML = '';
+					window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+				});
+				window.doc.restoreChangesShowOld.addEventListener('click', function() {
+					window.doc.restoreChangesMain.style.display = 'none';
+					window.doc.restoreChangesUnsavedCode.style.display = 'none';
+					window.doc.restoreChangesOldCode.style.display = 'flex';
+					window.doc.restoreChangesDialog.fit();
+					oldEditor.refresh();
+				});
+				window.doc.restoreChangesShowUnsaved.addEventListener('click', function() {
+					window.doc.restoreChangesMain.style.display = 'none';
+					window.doc.restoreChangesOldCode.style.display = 'none';
+					window.doc.restoreChangesUnsavedCode.style.display = 'flex';
+					window.doc.restoreChangesDialog.fit();
+					unsavedEditor.refresh();
+				});
+
+				//TODO no cancel on clicking
+
+				var stopHighlighting = function(crmItem) {
+					$(crmItem).find('.item')[0].animate([
+						{
+							opacity: 1
+						}, {
+							opacity: 0.6
+						}
+					], {
+						duration: 250,
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					}).onfinish = function() {
+						this.effect.target.style.opacity = 0.6;
+						window.doc.restoreChangesDialog.open();
+						$('.pageCont').animate({
+							backgroundColor: 'white'
+						}, 200);
+						$('edit-crm-item').find('.item').animate({
+							opacity: 1
+						}, 200, function() {
+							document.body.style.pointerEvents = 'all';
+						});
+					};
+				}
+
+				var highlightItem = function() {
+					document.body.style.pointerEvents = 'none';
+					var crmItem = $($($('#mainCont').children('div')[editingObj.crmPath.length - 1]).children('.CRMEditColumn')[0]).children('edit-crm-item')[editingObj.crmPath[editingObj.crmPath.length - 1]];
+					//Just in case the item doesn't exist (anymore)
+					if ($(crmItem).find('.item')[0]) {
+						$(crmItem).find('.item')[0].animate([
+							{
+								opacity: 0.6
+							}, {
+								opacity: 1
+							}
+						], {
+							duration: 250,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function() {
+							this.effect.target.style.opacity = 1;
+						};
+						setTimeout(function() {
+							stopHighlighting(crmItem);
+						}, 3250);
+					} else {
+						window.doc.restoreChangesDialog.open();
+						$('.pageCont').animate({
+							backgroundColor: 'white'
+						}, 200);
+						$('edit-crm-item').find('.item').animate({
+							opacity: 1
+						}, 200, function() {
+							document.body.style.pointerEvents = 'all';
+						});
+					}
+				}
+
+				window.doc.highlightChangedScript.addEventListener('click', function() {
+					//Find the element first
+					//Check if the element is already visible
+					window.doc.restoreChangesDialog.close();
+					$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
+					$('edit-crm-item').find('.item').css('opacity', 0.6);
+					setTimeout(function() {
+						if (editingObj.crmPath.length === 1) {
+							//Always visible
+							highlightItem();
+						} else {
+							//HIERZO
+							//Test this as well
+							var visible = true;
+							for (var i = 1; i < editingObj.crmPath.length; i++) {
+								if (options.editCRM.crm[i].indent.length !== editingObj.crmPath[i - 1]) {
+									visible = false;
+									break;
+								}
+							}
+							if (!visible) {
+								//Make it visible
+								var popped = JSON.parse(JSON.stringify(editingObj.crmPath));
+								popped.pop();
+								options.editCRM.build(popped);
+								setTimeout(highlightItem, 700);
+							} else {
+								highlightItem();
+							}
+						}
+					}, 250);
+				});
+				window.doc.restoreChangesDialog.open();
+			} catch (e) {
+				console.log(e);
+				//Oh god what am i doing...
+				setTimeout(function() {
+					try {
+						$('.keepChangesButton').off('click');
+						$('.restoreChangesBack').off('click');
+						window.doc.restoreChangesDialog.close();
+						window.doc.restoreChangesDialog.removeEventListener('iron-overlay-closed');
+						window.doc.restoreChangesShowUnsaved.removeEventListener('click');
+						window.doc.restoreChangesShowOld.removeEventListener('click');
+					} catch (e) {
+					}
+
+					_this.restoreUnsavedInstances(editingObj, errs);
+				}, 400);
+			}
+		}
+	},
+
 	ready: function () {
 		var _this = this;
 		this.crm.parent = this;
+		window.options = this;
+		window.doc = window.options.$;
 		function callback(items) {
 			//TODO remove this
 			//To help intellisense determine what's inside window.options.settings.editor
@@ -566,9 +744,16 @@ Polymer({
 			main();
 		}
 
+		this.bindListeners();
+		chrome.storage.local.get(function(items) {
+			if (items.editing) {
+				console.log(items.editing);
+				setTimeout(function() {
+					_this.restoreUnsavedInstances(items.editing);
+				}, 2500);
+			}
+		});
 		this.show = false;
-		window.options = this;
-		window.doc = window.options.$;
 		window.storage.get(callback);
 	},
 
