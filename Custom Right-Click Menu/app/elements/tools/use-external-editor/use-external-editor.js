@@ -118,6 +118,7 @@ Polymer({
 	init: function() {
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
 		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
+		window.doc.externalEditorDialogTrigger.disabled = false;
 	},
 	
 	/*
@@ -134,8 +135,6 @@ Polymer({
 			this.appPort.postMessage(msg);
 		} catch (e) {
 			//Close connection
-			this.connection.connected = false;
-			this.connection.fileConnected = false;
 		}
 	},
 
@@ -155,6 +154,7 @@ Polymer({
 		console.log('called');
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
 		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
+		window.doc.externalEditorDialogTrigger.disabled = false;
 
 		try {
 			this.appPort.postMessage({
@@ -162,7 +162,6 @@ Polymer({
 				action: 'disconnect'
 			});
 		} catch (e) { }
-		this.appPort = null;
 		window.scriptEdit.reloadEditor();
 	},
 
@@ -215,7 +214,7 @@ Polymer({
 				location.push('');
 				location = location.join('/');
 				window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
-				window.doc.externalEditorLocationToast.text = 'yolo ' + location;
+				window.doc.externalEditorLocationToast.text = 'File is located at: ' + location;
 				window.doc.externalEditorLocationToast.show();
 			})
 			.appendTo($cont);
@@ -230,7 +229,13 @@ Polymer({
 			'<div class="externalEditingToolText">' +
 			'Move' +
 			'</div>' +
-			'</div>').appendTo($cont);
+			'</div>').click(function() {
+				_this.postMessage({
+					status: 'connected',
+					action: 'createNewFile',
+					name: _this.editingCRMItem.name
+				});
+			}).appendTo($cont);
 		$('<div id="externalEditingToolsUpdate">' +
 			'<paper-material elevation="1">' +
 			'<paper-ripple></paper-ripple>' +
@@ -241,9 +246,13 @@ Polymer({
 			'<div class="externalEditingToolText">' +
 			'Refresh' +
 			'</div>' +
-			'</div>').appendTo($cont);
+			'</div>').click(function() {
+				_this.postMessage({
+					status: 'connected',
+					action: 'refreshFromApp'
+				});
+			}).appendTo($cont);
 
-		console.log($toolsCont);
 		$toolsCont.appendTo($(window.scriptEdit.editor.display.wrapper).find('.CodeMirror-scroll'))[0].animate([
 			{
 				bottom: '-152px',
@@ -325,7 +334,6 @@ Polymer({
 		case 'chooseScript':
 			var _this = this;
 			window.doc.externalEditorChooseScript.init(msg.local, msg.external, function (result) {
-				console.log(result);
 				if (result !== false) {
 					window.scriptEdit.newSettings.value.value = result;
 					window.scriptEdit.editor.setValue(result);
@@ -334,6 +342,8 @@ Polymer({
 						action: 'chooseScript',
 						code: result
 					});
+				} else {
+					window.doc.externalEditorChooseScript.close();
 				}
 			});
 			window.doc.externalEditorChooseScript.open();
@@ -368,52 +378,58 @@ Polymer({
 	 */
 	establishConnection: function (retry) {
 		//TODO Change ID
+		console.log('establishing');
+		console.log(this.connection);
+		console.log(this.appPort);
+		console.log(this.connectionPromise);
 		var _this = this;
-		this.appPort = chrome.runtime.connect('gbfbinhlfpjckadedmfinepfioodgcll'); //gjmgdmomggpaiecllfmfgbbfhnlpbpic');
-		this.connection.status = 'connecting';
-		this.connection.stage = 0;
-		this.connection.fileConnected = false;
-		this.connectionPromise = new Promise(function(resolve, reject) {
-			function promiseListener(msg) {
-				console.log('msged', msg);
-				if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
-					_this.appPort.onMessage.removeListener(promiseListener);
-					resolve(msg);
+		if (!this.appPort) {
+			this.appPort = chrome.runtime.connect('gjmgdmomggpaiecllfmfgbbfhnlpbpic'); //gbfbinhlfpjckadedmfinepfioodgcll');
+			this.connection.status = 'connecting';
+			this.connection.stage = 0;
+			this.connection.fileConnected = false;
+			this.connectionPromise = new Promise(function(resolve, reject) {
+				function promiseListener(msg) {
+					console.log('msged', msg);
+					if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
+						_this.appPort.onMessage.removeListener(promiseListener);
+						resolve(msg);
+					}
 				}
-			}
 
-			if (retry) {
-				setTimeout(function() {
-					reject();
-				}, 5000);
-			}
+				if (retry) {
+					setTimeout(function() {
+						reject();
+					}, 5000);
+				}
 
-			_this.appPort.onMessage.addListener(promiseListener);
-			_this.appPort.onMessage.addListener(function(msg) {
-				_this.messageHandler.apply(_this, [msg]);
+				_this.appPort.onMessage.addListener(promiseListener);
+				_this.appPort.onMessage.addListener(function(msg) {
+					_this.messageHandler.apply(_this, [msg]);
+				});
+
+				_this.appPort.postMessage({
+					status: 'connecting',
+					message: 'hi',
+					stage: 0
+				});
+			}).then(function(msg) {
+				_this.connection.stage = 2; //We have sent confirmation that we are there
+				_this.appPort.postMessage({
+					status: 'connecting',
+					message: 'hello',
+					stage: 2
+				});
+
+				//Connection is now done
+				_this.connection.connected = true;
+				_this.connection.state = 'connected';
+				_this.connection.id = msg.connectionId;
+				console.log('connected');
+			}).catch(function() {
+				_this.errorHandler();
 			});
-
-			_this.appPort.postMessage({
-				status: 'connecting',
-				message: 'hi',
-				stage: 0
-			});
-		}).then(function(msg) {
-			_this.connection.stage = 2; //We have sent confirmation that we are there
-			_this.appPort.postMessage({
-				status: 'connecting',
-				message: 'hello',
-				stage: 2
-			});
-
-			//Connection is now done
-			_this.connection.connected = true;
-			_this.connection.state = 'connected';
-			_this.connection.id = msg.connectionId;
-			console.log('connected');
-		}).catch(function() {
-			_this.errorHandler();
-		});
+		}
 	},
 
 	cmLoaded: function () {
@@ -459,7 +475,7 @@ Polymer({
 		window.onfocus = function() {
 			if (_this.connection.fileConnected) {
 				//File is connected, ask for an update
-				_this.appPort.postMessage({
+				_this.postMessage({
 					status: 'connected',
 					action: 'refreshFromApp'
 				});
@@ -484,7 +500,7 @@ Polymer({
 			}
 		}
 		window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
-			_this.establishConnection();
+			_this.establishConnection(true);
 			window.doc.externalEditorErrorToast.hide();
 		});
 		window.doc.chooseScriptChooseFirst.addEventListener('click', function () {

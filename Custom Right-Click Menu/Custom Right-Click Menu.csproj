@@ -624,6 +624,7 @@
     <Content Include="app\js\jquery.contextMenu.js" />
     <Content Include="app\js\jquery.requestAnimationFrame.min.js" />
     <Content Include="app\options.html" />
+    <Content Include="app\LICENSE.txt" />
     <Content Include="Gruntfile.js" />
     <Content Include="DebugSettings.template.xml">
       <SubType>Designer</SubType>

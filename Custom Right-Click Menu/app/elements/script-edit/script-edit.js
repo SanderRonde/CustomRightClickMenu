@@ -1006,33 +1006,34 @@
 			this.editor = null;
 		}
 		window.externalEditor.init();
-		chrome.storage.local.set({
-			editing: {
-				val: this.item.value.value,
-				crmPath: this.item.path
-			}
-		});
-		this.savingInterval = window.setInterval(function() {
-			if (_this.active) {
-				//Save
-				var val;
-				try {
-					val = _this.editor.getValue();
-					chrome.storage.local.set({
-						editing: {
-							val: val,
-							crmPath: _this.item.path
-						}
-					});
-				} catch (e) { }
-			} else {
-				//Stop this interval
-				chrome.storage.local.set({
-					editing: false
-				});
-				window.clearInterval(_this.savingInterval);
-			}
-		}, 5000);
+		//TODO re-enable
+		//chrome.storage.local.set({
+		//	editing: {
+		//		val: this.item.value.value,
+		//		crmPath: this.item.path
+		//	}
+		//});
+		//this.savingInterval = window.setInterval(function() {
+		//	if (_this.active) {
+		//		//Save
+		//		var val;
+		//		try {
+		//			val = _this.editor.getValue();
+		//			chrome.storage.local.set({
+		//				editing: {
+		//					val: val,
+		//					crmPath: _this.item.path
+		//				}
+		//			});
+		//		} catch (e) { }
+		//	} else {
+		//		//Stop this interval
+		//		chrome.storage.local.set({
+		//			editing: false
+		//		});
+		//		window.clearInterval(_this.savingInterval);
+		//	}
+		//}, 5000);
 		this.active = true;
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
