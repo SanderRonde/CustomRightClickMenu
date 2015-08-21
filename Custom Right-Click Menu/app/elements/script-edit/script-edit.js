@@ -285,15 +285,6 @@
 		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function (snippet) {
 			_this.insertSnippet(_this, snippet.snippet);
 		});
-		//Get page xxxx
-		//Get element
-		//Set style
-		//Animate element to style
-		//Wait
-		//Log to console
-		//Alert message
-		//Create element
-		//Write in external editor
 		//Run JSLint
 		//Use CRMAPI
 	},

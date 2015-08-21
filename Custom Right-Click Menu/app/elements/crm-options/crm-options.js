@@ -664,8 +664,6 @@ Polymer({
 							//Always visible
 							highlightItem();
 						} else {
-							//HIERZO
-							//Test this as well
 							var visible = true;
 							for (var i = 1; i < editingObj.crmPath.length; i++) {
 								if (options.editCRM.crm[i].indent.length !== editingObj.crmPath[i - 1]) {
