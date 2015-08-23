@@ -86,12 +86,15 @@ input {
 
 .CodeMirror-linenumber {
 	border-right: 1px solid rgb(190,190,190);
-	margin-left: -30px;
 }
 
-.CodeMirror-gutter-wrapper {
+/*.CodeMirror-gutter-wrapper {
 	left: 0!important;
-}
+}*/
+
+/*.script-edit-codeMirror .CodeMirror-linenumber {
+	left: 0!important;
+}*/
 
 @-moz-keyframes borderfocus {
 	from {
@@ -197,11 +200,12 @@ input {
 
 #editorOptionsContainer {
 	overflow: hidden;
+	height: 250vh;
 	pointer-events: all;
 }
 
 #editorSettings {
-	height: 39px;
+	height: 41px;
 	z-index:60;
 }
 
@@ -212,6 +216,7 @@ input {
 	padding: 10px;
 	height: calc(100% - 137px);
 	margin-left:-400px;
+	font-size:15px;
 }
 
 #buttonShadow {
@@ -229,6 +234,7 @@ input {
 	width:0;
 	height: 0;
 	pointer-events: none;
+	overflow: hidden;
 	right: 0;
 }
 
@@ -260,7 +266,7 @@ input {
 #editorSettingsTxt {
 	font-size: 250%;
 	font-weight: 500;
-	padding-bottom: 30px;
+	padding-bottom: 10px;
 }
 
 #editorTabsOrSpacesTxt, #editorUseLineNumbersTxt {
@@ -287,6 +293,7 @@ input {
 
 #bubbleCont {
 	width: 508px !important;
+	height: 100vh!important;
 	position: absolute;
 	overflow: hidden;
 	right: 0;
@@ -294,4 +301,36 @@ input {
 
 .CodeMirror.fullscreen #settingsContainer {
 	font-size: 140%;
+}
+
+#editorJSLintGlobalsFlexCont {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+
+#editorJSLintGlobalsInput {
+	flex-grow: 100;
+}
+
+#editorJSLintGlobalsDefault {
+	margin-top: 13px;
+}
+
+#editorJSLintGlobalsDefault, #editorJSLintGlobalsInput {
+	display: inline-block;
+}
+
+#editorThemeFontSize {
+	display: flex;
+	flex-direction: row;
+	padding-bottom:10px;
+}
+
+#editorThemeFontSizeInput paper-input-container {
+	padding: 0;
+}
+
+#editorThemeFontSizeInput {
+	width: 55px;
 }

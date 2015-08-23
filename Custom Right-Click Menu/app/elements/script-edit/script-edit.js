@@ -3,6 +3,24 @@
 
 	//#region PolymerProperties
 	/**
+	* AN interval to save any work not discarder or saved (say if your browser/pc crashes)
+	* 
+	* @attribute savingInterval
+	* @type Object
+	* @default null
+	*/
+	savingInterval: false,
+
+	/**
+	* Whether this thing is active
+	* 
+	* @attribute active
+	* @type Boolean
+	* @default false
+	*/
+	active: false,
+
+	/**
 	* The editor
 	* 
 	* @attribute editor
@@ -194,6 +212,21 @@
 
 	//#endregion
 
+	cancelChanges: function () {
+		this.active = false;
+		window.externalEditor.cancelOpenFiles();
+	},
+
+	removeChanges: function () {
+		this.active = false;
+		window.externalEditor.cancelOpenFiles();
+	},
+
+	saveChanges: function () {
+		this.active = false;
+		window.externalEditor.cancelOpenFiles();
+	},
+
 	/*
 	 * Clears the trigger that is currently clicked on
 	 * @param {event} The event that triggers this (click event)
@@ -236,7 +269,6 @@
 	 * @param {string} snippet The snippet to be pasted
 	 */
 	insertSnippet: function (_this, snippet) {
-		console.log(snippet);
 		this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
 	},
 
@@ -252,15 +284,6 @@
 		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function (snippet) {
 			_this.insertSnippet(_this, snippet.snippet);
 		});
-		//Get page xxxx
-		//Get element
-		//Set style
-		//Animate element to style
-		//Wait
-		//Log to console
-		//Alert message
-		//Create element
-		//Write in external editor
 		//Run JSLint
 		//Use CRMAPI
 	},
@@ -473,9 +496,7 @@
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
 				options.$.fullscreenEditorHorizontal.style.height = '100vh';
-				setTimeout(function () {
-					_this.popInRibbons();
-				}, 250);
+				_this.popInRibbons();
 			}
 		});
 	},
@@ -538,9 +559,9 @@
 
 		//Add a bit just in case
 		if (this.fullscreen) {
-			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight));
+			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight)) + 100;
 		} else {
-			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight));
+			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 100;
 		}
 		var negHalfRadius = -circleRadius;
 		circleRadius = circleRadius * 2;
@@ -561,10 +582,10 @@
 			marginRight: negHalfRadius
 		}, {
 			duration: 500,
-			easing: 'easeOutCubic',
+			easing: 'linear',
 			progress: function (animation) {
-				_this.editorOptions[0].style.marginLeft = settingsInitialMarginLeft - animation.tweens[3].now;
-				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now;
+				_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
 			}
 		});
 	},
@@ -583,14 +604,20 @@
 			marginRight: 0
 		}, {
 			duration: 500,
-			easing: 'easeInCubic',
+			easing: 'linear',
 			progress: function (animation) {
-				_this.editorOptions[0].style.marginLeft = settingsInitialMarginLeft - animation.tweens[3].now;
-				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now;
+				_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: function () {
+				var zoom = window.options.settings.editor.zoom;
+				var prevZoom = _this.unchangedEditorSettings.zoom;
+				_this.unchangedEditorSettings.zoom = zoom;
 				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.options.settings.editor)) {
 					_this.reloadEditor();
+				}
+				if (zoom !== prevZoom) {
+					
 				}
 			}
 		});
@@ -735,7 +762,7 @@
 	/*
 	 * Reloads the editor completely (to apply new settings)
 	 */
-	reloadEditor: function() {
+	reloadEditor: function (disable) {
 		$(this.editor.display.wrapper).remove();
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
@@ -750,10 +777,10 @@
 		this.editor = null;
 
 		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value, disable);
 		}
 		else {
-			this.loadEditor(this.$.editorCont, this.newSettings.value.value);
+			this.loadEditor(this.$.editorCont, this.newSettings.value.value, disable);
 		}
 	},
 
@@ -793,6 +820,18 @@
 				window.options.settings.editor.theme = 'dark';
 				window.options.upload();
 			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
+
+		//The font size
+		var fontSize = $('<div id="editorThemeFontSize">' +
+			'Editor zoom percentage:' +
+			'</div>').appendTo(settingsContainer);
+
+		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"></paper-input>').on('keypress change', function() {
+			var _this = this;
+			setTimeout(function() {
+				window.options.settings.editor.zoom = _this.value;
+			}, 0);
+		}).appendTo(fontSize);
 
 		//The option to use tabs or spaces
 		var tabsOrSpaces = $('<div id="editorTabsOrSpacesSettingCont">' +
@@ -837,13 +876,30 @@
 			'<div id="editorUseLineNumbersTxt">' +
 			'Use line numbers' +
 			'</div>' +
-			'</div>').appendTo(settingsContainer);
+			'</div><br>').appendTo(settingsContainer);
 
 		//The main checkbox for the line numbers option
 		$('<paper-checkbox ' + (window.options.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
 			window.options.settings.editor.lineNumbers = !window.options.settings.editor.lineNumbers;
 			window.options.upload();
 		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
+
+		//The edit jsLint settings option
+		var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
+
+		var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
+
+		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.options.jsLintGlobals.join(',') + '">').keypress(function () {
+			var _this = this;
+			setTimeout(function () {
+				var val = _this.value;
+				var globals = val.split(',');
+				chrome.storage.local.set({
+					jsLintGlobals: globals
+				});
+				window.options.jsLintGlobals = globals;
+			}, 0);
+		}).appendTo(jsLintGlobalsCont);
 	},
 
 	/*
@@ -884,6 +940,7 @@
 	cmLoaded: function(element) {
 		var _this = this;
 		this.editor = element;
+		element.display.wrapper.classList.add('script-edit-codeMirror');
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
@@ -898,6 +955,9 @@
 		this.settingsEl = $('<div id="editorSettings"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>').appendTo(this.buttonsContainer).click(function() {
 			_this.toggleOptions.apply(_this);
 		})[0];
+		if (element.getOption('readOnly') === 'nocursor') {
+			element.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
+		}
 		if (this.fullscreen) {
 			element.display.wrapper.style.height = 'auto';
 			this.$.editorPlaceholder.style.display = 'none';
@@ -934,19 +994,22 @@
 	/*
 	 * Loads the codeMirror editor
 	 */
-	loadEditor: function(container, content) {
+	loadEditor: function (container, content, disable) {
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
-		console.log(this.editorHeight, this.editorWidth);
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
 			value: content || this.item.value.value,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
+			readOnly: (disable ? 'nocursor' : false),
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
-			indentWithTabs: window.options.settings.editor.useTabs
+			indentWithTabs: window.options.settings.editor.useTabs,
+			messageScriptEdit: true,
+			gutters: ['CodeMirror-lint-markers'],
+			lint: window.CodeMirror.lint.javascript
 		});
 	},
 
@@ -963,10 +1026,39 @@
 		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
 		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
 		if (this.editor) {
-			console.log(this.editor);
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}
+		window.externalEditor.init();
+		//TODO re-enable
+		//chrome.storage.local.set({
+		//	editing: {
+		//		val: this.item.value.value,
+		//		crmPath: this.item.path
+		//	}
+		//});
+		//this.savingInterval = window.setInterval(function() {
+		//	if (_this.active) {
+		//		//Save
+		//		var val;
+		//		try {
+		//			val = _this.editor.getValue();
+		//			chrome.storage.local.set({
+		//				editing: {
+		//					val: val,
+		//					crmPath: _this.item.path
+		//				}
+		//			});
+		//		} catch (e) { }
+		//	} else {
+		//		//Stop this interval
+		//		chrome.storage.local.set({
+		//			editing: false
+		//		});
+		//		window.clearInterval(_this.savingInterval);
+		//	}
+		//}, 5000);
+		this.active = true;
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
 		}, 1250);
