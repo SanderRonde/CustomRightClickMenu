@@ -50,7 +50,7 @@
 			break;
 		}
 	},
-
+	
 	init: function () {
 		this.removeEventListener('addsnippet');
 		this.close();
