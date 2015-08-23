@@ -65,84 +65,81 @@ Apply `circle` class to make the rippling effect within a circle.
 -->
 
 </head><body><dom-module id="paper-ripple">
+	<!--
+	Fired when the animation finishes. This is useful if you want to wait until the ripple
+	animation finishes to perform some action.
 
-  <!--
-  Fired when the animation finishes. This is useful if you want to wait until the ripple
-  animation finishes to perform some action.
+	@event transitionend
+	@param {Object} detail
+	@param {Object} detail.node The animated node
+	-->
+	<style>
+		:host {
+			display: block;
+			position: absolute;
+			border-radius: inherit;
+			overflow: hidden;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+		}
 
-  @event transitionend
-  @param {Object} detail
-  @param {Object} detail.node The animated node
-  -->
+		:host([animating]) {
+			/* This resolves a rendering issue in Chrome (as of 40) where the
+		 ripple is not properly clipped by its parent (which may have
+		 rounded corners). See: http://jsbin.com/temexa/4
 
-  <style>
-    :host {
-      display: block;
-      position: absolute;
-      border-radius: inherit;
-      overflow: hidden;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
+		 Note: We only apply this style conditionally. Otherwise, the browser
+		 will create a new compositing layer for every ripple element on the
+		 page, and that would be bad. */
+			-webkit-transform: translate(0, 0);
+			transform: translate3d(0, 0, 0);
+		}
 
-    :host([animating]) {
-      /* This resolves a rendering issue in Chrome (as of 40) where the
-         ripple is not properly clipped by its parent (which may have
-         rounded corners). See: http://jsbin.com/temexa/4
+		:host([noink]) {
+			pointer-events: none;
+		}
 
-         Note: We only apply this style conditionally. Otherwise, the browser
-         will create a new compositing layer for every ripple element on the
-         page, and that would be bad. */
-      -webkit-transform: translate(0, 0);
-      transform: translate3d(0, 0, 0);
-    }
+		#background,
+		#waves,
+		.wave-container,
+		.wave {
+			pointer-events: none;
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
 
-    :host([noink]) {
-      pointer-events: none;
-    }
+		#background,
+		.wave {
+			opacity: 0;
+		}
 
-    #background,
-    #waves,
-    .wave-container,
-    .wave {
-      pointer-events: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
+		#waves,
+		.wave {
+			overflow: hidden;
+		}
 
-    #background,
-    .wave {
-      opacity: 0;
-    }
+		.wave-container,
+		.wave {
+			border-radius: 50%;
+		}
 
-    #waves,
-    .wave {
-      overflow: hidden;
-    }
+		:host(.circle) #background,
+		:host(.circle) #waves {
+			border-radius: 50%;
+		}
 
-    .wave-container,
-    .wave {
-      border-radius: 50%;
-    }
-
-    :host(.circle) #background,
-    :host(.circle) #waves {
-      border-radius: 50%;
-    }
-
-    :host(.circle) .wave-container {
-      overflow: hidden;
-    }
-
-  </style>
-  <template>
-    <div id="background"></div>
-    <div id="waves"></div>
-  </template>
+		:host(.circle) .wave-container {
+			overflow: hidden;
+		}
+	</style>
+	<template>
+		<div id="background"></div>
+		<div id="waves"></div>
+	</template>
 </dom-module>
 <script src="paper-ripple.js"></script></body></html>
