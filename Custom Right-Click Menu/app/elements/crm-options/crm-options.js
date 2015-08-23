@@ -489,6 +489,10 @@ Polymer({
 		}
 	},
 
+	runJsLint: function() {
+		window.scriptEdit.editor.performLint();
+	},
+
 	addSettingsReadyCallback: function(callback, thisElement) {
 		this.onSettingsReadyCallbacks.push({
 			callback: callback,
@@ -500,7 +504,6 @@ Polymer({
 	 * Uploads this object to chrome.storage
 	 */
 	upload: function(errorCallback) {
-		console.log(this.settings);
 		window.storage.set(this.settings, function() {
 			if (chrome.runtime.lastError) {
 				errorCallback(chrome.runtime.lastError);
@@ -685,7 +688,6 @@ Polymer({
 				});
 				window.doc.restoreChangesDialog.open();
 			} catch (e) {
-				console.log(e);
 				//Oh god what am i doing...
 				setTimeout(function() {
 					try {
@@ -702,6 +704,16 @@ Polymer({
 				}, 400);
 			}
 		}
+	},
+
+	updateEditorZoom: function () {
+		var prevStyle = document.getElementById('editorZoomStyle');
+		prevStyle && prevStyle.remove();
+		$('<style id="editorZoomStyle">' +
+			'.CodeMirror, .CodeMirror-focused {' +
+			'font-size: ' + (1.25 * window.options.settings.editor.zoom) + '%!important;' +
+			'}' +
+			'</style>').appendTo('head');
 	},
 
 	ready: function () {
@@ -733,9 +745,11 @@ Polymer({
 					"showToolsRibbon": true,
 					"tabSize": 4,
 					"theme": 'dark',
-					"useTabs": true
+					"useTabs": true,
+					"zoom": 100
 				}
 			};
+
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
@@ -745,14 +759,24 @@ Polymer({
 		this.bindListeners();
 		chrome.storage.local.get(function(items) {
 			if (items.editing) {
-				console.log(items.editing);
 				setTimeout(function() {
 					_this.restoreUnsavedInstances(items.editing);
 				}, 2500);
 			}
+			if (items.jsLintGlobals) {
+				window.options.jsLintGlobals = items.jsLintGlobals;
+			} else {
+				window.options.jsLintGlobals = [];
+				chrome.storage.local.set({
+					jsLintGlobals: []
+				});
+			}
 		});
 		this.show = false;
 		window.storage.get(callback);
+
+	
+
 	},
 
 	/**

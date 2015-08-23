@@ -269,7 +269,6 @@
 	 * @param {string} snippet The snippet to be pasted
 	 */
 	insertSnippet: function (_this, snippet) {
-		console.log(snippet);
 		this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
 	},
 
@@ -611,8 +610,14 @@
 				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: function () {
+				var zoom = window.options.settings.editor.zoom;
+				var prevZoom = _this.unchangedEditorSettings.zoom;
+				_this.unchangedEditorSettings.zoom = zoom;
 				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.options.settings.editor)) {
 					_this.reloadEditor();
+				}
+				if (zoom !== prevZoom) {
+					
 				}
 			}
 		});
@@ -758,7 +763,6 @@
 	 * Reloads the editor completely (to apply new settings)
 	 */
 	reloadEditor: function (disable) {
-		console.log(disable);
 		$(this.editor.display.wrapper).remove();
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
@@ -817,6 +821,18 @@
 				window.options.upload();
 			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
 
+		//The font size
+		var fontSize = $('<div id="editorThemeFontSize">' +
+			'Editor zoom percentage:' +
+			'</div>').appendTo(settingsContainer);
+
+		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"></paper-input>').on('keypress change', function() {
+			var _this = this;
+			setTimeout(function() {
+				window.options.settings.editor.zoom = _this.value;
+			}, 0);
+		}).appendTo(fontSize);
+
 		//The option to use tabs or spaces
 		var tabsOrSpaces = $('<div id="editorTabsOrSpacesSettingCont">' +
 			'<div id="editorTabsOrSpacesCheckbox">' +
@@ -860,13 +876,30 @@
 			'<div id="editorUseLineNumbersTxt">' +
 			'Use line numbers' +
 			'</div>' +
-			'</div>').appendTo(settingsContainer);
+			'</div><br>').appendTo(settingsContainer);
 
 		//The main checkbox for the line numbers option
 		$('<paper-checkbox ' + (window.options.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
 			window.options.settings.editor.lineNumbers = !window.options.settings.editor.lineNumbers;
 			window.options.upload();
 		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
+
+		//The edit jsLint settings option
+		var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
+
+		var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
+
+		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.options.jsLintGlobals.join(',') + '">').keypress(function () {
+			var _this = this;
+			setTimeout(function () {
+				var val = _this.value;
+				var globals = val.split(',');
+				chrome.storage.local.set({
+					jsLintGlobals: globals
+				});
+				window.options.jsLintGlobals = globals;
+			}, 0);
+		}).appendTo(jsLintGlobalsCont);
 	},
 
 	/*
@@ -907,6 +940,7 @@
 	cmLoaded: function(element) {
 		var _this = this;
 		this.editor = element;
+		element.display.wrapper.classList.add('script-edit-codeMirror');
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
@@ -961,11 +995,9 @@
 	 * Loads the codeMirror editor
 	 */
 	loadEditor: function (container, content, disable) {
-		console.log(disable);
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
-		console.log(this.editorHeight, this.editorWidth);
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
 			value: content || this.item.value.value,
@@ -975,7 +1007,9 @@
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
 			indentWithTabs: window.options.settings.editor.useTabs,
-			messageScriptEdit: true
+			messageScriptEdit: true,
+			gutters: ['CodeMirror-lint-markers'],
+			lint: window.CodeMirror.lint.javascript
 		});
 	},
 
@@ -992,7 +1026,6 @@
 		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
 		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
 		if (this.editor) {
-			console.log(this.editor);
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}

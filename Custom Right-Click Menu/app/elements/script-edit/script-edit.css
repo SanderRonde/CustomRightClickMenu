@@ -86,12 +86,15 @@ input {
 
 .CodeMirror-linenumber {
 	border-right: 1px solid rgb(190,190,190);
-	margin-left: -30px;
 }
 
-.CodeMirror-gutter-wrapper {
+/*.CodeMirror-gutter-wrapper {
 	left: 0!important;
-}
+}*/
+
+/*.script-edit-codeMirror .CodeMirror-linenumber {
+	left: 0!important;
+}*/
 
 @-moz-keyframes borderfocus {
 	from {
@@ -213,6 +216,7 @@ input {
 	padding: 10px;
 	height: calc(100% - 137px);
 	margin-left:-400px;
+	font-size:15px;
 }
 
 #buttonShadow {
@@ -262,7 +266,7 @@ input {
 #editorSettingsTxt {
 	font-size: 250%;
 	font-weight: 500;
-	padding-bottom: 30px;
+	padding-bottom: 10px;
 }
 
 #editorTabsOrSpacesTxt, #editorUseLineNumbersTxt {
@@ -297,4 +301,36 @@ input {
 
 .CodeMirror.fullscreen #settingsContainer {
 	font-size: 140%;
+}
+
+#editorJSLintGlobalsFlexCont {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+
+#editorJSLintGlobalsInput {
+	flex-grow: 100;
+}
+
+#editorJSLintGlobalsDefault {
+	margin-top: 13px;
+}
+
+#editorJSLintGlobalsDefault, #editorJSLintGlobalsInput {
+	display: inline-block;
+}
+
+#editorThemeFontSize {
+	display: flex;
+	flex-direction: row;
+	padding-bottom:10px;
+}
+
+#editorThemeFontSizeInput paper-input-container {
+	padding: 0;
+}
+
+#editorThemeFontSizeInput {
+	width: 55px;
 }

@@ -13,6 +13,10 @@
 	position: absolute;
 }
 
+#buttonsContainer {
+	font-size: 12.1875px;
+}
+
 .CRMEditDivider, .CRMEditLink, .CRMEditMenu, .CRMEditScript {
 	width: 200px;
 	height: 50px;
@@ -248,12 +252,14 @@ iron-overlay-backdrop {
 	border-top: 1px solid rgb(239, 239, 239);
 }
 
-#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger {
+#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, #runJsLintButton {
 	color: rgb(38, 153, 244);
 	height: 75px;
 	font-size: 196%;
 	vertical-align: middle;
-	display: table-cell;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	width: 200px;
 	padding-left: 16px;
 	font-weight: 500;
@@ -264,7 +270,7 @@ iron-overlay-backdrop {
 	font-size: 167%;
 }
 
-	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover {
+	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover, #runJsLintButton:hover {
 		text-decoration: underline;
 	}
 

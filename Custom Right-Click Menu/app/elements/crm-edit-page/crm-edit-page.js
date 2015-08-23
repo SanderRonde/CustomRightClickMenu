@@ -153,6 +153,9 @@ Polymer({
 				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit').not('[hidden]')[0].cancelChanges();
 				console.log('called');
 				console.log($(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit').not('[hidden]'));
+				options.show = false;
+				this.opened = false;
+				_this.animateOut();
 			});
 		}
 		else {
