@@ -41,7 +41,6 @@
 
 	cancelChanges: function () {
 		this.canceled = true;
-		this.closePage();
 	},
 
 	removeChanges: function () {
@@ -83,8 +82,6 @@
 		itemInEditPage.$$('.CRMItemtitle').children[0].innerHTML = newItem.name;
 
 		options.upload();
-
-		this.closePage();
 	},
 	
 	inputKeyPress: function(e) {
