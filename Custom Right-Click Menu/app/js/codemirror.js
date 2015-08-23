@@ -127,7 +127,28 @@
 		if (webkit && options.lineWrapping && getComputedStyle(display.lineDiv).textRendering == 'optimizelegibility') {
 			display.lineDiv.style.textRendering = 'auto';
 		}
-		window.scriptEdit.cmLoaded.apply(window.scriptEdit, [this]);
+
+		this.display.scroller.addEventListener('mousewheel', function (e) {
+			if (e.shiftKey) {
+				if (e.wheelDelta >= 0) {
+					//Up
+					//Add 10% to the font size
+					window.options.settings.editor.zoom = Math.round((1.1 * window.options.settings.editor.zoom));
+				} else {
+					//Down
+					//Remove 10% from the font size
+					window.options.settings.editor.zoom = Math.round((0.9 * window.options.settings.editor.zoom));
+				}
+				console.log(window.options.settings.editor.zoom);
+				window.options.updateEditorZoom();
+			}
+		});
+
+		if (options.messageExternal) {
+			window.externalEditor.cmLoaded.apply(window.externalEditor, [this]);
+		} else if (options.messageScriptEdit) {
+			window.scriptEdit.cmLoaded.apply(window.scriptEdit, [this]);
+		}
 	}
 
 	// DISPLAY CONSTRUCTOR
@@ -416,13 +437,9 @@
 		place(vert);
 		place(horiz);
 		on(vert, 'scroll', function(e) {
-			console.log('scrolling');
-			console.log(e);
 			if (vert.clientHeight) scroll(vert.scrollTop, 'vertical');
 		});
 		on(horiz, 'scroll', function(e) {
-			console.log('scrolling');
-			console.log(e);
 			if (horiz.clientWidth) scroll(horiz.scrollLeft, 'horizontal');
 		});
 
