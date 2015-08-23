@@ -626,7 +626,7 @@ Polymer({
 
 	//#region editPageFunctions
 	openEditPage: function (e) {
-		if (!this.shadow) {
+		if (!this.shadow && !window.options.item) {
 			var path = e.path;
 			var item = path[0];
 			for (var i = 0; i < path.length && item.tagName !== 'EDIT-CRM-ITEM'; i++) {
@@ -693,6 +693,5 @@ Polymer({
 	}
 
 	//#endregion
-
 
 });
