@@ -559,11 +559,16 @@
     <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-dialog.html" />
     <Content Include="app\elements\tools\paper-search-website-dialog\paper-search-website-dialog.js" />
     <Content Include="app\elements\tools\paper-search-website-dialog\searchEngineWorker.js" />
+    <Content Include="app\elements\tools\use-external-editor\use-external-editor.html" />
+    <Content Include="app\elements\tools\use-external-editor\use-external-editor.js" />
     <Content Include="app\images\close.svg" />
     <Content Include="app\images\fullscreen.svg" />
     <Content Include="app\images\fullscreenExit.svg" />
     <Content Include="app\images\checkmark.svg" />
     <Content Include="app\images\add.svg" />
+    <Content Include="app\images\folder.svg" />
+    <Content Include="app\images\file.svg" />
+    <Content Include="app\images\refresh.svg" />
     <Content Include="app\images\settings.svg" />
     <Content Include="app\js\codemirror.js" />
     <Content Include="app\js\codeMirrorAddons.js" />
@@ -610,6 +615,7 @@
     <Content Include="app\icon-large.png" />
     <Content Include="app\icon-small.png" />
     <Content Include="app\icon-supersmall.png" />
+    <Content Include="app\js\diff_match_patch.js" />
     <Content Include="app\js\iframecontentscript.js" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
     <Content Include="app\js\jquery-ui.min.js" />
@@ -618,6 +624,7 @@
     <Content Include="app\js\jquery.contextMenu.js" />
     <Content Include="app\js\jquery.requestAnimationFrame.min.js" />
     <Content Include="app\options.html" />
+    <Content Include="app\LICENSE.txt" />
     <Content Include="Gruntfile.js" />
     <Content Include="DebugSettings.template.xml">
       <SubType>Designer</SubType>
