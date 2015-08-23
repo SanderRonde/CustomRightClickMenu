@@ -13,6 +13,10 @@
 	position: absolute;
 }
 
+#buttonsContainer {
+	font-size: 12.1875px;
+}
+
 .CRMEditDivider, .CRMEditLink, .CRMEditMenu, .CRMEditScript {
 	width: 200px;
 	height: 50px;
@@ -88,7 +92,7 @@ paper-ripple {
 	z-index: 5;
 }
 
-#menuSwitchUndoButton {
+#menuSwitchUndoButton, #externalEditorTryAgainButton, #externalEditoOpenLocationInBrowser {
 	color: rgb(238, 255, 65);
 	margin: 10px;
 	cursor: pointer;
@@ -244,24 +248,34 @@ iron-overlay-backdrop {
 	font-size:250%;
 }
 
-.ribbonTool > paper-menu, div.ribbonTool {
+.ribbonTool > paper-menu, .ribbonTool {
 	border-top: 1px solid rgb(239, 239, 239);
 }
 
-#paperSearchWebsitesToolTrigger {
+#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, #runJsLintButton {
 	color: rgb(38, 153, 244);
 	height: 75px;
 	font-size: 196%;
 	vertical-align: middle;
-	display: table-cell;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	width: 200px;
 	padding-left: 16px;
 	font-weight: 500;
 	cursor: pointer;
 }
 
-	#paperSearchWebsitesToolTrigger:hover {
+#externalEditorDialogTrigger {
+	font-size: 167%;
+}
+
+	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover, #runJsLintButton:hover {
 		text-decoration: underline;
+	}
+
+	#externalEditorDialogTrigger[disabled]:hover {
+		text-decoration: none;
 	}
 
 a:focus::before {
@@ -287,3 +301,152 @@ a {
 #dummy {
 	display: none;
 }
+
+#chooseScriptComparison {
+	display: none;
+}
+
+#chooseScriptMerger {
+	display: none;
+	height: 100%;
+	flex-direction: column;
+	justify-content: center;
+	padding-top: 5px;
+}
+
+#chooseScriptMergerPlaceholder, #chooseScriptMergerEditor {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 100;
+}
+
+	#chooseScriptMergerPlaceholder center-element {
+		flex-grow: 100;
+	}
+
+	#chooseScriptMergerPlaceholder paper-spinner {
+		width: 70px;
+		height: 70px;
+	}
+
+#chooseScriptMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
+	height: calc(100vh - 148px);
+}
+
+.CodeMirror-merge, .CodeMirror-merge .CodeMirror {
+	height: 100%;
+}
+
+#externalEditorChooseScript {
+	padding-bottom: 60px;
+}
+
+#externalEditorChooseScript .buttons {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+}
+
+#chooseScriptmergerContainer {
+	flex-grow: 100;
+	display: flex;
+	flex-direction: column;
+	display: none;
+}
+
+#chooseScriptMergerText {
+	display: flex;
+	justify-content: space-around;
+	margin-bottom:10px;
+}
+
+#chooseScriptCurrentTxt, #chooseScriptResultTxt, #chooseScriptNewTxt {
+	font-size: 150%;
+	font-weight: bold;
+	width: 31%;
+	text-align: center;
+}
+
+#chooseScriptMergerPlaceholder {
+	z-index: 50;
+	background-color:white;
+}
+
+#externalEditingTools {
+	position: absolute;
+	bottom: -152px;
+	right: -350px;
+	width: 350px;
+	height: 152px;
+	background-color: rgb(150,150,150);
+	color: white;
+}
+
+#externalEditingToolsButtonsCont {
+	fill: white;
+}
+
+#externalEditingToolsButtonsCont > div {
+	display: inline-block;
+	margin: 0 6px;
+	font-size: 120%;
+	cursor: pointer;
+}
+
+#externalEditingToolsButtonsCont > div:hover {
+	text-decoration: underline;
+}
+
+#externalEditingToolsButtonsCont paper-material {
+	display: inline-block;
+}
+
+#externalEditingToolsTitle {
+	font-size: 200%;
+	text-align: center;
+	font-family: Roboto;
+}
+
+#externalEditingToolsShowLocation {
+	margin: 0;
+}
+
+	#externalEditingToolsShowLocation paper-material {
+		margin-left: 6px;
+	}
+
+.externalEditingToolText {
+	text-align: center;
+	font-size: 120%;
+}
+
+paper-toast {
+	z-index: 9000;
+}
+
+#restoreChangesOldCode, #restoreChangesUnsavedCode {
+	display: none;
+	width: 800px;
+	height: 600px;
+	flex-direction: column;
+}
+
+.restoreChangesOption {
+	color: rgb(0,119,255);
+	font-weight: bold;
+	cursor: pointer;
+}
+
+	.restoreChangesOption:hover {
+		text-decoration: underline;
+	}
+
+#restoreChangesOldCodeCont, #restoreChangeUnsaveddCodeCont {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 100;
+}
+
+	#restoreChangesOldCodeCont .CodeMirror, #restoreChangeUnsaveddCodeCont .CodeMirror {
+		flex-grow: 100;
+	}
