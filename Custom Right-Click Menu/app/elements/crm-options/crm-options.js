@@ -21,6 +21,12 @@ function runOrAddAsCallback(toRun, thisElement) {
 	}
 }
 
+function generateItemId() {
+	window.options.latestId++;
+	window.options.upload();
+	return window.options.latestId;
+}
+
 /**
  * A shorthand version of $('settings-element')[0], allows for easy access to
  *	settings object (s.settings instead of something like
@@ -228,6 +234,7 @@ function setupFirstTime() {
 		{
 			name: 'example',
 			type: 'link',
+			id: generateItemId(),
 			value: [
 				{
 					value: 'http://www.example.com',
@@ -259,6 +266,10 @@ function checkArray(toCheck) {
 					newTab: true
 				}
 			];
+		}
+		if (isNotSet(item.id)) {
+			changes = true;
+			item.id = generateItemId();
 		}
 		if (isNotSet(item.name)) {
 			changes = true;
@@ -757,7 +768,15 @@ Polymer({
 		}
 
 		this.bindListeners();
-		chrome.storage.local.get(function(items) {
+		chrome.storage.local.get(function (items) {
+			if (items.latestId) {
+				window.options.latestId = items.latestId;
+			} else {
+				window.options.latestid = 1;
+				chrome.storage.local.set({
+					latestId: 1
+				});
+			}
 			if (items.editing) {
 				setTimeout(function() {
 					_this.restoreUnsavedInstances(items.editing);

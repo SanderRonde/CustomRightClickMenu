@@ -568,6 +568,8 @@
     <Content Include="app\images\add.svg" />
     <Content Include="app\images\folder.svg" />
     <Content Include="app\images\file.svg" />
+    <Content Include="app\images\infoActive.svg" />
+    <Content Include="app\images\info.svg" />
     <Content Include="app\images\refresh.svg" />
     <Content Include="app\images\settings.svg" />
     <Content Include="app\js\codemirror.js" />
