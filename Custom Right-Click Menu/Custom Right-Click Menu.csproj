@@ -511,6 +511,14 @@
     <Content Include="app\bower_components\paper-toast\index.html" />
     <Content Include="app\bower_components\paper-toast\paper-toast.html" />
     <Content Include="app\bower_components\paper-toast\paper-toast.js" />
+    <Content Include="app\bower_components\paper-toggle-button\demo\index.html" />
+    <Content Include="app\bower_components\paper-toggle-button\hero.svg" />
+    <Content Include="app\bower_components\paper-toggle-button\index.html" />
+    <Content Include="app\bower_components\paper-toggle-button\paper-toggle-button.css" />
+    <Content Include="app\bower_components\paper-toggle-button\paper-toggle-button.html" />
+    <Content Include="app\bower_components\paper-toggle-button\paper-toggle-button.js" />
+    <Content Include="app\bower_components\paper-toggle-button\test\basic.html" />
+    <Content Include="app\bower_components\paper-toggle-button\test\index.html" />
     <Content Include="app\bower_components\paper-toolbar\.gitignore" />
     <Content Include="app\bower_components\paper-toolbar\demo\index.html" />
     <Content Include="app\bower_components\paper-toolbar\index.html" />
@@ -545,6 +553,9 @@
     <Content Include="app\elements\center-element\center-element.css" />
     <Content Include="app\elements\center-element\center-element.html" />
     <Content Include="app\elements\center-element\center-element.js" />
+    <Content Include="app\elements\stylesheet-edit\stylesheet-edit.css" />
+    <Content Include="app\elements\stylesheet-edit\stylesheet-edit.html" />
+    <Content Include="app\elements\stylesheet-edit\stylesheet-edit.js" />
     <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.html" />
     <Content Include="app\elements\paper-dropdown-behavior\paper-dropdown-behavior.js" />
     <Content Include="app\elements\paper-dropdown-menu\paper-dropdown-menu.css" />
@@ -829,6 +840,8 @@
     <Content Include="app\bower_components\paper-radio-group\README.md" />
     <Content Include="app\bower_components\paper-radio-button\bower.json" />
     <Content Include="app\bower_components\paper-radio-button\README.md" />
+    <Content Include="app\bower_components\paper-toggle-button\bower.json" />
+    <Content Include="app\bower_components\paper-toggle-button\README.md" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />

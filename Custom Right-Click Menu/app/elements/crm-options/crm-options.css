@@ -129,7 +129,7 @@ paper-ripple {
 }
 
 paper-toolbar {
-	background: #ff7600!important;
+	background: #FF4200!important;
 }
 
 #addLibraryManualInput {
@@ -252,7 +252,7 @@ iron-overlay-backdrop {
 	border-top: 1px solid rgb(239, 239, 239);
 }
 
-#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, #runJsLintButton {
+#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, #runJsLintButton, #runCssLintButton {
 	color: rgb(38, 153, 244);
 	height: 75px;
 	font-size: 196%;
@@ -270,7 +270,7 @@ iron-overlay-backdrop {
 	font-size: 167%;
 }
 
-	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover, #runJsLintButton:hover {
+	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover, #runJsLintButton:hover, #runCssLintButton:hover {
 		text-decoration: underline;
 	}
 
@@ -302,11 +302,11 @@ a {
 	display: none;
 }
 
-#chooseScriptComparison {
+#chooseFileComparison {
 	display: none;
 }
 
-#chooseScriptMerger {
+#chooseFileMerger {
 	display: none;
 	height: 100%;
 	flex-direction: column;
@@ -314,22 +314,22 @@ a {
 	padding-top: 5px;
 }
 
-#chooseScriptMergerPlaceholder, #chooseScriptMergerEditor {
+#chooseFileMergerPlaceholder, #chooseFileMergerEditor {
 	display: flex;
 	flex-direction: column;
 	flex-grow: 100;
 }
 
-	#chooseScriptMergerPlaceholder center-element {
+	#chooseFileMergerPlaceholder center-element {
 		flex-grow: 100;
 	}
 
-	#chooseScriptMergerPlaceholder paper-spinner {
+	#chooseFileMergerPlaceholder paper-spinner {
 		width: 70px;
 		height: 70px;
 	}
 
-#chooseScriptMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
+#chooseFileMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
 	height: calc(100vh - 148px);
 }
 
@@ -337,37 +337,37 @@ a {
 	height: 100%;
 }
 
-#externalEditorChooseScript {
+#externalEditorchooseFile {
 	padding-bottom: 60px;
 }
 
-#externalEditorChooseScript .buttons {
+#externalEditorchooseFile .buttons {
 	position: absolute;
 	bottom: 0;
 	right: 0;
 }
 
-#chooseScriptmergerContainer {
+#chooseFilemergerContainer {
 	flex-grow: 100;
 	display: flex;
 	flex-direction: column;
 	display: none;
 }
 
-#chooseScriptMergerText {
+#chooseFileMergerText {
 	display: flex;
 	justify-content: space-around;
 	margin-bottom:10px;
 }
 
-#chooseScriptCurrentTxt, #chooseScriptResultTxt, #chooseScriptNewTxt {
+#chooseFileCurrentTxt, #chooseFileResultTxt, #chooseFileNewTxt {
 	font-size: 150%;
 	font-weight: bold;
 	width: 31%;
 	text-align: center;
 }
 
-#chooseScriptMergerPlaceholder {
+#chooseFileMergerPlaceholder {
 	z-index: 50;
 	background-color:white;
 }
@@ -450,3 +450,15 @@ paper-toast {
 	#restoreChangesOldCodeCont .CodeMirror, #restoreChangeUnsaveddCodeCont .CodeMirror {
 		flex-grow: 100;
 	}
+
+body.editingStylesheet .CodeMirror-hint {
+	padding-left: 0;
+}
+
+body.editingStylesheet .jsTool {
+	display: none!important;
+}
+
+body.editingScript .cssTool {
+	display: none!important;
+}

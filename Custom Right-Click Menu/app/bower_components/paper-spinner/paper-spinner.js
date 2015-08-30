@@ -1,117 +1,95 @@
-(function() {
+﻿Polymer({
 
-      'use strict';
+	is: 'paper-spinner',
 
-      function classNames(obj) {
-        var classNames = [];
-        for (var key in obj) {
-          if (obj.hasOwnProperty(key) && obj[key]) {
-            classNames.push(key);
-          }
-        }
+	listeners: {
+		'animationend': 'reset',
+		'webkitAnimationEnd': 'reset'
+	},
 
-        return classNames.join(' ');
-      }
+	properties: {
 
-      Polymer({
+		/**
+         * Displays the spinner.
+         *
+         * @attribute active
+         * @type boolean
+         * @default false
+         */
+		active: {
+			type: Boolean,
+			value: false,
+			reflectToAttribute: true,
+			observer: '_activeChanged'
+		},
 
-        is: 'paper-spinner',
+		/**
+         * Alternative text content for accessibility support.
+         * If alt is present, it will add an aria-label whose content matches alt when active.
+         * If alt is not present, it will default to 'loading' as the alt value.
+         *
+         * @attribute alt
+         * @type string
+         * @default 'loading'
+         */
+		alt: {
+			type: String,
+			value: 'loading',
+			observer: '_altChanged'
+		},
 
-        listeners: {
-          'animationend': 'reset',
-          'webkitAnimationEnd': 'reset'
-        },
+		/**
+         * True when the spinner is going from active to inactive. This is represented by a fade
+         * to 0% opacity to the user.
+         */
+		_coolingDown: {
+			type: Boolean,
+			value: false
+		},
 
-        properties: {
+		_spinnerContainerClassName: {
+			type: String,
+			computed: '_computeSpinnerContainerClassName(active, _coolingDown)'
+		}
 
-          /**
-           * Displays the spinner.
-           *
-           * @attribute active
-           * @type boolean
-           * @default false
-           */
-          active: {
-            observer: '_activeChanged',
-            type: Boolean,
-            value: false
-          },
+	},
 
-          /**
-           * Alternative text content for accessibility support.
-           * If alt is present, it will add an aria-label whose content matches alt when active.
-           * If alt is not present, it will default to 'loading' as the alt value.
-           *
-           * @attribute alt
-           * @type string
-           * @default 'loading'
-           */
-          alt: {
-            observer: '_altChanged',
-            type: String,
-            value: 'loading'
-          },
+	_computeSpinnerContainerClassName: function (active, coolingDown) {
+		return [
+          active || coolingDown ? 'active' : '',
+          coolingDown ? 'cooldown' : ''
+		].join(' ');
+	},
 
-          /**
-           * True when the spinner is going from active to inactive. This is represented by a fade
-           * to 0% opacity to the user.
-           */
-          _coolingDown: {
-            type: Boolean,
-            value: false
-          },
+	_activeChanged: function (active, old) {
+		this._setAriaHidden(!active);
+		if (!active && old) {
+			this._coolingDown = true;
+		}
+	},
 
-          _spinnerContainerClassName: {
-            type: String,
-            computed: '_computeSpinnerContainerClassName(active, _coolingDown)'
-          }
+	_altChanged: function (alt) {
+		// user-provided `aria-label` takes precedence over prototype default
+		if (alt === this.getPropertyInfo('alt').value) {
+			this.alt = this.getAttribute('aria-label') || alt;
+		} else {
+			this._setAriaHidden(alt === '');
+			this.setAttribute('aria-label', alt);
+		}
+	},
 
-        },
+	_setAriaHidden: function (hidden) {
+		var attr = 'aria-hidden';
+		if (hidden) {
+			this.setAttribute(attr, 'true');
+		} else {
+			this.removeAttribute(attr);
+		}
+	},
 
-        _computeSpinnerContainerClassName: function(active, _coolingDown) {
-          return classNames({
-            active: active || _coolingDown,
-            cooldown: _coolingDown
-          });
-        },
+	reset: function () {
+		this.active = false;
+		this._coolingDown = false;
+	}
 
-        ready: function() {
-          // Allow user-provided `aria-label` take preference to any other text alternative.
-          if (this.hasAttribute('aria-label')) {
-            this.alt = this.getAttribute('aria-label');
-          } else {
-            this.setAttribute('aria-label', this.alt);
-          }
-
-          if (!this.active) {
-            this.setAttribute('aria-hidden', 'true');
-          }
-        },
-
-        _activeChanged: function() {
-          if (this.active) {
-            this.removeAttribute('aria-hidden');
-          } else {
-            this._coolingDown = true;
-            this.setAttribute('aria-hidden', 'true');
-          }
-        },
-
-        _altChanged: function() {
-          if (this.alt === '') {
-            this.setAttribute('aria-hidden', 'true');
-          } else {
-            this.removeAttribute('aria-hidden');
-          }
-
-          this.setAttribute('aria-label', this.alt);
-        },
-
-        reset: function() {
-          this.active = false;
-          this._coolingDown = false;
-        }
-
-      });
-
-    }());
+});

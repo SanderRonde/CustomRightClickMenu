@@ -29,5 +29,14 @@
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
     "test-fixture": "PolymerElements/test-fixture#^1.0.0",
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
-  }
+  },
+  "_release": "1.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.2",
+    "commit": "18bda194750ace719102d54c17ae1c6ce4a6793e"
+  },
+  "_source": "git://github.com/PolymerElements/paper-spinner.git",
+  "_target": "^1.0.0",
+  "_originalSource": "PolymerElements/paper-spinner"
 }

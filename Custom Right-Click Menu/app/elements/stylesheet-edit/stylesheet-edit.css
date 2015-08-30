@@ -1,9 +1,9 @@
-﻿#nameInputText, #scriptInputText, #triggersText, #executionTriggersText {
+﻿#nameInputText, #stylesheetInputText, #triggersText, #executionTriggersText {
 	font-weight: 500;
 	font-size: 200%;
 }
 
-#scriptEditCont {
+#stylesheetEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
 }
@@ -23,7 +23,7 @@ input {
 	width: 6em;
 }
 
-#scriptEditorCont {
+#stylesheetEditorCont {
 	margin-left: 30px;
 	width: 500px;
 	display: flex;
@@ -186,7 +186,7 @@ input {
 	font-size: 125%;
 }
 
-#scriptInputText {
+#stylesheetInputText {
 	padding-bottom: 10px;
 }
 
@@ -327,29 +327,33 @@ input {
 	width: 55px;
 }
 
-#triggersInfoCont {
+#triggersInfoCont, #toggleInfoCont {
 	cursor: pointer;
 	float: right;
 	margin-top: 7px;
 }
 
-#triggersInfoCont .active, #triggersInfoCont #triggersInfoTxtCont {
+#toggleInfoCont {
+	margin-top: 3px;
+}
+
+#triggersInfoCont .active, #triggersInfoCont #triggersInfoTxtCont, #toggleInfoCont .active, #toggleInfoCont #toggleInfoTxtCont {
 	display: none;
 }
 
-#triggersInfoCont .inactive {
+#triggersInfoCont .inactive, #toggleInfoCont .inactive {
 	display: block;
 }
 
-#triggersInfoCont:hover .active, #triggersInfoCont:hover #triggersInfoTxtCont {
+#triggersInfoCont:hover .active, #triggersInfoCont:hover #triggersInfoTxtCont, #toggleInfoCont:hover .active, #toggleInfoCont:hover #toggleInfoTxtCont {
 	display: block;
 }
 
-#triggersInfoCont:hover .inactive {
+#triggersInfoCont:hover .inactive, #toggleInfoCont:hover .inactive {
 	display:none;
 }
 
-#triggersInfoTxt {
+#triggersInfoTxt, #toggleInfoTxt {
 	position: absolute;
     z-index: 10000;
     margin-top: -24px;
@@ -360,4 +364,19 @@ input {
     padding: 5px;
 	font-size:15.6px;
 	font-weight:normal;
+}
+
+.toggleButtonOption {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	font-weight: 500;
+	font-size: 130%;
+	display: inline-block;
+}
+
+#toggleButtonsCont {	
+	display:flex;
+	flex-direction:row;
+	justify-content: space-around;
+	padding-bottom:20px;
 }

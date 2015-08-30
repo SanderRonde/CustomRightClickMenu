@@ -107,14 +107,14 @@ div.CodeMirror-overwrite div.CodeMirror-cursor {}
 .cm-link {text-decoration: underline;}
 .cm-strikethrough {text-decoration: line-through;}
 
-.cm-s-default .cm-keyword {color: rgb(0,0,255);}
-.cm-s-default .cm-atom {color: rgb(0,0,255);}
+.cm-s-default .cm-keyword,
+.cm-s-default .cm-atom {color: #0000FF;}
 .cm-s-default .cm-number {color: #164;}
 .cm-s-default .cm-def {color: #000;}
 .cm-s-default .cm-variable,
 .cm-s-default .cm-punctuation,
 .cm-s-default .cm-property,
-.cm-s-default .cm-operator {}
+.cm-s-default .cm-operator {color: #FF0000;}
 .cm-s-default .cm-variable-2 {color: #000;}
 .cm-s-default .cm-variable-3 {color: #000;}
 .cm-s-default .cm-comment {color: rgb(0,128,0);}
@@ -124,8 +124,8 @@ div.CodeMirror-overwrite div.CodeMirror-cursor {}
 .cm-s-default .cm-qualifier {color: #555;}
 .cm-s-default .cm-builtin {color: #30a;}
 .cm-s-default .cm-bracket {color: #000;}
-.cm-s-default .cm-tag {color: #170;}
-.cm-s-default .cm-attribute {color: #00c;}
+.cm-s-default .cm-tag {color: #800000;}
+.cm-s-default .cm-attribute {color: #FF0000;}
 .cm-s-default .cm-hr {color: #999;}
 .cm-s-default .cm-link {color: #00c;}
 
@@ -166,13 +166,15 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-link {text-decoration: underline;}
 .cm-strikethrough {text-decoration: line-through;}
 
-.cm-s-dark .cm-keyword {color: rgb(86,156,214);}
-.cm-s-dark .cm-atom {color: rgb(86,156,214);}
+.cm-s-dark .cm-keyword, 
+.cm-s-dark .cm-atom {}
 .cm-s-dark .cm-number {color: #FFF;}
 .cm-s-dark .cm-def {color: #FFF;}
 .cm-s-dark .cm-variable,
 .cm-s-dark .cm-punctuation,
-.cm-s-dark .cm-property,
+.cm-s-dark .cm-property {
+	color: #9CDCFE;
+}
 .cm-s-dark .cm-operator {}
 .cm-s-dark .cm-variable-2 {color: #FFF;}
 .cm-s-dark .cm-variable-3 {color: #FFF;}
@@ -183,7 +185,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-dark .cm-qualifier {color: #FFF;}
 .cm-s-dark .cm-builtin {color: #FFF;}
 .cm-s-dark .cm-bracket {color: #FFF;}
-.cm-s-dark .cm-tag {color: #170;}
+.cm-s-dark .cm-tag {color: #D7BA7D;}
 .cm-s-dark .cm-attribute {color: #00c;}
 .cm-s-dark .cm-hr {color: #999;}
 .cm-s-dark .cm-link {color: #00c;}

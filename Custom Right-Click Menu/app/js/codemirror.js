@@ -149,6 +149,9 @@
 		} else if (options.messageScriptEdit) {
 			window.scriptEdit.cmLoaded.apply(window.scriptEdit, [this]);
 		}
+		else if (options.messageStylesheetEdit) {
+			window.stylesheetEdit.cmLoaded.apply(window.stylesheetEdit, [this]);
+		}
 	}
 
 	// DISPLAY CONSTRUCTOR

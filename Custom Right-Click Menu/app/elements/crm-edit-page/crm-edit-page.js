@@ -60,6 +60,15 @@ Polymer({
 	isMenu: false,
 
 	/**
+	 * Whether the item is a stylesheet
+	 * 
+	 * @attribute isStylesheet
+	 * @type Boolean
+	 * @default false
+	 */
+	isStylesheet: false,
+
+	/**
 	 * The link item
 	 *
 	 * @attribute linkItem
@@ -209,20 +218,20 @@ Polymer({
 		console.trace();
 		var _this = this;
 		var valueStorer = {};
-		this.scriptItem = this.linkItem = this.dividerItem = this.menuItem = {};
+		this.scriptItem = this.linkItem = this.dividerItem = this.menuItem = this.stylesheetItem = {};
 		if ((valueStorer.isScript = this.item.type === 'script')) {
 			this.scriptItem = this.item;
-			valueStorer.isLink = valueStorer.isMenu = valueStorer.isDivider = false;
-		}
-		else if ((valueStorer.isLink = this.item.type === 'link')) {
+			valueStorer.isLink = valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
+		} else if ((valueStorer.isLink = this.item.type === 'link')) {
 			this.linkItem = this.item;
+			valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
+		} else if ((valueStorer.isStylesheet = this.item.type === 'stylesheet')) {
+			this.stylesheetItem = this.item;
 			valueStorer.isMenu = valueStorer.isDivider = false;
-		}
-		else if ((valueStorer.isMenu = this.item.type === 'menu')) {
+		} else if ((valueStorer.isMenu = this.item.type === 'menu')) {
 			this.menuItem = this.item;
 			valueStorer.isDivider = false;
-		}
-		else {
+		} else {
 			valueStorer.isDivider = true;
 			this.dividerItem = this.item;
 
@@ -233,6 +242,7 @@ Polymer({
 			_this.isLink = valueStorer.isLink;
 			_this.isMenu = valueStorer.isMenu;
 			_this.isDivider = valueStorer.isDivider;
+			_this.isStylesheet = valueStorer.isStylesheet;
 			$(_this).find('#editPageCont > :not([hidden])')[0].init();
 			_this.animateIn();
 		}, 300);

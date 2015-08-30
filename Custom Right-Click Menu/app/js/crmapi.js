@@ -18,7 +18,7 @@ function CrmAPIInit(item, id, clickData) {
 	/**
 	 * Handles any messages sent by the background page
 	 * 
-	 * @param {Object} message The message passed
+	 * @param {Object} message - The message passed
 	 */
 	function messageHandler(message) {
 		
@@ -34,7 +34,7 @@ function CrmAPIInit(item, id, clickData) {
 	 *	success or no success boolean.
 	 * 
 	 * @param {*} value The value to check
-	 * @param {string} type The type that the value should be
+	 * @param {string} type - The type that the value should be
 	 * @param {string|boolean} nameOrMode If a string, the name of the value to check (shown in error message),
 	 * if a boolean and true, turns on non-error-mode
 	 * @returns {boolean} Whether the type matches 
@@ -55,9 +55,9 @@ function CrmAPIInit(item, id, clickData) {
 	/**
 	 * Looks up the data at given path
 	 * 
-	 * @param {array} path The path at which to look
-	 * @param {Object} data The data to look at
-	 * @param {boolean} hold Whether to return the second-to-last instead of the last data
+	 * @param {array} path - The path at which to look
+	 * @param {Object} data - The data to look at
+	 * @param {boolean} hold - Whether to return the second-to-last instead of the last data
 	 * @returns {*} The found value
 	 */
 	function lookup(path, data, hold) {
@@ -215,7 +215,7 @@ function CrmAPIInit(item, id, clickData) {
 	/**
 	 * Adds an onchange listener for the storage, listens for a key if given
 	 * 
-	 * @param {function} listener The function to run
+	 * @param {function} listener - The function to run
 	 * @param {string} [key] The key to listen for
 	 */
 	this.storage.onChange = function(listener, key) {
@@ -609,7 +609,7 @@ function CrmAPIInit(item, id, clickData) {
 	/**
 	 * Gets the links of the node with ID nodeId
 	 * 
-	 * @param {number} nodeId 
+	 * @param {number} nodeId - 
 	 * @param {function} callback - A callback with an array of objects as parameters, each containg two keys: 
 	 *		newTab: Whether the link should open in a new tab or the current tab
 	 *		value: The URL of the link 

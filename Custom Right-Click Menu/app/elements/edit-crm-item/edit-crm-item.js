@@ -63,6 +63,15 @@ Polymer({
 	isScript: false,
 
 	/**
+	 * Whether the item is a stylesheet
+	 *
+	 * @attribute isStylesheet
+	 * @type Boolean
+	 * @default false
+	 */
+	isStylesheet: false,
+
+	/**
 	 * Whether the item is a divider
 	 *
 	 * @attribute isDivider
@@ -635,9 +644,14 @@ Polymer({
 			item = item.item;
 			window.options.item = item;
 			if (item.type === 'script') {
+				window.options.stylesheetItem = {};
 				window.options.scriptItem = item;
 			}
-			else {
+			else if (item.type === 'stylesheet') {
+				window.options.scriptItem = {};
+				window.options.stylesheetItem = item;
+			} else {
+				window.options.stylesheetItem = {};
 				window.options.scriptItem = {};
 			}
 			window.crmEditPage.init();
@@ -649,7 +663,7 @@ Polymer({
 
 	calculateType: function () {
 		this.type = this.item.type;
-		((this.isScript = this.item.type === 'script') && (this.isLink = this.isMenu = this.isDivider = false)) || ((this.isLink = this.item.type === 'link') && (this.isMenu = this.isDivider = false)) || ((this.isMenu = this.item.type === 'menu') && (this.isDivider = false)) || (this.isDivider = true);
+		((this.isScript = this.item.type === 'script') && (this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isLink = this.item.type === 'link') && (this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isStylesheet = this.item.type === 'stylesheet') && (this.isMenu = this.isDivider = false)) || ((this.isMenu = this.item.type === 'menu') && (this.isDivider = false)) || (this.isDivider = true);
 	},
 
 	typeIndicatorMouseOver: function () {

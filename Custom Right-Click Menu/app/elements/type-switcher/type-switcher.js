@@ -47,6 +47,15 @@
 	isMenu: false,
 
 	/**
+	 * Whether the item is a stylesheet
+	 * 
+	 * @attribute isStylesheet
+	 * @type Boolean
+	 * @default false
+	 */
+	isStylesheet: false,
+
+	/**
 	 * All types other than this one
 	 * 
 	 * @attribute remainingTypes
@@ -75,20 +84,22 @@
 
 	ready: function () {
 		if ((this.isScript = this.type === 'script')) {
-			this.isLink = this.isMenu = this.isDivider = false;
-			this.remainingTypes = ['link', 'divider', 'menu'];
+			this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false;
+			this.remainingTypes = ['link', 'divider', 'menu', 'stylesheet'];
 		}
 		else if ((this.isLink = this.type === 'link')) {
-			this.isMenu = this.isDivider = false;
-			this.remainingTypes = ['script', 'divider', 'menu'];
+			this.isMenu = this.isDivider = this.isStylesheet = false;
+			this.remainingTypes = ['script', 'divider', 'menu', 'stylesheet'];
 		}
-		else if ((this.isMenu = this.type === 'menu')) {
+		else if ((this.isStylesheet = this.type === 'stylesheet')) {
+			this.isDivider = this.isMenu = false;
+			this.remainingTypes = ['link', 'script', 'divider', 'menu'];
+		} else if ((this.isMenu = this.type === 'menu')) {
 			this.isDivider = false;
-			this.remainingTypes = ['link', 'script', 'divider'];
-		}
-		else {
+			this.remainingTypes = ['link', 'script', 'divider', 'stylesheet'];
+		} else {
 			this.isDivider = true;
-			this.remainingTypes = ['link', 'script', 'menu'];
+			this.remainingTypes = ['link', 'script', 'menu', 'stylesheet'];
 		}
 		this.$.typeTxt.innerHTML = this.type;
 	},
@@ -123,7 +134,7 @@
 		this.$.typeSwitchChoicesContainer.style.display = 'block';
 		this.$.typeSwitchArrow.style.transform = 'rotate(90deg)';
 		$(this.parentNode.parentNode).stop().animate({
-			height: 200
+			height: 250
 		}, {
 			easing: 'easeOutCubic',
 			duration: 300
@@ -193,6 +204,12 @@
 					break;
 				case 'menu':
 					item.value = '';
+					break;
+				case 'stylesheet':
+					//TODO this one as well
+					item.value = {
+						value: ''
+					};
 					break;
 			}
 		}

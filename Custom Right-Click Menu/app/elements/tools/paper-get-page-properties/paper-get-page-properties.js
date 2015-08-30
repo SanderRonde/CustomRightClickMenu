@@ -12,7 +12,7 @@
 
 	/**
 	 * Triggers an 'addsnippet' event and sends the snippet with it
-	 * @param {String} data The code to be sent in the snippet
+	 * @param {String} data - The code to be sent in the snippet
 	 */
 	triggerEvent: function(data) {
 		var event = new Event('addsnippet');

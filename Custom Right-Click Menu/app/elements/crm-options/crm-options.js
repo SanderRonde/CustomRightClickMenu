@@ -135,6 +135,8 @@ function addScript(items, toAdd, iterator) {
 	return items;
 }
 
+//TODO addCss
+
 /**
  * Adds a divider to the CRM
  *
@@ -275,7 +277,7 @@ function checkArray(toCheck) {
 			changes = true;
 			item.name = 'name';
 		}
-		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu')) {
+		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu' || item.type === 'stylesheet')) {
 			changes = true;
 			item.type = 'link';
 		}
@@ -459,6 +461,15 @@ Polymer({
 	scriptItem: {},
 
 	/**
+	 * The item to show, if it is a stylesheet
+	 *
+	 * @attribute stylesheetItem
+	 * @type Object
+	 * @default {}
+	 */
+	stylesheetItem: {},
+
+	/**
 	 * The tern server for the codeMirror editor
 	 *
 	 * @attribute ternServer
@@ -495,7 +506,7 @@ Polymer({
 	launchExternalEditorDialog: function () {
 		if (!window.doc.externalEditorDialogTrigger.disabled) {
 			window.externalEditor.init();
-			window.externalEditor.editingCRMItem = window.scriptEdit.item;
+			window.externalEditor.editingCRMItem = (window.scriptEdit ? window.scriptEdit.item : window.stylesheetEdit.item);
 			window.externalEditor.setupExternalEditing();
 		}
 	},

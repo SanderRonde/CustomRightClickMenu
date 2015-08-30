@@ -5,14 +5,18 @@
 		<link rel="stylesheet" href="crm-options.css" />
 		<div class="popupCont">
 			<div id="fullscreenEditor">
-				<div id="editorCurrentScriptTitle">[[scriptItem.name]]</div>
+				<div id="editorCurrentScriptTitle">
+					<span hidden$="[[!scriptItem]]">[[scriptItem.name]]</span>
+					<span hidden$="[[!stylesheetItem]]">[[stylesheetItem.name]]</span>
+				</div>
 				<div id="fullscreenEditorHorizontal">
 					<div id="editorToolsRibbon">
 						<div on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
-						<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
-						<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool"></paper-get-page-properties>
-						<div on-tap="launchSearchWebsiteTool" class="ribbonTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
-						<div on-tap="runJsLint" class="ribbonTool" id="runJsLintButton">Run JSLint</div>
+						<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
+						<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
+						<div on-tap="launchSearchWebsiteTool" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
+						<div on-tap="runJsLint" class="ribbonTool jsTool" id="runJsLintButton">Run JSLint</div>
+						<div on-tap="runCssLint" class="ribbonTool cssTool" id="runCssLintButton">Run CSSLint</div>
 					</div>
 				</div>
 			</div>
@@ -24,7 +28,6 @@
 				<div flex title class="title">Custom Right-Click Menu</div>
 			</paper-toolbar>
 			<div class="container">
-				<paper-button>YO</paper-button>
 				<br/>
 				<div class="titleCont">
 					<div class="bigTxt">
@@ -96,7 +99,7 @@
 				<div id="restoreChangesMain">
 					<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
 					<br/>
-					<div id="highlightChangedScript" class="restoreChangesOption">What script?</div>
+					<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
 					<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
 					<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
 					<div class="buttons">
@@ -127,39 +130,39 @@
 					</div>
 				</div>
 			</paper-dialog>
-			<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseScript" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-				<div id="chooseScriptMainDialog">
-					<h2>Choose the script you want to keep</h2>
-					<paper-radio-group selected="local" id="chooseScriptRadioGroup">
-						<paper-radio-button name="local">The script in this editor</paper-radio-button>
-						<paper-radio-button name="external">The script that is currently in the file</paper-radio-button>
+			<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<div id="chooseFileMainDialog">
+					<h2>Choose the file you want to keep</h2>
+					<paper-radio-group selected="local" id="chooseFileRadioGroup">
+						<paper-radio-button name="local">The file in this editor</paper-radio-button>
+						<paper-radio-button name="external">The file that is currently in the file</paper-radio-button>
 					</paper-radio-group>
 					<br/>
-					<paper-button raised id="chooseScriptMerge">Merge</paper-button>
+					<paper-button raised id="chooseFileMerge">Merge</paper-button>
 					<div class="buttons">
-						<paper-button class="closeChooseScriptDialog">Cancel</paper-button>
-						<paper-button id="chooseScriptChooseFirst" dialog-confirm>Confirm</paper-button>
+						<paper-button class="closeChooseFileDialog">Cancel</paper-button>
+						<paper-button id="chooseFileChooseFirst" dialog-confirm>Confirm</paper-button>
 					</div>
 				</div>
-				<div id="chooseScriptMerger">
-					<h1>Merge the script to how you want it</h1>
-					<div id="chooseScriptMergerText">
-						<div id="chooseScriptCurrentTxt">CRM Editor</div>
-						<div id="chooseScriptResultTxt">Result</div>
-						<div id="chooseScriptNewTxt">File</div>
+				<div id="chooseFileMerger">
+					<h1>Merge the file to how you want it</h1>
+					<div id="chooseFileMergerText">
+						<div id="chooseFileCurrentTxt">CRM Editor</div>
+						<div id="chooseFileResultTxt">Result</div>
+						<div id="chooseFileNewTxt">File</div>
 					</div>
-					<div id="chooseScriptMergerEditor">
-						<div id="chooseScriptMergerPlaceholder">
+					<div id="chooseFileMergerEditor">
+						<div id="chooseFileMergerPlaceholder">
 							<center-element fullscreen="true">
 								<paper-spinner active></paper-spinner>
 							</center-element>
 						</div>
-						<div id="chooseScriptmergerContainer"></div>
+						<div id="chooseFilemergerContainer"></div>
 					</div>
 					<div class="buttons">
-						<paper-button class="closeChooseScriptDialog">Cancel</paper-button>
-						<paper-button id="chooseScriptStopMerging">Stop merging</paper-button>
-						<paper-button id="chooseScriptChooseMerge" dialog-confirm>Confirm</paper-button>
+						<paper-button class="closeChooseFileDialog">Cancel</paper-button>
+						<paper-button id="chooseFileStopMerging">Stop merging</paper-button>
+						<paper-button id="chooseFileChooseMerge" dialog-confirm>Confirm</paper-button>
 					</div>
 				</div>
 			</paper-dialog>

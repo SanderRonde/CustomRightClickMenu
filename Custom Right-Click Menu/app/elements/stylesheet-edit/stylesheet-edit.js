@@ -1,5 +1,5 @@
 ﻿Polymer({
-	is: 'script-edit',
+	is: 'stylesheet-edit',
 
 	//#region PolymerProperties
 	/**
@@ -137,15 +137,6 @@
 	settingsShadow: null,
 
 	/**
-     * The new settings object, to be written on save
-     * 
-     * @attribute newSettings
-     * @type Object
-     * @default {}
-     */
-	newSettings: {},
-
-	/**
      * The editor's settings before going to the settings page
      * 
      * @attribute unchangedEditorSettings
@@ -208,6 +199,22 @@
 	 * @default null
 	 */
 	editorPlaceHolderAnimation: null,
+
+	properties: {
+		/**
+		 * The new settings object, to be written on save
+		 * 
+		 * @attribute newSettings
+		 * @type Object
+		 * @default {}
+		 */
+		newSettings: {
+			type: Object,
+			value: {},
+			notify: true
+		}
+	},
+
 	//#endregion
 
 	//#endregion
@@ -231,7 +238,7 @@
 	 * Clears the trigger that is currently clicked on
 	 * @param {event} The - event that triggers this (click event)
 	 */
-	clearTrigger: function(e) {
+	clearTrigger: function (e) {
 		var target = e.target;
 		if (target.tagName === 'PAPER-ICON-BUTTON') {
 			target = target.children[0];
@@ -241,7 +248,7 @@
 		if (executionTriggers.length === 1) {
 			executionTriggers[0].style.display = 'none';
 		} else {
-			executionTriggers.forEach(function(item) {
+			executionTriggers.forEach(function (item) {
 				item.style.display = 'block';
 			});
 		}
@@ -250,10 +257,10 @@
 	/*
 	 * Adds a trigger to the list of triggers for the script
 	 */
-	addTrigger: function() {
+	addTrigger: function () {
 		var _this = this;
 		var newEl = $('<div class="executionTrigger"><paper-input class="triggerInput" value="example.com"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
-		newEl.find('paper-icon-button').click(function(e) {
+		newEl.find('paper-icon-button').click(function (e) {
 			_this.clearTrigger.apply(_this, [e]);
 		});
 		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
@@ -273,24 +280,9 @@
 	},
 
 	/*
-	 * Fills the editor-tools-ribbon on the left of the editor with elements
-	 * @param {element} The - ribbon element to fill
-	 */
-	initToolsRibbon: function () {
-		var _this = this;
-		//TODO crmApi.getSelection()
-		window.options.$.paperLibrariesSelector.init();
-		window.options.$.paperGetPageProperties.init();
-		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function (snippet) {
-			_this.insertSnippet(_this, snippet.snippet);
-		});
-		//Use CRMAPI
-	},
-
-	/*
 	 * Pops in the ribbons with an animation
 	 */
-	popInRibbons: function() {
+	popInRibbons: function () {
 		//Introduce title at the top
 		var scriptTitle = window.options.$.editorCurrentScriptTitle;
 		scriptTitle.style.display = 'block';
@@ -306,7 +298,6 @@
 			scriptTitleAnimation[0].marginLeft = '-200px';
 			scriptTitleAnimation[1].marginLeft = 0;
 
-			this.initToolsRibbon();
 			setTimeout(function () {
 				window.doc.editorToolsRibbon.style.display = 'block';
 				window.doc.editorToolsRibbon.animate([
@@ -318,7 +309,7 @@
 				], {
 					duration: 500,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-				}).onfinish = function() {
+				}).onfinish = function () {
 					window.doc.editorToolsRibbon.style.marginLeft = 0;
 					window.doc.editorToolsRibbon.classList.add('visible');
 				};
@@ -329,7 +320,7 @@
 				height: '50px'
 			}, {
 				duration: 500,
-				easing: $.bez([0.215,0.610,0.355,1.000]),
+				easing: $.bez([0.215, 0.610, 0.355, 1.000]),
 				step: function (now) {
 					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
 				}
@@ -337,7 +328,7 @@
 			scriptTitle.animate(scriptTitleAnimation, {
 				duration: 500,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
+			}).onfinish = function () {
 				scriptTitle.style.marginTop = 0;
 				if (scriptTitleAnimation[0].marginLeft !== undefined) {
 					scriptTitle.style.marginLeft = 0;
@@ -349,7 +340,7 @@
 	/*
 	 * Pops in only the tools ribbon
 	 */
-	popInToolsRibbon: function() {
+	popInToolsRibbon: function () {
 		window.doc.editorToolsRibbon.style.display = 'block';
 		window.doc.editorToolsRibbon.animate([
 			{
@@ -360,7 +351,7 @@
 		], {
 			duration: 800,
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-		}).onfinish = function() {
+		}).onfinish = function () {
 			this.effect.target.style.marginLeft = 0;
 		}
 	},
@@ -378,7 +369,7 @@
 		], {
 			duration: 800,
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-		}).onfinish = function() {
+		}).onfinish = function () {
 			this.effect.target.style.marginLeft = '-200px';
 			this.effect.target.classList.remove('visible');
 		};
@@ -387,7 +378,7 @@
 	/*
 	 * Pops out the ribbons with an animation
 	 */
-	popOutRibbons: function() {
+	popOutRibbons: function () {
 		var scriptTitle = window.options.$.editorCurrentScriptTitle;
 		var toolsRibbon = window.options.$.editorToolsRibbon;
 		if (window.options.settings.editor.showToolsRibbon && toolsRibbon && toolsRibbon.classList.contains('visible')) {
@@ -402,7 +393,7 @@
 			], {
 				duration: 800,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
+			}).onfinish = function () {
 				scriptTitle.style.marginTop = '-51px';
 				scriptTitle.style.marginLeft = '-200px';
 			};
@@ -428,7 +419,7 @@
 			}, {
 				duration: 800,
 				easing: $.bez([0.215, 0.610, 0.355, 1.000]),
-				step: function(now) {
+				step: function (now) {
 					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
 				}
 			});
@@ -441,7 +432,7 @@
 			], {
 				duration: 800,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
+			}).onfinish = function () {
 				this.effect.target.remove();
 				scriptTitle.style.display = 'none';
 				toolsRibbon.style.display = 'none';
@@ -454,7 +445,7 @@
 	/*
 	 * Enters fullscreen mode for the editor
 	 */
-	enterFullScreen: function() {
+	enterFullScreen: function () {
 		var _this = this;
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
 		var editorCont = window.doc.fullscreenEditor;
@@ -539,7 +530,7 @@
 	/*
 	 * Toggles fullscreen mode for the editor
 	 */
-	toggleFullScreen: function() {
+	toggleFullScreen: function () {
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
 		this.fullscreen = !this.fullscreen;
 	},
@@ -549,7 +540,7 @@
 	/*
 	 * Shows the options for the editor
 	 */
-	showOptions: function() {
+	showOptions: function () {
 		var _this = this;
 		this.unchangedEditorSettings = jQuery.extend(true, {}, window.options.settings.editor);
 		var editorWidth = $('.CodeMirror').width();
@@ -626,7 +617,7 @@
 	/*
 	 * Toggles the editor's options
 	 */
-	toggleOptions: function() {
+	toggleOptions: function () {
 		(this.optionsShown ? this.hideOptions() : this.showOptions());
 		this.optionsShown = !this.optionsShown;
 	},
@@ -636,7 +627,7 @@
 	 * Is triggered when the option "Execute when visiting specified sites" is 
 	 * selected in the triggers dropdown menu and animates the specified sites in
 	 */
-	selectorStateChange: function(state) {
+	selectorStateChange: function (state) {
 		var _this = this;
 		var show = (state === 2 || state === '2');
 		if (show !== this.showTriggers) {
@@ -664,7 +655,7 @@
 						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
 						fill: 'both'
 					});
-					setTimeout(function() {
+					setTimeout(function () {
 						_this.dropdownToRightAnimation = domElement.animate([
 							{
 								marginLeft: '-110%'
@@ -676,7 +667,7 @@
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
 							fill: 'both'
 						});
-						setTimeout(function() {
+						setTimeout(function () {
 							_this.dropdownToRightAnimation.onfinish = function () {
 								if (this.hide) {
 									_this.dropdownToTopAnimation.reverse();
@@ -710,7 +701,7 @@
 						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
 						fill: 'both'
 					});
-					setTimeout(function() {
+					setTimeout(function () {
 						_this.dropdownToTopAnimation = domElement.animate([
 							{
 								height: originalHeight
@@ -722,10 +713,10 @@
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
 							fill: 'both'
 						});
-						setTimeout(function() {
+						setTimeout(function () {
 							_this.dropdownToTopAnimation.hide = true;
 							_this.dropdownToTopAnimation.show = false;
-							_this.dropdownToTopAnimation.onfinish = function() {
+							_this.dropdownToTopAnimation.onfinish = function () {
 								if (this.show) {
 									_this.dropdownToRightAnimation.reverse();
 								}
@@ -748,7 +739,7 @@
 	 * icons' positions
 	 * @param {boolean} Whether - the vertical scrollbar is now visible
 	 */
-	scrollbarsUpdate: function(vertical) {
+	scrollbarsUpdate: function (vertical) {
 		if (vertical !== this.verticalVisible) {
 			if (vertical) {
 				this.buttonsContainer.style.right = '29px';
@@ -787,7 +778,7 @@
 	/*
 	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
-	fillEditorOptions: function() {
+	fillEditorOptions: function () {
 		var settingsContainer = $('<div id="settingsContainer"></div>').appendTo(this.editorOptions);
 		$('<div id="editorSettingsTxt">Editor Settings</div>').appendTo(settingsContainer);
 
@@ -803,17 +794,17 @@
 
 		//The white theme option
 		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.options.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
-			.click(function() {
+			.click(function () {
 				var themes = this.parentNode.children;
 				themes[0].classList.add('currentTheme');
 				themes[1].classList.remove('currentTheme');
 				window.options.settings.editor.theme = 'white';
 				window.options.upload();
 			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
-		
+
 		//The dark theme option
 		$('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.options.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
-			.click(function() {
+			.click(function () {
 				var themes = this.parentNode.children;
 				themes[0].classList.remove('currentTheme');
 				themes[1].classList.add('currentTheme');
@@ -826,9 +817,9 @@
 			'Editor zoom percentage:' +
 			'</div>').appendTo(settingsContainer);
 
-		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"></paper-input>').on('keypress change', function() {
+		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"></paper-input>').on('keypress change', function () {
 			var _this = this;
-			setTimeout(function() {
+			setTimeout(function () {
 				window.options.settings.editor.zoom = _this.value;
 			}, 0);
 		}).appendTo(fontSize);
@@ -844,7 +835,7 @@
 			'<br>').appendTo(settingsContainer);
 
 		//The main checkbox for the tabs or spaces option
-		$('<paper-checkbox ' + (window.options.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function() {
+		$('<paper-checkbox ' + (window.options.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function () {
 			window.options.settings.editor.useTabs = !window.options.settings.editor.useTabs;
 			window.options.upload();
 		}).appendTo(tabsOrSpaces.find('#editorTabsOrSpacesCheckbox'));
@@ -861,9 +852,9 @@
 			'<br>').appendTo(settingsContainer);
 
 		//The main input for the size of tabs option
-		tabSize.find('input').change(function() {
+		tabSize.find('input').change(function () {
 			var input = $(this);
-			setTimeout(function() {
+			setTimeout(function () {
 				window.options.settings.editor.tabSize = input.val();
 				window.options.upload();
 			}, 0);
@@ -879,65 +870,16 @@
 			'</div><br>').appendTo(settingsContainer);
 
 		//The main checkbox for the line numbers option
-		$('<paper-checkbox ' + (window.options.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
+		$('<paper-checkbox ' + (window.options.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function () {
 			window.options.settings.editor.lineNumbers = !window.options.settings.editor.lineNumbers;
 			window.options.upload();
 		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
-
-		//The edit jsLint settings option
-		var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
-
-		var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
-
-		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.options.jsLintGlobals.join(',') + '">').keypress(function () {
-			var _this = this;
-			setTimeout(function () {
-				var val = _this.value;
-				var globals = val.split(',');
-				chrome.storage.local.set({
-					jsLintGlobals: globals
-				});
-				window.options.jsLintGlobals = globals;
-			}, 0);
-		}).appendTo(jsLintGlobalsCont);
-	},
-
-	/*
-	 * Initializes the keybindings for the editor
-	 */
-	initTernKeyBindings: function () {
-		this.editor.setOption('extraKeys', {
-			"Ctrl-Space": function (cm) {
-				window.options.ternServer.complete(cm);
-			},
-			"Ctrl-I": function (cm) {
-				window.options.ternServer.showType(cm);
-			},
-			"Ctrl-O": function (cm) {
-				window.options.ternServer.showDocs(cm);
-			},
-			"Alt-.": function (cm) {
-				window.options.ternServer.jumpToDef(cm);
-			},
-			"Alt-,": function (cm) {
-				window.options.ternServer.jumpBack(cm);
-			},
-			"Ctrl-Q": function (cm) {
-				window.options.ternServer.rename(cm);
-			},
-			"Ctrl-.": function (cm) {
-				window.options.ternServer.selectName(cm);
-			}
-		});
-		this.editor.on('cursorActivity', function (cm) {
-			window.options.ternServer.updateArgHints(cm);
-		});
 	},
 
 	/*
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
-	cmLoaded: function(element) {
+	cmLoaded: function (element) {
 		var _this = this;
 		this.editor = element;
 		element.display.wrapper.classList.add('script-edit-codeMirror');
@@ -949,10 +891,10 @@
 		var $editorOptionsContainer = $('<div id="editorOptionsContainer"></div>').appendTo($shadow);
 		this.editorOptions = $('<paper-material id="editorOptions" elevation="5"></paper-material>').appendTo($editorOptionsContainer);
 		this.fillEditorOptions();
-		this.fullscreenEl = $('<div id="editorFullScreen"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg></div>').appendTo(this.buttonsContainer).click(function() {
+		this.fullscreenEl = $('<div id="editorFullScreen"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg></div>').appendTo(this.buttonsContainer).click(function () {
 			_this.toggleFullScreen.apply(_this);
 		})[0];
-		this.settingsEl = $('<div id="editorSettings"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>').appendTo(this.buttonsContainer).click(function() {
+		this.settingsEl = $('<div id="editorSettings"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>').appendTo(this.buttonsContainer).click(function () {
 			_this.toggleOptions.apply(_this);
 		})[0];
 		if (element.getOption('readOnly') === 'nocursor') {
@@ -983,12 +925,11 @@
 					duration: 300,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				});
-				this.editorPlaceHolderAnimation.onfinish = function() {
+				this.editorPlaceHolderAnimation.onfinish = function () {
 					this.effect.target.style.display = 'none';
 				}
 			}
 		}
-		this.initTernKeyBindings();
 	},
 
 	/*
@@ -1000,30 +941,26 @@
 		this.editorWidth = placeHolder.width();
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
+			mode: 'css',
 			value: content || this.item.value.value,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
-			mode: 'javascript',
 			readOnly: (disable ? 'nocursor' : false),
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
 			indentWithTabs: window.options.settings.editor.useTabs,
-			messageScriptEdit: true,
-			gutters: ['CodeMirror-lint-markers'],
-			lint: window.CodeMirror.lint.javascript
+			messageStylesheetEdit: true,
+			extraKeys: { 'Ctrl-Space': 'autocomplete' }
 		});
 	},
 
 	init: function () {
 		//TODO make saving and cancelling changes possible
 		var _this = this;
-		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
-			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
-		});
-		document.body.classList.remove('editingStylesheet');
-		document.body.classList.add('editingScript');
+		document.body.classList.remove('editingScript');
+		document.body.classList.add('editingStylesheet');
 		this.newSettings = $.extend(true, {}, this.item);
-		window.scriptEdit = this;
+		window.stylesheetEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
 		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');

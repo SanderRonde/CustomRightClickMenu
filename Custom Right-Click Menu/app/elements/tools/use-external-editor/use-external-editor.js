@@ -124,7 +124,7 @@ Polymer({
 	/*
 	 * Notifies the user if something went wrong
 	 *
-	 * @param {string} error What went wrong
+	 * @param {string} error - What went wrong
 	 */
 	errorHandler: function () {
 		window.doc.externalEditorErrorToast.show();
@@ -145,8 +145,14 @@ Polymer({
 	updateFromExternal: function(msg) {
 		if (this.connection.id === msg.connectionId) {
 			console.log('update');
-			window.scriptEdit.newSettings.value.value = msg.code;
-			window.scriptEdit.editor.setValue(msg.code);
+			if (window.options.scriptItem !== {}) {
+				window.scriptEdit.newSettings.value.value = msg.code;
+				window.scriptEdit.editor.setValue(msg.code);
+			}
+			else {
+				window.stylesheetEdit.newSettings.value.value = msg.code;
+				window.stylesheetEdit.editor.setValue(msg.code);
+			}
 		}
 	},
 
@@ -162,7 +168,12 @@ Polymer({
 				action: 'disconnect'
 			});
 		} catch (e) { }
-		window.scriptEdit.reloadEditor();
+		if (window.options.scriptItem !== {}) {
+			window.scriptEdit.reloadEditor();
+		}
+		else {
+			window.stylesheetItem.reloadEditor();
+		}
 	},
 
 	createEditingOverlay: function () {
@@ -253,15 +264,19 @@ Polymer({
 				});
 			}).appendTo($cont);
 
-		$toolsCont.appendTo($(window.scriptEdit.editor.display.wrapper).find('.CodeMirror-scroll'))[0].animate([
-			{
-				bottom: '-152px',
-				right: '-350px'
-			}, {
-				bottom: 0,
-				right: 0
-			}
-		], {
+		
+		$toolsCont.appendTo(
+			$((window.options.scriptItem !== {} ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
+			.find('.CodeMirror-scroll'))[0]
+			.animate([
+				{
+					bottom: '-152px',
+					right: '-350px'
+				}, {
+					bottom: 0,
+					right: 0
+				}
+			], {
 			duration: 300,
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 		}).onfinish = function() {
@@ -276,7 +291,7 @@ Polymer({
 		if (this.connection.connected) {
 			var item = this.editingCRMItem;
 			var tempListener = function(msg) {
-				if (msg.status === 'connected' && msg.action === 'setupScript' && msg.connectionId === _this.connection.id) {
+				if (msg.status === 'connected' && (msg.action === 'setupScript' || msg.action === 'setupStylesheet') && msg.connectionId === _this.connection.id) {
 					if (!msg.existed) {
 						item.file = {
 							id: msg.id,
@@ -287,16 +302,20 @@ Polymer({
 					_this.connection.filePath = msg.path;
 					options.upload();
 					_this.connection.fileConnected = true;
-					window.scriptEdit.reloadEditor(true);
+					console.log(window.options.scriptItem);
+					(window.options.scriptItem !== {} ? console.log('this one') && window.scriptEdit.reloadEditor(true) : console.log('other') && window.stylesheetEdit.reloadEditor(true));
 					_this.createEditingOverlay();
 					_this.appPort.onMessage.removeListener(tempListener);
 				}
 			}
 			this.appPort.onMessage.addListener(tempListener);
+			console.log(item);
+			console.log(item.file);
+			console.log(item.file.id);
 			if (item.file) {
 				this.appPort.postMessage({
 					status: 'connected',
-					action: 'setupScript',
+					action: (window.options.stylesheetItem ? 'setupStylesheet' : 'setupScript'),
 					name: item.name,
 					code: item.value.value,
 					id: item.file.id
@@ -304,7 +323,7 @@ Polymer({
 			} else {
 				this.appPort.postMessage({
 					status: 'connected',
-					action: 'setupScript',
+					action: (window.options.stylesheetItem ? 'setupStylesheet' : 'setupScript'),
 					name: item.name,
 					code: item.value.value
 				});
@@ -331,22 +350,28 @@ Polymer({
 
 	appMessageHandler: function(msg) {
 		switch (msg.action) {
-		case 'chooseScript':
+		case 'chooseFile':
 			var _this = this;
-			window.doc.externalEditorChooseScript.init(msg.local, msg.external, function (result) {
+			window.doc.externalEditorChooseFile.init(msg.local, msg.external, function (result) {
 				if (result !== false) {
-					window.scriptEdit.newSettings.value.value = result;
-					window.scriptEdit.editor.setValue(result);
+					if (window.options.scriptItem !== {}) {
+						window.scriptEdit.newSettings.value.value = result;
+						window.scriptEdit.editor.setValue(result);
+					}
+					else {
+						window.stylesheetEdit.newSettings.value.value = result;
+						window.stylesheetEdit.editor.setValue(result);
+					}
 					_this.appPort.postMessage({
 						status: 'connected',
-						action: 'chooseScript',
+						action: 'chooseFile',
 						code: result
 					});
 				} else {
-					window.doc.externalEditorChooseScript.close();
+					window.doc.externalEditorChooseFIle.close();
 				}
 			});
-			window.doc.externalEditorChooseScript.open();
+			window.doc.externalEditorChooseFile.open();
 			break;
 		case 'updateFromApp':
 			this.updateFromExternal(msg);
@@ -357,7 +382,7 @@ Polymer({
 	/*
 	 * Takes actions based on what messages are received from the other extension
 	 * 
-	 * @param {object} msg The message passed along
+	 * @param {object} msg - The message passed along
 	 */
 	messageHandler: function (msg) {
 		switch (msg.status) {
@@ -384,7 +409,7 @@ Polymer({
 		console.log(this.connectionPromise);
 		var _this = this;
 		if (!this.appPort) {
-			this.appPort = chrome.runtime.connect('gjmgdmomggpaiecllfmfgbbfhnlpbpic'); //gbfbinhlfpjckadedmfinepfioodgcll');
+			this.appPort = chrome.runtime.connect('gbfbinhlfpjckadedmfinepfioodgcll'); //gjmgdmomggpaiecllfmfgbbfhnlpbpic');
 			this.connection.status = 'connecting';
 			this.connection.stage = 0;
 			this.connection.fileConnected = false;
@@ -481,45 +506,45 @@ Polymer({
 				});
 			}
 		}
-		window.doc.externalEditorChooseScript.init = function(local, file, callback) {
-			window.doc.externalEditorChooseScript.local = local;
-			window.doc.externalEditorChooseScript.file = file;
-			window.doc.externalEditorChooseScript.callback = callback;
+		window.doc.externalEditorChooseFile.init = function(local, file, callback) {
+			window.doc.externalEditorChooseFile.local = local;
+			window.doc.externalEditorChooseFile.file = file;
+			window.doc.externalEditorChooseFile.callback = callback;
 			_this.editor = null;
-			window.doc.chooseScriptmergerContainer.innerHTML = '';
+			window.doc.chooseFilemergerContainer.innerHTML = '';
 			document.body.style.overflow = 'auto';
-			window.doc.chooseScriptMainDialog.style.position = 'static';
-			window.doc.chooseScriptMainDialog.style.display = 'block';
-			window.doc.chooseScriptMerger.style.display = 'none';
+			window.doc.chooseFileMainDialog.style.position = 'static';
+			window.doc.chooseFileMainDialog.style.display = 'block';
+			window.doc.chooseFileMerger.style.display = 'none';
 
 			if (_this.dialogStyleProperties) {
-				window.doc.externalEditorChooseScript.style.width = _this.dialogStyleProperties.width + 'px';
-				window.doc.externalEditorChooseScript.style.height = _this.dialogStyleProperties.height + 'px';
-				window.doc.externalEditorChooseScript.style.top = _this.dialogStyleProperties.top + 'px';
-				window.doc.externalEditorChooseScript.style.left = _this.dialogStyleProperties.left + 'px';
+				window.doc.externalEditorChooseFile.style.width = _this.dialogStyleProperties.width + 'px';
+				window.doc.externalEditorChooseFile.style.height = _this.dialogStyleProperties.height + 'px';
+				window.doc.externalEditorChooseFile.style.top = _this.dialogStyleProperties.top + 'px';
+				window.doc.externalEditorChooseFile.style.left = _this.dialogStyleProperties.left + 'px';
 			}
 		}
 		window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
 			_this.establishConnection(true);
 			window.doc.externalEditorErrorToast.hide();
 		});
-		window.doc.chooseScriptChooseFirst.addEventListener('click', function () {
-			if (window.doc.chooseScriptRadioGroup.selected === 'local') {
-				window.doc.externalEditorChooseScript.callback(window.doc.externalEditorChooseScript.local);
+		window.doc.chooseFileChooseFirst.addEventListener('click', function () {
+			if (window.doc.chooseFileRadioGroup.selected === 'local') {
+				window.doc.externalEditorChooseFile.callback(window.doc.externalEditorChooseFile.local);
 			} else {
-				window.doc.externalEditorChooseScript.callback(window.doc.externalEditorChooseScript.file);
+				window.doc.externalEditorChooseFile.callback(window.doc.externalEditorChooseFile.file);
 			}
 		});
-		window.doc.chooseScriptChooseMerge.addEventListener('click', function() {
-			window.doc.externalEditorChooseScript.callback(_this.editor.edit.getValue());
+		window.doc.chooseFileChooseMerge.addEventListener('click', function() {
+			window.doc.externalEditorChooseFile.callback(_this.editor.edit.getValue());
 		});
-		$('.closeChooseScriptDialog').click(function() {
-			window.doc.externalEditorChooseScript.callback(false);
+		$('.closeChooseFileDialog').click(function() {
+			window.doc.externalEditorChooseFile.callback(false);
 		});
-		window.doc.chooseScriptMerge.addEventListener('click', function () {
+		window.doc.chooseFileMerge.addEventListener('click', function () {
 			//Animate the comparison in google-style
-			var dialogRect = window.doc.externalEditorChooseScript.getBoundingClientRect();
-			var dialogStyle = window.doc.externalEditorChooseScript.style;
+			var dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
+			var dialogStyle = window.doc.externalEditorChooseFile.style;
 
 			_this.dialogStyleProperties = dialogRect;
 
@@ -527,12 +552,12 @@ Polymer({
 			dialogStyle.width = dialogRect.width + 'px';
 			dialogStyle.height = dialogRect.height + 'px';
 			document.body.style.overflow = 'hidden';
-			window.doc.chooseScriptMainDialog.style.position = 'absolute';
+			window.doc.chooseFileMainDialog.style.position = 'absolute';
 
 			if (_this.dialogMainDivAnimationHide) {
 				_this.dialogMainDivAnimationHide.play();
 			} else {
-				_this.dialogMainDivAnimationHide = window.doc.chooseScriptMainDialog.animate([
+				_this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
 					{
 						marginTop: '20px',
 						opacity: 1
@@ -545,14 +570,14 @@ Polymer({
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				});
 				_this.dialogMainDivAnimationHide.onfinish = function() {
-					window.doc.chooseScriptMainDialog.style.display = 'none';
-					window.doc.chooseScriptMainDialog.style.marginTop = 0;
-					window.doc.chooseScriptMainDialog.style.opacity = 1;
+					window.doc.chooseFileMainDialog.style.display = 'none';
+					window.doc.chooseFileMainDialog.style.marginTop = 0;
+					window.doc.chooseFileMainDialog.style.opacity = 1;
 
 					if (_this.dialogExpansionAnimation) {
 						_this.dialogExpansionAnimation.play();
 					} else {
-						_this.dialogExpansionAnimation = window.doc.externalEditorChooseScript.animate([
+						_this.dialogExpansionAnimation = window.doc.externalEditorChooseFile.animate([
 							{
 								width: dialogRect.width,
 								height: dialogRect.height,
@@ -583,11 +608,11 @@ Polymer({
 							dialogStyle.left = 0;
 							dialogStyle.margin = 0;
 
-							window.doc.chooseScriptMerger.style.display = 'flex';
+							window.doc.chooseFileMerger.style.display = 'flex';
 							if (_this.dialogComparisonDivAnimationShow) {
 								_this.dialogComparisonDivAnimationShow.play();
 							} else {
-								_this.dialogComparisonDivAnimationShow = window.doc.chooseScriptMerger.animate([
+								_this.dialogComparisonDivAnimationShow = window.doc.chooseFileMerger.animate([
 								{
 									marginTop: '70px',
 									opacity: 0
@@ -599,21 +624,21 @@ Polymer({
 									esing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 								});
 								_this.dialogComparisonDivAnimationShow.onfinish = function() {
-									window.doc.chooseScriptMerger.style.marginTop = 0;
-									window.doc.chooseScriptMerger.style.opacity = 1;
+									window.doc.chooseFileMerger.style.marginTop = 0;
+									window.doc.chooseFileMerger.style.opacity = 1;
 
 									if (!_this.editor) {
 										setTimeout(function() {
-											_this.editor = new window.CodeMirror.MergeView(window.doc.chooseScriptmergerContainer, {
+											_this.editor = new window.CodeMirror.MergeView(window.doc.chooseFilemergerContainer, {
 												lineNumbers: true,
 												scrollbarStyle: 'simple',
 												lineWrapping: true,
 												theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 												indentUnit: window.options.settings.editor.tabSize,
 												indentWithTabs: window.options.settings.editor.useTabs,
-												value: window.doc.externalEditorChooseScript.local,
-												origLeft: window.doc.externalEditorChooseScript.local,
-												origRight: window.doc.externalEditorChooseScript.file,
+												value: window.doc.externalEditorChooseFile.local,
+												origLeft: window.doc.externalEditorChooseFile.local,
+												origRight: window.doc.externalEditorChooseFile.file,
 												connect: 'connect',
 												messageExternal: true
 											});
@@ -626,11 +651,11 @@ Polymer({
 				};
 			}
 		});
-		window.doc.chooseScriptStopMerging.addEventListener('click', function() {
+		window.doc.chooseFileStopMerging.addEventListener('click', function() {
 			if (_this.dialogComparisonDivAnimationHide) {
 				_this.dialogComparisonDivAnimationHide.play();
 			} else {
-				_this.dialogComparisonDivAnimationHide = window.doc.chooseScriptMerger.animate([
+				_this.dialogComparisonDivAnimationHide = window.doc.chooseFileMerger.animate([
 					{
 						marginTop: 0,
 						opacity: 1
@@ -643,12 +668,12 @@ Polymer({
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				});
 				_this.dialogComparisonDivAnimationHide.onfinish = function () {
-					window.doc.chooseScriptMerger.style.display = 'none';
+					window.doc.chooseFileMerger.style.display = 'none';
 
 					if (_this.dialogContractionAniation) {
 						_this.dialogContractionAniation.play();
 					} else {
-						_this.dialogContractionAniation = window.doc.externalEditorChooseScript.animate([
+						_this.dialogContractionAniation = window.doc.externalEditorChooseFile.animate([
 						{
 							width: '100vw',
 							height: '100vh',
@@ -667,19 +692,19 @@ Polymer({
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 						});
 						_this.dialogContractionAniation.onfinish = function() {
-							window.doc.externalEditorChooseScript.style.width = _this.dialogStyleProperties.width + 'px';
-							window.doc.externalEditorChooseScript.style.height = _this.dialogStyleProperties.height + 'px';
-							window.doc.externalEditorChooseScript.style.top = _this.dialogStyleProperties.top + 'px';
-							window.doc.externalEditorChooseScript.style.left = _this.dialogStyleProperties.left + 'px';
+							window.doc.externalEditorChooseFile.style.width = _this.dialogStyleProperties.width + 'px';
+							window.doc.externalEditorChooseFile.style.height = _this.dialogStyleProperties.height + 'px';
+							window.doc.externalEditorChooseFile.style.top = _this.dialogStyleProperties.top + 'px';
+							window.doc.externalEditorChooseFile.style.left = _this.dialogStyleProperties.left + 'px';
 
 							document.body.style.overflow = 'auto';
-							window.doc.chooseScriptMainDialog.style.position = 'static';
+							window.doc.chooseFileMainDialog.style.position = 'static';
 
-							window.doc.chooseScriptMainDialog.style.display = 'block';
+							window.doc.chooseFileMainDialog.style.display = 'block';
 							if (_this.dialogMainDivAnimationShow) {
 								_this.dialogMainDivAnimationShow.play();
 							} else {
-								_this.dialogMainDivAnimationShow = window.doc.chooseScriptMainDialog.animate([
+								_this.dialogMainDivAnimationShow = window.doc.chooseFileMainDialog.animate([
 									{
 										marginTop: '100px',
 										opacity: 0
@@ -692,8 +717,8 @@ Polymer({
 									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 								});
 								_this.dialogMainDivAnimationShow.onfinish = function() {
-									window.doc.chooseScriptMainDialog.style.marginTop = '20px';
-									window.doc.chooseScriptMainDialog.style.opacity = 1;
+									window.doc.chooseFileMainDialog.style.marginTop = '20px';
+									window.doc.chooseFileMainDialog.style.opacity = 1;
 								};
 							};
 						}

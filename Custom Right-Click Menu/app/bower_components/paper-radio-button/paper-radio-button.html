@@ -5,7 +5,9 @@ The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
 The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
---><html><head><link rel="import" href="../polymer/polymer.html">
+-->
+
+<link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-ripple/paper-ripple.html">
 <link rel="import" href="../paper-styles/default-theme.html">
 <link rel="import" href="../paper-behaviors/paper-inky-focus-behavior.html">
@@ -42,7 +44,7 @@ Custom property | Description | Default
 @demo demo/index.html
 -->
 
-</head><body><dom-module id="paper-radio-button">
+<dom-module id="paper-radio-button">
 
   <link rel="import" type="css" href="paper-radio-button.css">
 
@@ -51,12 +53,13 @@ Custom property | Description | Default
     <div id="radioContainer">
       <div id="offRadio"></div>
       <div id="onRadio"></div>
-      <paper-ripple id="ink" class="circle" center="" checked$="[[checked]]"></paper-ripple>
+      <paper-ripple id="ink" class="circle" center checked$="[[checked]]"></paper-ripple>
     </div>
 
     <div id="radioLabel" aria-hidden="true"><content></content></div>
 
   </template>
 
-  </dom-module>
-<script src="paper-radio-button.js"></script></body></html>
+	<script src="paper-radio-button.js"></script>
+
+</dom-module>
