@@ -950,7 +950,9 @@
 			indentUnit: window.options.settings.editor.tabSize,
 			indentWithTabs: window.options.settings.editor.useTabs,
 			messageStylesheetEdit: true,
-			extraKeys: { 'Ctrl-Space': 'autocomplete' }
+			extraKeys: { 'Ctrl-Space': 'autocomplete' },
+			gutters: ['CodeMirror-lint-markers'],
+			lint: window.CodeMirror.lint.css
 		});
 	},
 

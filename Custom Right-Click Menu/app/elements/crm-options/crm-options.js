@@ -515,6 +515,14 @@ Polymer({
 		window.scriptEdit.editor.performLint();
 	},
 
+	runCssLint: function() {
+		window.stylesheetEdit.editor.performLint();
+	},
+
+	showCssTips: function() {
+		window.doc.cssEditorInfoDialog.open();
+	},
+
 	addSettingsReadyCallback: function(callback, thisElement) {
 		this.onSettingsReadyCallbacks.push({
 			callback: callback,
@@ -728,7 +736,7 @@ Polymer({
 		}
 	},
 
-	updateEditorZoom: function () {
+	updateEditorZoom: function() {
 		var prevStyle = document.getElementById('editorZoomStyle');
 		prevStyle && prevStyle.remove();
 		$('<style id="editorZoomStyle">' +
@@ -736,6 +744,9 @@ Polymer({
 			'font-size: ' + (1.25 * window.options.settings.editor.zoom) + '%!important;' +
 			'}' +
 			'</style>').appendTo('head');
+		$('.CodeMirror').each(function() {
+			this.CodeMirror.refresh();
+		});
 	},
 
 	ready: function () {
@@ -775,6 +786,7 @@ Polymer({
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
+			_this.updateEditorZoom();
 			main();
 		}
 
@@ -804,9 +816,6 @@ Polymer({
 		});
 		this.show = false;
 		window.storage.get(callback);
-
-	
-
 	},
 
 	/**

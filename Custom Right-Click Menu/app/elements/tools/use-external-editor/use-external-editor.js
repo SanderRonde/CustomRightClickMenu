@@ -145,7 +145,7 @@ Polymer({
 	updateFromExternal: function(msg) {
 		if (this.connection.id === msg.connectionId) {
 			console.log('update');
-			if (window.options.scriptItem !== {}) {
+			if (window.scriptEdit) {
 				window.scriptEdit.newSettings.value.value = msg.code;
 				window.scriptEdit.editor.setValue(msg.code);
 			}
@@ -168,7 +168,7 @@ Polymer({
 				action: 'disconnect'
 			});
 		} catch (e) { }
-		if (window.options.scriptItem !== {}) {
+		if (window.scriptEdit) {
 			window.scriptEdit.reloadEditor();
 		}
 		else {
@@ -198,7 +198,6 @@ Polymer({
 				'</div>' +
 				'</div>')
 			.click(function() {
-				console.log('call');
 				_this.cancelOpenFiles.apply(_this, []);
 			})
 			.appendTo($cont);
@@ -217,13 +216,7 @@ Polymer({
 			.click(function() {
 				//Show location toast
 				var location = _this.connection.filePath;
-				location = location.split('\\');
-				if (typeof location === 'string') {
-					location = location.split('/');
-				}
-				location.pop();
-				location.push('');
-				location = location.join('/');
+				location = location.replace(/\\/g,'/');
 				window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
 				window.doc.externalEditorLocationToast.text = 'File is located at: ' + location;
 				window.doc.externalEditorLocationToast.show();
@@ -244,6 +237,7 @@ Polymer({
 				_this.postMessage({
 					status: 'connected',
 					action: 'createNewFile',
+					isCss: (!!window.scriptEdit),
 					name: _this.editingCRMItem.name
 				});
 			}).appendTo($cont);
@@ -266,7 +260,7 @@ Polymer({
 
 		
 		$toolsCont.appendTo(
-			$((window.options.scriptItem !== {} ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
+			$((window.scriptEdit ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
 			.find('.CodeMirror-scroll'))[0]
 			.animate([
 				{
@@ -298,24 +292,19 @@ Polymer({
 							path: msg.path
 						}
 					}
-					console.log(msg.path);
 					_this.connection.filePath = msg.path;
 					options.upload();
 					_this.connection.fileConnected = true;
-					console.log(window.options.scriptItem);
-					(window.options.scriptItem !== {} ? console.log('this one') && window.scriptEdit.reloadEditor(true) : console.log('other') && window.stylesheetEdit.reloadEditor(true));
+					(window.scriptEdit ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
 					_this.createEditingOverlay();
 					_this.appPort.onMessage.removeListener(tempListener);
 				}
 			}
 			this.appPort.onMessage.addListener(tempListener);
-			console.log(item);
-			console.log(item.file);
-			console.log(item.file.id);
 			if (item.file) {
 				this.appPort.postMessage({
 					status: 'connected',
-					action: (window.options.stylesheetItem ? 'setupStylesheet' : 'setupScript'),
+					action: (window.scriptEdit ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
 					code: item.value.value,
 					id: item.file.id
@@ -323,7 +312,7 @@ Polymer({
 			} else {
 				this.appPort.postMessage({
 					status: 'connected',
-					action: (window.options.stylesheetItem ? 'setupStylesheet' : 'setupScript'),
+					action: (window.scriptEdit ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
 					code: item.value.value
 				});
@@ -354,7 +343,7 @@ Polymer({
 			var _this = this;
 			window.doc.externalEditorChooseFile.init(msg.local, msg.external, function (result) {
 				if (result !== false) {
-					if (window.options.scriptItem !== {}) {
+					if (window.scriptEdit) {
 						window.scriptEdit.newSettings.value.value = result;
 						window.scriptEdit.editor.setValue(result);
 					}
@@ -409,7 +398,7 @@ Polymer({
 		console.log(this.connectionPromise);
 		var _this = this;
 		if (!this.appPort) {
-			this.appPort = chrome.runtime.connect('gbfbinhlfpjckadedmfinepfioodgcll'); //gjmgdmomggpaiecllfmfgbbfhnlpbpic');
+			this.appPort = chrome.runtime.connect('gjmgdmomggpaiecllfmfgbbfhnlpbpic'); //gbfbinhlfpjckadedmfinepfioodgcll');
 			this.connection.status = 'connecting';
 			this.connection.stage = 0;
 			this.connection.fileConnected = false;
