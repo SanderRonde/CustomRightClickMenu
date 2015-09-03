@@ -285,7 +285,7 @@ input {
 
 #bubbleCont {
 	width: 508px !important;
-	height: 100vh!important;
+	height: 100%!important;
 	position: absolute;
 	overflow: hidden;
 	right: 0;
@@ -358,4 +358,6 @@ input {
     background-color: white;
     border: 1px solid black;
     padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
 }

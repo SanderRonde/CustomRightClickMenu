@@ -229,7 +229,7 @@
 
 	/*
 	 * Clears the trigger that is currently clicked on
-	 * @param {event} The event that triggers this (click event)
+	 * @param {event} The - event that triggers this (click event)
 	 */
 	clearTrigger: function(e) {
 		var target = e.target;
@@ -266,7 +266,7 @@
 	/*
 	 * Inserts given snippet of code into the editor
 	 * @param {element} _this The scriptEdit element/object
-	 * @param {string} snippet The snippet to be pasted
+	 * @param {string} snippet - The snippet to be pasted
 	 */
 	insertSnippet: function (_this, snippet) {
 		this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
@@ -274,7 +274,7 @@
 
 	/*
 	 * Fills the editor-tools-ribbon on the left of the editor with elements
-	 * @param {element} The ribbon element to fill
+	 * @param {element} The - ribbon element to fill
 	 */
 	initToolsRibbon: function () {
 		var _this = this;
@@ -284,7 +284,6 @@
 		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function (snippet) {
 			_this.insertSnippet(_this, snippet.snippet);
 		});
-		//Run JSLint
 		//Use CRMAPI
 	},
 
@@ -569,6 +568,7 @@
 		this.settingsShadow[0].parentNode.style.height = editorHeight;
 		this.fullscreenEl.style.display = 'none';
 		var settingsInitialMarginLeft = (window.options.settings.editor.lineNumbers ? -500 : -470);
+		$('#editorThemeFontSizeInput')[0].value = window.options.settings.editor.zoom;
 		this.settingsShadow.css({
 			width: '50px',
 			height: '50px',
@@ -617,7 +617,7 @@
 					_this.reloadEditor();
 				}
 				if (zoom !== prevZoom) {
-					
+					window.options.updateEditorZoom();
 				}
 			}
 		});
@@ -667,7 +667,7 @@
 					setTimeout(function() {
 						_this.dropdownToRightAnimation = domElement.animate([
 							{
-								marginLeft: '-100%'
+								marginLeft: '-110%'
 							}, {
 								marginLeft: 0
 							}
@@ -703,7 +703,7 @@
 						{
 							marginLeft: 0
 						}, {
-							marginLeft: '-100%'
+							marginLeft: '-110%'
 						}
 					], {
 						duration: 200,
@@ -746,7 +746,7 @@
 	/*
 	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the 
 	 * icons' positions
-	 * @param {boolean} Whether the vertical scrollbar is now visible
+	 * @param {boolean} Whether - the vertical scrollbar is now visible
 	 */
 	scrollbarsUpdate: function(vertical) {
 		if (vertical !== this.verticalVisible) {
@@ -1003,6 +1003,7 @@
 			value: content || this.item.value.value,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
+			mode: 'javascript',
 			readOnly: (disable ? 'nocursor' : false),
 			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.options.settings.editor.tabSize,
@@ -1019,6 +1020,8 @@
 		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
 			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 		});
+		document.body.classList.remove('editingStylesheet');
+		document.body.classList.add('editingScript');
 		this.newSettings = $.extend(true, {}, this.item);
 		window.scriptEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
