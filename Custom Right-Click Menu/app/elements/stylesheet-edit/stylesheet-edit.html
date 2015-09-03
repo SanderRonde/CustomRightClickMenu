@@ -1,0 +1,125 @@
+﻿<html>
+<head>
+</head>
+<body>
+	<dom-module id="stylesheet-edit" attributes="item">
+		<template>
+			<link rel="stylesheet" href="stylesheet-edit.css" />
+			<div id="stylesheetEditCont">
+				<div id="settingsCont">
+					<div id="settings">
+						<div id="nameChangeCont">
+							<div id="nameInputText">Name</div>
+							<paper-input id="nameChange" value="{{newSettings.name}}"></paper-input>
+						</div>
+						<br/>
+						<div id="toggleButtonsCont">
+							<div class="toggleButtonOption">
+								<paper-toggle-button checked="{{newSettings.value.toggle}}"></paper-toggle-button>
+								<span class="toggleButtonTxt">Is Togglable</span>
+							</div>
+							<div class="toggleButtonOption">
+								<paper-toggle-button disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}"></paper-toggle-button>
+								<span class="toggleButtonTxt">On by default</span>
+							</div>
+							<div id="toggleInfoCont">
+								<svg class="inactive" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M0 0h24v24H0z" fill="none" />
+									<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z" />
+								</svg>
+								<svg class="active" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+									<path d="M0 0h24v24H0z" fill="none" />
+									<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+								</svg>
+								<paper-material id="toggleInfoTxtCont" elevation="3">
+									<div id="toggleInfoTxt">
+										Non-togglable CSS is not in the right-click menu but always active instead.
+									</div>
+								</paper-material>
+							</div>
+						</div>
+						<div id="triggersCont">
+							<div id="triggersText">
+								Trigger(s)
+							</div>
+							<br />
+							<paper-dropdown-menu indent="false" id="dropdownMenu" selected="[[item.value.launchMode]]">
+								<paper-menu selected="{{newSettings.value.launchMode}}">
+									<paper-item id="executeOnClickOption" class="stylesheetLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+										</div>
+										<span class="menuOptionName">Execute on clicking</span>
+									</paper-item>
+									<paper-item id="executeAlwaysOption" class="stylesheetLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+										</div>
+										<span class="menuOptionName">Always execute</span>
+									</paper-item>
+									<paper-item id="execyteOnSpecified" class="stylesheetLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" /></svg>
+										</div>
+										<span class="menuOptionName">Execute when visiting specified sites</span>
+									</paper-item>
+								</paper-menu>
+							</paper-dropdown-menu>
+							<br />
+							<div id="executionTriggersContainer">
+								<div id="executionTriggersText">
+									Execute on:
+									<div id="triggersInfoCont">
+										<svg class="inactive" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z" />
+										</svg>
+										<svg class="active" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+										</svg>
+										<paper-material id="triggersInfoTxtCont" elevation="3">
+											<div id="triggersInfoTxt">
+												Regex is available but be sure to surround it in parentheses
+											</div>
+										</paper-material>
+									</div>
+								</div>
+								<br />
+								<template is="dom-repeat" items="[[item.value.triggers]]" as="trigger">
+									<div class="executionTrigger">
+										<paper-input class="triggerInput" value="[[trigger.url]]"></paper-input>
+										<paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button>
+									</div>
+								</template>
+								<paper-button on-tap="addTrigger" raised id="addTrigger">Add</paper-button>
+							</div>
+						</div>
+					</div>
+					<div id="stylesheetEditorCont">
+						<div id="stylesheetInputText">Stylesheet</div>
+						<div id="container">
+							<div id="flexRow">
+								<div id="flexColumn">
+									<div id="editorCont">
+										<div id="editorPlaceholder">
+											<div id="editorPlaceHolderCenterer">
+												<paper-spinner active></paper-spinner>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="buttons">
+					<paper-button id="cancelButton" on-tap="cancelChanges">Cancel</paper-button>
+					<paper-button id="saveButton" on-tap="saveChanges">Save</paper-button>
+				</div>
+			</div>
+		</template>
+	</dom-module>
+	<script src="stylesheet-edit.js"></script>
+</body>
+</html>
