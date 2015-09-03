@@ -129,7 +129,7 @@ paper-ripple {
 }
 
 paper-toolbar {
-	background: #ff7600!important;
+	background: rgb(255, 87, 34)!important;
 }
 
 #addLibraryManualInput {
@@ -252,7 +252,7 @@ iron-overlay-backdrop {
 	border-top: 1px solid rgb(239, 239, 239);
 }
 
-#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, #runJsLintButton {
+#paperSearchWebsitesToolTrigger, #externalEditorDialogTrigger, #runJsLintButton, #runCssLintButton, #showCssTipsButton {
 	color: rgb(38, 153, 244);
 	height: 75px;
 	font-size: 196%;
@@ -260,7 +260,6 @@ iron-overlay-backdrop {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	width: 200px;
 	padding-left: 16px;
 	font-weight: 500;
 	cursor: pointer;
@@ -270,7 +269,7 @@ iron-overlay-backdrop {
 	font-size: 167%;
 }
 
-	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover, #runJsLintButton:hover {
+	#paperSearchWebsitesToolTrigger:hover, #externalEditorDialogTrigger:hover, #runJsLintButton:hover, #runCssLintButton:hover, #showCssTipsButton:hover {
 		text-decoration: underline;
 	}
 
@@ -302,11 +301,11 @@ a {
 	display: none;
 }
 
-#chooseScriptComparison {
+#chooseFileComparison {
 	display: none;
 }
 
-#chooseScriptMerger {
+#chooseFileMerger {
 	display: none;
 	height: 100%;
 	flex-direction: column;
@@ -314,22 +313,22 @@ a {
 	padding-top: 5px;
 }
 
-#chooseScriptMergerPlaceholder, #chooseScriptMergerEditor {
+#chooseFileMergerPlaceholder, #chooseFileMergerEditor {
 	display: flex;
 	flex-direction: column;
 	flex-grow: 100;
 }
 
-	#chooseScriptMergerPlaceholder center-element {
+	#chooseFileMergerPlaceholder center-element {
 		flex-grow: 100;
 	}
 
-	#chooseScriptMergerPlaceholder paper-spinner {
+	#chooseFileMergerPlaceholder paper-spinner {
 		width: 70px;
 		height: 70px;
 	}
 
-#chooseScriptMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
+#chooseFileMergerEditor, .CodeMirror-merge-3pane .CodeMirror-merge-pane, .CodeMirror-merge-3pane .CodeMirror-merge-gap {
 	height: calc(100vh - 148px);
 }
 
@@ -337,37 +336,37 @@ a {
 	height: 100%;
 }
 
-#externalEditorChooseScript {
+#externalEditorchooseFile {
 	padding-bottom: 60px;
 }
 
-#externalEditorChooseScript .buttons {
+#externalEditorchooseFile .buttons {
 	position: absolute;
 	bottom: 0;
 	right: 0;
 }
 
-#chooseScriptmergerContainer {
+#chooseFilemergerContainer {
 	flex-grow: 100;
 	display: flex;
 	flex-direction: column;
 	display: none;
 }
 
-#chooseScriptMergerText {
+#chooseFileMergerText {
 	display: flex;
 	justify-content: space-around;
 	margin-bottom:10px;
 }
 
-#chooseScriptCurrentTxt, #chooseScriptResultTxt, #chooseScriptNewTxt {
+#chooseFileCurrentTxt, #chooseFileResultTxt, #chooseFileNewTxt {
 	font-size: 150%;
 	font-weight: bold;
 	width: 31%;
 	text-align: center;
 }
 
-#chooseScriptMergerPlaceholder {
+#chooseFileMergerPlaceholder {
 	z-index: 50;
 	background-color:white;
 }
@@ -450,3 +449,56 @@ paper-toast {
 	#restoreChangesOldCodeCont .CodeMirror, #restoreChangeUnsaveddCodeCont .CodeMirror {
 		flex-grow: 100;
 	}
+
+body.editingStylesheet .CodeMirror-hint {
+	padding-left: 0;
+}
+
+body.editingStylesheet .jsTool {
+	display: none!important;
+}
+
+body.editingScript .cssTool {
+	display: none!important;
+}
+
+#showCssTipsButton {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	font-size: 200%;
+	text-align: center;
+	vertical-align: middle;
+	fill: rgb(38, 153, 244);
+	height: auto;
+	padding-top: 23px;
+	padding-bottom: 23px;
+}
+
+	#showCssTipsButton svg {
+		margin-top: 3px;
+		width: 25px;
+		height: 25px;
+		margin-left: 7px;
+	}
+
+.CodeMirror-sizer {
+	flex-grow: 100;
+}
+
+#cssEditorInfoDialog {
+	width: 700px;
+	padding-left:20px;
+	padding-right: 20px;
+}
+
+	#cssEditorInfoDialog h2 {
+		padding-left: 0;
+	}
+
+.inlineCodePre {
+	margin: 0;
+	padding: 0;
+	display: inline-block;
+	background-color: rgb(210, 210, 210);
+}

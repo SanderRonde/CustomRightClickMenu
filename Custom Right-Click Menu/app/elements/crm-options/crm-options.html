@@ -5,14 +5,25 @@
 		<link rel="stylesheet" href="crm-options.css" />
 		<div class="popupCont">
 			<div id="fullscreenEditor">
-				<div id="editorCurrentScriptTitle">[[scriptItem.name]]</div>
+				<div id="editorCurrentScriptTitle">
+					<span hidden$="[[!scriptItem]]">[[scriptItem.name]]</span>
+					<span hidden$="[[!stylesheetItem]]">[[stylesheetItem.name]]</span>
+				</div>
 				<div id="fullscreenEditorHorizontal">
 					<div id="editorToolsRibbon">
 						<div on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
-						<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
-						<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool"></paper-get-page-properties>
-						<div on-tap="launchSearchWebsiteTool" class="ribbonTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
-						<div on-tap="runJsLint" class="ribbonTool" id="runJsLintButton">Run JSLint</div>
+						<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
+						<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
+						<div on-tap="launchSearchWebsiteTool" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
+						<div on-tap="runJsLint" class="ribbonTool jsTool" id="runJsLintButton">Run JSLint</div>
+						<div on-tap="runCssLint" class="ribbonTool cssTool" id="runCssLintButton">Run CSSLint</div>
+						<div on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
+							Info
+							<svg height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+								<path d="M0 0h24v24H0z" fill="none" />
+								<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z" />
+							</svg>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -83,7 +94,7 @@
 				<span id="menuSwitchUndoButton" role="button">UNDO</span>
 			</paper-toast>
 			<!--
-				//TODO place link
+			//TODO place link
 			-->
 			<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed <-LINK->" duration="10000">
 				<span id="externalEditorTryAgainButton" role="button">RETRY</span>
@@ -94,8 +105,8 @@
 			<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 				<div id="restoreChangesMain">
 					<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
-					<br/>
-					<div id="highlightChangedScript" class="restoreChangesOption">What script?</div>
+					<br />
+					<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
 					<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
 					<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
 					<div class="buttons">
@@ -126,39 +137,39 @@
 					</div>
 				</div>
 			</paper-dialog>
-			<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseScript" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-				<div id="chooseScriptMainDialog">
-					<h2>Choose the script you want to keep</h2>
-					<paper-radio-group selected="local" id="chooseScriptRadioGroup">
-						<paper-radio-button name="local">The script in this editor</paper-radio-button>
-						<paper-radio-button name="external">The script that is currently in the file</paper-radio-button>
+			<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<div id="chooseFileMainDialog">
+					<h2>Choose the file you want to keep</h2>
+					<paper-radio-group selected="local" id="chooseFileRadioGroup">
+						<paper-radio-button name="local">The file in this editor</paper-radio-button>
+						<paper-radio-button name="external">The file that is currently in the file</paper-radio-button>
 					</paper-radio-group>
-					<br/>
-					<paper-button raised id="chooseScriptMerge">Merge</paper-button>
+					<br />
+					<paper-button raised id="chooseFileMerge">Merge</paper-button>
 					<div class="buttons">
-						<paper-button class="closeChooseScriptDialog">Cancel</paper-button>
-						<paper-button id="chooseScriptChooseFirst" dialog-confirm>Confirm</paper-button>
+						<paper-button class="closeChooseFileDialog">Cancel</paper-button>
+						<paper-button id="chooseFileChooseFirst" dialog-confirm>Confirm</paper-button>
 					</div>
 				</div>
-				<div id="chooseScriptMerger">
-					<h1>Merge the script to how you want it</h1>
-					<div id="chooseScriptMergerText">
-						<div id="chooseScriptCurrentTxt">CRM Editor</div>
-						<div id="chooseScriptResultTxt">Result</div>
-						<div id="chooseScriptNewTxt">File</div>
+				<div id="chooseFileMerger">
+					<h1>Merge the file to how you want it</h1>
+					<div id="chooseFileMergerText">
+						<div id="chooseFileCurrentTxt">CRM Editor</div>
+						<div id="chooseFileResultTxt">Result</div>
+						<div id="chooseFileNewTxt">File</div>
 					</div>
-					<div id="chooseScriptMergerEditor">
-						<div id="chooseScriptMergerPlaceholder">
+					<div id="chooseFileMergerEditor">
+						<div id="chooseFileMergerPlaceholder">
 							<center-element fullscreen="true">
 								<paper-spinner active></paper-spinner>
 							</center-element>
 						</div>
-						<div id="chooseScriptmergerContainer"></div>
+						<div id="chooseFilemergerContainer"></div>
 					</div>
 					<div class="buttons">
-						<paper-button class="closeChooseScriptDialog">Cancel</paper-button>
-						<paper-button id="chooseScriptStopMerging">Stop merging</paper-button>
-						<paper-button id="chooseScriptChooseMerge" dialog-confirm>Confirm</paper-button>
+						<paper-button class="closeChooseFileDialog">Cancel</paper-button>
+						<paper-button id="chooseFileStopMerging">Stop merging</paper-button>
+						<paper-button id="chooseFileChooseMerge" dialog-confirm>Confirm</paper-button>
 					</div>
 				</div>
 			</paper-dialog>
@@ -193,6 +204,22 @@
 				<div id="addLibraryDialogSucces">
 					<div id="addLibraryDialogSuccesCheckmark" class="checkmark"></div>
 					<div id="addLibraryDialogSuccesText">Added!</div>
+				</div>
+			</paper-dialog>
+			<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<h2>CSS Editor Info</h2>
+				<br/>
+				- Use <pre class="inlineCodePre">@url 'http://example.com';</pre> to run certain CSS only on specified url for any code following this statement.
+				Calling <pre class="inlineCodePre">@urlend;</pre> will stop this from applying to the code below it.
+				You can combine multiple <pre class="inlineCodePre">@url</pre> statements to run on multiple sites, so calling <pre class="inlineCodePre">@url 'example.com'; @url 'google.com';</pre> runs the code below on both sites.
+				If for example you want any page's background-color to be black except for one website, you can use <pre class="inlineCodePre">@url</pre> to give that page a different background color.
+				You can use regular expressions as long as you wrap them in brackets.
+				<br/><br/>
+				- Use chrome's dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
+				If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
+				If you want all elements with some class to be styled, simply use the class on it.
+				<div class="buttons">
+					<paper-button dialog-dismiss>close</paper-button>
 				</div>
 			</paper-dialog>
 			<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
