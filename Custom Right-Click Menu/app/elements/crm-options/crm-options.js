@@ -135,6 +135,8 @@ function addScript(items, toAdd, iterator) {
 	return items;
 }
 
+//TODO addCss
+
 /**
  * Adds a divider to the CRM
  *
@@ -275,7 +277,7 @@ function checkArray(toCheck) {
 			changes = true;
 			item.name = 'name';
 		}
-		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu')) {
+		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu' || item.type === 'stylesheet')) {
 			changes = true;
 			item.type = 'link';
 		}
@@ -459,6 +461,15 @@ Polymer({
 	scriptItem: {},
 
 	/**
+	 * The item to show, if it is a stylesheet
+	 *
+	 * @attribute stylesheetItem
+	 * @type Object
+	 * @default {}
+	 */
+	stylesheetItem: {},
+
+	/**
 	 * The tern server for the codeMirror editor
 	 *
 	 * @attribute ternServer
@@ -495,13 +506,21 @@ Polymer({
 	launchExternalEditorDialog: function () {
 		if (!window.doc.externalEditorDialogTrigger.disabled) {
 			window.externalEditor.init();
-			window.externalEditor.editingCRMItem = window.scriptEdit.item;
+			window.externalEditor.editingCRMItem = (window.scriptEdit ? window.scriptEdit.item : window.stylesheetEdit.item);
 			window.externalEditor.setupExternalEditing();
 		}
 	},
 
 	runJsLint: function() {
 		window.scriptEdit.editor.performLint();
+	},
+
+	runCssLint: function() {
+		window.stylesheetEdit.editor.performLint();
+	},
+
+	showCssTips: function() {
+		window.doc.cssEditorInfoDialog.open();
 	},
 
 	addSettingsReadyCallback: function(callback, thisElement) {
@@ -717,7 +736,7 @@ Polymer({
 		}
 	},
 
-	updateEditorZoom: function () {
+	updateEditorZoom: function() {
 		var prevStyle = document.getElementById('editorZoomStyle');
 		prevStyle && prevStyle.remove();
 		$('<style id="editorZoomStyle">' +
@@ -725,6 +744,9 @@ Polymer({
 			'font-size: ' + (1.25 * window.options.settings.editor.zoom) + '%!important;' +
 			'}' +
 			'</style>').appendTo('head');
+		$('.CodeMirror').each(function() {
+			this.CodeMirror.refresh();
+		});
 	},
 
 	ready: function () {
@@ -764,6 +786,7 @@ Polymer({
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
+			_this.updateEditorZoom();
 			main();
 		}
 
@@ -793,9 +816,6 @@ Polymer({
 		});
 		this.show = false;
 		window.storage.get(callback);
-
-	
-
 	},
 
 	/**
