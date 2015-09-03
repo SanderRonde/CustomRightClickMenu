@@ -134,8 +134,8 @@
 	/*
 	 * Gets the result of the query when choosing given searchQuery
 	 * 
-	 * @param {string} searchQuery The query to search for
-	 * @param {string} chosenUrl The url that was chosen which is being searched
+	 * @param {string} searchQuery - The query to search for
+	 * @param {string} chosenUrl - The url that was chosen which is being searched
 	 * @returns {string} The new url
 	 */
 	getQueryResult: function(searchQuery, chosenUrl) {
@@ -145,7 +145,7 @@
 	/*
 	 * Whether the selected option in the manual input part is "url"
 	 * 
-	 * @param {string} selectedOption The selected option
+	 * @param {string} selectedOption - The selected option
 	 * @returns {boolean} Whether the selected option si "url"
 	 */
 	isSelectedUrl: function(selectedOption) {
@@ -155,7 +155,7 @@
 	/*
 	 * Hides all windows except the given one
 	 * 
-	 * @param {string} except The window not to hide
+	 * @param {string} except - The window not to hide
 	 */
 	hideAllWindows: function(except) {
 		var _this = this;
@@ -181,7 +181,7 @@
 	/**
 	 * Switches to given window, hiding the rest
 	 * 
-	 * @param {string} window The window to switch to
+	 * @param {string} window - The window to switch to
 	 */
 	switchToWindow: function(window) {
 		this.hideAllWindows(window);
@@ -199,7 +199,7 @@
 	/**
 	 * Switches to the window specified in the button's attributes
 	 * 
-	 * @param {event} event The event passed along
+	 * @param {event} event - The event passed along
 	 */
 	switchWindow: function(event) {
 		this.switchToWindow(event.target.parentNode.getAttribute('window'));
@@ -208,9 +208,9 @@
 	/**
 	 * Loads given window if the promise is fulfilled, if the promise returns an error it switches to the previous window
 	 * 
-	 * @param {string} window The window to switch to on success
-	 * @param {string} previousWindow The window to switch to on error
-	 * @param {promise} promiser The promise function to run and check for
+	 * @param {string} window - The window to switch to on success
+	 * @param {string} previousWindow - The window to switch to on error
+	 * @param {promise} promiser - The promise function to run and check for
 	 */
 	loadWindow: function(window, promiser) {
 		var _this = this;
@@ -343,7 +343,7 @@
 	/*
 	 * Cancels all radio buttons and checks the one you just clicked
 	 * 
-	 * @param {event} e The event passed by clicking
+	 * @param {event} e - The event passed by clicking
 	 */
 	cancelAllRadiobuttons: function(e) {
 		$(this.$.listInputSearchList).find('paper-radio-button[checked]')[0].checked = false;
