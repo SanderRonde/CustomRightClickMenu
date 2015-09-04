@@ -41,7 +41,6 @@
 	],
 
 	"optional_permissions": [
-		"http://*/",
 		"alarms",
 		"background",
 		"bookmarks",
@@ -51,11 +50,9 @@
 		"contentSettings",
 		"cookies",
 		"contentSettings",
-		"debugger",
 		"declarativeContent",
 		"desktopCapture",
 		"downloads",
-		"fontSettings",
 		"history",
 		"identity",
 		"idle",
@@ -65,7 +62,6 @@
 		"power",
 		"printerProvider",
 		"privacy",
-		"proxy",
 		"sessions",
 		"system.cpu",
 		"system.memory",
@@ -78,213 +74,220 @@
 		"webRequestBlocking"
 	],
 
-	"commands": {
-		"shortcut-1": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-2": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-3": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-4": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-5": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-6": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-7": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-8": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-9": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-10": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-11": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-12": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-13": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-14": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-15": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-16": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-17": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-18": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-19": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-20": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-21": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-22": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-23": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-24": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-25": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-26": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-27": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-28": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-29": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-30": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-31": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-32": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-33": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-34": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-35": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-36": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-37": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-38": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-39": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-40": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-41": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-42": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-43": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-44": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-45": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-46": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-47": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-48": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-49": {
-			"description": "First shortcut",
-			"global": true
-		},
-		"shortcut-50": {
-			"description": "First shortcut",
-			"global": true
-		}
+	"oath2": {
+		"client_id": "979319568884-jcki7ce8mh1pddld10e3d7dao3gmc5k6.apps.googleusercontent.com",
+		"scopes": [
+			"https://www.googleapis.com/auth/*"
+		]
 	},
 
-	"icons": {
-		"16": "icon-supersmall.png",
-		"48": "icon-small.png",
-		"128": "icon-large.png"
-	}
+		"commands": {
+			"shortcut-1": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-2": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-3": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-4": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-5": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-6": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-7": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-8": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-9": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-10": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-11": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-12": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-13": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-14": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-15": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-16": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-17": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-18": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-19": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-20": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-21": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-22": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-23": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-24": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-25": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-26": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-27": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-28": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-29": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-30": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-31": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-32": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-33": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-34": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-35": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-36": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-37": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-38": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-39": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-40": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-41": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-42": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-43": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-44": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-45": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-46": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-47": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-48": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-49": {
+				"description": "First shortcut",
+				"global": true
+			},
+			"shortcut-50": {
+				"description": "First shortcut",
+				"global": true
+			}
+		},
 
-}
+		"icons": {
+			"16": "icon-supersmall.png",
+			"48": "icon-small.png",
+			"128": "icon-large.png"
+		}
+
+	}

@@ -146,11 +146,11 @@ Polymer({
 		if (this.connection.id === msg.connectionId) {
 			console.log('update');
 			if (window.scriptEdit) {
-				window.scriptEdit.newSettings.value.value = msg.code;
+				window.scriptEdit.newSettings.value.script = msg.code;
 				window.scriptEdit.editor.setValue(msg.code);
 			}
 			else {
-				window.stylesheetEdit.newSettings.value.value = msg.code;
+				window.stylesheetEdit.newSettings.value.stylesheet = msg.code;
 				window.stylesheetEdit.editor.setValue(msg.code);
 			}
 		}
@@ -306,7 +306,7 @@ Polymer({
 					status: 'connected',
 					action: (window.scriptEdit ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
-					code: item.value.value,
+					code: (window.scriptEdit ? item.value.script : item.value.stylesheet),
 					id: item.file.id
 				});
 			} else {
@@ -314,7 +314,7 @@ Polymer({
 					status: 'connected',
 					action: (window.scriptEdit ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
-					code: item.value.value
+					code: (window.scriptEdit ? item.value.script : item.value.stylesheet)
 				});
 			}
 		} else {
@@ -344,11 +344,11 @@ Polymer({
 			window.doc.externalEditorChooseFile.init(msg.local, msg.external, function (result) {
 				if (result !== false) {
 					if (window.scriptEdit) {
-						window.scriptEdit.newSettings.value.value = result;
+						window.scriptEdit.newSettings.value.script = result;
 						window.scriptEdit.editor.setValue(result);
 					}
 					else {
-						window.stylesheetEdit.newSettings.value.value = result;
+						window.stylesheetEdit.newSettings.value.stylesheet = result;
 						window.stylesheetEdit.editor.setValue(result);
 					}
 					_this.appPort.postMessage({

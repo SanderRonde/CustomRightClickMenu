@@ -502,3 +502,69 @@ body.editingScript .cssTool {
 	display: inline-block;
 	background-color: rgb(210, 210, 210);
 }
+
+#requestPermissionsDialog {
+	width: 800px;
+}
+
+.requestPermissionName {
+	font-size: 200%;
+	font-weight: 500;
+	text-transform: capitalize;
+	padding-top:7px;
+}
+
+.requestPermissionName, .requestPermissionButton, .requestPermissionsShowBot {
+	display: inline-block;
+}
+
+.requestPermissionButton, .requestPermissionsShowBot {
+	float: right;
+}
+
+.requestPermissionsShowBot {
+	margin-top: -6px;
+	margin-left: 20px;
+	cursor:pointer;
+}
+
+.requestPermissionsSvg {
+	transform: rotate(90deg);
+}
+
+.requestPermissionsPermissionBotCont {
+	height: 0;
+	overflow: hidden;
+}
+
+#requestPermissionsPermissions {
+	max-height: calc(100vh - 400px);
+	overflow-y: scroll;
+}
+
+.requestPermissionsDescription {
+	padding-bottom: 10px;
+}
+
+#requestPermissionsLineCont {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	margin-bottom:20px;
+}
+
+#requestPermissionsSplitter {
+	flex-grow:100;
+	border-bottom: 1px solid black;
+	display:inline-block;
+}
+
+#requestPermissionsShowOther {
+	display: inline-block;
+	margin-bottom: -12px;
+	cursor: pointer;
+}
+
+#requestPermissionsOther {
+	height: 0;
+}

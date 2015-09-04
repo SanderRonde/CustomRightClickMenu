@@ -147,6 +147,7 @@ Polymer({
 			],
 			expanded: false,
 			index: newIndex,
+			isLocal: true,
 			path: [newIndex]
 		};
 		options.crm.add(newItem);

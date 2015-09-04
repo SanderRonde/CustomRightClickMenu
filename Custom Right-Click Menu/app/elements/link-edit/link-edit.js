@@ -55,7 +55,7 @@
 			});
 			i = 0;
 			$(this.$.linksContainer).find('paper-input').each(function () {
-				this.value = _this.originalVals.value[i].value;
+				this.value = _this.originalVals.value[i].url;
 				i++;
 			});
 		}
@@ -69,7 +69,7 @@
 		newItem.value = [];
 		$(this.$.linksContainer).find('.linkChangeCont').each(function () {
 			newItem.value.push({
-				'value': $(this).children('paper-input')[0].value,
+				'url': $(this).children('paper-input')[0].value,
 				'newTab': ($(this).children('paper-checkbox').attr('aria-checked') !== 'true')
 			});
 		});

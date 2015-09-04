@@ -130,7 +130,7 @@ function addLink(items, toAdd, iterator) {
 function addScript(items, toAdd, iterator) {
 	var item = {};
 	item.name = toAdd.name;
-	item.callback = scriptHandler(toAdd.value.value);
+	item.callback = scriptHandler(toAdd.value.script);
 	items[iterator] = item;
 	return items;
 }
@@ -256,7 +256,7 @@ function setupFirstTime() {
 function checkArray(toCheck) {
 	var changes = false;
 	var result;
-	toCheck.map(function(item, index) {
+	toCheck.map(function (item, index) {
 		if (isNotSet(item)) {
 			changes = true;
 			item = {};
@@ -264,7 +264,7 @@ function checkArray(toCheck) {
 			item.type = 'link';
 			item.value = [
 				{
-					value: 'http://www.example.com',
+					url: 'http://www.example.com',
 					newTab: true
 				}
 			];
@@ -285,7 +285,7 @@ function checkArray(toCheck) {
 			changes = true;
 			item.value = [
 				{
-					value: 'http://www.example.com',
+					url: 'http://www.example.com',
 					newTab: true
 				}
 			];
@@ -294,7 +294,7 @@ function checkArray(toCheck) {
 				if (typeof item.value !== 'object') {
 					item.value = [
 						{
-							value: 'http://www.example.com',
+							url: 'http://www.example.com',
 							newTab: true
 						}
 					];
@@ -303,13 +303,13 @@ function checkArray(toCheck) {
 						if (isNotSet(item.value[i])) {
 							changes = true;
 							item.value[i] = {
-								value: 'http://www.example.com',
+								url: 'http://www.example.com',
 								newTab: true
 							};
 						}
 						if (isNotSet(item.value[i].value)) {
 							changes = true;
-							item.value[i].value = 'http:/www.example.com';
+							item.value[i].url = 'http:/www.example.com';
 						}
 						if (isNotSet(item.value[i].newTab)) {
 							changes = true;
@@ -495,6 +495,16 @@ Polymer({
 		onSettingsReadyCallbacks: {
 			type: Array,
 			value: []
+		},
+		requestedPermissions: {
+			type: Array,
+			value: [],
+			notify: true
+		},
+		otherPermissions: {
+			type: Array,
+			value: [],
+			notify: true
 		}
 	},
 
@@ -565,7 +575,7 @@ Polymer({
 			try {
 				var crmItem = this.crm.lookup(editingObj.crmPath);
 				$('.keepChangesButton').on('click', function() {
-					crmItem.value.value = editingObj.val;
+					crmItem.value.script = editingObj.val;
 					chrome.storage.local.set({
 						editing: null
 					});
@@ -589,7 +599,7 @@ Polymer({
 				window.doc.restoreChangesOldCodeCont.innerHTML = '';
 				var oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
 					lineNumbers: window.options.settings.editor.lineNumbers,
-					value: crmItem.value.value,
+					value: crmItem.value.script,
 					scrollbarStyle: 'simple',
 					lineWrapping: true,
 					readOnly: 'nocursor',
@@ -599,7 +609,7 @@ Polymer({
 				});
 				var unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
 					lineNumbers: window.options.settings.editor.lineNumbers,
-					value: crmItem.value.value,
+					value: crmItem.value.script,
 					scrollbarStyle: 'simple',
 					lineWrapping: true,
 					readOnly: 'nocursor',
@@ -749,42 +759,202 @@ Polymer({
 		});
 	},
 
+	/**
+	 * Shows the user a dialog and asks them to allow/deny those permissions
+	 * @param {string[]} toRequest - An arry of strings of permissions to request
+	 */
+	requestPermissions: function (toRequest) {
+		var index;
+		var _this = this;
+		var allPermissions = [
+			"alarms",
+			"background",
+			"bookmarks",
+			"browsingData",
+			"clipboardRead",
+			"clipboardWrite",
+			"contentSettings",
+			"cookies",
+			"contentSettings",
+			"declarativeContent",
+			"desktopCapture",
+			"downloads",
+			"history",
+			"identity",
+			"idle",
+			"management",
+			"notifications",
+			"pageCapture",
+			"power",
+			"privacy",
+			"printerProvider",
+			"sessions",
+			"system.cpu",
+			"system.memory",
+			"system.storage",
+			"topSites",
+			"tabCapture",
+			"tts",
+			"webNavigation",
+			"webRequest",
+			"webRequestBlocking"
+		];
+		var descriptions = {
+			alarms: 'Makes it possible to create, view and remove alarms.',
+			background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
+			bookmarks: 'Makes it possible to create, edit, remove and view all your bookmarks.',
+			browsingData: 'Makes it possible to remove any saved data on your browser at specified time ' +
+				'allowing the user to delete any history, saved passwords, cookies, cache and basically anything that is ' +
+				'not saved in incognito mode but is in regular mode. This is editable so it is possible to delete ONLY your ' +
+				'history and not the rest for example. (https://developer.chrome.com/extensions/bookmarks)',
+			clipboardRead: 'Allows reading of the users\' clipboard',
+			clipboardWrite: 'Allows writing data to the users\' clipboard',
+			cookies: 'Allows for the setting, getting and listenting for changes of cookies on any website. (https://developer.chrome.com/extensions/cookies)',
+			contentSettings: 'Allows changing or reading your browser settings to allow or deny things like javascript, plugins, popups, notifications or ' +
+				'other things you can choose to accept or deny on a per-site basis. (https://developer.chrome.com/extensions/contentSettings)',
+			declarativeContent: 'Allows for the running of scripts on pages based on their url and CSS contents. (https://developer.chrome.com/extensions/declarativeContent)',
+			desktopCapture: 'Makes it possible to capture your screen, current tab or chrome window (https://developer.chrome.com/extensions/desktopCapture)',
+			downloads: 'Allows for the creating, pausing, removing, searching and removing of downloads and listening for any downloads happenng. ' +
+				'(https://developer.chrome.com/extensions/downloads)',
+			history: 'Makes it possible to read your history and remove/add specific urls. This can also be used to search your history and to see howmany ' +
+				'times you visited given website. (https://developer.chrome.com/extensions/history)',
+			identity: 'Allows for the API to ask you to provide your (google) identity to the script using oauth2, allowing you to pull data from lots of google APIs: ' +
+				'calendar, contacts, custom search, drive, gmail, google maps, google+, url shortener (https://developer.chrome.com/extensions/identity)',
+			idle: 'Allows a script to detect whether your pc is in a locked, idle or active state. (https://developer.chrome.com/extensions/idle)',
+			management: 'Allows for a script to uninstall or get information about an extension you installed, this does not however give permission to install other extensions. ' +
+				'(https://developer.chrome.com/extensions/management)',
+			notifications: 'Allows for the creating of notifications. (https://developer.chrome.com/extensions/notifications)',
+			pageCapture: 'Allows for the saving of any page in MHTML. (https://developer.chrome.com/extensions/pageCapture)',
+			power: 'Allows for a script to keep either your screen or your system altogether from sleeping. (https://developer.chrome.com/extensions/power)',
+			privacy: 'Allows for a script to query what privacy features are on/off, for exaple autoFill, password saving, the translation feature.' +
+				' (https://developer.chrome.com/extensions/privacy)',
+			printerProvider: 'Allows for a script to capture your print jobs\' content and the printer used. (https://developer.chrome.com/extensions/printerProvider)',
+			sessions: 'Makes it possible for a script to get all recently closed pages and devices connected to sync, also allows it to re-open those closed pages. ' +
+				'(https://developer.chrome.com/extensions/sessions)',
+			"system.cpu": 'Allows a script to get info about the CPU. (https://developer.chrome.com/extensions/system_cpu)',
+			"system.memory": 'Allows a script to get info about the amount of RAM memory on your computer. (https://developer.chrome.com/extensions/system_memory)',
+			"system.storage": 'Allows a script to get info about the amount of storage on your computer and be notified when external storage is attached or detached. ' +
+				'(https://developer.chrome.com/extensions/system_storage)',
+			topSites: 'Allows a script to your top sites, which are the sites on your new tab screen. (https://developer.chrome.com/extensions/topSites)',
+			tabCapture: 'Allows the capturing of the CURRENT tab and only the tab. (https://developer.chrome.com/extensions/tabCapture)',
+			tts: 'Allows a script to use chrome\'s text so speach engine. (https://developer.chrome.com/extensions/tts)',
+			webNavigation: 'Allows a script info about newly created pages and allows it to get info about what website visit at that time.' +
+				' (https://developer.chrome.com/extensions/webNavigation)',
+			webRequest: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded ' +
+				'on the side, and can basically track the entire process of opening a new website. (https://developer.chrome.com/extensions/webRequest)',
+			webRequestBlocking: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded ' +
+				'on the side, and can basically track the entire process of opening a new website. This also allows the script to block certain requests for example for blocking ' +
+				'ads or bad sites. (https://developer.chrome.com/extensions/webRequest)'
+		};
+		var i;
+		for (i = 0; i < toRequest.length; i++) {
+			index = allPermissions.indexOf(toRequest[i]);
+			if (index > -1) {
+				allPermissions.splice(index, 1);
+			}
+		}
+
+		chrome.permissions.getAll(function(allowed) {
+			var requested = [];
+			_this.requestedPermissions = [];
+			for (i = 0; i < toRequest.length; i++) {
+				requested.push({
+					name: toRequest[i],
+					description: descriptions[toRequest[i]],
+					toggled: false
+				});
+			}
+
+			var other = [];
+			_this.otherPermissions = [];
+			for (i = 0; i < allPermissions.length; i++) {
+				other.push({
+					name: allPermissions[i],
+					description: descriptions[allPermissions[i]],
+					toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1 ? true : false)
+				});
+			}
+
+			console.log(requested, other);
+			_this.requestedPermissions = requested;
+			_this.otherPermissions = other;
+
+			window.doc.requestPermissionsDialog.open();
+
+			function handler() {
+				var el;
+				var svg;
+				window.doc.requestPermissionsDialog.fit();
+				window.doc.requestPermissionsDialog.removeEventListener('iron-overlay-opened', handler);
+				$('.requestPermissionsShowBot').click(function() {
+					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
+					console.log(this.style.transform);
+					svg = $(this).find('.requestPermissionsSvg')[0];
+					svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+					if (el.animation) {
+						el.animation.reverse();
+					} else {
+						el.animation = el.animate([
+							{
+								height: 0
+							}, {
+								height: el.scrollHeight + 'px'
+							}
+						], {
+							duration: 250,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+							fill: 'both'
+						});
+					}
+				});
+				$('#requestPermissionsShowOther').click(function () {
+					console.log("KLAK");
+					var other = $(this).parent().parent().children('#requestPermissionsOther');
+					if (other[0].style.height === 0) {
+						other.animate({
+							height: other.scrollHeight + 'px'
+						}, 350);
+					} else {
+						other.animate({
+							height: 0
+						}, 350);
+					}
+					//if (other.animation) {
+					//	other.animation.reverse();
+					//} else {
+					//	var newHeight = other.scrollHeight + 'px';
+					//	console.log(newHeight);
+					//	other.animation = other.animate([
+					//		{
+					//			height: 0
+					//		}, {
+					//			heigt: newHeight
+					//		}
+					//	], {
+					//		duration: 350,
+					//		easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+					//		fill: 'both'
+					//	});
+					//}
+				});
+			}
+
+			window.doc.requestPermissionsDialog.addEventListener('iron-overlay-opened', handler);
+		});
+	},
+
 	ready: function () {
 		var _this = this;
 		this.crm.parent = this;
 		window.options = this;
 		window.doc = window.options.$;
 		function callback(items) {
-			//TODO remove this
-			//To help intellisense determine what's inside window.options.settings.editor
-			_this.settings = items || {
-				editor: {
-					"libraries": [
-						{
-							"location": 'jQuery.js',
-							"name": 'jQuery'
-						}, {
-							"location": 'mooTools.js',
-							"name": 'mooTools'
-						}, {
-							"location": 'YUI.js',
-							"name": 'YUI'
-						}, {
-							"location": 'Angular.js',
-							"name": 'Angular'
-						}
-					],
-					"lineNumbers": true,
-					"showToolsRibbon": true,
-					"tabSize": 4,
-					"theme": 'dark',
-					"useTabs": true,
-					"zoom": 100
-				}
-			};
-
+			_this.settings = items;
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
+			}
+			if (items.requestPermissions && items.requestPermissions.length > 0) {
+				_this.requestPermissions(items.requestPermissions);
 			}
 			_this.updateEditorZoom();
 			main();

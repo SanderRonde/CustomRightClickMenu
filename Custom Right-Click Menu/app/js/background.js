@@ -1,6 +1,5 @@
 ///<reference path="../../../scripts/_references.js"/>
 var permissions = [
-	"http://*/",
 	"alarms",
 	"background",
 	"bookmarks",
@@ -10,11 +9,9 @@ var permissions = [
 	"contentSettings",
 	"cookies",
 	"contentSettings",
-	"debugger",
 	"declarativeContent",
 	"desktopCapture",
 	"downloads",
-	"fontSettings",
 	"history",
 	"identity",
 	"idle",
@@ -24,7 +21,6 @@ var permissions = [
 	"power",
 	"printerProvider",
 	"privacy",
-	"proxy",
 	"sessions",
 	"system.cpu",
 	"system.memory",
@@ -41,7 +37,27 @@ var availablePermissions = [];
 var storageSync;
 var storageLocal;
 var crmTree;
-var crmStorages = {};
+var crmByIdSafe = {};
+var crmByIdFull = {};
+
+function getSafeData(node) {
+	var j;
+	var vals = ['link', 'script', 'stylesheet', 'menu'];
+	var oldVal;
+	var newNode = {
+		id: node.id,
+		name: node.name,
+		type: node.type,
+		value: node.value
+	};
+	for (j = 0; j < 4; j++) {
+		oldVal = vals + 'Val';
+		if (node[oldVal]) {
+			newNode[oldVal] = node[oldVal];
+		}
+	}
+	return newNode;
+}
 
 function refreshPermissions() {
 	chrome.permisions.getAll(function(available) {
@@ -59,12 +75,11 @@ function removeStorage(node) {
 	}
 }
 
-function buildCrmTree(crm) {
+function buildCrmTree() {
+	var i;
 	var tree = [];
-	var crmCopy = JSON.parse(JSON.stringify(crm));
-	for (var i = 0; i < crmCopy.length; i++) {
-		tree.push(crmCopy[i]);
-		removeStorage(crmCopy[i]);
+	for (i = 0; i < crmCopy.length; i++) {
+		tree.push(getSafeData(crmCopy[i]));
 	}
 	crmTree = tree;
 }
@@ -75,7 +90,8 @@ function parseNode(node) {
 			parseNode(node.children[i]);
 		}
 	} else {
-		crmStorages[node.id] = node;
+		crmByIdSafe[node.id] = getSafeData(node);
+		crmByIdFull[node.id] = node;
 	}
 }
 
@@ -125,7 +141,7 @@ var crmFunctions = {
 		message.onFinish(crmTree);
 	},
 	getSubTree: function(message) {
-		message.onFinish(crmStorages[message.nodeId]);
+		message.onFinish(crmById[message.nodeId]);
 	},
 	getNode: function(message) {
 		this.getSubTree(message);
@@ -141,11 +157,9 @@ var crmFunctions = {
 	}
 };
 
+//TODO if an item is added using a "local" script, also make that item "local"
+
 function crmHandler(message) {
-
-	//TODO alles moet dus individuele permissions hebben, tuff shit, en ook global permissions dus
-	//en crm permissions doen, ook rawData btw
-
 	var toExecute = crmFunctions[message.action];
 	toExecute && toExecute(message);
 
@@ -166,19 +180,51 @@ function crmHandler(message) {
 }
 
 function chromeHandler(message, respond) {
+	//Check permissions
+	var api = message.api;
+	api = api.split(',')[0];
+
 	var params = '';
-	for (var i = 0; i < message.args - 1; i++) {
-		params.push('message.args[' + i + '], ');
-	}
-	params.push('message.args[' + message.args.length - 1 + ']');
-	try {
-		eval('var result = chrome.' + message.api + '(' + params + ')');
-		if (message.onFinish) {
-			message.onFinish(result);
+	var node = crmByIdFull[message.id];
+	var allowedPermissions = (node.isLocal ? '*' : node.permissions || []);
+	if (permissions.indexOf(api) > -1) {
+		if (allowedPermissions === '*' || allowedPermissions.indexOf(api) > -1) {
+			if (availablePermissions.indexOf(api) > -1) {
+				for (var i = 0; i < message.args - 1; i++) {
+					params.push(message.args[i] + ', ');
+				}
+				params.push(message.args[message.args.length - 1]);
+				try {
+					eval('var result = chrome.' + message.api + '(' + params + ')');
+					if (message.onFinish) {
+						message.onFinish(result);
+					}
+				} catch (e) {
+					respond({
+						error: e
+					});
+				}
+			} else {
+				respond({
+					error: 'Permissions ' + api + ' not available to the extension, visit options page',
+					requestPermission: api
+				});
+				chrome.storage.sync.get('requestPermissions', function(keys) {
+					var perms = keys.requestPermissions || [api];
+					chrome.storage.sync.set({
+						requestPermissions: perms
+					});
+				});
+			}
+		} else {
+			respond({
+				error: 'Permission ' + api + ' not requested'
+			});
 		}
-	} catch (e) {
+	} else {
 		respond({
-			error: e
+			error: 'Permissions ' + api + ' is not available for use',
+			params: [permissions]
 		});
 	}
 }
@@ -192,7 +238,7 @@ function handleMessage(message, respond) {
 			crmHandler(message, respond);
 			break;
 		case 'chrome':
-			chromeHandler(message);
+			chromeHandler(message, respond);
 			break;
 	}
 }

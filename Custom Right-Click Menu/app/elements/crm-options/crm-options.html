@@ -20,8 +20,8 @@
 						<div on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
 							Info
 							<svg height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-								<path d="M0 0h24v24H0z" fill="none" />
-								<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z" />
+								<path d="M0 0h24v24H0z" fill="none"/>
+								<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
 							</svg>
 						</div>
 					</div>
@@ -218,6 +218,59 @@
 				- Use chrome's dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
 				If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
 				If you want all elements with some class to be styled, simply use the class on it.
+				<div class="buttons">
+					<paper-button dialog-dismiss>close</paper-button>
+				</div>
+			</paper-dialog>
+			<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<h2>Allow permissions</h2>
+				<div id="requestPermissionsTxt">
+					A script that you presumably wrote/added has asked to use one or more chrome permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
+					Remember that this will only allow YOU to write scripts that acces these permissions and not downloaded and installed scripts.
+					Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
+					You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used simply saves you the hassle of doing it later during script installation or execution which will most likely break the script on that run.
+				</div>
+				<br/>
+				<span>{{requestedPermission>}}</span>
+				<div id="requestPermissionsPermissions">
+					<div id="requestPermissionsAsked">
+						<template is="dom-repeat" items="{{requestedPermissions}}" as="requestedPermission">
+
+							<div class="requestPermissionsPermission">
+								<div class="requestPermissionsPermissionTopCont">
+									<span class="requestPermissionName">{{requestedPermission.name}}</span>
+									<div class="requestPermissionsShowBot">
+										<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
+									</div>
+									<paper-toggle-button class="requestPermissionButton" checked="{{requestedPermission.given}}" ischecked$="{{requestedPermission.given}}"></paper-toggle-button>
+								</div>
+								<div class="requestPermissionsPermissionBotCont">
+									<span class="requestPermissionsDescription">{{requestedPermission.description}}</span>
+								</div>
+							</div>
+						</template>
+					</div>
+					<div id="requestPermissionsLineCont">
+						<div id="requestPermissionsSplitter"></div>
+						<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" /></svg>
+					</div>
+					<div id="requestPermissionsOther">
+						<template is="dom-repeat" items="{{otherPermissions}}" as="otherPermission">
+							<div class="requestPermissionsPermission">
+								<div class="requestPermissionsPermissionTopCont">
+									<span class="requestPermissionName">{{otherPermission.name}}</span>
+									<div class="requestPermissionsShowBot">
+										<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
+									</div>
+									<paper-toggle-button class="requestPermissionButton" checked="{{otherPermission.given}}" ischecked$="{{otherPermission.given}}"></paper-toggle-button>
+								</div>
+								<div class="requestPermissionsPermissionBotCont">
+									<span class="requestPermissionsDescription">{{otherPermission.description}}</span>
+								</div>
+							</div>
+						</template>
+					</div>
+				</div>
 				<div class="buttons">
 					<paper-button dialog-dismiss>close</paper-button>
 				</div>

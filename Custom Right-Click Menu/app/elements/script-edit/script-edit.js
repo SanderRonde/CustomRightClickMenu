@@ -768,19 +768,19 @@
 		this.$.editorPlaceholder.style.opacity = 1;
 		this.$.editorPlaceholder.style.position = 'absolute';
 
-		this.newSettings.value.value = [];
+		this.newSettings.value.script = [];
 		var lines = this.editor.doc.lineCount();
 		for (var i = 0; i < lines; i++) {
-			this.newSettings.value.value.push(this.editor.doc.getLine(i));
+			this.newSettings.value.script.push(this.editor.doc.getLine(i));
 		}
-		this.newSettings.value.value = this.newSettings.value.value.join('\n');
+		this.newSettings.value.script = this.newSettings.value.script.join('\n');
 		this.editor = null;
 
 		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value, disable);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.script, disable);
 		}
 		else {
-			this.loadEditor(this.$.editorCont, this.newSettings.value.value, disable);
+			this.loadEditor(this.$.editorCont, this.newSettings.value.script, disable);
 		}
 	},
 
@@ -1000,7 +1000,7 @@
 		this.editorWidth = placeHolder.width();
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
-			value: content || this.item.value.value,
+			value: content || this.item.value.script,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
 			mode: 'javascript',
@@ -1036,7 +1036,7 @@
 		//TODO re-enable
 		//chrome.storage.local.set({
 		//	editing: {
-		//		val: this.item.value.value,
+		//		val: this.item.value.script,
 		//		crmPath: this.item.path
 		//	}
 		//});

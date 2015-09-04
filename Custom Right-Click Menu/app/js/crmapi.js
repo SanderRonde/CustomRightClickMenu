@@ -15,14 +15,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 	var _this = this;
 
-	/**
-	 * Handles any messages sent by the background page
-	 * 
-	 * @param {Object} message - The message passed
-	 */
-	function messageHandler(message) {
-		
-	}
+	this.errorHandler = null;
 
 	chrome.runtime.onMessage.addListener(messageHandler);
 
@@ -311,6 +304,7 @@ function CrmAPIInit(item, id, clickData) {
 	function sendCrmMessage(action, callback, params) {
 		function onFinish(status, messageOrParams) {
 			if (status === 'error') {
+				_this.onError && _this.onError(messageOrParams);
 				throw new Error(messageOrParams);
 			} else {
 				callback.apply(_this, messageOrParams);
@@ -328,7 +322,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	//To be able to access these APIs, ask for the "CRM" permission
-	//To be able to see the CRM in the state in which it is stored (raw), ask for the "rawData" permission
+	//The data is limited to some degree, data that might let you access other scripts or the extension itself is disabled
 	this.crm = {};
 
 	/**
@@ -336,7 +330,7 @@ function CrmAPIInit(item, id, clickData) {
 	 * 
 	 * @typedef {Object[]} CrmAPIInit~linkVal
 	 * @property {boolean} newTab - Whether the URL will be opened in a new tab
-	 * @property {string} value - The URL to open
+	 * @property {string} url - The URL to open
 	 */
 
 	/*
@@ -347,12 +341,27 @@ function CrmAPIInit(item, id, clickData) {
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 * @property {string} script - The script that is ran itself
 	 * @property {Object[]} libraries - The libraries that are used in this script
 	 * @property {script} libraries.name - The name of the library
 	 * @property {Object[]} triggers - A trigger for the script to run
 	 * @property {string} triggers.url - The URL of the site on which to run, regex is available but wrap it in parentheses
-	 * @property {string} value - The script that is ran itself
 	 */
+
+	/*
+	* The value of a node if it's of type stylesheet
+	* 
+	* @typedef {Object} CrmAPIInit~stylesheetVal
+	* @property {number} launchMode - When to launch the stylesheet, 
+	*		0 = run on clicking
+	*		1 = always run
+	*		2 = run on specified pages
+	* @property {string} stylesheet - The script that is ran itself
+	* @property {boolean} toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
+	* @property {boolean} defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
+	* @property {Object[]} triggers - A trigger for the script to run
+	* @property {string} triggers.url - The URL of the site on which to run, regex is available but wrap it in parentheses
+	*/
 
 	/**
 	 * A crmNode that is returned in most crm-callbacks
@@ -366,7 +375,7 @@ function CrmAPIInit(item, id, clickData) {
 	 * @property {CrmAPIInit~linkVal} linkVal - The value of the node if it were to switch to type link
 	 * @property {CrmAPIInit~scriptVal} scriptVal - The value of the node if it were to switch to type script
 	 * @property {Object[]} menuVal - The children of the node if it were to switch to type menu
-	 * @property {CrmAPIInit~linkVal|CrmAPIInit~scriptVal|Object} value - The value of this node, changes depending on type,
+	 * @property {CrmAPIInit~linkVal|CrmAPIInit~scriptVal|CrmAPIInit~stylesheetVal|Object} value - The value of this node, changes depending on type,
 	 *		is either of type linkVal, scriptVal or just an empty object
 	 */
 
@@ -375,15 +384,6 @@ function CrmAPIInit(item, id, clickData) {
 	 * @callback CrmAPIInit~crmCallback
 	 * @param {CrmAPIInit~crmNode} node - The node that has been processed/retrieved
 	 */
-
-	/*
-	 * Gets the raw CRM data as stored in the extension
-	 * 
-	 * @param {function} callback - A function that is called when done with the data as an argument
-	 */
-	this.crm.getRawData = function(callback) {
-		sendCrmMessage('getRawCrm', callback);
-	}
 
 	/*
 	 * Gets the CRM tree from the tree's root
