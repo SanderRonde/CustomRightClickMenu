@@ -21,10 +21,17 @@ function runOrAddAsCallback(toRun, thisElement) {
 	}
 }
 
-function generateItemId() {
-	window.options.latestId++;
-	window.options.upload();
-	return window.options.latestId;
+function generateItemId(callback) {
+	chrome.storage.local.get('latestId', function(items) {
+		var id;
+		if (items.latestId) {
+			id = items.latestId;
+		} else {
+			id = 1;
+			chrome.storage.local.set({ latestId: 1 });
+		}
+		callback && callback(id);
+	});
 }
 
 /**
@@ -232,20 +239,22 @@ function bindContextMenu() {
 function setupFirstTime() {
 	options.init = true;
 	options.scriptEditingId = 1234;
-	options.settings.crm = [
-		{
-			name: 'example',
-			type: 'link',
-			id: generateItemId(),
-			value: [
-				{
-					value: 'http://www.example.com',
-					newTab: true
-				}
-			]
-		}
-	];
-	options.upload();
+	generateItemId(function(id) {
+		options.settings.crm = [
+			{
+				name: 'example',
+				type: 'link',
+				id: id,
+				value: [
+					{
+						value: 'http://www.example.com',
+						newTab: true
+					}
+				]
+			}
+		];
+		options.upload();
+	});
 }
 
 /**
@@ -270,8 +279,10 @@ function checkArray(toCheck) {
 			];
 		}
 		if (isNotSet(item.id)) {
-			changes = true;
-			item.id = generateItemId();
+			generateItemId(function(id) {
+				changes = true;
+				item.id = id;
+			});
 		}
 		if (isNotSet(item.name)) {
 			changes = true;
@@ -767,37 +778,37 @@ Polymer({
 		var index;
 		var _this = this;
 		var allPermissions = [
-			"alarms",
-			"background",
-			"bookmarks",
-			"browsingData",
-			"clipboardRead",
-			"clipboardWrite",
-			"contentSettings",
-			"cookies",
-			"contentSettings",
-			"declarativeContent",
-			"desktopCapture",
-			"downloads",
-			"history",
-			"identity",
-			"idle",
-			"management",
-			"notifications",
-			"pageCapture",
-			"power",
-			"privacy",
-			"printerProvider",
-			"sessions",
-			"system.cpu",
-			"system.memory",
-			"system.storage",
-			"topSites",
-			"tabCapture",
-			"tts",
-			"webNavigation",
-			"webRequest",
-			"webRequestBlocking"
+			'alarms',
+			'background',
+			'bookmarks',
+			'browsingData',
+			'clipboardRead',
+			'clipboardWrite',
+			'contentSettings',
+			'cookies',
+			'contentSettings',
+			'declarativeContent',
+			'desktopCapture',
+			'downloads',
+			'history',
+			'identity',
+			'idle',
+			'management',
+			'notifications',
+			'pageCapture',
+			'power',
+			'privacy',
+			'printerProvider',
+			'sessions',
+			'system.cpu',
+			'system.memory',
+			'system.storage',
+			'topSites',
+			'tabCapture',
+			'tts',
+			'webNavigation',
+			'webRequest',
+			'webRequestBlocking'
 		];
 		var descriptions = {
 			alarms: 'Makes it possible to create, view and remove alarms.',
@@ -908,7 +919,7 @@ Polymer({
 					}
 				});
 				$('#requestPermissionsShowOther').click(function () {
-					console.log("KLAK");
+					console.log('KLAK');
 					var other = $(this).parent().parent().children('#requestPermissionsOther');
 					if (other[0].style.height === 0) {
 						other.animate({
@@ -962,14 +973,6 @@ Polymer({
 
 		this.bindListeners();
 		chrome.storage.local.get(function (items) {
-			if (items.latestId) {
-				window.options.latestId = items.latestId;
-			} else {
-				window.options.latestid = 1;
-				chrome.storage.local.set({
-					latestId: 1
-				});
-			}
 			if (items.editing) {
 				setTimeout(function() {
 					_this.restoreUnsavedInstances(items.editing);
