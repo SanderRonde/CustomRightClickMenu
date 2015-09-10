@@ -1,0 +1,1 @@
+﻿function doubleKey(n){var t;return n.forEach(function(i,r){t=i*2;n[r]=t>99?t-99:t}),n}function encrypt(n,t){t=doubleKey(t);n.verified=!0;n=JSON.stringify(n);for(var r=0,u=[],f=n.length,i=0;i<f;i++,r++)r>17&&(t=doubleKey(t),r=0),u[i]=n.charCodeAt(i)+t[r];return u}

@@ -727,7 +727,7 @@ Polymer({
 							}
 							if (!visible) {
 								//Make it visible
-								var popped = JSON.parse(JSON.stringify(editingObj.crmPath));
+								var popped = JSON.parse(JSON.stringify(editingObj.crmPath.length));
 								popped.pop();
 								options.editCRM.build(popped);
 								setTimeout(highlightItem, 700);

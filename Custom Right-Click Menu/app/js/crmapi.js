@@ -1,3 +1,4 @@
+///<reference path="eo.js"/>
 //TODO registerLibrary
 
 /** 
@@ -9,12 +10,13 @@
  * @param {number} tabId - The id of the tab the script is currently running on
  * @param {Object} clickData - Any data associated with clicking this item in the
  *		context menu, only available if launchMode is equal to 0 (on click)
- * @paramm {Object} secretyKey - An object in which the only key is a secret key
- *		generated to keep downloaded scripts from finding local scripts with
- *		more privilege and act as if they are those scripts to run stuff you don't
- *		want it to.
+ * @param {number[]} secretyKey - An array of integers, generated to keep downloaded 
+ *		scripts from finding local scripts with more privilege and act as if they 
+ *		are those scripts to run stuff you don't want it to.
+ * @param {number} pingkey - The key used to send ping messages signaling this 
+ *		script is still alive
  */
-function CrmAPIInit(item, id, tabId, clickData, secretKey) {
+function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	var _this = this;
 
 	this.errorHandler = null;
@@ -26,26 +28,18 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 		tabId: tabId
 	});
 
-	/*
-	 * | ---> KEY|
-	 * |<--PUBLIC|
-	 * |		 |
-	 * |	     |
-	 */
-
 	var ready = false;
 
-	function messageHandler(message) {
-		if (message.type === 'pingKey') {
-			_this.pingKey = message.pingKey;
-			ready = true;
-			window.setInterval(function() {
-
-			});
-		}
-	}
-
-	chrome.runtime.onMessage.addListener(messageHandler);
+	ready = true;
+	var msg = {
+		type: 'ping',
+		id: id,
+		pingKey: pingKey
+	};
+	chrome.runtime.sendMessage(msg);
+	window.setInterval(function() {
+		chrome.runtime.sendMessage(msg);
+	}, 30000);
 
 	/**
 	 * Checks whether value matches given type and is defined and not null,
@@ -133,7 +127,9 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	 * Updates the storage to the background page
 	 */
 	function updateStorage() {
-		chrome.runtime.sendMessage({
+		var message = {};
+		message.id = id;
+		message.msg = {
 			id: id,
 			type: 'update',
 			action: 'updateStorage',
@@ -141,7 +137,10 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 			crmPath: item.path,
 			secretKey: secretKey,
 			tabId: tabId
-		});
+		};
+		message = ec(message, secretKey);
+
+		chrome.runtime.sendMessage(message);
 		notifyChanges();
 	}
 
@@ -351,6 +350,11 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 		messageContent.secretKey = secretKey;
 		messageContent.tabId = tabId;
 
+		var message = {};
+		message.id = id;
+		message.msg = messageContent;
+		message = ec(message, secretKey);
+
 		chrome.runtime.sendMessage(messageContent);
 	}
 
@@ -529,7 +533,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	 * 
 	 * @param {Object} options - An object containing all the options for the node
 	 * @param {object} [options.position] - An object containing info about where to place the item, defaults to last if not given
-	 * @param {number} [options.position.node] - The other node, if not given, it becomes a sibling to the CRM's root regardless of "relation"
+	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
 	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 	 *		firstSibling: first of the subtree that given node is in
@@ -572,24 +576,26 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	}
 
 	/**
-	 * Copies given node
+	 * Copies given node,
+	 * WARNNG: following properties are not copied:
+	 *		file, storage, id
+	 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
 	 * 
 	 * @param {number} nodeId - The id of the node to copy
 	 * @param {Object} options - An object containing all the options for the node
 	 * @param {string} [options.name] - The new name of the object (same as the old one if none given)
 	 * @param {object} [options.position] - An object containing info about where to place the item, defaults to last if not given
-	 * @param {string} [options.position.relation] - The relation to the other node, possibilities are "child" or "sibling"
-	 * @param {number} [options.position.node] - The other node, if not given, it becomes a sibling to the CRM's root regardless of "relation"
-	 * @param {string} [options.position.position] - The position relative to the other node, possibilities are:
-	 *		first: first of the subtree that node is in if relation is "sibling".. If "child", first of the node's subtree
-	 *		last: last of the subtree that node is in if relation is "sibling". If "child",, last of the node's subtree
+	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
+	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
+	 *		firstSibling: first of the subtree that given node is in
+	 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+	 *		lastSibling: last of the subtree that given node is in
 	 *		before: before given node
 	 *		after: after the given node
-	 *		child: becomes a child of the given node, will throw an error if the node is not of type "menu"
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 	 */
 	this.crm.copyNode = function (nodeId, options, callback) {
-		//TODO dont forget the file and id
 		options = options || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
 		var optionsCopy = JSON.parse(JSON.stringify(options));
@@ -599,18 +605,24 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 
 	/**
 	 * Moves given node to position specified in "position"
-	 * @param {Object} position - The position to move it to
-	 * @param {string} [position.relation] - The relation to the other node, possibilities are "child" or "sibling"
-	 * @param {number} [position.node] - The other node, if not given, it becomes a sibling to the CRM's root regardless of "relation"
-	 * @param {string} [position.position] - The position relative to the other node, possibilities are:
-	 *		first: first of the subtree that node is in if relation is "sibling".. If "child", first of the node's subtree
-	 *		last: last of the subtree that node is in if relation is "sibling". If "child",, last of the node's subtree
+	 * 
+	 * @param {number} nodeId - The id of the node to move
+	 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last child of root if not given
+	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
+	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
+	 *		firstSibling: first of the subtree that given node is in
+	 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+	 *		lastSibling: last of the subtree that given node is in
 	 *		before: before given node
 	 *		after: after the given node
-	 *		child: becomes a child of the given node, will throw an error if the node is not of type "menu"
 	 * @param {CrmAPIInit~crmCallback} callback - A function that gets called with the new node as an argument
 	 */
-	this.crm.moveNode = function(position, callback) {
+	this.crm.moveNode = function(nodeId, options, callback) {
+		options = options || {};
+		//To prevent the user's stuff from being disturbed if they re-use the object
+		var optionsCopy = JSON.parse(JSON.stringify(options));
+		optionsCopy.nodeId = nodeId;
 		sendCrmMessage('moveNode', callback, options);
 	}
 
@@ -621,7 +633,6 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	 * @param {function} callback - A function to run when done, contains an argument containing true if it worked, otherwise containing the error message
 	 */
 	this.crm.deleteNode = function (nodeId, callback) {
-		//TODO dont forget the file and id
 		sendCrmMessage('deleteNode', callback, {
 			nodeId: nodeId
 		});
@@ -633,7 +644,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	 * @param {number} nodeId - The id of the node to edit
 	 * @param {Object} options - An object containing the settings for what to edit
 	 * @param {string} [options.name] - Changes the name to given string
-	 * @param {string} [options.type] - The type to switch to (link, script, divider or menu)
+	 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, contains the new node as an argument
 	 */
 	this.crm.editNode = function(nodeId, options, callback) {
@@ -656,7 +667,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	/**
 	 * Gets the links of the node with ID nodeId
 	 * 
-	 * @param {number} nodeId - 
+	 * @param {number} nodeId - The id of the node to get the links from
 	 * @param {function} callback - A callback with an array of objects as parameters, each containg two keys: 
 	 *		newTab: Whether the link should open in a new tab or the current tab
 	 *		value: The URL of the link 
@@ -673,7 +684,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	 * @param {number} nodeId - The node to push the items to
 	 * @param {Object[]|Object} items - An array of items or just one item to push
 	 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
-	 * @param {string} items.value - The URL to open on clicking the link
+	 * @param {string} [items.url] - The URL to open on clicking the link
 	 * @param {functon} callback - A function that gets called when done with the new array as an argument
 	 */
 	this.crm.link.push = function (nodeId, items, callback) {
@@ -747,6 +758,23 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	}
 
 	this.crm.script.libraries = {};
+	/**
+	 * Registers a library with name "name"
+	 * 
+	 * @param {string} name - The name to give the library
+	 * @param {Object} options - The options related to the library
+	 * @param {string} [options.url] - The url to fetch the code from, must end in .js
+	 * @param {string} [options.code] - The code to use
+	 * @param {function} callback - A callback with the library object as an argument
+	 */
+	this.crm.script.libraries.register = function(name, options, callback) {
+		sendCrmMessage('registerLibrary', callback, {
+			name: name,
+			url: options.url,
+			code: options.code
+		});
+	}
+
 	/**
 	 * Pushes given libraries to the node with ID nodeId's libraries array,
 	 * make sure to register them first or an error is thrown
@@ -858,7 +886,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 	 */
 	this.crm.menu.splice = function (nodeId, start, amount, callback) {
-		sendCrmMessage('pushMenuChildren', callback, {
+		sendCrmMessage('spliceMenuChildren', callback, {
 			nodeId: nodeId,
 			childrenIds: childrenIds
 		});
@@ -899,6 +927,10 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 					secretKey: secretKey,
 					tabId: tabId
 				};
+				var message = {
+					id: id,
+					msg: messageContent
+				};
 				return {
 					cb: function(callback) {
 						function onFinish(status, messageOrParams) {
@@ -909,11 +941,12 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey) {
 							}
 						}
 
-						messageContent.onFinish = onFinish;
+						message.msg.onFinish = onFinish;
 						this.nocb();
 					},
-					nocb: function() {
-						chrome.runtime.sendMessage(messageContent, function (error) {
+					nocb: function () {
+						message = ec(message, secretKey);
+						chrome.runtime.sendMessage(message, function (error) {
 							console.warn('An error occurred while executing the api ' + api + ', stack traces:');
 							console.trace();
 							throw new Error(error.error);
