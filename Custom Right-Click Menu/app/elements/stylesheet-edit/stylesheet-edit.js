@@ -222,16 +222,26 @@
 	cancelChanges: function () {
 		this.active = false;
 		window.externalEditor.cancelOpenFiles();
+		window.crmEditPage.animateOut();
 	},
 
-	removeChanges: function () {
-		this.active = false;
-		window.externalEditor.cancelOpenFiles();
+	getTriggers: function () {
+		var inputs = $(window.scriptEdit).find('.executionTrigger').find('paper-input');
+		var triggers = [];
+		for (var i = 0; i < inputs.length; i++) {
+			triggers[i] = inputs[i].value;
+		}
+		this.newSettings.value.triggers = triggers;
 	},
 
 	saveChanges: function () {
 		this.active = false;
 		window.externalEditor.cancelOpenFiles();
+		var lookedUp = window.options.crm.lookup(this.item.path, true);
+		this.getTriggers();
+		window.crmEditPage.animateOut();
+		lookedUp[this.item.path[this.item.path.length - 1]] = this.newSettings;
+		options.upload();
 	},
 
 	/*
@@ -759,19 +769,19 @@
 		this.$.editorPlaceholder.style.opacity = 1;
 		this.$.editorPlaceholder.style.position = 'absolute';
 
-		this.newSettings.value.value = [];
+		this.newSettings.value.stylesheet = [];
 		var lines = this.editor.doc.lineCount();
 		for (var i = 0; i < lines; i++) {
-			this.newSettings.value.value.push(this.editor.doc.getLine(i));
+			this.newSettings.value.stylesheet.push(this.editor.doc.getLine(i));
 		}
-		this.newSettings.value.value = this.newSettings.value.value.join('\n');
+		this.newSettings.value.stylesheet = this.newSettings.value.stylesheet.join('\n');
 		this.editor = null;
 
 		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value, disable);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.stylesheet, disable);
 		}
 		else {
-			this.loadEditor(this.$.editorCont, this.newSettings.value.value, disable);
+			this.loadEditor(this.$.editorCont, this.newSettings.value.stylesheet, disable);
 		}
 	},
 
@@ -942,7 +952,7 @@
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
 			mode: 'css',
-			value: content || this.item.value.value,
+			value: content || this.item.value.stylesheet,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
 			readOnly: (disable ? 'nocursor' : false),
@@ -957,7 +967,6 @@
 	},
 
 	init: function () {
-		//TODO make saving and cancelling changes possible
 		var _this = this;
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');
@@ -972,34 +981,33 @@
 			this.editor = null;
 		}
 		window.externalEditor.init();
-		//TODO re-enable
-		//chrome.storage.local.set({
-		//	editing: {
-		//		val: this.item.value.value,
-		//		crmPath: this.item.path
-		//	}
-		//});
-		//this.savingInterval = window.setInterval(function() {
-		//	if (_this.active) {
-		//		//Save
-		//		var val;
-		//		try {
-		//			val = _this.editor.getValue();
-		//			chrome.storage.local.set({
-		//				editing: {
-		//					val: val,
-		//					crmPath: _this.item.path
-		//				}
-		//			});
-		//		} catch (e) { }
-		//	} else {
-		//		//Stop this interval
-		//		chrome.storage.local.set({
-		//			editing: false
-		//		});
-		//		window.clearInterval(_this.savingInterval);
-		//	}
-		//}, 5000);
+		chrome.storage.local.set({
+			editing: {
+				val: this.item.value.stylesheet,
+				crmPath: this.item.path
+			}
+		});
+		this.savingInterval = window.setInterval(function() {
+			if (_this.active) {
+				//Save
+				var val;
+				try {
+					val = _this.editor.getValue();
+					chrome.storage.local.set({
+						editing: {
+							val: val,
+							crmPath: _this.item.path
+						}
+					});
+				} catch (e) { }
+			} else {
+				//Stop this interval
+				chrome.storage.local.set({
+					editing: false
+				});
+				window.clearInterval(_this.savingInterval);
+			}
+		}, 5000);
 		this.active = true;
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
