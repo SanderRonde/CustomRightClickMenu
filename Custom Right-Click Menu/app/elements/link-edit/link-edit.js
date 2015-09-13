@@ -35,14 +35,6 @@
 		}, 350);
 	},
 
-	closePage: function() {
-		crmEditPage.animateOut();
-	},
-
-	cancelChanges: function () {
-		this.canceled = true;
-	},
-
 	removeChanges: function () {
 		if (this.canceled) {
 			this.$.nameInput.value = this.originalVals.name;
@@ -55,10 +47,23 @@
 			});
 			i = 0;
 			$(this.$.linksContainer).find('paper-input').each(function () {
-				this.value = _this.originalVals.value[i].value;
+				this.value = _this.originalVals.value[i].url;
 				i++;
 			});
 		}
+	},
+
+	closePage: function() {
+		var _this = this;
+		window.crmEditPage.animateOut();
+		setTimeout(function() {
+			_this.removeChanges();
+		}, 300);
+	},
+
+	cancelChanges: function () {
+		this.canceled = true;
+		this.closePage();
 	},
 
 	saveChanges: function () {
@@ -69,7 +74,7 @@
 		newItem.value = [];
 		$(this.$.linksContainer).find('.linkChangeCont').each(function () {
 			newItem.value.push({
-				'value': $(this).children('paper-input')[0].value,
+				'url': $(this).children('paper-input')[0].value,
 				'newTab': ($(this).children('paper-checkbox').attr('aria-checked') !== 'true')
 			});
 		});
@@ -79,8 +84,8 @@
 		//Polymer pls...
 		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('.CRMEditColumn')[0].children[lookedUp.path[lookedUp.path.length - 1]];
 		itemInEditPage.item = lookedUp;
-		itemInEditPage.$$('.CRMItemtitle').children[0].innerHTML = newItem.name;
-
+		itemInEditPage.name = newItem.name;
+		this.closePage();
 		options.upload();
 	},
 	
