@@ -19,6 +19,8 @@ bld/
 .gitwakatime.*
 .vs/
 
+"Custom Right-Click Menu/app/js/encryption.js"
+
 Properties/
 bin/
 obj/
