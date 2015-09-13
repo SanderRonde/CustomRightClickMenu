@@ -212,19 +212,42 @@
 
 	//#endregion
 
-	cancelChanges: function () {
-		this.active = false;
-		window.externalEditor.cancelOpenFiles();
+	finishEditing: function() {
+		chrome.storage.local.set({
+			editing: null
+		});
 	},
 
-	removeChanges: function () {
+	cancelChanges: function () {
 		this.active = false;
+		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
+		window.crmEditPage.animateOut();
+	},
+
+	getTriggers: function() {
+		var inputs = $(window.scriptEdit).find('.executionTrigger').find('paper-input');
+		var triggers = [];
+		for (var i = 0; i < inputs.length; i++) {
+			triggers[i] = inputs[i].value;
+		}
+		this.newSettings.value.triggers = triggers;
 	},
 
 	saveChanges: function () {
 		this.active = false;
+		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
+		var lookedUp = window.options.crm.lookup(this.item.path, true);
+		this.getTriggers();
+		window.crmEditPage.animateOut();
+		var lastPathIndex = this.item.path[this.item.path.length - 1];
+		var node = lookedUp[lastPathIndex];
+		if (node.name !== this.newSettings.name) {
+			$($('#mainCont').children('.CRMEditColumnCont')[this.item.path.length - 1]).children('.CRMEditColumn').children('edit-crm-item')[lastPathIndex].name = this.newSettings.name;
+		}
+		lookedUp[lastPathIndex] = this.newSettings;
+		options.upload();
 	},
 
 	/*
@@ -278,7 +301,6 @@
 	 */
 	initToolsRibbon: function () {
 		var _this = this;
-		//TODO crmApi.getSelection()
 		window.options.$.paperLibrariesSelector.init();
 		window.options.$.paperGetPageProperties.init();
 		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function (snippet) {
@@ -768,19 +790,19 @@
 		this.$.editorPlaceholder.style.opacity = 1;
 		this.$.editorPlaceholder.style.position = 'absolute';
 
-		this.newSettings.value.value = [];
+		this.newSettings.value.script = [];
 		var lines = this.editor.doc.lineCount();
 		for (var i = 0; i < lines; i++) {
-			this.newSettings.value.value.push(this.editor.doc.getLine(i));
+			this.newSettings.value.script.push(this.editor.doc.getLine(i));
 		}
-		this.newSettings.value.value = this.newSettings.value.value.join('\n');
+		this.newSettings.value.script = this.newSettings.value.script.join('\n');
 		this.editor = null;
 
 		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.value, disable);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.script, disable);
 		}
 		else {
-			this.loadEditor(this.$.editorCont, this.newSettings.value.value, disable);
+			this.loadEditor(this.$.editorCont, this.newSettings.value.script, disable);
 		}
 	},
 
@@ -1000,7 +1022,7 @@
 		this.editorWidth = placeHolder.width();
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.options.settings.editor.lineNumbers,
-			value: content || this.item.value.value,
+			value: content || this.item.value.script,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
 			mode: 'javascript',
@@ -1015,7 +1037,6 @@
 	},
 
 	init: function () {
-		//TODO make saving and cancelling changes possible
 		var _this = this;
 		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
 			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
@@ -1033,34 +1054,33 @@
 			this.editor = null;
 		}
 		window.externalEditor.init();
-		//TODO re-enable
-		//chrome.storage.local.set({
-		//	editing: {
-		//		val: this.item.value.value,
-		//		crmPath: this.item.path
-		//	}
-		//});
-		//this.savingInterval = window.setInterval(function() {
-		//	if (_this.active) {
-		//		//Save
-		//		var val;
-		//		try {
-		//			val = _this.editor.getValue();
-		//			chrome.storage.local.set({
-		//				editing: {
-		//					val: val,
-		//					crmPath: _this.item.path
-		//				}
-		//			});
-		//		} catch (e) { }
-		//	} else {
-		//		//Stop this interval
-		//		chrome.storage.local.set({
-		//			editing: false
-		//		});
-		//		window.clearInterval(_this.savingInterval);
-		//	}
-		//}, 5000);
+		chrome.storage.local.set({
+			editing: {
+				val: this.item.value.script,
+				crmPath: this.item.path
+			}
+		});
+		this.savingInterval = window.setInterval(function() {
+			if (_this.active) {
+				//Save
+				var val;
+				try {
+					val = _this.editor.getValue();
+					chrome.storage.local.set({
+						editing: {
+							val: val,
+							crmPath: _this.item.path
+						}
+					});
+				} catch (e) { }
+			} else {
+				//Stop this interval
+				chrome.storage.local.set({
+					editing: false
+				});
+				window.clearInterval(_this.savingInterval);
+			}
+		}, 5000);
 		this.active = true;
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
