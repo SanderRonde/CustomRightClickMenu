@@ -1,4 +1,4 @@
-//TODO registerLibrary
+///<reference path="eo.js"/>
 
 /** 
  * A class for constructing the CRM API
@@ -6,25 +6,27 @@
  * @class
  * @param {Object} item - The item currently being edited
  * @param {number} id - The id of the current item
+ * @param {number} tabId - The id of the tab the script is currently running on
  * @param {Object} clickData - Any data associated with clicking this item in the
  *		context menu, only available if launchMode is equal to 0 (on click)
+ * @param {number[]} secretyKey - An array of integers, generated to keep downloaded 
+ *		scripts from finding local scripts with more privilege and act as if they 
+ *		are those scripts to run stuff you don't want it to.
+ * @param {number} pingkey - The key used to send ping messages signaling this 
+ *		script is still alive
  */
-function CrmAPIInit(item, id, clickData) {
-	if (window.crmApi) {
-		return;
-	}
+function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	var _this = this;
 
-	/**
-	 * Handles any messages sent by the background page
-	 * 
-	 * @param {Object} message - The message passed
-	 */
-	function messageHandler(message) {
-		
-	}
-
-	chrome.runtime.onMessage.addListener(messageHandler);
+	var msg = {
+		type: 'ping',
+		id: id,
+		pingKey: pingKey
+	};
+	chrome.runtime.sendMessage(msg);
+	window.setInterval(function() {
+		chrome.runtime.sendMessage(msg);
+	}, 30000);
 
 	/**
 	 * Checks whether value matches given type and is defined and not null,
@@ -42,14 +44,15 @@ function CrmAPIInit(item, id, clickData) {
 	function checkType(value, type, nameOrMode) {
 		(type.splice || (type = [type]));
 		if (typeof nameOrMode === 'boolean' && nameOrMode) {
-			return (value !== undefined && value !== null && (typeof value === type && !value.splice) || (type === 'array' && value.splice));
+			return (value !== undefined && value !== null && ((type.indexOf(typeof value) > -1 && !value.splice) || (type.indexOf('array') > -1 && typeof value === 'object' && value.splice)));
 		}
 		if (value === undefined || value === null) {
 			throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + 'is undefined or null');
 		}
-		if (!(typeof value === type && !value.splice) || (type === 'array' && value.splice)) {
-			throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is not of type' + ((type.length > 1) ? 's ' + type.join(',') : ' ' + type));
+		if (!((type.indexOf(typeof value) > -1 && !value.splice) || (type.indexOf('array') > -1 && typeof value === 'object' && value.splice))) {
+			throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is not of type' + ((type.length > 1) ? 's ' + type.join(', ') : ' ' + type));
 		}
+		return true;
 	}
 
 	/**
@@ -91,7 +94,7 @@ function CrmAPIInit(item, id, clickData) {
 	 */
 	function notifyChanges() {
 		var changes = {};
-		var stored = _this.storage;
+		var stored = item.storage;
 		for (var key in stored) {
 			if (stored.hasOwnProperty(key)) {
 				if (stored[key] !== storagePrevious[key]) {
@@ -99,36 +102,41 @@ function CrmAPIInit(item, id, clickData) {
 				}
 			}
 		}
-		for (var i = 0; i < storageListeners; i++) {
+		for (var i = 0; i < storageListeners.length; i++) {
 			if (!storageListeners.key || changes[storageListeners.key]) {
-				storageListeners.listener();
+				storageListeners.listener && storageListeners.listener();
 			}
 		}
-		storagePrevious = JSON.parse(JSON.stringify(_this.storage));
+		storagePrevious = item.storage;
 	}
 
 	/*
 	 * Updates the storage to the background page
 	 */
 	function updateStorage() {
-		chrome.runtime.sendMessage({
+		var message = {};
+		message.id = id;
+		message.msg = {
 			id: id,
-			type: 'update',
-			action: 'updateStorage',
+			type: 'updateStorage',
 			storage: storage,
-			crmPath: item.path
-		});
+			secretKey: secretKey,
+			tabId: tabId
+		};
+		message = window.ec(message, secretKey);
+
+		chrome.runtime.sendMessage(message);
 		notifyChanges();
 	}
 
 	/**
-	 * Gets the value at given key, if no key is given returns the entire storage
+	 * Gets the value at given key, if no key is given returns the entire storage object
 	 * 
-	 * @param {string|array} [keyPath] The path at which to look, can be either
+	 * @param {string|array} [keyPath] - The path at which to look, can be either
 	 *		a string with dots seperating the path, an array with each entry holding
 	 *		one section of the path, or just a plain string without dots as the key,
 	 *		can also hold nothing to return the entire storage
-	 * @returns {*} The data you are looking for
+	 * @returns {any} The data you are looking for
 	 */
 	this.storage.get = function (keyPath) {
 		if (!keyPath) {
@@ -141,7 +149,7 @@ function CrmAPIInit(item, id, clickData) {
 				keyPath = keyPath.split('.');
 			}
 		}
-		checkType(keyPath, ['string', 'array'], 'keyPath');
+		checkType(keyPath, 'array', 'keyPath');
 		return lookup(keyPath, storage);
 	};
 
@@ -180,7 +188,7 @@ function CrmAPIInit(item, id, clickData) {
 	};
 
 	/**
-	 * Deletes the data at given key to given value
+	 * Deletes the data at given key given value
 	 * 
 	 * @param {string|array} keyPath The path at which to look, can be either
 	 *		a string with dots seperating the path, an array with each entry holding
@@ -212,18 +220,45 @@ function CrmAPIInit(item, id, clickData) {
 		return true;
 	};
 
+	this.storage.onChange = {};
 	/**
 	 * Adds an onchange listener for the storage, listens for a key if given
 	 * 
 	 * @param {function} listener - The function to run
-	 * @param {string} [key] The key to listen for
+	 * @param {string} [key] - The key to listen for
 	 */
-	this.storage.onChange = function(listener, key) {
+	this.storage.onChange.addListener = function(listener, key) {
 		storageListeners.push({
 			listener: listener,
 			key: key
 		});
 	};
+
+	/**
+	 * Removes listeners with given listener as the listener,
+	 *	if key is given also checks that they have that key
+	 * 
+	 * @param {function} listener - The listener to remove
+	 * @param {string} [key] - The key to check 
+	 */
+	this.storage.onChange.removeListener = function (listener, key) {
+		var indexes = [];
+		var i;
+		for (i = 0; i < storageListeners.length; i++) {
+			if (storageListeners[i].listener === listener) {
+				if (key !== undefined) {
+					if (storageListeners[i].key === key) {
+						indexes.push(i);
+					}
+				} else {
+					indexes.push(i);
+				}
+			}
+		}
+		for (i = 0; i < indexes.length; i++) {
+			storageListeners.splice(indexes[i], 1);
+		}
+	}
 	/*#endregion*/
 
 	/*#region PageAPI*/
@@ -300,7 +335,6 @@ function CrmAPIInit(item, id, clickData) {
 	/*#endregion*/
 
 	/*#region Changes in CRM*/
-
 	/**
 	 * Sends a message to the background script with given parameters
 	 * 
@@ -311,6 +345,7 @@ function CrmAPIInit(item, id, clickData) {
 	function sendCrmMessage(action, callback, params) {
 		function onFinish(status, messageOrParams) {
 			if (status === 'error') {
+				_this.onError && _this.onError(messageOrParams);
 				throw new Error(messageOrParams);
 			} else {
 				callback.apply(_this, messageOrParams);
@@ -323,12 +358,19 @@ function CrmAPIInit(item, id, clickData) {
 		messageContent.action = action;
 		messageContent.crmPath = item.path;
 		messageContent.onFinish = onFinish;
+		messageContent.secretKey = secretKey;
+		messageContent.tabId = tabId;
 
-		chrome.runtime.sendMessage(messageContent);
+		var message = {};
+		message.id = id;
+		message.msg = messageContent;
+		message = window.ec(message, secretKey);
+
+		chrome.runtime.sendMessage(message);
 	}
 
 	//To be able to access these APIs, ask for the "CRM" permission
-	//To be able to see the CRM in the state in which it is stored (raw), ask for the "rawData" permission
+	//The data is limited to some degree, data that might let you access other scripts or the extension itself is disabled
 	this.crm = {};
 
 	/**
@@ -336,23 +378,38 @@ function CrmAPIInit(item, id, clickData) {
 	 * 
 	 * @typedef {Object[]} CrmAPIInit~linkVal
 	 * @property {boolean} newTab - Whether the URL will be opened in a new tab
-	 * @property {string} value - The URL to open
+	 * @property {string} url - The URL to open
 	 */
 
 	/*
 	 * The value of a node if it's of type script
 	 * 
 	 * @typedef {Object} CrmAPIInit~scriptVal
-	 * @property {number} launchMode - When to launch the script, 
+	 * @property {Number} launchMode - When to launch the script, 
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 * @property {string} script - The script that is ran itself
 	 * @property {Object[]} libraries - The libraries that are used in this script
 	 * @property {script} libraries.name - The name of the library
 	 * @property {Object[]} triggers - A trigger for the script to run
 	 * @property {string} triggers.url - The URL of the site on which to run, regex is available but wrap it in parentheses
-	 * @property {string} value - The script that is ran itself
 	 */
+
+	/*
+	* The value of a node if it's of type stylesheet
+	* 
+	* @typedef {Object} CrmAPIInit~stylesheetVal
+	* @property {Number} launchMode - When to launch the stylesheet, 
+	*		0 = run on clicking
+	*		1 = always run
+	*		2 = run on specified pages
+	* @property {string} stylesheet - The script that is ran itself
+	* @property {boolean} toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
+	* @property {boolean} defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
+	* @property {Object[]} triggers - A trigger for the stylesheet to run
+	* @property {string} triggers.url - The URL of the site on which to run, regex is available but wrap it in parentheses
+	*/
 
 	/**
 	 * A crmNode that is returned in most crm-callbacks
@@ -366,7 +423,7 @@ function CrmAPIInit(item, id, clickData) {
 	 * @property {CrmAPIInit~linkVal} linkVal - The value of the node if it were to switch to type link
 	 * @property {CrmAPIInit~scriptVal} scriptVal - The value of the node if it were to switch to type script
 	 * @property {Object[]} menuVal - The children of the node if it were to switch to type menu
-	 * @property {CrmAPIInit~linkVal|CrmAPIInit~scriptVal|Object} value - The value of this node, changes depending on type,
+	 * @property {CrmAPIInit~linkVal|CrmAPIInit~scriptVal|CrmAPIInit~stylesheetVal|Object} value - The value of this node, changes depending on type,
 	 *		is either of type linkVal, scriptVal or just an empty object
 	 */
 
@@ -377,16 +434,7 @@ function CrmAPIInit(item, id, clickData) {
 	 */
 
 	/*
-	 * Gets the raw CRM data as stored in the extension
-	 * 
-	 * @param {function} callback - A function that is called when done with the data as an argument
-	 */
-	this.crm.getRawData = function(callback) {
-		sendCrmMessage('getRawCrm', callback);
-	}
-
-	/*
-	 * Gets the CRM tree from the tree's root
+	 * Gets the CRM tree from the tree's root - requires permission "crmGet"
 	 * 
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
@@ -395,7 +443,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/*
-	 * Gets the CRM's tree from either the root or from the node with ID nodeId
+	 * Gets the CRM's tree from either the root or from the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The ID of the tree's root node
 	 * @param {function} callback - A function that is called when done with the data as an argument
@@ -407,7 +455,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/*
-	 * Gets the node with ID nodeId
+	 * Gets the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
 	 */
@@ -418,7 +466,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/*
-	 * Gets a node's ID from a path to the node
+	 * Gets a node's ID from a path to the node - requires permission "crmGet"
 	 * 
 	 * @param {number[]} path - An array of numbers representing the path, each number
 	 *		represents the n-th child of the current node, so [1,2] represents the 2nd item(0,>1<,2)'s third child (0,1,>2<,3)
@@ -431,7 +479,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Queries the CRM for any items matching your query
+	 * Queries the CRM for any items matching your query - requires permission "crmGet"
 	 * 
 	 * @param {crmCallback} - callback The function to call when done, returns one array of results
 	 * @param {Object} query - The query to look for
@@ -444,7 +492,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Gets the parent of the node with ID nodeId
+	 * Gets the parent of the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The node of which to get the parent
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the parent of the given node as an argument
@@ -456,7 +504,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Gets the children of the node with ID nodeId
+	 * Gets the children of the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node whose children to get
 	 * @param {function} callback - A callback with an array of CrmAPIInit~crmNode nodes as the parameter
@@ -468,7 +516,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Gets teh type of node with ID nodeId
+	 * Gets the type of node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node whose type to get
 	 * @param {function} callback - A callback with the type of the node as the parameter (link, script, menu or divider)
@@ -480,7 +528,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Gets the value of node with ID nodeId
+	 * Gets the value of node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node whose value to get
 	 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal or an empty object depending on type
@@ -492,32 +540,46 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Creates a node with the given options
+	 * Creates a node with the given options - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {Object} options - An object containing all the options for the node
 	 * @param {object} [options.position] - An object containing info about where to place the item, defaults to last if not given
-	 * @param {string} [options.position.relation] - The relation to the other node, possibilities are "child" or "sibling"
-	 * @param {number} [options.position.node] - The other node, if not given, it becomes a sibling to the CRM's root regardless of "relation"
-	 * @param {string} [options.position.position] - The position relative to the other node, possibilities are:
-	 *		first: first of the subtree that node is in if relation is "sibling".. If "child", first of the node's subtree
-	 *		last: last of the subtree that node is in if relation is "sibling". If "child",, last of the node's subtree
+	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
+	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
+	 *		firstSibling: first of the subtree that given node is in
+	 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+	 *		lastSibling: last of the subtree that given node is in
 	 *		before: before given node
 	 *		after: after the given node
-	 *		child: becomes a child of the given node, will throw an error if the node is not of type "menu"
-	 * @param {string} [options.name] - The name of the object ('name' if none given)
-	 * @param {string} options.type - The type of the node (link, script, divider or menu)
-	 * @param {string} [options.link] - The link to which the node of type "link" should... link (required if type is link)
+	 * @param {string} [options.name] - The name of the object, not required, defaults to "name"
+	 * @param {string} [options.type] - The type of the node (link, script, divider or menu), not required, defaults to link
+	 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
+	 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
+	 *		newTab boolean being whether or not it opens in a new tab.
+	 * @param {string} [options.linkData.url] - The url to open when clicking the link, regex is possible but wrap it in parentheses, this value is required.
+	 * @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
 	 * @param {Object} [options.scriptData] - The data of the script, required if type is script
-	 * @param {string} [options.scriptData.script] - The actual script, will be "" if none given
-	 * @param {Number} [options.scriptData.launchMode] - The time at which this script launches,
+	 * @param {string} [options.scriptData.script] - The actual script, will be "" if none given, required
+	 * @param {Number} [options.scriptData.launchMode] - The time at which this script launches, not required, defaults to 0,
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
-	 * @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run
+	 * @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run, not required
 	 * @param {string} [options.scriptData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
-	 *		registered throws an error, so do that first
+	 *		registered throws an error, so do that first, not required
 	 * @param {string} [options.scriptData.libraries.name] - The name of the library
+	 * @param {Object] [options.stylesheetData] - The data of the stylesheet, required if type is stylesheet
+	 * @param {Number} [options.stylesheetData.launchMode] - The time at which this stylesheet launches, not required, defaults to 0,
+	 *		0 = run on clicking
+	 *		1 = always run
+	 *		2 = run on specified pages
+	 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
+	 * @property {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
+     * @property {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
+     * @param {Object[]} [options.stylesheetData.triggers] - A trigger for the stylesheet to run, not required
+	 * @param {string} [options.stylesheetData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 	 */
 	this.crm.createNode = function(options, callback) {
@@ -525,24 +587,26 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Copiess given node
+	 * Copies given node, - requires permission "crmGet" and "crmWrite"
+	 * WARNNG: following properties are not copied:
+	 *		file, storage, id, permissions
+	 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
 	 * 
 	 * @param {number} nodeId - The id of the node to copy
 	 * @param {Object} options - An object containing all the options for the node
 	 * @param {string} [options.name] - The new name of the object (same as the old one if none given)
 	 * @param {object} [options.position] - An object containing info about where to place the item, defaults to last if not given
-	 * @param {string} [options.position.relation] - The relation to the other node, possibilities are "child" or "sibling"
-	 * @param {number} [options.position.node] - The other node, if not given, it becomes a sibling to the CRM's root regardless of "relation"
-	 * @param {string} [options.position.position] - The position relative to the other node, possibilities are:
-	 *		first: first of the subtree that node is in if relation is "sibling".. If "child", first of the node's subtree
-	 *		last: last of the subtree that node is in if relation is "sibling". If "child",, last of the node's subtree
+	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
+	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
+	 *		firstSibling: first of the subtree that given node is in
+	 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+	 *		lastSibling: last of the subtree that given node is in
 	 *		before: before given node
 	 *		after: after the given node
-	 *		child: becomes a child of the given node, will throw an error if the node is not of type "menu"
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 	 */
 	this.crm.copyNode = function (nodeId, options, callback) {
-		//TODO dont forget the file and id
 		options = options || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
 		var optionsCopy = JSON.parse(JSON.stringify(options));
@@ -551,42 +615,47 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Moves given node to position specified in "position"
-	 * @param {Object} position - The position to move it to
-	 * @param {string} [position.relation] - The relation to the other node, possibilities are "child" or "sibling"
-	 * @param {number} [position.node] - The other node, if not given, it becomes a sibling to the CRM's root regardless of "relation"
-	 * @param {string} [position.position] - The position relative to the other node, possibilities are:
-	 *		first: first of the subtree that node is in if relation is "sibling".. If "child", first of the node's subtree
-	 *		last: last of the subtree that node is in if relation is "sibling". If "child",, last of the node's subtree
+	 * Moves given node to position specified in "position" - requires permission "crmGet" and "crmWrite"
+	 * 
+	 * @param {number} nodeId - The id of the node to move
+	 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last child of root if not given
+	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
+	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
+	 *		firstSibling: first of the subtree that given node is in
+	 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+	 *		lastSibling: last of the subtree that given node is in
 	 *		before: before given node
 	 *		after: after the given node
-	 *		child: becomes a child of the given node, will throw an error if the node is not of type "menu"
 	 * @param {CrmAPIInit~crmCallback} callback - A function that gets called with the new node as an argument
 	 */
-	this.crm.moveNode = function(position, callback) {
+	this.crm.moveNode = function(nodeId, options, callback) {
+		options = options || {};
+		//To prevent the user's stuff from being disturbed if they re-use the object
+		var optionsCopy = JSON.parse(JSON.stringify(options));
+		optionsCopy.nodeId = nodeId;
 		sendCrmMessage('moveNode', callback, options);
 	}
 
 	/**
-	 * Deletes given node
+	 * Deletes given node - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The id of the node to delete
 	 * @param {function} callback - A function to run when done, contains an argument containing true if it worked, otherwise containing the error message
 	 */
 	this.crm.deleteNode = function (nodeId, callback) {
-		//TODO dont forget the file and id
 		sendCrmMessage('deleteNode', callback, {
 			nodeId: nodeId
 		});
 	}
 
 	/**
-	 * Edits given settings of the node
+	 * Edits given settings of the node - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The id of the node to edit
 	 * @param {Object} options - An object containing the settings for what to edit
 	 * @param {string} [options.name] - Changes the name to given string
-	 * @param {string} [options.type] - The type to switch to (link, script, divider or menu)
+	 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, contains the new node as an argument
 	 */
 	this.crm.editNode = function(nodeId, options, callback) {
@@ -607,9 +676,9 @@ function CrmAPIInit(item, id, clickData) {
 	this.crm.link = {};
 
 	/**
-	 * Gets the links of the node with ID nodeId
+	 * Gets the links of the node with ID nodeId - requires permission "crmGet"
 	 * 
-	 * @param {number} nodeId - 
+	 * @param {number} nodeId - The id of the node to get the links from
 	 * @param {function} callback - A callback with an array of objects as parameters, each containg two keys: 
 	 *		newTab: Whether the link should open in a new tab or the current tab
 	 *		value: The URL of the link 
@@ -621,12 +690,12 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Pushes given items into the array of URLs of node with ID nodeId
+	 * Pushes given items into the array of URLs of node with ID nodeId - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node to push the items to
 	 * @param {Object[]|Object} items - An array of items or just one item to push
 	 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
-	 * @param {string} items.value - The URL to open on clicking the link
+	 * @param {string} [items.url] - The URL to open on clicking the link
 	 * @param {functon} callback - A function that gets called when done with the new array as an argument
 	 */
 	this.crm.link.push = function (nodeId, items, callback) {
@@ -638,7 +707,7 @@ function CrmAPIInit(item, id, clickData) {
 
 	/**
 	 * Splices the array of URLs of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-	 * and returns them as an array in the callback function
+	 * and returns them as an array in the callback function - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node to splice
 	 * @param {nunber} start - The index of the array at which to start splicing
@@ -654,11 +723,12 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Performs the function "process" for every item in the array
+	 * Performs the function "process" for every item in the array - requires permission "crmGet", 
+	 *		and if you want to change the value (return) requires "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node for which to run this function
 	 * @param {function} process - The function to run, has as the first parameter the item and as the second one the index,
-	 *		calling return changes the item's value to that value
+	 *		calling return changes the item's value to that value, only when permissions "crmWrite" is available changing the value is possible
 	 * @param {function} callback - A function that gets called with the new array as an argument
 	 */
 	this.crm.link.forEach = function(nodeId, process, callback) {
@@ -672,7 +742,8 @@ function CrmAPIInit(item, id, clickData) {
 	this.crm.script = {};
 	
 	/**
-	 * Sets the launch mode of node with ID nodeId to "launchMode"
+	 * Sets the launch mode of node with ID nodeId to "launchMode" - requires permission "crmGet" and "crmWrite"
+	 * 
 	 * @param {number} nodeId - The node to edit
 	 * @param {number} launchMode - The new launchMode, which is the time at which this script runs
 	 * 		0 = run on clicking
@@ -688,7 +759,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Gets the launchMode of the node with ID nodeId
+	 * Gets the launchMode of the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node to get the launchMode of
 	 * @param {function} callback - A callback with the launchMode as an argument
@@ -702,7 +773,7 @@ function CrmAPIInit(item, id, clickData) {
 	this.crm.script.libraries = {};
 	/**
 	 * Pushes given libraries to the node with ID nodeId's libraries array,
-	 * make sure to register them first or an error is thrown
+	 * make sure to register them first or an error is thrown - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node to edit
 	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
@@ -712,13 +783,13 @@ function CrmAPIInit(item, id, clickData) {
 	this.crm.script.libraries.push = function(nodeId, libraries, callback) {
 		sendCrmMessage('scriptLibraryPush', callback, {
 			nodeId: nodeId,
-			libraries: librarie
+			libraries: libraries
 		});
 	}
 
 	/**
 	 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-	 * and returns them as an array in the callback function
+	 * and returns them as an array in the callback function - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node to splice
 	 * @param {nunber} start - The index of the array at which to start splicing
@@ -734,7 +805,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Sets the script of node with ID nodeId to value "script"
+	 * Sets the script of node with ID nodeId to value "script" - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node of which to change the script
 	 * @param {string} value - The code to change to
@@ -748,7 +819,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Gets the value of the script
+	 * Gets the value of the script - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node of which to get the script
 	 * @param {function} callback - A callback with the script's value as an argument
@@ -762,7 +833,7 @@ function CrmAPIInit(item, id, clickData) {
 	this.crm.menu = {};
 	
 	/**
-	 * Gets the children of the node with ID nodeId
+	 * Gets the children of the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node of which to get the children
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
@@ -774,7 +845,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
+	 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The id of the node of which to set the children
 	 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
@@ -788,7 +859,7 @@ function CrmAPIInit(item, id, clickData) {
 	}
 
 	/**
-	 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
+	 * Pushes the nodes with IDs childrenIds to the node with ID nodeId - requires permission "crmGet" and "crmWrit"
 	 * 
 	 * @param {number} nodeId - The id of the node of which to push the children
 	 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
@@ -803,7 +874,7 @@ function CrmAPIInit(item, id, clickData) {
 
 	/**
 	 * Splices the children of the node with ID nodeId, starting at "start" and splicing "amount" items, 
-	 * the removed items will be put in the root of the tree instead
+	 * the removed items will be put in the root of the tree instead - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The id of the node of which to splice the children
 	 * @param {number} start - The index at which to start
@@ -811,7 +882,7 @@ function CrmAPIInit(item, id, clickData) {
 	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 	 */
 	this.crm.menu.splice = function (nodeId, start, amount, callback) {
-		sendCrmMessage('pushMenuChildren', callback, {
+		sendCrmMessage('spliceMenuChildren', callback, {
 			nodeId: nodeId,
 			childrenIds: childrenIds
 		});
@@ -829,6 +900,10 @@ function CrmAPIInit(item, id, clickData) {
 	 *		crmApi.chrome('runtime.getUrl').args(path).cb(function(value) { console.log(value); }); - You did
 	 *			not supply a callback and since you need the know the value that this function returns you 
 	 *			need to supply a callback. 
+	 * 
+	 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
+	 * permission "bookmarks", chrome.alarms requires "alarms"
+	 * 
 	 * @param {string} api - The API to use
 	 * @returns {Object} - An object on which you can call .args to send any arguments
 	 */
@@ -847,8 +922,13 @@ function CrmAPIInit(item, id, clickData) {
 					type: 'chrome',
 					id: id,
 					api: api,
-					crmPath: crmPath,
-					args: args
+					args: args,
+					secretKey: secretKey,
+					tabId: tabId
+				};
+				var message = {
+					id: id,
+					msg: messageContent
 				};
 				return {
 					cb: function(callback) {
@@ -860,14 +940,16 @@ function CrmAPIInit(item, id, clickData) {
 							}
 						}
 
-						messageContent.onFinish = onFinish;
+						message.msg.onFinish = onFinish;
 						this.nocb();
 					},
-					nocb: function() {
-						chrome.runtime.sendMessage(messageContent, function (error) {
-							console.warn('An error occurred while executing the api ' + api + ', stack traces:');
+					nocb: function () {
+						message = window.ec(message, secretKey);
+						chrome.runtime.sendMessage(message, function (error) {
+							error = error.error;
+							console.warn(error + ', stack traces:');
 							console.trace();
-							throw new Error(er + ror.error);
+							throw new Error(error.error);
 						});
 					}
 				};
@@ -876,6 +958,24 @@ function CrmAPIInit(item, id, clickData) {
 	};
 	/*#endregion*/
 
-	window.crmApi = this;
-
+	/*#region Other APIs*/
+	this.libraries = {};
+	/**
+	 * Registers a library with name "name", requires permission "registerLibrary"
+	 * 
+	 * @param {string} name - The name to give the library
+	 * @param {Object} options - The options related to the library
+	 * @param {string} [options.url] - The url to fetch the code from, must end in .js
+	 * @param {string} [options.code] - The code to use
+	 * @param {function} callback - A callback with the library object as an argument
+	 */
+	this.libraries.register = function (name, options, callback) {
+		sendCrmMessage('registerLibrary', callback, {
+			name: name,
+			url: options.url,
+			code: options.code
+		});
+	}
+	/*#endregion*/
+	return this;
 }
