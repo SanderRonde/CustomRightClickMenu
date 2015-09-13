@@ -629,6 +629,9 @@
     <Content Include="app\icon-small.png" />
     <Content Include="app\icon-supersmall.png" />
     <Content Include="app\js\diff_match_patch.js" />
+    <Content Include="app\js\e.js" />
+    <Content Include="app\js\encryption.js" />
+    <Content Include="app\js\eo.js" />
     <Content Include="app\js\iframecontentscript.js" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
     <Content Include="app\js\jquery-ui.min.js" />
