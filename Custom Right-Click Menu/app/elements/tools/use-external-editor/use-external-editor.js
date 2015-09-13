@@ -157,7 +157,6 @@ Polymer({
 	},
 
 	cancelOpenFiles: function () {
-		console.log('called');
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
 		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
 		window.doc.externalEditorDialogTrigger.disabled = false;
@@ -172,7 +171,7 @@ Polymer({
 			window.scriptEdit.reloadEditor();
 		}
 		else {
-			window.stylesheetItem.reloadEditor();
+			window.stylesheetEdit.reloadEditor();
 		}
 	},
 

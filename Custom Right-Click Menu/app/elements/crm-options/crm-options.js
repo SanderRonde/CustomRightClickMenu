@@ -266,17 +266,45 @@ function checkArray(toCheck) {
 	var changes = false;
 	var result;
 	toCheck.map(function (item, index) {
+		var i;
+		if (item.type === 'link') {
+			if (item.value) {
+				for (i = 0; i < item.value.length; i++) {
+					if (item.value[i].value) {
+						item.value[i].url = item.value[i].value;
+						delete item.value[i].value;
+					}
+				}
+
+			}
+		}
+		if (item.type === 'script') {
+			if (item.value && item.value.value) {
+				item.value.script = item.value.value;
+				delete item.value.value;
+			}
+		}
+		if (item.type === 'stylesheet') {
+			if (item.value && item.value.value) {
+				item.value.stylesheet = item.value.value;
+				delete item.value.value;
+			}
+		}
+		changes = true;
+
+
 		if (isNotSet(item)) {
 			changes = true;
-			item = {};
-			item.name = 'name';
-			item.type = 'link';
-			item.value = [
-				{
-					url: 'http://www.example.com',
-					newTab: true
-				}
-			];
+			item = {
+				name: 'name',
+				type: 'link',
+				value: [
+					{
+						url: 'http://www.example.com',
+						newTab: true
+					}
+				]
+			};
 		}
 		if (isNotSet(item.id)) {
 			generateItemId(function(id) {
@@ -310,7 +338,7 @@ function checkArray(toCheck) {
 						}
 					];
 				} else {
-					for (var i = 0; i < item.value.length; i++) {
+					for (i = 0; i < item.value.length; i++) {
 						if (isNotSet(item.value[i])) {
 							changes = true;
 							item.value[i] = {
@@ -919,7 +947,7 @@ Polymer({
 					}
 				});
 				$('#requestPermissionsShowOther').click(function () {
-					console.log('KLAK');
+					//TODO this
 					var other = $(this).parent().parent().children('#requestPermissionsOther');
 					if (other[0].style.height === 0) {
 						other.animate({
@@ -974,8 +1002,17 @@ Polymer({
 		this.bindListeners();
 		chrome.storage.local.get(function (items) {
 			if (items.editing) {
-				setTimeout(function() {
-					_this.restoreUnsavedInstances(items.editing);
+				setTimeout(function () {
+					//Check out if the code is actually different
+					var node = _this.crm.lookup(items.editing.crmPath).value;
+					var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
+					if (nodeCurrentCode !== items.editing.val) {
+						_this.restoreUnsavedInstances(items.editing);
+					} else {
+						chrome.storage.local.set({
+							editing: null
+						});
+					}
 				}, 2500);
 			}
 			if (items.jsLintGlobals) {

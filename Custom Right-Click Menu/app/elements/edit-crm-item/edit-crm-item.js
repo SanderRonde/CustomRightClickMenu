@@ -643,6 +643,7 @@ Polymer({
 			}
 			item = item.item;
 			window.options.item = item;
+			console.log(item);
 			if (item.type === 'script') {
 				window.options.stylesheetItem = {};
 				window.options.scriptItem = item;
@@ -654,6 +655,8 @@ Polymer({
 				window.options.stylesheetItem = {};
 				window.options.scriptItem = {};
 			}
+			console.log(window.options.scriptItem);
+			console.log('initting');
 			window.crmEditPage.init();
 		}
 	},

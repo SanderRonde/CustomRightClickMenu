@@ -35,14 +35,6 @@
 		}, 350);
 	},
 
-	closePage: function() {
-		crmEditPage.animateOut();
-	},
-
-	cancelChanges: function () {
-		this.canceled = true;
-	},
-
 	removeChanges: function () {
 		if (this.canceled) {
 			this.$.nameInput.value = this.originalVals.name;
@@ -59,6 +51,19 @@
 				i++;
 			});
 		}
+	},
+
+	closePage: function() {
+		var _this = this;
+		window.crmEditPage.animateOut();
+		setTimeout(function() {
+			_this.removeChanges();
+		}, 300);
+	},
+
+	cancelChanges: function () {
+		this.canceled = true;
+		this.closePage();
 	},
 
 	saveChanges: function () {
@@ -79,8 +84,8 @@
 		//Polymer pls...
 		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('.CRMEditColumn')[0].children[lookedUp.path[lookedUp.path.length - 1]];
 		itemInEditPage.item = lookedUp;
-		itemInEditPage.$$('.CRMItemtitle').children[0].innerHTML = newItem.name;
-
+		itemInEditPage.name = newItem.name;
+		this.closePage();
 		options.upload();
 	},
 	

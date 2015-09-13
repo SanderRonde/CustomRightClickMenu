@@ -1,5 +1,6 @@
 ///<reference path="../../../scripts/_references.js"/>
 ///<reference path="e.js"/>
+/*#region Handling of crmapi.js*/
 var permissions = [
 	'alarms',
 	'background',
@@ -132,13 +133,13 @@ function makeSafe(node) {
 	return newNode;
 }
 
-function parseNode(node, safe) {
+function parseNode(node, isSafe) {
 	if (node.children && node.children.length > 0) {
 		for (var i = 0; i < node.children.length; i++) {
 			parseNode(node.children[i], safe);
 		}
 	} else {
-		if (safe) {
+		if (isSafe) {
 			crmByIdSafe[node.id] = safe(node);
 		} else {
 			crmById[node.id] = node;
@@ -185,7 +186,6 @@ function updateStorage() {
 	});
 }
 
-//TODO use this, and make a use for this
 function updateCrm() {
 	window.chrome.storage.sync.set({
 		crm: crmTree
@@ -193,13 +193,9 @@ function updateCrm() {
 	updateStorage();
 }
 
-//TODO change this
-function updateHandler(message) {
-	switch (message.action) {
-		case 'updateStorage':
-			updateStorage();
-			break;
-	}
+function updateNodeStorage(message) {
+	crmById[message.id].storage = message.storage;
+	updateStorage();
 }
 
 function crmFunction(message, toRun) {
@@ -223,7 +219,7 @@ function crmFunction(message, toRun) {
 
 	this.lookup = function(path, data, hold) {
 		return lookup(path, data, hold);
-	}
+	};
 
 	this.checkType = function(toCheck, type, name, optional, ifndef, array, ifdef) {
 		if (!toCheck) {
@@ -260,7 +256,7 @@ function crmFunction(message, toRun) {
 		}
 		ifdef && ifdef();
 		return true;
-	}
+	};
 
 	this.moveNode = function(node, position) {
 		var relativeNode;
@@ -346,10 +342,10 @@ function crmFunction(message, toRun) {
 			pushIntoArray(node, 0, crmTree);
 		}
 		return true;
-	}
+	};
 
 	this.getNodeFromId = function(id, safe, noCallback) {
-		var node = (safe ? crmByIdSafe : crmByIdFull)[id];
+		var node = (safe ? crmByIdSafe : crmById)[id];
 		if (node) {
 			if (noCallback) {
 				return node;
@@ -370,529 +366,640 @@ function crmFunction(message, toRun) {
 		}
 	};
 
+	this.checkPermissions = function (permissions, callbackOrOptional, callback) {
+		var optional = [];
+		if (callbackOrOptional !== undefined && callbackOrOptional !== null && typeof callbackOrOptional === 'object') {
+			optional = callbackOrOptional;
+		} else {
+			callback = callbackOrOptional;
+		}
+		var permitted = true;
+		var notPermitted = [];
+		var node = _this.getNodeFromId(message.id, false, true);
+		var i;
+		for (i = 0; i < permissions.length; i++) {
+			if (node.permissions.indexOf(permissions[i]) === -1) {
+				permitted = false;
+				notPermitted.push(permissions[i]);
+			}
+		}
+
+		if (!permitted) {
+			_this.respondError('Permission' + (notPermitted.length === 1 ? ' ' + notPermitted[0] : 's ' + notPermitted.join(', ')) + ' are not available to this script.');
+		} else {
+			var length = optional.length;
+			for (i = 0; i < length; i++) {
+				if (node.permissions.indexOf(optional[i]) === -1) {
+					optional.splice(i, 1);
+					length--;
+					i--;
+				}
+			}
+			callback && callback(optional);
+		}
+	};
+
 	this.crmFunctions = {
 		getTree: function() {
-			_this.respondSuccess(safeTree);
+			_this.checkPermissions(['crmGet'], function() {
+				_this.respondSuccess(safeTree);
+			});
 		},
-		getSubTree: function (id) {
-			if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-				var node = crmByIdSafe[id || _this.message.nodeId];
-				if (node) {
-					_this.respondSuccess(node);
+		getSubTree: function(id) {
+			_this.checkPermissions(['crmGet'], function() {
+				if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
+					var node = crmByIdSafe[id || _this.message.nodeId];
+					if (node) {
+						_this.respondSuccess(node);
+					} else {
+						_this.respondError('There is no node with id ' + (id || _this.message.nodeId));
+					}
 				} else {
-					_this.respondError('There is no node with id ' + (id || _this.message.nodeId));
+					_this.respondError('No nodeId supplied');
 				}
-			} else {
-				_this.respondError('No nodeId supplied');
-			}
+			});
 		},
 		getNode: function() {
 			this.getSubTree();
 		},
 		getNodeIdFromPath: function(path) {
-			var pathToSearch = path || _this.message.path;
-			var lookedUp = lookup(pathToSearch, safeTree, false);
-			if (lookedUp === true) {
-				return false;
-			} else if (lookedUp === false) {
-				_this.respondError('Path does not return a valid value');
-				return false;
-			} else {
-				_this.respondSuccess(lookedUp.id);
-				return lookedUp.id;
-			}
+			_this.checkPermissions(['crmGet'], function() {
+				var pathToSearch = path || _this.message.path;
+				var lookedUp = lookup(pathToSearch, safeTree, false);
+				if (lookedUp === true) {
+					return false;
+				} else if (lookedUp === false) {
+					_this.respondError('Path does not return a valid value');
+					return false;
+				} else {
+					_this.respondSuccess(lookedUp.id);
+					return lookedUp.id;
+				}
+			});
 		},
 		queryCrm: function() {
-			var i;
-			var searchScopeArray = [];
+			_this.checkPermissions(['crmGet'], function() {
+				var i;
+				var searchScopeArray = [];
 
-			function findType(tree, type) {
-				if (tree.children) {
-					for (i = 0; i < tree.children.length; i++) {
-						findType(tree.children[i], type);
-					}
-				} else {
-					if (type) {
-						if (tree.type === type) {
-							searchScopeArray.push(tree);
+				function findType(tree, type) {
+					if (tree.children) {
+						for (i = 0; i < tree.children.length; i++) {
+							findType(tree.children[i], type);
 						}
 					} else {
-						searchScopeArray.push(tree);
+						if (type) {
+							if (tree.type === type) {
+								searchScopeArray.push(tree);
+							}
+						} else {
+							searchScopeArray.push(tree);
+						}
 					}
 				}
-			}
 
-			var searchScope = safeTree;
-			if (!_this.checkType(_this.message.query, 'object', 'query')) {
-				return false;
-			}
-			if (_this.message.query.inSubTree) {
-				searchScope = _this.getNodeFromId(_this.message.query.inSubTree, false, true);
-			}
+				var searchScope = safeTree;
+				if (!_this.checkType(_this.message.query, 'object', 'query')) {
+					return false;
+				}
+				if (_this.message.query.inSubTree) {
+					searchScope = _this.getNodeFromId(_this.message.query.inSubTree, false, true);
+				}
 
-			//Convert to array
-			if (!_this.checkType(_this.message.query.type, 'string', 'type', true)) {
-				return false;
-			}
-			findType(searchScope, _this.message.query.type);
+				//Convert to array
+				if (!_this.checkType(_this.message.query.type, 'string', 'type', true)) {
+					return false;
+				}
+				findType(searchScope, _this.message.query.type);
 
-			if (!_this.checkType(_this.message.query.name, 'string', 'name', true)) {
-				return false;
-			}
-			if (_this.message.query.name) {
-				var length = searchScopeArray.length;
-				for (i = 0; i < length; i++) {
-					if (searchScopeArray[i].name !== _this.message.query.name) {
-						searchScopeArray.splice(i, 1);
-						length--;
-						i--;
+				if (!_this.checkType(_this.message.query.name, 'string', 'name', true)) {
+					return false;
+				}
+				if (_this.message.query.name) {
+					var length = searchScopeArray.length;
+					for (i = 0; i < length; i++) {
+						if (searchScopeArray[i].name !== _this.message.query.name) {
+							searchScopeArray.splice(i, 1);
+							length--;
+							i--;
+						}
 					}
 				}
-			}
 
-			_this.respondSuccess(searchScopeArray);
-			return true;
+				_this.respondSuccess(searchScopeArray);
+				return true;
+
+			});
 		},
 		getParentNode: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				var pathToSearch = JSON.parse(JSON.stringify(node.path));
-				pathToSearch.pop();
-				var parentId = this.getNodeIdFromPath(pathToSearch);
-				if (parentId !== false) {
-					_this.respondSuccess(_this.getNodeFromId(parentId, true, true));
-				}
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					var pathToSearch = JSON.parse(JSON.stringify(node.path));
+					pathToSearch.pop();
+					var parentId = this.getNodeIdFromPath(pathToSearch);
+					if (parentId !== false) {
+						_this.respondSuccess(_this.getNodeFromId(parentId, true, true));
+					}
+				});
 			});
 		},
 		getChildren: function() {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-				_this.respondSuccess(node.children || []);
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					_this.respondSuccess(node.children || []);
+				});
 			});
 		},
 		getNodeType: function() {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-				_this.respondSuccess(node.type);
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					_this.respondSuccess(node.type);
+				});
 			});
 		},
 		getNodeValue: function() {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-				_this.respondSuccess(node.value);
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					_this.respondSuccess(node.value);
+				});
 			});
 		},
 		createNode: function() {
-			generateItemId(function(id) {
-				var i;
-				var type = (_this.message.options.type === 'link' ||
-					_this.message.options.type === 'script' ||
-					_this.message.options.type === 'stylesheet' ||
-					_this.message.options.type === 'menu' ||
-					_this.message.options.type === 'divider' ? _this.message.options.type : 'link');
-				var node = {
-					type: type,
-					name: _this.message.options.name || 'name',
-					id: id,
-					children: []
-				};
-				if (_this.getNodeFromId(_this.message.id, false, true).local === true) {
-					node.local = true;
-				}
-				if (type === 'link') {
-					if (_this.message.options.linkData) {
-						node.value = [];
-						if (!_this.checkType(_this.message.options.linkData, 'array', 'linkData')) {
-							return false;
-						}
-						for (i = 0; i < _this.message.options.linkData.length; i++) {
-							if (!_this.checkType(_this.message.options.linkData[i], 'object', 'linkData', false, null, true)) {
-								return false;
-							}
-							if (!_this.checkType(_this.message.options.linkData[i].url, 'string', 'linkData.url', false, null, true)) {
-								return false;
-							}
-							if (!_this.checkType(_this.message.options.linkData[i].newTab, 'boolean', 'linkData.newTab', true)) {
-								return false;
-							}
-						}
-						for (i = 0; i < _this.message.options.linkData.length; i++) {
-							node.value.push({
-								url: _this.message.options.linkData[i].url,
-								newTab: (_this.message.options.linkData[i].newTab === false ? false : true)
-							});
-						}
-					} else {
-						node.value = [
-							{
-								url: 'http://example.com',
-								newTab: true
-							}
-						];
-					}
-				} else if (type === 'script') {
-					if (!_this.checkType(_this.message.options.scriptData, 'object', 'scriptData')) {
-						return false;
-					}
-					node.value = {};
-					if (!_this.checkType(_this.message.options.scriptData.script, 'string', 'scriptData.script')) {
-						return false;
-					}
-					node.value.script = _this.message.options.scriptData.script;
-
-					if (_this.message.options.scriptData.launchMode !== undefined) {
-						if (typeof _this.message.options.scriptData.launchMode !== 'number') {
-							_this.respondError('LaunchMode specified in scriptData is not of type number (0,1,2 are possible)');
-							return false;
-						}
-						if (_this.message.options.scriptData.launchMode < 0 || _this.message.options.scriptData.launchMode > 2) {
-							_this.respondError('Launchmode specified in scriptData is not 0, 1 or 2 but instead ' + _this.message.options.scriptData.launchMode + '.');
-							return false;
-						}
-					}
-					node.value.launchMode = (_this.message.options.scriptData.launchMode !== undefined ? _this.message.options.scriptData.launchMode : 0);
-
-					if (!_this.checkType(_this.message.options.scriptData.triggers, 'array', 'scriptData.triggers', true)) {
-						return false;
-					}
-					for (i = 0; i < _this.message.options.scriptData.triggers.length; i++) {
-						if (!_this.checkType(_this.message.options.scriptData.triggers[i].url, 'string', 'scriptData.triggers.url', false, null, true)) {
-							return false;
-						}
-					}
-					node.value.triggers = _this.message.options.scriptData.triggers || [];
-
-					if (!_this.checkType(_this.message.options.scriptData.libraries, 'array', 'scriptData.libraries', true)) {
-						return false;
-					}
-					for (i = 0; i < _this.message.options.scriptData.libraries.length; i++) {
-						if (!_this.checkType(_this.message.options.scriptData.libraries.name, 'string', 'scriptData.libraries.name', false, null, true)) {
-							return false;
-						}
-					}
-					node.value.libraries = _this.message.options.scriptData.libraries || [];
-				} else if (type === 'stylesheet') {
-					if (!_this.checkType(_this.message.options.stylesheetData, 'object', 'stylesheetData')) {
-						return false;
-					}
-					node.value = {};
-
-					if (!_this.checkType(_this.message.options.scriptData.stylesheet, 'string', 'stylesheetData.stylesheet')) {
-						return false;
-					}
-					node.value.stylesheet = _this.message.options.stylesheetData.stylesheet;
-
-					if (_this.message.options.stylesheetData.launchMode !== undefined) {
-						if (typeof _this.message.options.stylesheetData.launchMode !== 'number') {
-							_this.respondError('LaunchMode specified in stylesheetData is not of type number (0,1,2 are possible)');
-							return false;
-						}
-						if (_this.message.options.stylesheetData.launchMode < 0 || _this.message.options.stylesheetData.launchMode > 2) {
-							_this.respondError('Launchmode specified in stylesheetData is not 0, 1 or 2 but instead ' + _this.message.options.stylesheetData.launchMode + '.');
-							return false;
-						}
-					}
-					node.value.launchMode = (_this.message.options.stylesheetData.launchMode !== undefined ? _this.message.options.stylesheetData.launchMode : 0);
-
-					if (!_this.checkType(_this.message.options.stylesheetData.triggers, 'array', 'stylesheetData.triggers', true)) {
-						return false;
-					}
-					for (i = 0; i < _this.message.options.stylesheetData.triggers.length; i++) {
-						if (!_this.checkType(_this.message.options.stylesheetData.triggers[i].url, 'string', 'stylesheetData.triggers.url', false, null, true)) {
-							return false;
-						}
-					}
-					node.value.triggers = _this.message.options.stylesheetData.triggers || [];
-
-					if (!_this.checkType(__this.message.options.stylesheetData.toggle, 'boolean', 'stylesheetData.toggle', true)) {
-						return false;
-					}
-					node.value.toggle = (_this.message.options.stylesheetData.toggle === false ? false : true);
-
-					if (!_this.checkType(__this.message.options.stylesheetData.defaultOn, 'boolean', 'stylesheetData.defaultOn', true)) {
-						return false;
-					}
-					node.value.toggle = (_this.message.options.stylesheetData.toggle === false ? false : true);
-
-					node.value.libraries = _this.message.options.scriptData.libraries || [];
-				} else {
-					node.value = {};
-				}
-
-				if (moveNode(newNode, _this.message.options.position)) {
-					updateCrm();
-					_this.respondSuccess(newNode);
-				} else {
-					
-					return false;
-				}
-				return true;
-			});
-		},
-		copyNode: function() {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-				if (!_this.checkType(_this.message.options, 'object', 'options')) {
-					return false;
-				}
-				var newNode = JSON.parse(JSON.stringify(node));
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
 				generateItemId(function(id) {
-					newNode.id = id;
-					if (_this.getNodeFromId(_this.message.id, false, true).local === true && node.local === true) {
-						newNode.local = true;
+					var i;
+					var type = (_this.message.options.type === 'link' ||
+						_this.message.options.type === 'script' ||
+						_this.message.options.type === 'stylesheet' ||
+						_this.message.options.type === 'menu' ||
+						_this.message.options.type === 'divider' ? _this.message.options.type : 'link');
+					var node = {
+						type: type,
+						name: _this.message.options.name || 'name',
+						id: id,
+						children: []
+					};
+					if (_this.getNodeFromId(_this.message.id, false, true).local === true) {
+						node.local = true;
 					}
-					delete newNode.storage;
-					delete newNode.file;
-					if (!_this.checkType(_this.message.options.name, 'string', 'options.name', true, null, false, function() {
-						newNode.name = name;
-					})) {
-						return false;
+					if (type === 'link') {
+						if (_this.message.options.linkData) {
+							node.value = [];
+							if (!_this.checkType(_this.message.options.linkData, 'array', 'linkData')) {
+								return false;
+							}
+							for (i = 0; i < _this.message.options.linkData.length; i++) {
+								if (!_this.checkType(_this.message.options.linkData[i], 'object', 'linkData', false, null, true)) {
+									return false;
+								}
+								if (!_this.checkType(_this.message.options.linkData[i].url, 'string', 'linkData.url', false, null, true)) {
+									return false;
+								}
+								if (!_this.checkType(_this.message.options.linkData[i].newTab, 'boolean', 'linkData.newTab', true)) {
+									return false;
+								}
+							}
+							for (i = 0; i < _this.message.options.linkData.length; i++) {
+								node.value.push({
+									url: _this.message.options.linkData[i].url,
+									newTab: (_this.message.options.linkData[i].newTab === false ? false : true)
+								});
+							}
+						} else {
+							node.value = [
+								{
+									url: 'http://example.com',
+									newTab: true
+								}
+							];
+						}
+					} else if (type === 'script') {
+						if (!_this.checkType(_this.message.options.scriptData, 'object', 'scriptData')) {
+							return false;
+						}
+						node.value = {};
+						if (!_this.checkType(_this.message.options.scriptData.script, 'string', 'scriptData.script')) {
+							return false;
+						}
+						node.value.script = _this.message.options.scriptData.script;
+
+						if (_this.message.options.scriptData.launchMode !== undefined) {
+							if (typeof _this.message.options.scriptData.launchMode !== 'number') {
+								_this.respondError('LaunchMode specified in scriptData is not of type number (0,1,2 are possible)');
+								return false;
+							}
+							if (_this.message.options.scriptData.launchMode < 0 || _this.message.options.scriptData.launchMode > 2) {
+								_this.respondError('Launchmode specified in scriptData is not 0, 1 or 2 but instead ' + _this.message.options.scriptData.launchMode + '.');
+								return false;
+							}
+						}
+						node.value.launchMode = (_this.message.options.scriptData.launchMode !== undefined ? _this.message.options.scriptData.launchMode : 0);
+
+						if (!_this.checkType(_this.message.options.scriptData.triggers, 'array', 'scriptData.triggers', true)) {
+							return false;
+						}
+						for (i = 0; i < _this.message.options.scriptData.triggers.length; i++) {
+							if (!_this.checkType(_this.message.options.scriptData.triggers[i].url, 'string', 'scriptData.triggers.url', false, null, true)) {
+								return false;
+							}
+						}
+						node.value.triggers = _this.message.options.scriptData.triggers || [];
+
+						if (!_this.checkType(_this.message.options.scriptData.libraries, 'array', 'scriptData.libraries', true)) {
+							return false;
+						}
+						for (i = 0; i < _this.message.options.scriptData.libraries.length; i++) {
+							if (!_this.checkType(_this.message.options.scriptData.libraries.name, 'string', 'scriptData.libraries.name', false, null, true)) {
+								return false;
+							}
+						}
+						node.value.libraries = _this.message.options.scriptData.libraries || [];
+					} else if (type === 'stylesheet') {
+						if (!_this.checkType(_this.message.options.stylesheetData, 'object', 'stylesheetData')) {
+							return false;
+						}
+						node.value = {};
+
+						if (!_this.checkType(_this.message.options.scriptData.stylesheet, 'string', 'stylesheetData.stylesheet')) {
+							return false;
+						}
+						node.value.stylesheet = _this.message.options.stylesheetData.stylesheet;
+
+						if (_this.message.options.stylesheetData.launchMode !== undefined) {
+							if (typeof _this.message.options.stylesheetData.launchMode !== 'number') {
+								_this.respondError('LaunchMode specified in stylesheetData is not of type number (0,1,2 are possible)');
+								return false;
+							}
+							if (_this.message.options.stylesheetData.launchMode < 0 || _this.message.options.stylesheetData.launchMode > 2) {
+								_this.respondError('Launchmode specified in stylesheetData is not 0, 1 or 2 but instead ' + _this.message.options.stylesheetData.launchMode + '.');
+								return false;
+							}
+						}
+						node.value.launchMode = (_this.message.options.stylesheetData.launchMode !== undefined ? _this.message.options.stylesheetData.launchMode : 0);
+
+						if (!_this.checkType(_this.message.options.stylesheetData.triggers, 'array', 'stylesheetData.triggers', true)) {
+							return false;
+						}
+						for (i = 0; i < _this.message.options.stylesheetData.triggers.length; i++) {
+							if (!_this.checkType(_this.message.options.stylesheetData.triggers[i].url, 'string', 'stylesheetData.triggers.url', false, null, true)) {
+								return false;
+							}
+						}
+						node.value.triggers = _this.message.options.stylesheetData.triggers || [];
+
+						if (!_this.checkType(_this.message.options.stylesheetData.toggle, 'boolean', 'stylesheetData.toggle', true)) {
+							return false;
+						}
+						node.value.toggle = (_this.message.options.stylesheetData.toggle === false ? false : true);
+
+						if (!_this.checkType(_this.message.options.stylesheetData.defaultOn, 'boolean', 'stylesheetData.defaultOn', true)) {
+							return false;
+						}
+						node.value.toggle = (_this.message.options.stylesheetData.toggle === false ? false : true);
+
+						node.value.libraries = _this.message.options.scriptData.libraries || [];
+					} else {
+						node.value = {};
 					}
-					if (moveNode(newNode, _this.message.options.position)) {
+
+					if (moveNode(node, _this.message.options.position)) {
 						updateCrm();
-						_this.respondSuccess(newNode);
+						_this.respondSuccess(node);
+					} else {
+
+						return false;
 					}
 					return true;
 				});
+			});
+		},
+		copyNode: function() {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					if (!_this.checkType(_this.message.options, 'object', 'options')) {
+						return false;
+					}
+					var newNode = JSON.parse(JSON.stringify(node));
+					generateItemId(function(id) {
+						newNode.id = id;
+						if (_this.getNodeFromId(_this.message.id, false, true).local === true && node.local === true) {
+							newNode.local = true;
+						}
+						delete newNode.storage;
+						delete newNode.file;
+						if (!_this.checkType(_this.message.options.name, 'string', 'options.name', true, null, false, function() {
+							newNode.name = name;
+						})) {
+							return false;
+						}
+						if (moveNode(newNode, _this.message.options.position)) {
+							updateCrm();
+							_this.respondSuccess(newNode);
+						}
+						return true;
+					});
+					return true;
+				});
+
 			});
 			return true;
 		},
 		moveNode: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (moveNode(node, _this.message.options.position)) {
-					updateCrm();
-					_this.respondSuccess(safe(node));
-				}
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (moveNode(node, _this.message.options.position)) {
+						updateCrm();
+						_this.respondSuccess(safe(node));
+					}
+				});
+
 			});
 		},
 		deleteNode: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				var parentChildren = _this.lookup(node.path, crmTree, true);
-				parentChildren.splice(node.path[node.path.length - 1], 1);
-				_this.respondSuccess(true);
-				updateCrm();
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					var parentChildren = _this.lookup(node.path, crmTree, true);
+					parentChildren.splice(node.path[node.path.length - 1], 1);
+					_this.respondSuccess(true);
+					updateCrm();
+				});
+
 			});
 		},
 		editNode: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.options, 'object', 'options')) {
-					return false;
-				}
-				if (!_this.checkType(_this.message.options.name, 'string', 'options.name', true)) {
-					return false;
-				}
-				if (!_this.checkType(_this.message.options.type, 'string', 'options.type', true, null, false, function() {
-					if (_this.message.options.type !== 'link' &&
-						_this.message.options.type !== 'script' &&
-						_this.message.options.type !== 'stylesheet' &&
-						_this.message.options.type !== 'menu' &&
-						_this.message.options.type !== 'divider') {
-						_this.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.options, 'object', 'options')) {
 						return false;
-					} else {
-						node.type = _this.message.options.type;
 					}
-					return true;
-				})) {
-					return false;
-				}
-				if (_this.message.options.name) {
-					node.name = _this.message.options.name;
-				}
-				updateCrm();
-				_this.respondSuccess(safe(node));
-				return true;
-			});
-		},
-		linkGetLinks: function() {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-				if (node.type === 'link') {
-					_this.respondSuccess(node.value);
-				} else {
-					_this.respondSuccess(node.linkval);
-				}
-				return true;
-			});
-		},
-		linkPush: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (typeof _this.message.items !== 'object') {
-					_this.respondError('Given items parameter is not of type object or array');
-					return false;
-				}
-				if (_this.message.items.length !== undefined) { //Array
-					for (var i = 0; i < _this.message.items.length; i++) {
-						if (_this.message.items[i].newTab !== undefined) {
-							if (typeof _this.message.items[i].newTab !== 'boolean') {
-								_this.respondError('The newtab property of one or more items are not of type boolean');
-								return false;
-							}
-						}
-						if (!_this.message.items[i].url) {
-							_this.respondError('The URL property is not defined in all given items');
+					if (!_this.checkType(_this.message.options.name, 'string', 'options.name', true)) {
+						return false;
+					}
+					if (!_this.checkType(_this.message.options.type, 'string', 'options.type', true, null, false, function() {
+						if (_this.message.options.type !== 'link' &&
+							_this.message.options.type !== 'script' &&
+							_this.message.options.type !== 'stylesheet' &&
+							_this.message.options.type !== 'menu' &&
+							_this.message.options.type !== 'divider') {
+							_this.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
 							return false;
+						} else {
+							node.type = _this.message.options.type;
 						}
-					}
-					if (node.type === 'link') {
-						node.value.push(_this.message.items);
-					} else {
-						node.linkVal.push = node.linkVal.push || [];
-						node.linkVal.push(_this.message.items);
-					}
-				} else { //Object
-					if (_this.message.items.newTab !== undefined) {
-						if (typeof _this.message.items.newTab !== 'boolean') {
-							_this.respondError('The newtab property in given item is not of type boolean');
-							return false;
-						}
-					}
-					if (!_this.message.items.url) {
-						_this.respondError('The URL property is not defined in the given item');
+						return true;
+					})) {
 						return false;
 					}
-					if (node.type === 'link') {
-						node.value.push(_this.message.items);
-					} else {
-						node.linkVal.push = node.linkVal.push || [];
-						node.linkVal.push(_this.message.items);
-					}
-				}
-				updateCrm();
-				if (node.type === 'link') {
-					_this.respondSuccess(safe(node).value);
-				} else {
-					_this.respondSuccess(safe(node).linkVal);
-				}
-				return true;
-			});
-		},
-		linkSplice: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.start, 'number', 'start')) {
-					return false;
-				}
-				if (!_this.checkType(_this.message.amount, 'number', 'amount')) {
-					return false;
-				}
-				var spliced;
-				if (node.type === 'link') {
-					spliced = node.value.splice(start, amount);
-					updateCrm();
-					_this.respondSuccess(spliced, safe(node).value);
-				} else {
-					node.linkVal = node.linkVal || [];
-					spliced = node.linkVal.splice(start, amount);
-					updateCrm();
-					_this.respondSuccess(spliced, safe(node).linkVal);
-				}
-				return true;
-			});
-		},
-		linkForEach: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.process, 'function', 'process')) {
-					return false;
-				}
-				if (node.type === 'link') {
-					node.value.forEach(process);
-					updateCrm();
-					_this.respondSuccess(safe(node).value);
-				} else {
-					node.linkVal = node.linkVal || [];
-					node.linkVal.forEach(process);
-					updateCrm();
-					_this.respondSuccess(node.linkVal);
-				}
-				return true;
-			});
-		},
-		setScriptLaunchMode: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				_this.checkType(_this.message.launchMode, 'number', 'launchMode', false, null, false, function() {
-					if (_this.message.launchMode < 0 || _this.message.launchMode > 2) {
-						return false;
-					}
-					if (node.type === 'script') {
-						node.value.launchMode = _this.message.launchMode;
-					} else {
-						node.scriptVal = node.scriptVal || {};
-						node.scriptVal.launchMode = _this.message.launchMode;
+					if (_this.message.options.name) {
+						node.name = _this.message.options.name;
 					}
 					updateCrm();
 					_this.respondSuccess(safe(node));
 					return true;
 				});
+
+			});
+		},
+		linkGetLinks: function() {
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					if (node.type === 'link') {
+						_this.respondSuccess(node.value);
+					} else {
+						_this.respondSuccess(node.linkval);
+					}
+					return true;
+				});
+
+			});
+		},
+		linkPush: function() {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (typeof _this.message.items !== 'object') {
+						_this.respondError('Given items parameter is not of type object or array');
+						return false;
+					}
+					if (_this.message.items.length !== undefined) { //Array
+						for (var i = 0; i < _this.message.items.length; i++) {
+							if (_this.message.items[i].newTab !== undefined) {
+								if (typeof _this.message.items[i].newTab !== 'boolean') {
+									_this.respondError('The newtab property of one or more items are not of type boolean');
+									return false;
+								}
+							}
+							if (!_this.message.items[i].url) {
+								_this.respondError('The URL property is not defined in all given items');
+								return false;
+							}
+						}
+						if (node.type === 'link') {
+							node.value.push(_this.message.items);
+						} else {
+							node.linkVal.push = node.linkVal.push || [];
+							node.linkVal.push(_this.message.items);
+						}
+					} else { //Object
+						if (_this.message.items.newTab !== undefined) {
+							if (typeof _this.message.items.newTab !== 'boolean') {
+								_this.respondError('The newtab property in given item is not of type boolean');
+								return false;
+							}
+						}
+						if (!_this.message.items.url) {
+							_this.respondError('The URL property is not defined in the given item');
+							return false;
+						}
+						if (node.type === 'link') {
+							node.value.push(_this.message.items);
+						} else {
+							node.linkVal.push = node.linkVal.push || [];
+							node.linkVal.push(_this.message.items);
+						}
+					}
+					updateCrm();
+					if (node.type === 'link') {
+						_this.respondSuccess(safe(node).value);
+					} else {
+						_this.respondSuccess(safe(node).linkVal);
+					}
+					return true;
+				});
+
+			});
+		},
+		linkSplice: function() {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.start, 'number', 'start')) {
+						return false;
+					}
+					if (!_this.checkType(_this.message.amount, 'number', 'amount')) {
+						return false;
+					}
+					var spliced;
+					if (node.type === 'link') {
+						spliced = node.value.splice(_this.message.start, _this.message.amount);
+						updateCrm();
+						_this.respondSuccess(spliced, safe(node).value);
+					} else {
+						node.linkVal = node.linkVal || [];
+						spliced = node.linkVal.splice(_this.message.start, _this.message.amount);
+						updateCrm();
+						_this.respondSuccess(spliced, safe(node).linkVal);
+					}
+					return true;
+				});
+
+			});
+		},
+		linkForEach: function() {
+			_this.checkPermissions(['crmGet'], ['crmWrite'], function(permitted) {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.process, 'function', 'process')) {
+						return false;
+					}
+					var i;
+					if (node.type === 'link') {
+						if (permitted.length === 1) {
+							for (i = 0; i < node.value.length; i++) {
+								_this.message.process(node.value.length[i], i);
+							}
+						} else {
+							node.value.forEach(_this.message.process);
+						}
+						updateCrm();
+						_this.respondSuccess(safe(node).value);
+					} else {
+						node.linkVal = node.linkVal || [];
+						if (permitted.length === 1) {
+							for (i = 0; i < node.value.length; i++) {
+								_this.message.process(node.linkVal.length[i], i);
+							}
+						} else {
+							node.linkVal.forEach(_this.message.process);
+						}
+						updateCrm();
+						_this.respondSuccess(node.linkVal);
+					}
+					return true;
+				});
+
+			});
+		},
+		setScriptLaunchMode: function() {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					_this.checkType(_this.message.launchMode, 'number', 'launchMode', false, null, false, function() {
+						if (_this.message.launchMode < 0 || _this.message.launchMode > 2) {
+							return false;
+						}
+						if (node.type === 'script') {
+							node.value.launchMode = _this.message.launchMode;
+						} else {
+							node.scriptVal = node.scriptVal || {};
+							node.scriptVal.launchMode = _this.message.launchMode;
+						}
+						updateCrm();
+						_this.respondSuccess(safe(node));
+						return true;
+					});
+				});
+
 			});
 		},
 		getScriptLaunchMode: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-				if (node.type === 'script') {
-					_this.respondSuccess(node.value.launchMode);
-				} else {
-					(node.scriptVal && _this.respondSuccess(node.scriptVal.launchMode)) || _this.respondSuccess(undefined);
-				}
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (node.type === 'script') {
+						_this.respondSuccess(node.value.launchMode);
+					} else {
+						(node.scriptVal && _this.respondSuccess(node.scriptVal.launchMode)) || _this.respondSuccess(undefined);
+					}
+				});
+
 			});
 		},
 		registerLibrary: function() {
-			//TODO ADD SPECIAL PERMISSIONS
-			chrome.storage.local.get('libraries', function(items) {
-				var libraries = items.libraries;
-				if (!_this.checkType(_this.message.name, 'string', 'name')) {
-					return false;
-				}
-				var newLibrary = {
-					name: _this.message.name
-				};
-				if (_this.message.url) {
-					if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
-						//Use URL
-						var done = false;
-						var xhr = new XMLHttpRequest();
-						xhr.open('GET', _this.message.url, true);
-						xhr.onreadystatechange = function() {
-							if (xhr.readyState === 4 && xhr.status === 200) {
-								done = true;
-								newLibrary.code = xhr.responseText;
-								newLibrary.url = _this.message.url;
-								libraries.push(newLibrary);
-								chrome.storage.local.set({
-									libraries: libraries
-								});
-								_this.respondSuccess(newLibrary);
-							}
-						};
-						setTimeout(function() {
-							if (!done) {
-								_this.respondError('Request timed out');
-							}
-						}, 5000);
-						xhr.send();
-					} else {
-						_this.respondError('No valid URL given');
+			_this.checkPermissions(['registerLibrary'], function() {
+				window.chrome.storage.local.get('libraries', function(items) {
+					var libraries = items.libraries;
+					if (!_this.checkType(_this.message.name, 'string', 'name')) {
 						return false;
 					}
-				} else if (_this.message.code) {
-					if (typeof _this.message.code === 'string') {
-						newLibrary.code = _this.message.code;
-						libraries.push(newLibrary);
-						chrome.storage.local.set({
-							libraries: libraries
-						});
-						_this.respondSuccess(newLibrary);
+					var newLibrary = {
+						name: _this.message.name
+					};
+					if (_this.message.url) {
+						if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
+							//Use URL
+							var done = false;
+							var xhr = new XMLHttpRequest();
+							xhr.open('GET', _this.message.url, true);
+							xhr.onreadystatechange = function() {
+								if (xhr.readyState === 4 && xhr.status === 200) {
+									done = true;
+									newLibrary.code = xhr.responseText;
+									newLibrary.url = _this.message.url;
+									libraries.push(newLibrary);
+									window.chrome.storage.local.set({
+										libraries: libraries
+									});
+									_this.respondSuccess(newLibrary);
+								}
+							};
+							setTimeout(function() {
+								if (!done) {
+									_this.respondError('Request timed out');
+								}
+							}, 5000);
+							xhr.send();
+						} else {
+							_this.respondError('No valid URL given');
+							return false;
+						}
+					} else if (_this.message.code) {
+						if (typeof _this.message.code === 'string') {
+							newLibrary.code = _this.message.code;
+							libraries.push(newLibrary);
+							window.chrome.storage.local.set({
+								libraries: libraries
+							});
+							_this.respondSuccess(newLibrary);
+						} else {
+							_this.respondError('Code parameter given is not of type string');
+							return false;
+						}
 					} else {
-						_this.respondError('Code parameter given is not of type string');
+						_this.respondError('No URL or code given');
 						return false;
 					}
-				} else {
-					_this.respondError('No URL or code given');
-					return false;
-				}
-				return true;
+					return true;
+				});
+
 			});
-		}, //TODO also different section in crmapi.js
+		}, //TODO also different section in crmapi.js - registerLibrary
 		scriptLibraryPush: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.libraries, 'object', 'libraries')) {
-					return false;
-				}
-				if (_this.message.libraries.length !== undefined) { //Array
-					for (var i = 0; i < _this.message.libraries.length; i++) {
-						if (!_this.checkType(_this.message.libraries[i].name, 'string', 'libraries.name', false, null, true)) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.libraries, 'object', 'libraries')) {
+						return false;
+					}
+					if (_this.message.libraries.length !== undefined) { //Array
+						for (var i = 0; i < _this.message.libraries.length; i++) {
+							if (!_this.checkType(_this.message.libraries[i].name, 'string', 'libraries.name', false, null, true)) {
+								return false;
+							}
+							if (node.type === 'script') {
+								node.value.libraries.push(_this.message.libraries);
+							} else {
+								node.scriptVal = node.scriptVal || {};
+								node.scriptVal.libraries = node.scriptVal.libraries || [];
+								node.scriptVal.libraries.push(_this.message.libraries);
+							}
+						}
+					} else { //Object
+						if (!_this.checkType(_this.message.libraries.name, 'stirng', 'libraries.name', false, null, true)) {
 							return false;
 						}
 						if (node.type === 'script') {
@@ -903,145 +1010,157 @@ function crmFunction(message, toRun) {
 							node.scriptVal.libraries.push(_this.message.libraries);
 						}
 					}
-				} else { //Object
-					if (!_this.checkType(_this.message.libraries.name, 'stirng', 'libraries.name', false, null, true)) {
-						return false;
-					}
+					updateCrm();
 					if (node.type === 'script') {
-						node.value.libraries.push(_this.message.libraries);
+						_this.respondSuccess(safe(node).value.libraries);
 					} else {
-						node.scriptVal = node.scriptVal || {};
-						node.scriptVal.libraries = node.scriptVal.libraries || [];
-						node.scriptVal.libraries.push(_this.message.libraries);
+						_this.respondSuccess(node.scriptVal.libraries);
 					}
-				}
-				updateCrm();
-				if (node.type === 'script') {
-					_this.respondSuccess(safe(node).value.libraries);
-				} else {
-					_this.respondSuccess(node.scriptVal.libraries);
-				}
-				return true;
+					return true;
+				});
+
 			});
 		},
 		scriptLibrarySplice: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.start, 'number', 'start')) {
-					return false;
-				}
-				if (!_this.checkType(_this.message.amount, 'number', 'amount')) {
-					return false;
-				}
-				var spliced;
-				if (node.type === 'script') {
-					spliced = safe(node).value.libraries.splice(_this.message.start, _this.message.amount);
-					updateCrm();
-					_this.respondSuccess(spliced, safe(node).value.libraries);
-				} else {
-					node.scriptVal = node.scriptVal || {};
-					node.scriptVal.libraries = node.scriptVal.libraries || [];
-					spliced = node.scriptVal.libraries.splice(_this.message.start, _this.message.amount);
-					updateCrm();
-					_this.respondSuccess(spliced, node.scriptVal.libraries);
-				}
-				return true;
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.start, 'number', 'start')) {
+						return false;
+					}
+					if (!_this.checkType(_this.message.amount, 'number', 'amount')) {
+						return false;
+					}
+					var spliced;
+					if (node.type === 'script') {
+						spliced = safe(node).value.libraries.splice(_this.message.start, _this.message.amount);
+						updateCrm();
+						_this.respondSuccess(spliced, safe(node).value.libraries);
+					} else {
+						node.scriptVal = node.scriptVal || {};
+						node.scriptVal.libraries = node.scriptVal.libraries || [];
+						spliced = node.scriptVal.libraries.splice(_this.message.start, _this.message.amount);
+						updateCrm();
+						_this.respondSuccess(spliced, node.scriptVal.libraries);
+					}
+					return true;
+				});
+
 			});
 		},
 		setScriptValue: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.script, 'string', 'script')) {
-					return false;
-				}
-				if (node.type === 'script') {
-					node.value.script = script;
-				} else {
-					node.scriptVal = node.scriptVal || {};
-					node.scriptVal.script = script;
-				}
-				updateCrm();
-				_this.respondSuccess(safe(node));
-				return true;
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.script, 'string', 'script')) {
+						return false;
+					}
+					if (node.type === 'script') {
+						node.value.script = script;
+					} else {
+						node.scriptVal = node.scriptVal || {};
+						node.scriptVal.script = script;
+					}
+					updateCrm();
+					_this.respondSuccess(safe(node));
+					return true;
+				});
+
 			});
 		},
 		getScriptValue: function() {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
-				if (node.type === 'script') {
-					_this.respondSuccess(node.value.script);
-				} else {
-					(node.scriptVal && _this.respondSuccess(node.scriptVal.script)) || _this.respondSuccess(undefined);
-				}
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					if (node.type === 'script') {
+						_this.respondSuccess(node.value.script);
+					} else {
+						(node.scriptVal && _this.respondSuccess(node.scriptVal.script)) || _this.respondSuccess(undefined);
+					}
+				});
+
 			});
 		},
-		getMenuChildren: function () {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-				if (node.type === 'menu') {
-					_this.respondSuccess(node.children);
-				} else {
-					_this.respondSuccess(node.menuVal);
-				}
+		getMenuChildren: function() {
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					if (node.type === 'menu') {
+						_this.respondSuccess(node.children);
+					} else {
+						_this.respondSuccess(node.menuVal);
+					}
+				});
+
 			});
 		},
 		setMenuChildren: function() {
-			_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-				if (!_this.checkType(_this.message.childrenIds, 'array', 'childrenIds')) {
-					return false;
-				}
-				var i;
-				for (i = 0; i < _this.message.childrenIds.length; i++) {
-					if (!_this.checkType(_this.message.childrenIds[i], 'number', 'childrenIds', false, null, true)) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					if (!_this.checkType(_this.message.childrenIds, 'array', 'childrenIds')) {
 						return false;
 					}
-				}
-				var children = [];
-				for (i = 0; i < _this.message.childrenIds.length; i++) {
-					children.push(_this.getNodeFromId(_this.message.childrenIds[i], true, true));
-				}
-				if (node.type === 'menu') {
-					node.children = children;
-				} else {
-					node.menuVal = children;
-				}
-				updateCrm();
-				_this.respondSuccess(safe(node));
-				return true;
+					var i;
+					for (i = 0; i < _this.message.childrenIds.length; i++) {
+						if (!_this.checkType(_this.message.childrenIds[i], 'number', 'childrenIds', false, null, true)) {
+							return false;
+						}
+					}
+					var children = [];
+					for (i = 0; i < _this.message.childrenIds.length; i++) {
+						children.push(_this.getNodeFromId(_this.message.childrenIds[i], true, true));
+					}
+					if (node.type === 'menu') {
+						node.children = children;
+					} else {
+						node.menuVal = children;
+					}
+					updateCrm();
+					_this.respondSuccess(safe(node));
+					return true;
+				});
+
 			});
 		},
 		pushMenuChildren: function() {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.childrenIds, 'array', 'childrenIds')) {
-					return false;
-				}
-				var i;
-				for (i = 0; i < _this.message.childrenIds.length; i++) {
-					if (!_this.checkType(_this.message.childrenIds[i], 'number', 'childrenId', false, null, true)) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.childrenIds, 'array', 'childrenIds')) {
 						return false;
 					}
-				}
-				var children = [];
-				for (i = 0; i < _this.message.childrenIds.length; i++) {
-					children[i] = _this.getNodeFromId(_this.message.childrenIds[i], false, true);
-				}
-				if (node.type === 'menu') {
-					node.children.push(children);
-				} else {
-					node.menuVal.push(children);
-				}
-				updateCrm();
-				_this.respondSuccess(safe(node));
+					var i;
+					for (i = 0; i < _this.message.childrenIds.length; i++) {
+						if (!_this.checkType(_this.message.childrenIds[i], 'number', 'childrenId', false, null, true)) {
+							return false;
+						}
+					}
+					var children = [];
+					for (i = 0; i < _this.message.childrenIds.length; i++) {
+						children[i] = _this.getNodeFromId(_this.message.childrenIds[i], false, true);
+					}
+					if (node.type === 'menu') {
+						node.children.push(children);
+					} else {
+						node.menuVal.push(children);
+					}
+					updateCrm();
+					_this.respondSuccess(safe(node));
+					return true;
+				});
+
 			});
 		},
-		spliceMenuChildren: function () {
-			_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-				if (!_this.checkType(_this.message.start, 'number', 'start')) {
-					return false;
-				}
-				if (!_this.checkType(_this.message.amount, 'number', 'amount')) {
-					return false;
-				}
-				var spliced = (node.type === 'menu' ? node.children : node.menuVal).splice(_this.message.start, _this.message.amount);
-				updateCrm();
-				_this.respondSuccess(spliced, (node.type === 'menu' ? safe(node).children : safe(node).menuVal));
-				return true;
+		spliceMenuChildren: function() {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					if (!_this.checkType(_this.message.start, 'number', 'start')) {
+						return false;
+					}
+					if (!_this.checkType(_this.message.amount, 'number', 'amount')) {
+						return false;
+					}
+					var spliced = (node.type === 'menu' ? node.children : node.menuVal).splice(_this.message.start, _this.message.amount);
+					updateCrm();
+					_this.respondSuccess(spliced, (node.type === 'menu' ? safe(node).children : safe(node).menuVal));
+					return true;
+				});
+
 			});
 		}
 	};
@@ -1049,59 +1168,74 @@ function crmFunction(message, toRun) {
 	this.crmFunctions[this.toRun] && this.crmFunctions[this.toRun]();
 }
 
-//TODO if an item is added using a "local" script, also make that item "local"
-
 function crmHandler(message) {
 	crmFunction(message, message.action);
 }
 
 function chromeHandler(message, respond) {
-	//Check permissions
-	var api = message.api;
-	api = api.split(',')[0];
+	var node = crmById[message.id];
+	var apiPermission = message.api.split(',').split('.')[0];
+	var chromeFound = (node.permissions.indexOf('chrome') > 1);
+	var apiFound = (node.permissions.indexOf(apiPermission) > 1);
+	if (!chromeFound && !apiFound) {
+		respond({
+			error: 'Both permissions chrome and ' + apiPermission + ' not available to this script'
+		});
+	}
+	else if (!chromeFound) {
+		respond({
+			error: 'Permission chrome not available to this script'
+		});
+	}
+	else if (!apiFound) {
+		respond({
+			error: 'Permission ' + apiPermission + ' not avilable to this script'
+		});
+	} else {
+		//Check permissions
+		var api = message.api;
+		api = api.split(',')[0];
 
-	var params = '';
-	var node = crmByIdFull[message.id];
-	var allowedPermissions = (node.isLocal ? '*' : node.permissions || []);
-	if (permissions.indexOf(api) > -1) {
-		if (allowedPermissions === '*' || allowedPermissions.indexOf(api) > -1) {
-			if (availablePermissions.indexOf(api) > -1) {
-				for (var i = 0; i < message.args - 1; i++) {
-					params.push(message.args[i] + ', ');
-				}
-				params.push(message.args[message.args.length - 1]);
-				try {
-					eval('var result = chrome.' + message.api + '(' + params + ')');
-					if (message.onFinish) {
-						message.onFinish(result);
+		var params = '';
+		var allowedPermissions = (node.isLocal ? '*' : node.permissions || []);
+		if (permissions.indexOf(api) > -1) {
+			if (allowedPermissions === '*' || allowedPermissions.indexOf(api) > -1) {
+				if (availablePermissions.indexOf(api) > -1) {
+					for (var i = 0; i < message.args - 1; i++) {
+						params.push(message.args[i] + ', ');
 					}
-				} catch (e) {
+					params.push(message.args[message.args.length - 1]);
+					try {
+						eval('var result = chrome.' + message.api + '(' + params + ')');
+						if (message.onFinish) {
+							message.onFinish(result);
+						}
+					} catch (e) {
+						respond({
+							error: e
+						});
+					}
+				} else {
 					respond({
-						error: e
+						error: 'Permissions ' + api + ' not available to the extension, visit options page'
+					});
+					window.chrome.storage.sync.get('requestPermissions', function(keys) {
+						var perms = keys.requestPermissions || [api];
+						window.chrome.storage.sync.set({
+							requestPermissions: perms
+						});
 					});
 				}
 			} else {
 				respond({
-					error: 'Permissions ' + api + ' not available to the extension, visit options page',
-					requestPermission: api
-				});
-				window.chrome.storage.sync.get('requestPermissions', function(keys) {
-					var perms = keys.requestPermissions || [api];
-					window.chrome.storage.sync.set({
-						requestPermissions: perms
-					});
+					error: 'Permission ' + api + ' not requested'
 				});
 			}
 		} else {
 			respond({
-				error: 'Permission ' + api + ' not requested'
+				error: 'Permissions ' + api + ' is not available for use'
 			});
 		}
-	} else {
-		respond({
-			error: 'Permissions ' + api + ' is not available for use',
-			params: [permissions]
-		});
 	}
 }
 
@@ -1115,17 +1249,14 @@ function handleMessage(message, messageSender, respond) {
 		message = result;
 
 		switch (message.type) {
-		case 'update':
-			updateHandler(message);
+		case 'updateStorage':
+			updateNodeStorage(message);
 			break;
 		case 'crm':
 			crmHandler(message);
 			break;
 		case 'chrome':
 			chromeHandler(message, respond);
-			break;
-		case 'establishConnection':
-			establishConnection(message, respond, messageSender);
 			break;
 		case 'ping':
 			pingHandler(message, messageSender);
@@ -1165,20 +1296,18 @@ function checkAlive() {
 var pingInterval = window.setInterval(checkAlive, 30000);
 
 function main() {
-	window.chrome.storage.sync.get(function(syncs) {
-		storageSync = syncs;
-		window.chrome.storage.local.get(function(locals) {
+	window.chrome.storage.sync.get(function (data) {
+		storageSync = data;
+		window.chrome.storage.local.get(function (locals) {
 			storageLocal = locals;
-			buildCrmTree(syncs.crm);
-			buildByIdObjects(syncs.crm);
-			var bgPageUrl;
-			chrome.runtime.getBackGroundPage(function(page) {
-				bgPageUrl = page.location.href;
-				window.chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-					if (bgPageUrl !== sender.url) { //Don't talk to yourself
-						handleMessage(message, sendResponse);
-					}
-				});
+			crmTree = data.crm;
+			safeTree = buildSafeTree(data.crm);
+			buildByIdObjects(data.crm);
+			var bgPageUrl = window.chrome.runtime.getURL('_generated_background_page.html');
+			window.chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+				if (bgPageUrl !== sender.url) { //Don't talk to yourself
+					handleMessage(message, sendResponse);
+				}
 			});
 		});
 	});
@@ -1188,3 +1317,8 @@ window.chrome.permissions.getAll(function (available) {
 	availablePermissions = available.permissions;
 	main();
 });
+/*#endregion*/
+
+/*#region Right-Click Menu Handling*/
+
+/*#endregion*/
