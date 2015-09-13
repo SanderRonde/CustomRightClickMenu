@@ -7,7 +7,7 @@
 	"version": "2.0",
 
 	"background": {
-		"scripts": [ "js/jquery-2.0.3.min.js", "js/background.js", "js/crmapi.js" ]
+		"scripts": [ "js/jquery-2.0.3.min.js", "js/e.js", "js/background.js"]
 	},
 
 	"content_scripts": [
@@ -41,7 +41,6 @@
 	],
 
 	"optional_permissions": [
-		"http://*/",
 		"alarms",
 		"background",
 		"bookmarks",
@@ -51,11 +50,9 @@
 		"contentSettings",
 		"cookies",
 		"contentSettings",
-		"debugger",
 		"declarativeContent",
 		"desktopCapture",
 		"downloads",
-		"fontSettings",
 		"history",
 		"identity",
 		"idle",
@@ -65,7 +62,6 @@
 		"power",
 		"printerProvider",
 		"privacy",
-		"proxy",
 		"sessions",
 		"system.cpu",
 		"system.memory",
