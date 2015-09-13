@@ -156,21 +156,18 @@ Polymer({
 
 	_onNeonAnimationFinish: function () {
 		var _this = this;
-		console.log('dit dus');
 		if (this.opened) {
 			this.$overlayEl.on('click', function () {
-				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit').not('[hidden]')[0].cancelChanges();
-				options.show = false;
-				this.opened = false;
-				_this.animateOut();
+				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancelChanges();
 			});
 		}
 		else {
 			this.$overlayEl[0].style.display = 'none';
 			this.$.editPageCont.style.display = 'none';
-			$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit').not('[hidden]')[0].removeChanges();
 			document.body.style.overflow = 'auto';
-			options.show = false;
+			window.options.show = false;
+			this.opened = false;
+			window.options.item = null;
 		}
 	},
 
