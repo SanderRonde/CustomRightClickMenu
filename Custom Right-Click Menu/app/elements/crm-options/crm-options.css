@@ -113,6 +113,8 @@ paper-ripple {
 	margin-top: -51px;
 	margin-left:-200px;
 	display: none;
+	flex-direction: row;
+	justify-content: space-between;
 }
 
 #fullscreenEditorHorizontal {
@@ -121,11 +123,13 @@ paper-ripple {
 	flex-grow: 100;
 }
 
-#editorToolsRibbon {
+#editorToolsRibbonContainer {
 	margin-left: -200px;
 	width: 200px;
-	display: none;
 	background-color: white;
+	justify-content: space-between;
+	display: flex;
+	flex-direction: column;
 }
 
 paper-toolbar {
@@ -248,7 +252,7 @@ iron-overlay-backdrop {
 	font-size:250%;
 }
 
-.ribbonTool > paper-menu, .ribbonTool {
+.ribbonTool > paper-menu, div.ribbonTool {
 	border-top: 1px solid rgb(239, 239, 239);
 }
 
@@ -567,4 +571,24 @@ body.editingScript .cssTool {
 
 #requestPermissionsOther {
 	height: 0;
+}
+
+#showHideToolsRibbonButton {
+	float: right;
+	cursor: pointer;
+	opacity:0.7;
+}
+
+	#showHideToolsRibbonButton:hover {
+		opacity: 1;
+	}
+
+#shrinkTitleRibbonButtonCont, #showHideToolsRibbonCont {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+}
+
+#shrinkTitleRibbonButton {
+	cursor: pointer;
 }
