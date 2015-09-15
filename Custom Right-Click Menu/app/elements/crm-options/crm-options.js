@@ -520,6 +520,50 @@ Polymer({
 		}
 	},
 
+	toggleToolsRibbon: function() {
+		if (window.options.settings.hideToolsRibbon) {
+			$(window.doc.editorToolsRibbonContainer).animate({
+				marginLeft: '-200px'
+			}, 250);
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+		} else {
+			$(window.doc.editorToolsRibbonContainer).animate({
+				marginLeft: 0
+			}, 250);
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
+		}
+		window.options.settings.hideToolsRibbon = !window.options.settings.hideToolsRibbon;
+		chrome.storage.sync.set({
+			hideToolsRibbon: window.options.settings.hideToolsRibbon
+		});
+	},
+
+	toggleShrinkTitleRibbon: function() {
+		if (window.options.settings.shrinkTitleRibbon) {
+			$(window.doc.editorTitleRibbon).animate({
+				fontSize: '100%'
+			}, 250);
+			$(window.doc.editorCurrentScriptTitle).animate({
+				paddingTop: '4px',
+				paddingBottom: '4px'
+			}, 250);
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+		} else {
+			$(window.doc.editorTitleRibbon).animate({
+				fontSize: '40%'
+			}, 250);
+			$(window.doc.editorCurrentScriptTitle).animate({
+				paddingTop: 0,
+				paddingBottom: 0
+			}, 250);
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+		}
+		window.options.settings.shrinkTitleRibbon = !window.options.settings.shrinkTitleRibbon;
+		chrome.storage.sync.set({
+			shrinkTitleRibbon: window.options.settings.shrinkTitleRibbon
+		});
+	},
+
 	launchSearchWebsiteTool: function () {
 		this.$.paperSearchWebsiteDialog.init();
 		this.$.paperSearchWebsiteDialog.show();
@@ -979,9 +1023,9 @@ Polymer({
 		}
 
 		this.bindListeners();
-		chrome.storage.local.get(function (items) {
+		chrome.storage.local.get(function(items) {
 			if (items.editing) {
-				setTimeout(function () {
+				setTimeout(function() {
 					//Check out if the code is actually different
 					var node = _this.crm.lookup(items.editing.crmPath).value;
 					var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
