@@ -295,36 +295,44 @@
 	popInRibbons: function () {
 		//Introduce title at the top
 		var scriptTitle = window.options.$.editorCurrentScriptTitle;
-		scriptTitle.style.display = 'block';
+		var titleRibbonSize;
+		if (options.settings.shrinkTitleRibbon) {
+			window.doc.editorTitleRibbon.style.fontSize = '40%';
+			scriptTitle.style.padding = 0;
+			titleRibbonSize = '-18px';
+		} else {
+			titleRibbonSize = '-51px';
+		}
+		scriptTitle.style.display = 'flex';
+		scriptTitle.style.marginTop = titleRibbonSize;
 		var scriptTitleAnimation = [
 			{
-				marginTop: '-51px'
+				marginTop: titleRibbonSize
 			}, {
 				marginTop: 0
 			}
 		];
-		if (window.options.settings.editor.showToolsRibbon) {
-			scriptTitle.style.marginLeft = '-200px';
-			scriptTitleAnimation[0].marginLeft = '-200px';
-			scriptTitleAnimation[1].marginLeft = 0;
+		var margin = (options.settings.hideToolsRibbon ? 0 : '-200px');
+		scriptTitle.style.marginLeft = '-200px';
+		scriptTitleAnimation[0].marginLeft = '-200px';
+		scriptTitleAnimation[1].marginLeft = 0;
 
-			setTimeout(function () {
-				window.doc.editorToolsRibbon.style.display = 'block';
-				window.doc.editorToolsRibbon.animate([
-					{
-						marginLeft: '-200px'
-					}, {
-						marginLeft: 0
-					}
-				], {
-					duration: 500,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-				}).onfinish = function () {
-					window.doc.editorToolsRibbon.style.marginLeft = 0;
-					window.doc.editorToolsRibbon.classList.add('visible');
-				};
-			}, 200);
-		}
+		setTimeout(function() {
+			window.doc.editorToolsRibbonContainer.style.display = 'flex';
+			window.doc.editorToolsRibbonContainer.animate([
+				{
+					marginLeft: '-200px'
+				}, {
+					marginLeft: margin
+				}
+			], {
+				duration: 500,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function() {
+				window.doc.editorToolsRibbonContainer.style.marginLeft = margin;
+				window.doc.editorToolsRibbonContainer.classList.add('visible');
+			};
+		}, 200);
 		setTimeout(function () {
 			$(window.doc.dummy).animate({
 				height: '50px'
@@ -370,7 +378,7 @@
 	 * Pops out only the tools ribbon
 	 */
 	popOutToolsRibbon: function () {
-		$('#editorToolsRibbon')[0].animate([
+		window.doc.editorToolsRibbonContainer.animate([
 			{
 				marginLeft: 0
 			}, {
@@ -390,7 +398,7 @@
 	 */
 	popOutRibbons: function () {
 		var scriptTitle = window.options.$.editorCurrentScriptTitle;
-		var toolsRibbon = window.options.$.editorToolsRibbon;
+		var toolsRibbon = window.options.$.editorToolsRibbonContainer;
 		if (window.options.settings.editor.showToolsRibbon && toolsRibbon && toolsRibbon.classList.contains('visible')) {
 			scriptTitle.animate([
 				{
@@ -477,6 +485,33 @@
 		var viewportWidth = $horizontalCenterer.width();
 		var viewPortHeight = $horizontalCenterer.height();
 
+		if (options.settings.hideToolsRibbon !== undefined) {
+			if (options.settings.hideToolsRibbon) {
+				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
+			} else {
+				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+			}
+		} else {
+			chrome.storage.sync.set({
+				hideToolsRibbon: false
+			});
+			options.settings.hideToolsRibbon = false;
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+		}
+		if (options.settings.shrinkTitleRibbon !== undefined) {
+			if (options.settings.shrinkTitleRibbon) {
+				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+			} else {
+				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+			}
+		} else {
+			chrome.storage.sync.set({
+				shrinkTitleRibbon: false
+			});
+			options.settings.shrinkTitleRibbon = false;
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)'
+		}
+
 		$editorWrapper[0].style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
 
@@ -496,6 +531,14 @@
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
 				options.$.fullscreenEditorHorizontal.style.height = '100vh';
+				window.colorFunction.func({
+					from: {
+						line: 0
+					},
+					to: {
+						line: window.colorFunction.cm.lineCount()
+					}
+				}, window.colorFunction.cm);
 				_this.popInRibbons();
 			}
 		});
@@ -892,6 +935,7 @@
 	cmLoaded: function (element) {
 		var _this = this;
 		this.editor = element;
+		element.refresh();
 		element.display.wrapper.classList.add('script-edit-codeMirror');
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
@@ -1011,6 +1055,6 @@
 		this.active = true;
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
-		}, 1250);
+		}, 750);
 	}
 });
