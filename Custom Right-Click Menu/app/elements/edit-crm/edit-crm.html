@@ -12,11 +12,13 @@
 						<template is="dom-repeat" items="{{column.indent}}">
 							<div class="indentFiller"></div>
 						</template>
-						<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
-							<template is="dom-repeat" items="{{column.list}}" as="row" observe="name value type index path children">
-								<edit-crm-item shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
-							</template>
-						</div>
+						<paper-material elevation="5">
+							<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
+								<template is="dom-repeat" items="{{column.list}}" as="row" observe="name value type index path children">
+									<edit-crm-item shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
+								</template>
+							</div>
+						</paper-material>
 					</div>
 				</template>
 			</div>

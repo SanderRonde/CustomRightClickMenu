@@ -592,3 +592,62 @@ body.editingScript .cssTool {
 #shrinkTitleRibbonButton {
 	cursor: pointer;
 }
+
+.crmType {
+	display: inline-block;
+	-webkit-user-select:none;
+	margin-left:-5px;
+}
+
+	.crmType > paper-material {
+		cursor: pointer;
+	}
+
+	.crmType > paper-material:hover {
+		background-color: rgb(220,220,220);
+	}
+
+.crmTypeTxt {
+	font-weight: 500;
+	text-align: center;
+	text-transform: uppercase;
+	margin-top:-10px;
+	font-size:80%;
+}
+
+#crmTypeSelector {
+	margin-bottom: -1px;
+	display:flex;
+	justify-content: center;
+	position: relative;
+	right: -5px;
+}
+
+.crmTypeShadowMagicElement {
+	background: url('../../images/shadowImg.png');
+}
+
+.crmTypeShadowMagicElementRight {
+	background: url('../../images/shadowImgRight.png');
+}
+
+.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight {
+	height: 27.4px;
+	width: 80px;
+	position: absolute;
+	background-repeat: round;
+}
+
+#crmEditPageTopTextContainer {
+	display: flex;
+	justify-content: space-between;
+}
+
+	#crmEditPageTopTextContainer .bigTxt {
+		position: relative;
+		bottom: -25px;
+	}
+
+	#crmTypeSelector, #crmEditPageTopTextContainer .bigTxt {
+		display: inline-block;
+	}

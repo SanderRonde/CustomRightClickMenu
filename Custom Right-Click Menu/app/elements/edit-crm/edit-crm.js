@@ -38,11 +38,12 @@ function getLastMenu(list) {
  *
  * @brief Builds crm edit object.
  * 		  
+ * @param {number[]} types - An array of numbers that contain the types to show
  * @param setMenus An array of menus that are set to be opened (by user input).
  *
  * @return the CRM edit object
  */
-function buildCRMEditObj(setMenus) {
+function buildCRMEditObj(types, setMenus) {
 	var setMenusLength = setMenus.length,
 		crmEditObj = [],
 		path = [],
@@ -100,7 +101,7 @@ function buildCRMEditObj(setMenus) {
 	return crmEditObj;
 }
 
-Polymer({
+window.Polymer({
 	is: 'edit-crm',
 
 	properties: {
@@ -109,6 +110,10 @@ Polymer({
 			value: [],
 			notify: true
 		}
+	},
+
+	listeners: {
+		'crmTypeChanged': '_typeChanged'
 	},
 
 	/**
@@ -120,9 +125,9 @@ Polymer({
 	 * 
 	 * @return The object to be sent to Polymer
 	 */
-	build: function (setItems) {
+	build: function (type, setItems) {
 		setItems = setItems || [];
-		var obj = buildCRMEditObj(setItems);
+		var obj = buildCRMEditObj(type, setItems);
 		this.crm = obj;
 		this.notifyPath('crm', this.crm);
 		return obj;
@@ -130,8 +135,13 @@ Polymer({
 
 	ready: function() {
 		var _this = this;
-		runOrAddAsCallback(_this.build, this);
 		options.editCRM = this;
+		window.options.addEventListener('crmTypeChanged', this._typeChanged);
+		chrome.storage.local.get(function(items) {
+			_this._typeChanged({
+				type: items.selectedCrmType
+			});
+		});
 	},
 	
 	addItem: function() {
@@ -162,5 +172,11 @@ Polymer({
 		newElement.classList.add('style-scope');
 		newElement.classList.add('edit-crm');
 		newElement.ready();
+	},
+
+	//TODO implement select and remove
+
+	_typeChanged: function () {
+		runOrAddAsCallback(options.editCRM.build, options.editCRM, [options.crmTypes]);
 	}
 });

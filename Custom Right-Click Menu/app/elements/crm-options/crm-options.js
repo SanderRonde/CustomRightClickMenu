@@ -12,12 +12,12 @@ function isNotSet(value) {
 	return value === undefined || value === null;
 }
 
-function runOrAddAsCallback(toRun, thisElement) {
+function runOrAddAsCallback(toRun, thisElement, params) {
 	if (window.options.settings) {
-		toRun.apply(thisElement);
+		toRun.apply(thisElement, params);
 	}
 	else {
-		window.options.addSettingsReadyCallback(toRun, thisElement);
+		window.options.addSettingsReadyCallback(toRun, thisElement, params);
 	}
 }
 
@@ -517,6 +517,109 @@ Polymer({
 			type: Array,
 			value: [],
 			notify: true
+		},
+		crmTypes: Array
+	},
+
+	switchToIcons: function (names) {
+		console.log(names);
+		var i;
+		var indexes = [];
+		for (i = 0; i < names.length; i++) {
+			if (typeof names[i] === 'number') {
+				indexes.push(names[i]);
+			} else {
+				switch (names[i]) {
+				case 'audio':
+					indexes.push(5);
+					break;
+				case 'video':
+					indexes.push(4);
+					break;
+				case 'image':
+					indexes.push(3);
+					break;
+				case 'selection':
+					indexes.push(2);
+					break;
+				case 'link':
+					indexes.push(1);
+					break;
+				case 'page':
+				default:
+					indexes.push(0);
+					break;
+				}
+			}
+		}
+		var crmTypes = document.querySelectorAll('.crmType');
+
+		var element;
+		for (i = 0; i < indexes.length; i++) {
+			element = crmTypes[indexes[i]];
+			element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+			element.classList.add('toggled');
+
+			if (indexes[i] === 5) {
+				$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
+			} else {
+				$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
+			}
+		}
+		this.crmTypes = indexes;
+		this.fire('crmTypeChanged', {});
+	},
+
+	iconSwitch: function (e) {
+		var index = 0;
+		var path = e.path[index];
+		while (!path.classList.contains('crmType')) {
+			index++;
+			path = e.path[index];
+		}
+
+		var element = path;
+		var crmTypes = document.querySelectorAll('.crmType');
+		for (var i = 0; i < crmTypes.length; i++) {
+			if (crmTypes.item(i) === element) {
+				index = i;
+			}
+		}
+
+		var selectedTypes = options.crmTypes;
+		console.log(selectedTypes);
+		if (element.classList.contains('toggled')) {
+			//Drop an element for some magic
+			element.style.boxShadow = 'none';
+			element.style.backgroundColor = 'white';
+			element.classList.remove('toggled');
+
+			$(element).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
+
+			selectedTypes.splice(selectedTypes.indexOf(index), 1);
+			chrome.storage.local.set({
+				selectedCrmTypes: selectedTypes
+			});
+			this.crmTypes = selectedTypes;
+			this.fire('crmTypeChanged', {});
+		} else {
+			//Drop an element for some magic
+			element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+			element.style.backgroundColor = 'rgb(243,243,243)';
+			element.classList.add('toggled');
+
+			if (index === 5) {
+				$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
+			} else {
+				$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
+			}
+
+			selectedTypes.push(index);
+			chrome.storage.local.set({
+				selectedCrmTypes: selectedTypes
+			});
+			this.crmTypes = selectedTypes;
+			this.fire('crmTypeChanged', {});
 		}
 	},
 
@@ -589,10 +692,11 @@ Polymer({
 		window.doc.cssEditorInfoDialog.open();
 	},
 
-	addSettingsReadyCallback: function(callback, thisElement) {
+	addSettingsReadyCallback: function(callback, thisElement, params) {
 		this.onSettingsReadyCallbacks.push({
 			callback: callback,
-			thisElement: thisElement
+			thisElement: thisElement,
+			params: params
 		});
 	},
 
@@ -780,7 +884,7 @@ Polymer({
 								//Make it visible
 								var popped = JSON.parse(JSON.stringify(editingObj.crmPath.length));
 								popped.pop();
-								options.editCRM.build(popped);
+								options.editCRM.build(_this.crmType, popped);
 								setTimeout(highlightItem, 700);
 							} else {
 								highlightItem();
@@ -1013,7 +1117,7 @@ Polymer({
 		function callback(items) {
 			_this.settings = items;
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
+				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 			}
 			if (items.requestPermissions && items.requestPermissions.length > 0) {
 				_this.requestPermissions(items.requestPermissions);
@@ -1037,6 +1141,16 @@ Polymer({
 						});
 					}
 				}, 2500);
+			}
+			if (items.selectedCrmTypes !== undefined) {
+				options.crmTypes = items.selectedCrmTypes;
+				_this.switchToIcons(items.selectedCrmTypes);
+			} else {
+				chrome.storage.local.set({
+					selectedCrmTypes: [0,1,2,3,4,5]
+				});
+				options.crmTypes = [0, 1, 2, 3, 4, 5];
+				_this.switchToIcons([0, 1, 2, 3, 4, 5]);
 			}
 			if (items.jsLintGlobals) {
 				window.options.jsLintGlobals = items.jsLintGlobals;

@@ -1,9 +1,4 @@
-﻿#nameInputText, #scriptInputText, #triggersText, #executionTriggersText {
-	font-weight: 500;
-	font-size: 200%;
-}
-
-#scriptEditCont {
+﻿#scriptEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
 }
@@ -360,4 +355,35 @@ input {
     padding: 5px;
 	font-size:15.6px;
 	font-weight:normal;
+}
+
+.showOnContentItemCont {
+	display: inline-block;
+	position: relative;
+	cursor: pointer;
+	-webkit-user-select:none;
+}
+
+.showOnContentItemCont:hover {
+	background-color:rgb(230,230,230);
+}
+
+	.showOnContentItemCont.selected {
+		background-color: rgb(210,210,210);
+	}
+
+.showOnContentItemIcon svg {
+	width: 54px;
+	height: 54px;
+}
+
+.showOnContentItemTxt {
+	font-weight: 500;
+	text-align: center;
+	margin-top: -6px;
+}
+
+.itemEditBigTxt {
+	font-weight: 500;
+	font-size: 200%;
 }

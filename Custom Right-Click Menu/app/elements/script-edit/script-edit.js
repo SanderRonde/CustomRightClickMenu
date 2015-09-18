@@ -101,6 +101,15 @@
 	showTriggers: false,
 
 	/**
+     * Whether to show the section that allows you to choose on which content to show this
+     * 
+     * @attribute showContentTypeChooser
+     * @type Boolean
+     * @default false
+     */
+	showContentTypeChooser: false,
+
+	/**
      * Whether the options are shown
      * 
      * @attribute optionsShown
@@ -183,22 +192,40 @@
 	optionsAnimations: [],
 
 	/**
-	 * The dropdown to right animation
+	 * The dropdown to right animation for triggers
 	 *
 	 * @attribute dropdownToRightAnimation
 	 * @type Animation
 	 * @default null
 	 */
-	dropdownToRightAnimation: null,
+	triggersDropdownToRightAnimation: null,
 
 	/**
-	 * The dropdown to top animation
+	 * The dropdown to top animation for triggers
 	 *
 	 * @attribute dropdownToTopAnimation
 	 * @type Animation
 	 * @default null
 	 */
-	dropdownToTopAnimation: null,
+	triggersDropdownToTopAnimation: null,
+
+	/**
+	 * The dropdown to right animation for contentType
+	 *
+	 * @attribute dropdownToRightAnimation
+	 * @type Animation
+	 * @default null
+	 */
+	contentTypeDropdownToRightAnimation: null,
+
+	/**
+	 * The dropdown to top animation for contentType
+	 *
+	 * @attribute dropdownToTopAnimation
+	 * @type Animation
+	 * @default null
+	 */
+	contentTypeDropdownToTopAnimation: null,
 
 	/**
 	 * The animation for the editor's placeholder
@@ -695,108 +722,96 @@
 	 */
 	selectorStateChange: function(state) {
 		var _this = this;
-		var show = (state === 2 || state === '2');
-		if (show !== this.showTriggers) {
-			var element = $(this.$.executionTriggersContainer);
-			var domElement = element[0];
-			var originalHeight = element.height();
-			if (show) {
-				domElement.style.height = 'auto';
-				domElement.style.display = 'block';
+		var showContentTypeChooser = (state === 0);
+		var showTriggers = (state === 2);
+		var triggersElement = this.$.executionTriggersContainer;
+		var $triggersElement = $(triggersElement);
+		var contentTypeChooserElement = this.$.showOnContentContainer;
+		var $contentTypeChooserElement = $(contentTypeChooserElement);
+		var triggersHeight;
+		var contentTypeHeight;
 
-				if (this.dropdownToTopAnimation) {
-					this.dropdownToTopAnimation.show = true;
-					this.dropdownToRightAnimation.hide = false;
-					this.dropdownToTopAnimation.reverse();
-				}
-				else {
-					this.dropdownToTopAnimation = domElement.animate([
-						{
-							height: 0
-						}, {
-							height: originalHeight
-						}
-					], {
-						duration: 300,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
-					});
-					setTimeout(function() {
-						_this.dropdownToRightAnimation = domElement.animate([
-							{
-								marginLeft: '-110%'
-							}, {
-								marginLeft: 0
-							}
-						], {
-							duration: 200,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-						setTimeout(function() {
-							_this.dropdownToRightAnimation.onfinish = function () {
-								if (this.hide) {
-									_this.dropdownToTopAnimation.reverse();
-								}
-							};
-							_this.dropdownToTopAnimation.onfinish = function () {
-								if (this.show) {
-									_this.dropdownToRightAnimation.reverse();
-								}
-							}
-							_this.dropdownToTopAnimation.show = true;
-							_this.dropdownToTopAnimation.hide = false;
-						}, 200);
-					}, 300);
-				}
+		function animateTriggers(callback) {
+			triggersElement.style.height = 'auto';
+			triggersHeight = triggersHeight || $triggersElement.height();
+			if (showTriggers) {
+				triggersElement.style.display = 'block';
+				triggersElement.style.marginLeft = '-110%';
+				triggersElement.style.height = 0;
+				$triggersElement.animate({
+					height: triggersHeight
+				}, 300, function() {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, callback);
+				});
 			} else {
-				if (this.dropdownToTopAnimation) {
-					this.dropdownToRightAnimation.hide = true;
-					this.dropdownToTopAnimation.show = false;
-					this.dropdownToRightAnimation.reverse();
-				}
-				else {
-					this.dropdownToRightAnimation = domElement.animate([
-						{
-							marginLeft: 0
-						}, {
-							marginLeft: '-110%'
-						}
-					], {
-						duration: 200,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
+				triggersElement.style.marginLeft = 0;
+				triggersElement.style.height = triggersHeight;
+				$triggersElement.animate({
+					marginLeft: '-110%'
+				}, 200, function() {
+					$(this).animate({
+						height: 0
+					}, 300, function() {
+						triggersElement.style.display = 'none';
+						callback && callback();
 					});
-					setTimeout(function() {
-						_this.dropdownToTopAnimation = domElement.animate([
-							{
-								height: originalHeight
-							}, {
-								height: 0
-							}
-						], {
-							duration: 300,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-						setTimeout(function() {
-							_this.dropdownToTopAnimation.hide = true;
-							_this.dropdownToTopAnimation.show = false;
-							_this.dropdownToTopAnimation.onfinish = function() {
-								if (this.show) {
-									_this.dropdownToRightAnimation.reverse();
-								}
-							}
-							_this.dropdownToRightAnimation.onfinish = function () {
-								if (this.hide) {
-									_this.dropdownToTopAnimation.reverse();
-								}
-							};
-						}, 300);
-					}, 200);
-				}
+				});
 			}
-			_this.showTriggers = show;
+			_this.showTriggers = showTriggers;
+		}
+
+		function animateContentTypeChooser(callback) {
+			contentTypeChooserElement.style.height = 'auto';
+			contentTypeHeight = contentTypeHeight || $contentTypeChooserElement.height();
+			if (showContentTypeChooser) {
+				contentTypeChooserElement.style.height = 0;
+				contentTypeChooserElement.style.display = 'block';
+				contentTypeChooserElement.style.marginLeft = '-110%';
+				$contentTypeChooserElement.animate({
+					height: contentTypeHeight
+				}, 300, function() {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, callback);
+				});
+			} else {
+				contentTypeChooserElement.style.marginLeft = 0;
+				contentTypeChooserElement.style.height = contentTypeHeight;
+				$contentTypeChooserElement.animate({
+					marginLeft: '-110%'
+				}, 200, function() {
+					$(this).animate({
+						height: 0
+					}, 300, function() {
+						contentTypeChooserElement.style.display = 'none';
+						callback && callback();
+					});
+				});
+			}
+			_this.showContentTypeChooser = showContentTypeChooser;
+		}
+
+		if (state === 0) {
+			//Triggers is still shown, first animate that out
+			if (this.showTriggers) {
+				animateTriggers(animateContentTypeChooser);
+			} else {
+				animateContentTypeChooser();
+			}
+		} else if (state === 1) {
+			if (this.showTriggers) {
+				animateTriggers();
+			} else if (this.showContentTypeChooser) {
+				animateContentTypeChooser();
+			}
+		} else if (state === 2) {
+			if (this.showContentTypeChooser) {
+				animateContentTypeChooser(animateTriggers);
+			} else {
+				animateTriggers();
+			}
 		}
 	},
 
@@ -1074,6 +1089,7 @@
 
 	init: function () {
 		var _this = this;
+		this.$.dropdownMenu.init();
 		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
 			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 		});
@@ -1083,7 +1099,24 @@
 		window.scriptEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
-		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
+		if ((this.showTriggers = (this.item.value.launchMode === 2))) {
+			this.$.executionTriggersContainer.style.display = 'block';
+			this.$.executionTriggersContainer.style.marginLeft = 0;
+			this.$.executionTriggersContainer.style.height = 'auto';
+		} else {
+			this.$.executionTriggersContainer.style.display = 'none';
+			this.$.executionTriggersContainer.style.marginLeft = '-110%';
+			this.$.executionTriggersContainer.style.height = 0;
+		}
+		if ((this.showContentTypeChooser = (this.item.value.launchMode === 0))) {
+			this.$.showOnContentContainer.style.display = 'block';
+			this.$.showOnContentContainer.style.marginLeft = 0;
+			this.$.showOnContentContainer.style.height = 'auto';
+		} else {
+			this.$.showOnContentContainer.style.display = 'none';
+			this.$.showOnContentContainer.style.marginLeft = '-110%';
+			this.$.showOnContentContainer.style.height = 0;
+		}
 		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();

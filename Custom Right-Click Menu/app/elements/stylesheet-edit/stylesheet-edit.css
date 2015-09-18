@@ -1,9 +1,4 @@
-﻿#nameInputText, #stylesheetInputText, #triggersText, #executionTriggersText {
-	font-weight: 500;
-	font-size: 200%;
-}
-
-#stylesheetEditCont {
+﻿#stylesheetEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
 }
@@ -374,9 +369,14 @@ input {
 	display: inline-block;
 }
 
-#toggleButtonsCont {	
-	display:flex;
-	flex-direction:row;
+#toggleButtonsCont {
+	display: flex;
+	flex-direction: row;
 	justify-content: space-around;
-	padding-bottom:20px;
+	padding-bottom: 20px;
+}
+
+.itemEditBigTxt {
+	font-weight: 500;
+	font-size: 200%;
 }

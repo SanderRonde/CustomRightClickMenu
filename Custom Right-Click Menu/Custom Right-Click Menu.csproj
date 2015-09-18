@@ -572,6 +572,7 @@
     <Content Include="app\elements\tools\paper-search-website-dialog\searchEngineWorker.js" />
     <Content Include="app\elements\tools\use-external-editor\use-external-editor.html" />
     <Content Include="app\elements\tools\use-external-editor\use-external-editor.js" />
+    <Content Include="app\images\audio.svg" />
     <Content Include="app\images\close.svg" />
     <Content Include="app\images\fullscreen.svg" />
     <Content Include="app\images\fullscreenExit.svg" />
@@ -579,10 +580,18 @@
     <Content Include="app\images\add.svg" />
     <Content Include="app\images\folder.svg" />
     <Content Include="app\images\file.svg" />
+    <Content Include="app\images\image.svg" />
     <Content Include="app\images\infoActive.svg" />
     <Content Include="app\images\info.svg" />
+    <Content Include="app\images\link.svg" />
+    <Content Include="app\images\page.svg" />
     <Content Include="app\images\refresh.svg" />
+    <Content Include="app\images\selection.svg" />
     <Content Include="app\images\settings.svg" />
+    <Content Include="app\images\shadowImg.png" />
+    <Content Include="app\images\shadowImgRight.png" />
+    <Content Include="app\images\video.svg" />
+    <Content Include="app\images\web.svg" />
     <Content Include="app\js\codemirror.js" />
     <Content Include="app\js\codeMirrorAddons.js" />
     <Content Include="app\js\codemirrorJs.js" />

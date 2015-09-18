@@ -180,7 +180,7 @@
 	 * @type Animation
 	 * @default null
 	 */
-	dropdownToRightAnimation: null,
+	triggersDropdownToRightAnimation: null,
 
 	/**
 	 * The dropdown to top animation
@@ -189,7 +189,7 @@
 	 * @type Animation
 	 * @default null
 	 */
-	dropdownToTopAnimation: null,
+	triggersDropdownToTopAnimation: null,
 
 	/**
 	 * The animation for the editor's placeholder
@@ -237,7 +237,7 @@
 	saveChanges: function () {
 		this.active = false;
 		window.externalEditor.cancelOpenFiles();
-		var lookedUp = window.options.crm.lookup(this.item.path, true);
+		var lookedUp = window.options.crm.lookup(options.crmType, this.item.path, true);
 		this.getTriggers();
 		window.crmEditPage.animateOut();
 		lookedUp[this.item.path[this.item.path.length - 1]] = this.newSettings;
@@ -514,8 +514,8 @@
 
 		$editorWrapper[0].style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
-
 		editorCont.style.display = 'flex';
+
 		//Animate to corners
 		$(editorCont).animate({
 			width: viewportWidth,
@@ -691,13 +691,13 @@
 				domElement.style.height = 'auto';
 				domElement.style.display = 'block';
 
-				if (this.dropdownToTopAnimation) {
-					this.dropdownToTopAnimation.show = true;
-					this.dropdownToRightAnimation.hide = false;
-					this.dropdownToTopAnimation.reverse();
+				if (this.triggersDropdownToTopAnimation) {
+					this.triggersDropdownToTopAnimation.show = true;
+					this.triggersDropdownToRightAnimation.hide = false;
+					this.triggersDropdownToTopAnimation.reverse();
 				}
 				else {
-					this.dropdownToTopAnimation = domElement.animate([
+					this.triggersDropdownToTopAnimation = domElement.animate([
 						{
 							height: 0
 						}, {
@@ -709,7 +709,7 @@
 						fill: 'both'
 					});
 					setTimeout(function () {
-						_this.dropdownToRightAnimation = domElement.animate([
+						_this.triggersDropdownToRightAnimation = domElement.animate([
 							{
 								marginLeft: '-110%'
 							}, {
@@ -721,29 +721,29 @@
 							fill: 'both'
 						});
 						setTimeout(function () {
-							_this.dropdownToRightAnimation.onfinish = function () {
+							_this.triggersDropdownToRightAnimation.onfinish = function () {
 								if (this.hide) {
-									_this.dropdownToTopAnimation.reverse();
+									_this.triggersDropdownToTopAnimation.reverse();
 								}
 							};
-							_this.dropdownToTopAnimation.onfinish = function () {
+							_this.triggersDropdownToTopAnimation.onfinish = function () {
 								if (this.show) {
-									_this.dropdownToRightAnimation.reverse();
+									_this.triggersDropdownToRightAnimation.reverse();
 								}
 							}
-							_this.dropdownToTopAnimation.show = true;
-							_this.dropdownToTopAnimation.hide = false;
+							_this.triggersDropdownToTopAnimation.show = true;
+							_this.triggersDropdownToTopAnimation.hide = false;
 						}, 200);
 					}, 300);
 				}
 			} else {
-				if (this.dropdownToTopAnimation) {
-					this.dropdownToRightAnimation.hide = true;
-					this.dropdownToTopAnimation.show = false;
-					this.dropdownToRightAnimation.reverse();
+				if (this.triggersDropdownToTopAnimation) {
+					this.triggersDropdownToRightAnimation.hide = true;
+					this.triggersDropdownToTopAnimation.show = false;
+					this.triggersDropdownToRightAnimation.reverse();
 				}
 				else {
-					this.dropdownToRightAnimation = domElement.animate([
+					this.triggersDropdownToRightAnimation = domElement.animate([
 						{
 							marginLeft: 0
 						}, {
@@ -755,7 +755,7 @@
 						fill: 'both'
 					});
 					setTimeout(function () {
-						_this.dropdownToTopAnimation = domElement.animate([
+						_this.triggersDropdownToTopAnimation = domElement.animate([
 							{
 								height: originalHeight
 							}, {
@@ -767,16 +767,16 @@
 							fill: 'both'
 						});
 						setTimeout(function () {
-							_this.dropdownToTopAnimation.hide = true;
-							_this.dropdownToTopAnimation.show = false;
-							_this.dropdownToTopAnimation.onfinish = function () {
+							_this.triggersDropdownToTopAnimation.hide = true;
+							_this.triggersDropdownToTopAnimation.show = false;
+							_this.triggersDropdownToTopAnimation.onfinish = function () {
 								if (this.show) {
-									_this.dropdownToRightAnimation.reverse();
+									_this.triggersDropdownToRightAnimation.reverse();
 								}
 							}
-							_this.dropdownToRightAnimation.onfinish = function () {
+							_this.triggersDropdownToRightAnimation.onfinish = function () {
 								if (this.hide) {
-									_this.dropdownToTopAnimation.reverse();
+									_this.triggersDropdownToTopAnimation.reverse();
 								}
 							};
 						}, 300);
@@ -1012,6 +1012,7 @@
 
 	init: function () {
 		var _this = this;
+		this.$.dropdownMenu.init();
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');
 		this.newSettings = $.extend(true, {}, this.item);
@@ -1028,7 +1029,8 @@
 		chrome.storage.local.set({
 			editing: {
 				val: this.item.value.stylesheet,
-				crmPath: this.item.path
+				crmPath: this.item.path,
+				crmType: options.crmType
 			}
 		});
 		this.savingInterval = window.setInterval(function() {
@@ -1040,7 +1042,8 @@
 					chrome.storage.local.set({
 						editing: {
 							val: val,
-							crmPath: _this.item.path
+							crmPath: _this.item.path,
+							crmType: options.crmType
 						}
 					});
 				} catch (e) { }

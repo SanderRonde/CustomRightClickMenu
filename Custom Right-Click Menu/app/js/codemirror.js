@@ -147,7 +147,6 @@
 			return colors[colorName];
 		}
 
-		console.log('b4');
 		window.colorFunction = {
 			cm: cm,
 			func: function(change, cm) {

@@ -3,14 +3,16 @@
 
 	behaviors: [Polymer.PaperDropdownBehavior],
 
-	/**
-     * The currently selected item
-     * 
-     * @attribute selected
-     * @type Number
-     * @default 0
-     */
-	selected: 0,
+	properties: {
+		/**
+		 * The currently selected item
+		 * 
+		 * @attribute selected
+		 * @type Number
+		 * @default 0
+		 */
+		selected: Number
+	},
 
 	/*
 	 * Fires when the selected item changes
@@ -21,7 +23,7 @@
 		_this.$.dropdownSelected.innerHTML = paperItems[newState].children[1].innerHTML;
 	},
 
-	ready: function () {
+	init: function () {
 		var paperItems = $(this).find('paper-item');
 		console.log(this.selected);
 		this.$.dropdownSelected.innerHTML = paperItems[this.selected].children[1].innerHTML;
