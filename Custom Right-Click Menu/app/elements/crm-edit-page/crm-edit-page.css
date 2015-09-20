@@ -10,7 +10,7 @@
 	-ms-flex-direction: row;
 	flex-direction: row;
 	justify-content: center;
-	width: 100vw;
+	width: calc(100vw - 20px);
 	height: 100vh;
 	position: fixed;
 	pointer-events: none;

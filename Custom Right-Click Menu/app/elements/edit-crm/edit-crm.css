@@ -12,7 +12,6 @@
 	width: 200px;
 	/*I am not going to question how this works but it does*/
 	display:table;
-	animation: slideFadeLoad 1s;
 }
 
 #mainCont {
@@ -33,18 +32,4 @@
 .crmItemFiller {
 	height: 50px;
 	width: 200px;
-}
-
-@keyframes slideFadeLoad {
-	from {
-		opacity: 0;
-		margin-top:80px;
-		margin-bottom: -80px;
-	}
-
-	to {
-		opacity: 1;
-		margin-top:0;
-		margin-bottom: 0;
-	}
 }

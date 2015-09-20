@@ -637,11 +637,11 @@ Polymer({
 	openEditPage: function (e) {
 		if (!this.shadow && !window.options.item) {
 			var path = e.path;
-			var item = path[0];
-			for (var i = 0; i < path.length && item.tagName !== 'EDIT-CRM-ITEM'; i++) {
-				item = path[i];
+			var element = path[0];
+			for (var i = 0; i < path.length && element.tagName !== 'EDIT-CRM-ITEM'; i++) {
+				element = path[i];
 			}
-			item = item.item;
+			var item = window.options.crm.lookup(element.item.path);
 			window.options.item = item;
 			if (item.type === 'script') {
 				window.options.stylesheetItem = {};

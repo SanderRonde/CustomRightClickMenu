@@ -146,15 +146,6 @@
 	settingsShadow: null,
 
 	/**
-     * The new settings object, to be written on save
-     * 
-     * @attribute newSettings
-     * @type Object
-     * @default {}
-     */
-	newSettings: {},
-
-	/**
      * The editor's settings before going to the settings page
      * 
      * @attribute unchangedEditorSettings
@@ -235,6 +226,87 @@
 	 * @default null
 	 */
 	editorPlaceHolderAnimation: null,
+
+	properties: {
+		/**
+		* The new settings object, to be written on save
+		* 
+		* @attribute newSettings
+		* @type Object
+		* @default {}
+		*/
+		newSettings: {
+			type: Object,
+			notify: true,
+			value: {}
+		},
+		/**
+		* Whether the indicator for content type "page" should be selected
+		* 
+		* @attribute pageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		pageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "link" should be selected
+		* 
+		* @attribute linkContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		linkContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "selection" should be selected
+		* 
+		* @attribute selectionContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		selectionContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "image" should be selected
+		* 
+		* @attribute imageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		imageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "video" should be selected
+		* 
+		* @attribute videoContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		videoContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "audio" should be selected
+		* 
+		* @attribute audioContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		audioContentSelected: {
+			type: Object,
+			notify: true
+		},
+	},
 	//#endregion
 
 	//#endregion
@@ -261,20 +333,84 @@
 		this.newSettings.value.triggers = triggers;
 	},
 
+	getContentTypeLaunchers: function () {
+		var i;
+		var result = [];
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			result[i] = this[arr[i] + 'ContentSelected'];
+		}
+		console.log(result);
+		this.newSettings.onContentType = result;
+	},
+
 	saveChanges: function() {
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
 		var lookedUp = window.options.crm.lookup(this.item.path, true);
+		this.getContentTypeLaunchers();
 		this.getTriggers();
 		window.crmEditPage.animateOut();
 		var lastPathIndex = this.item.path[this.item.path.length - 1];
 		var node = lookedUp[lastPathIndex];
 		if (node.name !== this.newSettings.name) {
-			$($('#mainCont').children('.CRMEditColumnCont')[this.item.path.length - 1]).children('.CRMEditColumn').children('edit-crm-item')[lastPathIndex].name = this.newSettings.name;
+			$($('#mainCont').children('.CRMEditColumnCont')[this.item.path.length - 1]).children('paper-material').children('.CRMEditColumn').children('edit-crm-item')[lastPathIndex].name = this.newSettings.name;
 		}
 		lookedUp[lastPathIndex] = this.newSettings;
 		options.upload();
+		//HIERZO
+		//fix scrollbar move stuff
+	},
+
+	assignContentTypeSelectedValues: function() {
+		var i;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			this[arr[i] + 'ContentSelected'] = this.item.onContentType[i];
+		}
+	},
+
+	checkToggledIconAmount: function (e) {
+		var i;
+		var toggledAmount = 0;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			if (window.scriptEdit[arr[i] + 'ContentSelected']) {
+				if (toggledAmount === 1) {
+					return true;
+				}
+				toggledAmount++;
+			}
+		}
+		if (!toggledAmount) {
+			var index = 0;
+			var element = e.path[0];
+			while (element.tagName !== 'PAPER-CHECKBOX') {
+				index++;
+				element = e.path[index];
+			}
+			element.checked = true;
+			window.scriptEdit[element.parentNode.classList[1].split('Type')[0] + 'ContentSelected'] = true;
+			window.doc.contentTypeToast.show();
+		}
+		return false;
+	},
+
+	toggleIcon: function(e) {
+		var index = 0;
+		var element = e.path[0];
+		while (!element.classList.contains('showOnContentItemCont')) {
+			index++;
+			element = e.path[index];
+		}
+		var checkbox = $(element).find('paper-checkbox')[0];
+		checkbox.checked = !checkbox.checked;
+		if (!checkbox.checked) {
+			window.scriptEdit.checkToggledIconAmount({
+				path: [checkbox]
+			});
+		}
 	},
 
 	/*
@@ -1087,18 +1223,7 @@
 		});
 	},
 
-	init: function () {
-		var _this = this;
-		this.$.dropdownMenu.init();
-		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
-			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
-		});
-		document.body.classList.remove('editingStylesheet');
-		document.body.classList.add('editingScript');
-		this.newSettings = $.extend(true, {}, this.item);
-		window.scriptEdit = this;
-		this.$.editorPlaceholder.style.display = 'flex';
-		this.$.editorPlaceholder.style.opacity = 1;
+	initDropdown: function() {
 		if ((this.showTriggers = (this.item.value.launchMode === 2))) {
 			this.$.executionTriggersContainer.style.display = 'block';
 			this.$.executionTriggersContainer.style.marginLeft = 0;
@@ -1122,6 +1247,21 @@
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}
+	},
+
+	init: function () {
+		var _this = this;
+		this.$.dropdownMenu.init();
+		this.initDropdown();
+		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
+			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
+		});
+		document.body.classList.remove('editingStylesheet');
+		document.body.classList.add('editingScript');
+		this.newSettings = $.extend(true, {}, this.item);
+		window.scriptEdit = this;
+		this.$.editorPlaceholder.style.display = 'flex';
+		this.$.editorPlaceholder.style.opacity = 1;
 		window.externalEditor.init();
 		chrome.storage.local.set({
 			editing: {
@@ -1129,6 +1269,7 @@
 				crmPath: this.item.path
 			}
 		});
+		this.assignContentTypeSelectedValues();
 		this.savingInterval = window.setInterval(function() {
 			if (_this.active) {
 				//Save

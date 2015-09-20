@@ -360,17 +360,12 @@ input {
 .showOnContentItemCont {
 	display: inline-block;
 	position: relative;
-	cursor: pointer;
 	-webkit-user-select:none;
 }
 
-.showOnContentItemCont:hover {
-	background-color:rgb(230,230,230);
+.showOnContentItemIcon, .showOnContentItemTxt {
+	cursor: pointer;
 }
-
-	.showOnContentItemCont.selected {
-		background-color: rgb(210,210,210);
-	}
 
 .showOnContentItemIcon svg {
 	width: 54px;
@@ -386,4 +381,9 @@ input {
 .itemEditBigTxt {
 	font-weight: 500;
 	font-size: 200%;
+}
+
+.showOnContentItemCheckbox {
+	margin-left: 17px;
+	margin-top: 5px;
 }

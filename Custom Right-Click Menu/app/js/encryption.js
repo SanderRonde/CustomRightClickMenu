@@ -21,7 +21,7 @@ function encrypt(target, key) {
 			key = doubleKey(key);
 			j = 0;
 		}
-		charcodes[i] = target.charCodeAt(i) + key[j];
+		charcodes[i] = target.charCodeAt(i) ^ key[j];
 	}
 	return charcodes;
 }
@@ -43,7 +43,7 @@ function decrypt(target, key) {
 			key = doubleKey(key);
 			j = 0;
 		}
-		results[i] = String.fromCharCode(target[i] - key[j]);
+		results[i] = String.fromCharCode(target[i] ^ key[j]);
 	}
 	results = results.join('');
 	console.log(results);

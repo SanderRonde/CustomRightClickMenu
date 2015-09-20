@@ -159,22 +159,35 @@ Polymer({
 		if (this.opened) {
 			this.$overlayEl.on('click', function () {
 				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancelChanges();
+				_this.unassignItems();
 			});
-		}
-		else {
+		} else {
 			this.$overlayEl[0].style.display = 'none';
 			this.$.editPageCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
+			document.body.style.marginRight = 0;
 			window.options.show = false;
 			this.opened = false;
 			window.options.item = null;
+			this.unassignItems();
+			console.log(this.item);
+			console.log(this.isScript);
+			console.log(this.scriptItem);
 		}
+	},
+
+	unassignItems: function() {
+		this.isLink = this.isScript = this.isStylesheet = this.isMenu = this.isDivider = false;
+		this.linkItem = this.scriptItem = this.stylesheetItem = this.menuItem = this.dividerItem = {};
 	},
 
 	/**
 	 * @param eventSourceElement The element that was clicked on
 	 */
 	animateIn: function () {
+		console.log(this.item);
+		console.log(this.isScript);
+		console.log(this.scriptItem);
 		this.$overlayEl.css('display', 'block');
 		(this.overlayAnimation && this.overlayAnimation.play()) || (this.overlayAnimation = this.$overlayEl[0].animate([
 			{
@@ -189,6 +202,7 @@ Polymer({
 		}));
 			
 		document.body.style.overflow = 'hidden';
+		document.body.style.marginRight = '20px';
 		options.show = true;
 		this.opened = true;
 		this.$.editPageCont.style.display = 'block';

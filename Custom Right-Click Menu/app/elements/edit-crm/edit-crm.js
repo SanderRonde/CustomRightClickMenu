@@ -34,16 +34,27 @@ function getLastMenu(list) {
 }
 
 /**
+ * Shows only the nodes that should be shown with current showContentTypes settings
+ * 
+ * @param {Object} crm - The CRM to check
+ * @param {boolean[]} showContentTypes - Array of which content types to show
+ * @returns {Object} An object in which each key is a path of a crm node and the value (true or false) tells whether to show it or not.
+ */
+function getHiddenNodes(crm, showContentTypes) {
+	
+}
+
+/**
  * @fn function buildCRMEditObj()
  *
  * @brief Builds crm edit object.
  * 		  
- * @param {number[]} types - An array of numbers that contain the types to show
  * @param setMenus An array of menus that are set to be opened (by user input).
  *
  * @return the CRM edit object
  */
-function buildCRMEditObj(types, setMenus) {
+function buildCRMEditObj(setMenus) {
+	var showContentTypes = options.crmTypes;
 	var setMenusLength = setMenus.length,
 		crmEditObj = [],
 		path = [],
@@ -53,6 +64,9 @@ function buildCRMEditObj(types, setMenus) {
 		column;
 
 	var list = options.settings.crm;
+
+	//Hide all nodes that should be hidden
+	var hiddenNodes = getHiddenNodes(list, showContentTypes);
 
 	while (lastMenu !== -1) {
 		if (setMenusLength > columnNum) {
@@ -125,9 +139,9 @@ window.Polymer({
 	 * 
 	 * @return The object to be sent to Polymer
 	 */
-	build: function (type, setItems) {
+	build: function (setItems) {
 		setItems = setItems || [];
-		var obj = buildCRMEditObj(type, setItems);
+		var obj = buildCRMEditObj(setItems);
 		this.crm = obj;
 		this.notifyPath('crm', this.crm);
 		return obj;

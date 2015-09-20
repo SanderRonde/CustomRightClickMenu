@@ -269,7 +269,7 @@
 			}
 
 			//Show a paper-toast
-			var paperToast = $('#paperToast');
+			var paperToast = $('#changedToMenuToast');
 			paperToast.on('click', reverseMenuTypeChoice);
 			paperToast[0].show();
 			setTimeout(function() {

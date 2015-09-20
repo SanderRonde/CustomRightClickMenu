@@ -553,6 +553,7 @@
     <Content Include="app\elements\center-element\center-element.css" />
     <Content Include="app\elements\center-element\center-element.html" />
     <Content Include="app\elements\center-element\center-element.js" />
+    <Content Include="app\elements\script-edit\script-edit.html" />
     <Content Include="app\elements\stylesheet-edit\stylesheet-edit.css" />
     <Content Include="app\elements\stylesheet-edit\stylesheet-edit.html" />
     <Content Include="app\elements\stylesheet-edit\stylesheet-edit.js" />
@@ -620,7 +621,6 @@
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.html" />
     <Content Include="app\elements\paper-toggle-option\paper-toggle-option.js" />
     <Content Include="app\elements\script-edit\script-edit.css" />
-    <Content Include="app\elements\script-edit\script-edit.html" />
     <Content Include="app\elements\script-edit\script-edit.js" />
     <Content Include="app\elements\type-switcher\type-switcher.css" />
     <Content Include="app\elements\type-switcher\type-switcher.html" />

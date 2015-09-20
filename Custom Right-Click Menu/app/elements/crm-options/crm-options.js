@@ -263,6 +263,7 @@ function setupFirstTime() {
  * @returns {} 
  */
 function checkArray(toCheck) {
+	var i;
 	var changes = false;
 	var result;
 	toCheck.map(function (item, index) {
@@ -331,6 +332,10 @@ function checkArray(toCheck) {
 				}
 			}
 			//TODO check other data types
+			/*For script:
+			 * 
+			 * script itself, libraries, launchMode, contentTypes
+			 */
 		}
 		if (isNotSet(item.index)) {
 			changes = true;
@@ -521,40 +526,10 @@ Polymer({
 		crmTypes: Array
 	},
 
-	switchToIcons: function (names) {
-		console.log(names);
+	switchToIcons: function (indexes) {
 		var i;
-		var indexes = [];
-		for (i = 0; i < names.length; i++) {
-			if (typeof names[i] === 'number') {
-				indexes.push(names[i]);
-			} else {
-				switch (names[i]) {
-				case 'audio':
-					indexes.push(5);
-					break;
-				case 'video':
-					indexes.push(4);
-					break;
-				case 'image':
-					indexes.push(3);
-					break;
-				case 'selection':
-					indexes.push(2);
-					break;
-				case 'link':
-					indexes.push(1);
-					break;
-				case 'page':
-				default:
-					indexes.push(0);
-					break;
-				}
-			}
-		}
-		var crmTypes = document.querySelectorAll('.crmType');
-
 		var element;
+		var crmTypes = document.querySelectorAll('.crmType');
 		for (i = 0; i < indexes.length; i++) {
 			element = crmTypes[indexes[i]];
 			element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
@@ -596,7 +571,7 @@ Polymer({
 
 			$(element).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
 
-			selectedTypes.splice(selectedTypes.indexOf(index), 1);
+			selectedTypes[index] = false;
 			chrome.storage.local.set({
 				selectedCrmTypes: selectedTypes
 			});
@@ -614,7 +589,7 @@ Polymer({
 				$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
 			}
 
-			selectedTypes.push(index);
+			selectedTypes[index] = true;
 			chrome.storage.local.set({
 				selectedCrmTypes: selectedTypes
 			});
@@ -884,7 +859,7 @@ Polymer({
 								//Make it visible
 								var popped = JSON.parse(JSON.stringify(editingObj.crmPath.length));
 								popped.pop();
-								options.editCRM.build(_this.crmType, popped);
+								options.editCRM.build(popped);
 								setTimeout(highlightItem, 700);
 							} else {
 								highlightItem();
@@ -1147,10 +1122,10 @@ Polymer({
 				_this.switchToIcons(items.selectedCrmTypes);
 			} else {
 				chrome.storage.local.set({
-					selectedCrmTypes: [0,1,2,3,4,5]
+					selectedCrmTypes: [true, false, false, false, false, false]
 				});
-				options.crmTypes = [0, 1, 2, 3, 4, 5];
-				_this.switchToIcons([0, 1, 2, 3, 4, 5]);
+				options.crmTypes = [true, false, false, false, false, false];
+				_this.switchToIcons([true, false, false, false, false, false]);
 			}
 			if (items.jsLintGlobals) {
 				window.options.jsLintGlobals = items.jsLintGlobals;
