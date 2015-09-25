@@ -601,6 +601,7 @@ Polymer({
 		if ($prev) {
 			//A previous item exists, newpath is that path with + 1 on the last index
 			newPath = $prev.item.path;
+			//TODO PLS REWRITE
 			newPath[newPath.length - 1] += 1;
 		}
 		else if ($next) {

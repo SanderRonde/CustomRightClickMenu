@@ -3,7 +3,7 @@
 
 	//#region PolymerProperties
 	/**
-	* AN interval to save any work not discarder or saved (say if your browser/pc crashes)
+	* An interval to save any work not discarder or saved (say if your browser/pc crashes)
 	* 
 	* @attribute savingInterval
 	* @type Object
@@ -182,51 +182,6 @@
 	 */
 	optionsAnimations: [],
 
-	/**
-	 * The dropdown to right animation for triggers
-	 *
-	 * @attribute dropdownToRightAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	triggersDropdownToRightAnimation: null,
-
-	/**
-	 * The dropdown to top animation for triggers
-	 *
-	 * @attribute dropdownToTopAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	triggersDropdownToTopAnimation: null,
-
-	/**
-	 * The dropdown to right animation for contentType
-	 *
-	 * @attribute dropdownToRightAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	contentTypeDropdownToRightAnimation: null,
-
-	/**
-	 * The dropdown to top animation for contentType
-	 *
-	 * @attribute dropdownToTopAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	contentTypeDropdownToTopAnimation: null,
-
-	/**
-	 * The animation for the editor's placeholder
-	 *
-	 * @attribute editorPlaceHolderAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	editorPlaceHolderAnimation: null,
-
 	properties: {
 		/**
 		* The new settings object, to be written on save
@@ -305,7 +260,7 @@
 		audioContentSelected: {
 			type: Object,
 			notify: true
-		},
+		}
 	},
 	//#endregion
 
@@ -341,7 +296,7 @@
 			result[i] = this[arr[i] + 'ContentSelected'];
 		}
 		console.log(result);
-		this.newSettings.onContentType = result;
+		this.newSettings.onContentTypes = result;
 	},
 
 	saveChanges: function() {
@@ -353,21 +308,32 @@
 		this.getTriggers();
 		window.crmEditPage.animateOut();
 		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var node = lookedUp[lastPathIndex];
-		if (node.name !== this.newSettings.name) {
-			$($('#mainCont').children('.CRMEditColumnCont')[this.item.path.length - 1]).children('paper-material').children('.CRMEditColumn').children('edit-crm-item')[lastPathIndex].name = this.newSettings.name;
+		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp.path)];
+		itemInEditPage.item = this.newSettings;
+		itemInEditPage.name = this.newSettings.name;
+		var i;
+		var length = window.options.crmTypes.length;
+		for (i = 0; i < length; i++) {
+			if (window.options.crmTypes[i]) {
+				break;
+			}
+		}
+		if (this.newSettings.launchMode !== 0) {
+			this.newSettings.onContentTypes = [true, true, true, true, true, true];
+		} else {
+			if (!this.newSettings.onContentTypes[index]) {
+				window.options.editCRM.build(window.options.editCRM.setMenus);
+			}
 		}
 		lookedUp[lastPathIndex] = this.newSettings;
 		options.upload();
-		//HIERZO
-		//fix scrollbar move stuff
 	},
 
 	assignContentTypeSelectedValues: function() {
 		var i;
 		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
 		for (i = 0; i < 6; i++) {
-			this[arr[i] + 'ContentSelected'] = this.item.onContentType[i];
+			this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
 		}
 	},
 

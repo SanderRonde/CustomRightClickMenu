@@ -361,9 +361,10 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		messageContent.secretKey = secretKey;
 		messageContent.tabId = tabId;
 
-		var message = {};
-		message.id = id;
-		message.msg = messageContent;
+		var message = {
+			id: id,
+			msg: messageContent
+		};
 		message = window.ec(message, secretKey);
 
 		chrome.runtime.sendMessage(message);
@@ -664,6 +665,51 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		var optionsCopy = JSON.parse(JSON.stringify(options));
 		optionsCopy.nodeId = nodeId;
 		sendCrmMessage('editNode', callback, optionsCopy);
+	}
+
+	/**
+	 * Gets the content types for given node - requires perission "crmGet"
+	 * 
+	 * @param {number} nodeId - The node of which to get the content types
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
+	 */
+	this.crm.getContentTypes = function(nodeId, callback) {
+		sendCrmMessage('getContentTypes', callback, {
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Sets the content type at index "index" to given value "value"- requires permissions "crmGet" and "crmSet"
+	 * 
+	 * @param {number} nodeId - The node whose content types to set
+	 * @param {number} index - The index of the array to set, 0-5, ordered this way: 
+	 *		page, link, selection, image, video, audio
+	 * @param {boolean} value - The new value at index "index"
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the new array as an argument
+	 */
+	this.crm.setContentType = function (nodeId, index, value, callback) {
+		sendCrmMessage('setContentType', callback, {
+			index: index,
+			value: value,
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Sets the content types to given contentTypes array - requires permissions "crmGet" and "crmSet"
+	 * 
+	 * @param {number} nodeId - The node whose content types to set
+	 * @param {boolean[]} contentTypes - An array of booleans, true for one index means that 
+	 *		the node is displayed on that content type, these are ordered this way:
+	 *		page, link, selection, image, video, audio
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+	 */
+	this.crm.setContentTypes = function(nodeId, contentTypes, callback) {
+		sendCrmMessage('setContentTypes', callback, {
+			contentTypes: contentTypes,
+			nodeId: nodeId
+		});
 	}
 
 	/*

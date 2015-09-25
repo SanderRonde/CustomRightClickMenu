@@ -22,17 +22,148 @@
 		canceled: {
 			type: Boolean,
 			value: false
+		},
+		/**
+		* Whether the indicator for content type "page" should be selected
+		* 
+		* @attribute pageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		pageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "link" should be selected
+		* 
+		* @attribute linkContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		linkContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "selection" should be selected
+		* 
+		* @attribute selectionContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		selectionContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "image" should be selected
+		* 
+		* @attribute imageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		imageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "video" should be selected
+		* 
+		* @attribute videoContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		videoContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "audio" should be selected
+		* 
+		* @attribute audioContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		audioContentSelected: {
+			type: Object,
+			notify: true
+		}
+	},
+
+	getContentTypeLaunchers: function (storageLocation) {
+		var i;
+		var result = [];
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			result[i] = this[arr[i] + 'ContentSelected'];
+		}
+		storageLocation.onContentTypes = result;
+	},
+
+	assignContentTypeSelectedValues: function () {
+		var i;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
+		}
+	},
+
+	checkToggledIconAmount: function (e) {
+		var i;
+		var toggledAmount = 0;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			if (window.linkEdit[arr[i] + 'ContentSelected']) {
+				if (toggledAmount === 1) {
+					return true;
+				}
+				toggledAmount++;
+			}
+		}
+		if (!toggledAmount) {
+			var index = 0;
+			var element = e.path[0];
+			while (element.tagName !== 'PAPER-CHECKBOX') {
+				index++;
+				element = e.path[index];
+			}
+			element.checked = true;
+			window.linkEdit[element.parentNode.classList[1].split('Type')[0] + 'ContentSelected'] = true;
+			window.doc.contentTypeToast.show();
+		}
+		return false;
+	},
+
+	toggleIcon: function (e) {
+		var index = 0;
+		var element = e.path[0];
+		while (!element.classList.contains('showOnContentItemCont')) {
+			index++;
+			element = e.path[index];
+		}
+		var checkbox = $(element).find('paper-checkbox')[0];
+		checkbox.checked = !checkbox.checked;
+		if (!checkbox.checked) {
+			window.linkEdit.checkToggledIconAmount({
+				path: [checkbox]
+			});
 		}
 	},
 
 	init: function () {
 		this.originalVals.name = this.item.name;
 		this.originalVals.value = this.item.value;
+		this.assignContentTypeSelectedValues();
 		console.log(this.originalVals.value);
 		var _this = this;
 		setTimeout(function() {
 			$(_this).find('input')[0].focus();
 		}, 350);
+	},
+
+	ready: function() {
+		window.linkEdit = this;
 	},
 
 	removeChanges: function () {
@@ -78,14 +209,29 @@
 				'newTab': ($(this).children('paper-checkbox').attr('aria-checked') !== 'true')
 			});
 		});
+		this.getContentTypeLaunchers(newItem);
 		lookedUp.name = newItem.name;
 		lookedUp.value = newItem.value;
+		lookedUp.onContentTypes = newItem.onContentTypes;
 
 		//Polymer pls...
-		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('.CRMEditColumn')[0].children[lookedUp.path[lookedUp.path.length - 1]];
+		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp.path)];
 		itemInEditPage.item = lookedUp;
 		itemInEditPage.name = newItem.name;
+
+		var i;
+		var length = window.options.crmTypes.length;
+		for (i = 0; i < length; i++) {
+			if (window.options.crmTypes[i]) {
+				break;
+			}
+		}
+		if (!newItem.onContentTypes[index]) {
+			window.options.editCRM.build(window.options.editCRM.setMenus);
+		}
+		itemInEditPage.onContentTypes = newItem.onContentTypes;
 		this.closePage();
+
 		options.upload();
 	},
 	

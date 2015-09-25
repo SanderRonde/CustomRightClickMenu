@@ -3,7 +3,7 @@
 
 	//#region PolymerProperties
 	/**
-	* AN interval to save any work not discarder or saved (say if your browser/pc crashes)
+	* An interval to save any work not discarder or saved (say if your browser/pc crashes)
 	* 
 	* @attribute savingInterval
 	* @type Object
@@ -101,6 +101,15 @@
 	showTriggers: false,
 
 	/**
+	 * Whether to show the section that allows you to choose on which content to show this
+     * 
+     * @attribute showContentTypeChooser
+     * @type Boolean
+     * @default false
+     */
+	showContentTypeChooser: false,
+
+	/**
      * Whether the options are shown
      * 
      * @attribute optionsShown
@@ -154,7 +163,6 @@
      */
 	preFullscreenEditorDimensions: {},
 
-	//#region Animations
 	/**
 	 * The fullscreen animation
 	 *
@@ -173,33 +181,6 @@
 	 */
 	optionsAnimations: [],
 
-	/**
-	 * The dropdown to right animation
-	 *
-	 * @attribute dropdownToRightAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	triggersDropdownToRightAnimation: null,
-
-	/**
-	 * The dropdown to top animation
-	 *
-	 * @attribute dropdownToTopAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	triggersDropdownToTopAnimation: null,
-
-	/**
-	 * The animation for the editor's placeholder
-	 *
-	 * @attribute editorPlaceHolderAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	editorPlaceHolderAnimation: null,
-
 	properties: {
 		/**
 		 * The new settings object, to be written on save
@@ -212,10 +193,74 @@
 			type: Object,
 			value: {},
 			notify: true
+		},
+		/**
+		* Whether the indicator for content type "page" should be selected
+		* 
+		* @attribute pageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		pageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "link" should be selected
+		* 
+		* @attribute linkContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		linkContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "selection" should be selected
+		* 
+		* @attribute selectionContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		selectionContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "image" should be selected
+		* 
+		* @attribute imageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		imageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "video" should be selected
+		* 
+		* @attribute videoContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		videoContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "audio" should be selected
+		* 
+		* @attribute audioContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		audioContentSelected: {
+			type: Object,
+			notify: true
 		}
 	},
-
-	//#endregion
 
 	//#endregion
 
@@ -226,7 +271,7 @@
 	},
 
 	getTriggers: function () {
-		var inputs = $(window.scriptEdit).find('.executionTrigger').find('paper-input');
+		var inputs = $(window.stylesheetEdit).find('.executionTrigger').find('paper-input');
 		var triggers = [];
 		for (var i = 0; i < inputs.length; i++) {
 			triggers[i] = inputs[i].value;
@@ -234,14 +279,94 @@
 		this.newSettings.value.triggers = triggers;
 	},
 
+	getContentTypeLaunchers: function () {
+		var i;
+		var result = [];
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			result[i] = this[arr[i] + 'ContentSelected'];
+		}
+		console.log(result);
+		this.newSettings.onContentTypes = result;
+	},
+
 	saveChanges: function () {
 		this.active = false;
 		window.externalEditor.cancelOpenFiles();
-		var lookedUp = window.options.crm.lookup(options.crmType, this.item.path, true);
+		var lookedUp = window.options.crm.lookup(this.item.path, true);
+		this.getContentTypeLaunchers();
 		this.getTriggers();
 		window.crmEditPage.animateOut();
-		lookedUp[this.item.path[this.item.path.length - 1]] = this.newSettings;
+		var lastPathIndex = this.item.path[this.item.path.length - 1];
+		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp.path)];
+		itemInEditPage.item = this.newSettings;
+		itemInEditPage.name = this.newSettings.name;
+		var i;
+		var length = window.options.crmTypes.length;
+		for (i = 0; i < length; i++) {
+			if (window.options.crmTypes[i]) {
+				break;
+			}
+		}
+		if (this.newSettings.launchMode !== 0) {
+			this.newSettings.onContentTypes = [true, true, true, true, true, true];
+		} else {
+			if (!this.newSettings.onContentTypes[index]) {
+				window.options.editCRM.build(window.options.editCRM.setMenus);
+			}
+		}
+		lookedUp[lastPathIndex] = this.newSettings;
 		options.upload();
+	},
+
+	assignContentTypeSelectedValues: function() {
+		var i;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
+		}
+	},
+
+	checkToggledIconAmount: function (e) {
+		var i;
+		var toggledAmount = 0;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			if (window.stylesheetEdit[arr[i] + 'ContentSelected']) {
+				if (toggledAmount === 1) {
+					return true;
+				}
+				toggledAmount++;
+			}
+		}
+		if (!toggledAmount) {
+			var index = 0;
+			var element = e.path[0];
+			while (element.tagName !== 'PAPER-CHECKBOX') {
+				index++;
+				element = e.path[index];
+			}
+			element.checked = true;
+			window.stylesheetEdit[element.parentNode.classList[1].split('Type')[0] + 'ContentSelected'] = true;
+			window.doc.contentTypeToast.show();
+		}
+		return false;
+	},
+
+	toggleIcon: function(e) {
+		var index = 0;
+		var element = e.path[0];
+		while (!element.classList.contains('showOnContentItemCont')) {
+			index++;
+			element = e.path[index];
+		}
+		var checkbox = $(element).find('paper-checkbox')[0];
+		checkbox.checked = !checkbox.checked;
+		if (!checkbox.checked) {
+			window.stylesheetEdit.checkToggledIconAmount({
+				path: [checkbox]
+			});
+		}
 	},
 
 	/*
@@ -282,7 +407,7 @@
 	//#region fullscreen
 	/*
 	 * Inserts given snippet of code into the editor
-	 * @param {element} _this The scriptEdit element/object
+	 * @param {element} _this The stylesheetEdit element/object
 	 * @param {string} snippet - The snippet to be pasted
 	 */
 	insertSnippet: function (_this, snippet) {
@@ -682,108 +807,96 @@
 	 */
 	selectorStateChange: function (state) {
 		var _this = this;
-		var show = (state === 2 || state === '2');
-		if (show !== this.showTriggers) {
-			var element = $(this.$.executionTriggersContainer);
-			var domElement = element[0];
-			var originalHeight = element.height();
-			if (show) {
-				domElement.style.height = 'auto';
-				domElement.style.display = 'block';
+		var showContentTypeChooser = (state === 0);
+		var showTriggers = (state === 2);
+		var triggersElement = this.$.executionTriggersContainer;
+		var $triggersElement = $(triggersElement);
+		var contentTypeChooserElement = this.$.showOnContentContainer;
+		var $contentTypeChooserElement = $(contentTypeChooserElement);
+		var triggersHeight;
+		var contentTypeHeight;
 
-				if (this.triggersDropdownToTopAnimation) {
-					this.triggersDropdownToTopAnimation.show = true;
-					this.triggersDropdownToRightAnimation.hide = false;
-					this.triggersDropdownToTopAnimation.reverse();
-				}
-				else {
-					this.triggersDropdownToTopAnimation = domElement.animate([
-						{
-							height: 0
-						}, {
-							height: originalHeight
-						}
-					], {
-						duration: 300,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
-					});
-					setTimeout(function () {
-						_this.triggersDropdownToRightAnimation = domElement.animate([
-							{
-								marginLeft: '-110%'
-							}, {
-								marginLeft: 0
-							}
-						], {
-							duration: 200,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-						setTimeout(function () {
-							_this.triggersDropdownToRightAnimation.onfinish = function () {
-								if (this.hide) {
-									_this.triggersDropdownToTopAnimation.reverse();
-								}
-							};
-							_this.triggersDropdownToTopAnimation.onfinish = function () {
-								if (this.show) {
-									_this.triggersDropdownToRightAnimation.reverse();
-								}
-							}
-							_this.triggersDropdownToTopAnimation.show = true;
-							_this.triggersDropdownToTopAnimation.hide = false;
-						}, 200);
-					}, 300);
-				}
+		function animateTriggers(callback) {
+			triggersElement.style.height = 'auto';
+			triggersHeight = triggersHeight || $triggersElement.height();
+			if (showTriggers) {
+				triggersElement.style.display = 'block';
+				triggersElement.style.marginLeft = '-110%';
+				triggersElement.style.height = 0;
+				$triggersElement.animate({
+					height: triggersHeight
+				}, 300, function () {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, callback);
+				});
 			} else {
-				if (this.triggersDropdownToTopAnimation) {
-					this.triggersDropdownToRightAnimation.hide = true;
-					this.triggersDropdownToTopAnimation.show = false;
-					this.triggersDropdownToRightAnimation.reverse();
-				}
-				else {
-					this.triggersDropdownToRightAnimation = domElement.animate([
-						{
-							marginLeft: 0
-						}, {
-							marginLeft: '-110%'
-						}
-					], {
-						duration: 200,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
+				triggersElement.style.marginLeft = 0;
+				triggersElement.style.height = triggersHeight;
+				$triggersElement.animate({
+					marginLeft: '-110%'
+				}, 200, function () {
+					$(this).animate({
+						height: 0
+					}, 300, function () {
+						triggersElement.style.display = 'none';
+						callback && callback();
 					});
-					setTimeout(function () {
-						_this.triggersDropdownToTopAnimation = domElement.animate([
-							{
-								height: originalHeight
-							}, {
-								height: 0
-							}
-						], {
-							duration: 300,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-						setTimeout(function () {
-							_this.triggersDropdownToTopAnimation.hide = true;
-							_this.triggersDropdownToTopAnimation.show = false;
-							_this.triggersDropdownToTopAnimation.onfinish = function () {
-								if (this.show) {
-									_this.triggersDropdownToRightAnimation.reverse();
-								}
-							}
-							_this.triggersDropdownToRightAnimation.onfinish = function () {
-								if (this.hide) {
-									_this.triggersDropdownToTopAnimation.reverse();
-								}
-							};
-						}, 300);
-					}, 200);
-				}
+				});
 			}
-			_this.showTriggers = show;
+			_this.showTriggers = showTriggers;
+		}
+
+		function animateContentTypeChooser(callback) {
+			contentTypeChooserElement.style.height = 'auto';
+			contentTypeHeight = contentTypeHeight || $contentTypeChooserElement.height();
+			if (showContentTypeChooser) {
+				contentTypeChooserElement.style.height = 0;
+				contentTypeChooserElement.style.display = 'block';
+				contentTypeChooserElement.style.marginLeft = '-110%';
+				$contentTypeChooserElement.animate({
+					height: contentTypeHeight
+				}, 300, function () {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, callback);
+				});
+			} else {
+				contentTypeChooserElement.style.marginLeft = 0;
+				contentTypeChooserElement.style.height = contentTypeHeight;
+				$contentTypeChooserElement.animate({
+					marginLeft: '-110%'
+				}, 200, function () {
+					$(this).animate({
+						height: 0
+					}, 300, function () {
+						contentTypeChooserElement.style.display = 'none';
+						callback && callback();
+					});
+				});
+			}
+			_this.showContentTypeChooser = showContentTypeChooser;
+		}
+
+		if (state === 0) {
+			//Triggers is still shown, first animate that out
+			if (this.showTriggers) {
+				animateTriggers(animateContentTypeChooser);
+			} else {
+				animateContentTypeChooser();
+			}
+		} else if (state === 1) {
+			if (this.showTriggers) {
+				animateTriggers();
+			} else if (this.showContentTypeChooser) {
+				animateContentTypeChooser();
+			}
+		} else if (state === 2) {
+			if (this.showContentTypeChooser) {
+				animateContentTypeChooser(animateTriggers);
+			} else {
+				animateTriggers();
+			}
 		}
 	},
 
@@ -1010,21 +1123,47 @@
 		});
 	},
 
+	initDropdown: function () {
+		if ((this.showTriggers = (this.item.value.launchMode === 2))) {
+			this.$.executionTriggersContainer.style.display = 'block';
+			this.$.executionTriggersContainer.style.marginLeft = 0;
+			this.$.executionTriggersContainer.style.height = 'auto';
+		} else {
+			this.$.executionTriggersContainer.style.display = 'none';
+			this.$.executionTriggersContainer.style.marginLeft = '-110%';
+			this.$.executionTriggersContainer.style.height = 0;
+		}
+		if ((this.showContentTypeChooser = (this.item.value.launchMode === 0))) {
+			this.$.showOnContentContainer.style.display = 'block';
+			this.$.showOnContentContainer.style.marginLeft = 0;
+			this.$.showOnContentContainer.style.height = 'auto';
+		} else {
+			this.$.showOnContentContainer.style.display = 'none';
+			this.$.showOnContentContainer.style.marginLeft = '-110%';
+			this.$.showOnContentContainer.style.height = 0;
+		}
+		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
+		if (this.editor) {
+			this.editor.display.wrapper.remove();
+			this.editor = null;
+		}
+	},
+
 	init: function () {
 		var _this = this;
 		this.$.dropdownMenu.init();
+		this.initDropdown();
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');
 		this.newSettings = $.extend(true, {}, this.item);
 		window.stylesheetEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
-		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
-		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}
+		this.assignContentTypeSelectedValues();
 		window.externalEditor.init();
 		chrome.storage.local.set({
 			editing: {

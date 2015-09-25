@@ -1,3 +1,49 @@
+/*
+ * Whenever a script is launched, another key is created using the secret key
+ */
+var crmTree;
+var secretKeys = {};
+var keysByPings = {};
+var contextMenuIds = {};
+
+/*#region Right-Click Menu Handling*/
+
+function getContexs(contexts) {
+	var newContexts = [];
+	var textContexts = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+	for (var i = 0; i < 6; i++) {
+		if (contexts[i]) {
+			newContexts.push(textContexts[i]);
+		}
+	}
+	return newContexts;
+}
+
+function buildPageCrmParse(node, parentId) {
+	chrome.contextMenus.create({
+		title: node.name,
+		contexts: getContexs(node.onContentTypes),
+		type: (node.type === 'divider' ? 'seperator' : (node.type === 'stylesheet' && node.value.toggle ? 'checkbox' : 'normal')),
+		checked: (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn),
+		parentId: parentId
+	});
+}
+
+function buildPageCRM() {
+	var i;
+	var length = crmTree.length;
+	chrome.contextMenus.removeAll();
+	var rootId = chrome.contextMenus.create({
+		title: 'Custom Menu',
+		contexts: ['page','selection','link','image','video','audio']
+	});;
+	for (i = 0; i < length; i++) {
+		buildPageCrmParse(crmTree[i], rootId);
+	}
+}
+
+/*#endregion*/
+
 ///<reference path="../../scripts/_references.js"/>
 ///<reference path="e.js"/>
 /*#region Handling of crmapi.js*/
@@ -35,19 +81,9 @@ var permissions = [
 	'webRequestBlocking'
 ];
 
-/*
- * Whenever a script is launched, another key is created using the secret key
- */
-var secretKeys = {
-	
-};
-
-var keysByPings = {};
-
 var availablePermissions = [];
 var storageSync;
 var storageLocal;
-var crmTree;
 var safeTree;
 var crmByIdSafe = {};
 var crmById = {};
@@ -186,11 +222,12 @@ function updateStorage() {
 	});
 }
 
-function updateCrm() {
+function updateCrm(skipPageCrm) {
 	window.chrome.storage.sync.set({
 		crm: crmTree
 	});
 	updateStorage();
+	skipPageCrm && buildPageCRM();
 }
 
 function updateNodeStorage(message) {
@@ -825,7 +862,6 @@ function crmFunction(message, toRun) {
 						_this.respondSuccess(safe(node));
 					}
 				});
-
 			});
 		},
 		deleteNode: function() {
@@ -833,10 +869,11 @@ function crmFunction(message, toRun) {
 				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
 					var parentChildren = _this.lookup(node.path, crmTree, true);
 					parentChildren.splice(node.path[node.path.length - 1], 1);
-					_this.respondSuccess(true);
-					updateCrm();
+					chrome.contextMenus.remove(contextMenuIds[node.id], function() {
+						updateCrm(true);
+						_this.respondSuccess(true);
+					});
 				});
-
 			});
 		},
 		editNode: function() {
@@ -878,9 +915,70 @@ function crmFunction(message, toRun) {
 				});
 			});
 		},
+		getContentTypes: function() {
+			_this.checkPermissions(['crmGet'], function() {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					_this.respondSuccess(node.onContentTypes);
+				});
+			});
+		},
+		setContentType: function() {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.typeCheck([
+					{
+						val: 'index',
+						type: 'number',
+						min: 0,
+						max: 5
+					}, {
+						val: 'value',
+						type: 'boolean'
+					}
+				], function() {
+					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+						node.onContentTypes[_this.message.index] = _this.message.value;
+						updateCrm(true);
+						chrome.contextMenus.update(contextMenuIds[node.id], {
+							contexts: getContexs(node.onContentTypes)
+						}, function () {
+							updateCrm(true);
+							_this.respondSuccess(node.onContentTypes);
+						});
+					});
+				});
+			});
+		},
+		setContentTypes: function() {
+			_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+				_this.typeCheck([
+					{
+						val: 'contentTypes',
+						type: 'array'
+					}
+				], function() {
+					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+						var length = _this.message.contentTypes.length;
+						for (var i = 0; i < length; i++) {
+							if (typeof _this.message.contentTypes[i] !== 'boolean') {
+								_this.respondError('Not all values in array childrenIds are of type boolean');
+								return false;
+							}
+						}
+						node.onContentTypes = _this.message.contentTypes;
+						chrome.contextMenus.update(contextMenuIds[node.id], {
+							contexts: newContexts
+						}, function() {
+							updateCrm(true);
+							_this.respondSuccess(safe(node));
+						});
+						return true;
+					});
+				});
+			});
+		},
 		linkGetLinks: function() {
 			_this.checkPermissions(['crmGet'], function() {
-				_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+				_this.getNodeFromId(_this.message.nodeId).run(function(node) {
 					if (node.type === 'link') {
 						_this.respondSuccess(node.value);
 					} else {
@@ -939,7 +1037,7 @@ function crmFunction(message, toRun) {
 								node.linkVal.push(_this.message.items);
 							}
 						}
-						updateCrm();
+						updateCrm(true);
 						if (node.type === 'link') {
 							_this.respondSuccess(safe(node).value);
 						} else {
@@ -966,12 +1064,12 @@ function crmFunction(message, toRun) {
 							var spliced;
 							if (node.type === 'link') {
 								spliced = node.value.splice(_this.message.start, _this.message.amount);
-								updateCrm();
+								updateCrm(true);
 								_this.respondSuccess(spliced, safe(node).value);
 							} else {
 								node.linkVal = node.linkVal || [];
 								spliced = node.linkVal.splice(_this.message.start, _this.message.amount);
-								updateCrm();
+								updateCrm(true);
 								_this.respondSuccess(spliced, safe(node).linkVal);
 							}
 						}
@@ -998,7 +1096,7 @@ function crmFunction(message, toRun) {
 							} else {
 								node.value.forEach(_this.message.process);
 							}
-							updateCrm();
+							updateCrm(true);
 							_this.respondSuccess(safe(node).value);
 						} else {
 							node.linkVal = node.linkVal || [];
@@ -1009,7 +1107,7 @@ function crmFunction(message, toRun) {
 							} else {
 								node.linkVal.forEach(_this.message.process);
 							}
-							updateCrm();
+							updateCrm(true);
 							_this.respondSuccess(node.linkVal);
 						}
 						return true;
@@ -1156,7 +1254,7 @@ function crmFunction(message, toRun) {
 								node.scriptVal.libraries.push(_this.message.libraries);
 							}
 						}
-						updateCrm();
+						updateCrm(true);
 						if (node.type === 'script') {
 							_this.respondSuccess(safe(node).value.libraries);
 						} else {
@@ -1182,13 +1280,13 @@ function crmFunction(message, toRun) {
 						var spliced;
 						if (node.type === 'script') {
 							spliced = safe(node).value.libraries.splice(_this.message.start, _this.message.amount);
-							updateCrm();
+							updateCrm(true);
 							_this.respondSuccess(spliced, safe(node).value.libraries);
 						} else {
 							node.scriptVal = node.scriptVal || {};
 							node.scriptVal.libraries = node.scriptVal.libraries || [];
 							spliced = node.scriptVal.libraries.splice(_this.message.start, _this.message.amount);
-							updateCrm();
+							updateCrm(true);
 							_this.respondSuccess(spliced, node.scriptVal.libraries);
 						}
 						return true;
@@ -1211,7 +1309,7 @@ function crmFunction(message, toRun) {
 							node.scriptVal = node.scriptVal || {};
 							node.scriptVal.script = script;
 						}
-						updateCrm();
+						updateCrm(true);
 						_this.respondSuccess(safe(node));
 						return true;
 					});
@@ -1480,8 +1578,4 @@ window.chrome.permissions.getAll(function (available) {
 	availablePermissions = available.permissions;
 	main();
 });
-/*#endregion*/
-
-/*#region Right-Click Menu Handling*/
-
 /*#endregion*/

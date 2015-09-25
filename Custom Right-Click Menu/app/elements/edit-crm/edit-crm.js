@@ -10,16 +10,17 @@ options.settings = options.settings;
  * @brief Gets the last menu of the list.
  *
  * @param list The list.
+ * @param hidden - The hidden nodes
  *
  * @return The last menu on the given list.
  */
-function getLastMenu(list) {
+function getLastMenu(list, hidden) {
 	var lastMenu = -1;
 	var lastFilledMenu = -1;
 	//Find last menu to auto-expand
 	if (list) {
 		list.forEach(function (item, index) {
-			if (item.type === 'menu' || (options.settings.shadowStart && item.menuVal)) {
+			if ((item.type === 'menu' || (options.settings.shadowStart && item.menuVal) && !hidden[item.path])) {
 				lastMenu = index;
 				if (item.children.length > 0) {
 					lastFilledMenu = index;
@@ -36,12 +37,45 @@ function getLastMenu(list) {
 /**
  * Shows only the nodes that should be shown with current showContentTypes settings
  * 
- * @param {Object} crm - The CRM to check
+ * @param {Object} result - The result object in which to store all paths
+ * @param {Object} node - The node to check
  * @param {boolean[]} showContentTypes - Array of which content types to show
  * @returns {Object} An object in which each key is a path of a crm node and the value (true or false) tells whether to show it or not.
  */
-function getHiddenNodes(crm, showContentTypes) {
-	
+function getHiddenNodes(result, node, showContentTypes) {
+	var i;
+	var length;
+	if (node.children) {
+		length = node.children.length;
+		var visible = 0;
+		for (i = 0; i < length; i++) {
+			visible += getHiddenNodes(result, node.children[i], showContentTypes);
+		}
+		if (!visible) {
+			result[node.id] = true;
+			return 0;
+		}
+	} else {
+		for (i = 0; i < 6; i++) {
+			if (showContentTypes[i] && !node.onContentTypes[i]) {
+				result[node.id] = true;
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+function getIndent(data, lastMenu, hiddenNodes) {
+	var i;
+	var length = data.length - 1;
+	var visibleIndent = lastMenu;
+	for (i = 0; i < length; i++) {
+		if (hiddenNodes[data[i].id]) {
+			visibleIndent--;
+		}
+	}
+	return visibleIndent;
 }
 
 /**
@@ -55,79 +89,149 @@ function getHiddenNodes(crm, showContentTypes) {
  */
 function buildCRMEditObj(setMenus) {
 	var showContentTypes = options.crmTypes;
-	var setMenusLength = setMenus.length,
-		crmEditObj = [],
-		path = [],
-		indentTop = 0,
-		lastMenu = -2,
-		columnNum = 0,
-		column;
+	var setMenusLength = setMenus.length;
+	var newSetMenus = [];
+	var crmEditObj = [];
+	var indentTop = 0;
+	var lastMenu = -2;
+	var columnNum = 0;
+	var columnCopy;
+	var path = [];
+	var column;
+	var indent;
+	var length;
 
 	var list = options.settings.crm;
-
 	//Hide all nodes that should be hidden
-	var hiddenNodes = getHiddenNodes(list, showContentTypes);
+	var hiddenNodes = {};
+	var i;
+	var shown = 0;
+	for (i = 0; i < list.length; i++) {
+		shown += getHiddenNodes(hiddenNodes, list[i], showContentTypes);
+	}
+	console.log(hiddenNodes);
 
-	while (lastMenu !== -1) {
-		if (setMenusLength > columnNum) {
-			lastMenu = setMenus[columnNum];
-		}
-		else {
-			lastMenu = getLastMenu(list);
-		}
-		column = {};
-		column.indent = [];
-		column.indent[indentTop - 1] = undefined;
-		column.list = list;
-		column.index = columnNum;
-		if (options.settings.shadowStart && options.settings.shadowStart <= columnNum) {
-			column.shadow = true;
-		}
-
-		if (lastMenu !== -1) {
-			indentTop += lastMenu;
-			list.forEach(function (item) {
-				item.expanded = false;
-			});
-			list[lastMenu].expanded = true;
-			if (options.settings.shadowStart && list[lastMenu].menuVal) {
-				list = list[lastMenu].menuVal;
+	if (shown) {
+		while (lastMenu !== -1) {
+			if (setMenusLength > columnNum) {
+				lastMenu = setMenus[columnNum];
 			} else {
-				list = list[lastMenu].children;
+				lastMenu = getLastMenu(list, hiddenNodes);
 			}
-		}
+			newSetMenus[columnNum] = lastMenu;
+			indent = getIndent(list, lastMenu, hiddenNodes);
+			column = {};
+			column.indent = [];
+			column.indent[indentTop - 1] = undefined;
+			column.list = list;
+			column.index = columnNum;
+			if (options.settings.shadowStart && options.settings.shadowStart <= columnNum) {
+				column.shadow = true;
+			}
 
-		column.list.map(function (currentVal, index) {
-			currentVal.path = [];
-			path.forEach(function (item, index) {
-				currentVal.path[index] = item;
+			if (lastMenu !== -1) {
+				indentTop += indent;
+				list.forEach(function(item) {
+					item.expanded = false;
+				});
+				list[lastMenu].expanded = true;
+				if (options.settings.shadowStart && list[lastMenu].menuVal) {
+					list = list[lastMenu].menuVal;
+				} else {
+					list = list[lastMenu].children;
+				}
+			}
+
+			column.list.map(function(currentVal, index) {
+				currentVal.path = [];
+				path.forEach(function(item, index) {
+					currentVal.path[index] = item;
+				});
+				currentVal.index = index;
+				currentVal.path.push(index);
+				return currentVal;
 			});
-			currentVal.index = index;
-			currentVal.path.push(index);
-			return currentVal;
-		});
-
-		path.push(lastMenu);
-		crmEditObj.push(column);
-		columnNum++;
+			length = column.list.length;
+			columnCopy = [];
+			for (i = 0; i < length; i++) {
+				if (!hiddenNodes[column.list[i].id]) {
+					columnCopy.push(column.list[i]);
+				}
+			}
+			column.list = columnCopy;
+			path.push(lastMenu);
+			crmEditObj.push(column);
+			columnNum++;
+		}
 	}
 
-	return crmEditObj;
+	return {
+		crm: crmEditObj,
+		setMenus: newSetMenus
+	};
 }
 
 window.Polymer({
 	is: 'edit-crm',
+
+	/*
+	 * The currently used timeout for settings the crm
+	 * 
+	 * @attribute currentTimeout
+	 * @type Number
+	 * @default null
+	 */
+	currentTimeout: null,
+
+	/*
+	 * The currently used set menus
+	 * 
+	 * @attribute setMenus
+	 * @type Array
+	 * @default []
+	 */
+	setMenus: [],
 
 	properties: {
 		crm: {
 			type: Array,
 			value: [],
 			notify: true
+		},
+		crmLoading: {
+			type: Boolean,
+			value: false,
+			notify: true
+		},
+		crmEmpty: {
+			type: Boolean,
+			value: true,
+			notify: true,
+			computed: '_isCrmEmpty(crm, crmLoading)'
 		}
 	},
 
 	listeners: {
 		'crmTypeChanged': '_typeChanged'
+	},
+
+	_isCrmEmpty: function (crm, crmLoading) {
+		return !crmLoading && crm.length === 0;
+	},
+
+	getCurrentTypeIndex: function (path) {
+		var i;
+		var hiddenNodes = {};
+		getHiddenNodes(hiddenNodes, window.options.settings.crm, window.options.crmTypes);
+		var items = $(options.editCRM.$.mainCont.children[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
+		var index = path[path.length - 1];
+		var length = items.length;
+		for (i = 0; i < length; i++) {
+			if (hiddenNodes[items[i]]) {
+				index--;
+			}
+		}
+		return index;
 	},
 
 	/**
@@ -140,10 +244,24 @@ window.Polymer({
 	 * @return The object to be sent to Polymer
 	 */
 	build: function (setItems) {
+		var _this = this;
 		setItems = setItems || [];
 		var obj = buildCRMEditObj(setItems);
-		this.crm = obj;
-		this.notifyPath('crm', this.crm);
+		this.setMenus = obj.setMenus;
+		obj = obj.crm;
+		this.crm = [];
+		if (this.currentTimeout !== null) {
+			window.clearTimeout(this.currentTimeout);
+		}
+		this.crmLoading = true;
+		this.currentTimeout = window.setTimeout(function() {
+			_this.crm = obj;
+			_this.notifyPath('crm', _this.crm);
+			_this.currentTimeout = null;
+			setTimeout(function() {
+				_this.crmLoading = false;
+			}, 50);
+		}, 1000);
 		return obj;
 	},
 
@@ -172,7 +290,8 @@ window.Polymer({
 			expanded: false,
 			index: newIndex,
 			isLocal: true,
-			path: [newIndex]
+			path: [newIndex],
+			onContentType: options.crmTypes
 		};
 		options.crm.add(newItem);
 
@@ -191,6 +310,6 @@ window.Polymer({
 	//TODO implement select and remove
 
 	_typeChanged: function () {
-		runOrAddAsCallback(options.editCRM.build, options.editCRM, [options.crmTypes]);
+		runOrAddAsCallback(options.editCRM.build, options.editCRM);
 	}
 });

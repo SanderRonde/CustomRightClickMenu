@@ -597,6 +597,7 @@ body.editingScript .cssTool {
 	display: inline-block;
 	-webkit-user-select:none;
 	margin-left:-5px;
+	cursor:pointer;
 	position: relative;
 }
 

@@ -380,3 +380,34 @@ input {
 	font-weight: 500;
 	font-size: 200%;
 }
+
+.showOnContentItemCont {
+	display: inline-block;
+	position: relative;
+	-webkit-user-select:none;
+}
+
+.showOnContentItemIcon, .showOnContentItemTxt {
+	cursor: pointer;
+}
+
+.showOnContentItemIcon svg {
+	width: 54px;
+	height: 54px;
+}
+
+.showOnContentItemTxt {
+	font-weight: 500;
+	text-align: center;
+	margin-top: -6px;
+}
+
+.itemEditBigTxt {
+	font-weight: 500;
+	font-size: 200%;
+}
+
+.showOnContentItemCheckbox {
+	margin-left: 17px;
+	margin-top: 5px;
+}

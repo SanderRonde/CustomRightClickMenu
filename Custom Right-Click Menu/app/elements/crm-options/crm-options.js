@@ -12,12 +12,12 @@ function isNotSet(value) {
 	return value === undefined || value === null;
 }
 
-function runOrAddAsCallback(toRun, thisElement, params) {
+function runOrAddAsCallback(toRun, thisElement) {
 	if (window.options.settings) {
-		toRun.apply(thisElement, params);
+		toRun.apply(thisElement);
 	}
 	else {
-		window.options.addSettingsReadyCallback(toRun, thisElement, params);
+		window.options.addSettingsReadyCallback(toRun, thisElement);
 	}
 }
 
@@ -375,7 +375,8 @@ function checkSettings(settings) {
 							value: 'http://www.example.com',
 							newTab: true
 						}
-					]
+					],
+					onContentTypes: [true, false, false, false, false, false]
 				}
 			];
 		} else {
@@ -388,7 +389,7 @@ function checkSettings(settings) {
 
 		if (changes) {
 			options.settings = settings;
-			//options.upload();
+			options.upload();
 		}
 	} else {
 		setupFirstTime();
@@ -527,18 +528,21 @@ Polymer({
 	},
 
 	switchToIcons: function (indexes) {
+		console.log(indexes);
 		var i;
 		var element;
 		var crmTypes = document.querySelectorAll('.crmType');
-		for (i = 0; i < indexes.length; i++) {
-			element = crmTypes[indexes[i]];
-			element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
-			element.classList.add('toggled');
+		for (i = 0; i < 6; i++) {
+			if (indexes[i]) {
+				element = crmTypes[i];
+				element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+				element.classList.add('toggled');
 
-			if (indexes[i] === 5) {
-				$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
-			} else {
-				$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
+				if (indexes[i] === 5) {
+					$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
+				} else {
+					$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
+				}
 			}
 		}
 		this.crmTypes = indexes;
@@ -553,49 +557,40 @@ Polymer({
 			path = e.path[index];
 		}
 
+		var crmEl;
 		var element = path;
-		var crmTypes = document.querySelectorAll('.crmType');
-		for (var i = 0; i < crmTypes.length; i++) {
-			if (crmTypes.item(i) === element) {
-				index = i;
-			}
-		}
-
 		var selectedTypes = options.crmTypes;
-		console.log(selectedTypes);
-		if (element.classList.contains('toggled')) {
-			//Drop an element for some magic
-			element.style.boxShadow = 'none';
-			element.style.backgroundColor = 'white';
-			element.classList.remove('toggled');
+		var crmTypes = document.querySelectorAll('.crmType');
+		for (var i = 0; i < 6; i++) {
+			crmEl = crmTypes.item(i);
+			if (crmEl === element) {
+				crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+				crmEl.style.backgroundColor = 'rgb(243,243,243)';
+				crmEl.classList.add('toggled');
 
-			$(element).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
+				if (i === 5) {
+					$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(crmEl);
+				} else {
+					$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
+				}
 
-			selectedTypes[index] = false;
-			chrome.storage.local.set({
-				selectedCrmTypes: selectedTypes
-			});
-			this.crmTypes = selectedTypes;
-			this.fire('crmTypeChanged', {});
-		} else {
-			//Drop an element for some magic
-			element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
-			element.style.backgroundColor = 'rgb(243,243,243)';
-			element.classList.add('toggled');
-
-			if (index === 5) {
-				$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
+				selectedTypes[i] = true;
 			} else {
-				$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
-			}
+				//Drop an element for some magic
+				crmEl.style.boxShadow = 'none';
+				crmEl.style.backgroundColor = 'white';
+				crmEl.classList.remove('toggled');
 
-			selectedTypes[index] = true;
-			chrome.storage.local.set({
-				selectedCrmTypes: selectedTypes
-			});
-			this.crmTypes = selectedTypes;
-			this.fire('crmTypeChanged', {});
+				$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
+
+				selectedTypes[i] = false;
+			}
 		}
+		chrome.storage.local.set({
+			selectedCrmTypes: selectedTypes
+		});
+		this.crmTypes = selectedTypes;
+		this.fire('crmTypeChanged', {});
 	},
 
 	toggleToolsRibbon: function() {
@@ -667,24 +662,23 @@ Polymer({
 		window.doc.cssEditorInfoDialog.open();
 	},
 
-	addSettingsReadyCallback: function(callback, thisElement, params) {
+	addSettingsReadyCallback: function(callback, thisElement) {
 		this.onSettingsReadyCallbacks.push({
 			callback: callback,
-			thisElement: thisElement,
-			params: params
+			thisElement: thisElement
 		});
 	},
 
 	/**
 	 * Uploads this object to chrome.storage
 	 */
-	upload: function(errorCallback) {
+	upload: function (errorCallback) {
 		window.storage.set(this.settings, function() {
 			if (chrome.runtime.lastError) {
 				errorCallback(chrome.runtime.lastError);
 			}
 		});
-		buildContextMenu();
+		//buildContextMenu();
 	},
 
 	bindListeners: function() {
@@ -1092,7 +1086,7 @@ Polymer({
 		function callback(items) {
 			_this.settings = items;
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
+				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
 			}
 			if (items.requestPermissions && items.requestPermissions.length > 0) {
 				_this.requestPermissions(items.requestPermissions);

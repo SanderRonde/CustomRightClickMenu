@@ -120,7 +120,6 @@
 			complete: function () {
 				_this.$.typeSwitchChoicesContainer.style.display = 'none';
 				_this.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
-				console.log(callback);
 				callback && callback();
 			}
 		});
@@ -227,7 +226,7 @@
 			//Turn children into "shadow items"
 			var column = this.parentNode.parentNode.parentNode.parentNode;
 			var columnCont = column.parentNode;
-			var crmLength = columnCont.parentNode.parentNode.crm.length;
+			var crmLength = columnCont.parentNode.parentNode.parentNode.crm.length;
 			columnCont = $(columnCont).next()[0];
 
 			for (i = column.index + 1; i < crmLength; i++) {
