@@ -56,6 +56,18 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	}
 
 	/**
+	 * Sends a message to the background page or simply executes it instantly if this is ran on the background page
+	 * 
+	 * @param {Object} message - The message to send
+	 * @param {function} callback - The callback to run if anything interesting happens
+	 */
+	function communicate(message, callback) {
+		if (chrome.runtime.getBackgroundPage) {
+
+		}
+	}
+
+	/**
 	 * Looks up the data at given path
 	 * 
 	 * @param {array} path - The path at which to look
@@ -390,6 +402,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @property {string} script - The script that is ran itself
 	 * @property {Object[]} libraries - The libraries that are used in this script
 	 * @property {script} libraries.name - The name of the library
@@ -405,6 +418,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	*		0 = run on clicking
 	*		1 = always run
 	*		2 = run on specified pages
+	*		3 = only show on specified pages
 	* @property {string} stylesheet - The script that is ran itself
 	* @property {boolean} toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
 	* @property {boolean} defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
@@ -566,6 +580,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run, not required
 	 * @param {string} [options.scriptData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
@@ -576,6 +591,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 	 * @property {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
      * @property {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
@@ -795,6 +811,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * 		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 	 */
 	this.crm.script.setLaunchMode = function(nodeId, launchMode, callback) {

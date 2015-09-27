@@ -1,10 +1,10 @@
-﻿#changeNameText, #changeLinkText, .itemEditBigTxt {
+﻿.itemEditBigTxt {
 	font-weight: 500;
 	font-size: 200%;
 }
 
 #changeNameInput, #changeLinkInput {
-	width: 450px;
+	width: 340px;
 }
 
 input {
@@ -24,7 +24,7 @@ input {
 
 .linkInput {
 	display: inline-block;
-	width: 305px;
+	width: 240px;
 }
 
 #linksContainer .floated-label-placeholder {
@@ -38,6 +38,9 @@ input {
 #linkEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
+	display:flex;
+	flex-direction: row;
+	justify-content: center;
 }
 
 .showOnContentItemCont {
@@ -61,12 +64,56 @@ input {
 	margin-top: -6px;
 }
 
-.itemEditBigTxt {
-	font-weight: 500;
-	font-size: 200%;
-}
-
 .showOnContentItemCheckbox {
 	margin-left: 17px;
 	margin-top: 5px;
+}
+
+#linkEditLeft {
+	display: inline-block;
+	margin-right: 20px;
+}
+
+paper-input {
+	width: 340px;
+}
+
+.triggerInput {
+	display: inline-block;
+	width: 280px;
+}
+
+#triggersInfoCont {
+	cursor: pointer;
+	float: right;
+	margin-top: 7px;
+}
+
+#triggersInfoCont .active, #triggersInfoCont #triggersInfoTxtCont {
+	display: none;
+}
+
+#triggersInfoCont .inactive {
+	display: block;
+}
+
+#triggersInfoCont:hover .active, #triggersInfoCont:hover #triggersInfoTxtCont {
+	display: block;
+}
+
+#triggersInfoCont:hover .inactive {
+	display:none;
+}
+
+#triggersInfoTxt {
+	position: absolute;
+    z-index: 10000;
+    margin-top: -24px;
+    margin-left: 24px;
+    width: 250px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
 }

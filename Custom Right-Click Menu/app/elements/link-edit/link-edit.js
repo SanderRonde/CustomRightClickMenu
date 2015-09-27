@@ -91,6 +91,38 @@
 		}
 	},
 
+	/*
+	 * Clears the trigger that is currently clicked on
+	 * @param {event} The - event that triggers this (click event)
+	 */
+	clearTrigger: function (e) {
+		var target = e.target;
+		if (target.tagName === 'PAPER-ICON-BUTTON') {
+			target = target.children[0];
+		}
+		$(target.parentNode.parentNode).remove();
+		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
+		if (executionTriggers.length === 1) {
+			executionTriggers[0].style.display = 'none';
+		} else {
+			executionTriggers.forEach(function (item) {
+				item.style.display = 'block';
+			});
+		}
+	},
+
+	addTrigger: function() {
+		var _this = this;
+		var newEl = $('<div class="executionTrigger"><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
+		newEl.find('paper-icon-button').click(function(e) {
+			_this.clearTrigger.apply(_this, [e]);
+		});
+		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
+		if (executionTriggers.length === 2) {
+			executionTriggers[0].style.display = 'block';
+		}
+	},
+
 	getContentTypeLaunchers: function (storageLocation) {
 		var i;
 		var result = [];
@@ -197,12 +229,24 @@
 		this.closePage();
 	},
 
+	getTriggers: function () {
+		var inputs = $(this).find('.executionTrigger').find('paper-input');
+		var triggers = [];
+		for (var i = 0; i < inputs.length; i++) {
+			triggers[i] = inputs[i].value;
+		}
+		return triggers;
+	},
+
 	saveChanges: function () {
-		var lookedUp = options.crm.lookup(this.item.path);
+		var lastPathIndex = this.item.path[this.item.path.length - 1];
+		var lookedUp = options.crm.lookup(this.item.path, true);
 		//Get new "item"
 		var newItem = {};
 		newItem.name = this.item.name;
 		newItem.value = [];
+		newItem.triggers = this.getTriggers();
+		console.log(newItem.triggers);
 		$(this.$.linksContainer).find('.linkChangeCont').each(function () {
 			newItem.value.push({
 				'url': $(this).children('paper-input')[0].value,
@@ -210,13 +254,19 @@
 			});
 		});
 		this.getContentTypeLaunchers(newItem);
-		lookedUp.name = newItem.name;
-		lookedUp.value = newItem.value;
-		lookedUp.onContentTypes = newItem.onContentTypes;
+		var set = window.options.crm.setDataInCrm(this.item.path);
+		set('name', newItem.name);
+		set('name', newItem.name);
+		set('value', newItem.value);
+		set('onContentTypes', newItem.onContentTypes);
+		set('triggers', newItem.triggers);
 
 		//Polymer pls...
-		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp.path)];
-		itemInEditPage.item = lookedUp;
+		console.log(lookedUp[lastPathIndex].path.length);
+		console.log(options.editCRM.$.mainCont.children);
+		console.log($(options.editCRM.$.mainCont.children[lookedUp[lastPathIndex].path.length - 1]));
+		var itemInEditPage = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
+		itemInEditPage.item = lookedUp[lastPathIndex];
 		itemInEditPage.name = newItem.name;
 
 		var i;
@@ -226,11 +276,16 @@
 				break;
 			}
 		}
-		if (!newItem.onContentTypes[index]) {
+		if (!newItem.onContentTypes[i]) {
 			window.options.editCRM.build(window.options.editCRM.setMenus);
 		}
 		itemInEditPage.onContentTypes = newItem.onContentTypes;
 		this.closePage();
+
+		console.log(itemInEditPage);
+		console.log(lookedUp);
+		console.log(lookedUp[lastPathIndex]);
+		console.log(newItem);
 
 		options.upload();
 	},
@@ -253,7 +308,14 @@
 			}
 		});
 	},
-	
+
+	addLink: function() {
+		window.linkEdit.push('item.value', {
+			url: 'www.example.com',
+			newTab: true
+		});
+	},
+
 	toggleCheckbox: function (e) {
 		console.log(e);
 		var pathIndex = 0;

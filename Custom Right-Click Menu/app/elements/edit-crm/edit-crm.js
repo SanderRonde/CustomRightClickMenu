@@ -215,14 +215,16 @@ window.Polymer({
 		'crmTypeChanged': '_typeChanged'
 	},
 
-	_isCrmEmpty: function (crm, crmLoading) {
+	_isCrmEmpty: function(crm, crmLoading) {
 		return !crmLoading && crm.length === 0;
 	},
 
-	getCurrentTypeIndex: function (path) {
+	getCurrentTypeIndex: function(path) {
 		var i;
 		var hiddenNodes = {};
-		getHiddenNodes(hiddenNodes, window.options.settings.crm, window.options.crmTypes);
+		for (i = 0; i < window.options.settings.crm.length; i++) {
+			getHiddenNodes(hiddenNodes, window.options.settings.crm[i], window.options.crmTypes);
+		}
 		var items = $(options.editCRM.$.mainCont.children[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
 		var index = path[path.length - 1];
 		var length = items.length;
@@ -243,7 +245,7 @@ window.Polymer({
 	 * 
 	 * @return The object to be sent to Polymer
 	 */
-	build: function (setItems) {
+	build: function(setItems, quick) {
 		var _this = this;
 		setItems = setItems || [];
 		var obj = buildCRMEditObj(setItems);
@@ -261,7 +263,7 @@ window.Polymer({
 			setTimeout(function() {
 				_this.crmLoading = false;
 			}, 50);
-		}, 1000);
+		}, (quick ? 150 : 1000));
 		return obj;
 	},
 
@@ -270,12 +272,10 @@ window.Polymer({
 		options.editCRM = this;
 		window.options.addEventListener('crmTypeChanged', this._typeChanged);
 		chrome.storage.local.get(function(items) {
-			_this._typeChanged({
-				type: items.selectedCrmType
-			});
+			_this._typeChanged(true);
 		});
 	},
-	
+
 	addItem: function() {
 		var newIndex = options.settings.crm.length;
 		var newItem = {
@@ -309,7 +309,7 @@ window.Polymer({
 
 	//TODO implement select and remove
 
-	_typeChanged: function () {
-		runOrAddAsCallback(options.editCRM.build, options.editCRM);
+	_typeChanged: function(quick) {
+		runOrAddAsCallback(options.editCRM.build, options.editCRM, (quick ? [null, true] : []));
 	}
 });

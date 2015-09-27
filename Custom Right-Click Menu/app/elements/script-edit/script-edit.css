@@ -320,6 +320,7 @@ input {
 
 #editorThemeFontSizeInput {
 	width: 55px;
+	margin-left:7px;
 }
 
 #triggersInfoCont {

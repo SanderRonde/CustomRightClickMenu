@@ -12,12 +12,12 @@ function isNotSet(value) {
 	return value === undefined || value === null;
 }
 
-function runOrAddAsCallback(toRun, thisElement) {
+function runOrAddAsCallback(toRun, thisElement, params) {
 	if (window.options.settings) {
-		toRun.apply(thisElement);
+		toRun.apply(thisElement, params);
 	}
 	else {
-		window.options.addSettingsReadyCallback(toRun, thisElement);
+		window.options.addSettingsReadyCallback(toRun, thisElement, params);
 	}
 }
 
@@ -528,7 +528,6 @@ Polymer({
 	},
 
 	switchToIcons: function (indexes) {
-		console.log(indexes);
 		var i;
 		var element;
 		var crmTypes = document.querySelectorAll('.crmType');
@@ -662,10 +661,11 @@ Polymer({
 		window.doc.cssEditorInfoDialog.open();
 	},
 
-	addSettingsReadyCallback: function(callback, thisElement) {
+	addSettingsReadyCallback: function(callback, thisElement, params) {
 		this.onSettingsReadyCallbacks.push({
 			callback: callback,
-			thisElement: thisElement
+			thisElement: thisElement,
+			params: params
 		});
 	},
 
@@ -1056,7 +1056,7 @@ Polymer({
 					}
 					//if (other.animation) {
 					//	other.animation.reverse();
-					//} else {
+					//} else { 
 					//	var newHeight = other.scrollHeight + 'px';
 					//	console.log(newHeight);
 					//	other.animation = other.animate([
@@ -1086,7 +1086,7 @@ Polymer({
 		function callback(items) {
 			_this.settings = items;
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
+				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 			}
 			if (items.requestPermissions && items.requestPermissions.length > 0) {
 				_this.requestPermissions(items.requestPermissions);
@@ -1150,17 +1150,28 @@ Polymer({
 	 * CRM functions.
 	 */
 	crm: {
-		lookup: function(path, returnArray) {
-			var obj = options.settings.crm;
-			var i;
-			for (i = 0; i < path.length - 1; i++) {
-				if (options.settings.shadowStart && obj[path[i]].menuVal) {
-					obj = obj[path[i]].menuVal;
-				} else {
-					obj = obj[path[i]].children;
-				}
+		_getEvalPath: function (path) {
+			return 'window.options.settings.crm[' + (path.join('].children[')) + ']';
+		},
+
+		lookup: function (path, returnArray) {
+			var pathCopy = JSON.parse(JSON.stringify(path));
+			if (returnArray) {
+				pathCopy.splice(pathCopy.length - 1, 1);
 			}
-			return (returnArray ? obj : obj[path[i]]);
+			var evalPath = this._getEvalPath(pathCopy);
+			var result = eval(evalPath);
+			return (returnArray ? result.children : result);
+		},
+
+		setDataInCrm: function (path) {
+			console.log(path);
+			var evalPath = this._getEvalPath(path);
+			console.log(evalPath);
+			return function (key, data) {
+				console.log(evalPath + '[key] = data');
+				eval(evalPath + '[key] = data');
+			}
 		},
 
 		/**

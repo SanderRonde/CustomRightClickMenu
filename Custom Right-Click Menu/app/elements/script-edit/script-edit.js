@@ -285,7 +285,7 @@
 		for (var i = 0; i < inputs.length; i++) {
 			triggers[i] = inputs[i].value;
 		}
-		this.newSettings.value.triggers = triggers;
+		this.newSettings.triggers = triggers;
 	},
 
 	getContentTypeLaunchers: function () {
@@ -404,7 +404,7 @@
 	 */
 	addTrigger: function() {
 		var _this = this;
-		var newEl = $('<div class="executionTrigger"><paper-input class="triggerInput" value="example.com"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
+		var newEl = $('<div class="executionTrigger"><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
 		newEl.find('paper-icon-button').click(function(e) {
 			_this.clearTrigger.apply(_this, [e]);
 		});
@@ -1000,7 +1000,8 @@
 			'Editor zoom percentage:' +
 			'</div>').appendTo(settingsContainer);
 
-		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"></paper-input>').on('keypress change', function() {
+			//TODO IMPLEMENT THIS WITH NEW PAPER-INPUT VERSION
+		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('keypress change', function() {
 			var _this = this;
 			setTimeout(function() {
 				window.options.settings.editor.zoom = _this.value;
@@ -1190,7 +1191,7 @@
 	},
 
 	initDropdown: function() {
-		if ((this.showTriggers = (this.item.value.launchMode === 2))) {
+		if ((this.showTriggers = (this.item.value.launchMode > 1))) {
 			this.$.executionTriggersContainer.style.display = 'block';
 			this.$.executionTriggersContainer.style.marginLeft = 0;
 			this.$.executionTriggersContainer.style.height = 'auto';
