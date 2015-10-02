@@ -8,16 +8,39 @@
 }
 
 function encrypt(target, key) {
-	key = doubleKey(key);
-	target.verified = true;
-	target = JSON.stringify(target);
-
 	var i;
+	var keys = [];
+	var newTarget = {};
+	for (key in target) {
+		if (target.hasOwnProperty(key)) {
+			keys.push({
+				key: key,
+				val: target[key]
+			});
+		}
+	}
+
+	var index;
+	target.verified = true;
+	var length = (keys.length * 2) - 2;
+
+	index = Math.round(Math.random() * keys.length - 1);
+	newTarget[keys[index].key] = keys[index].val;
+
+	for (i = 0; i < length; i++) {
+		newTarget[Math.round(Math.random() * 10000)] = Math.round(Math.random() * 10000);
+		index = Math.round(Math.random() * keys.length - 1);
+		newTarget[keys[index].key] = keys[index].val;
+	}
+
+	key = doubleKey(key);
+	target = JSON.stringify(newTarget);
+
 	var j = 0;
 	var charcodes = [];
-	var length = target.length;
+	length = target.length;
 	for (i = 0; i < length; i++, j++) {
-		if (j > 17) {
+		if (j > 25) {
 			key = doubleKey(key);
 			j = 0;
 		}
@@ -39,7 +62,7 @@ function decrypt(target, key) {
 	var results = [];
 	var length = target.length;
 	for (i = 0; i < length; i++, j++) {
-		if (j > 17) {
+		if (j > 25) {
 			key = doubleKey(key);
 			j = 0;
 		}

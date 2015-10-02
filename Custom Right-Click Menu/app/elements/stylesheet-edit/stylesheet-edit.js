@@ -298,7 +298,18 @@
 		this.getTriggers();
 		window.crmEditPage.animateOut();
 		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp.path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp.path)];
+		console.log(lookedUp);
+		console.log(lastPathIndex);
+		console.log(lookedUp[lastPathIndex]);
+		console.log($(options.editCRM.$.mainCont).children('.CRMEditColumnCont'));
+		console.log($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]);
+		console.log($($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]));
+		console.log($($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn'));
+		console.log($($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0]);
+		console.log($($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children);
+		console.log($(options.editCRM.$.mainCont.children[lookedUp[lastPathIndex].path.length - 1]).children());
+		var itemInEditPage = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
+		//HIERZO
 		itemInEditPage.item = this.newSettings;
 		itemInEditPage.name = this.newSettings.name;
 		var i;
@@ -308,7 +319,7 @@
 				break;
 			}
 		}
-		if (this.newSettings.launchMode !== 0) {
+		if (this.newSettings.value.launchMode !== 0) {
 			this.newSettings.onContentTypes = [true, true, true, true, true, true];
 		} else {
 			if (!this.newSettings.onContentTypes[index]) {

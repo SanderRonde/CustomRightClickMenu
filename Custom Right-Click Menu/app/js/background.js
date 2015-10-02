@@ -1,19 +1,54 @@
-function 
-
 function sandbox(code) {
-		
+	var result;
+	eval(code);
+	// ReSharper disable once UsageOfPossiblyUnassignedValue
+	return result;
 }
 
 function mainContainer() {
-/*
- * Whenever a script is launched, another key is created using the secret key
- */
+	/*
+	 * Whenever a script is launched, another key is created using the secret key
+	 */
 	var crmTree;
+	var keys = {};
+	var storageSync;
 	var secretKeys = {};
-	var keysByPings = {};
 	var contextMenuIds = {};
+	var stylesheetNodeStatusses = {};
+	var chars = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", '6', '7', '8', '9', '0'];
 
-/*#region Right-Click Menu Handling*/
+	var crmByIdSafe = {};
+
+	function safe(node) {
+		return crmByIdSafe[node.id];
+	}
+
+	function createSecretKey() {
+		var key = [];
+		var i;
+		for (i = 0; i < 25; i++) {
+			key[i] = chars[Math.round(Math.random() * 61)];
+		}
+		if (!keys[key]) {
+			keys[key] = true;
+			return key;
+		} else {
+			return createSecretKey();
+		}
+	}
+
+	/*#region Right-Click Menu Handling*/
+
+	chrome.tabs.onHighlighted(function(highlightInfo) {
+		var lastTab = highlightInfo.tabIds[tabIds.length - 1];
+		for (var node in stylesheetNodeStatusses) {
+			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
+				chrome.contextMenus.update(contextMenuIds[node], {
+					checked: stylesheetNodeStatusses[node][lastTab]
+				});
+			}
+		}
+	});
 
 	function getContexs(contexts) {
 		var newContexts = [];
@@ -26,18 +61,94 @@ function mainContainer() {
 		return newContexts;
 	}
 
+	function sanitizeUrl(url) {
+		if (url.indexOf('://') === -1) {
+			url = 'http://' + url;
+		}
+		console.log(url);
+		return url;
+	}
+
 	function createLinkClickHandler(node) {
-		return function(e) {
-			console.log(e);
+		return function(clickData, tabData) {
 			var i;
+			var finalUrl;
 			for (i = 0; i < node.value.length; i++) {
-				window.open(node.value[i].url, (node.value[i].newTab ? '_blank' : '_self'));
+				if (node.value[i].newTab) {
+					chrome.tabs.create({
+						windowId: tabData.windowId,
+						url: sanitizeUrl(node.value[i].url),
+						openerTabId: tabData.id
+					});
+				}
+				else {
+					finalUrl = node.value[i].url;
+				}
+			}
+			if (finalUrl) {
+				chrome.tabs.update(tabData.tabId, {
+					url: sanitizeUrl(finalUrl)
+				});
+			}
+		}
+	}
+
+	function createStylesheetClickHandler(node) {
+		return function (info, tab) {
+			var code;
+			var className = node.id + '' + tab.id;
+			if (stylesheetNodeStatusses[node.id][tab.id]) {
+				code = 'var nodes = document.querySelectorAll(' + className + ');var i;var length = nodes.length;for (i = 0; i < length; i++) {nodes[i].remove();}';
+			} else {
+				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
+				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className=' + className + ';CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+			}
+			chrome.contextMenus.update(contextMenuIds[node.id], {
+				checked: (stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id])
+			});
+			console.log(code);
+			console.log(eval(code));
+			chrome.tabs.executeScript(tab.id, {
+				code: code,
+				allFrames: true
+			});
+		}
+	}
+
+	function createScriptClickHandler(node) {
+		return function (info, tab) {
+			var key = [];
+			var err = false;
+			try {
+				key = createSecretKey();
+			} catch (e) {
+				//There somehow was a stack overflow
+				err = true;
+			}
+			if (err) {
+				chrome.tabs.executeScript(tab.id, {
+					code: 'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
+				}, function() {
+					chrome.runtime.reload();
+				});
+			} else {
+				var code = 'var crmAPI = new CrmAPIInit(' +
+					JSON.stringify(safe(node)) + ',' +
+					node.id + ',' +
+					JSON.stringify(tab) + ',' +
+					JSON.stringify(info) + ',' +
+					JSON.stringify(key) + ');';
+				code = code + node.value.script;
+				chrome.tabs.executeScript(tab.id, {
+					code: code,
+					file: 'js/crmapi.js'
+				});
 			}
 		}
 	}
 
 	function createOptionsPageHandler() {
-		return function(e) {
+		return function() {
 			chrome.runtime.openOptionsPage();
 		}
 	}
@@ -72,6 +183,9 @@ function mainContainer() {
 				checked: (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn),
 				parentId: parentId
 			};
+			stylesheetNodeStatusses[node.id] = {};
+			//TODO Send back a message if a new tab was created
+			//From this determine the tab ID and say whether o rnot the CSS was toggled
 			if (node.type === 'divider') {
 				cm.type = 'separator';
 			} else if (node.type === 'stylesheet' && node.value.toggle) {
@@ -92,10 +206,11 @@ function mainContainer() {
 			if (node.type === 'link') {
 				cm.onclick = createLinkClickHandler(node);
 			} else if (node.type === 'script') {
-				//cm.onclick = createScriptClickHandler(node);
+				cm.onclick = createScriptClickHandler(node);
 			} else if (node.type === 'stylesheet') {
-				//cm.onclick = createStylesheetClickHandler(node);
+				cm.onclick = createStylesheetClickHandler(node);
 			}
+			console.log(cm);
 			id = chrome.contextMenus.create(cm, function() {
 				if (chrome.runtime.lastError) {
 					if (cm.documentUrlPatterns) {
@@ -120,10 +235,13 @@ function mainContainer() {
 	function buildPageCrmParse(executedNodes, node, parentId) {
 		var i;
 		var id = createNode(executedNodes, node, parentId);
+		contextMenuIds[node.id] = id;
 		if (id !== undefined) {
 			if (node.children) {
 				var length = node.children.length;
+				console.log(length);
 				for (i = 0; i < length; i++) {
+					console.log(node.children[i]);
 					buildPageCrmParse(executedNodes, node.children[i], id);
 				}
 			}
@@ -133,6 +251,7 @@ function mainContainer() {
 	function buildPageCRM() {
 		var i;
 		var length = crmTree.length;
+		stylesheetNodeStatusses = {};
 		chrome.contextMenus.removeAll();
 		var rootId = chrome.contextMenus.create({
 			title: 'Custom Menu',
@@ -143,15 +262,29 @@ function mainContainer() {
 			always: []
 		};
 		for (i = 0; i < length; i++) {
+			console.log(length);
+			console.log(crmTree);
+			console.log(crmTree[i]);
 			buildPageCrmParse(executedNodes, crmTree[i], rootId);
+		}
+		if (storageSync.showOptions) {
+			chrome.contextMenus.create({
+				type: 'separator',
+				parentId: rootId
+			});
+			chrome.contextMenus.create({
+				title: 'Options',
+				onclick: createOptionsPageHandler(),
+				parentId: rootId
+			});
 		}
 	}
 
-/*#endregion*/
+	/*#endregion*/
 
-///<reference path="../../scripts/_references.js"/>
-///<reference path="e.js"/>
-/*#region Handling of crmapi.js*/
+	///<reference path="../../scripts/_references.js"/>
+	///<reference path="e.js"/>
+	/*#region Handling of crmapi.js*/
 	var permissions = [
 		'alarms',
 		'background',
@@ -187,15 +320,9 @@ function mainContainer() {
 	];
 
 	var availablePermissions = [];
-	var storageSync;
 	var storageLocal;
 	var safeTree;
-	var crmByIdSafe = {};
 	var crmById = {};
-
-	function safe(node) {
-		return crmByIdSafe[node.id];
-	}
 
 	function pushIntoArray(toPush, position, target) {
 		var length = target.length + 1;
@@ -1570,7 +1697,7 @@ function mainContainer() {
 						}
 						params.push(message.args[message.args.length - 1]);
 						try {
-							eval('var result = chrome.' + message.api + '(' + params + ')');
+							var result = sandbox('result = chrome.' + message.api + '(' + params + ')');
 							if (message.onFinish) {
 								message.onFinish(result);
 							}
@@ -1608,8 +1735,6 @@ function mainContainer() {
 	}
 
 	function handleMessage(message, messageSender, respond) {
-		console.log(messageSender);
-		console.log(message);
 		var result = de(message.msg, secretKeys[messageSender.tab.id][message.id].secretKey);
 		if (result !== false) {
 			message = result;
@@ -1646,6 +1771,7 @@ function mainContainer() {
 							//Still setting up for the first ping, give it a second
 							secretKeys[tab][script].alive = false;
 						} else if (secretKeys[tab][script].alive === false) {
+							delete keys[secretKeys[tab][script].secretKey];
 							delete secretKeys[tab][script];
 						}
 					}
@@ -1658,7 +1784,7 @@ function mainContainer() {
 		}
 	}
 
-	var pingInterval = window.setInterval(checkAlive, 30000);
+	window.setInterval(checkAlive, 30000);
 
 /*#endregion*/
 

@@ -6,22 +6,23 @@
  * @class
  * @param {Object} item - The item currently being edited
  * @param {number} id - The id of the current item
- * @param {number} tabId - The id of the tab the script is currently running on
+ * @param {number} tabData - Any data about the tab the script is currently running on
  * @param {Object} clickData - Any data associated with clicking this item in the
  *		context menu, only available if launchMode is equal to 0 (on click)
  * @param {number[]} secretyKey - An array of integers, generated to keep downloaded 
  *		scripts from finding local scripts with more privilege and act as if they 
  *		are those scripts to run stuff you don't want it to.
- * @param {number} pingkey - The key used to send ping messages signaling this 
- *		script is still alive
  */
-function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
+function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 	var _this = this;
 
 	var msg = {
-		type: 'ping',
 		id: id,
-		pingKey: pingKey
+		msg: ec({
+			type: 'ping',
+			randomData: tabData,
+			id: id
+		}, secretKey)
 	};
 	chrome.runtime.sendMessage(msg);
 	window.setInterval(function() {
@@ -53,18 +54,6 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 			throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is not of type' + ((type.length > 1) ? 's ' + type.join(', ') : ' ' + type));
 		}
 		return true;
-	}
-
-	/**
-	 * Sends a message to the background page or simply executes it instantly if this is ran on the background page
-	 * 
-	 * @param {Object} message - The message to send
-	 * @param {function} callback - The callback to run if anything interesting happens
-	 */
-	function communicate(message, callback) {
-		if (chrome.runtime.getBackgroundPage) {
-
-		}
 	}
 
 	/**
@@ -133,11 +122,11 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 			type: 'updateStorage',
 			storage: storage,
 			secretKey: secretKey,
-			tabId: tabId
+			tabId: tabData.tabId
 		};
 		message = window.ec(message, secretKey);
 
-		chrome.runtime.sendMessage(message);
+		communicate(message);
 		notifyChanges();
 	}
 
@@ -278,72 +267,35 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * Gets the current text selection
 	 */
 	this.getSelection = function() {
-		return window.getSelection().toString();
+		return clickData.selectionText || window.getSelection().toString();
 	}
 
 	/*
 	 * All of the remaining functions in this region below this message will only work if your
 	 * script runs on clicking, not if your script runs automatically, in that case you will always
 	 * get undefined (except for the function above). For more info check out this page's onclick 
-	 * section https://developer.chrome.com/extensions/contextMenus#method-create
+	 * section (https://developer.chrome.com/extensions/contextMenus#method-create)
 	 */
 
-	/*
-	 * Gets the media type of the item you clicked on, 'image', 'video', or 'audio' or none of these
+	/**
+	 * Returns any data about the click on the page (https://developer.chrome.com/extensions/contextMenus#method-create)
+	 *		for more info of what can be returned.
+	 * 
+	 * @returns {object} An object containing any info about the page, some data may be undefined if it doesn't apply 
 	 */
-	this.getMediaType = function() {
-		return clickData.mediaType;
+	this.getClickInfo = function() {
+		return clickData;
 	}
 
-	/*
-	 * Gets the URL of the link you right-clicked on (if you did so at all)
+	/**
+	 * Gets any info about the current tab/window
+	 * 
+	 * @returns {Object} - An object of type tab (https://developer.chrome.com/extensions/tabs#type-Tab)
 	 */
-	this.getinkUrl = function() {
-		return clickData.linkUrl;
+	this.getTabInfo = function() {
+		return tabData;
 	}
 
-	/*
-	 * Gets the "src" attribute of the element you clicked on (if present)
-	 */
-	this.getSrcUrl = function() {
-		return clickData.srcUrl;
-	}
-
-	/*
-	 * Gets the URL of an iframe you rightclicked if you did
-	 */
-	this.getFrameUrl = function() {
-		return clickData.frameUrl;
-	}
-
-	/*
-	 * A boolean indicating whether the element you clicked is "editable"
-	 */
-	this.elementIsEditable = function() {
-		return clickData.editable || false;
-	}
-
-	/*
-	 * A boolean indicating the state of the checkbox or radio button BEFORE you clicked
-	 */
-	this.wasChecked = function() {
-		return clickData.wasChecked;
-	}
-
-	/*
-	 * A boolean indicating the state of the checkbox or radio button AFTER you clicked
-	 */
-	this.isChecked = function() {
-		return clickData.checked;
-	}
-
-	/*
-	 * Gets the info about the current tab, returns an object with this data
-	 * https://developer.chrome.com/extensions/tabs#type-Tab
-	 */
-	this.getTab = function() {
-		return clickData.tab;
-	}
 	/*#endregion*/
 
 	/*#region Changes in CRM*/
@@ -371,7 +323,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		messageContent.crmPath = item.path;
 		messageContent.onFinish = onFinish;
 		messageContent.secretKey = secretKey;
-		messageContent.tabId = tabId;
+		messageContent.tabId = tabData.tabId;
 
 		var message = {
 			id: id,
@@ -379,7 +331,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		};
 		message = window.ec(message, secretKey);
 
-		chrome.runtime.sendMessage(message);
+		communicate(message);
 	}
 
 	//To be able to access these APIs, ask for the "CRM" permission
@@ -987,7 +939,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 					api: api,
 					args: args,
 					secretKey: secretKey,
-					tabId: tabId
+					tabId: tabData.tabId
 				};
 				var message = {
 					id: id,
@@ -1008,7 +960,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 					},
 					nocb: function () {
 						message = window.ec(message, secretKey);
-						chrome.runtime.sendMessage(message, function (error) {
+						communicate(message, function (error) {
 							error = error.error;
 							console.warn(error + ', stack traces:');
 							console.trace();

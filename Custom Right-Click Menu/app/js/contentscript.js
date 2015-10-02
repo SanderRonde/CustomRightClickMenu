@@ -12,7 +12,7 @@ var pageUrl = document.url;
 //	var stylesheetsToggledOff = [];
 
 //	for (i = 0; i < scriptsLength; i++) {
-//		if (message.scripts[i].value.launchMode !== 0) {
+//		if (message.scripts[i].launchMode !== 0) {
 //			scriptsToRun.push(message.scripts[i]);
 //		} else {
 			
