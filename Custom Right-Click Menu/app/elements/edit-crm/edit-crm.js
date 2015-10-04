@@ -225,7 +225,8 @@ window.Polymer({
 		for (i = 0; i < window.options.settings.crm.length; i++) {
 			getHiddenNodes(hiddenNodes, window.options.settings.crm[i], window.options.crmTypes);
 		}
-		var items = $(options.editCRM.$.mainCont.children[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
+		console.log(path);
+		var items = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
 		var index = path[path.length - 1];
 		var length = items.length;
 		for (i = 0; i < length; i++) {

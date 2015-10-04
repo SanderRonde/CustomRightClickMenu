@@ -308,7 +308,7 @@
 		this.getTriggers();
 		window.crmEditPage.animateOut();
 		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var itemInEditPage = $(options.editCRM.$.mainCont.children[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
+		var itemInEditPage = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
 		itemInEditPage.item = this.newSettings;
 		itemInEditPage.name = this.newSettings.name;
 		var i;
@@ -321,7 +321,7 @@
 		if (this.newSettings.value.launchMode !== 0) {
 			this.newSettings.onContentTypes = [true, true, true, true, true, true];
 		} else {
-			if (!this.newSettings.onContentTypes[index]) {
+			if (!this.newSettings.onContentTypes[i]) {
 				window.options.editCRM.build(window.options.editCRM.setMenus);
 			}
 		}

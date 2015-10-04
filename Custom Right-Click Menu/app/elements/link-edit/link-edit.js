@@ -282,11 +282,6 @@
 		itemInEditPage.onContentTypes = newItem.onContentTypes;
 		this.closePage();
 
-		console.log(itemInEditPage);
-		console.log(lookedUp);
-		console.log(lookedUp[lastPathIndex]);
-		console.log(newItem);
-
 		options.upload();
 	},
 	

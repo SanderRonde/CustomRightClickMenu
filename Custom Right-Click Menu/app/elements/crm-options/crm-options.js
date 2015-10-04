@@ -837,6 +837,10 @@ Polymer({
 					window.doc.restoreChangesDialog.close();
 					$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
 					$('edit-crm-item').find('.item').css('opacity', 0.6);
+
+					//Check if it's visible in the current crmType
+					//HIERZO
+
 					setTimeout(function() {
 						if (editingObj.crmPath.length === 1) {
 							//Always visible

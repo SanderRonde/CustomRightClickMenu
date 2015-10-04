@@ -1,21 +1,25 @@
 function sandbox(code) {
 	var result;
+	console.log(code);
+	console.log(Arguments);
 	eval(code);
 	// ReSharper disable once UsageOfPossiblyUnassignedValue
 	return result;
 }
 
 function mainContainer() {
-	/*
-	 * Whenever a script is launched, another key is created using the secret key
-	 */
+
 	var crmTree;
 	var keys = {};
 	var storageSync;
 	var secretKeys = {};
 	var contextMenuIds = {};
+	var toExecuteNodes = {
+		onUrl: [],
+		always: []
+	};
 	var stylesheetNodeStatusses = {};
-	var chars = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", '6', '7', '8', '9', '0'];
+	var chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 
 	var crmByIdSafe = {};
 
@@ -39,8 +43,11 @@ function mainContainer() {
 
 	/*#region Right-Click Menu Handling*/
 
-	chrome.tabs.onHighlighted(function(highlightInfo) {
-		var lastTab = highlightInfo.tabIds[tabIds.length - 1];
+	console.log(chrome);
+	console.log(chrome.tabs);
+	console.log(chrome.tabs.onHighlighted);
+	chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
+		var lastTab = highlightInfo.tabIds[highlightInfo.tabIds.length - 1];
 		for (var node in stylesheetNodeStatusses) {
 			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
 				chrome.contextMenus.update(contextMenuIds[node], {
@@ -103,6 +110,7 @@ function mainContainer() {
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
 				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className=' + className + ';CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
 			}
+			stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id];
 			chrome.contextMenus.update(contextMenuIds[node.id], {
 				checked: (stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id])
 			});
@@ -123,9 +131,10 @@ function mainContainer() {
 				key = createSecretKey();
 			} catch (e) {
 				//There somehow was a stack overflow
-				err = true;
+				err = e;
 			}
 			if (err) {
+				console.log(err);
 				chrome.tabs.executeScript(tab.id, {
 					code: 'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
 				}, function() {
@@ -153,27 +162,38 @@ function mainContainer() {
 		}
 	}
 
-	function createNode(executedNodes, node, parentId) {
+	function createNode(node, parentId) {
 		var i;
 		var id;
 		var length;
+		var triggerIndex;
 		if (node.value && (node.value.launchMode === 1 || node.value.launchMode === 2)) {
 			if (node.value.launchMode === 1) {
-				executedNodes.always.push(node);
+				toExecuteNodes.always.push(node);
 			} else {
 				length = node.triggers && node.triggers.length;
 				for (i = 0; i < length; i++) {
-					executedNodes.onUrl[node.triggers[i]] = (executedNodes.onUrl[node.triggers[i]] && executedNodes.onUrl[node.triggers[i]].push(node)) || [];
+					triggerIndex = toExecuteNodes.onUrl[node.triggers[i]];
+					if (triggerIndex) {
+						triggerIndex.push(node);
+					} else {
+						triggerIndex = [node];
+					}
 				}
 			}
 		} else {
 			if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 				if (node.value.launchMode === 0) {
-					executedNodes.always.push(node);
+					toExecuteNodes.always.push(node);
 				} else {
 					length = node.triggers && node.triggers.length;
 					for (i = 0; i < length; i++) {
-						executedNodes.onUrl[node.triggers[i]] = (executedNodes.onUrl[node.triggers[i]] && executedNodes.onUrl[node.triggers[i]].push(node)) || [];
+						triggerIndex = toExecuteNodes.onUrl[node.triggers[i]];
+						if (triggerIndex) {
+							triggerIndex.push(node);
+						} else {
+							triggerIndex = [node];
+						}
 					}
 				}
 			}
@@ -184,8 +204,6 @@ function mainContainer() {
 				parentId: parentId
 			};
 			stylesheetNodeStatusses[node.id] = {};
-			//TODO Send back a message if a new tab was created
-			//From this determine the tab ID and say whether o rnot the CSS was toggled
 			if (node.type === 'divider') {
 				cm.type = 'separator';
 			} else if (node.type === 'stylesheet' && node.value.toggle) {
@@ -232,17 +250,15 @@ function mainContainer() {
 		return id;
 	}
 
-	function buildPageCrmParse(executedNodes, node, parentId) {
+	function buildPageCrmParse(node, parentId) {
 		var i;
-		var id = createNode(executedNodes, node, parentId);
+		var id = createNode(node, parentId);
 		contextMenuIds[node.id] = id;
 		if (id !== undefined) {
 			if (node.children) {
 				var length = node.children.length;
-				console.log(length);
 				for (i = 0; i < length; i++) {
-					console.log(node.children[i]);
-					buildPageCrmParse(executedNodes, node.children[i], id);
+					buildPageCrmParse(node.children[i], id);
 				}
 			}
 		}
@@ -257,15 +273,12 @@ function mainContainer() {
 			title: 'Custom Menu',
 			contexts: ['page', 'selection', 'link', 'image', 'video', 'audio']
 		});;
-		var executedNodes = {
-			onUrl: {},
+		toExecuteNodes = {
+			onUrl: [],
 			always: []
 		};
 		for (i = 0; i < length; i++) {
-			console.log(length);
-			console.log(crmTree);
-			console.log(crmTree[i]);
-			buildPageCrmParse(executedNodes, crmTree[i], rootId);
+			buildPageCrmParse(crmTree[i], rootId);
 		}
 		if (storageSync.showOptions) {
 			chrome.contextMenus.create({
@@ -279,6 +292,90 @@ function mainContainer() {
 			});
 		}
 	}
+
+	function escapeRegExp(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, '\\$&').replace(/\*/g, '.+');
+	}
+
+	function matchesUrl(matchPattern, url) {
+		//Split it
+		var matchHost;
+		var urlHost;
+		var matchPath;
+		var urlPath;
+
+		var matchPatternSplit = matchPattern.split('://');
+		var matchScheme = matchPatternSplit[0];
+		if (matchPatternSplit[1].indexOf('/') === -1) {
+			matchHost = matchPatternSplit[1];
+			matchPath = '/';
+		} else {
+			matchPatternSplit = matchPatternSplit[1].split('/');
+			matchHost = matchPatternSplit.splice(0,1);
+			matchPath = matchPatternSplit.join('/');
+		}
+
+		var urlPatternSplit = url.split('://');
+		var urlScheme = urlPatternSplit[0];
+		if (urlPatternSplit[1].indexOf('/') === -1) {
+			urlHost = urlPatternSplit[1];
+			urlPath = '/';
+		} else {
+			urlPatternSplit = urlPatternSplit[1].split('/');
+			urlHost = urlPatternSplit.splice(0, 1);
+			urlPath = urlPatternSplit.join('/');
+		}
+
+		if (matchScheme !== '*' && matchScheme !== urlScheme) {
+			return false;
+		}
+		matchHost = new RegExp(escapeRegExp(matchHost));
+		if (!matchHost.test(urlHost)) {
+			return false;
+		}
+
+		matchPath = new RegExp(escapeRegExp(matchPath));
+		return matchPath.test(urlPath);
+	}
+
+	function executeNode(node, tab) {
+		if (node.type === 'script') {
+			createScriptClickHandler(node)({}, tab);
+		}
+		else if (node.type === 'stylesheet') {
+			stylesheetNodeStatusses[node.id][tab.id] = false;
+			createStylesheetClickHandler(node)({}, tab);
+		}
+		else if (node.type === 'link') {
+			createLinkClickHandler(node)({}, tab);
+		}
+	}
+
+	chrome.tabs.onUpdated.addListener(function(tabId, updatedInfo) {
+		if (updatedInfo.url) {
+			//Url changed or was set
+			if (updatedInfo.url.indexOf('chrome://') !== 0) {
+				//Not an active tab, execute all that needs to be executed
+				chrome.tabs.get(tabId, function(tab) {
+					var i;
+					var length = toExecuteNodes.always.length;
+					for (i = 0; i < length; i++) {
+						executeNode(toExecuteNodes.always[i], tab);
+					}
+					for (var key in toExecuteNodes.onUrl) {
+						if (toExecuteNodes.onUrl.hasOwnProperty(key)) {
+							if (matchesUrl(key, updatedInfo.url)) {
+								length = toExecuteNodes.onUrl[key].length;
+								for (i = 0; i < length; i++) {
+									executeNode(toExecuteNodes.onUrl[key][i], tab);
+								}
+							}
+						}
+					}
+				});
+			}
+		}
+	});
 
 	/*#endregion*/
 
@@ -366,7 +463,7 @@ function mainContainer() {
 	}
 
 	function lookup(path, data, hold) {
-		if (path === null || typeof path !== 'object' || path.length === undefined) {
+		if (path === null || typeof path !== 'object' || Array.isArray(path)) {
 			this.respondError('Supplied path is not of type array');
 			return true;
 		}
@@ -505,7 +602,7 @@ function mainContainer() {
 				}
 			} else {
 				if (type === 'array') {
-					if (typeof toCheck !== 'object' || toCheck.length === undefined) {
+					if (typeof toCheck !== 'object' || Array.isArray(toCheck)) {
 						if (array) {
 							_this.respondError('Not all values for ' + name + ' are of type ' + type);
 						} else {
@@ -640,8 +737,8 @@ function mainContainer() {
 			var toCheckName;
 			var toCheckTypes;
 			var toCheckValue;
+			var toCheckIsArray;
 			var optionals = [];
-			var toCheckValueLength;
 			var toCheckTypesLength;
 			var toCheckChildrenName;
 			var toCheckChildrenType;
@@ -669,10 +766,10 @@ function mainContainer() {
 					}
 				} else {
 					toCheckTypesLength = toCheckTypes.length;
-					toCheckValueLength = toCheckValue.length;
+					toCheckIsArray = Array.isArray(toCheckValue);
 					for (j = 0; j < toCheckTypesLength; j++) {
 						if (toCheckTypes[j] === 'array') {
-							if (typeof toCheckValue !== 'object' || toCheckValueLength === undefined) {
+							if (typeof toCheckValue !== 'object' || !Array.isArray(toCheckValue)) {
 								_this.respondError('Value for ' + toCheckName + ' is not of type ' + type);
 								return false;
 							}
@@ -696,7 +793,7 @@ function mainContainer() {
 					}
 					if (toCheckTypes[j] === 'array' && toCheck[i].forChildren) {
 						toCheckChildrenLength = toCheck[i].forChildren.length;
-						for (j = 0; j < toCheckValueLength; j++) {
+						for (j = 0; j < toCheckIsArray; j++) {
 							for (k = 0; k < toCheckChildrenLength; k++) {
 								toCheckChildrenName = toCheck[i].forChildren[k].val;
 								toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
@@ -710,7 +807,7 @@ function mainContainer() {
 										toCheckChildrenTypesLength = toCheckChildrenTypes.length;
 										for (l = 0; l < toCheckChildrenTypesLength; l++) {
 											if (toCheckChildrenTypes[l] === 'array') {
-												if (typeof toCheckChildrenValue !== 'object' || toCheckChildrenValue.length === undefined) {
+												if (typeof toCheckChildrenValue !== 'object' || Array.isArray(toCheckChildrenValue) === undefined) {
 													_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' of type ' + toCheckChildrenType);
 													return false;
 												}
@@ -1466,8 +1563,8 @@ function mainContainer() {
 							optional: true
 						}
 					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (_this.message.libraries.length !== undefined) { //Array
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+							if (_this.message.libraries.length == undefined) { //Array
 								for (var i = 0; i < _this.message.libraries.length; i++) {
 									if (node.type === 'script') {
 										node.value.libraries.push(_this.message.libraries);
@@ -1734,29 +1831,6 @@ function mainContainer() {
 		secretKeys[messageSender.tab.id][message.id].alive = true;
 	}
 
-	function handleMessage(message, messageSender, respond) {
-		var result = de(message.msg, secretKeys[messageSender.tab.id][message.id].secretKey);
-		if (result !== false) {
-			message = result;
-
-			switch (message.type) {
-			case 'updateStorage':
-				updateNodeStorage(message);
-				break;
-			case 'crm':
-				crmHandler(message);
-				break;
-			case 'chrome':
-				chromeHandler(message, respond);
-				break;
-			case 'ping':
-				pingHandler(message, messageSender);
-				break;
-			}
-		}
-		//Fail silently
-	}
-
 	function checkAlive() {
 		var tab;
 		var script;
@@ -1786,7 +1860,30 @@ function mainContainer() {
 
 	window.setInterval(checkAlive, 30000);
 
-/*#endregion*/
+	/*#endregion*/
+
+	function handleMessage(message, messageSender, respond) {
+		var result = window.de(message.msg, secretKeys[messageSender.tab.id][message.id].secretKey);
+		if (result !== false) {
+			message = result;
+
+			switch (message.type) {
+				case 'updateStorage':
+					updateNodeStorage(message);
+					break;
+				case 'crm':
+					crmHandler(message);
+					break;
+				case 'chrome':
+					chromeHandler(message, respond);
+					break;
+				case 'ping':
+					pingHandler(message, messageSender);
+					break;
+			}
+		}
+		//Fail silently
+	}
 
 	function main() {
 		window.chrome.storage.sync.get(function(data) {
