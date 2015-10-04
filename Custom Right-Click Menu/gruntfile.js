@@ -3,8 +3,7 @@ var toCopy = [];
 var i;
 var obj;
 var fileObjects = [];
-var length = sources.length;
-for (i = 0; i < length; i++) {
+for (i = 0; i < sources.length; i++) {
 	obj = {
 		src: 'app/' + sources[i],
 		dest: 'app/' + sources[i].replace('bower_components_uncrisp', 'bower_components_test')

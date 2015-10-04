@@ -1,3 +1,4 @@
+'use strict';
 function sandbox(code) {
 	var result;
 	console.log(code);
@@ -12,6 +13,7 @@ function mainContainer() {
 	var crmTree;
 	var keys = {};
 	var storageSync;
+	var nodesData = {};
 	var secretKeys = {};
 	var contextMenuIds = {};
 	var toExecuteNodes = {
@@ -22,6 +24,60 @@ function mainContainer() {
 	var chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 
 	var crmByIdSafe = {};
+
+	function compareObj(firstObj, secondObj) {
+		for (var key in firstObj) {
+			if (firstObj.hasOwnProperty(key)) {
+				if (typeof firstObj[key] === 'object') {
+					if (typeof secondObj[key] !== 'object') {
+						return false;
+					}
+					if (Array.isArray(firstObj[key])) {
+						if (!Array.isArray(secondObj[key])) {
+							return false;
+						}
+						// ReSharper disable once FunctionsUsedBeforeDeclared
+						if (!compareArray(firstObj[key], secondObj[key])) {
+							return false;
+						}
+					} else if (!compareObj(firstObj[key], secondObj[key])) {
+						return false;
+					}
+				} else if (firstObj[key] !== secondObj[key]) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	function compareArray(firstArray, secondArray) {
+		var firstLength = firstArray.length;
+		if (firstLength !== secondArray.length) {
+			return false;
+		}
+		var i;
+		for (i = 0; i < firstLength; i++) {
+			if (typeof firstArray[i] === 'object') {
+				if (typeof secondArray[i] !== 'object') {
+					return false;
+				}
+				if (Array.isArray(firstArray[i])) {
+					if (!Array.isArray(secondArray[i])) {
+						return false;
+					}
+					if (!compareArray(firstArray[i], secondArray[i])) {
+						return false;
+					}
+				} else if (!compareObj(firstArray[i], secondArray[i])) {
+					return false;
+				}
+			} else if (firstArray[i] !== secondArray[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	function safe(node) {
 		return crmByIdSafe[node.id];
@@ -50,6 +106,7 @@ function mainContainer() {
 		var lastTab = highlightInfo.tabIds[highlightInfo.tabIds.length - 1];
 		for (var node in stylesheetNodeStatusses) {
 			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
+				console.log('ayylmayo');
 				chrome.contextMenus.update(contextMenuIds[node], {
 					checked: stylesheetNodeStatusses[node][lastTab]
 				});
@@ -105,17 +162,14 @@ function mainContainer() {
 			var code;
 			var className = node.id + '' + tab.id;
 			if (stylesheetNodeStatusses[node.id][tab.id]) {
-				code = 'var nodes = document.querySelectorAll(' + className + ');var i;var length = nodes.length;for (i = 0; i < length; i++) {nodes[i].remove();}';
+				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
 			} else {
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
-				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className=' + className + ';CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
 			}
-			stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id];
 			chrome.contextMenus.update(contextMenuIds[node.id], {
 				checked: (stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id])
 			});
-			console.log(code);
-			console.log(eval(code));
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -150,7 +204,8 @@ function mainContainer() {
 				code = code + node.value.script;
 				chrome.tabs.executeScript(tab.id, {
 					code: code,
-					file: 'js/crmapi.js'
+					file: 'js/crmapi.js',
+					runAt: 'document_start'
 				});
 			}
 		}
@@ -162,17 +217,41 @@ function mainContainer() {
 		}
 	}
 
+	function prepareTrigger(triggers) {
+		var i;
+		var newTriggers = [];
+		for (i = 0; i < triggers.length; i++) {
+			if (triggers[i].split('//')[1].indexOf('/') === -1) {
+				newTriggers.push(triggers[i] + '/');
+			} else {
+				newTriggers.push(triggers[i]);
+			}
+		}
+		return newTriggers;
+	}
+
 	function createNode(node, parentId) {
 		var i;
 		var id;
-		var length;
 		var triggerIndex;
+		var replaceStylesheetTabs = [];
+		if (contextMenuIds[node.id] && nodesData[node.id].type === 'stylesheet' && node.type === 'stylesheet' && nodesData[node.id].value.stylesheet !== node.value.stylesheet) {
+			//Update after creating a new node
+			for (var key in stylesheetNodeStatusses[node.id]) {
+				if (stylesheetNodeStatusses.hasOwnProperty(key)) {
+					if (stylesheetNodeStatusses[node.id][key]) {
+						replaceStylesheetTabs.push({
+							id: key
+						});
+					}
+				}
+			}
+		}
 		if (node.value && (node.value.launchMode === 1 || node.value.launchMode === 2)) {
 			if (node.value.launchMode === 1) {
 				toExecuteNodes.always.push(node);
 			} else {
-				length = node.triggers && node.triggers.length;
-				for (i = 0; i < length; i++) {
+				for (i = 0; i < node.triggers && node.triggers.length; i++) {
 					triggerIndex = toExecuteNodes.onUrl[node.triggers[i]];
 					if (triggerIndex) {
 						triggerIndex.push(node);
@@ -186,8 +265,7 @@ function mainContainer() {
 				if (node.value.launchMode === 0) {
 					toExecuteNodes.always.push(node);
 				} else {
-					length = node.triggers && node.triggers.length;
-					for (i = 0; i < length; i++) {
+					for (i = 0; i < node.triggers && node.triggers.length; i++) {
 						triggerIndex = toExecuteNodes.onUrl[node.triggers[i]];
 						if (triggerIndex) {
 							triggerIndex.push(node);
@@ -211,15 +289,7 @@ function mainContainer() {
 			}
 
 			if (node.value && node.value.launchMode === 3 && node.triggers) {
-				var triggers = [];
-				for (i = 0; i < node.triggers.length; i++) {
-					if (node.triggers[i].split('//')[1].indexOf('/') === -1) {
-						triggers.push(node.triggers[i] + '/');
-					} else {
-						triggers.push(node.triggers[i]);
-					}
-				}
-				cm.documentUrlPatterns = triggers;
+				cm.documentUrlPatterns = prepareTrigger(node.triggers);
 			}
 			if (node.type === 'link') {
 				cm.onclick = createLinkClickHandler(node);
@@ -247,6 +317,24 @@ function mainContainer() {
 				}
 			});
 		}
+		nodesData[node.id] = node;
+
+		if (replaceStylesheetTabs.length !== 0) {
+			var css;
+			var code;
+			var className;
+			for (i = 0; i < replaceStylesheetTabs.length; i++) {
+				className = node.id + '' + replaceStylesheetTabs[i].id;
+				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
+				css = node.value.stylesheet.replace(/[ |\n]/g, '');
+				code += 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+				chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
+					code: code,
+					allFrames: true
+				});
+				stylesheetNodeStatusses[node.id][replaceStylesheetTabs[i].id] = true;
+			}
+		}
 		return id;
 	}
 
@@ -256,8 +344,7 @@ function mainContainer() {
 		contextMenuIds[node.id] = id;
 		if (id !== undefined) {
 			if (node.children) {
-				var length = node.children.length;
-				for (i = 0; i < length; i++) {
+				for (i = 0; i < node.children.length; i++) {
 					buildPageCrmParse(node.children[i], id);
 				}
 			}
@@ -343,6 +430,7 @@ function mainContainer() {
 			createScriptClickHandler(node)({}, tab);
 		}
 		else if (node.type === 'stylesheet') {
+			console.log('falsiefied');
 			stylesheetNodeStatusses[node.id][tab.id] = false;
 			createStylesheetClickHandler(node)({}, tab);
 		}
@@ -351,29 +439,29 @@ function mainContainer() {
 		}
 	}
 
-	chrome.tabs.onUpdated.addListener(function(tabId, updatedInfo) {
-		if (updatedInfo.url) {
-			//Url changed or was set
-			if (updatedInfo.url.indexOf('chrome://') !== 0) {
-				//Not an active tab, execute all that needs to be executed
-				chrome.tabs.get(tabId, function(tab) {
+	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
+		console.log(updatedInfo);
+		if (updatedInfo.status === 'loading') {
+			//It's loading
+			chrome.tabs.get(tabId, function (tab) {
+				console.log(tab);
+				if (tab.url.indexOf('chrome') !== 0) {
 					var i;
-					var length = toExecuteNodes.always.length;
-					for (i = 0; i < length; i++) {
+					console.log(toExecuteNodes.always);
+					for (i = 0; i < toExecuteNodes.always.length; i++) {
 						executeNode(toExecuteNodes.always[i], tab);
 					}
 					for (var key in toExecuteNodes.onUrl) {
 						if (toExecuteNodes.onUrl.hasOwnProperty(key)) {
 							if (matchesUrl(key, updatedInfo.url)) {
-								length = toExecuteNodes.onUrl[key].length;
-								for (i = 0; i < length; i++) {
+								for (i = 0; i < toExecuteNodes.onUrl[key].length; i++) {
 									executeNode(toExecuteNodes.onUrl[key][i], tab);
 								}
 							}
 						}
 					}
-				});
-			}
+				}
+			});
 		}
 	});
 
@@ -710,8 +798,8 @@ function mainContainer() {
 			return true;
 		};
 
-		this.getNodeFromId = function(id, safe, noCallback) {
-			var node = (safe ? crmByIdSafe : crmById)[id];
+		this.getNodeFromId = function(id, isSafe, noCallback) {
+			var node = (isSafe ? crmByIdSafe : crmById)[id];
 			if (node) {
 				if (noCallback) {
 					return node;
@@ -745,7 +833,6 @@ function mainContainer() {
 			var toCheckChildrenValue;
 			var toCheckChildrenTypes;
 			var toCheckChildrenLength;
-			var toCheckChildrenTypesLength;
 			for (i = 0; i < toCheck.length; i++) {
 				if (toCheck[i].dependency !== undefined) {
 					if (!optionals[toCheck[i].dependency]) {
@@ -792,8 +879,7 @@ function mainContainer() {
 						}
 					}
 					if (toCheckTypes[j] === 'array' && toCheck[i].forChildren) {
-						toCheckChildrenLength = toCheck[i].forChildren.length;
-						for (j = 0; j < toCheckIsArray; j++) {
+						for (j = 0; j < toCheck[i].forChildren.length; j++) {
 							for (k = 0; k < toCheckChildrenLength; k++) {
 								toCheckChildrenName = toCheck[i].forChildren[k].val;
 								toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
@@ -804,8 +890,7 @@ function mainContainer() {
 									} else {
 										toCheckChildrenType = toCheck[i].forChildren[k].type;
 										toCheckChildrenTypes = toCheckChildrenType.split('|');
-										toCheckChildrenTypesLength = toCheckChildrenTypes.length;
-										for (l = 0; l < toCheckChildrenTypesLength; l++) {
+										for (l = 0; l < toCheckChildrenTypes.length; l++) {
 											if (toCheckChildrenTypes[l] === 'array') {
 												if (typeof toCheckChildrenValue !== 'object' || Array.isArray(toCheckChildrenValue) === undefined) {
 													_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' of type ' + toCheckChildrenType);
@@ -827,7 +912,7 @@ function mainContainer() {
 			return true;
 		};
 
-		this.checkPermissions = function(permissions, callbackOrOptional, callback) {
+		this.checkPermissions = function(toCheck, callbackOrOptional, callback) {
 			var optional = [];
 			if (callbackOrOptional !== undefined && callbackOrOptional !== null && typeof callbackOrOptional === 'object') {
 				optional = callbackOrOptional;
@@ -841,10 +926,10 @@ function mainContainer() {
 				callback && callback(optional);
 			} else {
 				var i;
-				for (i = 0; i < permissions.length; i++) {
-					if (node.permissions.indexOf(permissions[i]) === -1) {
+				for (i = 0; i < toCheck.length; i++) {
+					if (node.permissions.indexOf(toCheck[i]) === -1) {
 						permitted = false;
-						notPermitted.push(permissions[i]);
+						notPermitted.push(toCheck[i]);
 					}
 				}
 
@@ -927,8 +1012,7 @@ function mainContainer() {
 
 						function findType(tree, type) {
 							if (tree.children) {
-								var treeChildrenLength = tree.children.length;
-								for (i = 0; i < treeChildrenLength; i++) {
+																for (i = 0; i < tree.children.length; i++) {
 									findType(tree.children[i], type);
 								}
 							} else {
@@ -1106,8 +1190,7 @@ function mainContainer() {
 									node.value = _this.message.options.linkData;
 									var nodeNewTab;
 									var value = node.value;
-									var nodeValueLength = value.length;
-									for (i = 0; i < nodeValueLength; i++) {
+									for (i = 0; i < value.length; i++) {
 										nodeNewTab = node.value[i].newTab;
 										nodeNewTab = (nodeNewTab === false ? false : true);
 									}
@@ -1564,7 +1647,7 @@ function mainContainer() {
 						}
 					], function() {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							if (_this.message.libraries.length == undefined) { //Array
+							if (Array.isArray(_this.message.libraries)) { //Array
 								for (var i = 0; i < _this.message.libraries.length; i++) {
 									if (node.type === 'script') {
 										node.value.libraries.push(_this.message.libraries);
@@ -1862,12 +1945,23 @@ function mainContainer() {
 
 	/*#endregion*/
 
-	function handleMessage(message, messageSender, respond) {
-		var result = window.de(message.msg, secretKeys[messageSender.tab.id][message.id].secretKey);
-		if (result !== false) {
-			message = result;
+	function handleUpdateMessage(message) {
+		switch (message.type) {
+			case 'updateContextMenu':
+				buildPageCRM();
+				break;
+		}
+	}
 
-			switch (message.type) {
+	function handleMessage(message, messageSender, respond) {
+		if (message.update) {
+			handleUpdateMessage(message);
+		} else {
+			var result = window.de(message.msg, secretKeys[messageSender.tab.id][message.id].secretKey);
+			if (result !== false) {
+				message = result;
+
+				switch (message.type) {
 				case 'updateStorage':
 					updateNodeStorage(message);
 					break;
@@ -1880,9 +1974,10 @@ function mainContainer() {
 				case 'ping':
 					pingHandler(message, messageSender);
 					break;
+				}
 			}
+			//Fail silently
 		}
-		//Fail silently
 	}
 
 	function main() {

@@ -720,7 +720,6 @@
 	function NullScrollbars() {
 	}
 
-	//HIERZO
 	NullScrollbars.prototype = copyObj({
 		update: function() {
 			return {bottom: 0, right: 0};
@@ -736,7 +735,6 @@
 	CodeMirror.scrollbarModel = {"native": NativeScrollbars, "null": NullScrollbars};
 
 	function initScrollbars(cm) {
-		//hier was ik
 		if (cm.display.scrollbars) {
 			cm.display.scrollbars.clear();
 			if (cm.display.scrollbars.addClass) rmClass(cm.display.wrapper, cm.display.scrollbars.addClass);

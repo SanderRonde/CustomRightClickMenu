@@ -675,7 +675,11 @@ Polymer({
 	upload: function (errorCallback) {
 		window.storage.set(this.settings, function() {
 			if (chrome.runtime.lastError) {
-				errorCallback(chrome.runtime.lastError);
+				errorCallback && errorCallback(chrome.runtime.lastError);
+			} else {
+				chrome.runtime.sendMessage({
+					type: 'updateContextMenu'
+				});
 			}
 		});
 		//buildContextMenu();
@@ -773,6 +777,8 @@ Polymer({
 				});
 
 				//TODO no cancel on clicking
+
+				//TODO "show/hide", "show/hide on given sites"
 
 				var stopHighlighting = function(crmItem) {
 					$(crmItem).find('.item')[0].animate([
@@ -1169,11 +1175,8 @@ Polymer({
 		},
 
 		setDataInCrm: function (path) {
-			console.log(path);
 			var evalPath = this._getEvalPath(path);
-			console.log(evalPath);
 			return function (key, data) {
-				console.log(evalPath + '[key] = data');
 				eval(evalPath + '[key] = data');
 			}
 		},

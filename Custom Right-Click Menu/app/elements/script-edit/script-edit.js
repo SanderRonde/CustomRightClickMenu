@@ -312,8 +312,7 @@
 		itemInEditPage.item = this.newSettings;
 		itemInEditPage.name = this.newSettings.name;
 		var i;
-		var length = window.options.crmTypes.length;
-		for (i = 0; i < length; i++) {
+		for (i = 0; i < window.options.crmTypes.length; i++) {
 			if (window.options.crmTypes[i]) {
 				break;
 			}

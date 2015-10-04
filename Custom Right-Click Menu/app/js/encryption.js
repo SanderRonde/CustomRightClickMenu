@@ -60,8 +60,7 @@ function decrypt(target, key) {
 	var i;
 	var j = 0;
 	var results = [];
-	var length = target.length;
-	for (i = 0; i < length; i++, j++) {
+	for (i = 0; i < target.length; i++, j++) {
 		if (j > 25) {
 			key = doubleKey(key);
 			j = 0;
