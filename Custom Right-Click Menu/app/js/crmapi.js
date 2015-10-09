@@ -13,21 +13,42 @@
  *		scripts from finding local scripts with more privilege and act as if they 
  *		are those scripts to run stuff you don't want it to.
  */
-function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
+function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	var _this = this;
+	console.log(this);
 
-	var msg = {
+	var queue = [];
+	var sendMessage = function (message, respond) {
+		queue.push({
+			msg: message,
+			respond: respond
+		});
+	}
+	var port = chrome.runtime.connect({ name: JSON.stringify(secretKey) });
+	function handshakeFunction() {
+		queue.forEach(function(item) {
+			port.postMessage({
+				msg: item.msg,
+				respond: item.respond
+			});
+		});
+		sendMessage = function(message, respond) {
+			port.postMessage({
+				msg: message,
+				respond: respond
+			});
+		};
+	}
+	port.onMessage.addListener(handshakeFunction);
+	console.log('sending');
+
+	port.postMessage({
 		id: id,
-		msg: ec({
-			type: 'ping',
-			randomData: tabData,
-			id: id
-		}, secretKey)
-	};
-	chrome.runtime.sendMessage(msg);
-	window.setInterval(function() {
-		chrome.runtime.sendMessage(msg);
-	}, 30000);
+		key: secretKey,
+		tabId: tabData.tabId,
+		type: 'handshake'
+	});
+
 
 	/**
 	 * Checks whether value matches given type and is defined and not null,
@@ -77,15 +98,8 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 
 	/*#region Storage*/
 	var storage = item.storage;
-	Object.defineProperty(this, 'storage', {
-		get: function() {
-			return storage;
-		},
-		configurable: false,
-		writable: false,
-		enumerable: true,
-		value: item.storage
-	});
+
+	this.storage = {};
 
 	var storageListeners = [];
 	var storagePrevious = {};
@@ -124,11 +138,12 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 			secretKey: secretKey,
 			tabId: tabData.tabId
 		};
-		message = window.ec(message, secretKey);
 
-		communicate(message);
+		sendMessage(message);
 		notifyChanges();
 	}
+
+	storage = storage || {};
 
 	/**
 	 * Gets the value at given key, if no key is given returns the entire storage object
@@ -296,6 +311,15 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 		return tabData;
 	}
 
+	/**
+	 * Gets the current node
+	 * 
+	 * @returns {Object} - The node that is being executed right now
+	 */
+	this.getNode = function() {
+		return item;
+	}
+
 	/*#endregion*/
 
 	/*#region Changes in CRM*/
@@ -329,9 +353,11 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 			id: id,
 			msg: messageContent
 		};
-		message = window.ec(message, secretKey);
+		console.log(message.msg);
+		console.log(message.msg);
 
-		communicate(message);
+		console.log(responseFunction);
+		sendMessage(message);
 	}
 
 	//To be able to access these APIs, ask for the "CRM" permission
@@ -406,7 +432,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
 	this.crm.getTree = function(callback) {
-		sendCrmMessage('getCrmTree', callback);
+		sendCrmMessage('getTree', callback);
 	}
 
 	/*
@@ -681,7 +707,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 	}
 
 	/*
-	 * Any settings changed on nodes that are currently not of the type of which you change the settings (using crmApi.crm.link.push on a script)
+	 * Any settings changed on nodes that are currently not of the type of which you change the settings (using crmAPI.crm.link.push on a script)
 	 * will take effect when the type is changed to the one you are editing (link in the previous example) at any point in the future.
 	 * This is ofcourse not true if the settings for link are changed in the meantime, but any other settings can be changed without it being
 	 * affected (script, menu, divider, name, type etc.)
@@ -910,9 +936,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 	 * and on that you can either call .nocb() when you already supplied a callback in the function or
 	 * call .cb(callback) to get the value that is returned back in the callback as an argument.
 	 * Examples:
-	 *		crmApi.chrome('tabs.create').args(properties, callback).nocb(); - You already supplied a callback
+	 *		crmAPI.chrome('tabs.create').args(properties, callback).nocb(); - You already supplied a callback
 	 *			in the function and don't need the direct value of that API so no callback is needed
-	 *		crmApi.chrome('runtime.getUrl').args(path).cb(function(value) { console.log(value); }); - You did
+	 *		crmAPI.chrome('runtime.getUrl').args(path).cb(function(value) { console.log(value); }); - You did
 	 *			not supply a callback and since you need the know the value that this function returns you 
 	 *			need to supply a callback. 
 	 * 
@@ -959,8 +985,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 						this.nocb();
 					},
 					nocb: function () {
-						message = window.ec(message, secretKey);
-						communicate(message, function (error) {
+						sendMessage(message, function (error) {
 							error = error.error;
 							console.warn(error + ', stack traces:');
 							console.trace();
@@ -992,5 +1017,14 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, randomData) {
 		});
 	}
 	/*#endregion*/
+
+	window.crmAPI = this;
 	return this;
 }
+
+setTimeout(function() {
+	chrome.storage.sync.get(function(e) {
+		console.log(window.secretkey);
+		window.crmAPI = new CrmAPIInit(e.crm[2].children[4], 22, { tabId: 600 }, {}, window.secretkey);
+	});
+}, 350);

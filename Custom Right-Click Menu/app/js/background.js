@@ -8,20 +8,49 @@ function sandbox(code) {
 	return result;
 }
 
+//TODO
+var keys = {};
+
+function createSecretKey() {
+	var key = [];
+	var i;
+	for (i = 0; i < 25; i++) {
+		key[i] = Math.round(Math.random() * 100);
+	}
+	if (!keys[key]) {
+		keys[key] = true;
+		console.log(key);
+		return key;
+	} else {
+		return createSecretKey();
+	}
+}
+
+window.secretkey = createSecretKey();
+
+function e() { console.log(Arguments); }
+
 function mainContainer() {
 
 	var crmTree;
-	var keys = {};
 	var storageSync;
+	var storageLocal;
 	var nodesData = {};
-	var secretKeys = {};
+	//TODO change
+	var tabNodeData = {
+		600: {
+			22: {
+				secretKey: window.secretkey
+			}
+		}
+	};
 	var contextMenuIds = {};
+	var tabActiveScripts = {};
+	var stylesheetNodeStatusses = {};
 	var toExecuteNodes = {
 		onUrl: [],
 		always: []
 	};
-	var stylesheetNodeStatusses = {};
-	var chars = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 
 	var crmByIdSafe = {};
 
@@ -83,30 +112,12 @@ function mainContainer() {
 		return crmByIdSafe[node.id];
 	}
 
-	function createSecretKey() {
-		var key = [];
-		var i;
-		for (i = 0; i < 25; i++) {
-			key[i] = chars[Math.round(Math.random() * 61)];
-		}
-		if (!keys[key]) {
-			keys[key] = true;
-			return key;
-		} else {
-			return createSecretKey();
-		}
-	}
-
 	/*#region Right-Click Menu Handling*/
 
-	console.log(chrome);
-	console.log(chrome.tabs);
-	console.log(chrome.tabs.onHighlighted);
 	chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
 		var lastTab = highlightInfo.tabIds[highlightInfo.tabIds.length - 1];
 		for (var node in stylesheetNodeStatusses) {
 			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
-				console.log('ayylmayo');
 				chrome.contextMenus.update(contextMenuIds[node], {
 					checked: stylesheetNodeStatusses[node][lastTab]
 				});
@@ -177,6 +188,22 @@ function mainContainer() {
 		}
 	}
 
+	function executeScripts(tabId, scripts) {
+		function executeScript(script, innerCallback) {
+			return function() {
+				chrome.tabs.executeScript(tabId, script, innerCallback);
+			}
+		}
+
+		var i;
+		var callback = undefined;
+		for (i = scripts.length - 1; i >= 0; i--) {
+			callback = executeScript(scripts[i], callback);
+		}
+
+		callback && callback();
+	}
+
 	function createScriptClickHandler(node) {
 		return function (info, tab) {
 			var key = [];
@@ -195,18 +222,66 @@ function mainContainer() {
 					chrome.runtime.reload();
 				});
 			} else {
-				var code = 'var crmAPI = new CrmAPIInit(' +
-					JSON.stringify(safe(node)) + ',' +
-					node.id + ',' +
-					JSON.stringify(tab) + ',' +
-					JSON.stringify(info) + ',' +
-					JSON.stringify(key) + ');';
+				var i;
+				console.log(node);
+				console.log(crmByIdSafe);
+				console.log(safe(node));
+				console.log(JSON.stringify(node));
+				console.log(JSON.stringify(safe(node)));
+				if (!tabNodeData[tab.id]) {
+					tabNodeData[tab.id] = {};
+				}
+				tabNodeData[tab.id][node.id] = {
+					secretKey: key,
+					alive: true
+				};
+				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ');\n';
 				code = code + node.value.script;
-				chrome.tabs.executeScript(tab.id, {
+
+				var scripts = [];
+				for (i = 0; i < node.value.libraries.length; i++) {
+					if (!tabActiveScripts[tab.id][node.value.libraries[i].name]) {
+						tabActiveScripts[tab.id][node.value.libraries[i].name] = true;
+						var j;
+						var lib;
+						for (j = 0; j < storageLocal.libraries.length; j++) {
+							if (storageLocal.libraries[j].name === node.value.libraries[i].name) {
+								lib = storageLocal.libraries[j];
+							}
+						}
+						if (lib.location) {
+							scripts.push({
+								file: 'js/libraries/' + lib.location,
+								runAt: 'document_start'
+							});
+						} else {
+							console.log(lib.code);
+							console.log(node.value.libraries);
+							scripts.push({
+								code: lib.code,
+								runAt: 'document_start'
+							});
+						}
+					}
+				}
+				console.log(tabActiveScripts[tab.id]);
+				console.log(tabActiveScripts[tab.id]['crmAPI']);
+				console.log(!tabActiveScripts[tab.id]['crmAPI']);
+				if (!tabActiveScripts[tab.id]['crmAPI']) {
+					tabActiveScripts[tab.id]['crmAPI'] = true;
+					console.log('exec');
+					scripts.push({
+						file: 'js/crmapi.js',
+						runAt: 'document_start'
+					});
+				}
+				console.log(code);
+				scripts.push({
 					code: code,
-					file: 'js/crmapi.js',
 					runAt: 'document_start'
 				});
+
+				executeScripts(tab.id, scripts);
 			}
 		}
 	}
@@ -298,7 +373,6 @@ function mainContainer() {
 			} else if (node.type === 'stylesheet') {
 				cm.onclick = createStylesheetClickHandler(node);
 			}
-			console.log(cm);
 			id = chrome.contextMenus.create(cm, function() {
 				if (chrome.runtime.lastError) {
 					if (cm.documentUrlPatterns) {
@@ -440,14 +514,12 @@ function mainContainer() {
 	}
 
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
-		console.log(updatedInfo);
 		if (updatedInfo.status === 'loading') {
 			//It's loading
 			chrome.tabs.get(tabId, function (tab) {
-				console.log(tab);
 				if (tab.url.indexOf('chrome') !== 0) {
 					var i;
-					console.log(toExecuteNodes.always);
+					tabActiveScripts[tabId] = {};
 					for (i = 0; i < toExecuteNodes.always.length; i++) {
 						executeNode(toExecuteNodes.always[i], tab);
 					}
@@ -505,7 +577,6 @@ function mainContainer() {
 	];
 
 	var availablePermissions = [];
-	var storageLocal;
 	var safeTree;
 	var crmById = {};
 
@@ -652,8 +723,16 @@ function mainContainer() {
 		updateStorage();
 	}
 
+	function updateStorageLocal() {
+		chrome.storage.local.get(function(locals) {
+			storageLocal = locals;
+		});
+	}
+
 	function crmFunction(message, toRun) {
+		console.log(message, toRun);
 		var _this = this;
+		console.log(this);
 		this.toRun = toRun;
 		this.message = message;
 
@@ -1579,52 +1658,49 @@ function mainContainer() {
 							optional: true
 						}
 					], function(optionals) {
-						window.chrome.storage.local.get('libraries', function(items) {
-							var libraries = items.libraries;
-							var newLibrary = {
-								name: _this.message.name
-							};
-							if (optionals[1]) {
-								if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
-									//Use URL
-									var done = false;
-									var xhr = new XMLHttpRequest();
-									xhr.open('GET', _this.message.url, true);
-									xhr.onreadystatechange = function() {
-										if (xhr.readyState === 4 && xhr.status === 200) {
-											done = true;
-											newLibrary.code = xhr.responseText;
-											newLibrary.url = _this.message.url;
-											libraries.push(newLibrary);
-											window.chrome.storage.local.set({
-												libraries: libraries
-											});
-											_this.respondSuccess(newLibrary);
-										}
-									};
-									setTimeout(function() {
-										if (!done) {
-											_this.respondError('Request timed out');
-										}
-									}, 5000);
-									xhr.send();
-								} else {
-									_this.respondError('No valid URL given');
-									return false;
-								}
-							} else if (optionals[2]) {
-								newLibrary.code = _this.message.code;
-								libraries.push(newLibrary);
-								window.chrome.storage.local.set({
-									libraries: libraries
-								});
-								_this.respondSuccess(newLibrary);
+						var newLibrary = {
+							name: _this.message.name
+						};
+						if (optionals[1]) {
+							if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
+								//Use URL
+								var done = false;
+								var xhr = new XMLHttpRequest();
+								xhr.open('GET', _this.message.url, true);
+								xhr.onreadystatechange = function() {
+									if (xhr.readyState === 4 && xhr.status === 200) {
+										done = true;
+										newLibrary.code = xhr.responseText;
+										newLibrary.url = _this.message.url;
+										storageLocal.libraries.push(newLibrary);
+										window.chrome.storage.local.set({
+											libraries: storageLocal.libraries
+										});
+										_this.respondSuccess(newLibrary);
+									}
+								};
+								setTimeout(function() {
+									if (!done) {
+										_this.respondError('Request timed out');
+									}
+								}, 5000);
+								xhr.send();
 							} else {
-								_this.respondError('No URL or code given');
+								_this.respondError('No valid URL given');
 								return false;
 							}
-							return true;
-						});
+						} else if (optionals[2]) {
+							newLibrary.code = _this.message.code;
+							storageLocal.libraries.push(newLibrary);
+							window.chrome.storage.local.set({
+								libraries: storageLocal.libraries
+							});
+							_this.respondSuccess(newLibrary);
+						} else {
+							_this.respondError('No URL or code given');
+							return false;
+						}
+						return true;
 					});
 				});
 			},
@@ -1838,11 +1914,15 @@ function mainContainer() {
 			}
 		};
 
+		console.log(this);
+		console.log(this.crmFunctions);
+		console.log(this.crmFunctions[this.toRun]);
 		this.crmFunctions[this.toRun] && this.crmFunctions[this.toRun]();
 	}
 
 	function crmHandler(message) {
-		crmFunction(message, message.action);
+		console.log(message);
+		new crmFunction(message, message.action);
 	}
 
 	function chromeHandler(message, respond) {
@@ -1910,32 +1990,25 @@ function mainContainer() {
 		}
 	}
 
-	function pingHandler(message, messageSender) {
-		secretKeys[messageSender.tab.id][message.id].alive = true;
-	}
-
 	function checkAlive() {
 		var tab;
 		var script;
 		var children;
-		for (tab in secretKeys) {
-			if (secretKeys.hasOwnProperty(tab)) {
+		for (tab in tabNodeData) {
+			if (tabNodeData.hasOwnProperty(tab)) {
 				children = 0;
-				for (script in secretKeys[tab]) {
-					if (tab.hasOwnProperty(secretKeys[tab][script])) {
+				for (script in tabNodeData[tab]) {
+					if (tab.hasOwnProperty(tabNodeData[tab][script])) {
 						children++;
-						if (secretKeys[tab][script].alive === undefined) {
-							//Still setting up for the first ping, give it a second
-							secretKeys[tab][script].alive = false;
-						} else if (secretKeys[tab][script].alive === false) {
-							delete keys[secretKeys[tab][script].secretKey];
-							delete secretKeys[tab][script];
+						if (!tabNodeData[tab][script].ping && tabNodeData[tab][script].ping()) {
+							delete keys[tabNodeData[tab][script].secretKey];
+							delete tabNodeData[tab][script];
 						}
 					}
 				}
 				if (children === 0) {
 					//Delete empty tabs
-					delete secretKeys[tab];
+					delete tabNodeData[tab];
 				}
 			}
 		}
@@ -1943,25 +2016,27 @@ function mainContainer() {
 
 	window.setInterval(checkAlive, 30000);
 
-	/*#endregion*/
-
 	function handleUpdateMessage(message) {
 		switch (message.type) {
 			case 'updateContextMenu':
 				buildPageCRM();
 				break;
+			case 'updateLibraries':
+				updateStorageLocal();
+				break;
 		}
 	}
 
-	function handleMessage(message, messageSender, respond) {
+	function handleMessage(message, tabId, nodeId, respond) {
+		console.log(message);
+		console.log(tabId);
+		console.log(nodeId);
+		console.log(respond);
 		if (message.update) {
 			handleUpdateMessage(message);
 		} else {
-			var result = window.de(message.msg, secretKeys[messageSender.tab.id][message.id].secretKey);
-			if (result !== false) {
-				message = result;
-
-				switch (message.type) {
+			console.log(message.type);
+			switch (message.type) {
 				case 'updateStorage':
 					updateNodeStorage(message);
 					break;
@@ -1971,14 +2046,24 @@ function mainContainer() {
 				case 'chrome':
 					chromeHandler(message, respond);
 					break;
-				case 'ping':
-					pingHandler(message, messageSender);
-					break;
-				}
 			}
-			//Fail silently
 		}
 	}
+
+	function createHandlerFunction(port) {
+		return function (message) {
+			message.tabId = 600;
+			message.id = 22;
+			if (!tabNodeData[message.tabId][message.id].sendMessage) {
+				delete tabNodeData[message.tabId][message.id].secretKey;
+				tabNodeData[message.tabId][message.id].sendMessage = port.postMessage;
+			} else {
+				handleMessage(message.msg, message.tabId, message.id, message.respond);
+			}
+		}
+	}
+
+	/*#endregion*/
 
 	function main() {
 		window.chrome.storage.sync.get(function(data) {
@@ -1988,11 +2073,8 @@ function mainContainer() {
 				crmTree = data.crm;
 				safeTree = buildSafeTree(data.crm);
 				buildByIdObjects(data.crm);
-				var bgPageUrl = window.chrome.runtime.getURL('_generated_background_page.html');
-				window.chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-					if (bgPageUrl !== sender.url) { //Don't talk to yourself
-						handleMessage(message, sendResponse);
-					}
+				chrome.runtime.onConnect.addListener(function(port) {
+					port.onMessage.addListener(createHandlerFunction(port));
 				});
 				buildPageCRM();
 			});

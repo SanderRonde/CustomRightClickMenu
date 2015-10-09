@@ -1,40 +1,53 @@
-﻿function doubleKey(key) {
+﻿var chars = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
+
+function doubleKey(key) {
 	var result;
-	key.forEach(function (item, index) {
+	key.forEach(function (item) {
+		item = parseInt(item, 10);
 		result = item * 2;
-		key[index] = (result > 99 ? result - 99 : result);
+		return (result > 99 ? result - 100 : result);
 	});
 	return key;
 }
 
-function encrypt(target, key) {
+function ec(target, key) {
 	var i;
 	var keys = [];
 	var newTarget = {};
-	for (key in target) {
-		if (target.hasOwnProperty(key)) {
+	target.verified = true;
+	for (var objKey in target) {
+		if (target.hasOwnProperty(objKey)) {
 			keys.push({
-				key: key,
-				val: target[key]
+				key: objKey,
+				val: target[objKey]
 			});
 		}
 	}
 
-	var index;
-	target.verified = true;
-	var length = (keys.length * 2) - 2;
+	var keyCopy = [];
+	key.forEach(function (item, index) {
+		keyCopy[index] = item;
+	});
 
-	index = Math.round(Math.random() * keys.length - 1);
-	newTarget[keys[index].key] = keys[index].val;
+	key = keyCopy;
+
+	var index;
+	console.log(keys);
+	var length = keys.length;
 
 	for (i = 0; i < length; i++) {
-		newTarget[Math.round(Math.random() * 10000)] = Math.round(Math.random() * 10000);
-		index = Math.round(Math.random() * keys.length - 1);
+		newTarget[chars[Math.round(Math.random() * 26)] + (Math.round(Math.random() * 1000) >>> 0).toString(2)] = (Math.round(Math.random() * 1000) >>> 0).toString(2);
+		index = Math.round(Math.random() * (keys.length - 1));
 		newTarget[keys[index].key] = keys[index].val;
+		keys.splice(index, 1);
 	}
+
+	console.log(newTarget);
 
 	key = doubleKey(key);
 	target = JSON.stringify(newTarget);
+
+	console.log(target);
 
 	var j = 0;
 	var charcodes = [];
@@ -46,16 +59,20 @@ function encrypt(target, key) {
 		}
 		charcodes[i] = target.charCodeAt(i) ^ key[j];
 	}
+	console.log(charcodes);
 	return charcodes;
 }
 
-function decrypt(target, key) {
+function de(target, key) {
 	var keyCopy = [];
+	console.log(key);
 	key.forEach(function (item, index) {
 		keyCopy[index] = item;
 	});
+	key = keyCopy;
 	console.log(key);
 	key = doubleKey(key);
+	console.log(key);
 
 	var i;
 	var j = 0;
@@ -71,6 +88,7 @@ function decrypt(target, key) {
 	console.log(results);
 	try {
 		results = JSON.parse(results);
+		console.log(results);
 		var equal = true;
 		keyCopy.forEach(function (item, index) {
 			if (item !== results.secretKey[index]) {

@@ -107,7 +107,7 @@ Polymer({
 			window.doc.addLibraryConfirmationInput.value = code;
 			window.doc.addLibraryConfirmAddition.addEventListener('click', function () {
 				window.doc.addLibraryConfirmationInput.value = '';
-				_this.addLibraryFile(_this, name, code, url);
+				_this.addLibraryFile(_this, name, code);
 			});
 			window.doc.addLibraryDenyConfirmation.addEventListener('click', function() {
 				window.doc.addLibraryConfirmationContainer.style.display = 'none';
@@ -122,16 +122,19 @@ Polymer({
 		}, 250);
 	},
 
-	addLibraryFile: function (_this, name, code, url) {
+	addLibraryFile: function (_this, name, code) {
 		window.doc.addLibraryConfirmationContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {
 			_this.installedLibraries.push({
 				name: name,
-				code: code,
-				url: url
+				code: code
 			});
 			chrome.storage.local.set({ libraries: _this.installedLibraries });
+			chrome.runtime.sendMessage({
+				update: true,
+				type: 'updateLibraries'
+			});
 			_this.splice('libraries', _this.libraries.length - 1, 0, {
 				name: name,
 				classes: 'library iron-selected',
@@ -182,7 +185,13 @@ Polymer({
 				.find('#addLibraryButton')
 				.on('click', function () {
 					var name = window.doc.addedLibraryName.value;
-					if (name !== '') {
+					var taken = false;
+					for (var i = 0; i < _this.installedLibraries.length; i++) {
+						if (_this.installedLibraries[i].name === name) {
+							taken = true;
+						}
+					}
+					if (name !== '' && !taken) {
 						this.removeAttribute('invalid');
 						if (window.doc.addLibraryRadios.selected === 'url') {
 							var libraryInput = window.doc.addLibraryUrlInput;
@@ -199,10 +208,15 @@ Polymer({
 								libraryInput.setAttribute('invalid', 'true');
 							});
 						} else {
-							_this.addLibraryFile(_this, name, window.doc.addLibraryManualInput.value, null);
+							_this.addLibraryFile(_this, name, window.doc.addLibraryManualInput.value);
 						}
 					} else {
-						this.setAttribute('invalid', 'true');
+						if (taken) {
+							window.doc.addedLibraryName.errorMessage = 'That name is already taken';
+						} else {
+							window.doc.addedLibraryName.errorMessage = 'Please enter a name';
+						}
+						window.doc.addedLibraryName.invalid = true;
 					}
 				});
 		}
