@@ -26,8 +26,6 @@ function createSecretKey() {
 	}
 }
 
-window.secretkey = createSecretKey();
-
 function e() { console.log(Arguments); }
 
 function mainContainer() {
@@ -37,13 +35,7 @@ function mainContainer() {
 	var storageLocal;
 	var nodesData = {};
 	//TODO change
-	var tabNodeData = {
-		600: {
-			22: {
-				secretKey: window.secretkey
-			}
-		}
-	};
+	window.tabNodeData = {};
 	var contextMenuIds = {};
 	var tabActiveScripts = {};
 	var stylesheetNodeStatusses = {};
@@ -232,8 +224,7 @@ function mainContainer() {
 					tabNodeData[tab.id] = {};
 				}
 				tabNodeData[tab.id][node.id] = {
-					secretKey: key,
-					alive: true
+					secretKey: key
 				};
 				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ');\n';
 				code = code + node.value.script;
@@ -1569,43 +1560,6 @@ function mainContainer() {
 
 				});
 			},
-			linkForEach: function() {
-				_this.checkPermissions(['crmGet'], ['crmWrite'], function(permitted) {
-					_this.typeCheck([
-						{
-							val: 'process',
-							type: 'function'
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							var i;
-							if (node.type === 'link') {
-								if (permitted.length === 1) {
-									for (i = 0; i < node.value.length; i++) {
-										_this.message.process(node.value.length[i], i);
-									}
-								} else {
-									node.value.forEach(_this.message.process);
-								}
-								updateCrm(true);
-								_this.respondSuccess(safe(node).value);
-							} else {
-								node.linkVal = node.linkVal || [];
-								if (permitted.length === 1) {
-									for (i = 0; i < node.value.length; i++) {
-										_this.message.process(node.linkVal.length[i], i);
-									}
-								} else {
-									node.linkVal.forEach(_this.message.process);
-								}
-								updateCrm(true);
-								_this.respondSuccess(node.linkVal);
-							}
-							return true;
-						});
-					});
-				});
-			},
 			setScriptLaunchMode: function() {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
 					_this.typeCheck([
@@ -1959,7 +1913,7 @@ function mainContainer() {
 						try {
 							var result = sandbox('result = chrome.' + message.api + '(' + params + ')');
 							if (message.onFinish) {
-								message.onFinish(result);
+								message.onFinish('success', result);
 							}
 						} catch (e) {
 							respond({
@@ -1989,32 +1943,6 @@ function mainContainer() {
 			}
 		}
 	}
-
-	function checkAlive() {
-		var tab;
-		var script;
-		var children;
-		for (tab in tabNodeData) {
-			if (tabNodeData.hasOwnProperty(tab)) {
-				children = 0;
-				for (script in tabNodeData[tab]) {
-					if (tab.hasOwnProperty(tabNodeData[tab][script])) {
-						children++;
-						if (!tabNodeData[tab][script].ping && tabNodeData[tab][script].ping()) {
-							delete keys[tabNodeData[tab][script].secretKey];
-							delete tabNodeData[tab][script];
-						}
-					}
-				}
-				if (children === 0) {
-					//Delete empty tabs
-					delete tabNodeData[tab];
-				}
-			}
-		}
-	}
-
-	window.setInterval(checkAlive, 30000);
 
 	function handleUpdateMessage(message) {
 		switch (message.type) {
@@ -2052,13 +1980,24 @@ function mainContainer() {
 
 	function createHandlerFunction(port) {
 		return function (message) {
-			message.tabId = 600;
-			message.id = 22;
-			if (!tabNodeData[message.tabId][message.id].sendMessage) {
-				delete tabNodeData[message.tabId][message.id].secretKey;
-				tabNodeData[message.tabId][message.id].sendMessage = port.postMessage;
+			console.log(message);
+			console.log(message.tabsId);
+			console.log(tabNodeData[message.tabsId]);
+			console.log(message.id);
+			console.log(tabNodeData[message.tabsId][message.id]);
+			console.log(JSON.stringify(tabNodeData));
+			if (!tabNodeData[message.tabsId][message.id].sendMessage) {
+				console.log('1');
+				console.log(tabNodeData[message.tabsId][message.id]);
+				console.log(message.key);
+				if (compareArray(tabNodeData[message.tabsId][message.id].secretKey, message.key)) {
+					console.log('in');
+					delete tabNodeData[message.tabsId][message.id].secretKey;
+					tabNodeData[message.tabsId][message.id].sendMessage = port.postMessage;
+				}
 			} else {
-				handleMessage(message.msg, message.tabId, message.id, message.respond);
+				console.log('handling');
+				handleMessage(message.msg, message.tabsId, message.id, message.respond);
 			}
 		}
 	}
@@ -2073,7 +2012,9 @@ function mainContainer() {
 				crmTree = data.crm;
 				safeTree = buildSafeTree(data.crm);
 				buildByIdObjects(data.crm);
-				chrome.runtime.onConnect.addListener(function(port) {
+				console.log('/');
+				chrome.runtime.onConnect.addListener(function (port) {
+					console.log(port);
 					port.onMessage.addListener(createHandlerFunction(port));
 				});
 				buildPageCRM();

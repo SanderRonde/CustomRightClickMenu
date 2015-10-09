@@ -1,5 +1,5 @@
 ///<reference path="eo.js"/>
-
+console.log('does this even exist');
 /** 
  * A class for constructing the CRM API
  * 
@@ -14,9 +14,17 @@
  *		are those scripts to run stuff you don't want it to.
  */
 function CrmAPIInit(item, id, tabData, clickData, secretKey) {
+	console.trace();
 	var _this = this;
 	console.log(this);
 
+	var callbacks = {};
+
+	function createCallback(callback, respond) {
+		
+	}
+
+	//Connect to the background-page
 	var queue = [];
 	var sendMessage = function (message, respond) {
 		queue.push({
@@ -24,7 +32,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 			respond: respond
 		});
 	}
-	var port = chrome.runtime.connect({ name: JSON.stringify(secretKey) });
+	var port = chrome.runtime.connect({
+		name: JSON.stringify(secretKey)
+	});
 	function handshakeFunction() {
 		queue.forEach(function(item) {
 			port.postMessage({
@@ -32,6 +42,8 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 				respond: item.respond
 			});
 		});
+
+
 		sendMessage = function(message, respond) {
 			port.postMessage({
 				msg: message,
@@ -40,13 +52,10 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		};
 	}
 	port.onMessage.addListener(handshakeFunction);
-	console.log('sending');
-
 	port.postMessage({
 		id: id,
 		key: secretKey,
-		tabId: tabData.tabId,
-		type: 'handshake'
+		tabsId: tabData.id
 	});
 
 
@@ -762,22 +771,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		});
 	}
 
-	/**
-	 * Performs the function "process" for every item in the array - requires permission "crmGet", 
-	 *		and if you want to change the value (return) requires "crmWrite"
-	 * 
-	 * @param {number} nodeId - The node for which to run this function
-	 * @param {function} process - The function to run, has as the first parameter the item and as the second one the index,
-	 *		calling return changes the item's value to that value, only when permissions "crmWrite" is available changing the value is possible
-	 * @param {function} callback - A function that gets called with the new array as an argument
-	 */
-	this.crm.link.forEach = function(nodeId, process, callback) {
-		sendCrmMessage('linkForEach', callback, {
-			nodeId: nodeId,
-			process: process
-		});
-	}
-
 
 	this.crm.script = {};
 	
@@ -976,7 +969,13 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 						function onFinish(status, messageOrParams) {
 							if (status === 'error') {
 								throw new Error(messageOrParams);
-							} else {
+							} else if (status === 'chromeError') {
+								var error = messageOrParams.error;
+								console.warn(error + ', stack traces:');
+								console.trace();
+								throw new Error(error.error);
+							}
+							else {
 								callback.apply(_this, messageOrParams);
 							}
 						}
@@ -985,12 +984,17 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 						this.nocb();
 					},
 					nocb: function () {
-						sendMessage(message, function (error) {
-							error = error.error;
-							console.warn(error + ', stack traces:');
-							console.trace();
-							throw new Error(error.error);
-						});
+						if (!message.msg.onFinish) {
+							message.msg.onFinish = function(status, message) {
+								if (status === 'chromeEror') {
+									var error = message.error;
+									console.warn(error + ', stack traces:');
+									console.trace();
+									throw new Error(error.error);
+								}
+							}
+						}
+						sendMessage(message);
 					}
 				};
 			}
@@ -1021,10 +1025,3 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	window.crmAPI = this;
 	return this;
 }
-
-setTimeout(function() {
-	chrome.storage.sync.get(function(e) {
-		console.log(window.secretkey);
-		window.crmAPI = new CrmAPIInit(e.crm[2].children[4], 22, { tabId: 600 }, {}, window.secretkey);
-	});
-}, 350);
