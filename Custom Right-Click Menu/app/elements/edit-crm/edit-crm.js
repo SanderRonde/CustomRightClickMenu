@@ -245,7 +245,7 @@ window.Polymer({
 	 * 
 	 * @return The object to be sent to Polymer
 	 */
-	build: function(setItems, quick) {
+	build: function(setItems, quick, superquick) {
 		var _this = this;
 		setItems = setItems || [];
 		var obj = buildCRMEditObj(setItems);
@@ -256,14 +256,20 @@ window.Polymer({
 			window.clearTimeout(this.currentTimeout);
 		}
 		this.crmLoading = true;
-		this.currentTimeout = window.setTimeout(function() {
+		function func() {
 			_this.crm = obj;
 			_this.notifyPath('crm', _this.crm);
 			_this.currentTimeout = null;
 			setTimeout(function() {
 				_this.crmLoading = false;
 			}, 50);
-		}, (quick ? 150 : 1000));
+		}
+
+		if (superquick) {
+			func();
+		} else {
+			this.currentTimeout = window.setTimeout(func, quick ? 150 : 1000);
+		}
 		return obj;
 	},
 

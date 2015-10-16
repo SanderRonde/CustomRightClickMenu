@@ -1,5 +1,4 @@
 ///<reference path="eo.js"/>
-console.log('does this even exist');
 /** 
  * A class for constructing the CRM API
  * 
@@ -18,45 +17,80 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	var _this = this;
 	console.log(this);
 
-	var callbacks = {};
+	this.tabId = tabData.id;
+	console.log(this.tabId);
 
-	function createCallback(callback, respond) {
-		
+	var callInfo = {};
+
+	function getStackTrace(error) {
+		console.log(error.stack.split('\n'));
+		return error.stack.split('\n');
 	}
+
+	function createDeleterFunction(index) {
+		return function() {
+			delete callInfo[index];
+		}
+	}
+
+	function createCallback(callback, error) {
+		var index = 0;
+		while (callInfo[index]) {
+			index++;
+		}
+		callInfo[index] = {
+			callback: callback,
+			stackTrace: getStackTrace(error)
+		};
+		setTimeout(createDeleterFunction(index), 15000);
+		return index;
+	}
+
 
 	//Connect to the background-page
 	var queue = [];
-	var sendMessage = function (message, respond) {
-		queue.push({
-			msg: message,
-			respond: respond
-		});
+	var sendMessage = function (message) {
+		queue.push(message);
 	}
 	var port = chrome.runtime.connect({
 		name: JSON.stringify(secretKey)
 	});
+
+
 	function handshakeFunction() {
-		queue.forEach(function(item) {
-			port.postMessage({
-				msg: item.msg,
-				respond: item.respond
-			});
-		});
-
-
-		sendMessage = function(message, respond) {
-			port.postMessage({
-				msg: message,
-				respond: respond
-			});
+		sendMessage = function(message) {
+			if (message.onFinish) {
+				message.onFinish = createCallback(message.onFinish, new Error);
+			}
+			console.log(message);
+			port.postMessage(message);
 		};
+
+		queue.forEach(function(message) {
+			sendMessage(message);
+		});
+		queue = null;
 	}
-	port.onMessage.addListener(handshakeFunction);
+	function callbackHandler(message) {
+		console.log(message);
+		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
+		delete callInfo[message.callbackId];
+	}
+	function messageHandler(message) {
+		if (queue) {
+			handshakeFunction();
+		} else {
+			callbackHandler(message);
+		}
+	}
+	port.onMessage.addListener(messageHandler);
 	port.postMessage({
 		id: id,
 		key: secretKey,
-		tabsId: tabData.id
+		tabId: _this.tabId
 	});
+	console.log(tabData.id);
+	console.log('sent');
 
 
 	/**
@@ -138,14 +172,12 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 * Updates the storage to the background page
 	 */
 	function updateStorage() {
-		var message = {};
-		message.id = id;
-		message.msg = {
+		var message = {
 			id: id,
 			type: 'updateStorage',
 			storage: storage,
-			secretKey: secretKey,
-			tabId: tabData.tabId
+			tabId: _this.tabId,
+			update: true
 		};
 
 		sendMessage(message);
@@ -340,32 +372,30 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 * @param {object} params - Any options or parameters
 	 */
 	function sendCrmMessage(action, callback, params) {
-		function onFinish(status, messageOrParams) {
+		console.log('sending message');
+		function onFinish(status, messageOrParams, stackTrace) {
 			if (status === 'error') {
 				_this.onError && _this.onError(messageOrParams);
-				throw new Error(messageOrParams);
+				console.log('stack trace: ');
+				stackTrace.forEach(function(line) {
+					console.log(line);
+				});
+				throw new Error('CrmAPIError: ' + messageOrParams.error);
 			} else {
 				callback.apply(_this, messageOrParams);
 			}
 		}
 
-		var messageContent = params || {};
-		messageContent.type = 'crm';
-		messageContent.id = id;
-		messageContent.action = action;
-		messageContent.crmPath = item.path;
-		messageContent.onFinish = onFinish;
-		messageContent.secretKey = secretKey;
-		messageContent.tabId = tabData.tabId;
+		var message = params || {};
+		message.type = 'crm';
+		message.id = id;
+		message.action = action;
+		message.crmPath = item.path;
+		message.onFinish = onFinish;
+		message.tabId = _this.tabId;
 
-		var message = {
-			id: id,
-			msg: messageContent
-		};
-		console.log(message.msg);
-		console.log(message.msg);
+		console.log(message);
 
-		console.log(responseFunction);
 		sendMessage(message);
 	}
 
@@ -452,7 +482,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 */
 	this.crm.getSubTree = function(nodeId, callback) {
 		sendCrmMessage('getSubTree', callback, {
-			node: nodeId
+			nodeId: nodeId
 		});
 	}
 
@@ -488,9 +518,12 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 * @param {string} [query.name] - The name of the item
 	 * @param {string} [query.type] - The type of the item (link, script, divider or menu)
 	 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
+	 * @param {CrmAPIInit~crmCallback} callback - A callback with the results in an array
 	 */
 	this.crm.queryCrm = function(query, callback) {
-		sendCrmMessage('queryCrm', callback, query);
+		sendCrmMessage('queryCrm', callback, {
+			query: query
+		});
 	}
 
 	/**
@@ -533,7 +566,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 * Gets the value of node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node whose value to get
-	 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal or an empty object depending on type
+	 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal, CrmAPIInit~stylesheetVal or an empty object depending on type
 	 */
 	this.crm.getNodeValue = function(nodeId, callback) {
 		sendCrmMessage('getNodeValue', callback, {
@@ -559,7 +592,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
 	 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
 	 *		newTab boolean being whether or not it opens in a new tab.
-	 * @param {string} [options.linkData.url] - The url to open when clicking the link, regex is possible but wrap it in parentheses, this value is required.
+	 * @param {string} [options.linkData.url] - The url to open when clicking the link, this value is required.
 	 * @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
 	 * @param {Object} [options.scriptData] - The data of the script, required if type is script
 	 * @param {string} [options.scriptData.script] - The actual script, will be "" if none given, required
@@ -587,7 +620,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 	 */
 	this.crm.createNode = function(options, callback) {
-		sendCrmMessage('createNode', callback, options);
+		sendCrmMessage('createNode', callback, {
+			options: options
+		});
 	}
 
 	/**
@@ -614,17 +649,19 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		options = options || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
 		var optionsCopy = JSON.parse(JSON.stringify(options));
-		optionsCopy.nodeId = nodeId;
-		sendCrmMessage('copyNode', callback, options);
+		sendCrmMessage('copyNode', callback, {
+			nodeId: nodeId,
+			options: optionsCopy
+		});
 	}
 
 	/**
 	 * Moves given node to position specified in "position" - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The id of the node to move
-	 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last child of root if not given
-	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
-	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+	 * @param {Object} [position] - An object containing info about where to place the item, defaults to last child of root if not given
+	 * @param {number} [position.node] - The other node, if not given, "relates" to the root
+	 * @param {string} [position.relation] - The position relative to the other node, possibilities are:
 	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 	 *		firstSibling: first of the subtree that given node is in
 	 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
@@ -633,12 +670,14 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 *		after: after the given node
 	 * @param {CrmAPIInit~crmCallback} callback - A function that gets called with the new node as an argument
 	 */
-	this.crm.moveNode = function(nodeId, options, callback) {
-		options = options || {};
+	this.crm.moveNode = function (nodeId, position, callback) {
+		position = position || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
-		var optionsCopy = JSON.parse(JSON.stringify(options));
-		optionsCopy.nodeId = nodeId;
-		sendCrmMessage('moveNode', callback, options);
+		var positionCopy = JSON.parse(JSON.stringify(position));
+		sendCrmMessage('moveNode', callback, {
+			nodeId: nodeId,
+			position: positionCopy
+		});
 	}
 
 	/**
@@ -666,8 +705,10 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		options = options || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
 		var optionsCopy = JSON.parse(JSON.stringify(options));
-		optionsCopy.nodeId = nodeId;
-		sendCrmMessage('editNode', callback, optionsCopy);
+		sendCrmMessage('editNode', callback, {
+			options: optionsCopy,
+			nodeId: nodeId
+		});
 	}
 
 	/**
@@ -925,9 +966,29 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 
 	/*#region Chrome APIs*/
 	/**
-	 * Calls the chrome API given in the "API" parameter. Then you need to call .args on what was returned,
-	 * and on that you can either call .nocb() when you already supplied a callback in the function or
-	 * call .cb(callback) to get the value that is returned back in the callback as an argument.
+	 * Calls the chrome API given in the "API" parameter. Due to some issues with the chrome message passing
+	 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
+	 *		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
+	 *		sandbox and does not allow you to access a lot. As a solution to this there are three types of
+	 *		functions you can chain-call on the crmAPI.chrome(API) object: 
+	 *			args: uses given arguments as arguments for the API in order specified. WARNING this can NOT be 
+	 *				a function, for functions refer to the other two types.
+	 * 
+	 *			ilFunc: inline function. This allows you to pass a function that returns another function
+	 *				this second function will be executed inline with the chrome API being executed. Keep in 
+	 *				mind that scope is not preserved so any variables that are needed for that function should
+	 *				be added in a special way. The function that will return the function to be executed should
+	 *				have any nessecary variables as parameters. The actual variables should follow later as 
+	 *				arguments to the ilFunc function. See example for a way better explanation:
+	 *					crmAPI.chrome(API).args(param).ilFunc(function(param1, param2, param3) {
+	 *						return function() {
+	 *							console.log(param1, param2, param3);
+	 *						}
+	 *					}, var1, var2, var3);
+	 *				The value of the very first parameter passed is stored after being executed and will be 
+	 *				returned in either the callback function if specified //TODO HERE
+	 * 
+	 *			cbFunc: a callback function. 
 	 * Examples:
 	 *		crmAPI.chrome('tabs.create').args(properties, callback).nocb(); - You already supplied a callback
 	 *			in the function and don't need the direct value of that API so no callback is needed
@@ -952,48 +1013,45 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 			 */
 			args: function() {
 				var args = arguments;
-				var messageContent = {
+				var message = {
 					type: 'chrome',
 					id: id,
 					api: api,
 					args: args,
-					secretKey: secretKey,
-					tabId: tabData.tabId
-				};
-				var message = {
-					id: id,
-					msg: messageContent
+					tabId: _this.tabId
 				};
 				return {
 					cb: function(callback) {
-						function onFinish(status, messageOrParams) {
-							if (status === 'error') {
-								throw new Error(messageOrParams);
-							} else if (status === 'chromeError') {
-								var error = messageOrParams.error;
-								console.warn(error + ', stack traces:');
-								console.trace();
-								throw new Error(error.error);
-							}
-							else {
+						function onFinish(status, messageOrParams, stackTrace) {
+							if (status === 'error' || status === 'chromeError') {
+								_this.onError && _this.onError(messageOrParams);
+								console.log('Stack trace: ');
+								stackTrace.forEach(function (line) {
+									console.log(line);
+								});
+								throw new Error('CrmAPIError: ' + messageOrParams.error);
+							} else {
 								callback.apply(_this, messageOrParams);
 							}
 						}
 
-						message.msg.onFinish = onFinish;
+						message.onFinish = onFinish;
 						this.nocb();
 					},
 					nocb: function () {
-						if (!message.msg.onFinish) {
-							message.msg.onFinish = function(status, message) {
+						if (!message.onFinish) {
+							message.onFinish = function(status, message) {
 								if (status === 'chromeEror') {
-									var error = message.error;
+									var error = message.data;
 									console.warn(error + ', stack traces:');
 									console.trace();
 									throw new Error(error.error);
 								}
 							}
 						}
+
+						chrome.extension.getBackgroundPage().chromeHandler(message);
+
 						sendMessage(message);
 					}
 				};
@@ -1001,6 +1059,12 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		};
 	};
 	/*#endregion*/
+
+	/*Example*/
+	//crmAPI.chrome('runtime.sendMessage').args(x, y, z).funcCb(function(d, e) {
+	//}, d, e).args(d, e).funcLc(function() {
+
+	//});
 
 	/*#region Other APIs*/
 	this.libraries = {};
@@ -1022,6 +1086,5 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	}
 	/*#endregion*/
 
-	window.crmAPI = this;
 	return this;
 }

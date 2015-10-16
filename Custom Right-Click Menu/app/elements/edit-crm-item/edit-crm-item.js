@@ -330,7 +330,7 @@ Polymer({
 	},
 
 	openMenu: function () {
-		options.editCRM.build(this.item.path);
+		options.editCRM.build(this.item.path, false, true);
 	},
 
 	menuMouseOver: function () {
