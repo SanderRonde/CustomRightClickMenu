@@ -648,6 +648,7 @@
     <Content Include="app\js\jquery.color-2.1.2.min.js" />
     <Content Include="app\js\jquery.contextMenu.js" />
     <Content Include="app\js\jquery.requestAnimationFrame.min.js" />
+    <Content Include="app\js\jsonfn.js" />
     <Content Include="app\js\libraries\angular.js" />
     <Content Include="app\js\libraries\jquery.js" />
     <Content Include="app\js\libraries\mooTools.js" />

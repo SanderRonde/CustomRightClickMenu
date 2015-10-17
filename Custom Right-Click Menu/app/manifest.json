@@ -7,7 +7,7 @@
 	"version": "2.0",
 
 	"background": {
-		"scripts": [ "js/jquery-2.0.3.min.js", "js/background.js"]
+		"scripts": [ "js/jsonfn.js", "js/background.js"]
 	},
 
 	"content_scripts": [
