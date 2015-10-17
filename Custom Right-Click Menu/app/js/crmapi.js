@@ -13,17 +13,45 @@
  *		are those scripts to run stuff you don't want it to.
  */
 function CrmAPIInit(item, id, tabData, clickData, secretKey) {
-	console.trace();
+
+	//Set crmAPI.stackTraces to false if you don't want stacktraces in your console, on by default
+	this.stackTraces = true;
+
+	//Set crmAPI.errors to false if you don't want crmAPI to throw errors upon failure, on by default
+	//If this is set to false errors will simply be put up as warnings
+	this.errors = true;
+
+	/**
+	* JSONfn - javascript (both node.js and browser) plugin to stringify, 
+	*          parse and clone objects with Functions, Regexp and Date.
+	*  
+	* Version - 0.60.00
+	* Copyright (c) 2012 - 2014 Vadim Kiryukhin
+	* vkiryukhin @ gmail.com
+	* http://www.eslinstructor.net/jsonfn/
+	* 
+	* Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
+	*/
+	var jsonFn = {};
+	jsonFn.stringify = function(obj) {
+		return JSON.stringify(obj, function(key, value) {
+			if (value instanceof Function || typeof value == 'function') {
+				return value.toString();
+			}
+			if (value instanceof RegExp) {
+				return '_PxEgEr_' + value;
+			}
+			return value;
+		});
+	};
+
 	var _this = this;
-	console.log(this);
 
 	this.tabId = tabData.id;
-	console.log(this.tabId);
 
 	var callInfo = {};
 
 	function getStackTrace(error) {
-		console.log(error.stack.split('\n'));
 		return error.stack.split('\n');
 	}
 
@@ -40,7 +68,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		}
 		callInfo[index] = {
 			callback: callback,
-			stackTrace: getStackTrace(error)
+			stackTrace: _this.stackTraces && getStackTrace(error)
 		};
 		setTimeout(createDeleterFunction(index), 15000);
 		return index;
@@ -62,7 +90,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 			if (message.onFinish) {
 				message.onFinish = createCallback(message.onFinish, new Error);
 			}
-			console.log(message);
 			port.postMessage(message);
 		};
 
@@ -72,7 +99,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		queue = null;
 	}
 	function callbackHandler(message) {
-		console.log(message);
 		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
 		delete callInfo[message.callbackId];
 	}
@@ -89,8 +115,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		key: secretKey,
 		tabId: _this.tabId
 	});
-	console.log(tabData.id);
-	console.log('sent');
 
 
 	/**
@@ -372,15 +396,22 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 * @param {object} params - Any options or parameters
 	 */
 	function sendCrmMessage(action, callback, params) {
-		console.log('sending message');
 		function onFinish(status, messageOrParams, stackTrace) {
 			if (status === 'error') {
 				_this.onError && _this.onError(messageOrParams);
-				console.log('stack trace: ');
-				stackTrace.forEach(function(line) {
-					console.log(line);
-				});
-				throw new Error('CrmAPIError: ' + messageOrParams.error);
+				if (_this.stackTraces) {
+					setTimeout(function() {
+						console.log('stack trace: ');
+						stackTrace.forEach(function(line) {
+							console.log(line);
+						});
+					}, 5);
+				}
+				if (_this.errors) {
+					throw new Error('CrmAPIError: ' + messageOrParams.error);
+				} else {
+					console.warn('CrmAPIError: ' + messageOrParams.error);
+				}
 			} else {
 				callback.apply(_this, messageOrParams);
 			}
@@ -393,9 +424,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		message.crmPath = item.path;
 		message.onFinish = onFinish;
 		message.tabId = _this.tabId;
-
-		console.log(message);
-
 		sendMessage(message);
 	}
 
@@ -965,106 +993,182 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	/*#endregion*/
 
 	/*#region Chrome APIs*/
+	function ChromeRequest(api) {
+		var chromeAPIArguments = [];
+		
+		this.args = function () {
+			for (var i = 0; i < arguments.length; i++) {
+				chromeAPIArguments.push({
+					type: 'arg',
+					val: jsonFn.stringify(arguments[i])
+				});
+			}
+			return this;
+		}
+
+		this.fnInline = function(fn) {
+			var params = [];
+			for (var i = 1; i < arguments.length; i++) {
+				params[i - 1] = jsonFn.stringify(arguments[i]);
+			}
+			
+			chromeAPIArguments.push({
+				type: 'fnInline',
+				val: {
+					fn: fn,
+					args: params
+				}
+			});
+			return this;
+		}
+
+		this.fnCallback = function(fn) {
+			chromeAPIArguments.push({
+				type: 'fnCallback',
+				val: createCallback(fn, new Error)
+			});
+			return this;
+		}
+
+		this.cb = function(fn) {
+			chromeAPIArguments.push({
+				type: 'cb',
+				val: createCallback(fn, new Error)
+			});
+			return this;
+		}
+
+		this.return = function(fn) {
+			chromeAPIArguments.push({
+				type: 'return',
+				val: createCallback(fn, new Error)
+			});
+			return this;
+		}
+
+		this.send = function () {
+			var message = {
+				type: 'chrome',
+				id: id,
+				api: api,
+				args: chromeAPIArguments,
+				tabId: _this.tabId,
+				onFinish: function(status, messageOrParams, stackTrace) {
+					if (status === 'error' || status === 'chromeError') {
+						_this.onError && _this.onError(messageOrParams);
+						if (_this.stackTraces) {
+							setTimeout(function() {
+								if (messageOrParams.stackTrace) {
+									console.warn('Remote stack trace:');
+									messageOrParams.stackTrace.forEach(function(line) {
+										console.warn(line);
+									});
+								}
+								console.warn((messageOrParams.stackTrace ? 'Local s' : 'S') + 'tack trace:');
+								stackTrace.forEach(function(line) {
+									console.warn(line);
+								});
+							}, 5);
+						}
+						if (_this.errors) {
+							throw new Error('CrmAPIError: ' + messageOrParams.error);
+						} else {
+							console.warn('CrmAPIError: ' + messageOrParams.error);
+						}
+					} else {
+						callInfo[messageOrParams.callbackId].callback.apply(window, messageOrParams.params);
+						delete callInfo[messageOrParams.callbackId];
+					}
+				}
+			};
+			sendMessage(message);
+		}
+		return this;
+	}
+
 	/**
 	 * Calls the chrome API given in the "API" parameter. Due to some issues with the chrome message passing
 	 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
 	 *		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
-	 *		sandbox and does not allow you to access a lot. As a solution to this there are three types of
+	 *		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
 	 *		functions you can chain-call on the crmAPI.chrome(API) object: 
 	 *			args: uses given arguments as arguments for the API in order specified. WARNING this can NOT be 
 	 *				a function, for functions refer to the other two types.
 	 * 
-	 *			ilFunc: inline function. This allows you to pass a function that returns another function
-	 *				this second function will be executed inline with the chrome API being executed. Keep in 
-	 *				mind that scope is not preserved so any variables that are needed for that function should
-	 *				be added in a special way. The function that will return the function to be executed should
-	 *				have any nessecary variables as parameters. The actual variables should follow later as 
-	 *				arguments to the ilFunc function. See example for a way better explanation:
-	 *					crmAPI.chrome(API).args(param).ilFunc(function(param1, param2, param3) {
-	 *						return function() {
-	 *							console.log(param1, param2, param3);
-	 *						}
-	 *					}, var1, var2, var3);
-	 *				The value of the very first parameter passed is stored after being executed and will be 
-	 *				returned in either the callback function if specified //TODO HERE
+	 *			fnInline: inline function. This allows you to pass a function that will be passed to the 
+	 *				chrome API and will be used as a normal function that's passed would be. One thing to 
+	 *				keep in mind is that scope is not preserved so any data you want the function to have
+	 *				access to will be have to be passed in the fnInline function as well. Any arguments
+	 *				other than the function passed in the first place will be put used as the first argument
+	 *				in the function you passed. Keep in mind that this moves every argument passed by whatever
+	 *				calls your function is moved one to the right.
 	 * 
-	 *			cbFunc: a callback function. 
+	 *			fnCallback: a function that will preserve scope but is not passed to the chrome API itself.
+	 *				Instead a placeholder is passed that will take any arguments the chrome API passes to it
+	 *				and calls your fnCallback function with a container argument. Keep in mind that there is no
+	 *				connection between your function and the chrome API, the chrome API only sees a placeholder 
+	 *				function with which it can do nothing so don't use this as say a forEach handler.
+	 * 
+	 *			cb: This is basically a fnCallback with added functionality. This function returns a 
+	 *				container argument for a few different values namely the value(s) passed by the chrome 
+	 *				API stored in "APIArgs" and the arguments array for every fnInline function is put into 
+	 *				one big container array called "fnInlineArgs" where the order is based on when you added that function.
+	 *				Keep in mind that this is only usefull if you keep that exact parameter as an array and 
+	 *				modify the array itself, due to arrays being pointers and not copies data will then be 
+	 *				preserved when it's sent back. If you want you can do things like add an object into
+	 *				the array or any other type/value you want but be sure to not change the type or 
+	 *				redeclare the array.
+	 * 
+	 *			return: a function that is called with the value that the chrome API returned. This can
+	 *				be used for APIs that don't use callbacks and instead just return values such as
+	 *				chrome.runtime.getURL(). This just like fnCallback returns a container argument for
+	 *				all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
+	 * 
+	 *			send: executes this function
+	 * 
 	 * Examples:
-	 *		crmAPI.chrome('tabs.create').args(properties, callback).nocb(); - You already supplied a callback
-	 *			in the function and don't need the direct value of that API so no callback is needed
-	 *		crmAPI.chrome('runtime.getUrl').args(path).cb(function(value) { console.log(value); }); - You did
-	 *			not supply a callback and since you need the know the value that this function returns you 
-	 *			need to supply a callback. 
+	 *		- For a function that uses callback
+	 *		crmAPI.chrome('runtime.sendMessage').args({
+	 *			message: 'hello'
+	 *		}).cb(function(result) {
+	 *			console.log(result.APIArgs);
+	 *			console.log(result.fnInlineArgs);
+	 *		}).args(parameter).fnInline(function (param1, param2, param3) {
+	 *			return [param1 - (param2 * param3)];
+	 *		}, var1, var2, var3).args(parameter).fnCallback(function(result) {
+	 *			console.log(result);
+	 *		}).send();
+	 * 
+	 *		- For a function that returns a value
+	 *		crmAPI.chrome('runtime.getURL').args('url.html').fnInline(function (param1, param2, param3) {
+	 *			return [param1 - (param2 * param3)];
+	 *		}, var1, var2, var3).args(parameter).fnCallback(function(result) {
+	 *			console.log(result);
+	 *		}).return(function(result) {
+	 *			console.log(result.APIVal);
+	 *			console.log(result.fnInlineArgs);
+	 *		}).send();
+	 * 
+	 *		- Actual real-use examples
+	 *		crmAPI.chrome('tabs.create').args(properties).cb(function(result) {
+	 *			console.log(result.APIArgs[0]);
+	 *		}).send();
+	 * 
+	 *		crmAPI.chrome('runtime.getUrl').args(path).return(function(result) {
+	 *			console.log(result.APIVal[0]);
+	 *		}).send();
 	 * 
 	 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
 	 * permission "bookmarks", chrome.alarms requires "alarms"
 	 * 
 	 * @param {string} api - The API to use
-	 * @returns {Object} - An object on which you can call .args to send any arguments
+	 * @returns {Object} - An object on which you can call .args, .fnInline, .fnCallback, .cb, .return and .send
 	 */
-	this.chrome = function(api) {
-		return {
-			/**
-			 * A function that prepare the message and lets you supply your arguments
-			 * @returns {Object} - An object on which you can call either .nocb() for
-			 *		a function on which you already supplied a callback and don't need
-			 *		an additional callback for the value, or .cb(callback) to supply
-			 *		a callback to show you the value of the API
-			 */
-			args: function() {
-				var args = arguments;
-				var message = {
-					type: 'chrome',
-					id: id,
-					api: api,
-					args: args,
-					tabId: _this.tabId
-				};
-				return {
-					cb: function(callback) {
-						function onFinish(status, messageOrParams, stackTrace) {
-							if (status === 'error' || status === 'chromeError') {
-								_this.onError && _this.onError(messageOrParams);
-								console.log('Stack trace: ');
-								stackTrace.forEach(function (line) {
-									console.log(line);
-								});
-								throw new Error('CrmAPIError: ' + messageOrParams.error);
-							} else {
-								callback.apply(_this, messageOrParams);
-							}
-						}
-
-						message.onFinish = onFinish;
-						this.nocb();
-					},
-					nocb: function () {
-						if (!message.onFinish) {
-							message.onFinish = function(status, message) {
-								if (status === 'chromeEror') {
-									var error = message.data;
-									console.warn(error + ', stack traces:');
-									console.trace();
-									throw new Error(error.error);
-								}
-							}
-						}
-
-						chrome.extension.getBackgroundPage().chromeHandler(message);
-
-						sendMessage(message);
-					}
-				};
-			}
-		};
+	this.chrome = function (api) {
+		return new ChromeRequest(api);
 	};
 	/*#endregion*/
 
-	/*Example*/
-	//crmAPI.chrome('runtime.sendMessage').args(x, y, z).funcCb(function(d, e) {
-	//}, d, e).args(d, e).funcLc(function() {
-
-	//});
 
 	/*#region Other APIs*/
 	this.libraries = {};

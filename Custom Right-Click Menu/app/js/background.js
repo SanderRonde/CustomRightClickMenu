@@ -1,16 +1,16 @@
+///<reference path="jsonfn.js"/>
+
 'use strict';
-function sandbox(code) {
-	var result;
-	eval(code);
-	// ReSharper disable once UsageOfPossiblyUnassignedValue
-	return result;
+function sandbox(api, args) {
+	var context = window;
+	var fn = window.chrome;
+	var apiSplit = api.split('.');
+	for (var i = 0; i < apiSplit.length; i++) {
+		context = fn;
+		fn = fn[apiSplit[i]];
+	}
+	return fn.apply(context, args);
 }
-
-console.log('loaded');
-
-function e() { console.log(Arguments); }
-
-//goes wrong somewhere in backgroundjs
 
 (function(window) {
 	var crmTree;
@@ -95,11 +95,11 @@ function e() { console.log(Arguments); }
 
 	/*#region Right-Click Menu Handling*/
 
-	chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
+	window.chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
 		var lastTab = highlightInfo.tabIds[highlightInfo.tabIds.length - 1];
 		for (var node in stylesheetNodeStatusses) {
 			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
-				chrome.contextMenus.update(contextMenuIds[node], {
+				window.chrome.contextMenus.update(contextMenuIds[node], {
 					checked: stylesheetNodeStatusses[node][lastTab]
 				});
 			}
@@ -144,7 +144,7 @@ function e() { console.log(Arguments); }
 			var finalUrl;
 			for (i = 0; i < node.value.length; i++) {
 				if (node.value[i].newTab) {
-					chrome.tabs.create({
+					window.chrome.tabs.create({
 						windowId: tabData.windowId,
 						url: sanitizeUrl(node.value[i].url),
 						openerTabId: tabData.id
@@ -154,7 +154,7 @@ function e() { console.log(Arguments); }
 				}
 			}
 			if (finalUrl) {
-				chrome.tabs.update(tabData.tabId, {
+				window.chrome.tabs.update(tabData.tabId, {
 					url: sanitizeUrl(finalUrl)
 				});
 			}
@@ -171,10 +171,10 @@ function e() { console.log(Arguments); }
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
 				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
 			}
-			chrome.contextMenus.update(contextMenuIds[node.id], {
+			window.chrome.contextMenus.update(contextMenuIds[node.id], {
 				checked: (stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id])
 			});
-			chrome.tabs.executeScript(tab.id, {
+			window.chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
 			});
@@ -184,16 +184,17 @@ function e() { console.log(Arguments); }
 	function executeScripts(tabId, scripts) {
 		function executeScript(script, innerCallback) {
 			return function() {
-				chrome.tabs.executeScript(tabId, script, innerCallback);
+				window.chrome.tabs.executeScript(tabId, script, innerCallback);
 			}
 		}
 
 		var i;
-		var callback = undefined;
+		var callback = null;
 		for (i = scripts.length - 1; i >= 0; i--) {
 			callback = executeScript(scripts[i], callback);
 		}
 
+		// ReSharper disable once InvokedExpressionMaybeNonFunction
 		callback && callback();
 	}
 
@@ -208,10 +209,10 @@ function e() { console.log(Arguments); }
 				err = e;
 			}
 			if (err) {
-				chrome.tabs.executeScript(tab.id, {
+				window.chrome.tabs.executeScript(tab.id, {
 					code: 'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
 				}, function() {
-					chrome.runtime.reload();
+					window.chrome.runtime.reload();
 				});
 			} else {
 				var i;
@@ -230,12 +231,12 @@ function e() { console.log(Arguments); }
 						tabActiveScripts[tab.id][node.value.libraries[i].name] = true;
 						var j;
 						var lib;
-						for (j = 0; j < storageLocal.libraries.length; j++) {
-							if (storageLocal.libraries[j].name === node.value.libraries[i].name) {
-								lib = storageLocal.libraries[j];
+							for (j = 0; j < storageLocal.libraries.length; j++) {
+								if (storageLocal.libraries[j].name === node.value.libraries[i].name) {
+									lib = storageLocal.libraries[j];
+								}
 							}
-						}
-						if (lib.location) {
+						if (lib && lib.location) {
 							scripts.push({
 								file: 'js/libraries/' + lib.location,
 								runAt: 'document_start'
@@ -267,7 +268,7 @@ function e() { console.log(Arguments); }
 
 	function createOptionsPageHandler() {
 		return function() {
-			chrome.runtime.openOptionsPage();
+			window.chrome.runtime.openOptionsPage();
 		}
 	}
 
@@ -352,20 +353,20 @@ function e() { console.log(Arguments); }
 			} else if (node.type === 'stylesheet') {
 				cm.onclick = createStylesheetClickHandler(node);
 			}
-			id = chrome.contextMenus.create(cm, function() {
-				if (chrome.runtime.lastError) {
+			id = window.chrome.contextMenus.create(cm, function() {
+				if (window.chrome.runtime.lastError) {
 					if (cm.documentUrlPatterns) {
-						console.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
+						console.log('An error occurred with your context menu, attempting again with no url matching.', window.chrome.runtime.lastError);
 						delete cm.documentUrlPatterns;
-						id = chrome.contextMenus.create(cm, function() {
-							id = chrome.contextMenus.create({
+						id = window.chrome.contextMenus.create(cm, function() {
+							id = window.chrome.contextMenus.create({
 								title: 'ERROR',
 								onclick: createOptionsPageHandler()
 							});
-							console.log('Another error occured with your context menu!', chrome.runtime.lastError);
+							console.log('Another error occured with your context menu!', window.chrome.runtime.lastError);
 						});
 					} else {
-						console.log('An error occured with your context menu!', chrome.runtime.lastError);
+						console.log('An error occured with your context menu!', window.chrome.runtime.lastError);
 					}
 				}
 			});
@@ -381,7 +382,7 @@ function e() { console.log(Arguments); }
 				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
 				css = node.value.stylesheet.replace(/[ |\n]/g, '');
 				code += 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
-				chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
+				window.chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
 					code: code,
 					allFrames: true
 				});
@@ -408,8 +409,8 @@ function e() { console.log(Arguments); }
 		var i;
 		var length = crmTree.length;
 		stylesheetNodeStatusses = {};
-		chrome.contextMenus.removeAll();
-		var rootId = chrome.contextMenus.create({
+		window.chrome.contextMenus.removeAll();
+		var rootId = window.chrome.contextMenus.create({
 			title: 'Custom Menu',
 			contexts: ['page', 'selection', 'link', 'image', 'video', 'audio']
 		});;
@@ -421,11 +422,11 @@ function e() { console.log(Arguments); }
 			buildPageCrmParse(crmTree[i], rootId);
 		}
 		if (storageSync.showOptions) {
-			chrome.contextMenus.create({
+			window.chrome.contextMenus.create({
 				type: 'separator',
 				parentId: rootId
 			});
-			chrome.contextMenus.create({
+			window.chrome.contextMenus.create({
 				title: 'Options',
 				onclick: createOptionsPageHandler(),
 				parentId: rootId
@@ -489,10 +490,10 @@ function e() { console.log(Arguments); }
 		}
 	}
 
-	chrome.tabs.onUpdated.addListener(function(tabId, updatedInfo) {
+	window.chrome.tabs.onUpdated.addListener(function(tabId, updatedInfo) {
 		if (updatedInfo.status === 'loading') {
 			//It's loading
-			chrome.tabs.get(tabId, function(tab) {
+			window.chrome.tabs.get(tabId, function(tab) {
 				if (tab.url.indexOf('chrome') !== 0) {
 					var i;
 					tabActiveScripts[tabId] = {};
@@ -557,11 +558,8 @@ function e() { console.log(Arguments); }
 	var crmById = {};
 
 	function pushIntoArray(toPush, position, target) {
-		console.log(toPush, position, target);
-		console.log(target.length);
 		if (position === target.length) {
 			target[position] = toPush;
-			console.log('doing this');
 		} else {
 			var length = target.length + 1;
 			var temp1 = target[position];
@@ -572,7 +570,6 @@ function e() { console.log(Arguments); }
 				temp1 = target[i + 1];
 			}
 		}
-		console.log(target);
 		return target;
 	}
 
@@ -590,7 +587,7 @@ function e() { console.log(Arguments); }
 	}
 
 	function refreshPermissions() {
-		window.chrome.permisions.getAll(function(available) {
+		window.chrome.permissions.getAll(function (available) {
 			availablePermissions = available.permissions;
 		});
 	}
@@ -656,11 +653,11 @@ function e() { console.log(Arguments); }
 
 	function buildSafeTree(crm) {
 		var treeCopy = JSON.parse(JSON.stringify(crm));
-		var safeTree = [];
+		var safeBranch = [];
 		for (var i = 0; i < treeCopy.length; i++) {
-			safeTree.push(safeTreeParse(treeCopy[i]));
+			safeBranch.push(safeTreeParse(treeCopy[i]));
 		}
-		return safeTree;
+		return safeBranch;
 	}
 
 	function updateStorage() {
@@ -676,7 +673,6 @@ function e() { console.log(Arguments); }
 	}
 
 	function updateCrm(skipPageCrm) {
-		console.log(crmTree);
 		window.chrome.storage.sync.set({
 			crm: crmTree
 		});
@@ -690,25 +686,41 @@ function e() { console.log(Arguments); }
 	}
 
 	function updateStorageLocal() {
-		chrome.storage.local.get(function(locals) {
+		window.chrome.storage.local.get(function(locals) {
 			storageLocal = locals;
 		});
 	}
 
-	function respondToCrmAPI(message, type, data) {
+	function respondToCrmAPI(message, type, data, stackTrace) {
 		var msg = {
 			type: type,
 			callbackId: message.onFinish
 		}
 		msg.data = (type === 'error' || type === 'chromeError' ? {
 			error: data,
+			stackTrace: stackTrace,
 			lineNumber: message.lineNumber
 		} : data);
-		tabNodeData[message.tabId][message.id].port.postMessage(msg);
+		try {
+			tabNodeData[message.tabId][message.id].port.postMessage(msg);
+		} catch (e) {
+			if (e.message === 'Converting circular structure to JSON') {
+				respondToCrmAPI(message, 'error', 'Converting circular structure to JSON, this API will not work');
+			} else {
+				throw e;
+			}
+		}
 	}
 
-	function throwChromeError(message, error) {
-		respondToCrmAPI(message, 'chromeError', error);
+	function throwChromeError(message, error, stackTrace) {
+		console.warn('Error:', error);
+		if (stackTrace) {
+			stackTrace = stackTrace.split('\n');
+			stackTrace.forEach(function(line) {
+				console.warn(line);
+			});
+		}
+		respondToCrmAPI(message, 'chromeError', error, stackTrace);
 	}
 
 	function crmFunction(message, toRun) {
@@ -875,9 +887,6 @@ function e() { console.log(Arguments); }
 			}
 			var pathMinusOne = JSON.parse(JSON.stringify(node.path));
 			pathMinusOne.splice(pathMinusOne.length - 1, 1);
-			console.log(node);
-			console.log(node.path);
-			console.log('crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
 			eval('crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
 			return true;
 		};
@@ -969,20 +978,11 @@ function e() { console.log(Arguments); }
 							return false;
 						}
 					}
-					console.log(toCheckTypes[j]);
-					console.log(toCheck[i]);
-					console.log(toCheck[i].forChildren);
-					console.log(toCheck[i].length);
 					if (matchingType === 'array' && toCheck[i].forChildren) {
-						console.log(toCheck[i].forChildren.length);
 						for (j = 0; j < toCheckValue.length; j++) {
 							for (k = 0; k < toCheck[i].forChildren.length; k++) {
 								toCheckChildrenName = toCheck[i].forChildren[k].val;
-								console.log(toCheckChildrenName);
-								console.log(toCheckValue);
-								console.log(toCheckValue[j]);
 								toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
-								console.log(toCheckChildrenValue);
 								if (toCheckChildrenValue === undefined || toCheckChildrenValue === null) {
 									if (!toCheck[i].forChildren[k].optional) {
 										_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' defined');
@@ -991,8 +991,6 @@ function e() { console.log(Arguments); }
 								} else {
 									toCheckChildrenType = toCheck[i].forChildren[k].type;
 									toCheckChildrenTypes = toCheckChildrenType.split('|');
-									console.log(toCheckChildrenType);
-									console.log(toCheckChildrenTypes);
 									typesMatch = false;
 									for (l = 0; l < toCheckChildrenTypes.length; l++) {
 										if (toCheckChildrenTypes[l] === 'array') {
@@ -1005,7 +1003,6 @@ function e() { console.log(Arguments); }
 											break;
 										}
 									}
-									console.log(typesMatch);
 									if (!typesMatch) {
 										_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' of type ' + toCheckChildrenTypes.join(' or '));
 										return false;
@@ -1102,7 +1099,6 @@ function e() { console.log(Arguments); }
 				_this.checkPermissions(['crmGet'], function() {
 					var pathToSearch = path || _this.message.path;
 					var lookedUp = _this.lookup(pathToSearch, safeTree, false);
-					console.log(lookedUp);
 					if (lookedUp === true) {
 						return false;
 					} else if (lookedUp === false) {
@@ -1144,7 +1140,6 @@ function e() { console.log(Arguments); }
 								searchScopeArray.push(tree);
 							}
 							if (tree.children) {
-								console.log(tree.children);
 								for (var i = 0; i < tree.children.length; i++) {
 									findType(tree.children[i], type);
 								}
@@ -1160,8 +1155,10 @@ function e() { console.log(Arguments); }
 						}
 						searchScope = searchScope || safeTree;
 
-						for (j = 0; j < searchScope.length; j++) {
-							findType(searchScope[j], _this.message.query.type);
+						if (searchScope) {
+							for (j = 0; j < searchScope.length; j++) {
+								findType(searchScope[j], _this.message.query.type);
+							}
 						}
 
 						if (optionals[3]) {
@@ -1302,9 +1299,6 @@ function e() { console.log(Arguments); }
 							optional: true
 						}
 					], function(optionals) {
-						console.log(_this.message);
-						console.log(_this.message.options);
-						console.log(optionals);
 						generateItemId(function(id) {
 							var i;
 							var type = (_this.message.options.type === 'link' ||
@@ -1434,7 +1428,7 @@ function e() { console.log(Arguments); }
 					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
 						var parentChildren = _this.lookup(node.path, crmTree, true);
 						parentChildren.splice(node.path[node.path.length - 1], 1);
-						chrome.contextMenus.remove(contextMenuIds[node.id], function() {
+						window.chrome.contextMenus.remove(contextMenuIds[node.id], function() {
 							updateCrm(true);
 							_this.respondSuccess(true);
 						});
@@ -1503,7 +1497,7 @@ function e() { console.log(Arguments); }
 						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
 							node.onContentTypes[_this.message.index] = _this.message.value;
 							updateCrm(true);
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							window.chrome.contextMenus.update(contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function() {
 								updateCrm(true);
@@ -1530,7 +1524,7 @@ function e() { console.log(Arguments); }
 								}
 							}
 							node.onContentTypes = _this.message.contentTypes;
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							window.chrome.contextMenus.update(contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function() {
 								updateCrm(true);
@@ -1955,12 +1949,75 @@ function e() { console.log(Arguments); }
 	}
 
 	function crmHandler(message) {
+		// ReSharper disable once ConstructorCallNotUsed
 		new crmFunction(message, message.action);
 	}
 
-	window.chromeHandler = function(message) {
+	var fnInlineArgs = [];
+	fnInlineArgs[0] = [];
+
+	function createChromeInlineHandler(fn, args) {
+		return function () {
+			var fnArguments = [args];
+			for (var i = 0; i < arguments.length; i++) {
+				fnArguments[i + 1] = arguments[i];
+			}
+			fn.apply(window, fnArguments);
+		}
+	}
+
+	function createChromeFnCallbackHandler(message, callbackIndex) {
+		return function () {
+			var params = [];
+			for (var i = 0; i < arguments.length; i++) {
+				params[i] = arguments[i];
+			}
+			respondToCrmAPI(message, 'success', {
+				callbackId: callbackIndex,
+				params: params
+			});
+		}
+	}
+
+	function createChromeCallbackHandler(message, callbackIndex, inlineArgs) {
+		return function () {
+			var params = [];
+			for (var i = 0; i < arguments.length; i++) {
+				params[i] = arguments[i];
+			}
+			respondToCrmAPI(message, 'success', {
+				callbackId: callbackIndex,
+				params: [
+					{
+						APIArgs: params,
+						fnInlineArgs: inlineArgs
+					}
+				]
+			});
+		}
+	}
+
+	function createReturnFunction(message, callbackIndex, inlineArgs) {
+		return function (result) {
+			respondToCrmAPI(message, 'success', {
+				callbackId: callbackIndex,
+				params: [
+					{
+						APIVal: result,
+						fnInlineArgs: inlineArgs
+					}
+				]
+			});
+		}
+	}
+
+	function chromeHandler(message) {
 		var node = crmById[message.id];
-		var apiPermission = message.api.split('[')[0].split('.')[0];
+		if (!/[a-z|A-Z|0-9]*/.test(message.api)) {
+			throwChromeError(message, 'Passed API "' + message.api + '" is not alphanumeric.');
+			return false;
+		}
+		var apiPermission = message.api.split('.')[0];
 		if (!node.isLocal) {
 			var chromeFound = (node.permissions.indexOf('chrome') !== -1);
 			var apiFound = (node.permissions.indexOf(apiPermission) !== -1);
@@ -1974,31 +2031,56 @@ function e() { console.log(Arguments); }
 				throwChromeError(message, 'Permission ' + apiPermission + ' not avilable to this script');
 				return false;
 			}
-		} else {
-			var params = message.args.join(', ');
-			if (permissions.indexOf(api) !== -1) {
-				if (availablePermissions.indexOf(apiPermission) !== -1) {
-					try {
-						var result = sandbox('result = chrome.' + message.apiPermission + '(' + params + ')');
-						if (message.onFinish) {
-							respondToCrmAPI(message, 'success', result);
-						}
-					} catch (e) {
-						throwChromeError(message, e);
-					}
-				} else {
-					throwChromeError(message, 'Permissions ' + apiPermission + ' not available to the extension, visit options page');
-					window.chrome.storage.sync.get('requestPermissions', function(keys) {
-						var perms = keys.requestPermissions || [apiPermission];
-						window.chrome.storage.sync.set({
-							requestPermissions: perms
-						});
-					});
-				}
-			} else {
-				throwChromeError(message, 'Permissions ' + apiPermission + ' is not available for use or does not exist.');
+		}
+		if (permissions.indexOf(apiPermission) === -1) {
+			throwChromeError(message, 'Permissions ' + apiPermission + ' is not available for use or does not exist.');
+			return false;
+		}
+		if (availablePermissions.indexOf(apiPermission) === -1) {
+			throwChromeError(message, 'Permissions ' + apiPermission + ' not available to the extension, visit options page');
+			window.chrome.storage.sync.get('requestPermissions', function(storageData) {
+				var perms = storageData.requestPermissions || [apiPermission];
+				window.chrome.storage.sync.set({
+					requestPermissions: perms
+				});
+			});
+			return false;
+		}
+
+		var i;
+		var params = [];
+		var inlineArgs = [];
+		var returnFunctions = [];
+		for (i = 0; i < message.args.length; i++) {
+			switch (message.args[i].type) {
+				case 'arg':
+					params.push(jsonFn.parse(message.args[i].val));
+					break;
+				case 'fnInline':
+					inlineArgs.push(message.args[i].args);
+					params.push(createChromeInlineHandler(message.args[i].fn, message.args[i].args));
+					break;
+				case 'fnCallback':
+					params.push(createChromeFnCallbackHandler(message, message.args[i].val));
+					break;
+				case 'cb':
+					params.push(createChromeCallbackHandler(message, message.args[i].val, inlineArgs));
+					break;
+				case 'return':
+					returnFunctions.push(createReturnFunction(message, message.args[i].val, inlineArgs));
+					break;
 			}
 		}
+
+		try {
+			var result = sandbox(message.api, params);
+			for (i = 0; i < returnFunctions.length; i++) {
+				returnFunctions[i](result);
+			}
+		} catch (e) {
+			throwChromeError(message, e.message, e.stack);
+		}
+		return true;
 	}
 
 	function handleUpdateMessage(message) {
@@ -2023,8 +2105,8 @@ function e() { console.log(Arguments); }
 			case 'crm':
 				crmHandler(message);
 				break;
-			case 'routeChrome':
-				
+			case 'chrome':
+				chromeHandler(message);
 				break;
 			}
 		}
@@ -2051,12 +2133,13 @@ function e() { console.log(Arguments); }
 	function main() {
 		window.chrome.storage.sync.get(function(data) {
 			storageSync = data;
-			window.chrome.storage.local.get(function(locals) {
+			window.chrome.storage.local.get(function (locals) {
+				refreshPermissions();
 				storageLocal = locals;
 				crmTree = data.crm;
 				safeTree = buildSafeTree(data.crm);
 				buildByIdObjects(data.crm);
-				chrome.runtime.onConnect.addListener(function(port) {
+				window.chrome.runtime.onConnect.addListener(function(port) {
 					port.onMessage.addListener(createHandlerFunction(port));
 				});
 				buildPageCRM();
