@@ -12,12 +12,12 @@ function isNotSet(value) {
 	return value === undefined || value === null;
 }
 
-function runOrAddAsCallback(toRun, thisElement) {
+function runOrAddAsCallback(toRun, thisElement, params) {
 	if (window.options.settings) {
-		toRun.apply(thisElement);
+		toRun.apply(thisElement, params);
 	}
 	else {
-		window.options.addSettingsReadyCallback(toRun, thisElement);
+		window.options.addSettingsReadyCallback(toRun, thisElement, params);
 	}
 }
 
@@ -263,6 +263,7 @@ function setupFirstTime() {
  * @returns {} 
  */
 function checkArray(toCheck) {
+	var i;
 	var changes = false;
 	var result;
 	toCheck.map(function (item, index) {
@@ -331,6 +332,10 @@ function checkArray(toCheck) {
 				}
 			}
 			//TODO check other data types
+			/*For script:
+			 * 
+			 * script itself, libraries, launchMode, contentTypes
+			 */
 		}
 		if (isNotSet(item.index)) {
 			changes = true;
@@ -370,7 +375,8 @@ function checkSettings(settings) {
 							value: 'http://www.example.com',
 							newTab: true
 						}
-					]
+					],
+					onContentTypes: [true, false, false, false, false, false]
 				}
 			];
 		} else {
@@ -383,7 +389,7 @@ function checkSettings(settings) {
 
 		if (changes) {
 			options.settings = settings;
-			//options.upload();
+			options.upload();
 		}
 	} else {
 		setupFirstTime();
@@ -517,7 +523,117 @@ Polymer({
 			type: Array,
 			value: [],
 			notify: true
+		},
+		crmTypes: Array
+	},
+
+	switchToIcons: function (indexes) {
+		var i;
+		var element;
+		var crmTypes = document.querySelectorAll('.crmType');
+		for (i = 0; i < 6; i++) {
+			if (indexes[i]) {
+				element = crmTypes[i];
+				element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+				element.classList.add('toggled');
+
+				if (indexes[i] === 5) {
+					$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
+				} else {
+					$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
+				}
+			}
 		}
+		this.crmTypes = indexes;
+		this.fire('crmTypeChanged', {});
+	},
+
+	iconSwitch: function (e) {
+		var index = 0;
+		var path = e.path[index];
+		while (!path.classList.contains('crmType')) {
+			index++;
+			path = e.path[index];
+		}
+
+		var crmEl;
+		var element = path;
+		var selectedTypes = options.crmTypes;
+		var crmTypes = document.querySelectorAll('.crmType');
+		for (var i = 0; i < 6; i++) {
+			crmEl = crmTypes.item(i);
+			if (crmEl === element) {
+				crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+				crmEl.style.backgroundColor = 'rgb(243,243,243)';
+				crmEl.classList.add('toggled');
+
+				if (i === 5) {
+					$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(crmEl);
+				} else {
+					$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
+				}
+
+				selectedTypes[i] = true;
+			} else {
+				//Drop an element for some magic
+				crmEl.style.boxShadow = 'none';
+				crmEl.style.backgroundColor = 'white';
+				crmEl.classList.remove('toggled');
+
+				$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
+
+				selectedTypes[i] = false;
+			}
+		}
+		chrome.storage.local.set({
+			selectedCrmTypes: selectedTypes
+		});
+		this.crmTypes = selectedTypes;
+		this.fire('crmTypeChanged', {});
+	},
+
+	toggleToolsRibbon: function() {
+		if (window.options.settings.hideToolsRibbon) {
+			$(window.doc.editorToolsRibbonContainer).animate({
+				marginLeft: '-200px'
+			}, 250);
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+		} else {
+			$(window.doc.editorToolsRibbonContainer).animate({
+				marginLeft: 0
+			}, 250);
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
+		}
+		window.options.settings.hideToolsRibbon = !window.options.settings.hideToolsRibbon;
+		chrome.storage.sync.set({
+			hideToolsRibbon: window.options.settings.hideToolsRibbon
+		});
+	},
+
+	toggleShrinkTitleRibbon: function() {
+		if (window.options.settings.shrinkTitleRibbon) {
+			$(window.doc.editorTitleRibbon).animate({
+				fontSize: '100%'
+			}, 250);
+			$(window.doc.editorCurrentScriptTitle).animate({
+				paddingTop: '4px',
+				paddingBottom: '4px'
+			}, 250);
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+		} else {
+			$(window.doc.editorTitleRibbon).animate({
+				fontSize: '40%'
+			}, 250);
+			$(window.doc.editorCurrentScriptTitle).animate({
+				paddingTop: 0,
+				paddingBottom: 0
+			}, 250);
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+		}
+		window.options.settings.shrinkTitleRibbon = !window.options.settings.shrinkTitleRibbon;
+		chrome.storage.sync.set({
+			shrinkTitleRibbon: window.options.settings.shrinkTitleRibbon
+		});
 	},
 
 	launchSearchWebsiteTool: function () {
@@ -545,23 +661,28 @@ Polymer({
 		window.doc.cssEditorInfoDialog.open();
 	},
 
-	addSettingsReadyCallback: function(callback, thisElement) {
+	addSettingsReadyCallback: function(callback, thisElement, params) {
 		this.onSettingsReadyCallbacks.push({
 			callback: callback,
-			thisElement: thisElement
+			thisElement: thisElement,
+			params: params
 		});
 	},
 
 	/**
 	 * Uploads this object to chrome.storage
 	 */
-	upload: function(errorCallback) {
+	upload: function (errorCallback) {
 		window.storage.set(this.settings, function() {
 			if (chrome.runtime.lastError) {
-				errorCallback(chrome.runtime.lastError);
+				errorCallback && errorCallback(chrome.runtime.lastError);
+			} else {
+				chrome.runtime.sendMessage({
+					type: 'updateContextMenu'
+				});
 			}
 		});
-		buildContextMenu();
+		//buildContextMenu();
 	},
 
 	bindListeners: function() {
@@ -657,6 +778,8 @@ Polymer({
 
 				//TODO no cancel on clicking
 
+				//TODO "show/hide", "show/hide on given sites"
+
 				var stopHighlighting = function(crmItem) {
 					$(crmItem).find('.item')[0].animate([
 						{
@@ -720,6 +843,10 @@ Polymer({
 					window.doc.restoreChangesDialog.close();
 					$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
 					$('edit-crm-item').find('.item').css('opacity', 0.6);
+
+					//Check if it's visible in the current crmType
+					//HIERZO
+
 					setTimeout(function() {
 						if (editingObj.crmPath.length === 1) {
 							//Always visible
@@ -939,7 +1066,7 @@ Polymer({
 					}
 					//if (other.animation) {
 					//	other.animation.reverse();
-					//} else {
+					//} else { 
 					//	var newHeight = other.scrollHeight + 'px';
 					//	console.log(newHeight);
 					//	other.animation = other.animate([
@@ -969,7 +1096,7 @@ Polymer({
 		function callback(items) {
 			_this.settings = items;
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement);
+				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 			}
 			if (items.requestPermissions && items.requestPermissions.length > 0) {
 				_this.requestPermissions(items.requestPermissions);
@@ -979,9 +1106,9 @@ Polymer({
 		}
 
 		this.bindListeners();
-		chrome.storage.local.get(function (items) {
+		chrome.storage.local.get(function(items) {
 			if (items.editing) {
-				setTimeout(function () {
+				setTimeout(function() {
 					//Check out if the code is actually different
 					var node = _this.crm.lookup(items.editing.crmPath).value;
 					var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
@@ -993,6 +1120,16 @@ Polymer({
 						});
 					}
 				}, 2500);
+			}
+			if (items.selectedCrmTypes !== undefined) {
+				options.crmTypes = items.selectedCrmTypes;
+				_this.switchToIcons(items.selectedCrmTypes);
+			} else {
+				chrome.storage.local.set({
+					selectedCrmTypes: [true, false, false, false, false, false]
+				});
+				options.crmTypes = [true, false, false, false, false, false];
+				_this.switchToIcons([true, false, false, false, false, false]);
 			}
 			if (items.jsLintGlobals) {
 				window.options.jsLintGlobals = items.jsLintGlobals;
@@ -1023,17 +1160,25 @@ Polymer({
 	 * CRM functions.
 	 */
 	crm: {
-		lookup: function(path, returnArray) {
-			var obj = options.settings.crm;
-			var i;
-			for (i = 0; i < path.length - 1; i++) {
-				if (options.settings.shadowStart && obj[path[i]].menuVal) {
-					obj = obj[path[i]].menuVal;
-				} else {
-					obj = obj[path[i]].children;
-				}
+		_getEvalPath: function (path) {
+			return 'window.options.settings.crm[' + (path.join('].children[')) + ']';
+		},
+
+		lookup: function (path, returnArray) {
+			var pathCopy = JSON.parse(JSON.stringify(path));
+			if (returnArray) {
+				pathCopy.splice(pathCopy.length - 1, 1);
 			}
-			return (returnArray ? obj : obj[path[i]]);
+			var evalPath = this._getEvalPath(pathCopy);
+			var result = eval(evalPath);
+			return (returnArray ? result.children : result);
+		},
+
+		setDataInCrm: function (path) {
+			var evalPath = this._getEvalPath(path);
+			return function (key, data) {
+				eval(evalPath + '[key] = data');
+			}
 		},
 
 		/**
