@@ -330,7 +330,7 @@ Polymer({
 	},
 
 	openMenu: function () {
-		options.editCRM.build(this.item.path);
+		options.editCRM.build(this.item.path, false, true);
 	},
 
 	menuMouseOver: function () {
@@ -601,6 +601,7 @@ Polymer({
 		if ($prev) {
 			//A previous item exists, newpath is that path with + 1 on the last index
 			newPath = $prev.item.path;
+			//TODO PLS REWRITE
 			newPath[newPath.length - 1] += 1;
 		}
 		else if ($next) {
@@ -637,11 +638,11 @@ Polymer({
 	openEditPage: function (e) {
 		if (!this.shadow && !window.options.item) {
 			var path = e.path;
-			var item = path[0];
-			for (var i = 0; i < path.length && item.tagName !== 'EDIT-CRM-ITEM'; i++) {
-				item = path[i];
+			var element = path[0];
+			for (var i = 0; i < path.length && element.tagName !== 'EDIT-CRM-ITEM'; i++) {
+				element = path[i];
 			}
-			item = item.item;
+			var item = window.options.crm.lookup(element.item.path);
 			window.options.item = item;
 			if (item.type === 'script') {
 				window.options.stylesheetItem = {};
