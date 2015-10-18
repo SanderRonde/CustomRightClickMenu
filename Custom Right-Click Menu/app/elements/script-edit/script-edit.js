@@ -3,7 +3,7 @@
 
 	//#region PolymerProperties
 	/**
-	* AN interval to save any work not discarder or saved (say if your browser/pc crashes)
+	* An interval to save any work not discarder or saved (say if your browser/pc crashes)
 	* 
 	* @attribute savingInterval
 	* @type Object
@@ -101,6 +101,15 @@
 	showTriggers: false,
 
 	/**
+     * Whether to show the section that allows you to choose on which content to show this
+     * 
+     * @attribute showContentTypeChooser
+     * @type Boolean
+     * @default false
+     */
+	showContentTypeChooser: false,
+
+	/**
      * Whether the options are shown
      * 
      * @attribute optionsShown
@@ -135,15 +144,6 @@
      * @default null
      */
 	settingsShadow: null,
-
-	/**
-     * The new settings object, to be written on save
-     * 
-     * @attribute newSettings
-     * @type Object
-     * @default {}
-     */
-	newSettings: {},
 
 	/**
      * The editor's settings before going to the settings page
@@ -182,32 +182,86 @@
 	 */
 	optionsAnimations: [],
 
-	/**
-	 * The dropdown to right animation
-	 *
-	 * @attribute dropdownToRightAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	dropdownToRightAnimation: null,
-
-	/**
-	 * The dropdown to top animation
-	 *
-	 * @attribute dropdownToTopAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	dropdownToTopAnimation: null,
-
-	/**
-	 * The animation for the editor's placeholder
-	 *
-	 * @attribute editorPlaceHolderAnimation
-	 * @type Animation
-	 * @default null
-	 */
-	editorPlaceHolderAnimation: null,
+	properties: {
+		/**
+		* The new settings object, to be written on save
+		* 
+		* @attribute newSettings
+		* @type Object
+		* @default {}
+		*/
+		newSettings: {
+			type: Object,
+			notify: true,
+			value: {}
+		},
+		/**
+		* Whether the indicator for content type "page" should be selected
+		* 
+		* @attribute pageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		pageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "link" should be selected
+		* 
+		* @attribute linkContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		linkContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "selection" should be selected
+		* 
+		* @attribute selectionContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		selectionContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "image" should be selected
+		* 
+		* @attribute imageContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		imageContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "video" should be selected
+		* 
+		* @attribute videoContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		videoContentSelected: {
+			type: Object,
+			notify: true
+		},
+		/**
+		* Whether the indicator for content type "audio" should be selected
+		* 
+		* @attribute audioContentSelected
+		* @type Boolean
+		* @default false
+		*/
+		audioContentSelected: {
+			type: Object,
+			notify: true
+		}
+	},
 	//#endregion
 
 	//#endregion
@@ -218,7 +272,7 @@
 		});
 	},
 
-	cancelChanges: function () {
+	cancelChanges: function() {
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
@@ -231,23 +285,97 @@
 		for (var i = 0; i < inputs.length; i++) {
 			triggers[i] = inputs[i].value;
 		}
-		this.newSettings.value.triggers = triggers;
+		this.newSettings.triggers = triggers;
 	},
 
-	saveChanges: function () {
+	getContentTypeLaunchers: function () {
+		var i;
+		var result = [];
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			result[i] = this[arr[i] + 'ContentSelected'];
+		}
+		console.log(result);
+		this.newSettings.onContentTypes = result;
+	},
+
+	saveChanges: function() {
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
 		var lookedUp = window.options.crm.lookup(this.item.path, true);
+		this.getContentTypeLaunchers();
 		this.getTriggers();
 		window.crmEditPage.animateOut();
 		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var node = lookedUp[lastPathIndex];
-		if (node.name !== this.newSettings.name) {
-			$($('#mainCont').children('.CRMEditColumnCont')[this.item.path.length - 1]).children('.CRMEditColumn').children('edit-crm-item')[lastPathIndex].name = this.newSettings.name;
+		var itemInEditPage = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
+		itemInEditPage.item = this.newSettings;
+		itemInEditPage.name = this.newSettings.name;
+		var i;
+		for (i = 0; i < window.options.crmTypes.length; i++) {
+			if (window.options.crmTypes[i]) {
+				break;
+			}
+		}
+		if (this.newSettings.value.launchMode !== 0) {
+			this.newSettings.onContentTypes = [true, true, true, true, true, true];
+		} else {
+			if (!this.newSettings.onContentTypes[i]) {
+				window.options.editCRM.build(window.options.editCRM.setMenus);
+			}
 		}
 		lookedUp[lastPathIndex] = this.newSettings;
 		options.upload();
+	},
+
+	assignContentTypeSelectedValues: function() {
+		var i;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
+		}
+	},
+
+	checkToggledIconAmount: function (e) {
+		var i;
+		var toggledAmount = 0;
+		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (i = 0; i < 6; i++) {
+			if (window.scriptEdit[arr[i] + 'ContentSelected']) {
+				if (toggledAmount === 1) {
+					return true;
+				}
+				toggledAmount++;
+			}
+		}
+		if (!toggledAmount) {
+			var index = 0;
+			var element = e.path[0];
+			while (element.tagName !== 'PAPER-CHECKBOX') {
+				index++;
+				element = e.path[index];
+			}
+			element.checked = true;
+			window.scriptEdit[element.parentNode.classList[1].split('Type')[0] + 'ContentSelected'] = true;
+			window.doc.contentTypeToast.show();
+		}
+		return false;
+	},
+
+	toggleIcon: function(e) {
+		var index = 0;
+		var element = e.path[0];
+		while (!element.classList.contains('showOnContentItemCont')) {
+			index++;
+			element = e.path[index];
+		}
+		var checkbox = $(element).find('paper-checkbox')[0];
+		checkbox.checked = !checkbox.checked;
+		if (!checkbox.checked) {
+			window.scriptEdit.checkToggledIconAmount({
+				path: [checkbox]
+			});
+		}
 	},
 
 	/*
@@ -275,7 +403,7 @@
 	 */
 	addTrigger: function() {
 		var _this = this;
-		var newEl = $('<div class="executionTrigger"><paper-input class="triggerInput" value="example.com"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
+		var newEl = $('<div class="executionTrigger"><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
 		newEl.find('paper-icon-button').click(function(e) {
 			_this.clearTrigger.apply(_this, [e]);
 		});
@@ -291,7 +419,7 @@
 	 * @param {element} _this The scriptEdit element/object
 	 * @param {string} snippet - The snippet to be pasted
 	 */
-	insertSnippet: function (_this, snippet) {
+	insertSnippet: function(_this, snippet) {
 		this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
 	},
 
@@ -299,11 +427,11 @@
 	 * Fills the editor-tools-ribbon on the left of the editor with elements
 	 * @param {element} The - ribbon element to fill
 	 */
-	initToolsRibbon: function () {
+	initToolsRibbon: function() {
 		var _this = this;
 		window.options.$.paperLibrariesSelector.init();
 		window.options.$.paperGetPageProperties.init();
-		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function (snippet) {
+		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function(snippet) {
 			_this.insertSnippet(_this, snippet.snippet);
 		});
 		//Use CRMAPI
@@ -315,44 +443,52 @@
 	popInRibbons: function() {
 		//Introduce title at the top
 		var scriptTitle = window.options.$.editorCurrentScriptTitle;
-		scriptTitle.style.display = 'block';
+		var titleRibbonSize;
+		if (options.settings.shrinkTitleRibbon) {
+			window.doc.editorTitleRibbon.style.fontSize = '40%';
+			scriptTitle.style.padding = 0;
+			titleRibbonSize = '-18px';
+		} else {
+			titleRibbonSize = '-51px';
+		}
+		scriptTitle.style.display = 'flex';
+		scriptTitle.style.marginTop = titleRibbonSize;
 		var scriptTitleAnimation = [
 			{
-				marginTop: '-51px'
+				marginTop: titleRibbonSize
 			}, {
 				marginTop: 0
 			}
 		];
-		if (window.options.settings.editor.showToolsRibbon) {
-			scriptTitle.style.marginLeft = '-200px';
-			scriptTitleAnimation[0].marginLeft = '-200px';
-			scriptTitleAnimation[1].marginLeft = 0;
+		var margin = (options.settings.hideToolsRibbon ? 0 : '-200px');
+		scriptTitle.style.marginLeft = '-200px';
+		scriptTitleAnimation[0].marginLeft = '-200px';
+		scriptTitleAnimation[1].marginLeft = 0;
 
-			this.initToolsRibbon();
-			setTimeout(function () {
-				window.doc.editorToolsRibbon.style.display = 'block';
-				window.doc.editorToolsRibbon.animate([
-					{
-						marginLeft: '-200px'
-					}, {
-						marginLeft: 0
-					}
-				], {
-					duration: 500,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-				}).onfinish = function() {
-					window.doc.editorToolsRibbon.style.marginLeft = 0;
-					window.doc.editorToolsRibbon.classList.add('visible');
-				};
-			}, 200);
-		}
-		setTimeout(function () {
+		this.initToolsRibbon();
+		setTimeout(function() {
+			window.doc.editorToolsRibbonContainer.style.display = 'flex';
+			window.doc.editorToolsRibbonContainer.animate([
+				{
+					marginLeft: '-200px'
+				}, {
+					marginLeft: margin
+				}
+			], {
+				duration: 500,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function() {
+				window.doc.editorToolsRibbonContainer.style.marginLeft = margin;
+				window.doc.editorToolsRibbonContainer.classList.add('visible');
+			};
+		}, 200);
+		setTimeout(function() {
 			$(window.doc.dummy).animate({
 				height: '50px'
 			}, {
 				duration: 500,
-				easing: $.bez([0.215,0.610,0.355,1.000]),
-				step: function (now) {
+				easing: $.bez([0.215, 0.610, 0.355, 1.000]),
+				step: function(now) {
 					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
 				}
 			});
@@ -372,8 +508,8 @@
 	 * Pops in only the tools ribbon
 	 */
 	popInToolsRibbon: function() {
-		window.doc.editorToolsRibbon.style.display = 'block';
-		window.doc.editorToolsRibbon.animate([
+		window.doc.editorToolsRibbonContainer.style.display = 'flex';
+		window.doc.editorToolsRibbonContainer.animate([
 			{
 				marginLeft: '-200px'
 			}, {
@@ -390,8 +526,8 @@
 	/*
 	 * Pops out only the tools ribbon
 	 */
-	popOutToolsRibbon: function () {
-		$('#editorToolsRibbon')[0].animate([
+	popOutToolsRibbon: function() {
+		window.doc.editorToolsRibbonContainer.animate([
 			{
 				marginLeft: 0
 			}, {
@@ -411,7 +547,7 @@
 	 */
 	popOutRibbons: function() {
 		var scriptTitle = window.options.$.editorCurrentScriptTitle;
-		var toolsRibbon = window.options.$.editorToolsRibbon;
+		var toolsRibbon = window.options.$.editorToolsRibbonContainer;
 		if (window.options.settings.editor.showToolsRibbon && toolsRibbon && toolsRibbon.classList.contains('visible')) {
 			scriptTitle.animate([
 				{
@@ -437,13 +573,12 @@
 			], {
 				duration: 800,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function () {
+			}).onfinish = function() {
 				scriptTitle.style.display = 'none';
 				toolsRibbon.style.display = 'none';
 				toolsRibbon.style.marginLeft = '-200px';
 			};
-		}
-		else {
+		} else {
 			window.doc.dummy.style.height = '50px';
 			$(window.doc.dummy).animate({
 				height: 0
@@ -497,6 +632,34 @@
 		var $horizontalCenterer = $('#horizontalCenterer');
 		var viewportWidth = $horizontalCenterer.width();
 		var viewPortHeight = $horizontalCenterer.height();
+
+		if (options.settings.hideToolsRibbon !== undefined) {
+			if (options.settings.hideToolsRibbon) {
+				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
+			} else {
+				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+			}
+		} else {
+			chrome.storage.sync.set({
+				hideToolsRibbon: false
+			});
+			options.settings.hideToolsRibbon = false;
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+		}
+		if (options.settings.shrinkTitleRibbon !== undefined) {
+			if (options.settings.shrinkTitleRibbon) {
+				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+			} else {
+				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+			}
+		} else {
+			chrome.storage.sync.set({
+				shrinkTitleRibbon: false
+			});
+			options.settings.shrinkTitleRibbon = false;
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)'
+		}
+
 
 		$editorWrapper[0].style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
@@ -660,108 +823,96 @@
 	 */
 	selectorStateChange: function(state) {
 		var _this = this;
-		var show = (state === 2 || state === '2');
-		if (show !== this.showTriggers) {
-			var element = $(this.$.executionTriggersContainer);
-			var domElement = element[0];
-			var originalHeight = element.height();
-			if (show) {
-				domElement.style.height = 'auto';
-				domElement.style.display = 'block';
+		var showContentTypeChooser = (state === 0);
+		var showTriggers = (state === 2);
+		var triggersElement = this.$.executionTriggersContainer;
+		var $triggersElement = $(triggersElement);
+		var contentTypeChooserElement = this.$.showOnContentContainer;
+		var $contentTypeChooserElement = $(contentTypeChooserElement);
+		var triggersHeight;
+		var contentTypeHeight;
 
-				if (this.dropdownToTopAnimation) {
-					this.dropdownToTopAnimation.show = true;
-					this.dropdownToRightAnimation.hide = false;
-					this.dropdownToTopAnimation.reverse();
-				}
-				else {
-					this.dropdownToTopAnimation = domElement.animate([
-						{
-							height: 0
-						}, {
-							height: originalHeight
-						}
-					], {
-						duration: 300,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
-					});
-					setTimeout(function() {
-						_this.dropdownToRightAnimation = domElement.animate([
-							{
-								marginLeft: '-110%'
-							}, {
-								marginLeft: 0
-							}
-						], {
-							duration: 200,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-						setTimeout(function() {
-							_this.dropdownToRightAnimation.onfinish = function () {
-								if (this.hide) {
-									_this.dropdownToTopAnimation.reverse();
-								}
-							};
-							_this.dropdownToTopAnimation.onfinish = function () {
-								if (this.show) {
-									_this.dropdownToRightAnimation.reverse();
-								}
-							}
-							_this.dropdownToTopAnimation.show = true;
-							_this.dropdownToTopAnimation.hide = false;
-						}, 200);
-					}, 300);
-				}
+		function animateTriggers(callback) {
+			triggersElement.style.height = 'auto';
+			triggersHeight = triggersHeight || $triggersElement.height();
+			if (showTriggers) {
+				triggersElement.style.display = 'block';
+				triggersElement.style.marginLeft = '-110%';
+				triggersElement.style.height = 0;
+				$triggersElement.animate({
+					height: triggersHeight
+				}, 300, function() {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, callback);
+				});
 			} else {
-				if (this.dropdownToTopAnimation) {
-					this.dropdownToRightAnimation.hide = true;
-					this.dropdownToTopAnimation.show = false;
-					this.dropdownToRightAnimation.reverse();
-				}
-				else {
-					this.dropdownToRightAnimation = domElement.animate([
-						{
-							marginLeft: 0
-						}, {
-							marginLeft: '-110%'
-						}
-					], {
-						duration: 200,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
+				triggersElement.style.marginLeft = 0;
+				triggersElement.style.height = triggersHeight;
+				$triggersElement.animate({
+					marginLeft: '-110%'
+				}, 200, function() {
+					$(this).animate({
+						height: 0
+					}, 300, function() {
+						triggersElement.style.display = 'none';
+						callback && callback();
 					});
-					setTimeout(function() {
-						_this.dropdownToTopAnimation = domElement.animate([
-							{
-								height: originalHeight
-							}, {
-								height: 0
-							}
-						], {
-							duration: 300,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-						setTimeout(function() {
-							_this.dropdownToTopAnimation.hide = true;
-							_this.dropdownToTopAnimation.show = false;
-							_this.dropdownToTopAnimation.onfinish = function() {
-								if (this.show) {
-									_this.dropdownToRightAnimation.reverse();
-								}
-							}
-							_this.dropdownToRightAnimation.onfinish = function () {
-								if (this.hide) {
-									_this.dropdownToTopAnimation.reverse();
-								}
-							};
-						}, 300);
-					}, 200);
-				}
+				});
 			}
-			_this.showTriggers = show;
+			_this.showTriggers = showTriggers;
+		}
+
+		function animateContentTypeChooser(callback) {
+			contentTypeChooserElement.style.height = 'auto';
+			contentTypeHeight = contentTypeHeight || $contentTypeChooserElement.height();
+			if (showContentTypeChooser) {
+				contentTypeChooserElement.style.height = 0;
+				contentTypeChooserElement.style.display = 'block';
+				contentTypeChooserElement.style.marginLeft = '-110%';
+				$contentTypeChooserElement.animate({
+					height: contentTypeHeight
+				}, 300, function() {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, callback);
+				});
+			} else {
+				contentTypeChooserElement.style.marginLeft = 0;
+				contentTypeChooserElement.style.height = contentTypeHeight;
+				$contentTypeChooserElement.animate({
+					marginLeft: '-110%'
+				}, 200, function() {
+					$(this).animate({
+						height: 0
+					}, 300, function() {
+						contentTypeChooserElement.style.display = 'none';
+						callback && callback();
+					});
+				});
+			}
+			_this.showContentTypeChooser = showContentTypeChooser;
+		}
+
+		if (state === 0) {
+			//Triggers is still shown, first animate that out
+			if (this.showTriggers) {
+				animateTriggers(animateContentTypeChooser);
+			} else {
+				animateContentTypeChooser();
+			}
+		} else if (state === 1) {
+			if (this.showTriggers) {
+				animateTriggers();
+			} else if (this.showContentTypeChooser) {
+				animateContentTypeChooser();
+			}
+		} else if (state === 2) {
+			if (this.showContentTypeChooser) {
+				animateContentTypeChooser(animateTriggers);
+			} else {
+				animateTriggers();
+			}
 		}
 	},
 
@@ -848,7 +999,8 @@
 			'Editor zoom percentage:' +
 			'</div>').appendTo(settingsContainer);
 
-		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"></paper-input>').on('keypress change', function() {
+			//TODO IMPLEMENT THIS WITH NEW PAPER-INPUT VERSION
+		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('keypress change', function() {
 			var _this = this;
 			setTimeout(function() {
 				window.options.settings.editor.zoom = _this.value;
@@ -962,6 +1114,7 @@
 	cmLoaded: function(element) {
 		var _this = this;
 		this.editor = element;
+		element.refresh();
 		element.display.wrapper.classList.add('script-edit-codeMirror');
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
@@ -1036,8 +1189,36 @@
 		});
 	},
 
+	initDropdown: function() {
+		if ((this.showTriggers = (this.item.value.launchMode > 1))) {
+			this.$.executionTriggersContainer.style.display = 'block';
+			this.$.executionTriggersContainer.style.marginLeft = 0;
+			this.$.executionTriggersContainer.style.height = 'auto';
+		} else {
+			this.$.executionTriggersContainer.style.display = 'none';
+			this.$.executionTriggersContainer.style.marginLeft = '-110%';
+			this.$.executionTriggersContainer.style.height = 0;
+		}
+		if ((this.showContentTypeChooser = (this.item.value.launchMode === 0))) {
+			this.$.showOnContentContainer.style.display = 'block';
+			this.$.showOnContentContainer.style.marginLeft = 0;
+			this.$.showOnContentContainer.style.height = 'auto';
+		} else {
+			this.$.showOnContentContainer.style.display = 'none';
+			this.$.showOnContentContainer.style.marginLeft = '-110%';
+			this.$.showOnContentContainer.style.height = 0;
+		}
+		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
+		if (this.editor) {
+			this.editor.display.wrapper.remove();
+			this.editor = null;
+		}
+	},
+
 	init: function () {
 		var _this = this;
+		this.$.dropdownMenu.init();
+		this.initDropdown();
 		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
 			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 		});
@@ -1047,12 +1228,6 @@
 		window.scriptEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
-		this.$.executionTriggersContainer.style.display = (this.showTriggers = (this.item.value.launchMode === 2 || this.item.launchMode === '2') ? 'block' : 'none');
-		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
-		if (this.editor) {
-			this.editor.display.wrapper.remove();
-			this.editor = null;
-		}
 		window.externalEditor.init();
 		chrome.storage.local.set({
 			editing: {
@@ -1060,6 +1235,7 @@
 				crmPath: this.item.path
 			}
 		});
+		this.assignContentTypeSelectedValues();
 		this.savingInterval = window.setInterval(function() {
 			if (_this.active) {
 				//Save
@@ -1084,6 +1260,6 @@
 		this.active = true;
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
-		}, 1250);
+		}, 750);
 	}
 });
