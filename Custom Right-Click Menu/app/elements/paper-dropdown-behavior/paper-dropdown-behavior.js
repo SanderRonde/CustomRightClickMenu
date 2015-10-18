@@ -81,11 +81,19 @@
 	/*
 	 * Adds a listener that fires when a new value is selected
 	 */
-	_addListener: function(listener, thisArg) {
-		this._listeners.push({
-			listener: listener,
-			thisArg: thisArg
-		});
+	_addListener: function (listener, thisArg) {
+		var found = false;
+		for (var i = 0; i < this._listeners.length; i++) {
+			if (this._listeners[i].listener === listener) {
+				found = true;
+			}
+		}
+		if (!found) {
+			this._listeners.push({
+				listener: listener,
+				thisArg: thisArg
+			});
+		}
 	},
 
 	/*
