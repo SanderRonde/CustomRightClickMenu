@@ -1,1 +1,96 @@
-﻿function dk(n){var t;return n.forEach(function(i,r){t=i*2;n[r]=t>99?t-99:t}),n}function ec(n,t){t=dk(t);n.verified=!0;n=JSON.stringify(n);for(var r=0,u=[],f=n.length,i=0;i<f;i++,r++)r>17&&(t=dk(t),r=0),u[i]=n.charCodeAt(i)+t[r];return u}function de(n,t){var e=[],f;t.forEach(function(n,t){e[t]=n});t=dk(t);for(var u=0,i=[],o=n.length,r=0;r<o;r++,u++)u>17&&(t=dk(t),u=0),i[r]=String.fromCharCode(n[r]-t[u]);i=i.join("");try{return(i=JSON.parse(i),f=!0,e.forEach(function(n,t){if(n!==i.secretKey[t])return console.log(n,i.secretKey[t]),f=!1,!1}),i.verified&&f)?i:!1}catch(s){return!1}}
+﻿function doubleKey(key) {
+	var result;
+	key.forEach(function (item) {
+		item = parseInt(item, 10);
+		console.log(item);
+		result = item * 2;
+		console.log(item);
+		return (result > 99 ? result - 100 : result);
+	});
+	console.log('doubled ', key);
+	return key;
+}
+
+function ec(target, key) {
+	var i;
+	var keys = [];
+	var newTarget = {};
+	for (key in target) {
+		if (target.hasOwnProperty(key)) {
+			keys.push({
+				key: key,
+				val: target[key]
+			});
+		}
+	}
+
+	var index;
+	target.verified = true;
+	var length = (keys.length * 2) - 2;
+
+	index = Math.round(Math.random() * keys.length - 1);
+	newTarget[keys[index].key] = keys[index].val;
+
+	for (i = 0; i < length; i++) {
+		newTarget[Math.round(Math.random() * 10000)] = Math.round(Math.random() * 10000);
+		index = Math.round(Math.random() * keys.length - 1);
+		newTarget[keys[index].key] = keys[index].val;
+	}
+
+	key = doubleKey(key);
+	target = JSON.stringify(newTarget);
+
+	var j = 0;
+	var charcodes = [];
+	length = target.length;
+	for (i = 0; i < length; i++, j++) {
+		if (j > 25) {
+			key = doubleKey(key);
+			j = 0;
+		}
+		charcodes[i] = target.charCodeAt(i) ^ key[j];
+	}
+	return charcodes;
+}
+
+function de(target, key) {
+	var keyCopy = [];
+	console.log(key);
+	key.forEach(function (item, index) {
+		keyCopy[index] = item;
+	});
+	key = keyCopy;
+	console.log(key);
+	key = doubleKey(key);
+	console.log(key);
+
+	var i;
+	var j = 0;
+	var results = [];
+	for (i = 0; i < target.length; i++, j++) {
+		if (j > 25) {
+			key = doubleKey(key);
+			j = 0;
+		}
+		results[i] = String.fromCharCode(target[i] ^ key[j]);
+	}
+	results = results.join('');
+	console.log(results);
+	try {
+		results = JSON.parse(results);
+		var equal = true;
+		keyCopy.forEach(function (item, index) {
+			if (item !== results.secretKey[index]) {
+				console.log(item, results.secretKey[index]);
+				equal = false;
+				return false;
+			}
+		});
+		if (results.verified && equal) {
+			return results;
+		}
+		return false;
+	} catch (e) {
+		return false;
+	}
+}
