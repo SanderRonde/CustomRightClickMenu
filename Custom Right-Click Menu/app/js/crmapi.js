@@ -1,32 +1,121 @@
 ///<reference path="eo.js"/>
-
 /** 
  * A class for constructing the CRM API
  * 
  * @class
  * @param {Object} item - The item currently being edited
  * @param {number} id - The id of the current item
- * @param {number} tabId - The id of the tab the script is currently running on
+ * @param {number} tabData - Any data about the tab the script is currently running on
  * @param {Object} clickData - Any data associated with clicking this item in the
  *		context menu, only available if launchMode is equal to 0 (on click)
  * @param {number[]} secretyKey - An array of integers, generated to keep downloaded 
  *		scripts from finding local scripts with more privilege and act as if they 
  *		are those scripts to run stuff you don't want it to.
- * @param {number} pingkey - The key used to send ping messages signaling this 
- *		script is still alive
  */
-function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
+function CrmAPIInit(item, id, tabData, clickData, secretKey) {
+
+	//Set crmAPI.stackTraces to false if you don't want stacktraces in your console, on by default
+	this.stackTraces = true;
+
+	//Set crmAPI.errors to false if you don't want crmAPI to throw errors upon failure, on by default
+	//If this is set to false errors will simply be put up as warnings
+	this.errors = true;
+
+	/**
+	* JSONfn - javascript (both node.js and browser) plugin to stringify, 
+	*          parse and clone objects with Functions, Regexp and Date.
+	*  
+	* Version - 0.60.00
+	* Copyright (c) 2012 - 2014 Vadim Kiryukhin
+	* vkiryukhin @ gmail.com
+	* http://www.eslinstructor.net/jsonfn/
+	* 
+	* Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
+	*/
+	var jsonFn = {};
+	jsonFn.stringify = function(obj) {
+		return JSON.stringify(obj, function(key, value) {
+			if (value instanceof Function || typeof value == 'function') {
+				return value.toString();
+			}
+			if (value instanceof RegExp) {
+				return '_PxEgEr_' + value;
+			}
+			return value;
+		});
+	};
+
 	var _this = this;
 
-	var msg = {
-		type: 'ping',
+	this.tabId = tabData.id;
+
+	var callInfo = {};
+
+	function getStackTrace(error) {
+		return error.stack.split('\n');
+	}
+
+	function createDeleterFunction(index) {
+		return function() {
+			delete callInfo[index];
+		}
+	}
+
+	function createCallback(callback, error) {
+		var index = 0;
+		while (callInfo[index]) {
+			index++;
+		}
+		callInfo[index] = {
+			callback: callback,
+			stackTrace: _this.stackTraces && getStackTrace(error)
+		};
+		setTimeout(createDeleterFunction(index), 15000);
+		return index;
+	}
+
+
+	//Connect to the background-page
+	var queue = [];
+	var sendMessage = function (message) {
+		queue.push(message);
+	}
+	var port = chrome.runtime.connect({
+		name: JSON.stringify(secretKey)
+	});
+
+
+	function handshakeFunction() {
+		sendMessage = function(message) {
+			if (message.onFinish) {
+				message.onFinish = createCallback(message.onFinish, new Error);
+			}
+			port.postMessage(message);
+		};
+
+		queue.forEach(function(message) {
+			sendMessage(message);
+		});
+		queue = null;
+	}
+	function callbackHandler(message) {
+		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
+		delete callInfo[message.callbackId];
+	}
+	function messageHandler(message) {
+		if (queue) {
+			handshakeFunction();
+		} else {
+			callbackHandler(message);
+		}
+	}
+	port.onMessage.addListener(messageHandler);
+	port.postMessage({
 		id: id,
-		pingKey: pingKey
-	};
-	chrome.runtime.sendMessage(msg);
-	window.setInterval(function() {
-		chrome.runtime.sendMessage(msg);
-	}, 30000);
+		key: secretKey,
+		tabId: _this.tabId
+	});
+
 
 	/**
 	 * Checks whether value matches given type and is defined and not null,
@@ -76,15 +165,8 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 
 	/*#region Storage*/
 	var storage = item.storage;
-	Object.defineProperty(this, 'storage', {
-		get: function() {
-			return storage;
-		},
-		configurable: false,
-		writable: false,
-		enumerable: true,
-		value: item.storage
-	});
+
+	this.storage = {};
 
 	var storageListeners = [];
 	var storagePrevious = {};
@@ -114,20 +196,19 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * Updates the storage to the background page
 	 */
 	function updateStorage() {
-		var message = {};
-		message.id = id;
-		message.msg = {
+		var message = {
 			id: id,
 			type: 'updateStorage',
 			storage: storage,
-			secretKey: secretKey,
-			tabId: tabId
+			tabId: _this.tabId,
+			update: true
 		};
-		message = window.ec(message, secretKey);
 
-		chrome.runtime.sendMessage(message);
+		sendMessage(message);
 		notifyChanges();
 	}
+
+	storage = storage || {};
 
 	/**
 	 * Gets the value at given key, if no key is given returns the entire storage object
@@ -266,72 +347,44 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * Gets the current text selection
 	 */
 	this.getSelection = function() {
-		return window.getSelection().toString();
+		return clickData.selectionText || window.getSelection().toString();
 	}
 
 	/*
 	 * All of the remaining functions in this region below this message will only work if your
 	 * script runs on clicking, not if your script runs automatically, in that case you will always
 	 * get undefined (except for the function above). For more info check out this page's onclick 
-	 * section https://developer.chrome.com/extensions/contextMenus#method-create
+	 * section (https://developer.chrome.com/extensions/contextMenus#method-create)
 	 */
 
-	/*
-	 * Gets the media type of the item you clicked on, 'image', 'video', or 'audio' or none of these
+	/**
+	 * Returns any data about the click on the page (https://developer.chrome.com/extensions/contextMenus#method-create)
+	 *		for more info of what can be returned.
+	 * 
+	 * @returns {object} An object containing any info about the page, some data may be undefined if it doesn't apply 
 	 */
-	this.getMediaType = function() {
-		return clickData.mediaType;
+	this.getClickInfo = function() {
+		return clickData;
 	}
 
-	/*
-	 * Gets the URL of the link you right-clicked on (if you did so at all)
+	/**
+	 * Gets any info about the current tab/window
+	 * 
+	 * @returns {Object} - An object of type tab (https://developer.chrome.com/extensions/tabs#type-Tab)
 	 */
-	this.getinkUrl = function() {
-		return clickData.linkUrl;
+	this.getTabInfo = function() {
+		return tabData;
 	}
 
-	/*
-	 * Gets the "src" attribute of the element you clicked on (if present)
+	/**
+	 * Gets the current node
+	 * 
+	 * @returns {Object} - The node that is being executed right now
 	 */
-	this.getSrcUrl = function() {
-		return clickData.srcUrl;
+	this.getNode = function() {
+		return item;
 	}
 
-	/*
-	 * Gets the URL of an iframe you rightclicked if you did
-	 */
-	this.getFrameUrl = function() {
-		return clickData.frameUrl;
-	}
-
-	/*
-	 * A boolean indicating whether the element you clicked is "editable"
-	 */
-	this.elementIsEditable = function() {
-		return clickData.editable || false;
-	}
-
-	/*
-	 * A boolean indicating the state of the checkbox or radio button BEFORE you clicked
-	 */
-	this.wasChecked = function() {
-		return clickData.wasChecked;
-	}
-
-	/*
-	 * A boolean indicating the state of the checkbox or radio button AFTER you clicked
-	 */
-	this.isChecked = function() {
-		return clickData.checked;
-	}
-
-	/*
-	 * Gets the info about the current tab, returns an object with this data
-	 * https://developer.chrome.com/extensions/tabs#type-Tab
-	 */
-	this.getTab = function() {
-		return clickData.tab;
-	}
 	/*#endregion*/
 
 	/*#region Changes in CRM*/
@@ -343,30 +396,35 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * @param {object} params - Any options or parameters
 	 */
 	function sendCrmMessage(action, callback, params) {
-		function onFinish(status, messageOrParams) {
+		function onFinish(status, messageOrParams, stackTrace) {
 			if (status === 'error') {
 				_this.onError && _this.onError(messageOrParams);
-				throw new Error(messageOrParams);
+				if (_this.stackTraces) {
+					setTimeout(function() {
+						console.log('stack trace: ');
+						stackTrace.forEach(function(line) {
+							console.log(line);
+						});
+					}, 5);
+				}
+				if (_this.errors) {
+					throw new Error('CrmAPIError: ' + messageOrParams.error);
+				} else {
+					console.warn('CrmAPIError: ' + messageOrParams.error);
+				}
 			} else {
 				callback.apply(_this, messageOrParams);
 			}
 		}
 
-		var messageContent = params || {};
-		messageContent.type = 'crm';
-		messageContent.id = id;
-		messageContent.action = action;
-		messageContent.crmPath = item.path;
-		messageContent.onFinish = onFinish;
-		messageContent.secretKey = secretKey;
-		messageContent.tabId = tabId;
-
-		var message = {};
+		var message = params || {};
+		message.type = 'crm';
 		message.id = id;
-		message.msg = messageContent;
-		message = window.ec(message, secretKey);
-
-		chrome.runtime.sendMessage(message);
+		message.action = action;
+		message.crmPath = item.path;
+		message.onFinish = onFinish;
+		message.tabId = _this.tabId;
+		sendMessage(message);
 	}
 
 	//To be able to access these APIs, ask for the "CRM" permission
@@ -389,6 +447,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @property {string} script - The script that is ran itself
 	 * @property {Object[]} libraries - The libraries that are used in this script
 	 * @property {script} libraries.name - The name of the library
@@ -404,6 +463,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	*		0 = run on clicking
 	*		1 = always run
 	*		2 = run on specified pages
+	*		3 = only show on specified pages
 	* @property {string} stylesheet - The script that is ran itself
 	* @property {boolean} toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
 	* @property {boolean} defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
@@ -439,7 +499,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
 	this.crm.getTree = function(callback) {
-		sendCrmMessage('getCrmTree', callback);
+		sendCrmMessage('getTree', callback);
 	}
 
 	/*
@@ -450,7 +510,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 */
 	this.crm.getSubTree = function(nodeId, callback) {
 		sendCrmMessage('getSubTree', callback, {
-			node: nodeId
+			nodeId: nodeId
 		});
 	}
 
@@ -486,9 +546,12 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * @param {string} [query.name] - The name of the item
 	 * @param {string} [query.type] - The type of the item (link, script, divider or menu)
 	 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
+	 * @param {CrmAPIInit~crmCallback} callback - A callback with the results in an array
 	 */
 	this.crm.queryCrm = function(query, callback) {
-		sendCrmMessage('queryCrm', callback, query);
+		sendCrmMessage('queryCrm', callback, {
+			query: query
+		});
 	}
 
 	/**
@@ -531,7 +594,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * Gets the value of node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The id of the node whose value to get
-	 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal or an empty object depending on type
+	 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal, CrmAPIInit~stylesheetVal or an empty object depending on type
 	 */
 	this.crm.getNodeValue = function(nodeId, callback) {
 		sendCrmMessage('getNodeValue', callback, {
@@ -557,7 +620,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
 	 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
 	 *		newTab boolean being whether or not it opens in a new tab.
-	 * @param {string} [options.linkData.url] - The url to open when clicking the link, regex is possible but wrap it in parentheses, this value is required.
+	 * @param {string} [options.linkData.url] - The url to open when clicking the link, this value is required.
 	 * @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
 	 * @param {Object} [options.scriptData] - The data of the script, required if type is script
 	 * @param {string} [options.scriptData.script] - The actual script, will be "" if none given, required
@@ -565,6 +628,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run, not required
 	 * @param {string} [options.scriptData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
@@ -575,6 +639,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 	 * @property {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
      * @property {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
@@ -583,7 +648,9 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 	 */
 	this.crm.createNode = function(options, callback) {
-		sendCrmMessage('createNode', callback, options);
+		sendCrmMessage('createNode', callback, {
+			options: options
+		});
 	}
 
 	/**
@@ -610,17 +677,19 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		options = options || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
 		var optionsCopy = JSON.parse(JSON.stringify(options));
-		optionsCopy.nodeId = nodeId;
-		sendCrmMessage('copyNode', callback, options);
+		sendCrmMessage('copyNode', callback, {
+			nodeId: nodeId,
+			options: optionsCopy
+		});
 	}
 
 	/**
 	 * Moves given node to position specified in "position" - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The id of the node to move
-	 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last child of root if not given
-	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
-	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+	 * @param {Object} [position] - An object containing info about where to place the item, defaults to last child of root if not given
+	 * @param {number} [position.node] - The other node, if not given, "relates" to the root
+	 * @param {string} [position.relation] - The position relative to the other node, possibilities are:
 	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
 	 *		firstSibling: first of the subtree that given node is in
 	 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
@@ -629,12 +698,14 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 *		after: after the given node
 	 * @param {CrmAPIInit~crmCallback} callback - A function that gets called with the new node as an argument
 	 */
-	this.crm.moveNode = function(nodeId, options, callback) {
-		options = options || {};
+	this.crm.moveNode = function (nodeId, position, callback) {
+		position = position || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
-		var optionsCopy = JSON.parse(JSON.stringify(options));
-		optionsCopy.nodeId = nodeId;
-		sendCrmMessage('moveNode', callback, options);
+		var positionCopy = JSON.parse(JSON.stringify(position));
+		sendCrmMessage('moveNode', callback, {
+			nodeId: nodeId,
+			position: positionCopy
+		});
 	}
 
 	/**
@@ -662,12 +733,59 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		options = options || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
 		var optionsCopy = JSON.parse(JSON.stringify(options));
-		optionsCopy.nodeId = nodeId;
-		sendCrmMessage('editNode', callback, optionsCopy);
+		sendCrmMessage('editNode', callback, {
+			options: optionsCopy,
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Gets the content types for given node - requires perission "crmGet"
+	 * 
+	 * @param {number} nodeId - The node of which to get the content types
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
+	 */
+	this.crm.getContentTypes = function(nodeId, callback) {
+		sendCrmMessage('getContentTypes', callback, {
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Sets the content type at index "index" to given value "value"- requires permissions "crmGet" and "crmSet"
+	 * 
+	 * @param {number} nodeId - The node whose content types to set
+	 * @param {number} index - The index of the array to set, 0-5, ordered this way: 
+	 *		page, link, selection, image, video, audio
+	 * @param {boolean} value - The new value at index "index"
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the new array as an argument
+	 */
+	this.crm.setContentType = function (nodeId, index, value, callback) {
+		sendCrmMessage('setContentType', callback, {
+			index: index,
+			value: value,
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Sets the content types to given contentTypes array - requires permissions "crmGet" and "crmSet"
+	 * 
+	 * @param {number} nodeId - The node whose content types to set
+	 * @param {boolean[]} contentTypes - An array of booleans, true for one index means that 
+	 *		the node is displayed on that content type, these are ordered this way:
+	 *		page, link, selection, image, video, audio
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+	 */
+	this.crm.setContentTypes = function(nodeId, contentTypes, callback) {
+		sendCrmMessage('setContentTypes', callback, {
+			contentTypes: contentTypes,
+			nodeId: nodeId
+		});
 	}
 
 	/*
-	 * Any settings changed on nodes that are currently not of the type of which you change the settings (using crmApi.crm.link.push on a script)
+	 * Any settings changed on nodes that are currently not of the type of which you change the settings (using crmAPI.crm.link.push on a script)
 	 * will take effect when the type is changed to the one you are editing (link in the previous example) at any point in the future.
 	 * This is ofcourse not true if the settings for link are changed in the meantime, but any other settings can be changed without it being
 	 * affected (script, menu, divider, name, type etc.)
@@ -722,22 +840,6 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		});
 	}
 
-	/**
-	 * Performs the function "process" for every item in the array - requires permission "crmGet", 
-	 *		and if you want to change the value (return) requires "crmWrite"
-	 * 
-	 * @param {number} nodeId - The node for which to run this function
-	 * @param {function} process - The function to run, has as the first parameter the item and as the second one the index,
-	 *		calling return changes the item's value to that value, only when permissions "crmWrite" is available changing the value is possible
-	 * @param {function} callback - A function that gets called with the new array as an argument
-	 */
-	this.crm.link.forEach = function(nodeId, process, callback) {
-		sendCrmMessage('linkForEach', callback, {
-			nodeId: nodeId,
-			process: process
-		});
-	}
-
 
 	this.crm.script = {};
 	
@@ -749,6 +851,7 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	 * 		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 	 */
 	this.crm.script.setLaunchMode = function(nodeId, launchMode, callback) {
@@ -890,73 +993,182 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 	/*#endregion*/
 
 	/*#region Chrome APIs*/
+	function ChromeRequest(api) {
+		var chromeAPIArguments = [];
+		
+		this.args = function () {
+			for (var i = 0; i < arguments.length; i++) {
+				chromeAPIArguments.push({
+					type: 'arg',
+					val: jsonFn.stringify(arguments[i])
+				});
+			}
+			return this;
+		}
+
+		this.fnInline = function(fn) {
+			var params = [];
+			for (var i = 1; i < arguments.length; i++) {
+				params[i - 1] = jsonFn.stringify(arguments[i]);
+			}
+			
+			chromeAPIArguments.push({
+				type: 'fnInline',
+				val: {
+					fn: fn,
+					args: params
+				}
+			});
+			return this;
+		}
+
+		this.fnCallback = function(fn) {
+			chromeAPIArguments.push({
+				type: 'fnCallback',
+				val: createCallback(fn, new Error)
+			});
+			return this;
+		}
+
+		this.cb = function(fn) {
+			chromeAPIArguments.push({
+				type: 'cb',
+				val: createCallback(fn, new Error)
+			});
+			return this;
+		}
+
+		this.return = function(fn) {
+			chromeAPIArguments.push({
+				type: 'return',
+				val: createCallback(fn, new Error)
+			});
+			return this;
+		}
+
+		this.send = function () {
+			var message = {
+				type: 'chrome',
+				id: id,
+				api: api,
+				args: chromeAPIArguments,
+				tabId: _this.tabId,
+				onFinish: function(status, messageOrParams, stackTrace) {
+					if (status === 'error' || status === 'chromeError') {
+						_this.onError && _this.onError(messageOrParams);
+						if (_this.stackTraces) {
+							setTimeout(function() {
+								if (messageOrParams.stackTrace) {
+									console.warn('Remote stack trace:');
+									messageOrParams.stackTrace.forEach(function(line) {
+										console.warn(line);
+									});
+								}
+								console.warn((messageOrParams.stackTrace ? 'Local s' : 'S') + 'tack trace:');
+								stackTrace.forEach(function(line) {
+									console.warn(line);
+								});
+							}, 5);
+						}
+						if (_this.errors) {
+							throw new Error('CrmAPIError: ' + messageOrParams.error);
+						} else {
+							console.warn('CrmAPIError: ' + messageOrParams.error);
+						}
+					} else {
+						callInfo[messageOrParams.callbackId].callback.apply(window, messageOrParams.params);
+						delete callInfo[messageOrParams.callbackId];
+					}
+				}
+			};
+			sendMessage(message);
+		}
+		return this;
+	}
+
 	/**
-	 * Calls the chrome API given in the "API" parameter. Then you need to call .args on what was returned,
-	 * and on that you can either call .nocb() when you already supplied a callback in the function or
-	 * call .cb(callback) to get the value that is returned back in the callback as an argument.
+	 * Calls the chrome API given in the "API" parameter. Due to some issues with the chrome message passing
+	 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
+	 *		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
+	 *		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
+	 *		functions you can chain-call on the crmAPI.chrome(API) object: 
+	 *			args: uses given arguments as arguments for the API in order specified. WARNING this can NOT be 
+	 *				a function, for functions refer to the other two types.
+	 * 
+	 *			fnInline: inline function. This allows you to pass a function that will be passed to the 
+	 *				chrome API and will be used as a normal function that's passed would be. One thing to 
+	 *				keep in mind is that scope is not preserved so any data you want the function to have
+	 *				access to will be have to be passed in the fnInline function as well. Any arguments
+	 *				other than the function passed in the first place will be put used as the first argument
+	 *				in the function you passed. Keep in mind that this moves every argument passed by whatever
+	 *				calls your function is moved one to the right.
+	 * 
+	 *			fnCallback: a function that will preserve scope but is not passed to the chrome API itself.
+	 *				Instead a placeholder is passed that will take any arguments the chrome API passes to it
+	 *				and calls your fnCallback function with a container argument. Keep in mind that there is no
+	 *				connection between your function and the chrome API, the chrome API only sees a placeholder 
+	 *				function with which it can do nothing so don't use this as say a forEach handler.
+	 * 
+	 *			cb: This is basically a fnCallback with added functionality. This function returns a 
+	 *				container argument for a few different values namely the value(s) passed by the chrome 
+	 *				API stored in "APIArgs" and the arguments array for every fnInline function is put into 
+	 *				one big container array called "fnInlineArgs" where the order is based on when you added that function.
+	 *				Keep in mind that this is only usefull if you keep that exact parameter as an array and 
+	 *				modify the array itself, due to arrays being pointers and not copies data will then be 
+	 *				preserved when it's sent back. If you want you can do things like add an object into
+	 *				the array or any other type/value you want but be sure to not change the type or 
+	 *				redeclare the array.
+	 * 
+	 *			return: a function that is called with the value that the chrome API returned. This can
+	 *				be used for APIs that don't use callbacks and instead just return values such as
+	 *				chrome.runtime.getURL(). This just like fnCallback returns a container argument for
+	 *				all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
+	 * 
+	 *			send: executes this function
+	 * 
 	 * Examples:
-	 *		crmApi.chrome('tabs.create').args(properties, callback).nocb(); - You already supplied a callback
-	 *			in the function and don't need the direct value of that API so no callback is needed
-	 *		crmApi.chrome('runtime.getUrl').args(path).cb(function(value) { console.log(value); }); - You did
-	 *			not supply a callback and since you need the know the value that this function returns you 
-	 *			need to supply a callback. 
+	 *		- For a function that uses callback
+	 *		crmAPI.chrome('runtime.sendMessage').args({
+	 *			message: 'hello'
+	 *		}).cb(function(result) {
+	 *			console.log(result.APIArgs);
+	 *			console.log(result.fnInlineArgs);
+	 *		}).args(parameter).fnInline(function (param1, param2, param3) {
+	 *			return [param1 - (param2 * param3)];
+	 *		}, var1, var2, var3).args(parameter).fnCallback(function(result) {
+	 *			console.log(result);
+	 *		}).send();
+	 * 
+	 *		- For a function that returns a value
+	 *		crmAPI.chrome('runtime.getURL').args('url.html').fnInline(function (param1, param2, param3) {
+	 *			return [param1 - (param2 * param3)];
+	 *		}, var1, var2, var3).args(parameter).fnCallback(function(result) {
+	 *			console.log(result);
+	 *		}).return(function(result) {
+	 *			console.log(result.APIVal);
+	 *			console.log(result.fnInlineArgs);
+	 *		}).send();
+	 * 
+	 *		- Actual real-use examples
+	 *		crmAPI.chrome('tabs.create').args(properties).cb(function(result) {
+	 *			console.log(result.APIArgs[0]);
+	 *		}).send();
+	 * 
+	 *		crmAPI.chrome('runtime.getUrl').args(path).return(function(result) {
+	 *			console.log(result.APIVal[0]);
+	 *		}).send();
 	 * 
 	 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
 	 * permission "bookmarks", chrome.alarms requires "alarms"
 	 * 
 	 * @param {string} api - The API to use
-	 * @returns {Object} - An object on which you can call .args to send any arguments
+	 * @returns {Object} - An object on which you can call .args, .fnInline, .fnCallback, .cb, .return and .send
 	 */
-	this.chrome = function(api) {
-		return {
-			/**
-			 * A function that prepare the message and lets you supply your arguments
-			 * @returns {Object} - An object on which you can call either .nocb() for
-			 *		a function on which you already supplied a callback and don't need
-			 *		an additional callback for the value, or .cb(callback) to supply
-			 *		a callback to show you the value of the API
-			 */
-			args: function() {
-				var args = arguments;
-				var messageContent = {
-					type: 'chrome',
-					id: id,
-					api: api,
-					args: args,
-					secretKey: secretKey,
-					tabId: tabId
-				};
-				var message = {
-					id: id,
-					msg: messageContent
-				};
-				return {
-					cb: function(callback) {
-						function onFinish(status, messageOrParams) {
-							if (status === 'error') {
-								throw new Error(messageOrParams);
-							} else {
-								callback.apply(_this, messageOrParams);
-							}
-						}
-
-						message.msg.onFinish = onFinish;
-						this.nocb();
-					},
-					nocb: function () {
-						message = window.ec(message, secretKey);
-						chrome.runtime.sendMessage(message, function (error) {
-							error = error.error;
-							console.warn(error + ', stack traces:');
-							console.trace();
-							throw new Error(error.error);
-						});
-					}
-				};
-			}
-		};
+	this.chrome = function (api) {
+		return new ChromeRequest(api);
 	};
 	/*#endregion*/
+
 
 	/*#region Other APIs*/
 	this.libraries = {};
@@ -977,5 +1189,6 @@ function CrmAPIInit(item, id, tabId, clickData, secretKey, pingKey) {
 		});
 	}
 	/*#endregion*/
+
 	return this;
 }
