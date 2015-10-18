@@ -238,7 +238,7 @@
 	insertCode: function() {
 		var _this = this;
 		var codeLines = [''];
-		codeLines.push('var search = crmApi.getSelection() || prompt(\'Please enter a search query\');');
+		codeLines.push('var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');');
 		codeLines.push('var url = \'' + this.chosenUrl + '\';');
 		codeLines.push('var toOpen = url.replace(/%s/g,search);');
 		if (this.howToOpen === 'newTab') {
