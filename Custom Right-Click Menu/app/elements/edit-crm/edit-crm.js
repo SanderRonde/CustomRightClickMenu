@@ -192,6 +192,33 @@ window.Polymer({
 	 */
 	setMenus: [],
 
+	/*
+	 * The element used to display drag area
+	 * 
+	 * @attribute dragAreaEl
+	 * @type Element
+	 * @default null
+	 */
+	dragAreaEl: null,
+
+	/*
+	 * The coordinates of the location the user started dragging
+	 * 
+	 * @attribute dragAreaPos
+	 * @type Object
+	 * @default null
+	 */
+	dragAreaPos: null,
+
+	/*
+	 * The handler for scrolling the body
+	 * 
+	 * @attribute scrollHandler
+	 * @type Function
+	 * @default null
+	 */
+	scrollHandler: null,
+
 	properties: {
 		crm: {
 			type: Array,
@@ -313,7 +340,79 @@ window.Polymer({
 		newElement.ready();
 	},
 
-	//TODO implement select and remove
+	//TODO implement remove
+
+	_handleDragPosChange: function(event, editCRM, scroll) {
+		var dragAreaStyle = editCRM.dragAreaEl.style;
+		var eventDetails = event.detail;
+		if (eventDetails.ddy !== 0 || scroll) {
+			var dragHeight = editCRM.dragAreaPos.scrollChange + eventDetails.dy;
+			if (dragHeight > 0) {
+				dragAreaStyle.height = (editCRM.dragAreaPos.scrollChange + eventDetails.dy) + 'px';
+			} else {
+				dragAreaStyle.top = (eventDetails.y + editCRM.dragAreaPos.scrollTop) + 'px';
+				dragAreaStyle.height = (dragHeight < 0 ? -dragHeight : editCRM.dragAreaPos.scrollChange) + 'px';
+			}
+		}
+		if (!scroll && eventDetails.ddx !== 0) {
+			if (eventDetails.dx > 0) {
+				dragAreaStyle.width = eventDetails.dx + 'px';
+			} else {
+				dragAreaStyle.left = eventDetails.x + 'px';
+				dragAreaStyle.width = (eventDetails.dx < 0 ? -eventDetails.dx + 'px' : 0);
+			}
+		}
+	},
+
+	_createScrollHandler: function(event, editCRM) {
+		return function () {
+			var scrollChange = document.body.scrollTop - editCRM.dragAreaPos.scrollTop;
+			editCRM.dragAreaPos.scrollChange += scrollChange;
+			editCRM.dragAreaPos.scrollTop = document.body.scrollTop;
+			editCRM._handleDragPosChange(event, editCRM, );
+		}
+	},
+
+	_handleSelect: function (event) {
+		//Create a rectangle
+		var editCRM = options.editCRM;
+		var eventDetails = event.detail;
+		console.log('x:' + eventDetails.x);
+		console.log('y:' + eventDetails.y);
+		if (eventDetails.state === 'start') {
+			document.body.style.WebkitUserSelect = 'none';
+			var dragEl = document.createElement('div');
+			var dragElStyle = dragEl.style;
+			dragElStyle.position = 'absolute';
+			dragElStyle.backgroundColor = 'rgba(50,50,50,0.3)';
+			dragElStyle.left = eventDetails.x + 'px';
+			dragElStyle.top = (document.body.scrollTop + eventDetails.y) + 'px';
+			dragElStyle.width = dragElStyle.height = '30px';
+			document.body.appendChild(dragEl);
+			editCRM.dragAreaEl = dragEl;
+			editCRM.dragAreaPos = {
+				X: eventDetails.x,
+				Y: eventDetails.y,
+				scrollTop: document.body.scrollTop,
+				scrollChange: 0
+			};
+			var scrollHandler = editCRM._createScrollHandler(event, editCRM);
+			editCRM.scrollHandler = scrollHandler;
+			document.addEventListener('scroll', scrollHandler);
+		}
+		else if (eventDetails.state === 'track') {
+			editCRM._handleDragPosChange(event, editCRM, false);
+		} else {
+			editCRM.dragAreaEl.remove();
+			document.removeEventListener('scroll', editCRM.scrollHandler);
+			editCRM.dragAreaPos = null;
+			editCRM.scrollHandler = null;
+		}
+	},
+
+	_deselectNodes: function () {
+		
+	},
 
 	_typeChanged: function(quick) {
 		runOrAddAsCallback(options.editCRM.build, options.editCRM, (quick ? [null, true] : []));

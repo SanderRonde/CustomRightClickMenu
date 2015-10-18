@@ -18,8 +18,7 @@ function sandbox(api, args) {
 	var storageSync;
 	var storageLocal;
 	var nodesData = {};
-	//TODO change
-	window.tabNodeData = {};
+	var tabNodeData = {};
 	var contextMenuIds = {};
 	var tabActiveScripts = {};
 	var stylesheetNodeStatusses = {};
