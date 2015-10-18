@@ -342,19 +342,21 @@ window.Polymer({
 
 	//TODO implement remove
 
-	_handleDragPosChange: function(event, editCRM, scroll) {
+	_handleDragPosChange: function (event, editCRM, scrollChange) {
+		scrollChange = scrollChange || 0;
 		var dragAreaStyle = editCRM.dragAreaEl.style;
 		var eventDetails = event.detail;
-		if (eventDetails.ddy !== 0 || scroll) {
-			var dragHeight = editCRM.dragAreaPos.scrollChange + eventDetails.dy;
+		if (eventDetails.ddy !== 0) {
+			var dy = eventDetails.dy + scrollChange;
+			var dragHeight = editCRM.dragAreaPos.scrollChange + dy;
 			if (dragHeight > 0) {
-				dragAreaStyle.height = (editCRM.dragAreaPos.scrollChange + eventDetails.dy) + 'px';
+				dragAreaStyle.height = (editCRM.dragAreaPos.scrollChange + dy) + 'px';
 			} else {
 				dragAreaStyle.top = (eventDetails.y + editCRM.dragAreaPos.scrollTop) + 'px';
 				dragAreaStyle.height = (dragHeight < 0 ? -dragHeight : editCRM.dragAreaPos.scrollChange) + 'px';
 			}
 		}
-		if (!scroll && eventDetails.ddx !== 0) {
+		if (eventDetails.ddx !== 0) {
 			if (eventDetails.dx > 0) {
 				dragAreaStyle.width = eventDetails.dx + 'px';
 			} else {
@@ -369,7 +371,7 @@ window.Polymer({
 			var scrollChange = document.body.scrollTop - editCRM.dragAreaPos.scrollTop;
 			editCRM.dragAreaPos.scrollChange += scrollChange;
 			editCRM.dragAreaPos.scrollTop = document.body.scrollTop;
-			editCRM._handleDragPosChange(event, editCRM, );
+			editCRM._handleDragPosChange(event, editCRM, scrollChange);
 		}
 	},
 
