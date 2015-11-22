@@ -12,7 +12,11 @@
 				<div class="item">
 					<type-switcher id="typeSwitcher" on-mouseenter="typeIndicatorMouseOver" on-mouseleave="typeIndicatorMouseLeave" type="{{type}}"></type-switcher>
 					<div id="dragger">
-						<div class="draggerImg"></div>
+						<div class="draggerImg">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 48">
+								<path d="M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z"/>
+							</svg>
+						</div>
 					</div>
 					<div class="CRMItemTitle" ismenu$="{{isMenu}}" on-tap="openEditPage">
 						<span>{{name}}</span>

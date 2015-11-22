@@ -1,4 +1,4 @@
-﻿/// <reference path="../../../scripts/_references.js"/>
+/// <reference path="../../../scripts/_references.js"/>
 /// <reference path="~/app/elements/crm-options/crm-options.js" />
 'use strict';
 var options;
@@ -237,6 +237,15 @@ window.Polymer({
 	 */
 	firstCRMColumnEl: null,
 
+	/*
+	 * The currently selected nodes
+	 * 
+	 * @attribute selectedNodes
+	 * @type Object
+	 * @default {}
+	 */
+	selectedNodes: {},
+
 	get firstCRMColumn() {
 		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = options.editCRM.children[1].children[2]));
 	},
@@ -364,32 +373,107 @@ window.Polymer({
 
 	//TODO implement remove
 
+	_highlightNode: function(mainContChildren, node, highlight) {
+		var colChildren = mainContChildren[node.col + 2].children;
+		var top = node.row - (colChildren.length - 2);
+		try {
+			colChildren[colChildren.length - 1].children[0].children[top].children[4].classList[(highlight ? 'add' : 'remove')]('highlighted');
+		}
+		catch(e) {
+			//Node doesn't exist and doesn't need to be highlighted
+		}
+	},
+
+	_highlightNewNodes: function(editCRM, newNodes) {
+		var i;
+		console.log(newNodes);
+		var mainContChildren = options.editCRM.children[1].children;
+		for (i = 0; i < newNodes.highlighted.length; i++) {
+			editCRM._highlightNode(mainContChildren, newNodes.highlighted[i], true);
+		}
+		for (i = 0; i < newNodes.unhighlighted.length; i++) {
+			editCRM._highlightNode(mainContChildren, newNodes.unhighlighted[i], false);
+		}
+	},
+
+	_getSelectedNodes: function(editCRM) {
+		var newNodes = [];
+		var unhighlightedNodes = [];
+
+		var dragAreaPos = editCRM.dragAreaPos;
+		//Set mouse start row
+		dragAreaPos.row = dragAreaPos.row || Math.floor(dragAreaPos.scrollLeftStart / 200);
+		//Set mouse start col
+		dragAreaPos.col = dragAreaPos.col || Math.floor(dragAreaPos.scrollTopStart / 50);
+
+		var row = Math.floor(dragAreaPos.dx / 200);
+		var col = Math.floor(dragAreaPos.dy / 50);
+
+		console.log(dragAreaPos);
+		console.log('row: ' + row + ', col: ' + col + ', dragRow: ' + dragAreaPos.row + ', dragCol: ' + dragAreaPos.col);
+
+		var forCol;
+		var forRow;
+		var isHighlighted;
+		var colNonRelative = col + dragAreaPos.col;
+		var rowNonRelative = row + dragAreaPos.row;
+		for (forCol = 0; forCol < options.editCRM.crm.length; forCol++) {
+			isHighlighted = (col >= 0 ? (forCol >= dragAreaPos.col && forCol <= colNonRelative) : (forCol <= dragAreaPos.col && forCol >= colNonRelative));
+			for (forRow = options.editCRM.crm[forCol].indent.length; forRow < options.editCRM.crm[forCol].indent.length + options.editCRM.crm[forCol].list.length; forRow++) {
+				editCRM.selectedNodes[forCol] = editCRM.selectedNodes[forCol] || {};
+				if (isHighlighted) {
+					if (row >= 0 ? (forRow > dragAreaPos.row && forRow < rowNonRelative) : (forRow < dragAreaPos.row && forRow > rowNonRelative)) {
+						console.log('yep');
+						if (!editCRM.selectedNodes[forCol][forRow]) {
+							editCRM.selectedNodes[forCol][forRow] = true;
+							newNodes.push({
+								col: forCol,
+								row: forRow
+							});
+						}
+						console.log({
+								col: forCol,
+								row: forRow
+							});
+					}
+					else {
+						editCRM.selectedNodes[forCol][forRow] = false;	
+					}
+				}
+				else {
+					editCRM.selectedNodes[forCol][forRow] = false;
+				}
+			}
+		}
+		return {
+			highlighted: newNodes,
+			unhighlighted: unhighlightedNodes
+		};
+	},
+
 	_handleDragPosChange: function (event, editCRM, scroll) {
 		var dragAreaStyle = editCRM.dragAreaEl.style;
 		var eventDetails = event.detail;
 		var dragAreaPos = editCRM.dragAreaPos;
 		var dy = (eventDetails.dy + (dragAreaPos.scrollTop - dragAreaPos.scrollTopStart));
 		var dx = (eventDetails.dx + (dragAreaPos.scrollLeft - dragAreaPos.scrollLeftStart));
-		console.log(dx);
-		if (eventDetails.ddy !== 0 || scroll) {
+		dragAreaPos.dy = dy;
+		dragAreaPos.dx = dx;
+		if (eventDetails.ddy !== 0 || scroll === 'y') {
 			if (dy > 0) {
-				//Plus one to allow the user to scroll on the edit-crm element and not on the square
 				dragAreaStyle.top = ((dragAreaPos.Y + (dragAreaPos.scrollTopStart - dragAreaPos.scrollTop))) + 'px';
-				dragAreaStyle.height = (dy - 1) + 'px';
-			} else if (dy < 0 || scroll) {
-				dragAreaStyle.top = (1 + eventDetails.y) + 'px';
+				dragAreaStyle.height = (dy) + 'px';
+			} else if (dy < 0 || scroll === 'y') {
+				dragAreaStyle.top = (eventDetails.y) + 'px';
 				dragAreaStyle.height = (-dy) + 'px';
 			}
 		}
-		if (eventDetails.ddx !== 0 || scroll) {
+		if (eventDetails.ddx !== 0 || scroll === 'x') {
 			if (dx > 0) {
-				console.log('gt');
-				dragAreaStyle.left = (dragAreaPos.X - (dragAreaPos.scrollLeftStart - dragAreaPos.scrollLeft)) + 'px';
-				console.log(dx, dragAreaPos.scrollLeftStart - dragAreaPos.scrollLeft);
-				dragAreaStyle.width = ((dx + (2 * (dragAreaPos.scrollLeftStart - dragAreaPos.scrollLeft))) - 1) + 'px';
-			} else if (dx < 0) {
-				console.log('st');
-				dragAreaStyle.left = (eventDetails.x - 1) + 'px';
+				dragAreaStyle.left = (dragAreaPos.X + (dragAreaPos.scrollLeftStart - dragAreaPos.scrollLeft)) + 'px';
+				dragAreaStyle.width = (dx) + 'px';
+			} else if (dx < 0 || scroll === 'x') {
+				dragAreaStyle.left = (eventDetails.x) + 'px';
 				dragAreaStyle.width = (-dx) + 'px';
 			}
 		}
@@ -397,10 +481,15 @@ window.Polymer({
 
 	_createScrollHandler: function (editCRM) {
 		return function () {
-			console.log('scroll');
-			editCRM.dragAreaPos.scrollTop = document.body.scrollTop;
-			editCRM.dragAreaPos.scrollLeft = editCRM.firstCRMColumn.getBoundingClientRect().left;
-			editCRM._handleDragPosChange(editCRM.lastDragEvent, editCRM, true);
+			if (document.body.scrollTop !== editCRM.dragAreaPos.scrollTop) {
+				editCRM.dragAreaPos.scrollTop = document.body.scrollTop;
+				editCRM._handleDragPosChange(editCRM.lastDragEvent, editCRM, 'y');
+			}
+			else if (editCRM.dragAreaPos.scrollLeft !== -editCRM.firstCRMColumn.getBoundingClientRect().left) {
+				editCRM.dragAreaPos.scrollLeft = -editCRM.firstCRMColumn.getBoundingClientRect().left;
+				editCRM._handleDragPosChange(editCRM.lastDragEvent, editCRM, 'x');
+			}
+			editCRM._highlightNewNodes(editCRM, editCRM._getSelectedNodes(editCRM));
 		}
 	},
 
@@ -415,6 +504,7 @@ window.Polymer({
 			var dragElStyle = dragEl.style;
 			dragElStyle.position = 'fixed';
 			dragElStyle.backgroundColor = 'rgba(50,50,50,0.3)';
+			dragElStyle.pointerEvents = 'none';
 			dragElStyle.left = eventDetails.x + 'px';
 			var top = document.body.scrollTop;
 			var left = editCRM.firstCRMColumn.getBoundingClientRect().left;
@@ -428,22 +518,27 @@ window.Polymer({
 				Y: eventDetails.y,
 				scrollTopStart: top,
 				scrollTop: top,
-				scrollLeftStart: left,
-				scrollLeft: left
+				scrollLeftStart: -left,
+				scrollLeft: -left
 			};
+			console.log(left);
 			console.log(editCRM.dragAreaPos);
 			var scrollHandler = editCRM._createScrollHandler(editCRM);
 			editCRM.scrollHandler = scrollHandler;
 			editCRM.children[1].addEventListener('scroll', scrollHandler);
 			document.addEventListener('scroll', scrollHandler);
+			editCRM._getSelectedNodes(editCRM);
 		}
 		else if (eventDetails.state === 'track') {
 			editCRM._handleDragPosChange(event, editCRM, false);
+			editCRM._highlightNewNodes(editCRM, editCRM._getSelectedNodes(editCRM));
 		} else {
 			editCRM.dragAreaEl.remove();
+			editCRM.children[1].removeEventListener('scroll', editCRM.scrollHandler);
 			document.removeEventListener('scroll', editCRM.scrollHandler);
 			editCRM.dragAreaPos = null;
 			editCRM.scrollHandler = null;
+			editCRM.selectedNodes = {};
 		}
 	},
 

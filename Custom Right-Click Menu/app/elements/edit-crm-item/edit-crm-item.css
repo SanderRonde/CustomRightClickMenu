@@ -83,17 +83,23 @@
 }
 
 .draggerImg {
-	background-image:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDQ4IDQ4Ij48cGF0aCBkPSJNNCAzMXY0aDQwdi00SDR6bTAtMTB2NGg0MHYtNEg0em0wLTEwdjRoNDB2LTRINHoiLz48L3N2Zz4=') /*../../images/drag.svg*/;
-	background-size:cover;
 	height:30px;
 	width:20px;
 	margin-left:5px;
-	margin-top:10px;
+	margin-top:8px;
 }
 
 .item {
 	display: -webkit-inline-box;
 	background-color: white;
+	fill: black;
+	transition: background-color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), fill 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000);
+}
+
+#itemCont.highlighted .item {
+	background-color:#3E3E3E;
+	color:white;
+	fill: white;
 }
 
 	.item:hover {
