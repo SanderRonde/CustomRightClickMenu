@@ -45,7 +45,7 @@ function getLastMenu(list, hidden) {
 function getHiddenNodes(result, node, showContentTypes) {
 	var i;
 	var length;
-	if (node.children) {
+	if (node.children && node.children.length > 0) {
 		length = node.children.length;
 		var visible = 0;
 		for (i = 0; i < length; i++) {
@@ -237,6 +237,15 @@ window.Polymer({
 	 */
 	firstCRMColumnEl: null,
 
+	/**
+	 * The selected items in this CRM element
+	 * 
+	 * @attribute selectedElementPaths
+	 * @type Array
+	 * @default []
+	 */
+	selectedElements: [],
+
 	get firstCRMColumn() {
 		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = options.editCRM.children[1].children[2]));
 	},
@@ -325,6 +334,10 @@ window.Polymer({
 			_this.currentTimeout = null;
 			setTimeout(function () {
 				_this.crmLoading = false;
+				var els = document.getElementsByTagName('edit-crm-item');
+				for (var i = 0; i < els.length; i++) {
+					els[i].update();
+				}
 			}, 50);
 		}
 
@@ -340,43 +353,33 @@ window.Polymer({
 		var _this = this;
 		options.editCRM = this;
 		window.options.addEventListener('crmTypeChanged', this._typeChanged);
-		chrome.storage.local.get(function (items) {
-			_this._typeChanged(true);
-		});
+		_this._typeChanged(true);
 	},
 
 	addItem: function () {
-		var newIndex = options.settings.crm.length;
-		var newItem = {
-			name: 'name',
-			type: 'link',
-			value: [
-				{
-					value: 'http://www.example.com',
-					newTab: true
-				}
-			],
-			expanded: false,
-			index: newIndex,
-			isLocal: true,
-			path: [newIndex],
-			onContentType: options.crmTypes
-		};
-		options.crm.add(newItem);
+		generateItemId(function(itemId) {
+			var newIndex = options.settings.crm.length;
+			var newItem = {
+				name: 'name',
+				type: 'link',
+				value: [
+					{
+						value: 'http://www.example.com',
+						newTab: true
+					}
+				],
+				id: itemId,
+				expanded: false,
+				index: newIndex,
+				isLocal: true,
+				path: [newIndex],
+				onContentType: options.crmTypes
+			};
+			options.crm.add(newItem);
 
-		//Artificially add a new item
-		var firstColumnChildren = options.editCRM.$.mainCont.children[0].children[1].children;
-		var newElement = $('<edit-crm-item class="wait"></edit-crm-item>').insertBefore(firstColumnChildren[firstColumnChildren.length - 1]);
-		newElement = newElement[0];
-		newElement.item = newItem;
-		newElement.index = newIndex;
-		newElement.classList.toggle('wait');
-		newElement.classList.add('style-scope');
-		newElement.classList.add('edit-crm');
-		newElement.ready();
+			window.options.editCRM.build(window.options.editCRM.setMenus, false, true);
+		});
 	},
-
-	//TODO implement remove
 
 	selectItems: function() {
 		var i;
@@ -387,6 +390,7 @@ window.Polymer({
 			for (i = 0; i < editCrmItems.length; i++) {
 				editCrmItems[i].classList.add('selecting');
 			}
+			this.selectedElements = [];
 			setTimeout(function() {
 				_this.isSelecting = true;
 			}, 150);
@@ -395,21 +399,57 @@ window.Polymer({
 			var toRemove = [];
 			for (i = 0; i < editCrmItems.length; i++) {
 				if (editCrmItems[i].classList.contains('highlighted')) {
-					toRemove.push(editCrmItems[i].item.path);
+					toRemove.push(editCrmItems[i].item.id);
 				}
 			}
+
+			var j;
+			var arr;
 			for (i = 0; i < toRemove.length; i++) {
 				try {
-					delete window.options.crm.lookup(toRemove[i], true)[toRemove[i][toRemove[i].length - 1]];
-					//TODO here
+					arr = window.options.crm.lookupId(toRemove[i], true);
+					for (j = 0; j < arr.length; j++) {
+						if (arr[j].id === toRemove[i]) {
+							arr.splice(arr[j], 1);
+						}
+					}
 				} catch (e) {
 					//Item has already been removed
+					console.log(e);
+					console.log('didnt work', toRemove[i]);
 				}
 			}
+			this.selectedElements = [];
 			this.build(null, true, false);
 
 			this.isSelecting = false;
 		}
+	},
+
+	getCRMElementFromPath: function (path, showPath) {
+		var i;
+		for (i = 0; i < path.length - 1; i++) {
+			if (this.setMenus[i] !== path[i]) {
+				if (showPath) {
+					this.build(path, false, true);
+					break;
+				} else {
+					return null;
+				}
+			}
+		}
+
+		var cols = this.$.mainCont.children;
+		var row = cols[path.length + 1].children;
+		for (i = 0; i < row.length; i++) {
+			if (row[i].tagName === 'PAPER-MATERIAL') {
+				row = row[i].children[0].children;
+				break;
+			}
+		}
+
+		var element = row[path[path.length - 1]];
+		return element;
 	},
 
 	_typeChanged: function (quick) {

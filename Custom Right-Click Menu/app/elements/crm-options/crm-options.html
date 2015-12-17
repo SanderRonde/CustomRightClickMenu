@@ -174,195 +174,197 @@
 					<br /><br /><br />
 				</div>
 			</div>
-			<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
-			<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
-				<span id="menuSwitchUndoButton" role="button">UNDO</span>
-			</paper-toast>
-			<!--
-			//TODO place link
-			-->
-			<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed <-LINK->" duration="10000">
-				<span id="externalEditorTryAgainButton" role="button">RETRY</span>
-			</paper-toast>
-			<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
-				<a href="file:///C:/" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
-			</paper-toast>
-			<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-				<div id="restoreChangesMain">
-					<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
-					<br />
-					<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
-					<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
-					<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
-					<div class="buttons">
-						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-						<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
-					</div>
-				</div>
-				<div id="restoreChangesOldCode">
-					<h2>
-						Old Code
-					</h2>
-					<div id="restoreChangesOldCodeCont"></div>
-					<div class="buttons">
-						<paper-button class="restoreChangesBack">Back</paper-button>
-						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-						<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
-					</div>
-				</div>
-				<div id="restoreChangesUnsavedCode">
-					<h2>
-						Unsaved Code
-					</h2>
-					<div id="restoreChangeUnsaveddCodeCont"></div>
-					<div class="buttons">
-						<paper-button class="restoreChangesBack">Back</paper-button>
-						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-						<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
-					</div>
-				</div>
-			</paper-dialog>
-			<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-				<div id="chooseFileMainDialog">
-					<h2>Choose the file you want to keep</h2>
-					<paper-radio-group selected="local" id="chooseFileRadioGroup">
-						<paper-radio-button name="local">The file in this editor</paper-radio-button>
-						<paper-radio-button name="external">The file that is currently in the file</paper-radio-button>
-					</paper-radio-group>
-					<br />
-					<paper-button raised id="chooseFileMerge">Merge</paper-button>
-					<div class="buttons">
-						<paper-button class="closeChooseFileDialog">Cancel</paper-button>
-						<paper-button id="chooseFileChooseFirst" dialog-confirm>Confirm</paper-button>
-					</div>
-				</div>
-				<div id="chooseFileMerger">
-					<h1>Merge the file to how you want it</h1>
-					<div id="chooseFileMergerText">
-						<div id="chooseFileCurrentTxt">CRM Editor</div>
-						<div id="chooseFileResultTxt">Result</div>
-						<div id="chooseFileNewTxt">File</div>
-					</div>
-					<div id="chooseFileMergerEditor">
-						<div id="chooseFileMergerPlaceholder">
-							<center-element fullscreen="true">
-								<paper-spinner active></paper-spinner>
-							</center-element>
+			<div id="dialogs">
+				<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
+				<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
+					<span id="menuSwitchUndoButton" role="button">UNDO</span>
+				</paper-toast>
+				<!--
+				//TODO place link
+				-->
+				<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed <-LINK->" duration="10000">
+					<span id="externalEditorTryAgainButton" role="button">RETRY</span>
+				</paper-toast>
+				<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
+					<a href="file:///C:/" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
+				</paper-toast>
+				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<div id="restoreChangesMain">
+						<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
+						<br />
+						<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
+						<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
+						<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
+						<div class="buttons">
+							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
 						</div>
-						<div id="chooseFilemergerContainer"></div>
 					</div>
+					<div id="restoreChangesOldCode">
+						<h2>
+							Old Code
+						</h2>
+						<div id="restoreChangesOldCodeCont"></div>
+						<div class="buttons">
+							<paper-button class="restoreChangesBack">Back</paper-button>
+							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+						</div>
+					</div>
+					<div id="restoreChangesUnsavedCode">
+						<h2>
+							Unsaved Code
+						</h2>
+						<div id="restoreChangeUnsaveddCodeCont"></div>
+						<div class="buttons">
+							<paper-button class="restoreChangesBack">Back</paper-button>
+							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+						</div>
+					</div>
+				</paper-dialog>
+				<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<div id="chooseFileMainDialog">
+						<h2>Choose the file you want to keep</h2>
+						<paper-radio-group selected="local" id="chooseFileRadioGroup">
+							<paper-radio-button name="local">The file in this editor</paper-radio-button>
+							<paper-radio-button name="external">The file that is currently in the file</paper-radio-button>
+						</paper-radio-group>
+						<br />
+						<paper-button raised id="chooseFileMerge">Merge</paper-button>
+						<div class="buttons">
+							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
+							<paper-button id="chooseFileChooseFirst" dialog-confirm>Confirm</paper-button>
+						</div>
+					</div>
+					<div id="chooseFileMerger">
+						<h1>Merge the file to how you want it</h1>
+						<div id="chooseFileMergerText">
+							<div id="chooseFileCurrentTxt">CRM Editor</div>
+							<div id="chooseFileResultTxt">Result</div>
+							<div id="chooseFileNewTxt">File</div>
+						</div>
+						<div id="chooseFileMergerEditor">
+							<div id="chooseFileMergerPlaceholder">
+								<center-element fullscreen="true">
+									<paper-spinner active></paper-spinner>
+								</center-element>
+							</div>
+							<div id="chooseFilemergerContainer"></div>
+						</div>
+						<div class="buttons">
+							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
+							<paper-button id="chooseFileStopMerging">Stop merging</paper-button>
+							<paper-button id="chooseFileChooseMerge" dialog-confirm>Confirm</paper-button>
+						</div>
+					</div>
+				</paper-dialog>
+				<paper-dialog no-cancel-on-esc-key="true" with-backdrop id="addLibraryDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<div id="addLibraryLoadingDialog">
+						<div id="addLibraryLoadingDialogCenterer">
+							<paper-spinner active></paper-spinner>
+						</div>
+					</div>
+					<div id="addLibraryProcessContainer">
+						<h2>Add your own library</h2>
+						<paper-input error-message="please enter a name" id="addedLibraryName" label="name"></paper-input>
+						<paper-radio-group id="addLibraryRadios" selected="url">
+							<paper-radio-button id="addLibraryUrlOption" name="url">Input a url</paper-radio-button>
+							<paper-radio-button id="addLibraryManualOption" name="manual">Input the code</paper-radio-button>
+						</paper-radio-group>
+						<paper-input pattern="$a" id="addLibraryUrlInput" label="url" error-message="url does not host anything"></paper-input>
+						<paper-textarea id="addLibraryManualInput" label="code"></paper-textarea>
+						<div class="buttons">
+							<paper-button dialog-dismiss>Cancel</paper-button>
+							<paper-button id="addLibraryButton">Add</paper-button>
+						</div>
+					</div>
+					<div id="addLibraryConfirmationContainer">
+						<h2>Does this look okay to you?</h2>
+						<paper-textarea id="addLibraryConfirmationInput"></paper-textarea>
+						<div class="buttons">
+							<paper-button id="addLibraryDenyConfirmation">No</paper-button>
+							<paper-button id="addLibraryConfirmAddition">Yes</paper-button>
+						</div>
+					</div>
+					<div id="addLibraryDialogSucces">
+						<div id="addLibraryDialogSuccesCheckmark" class="checkmark"></div>
+						<div id="addLibraryDialogSuccesText">Added!</div>
+					</div>
+				</paper-dialog>
+				<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<h2>CSS Editor Info</h2>
+					<br />
+					- Use <pre class="inlineCodePre">@url 'http://example.com';</pre> to run certain CSS only on specified url for any code following this statement.
+					Calling <pre class="inlineCodePre">@urlend;</pre> will stop this from applying to the code below it.
+					You can combine multiple <pre class="inlineCodePre">@url</pre> statements to run on multiple sites, so calling <pre class="inlineCodePre">@url 'example.com'; @url 'google.com';</pre> runs the code below on both sites.
+					If for example you want any page's background-color to be black except for one website, you can use <pre class="inlineCodePre">@url</pre> to give that page a different background color.
+					You can use regular expressions as long as you wrap them in brackets.
+					<br /><br />
+					- Use chrome's dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
+					If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
+					If you want all elements with some class to be styled, simply use the class on it.
 					<div class="buttons">
-						<paper-button class="closeChooseFileDialog">Cancel</paper-button>
-						<paper-button id="chooseFileStopMerging">Stop merging</paper-button>
-						<paper-button id="chooseFileChooseMerge" dialog-confirm>Confirm</paper-button>
+						<paper-button dialog-dismiss>close</paper-button>
 					</div>
-				</div>
-			</paper-dialog>
-			<paper-dialog no-cancel-on-esc-key="true" with-backdrop id="addLibraryDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-				<div id="addLibraryLoadingDialog">
-					<div id="addLibraryLoadingDialogCenterer">
-						<paper-spinner active></paper-spinner>
+				</paper-dialog>
+				<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<h2>Allow permissions</h2>
+					<div id="requestPermissionsTxt">
+						A script that you presumably wrote/added has asked to use one or more chrome permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
+						Remember that this will only allow YOU to write scripts that acces these permissions and not downloaded and installed scripts.
+						Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
+						You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used simply saves you the hassle of doing it later during script installation or execution which will most likely break the script on that run.
 					</div>
-				</div>
-				<div id="addLibraryProcessContainer">
-					<h2>Add your own library</h2>
-					<paper-input error-message="please enter a name" id="addedLibraryName" label="name"></paper-input>
-					<paper-radio-group id="addLibraryRadios" selected="url">
-						<paper-radio-button id="addLibraryUrlOption" name="url">Input a url</paper-radio-button>
-						<paper-radio-button id="addLibraryManualOption" name="manual">Input the code</paper-radio-button>
-					</paper-radio-group>
-					<paper-input pattern="$a" id="addLibraryUrlInput" label="url" error-message="url does not host anything"></paper-input>
-					<paper-textarea id="addLibraryManualInput" label="code"></paper-textarea>
-					<div class="buttons">
-						<paper-button dialog-dismiss>Cancel</paper-button>
-						<paper-button id="addLibraryButton">Add</paper-button>
-					</div>
-				</div>
-				<div id="addLibraryConfirmationContainer">
-					<h2>Does this look okay to you?</h2>
-					<paper-textarea id="addLibraryConfirmationInput"></paper-textarea>
-					<div class="buttons">
-						<paper-button id="addLibraryDenyConfirmation">No</paper-button>
-						<paper-button id="addLibraryConfirmAddition">Yes</paper-button>
-					</div>
-				</div>
-				<div id="addLibraryDialogSucces">
-					<div id="addLibraryDialogSuccesCheckmark" class="checkmark"></div>
-					<div id="addLibraryDialogSuccesText">Added!</div>
-				</div>
-			</paper-dialog>
-			<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-				<h2>CSS Editor Info</h2>
-				<br />
-				- Use <pre class="inlineCodePre">@url 'http://example.com';</pre> to run certain CSS only on specified url for any code following this statement.
-				Calling <pre class="inlineCodePre">@urlend;</pre> will stop this from applying to the code below it.
-				You can combine multiple <pre class="inlineCodePre">@url</pre> statements to run on multiple sites, so calling <pre class="inlineCodePre">@url 'example.com'; @url 'google.com';</pre> runs the code below on both sites.
-				If for example you want any page's background-color to be black except for one website, you can use <pre class="inlineCodePre">@url</pre> to give that page a different background color.
-				You can use regular expressions as long as you wrap them in brackets.
-				<br /><br />
-				- Use chrome's dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
-				If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
-				If you want all elements with some class to be styled, simply use the class on it.
-				<div class="buttons">
-					<paper-button dialog-dismiss>close</paper-button>
-				</div>
-			</paper-dialog>
-			<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-				<h2>Allow permissions</h2>
-				<div id="requestPermissionsTxt">
-					A script that you presumably wrote/added has asked to use one or more chrome permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
-					Remember that this will only allow YOU to write scripts that acces these permissions and not downloaded and installed scripts.
-					Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
-					You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used simply saves you the hassle of doing it later during script installation or execution which will most likely break the script on that run.
-				</div>
-				<br />
-				<span>{{requestedPermission>}}</span>
-				<div id="requestPermissionsPermissions">
-					<div id="requestPermissionsAsked">
-						<template is="dom-repeat" items="{{requestedPermissions}}" as="requestedPermission">
+					<br />
+					<span>{{requestedPermission>}}</span>
+					<div id="requestPermissionsPermissions">
+						<div id="requestPermissionsAsked">
+							<template is="dom-repeat" items="{{requestedPermissions}}" as="requestedPermission">
 
-							<div class="requestPermissionsPermission">
-								<div class="requestPermissionsPermissionTopCont">
-									<span class="requestPermissionName">{{requestedPermission.name}}</span>
-									<div class="requestPermissionsShowBot">
-										<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+								<div class="requestPermissionsPermission">
+									<div class="requestPermissionsPermissionTopCont">
+										<span class="requestPermissionName">{{requestedPermission.name}}</span>
+										<div class="requestPermissionsShowBot">
+											<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+										</div>
+										<paper-toggle-button class="requestPermissionButton" checked="{{requestedPermission.given}}" ischecked$="{{requestedPermission.given}}"></paper-toggle-button>
 									</div>
-									<paper-toggle-button class="requestPermissionButton" checked="{{requestedPermission.given}}" ischecked$="{{requestedPermission.given}}"></paper-toggle-button>
-								</div>
-								<div class="requestPermissionsPermissionBotCont">
-									<span class="requestPermissionsDescription">{{requestedPermission.description}}</span>
-								</div>
-							</div>
-						</template>
-					</div>
-					<div id="requestPermissionsLineCont">
-						<div id="requestPermissionsSplitter"></div>
-						<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" /></svg>
-					</div>
-					<div id="requestPermissionsOther">
-						<template is="dom-repeat" items="{{otherPermissions}}" as="otherPermission">
-							<div class="requestPermissionsPermission">
-								<div class="requestPermissionsPermissionTopCont">
-									<span class="requestPermissionName">{{otherPermission.name}}</span>
-									<div class="requestPermissionsShowBot">
-										<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+									<div class="requestPermissionsPermissionBotCont">
+										<span class="requestPermissionsDescription">{{requestedPermission.description}}</span>
 									</div>
-									<paper-toggle-button class="requestPermissionButton" checked="{{otherPermission.given}}" ischecked$="{{otherPermission.given}}"></paper-toggle-button>
 								</div>
-								<div class="requestPermissionsPermissionBotCont">
-									<span class="requestPermissionsDescription">{{otherPermission.description}}</span>
+							</template>
+						</div>
+						<div id="requestPermissionsLineCont">
+							<div id="requestPermissionsSplitter"></div>
+							<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" /></svg>
+						</div>
+						<div id="requestPermissionsOther">
+							<template is="dom-repeat" items="{{otherPermissions}}" as="otherPermission">
+								<div class="requestPermissionsPermission">
+									<div class="requestPermissionsPermissionTopCont">
+										<span class="requestPermissionName">{{otherPermission.name}}</span>
+										<div class="requestPermissionsShowBot">
+											<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+										</div>
+										<paper-toggle-button class="requestPermissionButton" checked="{{otherPermission.given}}" ischecked$="{{otherPermission.given}}"></paper-toggle-button>
+									</div>
+									<div class="requestPermissionsPermissionBotCont">
+										<span class="requestPermissionsDescription">{{otherPermission.description}}</span>
+									</div>
 								</div>
-							</div>
-						</template>
+							</template>
+						</div>
 					</div>
-				</div>
-				<div class="buttons">
-					<paper-button dialog-dismiss>close</paper-button>
-				</div>
-			</paper-dialog>
-			<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
-			<use-external-editor id="useExternalEditor"></use-external-editor>
-			<div id="dummy"></div>
+					<div class="buttons">
+						<paper-button dialog-dismiss>close</paper-button>
+					</div>
+				</paper-dialog>
+				<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
+				<use-external-editor id="useExternalEditor"></use-external-editor>
+				<div id="dummy"></div>
+			</div>
 		</div>
 	</template>
 </dom-module>

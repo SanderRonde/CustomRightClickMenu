@@ -419,6 +419,7 @@ function main() {
  * @return Complete array
  */
 function insertInto(toAdd, target, position) {
+	position = position || null;
 	var temp1, i;
 	var temp2 = toAdd;
 	for (i = position; i < target.length; i++) {
@@ -1054,13 +1055,13 @@ Polymer({
 				});
 				$('#requestPermissionsShowOther').click(function () {
 					//TODO this
-					var other = $(this).parent().parent().children('#requestPermissionsOther');
-					if (other[0].style.height === 0) {
-						other.animate({
-							height: other.scrollHeight + 'px'
+					var otherPermissions = $(this).parent().parent().children('#requestPermissionsOther');
+					if (otherPermissions[0].style.height === 0) {
+						otherPermissions.animate({
+							height: otherPermissions.scrollHeight + 'px'
 						}, 350);
 					} else {
-						other.animate({
+						otherPermissions.animate({
 							height: 0
 						}, 350);
 					}
@@ -1160,23 +1161,68 @@ Polymer({
 	 * CRM functions.
 	 */
 	crm: {
-		_getEvalPath: function (path) {
+		_getEvalPath: function(path) {
 			return 'window.options.settings.crm[' + (path.join('].children[')) + ']';
 		},
 
-		lookup: function (path, returnArray) {
+		lookup: function(path, returnArray) {
 			var pathCopy = JSON.parse(JSON.stringify(path));
+			console.log(pathCopy);
 			if (returnArray) {
 				pathCopy.splice(pathCopy.length - 1, 1);
 			}
+			if (path.length === 0) {
+				return window.options.settings.crm;
+			}
+
+			if (path.length === 1) {
+				return (returnArray ? window.options.settings.crm : window.options.settings.crm[path[0]]);
+			}
+
 			var evalPath = this._getEvalPath(pathCopy);
+			console.log(evalPath);
 			var result = eval(evalPath);
+			console.log(returnArray);
+			console.log(result);
 			return (returnArray ? result.children : result);
 		},
 
-		setDataInCrm: function (path) {
+		_lookupId: function (id, returnArray, node) {
+			console.log(id, node.id);
+			if (node.id === id) {
+				console.log('found');
+				return node;
+			}
+
+			var nodeChildren = node.children;
+
+			if (nodeChildren) {
+				var el;
+				for (var i = 0; i < nodeChildren.length; i++) {
+					el = this._lookupId(id, returnArray, nodeChildren[i]);
+					if (el !== null) {
+						return (returnArray ? nodeChildren : el);
+					}
+				}
+			}
+			return null;
+		},
+
+		lookupId: function (id, returnArray) {
+			var el;
+			for (var i = 0; i < window.options.settings.crm.length; i++) {
+				el = this._lookupId(id, returnArray, window.options.settings.crm[i]);
+				if (el) {
+					return el;
+				}
+			}
+			return null;
+		},
+
+		setDataInCrm: function(path) {
 			var evalPath = this._getEvalPath(path);
-			return function (key, data) {
+			return function(key, data) {
+				key, data;
 				eval(evalPath + '[key] = data');
 			}
 		},
@@ -1193,9 +1239,10 @@ Polymer({
 			} else if (position === 'last' || position === undefined) {
 				this.parent.settings.crm[this.parent.settings.crm.length] = value;
 			} else {
-				this.parent.settings.crm = insertInto(value, this.parent.settings.crm, position);
+				this.parent.settings.crm = insertInto(value, this.parent.settings.crm);
 			}
-			options.upload();
+			//HERE
+			//options.upload();
 		},
 
 		/**

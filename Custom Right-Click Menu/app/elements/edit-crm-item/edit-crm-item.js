@@ -266,7 +266,23 @@ Polymer({
 		this.parentNode.parentNode.parentNode.draggingItem = this;
 	},
 
+	update: function() {
+		if (!this.classList.contains('id' + this.item.id)) {
+			//Remove old ID and call ready
+			var classes = this.classList;
+			for (var i = 0; i < classes.length; i++) {
+				if (classes[i].indexOf('id') > -1) {
+					this.classList.remove(classes[i]);
+					break;
+				}
+			}
+
+			this.ready();
+		}
+	},
+
 	ready: function () {
+		this.classList.add('id' + this.item.id);
 		if (this.classList[0] !== 'wait') {
 			this.itemIndex = this.index;
 			this.item = this.item;
@@ -321,6 +337,15 @@ Polymer({
 			}
 			this.column = this.parentNode.index;
 			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
+
+			if (window.options.editCRM.isSelecting) {
+				this.classList.add('selecting');
+				if (window.options.editCRM.selectedElements.indexOf(this.item.id) > -1) {
+					this.onSelect(true, true);
+				} else {
+					this.onDeselect(true, true);
+				}
+			}
 		}
 	},
 
@@ -677,7 +702,7 @@ Polymer({
 			this.animationEl = this.animationEl || this.$$('type-switcher').$$('.TSContainer');
 			(this.typeIndicatorAnimation && this.typeIndicatorAnimation.play()) || (this.typeIndicatorAnimation = this.animationEl.animate([
 					{
-						marginLeft: -193
+						marginLeft: '-193px'
 					}, {
 						marginLeft: 0
 					}
@@ -715,19 +740,50 @@ Polymer({
 	//#endregion
 
 	//#region deletionFunctions
-		
-	onSelect: function(selectCheckbox) {
-		this.classList.add('highlighted');
+
+	_getOnSelectFunction: function(_this, index) {
+		return function() {
+			window.options.editCRM.getCRMElementFromPath(_this.item.children[index].path).onSelect(true);
+		}
 	},
 
-	onDeselect: function (selectCheckbox) {
+	onSelect: function (selectCheckbox, dontSelectChildren) {
+		this.classList.add('highlighted');
+		selectCheckbox && (this.$.checkbox.checked = true);
+		if (this.item.children && !dontSelectChildren) {
+			for (var i = 0; i < this.item.children.length; i++) {
+				setTimeout(this._getOnSelectFunction(this, i), (i * 75));
+				window.options.editCRM.selectedElements.push(this.item.children[i].id);
+			}
+		}
+	},
+
+	_getOnDeselectFunction: function (_this, index) {
+		return function () {
+			window.options.editCRM.getCRMElementFromPath(_this.item.children[index].path).onDeselect(true);
+		}
+	},
+
+	onDeselect: function (selectCheckbox, dontSelectChildren) {
 		this.classList.remove('highlighted');
+		selectCheckbox && (this.$.checkbox.checked = false);
+		if (this.item.children && !dontSelectChildren) {
+			var selectedPaths = window.options.editCRM.selectedElements;
+			for (var i = 0; i < this.item.children.length; i++) {
+				setTimeout(this._getOnDeselectFunction(this, i), (i * 75));
+				selectedPaths.splice(selectedPaths.indexOf(this.item.children[i].id), 1);
+			}
+		}
 	},
 
 	onToggle: function () {
 		var _this = this;
-		setTimeout(function() {
-			_this.$.checkbox.checked ? _this.onSelect() : _this.onDeselect();
+		setTimeout(function () {
+			if (_this.$.checkbox.checked) {
+				_this.onSelect();
+			} else {
+				_this.onDeselect();
+			}
 		}, 0);
 	}
 
