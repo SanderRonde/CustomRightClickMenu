@@ -196,3 +196,8 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+/Custom Right-Click Menu/app/bower_comonents_uncrisp/polymer
+/Custom Right-Click Menu/app/bower_components_fixed
+/Custom Right-Click Menu/app/bower_components_test
+/Custom Right-Click Menu/app/bower_components_test_test
+/Custom Right-Click Menu/app/bower_components_uncrisp

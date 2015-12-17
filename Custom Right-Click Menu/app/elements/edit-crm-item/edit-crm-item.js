@@ -637,25 +637,30 @@ Polymer({
 	//#region editPageFunctions
 	openEditPage: function (e) {
 		if (!this.shadow && !window.options.item) {
-			var path = e.path;
-			var element = path[0];
-			for (var i = 0; i < path.length && element.tagName !== 'EDIT-CRM-ITEM'; i++) {
-				element = path[i];
-			}
-			var item = window.options.crm.lookup(element.item.path);
-			window.options.item = item;
-			if (item.type === 'script') {
-				window.options.stylesheetItem = {};
-				window.options.scriptItem = item;
-			}
-			else if (item.type === 'stylesheet') {
-				window.options.scriptItem = {};
-				window.options.stylesheetItem = item;
+			if (!this.classList.contains('selecting')) {
+				var path = e.path;
+				var element = path[0];
+				for (var i = 0; i < path.length && element.tagName !== 'EDIT-CRM-ITEM'; i++) {
+					element = path[i];
+				}
+				var item = window.options.crm.lookup(element.item.path);
+				window.options.item = item;
+				if (item.type === 'script') {
+					window.options.stylesheetItem = {};
+					window.options.scriptItem = item;
+				} else if (item.type === 'stylesheet') {
+					window.options.scriptItem = {};
+					window.options.stylesheetItem = item;
+				} else {
+					window.options.stylesheetItem = {};
+					window.options.scriptItem = {};
+				}
+				window.crmEditPage.init();
 			} else {
-				window.options.stylesheetItem = {};
-				window.options.scriptItem = {};
+				var prevState = this.$.checkbox.checked;
+				this.$.checkbox.checked = !prevState;
+				prevState ? this.onDeselect() : this.onSelect();
 			}
-			window.crmEditPage.init();
 		}
 	},
 	//#endregion
@@ -705,6 +710,25 @@ Polymer({
 				this.animateOut();
 			}
 		}
+	},
+
+	//#endregion
+
+	//#region deletionFunctions
+		
+	onSelect: function(selectCheckbox) {
+		this.classList.add('highlighted');
+	},
+
+	onDeselect: function (selectCheckbox) {
+		this.classList.remove('highlighted');
+	},
+
+	onToggle: function () {
+		var _this = this;
+		setTimeout(function() {
+			_this.$.checkbox.checked ? _this.onSelect() : _this.onDeselect();
+		}, 0);
 	}
 
 	//#endregion
