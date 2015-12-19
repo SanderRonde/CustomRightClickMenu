@@ -20,6 +20,6 @@
 			type: 'link',
 			value: link
 		};
-		options.crm.add(newItem);
+		app.crm.add(newItem);
 	}
 })

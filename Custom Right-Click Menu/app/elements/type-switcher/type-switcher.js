@@ -162,7 +162,7 @@
 		var prevType = item.type;
 
 		var path = item.path;
-		var itemInCrm = options.settings.crm;
+		var itemInCrm = app.settings.crm;
 		var i;
 		for (i = 0; i < path.length - 1; i++) {
 			itemInCrm = itemInCrm[path[i]].children;
@@ -236,7 +236,7 @@
 				columnCont = $(columnCont).next()[0];
 			}
 
-			options.settings.shadowStart = column.index + 1;
+			app.settings.shadowStart = column.index + 1;
 
 			function reverseMenuTypeChoice() {
 				for (i = 0; i < 2; i++) {
@@ -264,7 +264,7 @@
 					columnCont = $(columnCont).next()[0];
 				}
 
-				options.settings.shadowStart = null;
+				app.settings.shadowStart = null;
 			}
 
 			//Show a paper-toast
@@ -277,6 +277,6 @@
 		}
 
 		this.closeTypeSwitchContainer(true);
-		options.upload();
+		app.upload();
 	}
 });

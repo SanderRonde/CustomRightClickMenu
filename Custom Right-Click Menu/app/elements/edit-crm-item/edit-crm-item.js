@@ -338,9 +338,9 @@ Polymer({
 			this.column = this.parentNode.index;
 			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 
-			if (window.options.editCRM.isSelecting) {
+			if (window.app.editCRM.isSelecting) {
 				this.classList.add('selecting');
-				if (window.options.editCRM.selectedElements.indexOf(this.item.id) > -1) {
+				if (window.app.editCRM.selectedElements.indexOf(this.item.id) > -1) {
 					this.onSelect(true, true);
 				} else {
 					this.onDeselect(true, true);
@@ -355,7 +355,7 @@ Polymer({
 	},
 
 	openMenu: function () {
-		options.editCRM.build(this.item.path, false, true);
+		app.editCRM.build(this.item.path, false, true);
 	},
 
 	menuMouseOver: function () {
@@ -365,7 +365,7 @@ Polymer({
 
 			//Create new column
 			var oldItemsObj = this.parentNode.parentNode.parentNode.parentNode.crm;
-			var newItemsObj = options.editCRM.build(this.item.path);
+			var newItemsObj = app.editCRM.build(this.item.path);
 
 			//Now fix the spacing from the top
 			var columnIndex = $(this.parentNode.parentNode.parentNode).children().toArray().indexOf(draggingEl.parentNode.parentNode);
@@ -643,15 +643,15 @@ Polymer({
 			});
 		}
 		if (this.item) {
-			options.crm.move(this.item.path, newPath, (this.parentNode.index === this.column));
+			app.crm.move(this.item.path, newPath, (this.parentNode.index === this.column));
 			var newPathMinusOne = newPath;
 			newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
-			var newObj = options.editCRM.build(newPathMinusOne);
+			var newObj = app.editCRM.build(newPathMinusOne);
 			$(this.parentNode.parentNode.parentNode).children().css('display', 'table');
 
 			setTimeout(function() {
 				//Make every node re-run "ready"
-				$(options.editCRM).find('edit-crm-item').each(function() {
+				$(app.editCRM).find('edit-crm-item').each(function() {
 					this.recalculateIndex(newObj);
 				});
 			}, 0);
@@ -661,24 +661,24 @@ Polymer({
 
 	//#region editPageFunctions
 	openEditPage: function (e) {
-		if (!this.shadow && !window.options.item) {
+		if (!this.shadow && !window.app.item) {
 			if (!this.classList.contains('selecting')) {
 				var path = e.path;
 				var element = path[0];
 				for (var i = 0; i < path.length && element.tagName !== 'EDIT-CRM-ITEM'; i++) {
 					element = path[i];
 				}
-				var item = window.options.crm.lookup(element.item.path);
-				window.options.item = item;
+				var item = window.app.crm.lookup(element.item.path);
+				window.app.item = item;
 				if (item.type === 'script') {
-					window.options.stylesheetItem = {};
-					window.options.scriptItem = item;
+					window.app.stylesheetItem = {};
+					window.app.scriptItem = item;
 				} else if (item.type === 'stylesheet') {
-					window.options.scriptItem = {};
-					window.options.stylesheetItem = item;
+					window.app.scriptItem = {};
+					window.app.stylesheetItem = item;
 				} else {
-					window.options.stylesheetItem = {};
-					window.options.scriptItem = {};
+					window.app.stylesheetItem = {};
+					window.app.scriptItem = {};
 				}
 				window.crmEditPage.init();
 			} else {
@@ -743,7 +743,7 @@ Polymer({
 
 	_getOnSelectFunction: function(_this, index) {
 		return function() {
-			window.options.editCRM.getCRMElementFromPath(_this.item.children[index].path).onSelect(true);
+			window.app.editCRM.getCRMElementFromPath(_this.item.children[index].path).onSelect(true);
 		}
 	},
 
@@ -753,14 +753,14 @@ Polymer({
 		if (this.item.children && !dontSelectChildren) {
 			for (var i = 0; i < this.item.children.length; i++) {
 				setTimeout(this._getOnSelectFunction(this, i), (i * 75));
-				window.options.editCRM.selectedElements.push(this.item.children[i].id);
+				window.app.editCRM.selectedElements.push(this.item.children[i].id);
 			}
 		}
 	},
 
 	_getOnDeselectFunction: function (_this, index) {
 		return function () {
-			window.options.editCRM.getCRMElementFromPath(_this.item.children[index].path).onDeselect(true);
+			window.app.editCRM.getCRMElementFromPath(_this.item.children[index].path).onDeselect(true);
 		}
 	},
 
@@ -768,7 +768,7 @@ Polymer({
 		this.classList.remove('highlighted');
 		selectCheckbox && (this.$.checkbox.checked = false);
 		if (this.item.children && !dontSelectChildren) {
-			var selectedPaths = window.options.editCRM.selectedElements;
+			var selectedPaths = window.app.editCRM.selectedElements;
 			for (var i = 0; i < this.item.children.length; i++) {
 				setTimeout(this._getOnDeselectFunction(this, i), (i * 75));
 				selectedPaths.splice(selectedPaths.indexOf(this.item.children[i].id), 1);

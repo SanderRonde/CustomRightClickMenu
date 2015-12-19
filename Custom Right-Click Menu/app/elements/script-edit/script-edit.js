@@ -303,17 +303,17 @@
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
-		var lookedUp = window.options.crm.lookup(this.item.path, true);
+		var lookedUp = window.app.crm.lookup(this.item.path, true);
 		this.getContentTypeLaunchers();
 		this.getTriggers();
 		window.crmEditPage.animateOut();
 		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var itemInEditPage = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
+		var itemInEditPage = $($(app.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.app.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
 		itemInEditPage.item = this.newSettings;
 		itemInEditPage.name = this.newSettings.name;
 		var i;
-		for (i = 0; i < window.options.crmTypes.length; i++) {
-			if (window.options.crmTypes[i]) {
+		for (i = 0; i < window.app.crmTypes.length; i++) {
+			if (window.app.crmTypes[i]) {
 				break;
 			}
 		}
@@ -321,11 +321,11 @@
 			this.newSettings.onContentTypes = [true, true, true, true, true, true];
 		} else {
 			if (!this.newSettings.onContentTypes[i]) {
-				window.options.editCRM.build(window.options.editCRM.setMenus);
+				window.app.editCRM.build(window.app.editCRM.setMenus);
 			}
 		}
 		lookedUp[lastPathIndex] = this.newSettings;
-		options.upload();
+		app.upload();
 	},
 
 	assignContentTypeSelectedValues: function() {
@@ -429,9 +429,9 @@
 	 */
 	initToolsRibbon: function() {
 		var _this = this;
-		window.options.$.paperLibrariesSelector.init();
-		window.options.$.paperGetPageProperties.init();
-		window.options.$.paperGetPageProperties.addEventListener('addsnippet', function(snippet) {
+		window.app.$.paperLibrariesSelector.init();
+		window.app.$.paperGetPageProperties.init();
+		window.app.$.paperGetPageProperties.addEventListener('addsnippet', function(snippet) {
 			_this.insertSnippet(_this, snippet.snippet);
 		});
 		//Use CRMAPI
@@ -442,9 +442,9 @@
 	 */
 	popInRibbons: function() {
 		//Introduce title at the top
-		var scriptTitle = window.options.$.editorCurrentScriptTitle;
+		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
-		if (options.settings.shrinkTitleRibbon) {
+		if (app.settings.shrinkTitleRibbon) {
 			window.doc.editorTitleRibbon.style.fontSize = '40%';
 			scriptTitle.style.padding = 0;
 			titleRibbonSize = '-18px';
@@ -460,7 +460,7 @@
 				marginTop: 0
 			}
 		];
-		var margin = (options.settings.hideToolsRibbon ? 0 : '-200px');
+		var margin = (app.settings.hideToolsRibbon ? 0 : '-200px');
 		scriptTitle.style.marginLeft = '-200px';
 		scriptTitleAnimation[0].marginLeft = '-200px';
 		scriptTitleAnimation[1].marginLeft = 0;
@@ -546,9 +546,9 @@
 	 * Pops out the ribbons with an animation
 	 */
 	popOutRibbons: function() {
-		var scriptTitle = window.options.$.editorCurrentScriptTitle;
-		var toolsRibbon = window.options.$.editorToolsRibbonContainer;
-		if (window.options.settings.editor.showToolsRibbon && toolsRibbon && toolsRibbon.classList.contains('visible')) {
+		var scriptTitle = window.app.$.editorCurrentScriptTitle;
+		var toolsRibbon = window.app.$.editorToolsRibbonContainer;
+		if (window.app.settings.editor.showToolsRibbon && toolsRibbon && toolsRibbon.classList.contains('visible')) {
 			scriptTitle.animate([
 				{
 					marginTop: 0,
@@ -633,8 +633,8 @@
 		var viewportWidth = $horizontalCenterer.width();
 		var viewPortHeight = $horizontalCenterer.height();
 
-		if (options.settings.hideToolsRibbon !== undefined) {
-			if (options.settings.hideToolsRibbon) {
+		if (app.settings.hideToolsRibbon !== undefined) {
+			if (app.settings.hideToolsRibbon) {
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
 			} else {
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
@@ -643,11 +643,11 @@
 			chrome.storage.sync.set({
 				hideToolsRibbon: false
 			});
-			options.settings.hideToolsRibbon = false;
+			app.settings.hideToolsRibbon = false;
 			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 		}
-		if (options.settings.shrinkTitleRibbon !== undefined) {
-			if (options.settings.shrinkTitleRibbon) {
+		if (app.settings.shrinkTitleRibbon !== undefined) {
+			if (app.settings.shrinkTitleRibbon) {
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 			} else {
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
@@ -656,7 +656,7 @@
 			chrome.storage.sync.set({
 				shrinkTitleRibbon: false
 			});
-			options.settings.shrinkTitleRibbon = false;
+			app.settings.shrinkTitleRibbon = false;
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)'
 		}
 
@@ -679,7 +679,7 @@
 				this.style.width = '100vw';
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
-				options.$.fullscreenEditorHorizontal.style.height = '100vh';
+				app.$.fullscreenEditorHorizontal.style.height = '100vh';
 				_this.popInRibbons();
 			}
 		});
@@ -736,7 +736,7 @@
 	 */
 	showOptions: function() {
 		var _this = this;
-		this.unchangedEditorSettings = jQuery.extend(true, {}, window.options.settings.editor);
+		this.unchangedEditorSettings = jQuery.extend(true, {}, window.app.settings.editor);
 		var editorWidth = $('.CodeMirror').width();
 		var editorHeight = $('.CodeMirror').height();
 		var circleRadius;
@@ -752,8 +752,8 @@
 		this.settingsShadow[0].parentNode.style.width = editorWidth;
 		this.settingsShadow[0].parentNode.style.height = editorHeight;
 		this.fullscreenEl.style.display = 'none';
-		var settingsInitialMarginLeft = (window.options.settings.editor.lineNumbers ? -500 : -470);
-		$('#editorThemeFontSizeInput')[0].value = window.options.settings.editor.zoom;
+		var settingsInitialMarginLeft = (window.app.settings.editor.lineNumbers ? -500 : -470);
+		$('#editorThemeFontSizeInput')[0].value = window.app.settings.editor.zoom;
 		this.settingsShadow.css({
 			width: '50px',
 			height: '50px',
@@ -780,7 +780,7 @@
 	 */
 	hideOptions: function () {
 		var _this = this;
-		var settingsInitialMarginLeft = (window.options.settings.editor.lineNumbers ? -500 : -470);
+		var settingsInitialMarginLeft = (window.app.settings.editor.lineNumbers ? -500 : -470);
 		this.fullscreenEl.style.display = 'block';
 		this.settingsShadow.animate({
 			width: 0,
@@ -795,14 +795,14 @@
 				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: function () {
-				var zoom = window.options.settings.editor.zoom;
+				var zoom = window.app.settings.editor.zoom;
 				var prevZoom = _this.unchangedEditorSettings.zoom;
 				_this.unchangedEditorSettings.zoom = zoom;
-				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.options.settings.editor)) {
+				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
 					_this.reloadEditor();
 				}
 				if (zoom !== prevZoom) {
-					window.options.updateEditorZoom();
+					window.app.updateEditorZoom();
 				}
 			}
 		});
@@ -975,23 +975,23 @@
 			'<br>').appendTo(settingsContainer);
 
 		//The white theme option
-		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.options.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
+		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.app.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
 			.click(function() {
 				var themes = this.parentNode.children;
 				themes[0].classList.add('currentTheme');
 				themes[1].classList.remove('currentTheme');
-				window.options.settings.editor.theme = 'white';
-				window.options.upload();
+				window.app.settings.editor.theme = 'white';
+				window.app.upload();
 			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
 		
 		//The dark theme option
-		$('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.options.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
+		$('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
 			.click(function() {
 				var themes = this.parentNode.children;
 				themes[0].classList.remove('currentTheme');
 				themes[1].classList.add('currentTheme');
-				window.options.settings.editor.theme = 'dark';
-				window.options.upload();
+				window.app.settings.editor.theme = 'dark';
+				window.app.upload();
 			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
 
 		//The font size
@@ -1000,10 +1000,10 @@
 			'</div>').appendTo(settingsContainer);
 
 			//TODO IMPLEMENT THIS WITH NEW PAPER-INPUT VERSION
-		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.options.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('keypress change', function() {
+		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('keypress change', function() {
 			var _this = this;
 			setTimeout(function() {
-				window.options.settings.editor.zoom = _this.value;
+				window.app.settings.editor.zoom = _this.value;
 			}, 0);
 		}).appendTo(fontSize);
 
@@ -1018,9 +1018,9 @@
 			'<br>').appendTo(settingsContainer);
 
 		//The main checkbox for the tabs or spaces option
-		$('<paper-checkbox ' + (window.options.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function() {
-			window.options.settings.editor.useTabs = !window.options.settings.editor.useTabs;
-			window.options.upload();
+		$('<paper-checkbox ' + (window.app.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function() {
+			window.app.settings.editor.useTabs = !window.app.settings.editor.useTabs;
+			window.app.upload();
 		}).appendTo(tabsOrSpaces.find('#editorTabsOrSpacesCheckbox'));
 
 		//The option for the size of tabs
@@ -1028,7 +1028,7 @@
 			'<div id="editorTabSizeInput">' +
 			'<paper-input-container>' +
 			'<label>Tab size</label>' +
-			'<input min="1" is="iron-input" type="number" value="' + window.options.settings.editor.tabSize + '"/>' +
+			'<input min="1" is="iron-input" type="number" value="' + window.app.settings.editor.tabSize + '"/>' +
 			'</paper-input-container>' +
 			'</div>' +
 			'</div>' +
@@ -1038,8 +1038,8 @@
 		tabSize.find('input').change(function() {
 			var input = $(this);
 			setTimeout(function() {
-				window.options.settings.editor.tabSize = input.val();
-				window.options.upload();
+				window.app.settings.editor.tabSize = input.val();
+				window.app.upload();
 			}, 0);
 		});
 
@@ -1053,9 +1053,9 @@
 			'</div><br>').appendTo(settingsContainer);
 
 		//The main checkbox for the line numbers option
-		$('<paper-checkbox ' + (window.options.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
-			window.options.settings.editor.lineNumbers = !window.options.settings.editor.lineNumbers;
-			window.options.upload();
+		$('<paper-checkbox ' + (window.app.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
+			window.app.settings.editor.lineNumbers = !window.app.settings.editor.lineNumbers;
+			window.app.upload();
 		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
 
 		//The edit jsLint settings option
@@ -1063,7 +1063,7 @@
 
 		var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
 
-		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.options.jsLintGlobals.join(',') + '">').keypress(function () {
+		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">').keypress(function () {
 			var _this = this;
 			setTimeout(function () {
 				var val = _this.value;
@@ -1071,7 +1071,7 @@
 				chrome.storage.local.set({
 					jsLintGlobals: globals
 				});
-				window.options.jsLintGlobals = globals;
+				window.app.jsLintGlobals = globals;
 			}, 0);
 		}).appendTo(jsLintGlobalsCont);
 	},
@@ -1082,29 +1082,29 @@
 	initTernKeyBindings: function () {
 		this.editor.setOption('extraKeys', {
 			"Ctrl-Space": function (cm) {
-				window.options.ternServer.complete(cm);
+				window.app.ternServer.complete(cm);
 			},
 			"Ctrl-I": function (cm) {
-				window.options.ternServer.showType(cm);
+				window.app.ternServer.showType(cm);
 			},
 			"Ctrl-O": function (cm) {
-				window.options.ternServer.showDocs(cm);
+				window.app.ternServer.showDocs(cm);
 			},
 			"Alt-.": function (cm) {
-				window.options.ternServer.jumpToDef(cm);
+				window.app.ternServer.jumpToDef(cm);
 			},
 			"Alt-,": function (cm) {
-				window.options.ternServer.jumpBack(cm);
+				window.app.ternServer.jumpBack(cm);
 			},
 			"Ctrl-Q": function (cm) {
-				window.options.ternServer.rename(cm);
+				window.app.ternServer.rename(cm);
 			},
 			"Ctrl-.": function (cm) {
-				window.options.ternServer.selectName(cm);
+				window.app.ternServer.selectName(cm);
 			}
 		});
 		this.editor.on('cursorActivity', function (cm) {
-			window.options.ternServer.updateArgHints(cm);
+			window.app.ternServer.updateArgHints(cm);
 		});
 	},
 
@@ -1174,15 +1174,15 @@
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		this.editor = new window.CodeMirror(container, {
-			lineNumbers: window.options.settings.editor.lineNumbers,
+			lineNumbers: window.app.settings.editor.lineNumbers,
 			value: content || this.item.value.script,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
 			mode: 'javascript',
 			readOnly: (disable ? 'nocursor' : false),
-			theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-			indentUnit: window.options.settings.editor.tabSize,
-			indentWithTabs: window.options.settings.editor.useTabs,
+			theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+			indentUnit: window.app.settings.editor.tabSize,
+			indentWithTabs: window.app.settings.editor.useTabs,
 			messageScriptEdit: true,
 			gutters: ['CodeMirror-lint-markers'],
 			lint: window.CodeMirror.lint.javascript
@@ -1219,7 +1219,7 @@
 		var _this = this;
 		this.$.dropdownMenu.init();
 		this.initDropdown();
-		window.options.ternServer = window.options.ternServer || new window.CodeMirror.TernServer({
+		window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
 			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 		});
 		document.body.classList.remove('editingStylesheet');

@@ -187,9 +187,8 @@ function sandbox(api, args) {
 			}
 		}
 
-		var i;
 		var callback = null;
-		for (i = scripts.length - 1; i >= 0; i--) {
+		for (var i = scripts.length - 1; i >= 0; i--) {
 			callback = executeScript(scripts[i], callback);
 		}
 
@@ -391,14 +390,14 @@ function sandbox(api, args) {
 		return id;
 	}
 
-	function buildPageCrmParse(node, parentId) {
+	function buildPageCRMTree(node, parentId) {
 		var i;
 		var id = createNode(node, parentId);
 		contextMenuIds[node.id] = id;
 		if (id !== undefined) {
 			if (node.children) {
 				for (i = 0; i < node.children.length; i++) {
-					buildPageCrmParse(node.children[i], id);
+					buildPageCRMTree(node.children[i], id);
 				}
 			}
 		}
@@ -418,7 +417,7 @@ function sandbox(api, args) {
 			always: []
 		};
 		for (i = 0; i < length; i++) {
-			buildPageCrmParse(crmTree[i], rootId);
+			buildPageCRMTree(crmTree[i], rootId);
 		}
 		if (storageSync.showOptions) {
 			window.chrome.contextMenus.create({
@@ -722,7 +721,7 @@ function sandbox(api, args) {
 		respondToCrmAPI(message, 'chromeError', error, stackTrace);
 	}
 
-	function crmFunction(message, toRun) {
+	function CRMFunction(message, toRun) {
 		var _this = this;
 		this.toRun = toRun;
 		this.message = message;
@@ -1949,7 +1948,7 @@ function sandbox(api, args) {
 
 	function crmHandler(message) {
 		// ReSharper disable once ConstructorCallNotUsed
-		new crmFunction(message, message.action);
+		new CRMFunction(message, message.action);
 	}
 
 	var fnInlineArgs = [];

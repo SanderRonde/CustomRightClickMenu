@@ -1,15 +1,15 @@
 /// <reference path="../../../scripts/_references.js"/>
-/// <reference path="~/app/elements/crm-options/crm-options.js" />
+/// <reference path="~/app/elements/crm-options/crm-app.js" />
 'use strict';
-var options;
-options.settings = options.settings;
+var app;
+app.settings = app.settings;
 
 /**
  * @fn function getLastMenu(list)
  *
  * @brief Gets the last menu of the list.
  *
- * @param list The list.
+ * @param list - The list.
  * @param hidden - The hidden nodes
  *
  * @return The last menu on the given list.
@@ -20,7 +20,7 @@ function getLastMenu(list, hidden) {
 	//Find last menu to auto-expand
 	if (list) {
 		list.forEach(function (item, index) {
-			if ((item.type === 'menu' || (options.settings.shadowStart && item.menuVal) && !hidden[item.path])) {
+			if ((item.type === 'menu' || (app.settings.shadowStart && item.menuVal) && !hidden[item.path])) {
 				lastMenu = index;
 				if (item.children.length > 0) {
 					lastFilledMenu = index;
@@ -83,12 +83,12 @@ function getIndent(data, lastMenu, hiddenNodes) {
  *
  * @brief Builds crm edit object.
  * 		  
- * @param setMenus An array of menus that are set to be opened (by user input).
+ * @param setMenus - An array of menus that are set to be opened (by user input).
  *
  * @return the CRM edit object
  */
 function buildCRMEditObj(setMenus) {
-	var showContentTypes = options.crmTypes;
+	var showContentTypes = app.crmTypes;
 	var setMenusLength = setMenus.length;
 	var newSetMenus = [];
 	var crmEditObj = [];
@@ -101,7 +101,7 @@ function buildCRMEditObj(setMenus) {
 	var indent;
 	var length;
 
-	var list = options.settings.crm;
+	var list = app.settings.crm;
 	//Hide all nodes that should be hidden
 	var hiddenNodes = {};
 	var i;
@@ -125,7 +125,7 @@ function buildCRMEditObj(setMenus) {
 			column.indent[indentTop - 1] = undefined;
 			column.list = list;
 			column.index = columnNum;
-			if (options.settings.shadowStart && options.settings.shadowStart <= columnNum) {
+			if (app.settings.shadowStart && app.settings.shadowStart <= columnNum) {
 				column.shadow = true;
 			}
 
@@ -135,7 +135,7 @@ function buildCRMEditObj(setMenus) {
 					item.expanded = false;
 				});
 				list[lastMenu].expanded = true;
-				if (options.settings.shadowStart && list[lastMenu].menuVal) {
+				if (app.settings.shadowStart && list[lastMenu].menuVal) {
 					list = list[lastMenu].menuVal;
 				} else {
 					list = list[lastMenu].children;
@@ -247,7 +247,7 @@ window.Polymer({
 	selectedElements: [],
 
 	get firstCRMColumn() {
-		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = options.editCRM.children[1].children[2]));
+		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = app.editCRM.children[1].children[2]));
 	},
 
 	properties: {
@@ -292,11 +292,11 @@ window.Polymer({
 	getCurrentTypeIndex: function (path) {
 		var i;
 		var hiddenNodes = {};
-		for (i = 0; i < window.options.settings.crm.length; i++) {
-			getHiddenNodes(hiddenNodes, window.options.settings.crm[i], window.options.crmTypes);
+		for (i = 0; i < window.app.settings.crm.length; i++) {
+			getHiddenNodes(hiddenNodes, window.app.settings.crm[i], window.app.crmTypes);
 		}
 		console.log(path);
-		var items = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
+		var items = $($(app.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
 		var index = path[path.length - 1];
 		for (i = 0; i < items.length; i++) {
 			if (hiddenNodes[items[i]]) {
@@ -311,7 +311,7 @@ window.Polymer({
 	 *
 	 * @brief Builds the crm object
 	 * 		  
-	 * @param setItems Set choices for menus by the user
+	 * @param setItems - Set choices for menus by the user
 	 * @param quick - Do it quicker than normal
 	 * @param superquick - Don't show a loading image and do it immediately
 	 * 
@@ -351,14 +351,14 @@ window.Polymer({
 
 	ready: function () {
 		var _this = this;
-		options.editCRM = this;
-		window.options.addEventListener('crmTypeChanged', this._typeChanged);
+		app.editCRM = this;
+		window.app.addEventListener('crmTypeChanged', this._typeChanged);
 		_this._typeChanged(true);
 	},
 
 	addItem: function () {
 		generateItemId(function(itemId) {
-			var newIndex = options.settings.crm.length;
+			var newIndex = app.settings.crm.length;
 			var newItem = {
 				name: 'name',
 				type: 'link',
@@ -373,11 +373,11 @@ window.Polymer({
 				index: newIndex,
 				isLocal: true,
 				path: [newIndex],
-				onContentType: options.crmTypes
+				onContentType: app.crmTypes
 			};
-			options.crm.add(newItem);
+			app.crm.add(newItem);
 
-			window.options.editCRM.build(window.options.editCRM.setMenus, false, true);
+			window.app.editCRM.build(window.app.editCRM.setMenus, false, true);
 		});
 	},
 
@@ -407,7 +407,7 @@ window.Polymer({
 			var arr;
 			for (i = 0; i < toRemove.length; i++) {
 				try {
-					arr = window.options.crm.lookupId(toRemove[i], true);
+					arr = window.app.crm.lookupId(toRemove[i], true);
 					for (j = 0; j < arr.length; j++) {
 						if (arr[j].id === toRemove[i]) {
 							arr.splice(arr[j], 1);
@@ -453,6 +453,6 @@ window.Polymer({
 	},
 
 	_typeChanged: function (quick) {
-		runOrAddAsCallback(options.editCRM.build, options.editCRM, (quick ? [null, true] : []));
+		runOrAddAsCallback(app.editCRM.build, app.editCRM, (quick ? [null, true] : []));
 	}
 });

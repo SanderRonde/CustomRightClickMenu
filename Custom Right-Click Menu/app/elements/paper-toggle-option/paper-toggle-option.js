@@ -15,7 +15,7 @@ Polymer({
 	ready: function () {
 		var _this = this;
 		runOrAddAsCallback(function() {
-			_this.toggled = options.settings[$(_this).attr('id')];
+			_this.toggled = app.settings[$(_this).attr('id')];
 		}, this);
 	},
 
@@ -23,6 +23,6 @@ Polymer({
 		var id = $(this).attr('id');
 		this.toggled = !this.toggled;
 		console.log(id, this.toggled);
-		options.set(id, this.toggled);
+		app.set(id, this.toggled);
 	}
 })

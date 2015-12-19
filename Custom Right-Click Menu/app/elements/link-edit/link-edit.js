@@ -240,7 +240,7 @@
 
 	saveChanges: function () {
 		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var lookedUp = options.crm.lookup(this.item.path, true);
+		var lookedUp = app.crm.lookup(this.item.path, true);
 		//Get new "item"
 		var newItem = {};
 		newItem.name = this.item.name;
@@ -254,7 +254,7 @@
 			});
 		});
 		this.getContentTypeLaunchers(newItem);
-		var set = window.options.crm.setDataInCrm(this.item.path);
+		var set = window.app.crm.setDataInCrm(this.item.path);
 		set('name', newItem.name);
 		set('name', newItem.name);
 		set('value', newItem.value);
@@ -263,25 +263,25 @@
 
 		//Polymer pls...
 		console.log(lookedUp[lastPathIndex].path.length);
-		console.log(options.editCRM.$.mainCont.children);
-		console.log($(options.editCRM.$.mainCont.children[lookedUp[lastPathIndex].path.length - 1]));
-		var itemInEditPage = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.options.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
+		console.log(app.editCRM.$.mainCont.children);
+		console.log($(app.editCRM.$.mainCont.children[lookedUp[lastPathIndex].path.length - 1]));
+		var itemInEditPage = $($(app.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.app.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
 		itemInEditPage.item = lookedUp[lastPathIndex];
 		itemInEditPage.name = newItem.name;
 
 		var i;
-		for (i = 0; i < window.options.crmTypes.length; i++) {
-			if (window.options.crmTypes[i]) {
+		for (i = 0; i < window.app.crmTypes.length; i++) {
+			if (window.app.crmTypes[i]) {
 				break;
 			}
 		}
 		if (!newItem.onContentTypes[i]) {
-			window.options.editCRM.build(window.options.editCRM.setMenus);
+			window.app.editCRM.build(window.app.editCRM.setMenus);
 		}
 		itemInEditPage.onContentTypes = newItem.onContentTypes;
 		this.closePage();
 
-		options.upload();
+		app.upload();
 	},
 	
 	inputKeyPress: function(e) {

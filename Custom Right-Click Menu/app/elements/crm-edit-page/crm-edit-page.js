@@ -168,9 +168,9 @@ Polymer({
 			this.$.editPageCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
 			document.body.style.marginRight = 0;
-			window.options.show = false;
+			window.app.show = false;
 			this.opened = false;
-			window.options.item = null;
+			window.app.item = null;
 			this.unassignItems();
 			console.log(this.item);
 			console.log(this.isScript);
@@ -184,7 +184,7 @@ Polymer({
 	},
 
 	/**
-	 * @param eventSourceElement The element that was clicked on
+	 * @param eventSourceElement - The element that was clicked on
 	 */
 	animateIn: function () {
 		console.log(this.item);
@@ -205,7 +205,7 @@ Polymer({
 			
 		document.body.style.overflow = 'hidden';
 		document.body.style.marginRight = '20px';
-		options.show = true;
+		app.show = true;
 		this.opened = true;
 		this.$.editPageCont.style.display = 'block';
 		this.playAnimation('entry');
@@ -250,7 +250,7 @@ Polymer({
 
 		}
 		setTimeout(function() {
-			window.options.show = true;
+			window.app.show = true;
 			_this.isScript = valueStorer.isScript;
 			_this.isLink = valueStorer.isLink;
 			_this.isMenu = valueStorer.isMenu;

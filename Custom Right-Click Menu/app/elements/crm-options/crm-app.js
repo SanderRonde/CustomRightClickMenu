@@ -13,11 +13,11 @@ function isNotSet(value) {
 }
 
 function runOrAddAsCallback(toRun, thisElement, params) {
-	if (window.options.settings) {
+	if (window.app.settings) {
 		toRun.apply(thisElement, params);
 	}
 	else {
-		window.options.addSettingsReadyCallback(toRun, thisElement, params);
+		window.app.addSettingsReadyCallback(toRun, thisElement, params);
 	}
 }
 
@@ -49,7 +49,7 @@ function generateItemId(callback) {
  *
  * @brief Returns whether given value is empty
  *
- * @param value The value to be checked
+ * @param value - The value to be checked
  *
  * @return A boolean; true if the value is empty, false if not
  */
@@ -57,203 +57,20 @@ function isEmpty(value) {
 	return (value === undefined || value === null);
 }
 
-//TODO Implement this function with new CRM-system
-///**
-// * @fn function addDefaultLink()
-// *
-// * @brief Adds default link to the CRM
-// */
-//function addDefaultLink() {
-//	var defaultLinkItem = $(this).parent().parent();
-//	var link = defaultLinkItem.find('.defaultLinkHref').html().trim();
-//	var name = defaultLinkItem.find('input').val();
-//	var newItem = new CRMItem('link', link, name);
-//	settings.crm._add(newItem);
-//}
-
-/**
- * @fn function bindEvents()
- *
- * @brief Bind all event listeners to all targets
- */
-function bindEvents() {
-	//buildPageCrm();
-}
-
-/**
- * Makes an onclick handler for links
- *
- * @param toOpen Link to open.
- *
- * @return the function to execute on click
- */
-function linkHandler(toOpen) {
-	return function() {
-		for (var i = 0; i < toOpen.length; i++) {
-			window.open(toOpen[i], '_blank');
-		}
-	}
-}
-
-/**
- * Makes an onclick handler for scripts
- *
- * @param toExecute Script to execute.
- *
- * @return the function to execute on click
- */
-function scriptHandler(toExecute) {
-	return function () {
-		eval(toExecute);
-	}
-}
-
-/**
- * Adds a link to the CRM
- *
- * @param items    The items in the menu already.
- * @param toAdd    The item to add.
- * @param iterator The iterator's current value
- *
- * @return The items with the new item in it.
- */
-function addLink(items, toAdd, iterator) {
-	var item = {};
-	item.name = toAdd.name;
-	item.callback = linkHandler(toAdd.value);
-	items[iterator] = item;
-	return items;
-}
-
-/**
- * Adds a script to the CRM
- *
- * @param items    The items in the menu already.
- * @param toAdd    The item to add.
- * @param iterator The iterator's current value
- *
- * @return The items with the new item in it.
- */
-function addScript(items, toAdd, iterator) {
-	var item = {};
-	item.name = toAdd.name;
-	item.callback = scriptHandler(toAdd.value.script);
-	items[iterator] = item;
-	return items;
-}
-
-//TODO addCss
-
-/**
- * Adds a divider to the CRM
- *
- * @param items    The items in the menu already.
- * @param toAdd    The item to add.
- * @param iterator The iterator's current value
- *
- * @return The items with the new item in it.
- */
-function addDivider(items, toAdd, iterator) {
-	var item = '---------';
-	items[iterator] = item;
-	return items;
-}
-
-/**
- * Adds a menu to the CRM
- *
- * @param items    The items in the menu already.
- * @param toAdd    The item to add.
- * @param iterator The iterator's current value
- *
- * @return The items with the new item in it.
- */
-function addMenu(items, toAdd, iterator) {
-	var item = {};
-	item.name = toAdd.name;
-	var childItems = {};
-	toAdd.children.forEach(function (item, index) {
-		switch (item.type) {
-			case 'link':
-				childItems = addLink(childItems, item,index);
-				break;
-			case 'script':
-				childItems = addScript(childItems, item,index);
-				break;
-			case 'divider':
-				childItems = addDivider(childItems, item,index);
-				break;
-			case 'menu':
-				childItems = addMenu(childItems, item,index);
-				break;
-		}
-	});
-	item.items = childItems;
-	items[iterator] = item;
-	return items;
-}
-
-/**
- * Builds context menu.
- */
-function buildContextMenu() {
-	var items = {};
-	var crm = options.settings.crm;
-	crm.forEach(function (item, index) {
-		switch (item.type) {
-			case 'link':
-				items = addLink(items, item, index);
-				break;
-			case 'script':
-				items = addScript(items, item, index);
-				break;
-			case 'divider':
-				items = addDivider(items, item, index);
-				break;
-			case 'menu':
-				items = addMenu(items, item, index);
-				break;
-		}
-	});
-	contextMenuItems = items;
-}
-/**
- * @fn function bindContextMenu()
- *
- * @brief Bind context men to page.
- */
-function bindContextMenu() {
-	$.contextMenu({
-		selector: 'body',
-		build: function () {
-			return {
-				items: contextMenuItems
-			};
-		}
-	});
-}
-
 /**
  * Creates a new settings object
  */
 function setupFirstTime() {
-	options.init = true;
-	options.scriptEditingId = 1234;
+	app.init = true;
+	app.scriptEditingId = 1234;
 	generateItemId(function(id) {
-		options.settings.crm = [
-			{
-				name: 'example',
-				type: 'link',
-				id: id,
-				value: [
-					{
-						value: 'http://www.example.com',
-						newTab: true
-					}
-				]
-			}
+		app.settings.crm = [
+			//TODO implement
+			window.app.templates.getDefaultLinkNode({
+				id: id
+			})
 		];
-		options.upload();
+		app.upload();
 	});
 }
 
@@ -262,23 +79,20 @@ function setupFirstTime() {
  * @param {} toCheck 
  * @returns {} 
  */
-function checkArray(toCheck) {
+function checkCrmNodesArray(toCheck) {
 	var i;
 	var changes = false;
 	var result;
-	toCheck.map(function (item, index) {
+	toCheck.forEach(function (item, index) {
 		if (isNotSet(item)) {
 			changes = true;
-			item = {
-				name: 'name',
-				type: 'link',
-				value: [
-					{
-						url: 'http://www.example.com',
-						newTab: true
-					}
-				]
-			};
+			generateItemId(function(id) {
+				item = window.app.templates.getDefaultLinkNode({
+					id: id
+				});
+				toCheck[index] = item;
+			});
+			return;
 		}
 		if (isNotSet(item.id)) {
 			generateItemId(function(id) {
@@ -296,29 +110,16 @@ function checkArray(toCheck) {
 		}
 		if (isNotSet(item.value)) {
 			changes = true;
-			item.value = [
-				{
-					url: 'http://www.example.com',
-					newTab: true
-				}
-			];
+			item.value = window.app.templats.getDefaultLinkValue();
 		} else {
 			if (item.type === 'link') {
 				if (typeof item.value !== 'object') {
-					item.value = [
-						{
-							url: 'http://www.example.com',
-							newTab: true
-						}
-					];
+					item.value = window.app.templats.getDefaultLinkValue();
 				} else {
 					for (i = 0; i < item.value.length; i++) {
 						if (isNotSet(item.value[i])) {
 							changes = true;
-							item.value[i] = {
-								url: 'http://www.example.com',
-								newTab: true
-							};
+							item.value[i] = window.app.templats.getDefaultLinkValue();
 						}
 						if (isNotSet(item.value[i].value)) {
 							changes = true;
@@ -342,7 +143,7 @@ function checkArray(toCheck) {
 			item.index = index;
 		}
 		if (item.children && item.children.length > 0) {
-			result = checkArray(item.children);
+			result = checkCrmNodesArray(item.children);
 			if (result !== false) {
 				item.children = result;
 				changes = true;
@@ -359,7 +160,7 @@ function checkArray(toCheck) {
 /**
  * Checks whether the given settings object is valid
  * 
- * @param settings The settings object to check
+ * @param settings - The settings object to check
  */
 function checkSettings(settings) {
 	var changes = false;
@@ -367,29 +168,19 @@ function checkSettings(settings) {
 		if (!settings.crm) {
 			changes = true;
 			settings.crm = [
-				{
-					name: 'example',
-					type: 'link',
-					value: [
-						{
-							value: 'http://www.example.com',
-							newTab: true
-						}
-					],
-					onContentTypes: [true, false, false, false, false, false]
-				}
+				window.app.templates.getDefaultLinkNode()
 			];
 		} else {
-			var result = checkArray(settings.crm);
-			if (result !== false) {
+			var result = checkCrmNodesArray(settings.crm);
+			if (result) {
 				changes = true;
 				settings.crm = result;
 			}
 		}
 
 		if (changes) {
-			options.settings = settings;
-			options.upload();
+			app.settings = settings;
+			app.upload();
 		}
 	} else {
 		setupFirstTime();
@@ -402,19 +193,16 @@ function checkSettings(settings) {
  * @brief Main function, called when javascript is ready to be executed
  */
 function main() {
-	checkSettings(options.settings);
-	buildContextMenu();
-	//bindContextMenu();
-	//bindEvents();
+	checkSettings(app.settings);
 	//buildCrmSettings();
 }
 
 /**
  * Inserts the value into given array
  *
- * @param toAdd    Value to add.
+ * @param toAdd - Value to add.
  * @param target   Array to add into.
- * @param position The position at which to add.
+ * @param position - The position at which to add.
  *
  * @return Complete array
  */
@@ -432,7 +220,7 @@ function insertInto(toAdd, target, position) {
 }
 
 Polymer({
-	is: 'crm-options',
+	is: 'crm-app',
 
 	/**
 	 * A collection of all event listeners on the settings and crm object
@@ -559,7 +347,7 @@ Polymer({
 
 		var crmEl;
 		var element = path;
-		var selectedTypes = options.crmTypes;
+		var selectedTypes = app.crmTypes;
 		var crmTypes = document.querySelectorAll('.crmType');
 		for (var i = 0; i < 6; i++) {
 			crmEl = crmTypes.item(i);
@@ -594,7 +382,7 @@ Polymer({
 	},
 
 	toggleToolsRibbon: function() {
-		if (window.options.settings.hideToolsRibbon) {
+		if (window.app.settings.hideToolsRibbon) {
 			$(window.doc.editorToolsRibbonContainer).animate({
 				marginLeft: '-200px'
 			}, 250);
@@ -605,14 +393,14 @@ Polymer({
 			}, 250);
 			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
 		}
-		window.options.settings.hideToolsRibbon = !window.options.settings.hideToolsRibbon;
+		window.app.settings.hideToolsRibbon = !window.app.settings.hideToolsRibbon;
 		chrome.storage.sync.set({
-			hideToolsRibbon: window.options.settings.hideToolsRibbon
+			hideToolsRibbon: window.app.settings.hideToolsRibbon
 		});
 	},
 
 	toggleShrinkTitleRibbon: function() {
-		if (window.options.settings.shrinkTitleRibbon) {
+		if (window.app.settings.shrinkTitleRibbon) {
 			$(window.doc.editorTitleRibbon).animate({
 				fontSize: '100%'
 			}, 250);
@@ -631,9 +419,9 @@ Polymer({
 			}, 250);
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 		}
-		window.options.settings.shrinkTitleRibbon = !window.options.settings.shrinkTitleRibbon;
+		window.app.settings.shrinkTitleRibbon = !window.app.settings.shrinkTitleRibbon;
 		chrome.storage.sync.set({
-			shrinkTitleRibbon: window.options.settings.shrinkTitleRibbon
+			shrinkTitleRibbon: window.app.settings.shrinkTitleRibbon
 		});
 	},
 
@@ -738,24 +526,24 @@ Polymer({
 				window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 				window.doc.restoreChangesOldCodeCont.innerHTML = '';
 				var oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
-					lineNumbers: window.options.settings.editor.lineNumbers,
+					lineNumbers: window.app.settings.editor.lineNumbers,
 					value: code,
 					scrollbarStyle: 'simple',
 					lineWrapping: true,
 					readOnly: 'nocursor',
-					theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-					indentUnit: window.options.settings.editor.tabSize,
-					indentWithTabs: window.options.settings.editor.useTabs
+					theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+					indentUnit: window.app.settings.editor.tabSize,
+					indentWithTabs: window.app.settings.editor.useTabs
 				});
 				var unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
-					lineNumbers: window.options.settings.editor.lineNumbers,
+					lineNumbers: window.app.settings.editor.lineNumbers,
 					value: code,
 					scrollbarStyle: 'simple',
 					lineWrapping: true,
 					readOnly: 'nocursor',
-					theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-					indentUnit: window.options.settings.editor.tabSize,
-					indentWithTabs: window.options.settings.editor.useTabs
+					theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+					indentUnit: window.app.settings.editor.tabSize,
+					indentWithTabs: window.app.settings.editor.useTabs
 				});
 				window.doc.restoreChangesDialog.addEventListener('iron-overlay-closed', function() {
 					//Remove the CodeMirror instances for performance
@@ -855,7 +643,7 @@ Polymer({
 						} else {
 							var visible = true;
 							for (var i = 1; i < editingObj.crmPath.length; i++) {
-								if (options.editCRM.crm[i].indent.length !== editingObj.crmPath[i - 1]) {
+								if (app.editCRM.crm[i].indent.length !== editingObj.crmPath[i - 1]) {
 									visible = false;
 									break;
 								}
@@ -864,7 +652,7 @@ Polymer({
 								//Make it visible
 								var popped = JSON.parse(JSON.stringify(editingObj.crmPath.length));
 								popped.pop();
-								options.editCRM.build(popped);
+								app.editCRM.build(popped);
 								setTimeout(highlightItem, 700);
 							} else {
 								highlightItem();
@@ -897,7 +685,7 @@ Polymer({
 		prevStyle && prevStyle.remove();
 		$('<style id="editorZoomStyle">' +
 			'.CodeMirror, .CodeMirror-focused {' +
-			'font-size: ' + (1.25 * window.options.settings.editor.zoom) + '%!important;' +
+			'font-size: ' + (1.25 * window.app.settings.editor.zoom) + '%!important;' +
 			'}' +
 			'</style>').appendTo('head');
 		$('.CodeMirror').each(function() {
@@ -1092,8 +880,8 @@ Polymer({
 	ready: function () {
 		var _this = this;
 		this.crm.parent = this;
-		window.options = this;
-		window.doc = window.options.$;
+		window.app = this;
+		window.doc = window.app.$;
 		function callback(items) {
 			_this.settings = items;
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
@@ -1104,6 +892,7 @@ Polymer({
 			}
 			_this.updateEditorZoom();
 			main();
+			_this.pageDemo.create();
 		}
 
 		this.bindListeners();
@@ -1123,19 +912,19 @@ Polymer({
 				}, 2500);
 			}
 			if (items.selectedCrmTypes !== undefined) {
-				options.crmTypes = items.selectedCrmTypes;
+				app.crmTypes = items.selectedCrmTypes;
 				_this.switchToIcons(items.selectedCrmTypes);
 			} else {
 				chrome.storage.local.set({
 					selectedCrmTypes: [true, false, false, false, false, false]
 				});
-				options.crmTypes = [true, false, false, false, false, false];
+				app.crmTypes = [true, false, false, false, false, false];
 				_this.switchToIcons([true, false, false, false, false, false]);
 			}
 			if (items.jsLintGlobals) {
-				window.options.jsLintGlobals = items.jsLintGlobals;
+				window.app.jsLintGlobals = items.jsLintGlobals;
 			} else {
-				window.options.jsLintGlobals = [];
+				window.app.jsLintGlobals = [];
 				chrome.storage.local.set({
 					jsLintGlobals: []
 				});
@@ -1149,20 +938,283 @@ Polymer({
 	 * Sets setting with key 'key' to value
 	 *
 	 * @param key   The key.
-	 * @param value The value.
+	 * @param value - The value.
 	 */
 	set: function(key, value) {
 		this.settings[key] = value;
 		this.upload();
 	},
 
+	/*
+	 * Functions related to the on-page example of your current CRM
+	 */
+	pageDemo: {
+		id: 0,
+		ids: [],
+
+		handlers: {
+			/**
+			 * Makes an onclick handler for links
+			 *
+			 * @param data - The data to open
+			 *
+			 * @return the function to execute on clicking a link
+			 */
+			link: function(data) {
+				return function() {
+					for (var i = 0; i < data.length; i++) {
+						window.open(data[i], '_blank');
+					}
+				}
+			},
+
+			/**
+			 * Makes an onclick handler for scripts
+			 *
+			 * @param data - Script to execute.
+			 *
+			 * @return the function to execute on click a script
+			 */
+			script: function(data) {
+				return function() {
+					eval(data);
+				}
+			},
+
+			/**
+			 * The stylesheet handlers
+			 */
+			stylesheet: {
+				/**
+				 * Makes an onclick handler for stylesheets
+				 *
+				 * @param data - Stylesheet to execute.
+				 * @param checked - Whether the element is checked
+				 *
+				 * @return the function to execute on click a stylesheet
+				 */
+				toggle: function(data, checked) {
+					var id = this.parent.id++;
+					this.parent.ids.push(id);
+
+					var style = document.createElement('style');
+					style.setAttribute('id', 'stylesheet' + id);
+					style.appendChild(document.createTextNode(data));
+					style.disabled = !checked;
+					document.head.appendChild(style);
+
+					return function() {
+						style.disabled = !style.disabled;
+					}
+				},
+				/**
+				 * Makes an onclick handler for stylesheets
+				 *
+				 * @param data - Stylesheet to execute.
+				 *
+				 * @return the function to execute on click a stylesheet
+				 */
+				normal: function(data) {
+					return function() {
+						var style = document.createElement('style');
+						style.appendChild(document.createTextNode(data));
+						document.head.appendChild(style);
+					}
+				}
+			},
+
+			get parent() {
+				return window.app.pageDemo;
+			}
+		},
+
+		node: {
+			/**
+			 * Adds a link to the CRM
+			 *
+			 * @param items - The items in the menu already.
+			 * @param toAdd - The item to add.
+			 * @param iterator - The iterator's current value
+			 *
+			 * @return The items with the new item in it.
+			 */
+			link: function(items, toAdd, iterator) {
+				var item = {};
+				item.name = toAdd.name;
+				item.callback = this.parent.handlers.link(toAdd.value);
+				items[iterator] = item;
+				return items;
+			},
+
+			/**
+			 * Adds a script to the CRM
+			 *
+			 * @param items - The items in the menu already.
+			 * @param toAdd - The item to add.
+			 * @param iterator - The iterator's current value
+			 *
+			 * @return The items with the new item in it.
+			 */
+			script: function(items, toAdd, iterator) {
+				var item = {};
+				item.name = toAdd.name;
+				item.callback = this.parent.handlers.script(toAdd.value.script);
+				items[iterator] = item;
+				return items;
+			},
+
+			/**
+			 * Adds a stylesheet to the CRM
+			 *
+			 * @param items - The items in the menu already.
+			 * @param toAdd - The item to add.
+			 * @param iterator - The iterator's current value
+			 *
+			 * @return The items with the new item in it.
+			 */
+			stylesheet: function (items, toAdd, iterator) {
+				var item = {};
+				item.name = toAdd.name;
+				if (toAdd.value.toggle) {
+					item.type = 'checkbox';
+					item.selected = toAdd.value.defaultOn;
+					item.callback = this.parent.handlers.stylesheet.toggle(toAdd.value.stylesheet, toAdd.value.defaultOn);
+				} else {
+					console.log(this.parent.handlers.stylesheet);
+					item.callback = this.parent.handlers.stylesheet.normal(toAdd.value.stylesheet);
+				}
+				items[iterator] = item;
+				return items;
+			},
+
+			/**
+			 * Adds a divider to the CRM
+			 *
+			 * @param items - The items in the menu already.
+			 * @param toAdd - The item to add.
+			 * @param iterator - The iterator's current value
+			 *
+			 * @return The items with the new item in it.
+			 */
+			divider: function(items, toAdd, iterator) {
+				var item = '---------';
+				items[iterator] = item;
+				return items;
+			},
+
+			
+			/**
+			 * Adds a menu to the CRM
+			 *
+			 * @param items - The items in the menu already.
+			 * @param toAdd - The item to add.
+			 * @param iterator - The iterator's current value
+			 *
+			 * @return The items with the new item in it.
+			 */
+			menu: function (items, toAdd, iterator) {
+				var _this = this;
+				var item = {};
+				item.name = toAdd.name;
+				var childItems = {};
+				toAdd.children.forEach(function(item, index) {
+					switch (item.type) {
+					case 'link':
+						childItems = _this.link(childItems, item, index);
+						break;
+					case 'script':
+						childItems = _this.script(childItems, item, index);
+						break;
+					case 'stylesheet':
+						childItems = _this.stylesheet(childItems, item, index);
+						break;
+					case 'divider':
+						childItems = _this.divider(childItems, item, index);
+						break;
+					case 'menu':
+						childItems = _this.menu(childItems, item, index);
+						break;
+					}
+				});
+				item.items = childItems;
+				items[iterator] = item;
+				return items;
+			},
+
+			get parent() {
+				return window.app.pageDemo;
+			}
+		},
+
+		bindContextMenu: function () {
+			var _this = this;
+			$.contextMenu({
+				selector: 'body',
+				build: function() {
+					return {
+						items: _this.contextMenuItems
+					};
+				}
+			});
+		},
+
+		build: function () {
+			var _this = this;
+			var items = {};
+			var crm = app.settings.crm;
+			console.log(this);
+			crm.forEach(function(item, index) {
+				switch (item.type) {
+				case 'link':
+					items = _this.node.link(items, item, index);
+					break;
+				case 'script':
+					items = _this.node.script(items, item, index);
+					break;
+				case 'stylesheet':
+					items = _this.node.stylesheet(items, item, index);
+					break;
+				case 'divider':
+					items = _this.node.divider(items, item, index);
+					break;
+				case 'menu':
+					items = _this.node.menu(items, item, index);
+					break;
+				}
+			});
+			this.contextMenuItems = items;
+			this.bindContextMenu();
+		},
+
+		contextMenuItems: [],
+
+		remove: function () {
+			var el;
+			this.ids.forEach(function(id) {
+				el = document.getElementById('stylesheet' + id);
+				el && el.remove();
+			});
+		},
+
+		/**
+		 * Creates the on-page example
+		 */
+		create: function () {
+			this.remove();
+			this.build();
+		},
+
+		get parent() {
+			return window.app;
+		}
+	},
 
 	/**
 	 * CRM functions.
 	 */
 	crm: {
 		_getEvalPath: function(path) {
-			return 'window.options.settings.crm[' + (path.join('].children[')) + ']';
+			return 'window.app.settings.crm[' + (path.join('].children[')) + ']';
 		},
 
 		lookup: function(path, returnArray) {
@@ -1172,11 +1224,11 @@ Polymer({
 				pathCopy.splice(pathCopy.length - 1, 1);
 			}
 			if (path.length === 0) {
-				return window.options.settings.crm;
+				return window.app.settings.crm;
 			}
 
 			if (path.length === 1) {
-				return (returnArray ? window.options.settings.crm : window.options.settings.crm[path[0]]);
+				return (returnArray ? window.app.settings.crm : window.app.settings.crm[path[0]]);
 			}
 
 			var evalPath = this._getEvalPath(pathCopy);
@@ -1210,8 +1262,8 @@ Polymer({
 
 		lookupId: function (id, returnArray) {
 			var el;
-			for (var i = 0; i < window.options.settings.crm.length; i++) {
-				el = this._lookupId(id, returnArray, window.options.settings.crm[i]);
+			for (var i = 0; i < window.app.settings.crm.length; i++) {
+				el = this._lookupId(id, returnArray, window.app.settings.crm[i]);
 				if (el) {
 					return el;
 				}
@@ -1230,8 +1282,8 @@ Polymer({
 		/**
 		 * Adds value to the CRM
 		 *
-		 * @param value    The value to add
-		 * @param position The position to add it in
+		 * @param value - The value to add
+		 * @param position - The position to add it in
 		 */
 		add: function(value, position) {
 			if (position === 'first') {
@@ -1248,9 +1300,9 @@ Polymer({
 		/**
 		 * Moves a value in the CRM from one place to another
 		 *
-		 * @param toMove    The value to move's location (in path form)
+		 * @param toMove - The value to move's location (in path form)
 		 * @param target	Where to move the item to (in path form)
-		 * @param sameColumn Whether the item has stayed in the same column
+		 * @param sameColumn - Whether the item has stayed in the same column
 		 */
 		move: function(toMove, target, sameColumn) {
 			var toMoveContainer = this.lookup(toMove, true);
@@ -1267,12 +1319,12 @@ Polymer({
 				insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
-			options.upload();
+			app.upload();
 		},
 
 		remove: function(index) {
 			this.lookup(index, true).splice(index[index.length - 1], 1);
-			options.upload();
+			app.upload();
 		}
 	}
 });

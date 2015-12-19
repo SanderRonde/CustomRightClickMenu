@@ -133,13 +133,13 @@
 				if (e.wheelDelta >= 0) {
 					//Up
 					//Add 10% to the font size
-					window.options.settings.editor.zoom = Math.round((1.1 * window.options.settings.editor.zoom)) || 100;
+					window.app.settings.editor.zoom = Math.round((1.1 * window.app.settings.editor.zoom)) || 100;
 				} else {
 					//Down
 					//Remove 10% from the font size
-					window.options.settings.editor.zoom = Math.round((0.9 * window.options.settings.editor.zoom)) || 100;
+					window.app.settings.editor.zoom = Math.round((0.9 * window.app.settings.editor.zoom)) || 100;
 				}
-				window.options.updateEditorZoom();
+				window.app.updateEditorZoom();
 			}
 		});
 
