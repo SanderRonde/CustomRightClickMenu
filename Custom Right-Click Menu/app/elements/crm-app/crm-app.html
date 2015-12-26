@@ -51,7 +51,7 @@
 						Custom Right-Click Menu
 					</div>
 					<div class="mainDescr">
-						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it. You can right-click anywhere on this page to view the custom right-click menu (this will be wrapped in a "Custom Menu" subsection on other pages). On this options page any scripts will not be able to use the CRMAPI. Right-clicking on the "Editing the CRM" section below shows only the nodes for that type of content.
+						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it. You can right-click anywhere on this page to view the custom right-click menu for content-type page (the whole menu will be wrapped in a "Custom Menu" subsection on other pages). On this options page any scripts will not be able to use the CRMAPI. Right-clicking on the "Editing the CRM" section below shows only the nodes for that content-type.
 					</div>
 				</div>
 				<br />
@@ -61,8 +61,16 @@
 						Options
 					</div>
 					<div class="options">
-						<paper-toggle-option text="Show options link in right-click menu" id="showOptions"></paper-toggle-option>
-						<paper-toggle-option text="Edit the Custom Right-Click Menu by clicking on the respective elements when right-clicking on this page" id="editCRMInRM"></paper-toggle-option>
+						<paper-toggle-option id="showOptions">
+							Show options link in right-click menu
+						</paper-toggle-option>
+						<paper-toggle-option id="editCRMInRM">
+							Edit the Custom Right-Click Menu by clicking on the respective elements when right-clicking on this page
+						</paper-toggle-option>
+						<paper-toggle-option id="useStorageSync">
+							Sync your storage across all chrome instances signed in to this account using chrome storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using
+							<span style$="{{getSettingsJsonLengthColor(settingsJsonLength)}}">{{placeCommas(settingsJsonLength)}}</span>/102,400 bytes
+						</paper-toggle-option>
 					</div>
 				</div>
 				<br /><br />
@@ -146,7 +154,7 @@
 						</div>
 					</div>
 					<div class="customRightClickMenuEdit">
-						<edit-crm></edit-crm>
+						<edit-crm id="editCrm"></edit-crm>
 					</div>
 				</div>
 				<br /><br />
@@ -175,6 +183,7 @@
 				</div>
 			</div>
 			<div id="dialogs">
+				<!--Toasts-->
 				<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
 				<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
 					<span id="menuSwitchUndoButton" role="button">UNDO</span>
@@ -188,6 +197,8 @@
 				<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
 					<a href="file:///C:/" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
 				</paper-toast>
+				<paper-toast id="storageExceededToast" text="Chrome storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later" duration="10000"></paper-toast>
+				<!--Dialogs-->
 				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="restoreChangesMain">
 						<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
@@ -308,59 +319,78 @@
 						<paper-button dialog-dismiss>close</paper-button>
 					</div>
 				</paper-dialog>
-				<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<h2>Allow permissions</h2>
-					<div id="requestPermissionsTxt">
-						A script that you presumably wrote/added has asked to use one or more chrome permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
-						Remember that this will only allow YOU to write scripts that acces these permissions and not downloaded and installed scripts.
-						Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
-						You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used simply saves you the hassle of doing it later during script installation or execution which will most likely break the script on that run.
-					</div>
-					<br />
-					<span>{{requestedPermission>}}</span>
-					<div id="requestPermissionsPermissions">
-						<div id="requestPermissionsAsked">
-							<template is="dom-repeat" items="{{requestedPermissions}}" as="requestedPermission">
-
-								<div class="requestPermissionsPermission">
-									<div class="requestPermissionsPermissionTopCont">
-										<span class="requestPermissionName">{{requestedPermission.name}}</span>
-										<div class="requestPermissionsShowBot">
-											<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
-										</div>
-										<paper-toggle-button class="requestPermissionButton" checked="{{requestedPermission.given}}" ischecked$="{{requestedPermission.given}}"></paper-toggle-button>
-									</div>
-									<div class="requestPermissionsPermissionBotCont">
-										<span class="requestPermissionsDescription">{{requestedPermission.description}}</span>
-									</div>
-								</div>
-							</template>
-						</div>
-						<div id="requestPermissionsLineCont">
-							<div id="requestPermissionsSplitter"></div>
-							<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" /></svg>
-						</div>
-						<div id="requestPermissionsOther">
-							<template is="dom-repeat" items="{{otherPermissions}}" as="otherPermission">
-								<div class="requestPermissionsPermission">
-									<div class="requestPermissionsPermissionTopCont">
-										<span class="requestPermissionName">{{otherPermission.name}}</span>
-										<div class="requestPermissionsShowBot">
-											<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
-										</div>
-										<paper-toggle-button class="requestPermissionButton" checked="{{otherPermission.given}}" ischecked$="{{otherPermission.given}}"></paper-toggle-button>
-									</div>
-									<div class="requestPermissionsPermissionBotCont">
-										<span class="requestPermissionsDescription">{{otherPermission.description}}</span>
-									</div>
-								</div>
-							</template>
-						</div>
-					</div>
-					<div class="buttons">
-						<paper-button dialog-dismiss>close</paper-button>
-					</div>
+				<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<h2>
+						Managing permisions for script "<span>[[item.name]]</span>"
+					</h2>
+					<!--//HIERZO //TODO permissions dialog, remove script-permission-dialog possibly-->
+					Here you can select or remove permissions for the
 				</paper-dialog>
+				<center-element fullscreenoverlay id="requestPermissionsCenterer">
+					<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<h2 id="requestPermissionsHeader">Allow permissions</h2>
+						<div id="requestPermissionsTxt">
+							A script that you presumably wrote or added has asked to use one or more chrome permissions that you have not yet allowed for this extension, please allow these permissions as you see fit.
+							Remember that this will only allow YOU to write scripts that acces these permissions and not downloaded and installed scripts.
+							Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
+							You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used yet simply saves you the hassle of doing it later during script installation or execution.
+						</div>
+						<br />
+						<div id="requestPermissionsPermissions">
+							<div id="requestPermissionsAsked">
+								<div class="requestPermissionsType">
+									Required:
+								</div>
+								<template id="requestedPermissionsTemplate" is="dom-repeat" items="[]" as="requestedPermission">
+									<div class="requestPermissionsPermission">
+										<div class="requestPermissionsPermissionTopCont">
+											<span class="requestPermissionName">[[requestedPermission.name]]</span>
+											<div class="requestPermissionsShowBot">
+												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+											</div>
+											<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
+										</div>
+										<div class="requestPermissionsPermissionBotCont">
+											<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
+										</div>
+									</div>
+								</template>
+							</div>
+							<div id="requestPermissionsLineCont">
+								<div id="requestPermissionsSplitter"></div>
+								<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48">
+									<path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" />
+									<line x1="10" y1="24" style="stroke: rgb(0, 0, 0); stroke-width: 5;" x2="38" y2="24" />
+								</svg>
+							</div>
+							<div id="requestPermissionsOther">
+								<div class="requestPermissionsType">
+									Others:
+								</div>
+								<template id="requestedPermissionsOtherTemplate" is="dom-repeat" items="[]" as="otherPermission">
+									<div class="requestPermissionsPermission">
+										<div class="requestPermissionsPermissionTopCont">
+											<span class="requestPermissionName">[[otherPermission.name]]</span>
+											<div class="requestPermissionsShowBot">
+												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+											</div>
+											<paper-toggle-button class="requestPermissionButton" checked="[[otherPermission.toggled]]" ischecked$="[[otherPermission.toggled]]"></paper-toggle-button>
+										</div>
+										<div class="requestPermissionsPermissionBotCont">
+											<span class="requestPermissionsDescription">
+												<echo-html makelink html="[[otherPermission.description]]"></echo-html>
+											</span>
+										</div>
+									</div>
+								</template>
+							</div>
+						</div>
+						<div class="buttons">
+							<paper-button id="requestPermissionsAcceptAll">Accept All</paper-button>
+							<paper-button dialog-dismiss>close</paper-button>
+						</div>
+					</paper-dialog>
+				</center-element>
 				<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
 				<use-external-editor id="useExternalEditor"></use-external-editor>
 				<div id="dummy"></div>

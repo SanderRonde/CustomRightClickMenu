@@ -482,7 +482,6 @@ Polymer({
 	ready: function () {
 		var _this = this;
 		window.externalEditor = this;
-		//TODO Move this from ready to on clicking the button
 		this.establishConnection();
 		this.init();
 		window.onfocus = function() {

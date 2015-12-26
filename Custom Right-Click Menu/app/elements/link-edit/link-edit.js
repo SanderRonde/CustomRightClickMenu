@@ -269,13 +269,7 @@
 		itemInEditPage.item = lookedUp[lastPathIndex];
 		itemInEditPage.name = newItem.name;
 
-		var i;
-		for (i = 0; i < window.app.crmTypes.length; i++) {
-			if (window.app.crmTypes[i]) {
-				break;
-			}
-		}
-		if (!newItem.onContentTypes[i]) {
+		if (!newItem.onContentTypes[window.app.crmType]) {
 			window.app.editCRM.build(window.app.editCRM.setMenus);
 		}
 		itemInEditPage.onContentTypes = newItem.onContentTypes;

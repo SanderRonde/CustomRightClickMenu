@@ -6,15 +6,6 @@ Polymer({
 	behaviors: [Polymer.NeonAnimationRunnerBehavior],
 
 	/**
-	 * The item to edit
-	 * 
-	 * @attribute item
-	 * @type Object
-	 * @default {}
-	 */
-	item: {},
-
-	/**
 	 * The item that was originally clicked on
 	 * 
 	 * @attribute clicksrc
@@ -147,6 +138,18 @@ Polymer({
 					}
 				}
 			}
+		},
+		/**
+		 * The item to edit
+		 * 
+		 * @attribute item
+		 * @type Object
+		 * @default {}
+		 */
+		item: {
+			type: Object,
+			value: {},
+			notify: true
 		}
 	},
 

@@ -22,3 +22,10 @@
 	flex-direction: column;
 	justify-content: center;
 }
+
+#nodeInfo {
+	background-color: #3F51B5;
+    color: white;
+    font-size: 125%;
+    padding: 5px 8px;
+}

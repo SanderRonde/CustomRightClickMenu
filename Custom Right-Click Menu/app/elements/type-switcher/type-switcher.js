@@ -193,21 +193,24 @@
 					];
 					break;
 				case 'script':
-					//TODO Update to new script values when done
 					item.value = {
-						value: ''
+						script: '',
+						launchMode: 0,
+						libraries: [],
+						triggers: []
 					};
 					break;
 				case 'divider':
-					item.value = '';
+					item.value = null;;
 					break;
 				case 'menu':
-					item.value = '';
+					item.value = null;
 					break;
 				case 'stylesheet':
-					//TODO this one as well
 					item.value = {
-						value: ''
+						stylesheet: '',
+						launchMode: 0,
+						triggers: []
 					};
 					break;
 			}

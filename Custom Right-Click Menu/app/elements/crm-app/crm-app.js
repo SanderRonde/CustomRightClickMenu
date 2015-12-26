@@ -21,182 +21,6 @@ function runOrAddAsCallback(toRun, thisElement, params) {
 	}
 }
 
-function generateItemId(callback) {
-	chrome.storage.local.get('latestId', function(items) {
-		var id;
-		if (items.latestId) {
-			id = items.latestId;
-		} else {
-			id = 1;
-			chrome.storage.local.set({ latestId: 1 });
-		}
-		callback && callback(id);
-	});
-}
-
-/**
- * A shorthand version of $('settings-element')[0], allows for easy access to
- *	settings object (s.settings instead of something like
- *	$('settings-element')[0].settings
- */
-//var s = $('settings-element')[0];
-
-//Indicates this javascript file has loaded and is ready for execution
-//s.jsLoaded = true;
-
-/**
- * @fn function isEmpty(value)
- *
- * @brief Returns whether given value is empty
- *
- * @param value - The value to be checked
- *
- * @return A boolean; true if the value is empty, false if not
- */
-function isEmpty(value) {
-	return (value === undefined || value === null);
-}
-
-/**
- * Creates a new settings object
- */
-function setupFirstTime() {
-	app.init = true;
-	app.scriptEditingId = 1234;
-	generateItemId(function(id) {
-		app.settings.crm = [
-			//TODO implement
-			window.app.templates.getDefaultLinkNode({
-				id: id
-			})
-		];
-		app.upload();
-	});
-}
-
-/**
- * 
- * @param {} toCheck 
- * @returns {} 
- */
-function checkCrmNodesArray(toCheck) {
-	var i;
-	var changes = false;
-	var result;
-	toCheck.forEach(function (item, index) {
-		if (isNotSet(item)) {
-			changes = true;
-			generateItemId(function(id) {
-				item = window.app.templates.getDefaultLinkNode({
-					id: id
-				});
-				toCheck[index] = item;
-			});
-			return;
-		}
-		if (isNotSet(item.id)) {
-			generateItemId(function(id) {
-				changes = true;
-				item.id = id;
-			});
-		}
-		if (isNotSet(item.name)) {
-			changes = true;
-			item.name = 'name';
-		}
-		if (!(item.type === 'link' || item.type === 'script' || item.type === 'divider' || item.type === 'menu' || item.type === 'stylesheet')) {
-			changes = true;
-			item.type = 'link';
-		}
-		if (isNotSet(item.value)) {
-			changes = true;
-			item.value = window.app.templats.getDefaultLinkValue();
-		} else {
-			if (item.type === 'link') {
-				if (typeof item.value !== 'object') {
-					item.value = window.app.templats.getDefaultLinkValue();
-				} else {
-					for (i = 0; i < item.value.length; i++) {
-						if (isNotSet(item.value[i])) {
-							changes = true;
-							item.value[i] = window.app.templats.getDefaultLinkValue();
-						}
-						if (isNotSet(item.value[i].value)) {
-							changes = true;
-							item.value[i].url = 'http:/www.example.com';
-						}
-						if (isNotSet(item.value[i].newTab)) {
-							changes = true;
-							item.value[i].newTab = true;
-						}
-					}
-				}
-			}
-			//TODO check other data types
-			/*For script:
-			 * 
-			 * script itself, libraries, launchMode, contentTypes
-			 */
-		}
-		if (isNotSet(item.index)) {
-			changes = true;
-			item.index = index;
-		}
-		if (item.children && item.children.length > 0) {
-			result = checkCrmNodesArray(item.children);
-			if (result !== false) {
-				item.children = result;
-				changes = true;
-			}
-		}
-		toCheck[index] = item;
-	});
-	if (changes) {
-		return toCheck;
-	}
-	return false;
-}
-
-/**
- * Checks whether the given settings object is valid
- * 
- * @param settings - The settings object to check
- */
-function checkSettings(settings) {
-	var changes = false;
-	if (settings.init) {
-		if (!settings.crm) {
-			changes = true;
-			settings.crm = [
-				window.app.templates.getDefaultLinkNode()
-			];
-		} else {
-			var result = checkCrmNodesArray(settings.crm);
-			if (result) {
-				changes = true;
-				settings.crm = result;
-			}
-		}
-
-		if (changes) {
-			app.settings = settings;
-			app.upload();
-		}
-	} else {
-		setupFirstTime();
-	}
-}
-
-/**
- * @fn function main()
- *
- * @brief Main function, called when javascript is ready to be executed
- */
-function main() {
-	checkSettings(app.settings);
-	//buildCrmSettings();
-}
-
 /**
  * Inserts the value into given array
  *
@@ -208,16 +32,102 @@ function main() {
  */
 function insertInto(toAdd, target, position) {
 	position = position || null;
-	var temp1, i;
-	var temp2 = toAdd;
-	for (i = position; i < target.length; i++) {
-		temp1 = target[i];
+	if (position) {
+		var temp1, i;
+		var temp2 = toAdd;
+		for (i = position; i < target.length; i++) {
+			temp1 = target[i];
+			target[i] = temp2;
+			temp2 = temp1;
+		}
 		target[i] = temp2;
-		temp2 = temp1;
+	} else {
+		target.push(toAdd);
 	}
-	target[i] = temp2;
 	return target;
 }
+
+var allPermissions = [
+			'alarms',
+			'background',
+			'bookmarks',
+			'browsingData',
+			'clipboardRead',
+			'clipboardWrite',
+			'contentSettings',
+			'cookies',
+			'contentSettings',
+			'declarativeContent',
+			'desktopCapture',
+			'downloads',
+			'history',
+			'identity',
+			'idle',
+			'management',
+			'notifications',
+			'pageCapture',
+			'power',
+			'privacy',
+			'printerProvider',
+			'sessions',
+			'system.cpu',
+			'system.memory',
+			'system.storage',
+			'topSites',
+			'tabCapture',
+			'tts',
+			'webNavigation',
+			'webRequest',
+			'webRequestBlocking'
+];
+
+var descriptions = {
+	alarms: 'Makes it possible to create, view and remove alarms.',
+	background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
+	bookmarks: 'Makes it possible to create, edit, remove and view all your bookmarks.',
+	browsingData: 'Makes it possible to remove any saved data on your browser at specified time ' +
+		'allowing the user to delete any history, saved passwords, cookies, cache and basically anything that is ' +
+		'not saved in incognito mode but is in regular mode. This is editable so it is possible to delete ONLY your ' +
+		'history and not the rest for example. (https://developer.chrome.com/extensions/bookmarks)',
+	clipboardRead: 'Allows reading of the users\' clipboard',
+	clipboardWrite: 'Allows writing data to the users\' clipboard',
+	cookies: 'Allows for the setting, getting and listenting for changes of cookies on any website. (https://developer.chrome.com/extensions/cookies)',
+	contentSettings: 'Allows changing or reading your browser settings to allow or deny things like javascript, plugins, popups, notifications or ' +
+		'other things you can choose to accept or deny on a per-site basis. (https://developer.chrome.com/extensions/contentSettings)',
+	declarativeContent: 'Allows for the running of scripts on pages based on their url and CSS contents. (https://developer.chrome.com/extensions/declarativeContent)',
+	desktopCapture: 'Makes it possible to capture your screen, current tab or chrome window (https://developer.chrome.com/extensions/desktopCapture)',
+	downloads: 'Allows for the creating, pausing, removing, searching and removing of downloads and listening for any downloads happenng. ' +
+		'(https://developer.chrome.com/extensions/downloads)',
+	history: 'Makes it possible to read your history and remove/add specific urls. This can also be used to search your history and to see howmany ' +
+		'times you visited given website. (https://developer.chrome.com/extensions/history)',
+	identity: 'Allows for the API to ask you to provide your (google) identity to the script using oauth2, allowing you to pull data from lots of google APIs: ' +
+		'calendar, contacts, custom search, drive, gmail, google maps, google+, url shortener (https://developer.chrome.com/extensions/identity)',
+	idle: 'Allows a script to detect whether your pc is in a locked, idle or active state. (https://developer.chrome.com/extensions/idle)',
+	management: 'Allows for a script to uninstall or get information about an extension you installed, this does not however give permission to install other extensions. ' +
+		'(https://developer.chrome.com/extensions/management)',
+	notifications: 'Allows for the creating of notifications. (https://developer.chrome.com/extensions/notifications)',
+	pageCapture: 'Allows for the saving of any page in MHTML. (https://developer.chrome.com/extensions/pageCapture)',
+	power: 'Allows for a script to keep either your screen or your system altogether from sleeping. (https://developer.chrome.com/extensions/power)',
+	privacy: 'Allows for a script to query what privacy features are on/off, for exaple autoFill, password saving, the translation feature.' +
+		' (https://developer.chrome.com/extensions/privacy)',
+	printerProvider: 'Allows for a script to capture your print jobs\' content and the printer used. (https://developer.chrome.com/extensions/printerProvider)',
+	sessions: 'Makes it possible for a script to get all recently closed pages and devices connected to sync, also allows it to re-open those closed pages. ' +
+		'(https://developer.chrome.com/extensions/sessions)',
+	"system.cpu": 'Allows a script to get info about the CPU. (https://developer.chrome.com/extensions/system_cpu)',
+	"system.memory": 'Allows a script to get info about the amount of RAM memory on your computer. (https://developer.chrome.com/extensions/system_memory)',
+	"system.storage": 'Allows a script to get info about the amount of storage on your computer and be notified when external storage is attached or detached. ' +
+		'(https://developer.chrome.com/extensions/system_storage)',
+	topSites: 'Allows a script to your top sites, which are the sites on your new tab screen. (https://developer.chrome.com/extensions/topSites)',
+	tabCapture: 'Allows the capturing of the CURRENT tab and only the tab. (https://developer.chrome.com/extensions/tabCapture)',
+	tts: 'Allows a script to use chrome\'s text so speach engine. (https://developer.chrome.com/extensions/tts)',
+	webNavigation: 'Allows a script info about newly created pages and allows it to get info about what website visit at that time.' +
+		' (https://developer.chrome.com/extensions/webNavigation)',
+	webRequest: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded ' +
+		'on the side, and can basically track the entire process of opening a new website. (https://developer.chrome.com/extensions/webRequest)',
+	webRequestBlocking: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded ' +
+		'on the side, and can basically track the entire process of opening a new website. This also allows the script to block certain requests for example for blocking ' +
+		'ads or bad sites. (https://developer.chrome.com/extensions/webRequest)'
+};
 
 Polymer({
 	is: 'crm-app',
@@ -294,6 +204,15 @@ Polymer({
 	 */
 	file: null,
 
+	/*
+	 * The last-used unique ID
+	 *
+	 * @attribute latestId
+	 * @type Number
+	 * @value -1
+	 */
+	latestId: -1,
+
 	properties: {
 		settings: {
 			type: Object,
@@ -303,37 +222,62 @@ Polymer({
 			type: Array,
 			value: []
 		},
-		requestedPermissions: {
-			type: Array,
-			value: [],
-			notify: true
-		},
-		otherPermissions: {
-			type: Array,
-			value: [],
-			notify: true
-		},
-		crmTypes: Array
+		crmType: Number,
+		settingsJsonLength: {
+			type: Number,
+			notify: true,
+			value: 0
+		}
 	},
 
-	switchToIcons: function (indexes) {
+	reverseString: function(string) {
+		return string.split('').reverse().join('');
+	},
+
+	placeCommas: function(number) {
+		var split = this.reverseString(number.toString()).match(/[0-9]{1,3}/g);
+		return this.reverseString(split.join(','));
+	},
+
+	getSettingsJsonLengthColor: function () {
+		var red;
+		var green;
+		if (this.settingsJsonLength <= 51200) {
+			//Green to yellow, increase red
+			green = 255;
+			red = (this.settingsJsonLength / 51200) * 255;
+		} else {
+			//Yellow to red, reduce green
+			red = 255;
+			green = 255 - (((this.settingsJsonLength - 51200) / 51200) * 255);
+		}
+		
+		//Darken a bit
+		red = Math.floor(red * 0.7);
+		green = Math.floor(green * 0.7);
+		return 'color: rgb(' + red + ', ' + green + ', 0);';
+	},
+
+	switchToIcons: function (index) {
+		console.log('switch');
 		var i;
 		var element;
 		var crmTypes = document.querySelectorAll('.crmType');
 		for (i = 0; i < 6; i++) {
-			if (indexes[i]) {
+			if (index === i) {
 				element = crmTypes[i];
 				element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 				element.classList.add('toggled');
 
-				if (indexes[i] === 5) {
+				if (index === 5) {
 					$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
 				} else {
 					$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
 				}
 			}
 		}
-		this.crmTypes = indexes;
+		this.crmType = index;
+		console.log(this.crmType);
 		this.fire('crmTypeChanged', {});
 	},
 
@@ -345,9 +289,10 @@ Polymer({
 			path = e.path[index];
 		}
 
+		console.log('switch');
 		var crmEl;
 		var element = path;
-		var selectedTypes = app.crmTypes;
+		var selectedType = this.crmType;
 		var crmTypes = document.querySelectorAll('.crmType');
 		for (var i = 0; i < 6; i++) {
 			crmEl = crmTypes.item(i);
@@ -362,7 +307,7 @@ Polymer({
 					$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
 				}
 
-				selectedTypes[i] = true;
+				selectedType = i;
 			} else {
 				//Drop an element for some magic
 				crmEl.style.boxShadow = 'none';
@@ -370,15 +315,28 @@ Polymer({
 				crmEl.classList.remove('toggled');
 
 				$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
-
-				selectedTypes[i] = false;
 			}
 		}
 		chrome.storage.local.set({
-			selectedCrmTypes: selectedTypes
+			selectedCrmType: selectedType
 		});
-		this.crmTypes = selectedTypes;
+		this.crmType = selectedType;
+		console.log(this.crmType);
 		this.fire('crmTypeChanged', {});
+	},
+
+	/**
+	 * Generates an ID for a node
+	 * 
+	 * @returns {Number} A unique ID
+	 */
+	generateItemId: function () {
+		var _this = this;
+		this.latestId++;
+		chrome.storage.local.set({
+			latestId: _this.latestId
+		});
+		return this.latestId;
 	},
 
 	toggleToolsRibbon: function() {
@@ -458,20 +416,81 @@ Polymer({
 		});
 	},
 
+	cutData: function(data, segmentSize) {
+		var obj = {};
+		var arrLength;
+		var sectionKey;
+		var indexes = [];
+		var splitJson = data.match(/[\s\S]{1,5000}/g);
+		splitJson.forEach(function (section) {
+			arrLength = indexes.length;
+			sectionKey = 'section' + arrLength;
+			obj[sectionKey] = section;
+			indexes[arrLength] = sectionKey;
+		});
+		obj.indexes = indexes;
+		return obj;
+	},
+
 	/**
-	 * Uploads this object to chrome.storage
+	 * Uploads this object to chrome.storage.sync
 	 */
-	upload: function (errorCallback) {
-		window.storage.set(this.settings, function() {
-			if (chrome.runtime.lastError) {
-				errorCallback && errorCallback(chrome.runtime.lastError);
+	upload: function () {
+		console.log(this.settings);
+		var settingsJson = JSON.stringify(this.settings);
+		var stringLength = settingsJson.length;
+		this.settingsJsonLength = stringLength;
+		if (this.settings.useStorageSync) {
+			chrome.storage.local.set({
+				settings: this.settings
+			}, function() {
+				if (chrome.runtime.lastError) {
+					console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
+				} else {
+					chrome.runtime.sendMessage({
+						type: 'updateContextMenu'
+					});
+				}
+			});
+			chrome.storage.sync.set({
+				indexes: null
+			});
+		} else {
+			//Using chrome.storage.sync
+			var _this = this;
+			if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
+				console.log('this is why it failed', settingsJson.length);
+				window.doc.storageExceededToast.show();
+				chrome.storage.local.set({
+					useStorageSync: false
+				}, function () {
+					_this.upload();
+				});
 			} else {
-				chrome.runtime.sendMessage({
-					type: 'updateContextMenu'
+				//Cut up all data into smaller JSON
+				var obj = this.cutData(settingsJson);
+				chrome.storage.sync.set(obj, function () {
+					if (chrome.runtime.lastError) {
+						//Switch to local storage
+						console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
+						window.doc.storageExceededToast.show();
+						chrome.storage.local.set({
+							useStorageSync: false
+						}, function() {
+							_this.upload();
+						});
+					} else {
+						chrome.runtime.sendMessage({
+							type: 'updateContextMenu'
+						});
+						chrome.storage.local.set({
+							settings: null
+						});
+					}
 				});
 			}
-		});
-		//buildContextMenu();
+		}
+		this.pageDemo.create();
 	},
 
 	bindListeners: function() {
@@ -699,87 +718,6 @@ Polymer({
 	 */
 	requestPermissions: function (toRequest) {
 		var index;
-		var _this = this;
-		var allPermissions = [
-			'alarms',
-			'background',
-			'bookmarks',
-			'browsingData',
-			'clipboardRead',
-			'clipboardWrite',
-			'contentSettings',
-			'cookies',
-			'contentSettings',
-			'declarativeContent',
-			'desktopCapture',
-			'downloads',
-			'history',
-			'identity',
-			'idle',
-			'management',
-			'notifications',
-			'pageCapture',
-			'power',
-			'privacy',
-			'printerProvider',
-			'sessions',
-			'system.cpu',
-			'system.memory',
-			'system.storage',
-			'topSites',
-			'tabCapture',
-			'tts',
-			'webNavigation',
-			'webRequest',
-			'webRequestBlocking'
-		];
-		var descriptions = {
-			alarms: 'Makes it possible to create, view and remove alarms.',
-			background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
-			bookmarks: 'Makes it possible to create, edit, remove and view all your bookmarks.',
-			browsingData: 'Makes it possible to remove any saved data on your browser at specified time ' +
-				'allowing the user to delete any history, saved passwords, cookies, cache and basically anything that is ' +
-				'not saved in incognito mode but is in regular mode. This is editable so it is possible to delete ONLY your ' +
-				'history and not the rest for example. (https://developer.chrome.com/extensions/bookmarks)',
-			clipboardRead: 'Allows reading of the users\' clipboard',
-			clipboardWrite: 'Allows writing data to the users\' clipboard',
-			cookies: 'Allows for the setting, getting and listenting for changes of cookies on any website. (https://developer.chrome.com/extensions/cookies)',
-			contentSettings: 'Allows changing or reading your browser settings to allow or deny things like javascript, plugins, popups, notifications or ' +
-				'other things you can choose to accept or deny on a per-site basis. (https://developer.chrome.com/extensions/contentSettings)',
-			declarativeContent: 'Allows for the running of scripts on pages based on their url and CSS contents. (https://developer.chrome.com/extensions/declarativeContent)',
-			desktopCapture: 'Makes it possible to capture your screen, current tab or chrome window (https://developer.chrome.com/extensions/desktopCapture)',
-			downloads: 'Allows for the creating, pausing, removing, searching and removing of downloads and listening for any downloads happenng. ' +
-				'(https://developer.chrome.com/extensions/downloads)',
-			history: 'Makes it possible to read your history and remove/add specific urls. This can also be used to search your history and to see howmany ' +
-				'times you visited given website. (https://developer.chrome.com/extensions/history)',
-			identity: 'Allows for the API to ask you to provide your (google) identity to the script using oauth2, allowing you to pull data from lots of google APIs: ' +
-				'calendar, contacts, custom search, drive, gmail, google maps, google+, url shortener (https://developer.chrome.com/extensions/identity)',
-			idle: 'Allows a script to detect whether your pc is in a locked, idle or active state. (https://developer.chrome.com/extensions/idle)',
-			management: 'Allows for a script to uninstall or get information about an extension you installed, this does not however give permission to install other extensions. ' +
-				'(https://developer.chrome.com/extensions/management)',
-			notifications: 'Allows for the creating of notifications. (https://developer.chrome.com/extensions/notifications)',
-			pageCapture: 'Allows for the saving of any page in MHTML. (https://developer.chrome.com/extensions/pageCapture)',
-			power: 'Allows for a script to keep either your screen or your system altogether from sleeping. (https://developer.chrome.com/extensions/power)',
-			privacy: 'Allows for a script to query what privacy features are on/off, for exaple autoFill, password saving, the translation feature.' +
-				' (https://developer.chrome.com/extensions/privacy)',
-			printerProvider: 'Allows for a script to capture your print jobs\' content and the printer used. (https://developer.chrome.com/extensions/printerProvider)',
-			sessions: 'Makes it possible for a script to get all recently closed pages and devices connected to sync, also allows it to re-open those closed pages. ' +
-				'(https://developer.chrome.com/extensions/sessions)',
-			"system.cpu": 'Allows a script to get info about the CPU. (https://developer.chrome.com/extensions/system_cpu)',
-			"system.memory": 'Allows a script to get info about the amount of RAM memory on your computer. (https://developer.chrome.com/extensions/system_memory)',
-			"system.storage": 'Allows a script to get info about the amount of storage on your computer and be notified when external storage is attached or detached. ' +
-				'(https://developer.chrome.com/extensions/system_storage)',
-			topSites: 'Allows a script to your top sites, which are the sites on your new tab screen. (https://developer.chrome.com/extensions/topSites)',
-			tabCapture: 'Allows the capturing of the CURRENT tab and only the tab. (https://developer.chrome.com/extensions/tabCapture)',
-			tts: 'Allows a script to use chrome\'s text so speach engine. (https://developer.chrome.com/extensions/tts)',
-			webNavigation: 'Allows a script info about newly created pages and allows it to get info about what website visit at that time.' +
-				' (https://developer.chrome.com/extensions/webNavigation)',
-			webRequest: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded ' +
-				'on the side, and can basically track the entire process of opening a new website. (https://developer.chrome.com/extensions/webRequest)',
-			webRequestBlocking: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded ' +
-				'on the side, and can basically track the entire process of opening a new website. This also allows the script to block certain requests for example for blocking ' +
-				'ads or bad sites. (https://developer.chrome.com/extensions/webRequest)'
-		};
 		var i;
 		for (i = 0; i < toRequest.length; i++) {
 			index = allPermissions.indexOf(toRequest[i]);
@@ -790,7 +728,6 @@ Polymer({
 
 		chrome.permissions.getAll(function(allowed) {
 			var requested = [];
-			_this.requestedPermissions = [];
 			for (i = 0; i < toRequest.length; i++) {
 				requested.push({
 					name: toRequest[i],
@@ -800,29 +737,24 @@ Polymer({
 			}
 
 			var other = [];
-			_this.otherPermissions = [];
 			for (i = 0; i < allPermissions.length; i++) {
 				other.push({
 					name: allPermissions[i],
 					description: descriptions[allPermissions[i]],
-					toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1 ? true : false)
+					toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1)
 				});
+				if (other[other.length - 1].toggled) {
+					console.log('toggled', other[other.length - 1].name);
+				}
 			}
 
-			console.log(requested, other);
-			_this.requestedPermissions = requested;
-			_this.otherPermissions = other;
-
-			window.doc.requestPermissionsDialog.open();
+			var overlay;
 
 			function handler() {
-				var el;
-				var svg;
-				window.doc.requestPermissionsDialog.fit();
-				window.doc.requestPermissionsDialog.removeEventListener('iron-overlay-opened', handler);
-				$('.requestPermissionsShowBot').click(function() {
+				var el, svg;
+				overlay.removeEventListener('iron-overlay-opened', handler);
+				$('.requestPermissionsShowBot').click(function () {
 					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
-					console.log(this.style.transform);
 					svg = $(this).find('.requestPermissionsSvg')[0];
 					svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
 					if (el.animation) {
@@ -842,39 +774,133 @@ Polymer({
 					}
 				});
 				$('#requestPermissionsShowOther').click(function () {
-					//TODO this
-					var otherPermissions = $(this).parent().parent().children('#requestPermissionsOther');
-					if (otherPermissions[0].style.height === 0) {
-						otherPermissions.animate({
+					var showHideSvg = this;
+					var otherPermissions = $(this).parent().parent().children('#requestPermissionsOther')[0];
+					if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
+						$(otherPermissions).animate({
 							height: otherPermissions.scrollHeight + 'px'
-						}, 350);
+						}, 350, function () {
+							showHideSvg.children[0].style.display = 'none';
+							showHideSvg.children[1].style.display = 'block';
+						});
 					} else {
-						otherPermissions.animate({
+						$(otherPermissions).animate({
 							height: 0
-						}, 350);
+						}, 350, function () {
+							showHideSvg.children[0].style.display = 'block';
+							showHideSvg.children[1].style.display = 'none';
+						});
 					}
-					//if (other.animation) {
-					//	other.animation.reverse();
-					//} else { 
-					//	var newHeight = other.scrollHeight + 'px';
-					//	console.log(newHeight);
-					//	other.animation = other.animate([
-					//		{
-					//			height: 0
-					//		}, {
-					//			heigt: newHeight
-					//		}
-					//	], {
-					//		duration: 350,
-					//		easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-					//		fill: 'both'
-					//	});
-					//}
+				});
+
+				var permission;
+				$('.requestPermissionButton').click(function () {
+					permission = this.previousElementSibling.previousElementSibling.textContent;
+					var slider = this;
+					if (this.checked) {
+						chrome.permissions.request({
+							permissions: [permission]
+						}, function(accepted) {
+							if (!accepted) {
+								//The user didn't accept, don't pretend it's active when it's not, turn it off
+								slider.checked = false;
+							} else {
+								//Accepted, remove from to-request permissions
+								chrome.storage.local.get(function (e) {
+									var permissionsToRequest = e.requestPermissions;
+									requestPermissions.splice(requestPermissions.indexOf(permission), 1);
+									chrome.storage.local.set({
+										requestPermissions: permissionsToRequest
+									});
+								});
+							}
+						});
+					} else {
+						chrome.permissions.remove({
+							permissions: [permission]
+						}, function (removed) {
+							if (!removed) {
+								//It didn't get removed
+								slider.checked = true;
+							}
+						});
+					}
+				});
+
+				$('#requestPermissionsAcceptAll').click(function () {
+					console.log(toRequest);
+					chrome.permissions.request({
+						permissions: toRequest
+					}, function (accepted) {
+						console.log(accepted);
+						if (accepted) {
+							chrome.storage.local.set({
+								requestPermissions: []
+							});
+							$('.requestPermissionButton.required').each(function() {
+								this.checked = true;
+							});
+						}
+					});
 				});
 			}
 
-			window.doc.requestPermissionsDialog.addEventListener('iron-overlay-opened', handler);
+			var interval = window.setInterval(function () {
+				try {
+					if (window.doc.requestPermissionsCenterer.$.content.children[0].open) {
+						window.clearInterval(interval);
+						overlay = window.doc.requestPermissionsCenterer.$.content.children[0];
+						$('#requestedPermissionsTemplate')[0].items = requested;
+						$('#requestedPermissionsOtherTemplate')[0].items = other;
+						overlay.addEventListener('iron-overlay-opened', handler);
+						overlay.open();
+					}
+				} catch (e) {
+					//Somehow the element doesn't exist yet
+				}
+			}, 100);
 		});
+	},
+
+	/**
+	 * Creates a new settings object
+	 */
+	setupFirstTime: function() {
+		this.init = true;
+		this.scriptEditingId = 1234;
+		this.settings.crm = [
+			this.templates.getDefaultLinkNode({
+				id: this.generateItemId()
+			})
+		];
+		this.upload();
+	},
+
+	/**
+	 * Checks whether the given settings object is valid
+	 * 
+	 * @param settings - The settings object to check
+	 */
+	checkSettings: function (settings) {
+		//TODO implement or not
+		if (settings.init) {
+			if (!settings.crm) {
+				settings.crm = [
+					this.templates.getDefaultLinkNode()
+				];
+				this.settings = settings;
+				this.upload();
+			}
+		} else {
+			this.setupFirstTime();
+		}
+	},
+
+	setLocal: function (key, value) {
+		var obj = {};
+		obj[key] = value;
+		chrome.storage.local.set(obj);
+		this.upload();
 	},
 
 	ready: function () {
@@ -886,24 +912,24 @@ Polymer({
 			_this.settings = items;
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
-			}
-			if (items.requestPermissions && items.requestPermissions.length > 0) {
-				_this.requestPermissions(items.requestPermissions);
-			}
+			}			
 			_this.updateEditorZoom();
-			main();
+			_this.checkSettings(_this.settings);
 			_this.pageDemo.create();
 		}
 
 		this.bindListeners();
-		chrome.storage.local.get(function(items) {
-			if (items.editing) {
+		chrome.storage.local.get(function (storageLocal) {
+			if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
+				_this.requestPermissions(storageLocal.requestPermissions);
+			}
+			if (storageLocal.editing) {
 				setTimeout(function() {
 					//Check out if the code is actually different
-					var node = _this.crm.lookup(items.editing.crmPath).value;
+					var node = _this.crm.lookup(storageLocal.editing.crmPath).value;
 					var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
-					if (nodeCurrentCode !== items.editing.val) {
-						_this.restoreUnsavedInstances(items.editing);
+					if (nodeCurrentCode !== storageLocal.editing.val) {
+						_this.restoreUnsavedInstances(storageLocal.editing);
 					} else {
 						chrome.storage.local.set({
 							editing: null
@@ -911,46 +937,131 @@ Polymer({
 					}
 				}, 2500);
 			}
-			if (items.selectedCrmTypes !== undefined) {
-				app.crmTypes = items.selectedCrmTypes;
-				_this.switchToIcons(items.selectedCrmTypes);
+			if (storageLocal.selectedCrmType !== undefined) {
+				_this.crmType = storageLocal.selectedCrmType;
+				_this.switchToIcons(storageLocal.selectedCrmType);
 			} else {
 				chrome.storage.local.set({
-					selectedCrmTypes: [true, false, false, false, false, false]
+					selectedCrmType: 0
 				});
-				app.crmTypes = [true, false, false, false, false, false];
-				_this.switchToIcons([true, false, false, false, false, false]);
+				_this.crmType = 0;
+				_this.switchToIcons(0);
 			}
-			if (items.jsLintGlobals) {
-				window.app.jsLintGlobals = items.jsLintGlobals;
+			if (storageLocal.jsLintGlobals) {
+				_this.jsLintGlobals = storageLocal.jsLintGlobals;
 			} else {
-				window.app.jsLintGlobals = [];
+				_this.jsLintGlobals = [];
 				chrome.storage.local.set({
 					jsLintGlobals: []
 				});
 			}
+			if (storageLocal.latestId) {
+				_this.latestId = storageLocal.latestId;
+			} else {
+				chrome.storage.local.set({
+					latestId: 0
+				});
+				_this.latestId = 0;
+			}
+			if (storageLocal.useStorageSync) {
+				//Parse the data before sending it to the callback
+				chrome.storage.sync.get(function (storageSync) {
+					var indexes = storageSync.indexes;
+					if (!indexes) {
+						chrome.storage.local.set({
+							useStorageSync: false
+						});
+						callback(storageLocal.settings);
+					} else {
+						var settingsJsonArray = [];
+						indexes.forEach(function(index) {
+							settingsJsonArray.push(storageSync[index]);
+						});
+						var jsonString = settingsJsonArray.join('');
+						_this.settingsJsonLength = jsonString.length;
+						var settings = JSON.parse(jsonString);
+						console.log(settings);
+						callback(settings);
+					}
+				});
+			} else {
+				//Send the "settings" object on the storage.local to the callback
+				_this.settingsJsonLength = JSON.stringify(storageLocal.settings).length;
+				if (!storageLocal.settings) {
+					chrome.storage.local.set({
+						useStorageSync: true
+					});
+					chrome.storage.sync.get(function(storageSync) {
+						var indexes = storageSync.indexes;
+						var settingsJsonArray = [];
+						indexes.forEach(function(index) {
+							settingsJsonArray.push(storageSync[index]);
+						});
+						var jsonString = settingsJsonArray.join('');
+						_this.settingsJsonLength = jsonString.length;
+						var settings = JSON.parse(jsonString);
+						console.log(settings);
+						callback(settings);
+					});
+				} else {
+					callback(storageLocal.settings);
+				}
+			}
 		});
 		this.show = false;
-		window.storage.get(callback);
 	},
 
 	/**
-	 * Sets setting with key 'key' to value
-	 *
-	 * @param key   The key.
-	 * @param value - The value.
+	 * Any templates
 	 */
-	set: function(key, value) {
-		this.settings[key] = value;
-		this.upload();
+	templates: {
+		/**
+		 * Merges two objects
+		 * 
+		 * @param {Object} mainObject - The main object
+		 * @param {Object} additions - The additions to the main object, these overwrite the 
+		 *		main object's properties
+		 * @returns {Object} The merged objects
+		 */
+		mergeObjects: function(mainObject, additions) {
+			for (var key in additions) {
+				if (additions.hasOwnProperty(key)) {
+					mainObject[key] = additions[key];
+				}
+			}
+			return mainObject;
+		},
+
+		/**
+		 * Gets the default link node object with given options applied
+		 * 
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A link node with specified properties set
+		 */
+		getDefaultLinkNode: function(options) {
+			var defaultNode = {
+				name: 'name',
+				onContentTypes: [true, false, false, false, false, false],
+				type: 'link',
+				isLocal: true,
+				vaue: {
+					0: {
+						newTab: true,
+						url: 'https://www.example.com'
+					}
+				}
+			};
+
+			return this.mergeObjects(defaultNode, options);
+		}
 	},
 
 	/*
 	 * Functions related to the on-page example of your current CRM
 	 */
 	pageDemo: {
-		id: 0,
-		ids: [],
+		stylesheetId: 0,
+		usedStylesheetIds: [],
 
 		handlers: {
 			/**
@@ -994,8 +1105,8 @@ Polymer({
 				 * @return the function to execute on click a stylesheet
 				 */
 				toggle: function(data, checked) {
-					var id = this.parent.id++;
-					this.parent.ids.push(id);
+					var id = this.parent.stylesheetId++;
+					this.parent.usedStylesheetIds.push(id);
 
 					var style = document.createElement('style');
 					style.setAttribute('id', 'stylesheet' + id);
@@ -1032,47 +1143,39 @@ Polymer({
 			/**
 			 * Adds a link to the CRM
 			 *
-			 * @param items - The items in the menu already.
 			 * @param toAdd - The item to add.
-			 * @param iterator - The iterator's current value
 			 *
-			 * @return The items with the new item in it.
+			 * @return The node
 			 */
-			link: function(items, toAdd, iterator) {
+			link: function(toAdd) {
 				var item = {};
 				item.name = toAdd.name;
 				item.callback = this.parent.handlers.link(toAdd.value);
-				items[iterator] = item;
-				return items;
+				return item;
 			},
 
 			/**
 			 * Adds a script to the CRM
 			 *
-			 * @param items - The items in the menu already.
 			 * @param toAdd - The item to add.
-			 * @param iterator - The iterator's current value
 			 *
-			 * @return The items with the new item in it.
+			 * @return The node
 			 */
-			script: function(items, toAdd, iterator) {
+			script: function (toAdd) {
 				var item = {};
 				item.name = toAdd.name;
 				item.callback = this.parent.handlers.script(toAdd.value.script);
-				items[iterator] = item;
-				return items;
+				return item;
 			},
 
 			/**
 			 * Adds a stylesheet to the CRM
 			 *
-			 * @param items - The items in the menu already.
 			 * @param toAdd - The item to add.
-			 * @param iterator - The iterator's current value
 			 *
-			 * @return The items with the new item in it.
+			 * @return The node
 			 */
-			stylesheet: function (items, toAdd, iterator) {
+			stylesheet: function (toAdd) {
 				var item = {};
 				item.name = toAdd.name;
 				if (toAdd.value.toggle) {
@@ -1083,62 +1186,55 @@ Polymer({
 					console.log(this.parent.handlers.stylesheet);
 					item.callback = this.parent.handlers.stylesheet.normal(toAdd.value.stylesheet);
 				}
-				items[iterator] = item;
-				return items;
+				return item;
 			},
 
 			/**
 			 * Adds a divider to the CRM
 			 *
-			 * @param items - The items in the menu already.
-			 * @param toAdd - The item to add.
-			 * @param iterator - The iterator's current value
-			 *
-			 * @return The items with the new item in it.
+			 * @return The node
 			 */
-			divider: function(items, toAdd, iterator) {
-				var item = '---------';
-				items[iterator] = item;
-				return items;
+			divider: function() {
+				return '---------';
 			},
 
 			
 			/**
 			 * Adds a menu to the CRM
 			 *
-			 * @param items - The items in the menu already.
 			 * @param toAdd - The item to add.
-			 * @param iterator - The iterator's current value
 			 *
-			 * @return The items with the new item in it.
+			 * @return The node
 			 */
-			menu: function (items, toAdd, iterator) {
+			menu: function (toAdd, crmType) {
 				var _this = this;
 				var item = {};
 				item.name = toAdd.name;
+				var index = 0;
 				var childItems = {};
-				toAdd.children.forEach(function(item, index) {
-					switch (item.type) {
-					case 'link':
-						childItems = _this.link(childItems, item, index);
-						break;
-					case 'script':
-						childItems = _this.script(childItems, item, index);
-						break;
-					case 'stylesheet':
-						childItems = _this.stylesheet(childItems, item, index);
-						break;
-					case 'divider':
-						childItems = _this.divider(childItems, item, index);
-						break;
-					case 'menu':
-						childItems = _this.menu(childItems, item, index);
-						break;
+				toAdd.children.forEach(function (node) {
+					if (_this.parent.isNodeVisible(node, crmType)) {
+						switch (node.type) {
+							case 'link':
+								childItems[index++] = _this.link(node);
+								break;
+							case 'script':
+								childItems[index++] = _this.script(node);
+								break;
+							case 'stylesheet':
+								childItems[index++] = _this.stylesheet(node);
+								break;
+							case 'divider':
+								childItems[index++] = _this.divider();
+								break;
+							case 'menu':
+								childItems[index++] = _this.menu(node, crmType);
+								break;
+						}
 					}
 				});
 				item.items = childItems;
-				items[iterator] = item;
-				return items;
+				return item;
 			},
 
 			get parent() {
@@ -1146,62 +1242,141 @@ Polymer({
 			}
 		},
 
-		bindContextMenu: function () {
-			var _this = this;
-			$.contextMenu({
-				selector: 'body',
-				build: function() {
-					return {
-						items: _this.contextMenuItems
-					};
+		/**
+		 * Returns whether the node is visible or not (1 if it's visible)
+		 * 
+		 * @param {Object} node - The node to check
+		 * @param {boolean[]} showContentType - Array of which content types to show
+		 * 
+		 * @returns {Number} 1 if the node is visible, 0 if it's not
+		 */
+		isNodeVisible: function(node, showContentType) {
+			var i;
+			var length;
+			if (node.children && node.children.length > 0) {
+				length = node.children.length;
+				var visible = 0;
+				for (i = 0; i < length; i++) {
+					visible += this.isNodeVisible(node.children[i], showContentType);
 				}
-			});
+				if (!visible) {
+					return 0;
+				}
+			} else {
+				for (i = 0; i < 6; i++) {
+					if (showContentType === i && !node.onContentTypes[i]) {
+						return 0;
+					}
+				}
+			}
+			return 1;
 		},
 
-		build: function () {
+		/**
+		 * Builds the context-menu for given crmType
+		 * 
+		 * @param {Number} crmType - The type of the content the menu will be shown on
+		 */
+		buildForCrmType: function (crmType) {
+			console.log('callin');
 			var _this = this;
-			var items = {};
-			var crm = app.settings.crm;
-			console.log(this);
-			crm.forEach(function(item, index) {
-				switch (item.type) {
-				case 'link':
-					items = _this.node.link(items, item, index);
-					break;
-				case 'script':
-					items = _this.node.script(items, item, index);
-					break;
-				case 'stylesheet':
-					items = _this.node.stylesheet(items, item, index);
-					break;
-				case 'divider':
-					items = _this.node.divider(items, item, index);
-					break;
-				case 'menu':
-					items = _this.node.menu(items, item, index);
-					break;
+			var index = 0;
+			var childItems = {};
+			var crm = window.app.settings.crm;
+			crm.forEach(function (node) {
+				if (_this.isNodeVisible(node, crmType)) {
+					switch (node.type) {
+					case 'link':
+						childItems[index++] = _this.node.link(node);
+						break;
+					case 'script':
+						childItems[index++] = _this.node.script(node);
+						break;
+					case 'stylesheet':
+						childItems[index++] = _this.node.stylesheet(node);
+						break;
+					case 'divider':
+						childItems[index++] = _this.node.divider();
+						break;
+					case 'menu':
+						childItems[index++] = _this.node.menu(node, crmType);
+						break;
+					}
 				}
 			});
-			this.contextMenuItems = items;
-			this.bindContextMenu();
+			return childItems;
+		},
+
+		getCrmTypeFromNumber: function (crmType) {
+			var types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+			return types[crmType];
+		},
+
+		bindContextMenu: function (crmType) {
+			var _this = this;
+			if (crmType === 0) {
+				$.contextMenu({
+					selector: 'body, #editCrm.page, .crmType.pageType',
+					items: _this.buildForCrmType(0)
+				});
+			} else {
+				var contentType = _this.getCrmTypeFromNumber(crmType);
+				$.contextMenu({
+					selector: '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type',
+					items: _this.buildForCrmType(crmType)
+				});
+			}
 		},
 
 		contextMenuItems: [],
 
-		remove: function () {
+		removeContextMenus: function () {
 			var el;
-			this.ids.forEach(function(id) {
+			this.usedStylesheetIds.forEach(function (id) {
 				el = document.getElementById('stylesheet' + id);
 				el && el.remove();
 			});
+
+			var selector;
+			var contentType;
+			for (var i = 0; i < 6; i++) {
+				contentType = this.getCrmTypeFromNumber(i);
+				selector = (i === 0 ? 'body, ' : '') + '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type';
+				$.contextMenu('destroy', {
+					selector: selector
+				});
+			}
+		},
+
+		loadContextMenus: function() {
+			var _this = this;
+			var toLoad = 0;
+			this.removeContextMenus();
+			if ('requestIdleCallback' in window) {
+				function loadContextMenus(deadline) {
+					while (toLoad < 6 && deadline.timeRemaining() > 0) {
+						_this.bindContextMenu(toLoad++);
+					}
+
+					if (toLoad !== 5) {
+						window.requestIdleCallback(loadContextMenus);
+					}
+				}
+
+				window.requestIdleCallback(loadContextMenus);
+			} else {
+				while (toLoad < 6) {
+					_this.bindContextMenu(toLoad++);
+				}
+			}
 		},
 
 		/**
 		 * Creates the on-page example
 		 */
 		create: function () {
-			this.remove();
-			this.build();
+			//TODO turn this on again
+			//this.loadContextMenus();
 		},
 
 		get parent() {
@@ -1274,7 +1449,8 @@ Polymer({
 		setDataInCrm: function(path) {
 			var evalPath = this._getEvalPath(path);
 			return function(key, data) {
-				key, data;
+				// ReSharper disable once WrongExpressionStatement
+				data;
 				eval(evalPath + '[key] = data');
 			}
 		},
@@ -1285,7 +1461,7 @@ Polymer({
 		 * @param value - The value to add
 		 * @param position - The position to add it in
 		 */
-		add: function(value, position) {
+		add: function (value, position) {
 			if (position === 'first') {
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm, 0);
 			} else if (position === 'last' || position === undefined) {
@@ -1293,15 +1469,14 @@ Polymer({
 			} else {
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm);
 			}
-			//HERE
-			//options.upload();
+			options.upload();
 		},
 
 		/**
 		 * Moves a value in the CRM from one place to another
 		 *
 		 * @param toMove - The value to move's location (in path form)
-		 * @param target	Where to move the item to (in path form)
+		 * @param target - Where to move the item to (in path form)
 		 * @param sameColumn - Whether the item has stayed in the same column
 		 */
 		move: function(toMove, target, sameColumn) {

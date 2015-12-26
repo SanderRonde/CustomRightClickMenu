@@ -61,6 +61,30 @@
 			type: Boolean,
 			value: false,
 			notify: true
+		},
+		/**
+		 * The requested permissions, only used by one overlay but it has to be specified here
+		 * 
+		 * @attribute requestedPermissions
+		 * @type Array
+		 * @default []
+		 */
+		requestedPermissions: {
+			type: Array,
+			value: [],
+			notify: true
+		},
+		/**
+		 * The other permissions, only used by one overlay but it has to be specified here
+		 * 
+		 * @attribute otherPermissions
+		 * @type Array
+		 * @default []
+		 */
+		otherPermissions: {
+			type: Array,
+			value: [],
+			notify: true
 		}
 	},
 

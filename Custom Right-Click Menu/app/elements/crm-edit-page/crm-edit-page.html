@@ -14,6 +14,10 @@
 							<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
 							<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
 						</paper-material>
+						<div id="nodeInfo">
+							Installed on <b><span id="installDate">[[item.nodeInfo.installDate]]</span></b>
+							by <span hidden$="[[item.nodeInfo."
+						</div>
 					</div>
 				</div>
 			</template>

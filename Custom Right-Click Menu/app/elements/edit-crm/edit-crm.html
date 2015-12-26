@@ -15,7 +15,7 @@
 					</center-element>
 				</div>
 				<template is="dom-repeat" items="[[crm]]" as="column" observe="indent list" restamp="true">
-					<div class="CRMEditColumnCont">
+					<div class="CRMEditColumnCont" hidden$="[[crmLoading]]">
 						<template is="dom-repeat" items="{{column.indent}}" restamp="true">
 							<div class="indentFiller"></div>
 						</template>
@@ -30,8 +30,8 @@
 				</template>
 			</div>
 			<div id="crmButtons">
-				<paper-button id="addButton" on-tap="addItem" raised hidden$="[[isSelecting]]">Add</paper-button>
-				<paper-button id="removeButton" on-tap="selectItems" raised>
+				<paper-button class="blue" id="addButton" on-tap="addItem" raised hidden$="[[isSelecting]]">Add</paper-button>
+				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised>
 					<span hidden$="[[isSelecting]]">Select</span>
 					<span hidden$="[[!isSelecting]]">Remove Selected</span>
 				</paper-button>

@@ -311,21 +311,20 @@
 		var itemInEditPage = $($(app.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.app.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
 		itemInEditPage.item = this.newSettings;
 		itemInEditPage.name = this.newSettings.name;
-		var i;
-		for (i = 0; i < window.app.crmTypes.length; i++) {
-			if (window.app.crmTypes[i]) {
-				break;
-			}
-		}
+	
 		if (this.newSettings.value.launchMode !== 0) {
 			this.newSettings.onContentTypes = [true, true, true, true, true, true];
 		} else {
-			if (!this.newSettings.onContentTypes[i]) {
+			if (!this.newSettings.onContentTypes[window.app.crmType]) {
 				window.app.editCRM.build(window.app.editCRM.setMenus);
 			}
 		}
 		lookedUp[lastPathIndex] = this.newSettings;
 		app.upload();
+	},
+
+	openPermissionsDialog: function() {
+		
 	},
 
 	assignContentTypeSelectedValues: function() {
@@ -999,7 +998,6 @@
 			'Editor zoom percentage:' +
 			'</div>').appendTo(settingsContainer);
 
-			//TODO IMPLEMENT THIS WITH NEW PAPER-INPUT VERSION
 		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('keypress change', function() {
 			var _this = this;
 			setTimeout(function() {

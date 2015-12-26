@@ -3,7 +3,7 @@
 /// <reference path="jquery-2.1.4.min.map"/>
 /// <reference path="/app/js/jquery.contextMenu.js" />
 /// <reference path="../app/elements/crm-edit-page/crm-edit-page.js" />
-/// <reference path="../app/elements/crm-options/crm-app.js" />
+/// <reference path="../app/elements/crm-app/crm-app.js" />
 /// <reference path="../app/elements/default-link/default-link.js" />
 /// <reference path="../app/elements/edit-crm/edit-crm.js" />
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.js" />

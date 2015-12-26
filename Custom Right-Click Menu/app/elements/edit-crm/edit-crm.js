@@ -1,175 +1,6 @@
 /// <reference path="../../../scripts/_references.js"/>
-/// <reference path="~/app/elements/crm-options/crm-app.js" />
+/// <reference path="~/app/elements/crm-app/crm-app.js" />
 'use strict';
-var app;
-app.settings = app.settings;
-
-/**
- * @fn function getLastMenu(list)
- *
- * @brief Gets the last menu of the list.
- *
- * @param list - The list.
- * @param hidden - The hidden nodes
- *
- * @return The last menu on the given list.
- */
-function getLastMenu(list, hidden) {
-	var lastMenu = -1;
-	var lastFilledMenu = -1;
-	//Find last menu to auto-expand
-	if (list) {
-		list.forEach(function (item, index) {
-			if ((item.type === 'menu' || (app.settings.shadowStart && item.menuVal) && !hidden[item.path])) {
-				lastMenu = index;
-				if (item.children.length > 0) {
-					lastFilledMenu = index;
-				}
-			}
-		});
-		if (lastFilledMenu !== -1) {
-			return lastFilledMenu;
-		}
-	}
-	return lastMenu;
-}
-
-/**
- * Shows only the nodes that should be shown with current showContentTypes settings
- * 
- * @param {Object} result - The result object in which to store all paths
- * @param {Object} node - The node to check
- * @param {boolean[]} showContentTypes - Array of which content types to show
- * @returns {Object} An object in which each key is a path of a crm node and the value (true or false) tells whether to show it or not.
- */
-function getHiddenNodes(result, node, showContentTypes) {
-	var i;
-	var length;
-	if (node.children && node.children.length > 0) {
-		length = node.children.length;
-		var visible = 0;
-		for (i = 0; i < length; i++) {
-			visible += getHiddenNodes(result, node.children[i], showContentTypes);
-		}
-		if (!visible) {
-			result[node.id] = true;
-			return 0;
-		}
-	} else {
-		for (i = 0; i < 6; i++) {
-			if (showContentTypes[i] && !node.onContentTypes[i]) {
-				result[node.id] = true;
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
-
-function getIndent(data, lastMenu, hiddenNodes) {
-	var i;
-	var length = data.length - 1;
-	var visibleIndent = lastMenu;
-	for (i = 0; i < length; i++) {
-		if (hiddenNodes[data[i].id]) {
-			visibleIndent--;
-		}
-	}
-	return visibleIndent;
-}
-
-/**
- * @fn function buildCRMEditObj()
- *
- * @brief Builds crm edit object.
- * 		  
- * @param setMenus - An array of menus that are set to be opened (by user input).
- *
- * @return the CRM edit object
- */
-function buildCRMEditObj(setMenus) {
-	var showContentTypes = app.crmTypes;
-	var setMenusLength = setMenus.length;
-	var newSetMenus = [];
-	var crmEditObj = [];
-	var indentTop = 0;
-	var lastMenu = -2;
-	var columnNum = 0;
-	var columnCopy;
-	var path = [];
-	var column;
-	var indent;
-	var length;
-
-	var list = app.settings.crm;
-	//Hide all nodes that should be hidden
-	var hiddenNodes = {};
-	var i;
-	var shown = 0;
-	for (i = 0; i < list.length; i++) {
-		shown += getHiddenNodes(hiddenNodes, list[i], showContentTypes);
-	}
-	console.log(hiddenNodes);
-
-	if (shown) {
-		while (lastMenu !== -1) {
-			if (setMenusLength > columnNum) {
-				lastMenu = setMenus[columnNum];
-			} else {
-				lastMenu = getLastMenu(list, hiddenNodes);
-			}
-			newSetMenus[columnNum] = lastMenu;
-			indent = getIndent(list, lastMenu, hiddenNodes);
-			column = {};
-			column.indent = [];
-			column.indent[indentTop - 1] = undefined;
-			column.list = list;
-			column.index = columnNum;
-			if (app.settings.shadowStart && app.settings.shadowStart <= columnNum) {
-				column.shadow = true;
-			}
-
-			if (lastMenu !== -1) {
-				indentTop += indent;
-				list.forEach(function (item) {
-					item.expanded = false;
-				});
-				list[lastMenu].expanded = true;
-				if (app.settings.shadowStart && list[lastMenu].menuVal) {
-					list = list[lastMenu].menuVal;
-				} else {
-					list = list[lastMenu].children;
-				}
-			}
-
-			column.list.map(function (currentVal, index) {
-				currentVal.path = [];
-				path.forEach(function (item, index) {
-					currentVal.path[index] = item;
-				});
-				currentVal.index = index;
-				currentVal.path.push(index);
-				return currentVal;
-			});
-			length = column.list.length;
-			columnCopy = [];
-			for (i = 0; i < length; i++) {
-				if (!hiddenNodes[column.list[i].id]) {
-					columnCopy.push(column.list[i]);
-				}
-			}
-			column.list = columnCopy;
-			path.push(lastMenu);
-			crmEditObj.push(column);
-			columnNum++;
-		}
-	}
-
-	return {
-		crm: crmEditObj,
-		setMenus: newSetMenus
-	};
-}
 
 window.Polymer({
 	is: 'edit-crm',
@@ -247,7 +78,7 @@ window.Polymer({
 	selectedElements: [],
 
 	get firstCRMColumn() {
-		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = app.editCRM.children[1].children[2]));
+		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2]));
 	},
 
 	properties: {
@@ -293,10 +124,10 @@ window.Polymer({
 		var i;
 		var hiddenNodes = {};
 		for (i = 0; i < window.app.settings.crm.length; i++) {
-			getHiddenNodes(hiddenNodes, window.app.settings.crm[i], window.app.crmTypes);
+			this.isNodeVisible(hiddenNodes, window.app.settings.crm[i], window.app.crmType);
 		}
 		console.log(path);
-		var items = $($(app.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
+		var items = $($(window.app.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
 		var index = path[path.length - 1];
 		for (i = 0; i < items.length; i++) {
 			if (hiddenNodes[items[i]]) {
@@ -304,6 +135,171 @@ window.Polymer({
 			}
 		}
 		return index;
+	},
+
+	/**
+	 * Gets the last menu of the list.
+	 *
+	 * @param list - The list.
+	 * @param hidden - The hidden nodes
+	 *
+	 * @return The last menu on the given list.
+	 */
+	getLastMenu: function (list, hidden) {
+		var lastMenu = -1;
+		var lastFilledMenu = -1;
+		//Find last menu to auto-expand
+		if (list) {
+			list.forEach(function (item, index) {
+				if ((item.type === 'menu' || (window.app.settings.shadowStart && item.menuVal) && !hidden[item.path])) {
+					lastMenu = index;
+					if (item.children.length > 0) {
+						lastFilledMenu = index;
+					}
+				}
+			});
+			if (lastFilledMenu !== -1) {
+				return lastFilledMenu;
+			}
+		}
+		return lastMenu;
+	},
+
+	/**
+	 * Returns whether the node is visible or not (1 if it's visible)
+	 * 
+	 * @param {Object} result - The result object in which to store all paths
+	 * @param {Object} node - The node to check
+	 * @param {Number} showContentType - The content type to show
+	 * @returns {Number} 1 if the node is visible, 0 if it's not
+	 */
+	isNodeVisible: function (result, node, showContentType) {
+		var i;
+		var length;
+		if (node.children && node.children.length > 0) {
+			length = node.children.length;
+			var visible = 0;
+			for (i = 0; i < length; i++) {
+				visible += this.isNodeVisible(result, node.children[i], showContentType);
+			}
+			if (!visible) {
+				result[node.id] = true;
+				return 0;
+			}
+		} else {
+			for (i = 0; i < 6; i++) {
+				if (showContentType === i && !node.onContentTypes[i]) {
+					result[node.id] = true;
+					return 0;
+				}
+			}
+		}
+		return 1;
+	},
+
+	getIndent: function (data, lastMenu, hiddenNodes) {
+		var i;
+		var length = data.length - 1;
+		var visibleIndent = lastMenu;
+		for (i = 0; i < length; i++) {
+			if (hiddenNodes[data[i].id]) {
+				visibleIndent--;
+			}
+		}
+		return visibleIndent;
+	},
+
+	/**
+	 * Builds crm edit object.
+	 * 		  
+	 * @param setMenus - An array of menus that are set to be opened (by user input).
+	 *
+	 * @return the CRM edit object
+	 */
+	buildCRMEditObj: function (setMenus) {
+		var i;
+		var length;
+		var column;
+		var indent;
+		var path = [];
+		var columnCopy;
+		var columnNum = 0;
+		var lastMenu = -2;
+		var indentTop = 0;
+		var crmEditObj = [];
+		var newSetMenus = [];
+		var list = window.app.settings.crm;
+		var setMenusLength = setMenus.length;
+		var showContentTypes = window.app.crmType;
+
+		//Hide all nodes that should be hidden
+		var hiddenNodes = {};
+		var shown = 0;
+		for (i = 0; i < list.length; i++) {
+			shown += this.isNodeVisible(hiddenNodes, list[i], showContentTypes);
+		}
+		console.log(hiddenNodes);
+
+		console.time('start');
+		if (shown) {
+			while (lastMenu !== -1) {
+				if (setMenusLength > columnNum) {
+					lastMenu = setMenus[columnNum];
+				} else {
+					lastMenu = this.getLastMenu(list, hiddenNodes);
+				}
+				newSetMenus[columnNum] = lastMenu;
+				indent = this.getIndent(list, lastMenu, hiddenNodes);
+				column = {};
+				column.indent = [];
+				column.indent[indentTop - 1] = undefined;
+				column.list = list;
+				column.index = columnNum;
+				if (window.app.settings.shadowStart && window.app.settings.shadowStart <= columnNum) {
+					column.shadow = true;
+				}
+
+				if (lastMenu !== -1) {
+					indentTop += indent;
+					list.forEach(function (item) {
+						item.expanded = false;
+					});
+					list[lastMenu].expanded = true;
+					if (window.app.settings.shadowStart && list[lastMenu].menuVal) {
+						list = list[lastMenu].menuVal;
+					} else {
+						list = list[lastMenu].children;
+					}
+				}
+
+				column.list.map(function (currentVal, index) {
+					currentVal.path = [];
+					path.forEach(function (item, pathIndex) {
+						currentVal.path[pathIndex] = item;
+					});
+					currentVal.index = index;
+					currentVal.path.push(index);
+					return currentVal;
+				});
+				length = column.list.length;
+				columnCopy = [];
+				for (i = 0; i < length; i++) {
+					if (!hiddenNodes[column.list[i].id]) {
+						columnCopy.push(column.list[i]);
+					}
+				}
+				column.list = columnCopy;
+				path.push(lastMenu);
+				crmEditObj.push(column);
+				columnNum++;
+			}
+		}
+
+		console.timeEnd('start');
+		return {
+			crm: crmEditObj,
+			setMenus: newSetMenus
+		};
 	},
 
 	/**
@@ -320,7 +316,7 @@ window.Polymer({
 	build: function (setItems, quick, superquick) {
 		var _this = this;
 		setItems = setItems || [];
-		var obj = buildCRMEditObj(setItems);
+		var obj = this.buildCRMEditObj(setItems);
 		this.setMenus = obj.setMenus;
 		obj = obj.crm;
 		this.crm = [];
@@ -328,6 +324,7 @@ window.Polymer({
 			window.clearTimeout(this.currentTimeout);
 		}
 		this.crmLoading = true;
+
 		function func() {
 			_this.crm = obj;
 			_this.notifyPath('crm', _this.crm);
@@ -338,6 +335,9 @@ window.Polymer({
 				for (var i = 0; i < els.length; i++) {
 					els[i].update();
 				}
+				setTimeout(function() {
+					window.app.pageDemo.create();
+				}, 0);
 			}, 50);
 		}
 
@@ -351,37 +351,20 @@ window.Polymer({
 
 	ready: function () {
 		var _this = this;
-		app.editCRM = this;
+		window.app.editCRM = this;
 		window.app.addEventListener('crmTypeChanged', this._typeChanged);
 		_this._typeChanged(true);
 	},
 
 	addItem: function () {
-		generateItemId(function(itemId) {
-			var newIndex = app.settings.crm.length;
-			var newItem = {
-				name: 'name',
-				type: 'link',
-				value: [
-					{
-						value: 'http://www.example.com',
-						newTab: true
-					}
-				],
-				id: itemId,
-				expanded: false,
-				index: newIndex,
-				isLocal: true,
-				path: [newIndex],
-				onContentType: app.crmTypes
-			};
-			app.crm.add(newItem);
-
-			window.app.editCRM.build(window.app.editCRM.setMenus, false, true);
+		var newItem = window.app.templates.getDefaultLinkNode({
+			id: window.app.generateItemId()
 		});
+		window.app.crm.add(newItem);
+		window.app.editCRM.build(window.app.editCRM.setMenus, false, true);
 	},
 
-	selectItems: function() {
+	selectItems: function () {
 		var i;
 		var _this = this;
 		var editCrmItems = document.getElementsByTagName('edit-crm-item');
@@ -391,7 +374,7 @@ window.Polymer({
 				editCrmItems[i].classList.add('selecting');
 			}
 			this.selectedElements = [];
-			setTimeout(function() {
+			setTimeout(function () {
 				_this.isSelecting = true;
 			}, 150);
 		} else {
@@ -453,6 +436,9 @@ window.Polymer({
 	},
 
 	_typeChanged: function (quick) {
-		runOrAddAsCallback(app.editCRM.build, app.editCRM, (quick ? [null, true] : []));
+		for (var i = 0; i < 6; i++) {
+			window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
+		}
+		runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, (quick ? [null, true] : []));
 	}
 });
