@@ -10,7 +10,7 @@
 					<div id="settings">
 						<div id="nameChangeCont">
 							<div class="itemEditBigTxt">Name</div>
-							<paper-input no-label-float id="nameChange" value="{{newSettings.name}}"></paper-input>
+							<paper-input no-label-float id="nameInput" value="{{newSettings.name}}" on-keydown="inputKeyPress"></paper-input>
 						</div>
 						<br/>
 						<div id="toggleButtonsCont">
@@ -198,8 +198,8 @@
 					</div>
 				</div>
 				<div id="buttons">
-					<paper-button id="cancelButton" on-tap="cancelChanges">Cancel</paper-button>
-					<paper-button id="saveButton" on-tap="saveChanges">Save</paper-button>
+					<paper-button id="cancelButton" on-tap="cancel">Cancel</paper-button>
+					<paper-button id="saveButton" on-tap="save">Save</paper-button>
 				</div>
 			</div>
 		</template>

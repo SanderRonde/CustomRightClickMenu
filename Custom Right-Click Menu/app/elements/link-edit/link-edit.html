@@ -10,17 +10,17 @@
 					<div id="changeName">
 						<div class="itemEditBigTxt">Name </div>
 						<div id="changeNameInput">
-							<paper-input no-label-float id="nameInput" on-keydown="inputKeyPress" value="{{item.name}}"></paper-input>
+							<paper-input no-label-float id="nameInput" on-keydown="inputKeyPress" value="{{newSettings.name}}"></paper-input>
 						</div>
 					</div>
 					<div id="showOnSitesCont">
 						<br/>
-						<paper-checkbox checked="{{item.showOnSpecified}}">Show only on specified sites</paper-checkbox>
+						<paper-checkbox id="showOnSpecified" checked="{{newSettings.showOnSpecified}}">Show only on specified sites</paper-checkbox>
 						<br/>
 						<br/>
 						<div hidden$="{{!item.showOnSpecified}}">
 							<div class="itemEditBigTxt">
-								Execute on:
+								Show on:
 								<div id="triggersInfoCont">
 									<svg class="inactive" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 										<path d="M0 0h24v24H0z" fill="none"/>
@@ -38,7 +38,7 @@
 								</div>
 							</div>
 							<br/>
-							<template is="dom-repeat" items="[[item.triggers]]" as="trigger">
+							<template is="dom-repeat" items="[[newSettings.triggers]]" as="trigger">
 								<div class="executionTrigger">
 									<paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="[[trigger]]"></paper-input>
 									<paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button>
@@ -53,7 +53,7 @@
 						<div class="itemEditBigTxt">Link(s) </div>
 						<br/>
 						<div id="linksContainer">
-							<template is="dom-repeat" items="{{item.value}}" as="link" observe="value newTab">
+							<template is="dom-repeat" items="[[newSettings.value]]" as="link" observe="value newTab">
 								<div class="linkChangeCont">
 									<paper-input class="linkInput" on-keydown="inputKeyPress" value="[[link.url]]"></paper-input>
 									<paper-checkbox on-tap="checkboxStateChange" checked$="[[!link.newTab]]" class="linkNewTabToggle"></paper-checkbox> &nbsp;
@@ -145,8 +145,8 @@
 				</div>
 			</div>
 			<div id="buttons">
-				<paper-button id="cancelButton" on-tap="cancelChanges">Cancel</paper-button>
-				<paper-button id="saveButton" on-tap="saveChanges">Save</paper-button>
+				<paper-button id="cancelButton" on-tap="cancel">Cancel</paper-button>
+				<paper-button id="saveButton" on-tap="save">Save</paper-button>
 			</div>
 		</template>
 	</dom-module>

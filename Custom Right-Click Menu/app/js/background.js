@@ -1,9 +1,11 @@
 ///<reference path="jsonfn.js"/>
+///<reference path="../../scripts/_references.js"/>
+///<reference path="e.js"/>
 
 'use strict';
 function sandbox(api, args) {
 	var context = window;
-	var fn = window.chrome;
+	var fn = chrome;
 	var apiSplit = api.split('.');
 	for (var i = 0; i < apiSplit.length; i++) {
 		context = fn;
@@ -12,7 +14,7 @@ function sandbox(api, args) {
 	return fn.apply(context, args);
 }
 
-(function(window) {
+(function (window) {
 	var crmTree;
 	var keys = {};
 	var storageSync;
@@ -20,7 +22,7 @@ function sandbox(api, args) {
 	var nodesData = {};
 	var tabNodeData = {};
 	var contextMenuIds = {};
-	var tabActiveScripts = {};
+	var tabActiveLibraries = {};
 	var stylesheetNodeStatusses = {};
 	var toExecuteNodes = {
 		onUrl: [],
@@ -94,11 +96,11 @@ function sandbox(api, args) {
 
 	/*#region Right-Click Menu Handling*/
 
-	window.chrome.tabs.onHighlighted.addListener(function(highlightInfo) {
+	chrome.tabs.onHighlighted.addListener(function (highlightInfo) {
 		var lastTab = highlightInfo.tabIds[highlightInfo.tabIds.length - 1];
 		for (var node in stylesheetNodeStatusses) {
 			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
-				window.chrome.contextMenus.update(contextMenuIds[node], {
+				chrome.contextMenus.update(contextMenuIds[node], {
 					checked: stylesheetNodeStatusses[node][lastTab]
 				});
 			}
@@ -138,12 +140,12 @@ function sandbox(api, args) {
 	}
 
 	function createLinkClickHandler(node) {
-		return function(clickData, tabData) {
+		return function (clickData, tabData) {
 			var i;
 			var finalUrl;
 			for (i = 0; i < node.value.length; i++) {
 				if (node.value[i].newTab) {
-					window.chrome.tabs.create({
+					chrome.tabs.create({
 						windowId: tabData.windowId,
 						url: sanitizeUrl(node.value[i].url),
 						openerTabId: tabData.id
@@ -153,15 +155,15 @@ function sandbox(api, args) {
 				}
 			}
 			if (finalUrl) {
-				window.chrome.tabs.update(tabData.tabId, {
+				chrome.tabs.update(tabData.tabId, {
 					url: sanitizeUrl(finalUrl)
 				});
 			}
 		}
 	}
 
-	function createStylesheetClickHandler(node) {
-		return function(info, tab) {
+	function createStylesheetToggleHandler(node) {
+		return function (info, tab) {
 			var code;
 			var className = node.id + '' + tab.id;
 			if (stylesheetNodeStatusses[node.id][tab.id]) {
@@ -170,10 +172,20 @@ function sandbox(api, args) {
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
 				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
 			}
-			window.chrome.contextMenus.update(contextMenuIds[node.id], {
+			chrome.contextMenus.update(contextMenuIds[node.id], {
 				checked: (stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id])
 			});
-			window.chrome.tabs.executeScript(tab.id, {
+			chrome.tabs.executeScript(tab.id, {
+				code: code,
+				allFrames: true
+			});
+		}
+	}
+
+	function createStylesheetClickHandler() {
+		return function (info, tab) {
+			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
 			});
@@ -182,8 +194,8 @@ function sandbox(api, args) {
 
 	function executeScripts(tabId, scripts) {
 		function executeScript(script, innerCallback) {
-			return function() {
-				window.chrome.tabs.executeScript(tabId, script, innerCallback);
+			return function () {
+				chrome.tabs.executeScript(tabId, script, innerCallback);
 			}
 		}
 
@@ -197,7 +209,7 @@ function sandbox(api, args) {
 	}
 
 	function createScriptClickHandler(node) {
-		return function(info, tab) {
+		return function (info, tab) {
 			var key = [];
 			var err = false;
 			try {
@@ -207,10 +219,10 @@ function sandbox(api, args) {
 				err = e;
 			}
 			if (err) {
-				window.chrome.tabs.executeScript(tab.id, {
+				chrome.tabs.executeScript(tab.id, {
 					code: 'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
-				}, function() {
-					window.chrome.runtime.reload();
+				}, function () {
+					chrome.runtime.reload();
 				});
 			} else {
 				var i;
@@ -225,15 +237,15 @@ function sandbox(api, args) {
 
 				var scripts = [];
 				for (i = 0; i < node.value.libraries.length; i++) {
-					if (!tabActiveScripts[tab.id][node.value.libraries[i].name]) {
-						tabActiveScripts[tab.id][node.value.libraries[i].name] = true;
+					if (!tabActiveLibraries[tab.id][node.value.libraries[i].name]) {
+						tabActiveLibraries[tab.id][node.value.libraries[i].name] = true;
 						var j;
 						var lib;
-							for (j = 0; j < storageLocal.libraries.length; j++) {
-								if (storageLocal.libraries[j].name === node.value.libraries[i].name) {
-									lib = storageLocal.libraries[j];
-								}
+						for (j = 0; j < storageLocal.libraries.length; j++) {
+							if (storageLocal.libraries[j].name === node.value.libraries[i].name) {
+								lib = storageLocal.libraries[j];
 							}
+						}
 						if (lib && lib.location) {
 							scripts.push({
 								file: 'js/libraries/' + lib.location,
@@ -247,8 +259,8 @@ function sandbox(api, args) {
 						}
 					}
 				}
-				if (!tabActiveScripts[tab.id]['crmAPI']) {
-					tabActiveScripts[tab.id]['crmAPI'] = true;
+				if (!tabActiveLibraries[tab.id]['crmAPI']) {
+					tabActiveLibraries[tab.id]['crmAPI'] = true;
 					scripts.push({
 						file: 'js/crmapi.js',
 						runAt: 'document_start'
@@ -265,8 +277,8 @@ function sandbox(api, args) {
 	}
 
 	function createOptionsPageHandler() {
-		return function() {
-			window.chrome.runtime.openOptionsPage();
+		return function () {
+			chrome.runtime.openOptionsPage();
 		}
 	}
 
@@ -300,8 +312,23 @@ function sandbox(api, args) {
 				}
 			}
 		}
-		if (node.value && (node.value.launchMode === 1 || node.value.launchMode === 2)) {
-			if (node.value.launchMode === 1) {
+
+
+		//  0 = run on clicking
+		//	1 = always run
+		//	2 = run on specified pages
+		//	3 = only show on specified pages
+
+		var options = {
+			title: node.name,
+			contexts: getContexts(node.onContentTypes),
+			parentId: parentId
+		};
+		var launchMode = (node.value && node.value.launchMode) || 0;
+
+
+		if (launchMode === 1 || launchMode === 2) {
+			if (launchMode === 1) {
 				toExecuteNodes.always.push(node);
 			} else {
 				for (i = 0; i < node.triggers && node.triggers.length; i++) {
@@ -315,7 +342,7 @@ function sandbox(api, args) {
 			}
 		} else {
 			if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
-				if (node.value.launchMode === 0) {
+				if (launchMode === 0) {
 					toExecuteNodes.always.push(node);
 				} else {
 					for (i = 0; i < node.triggers && node.triggers.length; i++) {
@@ -328,43 +355,42 @@ function sandbox(api, args) {
 					}
 				}
 			}
-			var cm = {
-				title: node.name,
-				contexts: getContexts(node.onContentTypes),
-				checked: (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn),
-				parentId: parentId
-			};
+
 			stylesheetNodeStatusses[node.id] = {};
 			if (node.type === 'divider') {
-				cm.type = 'separator';
+				options.type = 'separator';
 			} else if (node.type === 'stylesheet' && node.value.toggle) {
-				cm.type = 'checkbox';
+				options.type = 'checkbox';
 			}
 
-			if (node.value && node.value.launchMode === 3 && node.triggers) {
-				cm.documentUrlPatterns = prepareTrigger(node.triggers);
+			if (launchMode === 3 && node.triggers) {
+				options.documentUrlPatterns = prepareTrigger(node.triggers);
 			}
 			if (node.type === 'link') {
-				cm.onclick = createLinkClickHandler(node);
+				options.onclick = createLinkClickHandler(node);
 			} else if (node.type === 'script') {
-				cm.onclick = createScriptClickHandler(node);
+				options.onclick = createScriptClickHandler(node);
 			} else if (node.type === 'stylesheet') {
-				cm.onclick = createStylesheetClickHandler(node);
+				if (node.value.toggle) {
+					options.onclick = createStylesheetToggleHandler(node);
+				} else {
+					options.onclick = createStylesheetClickHandler();
+				}
 			}
-			id = window.chrome.contextMenus.create(cm, function() {
-				if (window.chrome.runtime.lastError) {
-					if (cm.documentUrlPatterns) {
-						console.log('An error occurred with your context menu, attempting again with no url matching.', window.chrome.runtime.lastError);
-						delete cm.documentUrlPatterns;
-						id = window.chrome.contextMenus.create(cm, function() {
-							id = window.chrome.contextMenus.create({
+			id = chrome.contextMenus.create(options, function () {
+				if (chrome.runtime.lastError) {
+					if (options.documentUrlPatterns) {
+						console.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
+						delete options.documentUrlPatterns;
+						id = chrome.contextMenus.create(options, function () {
+							id = chrome.contextMenus.create({
 								title: 'ERROR',
 								onclick: createOptionsPageHandler()
 							});
-							console.log('Another error occured with your context menu!', window.chrome.runtime.lastError);
+							console.log('Another error occured with your context menu!', chrome.runtime.lastError);
 						});
 					} else {
-						console.log('An error occured with your context menu!', window.chrome.runtime.lastError);
+						console.log('An error occured with your context menu!', chrome.runtime.lastError);
 					}
 				}
 			});
@@ -380,7 +406,7 @@ function sandbox(api, args) {
 				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
 				css = node.value.stylesheet.replace(/[ |\n]/g, '');
 				code += 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
-				window.chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
+				chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
 					code: code,
 					allFrames: true
 				});
@@ -407,8 +433,8 @@ function sandbox(api, args) {
 		var i;
 		var length = crmTree.length;
 		stylesheetNodeStatusses = {};
-		window.chrome.contextMenus.removeAll();
-		var rootId = window.chrome.contextMenus.create({
+		chrome.contextMenus.removeAll();
+		var rootId = chrome.contextMenus.create({
 			title: 'Custom Menu',
 			contexts: ['page', 'selection', 'link', 'image', 'video', 'audio']
 		});;
@@ -419,12 +445,12 @@ function sandbox(api, args) {
 		for (i = 0; i < length; i++) {
 			buildPageCRMTree(crmTree[i], rootId);
 		}
-		if (storageSync.showOptions) {
-			window.chrome.contextMenus.create({
+		if (storageLocal.showOptions) {
+			chrome.contextMenus.create({
 				type: 'separator',
 				parentId: rootId
 			});
-			window.chrome.contextMenus.create({
+			chrome.contextMenus.create({
 				title: 'Options',
 				onclick: createOptionsPageHandler(),
 				parentId: rootId
@@ -488,13 +514,13 @@ function sandbox(api, args) {
 		}
 	}
 
-	window.chrome.tabs.onUpdated.addListener(function(tabId, updatedInfo) {
+	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
 		if (updatedInfo.status === 'loading') {
 			//It's loading
-			window.chrome.tabs.get(tabId, function(tab) {
+			chrome.tabs.get(tabId, function (tab) {
 				if (tab.url.indexOf('chrome') !== 0) {
 					var i;
-					tabActiveScripts[tabId] = {};
+					tabActiveLibraries[tabId] = {};
 					for (i = 0; i < toExecuteNodes.always.length; i++) {
 						executeNode(toExecuteNodes.always[i], tab);
 					}
@@ -512,10 +538,20 @@ function sandbox(api, args) {
 		}
 	});
 
+	chrome.tabs.onRemoved.addListener(function (tabId) {
+		//Delete all data for this tabId
+		var node;
+		for (node in stylesheetNodeStatusses) {
+			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
+				delete node[tabId];
+			}
+		}
+		delete tabActiveLibraries[tabId];
+		delete tabNodeData[tabId];
+	});
+
 	/*#endregion*/
 
-	///<reference path="../../scripts/_references.js"/>
-	///<reference path="e.js"/>
 	/*#region Handling of crmapi.js*/
 	var permissions = [
 		'alarms',
@@ -572,20 +608,20 @@ function sandbox(api, args) {
 	}
 
 	function generateItemId(callback) {
-		window.chrome.storage.local.get('latestId', function(items) {
+		chrome.storage.local.get('latestId', function (items) {
 			var id;
 			if (items.latestId) {
 				id = items.latestId;
 			} else {
 				id = 1;
-				window.chrome.storage.local.set({ latestId: 1 });
+				chrome.storage.local.set({ latestId: 1 });
 			}
 			callback && callback(id);
 		});
 	}
 
 	function refreshPermissions() {
-		window.chrome.permissions.getAll(function (available) {
+		chrome.permissions.getAll(function (available) {
 			availablePermissions = available.permissions;
 		});
 	}
@@ -602,6 +638,12 @@ function sandbox(api, args) {
 
 	function makeSafe(node) {
 		var newNode = {};
+		if (node.children) {
+			newNode.children = [];
+			for (var i = 0; i < node.children.length; i++) {
+				newNode.children[i] = makeSafe(node.children[i]);
+			}
+		}
 		node.id && (newNode.id = node.id);
 		node.path && (newNode.path = node.path);
 		node.type && (newNode.type = node.type);
@@ -609,9 +651,12 @@ function sandbox(api, args) {
 		node.value && (newNode.value = node.value);
 		node.linkVal && (newNode.linkVal = node.linkVal);
 		node.menuVal && (newNode.menuVal = node.menuVal);
-		node.children && (newNode.children = node.children);
+		node.nodeInfo && (newNode.nodeInfo = node.nodeInfo);
+		node.triggers && (newNode.triggers = node.triggers);
 		node.scriptVal && (newNode.scriptVal = node.scriptVal);
 		node.stylesheetVal && (newNode.stylesheetVal = node.stylesheetVal);
+		node.onContentTypes && (newNode.onContentTypes = node.onContentTypes);
+		node.showOnSpecified && (newNode.showOnSpecified = node.showOnSpecified);
 		return newNode;
 	}
 
@@ -658,22 +703,108 @@ function sandbox(api, args) {
 		return safeBranch;
 	}
 
-	function updateStorage() {
-		window.chrome.storage.sync.get(function(data) {
-			storageSync = data;
-			window.chrome.storage.local.get(function(locals) {
-				storageLocal = locals;
-				crmTree = data.crm;
-				safeTree = buildSafeTree(data.crm);
-				buildByIdObjects(data.crm);
+	function updateStorage(cb) {
+		chrome.storage.local.get(function (localData) {
+			chrome.storage.sync.get(function (syncData) {
+				storageLocal = localData;
+
+				console.log(crmTree);
+
+				var indexes;
+				var settingsJsonArray;
+				var jsonString;
+				if (localData.useStorageSync) {
+					//Parse the data before sending it to the callback
+					indexes = syncData.indexes;
+					if (!indexes) {
+						chrome.storage.local.set({
+							useStorageSync: false
+						});
+						storageSync = localData.settings;
+					} else {
+						settingsJsonArray = [];
+						indexes.forEach(function(index) {
+							settingsJsonArray.push(syncData[index]);
+						});
+						jsonString = settingsJsonArray.join('');
+						storageSync = JSON.parse(jsonString);
+					}
+				} else {
+					//Send the "settings" object on the storage.local to the callback
+					if (!localData.settings) {
+						chrome.storage.local.set({
+							useStorageSync: true
+						});
+						indexes = syncData.indexes;
+						settingsJsonArray = [];
+						indexes.forEach(function(index) {
+							settingsJsonArray.push(syncData[index]);
+						});
+						jsonString = settingsJsonArray.join('');
+						var settings = JSON.parse(jsonString);
+						console.log(settings);
+						storageSync = settings;
+					} else {
+						storageSync = localData.settings;
+					}
+				}
+
+				console.log(storageSync);
+				crmTree = storageSync.crm;
+				safeTree = buildSafeTree(storageSync.crm);
+				buildByIdObjects(storageSync.crm);
+
+				cb && cb();
 			});
 		});
 	}
 
 	function updateCrm(skipPageCrm) {
-		window.chrome.storage.sync.set({
-			crm: crmTree
-		});
+		storageSync.crm = crmTree;
+		var settingsJson = JSON.stringify(this.settings);
+		if (storageLocal.useStorageSync) {
+			chrome.storage.local.set({
+				settings: storageSync
+			}, function () {
+				if (chrome.runtime.lastError) {
+					console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
+				} else {
+					updateStorage();
+				}
+			});
+			chrome.storage.sync.set({
+				indexes: null
+			});
+		} else {
+			//Using chrome.storage.sync
+			if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
+				chrome.storage.local.set({
+					useStorageSync: false
+				}, function () {
+					updateCrm(skipPageCrm);
+				});
+			} else {
+				//Cut up all data into smaller JSON
+				var obj = this.cutData(settingsJson);
+				chrome.storage.sync.set(obj, function () {
+					if (chrome.runtime.lastError) {
+						//Switch to local storage
+						console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
+						chrome.storage.local.set({
+							useStorageSync: false
+						}, function () {
+							updateCrm(skipPageCrm);
+						});
+					} else {
+						updateStorage();
+						chrome.storage.local.set({
+							settings: null
+						});
+					}
+				});
+			}
+		}
+
 		updateStorage();
 		skipPageCrm && buildPageCRM();
 	}
@@ -681,12 +812,6 @@ function sandbox(api, args) {
 	function updateNodeStorage(message) {
 		crmById[message.id].storage = message.storage;
 		updateStorage();
-	}
-
-	function updateStorageLocal() {
-		window.chrome.storage.local.get(function(locals) {
-			storageLocal = locals;
-		});
 	}
 
 	function respondToCrmAPI(message, type, data, stackTrace) {
@@ -714,7 +839,7 @@ function sandbox(api, args) {
 		console.warn('Error:', error);
 		if (stackTrace) {
 			stackTrace = stackTrace.split('\n');
-			stackTrace.forEach(function(line) {
+			stackTrace.forEach(function (line) {
 				console.warn(line);
 			});
 		}
@@ -726,7 +851,7 @@ function sandbox(api, args) {
 		this.toRun = toRun;
 		this.message = message;
 
-		this.respondSuccess = function() {
+		this.respondSuccess = function () {
 			var args = [];
 			for (var i = 0; i < arguments.length; i++) {
 				args.push(arguments[i]);
@@ -735,12 +860,12 @@ function sandbox(api, args) {
 			return true;
 		};
 
-		this.respondError = function(error) {
+		this.respondError = function (error) {
 			respondToCrmAPI(message, 'error', error);
 			return true;
 		};
 
-		this.lookup = function(path, data, hold) {
+		this.lookup = function (path, data, hold) {
 			if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
 				this.respondError('Supplied path is not of type array');
 				return true;
@@ -757,7 +882,7 @@ function sandbox(api, args) {
 			return (hold ? data : data[path[length]]) || false;
 		};
 
-		this.checkType = function(toCheck, type, name, optional, ifndef, array, ifdef) {
+		this.checkType = function (toCheck, type, name, optional, ifndef, array, ifdef) {
 			if (!toCheck) {
 				if (optional) {
 					ifndef && ifndef();
@@ -774,18 +899,18 @@ function sandbox(api, args) {
 				if (type === 'array') {
 					if (typeof toCheck !== 'object' || Array.isArray(toCheck)) {
 						if (array) {
-							_this.respondError('Not all values for ' + name + ' are of type ' + type);
+							_this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
 						} else {
-							_this.respondError('Value for ' + name + ' is not of type ' + type);
+							_this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
 						}
 						return false;
 					}
 				}
 				if (typeof toCheck !== type) {
 					if (array) {
-						_this.respondError('Not all values for ' + name + ' are of type ' + type);
+						_this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
 					} else {
-						_this.respondError('Value for ' + name + ' is not of type ' + type);
+						_this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
 					}
 					return false;
 				}
@@ -794,7 +919,7 @@ function sandbox(api, args) {
 			return true;
 		};
 
-		this.moveNode = function(node, position) {
+		this.moveNode = function (node, position) {
 			node = JSON.parse(JSON.stringify(node));
 			var relativeNode;
 			var isRoot = false;
@@ -803,13 +928,13 @@ function sandbox(api, args) {
 				if (!_this.checkType(position, 'object', 'position')) {
 					return false;
 				}
-				if (!_this.checkType(position.node, 'number', 'node', true, function() {
+				if (!_this.checkType(position.node, 'number', 'node', true, function () {
 					relativeNode = crmTree;
 					isRoot = true;
 				})) {
 					return false;
 				}
-				if (!_this.checkType(position.relation, 'string', 'relation', true, function() {
+				if (!_this.checkType(position.relation, 'string', 'relation', true, function () {
 					position.relation = 'firstSibling';
 					relativeNode = crmTree;
 					isRoot = true;
@@ -822,62 +947,62 @@ function sandbox(api, args) {
 					isRoot = true;
 				}
 				switch (position.relation) {
-				case 'before':
-					if (isRoot) {
-						pushIntoArray(node, 0, crmTree);
-					} else {
-						parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-						if (relativeNode.path.length > 0) {
-							pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
+					case 'before':
+						if (isRoot) {
+							pushIntoArray(node, 0, crmTree);
+						} else {
+							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
+							if (relativeNode.path.length > 0) {
+								pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
+							}
 						}
-					}
-					break;
-				case 'firstSibling':
-					if (isRoot) {
-						pushIntoArray(node, 0, crmTree);
-					} else {
-						parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-						pushIntoArray(node, 0, parentChildren);
-					}
-					break;
-				case 'firstChild':
-					if (isRoot) {
-						pushIntoArray(node, 0, crmTree);
-					} else if (relativeNode.type === 'menu') {
-						pushIntoArray(node, 0, relativeNode.children);
-					} else {
-						_this.respondError('Supplied node is not of type "menu"');
-						return false;
-					}
-					break;
-				case 'after':
-					if (isRoot) {
-						pushIntoArray(node, crmTree.length, crmTree);
-					} else {
-						parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-						if (relativeNode.path.length > 0) {
-							pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
+						break;
+					case 'firstSibling':
+						if (isRoot) {
+							pushIntoArray(node, 0, crmTree);
+						} else {
+							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
+							pushIntoArray(node, 0, parentChildren);
 						}
-					}
-					break;
-				case 'lastSibling':
-					if (isRoot) {
-						pushIntoArray(node, crmTree.length, crmTree);
-					} else {
-						parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-						pushIntoArray(node, parentChildren.length - 1, parentChildren);
-					}
-					break;
-				case 'lastChild':
-					if (isRoot) {
-						pushIntoArray(node, crmTree.length, crmTree);
-					} else if (relativeNode.type === 'menu') {
-						pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
-					} else {
-						_this.respondError('Supplied node is not of type "menu"');
-						return false;
-					}
-					break;
+						break;
+					case 'firstChild':
+						if (isRoot) {
+							pushIntoArray(node, 0, crmTree);
+						} else if (relativeNode.type === 'menu') {
+							pushIntoArray(node, 0, relativeNode.children);
+						} else {
+							_this.respondError('Supplied node is not of type "menu"');
+							return false;
+						}
+						break;
+					case 'after':
+						if (isRoot) {
+							pushIntoArray(node, crmTree.length, crmTree);
+						} else {
+							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
+							if (relativeNode.path.length > 0) {
+								pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
+							}
+						}
+						break;
+					case 'lastSibling':
+						if (isRoot) {
+							pushIntoArray(node, crmTree.length, crmTree);
+						} else {
+							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
+							pushIntoArray(node, parentChildren.length - 1, parentChildren);
+						}
+						break;
+					case 'lastChild':
+						if (isRoot) {
+							pushIntoArray(node, crmTree.length, crmTree);
+						} else if (relativeNode.type === 'menu') {
+							pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
+						} else {
+							_this.respondError('Supplied node is not of type "menu"');
+							return false;
+						}
+						break;
 				}
 			} else {
 				//Place in default position, firstChild of root
@@ -889,14 +1014,14 @@ function sandbox(api, args) {
 			return true;
 		};
 
-		this.getNodeFromId = function(id, isSafe, noCallback) {
+		this.getNodeFromId = function (id, isSafe, noCallback) {
 			var node = (isSafe ? crmByIdSafe : crmById)[id];
 			if (node) {
 				if (noCallback) {
 					return node;
 				}
 				return {
-					run: function(callback) {
+					run: function (callback) {
 						callback(node);
 					}
 				};
@@ -906,12 +1031,12 @@ function sandbox(api, args) {
 					return false;
 				}
 				return {
-					run: function() {}
+					run: function () { }
 				};
 			}
 		};
 
-		this.typeCheck = function(toCheck, callback) {
+		this.typeCheck = function (toCheck, callback) {
 			var i, j, k, l;
 			var typesMatch;
 			var toCheckName;
@@ -919,24 +1044,24 @@ function sandbox(api, args) {
 			var toCheckTypes;
 			var toCheckValue;
 			var toCheckIsArray;
-			var optionals = [];
+			var optionals = {};
 			var toCheckChildrenName;
 			var toCheckChildrenType;
 			var toCheckChildrenValue;
 			var toCheckChildrenTypes;
 			for (i = 0; i < toCheck.length; i++) {
-				if (toCheck[i].dependency !== undefined) {
+				toCheckName = toCheck[i].val;
+				if (toCheck[i].dependency) {
 					if (!optionals[toCheck[i].dependency]) {
-						optionals[i] = false;
+						optionals[toCheckName] = false;
 						continue;
 					}
 				}
-				toCheckName = toCheck[i].val;
 				toCheckTypes = toCheck[i].type.split('|');
 				toCheckValue = eval('_this.message.' + toCheckName + ';');
 				if (toCheckValue === undefined || toCheckValue === null) {
 					if (toCheck[i].optional) {
-						optionals[i] = false;
+						optionals[toCheckName] = false;
 						continue;
 					} else {
 						_this.respondError('Value for ' + toCheckName + ' is not set');
@@ -963,7 +1088,7 @@ function sandbox(api, args) {
 						_this.respondError('Value for ' + toCheckName + ' is not of type ' + toCheckTypes.join(' or '));
 						return false;
 					}
-					optionals[i] = true;
+					optionals[toCheckName] = true;
 					if (toCheck[i].min && typeof toCheckValue === 'number') {
 						if (toCheck[i].min > toCheckValue) {
 							_this.respondError('Value for ' + toCheckName + ' is smaller than ' + toCheck[i].min);
@@ -1015,7 +1140,7 @@ function sandbox(api, args) {
 			return true;
 		};
 
-		this.checkPermissions = function(toCheck, callbackOrOptional, callback) {
+		this.checkPermissions = function (toCheck, callbackOrOptional, callback) {
 			var optional = [];
 			if (callbackOrOptional !== undefined && callbackOrOptional !== null && typeof callbackOrOptional === 'object') {
 				optional = callbackOrOptional;
@@ -1145,7 +1270,7 @@ function sandbox(api, args) {
 						}
 
 						var searchScope;
-						if (optionals[2]) {
+						if (optionals['query.inSubTree']) {
 							searchScope = _this.getNodeFromId(_this.message.query.inSubTree, false, true);
 							if (searchScope) {
 								searchScope = searchScope.children;
@@ -1159,7 +1284,7 @@ function sandbox(api, args) {
 							}
 						}
 
-						if (optionals[3]) {
+						if (optionals['query.name']) {
 							var searchScopeLength = searchScopeArray.length;
 							for (j = 0; j < searchScopeLength; j++) {
 								if (searchScopeArray[j].name !== _this.message.query.name) {
@@ -1213,6 +1338,20 @@ function sandbox(api, args) {
 							val: 'options',
 							type: 'object'
 						}, {
+							val: 'options.usesTriggers',
+							type: 'boolean',
+							optional: true
+						}, {
+							val: 'options.triggers',
+							type: 'array',
+							forChildren: [
+								{
+									val: 'url',
+									type: 'string'
+								}
+							],
+							optional: true
+						}, {
 							val: 'options.linkData',
 							type: 'array',
 							forChildren: [
@@ -1231,18 +1370,18 @@ function sandbox(api, args) {
 							type: 'object',
 							optional: true
 						}, {
-							dependency: 2,
+							dependency: 'options.scriptData',
 							val: 'options.scriptData.script',
 							type: 'string'
 						}, {
-							dependency: 2,
+							dependency: 'options.scriptData',
 							val: 'options.scriptData.launchMode',
 							type: 'number',
 							optional: true,
 							min: 0,
 							max: 3
 						}, {
-							dependency: 2,
+							dependency: 'options.scriptData',
 							val: 'options.scriptData.triggers',
 							type: 'array',
 							optional: true,
@@ -1253,7 +1392,7 @@ function sandbox(api, args) {
 								}
 							]
 						}, {
-							dependency: 2,
+							dependency: 'options.scriptData',
 							val: 'options.scriptData.libraries',
 							type: 'array',
 							optional: true,
@@ -1268,14 +1407,14 @@ function sandbox(api, args) {
 							type: 'object',
 							optional: true
 						}, {
-							dependency: 7,
+							dependency: 'options.stylesheetData',
 							val: 'options.stylesheetData.launchMode',
 							type: 'number',
 							min: 0,
 							max: 3,
 							optional: true
 						}, {
-							dependency: 7,
+							dependency: 'options.stylesheetData',
 							val: 'options.stylesheetData.triggers',
 							type: 'array',
 							forChildren: [
@@ -1286,12 +1425,12 @@ function sandbox(api, args) {
 							],
 							optional: true
 						}, {
-							dependency: 7,
+							dependency: 'options.stylesheetData',
 							val: 'options.stylesheetData.toggle',
 							type: 'boolean',
 							optional: true
 						}, {
-							dependency: 7,
+							dependency: 'options.stylesheetData',
 							val: 'options.stylesheetData.defaultOn',
 							type: 'boolean',
 							optional: true
@@ -1308,11 +1447,12 @@ function sandbox(api, args) {
 								type: type,
 								name: _this.message.options.name || 'name',
 								id: id,
-								children: []
+								children: [],
+								nodeInfo: _this.getNodeFromId(_this.message.id, false, true).nodeInfo
 							};
 							_this.getNodeFromId(_this.message.id, false, true).local && (node.local = true);
 							if (type === 'link') {
-								if (optionals[1]) {
+								if (optionals['options.linkData']) {
 									node.value = _this.message.options.linkData;
 									var value = node.value;
 									for (i = 0; i < value.length; i++) {
@@ -1326,11 +1466,18 @@ function sandbox(api, args) {
 										}
 									];
 								}
+								if (optionals['options.usesTriggers']) {
+									node.showOnSpecified = _this.message.options.usesTriggers;
+								}
+								if (optionals['options.triggers']) {
+									node.triggers = _this.message.options.triggers;
+									node.showOnSpecified = true;
+								}
 							} else if (type === 'script') {
-								if (optionals[2]) {
+								if (optionals['options.scriptData']) {
 									node.value = {
 										script: _this.message.options.scriptData.script,
-										launchMode: (optionals[4] ? _this.message.options.scriptData.launchMode : 0),
+										launchMode: (optionals['options.ScriptData.launchMode'] ? _this.message.options.scriptData.launchMode : 0),
 										triggers: _this.message.options.scriptData.triggers || [],
 										libraries: _this.message.options.scriptData.libraries || []
 									};
@@ -1343,10 +1490,10 @@ function sandbox(api, args) {
 									};
 								}
 							} else if (type === 'stylesheet') {
-								if (optionals[7]) {
+								if (optionals['options.stylesheetData']) {
 									node.value = {
 										stylesheet: _this.message.options.stylesheetData.stylesheet,
-										launchMode: (optionals[8] ? _this.message.options.stylesheetData.launchMode : 0),
+										launchMode: (optionals['options.stylesheetData.launchMode'] ? _this.message.options.stylesheetData.launchMode : 0),
 										triggers: _this.message.options.stylesheetData.triggers || [],
 										toggle: (_this.message.options.stylesheetData.toggle === false ? false : true),
 										defaultOn: (_this.message.options.stylesheetData.defaultOn === false ? false : true)
@@ -1362,6 +1509,13 @@ function sandbox(api, args) {
 								}
 							} else {
 								node.value = {};
+								if (optionals['options.usesTriggers']) {
+									node.showOnSpecified = _this.message.options.usesTriggers;
+								}
+								if (optionals['options.triggers']) {
+									node.triggers = _this.message.options.triggers;
+									node.showOnSpecified = true;
+								}
 							}
 
 							if (_this.moveNode(node, _this.message.options.position)) {
@@ -1394,12 +1548,13 @@ function sandbox(api, args) {
 								if (_this.getNodeFromId(_this.message.id, false, true).local === true && node.local === true) {
 									newNode.local = true;
 								}
+								newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true).nodeInfo;
 								delete newNode.storage;
 								delete newNode.file;
-								if (optionals[1]) {
+								if (optionals['options.name']) {
 									newNode.name = _this.message.options.name;
 								}
-								if (true && _this.moveNode(newNode, _this.message.options.position)) {
+								if (_this.moveNode(newNode, _this.message.options.position)) {
 									updateCrm();
 									_this.respondSuccess(newNode);
 								}
@@ -1426,8 +1581,8 @@ function sandbox(api, args) {
 					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
 						var parentChildren = _this.lookup(node.path, crmTree, true);
 						parentChildren.splice(node.path[node.path.length - 1], 1);
-						window.chrome.contextMenus.remove(contextMenuIds[node.id], function() {
-							updateCrm(true);
+						chrome.contextMenus.remove(contextMenuIds[node.id], function() {
+							updateCrm();
 							_this.respondSuccess(true);
 						});
 					});
@@ -1450,7 +1605,7 @@ function sandbox(api, args) {
 						}
 					], function(optionals) {
 						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (optionals[2]) {
+							if (optionals['options.type']) {
 								if (_this.message.options.type !== 'link' &&
 									_this.message.options.type !== 'script' &&
 									_this.message.options.type !== 'stylesheet' &&
@@ -1462,7 +1617,7 @@ function sandbox(api, args) {
 									node.type = _this.message.options.type;
 								}
 							}
-							if (optionals[1]) {
+							if (optionals['options.name']) {
 								node.name = _this.message.options.name;
 							}
 							updateCrm();
@@ -1472,15 +1627,78 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			getContentTypes: function() {
+			getTriggers: function() {
 				_this.checkPermissions(['crmGet'], function() {
 					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+						_this.respondSuccess(node.triggers);
+					});
+				});
+			},
+			setTriggers: function() {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+					_this.typeCheck([
+						{
+							val: 'triggers',
+							type: 'array',
+							forChildren: [
+								{
+									val: 'url',
+									type: 'string'
+								}
+							]
+						}
+					], function() {
+						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+							node.triggers = _this.message.triggers;
+							node.showOnSpecified = true;
+							updateCrm();
+							chrome.contextMenus.update(contextMenuIds[node.id], {
+								documentUrlPatterns: prepareTrigger(node.triggers)
+							}, function() {
+								updateCrm();
+								_this.respondSuccess(safe(node));
+							});
+						});
+					});
+				});
+			},
+			getTriggerUsage: function() {
+				_this.checkPermissions(['crmGet'], function() {
+					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+						_this.respondSuccess(node.showOnSpecified);
+					});
+				});
+			},
+			setTriggerUsage: function() {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+					_this.typeCheck([
+						{
+							val: 'useTriggers',
+							type: 'boolean'
+						}
+					], function() {
+						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+							node.showOnSpecified = _this.message.useTriggers;
+							updateCrm();
+							chrome.contextMenus.update(contextMenuIds[node.id], {
+								documentUrlPatterns: ['<all_urls>']
+							}, function() {
+								updateCrm();
+								_this.respondSuccess(safe(node));
+							});
+						});
+					});
+				});
+			},
+			getContentTypes: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						_this.respondSuccess(node.onContentTypes);
 					});
 				});
 			},
-			setContentType: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			setContentType: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'index',
@@ -1491,41 +1709,55 @@ function sandbox(api, args) {
 							val: 'value',
 							type: 'boolean'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							node.onContentTypes[_this.message.index] = _this.message.value;
-							updateCrm(true);
-							window.chrome.contextMenus.update(contextMenuIds[node.id], {
+							updateCrm();
+							chrome.contextMenus.update(contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
-							}, function() {
-								updateCrm(true);
+							}, function () {
+								updateCrm();
 								_this.respondSuccess(node.onContentTypes);
 							});
 						});
 					});
 				});
 			},
-			setContentTypes: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			setContentTypes: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'contentTypes',
 							type: 'array'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							var length = _this.message.contentTypes.length;
-							for (var i = 0; i < length; i++) {
-								if (typeof _this.message.contentTypes[i] !== 'boolean') {
-									_this.respondError('Not all values in array childrenIds are of type boolean');
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+							var i;
+							for (i = 0; i < _this.message.contentTypes.length; i++) {
+								if (typeof _this.message.contentTypes[i] !== 'string') {
+									_this.respondError('Not all values in array contentTypes are of type string');
 									return false;
 								}
 							}
-							node.onContentTypes = _this.message.contentTypes;
-							window.chrome.contextMenus.update(contextMenuIds[node.id], {
+
+							var matches = 0;
+							var hasContentType;
+							var contentTypes = [];
+							var contentTypeStrings = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+							for (i = 0; i < _this.message.contentTypes.length; i++) {
+								hasContentType = _this.message.contentTypes.indexOf(contentTypeStrings[i] > -1);
+								hasContentType && matches++;
+								contentTypes[i] = hasContentType;
+							}
+
+							if (!matches) {
+								contentTypes = [true, true, true, true, true, true];
+							}
+							node.onContentTypes = contentTypes;
+							chrome.contextMenus.update(contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
-							}, function() {
-								updateCrm(true);
+							}, function () {
+								updateCrm();
 								_this.respondSuccess(safe(node));
 							});
 							return true;
@@ -1533,9 +1765,9 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			linkGetLinks: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			linkGetLinks: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						if (node.type === 'link') {
 							_this.respondSuccess(node.value);
 						} else {
@@ -1546,8 +1778,8 @@ function sandbox(api, args) {
 
 				});
 			},
-			linkPush: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			linkPush: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'items',
@@ -1563,8 +1795,8 @@ function sandbox(api, args) {
 								}
 							]
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							var itemsLength = _this.message.items.length;
 							if (itemsLength !== undefined) { //Array
 								for (var i = 0; i < itemsLength; i++) {
@@ -1605,9 +1837,9 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			linkSplice: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			linkSplice: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						_this.typeCheck([
 							{
 								val: 'start',
@@ -1617,7 +1849,7 @@ function sandbox(api, args) {
 								type: 'number'
 							}
 						], [
-							function() {
+							function () {
 								var spliced;
 								if (node.type === 'link') {
 									spliced = node.value.splice(_this.message.start, _this.message.amount);
@@ -1635,8 +1867,8 @@ function sandbox(api, args) {
 
 				});
 			},
-			setScriptLaunchMode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			setScriptLaunchMode: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'launchMode',
@@ -1644,8 +1876,8 @@ function sandbox(api, args) {
 							min: 0,
 							max: 3
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							if (node.type === 'script') {
 								node.value.launchMode = _this.message.launchMode;
 							} else {
@@ -1659,9 +1891,9 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			getScriptLaunchMode: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			getScriptLaunchMode: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						if (node.type === 'script') {
 							_this.respondSuccess(node.value.launchMode);
 						} else {
@@ -1671,8 +1903,8 @@ function sandbox(api, args) {
 
 				});
 			},
-			registerLibrary: function() {
-				_this.checkPermissions(['registerLibrary'], function() {
+			registerLibrary: function () {
+				_this.checkPermissions(['crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'name',
@@ -1686,29 +1918,29 @@ function sandbox(api, args) {
 							type: 'string',
 							optional: true
 						}
-					], function(optionals) {
+					], function (optionals) {
 						var newLibrary = {
 							name: _this.message.name
 						};
-						if (optionals[1]) {
+						if (optionals['url']) {
 							if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
 								//Use URL
 								var done = false;
 								var xhr = new XMLHttpRequest();
 								xhr.open('GET', _this.message.url, true);
-								xhr.onreadystatechange = function() {
+								xhr.onreadystatechange = function () {
 									if (xhr.readyState === 4 && xhr.status === 200) {
 										done = true;
 										newLibrary.code = xhr.responseText;
 										newLibrary.url = _this.message.url;
 										storageLocal.libraries.push(newLibrary);
-										window.chrome.storage.local.set({
+										chrome.storage.local.set({
 											libraries: storageLocal.libraries
 										});
 										_this.respondSuccess(newLibrary);
 									}
 								};
-								setTimeout(function() {
+								setTimeout(function () {
 									if (!done) {
 										_this.respondError('Request timed out');
 									}
@@ -1718,10 +1950,10 @@ function sandbox(api, args) {
 								_this.respondError('No valid URL given');
 								return false;
 							}
-						} else if (optionals[2]) {
+						} else if (optionals['code']) {
 							newLibrary.code = _this.message.code;
 							storageLocal.libraries.push(newLibrary);
-							window.chrome.storage.local.set({
+							chrome.storage.local.set({
 								libraries: storageLocal.libraries
 							});
 							_this.respondSuccess(newLibrary);
@@ -1733,8 +1965,8 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			scriptLibraryPush: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			scriptLibraryPush: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'libraries',
@@ -1750,8 +1982,8 @@ function sandbox(api, args) {
 							type: 'string',
 							optional: true
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							if (Array.isArray(_this.message.libraries)) { //Array
 								for (var i = 0; i < _this.message.libraries.length; i++) {
 									if (node.type === 'script') {
@@ -1782,8 +2014,8 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			scriptLibrarySplice: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			scriptLibrarySplice: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'start',
@@ -1792,8 +2024,8 @@ function sandbox(api, args) {
 							val: 'amount',
 							type: 'number'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							var spliced;
 							if (node.type === 'script') {
 								spliced = safe(node).value.libraries.splice(_this.message.start, _this.message.amount);
@@ -1811,15 +2043,15 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			setScriptValue: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			setScriptValue: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'script',
 							type: 'string'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							if (node.type === 'script') {
 								node.value.script = script;
 							} else {
@@ -1833,9 +2065,9 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			getScriptValue: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+			getScriptValue: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
 						if (node.type === 'script') {
 							_this.respondSuccess(node.value.script);
 						} else {
@@ -1845,9 +2077,9 @@ function sandbox(api, args) {
 
 				});
 			},
-			getMenuChildren: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+			getMenuChildren: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
 						if (node.type === 'menu') {
 							_this.respondSuccess(node.children);
 						} else {
@@ -1857,15 +2089,15 @@ function sandbox(api, args) {
 
 				});
 			},
-			setMenuChildren: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			setMenuChildren: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'childrenIds',
 							type: 'array'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
 							var i;
 							for (i = 0; i < _this.message.childrenIds.length; i++) {
 								if (typeof _this.message.childrenIds[i] !== 'number') {
@@ -1889,15 +2121,15 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			pushMenuChildren: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			pushMenuChildren: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'childrenIds',
 							type: 'array'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							var i;
 							for (i = 0; i < _this.message.childrenIds.length; i++) {
 								if (typeof _this.message.childrenIds[i] !== 'number') {
@@ -1921,8 +2153,8 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			spliceMenuChildren: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			spliceMenuChildren: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'start',
@@ -1931,8 +2163,8 @@ function sandbox(api, args) {
 							val: 'amount',
 							type: 'number'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							var spliced = (node.type === 'menu' ? node.children : node.menuVal).splice(_this.message.start, _this.message.amount);
 							updateCrm();
 							_this.respondSuccess(spliced, (node.type === 'menu' ? safe(node).children : safe(node).menuVal));
@@ -2036,9 +2268,9 @@ function sandbox(api, args) {
 		}
 		if (availablePermissions.indexOf(apiPermission) === -1) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' not available to the extension, visit options page');
-			window.chrome.storage.sync.get('requestPermissions', function(storageData) {
+			chrome.storage.sync.get('requestPermissions', function (storageData) {
 				var perms = storageData.requestPermissions || [apiPermission];
-				window.chrome.storage.sync.set({
+				chrome.storage.sync.set({
 					requestPermissions: perms
 				});
 			});
@@ -2082,36 +2314,37 @@ function sandbox(api, args) {
 	}
 
 	function handleUpdateMessage(message) {
+		console.log(message);
 		switch (message.type) {
-		case 'updateContextMenu':
-			buildPageCRM();
-			break;
-		case 'updateLibraries':
-			updateStorageLocal();
-			break;
-		case 'updateStorage':
-			updateNodeStorage(message);
-			break;
+			case 'updateContextMenu':
+				crmTree = message.crmTree;
+				safeTree = buildSafeTree(crmTree);
+				buildByIdObjects(crmTree);
+				buildPageCRM();
+				break;
+			case 'updateLibraries':
+				updateStorage(buildPageCRM);
+				break;
+			case 'updateStorage':
+				updateNodeStorage(message);
+				break;
 		}
 	}
 
 	function handleMessage(message) {
-		if (message.update) {
-			handleUpdateMessage(message);
-		} else {
-			switch (message.type) {
+		console.log(message);
+		switch (message.type) {
 			case 'crm':
 				crmHandler(message);
 				break;
 			case 'chrome':
 				chromeHandler(message);
 				break;
-			}
 		}
 	}
 
 	function createHandlerFunction(port) {
-		return function(message) {
+		return function (message) {
 			if (!tabNodeData[message.tabId][message.id].port) {
 				if (compareArray(tabNodeData[message.tabId][message.id].secretKey, message.key)) {
 					delete tabNodeData[message.tabId][message.id].secretKey;
@@ -2121,7 +2354,7 @@ function sandbox(api, args) {
 					});
 				}
 			} else {
-				handleMessage(message, message.tabId, message.id);
+				handleMessage(message);
 			}
 		}
 	}
@@ -2129,23 +2362,17 @@ function sandbox(api, args) {
 	/*#endregion*/
 
 	function main() {
-		window.chrome.storage.sync.get(function(data) {
-			storageSync = data;
-			window.chrome.storage.local.get(function (locals) {
-				refreshPermissions();
-				storageLocal = locals;
-				crmTree = data.crm;
-				safeTree = buildSafeTree(data.crm);
-				buildByIdObjects(data.crm);
-				window.chrome.runtime.onConnect.addListener(function(port) {
-					port.onMessage.addListener(createHandlerFunction(port));
-				});
-				buildPageCRM();
+		updateStorage(function() {
+			refreshPermissions();
+			chrome.runtime.onConnect.addListener(function (port) {
+				port.onMessage.addListener(createHandlerFunction(port));
 			});
+			chrome.runtime.onMessage.addListener(handleUpdateMessage);
+			buildPageCRM();
 		});
 	}
 
-	window.chrome.permissions.getAll(function(available) {
+	chrome.permissions.getAll(function (available) {
 		availablePermissions = available.permissions;
 		main();
 	});

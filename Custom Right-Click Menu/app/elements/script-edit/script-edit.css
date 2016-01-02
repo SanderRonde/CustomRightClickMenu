@@ -358,6 +358,10 @@ input {
 	font-weight:normal;
 }
 
+	#triggersInfoTxt.expandLeft {
+		margin-left: -263px;
+	}
+
 .showOnContentItemCont {
 	display: inline-block;
 	position: relative;

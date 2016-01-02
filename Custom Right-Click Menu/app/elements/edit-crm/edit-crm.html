@@ -29,13 +29,17 @@
 					</div>
 				</template>
 			</div>
-			<div id="crmButtons">
-				<paper-button class="blue" id="addButton" on-tap="addItem" raised hidden$="[[isSelecting]]">Add</paper-button>
-				<paper-button class="blue" id="removeButton" on-tap="selectItems" raised>
-					<span hidden$="[[isSelecting]]">Select</span>
-					<span hidden$="[[!isSelecting]]">Remove Selected</span>
-				</paper-button>
-				<span id="removeWarning" hidden$="[[!isSelecting]]">Warning: Children of a removed menu will also be removed recursively!</span>
+			<div id="crmButtonsContainer">
+				<div id="crmButtons">
+					<paper-button class="blue" id="addButton" on-tap="addItem" raised hidden$="[[isSelecting]]">Add</paper-button>
+					<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isSelecting]]">Select</paper-button>
+
+					<paper-button class="blue" id="exportSelected" on-tap="exportSelected" raised hidden$="[[!isSelecting]]">Export Selected</paper-button>
+					<paper-button class="blue" id="removeSelectedButton" on-tap="removeSelected" raised hidden$="[[!isSelecting]]">Remove Selected</paper-button>
+				</div>
+				<div id="warning">
+					<span id="removeWarning" hidden$="[[!isSelecting]]">Warning: Children of a removed menu will also be removed recursively! Children of an exported menu are also exported recursively.</span>
+				</div>
 			</div>
 		</template>
 	</dom-module>

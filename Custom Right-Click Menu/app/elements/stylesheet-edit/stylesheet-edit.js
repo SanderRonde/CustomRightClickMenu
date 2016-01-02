@@ -1,6 +1,8 @@
 ﻿Polymer({
 	is: 'stylesheet-edit',
 
+	behaviors: [Polymer.NodeEditBehavior],
+
 	//#region PolymerProperties
 	/**
 	* An interval to save any work not discarder or saved (say if your browser/pc crashes)
@@ -12,7 +14,7 @@
 	savingInterval: false,
 
 	/**
-	* Whether this thing is active
+	* Whether this dialog is active
 	* 
 	* @attribute active
 	* @type Boolean
@@ -182,86 +184,12 @@
 	optionsAnimations: [],
 
 	properties: {
-		/**
-		 * The new settings object, to be written on save
-		 * 
-		 * @attribute newSettings
-		 * @type Object
-		 * @default {}
-		 */
-		newSettings: {
+		item: {
 			type: Object,
 			value: {},
 			notify: true
-		},
-		/**
-		* Whether the indicator for content type "page" should be selected
-		* 
-		* @attribute pageContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		pageContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "link" should be selected
-		* 
-		* @attribute linkContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		linkContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "selection" should be selected
-		* 
-		* @attribute selectionContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		selectionContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "image" should be selected
-		* 
-		* @attribute imageContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		imageContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "video" should be selected
-		* 
-		* @attribute videoContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		videoContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "audio" should be selected
-		* 
-		* @attribute audioContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		audioContentSelected: {
-			type: Object,
-			notify: true
 		}
 	},
-
 	//#endregion
 
 	finishEditing: function () {
@@ -274,139 +202,15 @@
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
-		window.crmEditPage.animateOut();
-	},
-
-	getTriggers: function () {
-		var inputs = $(window.stylesheetEdit).find('.executionTrigger').find('paper-input');
-		var triggers = [];
-		for (var i = 0; i < inputs.length; i++) {
-			triggers[i] = inputs[i].value;
-		}
-		this.newSettings.triggers = triggers;
-	},
-
-	getContentTypeLaunchers: function () {
-		var i;
-		var result = [];
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (i = 0; i < 6; i++) {
-			result[i] = this[arr[i] + 'ContentSelected'];
-		}
-		console.log(result);
-		this.newSettings.onContentTypes = result;
 	},
 
 	saveChanges: function () {
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
-		var lookedUp = window.app.crm.lookup(this.item.path, true);
-		this.getContentTypeLaunchers();
-		this.getTriggers();
-		window.crmEditPage.animateOut();
-		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var itemInEditPage = $($(app.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.app.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
-		itemInEditPage.item = this.newSettings;
-		itemInEditPage.name = this.newSettings.name;
-	
-		if (this.newSettings.value.launchMode !== 0) {
-			this.newSettings.onContentTypes = [true, true, true, true, true, true];
-		} else {
-			if (!this.newSettings.onContentTypes[window.app.crmType]) {
-				window.app.editCRM.build(window.app.editCRM.setMenus);
-			}
-		}
-		lookedUp[lastPathIndex] = this.newSettings;
-		app.upload();
 	},
 
-	assignContentTypeSelectedValues: function() {
-		var i;
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (i = 0; i < 6; i++) {
-			this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
-		}
-	},
-
-	checkToggledIconAmount: function (e) {
-		var i;
-		var toggledAmount = 0;
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (i = 0; i < 6; i++) {
-			if (window.stylesheetEdit[arr[i] + 'ContentSelected']) {
-				if (toggledAmount === 1) {
-					return true;
-				}
-				toggledAmount++;
-			}
-		}
-		if (!toggledAmount) {
-			var index = 0;
-			var element = e.path[0];
-			while (element.tagName !== 'PAPER-CHECKBOX') {
-				index++;
-				element = e.path[index];
-			}
-			element.checked = true;
-			window.stylesheetEdit[element.parentNode.classList[1].split('Type')[0] + 'ContentSelected'] = true;
-			window.doc.contentTypeToast.show();
-		}
-		return false;
-	},
-
-	toggleIcon: function(e) {
-		var index = 0;
-		var element = e.path[0];
-		while (!element.classList.contains('showOnContentItemCont')) {
-			index++;
-			element = e.path[index];
-		}
-		var checkbox = $(element).find('paper-checkbox')[0];
-		checkbox.checked = !checkbox.checked;
-		if (!checkbox.checked) {
-			window.stylesheetEdit.checkToggledIconAmount({
-				path: [checkbox]
-			});
-		}
-	},
-
-	/*
-	 * Clears the trigger that is currently clicked on
-	 * @param {event} The - event that triggers this (click event)
-	 */
-	clearTrigger: function (e) {
-		var target = e.target;
-		if (target.tagName === 'PAPER-ICON-BUTTON') {
-			target = target.children[0];
-		}
-		$(target.parentNode.parentNode).remove();
-		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
-		if (executionTriggers.length === 1) {
-			executionTriggers[0].style.display = 'none';
-		} else {
-			executionTriggers.forEach(function (item) {
-				item.style.display = 'block';
-			});
-		}
-	},
-
-	/*
-	 * Adds a trigger to the list of triggers for the script
-	 */
-	addTrigger: function () {
-		var _this = this;
-		var newEl = $('<div class="executionTrigger"><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
-		newEl.find('paper-icon-button').click(function (e) {
-			_this.clearTrigger.apply(_this, [e]);
-		});
-		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
-		if (executionTriggers.length === 2) {
-			executionTriggers[0].style.display = 'block';
-		}
-	},
-
-	//#region fullscreen
+	//#region Fullscreen
 	/*
 	 * Inserts given snippet of code into the editor
 	 * @param {element} _this The stylesheetEdit element/object
@@ -716,7 +520,7 @@
 	},
 	//#endregion
 
-	//#region options
+	//#region Options
 	/*
 	 * Shows the options for the editor
 	 */
@@ -1153,11 +957,11 @@
 
 	init: function () {
 		var _this = this;
+		this._init();
 		this.$.dropdownMenu.init();
 		this.initDropdown();
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');
-		this.newSettings = $.extend(true, {}, this.item);
 		window.stylesheetEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
@@ -1165,7 +969,6 @@
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}
-		this.assignContentTypeSelectedValues();
 		window.externalEditor.init();
 		chrome.storage.local.set({
 			editing: {

@@ -553,12 +553,18 @@
     <Content Include="app\elements\center-element\center-element.css" />
     <Content Include="app\elements\center-element\center-element.html" />
     <Content Include="app\elements\center-element\center-element.js" />
+    <Content Include="app\elements\divider-edit\divider-edit.css" />
+    <Content Include="app\elements\divider-edit\divider-edit.html" />
+    <Content Include="app\elements\divider-edit\divider-edit.js" />
     <Content Include="app\elements\echo-html\echo-html.html" />
     <Content Include="app\elements\echo-html\echo-html.js" />
+    <Content Include="app\elements\menu-edit\menu-edit.css" />
+    <Content Include="app\elements\menu-edit\menu-edit.html" />
+    <Content Include="app\elements\menu-edit\menu-edit.js" />
+    <Content Include="app\elements\node-edit-behavior\node-edit-behavior.css" />
+    <Content Include="app\elements\node-edit-behavior\node-edit-behavior.html" />
+    <Content Include="app\elements\node-edit-behavior\node-edit-behavior.js" />
     <Content Include="app\elements\script-edit\script-edit.html" />
-    <Content Include="app\elements\script-permission-dialog\script-permission-dialog.css" />
-    <Content Include="app\elements\script-permission-dialog\script-permission-dialog.html" />
-    <Content Include="app\elements\script-permission-dialog\script-permission-dialog.js" />
     <Content Include="app\elements\stylesheet-edit\stylesheet-edit.css" />
     <Content Include="app\elements\stylesheet-edit\stylesheet-edit.html" />
     <Content Include="app\elements\stylesheet-edit\stylesheet-edit.js" />
@@ -637,7 +643,6 @@
     <Content Include="app\images\whitearrow.png" />
     <Content Include="app\jquery.contextMenu.css" />
     <Content Include="app\js\background.js" />
-    <Content Include="app\js\contentscript.js" />
     <Content Include="app\js\contextmenu.js" />
     <Content Include="app\js\crmapi.js" />
     <Content Include="app\icon-large.png" />
@@ -647,7 +652,6 @@
     <Content Include="app\js\e.js" />
     <Content Include="app\js\encryption.js" />
     <Content Include="app\js\eo.js" />
-    <Content Include="app\js\iframecontentscript.js" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
     <Content Include="app\js\jquery-ui.min.js" />
     <Content Include="app\js\jquery.bez.js" />

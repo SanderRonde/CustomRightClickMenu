@@ -1,6 +1,8 @@
 ﻿Polymer({
 	is: 'script-edit',
 
+	behaviors: [Polymer.NodeEditBehavior],
+
 	//#region PolymerProperties
 	/**
 	* An interval to save any work not discarder or saved (say if your browser/pc crashes)
@@ -12,7 +14,7 @@
 	savingInterval: false,
 
 	/**
-	* Whether this thing is active
+	* Whether this dialog is active
 	* 
 	* @attribute active
 	* @type Boolean
@@ -73,6 +75,7 @@
      * @default null
      */
 	buttonsContainer: null,
+
 	/**
      * The editor's starting height
      * 
@@ -162,6 +165,15 @@
      * @default {}
      */
 	preFullscreenEditorDimensions: {},
+	
+	properties: {
+		item: {
+			type: Object,
+			value: {},
+			notify: true
+		}
+	},
+	//#endregion
 
 	//#region Animations
 	/**
@@ -181,91 +193,9 @@
 	 * @default []
 	 */
 	optionsAnimations: [],
-
-	properties: {
-		/**
-		* The new settings object, to be written on save
-		* 
-		* @attribute newSettings
-		* @type Object
-		* @default {}
-		*/
-		newSettings: {
-			type: Object,
-			notify: true,
-			value: {}
-		},
-		/**
-		* Whether the indicator for content type "page" should be selected
-		* 
-		* @attribute pageContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		pageContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "link" should be selected
-		* 
-		* @attribute linkContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		linkContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "selection" should be selected
-		* 
-		* @attribute selectionContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		selectionContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "image" should be selected
-		* 
-		* @attribute imageContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		imageContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "video" should be selected
-		* 
-		* @attribute videoContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		videoContentSelected: {
-			type: Object,
-			notify: true
-		},
-		/**
-		* Whether the indicator for content type "audio" should be selected
-		* 
-		* @attribute audioContentSelected
-		* @type Boolean
-		* @default false
-		*/
-		audioContentSelected: {
-			type: Object,
-			notify: true
-		}
-	},
 	//#endregion
 
-	//#endregion
-
+	//#region DialogFunctions
 	finishEditing: function() {
 		chrome.storage.local.set({
 			editing: null
@@ -276,143 +206,131 @@
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
-		window.crmEditPage.animateOut();
-	},
-
-	getTriggers: function() {
-		var inputs = $(window.scriptEdit).find('.executionTrigger').find('paper-input');
-		var triggers = [];
-		for (var i = 0; i < inputs.length; i++) {
-			triggers[i] = inputs[i].value;
-		}
-		this.newSettings.triggers = triggers;
-	},
-
-	getContentTypeLaunchers: function () {
-		var i;
-		var result = [];
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (i = 0; i < 6; i++) {
-			result[i] = this[arr[i] + 'ContentSelected'];
-		}
-		console.log(result);
-		this.newSettings.onContentTypes = result;
 	},
 
 	saveChanges: function() {
 		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
-		var lookedUp = window.app.crm.lookup(this.item.path, true);
-		this.getContentTypeLaunchers();
-		this.getTriggers();
-		window.crmEditPage.animateOut();
-		var lastPathIndex = this.item.path[this.item.path.length - 1];
-		var itemInEditPage = $($(app.editCRM.$.mainCont).children('.CRMEditColumnCont')[lookedUp[lastPathIndex].path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children[window.app.editCRM.getCurrentTypeIndex(lookedUp[lastPathIndex].path)];
-		itemInEditPage.item = this.newSettings;
-		itemInEditPage.name = this.newSettings.name;
-	
-		if (this.newSettings.value.launchMode !== 0) {
-			this.newSettings.onContentTypes = [true, true, true, true, true, true];
-		} else {
-			if (!this.newSettings.onContentTypes[window.app.crmType]) {
-				window.app.editCRM.build(window.app.editCRM.setMenus);
-			}
-		}
-		lookedUp[lastPathIndex] = this.newSettings;
-		app.upload();
 	},
 
-	openPermissionsDialog: function() {
-		
-	},
-
-	assignContentTypeSelectedValues: function() {
-		var i;
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (i = 0; i < 6; i++) {
-			this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
-		}
-	},
-
-	checkToggledIconAmount: function (e) {
-		var i;
-		var toggledAmount = 0;
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (i = 0; i < 6; i++) {
-			if (window.scriptEdit[arr[i] + 'ContentSelected']) {
-				if (toggledAmount === 1) {
-					return true;
-				}
-				toggledAmount++;
-			}
-		}
-		if (!toggledAmount) {
-			var index = 0;
-			var element = e.path[0];
-			while (element.tagName !== 'PAPER-CHECKBOX') {
-				index++;
-				element = e.path[index];
-			}
-			element.checked = true;
-			window.scriptEdit[element.parentNode.classList[1].split('Type')[0] + 'ContentSelected'] = true;
-			window.doc.contentTypeToast.show();
-		}
-		return false;
-	},
-
-	toggleIcon: function(e) {
-		var index = 0;
-		var element = e.path[0];
-		while (!element.classList.contains('showOnContentItemCont')) {
-			index++;
-			element = e.path[index];
-		}
-		var checkbox = $(element).find('paper-checkbox')[0];
-		checkbox.checked = !checkbox.checked;
-		if (!checkbox.checked) {
-			window.scriptEdit.checkToggledIconAmount({
-				path: [checkbox]
-			});
-		}
-	},
-
-	/*
-	 * Clears the trigger that is currently clicked on
-	 * @param {event} The - event that triggers this (click event)
-	 */
-	clearTrigger: function(e) {
-		var target = e.target;
-		if (target.tagName === 'PAPER-ICON-BUTTON') {
-			target = target.children[0];
-		}
-		$(target.parentNode.parentNode).remove();
-		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
-		if (executionTriggers.length === 1) {
-			executionTriggers[0].style.display = 'none';
-		} else {
-			executionTriggers.forEach(function(item) {
-				item.style.display = 'block';
-			});
-		}
-	},
-
-	/*
-	 * Adds a trigger to the list of triggers for the script
-	 */
-	addTrigger: function() {
+	openPermissionsDialog: function () {
 		var _this = this;
-		var newEl = $('<div class="executionTrigger"><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
-		newEl.find('paper-icon-button').click(function(e) {
-			_this.clearTrigger.apply(_this, [e]);
-		});
-		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
-		if (executionTriggers.length === 2) {
-			executionTriggers[0].style.display = 'block';
-		}
-	},
+		//Prepare all permissions
+		chrome.permissions.getAll(function (extensionWideEnabledPermissions) {
+			var scriptPermissions = _this.item.permissions;
+			var permissions = window.app.templates.getScriptPermissions();
+			extensionWideEnabledPermissions = extensionWideEnabledPermissions.permissions;
 
-	//#region fullscreen
+			var askedPermissions = _this.item.nodeInfo.permissions || [];
+			console.log(askedPermissions);
+
+			var requiredActive = [];
+			var requiredInactive = [];
+			var nonRequiredActive = [];
+			var nonRequiredNonActive = [];
+
+			var isAsked;
+			var isActive;
+			var permissionObj;
+			permissions.forEach(function (permission) {
+				isAsked = askedPermissions.indexOf(permission) > -1;
+				isActive = scriptPermissions.indexOf(permission) > -1;
+
+				permissionObj = {
+					name: permission,
+					toggled: isActive,
+					required: isAsked,
+					description: window.app.templates.getPermissionDescription(permission)
+				}
+
+				if (isAsked && isActive) {
+					requiredActive.push(permissionObj);
+				}
+				else if (isAsked && !isActive) {
+					requiredInactive.push(permissionObj);
+				}
+				else if (!isAsked && isActive) {
+					nonRequiredActive.push(permissionObj);
+				} else {
+					nonRequiredNonActive.push(permissionObj);
+				}
+			});
+
+			var permissionList = nonRequiredActive;
+			permissionList.push.apply(permissionList, requiredActive);
+			permissionList.push.apply(permissionList, requiredInactive);
+			permissionList.push.apply(permissionList, nonRequiredNonActive);
+			console.log(permissionList);
+
+			var el, svg;
+			$('.requestPermissionsShowBot').off('click').on('click', function () {
+				el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
+				svg = $(this).find('.requestPermissionsSvg')[0];
+				svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+				if (el.animation) {
+					el.animation.reverse();
+				} else {
+					el.animation = el.animate([
+						{
+							height: 0
+						}, {
+							height: el.scrollHeight + 'px'
+						}
+					], {
+						duration: 250,
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+						fill: 'both'
+					});
+				}
+			});
+
+			var permission;
+			$('.requestPermissionButton').off('click').on('click', function () {
+				permission = this.previousElementSibling.previousElementSibling.textContent;
+				var slider = this;
+				if (this.checked) {
+					if (extensionWideEnabledPermissions.indexOf(permission) === -1) {
+						chrome.permissions.request({
+							permissions: [permission]
+						}, function(accepted) {
+							if (!accepted) {
+								//The user didn't accept, don't pretend it's active when it's not, turn it off
+								slider.checked = false;
+							} else {
+								//Accepted, remove from to-request permissions if it's there
+								chrome.storage.local.get(function(e) {
+									var permissionsToRequest = e.requestPermissions;
+									requestPermissions.splice(requestPermissions.indexOf(permission), 1);
+									chrome.storage.local.set({
+										requestPermissions: permissionsToRequest
+									});
+								});
+
+								//Add to script's permissions
+								_this.newSettings.permissions = _this.newSettings.permissions || [];
+								_this.newSettings.permissions.push(permission);
+							}
+						});
+					} else {
+						//Add to script's permissions
+						_this.newSettings.permissions = _this.newSettings.permissions || [];
+						_this.newSettings.permissions.push(permission);
+					}
+				} else {
+					//Remove from script's permissions
+					_this.newSettings.permissions.splice(_this.newSettings.permissions.indexOf(permission), 1);
+				}
+			});
+
+			$('#scriptPermissionsTemplate')[0].items = permissionList;
+			$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + _this.item.name;
+			$('#scriptPermissionDialog')[0].open();
+		});
+	},
+	//#endregion
+
+	//#region Fullscreen
 	/*
 	 * Inserts given snippet of code into the editor
 	 * @param {element} _this The scriptEdit element/object
@@ -729,7 +647,7 @@
 	},
 	//#endregion
 
-	//#region options
+	//#region Options
 	/*
 	 * Shows the options for the editor
 	 */
@@ -816,6 +734,7 @@
 	},
 	//#endregion
 
+	//#region Editor
 	/*
 	 * Is triggered when the option "Execute when visiting specified sites" is 
 	 * selected in the triggers dropdown menu and animates the specified sites in
@@ -1186,35 +1105,11 @@
 			lint: window.CodeMirror.lint.javascript
 		});
 	},
-
-	initDropdown: function() {
-		if ((this.showTriggers = (this.item.value.launchMode > 1))) {
-			this.$.executionTriggersContainer.style.display = 'block';
-			this.$.executionTriggersContainer.style.marginLeft = 0;
-			this.$.executionTriggersContainer.style.height = 'auto';
-		} else {
-			this.$.executionTriggersContainer.style.display = 'none';
-			this.$.executionTriggersContainer.style.marginLeft = '-110%';
-			this.$.executionTriggersContainer.style.height = 0;
-		}
-		if ((this.showContentTypeChooser = (this.item.value.launchMode === 0))) {
-			this.$.showOnContentContainer.style.display = 'block';
-			this.$.showOnContentContainer.style.marginLeft = 0;
-			this.$.showOnContentContainer.style.height = 'auto';
-		} else {
-			this.$.showOnContentContainer.style.display = 'none';
-			this.$.showOnContentContainer.style.marginLeft = '-110%';
-			this.$.showOnContentContainer.style.height = 0;
-		}
-		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
-		if (this.editor) {
-			this.editor.display.wrapper.remove();
-			this.editor = null;
-		}
-	},
+	//#endregion
 
 	init: function () {
 		var _this = this;
+		this._init();
 		this.$.dropdownMenu.init();
 		this.initDropdown();
 		window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
@@ -1222,7 +1117,6 @@
 		});
 		document.body.classList.remove('editingStylesheet');
 		document.body.classList.add('editingScript');
-		this.newSettings = $.extend(true, {}, this.item);
 		window.scriptEdit = this;
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
@@ -1233,7 +1127,6 @@
 				crmPath: this.item.path
 			}
 		});
-		this.assignContentTypeSelectedValues();
 		this.savingInterval = window.setInterval(function() {
 			if (_this.active) {
 				//Save

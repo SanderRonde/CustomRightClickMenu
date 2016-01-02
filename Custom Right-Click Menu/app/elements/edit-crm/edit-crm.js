@@ -151,7 +151,8 @@ window.Polymer({
 		//Find last menu to auto-expand
 		if (list) {
 			list.forEach(function (item, index) {
-				if ((item.type === 'menu' || (window.app.settings.shadowStart && item.menuVal) && !hidden[item.path])) {
+				if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
+				console.log(hidden[item.id]);
 					lastMenu = index;
 					if (item.children.length > 0) {
 						lastFilledMenu = index;
@@ -178,21 +179,13 @@ window.Polymer({
 		var length;
 		if (node.children && node.children.length > 0) {
 			length = node.children.length;
-			var visible = 0;
 			for (i = 0; i < length; i++) {
-				visible += this.isNodeVisible(result, node.children[i], showContentType);
+				this.isNodeVisible(result, node.children[i], showContentType);
 			}
-			if (!visible) {
-				result[node.id] = true;
-				return 0;
-			}
-		} else {
-			for (i = 0; i < 6; i++) {
-				if (showContentType === i && !node.onContentTypes[i]) {
-					result[node.id] = true;
-					return 0;
-				}
-			}
+		}
+		if (!node.onContentTypes[showContentType]) {
+			result[node.id] = true;
+			return 0;
 		}
 		return 1;
 	},
@@ -240,13 +233,14 @@ window.Polymer({
 		}
 		console.log(hiddenNodes);
 
-		console.time('start');
 		if (shown) {
 			while (lastMenu !== -1) {
-				if (setMenusLength > columnNum) {
+				if (setMenusLength > columnNum && !hiddenNodes[list[setMenus[columnNum]]]) {
 					lastMenu = setMenus[columnNum];
+					console.log(lastMenu);
 				} else {
 					lastMenu = this.getLastMenu(list, hiddenNodes);
+					console.log(lastMenu);
 				}
 				newSetMenus[columnNum] = lastMenu;
 				indent = this.getIndent(list, lastMenu, hiddenNodes);
@@ -295,7 +289,6 @@ window.Polymer({
 			}
 		}
 
-		console.timeEnd('start');
 		return {
 			crm: crmEditObj,
 			setMenus: newSetMenus
@@ -364,49 +357,131 @@ window.Polymer({
 		window.app.editCRM.build(window.app.editCRM.setMenus, false, true);
 	},
 
-	selectItems: function () {
+	getSelected: function() {
+		var selected = [];
+		var editCrmItems = document.getElementsByTagName('edit-crm-item');
 		var i;
+		for (i = 0; i < editCrmItems.length; i++) {
+			if (editCrmItems[i].classList.contains('highlighted')) {
+				selected.push(editCrmItems[i].item.id);
+			}
+		}
+		return selected;
+	},
+
+	makeNodeSafe: function(node) {
+		var newNode = {};
+		node.type && (newNode.type = node.type);
+		node.name && (newNode.name = node.name);
+		node.value && (newNode.value = node.value);
+		node.linkVal && (newNode.linkVal = node.linkVal);
+		node.menuVal && (newNode.menuVal = node.menuVal);
+		if (node.children) {
+			newNode.children = [];
+			for (var i = 0; i < node.children.length; i++) {
+				newNode.children[i] = this.makeNodeSafe(node.children[i]);
+			}
+		}
+		node.nodeInfo && (newNode.nodeInfo = node.nodeInfo);
+		node.triggers && (newNode.triggers = node.triggers);
+		node.scriptVal && (newNode.scriptVal = node.scriptVal);
+		node.stylesheetVal && (newNode.stylesheetVal = node.stylesheetVal);
+		node.onContentTypes && (newNode.onContentTypes = node.onContentTypes);
+		node.showOnSpecified && (newNode.showOnSpecified = node.showOnSpecified);
+		return newNode;
+	},
+
+	extractUniqueChildren: function(node, toExportIds, results) {
+		if (toExportIds.indexOf(node.id) > -1) {
+			results.push(node);
+		} else {
+			for (var i = 0; node.children && i < node.children.length; i++) {
+				this.extractUniqueChildren(node.children[i], toExportIds, results);
+			}
+		}
+	},
+
+	changeAuthor: function(node, authorName) {
+		node.nodeInfo.author = authorName;
+		for (var i = 0; node.children && i < node.children.length; i++) {
+			this.changeAuthor(node.children[i], authorName);
+		}
+	},
+
+	exportSelected: function() {
+		var toExport = this.getSelected();
+		console.log(toExport);
+		var exports = [];
+		var i;
+		for (i = 0; i < app.settings.crm.length; i++) {
+			this.extractUniqueChildren(app.settings.crm[i], toExport, exports);
+		}
+		console.log(exports);
+
+		var safeExports = [];
+		for (i = 0; i < exports.length; i++) {
+			safeExports[i] = this.makeNodeSafe(exports[i]);
+		}
+		console.log(safeExports);
+		var dataJson = {
+			crm: safeExports
+		};
+
+		var textarea = $('#exportJSONData')[0];
+
+		function authorNameChange(event) {
+			console.log(event);
+			var author = event.target.value;
+			for (var j = 0; j < safeExports.length; j++) {
+				this.changeAuthor(safeExports[j], author);
+			}
+			dataJson = JSON.stringify({
+				crm: safeExports
+			});
+			textarea.value = dataJson;
+		}
+
+		$('#exportAuthorName').on('change', authorNameChange);
+		textarea.value = JSON.stringify(dataJson);
+		$('#exportDialog')[0].open();
+	},
+
+	removeSelected: function() {
+		var toRemove = this.getSelected();
+
+		var j;
+		var arr;
+		for (var i = 0; i < toRemove.length; i++) {
+			try {
+				arr = window.app.crm.lookupId(toRemove[i], true);
+				for (j = 0; j < arr.length; j++) {
+					if (arr[j].id === toRemove[i]) {
+						arr.splice(arr[j], 1);
+					}
+				}
+			} catch (e) {
+				//Item has already been removed
+				console.log(e);
+				console.log('didnt work', toRemove[i]);
+			}
+		}
+		this.selectedElements = [];
+		this.build(null, true, false);
+
+		this.isSelecting = false;
+	},
+
+	selectItems: function() {
 		var _this = this;
 		var editCrmItems = document.getElementsByTagName('edit-crm-item');
-		if (!this.isSelecting) {
-			//Select items
-			for (i = 0; i < editCrmItems.length; i++) {
-				editCrmItems[i].classList.add('selecting');
-			}
-			this.selectedElements = [];
-			setTimeout(function () {
-				_this.isSelecting = true;
-			}, 150);
-		} else {
-			//Remove selected items
-			var toRemove = [];
-			for (i = 0; i < editCrmItems.length; i++) {
-				if (editCrmItems[i].classList.contains('highlighted')) {
-					toRemove.push(editCrmItems[i].item.id);
-				}
-			}
-
-			var j;
-			var arr;
-			for (i = 0; i < toRemove.length; i++) {
-				try {
-					arr = window.app.crm.lookupId(toRemove[i], true);
-					for (j = 0; j < arr.length; j++) {
-						if (arr[j].id === toRemove[i]) {
-							arr.splice(arr[j], 1);
-						}
-					}
-				} catch (e) {
-					//Item has already been removed
-					console.log(e);
-					console.log('didnt work', toRemove[i]);
-				}
-			}
-			this.selectedElements = [];
-			this.build(null, true, false);
-
-			this.isSelecting = false;
+		//Select items
+		for (var i = 0; i < editCrmItems.length; i++) {
+			editCrmItems[i].classList.add('selecting');
 		}
+		this.selectedElements = [];
+		setTimeout(function() {
+			_this.isSelecting = true;
+		}, 150);
 	},
 
 	getCRMElementFromPath: function (path, showPath) {
@@ -431,8 +506,12 @@ window.Polymer({
 			}
 		}
 
-		var element = row[path[path.length - 1]];
-		return element;
+		for (i = 0; i < row.length; i++) {
+			if (window.app.compareArray(row[i].item.path, path)) {
+				return row[i];
+			}
+		}
+		return null;
 	},
 
 	_typeChanged: function (quick) {

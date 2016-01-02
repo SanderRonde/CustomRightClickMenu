@@ -128,12 +128,12 @@ Polymer({
 				return {
 					'entry': {
 						name: 'scale-up-animation',
-						node: this.$.editPageCont,
+						node: this.$.overlayCont,
 						duration: 300
 					},
 					'exit': {
 						name: 'scale-down-animation',
-						node: this.$.editPageCont,
+						node: this.$.overlayCont,
 						duration: 300
 					}
 				}
@@ -144,11 +144,11 @@ Polymer({
 		 * 
 		 * @attribute item
 		 * @type Object
-		 * @default {}
+		 * @default null
 		 */
 		item: {
 			type: Object,
-			value: {},
+			value: null,
 			notify: true
 		}
 	},
@@ -157,18 +157,22 @@ Polymer({
 		"neon-animation-finish": '_onNeonAnimationFinish'
 	},
 
+	isLocal: function(source) {
+		return source === 'local';
+	},
+
 	_onNeonAnimationFinish: function () {
 		var _this = this;
 		if (this.opened) {
 			this.$overlayEl.on('click', function () {
-				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancelChanges();
+				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancel();
 				setTimeout(function() {
 					_this.unassignItems();
 				}, 300);
 			});
 		} else {
 			this.$overlayEl[0].style.display = 'none';
-			this.$.editPageCont.style.display = 'none';
+			this.$.overlayCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
 			document.body.style.marginRight = 0;
 			window.app.show = false;
@@ -190,9 +194,6 @@ Polymer({
 	 * @param eventSourceElement - The element that was clicked on
 	 */
 	animateIn: function () {
-		console.log(this.item);
-		console.log(this.isScript);
-		console.log(this.scriptItem);
 		this.$overlayEl.css('display', 'block');
 		(this.overlayAnimation && this.overlayAnimation.play()) || (this.overlayAnimation = this.$overlayEl[0].animate([
 			{
@@ -207,10 +208,10 @@ Polymer({
 		}));
 			
 		document.body.style.overflow = 'hidden';
-		document.body.style.marginRight = '20px';
+		document.body.style.marginRight = '17px';
 		app.show = true;
 		this.opened = true;
-		this.$.editPageCont.style.display = 'block';
+		this.$.overlayCont.style.display = 'block';
 		this.playAnimation('entry');
 	},
 	
@@ -259,6 +260,7 @@ Polymer({
 			_this.isMenu = valueStorer.isMenu;
 			_this.isDivider = valueStorer.isDivider;
 			_this.isStylesheet = valueStorer.isStylesheet;
+			console.log($(_this).find('#editPageCont > :not([hidden])')[0]);
 			$(_this).find('#editPageCont > :not([hidden])')[0].init();
 			_this.animateIn();
 		}, 300);

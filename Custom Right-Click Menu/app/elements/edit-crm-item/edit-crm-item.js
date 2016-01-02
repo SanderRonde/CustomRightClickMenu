@@ -659,15 +659,11 @@ Polymer({
 	//#endregion
 
 	//#region editPageFunctions
-	openEditPage: function (e) {
+	openEditPage: function () {
 		if (!this.shadow && !window.app.item) {
 			if (!this.classList.contains('selecting')) {
-				var path = e.path;
-				var element = path[0];
-				for (var i = 0; i < path.length && element.tagName !== 'EDIT-CRM-ITEM'; i++) {
-					element = path[i];
-				}
-				var item = window.app.crm.lookup(element.item.path);
+				var item = this.item;
+				console.log('opening', item);
 				window.app.item = item;
 				if (item.type === 'script') {
 					window.app.stylesheetItem = {};

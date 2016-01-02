@@ -71,6 +71,7 @@
 							Sync your storage across all chrome instances signed in to this account using chrome storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using
 							<span style$="{{getSettingsJsonLengthColor(settingsJsonLength)}}">{{placeCommas(settingsJsonLength)}}</span>/102,400 bytes
 						</paper-toggle-option>
+						<paper-button on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
 					</div>
 				</div>
 				<br /><br />
@@ -165,7 +166,7 @@
 					<div class="defaultsDescr">
 						Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
 					</div>
-					<br />
+					<br/>
 					<div class="defaultLinks">
 						<default-link href="http://www.google.com" default-name="Google"></default-link>
 						<default-link href="http://www.facebook.com" default-name="Facebook"></default-link>
@@ -178,12 +179,33 @@
 						<default-link href="http://www.reddit.com" default-name="Reddit"></default-link>
 					</div>
 				</div>
+				<br/><br/>
+				<div class="defaultCRMSearchEngines">
+					<div class="bigTxt">
+						Commonly Used Search Engines
+					</div>
+					<div class="defaultsDescr">
+						These are some commonly used search-engines. Click "ADD" to add the search-engine to your CRM. You can then drag the script anywhere you want it to be. You can also change the name you want it to have below or do it when it's already in your CRM.
+					</div>
+					<div class="defaultSearchEngines">
+						<default-link search-engine href="https://www.google.com/search?q=%s" default-name="Google"></default-link>
+						<default-link search-engine href="https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s" default-name="Wikipedia"></default-link>
+						<default-link search-engine href="https://www.youtube.com/results?search_query=%s" default-name="Youtube"></default-link>
+					</div>
+				</div>
+				<br/><br/>
+				<div class="importSettings">
+					<div class="bigTxt">
+						Importing your settings
+					</div>
+					<!--//TODO this-->
+				</div>
 				<div class="trailingBrs">
-					<br /><br /><br />
+					<br/><br/><br/>
 				</div>
 			</div>
 			<div id="dialogs">
-				<!--Toasts-->
+			<!--Toasts-->
 				<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
 				<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
 					<span id="menuSwitchUndoButton" role="button">UNDO</span>
@@ -199,7 +221,7 @@
 				</paper-toast>
 				<paper-toast id="storageExceededToast" text="Chrome storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later" duration="10000"></paper-toast>
 				<!--Dialogs-->
-				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="restoreChangesMain">
 						<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
 						<br />
@@ -207,8 +229,8 @@
 						<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
 						<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
 						<div class="buttons">
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
 							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
 						</div>
 					</div>
 					<div id="restoreChangesOldCode">
@@ -217,9 +239,9 @@
 						</h2>
 						<div id="restoreChangesOldCodeCont"></div>
 						<div class="buttons">
-							<paper-button class="restoreChangesBack">Back</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
 							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+							<paper-button class="restoreChangesBack">Back</paper-button>
 						</div>
 					</div>
 					<div id="restoreChangesUnsavedCode">
@@ -228,9 +250,9 @@
 						</h2>
 						<div id="restoreChangeUnsaveddCodeCont"></div>
 						<div class="buttons">
-							<paper-button class="restoreChangesBack">Back</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
 							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
+							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+							<paper-button class="restoreChangesBack">Back</paper-button>
 						</div>
 					</div>
 				</paper-dialog>
@@ -244,8 +266,8 @@
 						<br />
 						<paper-button raised id="chooseFileMerge">Merge</paper-button>
 						<div class="buttons">
-							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
 							<paper-button id="chooseFileChooseFirst" dialog-confirm>Confirm</paper-button>
+							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
 						</div>
 					</div>
 					<div id="chooseFileMerger">
@@ -264,9 +286,9 @@
 							<div id="chooseFilemergerContainer"></div>
 						</div>
 						<div class="buttons">
-							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
-							<paper-button id="chooseFileStopMerging">Stop merging</paper-button>
 							<paper-button id="chooseFileChooseMerge" dialog-confirm>Confirm</paper-button>
+							<paper-button id="chooseFileStopMerging">Stop merging</paper-button>
+							<paper-button class="closeChooseFileDialog">Cancel</paper-button>
 						</div>
 					</div>
 				</paper-dialog>
@@ -286,16 +308,16 @@
 						<paper-input pattern="$a" id="addLibraryUrlInput" label="url" error-message="url does not host anything"></paper-input>
 						<paper-textarea id="addLibraryManualInput" label="code"></paper-textarea>
 						<div class="buttons">
-							<paper-button dialog-dismiss>Cancel</paper-button>
 							<paper-button id="addLibraryButton">Add</paper-button>
+							<paper-button dialog-dismiss>Cancel</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryConfirmationContainer">
 						<h2>Does this look okay to you?</h2>
 						<paper-textarea id="addLibraryConfirmationInput"></paper-textarea>
 						<div class="buttons">
-							<paper-button id="addLibraryDenyConfirmation">No</paper-button>
 							<paper-button id="addLibraryConfirmAddition">Yes</paper-button>
+							<paper-button id="addLibraryDenyConfirmation">No</paper-button>
 						</div>
 					</div>
 					<div id="addLibraryDialogSucces">
@@ -303,29 +325,69 @@
 						<div id="addLibraryDialogSuccesText">Added!</div>
 					</div>
 				</paper-dialog>
-				<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<h2>CSS Editor Info</h2>
-					<br />
-					- Use <pre class="inlineCodePre">@url 'http://example.com';</pre> to run certain CSS only on specified url for any code following this statement.
-					Calling <pre class="inlineCodePre">@urlend;</pre> will stop this from applying to the code below it.
-					You can combine multiple <pre class="inlineCodePre">@url</pre> statements to run on multiple sites, so calling <pre class="inlineCodePre">@url 'example.com'; @url 'google.com';</pre> runs the code below on both sites.
-					If for example you want any page's background-color to be black except for one website, you can use <pre class="inlineCodePre">@url</pre> to give that page a different background color.
-					You can use regular expressions as long as you wrap them in brackets.
-					<br /><br />
-					- Use chrome's dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
-					If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
-					If you want all elements with some class to be styled, simply use the class on it.
+			<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<h2>CSS Editor Info</h2>
+				<br/>
+				- Use <pre class="inlineCodePre">@url 'http://example.com';</pre> to run certain CSS only on specified url for any code following this statement.
+				Calling <pre class="inlineCodePre">@urlend;</pre> will stop this from applying to the code below it.
+				You can combine multiple <pre class="inlineCodePre">@url</pre> statements to run on multiple sites, so calling <pre class="inlineCodePre">@url 'example.com'; @url 'google.com';</pre> runs the code below on both sites.
+				If for example you want any page's background-color to be black except for one website, you can use <pre class="inlineCodePre">@url</pre> to give that page a different background color.
+				You can use regular expressions as long as you wrap them in brackets.
+				<br/><br/>
+				- Use chrome's dev tools to find the CSS id/class of elements. Press F12 to open the dev tools, click the magnifying glass and click element you want to style.
+				If you want only that element to be styled, right-click it in the developer tools and click "copy CSS path" and use that as the selector.
+				If you want all elements with some class to be styled, simply use the class on it.
+				<div class="buttons">
+					<paper-button dialog-dismiss>close</paper-button>
+				</div>
+			</paper-dialog>
+			<center-element fullscreenoverlay id="exportCenterer">
+				<paper-dialog with-backdrop id="exportDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<h2>Exporting selected nodes</h2>
+					<div>
+						You can copy the data below and paste it in a different instance's "import" section to import those nodes. Enter an author's name below to export the nodes under that name. You can also leave it to "anonymous" to stay anonymous.
+					</div>
+					<paper-input always-float-label id="exportAuthorName" label="author's name" placeholder="anonymous"></paper-input>
+					<textarea id="exportJSONData" rows="10" readonly></textarea>
 					<div class="buttons">
 						<paper-button dialog-dismiss>close</paper-button>
 					</div>
 				</paper-dialog>
-				<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<h2>
-						Managing permisions for script "<span>[[item.name]]</span>"
-					</h2>
-					<!--//HIERZO //TODO permissions dialog, remove script-permission-dialog possibly-->
-					Here you can select or remove permissions for the
-				</paper-dialog>
+			</center-element>
+				<center-element fullscreenoverlay id="scriptPermissionsCenterer">
+					<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<h2 class="requestPermissionsScriptName">
+							Managing permisions for script "[[name]]"
+						</h2>
+						<div>
+							Here you can allow or disallow permissions for the current script, marked permissions are asked for in the script and will probably be needed for script execution. You should however be careful not to just turn on everything since that might enable malicious scripts to do bad things.
+						</div>
+						<div class="scriptPermissionsContainer">
+							<div class="scriptPermissionsUsedPermissionsTxt">
+								Used Permissions:
+							</div>
+							<div class="requestPermissionsPermissions">
+								<template is="dom-repeat" id="scriptPermissionsTemplate" items="[]" as="permission">
+									<div class="requestPermissionsPermission">
+										<div class="requestPermissionsPermissionTopCont" is-required$="[[permission.required]]">
+											<span class="requestPermissionName">[[permission.name]]</span>
+											<div class="requestPermissionsShowBot">
+												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+											</div>
+											<paper-toggle-button class="scriptPermissionsToggle" checked="[[permission.toggled]]" ischecked$="[[permission.toggled]]"></paper-toggle-button>
+										</div>
+										<div class="requestPermissionsPermissionBotCont">
+											<span class="requestPermissionsDescription">[[permission.description]]</span>
+										</div>
+									</div>
+								</template>
+							</div>
+						</div>
+						<div class="buttons">
+							<paper-button dialog-dismiss>close</paper-button>
+						</div>
+					</paper-dialog>
+				</center-element>
 				<center-element fullscreenoverlay id="requestPermissionsCenterer">
 					<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<h2 id="requestPermissionsHeader">Allow permissions</h2>
@@ -336,32 +398,34 @@
 							You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used yet simply saves you the hassle of doing it later during script installation or execution.
 						</div>
 						<br />
-						<div id="requestPermissionsPermissions">
-							<div id="requestPermissionsAsked">
-								<div class="requestPermissionsType">
-									Required:
-								</div>
-								<template id="requestedPermissionsTemplate" is="dom-repeat" items="[]" as="requestedPermission">
-									<div class="requestPermissionsPermission">
-										<div class="requestPermissionsPermissionTopCont">
-											<span class="requestPermissionName">[[requestedPermission.name]]</span>
-											<div class="requestPermissionsShowBot">
-												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
-											</div>
-											<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
-										</div>
-										<div class="requestPermissionsPermissionBotCont">
-											<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
-										</div>
+						<div class="requestPermissionsPermissions">
+							<div id="requestedPermissionsCont">
+								<div id="requestPermissionsAsked">
+									<div class="requestPermissionsType">
+										Required:
 									</div>
-								</template>
-							</div>
-							<div id="requestPermissionsLineCont">
-								<div id="requestPermissionsSplitter"></div>
-								<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48">
-									<path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" />
-									<line x1="10" y1="24" style="stroke: rgb(0, 0, 0); stroke-width: 5;" x2="38" y2="24" />
-								</svg>
+									<template id="requestedPermissionsTemplate" is="dom-repeat" items="[]" as="requestedPermission">
+										<div class="requestPermissionsPermission">
+											<div class="requestPermissionsPermissionTopCont">
+												<span class="requestPermissionName">[[requestedPermission.name]]</span>
+												<div class="requestPermissionsShowBot">
+													<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+												</div>
+												<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
+											</div>
+											<div class="requestPermissionsPermissionBotCont">
+												<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
+											</div>
+										</div>
+									</template>
+								</div>
+								<div id="requestPermissionsLineCont">
+									<div id="requestPermissionsSplitter"></div>
+									<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48">
+										<path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" />
+										<line x1="10" y1="24" style="stroke: rgb(0, 0, 0); stroke-width: 5;" x2="38" y2="24" />
+									</svg>
+								</div>
 							</div>
 							<div id="requestPermissionsOther">
 								<div class="requestPermissionsType">
@@ -372,7 +436,7 @@
 										<div class="requestPermissionsPermissionTopCont">
 											<span class="requestPermissionName">[[otherPermission.name]]</span>
 											<div class="requestPermissionsShowBot">
-												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 											</div>
 											<paper-toggle-button class="requestPermissionButton" checked="[[otherPermission.toggled]]" ischecked$="[[otherPermission.toggled]]"></paper-toggle-button>
 										</div>
@@ -386,7 +450,7 @@
 							</div>
 						</div>
 						<div class="buttons">
-							<paper-button id="requestPermissionsAcceptAll">Accept All</paper-button>
+							<paper-button id="requestPermissionsAcceptAll">Accept All Required</paper-button>
 							<paper-button dialog-dismiss>close</paper-button>
 						</div>
 					</paper-dialog>
