@@ -162,7 +162,7 @@
 		var prevType = item.type;
 
 		var path = item.path;
-		var itemInCrm = options.settings.crm;
+		var itemInCrm = app.settings.crm;
 		var i;
 		for (i = 0; i < path.length - 1; i++) {
 			itemInCrm = itemInCrm[path[i]].children;
@@ -193,21 +193,24 @@
 					];
 					break;
 				case 'script':
-					//TODO Update to new script values when done
 					item.value = {
-						value: ''
+						script: '',
+						launchMode: 0,
+						libraries: [],
+						triggers: []
 					};
 					break;
 				case 'divider':
-					item.value = '';
+					item.value = null;;
 					break;
 				case 'menu':
-					item.value = '';
+					item.value = null;
 					break;
 				case 'stylesheet':
-					//TODO this one as well
 					item.value = {
-						value: ''
+						stylesheet: '',
+						launchMode: 0,
+						triggers: []
 					};
 					break;
 			}
@@ -236,7 +239,7 @@
 				columnCont = $(columnCont).next()[0];
 			}
 
-			options.settings.shadowStart = column.index + 1;
+			app.settings.shadowStart = column.index + 1;
 
 			function reverseMenuTypeChoice() {
 				for (i = 0; i < 2; i++) {
@@ -264,7 +267,7 @@
 					columnCont = $(columnCont).next()[0];
 				}
 
-				options.settings.shadowStart = null;
+				app.settings.shadowStart = null;
 			}
 
 			//Show a paper-toast
@@ -277,6 +280,6 @@
 		}
 
 		this.closeTypeSwitchContainer(true);
-		options.upload();
+		app.upload();
 	}
 });
