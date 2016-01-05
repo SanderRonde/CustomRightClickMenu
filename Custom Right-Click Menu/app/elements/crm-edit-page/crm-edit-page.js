@@ -6,15 +6,6 @@ Polymer({
 	behaviors: [Polymer.NeonAnimationRunnerBehavior],
 
 	/**
-	 * The item to edit
-	 * 
-	 * @attribute item
-	 * @type Object
-	 * @default {}
-	 */
-	item: {},
-
-	/**
 	 * The item that was originally clicked on
 	 * 
 	 * @attribute clicksrc
@@ -137,16 +128,28 @@ Polymer({
 				return {
 					'entry': {
 						name: 'scale-up-animation',
-						node: this.$.editPageCont,
+						node: this.$.overlayCont,
 						duration: 300
 					},
 					'exit': {
 						name: 'scale-down-animation',
-						node: this.$.editPageCont,
+						node: this.$.overlayCont,
 						duration: 300
 					}
 				}
 			}
+		},
+		/**
+		 * The item to edit
+		 * 
+		 * @attribute item
+		 * @type Object
+		 * @default null
+		 */
+		item: {
+			type: Object,
+			value: null,
+			notify: true
 		}
 	},
 
@@ -154,23 +157,27 @@ Polymer({
 		"neon-animation-finish": '_onNeonAnimationFinish'
 	},
 
+	isLocal: function(source) {
+		return source === 'local';
+	},
+
 	_onNeonAnimationFinish: function () {
 		var _this = this;
 		if (this.opened) {
 			this.$overlayEl.on('click', function () {
-				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancelChanges();
+				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancel();
 				setTimeout(function() {
 					_this.unassignItems();
 				}, 300);
 			});
 		} else {
 			this.$overlayEl[0].style.display = 'none';
-			this.$.editPageCont.style.display = 'none';
+			this.$.overlayCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
 			document.body.style.marginRight = 0;
-			window.options.show = false;
+			window.app.show = false;
 			this.opened = false;
-			window.options.item = null;
+			window.app.item = null;
 			this.unassignItems();
 			console.log(this.item);
 			console.log(this.isScript);
@@ -184,12 +191,9 @@ Polymer({
 	},
 
 	/**
-	 * @param eventSourceElement The element that was clicked on
+	 * @param eventSourceElement - The element that was clicked on
 	 */
 	animateIn: function () {
-		console.log(this.item);
-		console.log(this.isScript);
-		console.log(this.scriptItem);
 		this.$overlayEl.css('display', 'block');
 		(this.overlayAnimation && this.overlayAnimation.play()) || (this.overlayAnimation = this.$overlayEl[0].animate([
 			{
@@ -204,10 +208,10 @@ Polymer({
 		}));
 			
 		document.body.style.overflow = 'hidden';
-		document.body.style.marginRight = '20px';
-		options.show = true;
+		document.body.style.marginRight = '17px';
+		app.show = true;
 		this.opened = true;
-		this.$.editPageCont.style.display = 'block';
+		this.$.overlayCont.style.display = 'block';
 		this.playAnimation('entry');
 	},
 	
@@ -250,12 +254,13 @@ Polymer({
 
 		}
 		setTimeout(function() {
-			window.options.show = true;
+			window.app.show = true;
 			_this.isScript = valueStorer.isScript;
 			_this.isLink = valueStorer.isLink;
 			_this.isMenu = valueStorer.isMenu;
 			_this.isDivider = valueStorer.isDivider;
 			_this.isStylesheet = valueStorer.isStylesheet;
+			console.log($(_this).find('#editPageCont > :not([hidden])')[0]);
 			$(_this).find('#editPageCont > :not([hidden])')[0].init();
 			_this.animateIn();
 		}, 300);

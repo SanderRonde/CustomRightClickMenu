@@ -22,3 +22,23 @@
 	flex-direction: column;
 	justify-content: center;
 }
+
+#nodeInfo {
+	background-color: #3F51B5;
+    color: white;
+    font-size: 125%;
+    padding: 5px 8px;
+	pointer-events: all;
+	display:flex;
+    justify-content: space-between;
+}
+
+	#nodeInfo a {
+		color: white;
+		text-decoration: underline;
+	}
+
+#nodeInfo span::selection, #nodeInfo b::selection, #nodeInfo a::selection, #nodeInfo div::selection {
+    background-color: white;
+    color: black;
+}
