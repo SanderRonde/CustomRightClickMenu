@@ -8,10 +8,22 @@
 	width:200px;
 }
 
+@keyframes animateLeft {
+	0% {
+		opacity: 0;
+		transform: translateX(90px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
 .CRMEditColumnCont {
 	width: 200px;
 	/*I am not going to question how this works but it does*/
 	display:table;
+	animation: animateLeft 250ms ease-in;
 }
 
 #mainCont {

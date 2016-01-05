@@ -1,175 +1,6 @@
-﻿/// <reference path="../../../scripts/_references.js"/>
-/// <reference path="~/app/elements/crm-options/crm-options.js" />
+/// <reference path="../../../scripts/_references.js"/>
+/// <reference path="~/app/elements/crm-app/crm-app.js" />
 'use strict';
-var options;
-options.settings = options.settings;
-
-/**
- * @fn function getLastMenu(list)
- *
- * @brief Gets the last menu of the list.
- *
- * @param list The list.
- * @param hidden - The hidden nodes
- *
- * @return The last menu on the given list.
- */
-function getLastMenu(list, hidden) {
-	var lastMenu = -1;
-	var lastFilledMenu = -1;
-	//Find last menu to auto-expand
-	if (list) {
-		list.forEach(function (item, index) {
-			if ((item.type === 'menu' || (options.settings.shadowStart && item.menuVal) && !hidden[item.path])) {
-				lastMenu = index;
-				if (item.children.length > 0) {
-					lastFilledMenu = index;
-				}
-			}
-		});
-		if (lastFilledMenu !== -1) {
-			return lastFilledMenu;
-		}
-	}
-	return lastMenu;
-}
-
-/**
- * Shows only the nodes that should be shown with current showContentTypes settings
- * 
- * @param {Object} result - The result object in which to store all paths
- * @param {Object} node - The node to check
- * @param {boolean[]} showContentTypes - Array of which content types to show
- * @returns {Object} An object in which each key is a path of a crm node and the value (true or false) tells whether to show it or not.
- */
-function getHiddenNodes(result, node, showContentTypes) {
-	var i;
-	var length;
-	if (node.children) {
-		length = node.children.length;
-		var visible = 0;
-		for (i = 0; i < length; i++) {
-			visible += getHiddenNodes(result, node.children[i], showContentTypes);
-		}
-		if (!visible) {
-			result[node.id] = true;
-			return 0;
-		}
-	} else {
-		for (i = 0; i < 6; i++) {
-			if (showContentTypes[i] && !node.onContentTypes[i]) {
-				result[node.id] = true;
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
-
-function getIndent(data, lastMenu, hiddenNodes) {
-	var i;
-	var length = data.length - 1;
-	var visibleIndent = lastMenu;
-	for (i = 0; i < length; i++) {
-		if (hiddenNodes[data[i].id]) {
-			visibleIndent--;
-		}
-	}
-	return visibleIndent;
-}
-
-/**
- * @fn function buildCRMEditObj()
- *
- * @brief Builds crm edit object.
- * 		  
- * @param setMenus An array of menus that are set to be opened (by user input).
- *
- * @return the CRM edit object
- */
-function buildCRMEditObj(setMenus) {
-	var showContentTypes = options.crmTypes;
-	var setMenusLength = setMenus.length;
-	var newSetMenus = [];
-	var crmEditObj = [];
-	var indentTop = 0;
-	var lastMenu = -2;
-	var columnNum = 0;
-	var columnCopy;
-	var path = [];
-	var column;
-	var indent;
-	var length;
-
-	var list = options.settings.crm;
-	//Hide all nodes that should be hidden
-	var hiddenNodes = {};
-	var i;
-	var shown = 0;
-	for (i = 0; i < list.length; i++) {
-		shown += getHiddenNodes(hiddenNodes, list[i], showContentTypes);
-	}
-	console.log(hiddenNodes);
-
-	if (shown) {
-		while (lastMenu !== -1) {
-			if (setMenusLength > columnNum) {
-				lastMenu = setMenus[columnNum];
-			} else {
-				lastMenu = getLastMenu(list, hiddenNodes);
-			}
-			newSetMenus[columnNum] = lastMenu;
-			indent = getIndent(list, lastMenu, hiddenNodes);
-			column = {};
-			column.indent = [];
-			column.indent[indentTop - 1] = undefined;
-			column.list = list;
-			column.index = columnNum;
-			if (options.settings.shadowStart && options.settings.shadowStart <= columnNum) {
-				column.shadow = true;
-			}
-
-			if (lastMenu !== -1) {
-				indentTop += indent;
-				list.forEach(function(item) {
-					item.expanded = false;
-				});
-				list[lastMenu].expanded = true;
-				if (options.settings.shadowStart && list[lastMenu].menuVal) {
-					list = list[lastMenu].menuVal;
-				} else {
-					list = list[lastMenu].children;
-				}
-			}
-
-			column.list.map(function(currentVal, index) {
-				currentVal.path = [];
-				path.forEach(function(item, index) {
-					currentVal.path[index] = item;
-				});
-				currentVal.index = index;
-				currentVal.path.push(index);
-				return currentVal;
-			});
-			length = column.list.length;
-			columnCopy = [];
-			for (i = 0; i < length; i++) {
-				if (!hiddenNodes[column.list[i].id]) {
-					columnCopy.push(column.list[i]);
-				}
-			}
-			column.list = columnCopy;
-			path.push(lastMenu);
-			crmEditObj.push(column);
-			columnNum++;
-		}
-	}
-
-	return {
-		crm: crmEditObj,
-		setMenus: newSetMenus
-	};
-}
 
 window.Polymer({
 	is: 'edit-crm',
@@ -219,6 +50,28 @@ window.Polymer({
 	 */
 	scrollHandler: null,
 
+	/*
+	 * The last drag event
+	 * 
+	 * @attribute lastDragEvent
+	 * @type Object
+	 * @default {}
+	 */
+	lastDragEvent: {},
+
+	/*
+	 * The leftmost CRM column for getting scroll from the left
+	 * 
+	 * @attribute firstCRMColumnEl
+	 * @type Element
+	 * @default null
+	 */
+	firstCRMColumnEl: null,
+
+	get firstCRMColumn() {
+		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2]));
+	},
+
 	properties: {
 		crm: {
 			type: Array,
@@ -235,6 +88,18 @@ window.Polymer({
 			value: true,
 			notify: true,
 			computed: '_isCrmEmpty(crm, crmLoading)'
+		},
+		/*
+		 * Whether the user is currently selecting nodes to remove
+		 * 
+		 * @attribute isSelecting
+		 * @type Boolean
+		 * @default false
+		 */
+		isSelecting: {
+			type: Boolean,
+			value: false,
+			notify: true
 		}
 	},
 
@@ -242,18 +107,18 @@ window.Polymer({
 		'crmTypeChanged': '_typeChanged'
 	},
 
-	_isCrmEmpty: function(crm, crmLoading) {
+	_isCrmEmpty: function (crm, crmLoading) {
 		return !crmLoading && crm.length === 0;
 	},
 
-	getCurrentTypeIndex: function(path) {
+	getCurrentTypeIndex: function (path) {
 		var i;
 		var hiddenNodes = {};
-		for (i = 0; i < window.options.settings.crm.length; i++) {
-			getHiddenNodes(hiddenNodes, window.options.settings.crm[i], window.options.crmTypes);
+		for (i = 0; i < window.app.settings.crm.length; i++) {
+			this.isNodeVisible(hiddenNodes, window.app.settings.crm[i], window.app.crmType);
 		}
 		console.log(path);
-		var items = $($(options.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
+		var items = $($(window.app.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
 		var index = path[path.length - 1];
 		for (i = 0; i < items.length; i++) {
 			if (hiddenNodes[items[i]]) {
@@ -264,18 +129,178 @@ window.Polymer({
 	},
 
 	/**
+	 * Gets the last menu of the list.
+	 *
+	 * @param list - The list.
+	 * @param hidden - The hidden nodes
+	 *
+	 * @return The last menu on the given list.
+	 */
+	getLastMenu: function (list, hidden) {
+		var lastMenu = -1;
+		var lastFilledMenu = -1;
+		//Find last menu to auto-expand
+		if (list) {
+			list.forEach(function (item, index) {
+				if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
+				console.log(hidden[item.id]);
+					lastMenu = index;
+					if (item.children.length > 0) {
+						lastFilledMenu = index;
+					}
+				}
+			});
+			if (lastFilledMenu !== -1) {
+				return lastFilledMenu;
+			}
+		}
+		return lastMenu;
+	},
+
+	/**
+	 * Returns whether the node is visible or not (1 if it's visible)
+	 * 
+	 * @param {Object} result - The result object in which to store all paths
+	 * @param {Object} node - The node to check
+	 * @param {Number} showContentType - The content type to show
+	 * @returns {Number} 1 if the node is visible, 0 if it's not
+	 */
+	isNodeVisible: function (result, node, showContentType) {
+		var i;
+		var length;
+		if (node.children && node.children.length > 0) {
+			length = node.children.length;
+			for (i = 0; i < length; i++) {
+				this.isNodeVisible(result, node.children[i], showContentType);
+			}
+		}
+		if (!node.onContentTypes[showContentType]) {
+			result[node.id] = true;
+			return 0;
+		}
+		return 1;
+	},
+
+	getIndent: function (data, lastMenu, hiddenNodes) {
+		var i;
+		var length = data.length - 1;
+		var visibleIndent = lastMenu;
+		for (i = 0; i < length; i++) {
+			if (hiddenNodes[data[i].id]) {
+				visibleIndent--;
+			}
+		}
+		return visibleIndent;
+	},
+
+	/**
+	 * Builds crm edit object.
+	 * 		  
+	 * @param setMenus - An array of menus that are set to be opened (by user input).
+	 *
+	 * @return the CRM edit object
+	 */
+	buildCRMEditObj: function (setMenus) {
+		var i;
+		var length;
+		var column;
+		var indent;
+		var path = [];
+		var columnCopy;
+		var columnNum = 0;
+		var lastMenu = -2;
+		var indentTop = 0;
+		var crmEditObj = [];
+		var newSetMenus = [];
+		var list = window.app.settings.crm;
+		var setMenusLength = setMenus.length;
+		var showContentTypes = window.app.crmType;
+
+		//Hide all nodes that should be hidden
+		var hiddenNodes = {};
+		var shown = 0;
+		for (i = 0; i < list.length; i++) {
+			shown += this.isNodeVisible(hiddenNodes, list[i], showContentTypes);
+		}
+		console.log(hiddenNodes);
+
+		if (shown) {
+			while (lastMenu !== -1) {
+				if (setMenusLength > columnNum && !hiddenNodes[list[setMenus[columnNum]]]) {
+					lastMenu = setMenus[columnNum];
+					console.log(lastMenu);
+				} else {
+					lastMenu = this.getLastMenu(list, hiddenNodes);
+					console.log(lastMenu);
+				}
+				newSetMenus[columnNum] = lastMenu;
+				indent = this.getIndent(list, lastMenu, hiddenNodes);
+				column = {};
+				column.indent = [];
+				column.indent[indentTop - 1] = undefined;
+				column.list = list;
+				column.index = columnNum;
+				if (window.app.settings.shadowStart && window.app.settings.shadowStart <= columnNum) {
+					column.shadow = true;
+				}
+
+				if (lastMenu !== -1) {
+					indentTop += indent;
+					list.forEach(function (item) {
+						item.expanded = false;
+					});
+					list[lastMenu].expanded = true;
+					if (window.app.settings.shadowStart && list[lastMenu].menuVal) {
+						list = list[lastMenu].menuVal;
+					} else {
+						list = list[lastMenu].children;
+					}
+				}
+
+				column.list.map(function (currentVal, index) {
+					currentVal.path = [];
+					path.forEach(function (item, pathIndex) {
+						currentVal.path[pathIndex] = item;
+					});
+					currentVal.index = index;
+					currentVal.path.push(index);
+					return currentVal;
+				});
+				length = column.list.length;
+				columnCopy = [];
+				for (i = 0; i < length; i++) {
+					if (!hiddenNodes[column.list[i].id]) {
+						columnCopy.push(column.list[i]);
+					}
+				}
+				column.list = columnCopy;
+				path.push(lastMenu);
+				crmEditObj.push(column);
+				columnNum++;
+			}
+		}
+
+		return {
+			crm: crmEditObj,
+			setMenus: newSetMenus
+		};
+	},
+
+	/**
 	 * @fn build: function ()
 	 *
 	 * @brief Builds the crm object
 	 * 		  
-	 * @param setItems Set choices for menus by the user
+	 * @param setItems - Set choices for menus by the user
+	 * @param quick - Do it quicker than normal
+	 * @param superquick - Don't show a loading image and do it immediately
 	 * 
 	 * @return The object to be sent to Polymer
 	 */
-	build: function(setItems, quick, superquick) {
+	build: function (setItems, quick, superquick) {
 		var _this = this;
 		setItems = setItems || [];
-		var obj = buildCRMEditObj(setItems);
+		var obj = this.buildCRMEditObj(setItems);
 		this.setMenus = obj.setMenus;
 		obj = obj.crm;
 		this.crm = [];
@@ -283,12 +308,20 @@ window.Polymer({
 			window.clearTimeout(this.currentTimeout);
 		}
 		this.crmLoading = true;
+
 		function func() {
 			_this.crm = obj;
 			_this.notifyPath('crm', _this.crm);
 			_this.currentTimeout = null;
-			setTimeout(function() {
+			setTimeout(function () {
 				_this.crmLoading = false;
+				var els = document.getElementsByTagName('edit-crm-item');
+				for (var i = 0; i < els.length; i++) {
+					els[i].update();
+				}
+				setTimeout(function() {
+					window.app.pageDemo.create();
+				}, 0);
 			}, 50);
 		}
 
@@ -300,123 +333,202 @@ window.Polymer({
 		return obj;
 	},
 
-	ready: function() {
+	ready: function () {
 		var _this = this;
-		options.editCRM = this;
-		window.options.addEventListener('crmTypeChanged', this._typeChanged);
-		chrome.storage.local.get(function(items) {
-			_this._typeChanged(true);
+		window.app.editCRM = this;
+		window.app.addEventListener('crmTypeChanged', this._typeChanged);
+		_this._typeChanged(true);
+	},
+
+	addItem: function () {
+		var newItem = window.app.templates.getDefaultLinkNode({
+			id: window.app.generateItemId()
 		});
+		window.app.crm.add(newItem);
+		window.app.editCRM.build(window.app.editCRM.setMenus, false, true);
 	},
 
-	addItem: function() {
-		var newIndex = options.settings.crm.length;
-		var newItem = {
-			name: 'name',
-			type: 'link',
-			value: [
-				{
-					value: 'http://www.example.com',
-					newTab: true
-				}
-			],
-			expanded: false,
-			index: newIndex,
-			isLocal: true,
-			path: [newIndex],
-			onContentType: options.crmTypes
-		};
-		options.crm.add(newItem);
-
-		//Artificially add a new item
-		var firstColumnChildren = options.editCRM.$.mainCont.children[0].children[1].children;
-		var newElement = $('<edit-crm-item class="wait"></edit-crm-item>').insertBefore(firstColumnChildren[firstColumnChildren.length - 1]);
-		newElement = newElement[0];
-		newElement.item = newItem;
-		newElement.index = newIndex;
-		newElement.classList.toggle('wait');
-		newElement.classList.add('style-scope');
-		newElement.classList.add('edit-crm');
-		newElement.ready();
-	},
-
-	//TODO implement remove
-
-	_handleDragPosChange: function (event, editCRM, scrollChange) {
-		scrollChange = scrollChange || 0;
-		var dragAreaStyle = editCRM.dragAreaEl.style;
-		var eventDetails = event.detail;
-		if (eventDetails.ddy !== 0) {
-			var dy = eventDetails.dy + scrollChange;
-			var dragHeight = editCRM.dragAreaPos.scrollChange + dy;
-			if (dragHeight > 0) {
-				dragAreaStyle.height = (editCRM.dragAreaPos.scrollChange + dy) + 'px';
-			} else {
-				dragAreaStyle.top = (eventDetails.y + editCRM.dragAreaPos.scrollTop) + 'px';
-				dragAreaStyle.height = (dragHeight < 0 ? -dragHeight : editCRM.dragAreaPos.scrollChange) + 'px';
+	getSelected: function() {
+		var selected = [];
+		var editCrmItems = document.getElementsByTagName('edit-crm-item');
+		var i;
+		for (i = 0; i < editCrmItems.length; i++) {
+			if (editCrmItems[i].classList.contains('highlighted')) {
+				selected.push(editCrmItems[i].item.id);
 			}
 		}
-		if (eventDetails.ddx !== 0) {
-			if (eventDetails.dx > 0) {
-				dragAreaStyle.width = eventDetails.dx + 'px';
-			} else {
-				dragAreaStyle.left = eventDetails.x + 'px';
-				dragAreaStyle.width = (eventDetails.dx < 0 ? -eventDetails.dx + 'px' : 0);
+		return selected;
+	},
+
+	makeNodeSafe: function(node) {
+		var newNode = {};
+		node.type && (newNode.type = node.type);
+		node.name && (newNode.name = node.name);
+		node.value && (newNode.value = node.value);
+		node.linkVal && (newNode.linkVal = node.linkVal);
+		node.menuVal && (newNode.menuVal = node.menuVal);
+		if (node.children) {
+			newNode.children = [];
+			for (var i = 0; i < node.children.length; i++) {
+				newNode.children[i] = this.makeNodeSafe(node.children[i]);
 			}
 		}
+		node.nodeInfo && (newNode.nodeInfo = node.nodeInfo);
+		node.triggers && (newNode.triggers = node.triggers);
+		node.scriptVal && (newNode.scriptVal = node.scriptVal);
+		node.stylesheetVal && (newNode.stylesheetVal = node.stylesheetVal);
+		node.onContentTypes && (newNode.onContentTypes = node.onContentTypes);
+		node.showOnSpecified && (newNode.showOnSpecified = node.showOnSpecified);
+		return newNode;
 	},
 
-	_createScrollHandler: function(event, editCRM) {
-		return function () {
-			var scrollChange = document.body.scrollTop - editCRM.dragAreaPos.scrollTop;
-			editCRM.dragAreaPos.scrollChange += scrollChange;
-			editCRM.dragAreaPos.scrollTop = document.body.scrollTop;
-			editCRM._handleDragPosChange(event, editCRM, scrollChange);
-		}
-	},
-
-	_handleSelect: function (event) {
-		//Create a rectangle
-		var editCRM = options.editCRM;
-		var eventDetails = event.detail;
-		console.log('x:' + eventDetails.x);
-		console.log('y:' + eventDetails.y);
-		if (eventDetails.state === 'start') {
-			document.body.style.WebkitUserSelect = 'none';
-			var dragEl = document.createElement('div');
-			var dragElStyle = dragEl.style;
-			dragElStyle.position = 'absolute';
-			dragElStyle.backgroundColor = 'rgba(50,50,50,0.3)';
-			dragElStyle.left = eventDetails.x + 'px';
-			dragElStyle.top = (document.body.scrollTop + eventDetails.y) + 'px';
-			dragElStyle.width = dragElStyle.height = '30px';
-			document.body.appendChild(dragEl);
-			editCRM.dragAreaEl = dragEl;
-			editCRM.dragAreaPos = {
-				X: eventDetails.x,
-				Y: eventDetails.y,
-				scrollTop: document.body.scrollTop,
-				scrollChange: 0
-			};
-			var scrollHandler = editCRM._createScrollHandler(event, editCRM);
-			editCRM.scrollHandler = scrollHandler;
-			document.addEventListener('scroll', scrollHandler);
-		}
-		else if (eventDetails.state === 'track') {
-			editCRM._handleDragPosChange(event, editCRM, false);
+	extractUniqueChildren: function(node, toExportIds, results) {
+		if (toExportIds.indexOf(node.id) > -1) {
+			results.push(node);
 		} else {
-			editCRM.dragAreaEl.remove();
-			document.removeEventListener('scroll', editCRM.scrollHandler);
-			editCRM.dragAreaPos = null;
-			editCRM.scrollHandler = null;
+			for (var i = 0; node.children && i < node.children.length; i++) {
+				this.extractUniqueChildren(node.children[i], toExportIds, results);
+			}
 		}
 	},
 
-	_deselectNodes: function () {
-		
+	changeAuthor: function(node, authorName) {
+		node.nodeInfo.author = authorName;
+		for (var i = 0; node.children && i < node.children.length; i++) {
+			this.changeAuthor(node.children[i], authorName);
+		}
 	},
 
-	_typeChanged: function(quick) {
-		runOrAddAsCallback(options.editCRM.build, options.editCRM, (quick ? [null, true] : []));
+	exportSelected: function() {
+		var toExport = this.getSelected();
+		console.log(toExport);
+		var exports = [];
+		var i;
+		for (i = 0; i < app.settings.crm.length; i++) {
+			this.extractUniqueChildren(app.settings.crm[i], toExport, exports);
+		}
+		console.log(exports);
+
+		var safeExports = [];
+		for (i = 0; i < exports.length; i++) {
+			safeExports[i] = this.makeNodeSafe(exports[i]);
+		}
+		console.log(safeExports);
+		var dataJson = {
+			crm: safeExports
+		};
+
+		var textarea = $('#exportJSONData')[0];
+
+		function authorNameChange(event) {
+			console.log(event);
+			var author = event.target.value;
+			chrome.storage.local.set({
+				authorName: author
+			});
+			for (var j = 0; j < safeExports.length; j++) {
+				this.changeAuthor(safeExports[j], author);
+			}
+			dataJson = JSON.stringify({
+				crm: safeExports
+			});
+			textarea.value = dataJson;
+		}
+
+		$('#exportAuthorName').on('change', authorNameChange);
+		textarea.value = JSON.stringify(dataJson);
+		$('#exportDialog')[0].open();
+		setTimeout(function() {
+			textarea.focus();
+			textarea.select();
+		}, 150);
+
+		if (storageLocal.authorName) {
+			authorNameChange(storageLocal.authorName);
+		}
+	},
+
+	cancelSelecting: function() {
+		var _this = this;
+		var editCrmItems = document.getElementsByTagName('edit-crm-item');
+		//Select items
+		for (var i = 0; i < editCrmItems.length; i++) {
+			editCrmItems[i].classList.remove('selecting');
+		}
+		setTimeout(function () {
+			_this.isSelecting = false;
+		}, 150);
+	},
+
+	removeSelected: function() {
+		var j;
+		var arr;
+		var toRemove = this.getSelected();
+		for (var i = 0; i < toRemove.length; i++) {
+			try {
+				arr = window.app.crm.lookupId(toRemove[i], true);
+				for (j = 0; j < arr.length; j++) {
+					if (arr[j].id === toRemove[i]) {
+						arr.splice(arr[j], 1);
+					}
+				}
+			} catch (e) {
+				//Item has already been removed
+				console.log(e);
+				console.log('didnt work', toRemove[i]);
+			}
+		}
+		this.build(null, true, false);
+
+		this.isSelecting = false;
+	},
+
+	selectItems: function() {
+		var _this = this;
+		var editCrmItems = document.getElementsByTagName('edit-crm-item');
+		//Select items
+		for (var i = 0; i < editCrmItems.length; i++) {
+			editCrmItems[i].classList.add('selecting');
+		}
+		setTimeout(function() {
+			_this.isSelecting = true;
+		}, 150);
+	},
+
+	getCRMElementFromPath: function (path, showPath) {
+		var i;
+		for (i = 0; i < path.length - 1; i++) {
+			if (this.setMenus[i] !== path[i]) {
+				if (showPath) {
+					this.build(path, false, true);
+					break;
+				} else {
+					return null;
+				}
+			}
+		}
+
+		var cols = this.$.mainCont.children;
+		var row = cols[path.length + 1].children;
+		for (i = 0; i < row.length; i++) {
+			if (row[i].tagName === 'PAPER-MATERIAL') {
+				row = row[i].children[0].children;
+				break;
+			}
+		}
+
+		for (i = 0; i < row.length; i++) {
+			if (window.app.compareArray(row[i].item.path, path)) {
+				return row[i];
+			}
+		}
+		return null;
+	},
+
+	_typeChanged: function (quick) {
+		for (var i = 0; i < 6; i++) {
+			window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
+		}
+		runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, (quick ? [null, true] : []));
 	}
 });
