@@ -4,15 +4,25 @@
 <body>
 	<dom-module id="edit-crm-item" attributes="item shadow">
 		<template>
+			<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html"/>
 			<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html" />
 			<link rel="import" href="../../bower_components/iron-icons/iron-icons.html" />
-			<link rel="import" href="../../bower_components/iron-icon/iron-icon.html" />
+			<link rel="import" href="../../bower_components/iron-icon/iron-icon.html"/>
 			<link rel="stylesheet" type="css" href="edit-crm-item.css">
 			<div id="itemCont">
 				<div class="item">
 					<type-switcher id="typeSwitcher" on-mouseenter="typeIndicatorMouseOver" on-mouseleave="typeIndicatorMouseLeave" type="{{type}}"></type-switcher>
-					<div id="dragger">
-						<div class="draggerImg"></div>
+					<div id="draggerOrCheckbox">
+						<div id="dragger">
+							<div class="draggerImg">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 48">
+									<path d="M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z"/>
+								</svg>
+							</div>
+						</div>
+						<div id="checkboxCont">
+							<paper-checkbox on-tap="onToggle" id="checkbox"></paper-checkbox>
+						</div>
 					</div>
 					<div class="CRMItemTitle" ismenu$="{{isMenu}}" on-tap="openEditPage">
 						<span>{{name}}</span>
