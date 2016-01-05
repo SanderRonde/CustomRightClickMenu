@@ -68,15 +68,6 @@ window.Polymer({
 	 */
 	firstCRMColumnEl: null,
 
-	/**
-	 * The selected items in this CRM element
-	 * 
-	 * @attribute selectedElementPaths
-	 * @type Array
-	 * @default []
-	 */
-	selectedElements: [],
-
 	get firstCRMColumn() {
 		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2]));
 	},
@@ -432,6 +423,9 @@ window.Polymer({
 		function authorNameChange(event) {
 			console.log(event);
 			var author = event.target.value;
+			chrome.storage.local.set({
+				authorName: author
+			});
 			for (var j = 0; j < safeExports.length; j++) {
 				this.changeAuthor(safeExports[j], author);
 			}
@@ -444,13 +438,32 @@ window.Polymer({
 		$('#exportAuthorName').on('change', authorNameChange);
 		textarea.value = JSON.stringify(dataJson);
 		$('#exportDialog')[0].open();
+		setTimeout(function() {
+			textarea.focus();
+			textarea.select();
+		}, 150);
+
+		if (storageLocal.authorName) {
+			authorNameChange(storageLocal.authorName);
+		}
+	},
+
+	cancelSelecting: function() {
+		var _this = this;
+		var editCrmItems = document.getElementsByTagName('edit-crm-item');
+		//Select items
+		for (var i = 0; i < editCrmItems.length; i++) {
+			editCrmItems[i].classList.remove('selecting');
+		}
+		setTimeout(function () {
+			_this.isSelecting = false;
+		}, 150);
 	},
 
 	removeSelected: function() {
-		var toRemove = this.getSelected();
-
 		var j;
 		var arr;
+		var toRemove = this.getSelected();
 		for (var i = 0; i < toRemove.length; i++) {
 			try {
 				arr = window.app.crm.lookupId(toRemove[i], true);
@@ -465,7 +478,6 @@ window.Polymer({
 				console.log('didnt work', toRemove[i]);
 			}
 		}
-		this.selectedElements = [];
 		this.build(null, true, false);
 
 		this.isSelecting = false;
@@ -478,7 +490,6 @@ window.Polymer({
 		for (var i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.add('selecting');
 		}
-		this.selectedElements = [];
 		setTimeout(function() {
 			_this.isSelecting = true;
 		}, 150);

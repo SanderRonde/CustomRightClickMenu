@@ -194,14 +194,55 @@
 					</div>
 				</div>
 				<br/><br/>
-				<div class="importSettings">
+				<div class="importSettingsCont">
 					<div class="bigTxt">
 						Importing your settings
 					</div>
-					<!--//TODO this-->
+					<div class="importDescr">
+						Here you can import your settings or CRM nodes from somewhere else. Simply copy the code into the box below and hit "import". Checking "overwrite" will overwrite your current settings and/or CRM with the settings you imported.
+					</div>
+					<div class="importSettings">
+						<textarea rows="10" id="importSettingsInput" class="textarea"></textarea>
+						<span id="importSettingsError">Something went wrong processing the data, please check the data</span>
+					</div>
+					<paper-checkbox checked id="overWriteImport">Overwrite</paper-checkbox>
+					<br/>
+					<paper-button class="blue" raised id="importButton" on-tap="importData">Import</paper-button>
+				</div>
+				<br/><br/>
+				<div class="exportSettingsCont">
+					<div class="bigTxt">
+						Exporting your settings
+					</div>
+					<div class="exportDescr">
+						Here you can export your settings and/or CRM. To export select CRM nodes hit the "select" button below the editor above and hit export. Paste the generated data into a different instance's "import" field to import the data.
+					</div>
+					<div class="exportSettings">
+						<textarea rows="10" id="exportSettingsOutput" class="textarea"></textarea>
+					</div>
+					<paper-checkbox checked id="exportCRM">Export your Custom Right-Click Menu</paper-checkbox>
+					<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
+					<br/>
+					<paper-button class="blue" raised id="exportButton" on-tap="exportData">Export</paper-button>
+				</div>
+				<br/><br/>
+				<div class="contactCont">
+					<div class="bigTxt">
+						Contact
+					</div>
+					<div class="contactDescr">
+						If you have found any bugs, thought of any suggestions or have any other reason to contact me you can do so at <a href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To find out more about me, check out <a href="https://careers.stackoverflow.com/sanderronde" target="_blank">this page</a>. You can also check out the github repository over <a href="https://github.com/SanderRonde/CustomRightClickMenu" target="_blank">here</a> if you want to report an issue, do a pull request, or just want to check out the code. You can also find the code for the external editor app over <a href="https://github.com/SanderRonde/CRM-External-Editor-App" target="_blank">here</a>.
+					</div>
+				</div>
+				<br/><br/>
+				<div class="changelogCont">
+					<div class="bigTxt">
+						Changelog
+					</div>
+					<change-log></change-log>
 				</div>
 				<div class="trailingBrs">
-					<br/><br/><br/>
+					<br/><br/><br/><br/><br/>
 				</div>
 			</div>
 			<div id="dialogs">
@@ -348,7 +389,7 @@
 						You can copy the data below and paste it in a different instance's "import" section to import those nodes. Enter an author's name below to export the nodes under that name. You can also leave it to "anonymous" to stay anonymous.
 					</div>
 					<paper-input always-float-label id="exportAuthorName" label="author's name" placeholder="anonymous"></paper-input>
-					<textarea id="exportJSONData" rows="10" readonly></textarea>
+					<textarea class="paperTextArea" id="exportJSONData" rows="10" readonly></textarea>
 					<div class="buttons">
 						<paper-button dialog-dismiss>close</paper-button>
 					</div>

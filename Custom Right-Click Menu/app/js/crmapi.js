@@ -32,17 +32,18 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	* 
 	* Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
 	*/
-	var jsonFn = {};
-	jsonFn.stringify = function(obj) {
-		return JSON.stringify(obj, function(key, value) {
-			if (value instanceof Function || typeof value == 'function') {
-				return value.toString();
-			}
-			if (value instanceof RegExp) {
-				return '_PxEgEr_' + value;
-			}
-			return value;
-		});
+	var jsonFn = {
+		stringify: function(obj) {
+			return JSON.stringify(obj, function(key, value) {
+				if (value instanceof Function || typeof value == 'function') {
+					return value.toString();
+				}
+				if (value instanceof RegExp) {
+					return '_PxEgEr_' + value;
+				}
+				return value;
+			});
+		}
 	};
 
 	var _this = this;

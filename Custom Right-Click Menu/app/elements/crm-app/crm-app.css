@@ -705,15 +705,21 @@ paper-button.blue {
 	padding-top: 24px;
 }
 
-#exportJSONData {
+textarea {
+	width:100%;
+	resize:none;
+	margin-top: 5px;
+}
+
+.paperTextArea {
 	padding: 0;
-    margin: 0 24px;
-    width: calc(100% - 48px);
-    outline: none;
-    border: none;
-    border-bottom: 1px solid rgb(60,60,60);
-    padding-bottom: 2px;
-    resize: none;
+	margin: 0 24px;
+	width: calc(100% - 48px);
+	outline: none;
+	border: none;
+	border-bottom: 1px solid rgb(60,60,60);
+	padding-bottom: 2px;
+	resize: none;
 }
 
 textarea#exportJSONData:focus {
@@ -725,9 +731,20 @@ textarea#exportJSONData:focus {
 }
 
 #crmButtons {
-	width: 651px;
+	width: 1028px;
 }
 
 #crmButtonsContainer {
 	display: flex;
+}
+
+.importSettingsCont paper-checkbox, .exportSettingsCont paper-checkbox {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+#importSettingsError {
+	color: red;
+	display: none;
+	margin-left:10px;
 }

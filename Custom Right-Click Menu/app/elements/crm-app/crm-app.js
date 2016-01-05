@@ -138,7 +138,7 @@ Polymer({
 	 * @type Object
 	 * @value {}
 	 */
-	 storageLocal: {},
+	storageLocal: {},
 
 	properties: {
 		settings: {
@@ -214,6 +214,96 @@ Polymer({
 			}
 		}
 		return true;
+	},
+
+	treeForEach: function(node, fn) {
+		fn(node);
+		if (node.children) {
+			for (var i = 0; i < node.children.length; i++) {
+				this.treeForEach(node.children[i], fn);
+			}
+		}
+	},
+
+	findScriptsInSubtree: function(subtree, container) {
+		if (subtree.type === 'script') {
+			container.push(subtree);
+		}
+		else if (subtree.children) {
+			for (var i = 0; i < subtree.children.length; i++) {
+				this.findScriptsInSubtree(subtree.children[i], container);
+			}
+		}
+	},
+
+	runDialogsForImportedScripts: function (nodesToAdd, dialogs) {
+		var _this = this;
+		if (dialogs[0]) {
+			var script = dialogs.splice(0, 1);
+			window.scriptEdit.openPermissionsDialog(script, function () {
+				_this.runDialogsForImportedScripts(nodesToAdd, dialogs);
+			});
+		} else {
+			this.addImportedNodes(nodesToAdd);
+		}
+	},
+
+	addImportedNodes: function(nodesToAdd) {
+		var _this = this;
+		if (!nodesToAdd[0]) {
+			return false;
+		}
+		var toAdd = nodesToAdd.splice(0, 1);
+		this.treeForEach(toAdd, function(node) {
+			node.id = _this.generateItemId();
+			node.source = 'import';
+		});
+
+		this.crm.add(toAdd);
+		var scripts = [];
+		this.findScriptsInSubtree(data.crm[i]);
+		this.runDialogsForImportedScripts(nodesToAdd, scripts);
+	},
+
+	importData: function () {
+		var _this = this;
+		var data = this.$.importSettingsInput.value;
+		try {
+			data = JSON.parse(data);
+			this.$.importSettingsError.display = 'none';
+		} catch (e) {
+			this.$.importSettingsError.display = 'block';
+			return;
+		}
+
+		if (this.$.overWriteImport.checked && (data.local || data.storageLocal)) {
+			this.settings = data.nonLocal || this.settings;
+			this.storageLocal = data.local || this.storageLocal;
+		}
+		if (data.crm) {
+			if (this.$.overWriteImport.checked) {
+				this.settings.crm = data.crm;
+			} else {
+				this.addImportedNodes(data.crm);
+			}
+		}
+	},
+
+	exportData: function () {
+		var _this = this;
+		var toExport = {};
+		if (this.$.exportCRM.checked) {
+			toExport.crm = JSON.parse(JSON.stringify(_this.settings.crm));
+			for (var i = 0; i < toExport.crm.length; i++) {
+				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i]);
+			}
+		}
+		if (this.$.exportSettings.checked) {
+			toExport.local = _this.storageLocal;
+			toExport.nonLocal = JSON.parse(JSON.stringify(_this.settings));
+			delete toExport.nonLocal.crm;
+		}
+		this.$.exportSettingsOutput.value = JSON.stringify(toExport);
 	},
 
 	showManagePermissions: function() {
