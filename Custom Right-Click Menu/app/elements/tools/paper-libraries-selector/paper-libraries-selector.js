@@ -49,8 +49,29 @@ Polymer({
 
 	ready: function() {
 		var _this = this;
-		chrome.storage.local.get('libraries', function(keys) {
-			_this.installedLibraries = keys.libraries;
+		chrome.storage.local.get('libraries', function (keys) {
+			if (keys.libraries) {
+				_this.installedLibraries = keys.libraries;
+			} else {
+				_this.installedLibraries = [
+					{
+						name: 'jquery',
+						location: 'jquery.js'
+					}, {
+						name: 'angular',
+						location: 'angular.js'
+					}, {
+						name: 'mooTools',
+						location: 'mooTools.js'
+					}, {
+						name: 'yui',
+						location: 'yui.js'
+					}
+				];
+				chrome.storage.local.set({
+					libaries: _this.installedLibraries
+				});
+			}
 		});
 		chrome.storage.onChanged.addListener(function(changes, areaName) {
 			if (areaName === 'local' && changes.libraries) {
@@ -100,7 +121,7 @@ Polymer({
 		_this.libraries = libraries;
 	},
 
-	confirmLibraryFile: function (_this, name, code, url) {
+	confirmLibraryFile: function (_this, name, code) {
 		window.doc.addLibraryProcessContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {

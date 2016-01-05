@@ -173,7 +173,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		return data;
 	}
 
-	/*#region Storage*/
+	//#region Storage
 	var storage = item.storage;
 
 	this.storage = {};
@@ -350,9 +350,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 			storageListeners.splice(indexes[i], 1);
 		}
 	}
-	/*#endregion*/
+	//#endregion
 
-	/*#region PageAPI*/
+	//#region PageAPI
 	/*
 	 * Gets the current text selection
 	 */
@@ -395,9 +395,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		return item;
 	}
 
-	/*#endregion*/
+	//#endregion
 
-	/*#region Changes in CRM*/
+	//#region Changes in CRM
 	//The CRM's data is limited to some degree, data that might let you access other scripts or the extension itself is disabled.
 	//Writing data to the CRM may require an update, this is indicated by the "requiresReset" argument in the callback function.
 	//	If no such argument is present in the callback (say the callback only passes one param that is the node you just edited)
@@ -406,7 +406,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	//	WARNING this function will make auto-run script run twice, seeing as the original script is still running on the page 
 	//	and another instance is added.
 	this.crm = {};
-	//HIERZO
 
 	/**
 	 * Sends a message to the background script with given parameters
@@ -1083,9 +1082,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 			code: options.code
 		});
 	}
-	/*#endregion*/
+	//#endregion
 
-	/*#region Chrome APIs*/
+	//#region Chrome APIs
 	function ChromeRequest(api) {
 		var chromeAPIArguments = [];
 		
@@ -1260,7 +1259,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	this.chrome = function (api) {
 		return new ChromeRequest(api);
 	};
-	/*#endregion*/
+	//#endregion
 
 	return this;
 }

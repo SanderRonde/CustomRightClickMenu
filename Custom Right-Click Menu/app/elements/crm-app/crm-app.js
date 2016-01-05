@@ -263,10 +263,10 @@ Polymer({
 		var scripts = [];
 		this.findScriptsInSubtree(data.crm[i]);
 		this.runDialogsForImportedScripts(nodesToAdd, scripts);
+		return true;
 	},
 
 	importData: function () {
-		var _this = this;
 		var data = this.$.importSettingsInput.value;
 		try {
 			data = JSON.parse(data);
@@ -1092,6 +1092,12 @@ Polymer({
 			_this.storageLocal = storageLocal;
 		});
 		this.show = false;
+
+		chrome.storage.onChanged.addListener(function (changes, areaName) {
+			if (areaName === 'local' && changes.latestId !== undefined) {
+				_this.latestId = changes.latestId;
+			}
+		});
 	},
 
 	/**

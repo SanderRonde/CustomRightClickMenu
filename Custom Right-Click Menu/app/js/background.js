@@ -14,7 +14,7 @@ function sandbox(api, args) {
 	return fn.apply(context, args);
 }
 
-(function (window) {
+(function () {
 	var crmTree;
 	var keys = {};
 	var storageSync;
@@ -246,16 +246,18 @@ function sandbox(api, args) {
 								lib = storageLocal.libraries[j];
 							}
 						}
-						if (lib && lib.location) {
-							scripts.push({
-								file: 'js/libraries/' + lib.location,
-								runAt: 'document_start'
-							});
-						} else {
-							scripts.push({
-								code: lib.code,
-								runAt: 'document_start'
-							});
+						if (lib) {
+							if (lib.location) {
+								scripts.push({
+									file: 'js/defaultLibraries/' + lib.location,
+									runAt: 'document_idle'
+								});
+							} else {
+								scripts.push({
+									code: lib.code,
+									runAt: 'document_idle'
+								});
+							}
 						}
 					}
 				}
@@ -263,12 +265,12 @@ function sandbox(api, args) {
 					tabActiveLibraries[tab.id]['crmAPI'] = true;
 					scripts.push({
 						file: 'js/crmapi.js',
-						runAt: 'document_start'
+							runAt: 'document_idle'
 					});
 				}
 				scripts.push({
 					code: code,
-					runAt: 'document_start'
+						runAt: 'document_idle'
 				});
 
 				executeScripts(tab.id, scripts);
@@ -2376,4 +2378,4 @@ function sandbox(api, args) {
 		availablePermissions = available.permissions;
 		main();
 	});
-}(window));
+}());
