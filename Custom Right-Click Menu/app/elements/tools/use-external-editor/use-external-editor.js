@@ -292,7 +292,7 @@ Polymer({
 						}
 					}
 					_this.connection.filePath = msg.path;
-					options.upload();
+					app.upload();
 					_this.connection.fileConnected = true;
 					(window.scriptEdit ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
 					_this.createEditingOverlay();
@@ -482,7 +482,6 @@ Polymer({
 	ready: function () {
 		var _this = this;
 		window.externalEditor = this;
-		//TODO Move this from ready to on clicking the button
 		this.establishConnection();
 		this.init();
 		window.onfocus = function() {
@@ -621,9 +620,9 @@ Polymer({
 												lineNumbers: true,
 												scrollbarStyle: 'simple',
 												lineWrapping: true,
-												theme: (window.options.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-												indentUnit: window.options.settings.editor.tabSize,
-												indentWithTabs: window.options.settings.editor.useTabs,
+												theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+												indentUnit: window.app.settings.editor.tabSize,
+												indentWithTabs: window.app.settings.editor.useTabs,
 												value: window.doc.externalEditorChooseFile.local,
 												origLeft: window.doc.externalEditorChooseFile.local,
 												origRight: window.doc.externalEditorChooseFile.file,
