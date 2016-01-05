@@ -358,6 +358,10 @@ input {
 	font-weight:normal;
 }
 
+	#triggersInfoTxt.expandLeft {
+		margin-left: -263px;
+	}
+
 .showOnContentItemCont {
 	display: inline-block;
 	position: relative;
@@ -387,4 +391,10 @@ input {
 .showOnContentItemCheckbox {
 	margin-left: 17px;
 	margin-top: 5px;
+}
+
+#openPermissionsDialogButton {
+	font-size: 125%;
+	background: #3F51B5;
+    color: white;
 }
