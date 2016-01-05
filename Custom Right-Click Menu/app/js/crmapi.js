@@ -32,22 +32,32 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	* 
 	* Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
 	*/
-	var jsonFn = {};
-	jsonFn.stringify = function(obj) {
-		return JSON.stringify(obj, function(key, value) {
-			if (value instanceof Function || typeof value == 'function') {
-				return value.toString();
-			}
-			if (value instanceof RegExp) {
-				return '_PxEgEr_' + value;
-			}
-			return value;
-		});
+	var jsonFn = {
+		stringify: function(obj) {
+			return JSON.stringify(obj, function(key, value) {
+				if (value instanceof Function || typeof value == 'function') {
+					return value.toString();
+				}
+				if (value instanceof RegExp) {
+					return '_PxEgEr_' + value;
+				}
+				return value;
+			});
+		}
 	};
 
 	var _this = this;
 
-	this.tabId = tabData.id;
+	Object.defineProperty(this, 'tabId', {
+		get: function() { 
+			return tabData.id; 
+		}
+	});
+	Object.defineProperty(this, 'permissions', {
+		get: function() {
+			return item.permissions;
+		}
+	});
 
 	var callInfo = {};
 
@@ -388,6 +398,16 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	/*#endregion*/
 
 	/*#region Changes in CRM*/
+	//The CRM's data is limited to some degree, data that might let you access other scripts or the extension itself is disabled.
+	//Writing data to the CRM may require an update, this is indicated by the "requiresReset" argument in the callback function.
+	//	If no such argument is present in the callback (say the callback only passes one param that is the node you just edited)
+	//	this means that no reset will ever be required and the change you made is instantly applied. If there is and it's true,
+	//	you can call the crmapi.crm.update() function. 
+	//	WARNING this function will make auto-run script run twice, seeing as the original script is still running on the page 
+	//	and another instance is added.
+	this.crm = {};
+	//HIERZO
+
 	/**
 	 * Sends a message to the background script with given parameters
 	 * 
@@ -426,10 +446,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 		message.tabId = _this.tabId;
 		sendMessage(message);
 	}
-
-	//To be able to access these APIs, ask for the "CRM" permission
-	//The data is limited to some degree, data that might let you access other scripts or the extension itself is disabled
-	this.crm = {};
 
 	/**
 	 * The value of a node if it's of type link
@@ -617,6 +633,11 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 *		after: after the given node
 	 * @param {string} [options.name] - The name of the object, not required, defaults to "name"
 	 * @param {string} [options.type] - The type of the node (link, script, divider or menu), not required, defaults to link
+	 * @param {boolean} [options.usesTriggers] - Whether the node uses triggers to launch or if it just always launches (only applies to
+	 *		link, menu and divider)
+	 * @param {Object[]} [options.triggers] - An array of objects telling the node to show on given triggers. (only applies to link,
+	 *		 menu and divider)
+	 * @param {string} [options.triggers.url ] - The URL to show the node on
 	 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
 	 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
 	 *		newTab boolean being whether or not it opens in a new tab.
@@ -656,7 +677,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	/**
 	 * Copies given node, - requires permission "crmGet" and "crmWrite"
 	 * WARNNG: following properties are not copied:
-	 *		file, storage, id, permissions
+	 *		file, storage, id, permissions, nodeInfo
 	 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
 	 * 
 	 * @param {number} nodeId - The id of the node to copy
@@ -740,7 +761,60 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	}
 
 	/**
-	 * Gets the content types for given node - requires perission "crmGet"
+	 * Gets the triggers for given node - requires permission "crmGet"
+	 * 
+	 * @param {number} nodeId - The node of which to get the triggers
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers as an argument
+	 */
+	this.crm.getTriggers = function(nodeId, callback) {
+		sendCrmMessage('getTriggers', callback, {
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Sets the triggers for given node - requires permissions "crmGet" and "crmSet"
+	 * 
+	 * @param {number} nodeId - The node of which to get the triggers
+	 * @param {Object[]} triggers - The triggers that launch this node, automatically turns triggers on
+	 * @param {string} triggers.url - The url of the trigger
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+	 */
+	this.crm.setTriggers = function(nodeId, triggers, callback) {
+		sendCrmMessage('setTriggers', callback, {
+			nodeId: nodeId,
+			triggers: triggers
+		});
+	}
+
+	/**
+	 * Gets the trigger' usage for given node (true - it's being used, or false) - requires permission "crmGet"
+	 * 
+	 * @param {number} nodeId - The node of which to get the triggers
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
+	 */
+	this.crm.getTriggerUsage = function(nodeId, callback) {
+		sendCrmMessage('getTriggerUsage', callback, {
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Sets the usage of triggers for given node - requires permissions "crmGet" and "crmSet"
+	 * 
+	 * @param {number} nodeId - The node of which to get the triggers
+	 * @param {boolean} useTriggers - Whether the triggers should be used or not
+	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+	 */
+	this.crm.setTriggerUsage = function(nodeId, useTriggers, callback) {
+		sendCrmMessage('setTriggerUsage', callback, {
+			nodeId: nodeId,
+			useTriggers: useTriggers
+		});
+	}
+
+	/**
+	 * Gets the content types for given node - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The node of which to get the content types
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
@@ -752,7 +826,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	}
 
 	/**
-	 * Sets the content type at index "index" to given value "value"- requires permissions "crmGet" and "crmSet"
+	 * Sets the content type at index "index" to given value "value"- requires permissions "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node whose content types to set
 	 * @param {number} index - The index of the array to set, 0-5, ordered this way: 
@@ -769,11 +843,12 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	}
 
 	/**
-	 * Sets the content types to given contentTypes array - requires permissions "crmGet" and "crmSet"
+	 * Sets the content types to given contentTypes array - requires permissions "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node whose content types to set
-	 * @param {boolean[]} contentTypes - An array of booleans, true for one index means that 
-	 *		the node is displayed on that content type, these are ordered this way:
+	 * @param {string[]} contentTypes - An array of strings, if a string is present it means that it is displayed
+	 *		on that content type. Requires at least one type to be active, otherwise all are activated.
+	 *		The options are:
 	 *		page, link, selection, image, video, audio
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 	 */
@@ -990,6 +1065,24 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 			childrenIds: childrenIds
 		});
 	}
+
+	this.libraries = {};
+	/**
+	 * Registers a library with name "name", requires permission "crmWrite"
+	 * 
+	 * @param {string} name - The name to give the library
+	 * @param {Object} options - The options related to the library
+	 * @param {string} [options.url] - The url to fetch the code from, must end in .js
+	 * @param {string} [options.code] - The code to use
+	 * @param {function} callback - A callback with the library object as an argument
+	 */
+	this.libraries.register = function (name, options, callback) {
+		sendCrmMessage('registerLibrary', callback, {
+			name: name,
+			url: options.url,
+			code: options.code
+		});
+	}
 	/*#endregion*/
 
 	/*#region Chrome APIs*/
@@ -1167,27 +1260,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	this.chrome = function (api) {
 		return new ChromeRequest(api);
 	};
-	/*#endregion*/
-
-
-	/*#region Other APIs*/
-	this.libraries = {};
-	/**
-	 * Registers a library with name "name", requires permission "registerLibrary"
-	 * 
-	 * @param {string} name - The name to give the library
-	 * @param {Object} options - The options related to the library
-	 * @param {string} [options.url] - The url to fetch the code from, must end in .js
-	 * @param {string} [options.code] - The code to use
-	 * @param {function} callback - A callback with the library object as an argument
-	 */
-	this.libraries.register = function (name, options, callback) {
-		sendCrmMessage('registerLibrary', callback, {
-			name: name,
-			url: options.url,
-			code: options.code
-		});
-	}
 	/*#endregion*/
 
 	return this;
