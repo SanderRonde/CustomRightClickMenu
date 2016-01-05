@@ -281,6 +281,16 @@ iron-overlay-backdrop {
 		text-decoration: none;
 	}
 
+a {
+	position: relative;
+	text-decoration: none;
+	color: rgb(0, 119, 255);
+}
+
+a:focus {
+	outline: none;
+}
+
 a:focus::before {
 	background-color: rgba(0,0,0,.1);
 	border-radius: 2px;
@@ -292,13 +302,6 @@ a:focus::before {
 	position: absolute;
 	right: -4px;
 	top: -4px;
-	z-index: -1;
-}
-
-a {
-	position: relative;
-	text-decoration: none;
-	color: rgb(0, 119, 255);
 }
 
 #dummy {
@@ -507,12 +510,15 @@ body.editingScript .cssTool {
 	background-color: rgb(210, 210, 210);
 }
 
-#requestPermissionsDialog {
+#requestPermissionsDialog, #scriptPermissionDialog, #exportDialog {
 	width: 800px;
+	position: static!important;
+	top: inherit!important;
+	max-height: none!important;
 }
 
 .requestPermissionName {
-	font-size: 200%;
+	font-size: 170%;
 	font-weight: 500;
 	text-transform: capitalize;
 	padding-top:7px;
@@ -524,6 +530,7 @@ body.editingScript .cssTool {
 
 .requestPermissionButton, .requestPermissionsShowBot {
 	float: right;
+	margin-top: 5px;
 }
 
 .requestPermissionsShowBot {
@@ -541,9 +548,16 @@ body.editingScript .cssTool {
 	overflow: hidden;
 }
 
-#requestPermissionsPermissions {
+.requestPermissionsPermissions {
 	max-height: calc(100vh - 400px);
-	overflow-y: scroll;
+	overflow-y: auto;
+	box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.4);
+    margin: 0 24px;
+    padding: 10px 5px;
+}
+
+#scriptPermissionDialog .requestPermissionsPermission {
+	margin: 0;
 }
 
 .requestPermissionsDescription {
@@ -571,6 +585,7 @@ body.editingScript .cssTool {
 
 #requestPermissionsOther {
 	height: 0;
+	overflow: hidden;
 }
 
 #showHideToolsRibbonButton {
@@ -653,3 +668,83 @@ body.editingScript .cssTool {
 	#crmTypeSelector, #crmEditPageTopTextContainer .bigTxt {
 		display: inline-block;
 	}
+
+.requestPermissionsType {
+    font-size: 230%;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+#requestPermissionsHeader {
+	line-height: 42px;
+	font-size: 250%;
+	padding-top: 10px;
+}
+
+paper-button.blue {
+    background: #3F51B5;
+    color: white;
+}
+
+.scriptPermissionsUsedPermissionsTxt {
+	font-size: 150%;
+	font-weight: 500;
+	padding-bottom: 10px;
+}
+
+.requestPermissionsPermissionTopCont[is-required] .requestPermissionName {
+	text-decoration: underline;
+}
+
+.scriptPermissionsToggle {
+	float: right;
+	margin-top: 5px;
+}
+
+#exportDialog > *:first-child {
+	padding-top: 24px;
+}
+
+textarea {
+	width:100%;
+	resize:none;
+	margin-top: 5px;
+}
+
+.paperTextArea {
+	padding: 0;
+	margin: 0 24px;
+	width: calc(100% - 48px);
+	outline: none;
+	border: none;
+	border-bottom: 1px solid rgb(60,60,60);
+	padding-bottom: 2px;
+	resize: none;
+}
+
+textarea#exportJSONData:focus {
+	border: 1px solid rgba(0, 67, 255, 0.35);
+}
+
+#warning {
+	margin-top: 7px;
+}
+
+#crmButtons {
+	width: 1028px;
+}
+
+#crmButtonsContainer {
+	display: flex;
+}
+
+.importSettingsCont paper-checkbox, .exportSettingsCont paper-checkbox {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+#importSettingsError {
+	color: red;
+	display: none;
+	margin-left:10px;
+}
