@@ -2,23 +2,23 @@
 <head>
 </head>
 <body>
-	<dom-module id="default-link" attributes="href defaultName">
+	<dom-module id="default-link" attributes="href defaultName searchengine">
 		<template>
 			<link rel="stylesheet" type="css" href="default-link.css">
 			<div class="defaultLinkCont">
-				<div class="defaultLinkLinkCont">
+				<div class="defaultLinkLinkCont" searchengine$="[[searchEngine]]">
 					<div class="defaultLinkLink">
 						<a class="defaultLinkHref" href="{{href}}" target="_blank">{{href}}</a>
 					</div>
 				</div>
 				<div class="defaultLinkName" flex>
 					<paper-input-container>
-						<label>Link Name</label>
+						<label>Name</label>
 						<input is="iron-input" id="input" bind-value="{{defaultName}}" value="{{defaultName}}" />
 					</paper-input-container>
 				</div>
 				<div class="defaultLinkButton">
-					<paper-button raised on-tap="onClick">ADD</paper-button>
+					<paper-button class="blue" raised on-tap="onClick">ADD</paper-button>
 				</div>
 			</div>
 		</template>

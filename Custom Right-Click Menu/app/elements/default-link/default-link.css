@@ -48,3 +48,7 @@ paper-button {
 .defaultLinkLinkCont {
 	width: 215px;
 }
+
+.defaultLinkLinkCont[searchengine] {
+	width: 320px;
+}
