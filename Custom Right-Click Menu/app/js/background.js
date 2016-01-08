@@ -232,7 +232,10 @@ function sandbox(api, args) {
 				tabNodeData[tab.id][node.id] = {
 					secretKey: key
 				};
-				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ');\n';
+				var greaseMonkeyData = {
+					version: chrome.app.getDetails().version
+				};
+				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + greaseMonkeyData + ');\n';
 				code = code + node.value.script;
 
 				var scripts = [];

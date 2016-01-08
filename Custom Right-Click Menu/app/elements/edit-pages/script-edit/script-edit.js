@@ -197,6 +197,48 @@
 		optionsAnimations: [],
 		//#endregion
 
+		updateMetadataBlock: function(source) {
+
+		},
+
+		scriptUpdate: function (changes) {
+			console.log(changes);
+			//this.updateMetadataBlock('script');
+			var i;
+			for (i = 0; i < this.editor.doc.lastLine(); i++) {
+				if (this.editor.doc.getLine(i).indexOf('==/UserScript==') > -1) {
+					break;
+				}
+			}
+			var max = i;
+
+			var maximum;
+			var index = 0;
+			this.editor.doc.eachLine(function(line) {
+				if (line.text.indexOf('==/UserScript==') > -1) {
+					if (!maximum) {
+						maximum = index;
+					}
+				}
+				index++;
+			});
+
+			var content = window.scriptEdit.editor.doc.getValue();
+			var lines;
+		},
+
+		scriptUpdateSingle: function(instance, change) {
+			!this.fullscreen && this.scriptUpdate.call(this, [change]);
+		},
+
+		scriptUpdateBatch: function(instance, changes) {
+			this.fullscreen && this.scriptUpdate.call(this, changes);
+		},
+
+		settingsUpdate: function() {
+
+		},
+
 		//#region DialogFunctions
 		finishEditing: function() {
 			chrome.storage.local.set({
@@ -1033,6 +1075,12 @@
 			var _this = this;
 			this.editor = element;
 			element.refresh();
+			element.on('change', function(instance, change) {
+				_this.scriptUpdateSingle(instance, change);
+			});
+			element.on('changes', function(instance, changes) {
+				_this.scriptUpdateBatch(instance, changes);
+			});
 			element.display.wrapper.classList.add('script-edit-codeMirror');
 			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 			this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];

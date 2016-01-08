@@ -12,7 +12,7 @@
  *		scripts from finding local scripts with more privilege and act as if they 
  *		are those scripts to run stuff you don't want it to.
  */
-function CrmAPIInit(item, id, tabData, clickData, secretKey) {
+function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 
 	//Set crmAPI.stackTraces to false if you don't want stacktraces in your console, on by default
 	this.stackTraces = true;
@@ -928,7 +928,10 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	 *		3 = only show on specified pages
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 	 */
-	this.crm.script.setLaunchMode = function(nodeId, launchMode, callback) {
+	this.crm.script.setLaunchMode = function (nodeId, launchMode, callback) {
+		return new Promise(function(resolve, reject) {
+
+		});
 		sendCrmMessage('setScriptLaunchMode', callback, {
 			nodeId: nodeId,
 			launchMode: launchMode
@@ -1259,6 +1262,20 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey) {
 	this.chrome = function (api) {
 		return new ChromeRequest(api);
 	};
+	//#endregion
+
+	//#region GreaseMonkey Compatability Functions
+
+	//Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
+	this.GM = {};
+
+	this.GM.GM_info = function() {
+		return {
+			scriptWillUpdate: false, //TODO update this later when it's implemented
+			version: CRMVersion
+		}
+	};
+
 	//#endregion
 
 	return this;
