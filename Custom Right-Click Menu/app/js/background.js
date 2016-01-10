@@ -1,8 +1,12 @@
 ///<reference path="jsonfn.js"/>
 ///<reference path="../../scripts/_references.js"/>
 ///<reference path="e.js"/>
-
+///<reference path="jquery-2.0.3.min.js"/>
 'use strict';
+
+//TODO possibly replace
+window.extensionId = chrome.runtime.getURL('').split('chrome-extension://')[1].split('/')[0];
+
 function sandbox(api, args) {
 	var context = window;
 	var fn = chrome;
@@ -208,6 +212,50 @@ function sandbox(api, args) {
 		callback && callback();
 	}
 
+	function getMetaLines() {
+		var metaStart = -1;
+		var metaEnd = -1;
+		var content = this.editor.doc.getValue();
+		var lines = content.split('\n');
+		for (var i = 0; i < lines.length; i++) {
+			if (metaStart !== -1) {
+				if (lines[i].indexOf('==/UserScript==') > -1) {
+					metaEnd = i;
+					break;
+				}
+			} else if (lines[i].indexOf('==UserScript==') > -1) {
+				metaStart = i;
+			}
+		}
+		return {
+			start: metaStart,
+			end: metaEnd
+		};
+	}
+
+	function getMetadata(script) {
+		var i;
+		var metaIndexes = getMetaLines();
+		var metaStart = metaIndexes.start;
+		var metaEnd = metaIndexes.end;
+		var startPlusOne = metaStart + 1;
+		var lines = script.split('\n');
+		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+
+		var metaTags = {};
+		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
+		var regexMatches;
+		for (i = 0; i < metaLines.length; i++) {
+			regexMatches = metaLines[i].match(regex);
+			if (regexMatches) {
+				metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
+				metaTags[regexMatches[1]].push(regexMatches[3]);
+			}
+		}
+
+		return metaTags;
+	}
+
 	function createScriptClickHandler(node) {
 		return function (info, tab) {
 			var key = [];
@@ -232,11 +280,20 @@ function sandbox(api, args) {
 				tabNodeData[tab.id][node.id] = {
 					secretKey: key
 				};
+
+				var metaData = getMetadata(node.value.script);
+
 				var greaseMonkeyData = {
-					version: chrome.app.getDetails().version
+					info: {
+						version: chrome.app.getDetails().version
+					},
+					metaData: metaData,
+					resources: storageLocal.resources
 				};
 				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + greaseMonkeyData + ');\n';
 				code = code + node.value.script;
+
+				var runAt = metaData['run-at'] || 'document_end';
 
 				var scripts = [];
 				for (i = 0; i < node.value.libraries.length; i++) {
@@ -253,12 +310,12 @@ function sandbox(api, args) {
 							if (lib.location) {
 								scripts.push({
 									file: 'js/defaultLibraries/' + lib.location,
-									runAt: 'document_idle'
+									runAt: runAt
 								});
 							} else {
 								scripts.push({
 									code: lib.code,
-									runAt: 'document_idle'
+									runAt: runAt
 								});
 							}
 						}
@@ -268,12 +325,12 @@ function sandbox(api, args) {
 					tabActiveLibraries[tab.id]['crmAPI'] = true;
 					scripts.push({
 						file: 'js/crmapi.js',
-							runAt: 'document_idle'
+						runAt: runAt
 					});
 				}
 				scripts.push({
 					code: code,
-						runAt: 'document_idle'
+					runAt: runAt
 				});
 
 				executeScripts(tab.id, scripts);
@@ -619,7 +676,7 @@ function sandbox(api, args) {
 				id = items.latestId;
 			} else {
 				id = 1;
-				chrome.storage.local.set({ latestId: 1 });
+				chrome.storage.local.set({ latestId: 1 }, window.updateStorage);
 			}
 			callback && callback(id);
 		});
@@ -708,7 +765,7 @@ function sandbox(api, args) {
 		return safeBranch;
 	}
 
-	function updateStorage(cb) {
+	window.updateStorage = function(cb) {
 		chrome.storage.local.get(function (localData) {
 			chrome.storage.sync.get(function (syncData) {
 				storageLocal = localData;
@@ -774,7 +831,7 @@ function sandbox(api, args) {
 				if (chrome.runtime.lastError) {
 					console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
 				} else {
-					updateStorage();
+					window.updateStorage();
 				}
 			});
 			chrome.storage.sync.set({
@@ -801,7 +858,7 @@ function sandbox(api, args) {
 							updateCrm(skipPageCrm);
 						});
 					} else {
-						updateStorage();
+						window.updateStorage();
 						chrome.storage.local.set({
 							settings: null
 						});
@@ -810,13 +867,13 @@ function sandbox(api, args) {
 			}
 		}
 
-		updateStorage();
+		window.updateStorage();
 		skipPageCrm && buildPageCRM();
 	}
 
 	function updateNodeStorage(message) {
 		crmById[message.id].storage = message.storage;
-		updateStorage();
+		window.updateStorage();
 	}
 
 	function respondToCrmAPI(message, type, data, stackTrace) {
@@ -1941,7 +1998,7 @@ function sandbox(api, args) {
 										storageLocal.libraries.push(newLibrary);
 										chrome.storage.local.set({
 											libraries: storageLocal.libraries
-										});
+										}, window.updateStorage);
 										_this.respondSuccess(newLibrary);
 									}
 								};
@@ -1960,7 +2017,7 @@ function sandbox(api, args) {
 							storageLocal.libraries.push(newLibrary);
 							chrome.storage.local.set({
 								libraries: storageLocal.libraries
-							});
+							}, window.updateStorage);
 							_this.respondSuccess(newLibrary);
 						} else {
 							_this.respondError('No URL or code given');
@@ -2318,7 +2375,7 @@ function sandbox(api, args) {
 		return true;
 	}
 
-	function handleUpdateMessage(message) {
+	function handleRuntimeMessage(message) {
 		console.log(message);
 		switch (message.type) {
 			case 'updateContextMenu':
@@ -2328,15 +2385,19 @@ function sandbox(api, args) {
 				buildPageCRM();
 				break;
 			case 'updateLibraries':
-				updateStorage(buildPageCRM);
+				window.updateStorage(buildPageCRM);
 				break;
 			case 'updateStorage':
 				updateNodeStorage(message);
 				break;
+			case 'resource':
+				window.resourceHandler(message);
+				return true;
 		}
+		return undefined;
 	}
 
-	function handleMessage(message) {
+	function handleCrmAPIMessage(message) {
 		console.log(message);
 		switch (message.type) {
 			case 'crm':
@@ -2359,7 +2420,7 @@ function sandbox(api, args) {
 					});
 				}
 			} else {
-				handleMessage(message);
+				handleCrmAPIMessage(message);
 			}
 		}
 	}
@@ -2367,12 +2428,12 @@ function sandbox(api, args) {
 	/*#endregion*/
 
 	function main() {
-		updateStorage(function() {
+		window.updateStorage(function() {
 			refreshPermissions();
 			chrome.runtime.onConnect.addListener(function (port) {
 				port.onMessage.addListener(createHandlerFunction(port));
 			});
-			chrome.runtime.onMessage.addListener(handleUpdateMessage);
+			chrome.runtime.onMessage.addListener(handleRuntimeMessage);
 			buildPageCRM();
 		});
 	}
@@ -2381,4 +2442,218 @@ function sandbox(api, args) {
 		availablePermissions = available.permissions;
 		main();
 	});
+}());
+
+(function() {
+
+	function convertFileToDataURI(url, callback) {
+		var xhr = new XMLHttpRequest();
+		xhr.responseType = 'blob';
+		xhr.onload = function() {
+			var reader = new FileReader();
+			reader.onloadend = function() {
+				callback(reader.result, xhr.responseText);
+			}
+			reader.readAsDataURL(xhr.response);
+		};
+		xhr.open('GET', url);
+		xhr.send();
+	}
+
+	function registerResource(name, url, scriptId) {
+		if (window.navigator.onLine) {
+			convertFileToDataURI(url, function(dataURI, dataString) {
+				chrome.storage.local.get('resources', function(resources) {
+					resources = resources.resources || {};
+					resources[scriptId] = resources[scriptId] || {};
+					resources[scriptId][name] = {
+						name: name,
+						sourceUrl: url,
+						dataURI: dataURI,
+						string: dataString,
+						//TODO replace with extension ID
+						crmUrl: 'chrome-extension://' + window.extensionId + '/resource/' + scriptId + '/' + name
+					}
+					chrome.storage.local.set({
+						resources: resources
+					}, window.updateStorage);
+				});
+			});
+		}
+
+		chrome.storage.local.get('resourceKeys', function(resourceKeys) {
+			resourceKeys = resourceKeys.resourceKeys || [];
+			for (var i = 0; i < resourceKeys.length; i++) {
+				if (resourceKeys[i].name === name && resourceKeys[i].scriptId === scriptId) {
+					return;
+				}
+			}
+			resourceKeys.push({
+				name: name,
+				sourceUrl: url,
+				scriptId: scriptId
+			});
+		});
+	}
+
+	function compareResource(resources, key) {
+		convertFileToDataURI(key.sourceUrl, function(dataURI, responseText) {
+			if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) || resources[key.scriptId][key.name].dataURI !== dataURI) {
+				resources[key.scriptId][key.name] = {
+					name: key.name,
+					sourceUrl: key.sourceUrl,
+					dataURI: dataURI,
+					string: responseText,
+					//TODO replace with extension ID
+					crmUrl: 'chrome-extension://' + window.extensionId + '/resource/' + key.scriptId + '/' + key.name
+				}
+				chrome.storage.local.set({
+					resources: resources
+				}, window.updateStorage);
+			}
+		});
+	}
+
+	function generateUpdateCallback(resources, resourceKey) {
+		return function() {
+			compareResource(resources, resourceKey);
+		}
+	}
+
+	function updateResources() {
+		chrome.storage.local.get(function(resourceKeys) {
+			var resources = resourceKeys.resources || {};
+			resourceKeys = resourceKeys.resourceKeys;
+
+			for (var i = 0; i < resourceKeys.length; i++) {
+				setTimeout(generateUpdateCallback(resources, resourceKeys[i]), (i * 1000));
+			}
+		});
+	}
+
+	function removeResource(name, scriptId) {
+		chrome.storage.local.get(function(keys) {
+			for (var i = 0; i < keys.resourceKeys.length; i++) {
+				if (keys.resourceKeys[i].name === name && keys.resourceKeys[i].scriptId === scriptId) {
+					keys.resourceKeys.splice(i, 1);
+					break;
+				}
+			}
+
+			if (keys.resources && keys.resources[scriptId] && keys.resources[scriptId][name]) {
+				delete keys.resources[scriptId][name];
+			}
+
+			chrome.storage.local.set({
+				resourceKeys: keys.resourceKeys,
+				resources: keys.resources
+			}, window.updateStorage);
+		});
+	}
+
+	function getMetaLines(script) {
+		var metaStart = -1;
+		var metaEnd = -1;
+		var lines = script.split('\n');
+		for (var i = 0; i < lines.length; i++) {
+			if (metaStart !== -1) {
+				if (lines[i].indexOf('==/UserScript==') > -1) {
+					metaEnd = i;
+					break;
+				}
+			} else if (lines[i].indexOf('==UserScript==') > -1) {
+				metaStart = i;
+			}
+		}
+		return {
+			start: metaStart,
+			end: metaEnd
+		};
+	}
+
+	function getMetaTags(script) {
+		var i;
+		var metaIndexes = getMetaLines(script);
+		var metaStart = metaIndexes.start;
+		var metaEnd = metaIndexes.end;
+		var startPlusOne = metaStart + 1;
+		var lines = script.split('\n');
+		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+
+		var metaTags = {};
+		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
+		var regexMatches;
+		for (i = 0; i < metaLines.length; i++) {
+			regexMatches = metaLines[i].match(regex);
+			if (regexMatches) {
+				metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
+				metaTags[regexMatches[1]].push(regexMatches[3]);
+			}
+		}
+
+		return metaTags;
+	}
+
+	window.getResourcesForScript = function(message, sendResponse) {
+		var script = message.script;
+
+		//First return the resources
+		chrome.storage.local.get(function(keys) {
+			var resourceNames = [];
+			var resource;
+			if (keys.resources && (resource = keys.resources[message.scriptId])) {
+				sendResponse(resource);
+				for (var resourceName in resource) {
+					if (resource.hasOwnProperty(resourceName)) {
+						resourceNames.push(resource.name);
+					}
+				}
+			}
+
+			//Check if the resources still match
+			var i;
+			var metaTags = getMetaTags(script);
+			var resources = metaTags.resource;
+			var resourceObj = {};
+			for (i = 0; i < resources; i++) {
+				resourceObj[resources[i]] = true;
+			}
+			for (i = 0; i < resourceNames.length; i++) {
+				if (!resourceObj[resourceNames[i]]) {
+					removeResource(resourceNames[i], message.scriptId);
+				}
+			}
+		});
+	}
+
+	window.resourceHandler = function(message) {
+		switch (message.type) {
+			case 'register':
+				registerResource(message.name, message.url, message.scriptId);
+				break;
+			case 'remove':
+				removeResource(message.name, message.scriptId);
+				break;
+			case 'update':
+				updateResources();
+				break;
+		}
+	}
+
+	function getResourceData(name, scriptId) {
+		return storageLocal.resources[scriptId][name].dataURI;
+	}
+
+	chrome.webRequest.onBeforeRequest.addListener(
+		function(details) {
+			var split = details.url.split('chrome-extension://' + window.extensionId + '/resource/')[1].split('/');
+			var name = split[0];
+			var scriptId = split[1];
+			return {
+				redirectUrl: getResourceData(name, scriptId)
+			};
+		}, {
+			urls: ['chrome-extension://' + window.extensionId + '/resource/*']
+		}, ['blocking']);
+
 }());

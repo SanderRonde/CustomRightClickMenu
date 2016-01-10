@@ -169,7 +169,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-strikethrough {text-decoration: line-through;}
 
 .cm-s-dark .cm-keyword, 
-.cm-s-dark .cm-atom {}
+.cm-s-dark .cm-atom {
+	color: #3A7EC7;
+}
 .cm-s-dark .cm-number {color: #FFF;}
 .cm-s-dark .cm-def {color: #FFF;}
 .cm-s-dark .cm-variable,

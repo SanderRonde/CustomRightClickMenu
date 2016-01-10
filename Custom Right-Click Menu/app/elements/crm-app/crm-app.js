@@ -104,15 +104,6 @@ Polymer({
 	 */
 	stylesheetItem: {},
 
-	/**
-	 * The tern server for the codeMirror editor
-	 *
-	 * @attribute ternServer
-	 * @type ternServer
-	 * @default null
-	 */
-	ternServer: null,
-
 	/*
 	 * The file that is used to write to when using an exteral editor
 	 *
@@ -1032,9 +1023,9 @@ Polymer({
 			if (storageLocal.jsLintGlobals) {
 				_this.jsLintGlobals = storageLocal.jsLintGlobals;
 			} else {
-				_this.jsLintGlobals = [];
+				_this.jsLintGlobals = ['window','$','jQuery','crmapi'];
 				chrome.storage.local.set({
-					jsLintGlobals: []
+					jsLintGlobals: _this.jsLintGlobals
 				});
 			}
 			if (storageLocal.latestId) {
@@ -1256,7 +1247,23 @@ Polymer({
 				//Script-specific permissions
 				'crmGet',
 				'crmWrite',
-				'chrome'
+				'chrome',
+
+				//GM_Permissions
+				'GM_info',
+				'GM_deleteValue',
+				'GM_getValue',
+				'GM_listValues',
+				'GM_setValue',
+				'GM_getResourceText',
+				'GM_getResourceURL',
+				'GM_addStyle',
+				'GM_log',
+				'GM_openInTab',
+				'GM_registerMenuCommand',
+				'GM_setClipboard',
+				'GM_xmlhttpRequest',
+				'unsafeWindow'
 			];
 		},
 

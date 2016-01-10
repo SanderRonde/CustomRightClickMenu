@@ -3,7 +3,7 @@
  * A class for constructing the CRM API
  * 
  * @class
- * @param {Object} item - The item currently being edited
+ * @param {Object} node - The item currently being edited
  * @param {number} id - The id of the current item
  * @param {number} tabData - Any data about the tab the script is currently running on
  * @param {Object} clickData - Any data associated with clicking this item in the
@@ -11,16 +11,22 @@
  * @param {number[]} secretyKey - An array of integers, generated to keep downloaded 
  *		scripts from finding local scripts with more privilege and act as if they 
  *		are those scripts to run stuff you don't want it to.
+ * @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
  */
-function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
+function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 
+	var _this = this;
+
+	//#region Options
 	//Set crmAPI.stackTraces to false if you don't want stacktraces in your console, on by default
 	this.stackTraces = true;
 
 	//Set crmAPI.errors to false if you don't want crmAPI to throw errors upon failure, on by default
 	//If this is set to false errors will simply be put up as warnings
 	this.errors = true;
+	//#endregion
 
+	//#region JSONfn
 	/**
 	* JSONfn - javascript (both node.js and browser) plugin to stringify, 
 	*          parse and clone objects with Functions, Regexp and Date.
@@ -45,9 +51,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 			});
 		}
 	};
+	//#endregion
 
-	var _this = this;
-
+	//#region Properties of this Object
 	Object.defineProperty(this, 'tabId', {
 		get: function() { 
 			return tabData.id; 
@@ -55,10 +61,12 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 	});
 	Object.defineProperty(this, 'permissions', {
 		get: function() {
-			return item.permissions;
+			return node.permissions;
 		}
 	});
+	//#endregion
 
+	//#region Communication
 	var callInfo = {};
 
 	function getStackTrace(error) {
@@ -125,8 +133,9 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 		key: secretKey,
 		tabId: _this.tabId
 	});
+	//#endregion
 
-
+	//#region Helper functions
 	/**
 	 * Checks whether value matches given type and is defined and not null,
 	 *	third parameter can be either a string in which case it will be
@@ -172,9 +181,10 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 		}
 		return data;
 	}
+	//#endregion
 
 	//#region Storage
-	var storage = item.storage;
+	var storage = node.storage;
 
 	this.storage = {};
 
@@ -186,7 +196,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 	 */
 	function notifyChanges() {
 		var changes = {};
-		var stored = item.storage;
+		var stored = node.storage;
 		for (var key in stored) {
 			if (stored.hasOwnProperty(key)) {
 				if (stored[key] !== storagePrevious[key]) {
@@ -199,7 +209,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 				storageListeners.listener && storageListeners.listener();
 			}
 		}
-		storagePrevious = item.storage;
+		storagePrevious = node.storage;
 	}
 
 	/*
@@ -247,17 +257,17 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 	/**
 	 * Sets the data at given key to given value
 	 * 
-	 * @param {string|array} keyPath The path at which to look, can be either
+	 * @param {string|array} keyPath - The path at which to look, can be either
 	 *		a string with dots seperating the path, an array with each entry holding
 	 *		one section of the path, or just a plain string without dots as the key
-	 * @param {*} value The value to set it to
+	 * @param {any} value - The value to set it to
 	 */
 	this.storage.set = function(keyPath, value) {
 		if (checkType(keyPath, 'string', true)) {
 			if (keyPath.indexOf('.') === -1) {
 				storage[keyPath] = value;
 				updateStorage();
-				return true;
+				return undefined;
 			} else {
 				keyPath = keyPath.split('.');
 			}
@@ -266,7 +276,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 			var data = lookup(keyPath, storage, true);
 			data[keyPath[keyPath.length - 1]] = value;
 			updateStorage();
-			return true;
+			return undefined;
 		}
 		checkType(keyPath, ['string', 'array','object'], 'keyPath');
 		for (var key in keyPath) {
@@ -275,7 +285,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 			}
 		}
 		updateStorage();
-		return true;
+		return undefined;
 	};
 
 	/**
@@ -290,7 +300,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 			if (keyPath.indexOf('.') === -1) {
 				delete storage[keyPath];
 				updateStorage();
-				return true;
+				return undefined;
 			} else {
 				keyPath = keyPath.split('.');
 			}
@@ -299,7 +309,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 			var data = lookup(keyPath, storage, true);
 			delete data[keyPath[keyPath.length - 1]];
 			updateStorage();
-			return true;
+			return undefined;
 		}
 		checkType(keyPath, ['string', 'array', 'object'], 'keyPath');
 		for (var key in keyPath) {
@@ -308,7 +318,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 			}
 		}
 		updateStorage();
-		return true;
+		return undefined;
 	};
 
 	this.storage.onChange = {};
@@ -392,7 +402,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 	 * @returns {Object} - The node that is being executed right now
 	 */
 	this.getNode = function() {
-		return item;
+		return node;
 	}
 
 	//#endregion
@@ -440,7 +450,7 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 		message.type = 'crm';
 		message.id = id;
 		message.action = action;
-		message.crmPath = item.path;
+		message.crmPath = node.path;
 		message.onFinish = onFinish;
 		message.tabId = _this.tabId;
 		sendMessage(message);
@@ -929,9 +939,6 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 	 */
 	this.crm.script.setLaunchMode = function (nodeId, launchMode, callback) {
-		return new Promise(function(resolve, reject) {
-
-		});
 		sendCrmMessage('setScriptLaunchMode', callback, {
 			nodeId: nodeId,
 			launchMode: launchMode
@@ -1269,12 +1276,189 @@ function CrmAPIInit(item, id, tabData, clickData, secretKey, CRMVersion) {
 	//Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
 	this.GM = {};
 
+
 	this.GM.GM_info = function() {
 		return {
 			scriptWillUpdate: false, //TODO update this later when it's implemented
-			version: CRMVersion
+			version: metadata
 		}
 	};
+
+	/**
+	 * This method retrieves a value that was set with GM_setValue. See GM_setValue 
+	 *		for details on the storage of these values.
+	 * 
+	 * @param {String} name - The property name to get
+	 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
+	 * @returns {any} Returns the value if the value is defined, if it's undefined, returns defaultValue
+	 *		if defaultValue is also undefined, returns undefined
+	 */
+	this.GM.GM_getValue = function(name, defaultValue) {
+		var result = _this.storage.get(name);
+		return (result !== undefined ? result : defaultValue);
+	}
+
+	/**
+	 * This method allows user script authors to persist simple values across page-loads.
+	 * 
+	 * @param {String} name - The unique (within this script) name for this value. Should be restricted to valid Javascript identifier characters.
+	 * @param {any} value - The value to store
+	 * @returns {undefined} - undefined
+	 */
+	this.GM.GM_setValue = function(name, value) {
+		_this.storage.set(name, value);
+		return undefined;
+	}
+
+	/**
+	 * This method deletes an existing name / value pair from storage.
+	 * 
+	 * @param {String} name - Property name to delete.
+	 * @returns {undefined} - undefined
+	 */
+	this.GM.GM_deleteValue = function (name) {
+		_this.storage.remove(name);
+		return undefined;
+	}
+
+	/**
+	 * This method retrieves an array of storage keys that this script has stored.
+	 * 
+	 * @returns {String[]} All keys of the storage
+	 */
+	this.GM.GM_listValues = function () {
+		var keys = [];
+		for (var key in _this.storage) {
+			if (_this.storage.hasOwnProperty(key)) {
+				keys.push(key);
+			}
+		}
+		return keys;
+	}
+
+	/**
+	 * Gets the resource URL for given resource name
+	 * 
+	 * @param {String} name - The name of the resource
+	 * @returns {String} A URL that can be used to get the resource value
+	 */
+	this.GM.GM_getResourceURL = function(name) {
+		return greasemonkeyData.resources[name].crmUrl;
+	}
+
+	/**
+	 * Gets the resource string for given resource name
+	 * 
+	 * @param {String} name - The name of the resource
+	 * @returns {String} The resource value
+	 */
+	this.GM.GM_getResourceString = function(name) {
+		return greasemonkeyData.resources[name].string;
+	}
+
+	/**
+	 * This method adds a string of CSS to the document. It creates a new <style> element,
+	 *		 adds the given CSS to it, and inserts it into the <head>.
+	 * 
+	 * @param {String} css - The CSS to put on the page
+	 */
+	this.GM.GM_addStyle = function(css) {
+		var style = document.createElement('style');
+		style.appendChild(document.createTextNode(css));
+		document.head.appendChild(style);
+	}
+
+	/**
+	 * Logs to the console
+	 */
+	this.GM.GM_log = console.log;
+
+	/**
+	 * Open specified URL in a new tab, open_in_background is not available here since that 
+	 *		not possible in chrome
+	 * 
+	 * @param {String} url - The url to open
+	 * @returns {undefined} undefined
+	 */
+	this.GM.GM_openInTab = function(url) {
+		window.open(url);
+		return undefined;
+	}
+
+	this.GM.GM_registerMenuCommand = function() {
+		//This is only here to prevent errors from occuring when calling this function,
+		//this function does nothing
+	}
+
+	this.GM.GM_setClipboard = function() {
+		//Also not implemented, this is not possible in chrome
+	}
+
+	//Taken from https://gist.github.com/arantius/3123124
+	function setupRequestEvent(aOpts, aReq, aEventName) {
+		'use strict';
+		if (!aOpts['on' + aEventName]) return;
+
+		aReq.addEventListener(aEventName, function (aEvent) {
+			var responseState = {
+				responseText: aReq.responseText,
+				responseXML: aReq.responseXML,
+				readyState: aReq.readyState,
+				responseHeaders: null,
+				status: null,
+				statusText: null,
+				finalUrl: null
+			};
+			switch (aEventName) {
+				case 'progress':
+					responseState.lengthComputable = aEvent.lengthComputable;
+					responseState.loaded = aEvent.loaded;
+					responseState.total = aEvent.total;
+					break;
+				case 'error':
+					break;
+				default:
+					if (4 !== aReq.readyState) break;
+					responseState.responseHeaders = aReq.getAllResponseHeaders();
+					responseState.status = aReq.status;
+					responseState.statusText = aReq.statusText;
+					break;
+			}
+			aOpts['on' + aEventName](responseState);
+		});
+	}
+
+	this.GM.GM_xmlhttpRequest = function(aOpts) {
+		'use strict';
+		var req = new XMLHttpRequest();
+
+		setupRequestEvent(aOpts, req, 'abort');
+		setupRequestEvent(aOpts, req, 'error');
+		setupRequestEvent(aOpts, req, 'load');
+		setupRequestEvent(aOpts, req, 'progress');
+		setupRequestEvent(aOpts, req, 'readystatechange');
+
+		req.open(aOpts.method, aOpts.url, !aOpts.synchronous,
+			aOpts.user || '', aOpts.password || '');
+		if (aOpts.overrideMimeType) {
+			req.overrideMimeType(aOpts.overrideMimeType);
+		}
+		if (aOpts.headers) {
+			for (let prop in aOpts.headers) {
+				if (Object.prototype.hasOwnProperty.call(aOpts.headers, prop)) {
+					req.setRequestHeader(prop, aOpts.headers[prop]);
+				}
+			}
+		}
+		var body = aOpts.data ? aOpts.data : null;
+		if (aOpts.binary) {
+			return req.sendAsBinary(body);
+		} else {
+			return req.send(body);
+		}
+	}
+
+	this.GM.unsafeWindow = window;
 
 	//#endregion
 

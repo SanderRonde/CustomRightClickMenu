@@ -195,44 +195,98 @@
 		 * @default []
 		 */
 		optionsAnimations: [],
+
+		/**
+		 * The meta tags for this script
+		 * 
+		 * @attribute metaTags
+		 * @type Object
+		 * @default {}
+		 */
+		metaTags: {},
 		//#endregion
 
-		updateMetadataBlock: function(source) {
-
+		getMetaLines: function() {
+			var metaStart = -1;
+			var metaEnd = -1;
+			var content = this.editor.doc.getValue();
+			var lines = content.split('\n');
+			for (var i = 0; i < lines.length; i++) {
+				if (metaStart !== -1) {
+					if (lines[i].indexOf('==/UserScript==') > -1) {
+						metaEnd = i;
+						break;
+					}
+				} else if (lines[i].indexOf('==UserScript==') > -1) {
+					metaStart = i;
+				}
+			}
+			return {
+				start: metaStart,
+				end: metaEnd
+			};
 		},
 
-		scriptUpdate: function (changes) {
-			console.log(changes);
-			//this.updateMetadataBlock('script');
+		getMetaTags: function() {
 			var i;
-			for (i = 0; i < this.editor.doc.lastLine(); i++) {
-				if (this.editor.doc.getLine(i).indexOf('==/UserScript==') > -1) {
+			var metaIndexes = this.getMetaLines();
+			var metaStart = metaIndexes.start;
+			var metaEnd = metaIndexes.end;
+			var startPlusOne = metaStart + 1;
+			var content = this.editor.doc.getValue();
+			var lines = content.split('\n');
+			var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+
+			var metaTags = {};
+			var regex = new RegExp(/@(\w+)(\s+)(.+)/);
+			var regexMatches;
+			for (i = 0; i < metaLines.length; i++) {
+				regexMatches = metaLines[i].match(regex);
+				if (regexMatches) {
+					metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
+					metaTags[regexMatches[1]].push(regexMatches[3]);
+				}
+			}
+
+			return metaTags;
+		},
+
+		externalMetatagsUpdate: function () {
+			//TODO update dialog and stuff to detect it
+			var tags = ['downloadURL', 'exclude', 'grant', 'include', 'match', 'name', 'namespace', 'require', 'resource', 'updateURL', 'version'];
+			
+		},
+
+		manualMetatagsUpdate: function() {
+			var oldMetatags = this.metaTags;
+			var newMetatags = this.getMetaTags();
+
+			for (var oldMetatagsKey in oldMetatags) {
+				if (oldMetatags.hasOwnProperty(oldMetatagsKey)) {
+					if (newMetatags[oldMetatagsKey] === undefined) {
+
+					}
+				}
+			}
+		},
+
+		findMetatagsChanges: function (changes) {
+			var metaIndexes = this.getMetaLines();
+			for (var i = 0; i < changes.length; i++) {
+				if (changes[i].from.line > metaIndexes.start || changes[i].to.line < metaIndexes.end) {
+					//Changes are relevant
+					this.manualMetatagsUpdate();
 					break;
 				}
 			}
-			var max = i;
-
-			var maximum;
-			var index = 0;
-			this.editor.doc.eachLine(function(line) {
-				if (line.text.indexOf('==/UserScript==') > -1) {
-					if (!maximum) {
-						maximum = index;
-					}
-				}
-				index++;
-			});
-
-			var content = window.scriptEdit.editor.doc.getValue();
-			var lines;
 		},
 
 		scriptUpdateSingle: function(instance, change) {
-			!this.fullscreen && this.scriptUpdate.call(this, [change]);
+			!this.fullscreen && this.findMetatagsChanges.call(this, [change]);
 		},
 
 		scriptUpdateBatch: function(instance, changes) {
-			this.fullscreen && this.scriptUpdate.call(this, changes);
+			this.fullscreen && this.findMetatagsChanges.call(this, changes);
 		},
 
 		settingsUpdate: function() {
@@ -1081,6 +1135,7 @@
 			element.on('changes', function(instance, changes) {
 				_this.scriptUpdateBatch(instance, changes);
 			});
+			this.metaTags = this.getMetaTags();
 			element.display.wrapper.classList.add('script-edit-codeMirror');
 			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 			this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
@@ -1149,7 +1204,8 @@
 				indentWithTabs: window.app.settings.editor.useTabs,
 				messageScriptEdit: true,
 				gutters: ['CodeMirror-lint-markers'],
-				lint: window.CodeMirror.lint.javascript
+				lint: window.CodeMirror.lint.javascript,
+				undoDepth: 500
 			});
 		},
 		//#endregion
