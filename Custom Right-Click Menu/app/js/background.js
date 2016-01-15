@@ -908,6 +908,7 @@ function sandbox(api, args) {
 		respondToCrmAPI(message, 'chromeError', error, stackTrace);
 	}
 
+	// ReSharper disable once InconsistentNaming
 	function CRMFunction(message, toRun) {
 		var _this = this;
 		this.toRun = toRun;
@@ -2471,7 +2472,6 @@ function sandbox(api, args) {
 						sourceUrl: url,
 						dataURI: dataURI,
 						string: dataString,
-						//TODO replace with extension ID
 						crmUrl: 'chrome-extension://' + window.extensionId + '/resource/' + scriptId + '/' + name
 					}
 					chrome.storage.local.set({
@@ -2504,7 +2504,6 @@ function sandbox(api, args) {
 					sourceUrl: key.sourceUrl,
 					dataURI: dataURI,
 					string: responseText,
-					//TODO replace with extension ID
 					crmUrl: 'chrome-extension://' + window.extensionId + '/resource/' + key.scriptId + '/' + key.name
 				}
 				chrome.storage.local.set({

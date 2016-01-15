@@ -196,89 +196,74 @@
 		 */
 		optionsAnimations: [],
 
-		/**
-		 * The meta tags for this script
-		 * 
-		 * @attribute metaTags
-		 * @type Object
-		 * @default {}
-		 */
-		metaTags: {},
 		//#endregion
 
-		getMetaLines: function() {
-			var metaStart = -1;
-			var metaEnd = -1;
-			var content = this.editor.doc.getValue();
-			var lines = content.split('\n');
-			for (var i = 0; i < lines.length; i++) {
-				if (metaStart !== -1) {
-					if (lines[i].indexOf('==/UserScript==') > -1) {
-						metaEnd = i;
-						break;
-					}
-				} else if (lines[i].indexOf('==UserScript==') > -1) {
-					metaStart = i;
-				}
-			}
-			return {
-				start: metaStart,
-				end: metaEnd
-			};
-		},
-
-		getMetaTags: function() {
-			var i;
-			var metaIndexes = this.getMetaLines();
-			var metaStart = metaIndexes.start;
-			var metaEnd = metaIndexes.end;
-			var startPlusOne = metaStart + 1;
-			var content = this.editor.doc.getValue();
-			var lines = content.split('\n');
-			var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
-
-			var metaTags = {};
-			var regex = new RegExp(/@(\w+)(\s+)(.+)/);
-			var regexMatches;
-			for (i = 0; i < metaLines.length; i++) {
-				regexMatches = metaLines[i].match(regex);
-				if (regexMatches) {
-					metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
-					metaTags[regexMatches[1]].push(regexMatches[3]);
-				}
-			}
-
-			return metaTags;
-		},
-
-		externalMetatagsUpdate: function () {
-			//TODO update dialog and stuff to detect it
+		metaTagsUpdateFromScript: function (changes) {
+			console.log(changes);
+			var i, j;
+			var key, value;
+			var changeTypes = ['removed', 'changed', 'added'];
 			var tags = ['downloadURL', 'exclude', 'grant', 'include', 'match', 'name', 'namespace', 'require', 'resource', 'updateURL', 'version'];
-			
-		},
+			var todo = ['exclude', 'grant', 'include', 'match', 'require', 'resource', 'version'];
+			for (i = 0; i < changeTypes.length; i++) {
 
-		manualMetatagsUpdate: function() {
-			var oldMetatags = this.metaTags;
-			var newMetatags = this.getMetaTags();
+				var changeType = changeTypes[i];
+				var changesArray = changes[changeType];
+				for (j = 0; j < changesArray.length; j++) {
 
-			for (var oldMetatagsKey in oldMetatags) {
-				if (oldMetatags.hasOwnProperty(oldMetatagsKey)) {
-					if (newMetatags[oldMetatagsKey] === undefined) {
+					console.log(changesArray[j]);
+					key = changesArray[j].key;
+					value = changesArray[j].value;
+					switch (key) {
+						case 'downloadURL':
+							//TODO this
+							if (changeType === 'removed') {
+								if (this.newSettings && this.newSettings.nodeInfo && this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
 
+								}
+							} else {
+								this.newSettings.nodeInfo = this.newSettings.nodeInfo || {
+									source: {
+										url: ''
+									}
+								};
+								this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
+									url: ''
+								};
+								this.newSettings.nodeInfo.source.url = value;
+								window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+							}
+							break;
+						case 'updateURL':
+							this.newSettings.nodeInfo = this.newSettings.nodeInfo || {
+								source: {
+									updateURL: ''
+								}
+							};
+							this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
+								updateURL: ''
+							};
+							this.newSettings.nodeInfo.source.updateURL = value;
+							if (!this.newSettings.nodeInfo.source.url) {
+								this.newSettings.nodeInfo.source.url = value;
+							}
+							window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+							break;
+						case 'namespace':
+							if (!this.newSettings.nodeInfo.source.url) {
+								this.newSettings.nodeInfo.source.url = value;
+							}
+							break;
+						case 'name':
+							this.set('newSettings.name', value);
+							break;
 					}
 				}
 			}
 		},
 
-		findMetatagsChanges: function (changes) {
-			var metaIndexes = this.getMetaLines();
-			for (var i = 0; i < changes.length; i++) {
-				if (changes[i].from.line > metaIndexes.start || changes[i].to.line < metaIndexes.end) {
-					//Changes are relevant
-					this.manualMetatagsUpdate();
-					break;
-				}
-			}
+		metaTagsUpdateFromSettings: function(changes) {
+			
 		},
 
 		scriptUpdateSingle: function(instance, change) {
@@ -1129,13 +1114,9 @@
 			var _this = this;
 			this.editor = element;
 			element.refresh();
-			element.on('change', function(instance, change) {
-				_this.scriptUpdateSingle(instance, change);
+			element.on('metaTagChanged', function (changes) {
+				_this.metaTagsUpdateFromScript(changes);
 			});
-			element.on('changes', function(instance, changes) {
-				_this.scriptUpdateBatch(instance, changes);
-			});
-			this.metaTags = this.getMetaTags();
 			element.display.wrapper.classList.add('script-edit-codeMirror');
 			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 			this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];

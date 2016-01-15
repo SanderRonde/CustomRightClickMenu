@@ -258,6 +258,10 @@
 		var _this = this;
 		console.log(this.item);
 		this.newSettings = JSON.parse(JSON.stringify(this.item));
+		console.log('ran');
+		window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
+		console.log(window.crmEditPage.nodeInfo);
+		console.log(this.newSettings.nodeInfo);
 		console.log(this.newSettings);
 		this.assignContentTypeSelectedValues();
 		setTimeout(function () {

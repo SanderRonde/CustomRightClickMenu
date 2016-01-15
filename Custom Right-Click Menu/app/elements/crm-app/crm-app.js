@@ -175,9 +175,7 @@ Polymer({
 	},
 
 	compareArray: function(firstArray, secondArray) {
-		if (!firstArray && !secondArray) {
-			return false;
-		} else if (!firstArray || !secondArray) {
+		if (!firstArray === !secondArray) {
 			return true;
 		}
 		var firstLength = firstArray.length;
@@ -1699,7 +1697,6 @@ Polymer({
 
 		lookup: function(path, returnArray) {
 			var pathCopy = JSON.parse(JSON.stringify(path));
-			console.log(pathCopy);
 			if (returnArray) {
 				pathCopy.splice(pathCopy.length - 1, 1);
 			}
@@ -1712,17 +1709,12 @@ Polymer({
 			}
 
 			var evalPath = this._getEvalPath(pathCopy);
-			console.log(evalPath);
 			var result = eval(evalPath);
-			console.log(returnArray);
-			console.log(result);
 			return (returnArray ? result.children : result);
 		},
 
 		_lookupId: function(id, returnArray, node) {
-			console.log(id, node.id);
 			if (node.id === id) {
-				console.log('found');
 				return node;
 			}
 

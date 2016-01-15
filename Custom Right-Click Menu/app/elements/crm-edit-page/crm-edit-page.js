@@ -150,6 +150,18 @@ Polymer({
 			type: Object,
 			value: null,
 			notify: true
+		},
+		/**
+		 * The nodeInfo to display
+		 * 
+		 * @attribute nodeInfo
+		 * @type Object
+		 * @default null
+		 */
+		nodeInfo: {
+			type: Object,
+			value: {},
+			notify: true
 		}
 	},
 
@@ -157,8 +169,19 @@ Polymer({
 		"neon-animation-finish": '_onNeonAnimationFinish'
 	},
 
-	isLocal: function(source) {
+	isLocal: function (source) {
+		if (!source) {
+			return true;
+		}
 		return source === 'local';
+	},
+
+	nodeInfoExists: function(nodeInfo) {
+		return !!nodeInfo;
+	},
+
+	hasInstallDate: function(nodeInfo) {
+		return this.nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
 	},
 
 	_onNeonAnimationFinish: function () {
@@ -220,6 +243,18 @@ Polymer({
 		this.$overlayEl.off('click');
 		this.playAnimation('exit');
 		this.opened = false;
+	},
+
+	updateNodeInfo: function(obj, path) {
+		path = path || 'nodeInfo';
+		for (var key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				if (typeof obj[key] === 'object') {
+					this.updateNodeInfo(obj[key], path + '.' + key);
+				}
+				this.notifyPath(path + '.' + key, obj[key]);
+			}
+		}
 	},
 
 	ready: function () {

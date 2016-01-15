@@ -143,7 +143,6 @@ window.Polymer({
 		if (list) {
 			list.forEach(function (item, index) {
 				if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
-				console.log(hidden[item.id]);
 					lastMenu = index;
 					if (item.children.length > 0) {
 						lastFilledMenu = index;
@@ -222,16 +221,13 @@ window.Polymer({
 		for (i = 0; i < list.length; i++) {
 			shown += this.isNodeVisible(hiddenNodes, list[i], showContentTypes);
 		}
-		console.log(hiddenNodes);
 
 		if (shown) {
 			while (lastMenu !== -1) {
 				if (setMenusLength > columnNum && !hiddenNodes[list[setMenus[columnNum]]]) {
 					lastMenu = setMenus[columnNum];
-					console.log(lastMenu);
 				} else {
 					lastMenu = this.getLastMenu(list, hiddenNodes);
-					console.log(lastMenu);
 				}
 				newSetMenus[columnNum] = lastMenu;
 				indent = this.getIndent(list, lastMenu, hiddenNodes);
