@@ -198,13 +198,14 @@
 
 		//#endregion
 
-		metaTagsUpdateFromScript: function (changes) {
+		metaTagsUpdateFromScript: function (changes, metaTags) {
 			console.log(changes);
 			var i, j;
 			var key, value;
 			var changeTypes = ['removed', 'changed', 'added'];
 			var tags = ['downloadURL', 'exclude', 'grant', 'include', 'match', 'name', 'namespace', 'require', 'resource', 'updateURL', 'version'];
-			var todo = ['exclude', 'grant', 'include', 'match', 'require', 'resource', 'version'];
+			var todo = ['exclude', 'grant', 'include', 'match', 'require', 'resource'];
+			this.newSettings.nodeInfo = this.newSettings.nodeInfo || {};
 			for (i = 0; i < changeTypes.length; i++) {
 
 				var changeType = changeTypes[i];
@@ -216,46 +217,39 @@
 					value = changesArray[j].value;
 					switch (key) {
 						case 'downloadURL':
-							//TODO this
+						case 'updateURL':
+						case 'namespace':
 							if (changeType === 'removed') {
-								if (this.newSettings && this.newSettings.nodeInfo && this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
-
+								if (this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
+									this.newSettings.nodeInfo.source.url = metaTags.downloadURL || metaTags.updateURL || metaTags.namespace || null;;
 								}
 							} else {
-								this.newSettings.nodeInfo = this.newSettings.nodeInfo || {
-									source: {
-										url: ''
-									}
-								};
 								this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
-									url: ''
+									updateURL: (key === 'namespace' ? '' : undefined),
+									url: value
 								};
-								this.newSettings.nodeInfo.source.url = value;
+								if (key === 'namespace') {
+									this.newSettings.nodeInfo.source.updateURL = value;
+								}
+								if (!this.newSettings.nodeInfo.source.url) {
+									this.newSettings.nodeInfo.source.url = value;
+								}
 								window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 							}
 							break;
-						case 'updateURL':
-							this.newSettings.nodeInfo = this.newSettings.nodeInfo || {
-								source: {
-									updateURL: ''
-								}
-							};
-							this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
-								updateURL: ''
-							};
-							this.newSettings.nodeInfo.source.updateURL = value;
-							if (!this.newSettings.nodeInfo.source.url) {
-								this.newSettings.nodeInfo.source.url = value;
-							}
-							window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
-							break;
-						case 'namespace':
-							if (!this.newSettings.nodeInfo.source.url) {
-								this.newSettings.nodeInfo.source.url = value;
-							}
-							break;
 						case 'name':
-							this.set('newSettings.name', value);
+							if (changeType === 'removed') {
+								this.set('newSettings.name', '');
+							} else {
+								this.set('newSettings.name', value);
+							}
+							break;
+						case 'version':
+							if (changeType === 'removed') {
+								this.set('newSettings.nodeInfo.version', null);
+							} else {
+								this.set('newSettings.nodeInfo.version', value);
+							}
 							break;
 					}
 				}
@@ -1114,8 +1108,8 @@
 			var _this = this;
 			this.editor = element;
 			element.refresh();
-			element.on('metaTagChanged', function (changes) {
-				_this.metaTagsUpdateFromScript(changes);
+			element.on('metaTagChanged', function (changes, metaTags) {
+				_this.metaTagsUpdateFromScript(changes, metaTags);
 			});
 			element.display.wrapper.classList.add('script-edit-codeMirror');
 			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());

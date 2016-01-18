@@ -182,7 +182,7 @@
 			}
 
 			if (tagsChanged) {
-				window.CodeMirror.signal(cm, 'metaTagChanged', tagsChanged);
+				window.CodeMirror.signal(cm, 'metaTagChanged', tagsChanged, cm.metaTags.metaTags);
 			}
 		}
 	}

@@ -55,16 +55,16 @@ Polymer({
 			} else {
 				_this.installedLibraries = [
 					{
-						name: 'jquery',
+						name: 'jQuery 2.1.4',
 						location: 'jquery.js'
 					}, {
-						name: 'angular',
+						name: 'angular 1.4.7',
 						location: 'angular.js'
 					}, {
-						name: 'mooTools',
+						name: 'mooTools 1.5.2',
 						location: 'mooTools.js'
 					}, {
-						name: 'yui',
+						name: 'yui 3.18.1',
 						location: 'yui.js'
 					}
 				];
@@ -82,9 +82,14 @@ Polymer({
 	
 	init: function() {
 		var _this = this;
+		var anonymous = [];
 		var selectedObj = {};
-		this.usedlibraries.forEach(function(item) {
-			selectedObj[item.name] = true;
+		this.usedlibraries.forEach(function (item) {
+			if (item.name ===  null) {
+				anonymous.push(item);
+			} else {
+				selectedObj[item.name.toLowerCase()] = true;
+			}
 		});
 		var libraries = [];
 		var selected = [];
@@ -93,7 +98,7 @@ Polymer({
 			itemCopy = {};
 			itemCopy.name = item.name;
 			itemCopy.isLibrary = true;
-			if (selectedObj[item.name]) {
+			if (selectedObj[item.name.toLowerCase()]) {
 				itemCopy.classes = 'library iron-selected';
 				itemCopy.selected = 'true';
 			}
@@ -106,11 +111,31 @@ Polymer({
 		libraries.sort(function(first, second) {
 			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
 		});
+
+		var anonymousLibraries = [];
+		anonymous.forEach(function(item) {
+			itemCopy = {};
+			itemCopy.isLibrary = true;
+			itemCopy.name = item.url + ' (anonymous)';
+			itemCopy.classes = 'library iron-selected anonymous';
+			itemCopy.selected = 'true';
+			anonymousLibraries.push(itemCopy);
+		});
+		anonymousLibraries.sort(function (first, second) {
+			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
+		});
+
+		libraries = libraries.concat(anonymousLibraries);
+
+		console.log(JSON.parse(JSON.stringify(anonymousLibraries)));
+		console.log(JSON.parse(JSON.stringify(libraries)));
+
 		libraries.forEach(function(item, index) {
 			if (item.selected === 'true') {
 				selected.push(index);
 			}
 		});
+		console.log(JSON.parse(JSON.stringify(libraries)));
 		_this.selected = selected;
 		libraries.push({
 			name: 'Add your own',
@@ -118,6 +143,7 @@ Polymer({
 			selected: 'false',
 			isLibrary: false
 		});
+		console.log(JSON.parse(JSON.stringify(libraries)));
 		_this.libraries = libraries;
 	},
 
@@ -204,7 +230,7 @@ Polymer({
 			window.doc.addLibraryDialog.toggle();
 			$(window.doc.addLibraryDialog)
 				.find('#addLibraryButton')
-				.on('click', function () {
+				.on('click', function() {
 					var name = window.doc.addedLibraryName.value;
 					var taken = false;
 					for (var i = 0; i < _this.installedLibraries.length; i++) {
@@ -240,6 +266,11 @@ Polymer({
 						window.doc.addedLibraryName.invalid = true;
 					}
 				});
+		}
+		else if (classList.contains('anonymous')) {
+			e.target.remove();
+
+			//TODO remove the require from the metatags
 		}
 	},
 
