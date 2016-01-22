@@ -96,7 +96,10 @@
 		var inputs = $(this).find('.executionTrigger').find('paper-input');
 		var triggers = [];
 		for (var i = 0; i < inputs.length; i++) {
-			triggers[i] = inputs[i].value;
+			triggers[i] = {
+				url: inputs[i].value,
+				not: inputs[i].parentNode.children[0].checked
+			}
 		}
 		this.newSettings.triggers = triggers;
 	},
@@ -218,7 +221,7 @@
 	 */
 	addTrigger: function () {
 		var _this = this;
-		var newEl = $('<div class="executionTrigger"><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
+		var newEl = $('<div class="executionTrigger"><paper-checkbox class="executionTriggerNot" color="red">NOT</paper-checkbox><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
 		newEl.find('paper-icon-button').click(function (e) {
 			_this.clearTrigger.apply(_this, [e]);
 		});
@@ -228,8 +231,116 @@
 		}
 	},
 
+	/*
+	 * Is triggered when the option in the dropdown menu changes animates in what's needed
+	 */
+	selectorStateChange: function (prevState, state) {
+		var _this = this;
+		var newStates = {
+			showContentTypeChooser: (state === 0 || state === 3),
+			showTriggers: (state > 1)
+		};
+		var oldStates = {
+			showContentTypeChooser: (prevState === 0 || prevState === 3),
+			showTriggers: (prevState > 1)
+		};
+
+		var triggersElement = this.$.executionTriggersContainer;
+		var $triggersElement = $(triggersElement);
+		var contentTypeChooserElement = this.$.showOnContentContainer;
+		var $contentTypeChooserElement = $(contentTypeChooserElement);
+
+		function animateTriggers(callback) {
+			triggersElement.style.height = 'auto';
+			if (newStates.showTriggers) {
+				triggersElement.style.display = 'block';
+				triggersElement.style.marginLeft = '-110%';
+				triggersElement.style.height = 0;
+				$triggersElement.animate({
+					height: $triggersElement[0].scrollHeight
+				}, 300, function () {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, function() {
+						this.style.height = 'auto';
+						callback && callback();
+					});
+				});
+			} else {
+				triggersElement.style.marginLeft = 0;
+				triggersElement.style.height = $triggersElement[0].scrollHeight;
+				$triggersElement.animate({
+					marginLeft: '-110%'
+				}, 200, function () {
+					$(this).animate({
+						height: 0
+					}, 300, function () {
+						triggersElement.style.display = 'none';
+						callback && callback();
+					});
+				});
+			}
+			_this.showTriggers = newStates.showTriggers;
+		}
+
+		function animateContentTypeChooser(callback) {
+			contentTypeChooserElement.style.height = 'auto';
+			if (newStates.showContentTypeChooser) {
+				contentTypeChooserElement.style.height = 0;
+				contentTypeChooserElement.style.display = 'block';
+				contentTypeChooserElement.style.marginLeft = '-110%';
+				$contentTypeChooserElement.animate({
+					height: $contentTypeChooserElement[0].scrollHeight
+				}, 300, function () {
+					$(this).animate({
+						marginLeft: 0
+					}, 200, function () {
+						this.style.height = 'auto';
+						callback && callback();
+					});
+				});
+			} else {
+				contentTypeChooserElement.style.marginLeft = 0;
+				contentTypeChooserElement.style.height = $contentTypeChooserElement[0].scrollHeight;
+				$contentTypeChooserElement.animate({
+					marginLeft: '-110%'
+				}, 200, function () {
+					$(this).animate({
+						height: 0
+					}, 300, function () {
+						contentTypeChooserElement.style.display = 'none';
+						callback && callback();
+					});
+				});
+			}
+			_this.showContentTypeChooser = newStates.showContentTypeChooser;
+		}
+
+		if (oldStates.showTriggers && !newStates.showTriggers) {
+			if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
+				animateTriggers(animateContentTypeChooser);
+			} else {
+				animateTriggers();
+			}
+		}
+		else if (!oldStates.showTriggers && newStates.showTriggers) {
+			if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
+				animateContentTypeChooser(animateTriggers);
+			} else {
+				animateTriggers();
+			}
+		}
+		else if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
+			animateContentTypeChooser();
+		}
+	},
+
 	initDropdown: function () {
-		if ((this.showTriggers = (this.item.value.launchMode > 1))) {
+		console.log('called kek');
+		this.showTriggers = (this.item.value.launchMode > 1);
+		this.showContentTypeChooser = (this.item.value.launchMode === 0 || 3);
+		console.log(this.showContentTypeChooser);
+		if (this.showTriggers) {
 			this.$.executionTriggersContainer.style.display = 'block';
 			this.$.executionTriggersContainer.style.marginLeft = 0;
 			this.$.executionTriggersContainer.style.height = 'auto';
@@ -238,7 +349,7 @@
 			this.$.executionTriggersContainer.style.marginLeft = '-110%';
 			this.$.executionTriggersContainer.style.height = 0;
 		}
-		if ((this.showContentTypeChooser = (this.item.value.launchMode === 0))) {
+		if (this.showContentTypeChooser) {
 			this.$.showOnContentContainer.style.display = 'block';
 			this.$.showOnContentContainer.style.marginLeft = 0;
 			this.$.showOnContentContainer.style.height = 'auto';

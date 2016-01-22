@@ -131,6 +131,24 @@ Polymer({
 	 */
 	storageLocal: {},
 
+	/**
+	 * A copy of the storage.local to compare when calling upload
+	 * 
+	 * @attribute storageLocalCopy
+	 * @attribute Object
+	 * @value {}
+	 */
+	storageLocalCopy: {},
+
+	/**
+	 * A copy of the settings to compare when calling upload
+	 * 
+	 * @attribute storageLocalCopy
+	 * @attribute Object
+	 * @value {}
+	 */
+	settingsCopy: {},
+
 	properties: {
 		settings: {
 			type: Object,
@@ -177,6 +195,9 @@ Polymer({
 	compareArray: function(firstArray, secondArray) {
 		if (!firstArray === !secondArray) {
 			return true;
+		}
+		else if (!firstArray || !secondArray) {
+			return false;
 		}
 		var firstLength = firstArray.length;
 		if (firstLength !== secondArray.length) {
@@ -501,10 +522,121 @@ Polymer({
 		return obj;
 	},
 
+	getTwoValuesDifferences: function(changesObject, keyString, val1, val2, changes, localChanges) {
+		//Array or object
+		var obj1ValIsArray = Array.isArray(val1);
+		var obj2ValIsArray = Array.isArray(val2);
+		var obj1ValIsObjOrArray = typeof val1 === 'object';
+		var obj2ValIsObjOrArray = typeof val2 !== 'object';
+
+		if (obj1ValIsObjOrArray) {
+			//Array or object
+			if (obj2ValIsObjOrArray) {
+				localChanges.push(changesObject);
+			} else {
+				//Both objects or arrays
+
+				//1 is an array
+				if (obj1ValIsArray) {
+					//2 is not an array
+					if (!obj2ValIsArray) {
+						localChanges.push(changesObject);
+					} else {
+						//Both are arrays, compare them
+						if (this.getArrDifferences(keyString, val1, val2, changes)) {
+							//Changes have been found, also say the container arrays have changed
+							localChanges.push(changesObject);
+						}
+					}
+				} else {
+					//1 is not an array, check if 2 is
+					if (obj2ValIsArray) {
+						//2 is an array, changes
+						localChanges.push(changesObject);
+					} else {
+						//2 is also not an array, they are both objects
+						if (this.getObjDifferences(keyString, val1, val2, changes)) {
+							//Changes have been found, also say the container arrays have changed
+							localChanges.push(changesObject);
+						}
+					}
+				}
+			}
+		} else if (val1 !== val2) {
+			//They are both normal string/number/bool values, do a normal comparison
+			localChanges.push(changesObject);
+		}
+	},
+
+	getArrDifferences: function (keyString, arr1, arr2, changes) {
+		var changesObject;
+		var keyStringForKey;
+		var localChanges = [];
+		for (var index = 0; index < arr1.length; index++) {
+			keyStringForKey = keyString + '[' + index + ']';
+
+			changesObject = {
+				keyString: keyString,
+				oldValue: arr2[index],
+				newValue: arr1[index],
+				name: key
+			};
+			this.getTwoValuesDifferences(changesObject, keyStringForKey, arr1[key], arr2[key], changes, localChanges);
+		}
+
+		if (localChanges.length > 0) {
+			for (var i = 0; i < localChanges.length; i++) {
+				changes[localChanges[i].keyString] = localChanges[i];
+			}
+			return true;
+		}
+		return false;
+	},
+
+	getObjDifferences: function (keyString, obj1, obj2, changes) {
+		var changesObject;
+		var keyStringForKey;
+		var localChanges = [];
+		for (var key in obj1) {
+			if (obj1.hasOwnProperty(key)) {
+				keyStringForKey = keyString + '.' + key;
+				changesObject = {
+					keyString: keyString,
+					oldValue: obj2[key],
+					newValue: obj1[key],
+					name: key
+				};
+				this.getTwoValuesDifferences(changesObject, keyStringForKey, obj1[key], obj2[key], changes, localChanges);
+			}
+		}
+		if (localChanges.length > 0) {
+			for (var i = 0; i < localChanges.length; i++) {
+				changes[localChanges[i].keyString] = localChanges[i];
+			}
+			return true;
+		}
+		return false;
+	},
+
 	/**
 	 * Uploads this object to chrome.storage.sync
 	 */
 	upload: function () {
+		//Send changes to background-page, background-page uploads everything
+		//Compare storageLocal objects
+		var localChanges = {};
+		var storageLocal = this.storageLocal;
+		var storageLocalCopy = this.storageLocalCopy;
+
+		var settingsChanges = {};
+		var settings = this.settings;
+		var settingsCopy = this.settingsCopy;
+		if (getObjDifferences('', storageLocal, storageLocalCopy, localChanges)) {
+			//Changes occured
+
+
+		}
+
 		var _this = this;
 		console.log(this.settings);
 		var settingsJson = JSON.stringify(this.settings);
@@ -979,6 +1111,7 @@ Polymer({
 
 		function callback(items) {
 			_this.settings = items;
+			_this.settingsCopy = JSON.parse(JSON.stringify(items));
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 			}
@@ -1076,6 +1209,7 @@ Polymer({
 				}
 			}
 			_this.storageLocal = storageLocal;
+			_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 		});
 		this.show = false;
 

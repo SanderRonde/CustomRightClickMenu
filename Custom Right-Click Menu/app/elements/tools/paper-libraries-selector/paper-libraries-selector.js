@@ -49,6 +49,7 @@ Polymer({
 
 	ready: function() {
 		var _this = this;
+		window.paperLibrariesSelector = this;
 		chrome.storage.local.get('libraries', function (keys) {
 			if (keys.libraries) {
 				_this.installedLibraries = keys.libraries;
@@ -272,6 +273,10 @@ Polymer({
 
 			//TODO remove the require from the metatags
 		}
+	},
+
+	updateLibraries: function(libraries) {
+		this.set('libraries', libraries);
 	},
 
 	behaviors: [Polymer.PaperDropdownBehavior]

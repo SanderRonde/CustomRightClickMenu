@@ -189,6 +189,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.storage = {};
 
 	var storageListeners = [];
+	var storageIndexGM = 0;
+	var storageListenersGM = {};
 	var storagePrevious = {};
 
 	/*
@@ -199,7 +201,16 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		var stored = node.storage;
 		for (var key in stored) {
 			if (stored.hasOwnProperty(key)) {
-				if (stored[key] !== storagePrevious[key]) {
+				//TODO also check in objects and notify
+				if (typeof stored[key] === 'object' && typeof storagePrevious[key] === 'object') {
+					//Compare objects or arrays
+
+				}
+				else if (typeof stored[key] !== 'object' && typeof storagePrevious[key] !== 'object') {
+					if (stored[key] !== storagePrevious[key]) {
+						changes[key] = true;
+					}
+				} else {
 					changes[key] = true;
 				}
 			}
@@ -209,7 +220,25 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 				storageListeners.listener && storageListeners.listener();
 			}
 		}
+
+		for (var listenerObj in storageListenersGM) {
+			if (storageListenersGM.hasOwnProperty(listenerObj)) {
+				if (changes[listenerObj.key]) {
+					listenerObj.callback(listenerObj.key, storagePrevious[listenerObj.key], node.storage[listenerObj.key], true);
+				}
+			}
+		}
 		storagePrevious = node.storage;
+	}
+
+	function notifyGMChanges(name, oldValue, newValue) {
+		for (var listenerObj in storageListenersGM) {
+			if (storageListenersGM.hasOwnProperty(listenerObj)) {
+				if (listenerObj.key === name) {
+					listenerObj.callback(name, oldValue, newValue, false);
+				}
+			}
+		}
 	}
 
 	/*
@@ -265,7 +294,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.storage.set = function(keyPath, value) {
 		if (checkType(keyPath, 'string', true)) {
 			if (keyPath.indexOf('.') === -1) {
-				storage[keyPath] = value;
+				notifyGMChanges(keyPath, node.storage[keyPath], value);
+				node.storage[keyPath] = value;
+				storagePrevious = node.storage;
 				updateStorage();
 				return undefined;
 			} else {
@@ -273,17 +304,21 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 			}
 		}
 		if (checkType(keyPath, 'array', true)) {
-			var data = lookup(keyPath, storage, true);
+			var data = lookup(keyPath, node.storage, true);
+			notifyGMChanges(keyPath, data[keyPath[keyPath.length - 1]], value);
 			data[keyPath[keyPath.length - 1]] = value;
+			storagePrevious = node.storage;
 			updateStorage();
 			return undefined;
 		}
 		checkType(keyPath, ['string', 'array','object'], 'keyPath');
 		for (var key in keyPath) {
 			if (keyPath.hasOwnProperty(key)) {
-				storage[key] = value;
+				notifyGMChanges(keyPath, node.storage[key], value);
+				node.storage[key] = value;
 			}
 		}
+		storagePrevious = node.storage;
 		updateStorage();
 		return undefined;
 	};
@@ -298,7 +333,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.storage.remove = function (keyPath) {
 		if (checkType(keyPath, 'string', true)) {
 			if (keyPath.indexOf('.') === -1) {
-				delete storage[keyPath];
+				notifyGMChanges(keyPath, node.storage[keyPath], undefined);
+				delete node.storage[keyPath];
+				storagePrevious = node.storage;
 				updateStorage();
 				return undefined;
 			} else {
@@ -306,17 +343,21 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 			}
 		}
 		if (checkType(keyPath, 'array', true)) {
-			var data = lookup(keyPath, storage, true);
+			var data = lookup(keyPath, node.storage, true);
+			notifyGMChanges(keyPath, data[keyPath[keyPath.length - 1]], undefined);
 			delete data[keyPath[keyPath.length - 1]];
+			storagePrevious = node.storage;
 			updateStorage();
 			return undefined;
 		}
 		checkType(keyPath, ['string', 'array', 'object'], 'keyPath');
 		for (var key in keyPath) {
 			if (keyPath.hasOwnProperty(key)) {
-				delete storage[key];
+				notifyGMChanges(keyPath, node.storage[key], undefined);
+				delete node.storage[key];
 			}
 		}
+		storagePrevious = node.storage;
 		updateStorage();
 		return undefined;
 	};
@@ -457,59 +498,96 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	}
 
 	/**
-	 * The value of a node if it's of type link
+	 * The value of a standard node, all nodes inherit from this
 	 * 
-	 * @typedef {Object[]} CrmAPIInit~linkVal
-	 * @property {boolean} newTab - Whether the URL will be opened in a new tab
+	 * @typedef {Object} CrmAPIInit~crmNode
+	 * @property {Number} id - The ID of the node
+	 * @property {Number} index - The index of the node in its parent's children
+	 * @property {string} name - The name of the node
+	 * @property {string} type - The type of the node (link, script, menu or divider)
+	 * @property {Object[]} children - The children of the object, only possible if type is menu and permision "CRM" is present
+	 * @property {Object} nodeInfo - Any info about the node, it's author and where it's downloaded from
+	 * @property {string} nodeInfo.installDate - The date on which the node was installed or created
+	 * @property {boolean} nodeInfo.isRoot - Whether the node is downloaded (false) or created locally (true)
+	 * @property {string[]} nodeInfo.permissions - Permissions required by the node on install
+	 * @property {string|Object} nodeInfo.source - 'Local' if the node is non-remotely or created here,
+	 *		object if it IS remotely installed
+	 * @property {string} nodeInfo.source.url - The url that the node was installed from
+	 * @property {Number[]} path - The path to the node from the tree's root
+	 * @property {boolean[]} onContentTypes - The content types on which the node is visible
+	 *		there's 6 slots, for each slot true indicates it's shown and false indicates it's hidden
+	 *		on that content type, the content types are 'page','link','selection','image','video' and 'audio' 
+	 *		respectively
+	 * @property {string[]} permissions - The permissions required by this script
 	 * @property {string} url - The URL to open
+	 * @property {string} triggers.url - The URL of the site on which to run, according to the chrome match patterns
+	 *		found at https://developer.chrome.com/extensions/match_patterns
+	 * @property {boolean} triggers.not - If true does NOT run on given site
+	 * @property {CrmAPIInit~linkVal} linkVal - The value of the node if it were to switch to type link
+	 * @property {CrmAPIInit~scriptVal} scriptVal - The value of the node if it were to switch to type script
+	 * @property {Object[]} menuVal - The children of the node if it were to switch to type menu
+	 */
+
+	/**
+	 * The properties of a node if it's of type link
+	 * 
+	 * @augments CrmAPIInit~crmNode
+	 * @typedef {Object[]} CrmAPIInit~linkVal
+	 * @property {Object[]} value - The links in this link-node
+	 * @property {string} value.url - The URL to open
+	 * @property {boolean} value.newTab - True if the link is opened in a new tab
+	 * @property {boolean} showOnSpecified - Whether the triggers are actually used, true if they are
 	 */
 
 	/*
-	 * The value of a node if it's of type script
+	 * The properties of a node if it's of type script
 	 * 
+	 * @augments CrmAPIInit~crmNode
 	 * @typedef {Object} CrmAPIInit~scriptVal
-	 * @property {Number} launchMode - When to launch the script, 
+	 * @property {Object} value - The value of this script-node
+	 * @property {Number} value.launchMode - When to launch the script, 
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
 	 *		3 = only show on specified pages
-	 * @property {string} script - The script that is ran itself
+	 * @property {Object} value - An object containing values about the script
+	 * @property {string} value.script - The script for this node
+	 * @property {Object} value.metaTags - The metaTags for the script, keys are the metaTags, values are
+	 *		arrays where each item is one instance of the key-value pair being in the metatags
 	 * @property {Object[]} libraries - The libraries that are used in this script
 	 * @property {script} libraries.name - The name of the library
-	 * @property {Object[]} triggers - A trigger for the script to run
-	 * @property {string} triggers.url - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 */
 
 	/*
-	* The value of a node if it's of type stylesheet
+	* The properties of a node if it's of type stylesheet
 	* 
+	* @augments CrmAPIInit~crmNode
 	* @typedef {Object} CrmAPIInit~stylesheetVal
-	* @property {Number} launchMode - When to launch the stylesheet, 
+	* @property {Object} value - The value of this stylesheet
+	* @property {Number} value.launchMode - When to launch the stylesheet, 
 	*		0 = run on clicking
 	*		1 = always run
 	*		2 = run on specified pages
 	*		3 = only show on specified pages
-	* @property {string} stylesheet - The script that is ran itself
-	* @property {boolean} toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
-	* @property {boolean} defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
-	* @property {Object[]} triggers - A trigger for the stylesheet to run
-	* @property {string} triggers.url - The URL of the site on which to run, regex is available but wrap it in parentheses
+	* @property {string} value.stylesheet - The script that is ran itself
+	* @property {boolean} value.toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
+	* @property {boolean} value.defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
 	*/
 
 	/**
-	 * A crmNode that is returned in most crm-callbacks
-	 * @typedef {Object} CrmAPIInit~crmNode
-	 * @property {string} name - The name of the node
-	 * @property {string} type - The type of the node (link, script, menu or divider)
-	 * @property {Object[]} children - The children of the object, only possible if type is menu and permision "CRM" is present
-	 * @property {number} id - The id of the node
-	 * @property {number[]} path - An array of numbers that show the path in the CRM,
-	 *		can be used to find out the node's general position in the tree more accurately
-	 * @property {CrmAPIInit~linkVal} linkVal - The value of the node if it were to switch to type link
-	 * @property {CrmAPIInit~scriptVal} scriptVal - The value of the node if it were to switch to type script
-	 * @property {Object[]} menuVal - The children of the node if it were to switch to type menu
-	 * @property {CrmAPIInit~linkVal|CrmAPIInit~scriptVal|CrmAPIInit~stylesheetVal|Object} value - The value of this node, changes depending on type,
-	 *		is either of type linkVal, scriptVal or just an empty object
+	 * The properties of a node if it's of type menu
+	 * 
+	 * @augments CrmAPIInit~crmNode
+	 * @typedef {Object} CrmAPIInit~menuVal
+	 * @property {boolean} showOnSpecified - Whether the triggers are actually used, true if they are
+	 */
+
+	/**
+	 * The properties of a node if it's of type divider
+	 * 
+	 * @augments CrmAPIInit~crmNode
+	 * @typedef {Object} CrmAPIInit~dividerVal
+	 * @property {boolean} showOnSpecified - Whether the triggers are actually used, true if they are
 	 */
 
 	/**
@@ -787,6 +865,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {Object[]} triggers - The triggers that launch this node, automatically turns triggers on
 	 * @param {string} triggers.url - The url of the trigger
+	 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 	 */
 	this.crm.setTriggers = function(nodeId, triggers, callback) {
@@ -797,25 +876,27 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	}
 
 	/**
-	 * Gets the trigger' usage for given node (true - it's being used, or false) - requires permission "crmGet"
+	 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
+	 *		link, menu and divider - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
 	 */
-	this.crm.getTriggerUsage = function(nodeId, callback) {
+	this.crm.stylesheet.getTriggerUsage = function (nodeId, callback) {
 		sendCrmMessage('getTriggerUsage', callback, {
 			nodeId: nodeId
 		});
 	}
 
 	/**
-	 * Sets the usage of triggers for given node - requires permissions "crmGet" and "crmSet"
+	 * Sets the usage of triggers for given node, only works on link, menu and divider
+	 *		 - requires permissions "crmGet" and "crmSet"
 	 * 
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {boolean} useTriggers - Whether the triggers should be used or not
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 	 */
-	this.crm.setTriggerUsage = function(nodeId, useTriggers, callback) {
+	this.crm.stylesheet.setTriggerUsage = function (nodeId, useTriggers, callback) {
 		sendCrmMessage('setTriggerUsage', callback, {
 			nodeId: nodeId,
 			useTriggers: useTriggers
@@ -1016,6 +1097,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 			nodeId: nodeId
 		});
 	}
+
 
 	this.crm.menu = {};
 	
@@ -1303,22 +1385,18 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @param {String} name - The unique (within this script) name for this value. Should be restricted to valid Javascript identifier characters.
 	 * @param {any} value - The value to store
-	 * @returns {undefined} - undefined
 	 */
 	this.GM.GM_setValue = function(name, value) {
 		_this.storage.set(name, value);
-		return undefined;
 	}
 
 	/**
 	 * This method deletes an existing name / value pair from storage.
 	 * 
 	 * @param {String} name - Property name to delete.
-	 * @returns {undefined} - undefined
 	 */
 	this.GM.GM_deleteValue = function (name) {
 		_this.storage.remove(name);
-		return undefined;
 	}
 
 	/**
@@ -1378,20 +1456,14 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 *		not possible in chrome
 	 * 
 	 * @param {String} url - The url to open
-	 * @returns {undefined} undefined
 	 */
 	this.GM.GM_openInTab = function(url) {
 		window.open(url);
-		return undefined;
 	}
 
-	this.GM.GM_registerMenuCommand = function() {
-		//This is only here to prevent errors from occuring when calling this function,
+	this.GM.GM_registerMenuCommand = this.GM.GM_unregisterMenuCommand = this.GM.GM_setClipboard = function() {
+		//This is only here to prevent errors from occuring when calling any of these functions,
 		//this function does nothing
-	}
-
-	this.GM.GM_setClipboard = function() {
-		//Also not implemented, this is not possible in chrome
 	}
 
 	//Taken from https://gist.github.com/arantius/3123124
@@ -1458,7 +1530,47 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		}
 	}
 
+	/**
+	 * Adds a change listener to the storage and returns the listener ID. 
+	 *		'name' is the name of the observed variable. The 'remote' argument
+	 *		of the callback function shows whether this value was modified 
+	 *		from the instance of another tab (true) or within this script
+	 *		instance (false). Therefore this functionality can be used by
+	 *		scripts of different browser tabs to communicate with each other.
+	 * 
+	 * @param {string} name - The name of the observed variable
+	 * @param {function} callback - A callback in which the first argument is
+	 *		the name of the observed, variable, the second one is the old value,
+	 *		the third one is the new value and the fourth one is a boolean that
+	 *		indicates whether the change was from a remote tab
+	 * @returns {number} The id of the listener, used for removing it
+	 */
+	this.GM.GM_addValueChangeListener = function (name, callback) {
+		storageListenersGM[++storageIndexGM] = {
+			key: name,
+			callback: callback,
+			index: storageIndexGM
+		};
+		return storageIndexGM;
+	}
+
+	/**
+	 * Removes a change listener by its ID.
+	 * 
+	 * @param {number} listenerId - The id of the listener
+	 */
+	this.GM.GM_removeValueChangeListener = function(listenerId) {
+		delete storageListenersGM[listenerId];
+	}
+
 	this.GM.unsafeWindow = window;
+
+	var gmApis = this.GM;
+	for (var key in gmApis) {
+		if (gmApis.hasOwnProperty(key)) {
+			window[key] = gmApis[key];
+		}
+	}
 
 	//#endregion
 

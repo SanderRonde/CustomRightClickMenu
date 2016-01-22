@@ -871,9 +871,19 @@ function sandbox(api, args) {
 		skipPageCrm && buildPageCRM();
 	}
 
+	var storage = {
+		local: null,
+		settings: null
+	}
+
 	function updateNodeStorage(message) {
 		crmById[message.id].storage = message.storage;
-		window.updateStorage();
+		
+		//Notify all pages running that node
+
+
+		//Update in storage
+
 	}
 
 	function respondToCrmAPI(message, type, data, stackTrace) {
@@ -910,1336 +920,1335 @@ function sandbox(api, args) {
 
 	// ReSharper disable once InconsistentNaming
 	function CRMFunction(message, toRun) {
-		var _this = this;
 		this.toRun = toRun;
 		this.message = message;
+	}
 
-		this.respondSuccess = function () {
-			var args = [];
-			for (var i = 0; i < arguments.length; i++) {
-				args.push(arguments[i]);
+	CRMFunction.prototype.respondSuccess = function () {
+		var args = [];
+		for (var i = 0; i < arguments.length; i++) {
+			args.push(arguments[i]);
+		}
+		respondToCrmAPI(message, 'success', args);
+		return true;
+	};
+
+	CRMFunction.prototype.respondError = function (error) {
+		respondToCrmAPI(message, 'error', error);
+		return true;
+	};
+
+	CRMFunction.prototype.lookup = function (path, data, hold) {
+		if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
+			this.respondError('Supplied path is not of type array');
+			return true;
+		}
+		var length = path.length - 1;
+		hold && length--;
+		for (var i = 0; i < length; i++) {
+			if (data) {
+				data = data[path[i]].children;
+			} else {
+				return false;
 			}
-			respondToCrmAPI(message, 'success', args);
-			return true;
-		};
+		}
+		return (hold ? data : data[path[length]]) || false;
+	};
 
-		this.respondError = function (error) {
-			respondToCrmAPI(message, 'error', error);
-			return true;
-		};
-
-		this.lookup = function (path, data, hold) {
-			if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
-				this.respondError('Supplied path is not of type array');
+	CRMFunction.prototype.checkType = function (toCheck, type, name, optional, ifndef, array, ifdef) {
+		if (!toCheck) {
+			if (optional) {
+				ifndef && ifndef();
 				return true;
-			}
-			var length = path.length - 1;
-			hold && length--;
-			for (var i = 0; i < length; i++) {
-				if (data) {
-					data = data[path[i]].children;
+			} else {
+				if (array) {
+					this.respondError('Not all values for ' + name + ' are defined');
 				} else {
-					return false;
+					this.respondError('Value for ' + name + ' is not defined');
 				}
+				return false;
 			}
-			return (hold ? data : data[path[length]]) || false;
-		};
-
-		this.checkType = function (toCheck, type, name, optional, ifndef, array, ifdef) {
-			if (!toCheck) {
-				if (optional) {
-					ifndef && ifndef();
-					return true;
-				} else {
+		} else {
+			if (type === 'array') {
+				if (typeof toCheck !== 'object' || Array.isArray(toCheck)) {
 					if (array) {
-						_this.respondError('Not all values for ' + name + ' are defined');
+						this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
 					} else {
-						_this.respondError('Value for ' + name + ' is not defined');
+						this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
 					}
 					return false;
 				}
-			} else {
-				if (type === 'array') {
-					if (typeof toCheck !== 'object' || Array.isArray(toCheck)) {
-						if (array) {
-							_this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
-						} else {
-							_this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
+			}
+			if (typeof toCheck !== type) {
+				if (array) {
+					this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
+				} else {
+					this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
+				}
+				return false;
+			}
+		}
+		ifdef && ifdef();
+		return true;
+	};
+
+	CRMFunction.prototype.moveNode = function (node, position) {
+		node = JSON.parse(JSON.stringify(node));
+		var relativeNode;
+		var isRoot = false;
+		var parentChildren;
+		if (position) {
+			if (!this.checkType(position, 'object', 'position')) {
+				return false;
+			}
+			if (!this.checkType(position.node, 'number', 'node', true, function () {
+				relativeNode = crmTree;
+				isRoot = true;
+			})) {
+				return false;
+			}
+			if (!this.checkType(position.relation, 'string', 'relation', true, function () {
+				position.relation = 'firstSibling';
+				relativeNode = crmTree;
+				isRoot = true;
+			})) {
+				return false;
+			}
+			relativeNode = relativeNode || this.getNodeFromId(node, false, true);
+			if (relativeNode === false) {
+				relativeNode = crmTree;
+				isRoot = true;
+			}
+			switch (position.relation) {
+				case 'before':
+					if (isRoot) {
+						pushIntoArray(node, 0, crmTree);
+					} else {
+						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						if (relativeNode.path.length > 0) {
+							pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
 						}
+					}
+					break;
+				case 'firstSibling':
+					if (isRoot) {
+						pushIntoArray(node, 0, crmTree);
+					} else {
+						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						pushIntoArray(node, 0, parentChildren);
+					}
+					break;
+				case 'firstChild':
+					if (isRoot) {
+						pushIntoArray(node, 0, crmTree);
+					} else if (relativeNode.type === 'menu') {
+						pushIntoArray(node, 0, relativeNode.children);
+					} else {
+						this.respondError('Supplied node is not of type "menu"');
 						return false;
 					}
-				}
-				if (typeof toCheck !== type) {
-					if (array) {
-						_this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
+					break;
+				case 'after':
+					if (isRoot) {
+						pushIntoArray(node, crmTree.length, crmTree);
 					} else {
-						_this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
+						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						if (relativeNode.path.length > 0) {
+							pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
+						}
 					}
-					return false;
-				}
-			}
-			ifdef && ifdef();
-			return true;
-		};
-
-		this.moveNode = function (node, position) {
-			node = JSON.parse(JSON.stringify(node));
-			var relativeNode;
-			var isRoot = false;
-			var parentChildren;
-			if (position) {
-				if (!_this.checkType(position, 'object', 'position')) {
-					return false;
-				}
-				if (!_this.checkType(position.node, 'number', 'node', true, function () {
-					relativeNode = crmTree;
-					isRoot = true;
-				})) {
-					return false;
-				}
-				if (!_this.checkType(position.relation, 'string', 'relation', true, function () {
-					position.relation = 'firstSibling';
-					relativeNode = crmTree;
-					isRoot = true;
-				})) {
-					return false;
-				}
-				relativeNode = relativeNode || _this.getNodeFromId(node, false, true);
-				if (relativeNode === false) {
-					relativeNode = crmTree;
-					isRoot = true;
-				}
-				switch (position.relation) {
-					case 'before':
-						if (isRoot) {
-							pushIntoArray(node, 0, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							if (relativeNode.path.length > 0) {
-								pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
-							}
-						}
-						break;
-					case 'firstSibling':
-						if (isRoot) {
-							pushIntoArray(node, 0, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							pushIntoArray(node, 0, parentChildren);
-						}
-						break;
-					case 'firstChild':
-						if (isRoot) {
-							pushIntoArray(node, 0, crmTree);
-						} else if (relativeNode.type === 'menu') {
-							pushIntoArray(node, 0, relativeNode.children);
-						} else {
-							_this.respondError('Supplied node is not of type "menu"');
-							return false;
-						}
-						break;
-					case 'after':
-						if (isRoot) {
-							pushIntoArray(node, crmTree.length, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							if (relativeNode.path.length > 0) {
-								pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
-							}
-						}
-						break;
-					case 'lastSibling':
-						if (isRoot) {
-							pushIntoArray(node, crmTree.length, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							pushIntoArray(node, parentChildren.length - 1, parentChildren);
-						}
-						break;
-					case 'lastChild':
-						if (isRoot) {
-							pushIntoArray(node, crmTree.length, crmTree);
-						} else if (relativeNode.type === 'menu') {
-							pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
-						} else {
-							_this.respondError('Supplied node is not of type "menu"');
-							return false;
-						}
-						break;
-				}
-			} else {
-				//Place in default position, firstChild of root
-				pushIntoArray(node, 0, crmTree);
-			}
-			var pathMinusOne = JSON.parse(JSON.stringify(node.path));
-			pathMinusOne.splice(pathMinusOne.length - 1, 1);
-			eval('crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
-			return true;
-		};
-
-		this.getNodeFromId = function (id, isSafe, noCallback) {
-			var node = (isSafe ? crmByIdSafe : crmById)[id];
-			if (node) {
-				if (noCallback) {
-					return node;
-				}
-				return {
-					run: function (callback) {
-						callback(node);
-					}
-				};
-			} else {
-				_this.respondError('There is no node with the id you supplied (' + id + ')');
-				if (noCallback) {
-					return false;
-				}
-				return {
-					run: function () { }
-				};
-			}
-		};
-
-		this.typeCheck = function (toCheck, callback) {
-			var i, j, k, l;
-			var typesMatch;
-			var toCheckName;
-			var matchingType;
-			var toCheckTypes;
-			var toCheckValue;
-			var toCheckIsArray;
-			var optionals = {};
-			var toCheckChildrenName;
-			var toCheckChildrenType;
-			var toCheckChildrenValue;
-			var toCheckChildrenTypes;
-			for (i = 0; i < toCheck.length; i++) {
-				toCheckName = toCheck[i].val;
-				if (toCheck[i].dependency) {
-					if (!optionals[toCheck[i].dependency]) {
-						optionals[toCheckName] = false;
-						continue;
-					}
-				}
-				toCheckTypes = toCheck[i].type.split('|');
-				toCheckValue = eval('_this.message.' + toCheckName + ';');
-				if (toCheckValue === undefined || toCheckValue === null) {
-					if (toCheck[i].optional) {
-						optionals[toCheckName] = false;
-						continue;
+					break;
+				case 'lastSibling':
+					if (isRoot) {
+						pushIntoArray(node, crmTree.length, crmTree);
 					} else {
-						_this.respondError('Value for ' + toCheckName + ' is not set');
+						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						pushIntoArray(node, parentChildren.length - 1, parentChildren);
+					}
+					break;
+				case 'lastChild':
+					if (isRoot) {
+						pushIntoArray(node, crmTree.length, crmTree);
+					} else if (relativeNode.type === 'menu') {
+						pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
+					} else {
+						this.respondError('Supplied node is not of type "menu"');
 						return false;
 					}
+					break;
+			}
+		} else {
+			//Place in default position, firstChild of root
+			pushIntoArray(node, 0, crmTree);
+		}
+		var pathMinusOne = JSON.parse(JSON.stringify(node.path));
+		pathMinusOne.splice(pathMinusOne.length - 1, 1);
+		eval('crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
+		return true;
+	};
+
+	CRMFunction.prototype.getNodeFromId = function (id, isSafe, noCallback) {
+		var node = (isSafe ? crmByIdSafe : crmById)[id];
+		if (node) {
+			if (noCallback) {
+				return node;
+			}
+			return {
+				run: function (callback) {
+					callback(node);
+				}
+			};
+		} else {
+			this.respondError('There is no node with the id you supplied (' + id + ')');
+			if (noCallback) {
+				return false;
+			}
+			return {
+				run: function () { }
+			};
+		}
+	};
+
+	CRMFunction.prototype.typeCheck = function (toCheck, callback) {
+		var i, j, k, l;
+		var typesMatch;
+		var toCheckName;
+		var matchingType;
+		var toCheckTypes;
+		var toCheckValue;
+		var toCheckIsArray;
+		var optionals = {};
+		var toCheckChildrenName;
+		var toCheckChildrenType;
+		var toCheckChildrenValue;
+		var toCheckChildrenTypes;
+		for (i = 0; i < toCheck.length; i++) {
+			toCheckName = toCheck[i].val;
+			if (toCheck[i].dependency) {
+				if (!optionals[toCheck[i].dependency]) {
+					optionals[toCheckName] = false;
+					continue;
+				}
+			}
+			toCheckTypes = toCheck[i].type.split('|');
+			toCheckValue = eval('this.message.' + toCheckName + ';');
+			if (toCheckValue === undefined || toCheckValue === null) {
+				if (toCheck[i].optional) {
+					optionals[toCheckName] = false;
+					continue;
 				} else {
-					toCheckIsArray = Array.isArray(toCheckValue);
-					typesMatch = false;
-					matchingType = false;
-					for (j = 0; j < toCheckTypes.length; j++) {
-						if (toCheckTypes[j] === 'array') {
-							if (typeof toCheckValue === 'object' && Array.isArray(toCheckValue)) {
-								matchingType = toCheckTypes[j];
-								typesMatch = true;
-								break;
-							}
-						} else if (typeof toCheckValue === toCheckTypes[j]) {
+					this.respondError('Value for ' + toCheckName + ' is not set');
+					return false;
+				}
+			} else {
+				toCheckIsArray = Array.isArray(toCheckValue);
+				typesMatch = false;
+				matchingType = false;
+				for (j = 0; j < toCheckTypes.length; j++) {
+					if (toCheckTypes[j] === 'array') {
+						if (typeof toCheckValue === 'object' && Array.isArray(toCheckValue)) {
 							matchingType = toCheckTypes[j];
 							typesMatch = true;
 							break;
 						}
+					} else if (typeof toCheckValue === toCheckTypes[j]) {
+						matchingType = toCheckTypes[j];
+						typesMatch = true;
+						break;
 					}
-					if (!typesMatch) {
-						_this.respondError('Value for ' + toCheckName + ' is not of type ' + toCheckTypes.join(' or '));
+				}
+				if (!typesMatch) {
+					this.respondError('Value for ' + toCheckName + ' is not of type ' + toCheckTypes.join(' or '));
+					return false;
+				}
+				optionals[toCheckName] = true;
+				if (toCheck[i].min && typeof toCheckValue === 'number') {
+					if (toCheck[i].min > toCheckValue) {
+						this.respondError('Value for ' + toCheckName + ' is smaller than ' + toCheck[i].min);
 						return false;
 					}
-					optionals[toCheckName] = true;
-					if (toCheck[i].min && typeof toCheckValue === 'number') {
-						if (toCheck[i].min > toCheckValue) {
-							_this.respondError('Value for ' + toCheckName + ' is smaller than ' + toCheck[i].min);
-							return false;
-						}
+				}
+				if (toCheck[i].max && typeof toCheckValue === 'number') {
+					if (toCheck[i].max < toCheckValue) {
+						this.respondError('Value for ' + toCheckName + ' is bigger than ' + toCheck[i].max);
+						return false;
 					}
-					if (toCheck[i].max && typeof toCheckValue === 'number') {
-						if (toCheck[i].max < toCheckValue) {
-							_this.respondError('Value for ' + toCheckName + ' is bigger than ' + toCheck[i].max);
-							return false;
-						}
-					}
-					if (matchingType === 'array' && toCheck[i].forChildren) {
-						for (j = 0; j < toCheckValue.length; j++) {
-							for (k = 0; k < toCheck[i].forChildren.length; k++) {
-								toCheckChildrenName = toCheck[i].forChildren[k].val;
-								toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
-								if (toCheckChildrenValue === undefined || toCheckChildrenValue === null) {
-									if (!toCheck[i].forChildren[k].optional) {
-										_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' defined');
-										return false;
-									}
-								} else {
-									toCheckChildrenType = toCheck[i].forChildren[k].type;
-									toCheckChildrenTypes = toCheckChildrenType.split('|');
-									typesMatch = false;
-									for (l = 0; l < toCheckChildrenTypes.length; l++) {
-										if (toCheckChildrenTypes[l] === 'array') {
-											if (typeof toCheckChildrenValue === 'object' && Array.isArray(toCheckChildrenValue) !== undefined) {
-												typesMatch = true;
-												break;
-											}
-										} else if (typeof toCheckChildrenValue === toCheckChildrenTypes[l]) {
+				}
+				if (matchingType === 'array' && toCheck[i].forChildren) {
+					for (j = 0; j < toCheckValue.length; j++) {
+						for (k = 0; k < toCheck[i].forChildren.length; k++) {
+							toCheckChildrenName = toCheck[i].forChildren[k].val;
+							toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
+							if (toCheckChildrenValue === undefined || toCheckChildrenValue === null) {
+								if (!toCheck[i].forChildren[k].optional) {
+									this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' defined');
+									return false;
+								}
+							} else {
+								toCheckChildrenType = toCheck[i].forChildren[k].type;
+								toCheckChildrenTypes = toCheckChildrenType.split('|');
+								typesMatch = false;
+								for (l = 0; l < toCheckChildrenTypes.length; l++) {
+									if (toCheckChildrenTypes[l] === 'array') {
+										if (typeof toCheckChildrenValue === 'object' && Array.isArray(toCheckChildrenValue) !== undefined) {
 											typesMatch = true;
 											break;
 										}
+									} else if (typeof toCheckChildrenValue === toCheckChildrenTypes[l]) {
+										typesMatch = true;
+										break;
 									}
-									if (!typesMatch) {
-										_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' of type ' + toCheckChildrenTypes.join(' or '));
-										return false;
-									}
+								}
+								if (!typesMatch) {
+									this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' of type ' + toCheckChildrenTypes.join(' or '));
+									return false;
 								}
 							}
 						}
 					}
 				}
 			}
-			callback(optionals);
-			return true;
-		};
+		}
+		callback(optionals);
+		return true;
+	};
 
-		this.checkPermissions = function (toCheck, callbackOrOptional, callback) {
-			var optional = [];
-			if (callbackOrOptional !== undefined && callbackOrOptional !== null && typeof callbackOrOptional === 'object') {
-				optional = callbackOrOptional;
+	CRMFunction.prototype.checkPermissions = function (toCheck, callbackOrOptional, callback) {
+		var optional = [];
+		if (callbackOrOptional !== undefined && callbackOrOptional !== null && typeof callbackOrOptional === 'object') {
+			optional = callbackOrOptional;
+		} else {
+			callback = callbackOrOptional;
+		}
+		var permitted = true;
+		var notPermitted = [];
+		var node = this.getNodeFromId(message.id, false, true);
+		if (node.isLocal) {
+			callback && callback(optional);
+		} else {
+			var i;
+			if (!node.permissions || compareArray(node.permissions, [])) {
+				if (toCheck.length > 0) {
+					permitted = false;
+					notPermitted.push(toCheck);
+				}
 			} else {
-				callback = callbackOrOptional;
-			}
-			var permitted = true;
-			var notPermitted = [];
-			var node = _this.getNodeFromId(message.id, false, true);
-			if (node.isLocal) {
-				callback && callback(optional);
-			} else {
-				var i;
-				if (!node.permissions || compareArray(node.permissions, [])) {
-					if (toCheck.length > 0) {
+				for (i = 0; i < toCheck.length; i++) {
+					if (node.permissions.indexOf(toCheck[i]) === -1) {
 						permitted = false;
-						notPermitted.push(toCheck);
+						notPermitted.push(toCheck[i]);
 					}
-				} else {
-					for (i = 0; i < toCheck.length; i++) {
-						if (node.permissions.indexOf(toCheck[i]) === -1) {
-							permitted = false;
-							notPermitted.push(toCheck[i]);
-						}
-					}
-				}
-
-				if (!permitted) {
-					_this.respondError('Permission' + (notPermitted.length === 1 ? ' ' + notPermitted[0] : 's ' + notPermitted.join(', ')) + ' are not available to this script.');
-				} else {
-					var length = optional.length;
-					for (i = 0; i < length; i++) {
-						if (node.permissions.indexOf(optional[i]) === -1) {
-							optional.splice(i, 1);
-							length--;
-							i--;
-						}
-					}
-					callback && callback(optional);
 				}
 			}
-		};
 
-		this.crmFunctions = {
-			getTree: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.respondSuccess(safeTree);
-				});
-			},
-			getSubTree: function(id) {
-				_this.checkPermissions(['crmGet'], function() {
-					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = crmByIdSafe[id || _this.message.nodeId];
-						if (node) {
-							_this.respondSuccess(node.children);
+			if (!permitted) {
+				this.respondError('Permission' + (notPermitted.length === 1 ? ' ' + notPermitted[0] : 's ' + notPermitted.join(', ')) + ' are not available to this script.');
+			} else {
+				var length = optional.length;
+				for (i = 0; i < length; i++) {
+					if (node.permissions.indexOf(optional[i]) === -1) {
+						optional.splice(i, 1);
+						length--;
+						i--;
+					}
+				}
+				callback && callback(optional);
+			}
+		}
+	};
+
+	CRMFunction.prototype.crmFunctions = {
+		getTree: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.respondSuccess(safeTree);
+			});
+		},
+		getSubTree: function (id) {
+			this.checkPermissions(['crmGet'], function () {
+				if (id || (this.message.nodeId && typeof this.message.nodeId === 'number')) {
+					var node = crmByIdSafe[id || this.message.nodeId];
+					if (node) {
+						this.respondSuccess(node.children);
+					} else {
+						this.respondError('There is no node with id ' + (id || this.message.nodeId));
+					}
+				} else {
+					this.respondError('No nodeId supplied');
+				}
+			});
+		},
+		getNode: function () {
+			this.checkPermissions(['crmGet'], function () {
+				if (id || (this.message.nodeId && typeof this.message.nodeId === 'number')) {
+					var node = crmByIdSafe[id || this.message.nodeId];
+					if (node) {
+						this.respondSuccess(node);
+					} else {
+						this.respondError('There is no node with id ' + (id || this.message.nodeId));
+					}
+				} else {
+					this.respondError('No nodeId supplied');
+				}
+			});
+		},
+		getNodeIdFromPath: function (path) {
+			this.checkPermissions(['crmGet'], function () {
+				var pathToSearch = path || this.message.path;
+				var lookedUp = this.lookup(pathToSearch, safeTree, false);
+				if (lookedUp === true) {
+					return false;
+				} else if (lookedUp === false) {
+					this.respondError('Path does not return a valid value');
+					return false;
+				} else {
+					this.respondSuccess(lookedUp.id);
+					return lookedUp.id;
+				}
+			});
+		},
+		queryCrm: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.typeCheck([
+					{
+						val: 'query',
+						type: 'object'
+					}, {
+						val: 'query.type',
+						type: 'string',
+						optional: true
+					}, {
+						val: 'query.inSubTree',
+						type: 'number',
+						optional: true
+					}, {
+						val: 'query.name',
+						type: 'string',
+						optional: true
+					}
+				], function (optionals) {
+					var j;
+					var searchScopeArray = [];
+
+					function findType(tree, type) {
+						if (type) {
+							tree.type === type && searchScopeArray.push(tree);
 						} else {
-							_this.respondError('There is no node with id ' + (id || _this.message.nodeId));
+							searchScopeArray.push(tree);
 						}
-					} else {
-						_this.respondError('No nodeId supplied');
-					}
-				});
-			},
-			getNode: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = crmByIdSafe[id || _this.message.nodeId];
-						if (node) {
-							_this.respondSuccess(node);
-						} else {
-							_this.respondError('There is no node with id ' + (id || _this.message.nodeId));
-						}
-					} else {
-						_this.respondError('No nodeId supplied');
-					}
-				});
-			},
-			getNodeIdFromPath: function(path) {
-				_this.checkPermissions(['crmGet'], function() {
-					var pathToSearch = path || _this.message.path;
-					var lookedUp = _this.lookup(pathToSearch, safeTree, false);
-					if (lookedUp === true) {
-						return false;
-					} else if (lookedUp === false) {
-						_this.respondError('Path does not return a valid value');
-						return false;
-					} else {
-						_this.respondSuccess(lookedUp.id);
-						return lookedUp.id;
-					}
-				});
-			},
-			queryCrm: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.typeCheck([
-						{
-							val: 'query',
-							type: 'object'
-						}, {
-							val: 'query.type',
-							type: 'string',
-							optional: true
-						}, {
-							val: 'query.inSubTree',
-							type: 'number',
-							optional: true
-						}, {
-							val: 'query.name',
-							type: 'string',
-							optional: true
-						}
-					], function(optionals) {
-						var j;
-						var searchScopeArray = [];
-
-						function findType(tree, type) {
-							if (type) {
-								tree.type === type && searchScopeArray.push(tree);
-							} else {
-								searchScopeArray.push(tree);
-							}
-							if (tree.children) {
-								for (var i = 0; i < tree.children.length; i++) {
-									findType(tree.children[i], type);
-								}
+						if (tree.children) {
+							for (var i = 0; i < tree.children.length; i++) {
+								findType(tree.children[i], type);
 							}
 						}
+					}
 
-						var searchScope;
-						if (optionals['query.inSubTree']) {
-							searchScope = _this.getNodeFromId(_this.message.query.inSubTree, false, true);
-							if (searchScope) {
-								searchScope = searchScope.children;
-							}
-						}
-						searchScope = searchScope || safeTree;
-
+					var searchScope;
+					if (optionals['query.inSubTree']) {
+						searchScope = this.getNodeFromId(this.message.query.inSubTree, false, true);
 						if (searchScope) {
-							for (j = 0; j < searchScope.length; j++) {
-								findType(searchScope[j], _this.message.query.type);
+							searchScope = searchScope.children;
+						}
+					}
+					searchScope = searchScope || safeTree;
+
+					if (searchScope) {
+						for (j = 0; j < searchScope.length; j++) {
+							findType(searchScope[j], this.message.query.type);
+						}
+					}
+
+					if (optionals['query.name']) {
+						var searchScopeLength = searchScopeArray.length;
+						for (j = 0; j < searchScopeLength; j++) {
+							if (searchScopeArray[j].name !== this.message.query.name) {
+								searchScopeArray.splice(j, 1);
+								searchScopeLength--;
+								j--;
 							}
 						}
+					}
 
-						if (optionals['query.name']) {
-							var searchScopeLength = searchScopeArray.length;
-							for (j = 0; j < searchScopeLength; j++) {
-								if (searchScopeArray[j].name !== _this.message.query.name) {
-									searchScopeArray.splice(j, 1);
-									searchScopeLength--;
-									j--;
-								}
+					this.respondSuccess(searchScopeArray);
+				});
+			});
+		},
+		getParentNode: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					var pathToSearch = JSON.parse(JSON.stringify(node.path));
+					pathToSearch.pop();
+					this.crmFunctions.getNodeIdFromPath(pathToSearch, function (id) {
+						this.respondSuccess(crmById[this.getNodeFromId(id, true, true)]);
+					});
+				});
+			});
+		},
+		getChildren: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId, true).run(function (node) {
+					this.respondSuccess(node.children || []);
+				});
+			});
+		},
+		getNodeType: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId, true).run(function (node) {
+					this.respondSuccess(node.type);
+				});
+			});
+		},
+		getNodeValue: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId, true).run(function (node) {
+					this.respondSuccess(node.value);
+				});
+			});
+		},
+		createNode: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'options',
+						type: 'object'
+					}, {
+						val: 'options.usesTriggers',
+						type: 'boolean',
+						optional: true
+					}, {
+						val: 'options.triggers',
+						type: 'array',
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
 							}
-						}
-
-						_this.respondSuccess(searchScopeArray);
-					});
-				});
-			},
-			getParentNode: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						var pathToSearch = JSON.parse(JSON.stringify(node.path));
-						pathToSearch.pop();
-						_this.crmFunctions.getNodeIdFromPath(pathToSearch, function(id) {
-							_this.respondSuccess(crmById[_this.getNodeFromId(id, true, true)]);
-						});
-					});
-				});
-			},
-			getChildren: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						_this.respondSuccess(node.children || []);
-					});
-				});
-			},
-			getNodeType: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						_this.respondSuccess(node.type);
-					});
-				});
-			},
-			getNodeValue: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						_this.respondSuccess(node.value);
-					});
-				});
-			},
-			createNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'options',
-							type: 'object'
-						}, {
-							val: 'options.usesTriggers',
-							type: 'boolean',
-							optional: true
-						}, {
-							val: 'options.triggers',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							],
-							optional: true
-						}, {
-							val: 'options.linkData',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}, {
-									val: 'newTab',
-									type: 'boolean',
-									optional: true
-								}
-							],
-							optional: true
-						}, {
-							val: 'options.scriptData',
-							type: 'object',
-							optional: true
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.script',
-							type: 'string'
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.launchMode',
-							type: 'number',
-							optional: true,
-							min: 0,
-							max: 3
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.triggers',
-							type: 'array',
-							optional: true,
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							]
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.libraries',
-							type: 'array',
-							optional: true,
-							forChildren: [
-								{
-									val: 'name',
-									type: 'string'
-								}
-							]
-						}, {
-							val: 'options.stylesheetData',
-							type: 'object',
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.launchMode',
-							type: 'number',
-							min: 0,
-							max: 3,
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.triggers',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							],
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.toggle',
-							type: 'boolean',
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.defaultOn',
-							type: 'boolean',
-							optional: true
-						}
-					], function(optionals) {
-						generateItemId(function(id) {
-							var i;
-							var type = (_this.message.options.type === 'link' ||
-								_this.message.options.type === 'script' ||
-								_this.message.options.type === 'stylesheet' ||
-								_this.message.options.type === 'menu' ||
-								_this.message.options.type === 'divider' ? _this.message.options.type : 'link');
-							var node = {
-								type: type,
-								name: _this.message.options.name || 'name',
-								id: id,
-								children: [],
-								nodeInfo: _this.getNodeFromId(_this.message.id, false, true).nodeInfo
-							};
-							_this.getNodeFromId(_this.message.id, false, true).local && (node.local = true);
-							if (type === 'link') {
-								if (optionals['options.linkData']) {
-									node.value = _this.message.options.linkData;
-									var value = node.value;
-									for (i = 0; i < value.length; i++) {
-										node.value[i].newTab = (node.value[i].newTab === false ? false : true);
-									}
-								} else {
-									node.value = [
-										{
-											url: 'http://example.com',
-											newTab: true
-										}
-									];
-								}
-								if (optionals['options.usesTriggers']) {
-									node.showOnSpecified = _this.message.options.usesTriggers;
-								}
-								if (optionals['options.triggers']) {
-									node.triggers = _this.message.options.triggers;
-									node.showOnSpecified = true;
-								}
-							} else if (type === 'script') {
-								if (optionals['options.scriptData']) {
-									node.value = {
-										script: _this.message.options.scriptData.script,
-										launchMode: (optionals['options.ScriptData.launchMode'] ? _this.message.options.scriptData.launchMode : 0),
-										triggers: _this.message.options.scriptData.triggers || [],
-										libraries: _this.message.options.scriptData.libraries || []
-									};
-								} else {
-									node.value = {
-										script: '',
-										launchMod: 0,
-										triggers: [],
-										libraries: []
-									};
-								}
-							} else if (type === 'stylesheet') {
-								if (optionals['options.stylesheetData']) {
-									node.value = {
-										stylesheet: _this.message.options.stylesheetData.stylesheet,
-										launchMode: (optionals['options.stylesheetData.launchMode'] ? _this.message.options.stylesheetData.launchMode : 0),
-										triggers: _this.message.options.stylesheetData.triggers || [],
-										toggle: (_this.message.options.stylesheetData.toggle === false ? false : true),
-										defaultOn: (_this.message.options.stylesheetData.defaultOn === false ? false : true)
-									};
-								} else {
-									node.value = {
-										stylesheet: '',
-										launchmode: 0,
-										triggers: [],
-										toggle: true,
-										defaultOn: true
-									}
+						],
+						optional: true
+					}, {
+						val: 'options.linkData',
+						type: 'array',
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}, {
+								val: 'newTab',
+								type: 'boolean',
+								optional: true
+							}
+						],
+						optional: true
+					}, {
+						val: 'options.scriptData',
+						type: 'object',
+						optional: true
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.script',
+						type: 'string'
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.launchMode',
+						type: 'number',
+						optional: true,
+						min: 0,
+						max: 3
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.triggers',
+						type: 'array',
+						optional: true,
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}
+						]
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.libraries',
+						type: 'array',
+						optional: true,
+						forChildren: [
+							{
+								val: 'name',
+								type: 'string'
+							}
+						]
+					}, {
+						val: 'options.stylesheetData',
+						type: 'object',
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.launchMode',
+						type: 'number',
+						min: 0,
+						max: 3,
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.triggers',
+						type: 'array',
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}
+						],
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.toggle',
+						type: 'boolean',
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.defaultOn',
+						type: 'boolean',
+						optional: true
+					}
+				], function (optionals) {
+					generateItemId(function (id) {
+						var i;
+						var type = (this.message.options.type === 'link' ||
+							this.message.options.type === 'script' ||
+							this.message.options.type === 'stylesheet' ||
+							this.message.options.type === 'menu' ||
+							this.message.options.type === 'divider' ? this.message.options.type : 'link');
+						var node = {
+							type: type,
+							name: this.message.options.name || 'name',
+							id: id,
+							children: [],
+							nodeInfo: this.getNodeFromId(this.message.id, false, true).nodeInfo
+						};
+						this.getNodeFromId(this.message.id, false, true).local && (node.local = true);
+						if (type === 'link') {
+							if (optionals['options.linkData']) {
+								node.value = this.message.options.linkData;
+								var value = node.value;
+								for (i = 0; i < value.length; i++) {
+									node.value[i].newTab = (node.value[i].newTab === false ? false : true);
 								}
 							} else {
-								node.value = {};
-								if (optionals['options.usesTriggers']) {
-									node.showOnSpecified = _this.message.options.usesTriggers;
-								}
-								if (optionals['options.triggers']) {
-									node.triggers = _this.message.options.triggers;
-									node.showOnSpecified = true;
-								}
+								node.value = [
+									{
+										url: 'http://example.com',
+										newTab: true
+									}
+								];
 							}
-
-							if (_this.moveNode(node, _this.message.options.position)) {
-								updateCrm();
-								_this.respondSuccess(node);
+							if (optionals['options.usesTriggers']) {
+								node.showOnSpecified = this.message.options.usesTriggers;
+							}
+							if (optionals['options.triggers']) {
+								node.triggers = this.message.options.triggers;
+								node.showOnSpecified = true;
+							}
+						} else if (type === 'script') {
+							if (optionals['options.scriptData']) {
+								node.value = {
+									script: this.message.options.scriptData.script,
+									launchMode: (optionals['options.ScriptData.launchMode'] ? this.message.options.scriptData.launchMode : 0),
+									triggers: this.message.options.scriptData.triggers || [],
+									libraries: this.message.options.scriptData.libraries || []
+								};
 							} else {
-								_this.respondError('Failed to place node');
+								node.value = {
+									script: '',
+									launchMod: 0,
+									triggers: [],
+									libraries: []
+								};
 							}
-							return true;
-						});
-					});
-				});
-			},
-			copyNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'options',
-							type: 'object'
-						}, {
-							val: 'options.name',
-							type: 'string',
-							optional: true
-						}
-					], function(optionals) {
-						_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-							var newNode = JSON.parse(JSON.stringify(node));
-							generateItemId(function(id) {
-								newNode.id = id;
-								if (_this.getNodeFromId(_this.message.id, false, true).local === true && node.local === true) {
-									newNode.local = true;
-								}
-								newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true).nodeInfo;
-								delete newNode.storage;
-								delete newNode.file;
-								if (optionals['options.name']) {
-									newNode.name = _this.message.options.name;
-								}
-								if (_this.moveNode(newNode, _this.message.options.position)) {
-									updateCrm();
-									_this.respondSuccess(newNode);
-								}
-								return true;
-							});
-							return true;
-						});
-					});
-				});
-				return true;
-			},
-			moveNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						if (_this.moveNode(node, _this.message.position)) {
-							updateCrm();
-							_this.respondSuccess(safe(node));
-						}
-					});
-				});
-			},
-			deleteNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						var parentChildren = _this.lookup(node.path, crmTree, true);
-						parentChildren.splice(node.path[node.path.length - 1], 1);
-						chrome.contextMenus.remove(contextMenuIds[node.id], function() {
-							updateCrm();
-							_this.respondSuccess(true);
-						});
-					});
-				});
-			},
-			editNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'options',
-							type: 'object'
-						}, {
-							val: 'options.name',
-							type: 'string',
-							optional: true
-						}, {
-							val: 'options.type',
-							type: 'string',
-							optional: true
-						}
-					], function(optionals) {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (optionals['options.type']) {
-								if (_this.message.options.type !== 'link' &&
-									_this.message.options.type !== 'script' &&
-									_this.message.options.type !== 'stylesheet' &&
-									_this.message.options.type !== 'menu' &&
-									_this.message.options.type !== 'divider') {
-									_this.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
-									return false;
-								} else {
-									node.type = _this.message.options.type;
+						} else if (type === 'stylesheet') {
+							if (optionals['options.stylesheetData']) {
+								node.value = {
+									stylesheet: this.message.options.stylesheetData.stylesheet,
+									launchMode: (optionals['options.stylesheetData.launchMode'] ? this.message.options.stylesheetData.launchMode : 0),
+									triggers: this.message.options.stylesheetData.triggers || [],
+									toggle: (this.message.options.stylesheetData.toggle === false ? false : true),
+									defaultOn: (this.message.options.stylesheetData.defaultOn === false ? false : true)
+								};
+							} else {
+								node.value = {
+									stylesheet: '',
+									launchmode: 0,
+									triggers: [],
+									toggle: true,
+									defaultOn: true
 								}
 							}
-							if (optionals['options.name']) {
-								node.name = _this.message.options.name;
-							}
-							updateCrm();
-							_this.respondSuccess(safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			getTriggers: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						_this.respondSuccess(node.triggers);
-					});
-				});
-			},
-			setTriggers: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'triggers',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							]
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							node.triggers = _this.message.triggers;
-							node.showOnSpecified = true;
-							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
-								documentUrlPatterns: prepareTrigger(node.triggers)
-							}, function() {
-								updateCrm();
-								_this.respondSuccess(safe(node));
-							});
-						});
-					});
-				});
-			},
-			getTriggerUsage: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						_this.respondSuccess(node.showOnSpecified);
-					});
-				});
-			},
-			setTriggerUsage: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'useTriggers',
-							type: 'boolean'
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							node.showOnSpecified = _this.message.useTriggers;
-							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
-								documentUrlPatterns: ['<all_urls>']
-							}, function() {
-								updateCrm();
-								_this.respondSuccess(safe(node));
-							});
-						});
-					});
-				});
-			},
-			getContentTypes: function () {
-				_this.checkPermissions(['crmGet'], function () {
-					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						_this.respondSuccess(node.onContentTypes);
-					});
-				});
-			},
-			setContentType: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'index',
-							type: 'number',
-							min: 0,
-							max: 5
-						}, {
-							val: 'value',
-							type: 'boolean'
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							node.onContentTypes[_this.message.index] = _this.message.value;
-							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
-								contexts: getContexts(node.onContentTypes)
-							}, function () {
-								updateCrm();
-								_this.respondSuccess(node.onContentTypes);
-							});
-						});
-					});
-				});
-			},
-			setContentTypes: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'contentTypes',
-							type: 'array'
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							var i;
-							for (i = 0; i < _this.message.contentTypes.length; i++) {
-								if (typeof _this.message.contentTypes[i] !== 'string') {
-									_this.respondError('Not all values in array contentTypes are of type string');
-									return false;
-								}
-							}
-
-							var matches = 0;
-							var hasContentType;
-							var contentTypes = [];
-							var contentTypeStrings = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-							for (i = 0; i < _this.message.contentTypes.length; i++) {
-								hasContentType = _this.message.contentTypes.indexOf(contentTypeStrings[i] > -1);
-								hasContentType && matches++;
-								contentTypes[i] = hasContentType;
-							}
-
-							if (!matches) {
-								contentTypes = [true, true, true, true, true, true];
-							}
-							node.onContentTypes = contentTypes;
-							chrome.contextMenus.update(contextMenuIds[node.id], {
-								contexts: getContexts(node.onContentTypes)
-							}, function () {
-								updateCrm();
-								_this.respondSuccess(safe(node));
-							});
-							return true;
-						});
-					});
-				});
-			},
-			linkGetLinks: function () {
-				_this.checkPermissions(['crmGet'], function () {
-					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						if (node.type === 'link') {
-							_this.respondSuccess(node.value);
 						} else {
-							_this.respondSuccess(node.linkval);
+							node.value = {};
+							if (optionals['options.usesTriggers']) {
+								node.showOnSpecified = this.message.options.usesTriggers;
+							}
+							if (optionals['options.triggers']) {
+								node.triggers = this.message.options.triggers;
+								node.showOnSpecified = true;
+							}
+						}
+
+						if (this.moveNode(node, this.message.options.position)) {
+							updateCrm();
+							this.respondSuccess(node);
+						} else {
+							this.respondError('Failed to place node');
 						}
 						return true;
 					});
-
 				});
-			},
-			linkPush: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'items',
-							type: 'object|array',
-							forChildren: [
-								{
-									val: 'newTab',
-									type: 'boolean',
-									optional: true
-								}, {
-									val: 'url',
-									type: 'string'
-								}
-							]
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							var itemsLength = _this.message.items.length;
-							if (itemsLength !== undefined) { //Array
-								for (var i = 0; i < itemsLength; i++) {
-									_this.message.items[i].newTab = (_this.message.items[i].newTab === false ? false : true);
-								}
-								if (node.type === 'link') {
-									node.value.push(_this.message.items);
-								} else {
-									node.linkVal = node.linkVal || [];
-									node.linkVal.push(_this.message.items);
-								}
-							} else { //Object
-								if (_this.message.items.newTab !== undefined) {
-									if (typeof _this.message.items.newTab !== 'boolean') {
-										_this.respondError('The newtab property in given item is not of type boolean');
-										return false;
-									}
-								}
-								if (!_this.message.items.url) {
-									_this.respondError('The URL property is not defined in the given item');
-									return false;
-								}
-								if (node.type === 'link') {
-									node.value.push(_this.message.items);
-								} else {
-									node.linkVal.push = node.linkVal.push || [];
-									node.linkVal.push(_this.message.items);
-								}
+			});
+		},
+		copyNode: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'options',
+						type: 'object'
+					}, {
+						val: 'options.name',
+						type: 'string',
+						optional: true
+					}
+				], function (optionals) {
+					this.getNodeFromId(this.message.nodeId, true).run(function (node) {
+						var newNode = JSON.parse(JSON.stringify(node));
+						generateItemId(function (id) {
+							newNode.id = id;
+							if (this.getNodeFromId(this.message.id, false, true).local === true && node.local === true) {
+								newNode.local = true;
 							}
-							updateCrm(true);
-							if (node.type === 'link') {
-								_this.respondSuccess(safe(node).value);
-							} else {
-								_this.respondSuccess(safe(node).linkVal);
+							newNode.nodeInfo = this.getNodeFromId(this.message.id, false, true).nodeInfo;
+							delete newNode.storage;
+							delete newNode.file;
+							if (optionals['options.name']) {
+								newNode.name = this.message.options.name;
+							}
+							if (this.moveNode(newNode, this.message.options.position)) {
+								updateCrm();
+								this.respondSuccess(newNode);
 							}
 							return true;
 						});
+						return true;
 					});
 				});
-			},
-			linkSplice: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						_this.typeCheck([
+			});
+			return true;
+		},
+		moveNode: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					if (this.moveNode(node, this.message.position)) {
+						updateCrm();
+						this.respondSuccess(safe(node));
+					}
+				});
+			});
+		},
+		deleteNode: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					var parentChildren = this.lookup(node.path, crmTree, true);
+					parentChildren.splice(node.path[node.path.length - 1], 1);
+					chrome.contextMenus.remove(contextMenuIds[node.id], function () {
+						updateCrm();
+						this.respondSuccess(true);
+					});
+				});
+			});
+		},
+		editNode: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'options',
+						type: 'object'
+					}, {
+						val: 'options.name',
+						type: 'string',
+						optional: true
+					}, {
+						val: 'options.type',
+						type: 'string',
+						optional: true
+					}
+				], function (optionals) {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						if (optionals['options.type']) {
+							if (this.message.options.type !== 'link' &&
+								this.message.options.type !== 'script' &&
+								this.message.options.type !== 'stylesheet' &&
+								this.message.options.type !== 'menu' &&
+								this.message.options.type !== 'divider') {
+								this.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
+								return false;
+							} else {
+								node.type = this.message.options.type;
+							}
+						}
+						if (optionals['options.name']) {
+							node.name = this.message.options.name;
+						}
+						updateCrm();
+						this.respondSuccess(safe(node));
+						return true;
+					});
+				});
+			});
+		},
+		getTriggers: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					this.respondSuccess(node.triggers);
+				});
+			});
+		},
+		setTriggers: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'triggers',
+						type: 'array',
+						forChildren: [
 							{
-								val: 'start',
-								type: 'number'
-							}, {
-								val: 'amount',
-								type: 'number'
+								val: 'url',
+								type: 'string'
 							}
-						], [
-							function () {
-								var spliced;
-								if (node.type === 'link') {
-									spliced = node.value.splice(_this.message.start, _this.message.amount);
-									updateCrm(true);
-									_this.respondSuccess(spliced, safe(node).value);
-								} else {
-									node.linkVal = node.linkVal || [];
-									spliced = node.linkVal.splice(_this.message.start, _this.message.amount);
-									updateCrm(true);
-									_this.respondSuccess(spliced, safe(node).linkVal);
-								}
-							}
-						]);
-					});
-
-				});
-			},
-			setScriptLaunchMode: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'launchMode',
-							type: 'number',
-							min: 0,
-							max: 3
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							if (node.type === 'script') {
-								node.value.launchMode = _this.message.launchMode;
-							} else {
-								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.launchMode = _this.message.launchMode;
-							}
+						]
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						node.triggers = this.message.triggers;
+						node.showOnSpecified = true;
+						updateCrm();
+						chrome.contextMenus.update(contextMenuIds[node.id], {
+							documentUrlPatterns: prepareTrigger(node.triggers)
+						}, function () {
 							updateCrm();
-							_this.respondSuccess(safe(node));
-							return true;
+							this.respondSuccess(safe(node));
 						});
 					});
 				});
-			},
-			getScriptLaunchMode: function () {
-				_this.checkPermissions(['crmGet'], function () {
-					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						if (node.type === 'script') {
-							_this.respondSuccess(node.value.launchMode);
-						} else {
-							(node.scriptVal && _this.respondSuccess(node.scriptVal.launchMode)) || _this.respondSuccess(undefined);
-						}
-					});
-
+			});
+		},
+		getTriggerUsage: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					this.respondSuccess(node.showOnSpecified);
 				});
-			},
-			registerLibrary: function () {
-				_this.checkPermissions(['crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'name',
-							type: 'string'
-						}, {
-							val: 'url',
-							type: 'string',
-							optional: true
-						}, {
-							val: 'code',
-							type: 'string',
-							optional: true
-						}
-					], function (optionals) {
-						var newLibrary = {
-							name: _this.message.name
-						};
-						if (optionals['url']) {
-							if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
-								//Use URL
-								var done = false;
-								var xhr = new XMLHttpRequest();
-								xhr.open('GET', _this.message.url, true);
-								xhr.onreadystatechange = function () {
-									if (xhr.readyState === 4 && xhr.status === 200) {
-										done = true;
-										newLibrary.code = xhr.responseText;
-										newLibrary.url = _this.message.url;
-										storageLocal.libraries.push(newLibrary);
-										chrome.storage.local.set({
-											libraries: storageLocal.libraries
-										}, window.updateStorage);
-										_this.respondSuccess(newLibrary);
-									}
-								};
-								setTimeout(function () {
-									if (!done) {
-										_this.respondError('Request timed out');
-									}
-								}, 5000);
-								xhr.send();
-							} else {
-								_this.respondError('No valid URL given');
+			});
+		},
+		setTriggerUsage: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'useTriggers',
+						type: 'boolean'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						node.showOnSpecified = this.message.useTriggers;
+						updateCrm();
+						chrome.contextMenus.update(contextMenuIds[node.id], {
+							documentUrlPatterns: ['<all_urls>']
+						}, function () {
+							updateCrm();
+							this.respondSuccess(safe(node));
+						});
+					});
+				});
+			});
+		},
+		getContentTypes: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					this.respondSuccess(node.onContentTypes);
+				});
+			});
+		},
+		setContentType: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'index',
+						type: 'number',
+						min: 0,
+						max: 5
+					}, {
+						val: 'value',
+						type: 'boolean'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						node.onContentTypes[this.message.index] = this.message.value;
+						updateCrm();
+						chrome.contextMenus.update(contextMenuIds[node.id], {
+							contexts: getContexts(node.onContentTypes)
+						}, function () {
+							updateCrm();
+							this.respondSuccess(node.onContentTypes);
+						});
+					});
+				});
+			});
+		},
+		setContentTypes: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'contentTypes',
+						type: 'array'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						var i;
+						for (i = 0; i < this.message.contentTypes.length; i++) {
+							if (typeof this.message.contentTypes[i] !== 'string') {
+								this.respondError('Not all values in array contentTypes are of type string');
 								return false;
 							}
-						} else if (optionals['code']) {
-							newLibrary.code = _this.message.code;
-							storageLocal.libraries.push(newLibrary);
-							chrome.storage.local.set({
-								libraries: storageLocal.libraries
-							}, window.updateStorage);
-							_this.respondSuccess(newLibrary);
+						}
+
+						var matches = 0;
+						var hasContentType;
+						var contentTypes = [];
+						var contentTypeStrings = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+						for (i = 0; i < this.message.contentTypes.length; i++) {
+							hasContentType = this.message.contentTypes.indexOf(contentTypeStrings[i] > -1);
+							hasContentType && matches++;
+							contentTypes[i] = hasContentType;
+						}
+
+						if (!matches) {
+							contentTypes = [true, true, true, true, true, true];
+						}
+						node.onContentTypes = contentTypes;
+						chrome.contextMenus.update(contextMenuIds[node.id], {
+							contexts: getContexts(node.onContentTypes)
+						}, function () {
+							updateCrm();
+							this.respondSuccess(safe(node));
+						});
+						return true;
+					});
+				});
+			});
+		},
+		linkGetLinks: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					if (node.type === 'link') {
+						this.respondSuccess(node.value);
+					} else {
+						this.respondSuccess(node.linkval);
+					}
+					return true;
+				});
+
+			});
+		},
+		linkPush: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'items',
+						type: 'object|array',
+						forChildren: [
+							{
+								val: 'newTab',
+								type: 'boolean',
+								optional: true
+							}, {
+								val: 'url',
+								type: 'string'
+							}
+						]
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						var itemsLength = this.message.items.length;
+						if (itemsLength !== undefined) { //Array
+							for (var i = 0; i < itemsLength; i++) {
+								this.message.items[i].newTab = (this.message.items[i].newTab === false ? false : true);
+							}
+							if (node.type === 'link') {
+								node.value.push(this.message.items);
+							} else {
+								node.linkVal = node.linkVal || [];
+								node.linkVal.push(this.message.items);
+							}
+						} else { //Object
+							if (this.message.items.newTab !== undefined) {
+								if (typeof this.message.items.newTab !== 'boolean') {
+									this.respondError('The newtab property in given item is not of type boolean');
+									return false;
+								}
+							}
+							if (!this.message.items.url) {
+								this.respondError('The URL property is not defined in the given item');
+								return false;
+							}
+							if (node.type === 'link') {
+								node.value.push(this.message.items);
+							} else {
+								node.linkVal.push = node.linkVal.push || [];
+								node.linkVal.push(this.message.items);
+							}
+						}
+						updateCrm(true);
+						if (node.type === 'link') {
+							this.respondSuccess(safe(node).value);
 						} else {
-							_this.respondError('No URL or code given');
-							return false;
+							this.respondSuccess(safe(node).linkVal);
 						}
 						return true;
 					});
 				});
-			},
-			scriptLibraryPush: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
+			});
+		},
+		linkSplice: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					this.typeCheck([
 						{
-							val: 'libraries',
-							type: 'object|array',
-							forChildren: [
-								{
-									val: 'name',
-									type: 'string'
-								}
-							]
+							val: 'start',
+							type: 'number'
 						}, {
-							val: 'libraries.name',
-							type: 'string',
-							optional: true
+							val: 'amount',
+							type: 'number'
 						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							if (Array.isArray(_this.message.libraries)) { //Array
-								for (var i = 0; i < _this.message.libraries.length; i++) {
-									if (node.type === 'script') {
-										node.value.libraries.push(_this.message.libraries);
-									} else {
-										node.scriptVal = node.scriptVal || {};
-										node.scriptVal.libraries = node.scriptVal.libraries || [];
-										node.scriptVal.libraries.push(_this.message.libraries);
-									}
+					], [
+						function () {
+							var spliced;
+							if (node.type === 'link') {
+								spliced = node.value.splice(this.message.start, this.message.amount);
+								updateCrm(true);
+								this.respondSuccess(spliced, safe(node).value);
+							} else {
+								node.linkVal = node.linkVal || [];
+								spliced = node.linkVal.splice(this.message.start, this.message.amount);
+								updateCrm(true);
+								this.respondSuccess(spliced, safe(node).linkVal);
+							}
+						}
+					]);
+				});
+
+			});
+		},
+		setScriptLaunchMode: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'launchMode',
+						type: 'number',
+						min: 0,
+						max: 3
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						if (node.type === 'script') {
+							node.value.launchMode = this.message.launchMode;
+						} else {
+							node.scriptVal = node.scriptVal || {};
+							node.scriptVal.launchMode = this.message.launchMode;
+						}
+						updateCrm();
+						this.respondSuccess(safe(node));
+						return true;
+					});
+				});
+			});
+		},
+		getScriptLaunchMode: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId).run(function (node) {
+					if (node.type === 'script') {
+						this.respondSuccess(node.value.launchMode);
+					} else {
+						(node.scriptVal && this.respondSuccess(node.scriptVal.launchMode)) || this.respondSuccess(undefined);
+					}
+				});
+
+			});
+		},
+		registerLibrary: function () {
+			this.checkPermissions(['crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'name',
+						type: 'string'
+					}, {
+						val: 'url',
+						type: 'string',
+						optional: true
+					}, {
+						val: 'code',
+						type: 'string',
+						optional: true
+					}
+				], function (optionals) {
+					var newLibrary = {
+						name: this.message.name
+					};
+					if (optionals['url']) {
+						if (this.message.url.indexOf('.js') === this.message.url.length - 3) {
+							//Use URL
+							var done = false;
+							var xhr = new XMLHttpRequest();
+							xhr.open('GET', this.message.url, true);
+							xhr.onreadystatechange = function () {
+								if (xhr.readyState === 4 && xhr.status === 200) {
+									done = true;
+									newLibrary.code = xhr.responseText;
+									newLibrary.url = this.message.url;
+									storageLocal.libraries.push(newLibrary);
+									chrome.storage.local.set({
+										libraries: storageLocal.libraries
+									}, window.updateStorage);
+									this.respondSuccess(newLibrary);
 								}
-							} else { //Object
+							};
+							setTimeout(function () {
+								if (!done) {
+									this.respondError('Request timed out');
+								}
+							}, 5000);
+							xhr.send();
+						} else {
+							this.respondError('No valid URL given');
+							return false;
+						}
+					} else if (optionals['code']) {
+						newLibrary.code = this.message.code;
+						storageLocal.libraries.push(newLibrary);
+						chrome.storage.local.set({
+							libraries: storageLocal.libraries
+						}, window.updateStorage);
+						this.respondSuccess(newLibrary);
+					} else {
+						this.respondError('No URL or code given');
+						return false;
+					}
+					return true;
+				});
+			});
+		},
+		scriptLibraryPush: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'libraries',
+						type: 'object|array',
+						forChildren: [
+							{
+								val: 'name',
+								type: 'string'
+							}
+						]
+					}, {
+						val: 'libraries.name',
+						type: 'string',
+						optional: true
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						if (Array.isArray(this.message.libraries)) { //Array
+							for (var i = 0; i < this.message.libraries.length; i++) {
 								if (node.type === 'script') {
-									node.value.libraries.push(_this.message.libraries);
+									node.value.libraries.push(this.message.libraries);
 								} else {
 									node.scriptVal = node.scriptVal || {};
 									node.scriptVal.libraries = node.scriptVal.libraries || [];
-									node.scriptVal.libraries.push(_this.message.libraries);
+									node.scriptVal.libraries.push(this.message.libraries);
 								}
 							}
-							updateCrm(true);
+						} else { //Object
 							if (node.type === 'script') {
-								_this.respondSuccess(safe(node).value.libraries);
-							} else {
-								_this.respondSuccess(node.scriptVal.libraries);
-							}
-							return true;
-						});
-					});
-				});
-			},
-			scriptLibrarySplice: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'start',
-							type: 'number'
-						}, {
-							val: 'amount',
-							type: 'number'
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							var spliced;
-							if (node.type === 'script') {
-								spliced = safe(node).value.libraries.splice(_this.message.start, _this.message.amount);
-								updateCrm(true);
-								_this.respondSuccess(spliced, safe(node).value.libraries);
+								node.value.libraries.push(this.message.libraries);
 							} else {
 								node.scriptVal = node.scriptVal || {};
 								node.scriptVal.libraries = node.scriptVal.libraries || [];
-								spliced = node.scriptVal.libraries.splice(_this.message.start, _this.message.amount);
-								updateCrm(true);
-								_this.respondSuccess(spliced, node.scriptVal.libraries);
+								node.scriptVal.libraries.push(this.message.libraries);
 							}
-							return true;
-						});
-					});
-				});
-			},
-			setScriptValue: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'script',
-							type: 'string'
 						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							if (node.type === 'script') {
-								node.value.script = script;
-							} else {
-								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.script = script;
-							}
-							updateCrm(true);
-							_this.respondSuccess(safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			getScriptValue: function () {
-				_this.checkPermissions(['crmGet'], function () {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
+						updateCrm(true);
 						if (node.type === 'script') {
-							_this.respondSuccess(node.value.script);
+							this.respondSuccess(safe(node).value.libraries);
 						} else {
-							(node.scriptVal && _this.respondSuccess(node.scriptVal.script)) || _this.respondSuccess(undefined);
+							this.respondSuccess(node.scriptVal.libraries);
 						}
+						return true;
 					});
-
 				});
-			},
-			getMenuChildren: function () {
-				_this.checkPermissions(['crmGet'], function () {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
+			});
+		},
+		scriptLibrarySplice: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'start',
+						type: 'number'
+					}, {
+						val: 'amount',
+						type: 'number'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						var spliced;
+						if (node.type === 'script') {
+							spliced = safe(node).value.libraries.splice(this.message.start, this.message.amount);
+							updateCrm(true);
+							this.respondSuccess(spliced, safe(node).value.libraries);
+						} else {
+							node.scriptVal = node.scriptVal || {};
+							node.scriptVal.libraries = node.scriptVal.libraries || [];
+							spliced = node.scriptVal.libraries.splice(this.message.start, this.message.amount);
+							updateCrm(true);
+							this.respondSuccess(spliced, node.scriptVal.libraries);
+						}
+						return true;
+					});
+				});
+			});
+		},
+		setScriptValue: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'script',
+						type: 'string'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						if (node.type === 'script') {
+							node.value.script = script;
+						} else {
+							node.scriptVal = node.scriptVal || {};
+							node.scriptVal.script = script;
+						}
+						updateCrm(true);
+						this.respondSuccess(safe(node));
+						return true;
+					});
+				});
+			});
+		},
+		getScriptValue: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId, true).run(function (node) {
+					if (node.type === 'script') {
+						this.respondSuccess(node.value.script);
+					} else {
+						(node.scriptVal && this.respondSuccess(node.scriptVal.script)) || this.respondSuccess(undefined);
+					}
+				});
+
+			});
+		},
+		getMenuChildren: function () {
+			this.checkPermissions(['crmGet'], function () {
+				this.getNodeFromId(this.message.nodeId, true).run(function (node) {
+					if (node.type === 'menu') {
+						this.respondSuccess(node.children);
+					} else {
+						this.respondSuccess(node.menuVal);
+					}
+				});
+
+			});
+		},
+		setMenuChildren: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'childrenIds',
+						type: 'array'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId, true).run(function (node) {
+						var i;
+						for (i = 0; i < this.message.childrenIds.length; i++) {
+							if (typeof this.message.childrenIds[i] !== 'number') {
+								this.respondError('Not all values in array childrenIds are of type number');
+								return false;
+							}
+						}
+						var children = [];
+						for (i = 0; i < this.message.childrenIds.length; i++) {
+							children.push(this.getNodeFromId(this.message.childrenIds[i], true, true));
+						}
 						if (node.type === 'menu') {
-							_this.respondSuccess(node.children);
+							node.children = children;
 						} else {
-							_this.respondSuccess(node.menuVal);
+							node.menuVal = children;
 						}
+						updateCrm();
+						this.respondSuccess(safe(node));
+						return true;
 					});
+				});
+			});
+		},
+		pushMenuChildren: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'childrenIds',
+						type: 'array'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						var i;
+						for (i = 0; i < this.message.childrenIds.length; i++) {
+							if (typeof this.message.childrenIds[i] !== 'number') {
+								this.respondError('Not all values in array childrenIds are of type number');
+								return false;
+							}
+						}
+						var children = [];
+						for (i = 0; i < this.message.childrenIds.length; i++) {
+							children[i] = this.getNodeFromId(this.message.childrenIds[i], false, true);
+						}
+						if (node.type === 'menu') {
+							node.children.push(children);
+						} else {
+							node.menuVal.push(children);
+						}
+						updateCrm();
+						this.respondSuccess(safe(node));
+						return true;
+					});
+				});
+			});
+		},
+		spliceMenuChildren: function () {
+			this.checkPermissions(['crmGet', 'crmWrite'], function () {
+				this.typeCheck([
+					{
+						val: 'start',
+						type: 'number'
+					}, {
+						val: 'amount',
+						type: 'number'
+					}
+				], function () {
+					this.getNodeFromId(this.message.nodeId).run(function (node) {
+						var spliced = (node.type === 'menu' ? node.children : node.menuVal).splice(this.message.start, this.message.amount);
+						updateCrm();
+						this.respondSuccess(spliced, (node.type === 'menu' ? safe(node).children : safe(node).menuVal));
+						return true;
+					});
+				});
+			});
+		}
+	};
 
-				});
-			},
-			setMenuChildren: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'childrenIds',
-							type: 'array'
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
-							var i;
-							for (i = 0; i < _this.message.childrenIds.length; i++) {
-								if (typeof _this.message.childrenIds[i] !== 'number') {
-									_this.respondError('Not all values in array childrenIds are of type number');
-									return false;
-								}
-							}
-							var children = [];
-							for (i = 0; i < _this.message.childrenIds.length; i++) {
-								children.push(_this.getNodeFromId(_this.message.childrenIds[i], true, true));
-							}
-							if (node.type === 'menu') {
-								node.children = children;
-							} else {
-								node.menuVal = children;
-							}
-							updateCrm();
-							_this.respondSuccess(safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			pushMenuChildren: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'childrenIds',
-							type: 'array'
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							var i;
-							for (i = 0; i < _this.message.childrenIds.length; i++) {
-								if (typeof _this.message.childrenIds[i] !== 'number') {
-									_this.respondError('Not all values in array childrenIds are of type number');
-									return false;
-								}
-							}
-							var children = [];
-							for (i = 0; i < _this.message.childrenIds.length; i++) {
-								children[i] = _this.getNodeFromId(_this.message.childrenIds[i], false, true);
-							}
-							if (node.type === 'menu') {
-								node.children.push(children);
-							} else {
-								node.menuVal.push(children);
-							}
-							updateCrm();
-							_this.respondSuccess(safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			spliceMenuChildren: function () {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
-					_this.typeCheck([
-						{
-							val: 'start',
-							type: 'number'
-						}, {
-							val: 'amount',
-							type: 'number'
-						}
-					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							var spliced = (node.type === 'menu' ? node.children : node.menuVal).splice(_this.message.start, _this.message.amount);
-							updateCrm();
-							_this.respondSuccess(spliced, (node.type === 'menu' ? safe(node).children : safe(node).menuVal));
-							return true;
-						});
-					});
-				});
-			}
-		};
-
-		this.crmFunctions[this.toRun] && this.crmFunctions[this.toRun]();
-	}
+	this.crmFunctions[this.toRun] && this.crmFunctions[this.toRun]();
 
 	function crmHandler(message) {
 		// ReSharper disable once ConstructorCallNotUsed

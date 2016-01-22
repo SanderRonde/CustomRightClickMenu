@@ -54,7 +54,7 @@
 	/**
 	* The listeners for this element
 	* 
-	* @attribute listeners
+	* @attribute _listeners
 	* @type Array
 	* @default []
 	*/
@@ -63,7 +63,7 @@
 	/**
 	* Whether the menu is expanded
 	* 
-	* @attribute expanded
+	* @attribute _expanded
 	* @type Boolean
 	* @default false
 	*/
@@ -77,6 +77,15 @@
 	* @default true
 	*/
 	indent: true,
+
+	/**
+	 * The previous state before the current one
+	 * 
+	 * @attribute _prevState
+	 * @type Number
+	 * @default null
+	 */
+	_prevState: null,
 
 	/*
 	 * Adds a listener that fires when a new value is selected
@@ -100,11 +109,12 @@
 	 * Fires all added listeners, triggers when a new value is selected
 	 */
 	_fireListeners: function (_this) {
+		var prevState = _this.selected;
 		if (_this.tagName === 'PAPER-DROPDOWN-MENU') {
 			_this.selected = _this._paperMenu.selected;
 		}
 		_this._listeners.forEach(function (item) {
-			item.listener.apply(item.thisArg, [_this._paperMenu.selected]);
+			item.listener.apply(item.thisArg, [prevState, _this._paperMenu.selected]);
 		});
 	},
 

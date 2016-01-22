@@ -94,8 +94,9 @@
 								<br/>
 								<template is="dom-repeat" items="[[item.triggers]]" as="trigger">
 									<div class="executionTrigger">
-										<paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="[[trigger]]"></paper-input>
-										<paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button>
+										<paper-checkbox class="executionTriggerNot" checked="[[trigger.not]]" color="red">NOT</paper-checkbox>
+										<paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="[[trigger.url]]"></paper-input>
+										<paper-icon-button class="executionTriggerClear" on-tap="clearTrigger" icon="clear"></paper-icon-button>
 									</div>
 								</template>
 								<paper-button on-tap="addTrigger" raised id="addTrigger">Add</paper-button>

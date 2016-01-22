@@ -608,105 +608,6 @@
 	//#endregion
 
 	/*
-	 * Is triggered when the option "Execute when visiting specified sites" is 
-	 * selected in the triggers dropdown menu and animates the specified sites in
-	 */
-	selectorStateChange: function (state) {
-		var _this = this;
-		var showContentTypeChooser = (state === 0);
-		var showTriggers = (state === 2);
-		var triggersElement = this.$.executionTriggersContainer;
-		var $triggersElement = $(triggersElement);
-		var contentTypeChooserElement = this.$.showOnContentContainer;
-		var $contentTypeChooserElement = $(contentTypeChooserElement);
-		var triggersHeight;
-		var contentTypeHeight;
-
-		function animateTriggers(callback) {
-			triggersElement.style.height = 'auto';
-			triggersHeight = triggersHeight || $triggersElement.height();
-			if (showTriggers) {
-				triggersElement.style.display = 'block';
-				triggersElement.style.marginLeft = '-110%';
-				triggersElement.style.height = 0;
-				$triggersElement.animate({
-					height: triggersHeight
-				}, 300, function () {
-					$(this).animate({
-						marginLeft: 0
-					}, 200, callback);
-				});
-			} else {
-				triggersElement.style.marginLeft = 0;
-				triggersElement.style.height = triggersHeight;
-				$triggersElement.animate({
-					marginLeft: '-110%'
-				}, 200, function () {
-					$(this).animate({
-						height: 0
-					}, 300, function () {
-						triggersElement.style.display = 'none';
-						callback && callback();
-					});
-				});
-			}
-			_this.showTriggers = showTriggers;
-		}
-
-		function animateContentTypeChooser(callback) {
-			contentTypeChooserElement.style.height = 'auto';
-			contentTypeHeight = contentTypeHeight || $contentTypeChooserElement.height();
-			if (showContentTypeChooser) {
-				contentTypeChooserElement.style.height = 0;
-				contentTypeChooserElement.style.display = 'block';
-				contentTypeChooserElement.style.marginLeft = '-110%';
-				$contentTypeChooserElement.animate({
-					height: contentTypeHeight
-				}, 300, function () {
-					$(this).animate({
-						marginLeft: 0
-					}, 200, callback);
-				});
-			} else {
-				contentTypeChooserElement.style.marginLeft = 0;
-				contentTypeChooserElement.style.height = contentTypeHeight;
-				$contentTypeChooserElement.animate({
-					marginLeft: '-110%'
-				}, 200, function () {
-					$(this).animate({
-						height: 0
-					}, 300, function () {
-						contentTypeChooserElement.style.display = 'none';
-						callback && callback();
-					});
-				});
-			}
-			_this.showContentTypeChooser = showContentTypeChooser;
-		}
-
-		if (state === 0) {
-			//Triggers is still shown, first animate that out
-			if (this.showTriggers) {
-				animateTriggers(animateContentTypeChooser);
-			} else {
-				animateContentTypeChooser();
-			}
-		} else if (state === 1) {
-			if (this.showTriggers) {
-				animateTriggers();
-			} else if (this.showContentTypeChooser) {
-				animateContentTypeChooser();
-			}
-		} else if (state === 2) {
-			if (this.showContentTypeChooser) {
-				animateContentTypeChooser(animateTriggers);
-			} else {
-				animateTriggers();
-			}
-		}
-	},
-
-	/*
 	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the 
 	 * icons' positions
 	 * @param {boolean} Whether - the vertical scrollbar is now visible
@@ -927,32 +828,6 @@
 			gutters: ['CodeMirror-lint-markers'],
 			lint: window.CodeMirror.lint.css
 		});
-	},
-
-	initDropdown: function () {
-		if ((this.showTriggers = (this.item.value.launchMode > 1))) {
-			this.$.executionTriggersContainer.style.display = 'block';
-			this.$.executionTriggersContainer.style.marginLeft = 0;
-			this.$.executionTriggersContainer.style.height = 'auto';
-		} else {
-			this.$.executionTriggersContainer.style.display = 'none';
-			this.$.executionTriggersContainer.style.marginLeft = '-110%';
-			this.$.executionTriggersContainer.style.height = 0;
-		}
-		if ((this.showContentTypeChooser = (this.item.value.launchMode === 0))) {
-			this.$.showOnContentContainer.style.display = 'block';
-			this.$.showOnContentContainer.style.marginLeft = 0;
-			this.$.showOnContentContainer.style.height = 'auto';
-		} else {
-			this.$.showOnContentContainer.style.display = 'none';
-			this.$.showOnContentContainer.style.marginLeft = '-110%';
-			this.$.showOnContentContainer.style.height = 0;
-		}
-		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
-		if (this.editor) {
-			this.editor.display.wrapper.remove();
-			this.editor = null;
-		}
 	},
 
 	init: function () {

@@ -130,6 +130,9 @@ div.CodeMirror-overwrite div.CodeMirror-cursor {}
 .cm-s-default .cm-attribute {color: #FF0000;}
 .cm-s-default .cm-hr {color: #999;}
 .cm-s-default .cm-link {color: #00c;}
+.cm-s-default .metaTagHiddenText {
+	background-color: #CCCCCC;
+}
 
 .cm-s-default .cm-error {color: rgb(255, 168, 87);}
 .cm-invalidchar {color: rgb(255, 168, 87);}
@@ -195,6 +198,10 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-dark .cm-attribute {color: #00c;}
 .cm-s-dark .cm-hr {color: #999;}
 .cm-s-dark .cm-link {color: #00c;}
+
+.cm-s-dark .metaTagHiddenText {
+	background-color: #D4D4D4;
+}
 
 .cm-s-dark .cm-error {color: #f00;}
 .cm-invalidchar {color: #f00;}
@@ -873,4 +880,10 @@ li.CodeMirror-hint-active {
 
 #codeMirrorSearchDialogSearchCont paper-input {
 	margin-top: 7px;
+}
+
+.codeMirrorHideMarker, .codeMirrorExpandMarker {
+	padding-left: 2px;
+	margin-right:5px;
+	cursor: pointer;
 }

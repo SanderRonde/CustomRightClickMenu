@@ -198,60 +198,76 @@
 
 		//#endregion
 
+		updateLiveMetaTags: function(changeType, key, value) {
+			switch (key) {
+				case 'downloadURL':
+				case 'updateURL':
+				case 'namespace':
+					if (changeType === 'removed') {
+						if (this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
+							this.newSettings.nodeInfo.source.url = metaTags.downloadURL || metaTags.updateURL || metaTags.namespace || this.newSettings.nodeInfo.source.downloadUrl || null;;
+						}
+					} else {
+						this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
+							updateURL: (key === 'namespace' ? '' : undefined),
+							url: value
+						};
+						if (key === 'namespace') {
+							this.newSettings.nodeInfo.source.updateURL = value;
+						}
+						if (!this.newSettings.nodeInfo.source.url) {
+							this.newSettings.nodeInfo.source.url = value;
+						}
+						window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+					}
+					break;
+				case 'name':
+					this.set('newSettings.name', (changeType === 'removed') ? '' : value);
+					break;
+				case 'version':
+					this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : value);
+					break;
+				case 'require':
+					//Change anonymous libraries to requires
+					var libraries = this.newSettings.value.libraries;
+					for (var k = 0; k < libraries.length; k++) {
+						if (libraries[k].name === null) {
+							libraries.splice(k, 1);
+							k--;
+						}
+					}
+					metaTags.require.forEach(function(url) {
+						libraries.push({
+							name: null,
+							url: url
+						});
+					});
+					this.set('newSettings.value.libraries', libraries);
+					window.paperLibrariesSelector.updateLibraries(libraries);
+					break;
+				case 'author':
+					this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : value);
+					break;
+			}
+		},
+
 		metaTagsUpdateFromScript: function (changes, metaTags) {
-			console.log(changes);
+			if (!changes) {
+				return;
+			}
 			var i, j;
 			var key, value;
 			var changeTypes = ['removed', 'changed', 'added'];
 			var tags = ['downloadURL', 'exclude', 'grant', 'include', 'match', 'name', 'namespace', 'require', 'resource', 'updateURL', 'version'];
-			var todo = ['exclude', 'grant', 'include', 'match', 'require', 'resource'];
+			var todo = ['exclude', 'include', 'match'];
 			this.newSettings.nodeInfo = this.newSettings.nodeInfo || {};
 			for (i = 0; i < changeTypes.length; i++) {
-
 				var changeType = changeTypes[i];
 				var changesArray = changes[changeType];
 				for (j = 0; j < changesArray.length; j++) {
-
-					console.log(changesArray[j]);
 					key = changesArray[j].key;
 					value = changesArray[j].value;
-					switch (key) {
-						case 'downloadURL':
-						case 'updateURL':
-						case 'namespace':
-							if (changeType === 'removed') {
-								if (this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
-									this.newSettings.nodeInfo.source.url = metaTags.downloadURL || metaTags.updateURL || metaTags.namespace || null;;
-								}
-							} else {
-								this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
-									updateURL: (key === 'namespace' ? '' : undefined),
-									url: value
-								};
-								if (key === 'namespace') {
-									this.newSettings.nodeInfo.source.updateURL = value;
-								}
-								if (!this.newSettings.nodeInfo.source.url) {
-									this.newSettings.nodeInfo.source.url = value;
-								}
-								window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
-							}
-							break;
-						case 'name':
-							if (changeType === 'removed') {
-								this.set('newSettings.name', '');
-							} else {
-								this.set('newSettings.name', value);
-							}
-							break;
-						case 'version':
-							if (changeType === 'removed') {
-								this.set('newSettings.nodeInfo.version', null);
-							} else {
-								this.set('newSettings.nodeInfo.version', value);
-							}
-							break;
-					}
+					this.updateLiveMetaTags(changeType, key, value);
 				}
 			}
 		},
@@ -285,15 +301,30 @@
 			window.externalEditor.cancelOpenFiles();
 		},
 
+		saveMetaTagValues: function() {
+			var tags = ['downloadURL', 'exclude', 'grant', 'include', 'match', 'name', 'namespace', 'require', 'resource', 'updateURL', 'version'];
+			
+			this.newSettings.value.metaTags = this.editor.metaTags.metaTags;
+		},
+
 		saveChanges: function() {
 			this.active = false;
+			this.saveMetaTagValues();
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 		},
 
-		openPermissionsDialog: function(item, cb) {
-			var nodeItem = item || this.item;
-			var settingsStorage = item || this.newSettings;
+		openPermissionsDialog: function (item, cb) {
+			var nodeItem;
+			var settingsStorage;
+			if (!item || item.type === 'tap') {
+				//It's an event, ignore it
+				nodeItem = this.item;
+				settingsStorage = this.newSettings;
+			} else {
+				nodeItem = item;
+				settingsStorage = item;
+			}
 			//Prepare all permissions
 			chrome.permissions.getAll(function(extensionWideEnabledPermissions) {
 				var scriptPermissions = nodeItem.permissions;
@@ -812,104 +843,6 @@
 		//#endregion
 
 		//#region Editor
-		/*
-		 * Is triggered when the option "Execute when visiting specified sites" is 
-		 * selected in the triggers dropdown menu and animates the specified sites in
-		 */
-		selectorStateChange: function(state) {
-			var _this = this;
-			var showContentTypeChooser = (state === 0);
-			var showTriggers = (state === 2);
-			var triggersElement = this.$.executionTriggersContainer;
-			var $triggersElement = $(triggersElement);
-			var contentTypeChooserElement = this.$.showOnContentContainer;
-			var $contentTypeChooserElement = $(contentTypeChooserElement);
-			var triggersHeight;
-			var contentTypeHeight;
-
-			function animateTriggers(callback) {
-				triggersElement.style.height = 'auto';
-				triggersHeight = triggersHeight || $triggersElement.height();
-				if (showTriggers) {
-					triggersElement.style.display = 'block';
-					triggersElement.style.marginLeft = '-110%';
-					triggersElement.style.height = 0;
-					$triggersElement.animate({
-						height: triggersHeight
-					}, 300, function() {
-						$(this).animate({
-							marginLeft: 0
-						}, 200, callback);
-					});
-				} else {
-					triggersElement.style.marginLeft = 0;
-					triggersElement.style.height = triggersHeight;
-					$triggersElement.animate({
-						marginLeft: '-110%'
-					}, 200, function() {
-						$(this).animate({
-							height: 0
-						}, 300, function() {
-							triggersElement.style.display = 'none';
-							callback && callback();
-						});
-					});
-				}
-				_this.showTriggers = showTriggers;
-			}
-
-			function animateContentTypeChooser(callback) {
-				contentTypeChooserElement.style.height = 'auto';
-				contentTypeHeight = contentTypeHeight || $contentTypeChooserElement.height();
-				if (showContentTypeChooser) {
-					contentTypeChooserElement.style.height = 0;
-					contentTypeChooserElement.style.display = 'block';
-					contentTypeChooserElement.style.marginLeft = '-110%';
-					$contentTypeChooserElement.animate({
-						height: contentTypeHeight
-					}, 300, function() {
-						$(this).animate({
-							marginLeft: 0
-						}, 200, callback);
-					});
-				} else {
-					contentTypeChooserElement.style.marginLeft = 0;
-					contentTypeChooserElement.style.height = contentTypeHeight;
-					$contentTypeChooserElement.animate({
-						marginLeft: '-110%'
-					}, 200, function() {
-						$(this).animate({
-							height: 0
-						}, 300, function() {
-							contentTypeChooserElement.style.display = 'none';
-							callback && callback();
-						});
-					});
-				}
-				_this.showContentTypeChooser = showContentTypeChooser;
-			}
-
-			if (state === 0) {
-				//Triggers is still shown, first animate that out
-				if (this.showTriggers) {
-					animateTriggers(animateContentTypeChooser);
-				} else {
-					animateContentTypeChooser();
-				}
-			} else if (state === 1) {
-				if (this.showTriggers) {
-					animateTriggers();
-				} else if (this.showContentTypeChooser) {
-					animateContentTypeChooser();
-				}
-			} else if (state === 2) {
-				if (this.showContentTypeChooser) {
-					animateContentTypeChooser(animateTriggers);
-				} else {
-					animateTriggers();
-				}
-			}
-		},
 
 		/*
 		 * Triggered when the scrollbars get updated (hidden or showed) and adapts the 
@@ -936,12 +869,7 @@
 			this.$.editorPlaceholder.style.opacity = 1;
 			this.$.editorPlaceholder.style.position = 'absolute';
 
-			this.newSettings.value.script = [];
-			var lines = this.editor.doc.lineCount();
-			for (var i = 0; i < lines; i++) {
-				this.newSettings.value.script.push(this.editor.doc.getLine(i));
-			}
-			this.newSettings.value.script = this.newSettings.value.script.join('\n');
+			this.newSettings.value.script = this.editor.doc.getValue();
 			this.editor = null;
 
 			if (this.fullscreen) {
@@ -1104,13 +1032,38 @@
 		/*
 		 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 		 */
-		cmLoaded: function(element) {
+		cmLoaded: function (element) {
+			console.log('loaded');
 			var _this = this;
 			this.editor = element;
 			element.refresh();
 			element.on('metaTagChanged', function (changes, metaTags) {
 				_this.metaTagsUpdateFromScript(changes, metaTags);
+				//TODO also update this when changes from inside the dialog occur
+				console.log(metaTags, JSON.parse(JSON.stringify(metaTags)));
+				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 			});
+			element.on('metaDisplayStatusChanged', function(info) {
+				_this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
+			});
+			if (this.newSettings.value.metaTagsHidden) {
+				element.doc.markText({
+					line: element.metaTags.metaStart.line,
+					ch: element.metaTags.metaStart.ch - 2
+				}, {
+					line: element.metaTags.metaStart.line,
+					ch: element.metaTags.metaStart.ch + 27
+				}, {
+					className: 'metaTagHiddenText',
+					inclusiveLeft: false,
+					inclusiveRight: false,
+					atomic: true,
+					readOnly: true,
+					addToHistory: true
+				});
+				element.metaTags.metaTags = this.newSettings.value.metaTags;
+			}
+
 			element.display.wrapper.classList.add('script-edit-codeMirror');
 			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 			this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
@@ -1178,7 +1131,7 @@
 				indentUnit: window.app.settings.editor.tabSize,
 				indentWithTabs: window.app.settings.editor.useTabs,
 				messageScriptEdit: true,
-				gutters: ['CodeMirror-lint-markers'],
+				gutters: ['collapse-meta-tags', 'CodeMirror-lint-markers'],
 				lint: window.CodeMirror.lint.javascript,
 				undoDepth: 500
 			});
@@ -1208,17 +1161,18 @@
 			this.savingInterval = window.setInterval(function() {
 				if (_this.active) {
 					//Save
-					var val;
+					var val, metaTags;
 					try {
 						val = _this.editor.getValue();
+						metaTags = _this.editor.metaTags.metaTags;
 						chrome.storage.local.set({
 							editing: {
 								val: val,
+								metaTags: metaTags,
 								crmPath: _this.item.path
 							}
 						});
-					} catch (e) {
-					}
+					} catch (e) { }
 				} else {
 					//Stop this interval
 					chrome.storage.local.set({

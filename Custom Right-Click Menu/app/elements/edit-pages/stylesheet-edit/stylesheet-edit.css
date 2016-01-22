@@ -411,3 +411,28 @@ input {
 	margin-left: 17px;
 	margin-top: 5px;
 }
+
+.executionTriggerClear {
+	padding: 8px 0;
+}
+
+.executionTriggerNot {
+	color: #f44336;
+}
+
+	.executionTriggerNot #checkboxLabel {
+		padding-left: 0;
+		padding-right: 8px;
+	}
+
+	.executionTriggerNot #ink {
+		color: #f44336!important;
+	}
+
+	.executionTriggerNot #ink[checked] {
+		color: #f44336!important;
+	}
+
+	.executionTriggerNot #checkbox.checked {
+		background-color: #f44336!important;
+	}

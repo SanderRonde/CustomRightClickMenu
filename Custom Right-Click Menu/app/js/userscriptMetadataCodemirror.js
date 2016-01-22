@@ -1,15 +1,16 @@
-﻿// CodeMirror, copyright (c) by Marijn Haverbeke and others
+﻿///<reference path="codemirror.js"/>
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
 (function (mod) {
-	if (typeof exports == "object" && typeof module == "object") // CommonJS
-		mod(require("../../lib/codemirror"));
-	else if (typeof define == "function" && define.amd) // AMD
-		define(["../../lib/codemirror"], mod);
+	if (typeof exports == 'object' && typeof module == 'object') // CommonJS
+		mod(require('../../lib/codemirror'));
+	else if (typeof define == 'function' && define.amd) // AMD
+		define(['../../lib/codemirror'], mod);
 	else // Plain browser env
 		mod(window.CodeMirror);
 })(function (codemirror) {
-	"use strict";
+	'use strict';
 
 	function compareMetaTags(oldMetaTags, newMetaTags) {
 		var changes = {
@@ -56,12 +57,22 @@
 		var lines = content.split('\n');
 		for (var i = 0; i < lines.length; i++) {
 			if (metaStart !== -1) {
-				if (lines[i].indexOf('==/UserScript==') > -1) {
-					metaEnd = i;
+				var endIndex = lines[i].indexOf('==/UserScript==');
+				if (endIndex > -1) {
+					metaEnd = {
+						line: i,
+						ch: endIndex + 15
+					};
 					break;
 				}
-			} else if (lines[i].indexOf('==UserScript==') > -1) {
-				metaStart = i;
+			} else {
+				var startIndex = lines[i].indexOf('==UserScript==');
+				if (startIndex > -1) {
+					metaStart = {
+						line: i,
+						ch: startIndex
+					};
+				}
 			}
 		}
 		return {
@@ -79,11 +90,14 @@
 
 		var i;
 		var metaIndexes = getMetaLines(content);
-		var metaStart = metaIndexes.start;
-		var metaEnd = metaIndexes.end;
+		var metaStart = metaIndexes.start.line;
+		var metaEnd = metaIndexes.end.line;
 		var startPlusOne = metaStart + 1;
 		var lines = content.split('\n');
 		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+		if (metaLines.length === 0) {
+			return null;
+		}
 
 		var metaTagObj = {};
 		var indexes = {};
@@ -104,9 +118,9 @@
 		}
 
 		cm.metaTags = cm.metaTags || {};
-		cm.metaTags.metaEnd = metaEnd;
+		cm.metaTags.metaStart = metaIndexes.start;
 		cm.metaTags.metaTags = metaTagObj;
-		cm.metaTags.metaStart = metaStart;
+		cm.metaTags.metaEnd = metaIndexes.end;
 		cm.metaTags.metaIndexes = indexes;
 
 		if (oldMetaTags) {
@@ -122,8 +136,8 @@
 		for (i = 0; i < changes.length; i++) {
 			var changeLineStart = changes[i].from.line;
 			var linesChanged = changes[i].text.length;
-			var lastMetatagIndex = cm.metaTags.metaEnd - 1;
-			var firstMetatagIndex = cm.metaTags.metaStart + 1;
+			var lastMetatagIndex = cm.metaTags.metaEnd.line - 1;
+			var firstMetatagIndex = cm.metaTags.metaStart.line + 1;
 
 			var tagsChanged = {
 				removed: [],
@@ -136,6 +150,10 @@
 			} else if (changes[i].to.line < lastMetatagIndex || changeLineStart > firstMetatagIndex) {
 				for (j = 0; j < linesChanged; j++) {
 					var changeLine = changeLineStart + j;
+
+					if (!cm.metaTags.metaIndexes[changeLine]) {
+						continue;
+					}
 
 					//Remove those values from the metaTags object
 					var metaTag = cm.metaTags.metaTags[cm.metaTags.metaIndexes[changeLine].key];
@@ -187,22 +205,176 @@
 		}
 	}
 
-	codemirror.defineExtension('hideMetatags', function(cm) {
-		//TODO
+	function makeHideMarker() {
+		var marker = document.createElement('svg');
+		marker.innerHTML = '<svg width="30px" height="30px" class="codeMirrorHideMarker" xmlns="http://www.w3.org/2000/svg">' +
+			'<g>' +
+				'<rect id="svg_3" height="80%" width="80%" y="10%" x="10%" stroke-width="4%" stroke="#000" fill="#fff"/>' +
+				'<line y2="50%" x2="80%" y1="50%" x1="20%" stroke-width="12.5%" stroke="#000" fill="none"/>' +
+			'</g>' +
+			'</svg>';
+		marker.classList.add('codeMirrorHideMarker');
+		return marker;
+	}
+
+	function makeExpandMarker() {
+		var marker = document.createElement('div');
+		marker.innerHTML = '<svg width="30px" height="30px" class="codeMirrorHideMarker" xmlns="http://www.w3.org/2000/svg">' +
+			'<g>' +
+				'<rect id="svg_3" height="80%" width="80%" y="10%" x="10%" stroke-width="4%" stroke="#000" fill="#fff"/>' +
+				'<line y2="50%" x2="80%" y1="50%" x1="20%" stroke-width="12.5%" stroke="#000" fill="none"/>' +
+				'<line y2="80%" x2="50%" y1="20%" x1="50%" stroke-width="12.5%" stroke="#000" fill="none"/>' +
+			'</g>' +
+			'</svg>';
+		marker.classList.add('codeMirrorExpandMarker');
+		return marker;
+	}
+
+	function hideMetaTags(cm) {
+		//Make sure the metatags are saved one last time
+		setMetaTags(cm, cm.getValue());
+
+		//Save those changes
+		console.log(cm.metaTags);
+		window.CodeMirror.signal(cm, 'metaTagChanged', null, cm.metaTags.metaTags);
+		window.CodeMirror.signal(cm, 'metaDisplayStatusChanged', {
+			status: 'hidden'
+		});
+
+		//Hide the metaTags
+		cm.doc.replaceRange('==UserScript/UserScript==', cm.metaTags.metaStart, cm.metaTags.metaEnd);
+		cm.metaTags.collapsedMarker = cm.doc.markText({
+			line: cm.metaTags.metaStart.line,
+			ch: cm.metaTags.metaStart.ch - 2
+		}, {
+			line: cm.metaTags.metaStart.line,
+			ch: cm.metaTags.metaStart.ch + 27
+		}, {
+			className: 'metaTagHiddenText',
+			inclusiveLeft: false,
+			inclusiveRight: false,
+			atomic: true,
+			readOnly: true,
+			title: getMetaTagString(cm.metaTags.metaTags, true)
+		});
+	}
+
+	function showMetaTags(cm, metaTags) {
+		//Get the index of the metaTags placeholder
+		var metaTagsStart = null;
+		var metaTagsEnd = null;
+
+		var lines = cm.getValue().split('\n');
+		for (var i = 0; i < lines.length; i++) {
+			var index = lines[i].indexOf('==UserScript/UserScript==');
+			if (index > -1) {
+				metaTagsStart = {
+					line: i,
+					ch: index
+				};
+				metaTagsEnd = {
+					line: i,
+					ch: i + 27
+				};
+				break;
+			}
+		}
+
+		var metaTagString;
+		if (metaTagsStart === null) {
+			//Insert at the first line
+			var firstLine = {
+				line: 0,
+				ch: 0
+			};
+			cm.doc.replaceRange('\n', {
+				line: 0,
+				ch: 2
+			});
+			metaTagsStart = firstLine;
+			metaTagsEnd = firstLine;
+			metaTagString = getMetaTagString(metaTags, true);
+		} else {
+			metaTagString = getMetaTagString(metaTags, false);
+		}
+
+		cm.metaTags.collapsedMarker && cm.metaTags.collapsedMarker.clear();
+		cm.doc.replaceRange(metaTagString, metaTagsStart, metaTagsEnd);
+		window.CodeMirror.signal(cm, 'metaDisplayStatusChanged', {
+			status: 'visible'
+		});
+	}
+
+	function handleGutterClick(cm, line) {
+		var lineInfo = cm.lineInfo(line);
+		if (lineInfo.gutterMarkers && lineInfo.gutterMarkers['collapse-meta-tags']) {
+			console.log('gutterclick', line);
+			var element = lineInfo.gutterMarkers['collapse-meta-tags'];
+			var isExpand = element.classList.contains('codeMirrorExpandMarker');
+			if (isExpand) {
+				//Expand
+				showMetaTags(cm, cm.metaTags.metaTags);
+			}
+			else {
+				//Collapse
+				hideMetaTags(cm);
+			}
+			cm.setGutterMarker(line, 'collapse-meta-tags', isExpand ? makeHideMarker() : makeExpandMarker());
+		}
+	}
+
+	function getMetaTagString(metaTags, addSlashes) {
+		var metaTagsArr = [(addSlashes ? '//' : '') + '==UserScript=='];
+
+		var metaKey, metaValue;
+		for (metaKey in metaTags) {
+			if (metaTags.hasOwnProperty(metaKey)) {
+				metaValue = metaTags[metaKey];
+				for (var i = 0; i < metaValue.length; i++) {
+					metaTagsArr.push('//@' + metaKey + ' ' + metaValue[i]);
+				}
+			}
+		}
+		metaTagsArr.push('//==/UserScript==');
+
+		return metaTagsArr.join('\n');
+	}
+
+	codemirror.defineExtension('hideMetatags', function (cm) {
+		hideMetaTags(cm);
 	});
 
-	codemirror.defineExtension('showMetatags', function () {
-		//TODO
+	codemirror.defineExtension('showMetatags', function (cm, metaTags) {
+		showMetaTags(cm, metaTags);
 	});
 
 	codemirror.defineExtension('getMetatags', function(cm) {
 		return cm.metaTags.metaTags;
 	});
 
-	codemirror.defineInitHook(function(cm) {
-		setMetaTags(cm, cm.getValue());
+	codemirror.defineInitHook(function (cm) {
+		var i;
+		var value = cm.getValue();
+		setMetaTags(cm, value);
 		cm.on('changes', function (instance, changes) {
 			updateMetaTags(instance, changes);
+		});
+
+		var collapsed = false;
+		var lines = value.split('\n');
+		for (i = 0; i < lines.length; i++) {
+			if (lines[i].indexOf('==UserScript/UserScript==') > -1) {
+				collapsed = true;
+				break;
+			}
+		}
+		if (collapsed) {
+			cm.setGutterMarker(i, 'collapse-meta-tags', makeExpandMarker());
+		} else {
+			cm.setGutterMarker(cm.metaTags.metaStart.line, 'collapse-meta-tags', makeHideMarker());
+		}
+		cm.on('gutterClick', function(instance, line) {
+			handleGutterClick(instance, line);
 		});
 	});
 });

@@ -185,15 +185,7 @@ Polymer({
 	},
 
 	_onNeonAnimationFinish: function () {
-		var _this = this;
-		if (this.opened) {
-			this.$overlayEl.on('click', function () {
-				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancel();
-				setTimeout(function() {
-					_this.unassignItems();
-				}, 300);
-			});
-		} else {
+		if (!this.opened) {
 			this.$overlayEl[0].style.display = 'none';
 			this.$.overlayCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
