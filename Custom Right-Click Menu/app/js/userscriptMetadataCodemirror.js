@@ -230,6 +230,23 @@
 		return marker;
 	}
 
+	function getMetaTagString(metaTags, addSlashes) {
+		var metaTagsArr = [(addSlashes ? '//' : '') + '==UserScript=='];
+
+		var metaKey, metaValue;
+		for (metaKey in metaTags) {
+			if (metaTags.hasOwnProperty(metaKey)) {
+				metaValue = metaTags[metaKey];
+				for (var i = 0; i < metaValue.length; i++) {
+					metaTagsArr.push('//@' + metaKey + ' ' + metaValue[i]);
+				}
+			}
+		}
+		metaTagsArr.push('//==/UserScript==');
+
+		return metaTagsArr.join('\n');
+	}
+
 	function hideMetaTags(cm) {
 		//Make sure the metatags are saved one last time
 		setMetaTags(cm, cm.getValue());
@@ -274,7 +291,7 @@
 				};
 				metaTagsEnd = {
 					line: i,
-					ch: i + 27
+					ch: i + 28
 				};
 				break;
 			}
@@ -321,23 +338,6 @@
 			}
 			cm.setGutterMarker(line, 'collapse-meta-tags', isExpand ? makeHideMarker() : makeExpandMarker());
 		}
-	}
-
-	function getMetaTagString(metaTags, addSlashes) {
-		var metaTagsArr = [(addSlashes ? '//' : '') + '==UserScript=='];
-
-		var metaKey, metaValue;
-		for (metaKey in metaTags) {
-			if (metaTags.hasOwnProperty(metaKey)) {
-				metaValue = metaTags[metaKey];
-				for (var i = 0; i < metaValue.length; i++) {
-					metaTagsArr.push('//@' + metaKey + ' ' + metaValue[i]);
-				}
-			}
-		}
-		metaTagsArr.push('//==/UserScript==');
-
-		return metaTagsArr.join('\n');
 	}
 
 	codemirror.defineExtension('hideMetatags', function (cm) {

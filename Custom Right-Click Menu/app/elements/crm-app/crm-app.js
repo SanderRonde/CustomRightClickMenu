@@ -522,7 +522,53 @@ Polymer({
 		return obj;
 	},
 
-	getTwoValuesDifferences: function(changesObject, keyString, val1, val2, changes, localChanges) {
+	//areValuesDifferent: function (changesObject, keyString, val1, val2, changes, localChanges) {
+	//	//Array or object
+	//	var obj1ValIsArray = Array.isArray(val1);
+	//	var obj2ValIsArray = Array.isArray(val2);
+	//	var obj1ValIsObjOrArray = typeof val1 === 'object';
+	//	var obj2ValIsObjOrArray = typeof val2 !== 'object';
+
+	//	if (obj1ValIsObjOrArray) {
+	//		//Array or object
+	//		if (!obj2ValIsObjOrArray) {
+	//			localChanges.push(changesObject);
+	//		} else {
+	//			//Both objects or arrays
+
+	//			//1 is an array
+	//			if (obj1ValIsArray) {
+	//				//2 is not an array
+	//				if (!obj2ValIsArray) {
+	//					localChanges.push(changesObject);
+	//				} else {
+	//					//Both are arrays, compare them
+	//					if (this.getArrDifferences(keyString, val1, val2, changes)) {
+	//						//Changes have been found, also say the container arrays have changed
+	//						localChanges.push(changesObject);
+	//					}
+	//				}
+	//			} else {
+	//				//1 is not an array, check if 2 is
+	//				if (obj2ValIsArray) {
+	//					//2 is an array, changes
+	//					localChanges.push(changesObject);
+	//				} else {
+	//					//2 is also not an array, they are both objects
+	//					if (this.getObjDifferences(keyString, val1, val2, changes)) {
+	//						//Changes have been found, also say the container arrays have changed
+	//						localChanges.push(changesObject);
+	//					}
+	//				}
+	//			}
+	//		}
+	//	} else if (val1 !== val2) {
+	//		//They are both normal string/number/bool values, do a normal comparison
+	//		localChanges.push(changesObject);
+	//	}
+	//},
+
+	areValuesDifferent: function(val1, val2) {
 		//Array or object
 		var obj1ValIsArray = Array.isArray(val1);
 		var obj2ValIsArray = Array.isArray(val2);
@@ -531,8 +577,8 @@ Polymer({
 
 		if (obj1ValIsObjOrArray) {
 			//Array or object
-			if (obj2ValIsObjOrArray) {
-				localChanges.push(changesObject);
+			if (!obj2ValIsObjOrArray) {
+				return true;
 			} else {
 				//Both objects or arrays
 
@@ -540,82 +586,62 @@ Polymer({
 				if (obj1ValIsArray) {
 					//2 is not an array
 					if (!obj2ValIsArray) {
-						localChanges.push(changesObject);
+						return true;
 					} else {
 						//Both are arrays, compare them
-						if (this.getArrDifferences(keyString, val1, val2, changes)) {
+						if (this.compareArray(val1, val2)) {
 							//Changes have been found, also say the container arrays have changed
-							localChanges.push(changesObject);
+							return true;
 						}
 					}
 				} else {
 					//1 is not an array, check if 2 is
 					if (obj2ValIsArray) {
 						//2 is an array, changes
-						localChanges.push(changesObject);
+						return true;
 					} else {
 						//2 is also not an array, they are both objects
-						if (this.getObjDifferences(keyString, val1, val2, changes)) {
+						if (this.compareObj(val1, val2)) {
 							//Changes have been found, also say the container arrays have changed
-							localChanges.push(changesObject);
+							return true;
 						}
 					}
 				}
 			}
 		} else if (val1 !== val2) {
 			//They are both normal string/number/bool values, do a normal comparison
-			localChanges.push(changesObject);
-		}
-	},
-
-	getArrDifferences: function (keyString, arr1, arr2, changes) {
-		var changesObject;
-		var keyStringForKey;
-		var localChanges = [];
-		for (var index = 0; index < arr1.length; index++) {
-			keyStringForKey = keyString + '[' + index + ']';
-
-			changesObject = {
-				keyString: keyString,
-				oldValue: arr2[index],
-				newValue: arr1[index],
-				name: key
-			};
-			this.getTwoValuesDifferences(changesObject, keyStringForKey, arr1[key], arr2[key], changes, localChanges);
-		}
-
-		if (localChanges.length > 0) {
-			for (var i = 0; i < localChanges.length; i++) {
-				changes[localChanges[i].keyString] = localChanges[i];
-			}
 			return true;
 		}
 		return false;
 	},
 
-	getObjDifferences: function (keyString, obj1, obj2, changes) {
-		var changesObject;
-		var keyStringForKey;
-		var localChanges = [];
+	getArrDifferences: function (arr1, arr2, changes) {
+		for (var index = 0; index < arr1.length; index++) {
+			if (this.areValuesDifferent(arr1[key], arr2[key])) {
+				changes.push({
+					oldValue: arr2[index],
+					newValue: arr1[index],
+					key: key
+				});
+			}
+		}
+
+		return changes.length > 0;
+	},
+
+	getObjDifferences: function (obj1, obj2, changes) {
 		for (var key in obj1) {
 			if (obj1.hasOwnProperty(key)) {
-				keyStringForKey = keyString + '.' + key;
-				changesObject = {
-					keyString: keyString,
-					oldValue: obj2[key],
-					newValue: obj1[key],
-					name: key
-				};
-				this.getTwoValuesDifferences(changesObject, keyStringForKey, obj1[key], obj2[key], changes, localChanges);
+				if (this.areValuesDifferent(obj1[key], obj2[key])) {
+					changes.push({
+						oldValue: obj2[index],
+						newValue: obj1[index],
+						key: key
+					});
+				}
 			}
 		}
-		if (localChanges.length > 0) {
-			for (var i = 0; i < localChanges.length; i++) {
-				changes[localChanges[i].keyString] = localChanges[i];
-			}
-			return true;
-		}
-		return false;
+		return changes.length > 0;
 	},
 
 	/**
@@ -624,17 +650,25 @@ Polymer({
 	upload: function () {
 		//Send changes to background-page, background-page uploads everything
 		//Compare storageLocal objects
-		var localChanges = {};
+		var localChanges = [];
 		var storageLocal = this.storageLocal;
 		var storageLocalCopy = this.storageLocalCopy;
 
-		var settingsChanges = {};
+		var settingsChanges = [];
 		var settings = this.settings;
 		var settingsCopy = this.settingsCopy;
-		if (getObjDifferences('', storageLocal, storageLocalCopy, localChanges)) {
+		var hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
+		var haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
+		if (hasLocalChanged || haveSettingsChanged) {
 			//Changes occured
-
-
+			chrome.runtime.sendMessage({
+				type: 'updateStorage',
+				data: {
+					type: 'optionsPage',
+					localChanges: hasLocalChanged && localChanges,
+					settingsChanges: haveSettingsChanged && settingsChanges
+				}
+			});
 		}
 
 		var _this = this;
@@ -1120,7 +1154,8 @@ Polymer({
 		}
 
 		this.bindListeners();
-		chrome.storage.local.get(function(storageLocal) {
+		chrome.storage.local.get(function (storageLocal) {
+			delete storageLocal.nodeStorage;
 			if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
 				_this.requestPermissions(storageLocal.requestPermissions);
 			}
@@ -1214,8 +1249,8 @@ Polymer({
 		this.show = false;
 
 		chrome.storage.onChanged.addListener(function (changes, areaName) {
-			if (areaName === 'local' && changes.latestId !== undefined) {
-				_this.latestId = changes.latestId;
+			if (areaName === 'local' && changes.latestId) {
+				_this.latestId = changes.latestId.newValue;
 			}
 		});
 	},

@@ -178,10 +178,12 @@ Polymer({
 				name: name,
 				code: code
 			});
-			chrome.storage.local.set({ libraries: _this.installedLibraries });
 			chrome.runtime.sendMessage({
-				update: true,
-				type: 'updateLibraries'
+				type: 'updateStorage',
+				data: {
+					type: 'libraries',
+					libraries: _this.installedLibraries
+				}
 			});
 			_this.splice('libraries', _this.libraries.length - 1, 0, {
 				name: name,

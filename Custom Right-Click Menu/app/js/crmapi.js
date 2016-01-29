@@ -39,8 +39,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	* Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
 	*/
 	var jsonFn = {
-		stringify: function(obj) {
-			return JSON.stringify(obj, function(key, value) {
+		stringify: function (obj) {
+			return JSON.stringify(obj, function (key, value) {
 				if (value instanceof Function || typeof value == 'function') {
 					return value.toString();
 				}
@@ -55,12 +55,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 
 	//#region Properties of this Object
 	Object.defineProperty(this, 'tabId', {
-		get: function() { 
-			return tabData.id; 
+		get: function () {
+			return tabData.id;
 		}
 	});
 	Object.defineProperty(this, 'permissions', {
-		get: function() {
+		get: function () {
 			return node.permissions;
 		}
 	});
@@ -74,7 +74,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	}
 
 	function createDeleterFunction(index) {
-		return function() {
+		return function () {
 			delete callInfo[index];
 		}
 	}
@@ -104,14 +104,14 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 
 
 	function handshakeFunction() {
-		sendMessage = function(message) {
+		sendMessage = function (message) {
 			if (message.onFinish) {
 				message.onFinish = createCallback(message.onFinish, new Error);
 			}
 			port.postMessage(message);
 		};
 
-		queue.forEach(function(message) {
+		queue.forEach(function (message) {
 			sendMessage(message);
 		});
 		queue = null;
@@ -121,10 +121,17 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		delete callInfo[message.callbackId];
 	}
 	function messageHandler(message) {
-		if (queue) {
+		if (queue) { //Message queue is not empty
 			handshakeFunction();
 		} else {
-			callbackHandler(message);
+			switch (message.messageType) {
+				case 'callback':
+					callbackHandler(message);
+					break;
+				case 'storageUpdate':
+					remoteStorageChange(message);
+					break;
+			}
 		}
 	}
 	port.onMessage.addListener(messageHandler);
@@ -196,65 +203,45 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	/*
 	 * Notifies any listeners of changes to the storage object
 	 */
-	function notifyChanges() {
-		var changes = {};
-		var stored = node.storage;
-		for (var key in stored) {
-			if (stored.hasOwnProperty(key)) {
-				//TODO also check in objects and notify
-				if (typeof stored[key] === 'object' && typeof storagePrevious[key] === 'object') {
-					//Compare objects or arrays
-
-				}
-				else if (typeof stored[key] !== 'object' && typeof storagePrevious[key] !== 'object') {
-					if (stored[key] !== storagePrevious[key]) {
-						changes[key] = true;
-					}
-				} else {
-					changes[key] = true;
-				}
-			}
-		}
-		for (var i = 0; i < storageListeners.length; i++) {
-			if (!storageListeners.key || changes[storageListeners.key]) {
-				storageListeners.listener && storageListeners.listener();
-			}
-		}
-
+	function notifyChanges(keyPath, oldValue, newValue, remote) {
 		for (var listenerObj in storageListenersGM) {
 			if (storageListenersGM.hasOwnProperty(listenerObj)) {
-				if (changes[listenerObj.key]) {
-					listenerObj.callback(listenerObj.key, storagePrevious[listenerObj.key], node.storage[listenerObj.key], true);
+				if (listenerObj.key.indexOf(keyPath) > -1) {
+					listenerObj.callback(listenerObj.key, oldValue, newValue, remote);
 				}
 			}
 		}
 		storagePrevious = node.storage;
 	}
 
-	function notifyGMChanges(name, oldValue, newValue) {
-		for (var listenerObj in storageListenersGM) {
-			if (storageListenersGM.hasOwnProperty(listenerObj)) {
-				if (listenerObj.key === name) {
-					listenerObj.callback(name, oldValue, newValue, false);
-				}
-			}
+	function remoteStorageChange(changes) {
+		for (var i = 0; i < changes.length; i++) {
+			notifyChanges(changes[i].keyPath, changes[i].oldValue, changes[i].newValue, true);
+
+			var data = lookup(changes[i].keyPath, node.storage, true);
+			data[changes[i].keyPath[changes[i].keyPath.length - 1]] = changes[i].newValue;
+			storagePrevious = node.storage;
 		}
 	}
 
-	/*
-	 * Updates the storage to the background page
-	 */
-	function updateStorage() {
-		var message = {
+	function localStorageChange(keyPath, oldValue, newValue) {
+		sendMessage({
 			id: id,
 			type: 'updateStorage',
-			storage: storage,
-			tabId: _this.tabId,
-			update: true
-		};
-
-		sendMessage(message);
-		notifyChanges();
+			data: {
+				type: 'nodeStorage',
+				nodeStorageChanges: [
+					{
+						key: keyPath,
+						oldValue: oldValue,
+						newValue: newValue
+					}
+				],
+				id: id
+			},
+			tabId: _this.tabId
+		});
+		notifyChanges(keyPath, oldValue, newValue, false);
 	}
 
 	storage = storage || {};
@@ -291,10 +278,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 *		one section of the path, or just a plain string without dots as the key
 	 * @param {any} value - The value to set it to
 	 */
-	this.storage.set = function(keyPath, value) {
+	this.storage.set = function (keyPath, value) {
 		if (checkType(keyPath, 'string', true)) {
 			if (keyPath.indexOf('.') === -1) {
-				notifyGMChanges(keyPath, node.storage[keyPath], value);
+				localStorageChange(keyPath, node.storage[keyPath], value);
 				node.storage[keyPath] = value;
 				storagePrevious = node.storage;
 				updateStorage();
@@ -305,22 +292,21 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		}
 		if (checkType(keyPath, 'array', true)) {
 			var data = lookup(keyPath, node.storage, true);
-			notifyGMChanges(keyPath, data[keyPath[keyPath.length - 1]], value);
+			localStorageChange(keyPath, data[keyPath[keyPath.length - 1]], value);
 			data[keyPath[keyPath.length - 1]] = value;
 			storagePrevious = node.storage;
 			updateStorage();
 			return undefined;
 		}
-		checkType(keyPath, ['string', 'array','object'], 'keyPath');
+		checkType(keyPath, ['string', 'array', 'object'], 'keyPath');
 		for (var key in keyPath) {
 			if (keyPath.hasOwnProperty(key)) {
-				notifyGMChanges(keyPath, node.storage[key], value);
+				localStorageChange(keyPath, node.storage[key], value);
 				node.storage[key] = value;
 			}
 		}
 		storagePrevious = node.storage;
 		updateStorage();
-		return undefined;
 	};
 
 	/**
@@ -333,7 +319,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.storage.remove = function (keyPath) {
 		if (checkType(keyPath, 'string', true)) {
 			if (keyPath.indexOf('.') === -1) {
-				notifyGMChanges(keyPath, node.storage[keyPath], undefined);
+				notifyhanges(keyPath, node.storage[keyPath], undefined);
 				delete node.storage[keyPath];
 				storagePrevious = node.storage;
 				updateStorage();
@@ -344,7 +330,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		}
 		if (checkType(keyPath, 'array', true)) {
 			var data = lookup(keyPath, node.storage, true);
-			notifyGMChanges(keyPath, data[keyPath[keyPath.length - 1]], undefined);
+			notifyhanges(keyPath, data[keyPath[keyPath.length - 1]], undefined);
 			delete data[keyPath[keyPath.length - 1]];
 			storagePrevious = node.storage;
 			updateStorage();
@@ -353,23 +339,25 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		checkType(keyPath, ['string', 'array', 'object'], 'keyPath');
 		for (var key in keyPath) {
 			if (keyPath.hasOwnProperty(key)) {
-				notifyGMChanges(keyPath, node.storage[key], undefined);
+				notifyhanges(keyPath, node.storage[key], undefined);
 				delete node.storage[key];
 			}
 		}
 		storagePrevious = node.storage;
 		updateStorage();
-		return undefined;
 	};
 
 	this.storage.onChange = {};
 	/**
 	 * Adds an onchange listener for the storage, listens for a key if given
 	 * 
-	 * @param {function} listener - The function to run
+	 * @param {function} listener - The function to run, gets called 
+	 *		gets called with the first argument being the key, the second being
+	 *		the old value, the third being the new value and the fourth
+	 *		a boolean indicating if the change was on a remote tab
 	 * @param {string} [key] - The key to listen for
 	 */
-	this.storage.onChange.addListener = function(listener, key) {
+	this.storage.onChange.addListener = function (listener, key) {
 		storageListeners.push({
 			listener: listener,
 			key: key
@@ -407,7 +395,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	/*
 	 * Gets the current text selection
 	 */
-	this.getSelection = function() {
+	this.getSelection = function () {
 		return clickData.selectionText || window.getSelection().toString();
 	}
 
@@ -424,7 +412,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @returns {object} An object containing any info about the page, some data may be undefined if it doesn't apply 
 	 */
-	this.getClickInfo = function() {
+	this.getClickInfo = function () {
 		return clickData;
 	}
 
@@ -433,7 +421,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @returns {Object} - An object of type tab (https://developer.chrome.com/extensions/tabs#type-Tab)
 	 */
-	this.getTabInfo = function() {
+	this.getTabInfo = function () {
 		return tabData;
 	}
 
@@ -442,7 +430,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @returns {Object} - The node that is being executed right now
 	 */
-	this.getNode = function() {
+	this.getNode = function () {
 		return node;
 	}
 
@@ -470,9 +458,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 			if (status === 'error') {
 				_this.onError && _this.onError(messageOrParams);
 				if (_this.stackTraces) {
-					setTimeout(function() {
+					setTimeout(function () {
 						console.log('stack trace: ');
-						stackTrace.forEach(function(line) {
+						stackTrace.forEach(function (line) {
 							console.log(line);
 						});
 					}, 5);
@@ -601,7 +589,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
-	this.crm.getTree = function(callback) {
+	this.crm.getTree = function (callback) {
 		sendCrmMessage('getTree', callback);
 	}
 
@@ -611,7 +599,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The ID of the tree's root node
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
-	this.crm.getSubTree = function(nodeId, callback) {
+	this.crm.getSubTree = function (nodeId, callback) {
 		sendCrmMessage('getSubTree', callback, {
 			nodeId: nodeId
 		});
@@ -622,7 +610,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
 	 */
-	this.crm.getNode = function(nodeId, callback) {
+	this.crm.getNode = function (nodeId, callback) {
 		sendCrmMessage('getCrmItem', callback, {
 			nodeId: nodeId
 		});
@@ -635,7 +623,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 *		represents the n-th child of the current node, so [1,2] represents the 2nd item(0,>1<,2)'s third child (0,1,>2<,3)
 	 * @param {function} callback - The function that is called with the ID as an argument
 	 */
-	this.crm.getNodeIdFromPath = function(path, callback) {
+	this.crm.getNodeIdFromPath = function (path, callback) {
 		sendCrmMessage('getNodeIdFromPath', callback, {
 			path: path
 		});
@@ -651,7 +639,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the results in an array
 	 */
-	this.crm.queryCrm = function(query, callback) {
+	this.crm.queryCrm = function (query, callback) {
 		sendCrmMessage('queryCrm', callback, {
 			query: query
 		});
@@ -675,7 +663,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The id of the node whose children to get
 	 * @param {function} callback - A callback with an array of CrmAPIInit~crmNode nodes as the parameter
 	 */
-	this.crm.getChildren = function(nodeId, callback) {
+	this.crm.getChildren = function (nodeId, callback) {
 		sendCrmMessage('getChildren', callback, {
 			nodeId: nodeId
 		});
@@ -687,7 +675,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The id of the node whose type to get
 	 * @param {function} callback - A callback with the type of the node as the parameter (link, script, menu or divider)
 	 */
-	this.crm.getNodeType = function(nodeId, callback) {
+	this.crm.getNodeType = function (nodeId, callback) {
 		sendCrmMessage('getNodeType', callback, {
 			nodeId: nodeId
 		});
@@ -699,7 +687,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The id of the node whose value to get
 	 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal, CrmAPIInit~stylesheetVal or an empty object depending on type
 	 */
-	this.crm.getNodeValue = function(nodeId, callback) {
+	this.crm.getNodeValue = function (nodeId, callback) {
 		sendCrmMessage('getNodeValue', callback, {
 			nodeId: nodeId
 		});
@@ -755,7 +743,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {string} [options.stylesheetData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 	 */
-	this.crm.createNode = function(options, callback) {
+	this.crm.createNode = function (options, callback) {
 		sendCrmMessage('createNode', callback, {
 			options: options
 		});
@@ -837,7 +825,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, contains the new node as an argument
 	 */
-	this.crm.editNode = function(nodeId, options, callback) {
+	this.crm.editNode = function (nodeId, options, callback) {
 		options = options || {};
 		//To prevent the user's stuff from being disturbed if they re-use the object
 		var optionsCopy = JSON.parse(JSON.stringify(options));
@@ -853,7 +841,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers as an argument
 	 */
-	this.crm.getTriggers = function(nodeId, callback) {
+	this.crm.getTriggers = function (nodeId, callback) {
 		sendCrmMessage('getTriggers', callback, {
 			nodeId: nodeId
 		});
@@ -868,7 +856,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 	 */
-	this.crm.setTriggers = function(nodeId, triggers, callback) {
+	this.crm.setTriggers = function (nodeId, triggers, callback) {
 		sendCrmMessage('setTriggers', callback, {
 			nodeId: nodeId,
 			triggers: triggers
@@ -909,7 +897,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The node of which to get the content types
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
 	 */
-	this.crm.getContentTypes = function(nodeId, callback) {
+	this.crm.getContentTypes = function (nodeId, callback) {
 		sendCrmMessage('getContentTypes', callback, {
 			nodeId: nodeId
 		});
@@ -942,7 +930,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 *		page, link, selection, image, video, audio
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 	 */
-	this.crm.setContentTypes = function(nodeId, contentTypes, callback) {
+	this.crm.setContentTypes = function (nodeId, contentTypes, callback) {
 		sendCrmMessage('setContentTypes', callback, {
 			contentTypes: contentTypes,
 			nodeId: nodeId
@@ -966,7 +954,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 *		newTab: Whether the link should open in a new tab or the current tab
 	 *		value: The URL of the link 
 	 */
-	this.crm.link.getLinks = function(nodeId, callback) {
+	this.crm.link.getLinks = function (nodeId, callback) {
 		sendCrmMessage('linkGetLinks', callback, {
 			nodeId: nodeId
 		});
@@ -997,7 +985,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {nunber} amount - The amount of items to splice
 	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 	 */
-	this.crm.link.splice = function(nodeId, start, amount, callback) {
+	this.crm.link.splice = function (nodeId, start, amount, callback) {
 		sendCrmMessage('linkSplice', callback, {
 			nodeId: nodeId,
 			start: start,
@@ -1007,7 +995,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 
 
 	this.crm.script = {};
-	
+
 	/**
 	 * Sets the launch mode of node with ID nodeId to "launchMode" - requires permission "crmGet" and "crmWrite"
 	 * 
@@ -1032,7 +1020,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The id of the node to get the launchMode of
 	 * @param {function} callback - A callback with the launchMode as an argument
 	 */
-	this.crm.script.getLaunchMode = function(nodeId, callback) {
+	this.crm.script.getLaunchMode = function (nodeId, callback) {
 		sendCrmMessage('getScriptLaunchMode', callback, {
 			nodeId: nodeId
 		});
@@ -1048,7 +1036,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {string} - libraries.name - The name of the library
 	 * @param {function} callback - A callback with the new array as an argument
 	 */
-	this.crm.script.libraries.push = function(nodeId, libraries, callback) {
+	this.crm.script.libraries.push = function (nodeId, libraries, callback) {
 		sendCrmMessage('scriptLibraryPush', callback, {
 			nodeId: nodeId,
 			libraries: libraries
@@ -1064,7 +1052,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {nunber} amount - The amount of items to splice
 	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 	 */
-	this.crm.script.libraries.splice = function(nodeId, start, amount, callback) {
+	this.crm.script.libraries.splice = function (nodeId, start, amount, callback) {
 		sendCrmMessage('scriptLibrarySplice', callback, {
 			nodeId: nodeId,
 			start: start,
@@ -1079,7 +1067,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {string} value - The code to change to
 	 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
 	 */
-	this.crm.script.setScript = function(nodeId, script, callback) {
+	this.crm.script.setScript = function (nodeId, script, callback) {
 		sendCrmMessage('setScriptValue', callback, {
 			nodeId: nodeId,
 			script: script
@@ -1092,7 +1080,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number} nodeId - The id of the node of which to get the script
 	 * @param {function} callback - A callback with the script's value as an argument
 	 */
-	this.crm.script.getScript = function(nodeId, callback) {
+	this.crm.script.getScript = function (nodeId, callback) {
 		sendCrmMessage('getScriptValue', callback, {
 			nodeId: nodeId
 		});
@@ -1100,7 +1088,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 
 
 	this.crm.menu = {};
-	
+
 	/**
 	 * Gets the children of the node with ID nodeId - requires permission "crmGet"
 	 * 
@@ -1120,7 +1108,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
 	 */
-	this.crm.menu.setChildren = function(nodeId, childrenIds, callback) {
+	this.crm.menu.setChildren = function (nodeId, childrenIds, callback) {
 		sendCrmMessage('setMenuChildren', callback, {
 			nodeId: nodeId,
 			childrenIds: childrenIds
@@ -1178,96 +1166,98 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 
 	//#region Chrome APIs
 	function ChromeRequest(api) {
-		var chromeAPIArguments = [];
-		
-		this.args = function () {
-			for (var i = 0; i < arguments.length; i++) {
-				chromeAPIArguments.push({
-					type: 'arg',
-					val: jsonFn.stringify(arguments[i])
-				});
-			}
-			return this;
-		}
+		this.api = api;
+		return this;
+	}
 
-		this.fnInline = function(fn) {
-			var params = [];
-			for (var i = 1; i < arguments.length; i++) {
-				params[i - 1] = jsonFn.stringify(arguments[i]);
-			}
-			
-			chromeAPIArguments.push({
-				type: 'fnInline',
-				val: {
-					fn: fn,
-					args: params
-				}
+	ChromeRequest.prototype.chromeAPIArguments = [];
+
+	ChromeRequest.prototype.args = function () {
+		for (var i = 0; i < arguments.length; i++) {
+			this.chromeAPIArguments.push({
+				type: 'arg',
+				val: jsonFn.stringify(arguments[i])
 			});
-			return this;
-		}
-
-		this.fnCallback = function(fn) {
-			chromeAPIArguments.push({
-				type: 'fnCallback',
-				val: createCallback(fn, new Error)
-			});
-			return this;
-		}
-
-		this.cb = function(fn) {
-			chromeAPIArguments.push({
-				type: 'cb',
-				val: createCallback(fn, new Error)
-			});
-			return this;
-		}
-
-		this.return = function(fn) {
-			chromeAPIArguments.push({
-				type: 'return',
-				val: createCallback(fn, new Error)
-			});
-			return this;
-		}
-
-		this.send = function () {
-			var message = {
-				type: 'chrome',
-				id: id,
-				api: api,
-				args: chromeAPIArguments,
-				tabId: _this.tabId,
-				onFinish: function(status, messageOrParams, stackTrace) {
-					if (status === 'error' || status === 'chromeError') {
-						_this.onError && _this.onError(messageOrParams);
-						if (_this.stackTraces) {
-							setTimeout(function() {
-								if (messageOrParams.stackTrace) {
-									console.warn('Remote stack trace:');
-									messageOrParams.stackTrace.forEach(function(line) {
-										console.warn(line);
-									});
-								}
-								console.warn((messageOrParams.stackTrace ? 'Local s' : 'S') + 'tack trace:');
-								stackTrace.forEach(function(line) {
-									console.warn(line);
-								});
-							}, 5);
-						}
-						if (_this.errors) {
-							throw new Error('CrmAPIError: ' + messageOrParams.error);
-						} else {
-							console.warn('CrmAPIError: ' + messageOrParams.error);
-						}
-					} else {
-						callInfo[messageOrParams.callbackId].callback.apply(window, messageOrParams.params);
-						delete callInfo[messageOrParams.callbackId];
-					}
-				}
-			};
-			sendMessage(message);
 		}
 		return this;
+	}
+
+	ChromeRequest.prototype.fnInline = function (fn) {
+		var params = [];
+		for (var i = 1; i < arguments.length; i++) {
+			params[i - 1] = jsonFn.stringify(arguments[i]);
+		}
+
+		this.chromeAPIArguments.push({
+			type: 'fnInline',
+			val: {
+				fn: fn,
+				args: params
+			}
+		});
+		return this;
+	}
+
+	ChromeRequest.prototype.fnCallback = function (fn) {
+		this.chromeAPIArguments.push({
+			type: 'fnCallback',
+			val: createCallback(fn, new Error)
+		});
+		return this;
+	}
+
+	ChromeRequest.prototype.cb = function (fn) {
+		this.chromeAPIArguments.push({
+			type: 'cb',
+			val: createCallback(fn, new Error)
+		});
+		return this;
+	}
+
+	ChromeRequest.prototype.return = function (fn) {
+		this.chromeAPIArguments.push({
+			type: 'return',
+			val: createCallback(fn, new Error)
+		});
+		return this;
+	}
+
+	ChromeRequest.prototype.send = function () {
+		var message = {
+			type: 'chrome',
+			id: id,
+			api: this.api,
+			args: this.chromeAPIArguments,
+			tabId: _this.tabId,
+			onFinish: function (status, messageOrParams, stackTrace) {
+				if (status === 'error' || status === 'chromeError') {
+					_this.onError && _this.onError(messageOrParams);
+					if (_this.stackTraces) {
+						setTimeout(function () {
+							if (messageOrParams.stackTrace) {
+								console.warn('Remote stack trace:');
+								messageOrParams.stackTrace.forEach(function (line) {
+									console.warn(line);
+								});
+							}
+							console.warn((messageOrParams.stackTrace ? 'Local s' : 'S') + 'tack trace:');
+							stackTrace.forEach(function (line) {
+								console.warn(line);
+							});
+						}, 5);
+					}
+					if (_this.errors) {
+						throw new Error('CrmAPIError: ' + messageOrParams.error);
+					} else {
+						console.warn('CrmAPIError: ' + messageOrParams.error);
+					}
+				} else {
+					callInfo[messageOrParams.callbackId].callback.apply(window, messageOrParams.params);
+					delete callInfo[messageOrParams.callbackId];
+				}
+			}
+		};
+		sendMessage(message);
 	}
 
 	/**
@@ -1359,7 +1349,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.GM = {};
 
 
-	this.GM.GM_info = function() {
+	this.GM.GM_info = function () {
 		return {
 			scriptWillUpdate: false, //TODO update this later when it's implemented
 			version: metadata
@@ -1375,7 +1365,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @returns {any} Returns the value if the value is defined, if it's undefined, returns defaultValue
 	 *		if defaultValue is also undefined, returns undefined
 	 */
-	this.GM.GM_getValue = function(name, defaultValue) {
+	this.GM.GM_getValue = function (name, defaultValue) {
 		var result = _this.storage.get(name);
 		return (result !== undefined ? result : defaultValue);
 	}
@@ -1386,7 +1376,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {String} name - The unique (within this script) name for this value. Should be restricted to valid Javascript identifier characters.
 	 * @param {any} value - The value to store
 	 */
-	this.GM.GM_setValue = function(name, value) {
+	this.GM.GM_setValue = function (name, value) {
 		_this.storage.set(name, value);
 	}
 
@@ -1420,7 +1410,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {String} name - The name of the resource
 	 * @returns {String} A URL that can be used to get the resource value
 	 */
-	this.GM.GM_getResourceURL = function(name) {
+	this.GM.GM_getResourceURL = function (name) {
 		return greasemonkeyData.resources[name].crmUrl;
 	}
 
@@ -1430,7 +1420,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * @param {String} name - The name of the resource
 	 * @returns {String} The resource value
 	 */
-	this.GM.GM_getResourceString = function(name) {
+	this.GM.GM_getResourceString = function (name) {
 		return greasemonkeyData.resources[name].string;
 	}
 
@@ -1440,7 +1430,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @param {String} css - The CSS to put on the page
 	 */
-	this.GM.GM_addStyle = function(css) {
+	this.GM.GM_addStyle = function (css) {
 		var style = document.createElement('style');
 		style.appendChild(document.createTextNode(css));
 		document.head.appendChild(style);
@@ -1457,11 +1447,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @param {String} url - The url to open
 	 */
-	this.GM.GM_openInTab = function(url) {
+	this.GM.GM_openInTab = function (url) {
 		window.open(url);
 	}
 
-	this.GM.GM_registerMenuCommand = this.GM.GM_unregisterMenuCommand = this.GM.GM_setClipboard = function() {
+	this.GM.GM_registerMenuCommand = this.GM.GM_unregisterMenuCommand = this.GM.GM_setClipboard = function () {
 		//This is only here to prevent errors from occuring when calling any of these functions,
 		//this function does nothing
 	}
@@ -1500,7 +1490,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		});
 	}
 
-	this.GM.GM_xmlhttpRequest = function(aOpts) {
+	this.GM.GM_xmlhttpRequest = function (aOpts) {
 		'use strict';
 		var req = new XMLHttpRequest();
 
@@ -1559,7 +1549,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	 * 
 	 * @param {number} listenerId - The id of the listener
 	 */
-	this.GM.GM_removeValueChangeListener = function(listenerId) {
+	this.GM.GM_removeValueChangeListener = function (listenerId) {
 		delete storageListenersGM[listenerId];
 	}
 
