@@ -11,9 +11,10 @@
  * @param {number[]} secretyKey - An array of integers, generated to keep downloaded 
  *		scripts from finding local scripts with more privilege and act as if they 
  *		are those scripts to run stuff you don't want it to.
+ * @param {Object} nodeStorage - The storage data for the node
  * @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
  */
-function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
+function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, greasemonkeyData) {
 
 	var _this = this;
 
@@ -129,7 +130,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 					callbackHandler(message);
 					break;
 				case 'storageUpdate':
-					remoteStorageChange(message);
+					remoteStorageChange(message.changes);
 					break;
 			}
 		}
@@ -191,7 +192,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	//#endregion
 
 	//#region Storage
-	var storage = node.storage;
+	var storage = nodeStorage;
 
 	this.storage = {};
 
@@ -211,16 +212,16 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 				}
 			}
 		}
-		storagePrevious = node.storage;
+		storagePrevious = nodeStorage;
 	}
 
 	function remoteStorageChange(changes) {
 		for (var i = 0; i < changes.length; i++) {
 			notifyChanges(changes[i].keyPath, changes[i].oldValue, changes[i].newValue, true);
 
-			var data = lookup(changes[i].keyPath, node.storage, true);
+			var data = lookup(changes[i].keyPath, nodeStorage, true);
 			data[changes[i].keyPath[changes[i].keyPath.length - 1]] = changes[i].newValue;
-			storagePrevious = node.storage;
+			storagePrevious = nodeStorage;
 		}
 	}
 
@@ -237,7 +238,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 						newValue: newValue
 					}
 				],
-				id: id
+				id: id,
+				tabId: _this.tabId
 			},
 			tabId: _this.tabId
 		});
@@ -281,32 +283,30 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.storage.set = function (keyPath, value) {
 		if (checkType(keyPath, 'string', true)) {
 			if (keyPath.indexOf('.') === -1) {
-				localStorageChange(keyPath, node.storage[keyPath], value);
-				node.storage[keyPath] = value;
-				storagePrevious = node.storage;
-				updateStorage();
+				localStorageChange(keyPath, nodeStorage[keyPath], value);
+				nodeStorage[keyPath] = value;
+				storagePrevious = nodeStorage;
 				return undefined;
 			} else {
 				keyPath = keyPath.split('.');
 			}
 		}
 		if (checkType(keyPath, 'array', true)) {
-			var data = lookup(keyPath, node.storage, true);
+			var data = lookup(keyPath, nodeStorage, true);
 			localStorageChange(keyPath, data[keyPath[keyPath.length - 1]], value);
 			data[keyPath[keyPath.length - 1]] = value;
-			storagePrevious = node.storage;
-			updateStorage();
+			storagePrevious = nodeStorage;
 			return undefined;
 		}
 		checkType(keyPath, ['string', 'array', 'object'], 'keyPath');
 		for (var key in keyPath) {
 			if (keyPath.hasOwnProperty(key)) {
-				localStorageChange(keyPath, node.storage[key], value);
-				node.storage[key] = value;
+				localStorageChange(keyPath, nodeStorage[key], value);
+				nodeStorage[key] = value;
 			}
 		}
-		storagePrevious = node.storage;
-		updateStorage();
+		storagePrevious = nodeStorage;
+		return undefined;
 	};
 
 	/**
@@ -319,32 +319,30 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.storage.remove = function (keyPath) {
 		if (checkType(keyPath, 'string', true)) {
 			if (keyPath.indexOf('.') === -1) {
-				notifyhanges(keyPath, node.storage[keyPath], undefined);
-				delete node.storage[keyPath];
-				storagePrevious = node.storage;
-				updateStorage();
+				notifyChanges(keyPath, nodeStorage[keyPath], undefined);
+				delete nodeStorage[keyPath];
+				storagePrevious = nodeStorage;
 				return undefined;
 			} else {
 				keyPath = keyPath.split('.');
 			}
 		}
 		if (checkType(keyPath, 'array', true)) {
-			var data = lookup(keyPath, node.storage, true);
-			notifyhanges(keyPath, data[keyPath[keyPath.length - 1]], undefined);
+			var data = lookup(keyPath, nodeStorage, true);
+			notifyChanges(keyPath, data[keyPath[keyPath.length - 1]], undefined);
 			delete data[keyPath[keyPath.length - 1]];
-			storagePrevious = node.storage;
-			updateStorage();
+			storagePrevious = nodeStorage;
 			return undefined;
 		}
 		checkType(keyPath, ['string', 'array', 'object'], 'keyPath');
 		for (var key in keyPath) {
 			if (keyPath.hasOwnProperty(key)) {
-				notifyhanges(keyPath, node.storage[key], undefined);
-				delete node.storage[key];
+				notifyChanges(keyPath, nodeStorage[key], undefined);
+				delete nodeStorage[key];
 			}
 		}
-		storagePrevious = node.storage;
-		updateStorage();
+		storagePrevious = nodeStorage;
+		return undefined;
 	};
 
 	this.storage.onChange = {};
@@ -1165,8 +1163,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	//#endregion
 
 	//#region Chrome APIs
-	function ChromeRequest(api) {
+	function ChromeRequest(api, type) {
+		//This is not at all secure
 		this.api = api;
+		this.isSpecial = (type === 'special');
 		return this;
 	}
 
@@ -1229,6 +1229,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 			api: this.api,
 			args: this.chromeAPIArguments,
 			tabId: _this.tabId,
+			special: this.isSpecial,
 			onFinish: function (status, messageOrParams, stackTrace) {
 				if (status === 'error' || status === 'chromeError') {
 					_this.onError && _this.onError(messageOrParams);
@@ -1341,18 +1342,24 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 	this.chrome = function (api) {
 		return new ChromeRequest(api);
 	};
+
+	function chromeSpecialRequest(api) {
+		return new ChromeRequest(api, 'special');
+	}
+
 	//#endregion
 
-	//#region GreaseMonkey Compatability Functions
+	//#region GreaseMonkey Compatibility Functions
 
-	//Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
+	//Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API 
+	//	and here http://tampermonkey.net/documentation.php
 	this.GM = {};
 
 
 	this.GM.GM_info = function () {
 		return {
 			scriptWillUpdate: false, //TODO update this later when it's implemented
-			version: metadata
+			version: greasemonkeyData
 		}
 	};
 
@@ -1490,8 +1497,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		});
 	}
 
-	this.GM.GM_xmlhttpRequest = function (aOpts) {
-		'use strict';
+	this.GM.GM_xmlhttpRequest = function(aOpts) {
+		if (node.permissions.indexOf('GM_xmlhttpRequest') === -1) {
+			return null;
+		}
 		var req = new XMLHttpRequest();
 
 		setupRequestEvent(aOpts, req, 'abort');
@@ -1553,12 +1562,31 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, greasemonkeyData) {
 		delete storageListenersGM[listenerId];
 	}
 
+	this.GM.GM_download = function (detailsOrUrl, name) {
+		if (node.permissions.indexOf('GM_download') === -1) {
+			return {
+				error: 'not_permitted ',
+				details: 'the GM_download permission is not enabled'
+			};
+		}
+
+		var details = {};
+		if (typeof detailsOrUrl === 'string') {
+			details.url = detailsOrUrl;
+			details.name = name;
+		} else {
+			details = detailsOrUrl;
+		}
+
+		_this.chrome('downloads.download').
+	}
+
 	this.GM.unsafeWindow = window;
 
-	var gmApis = this.GM;
-	for (var key in gmApis) {
-		if (gmApis.hasOwnProperty(key)) {
-			window[key] = gmApis[key];
+	var greaseMonkeyAPIs = this.GM;
+	for (var key in greaseMonkeyAPIs) {
+		if (greaseMonkeyAPIs.hasOwnProperty(key)) {
+			window[key] = greaseMonkeyAPIs[key];
 		}
 	}
 

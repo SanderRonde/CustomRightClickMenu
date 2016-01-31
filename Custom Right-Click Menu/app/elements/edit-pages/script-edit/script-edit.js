@@ -370,69 +370,72 @@
 				permissionList.push.apply(permissionList, nonRequiredNonActive);
 				console.log(permissionList);
 
-				var el, svg;
-				$('.requestPermissionsShowBot').off('click').on('click', function() {
-					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
-					svg = $(this).find('.requestPermissionsSvg')[0];
-					svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-					if (el.animation) {
-						el.animation.reverse();
-					} else {
-						el.animation = el.animate([
-							{
-								height: 0
-							}, {
-								height: el.scrollHeight + 'px'
-							}
-						], {
-							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-					}
-				});
-
-				var permission;
-				$('.requestPermissionButton').off('click').on('click', function() {
-					permission = this.previousElementSibling.previousElementSibling.textContent;
-					var slider = this;
-					if (this.checked) {
-						if (extensionWideEnabledPermissions.indexOf(permission) === -1) {
-							chrome.permissions.request({
-								permissions: [permission]
-							}, function(accepted) {
-								if (!accepted) {
-									//The user didn't accept, don't pretend it's active when it's not, turn it off
-									slider.checked = false;
-								} else {
-									//Accepted, remove from to-request permissions if it's there
-									chrome.storage.local.get(function(e) {
-										var permissionsToRequest = e.requestPermissions;
-										requestPermissions.splice(requestPermissions.indexOf(permission), 1);
-										chrome.storage.local.set({
-											requestPermissions: permissionsToRequest
-										});
-									});
-
-									//Add to script's permissions
-									settingsStorage.permissions = settingsStorage.permissions || [];
-									settingsStorage.permissions.push(permission);
-								}
-							});
+				function cb() {
+					var el, svg;
+					$('.requestPermissionsShowBot').off('click').on('click', function() {
+						console.log('clicked it');
+						el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
+						svg = $(this).find('.requestPermissionsSvg')[0];
+						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+						if (el.animation) {
+							el.animation.reverse();
 						} else {
-							//Add to script's permissions
-							settingsStorage.permissions = settingsStorage.permissions || [];
-							settingsStorage.permissions.push(permission);
+							el.animation = el.animate([
+								{
+									height: 0
+								}, {
+									height: el.scrollHeight + 'px'
+								}
+							], {
+								duration: 250,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+								fill: 'both'
+							});
 						}
-					} else {
-						//Remove from script's permissions
-						settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
-					}
-				});
+					});
+
+					var permission;
+					$('.requestPermissionButton').off('click').on('click', function() {
+						permission = this.previousElementSibling.previousElementSibling.textContent;
+						var slider = this;
+						if (this.checked) {
+							if (extensionWideEnabledPermissions.indexOf(permission) === -1) {
+								chrome.permissions.request({
+									permissions: [permission]
+								}, function(accepted) {
+									if (!accepted) {
+										//The user didn't accept, don't pretend it's active when it's not, turn it off
+										slider.checked = false;
+									} else {
+										//Accepted, remove from to-request permissions if it's there
+										chrome.storage.local.get(function(e) {
+											var permissionsToRequest = e.requestPermissions;
+											requestPermissions.splice(requestPermissions.indexOf(permission), 1);
+											chrome.storage.local.set({
+												requestPermissions: permissionsToRequest
+											});
+										});
+
+										//Add to script's permissions
+										settingsStorage.permissions = settingsStorage.permissions || [];
+										settingsStorage.permissions.push(permission);
+									}
+								});
+							} else {
+								//Add to script's permissions
+								settingsStorage.permissions = settingsStorage.permissions || [];
+								settingsStorage.permissions.push(permission);
+							}
+						} else {
+							//Remove from script's permissions
+							settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
+						}
+					});
+				}
 
 				$('#scriptPermissionsTemplate')[0].items = permissionList;
 				$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + nodeItem.name;
-				cb && $('#scriptPermissionDialog')[0].addEventListener('iron-overlay-closed', cb);
+				$('#scriptPermissionDialog')[0].addEventListener('iron-overlay-opened', cb);
 				$('#scriptPermissionDialog')[0].open();
 			});
 		},

@@ -18,12 +18,18 @@ function sandbox(api, args) {
 (function (extensionId) {
 	//#region Global Variables
 	var globals = {
-		storages: {},
+		storages: {
+			settingsStorage: null,
+			resourceKeys: null,
+			storageLocal: null,
+			nodeStorage: null,
+			resources: null
+		},
 		crm: {
-			crmTree: null,
-			safeTree: null,
-			crmById: null,
-			crmByIdSafe: null
+			crmTree: {},
+			crmById: {},
+			safeTree: {},
+			crmByIdSafe: {}
 		},
 		keys: {},
 		availablePermissions: [],
@@ -146,6 +152,7 @@ function sandbox(api, args) {
 	//#region Right-Click Menu Handling/Building
 	function removeNode(node) {
 		chrome.contextMenus.remove(node.id, function() {
+			// ReSharper disable once WrongExpressionStatement
 			chrome.runtime.lastError;
 		});
 	}
@@ -165,18 +172,22 @@ function sandbox(api, args) {
 				return i;
 			}
 		}
-		return null;
+		return Infinity;
 	}
 
 	function reCreateNode(parentId, node, changes) {
 		var oldId = node.id;
-		var stylesheetStatus = stylesheetNodeStatusses[oldId];
+		node.enabled = true;
+		var stylesheetStatus = globals.crmValues.stylesheetNodeStatusses[oldId];
 		var settings = globals.crmValues.contextMenuInfoById[node.id].settings;
 		if (node.node.type === 'stylesheet' && node.node.value.toggle) {
 			settings.enabled = stylesheetStatus;
 		}
 		settings.parentId = parentId;
-		var id = chrome.contextMenus.create(globals.crmValues.contextMenuInfoById[node.id].settings);
+
+		//This is added by chrome to the object during/after creation so delete it manually
+		delete settings.generatedId;
+		var id = chrome.contextMenus.create(settings);
 
 		//Update ID
 		node.id = id;
@@ -206,9 +217,11 @@ function sandbox(api, args) {
 		//Remove all nodes below it and store them
 		var i;
 		var firstChangeIndex = getFirstRowChange(tree, changes);
-		for (i = 0; i < firstChangeIndex; i++) {
-			//Normally check its children
-			applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
+		if (firstChangeIndex < tree.length) {
+			for (i = 0; i < firstChangeIndex; i++) {
+				//Normally check its children
+				tree[i].children && tree[i].children.length > 0 && applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
+			}
 		}
 
 		for (i = firstChangeIndex; i < tree.length; i++) {
@@ -241,7 +254,7 @@ function sandbox(api, args) {
 						}
 					}
 
-					enableAfter.forEach(function(node) {
+					enableAfter.forEach(function (node) {
 						reCreateNode(parentId, node, changes);
 					});
 				}
@@ -258,7 +271,8 @@ function sandbox(api, args) {
 	}
 
 	function tabChangeListener(changeInfo) {
-		//TODO Test this pls
+		//Horrible workaround that allows the hiding of nodes on certain url's that
+		//	surprisingly only takes ~1-2ms per tab switch.
 		var currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
 		chrome.tabs.get(currentTabId, function(tab) {
 			//Show/remove nodes based on current URL
@@ -271,15 +285,17 @@ function sandbox(api, args) {
 			var hiddenNodes = [];
 			getNodeStatusses(globals.crmValues.contextMenuItemTree, hiddenNodes, shownNodes);
 
+
 			//Find nodes to enable
 			var hideOn;
 			for (i = 0; i < hiddenNodes.length; i++) {
 				hideOn = globals.crmValues.hideNodesOnPagesData[hiddenNodes[i].node.id];
-				if (hideOn) {
-					if (!matchesUrlSchemes(hideOn, tab.url)) {
-						//Don't hide on current url
-						toEnable.push(hiddenNodes[i]);
-					}
+				if (!hideOn || !matchesUrlSchemes(hideOn, tab.url)) {
+					//Don't hide on current url
+					toEnable.push({
+						node: hiddenNodes[i].node,
+						id: hiddenNodes[i].id
+					});
 				}
 			}
 
@@ -288,8 +304,12 @@ function sandbox(api, args) {
 				hideOn = globals.crmValues.hideNodesOnPagesData[shownNodes[i].node.id];
 				if (hideOn) {
 					if (matchesUrlSchemes(hideOn, tab.url)) {
+						console.log('matched');
 						//Don't hide on current url
-						toHide.push(shownNodes[i]);
+						toHide.push({
+							node: shownNodes[i].node,
+							id: shownNodes[i].id
+						});
 					}
 				}
 			}
@@ -310,32 +330,32 @@ function sandbox(api, args) {
 
 			for (i = 0; i < toHide.length; i++) {
 				changes[toHide[i].id] = {
-					node: toHide[i],
+					node: toHide[i].node,
 					type: 'hide'
 				};
 			}
 			for (i = 0; i < toEnable.length; i++) {
 				changes[toEnable[i].id] = {
-					node: toEnable[i],
+					node: toEnable[i].node,
 					type: 'show'
 				};
 			}
 
-			//Enable the to-enable nodes
-			for (i = 0; i, toEnable.length; i++) {
-				applyNodeChangesOntree(globals.crmValues.rootId, globals.crmValues.contextMenuItemTree, changes);
-			}
-
-			//Hide the to-hide nodes
+			//Apply changes
+			applyNodeChangesOntree(globals.crmValues.rootId, globals.crmValues.contextMenuItemTree, changes);
 		});
 
 		for (var nodeId in globals.crmValues.stylesheetNodeStatusses) {
 			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(nodeId)) {
-				chrome.contextMenus.update(contextMenuIds[nodeId], {
+				chrome.contextMenus.update(globals.crmValues.contextMenuIds[nodeId], {
 					checked: globals.crmValues.stylesheetNodeStatusses[nodeId][currentTabId]
+				}, function() {
+					// ReSharper disable once WrongExpressionStatement
+					chrome.runtime.lastError;
 				});
 			}
 		}
+		console.timeEnd('tabChangeStuff');
 	}
 
 	chrome.tabs.onHighlighted.addListener(tabChangeListener);
@@ -346,8 +366,8 @@ function sandbox(api, args) {
 		for (i = 0; i < 25; i++) {
 			key[i] = Math.round(Math.random() * 100);
 		}
-		if (!keys[key]) {
-			keys[key] = true;
+		if (!globals.keys[key]) {
+			globals.keys[key] = true;
 			return key;
 		} else {
 			return createSecretKey();
@@ -374,22 +394,22 @@ function sandbox(api, args) {
 	}
 
 	function createLinkClickHandler(node) {
-		return function (clickData, tabData) {
+		return function (clickData, tabInfo) {
 			var i;
 			var finalUrl;
 			for (i = 0; i < node.value.length; i++) {
 				if (node.value[i].newTab) {
 					chrome.tabs.create({
-						windowId: tabData.windowId,
+						windowId: tabInfo.windowId,
 						url: sanitizeUrl(node.value[i].url),
-						openerTabId: tabData.id
+						openerTabId: tabInfo.id
 					});
 				} else {
 					finalUrl = node.value[i].url;
 				}
 			}
 			if (finalUrl) {
-				chrome.tabs.update(tabData.tabId, {
+				chrome.tabs.update(tabInfo.tabId, {
 					url: sanitizeUrl(finalUrl)
 				});
 			}
@@ -402,14 +422,14 @@ function sandbox(api, args) {
 		return function (info, tab) {
 			var code;
 			var className = node.id + '' + tab.id;
-			if (stylesheetNodeStatusses[node.id][tab.id]) {
+			if (globals.crmValues.stylesheetNodeStatusses[node.id][tab.id]) {
 				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
 			} else {
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
 				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
 			}
-			chrome.contextMenus.update(contextMenuIds[node.id], {
-				checked: (stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id])
+			chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
+				checked: (globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = !globals.crmValues.stylesheetNodeStatusses[node.id][tab.id])
 			});
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
@@ -525,7 +545,8 @@ function sandbox(api, args) {
 					metaData: metaData,
 					resources: storageLocal.resources
 				};
-				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + greaseMonkeyData + ');\n';
+				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
+				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + globals.storages.nodeStorage[node.id] + ',' + greaseMonkeyData + ');\n';
 				code = code + node.value.script;
 
 				var runAt = metaData['run-at'] || 'document_end';
@@ -582,14 +603,14 @@ function sandbox(api, args) {
 
 	function getStylesheetReplacementTabs(node) {
 		var replaceOnTabs = [];
-		if (contextMenuIds[node.id] && //Node already exists
+		if (globals.crmValues.contextMenuIds[node.id] && //Node already exists
 				globals.crm.crmById[node.id].type === 'stylesheet' && node.type === 'stylesheet' && //Node type stayed stylesheet
 				globals.crm.crmById[node.id].value.stylesheet !== node.value.stylesheet) { //Value changed
 
 			//Update after creating a new node
-			for (var key in stylesheetNodeStatusses[node.id]) {
-				if (stylesheetNodeStatusses.hasOwnProperty(key)) {
-					if (stylesheetNodeStatusses[node.id][key]) {
+			for (var key in globals.crmValues.stylesheetNodeStatusses[node.id]) {
+				if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(key)) {
+					if (globals.crmValues.stylesheetNodeStatusses[node.id][key]) {
 						replaceOnTabs.push({
 							id: key
 						});
@@ -604,7 +625,7 @@ function sandbox(api, args) {
 		if (node.type === 'script') {
 			createScriptClickHandler(node)({}, tab);
 		} else if (node.type === 'stylesheet') {
-			stylesheetNodeStatusses[node.id][tab.id] = false;
+			globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = false;
 			createStylesheetClickHandler(node)({}, tab);
 		} else if (node.type === 'link') {
 			createLinkClickHandler(node)({}, tab);
@@ -613,12 +634,11 @@ function sandbox(api, args) {
 
 	//#region URL scheme matching
 	function escapeRegExp(str) {
-		return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, '\\$&').replace(/\*/g, '.+');
+		return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, '\\$&').replace(/\*/g, '.*');
 	}
 
 	function matchesUrlSchemes(matchPatterns, url) {
 		var matches = false;
-
 		for (var i = 0; i < matchPatterns.length; i++) {
 			var not = matchPatterns[i].not;
 			var matchPattern = matchPatterns[i].url;
@@ -637,7 +657,7 @@ function sandbox(api, args) {
 				matchPath = '/';
 			} else {
 				matchPatternSplit = matchPatternSplit[1].split('/');
-				matchHost = matchPatternSplit.splice(0, 1);
+				matchHost = matchPatternSplit.splice(0, 1)[0];
 				matchPath = matchPatternSplit.join('/');
 			}
 
@@ -655,6 +675,7 @@ function sandbox(api, args) {
 			if (matchScheme !== '*' && matchScheme !== urlScheme) {
 				return false;
 			}
+
 			matchHost = new RegExp(escapeRegExp(matchHost));
 			if (!matchHost.test(urlHost)) {
 				return false;
@@ -690,7 +711,7 @@ function sandbox(api, args) {
 					for (var nodeId in globals.toExecuteNodes.onUrl) {
 						if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId)) {
 							if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
-								executeNode(globals.crmById[nodeId], tab);
+								executeNode(globals.crm.crmById[nodeId], tab);
 							}
 						}
 					}
@@ -710,12 +731,12 @@ function sandbox(api, args) {
 		return newTrigger;
 	}
 
-	function addRightClickItemClick(node, rightClickItemOptions, idHolder) {
+	function addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder) {
 
 		//On by default
 		if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 			if (launchMode === 0) { //Run on clicking
-				toExecuteNodes.always.push(node);
+				globals.toExecuteNodes.always.push(node);
 			} else {
 				globals.toExecuteNodes.onUrl[node.id] = node.triggers;
 			}
@@ -798,7 +819,7 @@ function sandbox(api, args) {
 		} else if (launchMode === launchModes['run on specified pages']) {
 			globals.toExecuteNodes.onUrl[node.id] = node.triggers;
 		} else {
-			addRightClickItemClick(node, rightClickItemOptions, idHolder);
+			addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
 		}
 	}
 
@@ -847,10 +868,11 @@ function sandbox(api, args) {
 					var newPath = JSON.parse(JSON.stringify(path));
 					newPath.push(visibleIndex);
 					var result = buildPageCRMTree(node.children[i], id, newPath, children);
-					if (result !== null) {
+					if (result) {
 						visibleIndex++;
 						result.index = i;
 						result.parentId = id;
+						result.node = node.children[i];
 						result.parentTree = parentTree;
 						children.push(result);
 					}
@@ -859,10 +881,12 @@ function sandbox(api, args) {
 			globals.crmValues.contextMenuInfoById[id].path = path;
 			return {
 				id: id,
-				children: children,
-				path: path
+				path: path,
+				enabled: true,
+				children: children
 			};
-		} 
+		}
+
 		return null;
 	}
 
@@ -874,7 +898,7 @@ function sandbox(api, args) {
 
 	function buildPageCRM() {
 		var i;
-		var length = globals.crmTree.length;
+		var length = globals.crm.crmTree.length;
 		globals.crmValues.stylesheetNodeStatusses = {};
 		chrome.contextMenus.removeAll();
 		globals.crmValues.rootId = chrome.contextMenus.create({
@@ -886,13 +910,13 @@ function sandbox(api, args) {
 			always: []
 		};
 		for (i = 0; i < length; i++) {
-			var result = buildPageCRMTree(crmTree[i], globals.crmValues.rootId, [i], globals.crmValues.contextMenuItemTree);
-			if (result !== null) {
+			var result = buildPageCRMTree(globals.crm.crmTree[i], globals.crmValues.rootId, [i], globals.crmValues.contextMenuItemTree);
+			if (result) {
 				globals.crmValues.contextMenuItemTree[i] = {
 					index: i,
 					id: result.id,
 					enabled: true,
-					node: crmTree[i],
+					node: globals.crm.crmTree[i],
 					parentId: globals.crmValues.rootId,
 					children: result.children,
 					parentTree: globals.crmValues.contextMenuItemTree
@@ -920,7 +944,7 @@ function sandbox(api, args) {
 				delete node[tabId];
 			}
 		}
-		delete tabData[tabId];
+		delete globals.crmValues.tabData[tabId];
 	});
 
 	//#endregion
@@ -1026,9 +1050,9 @@ function sandbox(api, args) {
 
 	function parseNode(node, isSafe) {
 		if (isSafe) {
-			crmByIdSafe[node.id] = makeSafe(node);
+			globals.crm.crmByIdSafe[node.id] = makeSafe(node);
 		} else {
-			crmById[node.id] = node;
+			globals.crm.crmById[node.id] = node;
 		}
 		if (node.children && node.children.length > 0) {
 			for (var i = 0; i < node.children.length; i++) {
@@ -1160,14 +1184,28 @@ function sandbox(api, args) {
 		buildPageCRM();
 	}
 
-	function notifyNodeStorageChanges(id, changes) {
-		crmById[message.id].storage = message.storage;
-		//TODO
-		//Notify all pages running that node
-
-
+	function notifyNodeStorageChanges(id, tabId, changes) {
 		//Update in storage
+		globals.crm.crmById[id].storage = globals.storages.nodeStorage[id];
+		chrome.storage.local.set({
+			nodeStorage: globals.storages.nodeStorage
+		});
 
+		//Notify all pages running that node
+		var tabData = globals.crmValues.tabData;
+		for (var tab in tabData) {
+			if (tabData.hasOwnProperty(tab)) {
+				if (tab !== tabId) {
+					var nodes = tabData[tab].nodes;
+					if (nodes[id]) {
+						nodes[id].port.postMessage({
+							changes: changes,
+							messageType: 'storageUpdate'
+						});
+					}
+				}
+			}
+		}
 	}
 
 	function applyChangeForStorageType(storageObj, changes) {
@@ -1198,8 +1236,8 @@ function sandbox(api, args) {
 				]);
 				break;
 			case 'nodeStorage':
-				applyChangeForStorageType(nodeStorage, data.nodeStorageChanges);
-				notifyNodeStorageChanges(data.id, data.nodeStorageChanges);
+				applyChangeForStorageType(globals.storages.nodeStorage[data.id], data.nodeStorageChanges);
+				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
 				break;
 		}
 	}
@@ -1218,7 +1256,7 @@ function sandbox(api, args) {
 			lineNumber: message.lineNumber
 		} : data);
 		try {
-			tabData[message.tabId].nodes[message.id].port.postMessage(msg);
+			globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
 				respondToCrmAPI(message, 'error', 'Converting circular structure to JSON, this API will not work');
@@ -1243,13 +1281,13 @@ function sandbox(api, args) {
 		var crmFunctions = {
 			getTree: function () {
 				_this.checkPermissions(['crmGet'], function () {
-					_this.respondSuccess(safeTree);
+					_this.respondSuccess(globals.crm.safeTree);
 				});
 			},
 			getSubTree: function (id) {
 				_this.checkPermissions(['crmGet'], function () {
 					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = crmByIdSafe[id || _this.message.nodeId];
+						var node = globals.crm.crmByIdSafe[id || _this.message.nodeId];
 						if (node) {
 							_this.respondSuccess(node.children);
 						} else {
@@ -1263,7 +1301,7 @@ function sandbox(api, args) {
 			getNode: function () {
 				_this.checkPermissions(['crmGet'], function () {
 					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = crmByIdSafe[id || _this.message.nodeId];
+						var node = globals.crm.crmByIdSafe[id || _this.message.nodeId];
 						if (node) {
 							_this.respondSuccess(node);
 						} else {
@@ -1277,7 +1315,7 @@ function sandbox(api, args) {
 			getNodeIdFromPath: function (path) {
 				_this.checkPermissions(['crmGet'], function () {
 					var pathToSearch = path || _this.message.path;
-					var lookedUp = _this.lookup(pathToSearch, safeTree, false);
+					var lookedUp = _this.lookup(pathToSearch, globals.crm.safeTree, false);
 					if (lookedUp === true) {
 						return false;
 					} else if (lookedUp === false) {
@@ -1332,7 +1370,7 @@ function sandbox(api, args) {
 								searchScope = searchScope.children;
 							}
 						}
-						searchScope = searchScope || safeTree;
+						searchScope = searchScope || globals.crm.safeTree;
 
 						if (searchScope) {
 							for (j = 0; j < searchScope.length; j++) {
@@ -1361,7 +1399,7 @@ function sandbox(api, args) {
 						var pathToSearch = JSON.parse(JSON.stringify(node.path));
 						pathToSearch.pop();
 						_this.crmFunctions.getNodeIdFromPath(pathToSearch, function (id) {
-							_this.respondSuccess(crmById[_this.getNodeFromId(id, true, true)]);
+							_this.respondSuccess(globals.crm.crmById[_this.getNodeFromId(id, true, true)]);
 						});
 					});
 				});
@@ -1633,9 +1671,9 @@ function sandbox(api, args) {
 			deleteNode: function () {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						var parentChildren = _this.lookup(node.path, crmTree, true);
+						var parentChildren = _this.lookup(node.path, globals.crm.crmTree, true);
 						parentChildren.splice(node.path[node.path.length - 1], 1);
-						chrome.contextMenus.remove(contextMenuIds[node.id], function () {
+						chrome.contextMenus.remove(globals.crmValues.contextMenuIds[node.id], function () {
 							updateCrm();
 							_this.respondSuccess(true);
 						});
@@ -1707,16 +1745,16 @@ function sandbox(api, args) {
 							node.showOnSpecified = true;
 							updateCrm();
 							var matchPatterns = [];
-							hideNodesOnPagesData[node.id] = [];
+							globals.crmValues.hideNodesOnPagesData[node.id] = [];
 							for (var i = 0; i < node.triggers.length; i++) {
 								var preparedUrl = prepareTrigger(node.triggers[i].url);
 								if (node.triggers.not) {
-									hideNodesOnPagesData[node.id].push(preparedUrl);
+									globals.crmValues.hideNodesOnPagesData[node.id].push(preparedUrl);
 								} else {
 									matchPatterns.push(preparedUrl);
 								}
 							}
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
 								documentUrlPatterns: matchPatterns
 							}, function () {
 								updateCrm();
@@ -1744,7 +1782,7 @@ function sandbox(api, args) {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							node.showOnSpecified = _this.message.useTriggers;
 							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
 								documentUrlPatterns: ['<all_urls>']
 							}, function () {
 								updateCrm();
@@ -1777,7 +1815,7 @@ function sandbox(api, args) {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							node.onContentTypes[_this.message.index] = _this.message.value;
 							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function () {
 								updateCrm();
@@ -1818,7 +1856,7 @@ function sandbox(api, args) {
 								contentTypes = [true, true, true, true, true, true];
 							}
 							node.onContentTypes = contentTypes;
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function () {
 								updateCrm();
@@ -2000,7 +2038,7 @@ function sandbox(api, args) {
 										storageLocal.libraries.push(newLibrary);
 										chrome.storage.local.set({
 											libraries: storageLocal.libraries
-										}, updateStorage);
+										});
 										_this.respondSuccess(newLibrary);
 									}
 								};
@@ -2019,7 +2057,7 @@ function sandbox(api, args) {
 							storageLocal.libraries.push(newLibrary);
 							chrome.storage.local.set({
 								libraries: storageLocal.libraries
-							}, updateStorage);
+							});
 							_this.respondSuccess(newLibrary);
 						} else {
 							_this.respondError('No URL or code given');
@@ -2326,29 +2364,29 @@ function sandbox(api, args) {
 				return false;
 			}
 			if (!this.checkType(position.node, 'number', 'node', true, function () {
-				relativeNode = crmTree;
+				relativeNode = globals.crm.crmTree;
 				isRoot = true;
 			})) {
 				return false;
 			}
 			if (!this.checkType(position.relation, 'string', 'relation', true, function () {
 				position.relation = 'firstSibling';
-				relativeNode = crmTree;
+				relativeNode = globals.crm.crmTree;
 				isRoot = true;
 			})) {
 				return false;
 			}
 			relativeNode = relativeNode || this.getNodeFromId(node, false, true);
 			if (relativeNode === false) {
-				relativeNode = crmTree;
+				relativeNode = globals.crm.crmTree;
 				isRoot = true;
 			}
 			switch (position.relation) {
 				case 'before':
 					if (isRoot) {
-						pushIntoArray(node, 0, crmTree);
+						pushIntoArray(node, 0, globals.crm.crmTree);
 					} else {
-						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
 						if (relativeNode.path.length > 0) {
 							pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
 						}
@@ -2356,15 +2394,15 @@ function sandbox(api, args) {
 					break;
 				case 'firstSibling':
 					if (isRoot) {
-						pushIntoArray(node, 0, crmTree);
+						pushIntoArray(node, 0, globals.crm.crmTree);
 					} else {
-						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
 						pushIntoArray(node, 0, parentChildren);
 					}
 					break;
 				case 'firstChild':
 					if (isRoot) {
-						pushIntoArray(node, 0, crmTree);
+						pushIntoArray(node, 0, globals.crm.crmTree);
 					} else if (relativeNode.type === 'menu') {
 						pushIntoArray(node, 0, relativeNode.children);
 					} else {
@@ -2374,9 +2412,9 @@ function sandbox(api, args) {
 					break;
 				case 'after':
 					if (isRoot) {
-						pushIntoArray(node, crmTree.length, crmTree);
+						pushIntoArray(node, globals.crm.crmTree.length, globals.crm.crmTree);
 					} else {
-						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
 						if (relativeNode.path.length > 0) {
 							pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
 						}
@@ -2384,15 +2422,15 @@ function sandbox(api, args) {
 					break;
 				case 'lastSibling':
 					if (isRoot) {
-						pushIntoArray(node, crmTree.length, crmTree);
+						pushIntoArray(node, globals.crm.crmTree.length, globals.crm.crmTree);
 					} else {
-						parentChildren = this.lookup(relativeNode.path, crmTree, true);
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
 						pushIntoArray(node, parentChildren.length - 1, parentChildren);
 					}
 					break;
 				case 'lastChild':
 					if (isRoot) {
-						pushIntoArray(node, crmTree.length, crmTree);
+						pushIntoArray(node, globals.crm.crmTree.length, globals.crm.crmTree);
 					} else if (relativeNode.type === 'menu') {
 						pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
 					} else {
@@ -2403,16 +2441,16 @@ function sandbox(api, args) {
 			}
 		} else {
 			//Place in default position, firstChild of root
-			pushIntoArray(node, 0, crmTree);
+			pushIntoArray(node, 0, globals.crm.crmTree);
 		}
 		var pathMinusOne = JSON.parse(JSON.stringify(node.path));
 		pathMinusOne.splice(pathMinusOne.length - 1, 1);
-		eval('crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
+		eval('globals.crm.crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
 		return true;
 	};
 
 	CRMFunction.prototype.getNodeFromId = function (id, isSafe, noCallback) {
-		var node = (isSafe ? crmByIdSafe : crmById)[id];
+		var node = (isSafe ? globals.crm.crmByIdSafe : globals.crm.crmById)[id];
 		if (node) {
 			if (noCallback) {
 				return node;
@@ -2644,13 +2682,13 @@ function sandbox(api, args) {
 	}
 
 	function chromeHandler(message) {
-		var node = crmById[message.id];
+		var node = globals.crm.crmById[message.id];
 		if (!/[a-z|A-Z|0-9]*/.test(message.api)) {
 			throwChromeError(message, 'Passed API "' + message.api + '" is not alphanumeric.');
 			return false;
 		}
 		var apiPermission = message.api.split('.')[0];
-		if (!node.isLocal) {
+		if (!node.isLocal && !message.isSpecial) {
 			var chromeFound = (node.permissions.indexOf('chrome') !== -1);
 			var apiFound = (node.permissions.indexOf(apiPermission) !== -1);
 			if (!chromeFound && !apiFound) {
@@ -2668,7 +2706,7 @@ function sandbox(api, args) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' is not available for use or does not exist.');
 			return false;
 		}
-		if (availablePermissions.indexOf(apiPermission) === -1) {
+		if (globals.availablePermissions.indexOf(apiPermission) === -1) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' not available to the extension, visit options page');
 			chrome.storage.sync.get('requestPermissions', function (storageData) {
 				var perms = storageData.requestPermissions || [apiPermission];
@@ -2815,28 +2853,32 @@ function sandbox(api, args) {
 
 	function checkIfResourcesAreUsed() {
 		var resourceNames = [];
-		var scriptResources;
-		if (globals.storages.resources && (scriptResources = globals.storages.resources[message.scriptId])) {
-			for (var resourceName in scriptResources) {
-				if (scriptResources.hasOwnProperty(resourceName)) {
-					resourceNames.push(scriptResources.name);
+		for (var resourceForScript in globals.storages.resources) {
+			if (globals.storages.resources.hasOwnProperty(resourceForScript)) {
+				var scriptResources = globals.storages.resources[resourceForScript];
+				for (var resourceName in scriptResources) {
+					if (scriptResources.hasOwnProperty(resourceName)) {
+						resourceNames.push(scriptResources.name);
+					}
 				}
 			}
 		}
 
-		for (var id in globals.crmById) {
-			if (globals.crmById.hasOwnProperty(id)) {
-				if (globals.crmById[id].type === 'script') {
+		for (var id in globals.crm.crmById) {
+			if (globals.crm.crmById.hasOwnProperty(id)) {
+				if (globals.crm.crmById[id].type === 'script') {
 					var i;
-					var metaTags = getMetaTags(globals.crmById[id].value.script);
-					var resources = metaTags.resource;
-					var resourceObj = {};
-					for (i = 0; i < resources; i++) {
-						resourceObj[resources[i]] = true;
-					}
-					for (i = 0; i < resourceNames.length; i++) {
-						if (!resourceObj[resourceNames[i]]) {
-							removeResource(resourceNames[i], message.scriptId);
+					if (globals.crm.crmById[id].value.script) {
+						var metaTags = getMetaTags(globals.crm.crmById[id].value.script);
+						var resources = metaTags.resource;
+						var resourceObj = {};
+						for (i = 0; i < resources; i++) {
+							resourceObj[resources[i]] = true;
+						}
+						for (i = 0; i < resourceNames.length; i++) {
+							if (!resourceObj[resourceNames[i]]) {
+								removeResource(resourceNames[i], message.scriptId);
+							}
 						}
 					}
 				}
@@ -2901,7 +2943,7 @@ function sandbox(api, args) {
 
 	function createHandlerFunction(port) {
 		return function (message) {
-			var tabNodeData = tabData[message.tabId].nodes[message.id];
+			var tabNodeData = globals.crmValues.tabData[message.tabId].nodes[message.id];
 			if (!tabNodeData.port) {
 				if (compareArray(tabNodeData.secretKey, message.key)) {
 					delete tabNodeData.secretKey;
@@ -2973,7 +3015,6 @@ function sandbox(api, args) {
 				globals.storages.resourceKeys = chromeStorageLocal.resourceKeys;
 
 
-				console.log(settingsStorage);
 				updateCRMValues();
 
 				callback && callback();
@@ -2981,7 +3022,7 @@ function sandbox(api, args) {
 		});
 	}
 
-	(function main() {
+	(function() {
 		loadStorages(function() {
 			refreshPermissions();
 			chrome.runtime.onConnect.addListener(function(port) {
