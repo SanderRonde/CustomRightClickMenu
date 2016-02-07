@@ -40,8 +40,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	* Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
 	*/
 	var jsonFn = {
-		stringify: function (obj) {
-			return JSON.stringify(obj, function (key, value) {
+		stringify: function(obj) {
+			return JSON.stringify(obj, function(key, value) {
 				if (value instanceof Function || typeof value == 'function') {
 					return value.toString();
 				}
@@ -56,12 +56,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	//#region Properties of this Object
 	Object.defineProperty(this, 'tabId', {
-		get: function () {
+		get: function() {
 			return tabData.id;
 		}
 	});
 	Object.defineProperty(this, 'permissions', {
-		get: function () {
+		get: function() {
 			return node.permissions;
 		}
 	});
@@ -75,7 +75,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	function createDeleterFunction(index) {
-		return function () {
+		return function() {
 			delete callInfo[index];
 		}
 	}
@@ -96,7 +96,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	//Connect to the background-page
 	var queue = [];
-	var sendMessage = function (message) {
+	var sendMessage = function(message) {
 		queue.push(message);
 	}
 	var port = chrome.runtime.connect({
@@ -105,24 +105,36 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 
 	function handshakeFunction() {
-		sendMessage = function (message) {
+		sendMessage = function(message) {
 			if (message.onFinish) {
 				message.onFinish = createCallback(message.onFinish, new Error);
 			}
 			port.postMessage(message);
 		};
 
-		queue.forEach(function (message) {
+		queue.forEach(function(message) {
 			sendMessage(message);
 		});
 		queue = null;
 	}
+
 	function callbackHandler(message) {
 		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
 		delete callInfo[message.callbackId];
 	}
+
+	var instances = [];
+
 	function messageHandler(message) {
 		if (queue) { //Message queue is not empty
+			//Update instance array
+			instances = message.instances;
+			for (var i = 0; i < instances.length; i++) {
+				instances[i] = {
+					id: instances[i],
+					sendMessage: generateSendInstanceMessageFunction(instances[i])
+				};
+			}
 			handshakeFunction();
 		} else {
 			switch (message.messageType) {
@@ -132,15 +144,23 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				case 'storageUpdate':
 					remoteStorageChange(message.changes);
 					break;
+				case 'instancesUpdate':
+					instancesChange(message.change);
+					break;
+				case 'instanceMessage':
+					instanceMessageHandler(message);
+					break;
 			}
 		}
 	}
+
 	port.onMessage.addListener(messageHandler);
 	port.postMessage({
 		id: id,
 		key: secretKey,
 		tabId: _this.tabId
 	});
+
 	//#endregion
 
 	//#region Helper functions
@@ -188,6 +208,164 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			data = data[path[i]];
 		}
 		return data;
+	}
+
+	/**
+	 * Merges two objects where the main object is overwritten
+	 * 
+	 * @param {Object} mainObject - The object to merge it INTO 
+	 * @param {Object} additions - The object to merge INTO IT
+	 * @returns {Object} The merged object
+	 */
+	function mergeObjects(mainObject, additions) {
+		for (var key in additions) {
+			if (additions.hasOwnProperty(key)) {
+				if (typeof additions[key] === 'object') {
+					mergeObjects(mainObject[key], additions[key]);
+				} else {
+					mainObject[key] = additions[key];
+				}
+			}
+		}
+		return mainObject;
+	}
+
+	/**
+	 * Returns the function if the function was actually a function and exists
+	 * returns an empty function if it's not
+	 * 
+	 * @param {function} fn - The function to check
+	 * @returns {function} The actual function or an empty one depending on the outcome
+	 */
+	function isFn(fn) {
+		if (fn && typeof fn === 'function') {
+			return fn;
+		}
+		return emptyFn; //TODO
+	}
+
+	//#endregion
+
+	//#region Instance Communication
+	this.comm = {};
+	var commListeners = [];
+
+	function instancesChange(change) {
+		switch (change.type) {
+			case 'removed':
+				for (var i = 0; i < instances.length; i++) {
+					if (instances[i] === change.value) {
+						instances.splice(i, 1);
+						break;
+					}
+				}
+				break;
+			case 'added':
+				instances.push({
+					id: value,
+					sendMessage: generateSendInstanceMessageFunction(value)
+				});
+				break;
+		}
+	}
+
+	function instanceMessageHandler(message) {
+		commListeners.forEach(function(listener) {
+			listener && typeof listener === 'function' && listener(message.message);
+		});
+	}
+
+	function generateSendInstanceMessageFunction(instanceId) {
+		return function(message, callback) {
+			sendInstanceMessage(instanceId, message, callback);
+		}
+	}
+
+	function sendInstanceMessage(instanceId, message, callback) {
+		function onFinish(type, data) {
+			if (type === 'error') {
+				callback({
+					error: true,
+					success: false,
+					message: data
+				});
+			} else {
+				callback({
+					error: false,
+					success: true
+				});
+			}
+		}
+
+		sendMessage({
+			id: id,
+			type: 'sendInstanceMessage',
+			data: {
+				toInstanceId: instanceId,
+				message: message,
+				id: id,
+				tabId: _this.tabId
+			},
+			tabId: _this.tabId,
+			onFinish: onFinish
+		});
+	}
+
+	function updateCommHandlerStatus(hasHandler) {
+		sendMessage({
+			id: id,
+			type: 'changeInstanceHandlerStatus',
+			data: {
+				hasHandler: hasHandler
+			},
+			tabId: _this.tabId,
+			onFinish: onFinish
+		});
+	}
+
+	/*
+	 * Returns all instances running in other tabs, these instances can be passed
+	 * to the .comm.sendMessage function to send a message to them, you can also
+	 * call instance.sendMessage on them
+	 */
+	this.comm.getInstances = function() {
+		return instances;
+	}
+
+	/**
+	 * Sends a message to given instance
+	 * 
+	 * @param {instance} instance - The instance to send the message to
+	 * @param {Object} message - The message to send
+	 * @param {function} callback - A callback that tells you the result,
+	 *		gets passed on argument (object) that contains the two boolean
+	 *		values "error" and "success" indicating whether the message
+	 *		succeeded. If it did not succeed and an error occurred,
+	 *		the message key of that object will be filled with the reason
+	 *		it failed ("instance no longer exists" or "no listener exists")
+	 */
+	this.comm.sendMessage = function(instance, message, callback) {
+		instance.sendMessage && instance.sendMessage(message, callback);
+	}
+
+	/**
+	 * Adds a listener for any comm-messages sent from other instances of
+	 * this script
+	 * 
+	 * @param {function} listener - The listener that gets called with the message
+	 */
+	this.comm.addListener = function(listener) {
+		commListeners.push(listener);
+		if (commListeners.length === 1) {
+			updateCommHandlerStatus(true);
+		}
+	}
+
+	this.comm.removeListener = function(listener) {
+		commListeners.splice(commListeners.indexOf(listener), 1);
+		if (commListeners.length === 0) {
+			updateCommHandlerStatus(false);
+		}
 	}
 	//#endregion
 
@@ -363,7 +541,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	};
 
 	/**
-	 * Removes listeners with given listener as the listener,
+	 * Removes ALL listeners with given listener (function) as the listener,
 	 *	if key is given also checks that they have that key
 	 * 
 	 * @param {function} listener - The listener to remove
@@ -1646,12 +1824,19 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		request.send();
 	}
 
+	/**
+	 * I have no idea what this is supposed to do as it's horribly documented:
+	 * https://tampermonkey.net/documentation.php#GM_saveTab
+	 * You can use various other APIs instead of this
+	 */
+	this.GM.GM_getTab = this.GM.GM_saveTab = this.GM.GM_getTabs = function() {}
+
 	this.GM.unsafeWindow = window;
 
 	var greaseMonkeyAPIs = this.GM;
-	for (var key in greaseMonkeyAPIs) {
-		if (greaseMonkeyAPIs.hasOwnProperty(key)) {
-			window[key] = greaseMonkeyAPIs[key];
+	for (var GMKey in greaseMonkeyAPIs) {
+		if (greaseMonkeyAPIs.hasOwnProperty(GMKey)) {
+			window[GMKey] = greaseMonkeyAPIs[GMKey];
 		}
 	}
 

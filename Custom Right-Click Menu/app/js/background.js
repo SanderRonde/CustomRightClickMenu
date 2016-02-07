@@ -55,6 +55,14 @@ function sandbox(api, args) {
 			 * nodeId: context menu ID for given node ID
 			 */
 			contextMenuIds: {},
+			/*
+			 * nodeId: {
+			 *		instance: {
+			 *			'hasHandler': boolean
+			 *		}
+			 * }
+			 */
+			nodeInstances: {},
 			/**
 			 * contextMenuId: {
 			 *		'path': path,
@@ -945,6 +953,27 @@ function sandbox(api, args) {
 			}
 		}
 		delete globals.crmValues.tabData[tabId];
+
+		//Delete this instance if it exists
+		var deleted = [];
+		for (node in globals.crmValues.nodeInstances) {
+			if (globals.crmValues.nodeInstances.hasOwnProperty(node)) {
+				if (globals.crmValues.nodeInstances.node[tabId]) {
+					deleted.push(node);
+					delete globals.crmValues.nodeInstances.node[tabId];
+				}
+			}
+		}
+
+		for (var i = 0; i < deleted.length; i++) {
+			globals.crmValues.tabData[tabId].nodes[deleted[i].node].port.postMessage({
+				change: {
+					type: 'removed',
+					value: tabId
+				},
+				messageType: 'instancesUpdate'
+			});
+		}
 	});
 
 	//#endregion
@@ -2919,6 +2948,46 @@ function sandbox(api, args) {
 	//#endregion
 
 	//#region Message Passing
+	function respondToInstanceMessageCallback(message, status, data) {
+		var msg = {
+			type: status,
+			callbackId: message.onFinish,
+			messageType: 'callback'
+		}
+		msg.data = data;
+		try {
+			globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
+		} catch (e) {
+			if (e.message === 'Converting circular structure to JSON') {
+				respondToInstanceMessageCallback(message, 'error', 'Converting circular structure to JSON, this API will not work');
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	function sendInstanceMessage(message) {
+		var data = message.data;
+		var tabData = globals.crmValues.tabData;
+		if (globals.crmValues.nodeInstances[data.id][data.toInstanceId] && tabData[data.toInstanceId] && tabData[data.toInstanceId].nodes[data.id]) {
+			if (globals.crmValues.nodeInstances[data.id][data.toInstanceId].hasHandler) {
+				tabData[data.toInstanceId].nodes[data.id].port.postMessage({
+					messageType: 'instanceMessage',
+					message: data.message
+				});
+				respondToInstanceMessageCallback(message, 'success');
+			} else {
+				respondToInstanceMessageCallback(message, 'error', 'no listener exists');
+			}
+		} else {
+			respondToInstanceMessageCallback(message, 'error', 'instance no longer exists');
+		}
+	}
+
+	function changeInstanceHandlerStatus(message) {
+		globals.crmValues.nodeInstances[message.id][message.tabId].hasHandler = message.data.hasHandler;
+	}
+
 	function handleRuntimeMessage(message) {
 		console.log(message);
 		switch (message.type) {
@@ -2927,6 +2996,12 @@ function sandbox(api, args) {
 				break;
 			case 'resource':
 				resourceHandler(message);
+				break;
+			case 'sendInstanceMessage':
+				sendInstanceMessage(message);
+				break;
+			case 'changeInstanceHandlerStatus':
+				changeInstanceHandlerStatus(message);
 				break;
 		}
 	}
@@ -2950,8 +3025,28 @@ function sandbox(api, args) {
 				if (compareArray(tabNodeData.secretKey, message.key)) {
 					delete tabNodeData.secretKey;
 					tabNodeData.port = port;
+					globals.crmValues.nodeInstances[message.tabId] = {
+						hasHandler: false
+					};
+
+					var instance;
+					var instancesArr = [];
+					for (instance in globals.crmValues.nodeInstances[message.id]) {
+						if (globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance)) {
+							instancesArr.push(instance);
+							globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
+								change: {
+									type: 'added',
+									value: message.tabId
+								},
+								messageType: 'instancesUpdate'
+							});
+						}
+					}
+
 					port.postMessage({
-						data: 'connected'
+						data: 'connected',
+						instances: instancesArr
 					});
 				}
 			} else {
