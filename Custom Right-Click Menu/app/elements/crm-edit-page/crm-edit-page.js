@@ -249,6 +249,10 @@ Polymer({
 		}
 	},
 
+
+	//TODO clicking on items wile holding shift should toggle selection mode
+	//TODO Holding shift and clicking should select them all
+
 	ready: function () {
 		$('.popupCont').click(function(e) {
 			e.stopPropagation();

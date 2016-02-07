@@ -2687,20 +2687,21 @@ function sandbox(api, args) {
 			throwChromeError(message, 'Passed API "' + message.api + '" is not alphanumeric.');
 			return false;
 		}
-		var apiPermission = message.api.split('.')[0];
-		if (!node.isLocal && !message.isSpecial) {
+		var apiPermission = message.requestType || message.api.split('.')[0];
+		if (!node.isLocal) {
+			var apiFound;
 			var chromeFound = (node.permissions.indexOf('chrome') !== -1);
-			var apiFound = (node.permissions.indexOf(apiPermission) !== -1);
-			if (!chromeFound && !apiFound) {
-				throwChromeError(message, 'Both permissions chrome and ' + apiPermission + ' not available to this script');
-				return false;
-			} else if (!chromeFound) {
-				throwChromeError(message, 'Permission chrome not available to this script');
-				return false;
-			} else if (!apiFound) {
-				throwChromeError(message, 'Permission ' + apiPermission + ' not avilable to this script');
-				return false;
-			}
+				apiFound = (node.permissions.indexOf(apiPermission) !== -1);
+				if (!chromeFound && !apiFound) {
+					throwChromeError(message, 'Both permissions chrome and ' + apiPermission + ' not available to this script');
+					return false;
+				} else if (!chromeFound) {
+					throwChromeError(message, 'Permission chrome not available to this script');
+					return false;
+				} else if (!apiFound) {
+					throwChromeError(message, 'Permission ' + apiPermission + ' not avilable to this script');
+					return false;
+				}
 		}
 		if (permissions.indexOf(apiPermission) === -1) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' is not available for use or does not exist.');
@@ -2742,8 +2743,9 @@ function sandbox(api, args) {
 			}
 		}
 
+		var result;
 		try {
-			var result = sandbox(message.api, params);
+			result = sandbox(message.api, params);
 			for (i = 0; i < returnFunctions.length; i++) {
 				returnFunctions[i](result);
 			}

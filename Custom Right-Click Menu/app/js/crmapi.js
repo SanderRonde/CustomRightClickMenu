@@ -1164,14 +1164,21 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	//#region Chrome APIs
 	function ChromeRequest(api, type) {
-		//This is not at all secure
 		this.api = api;
-		this.isSpecial = (type === 'special');
+		Object.defineProperty(this, "type", {
+			get: function() { 
+				return type;
+			}
+		});
 		return this;
 	}
 
 	ChromeRequest.prototype.chromeAPIArguments = [];
 
+	/**
+	 * Uses given arguments as arguments for the API in order specified. WARNING this can NOT be 
+	 * a function, for functions refer to the other two types.
+	 */
 	ChromeRequest.prototype.args = function () {
 		for (var i = 0; i < arguments.length; i++) {
 			this.chromeAPIArguments.push({
@@ -1182,6 +1189,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return this;
 	}
 
+	/*
+	 * Inline function. This allows you to pass a function that will be passed to the 
+	 * chrome API and will be used as a normal function that's passed would be. One thing to 
+	 * keep in mind is that scope is not preserved so any data you want the function to have
+	 * access to will be have to be passed in the fnInline function as well. Any arguments
+	 * other than the function passed in the first place will be put used as the first argument
+	 * in the function you passed. Keep in mind that this moves every argument passed by whatever
+	 * calls your function is moved one to the right.
+	 */
 	ChromeRequest.prototype.fnInline = function (fn) {
 		var params = [];
 		for (var i = 1; i < arguments.length; i++) {
@@ -1198,6 +1214,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return this;
 	}
 
+	/*
+	 * A function that will preserve scope but is not passed to the chrome API itself.
+	 * Instead a placeholder is passed that will take any arguments the chrome API passes to it
+	 * and calls your fnCallback function with a container argument. Keep in mind that there is no
+	 * connection between your function and the chrome API, the chrome API only sees a placeholder 
+	 * function with which it can do nothing so don't use this as say a forEach handler.
+	 */
 	ChromeRequest.prototype.fnCallback = function (fn) {
 		this.chromeAPIArguments.push({
 			type: 'fnCallback',
@@ -1206,6 +1229,17 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return this;
 	}
 
+	/*
+	 * This is basically a fnCallback with added functionality. This function returns a 
+	 * container argument for a few different values namely the value(s) passed by the chrome 
+	 * API stored in "APIArgs" and the arguments array for every fnInline function is put into 
+	 * one big container array called "fnInlineArgs" where the order is based on when you added that function.
+	 * Keep in mind that this is only useful if you keep that exact parameter as an array and 
+	 * modify the array itself, due to arrays being pointers and not copies data will then be 
+	 * preserved when it's sent back. If you want you can do things like add an object into
+	 * the array or any other type/value you want but be sure to not change the type or 
+	 * redeclare the array.
+	 */
 	ChromeRequest.prototype.cb = function (fn) {
 		this.chromeAPIArguments.push({
 			type: 'cb',
@@ -1214,6 +1248,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return this;
 	}
 
+	/*
+	 * A function that is called with the value that the chrome API returned. This can
+	 * be used for APIs that don't use callbacks and instead just return values such as
+	 * chrome.runtime.getURL(). This just like fnCallback returns a container argument for
+	 * all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
+	 */
 	ChromeRequest.prototype.return = function (fn) {
 		this.chromeAPIArguments.push({
 			type: 'return',
@@ -1222,6 +1262,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return this;
 	}
 
+	/*
+	 * Executes the request
+	 */
 	ChromeRequest.prototype.send = function () {
 		var message = {
 			type: 'chrome',
@@ -1229,10 +1272,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			api: this.api,
 			args: this.chromeAPIArguments,
 			tabId: _this.tabId,
-			special: this.isSpecial,
+			requestType: this.type,
 			onFinish: function (status, messageOrParams, stackTrace) {
 				if (status === 'error' || status === 'chromeError') {
-					_this.onError && _this.onError(messageOrParams);
+					if (this.onError) {
+						this.onError(messageOrParams);
+					}
+					else if (_this.onError) {
+						_this.onError(messageOrParams);
+					}
 					if (_this.stackTraces) {
 						setTimeout(function () {
 							if (messageOrParams.stackTrace) {
@@ -1249,7 +1297,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 					}
 					if (_this.errors) {
 						throw new Error('CrmAPIError: ' + messageOrParams.error);
-					} else {
+					} else if (!this.onError) {
 						console.warn('CrmAPIError: ' + messageOrParams.error);
 					}
 				} else {
@@ -1280,15 +1328,16 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * 
 	 *			fnCallback: a function that will preserve scope but is not passed to the chrome API itself.
 	 *				Instead a placeholder is passed that will take any arguments the chrome API passes to it
-	 *				and calls your fnCallback function with a container argument. Keep in mind that there is no
-	 *				connection between your function and the chrome API, the chrome API only sees a placeholder 
-	 *				function with which it can do nothing so don't use this as say a forEach handler.
+	 *				and calls your fnCallback function, that you can use with local scope, with a container argument. 
+	 *				Keep in mind that there is no conection between your function and the chrome API, the chrome
+	 *				API only sees a placeholder function with which it can do nothing so don't use this as say a
+	 *				forEach handler.
 	 * 
 	 *			cb: This is basically a fnCallback with added functionality. This function returns a 
 	 *				container argument for a few different values namely the value(s) passed by the chrome 
 	 *				API stored in "APIArgs" and the arguments array for every fnInline function is put into 
 	 *				one big container array called "fnInlineArgs" where the order is based on when you added that function.
-	 *				Keep in mind that this is only usefull if you keep that exact parameter as an array and 
+	 *				Keep in mind that this is only useful if you keep that exact parameter as an array and 
 	 *				modify the array itself, due to arrays being pointers and not copies data will then be 
 	 *				preserved when it's sent back. If you want you can do things like add an object into
 	 *				the array or any other type/value you want but be sure to not change the type or 
@@ -1299,10 +1348,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *				chrome.runtime.getURL(). This just like fnCallback returns a container argument for
 	 *				all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
 	 * 
-	 *			send: executes this function
+	 *			send: executes the request
 	 * 
 	 * Examples:
-	 *		- For a function that uses callback
+	 *		- For a function that uses callback, this is not the use of the chrome.runtime.sendMessage API
 	 *		crmAPI.chrome('runtime.sendMessage').args({
 	 *			message: 'hello'
 	 *		}).cb(function(result) {
@@ -1314,7 +1363,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *			console.log(result);
 	 *		}).send();
 	 * 
-	 *		- For a function that returns a value
+	 *		- For a function that returns a value, this is not how to actually use the chrome.runtiem.getUrl API
 	 *		crmAPI.chrome('runtime.getURL').args('url.html').fnInline(function (param1, param2, param3) {
 	 *			return [param1 - (param2 * param3)];
 	 *		}, var1, var2, var3).args(parameter).fnCallback(function(result) {
@@ -1343,8 +1392,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return new ChromeRequest(api);
 	};
 
-	function chromeSpecialRequest(api) {
-		return new ChromeRequest(api, 'special');
+	function chromeSpecialRequest(api, type) {
+		return new ChromeRequest(api, type);
 	}
 
 	//#endregion
@@ -1497,10 +1546,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-	this.GM.GM_xmlhttpRequest = function(aOpts) {
-		if (node.permissions.indexOf('GM_xmlhttpRequest') === -1) {
-			return null;
-		}
+	this.GM.GM_xmlhttpRequest = function (aOpts) {
+		//There is no point in enforcing the @connect metaTag since
+		//you can construct you own XHR without the API anyway
+
 		var req = new XMLHttpRequest();
 
 		setupRequestEvent(aOpts, req, 'abort');
@@ -1563,13 +1612,6 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	this.GM.GM_download = function (detailsOrUrl, name) {
-		if (node.permissions.indexOf('GM_download') === -1) {
-			return {
-				error: 'not_permitted ',
-				details: 'the GM_download permission is not enabled'
-			};
-		}
-
 		var details = {};
 		if (typeof detailsOrUrl === 'string') {
 			details.url = detailsOrUrl;
@@ -1578,7 +1620,30 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			details = detailsOrUrl;
 		}
 
-		_this.chrome('downloads.download').
+		var options = {
+			url: details.url,
+			fileName: details.name,
+			saveAs: details.saveAs,
+			headers: details.headers
+		};
+		var request = chromeSpecialRequest('downloads.download', 'GM_download').args(options).cb(function(result) {
+			var downloadId = result.APIArgs[0];
+			if (downloadId === undefined) {
+				details.onerror && details.onerror({
+					error: 'not_succeeded',
+					details: 'request didn\'t complete'
+				});
+			} else {
+				details.onload && details.onload();
+			}
+		});
+		request.onError = function(errorMessage) {
+			details.onerror && details.onerror({
+				error: 'not_permitted',
+				details: errorMessage.error
+			});
+		}
+		request.send();
 	}
 
 	this.GM.unsafeWindow = window;
