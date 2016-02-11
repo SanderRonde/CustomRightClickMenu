@@ -848,8 +848,8 @@
 		chrome.storage.local.set({
 			editing: {
 				val: this.item.value.stylesheet,
-				crmPath: this.item.path,
-				crmType: app.crmType
+				id: this.item.id,
+				crmType: window.app.crmType
 			}
 		});
 		this.savingInterval = window.setInterval(function() {
@@ -861,8 +861,8 @@
 					chrome.storage.local.set({
 						editing: {
 							val: val,
-							crmPath: _this.item.path,
-							crmType: app.crmType
+							id: _this.item.id,
+							crmType: window.app.crmType
 						}
 					});
 				} catch (e) { }

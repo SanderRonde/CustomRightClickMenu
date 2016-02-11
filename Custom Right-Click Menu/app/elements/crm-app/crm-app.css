@@ -748,3 +748,7 @@ textarea#exportJSONData:focus {
 	display: none;
 	margin-left:10px;
 }
+
+edit-crm-item {
+	display:block;
+}

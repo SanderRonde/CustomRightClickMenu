@@ -135,7 +135,7 @@ Polymer({
 	 * A copy of the storage.local to compare when calling upload
 	 * 
 	 * @attribute storageLocalCopy
-	 * @attribute Object
+	 * @type Object
 	 * @value {}
 	 */
 	storageLocalCopy: {},
@@ -148,6 +148,16 @@ Polymer({
 	 * @value {}
 	 */
 	settingsCopy: {},
+
+	/*
+	 * The nodes in an object where the key is the ID and the 
+	 * value is teh node
+	 * 
+	 * @attribute nodesById
+	 * @type Object
+	 * @value {}
+	 */
+	nodesById: {},
 
 	properties: {
 		settings: {
@@ -379,7 +389,6 @@ Polymer({
 			path = e.path[index];
 		}
 
-		console.log('switch');
 		var crmEl;
 		var element = path;
 		var selectedType = this.crmType;
@@ -634,8 +643,8 @@ Polymer({
 			if (obj1.hasOwnProperty(key)) {
 				if (this.areValuesDifferent(obj1[key], obj2[key])) {
 					changes.push({
-						oldValue: obj2[index],
-						newValue: obj1[index],
+						oldValue: obj2[key],
+						newValue: obj1[key],
 						key: key
 					});
 				}
@@ -752,6 +761,7 @@ Polymer({
 			try {
 				var crmItem = this.crm.lookup(editingObj.crmPath);
 				var code = (crmItem.type === 'script' ? crmItem.script : crmItem.stylesheet);
+				_this.iconSwitch({ path: [$('.crmType.' + editingObj.crmType + 'Type')[0]] });
 				$('.keepChangesButton').on('click', function() {
 					if (crmItem.type === 'script') {
 						crmItem.value.script =
@@ -844,9 +854,10 @@ Polymer({
 					};
 				}
 
+				var path = _this.nodesById[editingObj.id].path;
 				var highlightItem = function() {
 					document.body.style.pointerEvents = 'none';
-					var crmItem = $($($('#mainCont').children('div')[editingObj.crmPath.length - 1]).children('.CRMEditColumn')[0]).children('edit-crm-item')[editingObj.crmPath[editingObj.crmPath.length - 1]];
+					var crmItem = $($($('#mainCont').children('div')[path.length - 1]).children('.CRMEditColumn')[0]).children('edit-crm-item')[path[path.length - 1]];
 					//Just in case the item doesn't exist (anymore)
 					if ($(crmItem).find('.item')[0]) {
 						$(crmItem).find('.item')[0].animate([
@@ -885,20 +896,20 @@ Polymer({
 					$('edit-crm-item').find('.item').css('opacity', 0.6);
 
 					setTimeout(function() {
-						if (editingObj.crmPath.length === 1) {
+						if (path.length === 1) {
 							//Always visible
 							highlightItem();
 						} else {
 							var visible = true;
-							for (var i = 1; i < editingObj.crmPath.length; i++) {
-								if (app.editCRM.crm[i].indent.length !== editingObj.crmPath[i - 1]) {
+							for (var i = 1; i < path.length; i++) {
+								if (app.editCRM.crm[i].indent.length !== path[i - 1]) {
 									visible = false;
 									break;
 								}
 							}
 							if (!visible) {
 								//Make it visible
-								var popped = JSON.parse(JSON.stringify(editingObj.crmPath.length));
+								var popped = JSON.parse(JSON.stringify(path.length));
 								popped.pop();
 								app.editCRM.build(popped);
 								setTimeout(highlightItem, 700);
@@ -1137,6 +1148,14 @@ Polymer({
 		this.upload();
 	},
 
+	orderNodesById: function(tree) {
+		for (var i = 0; i < tree.length; i++) {
+			var node = tree[i];
+			this.nodesById[node.id] = node;
+			node.children && this.orderNodesById(node.children);
+		}
+	},
+
 	ready: function() {
 		var _this = this;
 		this.crm.parent = this;
@@ -1151,6 +1170,7 @@ Polymer({
 			}
 			_this.updateEditorZoom();
 			_this.pageDemo.create();
+			_this.orderNodesById(items.crm);
 		}
 
 		this.bindListeners();
@@ -1162,7 +1182,7 @@ Polymer({
 			if (storageLocal.editing) {
 				setTimeout(function() {
 					//Check out if the code is actually different
-					var node = _this.crm.lookup(storageLocal.editing.crmPath).value;
+					var node = _this.nodesById[storageLocal.editing.id].value;
 					var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
 					if (nodeCurrentCode !== storageLocal.editing.val) {
 						_this.restoreUnsavedInstances(storageLocal.editing);
@@ -1351,7 +1371,6 @@ Polymer({
 				'identity',
 				'idle',
 				'management',
-				'notifications',
 				'pageCapture',
 				'power',
 				'privacy',

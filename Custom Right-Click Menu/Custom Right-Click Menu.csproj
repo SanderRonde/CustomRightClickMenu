@@ -666,6 +666,7 @@
     <Content Include="app\js\defaultLibraries\jquery.js" />
     <Content Include="app\js\defaultLibraries\mooTools.js" />
     <Content Include="app\js\defaultLibraries\yui.js" />
+    <Content Include="app\js\sortable.min.js" />
     <Content Include="app\js\test.js" />
     <Content Include="app\js\userscriptMetadataCodemirror.js" />
     <Content Include="app\options.html" />

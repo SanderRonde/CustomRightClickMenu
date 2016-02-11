@@ -165,11 +165,10 @@ window.Polymer({
 	 * @returns {Number} 1 if the node is visible, 0 if it's not
 	 */
 	isNodeVisible: function (result, node, showContentType) {
-		var i;
 		var length;
 		if (node.children && node.children.length > 0) {
 			length = node.children.length;
-			for (i = 0; i < length; i++) {
+			for (var i = 0; i < length; i++) {
 				this.isNodeVisible(result, node.children[i], showContentType);
 			}
 		}
@@ -218,6 +217,7 @@ window.Polymer({
 		//Hide all nodes that should be hidden
 		var hiddenNodes = {};
 		var shown = 0;
+		console.log(list);
 		for (i = 0; i < list.length; i++) {
 			shown += this.isNodeVisible(hiddenNodes, list[i], showContentTypes);
 		}

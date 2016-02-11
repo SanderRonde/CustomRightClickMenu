@@ -485,6 +485,7 @@ Polymer({
 			var thisTop = (this.lastRecordedPos.Y - this.mouseToCorner.Y);
 			var thisLeft = (this.lastRecordedPos.X - this.mouseToCorner.X) - thisBoundingClientRect.left;
 
+			//TODO fix vertical moving
 			//Vertically space elements
 			var parentChildrenList = $(this.parentNode).children('edit-crm-item');
 			var prev = parentChildrenList[this.filler.index - 1];

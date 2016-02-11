@@ -50,6 +50,31 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				}
 				return value;
 			});
+		},
+		parse: function (str, date2Obj) {
+			var iso8061 = date2Obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ : false;
+			return JSON.parse(str, function (key, value) {
+				if (typeof value != 'string') {
+					return value;
+				}
+				if (value.length < 8) {
+					return value;
+				}
+
+				var prefix = value.substring(0, 8);
+
+				if (iso8061 && value.match(iso8061)) {
+					return new Date(value);
+				}
+				if (prefix === 'function') {
+					return eval('(' + value + ')');
+				}
+				if (prefix === '_PxEgEr_') {
+					return eval(value.slice(8));
+				}
+
+				return value;
+			});
 		}
 	};
 	//#endregion
@@ -80,7 +105,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		}
 	}
 
-	function createCallback(callback, error) {
+	/**
+	 * Creates a callback function that gets executed here instead of in the background page
+	 * 
+	 * @param {function} callback - The function to run
+	 * @param {Error} error - The "new Error" value to formulate a useful stack trace
+	 * @returns {number} - The value to use as a callback function
+	 */
+	this.createCallback = function (callback, error) {
+		error = error || new Error;
 		var index = 0;
 		while (callInfo[index]) {
 			index++;
@@ -89,8 +122,30 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			callback: callback,
 			stackTrace: _this.stackTraces && getStackTrace(error)
 		};
-		setTimeout(createDeleterFunction(index), 15000);
-		return index;
+		//Wait an hour for the extreme cases, an array with a few numbers in it can't be that horrible
+		setTimeout(createDeleterFunction(index), 3600000);
+		var fn = function () {
+			var callbackId = CBID;
+			var nodeId = NODEID;
+			var tabId = TABID;
+			var err = chrome.runtime.lastError;
+			window.sendCallbackMessage.apply(this, {
+				success: !err,
+				error: !!err,
+				errorMessage: err && err.message,
+				callbackId: callbackId,
+				args: Array.from(arguments),
+				tabId: tabId,
+				id: nodeId
+			});
+		}
+
+		//Replace the template values with the real values
+		var stringifiedFn = jsonFn.stringify(fn);
+		stringifiedFn.replace(/CBID/, index);
+		stringifiedFn.replace(/TABID/, tabData.id);
+		stringifiedFn.replace(/NODEID/, id);
+		return jsonFn.parse(stringifiedFn);
 	}
 
 
@@ -164,6 +219,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region Helper functions
+	function emptyFn() {}
+
 	/**
 	 * Checks whether value matches given type and is defined and not null,
 	 *	third parameter can be either a string in which case it will be
@@ -241,7 +298,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		if (fn && typeof fn === 'function') {
 			return fn;
 		}
-		return emptyFn; //TODO
+		return emptyFn;
 	}
 
 	//#endregion
@@ -344,8 +401,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		the message key of that object will be filled with the reason
 	 *		it failed ("instance no longer exists" or "no listener exists")
 	 */
-	this.comm.sendMessage = function(instance, message, callback) {
-		instance.sendMessage && instance.sendMessage(message, callback);
+	this.comm.sendMessage = function (instance, message, callback) {
+		isFn(instance.sendMessage)(message, callback);
 	}
 
 	/**
@@ -386,7 +443,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		for (var listenerObj in storageListenersGM) {
 			if (storageListenersGM.hasOwnProperty(listenerObj)) {
 				if (listenerObj.key.indexOf(keyPath) > -1) {
-					listenerObj.callback(listenerObj.key, oldValue, newValue, remote);
+					isFn(listenerObj.callback)(listenerObj.key, oldValue, newValue, remote);
 				}
 			}
 		}
@@ -1368,60 +1425,16 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/*
-	 * Inline function. This allows you to pass a function that will be passed to the 
-	 * chrome API and will be used as a normal function that's passed would be. One thing to 
-	 * keep in mind is that scope is not preserved so any data you want the function to have
-	 * access to will be have to be passed in the fnInline function as well. Any arguments
-	 * other than the function passed in the first place will be put used as the first argument
-	 * in the function you passed. Keep in mind that this moves every argument passed by whatever
-	 * calls your function is moved one to the right.
-	 */
-	ChromeRequest.prototype.fnInline = function (fn) {
-		var params = [];
-		for (var i = 1; i < arguments.length; i++) {
-			params[i - 1] = jsonFn.stringify(arguments[i]);
-		}
-
-		this.chromeAPIArguments.push({
-			type: 'fnInline',
-			val: {
-				fn: fn,
-				args: params
-			}
-		});
-		return this;
-	}
-
-	/*
 	 * A function that will preserve scope but is not passed to the chrome API itself.
 	 * Instead a placeholder is passed that will take any arguments the chrome API passes to it
-	 * and calls your fnCallback function with a container argument. Keep in mind that there is no
-	 * connection between your function and the chrome API, the chrome API only sees a placeholder 
-	 * function with which it can do nothing so don't use this as say a forEach handler.
+	 * and calls your fn function with local scope with the arguments the chrome API passed. Keep in
+	 * mind that there is no connection between your function and the chrome API, the chrome API only
+	 * sees a placeholder function with which it can do nothing so don't use this as say a forEach handler.
 	 */
-	ChromeRequest.prototype.fnCallback = function (fn) {
+	ChromeRequest.prototype.fn = function (fn) {
 		this.chromeAPIArguments.push({
-			type: 'fnCallback',
-			val: createCallback(fn, new Error)
-		});
-		return this;
-	}
-
-	/*
-	 * This is basically a fnCallback with added functionality. This function returns a 
-	 * container argument for a few different values namely the value(s) passed by the chrome 
-	 * API stored in "APIArgs" and the arguments array for every fnInline function is put into 
-	 * one big container array called "fnInlineArgs" where the order is based on when you added that function.
-	 * Keep in mind that this is only useful if you keep that exact parameter as an array and 
-	 * modify the array itself, due to arrays being pointers and not copies data will then be 
-	 * preserved when it's sent back. If you want you can do things like add an object into
-	 * the array or any other type/value you want but be sure to not change the type or 
-	 * redeclare the array.
-	 */
-	ChromeRequest.prototype.cb = function (fn) {
-		this.chromeAPIArguments.push({
-			type: 'cb',
-			val: createCallback(fn, new Error)
+			type: 'fn',
+			val: _this.createCallback(fn, new Error)
 		});
 		return this;
 	}
@@ -1429,13 +1442,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/*
 	 * A function that is called with the value that the chrome API returned. This can
 	 * be used for APIs that don't use callbacks and instead just return values such as
-	 * chrome.runtime.getURL(). This just like fnCallback returns a container argument for
-	 * all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
+	 * chrome.runtime.getURL().
 	 */
 	ChromeRequest.prototype.return = function (fn) {
 		this.chromeAPIArguments.push({
 			type: 'return',
-			val: createCallback(fn, new Error)
+			val: _this.createCallback(fn, new Error)
 		});
 		return this;
 	}
@@ -1496,34 +1508,16 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *			args: uses given arguments as arguments for the API in order specified. WARNING this can NOT be 
 	 *				a function, for functions refer to the other two types.
 	 * 
-	 *			fnInline: inline function. This allows you to pass a function that will be passed to the 
-	 *				chrome API and will be used as a normal function that's passed would be. One thing to 
-	 *				keep in mind is that scope is not preserved so any data you want the function to have
-	 *				access to will be have to be passed in the fnInline function as well. Any arguments
-	 *				other than the function passed in the first place will be put used as the first argument
-	 *				in the function you passed. Keep in mind that this moves every argument passed by whatever
-	 *				calls your function is moved one to the right.
-	 * 
-	 *			fnCallback: a function that will preserve scope but is not passed to the chrome API itself.
+	 *			fn: a function that will preserve scope but is not passed to the chrome API itself.
 	 *				Instead a placeholder is passed that will take any arguments the chrome API passes to it
-	 *				and calls your fnCallback function, that you can use with local scope, with a container argument. 
+	 *				and calls your fn function, that you can use with local scope, with a container argument. 
 	 *				Keep in mind that there is no conection between your function and the chrome API, the chrome
 	 *				API only sees a placeholder function with which it can do nothing so don't use this as say a
 	 *				forEach handler.
 	 * 
-	 *			cb: This is basically a fnCallback with added functionality. This function returns a 
-	 *				container argument for a few different values namely the value(s) passed by the chrome 
-	 *				API stored in "APIArgs" and the arguments array for every fnInline function is put into 
-	 *				one big container array called "fnInlineArgs" where the order is based on when you added that function.
-	 *				Keep in mind that this is only useful if you keep that exact parameter as an array and 
-	 *				modify the array itself, due to arrays being pointers and not copies data will then be 
-	 *				preserved when it's sent back. If you want you can do things like add an object into
-	 *				the array or any other type/value you want but be sure to not change the type or 
-	 *				redeclare the array.
-	 * 
 	 *			return: a function that is called with the value that the chrome API returned. This can
 	 *				be used for APIs that don't use callbacks and instead just return values such as
-	 *				chrome.runtime.getURL(). This just like fnCallback returns a container argument for
+	 *				chrome.runtime.getURL(). This just like fn returns a container argument for
 	 *				all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
 	 * 
 	 *			send: executes the request
@@ -1532,39 +1526,34 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		- For a function that uses callback, this is not the use of the chrome.runtime.sendMessage API
 	 *		crmAPI.chrome('runtime.sendMessage').args({
 	 *			message: 'hello'
-	 *		}).cb(function(result) {
-	 *			console.log(result.APIArgs);
-	 *			console.log(result.fnInlineArgs);
-	 *		}).args(parameter).fnInline(function (param1, param2, param3) {
-	 *			return [param1 - (param2 * param3)];
-	 *		}, var1, var2, var3).args(parameter).fnCallback(function(result) {
+	 *		}).fn(function(result1, resul2) {
+	 *			console.log(result1);
+	 *			console.log(result2);
+	 *		}).args(parameter).args(parameter1, parameter2).fn(function(result) {
 	 *			console.log(result);
 	 *		}).send();
 	 * 
-	 *		- For a function that returns a value, this is not how to actually use the chrome.runtiem.getUrl API
-	 *		crmAPI.chrome('runtime.getURL').args('url.html').fnInline(function (param1, param2, param3) {
-	 *			return [param1 - (param2 * param3)];
-	 *		}, var1, var2, var3).args(parameter).fnCallback(function(result) {
+	 *		- For a function that returns a value, this is not how to actually use the chrome.runtime.getUrl API
+	 *		crmAPI.chrome('runtime.getURL').args('url.html').args(parameter).fn(function(result) {
 	 *			console.log(result);
 	 *		}).return(function(result) {
-	 *			console.log(result.APIVal);
-	 *			console.log(result.fnInlineArgs);
+	 *			console.log(result);
 	 *		}).send();
 	 * 
 	 *		- Actual real-use examples
-	 *		crmAPI.chrome('tabs.create').args(properties).cb(function(result) {
-	 *			console.log(result.APIArgs[0]);
+	 *		crmAPI.chrome('tabs.create').args(properties).fn(function(result) {
+	 *			console.log(result);
 	 *		}).send();
 	 * 
 	 *		crmAPI.chrome('runtime.getUrl').args(path).return(function(result) {
-	 *			console.log(result.APIVal[0]);
+	 *			console.log(result);
 	 *		}).send();
 	 * 
 	 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
 	 * permission "bookmarks", chrome.alarms requires "alarms"
 	 * 
 	 * @param {string} api - The API to use
-	 * @returns {Object} - An object on which you can call .args, .fnInline, .fnCallback, .cb, .return and .send
+	 * @returns {Object} - An object on which you can call .args, .fn, .return and .send
 	 */
 	this.chrome = function (api) {
 		return new ChromeRequest(api);
@@ -1685,10 +1674,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		window.open(url);
 	}
 
-	this.GM.GM_registerMenuCommand = this.GM.GM_unregisterMenuCommand = this.GM.GM_setClipboard = function () {
-		//This is only here to prevent errors from occuring when calling any of these functions,
-		//this function does nothing
-	}
+	//This is only here to prevent errors from occuring when calling any of these functions,
+	//this function does nothing
+	this.GM.GM_registerMenuCommand = this.GM.GM_unregisterMenuCommand = this.GM.GM_setClipboard = emptyFn;
 
 	//Taken from https://gist.github.com/arantius/3123124
 	function setupRequestEvent(aOpts, aReq, aEventName) {
@@ -1804,19 +1792,19 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			saveAs: details.saveAs,
 			headers: details.headers
 		};
-		var request = chromeSpecialRequest('downloads.download', 'GM_download').args(options).cb(function(result) {
+		var request = chromeSpecialRequest('downloads.download', 'GM_download').args(options).fn(function(result) {
 			var downloadId = result.APIArgs[0];
 			if (downloadId === undefined) {
-				details.onerror && details.onerror({
+				isFn(details.onerror)({
 					error: 'not_succeeded',
 					details: 'request didn\'t complete'
 				});
 			} else {
-				details.onload && details.onload();
+				isFn(details.onload)();
 			}
 		});
 		request.onError = function(errorMessage) {
-			details.onerror && details.onerror({
+			isFn(details.onerror)({
 				error: 'not_permitted',
 				details: errorMessage.error
 			});
@@ -1827,11 +1815,103 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * I have no idea what this is supposed to do as it's horribly documented:
 	 * https://tampermonkey.net/documentation.php#GM_saveTab
-	 * You can use various other APIs instead of this
+	 * You can use the comms API instead of this
 	 */
-	this.GM.GM_getTab = this.GM.GM_saveTab = this.GM.GM_getTabs = function() {}
+	this.GM.GM_getTab = this.GM.GM_getTabs = function (cb) { cb(); }
+	this.GM.GM_saveTab = emptyFn;
 
+	/*
+	 * The unsafeWindow object provides full access to the pages javascript functions and variables.
+	 */
 	this.GM.unsafeWindow = window;
+
+	/**
+	 * Adds a listener for the notification with ID notificationId
+	 * @param {string} notificationId - The id of te notification to listen for
+	 * @param {function} onclick - The onclick handler for the notification
+	 * @param {function} ondone - The onclose handler for the notification
+	 */
+	function addNotificationListener(notificationId, onclick, ondone) {
+		sendMessage({
+			id: id,
+			type: 'addNotificationListener',
+			data: {
+				notificationId: notificationId,
+				onClick: onclick,
+				onDone: ondone,
+				id: id,
+				tabId: _this.tabId
+			},
+			tabId: _this.tabId
+		});
+	}
+
+	/**
+	 * Shows a HTML5 Desktop notification and/or highlight the current tab.
+	 * 
+	 * @param {string} text - The message of the notification
+	 * @param {string} title - The title of the notification
+	 * @param {string} image - A url to the image to use for the notification
+	 * @param {function} onclick - A function to run on clicking the notification
+	 */
+	this.GM.GM_notification = function (text, title, image, onclick) {
+		var details = {};
+		if (typeof text === 'object') {
+			details = {
+				message: text.text,
+				title: text.title,
+				iconUrl: text.imageUrl,
+				isClickable: !!text.onclick,
+				onclick: text.onclick
+			};
+			details.ondone = title || text.ondone;
+		} else {
+			details = {
+				message: text,
+				title: title,
+				iconUrl: image,
+				isClickable: !!onclick,
+				onclick: onclick
+			}
+		}
+		details.type = 'basic';
+		details.iconUrl = details.iconUrl || chrome.runtime.getURl('icon-large.png');
+		onclick = details.onclick && createCallback(details.onclick, new Error);
+		var ondone = details.ondone && createCallback(details.ondone, new Error);
+		delete details.onclick;
+		delete details.ondone;
+
+		var request = chromeSpecialRequest('notifications.create', 'GM_notification').args(details).cb(function(notificationId) {
+			addNotificationListener(notificationId, onclick, ondone);
+		});
+		request.onError = function(errorMessage) {
+			console.warn(errorMessage);
+		}
+		request.send();
+	}
+
+	/*
+	 * Install a userscript to Custom Right-Click Menu. The callback 
+	 * gets an object like "{ found: true, installed: true }" that
+	 * shows whether the script was found and the user installed it.
+	 * 
+	 * @param {string} url - The url of the userscript
+	 * @param {function} callback - The function to call when the script
+	 *		is installed or not
+	 */
+	this.GM.GM_installScript = function (url, callback) {
+		sendMessage({
+			id: id,
+			type: 'installScriptMessage',
+			data: {
+				url: url,
+				callback: callback && createCallback(callback, new Error),
+				id: id,
+				tabId: _this.tabId
+			},
+			tabId: _this.tabId
+		});
+	}
 
 	var greaseMonkeyAPIs = this.GM;
 	for (var GMKey in greaseMonkeyAPIs) {

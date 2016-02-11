@@ -1158,24 +1158,21 @@
 			chrome.storage.local.set({
 				editing: {
 					val: this.item.value.script,
-					crmPath: this.item.path
+					id: this.item.id,
+					crmType: window.app.crmType
 				}
 			});
 			this.savingInterval = window.setInterval(function() {
 				if (_this.active) {
 					//Save
-					var val, metaTags;
-					try {
-						val = _this.editor.getValue();
-						metaTags = _this.editor.metaTags.metaTags;
-						chrome.storage.local.set({
-							editing: {
-								val: val,
-								metaTags: metaTags,
-								crmPath: _this.item.path
-							}
-						});
-					} catch (e) { }
+					var val = _this.editor.getValue();
+					chrome.storage.local.set({
+						editing: {
+							val: val,
+							id: _this.item.id,
+							crmType: window.app.crmType
+						}
+					}, function() { chrome.runtime.lastError; });
 				} else {
 					//Stop this interval
 					chrome.storage.local.set({

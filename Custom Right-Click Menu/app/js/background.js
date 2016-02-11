@@ -4,16 +4,25 @@
 ///<reference path="jquery-2.0.3.min.js"/>
 'use strict';
 
-function sandbox(api, args) {
-	var context = window;
-	var fn = chrome;
-	var apiSplit = api.split('.');
-	for (var i = 0; i < apiSplit.length; i++) {
-		context = fn;
-		fn = fn[apiSplit[i]];
+//#region Sandbox
+(function () {
+	function sandbox(fn, context, args) {
+		return fn.apply(context, args);
 	}
-	return fn.apply(context, args);
-}
+
+	window.sandboxContainer = function (chrome, api, args, sendCallbackMessage) {
+		var context = {};
+		var fn = chrome;
+		var apiSplit = api.split('.');
+		for (var i = 0; i < apiSplit.length; i++) {
+			context = fn;
+			fn = fn[apiSplit[i]];
+		}
+		window.sendCallbackMessage = sendCallbackMessage;
+		return sandbox(fn, context, args);
+	}
+}());
+//#endregion
 
 (function (extensionId) {
 	//#region Global Variables
@@ -89,14 +98,58 @@ function sandbox(api, args) {
 		toExecuteNodes: {
 			onUrl: [],
 			always: []
-		}
+		},
+		get sendCallbackMessage() {
+			return function sendCallbackMessage(tabId, id, data) {
+				var message = {
+					type: (data.err ? 'error' : 'success'),
+					data: (data.err ? data.errorMessage : data.args),
+					callbackId: data.callbackId,
+					messageType: 'callback'
+				};
+
+				try {
+					globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
+				} catch (e) {
+					if (e.message === 'Converting circular structure to JSON') {
+						message.data = 'Converting circular structure to JSON, getting a response from this API will not work';
+						message.type = 'error';
+						globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
+					} else {
+						throw e;
+					}
+				}
+			};
+		},
+		/**
+		 * notificationId: {
+		 *		'id': id,
+		 *		'tabId': tabId,
+		 *		'notificationId': notificationId,
+		 * 		'onDone;: onDone,
+		 * 		'onClick': onClick
+		 *	}
+		 */
+		notificationListeners: {},
+		/*
+		 * tabId: {
+		 *		'id': id,
+		 *		'tabid': tabId, - TabId of the listener
+		 *		'callback': callback,
+		 *		'url': url
+		 *	}
+		 */
+		scriptInstallListeners: {}
 	};
+
+	globals.chrome = window.chrome;
+	window.chrome = {};
 	//#endregion
 
 	//#region Helper Functions
 	function compareObj(firstObj, secondObj) {
 		for (var key in firstObj) {
-			if (firstObj.hasOwnProperty(key)) {
+			if (firstObj.hasOwnProperty(key) && firstObj[key] !== undefined) {
 				if (typeof firstObj[key] === 'object') {
 					if (typeof secondObj[key] !== 'object') {
 						return false;
@@ -201,7 +254,7 @@ function sandbox(api, args) {
 		node.id = id;
 		globals.crmValues.contextMenuIds[node.node.id] = id;
 		globals.crmValues.contextMenuInfoById[id] = globals.crmValues.contextMenuInfoById[oldId];
-		delete globals.crmValues.contextMenuInfoById[oldId];
+		globals.crmValues.contextMenuInfoById[oldId] = undefined;
 		globals.crmValues.contextMenuInfoById[id].enabled = true;
 
 		if (node.children) {
@@ -354,7 +407,7 @@ function sandbox(api, args) {
 		});
 
 		for (var nodeId in globals.crmValues.stylesheetNodeStatusses) {
-			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(nodeId)) {
+			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(nodeId) && globals.crmValues.stylesheetNodeStatusses[nodeId]) {
 				chrome.contextMenus.update(globals.crmValues.contextMenuIds[nodeId], {
 					checked: globals.crmValues.stylesheetNodeStatusses[nodeId][currentTabId]
 				}, function() {
@@ -617,7 +670,7 @@ function sandbox(api, args) {
 
 			//Update after creating a new node
 			for (var key in globals.crmValues.stylesheetNodeStatusses[node.id]) {
-				if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(key)) {
+				if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(key) && globals.crmValues.stylesheetNodeStatusses[key]) {
 					if (globals.crmValues.stylesheetNodeStatusses[node.id][key]) {
 						replaceOnTabs.push({
 							id: key
@@ -717,7 +770,7 @@ function sandbox(api, args) {
 					}
 
 					for (var nodeId in globals.toExecuteNodes.onUrl) {
-						if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId)) {
+						if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
 							if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
 								executeNode(globals.crm.crmById[nodeId], tab);
 							}
@@ -948,19 +1001,19 @@ function sandbox(api, args) {
 		//Delete all data for this tabId
 		var node;
 		for (node in globals.crmValues.stylesheetNodeStatusses) {
-			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(node)) {
-				delete node[tabId];
+			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(node) && globals.crmValues.stylesheetNodeStatusses[node]) {
+				node[tabId] = undefined;
 			}
 		}
-		delete globals.crmValues.tabData[tabId];
+		globals.crmValues.tabData[tabId] = undefined;
 
 		//Delete this instance if it exists
 		var deleted = [];
 		for (node in globals.crmValues.nodeInstances) {
-			if (globals.crmValues.nodeInstances.hasOwnProperty(node)) {
+			if (globals.crmValues.nodeInstances.hasOwnProperty(node) && globals.crmValues.nodeInstances[node]) {
 				if (globals.crmValues.nodeInstances.node[tabId]) {
 					deleted.push(node);
-					delete globals.crmValues.nodeInstances.node[tabId];
+					globals.crmValues.nodeInstances.node[tabId] = undefined;
 				}
 			}
 		}
@@ -1223,7 +1276,7 @@ function sandbox(api, args) {
 		//Notify all pages running that node
 		var tabData = globals.crmValues.tabData;
 		for (var tab in tabData) {
-			if (tabData.hasOwnProperty(tab)) {
+			if (tabData.hasOwnProperty(tab) && tabData[tab]) {
 				if (tab !== tabId) {
 					var nodes = tabData[tab].nodes;
 					if (nodes[id]) {
@@ -2655,16 +2708,6 @@ function sandbox(api, args) {
 	//#endregion
 
 	//#region Chrome Function Handling
-	function createChromeInlineHandler(fn, args) {
-		return function () {
-			var fnArguments = [args];
-			for (var i = 0; i < arguments.length; i++) {
-				fnArguments[i + 1] = arguments[i];
-			}
-			fn.apply(window, fnArguments);
-		}
-	}
-
 	function createChromeFnCallbackHandler(message, callbackIndex) {
 		return function () {
 			var params = [];
@@ -2674,24 +2717,6 @@ function sandbox(api, args) {
 			respondToCrmAPI(message, 'success', {
 				callbackId: callbackIndex,
 				params: params
-			});
-		}
-	}
-
-	function createChromeCallbackHandler(message, callbackIndex, inlineArgs) {
-		return function () {
-			var params = [];
-			for (var i = 0; i < arguments.length; i++) {
-				params[i] = arguments[i];
-			}
-			respondToCrmAPI(message, 'success', {
-				callbackId: callbackIndex,
-				params: [
-					{
-						APIArgs: params,
-						fnInlineArgs: inlineArgs
-					}
-				]
 			});
 		}
 	}
@@ -2756,15 +2781,8 @@ function sandbox(api, args) {
 				case 'arg':
 					params.push(jsonFn.parse(message.args[i].val));
 					break;
-				case 'fnInline':
-					inlineArgs.push(message.args[i].args);
-					params.push(createChromeInlineHandler(message.args[i].fn, message.args[i].args));
-					break;
-				case 'fnCallback':
+				case 'fn':
 					params.push(createChromeFnCallbackHandler(message, message.args[i].val));
-					break;
-				case 'cb':
-					params.push(createChromeCallbackHandler(message, message.args[i].val, inlineArgs));
 					break;
 				case 'return':
 					returnFunctions.push(createReturnFunction(message, message.args[i].val, inlineArgs));
@@ -2774,7 +2792,7 @@ function sandbox(api, args) {
 
 		var result;
 		try {
-			result = sandbox(message.api, params);
+			result = window.sandboxContainer(globals.chrome, message.api, params, createCallbackMessageHandlerInstance(message.tabId, message.id));
 			for (i = 0; i < returnFunctions.length; i++) {
 				returnFunctions[i](result);
 			}
@@ -2873,7 +2891,7 @@ function sandbox(api, args) {
 		}
 
 		if (globals.storages.resources && globals.storages.resources[scriptId] && globals.storages.resources[scriptId][name]) {
-			delete globals.storages.resources[scriptId][name];
+			globals.storages.resources[scriptId][name] = undefined;
 		}
 
 		chrome.storage.local.set({
@@ -2885,10 +2903,10 @@ function sandbox(api, args) {
 	function checkIfResourcesAreUsed() {
 		var resourceNames = [];
 		for (var resourceForScript in globals.storages.resources) {
-			if (globals.storages.resources.hasOwnProperty(resourceForScript)) {
+			if (globals.storages.resources.hasOwnProperty(resourceForScript) && globals.storages.resources[resourceForScript]) {
 				var scriptResources = globals.storages.resources[resourceForScript];
 				for (var resourceName in scriptResources) {
-					if (scriptResources.hasOwnProperty(resourceName)) {
+					if (scriptResources.hasOwnProperty(resourceName) && scriptResources[resourceName]) {
 						resourceNames.push(scriptResources.name);
 					}
 				}
@@ -2896,7 +2914,7 @@ function sandbox(api, args) {
 		}
 
 		for (var id in globals.crm.crmById) {
-			if (globals.crm.crmById.hasOwnProperty(id)) {
+			if (globals.crm.crmById.hasOwnProperty(id) && globals.crm.crmById[id]) {
 				if (globals.crm.crmById[id].type === 'script') {
 					var i;
 					if (globals.crm.crmById[id].value.script) {
@@ -2948,6 +2966,12 @@ function sandbox(api, args) {
 	//#endregion
 
 	//#region Message Passing
+	function createCallbackMessageHandlerInstance(tabId, id) {
+		return function(data) {
+			globals.sendCallbackMessage(tabId, id, data);
+		}
+	}
+
 	function respondToInstanceMessageCallback(message, status, data) {
 		var msg = {
 			type: status,
@@ -2959,7 +2983,7 @@ function sandbox(api, args) {
 			globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
-				respondToInstanceMessageCallback(message, 'error', 'Converting circular structure to JSON, this API will not work');
+				respondToInstanceMessageCallback(message, 'error', 'Converting circular structure to JSON, getting a response from this API will not work');
 			} else {
 				throw e;
 			}
@@ -2988,6 +3012,43 @@ function sandbox(api, args) {
 		globals.crmValues.nodeInstances[message.id][message.tabId].hasHandler = message.data.hasHandler;
 	}
 
+	function addNotificationListener(message) {
+		var data = message.data;
+		notificationListeners[data.notificationId] = {
+			id: data.id,
+			tabId: data.tabId,
+			notificationId: data.notificationId,
+			onDone: data.onDone,
+			onClick: data.onClick
+		};
+	}
+
+	chrome.notifications.onClicked.addListener(function (notificationId) {
+		var notification = globals.notificationListeners[notificationId];
+		notification && notification.onClick && typeof notification.onClick === 'function' && notification.onClick();
+	});
+	chrome.notifications.onClosed.addListener(function(notificationId, byUser) {
+		var notification = globals.notificationListeners[notificationId];
+		notification && notification.onDone && typeof notification.onDone === 'function' && notification.onDone();
+		delete globals.notificationListeners[notificationId];
+	});
+
+	function installScriptMessage(message) {
+		var data = message.data;
+		chrome.tabs.create({
+			url: message.data.url
+		}, function(tab) {
+			globals.scriptInstallListeners[tab.id] = {
+				id: data.id,
+				tabId: data.tabId,
+				url: data.url,
+				callback: data.callback
+			};
+		});
+		//TODO installer content script, pass tabId of installed script to background page and
+		//go through this object to call the callback
+	}
+
 	function handleRuntimeMessage(message) {
 		console.log(message);
 		switch (message.type) {
@@ -3000,8 +3061,14 @@ function sandbox(api, args) {
 			case 'sendInstanceMessage':
 				sendInstanceMessage(message);
 				break;
+			case 'installScriptMessage':
+				installScriptMessage(message);
+				break;
 			case 'changeInstanceHandlerStatus':
 				changeInstanceHandlerStatus(message);
+				break;
+			case 'addNotificationListener':
+				addNotificationListener(message);
 				break;
 		}
 	}
@@ -3032,7 +3099,7 @@ function sandbox(api, args) {
 					var instance;
 					var instancesArr = [];
 					for (instance in globals.crmValues.nodeInstances[message.id]) {
-						if (globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance)) {
+						if (globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) && globals.crmValues.nodeInstances[message.id][instance]) {
 							instancesArr.push(instance);
 							globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
 								change: {
