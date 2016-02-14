@@ -6,11 +6,11 @@
 		 * The width of the element
 		 *
 		 * @attribute width
-		 * @type Number
+		 * @type String
 		 * @default null
 		 */
 		width: {
-			type: Number,
+			type: String,
 			value: null,
 			observer: 'recalculateStyles'
 		},
@@ -18,11 +18,11 @@
 		 * The height of the element
 		 *
 		 * @attribute height
-		 * @type Number
+		 * @type String
 		 * @default null
 		 */
 		height: {
-			type: Number,
+			type: String,
 			value: null,
 			observer: 'recalculateStyles'
 		},
@@ -112,6 +112,7 @@
 					this.style.width = this.width;
 				}
 				if (this.height) {
+					console.log(this.height);
 					this.style.height = this.height;
 				}
 			}

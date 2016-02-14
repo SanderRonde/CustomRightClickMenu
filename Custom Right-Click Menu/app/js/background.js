@@ -139,7 +139,9 @@
 		 *		'url': url
 		 *	}
 		 */
-		scriptInstallListeners: {}
+		scriptInstallListeners: {},
+		//The url to the install page
+		installUrl: chrome.runtime.getURL('install.html')
 	};
 
 	globals.chrome = window.chrome;
@@ -2963,6 +2965,28 @@
 				break;
 		}
 	}
+	//#endregion
+
+	//#region Install Page
+	function openInstallPage(userScriptUrl) {
+		chrome.tabs.create({
+			url: globals.installUrl + '#' + userScriptUrl
+		}, function(tab) {
+
+		});
+	}
+
+	function handleUserJsRequest(details) {
+		var url = details.url;
+		openInstallPage(url);
+		return { cancel: true };
+	}
+
+	chrome.webrequest.onBeforeRequest.addListener(handleUserJsRequest,
+		{
+			urls: ['*://*/*.user.js']
+		}, 
+		['blocking']);
 	//#endregion
 
 	//#region Message Passing
