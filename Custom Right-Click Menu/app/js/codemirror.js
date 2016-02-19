@@ -335,6 +335,7 @@
 				}, 0);
 			}
 		};
+
 		if (options.messageExternal) {
 			window.externalEditor.cmLoaded.apply(window.externalEditor, [this]);
 		} else if (options.messageScriptEdit) {
@@ -353,6 +354,9 @@
 				}
 			}, cm);
 			window.stylesheetEdit.cmLoaded.apply(window.stylesheetEdit, [this]);
+		}
+		else if (options.messageInstallConfirm) {
+			window.installConfirm.cmLoaded.apply(window.installConfirm, [this]);
 		}
 	}
 
@@ -659,7 +663,8 @@
 			var needsV = measure.scrollHeight > measure.clientHeight + 1;
 			var sWidth = measure.nativeBarWidth;
 
-			window.scriptEdit.scrollbarsUpdate.apply(window.scriptEdit, [needsV]);
+			window.scriptEdit && window.scriptEdit.scrollbarsUpdate.apply(window.scriptEdit, [needsV]);
+			window.stylesheetEdit && window.stylesheetEdit.scrollbarsUpdate.apply(window.stylesheetEdit, [needsV]);
 
 			if (needsV) {
 				this.vert.style.display = 'block';
@@ -9700,3 +9705,12 @@
 
 	return CodeMirror;
 });
+
+if (window.codeMirrorToLoad) {
+	window.codeMirrorToLoad.toLoad.forEach(function (toLoad) {
+		console.log('toload');;
+		toLoad(CodeMirror);
+	});
+	console.log(window.codeMirrorToLoad.final);
+	window.codeMirrorToLoad.final && window.codeMirrorToLoad.final(CodeMirror);
+}

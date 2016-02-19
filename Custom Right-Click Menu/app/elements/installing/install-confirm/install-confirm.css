@@ -1,2 +1,7 @@
-﻿body {
+﻿.CodeMirror-wrap {
+	height: calc(100vh - 184px);
+}
+
+#editorCont {
+	margin: 10px;
 }

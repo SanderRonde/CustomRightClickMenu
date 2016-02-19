@@ -112,7 +112,6 @@
 					this.style.width = this.width;
 				}
 				if (this.height) {
-					console.log(this.height);
 					this.style.height = this.height;
 				}
 			}

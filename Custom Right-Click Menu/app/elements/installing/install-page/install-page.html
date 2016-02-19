@@ -7,8 +7,8 @@
 			<paper-toolbar id="toolbar">
 				<div flex title class="title" id="title">Installing userscript from <span>{{userscriptUrl}}</span></div>
 			</paper-toolbar>
-			<div id="loadingContainer" hide="{{!isLoading}}">
-				<center-element height="calc(100vh - 64px)">
+			<div id="loadingContainer" hide$="{{!isLoading}}">
+				<center-element width="100vw" height="calc(100vh - 64px)">
 					<div>
 						<div id="spinnerCenterer">
 							<paper-spinner id="spinner" active></paper-spinner>
@@ -21,14 +21,10 @@
 				<install-error></install-error>
 			</template>
 			<template is="dom-if" if="{{fetchCompleted}}">
-				<install-confirm data="{{fetchedData}}"></install-confirm>
+				<install-confirm script="{{fetchedData}}"></install-confirm>
 			</template>
 		</div>
 	</template>
 </dom-module>
 <script src="../../../js/jquery-2.0.3.min.js"></script>
-<script src="../../../js/codemirror.js"></script>
-<!--<script src="../../../js/codeMirrorAddons.js" async></script>-->
-<!--<script src="../../../js/userscriptMetadataCodemirror.js" async></script>-->
-<script src="../../../js/codemirrorJs.js" async></script>
 <script src="install-page.js"></script>

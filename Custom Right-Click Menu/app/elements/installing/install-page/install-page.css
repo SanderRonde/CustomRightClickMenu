@@ -29,8 +29,11 @@
 }
 
 #loadingContainer {
-	-moz-transition: display 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
-	-o-transition: display 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
-	-webkit-transition: display 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
-	transition: display 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+	transition: opacity 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+	position: absolute;
+	opacity:1;
 }
+
+	#loadingContainer[hide] {
+		opacity:0;
+	}

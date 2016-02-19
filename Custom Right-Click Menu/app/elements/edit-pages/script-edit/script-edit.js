@@ -924,7 +924,7 @@
 				'Editor zoom percentage:' +
 				'</div>').appendTo(settingsContainer);
 
-			$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('keypress change', function() {
+			$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('change', function() {
 				var _this = this;
 				setTimeout(function() {
 					window.app.settings.editor.zoom = _this.value;
@@ -1036,7 +1036,6 @@
 		 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 		 */
 		cmLoaded: function (element) {
-			console.log('loaded');
 			var _this = this;
 			this.editor = element;
 			element.refresh();
@@ -1123,6 +1122,9 @@
 			var placeHolder = $(this.$.editorPlaceholder);
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();
+			console.log(window.app);
+			console.log(window.app.settings);
+			!window.app.settings.editor && (window.app.settings.editor = {});
 			this.editor = new window.CodeMirror(container, {
 				lineNumbers: window.app.settings.editor.lineNumbers,
 				value: content || this.item.value.script,

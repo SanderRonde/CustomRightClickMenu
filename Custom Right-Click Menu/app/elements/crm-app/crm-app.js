@@ -950,6 +950,15 @@ Polymer({
 		$('.CodeMirror').each(function() {
 			this.CodeMirror.refresh();
 		});
+		console.log(window.colorFunction);
+		window.colorFunction && window.colorFunction.func({
+			from: {
+				line: 0
+			},
+			to: {
+				line: window.stylesheet.editor.lineCount()
+			}
+		}, window.stylesheet.editor);
 	},
 
 	/**

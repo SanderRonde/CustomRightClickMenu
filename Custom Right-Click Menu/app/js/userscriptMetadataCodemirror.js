@@ -7,8 +7,17 @@
 		mod(require('../../lib/codemirror'));
 	else if (typeof define == 'function' && define.amd) // AMD
 		define(['../../lib/codemirror'], mod);
-	else // Plain browser env
-		mod(window.CodeMirror);
+	else {
+		if (window.CodeMirror) {
+			mod(CodeMirror);
+		} else {
+			if (window.codeMirrorToLoad) {
+				window.codeMirrorToLoad.toLoad.push(mod);
+			} else {
+				window.codeMirrorToLoad.toLoad = [mod];
+			}
+		}
+	}
 })(function (codemirror) {
 	'use strict';
 
@@ -82,6 +91,7 @@
 	}
 
 	function setMetaTags(cm, content) {
+		console.log(';)');
 		var oldMetaTags;
 		if (cm.metaTags) {
 			oldMetaTags = JSON.parse(JSON.stringify(cm.metaTags.metaTags));
@@ -122,6 +132,8 @@
 		cm.metaTags.metaTags = metaTagObj;
 		cm.metaTags.metaEnd = metaIndexes.end;
 		cm.metaTags.metaIndexes = indexes;
+		console.log(cm);
+		console.log(cm.metaTags);
 
 		if (oldMetaTags) {
 			return compareMetaTags(oldMetaTags, metaTagObj);
@@ -370,7 +382,7 @@
 		}
 		if (collapsed) {
 			cm.setGutterMarker(i, 'collapse-meta-tags', makeExpandMarker());
-		} else {
+		} else if (cm.metaTags && cm.metaTags.metaStart && cm.metaTags.metaStart.line) {
 			cm.setGutterMarker(cm.metaTags.metaStart.line, 'collapse-meta-tags', makeHideMarker());
 		}
 		cm.on('gutterClick', function(instance, line) {

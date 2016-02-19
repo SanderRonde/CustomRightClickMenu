@@ -813,6 +813,7 @@
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
+		!window.app.settings.editor && (window.app.settings.editor = {});
 		this.editor = new window.CodeMirror(container, {
 			lineNumbers: window.app.settings.editor.lineNumbers,
 			mode: 'css',
