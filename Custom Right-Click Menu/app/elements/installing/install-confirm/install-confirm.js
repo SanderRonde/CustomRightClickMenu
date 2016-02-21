@@ -90,7 +90,16 @@
 			'}' +
 			'</style>').appendTo('head');
 			cm.refresh();
-			$(window.installConfirm.editor.display.wrapper).keypress(function (e) { e.which === 8 && e.preventDefault(); });
+			console.log(cm.display.wrapper);
+			window.cm = cm;
+			$(cm.display.wrapper).keypress(function (e) {
+				console.log(e.which);
+				e.which === 8 && e.preventDefault();
+			});
+
+			//Show info about the script, if available
+			//var tags = cm.metaTags.metaTags;
+			console.log(tags);
 		},
 
 		loadEditor: function(_this) {
@@ -98,6 +107,7 @@
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();
 			!this.settings.editor && (_this.settings.editor = {});
+			console.log(this);
 			this.editor = new window.CodeMirror(_this.$.editorCont, {
 				lineNumbers: _this.settings.editor.lineNumbers,
 				value: this.script,
@@ -112,6 +122,7 @@
 				gutters: ['CodeMirror-lint-markers'],
 				undoDepth: 500
 			});
+			console.log(this.editor);
 		},
 
 		ready: function () {
