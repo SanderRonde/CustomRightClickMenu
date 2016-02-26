@@ -4,7 +4,7 @@
 <body>
 	<dom-module id="crm-edit-page" attributes="item">
 		<template>
-			<link rel="stylesheet" type="css" href="crm-edit-page.css" />
+			<link rel="stylesheet" href="crm-edit-page.css" />
 			<div id="horizontalCenterer">
 				<div id="verticalCenterer">
 					<div id="overlayCont">
@@ -18,7 +18,7 @@
 						<div id="nodeInfo" hidden$="[[!nodeInfoExists(nodeInfo)]]">
 							<div id="nodeInfoData" hidden$="[[isLocal(nodeInfo.source)]]">
 								<span id="nodeInfoName">
-									<b>[[nodeInfo.name]]</b> <b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>
+									<b>[[item.name]]</b> <b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>
 								</span>
 								<span id="nodeInfoAuthor">
 									Created by <b>[[nodeInfo.author]]</b></span>, installed from <span id="nodeInfoFrom">

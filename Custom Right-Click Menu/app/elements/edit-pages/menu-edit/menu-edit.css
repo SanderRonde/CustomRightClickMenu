@@ -51,4 +51,5 @@
 
 	.executionTriggerNot #checkbox.checked {
 		background-color: #f44336!important;
+		border-color: #f44336!important;
 	}

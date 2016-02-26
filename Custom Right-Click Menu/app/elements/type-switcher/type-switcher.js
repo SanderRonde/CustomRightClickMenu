@@ -183,8 +183,15 @@
 		if (item[prevType + 'Val']) {
 			item.value = item[prevType + 'Val'];
 		} else {
+			var triggers;
 			switch (prevType) {
 				case 'link':
+					if (item.value.triggers) {
+						item.triggers = item.value.triggers;
+						delete item.value.triggers;
+					}
+					item.triggers = item.triggers || ['*://*.example.com/*'];
+
 					item.value = [
 						{
 							value: 'http://www.example.com',
@@ -193,25 +200,40 @@
 					];
 					break;
 				case 'script':
-					item.value = {
-						script: '',
-						launchMode: 0,
-						libraries: [],
-						triggers: []
-					};
+					if (item.triggers) {
+						triggers = item.triggers;
+						delete item.triggers;
+					}
+					triggers = triggers || item.value.triggers;
+					item.value = window.app.templates.getDefaultScriptValue({
+						triggers: triggers
+					});
 					break;
 				case 'divider':
 					item.value = null;;
+					if (item.value.triggers) {
+						item.triggers = item.value.triggers;
+						delete item.value.triggers;
+					}
+					item.triggers = item.triggers || ['*://*.example.com/*'];
 					break;
 				case 'menu':
 					item.value = null;
+					if (item.value.triggers) {
+						item.triggers = item.value.triggers;
+						delete item.value.triggers;
+					}
+					item.triggers = item.triggers || ['*://*.example.com/*'];
 					break;
 				case 'stylesheet':
-					item.value = {
-						stylesheet: '',
-						launchMode: 0,
-						triggers: []
-					};
+					if (item.triggers) {
+						triggers = item.triggers;
+						delete item.triggers;
+					}
+					triggers = triggers || item.value.triggers;
+					item.value = window.app.templates.getDefaultStylesheetValue({
+						triggers: triggers
+					});
 					break;
 			}
 		}

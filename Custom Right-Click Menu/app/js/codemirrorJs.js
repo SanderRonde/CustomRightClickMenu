@@ -15,7 +15,9 @@
 			if (window.codeMirrorToLoad) {
 				window.codeMirrorToLoad.toLoad.push(mod);
 			} else {
-				window.codeMirrorToLoad.toLoad = [mod];
+				window.codeMirrorToLoad = {
+					toLoad: [mod]
+				};
 			}
 		}
 	}

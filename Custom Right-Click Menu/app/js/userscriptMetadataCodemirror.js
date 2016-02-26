@@ -14,7 +14,9 @@
 			if (window.codeMirrorToLoad) {
 				window.codeMirrorToLoad.toLoad.push(mod);
 			} else {
-				window.codeMirrorToLoad.toLoad = [mod];
+				window.codeMirrorToLoad = {
+					toLoad: [mod]
+				};
 			}
 		}
 	}
@@ -106,6 +108,7 @@
 		var lines = content.split('\n');
 		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
 		if (metaLines.length === 0) {
+			cm.metaTags = {};
 			return null;
 		}
 
@@ -142,6 +145,8 @@
 	}
 
 	function updateMetaTags(cm, changes) {
+		var oldIndexes = JSON.parse(JSON.stringify(cm.metaTags.metaIndexes));
+
 		var i, j;
 		var content = cm.getValue();
 		var contentLines = content.split('\n');
@@ -179,11 +184,6 @@
 
 					var regexMatch = contentLines[changeLine].match(/@(\w+)(\s+)(.+)/);
 					if (regexMatch) {
-						cm.metaTags.metaIndexes[changeLine] = {
-							line: changeLine,
-							key: regexMatch[1],
-							value: regexMatch[3]
-						};
 						cm.metaTags.metaTags[regexMatch[1]] = cm.metaTags.metaTags[regexMatch[1]] || [];
 						cm.metaTags.metaTags[regexMatch[1]].push(regexMatch[3]);
 						if (regexMatch[1] !== cm.metaTags.metaIndexes[changeLine].key) {
@@ -193,19 +193,24 @@
 							});
 							tagsChanged.removed.push({
 								key: cm.metaTags.metaIndexes[changeLine].key,
-								value: metaTag
+								value: cm.metaTags.metaIndexes[changeLine].value
 							});
 						} else {
 							tagsChanged.changed.push({
 								key: regexMatch[1],
-								oldValue: metaTag,
+								oldValue: cm.metaTags.metaIndexes[changeLine].value,
 								value: regexMatch[3]
 							});
 						}
+						cm.metaTags.metaIndexes[changeLine] = {
+							line: changeLine,
+							key: regexMatch[1],
+							value: regexMatch[3]
+						};
 					} else {
 						tagsChanged.removed.push({
 							key: cm.metaTags.metaIndexes[changeLine].key,
-							value: metaTag
+							value: cm.metaTags.metaIndexes[changeLine].value
 						});
 					}
 				}
@@ -337,7 +342,6 @@
 	function handleGutterClick(cm, line) {
 		var lineInfo = cm.lineInfo(line);
 		if (lineInfo.gutterMarkers && lineInfo.gutterMarkers['collapse-meta-tags']) {
-			console.log('gutterclick', line);
 			var element = lineInfo.gutterMarkers['collapse-meta-tags'];
 			var isExpand = element.classList.contains('codeMirrorExpandMarker');
 			if (isExpand) {
@@ -360,7 +364,57 @@
 		showMetaTags(cm, metaTags);
 	});
 
-	codemirror.defineExtension('getMetatags', function(cm) {
+	codemirror.defineExtension('removeMetaTag', function(cm, key, value) {
+		setMetaTags(cm, cm.getValue());
+
+		for (var i = 0; i < cm.metaTags.metaIndexes.length; i++) {
+			if (cm.metaTags.metaIndexes[i].key === key && cm.metaTags.metaIndexes[i].value === value) {
+				cm.doc.replaceRange('', {
+					line: i,
+					ch: 0
+				}, {
+					line: i + 1,
+					ch: 0
+				});
+				return;
+			}
+		}
+	});
+
+	codemirror.defineExtension('updateMetaTag', function(cm, key, oldValue, value, singleValue) {
+		setMetaTags(cm, cm.getValue());
+
+		for (var i = 0; i < cm.metaTags.metaIndexes.length; i++) {
+			if (cm.metaTags.metaIndexes[i].key === key) {
+				if (singleValue || cm.metaTags.metaIndexes[i].value === oldValue) {
+					cm.doc.replaceRange('// @' + key + '	' + value, {
+						line: i,
+						ch: 0
+					}, {
+						line: i,
+						ch: cm.doc.getLine(i).length
+					});
+					return;
+				}
+			}
+		}
+		cm.addMetaTag(cm, key, value);
+	});
+
+	codemirror.defineExtension('addMetaTag', function(cm, key, value) {
+		setMetaTags(cm, cm.getValue());
+
+		cm.doc.replaceRange('// @' + key + '	' + value + '\n', {
+			line: cm.metaTags.metaEnd,
+			ch: 0
+		}, {
+			line: cm.metaTags.metaEnd,
+			ch: 0
+		});
+	});
+
+	console.log('loaded');
+	codemirror.defineExtension('getMetatags', function (cm) {
 		return cm.metaTags.metaTags;
 	});
 

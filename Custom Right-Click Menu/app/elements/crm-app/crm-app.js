@@ -654,7 +654,7 @@ Polymer({
 	},
 
 	/**
-	 * Uploads this object to chrome.storage.sync
+	 * Uploads the settings to chrome.storage
 	 */
 	upload: function () {
 		//Send changes to background-page, background-page uploads everything
@@ -680,61 +680,6 @@ Polymer({
 			});
 		}
 
-		var _this = this;
-		console.log(this.settings);
-		var settingsJson = JSON.stringify(this.settings);
-		var stringLength = settingsJson.length;
-		this.settingsJsonLength = stringLength;
-		if (this.settings.useStorageSync) {
-			chrome.storage.local.set({
-				settings: this.settings
-			}, function() {
-				if (chrome.runtime.lastError) {
-					console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
-				} else {
-					chrome.runtime.sendMessage({
-						type: 'updateContextMenu',
-						crmTree: _this.settings.crm
-					});
-				}
-			});
-			chrome.storage.sync.set({
-				indexes: null
-			});
-		} else {
-			//Using chrome.storage.sync
-			if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
-				window.doc.storageExceededToast.show();
-				chrome.storage.local.set({
-					useStorageSync: false
-				}, function() {
-					_this.upload();
-				});
-			} else {
-				//Cut up all data into smaller JSON
-				var obj = this.cutData(settingsJson);
-				chrome.storage.sync.set(obj, function() {
-					if (chrome.runtime.lastError) {
-						//Switch to local storage
-						console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
-						window.doc.storageExceededToast.show();
-						chrome.storage.local.set({
-							useStorageSync: false
-						}, function() {
-							_this.upload();
-						});
-					} else {
-						chrome.runtime.sendMessage({
-							type: 'updateContextMenu',
-							crmTree: _this.settings.crm
-						});
-						chrome.storage.local.set({
-							settings: null
-						});
-					}
-				});
-			}
-		}
 		this.pageDemo.create();
 	},
 
@@ -974,6 +919,7 @@ Polymer({
 			index = allPermissions.indexOf(toRequest[i]);
 			if (index > -1) {
 				allPermissions.splice(index, 1);
+				i--;
 			}
 		}
 
@@ -1335,6 +1281,54 @@ Polymer({
 		},
 
 		/**
+		 * Gets the default stylesheet value object with given options applied
+		 * 
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A stylesheet node value with specified properties set
+		 */
+		getDefaultStylesheetValue: function(options) {
+			var value = {
+				stylesheet: '' +
+					'// ==UserScript==' +
+					'// @name	name' +
+					'// @CRM_contentTypes	[true, true, true, true, true, true]' +
+					'// @CRM_launchMode	0' +
+					'// @CRM_stylesheet	true' +
+					'// @grant	none' +
+					'// @match	*://*.example.com/*' +
+					'// ==/UserScript==',
+				launchMode: 0,
+				triggers: ['*://*.example.com/*']
+			};
+
+			return this.mergeObjects(value, options);
+		},
+
+		/**
+		 * Gets the default script value object with given options applied
+		 * 
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A script node value with specified properties set
+		 */
+		getDefaultScriptValue: function(options) {
+			var value =	{
+				launchMode: 0,
+				libraries: [],
+				script: '' +
+					'// ==UserScript==' +
+					'// @name	name' +
+					'// @CRM_contentTypes	[true, true, true, true, true, true]' +
+					'// @CRM_launchMode	0' +
+					'// @grant	none' +
+					'// @match	*://*.example.com/*' +
+					'// ==/UserScript==',
+				triggers: ['*://*.example.com/*']
+			}
+
+			return this.mergeObjects(value, options);
+		},
+
+		/**
 		 * Gets the default script node object with given options applied
 		 * 
 		 * @param {Object} options - Any pre-set properties
@@ -1346,12 +1340,7 @@ Polymer({
 				onContentTypes: [true, true, false, false, false, false],
 				type: 'script',
 				isLocal: true,
-				value: {
-					launchMode: 0,
-					libraries: [],
-					script: '',
-					triggers: ['*://*.example.com/*']
-				}
+				value: this.getDefaultScriptValue(options.value)
 			}
 
 			return this.mergeObjects(defaultNode, options);
@@ -1503,7 +1492,7 @@ Polymer({
 				crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
 				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 				chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.'
-				//TOOD description for GM_APIs
+				//TODO description for GM_APIs
 			};
 
 			return descriptions[permission];

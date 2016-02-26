@@ -1890,6 +1890,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		request.send();
 	}
 
+	//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+	//	waiting for any update
 	/*
 	 * Install a userscript to Custom Right-Click Menu. The callback 
 	 * gets an object like "{ found: true, installed: true }" that
@@ -1899,7 +1901,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {function} callback - The function to call when the script
 	 *		is installed or not
 	 */
-	this.GM.GM_installScript = function (url, callback) {
+	this.GM.GM_installScript = emptyFn; /* function (url, callback) {
 		sendMessage({
 			id: id,
 			type: 'installScriptMessage',
@@ -1911,7 +1913,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			},
 			tabId: _this.tabId
 		});
-	}
+	}*/
 
 	var greaseMonkeyAPIs = this.GM;
 	for (var GMKey in greaseMonkeyAPIs) {

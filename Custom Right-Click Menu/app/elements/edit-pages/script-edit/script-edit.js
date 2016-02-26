@@ -198,7 +198,11 @@
 
 		//#endregion
 
-		updateLiveMetaTags: function(changeType, key, value) {
+		updateFromScriptApplier: function (changeType, key, newValue, oldValue) {
+			console.log('');
+			console.log('called with', changeType, key, newValue, oldValue);
+			console.log('');
+			var i;
 			switch (key) {
 				case 'downloadURL':
 				case 'updateURL':
@@ -210,22 +214,24 @@
 					} else {
 						this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
 							updateURL: (key === 'namespace' ? '' : undefined),
-							url: value
+							url: newValue
 						};
 						if (key === 'namespace') {
-							this.newSettings.nodeInfo.source.updateURL = value;
+							this.newSettings.nodeInfo.source.updateURL = newValue;
 						}
 						if (!this.newSettings.nodeInfo.source.url) {
-							this.newSettings.nodeInfo.source.url = value;
+							this.newSettings.nodeInfo.source.url = newValue;
 						}
 						window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 					}
 					break;
 				case 'name':
-					this.set('newSettings.name', (changeType === 'removed') ? '' : value);
+					this.set('newSettings.name', (changeType === 'removed') ? '' : newValue);
+					window.crmEditPage.updateName(this.newSettings.name);
 					break;
 				case 'version':
-					this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : value);
+					this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue);
+					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 					break;
 				case 'require':
 					//Change anonymous libraries to requires
@@ -246,17 +252,137 @@
 					window.paperLibrariesSelector.updateLibraries(libraries);
 					break;
 				case 'author':
-					this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : value);
+					this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue);
+					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+					break;
+				case 'include':
+				case 'match':
+				case 'exclude':
+					var triggerval = JSON.stringify({
+						url: newValue,
+						not: false
+					});
+					var isExclude = (key === 'exclude');
+					if (changeType === 'changed' || changeType === 'removed') {
+						var triggers = this.newSettings.value.triggers;
+						for (i = 0; i < triggers.length; i++) {
+							if (triggerval === JSON.stringify(triggers[i])) {
+								if (changeType === 'changed') {
+									//Replace this one
+									this.set('newSettings.value.triggers.' + i + '.url', newValue);
+									this.set('newSettings.value.triggers.' + i + '.not', isExclude);
+								} else {
+									//Remove this one
+									this.splice('newSettings.value.triggers', i, 1);
+								}
+								break;
+							}
+						}
+					} else {
+						//Add another one
+						this.push('newSettings.value.triggers', {
+							url: newValue,
+							not: isExclude
+						});
+					}
+					break;
+				case 'resource':
+					function sendCreateMessage() {
+						chrome.runtime.sendMessage({
+							type: 'resource',
+							data: {
+								type: 'register',
+								name: newValue.split(/(\s+)/)[0],
+								url: newValue.split(/(\s+)/)[1],
+								scriptId: this.item.id
+							}
+						});
+					}
+
+					function sendRemoveMessage() {
+						chrome.runtime.sendMessage({
+							type: 'resource',
+							data: {
+								type: 'remove',
+								name: oldValue.split(/(\s+)/)[0],
+								url: oldValue.split(/(\s+)/)[1],
+								scriptId: this.item.id
+							}
+						});
+					}
+
+					switch (changeType) {
+						case 'added':
+							sendCreateMessage();
+							break;
+						case 'changed':
+							sendRemoveMessage();
+							sendCreateMessage();
+							break;
+						case 'removed':
+							sendRemoveMessage();
+							break;
+					}
+					break;
+				case 'grant':
+					function removePermission() {
+						var permissions = this.newSettings.nodeInfo.permissions;
+						var index = permissions.indexOf(oldValue);
+						this.splice('newSettings.nodeInfo.permissions', index, 1);
+
+						var allowedPermissions = this.newSettings.permissions;
+						var allowedIndex = allowedPermissions.indexOf(oldValue);
+						this.splice('newSettings.permissions', allowedIndex, 1);
+					}
+
+					switch (changeType) {
+					case 'added':
+						this.push('newSettings.nodeInfo.permissions', newValue);
+						break;
+					case 'changed':
+						removePermission();
+						this.push('newSettings.nodeInfo.permissions', newValue);
+						break;
+					case 'removed':
+						removePermission();
+						break;
+					}
+					break;
+				case 'CRM_contentType':
+					var val = newValue;
+					var valArray;
+					try {
+						valArray = JSON.parse(val);
+					} catch (e) {
+						valArray = [];
+					}
+					for (i = 0; i < 6; i++) {
+						if (valArray[i]) {
+							valArray[i] = true;
+						} else {
+							valArray[i] = false;
+						}
+					}
+
+					//If removed, don't do anything
+					if (changeType !== 'removed') {
+						this.set('newSettings.onContentTypes', valArray);
+					}
+					break;
+				case 'CRM_launchMode':
+					if (changeType !== 'removed') {
+						this.set('newSettings.value.launchMode', parseInt(newValue, 10));
+					}
 					break;
 			}
 		},
 
-		metaTagsUpdateFromScript: function (changes, metaTags) {
+		metaTagsUpdate: function(changes, source) {
 			if (!changes) {
 				return;
 			}
 			var i, j;
-			var key, value;
+			var key, value, oldValue;
 			var changeTypes = ['removed', 'changed', 'added'];
 			var tags = ['downloadURL', 'exclude', 'grant', 'include', 'match', 'name', 'namespace', 'require', 'resource', 'updateURL', 'version'];
 			var todo = ['exclude', 'include', 'match'];
@@ -267,13 +393,167 @@
 				for (j = 0; j < changesArray.length; j++) {
 					key = changesArray[j].key;
 					value = changesArray[j].value;
-					this.updateLiveMetaTags(changeType, key, value);
+					oldValue = changesArray[j].oldValue;
+					this[source === 'script' ? 'updateFromScriptApplier' : 'metaTagsUpdateFromSettings'](changeType, key, value, oldValue);
 				}
 			}
 		},
 
-		metaTagsUpdateFromSettings: function(changes) {
-			
+		metaTagsUpdateFromSettings: function(changeType, key, value, oldValue) {
+			var cm = this.editor;
+			switch (key) {
+				case 'name':
+					cm.updateMetaTags(cm, key, oldValue, value, true);
+					break;
+				case 'CRM_launchMode':
+					cm.updateMetaTags(cm, key, oldValue, value, true);
+					break;
+				case 'triggers':
+					switch (changeType) {
+						case 'added':
+							cm.addMetaTags(cm, key, value);
+							break;
+						case 'changed':
+							cm.updateMetaTags(cm, key, oldValue, value, false);
+							break;
+					}
+					break;
+			}
+		},
+
+		nameChange: function(e) {
+			this.inputKeyPress(e);
+			this.async(function() {
+				this.metaTagsUpdate([
+					{
+						key: 'name',
+						value: this.$.nameInput.value,
+						type: 'changed'
+					}
+				], 'dialog');
+			}, 0);
+		},
+
+		addTriggerAndNotifyMetatags: function() {
+			this.addTrigger();
+			this.metaTagsUpdate([
+				{
+					key: 'triggers',
+					value: '*://*.example.com/*',
+					type: 'added'
+				}
+			], 'dialog');
+		},
+
+		notifyTriggerMetatagsCheckbox: function (e) {
+			var index = 0;
+			var el = e.path[index];
+			while (el.tagName.toLowerCase() !== 'paper-checkbox') {
+				el = el[++index];
+			}
+
+			this.async(function() {
+				var inputVal = el.parentNode.children[1].value;
+				var checkboxVal = el.checked;
+				this.metaTagsUpdate([
+					{
+						key: 'triggers',
+						oldValue: JSON.stringify({
+							url: inputVal,
+							not: !checkboxVal
+						}),
+						value: JSON.stringify({
+							url: inputVal,
+							not: checkboxVal
+						})
+					}
+				], 'dialog');
+			}, 0);
+		},
+
+		notifyTriggerMetatagsInput: function(e) {
+			var index = 0;
+			var el = e.path[index];
+			while (el.tagName.toLowerCase() !== 'paper-input') {
+				el = el[++index];
+			}
+
+			var oldInputVal = el.value;
+			this.async(function () {
+				var inputVal = el.value;
+				var checkboxVal = el.checked;
+				this.metaTagsUpdate([
+					{
+						key: 'triggers',
+						oldValue: JSON.stringify({
+							url: oldInputVal,
+							not: checkboxVal
+						}),
+						value: JSON.stringify({
+							url: inputVal,
+							not: checkboxVal
+						})
+					}
+				], 'dialog');
+			}, 0);
+		},
+
+
+		clearTriggerAndNotifyMetatags: function (e) {
+			this.clearTrigger(e);
+
+			var index = 0;
+			var el = e.path[index];
+			while (el.tagName.toLowerCase() !== 'paper-icon-button') {
+				el = el[++index];
+			}
+
+			this.async(function () {
+				var inputVal = el.parentNode.children[0];
+				var checkboxVal = el.parentNode.children[1];
+				this.metaTagsUpdate([
+					{
+						key: 'triggers',
+						value: JSON.stringify({
+							url: inputVal,
+							not: checkboxVal
+						})
+					}
+				], 'dialog');
+			}, 0);
+		},
+
+		launchModeUpdateFromDialog: function(prevState, state) {
+			this.metaTagsUpdate([
+				{
+					key: 'CRM_launchMode',
+					value: state,
+					oldValue: oldValue,
+					type: 'changed'
+				}
+			], 'dialog');
+		},
+
+		checkToggledIconAmountAndNotifyMetatags: function (e) {
+			console.log(e);
+			//TODO this doesn't work, doing x = checked, wait(0) y = checked and x != y doesn't work
+			var index = 0;
+			var element = e.path[0];
+			while (element.tagName !== 'PAPER-CHECKBOX') {
+				index++;
+				element = e.path[index];
+			}
+			var beforeCheckStatus = element.checked;
+			console.log(beforeCheckStatus);
+
+			this.async(function() {
+				console.log(element.checked);
+			}, 0);
+
+			this.checkToggledIconAmount(e);
+
+			var afterCheckStatus = 3;
+
 		},
 
 		scriptUpdateSingle: function(instance, change) {
@@ -282,10 +562,6 @@
 
 		scriptUpdateBatch: function(instance, changes) {
 			this.fullscreen && this.findMetatagsChanges.call(this, changes);
-		},
-
-		settingsUpdate: function() {
-
 		},
 
 		//#region DialogFunctions
@@ -1040,9 +1316,7 @@
 			this.editor = element;
 			element.refresh();
 			element.on('metaTagChanged', function (changes, metaTags) {
-				_this.metaTagsUpdateFromScript(changes, metaTags);
-				//TODO also update this when changes from inside the dialog occur
-				console.log(metaTags, JSON.parse(JSON.stringify(metaTags)));
+				_this.metaTagsUpdate(changes, 'script');
 				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 			});
 			element.on('metaDisplayStatusChanged', function(info) {
@@ -1148,6 +1422,7 @@
 			this._init();
 			this.$.dropdownMenu.init();
 			this.initDropdown();
+			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, this);
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
 				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 			});

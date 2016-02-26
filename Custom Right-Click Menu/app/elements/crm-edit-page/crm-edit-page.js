@@ -249,6 +249,10 @@ Polymer({
 		}
 	},
 
+	updateName: function(value) {
+		this.notifyPath('item.name', value);
+	},
+
 
 	//TODO clicking on items wile holding shift should toggle selection mode
 	//TODO Holding shift and clicking should select them all

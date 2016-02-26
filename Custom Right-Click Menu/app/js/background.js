@@ -1,7 +1,8 @@
-///<reference path="jsonfn.js"/>
-///<reference path="../../scripts/_references.js"/>
-///<reference path="e.js"/>
-///<reference path="jquery-2.0.3.min.js"/>
+/// <reference path="jsonfn.js"/>
+/// <reference path="../../scripts/_references.js"/>
+/// <reference path="e.js"/>
+/// <reference path="jquery-2.0.3.min.js"/>
+/// <reference path="~/app/js/md5.js" />
 'use strict';
 
 //#region Sandbox
@@ -141,11 +142,10 @@
 		 */
 		scriptInstallListeners: {},
 		//The url to the install page
-		installUrl: chrome.runtime.getURL('install.html')
+		installUrl: chrome.runtime.getURL('install.html'),
+		supportedHashes: ['sha1','sha256','sha384','sha512','md5']
 	};
 
-	globals.chrome = window.chrome;
-	window.chrome = {};
 	//#endregion
 
 	//#region Helper Functions
@@ -337,7 +337,11 @@
 		//Horrible workaround that allows the hiding of nodes on certain url's that
 		//	surprisingly only takes ~1-2ms per tab switch.
 		var currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
-		chrome.tabs.get(currentTabId, function(tab) {
+		chrome.tabs.get(currentTabId, function (tab) {
+			if (chrome.runtime.lastError) {
+				return;
+			}
+
 			//Show/remove nodes based on current URL
 			var toHide = [];
 			var toEnable = [];
@@ -606,7 +610,7 @@
 						version: chrome.app.getDetails().version
 					},
 					metaData: metaData,
-					resources: storageLocal.resources
+					resources: globals.storages.storageLocal.resources
 				};
 				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
 				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + globals.storages.nodeStorage[node.id] + ',' + greaseMonkeyData + ');\n';
@@ -620,9 +624,11 @@
 						globals.crmValues.tabData[tab.id].libraries[node.value.libraries[i].name] = true;
 						var j;
 						var lib;
-						for (j = 0; j < storageLocal.libraries.length; j++) {
-							if (storageLocal.libraries[j].name === node.value.libraries[i].name) {
-								lib = storageLocal.libraries[j];
+						if (globals.storages.storageLocal.libraries) {
+							for (j = 0; j < globals.storages.storageLocal.libraries.length; j++) {
+								if (globals.storages.storageLocal.libraries[j].name === node.value.libraries[i].name) {
+									lib = globals.storages.storageLocal.libraries[j];
+								}
 							}
 						}
 						if (lib) {
@@ -1004,7 +1010,7 @@
 		var node;
 		for (node in globals.crmValues.stylesheetNodeStatusses) {
 			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(node) && globals.crmValues.stylesheetNodeStatusses[node]) {
-				node[tabId] = undefined;
+				globals.crmValues.stylesheetNodeStatusses[node[tabId]] = undefined;
 			}
 		}
 		globals.crmValues.tabData[tabId] = undefined;
@@ -2119,9 +2125,9 @@
 										done = true;
 										newLibrary.code = xhr.responseText;
 										newLibrary.url = _this.message.url;
-										storageLocal.libraries.push(newLibrary);
+										globals.storages.storageLocal.libraries.push(newLibrary);
 										chrome.storage.local.set({
-											libraries: storageLocal.libraries
+											libraries: globals.storages.storageLocal.libraries
 										});
 										_this.respondSuccess(newLibrary);
 									}
@@ -2138,7 +2144,7 @@
 							}
 						} else if (optionals['code']) {
 							newLibrary.code = _this.message.code;
-							storageLocal.libraries.push(newLibrary);
+							globals.storages.storageLocal.libraries.push(newLibrary);
 							chrome.storage.local.set({
 								libraries: storageLocal.libraries
 							});
@@ -2806,6 +2812,48 @@
 	//#endregion
 
 	//#region GM Resources
+	function matchesHashes(hashes, data) {
+		var lastMatchingHash = null;
+		hashes = hashes.reverse();
+		for (var i = 0; i < hashes.length; i++) {
+			var lowerCase = hash.algorithm.toLowerCase;
+			if (globals.supportedHashes.indexOf(lowerCase()) !== -1) {
+				lastMatchingHash = {
+					algorithm: lowerCase,
+					hash: hashes[i].hash
+				};
+				break;
+			}
+		}
+
+		if (lastMatchingHash === null) {
+			return false;
+		}
+
+		var arrayBuffer = new window.TextEncoder('utf-8').encode(data);
+		switch (lastMatchingHash.algorithm) {
+			case 'md5':
+				return md5(data) === lastMatchingHash.hash;
+			case 'sha1':
+				window.crypto.subtle.digest('SHA-1', arrayBuffer).then(function(hash) {
+					return hash === lastMatchingHash.hash;
+				});
+				break;
+			case 'sha384':
+				window.crypto.subtle.digest('SHA-384', arrayBuffer).then(function (hash) {
+					return hash === lastMatchingHash.hash;
+				});
+				break;
+			case 'sha512':
+				window.crypto.subtle.digest('SHA-512', arrayBuffer).then(function (hash) {
+					return hash === lastMatchingHash.hash;
+				});
+				break;
+
+		}
+		return false;
+	}
+
 	function convertFileToDataURI(url, callback) {
 		var xhr = new XMLHttpRequest();
 		xhr.responseType = 'blob';
@@ -2820,7 +2868,22 @@
 		xhr.send();
 	}
 
+	function getHashes(url) {
+		var hashes = [];
+		var hashString = url.split('#')[1];
+		var hashStrings = hashString.split(/[,|;]/g);
+		hashStrings.forEach(function(hash) {
+			var split = hash.split('=');
+			hashes.push({
+				algorithm: split[0],
+				hash: split[1]
+			});
+		});
+		return hashes;
+	}
+
 	function registerResource(name, url, scriptId) {
+		var registerHashes = getHashes(url);
 		if (window.navigator.onLine) {
 			convertFileToDataURI(url, function(dataURI, dataString) {
 				var resources = globals.storages.resources;
@@ -2830,6 +2893,7 @@
 					sourceUrl: url,
 					dataURI: dataURI,
 					string: dataString,
+					matchesHashes: matchesHashes(dataString, registerHashes),
 					crmUrl: 'chrome-extension://' + extensionId + '/resource/' + scriptId + '/' + name
 				}
 				chrome.storage.local.set({
@@ -2847,6 +2911,7 @@
 		resourceKeys.push({
 			name: name,
 			sourceUrl: url,
+			hashes: registerHashes,
 			scriptId: scriptId
 		});
 		chrome.storage.local.set({
@@ -2863,6 +2928,7 @@
 					sourceUrl: key.sourceUrl,
 					dataURI: dataURI,
 					string: responseText,
+					matchesHashes: matchesHashes(responseText, getHashes(key.sourceUrl)),
 					crmUrl: 'chrome-extension://' + extensionId + '/resource/' + key.scriptId + '/' + key.name
 				}
 				chrome.storage.local.set({
@@ -2884,9 +2950,9 @@
 		}
 	}
 
-	function removeResource(name, scriptId) {
+	function removeResource(name, url, scriptId) {
 		for (var i = 0; i < globals.storages.resourceKeys.length; i++) {
-			if (globals.storages.resourceKeys[i].name === name && globals.storages.resourceKeys[i].scriptId === scriptId) {
+			if (globals.storages.resourceKeys[i].name === name && globals.storages.resourceKeys[i].scriptId === scriptId && globals.storages.resourceKeys[i].url === url) {
 				globals.storages.resourceKeys.splice(i, 1);
 				break;
 			}
@@ -2938,7 +3004,10 @@
 	}
 
 	function getResourceData(name, scriptId) {
-		return globals.storages.resources[scriptId][name].dataURI;
+		if (globals.storages.resources[scriptId][name] && globals.storages.resources[scriptId][name].matchesHashes) {
+			return globals.storages.resources[scriptId][name].dataURI;
+		}
+		return null;
 	}
 
 	function addResourceWebRequestListener() {
@@ -2961,7 +3030,7 @@
 				registerResource(message.name, message.url, message.scriptId);
 				break;
 			case 'remove':
-				removeResource(message.name, message.scriptId);
+				removeResource(message.name, message.url, message.scriptId);
 				break;
 		}
 	}
@@ -2978,11 +3047,18 @@
 
 	function handleUserJsRequest(details) {
 		var url = details.url;
+		console.log(url.indexOf('noCRM'));
+		console.log(url.length);
+		console.log(url.length - 6);
+		console.log(url);
+		if (url.indexOf('noCRM') === url.length - 5) {
+			return {};
+		}
 		openInstallPage(url);
 		return { cancel: true };
 	}
 
-	chrome.webrequest.onBeforeRequest.addListener(handleUserJsRequest,
+	chrome.webRequest.onBeforeRequest.addListener(handleUserJsRequest,
 		{
 			urls: ['*://*/*.user.js']
 		}, 
@@ -3069,25 +3145,41 @@
 				callback: data.callback
 			};
 		});
-		//TODO installer content script, pass tabId of installed script to background page and
-		//go through this object to call the callback
+	}
+
+	function onScriptInstall(data) {
+		var script = globals.scriptInstallListeners[data.tabId];
+		if (script && script.url && script.url === data.url) {
+			script.callback && typeof script.callback === 'function' && script.callback();
+		}
 	}
 
 	function handleRuntimeMessage(message) {
 		console.log(message);
 		switch (message.type) {
+			case 'resource':
+				resourceHandler(message.data);
+				break;
+				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+				//	waiting for any update
+				/*
+			case 'scriptInstall':
+				onScriptInstall(message.data);
+				break;
+				*/
 			case 'updateStorage':
 				applyChanges(message.data);
-				break;
-			case 'resource':
-				resourceHandler(message);
 				break;
 			case 'sendInstanceMessage':
 				sendInstanceMessage(message);
 				break;
+				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+				//	waiting for any update
+				/*
 			case 'installScriptMessage':
 				installScriptMessage(message);
 				break;
+				*/
 			case 'changeInstanceHandlerStatus':
 				changeInstanceHandlerStatus(message);
 				break;
@@ -3148,6 +3240,16 @@
 	//#endregion
 
 	//#region Startup
+	function setIfNotSet(obj, key, defaultValue) {
+		if (obj[key]) {
+			return obj[key];
+		}
+		chrome.storage.local.set({
+			key: defaultValue
+		});
+		return defaultValue;
+	}
+
 	function loadStorages(callback) {
 		chrome.storage.sync.get(function(chromeStorageSync) {
 			chrome.storage.local.get(function (chromeStorageLocal) {
@@ -3198,9 +3300,9 @@
 
 				globals.storages.storageLocal = storageLocalCopy;
 				globals.storages.settingsStorage = settingsStorage;
-				globals.storages.resources = chromeStorageLocal.resources;
-				globals.storages.nodeStorage = chromeStorageLocal.nodeStorage;
-				globals.storages.resourceKeys = chromeStorageLocal.resourceKeys;
+				globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
+				globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
+				globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
 
 
 				updateCRMValues();
@@ -3232,4 +3334,4 @@
 		});
 	}());
 	//#endregion
-}(chrome.runtime.getURL('').split('chrome-extension://')[1].split('/')[0]));
+}(chrome.runtime.getURL('').split('chrome-extension://')[1].split('/')[0])); //Gets the extension's URL through a blocking instead of a callback function

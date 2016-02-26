@@ -9,7 +9,7 @@
 				<div id="settings">
 					<div id="nameChangeCont">
 						<div class="itemEditBigTxt">Name</div>
-						<paper-input no-label-float id="nameInput" value="{{newSettings.name}}" on-keydown="inputKeyPress"></paper-input>
+						<paper-input no-label-float id="nameInput" value="{{newSettings.name}}" on-keydown="nameChange"></paper-input>
 					</div>
 					<br/>
 					<div id="permissionsCont">
@@ -77,12 +77,12 @@
 							<br/>
 							<template is="dom-repeat" items="[[item.triggers]]" as="trigger">
 								<div class="executionTrigger">
-									<paper-checkbox class="executionTriggerNot" checked="[[trigger.not]]" color="red">NOT</paper-checkbox>
-									<paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="[[trigger.url]]"></paper-input>
-									<paper-icon-button class="executionTriggerClear" on-tap="clearTrigger" icon="clear"></paper-icon-button>
+									<paper-checkbox on-tap="notifyTriggerMetatagsCheckbox" class="executionTriggerNot" checked="[[trigger.not]]" color="red">NOT</paper-checkbox>
+									<paper-input on-keydown="notifyTriggerMetatagsInput" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="[[trigger.url]]"></paper-input>
+									<paper-icon-button class="executionTriggerClear" on-tap="clearTriggerAndNotifyMetatags" icon="clear"></paper-icon-button>
 								</div>
 							</template>
-							<paper-button on-tap="addTrigger" raised id="addTrigger">Add</paper-button>
+							<paper-button on-tap="addTriggerAndNotifyMetatags" raised id="addTrigger">Add</paper-button>
 						</div>
 						<div id="showOnContentContainer">
 							<div class="itemEditBigTxt">
@@ -98,7 +98,7 @@
 									<div class="showOnContentItemTxt" on-tap="toggleIcon">
 										Page
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{pageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
+									<paper-checkbox class="showOnContentItemCheckbox" checked="{{pageContentSelected}}" on-tap="checkToggledIconAmountAndNotifyMetatags"></paper-checkbox>
 								</div>
 								<div class="showOnContentItemCont linkType">
 									<div class="showOnContentItemIcon" on-tap="toggleIcon">
@@ -110,7 +110,7 @@
 									<div class="showOnContentItemTxt" on-tap="toggleIcon">
 										Link
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{linkContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
+									<paper-checkbox class="showOnContentItemCheckbox" checked="{{linkContentSelected}}" on-tap="checkToggledIconAmountAndNotifyMetatags"></paper-checkbox>
 								</div>
 								<div class="showOnContentItemCont selectionType">
 									<div class="showOnContentItemIcon" on-tap="toggleIcon">
@@ -122,7 +122,7 @@
 									<div class="showOnContentItemTxt" on-tap="toggleIcon">
 										Selection
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{selectionContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
+									<paper-checkbox class="showOnContentItemCheckbox" checked="{{selectionContentSelected}}" on-tap="checkToggledIconAmountAndNotifyMetatags"></paper-checkbox>
 								</div>
 								<div class="showOnContentItemCont imageType">
 									<div class="showOnContentItemIcon" on-tap="toggleIcon">
@@ -134,7 +134,7 @@
 									<div class="showOnContentItemTxt" on-tap="toggleIcon">
 										Image
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{imageContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
+									<paper-checkbox class="showOnContentItemCheckbox" checked="{{imageContentSelected}}" on-tap="checkToggledIconAmountAndNotifyMetatags"></paper-checkbox>
 								</div>
 								<div class="showOnContentItemCont videoType">
 									<div class="showOnContentItemIcon" on-tap="toggleIcon">
@@ -146,7 +146,7 @@
 									<div class="showOnContentItemTxt" on-tap="toggleIcon">
 										Video
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{videoContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
+									<paper-checkbox class="showOnContentItemCheckbox" checked="{{videoContentSelected}}" on-tap="checkToggledIconAmountAndNotifyMetatags"></paper-checkbox>
 								</div>
 								<div class="showOnContentItemCont audioType">
 									<div class="showOnContentItemIcon" on-tap="toggleIcon">
@@ -158,7 +158,7 @@
 									<div class="showOnContentItemTxt" on-tap="toggleIcon">
 										Audio
 									</div>
-									<paper-checkbox class="showOnContentItemCheckbox" checked="{{audioContentSelected}}" on-tap="checkToggledIconAmount"></paper-checkbox>
+									<paper-checkbox class="showOnContentItemCheckbox" checked="{{audioContentSelected}}" on-change="checkToggledIconAmountAndNotifyMetatags"></paper-checkbox>
 								</div>
 							</div>
 						</div>

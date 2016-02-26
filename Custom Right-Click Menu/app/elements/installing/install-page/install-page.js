@@ -25,7 +25,6 @@
 			},
 			userscriptUrl: {
 				type: String,
-				notify: true,
 				computed: 'getUserscriptUrl(userscriptUrlCalculated)'
 			},
 			isLoading: {
@@ -54,16 +53,13 @@
 		},
 
 		notifyFetchError: function() {
-			console.log('faied');
 			this.fetchFailed = true;
-			console.log(this.fetchFailed);
-			console.log('called');
 		},
 
 		fetchUserscript: function(url) {
 			var _this = this;
 			$.ajax({
-				url: url,
+				url: url + '?noCRM',
 				dataType: 'text'
 			}).done(function(script) {
 				_this.displayFetchedUserscript(script);
@@ -74,9 +70,9 @@
 
 		ready: function() {
 			this.userscriptUrl = this.getUserscriptUrl();
+			this.$.title = 'Installing userscript from ' + this.userscriptUrl;
 			this.fetchUserscript(this.userscriptUrl);
 			window.installPage = this;
-			console.log(this.userscriptUrl);
 		}
 	});
 }());
