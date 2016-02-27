@@ -401,7 +401,7 @@
 							Managing permisions for script "[[name]]"
 						</h2>
 						<div>
-							Here you can allow or disallow permissions for the current script, marked permissions are asked for in the script and will probably be needed for script execution. You should however be careful not to just turn on everything since that might enable malicious scripts to do bad things.
+							Here you can allow or disallow permissions for the current script, marked permissions are asked for in the script and will probably be needed for script execution. You should however be careful not to just turn on everything since that might enable malicious scripts to do bad things. Permissions starting with "GM_" are greasemonkey permissions, these can also be used if you want to also share this script with greasemonkey/tampermonkey users. you don't actually need to turn them to use those APIs except the GM_download API and the GM_notification API since all the others are fairly harmless. However they will be required as metaTags if you run this script in greasemonkey/tampermonkey. 
 						</div>
 						<div class="scriptPermissionsContainer">
 							<div class="scriptPermissionsUsedPermissionsTxt">
@@ -418,7 +418,9 @@
 											<paper-toggle-button class="scriptPermissionsToggle" checked="[[permission.toggled]]" ischecked$="[[permission.toggled]]"></paper-toggle-button>
 										</div>
 										<div class="requestPermissionsPermissionBotCont">
-											<span class="requestPermissionsDescription">[[permission.description]]</span>
+											<span class="requestPermissionsDescription">
+												<echo-html makelink html="[[permission.description]]"></echo-html>
+											</span>
 										</div>
 									</div>
 								</template>
@@ -509,3 +511,5 @@
 <script src="../../js/jquery.contextMenu.js"></script>
 <script src="../../js/jquery.bez.js"></script>
 <script src="crm-app.js"></script>
+<!--TODO remove-->
+<script src="../../js/test.js"></script>
