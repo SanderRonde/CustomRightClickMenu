@@ -4,7 +4,7 @@
 <body>
 	<dom-module id="crm-edit-page" attributes="item">
 		<template>
-			<link rel="stylesheet" type="css" href="crm-edit-page.css" />
+			<link rel="stylesheet" href="crm-edit-page.css" />
 			<div id="horizontalCenterer">
 				<div id="verticalCenterer">
 					<div id="overlayCont">
@@ -15,33 +15,33 @@
 							<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
 							<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
 						</paper-material>
-						<div id="nodeInfo">
-							<div id="nodeInfoData" hidden$="[[isLocal(item.nodeInfo.source)]]">
+						<div id="nodeInfo" hidden$="[[!nodeInfoExists(nodeInfo)]]">
+							<div id="nodeInfoData" hidden$="[[isLocal(nodeInfo.source)]]">
 								<span id="nodeInfoName">
-									<b>[[item.nodeInfo.source.name]]</b>
+									<b>[[item.name]]</b> <b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>
 								</span>
 								<span id="nodeInfoAuthor">
-									Created by <b>[[item.nodeInfo.source.author]]</b>
-								</span>
-								, installed from <span id="nodeInfoFrom">
+									Created by <b>[[nodeInfo.author]]</b></span>, installed from <span id="nodeInfoFrom">
 									<b>
-										<a id="nodeInfoUrl" target="_blank" href$="[[item.nodeInfo.source.url]]">[[item.nodeInfo.source.url]]</a>
+										<a id="nodeInfoUrl" target="_blank" href$="[[nodeInfo.source.url]]">[[nodeInfo.source.url]]</a>
 									</b>
 								</span>
 							</div>
-							<div id="nodeInfoSource">
+							<div id="nodeInfoSource" hidden$="[[!hasInstallDate(nodeInfo)]]">
 								<span id="NodeInfoAcquiredThrough">
-									<span hidden$="[[!isLocal(item.nodeInfo.source)]]">
-										Created
+									<span hidden$="[[!isLocal(nodeInfo.source)]]">
+										created
 									</span>
-									<span hidden$="[[isLocal(item.nodeInfo.source)]]">
-										Installed
+									<span hidden$="[[isLocal(nodeInfo.source)]]">
+										installed
 									</span>
 								</span>
-								on
-								<b>
-									<span id="NodeInfoInstallDate">[[item.nodeInfo.installDate]]</span>
-								</b>
+								<span id="installedOn">
+									on
+									<b>
+										<span id="NodeInfoInstallDate">[[nodeInfo.installDate]]</span>
+									</b>
+								</span>
 							</div>
 						</div>
 					</div>
