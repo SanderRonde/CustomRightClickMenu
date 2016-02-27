@@ -104,15 +104,6 @@ Polymer({
 	 */
 	stylesheetItem: {},
 
-	/**
-	 * The tern server for the codeMirror editor
-	 *
-	 * @attribute ternServer
-	 * @type ternServer
-	 * @default null
-	 */
-	ternServer: null,
-
 	/*
 	 * The file that is used to write to when using an exteral editor
 	 *
@@ -139,6 +130,34 @@ Polymer({
 	 * @value {}
 	 */
 	storageLocal: {},
+
+	/**
+	 * A copy of the storage.local to compare when calling upload
+	 * 
+	 * @attribute storageLocalCopy
+	 * @type Object
+	 * @value {}
+	 */
+	storageLocalCopy: {},
+
+	/**
+	 * A copy of the settings to compare when calling upload
+	 * 
+	 * @attribute storageLocalCopy
+	 * @attribute Object
+	 * @value {}
+	 */
+	settingsCopy: {},
+
+	/*
+	 * The nodes in an object where the key is the ID and the 
+	 * value is teh node
+	 * 
+	 * @attribute nodesById
+	 * @type Object
+	 * @value {}
+	 */
+	nodesById: {},
 
 	properties: {
 		settings: {
@@ -184,10 +203,11 @@ Polymer({
 	},
 
 	compareArray: function(firstArray, secondArray) {
-		if (!firstArray && !secondArray) {
-			return false;
-		} else if (!firstArray || !secondArray) {
+		if (!firstArray === !secondArray) {
 			return true;
+		}
+		else if (!firstArray || !secondArray) {
+			return false;
 		}
 		var firstLength = firstArray.length;
 		if (firstLength !== secondArray.length) {
@@ -263,10 +283,10 @@ Polymer({
 		var scripts = [];
 		this.findScriptsInSubtree(data.crm[i]);
 		this.runDialogsForImportedScripts(nodesToAdd, scripts);
+		return true;
 	},
 
 	importData: function () {
-		var _this = this;
 		var data = this.$.importSettingsInput.value;
 		try {
 			data = JSON.parse(data);
@@ -339,7 +359,6 @@ Polymer({
 	},
 
 	switchToIcons: function(index) {
-		console.log('switch');
 		var i;
 		var element;
 		var crmTypes = document.querySelectorAll('.crmType');
@@ -357,7 +376,6 @@ Polymer({
 			}
 		}
 		this.crmType = index;
-		console.log(this.crmType);
 		this.fire('crmTypeChanged', {});
 	},
 
@@ -369,7 +387,6 @@ Polymer({
 			path = e.path[index];
 		}
 
-		console.log('switch');
 		var crmEl;
 		var element = path;
 		var selectedType = this.crmType;
@@ -401,7 +418,6 @@ Polymer({
 			selectedCrmType: selectedType
 		});
 		this.crmType = selectedType;
-		console.log(this.crmType);
 		this.fire('crmTypeChanged', {});
 	},
 
@@ -512,65 +528,110 @@ Polymer({
 		return obj;
 	},
 
-	/**
-	 * Uploads this object to chrome.storage.sync
-	 */
-	upload: function () {
-		var _this = this;
-		console.log(this.settings);
-		var settingsJson = JSON.stringify(this.settings);
-		var stringLength = settingsJson.length;
-		this.settingsJsonLength = stringLength;
-		if (this.settings.useStorageSync) {
-			chrome.storage.local.set({
-				settings: this.settings
-			}, function() {
-				if (chrome.runtime.lastError) {
-					console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
-				} else {
-					chrome.runtime.sendMessage({
-						type: 'updateContextMenu',
-						crmTree: _this.settings.crm
-					});
-				}
-			});
-			chrome.storage.sync.set({
-				indexes: null
-			});
-		} else {
-			//Using chrome.storage.sync
-			if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
-				window.doc.storageExceededToast.show();
-				chrome.storage.local.set({
-					useStorageSync: false
-				}, function() {
-					_this.upload();
-				});
+
+	areValuesDifferent: function(val1, val2) {
+		//Array or object
+		var obj1ValIsArray = Array.isArray(val1);
+		var obj2ValIsArray = Array.isArray(val2);
+		var obj1ValIsObjOrArray = typeof val1 === 'object';
+		var obj2ValIsObjOrArray = typeof val2 !== 'object';
+
+		if (obj1ValIsObjOrArray) {
+			//Array or object
+			if (!obj2ValIsObjOrArray) {
+				return true;
 			} else {
-				//Cut up all data into smaller JSON
-				var obj = this.cutData(settingsJson);
-				chrome.storage.sync.set(obj, function() {
-					if (chrome.runtime.lastError) {
-						//Switch to local storage
-						console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
-						window.doc.storageExceededToast.show();
-						chrome.storage.local.set({
-							useStorageSync: false
-						}, function() {
-							_this.upload();
-						});
+				//Both objects or arrays
+
+				//1 is an array
+				if (obj1ValIsArray) {
+					//2 is not an array
+					if (!obj2ValIsArray) {
+						return true;
 					} else {
-						chrome.runtime.sendMessage({
-							type: 'updateContextMenu',
-							crmTree: _this.settings.crm
-						});
-						chrome.storage.local.set({
-							settings: null
-						});
+						//Both are arrays, compare them
+						if (this.compareArray(val1, val2)) {
+							//Changes have been found, also say the container arrays have changed
+							return true;
+						}
 					}
+				} else {
+					//1 is not an array, check if 2 is
+					if (obj2ValIsArray) {
+						//2 is an array, changes
+						return true;
+					} else {
+						//2 is also not an array, they are both objects
+						if (this.compareObj(val1, val2)) {
+							//Changes have been found, also say the container arrays have changed
+							return true;
+						}
+					}
+				}
+			}
+		} else if (val1 !== val2) {
+			//They are both normal string/number/bool values, do a normal comparison
+			return true;
+		}
+		return false;
+	},
+
+	getArrDifferences: function (arr1, arr2, changes) {
+		for (var index = 0; index < arr1.length; index++) {
+			if (this.areValuesDifferent(arr1[key], arr2[key])) {
+				changes.push({
+					oldValue: arr2[index],
+					newValue: arr1[index],
+					key: key
 				});
 			}
 		}
+
+		return changes.length > 0;
+	},
+
+	getObjDifferences: function (obj1, obj2, changes) {
+		for (var key in obj1) {
+			if (obj1.hasOwnProperty(key)) {
+				if (this.areValuesDifferent(obj1[key], obj2[key])) {
+					changes.push({
+						oldValue: obj2[key],
+						newValue: obj1[key],
+						key: key
+					});
+				}
+			}
+		}
+		return changes.length > 0;
+	},
+
+	/**
+	 * Uploads the settings to chrome.storage
+	 */
+	upload: function () {
+		//Send changes to background-page, background-page uploads everything
+		//Compare storageLocal objects
+		var localChanges = [];
+		var storageLocal = this.storageLocal;
+		var storageLocalCopy = this.storageLocalCopy;
+
+		var settingsChanges = [];
+		var settings = this.settings;
+		var settingsCopy = this.settingsCopy;
+		var hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
+		var haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
+		if (hasLocalChanged || haveSettingsChanged) {
+			//Changes occured
+			chrome.runtime.sendMessage({
+				type: 'updateStorage',
+				data: {
+					type: 'optionsPage',
+					localChanges: hasLocalChanged && localChanges,
+					settingsChanges: haveSettingsChanged && settingsChanges
+				}
+			});
+		}
+
 		this.pageDemo.create();
 	},
 
@@ -597,6 +658,7 @@ Polymer({
 			try {
 				var crmItem = this.crm.lookup(editingObj.crmPath);
 				var code = (crmItem.type === 'script' ? crmItem.script : crmItem.stylesheet);
+				_this.iconSwitch({ path: [$('.crmType.' + editingObj.crmType + 'Type')[0]] });
 				$('.keepChangesButton').on('click', function() {
 					if (crmItem.type === 'script') {
 						crmItem.value.script =
@@ -689,9 +751,10 @@ Polymer({
 					};
 				}
 
+				var path = _this.nodesById[editingObj.id].path;
 				var highlightItem = function() {
 					document.body.style.pointerEvents = 'none';
-					var crmItem = $($($('#mainCont').children('div')[editingObj.crmPath.length - 1]).children('.CRMEditColumn')[0]).children('edit-crm-item')[editingObj.crmPath[editingObj.crmPath.length - 1]];
+					var crmItem = $($($('#mainCont').children('div')[path.length - 1]).children('.CRMEditColumn')[0]).children('edit-crm-item')[path[path.length - 1]];
 					//Just in case the item doesn't exist (anymore)
 					if ($(crmItem).find('.item')[0]) {
 						$(crmItem).find('.item')[0].animate([
@@ -729,24 +792,21 @@ Polymer({
 					$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
 					$('edit-crm-item').find('.item').css('opacity', 0.6);
 
-					//Check if it's visible in the current crmType
-					//HIERZO
-
 					setTimeout(function() {
-						if (editingObj.crmPath.length === 1) {
+						if (path.length === 1) {
 							//Always visible
 							highlightItem();
 						} else {
 							var visible = true;
-							for (var i = 1; i < editingObj.crmPath.length; i++) {
-								if (app.editCRM.crm[i].indent.length !== editingObj.crmPath[i - 1]) {
+							for (var i = 1; i < path.length; i++) {
+								if (app.editCRM.crm[i].indent.length !== path[i - 1]) {
 									visible = false;
 									break;
 								}
 							}
 							if (!visible) {
 								//Make it visible
-								var popped = JSON.parse(JSON.stringify(editingObj.crmPath.length));
+								var popped = JSON.parse(JSON.stringify(path.length));
 								popped.pop();
 								app.editCRM.build(popped);
 								setTimeout(highlightItem, 700);
@@ -787,6 +847,14 @@ Polymer({
 		$('.CodeMirror').each(function() {
 			this.CodeMirror.refresh();
 		});
+		window.colorFunction && window.colorFunction.func({
+			from: {
+				line: 0
+			},
+			to: {
+				line: window.stylesheet.editor.lineCount()
+			}
+		}, window.stylesheet.editor);
 	},
 
 	/**
@@ -802,6 +870,7 @@ Polymer({
 			index = allPermissions.indexOf(toRequest[i]);
 			if (index > -1) {
 				allPermissions.splice(index, 1);
+				i--;
 			}
 		}
 
@@ -907,11 +976,9 @@ Polymer({
 				});
 
 				$('#requestPermissionsAcceptAll').off('click').on('click', function() {
-					console.log(toRequest);
 					chrome.permissions.request({
 						permissions: toRequest
 					}, function(accepted) {
-						console.log(accepted);
 						if (accepted) {
 							chrome.storage.local.set({
 								requestPermissions: []
@@ -985,6 +1052,14 @@ Polymer({
 		this.upload();
 	},
 
+	orderNodesById: function(tree) {
+		for (var i = 0; i < tree.length; i++) {
+			var node = tree[i];
+			this.nodesById[node.id] = node;
+			node.children && this.orderNodesById(node.children);
+		}
+	},
+
 	ready: function() {
 		var _this = this;
 		this.crm.parent = this;
@@ -993,22 +1068,25 @@ Polymer({
 
 		function callback(items) {
 			_this.settings = items;
+			_this.settingsCopy = JSON.parse(JSON.stringify(items));
 			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 			}
 			_this.updateEditorZoom();
 			_this.pageDemo.create();
+			_this.orderNodesById(items.crm);
 		}
 
 		this.bindListeners();
-		chrome.storage.local.get(function(storageLocal) {
+		chrome.storage.local.get(function (storageLocal) {
+			delete storageLocal.nodeStorage;
 			if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
 				_this.requestPermissions(storageLocal.requestPermissions);
 			}
 			if (storageLocal.editing) {
 				setTimeout(function() {
 					//Check out if the code is actually different
-					var node = _this.crm.lookup(storageLocal.editing.crmPath).value;
+					var node = _this.nodesById[storageLocal.editing.id].value;
 					var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
 					if (nodeCurrentCode !== storageLocal.editing.val) {
 						_this.restoreUnsavedInstances(storageLocal.editing);
@@ -1032,9 +1110,9 @@ Polymer({
 			if (storageLocal.jsLintGlobals) {
 				_this.jsLintGlobals = storageLocal.jsLintGlobals;
 			} else {
-				_this.jsLintGlobals = [];
+				_this.jsLintGlobals = ['window','$','jQuery','crmapi'];
 				chrome.storage.local.set({
-					jsLintGlobals: []
+					jsLintGlobals: _this.jsLintGlobals
 				});
 			}
 			if (storageLocal.latestId) {
@@ -1090,8 +1168,15 @@ Polymer({
 				}
 			}
 			_this.storageLocal = storageLocal;
+			_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 		});
 		this.show = false;
+
+		chrome.storage.onChanged.addListener(function (changes, areaName) {
+			if (areaName === 'local' && changes.latestId) {
+				_this.latestId = changes.latestId.newValue;
+			}
+		});
 	},
 
 	/**
@@ -1145,6 +1230,54 @@ Polymer({
 		},
 
 		/**
+		 * Gets the default stylesheet value object with given options applied
+		 * 
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A stylesheet node value with specified properties set
+		 */
+		getDefaultStylesheetValue: function(options) {
+			var value = {
+				stylesheet: '' +
+					'// ==UserScript==' +
+					'// @name	name' +
+					'// @CRM_contentTypes	[true, true, true, true, true, true]' +
+					'// @CRM_launchMode	0' +
+					'// @CRM_stylesheet	true' +
+					'// @grant	none' +
+					'// @match	*://*.example.com/*' +
+					'// ==/UserScript==',
+				launchMode: 0,
+				triggers: ['*://*.example.com/*']
+			};
+
+			return this.mergeObjects(value, options);
+		},
+
+		/**
+		 * Gets the default script value object with given options applied
+		 * 
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A script node value with specified properties set
+		 */
+		getDefaultScriptValue: function(options) {
+			var value =	{
+				launchMode: 0,
+				libraries: [],
+				script: '' +
+					'// ==UserScript==' +
+					'// @name	name' +
+					'// @CRM_contentTypes	[true, true, true, true, true, true]' +
+					'// @CRM_launchMode	0' +
+					'// @grant	none' +
+					'// @match	*://*.example.com/*' +
+					'// ==/UserScript==',
+				triggers: ['*://*.example.com/*']
+			}
+
+			return this.mergeObjects(value, options);
+		},
+
+		/**
 		 * Gets the default script node object with given options applied
 		 * 
 		 * @param {Object} options - Any pre-set properties
@@ -1156,12 +1289,7 @@ Polymer({
 				onContentTypes: [true, true, false, false, false, false],
 				type: 'script',
 				isLocal: true,
-				value: {
-					launchMode: 0,
-					libraries: [],
-					script: '',
-					triggers: ['*://*.example.com/*']
-				}
+				value: this.getDefaultScriptValue(options.value)
 			}
 
 			return this.mergeObjects(defaultNode, options);
@@ -1190,7 +1318,6 @@ Polymer({
 				'identity',
 				'idle',
 				'management',
-				'notifications',
 				'pageCapture',
 				'power',
 				'privacy',
@@ -1250,7 +1377,23 @@ Polymer({
 				//Script-specific permissions
 				'crmGet',
 				'crmWrite',
-				'chrome'
+				'chrome',
+
+				//GM_Permissions
+				'GM_info',
+				'GM_deleteValue',
+				'GM_getValue',
+				'GM_listValues',
+				'GM_setValue',
+				'GM_getResourceText',
+				'GM_getResourceURL',
+				'GM_addStyle',
+				'GM_log',
+				'GM_openInTab',
+				'GM_registerMenuCommand',
+				'GM_setClipboard',
+				'GM_xmlhttpRequest',
+				'unsafeWindow'
 			];
 		},
 
@@ -1298,6 +1441,7 @@ Polymer({
 				crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
 				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 				chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.'
+				//TODO description for GM_APIs
 			};
 
 			return descriptions[permission];
@@ -1426,7 +1570,6 @@ Polymer({
 			script: function(toAdd) {
 				var item = {};
 				item.name = toAdd.name;
-				console.log('?');
 				item.callback = this.parent.handlers.script(toAdd.value.script);
 				return item;
 			},
@@ -1595,7 +1738,6 @@ Polymer({
 					}
 				}
 			});
-			console.log(childItems);
 			return childItems;
 		},
 
@@ -1686,7 +1828,6 @@ Polymer({
 
 		lookup: function(path, returnArray) {
 			var pathCopy = JSON.parse(JSON.stringify(path));
-			console.log(pathCopy);
 			if (returnArray) {
 				pathCopy.splice(pathCopy.length - 1, 1);
 			}
@@ -1699,17 +1840,12 @@ Polymer({
 			}
 
 			var evalPath = this._getEvalPath(pathCopy);
-			console.log(evalPath);
 			var result = eval(evalPath);
-			console.log(returnArray);
-			console.log(result);
 			return (returnArray ? result.children : result);
 		},
 
 		_lookupId: function(id, returnArray, node) {
-			console.log(id, node.id);
 			if (node.id === id) {
-				console.log('found');
 				return node;
 			}
 
