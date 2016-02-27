@@ -99,6 +99,7 @@ Polymer({
 			itemCopy = {};
 			itemCopy.name = item.name;
 			itemCopy.isLibrary = true;
+			itemCopy.url = item.url;
 			if (selectedObj[item.name.toLowerCase()]) {
 				itemCopy.classes = 'library iron-selected';
 				itemCopy.selected = 'true';
@@ -155,7 +156,7 @@ Polymer({
 			window.doc.addLibraryConfirmationInput.value = code;
 			window.doc.addLibraryConfirmAddition.addEventListener('click', function () {
 				window.doc.addLibraryConfirmationInput.value = '';
-				_this.addLibraryFile(_this, name, code);
+				_this.addLibraryFile(_this, name, code, url);
 			});
 			window.doc.addLibraryDenyConfirmation.addEventListener('click', function() {
 				window.doc.addLibraryConfirmationContainer.style.display = 'none';
@@ -170,14 +171,16 @@ Polymer({
 		}, 250);
 	},
 
-	addLibraryFile: function (_this, name, code) {
+	addLibraryFile: function (_this, name, code, url) {
 		window.doc.addLibraryConfirmationContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {
 			_this.installedLibraries.push({
 				name: name,
-				code: code
+				code: code,
+				url: url
 			});
+			window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor, 'require', url);
 			chrome.runtime.sendMessage({
 				type: 'updateStorage',
 				data: {
@@ -270,15 +273,21 @@ Polymer({
 					}
 				});
 		}
-		else if (classList.contains('anonymous')) {
+		else if (e.target.classList.contains('anonymous')) {
 			e.target.remove();
-
+			//window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor, 'require', 
 			//TODO remove the require from the metatags
+		} else {
+			//Checking or un-checking something
+			var lib = e.target.getAttribute('data-url');
+			var changeType = (e.target.classList.contains('iron-selected') ? 'addMetaTags' : 'removeMetaTags');
+			window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib);
 		}
 	},
 
 	updateLibraries: function(libraries) {
 		this.set('libraries', libraries);
+		this.init();
 	},
 
 	behaviors: [Polymer.PaperDropdownBehavior]

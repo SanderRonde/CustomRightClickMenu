@@ -32,7 +32,7 @@
 
 		for (var oldMetaKey in oldMetaTags) {
 			if (oldMetaTags.hasOwnProperty(oldMetaKey)) {
-				if (!window.app.compareArray(oldMetaTags[oldMetaKey], newMetaTags[oldMetaTags])) {
+				if (!window.app.compareArray(oldMetaTags[oldMetaKey], newMetaTags[oldMetaKey])) {
 					changes.removed.push({
 						key: oldMetaKey,
 						value: oldMetaTags[oldMetaKey]
@@ -44,7 +44,7 @@
 		for (var newMetaKey in newMetaTags) {
 			if (newMetaTags.hasOwnProperty(newMetaKey)) {
 				if (oldMetaTags[newMetaKey] !== undefined) {
-					if (!window.app.compareArray(oldMetaTags[newMetaKey], newMetaTags[oldMetaTags])) {
+					if (!window.app.compareArray(oldMetaTags[newMetaKey], newMetaTags[newMetaKey])) {
 						changes.changed.push({
 							key: newMetaKey,
 							value: newMetaTags[newMetaKey]
@@ -93,10 +93,10 @@
 	}
 
 	function setMetaTags(cm, content) {
-		console.log(';)');
 		var oldMetaTags;
 		if (cm.metaTags) {
-			oldMetaTags = JSON.parse(JSON.stringify(cm.metaTags.metaTags));
+			console.log(cm.metaTags);
+			oldMetaTags = JSON.parse(JSON.stringify(cm.metaTags));
 			console.log(oldMetaTags);
 		}
 
@@ -107,6 +107,7 @@
 		var startPlusOne = metaStart + 1;
 		var lines = content.split('\n');
 		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+		console.log(metaLines.length);
 		if (metaLines.length === 0) {
 			cm.metaTags = {};
 			return null;
@@ -130,6 +131,8 @@
 			}
 		}
 
+		console.log('got to this pointed obv');
+
 		cm.metaTags = cm.metaTags || {};
 		cm.metaTags.metaStart = metaIndexes.start;
 		cm.metaTags.metaTags = metaTagObj;
@@ -145,7 +148,8 @@
 	}
 
 	function updateMetaTags(cm, changes) {
-		var oldIndexes = JSON.parse(JSON.stringify(cm.metaTags.metaIndexes));
+		console.log('WAAAAAAAA changes');
+		console.log(cm, changes);
 
 		var i, j;
 		var content = cm.getValue();
@@ -163,6 +167,7 @@
 			};
 			if (changes[i].text.length !== changes[i].removed.length) {
 				//Insertion or removal
+				console.log('INSERTION OR REMOVAL');
 				tagsChanged = setMetaTags(cm, content);
 			} else if (changes[i].to.line < lastMetatagIndex || changeLineStart > firstMetatagIndex) {
 				for (j = 0; j < linesChanged; j++) {
@@ -364,51 +369,61 @@
 		showMetaTags(cm, metaTags);
 	});
 
-	codemirror.defineExtension('removeMetaTag', function(cm, key, value) {
+	codemirror.defineExtension('removeMetaTags', function(cm, key, value) {
 		setMetaTags(cm, cm.getValue());
-
-		for (var i = 0; i < cm.metaTags.metaIndexes.length; i++) {
-			if (cm.metaTags.metaIndexes[i].key === key && cm.metaTags.metaIndexes[i].value === value) {
-				cm.doc.replaceRange('', {
-					line: i,
-					ch: 0
-				}, {
-					line: i + 1,
-					ch: 0
-				});
-				return;
-			}
-		}
-	});
-
-	codemirror.defineExtension('updateMetaTag', function(cm, key, oldValue, value, singleValue) {
-		setMetaTags(cm, cm.getValue());
-
-		for (var i = 0; i < cm.metaTags.metaIndexes.length; i++) {
-			if (cm.metaTags.metaIndexes[i].key === key) {
-				if (singleValue || cm.metaTags.metaIndexes[i].value === oldValue) {
-					cm.doc.replaceRange('// @' + key + '	' + value, {
-						line: i,
+		for (var index in cm.metaTags.metaIndexes) {
+			if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
+				if (cm.metaTags.metaIndexes[index].key === key && cm.metaTags.metaIndexes[index].value === value) {
+					console.log(parseInt(index, 10) + 1);
+					cm.doc.replaceRange('', {
+						line: index,
 						ch: 0
 					}, {
-						line: i,
-						ch: cm.doc.getLine(i).length
+						line: parseInt(index, 10) + 1,
+						ch: 0
+					});
+					return index;
+				}
+			}
+		}
+
+		return null;
+	});
+
+	codemirror.defineExtension('updateMetaTags', function(cm, key, oldValue, value, singleValue) {
+		setMetaTags(cm, cm.getValue());
+
+		console.log(singleValue);
+		console.log(cm.metaTags.metaIndexes);
+		for (var index in cm.metaTags.metaIndexes) {
+			if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
+				console.log(cm.metaTags.metaIndexes[index].value);
+				console.log(oldValue);
+				if (cm.metaTags.metaIndexes[index].key === key && (singleValue || cm.metaTags.metaIndexes[index].value === '' + oldValue)) {
+					console.log('equal');
+					cm.doc.replaceRange('// @' + key + '	' + value, {
+						line: index,
+						ch: 0
+					}, {
+						line: index,
+						ch: cm.doc.getLine(index).length
 					});
 					return;
 				}
 			}
 		}
-		cm.addMetaTag(cm, key, value);
+		console.log('not found');
+		cm.addMetaTags(cm, key, value);
 	});
 
-	codemirror.defineExtension('addMetaTag', function(cm, key, value) {
+	codemirror.defineExtension('addMetaTags', function(cm, key, value, line) {
 		setMetaTags(cm, cm.getValue());
 
 		cm.doc.replaceRange('// @' + key + '	' + value + '\n', {
-			line: cm.metaTags.metaEnd,
+			line: (line && parseInt(line, 10)) || cm.metaTags.metaEnd.line,
 			ch: 0
 		}, {
-			line: cm.metaTags.metaEnd,
+			line: (line && parseInt(line, 10)) || cm.metaTags.metaEnd.line,
 			ch: 0
 		});
 	});

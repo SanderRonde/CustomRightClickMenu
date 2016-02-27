@@ -109,24 +109,28 @@
 	 * Fires all added listeners, triggers when a new value is selected
 	 */
 	_fireListeners: function (_this) {
+		var i;
 		var prevState = _this.selected;
 		if (_this.tagName === 'PAPER-DROPDOWN-MENU') {
 			_this.selected = _this._paperMenu.selected;
 		}
-		_this._listeners.forEach(function (item) {
-			item.listener.apply(item.thisArg, [prevState, _this._paperMenu.selected]);
+		_this._listeners.forEach(function(listener) {
+			listener.listener.apply(listener.thisArg, [prevState, _this._paperMenu.selected]);
 		});
 	},
 
 	ready: function() {
 		var _this = this;
 		this._paperItems = $(this).find('paper-item').on('click', function () {
+			console.log('');
+			console.log('clicked');
+			console.log('');
 			setTimeout(function () {
 				_this._fireListeners(_this);
 				if (_this._dropdownSelectChange) {
 					_this._dropdownSelectChange(_this);
 				}
-			}, 0);
+			}, 50);
 		});
 		this._paperDropdownEl = this;
 		this._paperMenu = $(this).find('paper-menu')[0];

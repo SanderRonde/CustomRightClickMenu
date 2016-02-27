@@ -192,6 +192,12 @@
 				path: [checkbox]
 			});
 		}
+
+		if (this.contentCheckboxChanged) {
+			this.contentCheckboxChanged({
+				path: [checkbox]
+			});
+		}
 	},
 
 
@@ -229,6 +235,7 @@
 		if (executionTriggers.length === 2) {
 			executionTriggers[0].style.display = 'block';
 		}
+		return newEl;
 	},
 
 	/*
@@ -247,6 +254,7 @@
 
 		var triggersElement = this.$.executionTriggersContainer;
 		var $triggersElement = $(triggersElement);
+		console.log(this);
 		var contentTypeChooserElement = this.$.showOnContentContainer;
 		var $contentTypeChooserElement = $(contentTypeChooserElement);
 
@@ -358,6 +366,9 @@
 			this.$.showOnContentContainer.style.marginLeft = '-110%';
 			this.$.showOnContentContainer.style.height = 0;
 		}
+		console.log('');
+		console.log(this);
+		console.log('');
 		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();

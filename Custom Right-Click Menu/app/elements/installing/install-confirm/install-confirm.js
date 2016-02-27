@@ -436,7 +436,7 @@
 				node.value = {
 					stylesheet: this.script,
 					defaultOn: (this.tags.CRM_defaultOn = this.getlastMetaTagValue('CRM_defaultOn') || false),
-					toggle: (this.tags.CRM_defaultOn = this.getlastMetaTagValue('CRM_toggle') || false),
+					toggle: (this.tags.CRM_toggle = this.getlastMetaTagValue('CRM_toggle') || false),
 					triggers: exclude,
 					launchMode: launchMode
 				}

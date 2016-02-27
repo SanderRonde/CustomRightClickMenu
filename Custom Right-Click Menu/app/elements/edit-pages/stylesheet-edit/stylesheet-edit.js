@@ -183,6 +183,24 @@
 	 */
 	optionsAnimations: [],
 
+	/*
+	 * Prevent the codemirror editor from signalling again for a while
+	 * 
+	 * @attribute preventNotification
+	 * @type Boolean
+	 * @default false
+	 */
+	preventNotification: false,
+
+	/*
+	 * The timeout that resets the preventNotification bool
+	 * 
+	 * @attribute preventNotificationTimeout
+	 * @type Number
+	 * @default null
+	 */
+	preventNotificationTimeout: null,
+
 	properties: {
 		item: {
 			type: Object,
@@ -209,6 +227,474 @@
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
 	},
+
+	//#region Metadata Updates
+	preventCodemirrorNotification: function () {
+		var _this = this;
+		this.preventNotification = true;
+		if (this.preventNotificationTimeout !== null) {
+			window.clearTimeout(this.preventNotificationTimeout);
+		}
+		this.preventNotificationTimeout = window.setTimeout(function () {
+			_this.preventNotification = false;
+			_this.preventNotificationTimeout = null;
+		}, 20);
+	},
+
+	updateFromScriptApplier: function (changeType, key, newValue, oldValue) {
+		var i;
+		switch (key) {
+			case 'downloadURL':
+			case 'updateURL':
+			case 'namespace':
+				if (changeType === 'removed') {
+					if (this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
+						this.newSettings.nodeInfo.source.url = metaTags.downloadURL || metaTags.updateURL || metaTags.namespace || this.newSettings.nodeInfo.source.downloadUrl || null;;
+					}
+				} else {
+					this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
+						updateURL: (key === 'namespace' ? '' : undefined),
+						url: newValue
+					};
+					if (key === 'namespace') {
+						this.newSettings.nodeInfo.source.updateURL = newValue;
+					}
+					if (!this.newSettings.nodeInfo.source.url) {
+						this.newSettings.nodeInfo.source.url = newValue;
+					}
+					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+				}
+				break;
+			case 'name':
+				this.set('newSettings.name', (changeType === 'removed') ? '' : newValue);
+				window.crmEditPage.updateName(this.newSettings.name);
+				break;
+			case 'version':
+				this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue);
+				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+				break;
+			case 'require':
+				//Change anonymous libraries to requires
+				var libraries = this.newSettings.value.libraries;
+				for (var k = 0; k < libraries.length; k++) {
+					if (libraries[k].name === null) {
+						libraries.splice(k, 1);
+						k--;
+					}
+				}
+				metaTags.require.forEach(function (url) {
+					libraries.push({
+						name: null,
+						url: url
+					});
+				});
+				this.set('newSettings.value.libraries', libraries);
+				window.paperLibrariesSelector.updateLibraries(libraries);
+				break;
+			case 'author':
+				this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue);
+				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+				break;
+			case 'include':
+			case 'match':
+			case 'exclude':
+				var triggerval = JSON.stringify({
+					url: newValue,
+					not: false
+				});
+				var isExclude = (key === 'exclude');
+				if (changeType === 'changed' || changeType === 'removed') {
+					var triggers = this.newSettings.value.triggers;
+					for (i = 0; i < triggers.length; i++) {
+						if (triggerval === JSON.stringify(triggers[i])) {
+							if (changeType === 'changed') {
+								//Replace this one
+								this.set('newSettings.value.triggers.' + i + '.url', newValue);
+								this.set('newSettings.value.triggers.' + i + '.not', isExclude);
+							} else {
+								//Remove this one
+								this.splice('newSettings.value.triggers', i, 1);
+							}
+							break;
+						}
+					}
+				} else {
+					//Add another one
+					this.push('newSettings.value.triggers', {
+						url: newValue,
+						not: isExclude
+					});
+				}
+				break;
+			case 'CRM_contentType':
+				var val = newValue;
+				var valArray;
+				try {
+					valArray = JSON.parse(val);
+				} catch (e) {
+					valArray = [];
+				}
+				for (i = 0; i < 6; i++) {
+					if (valArray[i]) {
+						valArray[i] = true;
+					} else {
+						valArray[i] = false;
+					}
+				}
+
+				//If removed, don't do anything
+				if (changeType !== 'removed') {
+					this.set('newSettings.onContentTypes', valArray);
+				}
+				break;
+			case 'CRM_launchMode':
+				if (changeType !== 'removed') {
+					this.set('newSettings.value.launchMode', parseInt(newValue, 10));
+				}
+				break;
+		}
+	},
+
+	metaTagsUpdateFromSettings: function (changeType, key, value, oldValue) {
+		var cm = this.editor;
+		switch (key) {
+			case 'name':
+				cm.updateMetaTags(cm, key, oldValue, value, true);
+				break;
+			case 'CRM_launchMode':
+				cm.updateMetaTags(cm, key, oldValue, value, true);
+				break;
+			case 'match':
+			case 'include':
+			case 'exclude':
+				switch (changeType) {
+					case 'added':
+						cm.addMetaTags(cm, key, value);
+						break;
+					case 'changed':
+						cm.updateMetaTags(cm, key, oldValue, value, false);
+						break;
+					case 'removed':
+						cm.removeMetaTags(cm, key, value);
+						break;
+				}
+				break;
+			case 'CRM_contentTypes':
+				cm.updateMetaTags(cm, key, oldValue, value, true);
+				break;
+		}
+	},
+
+	metaTagsUpdate: function (changes, source) {
+		console.log(changes, source);
+		if (!changes) {
+			return;
+		}
+		var i, j;
+		var key, value, oldValue;
+		var changeTypes = ['changed', 'removed', 'added'];
+		this.newSettings.nodeInfo = this.newSettings.nodeInfo || {};
+		for (i = 0; i < changeTypes.length; i++) {
+			var changeType = changeTypes[i];
+			var changesArray = changes[changeType];
+			if (changesArray) {
+				for (j = 0; j < changesArray.length; j++) {
+					key = changesArray[j].key;
+					value = changesArray[j].value;
+					oldValue = changesArray[j].oldValue;
+					if (source === 'script') {
+						this.updateFromScriptApplier(changeType, key, value, oldValue);
+					} else {
+						this.metaTagsUpdateFromSettings(changeType, key, value, oldValue);
+						this.preventCodemirrorNotification();
+					}
+				}
+			}
+		}
+	},
+
+	notifyTriggerMetatagsCheckbox: function (e) {
+		var index = 0;
+		var el = e.path[index];
+		while (el.tagName.toLowerCase() !== 'paper-checkbox') {
+			el = el[++index];
+		}
+
+		this.async(function () {
+			var inputVal = el.parentNode.children[1].value;
+			var checkboxVal = el.checked;
+			this.metaTagsUpdate([
+				{
+					key: 'triggers',
+					oldValue: JSON.stringify({
+						url: inputVal,
+						not: !checkboxVal
+					}),
+					value: JSON.stringify({
+						url: inputVal,
+						not: checkboxVal
+					})
+				}
+			], 'dialog');
+		}, 0);
+	},
+
+	notifyTriggerMetatagsInput: function (e) {
+		var index = 0;
+		var el = e.path[index];
+		while (el.tagName.toLowerCase() !== 'paper-input') {
+			el = el[++index];
+		}
+
+		var oldInputVal = el.value;
+		this.async(function () {
+			var inputVal = el.value;
+			var checkboxVal = el.checked;
+			this.metaTagsUpdate([
+				{
+					key: 'triggers',
+					oldValue: JSON.stringify({
+						url: oldInputVal,
+						not: checkboxVal
+					}),
+					value: JSON.stringify({
+						url: inputVal,
+						not: checkboxVal
+					})
+				}
+			], 'dialog');
+		}, 0);
+	},
+
+
+	clearTriggerAndNotifyMetatags: function (e) {
+		this.clearTrigger(e);
+
+		var index = 0;
+		var el = e.path[index];
+		while (el.tagName.toLowerCase() !== 'paper-icon-button') {
+			el = el[++index];
+		}
+
+		this.async(function () {
+			var inputVal = el.parentNode.children[0];
+			var checkboxVal = el.parentNode.children[1];
+			this.metaTagsUpdate([
+				{
+					key: 'triggers',
+					value: JSON.stringify({
+						url: inputVal,
+						not: checkboxVal
+					})
+				}
+			], 'dialog');
+		}, 0);
+	},
+
+	launchModeUpdateFromDialog: function (prevState, state) {
+		this.metaTagsUpdate({
+			'changed': [
+				{
+					key: 'CRM_launchMode',
+					value: state,
+					oldValue: prevState
+				}
+			]
+		}, 'dialog');
+	},
+
+	triggerCheckboxChange: function (element) {
+		var oldValue = !element.checked;
+		console.trace();
+		var inputValue = $(element).parent().children('.triggerInput')[0].value;
+
+		var line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
+		this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
+	},
+
+	triggerInputChange: function (element) {
+		var _this = this;
+		var oldValue = element.value;
+
+		var checkboxChecked = $(element).parent().children('.executionTriggerNot')[0].checked;
+		setTimeout(function () {
+			var newValue = element.value;
+
+			_this.metaTagsUpdate({
+				'changed': [
+					{
+						key: (checkboxChecked ? 'exclude' : 'match'),
+						oldValue: oldValue,
+						value: newValue
+					}
+				]
+			}, 'dialog');
+		}, 0);
+	},
+
+	triggerRemove: function (element) {
+		var $parent = $(element).parent();
+		var inputValue = $parent.children('.triggerInput')[0].value;
+		var checkboxValue = $parent.children('.executionTriggerNot')[0].checked;
+
+		this.metaTagsUpdate({
+			'removed': [
+				{
+					key: (checkboxValue ? 'match' : 'exclude'),
+					value: inputValue
+				}
+			]
+		}, 'dialog');
+	},
+
+	addTriggerAndAddListeners: function () {
+		var _this = this;
+		var newEl = this.addTrigger();
+		$(newEl).find('.executionTriggerNot').on('change', function () {
+			_this.triggerCheckboxChange.apply(_this, [this]);
+		});
+		$(newEl).find('.triggerInput').on('keydown', function () {
+			_this.triggerInputChange.apply(_this, [this]);
+		});
+		$(newEl).find('.executionTriggerClear').on('click', function () {
+			_this.triggerRemove.apply(_this, []);
+		});
+		console.log('kappa jakarta');
+		console.trace();
+		this.metaTagsUpdate({
+			'added': [
+				{
+					key: 'match',
+					value: '*://*.example.com/*'
+				}
+			]
+		}, 'dialog');
+	},
+
+	contentCheckboxChanged: function (e) {
+		var index = 0;
+		var element = e.path[0];
+		while (element.tagName !== 'PAPER-CHECKBOX') {
+			index++;
+			element = e.path[index];
+		}
+
+		var elements = $('script-edit .showOnContentItemCheckbox');
+		var elementType = element.classList[1].split('Type')[0];
+		var state = !element.checked;
+
+		var states = [];
+		var oldStates = [];
+		var types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (var i = 0; i < elements.length; i++) {
+			if (types[i] === elementType) {
+				states[i] = state;
+				oldStates[i] = !state;
+			} else {
+				states[i] = elements[i].checked;
+				oldStates[i] = elements[i].checked;
+			}
+		}
+
+		this.metaTagsUpdate({
+			'changed': [
+				{
+					key: 'CRM_contentTypes',
+					oldValue: JSON.stringify(oldStates),
+					value: JSON.stringify(states)
+				}
+			]
+		}, 'dialog');
+	},
+
+	toggleStatusChange: function() {
+		var checked = this.$.isTogglableButton.checked;
+		if (checked) {
+			this.metaTagsUpdate({
+				'added': [
+					{
+						key: 'CRM_toggle',
+						value: 'true'
+					}
+				]
+			}, 'dialog');
+		} else {
+			this.metaTagsUpdate({
+				'removed': [
+					{
+						key: 'CRM_toggle',
+						value: 'true'
+					}
+				]
+			}, 'dialog');
+		}
+	},
+
+	toggleDefaultStatus: function() {
+		var checked = this.$.isTogglableButton.checked;
+		if (checked) {
+			this.metaTagsUpdate({
+				'added': [
+					{
+						key: 'CRM_defaultOn',
+						value: 'true'
+					}
+				]
+			}, 'dialog');
+		} else {
+			this.metaTagsUpdate({
+				'removed': [
+					{
+						key: 'CRM_defaultOn',
+						value: 'true'
+					}
+				]
+			}, 'dialog');
+		}
+	},
+
+	addDialogToMetatagUpdateListeners: function () {
+		var _this = this;
+		this.async(function () {
+			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, this);
+		}, 0);
+
+		//Use jquery to also get the pre-change value
+		$(this.$.nameInput).on('keydown', function () {
+			var el = this;
+			_this.async(function () {
+				_this.metaTagsUpdate({
+					'changed': [
+						{
+							key: 'name',
+							value: el.value,
+							oldValue: null
+						}
+					]
+				}, 'dialog');
+			}, 5);
+		});
+
+		$('.executionTriggerNot').on('change', function () {
+			console.log('triggered');
+			_this.triggerCheckboxChange.apply(_this, [this]);
+		});
+		$('.triggerInput').on('keydown', function () {
+			_this.triggerInputChange.apply(_this, [this]);
+		});
+		$('.executionTriggerClear').on('click', function () {
+			_this.triggerRemove.apply(_this, [this]);
+		});
+	},
+
+	scriptUpdateSingle: function (instance, change) {
+		!this.fullscreen && this.findMetatagsChanges.call(this, [change]);
+	},
+
+	scriptUpdateBatch: function (instance, changes) {
+		this.fullscreen && this.findMetatagsChanges.call(this, changes);
+	},
+	//#endregion
 
 	//#region Fullscreen
 	/*
@@ -757,6 +1243,15 @@
 		this.editor = element;
 		element.refresh();
 		element.display.wrapper.classList.add('script-edit-codeMirror');
+		if (element.metaTags) {
+			element.changeMetaTags(element, 'CRM_stylesheet', 'true', 'true', true);
+		}
+		element.on('metaTagChanged', function (changes, metaTags) {
+			if (!_this.preventNotification) {
+				_this.metaTagsUpdate(changes, 'script');
+			}
+			_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
+		});
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
