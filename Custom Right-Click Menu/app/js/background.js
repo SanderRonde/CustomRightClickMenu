@@ -1,39 +1,157 @@
-///<reference path="jsonfn.js"/>
-///<reference path="../../scripts/_references.js"/>
-///<reference path="e.js"/>
-
+/// <reference path="jsonfn.js"/>
+/// <reference path="../../scripts/_references.js"/>
+/// <reference path="e.js"/>
+/// <reference path="jquery-2.0.3.min.js"/>
+/// <reference path="~/app/js/md5.js" />
 'use strict';
-function sandbox(api, args) {
-	var context = window;
-	var fn = chrome;
-	var apiSplit = api.split('.');
-	for (var i = 0; i < apiSplit.length; i++) {
-		context = fn;
-		fn = fn[apiSplit[i]];
-	}
-	return fn.apply(context, args);
-}
 
-(function (window) {
-	var crmTree;
-	var keys = {};
-	var storageSync;
-	var storageLocal;
-	var nodesData = {};
-	var tabNodeData = {};
-	var contextMenuIds = {};
-	var tabActiveLibraries = {};
-	var stylesheetNodeStatusses = {};
-	var toExecuteNodes = {
-		onUrl: [],
-		always: []
+//#region Sandbox
+(function () {
+	function sandbox(fn, context, args) {
+		return fn.apply(context, args);
+	}
+
+	window.sandboxContainer = function (chrome, api, args, sendCallbackMessage) {
+		var context = {};
+		var fn = chrome;
+		var apiSplit = api.split('.');
+		for (var i = 0; i < apiSplit.length; i++) {
+			context = fn;
+			fn = fn[apiSplit[i]];
+		}
+		window.sendCallbackMessage = sendCallbackMessage;
+		return sandbox(fn, context, args);
+	}
+}());
+//#endregion
+
+(function (extensionId) {
+	//#region Global Variables
+	var globals = {
+		storages: {
+			settingsStorage: null,
+			resourceKeys: null,
+			storageLocal: null,
+			nodeStorage: null,
+			resources: null
+		},
+		crm: {
+			crmTree: {},
+			crmById: {},
+			safeTree: {},
+			crmByIdSafe: {}
+		},
+		keys: {},
+		availablePermissions: [],
+		crmValues: {
+			/**
+			 * tabId: {
+			 *		nodes: {
+			 *			nodeId: {
+			 *				'secretKey': secret key,
+			 *				'port': Port
+			 *			}
+			 *		},
+			 *		libraries: {
+			 *			libraryName
+			 * }
+			 */
+			tabData: {},
+			/**
+			 * The ID of the root contextMenu node
+			 */
+			rootId: null,
+			/**
+			 * nodeId: context menu ID for given node ID
+			 */
+			contextMenuIds: {},
+			/*
+			 * nodeId: {
+			 *		instance: {
+			 *			'hasHandler': boolean
+			 *		}
+			 * }
+			 */
+			nodeInstances: {},
+			/**
+			 * contextMenuId: {
+			 *		'path': path,
+			 *		'settings': settings
+			 * }
+			 */
+			contextMenuInfoById: {},
+			/**
+			 * A tree following the same structure as the right-click menu where each node has
+			 *		data about the node's ID, the node itself, its visibility, its parentTree
+			 *		and its index
+			 */
+			contextMenuItemTree: [],
+			/**
+			 * nodeId: url's to NOT show this on
+			 */
+			hideNodesOnPagesData: {},
+			/**
+			 * nodeId: {
+			 *		tabId: visibility (true or false)
+			 */
+			stylesheetNodeStatusses: {}
+		},
+		toExecuteNodes: {
+			onUrl: [],
+			always: []
+		},
+		get sendCallbackMessage() {
+			return function sendCallbackMessage(tabId, id, data) {
+				var message = {
+					type: (data.err ? 'error' : 'success'),
+					data: (data.err ? data.errorMessage : data.args),
+					callbackId: data.callbackId,
+					messageType: 'callback'
+				};
+
+				try {
+					globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
+				} catch (e) {
+					if (e.message === 'Converting circular structure to JSON') {
+						message.data = 'Converting circular structure to JSON, getting a response from this API will not work';
+						message.type = 'error';
+						globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
+					} else {
+						throw e;
+					}
+				}
+			};
+		},
+		/**
+		 * notificationId: {
+		 *		'id': id,
+		 *		'tabId': tabId,
+		 *		'notificationId': notificationId,
+		 * 		'onDone;: onDone,
+		 * 		'onClick': onClick
+		 *	}
+		 */
+		notificationListeners: {},
+		/*
+		 * tabId: {
+		 *		'id': id,
+		 *		'tabid': tabId, - TabId of the listener
+		 *		'callback': callback,
+		 *		'url': url
+		 *	}
+		 */
+		scriptInstallListeners: {},
+		//The url to the install page
+		installUrl: chrome.runtime.getURL('install.html'),
+		supportedHashes: ['sha1','sha256','sha384','sha512','md5']
 	};
 
-	var crmByIdSafe = {};
+	//#endregion
 
+	//#region Helper Functions
 	function compareObj(firstObj, secondObj) {
 		for (var key in firstObj) {
-			if (firstObj.hasOwnProperty(key)) {
+			if (firstObj.hasOwnProperty(key) && firstObj[key] !== undefined) {
 				if (typeof firstObj[key] === 'object') {
 					if (typeof secondObj[key] !== 'object') {
 						return false;
@@ -42,7 +160,6 @@ function sandbox(api, args) {
 						if (!Array.isArray(secondObj[key])) {
 							return false;
 						}
-						// ReSharper disable once FunctionsUsedBeforeDeclared
 						if (!compareArray(firstObj[key], secondObj[key])) {
 							return false;
 						}
@@ -93,19 +210,222 @@ function sandbox(api, args) {
 	function safe(node) {
 		return crmByIdSafe[node.id];
 	}
+	//#endregion
 
-	/*#region Right-Click Menu Handling*/
+	//#region Right-Click Menu Handling/Building
+	function removeNode(node) {
+		chrome.contextMenus.remove(node.id, function() {
+			// ReSharper disable once WrongExpressionStatement
+			chrome.runtime.lastError;
+		});
+	}
 
-	chrome.tabs.onHighlighted.addListener(function (highlightInfo) {
-		var lastTab = highlightInfo.tabIds[highlightInfo.tabIds.length - 1];
-		for (var node in stylesheetNodeStatusses) {
-			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
-				chrome.contextMenus.update(contextMenuIds[node], {
-					checked: stylesheetNodeStatusses[node][lastTab]
+	function setStatusForTree(tree, enabled) {
+		for (var i = 0; i < tree.length; i++) {
+			tree[i].enabled = enabled;
+			if (tree[i].children) {
+				setStatusForTree(tree[i].children, enabled);
+			}
+		}
+	}
+
+	function getFirstRowChange(row, changes) {
+		for (var i = 0; i < row.length; i++) {
+			if (changes[row[i].id]) {
+				return i;
+			}
+		}
+		return Infinity;
+	}
+
+	function reCreateNode(parentId, node, changes) {
+		var oldId = node.id;
+		node.enabled = true;
+		var stylesheetStatus = globals.crmValues.stylesheetNodeStatusses[oldId];
+		var settings = globals.crmValues.contextMenuInfoById[node.id].settings;
+		if (node.node.type === 'stylesheet' && node.node.value.toggle) {
+			settings.enabled = stylesheetStatus;
+		}
+		settings.parentId = parentId;
+
+		//This is added by chrome to the object during/after creation so delete it manually
+		delete settings.generatedId;
+		var id = chrome.contextMenus.create(settings);
+
+		//Update ID
+		node.id = id;
+		globals.crmValues.contextMenuIds[node.node.id] = id;
+		globals.crmValues.contextMenuInfoById[id] = globals.crmValues.contextMenuInfoById[oldId];
+		globals.crmValues.contextMenuInfoById[oldId] = undefined;
+		globals.crmValues.contextMenuInfoById[id].enabled = true;
+
+		if (node.children) {
+			buildSubTreeFromNothing(id, node.children, changes);
+		}
+	}
+
+	function buildSubTreeFromNothing(parentId, tree, changes) {
+		for (var i = 0; i < tree.length; i++) {
+			if ((changes[tree[i].id] && changes[tree[i].id].type === 'show') || !changes[tree[i].id]) {
+				reCreateNode(parentId, tree[i], changes);
+			} else {
+				globals.crmValues.contextMenuInfoById[id].enabled = false;
+			}
+		}
+	}
+
+	function applyNodeChangesOntree(parentId, tree, changes) {
+		//Remove all nodes below it and re-enable them and its children
+
+		//Remove all nodes below it and store them
+		var i;
+		var firstChangeIndex = getFirstRowChange(tree, changes);
+		if (firstChangeIndex < tree.length) {
+			for (i = 0; i < firstChangeIndex; i++) {
+				//Normally check its children
+				tree[i].children && tree[i].children.length > 0 && applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
+			}
+		}
+
+		for (i = firstChangeIndex; i < tree.length; i++) {
+			if (changes[tree[i].id]) {
+				if (changes[tree[i].id].type === 'hide') {
+					//Don't check its children, just remove it
+					removeNode(tree[i]);
+
+					//Set it and its children's status to hidden
+					tree[i].enabled = false;
+					if (tree[i].children) {
+						setStatusForTree(tree[i].children, false);
+					}
+				} else {
+					//Remove every node after it and show them again
+					var j;
+					var enableAfter = [tree[i]];
+					for (j = i + 1; j < tree.length; j++) {
+						if (changes[tree[j].id]) {
+							if (changes[tree[j].id].type === 'hide') {
+								removeNode(tree[j]);
+								changes[tree[j].id].node.enabled = false;
+							} else { //Is in toShow
+								enableAfter.push(tree[j]);
+							}
+						}
+						else if (tree[j].enabled) {
+							enableAfter.push(tree[j]);
+							removeNode(tree[j]);
+						}
+					}
+
+					enableAfter.forEach(function (node) {
+						reCreateNode(parentId, node, changes);
+					});
+				}
+			}
+		}
+
+	}
+
+	function getNodeStatusses(subtree, hiddenNodes, shownNodes) {
+		for (var i = 0; i < subtree.length; i++) {
+			(subtree[i].enabled ? shownNodes : hiddenNodes).push(subtree[i]);
+			getNodeStatusses(subtree[i].children, hiddenNodes, shownNodes);
+		}
+	}
+
+	function tabChangeListener(changeInfo) {
+		//Horrible workaround that allows the hiding of nodes on certain url's that
+		//	surprisingly only takes ~1-2ms per tab switch.
+		var currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
+		chrome.tabs.get(currentTabId, function (tab) {
+			if (chrome.runtime.lastError) {
+				return;
+			}
+
+			//Show/remove nodes based on current URL
+			var toHide = [];
+			var toEnable = [];
+
+			var i;
+			var changes = {};
+			var shownNodes = [];
+			var hiddenNodes = [];
+			getNodeStatusses(globals.crmValues.contextMenuItemTree, hiddenNodes, shownNodes);
+
+
+			//Find nodes to enable
+			var hideOn;
+			for (i = 0; i < hiddenNodes.length; i++) {
+				hideOn = globals.crmValues.hideNodesOnPagesData[hiddenNodes[i].node.id];
+				if (!hideOn || !matchesUrlSchemes(hideOn, tab.url)) {
+					//Don't hide on current url
+					toEnable.push({
+						node: hiddenNodes[i].node,
+						id: hiddenNodes[i].id
+					});
+				}
+			}
+
+			//Find nodes to hide
+			for (i = 0; i < shownNodes.length; i++) {
+				hideOn = globals.crmValues.hideNodesOnPagesData[shownNodes[i].node.id];
+				if (hideOn) {
+					if (matchesUrlSchemes(hideOn, tab.url)) {
+						console.log('matched');
+						//Don't hide on current url
+						toHide.push({
+							node: shownNodes[i].node,
+							id: shownNodes[i].id
+						});
+					}
+				}
+			}
+
+			//Re-check if the toEnable nodes might be disabled after all
+			var length = toEnable.length;
+			for (i = 0; i < length; i++) {
+				hideOn = globals.crmValues.hideNodesOnPagesData[toEnable[i].node.id];
+				if (hideOn) {
+					if (matchesUrlSchemes(hideOn, tab.url)) {
+						//Don't hide on current url
+						toEnable.splice(i, 1);
+						length--;
+						i--;
+					}
+				}
+			}
+
+			for (i = 0; i < toHide.length; i++) {
+				changes[toHide[i].id] = {
+					node: toHide[i].node,
+					type: 'hide'
+				};
+			}
+			for (i = 0; i < toEnable.length; i++) {
+				changes[toEnable[i].id] = {
+					node: toEnable[i].node,
+					type: 'show'
+				};
+			}
+
+			//Apply changes
+			applyNodeChangesOntree(globals.crmValues.rootId, globals.crmValues.contextMenuItemTree, changes);
+		});
+
+		for (var nodeId in globals.crmValues.stylesheetNodeStatusses) {
+			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(nodeId) && globals.crmValues.stylesheetNodeStatusses[nodeId]) {
+				chrome.contextMenus.update(globals.crmValues.contextMenuIds[nodeId], {
+					checked: globals.crmValues.stylesheetNodeStatusses[nodeId][currentTabId]
+				}, function() {
+					// ReSharper disable once WrongExpressionStatement
+					chrome.runtime.lastError;
 				});
 			}
 		}
-	});
+		console.timeEnd('tabChangeStuff');
+	}
+
+	chrome.tabs.onHighlighted.addListener(tabChangeListener);
 
 	function createSecretKey() {
 		var key = [];
@@ -113,8 +433,8 @@ function sandbox(api, args) {
 		for (i = 0; i < 25; i++) {
 			key[i] = Math.round(Math.random() * 100);
 		}
-		if (!keys[key]) {
-			keys[key] = true;
+		if (!globals.keys[key]) {
+			globals.keys[key] = true;
 			return key;
 		} else {
 			return createSecretKey();
@@ -132,6 +452,7 @@ function sandbox(api, args) {
 		return newContexts;
 	}
 
+	//#region Link Click Handler
 	function sanitizeUrl(url) {
 		if (url.indexOf('://') === -1) {
 			url = 'http://' + url;
@@ -140,40 +461,42 @@ function sandbox(api, args) {
 	}
 
 	function createLinkClickHandler(node) {
-		return function (clickData, tabData) {
+		return function (clickData, tabInfo) {
 			var i;
 			var finalUrl;
 			for (i = 0; i < node.value.length; i++) {
 				if (node.value[i].newTab) {
 					chrome.tabs.create({
-						windowId: tabData.windowId,
+						windowId: tabInfo.windowId,
 						url: sanitizeUrl(node.value[i].url),
-						openerTabId: tabData.id
+						openerTabId: tabInfo.id
 					});
 				} else {
 					finalUrl = node.value[i].url;
 				}
 			}
 			if (finalUrl) {
-				chrome.tabs.update(tabData.tabId, {
+				chrome.tabs.update(tabInfo.tabId, {
 					url: sanitizeUrl(finalUrl)
 				});
 			}
 		}
 	}
+	//#endregion
 
+	//#region Stylesheet Click Handler
 	function createStylesheetToggleHandler(node) {
 		return function (info, tab) {
 			var code;
 			var className = node.id + '' + tab.id;
-			if (stylesheetNodeStatusses[node.id][tab.id]) {
+			if (globals.crmValues.stylesheetNodeStatusses[node.id][tab.id]) {
 				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
 			} else {
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
 				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
 			}
-			chrome.contextMenus.update(contextMenuIds[node.id], {
-				checked: (stylesheetNodeStatusses[node.id][tab.id] = !stylesheetNodeStatusses[node.id][tab.id])
+			chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
+				checked: (globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = !globals.crmValues.stylesheetNodeStatusses[node.id][tab.id])
 			});
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
@@ -191,7 +514,9 @@ function sandbox(api, args) {
 			});
 		}
 	}
+	//#endregion
 
+	//#region Script Click Handler
 	function executeScripts(tabId, scripts) {
 		function executeScript(script, innerCallback) {
 			return function () {
@@ -206,6 +531,49 @@ function sandbox(api, args) {
 
 		// ReSharper disable once InvokedExpressionMaybeNonFunction
 		callback && callback();
+	}
+
+	function getMetaLines(script) {
+		var metaStart = -1;
+		var metaEnd = -1;
+		var lines = script.split('\n');
+		for (var i = 0; i < lines.length; i++) {
+			if (metaStart !== -1) {
+				if (lines[i].indexOf('==/UserScript==') > -1) {
+					metaEnd = i;
+					break;
+				}
+			} else if (lines[i].indexOf('==UserScript==') > -1) {
+				metaStart = i;
+			}
+		}
+		return {
+			start: metaStart,
+			end: metaEnd
+		};
+	}
+
+	function getMetaTags(script) {
+		var i;
+		var metaIndexes = getMetaLines(script);
+		var metaStart = metaIndexes.start;
+		var metaEnd = metaIndexes.end;
+		var startPlusOne = metaStart + 1;
+		var lines = script.split('\n');
+		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+
+		var metaTags = {};
+		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
+		var regexMatches;
+		for (i = 0; i < metaLines.length; i++) {
+			regexMatches = metaLines[i].match(regex);
+			if (regexMatches) {
+				metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
+				metaTags[regexMatches[1]].push(regexMatches[3]);
+			}
+		}
+
+		return metaTags;
 	}
 
 	function createScriptClickHandler(node) {
@@ -226,49 +594,68 @@ function sandbox(api, args) {
 				});
 			} else {
 				var i;
-				if (!tabNodeData[tab.id]) {
-					tabNodeData[tab.id] = {};
-				}
-				tabNodeData[tab.id][node.id] = {
+				globals.crmValues.tabData[tab.id] = globals.crmValues.tabData[tab.id] || {
+					libraries: {},
+					nodes: {},
+					crmAPI: false
+				};
+				globals.crmValues.tabData[tab.id].nodes[node.id] = {
 					secretKey: key
 				};
-				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ');\n';
+
+				var metaData = getMetaTags(node.value.script);
+
+				var greaseMonkeyData = {
+					info: {
+						version: chrome.app.getDetails().version
+					},
+					metaData: metaData,
+					resources: globals.storages.storageLocal.resources
+				};
+				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
+				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + globals.storages.nodeStorage[node.id] + ',' + greaseMonkeyData + ');\n';
 				code = code + node.value.script;
+
+				var runAt = metaData['run-at'] || 'document_end';
 
 				var scripts = [];
 				for (i = 0; i < node.value.libraries.length; i++) {
-					if (!tabActiveLibraries[tab.id][node.value.libraries[i].name]) {
-						tabActiveLibraries[tab.id][node.value.libraries[i].name] = true;
+					if (node.value.libraries[i].name !== null && !globals.crmValues.tabData[tab.id].libraries[node.value.libraries[i].name]) {
+						globals.crmValues.tabData[tab.id].libraries[node.value.libraries[i].name] = true;
 						var j;
 						var lib;
-						for (j = 0; j < storageLocal.libraries.length; j++) {
-							if (storageLocal.libraries[j].name === node.value.libraries[i].name) {
-								lib = storageLocal.libraries[j];
+						if (globals.storages.storageLocal.libraries) {
+							for (j = 0; j < globals.storages.storageLocal.libraries.length; j++) {
+								if (globals.storages.storageLocal.libraries[j].name === node.value.libraries[i].name) {
+									lib = globals.storages.storageLocal.libraries[j];
+								}
 							}
 						}
-						if (lib && lib.location) {
-							scripts.push({
-								file: 'js/libraries/' + lib.location,
-								runAt: 'document_start'
-							});
-						} else {
-							scripts.push({
-								code: lib.code,
-								runAt: 'document_start'
-							});
+						if (lib) {
+							if (lib.location) {
+								scripts.push({
+									file: 'js/defaultLibraries/' + lib.location,
+									runAt: runAt
+								});
+							} else {
+								scripts.push({
+									code: lib.code,
+									runAt: runAt
+								});
+							}
 						}
 					}
 				}
-				if (!tabActiveLibraries[tab.id]['crmAPI']) {
-					tabActiveLibraries[tab.id]['crmAPI'] = true;
+				if (!globals.crmValues.tabData[tab.id].crmApi) {
+					globals.crmValues.tabData[tab.id].crmApi = true;
 					scripts.push({
 						file: 'js/crmapi.js',
-						runAt: 'document_start'
+						runAt: runAt
 					});
 				}
 				scripts.push({
 					code: code,
-					runAt: 'document_start'
+					runAt: runAt
 				});
 
 				executeScripts(tab.id, scripts);
@@ -281,237 +668,98 @@ function sandbox(api, args) {
 			chrome.runtime.openOptionsPage();
 		}
 	}
+	//#endregion
 
-	function prepareTrigger(triggers) {
-		var i;
-		var newTriggers = [];
-		for (i = 0; i < triggers.length; i++) {
-			if (triggers[i].split('//')[1].indexOf('/') === -1) {
-				newTriggers.push(triggers[i] + '/');
-			} else {
-				newTriggers.push(triggers[i]);
-			}
-		}
-		return newTriggers;
-	}
+	function getStylesheetReplacementTabs(node) {
+		var replaceOnTabs = [];
+		if (globals.crmValues.contextMenuIds[node.id] && //Node already exists
+				globals.crm.crmById[node.id].type === 'stylesheet' && node.type === 'stylesheet' && //Node type stayed stylesheet
+				globals.crm.crmById[node.id].value.stylesheet !== node.value.stylesheet) { //Value changed
 
-	function createNode(node, parentId) {
-		var i;
-		var id;
-		var triggerIndex;
-		var replaceStylesheetTabs = [];
-		if (contextMenuIds[node.id] && nodesData[node.id].type === 'stylesheet' && node.type === 'stylesheet' && nodesData[node.id].value.stylesheet !== node.value.stylesheet) {
 			//Update after creating a new node
-			for (var key in stylesheetNodeStatusses[node.id]) {
-				if (stylesheetNodeStatusses.hasOwnProperty(key)) {
-					if (stylesheetNodeStatusses[node.id][key]) {
-						replaceStylesheetTabs.push({
+			for (var key in globals.crmValues.stylesheetNodeStatusses[node.id]) {
+				if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(key) && globals.crmValues.stylesheetNodeStatusses[key]) {
+					if (globals.crmValues.stylesheetNodeStatusses[node.id][key]) {
+						replaceOnTabs.push({
 							id: key
 						});
 					}
 				}
 			}
 		}
-
-
-		//  0 = run on clicking
-		//	1 = always run
-		//	2 = run on specified pages
-		//	3 = only show on specified pages
-
-		var options = {
-			title: node.name,
-			contexts: getContexts(node.onContentTypes),
-			parentId: parentId
-		};
-		var launchMode = (node.value && node.value.launchMode) || 0;
-
-
-		if (launchMode === 1 || launchMode === 2) {
-			if (launchMode === 1) {
-				toExecuteNodes.always.push(node);
-			} else {
-				for (i = 0; i < node.triggers && node.triggers.length; i++) {
-					triggerIndex = toExecuteNodes.onUrl[node.triggers[i]];
-					if (triggerIndex) {
-						triggerIndex.push(node);
-					} else {
-						triggerIndex = [node];
-					}
-				}
-			}
-		} else {
-			if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
-				if (launchMode === 0) {
-					toExecuteNodes.always.push(node);
-				} else {
-					for (i = 0; i < node.triggers && node.triggers.length; i++) {
-						triggerIndex = toExecuteNodes.onUrl[node.triggers[i]];
-						if (triggerIndex) {
-							triggerIndex.push(node);
-						} else {
-							triggerIndex = [node];
-						}
-					}
-				}
-			}
-
-			stylesheetNodeStatusses[node.id] = {};
-			if (node.type === 'divider') {
-				options.type = 'separator';
-			} else if (node.type === 'stylesheet' && node.value.toggle) {
-				options.type = 'checkbox';
-			}
-
-			if (launchMode === 3 && node.triggers) {
-				options.documentUrlPatterns = prepareTrigger(node.triggers);
-			}
-			if (node.type === 'link') {
-				options.onclick = createLinkClickHandler(node);
-			} else if (node.type === 'script') {
-				options.onclick = createScriptClickHandler(node);
-			} else if (node.type === 'stylesheet') {
-				if (node.value.toggle) {
-					options.onclick = createStylesheetToggleHandler(node);
-				} else {
-					options.onclick = createStylesheetClickHandler();
-				}
-			}
-			id = chrome.contextMenus.create(options, function () {
-				if (chrome.runtime.lastError) {
-					if (options.documentUrlPatterns) {
-						console.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
-						delete options.documentUrlPatterns;
-						id = chrome.contextMenus.create(options, function () {
-							id = chrome.contextMenus.create({
-								title: 'ERROR',
-								onclick: createOptionsPageHandler()
-							});
-							console.log('Another error occured with your context menu!', chrome.runtime.lastError);
-						});
-					} else {
-						console.log('An error occured with your context menu!', chrome.runtime.lastError);
-					}
-				}
-			});
-		}
-		nodesData[node.id] = node;
-
-		if (replaceStylesheetTabs.length !== 0) {
-			var css;
-			var code;
-			var className;
-			for (i = 0; i < replaceStylesheetTabs.length; i++) {
-				className = node.id + '' + replaceStylesheetTabs[i].id;
-				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
-				css = node.value.stylesheet.replace(/[ |\n]/g, '');
-				code += 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
-				chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
-					code: code,
-					allFrames: true
-				});
-				stylesheetNodeStatusses[node.id][replaceStylesheetTabs[i].id] = true;
-			}
-		}
-		return id;
-	}
-
-	function buildPageCRMTree(node, parentId) {
-		var i;
-		var id = createNode(node, parentId);
-		contextMenuIds[node.id] = id;
-		if (id !== undefined) {
-			if (node.children) {
-				for (i = 0; i < node.children.length; i++) {
-					buildPageCRMTree(node.children[i], id);
-				}
-			}
-		}
-	}
-
-	function buildPageCRM() {
-		var i;
-		var length = crmTree.length;
-		stylesheetNodeStatusses = {};
-		chrome.contextMenus.removeAll();
-		var rootId = chrome.contextMenus.create({
-			title: 'Custom Menu',
-			contexts: ['page', 'selection', 'link', 'image', 'video', 'audio']
-		});;
-		toExecuteNodes = {
-			onUrl: [],
-			always: []
-		};
-		for (i = 0; i < length; i++) {
-			buildPageCRMTree(crmTree[i], rootId);
-		}
-		if (storageLocal.showOptions) {
-			chrome.contextMenus.create({
-				type: 'separator',
-				parentId: rootId
-			});
-			chrome.contextMenus.create({
-				title: 'Options',
-				onclick: createOptionsPageHandler(),
-				parentId: rootId
-			});
-		}
-	}
-
-	function escapeRegExp(str) {
-		return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, '\\$&').replace(/\*/g, '.+');
-	}
-
-	function matchesUrl(matchPattern, url) {
-		//Split it
-		var matchHost;
-		var urlHost;
-		var matchPath;
-		var urlPath;
-
-		var matchPatternSplit = matchPattern.split('://');
-		var matchScheme = matchPatternSplit[0];
-		if (matchPatternSplit[1].indexOf('/') === -1) {
-			matchHost = matchPatternSplit[1];
-			matchPath = '/';
-		} else {
-			matchPatternSplit = matchPatternSplit[1].split('/');
-			matchHost = matchPatternSplit.splice(0, 1);
-			matchPath = matchPatternSplit.join('/');
-		}
-
-		var urlPatternSplit = url.split('://');
-		var urlScheme = urlPatternSplit[0];
-		if (urlPatternSplit[1].indexOf('/') === -1) {
-			urlHost = urlPatternSplit[1];
-			urlPath = '/';
-		} else {
-			urlPatternSplit = urlPatternSplit[1].split('/');
-			urlHost = urlPatternSplit.splice(0, 1);
-			urlPath = urlPatternSplit.join('/');
-		}
-
-		if (matchScheme !== '*' && matchScheme !== urlScheme) {
-			return false;
-		}
-		matchHost = new RegExp(escapeRegExp(matchHost));
-		if (!matchHost.test(urlHost)) {
-			return false;
-		}
-
-		matchPath = new RegExp(escapeRegExp(matchPath));
-		return matchPath.test(urlPath);
+		return replaceOnTabs;
 	}
 
 	function executeNode(node, tab) {
 		if (node.type === 'script') {
 			createScriptClickHandler(node)({}, tab);
 		} else if (node.type === 'stylesheet') {
-			stylesheetNodeStatusses[node.id][tab.id] = false;
+			globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = false;
 			createStylesheetClickHandler(node)({}, tab);
 		} else if (node.type === 'link') {
 			createLinkClickHandler(node)({}, tab);
 		}
+	}
+
+	//#region URL scheme matching
+	function escapeRegExp(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, '\\$&').replace(/\*/g, '.*');
+	}
+
+	function matchesUrlSchemes(matchPatterns, url) {
+		var matches = false;
+		for (var i = 0; i < matchPatterns.length; i++) {
+			var not = matchPatterns[i].not;
+			var matchPattern = matchPatterns[i].url;
+
+
+			//Split it
+			var matchHost;
+			var urlHost;
+			var matchPath;
+			var urlPath;
+
+			var matchPatternSplit = matchPattern.split('://');
+			var matchScheme = matchPatternSplit[0];
+			if (matchPatternSplit[1].indexOf('/') === -1) {
+				matchHost = matchPatternSplit[1];
+				matchPath = '/';
+			} else {
+				matchPatternSplit = matchPatternSplit[1].split('/');
+				matchHost = matchPatternSplit.splice(0, 1)[0];
+				matchPath = matchPatternSplit.join('/');
+			}
+
+			var urlPatternSplit = url.split('://');
+			var urlScheme = urlPatternSplit[0];
+			if (urlPatternSplit[1].indexOf('/') === -1) {
+				urlHost = urlPatternSplit[1];
+				urlPath = '/';
+			} else {
+				urlPatternSplit = urlPatternSplit[1].split('/');
+				urlHost = urlPatternSplit.splice(0, 1);
+				urlPath = urlPatternSplit.join('/');
+			}
+
+			if (matchScheme !== '*' && matchScheme !== urlScheme) {
+				return false;
+			}
+
+			matchHost = new RegExp(escapeRegExp(matchHost));
+			if (!matchHost.test(urlHost)) {
+				return false;
+			}
+
+			matchPath = new RegExp(escapeRegExp(matchPath));
+			if (matchPath.test(urlPath)) {
+				if (not) {
+					return false;
+				} else {
+					matches = true;
+				}
+			}
+		}
+		return matches;
 	}
 
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
@@ -520,16 +768,19 @@ function sandbox(api, args) {
 			chrome.tabs.get(tabId, function (tab) {
 				if (tab.url.indexOf('chrome') !== 0) {
 					var i;
-					tabActiveLibraries[tabId] = {};
-					for (i = 0; i < toExecuteNodes.always.length; i++) {
-						executeNode(toExecuteNodes.always[i], tab);
+					globals.crmValues.tabData[tab.id] = globals.crmValues.tabData[tab.id] || {
+						libraries: {},
+						nodes: {},
+						crmAPI: false
+					};
+					for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
+						executeNode(globals.toExecuteNodes.always[i], tab);
 					}
-					for (var key in toExecuteNodes.onUrl) {
-						if (toExecuteNodes.onUrl.hasOwnProperty(key)) {
-							if (matchesUrl(key, updatedInfo.url)) {
-								for (i = 0; i < toExecuteNodes.onUrl[key].length; i++) {
-									executeNode(toExecuteNodes.onUrl[key][i], tab);
-								}
+
+					for (var nodeId in globals.toExecuteNodes.onUrl) {
+						if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
+							if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
+								executeNode(globals.crm.crmById[nodeId], tab);
 							}
 						}
 					}
@@ -537,22 +788,258 @@ function sandbox(api, args) {
 			});
 		}
 	});
+	//#endregion
+
+	function prepareTrigger(trigger) {
+		var newTrigger;
+		if (trigger.split('//')[1].indexOf('/') === -1) {
+			newTrigger = trigger + '/';
+		} else {
+			newTrigger = trigger;
+		}
+		return newTrigger;
+	}
+
+	function addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder) {
+
+		//On by default
+		if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
+			if (launchMode === 0) { //Run on clicking
+				globals.toExecuteNodes.always.push(node);
+			} else {
+				globals.toExecuteNodes.onUrl[node.id] = node.triggers;
+			}
+		}
+
+		if (launchMode === 3) { //Show on specified pages
+			rightClickItemOptions.documentUrlPatterns = [];
+			globals.crmValues.hideNodesOnPagesData[node.id] = [];
+			for (var i = 0; i < node.triggers.length; i++) {
+				var prepared = prepareTrigger(node.triggers[i].url);
+				if (node.triggers[i].not) {
+					globals.crmValues.hideNodesOnPagesData[node.id].push(prepared);
+				} else {
+					rightClickItemOptions.documentUrlPatterns.push(prepared);
+				}
+			}
+		}
+
+		//It requires a click handler
+		switch (node.type) {
+			case 'divider':
+				rightClickItemOptions.type = 'separator';
+				break;
+			case 'link':
+				rightClickItemOptions.onclick = createLinkClickHandler(node);
+				break;
+			case 'script':
+				rightClickItemOptions.onclick = createScriptClickHandler(node);
+				break;
+			case 'stylesheet':
+				if (node.value.toggle) {
+					rightClickItemOptions.type = 'checkbox';
+					rightClickItemOptions.onclick = createStylesheetToggleHandler(node);
+				} else {
+					rightClickItemOptions.onclick = createStylesheetClickHandler();
+				}
+				globals.crmValues.stylesheetNodeStatusses[node.id] = {};
+				break;
+		}
+
+
+		var id = chrome.contextMenus.create(rightClickItemOptions, function () {
+			if (chrome.runtime.lastError) {
+				if (rightClickItemOptions.documentUrlPatterns) {
+					console.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
+					delete rightClickItemOptions.documentUrlPatterns;
+					globals.crmValues.rightClickItemSettingsById[id] = rightClickItemOptions;
+					id = chrome.contextMenus.create(rightClickItemOptions, function () {
+						id = chrome.contextMenus.create({
+							title: 'ERROR',
+							onclick: createOptionsPageHandler()
+						});
+						console.log('Another error occured with your context menu!', chrome.runtime.lastError);
+					});
+				} else {
+					console.log('An error occured with your context menu!', chrome.runtime.lastError);
+				}
+			}
+		});
+
+		globals.crmValues.contextMenuInfoById[id] = {
+			settings: rightClickItemOptions
+		};
+
+		idHolder.id = id;
+	}
+
+	function setLaunchModeData(node, rightClickItemOptions, idHolder) {
+		//For clarity
+		var launchModes = {
+			'run on clicking': 0,
+			'always run': 1,
+			'run on specified pages': 2,
+			'only show on specified pages': 3
+		};
+
+		var launchMode = (node.value && node.value.launchMode) || 0;
+		if (launchMode === launchModes['always run']) {
+			globals.toExecuteNodes.always.push(node);
+		} else if (launchMode === launchModes['run on specified pages']) {
+			globals.toExecuteNodes.onUrl[node.id] = node.triggers;
+		} else {
+			addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
+		}
+	}
+
+	function createNode(node, parentId) {
+
+		var replaceStylesheetTabs = getStylesheetReplacementTabs(node);
+		var rightClickItemOptions = {
+			title: node.name,
+			contexts: getContexts(node.onContentTypes),
+			parentId: parentId
+		};
+
+		var idHolder = {id: null};
+		setLaunchModeData(node, rightClickItemOptions, idHolder);
+		var id = idHolder.id;
+		
+		if (replaceStylesheetTabs.length !== 0) {
+			var css;
+			var code;
+			var className;
+			for (var i = 0; i < replaceStylesheetTabs.length; i++) {
+				className = node.id + '' + replaceStylesheetTabs[i].id;
+				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
+				css = node.value.stylesheet.replace(/[ |\n]/g, '');
+				code += 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+				chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
+					code: code,
+					allFrames: true
+				});
+				globals.crmValues.stylesheetNodeStatusses[node.id][replaceStylesheetTabs[i].id] = true;
+			}
+		}
+
+		return id;
+	}
+
+	function buildPageCRMTree(node, parentId, path, parentTree) {
+		var i;
+		var id = createNode(node, parentId);
+		globals.crmValues.contextMenuIds[node.id] = id;
+		if (id !== null) {
+			var children = [];
+			if (node.children) {
+				var visibleIndex = 0;
+				for (i = 0; i < node.children.length; i++) {
+					var newPath = JSON.parse(JSON.stringify(path));
+					newPath.push(visibleIndex);
+					var result = buildPageCRMTree(node.children[i], id, newPath, children);
+					if (result) {
+						visibleIndex++;
+						result.index = i;
+						result.parentId = id;
+						result.node = node.children[i];
+						result.parentTree = parentTree;
+						children.push(result);
+					}
+				}
+			}
+			globals.crmValues.contextMenuInfoById[id].path = path;
+			return {
+				id: id,
+				path: path,
+				enabled: true,
+				children: children
+			};
+		}
+
+		return null;
+	}
+
+	function updateCRMValues() {
+		globals.crm.crmTree = globals.storages.settingsStorage.crm;
+		globals.crm.safeTree = buildSafeTree(globals.storages.settingsStorage.crm);
+		buildByIdObjects();
+	}
+
+	function buildPageCRM() {
+		var i;
+		var length = globals.crm.crmTree.length;
+		globals.crmValues.stylesheetNodeStatusses = {};
+		chrome.contextMenus.removeAll();
+		globals.crmValues.rootId = chrome.contextMenus.create({
+			title: 'Custom Menu',
+			contexts: ['page', 'selection', 'link', 'image', 'video', 'audio']
+		});;
+		globals.toExecuteNodes = {
+			onUrl: [],
+			always: []
+		};
+		for (i = 0; i < length; i++) {
+			var result = buildPageCRMTree(globals.crm.crmTree[i], globals.crmValues.rootId, [i], globals.crmValues.contextMenuItemTree);
+			if (result) {
+				globals.crmValues.contextMenuItemTree[i] = {
+					index: i,
+					id: result.id,
+					enabled: true,
+					node: globals.crm.crmTree[i],
+					parentId: globals.crmValues.rootId,
+					children: result.children,
+					parentTree: globals.crmValues.contextMenuItemTree
+				};
+			}
+		}
+		if (globals.storages.storageLocal.showOptions) {
+			chrome.contextMenus.create({
+				type: 'separator',
+				parentId: globals.crmValues.rootId
+			});
+			chrome.contextMenus.create({
+				title: 'Options',
+				onclick: createOptionsPageHandler(),
+				parentId: globals.crmValues.rootId
+			});
+		}
+	}
 
 	chrome.tabs.onRemoved.addListener(function (tabId) {
 		//Delete all data for this tabId
 		var node;
-		for (node in stylesheetNodeStatusses) {
-			if (stylesheetNodeStatusses.hasOwnProperty(node)) {
-				delete node[tabId];
+		for (node in globals.crmValues.stylesheetNodeStatusses) {
+			if (globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(node) && globals.crmValues.stylesheetNodeStatusses[node]) {
+				globals.crmValues.stylesheetNodeStatusses[node[tabId]] = undefined;
 			}
 		}
-		delete tabActiveLibraries[tabId];
-		delete tabNodeData[tabId];
+		globals.crmValues.tabData[tabId] = undefined;
+
+		//Delete this instance if it exists
+		var deleted = [];
+		for (node in globals.crmValues.nodeInstances) {
+			if (globals.crmValues.nodeInstances.hasOwnProperty(node) && globals.crmValues.nodeInstances[node]) {
+				if (globals.crmValues.nodeInstances.node[tabId]) {
+					deleted.push(node);
+					globals.crmValues.nodeInstances.node[tabId] = undefined;
+				}
+			}
+		}
+
+		for (var i = 0; i < deleted.length; i++) {
+			globals.crmValues.tabData[tabId].nodes[deleted[i].node].port.postMessage({
+				change: {
+					type: 'removed',
+					value: tabId
+				},
+				messageType: 'instancesUpdate'
+			});
+		}
 	});
 
-	/*#endregion*/
+	//#endregion
 
-	/*#region Handling of crmapi.js*/
+	//#region Building CRMValues
 	var permissions = [
 		'alarms',
 		'background',
@@ -587,10 +1074,6 @@ function sandbox(api, args) {
 		'webRequestBlocking'
 	];
 
-	var availablePermissions = [];
-	var safeTree;
-	var crmById = {};
-
 	function pushIntoArray(toPush, position, target) {
 		if (position === target.length) {
 			target[position] = toPush;
@@ -607,22 +1090,17 @@ function sandbox(api, args) {
 		return target;
 	}
 
-	function generateItemId(callback) {
-		chrome.storage.local.get('latestId', function (items) {
-			var id;
-			if (items.latestId) {
-				id = items.latestId;
-			} else {
-				id = 1;
-				chrome.storage.local.set({ latestId: 1 });
-			}
-			callback && callback(id);
+	function generateItemId() {
+		globals.latestId++;
+		chrome.storage.local.set({
+			latestId: globals.latestId
 		});
+		return globals.latestId;
 	}
 
 	function refreshPermissions() {
 		chrome.permissions.getAll(function (available) {
-			availablePermissions = available.permissions;
+			globals.availablePermissions = available.permissions;
 		});
 	}
 
@@ -662,9 +1140,9 @@ function sandbox(api, args) {
 
 	function parseNode(node, isSafe) {
 		if (isSafe) {
-			crmByIdSafe[node.id] = makeSafe(node);
+			globals.crm.crmByIdSafe[node.id] = makeSafe(node);
 		} else {
-			crmById[node.id] = node;
+			globals.crm.crmById[node.id] = node;
 		}
 		if (node.children && node.children.length > 0) {
 			for (var i = 0; i < node.children.length; i++) {
@@ -673,13 +1151,13 @@ function sandbox(api, args) {
 		}
 	}
 
-	function buildByIdObjects(crm) {
+	function buildByIdObjects() {
 		var i;
-		for (i = 0; i < crm.length; i++) {
-			parseNode(crm[i]);
+		for (i = 0; i < globals.crm.crmTree.length; i++) {
+			parseNode(globals.crm.crmTree[i]);
 		}
-		for (i = 0; i < crm.length; i++) {
-			parseNode(safeTree[i], true);
+		for (i = 0; i < globals.crm.safeTree.length; i++) {
+			parseNode(globals.crm.safeTree[i], true);
 		}
 	}
 
@@ -702,122 +1180,165 @@ function sandbox(api, args) {
 		}
 		return safeBranch;
 	}
+	//#endregion
 
-	function updateStorage(cb) {
-		chrome.storage.local.get(function (localData) {
-			chrome.storage.sync.get(function (syncData) {
-				storageLocal = localData;
-
-				console.log(crmTree);
-
-				var indexes;
-				var settingsJsonArray;
-				var jsonString;
-				if (localData.useStorageSync) {
-					//Parse the data before sending it to the callback
-					indexes = syncData.indexes;
-					if (!indexes) {
-						chrome.storage.local.set({
-							useStorageSync: false
-						});
-						storageSync = localData.settings;
-					} else {
-						settingsJsonArray = [];
-						indexes.forEach(function(index) {
-							settingsJsonArray.push(syncData[index]);
-						});
-						jsonString = settingsJsonArray.join('');
-						storageSync = JSON.parse(jsonString);
-					}
-				} else {
-					//Send the "settings" object on the storage.local to the callback
-					if (!localData.settings) {
-						chrome.storage.local.set({
-							useStorageSync: true
-						});
-						indexes = syncData.indexes;
-						settingsJsonArray = [];
-						indexes.forEach(function(index) {
-							settingsJsonArray.push(syncData[index]);
-						});
-						jsonString = settingsJsonArray.join('');
-						var settings = JSON.parse(jsonString);
-						console.log(settings);
-						storageSync = settings;
-					} else {
-						storageSync = localData.settings;
-					}
-				}
-
-				console.log(storageSync);
-				crmTree = storageSync.crm;
-				safeTree = buildSafeTree(storageSync.crm);
-				buildByIdObjects(storageSync.crm);
-
-				cb && cb();
-			});
+	//#region Storage Updating
+	function cutData(data) {
+		var obj = {};
+		var arrLength;
+		var sectionKey;
+		var indexes = [];
+		var splitJson = data.match(/[\s\S]{1,5000}/g);
+		splitJson.forEach(function(section) {
+			arrLength = indexes.length;
+			sectionKey = 'section' + arrLength;
+			obj[sectionKey] = section;
+			indexes[arrLength] = sectionKey;
 		});
+		obj.indexes = indexes;
+		return obj;
 	}
 
-	function updateCrm(skipPageCrm) {
-		storageSync.crm = crmTree;
-		var settingsJson = JSON.stringify(this.settings);
-		if (storageLocal.useStorageSync) {
-			chrome.storage.local.set({
-				settings: storageSync
-			}, function () {
-				if (chrome.runtime.lastError) {
-					console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
+	function uploadChanges(type, changes) {
+		switch (type) {
+			case 'local':
+				chrome.storage.local.set(globals.storages.storageLocal);
+				break;
+			case 'settings':
+				var settingsJson = JSON.stringify(globals.storages.settingsStorage);
+				if (globals.storages.settingsStorage.useStorageSync) {
+					chrome.storage.local.set({
+						settings: globals.storages.settingsStorage
+					}, function () {
+						if (chrome.runtime.lastError) {
+							console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
+						} else {
+							for (var i = 0; i < changes.length; i++) {
+								if (changes[i].key === 'crm') {
+									updateCRMValues();
+									buildPageCRM();
+									break;
+								}
+							}
+						}
+					});
+					chrome.storage.sync.set({
+						indexes: null
+					});
 				} else {
-					updateStorage();
-				}
-			});
-			chrome.storage.sync.set({
-				indexes: null
-			});
-		} else {
-			//Using chrome.storage.sync
-			if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
-				chrome.storage.local.set({
-					useStorageSync: false
-				}, function () {
-					updateCrm(skipPageCrm);
-				});
-			} else {
-				//Cut up all data into smaller JSON
-				var obj = this.cutData(settingsJson);
-				chrome.storage.sync.set(obj, function () {
-					if (chrome.runtime.lastError) {
-						//Switch to local storage
-						console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
+					//Using chrome.storage.sync
+					if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
 						chrome.storage.local.set({
 							useStorageSync: false
 						}, function () {
-							updateCrm(skipPageCrm);
+							uploadChanges('settings', changes);
 						});
 					} else {
-						updateStorage();
-						chrome.storage.local.set({
-							settings: null
+						//Cut up all data into smaller JSON
+						var obj = cutData(settingsJson);
+						chrome.storage.sync.set(obj, function () {
+							if (chrome.runtime.lastError) {
+								//Switch to local storage
+								console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
+								chrome.storage.local.set({
+									useStorageSync: false
+								}, function () {
+									uploadChanges('settings', changes);
+								});
+							} else {
+								for (var i = 0; i < changes.length; i++) {
+									if (changes[i].key === 'crm') {
+										updateCRMValues();
+										buildPageCRM();
+										break;
+									}
+								}
+								chrome.storage.local.set({
+									settings: null
+								});
+							}
 						});
 					}
+				}
+				break;
+			case 'libraries':
+				chrome.storage.local.set({
+					libraries: changes
 				});
+				break;
+		}
+	}
+
+	function updateCrm() {
+		uploadChanges('crm', []);
+		buildPageCRM();
+	}
+
+	function notifyNodeStorageChanges(id, tabId, changes) {
+		//Update in storage
+		globals.crm.crmById[id].storage = globals.storages.nodeStorage[id];
+		chrome.storage.local.set({
+			nodeStorage: globals.storages.nodeStorage
+		});
+
+		//Notify all pages running that node
+		var tabData = globals.crmValues.tabData;
+		for (var tab in tabData) {
+			if (tabData.hasOwnProperty(tab) && tabData[tab]) {
+				if (tab !== tabId) {
+					var nodes = tabData[tab].nodes;
+					if (nodes[id]) {
+						nodes[id].port.postMessage({
+							changes: changes,
+							messageType: 'storageUpdate'
+						});
+					}
+				}
 			}
 		}
-
-		updateStorage();
-		skipPageCrm && buildPageCRM();
 	}
 
-	function updateNodeStorage(message) {
-		crmById[message.id].storage = message.storage;
-		updateStorage();
+	function applyChangeForStorageType(storageObj, changes) {
+		for (var i = 0; i < changes.length; i++) {
+			storageObj[changes[i].key] = changes[i].newValue;
+		}
 	}
 
+	function applyChanges(data) {
+		switch (data.type) {
+			case 'optionsPage':
+				if (data.localChanges) {
+					applyChangeForStorageType(globals.storages.storageLocal, data.localChanges);
+					uploadChanges('local', data.localChanges);
+				}
+				if (data.settingsChanges) {
+					applyChangeForStorageType(globals.storages.settingsStorage, data.settingsChanges);
+					uploadChanges('settings', data.settingsChanges);
+				}
+				break;
+			case 'libraries':
+				applyChangeForStorageType(globals.storages.storageLocal, [
+					{
+						key: 'libraries',
+						newValue: data.libraries,
+						oldValue: globals.settings.storageLocal.libraries
+					}
+				]);
+				break;
+			case 'nodeStorage':
+				applyChangeForStorageType(globals.storages.nodeStorage[data.id], data.nodeStorageChanges);
+				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
+				break;
+		}
+	}
+	//#endregion
+
+	//#region CRMFunction
 	function respondToCrmAPI(message, type, data, stackTrace) {
 		var msg = {
 			type: type,
-			callbackId: message.onFinish
+			callbackId: message.onFinish,
+			messageType: 'callback'
 		}
 		msg.data = (type === 'error' || type === 'chromeError' ? {
 			error: data,
@@ -825,7 +1346,7 @@ function sandbox(api, args) {
 			lineNumber: message.lineNumber
 		} : data);
 		try {
-			tabNodeData[message.tabId][message.id].port.postMessage(msg);
+			globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
 				respondToCrmAPI(message, 'error', 'Converting circular structure to JSON, this API will not work');
@@ -846,354 +1367,17 @@ function sandbox(api, args) {
 		respondToCrmAPI(message, 'chromeError', error, stackTrace);
 	}
 
-	function CRMFunction(message, toRun) {
-		var _this = this;
-		this.toRun = toRun;
-		this.message = message;
-
-		this.respondSuccess = function () {
-			var args = [];
-			for (var i = 0; i < arguments.length; i++) {
-				args.push(arguments[i]);
-			}
-			respondToCrmAPI(message, 'success', args);
-			return true;
-		};
-
-		this.respondError = function (error) {
-			respondToCrmAPI(message, 'error', error);
-			return true;
-		};
-
-		this.lookup = function (path, data, hold) {
-			if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
-				this.respondError('Supplied path is not of type array');
-				return true;
-			}
-			var length = path.length - 1;
-			hold && length--;
-			for (var i = 0; i < length; i++) {
-				if (data) {
-					data = data[path[i]].children;
-				} else {
-					return false;
-				}
-			}
-			return (hold ? data : data[path[length]]) || false;
-		};
-
-		this.checkType = function (toCheck, type, name, optional, ifndef, array, ifdef) {
-			if (!toCheck) {
-				if (optional) {
-					ifndef && ifndef();
-					return true;
-				} else {
-					if (array) {
-						_this.respondError('Not all values for ' + name + ' are defined');
-					} else {
-						_this.respondError('Value for ' + name + ' is not defined');
-					}
-					return false;
-				}
-			} else {
-				if (type === 'array') {
-					if (typeof toCheck !== 'object' || Array.isArray(toCheck)) {
-						if (array) {
-							_this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
-						} else {
-							_this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
-						}
-						return false;
-					}
-				}
-				if (typeof toCheck !== type) {
-					if (array) {
-						_this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
-					} else {
-						_this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
-					}
-					return false;
-				}
-			}
-			ifdef && ifdef();
-			return true;
-		};
-
-		this.moveNode = function (node, position) {
-			node = JSON.parse(JSON.stringify(node));
-			var relativeNode;
-			var isRoot = false;
-			var parentChildren;
-			if (position) {
-				if (!_this.checkType(position, 'object', 'position')) {
-					return false;
-				}
-				if (!_this.checkType(position.node, 'number', 'node', true, function () {
-					relativeNode = crmTree;
-					isRoot = true;
-				})) {
-					return false;
-				}
-				if (!_this.checkType(position.relation, 'string', 'relation', true, function () {
-					position.relation = 'firstSibling';
-					relativeNode = crmTree;
-					isRoot = true;
-				})) {
-					return false;
-				}
-				relativeNode = relativeNode || _this.getNodeFromId(node, false, true);
-				if (relativeNode === false) {
-					relativeNode = crmTree;
-					isRoot = true;
-				}
-				switch (position.relation) {
-					case 'before':
-						if (isRoot) {
-							pushIntoArray(node, 0, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							if (relativeNode.path.length > 0) {
-								pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
-							}
-						}
-						break;
-					case 'firstSibling':
-						if (isRoot) {
-							pushIntoArray(node, 0, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							pushIntoArray(node, 0, parentChildren);
-						}
-						break;
-					case 'firstChild':
-						if (isRoot) {
-							pushIntoArray(node, 0, crmTree);
-						} else if (relativeNode.type === 'menu') {
-							pushIntoArray(node, 0, relativeNode.children);
-						} else {
-							_this.respondError('Supplied node is not of type "menu"');
-							return false;
-						}
-						break;
-					case 'after':
-						if (isRoot) {
-							pushIntoArray(node, crmTree.length, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							if (relativeNode.path.length > 0) {
-								pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
-							}
-						}
-						break;
-					case 'lastSibling':
-						if (isRoot) {
-							pushIntoArray(node, crmTree.length, crmTree);
-						} else {
-							parentChildren = _this.lookup(relativeNode.path, crmTree, true);
-							pushIntoArray(node, parentChildren.length - 1, parentChildren);
-						}
-						break;
-					case 'lastChild':
-						if (isRoot) {
-							pushIntoArray(node, crmTree.length, crmTree);
-						} else if (relativeNode.type === 'menu') {
-							pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
-						} else {
-							_this.respondError('Supplied node is not of type "menu"');
-							return false;
-						}
-						break;
-				}
-			} else {
-				//Place in default position, firstChild of root
-				pushIntoArray(node, 0, crmTree);
-			}
-			var pathMinusOne = JSON.parse(JSON.stringify(node.path));
-			pathMinusOne.splice(pathMinusOne.length - 1, 1);
-			eval('crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
-			return true;
-		};
-
-		this.getNodeFromId = function (id, isSafe, noCallback) {
-			var node = (isSafe ? crmByIdSafe : crmById)[id];
-			if (node) {
-				if (noCallback) {
-					return node;
-				}
-				return {
-					run: function (callback) {
-						callback(node);
-					}
-				};
-			} else {
-				_this.respondError('There is no node with the id you supplied (' + id + ')');
-				if (noCallback) {
-					return false;
-				}
-				return {
-					run: function () { }
-				};
-			}
-		};
-
-		this.typeCheck = function (toCheck, callback) {
-			var i, j, k, l;
-			var typesMatch;
-			var toCheckName;
-			var matchingType;
-			var toCheckTypes;
-			var toCheckValue;
-			var toCheckIsArray;
-			var optionals = {};
-			var toCheckChildrenName;
-			var toCheckChildrenType;
-			var toCheckChildrenValue;
-			var toCheckChildrenTypes;
-			for (i = 0; i < toCheck.length; i++) {
-				toCheckName = toCheck[i].val;
-				if (toCheck[i].dependency) {
-					if (!optionals[toCheck[i].dependency]) {
-						optionals[toCheckName] = false;
-						continue;
-					}
-				}
-				toCheckTypes = toCheck[i].type.split('|');
-				toCheckValue = eval('_this.message.' + toCheckName + ';');
-				if (toCheckValue === undefined || toCheckValue === null) {
-					if (toCheck[i].optional) {
-						optionals[toCheckName] = false;
-						continue;
-					} else {
-						_this.respondError('Value for ' + toCheckName + ' is not set');
-						return false;
-					}
-				} else {
-					toCheckIsArray = Array.isArray(toCheckValue);
-					typesMatch = false;
-					matchingType = false;
-					for (j = 0; j < toCheckTypes.length; j++) {
-						if (toCheckTypes[j] === 'array') {
-							if (typeof toCheckValue === 'object' && Array.isArray(toCheckValue)) {
-								matchingType = toCheckTypes[j];
-								typesMatch = true;
-								break;
-							}
-						} else if (typeof toCheckValue === toCheckTypes[j]) {
-							matchingType = toCheckTypes[j];
-							typesMatch = true;
-							break;
-						}
-					}
-					if (!typesMatch) {
-						_this.respondError('Value for ' + toCheckName + ' is not of type ' + toCheckTypes.join(' or '));
-						return false;
-					}
-					optionals[toCheckName] = true;
-					if (toCheck[i].min && typeof toCheckValue === 'number') {
-						if (toCheck[i].min > toCheckValue) {
-							_this.respondError('Value for ' + toCheckName + ' is smaller than ' + toCheck[i].min);
-							return false;
-						}
-					}
-					if (toCheck[i].max && typeof toCheckValue === 'number') {
-						if (toCheck[i].max < toCheckValue) {
-							_this.respondError('Value for ' + toCheckName + ' is bigger than ' + toCheck[i].max);
-							return false;
-						}
-					}
-					if (matchingType === 'array' && toCheck[i].forChildren) {
-						for (j = 0; j < toCheckValue.length; j++) {
-							for (k = 0; k < toCheck[i].forChildren.length; k++) {
-								toCheckChildrenName = toCheck[i].forChildren[k].val;
-								toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
-								if (toCheckChildrenValue === undefined || toCheckChildrenValue === null) {
-									if (!toCheck[i].forChildren[k].optional) {
-										_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' defined');
-										return false;
-									}
-								} else {
-									toCheckChildrenType = toCheck[i].forChildren[k].type;
-									toCheckChildrenTypes = toCheckChildrenType.split('|');
-									typesMatch = false;
-									for (l = 0; l < toCheckChildrenTypes.length; l++) {
-										if (toCheckChildrenTypes[l] === 'array') {
-											if (typeof toCheckChildrenValue === 'object' && Array.isArray(toCheckChildrenValue) !== undefined) {
-												typesMatch = true;
-												break;
-											}
-										} else if (typeof toCheckChildrenValue === toCheckChildrenTypes[l]) {
-											typesMatch = true;
-											break;
-										}
-									}
-									if (!typesMatch) {
-										_this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' of type ' + toCheckChildrenTypes.join(' or '));
-										return false;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			callback(optionals);
-			return true;
-		};
-
-		this.checkPermissions = function (toCheck, callbackOrOptional, callback) {
-			var optional = [];
-			if (callbackOrOptional !== undefined && callbackOrOptional !== null && typeof callbackOrOptional === 'object') {
-				optional = callbackOrOptional;
-			} else {
-				callback = callbackOrOptional;
-			}
-			var permitted = true;
-			var notPermitted = [];
-			var node = _this.getNodeFromId(message.id, false, true);
-			if (node.isLocal) {
-				callback && callback(optional);
-			} else {
-				var i;
-				if (!node.permissions || compareArray(node.permissions, [])) {
-					if (toCheck.length > 0) {
-						permitted = false;
-						notPermitted.push(toCheck);
-					}
-				} else {
-					for (i = 0; i < toCheck.length; i++) {
-						if (node.permissions.indexOf(toCheck[i]) === -1) {
-							permitted = false;
-							notPermitted.push(toCheck[i]);
-						}
-					}
-				}
-
-				if (!permitted) {
-					_this.respondError('Permission' + (notPermitted.length === 1 ? ' ' + notPermitted[0] : 's ' + notPermitted.join(', ')) + ' are not available to this script.');
-				} else {
-					var length = optional.length;
-					for (i = 0; i < length; i++) {
-						if (node.permissions.indexOf(optional[i]) === -1) {
-							optional.splice(i, 1);
-							length--;
-							i--;
-						}
-					}
-					callback && callback(optional);
-				}
-			}
-		};
-
-		this.crmFunctions = {
-			getTree: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.respondSuccess(safeTree);
+	function runCrmFunction(toRun, _this) {
+		var crmFunctions = {
+			getTree: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.respondSuccess(globals.crm.safeTree);
 				});
 			},
-			getSubTree: function(id) {
-				_this.checkPermissions(['crmGet'], function() {
+			getSubTree: function (id) {
+				_this.checkPermissions(['crmGet'], function () {
 					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = crmByIdSafe[id || _this.message.nodeId];
+						var node = globals.crm.crmByIdSafe[id || _this.message.nodeId];
 						if (node) {
 							_this.respondSuccess(node.children);
 						} else {
@@ -1204,10 +1388,10 @@ function sandbox(api, args) {
 					}
 				});
 			},
-			getNode: function() {
-				_this.checkPermissions(['crmGet'], function() {
+			getNode: function () {
+				_this.checkPermissions(['crmGet'], function () {
 					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = crmByIdSafe[id || _this.message.nodeId];
+						var node = globals.crm.crmByIdSafe[id || _this.message.nodeId];
 						if (node) {
 							_this.respondSuccess(node);
 						} else {
@@ -1218,10 +1402,10 @@ function sandbox(api, args) {
 					}
 				});
 			},
-			getNodeIdFromPath: function(path) {
-				_this.checkPermissions(['crmGet'], function() {
+			getNodeIdFromPath: function (path) {
+				_this.checkPermissions(['crmGet'], function () {
 					var pathToSearch = path || _this.message.path;
-					var lookedUp = _this.lookup(pathToSearch, safeTree, false);
+					var lookedUp = _this.lookup(pathToSearch, globals.crm.safeTree, false);
 					if (lookedUp === true) {
 						return false;
 					} else if (lookedUp === false) {
@@ -1233,8 +1417,8 @@ function sandbox(api, args) {
 					}
 				});
 			},
-			queryCrm: function() {
-				_this.checkPermissions(['crmGet'], function() {
+			queryCrm: function () {
+				_this.checkPermissions(['crmGet'], function () {
 					_this.typeCheck([
 						{
 							val: 'query',
@@ -1252,7 +1436,7 @@ function sandbox(api, args) {
 							type: 'string',
 							optional: true
 						}
-					], function(optionals) {
+					], function (optionals) {
 						var j;
 						var searchScopeArray = [];
 
@@ -1276,7 +1460,7 @@ function sandbox(api, args) {
 								searchScope = searchScope.children;
 							}
 						}
-						searchScope = searchScope || safeTree;
+						searchScope = searchScope || globals.crm.safeTree;
 
 						if (searchScope) {
 							for (j = 0; j < searchScope.length; j++) {
@@ -1299,34 +1483,34 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			getParentNode: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			getParentNode: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						var pathToSearch = JSON.parse(JSON.stringify(node.path));
 						pathToSearch.pop();
-						_this.crmFunctions.getNodeIdFromPath(pathToSearch, function(id) {
-							_this.respondSuccess(crmById[_this.getNodeFromId(id, true, true)]);
+						_this.crmFunctions.getNodeIdFromPath(pathToSearch, function (id) {
+							_this.respondSuccess(globals.crm.crmById[_this.getNodeFromId(id, true, true)]);
 						});
 					});
 				});
 			},
-			getChildren: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+			getChildren: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
 						_this.respondSuccess(node.children || []);
 					});
 				});
 			},
-			getNodeType: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+			getNodeType: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
 						_this.respondSuccess(node.type);
 					});
 				});
 			},
-			getNodeValue: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+			getNodeValue: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
 						_this.respondSuccess(node.value);
 					});
 				});
@@ -1436,101 +1620,100 @@ function sandbox(api, args) {
 							optional: true
 						}
 					], function(optionals) {
-						generateItemId(function(id) {
-							var i;
-							var type = (_this.message.options.type === 'link' ||
-								_this.message.options.type === 'script' ||
-								_this.message.options.type === 'stylesheet' ||
-								_this.message.options.type === 'menu' ||
-								_this.message.options.type === 'divider' ? _this.message.options.type : 'link');
-							var node = {
-								type: type,
-								name: _this.message.options.name || 'name',
-								id: id,
-								children: [],
-								nodeInfo: _this.getNodeFromId(_this.message.id, false, true).nodeInfo
-							};
-							_this.getNodeFromId(_this.message.id, false, true).local && (node.local = true);
-							if (type === 'link') {
-								if (optionals['options.linkData']) {
-									node.value = _this.message.options.linkData;
-									var value = node.value;
-									for (i = 0; i < value.length; i++) {
-										node.value[i].newTab = (node.value[i].newTab === false ? false : true);
-									}
-								} else {
-									node.value = [
-										{
-											url: 'http://example.com',
-											newTab: true
-										}
-									];
-								}
-								if (optionals['options.usesTriggers']) {
-									node.showOnSpecified = _this.message.options.usesTriggers;
-								}
-								if (optionals['options.triggers']) {
-									node.triggers = _this.message.options.triggers;
-									node.showOnSpecified = true;
-								}
-							} else if (type === 'script') {
-								if (optionals['options.scriptData']) {
-									node.value = {
-										script: _this.message.options.scriptData.script,
-										launchMode: (optionals['options.ScriptData.launchMode'] ? _this.message.options.scriptData.launchMode : 0),
-										triggers: _this.message.options.scriptData.triggers || [],
-										libraries: _this.message.options.scriptData.libraries || []
-									};
-								} else {
-									node.value = {
-										script: '',
-										launchMod: 0,
-										triggers: [],
-										libraries: []
-									};
-								}
-							} else if (type === 'stylesheet') {
-								if (optionals['options.stylesheetData']) {
-									node.value = {
-										stylesheet: _this.message.options.stylesheetData.stylesheet,
-										launchMode: (optionals['options.stylesheetData.launchMode'] ? _this.message.options.stylesheetData.launchMode : 0),
-										triggers: _this.message.options.stylesheetData.triggers || [],
-										toggle: (_this.message.options.stylesheetData.toggle === false ? false : true),
-										defaultOn: (_this.message.options.stylesheetData.defaultOn === false ? false : true)
-									};
-								} else {
-									node.value = {
-										stylesheet: '',
-										launchmode: 0,
-										triggers: [],
-										toggle: true,
-										defaultOn: true
-									}
+						var id = generateItemId();
+						var i;
+						var type = (_this.message.options.type === 'link' ||
+							_this.message.options.type === 'script' ||
+							_this.message.options.type === 'stylesheet' ||
+							_this.message.options.type === 'menu' ||
+							_this.message.options.type === 'divider' ? _this.message.options.type : 'link');
+						var node = {
+							type: type,
+							name: _this.message.options.name || 'name',
+							id: id,
+							children: [],
+							nodeInfo: _this.getNodeFromId(_this.message.id, false, true).nodeInfo
+						};
+						_this.getNodeFromId(_this.message.id, false, true).local && (node.local = true);
+						if (type === 'link') {
+							if (optionals['options.linkData']) {
+								node.value = _this.message.options.linkData;
+								var value = node.value;
+								for (i = 0; i < value.length; i++) {
+									node.value[i].newTab = (node.value[i].newTab === false ? false : true);
 								}
 							} else {
-								node.value = {};
-								if (optionals['options.usesTriggers']) {
-									node.showOnSpecified = _this.message.options.usesTriggers;
-								}
-								if (optionals['options.triggers']) {
-									node.triggers = _this.message.options.triggers;
-									node.showOnSpecified = true;
+								node.value = [
+									{
+										url: 'http://example.com',
+										newTab: true
+									}
+								];
+							}
+							if (optionals['options.usesTriggers']) {
+								node.showOnSpecified = _this.message.options.usesTriggers;
+							}
+							if (optionals['options.triggers']) {
+								node.triggers = _this.message.options.triggers;
+								node.showOnSpecified = true;
+							}
+						} else if (type === 'script') {
+							if (optionals['options.scriptData']) {
+								node.value = {
+									script: _this.message.options.scriptData.script,
+									launchMode: (optionals['options.ScriptData.launchMode'] ? _this.message.options.scriptData.launchMode : 0),
+									triggers: _this.message.options.scriptData.triggers || [],
+									libraries: _this.message.options.scriptData.libraries || []
+								};
+							} else {
+								node.value = {
+									script: '',
+									launchMod: 0,
+									triggers: [],
+									libraries: []
+								};
+							}
+						} else if (type === 'stylesheet') {
+							if (optionals['options.stylesheetData']) {
+								node.value = {
+									stylesheet: _this.message.options.stylesheetData.stylesheet,
+									launchMode: (optionals['options.stylesheetData.launchMode'] ? _this.message.options.stylesheetData.launchMode : 0),
+									triggers: _this.message.options.stylesheetData.triggers || [],
+									toggle: (_this.message.options.stylesheetData.toggle === false ? false : true),
+									defaultOn: (_this.message.options.stylesheetData.defaultOn === false ? false : true)
+								};
+							} else {
+								node.value = {
+									stylesheet: '',
+									launchmode: 0,
+									triggers: [],
+									toggle: true,
+									defaultOn: true
 								}
 							}
+						} else {
+							node.value = {};
+							if (optionals['options.usesTriggers']) {
+								node.showOnSpecified = _this.message.options.usesTriggers;
+							}
+							if (optionals['options.triggers']) {
+								node.triggers = _this.message.options.triggers;
+								node.showOnSpecified = true;
+							}
+						}
 
-							if (_this.moveNode(node, _this.message.options.position)) {
-								updateCrm();
-								_this.respondSuccess(node);
-							} else {
-								_this.respondError('Failed to place node');
-							}
-							return true;
-						});
+						if (_this.moveNode(node, _this.message.options.position)) {
+							updateCrm();
+							_this.respondSuccess(node);
+						} else {
+							_this.respondError('Failed to place node');
+						}
+						return true;
 					});
 				});
 			},
-			copyNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			copyNode: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'options',
@@ -1543,32 +1726,31 @@ function sandbox(api, args) {
 					], function(optionals) {
 						_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
 							var newNode = JSON.parse(JSON.stringify(node));
-							generateItemId(function(id) {
-								newNode.id = id;
-								if (_this.getNodeFromId(_this.message.id, false, true).local === true && node.local === true) {
-									newNode.local = true;
-								}
-								newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true).nodeInfo;
-								delete newNode.storage;
-								delete newNode.file;
-								if (optionals['options.name']) {
-									newNode.name = _this.message.options.name;
-								}
-								if (_this.moveNode(newNode, _this.message.options.position)) {
-									updateCrm();
-									_this.respondSuccess(newNode);
-								}
-								return true;
-							});
+							var id = generateItemId();
+							newNode.id = id;
+							if (_this.getNodeFromId(_this.message.id, false, true).local === true && node.local === true) {
+								newNode.local = true;
+							}
+							newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true).nodeInfo;
+							delete newNode.storage;
+							delete newNode.file;
+							if (optionals['options.name']) {
+								newNode.name = _this.message.options.name;
+							}
+							if (_this.moveNode(newNode, _this.message.options.position)) {
+								updateCrm();
+								_this.respondSuccess(newNode);
+							}
 							return true;
 						});
+						return true;
 					});
 				});
 				return true;
 			},
-			moveNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			moveNode: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						if (_this.moveNode(node, _this.message.position)) {
 							updateCrm();
 							_this.respondSuccess(safe(node));
@@ -1576,20 +1758,20 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			deleteNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						var parentChildren = _this.lookup(node.path, crmTree, true);
+			deleteNode: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+						var parentChildren = _this.lookup(node.path, globals.crm.crmTree, true);
 						parentChildren.splice(node.path[node.path.length - 1], 1);
-						chrome.contextMenus.remove(contextMenuIds[node.id], function() {
+						chrome.contextMenus.remove(globals.crmValues.contextMenuIds[node.id], function () {
 							updateCrm();
 							_this.respondSuccess(true);
 						});
 					});
 				});
 			},
-			editNode: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			editNode: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'options',
@@ -1603,8 +1785,8 @@ function sandbox(api, args) {
 							type: 'string',
 							optional: true
 						}
-					], function(optionals) {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function (optionals) {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							if (optionals['options.type']) {
 								if (_this.message.options.type !== 'link' &&
 									_this.message.options.type !== 'script' &&
@@ -1627,15 +1809,15 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			getTriggers: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			getTriggers: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						_this.respondSuccess(node.triggers);
 					});
 				});
 			},
-			setTriggers: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			setTriggers: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'triggers',
@@ -1647,14 +1829,24 @@ function sandbox(api, args) {
 								}
 							]
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							node.triggers = _this.message.triggers;
 							node.showOnSpecified = true;
 							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
-								documentUrlPatterns: prepareTrigger(node.triggers)
-							}, function() {
+							var matchPatterns = [];
+							globals.crmValues.hideNodesOnPagesData[node.id] = [];
+							for (var i = 0; i < node.triggers.length; i++) {
+								var preparedUrl = prepareTrigger(node.triggers[i].url);
+								if (node.triggers.not) {
+									globals.crmValues.hideNodesOnPagesData[node.id].push(preparedUrl);
+								} else {
+									matchPatterns.push(preparedUrl);
+								}
+							}
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
+								documentUrlPatterns: matchPatterns
+							}, function () {
 								updateCrm();
 								_this.respondSuccess(safe(node));
 							});
@@ -1662,27 +1854,27 @@ function sandbox(api, args) {
 					});
 				});
 			},
-			getTriggerUsage: function() {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			getTriggerUsage: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						_this.respondSuccess(node.showOnSpecified);
 					});
 				});
 			},
-			setTriggerUsage: function() {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			setTriggerUsage: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
 							val: 'useTriggers',
 							type: 'boolean'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							node.showOnSpecified = _this.message.useTriggers;
 							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
 								documentUrlPatterns: ['<all_urls>']
-							}, function() {
+							}, function () {
 								updateCrm();
 								_this.respondSuccess(safe(node));
 							});
@@ -1713,7 +1905,7 @@ function sandbox(api, args) {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							node.onContentTypes[_this.message.index] = _this.message.value;
 							updateCrm();
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function () {
 								updateCrm();
@@ -1754,7 +1946,7 @@ function sandbox(api, args) {
 								contentTypes = [true, true, true, true, true, true];
 							}
 							node.onContentTypes = contentTypes;
-							chrome.contextMenus.update(contextMenuIds[node.id], {
+							chrome.contextMenus.update(globals.crmValues.contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function () {
 								updateCrm();
@@ -1933,9 +2125,9 @@ function sandbox(api, args) {
 										done = true;
 										newLibrary.code = xhr.responseText;
 										newLibrary.url = _this.message.url;
-										storageLocal.libraries.push(newLibrary);
+										globals.storages.storageLocal.libraries.push(newLibrary);
 										chrome.storage.local.set({
-											libraries: storageLocal.libraries
+											libraries: globals.storages.storageLocal.libraries
 										});
 										_this.respondSuccess(newLibrary);
 									}
@@ -1952,7 +2144,7 @@ function sandbox(api, args) {
 							}
 						} else if (optionals['code']) {
 							newLibrary.code = _this.message.code;
-							storageLocal.libraries.push(newLibrary);
+							globals.storages.storageLocal.libraries.push(newLibrary);
 							chrome.storage.local.set({
 								libraries: storageLocal.libraries
 							});
@@ -2174,28 +2366,356 @@ function sandbox(api, args) {
 				});
 			}
 		};
-
-		this.crmFunctions[this.toRun] && this.crmFunctions[this.toRun]();
+		crmFunctions[toRun] && crmFunctions[toRun]();
 	}
+
+	// ReSharper disable once InconsistentNaming
+	function CRMFunction(message, toRun) {
+		this.toRun = toRun;
+		this.message = message;
+		runCrmFunction(this.toRun, this);
+	}
+
+	CRMFunction.prototype.respondSuccess = function () {
+		var args = [];
+		for (var i = 0; i < arguments.length; i++) {
+			args.push(arguments[i]);
+		}
+		respondToCrmAPI(message, 'success', args);
+		return true;
+	};
+
+	CRMFunction.prototype.respondError = function (error) {
+		respondToCrmAPI(message, 'error', error);
+		return true;
+	};
+
+	CRMFunction.prototype.lookup = function (path, data, hold) {
+		if (path === null || typeof path !== 'object' || !Array.isArray(path)) {
+			this.respondError('Supplied path is not of type array');
+			return true;
+		}
+		var length = path.length - 1;
+		hold && length--;
+		for (var i = 0; i < length; i++) {
+			if (data) {
+				data = data[path[i]].children;
+			} else {
+				return false;
+			}
+		}
+		return (hold ? data : data[path[length]]) || false;
+	};
+
+	CRMFunction.prototype.checkType = function (toCheck, type, name, optional, ifndef, array, ifdef) {
+		if (!toCheck) {
+			if (optional) {
+				ifndef && ifndef();
+				return true;
+			} else {
+				if (array) {
+					this.respondError('Not all values for ' + name + ' are defined');
+				} else {
+					this.respondError('Value for ' + name + ' is not defined');
+				}
+				return false;
+			}
+		} else {
+			if (type === 'array') {
+				if (typeof toCheck !== 'object' || Array.isArray(toCheck)) {
+					if (array) {
+						this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
+					} else {
+						this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
+					}
+					return false;
+				}
+			}
+			if (typeof toCheck !== type) {
+				if (array) {
+					this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
+				} else {
+					this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
+				}
+				return false;
+			}
+		}
+		ifdef && ifdef();
+		return true;
+	};
+
+	CRMFunction.prototype.moveNode = function (node, position) {
+		node = JSON.parse(JSON.stringify(node));
+		var relativeNode;
+		var isRoot = false;
+		var parentChildren;
+		if (position) {
+			if (!this.checkType(position, 'object', 'position')) {
+				return false;
+			}
+			if (!this.checkType(position.node, 'number', 'node', true, function () {
+				relativeNode = globals.crm.crmTree;
+				isRoot = true;
+			})) {
+				return false;
+			}
+			if (!this.checkType(position.relation, 'string', 'relation', true, function () {
+				position.relation = 'firstSibling';
+				relativeNode = globals.crm.crmTree;
+				isRoot = true;
+			})) {
+				return false;
+			}
+			relativeNode = relativeNode || this.getNodeFromId(node, false, true);
+			if (relativeNode === false) {
+				relativeNode = globals.crm.crmTree;
+				isRoot = true;
+			}
+			switch (position.relation) {
+				case 'before':
+					if (isRoot) {
+						pushIntoArray(node, 0, globals.crm.crmTree);
+					} else {
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
+						if (relativeNode.path.length > 0) {
+							pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
+						}
+					}
+					break;
+				case 'firstSibling':
+					if (isRoot) {
+						pushIntoArray(node, 0, globals.crm.crmTree);
+					} else {
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
+						pushIntoArray(node, 0, parentChildren);
+					}
+					break;
+				case 'firstChild':
+					if (isRoot) {
+						pushIntoArray(node, 0, globals.crm.crmTree);
+					} else if (relativeNode.type === 'menu') {
+						pushIntoArray(node, 0, relativeNode.children);
+					} else {
+						this.respondError('Supplied node is not of type "menu"');
+						return false;
+					}
+					break;
+				case 'after':
+					if (isRoot) {
+						pushIntoArray(node, globals.crm.crmTree.length, globals.crm.crmTree);
+					} else {
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
+						if (relativeNode.path.length > 0) {
+							pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
+						}
+					}
+					break;
+				case 'lastSibling':
+					if (isRoot) {
+						pushIntoArray(node, globals.crm.crmTree.length, globals.crm.crmTree);
+					} else {
+						parentChildren = this.lookup(relativeNode.path, globals.crm.crmTree, true);
+						pushIntoArray(node, parentChildren.length - 1, parentChildren);
+					}
+					break;
+				case 'lastChild':
+					if (isRoot) {
+						pushIntoArray(node, globals.crm.crmTree.length, globals.crm.crmTree);
+					} else if (relativeNode.type === 'menu') {
+						pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
+					} else {
+						this.respondError('Supplied node is not of type "menu"');
+						return false;
+					}
+					break;
+			}
+		} else {
+			//Place in default position, firstChild of root
+			pushIntoArray(node, 0, globals.crm.crmTree);
+		}
+		var pathMinusOne = JSON.parse(JSON.stringify(node.path));
+		pathMinusOne.splice(pathMinusOne.length - 1, 1);
+		eval('globals.crm.crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
+		return true;
+	};
+
+	CRMFunction.prototype.getNodeFromId = function (id, isSafe, noCallback) {
+		var node = (isSafe ? globals.crm.crmByIdSafe : globals.crm.crmById)[id];
+		if (node) {
+			if (noCallback) {
+				return node;
+			}
+			return {
+				run: function (callback) {
+					callback(node);
+				}
+			};
+		} else {
+			this.respondError('There is no node with the id you supplied (' + id + ')');
+			if (noCallback) {
+				return false;
+			}
+			return {
+				run: function () { }
+			};
+		}
+	};
+
+	CRMFunction.prototype.typeCheck = function (toCheck, callback) {
+		var i, j, k, l;
+		var typesMatch;
+		var toCheckName;
+		var matchingType;
+		var toCheckTypes;
+		var toCheckValue;
+		var toCheckIsArray;
+		var optionals = {};
+		var toCheckChildrenName;
+		var toCheckChildrenType;
+		var toCheckChildrenValue;
+		var toCheckChildrenTypes;
+		for (i = 0; i < toCheck.length; i++) {
+			toCheckName = toCheck[i].val;
+			if (toCheck[i].dependency) {
+				if (!optionals[toCheck[i].dependency]) {
+					optionals[toCheckName] = false;
+					continue;
+				}
+			}
+			toCheckTypes = toCheck[i].type.split('|');
+			toCheckValue = eval('this.message.' + toCheckName + ';');
+			if (toCheckValue === undefined || toCheckValue === null) {
+				if (toCheck[i].optional) {
+					optionals[toCheckName] = false;
+					continue;
+				} else {
+					this.respondError('Value for ' + toCheckName + ' is not set');
+					return false;
+				}
+			} else {
+				toCheckIsArray = Array.isArray(toCheckValue);
+				typesMatch = false;
+				matchingType = false;
+				for (j = 0; j < toCheckTypes.length; j++) {
+					if (toCheckTypes[j] === 'array') {
+						if (typeof toCheckValue === 'object' && Array.isArray(toCheckValue)) {
+							matchingType = toCheckTypes[j];
+							typesMatch = true;
+							break;
+						}
+					} else if (typeof toCheckValue === toCheckTypes[j]) {
+						matchingType = toCheckTypes[j];
+						typesMatch = true;
+						break;
+					}
+				}
+				if (!typesMatch) {
+					this.respondError('Value for ' + toCheckName + ' is not of type ' + toCheckTypes.join(' or '));
+					return false;
+				}
+				optionals[toCheckName] = true;
+				if (toCheck[i].min && typeof toCheckValue === 'number') {
+					if (toCheck[i].min > toCheckValue) {
+						this.respondError('Value for ' + toCheckName + ' is smaller than ' + toCheck[i].min);
+						return false;
+					}
+				}
+				if (toCheck[i].max && typeof toCheckValue === 'number') {
+					if (toCheck[i].max < toCheckValue) {
+						this.respondError('Value for ' + toCheckName + ' is bigger than ' + toCheck[i].max);
+						return false;
+					}
+				}
+				if (matchingType === 'array' && toCheck[i].forChildren) {
+					for (j = 0; j < toCheckValue.length; j++) {
+						for (k = 0; k < toCheck[i].forChildren.length; k++) {
+							toCheckChildrenName = toCheck[i].forChildren[k].val;
+							toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
+							if (toCheckChildrenValue === undefined || toCheckChildrenValue === null) {
+								if (!toCheck[i].forChildren[k].optional) {
+									this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' defined');
+									return false;
+								}
+							} else {
+								toCheckChildrenType = toCheck[i].forChildren[k].type;
+								toCheckChildrenTypes = toCheckChildrenType.split('|');
+								typesMatch = false;
+								for (l = 0; l < toCheckChildrenTypes.length; l++) {
+									if (toCheckChildrenTypes[l] === 'array') {
+										if (typeof toCheckChildrenValue === 'object' && Array.isArray(toCheckChildrenValue) !== undefined) {
+											typesMatch = true;
+											break;
+										}
+									} else if (typeof toCheckChildrenValue === toCheckChildrenTypes[l]) {
+										typesMatch = true;
+										break;
+									}
+								}
+								if (!typesMatch) {
+									this.respondError('For not all values in the array ' + toCheckName + ' is the property ' + toCheckChildrenName + ' of type ' + toCheckChildrenTypes.join(' or '));
+									return false;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		callback(optionals);
+		return true;
+	};
+
+	CRMFunction.prototype.checkPermissions = function (toCheck, callbackOrOptional, callback) {
+		var optional = [];
+		if (callbackOrOptional !== undefined && callbackOrOptional !== null && typeof callbackOrOptional === 'object') {
+			optional = callbackOrOptional;
+		} else {
+			callback = callbackOrOptional;
+		}
+		var permitted = true;
+		var notPermitted = [];
+		var node = this.getNodeFromId(message.id, false, true);
+		if (node.isLocal) {
+			callback && callback(optional);
+		} else {
+			var i;
+			if (!node.permissions || compareArray(node.permissions, [])) {
+				if (toCheck.length > 0) {
+					permitted = false;
+					notPermitted.push(toCheck);
+				}
+			} else {
+				for (i = 0; i < toCheck.length; i++) {
+					if (node.permissions.indexOf(toCheck[i]) === -1) {
+						permitted = false;
+						notPermitted.push(toCheck[i]);
+					}
+				}
+			}
+
+			if (!permitted) {
+				this.respondError('Permission' + (notPermitted.length === 1 ? ' ' + notPermitted[0] : 's ' + notPermitted.join(', ')) + ' are not available to this script.');
+			} else {
+				var length = optional.length;
+				for (i = 0; i < length; i++) {
+					if (node.permissions.indexOf(optional[i]) === -1) {
+						optional.splice(i, 1);
+						length--;
+						i--;
+					}
+				}
+				callback && callback(optional);
+			}
+		}
+	};
 
 	function crmHandler(message) {
 		// ReSharper disable once ConstructorCallNotUsed
 		new CRMFunction(message, message.action);
 	}
+	//#endregion
 
-	var fnInlineArgs = [];
-	fnInlineArgs[0] = [];
-
-	function createChromeInlineHandler(fn, args) {
-		return function () {
-			var fnArguments = [args];
-			for (var i = 0; i < arguments.length; i++) {
-				fnArguments[i + 1] = arguments[i];
-			}
-			fn.apply(window, fnArguments);
-		}
-	}
-
+	//#region Chrome Function Handling
 	function createChromeFnCallbackHandler(message, callbackIndex) {
 		return function () {
 			var params = [];
@@ -2205,24 +2725,6 @@ function sandbox(api, args) {
 			respondToCrmAPI(message, 'success', {
 				callbackId: callbackIndex,
 				params: params
-			});
-		}
-	}
-
-	function createChromeCallbackHandler(message, callbackIndex, inlineArgs) {
-		return function () {
-			var params = [];
-			for (var i = 0; i < arguments.length; i++) {
-				params[i] = arguments[i];
-			}
-			respondToCrmAPI(message, 'success', {
-				callbackId: callbackIndex,
-				params: [
-					{
-						APIArgs: params,
-						fnInlineArgs: inlineArgs
-					}
-				]
 			});
 		}
 	}
@@ -2242,31 +2744,32 @@ function sandbox(api, args) {
 	}
 
 	function chromeHandler(message) {
-		var node = crmById[message.id];
+		var node = globals.crm.crmById[message.id];
 		if (!/[a-z|A-Z|0-9]*/.test(message.api)) {
 			throwChromeError(message, 'Passed API "' + message.api + '" is not alphanumeric.');
 			return false;
 		}
-		var apiPermission = message.api.split('.')[0];
+		var apiPermission = message.requestType || message.api.split('.')[0];
 		if (!node.isLocal) {
+			var apiFound;
 			var chromeFound = (node.permissions.indexOf('chrome') !== -1);
-			var apiFound = (node.permissions.indexOf(apiPermission) !== -1);
-			if (!chromeFound && !apiFound) {
-				throwChromeError(message, 'Both permissions chrome and ' + apiPermission + ' not available to this script');
-				return false;
-			} else if (!chromeFound) {
-				throwChromeError(message, 'Permission chrome not available to this script');
-				return false;
-			} else if (!apiFound) {
-				throwChromeError(message, 'Permission ' + apiPermission + ' not avilable to this script');
-				return false;
-			}
+				apiFound = (node.permissions.indexOf(apiPermission) !== -1);
+				if (!chromeFound && !apiFound) {
+					throwChromeError(message, 'Both permissions chrome and ' + apiPermission + ' not available to this script');
+					return false;
+				} else if (!chromeFound) {
+					throwChromeError(message, 'Permission chrome not available to this script');
+					return false;
+				} else if (!apiFound) {
+					throwChromeError(message, 'Permission ' + apiPermission + ' not avilable to this script');
+					return false;
+				}
 		}
 		if (permissions.indexOf(apiPermission) === -1) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' is not available for use or does not exist.');
 			return false;
 		}
-		if (availablePermissions.indexOf(apiPermission) === -1) {
+		if (globals.availablePermissions.indexOf(apiPermission) === -1) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' not available to the extension, visit options page');
 			chrome.storage.sync.get('requestPermissions', function (storageData) {
 				var perms = storageData.requestPermissions || [apiPermission];
@@ -2286,15 +2789,8 @@ function sandbox(api, args) {
 				case 'arg':
 					params.push(jsonFn.parse(message.args[i].val));
 					break;
-				case 'fnInline':
-					inlineArgs.push(message.args[i].args);
-					params.push(createChromeInlineHandler(message.args[i].fn, message.args[i].args));
-					break;
-				case 'fnCallback':
+				case 'fn':
 					params.push(createChromeFnCallbackHandler(message, message.args[i].val));
-					break;
-				case 'cb':
-					params.push(createChromeCallbackHandler(message, message.args[i].val, inlineArgs));
 					break;
 				case 'return':
 					returnFunctions.push(createReturnFunction(message, message.args[i].val, inlineArgs));
@@ -2302,8 +2798,9 @@ function sandbox(api, args) {
 			}
 		}
 
+		var result;
 		try {
-			var result = sandbox(message.api, params);
+			result = window.sandboxContainer(globals.chrome, message.api, params, createCallbackMessageHandlerInstance(message.tabId, message.id));
 			for (i = 0; i < returnFunctions.length; i++) {
 				returnFunctions[i](result);
 			}
@@ -2312,26 +2809,387 @@ function sandbox(api, args) {
 		}
 		return true;
 	}
+	//#endregion
 
-	function handleUpdateMessage(message) {
+	//#region GM Resources
+	function matchesHashes(hashes, data) {
+		var lastMatchingHash = null;
+		hashes = hashes.reverse();
+		for (var i = 0; i < hashes.length; i++) {
+			var lowerCase = hash.algorithm.toLowerCase;
+			if (globals.supportedHashes.indexOf(lowerCase()) !== -1) {
+				lastMatchingHash = {
+					algorithm: lowerCase,
+					hash: hashes[i].hash
+				};
+				break;
+			}
+		}
+
+		if (lastMatchingHash === null) {
+			return false;
+		}
+
+		var arrayBuffer = new window.TextEncoder('utf-8').encode(data);
+		switch (lastMatchingHash.algorithm) {
+			case 'md5':
+				return md5(data) === lastMatchingHash.hash;
+			case 'sha1':
+				window.crypto.subtle.digest('SHA-1', arrayBuffer).then(function(hash) {
+					return hash === lastMatchingHash.hash;
+				});
+				break;
+			case 'sha384':
+				window.crypto.subtle.digest('SHA-384', arrayBuffer).then(function (hash) {
+					return hash === lastMatchingHash.hash;
+				});
+				break;
+			case 'sha512':
+				window.crypto.subtle.digest('SHA-512', arrayBuffer).then(function (hash) {
+					return hash === lastMatchingHash.hash;
+				});
+				break;
+
+		}
+		return false;
+	}
+
+	function convertFileToDataURI(url, callback) {
+		var xhr = new XMLHttpRequest();
+		xhr.responseType = 'blob';
+		xhr.onload = function () {
+			var reader = new FileReader();
+			reader.onloadend = function () {
+				callback(reader.result, xhr.responseText);
+			}
+			reader.readAsDataURL(xhr.response);
+		};
+		xhr.open('GET', url);
+		xhr.send();
+	}
+
+	function getHashes(url) {
+		var hashes = [];
+		var hashString = url.split('#')[1];
+		var hashStrings = hashString.split(/[,|;]/g);
+		hashStrings.forEach(function(hash) {
+			var split = hash.split('=');
+			hashes.push({
+				algorithm: split[0],
+				hash: split[1]
+			});
+		});
+		return hashes;
+	}
+
+	function registerResource(name, url, scriptId) {
+		var registerHashes = getHashes(url);
+		if (window.navigator.onLine) {
+			convertFileToDataURI(url, function(dataURI, dataString) {
+				var resources = globals.storages.resources;
+				resources[scriptId] = resources[scriptId] || {};
+				resources[scriptId][name] = {
+					name: name,
+					sourceUrl: url,
+					dataURI: dataURI,
+					string: dataString,
+					matchesHashes: matchesHashes(dataString, registerHashes),
+					crmUrl: 'chrome-extension://' + extensionId + '/resource/' + scriptId + '/' + name
+				}
+				chrome.storage.local.set({
+					resources: resources
+				});
+			});
+		}
+
+		var resourceKeys = globals.storages.resourceKeys;
+		for (var i = 0; i < resourceKeys.length; i++) {
+			if (resourceKeys[i].name === name && resourceKeys[i].scriptId === scriptId) {
+				return;
+			}
+		}
+		resourceKeys.push({
+			name: name,
+			sourceUrl: url,
+			hashes: registerHashes,
+			scriptId: scriptId
+		});
+		chrome.storage.local.set({
+			resourceKeys: resourceKeys
+		});
+	}
+
+	function compareResource(key) {
+		var resources = globals.storages.resources;
+		convertFileToDataURI(key.sourceUrl, function (dataURI, responseText) {
+			if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) || resources[key.scriptId][key.name].dataURI !== dataURI) {
+				resources[key.scriptId][key.name] = {
+					name: key.name,
+					sourceUrl: key.sourceUrl,
+					dataURI: dataURI,
+					string: responseText,
+					matchesHashes: matchesHashes(responseText, getHashes(key.sourceUrl)),
+					crmUrl: 'chrome-extension://' + extensionId + '/resource/' + key.scriptId + '/' + key.name
+				}
+				chrome.storage.local.set({
+					resources: resources
+				});
+			}
+		});
+	}
+
+	function generateUpdateCallback(resourceKey) {
+		return function () {
+			compareResource(resourceKey);
+		}
+	}
+
+	function updateResourceValues() {
+		for (var i = 0; i < globals.storages.resourceKeys.length; i++) {
+			setTimeout(generateUpdateCallback(globals.storages.resourceKeys[i]), (i * 1000));
+		}
+	}
+
+	function removeResource(name, url, scriptId) {
+		for (var i = 0; i < globals.storages.resourceKeys.length; i++) {
+			if (globals.storages.resourceKeys[i].name === name && globals.storages.resourceKeys[i].scriptId === scriptId && globals.storages.resourceKeys[i].url === url) {
+				globals.storages.resourceKeys.splice(i, 1);
+				break;
+			}
+		}
+
+		if (globals.storages.resources && globals.storages.resources[scriptId] && globals.storages.resources[scriptId][name]) {
+			globals.storages.resources[scriptId][name] = undefined;
+		}
+
+		chrome.storage.local.set({
+			resourceKeys: globals.storages.resourceKeys,
+			resources: globals.storages.resources
+		});
+	}
+
+	function checkIfResourcesAreUsed() {
+		var resourceNames = [];
+		for (var resourceForScript in globals.storages.resources) {
+			if (globals.storages.resources.hasOwnProperty(resourceForScript) && globals.storages.resources[resourceForScript]) {
+				var scriptResources = globals.storages.resources[resourceForScript];
+				for (var resourceName in scriptResources) {
+					if (scriptResources.hasOwnProperty(resourceName) && scriptResources[resourceName]) {
+						resourceNames.push(scriptResources.name);
+					}
+				}
+			}
+		}
+
+		for (var id in globals.crm.crmById) {
+			if (globals.crm.crmById.hasOwnProperty(id) && globals.crm.crmById[id]) {
+				if (globals.crm.crmById[id].type === 'script') {
+					var i;
+					if (globals.crm.crmById[id].value.script) {
+						var metaTags = getMetaTags(globals.crm.crmById[id].value.script);
+						var resources = metaTags.resource;
+						var resourceObj = {};
+						for (i = 0; i < resources; i++) {
+							resourceObj[resources[i]] = true;
+						}
+						for (i = 0; i < resourceNames.length; i++) {
+							if (!resourceObj[resourceNames[i]]) {
+								removeResource(resourceNames[i], message.scriptId);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	function getResourceData(name, scriptId) {
+		if (globals.storages.resources[scriptId][name] && globals.storages.resources[scriptId][name].matchesHashes) {
+			return globals.storages.resources[scriptId][name].dataURI;
+		}
+		return null;
+	}
+
+	function addResourceWebRequestListener() {
+		chrome.webRequest.onBeforeRequest.addListener(
+			function(details) {
+				var split = details.url.split('chrome-extension://' + extensionId + '/resource/')[1].split('/');
+				var name = split[0];
+				var scriptId = split[1];
+				return {
+					redirectUrl: getResourceData(name, scriptId)
+				};
+			}, {
+				urls: ['chrome-extension://' + extensionId + '/resource/*']
+			}, ['blocking']);
+	}
+
+	function resourceHandler(message) {
+		switch (message.type) {
+			case 'register':
+				registerResource(message.name, message.url, message.scriptId);
+				break;
+			case 'remove':
+				removeResource(message.name, message.url, message.scriptId);
+				break;
+		}
+	}
+	//#endregion
+
+	//#region Install Page
+	function openInstallPage(userScriptUrl) {
+		chrome.tabs.create({
+			url: globals.installUrl + '#' + userScriptUrl
+		}, function(tab) {
+
+		});
+	}
+
+	function handleUserJsRequest(details) {
+		var url = details.url;
+		console.log(url.indexOf('noCRM'));
+		console.log(url.length);
+		console.log(url.length - 6);
+		console.log(url);
+		if (url.indexOf('noCRM') === url.length - 5) {
+			return {};
+		}
+		openInstallPage(url);
+		return { cancel: true };
+	}
+
+	chrome.webRequest.onBeforeRequest.addListener(handleUserJsRequest,
+		{
+			urls: ['*://*/*.user.js']
+		}, 
+		['blocking']);
+	//#endregion
+
+	//#region Message Passing
+	function createCallbackMessageHandlerInstance(tabId, id) {
+		return function(data) {
+			globals.sendCallbackMessage(tabId, id, data);
+		}
+	}
+
+	function respondToInstanceMessageCallback(message, status, data) {
+		var msg = {
+			type: status,
+			callbackId: message.onFinish,
+			messageType: 'callback'
+		}
+		msg.data = data;
+		try {
+			globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
+		} catch (e) {
+			if (e.message === 'Converting circular structure to JSON') {
+				respondToInstanceMessageCallback(message, 'error', 'Converting circular structure to JSON, getting a response from this API will not work');
+			} else {
+				throw e;
+			}
+		}
+	}
+
+	function sendInstanceMessage(message) {
+		var data = message.data;
+		var tabData = globals.crmValues.tabData;
+		if (globals.crmValues.nodeInstances[data.id][data.toInstanceId] && tabData[data.toInstanceId] && tabData[data.toInstanceId].nodes[data.id]) {
+			if (globals.crmValues.nodeInstances[data.id][data.toInstanceId].hasHandler) {
+				tabData[data.toInstanceId].nodes[data.id].port.postMessage({
+					messageType: 'instanceMessage',
+					message: data.message
+				});
+				respondToInstanceMessageCallback(message, 'success');
+			} else {
+				respondToInstanceMessageCallback(message, 'error', 'no listener exists');
+			}
+		} else {
+			respondToInstanceMessageCallback(message, 'error', 'instance no longer exists');
+		}
+	}
+
+	function changeInstanceHandlerStatus(message) {
+		globals.crmValues.nodeInstances[message.id][message.tabId].hasHandler = message.data.hasHandler;
+	}
+
+	function addNotificationListener(message) {
+		var data = message.data;
+		notificationListeners[data.notificationId] = {
+			id: data.id,
+			tabId: data.tabId,
+			notificationId: data.notificationId,
+			onDone: data.onDone,
+			onClick: data.onClick
+		};
+	}
+
+	chrome.notifications.onClicked.addListener(function (notificationId) {
+		var notification = globals.notificationListeners[notificationId];
+		notification && notification.onClick && typeof notification.onClick === 'function' && notification.onClick();
+	});
+	chrome.notifications.onClosed.addListener(function(notificationId, byUser) {
+		var notification = globals.notificationListeners[notificationId];
+		notification && notification.onDone && typeof notification.onDone === 'function' && notification.onDone();
+		delete globals.notificationListeners[notificationId];
+	});
+
+	function installScriptMessage(message) {
+		var data = message.data;
+		chrome.tabs.create({
+			url: message.data.url
+		}, function(tab) {
+			globals.scriptInstallListeners[tab.id] = {
+				id: data.id,
+				tabId: data.tabId,
+				url: data.url,
+				callback: data.callback
+			};
+		});
+	}
+
+	function onScriptInstall(data) {
+		var script = globals.scriptInstallListeners[data.tabId];
+		if (script && script.url && script.url === data.url) {
+			script.callback && typeof script.callback === 'function' && script.callback();
+		}
+	}
+
+	function handleRuntimeMessage(message) {
 		console.log(message);
 		switch (message.type) {
-			case 'updateContextMenu':
-				crmTree = message.crmTree;
-				safeTree = buildSafeTree(crmTree);
-				buildByIdObjects(crmTree);
-				buildPageCRM();
+			case 'resource':
+				resourceHandler(message.data);
 				break;
-			case 'updateLibraries':
-				updateStorage(buildPageCRM);
+				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+				//	waiting for any update
+				/*
+			case 'scriptInstall':
+				onScriptInstall(message.data);
 				break;
+				*/
 			case 'updateStorage':
-				updateNodeStorage(message);
+				applyChanges(message.data);
+				break;
+			case 'sendInstanceMessage':
+				sendInstanceMessage(message);
+				break;
+				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+				//	waiting for any update
+				/*
+			case 'installScriptMessage':
+				installScriptMessage(message);
+				break;
+				*/
+			case 'changeInstanceHandlerStatus':
+				changeInstanceHandlerStatus(message);
+				break;
+			case 'addNotificationListener':
+				addNotificationListener(message);
 				break;
 		}
 	}
 
-	function handleMessage(message) {
+	function handleCrmAPIMessage(message) {
 		console.log(message);
 		switch (message.type) {
 			case 'crm':
@@ -2345,35 +3203,135 @@ function sandbox(api, args) {
 
 	function createHandlerFunction(port) {
 		return function (message) {
-			if (!tabNodeData[message.tabId][message.id].port) {
-				if (compareArray(tabNodeData[message.tabId][message.id].secretKey, message.key)) {
-					delete tabNodeData[message.tabId][message.id].secretKey;
-					tabNodeData[message.tabId][message.id].port = port;
+			var tabNodeData = globals.crmValues.tabData[message.tabId].nodes[message.id];
+			if (!tabNodeData.port) {
+				if (compareArray(tabNodeData.secretKey, message.key)) {
+					delete tabNodeData.secretKey;
+					tabNodeData.port = port;
+					globals.crmValues.nodeInstances[message.tabId] = {
+						hasHandler: false
+					};
+
+					var instance;
+					var instancesArr = [];
+					for (instance in globals.crmValues.nodeInstances[message.id]) {
+						if (globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) && globals.crmValues.nodeInstances[message.id][instance]) {
+							instancesArr.push(instance);
+							globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
+								change: {
+									type: 'added',
+									value: message.tabId
+								},
+								messageType: 'instancesUpdate'
+							});
+						}
+					}
+
 					port.postMessage({
-						data: 'connected'
+						data: 'connected',
+						instances: instancesArr
 					});
 				}
 			} else {
-				handleMessage(message);
+				handleCrmAPIMessage(message);
 			}
 		}
 	}
+	//#endregion
 
-	/*#endregion*/
+	//#region Startup
+	function setIfNotSet(obj, key, defaultValue) {
+		if (obj[key]) {
+			return obj[key];
+		}
+		chrome.storage.local.set({
+			key: defaultValue
+		});
+		return defaultValue;
+	}
 
-	function main() {
-		updateStorage(function() {
-			refreshPermissions();
-			chrome.runtime.onConnect.addListener(function (port) {
-				port.onMessage.addListener(createHandlerFunction(port));
+	function loadStorages(callback) {
+		chrome.storage.sync.get(function(chromeStorageSync) {
+			chrome.storage.local.get(function (chromeStorageLocal) {
+				var storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
+				delete storageLocalCopy.resourceKeys;
+				delete storageLocalCopy.nodeStorage;
+				delete storageLocalCopy.resources;
+
+				var indexes;
+				var jsonString;
+				var settingsStorage;
+				var settingsJsonArray;
+				if (chromeStorageLocal.useStorageSync) {
+					//Parse the data before sending it to the callback
+					indexes = chromeStorageSync.indexes;
+					if (!indexes) {
+						chrome.storage.local.set({
+							useStorageSync: false
+						});
+						settingsStorage = chromeStorageLocal.settings;
+					} else {
+						settingsJsonArray = [];
+						indexes.forEach(function (index) {
+							settingsJsonArray.push(chromeStorageSync[index]);
+						});
+						jsonString = settingsJsonArray.join('');
+						settingsStorage = JSON.parse(jsonString);
+					}
+				} else {
+					//Send the "settings" object on the storage.local to the callback
+					if (!chromeStorageLocal.settings) {
+						chrome.storage.local.set({
+							useStorageSync: true
+						});
+						indexes = chromeStorageSync.indexes;
+						settingsJsonArray = [];
+						indexes.forEach(function (index) {
+							settingsJsonArray.push(chromeStorageSync[index]);
+						});
+						jsonString = settingsJsonArray.join('');
+						var settings = JSON.parse(jsonString);
+						settingsStorage = settings;
+					} else {
+						delete storageLocalCopy.settings;
+						settingsStorage = chromeStorageLocal.settings;
+					}
+				}
+
+				globals.storages.storageLocal = storageLocalCopy;
+				globals.storages.settingsStorage = settingsStorage;
+				globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
+				globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
+				globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
+
+
+				updateCRMValues();
+
+				callback && callback();
 			});
-			chrome.runtime.onMessage.addListener(handleUpdateMessage);
-			buildPageCRM();
 		});
 	}
 
-	chrome.permissions.getAll(function (available) {
-		availablePermissions = available.permissions;
-		main();
-	});
-}(window));
+	(function() {
+		loadStorages(function() {
+			refreshPermissions();
+			chrome.runtime.onConnect.addListener(function(port) {
+				port.onMessage.addListener(createHandlerFunction(port));
+			});
+			chrome.runtime.onMessage.addListener(handleRuntimeMessage);
+			buildPageCRM();
+			addResourceWebRequestListener();
+
+			chrome.storage.onChanged.addListener(function (changes, areaName) {
+				if (areaName === 'local' && changes.latestId) {
+					globals.latestId = changes.latestId.newValue;
+				}
+			});
+
+			//Checks if all values are still correct
+			checkIfResourcesAreUsed();
+			updateResourceValues();
+		});
+	}());
+	//#endregion
+}(chrome.runtime.getURL('').split('chrome-extension://')[1].split('/')[0])); //Gets the extension's URL through a blocking instead of a callback function
