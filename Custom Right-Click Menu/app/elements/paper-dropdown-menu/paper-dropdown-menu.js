@@ -25,8 +25,6 @@
 
 	init: function () {
 		var paperItems = $(this).find('paper-item');
-		console.log(this.selected);
 		this.$.dropdownSelected.innerHTML = paperItems[this.selected].children[1].innerHTML;
-		console.log(this.indent);
 	}
 });

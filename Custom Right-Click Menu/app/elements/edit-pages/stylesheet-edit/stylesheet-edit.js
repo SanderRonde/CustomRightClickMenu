@@ -386,7 +386,6 @@
 	},
 
 	metaTagsUpdate: function (changes, source) {
-		console.log(changes, source);
 		if (!changes) {
 			return;
 		}
@@ -559,8 +558,6 @@
 		$(newEl).find('.executionTriggerClear').on('click', function () {
 			_this.triggerRemove.apply(_this, []);
 		});
-		console.log('kappa jakarta');
-		console.trace();
 		this.metaTagsUpdate({
 			'added': [
 				{
@@ -676,7 +673,6 @@
 		});
 
 		$('.executionTriggerNot').on('change', function () {
-			console.log('triggered');
 			_this.triggerCheckboxChange.apply(_this, [this]);
 		});
 		$('.triggerInput').on('keydown', function () {

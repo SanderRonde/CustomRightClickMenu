@@ -129,15 +129,11 @@ Polymer({
 
 		libraries = libraries.concat(anonymousLibraries);
 
-		console.log(JSON.parse(JSON.stringify(anonymousLibraries)));
-		console.log(JSON.parse(JSON.stringify(libraries)));
-
 		libraries.forEach(function(item, index) {
 			if (item.selected === 'true') {
 				selected.push(index);
 			}
 		});
-		console.log(JSON.parse(JSON.stringify(libraries)));
 		_this.selected = selected;
 		libraries.push({
 			name: 'Add your own',
@@ -145,7 +141,6 @@ Polymer({
 			selected: 'false',
 			isLibrary: false
 		});
-		console.log(JSON.parse(JSON.stringify(libraries)));
 		_this.libraries = libraries;
 	},
 

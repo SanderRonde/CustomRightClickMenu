@@ -233,7 +233,6 @@
 						if (allowed.indexOf(permission) === -1) {
 							try {
 								chrome.permissions.request(permission, function(granted) {
-									console.log(chrome.runtime.lastError);
 									if (!granted) {
 										checkbox.checked = false;
 									}

@@ -95,9 +95,7 @@
 	function setMetaTags(cm, content) {
 		var oldMetaTags;
 		if (cm.metaTags) {
-			console.log(cm.metaTags);
 			oldMetaTags = JSON.parse(JSON.stringify(cm.metaTags));
-			console.log(oldMetaTags);
 		}
 
 		var i;
@@ -107,7 +105,6 @@
 		var startPlusOne = metaStart + 1;
 		var lines = content.split('\n');
 		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
-		console.log(metaLines.length);
 		if (metaLines.length === 0) {
 			cm.metaTags = {};
 			return null;
@@ -131,15 +128,11 @@
 			}
 		}
 
-		console.log('got to this pointed obv');
-
 		cm.metaTags = cm.metaTags || {};
 		cm.metaTags.metaStart = metaIndexes.start;
 		cm.metaTags.metaTags = metaTagObj;
 		cm.metaTags.metaEnd = metaIndexes.end;
 		cm.metaTags.metaIndexes = indexes;
-		console.log(cm);
-		console.log(cm.metaTags);
 
 		if (oldMetaTags) {
 			return compareMetaTags(oldMetaTags, metaTagObj);
@@ -148,9 +141,6 @@
 	}
 
 	function updateMetaTags(cm, changes) {
-		console.log('WAAAAAAAA changes');
-		console.log(cm, changes);
-
 		var i, j;
 		var content = cm.getValue();
 		var contentLines = content.split('\n');
@@ -167,7 +157,6 @@
 			};
 			if (changes[i].text.length !== changes[i].removed.length) {
 				//Insertion or removal
-				console.log('INSERTION OR REMOVAL');
 				tagsChanged = setMetaTags(cm, content);
 			} else if (changes[i].to.line < lastMetatagIndex || changeLineStart > firstMetatagIndex) {
 				for (j = 0; j < linesChanged; j++) {
@@ -274,7 +263,6 @@
 		setMetaTags(cm, cm.getValue());
 
 		//Save those changes
-		console.log(cm.metaTags);
 		window.CodeMirror.signal(cm, 'metaTagChanged', null, cm.metaTags.metaTags);
 		window.CodeMirror.signal(cm, 'metaDisplayStatusChanged', {
 			status: 'hidden'
@@ -374,7 +362,6 @@
 		for (var index in cm.metaTags.metaIndexes) {
 			if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
 				if (cm.metaTags.metaIndexes[index].key === key && cm.metaTags.metaIndexes[index].value === value) {
-					console.log(parseInt(index, 10) + 1);
 					cm.doc.replaceRange('', {
 						line: index,
 						ch: 0
@@ -393,14 +380,9 @@
 	codemirror.defineExtension('updateMetaTags', function(cm, key, oldValue, value, singleValue) {
 		setMetaTags(cm, cm.getValue());
 
-		console.log(singleValue);
-		console.log(cm.metaTags.metaIndexes);
 		for (var index in cm.metaTags.metaIndexes) {
 			if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
-				console.log(cm.metaTags.metaIndexes[index].value);
-				console.log(oldValue);
 				if (cm.metaTags.metaIndexes[index].key === key && (singleValue || cm.metaTags.metaIndexes[index].value === '' + oldValue)) {
-					console.log('equal');
 					cm.doc.replaceRange('// @' + key + '	' + value, {
 						line: index,
 						ch: 0
@@ -412,7 +394,6 @@
 				}
 			}
 		}
-		console.log('not found');
 		cm.addMetaTags(cm, key, value);
 	});
 
@@ -428,7 +409,6 @@
 		});
 	});
 
-	console.log('loaded');
 	codemirror.defineExtension('getMetatags', function (cm) {
 		return cm.metaTags.metaTags;
 	});

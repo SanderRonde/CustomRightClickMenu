@@ -194,9 +194,6 @@ Polymer({
 			this.opened = false;
 			window.app.item = null;
 			this.unassignItems();
-			console.log(this.item);
-			console.log(this.isScript);
-			console.log(this.scriptItem);
 		}
 	},
 
@@ -295,7 +292,6 @@ Polymer({
 			_this.isMenu = valueStorer.isMenu;
 			_this.isDivider = valueStorer.isDivider;
 			_this.isStylesheet = valueStorer.isStylesheet;
-			console.log($(_this).find('#editPageCont > :not([hidden])')[0]);
 			$(_this).find('#editPageCont > :not([hidden])')[0].init();
 			_this.animateIn();
 		}, 300);

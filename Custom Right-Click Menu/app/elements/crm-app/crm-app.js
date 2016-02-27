@@ -359,7 +359,6 @@ Polymer({
 	},
 
 	switchToIcons: function(index) {
-		console.log('switch');
 		var i;
 		var element;
 		var crmTypes = document.querySelectorAll('.crmType');
@@ -377,7 +376,6 @@ Polymer({
 			}
 		}
 		this.crmType = index;
-		console.log(this.crmType);
 		this.fire('crmTypeChanged', {});
 	},
 
@@ -420,7 +418,6 @@ Polymer({
 			selectedCrmType: selectedType
 		});
 		this.crmType = selectedType;
-		console.log(this.crmType);
 		this.fire('crmTypeChanged', {});
 	},
 
@@ -895,7 +892,6 @@ Polymer({
 		$('.CodeMirror').each(function() {
 			this.CodeMirror.refresh();
 		});
-		console.log(window.colorFunction);
 		window.colorFunction && window.colorFunction.func({
 			from: {
 				line: 0
@@ -1025,11 +1021,9 @@ Polymer({
 				});
 
 				$('#requestPermissionsAcceptAll').off('click').on('click', function() {
-					console.log(toRequest);
 					chrome.permissions.request({
 						permissions: toRequest
 					}, function(accepted) {
-						console.log(accepted);
 						if (accepted) {
 							chrome.storage.local.set({
 								requestPermissions: []
@@ -1621,7 +1615,6 @@ Polymer({
 			script: function(toAdd) {
 				var item = {};
 				item.name = toAdd.name;
-				console.log('?');
 				item.callback = this.parent.handlers.script(toAdd.value.script);
 				return item;
 			},
@@ -1790,7 +1783,6 @@ Polymer({
 					}
 				}
 			});
-			console.log(childItems);
 			return childItems;
 		},
 

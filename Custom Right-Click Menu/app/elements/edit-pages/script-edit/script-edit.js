@@ -443,7 +443,6 @@
 		},
 
 		metaTagsUpdate: function (changes, source) {
-			console.log(changes, source);
 			if (!changes) {
 				return;
 			}
@@ -615,8 +614,6 @@
 			$(newEl).find('.executionTriggerClear').on('click', function () {
 				_this.triggerRemove.apply(_this, []);
 			});
-			console.log('kappa jakarta');
-			console.trace();
 			this.metaTagsUpdate({
 				'added': [
 					{
@@ -686,7 +683,6 @@
 			});
 
 			$('.executionTriggerNot').on('change', function () {
-				console.log('triggered');
 				_this.triggerCheckboxChange.apply(_this, [this]);
 			});
 			$('.triggerInput').on('keydown', function() {
@@ -773,7 +769,6 @@
 				extensionWideEnabledPermissions = extensionWideEnabledPermissions.permissions;
 
 				var askedPermissions = nodeItem.nodeInfo.permissions || [];
-				console.log(askedPermissions);
 
 				var requiredActive = [];
 				var requiredInactive = [];
@@ -809,12 +804,10 @@
 				permissionList.push.apply(permissionList, requiredActive);
 				permissionList.push.apply(permissionList, requiredInactive);
 				permissionList.push.apply(permissionList, nonRequiredNonActive);
-				console.log(permissionList);
 
 				function cb() {
 					var el, svg;
 					$('.requestPermissionsShowBot').off('click').on('click', function() {
-						console.log('clicked it');
 						el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 						svg = $(this).find('.requestPermissionsSvg')[0];
 						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
@@ -1563,8 +1556,6 @@
 			var placeHolder = $(this.$.editorPlaceholder);
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();
-			console.log(window.app);
-			console.log(window.app.settings);
 			!window.app.settings.editor && (window.app.settings.editor = {});
 			this.editor = new window.CodeMirror(container, {
 				lineNumbers: window.app.settings.editor.lineNumbers,

@@ -88,7 +88,6 @@
 		for (i = 0; i < 6; i++) {
 			result[i] = this[arr[i] + 'ContentSelected'];
 		}
-		console.log(result);
 		this.newSettings.onContentTypes = result;
 	},
 
@@ -254,7 +253,6 @@
 
 		var triggersElement = this.$.executionTriggersContainer;
 		var $triggersElement = $(triggersElement);
-		console.log(this);
 		var contentTypeChooserElement = this.$.showOnContentContainer;
 		var $contentTypeChooserElement = $(contentTypeChooserElement);
 
@@ -344,10 +342,8 @@
 	},
 
 	initDropdown: function () {
-		console.log('called kek');
 		this.showTriggers = (this.item.value.launchMode > 1);
 		this.showContentTypeChooser = (this.item.value.launchMode === 0 || 3);
-		console.log(this.showContentTypeChooser);
 		if (this.showTriggers) {
 			this.$.executionTriggersContainer.style.display = 'block';
 			this.$.executionTriggersContainer.style.marginLeft = 0;
@@ -366,9 +362,6 @@
 			this.$.showOnContentContainer.style.marginLeft = '-110%';
 			this.$.showOnContentContainer.style.height = 0;
 		}
-		console.log('');
-		console.log(this);
-		console.log('');
 		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();
@@ -378,13 +371,8 @@
 
 	_init: function () {
 		var _this = this;
-		console.log(this.item);
 		this.newSettings = JSON.parse(JSON.stringify(this.item));
-		console.log('ran');
 		window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
-		console.log(window.crmEditPage.nodeInfo);
-		console.log(this.newSettings.nodeInfo);
-		console.log(this.newSettings);
 		this.assignContentTypeSelectedValues();
 		setTimeout(function () {
 			_this.$.nameInput.focus();

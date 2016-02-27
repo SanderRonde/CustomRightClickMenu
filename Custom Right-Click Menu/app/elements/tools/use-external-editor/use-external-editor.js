@@ -391,10 +391,6 @@ Polymer({
 	 */
 	establishConnection: function (retry) {
 		//TODO Change ID
-		console.log('establishing');
-		console.log(this.connection);
-		console.log(this.appPort);
-		console.log(this.connectionPromise);
 		var _this = this;
 		if (!this.appPort) {
 			this.appPort = chrome.runtime.connect('gjmgdmomggpaiecllfmfgbbfhnlpbpic'); //gbfbinhlfpjckadedmfinepfioodgcll');
@@ -403,7 +399,7 @@ Polymer({
 			this.connection.fileConnected = false;
 			this.connectionPromise = new Promise(function(resolve, reject) {
 				function promiseListener(msg) {
-					console.log('msged', msg);
+					console.log('messaged desktop app:', msg);
 					if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
 						_this.appPort.onMessage.removeListener(promiseListener);
 						resolve(msg);

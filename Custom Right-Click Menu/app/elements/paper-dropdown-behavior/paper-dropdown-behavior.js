@@ -122,9 +122,6 @@
 	ready: function() {
 		var _this = this;
 		this._paperItems = $(this).find('paper-item').on('click', function () {
-			console.log('');
-			console.log('clicked');
-			console.log('');
 			setTimeout(function () {
 				_this._fireListeners(_this);
 				if (_this._dropdownSelectChange) {
