@@ -49,8 +49,30 @@ Polymer({
 
 	ready: function() {
 		var _this = this;
-		chrome.storage.local.get('libraries', function(keys) {
-			_this.installedLibraries = keys.libraries;
+		window.paperLibrariesSelector = this;
+		chrome.storage.local.get('libraries', function (keys) {
+			if (keys.libraries) {
+				_this.installedLibraries = keys.libraries;
+			} else {
+				_this.installedLibraries = [
+					{
+						name: 'jQuery 2.1.4',
+						location: 'jquery.js'
+					}, {
+						name: 'angular 1.4.7',
+						location: 'angular.js'
+					}, {
+						name: 'mooTools 1.5.2',
+						location: 'mooTools.js'
+					}, {
+						name: 'yui 3.18.1',
+						location: 'yui.js'
+					}
+				];
+				chrome.storage.local.set({
+					libaries: _this.installedLibraries
+				});
+			}
 		});
 		chrome.storage.onChanged.addListener(function(changes, areaName) {
 			if (areaName === 'local' && changes.libraries) {
@@ -61,9 +83,14 @@ Polymer({
 	
 	init: function() {
 		var _this = this;
+		var anonymous = [];
 		var selectedObj = {};
-		this.usedlibraries.forEach(function(item) {
-			selectedObj[item.name] = true;
+		this.usedlibraries.forEach(function (item) {
+			if (item.name ===  null) {
+				anonymous.push(item);
+			} else {
+				selectedObj[item.name.toLowerCase()] = true;
+			}
 		});
 		var libraries = [];
 		var selected = [];
@@ -72,7 +99,8 @@ Polymer({
 			itemCopy = {};
 			itemCopy.name = item.name;
 			itemCopy.isLibrary = true;
-			if (selectedObj[item.name]) {
+			itemCopy.url = item.url;
+			if (selectedObj[item.name.toLowerCase()]) {
 				itemCopy.classes = 'library iron-selected';
 				itemCopy.selected = 'true';
 			}
@@ -85,6 +113,22 @@ Polymer({
 		libraries.sort(function(first, second) {
 			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
 		});
+
+		var anonymousLibraries = [];
+		anonymous.forEach(function(item) {
+			itemCopy = {};
+			itemCopy.isLibrary = true;
+			itemCopy.name = item.url + ' (anonymous)';
+			itemCopy.classes = 'library iron-selected anonymous';
+			itemCopy.selected = 'true';
+			anonymousLibraries.push(itemCopy);
+		});
+		anonymousLibraries.sort(function (first, second) {
+			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
+		});
+
+		libraries = libraries.concat(anonymousLibraries);
+
 		libraries.forEach(function(item, index) {
 			if (item.selected === 'true') {
 				selected.push(index);
@@ -100,14 +144,14 @@ Polymer({
 		_this.libraries = libraries;
 	},
 
-	confirmLibraryFile: function (_this, name, code, url) {
+	confirmLibraryFile: function (_this, name, code) {
 		window.doc.addLibraryProcessContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {
 			window.doc.addLibraryConfirmationInput.value = code;
 			window.doc.addLibraryConfirmAddition.addEventListener('click', function () {
 				window.doc.addLibraryConfirmationInput.value = '';
-				_this.addLibraryFile(_this, name, code);
+				_this.addLibraryFile(_this, name, code, url);
 			});
 			window.doc.addLibraryDenyConfirmation.addEventListener('click', function() {
 				window.doc.addLibraryConfirmationContainer.style.display = 'none';
@@ -122,18 +166,22 @@ Polymer({
 		}, 250);
 	},
 
-	addLibraryFile: function (_this, name, code) {
+	addLibraryFile: function (_this, name, code, url) {
 		window.doc.addLibraryConfirmationContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {
 			_this.installedLibraries.push({
 				name: name,
-				code: code
+				code: code,
+				url: url
 			});
-			chrome.storage.local.set({ libraries: _this.installedLibraries });
+			window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor, 'require', url);
 			chrome.runtime.sendMessage({
-				update: true,
-				type: 'updateLibraries'
+				type: 'updateStorage',
+				data: {
+					type: 'libraries',
+					libraries: _this.installedLibraries
+				}
 			});
 			_this.splice('libraries', _this.libraries.length - 1, 0, {
 				name: name,
@@ -183,7 +231,7 @@ Polymer({
 			window.doc.addLibraryDialog.toggle();
 			$(window.doc.addLibraryDialog)
 				.find('#addLibraryButton')
-				.on('click', function () {
+				.on('click', function() {
 					var name = window.doc.addedLibraryName.value;
 					var taken = false;
 					for (var i = 0; i < _this.installedLibraries.length; i++) {
@@ -220,6 +268,21 @@ Polymer({
 					}
 				});
 		}
+		else if (e.target.classList.contains('anonymous')) {
+			e.target.remove();
+			//window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor, 'require', 
+			//TODO remove the require from the metatags
+		} else {
+			//Checking or un-checking something
+			var lib = e.target.getAttribute('data-url');
+			var changeType = (e.target.classList.contains('iron-selected') ? 'addMetaTags' : 'removeMetaTags');
+			window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib);
+		}
+	},
+
+	updateLibraries: function(libraries) {
+		this.set('libraries', libraries);
+		this.init();
 	},
 
 	behaviors: [Polymer.PaperDropdownBehavior]

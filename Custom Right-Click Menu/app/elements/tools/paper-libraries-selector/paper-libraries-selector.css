@@ -22,6 +22,8 @@ paper-libraries-selector[indent=false] #dropdownSelectedCont {
 
 .menuOptionName {
 	padding-left: 38px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 paper-item[aria-selected=true] .menuSelectedCheckmark {
@@ -34,4 +36,24 @@ paper-item[aria-selected=true] .menuOptionName, paper-item[addlibrary] .menuOpti
 
 paper-libraries-selector .addLibrary {
 	font-weight: normal !important;
+}
+
+paper-libraries-selector .library.anonymous {
+	color: grey;
+	fill: grey;
+}
+
+.anonymous > .menuOptionName[data-descr]:hover::after {
+  	content: attr(data-descr);
+	position: absolute;
+	left: 49px;
+	margin-top: 26px;
+	min-width: 200px;
+	border: 1px rgb(170, 170, 170) solid;
+	border-radius: 10px;
+	background-color: rgb(255, 255, 255);
+	padding: 5px;
+	color: rgb(0, 0, 0);
+	font-size: 14px;
+	z-index: 9999999999;
 }
