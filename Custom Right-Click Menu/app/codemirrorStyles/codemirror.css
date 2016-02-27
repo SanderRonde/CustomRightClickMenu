@@ -130,6 +130,9 @@ div.CodeMirror-overwrite div.CodeMirror-cursor {}
 .cm-s-default .cm-attribute {color: #FF0000;}
 .cm-s-default .cm-hr {color: #999;}
 .cm-s-default .cm-link {color: #00c;}
+.cm-s-default .metaTagHiddenText {
+	background-color: #CCCCCC;
+}
 
 .cm-s-default .cm-error {color: rgb(255, 168, 87);}
 .cm-invalidchar {color: rgb(255, 168, 87);}
@@ -169,7 +172,9 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-strikethrough {text-decoration: line-through;}
 
 .cm-s-dark .cm-keyword, 
-.cm-s-dark .cm-atom {}
+.cm-s-dark .cm-atom {
+	color: rgb(92, 151, 214);
+}
 .cm-s-dark .cm-number {color: #FFF;}
 .cm-s-dark .cm-def {color: #FFF;}
 .cm-s-dark .cm-variable,
@@ -193,6 +198,10 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-dark .cm-attribute {color: #00c;}
 .cm-s-dark .cm-hr {color: #999;}
 .cm-s-dark .cm-link {color: #00c;}
+
+.cm-s-dark .metaTagHiddenText {
+	background-color: #D4D4D4;
+}
 
 .cm-s-dark .cm-error {color: #f00;}
 .cm-invalidchar {color: #f00;}
@@ -433,46 +442,46 @@ span.CodeMirror-selectedtext { background: none; }
 
 
 
-.cm-s-dark #codeMirrorSearchDialog {
+.cm-s-dark .codeMirrorSearchDialog {
 	color: white;
 	fill: white;
 	font-size:16px;
 }
 
-.cm-s-white #codeMirrorSearchDialog {
+.cm-s-white .codeMirrorSearchDialog {
 	color: black;
 	fill: black;
 }
 
-#codeMirrorSearchDialogSearchCont {
+.codeMirrorSearchDialogSearchCont {
 	display: flex;
 	flex-direction: row;
 	margin-top: 30px;
 	justify-content: center;
 }
 
-#codeMirrorSearchDialogArrow {
+.codeMirrorSearchDialogArrow {
 	margin-top: 11px;
 	cursor: pointer;
 }
 
-	#codeMirrorSearchDialogArrow svg {
+	.codeMirrorSearchDialogArrow svg {
 		width: 30px;
 		transform: rotate(-90deg);
 	}
 
-#codeMirrorSearchDialogButtons, #codeMirrorSearchDialogReplaceButtons {
+.codeMirrorSearchDialogButtons, .codeMirrorSearchDialogReplaceButtons {
 	display: flex;
 	flex-direction: row;
 }
 
-#codeMirrorCloseDialogButtonCont {
+.codeMirrorCloseDialogButtonCont {
 	margin-top: 7px;
 	right: 0;
 	flex-grow: 100;
 }
 
-#codeMirrorCloseDialogButton {
+.codeMirrorCloseDialogButton {
 	right: 0;
 	margin-top: -7px;
 	width: 28px;
@@ -480,7 +489,7 @@ span.CodeMirror-selectedtext { background: none; }
 	position: absolute;
 }
 
-#codeMirrorSearchDialogReplaceCont {
+.codeMirrorSearchDialogReplaceCont {
 	display: flex;
 	flex-direction: row;
 	margin-top: -6px;
@@ -871,4 +880,10 @@ li.CodeMirror-hint-active {
 
 #codeMirrorSearchDialogSearchCont paper-input {
 	margin-top: 7px;
+}
+
+.codeMirrorHideMarker, .codeMirrorExpandMarker {
+	padding-left: 2px;
+	margin-right:5px;
+	cursor: pointer;
 }
