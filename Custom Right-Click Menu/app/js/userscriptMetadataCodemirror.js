@@ -359,54 +359,58 @@
 
 	codemirror.defineExtension('removeMetaTags', function(cm, key, value) {
 		setMetaTags(cm, cm.getValue());
-		for (var index in cm.metaTags.metaIndexes) {
-			if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
-				if (cm.metaTags.metaIndexes[index].key === key && cm.metaTags.metaIndexes[index].value === value) {
-					cm.doc.replaceRange('', {
-						line: index,
-						ch: 0
-					}, {
-						line: parseInt(index, 10) + 1,
-						ch: 0
-					});
-					return index;
+		if (cm.metaTags) {
+			for (var index in cm.metaTags.metaIndexes) {
+				if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
+					if (cm.metaTags.metaIndexes[index].key === key && cm.metaTags.metaIndexes[index].value === value) {
+						cm.doc.replaceRange('', {
+							line: index,
+							ch: 0
+						}, {
+							line: parseInt(index, 10) + 1,
+							ch: 0
+						});
+						return index;
+					}
 				}
 			}
 		}
-
 		return null;
 	});
 
 	codemirror.defineExtension('updateMetaTags', function(cm, key, oldValue, value, singleValue) {
 		setMetaTags(cm, cm.getValue());
 
-		for (var index in cm.metaTags.metaIndexes) {
-			if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
-				if (cm.metaTags.metaIndexes[index].key === key && (singleValue || cm.metaTags.metaIndexes[index].value === '' + oldValue)) {
-					cm.doc.replaceRange('// @' + key + '	' + value, {
-						line: index,
-						ch: 0
-					}, {
-						line: index,
-						ch: cm.doc.getLine(index).length
-					});
-					return;
+		if (cm.metaTags) {
+			for (var index in cm.metaTags.metaIndexes) {
+				if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
+					if (cm.metaTags.metaIndexes[index].key === key && (singleValue || cm.metaTags.metaIndexes[index].value === '' + oldValue)) {
+						cm.doc.replaceRange('// @' + key + '	' + value, {
+							line: index,
+							ch: 0
+						}, {
+							line: index,
+							ch: cm.doc.getLine(index).length
+						});
+						return;
+					}
 				}
 			}
+			cm.addMetaTags(cm, key, value);
 		}
-		cm.addMetaTags(cm, key, value);
 	});
 
 	codemirror.defineExtension('addMetaTags', function(cm, key, value, line) {
 		setMetaTags(cm, cm.getValue());
-
-		cm.doc.replaceRange('// @' + key + '	' + value + '\n', {
-			line: (line && parseInt(line, 10)) || cm.metaTags.metaEnd.line,
-			ch: 0
-		}, {
-			line: (line && parseInt(line, 10)) || cm.metaTags.metaEnd.line,
-			ch: 0
-		});
+		if (cm.metaTags) {
+			cm.doc.replaceRange('// @' + key + '	' + value + '\n', {
+				line: (line && parseInt(line, 10)) || cm.metaTags.metaEnd.line,
+				ch: 0
+			}, {
+				line: (line && parseInt(line, 10)) || cm.metaTags.metaEnd.line,
+				ch: 0
+			});
+		}
 	});
 
 	codemirror.defineExtension('getMetatags', function (cm) {
