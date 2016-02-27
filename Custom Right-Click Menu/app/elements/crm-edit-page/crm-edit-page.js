@@ -150,6 +150,18 @@ Polymer({
 			type: Object,
 			value: null,
 			notify: true
+		},
+		/**
+		 * The nodeInfo to display
+		 * 
+		 * @attribute nodeInfo
+		 * @type Object
+		 * @default null
+		 */
+		nodeInfo: {
+			type: Object,
+			value: {},
+			notify: true
 		}
 	},
 
@@ -157,20 +169,23 @@ Polymer({
 		"neon-animation-finish": '_onNeonAnimationFinish'
 	},
 
-	isLocal: function(source) {
+	isLocal: function (source) {
+		if (!source) {
+			return true;
+		}
 		return source === 'local';
 	},
 
+	nodeInfoExists: function(nodeInfo) {
+		return !!nodeInfo;
+	},
+
+	hasInstallDate: function(nodeInfo) {
+		return this.nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
+	},
+
 	_onNeonAnimationFinish: function () {
-		var _this = this;
-		if (this.opened) {
-			this.$overlayEl.on('click', function () {
-				$(_this.$.editPageCont).children('link-edit, script-edit, divider-edit, menu-edit, stylesheet-edit').not('[hidden]')[0].cancel();
-				setTimeout(function() {
-					_this.unassignItems();
-				}, 300);
-			});
-		} else {
+		if (!this.opened) {
 			this.$overlayEl[0].style.display = 'none';
 			this.$.overlayCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
@@ -179,9 +194,6 @@ Polymer({
 			this.opened = false;
 			window.app.item = null;
 			this.unassignItems();
-			console.log(this.item);
-			console.log(this.isScript);
-			console.log(this.scriptItem);
 		}
 	},
 
@@ -222,6 +234,26 @@ Polymer({
 		this.opened = false;
 	},
 
+	updateNodeInfo: function(obj, path) {
+		path = path || 'nodeInfo';
+		for (var key in obj) {
+			if (obj.hasOwnProperty(key)) {
+				if (typeof obj[key] === 'object') {
+					this.updateNodeInfo(obj[key], path + '.' + key);
+				}
+				this.notifyPath(path + '.' + key, obj[key]);
+			}
+		}
+	},
+
+	updateName: function(value) {
+		this.notifyPath('item.name', value);
+	},
+
+
+	//TODO clicking on items wile holding shift should toggle selection mode
+	//TODO Holding shift and clicking should select them all
+
 	ready: function () {
 		$('.popupCont').click(function(e) {
 			e.stopPropagation();
@@ -260,7 +292,6 @@ Polymer({
 			_this.isMenu = valueStorer.isMenu;
 			_this.isDivider = valueStorer.isDivider;
 			_this.isStylesheet = valueStorer.isStylesheet;
-			console.log($(_this).find('#editPageCont > :not([hidden])')[0]);
 			$(_this).find('#editPageCont > :not([hidden])')[0].init();
 			_this.animateIn();
 		}, 300);
