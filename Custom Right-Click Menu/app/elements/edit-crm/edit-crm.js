@@ -117,7 +117,6 @@ window.Polymer({
 		for (i = 0; i < window.app.settings.crm.length; i++) {
 			this.isNodeVisible(hiddenNodes, window.app.settings.crm[i], window.app.crmType);
 		}
-		console.log(path);
 		var items = $($(window.app.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children;
 		var index = path[path.length - 1];
 		for (i = 0; i < items.length; i++) {
@@ -143,7 +142,6 @@ window.Polymer({
 		if (list) {
 			list.forEach(function (item, index) {
 				if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
-				console.log(hidden[item.id]);
 					lastMenu = index;
 					if (item.children.length > 0) {
 						lastFilledMenu = index;
@@ -166,11 +164,10 @@ window.Polymer({
 	 * @returns {Number} 1 if the node is visible, 0 if it's not
 	 */
 	isNodeVisible: function (result, node, showContentType) {
-		var i;
 		var length;
 		if (node.children && node.children.length > 0) {
 			length = node.children.length;
-			for (i = 0; i < length; i++) {
+			for (var i = 0; i < length; i++) {
 				this.isNodeVisible(result, node.children[i], showContentType);
 			}
 		}
@@ -222,16 +219,13 @@ window.Polymer({
 		for (i = 0; i < list.length; i++) {
 			shown += this.isNodeVisible(hiddenNodes, list[i], showContentTypes);
 		}
-		console.log(hiddenNodes);
 
 		if (shown) {
 			while (lastMenu !== -1) {
 				if (setMenusLength > columnNum && !hiddenNodes[list[setMenus[columnNum]]]) {
 					lastMenu = setMenus[columnNum];
-					console.log(lastMenu);
 				} else {
 					lastMenu = this.getLastMenu(list, hiddenNodes);
-					console.log(lastMenu);
 				}
 				newSetMenus[columnNum] = lastMenu;
 				indent = this.getIndent(list, lastMenu, hiddenNodes);
@@ -401,19 +395,16 @@ window.Polymer({
 
 	exportSelected: function() {
 		var toExport = this.getSelected();
-		console.log(toExport);
 		var exports = [];
 		var i;
 		for (i = 0; i < app.settings.crm.length; i++) {
 			this.extractUniqueChildren(app.settings.crm[i], toExport, exports);
 		}
-		console.log(exports);
 
 		var safeExports = [];
 		for (i = 0; i < exports.length; i++) {
 			safeExports[i] = this.makeNodeSafe(exports[i]);
 		}
-		console.log(safeExports);
 		var dataJson = {
 			crm: safeExports
 		};
@@ -421,7 +412,6 @@ window.Polymer({
 		var textarea = $('#exportJSONData')[0];
 
 		function authorNameChange(event) {
-			console.log(event);
 			var author = event.target.value;
 			chrome.storage.local.set({
 				authorName: author
@@ -474,8 +464,6 @@ window.Polymer({
 				}
 			} catch (e) {
 				//Item has already been removed
-				console.log(e);
-				console.log('didnt work', toRemove[i]);
 			}
 		}
 		this.build(null, true, false);

@@ -55,7 +55,6 @@
 	},
 
 	toggleCheckbox: function (e) {
-		console.log(e);
 		var pathIndex = 0;
 		while (!e.path[pathIndex].classList.contains('linkChangeCont')) {
 			pathIndex++;
