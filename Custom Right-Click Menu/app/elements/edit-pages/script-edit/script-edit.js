@@ -168,6 +168,24 @@
 	     */
 		preFullscreenEditorDimensions: {},
 
+		/*
+		 * Prevent the codemirror editor from signalling again for a while
+		 * 
+		 * @attribute preventNotification
+		 * @type Boolean
+		 * @default false
+		 */
+		preventNotification: false,
+
+		/*
+		 * The timeout that resets the preventNotification bool
+		 * 
+		 * @attribute preventNotificationTimeout
+		 * @type Number
+		 * @default null
+		 */
+		preventNotificationTimeout: null,
+
 		properties: {
 			item: {
 				type: Object,
@@ -195,6 +213,516 @@
 		 * @default []
 		 */
 		optionsAnimations: [],
+
+		//#endregion
+
+		//#region Metadata Updates
+		preventCodemirrorNotification: function() {
+			var _this = this;
+			this.preventNotification = true;
+			if (this.preventNotificationTimeout !== null) {
+				window.clearTimeout(this.preventNotificationTimeout);
+			}
+			this.preventNotificationTimeout = window.setTimeout(function() {
+				_this.preventNotification = false;
+				_this.preventNotificationTimeout = null;
+			}, 20);
+		},
+
+		updateFromScriptApplier: function (changeType, key, newValue, oldValue) {
+			var i;
+			switch (key) {
+				case 'downloadURL':
+				case 'updateURL':
+				case 'namespace':
+					if (changeType === 'removed') {
+						if (this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
+							this.newSettings.nodeInfo.source.url = metaTags.downloadURL || metaTags.updateURL || metaTags.namespace || this.newSettings.nodeInfo.source.downloadUrl || null;;
+						}
+					} else {
+						this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
+							updateURL: (key === 'namespace' ? '' : undefined),
+							url: newValue
+						};
+						if (key === 'namespace') {
+							this.newSettings.nodeInfo.source.updateURL = newValue;
+						}
+						if (!this.newSettings.nodeInfo.source.url) {
+							this.newSettings.nodeInfo.source.url = newValue;
+						}
+						window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+					}
+					break;
+				case 'name':
+					this.set('newSettings.name', (changeType === 'removed') ? '' : newValue);
+					window.crmEditPage.updateName(this.newSettings.name);
+					break;
+				case 'version':
+					this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue);
+					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+					break;
+				case 'require':
+					//Change anonymous libraries to requires
+					var libraries = this.newSettings.value.libraries;
+					for (var k = 0; k < libraries.length; k++) {
+						if (libraries[k].name === null) {
+							libraries.splice(k, 1);
+							k--;
+						}
+					}
+					metaTags.require.forEach(function(url) {
+						libraries.push({
+							name: null,
+							url: url
+						});
+					});
+					this.set('newSettings.value.libraries', libraries);
+					window.paperLibrariesSelector.updateLibraries(libraries);
+					break;
+				case 'author':
+					this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue);
+					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
+					break;
+				case 'include':
+				case 'match':
+				case 'exclude':
+					var triggerval = JSON.stringify({
+						url: newValue,
+						not: false
+					});
+					var isExclude = (key === 'exclude');
+					if (changeType === 'changed' || changeType === 'removed') {
+						var triggers = this.newSettings.value.triggers;
+						for (i = 0; i < triggers.length; i++) {
+							if (triggerval === JSON.stringify(triggers[i])) {
+								if (changeType === 'changed') {
+									//Replace this one
+									this.set('newSettings.value.triggers.' + i + '.url', newValue);
+									this.set('newSettings.value.triggers.' + i + '.not', isExclude);
+								} else {
+									//Remove this one
+									this.splice('newSettings.value.triggers', i, 1);
+								}
+								break;
+							}
+						}
+					} else {
+						//Add another one
+						this.push('newSettings.value.triggers', {
+							url: newValue,
+							not: isExclude
+						});
+					}
+					break;
+				case 'resource':
+					function sendCreateMessage() {
+						chrome.runtime.sendMessage({
+							type: 'resource',
+							data: {
+								type: 'register',
+								name: newValue.split(/(\s+)/)[0],
+								url: newValue.split(/(\s+)/)[1],
+								scriptId: this.item.id
+							}
+						});
+					}
+
+					function sendRemoveMessage() {
+						chrome.runtime.sendMessage({
+							type: 'resource',
+							data: {
+								type: 'remove',
+								name: oldValue.split(/(\s+)/)[0],
+								url: oldValue.split(/(\s+)/)[1],
+								scriptId: this.item.id
+							}
+						});
+					}
+
+					switch (changeType) {
+						case 'added':
+							sendCreateMessage();
+							break;
+						case 'changed':
+							sendRemoveMessage();
+							sendCreateMessage();
+							break;
+						case 'removed':
+							sendRemoveMessage();
+							break;
+					}
+					break;
+				case 'grant':
+					function removePermission() {
+						var permissions = this.newSettings.nodeInfo.permissions;
+						var index = permissions.indexOf(oldValue);
+						this.splice('newSettings.nodeInfo.permissions', index, 1);
+
+						var allowedPermissions = this.newSettings.permissions;
+						var allowedIndex = allowedPermissions.indexOf(oldValue);
+						this.splice('newSettings.permissions', allowedIndex, 1);
+					}
+
+					switch (changeType) {
+					case 'added':
+						this.push('newSettings.nodeInfo.permissions', newValue);
+						break;
+					case 'changed':
+						removePermission();
+						this.push('newSettings.nodeInfo.permissions', newValue);
+						break;
+					case 'removed':
+						removePermission();
+						break;
+					}
+					break;
+				case 'CRM_contentType':
+					var val = newValue;
+					var valArray;
+					try {
+						valArray = JSON.parse(val);
+					} catch (e) {
+						valArray = [];
+					}
+					for (i = 0; i < 6; i++) {
+						if (valArray[i]) {
+							valArray[i] = true;
+						} else {
+							valArray[i] = false;
+						}
+					}
+
+					//If removed, don't do anything
+					if (changeType !== 'removed') {
+						this.set('newSettings.onContentTypes', valArray);
+					}
+					break;
+				case 'CRM_launchMode':
+					if (changeType !== 'removed') {
+						this.set('newSettings.value.launchMode', parseInt(newValue, 10));
+					}
+					break;
+			}
+		},
+
+		metaTagsUpdateFromSettings: function (changeType, key, value, oldValue) {
+			var cm = this.editor;
+			switch (key) {
+				case 'name':
+					cm.updateMetaTags(cm, key, oldValue, value, true);
+					break;
+				case 'CRM_launchMode':
+					cm.updateMetaTags(cm, key, oldValue, value, true);
+					break;
+				case 'match':
+				case 'include':
+				case 'exclude':
+					switch (changeType) {
+						case 'added':
+							cm.addMetaTags(cm, key, value);
+							break;
+						case 'changed':
+							cm.updateMetaTags(cm, key, oldValue, value, false);
+							break;
+						case 'removed':
+							cm.removeMetaTags(cm, key, value);
+							break;
+					}
+					break;
+				case 'CRM_contentTypes':
+					cm.updateMetaTags(cm, key, oldValue, value, true);
+					break;
+				case 'grant':
+					if (changeType === 'added') {
+						cm.addMetaTags(cm, key, value);
+					} else {
+						cm.removeMetaTags(cm, key, value);
+					}
+					break;
+			}
+		},
+
+		metaTagsUpdate: function (changes, source) {
+			if (!changes) {
+				return;
+			}
+			var i, j;
+			var key, value, oldValue;
+			var changeTypes = ['changed', 'removed', 'added'];
+			this.newSettings.nodeInfo = this.newSettings.nodeInfo || {};
+			for (i = 0; i < changeTypes.length; i++) {
+				var changeType = changeTypes[i];
+				var changesArray = changes[changeType];
+				if (changesArray) {
+					for (j = 0; j < changesArray.length; j++) {
+						key = changesArray[j].key;
+						value = changesArray[j].value;
+						oldValue = changesArray[j].oldValue;
+						if (source === 'script') {
+							this.updateFromScriptApplier(changeType, key, value, oldValue);
+						} else {
+							this.metaTagsUpdateFromSettings(changeType, key, value, oldValue);
+							this.preventCodemirrorNotification();
+						}
+					}
+				}
+			}
+		},
+
+		notifyTriggerMetatagsCheckbox: function (e) {
+			var index = 0;
+			var el = e.path[index];
+			while (el.tagName.toLowerCase() !== 'paper-checkbox') {
+				el = el[++index];
+			}
+
+			this.async(function() {
+				var inputVal = el.parentNode.children[1].value;
+				var checkboxVal = el.checked;
+				this.metaTagsUpdate([
+					{
+						key: 'triggers',
+						oldValue: JSON.stringify({
+							url: inputVal,
+							not: !checkboxVal
+						}),
+						value: JSON.stringify({
+							url: inputVal,
+							not: checkboxVal
+						})
+					}
+				], 'dialog');
+			}, 0);
+		},
+
+		notifyTriggerMetatagsInput: function(e) {
+			var index = 0;
+			var el = e.path[index];
+			while (el.tagName.toLowerCase() !== 'paper-input') {
+				el = el[++index];
+			}
+
+			var oldInputVal = el.value;
+			this.async(function () {
+				var inputVal = el.value;
+				var checkboxVal = el.checked;
+				this.metaTagsUpdate([
+					{
+						key: 'triggers',
+						oldValue: JSON.stringify({
+							url: oldInputVal,
+							not: checkboxVal
+						}),
+						value: JSON.stringify({
+							url: inputVal,
+							not: checkboxVal
+						})
+					}
+				], 'dialog');
+			}, 0);
+		},
+
+		clearTriggerAndNotifyMetatags: function (e) {
+			this.clearTrigger(e);
+
+			var index = 0;
+			var el = e.path[index];
+			while (el.tagName.toLowerCase() !== 'paper-icon-button') {
+				el = el[++index];
+			}
+
+			this.async(function () {
+				var inputVal = el.parentNode.children[0];
+				var checkboxVal = el.parentNode.children[1];
+				this.metaTagsUpdate([
+					{
+						key: 'triggers',
+						value: JSON.stringify({
+							url: inputVal,
+							not: checkboxVal
+						})
+					}
+				], 'dialog');
+			}, 0);
+		},
+
+		launchModeUpdateFromDialog: function(prevState, state) {
+			this.metaTagsUpdate({
+				'changed': [
+					{
+						key: 'CRM_launchMode',
+						value: state,
+						oldValue: prevState
+					}
+				]
+			}, 'dialog');
+		},
+
+		triggerCheckboxChange: function(element) {
+			var oldValue = !element.checked;
+			console.trace();
+			var inputValue = $(element).parent().children('.triggerInput')[0].value;
+
+			var line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
+			this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
+		},
+
+		triggerInputChange: function (element) {
+			var _this = this;
+			var oldValue = element.value;
+
+			var checkboxChecked = $(element).parent().children('.executionTriggerNot')[0].checked;
+			setTimeout(function() {
+				var newValue = element.value;
+
+				_this.metaTagsUpdate({
+					'changed': [
+						{
+							key: (checkboxChecked ? 'exclude' : 'match'),
+							oldValue: oldValue,
+							value: newValue
+						}
+					]
+				}, 'dialog');
+			}, 0);
+		},
+
+		triggerRemove: function(element) {
+			var $parent = $(element).parent();
+			var inputValue = $parent.children('.triggerInput')[0].value;
+			var checkboxValue = $parent.children('.executionTriggerNot')[0].checked;
+
+			this.metaTagsUpdate({
+				'removed': [
+					{
+						key: (checkboxValue ? 'match' : 'exclude'),
+						value: inputValue
+					}
+				]
+			}, 'dialog');
+		},
+
+		addTriggerAndAddListeners: function () {
+			var _this = this;
+			var newEl = this.addTrigger();
+			$(newEl).find('.executionTriggerNot').on('change', function () {
+				_this.triggerCheckboxChange.apply(_this, [this]);
+			});
+			$(newEl).find('.triggerInput').on('keydown', function () {
+				_this.triggerInputChange.apply(_this, [this]);
+			});
+			$(newEl).find('.executionTriggerClear').on('click', function () {
+				_this.triggerRemove.apply(_this, []);
+			});
+			this.metaTagsUpdate({
+				'added': [
+					{
+						key: 'match',
+						value: '*://*.example.com/*'
+					}
+				]
+			}, 'dialog');
+		},
+
+		contentCheckboxChanged: function (e) {
+			var index = 0;
+			var element = e.path[0];
+			while (element.tagName !== 'PAPER-CHECKBOX') {
+				index++;
+				element = e.path[index];
+			}
+
+			var elements = $('script-edit .showOnContentItemCheckbox');
+			var elementType = element.classList[1].split('Type')[0];
+			var state = !element.checked;
+
+			var states = [];
+			var oldStates = [];
+			var types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+			for (var i = 0; i < elements.length; i++) {
+				if (types[i] === elementType) {
+					states[i] = state;
+					oldStates[i] = !state;
+				} else {
+					states[i] = elements[i].checked;
+					oldStates[i] = elements[i].checked;
+				}
+			}
+
+			this.metaTagsUpdate({
+				'changed': [
+					{
+						key: 'CRM_contentTypes',
+						oldValue: JSON.stringify(oldStates),
+						value: JSON.stringify(states)
+					}
+				]
+			}, 'dialog');
+		},
+
+		addDialogToMetatagUpdateListeners: function () {
+			var _this = this;
+			this.async(function() {
+				this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, this);
+			}, 0);
+
+			//Use jquery to also get the pre-change value
+			$(this.$.nameInput).on('keydown', function() {
+				var el = this;
+				_this.async(function () {
+					_this.metaTagsUpdate({
+						'changed': [
+							{
+								key: 'name',
+								value: el.value,
+								oldValue: null
+							}
+						]
+					}, 'dialog');
+				}, 5);
+			});
+
+			$('.executionTriggerNot').on('change', function () {
+				_this.triggerCheckboxChange.apply(_this, [this]);
+			});
+			$('.triggerInput').on('keydown', function() {
+				_this.triggerInputChange.apply(_this, [this]);
+			});
+			$('.executionTriggerClear').on('click', function() {
+				_this.triggerRemove.apply(_this, [this]);
+			});
+			$('.scriptPermissionsToggle').on('change', function() {
+				var permission = $(this).parent().children('.requestPermissionName')[0].innerText;
+				var prevState = !this.checked;
+				if (prevState) {
+					_this.metaTagsUpdate({
+						'removed': [
+							{
+								key: 'grant',
+								value: permission
+							}
+						]
+					}, 'dialog');
+				} else {
+					_this.metaTagsUpdate({
+						'added': [
+							{
+								key: 'grant',
+								value: permission
+							}
+						]
+					}, 'dialog');
+				}
+			});
+		},
+
+		scriptUpdateSingle: function(instance, change) {
+			!this.fullscreen && this.findMetatagsChanges.call(this, [change]);
+		},
+
+		scriptUpdateBatch: function(instance, changes) {
+			this.fullscreen && this.findMetatagsChanges.call(this, changes);
+		},
 		//#endregion
 
 		//#region DialogFunctions
@@ -210,15 +738,30 @@
 			window.externalEditor.cancelOpenFiles();
 		},
 
+		saveMetaTagValues: function() {
+			var tags = ['downloadURL', 'exclude', 'grant', 'include', 'match', 'name', 'namespace', 'require', 'resource', 'updateURL', 'version'];
+			
+			this.newSettings.value.metaTags = this.editor.metaTags.metaTags;
+		},
+
 		saveChanges: function() {
 			this.active = false;
+			this.saveMetaTagValues();
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 		},
 
-		openPermissionsDialog: function(item, cb) {
-			var nodeItem = item || this.item;
-			var settingsStorage = item || this.newSettings;
+		openPermissionsDialog: function (item, cb) {
+			var nodeItem;
+			var settingsStorage;
+			if (!item || item.type === 'tap') {
+				//It's an event, ignore it
+				nodeItem = this.item;
+				settingsStorage = this.newSettings;
+			} else {
+				nodeItem = item;
+				settingsStorage = item;
+			}
 			//Prepare all permissions
 			chrome.permissions.getAll(function(extensionWideEnabledPermissions) {
 				var scriptPermissions = nodeItem.permissions;
@@ -226,7 +769,6 @@
 				extensionWideEnabledPermissions = extensionWideEnabledPermissions.permissions;
 
 				var askedPermissions = nodeItem.nodeInfo.permissions || [];
-				console.log(askedPermissions);
 
 				var requiredActive = [];
 				var requiredInactive = [];
@@ -262,71 +804,72 @@
 				permissionList.push.apply(permissionList, requiredActive);
 				permissionList.push.apply(permissionList, requiredInactive);
 				permissionList.push.apply(permissionList, nonRequiredNonActive);
-				console.log(permissionList);
 
-				var el, svg;
-				$('.requestPermissionsShowBot').off('click').on('click', function() {
-					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
-					svg = $(this).find('.requestPermissionsSvg')[0];
-					svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-					if (el.animation) {
-						el.animation.reverse();
-					} else {
-						el.animation = el.animate([
-							{
-								height: 0
-							}, {
-								height: el.scrollHeight + 'px'
-							}
-						], {
-							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-					}
-				});
-
-				var permission;
-				$('.requestPermissionButton').off('click').on('click', function() {
-					permission = this.previousElementSibling.previousElementSibling.textContent;
-					var slider = this;
-					if (this.checked) {
-						if (extensionWideEnabledPermissions.indexOf(permission) === -1) {
-							chrome.permissions.request({
-								permissions: [permission]
-							}, function(accepted) {
-								if (!accepted) {
-									//The user didn't accept, don't pretend it's active when it's not, turn it off
-									slider.checked = false;
-								} else {
-									//Accepted, remove from to-request permissions if it's there
-									chrome.storage.local.get(function(e) {
-										var permissionsToRequest = e.requestPermissions;
-										requestPermissions.splice(requestPermissions.indexOf(permission), 1);
-										chrome.storage.local.set({
-											requestPermissions: permissionsToRequest
-										});
-									});
-
-									//Add to script's permissions
-									settingsStorage.permissions = settingsStorage.permissions || [];
-									settingsStorage.permissions.push(permission);
-								}
-							});
+				function cb() {
+					var el, svg;
+					$('.requestPermissionsShowBot').off('click').on('click', function() {
+						el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
+						svg = $(this).find('.requestPermissionsSvg')[0];
+						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+						if (el.animation) {
+							el.animation.reverse();
 						} else {
-							//Add to script's permissions
-							settingsStorage.permissions = settingsStorage.permissions || [];
-							settingsStorage.permissions.push(permission);
+							el.animation = el.animate([
+								{
+									height: 0
+								}, {
+									height: el.scrollHeight + 'px'
+								}
+							], {
+								duration: 250,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+								fill: 'both'
+							});
 						}
-					} else {
-						//Remove from script's permissions
-						settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
-					}
-				});
+					});
+
+					var permission;
+					$('.requestPermissionButton').off('click').on('click', function() {
+						permission = this.previousElementSibling.previousElementSibling.textContent;
+						var slider = this;
+						if (this.checked) {
+							if (extensionWideEnabledPermissions.indexOf(permission) === -1) {
+								chrome.permissions.request({
+									permissions: [permission]
+								}, function(accepted) {
+									if (!accepted) {
+										//The user didn't accept, don't pretend it's active when it's not, turn it off
+										slider.checked = false;
+									} else {
+										//Accepted, remove from to-request permissions if it's there
+										chrome.storage.local.get(function(e) {
+											var permissionsToRequest = e.requestPermissions;
+											requestPermissions.splice(requestPermissions.indexOf(permission), 1);
+											chrome.storage.local.set({
+												requestPermissions: permissionsToRequest
+											});
+										});
+
+										//Add to script's permissions
+										settingsStorage.permissions = settingsStorage.permissions || [];
+										settingsStorage.permissions.push(permission);
+									}
+								});
+							} else {
+								//Add to script's permissions
+								settingsStorage.permissions = settingsStorage.permissions || [];
+								settingsStorage.permissions.push(permission);
+							}
+						} else {
+							//Remove from script's permissions
+							settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
+						}
+					});
+				}
 
 				$('#scriptPermissionsTemplate')[0].items = permissionList;
 				$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + nodeItem.name;
-				cb && $('#scriptPermissionDialog')[0].addEventListener('iron-overlay-closed', cb);
+				$('#scriptPermissionDialog')[0].addEventListener('iron-overlay-opened', cb);
 				$('#scriptPermissionDialog')[0].open();
 			});
 		},
@@ -737,104 +1280,6 @@
 		//#endregion
 
 		//#region Editor
-		/*
-		 * Is triggered when the option "Execute when visiting specified sites" is 
-		 * selected in the triggers dropdown menu and animates the specified sites in
-		 */
-		selectorStateChange: function(state) {
-			var _this = this;
-			var showContentTypeChooser = (state === 0);
-			var showTriggers = (state === 2);
-			var triggersElement = this.$.executionTriggersContainer;
-			var $triggersElement = $(triggersElement);
-			var contentTypeChooserElement = this.$.showOnContentContainer;
-			var $contentTypeChooserElement = $(contentTypeChooserElement);
-			var triggersHeight;
-			var contentTypeHeight;
-
-			function animateTriggers(callback) {
-				triggersElement.style.height = 'auto';
-				triggersHeight = triggersHeight || $triggersElement.height();
-				if (showTriggers) {
-					triggersElement.style.display = 'block';
-					triggersElement.style.marginLeft = '-110%';
-					triggersElement.style.height = 0;
-					$triggersElement.animate({
-						height: triggersHeight
-					}, 300, function() {
-						$(this).animate({
-							marginLeft: 0
-						}, 200, callback);
-					});
-				} else {
-					triggersElement.style.marginLeft = 0;
-					triggersElement.style.height = triggersHeight;
-					$triggersElement.animate({
-						marginLeft: '-110%'
-					}, 200, function() {
-						$(this).animate({
-							height: 0
-						}, 300, function() {
-							triggersElement.style.display = 'none';
-							callback && callback();
-						});
-					});
-				}
-				_this.showTriggers = showTriggers;
-			}
-
-			function animateContentTypeChooser(callback) {
-				contentTypeChooserElement.style.height = 'auto';
-				contentTypeHeight = contentTypeHeight || $contentTypeChooserElement.height();
-				if (showContentTypeChooser) {
-					contentTypeChooserElement.style.height = 0;
-					contentTypeChooserElement.style.display = 'block';
-					contentTypeChooserElement.style.marginLeft = '-110%';
-					$contentTypeChooserElement.animate({
-						height: contentTypeHeight
-					}, 300, function() {
-						$(this).animate({
-							marginLeft: 0
-						}, 200, callback);
-					});
-				} else {
-					contentTypeChooserElement.style.marginLeft = 0;
-					contentTypeChooserElement.style.height = contentTypeHeight;
-					$contentTypeChooserElement.animate({
-						marginLeft: '-110%'
-					}, 200, function() {
-						$(this).animate({
-							height: 0
-						}, 300, function() {
-							contentTypeChooserElement.style.display = 'none';
-							callback && callback();
-						});
-					});
-				}
-				_this.showContentTypeChooser = showContentTypeChooser;
-			}
-
-			if (state === 0) {
-				//Triggers is still shown, first animate that out
-				if (this.showTriggers) {
-					animateTriggers(animateContentTypeChooser);
-				} else {
-					animateContentTypeChooser();
-				}
-			} else if (state === 1) {
-				if (this.showTriggers) {
-					animateTriggers();
-				} else if (this.showContentTypeChooser) {
-					animateContentTypeChooser();
-				}
-			} else if (state === 2) {
-				if (this.showContentTypeChooser) {
-					animateContentTypeChooser(animateTriggers);
-				} else {
-					animateTriggers();
-				}
-			}
-		},
 
 		/*
 		 * Triggered when the scrollbars get updated (hidden or showed) and adapts the 
@@ -861,12 +1306,7 @@
 			this.$.editorPlaceholder.style.opacity = 1;
 			this.$.editorPlaceholder.style.position = 'absolute';
 
-			this.newSettings.value.script = [];
-			var lines = this.editor.doc.lineCount();
-			for (var i = 0; i < lines; i++) {
-				this.newSettings.value.script.push(this.editor.doc.getLine(i));
-			}
-			this.newSettings.value.script = this.newSettings.value.script.join('\n');
+			this.newSettings.value.script = this.editor.doc.getValue();
 			this.editor = null;
 
 			if (this.fullscreen) {
@@ -918,7 +1358,7 @@
 				'Editor zoom percentage:' +
 				'</div>').appendTo(settingsContainer);
 
-			$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('keypress change', function() {
+			$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>').on('change', function() {
 				var _this = this;
 				setTimeout(function() {
 					window.app.settings.editor.zoom = _this.value;
@@ -1029,10 +1469,37 @@
 		/*
 		 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 		 */
-		cmLoaded: function(element) {
+		cmLoaded: function (element) {
 			var _this = this;
 			this.editor = element;
 			element.refresh();
+			element.on('metaTagChanged', function (changes, metaTags) {
+				if (!_this.preventNotification) {
+					_this.metaTagsUpdate(changes, 'script');
+				}
+				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
+			});
+			element.on('metaDisplayStatusChanged', function(info) {
+				_this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
+			});
+			if (this.newSettings.value.metaTagsHidden) {
+				element.doc.markText({
+					line: element.metaTags.metaStart.line,
+					ch: element.metaTags.metaStart.ch - 2
+				}, {
+					line: element.metaTags.metaStart.line,
+					ch: element.metaTags.metaStart.ch + 27
+				}, {
+					className: 'metaTagHiddenText',
+					inclusiveLeft: false,
+					inclusiveRight: false,
+					atomic: true,
+					readOnly: true,
+					addToHistory: true
+				});
+				element.metaTags.metaTags = this.newSettings.value.metaTags;
+			}
+
 			element.display.wrapper.classList.add('script-edit-codeMirror');
 			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 			this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
@@ -1089,6 +1556,7 @@
 			var placeHolder = $(this.$.editorPlaceholder);
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();
+			!window.app.settings.editor && (window.app.settings.editor = {});
 			this.editor = new window.CodeMirror(container, {
 				lineNumbers: window.app.settings.editor.lineNumbers,
 				value: content || this.item.value.script,
@@ -1100,8 +1568,9 @@
 				indentUnit: window.app.settings.editor.tabSize,
 				indentWithTabs: window.app.settings.editor.useTabs,
 				messageScriptEdit: true,
-				gutters: ['CodeMirror-lint-markers'],
-				lint: window.CodeMirror.lint.javascript
+				gutters: ['collapse-meta-tags', 'CodeMirror-lint-markers'],
+				lint: window.CodeMirror.lint.javascript,
+				undoDepth: 500
 			});
 		},
 		//#endregion
@@ -1111,6 +1580,7 @@
 			this._init();
 			this.$.dropdownMenu.init();
 			this.initDropdown();
+			this.addDialogToMetatagUpdateListeners();
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
 				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 			});
@@ -1123,23 +1593,21 @@
 			chrome.storage.local.set({
 				editing: {
 					val: this.item.value.script,
-					crmPath: this.item.path
+					id: this.item.id,
+					crmType: window.app.crmType
 				}
 			});
 			this.savingInterval = window.setInterval(function() {
 				if (_this.active) {
 					//Save
-					var val;
-					try {
-						val = _this.editor.getValue();
-						chrome.storage.local.set({
-							editing: {
-								val: val,
-								crmPath: _this.item.path
-							}
-						});
-					} catch (e) {
-					}
+					var val = _this.editor.getValue();
+					chrome.storage.local.set({
+						editing: {
+							val: val,
+							id: _this.item.id,
+							crmType: window.app.crmType
+						}
+					}, function() { chrome.runtime.lastError; });
 				} else {
 					//Stop this interval
 					chrome.storage.local.set({
