@@ -574,6 +574,16 @@
     <Content Include="app\elements\edit-pages\stylesheet-edit\stylesheet-edit.css" />
     <Content Include="app\elements\edit-pages\stylesheet-edit\stylesheet-edit.html" />
     <Content Include="app\elements\edit-pages\stylesheet-edit\stylesheet-edit.js" />
+    <Content Include="app\elements\installing\install-confirm\install-confirm.css" />
+    <Content Include="app\elements\installing\install-confirm\install-confirm.html" />
+    <Content Include="app\elements\installing\install-confirm\install-confirm.js" />
+    <Content Include="app\elements\installing\install-error\install-error.css" />
+    <Content Include="app\elements\installing\install-error\install-error.html" />
+    <Content Include="app\elements\installing\install-error\install-error.js" />
+    <Content Include="app\elements\installing\install-imports.html" />
+    <Content Include="app\elements\installing\install-page\install-page.html" />
+    <Content Include="app\elements\installing\install-page\install-page.js" />
+    <Content Include="app\elements\installing\install-page\install-page.css" />
     <Content Include="app\elements\node-edit-behavior\node-edit-behavior.css" />
     <Content Include="app\elements\node-edit-behavior\node-edit-behavior.html" />
     <Content Include="app\elements\node-edit-behavior\node-edit-behavior.js" />
@@ -613,6 +623,7 @@
     <Content Include="app\images\shadowImgRight.png" />
     <Content Include="app\images\video.svg" />
     <Content Include="app\images\web.svg" />
+    <Content Include="app\install.html" />
     <Content Include="app\js\codemirror.js" />
     <Content Include="app\js\codeMirrorAddons.js" />
     <Content Include="app\js\codemirrorJs.js" />
@@ -647,7 +658,6 @@
     <Content Include="app\images\whitearrow.png" />
     <Content Include="app\jquery.contextMenu.css" />
     <Content Include="app\js\background.js" />
-    <Content Include="app\js\contextmenu.js" />
     <Content Include="app\js\crmapi.js" />
     <Content Include="app\icon-large.png" />
     <Content Include="app\icon-small.png" />
@@ -667,6 +677,10 @@
     <Content Include="app\js\defaultLibraries\jquery.js" />
     <Content Include="app\js\defaultLibraries\mooTools.js" />
     <Content Include="app\js\defaultLibraries\yui.js" />
+    <Content Include="app\js\md5.js" />
+    <Content Include="app\js\sortable.min.js" />
+    <Content Include="app\js\test.js" />
+    <Content Include="app\js\userscriptMetadataCodemirror.js" />
     <Content Include="app\options.html" />
     <Content Include="app\LICENSE.txt" />
     <Content Include="Gruntfile.js" />
