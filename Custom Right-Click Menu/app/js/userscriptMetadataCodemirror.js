@@ -23,6 +23,66 @@
 })(function (codemirror) {
 	'use strict';
 
+	function compareObj(firstObj, secondObj) {
+		for (var key in firstObj) {
+			if (firstObj.hasOwnProperty(key)) {
+				if (typeof firstObj[key] === 'object') {
+					if (typeof secondObj[key] !== 'object') {
+						return false;
+					}
+					if (Array.isArray(firstObj[key])) {
+						if (!Array.isArray(secondObj[key])) {
+							return false;
+						}
+						// ReSharper disable once FunctionsUsedBeforeDeclared
+						if (!compareArray(firstObj[key], secondObj[key])) {
+							return false;
+						}
+					} else if (!compareObj(firstObj[key], secondObj[key])) {
+						return false;
+					}
+				} else if (firstObj[key] !== secondObj[key]) {
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
+	function compareArray(firstArray, secondArray) {
+		if (!firstArray === !secondArray) {
+			return true;
+		}
+		else if (!firstArray || !secondArray) {
+			return false;
+		}
+		var firstLength = firstArray.length;
+		if (firstLength !== secondArray.length) {
+			return false;
+		}
+		var i;
+		for (i = 0; i < firstLength; i++) {
+			if (typeof firstArray[i] === 'object') {
+				if (typeof secondArray[i] !== 'object') {
+					return false;
+				}
+				if (Array.isArray(firstArray[i])) {
+					if (!Array.isArray(secondArray[i])) {
+						return false;
+					}
+					if (!compareArray(firstArray[i], secondArray[i])) {
+						return false;
+					}
+				} else if (!compareArray(firstArray[i], secondArray[i])) {
+					return false;
+				}
+			} else if (firstArray[i] !== secondArray[i]) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	function compareMetaTags(oldMetaTags, newMetaTags) {
 		var changes = {
 			changed: [],
@@ -32,7 +92,7 @@
 
 		for (var oldMetaKey in oldMetaTags) {
 			if (oldMetaTags.hasOwnProperty(oldMetaKey)) {
-				if (!window.app.compareArray(oldMetaTags[oldMetaKey], newMetaTags[oldMetaKey])) {
+				if (!compareArray(oldMetaTags[oldMetaKey], newMetaTags[oldMetaKey])) {
 					changes.removed.push({
 						key: oldMetaKey,
 						value: oldMetaTags[oldMetaKey]
@@ -44,7 +104,7 @@
 		for (var newMetaKey in newMetaTags) {
 			if (newMetaTags.hasOwnProperty(newMetaKey)) {
 				if (oldMetaTags[newMetaKey] !== undefined) {
-					if (!window.app.compareArray(oldMetaTags[newMetaKey], newMetaTags[newMetaKey])) {
+					if (!compareArray(oldMetaTags[newMetaKey], newMetaTags[newMetaKey])) {
 						changes.changed.push({
 							key: newMetaKey,
 							value: newMetaTags[newMetaKey]
@@ -93,7 +153,7 @@
 	}
 
 	function setMetaTags(cm, content) {
-		var oldMetaTags;
+		var oldMetaTags = null;
 		if (cm.metaTags) {
 			oldMetaTags = JSON.parse(JSON.stringify(cm.metaTags));
 		}
@@ -135,6 +195,7 @@
 		cm.metaTags.metaIndexes = indexes;
 
 		if (oldMetaTags) {
+			console.log(oldMetaTags, metaTagObj);
 			return compareMetaTags(oldMetaTags, metaTagObj);
 		}
 		return null;
@@ -147,8 +208,8 @@
 		for (i = 0; i < changes.length; i++) {
 			var changeLineStart = changes[i].from.line;
 			var linesChanged = changes[i].text.length;
-			var lastMetatagIndex = cm.metaTags.metaEnd.line - 1;
-			var firstMetatagIndex = cm.metaTags.metaStart.line + 1;
+			var lastMetaTagIndex = cm.metaTags.metaEnd.line - 1;
+			var firstMetaTagIndex = cm.metaTags.metaStart.line + 1;
 
 			var tagsChanged = {
 				removed: [],
@@ -158,7 +219,7 @@
 			if (changes[i].text.length !== changes[i].removed.length) {
 				//Insertion or removal
 				tagsChanged = setMetaTags(cm, content);
-			} else if (changes[i].to.line < lastMetatagIndex || changeLineStart > firstMetatagIndex) {
+			} else if (changes[i].to.line < lastMetaTagIndex || changeLineStart > firstMetaTagIndex) {
 				for (j = 0; j < linesChanged; j++) {
 					var changeLine = changeLineStart + j;
 
@@ -349,11 +410,11 @@
 		}
 	}
 
-	codemirror.defineExtension('hideMetatags', function (cm) {
+	codemirror.defineExtension('hideMetaTags', function (cm) {
 		hideMetaTags(cm);
 	});
 
-	codemirror.defineExtension('showMetatags', function (cm, metaTags) {
+	codemirror.defineExtension('showMetaTags', function (cm, metaTags) {
 		showMetaTags(cm, metaTags);
 	});
 
@@ -413,7 +474,8 @@
 		}
 	});
 
-	codemirror.defineExtension('getMetatags', function (cm) {
+	codemirror.defineExtension('getMetaTags', function (cm) {
+		setMetaTags(cm, cm.getValue());
 		return cm.metaTags.metaTags;
 	});
 

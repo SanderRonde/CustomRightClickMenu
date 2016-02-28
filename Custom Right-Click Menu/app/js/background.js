@@ -30,6 +30,7 @@
 	var globals = {
 		storages: {
 			settingsStorage: null,
+			globalExcludes: null,
 			resourceKeys: null,
 			storageLocal: null,
 			nodeStorage: null,
@@ -141,9 +142,12 @@
 		 *	}
 		 */
 		scriptInstallListeners: {},
-		//The url to the install page
-		installUrl: chrome.runtime.getURL('install.html'),
-		supportedHashes: ['sha1','sha256','sha384','sha512','md5']
+		constants: {
+			//The url to the install page
+			installUrl: chrome.runtime.getURL('install.html'),
+			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
+			validSchemes: ['http', 'https', 'file', 'ftp', '*']
+		}
 	};
 
 	//#endregion
@@ -533,7 +537,7 @@
 		callback && callback();
 	}
 
-	function getMetaLines(script) {
+	function getMetaIndexes(script) {
 		var metaStart = -1;
 		var metaEnd = -1;
 		var lines = script.split('\n');
@@ -553,19 +557,23 @@
 		};
 	}
 
-	function getMetaTags(script) {
-		var i;
-		var metaIndexes = getMetaLines(script);
+	function getMetaLines(script) {
+		var metaIndexes = getMetaIndexes(script);
 		var metaStart = metaIndexes.start;
 		var metaEnd = metaIndexes.end;
 		var startPlusOne = metaStart + 1;
 		var lines = script.split('\n');
 		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+		return metaLines;
+	}
+
+	function getMetaTags(script) {
+		var metaLines = getMetaLines(script);
 
 		var metaTags = {};
 		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
 		var regexMatches;
-		for (i = 0; i < metaLines.length; i++) {
+		for (var i = 0; i < metaLines.length; i++) {
 			regexMatches = metaLines[i].match(regex);
 			if (regexMatches) {
 				metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
@@ -604,13 +612,14 @@
 				};
 
 				var metaData = getMetaTags(node.value.script);
+				var metaString = getMetaLines(node.value.script) || null;
 
 				var greaseMonkeyData = {
 					info: {
 						version: chrome.app.getDetails().version
 					},
-					metaData: metaData,
-					resources: globals.storages.storageLocal.resources
+					scriptMetaStr: metaString,
+
 				};
 				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
 				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + globals.storages.nodeStorage[node.id] + ',' + greaseMonkeyData + ');\n';
@@ -762,6 +771,119 @@
 		return matches;
 	}
 
+
+	function parsePattern(url) {
+		if (url === '<all_urls') {
+			return url;
+		}
+
+		var schemeSplit = url.split('://');
+		var scheme = schemeSplit[0];
+
+		var hostAndPath = schemeSplit[1];
+		var hostAndPathSplit = hostAndPath.split('/');
+
+		var host = hostAndPathSplit[0];
+		var path = hostAndPathSplit[1].join('/');
+
+		return {
+			scheme: scheme,
+			host: host,
+			path: path
+		};
+	}
+
+	function validatePatternUrl(url) {
+		var pattern = parsePattern(url);
+		if (globals.constants.validSchemes.indexOf(pattern.scheme) === -1) {
+			return null;
+		}
+
+		var wildcardIndex = pattern.host.indexOf('*');
+		if (wildcardIndex > -1) {
+			if (pattern.host.split('*').length > 2) {
+				return null;
+			}
+			if (wildcardIndex === 0 && pattern.host[1] === '.') {
+				if (pattern.host.slice(2).split('/').length > 1) {
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}
+
+		return pattern;
+	}
+
+	function matchesScheme(scheme1, scheme2) {
+		if (scheme1 === '*') {
+			return true;
+		}
+		return scheme1 === scheme2;
+	}
+
+	function matchesHost(host1, host2) {
+		if (host1 === '*') {
+			return true;
+		}
+
+		if (host1[0] === '*') {
+			var host1Split = host1.slice(2);
+			var index = host2.indexOf(host1Split);
+			if (index === host2.length - host1Split.length) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return (host1 === host2);
+	}
+
+	function matchesPath(path1, path2) {
+		var path1Split = path1.split('*');
+		var path1Length = path1Split.length;
+		var wildcards = path1Length - 1;
+
+		if (wildcards === 0) {
+			return path1 === path2;
+		}
+
+		if (path2.indexOf(path1Split[0]) !== 0) {
+			return false;
+		}
+
+		path2 = path2.slice(path1Split[0].length);
+		for (var i = 1; i < path1Length; i++) {
+			if (path2.indexOf(path1Split[i]) === -1) {
+				return false;
+			}
+			path2 = path2.slice(path1Split[i].length);
+		}
+		return true;
+	}
+
+	function urlMatchesPattern(pattern, url) {
+		var urlPattern = parsePattern(url);
+
+		return (matchesScheme(pattern.scheme, urlPattern.scheme) &&
+			matchesHost(pattern.host, urlPattern.host) &&
+			matchesPath(pattern.path, urlPattern.path));
+	}
+
+	function urlIsGlobalExcluded(url) {
+		if (globals.storages.globalExcludes.indexOf('<all_urls>') > -1) {
+			return true;
+		}
+		for (var i = 0; i < globals.storages.globalExcludes.length; i++) {
+			if (globals.storages.globalExcludes[i] !== null && urlMatchesPattern(globals.storages.globalExcludes[i], url)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
 		if (updatedInfo.status === 'loading') {
 			//It's loading
@@ -773,14 +895,16 @@
 						nodes: {},
 						crmAPI: false
 					};
-					for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
-						executeNode(globals.toExecuteNodes.always[i], tab);
-					}
+					if (!urlIsGlobalExcluded(url)) {
+						for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
+							executeNode(globals.toExecuteNodes.always[i], tab);
+						}
 
-					for (var nodeId in globals.toExecuteNodes.onUrl) {
-						if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
-							if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
-								executeNode(globals.crm.crmById[nodeId], tab);
+						for (var nodeId in globals.toExecuteNodes.onUrl) {
+							if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
+								if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
+									executeNode(globals.crm.crmById[nodeId], tab);
+								}
 							}
 						}
 					}
@@ -791,6 +915,9 @@
 	//#endregion
 
 	function prepareTrigger(trigger) {
+		if (trigger.replace(/\s/g,'') === '') {
+			return null;
+		}
 		var newTrigger;
 		if (trigger.split('//')[1].indexOf('/') === -1) {
 			newTrigger = trigger + '/';
@@ -816,10 +943,12 @@
 			globals.crmValues.hideNodesOnPagesData[node.id] = [];
 			for (var i = 0; i < node.triggers.length; i++) {
 				var prepared = prepareTrigger(node.triggers[i].url);
-				if (node.triggers[i].not) {
-					globals.crmValues.hideNodesOnPagesData[node.id].push(prepared);
-				} else {
-					rightClickItemOptions.documentUrlPatterns.push(prepared);
+				if (prepared) {
+					if (node.triggers[i].not) {
+						globals.crmValues.hideNodesOnPagesData[node.id].push(prepared);
+					} else {
+						rightClickItemOptions.documentUrlPatterns.push(prepared);
+					}
 				}
 			}
 		}
@@ -2817,7 +2946,7 @@
 		hashes = hashes.reverse();
 		for (var i = 0; i < hashes.length; i++) {
 			var lowerCase = hash.algorithm.toLowerCase;
-			if (globals.supportedHashes.indexOf(lowerCase()) !== -1) {
+			if (globals.constants.supportedHashes.indexOf(lowerCase()) !== -1) {
 				lastMatchingHash = {
 					algorithm: lowerCase,
 					hash: hashes[i].hash
@@ -3037,25 +3166,12 @@
 	//#endregion
 
 	//#region Install Page
-	function openInstallPage(userScriptUrl) {
-		chrome.tabs.create({
-			url: globals.installUrl + '#' + userScriptUrl
-		}, function(tab) {
-
-		});
-	}
-
 	function handleUserJsRequest(details) {
 		var url = details.url;
-		console.log(url.indexOf('noCRM'));
-		console.log(url.length);
-		console.log(url.length - 6);
-		console.log(url);
 		if (url.indexOf('noCRM') === url.length - 5) {
 			return {};
 		}
-		openInstallPage(url);
-		return { cancel: true };
+		return { redirectUrl: globals.constants.installUrl + '#' + url };
 	}
 
 	chrome.webRequest.onBeforeRequest.addListener(handleUserJsRequest,
@@ -3257,6 +3373,7 @@
 				delete storageLocalCopy.resourceKeys;
 				delete storageLocalCopy.nodeStorage;
 				delete storageLocalCopy.resources;
+				delete storageLocalCopy.globalExcludes;
 
 				var indexes;
 				var jsonString;
@@ -3300,10 +3417,11 @@
 
 				globals.storages.storageLocal = storageLocalCopy;
 				globals.storages.settingsStorage = settingsStorage;
+				globals.storages.globalExcludes = chromeStorageLocal.globalExcludes;
 				globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
 				globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
 				globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
-
+				globals.storages.globalExcludes.map(validatePatternUrl);
 
 				updateCRMValues();
 

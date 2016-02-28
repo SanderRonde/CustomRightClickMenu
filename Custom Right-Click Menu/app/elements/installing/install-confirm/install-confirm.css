@@ -104,3 +104,7 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 	height: 0;
 	overflow:hidden;
 }
+
+.infoPermissionCheckbox paper-ripple {
+	pointer-events: none;
+}

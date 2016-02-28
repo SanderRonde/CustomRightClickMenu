@@ -80,6 +80,15 @@
 		 */
 		metaInfo: {},
 
+		/*
+		 * The metatags to be given to the script
+		 * 
+		 * @attribute tags
+		 * @type Object
+		 * @value {}
+		 */
+		tags: {},
+
 		properties: {
 			script: {
 				type: String,
@@ -141,8 +150,8 @@
 			});
 		},
 
-		getDescription: function(permission) {
-			permission = permission.toLowerCase();
+		getDescription: function (permission) {
+			console.log(permission);
 			var descriptions = {
 				alarms: 'Makes it possible to create, view and remove alarms.',
 				background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
@@ -181,9 +190,34 @@
 				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 				chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.',
 
-				none: 'No permissions'
-				//TODO description for GM_APIs
+				none: 'No permissions',
+				
+				//Tampermonkey APIs
+				GM_addStyle: 'Allows the adding of certain styles to the document through this API',
+				GM_deleteValue: 'Allows the deletion of storage items',
+				GM_listValues: 'Allows the listing of all storage data',
+				GM_addValueChangeListener: 'Allows for the listening of changes to the storage area',
+				GM_removeValueChangeListener: 'Allows for the removing of listeners',
+				GM_setValue: 'Allows for the setting of storage data values',
+				GM_getValue: 'Allows the reading of values from the storage',
+				GM_log: 'Allows for the logging of values to the console (same as normal console.log)',
+				GM_getResourceText: 'Allows the reading of the content of resources defined in the header',
+				GM_getResourceURL: 'Allows the reading of the URL of the predeclared resource',
+				GM_registerMenuCommand: 'Allows the adding of a button to the extension menu - not implemented',
+				GM_unregisterMenuCommand: 'Allows the removing of an added button - not implemented',
+				GM_openInTab: 'Allows the opening of a tab with given URL',
+				GM_xmlhttpRequest: 'Allows you to make an XHR to any site you want',
+				GM_download: 'Allows the downloading of data to the hard disk',
+				GM_getTab: 'Allows the reading of an object that\'s persistent while the tab is open - not implemented',
+				GM_saveTab: 'Allows the saving of the tab object to reopen after a page unload - not implemented',
+				GM_getTabs: 'Allows the readin gof all tab object - not implemented',
+				GM_notification: 'Allows sending desktop notifications',
+				GM_setClipboard: 'Allows copying data to the clipboard - not implemented',
+				GM_info: 'Allows the reading of some script info'
 			};
+
+			window.descriptions = descriptions;
+			console.log(descriptions[permission]);
 
 			return descriptions[permission];
 		},
@@ -209,7 +243,7 @@
 				}, 250);
 			} else {
 				$(description).stop().animate({
-					height: description.scrollHeight + 'px'
+					height: (description.scrollHeight + 7) + 'px'
 				}, 250);
 			}
 			el.classList.toggle('shown');
@@ -272,7 +306,7 @@
 		addToRequestPermissions: function (node) {
 			chrome.storage.local.get('requestPermissions', function(keys) {
 				var requestPermissions = keys.requestPermissions;
-				requestPermissions = (requestPermissions && requestPermissions.permissions.concat(node.permissions)) || node.permissions;
+				requestPermissions = (requestPermissions && requestPermissions.permissions && requestPermissions.permissions.concat(node.permissions)) || node.permissions;
 				chrome.storage.local.set({
 					requestPermissions: requestPermissions
 				}, function() {
@@ -335,11 +369,11 @@
 					var value;
 					if (metaKey === 'CRM_contentTypes') {
 						value = JSON.stringify(metaValue);
-						metaTagsArr.push(' //' + key + '	' + value);
+						metaTagsArr.push(' //' + metaKey + '	' + value);
 					} else {
 						for (var i = 0; i < metaValue.length; i++) {
 							value = metaValue[i];
-							metaTagsArr.push(' //' + key + '	' + value);
+							metaTagsArr.push(' //' + metaKey + '	' + value);
 						}
 					}
 				}
@@ -379,9 +413,9 @@
 			var triggers = [];
 			var includes = this.metaTags.include;
 			if (includes) {
-				tags.includes = [];
+				tags.match = [];
 				for (i = 0; i < includes.length; i++) {
-					url = convertTriggerToMatch(includes[i]);
+					url = this.convertTriggerToMatch(includes[i]);
 					if (!url) {
 						includes.splice(i, 1);
 						i--;
@@ -411,7 +445,7 @@
 			if (exclude) {
 				tags.excludes = [];
 				for (i = 0; i < includes.length; i++) {
-					url = convertTriggerToMatch(includes[i]);
+					url = this.convertTriggerToMatch(includes[i]);
 					if (!url) {
 						includes.splice(i, 1);
 						i--;
@@ -490,7 +524,7 @@
 			}
 
 			//URL
-			var updateURL = this.getlastMetaTagValue('updateURL') || this.getlastMetaTagValue('downloadURL');
+			var updateUrl = this.getlastMetaTagValue('updateURL') || this.getlastMetaTagValue('downloadURL');
 
 			//Requested permissions
 			var permissions = [];
@@ -504,8 +538,8 @@
 			node.nodeInfo = {
 				version: this.getlastMetaTagValue('version') || null,
 				source: {
-					updateURL: updateURL || window.installPage.userscriptUrl,
-					url: updateURL || this.getlastMetaTagValue('namespace') || window.installPage.userscriptUrl,
+					updateURL: updateUrl || window.installPage.userscriptUrl,
+					url: updateUrl || this.getlastMetaTagValue('namespace') || window.installPage.userscriptUrl,
 					author: this.getlastMetaTagValue('author') || null
 				},
 				permissions: permissions,
@@ -589,7 +623,7 @@
 			this.setMetaTag('descriptionValue', tags.description);
 			this.setMetaTag('authorValue', tags.author);
 
-			window.installPage.$.title = 'Installing ' + this.metaTags.name;
+			window.installPage.$.title.innerHTML = 'Installing ' + (tags.name && tags.name[0]);
 
 			this.$.sourceValue.innerText = window.installPage.userscriptUrl;
 			this.$.permissionValue.items = tags.grant || ['none'];
@@ -598,6 +632,7 @@
 		},
 
 		cmLoaded: function (cm) {
+			var _this = this;
 			$('<style id="editorZoomStyle">' +
 			'.CodeMirror, .CodeMirror-focused {' +
 			'font-size: ' + (1.25 * window.installConfirm.settings.editor.zoom) + '%!important;' +
@@ -611,9 +646,15 @@
 
 			//Show info about the script, if available
 			//var tags = cm.metaTags.metaTags;
-			if (cm.metaTags && cm.metaTags.metaTags) {
-				this.setMetaInformation(cm.metaTags.metaTags, cm.metaTags);
-			}
+			var interval = window.setInterval(function () {
+				if (cm.getMetaTags) {
+					window.clearInterval(interval);
+					cm.getMetaTags(cm);
+					if (cm.metaTags && cm.metaTags.metaTags) {
+						_this.setMetaInformation.apply(_this, [cm.metaTags.metaTags, cm.metaTags]);
+					}
+				}
+			}, 25);
 		},
 
 		loadEditor: function(_this) {

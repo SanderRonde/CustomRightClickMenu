@@ -25,7 +25,9 @@
 						<template is="dom-repeat" id="permissionValue" class="infoValue" as="permission">
 							<div class="infoPermissionContainer">
 								<div class="infoPermissionToggleContainer">
-									<div class="infoPermission">{{permission}}</div>
+									<div class="infoPermission">
+										<b>{{permission}}</b>
+									</div>
 									<div on-tap="showPermissionDescription" class="infoPermissionArrow">
 										<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 									</div>

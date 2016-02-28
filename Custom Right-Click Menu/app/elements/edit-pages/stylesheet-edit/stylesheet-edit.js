@@ -412,7 +412,7 @@
 		}
 	},
 
-	notifyTriggerMetatagsCheckbox: function (e) {
+	notifyTriggerMetaTagsCheckbox: function (e) {
 		var index = 0;
 		var el = e.path[index];
 		while (el.tagName.toLowerCase() !== 'paper-checkbox') {
@@ -438,7 +438,7 @@
 		}, 0);
 	},
 
-	notifyTriggerMetatagsInput: function (e) {
+	notifyTriggerMetaTagsInput: function (e) {
 		var index = 0;
 		var el = e.path[index];
 		while (el.tagName.toLowerCase() !== 'paper-input') {
@@ -466,7 +466,7 @@
 	},
 
 
-	clearTriggerAndNotifyMetatags: function (e) {
+	clearTriggerAndNotifyMetaTags: function (e) {
 		this.clearTrigger(e);
 
 		var index = 0;
@@ -650,7 +650,7 @@
 		}
 	},
 
-	addDialogToMetatagUpdateListeners: function () {
+	addDialogToMetaTagUpdateListeners: function () {
 		var _this = this;
 		this.async(function () {
 			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, this);
@@ -684,11 +684,11 @@
 	},
 
 	scriptUpdateSingle: function (instance, change) {
-		!this.fullscreen && this.findMetatagsChanges.call(this, [change]);
+		!this.fullscreen && this.findMetaTagsChanges.call(this, [change]);
 	},
 
 	scriptUpdateBatch: function (instance, changes) {
-		this.fullscreen && this.findMetatagsChanges.call(this, changes);
+		this.fullscreen && this.findMetaTagsChanges.call(this, changes);
 	},
 	//#endregion
 

@@ -1574,7 +1574,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	this.GM.GM_info = function () {
 		return {
-			scriptWillUpdate: false, //TODO update this later when it's implemented
+			script: {},
+			scriptMetaStr: 
+			scriptWillUpdate: false,
 			version: greasemonkeyData
 		}
 	};
@@ -1813,7 +1815,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * I have no idea what this is supposed to do as it's horribly documented:
+	 * I have no idea what this is supposed to do from the documentation:
 	 * https://tampermonkey.net/documentation.php#GM_saveTab
 	 * You can use the comms API instead of this
 	 */
@@ -1856,7 +1858,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	this.GM.GM_notification = function (text, title, image, onclick) {
 		var details = {};
-		if (typeof text === 'object') {
+		if (typeof text === 'object' && text) {
 			details = {
 				message: text.text,
 				title: text.title,
