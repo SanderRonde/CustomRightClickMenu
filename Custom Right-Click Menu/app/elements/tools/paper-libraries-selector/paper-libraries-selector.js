@@ -269,9 +269,8 @@ Polymer({
 				});
 		}
 		else if (e.target.classList.contains('anonymous')) {
-			e.target.remove();
-			//window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor, 'require', 
-			//TODO remove the require from the metatags
+			var url = e.target.getAttribute('data-url');
+			window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor, 'require', url);
 		} else {
 			//Checking or un-checking something
 			var lib = e.target.getAttribute('data-url');

@@ -68,6 +68,15 @@ window.Polymer({
 	 */
 	firstCRMColumnEl: null,
 
+	/*
+	 * A list of selected nodes
+	 * 
+	 * @attribute selectedElements
+	 * @type Array
+	 * @default []
+	 */
+	selectedElements: [],
+
 	get firstCRMColumn() {
 		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2]));
 	},
@@ -442,8 +451,10 @@ window.Polymer({
 		var _this = this;
 		var editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
+		console.log('is this even called');
 		for (var i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.remove('selecting');
+			editCrmItems[i].classList.remove('highlighted');
 		}
 		setTimeout(function () {
 			_this.isSelecting = false;

@@ -485,7 +485,6 @@ Polymer({
 			var thisTop = (this.lastRecordedPos.Y - this.mouseToCorner.Y);
 			var thisLeft = (this.lastRecordedPos.X - this.mouseToCorner.X) - thisBoundingClientRect.left;
 
-			//TODO fix vertical moving
 			//Vertically space elements
 			var parentChildrenList = $(this.parentNode).children('edit-crm-item');
 			var prev = parentChildrenList[this.filler.index - 1];
@@ -522,11 +521,11 @@ Polymer({
 				oldBot,
 				i;
 			if (thisLeft > 150) {
-				var $nextColumnCont = $(this.parentNode.parentNode).next('.CRMEditColumnCont');
+				var $nextColumnCont = $(this.parentNode.parentNode.parentNode).next('.CRMEditColumnCont');
 				if ($nextColumnCont[0]) {
 					if ($nextColumnCont[0].style.display !== 'none') {
 						this.dragStart.X += 200;
-						newColumn = $nextColumnCont.children('.CRMEditColumn')[0];
+						newColumn = $nextColumnCont.children('paper-material').children('.CRMEditColumn')[0];
 						newColumnChildren = newColumn.children;
 						newColumnLength = newColumnChildren.length - 1;
 						fillerIndex = 0;
@@ -559,10 +558,10 @@ Polymer({
 				}
 			}
 			else if (thisLeft < -50) {
-				var $prevColumnCont = $(this.parentNode.parentNode).prev('.CRMEditColumnCont');
+				var $prevColumnCont = $(this.parentNode.parentNode.parentNode).prev('.CRMEditColumnCont');
 				if ($prevColumnCont[0]) {
 					this.dragStart.X -= 200;
-					newColumn = $prevColumnCont.children('.CRMEditColumn')[0];
+					newColumn = $prevColumnCont.children('paper-material').children('.CRMEditColumn')[0];
 					newColumnChildren = newColumn.children;
 					newColumnLength = newColumnChildren.length - 1;
 					fillerIndex = 0;
@@ -643,15 +642,20 @@ Polymer({
 			});
 		}
 		if (this.item) {
-			app.crm.move(this.item.path, newPath, (this.parentNode.index === this.column));
+			var itemPathCopy = Array.from(this.item.path);
+			itemPathCopy.splice(itemPathCopy.length - 1, 1);
+			var newPathCopy = Array.from(newPath);
+			newPathCopy.splice(newPathCopy.length - 1, 1);
+
+			window.app.crm.move(this.item.path, newPath, window.app.compareArray(itemPathCopy, newPathCopy));
 			var newPathMinusOne = newPath;
 			newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
-			var newObj = app.editCRM.build(newPathMinusOne);
+			var newObj = window.app.editCRM.build(newPathMinusOne);
 			$(this.parentNode.parentNode.parentNode).children().css('display', 'table');
 
 			setTimeout(function() {
 				//Make every node re-run "ready"
-				$(app.editCRM).find('edit-crm-item').each(function() {
+				$(window.app.editCRM).find('edit-crm-item').each(function() {
 					this.recalculateIndex(newObj);
 				});
 			}, 0);
@@ -660,6 +664,15 @@ Polymer({
 	//#endregion
 
 	//#region editPageFunctions
+	selectThisNode: function() {
+		var prevState = this.$.checkbox.checked;
+		this.$.checkbox.checked = !prevState;
+		if (document.getElementsByClassName('highlighted').length === 0) {
+			this.classList.add('firstHighlighted');
+		}
+		prevState ? this.onDeselect() : this.onSelect();
+	},
+
 	openEditPage: function () {
 		if (!this.shadow && !window.app.item) {
 			if (!this.classList.contains('selecting')) {
@@ -678,16 +691,145 @@ Polymer({
 				}
 				window.crmEditPage.init();
 			} else {
-				var prevState = this.$.checkbox.checked;
-				this.$.checkbox.checked = !prevState;
-				prevState ? this.onDeselect() : this.onSelect();
+				this.selectThisNode();
 			}
+		}
+	},
+
+	getNextNode: function(node) {
+		if (node.children) {
+			return node.children[0];
+		}
+
+		var path = Array.from(node.path);
+		var currentNodeSiblings = window.app.crm.lookup(path, true);
+		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
+		while (currentNodeSiblings.length - 1 <= currentNodeIndex) {
+			currentNodeSiblings = window.app.crm.lookup(path, true);
+			currentNodeIndex = path.splice(path.length - 1, 1)[0];
+		}
+		return currentNodeSiblings[currentNodeIndex + 1];
+	},
+
+	getPreviousNode: function (node) {
+		var path = Array.from(node.path);
+		var currentNodeSiblings = window.app.crm.lookup(path, true);
+		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
+		if (currentNodeIndex === 0) {
+			//return parent
+			var parent = window.app.crm.lookup(path);
+			return parent;
+		}
+		var possibleParent = currentNodeSiblings[currentNodeIndex - 1];
+		if (possibleParent.children) {
+			return possibleParent.children[possibleParent.children.length - 1];
+		}
+		return possibleParent;
+	},
+
+	getNodesOrder: function(reference, other) {
+		var i;
+		var referencePath = reference.path;
+		var otherPath = other.path;
+		
+		//Check if they're the same
+		if (referencePath.length === otherPath.length) {
+			var same = true;
+			for (i = 0; i < referencePath.length; i++) {
+				if (referencePath[i] !== otherPath[i]) {
+					same = false;
+					break;
+				}
+			}
+			if (same) {
+				return 'same';
+			}
+		}
+
+		var biggestArray = (referencePath.length > otherPath.length ? referencePath.length : otherPath.length);
+		for (i = 0; i < biggestArray; i++) {
+			if (otherPath[i] !== undefined && referencePath[i] !== undefined) {
+				if (otherPath[i] > referencePath[i]) {
+					return 'after';
+				}
+				else if (otherPath[i] < referencePath[i]) {
+					return 'before';
+				}
+			} else {
+				if (otherPath[i] !== undefined) {
+					return 'after';
+				} else {
+					return 'before';
+				}
+			}
+		}
+		return 'same';
+	},
+
+	generateShiftSelectionCallback: function(node, wait) {
+		return function() {
+			window.setTimeout(function() {
+				window.app.editCRM.getCRMElementFromPath(node.path).onSelect(true);
+			}, wait);
+		}
+	},
+
+	selectFromXToThis: function () {
+		var _this = this;
+
+		//Get the first highlighted node
+		var firstHighlightedNode = document.getElementsByClassName('firstHighlighted')[0];
+		var firstHighlightedItem = firstHighlightedNode.item;
+
+		//Deselect everything else
+		$('.highlighted').each(function() {
+			this.classList.remove('highlighted');
+		});
+
+		//Find out if the clicked on node is before, at, or after the first highlighted node
+		var relation = this.getNodesOrder(firstHighlightedItem, this.item);
+		if (relation === 'same') {
+			this.classList.add('highlighted');
+			this.$.checkbox.checked = true;
+			window.app.editCRM.selectedElements = [this.item.id];
+		}
+		else {
+			firstHighlightedNode.classList.add('highlighted');
+			firstHighlightedNode.$.checkbox.checked = true;
+			window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
+
+			var wait = 0;
+			var nodeWalker = (relation === 'after' ? this.getNextNode : this.getPreviousNode);
+			var node = nodeWalker(firstHighlightedItem);
+			while (node.id !== this.item.id) {
+				this.generateShiftSelectionCallback(node, wait)();
+				wait += 35;
+				node = nodeWalker(node);
+			}
+			
+			//Finally select this node
+			window.setTimeout(function() {
+				_this.classList.add('highlighted');
+				_this.$.checkbox.checked = true;
+				window.app.editCRM.selectedElements.push(_this.item.id);
+			}, wait);
+		}
+	},
+
+	checkClickType: function (e) {
+		if (e.detail.sourceEvent.ctrlKey) {
+			window.app.editCRM.selectItems();
+			this.selectThisNode();
+		}
+		else if (this.classList.contains('selecting') && e.detail.sourceEvent.shiftKey) {
+			this.selectFromXToThis();
+		} else {
+			this.openEditPage();
 		}
 	},
 	//#endregion
 
 	//#region typeIndicatorFunctions
-
 	calculateType: function () {
 		this.type = this.item.type;
 		((this.isScript = this.item.type === 'script') && (this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isLink = this.item.type === 'link') && (this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isStylesheet = this.item.type === 'stylesheet') && (this.isMenu = this.isDivider = false)) || ((this.isMenu = this.item.type === 'menu') && (this.isDivider = false)) || (this.isDivider = true);
@@ -738,7 +880,7 @@ Polymer({
 	//#region deletionFunctions
 
 	_getOnSelectFunction: function(_this, index) {
-		return function() {
+		return function () {
 			window.app.editCRM.getCRMElementFromPath(_this.item.children[index].path).onSelect(true);
 		}
 	},
@@ -748,7 +890,7 @@ Polymer({
 		selectCheckbox && (this.$.checkbox.checked = true);
 		if (this.item.children && !dontSelectChildren) {
 			for (var i = 0; i < this.item.children.length; i++) {
-				setTimeout(this._getOnSelectFunction(this, i), (i * 75));
+				setTimeout(this._getOnSelectFunction(this, i), (i * 35));
 				window.app.editCRM.selectedElements.push(this.item.children[i].id);
 			}
 		}
@@ -760,13 +902,15 @@ Polymer({
 		}
 	},
 
+	//TODO "export as tampermonkey script/stylesheet"
+
 	onDeselect: function (selectCheckbox, dontSelectChildren) {
 		this.classList.remove('highlighted');
 		selectCheckbox && (this.$.checkbox.checked = false);
 		if (this.item.children && !dontSelectChildren) {
 			var selectedPaths = window.app.editCRM.selectedElements;
 			for (var i = 0; i < this.item.children.length; i++) {
-				setTimeout(this._getOnDeselectFunction(this, i), (i * 75));
+				setTimeout(this._getOnDeselectFunction(this, i), (i * 35));
 				selectedPaths.splice(selectedPaths.indexOf(this.item.children[i].id), 1);
 			}
 		}
