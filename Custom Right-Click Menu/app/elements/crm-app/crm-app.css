@@ -752,3 +752,11 @@ textarea#exportJSONData:focus {
 edit-crm-item {
 	display:block;
 }
+
+.globalExcludeContainer {
+	display: flex;
+}
+
+.globalExcludeInput {
+	flex-grow: 100;
+}

@@ -194,6 +194,24 @@
 					</div>
 				</div>
 				<br/><br/>
+				<div class="globalExcludes">
+					<div class="bigTxt">
+						Global Excludes
+					</div>
+					<div class="globalExcludesDescr">
+						There are some sites on which you don't trust any script to run, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns">https://developer.chrome.com/extensions/match_patterns</a>
+					</div>
+					<div class="globalExcludesItems">
+						<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
+							<div class="globalExcludeContainer">
+								<paper-input on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
+								<paper-icon-button icon="clear" on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+							</div>
+						</template>
+						<paper-button raised class="blue" on-tap="addGlobalExcludeField">ADD</paper-button>
+					</div>
+				</div>
+				<br/><br/>
 				<div class="importSettingsCont">
 					<div class="bigTxt">
 						Importing your settings
@@ -511,5 +529,5 @@
 <script src="../../js/jquery.contextMenu.js"></script>
 <script src="../../js/jquery.bez.js"></script>
 <script src="crm-app.js"></script>
-<!--TODO remove-->
-<script src="../../js/test.js"></script>
+
+<!--TODO data transfer for old CRM users and a default set of settings-->

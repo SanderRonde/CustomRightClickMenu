@@ -173,6 +173,11 @@ Polymer({
 			type: Number,
 			notify: true,
 			value: 0
+		},
+		globalExcludes: {
+			type: Array,
+			notify: true,
+			value: []
 		}
 	},
 
@@ -202,8 +207,8 @@ Polymer({
 		return true;
 	},
 
-	compareArray: function(firstArray, secondArray) {
-		if (!firstArray === !secondArray) {
+	compareArray: function (firstArray, secondArray) {
+		if (!!firstArray !== !!secondArray) {
 			return true;
 		}
 		else if (!firstArray || !secondArray) {
@@ -266,6 +271,59 @@ Polymer({
 		} else {
 			this.addImportedNodes(nodesToAdd);
 		}
+	},
+
+	removeGlobalExclude: function(e) {
+		var index = 0;
+		var node = e.path[0];
+		while (node.tagName.toLowerCase() !== 'paper-icon-button') {
+			node = e.path[++index];
+		}
+
+		//debugger;
+		var excludeIndex = null;
+		var allExcludes = document.getElementsByClassName('globalExcludeContainer');
+		for (var i = 0; i < allExcludes.length; i++) {
+			if (allExcludes[i] === node.parentNode) {
+				excludeIndex = i;
+				break;
+			}
+		}
+		if (excludeIndex === null) {
+			return;
+		}
+
+		this.splice('globalExcludes', excludeIndex, 1);
+	},
+
+	addGlobalExcludeField: function() {
+		this.push('globalExcludes', '');
+	},
+	
+	globalExcludeChange: function(e) {
+		var index = 0;
+		var node = e.path[0];
+		while (node.tagName.toLowerCase() !== 'paper-input') {
+			node = e.path[++index];
+		}
+		var excludeIndex = null;
+		var allExcludes = document.getElementsByClassName('globalExcludeContainer');
+		for (var i = 0; i < allExcludes.length; i++) {
+			if (allExcludes[i] === node.parentNode) {
+				excludeIndex = i;
+				break;
+			}
+		}
+		if (excludeIndex === null) {
+			return;
+		}
+
+		var value = node.value;
+		this.globalExcludes[excludeIndex] = value;
+		this.set('globalExcludes', this.globalExcludes);
+		chrome.storage.local.set({
+			globalExcludes: this.globalExcludes
+		});
 	},
 
 	addImportedNodes: function(nodesToAdd) {
@@ -609,6 +667,10 @@ Polymer({
 	 * Uploads the settings to chrome.storage
 	 */
 	upload: function () {
+		console.log('called from');
+		console.trace();
+
+		return;
 		//Send changes to background-page, background-page uploads everything
 		//Compare storageLocal objects
 		var localChanges = [];
@@ -868,91 +930,110 @@ Polymer({
 		var allPermissions = this.templates.getPermissions();
 		for (i = 0; i < toRequest.length; i++) {
 			index = allPermissions.indexOf(toRequest[i]);
-			if (index > -1) {
-				allPermissions.splice(index, 1);
+			if (index === -1) {
+				toRequest.splice(index, 1);
 				i--;
+			} else {
+				allPermissions.splice(index, 1);
 			}
 		}
 
-		chrome.permissions.getAll(function(allowed) {
-			var requested = [];
-			for (i = 0; i < toRequest.length; i++) {
-				requested.push({
-					name: toRequest[i],
-					description: _this.templates.getPermissionDescription([toRequest[i]]),
-					toggled: false
-				});
-			}
+		chrome.storage.local.set({
+			requestPermissions: toRequest
+		});
 
-			var other = [];
-			for (i = 0; i < allPermissions.length; i++) {
-				other.push({
-					name: allPermissions[i],
-					description: _this.templates.getPermissionDescription([allPermissions[i]]),
-					toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1)
-				});
-			}
-			var requestPermissionsOther = $('#requestPermissionsOther')[0];
+		if (toRequest.length > 0) {
+			chrome.permissions.getAll(function(allowed) {
+				var requested = [];
+				for (i = 0; i < toRequest.length; i++) {
+					requested.push({
+						name: toRequest[i],
+						description: _this.templates.getPermissionDescription([toRequest[i]]),
+						toggled: false
+					});
+				}
 
-			var overlay;
+				var other = [];
+				for (i = 0; i < allPermissions.length; i++) {
+					other.push({
+						name: allPermissions[i],
+						description: _this.templates.getPermissionDescription([allPermissions[i]]),
+						toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1)
+					});
+				}
+				var requestPermissionsOther = $('#requestPermissionsOther')[0];
 
-			function handler() {
-				var el, svg;
-				overlay.style.maxHeight = 'initial!important';
-				overlay.style.top = 'initial!important';
-				overlay.removeEventListener('iron-overlay-opened', handler);
-				$('.requestPermissionsShowBot').off('click').on('click', function() {
-					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
-					svg = $(this).find('.requestPermissionsSvg')[0];
-					svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-					if (el.animation) {
-						el.animation.reverse();
-					} else {
-						el.animation = el.animate([
-							{
+				var overlay;
+
+				function handler() {
+					var el, svg;
+					overlay.style.maxHeight = 'initial!important';
+					overlay.style.top = 'initial!important';
+					overlay.removeEventListener('iron-overlay-opened', handler);
+					$('.requestPermissionsShowBot').off('click').on('click', function() {
+						el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
+						svg = $(this).find('.requestPermissionsSvg')[0];
+						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+						if (el.animation) {
+							el.animation.reverse();
+						} else {
+							el.animation = el.animate([
+								{
+									height: 0
+								}, {
+									height: el.scrollHeight + 'px'
+								}
+							], {
+								duration: 250,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+								fill: 'both'
+							});
+						}
+					});
+					$('#requestPermissionsShowOther').off('click').on('click', function() {
+						var showHideSvg = this;
+						var otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
+						if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
+							$(otherPermissions).animate({
+								height: otherPermissions.scrollHeight + 'px'
+							}, 350, function() {
+								showHideSvg.children[0].style.display = 'none';
+								showHideSvg.children[1].style.display = 'block';
+							});
+						} else {
+							$(otherPermissions).animate({
 								height: 0
-							}, {
-								height: el.scrollHeight + 'px'
-							}
-						], {
-							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-					}
-				});
-				$('#requestPermissionsShowOther').off('click').on('click', function() {
-					var showHideSvg = this;
-					var otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
-					if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
-						$(otherPermissions).animate({
-							height: otherPermissions.scrollHeight + 'px'
-						}, 350, function() {
-							showHideSvg.children[0].style.display = 'none';
-							showHideSvg.children[1].style.display = 'block';
-						});
-					} else {
-						$(otherPermissions).animate({
-							height: 0
-						}, 350, function() {
-							showHideSvg.children[0].style.display = 'block';
-							showHideSvg.children[1].style.display = 'none';
-						});
-					}
-				});
+							}, 350, function() {
+								showHideSvg.children[0].style.display = 'block';
+								showHideSvg.children[1].style.display = 'none';
+							});
+						}
+					});
 
-				var permission;
-				$('.requestPermissionButton').off('click').on('click', function() {
-					permission = this.previousElementSibling.previousElementSibling.textContent;
-					var slider = this;
-					if (this.checked) {
-						chrome.permissions.request({
-							permissions: [permission]
-						}, function(accepted) {
-							if (!accepted) {
-								//The user didn't accept, don't pretend it's active when it's not, turn it off
-								slider.checked = false;
-							} else {
+					var permission;
+					$('.requestPermissionButton').off('click').on('click', function() {
+						permission = this.previousElementSibling.previousElementSibling.textContent;
+						var slider = this;
+						if (this.checked) {
+							try {
+								chrome.permissions.request({
+									permissions: [permission]
+								}, function(accepted) {
+									if (!accepted) {
+										//The user didn't accept, don't pretend it's active when it's not, turn it off
+										slider.checked = false;
+									} else {
+										//Accepted, remove from to-request permissions
+										chrome.storage.local.get(function(e) {
+											var permissionsToRequest = e.requestPermissions;
+											requestPermissions.splice(requestPermissions.indexOf(permission), 1);
+											chrome.storage.local.set({
+												requestPermissions: permissionsToRequest
+											});
+										});
+									}
+								});
+							} catch (e) {
 								//Accepted, remove from to-request permissions
 								chrome.storage.local.get(function(e) {
 									var permissionsToRequest = e.requestPermissions;
@@ -962,66 +1043,66 @@ Polymer({
 									});
 								});
 							}
-						});
-					} else {
-						chrome.permissions.remove({
-							permissions: [permission]
-						}, function(removed) {
-							if (!removed) {
-								//It didn't get removed
-								slider.checked = true;
-							}
-						});
-					}
-				});
-
-				$('#requestPermissionsAcceptAll').off('click').on('click', function() {
-					chrome.permissions.request({
-						permissions: toRequest
-					}, function(accepted) {
-						if (accepted) {
-							chrome.storage.local.set({
-								requestPermissions: []
-							});
-							$('.requestPermissionButton.required').each(function() {
-								this.checked = true;
+						} else {
+							chrome.permissions.remove({
+								permissions: [permission]
+							}, function(removed) {
+								if (!removed) {
+									//It didn't get removed
+									slider.checked = true;
+								}
 							});
 						}
 					});
-				});
-			}
 
-			var interval = window.setInterval(function() {
-				try {
-					if (window.doc.requestPermissionsCenterer.$.content.children[0].open) {
-						window.clearInterval(interval);
-						overlay = window.doc.requestPermissionsCenterer.$.content.children[0];
-						$('#requestedPermissionsTemplate')[0].items = requested;
-						$('#requestedPermissionsOtherTemplate')[0].items = other;
-						overlay.addEventListener('iron-overlay-opened', handler);
-						setTimeout(function() {
-							var requestedPermissionsCont = $('#requestedPermissionsCont')[0];
-							var requestedPermissionsAcceptAll = $('#requestPermissionsAcceptAll')[0];
-							var requestedPermissionsType = $('.requestPermissionsType')[0];
-							if (requested.length === 0) {
-								requestedPermissionsCont.style.display = 'none';
-								requestPermissionsOther.style.height = (31 * other.length) + 'px';
-								requestedPermissionsAcceptAll.style.display = 'none';
-								requestedPermissionsType.style.display = 'none';
-							} else {
-								requestedPermissionsCont.style.display = 'block';
-								requestPermissionsOther.style.height = 0;
-								requestedPermissionsAcceptAll.style.display = 'block';
-								requestedPermissionsType.style.display = 'block';
+					$('#requestPermissionsAcceptAll').off('click').on('click', function() {
+						chrome.permissions.request({
+							permissions: toRequest
+						}, function(accepted) {
+							if (accepted) {
+								chrome.storage.local.set({
+									requestPermissions: []
+								});
+								$('.requestPermissionButton.required').each(function() {
+									this.checked = true;
+								});
 							}
-							overlay.open();
-						}, 0);
-					}
-				} catch (e) {
-					//Somehow the element doesn't exist yet
+						});
+					});
 				}
-			}, 100);
-		});
+
+				var interval = window.setInterval(function() {
+					try {
+						if (window.doc.requestPermissionsCenterer.$.content.children[0].open) {
+							window.clearInterval(interval);
+							overlay = window.doc.requestPermissionsCenterer.$.content.children[0];
+							$('#requestedPermissionsTemplate')[0].items = requested;
+							$('#requestedPermissionsOtherTemplate')[0].items = other;
+							overlay.addEventListener('iron-overlay-opened', handler);
+							setTimeout(function() {
+								var requestedPermissionsCont = $('#requestedPermissionsCont')[0];
+								var requestedPermissionsAcceptAll = $('#requestPermissionsAcceptAll')[0];
+								var requestedPermissionsType = $('.requestPermissionsType')[0];
+								if (requested.length === 0) {
+									requestedPermissionsCont.style.display = 'none';
+									requestPermissionsOther.style.height = (31 * other.length) + 'px';
+									requestedPermissionsAcceptAll.style.display = 'none';
+									requestedPermissionsType.style.display = 'none';
+								} else {
+									requestedPermissionsCont.style.display = 'block';
+									requestPermissionsOther.style.height = 0;
+									requestedPermissionsAcceptAll.style.display = 'block';
+									requestedPermissionsType.style.display = 'block';
+								}
+								overlay.open();
+							}, 0);
+						}
+					} catch (e) {
+						//Somehow the element doesn't exist yet
+					}
+				}, 100);
+			});
+		}
 	},
 
 	/**
@@ -1060,7 +1141,7 @@ Polymer({
 		}
 	},
 
-	ready: function() {
+	ready: function () {
 		var _this = this;
 		this.crm.parent = this;
 		window.app = this;
@@ -1110,9 +1191,17 @@ Polymer({
 			if (storageLocal.jsLintGlobals) {
 				_this.jsLintGlobals = storageLocal.jsLintGlobals;
 			} else {
-				_this.jsLintGlobals = ['window','$','jQuery','crmapi'];
+				_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
 				chrome.storage.local.set({
 					jsLintGlobals: _this.jsLintGlobals
+				});
+			}
+			if (storageLocal.globalExcludes && storageLocal.globalExcludes.length > 1) {
+				_this.globalExcludes = storageLocal.globalExcludes;
+			} else {
+				_this.globalExcludes = [''];
+				chrome.storage.local.set({
+					globalExcludes: _this.globalExcludes
 				});
 			}
 			if (storageLocal.latestId) {
@@ -1172,7 +1261,7 @@ Polymer({
 		});
 		this.show = false;
 
-		chrome.storage.onChanged.addListener(function (changes, areaName) {
+		chrome.storage.onChanged.addListener(function(changes, areaName) {
 			if (areaName === 'local' && changes.latestId) {
 				_this.latestId = changes.latestId.newValue;
 			}
@@ -1440,8 +1529,30 @@ Polymer({
 				//Script-specific descriptions
 				crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
 				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
-				chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.'
-				//TODO description for GM_APIs
+				chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.',
+				
+				//Tampermonkey APIs
+				GM_addStyle: 'Allows the adding of certain styles to the document through this API',
+				GM_deleteValue: 'Allows the deletion of storage items',
+				GM_listValues: 'Allows the listing of all storage data',
+				GM_addValueChangeListener: 'Allows for the listening of changes to the storage area',
+				GM_removeValueChangeListener: 'Allows for the removing of listeners',
+				GM_setValue: 'Allows for the setting of storage data values',
+				GM_getValue: 'Allows the reading of values from the storage',
+				GM_log: 'Allows for the logging of values to the console (same as normal console.log)',
+				GM_getResourceText: 'Allows the reading of the content of resources defined in the header',
+				GM_getResourceURL: 'Allows the reading of the URL of the predeclared resource',
+				GM_registerMenuCommand: 'Allows the adding of a button to the extension menu - not implemented',
+				GM_unregisterMenuCommand: 'Allows the removing of an added button - not implemented',
+				GM_openInTab: 'Allows the opening of a tab with given URL',
+				GM_xmlhttpRequest: 'Allows you to make an XHR to any site you want',
+				GM_download: 'Allows the downloading of data to the hard disk',
+				GM_getTab: 'Allows the reading of an object that\'s persistent while the tab is open - not implemented',
+				GM_saveTab: 'Allows the saving of the tab object to reopen after a page unload - not implemented',
+				GM_getTabs: 'Allows the readin gof all tab object - not implemented',
+				GM_notification: 'Allows sending desktop notifications',
+				GM_setClipboard: 'Allows copying data to the clipboard - not implemented',
+				GM_info: 'Allows the reading of some script info'
 			};
 
 			return descriptions[permission];
@@ -1897,7 +2008,7 @@ Polymer({
 			} else {
 				this.parent.settings.crm = insertInto(value, this.parent.settings.crm);
 			}
-			options.upload();
+			window.app.upload();
 		},
 
 		/**
@@ -1907,13 +2018,14 @@ Polymer({
 		 * @param target - Where to move the item to (in path form)
 		 * @param sameColumn - Whether the item has stayed in the same column
 		 */
-		move: function(toMove, target, sameColumn) {
+		move: function (toMove, target, sameColumn) {
+			debugger;
 			var toMoveContainer = this.lookup(toMove, true);
-			var toMoveIndex = toMoveContainer.splice(toMove.length - 1, 1);
+			var toMoveIndex = toMove[toMove.length - 1];
 			var toMoveItem = toMoveContainer[toMoveIndex];
 
 			var newTarget = this.lookup(target, true);
-			var targetIndex = target.splice(target.length - 1, 1);
+			var targetIndex = target[target.length - 1];
 
 			if (sameColumn && toMoveIndex > targetIndex) {
 				insertInto(toMoveItem, newTarget, targetIndex);
@@ -1922,12 +2034,12 @@ Polymer({
 				insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
-			app.upload();
+			window.app.upload();
 		},
 
 		remove: function(index) {
 			this.lookup(index, true).splice(index[index.length - 1], 1);
-			app.upload();
+			window.app.upload();
 		}
 	}
 });
