@@ -3276,7 +3276,7 @@
 			case 'resource':
 				resourceHandler(message.data);
 				break;
-				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+				//This seems to be deprecated from the greasemonkey documentation page, removed somewhere before 24th of february
 				//	waiting for any update
 				/*
 			case 'scriptInstall':
@@ -3289,7 +3289,7 @@
 			case 'sendInstanceMessage':
 				sendInstanceMessage(message);
 				break;
-				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+				//This seems to be deprecated from the greasemonkey documentation page, removed somewhere before 24th of february
 				//	waiting for any update
 				/*
 			case 'installScriptMessage':
