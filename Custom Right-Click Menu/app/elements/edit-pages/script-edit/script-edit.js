@@ -1,4 +1,5 @@
-﻿(function () {
+﻿/// <reference path="../../crm-app/crm-app.js" />
+(function () {
 	'use strict';
 	Polymer({
 		is: 'script-edit',
@@ -734,11 +735,11 @@
 		},
 
 		exportScriptAsCRM: function() {			
-			window.app.editCRM.exportGivenNodes([getExportData()], 'CRM');
+			window.app.editCRM.exportSingleNode(getExportData(), 'CRM');
 		},
 
 		exportScriptAsUserscript: function() {
-			window.app.editCRM.exportGivenNodes([getExportData()], 'Userscript');
+			window.app.editCRM.exportSingleNode(getExportData(), 'Userscript');
 		},
 
 		finishEditing: function() {

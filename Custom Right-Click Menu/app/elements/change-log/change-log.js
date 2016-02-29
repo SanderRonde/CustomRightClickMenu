@@ -28,7 +28,6 @@
 			var arrayChangelog = [];
 			for (var versionEntry in changelog) {
 				if (changelog.hasOwnProperty(versionEntry)) {
-					console.log(arrayChangelog);
 					arrayChangelog.push({
 						version: versionEntry,
 						changes: changelog[versionEntry]
