@@ -192,7 +192,7 @@
 
 				none: 'No permissions',
 				
-				//Tampermonkey APIs
+				//Greasemonkey APIs
 				GM_addStyle: 'Allows the adding of certain styles to the document through this API',
 				GM_deleteValue: 'Allows the deletion of storage items',
 				GM_listValues: 'Allows the listing of all storage data',

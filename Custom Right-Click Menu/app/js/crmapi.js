@@ -1572,10 +1572,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.GM = {};
 
 
+	//TODO
 	this.GM.GM_info = function () {
 		return {
 			script: {},
-			scriptMetaStr: 
+			scriptMetaStr: 0,
 			scriptWillUpdate: false,
 			version: greasemonkeyData
 		}
@@ -1892,7 +1893,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		request.send();
 	}
 
-	//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
+	//This seems to be deprecated from the greasemonkey documentation page, removed somewhere before 24th of february
 	//	waiting for any update
 	/*
 	 * Install a userscript to Custom Right-Click Menu. The callback 

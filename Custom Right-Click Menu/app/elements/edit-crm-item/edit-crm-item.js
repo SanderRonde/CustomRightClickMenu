@@ -902,8 +902,6 @@ Polymer({
 		}
 	},
 
-	//TODO "export as tampermonkey script/stylesheet"
-
 	onDeselect: function (selectCheckbox, dontSelectChildren) {
 		this.classList.remove('highlighted');
 		selectCheckbox && (this.$.checkbox.checked = false);

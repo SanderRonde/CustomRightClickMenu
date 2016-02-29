@@ -458,7 +458,7 @@
 							Other scripts can only acces these permissons if you give those scripts specifically that permission on installing them.
 							You can basically allow any permission, they will only be used if you write them into one of your own scripts (or a downloaded one requests it) so allowing permissions that are not used yet simply saves you the hassle of doing it later during script installation or execution.
 						</div>
-						<br />
+						<br/>
 						<div class="requestPermissionsPermissions">
 							<div id="requestedPermissionsCont">
 								<div id="requestPermissionsAsked">
@@ -470,7 +470,7 @@
 											<div class="requestPermissionsPermissionTopCont">
 												<span class="requestPermissionName">[[requestedPermission.name]]</span>
 												<div class="requestPermissionsShowBot">
-													<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+													<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 												</div>
 												<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
 											</div>
@@ -483,8 +483,8 @@
 								<div id="requestPermissionsLineCont">
 									<div id="requestPermissionsSplitter"></div>
 									<svg id="requestPermissionsShowOther" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48">
-										<path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z" />
-										<line x1="10" y1="24" style="stroke: rgb(0, 0, 0); stroke-width: 5;" x2="38" y2="24" />
+										<path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z"/>
+										<line x1="10" y1="24" style="stroke: rgb(0, 0, 0); stroke-width: 5;" x2="38" y2="24"/>
 									</svg>
 								</div>
 							</div>
@@ -503,8 +503,8 @@
 										</div>
 										<div class="requestPermissionsPermissionBotCont">
 											<span class="requestPermissionsDescription">
-												<echo-html makelink html="[[otherPermission.description]]"></echo-html>
-											</span>
+													<echo-html makelink html="[[otherPermission.description]]"></echo-html>
+												</span>
 										</div>
 									</div>
 								</template>
@@ -515,6 +515,9 @@
 							<paper-button dialog-dismiss>close</paper-button>
 						</div>
 					</paper-dialog>
+				</center-element>
+				<center-element fullscreenoverlay id="exportOverlay">
+				
 				</center-element>
 				<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
 				<use-external-editor id="useExternalEditor"></use-external-editor>
