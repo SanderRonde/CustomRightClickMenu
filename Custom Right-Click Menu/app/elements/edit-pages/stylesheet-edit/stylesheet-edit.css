@@ -1,6 +1,8 @@
 ﻿#stylesheetEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
+	display: flex;
+	flex-direction: column;
 }
 
 input {
@@ -437,3 +439,25 @@ input {
 		background-color: #f44336!important;
 		border-color: #f44336!important;
 	}
+
+#triggersInfoTxtCont {
+	position: absolute;
+}
+
+#exportMenu {
+	display:inline-block;
+	height: 40px;
+}
+
+	#exportMenu paper-menu {
+		width: auto;
+		padding: 0;
+	}
+
+	#exportMenu #dropdownSelected {
+		font-size: 125%;
+	}
+
+#stylesheetEditCont #buttons {
+	height: 45px;
+}

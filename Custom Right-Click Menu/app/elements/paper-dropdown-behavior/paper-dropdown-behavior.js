@@ -90,15 +90,16 @@
 	/*
 	 * Adds a listener that fires when a new value is selected
 	 */
-	_addListener: function (listener, thisArg) {
+	_addListener: function (listener, id, thisArg) {
 		var found = false;
 		for (var i = 0; i < this._listeners.length; i++) {
-			if (this._listeners[i].listener === listener) {
+			if (this._listeners[i].listener === listener && this._listeners[i].id === id) {
 				found = true;
 			}
 		}
 		if (!found) {
 			this._listeners.push({
+				id: id,
 				listener: listener,
 				thisArg: thisArg
 			});
@@ -109,13 +110,16 @@
 	 * Fires all added listeners, triggers when a new value is selected
 	 */
 	_fireListeners: function (_this) {
-		var i;
+		console.log(_this);
 		var prevState = _this.selected;
 		if (_this.tagName === 'PAPER-DROPDOWN-MENU') {
 			_this.selected = _this._paperMenu.selected;
 		}
-		_this._listeners.forEach(function(listener) {
-			listener.listener.apply(listener.thisArg, [prevState, _this._paperMenu.selected]);
+		_this._listeners.forEach(function (listener) {
+			console.log(listener.id);
+			if (listener.id === _this.id) {
+				listener.listener.apply(listener.thisArg, [prevState, _this._paperMenu.selected]);
+			}
 		});
 	},
 
@@ -211,9 +215,14 @@
 			});
 			setTimeout(function() {
 				var content = $(_this._paperMenu).find('.content');
-				content.css('display', 'block').stop().animate({
+				content.css('display', 'block');
+				var animation = {
 					height: content[0].scrollHeight
-				}, {
+				};
+				if (_this.overflowing !== undefined) {
+					animation.marginBottom = -(content[0].scrollHeight + 14);
+				}
+				content.stop().animate(animation, {
 					easing: 'easeOutCubic',
 					duration: 300,
 					complete: function() {
@@ -231,9 +240,13 @@
 		var _this = this;
 		if (this._expanded) {
 			this._expanded = false;
-			$(this).find('paper-menu').find('.content').stop().animate({
+			var animation = {
 				height: 0
-			}, {
+			};
+			if (this.overflowing !== undefined) {
+				animation.marginBottom = -15;
+			}
+			$(this).find('paper-menu').find('.content').stop().animate(animation, {
 				easing: 'easeInCubic',
 				duration: 300,
 				complete: function() {

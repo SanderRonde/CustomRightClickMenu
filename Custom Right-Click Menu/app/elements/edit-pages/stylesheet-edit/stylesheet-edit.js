@@ -210,6 +210,22 @@
 	},
 	//#endregion
 
+	//#region Dialog
+	getExportData: function () {
+		$('script-edit #exportMenu paper-menu')[0].selected = 0;
+		var settings = {};
+		this.save(settings);
+		return settings;
+	},
+
+	exportStylesheetAsCRM: function () {
+		window.app.editCRM.exportGivenNodes([getExportData()], 'CRM');
+	},
+
+	exportStylesheetAsUserscript: function () {
+		window.app.editCRM.exportGivenNodes([getExportData()], 'Userscript');
+	},
+
 	finishEditing: function () {
 		chrome.storage.local.set({
 			editing: null
@@ -227,6 +243,7 @@
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
 	},
+	//#endregion
 
 	//#region Metadata Updates
 	preventCodemirrorNotification: function () {
@@ -653,7 +670,7 @@
 	addDialogToMetaTagUpdateListeners: function () {
 		var _this = this;
 		this.async(function () {
-			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, this);
+			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
 		}, 0);
 
 		//Use jquery to also get the pre-change value
@@ -1239,7 +1256,7 @@
 		this.editor = element;
 		element.refresh();
 		element.display.wrapper.classList.add('script-edit-codeMirror');
-		if (element.metaTags) {
+		if (element.metaTags && element.metaTags.metaTags) {
 			element.changeMetaTags(element, 'CRM_stylesheet', 'true', 'true', true);
 		}
 		element.on('metaTagChanged', function (changes, metaTags) {
@@ -1326,6 +1343,7 @@
 		var _this = this;
 		this._init();
 		this.$.dropdownMenu.init();
+		this.$.exportMenu.init();
 		this.initDropdown();
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');

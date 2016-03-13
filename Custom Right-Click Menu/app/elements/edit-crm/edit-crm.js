@@ -116,11 +116,11 @@ window.Polymer({
 		'crmTypeChanged': '_typeChanged'
 	},
 
-	_isCrmEmpty: function (crm, crmLoading) {
+	_isCrmEmpty: function(crm, crmLoading) {
 		return !crmLoading && crm.length === 0;
 	},
 
-	getCurrentTypeIndex: function (path) {
+	getCurrentTypeIndex: function(path) {
 		var i;
 		var hiddenNodes = {};
 		for (i = 0; i < window.app.settings.crm.length; i++) {
@@ -144,12 +144,12 @@ window.Polymer({
 	 *
 	 * @return The last menu on the given list.
 	 */
-	getLastMenu: function (list, hidden) {
+	getLastMenu: function(list, hidden) {
 		var lastMenu = -1;
 		var lastFilledMenu = -1;
 		//Find last menu to auto-expand
 		if (list) {
-			list.forEach(function (item, index) {
+			list.forEach(function(item, index) {
 				if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
 					lastMenu = index;
 					if (item.children.length > 0) {
@@ -172,7 +172,7 @@ window.Polymer({
 	 * @param {Number} showContentType - The content type to show
 	 * @returns {Number} 1 if the node is visible, 0 if it's not
 	 */
-	isNodeVisible: function (result, node, showContentType) {
+	isNodeVisible: function(result, node, showContentType) {
 		var length;
 		if (node.children && node.children.length > 0) {
 			length = node.children.length;
@@ -187,7 +187,7 @@ window.Polymer({
 		return 1;
 	},
 
-	getIndent: function (data, lastMenu, hiddenNodes) {
+	getIndent: function(data, lastMenu, hiddenNodes) {
 		var i;
 		var length = data.length - 1;
 		var visibleIndent = lastMenu;
@@ -206,7 +206,7 @@ window.Polymer({
 	 *
 	 * @return the CRM edit object
 	 */
-	buildCRMEditObj: function (setMenus) {
+	buildCRMEditObj: function(setMenus) {
 		var i;
 		var length;
 		var column;
@@ -249,7 +249,7 @@ window.Polymer({
 
 				if (lastMenu !== -1) {
 					indentTop += indent;
-					list.forEach(function (item) {
+					list.forEach(function(item) {
 						item.expanded = false;
 					});
 					list[lastMenu].expanded = true;
@@ -260,9 +260,9 @@ window.Polymer({
 					}
 				}
 
-				column.list.map(function (currentVal, index) {
+				column.list.map(function(currentVal, index) {
 					currentVal.path = [];
-					path.forEach(function (item, pathIndex) {
+					path.forEach(function(item, pathIndex) {
 						currentVal.path[pathIndex] = item;
 					});
 					currentVal.index = index;
@@ -300,7 +300,7 @@ window.Polymer({
 	 * 
 	 * @return The object to be sent to Polymer
 	 */
-	build: function (setItems, quick, superquick) {
+	build: function(setItems, quick, superquick) {
 		var _this = this;
 		setItems = setItems || [];
 		var obj = this.buildCRMEditObj(setItems);
@@ -316,7 +316,7 @@ window.Polymer({
 			_this.crm = obj;
 			_this.notifyPath('crm', _this.crm);
 			_this.currentTimeout = null;
-			setTimeout(function () {
+			setTimeout(function() {
 				_this.crmLoading = false;
 				var els = document.getElementsByTagName('edit-crm-item');
 				for (var i = 0; i < els.length; i++) {
@@ -336,14 +336,14 @@ window.Polymer({
 		return obj;
 	},
 
-	ready: function () {
+	ready: function() {
 		var _this = this;
 		window.app.editCRM = this;
 		window.app.addEventListener('crmTypeChanged', this._typeChanged);
 		_this._typeChanged(true);
 	},
 
-	addItem: function () {
+	addItem: function() {
 		var newItem = window.app.templates.getDefaultLinkNode({
 			id: window.app.generateItemId()
 		});
@@ -402,16 +402,212 @@ window.Polymer({
 		}
 	},
 
-	exportSelected: function() {
-		var toExport = this.getSelected();
-		var exports = [];
-		var i;
-		for (i = 0; i < app.settings.crm.length; i++) {
-			this.extractUniqueChildren(app.settings.crm[i], toExport, exports);
+	crmExportNameChange: function(node, author) {
+		if (author) {
+			node.nodeInfo && (node.nodeInfo.author = author);
+		}
+		return JSON.stringify(node);
+	},
+
+	getMetaIndexes: function(script) {
+		var metaStart = -1;
+		var metaEnd = -1;
+		var lines = script.split('\n');
+		for (var i = 0; i < lines.length; i++) {
+			if (metaStart !== -1) {
+				if (lines[i].indexOf('==/UserScript==') > -1) {
+					metaEnd = i;
+					break;
+				}
+			} else if (lines[i].indexOf('==UserScript==') > -1) {
+				metaStart = i;
+			}
+		}
+		return {
+			start: metaStart,
+			end: metaEnd
+		};
+	},
+
+	getMetaLines: function(script) {
+		var metaIndexes = this.getMetaIndexes(script);
+		if (metaIndexes.start === -1) {
+			return null;
+		}
+		var metaStart = metaIndexes.start;
+		var metaEnd = metaIndexes.end;
+		var startPlusOne = metaStart + 1;
+		var lines = script.split('\n');
+		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+		return metaLines;
+	},
+
+	getMetaTags: function(script) {
+		var metaLines = getMetaLines(script);
+
+		var metaTags = {};
+		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
+		var regexMatches;
+		for (var i = 0; i < metaLines.length; i++) {
+			regexMatches = metaLines[i].match(regex);
+			if (regexMatches) {
+				metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
+				metaTags[regexMatches[1]].push(regexMatches[3]);
+			}
 		}
 
+		return metaTags;
+	},
+
+	setMetaTagIfSet: function(metaTags, metaTagKey, nodeKey, node) {
+		if (node && node[nodeKey]) {
+			if (Array.isArray(node[nodeKey])) {
+				metaTags[metaTagKey] = node[nodeKey];
+			} else {
+				metaTags[metaTagKey] = [node[nodeKey]];
+			}
+		}
+	},
+
+	getUserscriptString: function(node) {
+		var i;
+		var script = node.value.script;
+		var scriptSplit = script.split('\n');
+		var metaIndexes = this.getMetaIndexes(script);
+		var metaTags = {};
+		if (metaIndexes.start !== -1) {
+			//Remove metaLines
+			scriptSplit.splice(metaIndexes.start, (metaIndexes.end - metaIndexes.start));
+			metaTags = this.getMetaTags(script);
+		}
+
+		this.setMetaTagIfSet(metaTags, 'name', 'name', node);
+		this.setMetaTagIfSet(metaTags, 'author', 'author', node.nodeInfo);
+		this.setMetaTagIfSet(metaTags, 'downloadURL', 'url', node.nodeInfo);
+		this.setMetaTagIfSet(metaTags, 'version', 'version', node);
+		metaTags.CRM_contentTypes = JSON.stringify(node.onContentTypes);
+		this.setMetaTagIfSet(metaTags, 'grant', 'permissions', node);
+
+		var matches = [];
+		var excludes = [];
+		for (i = 0; i < node.value.triggers.length; i++) {
+			if (node.value.triggers[i].not) {
+				excludes.push(node.value.triggers[i].url);
+			} else {
+				matches.push(node.value.triggers[i].url);
+			}
+		}
+
+		metaTags.match = matches;
+		metaTags.exclude = excludes;
+
+		this.setMetaTagIfSet(metaTags, 'CRM_launchMode', 'launchMode', node.value);
+		if (node.value.libraries) {
+			metaTags.require = [];
+			for (i = 0; i < node.value.libraries.length; i++) {
+				//Turn into requires
+				if (node.value.libraries[i].location) {
+					switch (node.value.libraries[i].location) {
+					case 'jquery.js':
+						metaTags.require.push('https://code.jquery.com/jquery-2.1.4.min.js');
+						break;
+					case 'angular.js':
+						metaTags.require.push('https://cdnjs.buttflare.com/ajax/libs/angular.js/1.4.7/angular.min.js');
+						break;
+					case 'mooTools.js':
+						metaTags.require.push('https://cdnjs.buttflare.com/ajax/libs/mootools/1.5.2/mootools-core.min.js');
+						break;
+					case 'yui.js':
+						metaTags.require.push('https://cdnjs.buttflare.com/ajax/libs/yui/3.18.1/yui/yui-min.js');
+						break;
+					}
+				} else {
+					metaTags.require.push(node.value.libraries[i].url);
+				}
+			}
+		}
+
+		if (node.type === 'stylesheet') {
+			metaTags.CRM_stylesheet = ['true'];
+			this.setMetaTagIfSet(metaTags, 'toggle', 'CRM_toggle', node.value);
+			this.setMetaTagIfSet(metaTags, 'defaultOn', 'CRM_defaultOn', node.value);
+
+			//Convert stylesheet to GM API stylesheet insertion
+			var stylesheetCode = scriptSplit.join('\n');
+			scriptSplit = ['GM_addStyle(\'', stylesheetCode.replace(/\n/g, ''), '\');'];
+		}
+
+		var metaLines = [];
+		for (var metaKey in metaTags) {
+			if (metaTags.hasOwnProperty(metaKey)) {
+				for (i = 0; i < metaTags[metaKey].length; i++) {
+					metaLines.push('// @require ' + metaKey + '	' + metaTags[metaKey][i]);
+				}
+			}
+		}
+
+		var newScript = '// ==UserScript==\n';
+		newScript += metaLines.join('\n');
+		newScript += '// ==/UserScript==\n';
+		newScript += scriptSplit.join('\n');
+
+		return newScript;
+	},
+
+	userscriptExportNameChange: function(userscriptString, author) {
+		var linesSplit = userscriptString.split('\n');
+		var metaTagFirstLine = -1;
+		for (var i = 0; i < linesSplit.length; i++) {
+			if (linesSplit[i].indexOf(/\/\/((\s)*)@author/) > -1) {
+				//Replace just this line
+				linesSplit[i] = '// @author	' + author;
+				return linesSplit.join('\n');
+			}
+			else if (metaTagFirstLine === -1 && linesSplit[i].indexOf('==UserScript==') > -1) {
+				metaTagFirstLine = i;
+			}
+		}
+
+		//Insert after the tag
+		var firstPartSplice = linesSplit.splice(0, metaTagFirstLine);
+		var result = firstPartSplice;
+		result = result.concat(['// @author	' + author]);
+		result = result.concat(linesSplit);
+		return result.join('\n');
+	},
+
+	exportSingleNode: function(exportNode, exportType) {
+		var _this = this;
+		var safeNode = this.makeNodeSafe(exportNode);
+
+		var textArea = $('#exportJSONData')[0];
+
+		var userscriptString = _this.getUserscriptString(safeNode);
+
+		textArea.value = (exportType === 'CRM' ? this.crmExportNameChange() : userscriptString);
+		$('#exportAuthorName').on('change', function () {
+			var author = this.value;
+			chrome.storage.local.set({
+				authorName: author
+			});
+			var data;
+			if (exportType === 'CRM') {
+				data = _this.crmExportNameChange();
+			} else {
+				data = userscriptString = _this.userscriptExportNameChange(userscriptString, author);
+			}
+			textArea.value = data;
+		});
+		$('#exportDialog')[0].open();
+		setTimeout(function() {
+			textarea.focus();
+			textarea.select();
+		}, 150);
+	},
+
+	exportGivenNodes: function(exports) {
 		var safeExports = [];
-		for (i = 0; i < exports.length; i++) {
+		for (var i = 0; i < exports.length; i++) {
 			safeExports[i] = this.makeNodeSafe(exports[i]);
 		}
 		var dataJson = {
@@ -442,9 +638,24 @@ window.Polymer({
 			textarea.select();
 		}, 150);
 
-		if (storageLocal.authorName) {
-			authorNameChange(storageLocal.authorName);
+		if (window.app.storageLocal.authorName) {
+			authorNameChange(window.app.storageLocal.authorName);
 		}
+	},
+
+	exportGivenNodeIDs: function(toExport, exportType) {
+		exportType = exportType || 'CRM';
+		var exports = [];
+		for (var i = 0; i < app.settings.crm.length; i++) {
+			this.extractUniqueChildren(app.settings.crm[i], toExport, exports);
+		}
+
+		this.exportGivenNodes(exports, exportType);
+	},
+
+	exportSelected: function() {
+		var toExport = this.getSelected();
+		this.exportGivenNodeIDs(toExport);
 	},
 
 	cancelSelecting: function() {
@@ -456,7 +667,7 @@ window.Polymer({
 			editCrmItems[i].classList.remove('selecting');
 			editCrmItems[i].classList.remove('highlighted');
 		}
-		setTimeout(function () {
+		setTimeout(function() {
 			_this.isSelecting = false;
 		}, 150);
 	},
@@ -494,7 +705,7 @@ window.Polymer({
 		}, 150);
 	},
 
-	getCRMElementFromPath: function (path, showPath) {
+	getCRMElementFromPath: function(path, showPath) {
 		var i;
 		for (i = 0; i < path.length - 1; i++) {
 			if (this.setMenus[i] !== path[i]) {
@@ -524,7 +735,7 @@ window.Polymer({
 		return null;
 	},
 
-	_typeChanged: function (quick) {
+	_typeChanged: function(quick) {
 		for (var i = 0; i < 6; i++) {
 			window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
 		}

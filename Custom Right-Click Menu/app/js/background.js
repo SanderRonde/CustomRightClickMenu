@@ -869,7 +869,12 @@
 	}
 
 	function urlMatchesPattern(pattern, url) {
-		var urlPattern = parsePattern(url);
+		var urlPattern;
+		try {
+			urlPattern = parsePattern(url);
+		} catch (e) {
+			return false;
+		}
 
 		return (matchesScheme(pattern.scheme, urlPattern.scheme) &&
 			matchesHost(pattern.host, urlPattern.host) &&
@@ -900,6 +905,7 @@
 						crmAPI: false
 					};
 					if (!urlIsGlobalExcluded(tab.url)) {
+					if (!urlIsGlobalExcluded(updatedInfo.url)) {
 						for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
 							executeNode(globals.toExecuteNodes.always[i], tab);
 						}
@@ -1098,7 +1104,7 @@
 		buildByIdObjects();
 	}
 
-	function buildPageCRM() {
+	function buildPageCRM(storageSync) {
 		var i;
 		var length = globals.crm.crmTree.length;
 		globals.crmValues.stylesheetNodeStatusses = {};
@@ -1125,7 +1131,8 @@
 				};
 			}
 		}
-		if (globals.storages.storageLocal.showOptions) {
+
+		if (storageSync.showOptions) {
 			chrome.contextMenus.create({
 				type: 'separator',
 				parentId: globals.crmValues.rootId
@@ -1339,7 +1346,7 @@
 				break;
 			case 'settings':
 				var settingsJson = JSON.stringify(globals.storages.settingsStorage);
-				if (globals.storages.settingsStorage.useStorageSync) {
+				if (!globals.storages.settingsStorage.useStorageSync) {
 					chrome.storage.local.set({
 						settings: globals.storages.settingsStorage
 					}, function () {
@@ -1347,9 +1354,9 @@
 							console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
 						} else {
 							for (var i = 0; i < changes.length; i++) {
-								if (changes[i].key === 'crm') {
+								if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
 									updateCRMValues();
-									buildPageCRM();
+									buildPageCRM(globals.storages.settingsStorage);
 									break;
 								}
 							}
@@ -1380,9 +1387,9 @@
 								});
 							} else {
 								for (var i = 0; i < changes.length; i++) {
-									if (changes[i].key === 'crm') {
+									if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
 										updateCRMValues();
-										buildPageCRM();
+										buildPageCRM(globals.storages.settingsStorage);
 										break;
 									}
 								}
@@ -1404,7 +1411,7 @@
 
 	function updateCrm() {
 		uploadChanges('crm', []);
-		buildPageCRM();
+		buildPageCRM(globals.storages.settingsStorage);
 	}
 
 	function notifyNodeStorageChanges(id, tabId, changes) {
@@ -3304,7 +3311,6 @@
 				break;
 				*/
 			case 'updateStorage':
-				debugger;
 				applyChanges(message.data);
 				break;
 			case 'sendInstanceMessage':
@@ -3387,10 +3393,133 @@
 		return defaultValue;
 	}
 
+	function checkDefaultStorage(storageLocal) {
+		if (storageLocal.notFirstTime) {
+			return true;
+		}
+		return false;
+	}
+
+	function handleTransfer() {
+		localStorage.setItem('firsttime', 'yes');
+	}
+
+	function uploadStorageSyncData(data) {
+		var settingsJson = JSON.stringify(data);
+
+		//Using chrome.storage.sync
+		if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
+			chrome.storage.local.set({
+				useStorageSync: false
+			}, function () {
+				uploadStorageSyncData(data);
+			});
+		} else {
+			//Cut up all data into smaller JSON
+			var obj = cutData(settingsJson);
+			chrome.storage.sync.set(obj, function () {
+				if (chrome.runtime.lastError) {
+					//Switch to local storage
+					console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
+					chrome.storage.local.set({
+						useStorageSync: false
+					}, function () {
+						uploadStorageSyncData(changes);
+					});
+				} else {
+					chrome.storage.local.set({
+						settings: null
+					});
+				}
+			});
+		}
+	}
+
+	function handleFirstRun() {
+		//Local storage
+		var defaultLocalStorage = {
+			requestPermissions: [],
+			editing: null,
+			selectedCrmType: 0,
+			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
+			globalExcludes: [''],
+			latestId: 0,
+			useStorageSync: true,
+			notFirstTime: true,
+			authorName: 'anonymous'
+		};
+
+		//Save local storage
+		chrome.storage.local.set(defaultLocalStorage);
+
+
+		//Sync storage
+		var defaultSyncStorage = {
+			editCRMInRM: false,
+			editor: {
+				libraries: [
+					{ "location": "jQuery.js", "name": "jQuery" },
+					{ "location": "mooTools.js", "name": "mooTools" },
+					{ "location": "YUI.js", "name": "YUI" },
+					{ "location": "Angular.js", "name": "Angular" }
+				],
+				lineNumbers: true,
+				showToolsRibbon: true,
+				tabSize: '4',
+				theme: 'dark',
+				useTabs: true,
+				zoom: 100
+			},
+			openInCurrentTab: false,
+			showOptions: true,
+			shrinkTitleRibbon: false,
+			crm: [
+				{
+					name: 'name',
+					onContentTypes: [true, false, false, false, false, false],
+					type: 'link',
+					showOnSpecified: false,
+					triggers: ['*://*.example.com/*'],
+					isLocal: true,
+					value: [
+						{
+							newTab: true,
+							url: 'https://www.example.com'
+						}
+					]
+				}
+			]
+		};
+
+		//Save sync storage
+		uploadStorageSyncData(defaultSyncStorage);
+
+
+		var storageLocal = defaultLocalStorage;
+		var storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
+		return {
+			settingsStorage: defaultSyncStorage,
+			storageLocalCopy: storageLocalCopy,
+			chromeStorageLocal: storageLocal
+		};
+	}
+
+	function setupFirstRun() {
+		if (localStorage.getItem('firsttime') === 'no') {
+			return handleTransfer();
+		} else {
+			return handleFirstRun();
+		}
+	}
+
 	function loadStorages(callback) {
 		chrome.storage.sync.get(function(chromeStorageSync) {
 			chrome.storage.local.get(function (chromeStorageLocal) {
-				var storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
+				var settingsStorage;
+				var storageLocalCopy;
+
+				if (checkDefaultStorage(chromeStorageLocal)) {
+					storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
 				delete storageLocalCopy.resourceKeys;
 				delete storageLocalCopy.nodeStorage;
 				delete storageLocalCopy.resources;
@@ -3398,7 +3527,6 @@
 
 				var indexes;
 				var jsonString;
-				var settingsStorage;
 				var settingsJsonArray;
 				if (chromeStorageLocal.useStorageSync) {
 					//Parse the data before sending it to the callback
@@ -3410,7 +3538,7 @@
 						settingsStorage = chromeStorageLocal.settings;
 					} else {
 						settingsJsonArray = [];
-						indexes.forEach(function (index) {
+							indexes.forEach(function(index) {
 							settingsJsonArray.push(chromeStorageSync[index]);
 						});
 						jsonString = settingsJsonArray.join('');
@@ -3424,7 +3552,7 @@
 						});
 						indexes = chromeStorageSync.indexes;
 						settingsJsonArray = [];
-						indexes.forEach(function (index) {
+							indexes.forEach(function(index) {
 							settingsJsonArray.push(chromeStorageSync[index]);
 						});
 						jsonString = settingsJsonArray.join('');
@@ -3434,11 +3562,17 @@
 						delete storageLocalCopy.settings;
 						settingsStorage = chromeStorageLocal.settings;
 					}
+					}
+				} else {
+					var results = setupFirstRun();
+					settingsStorage = results.settingsStorage;
+					storageLocalCopy = results.storageLocalCopy;
+					chromeStorageLocal = results.chromeStorageLocal;
 				}
 
 				globals.storages.storageLocal = storageLocalCopy;
 				globals.storages.settingsStorage = settingsStorage;
-				globals.storages.globalExcludes = chromeStorageLocal.globalExcludes;
+				globals.storages.globalExcludes = setIfNotSet(chromeStorageLocal, 'globalExcludes', []);;
 				globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
 				globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
 				globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
@@ -3458,7 +3592,7 @@
 				port.onMessage.addListener(createHandlerFunction(port));
 			});
 			chrome.runtime.onMessage.addListener(handleRuntimeMessage);
-			buildPageCRM();
+			buildPageCRM(globals.storages.settingsStorage);
 			addResourceWebRequestListener();
 
 			chrome.storage.onChanged.addListener(function (changes, areaName) {

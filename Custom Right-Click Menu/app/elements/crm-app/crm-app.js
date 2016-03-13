@@ -1,22 +1,19 @@
-﻿/**
+﻿(function() {
+	//TODO remove this
+	window.clearStorages = function() {
+		chrome.storage.local.clear();
+		chrome.storage.sync.clear();
+	}
+
+/**
  * A shorthand name for chrome.storage.sync
  */
 window.storage = chrome.storage.sync;
-var contextMenuItems = {
-	example: {
-		name: 'example'
-	}
-};
 
-function isNotSet(value) {
-	return value === undefined || value === null;
-}
-
-function runOrAddAsCallback(toRun, thisElement, params) {
+	window.runOrAddAsCallback = function(toRun, thisElement, params) {
 	if (window.app.settings) {
 		toRun.apply(thisElement, params);
-	}
-	else {
+		} else {
 		window.app.addSettingsReadyCallback(toRun, thisElement, params);
 	}
 }
@@ -627,7 +624,7 @@ Polymer({
 		return false;
 	},
 
-	getArrDifferences: function (arr1, arr2, changes) {
+		getArrDifferences: function(arr1, arr2, changes) {
 		for (var index = 0; index < arr1.length; index++) {
 			if (this.areValuesDifferent(arr1[key], arr2[key])) {
 				changes.push({
@@ -641,7 +638,7 @@ Polymer({
 		return changes.length > 0;
 	},
 
-	getObjDifferences: function (obj1, obj2, changes) {
+		getObjDifferences: function(obj1, obj2, changes) {
 		for (var key in obj1) {
 			if (obj1.hasOwnProperty(key)) {
 				if (this.areValuesDifferent(obj1[key], obj2[key])) {
@@ -659,9 +656,9 @@ Polymer({
 	/**
 	 * Uploads the settings to chrome.storage
 	 */
-	upload: function () {
-		console.log('uploading');
-		debugger;
+		upload: function() {
+			console.log('called from');
+			console.trace();
 
 		//Send changes to background-page, background-page uploads everything
 		//Compare storageLocal objects
@@ -1329,7 +1326,7 @@ Polymer({
 				f(pos, curStyle);
 				curStart = pos;
 			}
-		},
+	},
 
 		highlightLine: function(cmState, doc, line, state, tabSize) {
 			var st = [cmState.modeGen], lineClasses = {};
@@ -1887,6 +1884,10 @@ Polymer({
 		window.app = this;
 		window.doc = window.app.$;
 
+			chrome.storage.local.get(function(storageLocal) {
+				if (_this.checkFirstTime(storageLocal)) {
+					console.log('going through');
+
 		function callback(items) {
 			_this.settings = items;
 			_this.settingsCopy = JSON.parse(JSON.stringify(items));
@@ -1898,8 +1899,7 @@ Polymer({
 			_this.orderNodesById(items.crm);
 		}
 
-		this.bindListeners();
-		chrome.storage.local.get(function (storageLocal) {
+					_this.bindListeners();
 			delete storageLocal.nodeStorage;
 			if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
 				_this.requestPermissions(storageLocal.requestPermissions);
@@ -1998,7 +1998,9 @@ Polymer({
 			}
 			_this.storageLocal = storageLocal;
 			_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+				}
 		});
+
 		this.show = false;
 
 		chrome.storage.onChanged.addListener(function(changes, areaName) {
@@ -2013,13 +2015,13 @@ Polymer({
 	 */
 	templates: {
 		/**
-			 * Merges two objects
-			 * 
-			 * @param {Object} mainObject - The main object
-			 * @param {Object} additions - The additions to the main object, these overwrite the 
-			 *		main object's properties
-			 * @returns {Object} The merged objects
-			 */
+		 * Merges two objects
+		 * 
+		 * @param {Object} mainObject - The main object
+		 * @param {Object} additions - The additions to the main object, these overwrite the 
+		 *		main object's properties
+		 * @returns {Object} The merged objects
+		 */
 		mergeObjects: function(mainObject, additions) {
 			for (var key in additions) {
 				if (additions.hasOwnProperty(key)) {
@@ -2089,7 +2091,7 @@ Polymer({
 		 * @returns {Object} A script node value with specified properties set
 		 */
 		getDefaultScriptValue: function(options) {
-			var value = {
+			var value =	{
 				launchMode: 0,
 				libraries: [],
 				script: '' +
@@ -2309,8 +2311,8 @@ Polymer({
 				crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
 				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 				chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.',
-
-				//Greasemonkey APIs
+				
+				//Tampermonkey APIs
 				GM_addStyle: 'Allows the adding of certain styles to the document through this API',
 				GM_deleteValue: 'Allows the deletion of storage items',
 				GM_listValues: 'Allows the listing of all storage data',
@@ -2822,3 +2824,4 @@ Polymer({
 		}
 	}
 });
+}());

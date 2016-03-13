@@ -138,7 +138,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		};
 		//Wait an hour for the extreme cases, an array with a few numbers in it can't be that horrible
 		if (!persistent) {
-			setTimeout(createDeleterFunction(index), 3600000);
+		setTimeout(createDeleterFunction(index), 3600000);
 		}
 
 		// ReSharper disable UseOfImplicitGlobalInFunctionScope
@@ -228,8 +228,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	function callbackHandler(message) {
 		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
 		if (!callInfo[message.callbackId].persistent) {
-			delete callInfo[message.callbackId];
-		}
+		delete callInfo[message.callbackId];
+	}
 	}
 
 	var instances = [];

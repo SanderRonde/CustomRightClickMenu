@@ -81,17 +81,17 @@
 		}
 	},
 
-	getContentTypeLaunchers: function () {
+	getContentTypeLaunchers: function (resultStorage) {
 		var i;
 		var result = [];
 		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
 		for (i = 0; i < 6; i++) {
 			result[i] = this[arr[i] + 'ContentSelected'];
 		}
-		this.newSettings.onContentTypes = result;
+		resultStorage.onContentTypes = result;
 	},
 
-	getTriggers: function () {
+	getTriggers: function (resultStorage) {
 		var inputs = $(this).find('.executionTrigger').find('paper-input');
 		var triggers = [];
 		for (var i = 0; i < inputs.length; i++) {
@@ -100,7 +100,7 @@
 				not: inputs[i].parentNode.children[0].checked
 			}
 		}
-		this.newSettings.triggers = triggers;
+		resultStorage.triggers = triggers;
 	},
 
 	cancel: function () {
@@ -108,11 +108,16 @@
 		window.crmEditPage.animateOut();
 	},
 
-	save: function () {
-		this.saveChanges && this.saveChanges();
+	save: function (resultStorage) {
+		var hasCustomResult = !resultStorage;
+		if (!hasCustomResult) {
+			resultStorage = this.newSettings;
+		}
 
-		this.getContentTypeLaunchers();
-		this.getTriggers();
+		this.saveChanges && this.saveChanges(resultStorage);
+
+		this.getContentTypeLaunchers(resultStorage);
+		this.getTriggers(resultStorage);
 		window.crmEditPage.animateOut();
 
 		var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
@@ -132,10 +137,13 @@
 		}
 		for (var key in newSettings) {
 			if (newSettings.hasOwnProperty(key)) {
-				this.item[key] = newSettings[key];
+				resultStorage[key] = newSettings[key];
 			}
 		}
-		app.upload();
+
+		if (!hasCustomResult) {
+			app.upload();
+		}
 	},
 
 	inputKeyPress: function (e) {
@@ -362,7 +370,7 @@
 			this.$.showOnContentContainer.style.marginLeft = '-110%';
 			this.$.showOnContentContainer.style.height = 0;
 		}
-		this.$.dropdownMenu._addListener(this.selectorStateChange, this);
+		this.$.dropdownMenu._addListener(this.selectorStateChange, 'dropdownMenu', this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();
 			this.editor = null;

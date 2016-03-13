@@ -21,12 +21,11 @@
 		window.linkEdit = this;
 	},
 
-	saveChanges: function () {
+	saveChanges: function (resultStorage) {
 		//Get new "item"
-		var _this = this;
-		_this.newSettings.value = [];
+		resultStorage.value = [];
 		$(this.$.linksContainer).find('.linkChangeCont').each(function () {
-			_this.newSettings.value.push({
+			resultStorage.value.push({
 				'url': $(this).children('paper-input')[0].value,
 				'newTab': ($(this).children('paper-checkbox').attr('aria-checked') !== 'true')
 			});

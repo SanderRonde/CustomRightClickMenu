@@ -1,4 +1,5 @@
-﻿(function () {
+﻿/// <reference path="../../crm-app/crm-app.js" />
+(function () {
 	'use strict';
 	Polymer({
 		is: 'script-edit',
@@ -663,7 +664,7 @@
 		addDialogToMetaTagUpdateListeners: function () {
 			var _this = this;
 			this.async(function() {
-				this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, this);
+				this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
 			}, 0);
 
 			//Use jquery to also get the pre-change value
@@ -726,6 +727,21 @@
 		//#endregion
 
 		//#region DialogFunctions
+		getExportData: function() {
+			$('script-edit #exportMenu paper-menu')[0].selected = 0;
+			var settings = {};
+			this.save(settings);
+			return settings;
+		},
+
+		exportScriptAsCRM: function() {			
+			window.app.editCRM.exportSingleNode(getExportData(), 'CRM');
+		},
+
+		exportScriptAsUserscript: function() {
+			window.app.editCRM.exportSingleNode(getExportData(), 'Userscript');
+		},
+
 		finishEditing: function() {
 			chrome.storage.local.set({
 				editing: null
@@ -738,13 +754,13 @@
 			window.externalEditor.cancelOpenFiles();
 		},
 
-		saveMetaTagValues: function() {			
-			this.newSettings.value.metaTags = this.editor.metaTags.metaTags;
+		getMetaTagValues: function () {
+			return this.editor.metaTags.metaTags;
 		},
 
-		saveChanges: function() {
+		saveChanges: function (resultStorage) {
 			this.active = false;
-			this.saveMetaTagValues();
+			resultStorage.value.metaTags = getMetaTagValues();
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 		},
@@ -1579,6 +1595,7 @@
 			var _this = this;
 			this._init();
 			this.$.dropdownMenu.init();
+			this.$.exportMenu.init();
 			this.initDropdown();
 			this.addDialogToMetaTagUpdateListeners();
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({

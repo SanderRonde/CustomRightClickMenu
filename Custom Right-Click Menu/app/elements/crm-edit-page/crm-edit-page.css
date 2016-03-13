@@ -2,7 +2,6 @@
 	background-color: white;
 	padding: 10px;
 	pointer-events: all;
-	overflow: hidden;
 }
 
 #horizontalCenterer {
@@ -41,4 +40,9 @@
 #nodeInfo span::selection, #nodeInfo b::selection, #nodeInfo a::selection, #nodeInfo div::selection {
     background-color: white;
     color: black;
+}
+
+menu-edit, divider-edit, link-edit {
+	display: flex;
+	flex-direction: column;
 }

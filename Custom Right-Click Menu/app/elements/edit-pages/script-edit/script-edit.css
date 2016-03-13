@@ -1,6 +1,8 @@
 ﻿#scriptEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
+	display:flex;
+	flex-direction: column;
 }
 
 input {
@@ -424,3 +426,25 @@ input {
 		background-color: #f44336!important;
 		border-color: #f44336!important;
 	}
+
+#exportMenu {
+	display:inline-block;
+	height: 40px;
+}
+
+	#exportMenu paper-menu {
+		width: auto;
+		padding: 0;
+	}
+
+	#exportMenu #dropdownSelected {
+		font-size: 125%;
+	}
+
+#scriptEditCont #buttons {
+	height: 45px;
+}
+
+#triggersInfoTxtCont {
+	position: absolute;
+}
