@@ -196,8 +196,13 @@ Polymer({
 						if (!this.compareArray(firstObj[key], secondObj[key])) {
 							return false;
 						}
-					} else if (!this.compareObj(firstObj[key], secondObj[key])) {
+					} else if (Array.isArray(secondObj[key])) {
 						return false;
+					}
+					else {
+						if (!this.compareObj(firstObj[key], secondObj[key])) {
+							return false;
+						}
 					}
 				} else if (firstObj[key] !== secondObj[key]) {
 					return false;
@@ -231,8 +236,13 @@ Polymer({
 					if (!this.compareArray(firstArray[i], secondArray[i])) {
 						return false;
 					}
-				} else if (!this.compareArray(firstArray[i], secondArray[i])) {
+				} else if (Array.isArray(secondArray[i])) {
 					return false;
+				}
+				else {
+					if (!this.compareObj(firstArray[i], secondArray[i])) {
+						return false;
+					}
 				}
 			} else if (firstArray[i] !== secondArray[i]) {
 				return false;
@@ -570,29 +580,12 @@ Polymer({
 		});
 	},
 
-	cutData: function(data) {
-		var obj = {};
-		var arrLength;
-		var sectionKey;
-		var indexes = [];
-		var splitJson = data.match(/[\s\S]{1,5000}/g);
-		splitJson.forEach(function(section) {
-			arrLength = indexes.length;
-			sectionKey = 'section' + arrLength;
-			obj[sectionKey] = section;
-			indexes[arrLength] = sectionKey;
-		});
-		obj.indexes = indexes;
-		return obj;
-	},
-
-
 	areValuesDifferent: function(val1, val2) {
 		//Array or object
 		var obj1ValIsArray = Array.isArray(val1);
 		var obj2ValIsArray = Array.isArray(val2);
 		var obj1ValIsObjOrArray = typeof val1 === 'object';
-		var obj2ValIsObjOrArray = typeof val2 !== 'object';
+		var obj2ValIsObjOrArray = typeof val2 === 'object';
 
 		if (obj1ValIsObjOrArray) {
 			//Array or object
@@ -608,7 +601,7 @@ Polymer({
 						return true;
 					} else {
 						//Both are arrays, compare them
-						if (this.compareArray(val1, val2)) {
+						if (!this.compareArray(val1, val2)) {
 							//Changes have been found, also say the container arrays have changed
 							return true;
 						}
@@ -620,7 +613,7 @@ Polymer({
 						return true;
 					} else {
 						//2 is also not an array, they are both objects
-						if (this.compareObj(val1, val2)) {
+						if (!this.compareObj(val1, val2)) {
 							//Changes have been found, also say the container arrays have changed
 							return true;
 						}
@@ -667,10 +660,9 @@ Polymer({
 	 * Uploads the settings to chrome.storage
 	 */
 	upload: function () {
-		console.log('called from');
-		console.trace();
+		console.log('uploading');
+		debugger;
 
-		return;
 		//Send changes to background-page, background-page uploads everything
 		//Compare storageLocal objects
 		var localChanges = [];
@@ -1141,6 +1133,754 @@ Polymer({
 		}
 	},
 
+	//#region First-Time Data
+	cutData: function (data) {
+		var obj = {};
+		var arrLength;
+		var sectionKey;
+		var indexes = [];
+		var splitJson = data.match(/[\s\S]{1,5000}/g);
+		splitJson.forEach(function (section) {
+			arrLength = indexes.length;
+			sectionKey = 'section' + arrLength;
+			obj[sectionKey] = section;
+			indexes[arrLength] = sectionKey;
+		});
+		obj.indexes = indexes;
+		return obj;
+	},
+
+	uploadStorageSyncData: function (data, _this) {
+		var settingsJson = JSON.stringify(data);
+
+		//Using chrome.storage.sync
+		if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
+			chrome.storage.local.set({
+				useStorageSync: false
+			}, function() {
+				_this.uploadStorageSyncData(data, _this);
+			});
+		} else {
+			//Cut up all data into smaller JSON
+			var obj = _this.cutData(settingsJson);
+			chrome.storage.sync.set(obj, function() {
+				if (chrome.runtime.lastError) {
+					//Switch to local storage
+					console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
+					chrome.storage.local.set({
+						useStorageSync: false
+					}, function() {
+						_this.uploadStorageSyncData(data);
+					});
+				} else {
+					chrome.storage.local.set({
+						settings: null
+					});
+				}
+			});
+		}
+	},
+
+	jsParser: {
+		getLine: function (doc, lineNumber) {
+			var chunk;
+			lineNumber -= doc.first;
+			if (lineNumber < 0 || lineNumber >= doc.size) throw new Error('There is no line ' + (lineNumber + doc.first) + ' in the document.');
+			for (chunk = doc; !chunk.lines;) {
+				for (var i = 0; ; ++i) {
+					var child = chunk.children[i], sz = child.chunkSize();
+					if (lineNumber < sz) {
+						chunk = child;
+						break;
+					}
+					lineNumber -= sz;
+				}
+			}
+			return chunk.lines[lineNumber];
+		},
+
+		findStartLine: function (doc, lineNumber, tabSize) {
+			var minindent = null;
+			var minline = undefined;
+			var lim = lineNumber - (doc.mode.innerMode ? 1000 : 100);
+			for (var search = lineNumber; search > lim; --search) {
+				if (search <= doc.first) {
+					return doc.first;
+				}
+				var line = this.getLine(doc, search - 1);
+				if (line.stateAfter) {
+					return search;
+				}
+				var indented = window.CodeMirror.countColumn(line.text, null, tabSize);
+				if (minline == null || (minindent !== null && minindent > indented)) {
+					minline = search - 1;
+					minindent = indented;
+				}
+			}
+			return minline;
+		},
+
+		callBlankLine: function(mode, state) {
+			if (mode.blankLine) {
+				return mode.blankLine(state);
+			}
+			if (!mode.innerMode) {
+				return null;
+			}
+			var inner = CodeMirror.innerMode(mode, state);
+			if (inner.mode.blankLine) {
+				return inner.mode.blankLine(inner.state);
+			}
+			return null;
+		},
+
+		readToken: function(mode, stream, state) {
+			for (var i = 0; i < 10; i++) {
+				var style = mode.token(stream, state);
+				if (stream.pos > stream.start) {
+					return style;
+				}
+			}
+			return null;
+		},
+
+		processLine: function(doc, text, state, startAt, tabSize) {
+			var mode = doc.mode;
+			var stream = new window.CodeMirror.StringStream(text, tabSize);
+			stream.start = stream.pos = startAt || 0;
+			if (text === '') {
+				this.callBlankLine(mode, state);
+			}
+			while (!stream.eol() && stream.pos <= 10000) {
+				this.readToken(mode, stream, state);
+				stream.start = stream.pos;
+			}
+		},
+
+		getStateBefore: function (lines, doc, lineNumber, tabSize) {
+			if (!doc.mode.startState) {
+				return true;
+			}
+			var pos = this.findStartLine(doc, lineNumber, tabSize);
+			var state = pos > doc.first && this.getLine(doc, pos - 1).stateAfter;
+			if (!state) {
+				state = CodeMirror.startState(doc.mode);
+			} else {
+				state = CodeMirror.copyState(doc.mode, state);
+			}
+			var _this = this;
+			doc.iter(pos, lineNumber, function(line) {
+				_this.processLine(doc, line.text, state, tabSize);
+				var save = pos === lineNumber - 1 || pos % 5 === 0 || pos >= 0 && pos < lines.length;
+				line.stateAfter = save ? CodeMirror.copyState(doc.mode, state) : null;
+				++pos;
+			});
+			return state;
+		},
+
+		extractLineClasses: function(type, output) {
+			if (type)
+				for (;;) {
+					var lineClass = type.match(/(?:^|\s+)line-(background-)?(\S+)/);
+					if (!lineClass) {
+						break;
+					}
+					type = type.slice(0, lineClass.index) + type.slice(lineClass.index + lineClass[0].length);
+					var prop = lineClass[1] ? 'bgClass' : 'textClass';
+					if (output[prop] == null) {
+						output[prop] = lineClass[2];
+					} else if (!(new RegExp('(?:^|\s)' + lineClass[2] + '(?:$|\s)')).test(output[prop])) {
+						output[prop] += ' ' + lineClass[2];
+					}
+				}
+			return type;
+		},
+
+		runMode: function (text, mode, state, f, lineClasses, tabSize) {
+			console.log(mode);
+			var flattenSpans = mode.flattenSpans;
+			if (flattenSpans == null) {
+				flattenSpans = true;
+			}
+			var curStart = 0, curStyle = null;
+			var stream = new window.CodeMirror.StringStream(text, tabSize), style;
+			if (text === '') this.extractLineClasses(this.callBlankLine(mode, state), lineClasses);
+			while (!stream.eol()) {
+				if (stream.pos > 10000) {
+					flattenSpans = false;
+					stream.pos = text.length;
+					style = null;
+				} else {
+					style = this.extractLineClasses(this.readToken(mode, stream, state), lineClasses);
+				}
+				// ReSharper disable once CoercedEqualsUsing
+				if (!flattenSpans || curStyle != style) {
+					while (curStart < stream.start) {
+						curStart = Math.min(stream.start, curStart + 50000);
+						f(curStart, curStyle);
+					}
+					curStyle = style;
+				}
+				stream.start = stream.pos;
+			}
+			while (curStart < stream.pos) {
+				// Webkit seems to refuse to render text nodes longer than 57444 characters
+				var pos = Math.min(stream.pos, curStart + 50000);
+				f(pos, curStyle);
+				curStart = pos;
+			}
+		},
+
+		highlightLine: function(cmState, doc, line, state, tabSize) {
+			var st = [cmState.modeGen], lineClasses = {};
+			// Compute the base array of styles
+			console.log(doc, doc.mode);
+			this.runMode(line.text, doc.mode, state, function (end, style) {
+				st.push(end, style);
+			}, lineClasses, tabSize);
+
+			// Run overlays, adjust style array.
+			for (var o = 0; o < cmState.overlays.length; ++o) {
+				var overlay = cmState.overlays[o], i = 1, at = 0;
+				// ReSharper disable ClosureOnModifiedVariable
+				this.runMode(line.text, overlay.mode, true, function (end, style) {
+					var start = i;
+
+					// Ensure there's a token end at the current position, and that i points at it
+					while (at < end) {
+						var iEnd = st[i];
+						if (iEnd > end) st.splice(i, 1, end, st[i + 1], iEnd);
+						i += 2;
+						at = Math.min(end, iEnd);
+					}
+					if (!style) return;
+					if (overlay.opaque) {
+						st.splice(start, i - start, end, 'cm-overlay ' + style);
+						i = start + 2;
+					}
+					else {
+						for (; start < i; start += 2) {
+							var cur = st[start + 1];
+							st[start + 1] = (cur ? cur + ' ' : '') + 'cm-overlay ' + style;
+						}
+					}
+					// ReSharper restore ClosureOnModifiedVariable
+
+				}, lineClasses, tabSize);
+			}
+
+			return { styles: st, classes: lineClasses.bgClass || lineClasses.textClass ? lineClasses : null };
+		},
+
+		Delayed: function() {
+			this.id = null;
+		},
+
+		getLineStyles: function(lines, lineNumber, state, doc, line, tabSize) {
+			if (!line.styles || line.styles[0] !== state.modeGen) {
+				var result = this.highlightLine({
+					modeGen: 1,
+					overlays: []
+				}, doc, line, line.stateAfter = this.getStateBefore(lines, doc, lineNumber, tabSize), tabSize);
+				line.styles = result.styles;
+				if (result.classes) {
+					line.styleClasses = result.classes;
+				} else if (line.styleClasses) {
+					line.styleClasses = null;
+				}
+			}
+		},
+
+		getMode: function(options, spec) {
+			var prop;
+			spec = CodeMirror.resolveMode(spec);
+			var mfactory = modes[spec.name];
+			if (!mfactory) {
+				return this.getMode(options, 'text/plain');
+			}
+			var modeObj = mfactory(options, spec);
+			if (modeExtensions.hasOwnProperty(spec.name)) {
+				var exts = modeExtensions[spec.name];
+				for (prop in exts) {
+					if (!exts.hasOwnProperty(prop)) {
+						continue;
+					}
+					if (modeObj.hasOwnProperty(prop)) {
+						modeObj['_' + prop] = modeObj[prop];
+					}
+					modeObj[prop] = exts[prop];
+				}
+			}
+			modeObj.name = spec.name;
+			if (spec.helperType) {
+				modeObj.helperType = spec.helperType;
+			}
+			if (spec.modeProps) {
+				for (prop in spec.modeProps) {
+					if (spec.modeProps.hasOwnProperty(prop)) {
+						modeObj[prop] = spec.modeProps[prop];
+					}
+				}
+			}
+
+			return modeObj;
+		},
+
+		get: function (script) {
+			var lines = script.split('\n');
+			var doc = new window.CodeMirror.Doc(script, 'javascript');
+			doc.mode = CodeMirror.getMode({
+				indentUnit: '4'
+			}, doc.modeOption);
+			console.log(doc.mode);
+			var tabSize = parseInt(this.parent.settings.tabSize, 10);
+
+			var cmLinesArr = [];
+			for (var i = 0; i < lines.length; i++) {
+				cmLinesArr[i] = {
+					text: lines[i]
+				};
+				var state = this.getStateBefore(lines, doc, i, tabSize);
+				this.getLineStyles(lines, i, state, doc, cmLinesArr[i], tabSize);
+			}
+
+			return cmLinesArr;
+		},
+
+		get parent() { return window.app; }
+	},
+
+	replaceChromeCall: function (lines, line, type, index, onError) {
+		var newLine;
+		switch (type) {
+			case 'string':
+				newLine = line.text.slice(0, index - 2);
+				index += 8;
+				break;
+			case 'property':
+				newLine = line.text.slice(0, index - 1);
+				index += 6;
+				break;
+			default: 
+			case 'variable':
+				newLine = line.text.slice(0, index) + 'window';
+				index += 6;
+				break;
+		}
+
+		newLine += '.crmAPI.chrome(\'';
+		var lineChromeSection = line.text.slice(index);
+
+		var firstParenthesis = lineChromeSection.indexOf('(');
+		var functionName = lineChromeSection.slice(0, firstParenthesis);
+		if (functionName.indexOf('[') > -1) {
+			functionName = functionName.replace(/\[['|"]/g, '.');
+			functionName = '.' + functionName.replace(/['|"]\]/g, '');
+		}
+
+		newLine += '(\'' + functionName.slice(1) + '\')';
+
+		//Get the end of the first parenthesis, aka the end of the function call
+		var parentheses = 1;
+		var charIndex = firstParenthesis;
+		var lineIndex = 0;
+		while (parentheses > 0) {
+			if (lineIndex > lines.length) {
+				onError();
+				return;
+			}
+			if (charIndex > lines[lineIndex].text.length) {
+				charIndex = 0;
+				lineIndex++;
+			}
+
+			var i;
+			if (char === '(') {
+				//Check if it's an actual parenthesis
+				lines[lineIndex].styles[0] = 0;
+				for (i = 1; i < lines[i].styles.length; i += 2) {
+					if (lines[i].styles[i] <= charIndex && lines[i].styles[i + 2] >= charIndex) {
+						break;
+					}
+				}
+
+				if (lines[i].styles[i + 1] === undefined) {
+					parentheses++;
+				}
+			}
+			else if (char === ')') {
+				//Check if it's an actual parenthesis
+				lines[lineIndex].styles[0] = 0;
+				for (i = 1; i < lines[i].styles.length; i += 2) {
+					if (lines[i].styles[i] <= charIndex && lines[i].styles[i + 2] >= charIndex) {
+						break;
+					}
+				}
+
+				if (lines[i].styles[i + 1] === undefined) {
+					parentheses--;
+				}
+			}
+
+			charIndex++;
+		}
+
+		var ternServer = window.CodeMirror.TernServer
+
+		//If the user catches a return value, use the return function
+		var match = line.text.split('').reverse().join('').match(/(\s*)= ([a-z|A-Z|0-9]+)/);
+		if (match) {
+			//Uses returning function
+			var returnVarName = match[0].split('').reverse().join('').match(/[a-z|A-Z|0-9]+/)[0];
+
+
+		} else {
+			//Uses callback function
+
+		}
+	},
+
+	findChromeCall: function (lines, chromeLine, onError) {
+		var line = chromeLine.line;
+		var index = chromeLine.index;
+
+		//Get the role of the "chrome" string
+		var i;
+		line.styles[0] = 0;
+		for (i = 1; i < line.styles.length; i += 2) {
+			if (line.styles[i] <= index && line.styles[i + 2] >= index) {
+				break;
+			}
+		}
+
+		var string = line.text.slice(line.styles[i], line.styles[i + 1]);
+		var role = line.styles[i + 1];
+		if (role === 'string' || role === 'property') {
+			if (role === 'property' || (string.indexOf('chrome') === 1 && string.length === 8)) {
+				//Check if the word 2 indexes ago is "window"
+				if (i > 1 && line.styles[i - 1] === 'variable') {
+					var startIndex = line.styles[i - 4] || 0;
+					if (line.text.slice(startIndex, line.styles[i - 2]) === 'window') {
+						//Call to window['chrome'] or window.chrome, replace
+						this.replaceChromeCall(lines, line, role, line.styles[i], onError);
+					}
+				}
+			}
+		}
+		else if (role === 'variable') {
+			this.replaceChromeCall(line, role, line.styles[i], onError);
+		} else {
+			return line;
+		}
+
+		index = line.text.indexOf('chrome');
+		if (index > -1) {
+			this.findChromeCall(lines, {
+				line: line,
+				index: index
+			});
+		}
+
+		return line;
+	},
+
+	replaceChromeCalls: function (jsParsed, onError) {
+		var i;
+		var chromeLines = [];
+		for (i = 0; i < jsParsed.length; i++) {
+			var index = jsParsed[i].text.indexOf('chrome');
+			if (index > -1) {
+				chromeLines.push({
+					index: index,
+					line: jsParsed[i]
+				});
+			}
+		}
+
+		for (i = 0; i < chromeLines.length; i++) {
+			//Make sure it's an actual chrome call
+			this.findChromeCall(chromeLines, chromeLines[i], onError);
+		}
+
+		var script = [];
+		for (i = 0; i < jsParsed.length; i++) {
+			script.push(jsParsed[i].text);
+		}
+		return script.join('\n');
+	},
+
+	convertScriptFromLegacy: function (script, onError) {
+		//Remove execute locally
+		var lineIndex = script.indexOf('/*execute locally*/');
+		if (lineIndex !== -1) {
+			script.replace('/*execute locally*/\n', '');
+			if (lineIndex === script.indexOf('/*execute locally*/')) {
+				script.replace('/*execute locally*/', '');
+				return script;
+			} else {
+				return script;
+			}
+		}
+
+		//Parse script
+		var jsParsed = this.jsParser.get(script);
+		script = this.replaceChromeCalls(jsParsed, onError);
+
+		return script;
+	},
+
+	parseOldCRMNode: function(string, openInNewTab) {
+		var node = {};
+		var oldNodeSplit = string.split('%123');
+		var name = oldNodeSplit[0];
+		var type = oldNodeSplit[1].toLowerCase();
+
+		var nodeData = oldNodeSplit[2];
+
+		switch (type) {
+			//Stylesheets don't exist yet so don't implement those
+			case 'link':
+				node = this.templates.getDefaultLinkNode({
+					name: name,
+					id: this.generateItemId(),
+					value: [
+					{
+						newTab: openInNewTab,
+						url: nodeData
+					}]
+				});
+				break;
+			case 'divider':
+				node = this.templates.getDefaultDividerNode({
+					name: name,
+					id: this.generateItemId(),
+				});
+				break;
+			case 'menu':
+				node = this.templates.getDefaultMenuNode({
+					name: name,
+					id: this.generateItemId(),
+					children: nodeData
+				});
+				break;
+			case 'script':
+				var scriptSplit = nodeData.split('%124');
+				var scriptLaunchMode = scriptSplit[0];
+				var scriptData = scriptSplit[1];
+				var triggers = undefined;
+				var launchModeString = scriptLaunchMode + '';
+				if (launchModeString !== '0' && launchModeString !== '2') {
+					triggers = launchModeString.split('1,')[1].split(',');
+					triggers.map(function(item) {
+						return item.trim();
+					});
+					scriptLaunchMode = 1;
+				}
+				var id = this.generateItemId();
+				node = this.templates.getDefaultScriptNode({
+					name: name,
+					id: id,
+					value: {
+						launchMode: parseInt(scriptLaunchMode, 10),
+						triggers: triggers,
+						//TODO update notice
+						updateNotice: true,
+						oldScript: scriptData,
+						script: this.convertScriptFromLegacy(scriptData, function() {
+							chrome.storage.local.get(function (keys) {
+								keys.upgradeErrors = keys.upgradeErrors || [];
+								keys.upgradeErrors.push(id);
+								chrome.storage.local.set({ upgradeErrors: keys.upgradeErrors });
+							});
+						})
+					}
+				});
+				break;
+		}
+
+		return node;
+	},
+
+	assignParents: function (parent, nodes, startIndex, endIndex) {
+		for (var i = startIndex; i < endIndex; i++) {
+			var currentIndex = i;
+			if (nodes[i].type === 'menu') {
+				var start = i + 1;
+				//The amount of children it has
+				i += parseInt(nodes[i].children, 10);
+				var end = i + 1;
+
+				nodes[currentIndex].children = [];
+
+				this.assignParents(nodes[currentIndex].children, nodes, start, end);
+			}
+
+			parent.push(nodes[currentIndex]);
+		}
+	},
+
+	transferCRMFromOld: function(openInNewTab) {
+		var amount = parseInt(localStorage.getItem('numberofrows'), 10) + 1;
+
+		var nodes = [];
+		for (var i = 1; i < amount; i++) {
+			console.log(i);
+			nodes.push(this.parseOldCRMNode(localStorage.getItem(i), openInNewTab));
+			console.log(nodes[nodes.length - 1]);
+		}
+
+		//Structure nodes with children etc
+		var crm = [];
+		this.assignParents(crm, nodes, 0, nodes.length);
+		console.log(crm);
+	},
+
+	handleDataTransfer: function(_this) {
+		localStorage.setItem('firsttime', 'yes');
+
+		var defaultLocalStorage = {
+			requestPermissions: [],
+			editing: null,
+			selectedCrmType: 0,
+			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
+			globalExcludes: [''],
+			latestId: 0,
+			useStorageSync: true,
+			notFirstTime: true,
+			authorName: 'anonymous'
+		};
+
+		//Save local storage
+		chrome.storage.local.set(defaultLocalStorage);
+		_this.storageLocal = defaultLocalStorage;
+		_this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
+
+
+		//Sync storage
+		var defaultSyncStorage = {
+			editCRMInRM: false,
+			editor: {
+				libraries: [
+					{ "location": 'jQuery.js', "name": 'jQuery' },
+					{ "location": 'mooTools.js', "name": 'mooTools' },
+					{ "location": 'YUI.js', "name": 'YUI' },
+					{ "location": 'Angular.js', "name": 'Angular' }
+				],
+				lineNumbers: true,
+				showToolsRibbon: true,
+				tabSize: '4',
+				theme: 'dark',
+				useTabs: true,
+				zoom: 100
+			},
+			showOptions: (localStorage.getItem('optionson') !== 'false'),
+			shrinkTitleRibbon: false,
+			crm: _this.transferCRMFromOld(localStorage.getItem('whatpage'))
+		};
+
+		//Save sync storage
+		_this.uploadStorageSyncData(defaultSyncStorage, _this);
+		_this.settings = defaultSyncStorage;
+		var settingsJsonString = JSON.stringify(defaultSyncStorage);
+		_this.settingsCopy = JSON.parse(settingsJsonString);
+
+		//Go on with page execution
+		//Storage-local functions
+		_this.crmType = 0;
+		_this.switchToIcons(0);
+		_this.settingsJsonLength = settingsJsonString.length;
+
+		//Storage-sync functions
+		for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+			_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
+		}
+		_this.updateEditorZoom();
+		_this.pageDemo.create();
+		_this.orderNodesById(defaultSyncStorage.crm);
+	},
+
+	handleFirstTime: function(_this) {
+		//Local storage
+		var defaultLocalStorage = {
+			requestPermissions: [],
+			editing: null,
+			selectedCrmType: 0,
+			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
+			globalExcludes: [''],
+			latestId: 0,
+			useStorageSync: true,
+			notFirstTime: true,
+			authorName: 'anonymous'
+		};
+
+		//Save local storage
+		chrome.storage.local.set(defaultLocalStorage);
+		_this.storageLocal = defaultLocalStorage;
+		_this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
+
+
+		//Sync storage
+		var defaultSyncStorage = {
+			editCRMInRM: false,
+			editor: {
+				libraries: [
+					{ "location": 'jQuery.js', "name": 'jQuery' },
+					{ "location": 'mooTools.js', "name": 'mooTools' },
+					{ "location": 'YUI.js', "name": 'YUI' },
+					{ "location": 'Angular.js', "name": 'Angular' }
+				],
+				lineNumbers: true,
+				showToolsRibbon: true,
+				tabSize: '4',
+				theme: 'dark',
+				useTabs: true,
+				zoom: 100
+			},
+			openInCurrentTab: false,
+			showOptions: true,
+			shrinkTitleRibbon: false,
+			crm: [
+				_this.templates.getDefaultLinkNode()
+			]
+		};
+
+		//Save sync storage
+		_this.uploadStorageSyncData(defaultSyncStorage, _this);
+		_this.settings = defaultSyncStorage;
+		var settingsJsonString = JSON.stringify(defaultSyncStorage);
+		_this.settingsCopy = JSON.parse(settingsJsonString);
+
+		//Go on with page execution
+		//Storage-local functions
+		_this.crmType = 0;
+		_this.switchToIcons(0);
+		_this.settingsJsonLength = settingsJsonString.length;
+
+		//Storage-sync functions
+		for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+			_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
+		}
+		_this.updateEditorZoom();
+		_this.pageDemo.create();
+		_this.orderNodesById(defaultSyncStorage.crm);
+	},
+
+	checkFirstTime: function (storageLocal) {
+		var _this = this;
+		if (storageLocal.notFirstTime) {
+			return true;
+		} else {
+			//Determine if it's a transfer from CRM version 1.*
+			if (localStorage.getItem('firsttime') === 'no') {
+				_this.handleDataTransfer(_this);
+			} else {
+				_this.handleFirstTime(_this);
+			}
+			return false;
+		}
+	},
+	//#endregion
+
 	ready: function () {
 		var _this = this;
 		this.crm.parent = this;
@@ -1273,13 +2013,13 @@ Polymer({
 	 */
 	templates: {
 		/**
-		 * Merges two objects
-		 * 
-		 * @param {Object} mainObject - The main object
-		 * @param {Object} additions - The additions to the main object, these overwrite the 
-		 *		main object's properties
-		 * @returns {Object} The merged objects
-		 */
+			 * Merges two objects
+			 * 
+			 * @param {Object} mainObject - The main object
+			 * @param {Object} additions - The additions to the main object, these overwrite the 
+			 *		main object's properties
+			 * @returns {Object} The merged objects
+			 */
 		mergeObjects: function(mainObject, additions) {
 			for (var key in additions) {
 				if (additions.hasOwnProperty(key)) {
@@ -1349,7 +2089,7 @@ Polymer({
 		 * @returns {Object} A script node value with specified properties set
 		 */
 		getDefaultScriptValue: function(options) {
-			var value =	{
+			var value = {
 				launchMode: 0,
 				libraries: [],
 				script: '' +
@@ -1375,13 +2115,52 @@ Polymer({
 		getDefaultScriptNode: function(options) {
 			var defaultNode = {
 				name: 'name',
-				onContentTypes: [true, true, false, false, false, false],
+				onContentTypes: [true, false, false, false, false, false],
 				type: 'script',
 				isLocal: true,
 				value: this.getDefaultScriptValue(options.value)
 			}
 
 			return this.mergeObjects(defaultNode, options);
+		},
+
+		/**
+		 * Gets the default divider or menu node object with given options applied
+		 * 
+		 * @param {String} type - The type of node
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A divider or menu node with specified properties set
+		 */
+		getDefaultDividerOrMenuNode: function(options, type) {
+			var defaultNode = {
+				name: 'name',
+				type: type,
+				onContentTypes: [true, false, false, false, false, false],
+				isLocal: true,
+				value: {}
+			}
+
+			return this.mergeObjects(defaultNode, options);
+		},
+
+		/**
+		 * Gets the default divider node object with given options applied
+		 * 
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A divider node with specified properties set
+		 */
+		getDefaultDividerNode: function(options) {
+			return this.getDefaultDividerOrMenuNode(options, 'divider');
+		},
+
+		/**
+		 * Gets the default menu node object with given options applied
+		 * 
+		 * @param {Object} options - Any pre-set properties
+		 * @returns {Object} A menu node with specified properties set
+		 */
+		getDefaultMenuNode: function(options) {
+			return this.getDefaultDividerOrMenuNode(options, 'menu');
 		},
 
 		/**
@@ -1530,8 +2309,8 @@ Polymer({
 				crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
 				crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
 				chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.',
-				
-				//Tampermonkey APIs
+
+				//Greasemonkey APIs
 				GM_addStyle: 'Allows the adding of certain styles to the document through this API',
 				GM_deleteValue: 'Allows the deletion of storage items',
 				GM_listValues: 'Allows the listing of all storage data',

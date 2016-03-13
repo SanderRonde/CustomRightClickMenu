@@ -784,7 +784,7 @@
 		var hostAndPathSplit = hostAndPath.split('/');
 
 		var host = hostAndPathSplit[0];
-		var path = hostAndPathSplit[1].join('/');
+		var path = hostAndPathSplit.splice(1).join('/');
 
 		return {
 			scheme: scheme,
@@ -794,6 +794,10 @@
 	}
 
 	function validatePatternUrl(url) {
+		if (!url || typeof url !== 'string') {
+			return null;
+		}
+		url = url.trim();
 		var pattern = parsePattern(url);
 		if (globals.constants.validSchemes.indexOf(pattern.scheme) === -1) {
 			return null;
@@ -895,7 +899,7 @@
 						nodes: {},
 						crmAPI: false
 					};
-					if (!urlIsGlobalExcluded(url)) {
+					if (!urlIsGlobalExcluded(tab.url)) {
 						for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
 							executeNode(globals.toExecuteNodes.always[i], tab);
 						}
@@ -2878,6 +2882,10 @@
 			throwChromeError(message, 'Passed API "' + message.api + '" is not alphanumeric.');
 			return false;
 		}
+		else if (message.api === 'runtime.sendMessage') {
+			throwChromeError(message, 'The chrome.runtime.sendMessage API is not allowed');
+			return false;
+		}
 		var apiPermission = message.requestType || message.api.split('.')[0];
 		if (!node.isLocal) {
 			var apiFound;
@@ -3241,11 +3249,23 @@
 
 	chrome.notifications.onClicked.addListener(function (notificationId) {
 		var notification = globals.notificationListeners[notificationId];
-		notification && notification.onClick && typeof notification.onClick === 'function' && notification.onClick();
+		if (notification && notification.onClick !== undefined) {
+			globals.sendCallbackMessage(notification.tabId, notification.id, {
+				err: false,
+				args: [notificationId],
+				callbackId: notification.onClick
+			});
+		}
 	});
 	chrome.notifications.onClosed.addListener(function(notificationId, byUser) {
 		var notification = globals.notificationListeners[notificationId];
-		notification && notification.onDone && typeof notification.onDone === 'function' && notification.onDone();
+		if (notification && notification.onDone !== undefined) {
+			globals.sendCallbackMessage(notification.tabId, notification.id, {
+				err: false,
+				args: [notificationId, byUser],
+				callbackId: notification.onClick
+			});
+		}
 		delete globals.notificationListeners[notificationId];
 	});
 
@@ -3284,6 +3304,7 @@
 				break;
 				*/
 			case 'updateStorage':
+				debugger;
 				applyChanges(message.data);
 				break;
 			case 'sendInstanceMessage':

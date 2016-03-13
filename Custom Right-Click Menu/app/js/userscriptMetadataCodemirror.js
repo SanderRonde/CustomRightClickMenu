@@ -202,77 +202,79 @@
 	}
 
 	function updateMetaTags(cm, changes) {
-		var i, j;
-		var content = cm.getValue();
-		var contentLines = content.split('\n');
-		for (i = 0; i < changes.length; i++) {
-			var changeLineStart = changes[i].from.line;
-			var linesChanged = changes[i].text.length;
-			var lastMetaTagIndex = cm.metaTags.metaEnd.line - 1;
-			var firstMetaTagIndex = cm.metaTags.metaStart.line + 1;
+		if (cm.metaTags && cm.metaTags.metaTags) {
+			var i, j;
+			var content = cm.getValue();
+			var contentLines = content.split('\n');
+			for (i = 0; i < changes.length; i++) {
+				var changeLineStart = changes[i].from.line;
+				var linesChanged = changes[i].text.length;
+				var lastMetaTagIndex = cm.metaTags.metaEnd.line - 1;
+				var firstMetaTagIndex = cm.metaTags.metaStart.line + 1;
 
-			var tagsChanged = {
-				removed: [],
-				added: [],
-				changed: []
-			};
-			if (changes[i].text.length !== changes[i].removed.length) {
-				//Insertion or removal
-				tagsChanged = setMetaTags(cm, content);
-			} else if (changes[i].to.line < lastMetaTagIndex || changeLineStart > firstMetaTagIndex) {
-				for (j = 0; j < linesChanged; j++) {
-					var changeLine = changeLineStart + j;
+				var tagsChanged = {
+					removed: [],
+					added: [],
+					changed: []
+				};
+				if (changes[i].text.length !== changes[i].removed.length) {
+					//Insertion or removal
+					tagsChanged = setMetaTags(cm, content);
+				} else if (changes[i].to.line < lastMetaTagIndex || changeLineStart > firstMetaTagIndex) {
+					for (j = 0; j < linesChanged; j++) {
+						var changeLine = changeLineStart + j;
 
-					if (!cm.metaTags.metaIndexes[changeLine]) {
-						continue;
-					}
-
-					//Remove those values from the metaTags object
-					var metaTag = cm.metaTags.metaTags[cm.metaTags.metaIndexes[changeLine].key];
-					
-					if (metaTag) {
-						metaTag.splice(metaTag.indexOf(cm.metaTags.metaIndexes[changeLine].value), 1);
-						if (metaTag.length === 0) {
-							delete cm.metaTags.metaTags[cm.metaTags.metaIndexes[changeLine].key];
+						if (!cm.metaTags.metaIndexes[changeLine]) {
+							continue;
 						}
-					}
 
-					var regexMatch = contentLines[changeLine].match(/@(\w+)(\s+)(.+)/);
-					if (regexMatch) {
-						cm.metaTags.metaTags[regexMatch[1]] = cm.metaTags.metaTags[regexMatch[1]] || [];
-						cm.metaTags.metaTags[regexMatch[1]].push(regexMatch[3]);
-						if (regexMatch[1] !== cm.metaTags.metaIndexes[changeLine].key) {
-							tagsChanged.added.push({
+						//Remove those values from the metaTags object
+						var metaTag = cm.metaTags.metaTags[cm.metaTags.metaIndexes[changeLine].key];
+
+						if (metaTag) {
+							metaTag.splice(metaTag.indexOf(cm.metaTags.metaIndexes[changeLine].value), 1);
+							if (metaTag.length === 0) {
+								delete cm.metaTags.metaTags[cm.metaTags.metaIndexes[changeLine].key];
+							}
+						}
+
+						var regexMatch = contentLines[changeLine].match(/@(\w+)(\s+)(.+)/);
+						if (regexMatch) {
+							cm.metaTags.metaTags[regexMatch[1]] = cm.metaTags.metaTags[regexMatch[1]] || [];
+							cm.metaTags.metaTags[regexMatch[1]].push(regexMatch[3]);
+							if (regexMatch[1] !== cm.metaTags.metaIndexes[changeLine].key) {
+								tagsChanged.added.push({
+									key: regexMatch[1],
+									value: regexMatch[3]
+								});
+								tagsChanged.removed.push({
+									key: cm.metaTags.metaIndexes[changeLine].key,
+									value: cm.metaTags.metaIndexes[changeLine].value
+								});
+							} else {
+								tagsChanged.changed.push({
+									key: regexMatch[1],
+									oldValue: cm.metaTags.metaIndexes[changeLine].value,
+									value: regexMatch[3]
+								});
+							}
+							cm.metaTags.metaIndexes[changeLine] = {
+								line: changeLine,
 								key: regexMatch[1],
 								value: regexMatch[3]
-							});
+							};
+						} else {
 							tagsChanged.removed.push({
 								key: cm.metaTags.metaIndexes[changeLine].key,
 								value: cm.metaTags.metaIndexes[changeLine].value
 							});
-						} else {
-							tagsChanged.changed.push({
-								key: regexMatch[1],
-								oldValue: cm.metaTags.metaIndexes[changeLine].value,
-								value: regexMatch[3]
-							});
 						}
-						cm.metaTags.metaIndexes[changeLine] = {
-							line: changeLine,
-							key: regexMatch[1],
-							value: regexMatch[3]
-						};
-					} else {
-						tagsChanged.removed.push({
-							key: cm.metaTags.metaIndexes[changeLine].key,
-							value: cm.metaTags.metaIndexes[changeLine].value
-						});
 					}
 				}
-			}
 
-			if (tagsChanged) {
-				window.CodeMirror.signal(cm, 'metaTagChanged', tagsChanged, cm.metaTags.metaTags);
+				if (tagsChanged) {
+					window.CodeMirror.signal(cm, 'metaTagChanged', tagsChanged, cm.metaTags.metaTags);
+				}
 			}
 		}
 	}
