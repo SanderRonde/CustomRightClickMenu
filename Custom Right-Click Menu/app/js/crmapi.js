@@ -19,11 +19,20 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	var _this = this;
 
 	//#region Options
-	//Set crmAPI.stackTraces to false if you don't want stacktraces in your console, on by default
+	/*
+	 * When true, shows stacktraces on error in the console of the page
+	 *		the script runs on, true by default.
+	 * 
+	 * @type boolean
+	 */
 	this.stackTraces = true;
 
-	//Set crmAPI.errors to false if you don't want crmAPI to throw errors upon failure, on by default
-	//If this is set to false errors will simply be put up as warnings
+	/*
+	 * If true, throws an error when one of your crmAPI calls is incorrect
+	 *		(such as a type mismatch or any other fail). True by default.
+	 * 
+	 * @type boolean
+	 */
 	this.errors = true;
 	//#endregion
 
@@ -108,11 +117,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * Creates a callback function that gets executed here instead of in the background page
 	 * 
-	 * @param {function} callback - The function to run
+	 * @param {function} callback - A handler for the callback function that gets passed
+	 *		the status of the call (error or succes), some data (error message or function params)
+	 *		and a stacktrace.
 	 * @param {Error} error - The "new Error" value to formulate a useful stack trace
+	 * @param {Boolean} [persistent] - If this value is true the callback will not be deleted
+	 *		even after it has been called
 	 * @returns {number} - The value to use as a callback function
 	 */
-	this.createCallback = function (callback, error) {
+	function createCallback(callback, error, persistent) {
 		error = error || new Error;
 		var index = 0;
 		while (callInfo[index]) {
@@ -120,10 +133,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		}
 		callInfo[index] = {
 			callback: callback,
-			stackTrace: _this.stackTraces && getStackTrace(error)
+			stackTrace: _this.stackTraces && getStackTrace(error),
+			persistent: persistent
 		};
 		//Wait an hour for the extreme cases, an array with a few numbers in it can't be that horrible
+		if (!persistent) {
 		setTimeout(createDeleterFunction(index), 3600000);
+		}
+
+		// ReSharper disable UseOfImplicitGlobalInFunctionScope
 		var fn = function () {
 			var callbackId = CBID;
 			var nodeId = NODEID;
@@ -139,6 +157,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				id: nodeId
 			});
 		}
+		// ReSharper restore UseOfImplicitGlobalInFunctionScope
 
 		//Replace the template values with the real values
 		var stringifiedFn = jsonFn.stringify(fn);
@@ -148,6 +167,39 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return jsonFn.parse(stringifiedFn);
 	}
 
+	/**
+	 * Creates a callback function that gets executed here instead of in the background page
+	 * 
+	 * @param {function} callback - The function to run
+	 * @param {Error} error - The "new Error" value to formulate a useful stack trace
+	 * @param {Boolean} [persistent] - If this value is true the callback will not be deleted
+	 *		even after it has been called
+	 * @returns {number} - The value to use as a callback function
+	 */
+	function createCallbackFunction(callback, error, persistent) {
+		function onFinish(status, messageOrParams, stackTrace) {
+			if (status === 'error') {
+				_this.onError && _this.onError(messageOrParams);
+				if (_this.stackTraces) {
+					setTimeout(function () {
+						console.log('stack trace: ');
+						stackTrace.forEach(function (line) {
+							console.log(line);
+						});
+					}, 5);
+				}
+				if (_this.errors) {
+					throw new Error('CrmAPIError: ' + messageOrParams.error);
+				} else {
+					console.warn('CrmAPIError: ' + messageOrParams.error);
+				}
+			} else {
+				callback.apply(_this, messageOrParams);
+			}
+		}
+
+		createCallback(onFinish, error, persistent);
+	}
 
 	//Connect to the background-page
 	var queue = [];
@@ -175,7 +227,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	function callbackHandler(message) {
 		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
+		if (!callInfo[message.callbackId].persistent) {
 		delete callInfo[message.callbackId];
+	}
 	}
 
 	var instances = [];
@@ -304,6 +358,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region Instance Communication
+	/*
+	 * The communications API used to communicate with other scripts and other instances
+	 * 
+	 * @type Object
+	 */
 	this.comm = {};
 	var commListeners = [];
 
@@ -395,7 +454,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {instance} instance - The instance to send the message to
 	 * @param {Object} message - The message to send
 	 * @param {function} callback - A callback that tells you the result,
-	 *		gets passed on argument (object) that contains the two boolean
+	 *		gets passed one argument (object) that contains the two boolean
 	 *		values "error" and "success" indicating whether the message
 	 *		succeeded. If it did not succeed and an error occurred,
 	 *		the message key of that object will be filled with the reason
@@ -429,6 +488,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#region Storage
 	var storage = nodeStorage;
 
+	/*
+	 * The storage API used to store and retrieve data for this script
+	 * 
+	 * @type Object
+	 */
 	this.storage = {};
 
 	var storageListeners = [];
@@ -677,6 +741,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//	you can call the crmapi.crm.update() function. 
 	//	WARNING this function will make auto-run script run twice, seeing as the original script is still running on the page 
 	//	and another instance is added.
+
+	/*
+	 * The crm API, used to make changes to the crm, some API calls may require permissions crmGet and crmWrite
+	 * 
+	 * @type Object
+	 */
 	this.crm = {};
 
 	/**
@@ -753,7 +823,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * The properties of a node if it's of type link
 	 * 
 	 * @augments CrmAPIInit~crmNode
-	 * @typedef {Object[]} CrmAPIInit~linkVal
+	 * @typedef {Ob!@ject[]} CrmAPIInit~linkVal
 	 * @property {Object[]} value - The links in this link-node
 	 * @property {string} value.url - The URL to open
 	 * @property {boolean} value.newTab - True if the link is opened in a new tab
@@ -1378,6 +1448,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
+	/*
+	 * The libraries API used to register libraries, requires permission crmWrite
+	 * 
+	 * @type Object
+	 */
 	this.libraries = {};
 	/**
 	 * Registers a library with name "name", requires permission "crmWrite"
@@ -1523,8 +1598,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *			send: executes the request
 	 * 
 	 * Examples:
-	 *		- For a function that uses callback, this is not the use of the chrome.runtime.sendMessage API
-	 *		crmAPI.chrome('runtime.sendMessage').args({
+	 *		- For a function that uses callback, this is NOT the actual use of the chrome.runtime.getPlatformInfo API
+	 *		crmAPI.chrome('runtime.getPlatformInfo').args({
 	 *			message: 'hello'
 	 *		}).fn(function(result1, resul2) {
 	 *			console.log(result1);
@@ -1533,7 +1608,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *			console.log(result);
 	 *		}).send();
 	 * 
-	 *		- For a function that returns a value, this is not how to actually use the chrome.runtime.getUrl API
+	 *		- For a function that returns a value, this is NOT how to actually use the chrome.runtime.getUrl API
 	 *		crmAPI.chrome('runtime.getURL').args('url.html').args(parameter).fn(function(result) {
 	 *			console.log(result);
 	 *		}).return(function(result) {
@@ -1569,8 +1644,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	//Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API 
 	//	and here http://tampermonkey.net/documentation.php
+	/*
+	 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
+	 *		CRM counterparts
+	 * 
+	 * @type Object
+	 */
 	this.GM = {};
-
 
 	//TODO
 	this.GM.GM_info = function () {
@@ -1858,7 +1938,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {function} onclick - A function to run on clicking the notification
 	 */
 	this.GM.GM_notification = function (text, title, image, onclick) {
-		var details = {};
+		var details;
 		if (typeof text === 'object' && text) {
 			details = {
 				message: text.text,
@@ -1879,12 +1959,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		}
 		details.type = 'basic';
 		details.iconUrl = details.iconUrl || chrome.runtime.getURl('icon-large.png');
-		onclick = details.onclick && createCallback(details.onclick, new Error);
-		var ondone = details.ondone && createCallback(details.ondone, new Error);
+		onclick = details.onclick && createCallbackFunction(details.onclick, new Error);
+		var ondone = details.ondone && createCallbackFunction(details.ondone, new Error);
 		delete details.onclick;
 		delete details.ondone;
 
-		var request = chromeSpecialRequest('notifications.create', 'GM_notification').args(details).cb(function(notificationId) {
+		var request = chromeSpecialRequest('notifications.create', 'GM_notification').args(details).fn(function(notificationId) {
 			addNotificationListener(notificationId, onclick, ondone);
 		});
 		request.onError = function(errorMessage) {
@@ -1893,8 +1973,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		request.send();
 	}
 
-	//This seems to be deprecated from the greasemonkey documentation page, removed somewhere before 24th of february
-	//	waiting for any update
+	//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
+	//	and january 24th 2016 waiting for any update
 	/*
 	 * Install a userscript to Custom Right-Click Menu. The callback 
 	 * gets an object like "{ found: true, installed: true }" that
@@ -1905,12 +1985,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		is installed or not
 	 */
 	this.GM.GM_installScript = emptyFn; /* function (url, callback) {
+		//Update if re-activated, may be outdated
 		sendMessage({
 			id: id,
 			type: 'installScriptMessage',
 			data: {
 				url: url,
-				callback: callback && createCallback(callback, new Error),
+				callback: callback && createCallbackFunction(callback, new Error),
 				id: id,
 				tabId: _this.tabId
 			},
@@ -1919,9 +2000,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}*/
 
 	var greaseMonkeyAPIs = this.GM;
-	for (var GMKey in greaseMonkeyAPIs) {
-		if (greaseMonkeyAPIs.hasOwnProperty(GMKey)) {
-			window[GMKey] = greaseMonkeyAPIs[GMKey];
+	for (var gmKey in greaseMonkeyAPIs) {
+		if (greaseMonkeyAPIs.hasOwnProperty(gmKey)) {
+			window[gmKey] = greaseMonkeyAPIs[gmKey];
 		}
 	}
 

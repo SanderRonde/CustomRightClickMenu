@@ -17,8 +17,6 @@
 })(function() {
 	'use strict';
 
-	window.scriptEdit = null;
-
 	// BROWSER SNIFFING
 
 	// Kludges for bugs and behavior differences that can't be feature
@@ -5940,7 +5938,7 @@
 
 	// Given a mode spec (anything that resolveMode accepts), find and
 	// initialize an actual mode object.
-	CodeMirror.getMode = function(options, spec) {
+	CodeMirror.getMode = function (options, spec) {
 		var spec = CodeMirror.resolveMode(spec);
 		var mfactory = modes[spec.name];
 		if (!mfactory) return CodeMirror.getMode(options, 'text/plain');
@@ -7441,6 +7439,7 @@
 		runMode(cm, line.text, cm.doc.mode, state, function(end, style) {
 			st.push(end, style);
 		}, lineClasses, forceToEnd);
+
 
 		// Run overlays, adjust style array.
 		for (var o = 0; o < cm.state.overlays.length; ++o) {
@@ -9708,9 +9707,7 @@
 
 if (window.codeMirrorToLoad) {
 	window.codeMirrorToLoad.toLoad.forEach(function (toLoad) {
-		console.log('toload');;
 		toLoad(CodeMirror);
 	});
-	console.log(window.codeMirrorToLoad.final);
 	window.codeMirrorToLoad.final && window.codeMirrorToLoad.final(CodeMirror);
 }

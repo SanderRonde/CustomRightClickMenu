@@ -765,7 +765,7 @@
 			window.externalEditor.cancelOpenFiles();
 		},
 
-		openPermissionsDialog: function (item, cb) {
+		openPermissionsDialog: function (item, callback) {
 			var nodeItem;
 			var settingsStorage;
 			if (!item || item.type === 'tap') {
@@ -884,6 +884,7 @@
 				$('#scriptPermissionsTemplate')[0].items = permissionList;
 				$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + nodeItem.name;
 				$('#scriptPermissionDialog')[0].addEventListener('iron-overlay-opened', cb);
+				$('#scriptPermissionDialog')[0].addEventListener('iron-overlay-closed', callback);
 				$('#scriptPermissionDialog')[0].open();
 			});
 		},
@@ -1451,7 +1452,8 @@
 		/*
 		 * Initializes the keybindings for the editor
 		 */
-		initTernKeyBindings: function() {
+		initTernKeyBindings: function () {
+			//TODO make this changable
 			this.editor.setOption('extraKeys', {
 				"Ctrl-Space": function(cm) {
 					window.app.ternServer.complete(cm);
@@ -1597,7 +1599,8 @@
 			this.initDropdown();
 			this.addDialogToMetaTagUpdateListeners();
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
-				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
+				//TODO create defs for crmAPI
+				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
 			});
 			document.body.classList.remove('editingStylesheet');
 			document.body.classList.add('editingScript');
@@ -1622,6 +1625,7 @@
 							id: _this.item.id,
 							crmType: window.app.crmType
 						}
+						// ReSharper disable once WrongExpressionStatement
 					}, function() { chrome.runtime.lastError; });
 				} else {
 					//Stop this interval

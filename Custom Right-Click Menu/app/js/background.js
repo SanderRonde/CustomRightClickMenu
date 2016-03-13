@@ -784,7 +784,7 @@
 		var hostAndPathSplit = hostAndPath.split('/');
 
 		var host = hostAndPathSplit[0];
-		var path = hostAndPathSplit[1].join('/');
+		var path = hostAndPathSplit.splice(1).join('/');
 
 		return {
 			scheme: scheme,
@@ -794,19 +794,11 @@
 	}
 
 	function validatePatternUrl(url) {
-		if (url === '' || url === null || url === undefined) {
+		if (!url || typeof url !== 'string') {
 			return null;
 		}
-
-		debugger;
-
-		var pattern;
-		try {
-			pattern = parsePattern(url);
-		} catch (e) {
-			return null;
-		}
-
+		url = url.trim();
+		var pattern = parsePattern(url);
 		if (globals.constants.validSchemes.indexOf(pattern.scheme) === -1) {
 			return null;
 		}
@@ -912,6 +904,7 @@
 						nodes: {},
 						crmAPI: false
 					};
+					if (!urlIsGlobalExcluded(tab.url)) {
 					if (!urlIsGlobalExcluded(updatedInfo.url)) {
 						for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
 							executeNode(globals.toExecuteNodes.always[i], tab);
@@ -2896,6 +2889,10 @@
 			throwChromeError(message, 'Passed API "' + message.api + '" is not alphanumeric.');
 			return false;
 		}
+		else if (message.api === 'runtime.sendMessage') {
+			throwChromeError(message, 'The chrome.runtime.sendMessage API is not allowed');
+			return false;
+		}
 		var apiPermission = message.requestType || message.api.split('.')[0];
 		if (!node.isLocal) {
 			var apiFound;
@@ -3259,11 +3256,23 @@
 
 	chrome.notifications.onClicked.addListener(function (notificationId) {
 		var notification = globals.notificationListeners[notificationId];
-		notification && notification.onClick && typeof notification.onClick === 'function' && notification.onClick();
+		if (notification && notification.onClick !== undefined) {
+			globals.sendCallbackMessage(notification.tabId, notification.id, {
+				err: false,
+				args: [notificationId],
+				callbackId: notification.onClick
+			});
+		}
 	});
 	chrome.notifications.onClosed.addListener(function(notificationId, byUser) {
 		var notification = globals.notificationListeners[notificationId];
-		notification && notification.onDone && typeof notification.onDone === 'function' && notification.onDone();
+		if (notification && notification.onDone !== undefined) {
+			globals.sendCallbackMessage(notification.tabId, notification.id, {
+				err: false,
+				args: [notificationId, byUser],
+				callbackId: notification.onClick
+			});
+		}
 		delete globals.notificationListeners[notificationId];
 	});
 
@@ -3294,7 +3303,7 @@
 			case 'resource':
 				resourceHandler(message.data);
 				break;
-				//This seems to be deprecated from the greasemonkey documentation page, removed somewhere before 24th of february
+				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
 				//	waiting for any update
 				/*
 			case 'scriptInstall':
@@ -3307,7 +3316,7 @@
 			case 'sendInstanceMessage':
 				sendInstanceMessage(message);
 				break;
-				//This seems to be deprecated from the greasemonkey documentation page, removed somewhere before 24th of february
+				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
 				//	waiting for any update
 				/*
 			case 'installScriptMessage':
@@ -3511,48 +3520,48 @@
 
 				if (checkDefaultStorage(chromeStorageLocal)) {
 					storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
-					delete storageLocalCopy.resourceKeys;
-					delete storageLocalCopy.nodeStorage;
-					delete storageLocalCopy.resources;
-					delete storageLocalCopy.globalExcludes;
+				delete storageLocalCopy.resourceKeys;
+				delete storageLocalCopy.nodeStorage;
+				delete storageLocalCopy.resources;
+				delete storageLocalCopy.globalExcludes;
 
-					var indexes;
-					var jsonString;
-					var settingsJsonArray;
-					if (chromeStorageLocal.useStorageSync) {
-						//Parse the data before sending it to the callback
-						indexes = chromeStorageSync.indexes;
-						if (!indexes) {
-							chrome.storage.local.set({
-								useStorageSync: false
-							});
-							settingsStorage = chromeStorageLocal.settings;
-						} else {
-							settingsJsonArray = [];
-							indexes.forEach(function(index) {
-								settingsJsonArray.push(chromeStorageSync[index]);
-							});
-							jsonString = settingsJsonArray.join('');
-							settingsStorage = JSON.parse(jsonString);
-						}
+				var indexes;
+				var jsonString;
+				var settingsJsonArray;
+				if (chromeStorageLocal.useStorageSync) {
+					//Parse the data before sending it to the callback
+					indexes = chromeStorageSync.indexes;
+					if (!indexes) {
+						chrome.storage.local.set({
+							useStorageSync: false
+						});
+						settingsStorage = chromeStorageLocal.settings;
 					} else {
-						//Send the "settings" object on the storage.local to the callback
-						if (!chromeStorageLocal.settings) {
-							chrome.storage.local.set({
-								useStorageSync: true
-							});
-							indexes = chromeStorageSync.indexes;
-							settingsJsonArray = [];
+						settingsJsonArray = [];
 							indexes.forEach(function(index) {
-								settingsJsonArray.push(chromeStorageSync[index]);
-							});
-							jsonString = settingsJsonArray.join('');
-							var settings = JSON.parse(jsonString);
-							settingsStorage = settings;
-						} else {
-							delete storageLocalCopy.settings;
-							settingsStorage = chromeStorageLocal.settings;
-						}
+							settingsJsonArray.push(chromeStorageSync[index]);
+						});
+						jsonString = settingsJsonArray.join('');
+						settingsStorage = JSON.parse(jsonString);
+					}
+				} else {
+					//Send the "settings" object on the storage.local to the callback
+					if (!chromeStorageLocal.settings) {
+						chrome.storage.local.set({
+							useStorageSync: true
+						});
+						indexes = chromeStorageSync.indexes;
+						settingsJsonArray = [];
+							indexes.forEach(function(index) {
+							settingsJsonArray.push(chromeStorageSync[index]);
+						});
+						jsonString = settingsJsonArray.join('');
+						var settings = JSON.parse(jsonString);
+						settingsStorage = settings;
+					} else {
+						delete storageLocalCopy.settings;
+						settingsStorage = chromeStorageLocal.settings;
+					}
 					}
 				} else {
 					var results = setupFirstRun();
