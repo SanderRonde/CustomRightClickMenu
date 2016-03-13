@@ -75,7 +75,7 @@
             "16": "icon-supersmall.png",
             "48": "icon-small.png"
           },
-          "default_title": "Quick Menu",
-          "default_popup": "popup.html"
+          "default_title": "Optoins",
+          "default_popup": "options.html"
         },
 }
