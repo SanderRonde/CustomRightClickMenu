@@ -896,7 +896,7 @@
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
 		if (updatedInfo.status === 'loading') {
 			//It's loading
-			chrome.tabs.get(tabId, function (tab) {
+			chrome.tabs.get(tabId, function(tab) {
 				if (tab.url.indexOf('chrome') !== 0) {
 					var i;
 					globals.crmValues.tabData[tab.id] = globals.crmValues.tabData[tab.id] || {
@@ -905,15 +905,16 @@
 						crmAPI: false
 					};
 					if (!urlIsGlobalExcluded(tab.url)) {
-					if (!urlIsGlobalExcluded(updatedInfo.url)) {
-						for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
-							executeNode(globals.toExecuteNodes.always[i], tab);
-						}
+						if (!urlIsGlobalExcluded(updatedInfo.url)) {
+							for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
+								executeNode(globals.toExecuteNodes.always[i], tab);
+							}
 
-						for (var nodeId in globals.toExecuteNodes.onUrl) {
-							if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
-								if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
-									executeNode(globals.crm.crmById[nodeId], tab);
+							for (var nodeId in globals.toExecuteNodes.onUrl) {
+								if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
+									if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
+										executeNode(globals.crm.crmById[nodeId], tab);
+									}
 								}
 							}
 						}

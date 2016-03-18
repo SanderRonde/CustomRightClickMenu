@@ -19,7 +19,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	var _this = this;
 
 	//#region Options
-	/*
+	/**
 	 * When true, shows stacktraces on error in the console of the page
 	 *		the script runs on, true by default.
 	 * 
@@ -27,7 +27,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	this.stackTraces = true;
 
-	/*
+	/**
 	 * If true, throws an error when one of your crmAPI calls is incorrect
 	 *		(such as a type mismatch or any other fail). True by default.
 	 * 
@@ -286,7 +286,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {string} type - The type that the value should be
 	 * @param {string|boolean} nameOrMode If a string, the name of the value to check (shown in error message),
 	 * if a boolean and true, turns on non-error-mode
-	 * @returns {boolean} Whether the type matches 
+	 * @returns {boolean} - Whether the type matches 
 	 */
 	function checkType(value, type, nameOrMode) {
 		(type.splice || (type = [type]));
@@ -326,7 +326,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * 
 	 * @param {Object} mainObject - The object to merge it INTO 
 	 * @param {Object} additions - The object to merge INTO IT
-	 * @returns {Object} The merged object
+	 * @returns {Object} - The merged object
 	 */
 	function mergeObjects(mainObject, additions) {
 		for (var key in additions) {
@@ -346,7 +346,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * returns an empty function if it's not
 	 * 
 	 * @param {function} fn - The function to check
-	 * @returns {function} The actual function or an empty one depending on the outcome
+	 * @returns {function} - The actual function or an empty one depending on the outcome
 	 */
 	function isFn(fn) {
 		if (fn && typeof fn === 'function') {
@@ -358,7 +358,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region Instance Communication
-	/*
+	/**
 	 * The communications API used to communicate with other scripts and other instances
 	 * 
 	 * @type Object
@@ -439,10 +439,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-	/*
+	/**
 	 * Returns all instances running in other tabs, these instances can be passed
 	 * to the .comm.sendMessage function to send a message to them, you can also
 	 * call instance.sendMessage on them
+	 * 
+	 * @returns {instance[]} - An array of all instances
 	 */
 	this.comm.getInstances = function() {
 		return instances;
@@ -488,7 +490,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#region Storage
 	var storage = nodeStorage;
 
-	/*
+	/**
 	 * The storage API used to store and retrieve data for this script
 	 * 
 	 * @type Object
@@ -500,7 +502,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	var storageListenersGM = {};
 	var storagePrevious = {};
 
-	/*
+	/**
 	 * Notifies any listeners of changes to the storage object
 	 */
 	function notifyChanges(keyPath, oldValue, newValue, remote) {
@@ -554,7 +556,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		a string with dots seperating the path, an array with each entry holding
 	 *		one section of the path, or just a plain string without dots as the key,
 	 *		can also hold nothing to return the entire storage
-	 * @returns {any} The data you are looking for
+	 * @returns {any} - The data you are looking for
 	 */
 	this.storage.get = function (keyPath) {
 		if (!keyPath) {
@@ -689,14 +691,16 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region PageAPI
-	/*
+	/**
 	 * Gets the current text selection
+	 * 
+	 * @returns {string} - The current selection
 	 */
 	this.getSelection = function () {
 		return clickData.selectionText || window.getSelection().toString();
 	}
 
-	/*
+	/**
 	 * All of the remaining functions in this region below this message will only work if your
 	 * script runs on clicking, not if your script runs automatically, in that case you will always
 	 * get undefined (except for the function above). For more info check out this page's onclick 
@@ -704,10 +708,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 
 	/**
-	 * Returns any data about the click on the page (https://developer.chrome.com/extensions/contextMenus#method-create)
+	 * Returns any data about the click on the page, check (https://developer.chrome.com/extensions/contextMenus#method-create)
 	 *		for more info of what can be returned.
 	 * 
-	 * @returns {object} An object containing any info about the page, some data may be undefined if it doesn't apply 
+	 * @returns {Object} - An object containing any info about the page, some data may be undefined if it doesn't apply 
 	 */
 	this.getClickInfo = function () {
 		return clickData;
@@ -742,7 +746,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//	WARNING this function will make auto-run script run twice, seeing as the original script is still running on the page 
 	//	and another instance is added.
 
-	/*
+	/**
 	 * The crm API, used to make changes to the crm, some API calls may require permissions crmGet and crmWrite
 	 * 
 	 * @type Object
@@ -754,7 +758,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * 
 	 * @param {string} action - What the action is
 	 * @param {function} callback - The function to run when done
-	 * @param {object} params - Any options or parameters
+	 * @param {Object} params - Any options or parameters
 	 */
 	function sendCrmMessage(action, callback, params) {
 		function onFinish(status, messageOrParams, stackTrace) {
@@ -796,7 +800,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @property {Number} index - The index of the node in its parent's children
 	 * @property {string} name - The name of the node
 	 * @property {string} type - The type of the node (link, script, menu or divider)
-	 * @property {Object[]} children - The children of the object, only possible if type is menu and permision "CRM" is present
+	 * @property {CrmAPIInit~crmNode[]} children - The children of the object, only possible if type is menu and permision "CRM" is present
 	 * @property {Object} nodeInfo - Any info about the node, it's author and where it's downloaded from
 	 * @property {string} nodeInfo.installDate - The date on which the node was installed or created
 	 * @property {boolean} nodeInfo.isRoot - Whether the node is downloaded (false) or created locally (true)
@@ -811,6 +815,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		respectively
 	 * @property {string[]} permissions - The permissions required by this script
 	 * @property {string} url - The URL to open
+	 * @property {Object[]} triggers - The triggers for which to run this node
 	 * @property {string} triggers.url - The URL of the site on which to run, according to the chrome match patterns
 	 *		found at https://developer.chrome.com/extensions/match_patterns
 	 * @property {boolean} triggers.not - If true does NOT run on given site
@@ -823,14 +828,14 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * The properties of a node if it's of type link
 	 * 
 	 * @augments CrmAPIInit~crmNode
-	 * @typedef {Ob!@ject[]} CrmAPIInit~linkVal
+	 * @typedef {Object[]} CrmAPIInit~linkVal
 	 * @property {Object[]} value - The links in this link-node
 	 * @property {string} value.url - The URL to open
 	 * @property {boolean} value.newTab - True if the link is opened in a new tab
 	 * @property {boolean} showOnSpecified - Whether the triggers are actually used, true if they are
 	 */
 
-	/*
+	/**
 	 * The properties of a node if it's of type script
 	 * 
 	 * @augments CrmAPIInit~crmNode
@@ -849,7 +854,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @property {script} libraries.name - The name of the library
 	 */
 
-	/*
+	/**
 	* The properties of a node if it's of type stylesheet
 	* 
 	* @augments CrmAPIInit~crmNode
@@ -883,11 +888,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * This callback is called on most crm functions
+	 * 
 	 * @callback CrmAPIInit~crmCallback
 	 * @param {CrmAPIInit~crmNode} node - The node that has been processed/retrieved
 	 */
 
-	/*
+	/**
 	 * Gets the CRM tree from the tree's root - requires permission "crmGet"
 	 * 
 	 * @param {function} callback - A function that is called when done with the data as an argument
@@ -896,7 +902,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		sendCrmMessage('getTree', callback);
 	}
 
-	/*
+	/**
 	 * Gets the CRM's tree from either the root or from the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {number} nodeId - The ID of the tree's root node
@@ -908,7 +914,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-	/*
+	/**
 	 * Gets the node with ID nodeId - requires permission "crmGet"
 	 * 
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
@@ -919,7 +925,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-	/*
+	/**
 	 * Gets a node's ID from a path to the node - requires permission "crmGet"
 	 * 
 	 * @param {number[]} path - An array of numbers representing the path, each number
@@ -935,7 +941,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * Queries the CRM for any items matching your query - requires permission "crmGet"
 	 * 
-	 * @param {crmCallback} - callback The function to call when done, returns one array of results
+	 * @param {crmCallback} callback The function to call when done, returns one array of results
 	 * @param {Object} query - The query to look for
 	 * @param {string} [query.name] - The name of the item
 	 * @param {string} [query.type] - The type of the item (link, script, divider or menu)
@@ -1000,7 +1006,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * Creates a node with the given options - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {Object} options - An object containing all the options for the node
-	 * @param {object} [options.position] - An object containing info about where to place the item, defaults to last if not given
+	 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last if not given
 	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
 	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
@@ -1033,15 +1039,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
 	 *		registered throws an error, so do that first, not required
 	 * @param {string} [options.scriptData.libraries.name] - The name of the library
-	 * @param {Object] [options.stylesheetData] - The data of the stylesheet, required if type is stylesheet
+	 * @param {Object} [options.stylesheetData] - The data of the stylesheet, required if type is stylesheet
 	 * @param {Number} [options.stylesheetData.launchMode] - The time at which this stylesheet launches, not required, defaults to 0,
 	 *		0 = run on clicking
 	 *		1 = always run
 	 *		2 = run on specified pages
 	 *		3 = only show on specified pages
 	 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
-	 * @property {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
-     * @property {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
+	 * @param {boolean} - [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
+     * @param {boolean} - [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
      * @param {Object[]} [options.stylesheetData.triggers] - A trigger for the stylesheet to run, not required
 	 * @param {string} [options.stylesheetData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
@@ -1061,7 +1067,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {number} nodeId - The id of the node to copy
 	 * @param {Object} options - An object containing all the options for the node
 	 * @param {string} [options.name] - The new name of the object (same as the old one if none given)
-	 * @param {object} [options.position] - An object containing info about where to place the item, defaults to last if not given
+	 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last if not given
 	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
 	 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 	 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
@@ -1166,6 +1172,14 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
+
+	/*
+	 * All functions related specifically to the stylesheet type
+	 * 
+	 * @type Object
+	 */
+	this.crm.stylesheet = {};
+
 	/**
 	 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
 	 *		link, menu and divider - requires permission "crmGet"
@@ -1240,13 +1254,18 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-	/*
+	/**
 	 * Any settings changed on nodes that are currently not of the type of which you change the settings (using crmAPI.crm.link.push on a script)
 	 * will take effect when the type is changed to the one you are editing (link in the previous example) at any point in the future.
 	 * This is ofcourse not true if the settings for link are changed in the meantime, but any other settings can be changed without it being
 	 * affected (script, menu, divider, name, type etc.)
 	 */
 
+	/*
+	 * All functions related specifically to the link type
+	 * 
+	 * @type Object
+	 */
 	this.crm.link = {};
 
 	/**
@@ -1296,7 +1315,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-
+	/*
+	 * All functions related specifically to the script type
+	 * 
+	 * @type Object
+	 */
 	this.crm.script = {};
 
 	/**
@@ -1329,14 +1352,20 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
+	/*
+	 * All functions related specifically to the script's libraries
+	 * 
+	 * @type Object
+	 */
 	this.crm.script.libraries = {};
+
 	/**
 	 * Pushes given libraries to the node with ID nodeId's libraries array,
 	 * make sure to register them first or an error is thrown - requires permission "crmGet" and "crmWrite"
 	 * 
 	 * @param {number} nodeId - The node to edit
 	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
-	 * @param {string} - libraries.name - The name of the library
+	 * @param {string} libraries.name - The name of the library
 	 * @param {function} callback - A callback with the new array as an argument
 	 */
 	this.crm.script.libraries.push = function (nodeId, libraries, callback) {
@@ -1389,7 +1418,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-
+	/*
+	 * All functions related specifically to the menu type
+	 * 
+	 * @type Object
+	 */
 	this.crm.menu = {};
 
 	/**
@@ -1448,12 +1481,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-	/*
+	/**
 	 * The libraries API used to register libraries, requires permission crmWrite
 	 * 
 	 * @type Object
 	 */
 	this.libraries = {};
+
 	/**
 	 * Registers a library with name "name", requires permission "crmWrite"
 	 * 
@@ -1473,75 +1507,81 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region Chrome APIs
-	function ChromeRequest(api, type) {
-		this.api = api;
-		Object.defineProperty(this, "type", {
-			get: function() { 
-				return type;
-			}
-		});
-		return this;
-	}
-
-	ChromeRequest.prototype.chromeAPIArguments = [];
-
 	/**
-	 * Uses given arguments as arguments for the API in order specified. WARNING this can NOT be 
-	 * a function, for functions refer to the other two types.
-	 */
-	ChromeRequest.prototype.args = function () {
-		for (var i = 0; i < arguments.length; i++) {
-			this.chromeAPIArguments.push({
-				type: 'arg',
-				val: jsonFn.stringify(arguments[i])
-			});
-		}
-		return this;
-	}
-
-	/*
-	 * A function that will preserve scope but is not passed to the chrome API itself.
+	 * Uses given arguments as arguments for the API in order specified. If the argument is 
+	 * not a function, it is simply passed along, if it is, it's converted to a
+	 * function that will preserve scope but is not passed to the chrome API itself.
 	 * Instead a placeholder is passed that will take any arguments the chrome API passes to it
 	 * and calls your fn function with local scope with the arguments the chrome API passed. Keep in
 	 * mind that there is no connection between your function and the chrome API, the chrome API only
 	 * sees a placeholder function with which it can do nothing so don't use this as say a forEach handler.
 	 */
-	ChromeRequest.prototype.fn = function (fn) {
-		this.chromeAPIArguments.push({
-			type: 'fn',
-			val: _this.createCallback(fn, new Error)
+	// ReSharper disable once InconsistentNaming
+	function ChromeRequest(api, type) {
+		this.api = api;
+		var request = this;
+		Object.defineProperty(this, "type", {
+			get: function() { 
+				return type;
+			}
 		});
-		return this;
+
+		var fn = function() {
+			for (var i = 0; i < arguments.length; i++) {
+				var arg = arguments[i];
+				if (typeof arg === 'function') {
+					request.chromeAPIArguments.push({
+						type: 'fn',
+						val: _this.createCallback(arg, new Error)
+					});
+				} else {
+					request.chromeAPIArguments.push({
+						type: 'arg',
+						val: jsonFn.stringify(arg)
+					});
+				}
+			}
+			return fn;
+		};
+		var returnVal = fn;
+		returnVal.args = returnVal.a = fn;
+		returnVal.return = returnVal.r = chromeReturnFunction;
+		returnVal.send = returnVal.s = chromeSendFunction;
+		returnVal.request = this;
+
+		return returnVal;
 	}
 
-	/*
+	ChromeRequest.prototype.chromeAPIArguments = [];
+
+	/**
 	 * A function that is called with the value that the chrome API returned. This can
 	 * be used for APIs that don't use callbacks and instead just return values such as
 	 * chrome.runtime.getURL().
 	 */
-	ChromeRequest.prototype.return = function (fn) {
-		this.chromeAPIArguments.push({
+	function chromeReturnFunction(fn) {
+		this.request.chromeAPIArguments.push({
 			type: 'return',
 			val: _this.createCallback(fn, new Error)
 		});
 		return this;
 	}
 
-	/*
+	/**
 	 * Executes the request
 	 */
-	ChromeRequest.prototype.send = function () {
+	function chromeSendFunction() {
 		var message = {
 			type: 'chrome',
 			id: id,
-			api: this.api,
-			args: this.chromeAPIArguments,
+			api: this.request.api,
+			args: this.request.chromeAPIArguments,
 			tabId: _this.tabId,
-			requestType: this.type,
+			requestType: this.request.type,
 			onFinish: function (status, messageOrParams, stackTrace) {
 				if (status === 'error' || status === 'chromeError') {
-					if (this.onError) {
-						this.onError(messageOrParams);
+					if (this.request.onError) {
+						this.request.onError(messageOrParams);
 					}
 					else if (_this.onError) {
 						_this.onError(messageOrParams);
@@ -1580,50 +1620,35 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
 	 *		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
 	 *		functions you can chain-call on the crmAPI.chrome(API) object: 
-	 *			args: uses given arguments as arguments for the API in order specified. WARNING this can NOT be 
-	 *				a function, for functions refer to the other two types.
-	 * 
-	 *			fn: a function that will preserve scope but is not passed to the chrome API itself.
-	 *				Instead a placeholder is passed that will take any arguments the chrome API passes to it
-	 *				and calls your fn function, that you can use with local scope, with a container argument. 
-	 *				Keep in mind that there is no conection between your function and the chrome API, the chrome
-	 *				API only sees a placeholder function with which it can do nothing so don't use this as say a
-	 *				forEach handler.
-	 * 
-	 *			return: a function that is called with the value that the chrome API returned. This can
+	 *			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
+	 *				it will be converted to a placeholder function that will be called on return with the 
+	 *				arguments chrome passed to it. This means the function is never executed on the background
+	 *				page and is always executed here to preserve scope.
+	 *				You can call this function by calling .args or by just using the parentheses as below.
+	 *			r or return: a function that is called with the value that the chrome API returned. This can
 	 *				be used for APIs that don't use callbacks and instead just return values such as
 	 *				chrome.runtime.getURL(). This just like fn returns a container argument for
 	 *				all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
-	 * 
-	 *			send: executes the request
-	 * 
+	 *			s or send: executes the request
 	 * Examples:
-	 *		- For a function that uses callback, this is NOT the actual use of the chrome.runtime.getPlatformInfo API
-	 *		crmAPI.chrome('runtime.getPlatformInfo').args({
-	 *			message: 'hello'
-	 *		}).fn(function(result1, resul2) {
-	 *			console.log(result1);
-	 *			console.log(result2);
-	 *		}).args(parameter).args(parameter1, parameter2).fn(function(result) {
-	 *			console.log(result);
+	 *		- For a function that uses a callback:
+	 *		crmAPI.chrome('alarms.get')('name', function(alarm) {
+	 *			//Do something with the result here
 	 *		}).send();
-	 * 
-	 *		- For a function that returns a value, this is NOT how to actually use the chrome.runtime.getUrl API
-	 *		crmAPI.chrome('runtime.getURL').args('url.html').args(parameter).fn(function(result) {
-	 *			console.log(result);
-	 *		}).return(function(result) {
-	 *			console.log(result);
+	 *		-
+	 *		- For a function that returns a value:
+	 *		crmAPI.chrome('runtime.getUrl')(path).return(function(result) {
+	 *			//Do something with the result
 	 *		}).send();
-	 * 
-	 *		- Actual real-use examples
-	 *		crmAPI.chrome('tabs.create').args(properties).fn(function(result) {
-	 *			console.log(result);
-	 *		}).send();
-	 * 
-	 *		crmAPI.chrome('runtime.getUrl').args(path).return(function(result) {
-	 *			console.log(result);
-	 *		}).send();
-	 * 
+	 *		-
+	 *		- For a function that uses neither:
+	 *		crmAPI.chrome('alarms.create')('name', {}).send();
+	 *		-
+	 *		- A compacter version:
+	 *		crmAPI.chrome('runtime.getUrl')(path).r(function(result) {
+	 *			//Do something with the result
+	 *		}).s();
+	 *		-
 	 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
 	 * permission "bookmarks", chrome.alarms requires "alarms"
 	 * 
@@ -1631,20 +1656,20 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @returns {Object} - An object on which you can call .args, .fn, .return and .send
 	 */
 	this.chrome = function (api) {
+		//TODO maybe update documentation
 		return new ChromeRequest(api);
 	};
 
 	function chromeSpecialRequest(api, type) {
 		return new ChromeRequest(api, type);
 	}
-
 	//#endregion
 
 	//#region GreaseMonkey Compatibility Functions
 
 	//Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API 
 	//	and here http://tampermonkey.net/documentation.php
-	/*
+	/**
 	 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
 	 *		CRM counterparts
 	 * 
@@ -1653,6 +1678,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.GM = {};
 
 	//TODO
+	/*
+	 * Returns any info about the script
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_info}
+	 * @returns {Object} - Data about the script
+	 */
 	this.GM.GM_info = function () {
 		return {
 			script: {},
@@ -1666,9 +1697,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * This method retrieves a value that was set with GM_setValue. See GM_setValue 
 	 *		for details on the storage of these values.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
 	 * @param {String} name - The property name to get
 	 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
-	 * @returns {any} Returns the value if the value is defined, if it's undefined, returns defaultValue
+	 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
 	 *		if defaultValue is also undefined, returns undefined
 	 */
 	this.GM.GM_getValue = function (name, defaultValue) {
@@ -1679,6 +1711,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * This method allows user script authors to persist simple values across page-loads.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_setValue}
 	 * @param {String} name - The unique (within this script) name for this value. Should be restricted to valid Javascript identifier characters.
 	 * @param {any} value - The value to store
 	 */
@@ -1689,6 +1722,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * This method deletes an existing name / value pair from storage.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_deleteValue}
 	 * @param {String} name - Property name to delete.
 	 */
 	this.GM.GM_deleteValue = function (name) {
@@ -1698,6 +1732,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * This method retrieves an array of storage keys that this script has stored.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_listValues}
 	 * @returns {String[]} All keys of the storage
 	 */
 	this.GM.GM_listValues = function () {
@@ -1713,8 +1748,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * Gets the resource URL for given resource name
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_getResourceURL}
 	 * @param {String} name - The name of the resource
-	 * @returns {String} A URL that can be used to get the resource value
+	 * @returns {String} - A URL that can be used to get the resource value
 	 */
 	this.GM.GM_getResourceURL = function (name) {
 		return greasemonkeyData.resources[name].crmUrl;
@@ -1723,8 +1759,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * Gets the resource string for given resource name
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_getResourceString}
 	 * @param {String} name - The name of the resource
-	 * @returns {String} The resource value
+	 * @returns {String} - The resource value
 	 */
 	this.GM.GM_getResourceString = function (name) {
 		return greasemonkeyData.resources[name].string;
@@ -1734,6 +1771,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * This method adds a string of CSS to the document. It creates a new <style> element,
 	 *		 adds the given CSS to it, and inserts it into the <head>.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_addStyle}
 	 * @param {String} css - The CSS to put on the page
 	 */
 	this.GM.GM_addStyle = function (css) {
@@ -1744,6 +1782,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Logs to the console
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_log}
+	 * @param {any} any - The data to log
 	 */
 	this.GM.GM_log = console.log;
 
@@ -1751,15 +1792,39 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * Open specified URL in a new tab, open_in_background is not available here since that 
 	 *		not possible in chrome
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_openInTab}
 	 * @param {String} url - The url to open
 	 */
 	this.GM.GM_openInTab = function (url) {
 		window.open(url);
 	}
 
-	//This is only here to prevent errors from occuring when calling any of these functions,
-	//this function does nothing
-	this.GM.GM_registerMenuCommand = this.GM.GM_unregisterMenuCommand = this.GM.GM_setClipboard = emptyFn;
+	/*
+	 * This is only here to prevent errors from occuring when calling any of these functions,
+	 * this function does nothing
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_registerMenuCommand}
+	 * @param {any} ignoredArguments - An argument that is ignored
+	 */
+	this.GM.GM_registerMenuCommand = emptyFn;
+
+	/*
+	 * This is only here to prevent errors from occuring when calling any of these functions,
+	 * this function does nothing
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand}
+	 * @param {any} ignoredArguments - An argument that is ignored
+	 */
+	this.GM.GM_unregisterMenuCommand = emptyFn;
+
+	/*
+	 * This is only here to prevent errors from occuring when calling any of these functions,
+	 * this function does nothing
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
+	 * @param {any} ignoredArguments - An argument that is ignored
+	 */
+	this.GM.GM_setClipboard = emptyFn;
 
 	//Taken from https://gist.github.com/arantius/3123124
 	function setupRequestEvent(aOpts, aReq, aEventName) {
@@ -1795,32 +1860,57 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
-	this.GM.GM_xmlhttpRequest = function (aOpts) {
+	/*
+	 * Sends an xmlhttpRequest with given parameters
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_xmlhttpRequest}
+	 * @param {Object} options - The options
+	 * @param {string} [options.method] - The method to use (GET, HEAD or POST)
+	 * @param {string} [options.url] - The url to request
+	 * @param {Object} [options.headers] - The headers for the request
+	 * @param {Object} [options.data] - The data to send along
+	 * @param {boolean} [options.binary] - Whether the data should be sent in binary mode
+	 * @param {number} [options.timeout] - The time to wait in ms
+	 * @param {Object} [options.context] - A property which will be applied to the response object
+	 * @param {string} [options.responeType] - The type of resposne, arraybuffer, blob or json
+	 * @param {string} [options.overrideMimeType] - The MIME type to use
+	 * @param {boolean} [options.anonymous] - If true, sends no cookies along with the request
+	 * @param {boolean} [options.fetch] - Use a fetch instead of an xhr
+	 * @param {string} [options.username] - A username for authentication
+	 * @param {string} [options.password] - A password for authentication
+	 * @param {function} [options.onload] - A callback on that event
+	 * @param {function} [options.onerror] - A callback on that event
+	 * @param {function} [options.onreadystatechange] - A callback on that event
+	 * @param {function} [options.onprogress] - A callback on that event
+	 * @param {function} [options.onloadstart] - A callback on that event
+	 * @param {function} [options.ontimeout] - A callback on that event
+	 */
+	this.GM.GM_xmlhttpRequest = function (options) {
 		//There is no point in enforcing the @connect metaTag since
 		//you can construct you own XHR without the API anyway
 
 		var req = new XMLHttpRequest();
 
-		setupRequestEvent(aOpts, req, 'abort');
-		setupRequestEvent(aOpts, req, 'error');
-		setupRequestEvent(aOpts, req, 'load');
-		setupRequestEvent(aOpts, req, 'progress');
-		setupRequestEvent(aOpts, req, 'readystatechange');
+		setupRequestEvent(options, req, 'abort');
+		setupRequestEvent(options, req, 'error');
+		setupRequestEvent(options, req, 'load');
+		setupRequestEvent(options, req, 'progress');
+		setupRequestEvent(options, req, 'readystatechange');
 
-		req.open(aOpts.method, aOpts.url, !aOpts.synchronous,
-			aOpts.user || '', aOpts.password || '');
-		if (aOpts.overrideMimeType) {
-			req.overrideMimeType(aOpts.overrideMimeType);
+		req.open(options.method, options.url, !options.synchronous,
+			options.user || '', options.password || '');
+		if (options.overrideMimeType) {
+			req.overrideMimeType(options.overrideMimeType);
 		}
-		if (aOpts.headers) {
-			for (let prop in aOpts.headers) {
-				if (Object.prototype.hasOwnProperty.call(aOpts.headers, prop)) {
-					req.setRequestHeader(prop, aOpts.headers[prop]);
+		if (options.headers) {
+			for (let prop in options.headers) {
+				if (Object.prototype.hasOwnProperty.call(options.headers, prop)) {
+					req.setRequestHeader(prop, options.headers[prop]);
 				}
 			}
 		}
-		var body = aOpts.data ? aOpts.data : null;
-		if (aOpts.binary) {
+		var body = options.data ? options.data : null;
+		if (options.binary) {
 			return req.sendAsBinary(body);
 		} else {
 			return req.send(body);
@@ -1835,12 +1925,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		instance (false). Therefore this functionality can be used by
 	 *		scripts of different browser tabs to communicate with each other.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_addValueChangeListener}
 	 * @param {string} name - The name of the observed variable
 	 * @param {function} callback - A callback in which the first argument is
 	 *		the name of the observed, variable, the second one is the old value,
 	 *		the third one is the new value and the fourth one is a boolean that
 	 *		indicates whether the change was from a remote tab
-	 * @returns {number} The id of the listener, used for removing it
+	 * @returns {number} - The id of the listener, used for removing it
 	 */
 	this.GM.GM_addValueChangeListener = function (name, callback) {
 		storageListenersGM[++storageIndexGM] = {
@@ -1854,12 +1945,27 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * Removes a change listener by its ID.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_removeValueChangeListener}
 	 * @param {number} listenerId - The id of the listener
 	 */
 	this.GM.GM_removeValueChangeListener = function (listenerId) {
 		delete storageListenersGM[listenerId];
 	}
 
+	/**
+	 * Downloads the file at given URL
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_GM_download}
+	 * @param {string|Object} detailsOrUrl - The URL or a details object containing any data
+	 * @param {string} [detailsOrUrl.url] - The url of the download
+	 * @param {string} [detailsOrUrl.name] - The name of the file after download
+	 * @param {Object} [detailsOrUrl.headers] - The headers for the request
+	 * @param {function} [detailsOrUrl.onload] - Called when the request loads
+	 * @param {function} [detailsOrUrl.onerror] - Called on error, gets called with an object
+	 *		containing an error attribute that specifies the reason for the error
+	 *		and a details attribute that gives a more detailed description of the error
+	 * @param {string} name - The name of the file after download
+	 */
 	this.GM.GM_download = function (detailsOrUrl, name) {
 		var details = {};
 		if (typeof detailsOrUrl === 'string') {
@@ -1900,16 +2006,46 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * https://tampermonkey.net/documentation.php#GM_saveTab
 	 * You can use the comms API instead of this
 	 */
-	this.GM.GM_getTab = this.GM.GM_getTabs = function (cb) { cb(); }
-	this.GM.GM_saveTab = emptyFn;
+
+	function instantCb(cb) {
+		cb();
+	}
 
 	/*
+	 * Please use the comms API instead of this one
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_getTab}
+	 * @param {function} callback - A callback that is immediately called
+	 */
+	this.GM.GM_getTab = instantCb;
+
+	/*
+	 * Please use the comms API instead of this one
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_getTabs}
+	 * @param {function} callback - A callback that is immediately called
+	 */
+	this.GM.GM_getTabs = instantCb;
+
+	/*
+	 * Please use the comms API instead of this one, this one does nothing
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
+	 * @param {any} ignoredArguments - An argument that is ignored
+	 */
+	this.GM.GM_saveTab = emptyFn;
+
+	/**
 	 * The unsafeWindow object provides full access to the pages javascript functions and variables.
+	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#unsafeWindow}
+	 * @type Object
 	 */
 	this.GM.unsafeWindow = window;
 
 	/**
 	 * Adds a listener for the notification with ID notificationId
+	 * 
 	 * @param {string} notificationId - The id of te notification to listen for
 	 * @param {function} onclick - The onclick handler for the notification
 	 * @param {function} ondone - The onclose handler for the notification
@@ -1932,6 +2068,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * Shows a HTML5 Desktop notification and/or highlight the current tab.
 	 * 
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
 	 * @param {string} text - The message of the notification
 	 * @param {string} title - The title of the notification
 	 * @param {string} image - A url to the image to use for the notification
@@ -1975,29 +2112,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
 	//	and january 24th 2016 waiting for any update
-	/*
-	 * Install a userscript to Custom Right-Click Menu. The callback 
-	 * gets an object like "{ found: true, installed: true }" that
-	 * shows whether the script was found and the user installed it.
+	/**
+	 * THIS FUNCTION DOES NOT WORK AND IS DEPRECATED
 	 * 
-	 * @param {string} url - The url of the userscript
-	 * @param {function} callback - The function to call when the script
-	 *		is installed or not
+	 * @see {@link https://tampermonkey.net/documentation.php#GM_installScript}
+	 * @param {any} ignoredArguments - An argument that is ignored
 	 */
-	this.GM.GM_installScript = emptyFn; /* function (url, callback) {
-		//Update if re-activated, may be outdated
-		sendMessage({
-			id: id,
-			type: 'installScriptMessage',
-			data: {
-				url: url,
-				callback: callback && createCallbackFunction(callback, new Error),
-				id: id,
-				tabId: _this.tabId
-			},
-			tabId: _this.tabId
-		});
-	}*/
+	this.GM.GM_installScript = emptyFn;
 
 	var greaseMonkeyAPIs = this.GM;
 	for (var gmKey in greaseMonkeyAPIs) {

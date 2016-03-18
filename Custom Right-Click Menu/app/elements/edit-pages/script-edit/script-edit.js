@@ -1599,7 +1599,6 @@
 			this.initDropdown();
 			this.addDialogToMetaTagUpdateListeners();
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
-				//TODO create defs for crmAPI
 				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
 			});
 			document.body.classList.remove('editingStylesheet');

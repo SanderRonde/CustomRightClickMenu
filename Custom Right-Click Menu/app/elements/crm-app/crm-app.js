@@ -1447,7 +1447,7 @@ Polymer({
 		get parent() { return window.app; }
 	},
 
-	replaceChromeCall: function (lines, line, type, index, onError) {
+	replaceChromeCall: function (ternServer, doc, fakeCm, lines, line, type, index, onError) {
 		var newLine;
 		switch (type) {
 			case 'string':
@@ -1522,8 +1522,6 @@ Polymer({
 			charIndex++;
 		}
 
-		var ternServer = window.CodeMirror.TernServer
-
 		//If the user catches a return value, use the return function
 		var match = line.text.split('').reverse().join('').match(/(\s*)= ([a-z|A-Z|0-9]+)/);
 		if (match) {
@@ -1550,6 +1548,21 @@ Polymer({
 			}
 		}
 
+		var doc = new window.CodeMirror.Doc(lines.join('\n'), 'javascript');
+		doc.mode = CodeMirror.getMode({
+			indentUnit: '4'
+		}, doc.modeOption);
+
+		var ternServer = new window.CodeMirror.TernServer({
+			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+		});
+
+		var fakeCm = {
+			getDoc: function () {
+				return doc;
+			}
+		};
+
 		var string = line.text.slice(line.styles[i], line.styles[i + 1]);
 		var role = line.styles[i + 1];
 		if (role === 'string' || role === 'property') {
@@ -1559,13 +1572,13 @@ Polymer({
 					var startIndex = line.styles[i - 4] || 0;
 					if (line.text.slice(startIndex, line.styles[i - 2]) === 'window') {
 						//Call to window['chrome'] or window.chrome, replace
-						this.replaceChromeCall(lines, line, role, line.styles[i], onError);
+						this.replaceChromeCall(ternServer, doc, fakeCm, lines, line, role, line.styles[i], onError);
 					}
 				}
 			}
 		}
 		else if (role === 'variable') {
-			this.replaceChromeCall(line, role, line.styles[i], onError);
+			this.replaceChromeCall(ternServer, doc, fakeCm, line, role, line.styles[i], onError);
 		} else {
 			return line;
 		}
@@ -1878,127 +1891,126 @@ Polymer({
 	},
 	//#endregion
 
-	ready: function () {
+	ready: function() {
 		var _this = this;
 		this.crm.parent = this;
 		window.app = this;
 		window.doc = window.app.$;
 
-			chrome.storage.local.get(function(storageLocal) {
-				if (_this.checkFirstTime(storageLocal)) {
-					console.log('going through');
+		chrome.storage.local.get(function(storageLocal) {
+			if (_this.checkFirstTime(storageLocal)) {
 
-		function callback(items) {
-			_this.settings = items;
-			_this.settingsCopy = JSON.parse(JSON.stringify(items));
-			for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
-			}
-			_this.updateEditorZoom();
-			_this.pageDemo.create();
-			_this.orderNodesById(items.crm);
-		}
+				function callback(items) {
+					_this.settings = items;
+					_this.settingsCopy = JSON.parse(JSON.stringify(items));
+					for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+						_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
+					}
+					_this.updateEditorZoom();
+					_this.pageDemo.create();
+					_this.orderNodesById(items.crm);
+				}
 
-					_this.bindListeners();
-			delete storageLocal.nodeStorage;
-			if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-				_this.requestPermissions(storageLocal.requestPermissions);
-			}
-			if (storageLocal.editing) {
-				setTimeout(function() {
-					//Check out if the code is actually different
-					var node = _this.nodesById[storageLocal.editing.id].value;
-					var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
-					if (nodeCurrentCode !== storageLocal.editing.val) {
-						_this.restoreUnsavedInstances(storageLocal.editing);
-					} else {
-						chrome.storage.local.set({
-							editing: null
-						});
-					}
-				}, 2500);
-			}
-			if (storageLocal.selectedCrmType !== undefined) {
-				_this.crmType = storageLocal.selectedCrmType;
-				_this.switchToIcons(storageLocal.selectedCrmType);
-			} else {
-				chrome.storage.local.set({
-					selectedCrmType: 0
-				});
-				_this.crmType = 0;
-				_this.switchToIcons(0);
-			}
-			if (storageLocal.jsLintGlobals) {
-				_this.jsLintGlobals = storageLocal.jsLintGlobals;
-			} else {
-				_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-				chrome.storage.local.set({
-					jsLintGlobals: _this.jsLintGlobals
-				});
-			}
-			if (storageLocal.globalExcludes && storageLocal.globalExcludes.length > 1) {
-				_this.globalExcludes = storageLocal.globalExcludes;
-			} else {
-				_this.globalExcludes = [''];
-				chrome.storage.local.set({
-					globalExcludes: _this.globalExcludes
-				});
-			}
-			if (storageLocal.latestId) {
-				_this.latestId = storageLocal.latestId;
-			} else {
-				chrome.storage.local.set({
-					latestId: 0
-				});
-				_this.latestId = 0;
-			}
-			if (storageLocal.useStorageSync) {
-				//Parse the data before sending it to the callback
-				chrome.storage.sync.get(function(storageSync) {
-					var indexes = storageSync.indexes;
-					if (!indexes) {
-						chrome.storage.local.set({
-							useStorageSync: false
-						});
-						callback(storageLocal.settings);
-					} else {
-						var settingsJsonArray = [];
-						indexes.forEach(function(index) {
-							settingsJsonArray.push(storageSync[index]);
-						});
-						var jsonString = settingsJsonArray.join('');
-						_this.settingsJsonLength = jsonString.length;
-						var settings = JSON.parse(jsonString);
-						console.log(settings);
-						callback(settings);
-					}
-				});
-			} else {
-				//Send the "settings" object on the storage.local to the callback
-				_this.settingsJsonLength = JSON.stringify(storageLocal.settings).length;
-				if (!storageLocal.settings) {
+				_this.bindListeners();
+				delete storageLocal.nodeStorage;
+				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
+					_this.requestPermissions(storageLocal.requestPermissions);
+				}
+				if (storageLocal.editing) {
+					setTimeout(function() {
+						//Check out if the code is actually different
+						var node = _this.nodesById[storageLocal.editing.id].value;
+						var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
+						if (nodeCurrentCode !== storageLocal.editing.val) {
+							_this.restoreUnsavedInstances(storageLocal.editing);
+						} else {
+							chrome.storage.local.set({
+								editing: null
+							});
+						}
+					}, 2500);
+				}
+				if (storageLocal.selectedCrmType !== undefined) {
+					_this.crmType = storageLocal.selectedCrmType;
+					_this.switchToIcons(storageLocal.selectedCrmType);
+				} else {
 					chrome.storage.local.set({
-						useStorageSync: true
+						selectedCrmType: 0
 					});
+					_this.crmType = 0;
+					_this.switchToIcons(0);
+				}
+				if (storageLocal.jsLintGlobals) {
+					_this.jsLintGlobals = storageLocal.jsLintGlobals;
+				} else {
+					_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+					chrome.storage.local.set({
+						jsLintGlobals: _this.jsLintGlobals
+					});
+				}
+				if (storageLocal.globalExcludes && storageLocal.globalExcludes.length > 1) {
+					_this.globalExcludes = storageLocal.globalExcludes;
+				} else {
+					_this.globalExcludes = [''];
+					chrome.storage.local.set({
+						globalExcludes: _this.globalExcludes
+					});
+				}
+				if (storageLocal.latestId) {
+					_this.latestId = storageLocal.latestId;
+				} else {
+					chrome.storage.local.set({
+						latestId: 0
+					});
+					_this.latestId = 0;
+				}
+				if (storageLocal.useStorageSync) {
+					//Parse the data before sending it to the callback
 					chrome.storage.sync.get(function(storageSync) {
 						var indexes = storageSync.indexes;
-						var settingsJsonArray = [];
-						indexes.forEach(function(index) {
-							settingsJsonArray.push(storageSync[index]);
-						});
-						var jsonString = settingsJsonArray.join('');
-						_this.settingsJsonLength = jsonString.length;
-						var settings = JSON.parse(jsonString);
-						console.log(settings);
-						callback(settings);
+						if (!indexes) {
+							chrome.storage.local.set({
+								useStorageSync: false
+							});
+							callback(storageLocal.settings);
+						} else {
+							var settingsJsonArray = [];
+							indexes.forEach(function(index) {
+								settingsJsonArray.push(storageSync[index]);
+							});
+							var jsonString = settingsJsonArray.join('');
+							_this.settingsJsonLength = jsonString.length;
+							var settings = JSON.parse(jsonString);
+							console.log(settings);
+							callback(settings);
+						}
 					});
 				} else {
-					callback(storageLocal.settings);
+					//Send the "settings" object on the storage.local to the callback
+					_this.settingsJsonLength = JSON.stringify(storageLocal.settings).length;
+					if (!storageLocal.settings) {
+						chrome.storage.local.set({
+							useStorageSync: true
+						});
+						chrome.storage.sync.get(function(storageSync) {
+							var indexes = storageSync.indexes;
+							var settingsJsonArray = [];
+							indexes.forEach(function(index) {
+								settingsJsonArray.push(storageSync[index]);
+							});
+							var jsonString = settingsJsonArray.join('');
+							_this.settingsJsonLength = jsonString.length;
+							var settings = JSON.parse(jsonString);
+							console.log(settings);
+							callback(settings);
+						});
+					} else {
+						callback(storageLocal.settings);
+					}
 				}
+				_this.storageLocal = storageLocal;
+				_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 			}
-			_this.storageLocal = storageLocal;
-			_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
-				}
 		});
 
 		this.show = false;
@@ -2008,6 +2020,12 @@ Polymer({
 				_this.latestId = changes.latestId.newValue;
 			}
 		});
+
+		setTimeout(function() {
+			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
+				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+			});
+		}, 4000);
 	},
 
 	/**
@@ -2285,7 +2303,7 @@ Polymer({
 				contentSettings: 'Allows changing or reading your browser settings to allow or deny things like javascript, plugins, popups, notifications or other things you can choose to accept or deny on a per-site basis. (https://developer.chrome.com/extensions/contentSettings)',
 				declarativeContent: 'Allows for the running of scripts on pages based on their url and CSS contents. (https://developer.chrome.com/extensions/declarativeContent)',
 				desktopCapture: 'Makes it possible to capture your screen, current tab or chrome window (https://developer.chrome.com/extensions/desktopCapture)',
-				downloads: 'Allows for the creating, pausing, removing, searching and removing of downloads and listening for any downloads happenng. (https://developer.chrome.com/extensions/downloads)',
+				downloads: 'Allows for the creating, pausing, searching and removing of downloads and listening for any downloads happenng. (https://developer.chrome.com/extensions/downloads)',
 				history: 'Makes it possible to read your history and remove/add specific urls. This can also be used to search your history and to see howmany times you visited given website. (https://developer.chrome.com/extensions/history)',
 				identity: 'Allows for the API to ask you to provide your (google) identity to the script using oauth2, allowing you to pull data from lots of google APIs: calendar, contacts, custom search, drive, gmail, google maps, google+, url shortener (https://developer.chrome.com/extensions/identity)',
 				idle: 'Allows a script to detect whether your pc is in a locked, idle or active state. (https://developer.chrome.com/extensions/idle)',
