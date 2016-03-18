@@ -3521,50 +3521,51 @@
 
 				if (checkDefaultStorage(chromeStorageLocal)) {
 					storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
-				delete storageLocalCopy.resourceKeys;
-				delete storageLocalCopy.nodeStorage;
-				delete storageLocalCopy.resources;
-				delete storageLocalCopy.globalExcludes;
+					delete storageLocalCopy.resourceKeys;
+					delete storageLocalCopy.nodeStorage;
+					delete storageLocalCopy.resources;
+					delete storageLocalCopy.globalExcludes;
 
-				var indexes;
-				var jsonString;
-				var settingsJsonArray;
-				if (chromeStorageLocal.useStorageSync) {
-					//Parse the data before sending it to the callback
-					indexes = chromeStorageSync.indexes;
-					if (!indexes) {
-						chrome.storage.local.set({
-							useStorageSync: false
-						});
-						settingsStorage = chromeStorageLocal.settings;
-					} else {
-						settingsJsonArray = [];
-							indexes.forEach(function(index) {
-							settingsJsonArray.push(chromeStorageSync[index]);
-						});
-						jsonString = settingsJsonArray.join('');
-						settingsStorage = JSON.parse(jsonString);
-					}
-				} else {
-					//Send the "settings" object on the storage.local to the callback
-					if (!chromeStorageLocal.settings) {
-						chrome.storage.local.set({
-							useStorageSync: true
-						});
+					var indexes;
+					var jsonString;
+					var settingsJsonArray;
+					if (chromeStorageLocal.useStorageSync) {
+						//Parse the data before sending it to the callback
 						indexes = chromeStorageSync.indexes;
-						settingsJsonArray = [];
+						if (!indexes) {
+							chrome.storage.local.set({
+								useStorageSync: false
+							});
+							settingsStorage = chromeStorageLocal.settings;
+						} else {
+							settingsJsonArray = [];
 							indexes.forEach(function(index) {
-							settingsJsonArray.push(chromeStorageSync[index]);
-						});
-						jsonString = settingsJsonArray.join('');
-						var settings = JSON.parse(jsonString);
-						settingsStorage = settings;
+								settingsJsonArray.push(chromeStorageSync[index]);
+							});
+							jsonString = settingsJsonArray.join('');
+							settingsStorage = JSON.parse(jsonString);
+						}
 					} else {
-						delete storageLocalCopy.settings;
-						settingsStorage = chromeStorageLocal.settings;
-					}
+						//Send the "settings" object on the storage.local to the callback
+						if (!chromeStorageLocal.settings) {
+							chrome.storage.local.set({
+								useStorageSync: true
+							});
+							indexes = chromeStorageSync.indexes;
+							settingsJsonArray = [];
+							indexes.forEach(function(index) {
+								settingsJsonArray.push(chromeStorageSync[index]);
+							});
+							jsonString = settingsJsonArray.join('');
+							var settings = JSON.parse(jsonString);
+							settingsStorage = settings;
+						} else {
+							delete storageLocalCopy.settings;
+							settingsStorage = chromeStorageLocal.settings;
+						}
 					}
 				} else {
+					//TODO this may not work yet
 					var results = setupFirstRun();
 					settingsStorage = results.settingsStorage;
 					storageLocalCopy = results.storageLocalCopy;

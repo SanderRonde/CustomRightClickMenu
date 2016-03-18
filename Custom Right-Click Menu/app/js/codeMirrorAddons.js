@@ -5727,9 +5727,10 @@ function(e, t) {
  * @param {?} mod
  * @return {?}
  */
-function(e, t) {
-	return "object" == typeof exports && "object" == typeof module ? t(exports, require("./infer"), require("./signal"), require("acorn"), require("acorn/dist/walk")) : "function" == typeof define && define.amd ? define(["exports", "./infer", "./signal", "acorn/dist/acorn", "acorn/dist/walk"], t) : void t(e.tern || (e.tern = {}), tern, tern.signal, acorn, acorn.walk)
-}(this, function superwoob(exports, infer, signal, dataAndEvents, walk) {
+function (e, t) {
+	return "object" == typeof exports && "object" == typeof module ? t(exports, require("./infer"), require("./signal"), require("acorn"), require("acorn/dist/walk")) : "function" == typeof define && define.amd ? define(["exports", "./infer", "./signal", "acorn/dist/acorn", "acorn/dist/walk"], t) : (console.log('this one'), console.log(tern), void t(e.tern || (e.tern = {}), tern, tern.signal, acorn, acorn.walk))
+}(this, function (exports, infer, signal, dataAndEvents, walk) {
+	console.trace();
   /**
    * @param {string} name
    * @param {Object} parentDir
@@ -5742,32 +5743,7 @@ function(e, t) {
 		/** @type {Object} */
 		this.parent = parentDir;
 		/** @type {null} */
-		var scope = this.text = this.ast = this.lineOffsets = null;
-		Object.defineProperty(this, 'scope', {
-			get: function() {
-				return scope;
-			},
-			set: function(val) {
-				console.log('setting');
-				scope = val;
-				console.log(scope);
-				console.trace();
-				return scope;
-			}
-		});
-		var ast = undefined;
-		Object.defineProperty(this, 'ast', {
-			get: function() {
-				return ast;
-			},
-			set: function(val) {
-				console.log('setting fileStructure');
-				ast = val;
-				console.log(val);
-				console.trace();
-				return ast;
-			}
-		});
+		this.scope = this.text = this.ast = this.lineOffsets = null;
 	}
 
 	/**
@@ -5778,12 +5754,6 @@ function(e, t) {
 	 */
   function callback(file, text, srv) {
   	file.text = srv.options.stripCRs ? text.replace(/\r\n/g, "\n") : text;
-  	console.log(infer);
-  	console.log(srv.passes);
-  	console.log(JSON.parse(JSON.stringify(file)));
-	//HERE
-  	console.log(srv.options.ecmaVersion);
-	  console.trace();
     infer.withContext(srv.cx, function() {
       file.ast = infer.parse(file.text, srv.passes, {
         directSourceFile : file,
@@ -6586,7 +6556,11 @@ function(e, t) {
    * @param {?} file
    * @return {?}
    */
-  function findTypeAt(srv, query, file) {
+  var findTypeAt = window.ternFindTypeAt = function(srv, query, file) {
+  	console.log('');
+	  console.log('');
+	  console.log('finding type at:');
+	  console.log(query);
     var exprName;
     var result;
     var expr = findExpr(file, query);
@@ -7066,6 +7040,9 @@ function(e, t) {
           data = null;
         }
       }
+      console.log(this);
+      console.log(Type);
+	    console.log(exports);
       ensureFile(this, name, data, text);
     },
     /**
@@ -15915,6 +15892,9 @@ function(e, t) {
 		}
 		,
 		Z = e.scopeAt = function (e, t, r) {
+			console.log('scopeAt');
+			console.log(e, t, r);
+			console.trace();
 
 			var o = n.findNodeAround(e, t, function (e, t) {
 				return "ScopeBody" == e && t.scope

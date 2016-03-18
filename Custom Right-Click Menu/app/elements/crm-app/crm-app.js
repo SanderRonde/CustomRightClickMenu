@@ -898,14 +898,15 @@ Polymer({
 		$('.CodeMirror').each(function() {
 			this.CodeMirror.refresh();
 		});
+		var editor = (window.scriptEdit ? window.scriptEdit.editor : (window.stylesheetEdit ? window.stylesheetEdit.editor : null));
 		window.colorFunction && window.colorFunction.func({
 			from: {
 				line: 0
 			},
 			to: {
-				line: window.stylesheet.editor.lineCount()
+				line: editor.lineCount()
 			}
-		}, window.stylesheet.editor);
+		}, editor);
 	},
 
 	/**
@@ -1891,7 +1892,8 @@ Polymer({
 	},
 	//#endregion
 
-	ready: function() {
+	ready: function () {
+		//TODO local saving doesn't seem to work, in particular changing editor font size
 		var _this = this;
 		this.crm.parent = this;
 		window.app = this;
@@ -2024,6 +2026,47 @@ Polymer({
 		setTimeout(function() {
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
 				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+			});
+
+			window.app.ternTypeServer = new window.tern.Server({
+				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+			});
+			//Test stuff
+
+			var file = new window.File('[doc]');
+			file.text = 'console.log("hey");\n' +
+				'var fn = function(e) {\n' +
+				'	console.log(e);\n' +
+				'}\n' +
+				'chrome.runtime.getUrl(fn);\n' +
+				'chrome.runtime.getUrl(function(e){console.log(e);});';
+			var srv = window.app.ternTypeServer;
+			window.tern.withContext(srv.cx, function() {
+				file.ast = window.tern.parse(file.text, srv.passes, {
+					directSourceFile: file,
+					allowReturnOutsideFunction: true,
+					allowImportExportEverywhere: true,
+					ecmaVersion: srv.ecmaVersion
+				});
+
+				file.scope = srv.cx.topScope;
+				window.tern.analyze(file.ast, file.name, file.scope, srv.passes);
+
+				window.file = file;
+
+				var pos = {
+					line: 5,
+					ch: 22
+				}
+
+				var query = {
+					pos: pos,
+					file: '[doc]',
+					lineCharPositions: true,
+					preferFunction: true,
+					type: 'type'
+				};
+				console.log(window.ternFindTypeAt(srv, query, file));
 			});
 		}, 4000);
 	},
