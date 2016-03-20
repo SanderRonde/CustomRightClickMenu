@@ -5736,7 +5736,7 @@ function (e, t) {
    * @param {Object} parentDir
    * @return {undefined}
    */
-	window.File = function File(name, parentDir) {
+	window.TernFile = window.File = function File(name, parentDir) {
 		console.log(name, parentDir);
 		/** @type {string} */
 		this.name = name;
@@ -5839,11 +5839,7 @@ function (e, t) {
    * @return {?}
    */
   function analyzeFile(srv, file) {
-  	console.log(srv, file);
-	  console.trace();
 	  return infer.withContext(srv.cx, function () {
-	  	console.log(srv);
-		  console.log(file);
       file.scope = srv.cx.topScope;
       srv.signal("beforeLoad", file);
       infer.analyze(file.ast, file.name, file.scope, srv.passes);
@@ -6557,10 +6553,6 @@ function (e, t) {
    * @return {?}
    */
   var findTypeAt = window.ternFindTypeAt = function(srv, query, file) {
-  	console.log('');
-	  console.log('');
-	  console.log('finding type at:');
-	  console.log(query);
     var exprName;
     var result;
     var expr = findExpr(file, query);
@@ -7040,9 +7032,6 @@ function (e, t) {
           data = null;
         }
       }
-      console.log(this);
-      console.log(Type);
-	    console.log(exports);
       ensureFile(this, name, data, text);
     },
     /**
@@ -7083,7 +7072,6 @@ function (e, t) {
      * @return {?}
      */
     request: function (doc, func) {
-    	console.log(doc, func);
       var self;
       var data = invalidDoc(doc);
       return data ? func(data) : (self = this, void doRequest(this, doc, function(name, i) {
@@ -15294,7 +15282,7 @@ function(e, t) {
 		return P
 	}
 	,
-	e.withContext = function(e, t) {
+	e.withContext = function (e, t) {
 		var r = P;
 		P = e;
 		try {
@@ -15546,7 +15534,7 @@ function(e, t) {
 				r(e, e.scope || t)
 			}
 		}),
-		B = e.parse = function(e, n, o) {
+		B = e.parse = function (e, n, o) {
 			var i, s, a;
 			if (n && n.preParse)
 				for (s = 0; s < n.preParse.length; s++)
@@ -15892,8 +15880,6 @@ function(e, t) {
 		}
 		,
 		Z = e.scopeAt = function (e, t, r) {
-			console.log('scopeAt');
-			console.log(e, t, r);
 			console.trace();
 
 			var o = n.findNodeAround(e, t, function (e, t) {

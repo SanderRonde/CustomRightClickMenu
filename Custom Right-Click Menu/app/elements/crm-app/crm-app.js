@@ -1179,276 +1179,7 @@ Polymer({
 		}
 	},
 
-	jsParser: {
-		getLine: function (doc, lineNumber) {
-			var chunk;
-			lineNumber -= doc.first;
-			if (lineNumber < 0 || lineNumber >= doc.size) throw new Error('There is no line ' + (lineNumber + doc.first) + ' in the document.');
-			for (chunk = doc; !chunk.lines;) {
-				for (var i = 0; ; ++i) {
-					var child = chunk.children[i], sz = child.chunkSize();
-					if (lineNumber < sz) {
-						chunk = child;
-						break;
-					}
-					lineNumber -= sz;
-				}
-			}
-			return chunk.lines[lineNumber];
-		},
-
-		findStartLine: function (doc, lineNumber, tabSize) {
-			var minindent = null;
-			var minline = undefined;
-			var lim = lineNumber - (doc.mode.innerMode ? 1000 : 100);
-			for (var search = lineNumber; search > lim; --search) {
-				if (search <= doc.first) {
-					return doc.first;
-				}
-				var line = this.getLine(doc, search - 1);
-				if (line.stateAfter) {
-					return search;
-				}
-				var indented = window.CodeMirror.countColumn(line.text, null, tabSize);
-				if (minline == null || (minindent !== null && minindent > indented)) {
-					minline = search - 1;
-					minindent = indented;
-				}
-			}
-			return minline;
-		},
-
-		callBlankLine: function(mode, state) {
-			if (mode.blankLine) {
-				return mode.blankLine(state);
-			}
-			if (!mode.innerMode) {
-				return null;
-			}
-			var inner = CodeMirror.innerMode(mode, state);
-			if (inner.mode.blankLine) {
-				return inner.mode.blankLine(inner.state);
-			}
-			return null;
-		},
-
-		readToken: function(mode, stream, state) {
-			for (var i = 0; i < 10; i++) {
-				var style = mode.token(stream, state);
-				if (stream.pos > stream.start) {
-					return style;
-				}
-			}
-			return null;
-		},
-
-		processLine: function(doc, text, state, startAt, tabSize) {
-			var mode = doc.mode;
-			var stream = new window.CodeMirror.StringStream(text, tabSize);
-			stream.start = stream.pos = startAt || 0;
-			if (text === '') {
-				this.callBlankLine(mode, state);
-			}
-			while (!stream.eol() && stream.pos <= 10000) {
-				this.readToken(mode, stream, state);
-				stream.start = stream.pos;
-			}
-		},
-
-		getStateBefore: function (lines, doc, lineNumber, tabSize) {
-			if (!doc.mode.startState) {
-				return true;
-			}
-			var pos = this.findStartLine(doc, lineNumber, tabSize);
-			var state = pos > doc.first && this.getLine(doc, pos - 1).stateAfter;
-			if (!state) {
-				state = CodeMirror.startState(doc.mode);
-			} else {
-				state = CodeMirror.copyState(doc.mode, state);
-			}
-			var _this = this;
-			doc.iter(pos, lineNumber, function(line) {
-				_this.processLine(doc, line.text, state, tabSize);
-				var save = pos === lineNumber - 1 || pos % 5 === 0 || pos >= 0 && pos < lines.length;
-				line.stateAfter = save ? CodeMirror.copyState(doc.mode, state) : null;
-				++pos;
-			});
-			return state;
-		},
-
-		extractLineClasses: function(type, output) {
-			if (type)
-				for (;;) {
-					var lineClass = type.match(/(?:^|\s+)line-(background-)?(\S+)/);
-					if (!lineClass) {
-						break;
-					}
-					type = type.slice(0, lineClass.index) + type.slice(lineClass.index + lineClass[0].length);
-					var prop = lineClass[1] ? 'bgClass' : 'textClass';
-					if (output[prop] == null) {
-						output[prop] = lineClass[2];
-					} else if (!(new RegExp('(?:^|\s)' + lineClass[2] + '(?:$|\s)')).test(output[prop])) {
-						output[prop] += ' ' + lineClass[2];
-					}
-				}
-			return type;
-		},
-
-		runMode: function (text, mode, state, f, lineClasses, tabSize) {
-			console.log(mode);
-			var flattenSpans = mode.flattenSpans;
-			if (flattenSpans == null) {
-				flattenSpans = true;
-			}
-			var curStart = 0, curStyle = null;
-			var stream = new window.CodeMirror.StringStream(text, tabSize), style;
-			if (text === '') this.extractLineClasses(this.callBlankLine(mode, state), lineClasses);
-			while (!stream.eol()) {
-				if (stream.pos > 10000) {
-					flattenSpans = false;
-					stream.pos = text.length;
-					style = null;
-				} else {
-					style = this.extractLineClasses(this.readToken(mode, stream, state), lineClasses);
-				}
-				// ReSharper disable once CoercedEqualsUsing
-				if (!flattenSpans || curStyle != style) {
-					while (curStart < stream.start) {
-						curStart = Math.min(stream.start, curStart + 50000);
-						f(curStart, curStyle);
-					}
-					curStyle = style;
-				}
-				stream.start = stream.pos;
-			}
-			while (curStart < stream.pos) {
-				// Webkit seems to refuse to render text nodes longer than 57444 characters
-				var pos = Math.min(stream.pos, curStart + 50000);
-				f(pos, curStyle);
-				curStart = pos;
-			}
-	},
-
-		highlightLine: function(cmState, doc, line, state, tabSize) {
-			var st = [cmState.modeGen], lineClasses = {};
-			// Compute the base array of styles
-			console.log(doc, doc.mode);
-			this.runMode(line.text, doc.mode, state, function (end, style) {
-				st.push(end, style);
-			}, lineClasses, tabSize);
-
-			// Run overlays, adjust style array.
-			for (var o = 0; o < cmState.overlays.length; ++o) {
-				var overlay = cmState.overlays[o], i = 1, at = 0;
-				// ReSharper disable ClosureOnModifiedVariable
-				this.runMode(line.text, overlay.mode, true, function (end, style) {
-					var start = i;
-
-					// Ensure there's a token end at the current position, and that i points at it
-					while (at < end) {
-						var iEnd = st[i];
-						if (iEnd > end) st.splice(i, 1, end, st[i + 1], iEnd);
-						i += 2;
-						at = Math.min(end, iEnd);
-					}
-					if (!style) return;
-					if (overlay.opaque) {
-						st.splice(start, i - start, end, 'cm-overlay ' + style);
-						i = start + 2;
-					}
-					else {
-						for (; start < i; start += 2) {
-							var cur = st[start + 1];
-							st[start + 1] = (cur ? cur + ' ' : '') + 'cm-overlay ' + style;
-						}
-					}
-					// ReSharper restore ClosureOnModifiedVariable
-
-				}, lineClasses, tabSize);
-			}
-
-			return { styles: st, classes: lineClasses.bgClass || lineClasses.textClass ? lineClasses : null };
-		},
-
-		Delayed: function() {
-			this.id = null;
-		},
-
-		getLineStyles: function(lines, lineNumber, state, doc, line, tabSize) {
-			if (!line.styles || line.styles[0] !== state.modeGen) {
-				var result = this.highlightLine({
-					modeGen: 1,
-					overlays: []
-				}, doc, line, line.stateAfter = this.getStateBefore(lines, doc, lineNumber, tabSize), tabSize);
-				line.styles = result.styles;
-				if (result.classes) {
-					line.styleClasses = result.classes;
-				} else if (line.styleClasses) {
-					line.styleClasses = null;
-				}
-			}
-		},
-
-		getMode: function(options, spec) {
-			var prop;
-			spec = CodeMirror.resolveMode(spec);
-			var mfactory = modes[spec.name];
-			if (!mfactory) {
-				return this.getMode(options, 'text/plain');
-			}
-			var modeObj = mfactory(options, spec);
-			if (modeExtensions.hasOwnProperty(spec.name)) {
-				var exts = modeExtensions[spec.name];
-				for (prop in exts) {
-					if (!exts.hasOwnProperty(prop)) {
-						continue;
-					}
-					if (modeObj.hasOwnProperty(prop)) {
-						modeObj['_' + prop] = modeObj[prop];
-					}
-					modeObj[prop] = exts[prop];
-				}
-			}
-			modeObj.name = spec.name;
-			if (spec.helperType) {
-				modeObj.helperType = spec.helperType;
-			}
-			if (spec.modeProps) {
-				for (prop in spec.modeProps) {
-					if (spec.modeProps.hasOwnProperty(prop)) {
-						modeObj[prop] = spec.modeProps[prop];
-					}
-				}
-			}
-
-			return modeObj;
-		},
-
-		get: function (script) {
-			var lines = script.split('\n');
-			var doc = new window.CodeMirror.Doc(script, 'javascript');
-			doc.mode = CodeMirror.getMode({
-				indentUnit: '4'
-			}, doc.modeOption);
-			console.log(doc.mode);
-			var tabSize = parseInt(this.parent.settings.tabSize, 10);
-
-			var cmLinesArr = [];
-			for (var i = 0; i < lines.length; i++) {
-				cmLinesArr[i] = {
-					text: lines[i]
-				};
-				var state = this.getStateBefore(lines, doc, i, tabSize);
-				this.getLineStyles(lines, i, state, doc, cmLinesArr[i], tabSize);
-			}
-
-			return cmLinesArr;
-		},
-
-		get parent() { return window.app; }
-	},
-
-	replaceChromeCall: function (ternServer, doc, fakeCm, lines, line, type, index, onError) {
+	replaceChromeCall: function (ternServer, doc, fakeCm, scriptExpressions, lines, line, type, index, onError) {
 		var newLine;
 		switch (type) {
 			case 'string':
@@ -1466,7 +1197,7 @@ Polymer({
 				break;
 		}
 
-		newLine += '.crmAPI.chrome(\'';
+		newLine += '.crmAPI.chrome';
 		var lineChromeSection = line.text.slice(index);
 
 		var firstParenthesis = lineChromeSection.indexOf('(');
@@ -1476,52 +1207,12 @@ Polymer({
 			functionName = '.' + functionName.replace(/['|"]\]/g, '');
 		}
 
-		newLine += '(\'' + functionName.slice(1) + '\')';
+		var args = lineChromeSection.slice(firstParenthesis);
+		
+		newLine += '(\'' + functionName.slice(1) + '\').args(';
 
-		//Get the end of the first parenthesis, aka the end of the function call
-		var parentheses = 1;
-		var charIndex = firstParenthesis;
-		var lineIndex = 0;
-		while (parentheses > 0) {
-			if (lineIndex > lines.length) {
-				onError();
-				return;
-			}
-			if (charIndex > lines[lineIndex].text.length) {
-				charIndex = 0;
-				lineIndex++;
-			}
+		//Find the end 
 
-			var i;
-			if (char === '(') {
-				//Check if it's an actual parenthesis
-				lines[lineIndex].styles[0] = 0;
-				for (i = 1; i < lines[i].styles.length; i += 2) {
-					if (lines[i].styles[i] <= charIndex && lines[i].styles[i + 2] >= charIndex) {
-						break;
-					}
-				}
-
-				if (lines[i].styles[i + 1] === undefined) {
-					parentheses++;
-				}
-			}
-			else if (char === ')') {
-				//Check if it's an actual parenthesis
-				lines[lineIndex].styles[0] = 0;
-				for (i = 1; i < lines[i].styles.length; i += 2) {
-					if (lines[i].styles[i] <= charIndex && lines[i].styles[i + 2] >= charIndex) {
-						break;
-					}
-				}
-
-				if (lines[i].styles[i + 1] === undefined) {
-					parentheses--;
-				}
-			}
-
-			charIndex++;
-		}
 
 		//If the user catches a return value, use the return function
 		var match = line.text.split('').reverse().join('').match(/(\s*)= ([a-z|A-Z|0-9]+)/);
@@ -1532,11 +1223,11 @@ Polymer({
 
 		} else {
 			//Uses callback function
-
+			
 		}
 	},
 
-	findChromeCall: function (lines, chromeLine, onError) {
+	findChromeCall: function (lines, chromeLine, scriptExpressions, onError) {
 		var line = chromeLine.line;
 		var index = chromeLine.index;
 
@@ -1566,20 +1257,21 @@ Polymer({
 
 		var string = line.text.slice(line.styles[i], line.styles[i + 1]);
 		var role = line.styles[i + 1];
-		if (role === 'string' || role === 'property') {
-			if (role === 'property' || (string.indexOf('chrome') === 1 && string.length === 8)) {
+		var isProp = role === 'property';
+		if (role === 'string' || isProp) {
+			if (isProp || (string.indexOf('chrome') === 1 && string.length === 8)) {
 				//Check if the word 2 indexes ago is "window"
 				if (i > 1 && line.styles[i - 1] === 'variable') {
 					var startIndex = line.styles[i - 4] || 0;
 					if (line.text.slice(startIndex, line.styles[i - 2]) === 'window') {
 						//Call to window['chrome'] or window.chrome, replace
-						this.replaceChromeCall(ternServer, doc, fakeCm, lines, line, role, line.styles[i], onError);
+						this.replaceChromeCall(ternServer, doc, fakeCm, scriptExpressions, lines, line, role, line.styles[i], onError);
 					}
 				}
 			}
 		}
 		else if (role === 'variable') {
-			this.replaceChromeCall(ternServer, doc, fakeCm, line, role, line.styles[i], onError);
+			this.replaceChromeCall(ternServer, doc, fakeCm, scriptExpressions, lines, line, role, line.styles[i], onError);
 		} else {
 			return line;
 		}
@@ -1595,22 +1287,117 @@ Polymer({
 		return line;
 	},
 
-	replaceChromeCalls: function (jsParsed, onError) {
-		var i;
-		var chromeLines = [];
-		for (i = 0; i < jsParsed.length; i++) {
-			var index = jsParsed[i].text.indexOf('chrome');
-			if (index > -1) {
-				chromeLines.push({
-					index: index,
-					line: jsParsed[i]
-				});
+	isProperty: function(toCheck, prop) {
+		if (toCheck === prop) {
+			return true;
+		}
+		var seperators = ['\'', '"', '`'];
+		for (var i = 0; i < seperators.length; i++) {
+			var sep = seperators[i];
+			if (sep + toCheck + sep === prop) {
+				return true;
 			}
 		}
+		return false;
+	},
 
-		for (i = 0; i < chromeLines.length; i++) {
-			//Make sure it's an actual chrome call
-			this.findChromeCall(chromeLines, chromeLines[i], onError);
+	checkFunctionCall: function (callee, callChain) {
+		callChain = callChain || '';
+		if (callee.object.name) {
+			//First object
+			if (this.isProperty(callee.object.name, 'chrome')) {
+
+			} else if (this.isProperty(callee.object.name, 'window') && this.isProperty(callee.property.name, 'chrome')) {
+
+			}
+		} else {
+			this.checkFunctionCall(callee.object, callChain + callee.property.name);
+		}
+	},
+
+	removeObjLink: function(data) {
+		return JSON.parse(JSON.stringify(data));
+	},
+
+	findChromeExpression: function (expression, data) {
+		var i;
+		data = data || {};
+		data.parentExpressions = data.parentExpressions || [];
+		data.parentExpressions.push(expression);
+
+		switch (expression.type) {
+			case 'VariableDeclaration':
+				for (i = 0; i < expression.declarations.length; i++) {
+					var decData = this.removeObjLink(data);
+
+					var declaration = expression.declarations[i];
+					var returnName = declaration.id.name;
+					decData.isReturn = true;
+					decData.returnName = returnName;
+
+					//Check if it's an actual chrome assignment
+					if (declaration.init) {
+						this.findChromeExpression(declaration.init, decData);
+					}
+				}
+				break;
+			case 'CallExpression':
+			case 'MemberExpression':
+				this.callsChromeFunction(expression.callee, this.removeObjLink(data));
+				break;
+			case 'AssignmentExpression':
+				data.isReturn = true;
+				data.returnName = expression.left.name;
+
+				this.findChromeExpression(expression.right, this.removeObjLink(data));
+				break;
+			case 'FunctionExpression':
+				data.isReturn = false;
+				for (i = 0; i < expression.body.body.length; i++) {
+					this.findChromeExpression(expression.body[i], this.removeObjLink(data));
+				}
+				break;
+			case 'ExpressionStatement':
+				this.findChromeExpression(expression.expression, this.removeObjLink(data));
+				break;
+			case 'SequenceExpression':
+				for (i = 0; i < expression.expressions.length; i++) {
+					this.findChromeExpression(expression.expressions[i], this.removeObjLink(data));
+				}
+				break;
+			case 'UnaryExpression':
+				this.findChromeExpression(expression.consequent, this.removeObjLink(data));
+				this.findChromeExpression(expression.alternate, this.removeObjLink(data));
+				break;
+			case 'LogicalExpression':
+				this.findChromeExpression(expression.left, this.removeObjLink(data));
+				this.findChromeExpression(expression.right, this.removeObjLink(data));
+				break;
+		}
+	},
+
+	replaceChromeCalls: function (jsParsed, onError) {
+		var i;
+
+		//Analyze the file
+		var file = new window.TernFile('[doc]');
+		file.text = lines.join('\n');
+		var srv = window.app.ternTypeServer;
+		window.tern.withContext(srv.cx, function () {
+			file.ast = window.tern.parse(file.text, srv.passes, {
+				directSourceFile: file,
+				allowReturnOutsideFunction: true,
+				allowImportExportEverywhere: true,
+				ecmaVersion: srv.ecmaVersion
+			});
+		});
+
+		var scriptExpressions = file.ast;
+
+		//Check all expressions for chrome calls
+		for (i = 0; i < scriptExpressions.length; i++) {
+			var expression = scriptExpressions[i];
+			this.findChromeExpression(expression);
 		}
 
 		var script = [];
@@ -1633,7 +1420,6 @@ Polymer({
 			}
 		}
 
-		//Parse script
 		var jsParsed = this.jsParser.get(script);
 		script = this.replaceChromeCalls(jsParsed, onError);
 
@@ -1893,6 +1679,7 @@ Polymer({
 	//#endregion
 
 	ready: function () {
+		//TODO find dialog doesn't seem to work anymore, create a dialog for rename
 		//TODO local saving doesn't seem to work, in particular changing editor font size
 		var _this = this;
 		this.crm.parent = this;
@@ -2033,13 +1820,64 @@ Polymer({
 			});
 			//Test stuff
 
-			var file = new window.File('[doc]');
-			file.text = 'console.log("hey");\n' +
+			var query = {
+				file: '[doc]',
+				lineCharPositions: true,
+				newName: 'y',
+				type: 'rename'
+			}
+
+			var file = new window.TernFile('[doc]');
+			file.text = 'var chrome = {};\n' +
+				'console.log("hey");\n' +
 				'var fn = function(e) {\n' +
 				'	console.log(e);\n' +
 				'}\n' +
-				'chrome.runtime.getUrl(fn);\n' +
-				'chrome.runtime.getUrl(function(e){console.log(e);});';
+				'var y;\n' +
+				'var x;\n' +
+				'x = 3;\ny=4;\n' +
+				'fn(), fn(), fn();\n' +
+				'var z = chrome.runtime.getUrl(fn);\n' +
+				'chrome.runtime.getUrl(function(e){\n' +
+				'	console.log(e + "hoi");\n' +
+				'\n' +
+				'\n' +
+				'\n' +
+				'}, function() {\n' +
+				'\n' +
+				'});\n' +
+				'chrome[\'runtime\'].sendMessage();if (chrome.runtime.getUrl()) {}\n' +
+				'true ? fn() : fn();\n' +
+				'fn() || fn();\n' +
+				'fn() && fn()\n' +
+				'';
+
+			var expr = {
+				node: {
+					name: 'chrome',
+					sourceFile: file,
+					type: 'identifier',
+					end: 0
+				}
+			}
+
+			var data = {
+				node: {
+					end: 110,
+					name: 'x',
+					sourceFile: file,
+					start: 109,
+					type: 'Identifier'
+				},
+				state: {
+					maybeProps: null,
+					name: '<top>',
+					origin: 'ecma5',
+					prev: undefined,
+					props: window
+				}
+			};
+
 			var srv = window.app.ternTypeServer;
 			window.tern.withContext(srv.cx, function() {
 				file.ast = window.tern.parse(file.text, srv.passes, {
@@ -2049,24 +1887,21 @@ Polymer({
 					ecmaVersion: srv.ecmaVersion
 				});
 
-				file.scope = srv.cx.topScope;
-				window.tern.analyze(file.ast, file.name, file.scope, srv.passes);
+				//file.scope = srv.cx.topScope;
+				//window.tern.analyze(file.ast, file.name, file.scope, srv.passes);
 
 				window.file = file;
 
-				var pos = {
-					line: 5,
-					ch: 22
+				var refs = [];
+				function storeRef(node, selection) {
+					refs.push({
+						node,
+						selection
+					});
 				}
 
-				var query = {
-					pos: pos,
-					file: '[doc]',
-					lineCharPositions: true,
-					preferFunction: true,
-					type: 'type'
-				};
-				console.log(window.ternFindTypeAt(srv, query, file));
+				console.log(window.tern.findRefs(file.ast, file.scope, 'chrome', file.scope, storeRef));
+				console.log(refs);
 			});
 		}, 4000);
 	},
