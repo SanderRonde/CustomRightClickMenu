@@ -1294,49 +1294,109 @@ Polymer({
 		var seperators = ['\'', '"', '`'];
 		for (var i = 0; i < seperators.length; i++) {
 			var sep = seperators[i];
-			if (sep + toCheck + sep === prop) {
+			if (sep + prop + sep === toCheck) {
 				return true;
 			}
 		}
 		return false;
 	},
 
-	checkFunctionCall: function (callee, callChain) {
-		callChain = callChain || '';
-		if (callee.object.name) {
-			//First object
-			if (this.isProperty(callee.object.name, 'chrome')) {
-
-			} else if (this.isProperty(callee.object.name, 'window') && this.isProperty(callee.property.name, 'chrome')) {
-
-			}
-		} else {
-			this.checkFunctionCall(callee.object, callChain + callee.property.name);
+	getCallLine: function (lines, lineSeperators, start, end) {
+		var sep;
+		for (var i = 0; i < lineSeperators.length; i++) {
+			sep = lineSeperators[i];
+			//TODO
+			//if (start >= sep.start
 		}
 	},
 
-	removeObjLink: function(data) {
-		return JSON.parse(JSON.stringify(data));
+	replaceChromeFunction: function (data) {
+		//#region Logging
+		console.log('');
+		var temp = 0;
+		var lineIndexes = [];
+		var split = window.lines.split('\n');
+		for (var i = 0; i < split.length; i++) {
+			lineIndexes[i] = {
+				start: temp,
+				end: temp + split[i].length
+			};
+			temp += split[i].length;
+		}
+		console.log('start: ' + data.expression.start);
+		console.log('end: ' + data.expression.end);
+		var line;
+		console.log(lineIndexes);
+		for (line = 0; line < lineIndexes.length; line++) {
+			if (data.expression.start >= lineIndexes[line].start && data.expression.end <= lineIndexes[line].end) {
+				break;
+			}
+		}
+		console.log('line: ' + line);
+		console.log(window.lines.split('\n').join('').slice((data.expression.start - 1) || 0, data.expression.end));
+		console.log(data);
+		//#endregion
+
+		var lines = data.lines;
+		console.log(lines);
+		if (data.isReturn) {
+
+		} else {
+
+		}
+	},
+
+	callsChromeFunction: function (callee, data) {
+		data = data || {};
+		data.parentExpressions = data.parentExpressions || [];
+		data.parentExpressions.push(callee);
+		if (callee.object && callee.object.name) {
+			//First object
+			var isWindowCall = (this.isProperty(callee.object.name, 'window') && this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
+			if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
+				data.hasWindow = isWindowCall;
+				data.expression = callee;
+				this.replaceChromeFunction(data);
+			}
+		} else if (callee.object) {
+			this.callsChromeFunction(callee.object, data);
+		}
+	},
+
+	removeObjLink: function (data) {
+		var parentExpressions = data.parentExpressions || [];
+		var newObj = {};
+		for (var key in data) {
+			if (data.hasOwnProperty(key) && key !== 'parentExpressions' && key !== 'persistent') {
+				newObj[key] = data[key];
+			}
+		}
+
+		var newParentExpressions = [];
+		for (var i = 0; i < parentExpressions; i++) {
+			newParentExpressions.push(parentExpressions[i]);
+		}
+		newObj.persistent = data.persistent;
+		return newObj;
 	},
 
 	findChromeExpression: function (expression, data) {
-		var i;
-		data = data || {};
 		data.parentExpressions = data.parentExpressions || [];
 		data.parentExpressions.push(expression);
 
+		var i;
 		switch (expression.type) {
 			case 'VariableDeclaration':
 				for (i = 0; i < expression.declarations.length; i++) {
-					var decData = this.removeObjLink(data);
-
-					var declaration = expression.declarations[i];
-					var returnName = declaration.id.name;
-					decData.isReturn = true;
-					decData.returnName = returnName;
-
 					//Check if it's an actual chrome assignment
+					var declaration = expression.declarations[i];
 					if (declaration.init) {
+						var decData = this.removeObjLink(data);
+
+						var returnName = declaration.id.name;
+						decData.isReturn = true;
+						decData.returnName = returnName;
+
 						this.findChromeExpression(declaration.init, decData);
 					}
 				}
@@ -1352,37 +1412,53 @@ Polymer({
 				this.findChromeExpression(expression.right, this.removeObjLink(data));
 				break;
 			case 'FunctionExpression':
+			case 'FunctionDeclaration':
 				data.isReturn = false;
 				for (i = 0; i < expression.body.body.length; i++) {
-					this.findChromeExpression(expression.body[i], this.removeObjLink(data));
+					this.findChromeExpression(expression.body.body[i], this.removeObjLink(data));
 				}
 				break;
 			case 'ExpressionStatement':
 				this.findChromeExpression(expression.expression, this.removeObjLink(data));
 				break;
 			case 'SequenceExpression':
+				data.isReturn = false;
+				var lastExpression = expression.expressions.length - 1;
 				for (i = 0; i < expression.expressions.length; i++) {
+					if (i === lastExpression) {
+						data.isReturn = true;
+					}
 					this.findChromeExpression(expression.expressions[i], this.removeObjLink(data));
 				}
 				break;
 			case 'UnaryExpression':
+			case 'ConditionalExpression':
+				data.returnName = { type: 'unary' };
 				this.findChromeExpression(expression.consequent, this.removeObjLink(data));
 				this.findChromeExpression(expression.alternate, this.removeObjLink(data));
 				break;
 			case 'LogicalExpression':
+				data.returnName = { type: 'logical' };
 				this.findChromeExpression(expression.left, this.removeObjLink(data));
 				this.findChromeExpression(expression.right, this.removeObjLink(data));
+				break;
+			case 'ReturnStatement':
+				data.isReturn = true;
+				data.returnName = { type: 'return' };
+				this.findChromeExpression(expression.argument, this.removeObjLink(data));
 				break;
 		}
 	},
 
-	replaceChromeCalls: function (jsParsed, onError) {
-		var i;
+	replaceChromeCalls: function (lines) {
+		//TODO wait until TernFile is loaded
 
 		//Analyze the file
 		var file = new window.TernFile('[doc]');
 		file.text = lines.join('\n');
-		var srv = window.app.ternTypeServer;
+		var srv = new window.CodeMirror.TernServer({
+			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+		});
 		window.tern.withContext(srv.cx, function () {
 			file.ast = window.tern.parse(file.text, srv.passes, {
 				directSourceFile: file,
@@ -1392,36 +1468,49 @@ Polymer({
 			});
 		});
 
-		var scriptExpressions = file.ast;
+		var scriptExpressions = file.ast.body;
+
+		var i;
+		var index = 0;
+		var lineSeperators = [];
+		for (i = 0; i < lines.length; i++) {
+			lineSeperators.push({
+				start: index,
+				end: index += lines[i].length
+			});
+		}
 
 		//Check all expressions for chrome calls
 		for (i = 0; i < scriptExpressions.length; i++) {
 			var expression = scriptExpressions[i];
-			this.findChromeExpression(expression);
+			this.findChromeExpression(expression, {
+				persistent: {
+					lines: lines,
+					lineSeperators: lineSeperators
+				}
+			});
 		}
 
-		var script = [];
-		for (i = 0; i < jsParsed.length; i++) {
-			script.push(jsParsed[i].text);
-		}
-		return script.join('\n');
+		delete file;
+		delete srv;
+
+		return lines.join('\n');
 	},
 
-	convertScriptFromLegacy: function (script, onError) {
+	// "window['chrome'].runtime.getURL();\nvar x = chrome.runtime.getURL();\nfunction x() {\nreturn chrome.runtime.getURL();}\nx();\nif (true) {\nwindow.chrome.getURL();}else{\nwindow.chrome.getURL();}\n(true ? chrome.runtime.sendMessage() : chrome.runtime.getURL());chrome.runtime.getURL() || chrome.runtime.sendMessage();"
+
+	convertScriptFromLegacy: function (script) {
 		//Remove execute locally
 		var lineIndex = script.indexOf('/*execute locally*/');
 		if (lineIndex !== -1) {
-			script.replace('/*execute locally*/\n', '');
+			script = script.replace('/*execute locally*/\n', '');
 			if (lineIndex === script.indexOf('/*execute locally*/')) {
-				script.replace('/*execute locally*/', '');
-				return script;
-			} else {
-				return script;
+				script = script.replace('/*execute locally*/', '');
 			}
 		}
 
-		var jsParsed = this.jsParser.get(script);
-		script = this.replaceChromeCalls(jsParsed, onError);
+		//var jsParsed = this.jsParser.get(script);
+		script = this.replaceChromeCalls(script.split('\n'));
 
 		return script;
 	},
@@ -1832,6 +1921,8 @@ Polymer({
 				'console.log("hey");\n' +
 				'var fn = function(e) {\n' +
 				'	console.log(e);\n' +
+				'	var g = 3;' +
+				'	return g;\n' +
 				'}\n' +
 				'var y;\n' +
 				'var x;\n' +
@@ -1903,7 +1994,7 @@ Polymer({
 				console.log(window.tern.findRefs(file.ast, file.scope, 'chrome', file.scope, storeRef));
 				console.log(refs);
 			});
-		}, 4000);
+		}, 6000);
 	},
 
 	/**
