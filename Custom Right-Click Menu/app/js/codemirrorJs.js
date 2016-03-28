@@ -25,7 +25,6 @@
 	"use strict";
 
 	window.CodeMirrorJSParser = function (config, parserConfig) {
-		console.log(config, parserConfig);
 		var indentUnit = config.indentUnit;
 		var statementIndent = parserConfig.statementIndent;
 		var jsonldMode = parserConfig.jsonld;
