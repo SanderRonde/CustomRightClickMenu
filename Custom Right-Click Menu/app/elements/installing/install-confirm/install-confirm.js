@@ -663,7 +663,7 @@
 			this.editorWidth = placeHolder.width();
 			!this.settings.editor && (_this.settings.editor = {});
 			this.editor = new window.CodeMirror(_this.$.editorCont, {
-				lineNumbers: _this.settings.editor.lineNumbers,
+				lineNumbers: true,
 				value: this.script,
 				lineWrapping: true,
 				onLoad: this.cmLoaded,
