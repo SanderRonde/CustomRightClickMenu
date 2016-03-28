@@ -4221,7 +4221,6 @@
 					value: {
 						launchMode: parseInt(scriptLaunchMode, 10),
 						triggers: triggers,
-						//TODO update notice
 						updateNotice: true,
 						oldScript: scriptData,
 						script: legacyScriptReplace.convertScriptFromLegacy(scriptData, function (oldScriptErrors, newScriptErrors, parseError) {
