@@ -3637,6 +3637,14 @@
 					{ "location": 'YUI.js', "name": 'YUI' },
 					{ "location": 'Angular.js', "name": 'Angular' }
 				],
+				keyBindings: {
+					autocomplete: 'Ctrl-Space',
+					showType: 'Ctrl-I',
+					showDocs: 'Ctrl-O',
+					goToDef: 'Alt-.',
+					rename: 'Ctrl-Q',
+					selectName: 'Ctrl-.'
+				},
 				showToolsRibbon: true,
 				tabSize: '4',
 				theme: 'dark',

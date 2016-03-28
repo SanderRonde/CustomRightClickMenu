@@ -1184,7 +1184,7 @@
 				}, {
 					duration: 500,
 					easing: 'easeOutCubic',
-					complete: function() {
+					complete: function () {
 						editorCont.style.marginLeft = 0;
 						editorCont.style.marginTop = 0;
 						editorCont.style.width = 0;
@@ -1214,9 +1214,9 @@
 		 */
 		showOptions: function() {
 			var _this = this;
-			this.unchangedEditorSettings = jQuery.extend(true, {}, window.app.settings.editor);
-			var editorWidth = $('.CodeMirror').width();
-			var editorHeight = $('.CodeMirror').height();
+			this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
+			var editorWidth = $($('.CodeMirror')[0]).width();
+			var editorHeight = $($('.CodeMirror')[0]).height();
 			var circleRadius;
 
 			//Add a bit just in case
@@ -1249,6 +1249,17 @@
 				progress: function(animation) {
 					_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
 					_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
+				},
+				complete: function () {
+					if (_this.fullscreen) {
+						var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+						settingsCont.style.overflow = 'scroll';
+						settingsCont.style.overflowX = 'hidden';
+						settingsCont.style.height = 'calc(100vh - 66px)';
+						var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+						bubbleCont.style.position = 'fixed';
+						bubbleCont.style.zIndex = 50;
+					}
 				}
 			});
 		},
@@ -1281,6 +1292,15 @@
 					}
 					if (zoom !== prevZoom) {
 						window.app.updateEditorZoom();
+					}
+
+					if (_this.fullscreen) {
+						var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+						settingsCont.style.height = '376px';
+						settingsCont.style.overflowX = 'hidden';
+						var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+						bubbleCont.style.position = 'absolute';
+						bubbleCont.style.zIndex = 'auto';
 					}
 				}
 			});
@@ -1333,7 +1353,8 @@
 		},
 
 		createKeyBindingListener: function(element, binding) {
-			return function(event) {
+			return function (event) {
+				event.preventDefault();
 				//Make sure it's not just one modifier key being pressed and nothing else
 				if (event.keyCode < 16 && event.keyCode > 18) {
 					//Make sure at least one modifier is being pressed
@@ -1351,12 +1372,13 @@
 						values.push(String.fromCharCode(event.charCode));
 						var value = element.value = values.join('-');
 						element.lastValue = value;
+						window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {};
 						window.app.settings.editor.keyBindings[binding.storageKey] = value;
 						window.app.upload();
 					}
 				}
 
-				element.value = element.lastValue;
+				element.value = element.lastValue || '';
 				return;
 			};
 		},
@@ -1493,16 +1515,16 @@
 				}
 			];
 
-			//TODO test this
 			var $cont, $input, $keyInput, keyInput, value;
+			window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {};
 			for (var i = 0; i < keyBindings.length; i++) {
 				value = window.app.settings.editor.keyBindings[keyBindings[i].storageKey] || keyBindings[i].defaultKey;
 				$cont = $('<div class="keyBindingSetting"></div>');
 				$('<div class="keyBindingSettingName">' + keyBindings[i].name + '</div>').appendTo($cont);
 				$input = $('<div class="keyBindingSettingInput"></div>');
 				$keyInput = $('<paper-input label="Press some keys" class="keyBindingSettingKeyInput" value="' + value + '"></paper-input>');
-				$keyInput.lastValue = value;
 				keyInput = $keyInput[0];
+				keyInput.lastValue = value;
 				keyInput.addEventListener('keydown', this.createKeyBindingListener(keyInput, keyBindings[i]));
 				$keyInput.appendTo($input);
 				$input.appendTo($cont);

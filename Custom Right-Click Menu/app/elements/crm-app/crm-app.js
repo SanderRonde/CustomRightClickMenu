@@ -508,7 +508,9 @@
 			});
 		},
 
-		toggleShrinkTitleRibbon: function() {
+		toggleShrinkTitleRibbon: function () {
+			var viewportHeight = window.innerHeight;
+			var $settingsCont = $('#settingsContainer');
 			if (window.app.settings.shrinkTitleRibbon) {
 				$(window.doc.editorTitleRibbon).animate({
 					fontSize: '100%'
@@ -517,6 +519,11 @@
 					paddingTop: '4px',
 					paddingBottom: '4px'
 				}, 250);
+				$settingsCont.animate({
+					height: viewportHeight - 50
+				}, 250, function() {
+					$settingsCont[0].style.height = 'calc(100vh - 66px)';
+				});
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 			} else {
 				$(window.doc.editorTitleRibbon).animate({
@@ -526,6 +533,11 @@
 					paddingTop: 0,
 					paddingBottom: 0
 				}, 250);
+				$settingsCont.animate({
+					height: viewportHeight - 18
+				}, 250, function() {
+					$settingsCont[0].style.height = 'calc(100vh - 29px)';
+				});
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 			}
 			window.app.settings.shrinkTitleRibbon = !window.app.settings.shrinkTitleRibbon;
@@ -649,6 +661,10 @@
 		upload: function() {
 			//Send changes to background-page, background-page uploads everything
 			//Compare storageLocal objects
+
+			//TODO stop cancel
+			return; 
+
 			var localChanges = [];
 			var storageLocal = this.storageLocal;
 			var storageLocalCopy = this.storageLocalCopy;
@@ -1797,6 +1813,14 @@
 						{ "location": 'YUI.js', "name": 'YUI' },
 						{ "location": 'Angular.js', "name": 'Angular' }
 					],
+					keyBindings: {
+						autocomplete: 'Ctrl-Space',
+						showType: 'Ctrl-I',
+						showDocs: 'Ctrl-O',
+						goToDef: 'Alt-.',
+						rename: 'Ctrl-Q',
+						selectName: 'Ctrl-.'
+					},
 					showToolsRibbon: true,
 					tabSize: '4',
 					theme: 'dark',
@@ -1859,6 +1883,14 @@
 						{ "location": 'YUI.js', "name": 'YUI' },
 						{ "location": 'Angular.js', "name": 'Angular' }
 					],
+					keyBindings: {
+						autocomplete: 'Ctrl-Space',
+						showType: 'Ctrl-I',
+						showDocs: 'Ctrl-O',
+						goToDef: 'Alt-.',
+						rename: 'Ctrl-Q',
+						selectName: 'Ctrl-.'
+					},
 					showToolsRibbon: true,
 					tabSize: '4',
 					theme: 'dark',

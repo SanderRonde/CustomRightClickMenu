@@ -271,9 +271,10 @@ input {
 	width: 250px;
 }
 
-#settingsContainer {
+script-edit #settingsContainer {
 	width: 477px;
-	height: calc(100% - 136px);
+	height: 376px;
+	overflow-y:scroll;
 }
 
 .CodeMirror-gutters {
@@ -286,6 +287,7 @@ input {
 	position: absolute;
 	overflow: hidden;
 	right: 0;
+	z-index:50;
 }
 
 .CodeMirror.fullscreen #settingsContainer {
