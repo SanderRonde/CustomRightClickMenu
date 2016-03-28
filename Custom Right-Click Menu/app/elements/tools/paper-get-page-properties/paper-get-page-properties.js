@@ -11,48 +11,54 @@
 	options: [],
 
 	/**
+	 * The event listener to send all onclick data to
+	 * 
+	 * @attribute listener
+	 * @type Function
+	 * @default function() {}
+	 */
+	listener: function() {},
+
+	/**
 	 * Triggers an 'addsnippet' event and sends the snippet with it
 	 * @param {String} data - The code to be sent in the snippet
 	 */
-	triggerEvent: function(data) {
-		var event = new Event('addsnippet');
-		event.snippet = data;
-		this.dispatchEvent(event);
+	sendData: function(data) {
+		this.listener(data);
 	},
 
 	click: function(e) {
 		var option = e.target.getAttribute('id').split('paperGetProperty')[1];
-		console.log(option);
 		switch (option) {
 		case 'Url':
-			this.triggerEvent('window.location.href;');
+			this.sendData('window.location.href;');
 			break;
 		case 'Host':
-			this.triggerEvent('window.location.host;');
+			this.sendData('window.location.host;');
 			break;
 		case 'Path':
-			this.triggerEvent('window.location.path;');
+			this.sendData('window.location.path;');
 			break;
 		case 'Protocol':
-			this.triggerEvent('window.location.protocol;');
+			this.sendData('window.location.protocol;');
 			break;
 		case 'Width':
-			this.triggerEvent('window.innerWidth;');
+			this.sendData('window.innerWidth;');
 			break;
 		case 'Height':
-			this.triggerEvent('window.innerHeight;');
+			this.sendData('window.innerHeight;');
 			break;
 		case 'Pixels':
-			this.triggerEvent('window.scrollY;');
+			this.sendData('window.scrollY;');
 			break;
 		case 'Title':
-			this.triggerEvent('document.title;');
+			this.sendData('document.title;');
 			break;
 		}
 	},
 	
-	init: function () {
-		this.removeEventListener('addsnippet');
+	init: function (listener) {
+		this.listener = listener;
 		this.close();
 	},
 

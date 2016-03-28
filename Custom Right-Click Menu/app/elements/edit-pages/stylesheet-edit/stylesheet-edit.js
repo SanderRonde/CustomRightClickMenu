@@ -1041,7 +1041,7 @@
 		this.settingsShadow[0].parentNode.style.width = editorWidth;
 		this.settingsShadow[0].parentNode.style.height = editorHeight;
 		this.fullscreenEl.style.display = 'none';
-		var settingsInitialMarginLeft = (window.app.settings.editor.lineNumbers ? -500 : -470);
+		var settingsInitialMarginLeft = -500;
 		$('#editorThemeFontSizeInput')[0].value = window.app.settings.editor.zoom;
 		this.settingsShadow.css({
 			width: '50px',
@@ -1069,7 +1069,7 @@
 	 */
 	hideOptions: function () {
 		var _this = this;
-		var settingsInitialMarginLeft = (window.app.settings.editor.lineNumbers ? -500 : -470);
+		var settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
 		this.settingsShadow.animate({
 			width: 0,
@@ -1231,21 +1231,6 @@
 				window.app.upload();
 			}, 0);
 		});
-
-		//The option to do or do not use line numbers
-		var lineNumbers = $('<div id="editorUseLineNumbersSettingCont">' +
-			'<div id="editorUseLineNumbersCheckbox">' +
-			'</div>' +
-			'<div id="editorUseLineNumbersTxt">' +
-			'Use line numbers' +
-			'</div>' +
-			'</div><br>').appendTo(settingsContainer);
-
-		//The main checkbox for the line numbers option
-		$('<paper-checkbox ' + (window.app.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function () {
-			window.app.settings.editor.lineNumbers = !window.app.settings.editor.lineNumbers;
-			window.app.upload();
-		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
 	},
 
 	/*
@@ -1323,7 +1308,7 @@
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {});
 		this.editor = new window.CodeMirror(container, {
-			lineNumbers: window.app.settings.editor.lineNumbers,
+			lineNumbers: true,
 			mode: 'css',
 			value: content || this.item.value.stylesheet,
 			scrollbarStyle: 'simple',

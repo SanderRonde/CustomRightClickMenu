@@ -497,7 +497,6 @@ span.CodeMirror-selectedtext { background: none; }
 	padding-bottom:5px;
 }
 
-
 .CodeMirror-hints {
 	position: absolute;
 	z-index: 10;
@@ -886,4 +885,12 @@ li.CodeMirror-hint-active {
 	padding-left: 2px;
 	margin-right:5px;
 	cursor: pointer;
+}
+
+.codeMirrorSearchDialog paper-input input {
+	color: white !important;
+}
+
+.CodeMirror.small .codeMirrorSearchDialog paper-input {
+	width:245px;
 }

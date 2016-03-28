@@ -3,6 +3,7 @@
 /// <reference path="e.js"/>
 /// <reference path="jquery-2.0.3.min.js"/>
 /// <reference path="~/app/js/md5.js" />
+/// <reference path="~/app/js/codeMirrorAddons.js" />
 'use strict';
 
 //#region Sandbox
@@ -146,7 +147,161 @@
 			//The url to the install page
 			installUrl: chrome.runtime.getURL('install.html'),
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
-			validSchemes: ['http', 'https', 'file', 'ftp', '*']
+			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
+			//#region Templates
+			templates: {
+				/**
+				 * Merges two objects
+				 * 
+				 * @param {Object} mainObject - The main object
+				 * @param {Object} additions - The additions to the main object, these overwrite the 
+				 *		main object's properties
+				 * @returns {Object} The merged objects
+				 */
+				mergeObjects: function(mainObject, additions) {
+					for (var key in additions) {
+						if (additions.hasOwnProperty(key)) {
+							if (typeof additions[key] === 'object') {
+								this.mergeObjects(mainObject[key], additions[key]);
+							} else {
+								mainObject[key] = additions[key];
+							}
+						}
+					}
+					return mainObject;
+				},
+
+				/**
+				 * Gets the default link node object with given options applied
+				 * 
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A link node with specified properties set
+				 */
+				getDefaultLinkNode: function(options) {
+					var defaultNode = {
+						name: 'name',
+						onContentTypes: [true, false, false, false, false, false],
+						type: 'link',
+						showOnSpecified: false,
+						triggers: ['*://*.example.com/*'],
+						isLocal: true,
+						value: [
+							{
+								newTab: true,
+								url: 'https://www.example.com'
+							}
+						]
+					};
+
+					return this.mergeObjects(defaultNode, options);
+				},
+
+				/**
+				 * Gets the default stylesheet value object with given options applied
+				 * 
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A stylesheet node value with specified properties set
+				 */
+				getDefaultStylesheetValue: function(options) {
+					var value = {
+						stylesheet: '' +
+							'// ==UserScript==' +
+							'// @name	name' +
+							'// @CRM_contentTypes	[true, true, true, true, true, true]' +
+							'// @CRM_launchMode	0' +
+							'// @CRM_stylesheet	true' +
+							'// @grant	none' +
+							'// @match	*://*.example.com/*' +
+							'// ==/UserScript==',
+						launchMode: 0,
+						triggers: ['*://*.example.com/*']
+					};
+
+					return this.mergeObjects(value, options);
+				},
+
+				/**
+				 * Gets the default script value object with given options applied
+				 * 
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A script node value with specified properties set
+				 */
+				getDefaultScriptValue: function(options) {
+					var value = {
+						launchMode: 0,
+						libraries: [],
+						script: '' +
+							'// ==UserScript==' +
+							'// @name	name' +
+							'// @CRM_contentTypes	[true, true, true, true, true, true]' +
+							'// @CRM_launchMode	0' +
+							'// @grant	none' +
+							'// @match	*://*.example.com/*' +
+							'// ==/UserScript==',
+						triggers: ['*://*.example.com/*']
+					}
+
+					return this.mergeObjects(value, options);
+				},
+
+				/**
+				 * Gets the default script node object with given options applied
+				 * 
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A script node with specified properties set
+				 */
+				getDefaultScriptNode: function(options) {
+					var defaultNode = {
+						name: 'name',
+						onContentTypes: [true, false, false, false, false, false],
+						type: 'script',
+						isLocal: true,
+						value: this.getDefaultScriptValue(options.value)
+					}
+
+					return this.mergeObjects(defaultNode, options);
+				},
+
+				/**
+				 * Gets the default divider or menu node object with given options applied
+				 * 
+				 * @param {String} type - The type of node
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A divider or menu node with specified properties set
+				 */
+				getDefaultDividerOrMenuNode: function(options, type) {
+					var defaultNode = {
+						name: 'name',
+						type: type,
+						onContentTypes: [true, false, false, false, false, false],
+						isLocal: true,
+						value: {}
+					}
+
+					return this.mergeObjects(defaultNode, options);
+				},
+
+				/**
+				 * Gets the default divider node object with given options applied
+				 * 
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A divider node with specified properties set
+				 */
+				getDefaultDividerNode: function(options) {
+					return this.getDefaultDividerOrMenuNode(options, 'divider');
+				},
+
+				/**
+				 * Gets the default menu node object with given options applied
+				 * 
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A menu node with specified properties set
+				 */
+				getDefaultMenuNode: function(options) {
+					return this.getDefaultDividerOrMenuNode(options, 'menu');
+				}
+			}
+			//#endregion
 		}
 	};
 
@@ -612,20 +767,73 @@
 				};
 
 				var metaData = getMetaTags(node.value.script);
-				var metaString = getMetaLines(node.value.script) || null;
+				var metaString = getMetaLines(node.value.script) || undefined;
+				var runAt = metaData['run-at'] || 'document_end';
+				var excludes = [];
+				var includes = [];
+				for (i = 0; i < node.triggers.length; i++) {
+					if (node.triggers[i].not) {
+						excludes.push(node.triggers[i]);
+					} else {
+						includes.push(node.triggers[i]);
+					}
+				}
 
 				var greaseMonkeyData = {
 					info: {
+						script: {
+							author: metaData['author'] || '',
+							copyright: metaData['copyright'],
+							description: metaData['description'],
+							excludes: metaData['excludes'],
+							homepage: metaData['homepage'],
+							icon: metaData['icon'],
+							icon64: metaData['icon64'],
+							includes: metaData['includes'],
+							lastUpdated: 0, //Never updated
+							matches: metaData['matches'],
+							isIncognito: tab.incognito,
+							downloadMode: 'browser',
+							name: node.name,
+							namespace: metaData['namespace'],
+							options: {
+								awareOfChrome: true,
+								compat_arrayleft: false,
+								compat_foreach: false,
+								compat_forvarin: false,
+								compat_metadata: false,
+								compat_prototypes: false,
+								compat_uW_gmonkey: false,
+								noframes: metaData['noframes'],
+								override: {
+									excludes: true,
+									includes: true,
+									orig_excludes: metaData['excludes'],
+									orig_includes: metaData['includes'],
+									use_excludes: excludes,
+									use_includes: includes
+								}
+							},
+							position: 1, // what does this mean?
+							resources: getResourcesArrayForScript(node.id),
+							"run-at": runAt,
+							system: false,
+							unwrap: true,
+							version: metaData['version']
+						},
+						scriptMetaStr: metaString,
+						scriptSource: node.value.script,
+						scriptUpdateURL: metaData['updateURL'],
+						scriptWillUpdate: false, //FUTURE maybe update
+						scriptHandler: 'Custom Right-Click Menu',
 						version: chrome.app.getDetails().version
 					},
-					scriptMetaStr: metaString,
-
+					resources: getScriptResources(node.id) || {}
 				};
 				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
 				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + globals.storages.nodeStorage[node.id] + ',' + greaseMonkeyData + ');\n';
 				code = code + node.value.script;
 
-				var runAt = metaData['run-at'] || 'document_end';
 
 				var scripts = [];
 				for (i = 0; i < node.value.libraries.length; i++) {
@@ -3155,6 +3363,24 @@
 		return null;
 	}
 
+	function getScriptResources(scriptId) {
+		return globals.storages.resources[scriptId];
+	}
+
+	function getResourcesArrayForScript(scriptId) {
+		var resourcesArray = [];
+		var scriptResources = getScriptResources(scriptId);
+		if (!scriptResources) {
+			return [];
+		}
+		for (var resourceName in scriptResources) {
+			if (scriptResources.hasOwnProperty(resourceName)) {
+				resourcesArray.push(scriptResources[resourceName]);
+			}
+		}
+		return resourcesArray;
+	}
+
 	function addResourceWebRequestListener() {
 		chrome.webRequest.onBeforeRequest.addListener(
 			function(details) {
@@ -3277,53 +3503,18 @@
 		delete globals.notificationListeners[notificationId];
 	});
 
-	function installScriptMessage(message) {
-		var data = message.data;
-		chrome.tabs.create({
-			url: message.data.url
-		}, function(tab) {
-			globals.scriptInstallListeners[tab.id] = {
-				id: data.id,
-				tabId: data.tabId,
-				url: data.url,
-				callback: data.callback
-			};
-		});
-	}
-
-	function onScriptInstall(data) {
-		var script = globals.scriptInstallListeners[data.tabId];
-		if (script && script.url && script.url === data.url) {
-			script.callback && typeof script.callback === 'function' && script.callback();
-		}
-	}
-
 	function handleRuntimeMessage(message) {
 		console.log(message);
 		switch (message.type) {
 			case 'resource':
 				resourceHandler(message.data);
 				break;
-				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
-				//	waiting for any update
-				/*
-			case 'scriptInstall':
-				onScriptInstall(message.data);
-				break;
-				*/
 			case 'updateStorage':
 				applyChanges(message.data);
 				break;
 			case 'sendInstanceMessage':
 				sendInstanceMessage(message);
 				break;
-				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere before 24th of february
-				//	waiting for any update
-				/*
-			case 'installScriptMessage':
-				installScriptMessage(message);
-				break;
-				*/
 			case 'changeInstanceHandlerStatus':
 				changeInstanceHandlerStatus(message);
 				break;
@@ -3384,27 +3575,7 @@
 	//#endregion
 
 	//#region Startup
-	function setIfNotSet(obj, key, defaultValue) {
-		if (obj[key]) {
-			return obj[key];
-		}
-		chrome.storage.local.set({
-			key: defaultValue
-		});
-		return defaultValue;
-	}
-
-	function checkDefaultStorage(storageLocal) {
-		if (storageLocal.notFirstTime) {
-			return true;
-		}
-		return false;
-	}
-
-	function handleTransfer() {
-		localStorage.setItem('firsttime', 'yes');
-	}
-
+	//#region Uploading First Time or Transfer Data
 	function uploadStorageSyncData(data) {
 		var settingsJson = JSON.stringify(data);
 
@@ -3435,7 +3606,9 @@
 			});
 		}
 	}
+	//#endregion
 
+	//#region Handling First Run
 	function handleFirstRun() {
 		//Local storage
 		var defaultLocalStorage = {
@@ -3447,32 +3620,29 @@
 			latestId: 0,
 			useStorageSync: true,
 			notFirstTime: true,
-			authorName: 'anonymous'
+			authorName: 'anonymous',
+			showOptions: true,
+			editCRMInRM: false
 		};
 
 		//Save local storage
 		chrome.storage.local.set(defaultLocalStorage);
 
-
 		//Sync storage
 		var defaultSyncStorage = {
-			editCRMInRM: false,
 			editor: {
 				libraries: [
-					{ "location": "jQuery.js", "name": "jQuery" },
-					{ "location": "mooTools.js", "name": "mooTools" },
-					{ "location": "YUI.js", "name": "YUI" },
-					{ "location": "Angular.js", "name": "Angular" }
+					{ "location": 'jQuery.js', "name": 'jQuery' },
+					{ "location": 'mooTools.js', "name": 'mooTools' },
+					{ "location": 'YUI.js', "name": 'YUI' },
+					{ "location": 'Angular.js', "name": 'Angular' }
 				],
-				lineNumbers: true,
 				showToolsRibbon: true,
 				tabSize: '4',
 				theme: 'dark',
 				useTabs: true,
 				zoom: 100
 			},
-			openInCurrentTab: false,
-			showOptions: true,
 			shrinkTitleRibbon: false,
 			crm: [
 				{
@@ -3495,7 +3665,6 @@
 		//Save sync storage
 		uploadStorageSyncData(defaultSyncStorage);
 
-
 		var storageLocal = defaultLocalStorage;
 		var storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
 		return {
@@ -3504,23 +3673,680 @@
 			chromeStorageLocal: storageLocal
 		};
 	}
+	//#endregion
 
-	function setupFirstRun() {
-		if (localStorage.getItem('firsttime') === 'no') {
-			return handleTransfer();
-		} else {
-			return handleFirstRun();
+	//#region Transfer
+	var legacyScriptReplace = {
+			/**
+			 * Checks if given value is the property passed, disregarding quotes
+			 * 
+			 * @param {string} toCheck - The string to compare it to
+			 * @param {string} prop - The value to be compared
+			 * @returns {boolean} Returns true if they are equal
+			 */
+			isProperty: function(toCheck, prop) {
+				if (toCheck === prop) {
+					return true;
+				}
+				return toCheck.replace(/['|"|`]/g, '') === prop;
+			},
+
+			/**
+			 * Gets the lines where an expression begins and ends
+			 * 
+			 * @param {Object[]} lines - All lines of the script
+			 * @param {Object[]} lineSeperators - An object for every line signaling the start and end
+			 * @param {Number} lineSeperators.start - The index of that line's first character in the
+			 *		entire script if all new lines were removed
+			 * @param {Number} lineSeperators.end - The index of that line's last character in the
+			 *		entire script if all new lines were removed
+			 * @param {Number} start - The first character's index of the function call whose line to find
+			 * @param {Number} end  - The last character's index of the function call whose line to find
+			 * @returns {Object} The line(s) on which the function was called, containing a "from" and
+			 *		"to" property that indicate the start and end of the line(s). Each "from" or "to"
+			 *		consists of an "index" and a "line" property signaling the char index and the line num
+			 */
+			getCallLines: function (lines, lineSeperators, start, end) {
+				var sep;
+				var line = {};
+				for (var i = 0; i < lineSeperators.length; i++) {
+					sep = lineSeperators[i];
+					if (sep.start <= start) {
+						line.from = {
+							index: sep.start,
+							line: i
+						}
+					}
+					if (sep.end >= end) {
+						line.to = {
+							index: sep.end,
+							line: i
+						};
+						break;
+					}
+				}
+
+				return line;
+			},
+
+			/**
+			 * Finds the function call expression around the expression whose data was passed
+			 * 
+			 * @param {Object} data - The data associated with a chrome call
+			 * @returns {Object} The expression around the expression whose data was passed
+			 */
+			getFunctionCallExpressions: function(data) {
+				//Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
+				var index = data.parentExpressions.length - 1;
+				var expr = data.parentExpressions[index];
+				while (expr && expr.type !== 'CallExpression') {
+					expr = data.parentExpressions[--index];
+				}
+				return data.parentExpressions[index];
+			},
+
+			/**
+			 * Gets the chrome API in use by given function call expression
+			 * 
+			 * @param {Object} expr - The expression whose function call to find
+			 * @param {Object} data - The data about that call
+			 * @returns {Object} An object containing the call on the "call" 
+			 *		property and the arguments on the "args" property
+			 */
+			getChromeAPI: function (expr, data) {
+				data.functionCall = data.functionCall.map(function (prop) {
+					return prop.replace(/['|"|`]/g, '');
+				});
+				var functionCall = data.functionCall;
+				functionCall = functionCall.reverse();
+				if (functionCall[0] === 'chrome') {
+					functionCall.splice(0, 1);
+				}
+
+				var argsStart = expr.callee.end;
+				var argsEnd = expr.end;
+				var args = data.persistent.script.slice(argsStart, argsEnd);
+
+				return {
+					call: functionCall.join('.'),
+					args: args
+				}
+			},
+
+			/**
+			 * Gets the position of an index relative to the line instead of relative
+			 * to the entire script
+			 * 
+			 * @param {Object[]} lines - All lines of the script
+			 * @param {Number} line - The line the index is on
+			 * @param {Number} index - The index relative to the entire script
+			 * @returns {Number} The index of the char relative to given line
+			 */
+			getLineIndexFromTotalIndex: function (lines, line, index) {
+				for (var i = 0; i < line; i++) {
+					index -= lines[i].length + 1;
+				}
+				return index;
+			},
+
+			replaceChromeFunction: function (data, expr, callLines) {
+				if (data.isReturn && !data.isValidReturn) {
+					return;
+				}
+
+				var lines = data.persistent.lines;
+
+				//Get chrome API
+				var i;
+				var chromeAPI = this.getChromeAPI(expr, data);
+				var firstLine = data.persistent.lines[callLines.from.line];
+				var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, ((data.returnExpr && data.returnExpr.start) || expr.callee.start));
+				var lineExprEnd = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, expr.callee.end);
+
+				var newLine = firstLine.slice(0, lineExprStart) +
+					'window.crmAPI.chrome(\'' + chromeAPI.call + '\')' +
+					firstLine.slice(lineExprEnd);
+				if (newLine[newLine.length - 1] === ';') {
+					newLine = newLine.slice(0, newLine.length - 1);
+				}
+
+				if (data.isReturn) {
+					newLine += '.return(function(' + data.returnName + ') {';
+					var usesTabs = true;
+					var spacesAmount = 0;
+					//Find out if the writer uses tabs or spaces
+					for (i = 0; i < data.persistent.lines.length; i++) {
+						if (data.persistent.lines[i].indexOf('	') === 0) {
+							usesTabs = true;
+							break;
+						} else if (data.persistent.lines[i].indexOf('  ') === 0) {
+							var split = data.persistent.lines[i].split(' ');
+							for (var j = 0; j < split.length; j++) {
+								if (split[j] === ' ') {
+									spacesAmount++;
+								} else {
+									break;
+								}
+							}
+							usesTabs = false;
+							break;
+						}
+					}
+
+					var indent;
+					if (usesTabs) {
+						indent = '	';
+					}
+					else {
+						indent = [];
+						indent[spacesAmount] = ' ';
+						indent = indent.join(' ');
+					}
+					for (i = callLines.to.line + 1; i < data.persistent.lines.length; i++) {
+						data.persistent.lines[i] = indent + data.persistent.lines[i];
+					}
+					data.persistent.lines.push('}).send();');
+
+				} else {
+					newLine +=  '.send();';
+				}
+				lines[callLines.from.line] = newLine;
+				return;
+			},
+
+			callsChromeFunction: function (callee, data, onError) {
+				data.parentExpressions.push(callee);
+
+				//Check if the function has any arguments and check those first
+				if (callee.arguments && callee.arguments.length > 0) {
+					for (var i = 0; i < callee.arguments.length; i++) {
+						if (this.findChromeExpression(callee.arguments[i], this.removeObjLink(data), onError)) {
+							return true;
+						}
+					}
+				}
+
+				if (callee.type !== 'MemberExpression') {
+					//This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
+					return this.findChromeExpression(callee, this.removeObjLink(data), onError);
+				}
+
+				//Continue checking the call itself
+				if (callee.property) {
+					data.functionCall = data.functionCall || [];
+					data.functionCall.push(callee.property.name || callee.property.raw);
+				}
+				if (callee.object && callee.object.name) {
+					//First object
+					var isWindowCall = (this.isProperty(callee.object.name, 'window') && this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
+					if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
+						data.expression = callee;
+						var expr = this.getFunctionCallExpressions(data);
+						var callLines = this.getCallLines(data.persistent.lines, data.persistent.lineSeperators, expr.start, expr.end);
+						if (data.isReturn && !data.isValidReturn) {
+							callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, callLines.from.index);
+							callLines.to.index = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.to.line, callLines.to.index);
+							onError(callLines, data.persistent.passes);
+							return false;
+						}
+						if (!data.persistent.diagnostic) {
+							this.replaceChromeFunction(data, expr, callLines);
+						}
+						return true;
+					}
+				} else if (callee.object) {
+					return this.callsChromeFunction(callee.object, data, onError);
+				}
+				return false;
+			},
+
+			removeObjLink: function (data) {
+				var parentExpressions = data.parentExpressions || [];
+				var newObj = {};
+				for (var key in data) {
+					if (data.hasOwnProperty(key) && key !== 'parentExpressions' && key !== 'persistent') {
+						newObj[key] = data[key];
+					}
+				}
+
+				var newParentExpressions = [];
+				for (var i = 0; i < parentExpressions.length; i++) {
+					newParentExpressions.push(parentExpressions[i]);
+				}
+				newObj.persistent = data.persistent;
+				newObj.parentExpressions = newParentExpressions;
+				return newObj;
+			},
+
+			findChromeExpression: function (expression, data, onError) {
+				data.parentExpressions = data.parentExpressions || [];
+				data.parentExpressions.push(expression);
+
+				var i;
+				switch (expression.type) {
+					case 'VariableDeclaration':
+						data.isValidReturn = expression.declarations.length === 1;
+						for (i = 0; i < expression.declarations.length; i++) {
+							//Check if it's an actual chrome assignment
+							var declaration = expression.declarations[i];
+							if (declaration.init) {
+								var decData = this.removeObjLink(data);
+
+								var returnName = declaration.id.name;
+								decData.isReturn = true;
+								decData.returnExpr = expression;
+								decData.returnName = returnName;
+
+								if (this.findChromeExpression(declaration.init, decData, onError)) {
+									return true;
+								}
+							}
+						}
+						break;
+					case 'CallExpression':
+					case 'MemberExpression':
+						if (expression.arguments && expression.arguments.length > 0) {
+							for (i = 0; i < expression.arguments.length; i++) {
+								if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
+									return true;
+								}
+							}
+						}
+						data.functionCall = [];
+						return this.callsChromeFunction(expression.callee, data, onError);
+					case 'AssignmentExpression':
+						data.isReturn = true;
+						data.returnExpr = expression;
+						data.returnName = expression.left.name;
+
+						return this.findChromeExpression(expression.right, data, onError);
+					case 'FunctionExpression':
+					case 'FunctionDeclaration':
+						data.isReturn = false;
+						for (i = 0; i < expression.body.body.length; i++) {
+							if (this.findChromeExpression(expression.body.body[i], this.removeObjLink(data), onError)) {
+								return true;
+							}
+						}
+						break;
+					case 'ExpressionStatement':
+						return this.findChromeExpression(expression.expression, data, onError);
+					case 'SequenceExpression':
+						data.isReturn = false;
+						var lastExpression = expression.expressions.length - 1;
+						for (i = 0; i < expression.expressions.length; i++) {
+							if (i === lastExpression) {
+								data.isReturn = true;
+							}
+							if (this.findChromeExpression(expression.expressions[i], this.removeObjLink(data), onError)) {
+								return true;
+							}
+						}
+						break;
+					case 'UnaryExpression':
+					case 'ConditionalExpression':
+						data.isValidReturn = false;
+						data.isReturn = true;
+						if (this.findChromeExpression(expression.consequent, this.removeObjLink(data), onError)) {
+							return true;
+						}
+						if (this.findChromeExpression(expression.alternate, this.removeObjLink(data), onError)) {
+							return true;
+						}
+						break;
+					case 'IfStatement':
+						data.isReturn = false;
+						if (this.findChromeExpression(expression.consequent, this.removeObjLink(data), onError)) {
+							return true;
+						}
+						if (expression.alternate && this.findChromeExpression(expression.alternate, this.removeObjLink(data), onError)) {
+							return true;
+						}
+						break;
+					case 'LogicalExpression':
+						data.isReturn = true;
+						data.isValidReturn = false;
+						if (this.findChromeExpression(expression.left, this.removeObjLink(data), onError)) {
+							return true;
+						}
+						if (this.findChromeExpression(expression.right, this.removeObjLink(data), onError)) {
+							return true;
+						}
+						break;
+					case 'BlockStatement':
+						data.isReturn = false;
+						for (i = 0; i < expression.body.length; i++) {
+							if (this.findChromeExpression(expression.body[i], this.removeObjLink(data), onError)) {
+								return true;
+							}
+						}
+						break;
+					case 'ReturnStatement':
+						data.isReturn = true;
+						data.returnExpr = expression;
+						data.isValidReturn = false;
+						return this.findChromeExpression(expression.argument, data, onError);
+				}
+				return false;
+			},
+
+			/**
+			 * Generates an onError function that passes any errors into given container
+			 * 
+			 * @param {Object[][]} container - A container array that contains arrays of errors for every pass
+			 *		of the script
+			 * @returns {function} A function that can be called with the "position" argument signaling the
+			 *		position of the error in the script and the "passes" argument which signals the amount
+			 *		of passes the script went through
+			 */
+			generateOnError: function(container) {
+				return function (position, passes) {
+					if (!container[passes]) {
+						container[passes] = [position];
+					} else {
+						container[passes].push(position);
+					}
+				}
+			},
+
+			replaceChromeCalls: function (lines, passes, onError) {
+				//Analyze the file
+				var file = new window.TernFile('[doc]');
+				file.text = lines.join('\n');
+				var srv = new window.CodeMirror.TernServer({
+					defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+				});
+				window.tern.withContext(srv.cx, function() {
+					file.ast = window.tern.parse(file.text, srv.passes, {
+						directSourceFile: file,
+						allowReturnOutsideFunction: true,
+						allowImportExportEverywhere: true,
+						ecmaVersion: srv.ecmaVersion
+					});
+				});
+
+				var scriptExpressions = file.ast.body;
+
+				var i;
+				var index = 0;
+				var lineSeperators = [];
+				for (i = 0; i < lines.length; i++) {
+					lineSeperators.push({
+						start: index,
+						end: index += lines[i].length + 1
+					});
+				}
+
+				var script = file.text;
+
+				//Check all expressions for chrome calls
+				var persistentData = {
+					lines: lines,
+					lineSeperators: lineSeperators,
+					script: script,
+					passes: passes
+				};
+
+				var expression;
+				if (passes === 0) {
+					//Do one check, not replacing anything, to find any possible errors already
+					persistentData.diagnostic = true;
+					for (i = 0; i < scriptExpressions.length; i++) {
+						expression = scriptExpressions[i];
+						this.findChromeExpression(expression, { persistent: persistentData }, onError);
+					}
+					persistentData.diagnostic = false;
+				}
+
+				for (i = 0; i < scriptExpressions.length; i++) {
+					expression = scriptExpressions[i];
+					if (this.findChromeExpression(expression, { persistent: persistentData }, onError)) {
+						script = this.replaceChromeCalls(persistentData.lines.join('\n').split('\n'), passes + 1, onError);
+						break;
+					}
+				}
+
+				return script;
+			},
+
+			/**
+			 * Removes any duplicate position entries from given array
+			 * 
+			 * @param {Object[]} arr - An array containing position objects
+			 * @returns {Object[]} The same array with all duplicates removed
+			 */
+			removePositionDuplicates: function (arr) {
+				var jsonArr = [];
+				arr.forEach(function(item, index) {
+					jsonArr[index] = JSON.stringify(item);
+				});
+				arr = jsonArr.filter(function(item, pos) {
+					return jsonArr.indexOf(item) === pos;
+				});
+				return arr.map(function(item) {
+					return JSON.parse(item);
+				});
+			},
+
+			convertScriptFromLegacy: function(script, onError) {
+				//Remove execute locally
+				var lineIndex = script.indexOf('/*execute locally*/');
+				if (lineIndex !== -1) {
+					script = script.replace('/*execute locally*/\n', '');
+					if (lineIndex === script.indexOf('/*execute locally*/')) {
+						script = script.replace('/*execute locally*/', '');
+					}
+				}
+
+				var errors = [];
+				try {
+					script = this.replaceChromeCalls(script.split('\n'), 0, this.generateOnError(errors));
+				} catch (e) {
+					onError(null, null, true);
+				}
+
+				var firstPassErrors = errors[0];
+				var finalPassErrors = errors[errors.length - 1];
+				if (finalPassErrors) {
+					onError(this.removePositionDuplicates(firstPassErrors), this.removePositionDuplicates(finalPassErrors));
+				}
+
+				return script;
+			}
+	};
+
+	function getTemplates() {
+		return globals.constants.templates;
+	}
+
+	function parseOldCRMNode(string, openInNewTab) {
+		var node = {};
+		var oldNodeSplit = string.split('%123');
+		var name = oldNodeSplit[0];
+		var type = oldNodeSplit[1].toLowerCase();
+
+		var nodeData = oldNodeSplit[2];
+
+		switch (type) {
+			//Stylesheets don't exist yet so don't implement those
+			case 'link':
+				node = getTemplates().getDefaultLinkNode({
+					name: name,
+					id: generateItemId(),
+					value: [
+					{
+						newTab: openInNewTab,
+						url: nodeData
+					}]
+				});
+				break;
+			case 'divider':
+				node = getTemplates().getDefaultDividerNode({
+					name: name,
+					id: generateItemId()
+				});
+				break;
+			case 'menu':
+				node = getTemplates().getDefaultMenuNode({
+					name: name,
+					id: generateItemId(),
+					children: nodeData
+				});
+				break;
+			case 'script':
+				var scriptSplit = nodeData.split('%124');
+				var scriptLaunchMode = scriptSplit[0];
+				var scriptData = scriptSplit[1];
+				var triggers = undefined;
+				var launchModeString = scriptLaunchMode + '';
+				if (launchModeString !== '0' && launchModeString !== '2') {
+					triggers = launchModeString.split('1,')[1].split(',');
+					triggers.map(function(item) {
+						return item.trim();
+					});
+					scriptLaunchMode = 1;
+				}
+				var id = generateItemId();
+				node = getTemplates().getDefaultScriptNode({
+					name: name,
+					id: id,
+					value: {
+						launchMode: parseInt(scriptLaunchMode, 10),
+						triggers: triggers,
+						//TODO update notice
+						updateNotice: true,
+						oldScript: scriptData,
+						script: legacyScriptReplace.convertScriptFromLegacy(scriptData, function (oldScriptErrors, newScriptErrors, parseError) {
+							chrome.storage.local.get(function (keys) {
+								keys.upgradeErrors = keys.upgradeErrors || {};
+								keys.upgradeErrors[id] = {
+									oldScript: oldScriptErrors,
+									newScript: newScriptErrors,
+									parseError: parseError
+								};
+								chrome.storage.local.set({ upgradeErrors: keys.upgradeErrors });
+							});
+						})
+					}
+				});
+				break;
 		}
+
+		return node;
+	}
+
+	function assignParents(parent, nodes, startIndex, endIndex) {
+		for (var i = startIndex; i < endIndex; i++) {
+			var currentIndex = i;
+			if (nodes[i].type === 'menu') {
+				var start = i + 1;
+				//The amount of children it has
+				i += parseInt(nodes[i].children, 10);
+				var end = i + 1;
+
+				nodes[currentIndex].children = [];
+
+				assignParents(nodes[currentIndex].children, nodes, start, end);
+			}
+
+			parent.push(nodes[currentIndex]);
+		}
+	}
+
+	function transferCRMFromOld(openInNewTab) {
+		var amount = parseInt(localStorage.getItem('numberofrows'), 10) + 1;
+
+		var nodes = [];
+		for (var i = 1; i < amount; i++) {
+			nodes.push(parseOldCRMNode(localStorage.getItem(i), openInNewTab));
+		}
+
+		//Structure nodes with children etc
+		var crm = [];
+		assignParents(crm, nodes, 0, nodes.length);
+	}
+
+	function handleTransfer() {
+		localStorage.setItem('firsttime', 'yes');
+
+		var promiseResolve;
+		var promise = new Promise(function(resolve) {
+			promiseResolve = resolve;
+		});
+
+		if (!window.CodeMirror.TernServer) {
+			//Wait until TernServer is loaded
+			window.setTimeout(function() {
+				handleDataTransfer().then(function(data) {
+					promiseResolve(data);
+				});
+			}, 200);
+		} else {
+
+			var result = handleFirstRun();
+			result.defaultSyncStorage.crm = transferCRMFromOld(localStorage.getItem('whatpage'));
+
+			promiseResolve({
+				settingsStorage: result.defaultSyncStorage,
+				storageLocalCopy: result.storageLocalCopy,
+				chromeStorageLocal: result.storageLocal
+			});
+		}
+		return promise;
+	}
+	//#endregion
+
+	function isFirstTime(storageLocal) {
+		if (storageLocal.notFirstTime) {
+			return false;
+		} else {
+			//Determine if it's a transfer from CRM version 1.*
+			if (localStorage.getItem('firsttime') === 'no') {
+				return handleTransfer();
+			} else {
+				var firstRunResult = handleFirstRun();
+				var promise = new Promise(function(resolve) {
+					resolve(firstRunResult);
+				});
+				return promise;
+			}
+		}
+	}
+
+	function setIfNotSet(obj, key, defaultValue) {
+		if (obj[key]) {
+			return obj[key];
+		}
+		chrome.storage.local.set({
+			key: defaultValue
+		});
+		return defaultValue;
+	}
+
+	function setStorages(storageLocalCopy, settingsStorage, chromeStorageLocal, callback) {
+		globals.storages.storageLocal = storageLocalCopy;
+		globals.storages.settingsStorage = settingsStorage;
+		globals.storages.globalExcludes = setIfNotSet(chromeStorageLocal, 'globalExcludes', []);;
+		globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
+		globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
+		globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
+		globals.storages.globalExcludes.map(validatePatternUrl);
+
+		updateCRMValues();
+
+		callback && callback();
 	}
 
 	function loadStorages(callback) {
 		chrome.storage.sync.get(function(chromeStorageSync) {
 			chrome.storage.local.get(function (chromeStorageLocal) {
-				var settingsStorage;
-				var storageLocalCopy;
-
-				if (checkDefaultStorage(chromeStorageLocal)) {
-					storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
+				var result;
+				if ((result = isFirstTime(chromeStorageLocal))) {
+					result.then(function(data) {
+						setStorages(data.storageLocalCopy, data.settingsStorage, data.chromeStorageLocal, callback);
+					});
+				} else {
+					var storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
 					delete storageLocalCopy.resourceKeys;
 					delete storageLocalCopy.nodeStorage;
 					delete storageLocalCopy.resources;
@@ -3528,6 +4354,7 @@
 
 					var indexes;
 					var jsonString;
+					var settingsStorage;
 					var settingsJsonArray;
 					if (chromeStorageLocal.useStorageSync) {
 						//Parse the data before sending it to the callback
@@ -3564,25 +4391,9 @@
 							settingsStorage = chromeStorageLocal.settings;
 						}
 					}
-				} else {
-					//TODO this may not work yet
-					var results = setupFirstRun();
-					settingsStorage = results.settingsStorage;
-					storageLocalCopy = results.storageLocalCopy;
-					chromeStorageLocal = results.chromeStorageLocal;
+
+					setStorages(storageLocalCopy, settingsStorage, chromeStorageLocal, callback);
 				}
-
-				globals.storages.storageLocal = storageLocalCopy;
-				globals.storages.settingsStorage = settingsStorage;
-				globals.storages.globalExcludes = setIfNotSet(chromeStorageLocal, 'globalExcludes', []);;
-				globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
-				globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
-				globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
-				globals.storages.globalExcludes.map(validatePatternUrl);
-
-				updateCRMValues();
-
-				callback && callback();
 			});
 		});
 	}

@@ -5728,16 +5728,14 @@ function(e, t) {
  * @return {?}
  */
 function (e, t) {
-	return "object" == typeof exports && "object" == typeof module ? t(exports, require("./infer"), require("./signal"), require("acorn"), require("acorn/dist/walk")) : "function" == typeof define && define.amd ? define(["exports", "./infer", "./signal", "acorn/dist/acorn", "acorn/dist/walk"], t) : (console.log('this one'), console.log(tern), void t(e.tern || (e.tern = {}), tern, tern.signal, acorn, acorn.walk))
+	return "object" == typeof exports && "object" == typeof module ? t(exports, require("./infer"), require("./signal"), require("acorn"), require("acorn/dist/walk")) : "function" == typeof define && define.amd ? define(["exports", "./infer", "./signal", "acorn/dist/acorn", "acorn/dist/walk"], t) : (void t(e.tern || (e.tern = {}), tern, tern.signal, acorn, acorn.walk))
 }(this, function (exports, infer, signal, dataAndEvents, walk) {
-	console.trace();
   /**
    * @param {string} name
    * @param {Object} parentDir
    * @return {undefined}
    */
 	window.TernFile = window.File = function File(name, parentDir) {
-		console.log(name, parentDir);
 		/** @type {string} */
 		this.name = name;
 		/** @type {Object} */

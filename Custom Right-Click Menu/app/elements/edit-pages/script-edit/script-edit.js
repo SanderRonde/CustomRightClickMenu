@@ -907,9 +907,8 @@
 		initToolsRibbon: function() {
 			var _this = this;
 			window.app.$.paperLibrariesSelector.init();
-			window.app.$.paperGetPageProperties.init();
-			window.app.$.paperGetPageProperties.addEventListener('addsnippet', function(snippet) {
-				_this.insertSnippet(_this, snippet.snippet);
+			window.app.$.paperGetPageProperties.init(function (snippet) {
+				_this.insertSnippet(_this, snippet);
 			});
 			//Use CRMAPI
 		},
@@ -1104,6 +1103,7 @@
 			buttonShadow.style.position = 'absolute';
 			buttonShadow.style.right = '-1px';
 			this.editor.display.wrapper.classList.add('fullscreen');
+			this.editor.display.wrapper.classList.remove('small');
 
 			$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
 			var $horizontalCenterer = $('#horizontalCenterer');
@@ -1173,6 +1173,7 @@
 			$buttonShadow[0].style.position = 'absolute';
 			setTimeout(function() {
 				_this.editor.display.wrapper.classList.remove('fullscreen');
+				_this.editor.display.wrapper.classList.add('small');
 				var editorCont = window.doc.fullscreenEditor;
 				_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 				$(editorCont).animate({
@@ -1331,6 +1332,35 @@
 			}
 		},
 
+		createKeyBindingListener: function(element, binding) {
+			return function(event) {
+				//Make sure it's not just one modifier key being pressed and nothing else
+				if (event.keyCode < 16 && event.keyCode > 18) {
+					//Make sure at least one modifier is being pressed
+					if (event.altKey || event.shiftKey || event.ctrlKey) {
+						var values = [];
+						if (event.ctrlKey) {
+							values.push('Ctrl');
+						}
+						if (event.altKey) {
+							values.push('Alt');
+						}
+						if (event.shiftKey) {
+							values.push('Shift');
+						}
+						values.push(String.fromCharCode(event.charCode));
+						var value = element.value = values.join('-');
+						element.lastValue = value;
+						window.app.settings.editor.keyBindings[binding.storageKey] = value;
+						window.app.upload();
+					}
+				}
+
+				element.value = element.lastValue;
+				return;
+			};
+		},
+
 		/*
 		 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 		 */
@@ -1416,21 +1446,6 @@
 				}, 0);
 			});
 
-			//The option to do or do not use line numbers
-			var lineNumbers = $('<div id="editorUseLineNumbersSettingCont">' +
-				'<div id="editorUseLineNumbersCheckbox">' +
-				'</div>' +
-				'<div id="editorUseLineNumbersTxt">' +
-				'Use line numbers' +
-				'</div>' +
-				'</div><br>').appendTo(settingsContainer);
-
-			//The main checkbox for the line numbers option
-			$('<paper-checkbox ' + (window.app.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function() {
-				window.app.settings.editor.lineNumbers = !window.app.settings.editor.lineNumbers;
-				window.app.upload();
-			}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
-
 			//The edit jsLint settings option
 			var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
 
@@ -1447,6 +1462,52 @@
 					window.app.jsLintGlobals = globals;
 				}, 0);
 			}).appendTo(jsLintGlobalsCont);
+
+			$('<div id="editorSettingsTxt">Key Bindings</div>').appendTo(settingsContainer);
+
+			var keyBindings = [
+				{
+					name: 'AutoComplete',
+					defaultKey: 'Ctrl-Space',
+					storageKey: 'autocomplete'
+				}, {
+					name: 'Show Type',
+					defaultKey: 'Ctrl-I',
+					storageKey: 'showType'
+				}, {
+					name: 'Show Docs',
+					defaultKey: 'Ctrl-O',
+					storageKey: 'showDocs'
+				}, {
+					name: 'Go To Definition',
+					defaultKey: 'Alt-.',
+					storageKey: 'goToDef'
+				}, {
+					name: 'Rename',
+					defaultKey: 'Ctrl-Q',
+					storageKey: 'rename'
+				}, {
+					name: 'Select Name',
+					defaultKey: 'Ctrl-.',
+					storageKey: 'selectName'
+				}
+			];
+
+			//TODO test this
+			var $cont, $input, $keyInput, keyInput, value;
+			for (var i = 0; i < keyBindings.length; i++) {
+				value = window.app.settings.editor.keyBindings[keyBindings[i].storageKey] || keyBindings[i].defaultKey;
+				$cont = $('<div class="keyBindingSetting"></div>');
+				$('<div class="keyBindingSettingName">' + keyBindings[i].name + '</div>').appendTo($cont);
+				$input = $('<div class="keyBindingSettingInput"></div>');
+				$keyInput = $('<paper-input label="Press some keys" class="keyBindingSettingKeyInput" value="' + value + '"></paper-input>');
+				$keyInput.lastValue = value;
+				keyInput = $keyInput[0];
+				keyInput.addEventListener('keydown', this.createKeyBindingListener(keyInput, keyBindings[i]));
+				$keyInput.appendTo($input);
+				$input.appendTo($cont);
+				$cont.appendTo(settingsContainer);
+			}
 		},
 
 		/*
@@ -1485,26 +1546,26 @@
 		/*
 		 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 		 */
-		cmLoaded: function (element) {
+		cmLoaded: function (editor) {
 			var _this = this;
-			this.editor = element;
-			element.refresh();
-			element.on('metaTagChanged', function (changes, metaTags) {
+			this.editor = editor;
+			editor.refresh();
+			editor.on('metaTagChanged', function (changes, metaTags) {
 				if (!_this.preventNotification) {
 					_this.metaTagsUpdate(changes, 'script');
 				}
 				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 			});
-			element.on('metaDisplayStatusChanged', function(info) {
+			editor.on('metaDisplayStatusChanged', function(info) {
 				_this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
 			});
 			if (this.newSettings.value.metaTagsHidden) {
-				element.doc.markText({
-					line: element.metaTags.metaStart.line,
-					ch: element.metaTags.metaStart.ch - 2
+				editor.doc.markText({
+					line: editor.metaTags.metaStart.line,
+					ch: editor.metaTags.metaStart.ch - 2
 				}, {
-					line: element.metaTags.metaStart.line,
-					ch: element.metaTags.metaStart.ch + 27
+					line: editor.metaTags.metaStart.line,
+					ch: editor.metaTags.metaStart.ch + 27
 				}, {
 					className: 'metaTagHiddenText',
 					inclusiveLeft: false,
@@ -1513,11 +1574,12 @@
 					readOnly: true,
 					addToHistory: true
 				});
-				element.metaTags.metaTags = this.newSettings.value.metaTags;
+				editor.metaTags.metaTags = this.newSettings.value.metaTags;
 			}
 
-			element.display.wrapper.classList.add('script-edit-codeMirror');
-			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
+			editor.display.wrapper.classList.add('script-edit-codeMirror');
+			editor.display.wrapper.classList.add('small');
+			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(editor.display.sizer).children().first());
 			this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 			var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
 			//The bubble on settings open
@@ -1531,11 +1593,11 @@
 			this.settingsEl = $('<div id="editorSettings"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>').appendTo(this.buttonsContainer).click(function() {
 				_this.toggleOptions.apply(_this);
 			})[0];
-			if (element.getOption('readOnly') === 'nocursor') {
-				element.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
+			if (editor.getOption('readOnly') === 'nocursor') {
+				editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
 			}
 			if (this.fullscreen) {
-				element.display.wrapper.style.height = 'auto';
+				editor.display.wrapper.style.height = 'auto';
 				this.$.editorPlaceholder.style.display = 'none';
 				$buttonShadow[0].style.right = '-1px';
 				$buttonShadow[0].style.position = 'absolute';
@@ -1574,7 +1636,7 @@
 			this.editorWidth = placeHolder.width();
 			!window.app.settings.editor && (window.app.settings.editor = {});
 			this.editor = new window.CodeMirror(container, {
-				lineNumbers: window.app.settings.editor.lineNumbers,
+				lineNumbers: true,
 				value: content || this.item.value.script,
 				scrollbarStyle: 'simple',
 				lineWrapping: true,

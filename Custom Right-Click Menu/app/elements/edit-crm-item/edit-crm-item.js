@@ -355,7 +355,7 @@ Polymer({
 	},
 
 	openMenu: function () {
-		app.editCRM.build(this.item.path, false, true);
+		window.app.editCRM.build(this.item.path, false, true);
 	},
 
 	menuMouseOver: function () {
@@ -365,7 +365,7 @@ Polymer({
 
 			//Create new column
 			var oldItemsObj = this.parentNode.parentNode.parentNode.parentNode.crm;
-			var newItemsObj = app.editCRM.build(this.item.path);
+			var newItemsObj = window.app.editCRM.build(this.item.path);
 
 			//Now fix the spacing from the top
 			var columnIndex = $(this.parentNode.parentNode.parentNode).children().toArray().indexOf(draggingEl.parentNode.parentNode);
@@ -475,12 +475,14 @@ Polymer({
 		this.cursorPosChanged = true;
 	},
 
-	bodyDrag: function() {
+	bodyDrag: function () {
+		//TODO optimize
 		if (this.cursorPosChanged && this.dragging) {
 			this.cursorPosChanged = false;
-			this.$.itemCont.style.marginLeft = (this.lastRecordedPos.X - this.dragStart.X) + 'px';
 			var spacingTop = this.lastRecordedPos.Y - this.dragStart.Y;
-			this.$.itemCont.style.marginTop = spacingTop + 'px';
+			var x = (this.lastRecordedPos.X - this.dragStart.X) + 'px';
+			var y = spacingTop + 'px';
+			this.$.itemCont.style.transform = 'translate(' + x + ', ' + y + ')';
 			var thisBoundingClientRect = this.getBoundingClientRect();
 			var thisTop = (this.lastRecordedPos.Y - this.mouseToCorner.Y);
 			var thisLeft = (this.lastRecordedPos.X - this.mouseToCorner.X) - thisBoundingClientRect.left;

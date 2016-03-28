@@ -1520,7 +1520,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	function ChromeRequest(api, type) {
 		this.api = api;
 		var request = this;
-		Object.defineProperty(this, "type", {
+		Object.defineProperty(this, 'type', {
 			get: function() { 
 				return type;
 			}
@@ -1532,7 +1532,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				if (typeof arg === 'function') {
 					request.chromeAPIArguments.push({
 						type: 'fn',
-						val: _this.createCallback(arg, new Error)
+						val: createCallback(arg, new Error)
 					});
 				} else {
 					request.chromeAPIArguments.push({
@@ -1627,8 +1627,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *				You can call this function by calling .args or by just using the parentheses as below.
 	 *			r or return: a function that is called with the value that the chrome API returned. This can
 	 *				be used for APIs that don't use callbacks and instead just return values such as
-	 *				chrome.runtime.getURL(). This just like fn returns a container argument for
-	 *				all diferent values where "APIVal" is the value the API returned instead of APIArgs being used.
+	 *				chrome.runtime.getURL().
 	 *			s or send: executes the request
 	 * Examples:
 	 *		- For a function that uses a callback:
