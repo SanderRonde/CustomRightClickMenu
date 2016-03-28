@@ -1937,7 +1937,8 @@
 		},
 		//#endregion
 
-		ready: function() {
+		ready: function () {
+			//TODO version upgrade message
 			var _this = this;
 			this.crm.parent = this;
 			window.app = this;

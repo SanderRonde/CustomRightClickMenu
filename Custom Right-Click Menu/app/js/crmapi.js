@@ -1655,7 +1655,6 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @returns {Object} - An object on which you can call .args, .fn, .return and .send
 	 */
 	this.chrome = function (api) {
-		//TODO maybe update documentation
 		return new ChromeRequest(api);
 	};
 
@@ -1676,7 +1675,6 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	this.GM = {};
 
-	//TODO
 	/*
 	 * Returns any info about the script
 	 * 
