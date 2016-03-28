@@ -10,7 +10,7 @@
 
 	ready: function () {
 		var _this = this;
-		chrome.storage.local.get(function(e) {
+		chrome.storage.local.get(function (e) {
 			_this.toggled = e[$(_this).attr('id')];
 		});
 	},
@@ -18,7 +18,6 @@
 	onClick: function () {
 		var id = $(this).attr('id');
 		this.toggled = !this.toggled;
-		console.log(id, this.toggled);
 		window.app.setLocal(id, this.toggled);
 		if (id === 'useStorageSync') {
 			window.app.upload();
