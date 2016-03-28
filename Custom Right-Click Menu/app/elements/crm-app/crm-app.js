@@ -662,9 +662,6 @@
 			//Send changes to background-page, background-page uploads everything
 			//Compare storageLocal objects
 
-			//TODO stop cancel
-			return; 
-
 			var localChanges = [];
 			var storageLocal = this.storageLocal;
 			var storageLocalCopy = this.storageLocalCopy;
