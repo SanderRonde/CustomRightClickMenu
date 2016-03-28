@@ -7,7 +7,7 @@
 	"version": "2.0",
 
 	"background": {
-		"scripts": [ "js/jsonfn.js", "js/jquery-2.0.3.min.js", "js/md5.js", "js/background.js" ]
+		"scripts": [ "js/jquery-2.0.3.min.js", "js/diff_match_patch.js", "js/codemirror.js", "js/codeMirrorAddons.js", "js/jsonfn.js", "js/md5.js", "js/background.js" ]
 	},
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
@@ -63,6 +63,8 @@
 		"webRequest",
 		"webRequestBlocking"
 	],
+
+	"incognito":  "spanning",
 
 	"icons": {
 		"16": "icon-supersmall.png",
