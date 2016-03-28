@@ -939,7 +939,7 @@
 				shrinkTitleRibbon: false
 			});
 			app.settings.shrinkTitleRibbon = false;
-			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)'
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 		}
 
 		$editorWrapper[0].style.height = 'auto';
@@ -1025,9 +1025,9 @@
 	 */
 	showOptions: function () {
 		var _this = this;
-		this.unchangedEditorSettings = jQuery.extend(true, {}, window.app.settings.editor);
-		var editorWidth = $('.CodeMirror').width();
-		var editorHeight = $('.CodeMirror').height();
+		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
+		var editorWidth = $($('.CodeMirror')[1]).width();
+		var editorHeight = $($('.CodeMirror')[1]).height();
 		var circleRadius;
 
 		//Add a bit just in case
@@ -1041,8 +1041,9 @@
 		this.settingsShadow[0].parentNode.style.width = editorWidth;
 		this.settingsShadow[0].parentNode.style.height = editorHeight;
 		this.fullscreenEl.style.display = 'none';
-		var settingsInitialMarginLeft = (window.app.settings.editor.lineNumbers ? -500 : -470);
+		var settingsInitialMarginLeft = -500;
 		$('#editorThemeFontSizeInput')[0].value = window.app.settings.editor.zoom;
+
 		this.settingsShadow.css({
 			width: '50px',
 			height: '50px',
@@ -1060,6 +1061,17 @@
 			progress: function (animation) {
 				_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
 				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
+			},
+			complete: function() {
+				if (_this.fullscreen) {
+					var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+					settingsCont.style.overflow = 'scroll';
+					settingsCont.style.overflowX = 'hidden';
+					settingsCont.style.height = 'calc(100vh - 66px)';
+					var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					bubbleCont.style.position = 'fixed';
+					bubbleCont.style.zIndex = 50;
+				}
 			}
 		});
 	},
@@ -1069,7 +1081,7 @@
 	 */
 	hideOptions: function () {
 		var _this = this;
-		var settingsInitialMarginLeft = (window.app.settings.editor.lineNumbers ? -500 : -470);
+		var settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
 		this.settingsShadow.animate({
 			width: 0,
@@ -1092,6 +1104,15 @@
 				}
 				if (zoom !== prevZoom) {
 					window.app.updateEditorZoom();
+				}
+
+				if (_this.fullscreen) {
+					var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+					settingsCont.style.height = '376px';
+					settingsCont.style.overflowX = 'hidden';
+					var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					bubbleCont.style.position = 'absolute';
+					bubbleCont.style.zIndex = 'auto';
 				}
 			}
 		});
@@ -1231,21 +1252,6 @@
 				window.app.upload();
 			}, 0);
 		});
-
-		//The option to do or do not use line numbers
-		var lineNumbers = $('<div id="editorUseLineNumbersSettingCont">' +
-			'<div id="editorUseLineNumbersCheckbox">' +
-			'</div>' +
-			'<div id="editorUseLineNumbersTxt">' +
-			'Use line numbers' +
-			'</div>' +
-			'</div><br>').appendTo(settingsContainer);
-
-		//The main checkbox for the line numbers option
-		$('<paper-checkbox ' + (window.app.settings.editor.lineNumbers ? 'checked' : '') + '></paper-checkbox>').click(function () {
-			window.app.settings.editor.lineNumbers = !window.app.settings.editor.lineNumbers;
-			window.app.upload();
-		}).appendTo(lineNumbers.find('#editorUseLineNumbersCheckbox'));
 	},
 
 	/*
@@ -1323,7 +1329,7 @@
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {});
 		this.editor = new window.CodeMirror(container, {
-			lineNumbers: window.app.settings.editor.lineNumbers,
+			lineNumbers: true,
 			mode: 'css',
 			value: content || this.item.value.stylesheet,
 			scrollbarStyle: 'simple',

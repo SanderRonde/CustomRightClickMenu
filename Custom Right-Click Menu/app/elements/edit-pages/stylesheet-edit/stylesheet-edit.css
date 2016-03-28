@@ -271,7 +271,7 @@ input {
 	width: 250px;
 }
 
-#settingsContainer {
+stylesheet-edit #settingsContainer {
 	width: 477px;
 	height: calc(100% - 136px);
 }
