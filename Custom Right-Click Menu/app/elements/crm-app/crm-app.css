@@ -115,6 +115,11 @@ paper-ripple {
 	display: none;
 	flex-direction: row;
 	justify-content: space-between;
+	-webkit-user-select:none;
+}
+
+.editorCurrentScriptTitle span {
+	-webkit-user-select:initial;
 }
 
 #fullscreenEditorHorizontal {
@@ -759,4 +764,8 @@ edit-crm-item {
 
 .globalExcludeInput {
 	flex-grow: 100;
+}
+
+#editorToolsRibbon {
+	-webkit-user-select: none;
 }
