@@ -1,8 +1,7 @@
 ﻿var path = require('path');
-var util = require('utl');
+var util = require('util');
 
-
-var crmAPIFileLoc = 'https://github.com/SanderRonde/CustomRightClickMenu/blob/master/Custom%20Right-Click%20Menu/app/js/crmapi.js';
+var crmAPIFileLoc = '/crmapiDoc.html';
 
 function getDescr(commentLines) {
 	var descr = [];
@@ -39,7 +38,7 @@ function getTypeAndName(line) {
 	var lineSplit = result.lineSplit;
 
 	var name = lineSplit.trim().split(' ')[0];
-	
+
 	return {
 		type: type,
 		name: name
@@ -247,7 +246,7 @@ function extractDefsFromLine(definitions, defines, lines, lineNumber, isTypeDef)
 	//Get the comment block
 	var currentLine = lineNumber;
 	var commentBlockEnd = lineNumber - 1;
-	for (; lines[currentLine].indexOf('/*') === -1; currentLine--) {}
+	for (; lines[currentLine].indexOf('/*') === -1; currentLine--) { }
 	var commentBlockStart = currentLine;
 
 	parseCommentBlock(defines, cont, lines, commentBlockStart, commentBlockEnd);
@@ -281,8 +280,30 @@ function extractDefs(js) {
 	}
 
 	return {
-		'!name': 'crmAPI',
-		'crmAPI': definitions,
-		'!define': defines
+		defs: {
+			'!name': 'crmAPI',
+			'crmAPI': definitions,
+			'!define': defines
+		},
+		html: ''
 	};
+}
+
+module.exports = function (grunt) {
+	grunt.registerMultiTask('extractCrmDefs', 'Extacts the definitions and HTML for a help page for the crmapi.js file', function () {
+		grunt.log.writeln('this should be the write');
+		this.data.files.forEach(function (file) {
+			var sourceFile = file.src[0];
+			var defsOutput = file.src[1];
+			var htmlOutput = file.src[2];
+
+			var sourceFileContents = grunt.file.read(sourceFile);
+			var result = extractDefs(sourceFileContents);
+			var defs = 'window.crmAPIDefs = ' + JSON.stringify(result.defs);
+			var html = result.html;
+
+			grunt.file.write(defsOutput, defs);
+			grunt.file.write(htmlOutput, html);
+		});
+	});
 }
