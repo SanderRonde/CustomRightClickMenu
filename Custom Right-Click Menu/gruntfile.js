@@ -21,16 +21,38 @@ module.exports = function (grunt) {
 				},
 				files: fileObjects
 			}
+		},
+		extractCrmDefs: {
+			updateCRMDefs: {
+				files: [{
+					src: ['app/js/crmapi.js', 'app/js/crmAPIDefs.test.js', 'app/html/crmAPIDocs.test.html'],
+					dest: 'build/',
+					expand: true
+				}]
+			}
+		},
+		processhtml: {
+			inlineCRMAPIDocs: {
+				options: {
+					strip: true
+				},
+				files: {
+					'app/html/crmAPIDocs.output.html': ['app/html/crmAPIDocsUI.html']
+				}
+			}
 		}
 	});
 
+	grunt.loadTasks('tools');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-minified');
 	grunt.loadNpmTasks('grunt-contrib-htmlmin');
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-banner');
 	grunt.loadNpmTasks('grunt-crisper');
+	grunt.loadNpmTasks('grunt-processhtml');
 
 	grunt.registerTask('updateBower', ['crisper']);
-	grunt.registerTask('build', []);
+	grunt.registerTask('updateCRMDefs', ['extractCrmDefs', 'processhtml']);
+	grunt.registerTask('build', ['extractCrmDefs', 'processhtml']);
 }

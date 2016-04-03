@@ -143,7 +143,7 @@
 
 		/*
 		 * The nodes in an object where the key is the ID and the 
-		 * value is teh node
+		 * value is the node
 		 * 
 		 * @attribute nodesById
 		 * @type Object
@@ -434,46 +434,74 @@
 			this.fire('crmTypeChanged', {});
 		},
 
-		iconSwitch: function(e) {
-			var index = 0;
-			var path = e.path[index];
-			while (!path.classList.contains('crmType')) {
-				index++;
-				path = e.path[index];
-			}
-
+		iconSwitch: function (e, type) {
+			var i;
 			var crmEl;
-			var element = path;
 			var selectedType = this.crmType;
-			var crmTypes = document.querySelectorAll('.crmType');
-			for (var i = 0; i < 6; i++) {
-				crmEl = crmTypes.item(i);
-				if (crmEl === element) {
-					crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
-					crmEl.style.backgroundColor = 'rgb(243,243,243)';
-					crmEl.classList.add('toggled');
+			if (type !== undefined) {
+				for (i = 0; i < 6; i++) {
+					crmEl = document.querySelectorAll('.crmType').item(i);
+					if (i === type) {
+						crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+						crmEl.style.backgroundColor = 'rgb(243,243,243)';
+						crmEl.classList.add('toggled');
 
-					if (i === 5) {
-						$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(crmEl);
+						if (i === 5) {
+							$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(crmEl);
+						} else {
+							$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
+						}
+
+						selectedType = i;
 					} else {
-						$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
+						//Drop an element for some magic
+						crmEl.style.boxShadow = 'none';
+						crmEl.style.backgroundColor = 'white';
+						crmEl.classList.remove('toggled');
+
+						$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
 					}
+				}
+			} else {
+				var index = 0;
+				var path = e.path[index];
+				while (!path.classList.contains('crmType')) {
+					index++;
+					path = e.path[index];
+				}
+				var element = path;
+				var crmTypes = document.querySelectorAll('.crmType');
+				for (i = 0; i < 6; i++) {
+					crmEl = crmTypes.item(i);
+					if (crmEl === element) {
+						crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+						crmEl.style.backgroundColor = 'rgb(243,243,243)';
+						crmEl.classList.add('toggled');
 
-					selectedType = i;
-				} else {
-					//Drop an element for some magic
-					crmEl.style.boxShadow = 'none';
-					crmEl.style.backgroundColor = 'white';
-					crmEl.classList.remove('toggled');
+						if (i === 5) {
+							$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(crmEl);
+						} else {
+							$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
+						}
 
-					$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
+						selectedType = i;
+					} else {
+						//Drop an element for some magic
+						crmEl.style.boxShadow = 'none';
+						crmEl.style.backgroundColor = 'white';
+						crmEl.classList.remove('toggled');
+
+						$(crmEl).find('.crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight').remove();
+					}
 				}
 			}
 			chrome.storage.local.set({
 				selectedCrmType: selectedType
 			});
-			this.crmType = selectedType;
-			this.fire('crmTypeChanged', {});
+			if (this.crmType !== selectedType) {
+				this.crmType = selectedType;
+				this.fire('crmTypeChanged', {});
+			}
 		},
 
 		/**
@@ -706,24 +734,30 @@
 			var _this = this;
 			errs = errs + 1 || 0;
 			if (errs < 5) {
-				try {
-					var crmItem = this.crm.lookup(editingObj.crmPath);
-					var code = (crmItem.type === 'script' ? crmItem.script : crmItem.stylesheet);
-					_this.iconSwitch({ path: [$('.crmType.' + editingObj.crmType + 'Type')[0]] });
+				if (!window.CodeMirror) {
+					setTimeout(function() {
+						_this.restoreUnsavedInstances(editingObj, errs);
+					}, 500);
+				}
+				else {
+				var crmItem = _this.nodesById[editingObj.id];
+					var code = (crmItem.type === 'script' ? crmItem.value.script : crmItem.value.stylesheet);
+					_this.iconSwitch(null, editingObj.crmType);
 					$('.keepChangesButton').on('click', function() {
 						if (crmItem.type === 'script') {
-							crmItem.value.script =
-								editingObj.val;
+							crmItem.value.script = editingObj.val;
 						} else {
 							crmItem.value.stylesheet = editingObj.val;
 						}
+						options.upload();
 						chrome.storage.local.set({
 							editing: null
 						});
-						chrome.storage.local.get(function(items) {
-							console.log(items);
-							console.log(items.editing);
-						});
+						window.setTimeout(function() {
+							//Remove the CodeMirror instances for performance
+							window.doc.restoreChangesOldCodeCont.innerHTML = '';
+							window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+						}, 500);
 					});
 					$('.restoreChangesBack').on('click', function() {
 						window.doc.restoreChangesOldCode.style.display = 'none';
@@ -731,10 +765,15 @@
 						window.doc.restoreChangesMain.style.display = 'block';
 						window.doc.restoreChangesDialog.fit();
 					});
-					$('.discardButton').click(function() {
+					$('.discardButton').on('click', function() {
 						chrome.storage.local.set({
 							editing: null
 						});
+						window.setTimeout(function () {
+							//Remove the CodeMirror instances for performance
+							window.doc.restoreChangesOldCodeCont.innerHTML = '';
+							window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+						}, 500);
 					});
 					window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 					window.doc.restoreChangesOldCodeCont.innerHTML = '';
@@ -750,18 +789,13 @@
 					});
 					var unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
 						lineNumbers: true,
-						value: code,
+						value: editingObj.val,
 						scrollbarStyle: 'simple',
 						lineWrapping: true,
 						readOnly: 'nocursor',
 						theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 						indentUnit: window.app.settings.editor.tabSize,
 						indentWithTabs: window.app.settings.editor.useTabs
-					});
-					window.doc.restoreChangesDialog.addEventListener('iron-overlay-closed', function() {
-						//Remove the CodeMirror instances for performance
-						window.doc.restoreChangesOldCodeCont.innerHTML = '';
-						window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 					});
 					window.doc.restoreChangesShowOld.addEventListener('click', function() {
 						window.doc.restoreChangesMain.style.display = 'none';
@@ -794,6 +828,9 @@
 							$('.pageCont').animate({
 								backgroundColor: 'white'
 							}, 200);
+							$('.crmType').each(function () {
+								this.classList.remove('dim');
+							});
 							$('edit-crm-item').find('.item').animate({
 								opacity: 1
 							}, 200, function() {
@@ -805,10 +842,15 @@
 					var path = _this.nodesById[editingObj.id].path;
 					var highlightItem = function() {
 						document.body.style.pointerEvents = 'none';
-						var crmItem = $($($('#mainCont').children('div')[path.length - 1]).children('.CRMEditColumn')[0]).children('edit-crm-item')[path[path.length - 1]];
+						var columnConts = $('#mainCont').children('div');
+						var $columnCont = $(columnConts[(path.length - 1) + 2]);
+						var $paperMaterial = $($columnCont.children('paper-material')[0]);
+						var $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
+						var editCRMItems = $($crmEditColumn).children('edit-crm-item');
+						var crmElement = editCRMItems[path[path.length - 1]];
 						//Just in case the item doesn't exist (anymore)
-						if ($(crmItem).find('.item')[0]) {
-							$(crmItem).find('.item')[0].animate([
+						if ($(crmElement).find('.item')[0]) {
+							$(crmElement).find('.item')[0].animate([
 								{
 									opacity: 0.6
 								}, {
@@ -821,13 +863,16 @@
 								this.effect.target.style.opacity = 1;
 							};
 							setTimeout(function() {
-								stopHighlighting(crmItem);
-							}, 3250);
+								stopHighlighting(crmElement);
+							}, 2000);
 						} else {
 							window.doc.restoreChangesDialog.open();
 							$('.pageCont').animate({
 								backgroundColor: 'white'
 							}, 200);
+							$('.crmType').each(function () {
+								this.classList.remove('dim');
+							});
 							$('edit-crm-item').find('.item').animate({
 								opacity: 1
 							}, 200, function() {
@@ -842,8 +887,11 @@
 						window.doc.restoreChangesDialog.close();
 						$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
 						$('edit-crm-item').find('.item').css('opacity', 0.6);
+						$('.crmType').each(function () {
+							this.classList.add('dim');
+						});
 
-						setTimeout(function() {
+						setTimeout(function () {
 							if (path.length === 1) {
 								//Always visible
 								highlightItem();
@@ -865,24 +913,9 @@
 									highlightItem();
 								}
 							}
-						}, 250);
+						}, 500);
 					});
 					window.doc.restoreChangesDialog.open();
-				} catch (e) {
-					//Oh god what am i doing...
-					setTimeout(function() {
-						try {
-							$('.keepChangesButton').off('click');
-							$('.restoreChangesBack').off('click');
-							window.doc.restoreChangesDialog.close();
-							window.doc.restoreChangesDialog.removeEventListener('iron-overlay-closed');
-							window.doc.restoreChangesShowUnsaved.removeEventListener('click');
-							window.doc.restoreChangesShowOld.removeEventListener('click');
-						} catch (e) {
-						}
-
-						_this.restoreUnsavedInstances(editingObj, errs);
-					}, 400);
 				}
 			}
 		},
@@ -1715,13 +1748,22 @@
 						value: {
 							launchMode: parseInt(scriptLaunchMode, 10),
 							triggers: triggers,
-							//TODO update notice
 							updateNotice: true,
 							oldScript: scriptData,
 							script: this.legacyScriptReplace.convertScriptFromLegacy(scriptData, function(oldScriptErrors, newScriptErrors, parseError) {
-								chrome.storage.local.get(function(keys) {
-									keys.upgradeErrors = keys.upgradeErrors || {};
-									keys.upgradeErrors[id] = {
+								chrome.storage.local.get(function (keys) {
+									if (!keys.upgradeErrors) {
+										var val = {};
+										val[id] = {
+											oldScript: oldScriptErrors,
+											newScript: newScriptErrors,
+											generalError: parseError
+										};
+
+										keys.upgradeErrors = val;
+										window.app.storageLocal.upgradeErrors = val;
+									}
+									keys.upgradeErrors[id] = window.app.storageLocal.upgradeErrors[id] = {
 										oldScript: oldScriptErrors,
 										newScript: newScriptErrors,
 										generalError: parseError
@@ -1965,9 +2007,9 @@
 					if (storageLocal.editing) {
 						setTimeout(function() {
 							//Check out if the code is actually different
-							var node = _this.nodesById[storageLocal.editing.id].value;
-							var nodeCurrentCode = (node.script ? node.script : node.stylesheet);
-							if (nodeCurrentCode !== storageLocal.editing.val) {
+							var node = _this.nodesById[storageLocal.editing.id];
+							var nodeCurrentCode = (node.type === 'script' ? node.value.script : node.value.stylesheet);
+							if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
 								_this.restoreUnsavedInstances(storageLocal.editing);
 							} else {
 								chrome.storage.local.set({

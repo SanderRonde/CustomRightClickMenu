@@ -287,7 +287,10 @@ script-edit #settingsContainer {
 	position: absolute;
 	overflow: hidden;
 	right: 0;
-	z-index:50;
+}
+
+.CodeMirror.fullscreen #bubbleCont {
+	z-index: 50;
 }
 
 .CodeMirror.fullscreen #settingsContainer {

@@ -279,42 +279,43 @@
 					<a href="file:///C:/" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
 				</paper-toast>
 				<paper-toast id="storageExceededToast" text="Chrome storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later" duration="10000"></paper-toast>
+				<paper-toast id="noErrorsFound" text="No more errors found" duration="3500"></paper-toast>
 				<!--Dialogs-->
-				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<div id="restoreChangesMain">
-						<h2>We have detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
-						<br />
-						<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
-						<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
-						<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
-						<div class="buttons">
-							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-						</div>
+			<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<div id="restoreChangesMain">
+					<h2>It's been detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
+					<br/>
+					<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
+					<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
+					<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
+					<div class="buttons">
+						<paper-button class="keepChangesButton" dialog-confirm>Keep New</paper-button>
+						<paper-button class="discardButton" dialog-dismiss>Discard Old</paper-button>
 					</div>
-					<div id="restoreChangesOldCode">
-						<h2>
-							Old Code
-						</h2>
-						<div id="restoreChangesOldCodeCont"></div>
-						<div class="buttons">
-							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-							<paper-button class="restoreChangesBack">Back</paper-button>
-						</div>
+				</div>
+				<div id="restoreChangesOldCode">
+					<h2>
+						Old Code
+					</h2>
+					<div id="restoreChangesOldCodeCont"></div>
+					<div class="buttons">
+						<paper-button class="keepChangesButton" dialog-confirm>Keep New</paper-button>
+						<paper-button class="discardButton" dialog-dismiss>Discard Old</paper-button>
+						<paper-button class="restoreChangesBack">Back</paper-button>
 					</div>
-					<div id="restoreChangesUnsavedCode">
-						<h2>
-							Unsaved Code
-						</h2>
-						<div id="restoreChangeUnsaveddCodeCont"></div>
-						<div class="buttons">
-							<paper-button class="keepChangesButton" dialog-confirm>Keep</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-							<paper-button class="restoreChangesBack">Back</paper-button>
-						</div>
+				</div>
+				<div id="restoreChangesUnsavedCode">
+					<h2>
+						Unsaved Code
+					</h2>
+					<div id="restoreChangeUnsaveddCodeCont"></div>
+					<div class="buttons">
+						<paper-button class="keepChangesButton" dialog-confirm>Keep New</paper-button>
+						<paper-button class="discardButton" dialog-dismiss>Discard Old</paper-button>
+						<paper-button class="restoreChangesBack">Back</paper-button>
 					</div>
-				</paper-dialog>
+				</div>
+			</paper-dialog>
 				<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="chooseFileMainDialog">
 						<h2>Choose the file you want to keep</h2>
@@ -330,11 +331,20 @@
 						</div>
 					</div>
 					<div id="chooseFileMerger">
-						<h1>Merge the file to how you want it</h1>
+						<h1 id="chooseFileTitleTxt">Merge the file to how you want it</h1>
+						<div id="updateMergerCont">
+							<div id="updateMergerTxt"></div>
+						</div>
 						<div id="chooseFileMergerText">
-							<div id="chooseFileCurrentTxt">CRM Editor</div>
-							<div id="chooseFileResultTxt">Result</div>
-							<div id="chooseFileNewTxt">File</div>
+							<div id="chooseFileLeftTxtCont">
+								<div id="chooseFileCurrentTxt">CRM Editor</div>
+								<div id="updateMergeLeftNextError">click here to go to the next error.</div>
+							</div>
+							<div id="chooseFileResultTxt">Result<br id="updateMergePlaceholderBr"/></div>
+							<div id="chooseFileRightTxtCont">
+								<div id="chooseFileNewTxt">File</div>
+								<div id="updateMergeRightNextError">click here to go to the next error.</div>
+							</div>
 						</div>
 						<div id="chooseFileMergerEditor">
 							<div id="chooseFileMergerPlaceholder">
