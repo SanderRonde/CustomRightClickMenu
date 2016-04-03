@@ -1,4 +1,5 @@
 ﻿/// <reference path="../../crm-app/crm-app.js" />
+/// <reference path="~/app/bower_components/polymer/polymer-micro.js" />
 (function () {
 	'use strict';
 	Polymer({
@@ -1354,9 +1355,11 @@
 
 		createKeyBindingListener: function(element, binding) {
 			return function (event) {
+				console.log(event);
+				console.log(event.keyCode);
 				event.preventDefault();
 				//Make sure it's not just one modifier key being pressed and nothing else
-				if (event.keyCode < 16 && event.keyCode > 18) {
+				if (event.keyCode < 16 || event.keyCode > 18) {
 					//Make sure at least one modifier is being pressed
 					if (event.altKey || event.shiftKey || event.ctrlKey) {
 						var values = [];
@@ -1369,12 +1372,24 @@
 						if (event.shiftKey) {
 							values.push('Shift');
 						}
-						values.push(String.fromCharCode(event.charCode));
+
+						values.push(String.fromCharCode(event.keyCode));
 						var value = element.value = values.join('-');
 						element.lastValue = value;
 						window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {};
+						var prevValue = window.app.settings.editor.keyBindings[binding.storageKey];
+						if (prevValue) {
+							//Remove previous one
+							var prevKeyMap = {};
+							prevKeyMap[prevValue] = binding.fn;
+							window.scriptEdit.editor.remoeKeyMap(prevKeyMap);
+						}
+
+						var keyMap = {};
+						keyMap[value] = binding.fn;
+						window.scriptEdit.editor.addKeyMap(keyMap);
+
 						window.app.settings.editor.keyBindings[binding.storageKey] = value;
-						window.app.upload();
 					}
 				}
 
@@ -1382,6 +1397,59 @@
 				return;
 			};
 		},
+
+		keyBindings: [
+			{
+				name: 'AutoComplete',
+				defaultKey: 'Ctrl-Space',
+				storageKey: 'autoComplete',
+				fn: function(cm) {
+					window.app.ternServer.complete(cm);
+				}
+			}, {
+				name: 'Show Type',
+				defaultKey: 'Ctrl-I',
+				storageKey: 'showType',
+				fn: function (cm) {
+					window.app.ternServer.showType(cm);
+				}
+			}, {
+				name: 'Show Docs',
+				defaultKey: 'Ctrl-O',
+				storageKey: 'showDocs',
+				fn: function (cm) {
+					window.app.ternServer.showDocs(cm);
+				}
+			}, {
+				name: 'Go To Definition',
+				defaultKey: 'Alt-.',
+				storageKey: 'goToDef',
+				fn: function (cm) {
+					window.app.ternServer.jumpToDef(cm);
+				}
+			}, {
+				name: 'Jump Back',
+				defaultKey: 'Alt-,',
+				storageKey: 'jumpBack',
+				fn: function (cm) {
+					window.app.ternServer.jumpBack(cm);
+				}
+			}, {
+				name: 'Rename',
+				defaultKey: 'Ctrl-Q',
+				storageKey: 'rename',
+				fn: function (cm) {
+					window.app.ternServer.rename(cm);
+				}
+			}, {
+				name: 'Select Name',
+				defaultKey: 'Ctrl-.',
+				storageKey: 'selectName',
+				fn: function(cm) {
+					window.app.ternServer.selectName(cm);
+				}
+			}
+		],
 
 		/*
 		 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
@@ -1487,45 +1555,17 @@
 
 			$('<div id="editorSettingsTxt">Key Bindings</div>').appendTo(settingsContainer);
 
-			var keyBindings = [
-				{
-					name: 'AutoComplete',
-					defaultKey: 'Ctrl-Space',
-					storageKey: 'autocomplete'
-				}, {
-					name: 'Show Type',
-					defaultKey: 'Ctrl-I',
-					storageKey: 'showType'
-				}, {
-					name: 'Show Docs',
-					defaultKey: 'Ctrl-O',
-					storageKey: 'showDocs'
-				}, {
-					name: 'Go To Definition',
-					defaultKey: 'Alt-.',
-					storageKey: 'goToDef'
-				}, {
-					name: 'Rename',
-					defaultKey: 'Ctrl-Q',
-					storageKey: 'rename'
-				}, {
-					name: 'Select Name',
-					defaultKey: 'Ctrl-.',
-					storageKey: 'selectName'
-				}
-			];
-
 			var $cont, $input, $keyInput, keyInput, value;
 			window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {};
-			for (var i = 0; i < keyBindings.length; i++) {
-				value = window.app.settings.editor.keyBindings[keyBindings[i].storageKey] || keyBindings[i].defaultKey;
+			for (var i = 0; i < this.keyBindings.length; i++) {
+				value = window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey] || this.keyBindings[i].defaultKey;
 				$cont = $('<div class="keyBindingSetting"></div>');
-				$('<div class="keyBindingSettingName">' + keyBindings[i].name + '</div>').appendTo($cont);
+				$('<div class="keyBindingSettingName">' + this.keyBindings[i].name + '</div>').appendTo($cont);
 				$input = $('<div class="keyBindingSettingInput"></div>');
 				$keyInput = $('<paper-input label="Press some keys" class="keyBindingSettingKeyInput" value="' + value + '"></paper-input>');
 				keyInput = $keyInput[0];
 				keyInput.lastValue = value;
-				keyInput.addEventListener('keydown', this.createKeyBindingListener(keyInput, keyBindings[i]));
+				keyInput.addEventListener('keydown', this.createKeyBindingListener(keyInput, this.keyBindings[i]));
 				$keyInput.appendTo($input);
 				$input.appendTo($cont);
 				$cont.appendTo(settingsContainer);
@@ -1536,30 +1576,11 @@
 		 * Initializes the keybindings for the editor
 		 */
 		initTernKeyBindings: function () {
-			//TODO make this changable
-			this.editor.setOption('extraKeys', {
-				"Ctrl-Space": function(cm) {
-					window.app.ternServer.complete(cm);
-				},
-				"Ctrl-I": function(cm) {
-					window.app.ternServer.showType(cm);
-				},
-				"Ctrl-O": function(cm) {
-					window.app.ternServer.showDocs(cm);
-				},
-				"Alt-.": function(cm) {
-					window.app.ternServer.jumpToDef(cm);
-				},
-				"Alt-,": function(cm) {
-					window.app.ternServer.jumpBack(cm);
-				},
-				"Ctrl-Q": function(cm) {
-					window.app.ternServer.rename(cm);
-				},
-				"Ctrl-.": function(cm) {
-					window.app.ternServer.selectName(cm);
-				}
-			});
+			var keySettings = {};
+			for (var i = 0; i < this.keyBindings.length; i++) {
+				keySettings[window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey]] = this.keyBindings[i].fn;
+			}
+			this.editor.setOption('extraKeys', keySettings);
 			this.editor.on('cursorActivity', function(cm) {
 				window.app.ternServer.updateArgHints(cm);
 			});

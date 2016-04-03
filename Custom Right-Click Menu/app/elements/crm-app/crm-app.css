@@ -344,6 +344,14 @@ a:focus::before {
 	height: calc(100vh - 148px);
 }
 
+.updateMerge #chooseFileMergerEditor, .updateMerge .CodeMirror-merge-3pane .CodeMirror-merge-pane, .updateMerge .CodeMirror-merge-3pane .CodeMirror-merge-gap {
+	height: calc(100vh - 164px);
+}
+
+.updateMerge #chooseFileTitleTxt {
+	margin-bottom: 0;
+}
+
 .CodeMirror-merge, .CodeMirror-merge .CodeMirror {
 	height: 100%;
 }
@@ -367,15 +375,18 @@ a:focus::before {
 
 #chooseFileMergerText {
 	display: flex;
-	justify-content: space-around;
-	margin-bottom:10px;
+	justify-content: space-between;
+	margin: 0 -33px 10px -33px;
 }
 
 #chooseFileCurrentTxt, #chooseFileResultTxt, #chooseFileNewTxt {
 	font-size: 150%;
 	font-weight: bold;
-	width: 31%;
 	text-align: center;
+}
+
+#chooseFileLeftTxtCont,  #chooseFileResultTxt, #chooseFileRightTxtCont{
+	width: 31%;
 }
 
 #chooseFileMergerPlaceholder {
@@ -432,7 +443,7 @@ a:focus::before {
 }
 
 paper-toast {
-	z-index: 9000;
+	z-index: 12000;
 }
 
 #restoreChangesOldCode, #restoreChangesUnsavedCode {
@@ -629,6 +640,14 @@ body.editingScript .cssTool {
 		background-color: rgb(220,220,220);
 	}
 
+	.crmType.dim {
+		background-color: rgba(0,0,0,0)!important;
+	}
+
+		.crmType.dim .crmTypeShadowMagicElement {
+			background: none;
+		}
+
 .crmTypeTxt {
 	font-weight: 500;
 	text-align: center;
@@ -768,4 +787,19 @@ edit-crm-item {
 
 #editorToolsRibbon {
 	-webkit-user-select: none;
+}
+
+.CodeMirror-merge .CodeMirror {
+	font-size: 100% !important;
+}
+
+#updateMergeRightNextError, #updateMergeLeftNextError {
+	text-align: center;
+	font-weight:bold;
+	cursor:pointer;
+	-webkit-user-select: none;
+}
+
+#updateMergeRightNextError:hover, #updateMergeLeftNextError:hover {
+	text-decoration:underline;
 }

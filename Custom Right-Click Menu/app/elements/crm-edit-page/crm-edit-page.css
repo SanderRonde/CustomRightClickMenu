@@ -22,7 +22,7 @@
 	justify-content: center;
 }
 
-#nodeInfo {
+#nodeInfo, #scriptUpdateNotice {
 	background-color: #3F51B5;
     color: white;
     font-size: 125%;
@@ -32,15 +32,49 @@
     justify-content: space-between;
 }
 
-	#nodeInfo a {
+#scriptUpdateNotice {
+	background-color: #E65100;
+	max-width:890px;
+}
+
+	#nodeInfo a, #scriptUpdateNotice a {
 		color: white;
 		text-decoration: underline;
 	}
 
-#nodeInfo span::selection, #nodeInfo b::selection, #nodeInfo a::selection, #nodeInfo div::selection {
+#nodeInfo span::selection, #nodeInfo b::selection, #nodeInfo a::selection, #nodeInfo div::selection,
+#scriptUpdateNotice span::selection, #scriptUpdateNotice b::selection, #scriptUpdateNotice a::selection, #scriptUpdateNotice div::selection {
     background-color: white;
     color: black;
 }
+
+#scriptUpdateMessage, #scriptUpdateStatus {
+	display:inline;
+}
+
+#scriptUpdateWarningIcon {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	fill: white;
+	padding-right: 8px;
+}
+
+#scriptUpdateHideDialog {
+	fill: white;
+	margin-top: -5px;
+    margin-right: -5px;
+	cursor: pointer;
+}
+
+.scriptUpdateTextButton {
+	font-weight: bold;
+	cursor: pointer;
+}
+
+	.scriptUpdateTextButton:hover {
+		text-decoration: underline;
+	}
 
 menu-edit, divider-edit, link-edit {
 	display: flex;

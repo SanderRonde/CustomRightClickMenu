@@ -162,6 +162,18 @@ Polymer({
 			type: Object,
 			value: {},
 			notify: true
+		},
+		/*
+		 * Whether to hide the update message
+		 * 
+		 * @attribute hideUpdateMessage
+		 * @type Boolean
+		 * @default true
+		 */
+		hideUpdateMessage: {
+			type: Boolean,
+			value: true,
+			notify: true
 		}
 	},
 
@@ -232,6 +244,7 @@ Polymer({
 		this.$overlayEl.off('click');
 		this.playAnimation('exit');
 		this.opened = false;
+		document.getElementsByTagName('html').style.overflow = 'auto';
 	},
 
 	updateNodeInfo: function(obj, path) {
@@ -250,6 +263,63 @@ Polymer({
 		this.notifyPath('item.name', value);
 	},
 
+	showUpgradeNotice: function (hideUpdateMessage, node) {
+		return !hideUpdateMessage && (node && node.type === 'script' && node.value && node.value.updateNotice);
+	},
+
+	getScriptUpdateStatus: function(node) {
+		if (node) {
+			if (window.app.storageLocal.upgradeErrors) {
+				if (window.app.storageLocal.upgradeErrors[node.id]) {
+					return 'Some errors have occurred in updating this script. Please resolve them by clicking the link and replace any chrome ' +
+						'calls on error lines with their CRM API equivalent.';
+				}
+			}
+			return 'No errors have been detected in updating this script but this is no guarantee it will work, be sure to test it at least once.';
+		}
+		return '';
+	},
+
+	hideUpdateMergeDialog: function () {
+		var _this = this;
+		if (this.showUpgradeNotice(this.hideUpdateMessage, this.item)) {
+			var height = this.$.scriptUpdateNotice.getBoundingClientRect().height;
+			var marginBot = '-' + height + 'px';
+			this.$.scriptUpdateNotice.animate([
+				{
+					marginBottom: '0px'
+				}, {
+					marginBottom: marginBot
+				}
+			], {
+				duration: 350,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function() {
+				_this.$.scriptUpdateNotice.style.marginBottom = marginBot;
+				_this.hideUpdateMessage = true;
+			};
+		}
+		window.scriptEdit.newSettings.value.updateNotice = false;
+	},
+
+	showScriptUpdateDiff: function () {
+		var _this = this;
+		var oldScript = this.item.value.oldScript;
+		var newScript = this.item.value.script;
+		window.doc.externalEditorChooseFile.init(oldScript, newScript, function(result) {
+			delete window.app.storageLocal.upgradeErrors[_this.item.id];
+			window.scriptEdit.editor.setValue(result);
+			setTimeout(function() {
+				_this.hideUpdateMergeDialog();
+			}, 250);
+			chrome.storage.local.set({
+				upgradeErrors: window.app.storageLocal.upgradeErrors
+			});
+		}, true, window.app.storageLocal.upgradeErrors && window.app.storageLocal.upgradeErrors[this.item.id]);
+		window.externalEditor.showMergeDialog(window.externalEditor, oldScript, newScript);
+		window.doc.externalEditorChooseFile.open();
+	},
+
 	ready: function () {
 		$('.popupCont').click(function(e) {
 			e.stopPropagation();
@@ -263,6 +333,7 @@ Polymer({
 		console.trace();
 		var _this = this;
 		var valueStorer = {};
+		this.hideUpdateMessage = false;
 		this.scriptItem = this.linkItem = this.dividerItem = this.menuItem = this.stylesheetItem = {};
 		if ((valueStorer.isScript = this.item.type === 'script')) {
 			this.scriptItem = this.item;

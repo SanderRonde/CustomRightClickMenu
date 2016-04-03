@@ -776,16 +776,25 @@ li.CodeMirror-hint-active {
 }
 
 .CodeMirror-merge-r-chunk { background: #ffffe0; }
+.cm-s-dark .CodeMirror-merge-r-chunk {
+	background: rgba(255, 255, 224, 0.34);
+}
 .CodeMirror-merge-r-chunk-start { border-top: 1px solid #ee8; }
 .CodeMirror-merge-r-chunk-end { border-bottom: 1px solid #ee8; }
 .CodeMirror-merge-r-connect { fill: #ffffe0; stroke: #ee8; stroke-width: 1px; }
 
 .CodeMirror-merge-l-chunk { background: #eef; }
+.cm-s-dark .CodeMirror-merge-l-chunk {
+	background: rgba(238, 238, 255, 0.45);
+}
 .CodeMirror-merge-l-chunk-start { border-top: 1px solid #88e; }
 .CodeMirror-merge-l-chunk-end { border-bottom: 1px solid #88e; }
 .CodeMirror-merge-l-connect { fill: #eef; stroke: #88e; stroke-width: 1px; }
 
 .CodeMirror-merge-l-chunk.CodeMirror-merge-r-chunk { background: #dfd; }
+.cm-s-dark .CodeMirror-merge-l-chunk.CodeMirror-merge-r-chunk {
+	background: rgba(221, 255, 221, 0.47);
+}
 .CodeMirror-merge-l-chunk-start.CodeMirror-merge-r-chunk-start { border-top: 1px solid #4e4; }
 .CodeMirror-merge-l-chunk-end.CodeMirror-merge-r-chunk-end { border-bottom: 1px solid #4e4; }
 
@@ -893,4 +902,14 @@ li.CodeMirror-hint-active {
 
 .CodeMirror.small .codeMirrorSearchDialog paper-input {
 	width:245px;
+}
+
+.CodeMirror-code .updateError {
+	border-bottom: 2px solid red;
+    background-color: rgba(255,0,0,0.25);
+}
+
+.CodeMirror-code .errorHighlight {
+	border-bottom: 1px solid red;
+	background-color: rgba(255,0,0,0.5);
 }

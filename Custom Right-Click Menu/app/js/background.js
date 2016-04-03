@@ -145,7 +145,7 @@
 		scriptInstallListeners: {},
 		constants: {
 			//The url to the install page
-			installUrl: chrome.runtime.getURL('install.html'),
+			installUrl: chrome.runtime.getURL('html/install.html'),
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
 			//#region Templates
