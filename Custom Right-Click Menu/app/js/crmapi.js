@@ -479,6 +479,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		}
 	}
 
+	/*
+	 * Removes a listener currently added by using comm.addListener
+	 * 
+	 * @param {listener} listener - The listener to remove
+	 */
 	this.comm.removeListener = function(listener) {
 		commListeners.splice(commListeners.indexOf(listener), 1);
 		if (commListeners.length === 0) {
@@ -613,7 +618,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * Deletes the data at given key given value
 	 * 
-	 * @param {string|array} keyPath The path at which to look, can be either
+	 * @param {string|array} keyPath - The path at which to look, can be either
 	 *		a string with dots seperating the path, an array with each entry holding
 	 *		one section of the path, or just a plain string without dots as the key
 	 */
@@ -646,7 +651,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		return undefined;
 	};
 
+	/*
+	 * Functions related to the onChange event of the storage API
+	 * 
+	 * @type Object
+	 */
 	this.storage.onChange = {};
+
 	/**
 	 * Adds an onchange listener for the storage, listens for a key if given
 	 * 
@@ -691,6 +702,14 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region PageAPI
+	/*
+	 * General CRM API functions
+	 * 
+	 * @type Object
+	 * @noLog
+	 */
+	this.general = this;
+
 	/**
 	 * Gets the current text selection
 	 * 
@@ -894,8 +913,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 
 	/**
-	 * Gets the CRM tree from the tree's root - requires permission "crmGet"
+	 * Gets the CRM tree from the tree's root
 	 * 
+	 * @permission crmGet
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
 	this.crm.getTree = function (callback) {
@@ -903,8 +923,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the CRM's tree from either the root or from the node with ID nodeId - requires permission "crmGet"
+	 * Gets the CRM's tree from either the root or from the node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The ID of the tree's root node
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
@@ -915,8 +936,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the node with ID nodeId - requires permission "crmGet"
+	 * Gets the node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
 	 */
 	this.crm.getNode = function (nodeId, callback) {
@@ -926,8 +948,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets a node's ID from a path to the node - requires permission "crmGet"
+	 * Gets a node's ID from a path to the node
 	 * 
+	 * @permission crmGet
 	 * @param {number[]} path - An array of numbers representing the path, each number
 	 *		represents the n-th child of the current node, so [1,2] represents the 2nd item(0,>1<,2)'s third child (0,1,>2<,3)
 	 * @param {function} callback - The function that is called with the ID as an argument
@@ -939,9 +962,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Queries the CRM for any items matching your query - requires permission "crmGet"
+	 * Queries the CRM for any items matching your query
 	 * 
-	 * @param {crmCallback} callback The function to call when done, returns one array of results
+	 * @permission crmGet
+	 * @param {crmCallback} callback - The function to call when done, returns one array of results
 	 * @param {Object} query - The query to look for
 	 * @param {string} [query.name] - The name of the item
 	 * @param {string} [query.type] - The type of the item (link, script, divider or menu)
@@ -955,8 +979,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the parent of the node with ID nodeId - requires permission "crmGet"
+	 * Gets the parent of the node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The node of which to get the parent
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the parent of the given node as an argument
 	 */
@@ -967,8 +992,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the children of the node with ID nodeId - requires permission "crmGet"
+	 * Gets the children of the node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node whose children to get
 	 * @param {function} callback - A callback with an array of CrmAPIInit~crmNode nodes as the parameter
 	 */
@@ -979,8 +1005,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the type of node with ID nodeId - requires permission "crmGet"
+	 * Gets the type of node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node whose type to get
 	 * @param {function} callback - A callback with the type of the node as the parameter (link, script, menu or divider)
 	 */
@@ -991,8 +1018,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the value of node with ID nodeId - requires permission "crmGet"
+	 * Gets the value of node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node whose value to get
 	 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal, CrmAPIInit~stylesheetVal or an empty object depending on type
 	 */
@@ -1003,8 +1031,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Creates a node with the given options - requires permission "crmGet" and "crmWrite"
+	 * Creates a node with the given options
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {Object} options - An object containing all the options for the node
 	 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last if not given
 	 * @param {number} [options.position.node] - The other node, if not given, "relates" to the root
@@ -1046,8 +1076,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		2 = run on specified pages
 	 *		3 = only show on specified pages
 	 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
-	 * @param {boolean} - [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
-     * @param {boolean} - [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
+	 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
+     * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
      * @param {Object[]} [options.stylesheetData.triggers] - A trigger for the stylesheet to run, not required
 	 * @param {string} [options.stylesheetData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
@@ -1059,11 +1089,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Copies given node, - requires permission "crmGet" and "crmWrite"
+	 * Copies given node,
 	 * WARNNG: following properties are not copied:
 	 *		file, storage, id, permissions, nodeInfo
 	 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node to copy
 	 * @param {Object} options - An object containing all the options for the node
 	 * @param {string} [options.name] - The new name of the object (same as the old one if none given)
@@ -1089,8 +1121,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Moves given node to position specified in "position" - requires permission "crmGet" and "crmWrite"
+	 * Moves given node to position specified in "position"
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node to move
 	 * @param {Object} [position] - An object containing info about where to place the item, defaults to last child of root if not given
 	 * @param {number} [position.node] - The other node, if not given, "relates" to the root
@@ -1114,8 +1148,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Deletes given node - requires permission "crmGet" and "crmWrite"
+	 * Deletes given node
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node to delete
 	 * @param {function} callback - A function to run when done, contains an argument containing true if it worked, otherwise containing the error message
 	 */
@@ -1126,8 +1162,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Edits given settings of the node - requires permission "crmGet" and "crmWrite"
+	 * Edits given settings of the node
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node to edit
 	 * @param {Object} options - An object containing the settings for what to edit
 	 * @param {string} [options.name] - Changes the name to given string
@@ -1145,8 +1183,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the triggers for given node - requires permission "crmGet"
+	 * Gets the triggers for given node
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers as an argument
 	 */
@@ -1157,8 +1196,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Sets the triggers for given node - requires permissions "crmGet" and "crmSet"
+	 * Sets the triggers for given node
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {Object[]} triggers - The triggers that launch this node, automatically turns triggers on
 	 * @param {string} triggers.url - The url of the trigger
@@ -1182,8 +1223,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
-	 *		link, menu and divider - requires permission "crmGet"
+	 *		link, menu and divider
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
 	 */
@@ -1195,8 +1237,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Sets the usage of triggers for given node, only works on link, menu and divider
-	 *		 - requires permissions "crmGet" and "crmSet"
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {boolean} useTriggers - Whether the triggers should be used or not
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
@@ -1209,8 +1252,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the content types for given node - requires permission "crmGet"
+	 * Gets the content types for given node
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node of which to get the content types
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
 	 */
@@ -1221,8 +1266,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Sets the content type at index "index" to given value "value"- requires permissions "crmGet" and "crmWrite"
+	 * Sets the content type at index "index" to given value "value"
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node whose content types to set
 	 * @param {number} index - The index of the array to set, 0-5, ordered this way: 
 	 *		page, link, selection, image, video, audio
@@ -1238,8 +1285,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Sets the content types to given contentTypes array - requires permissions "crmGet" and "crmWrite"
+	 * Sets the content types to given contentTypes array
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node whose content types to set
 	 * @param {string[]} contentTypes - An array of strings, if a string is present it means that it is displayed
 	 *		on that content type. Requires at least one type to be active, otherwise all are activated.
@@ -1269,8 +1318,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.crm.link = {};
 
 	/**
-	 * Gets the links of the node with ID nodeId - requires permission "crmGet"
+	 * Gets the links of the node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node to get the links from
 	 * @param {function} callback - A callback with an array of objects as parameters, each containg two keys: 
 	 *		newTab: Whether the link should open in a new tab or the current tab
@@ -1283,8 +1333,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Pushes given items into the array of URLs of node with ID nodeId - requires permission "crmGet" and "crmWrite"
+	 * Pushes given items into the array of URLs of node with ID nodeId
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node to push the items to
 	 * @param {Object[]|Object} items - An array of items or just one item to push
 	 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
@@ -1300,8 +1352,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Splices the array of URLs of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-	 * and returns them as an array in the callback function - requires permission "crmGet" and "crmWrite"
+	 * and returns them as an array in the callback function
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node to splice
 	 * @param {nunber} start - The index of the array at which to start splicing
 	 * @param {nunber} amount - The amount of items to splice
@@ -1323,8 +1377,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.crm.script = {};
 
 	/**
-	 * Sets the launch mode of node with ID nodeId to "launchMode" - requires permission "crmGet" and "crmWrite"
+	 * Sets the launch mode of node with ID nodeId to "launchMode"
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node to edit
 	 * @param {number} launchMode - The new launchMode, which is the time at which this script runs
 	 * 		0 = run on clicking
@@ -1341,8 +1397,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the launchMode of the node with ID nodeId - requires permission "crmGet"
+	 * Gets the launchMode of the node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node to get the launchMode of
 	 * @param {function} callback - A callback with the launchMode as an argument
 	 */
@@ -1361,8 +1418,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Pushes given libraries to the node with ID nodeId's libraries array,
-	 * make sure to register them first or an error is thrown - requires permission "crmGet" and "crmWrite"
+	 * make sure to register them first or an error is thrown
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node to edit
 	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
 	 * @param {string} libraries.name - The name of the library
@@ -1377,8 +1436,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-	 * and returns them as an array in the callback function - requires permission "crmGet" and "crmWrite"
+	 * and returns them as an array in the callback function
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node to splice
 	 * @param {nunber} start - The index of the array at which to start splicing
 	 * @param {nunber} amount - The amount of items to splice
@@ -1393,8 +1454,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Sets the script of node with ID nodeId to value "script" - requires permission "crmGet" and "crmWrite"
+	 * Sets the script of node with ID nodeId to value "script"
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The node of which to change the script
 	 * @param {string} value - The code to change to
 	 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
@@ -1407,8 +1470,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Gets the value of the script - requires permission "crmGet"
+	 * Gets the value of the script
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node of which to get the script
 	 * @param {function} callback - A callback with the script's value as an argument
 	 */
@@ -1426,8 +1490,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.crm.menu = {};
 
 	/**
-	 * Gets the children of the node with ID nodeId - requires permission "crmGet"
+	 * Gets the children of the node with ID nodeId
 	 * 
+	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node of which to get the children
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
 	 */
@@ -1438,8 +1503,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds - requires permission "crmGet" and "crmWrite"
+	 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node of which to set the children
 	 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
@@ -1452,8 +1519,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * Pushes the nodes with IDs childrenIds to the node with ID nodeId - requires permission "crmGet" and "crmWrit"
+	 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node of which to push the children
 	 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 	 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
@@ -1467,8 +1536,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Splices the children of the node with ID nodeId, starting at "start" and splicing "amount" items, 
-	 * the removed items will be put in the root of the tree instead - requires permission "crmGet" and "crmWrite"
+	 * the removed items will be put in the root of the tree instead
 	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node of which to splice the children
 	 * @param {number} start - The index at which to start
 	 * @param {number} amount - The amount to splice
@@ -1482,15 +1553,16 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	/**
-	 * The libraries API used to register libraries, requires permission crmWrite
+	 * The libraries API used to register libraries
 	 * 
 	 * @type Object
 	 */
 	this.libraries = {};
 
 	/**
-	 * Registers a library with name "name", requires permission "crmWrite"
+	 * Registers a library with name "name"
 	 * 
+	 * @permission crmWrite
 	 * @param {string} name - The name to give the library
 	 * @param {Object} options - The options related to the library
 	 * @param {string} [options.url] - The url to fetch the code from, must end in .js
@@ -1651,6 +1723,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
 	 * permission "bookmarks", chrome.alarms requires "alarms"
 	 * 
+	 * @permission chrome
 	 * @param {string} api - The API to use
 	 * @returns {Object} - An object on which you can call .args, .fn, .return and .send
 	 */
@@ -2031,7 +2104,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * The unsafeWindow object provides full access to the pages javascript functions and variables.
 	 * 
 	 * @see {@link https://tampermonkey.net/documentation.php#unsafeWindow}
-	 * @type Object
+	 * @type Window
 	 */
 	this.GM.unsafeWindow = window;
 

@@ -25,7 +25,7 @@ module.exports = function (grunt) {
 		extractCrmDefs: {
 			updateCRMDefs: {
 				files: [{
-					src: ['app/js/crmapi.js', 'app/js/crmAPIDefs.test.js', 'app/html/crmAPIDocs.test.html'],
+					src: ['app/js/crmapi.js', 'app/js/crmAPIDefs.test.js', 'app/html/crmAPIDocs.html'],
 					dest: 'build/',
 					expand: true
 				}]
@@ -37,7 +37,7 @@ module.exports = function (grunt) {
 					strip: true
 				},
 				files: {
-					'app/html/crmAPIDocs.output.html': ['app/html/crmAPIDocsUI.html']
+					'app/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html']
 				}
 			}
 		}

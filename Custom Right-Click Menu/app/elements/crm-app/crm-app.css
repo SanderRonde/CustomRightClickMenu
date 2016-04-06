@@ -289,7 +289,7 @@ iron-overlay-backdrop {
 a {
 	position: relative;
 	text-decoration: none;
-	color: rgb(0, 119, 255);
+	color: rgb(44, 161, 220);
 }
 
 a:focus {

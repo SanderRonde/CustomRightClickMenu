@@ -549,7 +549,8 @@
     <Content Include="app\bower_components\webcomponentsjs\webcomponents-lite.min.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.js" />
     <Content Include="app\bower_components\webcomponentsjs\webcomponents.min.js" />
-    <Content Include="app\codemirrorStyles\codemirror.css" />
+    <Content Include="app\css\codemirror.css" />
+    <Content Include="app\css\crmAPIDocs.css" />
     <Content Include="app\elements\center-element\center-element.css" />
     <Content Include="app\elements\center-element\center-element.html" />
     <Content Include="app\elements\center-element\center-element.js" />
@@ -604,6 +605,7 @@
     <Content Include="app\elements\tools\use-external-editor\use-external-editor.html" />
     <Content Include="app\elements\tools\use-external-editor\use-external-editor.js" />
     <Content Include="app\html\crmAPIDocs.html" />
+    <Content Include="app\html\crmAPIDocsElements.html" />
     <Content Include="app\html\crmAPIDocsUI.html" />
     <Content Include="app\html\options.html" />
     <Content Include="app\images\audio.svg" />
@@ -666,11 +668,11 @@
     <Content Include="app\icon-small.png" />
     <Content Include="app\icon-supersmall.png" />
     <Content Include="app\js\crmAPIDefs.js" />
+    <Content Include="app\js\crmAPIDocs.js" />
     <Content Include="app\js\diff_match_patch.js" />
     <Content Include="app\js\e.js" />
     <Content Include="app\js\encryption.js" />
     <Content Include="app\js\eo.js" />
-    <Content Include="app\js\extractDefs.js" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
     <Content Include="app\js\jquery-ui.min.js" />
     <Content Include="app\js\jquery.bez.js" />
@@ -893,6 +895,13 @@
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
+    <Content Include="web.config" />
+    <None Include="web.Debug.config">
+      <DependentUpon>web.config</DependentUpon>
+    </None>
+    <None Include="web.Release.config">
+      <DependentUpon>web.config</DependentUpon>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\manifest.json" />
