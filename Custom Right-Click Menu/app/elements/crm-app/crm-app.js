@@ -1981,6 +1981,7 @@
 
 		ready: function () {
 			//TODO version upgrade message
+			//TODO error reporting tool
 			var _this = this;
 			this.crm.parent = this;
 			window.app = this;
@@ -2069,7 +2070,6 @@
 								var jsonString = settingsJsonArray.join('');
 								_this.settingsJsonLength = jsonString.length;
 								var settings = JSON.parse(jsonString);
-								console.log(settings);
 								callback(settings);
 							}
 						});

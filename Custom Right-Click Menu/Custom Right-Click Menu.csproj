@@ -575,6 +575,9 @@
     <Content Include="app\elements\edit-pages\stylesheet-edit\stylesheet-edit.css" />
     <Content Include="app\elements\edit-pages\stylesheet-edit\stylesheet-edit.html" />
     <Content Include="app\elements\edit-pages\stylesheet-edit\stylesheet-edit.js" />
+    <Content Include="app\elements\error-reporting-tool\error-reporting-tool.css" />
+    <Content Include="app\elements\error-reporting-tool\error-reporting-tool.html" />
+    <Content Include="app\elements\error-reporting-tool\error-reporting-tool.js" />
     <Content Include="app\elements\installing\install-confirm\install-confirm.css" />
     <Content Include="app\elements\installing\install-confirm\install-confirm.html" />
     <Content Include="app\elements\installing\install-confirm\install-confirm.js" />

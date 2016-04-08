@@ -1,0 +1,77 @@
+﻿<html>
+<head>
+</head>
+<body>
+	<dom-module id="error-reporting-tool">
+		<link rel="stylesheet" href="error-reporting-tool.css">
+		<template>
+			<div id="error-reporting-overlay">
+				<div id="errorToolContent">
+					<canvas id="cropCanvas"></canvas>
+					<div id="iconContent">
+						<paper-material elevation="5" id="reportingButtonElevation">
+							<paper-icon-button noink id="reportBugButton" icon="bug-report" on-tap="reportBug"></paper-icon-button>
+							<paper-ripple></paper-ripple>
+						</paper-material>
+					</div>
+				</div>
+				<div id="overlay" on-track="handleSelection">
+				</div>
+			</div>
+			<center-element fullscreenoverlay id="errorReportingCenterer">
+				<paper-dialog with-backdrop id="errorReportingDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<br/>
+					<h2>Reporting a bug or suggesting a feature</h2>
+					<div>
+						<span>
+							You can report a bug that happened or a feature you would like to see in this extension. If you want you can also highlight a section of the page and send it along. 
+						</span>
+						<span class="bugReportInfo" hidden$="{{!isBugType(reportType)}}">By reporting a bug you agree to send along your settings including the CRM itself.</span>
+					</div>
+					<div class="imagesContainer">
+						<div class="imagesTitle">Screen Capture</div>
+						<div class="imgContainer" hidden$="[[isEmptyImage(image)]]" on-tap="addCapture">
+							<canvas src="[[image]]" class="capture"></canvas>
+						</div>
+						<div class="addImg" hidden$="[[!isEmptyImage(image)]]">
+							<paper-button on-tap="addCapture" raised>ADD</paper-button>
+						</div>
+					</div>
+					<paper-radio-group selected="{{reportType}}">
+						<paper-radio-button name="bug">Reporting a bug</paper-radio-button>
+						<paper-radio-button name="feature">Suggesting a feature</paper-radio-button>
+					</paper-radio-group>
+					<div class="buttons">
+						<paper-button dialog-dismiss on-tap="submitErrorReport">submit</paper-button>
+						<paper-button dialog-dismiss>close</paper-button>
+					</div>
+				</paper-dialog>
+			</center-element>
+			<center-element fullscreenoverlay id="onErrorCenterer">
+				<paper-dialog with-backdrop id="onErrorDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<br />
+					<h2>An error occurred</h2>
+					<div>
+						It appears an error occurred on the page. If you'd like to you can report it. This is the error that occurred:
+					</div>
+					<div id="errorCont"></div>
+					<div class="imagesContainer">
+						<div class="imagesTitle">Screen Capture</div>
+						<div class="imgContainer" hidden$="[[isEmptyImage(image)]]" on-tap="addCapture">
+							<canvas src="[[image]]" class="capture"></canvas>
+						</div>
+						<div class="addImg" hidden$="[[!isEmptyImage(image)]]">
+							<paper-button on-tap="addCapture" raised>ADD</paper-button>
+						</div>
+					</div>
+					<div class="buttons">
+						<paper-button dialog-dismiss on-tap="submitErrorReport">submit</paper-button>
+						<paper-button dialog-dismiss>close</paper-button>
+					</div>
+				</paper-dialog>
+			</center-element>
+		</template>
+	</dom-module>
+	<script src="error-reporting-tool.js"></script>
+</body>
+</html>
