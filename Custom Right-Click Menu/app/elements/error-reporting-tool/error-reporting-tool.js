@@ -28,15 +28,6 @@
 	 */
 	lastPos: {},
 
-	/*
-	 * The function to call when submitting a report
-	 * 
-	 * @attribute onSubmitReport
-	 * @type Function
-	 * @default null
-	 */
-	onSubmitReport: null,
-
 	properties: {
 		/*
 		 * The type of the report
