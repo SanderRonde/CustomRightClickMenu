@@ -140,11 +140,11 @@
 }
 
 #bugCheckmark.checked {
-  animation: checkmark-expand 140ms ease-out forwards;
+  animation: error-checkmark-expand 140ms ease-out forwards;
 }
 
 
-@keyframes checkmark-expand {
+@keyframes error-checkmark-expand {
   0% {
     top: 36px;
     left: 24px;
