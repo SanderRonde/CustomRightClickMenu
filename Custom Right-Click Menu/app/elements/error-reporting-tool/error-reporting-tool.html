@@ -10,28 +10,46 @@
 					<canvas id="cropCanvas"></canvas>
 					<div id="iconContent">
 						<paper-material elevation="5" id="reportingButtonElevation">
-							<paper-icon-button noink id="reportBugButton" icon="bug-report" on-tap="reportBug"></paper-icon-button>
-							<paper-ripple></paper-ripple>
+							<div id="bugButton">
+								<paper-icon-button noink id="reportBugButton" icon="bug-report" on-tap="reportBug"></paper-icon-button>
+								<paper-ripple></paper-ripple>
+							</div>
+							<div id="bugCheckmarkCont">
+								<div id="bugCheckmark"></div>
+							</div>
 						</paper-material>
 					</div>
 				</div>
 				<div id="overlay" on-track="handleSelection">
+					<div id="highlightButtons">
+						<paper-button id="submitHighlightButton" raised on-tap="finishScreencap">Finish</paper-button>
+						<paper-button id="cancelHighlightButton" raised on-tap="cancelScreencap">Cancel</paper-button>
+					</div>
+					<div id="highlightingCont">
+						<div id="highlightingTopSquare"></div>
+						<div id="highlightingLeftSquare"></div>
+						<div id="highlightingRightSquare"></div>
+						<div id="highlightingBotSquare"></div>
+					</div>
 				</div>
 			</div>
 			<center-element fullscreenoverlay id="errorReportingCenterer">
 				<paper-dialog with-backdrop id="errorReportingDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<br/>
+					<br />
 					<h2>Reporting a bug or suggesting a feature</h2>
 					<div>
 						<span>
-							You can report a bug that happened or a feature you would like to see in this extension. If you want you can also highlight a section of the page and send it along. 
+							You can report a bug that happened or a feature you would like to see in this extension. If you want you can also highlight a section of the page and send it along.
+							When clicking the submit buton you will be taken to the github website where you can file an issue. All nessecary files (the image<span hidden$="{{!isBugType(reportType)}}"> and your settings</span>) will be downloaded, after which you can drop them on the report issue page. For this to be possible you need to accept the downloads permission window that will pop up.
 						</span>
-						<span class="bugReportInfo" hidden$="{{!isBugType(reportType)}}">By reporting a bug you agree to send along your settings including the CRM itself.</span>
+						<span class="bugReportInfo" hidden$="{{!isBugType(reportType)}}">Your CRM and settings will be included in the report that will be publicly visible, if you do not wish this you can report an email by simply sending an email to <a target="_blank" href="mailto:awsdfgvhbjn@gmail.com">this address.</a></span>
 					</div>
 					<div class="imagesContainer">
-						<div class="imagesTitle">Screen Capture</div>
+						<div class="imagesTitle">Page Capture</div>
 						<div class="imgContainer" hidden$="[[isEmptyImage(image)]]" on-tap="addCapture">
-							<canvas src="[[image]]" class="capture"></canvas>
+							<paper-material class="captureElevation captureCont" elevation="2">
+								<img src="[[image]]" class="capture captureCont" alt="screencap">
+							</paper-material>
 						</div>
 						<div class="addImg" hidden$="[[!isEmptyImage(image)]]">
 							<paper-button on-tap="addCapture" raised>ADD</paper-button>
@@ -42,30 +60,7 @@
 						<paper-radio-button name="feature">Suggesting a feature</paper-radio-button>
 					</paper-radio-group>
 					<div class="buttons">
-						<paper-button dialog-dismiss on-tap="submitErrorReport">submit</paper-button>
-						<paper-button dialog-dismiss>close</paper-button>
-					</div>
-				</paper-dialog>
-			</center-element>
-			<center-element fullscreenoverlay id="onErrorCenterer">
-				<paper-dialog with-backdrop id="onErrorDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-					<br />
-					<h2>An error occurred</h2>
-					<div>
-						It appears an error occurred on the page. If you'd like to you can report it. This is the error that occurred:
-					</div>
-					<div id="errorCont"></div>
-					<div class="imagesContainer">
-						<div class="imagesTitle">Screen Capture</div>
-						<div class="imgContainer" hidden$="[[isEmptyImage(image)]]" on-tap="addCapture">
-							<canvas src="[[image]]" class="capture"></canvas>
-						</div>
-						<div class="addImg" hidden$="[[!isEmptyImage(image)]]">
-							<paper-button on-tap="addCapture" raised>ADD</paper-button>
-						</div>
-					</div>
-					<div class="buttons">
-						<paper-button dialog-dismiss on-tap="submitErrorReport">submit</paper-button>
+						<paper-button on-tap="submitErrorReport">submit</paper-button>
 						<paper-button dialog-dismiss>close</paper-button>
 					</div>
 				</paper-dialog>

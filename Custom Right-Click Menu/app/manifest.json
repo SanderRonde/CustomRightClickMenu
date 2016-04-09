@@ -64,9 +64,9 @@
 		"webRequestBlocking"
 	],
 
-	"incognito":  "spanning",
+	"incognito" : "spanning",
 
-	"icons": {
+	"icons" : {
 		"16": "icon-supersmall.png",
 		"48": "icon-small.png",
 		"128": "icon-large.png"

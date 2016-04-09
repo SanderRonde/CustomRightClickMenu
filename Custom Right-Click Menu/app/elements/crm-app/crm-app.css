@@ -803,3 +803,8 @@ edit-crm-item {
 #updateMergeRightNextError:hover, #updateMergeLeftNextError:hover {
 	text-decoration:underline;
 }
+
+html {
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
