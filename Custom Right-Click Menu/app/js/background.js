@@ -1548,12 +1548,21 @@
 		return obj;
 	}
 
-	function uploadChanges(type, changes) {
+	function uploadChanges(type, changes, useStorageSync) {
 		switch (type) {
 			case 'local':
 				chrome.storage.local.set(globals.storages.storageLocal);
+				for (var i = 0; i < changes.length; i++) {
+					if (changes[i].key === 'useStorageSync') {
+						uploadChanges('settings', [], changes[i].newValue);
+					}
+				}
 				break;
 			case 'settings':
+				if (useStorageSync !== undefined) {
+					globals.storages.settingsStorage.useStorageSync = useStorageSync;
+				}
+
 				var settingsJson = JSON.stringify(globals.storages.settingsStorage);
 				if (!globals.storages.settingsStorage.useStorageSync) {
 					chrome.storage.local.set({

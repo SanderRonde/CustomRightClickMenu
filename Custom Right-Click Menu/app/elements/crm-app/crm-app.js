@@ -170,6 +170,12 @@
 				type: Array,
 				notify: true,
 				value: []
+			},
+			versionUpdateTab: {
+				type: Number,
+				notify: true,
+				value: 0,
+				observer: 'versionUpdateChanged'
 			}
 		},
 
@@ -245,6 +251,155 @@
 			if (node.children) {
 				for (var i = 0; i < node.children.length; i++) {
 					this.treeForEach(node.children[i], fn);
+				}
+			}
+		},
+
+		isVersionUpdateTabX: function(currentTab, desiredTab) {
+			return currentTab === desiredTab;
+		},
+
+		goNextVersionUpdateTab: function () {
+			if (this.versionUpdateTab === 4) {
+				this.$.versionUpdateDialog.close();
+			} else {
+				var nextTabIndex = this.versionUpdateTab + 1;
+				var tabs = document.getElementsByClassName('versionUpdateTab');
+				var selector = tabs[nextTabIndex];
+				selector.style.height = 'auto';
+
+				var i;
+				for (i = 0; i < tabs.length; i++) {
+					tabs[i].style.display = 'none';
+				}
+				var newHeight = $(selector).innerHeight();
+				for (i = 0; i < tabs.length; i++) {
+					tabs[i].style.display = 'block';
+				}
+				selector.style.height = '0';
+
+				var _this = this;
+				var newHeightPx = newHeight + 'px';
+				var tabCont = this.$.versionUpdateTabSlider;
+
+				var currentHeight = tabCont.getBoundingClientRect().height;
+				if (newHeight > currentHeight) {
+					tabCont.animate([
+						{
+							height: currentHeight + 'px'
+						}, {
+							height: newHeightPx
+						}
+					], {
+						duration: 500,
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					}).onfinish = function() {
+						tabCont.style.height = newHeightPx;
+						selector.style.height = 'auto';
+						_this.versionUpdateTab = nextTabIndex;
+					};
+				} else {
+					selector.style.height = 'auto';
+					_this.versionUpdateTab = nextTabIndex;
+					setTimeout(function() {
+						tabCont.animate([
+							{
+								height: currentHeight + 'px'
+							}, {
+								height: newHeightPx
+							}
+						], {
+							duration: 500,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function() {
+							tabCont.style.height = newHeightPx;
+						}
+					}, 500);
+				}
+			}
+		},
+
+		goPrevVersionUpdateTab: function () {
+			if (this.versionUpdateTab !== 0) {
+				var prevTabIndex = this.versionUpdateTab - 1;
+				var tabs = document.getElementsByClassName('versionUpdateTab');
+				var selector = tabs[prevTabIndex];
+				selector.style.height = 'auto';
+
+				var i;
+				for (i = 0; i < tabs.length; i++) {
+					tabs[i].style.display = 'none';
+				}
+				var newHeight = $(selector).innerHeight();
+				for (i = 0; i < tabs.length; i++) {
+					tabs[i].style.display = 'block';
+				}
+				selector.style.height = '0';
+
+				var _this = this;
+				var newHeightPx = newHeight + 'px';
+				var tabCont = this.$.versionUpdateTabSlider;
+
+				var currentHeight = tabCont.getBoundingClientRect().height;
+				if (newHeight > currentHeight) {
+					tabCont.animate([
+						{
+							height: currentHeight + 'px'
+						}, {
+							height: newHeightPx
+						}
+					], {
+						duration: 500,
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					}).onfinish = function () {
+						tabCont.style.height = newHeightPx;
+						selector.style.height = 'auto';
+						_this.versionUpdateTab = prevTabIndex;
+					};
+				} else {
+					selector.style.height = 'auto';
+					_this.versionUpdateTab = prevTabIndex;
+					setTimeout(function () {
+						tabCont.animate([
+							{
+								height: currentHeight + 'px'
+							}, {
+								height: newHeightPx
+							}
+						], {
+							duration: 500,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function () {
+							tabCont.style.height = newHeightPx;
+						}
+					}, 500);
+				}
+			}
+		},
+
+		tryEditorLoaded: function(cm) {
+			cm.display.wrapper.classList.add('try-editor-codemirror');
+			cm.refresh();
+		},
+
+		versionUpdateChanged: function() {
+			if (this.isVersionUpdateTabX(this.versionUpdateTab, 1)) {
+				if (!this.$.versionUpdateDialog.editor) {
+					this.$.versionUpdateDialog.editor = new window.CodeMirror(this.$.tryOutEditor, {
+						lineNumbers: true,
+						value: '//some javascript code\nvar body = document.getElementById(\'body\');\nbody.style.color = \'red\';\n\n',
+						scrollbarStyle: 'simple',
+						lineWrapping: true,
+						mode: 'javascript',
+						readOnly: false,
+						theme: 'dark',
+						indentUnit: window.app.settings.editor.tabSize,
+						indentWithTabs: window.app.settings.editor.useTabs,
+						gutters: ['collapse-meta-tags', 'CodeMirror-lint-markers'],
+						lint: window.CodeMirror.lint.javascript,
+						messageTryEditor: true,
+						undoDepth: 500
+					});
 				}
 			}
 		},
@@ -1152,8 +1307,8 @@
 				if (key === 'editCRMInRM' || key === 'showOptions') {
 					_this.pageDemo.create();
 				}
+				_this.upload();
 			});
-			this.upload();
 		},
 
 		orderNodesById: function(tree) {
@@ -1971,6 +2126,9 @@
 				//Determine if it's a transfer from CRM version 1.*
 				if (localStorage.getItem('firsttime') === 'no') {
 					_this.handleDataTransfer(_this);
+					_this.async(function() {
+						window.doc.versionUpdateDialog.open();
+					}, 2000);
 				} else {
 					_this.handleFirstTime(_this);
 				}
@@ -1980,14 +2138,12 @@
 		//#endregion
 
 		ready: function () {
-			//TODO version upgrade message
-			//TODO error reporting tool
 			var _this = this;
 			this.crm.parent = this;
 			window.app = this;
 			window.doc = window.app.$;
 
-			chrome.storage.local.get(function(storageLocal) {
+			chrome.storage.local.get(function (storageLocal) {
 				if (_this.checkFirstTime(storageLocal)) {
 					function callback(items) {
 						_this.settings = items;

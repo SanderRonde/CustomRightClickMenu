@@ -244,7 +244,7 @@ Polymer({
 		this.$overlayEl.off('click');
 		this.playAnimation('exit');
 		this.opened = false;
-		document.getElementsByTagName('html').style.overflow = 'auto';
+		document.body.parentNode.style.overflow = 'auto';
 	},
 
 	updateNodeInfo: function(obj, path) {

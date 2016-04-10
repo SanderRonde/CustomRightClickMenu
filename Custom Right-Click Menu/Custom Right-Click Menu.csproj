@@ -629,6 +629,7 @@
     <Content Include="app\images\settings.svg" />
     <Content Include="app\images\shadowImg.png" />
     <Content Include="app\images\shadowImgRight.png" />
+    <Content Include="app\images\stylesheet.gif" />
     <Content Include="app\images\video.svg" />
     <Content Include="app\images\web.svg" />
     <Content Include="app\html\install.html" />

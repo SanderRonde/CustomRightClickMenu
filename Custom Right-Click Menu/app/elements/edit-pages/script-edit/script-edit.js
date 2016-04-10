@@ -1216,8 +1216,8 @@
 		showOptions: function() {
 			var _this = this;
 			this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-			var editorWidth = $($('.CodeMirror')[0]).width();
-			var editorHeight = $($('.CodeMirror')[0]).height();
+			var editorWidth = $('.script-edit-codeMirror').width();
+			var editorHeight = $('.script-edit-codeMirror').height();
 			var circleRadius;
 
 			//Add a bit just in case
@@ -1620,6 +1620,7 @@
 				editor.metaTags.metaTags = this.newSettings.value.metaTags;
 			}
 
+			editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
 			editor.display.wrapper.classList.add('script-edit-codeMirror');
 			editor.display.wrapper.classList.add('small');
 			var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(editor.display.sizer).children().first());

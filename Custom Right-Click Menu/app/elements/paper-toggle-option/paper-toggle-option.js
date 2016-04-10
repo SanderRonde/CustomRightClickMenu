@@ -19,8 +19,6 @@
 		var id = $(this).attr('id');
 		this.toggled = !this.toggled;
 		window.app.setLocal(id, this.toggled);
-		if (id === 'useStorageSync') {
-			window.app.upload();
-		}
+		console.log('uploading', id, this.toggled);
 	}
 })

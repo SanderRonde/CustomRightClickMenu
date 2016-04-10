@@ -1026,8 +1026,8 @@
 	showOptions: function () {
 		var _this = this;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		var editorWidth = $($('.CodeMirror')[1]).width();
-		var editorHeight = $($('.CodeMirror')[1]).height();
+		var editorWidth = $('.stylesheet-edit-codeMirror').width();
+		var editorHeight = $('.stylesheet-edit-codeMirror').height();
 		var circleRadius;
 
 		//Add a bit just in case
@@ -1261,7 +1261,6 @@
 		var _this = this;
 		this.editor = element;
 		element.refresh();
-		element.display.wrapper.classList.add('script-edit-codeMirror');
 		if (element.metaTags && element.metaTags.metaTags) {
 			element.changeMetaTags(element, 'CRM_stylesheet', 'true', 'true', true);
 		}
@@ -1271,6 +1270,9 @@
 			}
 			_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 		});
+
+		element.display.wrapper.classList.remove('script-edit-codeMirror');
+		element.display.wrapper.classList.add('stylesheet-edit-codeMirror');
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
