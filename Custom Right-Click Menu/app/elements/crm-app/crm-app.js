@@ -176,6 +176,11 @@
 				notify: true,
 				value: 0,
 				observer: 'versionUpdateChanged'
+			},
+			betaTestMessageOption: {
+				type: Number,
+				notify: true,
+				value: 2
 			}
 		},
 
@@ -254,6 +259,75 @@
 				}
 			}
 		},
+		
+		//BETA start
+		isBetaTestMessageOptionX: function(current, expected) {
+			return current === expected;
+		},
+		
+		betaTestOptionZero: function() {
+			this.async(function() {
+				if (this.$.betaTestOptionZero.active) {
+					this.betaTestMessageOption = 0;
+					this.$.betaTestOptionOne.active = false;
+				} else {
+					this.betaTestMessageOption = 2;
+				}
+			});
+		},
+
+		betaTestOptionOne: function() {
+			this.async(function () {
+				if (this.$.betaTestOptionOne.active) {
+					this.betaTestMessageOption = 1;
+					this.$.betaTestOptionZero.active = false;
+				} else {
+					this.betaTestMessageOption = 2;
+				}
+			});
+		},
+
+		betaTestMessageNext: function () {
+			if (!window.doc.betaTestMessageTabSlider.classList.contains('nextTab')) {
+				//Go to next page
+				window.doc.betaTestMessagePrevButton.hidden = false;
+				window.doc.betaTestMessageButtonNextTxt.hidden = true;
+				window.doc.betaTestMessageButtonCompleteTxt.hidden = false;
+				window.doc.betaTestMessageTabSlider.classList.add('nextTab');
+			} else {
+				//Process and exit
+			}
+		},
+
+		betaTestMessagePrev: function () {
+			window.doc.betaTestMessagePrevButton.hidden = true;
+			window.doc.betaTestMessageButtonNextTxt.hidden = false;
+			window.doc.betaTestMessageButtonCompleteTxt.hidden = true;
+			window.doc.betaTestMessageTabSlider.classList.remove('nextTab');
+		},
+
+		copySnippetToClipboard: function() {
+			var snipRange = document.createRange();
+			snipRange.selectNodeContents(this.$.betaTestCode);
+			var selection = window.getSelection();
+			selection.removeAllRanges();
+			selection.addRange(snipRange);
+			var result = false;
+			try {
+				result = document.execCommand('copy');
+				this.$.copyButton.icon = 'done';
+			} catch (err) {
+				// Copy command is not available
+				console.error(err);
+				this.$.copyButton.icon = 'error';
+			}
+			// Return to the copy button after a second.
+			this.async(function() {
+				this.$.copyButton.icon = 'content-copy';
+			}, 1000);
+			selection.removeAllRanges();
+		},
+		//BETA end
 
 		isVersionUpdateTabX: function(currentTab, desiredTab) {
 			return currentTab === desiredTab;
@@ -2129,6 +2203,11 @@
 					}, 2000);
 				} else {
 					_this.handleFirstTime(_this);
+					//BETA
+					_this.async(function () {
+						_this.betaTestMessageOption = 2;
+						window.doc.betaTestMessageDialog.open();
+					}, 2000);
 				}
 				return false;
 			}
@@ -2953,7 +3032,7 @@
 			/**
 			 * Creates the on-page example
 			 */
-			create: function() {
+			create: function () {
 				//TODO turn this on again
 				//this.loadContextMenus();
 			},
