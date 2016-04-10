@@ -168,10 +168,7 @@
 	 * Go back to the previous window
 	 */
 	goBackWindow: function() {
-		console.log('going back');
-		console.log(this.windowPath);
 		var newWindow = this.windows[this.windowPath[this.windowPath.length - 2]];
-		console.log(newWindow);
 		this.windowPath.pop();
 		this.hideAllWindows(newWindow);
 		this.$[newWindow].style.display = 'block';
@@ -227,8 +224,7 @@
 			_this.$.manualInputListChoiceInput.invalid = true;
 			spinner.active = false;
 		});
-		console.log(promise);
-	},
+		},
 	//#endregion
 
 	//#region Event handlers
@@ -250,7 +246,6 @@
 		codeLines.push('');
 		var code = codeLines.join('\n');
 		window.scriptEdit.insertSnippet(scriptEdit, code);
-		console.log(code);
 		setTimeout(function() {
 			_this.hide();
 			_this.switchToWindow('initialWindow');
@@ -278,7 +273,6 @@
 				var structuredSearchEngines = e.data.searchEngines;
 				$('.SEImportError').remove();
 				if (structuredSearchEngines.length !== 0) {
-					console.log(structuredSearchEngines);
 					_this.disableManualButton = true;
 					_this.searchList = structuredSearchEngines;
 					resolve('success');
@@ -420,7 +414,6 @@
 	fixFit: function() {
 		var textarea = this.$.manualInputListChoiceInput;
 		var value = textarea.value;
-		console.log(value);
 		var paperInputContainer = $(this.$.manualInputListChoiceInput).find('paper-input-container')[0];
 		paperInputContainer.style.height = '200px';
 		this.fit();

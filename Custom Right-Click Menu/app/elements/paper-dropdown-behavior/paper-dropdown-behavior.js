@@ -110,13 +110,11 @@
 	 * Fires all added listeners, triggers when a new value is selected
 	 */
 	_fireListeners: function (_this) {
-		console.log(_this);
 		var prevState = _this.selected;
 		if (_this.tagName === 'PAPER-DROPDOWN-MENU') {
 			_this.selected = _this._paperMenu.selected;
 		}
 		_this._listeners.forEach(function (listener) {
-			console.log(listener.id);
 			if (listener.id === _this.id) {
 				listener.listener.apply(listener.thisArg, [prevState, _this._paperMenu.selected]);
 			}

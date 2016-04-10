@@ -195,7 +195,6 @@
 		cm.metaTags.metaIndexes = indexes;
 
 		if (oldMetaTags) {
-			console.log(oldMetaTags, metaTagObj);
 			return compareMetaTags(oldMetaTags, metaTagObj);
 		}
 		return null;

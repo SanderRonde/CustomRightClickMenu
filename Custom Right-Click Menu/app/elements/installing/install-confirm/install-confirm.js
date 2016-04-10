@@ -151,7 +151,6 @@
 		},
 
 		getDescription: function (permission) {
-			console.log(permission);
 			var descriptions = {
 				alarms: 'Makes it possible to create, view and remove alarms.',
 				background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
@@ -217,8 +216,6 @@
 			};
 
 			window.descriptions = descriptions;
-			console.log(descriptions[permission]);
-
 			return descriptions[permission];
 		},
 

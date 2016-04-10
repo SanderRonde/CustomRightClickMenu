@@ -1990,8 +1990,6 @@
 				editCRMInRM: false
 			};
 
-			console.log('First time!');
-
 			//Save local storage
 			chrome.storage.local.set(defaultLocalStorage);
 			_this.storageLocal = defaultLocalStorage;
@@ -2245,7 +2243,6 @@
 								var jsonString = settingsJsonArray.join('');
 								_this.settingsJsonLength = jsonString.length;
 								var settings = JSON.parse(jsonString);
-								console.log(settings);
 								callback(settings);
 							});
 						} else {

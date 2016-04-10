@@ -662,7 +662,6 @@ window.Polymer({
 		var _this = this;
 		var editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
-		console.log('is this even called');
 		for (var i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.remove('selecting');
 			editCrmItems[i].classList.remove('highlighted');

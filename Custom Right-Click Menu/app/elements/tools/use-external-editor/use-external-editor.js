@@ -144,7 +144,6 @@ Polymer({
 	 */
 	updateFromExternal: function(msg) {
 		if (this.connection.id === msg.connectionId) {
-			console.log('update');
 			if (window.scriptEdit) {
 				window.scriptEdit.newSettings.value.script = msg.code;
 				window.scriptEdit.editor.setValue(msg.code);
@@ -326,7 +325,6 @@ Polymer({
 	setupMessageHandler: function() {
 		var _this = this;
 		chrome.runtime.onConnectExternal.addListener(function(port) {
-			console.log(port);
 			if (port.sender.id === 'obnfehdnkjmbijebdllfcnccllcfceli') {
 				port.onMessage.addListener(function(msg) {
 					_this.messageHandler.apply(_this, [msg]);
@@ -397,7 +395,6 @@ Polymer({
 			this.connection.fileConnected = false;
 			this.connectionPromise = new Promise(function(resolve, reject) {
 				function promiseListener(msg) {
-					console.log('messaged desktop app:', msg);
 					if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
 						_this.appPort.onMessage.removeListener(promiseListener);
 						resolve(msg);
@@ -432,8 +429,7 @@ Polymer({
 				_this.connection.connected = true;
 				_this.connection.state = 'connected';
 				_this.connection.id = msg.connectionId;
-				console.log('connected');
-			}).catch(function() {
+				}).catch(function() {
 				_this.errorHandler();
 			});
 		}
@@ -595,7 +591,6 @@ Polymer({
 
 								if (!_this.editor) {
 									setTimeout(function () {
-										console.log(_this);
 										_this.editor = new window.CodeMirror.MergeView(window.doc.chooseFilemergerContainer, {
 											lineNumbers: true,
 											scrollbarStyle: 'simple',
@@ -788,11 +783,9 @@ Polymer({
 
 					function markerFn() {
 						setTimeout(function() {
-							console.log(window.externalEditor.editor);
 							//Mark left part
 							var j;
 							for (j = 0; j < updateErrors.oldScript.length; j++) {
-								console.log(j, updateErrors.oldScript[j]);
 								window.externalEditor.editor.left.orig.markText(updateErrors.oldScript[j].from, updateErrors.oldScript[j].to, {
 									className: 'updateError',
 									inclusiveLeft: false,

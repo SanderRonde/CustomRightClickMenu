@@ -19,6 +19,5 @@
 		var id = $(this).attr('id');
 		this.toggled = !this.toggled;
 		window.app.setLocal(id, this.toggled);
-		console.log('uploading', id, this.toggled);
-	}
+		}
 })

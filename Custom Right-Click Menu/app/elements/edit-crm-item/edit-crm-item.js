@@ -679,7 +679,6 @@ Polymer({
 		if (!this.shadow && !window.app.item) {
 			if (!this.classList.contains('selecting')) {
 				var item = this.item;
-				console.log('opening', item);
 				window.app.item = item;
 				if (item.type === 'script') {
 					window.app.stylesheetItem = {};

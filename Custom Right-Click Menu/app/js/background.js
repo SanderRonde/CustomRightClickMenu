@@ -530,7 +530,6 @@
 				hideOn = globals.crmValues.hideNodesOnPagesData[shownNodes[i].node.id];
 				if (hideOn) {
 					if (matchesUrlSchemes(hideOn, tab.url)) {
-						console.log('matched');
 						//Don't hide on current url
 						toHide.push({
 							node: shownNodes[i].node,
@@ -3513,7 +3512,6 @@
 	});
 
 	function handleRuntimeMessage(message) {
-		console.log(message);
 		switch (message.type) {
 			case 'resource':
 				resourceHandler(message.data);
@@ -3534,7 +3532,6 @@
 	}
 
 	function handleCrmAPIMessage(message) {
-		console.log(message);
 		switch (message.type) {
 			case 'crm':
 				crmHandler(message);

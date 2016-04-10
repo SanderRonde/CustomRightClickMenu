@@ -1355,8 +1355,6 @@
 
 		createKeyBindingListener: function(element, binding) {
 			return function (event) {
-				console.log(event);
-				console.log(event.keyCode);
 				event.preventDefault();
 				//Make sure it's not just one modifier key being pressed and nothing else
 				if (event.keyCode < 16 || event.keyCode > 18) {
