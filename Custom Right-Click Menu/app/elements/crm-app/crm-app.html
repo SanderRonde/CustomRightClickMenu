@@ -619,9 +619,9 @@
 						<br />
 						<div id="betaTestMessageTabCont">
 							<div id="betaTestMessageTabSlider">
-								<div class="betaTestMessageTab">
-									<h2>Welcome to the Custom Right-Click Menu beta test</h2>
-									<div>
+								<div id="betaMessageFirstTab" class="betaTestMessageTab">
+									<h2 id="betaMessageFirstTabTitle">Welcome to the Custom Right-Click Menu beta test</h2>
+									<div id="betaMessageFirstTabContent">
 										Thank you for beta testing Custom Right-Click Menu (CRM). As you can see a lot has changed in the new
 										version. The entire code has been rewritten from scratch and it looks completely different.
 										This will of course introduce a lot of bugs. While i have managed to squash a lot of bugs by myself,
@@ -663,6 +663,7 @@
 											This will copy your settings to your clipboard. Then paste those settings
 											in the box below and hit complete to start using the extension.
 											<textarea id="prevVersionImportTextarea" rows="10"></textarea>
+											<div id="betaTestImportErrorLine">An error occurred, please check the data and try again</div>
 										</div>
 										<div hidden$="[[!isBetaTestMessageOptionX(betaTestMessageOption, 1)]]">
 											While this method is not preferred due to it skipping an important

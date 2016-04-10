@@ -294,16 +294,68 @@
 				window.doc.betaTestMessageButtonNextTxt.hidden = true;
 				window.doc.betaTestMessageButtonCompleteTxt.hidden = false;
 				window.doc.betaTestMessageTabSlider.classList.add('nextTab');
+				this.async(function() {
+					var titleHeight = this.$.betaTestMessageSecondTabTitle.getBoundingClientRect().height;
+					var contentHeight = this.$.betaTestMessageSecondTabContent.getBoundingClientRect().height;
+					var heightPx = (titleHeight + contentHeight) + 'px';
+					window.doc.betaTestMessageTabSlider.animate([
+						{
+							height: window.doc.betaTestMessageTabSlider.getBoundingClientRect().height + 'px'
+						}, {
+							height: heightPx
+						}
+					], {
+						duration: 500,
+						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					}).onfinish = function() {
+						window.doc.betaTestMessageTabSlider.style.height = heightPx;
+					};
+				}, 500);
 			} else {
 				//Process and exit
+				if (this.betaTestMessageOption === 0) {
+					var json = this.$.prevVersionImportTextarea.value;
+					try {
+						json = JSON.parse(json);
+						for (var localStorageKey in json) {
+							if (json.hasOwnProperty(localStorageKey)) {
+								localStorage.setItem(localStorageKey, json[localStorageKey]);
+							}
+						}
+						this.$.betaTestImportErrorLine.style.opacity = 0;
+						this.$.betaTestMessageDialog.close();
+						this.handleFirstTime(this);
+					} catch (e) {
+						this.$.betaTestImportErrorLine.style.opacity = 1;
+					}
+				} else {
+					this.handleFirstTime(this);
+				}
 			}
 		},
 
 		betaTestMessagePrev: function () {
-			window.doc.betaTestMessagePrevButton.hidden = true;
-			window.doc.betaTestMessageButtonNextTxt.hidden = false;
-			window.doc.betaTestMessageButtonCompleteTxt.hidden = true;
-			window.doc.betaTestMessageTabSlider.classList.remove('nextTab');
+			var titleHeight = this.$.betaMessageFirstTabTitle.getBoundingClientRect().height;
+			var contentHeight = this.$.betaMessageFirstTabContent.getBoundingClientRect().height;
+			var heightPx = (titleHeight + contentHeight) + 'px';
+			window.doc.betaTestMessageTabSlider.animate([
+				{
+					height: window.doc.betaTestMessageTabSlider.getBoundingClientRect().height + 'px'
+				}, {
+					height: heightPx
+				}
+			], {
+				duration: 500,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function () {
+				window.doc.betaTestMessageTabSlider.style.height = heightPx;
+			};
+			this.async(function() {
+				window.doc.betaTestMessagePrevButton.hidden = true;
+				window.doc.betaTestMessageButtonNextTxt.hidden = false;
+				window.doc.betaTestMessageButtonCompleteTxt.hidden = true;
+				window.doc.betaTestMessageTabSlider.classList.remove('nextTab');
+			}, 500);
 		},
 
 		copySnippetToClipboard: function() {
@@ -312,9 +364,8 @@
 			var selection = window.getSelection();
 			selection.removeAllRanges();
 			selection.addRange(snipRange);
-			var result = false;
 			try {
-				result = document.execCommand('copy');
+				document.execCommand('copy');
 				this.$.copyButton.icon = 'done';
 			} catch (err) {
 				// Copy command is not available
@@ -2202,7 +2253,6 @@
 						window.doc.versionUpdateDialog.open();
 					}, 2000);
 				} else {
-					_this.handleFirstTime(_this);
 					//BETA
 					_this.async(function () {
 						_this.betaTestMessageOption = 2;
@@ -3033,8 +3083,7 @@
 			 * Creates the on-page example
 			 */
 			create: function () {
-				//TODO turn this on again
-				//this.loadContextMenus();
+				this.loadContextMenus();
 			},
 
 			get parent() {
