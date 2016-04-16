@@ -805,7 +805,9 @@ module.exports = function (grunt) {
 			var html = result.html;
 
 			grunt.file.write(defsOutput, defs);
+			grunt.log.ok('Created defs, ' + sourceFile + ' -> ' + defsOutput);
 			grunt.file.write(htmlOutput, html);
+			grunt.log.ok('Created docs, ' + sourceFile + ' -> ' + htmlOutput);
 		});
 	});
 }

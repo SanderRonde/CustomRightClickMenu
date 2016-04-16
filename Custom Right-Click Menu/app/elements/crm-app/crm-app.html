@@ -1,7 +1,7 @@
 ﻿<dom-module id="crm-app">
 	<template>
 		<link rel="import" href="../../elements/elements.html" />
-		<link rel="stylesheet" href="../../jquery.contextMenu.css" />
+		<link rel="stylesheet" href="../../css/jquery.contextMenu.css"/>
 		<link rel="stylesheet" href="crm-app.css" />
 		<div class="popupCont">
 			<div id="fullscreenEditor">
@@ -205,7 +205,7 @@
 						<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
 							<div class="globalExcludeContainer">
 								<paper-input on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
-								<paper-icon-button icon="clear" on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+								<paper-icon-button hidden$="[[isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
 							</div>
 						</template>
 						<paper-button raised class="blue" on-tap="addGlobalExcludeField">ADD</paper-button>
@@ -690,9 +690,11 @@
 		</div>
 	</template>
 </dom-module>
+<!-- build:js ../../js/jqueryFiles.min.js -->
 <script src="../../js/jquery-2.0.3.min.js"></script>
 <script src="../../js/jquery-ui.min.js"></script>
 <script src="../../js/jquery.requestAnimationFrame.min.js"></script>
 <script src="../../js/jquery.contextMenu.js"></script>
 <script src="../../js/jquery.bez.js"></script>
+<!-- /build -->
 <script src="crm-app.js"></script>

@@ -262,6 +262,7 @@ Polymer({
 	//#region draggingFunctions
 	changeDraggingState: function(newState) {
 		this.dragging = newState;
+		this.$.itemCont.style.willChange = (newState ? 'transform' : 'unset');
 		this.parentNode.parentNode.parentNode.dragging = newState;
 		this.parentNode.parentNode.parentNode.draggingItem = this;
 	},
@@ -402,10 +403,10 @@ Polymer({
 	startDrag: function (event) {
 		//Do calculations
 		this.$$('paper-ripple').style.display = 'none';
-		var extraSpacing = (($(this.parentNode).children('edit-crm-item').toArray().length - this.index) * 50);
+		var extraSpacing = (($(this.parentNode).children('edit-crm-item').toArray().length - this.index) * -50);
 		this.style.pointerEvents = 'none';
 		this.dragStart.X = event.clientX;
-		this.dragStart.Y = event.clientY + extraSpacing;
+		this.dragStart.Y = event.clientY;
 		this.lastRecordedPos.X = event.clientX;
 		this.lastRecordedPos.Y = event.clientY;
 		this.scrollStart.Y = $('body').scrollTop();
@@ -448,7 +449,7 @@ Polymer({
 		_this.bodyDrag();
 	},
 
-	stopDrag: function() {
+	stopDrag: function () {
 		this.$$('paper-ripple').style.display = 'block';
 		this.style.pointerEvents = 'all';
 		this.changeDraggingState(false);
@@ -476,12 +477,14 @@ Polymer({
 	},
 
 	bodyDrag: function () {
-		//TODO optimize
 		if (this.cursorPosChanged && this.dragging) {
 			this.cursorPosChanged = false;
+			console.log('');
+			console.log(this.dragStart.Y, this.lastRecordedPos.Y);
 			var spacingTop = this.lastRecordedPos.Y - this.dragStart.Y;
 			var x = (this.lastRecordedPos.X - this.dragStart.X) + 'px';
 			var y = spacingTop + 'px';
+			console.log(x, y);
 			this.$.itemCont.style.transform = 'translate(' + x + ', ' + y + ')';
 			var thisBoundingClientRect = this.getBoundingClientRect();
 			var thisTop = (this.lastRecordedPos.Y - this.mouseToCorner.Y);

@@ -1968,7 +1968,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			req.overrideMimeType(options.overrideMimeType);
 		}
 		if (options.headers) {
-			for (let prop in options.headers) {
+			for (var prop in options.headers) {
 				if (Object.prototype.hasOwnProperty.call(options.headers, prop)) {
 					req.setRequestHeader(prop, options.headers[prop]);
 				}

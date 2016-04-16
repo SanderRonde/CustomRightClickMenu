@@ -1,58 +1,266 @@
-﻿var sources = ['bower_components_uncrisp/webcomponentsjs/webcomponents.min.js','bower_components_uncrisp/polymer/polymer-micro.html', 'bower_components_uncrisp/polymer/polymer-mini.html', 'bower_components_uncrisp/polymer/polymer.html', 'bower_components_uncrisp/paper-toolbar/paper-toolbar.html', 'bower_components_uncrisp/iron-icons/iron-icons.html', 'bower_components_uncrisp/paper-drawer-panel/paper-drawer-panel.html', 'bower_components_uncrisp/paper-input/paper-input.html', 'bower_components_uncrisp/paper-toast/paper-toast.html', 'bower_components_uncrisp/paper-ripple/paper-ripple.html', 'bower_components_uncrisp/paper-menu/paper-menu.html', 'bower_components_uncrisp/paper-item/paper-item.html', 'bower_components_uncrisp/paper-input/paper-textarea.html', 'bower_components_uncrisp/paper-icon-button/paper-icon-button.html', 'bower_components_uncrisp/paper-radio-button/paper-radio-button.html', 'bower_components_uncrisp/paper-radio-group/paper-radio-group.html', 'bower_components_uncrisp/paper-dialog/paper-dialog.html ', 'bower_components_uncrisp/paper-spinner/paper-spinner.html', 'bower_components_uncrisp/paper-toggle-button/paper-toggle-button.html', 'bower_components_uncrisp/neon-animation/animations/scale-down-animation.html ', 'bower_components_uncrisp/neon-animation/animations/fade-out-animation.html', 'bower_components_uncrisp/neon-animation/animations/scale-up-animation.html', 'bower_components_uncrisp/paper-styles/paper-styles.html', 'bower_components_uncrisp/iron-icon/iron-icon.html', 'bower_components_uncrisp/iron-iconset-svg/iron-iconset-svg.html', 'bower_components_uncrisp/iron-media-query/iron-media-query.html', 'bower_components_uncrisp/iron-selector/iron-selector.html', 'bower_components_uncrisp/paper-drawer-panel/paper-drawer-panel.css', 'bower_components_uncrisp/iron-input/iron-input.html', 'bower_components_uncrisp/iron-form-element-behavior/iron-form-element-behavior.html', 'bower_components_uncrisp/paper-input/paper-input-behavior.html', 'bower_components_uncrisp/paper-input/paper-input-container.html', 'bower_components_uncrisp/paper-input/paper-input-error.html', 'bower_components_uncrisp/paper-input/paper-input-char-counter.html', 'bower_components_uncrisp/paper-styles/typography.html', 'bower_components_uncrisp/iron-a11y-announcer/iron-a11y-announcer.html', 'bower_components_uncrisp/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html', 'bower_components_uncrisp/iron-menu-behavior/iron-menu-behavior.html', 'bower_components_uncrisp/paper-menu/paper-menu-shared.css', 'bower_components_uncrisp/iron-behaviors/iron-control-state.html', 'bower_components_uncrisp/iron-behaviors/iron-button-state.html', 'bower_components_uncrisp/paper-item/paper-item-shared-styles.html', 'bower_components_uncrisp/iron-autogrow-textarea/iron-autogrow-textarea.html', 'bower_components_uncrisp/iron-flex-layout/iron-flex-layout.html', 'bower_components_uncrisp/paper-styles/default-theme.html', 'bower_components_uncrisp/paper-behaviors/paper-button-behavior.html', 'bower_components_uncrisp/paper-behaviors/paper-inky-focus-behavior.html', 'bower_components_uncrisp/iron-checked-element-behavior/iron-checked-element-behavior.html', 'bower_components_uncrisp/iron-selector/iron-selectable.html', 'bower_components_uncrisp/neon-animation/neon-animation-runner-behavior.html', 'bower_components_uncrisp/paper-dialog-behavior/paper-dialog-behavior.html', 'bower_components_uncrisp/paper-dialog-behavior/paper-dialog-common.css', 'bower_components_uncrisp/paper-styles/color.html', 'bower_components_uncrisp/paper-spinner/paper-spinner.css', 'bower_components_uncrisp/neon-animation/neon-animation-behavior.html', 'bower_components_uncrisp/neon-animation/web-animations.html','bower_components_uncrisp/iron-flex-layout/classes/iron-flex-layout.html','bower_components_uncrisp/paper-styles/shadow.html','bower_components_uncrisp/iron-meta/iron-meta.html','bower_components_uncrisp/iron-validatable-behavior/iron-validatable-behavior.html','bower_components_uncrisp/paper-input/paper-input-addon-behavior.html','bower_components_uncrisp/font-roboto/roboto.html','bower_components_uncrisp/iron-selector/iron-multi-selectable.html','bower_components_uncrisp/iron-selector/iron-selection.html','bower_components_uncrisp/neon-animation/neon-animatable-behavior.html','bower_components_uncrisp/iron-overlay-behavior/iron-overlay-behavior.html','bower_components_uncrisp/web-animations-js/web-animations-next-lite.min.js','bower_components_uncrisp/iron-flex-layout/classes/iron-shadow-flex-layout.html','bower_components_uncrisp/neon-animation/animations/opaque-animation.html','bower_components_uncrisp/iron-fit-behavior/iron-fit-behavior.html','bower_components_uncrisp/iron-resizable-behavior/iron-resizable-behavior.html','bower_components_uncrisp/iron-overlay-behavior/iron-overlay-backdrop.html','bower_components_uncrisp/iron-overlay-behavior/iron-overlay-manager.html'];
-var toCopy = [];
-var i;
-var obj;
-var fileObjects = [];
-for (i = 0; i < sources.length; i++) {
-	obj = {
-		src: 'app/' + sources[i],
-		dest: 'app/' + sources[i].replace('bower_components_uncrisp', 'bower_components_test')
-	};
-	fileObjects.push(obj);
-}
+﻿var codeMirrorLicense = '﻿// CodeMirror, copyright (c) by Marijn Haverbeke and others\n// Distributed under an MIT license: http://codemirror.net/LICENSE';
+var jsLintLicense = '// jslint.js\n// 2015-08-20\n// Copyright (c) 2015 Douglas Crockford  (www.JSLint.com)\n\n// Permission is hereby granted, free of charge, to any person obtaining a copy\n// of this software and associated documentation files (the "Software"), to deal\n// in the Software without restriction, including without limitation the rights\n// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n// copies of the Software, and to permit persons to whom the Software is\n// furnished to do so, subject to the following conditions:\n\n// The above copyright notice and this permission notice shall be included in\n// all copies or substantial portions of the Software.\n\n// The Software shall be used for Good, not Evil.\n\n// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\n// SOFTWARE.';
+var cssLintLicense = '/*!\nCSSLint\nCopyright (c) 2015 Nicole Sullivan and Nicholas C. Zakas. All rights reserved.\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \'Software\'), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED \'AS IS\', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n*/';
+var parserLibLicense = '/*!\nParser-Lib\nCopyright (c) 2009-2011 Nicholas C. Zakas. All rights reserved.\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the "Software"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.\n*/';
+var codeMirrorFilesLicenses = [codeMirrorLicense, jsLintLicense, cssLintLicense, parserLibLicense].join('\n\n');
 
-module.exports = function (grunt) {
+var jqueryContextMenuLicense = '/*!\n * jQuery contextMenu - Plugin for simple contextMenu handling\n *\n * Version: 1.6.5\n *\n * Authors: Rodney Rehm, Addy Osmani (patches for FF)\n * Web: http://medialize.github.com/jQuery-contextMenu/\n *\n * Licensed under\n *   MIT License http://www.opensource.org/licenses/mit-license\n *   GPL v3 http://opensource.org/licenses/GPL-3.0\n *\n */';
+
+
+module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
-		crisper: {
-			updateBower: {
-				options: {
-					cleanup: false
-				},
-				files: fileObjects
-			}
-		},
 		extractCrmDefs: {
 			updateCRMDefs: {
-				files: [{
-					src: ['app/js/crmapi.js', 'app/js/crmAPIDefs.test.js', 'app/html/crmAPIDocs.html'],
-					dest: 'build/',
-					expand: true
-				}]
+				files: [
+					{
+						src: ['app/js/crmapi.js', 'app/js/crmAPIDefs.js', 'app/html/crmAPIDocs.html'],
+						dest: 'build/',
+						expand: true
+					}
+				]
 			}
 		},
 		processhtml: {
-			inlineCRMAPIDocs: {
+			updateCRMDefs: {
 				options: {
 					strip: true
 				},
 				files: {
 					'app/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html']
 				}
+			},
+			build: {
+				options: {
+					strip: true
+				},
+				files: {
+					'build/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html'],
+					'build/elements/crm-app/crm-app.html': ['build/elements/crm-app/crm-app.html'],
+					'build/html/options.html': ['build/html/options.html']
+				}
+			}
+		},
+		uglify: {
+			options: {
+				screwIE8: true
+			},
+			codeMirrorMinify: {
+				files: {
+					'build/js/codeMirrorFile.min.js': ['app/js/codemmirror.js', 'app/js/diff_match_patch.js', 'app/js/codeMirrorAddons.js', 'app/js/userscriptMetadataCodemirror.js', 'app/js/codemirrorJs.js']
+				}
+			},
+			crmMinifiy: {
+				files: [
+					{
+						expand: true,
+						cwd: 'app/js',
+						src: ['background.js', 'crmapi.js', 'crmAPIDefs.js', 'crmAPIDocs.js'],
+						dest: 'build/js/'
+					}
+				]
+			}
+		},
+		concat: {
+			options: {
+				seperator: ';\n'
+			},
+			jqueryConcat: {
+				src: ['app/js/jquery-2.0.3.min.js', 'app/js/jquery-ui.min.js', 'app/js/jquery.requestAnimationFrame.min.js', 'app/js/jquery.contextMenu.js', 'app/js/jquery.bez.js'],
+				dest: 'build/js/jqueryFiles.min.js'
+			}
+		},
+		usebanner: {
+			codeMirrorBanner: {
+				options: {
+					position: 'top',
+					banner: codeMirrorFilesLicenses,
+					linebreak: true
+				},
+				files: {
+					src: ['build/js/codeMirrorFiles.min.js']
+				}
+			},
+			htmlBanners: {
+				options: {
+					position: 'top',
+					banner: '<!--Original can be found at https://www.github.com/SanderRonde/CustomRightClickMenu\nThis code may only be used under the MIT style license found in the LICENSE.txt file-->\n',
+					linebreak: true
+				},
+				files: {
+					src: ['build/html/*', 'build/elements/elements.html']
+				}
+			},
+			jsBanners: {
+				options: {
+					position: 'top',
+					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/',
+					linebreak: true
+				},
+				files: {
+					src: ['build/js/background.js', 'build/js/crmapi.js', 'build/js/crmAPIDefs.js', 'build/js/crmAPIDocs.js', 'build/elements/elements.js']
+				}
+			},
+			cssBanners: {
+				options: {
+					position: 'top',
+					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/',
+					linebreak: true
+				},
+				files: {
+					src: ['build/css/*', '!build/css/jquery.contextMenu.css']
+				}
+			},
+			jqueryContextMenuBanner: {
+				options: {
+					position: 'top',
+					banner: '\n', //jqueryContextMenuLicense,
+					linebreak: true
+				},
+				files: {
+					src: ['build/css/jquery.contextMenu.css']
+				}
+			}
+		},
+		copy: {
+			build: {
+				files: [
+					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'build/' }, //Fonts
+					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/options.html'], dest: 'build/' }, //HTML files
+					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'build/' }, //Default libraries
+					{
+						expand: true,
+						cwd: 'app/',
+						src: [
+							'images/chromearrow.png',
+							'images/shadowImg.png',
+							'images/shadowImgRight.png',
+							'images/stylesheet.gif',
+							'images/whitearrow.png'
+						],
+						dest: 'build/' //Images
+					},
+					{
+						expand: true,
+						cwd: 'app/',
+						src: [
+							'elements/crm-app/*',
+							'elements/installing/*',
+							'bower_components/polymer/*',
+							'bower_components/webcomponentsjs/webcomponents.min.js',
+							'elements/error-reporting-tool/*'
+						],
+						dest: 'build/'
+					}, //Elements
+					{ expand: true, cwd: 'app/', src: ['js/jsonfn.js', 'js/md5.js', 'js/jquery-2.0.3.min.js'], dest: 'build/' }, //JS libs
+					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
+				]
+			}
+		},
+		htmlmin: {
+			build: {
+				options: {
+					removeComments: false,
+					collapseWhitespace: true,
+					minifyCSS: true
+				},
+				files: [
+					{ expand: true, src: ['build/html/*'], filter: 'isFile' }
+				]
+			}
+		},
+		cssmin: {
+			options: {
+				shorthandCompacting: false
+			},
+			targets: {
+				files: [
+					{ expand: true, cwd: 'app/css/', src: ['*', '!jquery.contextMenu.css'], dest: 'build/css/', ext: '.css' },
+					{ expand: true, cwd: 'app/css/', src: ['jquery.contextMenu.css'], dest: 'build/css/', ext: '.contextMenu.css' }
+				]
+			}
+		},
+		zip: {
+			'using-cwd': {
+				cwd: 'build/',
+				src: ['build/**', '!build/Custom Right-Click Menu.zip'],
+				dest: 'build/Custom Right-Click Menu.zip'
+			}
+		},
+		clean: {
+			build: ['build/']
+		},
+		'string-replace': {
+			manifestReplace: {
+				options: {
+					replacements: [
+						{
+							pattern: /\/\* build:json:(\w+) \*\/(.*)\/\* \/build \*\//g,
+							replacement: function(match, type, content) {
+								if (type === 'remove') {
+									return '';
+								} else if (type === 'uncomment') {
+									return content.replace(/\/\//g, '');
+								}
+								return '';
+							}
+						}
+					]
+				},
+				files: {
+					'build/manifest.json': 'app/manifest.json'
+				}
+			}
+		},
+		copyImportedElements: {
+			elements: {
+				options: {
+					ignore: [
+						'bower_components/polymer/polymer.html',
+						'bower_components/polymer/polymer.js',
+						'bower_components/polymer/polymer-mini.html',
+						'bower_components/polymer/polymer-mini.js',
+						'bower_components/polymer/polymer-micro.html',
+						'bower_components/polymer/polymer-micro.js'
+					],
+					rootFolder: 'app/'
+				},
+				files: [
+					{ expand: true, cwd: 'app/elements/', src: 'elements.html', dest: 'build/' }
+				]
+			},
+			installing: {
+				options: {
+					ignore: [
+						'bower_components/polymer/polymer.html',
+						'bower_components/polymer/polymer.js',
+						'bower_components/polymer/polymer-mini.html',
+						'bower_components/polymer/polymer-mini.js',
+						'bower_components/polymer/polymer-micro.html',
+						'bower_components/polymer/polymer-micro.js'
+					],
+					rootFolder: 'app/'
+				},
+				files: [
+					{ expand: true, cwd: 'app/elements/installing/', src: 'install-imports.html', dest: 'build/' }
+				]
 			}
 		}
 	});
 
 	grunt.loadTasks('tools');
-	grunt.loadNpmTasks('grunt-contrib-copy');
-	grunt.loadNpmTasks('grunt-minified');
-	grunt.loadNpmTasks('grunt-contrib-htmlmin');
-	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-banner');
-	grunt.loadNpmTasks('grunt-crisper');
+	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks('grunt-contrib-concat');
+	grunt.loadNpmTasks('grunt-contrib-copy');
+	grunt.loadNpmTasks('grunt-contrib-cssmin');
+	grunt.loadNpmTasks('grunt-contrib-htmlmin');
+	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-minified');
+	grunt.loadNpmTasks('grunt-string-replace');
 	grunt.loadNpmTasks('grunt-processhtml');
+	grunt.loadNpmTasks('grunt-zip');
 
-	grunt.registerTask('updateBower', ['crisper']);
-	grunt.registerTask('updateCRMDefs', ['extractCrmDefs', 'processhtml']);
-	grunt.registerTask('build', ['extractCrmDefs', 'processhtml']);
+	grunt.registerTask('updateCRMDefs', ['extractCrmDefs', 'processhtml:updateCRMDefs']);
+	grunt.registerTask('build', ['clean:build', 'extractCrmDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 }

@@ -73,6 +73,9 @@
 		-webkit-user-drag: none;
 		position: absolute;
 		pointer-events: none;
+		will-change: transform;
+		will-change: width;
+		will-change: height;
 	}
 
 #highlightingTopSquare, #highlightingBotSquare {

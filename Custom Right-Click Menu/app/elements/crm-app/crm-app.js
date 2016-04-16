@@ -259,7 +259,11 @@
 				}
 			}
 		},
-		
+
+		isOnlyGlobalExclude: function () {
+			return this.globalExcludes.length === 1;
+		},
+
 		//BETA start
 		isBetaTestMessageOptionX: function(current, expected) {
 			return current === expected;
@@ -3021,18 +3025,25 @@
 			},
 
 			bindContextMenu: function(crmType) {
+				var items;
 				var _this = this;
 				if (crmType === 0) {
-					$.contextMenu({
-						selector: 'body, #editCrm.page, .crmType.pageType',
-						items: _this.buildForCrmType(0)
-					});
+					items = _this.buildForCrmType(0);
+					if (items.length > 0) {
+						$.contextMenu({
+							selector: 'body, #editCrm.page, .crmType.pageType',
+							items: items
+						});
+					}
 				} else {
 					var contentType = _this.getCrmTypeFromNumber(crmType);
-					$.contextMenu({
-						selector: '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type',
-						items: _this.buildForCrmType(crmType)
-					});
+					items = _this.buildForCrmType(crmType);
+					if (items.length > 0) {
+						$.contextMenu({
+							selector: '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type',
+							items: items
+						});
+					}
 				}
 			},
 
