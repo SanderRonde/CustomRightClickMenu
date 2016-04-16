@@ -262,7 +262,7 @@ Polymer({
 	//#region draggingFunctions
 	changeDraggingState: function(newState) {
 		this.dragging = newState;
-		this.$.itemCont.style.willChange = (newState ? 'transform' : 'unset');
+		this.$.itemCont.style.willChange = (newState ? 'transform' : 'initial');
 		this.parentNode.parentNode.parentNode.dragging = newState;
 		this.parentNode.parentNode.parentNode.draggingItem = this;
 	},
