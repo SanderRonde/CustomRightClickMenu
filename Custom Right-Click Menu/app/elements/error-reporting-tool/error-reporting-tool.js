@@ -27,6 +27,15 @@
 	 * @default {}
 	 */
 	lastPos: {},
+	
+	/*
+	 * The last error that occurred in the console
+	 * 
+	 * @attribute lastError
+	 * @type Object
+	 * @default {}
+	 */
+	lastError: {},
 
 	properties: {
 		/*
@@ -294,7 +303,8 @@
 					chrome.storage.local.get(function(syncKeys) {
 						var dataCont = {
 							local: localKeys,
-							sync: syncKeys
+							sync: syncKeys,
+							lastError: _this.lastError
 						};
 						chrome.downloads.download({
 							url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
@@ -365,7 +375,18 @@
 		});
 	},
 
+	onError: function(message, source, lineno, colno, error) {
+		this.lastError = {
+			message,
+			source,
+			lineno,
+			colno,
+			error
+		};
+	},
+
 	ready: function () {
 		window.errorReportingTool = this;
+		window.onerror = this.onError;
 	}
 })
