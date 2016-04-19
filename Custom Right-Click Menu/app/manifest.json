@@ -1,80 +1,71 @@
 {
-	"manifest_version": 2,
+  "manifest_version": 2,
 
-	"options_page": "html/options.html",
-	"name": "Custom Right-Click Menu",
-	"description": "Create a custom right-click menu.",
-	"version": "2.0.0",
+  "options_page": "options.html",
+  "name": "Custom Right-Click Menu",
+  "description": "Create a custom right-mouse menu.",
+  "version": "1.1.1",
 
-	"background": {
-		"scripts": [
-			"js/jquery-2.0.3.min.js",
-			/* build:json:remove */ "js/diff_match_patch.js", "js/codemirror.js", "js/codeMirrorAddons.js", /* /build */
-			/* build:json:uncomment */ //"js/codeMirrorFile.min.js", /* /build */
-			"js/jsonfn.js",
-			"js/md5.js",
-			"js/background.js"
-		]
-	},
+  "background": {
+	"scripts": ["jquery-2.0.3.min.js", "background.js"]
+},
 
-	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+   "content_scripts": [
+      {
+         "matches": ["http://*/*", "https://*/*"],
+         "js": ["jquery-2.0.3.min.js", "contentscript.js"]
+      }
+   ],
 
-	"permissions": [
-		"tabs",
-		"<all_urls>",
-		"activeTab",
-		"notifications",
-		"storage",
-		"webRequest",
-		"webRequestBlocking",
-		"contextMenus",
-		"unlimitedStorage"
-	],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 
-	"web_accessible_resources": [
-		"js/jquery-2.0.3.min.js",
-		"js/crmapi.js"
-	],
+  "permissions": [  
+  "tabs",
+  "<all_urls>",
+  "activeTab",
+  "contextMenus"
+  ],
+  
+  "web_accessible_resources": [
+     "jquery-2.0.3.min.map",
+	 "jquery-2.0.3.min.js",
+	 "jquery-2.0.3.js"
+  ],
+  
+  "optional_permissions": [
+  "http://*/",
+  "alarms",
+  "background",
+  "bookmarks",
+  "browsingData",
+  "clipboardRead",
+  "clipboardWrite",
+  "contentSettings",
+  "cookies",
+  "desktopCapture",
+  "downloads",
+  "history",
+  "idle",
+  "notifications",
+  "management",
+  "notifications",
+  "power",
+  "privacy",
+  "pushMessaging",
+  "storage",
+  "topSites",
+  "tabCapture",
+  "tts",
+  "webNavigation",
+  "webRequest",
+  "webRequestBlocking"
+   ],
+  
 
-	"optional_permissions": [
-		"alarms",
-		"background",
-		"bookmarks",
-		"browsingData",
-		"clipboardRead",
-		"clipboardWrite",
-		"contentSettings",
-		"cookies",
-		"contentSettings",
-		"declarativeContent",
-		"desktopCapture",
-		"downloads",
-		"history",
-		"identity",
-		"idle",
-		"management",
-		"pageCapture",
-		"power",
-		"printerProvider",
-		"privacy",
-		"sessions",
-		"system.cpu",
-		"system.memory",
-		"system.storage",
-		"topSites",
-		"tabCapture",
-		"tts",
-		"webNavigation",
-		"webRequest",
-		"webRequestBlocking"
-	],
-
-	"incognito" : "spanning",
-
-	"icons" : {
-		"16": "icon-supersmall.png",
-		"48": "icon-small.png",
-		"128": "icon-large.png"
-	}
+  "icons": {
+	"16": "icon-supersmall.png",
+	"48": "icon-small.png",
+	"128": "icon-large.png"
+}  
 
 }

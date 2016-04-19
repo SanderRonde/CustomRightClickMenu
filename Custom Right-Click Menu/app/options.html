@@ -1,0 +1,1097 @@
+<html>
+<head>
+<title>
+Options
+</title>
+
+<style type="text/css">
+
+body
+{width:100%;
+margin:0;
+overflow-x: hidden;
+background: linear-gradient(to top, #848EFF 0%, #FFFFFF 100%);
+font-family:Arial,Helvetica,sans-serif; }
+
+#bugsandsuggestionsdiv 
+{ width:35%;
+border:5px solid black;
+border-radius:10px; }
+
+#changelog
+{ width:35%;
+border:5px solid black;
+border-radius:10px; }
+
+textarea { 
+    resize: none; 
+}
+
+#blackbar
+{width:100%;
+height:5%;
+position:fixed;
+z-index:29;
+background-color:rgb(66, 66, 66); }
+
+#toptext
+{color:grey;
+position:fixed;
+z-index:30;
+width:100%;}
+
+#thetextonthetop
+{font-size:200%; }
+
+div.links
+{	
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+    position: relative;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+}
+
+div.links li {
+	float: left;
+    font-family:"microsoft sans serif";
+}
+
+
+div.links a {
+	display: block;
+	width: 200px;
+    height: 5%;
+}
+
+div.links a:link, div.links a:visited {
+	background-color: rgb(66, 66, 66);
+	color: grey;
+	text-align: center;
+	text-decoration: none;
+	font-size: 30px;
+}
+
+div.links a:hover, div.links a:active {
+    color:white;
+}
+
+#randomid
+{margin-left:29%; }
+
+#maincontent
+{font-family:"microsoft sans serif";
+color:rgb(97, 97, 97);}
+
+h1
+{font-size:350%;
+color:black;}
+
+
+div.row li {
+display:inline;
+float:left;
+}
+
+#firstrow {
+height:50px; }
+
+.number {
+width:15%;
+margin-left:0px;
+margin-right:25px;
+margin-top:10px;
+margin-bottom:10px; }
+
+.name {
+width:150px;
+margin-left:50px;
+margin-right:50px;
+margin-top:10px;
+margin-bottom:10px; }
+
+.link {
+width:450px;
+margin-top:0px;
+margin-bottom:0px;
+margin-left:50px;
+margin-right:50px;
+border-style:solid;
+border-width:10px;
+border-radius:10px; }
+
+.script {
+width:450px;
+margin-top:0px;
+margin-bottom:0px;
+margin-left:50px;
+margin-right:50px;
+border-style:solid;
+border-width:10px;
+border-radius:10px; }
+
+.whatisit {
+width:100px;
+margin-top:10px;
+margin-bottom:10px;
+margin-left:20px; }
+
+.namelink {
+width:450px;
+margin-top:10px;
+margin-bottom:10px;
+margin-left:50px;
+margin-right:50px; }
+
+.divider {
+width:450px;
+margin-left:60px;
+margin-right:60px;
+margin-bottom:10px;
+margin-top:10px; }
+
+.row {
+height:100px; }
+
+.menu {
+width:450px;
+margin-left:60px;
+margin-right:60px;
+margin-bottom:10px;
+margin-top:10px; }
+
+#removewhatbackground {
+display: none;
+width: 100%;
+height:100%;
+position:fixed;
+z-index:30;
+background-color: rgba(0, 0, 0, 0.6); }
+
+#removewhat {
+width:63%;
+height:45%;
+position:fixed;
+z-index:40;
+margin-top:10%;
+margin-left:20%;
+border-radius:10px;
+background-color:black;
+color:white;
+font-size:200%; }
+
+#welcometext {
+width:55%; }
+
+#alldemrows {
+width:75%; }
+
+#alltherows {
+width:75%; }
+
+#optionstext {
+width: 55%; }
+
+#colorselect {
+height:5%; }
+
+#colorselect2 {
+height:5%; }
+
+#searchcode {
+width:50%;
+border:5px solid black;
+border-radius:5px; }
+
+#wheretheboxesgo {
+   line-height:20px; }
+
+#wherethecheckboxesgo {
+width:100%;
+font-size:100%; }
+
+.aroundblock {
+   width:100%;
+   height:40px;
+   background-color:rgb(192, 192, 192);
+   border-radius:5px;
+   cursor:hand; }
+   
+.aroundblock:hover {
+   background-color:rgb(77,77,77);
+   border-radius:5px;
+   }
+   
+.aroundblock:hover .block {
+   width:94%;
+   height:80%;
+   background-color:rgb(194,194,194);
+   border-radius:5px; }
+
+.block {
+   width:94%;
+   height:80%;
+   background-color:rgb(224, 224, 224);
+   border-radius:5px;}
+   
+.tenpercent {
+   height:10%;
+   width:100%; }
+   
+.fifteenpercent {
+   height:15%; }
+   
+   
+/* Effect */
+#cssanimation{
+ position:fixed;
+ z-index:99999999;
+ }
+
+ #details{
+ position:absolute;
+ z-index:999;
+ width:1920px;
+ height:1080px;
+ -webkit-transform: scale(0);
+ -webkit-transition-timing-function: ease-out;
+ -webkit-transition-duration: 250ms;
+ }
+ 
+ /* end of effect */
+ 
+#darkbackground {
+   width:100%;
+   height:100%;
+   position:fixed;
+   display:none;
+   z-index:99999998;
+   background-color:rgba(0, 0, 0, 0.77); }
+   
+#editingbox {
+   width:70%;
+   height:70%;
+   margin-top:6%;
+   margin-left:15%;
+   background-color:white;
+   border: 10px double #000000;
+   padding:10px;
+   border-radius:10px;}
+   
+@-webkit-keyframes colorchange
+{
+from {background:rgba(0,0,0,0);}
+to {background:rgba(0, 0, 0, 0.77);}
+}
+
+@-webkit-keyframes borderchange
+{
+from {border:2px solid black;}
+to {border:2px solid rgb(240, 240, 240);}
+}
+
+@-webkit-keyframes changeback
+{
+from {background:rgba(0, 0, 0, 0.77);}
+to {background:rgba(0,0,0,0);}
+}
+   
+#nametext {
+   font-size:300%; }
+   
+#leftside {
+   position:fixed; }
+   
+#rightside {
+   margin-left:79.5%;
+   margin-top: -1.6%; }
+   
+.otherchoice {
+   width:99%;
+   height:14.13%;
+   margin-bottom:5%;
+   margin-left:1%;
+   background-color:rgb(240, 240, 240);
+   border-radius:10px;
+   border:2px solid rgb(240, 240, 240); }
+   
+.otherchoice:hover {
+   cursor:hand;
+   border:2px solid red; }
+   
+.lastotherchoice {
+   width:99%;
+   height:14.13%;
+   margin-left:1%;
+   background-color:rgb(240, 240, 240);
+   border-radius:10px;
+   border:2px solid rgb(240, 240, 240); }
+   
+.lastotherchoice:hover {
+   cursor:hand;
+   border:2px solid red; }
+   
+.saveexit{
+   width:22%;
+   height:9.85%;
+   position:absolute;
+   margin-top:0%;
+   background-color:rgb(240, 240, 240);
+   border-radius:10px;
+   border:2px solid rgb(240, 240, 240); }
+
+.saveexit:hover {
+   cursor:hand;
+   border:2px solid black;}
+   
+#saveandexitbutton {
+   margin-left:23.7%; }
+   
+#exitingbutton {
+   margin-left:47.4%; }
+
+#plussign {
+   font-size:200%;
+   margin-top:0.7%; 
+   border: 2px solid rgba(255, 255, 255, 0);
+   border-radius:2px; }
+   
+#removesign {
+   font-size:200%;
+   margin-top:0.6%;
+   border: 2px solid rgba(255, 255, 255, 0);
+   border-radius:2px; }
+   
+#plussign:hover {
+   cursor:hand;
+   border: 2px solid black; }
+   
+#removesign:hover {
+   cursor:hand;
+   border: 2px solid black; }
+   
+#plussign::selection {
+   background:transparent }
+
+#removesign::selection {
+   background:transparent }
+   
+#rightside::selection {
+   background:transparent }
+   
+#leftsites {
+   height:370px;
+   width:49%;
+   margin-top:2%;
+   position:absolute; }
+   
+#rightsites {
+   height:370px;
+   width:49%;
+   position:absolute;
+   margin-top:2%;
+   margin-left:50.3%; }
+   
+.website {
+    border: 2px solid black;
+    border-radius: 10px;
+    height: 35px;
+    margin-bottom:10px; }
+
+.website:hover {
+   border: 2px solid red;
+   cursor:hand; }
+    
+.image {
+    position: absolute;
+    margin-left: 5px; }
+    
+.datext {
+   position: absolute;
+   margin-left: 80px;
+   font-size: 200%; }
+
+#wherethechildrengo {
+   width:1055px;
+   height:468px; }
+   
+.childrenrow {
+   width:27%;
+   height:80%;
+   margin-top:1.4%;
+   position:absolute; }
+   
+#firstrowwoob {
+   margin-left:7.25%; }
+   
+#secondrowwoob {
+   margin-left:36.5%; }
+   
+#thirdrowwoob {
+   margin-left:65.75%; }
+   
+#goright {
+   margin-left:95%;
+   height:86.8%;
+   position:absolute;
+   width:5%; }
+   
+#goleft {
+   margin-left:0px;
+   height:86.8%;
+   position:absolute;
+   width:5%; }  
+   
+#gotop {
+   width: 100.7%;
+   height:3%; }
+   
+#godown {
+   width:100%;
+   height:3%;
+   position:absolute; 
+   margin-top:42%; }
+   
+.boxesrow {
+   width:13%;
+   position:absolute; }
+   
+#rownumber1 {
+   margin-left:44%; }
+   
+#leftscrolldivider {
+   width:5%;
+   margin-left:-2%;
+   position:absolute;
+   border:5px solid rgb(192, 192, 192);
+   border-top-right-radius:30px;
+   border-bottom-right-radius:30px;
+   border-top:5px solid rgb(192, 192, 192);
+   border-right:5px solid rgb(192, 192, 192);
+   border-bottom:5px solid rgb(192, 192, 192);
+   margin-top:-1%;
+   background-color:rgb(224, 224, 224); }
+   
+#rightscrolldivider {
+   margin-left:97%;
+   width:2.7%;
+   border-bottom-left-radius:30px;
+   border-top-left-radius:30px;
+   border-left:5px solid rgb(192, 192, 192);
+   border-top:5px solid rgb(192, 192, 192);
+   border-bottom:5px solid rgb(192, 192, 192);
+   margin-top:-1%;
+   position:absolute;
+   background-color:rgb(224, 224, 224) }
+   
+#leftscrolldivider:hover {
+   cursor:hand; }
+   
+#rightscrolldivider:hover {
+   cursor:hand; }
+   
+#gearicon {
+   border:2px solid white;
+   position:absolute;}
+   
+#gearicon:hover {
+   border:2px solid black;
+   cursor:hand; }
+   
+#leftsettinsside {
+   width:34.5%;
+   height:45%;
+   margin-top:7%;
+   font-size:96%;
+   border-right:2px solid grey;
+   padding-right:9px;
+   position:absolute; }
+   
+#rightsettingsside {
+   width:34.5%; 
+   height:45%;
+   margin-top:7%;
+   margin-left:35.5%;
+   position:absolute; }
+ 
+#bottomsettingsside {
+   width:70.5%;
+   position:absolute;
+   margin-left:-0.25%;
+   height:10%;
+   margin-top:34%; }
+   
+#titledivider {
+   width:70%;
+   font-size:400%;
+   position:absolute;
+   height:8%; }
+   
+#leftsideofrightside {
+    position: absolute;
+    height: 100%;
+    width: 47%; }
+
+#rightsideofrightside {
+    width: 47%;
+    position: absolute;
+    height: 100%;
+    margin-left: 53%; }
+    
+.permissiondiv {
+    border-radius: 10px;
+    margin-left: 2%;
+	margin-top:-4px;
+	margin-bottom:-4px;
+    margin-right: 2%; }
+    
+#optionsbackbutton {
+    position: absolute;
+    width: 49.5%;
+    height: 100%;
+    background-color: rgb(240, 240, 240);
+    margin-top: -2px;
+    border: 2px solid white;
+    margin-left: -2px;
+    border-radius: 10px; }
+
+#optionsexitbutton {
+    position: absolute;
+    width: 49.4%;
+    height: 100%;
+    margin-left: 50.5%;
+    z-index: 10000;
+    background-color: rgb(240, 240, 240);
+    margin-top: -2px;
+    border: 2px solid white;
+    margin-right: 2px;
+    border-radius: 10px; }
+    
+#optionsbackbutton:hover {
+   cursor:hand;
+   border:2px solid black; }
+   
+#optionsexitbutton:hover {
+   cursor:hand;
+   border:2px solid black; }
+   
+#leftscrolldivider {
+   z-index:20; }
+   
+#rightscrolldivider {
+   z-index:20; }
+   
+.numberdiv {
+   position:absolute;
+   margin-top:-40px; }
+   
+#greenbutton {
+   margin-left:50%;
+   margin-top:-2.2%;
+   position:absolute;}
+   
+#greenbutton:hover {
+   cursor:hand; }
+   
+#wheretheboxesgotwo {
+   width: 85%;
+   height: 80%;
+   margin-top: 1.5%;
+   margin-left: 7.5%;
+   position: absolute; }
+   
+#somethingwentwrongdiv {
+   height:100%;
+   width:100%;
+   background-color:grey;
+   position:fixed;
+   z-index:50000000; }
+   
+#actualoptionsbox {
+   width:80%;
+   height:80%;
+   margin-left:10%;
+   margin-top:5%;
+   border-radius:10px;
+   border:5px solid black;
+   background-color:white; }
+
+#bigtextholder {
+   margin-top:2%;
+   font-size:300%; }
+   
+#fixstuffleft {
+   width:35%;
+   height:57%;
+   margin-left:3%;
+   margin-top:4%;
+   position:absolute; }
+   
+#fixstuffright {
+   background-color:red;
+   width:35%;
+   position:absolute;
+   height:57%;
+   margin-top:4%;
+   margin-left:40%; }
+   
+#datatextarea {
+   resize:none; }
+   
+.addbutton {
+   position:absolute;
+   margin-left:86%;
+   opacity:0.0;
+   font-size:120%;
+   margin-top:-0.6%; }
+   
+.removebutton {
+   opacity:0.0;
+   position:absolute;
+   margin-left:92%; }
+   
+.checkboxes {
+   position:absolute;
+   display:none;
+   margin-left:-140px; }
+   
+#whentorun {
+   position:absolute;
+   margin-top:-50px; }
+   
+#questionmark {
+   font-size:150%;
+   position:absolute;
+   margin-left:105%;
+   margin-top:-26px; }
+   
+#questionmark:hover {
+   cursor:hand; }
+   
+#questionmarktwo {
+    position: absolute;
+    margin-top: -27px;
+    margin-left: 101%;
+    font-size: 150%; }
+    
+#questionmarktwo:hover {
+   cursor:hand; }
+   
+.Linkoutside {
+   width:100%;
+   background:url("Thumbnails/bluebackground.png");
+   height:40px;
+   border-radius:5px;
+   cursor:hand; }
+   
+.Scriptoutside {
+   width:100%;
+   background:url("Thumbnails/redbackground.png");
+   height:40px;
+   border-radius:5px;
+   cursor:hand; }
+   
+.Menuoutside {
+   width:100%;
+   background:url("Thumbnails/greenbackground.png");
+   height:40px;
+   border-radius:5px;
+   cursor:hand; }
+   
+.Divideroutside {
+   width:100%;
+   background:url("Thumbnails/yellowbackground.png");
+   height:40px;
+   border-radius:5px;
+   cursor:hand; }
+   
+c1 {
+   color:red; }
+   
+c2 {
+   color:blue; }
+   
+c3 {
+   color:green; }
+   
+c4 { 
+   color:yellow; }
+
+c5 {
+   opacity:0.5; }
+   
+</style>
+
+</head>
+<body style="overflow-y:hidden;">
+
+<!-- If something went wrong, do this -->
+<div id="somethingwentwrongdiv" style="display:none;">
+   <div id="actualoptionsbox">
+      <div id="bigtextholder">
+         <center><b>
+         Something went wrong, try and use these buttons to fix it
+         </b></center>
+      </div>
+      <div id="fixstuffleft">
+         <button id="evenout">Even out</button> <b>Try and even out the total number of menu-items in localstorage and the actual number of items.</b><br>
+         This may remove the last row, but this is the worst thing that can happen.<br><br>
+         <button id="removewaitingthings">Remove stuff</button><b>Remove wrong stuff from localstorage</b><br>
+         This has a very low chance of fixing the problem, but you never know if it will work.<br><br>
+         <button id="resetalmostall">Reset localstorage</button> <b> Reset all the items in localstorage except for the items that you created and the script's options</b><br>
+         This will remove everything except for what you created and the options on the script editing page. This can fix some problems, but this option is mainly there to
+         prevent resseting unnessecary stuff.<br><br>
+         <button id="resetexceptrows">Reset localstorage 2</button> <b>Reset everything except for the items you created.</b><br>
+         This clears justa  bit more than the previous one and has a better chance of working.<br><br>
+         
+         <div id="replaceablediv">
+         <button id="resetall">RESET EVERYTHING</button> <b>This will be equivalent to a reinstall of the extension.</b><br>
+         I recommend taking a look at the page on the right, before hitting this button. If you do decide to do it, try to get a backup of what you have now.<br>
+         What i mean with this, is try to get the data and positions off of the items. This way you can recover any scripts you made or links you had.<br>
+         You can do that by just copying the data on the right and using that to recover any data you had..<br><br>
+         </div>
+         
+      </div>
+      <div id="fixstuffright">
+         In the box below is the raw data stored in your items. They should look a bit like this: <b>NAME</b>%123<b>TYPE</b>%123<b>DATA</b><br>
+         Something you can place in there without any trouble (if one line is empty in example) you can write <b>name%123Link%123http://www.google.com</b><br>
+         If anything looks off from this formula, you can try and correct it and hit <b>apply & try</b> to reload the page and see if it works now.
+         <textarea id="datatextarea" cols="80" rows="25"></textarea><br>
+         <center><button id="applyandtry">Apply & Try</button></center>
+      </div>
+   </div>
+</div>
+
+<div id="darkbackground"></div>
+
+<div id="cssanimation" style="height:100%;">
+   <div id="details">
+     <div id="editingbox"></div>
+      </div>
+   </div>
+</div>
+
+<div id="toptext">
+<div id="thetextonthetop">
+<b>
+
+<div class="links">
+<ul>
+
+<div id="randomid">
+<li>
+<a href="#top">Home</a>
+</li>
+</div>
+
+<li>
+<a href="#options">Options</a>
+</li>
+
+<li>
+<a href="#otherstuff">Other Stuff</a>
+</li>
+
+</ul>
+</div>
+
+</b>
+</div>
+</div>
+
+<div id="blackbar">
+</div>
+
+
+
+<center>
+<div id="maincontent">
+
+<a id="top">
+</a>
+<br>
+<br>
+
+<h1>
+Custom Right-Click Menu
+</h1>
+
+<div id="welcometext">
+Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu completely.<br>
+Some things you can do are creating a link to a website, executing a custom piece of JavaScript code or making a subsection with more things in it.<br>
+I recommend you first check out the entire options page before you start changing the actual items. This is mainly because there are a lot of things to make it easier for you.
+There are a few things you should know that are noted below.<br><br>
+I really recommend visiting the settings part when editing a script if you're planning on writing some javascript code. Some very important info is on there<br><br>
+Some scripts other people have created can be found on this page <a href="scripts.html">this page</a>.
+If you feel you've created a script that a lot of people will enjoy, you can also share it so other people can get it too.<br>
+Because i don't have a site right now myself, and don't really know any good site to store these, you can share them on <a href="scripts.html">this page</a>. If you've got suggestions for a site to use, please email them to me.   
+</div>
+
+<br>
+<a id="options">
+</a>
+<hr width="55%">
+<br>
+<br>
+<h1>
+Options
+</h1>
+<div id="optionstext">
+
+<input type="checkbox" id="optionsshortcut"> Turn on the shortcut to the options page in your right-click menu
+<br>
+<br>
+<input type="checkbox" id="whatpage"> Open in current tab (if unchecked clicking a link will open it in a new tab)
+<br>
+<br>
+
+</div>
+
+<br>
+<br>
+<b>Things you should know:</b>
+This is what the colors and the see through items mean:<br><br>
+
+<c1>Red</c1>: Script<br>
+<c2>Blue</c2>: Link<br>
+<c3>Green</c3>: Menu<br>
+<c4>Yellow</c4>: Divider<br>
+<c5>See-through</c5>: A script that wont be shown in the right-click menu (one that does not run on click).<br><br><br>
+
+Don't edit scripts that you have not written, this will probably break them.<br><br>
+If the right-click menu is not updating after you changed something, reload the extension in the "extensions" page.<br>
+<br>
+Click on this button to show a piece of code that allows you to search a search engine's website.<br>
+<a id="items"></a>
+<button id="showcode">show</button>
+<br>
+<br>
+<div id="searchcode">
+<br>
+<textarea rows="9" cols="50" style="resize:none;">
+/*execute locally*/
+var x = prompt("Search google for what","");
+
+x = x.replace(" ","%20");
+
+var y = ("https://google.com/search?q=" + x);
+
+chrome.tabs.create({url:y});
+</textarea><br><br>
+<b>Note:</b> If you want this URL for the "Add search engine" button, replace the %s with customrightclickmenu and keep the www.<br>
+<br>
+You can replace "google" in the prompt ofcourse to what you want, and most importantly:<br>
+You can replace "https://google.com/search?q=" with any other search engine.<br>
+To find the url for this, go to settings, go to manage search engines and find the URL in the 3rd column.<br>
+Copy this, and remove www. from it and remove %s from it.<br>
+If the URL's format differs a lot from the google URL, take the domain and check if this works.<br>
+http://www.domain.com/search?q=<br>
+After the q= type any word, and see if it searches the site for that word.<br>
+If this worked, remove www. and place it between the parentheses ("")<br>
+Now try and see if this works, if it does, you just learned how to make a custom search.<br>
+I recommend making a menu with a lot of search engines in it to search easily.<br>
+<br>
+</div>
+
+<br>
+<br>
+<br><br><br>
+<div id="sidethingsdiv"></div>
+<div id="wheretheboxesgo">
+<div class="boxesrow" id="rownumber1">
+   
+</div>
+
+</div>
+<div id="randomanchor" style="width:1920px;height:1px;"></div>
+<a id="otherstuff">
+</a>
+<h1>
+Other Stuff
+</h1>
+<br>
+<b>Presets</b>
+<br><br>
+Here are some things to get you started. Click these buttons to add a preset menu to your rows.<br>
+<br>
+<button id="addcommonsites">Common Sites</button><br>
+Google, Youtube, Wikipedia, Facebook, Twitter, Hotmail, Gmail<br>
+And the "add site" button.<br>
+<br> 
+<br>
+<br>
+<button id="addsearchengines">Search Engines</button><br>
+Google, Youtube, Wikipedia<br>
+And the "add searchengine" button.<br>
+<br>
+<br>
+If you have any suggestions to be default sites, or default searchengines included in these menus, please send an email to <a href="mailto:awsdfgvhbjn@gmail.com">awsdfgvhbjn@gmail.com</a>,<br>
+or use the send feedback button on the extension's page in the web store.<br>
+Additionally if you have a script that could come in handy to a lot of people, also email me and i'll see if i can place it here.<br>
+<br><br>
+<hr width="55%"><br>
+<br>
+<b>Importing and Exporting</b>
+<br>
+<br>
+<b>Exporting</b>
+<br>
+Just copy the output into an import box.<br>
+<br>
+<textarea rows="20" cols="100" id="outputarea" style="resize:none;">
+</textarea>
+<br>
+<b>Note:</b> Say you are exporting rows 1 to 4 and number one is a menu with the next 5 being Child rows,<br>
+keep in mind that the person who imports it will also have the menu with 5 Child rows, affecting their other rows.<br>
+Also, say you select 1,2 and 4, the person who imports it will have row 3 as an empty row.<br>
+<br>
+<button id="selectexport" title="select which items to export, this is handy for sharing individual menu's or items.">Select what to export</button><button id="exporteverything" title="Export all your settings, this will replace the importer's settings">Export everything</button><button id="actualexport">Export</button>
+<br>
+<br>
+<br>
+<br>
+<br>
+<b>Importing</b>
+<br>
+Copy export text into this box and hit the buton.<br>
+<br>
+<textarea rows="20" cols="100" id="inputarea" style="resize:none;">
+</textarea>
+<br>
+The imported rows will be added as new rows in the last place.<br>
+If you have 1-5 set, and import 3 rows, it will place them on place 6-8.<br>
+<br>
+<button id="importit">Import</button>
+
+
+
+<br>
+<br>
+<hr width="55%">
+<b>Bugs, Changelog</b>
+<br>
+<br>
+<br>
+<br>
+<div style="width:55%;">
+If you find any bugs, please email them to <a href="mailto:awsdfgvhbjn@gmail.com">awsdfgvhbjn@gmail.com</a>, you can also use the "send feedback" button on the extension's page in the chrome web store.<br>
+<br>
+If you want to see all the reported bugs and suggestions, you can go to the extension's page in the web store to see any bugs and suggestions sent through there, or you can hit the show button below to see <b>all</b> of them, including those sent to me via email.<br>
+<br>
+<button id="bugsandsuggestions">Show</button>
+<br>
+<br>
+<div id="bugsandsuggestionsdiv" style="display:none;">
+<br>
+<b>Bugs</b>
+<br>
+<br>
+<ul style="margin-right:50px;">
+- None<br>
+</ul>
+<br>
+<br>
+<b>Suggestions</b>
+<br>
+<br>
+<ul style="margin-right:50px;">
+- None<br>
+</ul> 
+<br>
+<br>
+</div>
+<br>
+<br>
+If you want to see the changelog, click the button below.<br>
+<br>
+<button id="showchangelog">Show</button>
+<br>
+<br>
+<div id="changelog" style="display:none;">
+   <br>
+   <b>Version 1.0</b><br>
+   <br>
+   <ul style="margin-right:50px;">
+   - Release<br>
+   </ul>
+   <br>
+   <br>
+
+    <b>Version 1.1</b><br />
+    <br />
+    <ul style="margin-right:50px;">
+        -Added 2 scripts (one by me and one by someone who shared one)<br />
+        -Added donation methods via cryptocoins<br />
+    </ul>
+    <br />
+	<br/>
+	<b>Version 1.1.1</b><br/>
+	<br/>
+	<ul style="margin-right: 50px;">
+		-Added a notice for the beta
+	</ul>
+	<br/><br/>
+</div>
+
+
+</div>
+<br>
+<hr width="55%">
+<b>Share this extension</b><br><br>
+If you find this extension helpfull, please leave a rating at the <a href="https://chrome.google.com/webstore/detail/binder/onbnbijhmoobjojcajjlokhdgfmhehib">web store</a>.<br>
+Also please share it with people you know, and help enhance their browsing experience.<br>
+I spent quite a lot of time creating this extension and i hope a lot of people find it usfull and use it.<br>
+<br>
+<br>
+<br>
+<hr width="55%">
+<b>Donating</b><br/><br/>
+I would really appreciate it if you could donate to me. You don't have to and any amount is fine. <br>
+Thank you for using my extension.
+<br>
+<br>
+    <b>Donate with Paypal:</b><br />
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----
+">
+<input type="image" src="https://www.paypalobjects.com/en_GB/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal — The safer, easier way to pay online.">
+<img alt="" border="0" src="https://www.paypalobjects.com/nl_NL/i/scr/pixel.gif" width="1" height="1">
+</form>
+
+
+    <b>Donate with Bitcoin:</b><br />
+    Address:<b>1HXQ4sQC2hMjwNqsPLFXrShfUQkfwmrHfh</b><br /><br />
+    
+    <b>Donate with Litecoin:</b><br />
+    Address:<b>LSjSR15j5QuDhJtZURTSoARQSFF5iY7j8C</b><br /><br />
+
+    <b>Donate with DogeCoin:</b><br />
+    Address:<b>DK96U8X9SwDGyu1azPHVzXVyxE5Ud8YUtB</b><br /><br />
+
+<br />
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+</div>
+</center>
+
+
+</body>
+<script src="jquery-2.0.3.min.js" type="text/javascript"></script>
+<link href="jquery-ui.css" rel="stylesheet" type="text/css">
+<script src="jquery-ui.js"></script>
+<script src="backupscript.js"></script>
+<script src="jscolor/jscolor.js"></script>
+<script src="options.js"></script>
+</html>
