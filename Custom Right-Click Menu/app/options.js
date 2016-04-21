@@ -11126,9 +11126,17 @@ document.getElementById('copyMySettings')
 			selection.removeAllRanges();
 		});
 
-window.setTimeout(function() {
-	document.getElementById('betaAnnouncementDialog').open();
-}, 3000);
+document.getElementById('closeBetaAnnouncement')
+	.addEventListener('click',
+		function() {
+			localStorage.setItem('noBetaAnnouncement', true);
+		});
+
+if (!localStorage.getItem('noBetaAnnouncement')) {
+	window.setTimeout(function() {
+		document.getElementById('betaAnnouncementDialog').open();
+	}, 3000);
+}
 
 
 //Send a message stating that this script is done loading
