@@ -428,6 +428,7 @@ module.exports = function (grunt) {
 				result = generators[options.type].generate(result);
 			}
 
+			grunt.log.ok('Created ' + options.type + ' defs, ' + sourceFile + ' -> ' + defsOutput);
 			grunt.file.write(destFile, result);
 		});
 	});

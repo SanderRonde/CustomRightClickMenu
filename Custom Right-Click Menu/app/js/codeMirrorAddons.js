@@ -1,7 +1,7 @@
 ﻿// CodeMirror, copyright (c) by Marijn Haverbeke and others 
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 !function(e) {
-	typeof exports == "object" && typeof module == "object" ? e(require("../../lib/codemirror")) : typeof define == "function" && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e];
+	typeof exports == "object" && typeof module == "object" ? e(require("../../lib/codemirror")) : typeof define == "function" && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? (window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e]) : window.codeMirrorToLoad = { toLoad: [e] };
 }(function(e) {
 	"use strict";
 	function t(e, t, r) {
@@ -599,7 +599,7 @@
 	N = e.cmpPos
 }),
 function(e) {
-	"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : e(CodeMirror)
+	"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] }
 }(function(e) {
 	"use strict";
 	function t(e, t) {
@@ -16283,8 +16283,8 @@ function(e, t) {
 			e
 		}
 	}),
-	function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : e(CodeMirror)
+	function (e) {
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		function t(e, t, n, o) {
 			var i = e.getLineHandle(t.line)
@@ -16392,7 +16392,7 @@ function(e, t) {
 		})
 	}),
 	function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror"), require("./searchcursor"), require("../dialog/dialog")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror", "./searchcursor", "../dialog/dialog"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		function t(e, t) {
@@ -16615,7 +16615,7 @@ function(e, t) {
 		}
 	}),
 	function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		function t(e, t, o, i) {
@@ -16815,7 +16815,7 @@ function(e, t) {
 		})
 	}),
 	function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		function t(t, r, n) {
@@ -16932,7 +16932,7 @@ function(e, t) {
 		}
 	}),
 	function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		function t(e, t) {
@@ -17028,7 +17028,7 @@ function(e, t) {
 		}
 	}),
 	function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror"), require("./searchcursor"), require("../scroll/annotatescrollbar")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror", "./searchcursor", "../scroll/annotatescrollbar"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		function t(e, t, r, n) {
@@ -17126,7 +17126,7 @@ function(e, t) {
 		}
 	}),
 	function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : (!window.installPage && e(CodeMirror))
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		function t() {
 			m.style.transform = "rotate(90deg)",
@@ -17289,8 +17289,11 @@ function(e, t) {
 			}, 250)
 		})
 	});
-	!function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror"), require("diff_match_patch")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror", "diff_match_patch"], e) : e(CodeMirror, diff_match_patch)
+!function (e) {
+	var fn = function (cm) {
+		e(cm, diff_match_patch);
+	}
+	"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror, diff_match_patch) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(fn) : window.codeMirrorToLoad.toLoad = [fn] : window.codeMirrorToLoad = { toLoad: [fn] };
 	}(function(e, t) {
 		"use strict";
 		function r(e, t) {
@@ -17983,7 +17986,7 @@ function(e, t) {
 		}
 	});
 	!function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		function n(e) {
@@ -18160,7 +18163,7 @@ function(e, t) {
 		})
 	});
 	!function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		function t(e) {
@@ -18544,7 +18547,7 @@ function(e, t) {
 		})
 	});
 	!function(e) {
-		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror"), require("../../mode/css/css")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror", "../../mode/css/css"], e) : e(CodeMirror)
+		"object" == typeof exports && "object" == typeof module ? e(require("../../lib/codemirror")) : "function" == typeof define && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(CodeMirror) : window.codeMirrorToLoad ? window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e] : window.codeMirrorToLoad = { toLoad: [e] };
 	}(function(e) {
 		"use strict";
 		var r = {

@@ -2,12 +2,12 @@
 Custom Right-Click Menu for Chrome
 
 #Installing from repo
-Clone the repo, run npm install and run the grunt "build" task, load the extension into chrome from the "build" folder
+Clone the repo, run npm install and run the grunt "build" task, load the extension into chrome from the "build" folder. Do not run bower install. Due to crisper's new method of crisping and it using the defer property, this makes all imports run in some random order which crashes everything. There is a flag available on the original crisper but this does not exist on grunt-crisper. And it's also horrible to crispify every single component and list out its name. Vulcanize will take care of the optimization.
 
 #Installing from the chrome web store
 The extension can be found here https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj
 Keep in mind this version is version 1.1 and this is the repo containg version 2.0
-It's probably going to take a while to complete this version since i'm doing this on the side next to university and university projects.
+It's probably going to take a while to complete this version since i'm doing this on the side next to university and all its projects.
 
 #Description
 Create your own entry in the right-click menu. Add custom scripts, links, submenus or custom CSS in your right-click menu and

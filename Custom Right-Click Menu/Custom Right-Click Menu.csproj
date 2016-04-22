@@ -611,6 +611,9 @@
     <Content Include="app\html\crmAPIDocsElements.html" />
     <Content Include="app\html\crmAPIDocsUI.html" />
     <Content Include="app\html\options.html" />
+    <Content Include="app\icon-large.png" />
+    <Content Include="app\icon-small.png" />
+    <Content Include="app\icon-supersmall.png" />
     <Content Include="app\images\audio.svg" />
     <Content Include="app\images\close.svg" />
     <Content Include="app\images\fullscreen.svg" />
@@ -665,18 +668,12 @@
     <Content Include="app\images\chromearrow.png" />
     <Content Include="app\images\drag.svg" />
     <Content Include="app\images\whitearrow.png" />
-    <Content Include="app\jquery.contextMenu.css" />
+    <Content Include="app\css\jquery.contextMenu.css" />
     <Content Include="app\js\background.js" />
     <Content Include="app\js\crmapi.js" />
-    <Content Include="app\icon-large.png" />
-    <Content Include="app\icon-small.png" />
-    <Content Include="app\icon-supersmall.png" />
     <Content Include="app\js\crmAPIDefs.js" />
     <Content Include="app\js\crmAPIDocs.js" />
     <Content Include="app\js\diff_match_patch.js" />
-    <Content Include="app\js\e.js" />
-    <Content Include="app\js\encryption.js" />
-    <Content Include="app\js\eo.js" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
     <Content Include="app\js\jquery-ui.min.js" />
     <Content Include="app\js\jquery.bez.js" />
@@ -879,6 +876,7 @@
     <Content Include="app\fonts\Inconsolata-Regular.ttf" />
     <Content Include="app\fonts\Roboto-Bold.ttf" />
     <Content Include="app\fonts\Roboto-Regular.ttf" />
+    <Content Include="LICENSE.txt" />
     <Content Include="package.json" />
     <Content Include="app\bower_components\iron-a11y-announcer\.bower.json" />
     <Content Include="app\bower_components\iron-a11y-announcer\bower.json" />
@@ -900,6 +898,7 @@
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
+    <Content Include="tools\copyImportedElements.js" />
     <Content Include="web.config" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
@@ -913,6 +912,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="app\bower_components\bower_components\" />
+    <Folder Include="build\" />
     <Folder Include="definitionFiles\" />
     <Folder Include="Properties\" />
   </ItemGroup>

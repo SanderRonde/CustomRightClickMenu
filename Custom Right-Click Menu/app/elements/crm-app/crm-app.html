@@ -1,7 +1,7 @@
 ﻿<dom-module id="crm-app">
 	<template>
 		<link rel="import" href="../../elements/elements.html" />
-		<link rel="stylesheet" href="../../jquery.contextMenu.css" />
+		<link rel="stylesheet" href="../../css/jquery.contextMenu.css"/>
 		<link rel="stylesheet" href="crm-app.css" />
 		<div class="popupCont">
 			<div id="fullscreenEditor">
@@ -51,7 +51,7 @@
 						Custom Right-Click Menu
 					</div>
 					<div class="mainDescr">
-						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website or create your own script to run upon clicking it. You can right-click anywhere on this page to view the custom right-click menu for content-type page (the whole menu will be wrapped in a "Custom Menu" subsection on other pages). On this options page any scripts will not be able to use the CRMAPI. Right-clicking on the "Editing the CRM" section below shows only the nodes for that content-type.
+						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website, create your own script to run or change the style of a website. You can also order this menu by wrapping it in subsections or by dividing them in sections. You can right-click anywhere on this page to view the custom right-click menu. Right-clicking on one of the content type buttons below (page, link, selection etc) shows the right-click menu for that content type. On other pages the whole menu will be wrapped in a "Custom Menu" subsection. 
 					</div>
 				</div>
 				<br />
@@ -205,7 +205,7 @@
 						<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
 							<div class="globalExcludeContainer">
 								<paper-input on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
-								<paper-icon-button icon="clear" on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+								<paper-icon-button hidden$="[[isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
 							</div>
 						</template>
 						<paper-button raised class="blue" on-tap="addGlobalExcludeField">ADD</paper-button>
@@ -240,8 +240,20 @@
 					</div>
 					<paper-checkbox checked id="exportCRM">Export your Custom Right-Click Menu</paper-checkbox>
 					<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
-					<br />
+					<br/>
 					<paper-button class="blue" raised id="exportButton" on-tap="exportData">Export</paper-button>
+				</div>
+				<br/><br/>
+				<div class="privacyPolicyCont">
+					<div class="bigTxt">
+						Privacy Policy
+					</div>
+					<div class="privacyPolicyDescr">
+						This extension does not store personally identifiable information. It also doesn't store your data on any servers except google's.
+						This extension uses <a href="https://developer.chrome.com/extensions/storage" target="_blank">chrome.storage.sync</a> to sync your
+						data across devices. This data only consists of your custom right-click menu and its settings. To turn off this feature, hit the
+						"use storage sync" checkbox at the top of this page.
+					</div>
 				</div>
 				<br /><br />
 				<div class="contactCont">
@@ -619,9 +631,9 @@
 						<br />
 						<div id="betaTestMessageTabCont">
 							<div id="betaTestMessageTabSlider">
-								<div class="betaTestMessageTab">
-									<h2>Welcome to the Custom Right-Click Menu beta test</h2>
-									<div>
+								<div id="betaMessageFirstTab" class="betaTestMessageTab">
+									<h2 id="betaMessageFirstTabTitle">Welcome to the Custom Right-Click Menu beta test</h2>
+									<div id="betaMessageFirstTabContent">
 										Thank you for beta testing Custom Right-Click Menu (CRM). As you can see a lot has changed in the new
 										version. The entire code has been rewritten from scratch and it looks completely different.
 										This will of course introduce a lot of bugs. While i have managed to squash a lot of bugs by myself,
@@ -655,7 +667,8 @@
 									</h2>
 									<div id="betaTestMessageSecondTabContent">
 										<div hidden$="[[!isBetaTestMessageOptionX(betaTestMessageOption, 0)]]">
-											To use this method, open the options page of the old version of the extension,
+											To use this method, either hit the "copy settings" button on the 
+											"join the beta" dialog or open the options page of the old version of the extension,
 											press F12, go to the "console" tab, and paste this code snippet in there.<br />
 											<pre id="betaTestCode" class="inlineCodePre">copy(JSON.stringify(localStorage));</pre>
 											<paper-icon-button id="copyButton" icon="content-copy" title="copy to clipboard" on-tap="copySnippetToClipboard"></paper-icon-button>
@@ -663,6 +676,7 @@
 											This will copy your settings to your clipboard. Then paste those settings
 											in the box below and hit complete to start using the extension.
 											<textarea id="prevVersionImportTextarea" rows="10"></textarea>
+											<div id="betaTestImportErrorLine">An error occurred, please check the data and try again</div>
 										</div>
 										<div hidden$="[[!isBetaTestMessageOptionX(betaTestMessageOption, 1)]]">
 											While this method is not preferred due to it skipping an important
@@ -689,9 +703,11 @@
 		</div>
 	</template>
 </dom-module>
+<!-- build:js ../../js/jqueryFiles.min.js -->
 <script src="../../js/jquery-2.0.3.min.js"></script>
 <script src="../../js/jquery-ui.min.js"></script>
 <script src="../../js/jquery.requestAnimationFrame.min.js"></script>
 <script src="../../js/jquery.contextMenu.js"></script>
 <script src="../../js/jquery.bez.js"></script>
+<!-- /build -->
 <script src="crm-app.js"></script>

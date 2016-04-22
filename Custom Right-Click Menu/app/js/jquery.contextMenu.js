@@ -1241,7 +1241,7 @@ $.fn.contextMenu = function(operation) {
 };
 
 // manage contextMenu instances
-$.contextMenu = function(operation, options) {
+$.contextMenu = function (operation, options) {
 	if (typeof operation != 'string') {
 		options = operation;
 		operation = 'create';

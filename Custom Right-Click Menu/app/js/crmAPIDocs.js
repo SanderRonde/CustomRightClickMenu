@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 //#region Drawer Animation
 var drawer = document.getElementById('sideDrawer');

@@ -4,10 +4,19 @@
 	"options_page": "html/options.html",
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu.",
-	"version": "2.0",
+	"version": "2.0.0",
+	"version_name":  "2.0 beta", 
+	"short_name": "CRM", 
 
 	"background": {
-		"scripts": [ "js/jquery-2.0.3.min.js", "js/diff_match_patch.js", "js/codemirror.js", "js/codeMirrorAddons.js", "js/jsonfn.js", "js/md5.js", "js/background.js" ]
+		"scripts": [
+			"js/jquery-2.0.3.min.js",
+			/* build:json:remove */ "js/diff_match_patch.js", "js/codemirror.js", "js/codeMirrorAddons.js", /* /build */
+			/* build:json:uncomment */ //"js/codeMirrorFile.min.js", /* /build */
+			"js/jsonfn.js",
+			"js/md5.js",
+			"js/background.js"
+		]
 	},
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
@@ -25,9 +34,7 @@
 	],
 
 	"web_accessible_resources": [
-		"js/jquery-2.0.3.min.map",
 		"js/jquery-2.0.3.min.js",
-		"js/jquery-2.0.3.js",
 		"js/crmapi.js"
 	],
 

@@ -907,7 +907,7 @@ html {
 	overflow: hidden;
 	width: 1804px;
 	transform: translateX(0);
-	transition: transform 350ms ease-in-out;
+	transition: transform 500ms ease-in-out;
 }
 
 #betaTestMessageTabSlider.nextTab {
@@ -936,4 +936,9 @@ html {
 
 #betaTestMessageTabCont {
 	overflow: hidden;
+}
+
+#betaTestImportErrorLine {
+	color: red;
+	opacity: 0;
 }
