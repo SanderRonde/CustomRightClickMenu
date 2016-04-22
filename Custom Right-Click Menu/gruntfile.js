@@ -24,10 +24,33 @@ module.exports = function (grunt) {
 		},
 		extractCrmDefs: {
 			updateCRMDefs: {
+				options: {
+					type: 'tern'
+				},
 				files: [{
-					src: ['app/js/crmapi.js', 'app/js/crmAPIDefs.test.js', 'app/html/crmAPIDocs.html'],
-					dest: 'build/',
-					expand: true
+					src: ['app/js/crmapi.js'],
+					dest: 'build/js/crmAPIDefs.js',
+					expand: false
+				}]
+			},
+			updateHTMLDocs: {
+				options: {
+					type: 'html'
+				},
+				files: [{
+					src: ['app/js/crmapi.js'],
+					dest: 'app/html/crmAPIDocs.html',
+					expand: false
+				}]
+			},
+			updateVsDocs: {
+				options: {
+					type: 'vs'
+				},
+				files: [{
+					src: ['app/js/crmapi.js'],
+					dest: 'definitionFiles/vsDocs.js',
+					expand: false
 				}]
 			}
 		},
@@ -54,5 +77,6 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('updateBower', ['crisper']);
 	grunt.registerTask('updateCRMDefs', ['extractCrmDefs', 'processhtml']);
+	grunt.registerTask('woob', ['extractCrmDefs']);
 	grunt.registerTask('build', ['extractCrmDefs', 'processhtml']);
 }

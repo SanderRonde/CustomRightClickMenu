@@ -895,6 +895,7 @@
     <Content Include="app\bower_components\paper-radio-button\README.md" />
     <Content Include="app\bower_components\paper-toggle-button\bower.json" />
     <Content Include="app\bower_components\paper-toggle-button\README.md" />
+    <Content Include="tools\defGenerators\htmlGenerator.js" />
     <Content Include="tools\extractDefs.js" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
@@ -912,6 +913,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="app\bower_components\bower_components\" />
+    <Folder Include="definitionFiles\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <PropertyGroup>
