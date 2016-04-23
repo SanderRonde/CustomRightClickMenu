@@ -11,7 +11,7 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		extractCrmDefs: {
-			updateCRMDefsExtension: {
+			defs: {
 				updateCRMDefs: {
 					options: {
 						type: 'tern'
@@ -49,7 +49,7 @@ module.exports = function(grunt) {
 					]
 				}
 			},
-			exportCRMDefsWebsite: {
+			website: {
 				updateCRMDefs: {
 					options: {
 						type: 'tern',
@@ -235,7 +235,7 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
 				]
 			},
-			exportCRMDefsWebsite: {
+			website: {
 				files: [
 					{
 						expand: true,
@@ -372,7 +372,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-processhtml');
 	grunt.loadNpmTasks('grunt-zip');
 
-	grunt.registerTask('updateCRMDefsExtension', ['clean:build', 'extractCrmDefs', 'processhtml:extension']);
-	grunt.registerTask('exportCRMDefsWebsite', ['clean:build', 'extractCrmDefs', 'processhtml:website', 'copyImportedElements:website', 'copy:exportCRMDefsWebsite']);
+	grunt.registerTask('defs', ['clean:build', 'extractCrmDefs', 'processhtml:extension']);
+	grunt.registerTask('website', ['clean:build', 'extractCrmDefs', 'processhtml:website', 'copyImportedElements:website', 'copy:website']);
 	grunt.registerTask('build', ['clean:build', 'extractCrmDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 }
