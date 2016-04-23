@@ -1,4 +1,3 @@
-///<reference path="eo.js"/>
 /** 
  * A class for constructing the CRM API
  * 

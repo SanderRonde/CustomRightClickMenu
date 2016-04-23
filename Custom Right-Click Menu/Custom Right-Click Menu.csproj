@@ -913,7 +913,6 @@
   <ItemGroup>
     <Folder Include="app\bower_components\bower_components\" />
     <Folder Include="build\" />
-    <Folder Include="definitionFiles\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <PropertyGroup>

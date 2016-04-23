@@ -11,35 +11,84 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		extractCrmDefs: {
-			updateCRMDefs: {
-				options: {
-					type: 'tern'
+			updateCRMDefsExtension: {
+				updateCRMDefs: {
+					options: {
+						type: 'tern'
+					},
+					files: [
+						{
+							src: ['app/js/crmapi.js'],
+							dest: 'build/js/crmAPIDefs.js',
+							expand: false
+						}
+					]
 				},
-				files: [{
-					src: ['app/js/crmapi.js'],
-					dest: 'build/js/crmAPIDefs.js',
-					expand: false
-				}]
+				updateHTMLDocs: {
+					options: {
+						type: 'html'
+					},
+					files: [
+						{
+							src: ['app/js/crmapi.js'],
+							dest: 'app/html/crmAPIDocs.html',
+							expand: false
+						}
+					]
+				},
+				updateJSONDocs: {
+					options: {
+						type: 'json'
+					},
+					files: [
+						{
+							src: ['app/js/crmapi.js'],
+							dest: 'build/js/crmAPIDefs.json',
+							expand: false
+						}
+					]
+				}
 			},
-			updateHTMLDocs: {
-				options: {
-					type: 'html'
+			exportCRMDefsWebsite: {
+				updateCRMDefs: {
+					options: {
+						type: 'tern',
+						local: false
+					},
+					files: [
+						{
+							src: ['app/js/crmapi.js'],
+							dest: 'build/crmAPIDefs.js',
+							expand: false
+						}
+					]
 				},
-				files: [{
-					src: ['app/js/crmapi.js'],
-					dest: 'app/html/crmAPIDocs.html',
-					expand: false
-				}]
-			},
-			updateVsDocs: {
-				options: {
-					type: 'vs'
+				updateHTMLDocs: {
+					options: {
+						type: 'html',
+						local: false
+					},
+					files: [
+						{
+							src: ['app/js/crmapi.js'],
+							dest: 'app/html/crmAPIDocs.html',
+							expand: false
+						}
+					]
 				},
-				files: [{
-					src: ['app/js/crmapi.js'],
-					dest: 'definitionFiles/vsDocs.js',
-					expand: false
-				}]
+				updateJSONDocs: {
+					options: {
+						type: 'json',
+						local: false
+					},
+					files: [
+						{
+							src: ['app/js/crmapi.js'],
+							dest: 'build/crmAPIDefs.json',
+							expand: false
+						}
+					]
+				}
 			}
 		},
 		processhtml: {
@@ -60,6 +109,15 @@ module.exports = function(grunt) {
 					'build/elements/crm-app/crm-app.html': ['build/elements/crm-app/crm-app.html'],
 					'build/html/options.html': ['build/html/options.html']
 				}
+			},
+			website: {
+				options: {
+					strip: true
+				},
+				files: {
+					'build/website/index.html': ['app/html/crmAPIDocsUI.html'],
+					'build/website/crmAPIDocsElements.html': ['app/html/crmAPIDocsElements.html']
+}
 			}
 		},
 		uglify: {
@@ -176,6 +234,22 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/', src: ['js/jsonfn.js', 'js/md5.js', 'js/jquery-2.0.3.min.js'], dest: 'build/' }, //JS libs
 					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
 				]
+			},
+			exportCRMDefsWebsite: {
+				files: [
+					{
+						expand: true,
+						cwd: 'app/',
+						src: [
+							'bower_components/webcomponentsjs/webcomponents.min.js',
+							'bower_components/polymer/polymer.html',
+							'fonts/fonts.css',
+							'css/crmAPIDocs.css',
+							'js/crmAPIDocs.js'
+						],
+						dest: 'build/website/'
+					}
+				]
 			}
 		},
 		htmlmin: {
@@ -204,7 +278,7 @@ module.exports = function(grunt) {
 		zip: {
 			'using-cwd': {
 				cwd: 'build/',
-				src: ['build/**', '!build/Custom Right-Click Menu.zip'],
+				src: ['build/**', '!build/Custom Right-Click Menu.zip', '!build/crmAPIDefs.json'],
 				dest: 'build/Custom Right-Click Menu.zip'
 			}
 		},
@@ -265,6 +339,22 @@ module.exports = function(grunt) {
 				files: [
 					{ expand: true, cwd: 'app/elements/installing/', src: 'install-imports.html', dest: 'build/' }
 				]
+			},
+			website: {
+				options: {
+					ignore: [
+						'bower_components/polymer/polymer.html',
+						'bower_components/polymer/polymer.js',
+						'bower_components/polymer/polymer-mini.html',
+						'bower_components/polymer/polymer-mini.js',
+						'bower_components/polymer/polymer-micro.html',
+						'bower_components/polymer/polymer-micro.js'
+					],
+					rootFolder: 'app/'
+				},
+				files: [
+					{ expand: true, cwd: 'app/html/', src: 'crmAPIDocsElements.html', dest: 'build/website/' }
+				]
 			}
 		}
 	});
@@ -282,7 +372,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-processhtml');
 	grunt.loadNpmTasks('grunt-zip');
 
-	grunt.registerTask('updateCRMDefs', ['extractCrmDefs', 'processhtml:updateCRMDefs']);
+	grunt.registerTask('updateCRMDefsExtension', ['clean:build', 'extractCrmDefs', 'processhtml:extension']);
+	grunt.registerTask('exportCRMDefsWebsite', ['clean:build', 'extractCrmDefs', 'processhtml:website', 'copyImportedElements:website', 'copy:exportCRMDefsWebsite']);
 	grunt.registerTask('build', ['clean:build', 'extractCrmDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
-	grunt.registerTask('woob', ['extractCrmDefs']);
 }

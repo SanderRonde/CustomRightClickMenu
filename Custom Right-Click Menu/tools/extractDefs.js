@@ -2,10 +2,17 @@
 var util = require('util');
 var generators = {
 	html: require('./defGenerators/htmlGenerator'),
-	vs: require('./defGenerators/visualStudioGenerator')
+	tern: {
+		generate: function(defs) {
+			return 'window.crmAPIDefs = ' + JSON.stringify(defs);
+		}
+	},
+	json: {
+		generate: function(defs) {
+			return JSON.stringify(defs);
+		}
+	}
 }
-
-var crmAPIFileLoc = '/crmAPIDocs.html';
 
 function sanitizeName(name) {
 	return name.replace(/ /g, '_').toLowerCase();
@@ -225,7 +232,8 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 						} else {
 							type = type[0];
 						}
-						if (!paramName.indexOf('.') > -1) {
+						console.log(paramName, paramName.indexOf('.'));
+						if (paramName.indexOf('.') === -1) {
 							paramString.push(paramName + (isOptional ? '?' : '') + ': ' + type);
 						}
 
@@ -256,7 +264,7 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 
 				if (isTernExtraction) {
 					cont['!type'] = 'fn(' + paramString.join(', ') + ')' + returnString;
-					cont['!url'] = crmAPIFileLoc + '#' + sanitizeName(location);
+					cont['!url'] = docsLoc + '#' + sanitizeName(location);
 					cont['!doc'] = defs['!doc'];
 				} else {
 					detailedDefs.type = 'function';
@@ -267,7 +275,6 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 				break;
 			case 'define':
 				var val = {};
-				val['!url'] = crmAPIFileLoc + '#' + sanitizeName(location);
 				if (!isTernExtraction) {
 					if (detailedDefs[defs.name]) {
 						detailedDefs = detailedDefs[defs.name];
@@ -292,6 +299,7 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 				}
 				defs.proto && (val['!proto'] = defs.proto);
 				defs.name = defs.name.split('~')[1];
+				val['!url'] = docsLoc + '#' + sanitizeName(defs.name);
 
 				if (isTernExtraction) {
 					defines[defs.name] = val;
@@ -319,7 +327,7 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 						cont['!type'] = defs.type;
 					}
 					cont['!doc'] = defs['!doc'];
-					cont['!url'] = crmAPIFileLoc + '#' + sanitizeName(location);
+					cont['!url'] = docsLoc + '#' + sanitizeName(location);
 				}
 				var locSplit = location.split('-');
 
@@ -385,7 +393,7 @@ function extractDefs(js, isTernExtraction) {
 	for (var i = 0; i < lines.length; i++) {
 		var match = lines[i].match(propRegex);
 		if (match && lines[i].indexOf(match[0]) === 0) {
-			extractDefsFromLine(detailedDefs, definitions, defines, lines, i, isTernExtraction);
+			extractDefsFromLine(detailedDefs, definitions, defines, lines, i, false, isTernExtraction);
 		} else if (lines[i].match(typeDefRegex) || lines[i].match(callbackRegex)) {
 			//Find end of comment
 			searchingCommentEnd = true;
@@ -415,20 +423,18 @@ module.exports = function (grunt) {
 		var _this = this;
 		this.files.forEach(function (file) {
 			var options = _this.options({
-				type: 'tern'
+				type: 'tern',
+				local: true
 			});
 			var destFile = file.dest;
 			var sourceFile = file.src[0];
-			var isTern = options.type === 'tern';
-			var result = extractDefs(grunt.file.read(sourceFile), isTern);
+			var isTern = options.type === 'tern' || options.type === 'json';
+			var result = extractDefs(grunt.file.read(sourceFile), isTern, 
+				(options.local ? '/html/crmAPIDocs.html' : 'https://www.sanderronde.github.io/'));
 
-			if (isTern) {
-				result = 'window.crmAPIDefs = ' + JSON.stringify(result);
-			} else {
-				result = generators[options.type].generate(result);
-			}
+			result = generators[options.type].generate(result);
 
-			grunt.log.ok('Created ' + options.type + ' defs, ' + sourceFile + ' -> ' + defsOutput);
+			grunt.log.ok('Created ' + options.type + ' defs, ' + sourceFile + ' -> ' + destFile);
 			grunt.file.write(destFile, result);
 		});
 	});
