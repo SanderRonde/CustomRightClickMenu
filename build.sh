@@ -11,6 +11,7 @@ grunt website
 git config user.name "Travis CI"
 git config user.email "awsdfgvhbjn@gmail.com"
 
+git remote set-branches --add origin gh-pages
 git checkout -b gh-pages --track origin/gh-pages
 
 npm install
