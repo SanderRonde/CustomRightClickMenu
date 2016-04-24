@@ -1,7 +1,7 @@
-﻿language: node_js
-node_js: "5"
-branches:
-	only:
-	- master
+﻿language: python
+
+python: 
+	- '2.7'
+
 script:
-	- node helloworld.js
+	- python hello.py
