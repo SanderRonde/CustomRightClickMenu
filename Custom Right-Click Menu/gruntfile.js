@@ -363,6 +363,14 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/html/', src: 'crmAPIDocsElements.html', dest: 'build/website/' }
 				]
 			}
+		},
+		removePrefix: {
+			options: {
+				prefix: '../'
+			},
+			files: [
+				{ expand: true, cwd: 'build/website/', src: ['index.html', 'crmAPIDocsElements.html'] }
+			]
 		}
 	});
 
@@ -394,7 +402,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('externalEditorDefs', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 
 	//Extracts the files needed for the website and places them in build/website
-	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean']);
+	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean', 'removePrefix']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);

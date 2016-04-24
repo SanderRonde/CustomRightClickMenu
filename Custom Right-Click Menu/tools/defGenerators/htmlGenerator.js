@@ -45,7 +45,7 @@
 	return line;
 });
 
-var hashPrefix = '';
+var hashPrefix = '#';
 
 function categoriseHTML(detailedDefs) {
 	var defines = [];
@@ -390,8 +390,6 @@ exports.generate = function(detailedDefs, options) {
 			props: props
 		}
 	].concat(structuredSections);
-
-	hashPrefix = (options.local ? '#' : '../#');
 
 	var html = generateIndex(JSON.parse(JSON.stringify(indexSections)));
 
