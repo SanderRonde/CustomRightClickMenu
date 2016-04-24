@@ -13,4 +13,4 @@ script:
   - grunt extractDefs
   - grunt clean
   - grunt website
-  - bash ./build.sh
+  - ./build.sh
