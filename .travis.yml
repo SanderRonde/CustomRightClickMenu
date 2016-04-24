@@ -1,9 +1,10 @@
 ﻿language: node_js
-node_js: "node"
+node_js: "5"
 branches:
 	only:
 	- master
 before_install:
+	- echo "Hello world"
 	- |
 		git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE 'crmapi.js' || {
 			echo "crmapi was not updated, stopped building process."
@@ -11,14 +12,6 @@ before_install:
 		}
 	- npm install -g grunt-cli
 install: npm install
-script:
-	- grunt build
-	- grunt cleanBuild
-	- grunt extractDefs
-	- grunt cleanBuild
-	- grunt website
-	- git checkout gh-pages
-	- grunt moveWebsite
-	- git commit -m "Updated documentation website"
-	- git push origin/gh-pages
-	- git checkout master
+before_script: 
+	- echo "Testing"
+script: ./run-build.sh
