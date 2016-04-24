@@ -689,9 +689,6 @@
     <Content Include="app\js\userscriptMetadataCodemirror.js" />
     <Content Include="app\LICENSE.txt" />
     <Content Include="Gruntfile.js" />
-    <Content Include="DebugSettings.template.xml">
-      <SubType>Designer</SubType>
-    </Content>
     <Content Include="app\bower.json" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\.bower.json" />
     <Content Include="app\bower_components\iron-a11y-keys-behavior\bower.json" />
@@ -900,13 +897,6 @@
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />
     <Content Include="tools\copyImportedElements.js" />
-    <Content Include="web.config" />
-    <None Include="web.Debug.config">
-      <DependentUpon>web.config</DependentUpon>
-    </None>
-    <None Include="web.Release.config">
-      <DependentUpon>web.config</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\manifest.json" />

@@ -11,7 +11,6 @@
 [Dd]ebugPublic/
 [Rr]elease/
 x64/
-build/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -20,6 +19,7 @@ bld/
 .vs/
 
 "Custom Right-Click Menu/app/js/encryption.js"
+
 
 Properties/
 bin/
@@ -201,6 +201,9 @@ ModelManifest.xml
 /Custom Right-Click Menu/app/bower_components_test
 /Custom Right-Click Menu/app/bower_components_test_test
 /Custom Right-Click Menu/app/bower_components_uncrisp
+/Custom Right-Click Menu/app/web.*.*
+/Custom Right-Click Menu/DebugSettings.template.xml
+/Custom Right-Click Menu/build
 *.DotSettings
 /Custom Right-Click Menu.VC.db
 /Custom Right-Click Menu.VC.VC.opendb
