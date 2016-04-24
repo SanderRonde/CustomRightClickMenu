@@ -873,7 +873,6 @@
     <Content Include="app\fonts\Inconsolata-Regular.ttf" />
     <Content Include="app\fonts\Roboto-Bold.ttf" />
     <Content Include="app\fonts\Roboto-Regular.ttf" />
-    <Content Include="LICENSE.txt" />
     <Content Include="package.json" />
     <Content Include="app\bower_components\iron-a11y-announcer\.bower.json" />
     <Content Include="app\bower_components\iron-a11y-announcer\bower.json" />
@@ -892,7 +891,6 @@
     <Content Include="app\bower_components\paper-toggle-button\README.md" />
     <Content Include="tools\defGenerators\htmlGenerator.js" />
     <Content Include="tools\extractDefs.js" />
-    <Content Include=".travis.yml" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />

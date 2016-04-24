@@ -123,9 +123,8 @@ module.exports = function(grunt) {
 					}
 				},
 				files: {
-					'build/website/index.html': ['app/html/crmAPIDocsUI.html'],
-					'app/crmAPIDocsElements.html': ['app/html/crmAPIDocsElements.html']
-}
+					'build/website/index.html': ['app/html/crmAPIDocsUI.html']
+				}
 			}
 		},
 		uglify: {
