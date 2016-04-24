@@ -17,13 +17,9 @@ git checkout -b gh-pages --track origin/gh-pages
 
 npm install
 
-grunt --help
-ls
-cd ../
-grunt --help
-grunt copyWebsite
+grunt moveWebsite
 
 git add .
-git commit -m "Deploy to Github Pages'
+git commit -m "Deploy to Github Pages"
 
-git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" 
+#git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" 
