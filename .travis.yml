@@ -13,3 +13,6 @@ script:
   - grunt extractDefs
   - grunt clean
   - grunt website
+  - git checkout origin/gh-pages
+  - nom install
+  - grunt copyWebsite
