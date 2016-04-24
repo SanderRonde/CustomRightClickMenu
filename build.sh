@@ -1,5 +1,11 @@
 set -e
 
+grunt build
+grunt cleanBuild
+grunt extractDefs
+grunt cleanBuild
+grunt website
+
 git config user.name "Travis CI"
 git config user.email "awsdfgvhbjn@gmail.com"
 
