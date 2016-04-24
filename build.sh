@@ -24,4 +24,4 @@ ls
 git add .
 git commit -m "Deploy to Github Pages"
 
-#git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" 
+git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" 
