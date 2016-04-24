@@ -1,5 +1,7 @@
 set -e
 
+cd "Custom Right-Click Menu"
+
 grunt build
 grunt cleanBuild
 grunt extractDefs
