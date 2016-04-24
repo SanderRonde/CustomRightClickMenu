@@ -7,4 +7,4 @@ before_install:
   - cd "Custom Right-Click Menu"
   - npm install grunt -g
 install: npm install
-script: ./build.sh
+script: ../build.sh
