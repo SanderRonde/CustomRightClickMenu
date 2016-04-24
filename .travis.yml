@@ -3,7 +3,7 @@ node_js: "node"
 branches:
   only:
     - master
-before_install: npm install grunt-cli -g
+before_install: npm install grunt -g
 install: npm install
 script: 
   - cd "Custom Right-Click Menu"
