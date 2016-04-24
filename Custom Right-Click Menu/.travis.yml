@@ -1,0 +1,23 @@
+﻿language: npm
+branches:
+	only:
+	- master
+before_install:
+	- |
+		git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE 'crmapi.js' || {
+			echo "crmapi was not updated, stopped building process."
+			exit
+		}
+	- npm install -g grunt-cli
+install: npm install
+script:
+	- grunt build
+	- grunt clean
+	- grunt extractDefs
+	- grunt clean
+	- grunt extractWebsite
+	- git checkout gh-pages
+	- grunt moveWebsite
+	- git commit -m "Updated documentation website"
+	- git push origin/gh-pages
+	- git checkout master

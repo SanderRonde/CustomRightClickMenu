@@ -11,90 +11,90 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 		extractCrmDefs: {
-			defs: {
-				updateCRMDefs: {
-					options: {
-						type: 'tern'
-					},
-					files: [
-						{
-							src: ['app/js/crmapi.js'],
-							dest: 'build/js/crmAPIDefs.js',
-							expand: false
-						}
-					]
+			updateCRMDefs: {
+				options: {
+					type: 'tern'
 				},
-				updateHTMLDocs: {
-					options: {
-						type: 'html'
-					},
-					files: [
-						{
-							src: ['app/js/crmapi.js'],
-							dest: 'app/html/crmAPIDocs.html',
-							expand: false
-						}
-					]
-				},
-				updateJSONDocs: {
-					options: {
-						type: 'json'
-					},
-					files: [
-						{
-							src: ['app/js/crmapi.js'],
-							dest: 'build/js/crmAPIDefs.json',
-							expand: false
-						}
-					]
-				}
+				files: [
+					{
+						src: ['app/js/crmapi.js'],
+						dest: 'build/js/crmAPIDefs.js',
+						expand: false
+					}
+				]
 			},
-			website: {
-				updateCRMDefs: {
-					options: {
-						type: 'tern',
-						local: false
-					},
-					files: [
-						{
-							src: ['app/js/crmapi.js'],
-							dest: 'build/crmAPIDefs.js',
-							expand: false
-						}
-					]
+			updateHTMLDocs: {
+				options: {
+					type: 'html'
 				},
-				updateHTMLDocs: {
-					options: {
-						type: 'html',
-						local: false
-					},
-					files: [
-						{
-							src: ['app/js/crmapi.js'],
-							dest: 'app/html/crmAPIDocs.html',
-							expand: false
-						}
-					]
+				files: [
+					{
+						src: ['app/js/crmapi.js'],
+						dest: 'app/html/crmAPIDocs.html',
+						expand: false
+					}
+				]
+			},
+			updateJSONDocs: {
+				options: {
+					type: 'json'
 				},
-				updateJSONDocs: {
-					options: {
-						type: 'json',
-						local: false
-					},
-					files: [
-						{
-							src: ['app/js/crmapi.js'],
-							dest: 'build/crmAPIDefs.json',
-							expand: false
-						}
-					]
-				}
+				files: [
+					{
+						src: ['app/js/crmapi.js'],
+						dest: 'build/js/crmAPIDefs.json',
+						expand: false
+					}
+				]
+			},
+			updateCRMDefsWebsite: {
+				options: {
+					type: 'tern',
+					local: false
+				},
+				files: [
+					{
+						src: ['app/js/crmapi.js'],
+						dest: 'build/crmAPIDefs.js',
+						expand: false
+					}
+				]
+			},
+			updateHTMLDocsWebsite: {
+				options: {
+					type: 'html',
+					local: false
+				},
+				files: [
+					{
+						src: ['app/js/crmapi.js'],
+						dest: 'app/html/crmAPIDocs.html',
+						expand: false
+					}
+				]
+			},
+			updateJSONDocsWebsite: {
+				options: {
+					type: 'json',
+					local: false
+				},
+				files: [
+					{
+						src: ['app/js/crmapi.js'],
+						dest: 'build/crmAPIDefs.json',
+						expand: false
+					}
+				]
 			}
 		},
 		processhtml: {
 			updateCRMDefs: {
 				options: {
-					strip: true
+					strip: true,
+					data: {
+						classes: 'content extension',
+						base: './'
+					}
 				},
 				files: {
 					'app/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html']
@@ -102,7 +102,11 @@ module.exports = function(grunt) {
 			},
 			build: {
 				options: {
-					strip: true
+					strip: true,
+					data: {
+						classes: 'content extension',
+						base: 'html/'
+					}
 				},
 				files: {
 					'build/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html'],
@@ -112,11 +116,15 @@ module.exports = function(grunt) {
 			},
 			website: {
 				options: {
-					strip: true
+					strip: true,
+					data: {
+						classes: 'content website',
+						base: 'html/'
+					}
 				},
 				files: {
 					'build/website/index.html': ['app/html/crmAPIDocsUI.html'],
-					'build/website/crmAPIDocsElements.html': ['app/html/crmAPIDocsElements.html']
+					'app/crmAPIDocsElements.html': ['app/html/crmAPIDocsElements.html']
 }
 			}
 		},
@@ -242,8 +250,8 @@ module.exports = function(grunt) {
 						cwd: 'app/',
 						src: [
 							'bower_components/webcomponentsjs/webcomponents.min.js',
-							'bower_components/polymer/polymer.html',
-							'fonts/fonts.css',
+							'bower_components/polymer/*.*',
+							'fonts/*.*',
 							'css/crmAPIDocs.css',
 							'js/crmAPIDocs.js'
 						],
@@ -350,7 +358,7 @@ module.exports = function(grunt) {
 						'bower_components/polymer/polymer-micro.html',
 						'bower_components/polymer/polymer-micro.js'
 					],
-					rootFolder: 'app/'
+					rootFolder: 'app/html/'
 				},
 				files: [
 					{ expand: true, cwd: 'app/html/', src: 'crmAPIDocsElements.html', dest: 'build/website/' }
@@ -372,7 +380,21 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-processhtml');
 	grunt.loadNpmTasks('grunt-zip');
 
-	grunt.registerTask('defs', ['clean:build', 'extractCrmDefs', 'processhtml:extension']);
-	grunt.registerTask('website', ['clean:build', 'extractCrmDefs', 'processhtml:website', 'copyImportedElements:website', 'copy:website']);
-	grunt.registerTask('build', ['clean:build', 'extractCrmDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
+	//Alias only tasks, not meant for running
+	grunt.registerTask('extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs', 'extractCrmDefs:updateJSONDocs']);
+	grunt.registerTask('extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
+	grunt.registerTask('defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
+
+
+	//Cleans the build dir
+	grunt.registerTask('clean', ['clean:build']);
+
+	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
+	grunt.registerTask('defs', ['extractDefs', 'processhtml:updateCRMDefs']);
+
+	//Extracts the files needed for the website and places them in build/website
+	grunt.registerTask('website', ['extractWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean']);
+
+	//Builds the extension and places the zip and all other files in build/
+	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 }

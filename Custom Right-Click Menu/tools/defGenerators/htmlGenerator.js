@@ -45,6 +45,8 @@
 	return line;
 });
 
+var hashPrefix = '';
+
 function categoriseHTML(detailedDefs) {
 	var defines = [];
 	var props = [];
@@ -233,7 +235,7 @@ function generateDoc(data) {
 										data.proto ? [br(),
 											element('div', 'docPropProtoTxt', 'Inherits from:'),
 											element('div', 'docPropProtoCont',
-												element('a', { href: '#' + data.proto }, 'docPropProto', data.proto))
+												element('a', { href: hashPrefix + data.proto }, 'docPropProto', data.proto))
 										] : ''
 							]
 									: [
@@ -339,7 +341,7 @@ function structureSections(sections, resultArr) {
 function generateIndexForProp(prop) {
 	return element('tr', 'indexRow',
 		element('td', 'indexCol',
-			element('a', { href: '#' + sanitizeName(prop.name) }, 'docIndexLink', prop.name)
+			element('a', { href: hashPrefix + sanitizeName(prop.name) }, 'docIndexLink', prop.name)
 		)
 	);
 }
@@ -350,7 +352,7 @@ function generateIndexForSection(section) {
 			element('tbody', 'indexTBody', [
 				element('tr', 'indexRow titleIndexRow',
 					element('td', 'indexCol',
-						element('a', { href: '#' + sanitizeName(section.name) }, 'docIndexSectionTitleLink', section.name)
+						element('a', { href: hashPrefix + sanitizeName(section.name) }, 'docIndexSectionTitleLink', section.name)
 					)
 				),
 				section.props.map(generateIndexForProp)
@@ -360,18 +362,13 @@ function generateIndexForSection(section) {
 }
 
 function generateIndex(sections) {
-	return stringify(element('paper-material', { elevation: '4' }, 'docIndexEdge',
-		element('div', 'docIndexCont', sections.map(generateIndexForSection))));
-}
-
-function generateIndex(sections) {
 	return stringify(
 			element('paper-material', { elevation: '4' }, 'docIndexEdge',
 			element('div', 'docIndexCont', sections.map(generateIndexForSection)))
 		);
 }
 
-exports.generate = function(detailedDefs) {
+exports.generate = function(detailedDefs, options) {
 	var result = categoriseHTML(detailedDefs);
 	var defines = result.defines;
 	var props = result.props;
@@ -393,6 +390,8 @@ exports.generate = function(detailedDefs) {
 			props: props
 		}
 	].concat(structuredSections);
+
+	hashPrefix = (options.local ? '#' : '../#');
 
 	var html = generateIndex(JSON.parse(JSON.stringify(indexSections)));
 

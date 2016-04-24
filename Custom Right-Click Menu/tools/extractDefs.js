@@ -14,10 +14,22 @@ var generators = {
 	}
 }
 
+/**
+ * Sanitizes the name to fit the URL bar for linking to the docs webpage
+ * 
+ * @param {string} name - The name to sanitize
+ * @returns {string} The sanitized name
+ */
 function sanitizeName(name) {
 	return name.replace(/ /g, '_').toLowerCase();
 };
 
+/**
+ * Gets the short description (like this line) from given comment lines
+ * 
+ * @param {string[]} commentLines - The lines of which to get the description
+ * @returns {string} The description
+ */
 function getDescr(commentLines) {
 	var descr = [];
 	for (var line = 0; line < commentLines.length;) {
@@ -31,10 +43,24 @@ function getDescr(commentLines) {
 	return descr;
 }
 
+/**
+ * Adjusts the type to the way tern wants them
+ * 
+ * @param {string} type - The type to adjust
+ * @returns {string} The type, adjusted
+ */
 function adjustType(type) {
 	return type.replace(/[B|b]oolean/g, 'bool').replace(/[O|o]bject/g, '?').replace(/[N|n]umber/g, 'number').replace(/[S|s]tring/g, 'string');
 }
 
+/**
+ * Gets the type (number, function, obj, etc.) at given line
+ * 
+ * @param {string} line 
+ * @returns {Object} An object containing the type and a lineSplit property,
+ *		the lineSplit property is the line split to remove any from-now-on 
+ *		irrelevant info (such as the type)
+ */
 function getType(line) {
 	var type = line.match(/{([\w|\||\.|~|\[|\]])+}/)[0];
 	type = type.slice(1, type.length - 1);
@@ -47,6 +73,12 @@ function getType(line) {
 	};
 }
 
+/**
+ * Gets the type (number, function, obj, etc.) and name of a parameter/property from given line
+ * 
+ * @param {string} line - The line to analyze
+ * @returns {Object} An object containing the type and name
+ */
 function getTypeAndName(line) {
 	var result = getType(line);
 	var type = result.type;
@@ -60,6 +92,14 @@ function getTypeAndName(line) {
 	}
 }
 
+/**
+ * Converts a comment block to its properties in object form from string form
+ * 
+ * @param {string[]} unparsedComment - An array of the lines of the unparsed comment
+ * @param {string} descr - The description of a given comment block (the line above the blank line)
+ * @returns {Object} An object containing the type of the property (function, typedef etc) and
+ *		the properties of it (param, returns, property, etc.)
+ */
 function convertCommentBlockToProperties(unparsedComment, descr) {
 	var isProp = false;
 	var isFn = false;
@@ -201,7 +241,22 @@ function convertCommentBlockToProperties(unparsedComment, descr) {
 	}
 }
 
-function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, location, isTernExtraction) {
+/**
+ * Parses given comment block
+ * 
+ * @param {Object} detailedDefs - The object to store the detailed definitions
+ * @param {Object} defines - The object to store any defines (new classes/types)
+ * @param {Object} cont - The object to store the regular, less detailed definitions
+ * @param {string[]} lines - All lines in an array
+ * @param {number} start - The line at which the comment block starts
+ * @param {number} end - The line at which the comment block ends
+ * @param {string} location - The location of this comment block in reference to the global scope
+ *		(if it's in window.x.y the location is x.y)
+ * @param {boolean} isTypeDef - True if this is a typedef block
+ * @param {boolean} isTernExtraction - True if this is a tern extraction (less detailed, more specific)
+ * @param {string} docsLoc - The location of the docs webpage
+ */
+function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, location, isTernExtraction, docsLoc) {
 	var commentLines = lines.slice(start + 1, end);
 	var unparsedComment = commentLines;
 	var descr = getDescr(unparsedComment).join(' ');
@@ -232,7 +287,6 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 						} else {
 							type = type[0];
 						}
-						console.log(paramName, paramName.indexOf('.'));
 						if (paramName.indexOf('.') === -1) {
 							paramString.push(paramName + (isOptional ? '?' : '') + ': ' + type);
 						}
@@ -346,7 +400,19 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 	}
 }
 
-function extractDefsFromLine(detailedDefs, definitions, defines, lines, lineNumber, isTypeDef, isTernExtraction) {
+/**
+ * Extracts the definitions from given lines
+ * 
+ * @param {Object} detailedDefs - The object to store the detailed definitions
+ * @param {Object} definitions - The object to store the regular, less detailed definitions
+ * @param {Object} defines - The object to store any defines (new classes/types)
+ * @param {string[]} lines - All lines in an array
+ * @param {number} lineNumber - The line number the to-analyze code is at
+ * @param {boolean} isTypeDef - True if this is a typedef block
+ * @param {boolean} isTernExtraction - True if this is a tern extraction (less detailed, more specific)
+ * @param {string} docsLoc - The location of the docs webpage
+ */
+function extractDefsFromLine(detailedDefs, definitions, defines, lines, lineNumber, isTypeDef, isTernExtraction, docsLoc) {
 	var line = lines[lineNumber].slice(1);
 
 	var location = [];
@@ -377,10 +443,18 @@ function extractDefsFromLine(detailedDefs, definitions, defines, lines, lineNumb
 	}
 	var commentBlockStart = currentLine;
 
-	parseCommentBlock(detailedDefs, defines, cont, lines, commentBlockStart, commentBlockEnd, location.join('-'), isTernExtraction);
+	parseCommentBlock(detailedDefs, defines, cont, lines, commentBlockStart, commentBlockEnd, location.join('-'), isTernExtraction, docsLoc);
 }
 
-function extractDefs(js, isTernExtraction) {
+/**
+ * Extracts the definitions from given JS
+ * 
+ * @param {string} js - The JS to analyze
+ * @param {boolean} isTernExtraction - If the extraction is a tern extraction (less detailed, more specific)
+ * @param {string} docsLoc - The location of the docs webpage
+ * @returns {Object} The detailed definitions or the tern definitons
+ */
+function extractDefs(js, isTernExtraction, docsLoc) {
 	var detailedDefs = {};
 	var definitions = {};
 	var defines = {};
@@ -393,7 +467,7 @@ function extractDefs(js, isTernExtraction) {
 	for (var i = 0; i < lines.length; i++) {
 		var match = lines[i].match(propRegex);
 		if (match && lines[i].indexOf(match[0]) === 0) {
-			extractDefsFromLine(detailedDefs, definitions, defines, lines, i, false, isTernExtraction);
+			extractDefsFromLine(detailedDefs, definitions, defines, lines, i, false, isTernExtraction, docsLoc);
 		} else if (lines[i].match(typeDefRegex) || lines[i].match(callbackRegex)) {
 			//Find end of comment
 			searchingCommentEnd = true;
@@ -401,7 +475,7 @@ function extractDefs(js, isTernExtraction) {
 			if (searchingCommentEnd) {
 				if (lines[i].trim() === '*/') {
 					searchingCommentEnd = false;
-					extractDefsFromLine(detailedDefs, definitions, defines, lines, i + 1, true, isTernExtraction);
+					extractDefsFromLine(detailedDefs, definitions, defines, lines, i + 1, true, isTernExtraction, docsLoc);
 				}
 			}
 		}
@@ -432,7 +506,7 @@ module.exports = function (grunt) {
 			var result = extractDefs(grunt.file.read(sourceFile), isTern, 
 				(options.local ? '/html/crmAPIDocs.html' : 'https://www.sanderronde.github.io/'));
 
-			result = generators[options.type].generate(result);
+			result = generators[options.type].generate(result, options);
 
 			grunt.log.ok('Created ' + options.type + ' defs, ' + sourceFile + ' -> ' + destFile);
 			grunt.file.write(destFile, result);

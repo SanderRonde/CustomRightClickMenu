@@ -830,7 +830,15 @@
 					resources: getScriptResources(node.id) || {}
 				};
 				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
-				var code = 'var crmAPI = new CrmAPIInit(' + JSON.stringify(node) + ',' + node.id + ',' + JSON.stringify(tab) + ',' + JSON.stringify(info) + ',' + JSON.stringify(key) + ',' + globals.storages.nodeStorage[node.id] + ',' + greaseMonkeyData + ');\n';
+				var code = 'var crmAPI = new CrmAPIInit(' +
+					JSON.stringify(node) + ',' +
+					node.id + ',' +
+					JSON.stringify(tab) + ',' +
+					JSON.stringify(info) + ',' +
+					JSON.stringify(key) + ',' +
+					JSON.stringify(globals.storages.nodeStorage[node.id]) + ',' +
+					JSON.stringify(greaseMonkeyData) +
+				');\n';
 				code = code + node.value.script;
 
 
