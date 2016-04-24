@@ -9,8 +9,8 @@ before_install:
 install:
   - ls 
   - npm install
-after_install:
+before_script:
   - ls
   - cd "../"
   - ls
-script: sh build.sh
+script: sh ./build.sh
