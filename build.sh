@@ -13,6 +13,8 @@ git config user.email "awsdfgvhbjn@gmail.com"
 
 git remote set-branches --add origin gh-pages
 git fetch
+
+git reset --hard
 git checkout -b gh-pages --track origin/gh-pages
 
 npm install
