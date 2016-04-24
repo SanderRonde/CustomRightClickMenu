@@ -3,10 +3,11 @@ node_js: "node"
 branches:
   only:
     - master
-before_install: npm install grunt -g
-install: npm install
-script: 
+before_install: 
   - cd "Custom Right-Click Menu"
+  - npm install grunt -g
+install: npm install
+script:
   - grunt build
   - grunt cleanBuild
   - grunt extractDefs
