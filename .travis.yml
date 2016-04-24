@@ -6,6 +6,11 @@ branches:
 before_install: 
   - cd "Custom Right-Click Menu"
   - npm install grunt -g
-install: npm install
-after_install: cd "../"
-script: ./build.sh
+install:
+  - ls 
+  - npm install
+after_install:
+  - ls
+  - cd "../"
+  - ls
+script: sh build.sh
