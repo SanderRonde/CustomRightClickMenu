@@ -11,7 +11,7 @@ grunt website
 git config user.name "Travis CI"
 git config user.email "awsdfgvhbjn@gmail.com"
 
-git checkout githubPages origin/githubPages
+git checkout gh-pages origin/gh-pages
 
 npm install
 
