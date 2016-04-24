@@ -18,6 +18,7 @@ git checkout -b gh-pages --track origin/gh-pages
 npm install
 
 grunt moveWebsite
+cd ../
 ls
 
 git add .
