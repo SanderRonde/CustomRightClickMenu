@@ -391,8 +391,11 @@ module.exports = function(grunt) {
 	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
 	grunt.registerTask('defs', ['extractDefs', 'processhtml:updateCRMDefs']);
 
+	//Extracts the external editor definitions and places them in build/
+	grunt.registerTask('externalEditorDefs', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
+
 	//Extracts the files needed for the website and places them in build/website
-	grunt.registerTask('website', ['extractWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean']);
+	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
