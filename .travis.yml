@@ -14,5 +14,5 @@ script:
   - grunt clean
   - grunt website
   - git checkout origin/gh-pages
-  - nom install
+  - npm install
   - grunt copyWebsite
