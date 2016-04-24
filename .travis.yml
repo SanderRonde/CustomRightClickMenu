@@ -13,6 +13,6 @@ script:
   - grunt extractDefs
   - grunt clean
   - grunt website
-  - git checkout origin/gh-pages
+  - git checkout -b gh-pages --track origin/gh-pages
   - npm install
   - grunt copyWebsite
