@@ -13,6 +13,4 @@ script:
   - grunt extractDefs
   - grunt clean
   - grunt website
-  - git checkout -b gh-pages --track origin/gh-pages
-  - npm install
-  - grunt copyWebsite
+  - bash ./build.sh
