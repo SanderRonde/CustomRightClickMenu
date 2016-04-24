@@ -3,15 +3,5 @@ node_js: "5"
 branches:
 	only:
 	- master
-before_install:
-	- echo "Hello world"
-	- |
-		git diff --name-only $TRAVIS_COMMIT_RANGE | grep -qvE 'crmapi.js' || {
-			echo "crmapi was not updated, stopped building process."
-			exit
-		}
-	- npm install -g grunt-cli
-install: npm install
-before_script: 
-	- echo "Testing"
-script: ./run-build.sh
+script:
+	- node helloworld.js
