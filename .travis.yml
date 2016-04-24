@@ -1,3 +1,13 @@
 language: node_js
 node_js: "node"
-script: node hello.js
+branches:
+  only:
+    - master
+before_install: npm install -g grunt-cli
+install: npm install
+script: 
+  - grunt build
+  - grunt cleanBuild
+  - grunt extractDefs
+  - grunt clean
+  - grunt website
