@@ -1,4 +1,5 @@
-﻿language: npm
+﻿language: node_js
+node_js: "node"
 branches:
 	only:
 	- master
