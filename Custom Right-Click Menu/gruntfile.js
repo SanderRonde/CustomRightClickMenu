@@ -386,7 +386,7 @@ module.exports = function(grunt) {
 
 
 	//Cleans the build dir
-	grunt.registerTask('clean', ['clean:build']);
+	grunt.registerTask('cleanBuild', ['clean:build']);
 
 	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
 	grunt.registerTask('defs', ['extractDefs', 'processhtml:updateCRMDefs']);

@@ -12,9 +12,9 @@ before_install:
 install: npm install
 script:
 	- grunt build
-	- grunt clean
+	- grunt cleanBuild
 	- grunt extractDefs
-	- grunt clean
+	- grunt cleanBuild
 	- grunt website
 	- git checkout gh-pages
 	- grunt moveWebsite
