@@ -18,7 +18,7 @@ paper-toolbar {
 	transition: transform ease-in-out 0.3s;
 	z-index:10;
 	background-color:white;
-	min-height:100vh;
+	min-height:100%;
 	position: fixed;
 }
 
@@ -28,14 +28,15 @@ paper-toolbar {
 
 #content {
 	width: 100vw;
+	min-width: 1000px;
 	left: 0;
 	min-height: 100vh;
 	position: absolute;
 }
 
 #overlay {
-	width: 100vw;
-	height: 100vh;
+	width: 100%;
+	height: 100%;
 	position: absolute;
 	background-color:rgba(0,0,0,0.35);
 	transition: opacity ease-in-out 0.3s;
@@ -69,7 +70,8 @@ paper-toolbar .title {
 	}
 
 .mainContent {
-	width:1000px;
+	max-width:980px;
+	margin: 0 10px;
 }
 
 .topTitle {
@@ -149,11 +151,11 @@ paper-toolbar .title {
 }
 
 .docDataPropType, .docDataParamType, .docDataReturnsType {
-	width: 120px;
+	width: 12%;
 }
 
 .docDataParamName, .docDataPropName {
-	width:110px;
+	width:11%;
 }
 
 .docDataParaCont td:first-child, .docDataPropCont td:first-child, .docDataReturnsCont td:first-child {
@@ -222,4 +224,16 @@ a:focus::before {
 
 .docProp {
 	padding: 5px;
+}
+
+.docElevation {
+	width:100%;
+}
+
+.docDataFunctionUrlData, .docIndexLink {
+	word-wrap: break-word;
+}
+
+.docIndexEdge {
+	width: 100%;
 }

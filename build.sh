@@ -14,7 +14,6 @@ git fetch
 git reset --hard
 git checkout -b gh-pages --track origin/gh-pages
 
-ls
 npm install
 
 grunt moveWebsite
@@ -23,11 +22,8 @@ cd ../
 set +e
 git diff-index --quiet HEAD
 
-echo "Status code";
-echo $?;
 changes=$?;
-echo $changes;
-if [ $changes == 0 ] ; then #No changes
+if [ $changes == 0 ] ; then
   echo "No changes to the website were made";
   exit 0;
 else

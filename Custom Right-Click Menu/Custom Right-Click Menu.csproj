@@ -609,6 +609,7 @@
     <Content Include="app\elements\tools\use-external-editor\use-external-editor.js" />
     <Content Include="app\html\crmAPIDocs.html" />
     <Content Include="app\html\crmAPIDocsElements.html" />
+    <Content Include="app\html\crmAPIDocsHead.html" />
     <Content Include="app\html\crmAPIDocsUI.html" />
     <Content Include="app\html\options.html" />
     <Content Include="app\icon-large.png" />
@@ -891,6 +892,7 @@
     <Content Include="app\bower_components\paper-toggle-button\README.md" />
     <Content Include="tools\defGenerators\htmlGenerator.js" />
     <Content Include="tools\extractDefs.js" />
+    <Content Include="app\html\webmanifest.json" />
     <None Include="scripts\jquery-2.1.4.min.map" />
     <None Include="scripts\_references.js" />
     <None Include="scripts\chrome-api-vsdoc.js" />

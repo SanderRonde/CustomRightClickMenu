@@ -1,12 +1,17 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>CRM API Docs</title>
 	<script src="../bower_components/webcomponentsjs/webcomponents.min.js"></script>
 	<link rel="import" href="../bower_components/polymer/polymer.html"/>
 	<link rel="stylesheet" href="../fonts/fonts.css">
 	<link rel="stylesheet" href="../css/crmAPIDocs.css"/>
 	<link rel="import" href="crmAPIDocsElements.html"/>
+	<!-- build:include:website crmAPIDocsHead.html -->
+	<!-- /build -->
 </head>
 <body style="margin: 0;">
 	<div id="sideDrawer">
@@ -26,20 +31,19 @@
 				<!-- build:template
 				<div class="<%= classes %>">
 				/build -->
-					<div class="mainContent">
-						<br /><br /><br /><br /><br />
-						<div class="topTitle">CRM API Docs</div>
-						Welcome to the CRM API Docs page. Here you can read up on the CRM API's functions and properties
-						to make you better at using it. You can navigate this page by going to any of the sections on the
-						left where each section represents one part of the API (the GM section represents crmapi.GM etc).
-						Additionally by using the default editor in CRM and pressing the "Show Docs" key
-						(default Ctrl-O), you can see any docs for the current function in-editor or go to its documentation
-						by clicking the link to it.
-						<br /><br />
-						<a name="index" id="anchorindex" class="docIndexSectionTitleLink indexAnchor">Index</a>
-						<div class="secondaryTitle">Page Index</div>
-						<!-- build:include inline crmAPIDocs.html --><!-- /build -->
-					</div>
+				<div class="mainContent">
+					<br/><br/><br/><br/><br/>
+					<div class="topTitle">CRM API Docs</div>
+					Welcome to the CRM API Docs page. Here you can read up on the CRM API's functions and properties
+					to make you better at using it. You can navigate this page by going to any of the sections on the
+					left where each section represents one part of the API (the GM section represents crmapi.GM etc).
+					Additionally by using the default editor in CRM and pressing the "Show Docs" key
+					(default Ctrl-O), you can see any docs for the current function in-editor or go to its documentation
+					by clicking the link to it.
+					<br/><br/>
+					<a name="index" id="anchorindex" class="docIndexSectionTitleLink indexAnchor">Index</a>
+					<div class="secondaryTitle">Page Index</div>
+					<!-- build:include inline crmAPIDocs.html --><!-- /build -->
 				</div>
 			</div>
 		</div>

@@ -1,0 +1,24 @@
+﻿{
+  "short_name": "CRM Docs",
+  "name": "Custom Right-Click Menu Documentation",
+  "icons": [
+	{
+		"src": "../icon-supersmall.png",
+		"sizes": "16x16",
+		"type": "image/png"
+	},
+    {
+      "src": "../icon-small.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "../icon-large.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "landscape"
+}

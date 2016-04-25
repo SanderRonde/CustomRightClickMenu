@@ -252,7 +252,11 @@ module.exports = function(grunt) {
 							'bower_components/polymer/*.*',
 							'fonts/*.*',
 							'css/crmAPIDocs.css',
-							'js/crmAPIDocs.js'
+							'js/crmAPIDocs.js',
+							'icon-large.png',
+							'icon-small.png',
+							'icon-supersmall.png',
+							'html/webmanifest.json'
 						],
 						dest: 'build/website/'
 					}
