@@ -11,3 +11,7 @@ install:
 before_script:
   - cd "../"
 script: sh ./build.sh
+notifications:
+  email:
+    on-success: change
+    on_failure: change
