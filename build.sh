@@ -21,9 +21,14 @@ npm install
 
 grunt moveWebsite
 cd ../
-ls
+
+git diff-index --quiet HEAD
+
+changes=$?;
+if [ $changes == 0 ] ; then #No changes
+  exit $changess;
+fi
 
 git add .
 git commit -m "Deploy to Github Pages"
-
 git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" 
