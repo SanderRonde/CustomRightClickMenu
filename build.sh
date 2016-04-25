@@ -23,7 +23,8 @@ set +e
 git diff-index --quiet HEAD
 
 changes=$?;
-if [ $changes == 0 ] ; then
+echo $changes;
+if [ $changes -eq 0 ] ; then #No changes
   echo "No changes to the website were made";
   exit 0;
 else
