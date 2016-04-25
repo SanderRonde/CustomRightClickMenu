@@ -26,7 +26,8 @@ git diff-index --quiet HEAD
 
 changes=$?;
 if [ $changes == 0 ] ; then #No changes
-  exit $changess;
+  echo "No changes to the website were made";
+  exit $changes;
 fi
 
 git add .
