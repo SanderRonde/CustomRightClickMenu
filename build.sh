@@ -2,10 +2,7 @@ set -e
 
 cd "Custom Right-Click Menu"
 
-grunt build
-grunt cleanBuild
-grunt extractDefs
-grunt cleanBuild
+grunt test
 grunt website
 
 git config user.name "Travis CI"
@@ -28,9 +25,13 @@ git diff-index --quiet HEAD
 
 echo "Status code";
 echo $?;
-if [ "$?" == 0 ] ; then #No changes
+changes=$?;
+echo $changes;
+if [ $changes == 0 ] ; then #No changes
   echo "No changes to the website were made";
   exit 0;
+else
+  echo "Changes occurred";
 fi
 
 set -e;
