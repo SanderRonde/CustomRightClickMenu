@@ -27,12 +27,7 @@ echo "Status code";
 echo $?;
 changes=$?;
 echo $changes;
-if [ $changes ]; then
-  echo "true";
-else
-  echo "false";
-fi
-if [ $changes == 0 ] || [ "$changes" == 0 ] || [ $changes == "0" ] || [ "$changes" == "0" ] ; then #No changes
+if [ $changes -eq 0 ] ; then #No changes
   echo "No changes to the website were made";
   exit 0;
 else
