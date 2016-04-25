@@ -28,7 +28,7 @@ git diff-index --quiet HEAD
 
 echo "Status code";
 echo $?;
-if [ $? == 0 ] ; then #No changes
+if [ "$?" == 0 ] ; then #No changes
   echo "No changes to the website were made";
   exit 0;
 fi
