@@ -200,7 +200,7 @@ module.exports = function(grunt) {
 			jqueryContextMenuBanner: {
 				options: {
 					position: 'top',
-					banner: '\n', //jqueryContextMenuLicense,
+					banner: '\n' + jqueryContextMenuLicense,
 					linebreak: true
 				},
 				files: {
@@ -408,5 +408,5 @@ module.exports = function(grunt) {
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 
 	//Tests all tasks and finishes with a clean build directory
-	grunt.registerTask('test', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'webite', 'cleanBuild']);
+	grunt.registerTask('test', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'website', 'cleanBuild']);
 }
