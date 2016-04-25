@@ -17,18 +17,24 @@ git fetch
 git reset --hard
 git checkout -b gh-pages --track origin/gh-pages
 
+ls
 npm install
 
 grunt moveWebsite
 cd ../
 
+set +e
 git diff-index --quiet HEAD
 
+echo "Status code";
+echo $?;
 changes=$?;
 if [ $changes == 0 ] ; then #No changes
   echo "No changes to the website were made";
   exit $changes;
 fi
+
+set -e;
 
 git add .
 git commit -m "Deploy to Github Pages"
