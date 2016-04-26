@@ -35,4 +35,10 @@ set -e;
 
 git add .
 git commit -m "Deploy to Github Pages"
+
+if [ $? -ne 0 ] ; then #Something went wrong committing, don't push
+  echo "Faulty commit, abort push";
+  exit 0;
+fi
+
 git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" 
