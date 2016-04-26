@@ -1,13 +1,14 @@
+#!/bin/bash
 function logStart {
-  echo -e "\e[1m \e[34m $1"
+  echo -e "\e[1m \e[34m $1";
 }
 
 function logSuccess {
-  echo -e "\e[1m \e[32m $1"
+  echo -e "\e[1m \e[32m $1";
 }
 
 function logLog {
-  echo -e "\e[1m \e[33m $1"
+  echo -e "\e[1m \e[33m $1";
 }
 
 set -e
