@@ -2,11 +2,11 @@ set -e
 
 cd "Custom Right-Click Menu"
 
-printf "\e[1m \e[34mStarting grunt tests\n";
+echo "Starting grunt tests";
 grunt test
-printf "\e[1m \e[32mFinished grunt tests\n";
+echo "Finished grunt tests";
 
-logStart "Changing branches";
+echo "Changing branches";
 grunt website
 
 git config user.name "Travis CI"
@@ -18,7 +18,7 @@ git fetch
 
 git reset --hard
 git checkout -b gh-pages --track origin/gh-pages
-printf "\e[1m \e[32mChanged branches\n";
+echo "Changed branches";
 
 npm install
 
@@ -30,23 +30,23 @@ git diff-index --quiet HEAD
 
 changes=$?;
 if [ $changes -eq 0 ] ; then #No changes
-  printf "\e[1m \e[33mNo changes to the website were made\n";
+  echo "No changes to the website were made";
   exit 0;
 else
-  printf "\e[1m \e[33mChanges occurred\n";
+  echo "Changes occurred";
   git diff;
 fi
 
-printf "\e[1m \e[34mCommitting changes\n";
+echo "Committing changes";
 git add . --quiet
 git commit -m "Deploy to Github Pages" --quiet
-printf "\e[1m \e[32mCommitted changes\n";
+echo "Committed changes";
 
-printf "\e[1m \e[34mPushing changes\n";
+echo "Pushing changes";
 if [ $? -ne 0 ] ; then #Something went wrong committing, don't push
-  printf "\e[1m \e[33mFaulty commit, abort push\n";
+  echo "Faulty commit, abort push";
   exit 0;
 fi
 
 git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --quiet 
-printf "\e[1m \e[32mPushed github pages to branch\n";
+echo "Pushed github pages to branch";
