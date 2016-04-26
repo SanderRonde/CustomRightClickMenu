@@ -31,8 +31,6 @@ else
   echo "Changes occurred";
 fi
 
-set -e;
-
 git add .
 git commit -m "Deploy to Github Pages"
 
