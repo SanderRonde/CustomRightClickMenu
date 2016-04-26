@@ -1376,9 +1376,9 @@
 		var deleted = [];
 		for (node in globals.crmValues.nodeInstances) {
 			if (globals.crmValues.nodeInstances.hasOwnProperty(node) && globals.crmValues.nodeInstances[node]) {
-				if (globals.crmValues.nodeInstances.node[tabId]) {
+				if (globals.crmValues.nodeInstances[node][tabId]) {
 					deleted.push(node);
-					globals.crmValues.nodeInstances.node[tabId] = undefined;
+					globals.crmValues.nodeInstances[node][tabId] = undefined;
 				}
 			}
 		}
