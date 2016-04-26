@@ -1,23 +1,10 @@
-#!/bin/bash
-function logStart {
-  echo -e "\e[1m \e[34m $1";
-}
-
-function logSuccess {
-  echo -e "\e[1m \e[32m $1";
-}
-
-function logLog {
-  echo -e "\e[1m \e[33m $1";
-}
-
 set -e
 
 cd "Custom Right-Click Menu"
 
-logStart "Starting grunt tests";
+printf "\e[1m \e[34mStarting grunt tests\n";
 grunt test
-logSuccess "Finished grunt tests";
+printf "\e[1m \e[32mFinished grunt tests\n";
 
 logStart "Changing branches";
 grunt website
@@ -31,7 +18,7 @@ git fetch
 
 git reset --hard
 git checkout -b gh-pages --track origin/gh-pages
-logSuccess "Changed branches";
+printf "\e[1m \e[32mChanged branches\n";
 
 npm install
 
@@ -43,23 +30,23 @@ git diff-index --quiet HEAD
 
 changes=$?;
 if [ $changes -eq 0 ] ; then #No changes
-  logLog "No changes to the website were made";
+  printf "\e[1m \e[33mNo changes to the website were made\n";
   exit 0;
 else
-  logLog "Changes occurred";
+  printf "\e[1m \e[33mChanges occurred\n";
   git diff;
 fi
 
-logStart "Committing changes";
+printf "\e[1m \e[34mCommitting changes\n";
 git add . --quiet
 git commit -m "Deploy to Github Pages" --quiet
-logSuccess "Committed changes";
+printf "\e[1m \e[32mCommitted changes\n";
 
-logStart "Pushing changes";
+printf "\e[1m \e[34mPushing changes\n";
 if [ $? -ne 0 ] ; then #Something went wrong committing, don't push
-  logLog "Faulty commit, abort push";
+  printf "\e[1m \e[33mFaulty commit, abort push\n";
   exit 0;
 fi
 
 git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --quiet 
-logSuccess "Pushed github pages to branch";
+printf "\e[1m \e[32mPushed github pages to branch\n";
