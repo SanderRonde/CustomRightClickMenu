@@ -38,7 +38,7 @@ else
 fi
 
 echo "Committing changes";
-git add . --quiet
+git add .
 git commit -m "Deploy to Github Pages" --quiet
 echo "Committed changes";
 
