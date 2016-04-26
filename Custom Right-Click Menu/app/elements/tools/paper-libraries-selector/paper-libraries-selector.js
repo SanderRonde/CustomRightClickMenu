@@ -271,6 +271,16 @@ Polymer({
 		else if (e.target.classList.contains('anonymous')) {
 			var url = e.target.getAttribute('data-url');
 			window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor, 'require', url);
+
+			chrome.runtime.sendMessage({
+				type: 'anonymousLibrary',
+				data: {
+					type: 'remove',
+					name: url,
+					url: url,
+					scriptId: window.app.scriptItem.id
+				}
+			});
 		} else {
 			//Checking or un-checking something
 			var lib = e.target.getAttribute('data-url');

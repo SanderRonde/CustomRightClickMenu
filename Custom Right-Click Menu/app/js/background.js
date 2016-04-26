@@ -33,6 +33,7 @@
 			settingsStorage: null,
 			globalExcludes: null,
 			resourceKeys: null,
+			urlDataPairs: null,
 			storageLocal: null,
 			nodeStorage: null,
 			resources: null
@@ -675,20 +676,16 @@
 	//#endregion
 
 	//#region Script Click Handler
-	function executeScripts(tabId, scripts) {
-		function executeScript(script, innerCallback) {
-			return function () {
-				chrome.tabs.executeScript(tabId, script, innerCallback);
+	function executeScript(tabId, scripts, i) {
+		return function () {
+			if (scripts.length > i) {
+				chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId, scripts, i + 1));
 			}
 		}
-
-		var callback = null;
-		for (var i = scripts.length - 1; i >= 0; i--) {
-			callback = executeScript(scripts[i], callback);
-		}
-
-		// ReSharper disable once InvokedExpressionMaybeNonFunction
-		callback && callback();
+	}
+	
+	function executeScripts(tabId, scripts) {
+		executeScript(tabId, scripts, 0)();
 	}
 
 	function getMetaIndexes(script) {
@@ -844,39 +841,43 @@
 
 				var scripts = [];
 				for (i = 0; i < node.value.libraries.length; i++) {
-					if (node.value.libraries[i].name !== null && !globals.crmValues.tabData[tab.id].libraries[node.value.libraries[i].name]) {
-						globals.crmValues.tabData[tab.id].libraries[node.value.libraries[i].name] = true;
-						var j;
-						var lib;
-						if (globals.storages.storageLocal.libraries) {
-							for (j = 0; j < globals.storages.storageLocal.libraries.length; j++) {
-								if (globals.storages.storageLocal.libraries[j].name === node.value.libraries[i].name) {
-									lib = globals.storages.storageLocal.libraries[j];
+					var lib;
+					if (globals.storages.storageLocal.libraries) {
+						for (var j = 0; j < globals.storages.storageLocal.libraries.length; j++) {
+							if (globals.storages.storageLocal.libraries[j].name === node.value.libraries[i].name) {
+								lib = globals.storages.storageLocal.libraries[j];
+								break;
+							} else {
+								//Resource hasn't been registered with its name, try if it's an anonymous one
+								if (node.value.libraries[i].name === null) {
+									//Check if the value has been registered as a resource
+									if (globals.storages.urlDataPairs[node.value.libraries[i].url]) {
+										lib = {
+											code: globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
+										};
+									}
 								}
 							}
 						}
-						if (lib) {
-							if (lib.location) {
-								scripts.push({
-									file: 'js/defaultLibraries/' + lib.location,
-									runAt: runAt
-								});
-							} else {
-								scripts.push({
-									code: lib.code,
-									runAt: runAt
-								});
-							}
+					}
+					if (lib) {
+						if (lib.location) {
+							scripts.push({
+								file: 'js/defaultLibraries/' + lib.location,
+								runAt: runAt
+							});
+						} else {
+							scripts.push({
+								code: lib.code,
+								runAt: runAt
+							});
 						}
 					}
 				}
-				if (!globals.crmValues.tabData[tab.id].crmApi) {
-					globals.crmValues.tabData[tab.id].crmApi = true;
-					scripts.push({
-						file: 'js/crmapi.js',
-						runAt: runAt
-					});
-				}
+				scripts.push({
+					file: 'js/crmapi.js',
+					runAt: runAt
+				});
 				scripts.push({
 					code: code,
 					runAt: runAt
@@ -3237,6 +3238,26 @@
 		xhr.send();
 	}
 
+	function getUrlData(scriptId, url, callback) {
+		//First check if the data has already been fetched
+		if (globals.storages.urlDataPairs[url]) {
+			if (globals.storages.urlDataPairs[url].refs.indexOf(scriptId) === -1) {
+				globals.storages.urlDataPairs[url].refs.push(scriptId);
+			}
+			callback(globals.storages.urlDataPairs[url].dataURI, globals.storages.urlDataPairs[url].dataString);
+		} else {
+			convertFileToDataURI(url, function(dataURI, dataString) {
+				//Write the data away to the url-data-pairs object
+				globals.storages.urlDataPairs[url] = {
+					dataURI: dataURI,
+					dataString: dataString,
+					refs: [scriptId]
+				}
+				callback(dataURI, dataString);
+			});
+		}
+	}
+
 	function getHashes(url) {
 		var hashes = [];
 		var hashString = url.split('#')[1];
@@ -3254,19 +3275,18 @@
 	function registerResource(name, url, scriptId) {
 		var registerHashes = getHashes(url);
 		if (window.navigator.onLine) {
-			convertFileToDataURI(url, function(dataURI, dataString) {
+			getUrlData(scriptId, url, function (dataURI, dataString) {
 				var resources = globals.storages.resources;
 				resources[scriptId] = resources[scriptId] || {};
 				resources[scriptId][name] = {
 					name: name,
 					sourceUrl: url,
-					dataURI: dataURI,
-					string: dataString,
 					matchesHashes: matchesHashes(dataString, registerHashes),
 					crmUrl: 'chrome-extension://' + extensionId + '/resource/' + scriptId + '/' + name
 				}
 				chrome.storage.local.set({
-					resources: resources
+					resources: resources,
+					urlDataPairs: globals.storages.urlDataPairs
 				});
 			});
 		}
@@ -3290,18 +3310,15 @@
 
 	function compareResource(key) {
 		var resources = globals.storages.resources;
-		convertFileToDataURI(key.sourceUrl, function (dataURI, responseText) {
+		convertFileToDataURI(key.sourceUrl, function (dataURI, dataString) {
 			if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) || resources[key.scriptId][key.name].dataURI !== dataURI) {
-				resources[key.scriptId][key.name] = {
-					name: key.name,
-					sourceUrl: key.sourceUrl,
-					dataURI: dataURI,
-					string: responseText,
-					matchesHashes: matchesHashes(responseText, getHashes(key.sourceUrl)),
-					crmUrl: 'chrome-extension://' + extensionId + '/resource/' + key.scriptId + '/' + key.name
-				}
+				//Data URIs do not match, just update the url ref
+				globals.storages.urlDataPairs[key.url].dataURI = dataURI;
+				globals.storages.urlDataPairs[key.url].dataString = dataString;
+
 				chrome.storage.local.set({
-					resources: resources
+					resources: resources,
+					urlDataPairs: globals.storages.urlDataPairs
 				});
 			}
 		});
@@ -3327,13 +3344,22 @@
 			}
 		}
 
+		var urlDataLink = globals.storages.urlDataPairs[globals.storages.resources[scriptId][name].url];
+		if (urlDataLink) {
+			urlDataLink.refs.splice(urlDataLink.indexOf(scriptId), 1);
+			if (urlDataLink.refs.length === 0) {
+				//No more refs, clear it
+				delete globals.storages.urlDataPairs[globals.storages.resources[scriptId][name].url];
+			}
+		}
 		if (globals.storages.resources && globals.storages.resources[scriptId] && globals.storages.resources[scriptId][name]) {
-			globals.storages.resources[scriptId][name] = undefined;
+			delete globals.storages.resources[scriptId][name];
 		}
 
 		chrome.storage.local.set({
 			resourceKeys: globals.storages.resourceKeys,
-			resources: globals.storages.resources
+			resources: globals.storages.resources,
+			urlDataPairs: globals.storages.urlDataPairs
 		});
 	}
 
@@ -3355,9 +3381,15 @@
 				if (globals.crm.crmById[id].type === 'script') {
 					var i;
 					if (globals.crm.crmById[id].value.script) {
+						var resourceObj = {};
 						var metaTags = getMetaTags(globals.crm.crmById[id].value.script);
 						var resources = metaTags.resource;
-						var resourceObj = {};
+						var libs = globals.crm.crmById[id].value.libraries;
+						for (i = 0; i < libs.length; i++) {
+							if (libs[i] === null) {
+								resourceObj[libs[i].url] = true;
+							}
+						}
 						for (i = 0; i < resources; i++) {
 							resourceObj[resources[i]] = true;
 						}
@@ -3374,7 +3406,7 @@
 
 	function getResourceData(name, scriptId) {
 		if (globals.storages.resources[scriptId][name] && globals.storages.resources[scriptId][name].matchesHashes) {
-			return globals.storages.resources[scriptId][name].dataURI;
+			return globals.storages.urlDataPairs[globals.storages.resources[scriptId][name].url].dataURI;
 		}
 		return null;
 	}
@@ -3418,6 +3450,17 @@
 				break;
 			case 'remove':
 				removeResource(message.name, message.url, message.scriptId);
+				break;
+		}
+	}
+
+	function anonymousLibsHandler(message) {
+		switch (message.type) {
+			case 'register':
+				registerResource(message.url, message.url, message.scriptid);
+				break;
+			case 'remove':
+				removeResource(message.url, message.url, message.scriptId);
 				break;
 		}
 	}
@@ -3523,6 +3566,9 @@
 		switch (message.type) {
 			case 'resource':
 				resourceHandler(message.data);
+				break;
+			case 'anonymousLibrary':
+				anonymousLibsHandler(message.data);
 				break;
 			case 'updateStorage':
 				applyChanges(message.data);
@@ -4352,6 +4398,7 @@
 		globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
 		globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
 		globals.storages.globalExcludes.map(validatePatternUrl);
+		globals.storages.urlDataPairs = setIfNotSet(chromeStorageLocal, 'urlDataPairs', {});
 
 		updateCRMValues();
 
@@ -4368,9 +4415,10 @@
 					});
 				} else {
 					var storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
-					delete storageLocalCopy.resourceKeys;
-					delete storageLocalCopy.nodeStorage;
 					delete storageLocalCopy.resources;
+					delete storageLocalCopy.nodeStorage;
+					delete storageLocalCopy.urlDataPairs;
+					delete storageLocalCopy.resourceKeys;
 					delete storageLocalCopy.globalExcludes;
 
 					var indexes;

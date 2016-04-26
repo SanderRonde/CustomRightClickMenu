@@ -18,7 +18,7 @@ module.exports = function(grunt) {
 				files: [
 					{
 						src: ['app/js/crmapi.js'],
-						dest: 'build/js/crmAPIDefs.js',
+						dest: 'app/js/crmAPIDefs.js',
 						expand: false
 					}
 				]
@@ -31,18 +31,6 @@ module.exports = function(grunt) {
 					{
 						src: ['app/js/crmapi.js'],
 						dest: 'app/html/crmAPIDocs.html',
-						expand: false
-					}
-				]
-			},
-			updateJSONDocs: {
-				options: {
-					type: 'json'
-				},
-				files: [
-					{
-						src: ['app/js/crmapi.js'],
-						dest: 'build/js/crmAPIDefs.json',
 						expand: false
 					}
 				]
@@ -391,7 +379,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-zip');
 
 	//Alias only tasks, not meant for running
-	grunt.registerTask('extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs', 'extractCrmDefs:updateJSONDocs']);
+	grunt.registerTask('extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs']);
 	grunt.registerTask('extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 	grunt.registerTask('defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
 

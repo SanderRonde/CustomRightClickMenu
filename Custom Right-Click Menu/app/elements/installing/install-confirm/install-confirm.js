@@ -457,6 +457,8 @@
 				triggers = triggers.concat(exclude);
 			}
 
+			var anonymousLibs;
+
 			//Type-specific data
 			var launchMode;
 			if (this.getlastMetaTagValue('CRM_stylesheet') === 'true') {
@@ -485,15 +487,18 @@
 				};
 				this.tags.CRM_libraries = libs;
 
-				var anonymousLibs = this.metaTags.require;
+				anonymousLibs = this.metaTags.require;
 				if (this.metaTags.require) {
 					for (i = 0; i < anonymousLibs.length; i++) {
+						var skip = false;
 						for (var j = 0; j < libs.length; j++) {
 							if (libs[j].url === anonymousLibs[i]) {
-								anonymousLibs.splice(i, 1);
-								i--;
+								skip = true;
 								break;
 							}
+						}
+						if (skip) {
+							continue;
 						}
 						anonymousLibs[i] = {
 							url: anonymousLibs[i],
@@ -502,12 +507,8 @@
 					}
 				}
 
-				var anonymousVersion = [];
-				for (i = 0; i < libs.length; i++) {
-					anonymousVersion.push(libs[i].url);
-				}
 				for (i = 0; i < anonymousLibs.length; i++) {
-					anonymousVersion.push(anonymousLibs[i].url);
+					libs.push(anonymousLibs[i].url);
 				}
 
 				launchMode = this.getlastMetaTagValue('CRM_launchMode') || 0;
@@ -581,6 +582,20 @@
 								type: 'register',
 								name: resourceName,
 								url: resourceUrl,
+								scriptId: id
+							}
+						});
+					});
+				}
+
+				if (anonymousLibs) {
+					anonymousLibs.forEach(function(lib) {
+						chrome.runtime.sendMessage({
+							type: 'anonymousLibrary',
+							data: {
+								type: 'register',
+								name: lib.url,
+								url: lib.url,
 								scriptId: id
 							}
 						});

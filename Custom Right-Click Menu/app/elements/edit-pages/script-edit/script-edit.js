@@ -280,6 +280,44 @@
 					});
 					this.set('newSettings.value.libraries', libraries);
 					window.paperLibrariesSelector.updateLibraries(libraries);
+
+					//Register as a resource
+					function sendCreateAnonymousLibraryMessage() {
+						chrome.runtime.sendMessage({
+							type: 'anonymousLibrary',
+							data: {
+								type: 'register',
+								name: newValue,
+								url: newValue,
+								scriptId: this.item.id
+							}
+						});
+					}
+
+					function sendRemoveAnonymousLibraryMessage() {
+						chrome.runtime.sendMessage({
+							type: 'anonymousLibrary',
+							data: {
+								type: 'remove',
+								name: newValue,
+								url: newValue,
+								scriptId: this.item.id
+							}
+						});
+					}
+
+					switch (changeType) {
+						case 'added':
+							sendCreateAnonymousLibraryMessage();
+							break;
+						case 'changed':
+							sendRemoveAnonymousLibraryMessage();
+							sendCreateAnonymousLibraryMessage();
+							break;
+						case 'removed':
+							sendRemoveAnonymousLibraryMessage();
+							break;
+					}
 					break;
 				case 'author':
 					this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue);
