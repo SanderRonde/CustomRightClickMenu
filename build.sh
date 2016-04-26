@@ -36,6 +36,8 @@ set -e;
 git add .
 git commit -m "Deploy to Github Pages"
 
+echo "Git commit exit code:";
+echo $?;
 if [ $? -ne 0 ] ; then #Something went wrong committing, don't push
   echo "Faulty commit, abort push";
   exit 0;
