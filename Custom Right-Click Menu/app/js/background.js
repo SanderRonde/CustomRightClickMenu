@@ -863,7 +863,7 @@
 					if (lib) {
 						if (lib.location) {
 							scripts.push({
-								file: 'js/defaultLibraries/' + lib.location,
+								file: '/js/defaultLibraries/' + lib.location,
 								runAt: runAt
 							});
 						} else {
@@ -875,7 +875,7 @@
 					}
 				}
 				scripts.push({
-					file: 'js/crmapi.js',
+					file: '/js/crmapi.js',
 					runAt: runAt
 				});
 				scripts.push({
@@ -1109,30 +1109,76 @@
 		return false;
 	}
 
+	function executeScriptsForTab(tabId, respond) {
+		chrome.tabs.get(tabId, function(tab) {
+			if (tab.url.indexOf('chrome') !== 0 && !globals.crmValues.tabData[tabId]) {
+				var i;
+				globals.crmValues.tabData[tab.id] = {
+					libraries: {},
+					nodes: {},
+					crmAPI: false
+				};
+				if (!urlIsGlobalExcluded(tab.url)) {
+					if (!urlIsGlobalExcluded(tab.url)) {
+						var toExecute = [];
+						for (var nodeId in globals.toExecuteNodes.onUrl) {
+							if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
+								if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
+									toExecute.push({
+										node: globals.crm.crmById[nodeId],
+										tab: tab
+									});
+								}
+							}
+						}
+
+						for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
+							executeNode(globals.toExecuteNodes.always[i], tab);
+						}
+						for (i = 0; i < toExecute.length; i++) {
+							executeNode(toExecute.node, toExecute.tab);
+						}
+						respond({
+							matched: toExecute.length > 0
+						});
+					}
+				}
+			}
+		});
+	}
+
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
 		if (updatedInfo.status === 'loading') {
 			//It's loading
 			chrome.tabs.get(tabId, function(tab) {
-				if (tab.url.indexOf('chrome') !== 0) {
+				if (tab.url.indexOf('chrome') !== 0 && globals.crmValues.tabData[tabId]) {
 					var i;
-					globals.crmValues.tabData[tab.id] = globals.crmValues.tabData[tab.id] || {
-						libraries: {},
-						nodes: {},
-						crmAPI: false
-					};
 					if (!urlIsGlobalExcluded(tab.url)) {
 						if (!urlIsGlobalExcluded(updatedInfo.url)) {
-							for (i = 0; i < globals.toExecuteNodes.always.length; i++) {
-								executeNode(globals.toExecuteNodes.always[i], tab);
-							}
-
+							var toExecute = [];
 							for (var nodeId in globals.toExecuteNodes.onUrl) {
 								if (globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globals.toExecuteNodes.onUrl[nodeId]) {
 									if (matchesUrlSchemes(globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
-										executeNode(globals.crm.crmById[nodeId], tab);
+										toExecute.push({
+											node: globals.crm.crmById[nodeId],
+											tab: tab
+										});
 									}
 								}
 							}
+
+							chrome.tabs.sendMessage(tabId, {
+								type: 'checkTabStatus',
+								data: {
+									willBeMatched: (toExecute.length > 0)
+								}
+							}, function (response) {
+								if (response.notMatchedYet) {
+									for (i = 0; i < toExecute.length; i++) {
+										executeNode(toExecute.node, toExecute.tab);
+									}
+								}
+							});
 						}
 					}
 				}
@@ -3562,7 +3608,7 @@
 		delete globals.notificationListeners[notificationId];
 	});
 
-	function handleRuntimeMessage(message) {
+	function handleRuntimeMessage(message, messageSender, response) {
 		switch (message.type) {
 			case 'resource':
 				resourceHandler(message.data);
@@ -3581,6 +3627,9 @@
 				break;
 			case 'addNotificationListener':
 				addNotificationListener(message);
+				break;
+			case 'newTabCreated':
+				executeScriptsForTab(messageSender.tab.id, response);
 				break;
 		}
 	}

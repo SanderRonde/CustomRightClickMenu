@@ -671,6 +671,7 @@
     <Content Include="app\images\whitearrow.png" />
     <Content Include="app\css\jquery.contextMenu.css" />
     <Content Include="app\js\background.js" />
+    <Content Include="app\js\contentscript.js" />
     <Content Include="app\js\crmapi.js" />
     <Content Include="app\js\crmAPIDefs.js" />
     <Content Include="app\js\crmAPIDocs.js" />
