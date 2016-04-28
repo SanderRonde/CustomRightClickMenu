@@ -363,6 +363,20 @@ module.exports = function(grunt) {
 			files: [
 				{ expand: true, cwd: 'build/website/', src: ['index.html', 'crmAPIDocsElements.html'] }
 			]
+		},
+		vulcanize: {
+			website: {
+				options: {
+					abspath: 'build/website/',
+					inlineScripts: false,
+					inlineCss: false,
+					stripComments: true,
+					targetUrl: 'crmAPIDocsElements.html'
+				},
+				files: {
+					'build/website/crmAPIDocsElements.html': 'crmAPIDocsElements.html'
+				}
+			}
 		}
 	});
 
@@ -376,6 +390,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-string-replace');
 	grunt.loadNpmTasks('grunt-processhtml');
+	grunt.loadNpmTasks('grunt-vulcanize');
 	grunt.loadNpmTasks('grunt-zip');
 
 	//Alias only tasks, not meant for running
@@ -394,7 +409,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('externalEditorDefs', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 
 	//Extracts the files needed for the website and places them in build/website
-	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean', 'removePrefix']);
+	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
