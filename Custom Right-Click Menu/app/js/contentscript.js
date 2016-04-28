@@ -12,10 +12,10 @@ chrome.runtime.onMessage.addListener(function (message, sender, respond) {
 });
 
 chrome.runtime.sendMessage({
-	type: 'newTabCreated',
+		type: 'newTabCreated'
+	},
 	function(response) {
 		if (response.matched) {
 			matched = true;
 		}
-	}
-});
+	});
