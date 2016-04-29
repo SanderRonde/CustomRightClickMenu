@@ -207,3 +207,10 @@ ModelManifest.xml
 *.DotSettings
 /Custom Right-Click Menu.VC.db
 /Custom Right-Click Menu.VC.VC.opendb
+
+Custom Right-Click Menu.sln
+/Custom Right-Click Menu/Custom Right-Click Menu.csproj
+/Custom Right-Click Menu/DebugSettings.template.xml
+/Custom Right-Click Menu/web.Debug.config
+/Custom Right-Click Menu/web.Release.config
+/Custom Right-Click Menu/web.config
