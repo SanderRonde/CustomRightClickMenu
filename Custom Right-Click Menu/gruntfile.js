@@ -368,8 +368,8 @@ module.exports = function(grunt) {
 			website: {
 				options: {
 					abspath: 'build/website/',
-					inlineScripts: false,
-					inlineCss: false,
+					inlineScripts: true,
+					inlineCss: true,
 					stripComments: true,
 					targetUrl: 'crmAPIDocsElements.html'
 				},
