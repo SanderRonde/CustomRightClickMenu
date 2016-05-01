@@ -1,4 +1,7 @@
 ﻿'use strict';
+
+console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+	'font-size:120%;font-weight:bold;');
 (function() {
 	/**
 	 * A shorthand name for chrome.storage.sync

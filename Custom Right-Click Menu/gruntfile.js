@@ -290,7 +290,8 @@ module.exports = function(grunt) {
 					replacements: [
 						{
 							pattern: /\/\* build:json:(\w+) \*\/(.*)\/\* \/build \*\//g,
-							replacement: function(match, type, content) {
+							replacement: function (match, type, content) {
+								console.log(type);
 								if (type === 'remove') {
 									return '';
 								} else if (type === 'uncomment') {
