@@ -4,7 +4,7 @@
 	"options_page": "html/options.html",
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu.",
-	"version": "2.0.1",
+	"version": "2.0.2",
 	"version_name":  "2.0 beta", 
 	"short_name": "CRM",
 

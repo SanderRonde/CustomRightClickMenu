@@ -15,7 +15,7 @@ chrome.runtime.sendMessage({
 		type: 'newTabCreated'
 	},
 	function(response) {
-		if (response.matched) {
+		if (response && response.matched) {
 			matched = true;
 		}
 	});
