@@ -668,8 +668,8 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 			this.$.exportSettingsOutput.value = JSON.stringify(toExport);
 		},
 
-		showManagePermissions: function() {
-			this.requestPermissions([]);
+		showManagePermissions: function () {
+			this.requestPermissions([], true);
 		},
 
 		reverseString: function(string) {
@@ -976,7 +976,7 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 		upload: function() {
 			//Send changes to background-page, background-page uploads everything
 			//Compare storageLocal objects
-
+			
 			var localChanges = [];
 			var storageLocal = this.storageLocal;
 			var storageLocalCopy = this.storageLocalCopy;
@@ -1231,9 +1231,11 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 
 		/**
 		 * Shows the user a dialog and asks them to allow/deny those permissions
+		 * 
 		 * @param {string[]} toRequest - An arry of strings of permissions to request
+		 * @param {boolean} force - Force the dialog, show it even if there is nothing to request
 		 */
-		requestPermissions: function(toRequest) {
+		requestPermissions: function(toRequest, force) {
 			var i;
 			var index;
 			var _this = this;
@@ -1252,7 +1254,7 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 				requestPermissions: toRequest
 			});
 
-			if (toRequest.length > 0) {
+			if (toRequest.length > 0 || force) {
 				chrome.permissions.getAll(function(allowed) {
 					var requested = [];
 					for (i = 0; i < toRequest.length; i++) {
@@ -2457,15 +2459,15 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 			 */
 			getDefaultStylesheetValue: function(options) {
 				var value = {
-					stylesheet: '' +
-						'// ==UserScript==' +
-						'// @name	name' +
-						'// @CRM_contentTypes	[true, true, true, true, true, true]' +
-						'// @CRM_launchMode	0' +
-						'// @CRM_stylesheet	true' +
-						'// @grant	none' +
-						'// @match	*://*.example.com/*' +
-						'// ==/UserScript==',
+					stylesheet: [
+						'/* ==UserScript==',
+						'// @name	name',
+						'// @CRM_contentTypes	[true, true, true, true, true, true]',
+						'// @CRM_launchMode	0',
+						'// @CRM_stylesheet	true',
+						'// @grant	none',
+						'// @match	*://*.example.com/*',
+						'// ==/UserScript== */'].join('\n'),
 					launchMode: 0,
 					triggers: ['*://*.example.com/*']
 				};
@@ -2483,14 +2485,14 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 				var value = {
 					launchMode: 0,
 					libraries: [],
-					script: '' +
-						'// ==UserScript==' +
-						'// @name	name' +
-						'// @CRM_contentTypes	[true, true, true, true, true, true]' +
-						'// @CRM_launchMode	0' +
-						'// @grant	none' +
-						'// @match	*://*.example.com/*' +
-						'// ==/UserScript==',
+					script: [
+						'// ==UserScript==',
+						'// @name	name',
+						'// @CRM_contentTypes	[true, true, true, true, true, true]',
+						'// @CRM_launchMode	0',
+						'// @grant	none',
+						'// @match	*://*.example.com/*',
+						'// ==/UserScript=='].join('\n'),
 					triggers: ['*://*.example.com/*']
 				}
 
@@ -3132,18 +3134,16 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 			},
 
 			_lookupId: function(id, returnArray, node) {
-				if (node.id === id) {
-					return node;
-				}
-
 				var nodeChildren = node.children;
-
 				if (nodeChildren) {
 					var el;
 					for (var i = 0; i < nodeChildren.length; i++) {
+                        if (nodeChildren[i].id === id) {
+                            return (returnArray ? nodeChildren : node);
+                        }
 						el = this._lookupId(id, returnArray, nodeChildren[i]);
-						if (el !== null) {
-							return (returnArray ? nodeChildren : el);
+						if (el) {
+							return el;
 						}
 					}
 				}
@@ -3151,8 +3151,15 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 			},
 
 			lookupId: function(id, returnArray) {
+                if (!returnArray) {
+                    return window.app.nodesById[id];
+                }
+                
 				var el;
 				for (var i = 0; i < window.app.settings.crm.length; i++) {
+                    if (window.app.settings.crm[i].id === id) {
+                        return window.app.settings.crm;
+                    }
 					el = this._lookupId(id, returnArray, window.app.settings.crm[i]);
 					if (el) {
 						return el;

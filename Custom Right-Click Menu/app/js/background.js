@@ -205,15 +205,15 @@
 				 */
 				getDefaultStylesheetValue: function(options) {
 					var value = {
-						stylesheet: '' +
-							'// ==UserScript==' +
-							'// @name	name' +
-							'// @CRM_contentTypes	[true, true, true, true, true, true]' +
-							'// @CRM_launchMode	0' +
-							'// @CRM_stylesheet	true' +
-							'// @grant	none' +
-							'// @match	*://*.example.com/*' +
-							'// ==/UserScript==',
+						stylesheet: [
+							'// ==UserScript==',
+							'// @name	name',
+							'// @CRM_contentTypes	[true, true, true, true, true, true]',
+							'// @CRM_launchMode	0',
+							'// @CRM_stylesheet	true',
+							'// @grant	none',
+							'// @match	*://*.example.com/*',
+							'// ==/UserScript=='].join('\n'),
 						launchMode: 0,
 						triggers: ['*://*.example.com/*']
 					};
@@ -231,14 +231,14 @@
 					var value = {
 						launchMode: 0,
 						libraries: [],
-						script: '' +
-							'// ==UserScript==' +
-							'// @name	name' +
-							'// @CRM_contentTypes	[true, true, true, true, true, true]' +
-							'// @CRM_launchMode	0' +
-							'// @grant	none' +
-							'// @match	*://*.example.com/*' +
-							'// ==/UserScript==',
+						script: [
+							'// ==UserScript==',
+							'// @name	name',
+							'// @CRM_contentTypes	[true, true, true, true, true, true]',
+							'// @CRM_launchMode	0',
+							'// @grant	none',
+							'// @match	*://*.example.com/*',
+							'// ==/UserScript=='].join('\n'),
 						triggers: ['*://*.example.com/*']
 					}
 

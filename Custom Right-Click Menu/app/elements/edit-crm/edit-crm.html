@@ -19,7 +19,7 @@
 						<template is="dom-repeat" items="{{column.indent}}" restamp="true">
 							<div class="indentFiller"></div>
 						</template>
-						<paper-material elevation="5">
+						<paper-material elevation="5" is-empty$="{{_isColumnEmpty(column)}}">
 							<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
 								<template is="dom-repeat" items="{{column.list}}" as="row" observe="*" restamp="true">
 									<edit-crm-item shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>

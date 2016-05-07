@@ -260,6 +260,9 @@
 					window.crmEditPage.updateName(this.newSettings.name);
 					break;
 				case 'version':
+					if (!this.newSettings.nodeInfo) {
+						this.newSettings.nodeInfo = {};
+					}
 					this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue);
 					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 					break;
@@ -348,6 +351,9 @@
 						}
 					} else {
 						//Add another one
+						if (!this.newSettings.value.triggers) {
+							this.newSettings.value.triggers = [];
+						}
 						this.push('newSettings.value.triggers', {
 							url: newValue,
 							not: isExclude
@@ -403,17 +409,23 @@
 						this.splice('newSettings.permissions', allowedIndex, 1);
 					}
 
+					if (!this.newSettings.nodeInfo) {
+						this.newSettings.nodeInfo = {};
+					}
+					if (!this.newSettings.nodeInfo.permissions) {
+						this.newSettings.nodeInfo.permissions = [];
+					}
 					switch (changeType) {
-					case 'added':
-						this.push('newSettings.nodeInfo.permissions', newValue);
-						break;
-					case 'changed':
-						removePermission();
-						this.push('newSettings.nodeInfo.permissions', newValue);
-						break;
-					case 'removed':
-						removePermission();
-						break;
+						case 'added':
+							this.push('newSettings.nodeInfo.permissions', newValue);
+							break;
+						case 'changed':
+							removePermission();
+							this.push('newSettings.nodeInfo.permissions', newValue);
+							break;
+						case 'removed':
+							removePermission();
+							break;
 					}
 					break;
 				case 'CRM_contentType':
@@ -600,7 +612,6 @@
 
 		triggerCheckboxChange: function(element) {
 			var oldValue = !element.checked;
-			console.trace();
 			var inputValue = $(element).parent().children('.triggerInput')[0].value;
 
 			var line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
@@ -708,17 +719,23 @@
 
 			//Use jquery to also get the pre-change value
 			$(this.$.nameInput).on('keydown', function() {
-				var el = this;
+				var el = _this.$.nameInput;
+				var oldVal = el.value || '';
+				Array.isArray(oldVal) && (oldVal = oldVal[0]);
 				_this.async(function () {
-					_this.metaTagsUpdate({
-						'changed': [
-							{
-								key: 'name',
-								value: el.value,
-								oldValue: null
-							}
-						]
-					}, 'dialog');
+					var newVal = el.value || '';
+					Array.isArray(newVal) && (newVal = newVal[0]);
+					if (newVal !== oldVal) {
+						_this.metaTagsUpdate({
+							'changed': [
+								{
+									key: 'name',
+									value: newVal,
+									oldValue: oldVal
+								}
+							]
+						}, 'dialog');
+					}
 				}, 5);
 			});
 
@@ -799,7 +816,7 @@
 
 		saveChanges: function (resultStorage) {
 			this.active = false;
-			resultStorage.value.metaTags = getMetaTagValues();
+			resultStorage.value.metaTags = this.getMetaTagValues();
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
 		},
@@ -934,9 +951,14 @@
 		 * Inserts given snippet of code into the editor
 		 * @param {element} _this The scriptEdit element/object
 		 * @param {string} snippet - The snippet to be pasted
+		 * @param {boolean} noReplace - If true, no replacement on the %s is done
 		 */
-		insertSnippet: function(_this, snippet) {
-			this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
+		insertSnippet: function(_this, snippet, noReplace) {
+			this.editor.doc.replaceSelection(noReplace ?
+				                                 snippet :
+				                                 snippet.replace('%s', this.editor.doc
+					                                 .getSelection())
+			);
 		},
 
 		/*
@@ -949,7 +971,6 @@
 			window.app.$.paperGetPageProperties.init(function (snippet) {
 				_this.insertSnippet(_this, snippet);
 			});
-			//Use CRMAPI
 		},
 
 		/*
@@ -1715,6 +1736,7 @@
 			this.editorHeight = placeHolder.height();
 			this.editorWidth = placeHolder.width();
 			!window.app.settings.editor && (window.app.settings.editor = {});
+			console.trace();
 			this.editor = new window.CodeMirror(container, {
 				lineNumbers: true,
 				value: content || this.item.value.script,
@@ -1757,7 +1779,7 @@
 				}
 			});
 			this.savingInterval = window.setInterval(function() {
-				if (_this.active) {
+				if (_this.active && _this.editor) {
 					//Save
 					var val = _this.editor.getValue();
 					chrome.storage.local.set({

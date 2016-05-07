@@ -183,6 +183,7 @@
 	switchToWindow: function(window) {
 		this.hideAllWindows(window);
 		if (window === 'successWindow') {
+			debugger;
 			this.$.successWindow.setAttribute('style', 'display:block;');
 			this.insertCode();
 		}
@@ -238,14 +239,14 @@
 		codeLines.push('var url = \'' + this.chosenUrl + '\';');
 		codeLines.push('var toOpen = url.replace(/%s/g,search);');
 		if (this.howToOpen === 'newTab') {
-			codeLines.push('window.open(toOpen);');
+			codeLines.push('window.open(toOpen, \'_blank\');');
 		}
 		else {
 			codeLines.push('location.href = toOpen;');
 		}
 		codeLines.push('');
 		var code = codeLines.join('\n');
-		window.scriptEdit.insertSnippet(scriptEdit, code);
+		window.scriptEdit.insertSnippet(scriptEdit, code, true);
 		setTimeout(function() {
 			_this.hide();
 			_this.switchToWindow('initialWindow');
@@ -297,7 +298,7 @@
 	 */
 	processManualInput: function() {
 		if (this.selectedIsUrl) {
-			this.chosenUrl = this.$.manualInputURLInput.value.replace(/custom[rR]ight[cC]lick[mM]enu/g, '%s');
+			this.chosenUrl = this.$.manualInputURLInput.value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
 			this.switchToWindow('confirmationWindow');
 		}
 		else {
@@ -317,7 +318,7 @@
 				this.chosenUrl = 'http://en.wikipedia.org/w/index.php?title=Special:Search&search=%s';
 				break;
 			case 'amazon':
-				this.chosenUrl = 'http://www.amazon.com/s/ref=nb_sb_noss/175-3631512-6188805?url=search-alias%3Daps&field-keywords=%s';
+				this.chosenUrl = 'http://www.amazon.com/s/?field-keywords=%s';
 				break;
 			case 'youtube':
 				this.chosenUrl = 'https://www.youtube.com/results?search_query=%s';

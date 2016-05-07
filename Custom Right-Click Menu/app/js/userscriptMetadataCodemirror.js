@@ -172,7 +172,7 @@
 
 		var metaTagObj = {};
 		var indexes = {};
-		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
+		var regex = new RegExp(/@(\w+)(\s+)(.+)?/);
 		var regexMatches;
 		for (i = 0; i < metaLines.length; i++) {
 			regexMatches = metaLines[i].match(regex);
@@ -446,7 +446,7 @@
 		if (cm.metaTags) {
 			for (var index in cm.metaTags.metaIndexes) {
 				if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
-					if (cm.metaTags.metaIndexes[index].key === key && (singleValue || cm.metaTags.metaIndexes[index].value === '' + oldValue)) {
+					if (cm.metaTags.metaIndexes[index].key === key && (singleValue || cm.metaTags.metaIndexes[index].value + '' === '' + oldValue)) {
 						cm.doc.replaceRange('// @' + key + '	' + value, {
 							line: index,
 							ch: 0

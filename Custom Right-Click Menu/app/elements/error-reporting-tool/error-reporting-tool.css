@@ -1,6 +1,8 @@
 ﻿#errorToolContent {
 	position:fixed;
 	z-index: 99999999999999;
+	width: 0;
+	height: 0;
 }
 
 #iconContent {

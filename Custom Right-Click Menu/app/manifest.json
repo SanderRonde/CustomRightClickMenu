@@ -5,13 +5,15 @@
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu.",
 	"version": "2.0.2",
-	"version_name":  "2.0 beta", 
+	"version_name": "2.0 beta",
 	"short_name": "CRM",
 
 	"background": {
 		"scripts": [
 			"js/jquery-2.0.3.min.js",
-			/* build:json:remove */ "js/diff_match_patch.js", "js/codemirror.js", "js/codeMirrorAddons.js", /* /build */
+			/* build:json:remove */ "js/diff_match_patch.js",
+			"js/codemirror.js",
+			"js/codeMirrorAddons.js", /* /build */
 			/* build:json:uncomment */ //"js/codeMirrorFile.min.js", /* /build */
 			"js/jsonfn.js",
 			"js/md5.js",
@@ -22,7 +24,7 @@
 	"content_scripts": [
 		{
 			"matches": [ "<all_urls>" ],
-			"js": [ "js/contentscript.js" ]  
+			"js": [ "js/contentscript.js" ]
 		}
 	],
 
@@ -78,9 +80,9 @@
 		"webRequestBlocking"
 	],
 
-	"incognito" : "spanning",
+	"incognito": "spanning",
 
-	"icons" : {
+	"icons": {
 		"16": "icon-supersmall.png",
 		"48": "icon-small.png",
 		"128": "icon-large.png"

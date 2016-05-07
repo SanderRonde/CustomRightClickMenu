@@ -330,7 +330,6 @@ Polymer({
 	},
 	
 	init: function() {
-		console.trace();
 		var _this = this;
 		var valueStorer = {};
 		this.hideUpdateMessage = false;

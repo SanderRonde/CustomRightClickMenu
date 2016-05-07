@@ -148,6 +148,45 @@
 		}
 		this.toggledOpen = !this.toggledOpen;
 	},
+	
+	shadowColumns: function(column, reverse) {
+		$(column).find('#itemCont').animate({
+			'opacity': (reverse ? 1 : 0.5)
+		}).each(function () {
+			this.parentNode.shadow = true;
+		});
+		var next = $(column).next()[0];
+		if (next) {
+			this.async(function() {
+				this.shadowColumns(next, reverse);
+			}, 150);
+		}
+	},
+
+	matchesTypeScheme: function(type, data) {
+		switch (type) {
+			case 'link':
+				if (Array.isArray(data)) {
+					var objects = true;
+					data.forEach(function(linkItem) {
+						if (typeof linkItem !== 'object' || Array.isArray(linkItem)) {
+							objects = false;
+						}
+					});
+					if (objects) {
+						return true;
+					}
+				}
+				break;
+			case 'script':
+			case 'stylesheet':
+				return typeof data === 'object' && !Array.isArray(data);
+			case 'divider':
+			case 'menu':
+				return data === null;
+		}
+		return false;
+	},
 
 	changeType: function(e) {
 		var _this = this;
@@ -161,15 +200,6 @@
 		var item = editCrmEl.item;
 		var prevType = item.type;
 
-		var path = item.path;
-		var itemInCrm = app.settings.crm;
-		var i;
-		for (i = 0; i < path.length - 1; i++) {
-			itemInCrm = itemInCrm[path[i]].children;
-		}
-		itemInCrm = itemInCrm[path[i]];
-		var itemsToChange = [item, itemInCrm];
-
 		if (prevType === 'menu') {
 			item.menuVal = item.children;
 			delete item.children;
@@ -180,11 +210,11 @@
 		if (type === 'menu') {
 			item.children = [];
 		}
-		if (item[prevType + 'Val']) {
-			item.value = item[prevType + 'Val'];
+		if (item[type + 'Val'] && this.matchesTypeScheme(type, item[type + 'Val'])) {
+			item.value = item[type + 'Val'];
 		} else {
 			var triggers;
-			switch (prevType) {
+			switch (type) {
 				case 'link':
 					if (item.value.triggers) {
 						item.triggers = item.value.triggers;
@@ -204,25 +234,25 @@
 						triggers = item.triggers;
 						delete item.triggers;
 					}
-					triggers = triggers || item.value.triggers;
+					triggers = triggers || item.value.triggers || ['*://*.example.com/*'];
 					item.value = window.app.templates.getDefaultScriptValue({
 						triggers: triggers
 					});
 					break;
 				case 'divider':
-					item.value = null;;
 					if (item.value.triggers) {
 						item.triggers = item.value.triggers;
 						delete item.value.triggers;
 					}
+					item.value = null;
 					item.triggers = item.triggers || ['*://*.example.com/*'];
 					break;
 				case 'menu':
-					item.value = null;
 					if (item.value.triggers) {
 						item.triggers = item.value.triggers;
 						delete item.value.triggers;
 					}
+					item.value = null;
 					item.triggers = item.triggers || ['*://*.example.com/*'];
 					break;
 				case 'stylesheet':
@@ -230,7 +260,7 @@
 						triggers = item.triggers;
 						delete item.triggers;
 					}
-					triggers = triggers || item.value.triggers;
+					triggers = triggers || item.value.triggers || ['*://*.example.com/*'];
 					item.value = window.app.templates.getDefaultStylesheetValue({
 						triggers: triggers
 					});
@@ -242,6 +272,8 @@
 		editCrmEl.type = item.type;
 		editCrmEl.calculateType();
 		this.ready();
+
+		var i;
 		var typeChoices = $(this).find('.typeSwitchChoice').toArray();
 		for (i = 0; i < this.remainingTypes.length; i++) {
 			typeChoices[i].setAttribute('type', this.remainingTypes[i]);
@@ -250,26 +282,26 @@
 		if (prevType === 'menu') {
 			//Turn children into "shadow items"
 			var column = this.parentNode.parentNode.parentNode.parentNode;
-			var columnCont = column.parentNode;
-			var crmLength = columnCont.parentNode.parentNode.parentNode.crm.length;
+			console.log(column);
+			var columnCont = column.parentNode.parentNode;
+			var crmLength = window.app.editCRM.crm.length;
+			console.log(crmLength);
+			console.log(columnCont);
 			columnCont = $(columnCont).next()[0];
 
-			for (i = column.index + 1; i < crmLength; i++) {
-				$(columnCont).find('#itemCont').css('opacity', 0.5).each(function () {
-					this.parentNode.shadow = true;
-				});
-				columnCont = $(columnCont).next()[0];
-			}
+			console.log(columnCont);
+			this.shadowColumns(columnCont, false);
 
 			app.settings.shadowStart = column.index + 1;
 
+			var paperToast = $('#changedToMenuToast');
 			function reverseMenuTypeChoice() {
-				for (i = 0; i < 2; i++) {
-					itemsToChange[i].children = itemsToChange[i].menuVal;
-					delete itemsToChange[i].menuVal;
-					itemsToChange[i].type = prevType;
-					itemsToChange[i].value = '';
-				}
+				paperToast.hide();
+				item.children = item.menuVal;
+				delete item.menuVal;
+				item.type = 'menu';
+				item.value = '';
+					
 				editCrmEl.type = prevType;
 				editCrmEl.calculateType();
 				_this.ready();
@@ -278,22 +310,12 @@
 				}
 
 				//Un-shadow items
-				column = this.parentNode.parentNode.parentNode.parentNode;
-				columnCont = column.parentNode;
-				columnCont = $(columnCont).next()[0];
-
-				for (i = column.index + 1; i < crmLength; i++) {
-					$(columnCont).find('#itemCont').css('opacity', 1).each(function () {
-						this.parentNode.shadow = false;
-					});
-					columnCont = $(columnCont).next()[0];
-				}
+				_this.shadowColumns(columnCont, true);
 
 				app.settings.shadowStart = null;
 			}
 
 			//Show a paper-toast
-			var paperToast = $('#changedToMenuToast');
 			paperToast.on('click', reverseMenuTypeChoice);
 			paperToast[0].show();
 			setTimeout(function() {

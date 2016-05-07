@@ -287,6 +287,9 @@
 				window.crmEditPage.updateName(this.newSettings.name);
 				break;
 			case 'version':
+				if (!this.newSettings.nodeInfo) {
+					this.newSettings.nodeInfo = {};
+				}
 				this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue);
 				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 				break;
@@ -337,6 +340,9 @@
 					}
 				} else {
 					//Add another one
+					if (!this.newSettings.value.triggers) {
+						this.newSettings.value.triggers = [];
+					}
 					this.push('newSettings.value.triggers', {
 						url: newValue,
 						not: isExclude
@@ -675,7 +681,7 @@
 
 		//Use jquery to also get the pre-change value
 		$(this.$.nameInput).on('keydown', function () {
-			var el = this;
+			var el = _this.$.nameInput;
 			_this.async(function () {
 				_this.metaTagsUpdate({
 					'changed': [
@@ -712,11 +718,16 @@
 	//#region Fullscreen
 	/*
 	 * Inserts given snippet of code into the editor
-	 * @param {element} _this The stylesheetEdit element/object
+	 * @param {element} _this The scriptEdit element/object
 	 * @param {string} snippet - The snippet to be pasted
+	 * @param {boolean} noReplace - If true, no replacement on the %s is done
 	 */
-	insertSnippet: function (_this, snippet) {
-		this.editor.doc.replaceSelection(snippet.replace('%s', this.editor.doc.getSelection()));
+	insertSnippet: function (_this, snippet, noReplace) {
+		this.editor.doc.replaceSelection(noReplace ?
+			                                 snippet :
+			                                 snippet.replace('%s', this.editor.doc
+				                                 .getSelection())
+		);
 	},
 
 	/*
@@ -1262,7 +1273,7 @@
 		this.editor = element;
 		element.refresh();
 		if (element.metaTags && element.metaTags.metaTags) {
-			element.changeMetaTags(element, 'CRM_stylesheet', 'true', 'true', true);
+			element.updateMetaTags(element, 'CRM_stylesheet', 'true', 'true', true);
 		}
 		element.on('metaTagChanged', function (changes, metaTags) {
 			if (!_this.preventNotification) {
@@ -1371,7 +1382,7 @@
 			}
 		});
 		this.savingInterval = window.setInterval(function() {
-			if (_this.active) {
+			if (_this.active && _this.editor) {
 				//Save
 				var val;
 				try {

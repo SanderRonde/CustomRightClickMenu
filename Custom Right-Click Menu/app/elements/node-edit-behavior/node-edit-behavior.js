@@ -109,9 +109,9 @@
 	},
 
 	save: function (resultStorage) {
-		var hasCustomResult = !resultStorage;
-		if (!hasCustomResult) {
-			resultStorage = this.newSettings;
+		var usesDefaultStorage = !resultStorage;
+		if (usesDefaultStorage) {
+			resultStorage = this.item;
 		}
 
 		this.saveChanges && this.saveChanges(resultStorage);
@@ -128,20 +128,24 @@
 			window.app.editCRM.build(window.app.editCRM.setMenus);
 		}
 
-		if (newSettings.value.launchMode !== undefined && newSettings.value.launchMode !== 0) {
-			newSettings.onContentTypes = [true, true, true, true, true, true];
-		} else {
-			if (!newSettings.onContentTypes[window.app.crmType]) {
-				window.app.editCRM.build(window.app.editCRM.setMenus);
+		if (newSettings.value) {
+			if (newSettings.value.launchMode !== undefined &&
+				newSettings.value.launchMode !== 0) {
+				newSettings.onContentTypes = [true, true, true, true, true, true];
+			} else {
+				if (!newSettings.onContentTypes[window.app.crmType]) {
+					window.app.editCRM.build(window.app.editCRM.setMenus);
+				}
 			}
 		}
+
 		for (var key in newSettings) {
 			if (newSettings.hasOwnProperty(key)) {
 				resultStorage[key] = newSettings[key];
 			}
 		}
 
-		if (!hasCustomResult) {
+		if (usesDefaultStorage) {
 			app.upload();
 		}
 	},

@@ -479,12 +479,9 @@ Polymer({
 	bodyDrag: function () {
 		if (this.cursorPosChanged && this.dragging) {
 			this.cursorPosChanged = false;
-			console.log('');
-			console.log(this.dragStart.Y, this.lastRecordedPos.Y);
 			var spacingTop = this.lastRecordedPos.Y - this.dragStart.Y;
 			var x = (this.lastRecordedPos.X - this.dragStart.X) + 'px';
 			var y = spacingTop + 'px';
-			console.log(x, y);
 			this.$.itemCont.style.transform = 'translate(' + x + ', ' + y + ')';
 			var thisBoundingClientRect = this.getBoundingClientRect();
 			var thisTop = (this.lastRecordedPos.Y - this.mouseToCorner.Y);
@@ -526,22 +523,27 @@ Polymer({
 				oldBot,
 				i;
 			if (thisLeft > 150) {
+				console.log(this);
 				var $nextColumnCont = $(this.parentNode.parentNode.parentNode).next('.CRMEditColumnCont');
+				console.log($nextColumnCont);
 				if ($nextColumnCont[0]) {
 					if ($nextColumnCont[0].style.display !== 'none') {
 						this.dragStart.X += 200;
 						newColumn = $nextColumnCont.children('paper-material').children('.CRMEditColumn')[0];
 						newColumnChildren = newColumn.children;
 						newColumnLength = newColumnChildren.length - 1;
+						console.log(newColumn, newColumnChildren, newColumnLength);
 						fillerIndex = 0;
-						if (newColumnLength > 0) {
+
+						if (newColumnLength >= 0) {
 							if (this.lastRecordedPos.Y > newColumnChildren[newColumnLength].getBoundingClientRect().top - 25) {
 								fillerIndex = newColumnLength;
 							} else {
 								for (i = 0; i < newColumnLength; i++) {
 									currentChild = newColumn.children[i];
 									currentBoundingClientRect = currentChild.getBoundingClientRect();
-									if (this.lastRecordedPos.Y >= currentBoundingClientRect.top && this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
+									if (this.lastRecordedPos.Y >= currentBoundingClientRect.top &&
+										this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
 										fillerIndex = i;
 										break;
 									}
@@ -556,7 +558,12 @@ Polymer({
 								this.dragStart.Y -= 50;
 							}
 
+							console.log(newColumn);
 							this.filler.insertBefore(newColumnChildren[fillerIndex]);
+							newColumn.appendChild(this);
+						} else {
+							//Insert it into the last spot
+							newColumn.appendChild(this.filler);
 							newColumn.appendChild(this);
 						}
 					}
@@ -622,27 +629,37 @@ Polymer({
 		while ($prev[0] && $prev[0].tagName !== 'EDIT-CRM-ITEM') {
 			$prev = $prev.prev();
 		}
-		$prev = $prev[0];
+		var prev = $prev[0];
 		var $next = $(this).next();
 		while ($next[0] && $next[0].tagName !== 'EDIT-CRM-ITEM') {
 			$next = $next.next();
 		}
-		$next = $next[0];
-		if ($prev) {
+		var next = $next[0];
+		console.log(prev, next);
+		if (prev) {
 			//A previous item exists, newpath is that path with + 1 on the last index
-			newPath = $prev.item.path;
+			newPath = prev.item.path;
 			newPath[newPath.length - 1] += 1;
 		}
-		else if ($next) {
+		else if (next) {
 			//The next item exists, newpath is that path
-			newPath = $next.item.path;
+			newPath = next.item.path;
 		}
 		else {
+			console.log(this);
+			console.log(this.parentNode.parentNode.parentNode);
+			console.log($(this.parentNode.parentNode.parentNode));
+			console.log($(this.parentNode.parentNode.parentNode).prev());
 			//No items exist yet, go to prev column and find the only expanded menu
-			$(this.parentNode.parentNode.parentNode).prev().children('.CRMEditColumn').children('edit-crm-item').toArray().forEach(function(item) {
+			$(this.parentNode.parentNode.parentNode).prev().children('paper-material').children('.CRMEditColumn').children('edit-crm-item').toArray().forEach(function (item) {
+				console.log(this);
+				console.log(item);
+				console.log(item.item);
+				console.log(item.item.expanded);
 				if (item.item.expanded) {
 					newPath = item.item.path;
 					newPath.push(0);
+					console.log(newPath);
 				}
 			});
 		}

@@ -116,6 +116,10 @@ window.Polymer({
 		'crmTypeChanged': '_typeChanged'
 	},
 
+	_isColumnEmpty: function (column) {
+		return column.list.length === 0;
+	},
+
 	_isCrmEmpty: function(crm, crmLoading) {
 		return !crmLoading && crm.length === 0;
 	},
@@ -676,15 +680,14 @@ window.Polymer({
 		var arr;
 		var toRemove = this.getSelected();
 		for (var i = 0; i < toRemove.length; i++) {
-			try {
-				arr = window.app.crm.lookupId(toRemove[i], true);
-				for (j = 0; j < arr.length; j++) {
-					if (arr[j].id === toRemove[i]) {
-						arr.splice(arr[j], 1);
-					}
+			arr = window.app.crm.lookupId(toRemove[i], true);
+			if (!arr) {
+				continue;
+			}
+			for (j = 0; j < arr.length; j++) {
+				if (arr[j].id === toRemove[i]) {
+					arr.splice(j, 1);
 				}
-			} catch (e) {
-				//Item has already been removed
 			}
 		}
 		this.build(null, true, false);

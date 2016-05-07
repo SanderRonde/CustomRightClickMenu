@@ -64,3 +64,7 @@ paper-spinner {
 	width: 50px;
 	height: 50px;
 }
+
+paper-material[is-empty] {
+	display: none;
+}

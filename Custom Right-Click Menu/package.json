@@ -1,34 +1,35 @@
 {
-  "author": {
-    "name": "Sander Ronde",
-    "email": "awsdfgvhbjn@gmail.com",
-    "url": "https://github.com/SanderRonde"
-  },
-  "bugs": {
-    "url": "https://github.com/SanderRonde/CustomRightClickMenu/issues",
-    "email": "awsdfgvhbjn@gmail.com"
-  },
-  "description": "Customize your right-click menu",
-  "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-banner": "^0.4.0",
-    "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-concat": "^1.0.0",
-    "grunt-contrib-copy": "^0.8.0",
-    "grunt-contrib-cssmin": "^0.12.3",
-    "grunt-contrib-htmlmin": "^0.4.0",
-    "grunt-contrib-uglify": "^1.0.1",
-    "grunt-processhtml": "^0.3.8",
-    "grunt-string-replace": "^1.2.1",
-    "grunt-vulcanize": "^1.0.0",
-    "grunt-zip": "^0.16.2"
-  },
-  "license": "MIT",
-  "name": "custom-right-click-menu",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
-  },
-  "version": "2.0.0",
-  "dependencies": {}
+	"author": {
+		"name": "Sander Ronde",
+		"email": "awsdfgvhbjn@gmail.com",
+		"url": "https://github.com/SanderRonde"
+	},
+	"bugs": {
+		"url": "https://github.com/SanderRonde/CustomRightClickMenu/issues",
+		"email": "awsdfgvhbjn@gmail.com"
+	},
+	"dependencies": { },
+	"description": "Customize your right-click menu",
+	"devDependencies": {
+		"grunt": "^0.4.5",
+		"grunt-banner": "^0.4.0",
+		"grunt-contrib-clean": "^1.0.0",
+		"grunt-contrib-concat": "^1.0.0",
+		"grunt-contrib-copy": "^0.8.0",
+		"grunt-contrib-cssmin": "^0.12.3",
+		"grunt-contrib-htmlmin": "^0.4.0",
+		"grunt-contrib-uglify": "^1.0.1",
+		"grunt-processhtml": "^0.3.8",
+		"grunt-string-replace": "^1.2.1",
+		"grunt-vulcanize": "^1.0.0",
+		"grunt-zip": "^0.16.2"
+	},
+	"license": "MIT",
+	"name": "custom-right-click-menu",
+	"readme": "../README.md",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
+	},
+	"version": "2.0.0"
 }
