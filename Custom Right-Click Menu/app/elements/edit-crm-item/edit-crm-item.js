@@ -1,11 +1,5 @@
 /// <reference path="../../../typings/jquery/jquery.d.ts"/>
 /* global options */
-function createWrapper(thisObject, method) {
-	return function () {
-		return method.call(thisObject);
-	};
-}
-
 function toArray(toConvert) {
 	var array = [];
 	for (var i = 0; i < toConvert.length; i++) {
@@ -176,15 +170,6 @@ Polymer({
 	},
 
 	/**
-     * The function that gets called when the body is dragged
-     *
-     * @attribute bodyDragFunction
-     * @type Function
-     * @default function(){}
-     */
-	bodyDragFunction: function() {},
-
-	/**
      * The function that gets called when the body is scrolled on
      *
      * @attribute bodyScrollFunction
@@ -260,11 +245,13 @@ Polymer({
 	//#endregion
 
 	//#region draggingFunctions
-	changeDraggingState: function(newState) {
-		this.dragging = newState;
-		this.$.itemCont.style.willChange = (newState ? 'transform' : 'initial');
-		this.parentNode.parentNode.parentNode.dragging = newState;
-		this.parentNode.parentNode.parentNode.draggingItem = this;
+	changeDraggingState: function(isDragging) {
+		this.dragging = isDragging;
+		this.$.itemCont.style.willChange = (isDragging ? 'transform' : 'initial');
+		this.$.itemCont.style.zIndex = (isDragging ? 500 : 0);
+		var currentColumn = window.app.editCRM.getCurrentColumn(this);
+		currentColumn.dragging = isDragging;
+		currentColumn.draggingItem = this;
 	},
 
 	update: function() {
@@ -314,28 +301,16 @@ Polymer({
 						}
 					}
 				});
-			this.bodyDragWrapper = createWrapper(this, this.bodyDrag);
-			//Used to preserve 'this', passing data via jquery doesnt' seem to work
-			this.bodyDragFunction = function (e) {
-				_this.bodyDrag(e);
-			}
-			this.bodyScrollFunction = function () {
-				_this.bodyScroll();
-			}
-			this.blurFunction = function () {
-				_this.stopDrag();
-			}
+			this.bodyDragWrapper = this.bodyDrag.bind(this);
+			this.bodyScrollFunction = this.bodyScroll.bind(this);
+			this.blurFunction = this.stopDrag.bind(this);
 			this.stopDragFunction = function () {
 				if (_this.dragging) {
 					_this.stopDrag();
 				}
 			}
-			this.mouseMovementFunction = function (event) {
-				_this.recordMouseMovemenent(event);
-			}
-			this.sideScrollFunction = function () {
-				_this.sideDrag();
-			}
+			this.mouseMovementFunction = this.recordMouseMovemenent.bind(this);
+			this.sideScrollFunction = this.sideDrag.bind(this);
 			this.column = this.parentNode.index;
 			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 
@@ -360,16 +335,17 @@ Polymer({
 	},
 
 	menuMouseOver: function () {
-		if (this.parentNode.parentNode.parentNode.dragging && !this.parentNode.items[this.index].expanded) {
+		var column = window.app.editCRM.getCurrentColumn(this);
+		if (column.dragging && !this.parentNode.items[this.index].expanded) {
 			//Get the difference between the current column's bottom and the new column's bot
-			var draggingEl = this.parentNode.parentNode.parentNode.draggingItem;
+			var draggingEl = column.draggingItem;
 
 			//Create new column
-			var oldItemsObj = this.parentNode.parentNode.parentNode.parentNode.crm;
+			var oldItemsObj = window.app.editCRM.crm;
 			var newItemsObj = window.app.editCRM.build(this.item.path);
 
 			//Now fix the spacing from the top
-			var columnIndex = $(this.parentNode.parentNode.parentNode).children().toArray().indexOf(draggingEl.parentNode.parentNode);
+			var columnIndex = $(column).children().toArray().indexOf(draggingEl.parentNode.parentNode);
 
 			var oldColumn = oldItemsObj[columnIndex];
 			var newColumn = newItemsObj[columnIndex];
@@ -419,6 +395,7 @@ Polymer({
 		this.style.position = 'absolute';
 		this.filler = $('<div class="crmItemFiller"></div>');
 		this.filler.index = this.index;
+		this.filler.column = this.parentNode.index;
 		var _this = this;
 
 		$('body')
@@ -437,7 +414,7 @@ Polymer({
 		//Do visual stuff as to decrease delay between the visual stuff
 		if (this.isMenu && this.parentNode.items[this.index].expanded) {
 			//Collapse any columns to the right of this
-			var columnContChildren = $(this.parentNode.parentNode.parentNode).children('.CRMEditColumnCont ').toArray();
+			var columnContChildren = window.app.editCRM.getColumns();
 			for (var i = this.column + 1; i < columnContChildren.length; i++) {
 				columnContChildren[i].style.display = 'none';
 			}
@@ -446,7 +423,7 @@ Polymer({
 		this.filler.insertBefore(this);
 		this.$.itemCont.style.marginTop = extraSpacing + 'px';
 		this.parentNode.appendChild(this);
-		_this.bodyDrag();
+		this.bodyDrag();
 	},
 
 	stopDrag: function () {
@@ -456,7 +433,6 @@ Polymer({
 		var _this = this;
 		$('body')
 			.off('mouseup', _this.stopDragFunction)
-			.off('mousemove', _this.bodyDragFunction)
 			.css('-webkit-user-select', 'initial');
 
 		$(window)
@@ -479,16 +455,19 @@ Polymer({
 	bodyDrag: function () {
 		if (this.cursorPosChanged && this.dragging) {
 			this.cursorPosChanged = false;
+			var columnCorrection = 200 * (this.filler.column - this.parentNode.index);
 			var spacingTop = this.lastRecordedPos.Y - this.dragStart.Y;
-			var x = (this.lastRecordedPos.X - this.dragStart.X) + 'px';
+			var x = (this.lastRecordedPos.X - this.dragStart.X + columnCorrection) + 'px';
 			var y = spacingTop + 'px';
 			this.$.itemCont.style.transform = 'translate(' + x + ', ' + y + ')';
 			var thisBoundingClientRect = this.getBoundingClientRect();
 			var thisTop = (this.lastRecordedPos.Y - this.mouseToCorner.Y);
-			var thisLeft = (this.lastRecordedPos.X - this.mouseToCorner.X) - thisBoundingClientRect.left;
+			var thisLeft = (this.lastRecordedPos.X - this.mouseToCorner.X) -
+				thisBoundingClientRect.left - columnCorrection;
 
 			//Vertically space elements
-			var parentChildrenList = $(this.parentNode).children('edit-crm-item');
+			var parentChildrenList = window.app.editCRM.getEditCrmItems(
+				window.app.editCRM.getCurrentColumn(this));
 			var prev = parentChildrenList[this.filler.index - 1];
 			var next = parentChildrenList[this.filler.index];
 			var fillerPrevTop;
@@ -503,7 +482,7 @@ Polymer({
 			} else if (next) {
 				var fillerNextTop = next.getBoundingClientRect().top;
 				if (thisTop > fillerNextTop - 25) {
-					if (parentChildrenList.toArray().length !== this.filler.index + 1) {
+					if (parentChildrenList.length !== this.filler.index + 1) {
 						this.filler.insertBefore(parentChildrenList[this.filler.index + 1]);
 					} else {
 						this.filler.insertBefore(parentChildrenList[this.filler.index]);
@@ -519,84 +498,86 @@ Polymer({
 				fillerIndex,
 				currentChild,
 				currentBoundingClientRect,
-				newBot,
-				oldBot,
 				i;
 			if (thisLeft > 150) {
-				console.log(this);
-				var $nextColumnCont = $(this.parentNode.parentNode.parentNode).next('.CRMEditColumnCont');
-				console.log($nextColumnCont);
-				if ($nextColumnCont[0]) {
-					if ($nextColumnCont[0].style.display !== 'none') {
+				var nextColumnCont = window.app.editCRM.getNextColumn(this);
+				if (nextColumnCont) {
+					if (nextColumnCont.style.display !== 'none') {
 						this.dragStart.X += 200;
-						newColumn = $nextColumnCont.children('paper-material').children('.CRMEditColumn')[0];
+						newColumn = $(nextColumnCont).children('paper-material')
+							.children('.CRMEditColumn')[0];
 						newColumnChildren = newColumn.children;
 						newColumnLength = newColumnChildren.length - 1;
-						console.log(newColumn, newColumnChildren, newColumnLength);
 						fillerIndex = 0;
 
-						if (newColumnLength >= 0) {
-							if (this.lastRecordedPos.Y > newColumnChildren[newColumnLength].getBoundingClientRect().top - 25) {
-								fillerIndex = newColumnLength;
-							} else {
-								for (i = 0; i < newColumnLength; i++) {
-									currentChild = newColumn.children[i];
-									currentBoundingClientRect = currentChild.getBoundingClientRect();
-									if (this.lastRecordedPos.Y >= currentBoundingClientRect.top &&
-										this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
-										fillerIndex = i;
-										break;
-									}
+						if (this.lastRecordedPos.Y >
+							newColumnChildren[newColumnLength].getBoundingClientRect().top - 25) {
+							fillerIndex = newColumnLength;
+						} else {
+							for (i = 0; i < newColumnLength; i++) {
+								currentChild = newColumn.children[i];
+								currentBoundingClientRect = currentChild.getBoundingClientRect();
+								if (this.lastRecordedPos.Y >= currentBoundingClientRect.top &&
+									this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
+									fillerIndex = i;
+									break;
 								}
 							}
-							this.filler.index = fillerIndex;
-							this.index = fillerIndex;
-							newBot = newColumn.getBoundingClientRect().bottom;
-							oldBot = this.parentNode.getBoundingClientRect().bottom - 50;
-							this.dragStart.Y += (newBot - oldBot);
-							if (this.column + 1 === $nextColumnCont.index) {
-								this.dragStart.Y -= 50;
-							}
-
-							console.log(newColumn);
-							this.filler.insertBefore(newColumnChildren[fillerIndex]);
-							newColumn.appendChild(this);
-						} else {
-							//Insert it into the last spot
-							newColumn.appendChild(this.filler);
-							newColumn.appendChild(this);
 						}
+						this.filler.index = fillerIndex;
+
+						if (this.parentNode === this.filler[0].parentNode) {
+							this.dragStart.Y -= 50;
+						} else if (this.parentNode === newColumn) {
+							this.dragStart.Y += 50;
+						}
+
+						this.filler.insertBefore(newColumnChildren[fillerIndex]);
+
+						if (newColumnLength === 0) {
+							newColumn.parentNode.style.display = 'block';
+							newColumn.parentNode.isEmpty = true;
+						}
+						this.filler.column = this.filler.column + 1;
 					}
 				}
-			}
-			else if (thisLeft < -50) {
-				var $prevColumnCont = $(this.parentNode.parentNode.parentNode).prev('.CRMEditColumnCont');
-				if ($prevColumnCont[0]) {
+			} else if (thisLeft < -50) {
+				var prevColumnCont = window.app.editCRM.getPrevColumn(this);
+				if (prevColumnCont) {
 					this.dragStart.X -= 200;
-					newColumn = $prevColumnCont.children('paper-material').children('.CRMEditColumn')[0];
+					newColumn = $(prevColumnCont).children('paper-material')
+						.children('.CRMEditColumn')[0];
 					newColumnChildren = newColumn.children;
 					newColumnLength = newColumnChildren.length - 1;
 					fillerIndex = 0;
-					if (this.lastRecordedPos.Y > newColumnChildren[newColumnLength - 1].getBoundingClientRect().top - 25) {
+					if (this.lastRecordedPos.Y >
+						newColumnChildren[newColumnLength - 1].getBoundingClientRect().top - 25) {
 						fillerIndex = newColumnLength;
 					} else {
 						for (i = 0; i < newColumnLength; i++) {
 							currentChild = newColumn.children[i];
 							currentBoundingClientRect = currentChild.getBoundingClientRect();
-							if (this.lastRecordedPos.Y >= currentBoundingClientRect.top && this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
+							if (this.lastRecordedPos.Y >= currentBoundingClientRect.top &&
+								this.lastRecordedPos.Y <= currentBoundingClientRect.top) {
 								fillerIndex = i;
 								break;
 							}
 						}
 					}
 					this.filler.index = fillerIndex;
-					this.index = fillerIndex;
-					newBot = newColumn.getBoundingClientRect().bottom;
-					oldBot = this.parentNode.getBoundingClientRect().bottom - 50;
-					this.dragStart.Y += (newBot - oldBot);
+					if (this.parentNode === newColumn) {
+						this.dragStart.Y += 50;
+					} else if (this.parentNode === this.filler[0].parentNode) {
+						this.dragStart.Y -= 50;
+					}
+					
+					var paperMaterial = this.filler[0].parentNode.parentNode;
+					if (paperMaterial.isEmpty) {
+						paperMaterial.style.display = 'none';
+					}
 
 					this.filler.insertBefore(newColumnChildren[fillerIndex]);
-					newColumn.appendChild(this);
+					this.filler.column -= 1;
 				}
 			}
 		}
@@ -607,18 +588,16 @@ Polymer({
 
 	snapItem: function() {
 		//Get the filler's current index and place the current item there
-		var parentChildrenList = $(this.parentNode).children('edit-crm-item');
+		var parentChildrenList = window.app.editCRM.getEditCrmItems(window.app.editCRM
+			.getCurrentColumn(this), true);
 		if (this.filler) {
 			$(this).insertBefore(parentChildrenList[this.filler.index]);
 
-			var _this = this;
-			setTimeout(function() {
-				_this.filler.remove();
-				_this.$.itemCont.style.position = 'relative';
-				_this.style.position = 'relative';
-				_this.$.itemCont.style.marginTop = '0';
-				$(_this.$.itemCont).css('margin-left', '0');
-			}, 0);
+			this.$.itemCont.style.position = 'relative';
+			this.style.position = 'relative';
+			this.$.itemCont.style.transform = 'initial';
+			this.$.itemCont.style.marginTop = '0';
+			this.filler.remove();
 		}
 	},
 
@@ -635,7 +614,6 @@ Polymer({
 			$next = $next.next();
 		}
 		var next = $next[0];
-		console.log(prev, next);
 		if (prev) {
 			//A previous item exists, newpath is that path with + 1 on the last index
 			newPath = prev.item.path;
@@ -646,20 +624,12 @@ Polymer({
 			newPath = next.item.path;
 		}
 		else {
-			console.log(this);
-			console.log(this.parentNode.parentNode.parentNode);
-			console.log($(this.parentNode.parentNode.parentNode));
-			console.log($(this.parentNode.parentNode.parentNode).prev());
 			//No items exist yet, go to prev column and find the only expanded menu
-			$(this.parentNode.parentNode.parentNode).prev().children('paper-material').children('.CRMEditColumn').children('edit-crm-item').toArray().forEach(function (item) {
-				console.log(this);
-				console.log(item);
-				console.log(item.item);
-				console.log(item.item.expanded);
+			window.app.editCRM.getEditCrmItems(window.app.editCRM
+				.getPrevColumn(this)).forEach(function(item) {
 				if (item.item.expanded) {
 					newPath = item.item.path;
 					newPath.push(0);
-					console.log(newPath);
 				}
 			});
 		}
@@ -673,7 +643,10 @@ Polymer({
 			var newPathMinusOne = newPath;
 			newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
 			var newObj = window.app.editCRM.build(newPathMinusOne);
-			$(this.parentNode.parentNode.parentNode).children().css('display', 'table');
+			Array.from(window.app.editCRM.getCurrentColumn(this).children)
+				.forEach(function(element) {
+					element.style.display = 'table';
+				});
 
 			setTimeout(function() {
 				//Make every node re-run "ready"

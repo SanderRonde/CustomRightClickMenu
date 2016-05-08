@@ -72,10 +72,19 @@ window.Polymer({
 	 * A list of selected nodes
 	 * 
 	 * @attribute selectedElements
-	 * @type Array
+	 * @type Element[]
 	 * @default []
 	 */
 	selectedElements: [],
+
+	/*
+	 * A list of all the column elements
+	 * 
+	 * @attribute columns
+	 * @type Element[]
+	 * @default null
+	 */
+	columns: null,
 
 	get firstCRMColumn() {
 		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2]));
@@ -122,6 +131,85 @@ window.Polymer({
 
 	_isCrmEmpty: function(crm, crmLoading) {
 		return !crmLoading && crm.length === 0;
+	},
+
+	/**
+	 * Gets the columns in this crm-edit element
+	 * 
+	 * @returns {Element[]} An array of the columns
+	 */
+	getColumns: function () {
+		if (this.columns) {
+			return this.columns;
+		}
+		return (this.columns = Array.from(this.$.mainCont.children).filter(function(element) {
+			return element.classList.contains('CRMEditColumnCont');
+		}));
+	},
+
+	/**
+	 * Gets the column with given index
+	 * 
+	 * @param {Number} index - An optional index
+	 * @returns {Element} The column with given index
+	 */
+	getColumn: function (index) {
+		return this.getColumns()[index];
+	},
+
+	/**
+	 * Gets the current column
+	 * 
+	 * @param {Element} element - The element whose column to get
+	 * @returns {Element} The column it's in
+	 */
+	getCurrentColumn: function(element) {
+		var fillerIndex = (element.filler && element.filler.column);
+		return this.getColumn((fillerIndex === null || fillerIndex === undefined ?
+			                       element.parentNode.index :
+			                       fillerIndex));
+	},
+
+	/**
+	 * Gets the next column
+	 * 
+	 * @param {Element} element - The element whose next column to get
+	 * @returns {Element} The next column
+	 */
+	getNextColumn: function(element) {
+		var fillerIndex = (element.filler && element.filler.column);
+		return this.getColumn((fillerIndex === null ?
+			                       element.parentNode.index + 1 :
+			                       fillerIndex + 1));
+	},
+
+	/**
+	 * Gets the previous column
+	 * 
+	 * @param {Element} element - The element whose previous column to get
+	 * @returns {Element} The previous column
+	 */
+	getPrevColumn: function (element) {
+		var fillerIndex = (element.filler && element.filler.column);
+		return this.getColumn((fillerIndex === null ?
+			                       element.parentNode.index - 1 :
+			                       fillerIndex - 1));
+	},
+
+	/**
+	 * Gets the edit-crm-item nodes in the given column
+	 * 
+	 * @param {Element} column - The column whose children to find
+	 * @param {boolean} includeTemplate - If true, includes the templates
+	 * 	element in the list, handy when using insertBefore
+	 * @returns {Element[]} The edit-crm-item nodes
+	 */
+	getEditCrmItems: function(column, includeTemplate) {
+		return $(column)
+			.children('paper-material')
+			.children('.CRMEditColumn')
+			.children(!includeTemplate ? 'edit-crm-item' : undefined)
+			.toArray();
 	},
 
 	getCurrentTypeIndex: function(path) {
@@ -315,6 +403,7 @@ window.Polymer({
 			window.clearTimeout(this.currentTimeout);
 		}
 		this.crmLoading = true;
+		this.columns = null;
 
 		function func() {
 			_this.crm = obj;

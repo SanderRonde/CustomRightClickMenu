@@ -183,7 +183,6 @@
 	switchToWindow: function(window) {
 		this.hideAllWindows(window);
 		if (window === 'successWindow') {
-			debugger;
 			this.$.successWindow.setAttribute('style', 'display:block;');
 			this.insertCode();
 		}
