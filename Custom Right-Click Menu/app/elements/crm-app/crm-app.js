@@ -976,9 +976,6 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 		upload: function() {
 			//Send changes to background-page, background-page uploads everything
 			//Compare storageLocal objects
-
-			return;
-
 			var localChanges = [];
 			var storageLocal = this.storageLocal;
 			var storageLocalCopy = this.storageLocalCopy;

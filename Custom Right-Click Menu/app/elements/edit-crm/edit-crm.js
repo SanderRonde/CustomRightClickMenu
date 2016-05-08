@@ -398,6 +398,17 @@ window.Polymer({
 		var obj = this.buildCRMEditObj(setItems);
 		this.setMenus = obj.setMenus;
 		obj = obj.crm;
+
+		//Get the highest column's height and apply it to the element to prevent
+		//the page from going and shrinking quickly
+		var hight;
+		var highest = 0;
+		obj.forEach(function (column) {
+			hight = column.indent.length + column.list.length;
+			hight > highest && (highest = hight);
+		});
+		this.$.mainCont.style.minHeight = (highest * 50) + 'px';
+
 		this.crm = [];
 		if (this.currentTimeout !== null) {
 			window.clearTimeout(this.currentTimeout);
