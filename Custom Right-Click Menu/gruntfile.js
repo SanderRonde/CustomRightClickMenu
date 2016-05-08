@@ -413,7 +413,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
+	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 
 	//Tests all tasks and finishes with a clean build directory
 	grunt.registerTask('test', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'website', 'cleanBuild']);
