@@ -1,0 +1,10 @@
+files:
+    - "Custom Right-Click Menu/app/js/crmapi.js"
+    
+packageJson: "Custom Right-Click Menu/package.json"
+
+articles: 
+    - Overview: README.md
+    
+branches:
+    - master
