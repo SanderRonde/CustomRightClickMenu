@@ -827,17 +827,39 @@
 					resources: getScriptResources(node.id) || {}
 				};
 				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
-				var code = 'var crmAPI = new CrmAPIInit(' +
-					JSON.stringify(node) + ',' +
-					node.id + ',' +
-					JSON.stringify(tab) + ',' +
-					JSON.stringify(info) + ',' +
-					JSON.stringify(key) + ',' +
-					JSON.stringify(globals.storages.nodeStorage[node.id]) + ',' +
-					JSON.stringify(greaseMonkeyData) +
-				');\n';
-				code = code + node.value.script;
 
+				var nodeStorage = globals.storages.nodeStorage[node.id];
+				var params = [node, tab, info, key, nodeStorage, greaseMonkeyData];
+				for (i = 0; i < params.length; i++) {
+					params[i] = JSON.stringify(params[i]);
+				}
+
+				var indentUnit;
+				if (globals.storages.settingsStorage.editor.useTabs) {
+					indentUnit = '	';
+				} else {
+					indentUnit = [];
+					indentUnit[globals.storages.settingsStorage.editor.tabSize || 2] = '';
+					indentUnit = indentUnit.join(' ');
+				}
+
+				var script = Array.from(node.value.script).map(function(line) {
+					return indentUnit + line;
+				});
+
+				var code = [
+					[
+						'var crmAPI = new CrmAPIInit(' + node, node.id, tab, info, key, nodeStorage, greaseMonkeyData + ');'
+					].join(','),
+					'try {',
+					script,
+					'} catch (error) {',
+					indentUnit + 'if (crmAPI.debugOnError) {',
+					indentUnit + indentUnit + 'debugger;',
+					indentUnit + '}',
+					indentUnit + 'throw error;',
+					'}'
+				].join('\n');
 
 				var scripts = [];
 				for (i = 0; i < node.value.libraries.length; i++) {

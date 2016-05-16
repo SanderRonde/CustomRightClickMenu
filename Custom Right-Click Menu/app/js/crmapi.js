@@ -33,6 +33,17 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @type boolean
 	 */
 	this.errors = true;
+
+	/**
+	 * If true, when an error occurs anywhere in the script, opens the
+	 *		chrome debugger by calling the debugger command. This will
+	 *		only work if you have the devtools (f12) open on the page 
+	 *		the error occurs on. This allows you to check any values
+	 *		of variables to help you diagnose the issue.
+	 * 
+	 * @type boolean
+	 */
+	this.debugOnerror = false;
 	//#endregion
 
 	//#region JSONfn
