@@ -2205,6 +2205,21 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region jQuery Emulation
+	/**
+	 * Gets the current text selection
+	 * 
+	 * @returns {string} - The current selection
+	 */
+	this.getSelection = function () {
+		return clickData.selectionText || window.getSelection().toString();
+	}
+	/**
+	 * Returns the elements matching given selector within given context
+	 * 
+	 * @param {string} selector - A css selector string to find elements with
+	 * @param {Object} [context] - The context of the search (the node from which to start, default is document)
+	 * @returns {Element[]} An array of the matching HTML elements
+	 */
 	this.$crmAPI = function(selector, context) {
 		context = context || document;
 		return context.querySelectorAll(selector);
