@@ -109,6 +109,9 @@
 	},
 
 	save: function (resultStorage) {
+		if (resultStorage && Object.prototype.toString.apply(resultStorage).indexOf('CustomEvent') > -1) {
+			resultStorage = null;
+		}
 		var usesDefaultStorage = !resultStorage;
 		if (usesDefaultStorage) {
 			resultStorage = this.item;

@@ -3766,7 +3766,8 @@
 					{ "location": 'jQuery.js', "name": 'jQuery' },
 					{ "location": 'mooTools.js', "name": 'mooTools' },
 					{ "location": 'YUI.js', "name": 'YUI' },
-					{ "location": 'Angular.js', "name": 'Angular' }
+					{ "location": 'Angular.js', "name": 'Angular' },
+					{ "location": "jqlite.js", "name": 'jqlite' }
 				],
 				keyBindings: {
 					autocomplete: 'Ctrl-Space',

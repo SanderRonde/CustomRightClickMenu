@@ -675,6 +675,7 @@
     <Content Include="app\js\crmapi.js" />
     <Content Include="app\js\crmAPIDefs.js" />
     <Content Include="app\js\crmAPIDocs.js" />
+    <Content Include="app\js\defaultLibraries\jqlite.js" />
     <Content Include="app\js\diff_match_patch.js" />
     <Content Include="app\js\jquery-2.0.3.min.js" />
     <Content Include="app\js\jquery-ui.min.js" />

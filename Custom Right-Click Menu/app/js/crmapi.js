@@ -2204,5 +2204,14 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	//#endregion
 
+	//#region jQuery Emulation
+	this.$crmAPI = function(selector, context) {
+		context = context || document;
+		return context.querySelectorAll(selector);
+	}
+
+	window.$ = this.$crmAPI;
+	//#endregion
+
 	return this;
 }

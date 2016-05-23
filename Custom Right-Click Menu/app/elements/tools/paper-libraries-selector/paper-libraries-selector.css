@@ -57,3 +57,43 @@ paper-libraries-selector .library.anonymous {
 	font-size: 14px;
 	z-index: 9999999999;
 }
+
+#libraryInfoCont {
+	cursor: pointer;
+	float: right;
+	margin-top: 7px;
+	margin-right: 5px;
+}
+
+#libraryInfoCont .active, #libraryInfoCont #libraryInfoTxtCont {
+	display: none;
+}
+
+#triggersInfoCont .inactive {
+	display: block;
+}
+
+#libraryInfoCont:hover .active, #libraryInfoCont:hover #libraryInfoTxtCont {
+	display: block;
+}
+
+#libraryInfoCont:hover .inactive {
+	display:none;
+}
+
+#libraryInfoTxt {
+	position: absolute;
+    z-index: 10000;
+    margin-top: -24px;
+    margin-left: 24px;
+    width: 250px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
+}
+
+	#libraryInfoTxt.expandLeft {
+		margin-left: -263px;
+	}

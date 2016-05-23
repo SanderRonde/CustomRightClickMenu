@@ -67,6 +67,9 @@ Polymer({
 					}, {
 						name: 'yui 3.18.1',
 						location: 'yui.js'
+					}, {
+						name: 'jqlite 0.2.37',
+						location: 'jqlite.js'
 					}
 				];
 				chrome.storage.local.set({
