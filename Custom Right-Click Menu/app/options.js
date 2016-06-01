@@ -11126,16 +11126,17 @@ document.getElementById('copyMySettings')
 			selection.removeAllRanges();
 		});
 
-document.getElementById('closeBetaAnnouncement')
-	.addEventListener('click',
-		function() {
-			localStorage.setItem('noBetaAnnouncement', true);
-		});
+var isBetaURL = location.href.indexOf('beta') > -1;
+if (!localStorage.getItem('noBetaAnnouncement') || isBetaURL) {
+	document.getElementById('closeBetaAnnouncement')
+		.addEventListener('click',
+			function() {
+				localStorage.setItem('noBetaAnnouncement', true);
+			});
 
-if (!localStorage.getItem('noBetaAnnouncement')) {
 	window.setTimeout(function() {
 		document.getElementById('betaAnnouncementDialog').open();
-	}, 3000);
+	}, (isBetaURL ? 1000 : 3000));
 }
 
 

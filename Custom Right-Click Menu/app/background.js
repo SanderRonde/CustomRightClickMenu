@@ -13,7 +13,14 @@ localStorage.setItem("scriptoptions", "0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 localStorage.setItem("customcolors","0");
 }
 
- 
+if (!localStorage.getItem('noBetaAnnouncement')) {
+	chrome.tabs.create({
+		url: chrome.extension.getURL('options.html?beta')
+	});
+	localStorage.setItem('noBetaAnnouncement', true);
+}
+
+
 //Load all vars
 var rows = localStorage.numberofrows;
 var names = new Array();
