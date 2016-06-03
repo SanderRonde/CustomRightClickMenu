@@ -829,10 +829,6 @@
 				globals.storages.nodeStorage[node.id] = globals.storages.nodeStorage[node.id] || {};
 
 				var nodeStorage = globals.storages.nodeStorage[node.id];
-				var params = [node, tab, info, key, nodeStorage, greaseMonkeyData];
-				for (i = 0; i < params.length; i++) {
-					params[i] = JSON.stringify(params[i]);
-				}
 
 				var indentUnit;
 				if (globals.storages.settingsStorage.editor.useTabs) {
@@ -843,14 +839,19 @@
 					indentUnit = indentUnit.join(' ');
 				}
 
-				var script = Array.from(node.value.script).map(function(line) {
+				var script = node.value.script.split('\n').map(function(line) {
 					return indentUnit + line;
-				});
+				}).join('\n');
 
+				
 				var code = [
 					[
-						'var crmAPI = new CrmAPIInit(' + node, node.id, tab, info, key, nodeStorage, greaseMonkeyData + ');'
-					].join(','),
+						'var crmAPI = new CrmAPIInit(' +
+							[node, node.id, tab, info, key, nodeStorage, greaseMonkeyData].map(function (param) {
+								return JSON.stringify(param);
+							}).join(', ') +
+						');'
+					].join(', '),
 					'try {',
 					script,
 					'} catch (error) {',
@@ -896,6 +897,7 @@
 						}
 					}
 				}
+				console.log('code is', code);
 				scripts.push({
 					file: '/js/crmapi.js',
 					runAt: runAt
@@ -1195,7 +1197,7 @@
 									willBeMatched: (toExecute.length > 0)
 								}
 							}, function (response) {
-								if (response.notMatchedYet) {
+								if (!response || response.notMatchedYet) {
 									for (i = 0; i < toExecute.length; i++) {
 										executeNode(toExecute.node, toExecute.tab);
 									}
@@ -1270,7 +1272,7 @@
 				break;
 		}
 
-
+		console.log(rightClickItemOptions);
 		var id = chrome.contextMenus.create(rightClickItemOptions, function () {
 			if (chrome.runtime.lastError) {
 				if (rightClickItemOptions.documentUrlPatterns) {
@@ -1319,6 +1321,7 @@
 	function createNode(node, parentId) {
 
 		var replaceStylesheetTabs = getStylesheetReplacementTabs(node);
+		console.log(node, node.name);
 		var rightClickItemOptions = {
 			title: node.name,
 			contexts: getContexts(node.onContentTypes),

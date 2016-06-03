@@ -23,9 +23,15 @@
 })(function (codemirror) {
 	'use strict';
 
+	var ignoreUpdate = false;
+
 	function compareObj(firstObj, secondObj) {
 		for (var key in firstObj) {
-			if (firstObj.hasOwnProperty(key)) {
+			if (firstObj.hasOwnProperty(key) &&
+				key !== 'metaStart' &&
+				key !== 'metaTags' &&
+				key !== 'metaIndexes' &&
+				key !== 'metaEnd') {
 				if (typeof firstObj[key] === 'object') {
 					if (typeof secondObj[key] !== 'object') {
 						return false;
@@ -421,6 +427,7 @@
 
 	codemirror.defineExtension('removeMetaTags', function(cm, key, value) {
 		setMetaTags(cm, cm.getValue());
+		ignoreUpdate = true;
 		if (cm.metaTags) {
 			for (var index in cm.metaTags.metaIndexes) {
 				if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
@@ -442,7 +449,7 @@
 
 	codemirror.defineExtension('updateMetaTags', function(cm, key, oldValue, value, singleValue) {
 		setMetaTags(cm, cm.getValue());
-
+		ignoreUpdate = true;
 		if (cm.metaTags) {
 			for (var index in cm.metaTags.metaIndexes) {
 				if (cm.metaTags.metaIndexes.hasOwnProperty(index)) {
@@ -464,6 +471,7 @@
 
 	codemirror.defineExtension('addMetaTags', function(cm, key, value, line) {
 		setMetaTags(cm, cm.getValue());
+		ignoreUpdate = true;
 		if (cm.metaTags) {
 			cm.doc.replaceRange('// @' + key + '	' + value + '\n', {
 				line: (line && parseInt(line, 10)) || cm.metaTags.metaEnd.line,
@@ -485,6 +493,10 @@
 		var value = cm.getValue();
 		setMetaTags(cm, value);
 		cm.on('changes', function (instance, changes) {
+			if (ignoreUpdate) {
+				ignoreUpdate = false;
+				return;
+			}
 			updateMetaTags(instance, changes);
 		});
 

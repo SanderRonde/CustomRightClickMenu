@@ -260,37 +260,42 @@
 
 	updateFromScriptApplier: function (changeType, key, newValue, oldValue) {
 		var i;
+		console.log(arguments);
 		switch (key) {
 			case 'downloadURL':
 			case 'updateURL':
 			case 'namespace':
 				if (changeType === 'removed') {
 					if (this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
-						this.newSettings.nodeInfo.source.url = metaTags.downloadURL || metaTags.updateURL || metaTags.namespace || this.newSettings.nodeInfo.source.downloadUrl || null;;
+						this.newSettings.nodeInfo.source.url = (metaTags.downloadURL && metaTags.downloadURL[0]) ||
+							(metaTags.updateURL && metaTags.updateURL[0]) ||
+							(metaTags.namespace && metaTags.namespace[0]) ||
+							this.newSettings.nodeInfo.source.downloadUrl ||
+							null;
 					}
 				} else {
 					this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
 						updateURL: (key === 'namespace' ? '' : undefined),
-						url: newValue
+						url: newValue[0]
 					};
 					if (key === 'namespace') {
-						this.newSettings.nodeInfo.source.updateURL = newValue;
+						this.newSettings.nodeInfo.source.updateURL = newValue[0];
 					}
 					if (!this.newSettings.nodeInfo.source.url) {
-						this.newSettings.nodeInfo.source.url = newValue;
+						this.newSettings.nodeInfo.source.url = newValue[0];
 					}
 					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 				}
 				break;
 			case 'name':
-				this.set('newSettings.name', (changeType === 'removed') ? '' : newValue);
-				window.crmEditPage.updateName(this.newSettings.name);
+				this.set('newSettings.name', (changeType === 'removed') ? '' : newValue[0]);
+				window.crmEditPage.updateName(this.newSettings.name[0]);
 				break;
 			case 'version':
 				if (!this.newSettings.nodeInfo) {
 					this.newSettings.nodeInfo = {};
 				}
-				this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue);
+				this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue[0]);
 				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 				break;
 			case 'require':
@@ -310,26 +315,60 @@
 				});
 				this.set('newSettings.value.libraries', libraries);
 				window.paperLibrariesSelector.updateLibraries(libraries);
+
+				//Register as a resource
+				function sendCreateAnonymousLibraryMessage() {
+					chrome.runtime.sendMessage({
+						type: 'anonymousLibrary',
+						data: {
+							type: 'register',
+							name: newValue[0],
+							url: newValue[0],
+							scriptId: this.item.id
+						}
+					});
+				}
+
+				function sendRemoveAnonymousLibraryMessage() {
+					chrome.runtime.sendMessage({
+						type: 'anonymousLibrary',
+						data: {
+							type: 'remove',
+							name: newValue[0],
+							url: newValue[0],
+							scriptId: this.item.id
+						}
+					});
+				}
+
+				switch (changeType) {
+					case 'added':
+						sendCreateAnonymousLibraryMessage();
+						break;
+					case 'changed':
+						sendRemoveAnonymousLibraryMessage();
+						sendCreateAnonymousLibraryMessage();
+						break;
+					case 'removed':
+						sendRemoveAnonymousLibraryMessage();
+						break;
+				}
 				break;
 			case 'author':
-				this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue);
+				this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue[0]);
 				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 				break;
 			case 'include':
 			case 'match':
 			case 'exclude':
-				var triggerval = JSON.stringify({
-					url: newValue,
-					not: false
-				});
 				var isExclude = (key === 'exclude');
 				if (changeType === 'changed' || changeType === 'removed') {
 					var triggers = this.newSettings.value.triggers;
 					for (i = 0; i < triggers.length; i++) {
-						if (triggerval === JSON.stringify(triggers[i])) {
+						if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
 							if (changeType === 'changed') {
 								//Replace this one
-								this.set('newSettings.value.triggers.' + i + '.url', newValue);
+								this.set('newSettings.value.triggers.' + i + '.url', newValue[0]);
 								this.set('newSettings.value.triggers.' + i + '.not', isExclude);
 							} else {
 								//Remove this one
@@ -343,14 +382,21 @@
 					if (!this.newSettings.value.triggers) {
 						this.newSettings.value.triggers = [];
 					}
+
+					//Get the one that was added
+					for (i = 0; i < newValue.length; i++) {
+						if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
+							break;
+						}
+					}
 					this.push('newSettings.value.triggers', {
-						url: newValue,
+						url: newValue[i],
 						not: isExclude
 					});
 				}
 				break;
 			case 'CRM_contentType':
-				var val = newValue;
+				var val = newValue[0];
 				var valArray;
 				try {
 					valArray = JSON.parse(val);
@@ -372,7 +418,7 @@
 				break;
 			case 'CRM_launchMode':
 				if (changeType !== 'removed') {
-					this.set('newSettings.value.launchMode', parseInt(newValue, 10));
+					this.set('newSettings.value.launchMode', ~~newValue[i]);
 				}
 				break;
 		}

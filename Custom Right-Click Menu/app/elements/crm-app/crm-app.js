@@ -1201,7 +1201,11 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 							}
 						}, 500);
 					});
-					window.doc.restoreChangesDialog.open();
+					try {
+						window.doc.restoreChangesDialog.open();
+					} catch (e) {
+						_this.restoreUnsavedInstances(editingObj, errs + 1);
+					}
 				}
 			}
 		},
@@ -1630,8 +1634,12 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 				var newLine = firstLine.slice(0, lineExprStart) +
 					'window.crmAPI.chrome(\'' + chromeAPI.call + '\')' +
 					firstLine.slice(lineExprEnd);
-				if (newLine[newLine.length - 1] === ';') {
-					newLine = newLine.slice(0, newLine.length - 1);
+				var lastChar = null;
+				while (newLine[(lastChar = newLine.length - 1)] === ' ') {
+					newLine = newLine.slice(0, lastChar);
+				}
+				if (newLine[(lastChar = newLine.length - 1)] === ';') {
+					newLine = newLine.slice(0, lastChar);
 				}
 
 				if (data.isReturn) {
@@ -1776,7 +1784,10 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 							}
 						}
 						data.functionCall = [];
-						return this.callsChromeFunction(expression.callee, data, onError);
+						if (expression.callee) {
+							return this.callsChromeFunction(expression.callee, data, onError);
+						}
+						break;
 					case 'AssignmentExpression':
 						data.isReturn = true;
 						data.returnExpr = expression;
@@ -1827,6 +1838,7 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 						}
 						break;
 					case 'LogicalExpression':
+					case 'BinaryExpression':
 						data.isReturn = true;
 						data.isValidReturn = false;
 						if (this.findChromeExpression(expression.left, this.removeObjLink(data), onError)) {
@@ -1849,6 +1861,16 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 						data.returnExpr = expression;
 						data.isValidReturn = false;
 						return this.findChromeExpression(expression.argument, data, onError);
+					case 'ObjectExpressions':
+						data.isReturn = true;
+						data.isValidReturn = false;
+						for (i = 0; i < expression.properties.length; i++) {
+							if (this.findChromeExpression(expression.properties[i].value, this
+								.removeObjLink(data), onError)) {
+								return true;
+							}
+						}
+						break;
 				}
 				return false;
 			},
@@ -1981,7 +2003,7 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 			}
 		},
 
-		parseOldCRMNode: function(string, openInNewTab) {
+		parseOldCRMNode: function (string, openInNewTab) {
 			var node = {};
 			var oldNodeSplit = string.split('%123');
 			var name = oldNodeSplit[0];
@@ -2174,8 +2196,8 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 			}
 			_this.updateEditorZoom();
-			_this.pageDemo.create();
 			_this.orderNodesById(defaultSyncStorage.crm);
+			_this.pageDemo.create();
 		},
 
 		handleFirstTime: function(_this) {
@@ -2247,8 +2269,8 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 				_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 			}
 			_this.updateEditorZoom();
-			_this.pageDemo.create();
 			_this.orderNodesById(defaultSyncStorage.crm);
+			_this.pageDemo.create();
 		},
 
 		checkFirstTime: function(storageLocal) {
@@ -2275,6 +2297,22 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 		//#endregion
 
 		ready: function () {
+			var registeredElements = 0;
+			var registrationArray = Array.from(Polymer.telemetry.registrations);
+			registrationArray.push = function(element) {
+				Array.prototype.push.call(registrationArray, element);
+				if (element.toString() === '[object HTMLElement]') {
+					if (++registeredElements === 51) {
+						//All elements have been loaded, unhide them all
+						document.documentElement.classList.remove('elementsLoading');
+						window.setTimeout(function() {
+							document.getElementById('splashScreen').style.display = 'none';
+						}, 500);
+					}
+				}
+			};
+			Polymer.telemetry.registrations = registrationArray;
+
 			var _this = this;
 			this.crm.parent = this;
 			window.app = this;
@@ -2289,8 +2327,8 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 							_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 						}
 						_this.updateEditorZoom();
-						_this.pageDemo.create();
 						_this.orderNodesById(items.crm);
+						_this.pageDemo.create();
 					}
 
 					_this.bindListeners();
@@ -3030,12 +3068,22 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 				return types[crmType];
 			},
 
-			bindContextMenu: function(crmType) {
+			getChildrenAmount: function(object) {
+				var children = 0;
+				for (var key in object) {
+					if (object.hasOwnProperty(key)) {
+						children++;
+					}
+				}
+				return children;
+			},
+
+			bindContextMenu: function (crmType) {
 				var items;
 				var _this = this;
 				if (crmType === 0) {
 					items = _this.buildForCrmType(0);
-					if (items.length > 0) {
+					if (_this.getChildrenAmount(items) > 0) {
 						$.contextMenu({
 							selector: 'body, #editCrm.page, .crmType.pageType',
 							items: items
@@ -3044,7 +3092,7 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 				} else {
 					var contentType = _this.getCrmTypeFromNumber(crmType);
 					items = _this.buildForCrmType(crmType);
-					if (items.length > 0) {
+					if (_this.getChildrenAmount(items) > 0) {
 						$.contextMenu({
 							selector: '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type',
 							items: items
@@ -3055,7 +3103,7 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 
 			contextMenuItems: [],
 
-			removeContextMenus: function() {
+			removeContextMenus: function () {
 				var el;
 				this.usedStylesheetIds.forEach(function(id) {
 					el = document.getElementById('stylesheet' + id);

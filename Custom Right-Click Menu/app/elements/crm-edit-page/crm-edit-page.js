@@ -192,6 +192,14 @@ Polymer({
 		return !!nodeInfo;
 	},
 
+	hideNodeInfo: function (nodeInfo) {
+		console.log(!this.nodeInfoExists(nodeInfo));
+		console.log(this.isLocal(nodeInfo.source));
+		console.log(!this.hasInstallDate(nodeInfo));
+		return !this.nodeInfoExists(nodeInfo) ||
+			(this.isLocal(nodeInfo.source) && !this.hasInstallDate(nodeInfo));
+	},
+
 	hasInstallDate: function(nodeInfo) {
 		return this.nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
 	},

@@ -30,7 +30,7 @@
 							<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
 							<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
 						</paper-material>
-						<div id="nodeInfo" hidden$="[[!nodeInfoExists(nodeInfo)]]">
+						<div id="nodeInfo" hidden$="[[hideNodeInfo(nodeInfo)]]">
 							<div id="nodeInfoData" hidden$="[[isLocal(nodeInfo.source)]]">
 								<span id="nodeInfoName">
 									<b>[[item.name]]</b> <b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>

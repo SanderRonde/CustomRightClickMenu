@@ -17200,7 +17200,7 @@ function(e, t) {
 			duration: 250
 		});
 		M.onfinish = function() {
-			this.effect.target.style.marginBottom = h ? 0 : "-45px"
+			d.style.marginBottom = h ? 0 : "-45px"
 		}
 		;
 		var k = d.animate([{
@@ -17211,8 +17211,8 @@ function(e, t) {
 			duration: 250
 		});
 		k.onfinish = function() {
-			this.effect.target.style.marginBottom = "-85px",
-			this.effect.target.style.display = "none"
+			d.style.marginBottom = "-85px",
+			d.style.display = "none"
 		}
 		;
 		var A = d.animate([{
@@ -17223,8 +17223,8 @@ function(e, t) {
 			duration: 250
 		});
 		A.onfinish = function() {
-			this.effect.target.style.marginBottom = "-85px",
-			this.effect.target.style.display = "none"
+			d.style.marginBottom = "-85px",
+			d.style.display = "none"
 		}
 		;
 		var R = d.animate([{
@@ -17235,7 +17235,7 @@ function(e, t) {
 			duration: 250
 		});
 		R.onfinish = function() {
-			this.effect.target.style.marginBottom = "-45px"
+			d.style.marginBottom = "-45px"
 		}
 		;
 		var D = d.animate([{
@@ -17246,7 +17246,7 @@ function(e, t) {
 			duration: 250
 		});
 		D.onfinish = function() {
-			this.effect.target.style.marginBottom = 0
+			d.style.marginBottom = 0
 		}
 		,
 		d.style.marginBottom = "-45px",
