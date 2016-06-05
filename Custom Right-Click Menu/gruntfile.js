@@ -289,7 +289,8 @@ module.exports = function(grunt) {
 			}
 		},
 		clean: {
-			build: ['build/']
+			build: ['build/'],
+			unzipped: ['build/**/*', '!build/*.zip']
 		},
 		'string-replace': {
 			manifestReplace: {
@@ -421,6 +422,9 @@ module.exports = function(grunt) {
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
+
+	//Builds the extension and places only the zip in build/
+	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
 
 	//Tests all tasks and finishes with a clean build directory
 	grunt.registerTask('test', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'website', 'cleanBuild']);
