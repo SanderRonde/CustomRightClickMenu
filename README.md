@@ -5,10 +5,13 @@ Custom Right-Click Menu for Chrome
 
 
 #Installing from the chrome web store
-The new (beta) version can be found here: https://chrome.google.com/webstore/detail/custom-right-click-menu/fenehceojjegleckckhppcckanifnajg. The version that is in the old branch, aka the live version can be found here:  https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj.
+The new (beta) version can be found [here](https://chrome.google.com/webstore/detail/custom-right-click-menu/fenehceojjegleckckhppcckanifnajg). The version that is in the old branch, aka the live version can be found [here](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj).
 
 #Installing from repo
-Clone the repo, run npm install and run the grunt "build" task, load the extension into chrome from the "build" folder. Do not run bower install. 
+Clone the repo, run npm install and run the grunt "build" task, load the extension into chrome from the "build/" folder.
+
+#Contributing
+To install the extension for contributing, simply clone this repo, run npm install, and load the extension into chrome from the "app/" folder. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page. Building isn't really nessecary as long as you don't need to export the results as it basically only compresses the files and removes unnessecary files.
 
 
 #Description
