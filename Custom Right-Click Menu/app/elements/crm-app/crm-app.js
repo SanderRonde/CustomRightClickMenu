@@ -1,7 +1,5 @@
 ﻿'use strict';
 
-console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
-	'font-size:120%;font-weight:bold;');
 (function() {
 	/**
 	 * A shorthand name for chrome.storage.sync
@@ -2296,27 +2294,71 @@ console.log('%cHey there, if you\'re interested in how this extension works chec
 		},
 		//#endregion
 
-		ready: function () {
+		animateLoadingBar: function(settings, progress) {
+			var _this = this;
+			if (settings.isAnimating) {
+				settings.toReach = progress;
+				settings.shouldAnimate = true;
+			} else {
+				settings.isAnimating = true;
+				settings.progressBar.animate([{
+					transform: 'scaleX(' + settings.lastReachedProgress + ')'
+				}, {
+					transform: 'scaleX(' + progress + ')'
+				}], {
+					duration: 200,
+					easing: 'linear'
+				}).onfinish = function() {
+					settings.lastReachedProgress = progress;
+					settings.isAnimating = false;
+					_this.animateLoadingBar(settings, settings.toReach);
+				};
+			}
+		},
+
+		setupLoadingBar: function() {
+			var _this = this;
+			var loadingBarSettings = {
+				lastReachedProgress: 0,
+				progressBar: document.getElementById('splashScreenProgressBarLoader'),
+				toReach: 0,
+				isAnimating: false,
+				shouldAnimate: false 
+			}
+			
 			var registeredElements = 0;
+			var importsAmount = 52;
 			var registrationArray = Array.from(Polymer.telemetry.registrations);
-			registrationArray.push = function(element) {
+			registrationArray.push = function (element) {
 				Array.prototype.push.call(registrationArray, element);
 				if (element.toString() === '[object HTMLElement]') {
-					if (++registeredElements === 51) {
+					registeredElements++;
+					var progress = Math.round((registeredElements / importsAmount) * 100) / 100;
+					_this.animateLoadingBar(loadingBarSettings, progress);
+					if (registeredElements === importsAmount) {
 						//All elements have been loaded, unhide them all
-						document.documentElement.classList.remove('elementsLoading');
 						window.setTimeout(function() {
-							document.getElementById('splashScreen').style.display = 'none';
-						}, 500);
+							document.documentElement.classList.remove('elementsLoading');
+							window.setTimeout(function () {
+								document.getElementById('splashScreen').style.display = 'none';
+							}, 500);
+							console.clear();
+							console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+								'font-size:120%;font-weight:bold;');
+						}, 200);
 					}
 				}
 			};
 			Polymer.telemetry.registrations = registrationArray;
+		},
 
+		ready: function () {
 			var _this = this;
 			this.crm.parent = this;
 			window.app = this;
 			window.doc = window.app.$;
+
+			this.setupLoadingBar();
 
 			chrome.storage.local.get(function (storageLocal) {
 				if (_this.checkFirstTime(storageLocal)) {

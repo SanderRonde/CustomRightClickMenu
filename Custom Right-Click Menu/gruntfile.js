@@ -121,8 +121,15 @@ module.exports = function(grunt) {
 			},
 			codeMirrorMinify: {
 				files: {
-					'build/js/codeMirrorFile.min.js': ['app/js/codemmirror.js', 'app/js/diff_match_patch.js', 'app/js/codeMirrorAddons.js', 'app/js/userscriptMetadataCodemirror.js', 'app/js/codemirrorJs.js']
-				}
+					'build/js/codeMirrorFile.min.js': [
+						'app/js/codemirror.js',
+						'app/js/diff_match_patch.js',
+						'app/js/codeMirrorAddons.js',
+						'app/js/userscriptMetadataCodemirror.js',
+						'app/js/codemirrorJs.js',
+						'app/js/crmAPIDefs.js'
+					]
+			}
 			},
 			crmMinifiy: {
 				files: [

@@ -941,3 +941,7 @@ html {
 	color: red;
 	opacity: 0;
 }
+
+.pageCont {
+	width: 1000px;
+}
