@@ -17190,7 +17190,94 @@ function(e, t) {
 				m.style.transform = "rotate(90deg)"
 			}, 250)
 		}
-		var p, h = !1, d = $('<div class="codeMirrorSearchDialog"></div>').css("display", "none")[0], u = $('<div class="codeMirrorSearchDialogSearchCont"></div>').appendTo(d)[0], f = $('<div class="codeMirrorSearchDialogArrow"></div>').appendTo(u)[0], m = $('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>').appendTo(f)[0], g = $('<paper-input no-label-float label="find"></paper-input>').appendTo(u)[0], y = $('<div class="codeMirrorSearchDialogButtons"></div>').appendTo(u)[0], b = $("<paper-button raised>next</paper-button>").appendTo(y)[0], v = $("<paper-button raised>previous</paper-button>").appendTo(y)[0], w = $('<div class="codeMirrorCloseDialogButtonCont"></div>').appendTo(u)[0], S = $('<paper-icon-button class="codeMirrorCloseDialogButton" icon="close"><svg height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/><path d="M0 0h24v24H0z" fill="none"/></svg></iron-icon-button>').appendTo(w)[0], x = $('<div class="codeMirrorSearchDialogReplaceCont"></div>').appendTo(d)[0], T = $('<paper-input no-label-float label="replace"></paper-input">').appendTo(x)[0], O = $('<div class="codeMirrorSearchDialogReplaceButtons"></div>').appendTo(x)[0], j = $("<paper-button raised>replace</paper-button>").appendTo(O)[0], E = $("<paper-button raised>replace all</paper-button>").appendTo(O)[0];
+		function createElement(tag, elClass, attributes, content) {
+			var el = document.createElement(tag);
+			if (elClass) {
+			el.classList.add(elClass);
+			}
+			if (attributes) {
+				for (var attrKey in attributes) {
+					el.setAttribute(attrKey, attributes[attrKey]);
+				}
+			}
+			if (content) {
+				if (typeof content === 'string') {
+					el.innerHTML = content;
+				} else {
+					for (var i = 0; i < content.length; i++) {
+						el.appendChild(content[i]);
+					}	
+				}
+			}
+			return el;
+		}
+		var u, f, m, g, y, b, v, w, S, x, T, O, j, E;
+		var d = createElement('div', 'codeMirrorSearchDialog', {
+			style: 'display: none;'
+		}, [
+			(u = createElement('div', 'codeMirrorSearchDialogSearchCont', null, [
+				(f = createElement('div', 'codeMirrorSearchDialogArrow', null, [
+					(m = createElement('svg', null, {
+						width: '20',
+						height: '20',
+						xmlns: 'http://www.w3.org/2000/svg',
+						viewBox: '0 0 48 48'
+					}, [
+						createElement('path', null, {
+							d: 'M16 10v28l22-14z'
+						})
+					]))
+				])),
+				(g = createElement('paper-input', null, {
+					'no-label-float': '',
+					label: 'find'
+				})),
+				(y = createElement('div', 'codeMirrorSearchDialogButtons', null, [
+					(b = createElement('paper-button', null, {
+						raised: ''
+					}, 'next')),
+					( v = createElement('paper-button', null, {
+						raised: ''
+					}, 'previous'))
+				])),
+				(w = createElement('div', 'codeMirrorCloseDialogButtonCont', null, [
+					(S = createElement('paper-icon-button', 'codeMirrorCloseDialogButton', {
+						icon: 'close'
+					}, [
+						createElement('svg', null, {
+							viewBox: '0 0 24 24',
+							width: '24',
+							height: '24',
+							xmlns: 'http://www.w3.org/2000/svg'
+						}, [
+							createElement('path', null, {
+								d: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'
+							}), 
+							createElement('path', null, {
+								d: 'M0 0h24v24H0z',
+								fill: 'none'
+							})]
+						)]))
+				]))
+			])),
+			(x = createElement('div', 'codeMirrorSearchDialogReplaceCont', null, [
+				(T = createElement('div', null, {
+					'no-label-float': '',
+					label: "replace'"
+				})),
+				(O = createElement('div', 'codeMirrorSearchDialogReplaceButtons', null, [
+					(j = createElement('paper-button', null, {
+						raised: ''
+					}, 'replace')),
+					(E = createElement('paper-button', null, {
+						raised: ''
+					}, 'replace all'))
+				]))
+			]))
+		]);
+		
+		var p, h = !1;
+		
 		window.searchDialog = d;
 		var M = d.animate([{
 			marginBottom: 0

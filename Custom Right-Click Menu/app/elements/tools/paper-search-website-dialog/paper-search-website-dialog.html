@@ -5,11 +5,13 @@
 	<dom-module id="paper-search-website-dialog">
 		<link rel="import" type="css" href="paper-search-website-dialog.css" />
 		<template>
+			<!-- build:css inline paper-search-website-deep.css -->
 			<link rel="stylesheet" href="paper-search-website-deep.css" />
+			<!-- /build -->
 			<paper-dialog entry-animation="scale-up-animation" with-backdrop exit-animation="fade-out-animation" id="paperSearchWebsiteDialog">
 				<div id="initialWindow">
 					<h2>Add a search for a website</h2>
-					This code will search given website for any text you highlight, or if nothing is highlighted will promt you for a query.<br />
+					This code will search given website for any text you highlight, or if nothing is highlighted will promt you for a query.<br/>
 					<paper-radio-group selected="defaults" id="initialWindowChoicesCont">
 						<paper-radio-button name="defaults" class="initialWindowChoice">
 							Choose one of the defaults
@@ -25,7 +27,7 @@
 				</div>
 				<div id="chooseDefaultSearchWindow">
 					<h2>Choose a default search</h2>
-					<br />
+					<br/>
 					<div id="searchWebsiteDefaultsCont">
 						<paper-radio-group selected="google" id="searchWebsitesRadioGroup">
 							<paper-radio-button name="google">

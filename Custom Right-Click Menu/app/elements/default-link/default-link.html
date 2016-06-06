@@ -4,7 +4,9 @@
 <body>
 	<dom-module id="default-link" attributes="href defaultName searchengine">
 		<template>
-			<link rel="stylesheet" href="default-link.css">
+			<!-- build:css inline default-link.css -->
+			<link rel="stylesheet" href="default-link.css"/>
+			<!-- /build -->
 			<div class="defaultLinkCont">
 				<div class="defaultLinkLinkCont" searchengine$="[[searchEngine]]">
 					<div class="defaultLinkLink">

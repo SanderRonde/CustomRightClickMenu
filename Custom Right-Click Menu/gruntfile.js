@@ -98,8 +98,10 @@ module.exports = function(grunt) {
 				},
 				files: {
 					'build/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html'],
-					'build/elements/crm-app/crm-app.html': ['build/elements/crm-app/crm-app.html'],
-					'build/html/options.html': ['build/html/options.html']
+					'build/elements/crm-app/crm-app.html': [
+						'build/elements/crm-app/crm-app.html'],
+					'build/html/options.html': ['build/html/options.html'],
+
 				}
 			},
 			website: {
@@ -113,6 +115,17 @@ module.exports = function(grunt) {
 				files: {
 					'build/website/index.html': ['app/html/crmAPIDocsUI.html']
 				}
+			},
+			optimizeElementsCSS: {
+				options: {
+					strip: true
+				},
+				files: [{
+					expand: true,
+					cwd: 'app/elements',
+					src: ['**/*.html'],
+					dest: 'build/elements'
+				}]
 			}
 		},
 		uglify: {
@@ -313,6 +326,23 @@ module.exports = function(grunt) {
 				files: {
 					'build/manifest.json': 'app/manifest.json'
 				}
+			},
+			removeCharacter: {
+				options: {
+					replacements: [{
+						pattern: /﻿/g, //You may think there is nothing there, but there is, it's the ﻿&#65279 character
+						replacement: function() {
+								return '';
+							}
+						}
+					]
+				},
+				files: [{
+					expand: true,
+					cwd: 'build/elements',
+					src: ['**/*.html'],
+					dest: 'build/elements'
+				}]
 			}
 		},
 		copyImportedElements: {
@@ -418,10 +448,10 @@ module.exports = function(grunt) {
 	grunt.registerTask('externalEditorDefs', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 
 	//Extracts the files needed for the website and places them in build/website
-	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
+	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
+	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
