@@ -1440,7 +1440,6 @@
 			chrome.storage.local.get(function (storageLocal) {
 				_this.storageLocal = storageLocal;
 				if (key === 'CRMOnPage') {
-					console.log('yoooo');
 					window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 				}
 				_this.upload();
