@@ -805,7 +805,7 @@ edit-crm-item {
 }
 
 html {
-	overflow-y: scroll;
+	overflow-y: visible;
 }
 
 #versionUpdateDialog {

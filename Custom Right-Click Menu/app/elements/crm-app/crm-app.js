@@ -2326,9 +2326,6 @@
 				shouldAnimate: false 
 			}
 
-			//Temporarily set oveflow-x to hidden to prevent the splash screen from flickering
-			document.documentElement.style.overflow = 'hidden';
-
 			var registeredElements = 0;
 			var importsAmount = 52;
 			var registrationArray = Array.from(Polymer.telemetry.registrations);
@@ -2342,10 +2339,6 @@
 						//All elements have been loaded, unhide them all
 						window.setTimeout(function() {
 							document.documentElement.classList.remove('elementsLoading');
-							window.setTimeout(function () {
-								document.getElementById('splashScreen').style.display = 'none';
-								document.documentElement.style.overflow = 'auto';
-							}, 500);
 							console.clear();
 							console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
 								'font-size:120%;font-weight:bold;');
