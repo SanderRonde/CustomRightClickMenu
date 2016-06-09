@@ -3756,6 +3756,7 @@
 			notFirstTime: true,
 			authorName: 'anonymous',
 			showOptions: true,
+			CRMOnPage: true,
 			editCRMInRM: false
 		};
 

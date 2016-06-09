@@ -7,6 +7,10 @@
 			notify: true
 		}
 	},
+	
+	setCheckboxDisabledValue: function(value) {
+		this.$.checkbox.disabled = value;
+	},
 
 	ready: function () {
 		var _this = this;
@@ -15,9 +19,9 @@
 		});
 	},
 
-	onClick: function () {
-		var id = $(this).attr('id');
+	onClick: function() {
+		var id = this.getAttribute('id');
 		this.toggled = !this.toggled;
 		window.app.setLocal(id, this.toggled);
-		}
+	}
 })

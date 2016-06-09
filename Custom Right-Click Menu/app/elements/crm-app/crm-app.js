@@ -1437,10 +1437,11 @@
 			obj[key] = value;
 			var _this = this;
 			chrome.storage.local.set(obj);
-			chrome.storage.local.get(function(storageLocal) {
+			chrome.storage.local.get(function (storageLocal) {
 				_this.storageLocal = storageLocal;
-				if (key === 'editCRMInRM' || key === 'showOptions') {
-					_this.pageDemo.create();
+				if (key === 'CRMOnPage') {
+					console.log('yoooo');
+					window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 				}
 				_this.upload();
 			});
@@ -2140,6 +2141,7 @@
 				notFirstTime: true,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
+				CRMOnPage: true,
 				editCRMInRM: false
 			};
 
@@ -2196,6 +2198,7 @@
 			_this.updateEditorZoom();
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
+			window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 		},
 
 		handleFirstTime: function(_this) {
@@ -2211,6 +2214,7 @@
 				notFirstTime: true,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
+				CRMOnPage: true,
 				editCRMInRM: false
 			};
 
@@ -2269,6 +2273,7 @@
 			_this.updateEditorZoom();
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
+			window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 		},
 
 		checkFirstTime: function(storageLocal) {
@@ -2276,18 +2281,25 @@
 			if (storageLocal.notFirstTime) {
 				return true;
 			} else {
-				//Determine if it's a transfer from CRM version 1.*
-				if (localStorage.getItem('firsttime') === 'no') {
-					_this.handleDataTransfer(_this);
-					_this.async(function() {
-						window.doc.versionUpdateDialog.open();
-					}, 2000);
-				} else {
-					//BETA
-					_this.async(function () {
-						_this.betaTestMessageOption = 2;
-						window.doc.betaTestMessageDialog.open();
-					}, 2000);
+				try {
+					//Determine if it's a transfer from CRM version 1.*
+					if (localStorage.getItem('firsttime') === 'no') {
+						_this.handleDataTransfer(_this);
+						_this.async(function() {
+							window.doc.versionUpdateDialog.open();
+						}, 2000);
+					} else {
+						//BETA
+						_this.async(function() {
+							_this.betaTestMessageOption = 2;
+							window.doc.betaTestMessageDialog.open();
+						}, 2000);
+					}
+				} catch (e) {
+					setTimeout(function() {
+						throw e;
+					}, 2500);
+					return true;
 				}
 				return false;
 			}
@@ -2316,7 +2328,12 @@
 			}
 		},
 
-		setupLoadingBar: function() {
+		setupLoadingBar: function (promise) {
+			var callback = null;
+			promise.then(function(result) {
+				callback = result;
+			});
+
 			var _this = this;
 			var loadingBarSettings = {
 				lastReachedProgress: 0,
@@ -2336,10 +2353,11 @@
 					var progress = Math.round((registeredElements / importsAmount) * 100) / 100;
 					_this.animateLoadingBar(loadingBarSettings, progress);
 					if (registeredElements === importsAmount) {
+						callback && callback();
 						//All elements have been loaded, unhide them all
 						window.setTimeout(function() {
 							document.documentElement.classList.remove('elementsLoading');
-							console.clear();
+							!window.lastError && console.clear();
 							console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
 								'font-size:120%;font-weight:bold;');
 						}, 200);
@@ -2355,120 +2373,130 @@
 			window.app = this;
 			window.doc = window.app.$;
 
-			this.setupLoadingBar();
+			this.setupLoadingBar(new Promise(function(resolve) {
+				chrome.storage.local.get(function(storageLocal) {
+					if (_this.checkFirstTime(storageLocal)) {
+						resolve(function() {
+							function callback(items) {
+								_this.settings = items;
+								_this.settingsCopy = JSON.parse(JSON.stringify(items));
+								for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+									_this.onSettingsReadyCallbacks[i].callback.apply(_this
+										.onSettingsReadyCallbacks[i].thisElement, _this
+										.onSettingsReadyCallbacks[i].params);
+								}
+								_this.updateEditorZoom();
+								_this.orderNodesById(items.crm);
+								_this.pageDemo.create();
+								window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
+									.CRMOnPage);
+							}
 
-			chrome.storage.local.get(function (storageLocal) {
-				if (_this.checkFirstTime(storageLocal)) {
-					function callback(items) {
-						_this.settings = items;
-						_this.settingsCopy = JSON.parse(JSON.stringify(items));
-						for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-							_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
-						}
-						_this.updateEditorZoom();
-						_this.orderNodesById(items.crm);
-						_this.pageDemo.create();
-					}
-
-					_this.bindListeners();
-					delete storageLocal.nodeStorage;
-					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-						_this.requestPermissions(storageLocal.requestPermissions);
-					}
-					if (storageLocal.editing) {
-						setTimeout(function() {
-							//Check out if the code is actually different
-							var node = _this.nodesById[storageLocal.editing.id];
-							var nodeCurrentCode = (node.type === 'script' ? node.value.script : node.value.stylesheet);
-							if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
-								_this.restoreUnsavedInstances(storageLocal.editing);
+							_this.bindListeners();
+							delete storageLocal.nodeStorage;
+							if (storageLocal.requestPermissions && storageLocal.requestPermissions
+								.length > 0) {
+								_this.requestPermissions(storageLocal.requestPermissions);
+							}
+							if (storageLocal.editing) {
+								setTimeout(function() {
+									//Check out if the code is actually different
+									var node = _this.nodesById[storageLocal.editing.id];
+									var nodeCurrentCode = (node.type === 'script' ? node.value.script :
+										node
+										.value.stylesheet);
+									if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
+										_this.restoreUnsavedInstances(storageLocal.editing);
+									} else {
+										chrome.storage.local.set({
+											editing: null
+										});
+									}
+								}, 2500);
+							}
+							if (storageLocal.selectedCrmType !== undefined) {
+								_this.crmType = storageLocal.selectedCrmType;
+								_this.switchToIcons(storageLocal.selectedCrmType);
 							} else {
 								chrome.storage.local.set({
-									editing: null
+									selectedCrmType: 0
 								});
+								_this.crmType = 0;
+								_this.switchToIcons(0);
 							}
-						}, 2500);
-					}
-					if (storageLocal.selectedCrmType !== undefined) {
-						_this.crmType = storageLocal.selectedCrmType;
-						_this.switchToIcons(storageLocal.selectedCrmType);
-					} else {
-						chrome.storage.local.set({
-							selectedCrmType: 0
-						});
-						_this.crmType = 0;
-						_this.switchToIcons(0);
-					}
-					if (storageLocal.jsLintGlobals) {
-						_this.jsLintGlobals = storageLocal.jsLintGlobals;
-					} else {
-						_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-						chrome.storage.local.set({
-							jsLintGlobals: _this.jsLintGlobals
-						});
-					}
-					if (storageLocal.globalExcludes && storageLocal.globalExcludes.length > 1) {
-						_this.globalExcludes = storageLocal.globalExcludes;
-					} else {
-						_this.globalExcludes = [''];
-						chrome.storage.local.set({
-							globalExcludes: _this.globalExcludes
-						});
-					}
-					if (storageLocal.latestId) {
-						_this.latestId = storageLocal.latestId;
-					} else {
-						chrome.storage.local.set({
-							latestId: 0
-						});
-						_this.latestId = 0;
-					}
-					if (storageLocal.useStorageSync) {
-						//Parse the data before sending it to the callback
-						chrome.storage.sync.get(function(storageSync) {
-							var indexes = storageSync.indexes;
-							if (!indexes) {
-								chrome.storage.local.set({
-									useStorageSync: false
-								});
-								callback(storageLocal.settings);
+							if (storageLocal.jsLintGlobals) {
+								_this.jsLintGlobals = storageLocal.jsLintGlobals;
 							} else {
-								var settingsJsonArray = [];
-								indexes.forEach(function(index) {
-									settingsJsonArray.push(storageSync[index]);
+								_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+								chrome.storage.local.set({
+									jsLintGlobals: _this.jsLintGlobals
 								});
-								var jsonString = settingsJsonArray.join('');
-								_this.settingsJsonLength = jsonString.length;
-								var settings = JSON.parse(jsonString);
-								callback(settings);
 							}
-						});
-					} else {
-						//Send the "settings" object on the storage.local to the callback
-						_this.settingsJsonLength = JSON.stringify(storageLocal.settings).length;
-						if (!storageLocal.settings) {
-							chrome.storage.local.set({
-								useStorageSync: true
-							});
-							chrome.storage.sync.get(function(storageSync) {
-								var indexes = storageSync.indexes;
-								var settingsJsonArray = [];
-								indexes.forEach(function(index) {
-									settingsJsonArray.push(storageSync[index]);
+							if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
+								1) {
+								_this.globalExcludes = storageLocal.globalExcludes;
+							} else {
+								_this.globalExcludes = [''];
+								chrome.storage.local.set({
+									globalExcludes: _this.globalExcludes
 								});
-								var jsonString = settingsJsonArray.join('');
-								_this.settingsJsonLength = jsonString.length;
-								var settings = JSON.parse(jsonString);
-								callback(settings);
-							});
-						} else {
-							callback(storageLocal.settings);
-						}
+							}
+							if (storageLocal.latestId) {
+								_this.latestId = storageLocal.latestId;
+							} else {
+								chrome.storage.local.set({
+									latestId: 0
+								});
+								_this.latestId = 0;
+							}
+							if (storageLocal.useStorageSync) {
+								//Parse the data before sending it to the callback
+								chrome.storage.sync.get(function(storageSync) {
+									var indexes = storageSync.indexes;
+									if (!indexes) {
+										chrome.storage.local.set({
+											useStorageSync: false
+										});
+										callback(storageLocal.settings);
+									} else {
+										var settingsJsonArray = [];
+										indexes.forEach(function(index) {
+											settingsJsonArray.push(storageSync[index]);
+										});
+										var jsonString = settingsJsonArray.join('');
+										_this.settingsJsonLength = jsonString.length;
+										var settings = JSON.parse(jsonString);
+										callback(settings);
+									}
+								});
+							} else {
+								//Send the "settings" object on the storage.local to the callback
+								_this.settingsJsonLength = JSON.stringify(storageLocal.settings).length;
+								if (!storageLocal.settings) {
+									chrome.storage.local.set({
+										useStorageSync: true
+									});
+									chrome.storage.sync.get(function(storageSync) {
+										var indexes = storageSync.indexes;
+										var settingsJsonArray = [];
+										indexes.forEach(function(index) {
+											settingsJsonArray.push(storageSync[index]);
+										});
+										var jsonString = settingsJsonArray.join('');
+										_this.settingsJsonLength = jsonString.length;
+										var settings = JSON.parse(jsonString);
+										callback(settings);
+									});
+								} else {
+									callback(storageLocal.settings);
+								}
+							}
+							_this.storageLocal = storageLocal;
+							_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+						});
 					}
-					_this.storageLocal = storageLocal;
-					_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
-				}
-			});
+				});
+			}));
 
 			this.show = false;
 
@@ -3142,22 +3170,14 @@
 
 			contextMenuItems: [],
 
-			removeContextMenus: function () {
+			removeContextMenus: function() {
 				var el;
 				this.usedStylesheetIds.forEach(function(id) {
 					el = document.getElementById('stylesheet' + id);
 					el && el.remove();
 				});
 
-				var selector;
-				var contentType;
-				for (var i = 0; i < 6; i++) {
-					contentType = this.getCrmTypeFromNumber(i);
-					selector = (i === 0 ? 'body, ' : '') + '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type';
-					$.contextMenu('destroy', {
-						selector: selector
-					});
-				}
+				$.contextMenu('destroy');
 			},
 
 			loadContextMenus: function() {
@@ -3187,7 +3207,11 @@
 			 * Creates the on-page example
 			 */
 			create: function () {
-				this.loadContextMenus();
+				if (this.parent.storageLocal.CRMOnPage) {
+					this.loadContextMenus();
+				} else {
+					this.removeContextMenus();
+				}
 			},
 
 			get parent() {
