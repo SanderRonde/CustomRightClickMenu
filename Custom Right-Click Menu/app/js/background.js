@@ -581,7 +581,6 @@
 				});
 			}
 		}
-		console.timeEnd('tabChangeStuff');
 	}
 
 	chrome.tabs.onHighlighted.addListener(tabChangeListener);
@@ -897,7 +896,6 @@
 						}
 					}
 				}
-				console.log('code is', code);
 				scripts.push({
 					file: '/js/crmapi.js',
 					runAt: runAt
@@ -1272,7 +1270,6 @@
 				break;
 		}
 
-		console.log(rightClickItemOptions);
 		var id = chrome.contextMenus.create(rightClickItemOptions, function () {
 			if (chrome.runtime.lastError) {
 				if (rightClickItemOptions.documentUrlPatterns) {
@@ -1321,7 +1318,6 @@
 	function createNode(node, parentId) {
 
 		var replaceStylesheetTabs = getStylesheetReplacementTabs(node);
-		console.log(node, node.name);
 		var rightClickItemOptions = {
 			title: node.name,
 			contexts: getContexts(node.onContentTypes),
