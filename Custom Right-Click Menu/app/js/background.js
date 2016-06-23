@@ -663,7 +663,6 @@
 				});
 			}
 		}
-		console.timeEnd('tabChangeStuff');
 	}
 
 	chrome.tabs.onHighlighted.addListener(tabChangeListener);
