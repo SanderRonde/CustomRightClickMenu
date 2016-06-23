@@ -859,9 +859,12 @@
 			});
 		},
 
-		launchSearchWebsiteTool: function() {
-			this.$.paperSearchWebsiteDialog.init();
-			this.$.paperSearchWebsiteDialog.show();
+		launchSearchWebsiteTool: function () {
+			if (this.item && this.item.type === 'script' &&
+				window.scriptEdit && window.scriptEdit.mode === 'main') {
+				this.$.paperSearchWebsiteDialog.init();
+				this.$.paperSearchWebsiteDialog.show();
+			}
 		},
 
 		launchExternalEditorDialog: function() {
@@ -1025,11 +1028,15 @@
 				}
 				else {
 				var crmItem = _this.nodesById[editingObj.id];
-					var code = (crmItem.type === 'script' ? crmItem.value.script : crmItem.value.stylesheet);
+				var code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
+							crmItem.value.script : crmItem.value.backgroundScript) :
+							crmItem.value.stylesheet);
 					_this.iconSwitch(null, editingObj.crmType);
 					$('.keepChangesButton').on('click', function() {
 						if (crmItem.type === 'script') {
-							crmItem.value.script = editingObj.val;
+							crmItem.value[(editingObj.mode === 'main' ?
+								'script' :
+								'backgroundScript')] = editingObj.val;
 						} else {
 							crmItem.value.stylesheet = editingObj.val;
 						}
@@ -2402,8 +2409,7 @@
 									//Check out if the code is actually different
 									var node = _this.nodesById[storageLocal.editing.id];
 									var nodeCurrentCode = (node.type === 'script' ? node.value.script :
-										node
-										.value.stylesheet);
+										node.value.stylesheet);
 									if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
 										_this.restoreUnsavedInstances(storageLocal.editing);
 									} else {
@@ -2589,6 +2595,7 @@
 			getDefaultScriptValue: function(options) {
 				var value = {
 					launchMode: 0,
+					backgroundLibraries: [],
 					libraries: [],
 					script: [
 						'// ==UserScript==',
@@ -2598,6 +2605,7 @@
 						'// @grant	none',
 						'// @match	*://*.example.com/*',
 						'// ==/UserScript=='].join('\n'),
+					backgroundScript: '',
 					triggers: ['*://*.example.com/*']
 				}
 

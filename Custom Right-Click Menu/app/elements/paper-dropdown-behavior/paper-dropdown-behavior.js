@@ -87,6 +87,15 @@
 	 */
 	_prevState: null,
 
+	/**
+	 * Whether the menu is disabled
+	 * 
+	 * @attribute disabled
+	 * @type Boolean
+	 * @value false
+	 */
+	disabled: false,
+
 	/*
 	 * Adds a listener that fires when a new value is selected
 	 */
@@ -261,7 +270,9 @@
 	 * Toggles the dropdown menu, tirggers on clicking the main blue text
 	 */
 	_toggleDropdown: function() {
-		(this._expanded ? this.close() : this.open());
+		if (!this.disabled) {
+			(this._expanded ? this.close() : this.open());
+		}
 	},
 
 	/**
@@ -276,5 +287,16 @@
 			return [this.selected];
 		}
 		return this.selected;
+	},
+
+	disable: function () {
+		this.disabled = true;
+		this._expanded && this.close && this.close();
+		this.$.dropdownSelected.style.color = 'rgb(176, 220, 255)';
+	},
+
+	enable: function () {
+		this.disabled = false;
+		this.$.dropdownSelected.style.color = 'rgb(38, 153, 244)';
 	}
 };

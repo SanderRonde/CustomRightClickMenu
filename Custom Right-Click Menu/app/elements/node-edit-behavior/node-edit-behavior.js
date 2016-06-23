@@ -193,6 +193,9 @@
 	},
 
 	toggleIcon: function (e) {
+		if (this.mode && this.mode === 'background') {
+			return;
+		}
 		var index = 0;
 		var element = e.path[0];
 		while (!element.classList.contains('showOnContentItemCont')) {

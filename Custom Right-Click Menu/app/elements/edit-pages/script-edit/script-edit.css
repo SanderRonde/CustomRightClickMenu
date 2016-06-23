@@ -330,29 +330,33 @@ script-edit #settingsContainer {
 	margin-left:7px;
 }
 
-#triggersInfoCont {
+#triggersInfoCont, #backgroundInfoCont {
 	cursor: pointer;
 	float: right;
 	margin-top: 7px;
 }
 
-#triggersInfoCont .active, #triggersInfoCont #triggersInfoTxtCont {
+#backgroundInfoCont {
+	margin-top: 4px;
+}
+
+#triggersInfoCont .active, #backgroundInfoCont .active, #triggersInfoCont #triggersInfoTxtCont, #backgroundInfoCont #backgroundInfoTxtCont {
 	display: none;
 }
 
-#triggersInfoCont .inactive {
+#triggersInfoCont .inactive, #backgroundInfoCont .inactive {
 	display: block;
 }
 
-#triggersInfoCont:hover .active, #triggersInfoCont:hover #triggersInfoTxtCont {
+#triggersInfoCont:hover .active, #backgroundInfoCont:hover .active, #triggersInfoCont:hover #triggersInfoTxtCont, #backgroundInfoCont:hover #backgroundInfoTxtCont {
 	display: block;
 }
 
-#triggersInfoCont:hover .inactive {
+#triggersInfoCont:hover .inactive, #backgroundInfoCont:hover .inactive {
 	display:none;
 }
 
-#triggersInfoTxt {
+#triggersInfoTxt, #backgroundInfoTxtCont {
 	position: absolute;
     z-index: 10000;
     margin-top: -24px;
@@ -365,7 +369,7 @@ script-edit #settingsContainer {
 	font-weight:normal;
 }
 
-	#triggersInfoTxt.expandLeft {
+	#triggersInfoTxt.expandLeft, #backgroundInfoTxt.expandLeft {
 		margin-left: -263px;
 	}
 
@@ -452,4 +456,27 @@ script-edit #settingsContainer {
 
 #triggersInfoTxtCont {
 	position: absolute;
+}
+
+.editorTabsCont {
+	display: flex;
+	margin-left: 48px;
+}
+
+.editorTab {
+	font-size: 150%;
+	position: relative;
+	text-transform: uppercase;
+	padding: 5px;
+	box-shadow: 0 3px 4px 0 rgba(0, 0, 0, 0.14), 0 1px 8px 0 rgba(0, 0, 0, 0.12), 0 3px 3px -2px rgba(0, 0, 0, 0.4);
+	cursor: pointer;
+}
+
+	.editorTab.active {
+		background-color: rgb(190,190,190);
+		box-shadow: none;
+	}
+
+#triggerOverflowContainer {
+	overflow: hidden;
 }

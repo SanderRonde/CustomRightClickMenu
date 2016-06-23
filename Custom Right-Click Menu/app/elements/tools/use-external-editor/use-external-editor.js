@@ -145,7 +145,6 @@ Polymer({
 	updateFromExternal: function(msg) {
 		if (this.connection.id === msg.connectionId) {
 			if (window.scriptEdit) {
-				window.scriptEdit.newSettings.value.script = msg.code;
 				window.scriptEdit.editor.setValue(msg.code);
 			} else {
 				window.stylesheetEdit.newSettings.value.stylesheet = msg.code;
@@ -340,7 +339,6 @@ Polymer({
 				window.doc.externalEditorChooseFile.init(msg.local, msg.external, function(result) {
 					if (result !== false) {
 						if (window.scriptEdit) {
-							window.scriptEdit.newSettings.value.script = result;
 							window.scriptEdit.editor.setValue(result);
 						} else {
 							window.stylesheetEdit.newSettings.value.stylesheet = result;
@@ -386,10 +384,9 @@ Polymer({
 	 * Tries to establish a connection to the app (if installed)
 	 */
 	establishConnection: function(retry) {
-		//TODO Change ID
 		var _this = this;
 		if (!this.appPort) {
-			this.appPort = chrome.runtime.connect('gjmgdmomggpaiecllfmfgbbfhnlpbpic'); //gbfbinhlfpjckadedmfinepfioodgcll');
+			this.appPort = chrome.runtime.connect('hkjjmhkhhlmkflpihbikfpcojeofbjgn');
 			this.connection.status = 'connecting';
 			this.connection.stage = 0;
 			this.connection.fileConnected = false;

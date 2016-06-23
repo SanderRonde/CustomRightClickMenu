@@ -12,9 +12,10 @@
  *		are those scripts to run stuff you don't want it to.
  * @param {Object} nodeStorage - The storage data for the node
  * @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
+ * @param {Boolean} isBackground - If true, this page is functioning as a background page
  */
-function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, greasemonkeyData) {
-
+function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, greasemonkeyData, isBackground) {
+	console.log(self);
 	var _this = this;
 
 	//#region Options
@@ -104,6 +105,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			return tabData.id;
 		}
 	});
+	if (isBackground) {
+		Object.defineProperty(self, 'window', {
+			get: function() {
+				return self;
+			}
+		});
+	}
 	Object.defineProperty(this, 'permissions', {
 		get: function() {
 			return node.permissions;
@@ -216,9 +224,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	var sendMessage = function(message) {
 		queue.push(message);
 	}
-	var port = chrome.runtime.connect({
-		name: JSON.stringify(secretKey)
-	});
+	var port;
+	if (!isBackground) {
+		port = chrome.runtime.connect({
+			name: JSON.stringify(secretKey)
+		});
+	}
 
 
 	function handshakeFunction() {
@@ -238,8 +249,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	function callbackHandler(message) {
 		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
 		if (!callInfo[message.callbackId].persistent) {
-		delete callInfo[message.callbackId];
-	}
+			delete callInfo[message.callbackId];
+		}
 	}
 
 	var instances = [];
@@ -269,16 +280,23 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				case 'instanceMessage':
 					instanceMessageHandler(message);
 					break;
+				case 'backgroundMessage':
+					backgroundPageMessageHandler(message);
+					break;
 			}
 		}
 	}
 
-	port.onMessage.addListener(messageHandler);
-	port.postMessage({
-		id: id,
-		key: secretKey,
-		tabId: _this.tabId
-	});
+	if (!isBackground) {
+		port.onMessage.addListener(messageHandler);
+		port.postMessage({
+			id: id,
+			key: secretKey,
+			tabId: _this.tabId
+		});
+	} else {
+		port = self.handshake(id, secretKey, messageHandler);
+	}
 
 	//#endregion
 
@@ -375,6 +393,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	this.comm = {};
 	var commListeners = [];
+	var backgroundPageListeners = [];
 
 	function instancesChange(change) {
 		switch (change.type) {
@@ -398,6 +417,29 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	function instanceMessageHandler(message) {
 		commListeners.forEach(function(listener) {
 			listener && typeof listener === 'function' && listener(message.message);
+		});
+	}
+
+	function generateBackgroundResponse(message) {
+		return function(data) {
+			sendMessage({
+				id: id,
+				type: 'respondToBackgroundMessage',
+				data: {
+					message: data,
+					id: message.id,
+					tabId: message.tabId,
+					response: message.respond
+				},
+				tabId: _this.tabId
+			});
+		}
+	}
+
+	function backgroundPageMessageHandler(message) {
+		commListeners.forEach(function (listener) {
+			listener && typeof listener === 'function' &&
+				listener(message.message, generateBackgroundResponse(message));
 		});
 	}
 
@@ -498,6 +540,46 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		commListeners.splice(commListeners.indexOf(listener), 1);
 		if (commListeners.length === 0) {
 			updateCommHandlerStatus(false);
+		}
+	}
+
+	/**
+	 * Sends a message to the background page for this script
+	 * 
+	 * @param {any} message - The message to send
+	 * @param {Function} response - A function to be called as a response
+	 */
+	this.comm.messageBackgroundPage = function (message, response) {
+		if (isBackground) {
+			self.log('The function messageBackgroundPage is not available in background pages');
+		} else {
+			sendMessage({
+				id: id,
+				type: 'sendBackgroundpageMessage',
+				data: {
+					message: message,
+					id: id,
+					tabId: _this.tabId,
+					response: createCallbackFunction(response, new Error)
+				},
+				tabId: _this.tabId,
+				onFinish: onFinish
+			});
+		}
+	}
+
+	/**
+	 * Listens for any messages to the background page
+	 * 
+	 * @param {Function} callback - The function to call on message.
+	 *		Contains the message and the respond params respectively.
+	 *		Calling the respond param with data sends a message back.
+	 */
+	this.comm.listenAsBackgroundPage = function (callback) {
+		if (isBackground) {
+			backgroundPageListeners.push(callback);
+		} else {
+			self.log('The function listenAsBackgroundPage is not available in non-background script');
 		}
 	}
 	//#endregion
@@ -877,10 +959,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		3 = only show on specified pages
 	 * @property {Object} value - An object containing values about the script
 	 * @property {string} value.script - The script for this node
+	 * @property {string} value.backgroundScript - The backgroundscript for this node
 	 * @property {Object} value.metaTags - The metaTags for the script, keys are the metaTags, values are
 	 *		arrays where each item is one instance of the key-value pair being in the metatags
 	 * @property {Object[]} libraries - The libraries that are used in this script
 	 * @property {script} libraries.name - The name of the library
+	 * @property {Object[]} backgroundLibraries - The libraries that are used in the background page
+	 * @property {script} backgroundLibraries.name - The name of the library
 	 */
 
 	/**
@@ -1077,8 +1162,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run, not required
 	 * @param {string} [options.scriptData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 	 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
-	 *		registered throws an error, so do that first, not required
+	 *		registered throws an error, so do that first, value not required
 	 * @param {string} [options.scriptData.libraries.name] - The name of the library
+	 * @param {Object[]} [options.scriptData.backgroundLibraries] - The libraries for the backgroundpage to include, if the library is not yet
+	 *		registered throws an error, so do that first, value not required
+	 * @param {string} [options.scriptData.backgroundLibraries.name] - The name of the library
 	 * @param {Object} [options.stylesheetData] - The data of the stylesheet, required if type is stylesheet
 	 * @param {Number} [options.stylesheetData.launchMode] - The time at which this stylesheet launches, not required, defaults to 0,
 	 *		0 = run on clicking
@@ -1463,6 +1551,50 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	}
 
+	/*
+	 * All functions related specifically to the background script's libraries
+	 * 
+	 * @type Object
+	 */
+	this.crm.script.backgroundLibraries = {};
+
+	/**
+	 * Pushes given libraries to the node with ID nodeId's libraries array,
+	 * make sure to register them first or an error is thrown
+	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node to edit
+	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
+	 * @param {string} libraries.name - The name of the library
+	 * @param {function} callback - A callback with the new array as an argument
+	 */
+	this.crm.script.backgroundLibraries.push = function (nodeId, libraries, callback) {
+		sendCrmMessage('scriptBackgroundLibraryPush', callback, {
+			nodeId: nodeId,
+			libraries: libraries
+		});
+	}
+
+	/**
+	 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
+	 * and returns them as an array in the callback function
+	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node to splice
+	 * @param {nunber} start - The index of the array at which to start splicing
+	 * @param {nunber} amount - The amount of items to splice
+	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+	 */
+	this.crm.script.backgroundLibraries.splice = function (nodeId, start, amount, callback) {
+		sendCrmMessage('scriptBackgroundLibrarySplice', callback, {
+			nodeId: nodeId,
+			start: start,
+			amount: amount
+		});
+	}
+
 	/**
 	 * Sets the script of node with ID nodeId to value "script"
 	 * 
@@ -1488,6 +1620,35 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	this.crm.script.getScript = function (nodeId, callback) {
 		sendCrmMessage('getScriptValue', callback, {
+			nodeId: nodeId
+		});
+	}
+
+	/**
+	 * Sets the backgroundScript of node with ID nodeId to value "script"
+	 * 
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node of which to change the script
+	 * @param {string} value - The code to change to
+	 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+	 */
+	this.crm.script.setScript = function (nodeId, script, callback) {
+		sendCrmMessage('setBackgroundScriptValue', callback, {
+			nodeId: nodeId,
+			script: script
+		});
+	}
+
+	/**
+	 * Gets the value of the backgroundScript
+	 * 
+	 * @permission crmGet
+	 * @param {number} nodeId - The id of the node of which to get the backgroundScript
+	 * @param {function} callback - A callback with the backgroundScript's value as an argument
+	 */
+	this.crm.script.getScript = function (nodeId, callback) {
+		sendCrmMessage('getBackgroundScriptValue', callback, {
 			nodeId: nodeId
 		});
 	}

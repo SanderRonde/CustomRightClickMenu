@@ -188,6 +188,15 @@
 		 */
 		preventNotificationTimeout: null,
 
+		/**
+		 * The mode the editor is in (main or background)
+		 * 
+		 * @attribute editorMode
+		 * @type String
+		 * @default 'main'
+		 */
+		editorMode: 'main',
+
 		properties: {
 			item: {
 				type: Object,
@@ -513,7 +522,7 @@
 		},
 
 		metaTagsUpdate: function (changes, source) {
-			if (!changes) {
+			if (!changes || this.mode === 'background') {
 				return;
 			}
 			var i, j;
@@ -801,6 +810,76 @@
 		//#endregion
 
 		//#region DialogFunctions
+		disableButtons: function() {
+			this.$.dropdownMenu.disable();
+			window.doc.paperGetPageProperties.disable();
+			Array.from(document.querySelectorAll('.showOnContentItemCheckbox', this))
+				.forEach(function(checkbox) {
+					checkbox.disabled = true;
+				});
+			Array.from(document.querySelectorAll('.ribbonTool '))
+				.forEach(function(ribbonTool) {
+					if (ribbonTool.id !== 'externalEditorDialogTrigger' &&
+						ribbonTool.tagName === 'DIV') {
+						ribbonTool.style.color = 'rgb(176, 220, 255)';
+					}
+				});
+		},
+		
+		enableButtons: function() {
+			this.$.dropdownMenu.enable();
+			window.doc.paperGetPageProperties.enable();
+			Array.from(document.querySelectorAll('.showOnContentItemCheckbox', this))
+				.forEach(function (checkbox) {
+					checkbox.disabled = false;
+				});
+			Array.from(document.querySelectorAll('.ribbonTool '))
+				.forEach(function (ribbonTool) {
+					if (ribbonTool.id !== 'externalEditorDialogTrigger' &&
+						ribbonTool.tagName === 'DIV') {
+						ribbonTool.style.color = 'rgb(38, 153, 244)';
+					}
+				});
+		},
+
+		changeTab: function(mode) {
+			if (mode === 'main') {
+				this.editorMode = 'main';
+				this.enableButtons();
+				this.newSettings.value.backgroundScript = this.editor.getValue();
+				this.editor.setValue(this.newSettings.value.script);
+			} else {
+				this.editorMode = 'background';
+				this.disableButtons();
+				this.newSettings.value.script = this.editor.getValue();
+				this.editor.setValue(this.newSettings.value.backgroundScript || '');
+			}
+		},
+
+		changeTabEvent: function(e) {
+			var index = 0;
+			var element = e.path[0];
+			while (!element.classList.contains('editorTab')) {
+				index++;
+				element = e.path[index];
+			}
+
+			var isMain = element.classList.contains('mainEditorTab');
+			if (isMain && this.editorMode !== 'main') {
+				this.changeTab('main');
+			} else if (!isMain && this.editorMode === 'main') {
+				this.changeTab('background');
+			} else {
+				return;
+			}
+
+			Array.from(document.querySelectorAll('.editorTab', this)).forEach(
+				function(tab) {
+					tab.classList.remove('active');
+				});
+			element.classList.add('active');
+		},
+
 		getExportData: function() {
 			$('script-edit #exportMenu paper-menu')[0].selected = 0;
 			var settings = {};
@@ -833,6 +912,8 @@
 		},
 
 		saveChanges: function (resultStorage) {
+			debugger;
+			this.changeTab('main');
 			this.active = false;
 			resultStorage.value.metaTags = this.getMetaTagValues();
 			this.finishEditing();
@@ -1174,6 +1255,9 @@
 			editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
 			editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
 			editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
+			window.paperLibrariesSelector.updateLibraries((_this.editorMode === 'main' ?
+				this.newSettings.value.libraries : this.newSettings.value
+				.backgroundLibraries || [])), _this.editorMode;
 			this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 			//this.fullscreenEl.style.display = 'none';
 			var $editorWrapper = $(this.editor.display.wrapper);
@@ -1423,10 +1507,13 @@
 			this.newSettings.value.script = this.editor.doc.getValue();
 			this.editor = null;
 
+			var value = (this.mode === 'main' ?
+				this.newSettings.value.script :
+				this.newSettings.value.backgroundScript);
 			if (this.fullscreen) {
-				this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.script, disable);
+				this.loadEditor(window.doc.fullscreenEditorHorizontal, value, disable);
 			} else {
-				this.loadEditor(this.$.editorCont, this.newSettings.value.script, disable);
+				this.loadEditor(this.$.editorCont, value, disable);
 			}
 		},
 
@@ -1668,12 +1755,16 @@
 			var _this = this;
 			this.editor = editor;
 			editor.refresh();
-			editor.on('metaTagChanged', function (changes, metaTags) {
-				if (!_this.preventNotification) {
-					_this.metaTagsUpdate(changes, 'script');
+			editor.on('metaTagChanged', function(changes, metaTags) {
+				if (_this.editorMode === 'main') {
+					if (!_this.preventNotification) {
+						_this.metaTagsUpdate(changes, 'script');
+					}
+					_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 				}
-				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 			});
+			this.$.mainEditorTab.classList.add('active');
+			this.$.backgroundEditorTab.classList.remove('active');
 			editor.on('metaDisplayStatusChanged', function(info) {
 				_this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
 			});
@@ -1792,6 +1883,7 @@
 				editing: {
 					val: this.item.value.script,
 					id: this.item.id,
+					mode: _this.mode,
 					crmType: window.app.crmType
 				}
 			});
@@ -1803,6 +1895,7 @@
 						editing: {
 							val: val,
 							id: _this.item.id,
+							mode: _this.mode,
 							crmType: window.app.crmType
 						}
 						// ReSharper disable once WrongExpressionStatement

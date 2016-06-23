@@ -44,6 +44,18 @@ Polymer({
 		 */
 		installedLibraries: {
 			type: Array
+		},
+		
+		/**
+		 * The type of script that's currenly being edited (main or background)
+		 * 
+		 * @attribute mode
+		 * @type String
+		 * @default 'main'
+		 */
+		mode: {
+			type: String,
+			value: 'main'
 		}
 	},
 
@@ -178,7 +190,10 @@ Polymer({
 				code: code,
 				url: url
 			});
-			window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor, 'require', url);
+			if (_this.mode === 'main') {
+				window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor,
+					'require', url);
+			}
 			chrome.runtime.sendMessage({
 				type: 'updateStorage',
 				data: {
@@ -273,7 +288,10 @@ Polymer({
 		}
 		else if (e.target.classList.contains('anonymous')) {
 			var url = e.target.getAttribute('data-url');
-			window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor, 'require', url);
+			if (_this.mode === 'main') {
+				window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor,
+					'require', url);
+			}
 
 			chrome.runtime.sendMessage({
 				type: 'anonymousLibrary',
@@ -284,7 +302,7 @@ Polymer({
 					scriptId: window.app.scriptItem.id
 				}
 			});
-		} else {
+		} else if (_this.mode === 'main') {
 			//Checking or un-checking something
 			var lib = e.target.getAttribute('data-url');
 			var changeType = (e.target.classList.contains('iron-selected') ? 'addMetaTags' : 'removeMetaTags');
@@ -292,8 +310,9 @@ Polymer({
 		}
 	},
 
-	updateLibraries: function(libraries) {
+	updateLibraries: function(libraries, mode) {
 		this.set('libraries', libraries);
+		this.mode = mode || 'main';
 		this.init();
 	},
 

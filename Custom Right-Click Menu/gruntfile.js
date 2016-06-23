@@ -149,7 +149,7 @@ module.exports = function(grunt) {
 					{
 						expand: true,
 						cwd: 'app/js',
-						src: ['background.js', 'crmapi.js', 'crmAPIDefs.js', 'crmAPIDocs.js', 'contentscript.js'],
+						src: ['background.js', 'crmapi.js', 'crmAPIDefs.js', 'crmAPIDocs.js', 'contentscript.js', 'sandbox.js'],
 						dest: 'build/js/'
 					}
 				]
