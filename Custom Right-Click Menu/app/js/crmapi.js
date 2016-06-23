@@ -961,10 +961,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @property {string} value.backgroundScript - The backgroundscript for this node
 	 * @property {Object} value.metaTags - The metaTags for the script, keys are the metaTags, values are
 	 *		arrays where each item is one instance of the key-value pair being in the metatags
-	 * @property {Object[]} libraries - The libraries that are used in this script
-	 * @property {script} libraries.name - The name of the library
-	 * @property {Object[]} backgroundLibraries - The libraries that are used in the background page
-	 * @property {script} backgroundLibraries.name - The name of the library
+	 * @property {Object[]} value.libraries - The libraries that are used in this script
+	 * @property {script} value.libraries.name - The name of the library
+	 * @property {Object[]} value.backgroundLibraries - The libraries that are used in the background page
+	 * @property {script} value.backgroundLibraries.name - The name of the library
 	 */
 
 	/**
