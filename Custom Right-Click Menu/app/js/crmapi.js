@@ -924,13 +924,13 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		on that content type, the content types are 'page','link','selection','image','video' and 'audio' 
 	 *		respectively
 	 * @property {string[]} permissions - The permissions required by this script
-	 * @property {string} url - The URL to open
 	 * @property {Object[]} triggers - The triggers for which to run this node
 	 * @property {string} triggers.url - The URL of the site on which to run, according to the chrome match patterns
 	 *		found at https://developer.chrome.com/extensions/match_patterns
 	 * @property {boolean} triggers.not - If true does NOT run on given site
 	 * @property {CrmAPIInit~linkVal} linkVal - The value of the node if it were to switch to type link
 	 * @property {CrmAPIInit~scriptVal} scriptVal - The value of the node if it were to switch to type script
+	 * @property {CrmAPIInit~stylesheetVal} stylesheetVal - The value fo the node if it were to switch to type stylesheet
 	 * @property {Object[]} menuVal - The children of the node if it were to switch to type menu
 	 */
 
