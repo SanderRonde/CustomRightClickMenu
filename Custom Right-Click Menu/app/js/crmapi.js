@@ -15,7 +15,6 @@
  * @param {Boolean} isBackground - If true, this page is functioning as a background page
  */
 function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, greasemonkeyData, isBackground) {
-	console.log(self);
 	var _this = this;
 
 	//#region Options
