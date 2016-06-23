@@ -912,7 +912,6 @@
 		},
 
 		saveChanges: function (resultStorage) {
-			debugger;
 			this.changeTab('main');
 			this.active = false;
 			resultStorage.value.metaTags = this.getMetaTagValues();
