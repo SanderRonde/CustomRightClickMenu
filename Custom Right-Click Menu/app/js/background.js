@@ -1,9 +1,8 @@
 /// <reference path="jsonfn.js"/>
 /// <reference path="../../scripts/_references.js"/>
-/// <reference path="e.js"/>
 /// <reference path="jquery-2.0.3.min.js"/>
-/// <reference path="~/app/js/md5.js" />
-/// <reference path="~/app/js/codeMirrorAddons.js" />
+/// <reference path="md5.js" />
+/// <reference path="codeMirrorAddons.js" />
 'use strict';
 
 //#region Sandbox
@@ -856,23 +855,30 @@
 					}
 				}
 
+				function metaVal(key) {
+					if (metaData[key]) {
+						return metaData[key][0];
+					}
+					return undefined;
+				}
+
 				var greaseMonkeyData = {
 					info: {
 						script: {
-							author: metaData['author'] || '',
-							copyright: metaData['copyright'],
-							description: metaData['description'],
+							author: metaVal('author') || '',
+							copyright: metaVal('copyright'),
+							description: metaVal('description'),
 							excludes: metaData['excludes'],
-							homepage: metaData['homepage'],
-							icon: metaData['icon'],
-							icon64: metaData['icon64'],
+							homepage: metaVal('homepage'),
+							icon: metaVal('icon'),
+							icon64: metaVal('icon64'),
 							includes: metaData['includes'],
 							lastUpdated: 0, //Never updated
 							matches: metaData['matches'],
 							isIncognito: tab.incognito,
 							downloadMode: 'browser',
 							name: node.name,
-							namespace: metaData['namespace'],
+							namespace: metaVal('namespace'),
 							options: {
 								awareOfChrome: true,
 								compat_arrayleft: false,
@@ -881,7 +887,7 @@
 								compat_metadata: false,
 								compat_prototypes: false,
 								compat_uW_gmonkey: false,
-								noframes: metaData['noframes'],
+								noframes: metaVal('noframes'),
 								override: {
 									excludes: true,
 									includes: true,
@@ -896,11 +902,11 @@
 							"run-at": runAt,
 							system: false,
 							unwrap: true,
-							version: metaData['version']
+							version: metaVal('version')
 						},
 						scriptMetaStr: metaString,
 						scriptSource: node.value.script,
-						scriptUpdateURL: metaData['updateURL'],
+						scriptUpdateURL: metaVal('updateURL'),
 						scriptWillUpdate: false, //FUTURE maybe update
 						scriptHandler: 'Custom Right-Click Menu',
 						version: chrome.app.getDetails().version
@@ -1646,23 +1652,30 @@
 				return indentUnit + line;
 			}).join('\n');
 
+			function metaVal(key) {
+				if (metaData[key]) {
+					return metaData[key][0];
+				}
+				return undefined;
+			}
+
 			var greaseMonkeyData = {
 				info: {
 					script: {
-						author: metaData['author'] || '',
-						copyright: metaData['copyright'],
-						description: metaData['description'],
+						author: metaVal('author') || '',
+						copyright: metaVal('copyright'),
+						description: metaVal('description'),
 						excludes: metaData['excludes'],
-						homepage: metaData['homepage'],
-						icon: metaData['icon'],
-						icon64: metaData['icon64'],
+						homepage: metaVal('homepage'),
+						icon: metaVal('icon'),
+						icon64: metaVal('icon64'),
 						includes: metaData['includes'],
 						lastUpdated: 0, //Never updated
 						matches: metaData['matches'],
 						isIncognito: false,
 						downloadMode: 'browser',
 						name: node.name,
-						namespace: metaData['namespace'],
+						namespace: metaVal('namespace'),
 						options: {
 							awareOfChrome: true,
 							compat_arrayleft: false,
@@ -1671,7 +1684,7 @@
 							compat_metadata: false,
 							compat_prototypes: false,
 							compat_uW_gmonkey: false,
-							noframes: metaData['noframes'],
+							noframes: metaVal('noframes'),
 							override: {
 								excludes: true,
 								includes: true,
@@ -1686,11 +1699,11 @@
 						"run-at": runAt,
 						system: false,
 						unwrap: true,
-						version: metaData['version']
+						version: metaVal('version')
 					},
 					scriptMetaStr: metaString,
 					scriptSource: script,
-					scriptUpdateURL: metaData['updateURL'],
+					scriptUpdateURL: metaVal('updateURL'),
 					scriptWillUpdate: false, //FUTURE maybe update
 					scriptHandler: 'Custom Right-Click Menu',
 					version: chrome.app.getDetails().version
