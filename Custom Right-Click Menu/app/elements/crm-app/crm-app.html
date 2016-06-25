@@ -51,7 +51,7 @@
 						Custom Right-Click Menu
 					</div>
 					<div class="mainDescr">
-						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website, create your own script to run or change the style of a website. You can also order this menu by wrapping it in subsections or by dividing them in sections. You can right-click anywhere on this page to view the custom right-click menu. Right-clicking on one of the content type buttons below (page, link, selection etc) shows the right-click menu for that content type. On other pages the whole menu will be wrapped in a "Custom Menu" subsection. 
+						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website, create your own script to run or change the style of a website. You can also order this menu by wrapping it in subsections or by dividing them in sections. You can right-click anywhere on this page to view the custom right-click menu. Right-clicking on one of the content type buttons below (page, link, selection etc) shows the right-click menu for that content type. On other pages the whole menu will be wrapped in a "Custom Menu" subsection.
 					</div>
 				</div>
 				<br />
@@ -202,7 +202,7 @@
 						Global Excludes
 					</div>
 					<div class="globalExcludesDescr">
-						There are some sites on which you don't trust any script to run, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns">https://developer.chrome.com/extensions/match_patterns</a>
+						There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns">https://developer.chrome.com/extensions/match_patterns</a>
 					</div>
 					<div class="globalExcludesItems">
 						<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
@@ -670,7 +670,7 @@
 									</h2>
 									<div id="betaTestMessageSecondTabContent">
 										<div hidden$="[[!isBetaTestMessageOptionX(betaTestMessageOption, 0)]]">
-											To use this method, either hit the "copy settings" button on the 
+											To use this method, either hit the "copy settings" button on the
 											"join the beta" dialog or open the options page of the old version of the extension,
 											press F12, go to the "console" tab, and paste this code snippet in there.<br />
 											<pre id="betaTestCode" class="inlineCodePre">copy(JSON.stringify(localStorage));</pre>
