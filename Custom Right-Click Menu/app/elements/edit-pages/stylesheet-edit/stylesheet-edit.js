@@ -6,7 +6,7 @@
 	//#region PolymerProperties
 	/**
 	* An interval to save any work not discarder or saved (say if your browser/pc crashes)
-	* 
+	*
 	* @attribute savingInterval
 	* @type Object
 	* @default null
@@ -15,7 +15,7 @@
 
 	/**
 	* Whether this dialog is active
-	* 
+	*
 	* @attribute active
 	* @type Boolean
 	* @default false
@@ -24,7 +24,7 @@
 
 	/**
 	* The editor
-	* 
+	*
 	* @attribute editor
 	* @type Object
 	* @default null
@@ -33,7 +33,7 @@
 
 	/**
      * Whether the vertical scrollbar is already shown
-     * 
+     *
      * @attribute verticalVisible
      * @type Boolean
      * @default false
@@ -42,7 +42,7 @@
 
 	/**
      * Whether the horizontal scrollbar is already shown
-     * 
+     *
      * @attribute horizontalVisible
      * @type Boolean
      * @default false
@@ -51,7 +51,7 @@
 
 	/**
      * The settings element on the top-right of the editor
-     * 
+     *
      * @attribute settingsEl
      * @type Element
      * @default null
@@ -60,7 +60,7 @@
 
 	/**
      * The fullscreen element on the bottom-right of the editor
-     * 
+     *
      * @attribute fullscreenEl
      * @type Element
      * @default null
@@ -69,7 +69,7 @@
 
 	/**
      * The container of the fullscreen and settings buttons
-     * 
+     *
      * @attribute buttonsContainer
      * @type Element
      * @default null
@@ -77,7 +77,7 @@
 	buttonsContainer: null,
 	/**
      * The editor's starting height
-     * 
+     *
      * @attribute editorHeight
      * @type Number
      * @default 0
@@ -86,7 +86,7 @@
 
 	/**
      * The editor's starting width
-     * 
+     *
      * @attribute editorWidth
      * @type Number
      * @default 0
@@ -95,7 +95,7 @@
 
 	/**
      * Whether to show the trigger editing section
-     * 
+     *
      * @attribute showTriggers
      * @type Boolean
      * @default false
@@ -104,7 +104,7 @@
 
 	/**
 	 * Whether to show the section that allows you to choose on which content to show this
-     * 
+     *
      * @attribute showContentTypeChooser
      * @type Boolean
      * @default false
@@ -113,7 +113,7 @@
 
 	/**
      * Whether the options are shown
-     * 
+     *
      * @attribute optionsShown
      * @type Boolean
      * @default false
@@ -122,7 +122,7 @@
 
 	/**
      * Whether the editor is in fullscreen mode
-     * 
+     *
      * @attribute fullscreen
      * @type Boolean
      * @default false
@@ -131,7 +131,7 @@
 
 	/**
      * The element that contains the editor's options
-     * 
+     *
      * @attribute editorOptions
      * @type Element
      * @default null
@@ -140,7 +140,7 @@
 
 	/**
      * The settings shadow element which is the circle on options
-     * 
+     *
      * @attribute settingsShadow
      * @type Element
      * @default null
@@ -149,7 +149,7 @@
 
 	/**
      * The editor's settings before going to the settings page
-     * 
+     *
      * @attribute unchangedEditorSettings
      * @type Object
      * @default {}
@@ -158,7 +158,7 @@
 
 	/**
      * The editor's dimensions before it goes fullscreen
-     * 
+     *
      * @attribute preFullscreenEditorDimensions
      * @type Object
      * @default {}
@@ -185,7 +185,7 @@
 
 	/*
 	 * Prevent the codemirror editor from signalling again for a while
-	 * 
+	 *
 	 * @attribute preventNotification
 	 * @type Boolean
 	 * @default false
@@ -194,7 +194,7 @@
 
 	/*
 	 * The timeout that resets the preventNotification bool
-	 * 
+	 *
 	 * @attribute preventNotificationTimeout
 	 * @type Number
 	 * @default null
@@ -783,7 +783,7 @@
 		//Introduce title at the top
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
-		if (app.settings.shrinkTitleRibbon) {
+		if (app.storageLocal.shrinkTitleRibbon) {
 			window.doc.editorTitleRibbon.style.fontSize = '40%';
 			scriptTitle.style.padding = 0;
 			titleRibbonSize = '-18px';
@@ -799,7 +799,7 @@
 				marginTop: 0
 			}
 		];
-		var margin = (app.settings.hideToolsRibbon ? 0 : '-200px');
+		var margin = (app.storageLocal.hideToolsRibbon ? 0 : '-200px');
 		scriptTitle.style.marginLeft = '-200px';
 		scriptTitleAnimation[0].marginLeft = '-200px';
 		scriptTitleAnimation[1].marginLeft = 0;
@@ -972,30 +972,30 @@
 		var viewportWidth = $horizontalCenterer.width();
 		var viewPortHeight = $horizontalCenterer.height();
 
-		if (app.settings.hideToolsRibbon !== undefined) {
-			if (app.settings.hideToolsRibbon) {
+		if (app.storageLocal.hideToolsRibbon !== undefined) {
+			if (app.storageLocal.hideToolsRibbon) {
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
 			} else {
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 			}
 		} else {
-			chrome.storage.sync.set({
+			chrome.storage.local.set({
 				hideToolsRibbon: false
 			});
-			app.settings.hideToolsRibbon = false;
+			app.storageLocal.hideToolsRibbon = false;
 			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 		}
-		if (app.settings.shrinkTitleRibbon !== undefined) {
-			if (app.settings.shrinkTitleRibbon) {
+		if (app.storageLocal.shrinkTitleRibbon !== undefined) {
+			if (app.storageLocal.shrinkTitleRibbon) {
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 			} else {
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 			}
 		} else {
-			chrome.storage.sync.set({
+			chrome.storage.local.set({
 				shrinkTitleRibbon: false
 			});
-			app.settings.shrinkTitleRibbon = false;
+			app.storageLocal.shrinkTitleRibbon = false;
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 		}
 
@@ -1185,7 +1185,7 @@
 	//#endregion
 
 	/*
-	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the 
+	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the
 	 * icons' positions
 	 * @param {boolean} Whether - the vertical scrollbar is now visible
 	 */
