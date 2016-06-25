@@ -22,7 +22,10 @@
 	"content_scripts": [
 		{
 			"matches": [ "<all_urls>" ],
-			"js": [ "js/contentscript.js" ]
+			"js": [
+				/* build:json:remove */ "js/jquery-2.0.3.min.js", "js/jquery.contextMenu.js", /* /build */
+				"js/contentscript.js" ],
+			"css": ["/css/jquery.contextMenu.css"]
 		}
 	],
 
