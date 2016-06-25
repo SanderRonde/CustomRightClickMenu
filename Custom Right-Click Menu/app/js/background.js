@@ -232,9 +232,9 @@
 			templates: {
 				/**
 				 * Merges two objects
-				 * 
+				 *
 				 * @param {Object} mainObject - The main object
-				 * @param {Object} additions - The additions to the main object, these overwrite the 
+				 * @param {Object} additions - The additions to the main object, these overwrite the
 				 *		main object's properties
 				 * @returns {Object} The merged objects
 				 */
@@ -253,7 +253,7 @@
 
 				/**
 				 * Gets the default link node object with given options applied
-				 * 
+				 *
 				 * @param {Object} options - Any pre-set properties
 				 * @returns {Object} A link node with specified properties set
 				 */
@@ -278,7 +278,7 @@
 
 				/**
 				 * Gets the default stylesheet value object with given options applied
-				 * 
+				 *
 				 * @param {Object} options - Any pre-set properties
 				 * @returns {Object} A stylesheet node value with specified properties set
 				 */
@@ -302,7 +302,7 @@
 
 				/**
 				 * Gets the default script value object with given options applied
-				 * 
+				 *
 				 * @param {Object} options - Any pre-set properties
 				 * @returns {Object} A script node value with specified properties set
 				 */
@@ -328,7 +328,7 @@
 
 				/**
 				 * Gets the default script node object with given options applied
-				 * 
+				 *
 				 * @param {Object} options - Any pre-set properties
 				 * @returns {Object} A script node with specified properties set
 				 */
@@ -346,7 +346,7 @@
 
 				/**
 				 * Gets the default divider or menu node object with given options applied
-				 * 
+				 *
 				 * @param {String} type - The type of node
 				 * @param {Object} options - Any pre-set properties
 				 * @returns {Object} A divider or menu node with specified properties set
@@ -365,7 +365,7 @@
 
 				/**
 				 * Gets the default divider node object with given options applied
-				 * 
+				 *
 				 * @param {Object} options - Any pre-set properties
 				 * @returns {Object} A divider node with specified properties set
 				 */
@@ -375,7 +375,7 @@
 
 				/**
 				 * Gets the default menu node object with given options applied
-				 * 
+				 *
 				 * @param {Object} options - Any pre-set properties
 				 * @returns {Object} A menu node with specified properties set
 				 */
@@ -763,7 +763,7 @@
 			}
 		}
 	}
-	
+
 	function executeScripts(tabId, scripts) {
 		executeScript(tabId, scripts, 0)();
 	}
@@ -930,7 +930,7 @@
 					return indentUnit + line;
 				}).join('\n');
 
-				
+
 				var code = [
 					[
 						'var crmAPI = new CrmAPIInit(' +
@@ -1415,7 +1415,7 @@
 		var idHolder = {id: null};
 		setLaunchModeData(node, rightClickItemOptions, idHolder);
 		var id = idHolder.id;
-		
+
 		if (replaceStylesheetTabs.length !== 0) {
 			var css;
 			var code;
@@ -3658,9 +3658,9 @@
 		}
 		if (globals.availablePermissions.indexOf(apiPermission) === -1) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' not available to the extension, visit options page');
-			chrome.storage.sync.get('requestPermissions', function (storageData) {
+			chrome.storage.local.get('requestPermissions', function (storageData) {
 				var perms = storageData.requestPermissions || [apiPermission];
-				chrome.storage.sync.set({
+				chrome.storage.local.set({
 					requestPermissions: perms
 				});
 			});
@@ -3995,7 +3995,7 @@
 	chrome.webRequest.onBeforeRequest.addListener(handleUserJsRequest,
 		{
 			urls: ['*://*/*.user.js']
-		}, 
+		},
 		['blocking']);
 	//#endregion
 
@@ -4228,7 +4228,9 @@
 			authorName: 'anonymous',
 			showOptions: true,
 			CRMOnPage: true,
-			editCRMInRM: false
+			editCRMInRM: false,
+			hideToolsRibbon: false,
+			shrinkTitleRibbon: false
 		};
 
 		//Save local storage
@@ -4294,7 +4296,7 @@
 	var legacyScriptReplace = {
 			/**
 			 * Checks if given value is the property passed, disregarding quotes
-			 * 
+			 *
 			 * @param {string} toCheck - The string to compare it to
 			 * @param {string} prop - The value to be compared
 			 * @returns {boolean} Returns true if they are equal
@@ -4308,7 +4310,7 @@
 
 			/**
 			 * Gets the lines where an expression begins and ends
-			 * 
+			 *
 			 * @param {Object[]} lines - All lines of the script
 			 * @param {Object[]} lineSeperators - An object for every line signaling the start and end
 			 * @param {Number} lineSeperators.start - The index of that line's first character in the
@@ -4346,7 +4348,7 @@
 
 			/**
 			 * Finds the function call expression around the expression whose data was passed
-			 * 
+			 *
 			 * @param {Object} data - The data associated with a chrome call
 			 * @returns {Object} The expression around the expression whose data was passed
 			 */
@@ -4362,10 +4364,10 @@
 
 			/**
 			 * Gets the chrome API in use by given function call expression
-			 * 
+			 *
 			 * @param {Object} expr - The expression whose function call to find
 			 * @param {Object} data - The data about that call
-			 * @returns {Object} An object containing the call on the "call" 
+			 * @returns {Object} An object containing the call on the "call"
 			 *		property and the arguments on the "args" property
 			 */
 			getChromeAPI: function (expr, data) {
@@ -4391,7 +4393,7 @@
 			/**
 			 * Gets the position of an index relative to the line instead of relative
 			 * to the entire script
-			 * 
+			 *
 			 * @param {Object[]} lines - All lines of the script
 			 * @param {Number} line - The line the index is on
 			 * @param {Number} index - The index relative to the entire script
@@ -4647,7 +4649,7 @@
 
 			/**
 			 * Generates an onError function that passes any errors into given container
-			 * 
+			 *
 			 * @param {Object[][]} container - A container array that contains arrays of errors for every pass
 			 *		of the script
 			 * @returns {function} A function that can be called with the "position" argument signaling the
@@ -4726,7 +4728,7 @@
 
 			/**
 			 * Removes any duplicate position entries from given array
-			 * 
+			 *
 			 * @param {Object[]} arr - An array containing position objects
 			 * @returns {Object[]} The same array with all duplicates removed
 			 */
