@@ -216,6 +216,8 @@ a:focus::before {
 
 .sectionNavTxt {
 	color: black;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .indexAnchor {
