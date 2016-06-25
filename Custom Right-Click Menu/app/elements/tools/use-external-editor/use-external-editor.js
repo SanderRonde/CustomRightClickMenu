@@ -3,7 +3,7 @@ Polymer({
 
 	/*
 	 * The port at which the app is located
-	 * 
+	 *
 	 * @attribute appPort
 	 * @type Object
 	 * @default null
@@ -12,7 +12,7 @@ Polymer({
 
 	/*
 	 * The connection to the app and its status
-	 * 
+	 *
 	 * @attribute connection
 	 * @type Object
 	 * @default {status: 'no connection',connected: false}
@@ -24,7 +24,7 @@ Polymer({
 
 	/*
 	 * The choose-script show animation for the main div
-	 * 
+	 *
 	 * @attribute dialogMainDivAnimationShow
 	 * @type Object
 	 * @default null
@@ -33,7 +33,7 @@ Polymer({
 
 	/*
 	 * The choose-script hide animation for the main div
-	 * 
+	 *
 	 * @attribute dialogMainDivAnimationHide
 	 * @type Object
 	 * @default null
@@ -42,7 +42,7 @@ Polymer({
 
 	/*
 	 * The choose-script show animation for the comparison div
-	 * 
+	 *
 	 * @attribute dialogComparisonDivAnimationShow
 	 * @type Object
 	 * @default null
@@ -51,7 +51,7 @@ Polymer({
 
 	/*
 	 * The choose-script hide animation for the comparison div
-	 * 
+	 *
 	 * @attribute dialogComparisonDivAnimationHide
 	 * @type Object
 	 * @default null
@@ -60,7 +60,7 @@ Polymer({
 
 	/*
 	 * The animation for expanding the dialog
-	 * 
+	 *
 	 * @attribute dialogExpansionAnimation
 	 * @type Object
 	 * @default null
@@ -69,7 +69,7 @@ Polymer({
 
 	/*
 	 * The animation for contracting the dialog
-	 * 
+	 *
 	 * @attribute dialogContractionAniation
 	 * @type Object
 	 * @default null
@@ -78,7 +78,7 @@ Polymer({
 
 	/*
 	 * Whether the chooseScript animation is showing the comparison dialog
-	 * 
+	 *
 	 * @attribute chooseScriptShowingComparison
 	 * @type Boolean
 	 * @default true
@@ -87,7 +87,7 @@ Polymer({
 
 	/*
 	 * The CodeMirror editor used to merge your code
-	 * 
+	 *
 	 * @attribute editor
 	 * @type Object
 	 * @default null
@@ -96,7 +96,7 @@ Polymer({
 
 	/*
 	 * The animation that fades in the editor
-	 * 
+	 *
 	 * @attribute editorFadeInAnimation
 	 * @type Object
 	 * @default null
@@ -105,7 +105,7 @@ Polymer({
 
 	/*
 	 * The style properties of the dialog before expanding
-	 * 
+	 *
 	 * @attribute dialogStyleProperties
 	 * @type Object
 	 * @default {}
@@ -363,7 +363,7 @@ Polymer({
 
 	/*
 	 * Takes actions based on what messages are received from the other extension
-	 * 
+	 *
 	 * @param {object} msg - The message passed along
 	 */
 	messageHandler: function(msg) {
