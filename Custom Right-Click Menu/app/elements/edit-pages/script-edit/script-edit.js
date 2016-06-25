@@ -1,5 +1,4 @@
 ﻿/// <reference path="../../crm-app/crm-app.js" />
-/// <reference path="~/app/bower_components/polymer/polymer-micro.js" />
 (function () {
 	'use strict';
 	Polymer({
