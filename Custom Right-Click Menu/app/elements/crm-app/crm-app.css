@@ -92,7 +92,7 @@ paper-ripple {
 	z-index: 5;
 }
 
-#menuSwitchUndoButton, #externalEditorTryAgainButton, #externalEditoOpenLocationInBrowser {
+#menuSwitchUndoButton, #externalEditorTryAgainButton, #externalEditoOpenLocationInBrowser, .toastLink {
 	color: rgb(238, 255, 65);
 	margin: 10px;
 	cursor: pointer;
