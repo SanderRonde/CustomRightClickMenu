@@ -842,16 +842,18 @@
 		},
 
 		changeTab: function(mode) {
-			if (mode === 'main') {
-				this.editorMode = 'main';
-				this.enableButtons();
-				this.newSettings.value.backgroundScript = this.editor.getValue();
-				this.editor.setValue(this.newSettings.value.script);
-			} else {
-				this.editorMode = 'background';
-				this.disableButtons();
-				this.newSettings.value.script = this.editor.getValue();
-				this.editor.setValue(this.newSettings.value.backgroundScript || '');
+			if (mode !== this.editorMode) {
+				if (mode === 'main') {
+					this.editorMode = 'main';
+					this.enableButtons();
+					this.newSettings.value.backgroundScript = this.editor.getValue();
+					this.editor.setValue(this.newSettings.value.script);
+				} else {
+					this.editorMode = 'background';
+					this.disableButtons();
+					this.newSettings.value.script = this.editor.getValue();
+					this.editor.setValue(this.newSettings.value.backgroundScript || '');
+				}
 			}
 		},
 
