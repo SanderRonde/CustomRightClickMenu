@@ -16,7 +16,7 @@ var generators = {
 
 /**
  * Sanitizes the name to fit the URL bar for linking to the docs webpage
- * 
+ *
  * @param {string} name - The name to sanitize
  * @returns {string} The sanitized name
  */
@@ -26,7 +26,7 @@ function sanitizeName(name) {
 
 /**
  * Gets the short description (like this line) from given comment lines
- * 
+ *
  * @param {string[]} commentLines - The lines of which to get the description
  * @returns {string} The description
  */
@@ -45,7 +45,7 @@ function getDescr(commentLines) {
 
 /**
  * Adjusts the type to the way tern wants them
- * 
+ *
  * @param {string} type - The type to adjust
  * @returns {string} The type, adjusted
  */
@@ -55,10 +55,10 @@ function adjustType(type) {
 
 /**
  * Gets the type (number, function, obj, etc.) at given line
- * 
- * @param {string} line 
+ *
+ * @param {string} line
  * @returns {Object} An object containing the type and a lineSplit property,
- *		the lineSplit property is the line split to remove any from-now-on 
+ *		the lineSplit property is the line split to remove any from-now-on
  *		irrelevant info (such as the type)
  */
 function getType(line) {
@@ -75,7 +75,7 @@ function getType(line) {
 
 /**
  * Gets the type (number, function, obj, etc.) and name of a parameter/property from given line
- * 
+ *
  * @param {string} line - The line to analyze
  * @returns {Object} An object containing the type and name
  */
@@ -94,7 +94,7 @@ function getTypeAndName(line) {
 
 /**
  * Converts a comment block to its properties in object form from string form
- * 
+ *
  * @param {string[]} unparsedComment - An array of the lines of the unparsed comment
  * @param {string} descr - The description of a given comment block (the line above the blank line)
  * @returns {Object} An object containing the type of the property (function, typedef etc) and
@@ -243,7 +243,7 @@ function convertCommentBlockToProperties(unparsedComment, descr) {
 
 /**
  * Parses given comment block
- * 
+ *
  * @param {Object} detailedDefs - The object to store the detailed definitions
  * @param {Object} defines - The object to store any defines (new classes/types)
  * @param {Object} cont - The object to store the regular, less detailed definitions
@@ -402,7 +402,7 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 
 /**
  * Extracts the definitions from given lines
- * 
+ *
  * @param {Object} detailedDefs - The object to store the detailed definitions
  * @param {Object} definitions - The object to store the regular, less detailed definitions
  * @param {Object} defines - The object to store any defines (new classes/types)
@@ -447,8 +447,32 @@ function extractDefsFromLine(detailedDefs, definitions, defines, lines, lineNumb
 }
 
 /**
+ * Gets the indentation used in this file
+ *
+ * @param {string[]} lines - The lines in the file
+ * @returns {number} The indentation size (number of spaces or 1 for tabs)
+ */
+function getIndentation(lines) {
+	var fnRegex = /function(\s+)CrmAPIInit/;
+	var i = -1;
+	while (!lines[++i].match(fnRegex)) {}
+
+	//Line lines[i] is now the main function declaration,next line should contain indenting
+	if (lines[i+1].indexOf('{') === -1) {
+		//If the function declaration hasn't been passed through to the next line
+		i += 1;
+	} else {
+		i += 2;
+	}
+
+	var firstLineRegex = /((\s)+)\w/;
+	var match = lines[i].match(firstLineRegex);
+	return match[1].split(' ').length;
+}
+
+/**
  * Extracts the definitions from given JS
- * 
+ *
  * @param {string} js - The JS to analyze
  * @param {boolean} isTernExtraction - If the extraction is a tern extraction (less detailed, more specific)
  * @param {string} docsLoc - The location of the docs webpage
@@ -460,8 +484,11 @@ function extractDefs(js, isTernExtraction, docsLoc) {
 	var defines = {};
 
 	var lines = js.split('\n');
+
+	var indentation = getIndentation(lines);
+
 	var searchingCommentEnd = false;
-	var propRegex = new RegExp(/(\s)this.(\w+)/);
+	var propRegex = new RegExp('(\\s{' + indentation + '})this.(\\w+)');
 	var typeDefRegex = new RegExp(/(\s+)\* @typedef/);
 	var callbackRegex = new RegExp(/(\s+)\* @callback/);
 	for (var i = 0; i < lines.length; i++) {
@@ -503,7 +530,7 @@ module.exports = function (grunt) {
 			var destFile = file.dest;
 			var sourceFile = file.src[0];
 			var isTern = options.type === 'tern' || options.type === 'json';
-			var result = extractDefs(grunt.file.read(sourceFile), isTern, 
+			var result = extractDefs(grunt.file.read(sourceFile), isTern,
 				(options.local ? '/html/crmAPIDocs.html' : 'https://www.sanderronde.github.io/'));
 
 			result = generators[options.type].generate(result, options);
