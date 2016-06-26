@@ -1,11 +1,6 @@
 ﻿'use strict';
 
 (function() {
-	/**
-	 * A shorthand name for chrome.storage.sync
-	 */
-	window.storage = chrome.storage.sync;
-
 	window.runOrAddAsCallback = function(toRun, thisElement, params) {
 		if (window.app.settings) {
 			toRun.apply(thisElement, params);
@@ -1957,8 +1952,6 @@
 				return script;
 			},
 
-			// "window['chrome'].runtime.getURL();\nvar x = chrome.runtime.getURL();\nfunction x() {\nreturn chrome.runtime.getURL();}\nx();\nif (true) {\nwindow.chrome.getURL();}else{\nwindow.chrome.getURL();}\n(true ? chrome.runtime.sendMessage() : chrome.runtime.getURL());chrome.runtime.getURL() || chrome.runtime.sendMessage();"
-
 			/**
 			 * Removes any duplicate position entries from given array
 			 *
@@ -2006,6 +1999,30 @@
 			}
 		},
 
+		generateScriptUpgradeErrorHandler: function(id) {
+			return function(oldScriptErrors, newScriptErrors, parseError) {
+				chrome.storage.local.get(function (keys) {
+					if (!keys.upgradeErrors) {
+						var val = {};
+						val[id] = {
+							oldScript: oldScriptErrors,
+							newScript: newScriptErrors,
+							generalError: parseError
+						};
+
+						keys.upgradeErrors = val;
+						window.app.storageLocal.upgradeErrors = val;
+					}
+					keys.upgradeErrors[id] = window.app.storageLocal.upgradeErrors[id] = {
+						oldScript: oldScriptErrors,
+						newScript: newScriptErrors,
+						generalError: parseError
+					};
+					chrome.storage.local.set({ upgradeErrors: keys.upgradeErrors });
+				});
+			}
+		},
+
 		parseOldCRMNode: function (string, openInNewTab) {
 			var node = {};
 			var oldNodeSplit = string.split('%123');
@@ -2017,15 +2034,21 @@
 			switch (type) {
 				//Stylesheets don't exist yet so don't implement those
 				case 'link':
+					var split;
+					if (nodeData.indexOf(', ') > -1) {
+						split = nodeData.split(', ');
+					} else {
+						split = nodeData.split(',');
+					}
 					node = this.templates.getDefaultLinkNode({
 						name: name,
 						id: this.generateItemId(),
-						value: [
-							{
+						value: split.map(function(url) {
+							return {
 								newTab: openInNewTab,
-								url: nodeData
-							}
-						]
+								url: url
+							};
+						})
 					});
 					break;
 				case 'divider':
@@ -2063,27 +2086,7 @@
 							triggers: triggers,
 							updateNotice: true,
 							oldScript: scriptData,
-							script: this.legacyScriptReplace.convertScriptFromLegacy(scriptData, function(oldScriptErrors, newScriptErrors, parseError) {
-								chrome.storage.local.get(function (keys) {
-									if (!keys.upgradeErrors) {
-										var val = {};
-										val[id] = {
-											oldScript: oldScriptErrors,
-											newScript: newScriptErrors,
-											generalError: parseError
-										};
-
-										keys.upgradeErrors = val;
-										window.app.storageLocal.upgradeErrors = val;
-									}
-									keys.upgradeErrors[id] = window.app.storageLocal.upgradeErrors[id] = {
-										oldScript: oldScriptErrors,
-										newScript: newScriptErrors,
-										generalError: parseError
-									};
-									chrome.storage.local.set({ upgradeErrors: keys.upgradeErrors });
-								});
-							})
+							script: this.legacyScriptReplace.convertScriptFromLegacy(scriptData, this.generateScriptUpgradeErrorHandler(id))
 						}
 					});
 					break;
@@ -2110,17 +2113,19 @@
 			}
 		},
 
-		transferCRMFromOld: function(openInNewTab) {
-			var amount = parseInt(localStorage.getItem('numberofrows'), 10) + 1;
+		transferCRMFromOld: function(openInNewTab, storageSource) {
+			storageSource = storageSource || localStorage;
+			var amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
 			var nodes = [];
 			for (var i = 1; i < amount; i++) {
-				nodes.push(this.parseOldCRMNode(localStorage.getItem(i), openInNewTab));
+				nodes.push(this.parseOldCRMNode(storageSource.getItem(i), openInNewTab));
 			}
 
 			//Structure nodes with children etc
 			var crm = [];
 			this.assignParents(crm, nodes, 0, nodes.length);
+			return crm;
 		},
 
 		handleDataTransfer: function(_this) {
@@ -2519,6 +2524,28 @@
 		 */
 		templates: {
 			/**
+			 * Merges two arrays
+			 *
+			 * @param {any[]} mainArray - The main array
+			 * @param {any[]} additions - The additions array
+			 * @returns {any[]} The merged arrays
+			 */
+			mergeArrays: function(mainArray, additionArray) {
+				for (var i = 0; i < additionArray.length; i++) {
+					if (mainArray[i] && typeof additionArray[i] === 'object') {
+						if (Array.isArray(additionArray[i])) {
+							mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
+						} else {
+							mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+						}
+					} else {
+						mainArray[i] = additionArray[i];
+					}
+				}
+				return mainArray;
+			},
+
+			/**
 			 * Merges two objects
 			 *
 			 * @param {Object} mainObject - The main object
@@ -2530,7 +2557,11 @@
 				for (var key in additions) {
 					if (additions.hasOwnProperty(key)) {
 						if (typeof additions[key] === 'object') {
-							this.mergeObjects(mainObject[key], additions[key]);
+							if (Array.isArray(additions[key])) {
+								mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+							} else {
+								mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
+							}
 						} else {
 							mainObject[key] = additions[key];
 						}
