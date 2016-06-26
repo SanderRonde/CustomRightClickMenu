@@ -162,10 +162,6 @@ module.exports = function(grunt) {
 			jqueryConcat: {
 				src: ['app/js/jquery-2.0.3.min.js', 'app/js/jquery-ui.min.js', 'app/js/jquery.requestAnimationFrame.min.js', 'app/js/jquery.contextMenu.js', 'app/js/jquery.bez.js'],
 				dest: 'build/js/jqueryFiles.min.js'
-			},
-			contentScriptConcat: {
-				src: ['app/js/jquery-2.0.3.min.js', 'app/js/jquery.contextMenu.js', 'app/js/contentscript.js'],
-				dest: 'build/js/contentscript.js'
 			}
 		},
 		usebanner: {
@@ -455,7 +451,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'concat:contentScriptConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
+	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);

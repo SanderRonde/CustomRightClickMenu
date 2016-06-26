@@ -4,7 +4,7 @@
 	"options_page": "html/options.html",
 	"name": "Custom Right-Click Menu",
 	"description": "Create a custom right-click menu and choose the links you to have in it. You can even add your own scripts or markup for the page.",
-	"version": "2.0.18",
+	"version": "2.0.19",
 	"version_name": "2.0 beta",
 	"short_name": "CRM",
 
@@ -22,10 +22,7 @@
 	"content_scripts": [
 		{
 			"matches": [ "<all_urls>" ],
-			"js": [
-				/* build:json:remove */ "js/jquery-2.0.3.min.js", "js/jquery.contextMenu.js", /* /build */
-				"js/contentscript.js" ],
-			"css": ["/css/jquery.contextMenu.css"]
+			"js": [ "js/contentscript.js" ]
 		}
 	],
 
