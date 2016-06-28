@@ -12,11 +12,10 @@
 		this.$.checkbox.disabled = value;
 	},
 
-	ready: function () {
-		var _this = this;
-		chrome.storage.local.get(function (e) {
-			_this.toggled = e[$(_this).attr('id')];
-		});
+	init: function (storage) {
+		console.log('initting');
+		console.log(storage);
+		this.toggled = storage[$(this).attr('id')];
 	},
 
 	onClick: function() {

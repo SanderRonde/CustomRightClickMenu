@@ -117,14 +117,14 @@
 			resultStorage = this.item;
 		}
 
-		this.saveChanges && this.saveChanges(resultStorage);
+		var newSettings = this.newSettings;
+		this.saveChanges && this.saveChanges(newSettings);
 
-		this.getContentTypeLaunchers(resultStorage);
-		this.getTriggers(resultStorage);
+		this.getContentTypeLaunchers(newSettings);
+		this.getTriggers(newSettings);
 		window.crmEditPage.animateOut();
 
 		var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
-		var newSettings = this.newSettings;
 		itemInEditPage.name = newSettings.name;
 
 		if (!newSettings.onContentTypes[window.app.crmType]) {

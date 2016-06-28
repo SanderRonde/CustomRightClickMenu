@@ -492,6 +492,18 @@
 				case 'CRM_launchMode':
 					cm.updateMetaTags(cm, key, oldValue, value, true);
 					break;
+				case 'permission':
+					switch (changeType) {
+						case 'added':
+							//If the only @grant is "none", remove it,
+							cm.removeMetaTags(cm, 'match', 'none');
+							cm.addMetaTags(cm, 'match', value);
+							break;
+						case 'removed':
+							cm.removeMetaTags(cm, 'match', value);
+							break;
+					}
+					break;
 				case 'match':
 				case 'include':
 				case 'exclude':
@@ -933,6 +945,9 @@
 			}
 			//Prepare all permissions
 			chrome.permissions.getAll(function(extensionWideEnabledPermissions) {
+				if (!nodeItem.permissions) {
+					nodeItem.permissions = [];
+				}
 				var scriptPermissions = nodeItem.permissions;
 				var permissions = window.app.templates.getScriptPermissions();
 				extensionWideEnabledPermissions = extensionWideEnabledPermissions.permissions;
@@ -1001,6 +1016,8 @@
 					$('.requestPermissionButton').off('click').on('click', function() {
 						permission = this.previousElementSibling.previousElementSibling.textContent;
 						var slider = this;
+						var oldPermissions;
+						debugger;
 						if (this.checked) {
 							if (extensionWideEnabledPermissions.indexOf(permission) === -1) {
 								chrome.permissions.request({
@@ -1021,17 +1038,23 @@
 
 										//Add to script's permissions
 										settingsStorage.permissions = settingsStorage.permissions || [];
+										oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 										settingsStorage.permissions.push(permission);
+										_this.metaTagsUpdateFromSettings('added', 'permission', permission);
 									}
 								});
 							} else {
 								//Add to script's permissions
 								settingsStorage.permissions = settingsStorage.permissions || [];
+								oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 								settingsStorage.permissions.push(permission);
+								_this.metaTagsUpdateFromSettings('added', 'permission', permission);
 							}
 						} else {
 							//Remove from script's permissions
+							oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 							settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
+							_this.metaTagsUpdateFromSettings('removed', 'permission', permission);
 						}
 					});
 				}
@@ -1869,6 +1892,7 @@
 			this.$.dropdownMenu.init();
 			this.$.exportMenu.init();
 			this.initDropdown();
+			this.selectorStateChange(0, this.newSettings.launchMode)
 			this.addDialogToMetaTagUpdateListeners();
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
 				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]

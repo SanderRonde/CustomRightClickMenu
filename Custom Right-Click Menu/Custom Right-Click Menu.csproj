@@ -893,6 +893,7 @@
     <Content Include="app\bower_components\paper-radio-button\README.md" />
     <Content Include="app\bower_components\paper-toggle-button\bower.json" />
     <Content Include="app\bower_components\paper-toggle-button\README.md" />
+    <Content Include="test\test.js" />
     <Content Include="tools\defGenerators\htmlGenerator.js" />
     <Content Include="tools\extractDefs.js" />
     <Content Include="app\html\webmanifest.json" />

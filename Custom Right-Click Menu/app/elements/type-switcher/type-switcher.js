@@ -220,7 +220,10 @@
 						item.triggers = item.value.triggers;
 						delete item.value.triggers;
 					}
-					item.triggers = item.triggers || ['*://*.example.com/*'];
+					item.triggers = item.triggers || [{
+						url: '*://*.example.com/*',
+						not: false
+					}];
 
 					item.value = [
 						{
@@ -234,7 +237,10 @@
 						triggers = item.triggers;
 						delete item.triggers;
 					}
-					triggers = triggers || item.value.triggers || ['*://*.example.com/*'];
+					triggers = triggers || item.value.triggers || [{
+						url: '*://*.example.com/*',
+						not: false
+					}];
 					item.value = window.app.templates.getDefaultScriptValue({
 						triggers: triggers
 					});
@@ -245,7 +251,10 @@
 						delete item.value.triggers;
 					}
 					item.value = null;
-					item.triggers = item.triggers || ['*://*.example.com/*'];
+					item.triggers = item.triggers || [{
+						url: '*://*.example.com/*',
+						not: false
+					}];
 					break;
 				case 'menu':
 					if (item.value.triggers) {
@@ -253,14 +262,20 @@
 						delete item.value.triggers;
 					}
 					item.value = null;
-					item.triggers = item.triggers || ['*://*.example.com/*'];
+					item.triggers = item.triggers || [{
+						url: '*://*.example.com/*',
+						not: false
+					}];
 					break;
 				case 'stylesheet':
 					if (item.triggers) {
 						triggers = item.triggers;
 						delete item.triggers;
 					}
-					triggers = triggers || item.value.triggers || ['*://*.example.com/*'];
+					triggers = triggers || item.value.triggers || [{
+						url: '*://*.example.com/*',
+						not: false
+					}];
 					item.value = window.app.templates.getDefaultStylesheetValue({
 						triggers: triggers
 					});

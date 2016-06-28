@@ -331,6 +331,8 @@
 				} else {
 					this.handleFirstTime(this);
 				}
+				console.log(document.querySelector('#betaTestMessageDialog'));
+				document.querySelector('#betaTestMessageDialog').close();
 			}
 		},
 
@@ -718,7 +720,7 @@
 			var i;
 			var crmEl;
 			var selectedType = this.crmType;
-			if (type !== undefined) {
+			if (!type.x) {
 				for (i = 0; i < 6; i++) {
 					crmEl = document.querySelectorAll('.crmType').item(i);
 					if (i === type) {
@@ -791,6 +793,7 @@
 		 */
 		generateItemId: function() {
 			var _this = this;
+			this.latestId = this.latestId || 0;
 			this.latestId++;
 			chrome.storage.local.set({
 				latestId: _this.latestId
@@ -974,6 +977,8 @@
 			var storageLocal = this.storageLocal;
 			var storageLocalCopy = this.storageLocalCopy;
 
+
+			return;
 			var settingsChanges = [];
 			var settings = this.settings;
 			var settingsCopy = this.settingsCopy;
@@ -1630,8 +1635,8 @@
 				var lineExprEnd = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, expr.callee.end);
 
 				var newLine = firstLine.slice(0, lineExprStart) +
-					'window.crmAPI.chrome(\'' + chromeAPI.call + '\')' +
-					firstLine.slice(lineExprEnd);
+					'window.crmAPI.chrome(\'' + chromeAPI.call + '\')';
+
 				var lastChar = null;
 				while (newLine[(lastChar = newLine.length - 1)] === ' ') {
 					newLine = newLine.slice(0, lastChar);
@@ -1640,8 +1645,24 @@
 					newLine = newLine.slice(0, lastChar);
 				}
 
-				if (data.isReturn) {
-					newLine += '.return(function(' + data.returnName + ') {';
+				if (chromeAPI.args !== '()') {
+					var argsLines = chromeAPI.args.split('\n');
+					newLine += argsLines[0];
+					for (i = 1; i < argsLines.length; i++) {
+						lines[callLines.from.line + i] = argsLines[i]; 
+					}
+				}
+				if (!data.isReturn) {
+					lines[callLines.from.line + (i - 1)] = lines[callLines.from.line + (i - 1)] + '.send();';
+					if (i === 1) {
+						newLine += '.send();';
+					}
+				} else {
+					var lineRest = firstLine.slice(lineExprEnd + chromeAPI.args.split('\n')[0].length);
+					while (lineRest.indexOf(';') === 0) {
+						lineRest = lineRest.slice(1);
+					}
+					newLine += '.return(function(' + data.returnName + ') {' + lineRest;
 					var usesTabs = true;
 					var spacesAmount = 0;
 					//Find out if the writer uses tabs or spaces
@@ -1671,13 +1692,54 @@
 						indent[spacesAmount] = ' ';
 						indent = indent.join(' ');
 					}
-					for (i = callLines.to.line + 1; i < data.persistent.lines.length; i++) {
-						data.persistent.lines[i] = indent + data.persistent.lines[i];
-					}
-					data.persistent.lines.push('}).send();');
+					
+					//Only do this for the current scope
+					var scopeLength = null;
+					var idx = null;
+					for (var i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
+						if (data.parentExpressions[i].type === 'BlockStatement' || 
+								(data.parentExpressions[i].type === 'FunctionExpression' && 
+									data.parentExpressions[i].body.type === 'BlockStatement')) {
+							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, data.parentExpressions[i].end);
+							idx = 0;
 
-				} else {
-					newLine += '.send();';
+							//Get the lowest possible scopeLength as to stay on the last line of the scope
+							while (scopeLength > 0) {
+								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line + (++idx), data.parentExpressions[i].end);
+							}
+							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line + (idx - 1), data.parentExpressions[i].end)
+						}
+					}
+					if (idx === null) {
+						idx = (lines.length - callLines.from.line) + 1;
+					} 
+
+					var indents = 0;
+					var newLineData = lines[callLines.from.line];
+					while (newLineData.indexOf(indent) === 0) {
+						newLineData = newLineData.replace(indent, '');
+						indents++;
+					}
+
+					//Push in one extra line at the end of the expression
+					var prevLine;
+					var indentArr= [];
+					indentArr[indents] = '';
+					var prevLine2 = indentArr.join(indent) + '}).send();';
+					var max = data.persistent.lines.length + 1;
+					for (i = callLines.from.line; i < callLines.from.line + (idx - 1); i++) {
+						lines[i] = indent + lines[i];
+					}
+
+					//If it's going to add a new line, indent the last line as well
+					// if (idx === (lines.length - callLines.from.line) + 1) {
+					// 	lines[i] = indent + lines[i];
+					// }
+					for (i = callLines.from.line + (idx - 1); i < max; i++) {
+						prevLine = lines[i];
+						lines[i] = prevLine2; 
+						prevLine2 = prevLine;
+					}
 				}
 				lines[callLines.from.line] = newLine;
 				return;
@@ -1774,16 +1836,29 @@
 						break;
 					case 'CallExpression':
 					case 'MemberExpression':
+						var argsTocheck = [];
 						if (expression.arguments && expression.arguments.length > 0) {
 							for (i = 0; i < expression.arguments.length; i++) {
-								if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
-									return true;
+								if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
+									//It's not a direct call to chrome, just handle this later after the function has been checked
+									argsTocheck.push(expression.arguments[i]);
+								} else {
+									if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
+										return true;
+									}
 								}
 							}
 						}
 						data.functionCall = [];
 						if (expression.callee) {
-							return this.callsChromeFunction(expression.callee, data, onError);
+							if (this.callsChromeFunction(expression.callee, data, onError)) {
+								return true;
+							}
+						}
+						for (i = 0; i < argsTocheck.length; i++) {
+							if (this.findChromeExpression(argsTocheck[i], this.removeObjLink(data), onError)) {
+								return true;
+							}
 						}
 						break;
 					case 'AssignmentExpression':
@@ -1897,7 +1972,7 @@
 				var file = new window.TernFile('[doc]');
 				file.text = lines.join('\n');
 				var srv = new window.CodeMirror.TernServer({
-					defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+					defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs].concat(window.crmAPIDefs ? [window.crmAPIDefs] : [])
 				});
 				window.tern.withContext(srv.cx, function() {
 					file.ast = window.tern.parse(file.text, srv.passes, {
@@ -1985,14 +2060,14 @@
 				try {
 					script = this.replaceChromeCalls(script.split('\n'), 0, this.generateOnError(errors));
 				} catch (e) {
-					onError(null, null, true);
+					onError(null, null, true, e);
 					return script;
 				}
 
 				var firstPassErrors = errors[0];
 				var finalPassErrors = errors[errors.length - 1];
 				if (finalPassErrors) {
-					onError(this.removePositionDuplicates(firstPassErrors), this.removePositionDuplicates(finalPassErrors));
+					onError(this.removePositionDuplicates(firstPassErrors), this.removePositionDuplicates(finalPassErrors), false, errors);
 				}
 
 				return script;
@@ -2095,36 +2170,35 @@
 			return node;
 		},
 
-		assignParents: function(parent, nodes, startIndex, endIndex) {
-			for (var i = startIndex; i < endIndex; i++) {
-				var currentIndex = i;
-				if (nodes[i].type === 'menu') {
-					var start = i + 1;
-					//The amount of children it has
-					i += parseInt(nodes[i].children, 10);
-					var end = i + 1;
-
+		assignParents: function(parent, nodes, index, amount) {
+			for (; amount !== 0 && nodes[index.index]; index.index++, amount--) {
+				var currentIndex = index.index;
+				if (nodes[currentIndex].type === 'menu') {
+					var childrenAmount = ~~nodes[currentIndex].children;
 					nodes[currentIndex].children = [];
-
-					this.assignParents(nodes[currentIndex].children, nodes, start, end);
+					index.index++;
+					this.assignParents(nodes[currentIndex].children, nodes, index, childrenAmount);
+					index.index--;
 				}
-
 				parent.push(nodes[currentIndex]);
 			}
 		},
 
 		transferCRMFromOld: function(openInNewTab, storageSource) {
+			var i;
 			storageSource = storageSource || localStorage;
 			var amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
 			var nodes = [];
-			for (var i = 1; i < amount; i++) {
+			for (i = 1; i < amount; i++) {
 				nodes.push(this.parseOldCRMNode(storageSource.getItem(i), openInNewTab));
 			}
 
 			//Structure nodes with children etc
 			var crm = [];
-			this.assignParents(crm, nodes, 0, nodes.length);
+			this.assignParents(crm, nodes, {
+				index: 0
+			}, nodes.length);
 			return crm;
 		},
 
@@ -2209,7 +2283,10 @@
 			_this.updateEditorZoom();
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
-			window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
+			window.doc.editCRMInRM.setCheckboxDisabledValue(false);
+			Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+				setting.init(defaultLocalStorage);
+			});
 		},
 
 		handleFirstTime: function(_this) {
@@ -2263,7 +2340,9 @@
 				},
 				shrinkTitleRibbon: false,
 				crm: [
-					_this.templates.getDefaultLinkNode()
+					_this.templates.getDefaultLinkNode({
+						id: this.generateItemId()
+					})
 				]
 			};
 
@@ -2286,7 +2365,10 @@
 			_this.updateEditorZoom();
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
-			window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
+			window.doc.editCRMInRM.setCheckboxDisabledValue(false);
+			Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+				setting.init(defaultLocalStorage);
+			});
 		},
 
 		checkFirstTime: function(storageLocal) {
@@ -2405,6 +2487,10 @@
 									.CRMOnPage);
 							}
 
+							Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+								setting.init(storageLocal);
+							});
+
 							_this.bindListeners();
 							delete storageLocal.nodeStorage;
 							if (storageLocal.requestPermissions && storageLocal.requestPermissions
@@ -2415,6 +2501,7 @@
 								setTimeout(function() {
 									//Check out if the code is actually different
 									var node = _this.nodesById[storageLocal.editing.id];
+									console.log(node);
 									var nodeCurrentCode = (node.type === 'script' ? node.value.script :
 										node.value.stylesheet);
 									if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
@@ -2456,9 +2543,6 @@
 							if (storageLocal.latestId) {
 								_this.latestId = storageLocal.latestId;
 							} else {
-								chrome.storage.local.set({
-									latestId: 0
-								});
 								_this.latestId = 0;
 							}
 							if (storageLocal.useStorageSync) {
@@ -2514,7 +2598,8 @@
 
 			chrome.storage.onChanged.addListener(function(changes, areaName) {
 				if (areaName === 'local' && changes.latestId) {
-					_this.latestId = changes.latestId.newValue;
+					var highest = changes.latestId.newValue > changes.latestId.oldValue ? changes.latestId.newValue : changes.latestId.oldvalue;
+					_this.latestId = highest;
 				}
 			});
 		},
@@ -2579,10 +2664,13 @@
 			getDefaultLinkNode: function(options) {
 				var defaultNode = {
 					name: 'name',
-					onContentTypes: [true, false, false, false, false, false],
+					onContentTypes: [true, true, true, false, false, false],
 					type: 'link',
 					showOnSpecified: false,
-					triggers: ['*://*.example.com/*'],
+					triggers: [{
+						url: '*://*.example.com/*',
+						not: false
+					}],
 					isLocal: true,
 					value: [
 						{
@@ -2606,14 +2694,17 @@
 					stylesheet: [
 						'/* ==UserScript==',
 						'// @name	name',
-						'// @CRM_contentTypes	[true, true, true, true, true, true]',
+						'// @CRM_contentTypes	[true, true, true, false, false, false]',
 						'// @CRM_launchMode	0',
 						'// @CRM_stylesheet	true',
 						'// @grant	none',
 						'// @match	*://*.example.com/*',
 						'// ==/UserScript== */'].join('\n'),
 					launchMode: 0,
-					triggers: ['*://*.example.com/*']
+					triggers: [{
+						url: '*://*.example.com/*',
+						not: false
+					}]
 				};
 
 				return this.mergeObjects(value, options);
@@ -2633,13 +2724,16 @@
 					script: [
 						'// ==UserScript==',
 						'// @name	name',
-						'// @CRM_contentTypes	[true, true, true, true, true, true]',
+						'// @CRM_contentTypes	[true, true, true, false, false, false]',
 						'// @CRM_launchMode	0',
 						'// @grant	none',
 						'// @match	*://*.example.com/*',
 						'// ==/UserScript=='].join('\n'),
 					backgroundScript: '',
-					triggers: ['*://*.example.com/*']
+					triggers: [{
+						url: '*://*.example.com/*',
+						not: false
+					}]
 				}
 
 				return this.mergeObjects(value, options);
@@ -2654,7 +2748,7 @@
 			getDefaultScriptNode: function(options) {
 				var defaultNode = {
 					name: 'name',
-					onContentTypes: [true, false, false, false, false, false],
+					onContentTypes: [true, true, true, false, false, false],
 					type: 'script',
 					isLocal: true,
 					value: this.getDefaultScriptValue(options.value)
@@ -2674,7 +2768,7 @@
 				var defaultNode = {
 					name: 'name',
 					type: type,
-					onContentTypes: [true, false, false, false, false, false],
+					onContentTypes: [true, true, true, false, false, false],
 					isLocal: true,
 					value: {}
 				}

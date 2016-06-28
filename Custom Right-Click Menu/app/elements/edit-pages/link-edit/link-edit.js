@@ -27,7 +27,7 @@
 		$(this.$.linksContainer).find('.linkChangeCont').each(function () {
 			resultStorage.value.push({
 				'url': $(this).children('paper-input')[0].value,
-				'newTab': ($(this).children('paper-checkbox').attr('aria-checked') !== 'true')
+				'newTab': ($(this).children('paper-checkbox')[0].getAttribute('aria-checked') !== 'true')
 			});
 		});
 	},
