@@ -13,8 +13,6 @@
 	},
 
 	init: function (storage) {
-		console.log('initting');
-		console.log(storage);
 		this.toggled = storage[$(this).attr('id')];
 	},
 

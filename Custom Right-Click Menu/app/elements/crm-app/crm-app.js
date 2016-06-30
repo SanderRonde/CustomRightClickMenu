@@ -977,8 +977,6 @@
 			var storageLocal = this.storageLocal;
 			var storageLocalCopy = this.storageLocalCopy;
 
-
-			return;
 			var settingsChanges = [];
 			var settings = this.settings;
 			var settingsCopy = this.settingsCopy;
@@ -2452,7 +2450,10 @@
 						//All elements have been loaded, unhide them all
 						window.setTimeout(function() {
 							document.documentElement.classList.remove('elementsLoading');
+
+							//Clear the annoying CSS mime type messages and the /deep/ warning
 							!window.lastError && console.clear();
+							
 							console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
 								'font-size:120%;font-weight:bold;');
 						}, 200);

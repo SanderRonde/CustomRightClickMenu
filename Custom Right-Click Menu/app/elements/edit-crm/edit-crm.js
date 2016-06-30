@@ -139,7 +139,8 @@ window.Polymer({
 	 * @returns {Element[]} An array of the columns
 	 */
 	getColumns: function () {
-		if (this.columns) {
+		//Check if the nodes still exist 
+		if (this.columns && document.contains(this.columns[0])) {
 			return this.columns;
 		}
 		return (this.columns = Array.from(this.$.mainCont.children).filter(function(element) {
@@ -164,7 +165,10 @@ window.Polymer({
 	 * @returns {Element} The column it's in
 	 */
 	getCurrentColumn: function(element) {
-		var fillerIndex = (element.filler && element.filler.column);
+		var fillerIndex = (element._filler && element._filler.column);
+		if (typeof fillerIndex !== 'number') {
+			fillerIndex = null;
+		}
 		return this.getColumn((fillerIndex === null || fillerIndex === undefined ?
 			                       element.parentNode.index :
 			                       fillerIndex));
@@ -177,7 +181,10 @@ window.Polymer({
 	 * @returns {Element} The next column
 	 */
 	getNextColumn: function(element) {
-		var fillerIndex = (element.filler && element.filler.column);
+		var fillerIndex = (element._filler && element._filler.column);
+		if (typeof fillerIndex !== 'number') {
+			fillerIndex = null;
+		}
 		return this.getColumn((fillerIndex === null ?
 			                       element.parentNode.index + 1 :
 			                       fillerIndex + 1));
@@ -190,7 +197,10 @@ window.Polymer({
 	 * @returns {Element} The previous column
 	 */
 	getPrevColumn: function (element) {
-		var fillerIndex = (element.filler && element.filler.column);
+		var fillerIndex = (element._filler && element._filler.column);
+		if (typeof fillerIndex !== 'number') {
+			fillerIndex = null;
+		}
 		return this.getColumn((fillerIndex === null ?
 			                       element.parentNode.index - 1 :
 			                       fillerIndex - 1));
@@ -374,6 +384,8 @@ window.Polymer({
 				columnNum++;
 			}
 		}
+
+		this.columns = null;
 
 		return {
 			crm: crmEditObj,
