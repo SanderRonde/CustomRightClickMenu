@@ -48,7 +48,7 @@
 
 	addLink: function() {
 		window.linkEdit.push('newSettings.value', {
-			url: 'www.example.com',
+			url: 'http://www.example.com',
 			newTab: true
 		});
 	},

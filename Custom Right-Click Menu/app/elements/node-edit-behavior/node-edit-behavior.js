@@ -259,14 +259,17 @@
 	 * Is triggered when the option in the dropdown menu changes animates in what's needed
 	 */
 	selectorStateChange: function (prevState, state) {
+		debugger;
 		var _this = this;
 		var newStates = {
 			showContentTypeChooser: (state === 0 || state === 3),
-			showTriggers: (state > 1)
+			showTriggers: (state > 1),
+			showInsteadOfExecute: (state === 3)
 		};
 		var oldStates = {
 			showContentTypeChooser: (prevState === 0 || prevState === 3),
-			showTriggers: (prevState > 1)
+			showTriggers: (prevState > 1),
+			showInsteadOfExecute: (prevState === 3)
 		};
 
 		var triggersElement = this.$.executionTriggersContainer;
@@ -357,9 +360,14 @@
 		else if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
 			animateContentTypeChooser();
 		}
+
+		if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
+			this.$.showOrExecutetxt.innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
+		}
 	},
 
 	initDropdown: function () {
+		debugger;
 		this.showTriggers = (this.item.value.launchMode > 1);
 		this.showContentTypeChooser = (this.item.value.launchMode === 0 || 3);
 		if (this.showTriggers) {

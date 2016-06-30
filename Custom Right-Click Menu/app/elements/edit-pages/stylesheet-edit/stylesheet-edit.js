@@ -258,7 +258,7 @@
 		}, 20);
 	},
 
-	updateFromScriptApplier: function (changeType, key, newValue, oldValue) {
+	updateFromScriptApplier: function (changeType, key, value, oldValue) {
 		var i;
 		console.log(arguments);
 		switch (key) {
@@ -276,127 +276,121 @@
 				} else {
 					this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
 						updateURL: (key === 'namespace' ? '' : undefined),
-						url: newValue[0]
+						url: value[0]
 					};
 					if (key === 'namespace') {
-						this.newSettings.nodeInfo.source.updateURL = newValue[0];
+						this.newSettings.nodeInfo.source.updateURL = value[0];
 					}
 					if (!this.newSettings.nodeInfo.source.url) {
-						this.newSettings.nodeInfo.source.url = newValue[0];
+						this.newSettings.nodeInfo.source.url = value[0];
 					}
 					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 				}
 				break;
 			case 'name':
-				this.set('newSettings.name', (changeType === 'removed') ? '' : newValue[0]);
+				this.set('newSettings.name', (changeType === 'removed') ? '' : value[0]);
 				window.crmEditPage.updateName(this.newSettings.name[0]);
 				break;
 			case 'version':
 				if (!this.newSettings.nodeInfo) {
 					this.newSettings.nodeInfo = {};
 				}
-				this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue[0]);
+				this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : value[0]);
 				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 				break;
 			case 'require':
 				//Change anonymous libraries to requires
-				var libraries = this.newSettings.value.libraries;
-				for (var k = 0; k < libraries.length; k++) {
-					if (libraries[k].name === null) {
-						libraries.splice(k, 1);
-						k--;
+					var libraries = this.newSettings.value.libraries;
+					for (var k = 0; k < libraries.length; k++) {
+						if (libraries[k].name === null) {
+							libraries.splice(k, 1);
+							k--;
+						}
 					}
-				}
-				metaTags.require.forEach(function (url) {
-					libraries.push({
-						name: null,
-						url: url
+					metaTags.require.forEach(function(url) {
+						libraries.push({
+							name: null,
+							url: url
+						});
 					});
-				});
-				this.set('newSettings.value.libraries', libraries);
-				window.paperLibrariesSelector.updateLibraries(libraries);
+					this.set('newSettings.value.libraries', libraries);
+					window.paperLibrariesSelector.updateLibraries(libraries);
 
-				//Register as a resource
-				function sendCreateAnonymousLibraryMessage() {
-					chrome.runtime.sendMessage({
-						type: 'anonymousLibrary',
-						data: {
-							type: 'register',
-							name: newValue[0],
-							url: newValue[0],
-							scriptId: this.item.id
-						}
-					});
-				}
+					//Register as a resource
+					function sendCreateAnonymousLibraryMessage(val) {
+						chrome.runtime.sendMessage({
+							type: 'anonymousLibrary',
+							data: {
+								type: 'register',
+								name: val,
+								url: val,
+								scriptId: this.item.id
+							}
+						});
+					}
 
-				function sendRemoveAnonymousLibraryMessage() {
-					chrome.runtime.sendMessage({
-						type: 'anonymousLibrary',
-						data: {
-							type: 'remove',
-							name: newValue[0],
-							url: newValue[0],
-							scriptId: this.item.id
-						}
-					});
-				}
+					function sendRemoveAnonymousLibraryMessage(val) {
+						chrome.runtime.sendMessage({
+							type: 'anonymousLibrary',
+							data: {
+								type: 'remove',
+								name: val,
+								url: val,
+								scriptId: this.item.id
+							}
+						});
+					}
 
-				switch (changeType) {
-					case 'added':
-						sendCreateAnonymousLibraryMessage();
-						break;
-					case 'changed':
-						sendRemoveAnonymousLibraryMessage();
-						sendCreateAnonymousLibraryMessage();
-						break;
-					case 'removed':
-						sendRemoveAnonymousLibraryMessage();
-						break;
-				}
-				break;
+					switch (changeType) {
+						case 'added':
+							sendCreateAnonymousLibraryMessage(value);
+							break;
+						case 'changed':
+							sendRemoveAnonymousLibraryMessage(oldValue);
+							sendCreateAnonymousLibraryMessage(value);
+							break;
+						case 'removed':
+							sendRemoveAnonymousLibraryMessage(value);
+							break;
+					}
+					break;
 			case 'author':
-				this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue[0]);
+				this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : value[0]);
 				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 				break;
 			case 'include':
 			case 'match':
 			case 'exclude':
 				var isExclude = (key === 'exclude');
-				if (changeType === 'changed' || changeType === 'removed') {
-					var triggers = this.newSettings.value.triggers;
-					for (i = 0; i < triggers.length; i++) {
-						if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
-							if (changeType === 'changed') {
-								//Replace this one
-								this.set('newSettings.value.triggers.' + i + '.url', newValue[0]);
-								this.set('newSettings.value.triggers.' + i + '.not', isExclude);
-							} else {
-								//Remove this one
-								this.splice('newSettings.value.triggers', i, 1);
+					if (changeType === 'changed' || changeType === 'removed') {
+						var triggers = this.newSettings.value.triggers;
+						for (i = 0; i < triggers.length; i++) {
+							if (JSON.stringify(value[i]) !== JSON.stringify(oldValue[i])) {
+								if (changeType === 'changed') {
+									//Replace this one
+									this.set('newSettings.value.triggers.' + i + '.url', value[0]);
+									this.set('newSettings.value.triggers.' + i + '.not', isExclude);
+								} else {
+									//Remove this one
+									this.splice('newSettings.value.triggers', i, 1);
+								}
+								break;
 							}
-							break;
 						}
-					}
-				} else {
-					//Add another one
-					if (!this.newSettings.value.triggers) {
-						this.newSettings.value.triggers = [];
-					}
+					} else {
+						//Add another one
+						if (!this.newSettings.value.triggers) {
+							this.newSettings.value.triggers = [];
+						}
 
-					//Get the one that was added
-					for (i = 0; i < newValue.length; i++) {
-						if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
-							break;
-						}
+						this.push('newSettings.value.triggers', {
+							url: value,
+							not: isExclude
+						});
 					}
-					this.push('newSettings.value.triggers', {
-						url: newValue[i],
-						not: isExclude
-					});
-				}
 				break;
 			case 'CRM_contentType':
-				var val = newValue[0];
+				var val = value[0];
 				var valArray;
 				try {
 					valArray = JSON.parse(val);
@@ -418,7 +412,7 @@
 				break;
 			case 'CRM_launchMode':
 				if (changeType !== 'removed') {
-					this.set('newSettings.value.launchMode', ~~newValue[i]);
+					this.set('newSettings.value.launchMode', ~~value[i]);
 				}
 				break;
 		}
@@ -559,7 +553,7 @@
 		}, 0);
 	},
 
-	launchModeUpdateFromDialog: function (prevState, state) {
+	launchModeUpdateFromDialog: function(prevState, state) {
 		this.metaTagsUpdate({
 			'changed': [
 				{
@@ -721,23 +715,28 @@
 
 	addDialogToMetaTagUpdateListeners: function () {
 		var _this = this;
-		this.async(function () {
+		this.async(function() {
 			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
 		}, 0);
 
-		//Use jquery to also get the pre-change value
-		$(this.$.nameInput).on('keydown', function () {
+		$(this.$.nameInput).on('keydown', function() {
 			var el = _this.$.nameInput;
+			var oldVal = el.value || '';
+			Array.isArray(oldVal) && (oldVal = oldVal[0]);
 			_this.async(function () {
-				_this.metaTagsUpdate({
-					'changed': [
-						{
-							key: 'name',
-							value: el.value,
-							oldValue: null
-						}
-					]
-				}, 'dialog');
+				var newVal = el.value || '';
+				Array.isArray(newVal) && (newVal = newVal[0]);
+				if (newVal !== oldVal) {
+					_this.metaTagsUpdate({
+						'changed': [
+							{
+								key: 'name',
+								value: newVal,
+								oldValue: oldVal
+							}
+						]
+					}, 'dialog');
+				}
 			}, 5);
 		});
 
@@ -1410,6 +1409,7 @@
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
 		this.initDropdown();
+		this.addDialogToMetaTagUpdateListeners();
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');
 		window.stylesheetEdit = this;

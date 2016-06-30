@@ -3021,17 +3021,10 @@
 					 * @returns {Function} the function to execute on click a stylesheet
 					 */
 					toggle: function(data, checked) {
-						var id = this.parent.stylesheetId++;
-						this.parent.usedStylesheetIds.push(id);
-
-						var style = document.createElement('style');
-						style.setAttribute('id', 'stylesheet' + id);
-						style.appendChild(document.createTextNode(data));
-						style.disabled = !checked;
-						document.head.appendChild(style);
+						var state = checked;
 
 						return function() {
-							style.disabled = !style.disabled;
+							alert('This would toggle a stylesheet ' + (state ? 'on' : 'off'));
 						}
 					},
 					/**
@@ -3043,10 +3036,12 @@
 					 */
 					normal: function(data) {
 						return function() {
-							var style = document.createElement('style');
-							style.appendChild(document.createTextNode(data));
-							document.head.appendChild(style);
+							alert('This would apply a stylesheet');
 						}
+					},
+
+					get parent() {
+						return window.app.pageDemo.handlers;
 					}
 				},
 

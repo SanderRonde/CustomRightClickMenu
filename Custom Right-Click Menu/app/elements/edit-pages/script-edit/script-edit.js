@@ -239,7 +239,7 @@
 			}, 20);
 		},
 
-		updateFromScriptApplier: function (changeType, key, newValue, oldValue) {
+		updateFromScriptApplier: function (changeType, key, value, oldValue) {
 			var i;
 			switch (key) {
 				case 'downloadURL':
@@ -256,26 +256,26 @@
 					} else {
 						this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
 							updateURL: (key === 'namespace' ? '' : undefined),
-							url: newValue[0]
+							url: value[0]
 						};
 						if (key === 'namespace') {
-							this.newSettings.nodeInfo.source.updateURL = newValue[0];
+							this.newSettings.nodeInfo.source.updateURL = value[0];
 						}
 						if (!this.newSettings.nodeInfo.source.url) {
-							this.newSettings.nodeInfo.source.url = newValue[0];
+							this.newSettings.nodeInfo.source.url = value[0];
 						}
 						window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 					}
 					break;
 				case 'name':
-					this.set('newSettings.name', (changeType === 'removed') ? '' : newValue[0]);
+					this.set('newSettings.name', (changeType === 'removed') ? '' : value[0]);
 					window.crmEditPage.updateName(this.newSettings.name[0]);
 					break;
 				case 'version':
 					if (!this.newSettings.nodeInfo) {
 						this.newSettings.nodeInfo = {};
 					}
-					this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : newValue[0]);
+					this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : value[0]);
 					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 					break;
 				case 'require':
@@ -297,25 +297,25 @@
 					window.paperLibrariesSelector.updateLibraries(libraries);
 
 					//Register as a resource
-					function sendCreateAnonymousLibraryMessage() {
+					function sendCreateAnonymousLibraryMessage(val) {
 						chrome.runtime.sendMessage({
 							type: 'anonymousLibrary',
 							data: {
 								type: 'register',
-								name: newValue[0],
-								url: newValue[0],
+								name: val,
+								url: val,
 								scriptId: this.item.id
 							}
 						});
 					}
 
-					function sendRemoveAnonymousLibraryMessage() {
+					function sendRemoveAnonymousLibraryMessage(val) {
 						chrome.runtime.sendMessage({
 							type: 'anonymousLibrary',
 							data: {
 								type: 'remove',
-								name: newValue[0],
-								url: newValue[0],
+								name: val,
+								url: val,
 								scriptId: this.item.id
 							}
 						});
@@ -323,19 +323,19 @@
 
 					switch (changeType) {
 						case 'added':
-							sendCreateAnonymousLibraryMessage();
+							sendCreateAnonymousLibraryMessage(value);
 							break;
 						case 'changed':
-							sendRemoveAnonymousLibraryMessage();
-							sendCreateAnonymousLibraryMessage();
+							sendRemoveAnonymousLibraryMessage(oldValue);
+							sendCreateAnonymousLibraryMessage(value);
 							break;
 						case 'removed':
-							sendRemoveAnonymousLibraryMessage();
+							sendRemoveAnonymousLibraryMessage(value);
 							break;
 					}
 					break;
 				case 'author':
-					this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : newValue[0]);
+					this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : value[0]);
 					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
 					break;
 				case 'include':
@@ -345,10 +345,10 @@
 					if (changeType === 'changed' || changeType === 'removed') {
 						var triggers = this.newSettings.value.triggers;
 						for (i = 0; i < triggers.length; i++) {
-							if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
+							if (JSON.stringify(value[i]) !== JSON.stringify(oldValue[i])) {
 								if (changeType === 'changed') {
 									//Replace this one
-									this.set('newSettings.value.triggers.' + i + '.url', newValue[0]);
+									this.set('newSettings.value.triggers.' + i + '.url', value[0]);
 									this.set('newSettings.value.triggers.' + i + '.not', isExclude);
 								} else {
 									//Remove this one
@@ -363,45 +363,33 @@
 							this.newSettings.value.triggers = [];
 						}
 
-						//Get the one that was added
-						for (i = 0; i < newValue.length; i++) {
-							if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
-								break;
-							}
-						}
 						this.push('newSettings.value.triggers', {
-							url: newValue[i],
+							url: value,
 							not: isExclude
 						});
 					}
 					break;
 				case 'resource':
 					//Get the one that was added
-					for (i = 0; i < newValue.length; i++) {
-						if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
-							break;
-						}
-					}
-
-					function sendCreateMessage() {
+					function sendCreateMessage(val) {
 						chrome.runtime.sendMessage({
 							type: 'resource',
 							data: {
 								type: 'register',
-								name: newValue[i].split(/(\s+)/)[0],
-								url: newValue[i].split(/(\s+)/)[1],
+								name: val.split(/(\s+)/)[0],
+								url: val.split(/(\s+)/)[1],
 								scriptId: this.item.id
 							}
 						});
 					}
 
-					function sendRemoveMessage() {
+					function sendRemoveMessageval() {
 						chrome.runtime.sendMessage({
 							type: 'resource',
 							data: {
 								type: 'remove',
-								name: oldValue[i].split(/(\s+)/)[0],
-								url: oldValue[i].split(/(\s+)/)[1],
+								name: val.split(/(\s+)/)[0],
+								url: val.split(/(\s+)/)[1],
 								scriptId: this.item.id
 							}
 						});
@@ -409,26 +397,18 @@
 
 					switch (changeType) {
 						case 'added':
-							sendCreateMessage();
+							sendCreateMessage(value);
 							break;
 						case 'changed':
-							sendRemoveMessage();
-							sendCreateMessage();
+							sendRemoveMessage(oldValue);
+							sendCreateMessage(value);
 							break;
 						case 'removed':
-							sendRemoveMessage();
+							sendRemoveMessage(value);
 							break;
 					}
 					break;
 				case 'grant':
-					function removePermission(index) {
-						this.splice('newSettings.nodeInfo.permissions', index, 1);
-
-						var allowedPermissions = this.newSettings.permissions;
-						var allowedIndex = allowedPermissions.indexOf(oldValue);
-						this.splice('newSettings.permissions', allowedIndex, 1);
-					}
-
 					if (!this.newSettings.nodeInfo) {
 						this.newSettings.nodeInfo = {};
 					}
@@ -436,26 +416,10 @@
 						this.newSettings.nodeInfo.permissions = [];
 					}
 
-					//Get the one that was added
-					for (i = 0; i < newValue.length; i++) {
-						if (JSON.stringify(newValue[i]) !== JSON.stringify(oldValue[i])) {
-							break;
-						}
-					}
-					switch (changeType) {
-						case 'added':
-							this.push('newSettings.nodeInfo.permissions', newValue[i]);
-							break;
-						case 'changed':
-							this.set('newSettings.nodeInfo.permissions.' + i, newValue[i]);
-							break;
-						case 'removed':
-							removePermission(i);
-							break;
-					}
+					this.set('newSettings.nodeInfo.permissions', value);
 					break;
 				case 'CRM_contentType':
-					var val = newValue[0];
+					var val = value[0];
 					var valArray;
 					try {
 						valArray = JSON.parse(val);
@@ -477,7 +441,7 @@
 					break;
 				case 'CRM_launchMode':
 					if (changeType !== 'removed') {
-						this.set('newSettings.value.launchMode', ~~newValue[i]);
+						this.set('newSettings.value.launchMode', ~~value[i]);
 					}
 					break;
 			}
@@ -1017,7 +981,6 @@
 						permission = this.previousElementSibling.previousElementSibling.textContent;
 						var slider = this;
 						var oldPermissions;
-						debugger;
 						if (this.checked) {
 							if (extensionWideEnabledPermissions.indexOf(permission) === -1) {
 								chrome.permissions.request({
