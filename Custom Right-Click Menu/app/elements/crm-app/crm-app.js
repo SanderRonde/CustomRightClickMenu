@@ -977,8 +977,6 @@
 			var storageLocal = this.storageLocal;
 			var storageLocalCopy = this.storageLocalCopy;
 
-			return;
-
 			var settingsChanges = [];
 			var settings = this.settings;
 			var settingsCopy = this.settingsCopy;
