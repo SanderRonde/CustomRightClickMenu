@@ -111,30 +111,6 @@ Polymer.DraggableNodeBehavior = {
 		currentColumn.draggingItem = this;
 	},
 
-	_menuMouseOver: function () {
-		var column = window.app.editCRM.getCurrentColumn(this);
-		if (column.dragging && !this.parentNode.items[this.index].expanded) {
-			//Get the difference between the current column's bottom and the new column's bot
-			var draggingEl = column.draggingItem;
-
-			//Create new column
-			var oldItemsObj = window.app.editCRM.crm;
-			var newItemsObj = window.app.editCRM.build(this.item.path);
-
-			//Now fix the spacing from the top
-			var columnIndex = $(column).children().toArray().indexOf(draggingEl.parentNode.parentNode);
-
-			var oldColumn = oldItemsObj[columnIndex];
-			var newColumn = newItemsObj[columnIndex];
-
-			var oldColumnHeight = (oldColumn.indent.length * 50) + (oldColumn.list.length * 50);
-			var newColumnHeight = (newColumn.indent.length * 50) + (newColumn.list.length * 50);
-
-			var diff = newColumnHeight - oldColumnHeight;
-			draggingEl.dragStart.Y += diff;
-		}
-	},
-
 	_onScroll: function () {
 		var newScroll = $('body').scrollTop();
 		var difference = newScroll - this._scrollStart.Y;
