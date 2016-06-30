@@ -1,6 +1,9 @@
++[![Join the chat at https://gitter.im/SanderRonde/CustomRightClickMenu](https://badges.gitter.im/SanderRonde/CustomRightClickMenu.svg)](https://gitter.im/SanderRonde/CustomRightClickMenu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=master)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
 
 # Custom Right-Click Menu
+
+[![Join the chat at https://gitter.im/SanderRonde/CustomRightClickMenu](https://badges.gitter.im/SanderRonde/CustomRightClickMenu.svg)](https://gitter.im/SanderRonde/CustomRightClickMenu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ##Description
 Create your own entry in the right-click menu. Add custom scripts, links, submenus or custom CSS in your right-click menu and
