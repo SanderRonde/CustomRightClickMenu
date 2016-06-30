@@ -1,5 +1,4 @@
 /// <reference path="../../../scripts/_references.js"/>
-/// <reference path="~/app/elements/crm-app/crm-app.js" />
 'use strict';
 
 window.Polymer({
