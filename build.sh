@@ -22,7 +22,6 @@ echo "Changed branches";
 
 npm install
 
-grunt test
 grunt moveWebsite
 cd ../
 
