@@ -51,6 +51,14 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @type Function
 	 */
 	this.onError = null;
+
+	/**
+	 * When true, warns you after 5 seconds of not sending a chrome function
+	 * 		that you probably forgot to send it
+	 * 
+	 * @type boolean
+	 */
+	this.warnOnChromeFunctionNotSent = true;
 	//#endregion
 
 	//#region JSONfn
@@ -126,7 +134,54 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	//#region Communication
-	var callInfo = {};
+	function CallbackStorage() {
+		var _this = this;
+		this._items = {};
+		this._index = 0;
+
+		this.add = function(fn) {
+			_this._items[++_this._index] = fn;
+			return _this._index;
+		}
+
+		this.remove = function(fnOrIndex) {
+			if (typeof fnOrIndex === 'number' || typeof fnOrIndex === 'string') {
+				delete _this._items[~~fnOrIndex];
+			} else {
+				for (var fnIdx in _this._items) {
+					if (_this._items.hasOwnProperty(fnIdx)) {
+						if (_this._items[fnIdx] === fnOrIndex) {
+							delete _this._items[fnIdx];
+						}
+					}
+				}
+			}
+		}
+
+		this.get = function(idx) {
+			return _this._items[idx];
+		}
+
+		this.forEach = function(cb) {
+			for (var fnIdx in _this._items) {
+				if (_this._items.hasOwnProperty(fnIdx)) {
+					cb(_this._items[fnIdx], fnIdx);
+				}
+			}
+		}
+		
+		Object.defineProperty(this, 'length', {
+			get: function() {
+				var len = 0;
+				_this.forEach(function() {
+					len++;
+				});
+				return len;
+			}
+		})
+	}
+
+	var callInfo = new CallbackStorage();
 
 	function getStackTrace(error) {
 		return error.stack.split('\n');
@@ -134,7 +189,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	function createDeleterFunction(index) {
 		return function () {
-			delete callInfo[index];
+			callInfo.remove(index);
 		};
 	}
 
@@ -146,50 +201,32 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		the status of the call (error or succes), some data (error message or function params)
 	 *		and a stacktrace.
 	 * @param {Error} error - The "new Error" value to formulate a useful stack trace
-	 * @param {Boolean} [persistent] - If this value is true the callback will not be deleted
+	 * @param {Object} [options] - An options object containing the persistent and 
+	 * 		maxCalls properties
+	 * @param {boolean} [options.persistent] - If this value is true the callback will not be deleted
 	 *		even after it has been called
+	 * @param {number} [options.maxCalls] - The maximum amount of times the function can be called
+	 * 		before the crmapi stops listening for it. 
 	 * @returns {Function} - The function to use as a callback function
 	 */
-	function createCallback(callback, error, persistent) {
-		error = error || new Error;
-		var index = 0;
-		while (callInfo[index]) {
-			index++;
-		}
-		callInfo[index] = {
+	function createCallback(callback, error, options) {
+		options = options || {};
+		var persistent = options.persistent;
+		var maxCalls = options.maxCalls || 1;
+
+		error = error || new Error();
+		var index = callInfo.add({
 			callback: callback,
 			stackTrace: _this.stackTraces && getStackTrace(error),
-			persistent: persistent
-		};
+			persistent: persistent,
+			maxCalls: maxCalls
+		});
 		//Wait an hour for the extreme cases, an array with a few numbers in it can't be that horrible
 		if (!persistent) {
 			setTimeout(createDeleterFunction(index), 3600000);
 		}
 
-		// ReSharper disable UseOfImplicitGlobalInFunctionScope
-		var fn = function () {
-			var callbackId = CBID;
-			var nodeId = NODEID;
-			var tabId = TABID;
-			var err = chrome.runtime.lastError;
-			window.sendCallbackMessage.apply(this, {
-				success: !err,
-				error: !!err,
-				errorMessage: err && err.message,
-				callbackId: callbackId,
-				args: Array.from(arguments),
-				tabId: tabId,
-				id: nodeId
-			});
-		};
-		// ReSharper restore UseOfImplicitGlobalInFunctionScope
-
-		//Replace the template values with the real values
-		var stringifiedFn = jsonFn.stringify(fn);
-		stringifiedFn.replace(/CBID/, index);
-		stringifiedFn.replace(/TABID/, tabData.id);
-		stringifiedFn.replace(/NODEID/, id);
-		return jsonFn.parse(stringifiedFn);
+		return index;
 	}
 
    /**
@@ -197,11 +234,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *
 	 * @param {function} callback - The function to run
 	 * @param {Error} error - The "new Error" value to formulate a useful stack trace
-	 * @param {Boolean} [persistent] - If this value is true the callback will not be deleted
+	 * @param {Object} [options] - An options object containing the persistent and 
+	 * 		maxCalls properties
+	 * @param {boolean} [options.persistent] - If this value is true the callback will not be deleted
 	 *		even after it has been called
+	 * @param {number} [options.maxCalls] - The maximum amount of times the function can be called
+	 * 		before the crmapi stops listening for it. 
 	 * @returns {Function} - The value to use as a callback function
 	 */
-	function createCallbackFunction(callback, error, persistent) {
+	function createCallbackFunction(callback, error, options) {
 		function onFinish(status, messageOrParams, stackTrace) {
 			if (status === 'error') {
 				_this.onError && _this.onError(messageOrParams);
@@ -222,7 +263,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				callback.apply(_this, messageOrParams);
 			}
 		}
-		return createCallback(onFinish, error, persistent);
+		return createCallback(onFinish, error, options);
 	}
 
 	//Connect to the background-page
@@ -241,8 +282,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	function handshakeFunction() {
 		sendMessage = function (message) {
 			if (message.onFinish) {
-				message.onFinish = createCallback(message.onFinish, new Error);
-			}
+				message.onFinish = createCallback(message.onFinish.fn, new Error(), {
+					maxCalls: message.onFinish.maxCalls,
+					persistent: message.onFinish.persistent
+				});
+			};
 			port.postMessage(message);
 		};
 		queue.forEach(function (message) {
@@ -252,23 +296,29 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	function callbackHandler(message) {
-		callInfo[message.callbackId].callback(message.type, message.data, callInfo[message.callbackId].stackTrace);
-		if (!callInfo[message.callbackId].persistent) {
-			delete callInfo[message.callbackId];
+		var call = callInfo.get(message.callbackId);
+		if (call) {
+			call.callback(message.type, message.data, call.stackTrace);
+			if (!call.persistent) {
+				call.maxCalls--;
+				if (call.maxCalls === 0) {
+					callInfo.remove(message.callbackId);
+				}
+			}
 		}
 	}
 
-	var instances = [];
+	var instances = new CallbackStorage();
 
 	function messageHandler(message) {
 		if (queue) {
 			//Update instance array
 			var instanceArr = message.instances;
 			for (var i = 0; i < instanceArr.length; i++) {
-				instances[i] = {
+				instances.add({
 					id: instanceArr[i],
 					sendMessage: generateSendInstanceMessageFunction(instanceArr[i])
-				};
+				});
 			}
 			handshakeFunction();
 		} else {
@@ -338,7 +388,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			return (value !== undefined && value !== null && ((typeArray.indexOf(typeof value) > -1 && !value.splice) || (typeArray.indexOf('array') > -1 && typeof value === 'object' && value.splice)));
 		}
 		if (value === undefined || value === null) {
-			throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + 'is undefined or null');
+			throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is undefined or null');
 		}
 		if (!((typeArray.indexOf(typeof value) > -1 && !value.splice) || (typeArray.indexOf('array') > -1 && typeof value === 'object' && value.splice))) {
 			throw new Error('Value ' + (nameOrMode ? 'of ' + nameOrMode : '') + ' is not of type' + ((typeArray.length > 1) ? 's ' + typeArray.join(', ') : ' ' + typeArray));
@@ -356,12 +406,15 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	function lookup(path, data, hold) {
 		checkType(path, 'array', 'path');
-		checkType(data, 'Object', 'data');
+		checkType(data, 'object', 'data');
 		var length = path.length;
 		hold && length--;
 		var dataChild = data;
 		for (var i = 0; i < length; i++) {
-			dataChild = data[path[i]];
+			if (!dataChild[path[i]] && (i + 1) !== length) {
+				dataChild[path[i]] = {};
+			}
+			dataChild = dataChild[path[i]];
 		}
 		return dataChild;
 	}
@@ -406,21 +459,20 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @type Object
 	 */
 	this.comm = {};
-	var commListeners = [];
-	var backgroundPageListeners = [];
+	var commListeners = new CallbackStorage();
+	var backgroundPageListeners = new CallbackStorage();
 
 	function instancesChange(change) {
 		switch (change.type) {
 			case 'removed':
-				for (var i = 0; i < instances.length; i++) {
-					if (instances[i].id === change.value) {
-						instances.splice(i, 1);
-						break;
+				instances.forEach(function(instance, idx) {
+					if (instance.id === change.value) {
+						instances.remove(idx);
 					}
-				}
+				});
 				break;
 			case 'added':
-				instances.push({
+				instances.add({
 					id: change.value,
 					sendMessage: generateSendInstanceMessageFunction(change.value)
 				});
@@ -451,7 +503,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	}
 
 	function backgroundPageMessageHandler(message) {
-		commListeners.forEach(function (listener) {
+		backgroundPageListeners.forEach(function (listener) {
 			listener && typeof listener === 'function' &&
 				listener(message.message, generateBackgroundResponse(message));
 		});
@@ -465,6 +517,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	function sendInstanceMessage(instanceId, message, callback) {
 		function onFinish(type, data) {
+			if (!callback || typeof callback !== 'function') {
+				return;
+			}
 			if (type === 'error') {
 				callback({
 					error: true,
@@ -489,7 +544,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				tabId: _this.tabId
 			},
 			tabId: _this.tabId,
-			onFinish: onFinish
+			onFinish: {
+				maxCalls: 1,
+				fn: onFinish
+			}
 		});
 	}
 
@@ -512,7 +570,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @returns {instance[]} - An array of all instances
 	 */
 	this.comm.getInstances = function () {
-		return instances;
+		var instancesArr = [];
+		instances.forEach(function(instance) {
+			instancesArr.push(instance);
+		});
+		return instancesArr;
 	};
 
 	/**
@@ -530,7 +592,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.comm.sendMessage = function (instance, message, callback) {
 		var instanceObj;
 		if (typeof instance === "number") {
-			instanceObj = instances[instance];
+			instanceObj = instances.get(instance);
 		}
 		else {
 			instanceObj = instance;
@@ -546,11 +608,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @returns {number} An id that can be used to remove the listener
 	 */
 	this.comm.addListener = function (listener) {
-		commListeners.push(listener);
-		if (commListeners.length === 1) {
+		var prevLength = commListeners.length;
+		var idx = commListeners.add(listener);
+		if (prevLength === 0) {
 			updateCommHandlerStatus(true);
 		}
-		return commListeners.length - 1;
+		return idx;
 	};
 
 	/*
@@ -560,12 +623,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * 		by adding it.
 	 */
 	this.comm.removeListener = function (listener) {
-		if (typeof listener === 'number') {
-			commListeners.splice(listener, 1);
-		}
-		else {
-			commListeners.splice(commListeners.indexOf(listener), 1);
-		}
+		commListeners.remove(listener);
 		if (commListeners.length === 0) {
 			updateCommHandlerStatus(false);
 		}
@@ -588,7 +646,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 					message: message,
 					id: id,
 					tabId: _this.tabId,
-					response: createCallbackFunction(response, new Error)
+					response: createCallbackFunction(response, new Error(), {
+						maxCalls: 1
+					})
 				},
 				tabId: _this.tabId
 			});
@@ -604,7 +664,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	this.comm.listenAsBackgroundPage = function (callback) {
 		if (isBackground) {
-			backgroundPageListeners.push(callback);
+			backgroundPageListeners.add(callback);
 		} else {
 			self.log('The function listenAsBackgroundPage is not available in non-background script');
 		}
@@ -621,30 +681,32 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 */
 	this.storage = {};
 
-	var storageListeners = [];
-	var storageIndexGM = 0;
-	var storageListenersGM = {};
+	var storageListeners = new CallbackStorage();
 	var storagePrevious = {};
 
 	/**
 	 * Notifies any listeners of changes to the storage object
 	 */
 	function notifyChanges(keyPath, oldValue, newValue, remote) {
-		for (var index in storageListenersGM) {
-			if (storageListenersGM.hasOwnProperty(index)) {
-				var listener = storageListenersGM[index];
-				if (listener.key.indexOf(keyPath) > -1) {
-					isFn(listener.callback) && listener.callback(listener.key, oldValue, newValue, remote || false);
-				}
-			}
+		if (Array.isArray(keyPath)) {
+			keyPath = keyPath.join('.');
 		}
+		storageListeners.forEach(function(listener) {
+			if (listener.key.indexOf(keyPath) > -1) {
+				isFn(listener.callback) && listener.callback(listener.key, oldValue, newValue, remote || false);
+			}
+		});
 		storagePrevious = nodeStorage;
 	}
 
 	function remoteStorageChange(changes) {
 		for (var i = 0; i < changes.length; i++) {
 			notifyChanges(changes[i].keyPath, changes[i].oldValue, changes[i].newValue, true);
+			if (!Array.isArray(changes[i].keyPath)) {
+				changes[i].keyPath = [changes[i].keyPath];
+			}
 			var data = lookup(changes[i].keyPath, nodeStorage, true);
+			data = data || {};
 			data[changes[i].keyPath[changes[i].keyPath.length - 1]] = changes[i].newValue;
 			storagePrevious = nodeStorage;
 		}
@@ -658,7 +720,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 				type: 'nodeStorage',
 				nodeStorageChanges: [
 					{
-						key: keyPath,
+						keyPath: keyPath,
 						oldValue: oldValue,
 						newValue: newValue
 					}
@@ -730,9 +792,19 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		if (checkType(keyPath, 'array', true)) {
 			var keyPathArr = keyPath;
 			if (Array.isArray(keyPathArr)) {
-				var data = lookup(keyPathArr, nodeStorage, true);
-				localStorageChange(keyPathArr, data[keyPathArr[keyPathArr.length - 1]], value);
-				data[keyPathArr[keyPathArr.length - 1]] = value;
+
+				//Lookup and in the meantime create object containers if new
+				var dataCont = nodeStorage;
+				var length = keyPathArr.length - 1;
+				for (var i = 0; i < length; i++) {
+					if (dataCont[keyPathArr[i]] === undefined) {
+						dataCont[keyPathArr[i]] = {};
+					}
+					dataCont = dataCont[keyPathArr[i]];
+				}
+
+				localStorageChange(keyPathArr, dataCont[keyPathArr[keyPathArr.length - 1]], value);
+				dataCont[keyPathArr[keyPathArr.length - 1]] = value;
 				storagePrevious = nodeStorage;
 				return undefined;
 			}
@@ -742,7 +814,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		if (typeof keyPathObj === 'object') {
 			for (var key in keyPathObj) {
 				if (keyPathObj.hasOwnProperty(key)) {
-					localStorageChange(keyPathObj, nodeStorage[key], keyPathObj[key]);
+					localStorageChange(key, nodeStorage[key], keyPathObj[key]);
 					nodeStorage[key] = keyPathObj[key];
 				}
 			}
@@ -806,11 +878,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @returns {number} A number that can be used to remove the listener
 	 */
 	this.storage.onChange.addListener = function (listener, key) {
-		storageListeners.push({
-			listener: listener,
+		return storageListeners.add({
+			callback: listener,
 			key: key
 		});
-		return storageListeners.length - 1;
 	};
 
 	/**
@@ -822,27 +893,24 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {string} [key] - The key to check
 	 */
 	this.storage.onChange.removeListener = function (listener, key) {
+		var i;
 		var indexes;
 		if (typeof listener === 'number') {
-			indexes = [listener];
+			storageListeners.remove(listener);
 		}
 		else {
 			indexes = [];
-			var i;
-			for (i = 0; i < storageListeners.length; i++) {
-				if (storageListeners[i].listener === listener) {
+			storageListeners.forEach(function(storageListener, index) {
+				if (storageListener.callback === listener) {
 					if (key !== undefined) {
-						if (storageListeners[i].key === key) {
-							indexes.push(i);
+						if (storageListener.key === key) {
+							storageListeners.remove(index);
 						}
 					} else {
-						indexes.push(i);
+						storageListeners.remove(index);
 					}
 				}
-			}
-		}
-		for (i = 0; i < indexes.length; i++) {
-			storageListeners.splice(indexes[i], 1);
+			});
 		}
 	};
 	//#endregion
@@ -917,6 +985,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {Object} params - Any options or parameters
 	 */
 	function sendCrmMessage(action, callback, params) {
+		if (!callback) {
+			throw new Error('CrmAPIError: No callback was supplied');
+		}
 		function onFinish(status, messageOrParams, stackTrace) {
 			if (status === 'error') {
 				_this.onError && _this.onError(messageOrParams);
@@ -942,7 +1013,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		message.id = id;
 		message.action = action;
 		message.crmPath = node.path;
-		message.onFinish = onFinish;
+		message.onFinish = {
+			maxCalls: 1,
+			fn: onFinish
+		};
 		message.tabId = _this.tabId;
 		sendMessage(message);
 	}
@@ -1064,7 +1138,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * Gets the CRM's tree from either the root or from the node with ID nodeId
 	 *
 	 * @permission crmGet
-	 * @param {number} nodeId - The ID of the tree's root node
+	 * @param {number} nodeId - The ID of the subtree's root node
 	 * @param {function} callback - A function that is called when done with the data as an argument
 	 */
 	this.crm.getSubTree = function (nodeId, callback) {
@@ -1080,7 +1154,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
 	 */
 	this.crm.getNode = function (nodeId, callback) {
-		sendCrmMessage('getCrmItem', callback, {
+		sendCrmMessage('getNode', callback, {
 			nodeId: nodeId
 		});
 	};
@@ -1809,8 +1883,17 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	function genChromeRequest(api, type) {
 		var request = {
 			api: api,
-			chromeAPIArguments: []
+			chromeAPIArguments: [],
+			_sent: false
 		};
+		if (_this.warnOnChromeFunctionNotSent) {
+			window.setTimeout(function() {
+				if (!request._sent) {
+					console.log('Looks like you didn\'t send your chrome function,' + 
+						' set crmAPI.warnOnChromeFunctionNotSent to false to disable this message');
+				}
+			}, 5000);
+		}
 		Object.defineProperty(request, 'type', {
 			get: function () {
 				return type;
@@ -1824,7 +1907,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 					if (typeof arg === 'function') {
 						request.chromeAPIArguments.push({
 							type: 'fn',
-							val: createCallback(arg, new Error)
+							isPersistent: false,
+							val: createCallback(arg, new Error, {
+								maxCalls: 1
+							})
 						});
 					}
 					else {
@@ -1838,6 +1924,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			};
 			_fn.args = _fn.a = _fn;
 			_fn.return = _fn.r = chromeReturnFunction;
+			_fn.persistent = _fn.p = persistentCallbackFunction;
 			_fn.send = _fn.s = chromeSendFunction;
 			_fn.request = request;
 			return _fn;
@@ -1848,13 +1935,34 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	/**
 	 * A function that is called with the value that the chrome API returned. This can
 	 * be used for APIs that don't use callbacks and instead just return values such as
-	 * chrome.runtime.getURL().
+	 * chrome.runtime.getURL(). 
 	 */
 	function chromeReturnFunction(fn) {
 		this.request.chromeAPIArguments.push({
 			type: 'return',
-			val: createCallback(fn, new Error)
+			val: createCallback(fn, new Error, {
+				maxCalls: 1
+			})
 		});
+		return this;
+	}
+
+	/**
+	 * 	A function that is a persistent callback that will not be removed when called.
+	 * 	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+	 * 	contrary to chrome.tabs.get where only one callback will occur.
+	 */
+	function persistentCallbackFunction() {
+		var fns = Array.from(arguments);
+		for (var i = 0; i < fns.length; i++) {
+			this.request.chromeAPIArguments.push({
+				type: 'fn',
+				isPersistent: true,
+				val: createCallback(fns[i], new Error, {
+					persistent: true
+				})
+			});
+		}
 		return this;
 	}
 
@@ -1862,43 +1970,61 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * Executes the request
 	 */
 	function chromeSendFunction() {
+		var requestThis = this;
+		this.request._sent = true;
+		var maxCalls = 0;
+		var isPersistent = false;
+		this.request.chromeAPIArguments.forEach(function(arg) {
+			if (arg.type === 'fn' || arg.type === 'return') {
+				maxCalls++;
+				if (arg.isPersistent) {
+					isPersistent = true;
+				}
+			}
+		});
 		var message = {
 			type: 'chrome',
 			id: id,
-			api: this.request.api,
-			args: this.request.chromeAPIArguments,
-			tabId: _this.tabId,
-			requestType: this.request.type,
-			onFinish: function (status, messageOrParams, stackTrace) {
-				if (status === 'error' || status === 'chromeError') {
-					if (this.request.onError) {
-						this.request.onError(messageOrParams);
-					}
-					else if (_this.onError) {
-						_this.onError(messageOrParams);
-					}
-					if (_this.stackTraces) {
-						setTimeout(function () {
-							if (messageOrParams.stackTrace) {
-								console.warn('Remote stack trace:');
-								messageOrParams.stackTrace.forEach(function (line) {
+			api: requestThis.request.api,
+			args: requestThis.request.chromeAPIArguments,
+			tabId: tabData.id,
+			requestType: requestThis.request.type,
+			onFinish: {
+				maxCalls: maxCalls,
+				persistent: isPersistent,
+				fn:  function (status, messageOrParams, stackTrace) {
+					if (status === 'error' || status === 'chromeError') {
+						if (requestThis.request.onError) {
+							requestThis.request.onError(messageOrParams);
+						}
+						else if (_this.onError) {
+							_this.onError(messageOrParams);
+						}
+						if (_this.stackTraces) {
+							setTimeout(function () {
+								if (messageOrParams.stackTrace) {
+									console.warn('Remote stack trace:');
+									messageOrParams.stackTrace.forEach(function (line) {
+										console.warn(line);
+									});
+								}
+								console.warn((messageOrParams.stackTrace ? 'Local s' : 'S') + 'tack trace:');
+								stackTrace.forEach(function (line) {
 									console.warn(line);
 								});
-							}
-							console.warn((messageOrParams.stackTrace ? 'Local s' : 'S') + 'tack trace:');
-							stackTrace.forEach(function (line) {
-								console.warn(line);
-							});
-						}, 5);
+							}, 5);
+						}
+						if (_this.errors) {
+							throw new Error('CrmAPIError: ' + messageOrParams.error);
+						} else if (!_this.onError) {
+							console.warn('CrmAPIError: ' + messageOrParams.error);
+						}
+					} else {
+						callInfo.get(messageOrParams.callbackId).callback.apply(window, messageOrParams.params);
+						if (!callInfo.get(messageOrParams.callbackId).persistent) {
+							callInfo.remove(messageOrParams.callbackId);
+						}
 					}
-					if (_this.errors) {
-						throw new Error('CrmAPIError: ' + messageOrParams.error);
-					} else if (!this.onError) {
-						console.warn('CrmAPIError: ' + messageOrParams.error);
-					}
-				} else {
-					callInfo[messageOrParams.callbackId].callback.apply(window, messageOrParams.params);
-					delete callInfo[messageOrParams.callbackId];
 				}
 			}
 		};
@@ -1914,11 +2040,17 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
 	 *				it will be converted to a placeholder function that will be called on return with the
 	 *				arguments chrome passed to it. This means the function is never executed on the background
-	 *				page and is always executed here to preserve scope.
+	 *				page and is always executed here to preserve scope. The arguments are however passed on as they should.
 	 *				You can call this function by calling .args or by just using the parentheses as below.
+	 * 				Keep in mind that this function will not work after it has been called once, meaning that
+	 * 				if your API calls callbacks multiple times (like chrome.tabs.onCreated) you should use
+	 * 				persistent callbacks (see below).
 	 *			r or return: a function that is called with the value that the chrome API returned. This can
 	 *				be used for APIs that don't use callbacks and instead just return values such as
 	 *				chrome.runtime.getURL().
+	 * 			p or persistent: a function that is a persistent callback that will not be removed when called.
+	 * 				This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+	 * 				contrary to chrome.tabs.get where only one callback will occur.
 	 *			s or send: executes the request
 	 * Examples:
 	 *		- For a function that uses a callback:
@@ -1933,6 +2065,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *		-
 	 *		- For a function that uses neither:
 	 *		crmAPI.chrome('alarms.create')('name', {}).send();
+	 *		-
+	 *		- For a function that uses a persistent callback
+	 *		crmAPI.chrome('tabs.onCreated.addListener').persistent(function(tab) {
+	 * 			//Do something with the tab 
+	 *		}).send();
 	 *		-
 	 *		- A compacter version:
 	 *		crmAPI.chrome('runtime.getUrl')(path).r(function(result) {
@@ -2213,12 +2350,10 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @returns {number} - The id of the listener, used for removing it
 	 */
 	this.GM.GM_addValueChangeListener = function (name, callback) {
-		storageListenersGM[++storageIndexGM] = {
+		return storageListeners.add({
 			key: name,
-			callback: callback,
-			index: storageIndexGM
-		};
-		return storageIndexGM;
+			callback: callback
+		});
 	};
 
 	/**
@@ -2228,7 +2363,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {number} listenerId - The id of the listener
 	 */
 	this.GM.GM_removeValueChangeListener = function (listenerId) {
-		delete storageListenersGM[listenerId];
+		storageListeners.remove(listenerId);
 	};
 
 	/**
@@ -2377,8 +2512,12 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		}
 		details.type = 'basic';
 		details.iconUrl = details.iconUrl || chrome.runtime.getURl('icon-large.png');
-		onclick = details.onclick && createCallbackFunction(details.onclick, new Error);
-		var ondone = details.ondone && createCallbackFunction(details.ondone, new Error);
+		onclick = details.onclick && createCallbackFunction(details.onclick, new Error, {
+			maxCalls: 1
+		});
+		var ondone = details.ondone && createCallbackFunction(details.ondone, new Error, {
+			maxCalls: 1
+		});
 		delete details.onclick;
 		delete details.ondone;
 		var request = chromeSpecialRequest('notifications.create', 'GM_notification').args(details).args(function (notificationId) {
@@ -2435,4 +2574,5 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	//#endregion
 
 	return this;
-};
+}
+window.CrmAPIInit = CrmAPIInit;

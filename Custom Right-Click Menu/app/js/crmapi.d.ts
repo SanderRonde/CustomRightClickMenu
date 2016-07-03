@@ -288,6 +288,8 @@ declare namespace CRMAPI {
 		a: (...params) => ChromeRequestReturn,
 		return: (handler: (value: any) => void) => ChromeRequestReturn,
 		r: (handler: (value: any) => void) => ChromeRequestReturn,
+		persistent: (...functions: Array<Function>) => ChromeRequestReturn,
+		p: (...functions: Array<Function>) => ChromeRequestReturn,
 		send: () => ChromeRequestReturn,
 		s: () => ChromeRequestReturn,
 		request: {
@@ -363,6 +365,12 @@ declare namespace CRMAPI {
 		*		of variables to help you diagnose the issue.
 		*/
 		debugOnerror;
+
+		/**
+		 * When true, warns you after 5 seconds of not sending a chrome function
+		 * 		that you probably forgot to send it
+		 */
+		warnOnChromeFunctionNotSent;
 
 
 		/**
@@ -569,7 +577,7 @@ declare namespace CRMAPI {
 			 * Gets the CRM's tree from either the root or from the node with ID nodeId
 			 *
 			 * @permission crmGet
-			 * @param {number} nodeId - The ID of the tree's root node
+			 * @param {number} nodeId - The ID of the subtree's root node
 			 * @param {function} callback - A function that is called when done with the data as an argument
 			 */
 			getSubTree:(nodeId: number, callback: (data: any) => void) => void,
@@ -1110,45 +1118,56 @@ declare namespace CRMAPI {
 		/**
 		 * Calls the chrome API given in the "API" parameter. Due to some issues with the chrome message passing
 		 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
-		*		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
-		*		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
-		*		functions you can chain-call on the crmAPI.chrome(API) object:
-		*			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
-		*				it will be converted to a placeholder function that will be called on return with the
-		*				arguments chrome passed to it. This means the function is never executed on the background
-		*				page and is always executed here to preserve scope.
-		*				You can call this function by calling .args or by just using the parentheses as below.
-		*			r or return: a function that is called with the value that the chrome API returned. This can
-		*				be used for APIs that don't use callbacks and instead just return values such as
-		*				chrome.runtime.getURL().
-		*			s or send: executes the request
-		* Examples:
-		*		- For a function that uses a callback:
-		*		crmAPI.chrome('alarms.get')('name', function(alarm) {
-		*			//Do something with the result here
-		*		}).send();
-		*		-
-		*		- For a function that returns a value:
-		*		crmAPI.chrome('runtime.getUrl')(path).return(function(result) {
-		*			//Do something with the result
-		*		}).send();
-		*		-
-		*		- For a function that uses neither:
-		*		crmAPI.chrome('alarms.create')('name', {}).send();
-		*		-
-		*		- A compacter version:
-		*		crmAPI.chrome('runtime.getUrl')(path).r(function(result) {
-		*			//Do something with the result
-		*		}).s();
-		*		-
-		* Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
-		* permission "bookmarks", chrome.alarms requires "alarms"
-		*
-		* @permission chrome
-		* @param {string} api - The API to use
-		* @returns {Object} - An object on which you can call .args, .fn, .return and .send
-		* 		(and their first-letter-only versions)
-		*/
+		 *		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
+		 *		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
+		 *		functions you can chain-call on the crmAPI.chrome(API) object:
+ 		 *			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
+ 		 *				it will be converted to a placeholder function that will be called on return with the
+		 *				arguments chrome passed to it. This means the function is never executed on the background
+		 *				page and is always executed here to preserve scope. The arguments are however passed on as they should.
+		 *				You can call this function by calling .args or by just using the parentheses as below.
+		 * 				Keep in mind that this function will not work after it has been called once, meaning that
+		 * 				if your API calls callbacks multiple times (like chrome.tabs.onCreated) you should use
+		 *  			persistent callbacks (see below).
+		 *			r or return: a function that is called with the value that the chrome API returned. This can
+		 *				be used for APIs that don't use callbacks and instead just return values such as
+		 *				chrome.runtime.getURL().
+		 * 			p or persistent: a function that is a persistent callback that will not be removed when called.
+		 * 				This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+		 * 				contrary to chrome.tabs.get where only one callback will occur.
+		 *			s or send: executes the request
+		 * Examples:
+		 *		- For a function that uses a callback:
+		 * 		crmAPI.chrome('alarms.get')('name', function(alarm) {
+		 *			//Do something with the result here
+		 *		}).send();
+		 *		-
+		 *		- For a function that returns a value:
+		 *		crmAPI.chrome('runtime.getUrl')(path).return(function(result) {
+		 *			//Do something with the result
+		 *		}).send();
+		 *		-
+ 		 *		- For a function that uses neither:
+		 *		crmAPI.chrome('alarms.create')('name', {}).send();
+		 *		-
+		 *		- For a function that uses a persistent callback
+ 		 *		crmAPI.chrome('tabs.onCreated.addListener').persistent(function(tab) {
+		 * 			//Do something with the tab 
+		 *		}).send();
+		 *		-
+		 *		- A compacter version:
+		 *		crmAPI.chrome('runtime.getUrl')(path).r(function(result) {
+ 		 *			//Do something with the result
+		 *		}).s();
+		 *		-
+		 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
+		 * permission "bookmarks", chrome.alarms requires "alarms"
+		 *
+		 * @permission chrome
+		 * @param {string} api - The API to use
+		 * @returns {Object} - An object on which you can call .args, .fn, .return and .send
+		 * 		(and their first-letter-only versions)
+		 */
 		chrome: (api: string) => ChromeRequestReturn;
 
 		/**

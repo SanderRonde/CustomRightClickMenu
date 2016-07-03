@@ -7,20 +7,20 @@
 
 //#region Sandbox
 (function () {
-	function sandboxChromeFunction (fn, context, args) {
+	function sandboxChromeFunction (fn, context, args, window, globals) {
 		return fn.apply(context, args);
 	}
 
-	window.sandboxChrome = function (chrome, api, args, sendCallbackMessage) {
+	window.sandboxChrome = function (chrome, api, args) {
 		var context = {};
-		var fn = chrome;
+		var fn = window.chrome;
 		var apiSplit = api.split('.');
 		for (var i = 0; i < apiSplit.length; i++) {
 			context = fn;
 			fn = fn[apiSplit[i]];
 		}
-		window.sendCallbackMessage = sendCallbackMessage;
-		return sandboxChromeFunction(fn, context, args);
+		var result = sandboxChromeFunction(fn, context, args);
+		return result;
 	}
 }());
 
@@ -136,9 +136,14 @@
 			 *		},
 			 *		libraries: {
 			 *			libraryName
-			 * }
+			 * 		}
 			 */
-			tabData: {},
+			tabData: {
+				0: {
+					nodes: {},
+					libraries: {} 
+				}
+			},
 			/**
 			 * The ID of the root contextMenu node
 			 */
@@ -395,10 +400,59 @@
 			//#endregion
 		}
 	};
-
 	//#endregion
 
 	//#region Helper Functions
+	/**
+	* JSONfn - javascript (both node.js and browser) plugin to stringify,
+	*          parse and clone objects with Functions, Regexp and Date.
+	*
+	* Version - 0.60.00
+	* Copyright (c) 2012 - 2014 Vadim Kiryukhin
+	* vkiryukhin @ gmail.com
+	* http://www.eslinstructor.net/jsonfn/
+	*
+	* Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
+	*/
+	var jsonFn = {
+		stringify: function (obj) {
+			return JSON.stringify(obj, function (key, value) {
+				if (value instanceof Function || typeof value == 'function') {
+					return value.toString();
+				}
+				if (value instanceof RegExp) {
+					return '_PxEgEr_' + value;
+				}
+				return value;
+			});
+		},
+		parse: function (str, date2Obj) {
+			var iso8061 = date2Obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ : false;
+			return JSON.parse(str, function (key, value) {
+				if (typeof value != 'string') {
+					return value;
+				}
+				if (value.length < 8) {
+					return value;
+				}
+
+				var prefix = value.substring(0, 8);
+
+				if (iso8061 && value.match(iso8061)) {
+					return new Date(value);
+				}
+				if (prefix === 'function') {
+					return eval('(' + value + ')');
+				}
+				if (prefix === '_PxEgEr_') {
+					return eval(value.slice(8));
+				}
+
+				return value;
+			});
+		}
+	};
+	
 	function compareObj(firstObj, secondObj) {
 		for (var key in firstObj) {
 			if (firstObj.hasOwnProperty(key) && firstObj[key] !== undefined) {
@@ -753,9 +807,9 @@
 		}
 	}
 
-	function createStylesheetClickHandler() {
+	function createStylesheetClickHandler(node) {
 		return function (info, tab) {
-			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + node.value.stylesheet + '"));document.head.appendChild(CRMSSInsert);';
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -1845,6 +1899,20 @@
 		}
 	}
 
+	function createCopyFunction(obj, target) {
+		return function(props) {
+			props.forEach(function(prop) {
+				if (prop in obj) {
+					if (typeof obj[prop] === 'object') {
+						target[prop] = JSON.parse(JSON.stringify(obj[prop]));
+					} else {
+						target[prop] = obj[prop];
+					}
+				}
+			});	
+		}
+	}
+
 	function makeSafe(node) {
 		var newNode = {};
 		if (node.children) {
@@ -1853,19 +1921,12 @@
 				newNode.children[i] = makeSafe(node.children[i]);
 			}
 		}
-		node.id && (newNode.id = node.id);
-		node.path && (newNode.path = node.path);
-		node.type && (newNode.type = node.type);
-		node.name && (newNode.name = node.name);
-		node.value && (newNode.value = node.value);
-		node.linkVal && (newNode.linkVal = node.linkVal);
-		node.menuVal && (newNode.menuVal = node.menuVal);
-		node.nodeInfo && (newNode.nodeInfo = node.nodeInfo);
-		node.triggers && (newNode.triggers = node.triggers);
-		node.scriptVal && (newNode.scriptVal = node.scriptVal);
-		node.stylesheetVal && (newNode.stylesheetVal = node.stylesheetVal);
-		node.onContentTypes && (newNode.onContentTypes = node.onContentTypes);
-		node.showOnSpecified && (newNode.showOnSpecified = node.showOnSpecified);
+
+		var copy = createCopyFunction(node, newNode);
+
+		copy(['id','path', 'type', 'name', 'value', 'linkVal',
+				'menuVal', 'scriptVal', 'stylesheetVal', 'nodeInfo',
+				'triggers', 'onContentTypes', 'showOnSpecified']);
 		return newNode;
 	}
 
@@ -1946,7 +2007,7 @@
 				}
 
 				var settingsJson = JSON.stringify(window.globals.storages.settingsStorage);
-				if (!window.globals.storages.settingsStorage.useStorageSync) {
+				if (!window.globals.storages.storageLocal.useStorageSync) {
 					chrome.storage.local.set({
 						settings: window.globals.storages.settingsStorage
 					}, function () {
@@ -2105,6 +2166,7 @@
 				]);
 				break;
 			case 'nodeStorage':
+				window.globals.storages.nodeStorage[data.id] = window.globals.storages.nodeStorage[data.id] || {};
 				applyChangeForStorageType(window.globals.storages.nodeStorage[data.id], data.nodeStorageChanges);
 				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
 				break;
@@ -2155,12 +2217,12 @@
 			},
 			getSubTree: function (id) {
 				_this.checkPermissions(['crmGet'], function () {
-					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = window.globals.crm.crmByIdSafe[id || _this.message.nodeId];
+					if (typeof _this.message.nodeId === 'number') {
+						var node = window.globals.crm.crmByIdSafe[_this.message.nodeId];
 						if (node) {
-							_this.respondSuccess(node.children);
+							_this.respondSuccess([node]);
 						} else {
-							_this.respondError('There is no node with id ' + (id || _this.message.nodeId));
+							_this.respondError('There is no node with id ' + (_this.message.nodeId));
 						}
 					} else {
 						_this.respondError('No nodeId supplied');
@@ -2169,12 +2231,12 @@
 			},
 			getNode: function () {
 				_this.checkPermissions(['crmGet'], function () {
-					if (id || (_this.message.nodeId && typeof _this.message.nodeId === 'number')) {
-						var node = window.globals.crm.crmByIdSafe[id || _this.message.nodeId];
+					if (typeof _this.message.nodeId === 'number') {
+						var node = window.globals.crm.crmByIdSafe[_this.message.nodeId];
 						if (node) {
 							_this.respondSuccess(node);
 						} else {
-							_this.respondError('There is no node with id ' + (id || _this.message.nodeId));
+							_this.respondError('There is no node with id ' + (_this.message.nodeId));
 						}
 					} else {
 						_this.respondError('No nodeId supplied');
@@ -2216,49 +2278,50 @@
 							optional: true
 						}
 					], function (optionals) {
-						var j;
-						var searchScopeArray = [];
-
-						function findType(tree, type) {
-							if (type) {
-								tree.type === type && searchScopeArray.push(tree);
-							} else {
-								searchScopeArray.push(tree);
-							}
-							if (tree.children) {
-								for (var i = 0; i < tree.children.length; i++) {
-									findType(tree.children[i], type);
-								}
-							}
+						var crmArray = [];
+						for (var id in window.globals.crm.crmById) {
+							crmArray.push(window.globals.crm.crmByIdSafe[id]);
 						}
 
 						var searchScope;
 						if (optionals['query.inSubTree']) {
-							searchScope = _this.getNodeFromId(_this.message.query.inSubTree, false, true);
-							if (searchScope) {
-								searchScope = searchScope.children;
+							var searchScopeObj = _this.getNodeFromId(_this.message.query.inSubTree, true, true);
+							var searchScopeObjChildren = [];
+							if (searchScopeObj) {
+							searchScopeObjChildren = searchScopeObj.children;
 							}
-						}
-						searchScope = searchScope || window.globals.crm.safeTree;
 
-						if (searchScope) {
-							for (j = 0; j < searchScope.length; j++) {
-								findType(searchScope[j], _this.message.query.type);
+							searchScope = [];
+							function flattenCrm(obj) {
+								searchScope.push(obj);
+								if (obj.children) {
+									obj.children.forEach(function(child) {
+										flattenCrm(child);
+									});
+								}
 							}
+							searchScopeObjChildren.forEach(flattenCrm);
+						}
+						searchScope = searchScope || crmArray;
+
+						if (optionals['query.type']) {
+							searchScope = searchScope.filter(function(candidate) {
+								return candidate.type === _this.message.query.type;
+							});
 						}
 
 						if (optionals['query.name']) {
-							var searchScopeLength = searchScopeArray.length;
-							for (j = 0; j < searchScopeLength; j++) {
-								if (searchScopeArray[j].name !== _this.message.query.name) {
-									searchScopeArray.splice(j, 1);
-									searchScopeLength--;
-									j--;
-								}
-							}
+							searchScope = searchScope.filter(function(candidate) {
+								return candidate.name === _this.message.query.name;
+							});
 						}
 
-						_this.respondSuccess(searchScopeArray);
+						//Filter out all nulls
+						searchScope = searchScope.filter(function(result) {
+							return result !== null;
+						});
+
+						_this.respondSuccess(searchScope);
 					});
 				});
 			},
@@ -3272,12 +3335,12 @@
 		for (var i = 0; i < arguments.length; i++) {
 			args.push(arguments[i]);
 		}
-		respondToCrmAPI(message, 'success', args);
+		respondToCrmAPI(this.message, 'success', args);
 		return true;
 	};
 
 	CRMFunction.prototype.respondError = function (error) {
-		respondToCrmAPI(message, 'error', error);
+		respondToCrmAPI(this.message, 'error', error);
 		return true;
 	};
 
@@ -3289,7 +3352,7 @@
 		var length = path.length - 1;
 		hold && length--;
 		for (var i = 0; i < length; i++) {
-			if (data) {
+			if (data && data[path[i]]) {
 				data = data[path[i]].children;
 			} else {
 				return false;
@@ -3430,10 +3493,10 @@
 		return true;
 	};
 
-	CRMFunction.prototype.getNodeFromId = function (id, isSafe, noCallback) {
+	CRMFunction.prototype.getNodeFromId = function (id, isSafe, synchronous) {
 		var node = (isSafe ? window.globals.crm.crmByIdSafe : window.globals.crm.crmById)[id];
 		if (node) {
-			if (noCallback) {
+			if (synchronous) {
 				return node;
 			}
 			return {
@@ -3443,7 +3506,7 @@
 			};
 		} else {
 			this.respondError('There is no node with the id you supplied (' + id + ')');
-			if (noCallback) {
+			if (synchronous) {
 				return false;
 			}
 			return {
@@ -3565,7 +3628,7 @@
 		}
 		var permitted = true;
 		var notPermitted = [];
-		var node = this.getNodeFromId(message.id, false, true);
+		var node = this.getNodeFromId(this.message.id, false, true);
 		if (node.isLocal) {
 			callback && callback(optional);
 		} else {
@@ -3620,16 +3683,11 @@
 		}
 	}
 
-	function createReturnFunction(message, callbackIndex, inlineArgs) {
+	function createReturnFunction(message, callbackIndex) {
 		return function (result) {
 			respondToCrmAPI(message, 'success', {
 				callbackId: callbackIndex,
-				params: [
-					{
-						APIVal: result,
-						fnInlineArgs: inlineArgs
-					}
-				]
+				params: [result]
 			});
 		}
 	}
@@ -3677,7 +3735,6 @@
 
 		var i;
 		var params = [];
-		var inlineArgs = [];
 		var returnFunctions = [];
 		for (i = 0; i < message.args.length; i++) {
 			switch (message.args[i].type) {
@@ -3688,14 +3745,14 @@
 					params.push(createChromeFnCallbackHandler(message, message.args[i].val));
 					break;
 				case 'return':
-					returnFunctions.push(createReturnFunction(message, message.args[i].val, inlineArgs));
+					returnFunctions.push(createReturnFunction(message, message.args[i].val));
 					break;
 			}
 		}
 
 		var result;
 		try {
-			result = window.sandboxChrome(window.globals.chrome, message.api, params, createCallbackMessageHandlerInstance(message.tabId, message.id));
+			result = window.sandboxChrome(window.globals.chrome, message.api, params);
 			for (i = 0; i < returnFunctions.length; i++) {
 				returnFunctions[i](result);
 			}
@@ -4138,7 +4195,7 @@
 		}
 	}
 
-	function handleCrmAPIMessage(message) {
+	function handleCrmAPIMessage(message, messageSender, response) {
 		switch (message.type) {
 			case 'crm':
 				crmHandler(message);
@@ -4146,24 +4203,30 @@
 			case 'chrome':
 				chromeHandler(message);
 				break;
+			default:
+				handleRuntimeMessage(message, messageSender, response);
+				break;
 		}
 	}
 
 	window.createHandlerFunction = function(port) {
-		return function (message) {
+		return function (message, messageSender, respond) {
 			var tabNodeData = window.globals.crmValues.tabData[message.tabId].nodes[message.id];
 			if (!tabNodeData.port) {
 				if (compareArray(tabNodeData.secretKey, message.key)) {
 					delete tabNodeData.secretKey;
 					tabNodeData.port = port;
-					window.globals.crmValues.nodeInstances[message.tabId] = {
-						hasHandler: false
-					};
+
+					if (!window.globals.crmValues.nodeInstances[message.id]) {
+						window.globals.crmValues.nodeInstances[message.id] = {}
+					}
 
 					var instance;
 					var instancesArr = [];
 					for (instance in window.globals.crmValues.nodeInstances[message.id]) {
-						if (window.globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) && window.globals.crmValues.nodeInstances[message.id][instance]) {
+						if (window.globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) &&
+							window.globals.crmValues.nodeInstances[message.id][instance]) {
+
 							instancesArr.push(instance);
 							window.globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
 								change: {
@@ -4175,13 +4238,17 @@
 						}
 					}
 
+					window.globals.crmValues.nodeInstances[message.id][message.tabId] = {
+						hasHandler: false
+					};
+
 					port.postMessage({
 						data: 'connected',
 						instances: instancesArr
 					});
 				}
 			} else {
-				handleCrmAPIMessage(message);
+				handleCrmAPIMessage(message, messageSender, respond);
 			}
 		}
 	}
@@ -4270,7 +4337,7 @@
 			},
 			shrinkTitleRibbon: false,
 			crm: [
-				getDefaultLinkNode({
+				getTemplates().getDefaultLinkNode({
 					id: generateItemId()
 				})
 			]
@@ -5022,7 +5089,7 @@
 			try {
 				refreshPermissions();
 				chrome.runtime.onConnect.addListener(function(port) {
-					port.onMessage.addListener(createHandlerFunction(port));
+					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				chrome.runtime.onMessage.addListener(handleRuntimeMessage);
 				buildPageCRM(window.globals.storages.settingsStorage);
