@@ -416,6 +416,14 @@ module.exports = function(grunt) {
 					'build/website/crmAPIDocsElements.html': 'crmAPIDocsElements.html'
 				}
 			}
+		},
+		mochaTest: {
+			test: {
+				options: {
+					quiet: false
+				},
+				src: ['test/**/*.js']
+			}
 		}
 	});
 
@@ -428,6 +436,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-htmlmin');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-string-replace');
+	grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks('grunt-processhtml');
 	grunt.loadNpmTasks('grunt-vulcanize');
 	grunt.loadNpmTasks('grunt-zip');
@@ -456,6 +465,9 @@ module.exports = function(grunt) {
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
 
-	//Tests all tasks and finishes with a clean build directory
-	grunt.registerTask('test', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'website', 'cleanBuild']);
+	//Tests whether the extension can be built properly without errors
+	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'website', 'cleanBuild']);
+
+	//Runs mocha and then tries to build the extension to see if any errors occur while building
+	grunt.registerTask('test', ['mochaTest', 'testBuild']);
 }
