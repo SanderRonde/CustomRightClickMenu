@@ -13,6 +13,7 @@ function createLocalStorageObject() {
 		if (!isDefaultKey(key)) {
 			return obj[key];
 		}
+		return undefined;
 	};
 	obj.setItem = (key, value) => {
 		if (!isDefaultKey(key)) {
@@ -165,21 +166,21 @@ function createCopyFunction(obj, target) {
 }
 
 function makeNodeSafe(node) {
-	var newNode = {};
+	const newNode = {};
 	if (node.children) {
 		newNode.children = [];
-		for (var i = 0; i < node.children.length; i++) {
+		for (let i = 0; i < node.children.length; i++) {
 			newNode.children[i] = makeNodeSafe(node.children[i]);
 		}
 	}
 
-	var copy = createCopyFunction(node, newNode);
+	const copy = createCopyFunction(node, newNode);
 
 	copy(['id','path', 'type', 'name', 'value', 'linkVal',
 			'menuVal', 'scriptVal', 'stylesheetVal', 'nodeInfo',
 			'triggers', 'onContentTypes', 'showOnSpecified']);
 
-	safeNodes.push(newNode)
+	safeNodes.push(newNode);
 	return newNode;
 }
 
@@ -411,9 +412,24 @@ const testCRMTree = [{
 		}]
 	}];
 
-
+const testCRMTreeBase = JSON.parse(JSON.stringify(testCRMTree));
 
 const safeTestCRMTree = makeTreeSafe(testCRMTree); 
+
+function resetTree() {
+	bgPageOnMessageListener({
+		type: 'updateStorage',
+		data: {
+		type: 'optionsPage',
+			localChanges: false,
+			settingsChanges: [{
+				key: 'crm',
+				oldValue: testCRMTree,
+				newValue: JSON.parse(JSON.stringify(testCRMTreeBase))
+			}]
+		}
+	});
+}
 
 /**
  * HACKING
@@ -444,7 +460,7 @@ const document = {
 			addEventListener: function () { },
 			style: {}
 		};
-	},
+	}
 };
 var crmAppCode;
 var crmApp;
@@ -558,7 +574,7 @@ describe('Conversion', () => {
 		});
 		it('should convert an empty crm', () => {
 			let openInNewTab = false;
-			let oldStorage = createCrmLocalStorage([], openInNewTab);
+			let oldStorage = createCrmLocalStorage([], false);
 			let result;
 			assert.doesNotThrow(run(() => {
 				result = crmApp.transferCRMFromOld(openInNewTab, oldStorage);
@@ -580,7 +596,7 @@ describe('Conversion', () => {
 		}];
 		it('should convert a CRM with one link with openInNewTab false', () => {
 			let openInNewTab = false;
-			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, openInNewTab);
+			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
 			let result;
 			assert.doesNotThrow(run(() => {
 				result = crmApp.transferCRMFromOld(openInNewTab, oldStorage);
@@ -603,7 +619,7 @@ describe('Conversion', () => {
 		});
 		it('should convert a CRM with one link with openInNewTab true', () => {
 			let openInNewTab = true;
-			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, openInNewTab);
+			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, true);
 			let result;
 			assert.doesNotThrow(run(() => {
 				result = crmApp.transferCRMFromOld(openInNewTab, oldStorage);
@@ -950,6 +966,7 @@ window.crmAPI.chrome('runtime.getURL')('something').return(function(x) {x = x + 
 		});
 	});
 });
+var bgPageOnMessageListener;
 describe('CRMAPI', () => {
 	window = {
 		JSON: JSON,
@@ -959,7 +976,6 @@ describe('CRMAPI', () => {
 	var storageSync = {};
 	var storageLocal = {};
 	var bgPageConnectListener;
-	var bgPageOnMessageListener;
 	var idChangeListener;
 
 	var bgPagePortMessageListeners = [];
@@ -977,7 +993,7 @@ describe('CRMAPI', () => {
 					bgPageOnMessageListener = fn;
 				}
 			},
-			connect: function(data) {
+			connect: function() {
 				var idx = bgPagePortMessageListeners.length;
 				bgPageConnectListener({ //Port for bg page
 					onMessage: {
@@ -1005,7 +1021,13 @@ describe('CRMAPI', () => {
 		},
 		contextMenus: {
 			removeAll: function () { },
-			create: function () { }
+			create: function () { },
+			remove: function(id, cb) {
+				cb();
+			},
+			update: function(id, stuff, cb) {
+				cb && cb();
+			}
 		},
 		tabs: {
 			onHighlighted: {
@@ -1058,7 +1080,7 @@ describe('CRMAPI', () => {
 					return key(storageLocal);
 				},
 				set: function (obj, cb) {
-					for (var objKey in obj) {
+					for (let objKey in obj) {
 						if (obj.hasOwnProperty(objKey)) {
 							if (objKey === 'latestId') {
 								idChangeListener && idChangeListener({
@@ -1240,7 +1262,6 @@ describe('CRMAPI', () => {
 		let secretKey = createSecretKey();
 		step('CrmAPIInit class can be created', () => {
 			assert.doesNotThrow(run(() => {
-				window.globals.crmValues.tabData[0]
 				window.globals.crmValues.tabData[0].nodes[node.id] = {
 					secretKey: secretKey
 				};
@@ -1249,13 +1270,14 @@ describe('CRMAPI', () => {
 				let indentUnit = '	'; //Tab
 
 				//Actual code
-				let code = 
+				let code =
 					'window.crmAPI = new window.CrmAPIInit(' +
-					[node, node.id, tabData, clickData, secretKey, nodeStorage, greaseMonkeyData, false]
-					.map(function(param) {
-						return JSON.stringify(param);
-					}).join(', ') +
-					');'
+						[node, node.id, tabData, clickData, secretKey, nodeStorage,
+							greaseMonkeyData, false]
+						.map(function(param) {
+							return JSON.stringify(param);
+						}).join(', ') +
+						');';
 				eval(code);
 			}), 'CrmAPIInit class can be initialized');
 			assert.isDefined(window.crmAPI);
@@ -1369,11 +1391,12 @@ describe('CRMAPI', () => {
 
 					//Actual code
 					let code = 'window.crmAPIs.push(new window.CrmAPIInit(' +
-						[node, node.id, tabData, clickData, secretKey, {testKey: createSecretKey()}, greaseMonkeyData, false]
+						[node, node.id, tabData, clickData, secretKey, {
+							testKey: createSecretKey() }, greaseMonkeyData, false]
 						.map(function(param) {
 							return JSON.stringify(param);
 						}).join(', ') +
-						'));'
+						'));';
 					eval(code);
 				}), 'CrmAPIInit class can be initialized');
 			}
@@ -1414,7 +1437,7 @@ describe('CRMAPI', () => {
 				assert.doesNotThrow(run(() => {
 					var num = window.crmAPIs[i].comm.addListener(fn);
 					listenerRemovals.push(num);
-				}), 'adding listeners does not throw')
+				}), 'adding listeners does not throw');
 			}
 		});
 
@@ -1497,7 +1520,7 @@ describe('CRMAPI', () => {
 			assert.doesNotThrow(run(() => {
 				for (let i = 0; i < storageTestData.length; i++) {
 					let index = listeners.length;
-					let fn = function(key, oldVal, newVal, isRemote) {
+					let fn = function(key, oldVal, newVal) {
 						if (key !== storageTestData[index].key) {
 							throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
 						}
@@ -1624,7 +1647,7 @@ describe('CRMAPI', () => {
 					b.push(3);
 					b.push(4);
 					b.push(5);
-					callback({a: a, b: b})
+					callback({ a: a, b: b });
 				},
 				testCombinedSimple: function(a, b, callback) {
 					callback(a + b);
@@ -1638,7 +1661,7 @@ describe('CRMAPI', () => {
 					b.push(3);
 					b.push(4);
 					b.push(5);
-					callback({a: a, b: b})
+					callback({ a: a, b: b });
 					return {a: a, b: b};
 				},
 				testPersistentSimple: function(a, b, callback) {
@@ -1880,13 +1903,13 @@ describe('CRMAPI', () => {
 					crmAPI.crm.getSubTree(999, (subTree) => {
 
 					});
-				});
+				}, /There is no node with id ([0-9]+)/);
 			});
 			it('should throw an error when given a non-number parameter', () => {
 				crmAPI.stackTraces = false;
 				assert.throws(() => {
 					crmAPI.crm.getSubTree('string', () => {});
-				});
+				}, /No nodeId supplied/);
 			})
 		});
 		describe('getNode()', () => {
@@ -1902,7 +1925,7 @@ describe('CRMAPI', () => {
 			it('should throw an error when giving a non-existing node id', () => {
 				assert.throws(() => {
 					crmAPI.crm.getNode(999, () => {});
-				});
+				}, /There is no node with id ([0-9]+)/);
 			});
 		});
 		describe('getNodeIdFromPath', () => {
@@ -1918,7 +1941,7 @@ describe('CRMAPI', () => {
 			it('should return an error when given a non-existing path', () => {
 				assert.throws(() => {
 					crmAPI.crm.getNodeIdFromPath([999,999,999], () => {});
-				});
+				}, /Path does not return a valid value/);
 			});
 		});
 		describe('queryCrm()', () => {
@@ -1974,6 +1997,7 @@ describe('CRMAPI', () => {
 					assert.isArray(results, 'results are in an array');
 
 					let expected = [];
+
 					function flattenCrm(obj) {
 						expected.push(obj);
 						if (obj.children) {
@@ -1982,14 +2006,639 @@ describe('CRMAPI', () => {
 							});
 						}
 					}
+
 					safeTestCRMTree[5].children.forEach(flattenCrm);
 
 					assert.deepEqual(results, expected, 'results match results of given type');
-				})
+				});
 			});
 		});
 		describe('getParentNode()', () => {
-		
+			it('should return the parent when given a valid node', () => {
+				crmAPI.crm.getParentNode(safeTestCRMTree[5].children[0].id, (parent) => {
+					assert.isDefined(parent, 'parent is defined');
+					assert.isObject(parent, 'parent is an object');
+					assert.deepEqual(parent, safeTestCRMTree[5], 'parent result matches expected parent');
+				});
+			});
+			it('should return the root when given a top-level node', () => {
+				crmAPI.crm.getParentNode(safeTestCRMTree[5].id, (parent) => {
+					assert.isDefined(parent, 'parent is defined');
+					assert.isArray(parent, 'parent is an array');
+					assert.deepEqual(parent, safeTestCRMTree, 'parent result matches full tree');
+				});
+			});
+			it('should throw an error when given a node that doesn\'t exist', () => {
+				assert.throws(() => {
+					crmAPI.crm.getParentNode(999, (parent) => { });
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+		});
+		describe('getChildren()', () => {
+			it('should return the node\'s children when passed a correct id', () => {
+				crmAPI.crm.getChildren(safeTestCRMTree[5].id, (children) => {
+					assert.isDefined(children, 'children are defined');
+					assert.isArray(children, 'children is an array');
+					assert.deepEqual(children, safeTestCRMTree[5].children, 'children match expected children');
+				});
+			});
+			it('should return an empty array when given a non-menu node', () => {
+				crmAPI.crm.getChildren(safeTestCRMTree[1].id, (children) => {
+					assert.isDefined(children, 'children are defined');
+					assert.isArray(children, 'children is an array');
+					assert.lengthOf(children, 0, 'children is an empty array');
+				});
+			});
+		});
+		describe('getNodeType()', () => {
+			it('should return the type of all nodes correctly', () => {
+				safeNodes.forEach((safeNode) => {
+					crmAPI.crm.getNodeType(safeNode.id, (type) => {
+						assert.isDefined(type, 'type is defined');
+						assert.isString(type, 'type is a string');
+						assert.strictEqual(type, safeNode.type, 'type matches expected type');
+					});
+				});
+			});
+		});
+		describe('getNodeValue()', () => {
+			it('should return the value of all nodes correctly', () => {
+				safeNodes.forEach((safeNode) => {
+					crmAPI.crm.getNodeValue(safeNode.id, (value) => {
+						assert.isDefined(value, 'value is defined');
+						assert.strictEqual(typeof value, typeof safeNode.value, 'value types match');
+						if (typeof value === 'object') {
+							assert.deepEqual(value, safeNode.value, 'value matches expected value');
+						} else {
+							assert.strictEqual(value, safeNode.value, 'value matches expected value');
+						}
+					});
+				});
+			});
+		});
+		describe('createNode()', () => {
+			it('should correctly return the to-create node', () => {
+				window.globals.latestId = 6;
+				let nodeSettings = {
+					name: 'testName',
+					type: 'link',
+					value: [{
+						newTab: true,
+						url: 'http://www.somesite.com'
+					}],
+					someBadSettings: {
+						illegalStuf: 123
+					}
+				}
+				const expected = JSON.parse(JSON.stringify(nodeSettings));
+				expected.id = 7;
+				expected.onContentTypes = [true, true, true, false, false, false];
+				expected.showOnSpecified = false;
+				expected.triggers = [{
+					url: '*://*.example.com/*',
+					not: false
+				}];
+				expected.nodeInfo = {
+					permissions: ['none']
+				};
+				expected.isLocal = true;
+				expected.path = [6];
+				delete expected.someBadSettings;
+				delete expected.isLocal;
+
+				crmAPI.crm.createNode(nodeSettings, (node) => {
+					assert.isDefined(node, 'created node is defined');
+					assert.isObject(node, 'created node is an object');
+					assert.deepEqual(node, expected, 'created node matches expected node');
+				});
+			});
+			it('should correctly place the node and store it', () => {
+				let nodeSettings = {
+					name: 'testName',
+					type: 'link',
+					value: [{
+						newTab: true,
+						url: 'http://www.somesite.com'
+					}]
+				};
+
+				crmAPI.crm.createNode(nodeSettings, (node) => {
+					assert.isDefined(window.globals.crm.crmById[node.id], 'node exists in crmById');
+					assert.isDefined(window.globals.crm.crmByIdSafe[node.id], 'node exists in crmByIdSafe');
+					assert.isDefined(window.globals.crm.crmTree[node.path[0]], 'node is in the crm tree');
+					assert.isDefined(window.globals.crm.safeTree[node.path[0]], 'node is in the safe crm tree');
+				});
+			});
+		});
+		describe('copyNode()', () => {
+			it('should match the copied node', () => {
+				let expected = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				expected.id = 9;
+				expected.path = [8];
+				expected.nodeInfo = {
+					permissions: ['none']
+				}
+				crmAPI.crm.copyNode(safeTestCRMTree[0].id, {}, (copiedNode) => {
+					assert.isDefined(copiedNode, 'copied node is defined');
+					assert.isObject(copiedNode, 'copied node is an object');
+					assert.deepEqual(copiedNode, expected, 'copied node matches original');
+				});
+			});
+			it('should make the changes correctly', () => {
+				crmAPI.crm.copyNode(safeTestCRMTree[0].id, {
+					name: 'otherName'
+				}, (copiedNode) => {
+					assert.isDefined(copiedNode, 'copied node is defined');
+					assert.isObject(copiedNode, 'copied node is an object');
+					assert.strictEqual(copiedNode.name, 'otherName', 'name matches changed name');
+				});
+			});
+		});
+		describe('moveNode()', () => {
+			function assertMovedNode(newNode, originalPosition, expectedIndex, done) {
+				if (!Array.isArray(expectedIndex)) {
+					expectedIndex = [expectedIndex];
+				}
+
+				let expectedTreeSize = safeTestCRMTree.length;
+				if (expectedIndex.length > 1) {
+					expectedTreeSize--;
+				}
+
+				assert.isDefined(newNode, 'new node is defined');
+				assert.strictEqual(window.globals.crm.crmTree.length, expectedTreeSize, 'tree size is the same as expected');
+				assert.deepEqual(newNode.path, expectedIndex, 'node has the wanted position');
+				assert.deepEqual(newNode, 
+					eval(`window.globals.crm.safeTree[${expectedIndex.join('].children[')}]`),
+							`newNode is node at path ${expectedIndex}`);
+
+				//Set path to expected node as to "exclude" that property
+				newNode.path = safeTestCRMTree[originalPosition].path;
+				assert.deepEqual(newNode, safeTestCRMTree[originalPosition], 'node is the same node as before');
+				done();
+			}
+			describe('no parameters', () => {
+				it('should move the node to the end if no relation is given', (done) => {
+					resetTree();
+					crmAPI.crm.moveNode(safeTestCRMTree[0].id, {}, (newNode) => {
+						assertMovedNode(newNode, 0, window.globals.crm.safeTree.length - 1, done);
+					});
+				});
+			});
+			describe('firstChild', () => {
+				beforeEach(resetTree);
+
+				it('should use root when given no other node', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstChild'
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, 0, done);
+					});
+				});
+				it('should use passed node when passed a different node', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstChild',
+						node: safeTestCRMTree[0].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, [0, 0], done);
+					});
+				});
+				it('should throw an error when passed a non-menu node', () => {
+					assert.throws(() => {
+						crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+							relation: 'firstChild',
+							node: safeTestCRMTree[2].id
+						}, (newNode) => {});
+					}, /Supplied node is not of type "menu"/);
+				});
+			});
+			describe('firstSibling', () => {
+				beforeEach(resetTree);
+
+				it('should position it as root\'s first child when given no relative', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstSibling',
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, 0, done);
+					});
+				});
+				it('should position it as given node\'s first sibling (root)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstSibling',
+						node: safeTestCRMTree[3].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, 0, done);
+					});
+				});
+				it('should position it as given node\'s first sibling (menu)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'firstSibling',
+						node: safeTestCRMTree[5].children[0].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, [4, 0], done);
+					});
+				});
+			});
+			describe('lastChild', () => {
+				beforeEach(resetTree);
+
+				it('should position it as the root\'s last child when given no relative', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastChild'
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, safeTestCRMTree.length - 1, done);
+					})
+				});
+				it('should position it as given node\'s last child', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastChild',
+						node: safeTestCRMTree[5].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, [4, 1], done);
+					})
+				});
+				it('should thrown an error when given a non-menu node', () => {
+					assert.throws(() => {
+						crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+							relation: 'lastChild',
+							node: safeTestCRMTree[2].id
+						}, (newNode) => {});
+					}, /Supplied node is not of type "menu"/);
+				});
+			});
+			describe('lastSibling', () => {
+				beforeEach(resetTree);
+
+				it('should position it as the root\'s last child when given no relative', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastSibling'
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, safeTestCRMTree.length - 1, done);
+					});
+				});
+				it('should position it as given node\'s last sibling (root)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastSibling',
+						node: safeTestCRMTree[3].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, safeTestCRMTree.length - 1, done);
+					});
+				});
+				it('should position it as given node\'s last sibling (menu)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'lastSibling',
+						node: safeTestCRMTree[5].children[0].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, [4, 1], done);
+					});
+				});
+			});
+			describe('before', () => {
+				beforeEach(resetTree);
+
+				it('should position it as the root\'s first child when given no relative', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'before'
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, 0, done);	
+					})
+				});
+				it('should position it before given node (root)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'before',
+						node: safeTestCRMTree[4].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, 3, done);	
+					})
+				});
+				it('should position it before given node (menu)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'before',
+						node: safeTestCRMTree[5].children[0].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, [4, 0], done);	
+					})
+				});
+			});
+			describe('after', () => {
+				beforeEach(resetTree);
+
+				it('should position it as the root\'s last child when given no relative', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'after'
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, safeTestCRMTree.length - 1, done);	
+					})
+				});
+				it('should position it after given node (root)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'after',
+						node: safeTestCRMTree[4].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, 4, done);	
+					})
+				});
+				it('should position it before given node (menu)', (done) => {
+					crmAPI.crm.moveNode(safeTestCRMTree[2].id, {
+						relation: 'after',
+						node: safeTestCRMTree[5].children[0].id
+					}, (newNode) => {
+						assertMovedNode(newNode, 2, [4, 1], done);	
+					})
+				});
+			});
+		});
+		describe('deleteNode()', () => {
+			beforeEach(resetTree);
+
+			it('should remove passed node when it\'s a valid node id (root)', (done) => {
+				let promises = [];
+				for (let i = 0; i < safeTestCRMTree.length; i++) {
+					promises.push(new Promise((resolve, reject) => {
+						try {
+							//Don't remove the current script
+							if (i !== 2) {
+								crmAPI.crm.deleteNode(safeTestCRMTree[i].id, resolve);
+							} else {
+								resolve();
+							}
+						} catch(e) {
+							reject(e);
+						}
+					}));
+				} 
+				Promise.all(promises).then(() => {
+					try {
+						assert.lengthOf(window.globals.crm.crmTree, 1, 'crmTree is almost empty');
+						let crmByIdEntries = 0;
+						for (let id in window.globals.crm.crmById) {
+							crmByIdEntries++;
+						}
+						assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
+						assert.isDefined(window.globals.crm.crmById[2], 'current node is still defined');
+						assert.isObject(window.globals.crm.crmById[2], 'current node is object');
+
+						let comparisonCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+						comparisonCopy.path = [0];
+						assert.deepEqual(window.globals.crm.crmByIdSafe[2], comparisonCopy, 
+								'remaining node matches expected');
+						done();
+					} catch(e) {
+						console.log(e);
+						throw e;
+					}
+				}, (err) => {
+					throw err;
+				});
+			});
+			it('should remove passed node when it\'s a valid node id (menu)', (done) => {
+				crmAPI.crm.deleteNode(safeTestCRMTree[5].children[0].id, () => {
+					assert.isUndefined(window.globals.crm.crmById[safeTestCRMTree[5].children[0].id], 
+						'removed node is removed from crmById');
+					assert.isUndefined(window.globals.crm.crmTree[5].children[0], 
+						'removed node is removed from crmTree');
+					assert.lengthOf(window.globals.crm.crmTree[5].children, 0,
+						'previous container has no more children');
+					done();
+				});
+			});
+			it('should throw an error when an invalid node id was passed', () => {
+				assert.throws(() => {
+					crmAPI.crm.deleteNode(999, () => {});
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+		});
+		describe('editNode()', () => {
+			beforeEach(resetTree);
+
+			it('should edit nothing when passed an empty objects argument', (done) => {
+				crmAPI.crm.editNode(safeTestCRMTree[0].id, {}, (newNode) => {
+					assert.isDefined(newNode, 'new node is defined');
+					assert.deepEqual(newNode, safeTestCRMTree[0], 'node matches old node');
+					done();
+				});
+			});
+			it('should edit the name when given just the name change option', (done) => {
+				crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+					name: 'someNewName'
+				}, (newNode) => {
+					assert.isDefined(newNode, 'new node is defined');
+
+					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+					localCopy.name = 'someNewName';
+					assert.deepEqual(newNode, localCopy, 'node matches old node');
+					done();
+				});
+			});
+			it('should edit the type when given just the type change option (no-menu)', (done) => {
+				crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+					type: 'link'
+				}, (newNode) => {
+					assert.isDefined(newNode, 'new node is defined');
+
+					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+					localCopy.type = 'link';
+					localCopy.menuVal = [];
+					localCopy.value = [{
+						"newTab": true,
+						"url": "https://www.example.com"
+					}];
+					assert.deepEqual(newNode, localCopy, 'node matches expected node');
+					done();
+				});
+			});
+			it('should edit the type when given just the type change option (menu)', (done) => {
+				crmAPI.crm.editNode(safeTestCRMTree[3].id, {
+					type: 'menu'
+				}, (newNode) => {
+					assert.isDefined(newNode, 'new node is defined');
+
+					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[3]));
+					localCopy.type = 'menu';
+					localCopy.stylesheetVal = {
+						"stylesheet": "/* ==UserScript==\n// @name\tstylesheet\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t3\n// @CRM_stylesheet\ttrue\n// @grant\tnone\n// @match\t*://*.example.com/*\n// ==/UserScript== */\nbody {\n\tbackground-color: red;\n}",
+						"launchMode": 0,
+						"triggers": [{
+							"url": "*://*.example.com/*",
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": false
+						}],
+						"toggle": true,
+						"defaultOn": true,
+						"metaTags": {
+							"name": ["stylesheet"],
+							"CRM_contentTypes": ["[true, true, true, false, false, false]"],
+							"CRM_launchMode": ["3"],
+							"CRM_stylesheet": ["true"],
+							"grant": ["none"],
+							"match": ["*://*.example.com/*"]
+						}
+					};
+					localCopy.value = null;
+					localCopy.children = [];
+					assert.deepEqual(newNode, localCopy, 'node matches expected node');
+					done();
+				});
+			});
+			it('should be able to change both at the same time', (done) => {
+				crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+					type: 'link',
+					name: 'someNewName'
+				}, (newNode) => {
+					assert.isDefined(newNode, 'new node is defined');
+
+					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+					localCopy.type = 'link';
+					localCopy.name = 'someNewName';
+					localCopy.menuVal = [];
+					localCopy.value = [{
+						"newTab": true,
+						"url": "https://www.example.com"
+					}];
+					assert.deepEqual(newNode, localCopy, 'node matches expected node');
+					done();
+				});
+			});
+			it('should throw an error when given an invalid node id', () => {
+				assert.throws(() => {
+					crmAPI.crm.editNode(999, {
+						type: 'link',
+						name: 'someNewName'
+					}, () => {});
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+			it('should throw an error when given an type', () => {
+				assert.throws(() => {
+					crmAPI.crm.editNode(safeTestCRMTree[0].id, {
+						type: 'someInvalidType',
+						name: 'someNewName'
+					}, () => {});
+				}, /Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider/);
+			});
+		});
+		describe('getTriggers()', () => {
+			before(resetTree);
+
+			it('should correctly get the triggers for all nodes', () => {
+				for (let id in window.globals.crm.crmByIdSafe) {
+					crmAPI.crm.getTriggers(window.globals.crm.crmByIdSafe[id].id, (triggers) => {
+						assert.deepEqual(triggers, window.globals.crm.crmByIdSafe[id].triggers,
+							'triggers match expected');
+					});
+				}
+			});
+			it('should throw an error when passed an invalid node id', () => {
+				assert.throws(() => {
+					crmAPI.crm.getTriggers(999, () => {});
+				}, /There is no node with the id you supplied \(([0-9]+)\)/);
+			});
+		});
+		describe('setTriggers()', () => {
+			before(resetTree);
+
+			it('should set the triggers to passed triggers (empty)', () => {
+				let triggers = [];
+				crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers, (newNode) => {
+					assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+					assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+				});
+			});
+			it('should set the triggers to passed triggers (non-empty)', () => {
+				let triggers = [{
+					url: '<all_urls>',
+					not: true
+				}];
+				crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers, (newNode) => {
+					assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+					assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+				});
+			});
+			it('should set the triggers and showOnSpecified to true', () => {
+				let triggers = [{
+					url: 'http://somesite.com',
+					not: true
+				}];
+				crmAPI.crm.setTriggers(safeTestCRMTree[0].id, triggers, (newNode) => {
+					assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+					assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+				});
+			});
+			it('should work on all valid urls', () => {
+				let triggerUrls = ['<all_urls>', 'http://google.com', '*://*/*', '*://google.com/*',
+					'http://*/*', 'https://*/*', 'file://*', 'ftp://*'];
+				triggerUrls.forEach((url) => {
+					let trigger = [{
+						url: url,
+						not: false
+					}];
+					crmAPI.crm.setTriggers(safeTestCRMTree[0].id, trigger, (newNode) => {
+						assert.deepEqual(newNode.triggers, trigger, 'triggers match expected');
+						assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+					});
+				});
+			});
+			it('should throw an error when given an invalid url', () => {
+				let triggers = [{
+					url: 'somesite.com',
+					not: true
+				}];
+				assert.throws(() => {
+					crmAPI.crm.setTriggers(safeTestCRMTree[0].id, triggers, (newNode) => {
+						assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
+						assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
+					});
+				}, /Triggers don't match URL scheme/);
+			});
+		});
+		describe('getTriggersUsage()', () => {
+			before(resetTree);
+			it('should return the triggers usage for given node', () => {
+				safeTestCRMTree.forEach((node) => {
+					if (node.type === 'link' || node.type === 'menu' || node.type === 'divider') {
+						crmAPI.crm.getTriggerUsage(node.id, (usage) => {
+							assert.strictEqual(usage, node.showOnSpecified, 'usage matches expected');
+						});
+					}
+				});
+			});
+			it('should throw an error when node is not of correct type', () => {
+				safeTestCRMTree.forEach((node) => {
+					if (!(node.type === 'link' || node.type === 'menu' || node.type === 'divider')) {
+						assert.throws(() => {
+							crmAPI.crm.getTriggerUsage(node.id, (usage) => {});
+						}, /Node is not of right type, can only be menu, link or divider/);
+					}
+				});
+			});
+		});
+		describe('setTriggerUsage()', () => {
+			beforeEach(resetTree);
+			it('should correctly set the triggers usage on a node of the right type', () => {
+				crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, true, () => {
+					assert.isTrue(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to true');
+				});
+				crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, false, () => {
+					assert.isFalse(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to false');
+				});
+				crmAPI.crm.setTriggerUsage(safeTestCRMTree[0].id, true, () => {
+					assert.isTrue(window.globals.crm.crmTree[0].showOnSpecified, 'correctly set to true');
+				});
+			});
+			it('should throw an error when the type of the node is not right', () => {
+				assert.throws(() => {
+					crmAPI.crm.setTriggerUsage(safeTestCRMTree[2].id, true, () => {});
+				}, /Node is not of right type, can only be menu, link or divider/);
+			});
+		});
+		describe('stylesheet', () => {
 		});
 	});
 });
