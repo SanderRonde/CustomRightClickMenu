@@ -1373,7 +1373,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @permission crmGet
 	 * @permission crmWrite
 	 * @param {number} nodeId - The id of the node to delete
-	 * @param {function} callback - A function to run when done, contains an argument containing true if it worked, otherwise containing the error message
+	 * @param {function} callback - A function to run when done
 	 */
 	this.crm.deleteNode = function (nodeId, callback) {
 		sendCrmMessage('deleteNode', callback, {
@@ -1433,13 +1433,6 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	};
 
-	/*
-	 * All functions related specifically to the stylesheet type
-	 *
-	 * @type Object
-	 */
-	this.crm.stylesheet = {};
-
 	/**
 	 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
 	 *		link, menu and divider
@@ -1448,7 +1441,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 * @param {number} nodeId - The node of which to get the triggers
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
 	 */
-	this.crm.stylesheet.getTriggerUsage = function (nodeId, callback) {
+	this.crm.getTriggerUsage = function (nodeId, callback) {
 		sendCrmMessage('getTriggerUsage', callback, {
 			nodeId: nodeId
 		});
@@ -1459,11 +1452,11 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	 *
 	 * @permission crmGet
 	 * @permission crmWrite
-	 * @param {number} nodeId - The node of which to get the triggers
+	 * @param {number} nodeId - The node of which to set the triggers
 	 * @param {boolean} useTriggers - Whether the triggers should be used or not
 	 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 	 */
-	this.crm.stylesheet.setTriggerUsage = function (nodeId, useTriggers, callback) {
+	this.crm.setTriggerUsage = function (nodeId, useTriggers, callback) {
 		sendCrmMessage('setTriggerUsage', callback, {
 			nodeId: nodeId,
 			useTriggers: useTriggers
@@ -1521,6 +1514,42 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 			nodeId: nodeId
 		});
 	};
+
+	/*
+	 * All functions related specifically to the stylesheet type
+	 *
+	 * @type Object
+	 */
+	this.crm.stylesheet = {};
+
+	/**
+	 * Sets the stylesheet of node with ID nodeId to value "stylesheet"
+	 *
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node of which to change the stylesheet
+	 * @param {string} stylesheet - The code to change to
+	 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+	 */
+	this.crm.stylesheet.setStylesheet = function (nodeId, stylesheet, callback) {
+		sendCrmMessage('setStylesheetValue', callback, {
+			nodeId: nodeId,
+			stylesheet: stylesheet
+		});
+	};
+
+	/**
+	 * Gets the value of the stylesheet
+	 *
+	 * @permission crmGet
+	 * @param {number} nodeId - The id of the node of which to get the stylesheet
+	 * @param {function} callback - A callback with the stylesheet's value as an argument
+	 */
+	this.crm.stylesheet.getStylesheet = function (nodeId, callback) {
+		sendCrmMessage('getStylesheetValue', callback, {
+			nodeId: nodeId
+		});
+	};	
 
 	/**
 	 * Any settings changed on nodes that are currently not of the type of which you change the settings (using crmAPI.crm.link.push on a script)

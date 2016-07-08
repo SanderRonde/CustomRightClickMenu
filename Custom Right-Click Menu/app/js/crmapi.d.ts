@@ -769,7 +769,7 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @permission crmWrite
 			 * @param {number} nodeId - The id of the node to delete
-			 * @param {function} callback - A function to run when done, contains an argument containing true if it worked, otherwise containing the error message
+			 * @param {function} callback - A function to run when done
 			 */
 			deleteNode(nodeId: number, callback: (result: string) => void): void,
 			deleteNode(nodeId: number, callback: (result: boolean) => void): void,
@@ -847,28 +847,49 @@ declare namespace CRMAPI {
 			setContentTypes:(nodeId: number, contentTypes: CRMContentTypes, callback: (node: SafeCRMNode) => void) => void,
 
 			/**
+			 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
+			 *		link, menu and divider
+			 *
+			 * @permission crmGet
+			 * @param {number} nodeId - The node of which to get the triggers
+			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
+			 */
+			getTriggerUsage: (nodeId: number, callback: (usage: boolean) => void) => void,
+
+			/**
+			 * Sets the usage of triggers for given node, only works on link, menu and divider
+			 *
+			 * @permission crmGet
+			 * @permission crmWrite
+			 * @param {number} nodeId - The node of which to get the triggers
+			 * @param {boolean} useTriggers - Whether the triggers should be used or not
+			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+			 */
+			setTriggerUsage: (nodeId: number, useTriggers: boolean, callback: (node: SafeCRMNode) => void) => void
+
+			/**
 			 * All functions related specifically to the stylesheet type
 			 */
 			stylesheet: {
 				/**
-				 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
-				 *		link, menu and divider
-				*
-				* @permission crmGet
-				* @param {number} nodeId - The node of which to get the triggers
-				* @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
-				*/
-				getTriggerUsage: (nodeId: number, callback: (usage: boolean) => void) => void,
-				/**
-				 * Sets the usage of triggers for given node, only works on link, menu and divider
+				 * Sets the stylesheet of node with ID nodeId to value "stylesheet"
 				 *
 				 * @permission crmGet
 				 * @permission crmWrite
-				 * @param {number} nodeId - The node of which to get the triggers
-				 * @param {boolean} useTriggers - Whether the triggers should be used or not
-				 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+				 * @param {number} nodeId - The node of which to change the stylesheet
+				 * @param {string} stylesheet - The code to change to
+				 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
 				 */
-				setTriggerUsage: (nodeId: number, useTriggers: boolean, callback: (node: SafeCRMNode) => void) => void
+				setStylesheet: (nodeId: number, stylesheet: string, callback: (node: SafeCRMNode) => void) => void
+
+				/**
+				 * Gets the value of the stylesheet
+				 *
+				 * @permission crmGet
+				 * @param {number} nodeId - The id of the node of which to get the stylesheet
+				 * @param {function} callback - A callback with the stylesheet's value as an argument
+				 */
+				getStylesheet: (nodeId: number, callback: (node: SafeCRMNode) => void) => void	
 			},
 
 			/*
