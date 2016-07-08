@@ -868,6 +868,30 @@ declare namespace CRMAPI {
 			setTriggerUsage: (nodeId: number, useTriggers: boolean, callback: (node: SafeCRMNode) => void) => void
 
 			/**
+			 * Sets the launch mode of node with ID nodeId to "launchMode"
+			 *
+			 * @permission crmGet
+			 * @permission crmWrite
+			 * @param {number} nodeId - The node to edit
+			 * @param {number} launchMode - The new launchMode, which is the time at which this script/stylesheet runs
+			 * 		0 = run on clicking
+			 *		1 = always run
+			 *		2 = run on specified pages
+			 *		3 = only show on specified pages
+			 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
+			 */
+			setLaunchMode: (nodeId: number, launchMode: number, callback: (node: SafeCRMNode) => void) => void,
+
+			/**
+			 * Gets the launchMode of the node with ID nodeId
+			 *
+			 * @permission crmGet
+			 * @param {number} nodeId - The id of the node to get the launchMode of
+			 * @param {function} callback - A callback with the launchMode as an argument
+			 */
+			getLaunchMode: (nodeId: number, callback: (launchMode: number) => void) => void,
+
+			/**
 			 * All functions related specifically to the stylesheet type
 			 */
 			stylesheet: {
@@ -940,30 +964,6 @@ declare namespace CRMAPI {
 
 			script: {
 				/**
-				 * Sets the launch mode of node with ID nodeId to "launchMode"
-				 *
-				 * @permission crmGet
-				 * @permission crmWrite
-				 * @param {number} nodeId - The node to edit
-				 * @param {number} launchMode - The new launchMode, which is the time at which this script runs
-				 * 		0 = run on clicking
-				 *		1 = always run
-				*		2 = run on specified pages
-				*		3 = only show on specified pages
-				* @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
-				*/
-				setLaunchMode: (nodeId: number, launchMode: number, callback: (node: SafeCRMNode) => void) => void,
-
-				/**
-				 * Gets the launchMode of the node with ID nodeId
-				 *
-				 * @permission crmGet
-				 * @param {number} nodeId - The id of the node to get the launchMode of
-				 * @param {function} callback - A callback with the launchMode as an argument
-				 */
-				getLaunchMode: (nodeId: number, callback: (launchMode: number) => void) => void,
-
-				/**
 				 * Sets the script of node with ID nodeId to value "script"
 				 *
 				 * @permission crmGet
@@ -1006,7 +1006,7 @@ declare namespace CRMAPI {
 				libraries: {
 					/**
 					 * Pushes given libraries to the node with ID nodeId's libraries array,
-					 * make sure to register them first or an error is thrown
+					 * make sure to register them first or an error is thrown, only works on script nodes
 					 *
 					 * @permission crmGet
 					 * @permission crmWrite
@@ -1020,7 +1020,7 @@ declare namespace CRMAPI {
 
 					/**
 					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-					 * and returns them as an array in the callback function
+					 * and returns them as an array in the callback function, only works on script nodes
 					 *
 					 * @permission crmGet
 					 * @permission crmWrite
@@ -1039,7 +1039,7 @@ declare namespace CRMAPI {
 				backgroundLibraries: {
 					/**
 					 * Pushes given libraries to the node with ID nodeId's libraries array,
-					 * make sure to register them first or an error is thrown
+					 * make sure to register them first or an error is thrown, only works on script nodes
 					 *
 					 * @permission crmGet
 					 * @permission crmWrite
@@ -1053,7 +1053,7 @@ declare namespace CRMAPI {
 
 					/**
 					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-					 * and returns them as an array in the callback function
+					 * and returns them as an array in the callback function, only works on script nodes
 					 *
 					 * @permission crmGet
 					 * @permission crmWrite
@@ -1072,7 +1072,7 @@ declare namespace CRMAPI {
 			 */
 			menu: {
 				/**
-				 * Gets the children of the node with ID nodeId
+				 * Gets the children of the node with ID nodeId, only works for menu type nodes
 				 *
 				 * @permission crmGet
 				 * @param {number} nodeId - The id of the node of which to get the children
@@ -1082,6 +1082,7 @@ declare namespace CRMAPI {
 
 				/**
 				 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
+				 * only works for menu type nodes
 				 *
 				 * @permission crmGet
 				 * @permission crmWrite
@@ -1093,6 +1094,7 @@ declare namespace CRMAPI {
 
 				/**
 				 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
+				 * only works for menu type nodes
 				 *
 				 * @permission crmGet
 				 * @permission crmWrite
@@ -1105,6 +1107,7 @@ declare namespace CRMAPI {
 				/**
 				 * Splices the children of the node with ID nodeId, starting at "start" and splicing "amount" items,
 				 * the removed items will be put in the root of the tree instead
+				 * only works for menu type nodes
 				 *
 				 * @permission crmGet
 				 * @permission crmWrite

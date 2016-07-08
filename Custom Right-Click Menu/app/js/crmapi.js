@@ -1204,19 +1204,6 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	};
 
 	/**
-	 * Gets the children of the node with ID nodeId
-	 *
-	 * @permission crmGet
-	 * @param {number} nodeId - The id of the node whose children to get
-	 * @param {function} callback - A callback with an array of CrmAPIInit~crmNode nodes as the parameter
-	 */
-	this.crm.getChildren = function (nodeId, callback) {
-		sendCrmMessage('getChildren', callback, {
-			nodeId: nodeId
-		});
-	};
-
-	/**
 	 * Gets the type of node with ID nodeId
 	 *
 	 * @permission crmGet
@@ -1515,6 +1502,40 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 		});
 	};
 
+	/**
+	 * Sets the launch mode of node with ID nodeId to "launchMode", node should be either
+	 * a script or a stylesheet
+	 *
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node to edit
+	 * @param {number} launchMode - The new launchMode, which is the time at which this script/stylesheet runs
+	 * 		0 = run on clicking
+	 *		1 = always run
+	 *		2 = run on specified pages
+	 *		3 = only show on specified pages
+	 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
+	 */
+	this.crm.setLaunchMode = function (nodeId, launchMode, callback) {
+		sendCrmMessage('setLaunchMode', callback, {
+			nodeId: nodeId,
+			launchMode: launchMode
+		});
+	};
+	/**
+	 * Gets the launchMode of the node with ID nodeId, node should be either a script
+	 * or a stylesheet
+	 *
+	 * @permission crmGet
+	 * @param {number} nodeId - The id of the node to get the launchMode of
+	 * @param {function} callback - A callback with the launchMode as an argument
+	 */
+	this.crm.getLaunchMode = function (nodeId, callback) {
+		sendCrmMessage('getLaunchMode', callback, {
+			nodeId: nodeId
+		});
+	};
+
 	/*
 	 * All functions related specifically to the stylesheet type
 	 *
@@ -1625,126 +1646,6 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.crm.script = {};
 
 	/**
-	 * Sets the launch mode of node with ID nodeId to "launchMode"
-	 *
-	 * @permission crmGet
-	 * @permission crmWrite
-	 * @param {number} nodeId - The node to edit
-	 * @param {number} launchMode - The new launchMode, which is the time at which this script runs
-	 * 		0 = run on clicking
-	 *		1 = always run
-	 *		2 = run on specified pages
-	 *		3 = only show on specified pages
-	 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
-	 */
-	this.crm.script.setLaunchMode = function (nodeId, launchMode, callback) {
-		sendCrmMessage('setScriptLaunchMode', callback, {
-			nodeId: nodeId,
-			launchMode: launchMode
-		});
-	};
-	/**
-	 * Gets the launchMode of the node with ID nodeId
-	 *
-	 * @permission crmGet
-	 * @param {number} nodeId - The id of the node to get the launchMode of
-	 * @param {function} callback - A callback with the launchMode as an argument
-	 */
-	this.crm.script.getLaunchMode = function (nodeId, callback) {
-		sendCrmMessage('getScriptLaunchMode', callback, {
-			nodeId: nodeId
-		});
-	};
-
-	/*
-	 * All functions related specifically to the script's libraries
-	 *
-	 * @type Object
-	 */
-	this.crm.script.libraries = {};
-
-	/**
-	 * Pushes given libraries to the node with ID nodeId's libraries array,
-	 * make sure to register them first or an error is thrown
-	 *
-	 * @permission crmGet
-	 * @permission crmWrite
-	 * @param {number} nodeId - The node to edit
-	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
-	 * @param {string} libraries.name - The name of the library
-	 * @param {function} callback - A callback with the new array as an argument
-	 */
-	this.crm.script.libraries.push = function (nodeId, libraries, callback) {
-		sendCrmMessage('scriptLibraryPush', callback, {
-			nodeId: nodeId,
-			libraries: libraries
-		});
-	};
-
-	/**
-	 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-	 * and returns them as an array in the callback function
-	 *
-	 * @permission crmGet
-	 * @permission crmWrite
-	 * @param {number} nodeId - The node to splice
-	 * @param {nunber} start - The index of the array at which to start splicing
-	 * @param {nunber} amount - The amount of items to splice
-	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-	 */
-	this.crm.script.libraries.splice = function (nodeId, start, amount, callback) {
-		sendCrmMessage('scriptLibrarySplice', callback, {
-			nodeId: nodeId,
-			start: start,
-			amount: amount
-		});
-	};
-
-	/*
-	 * All functions related specifically to the background script's libraries
-	 *
-	 * @type Object
-	 */
-	this.crm.script.backgroundLibraries = {};
-
-	/**
-	 * Pushes given libraries to the node with ID nodeId's libraries array,
-	 * make sure to register them first or an error is thrown
-	 *
-	 * @permission crmGet
-	 * @permission crmWrite
-	 * @param {number} nodeId - The node to edit
-	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
-	 * @param {string} libraries.name - The name of the library
-	 * @param {function} callback - A callback with the new array as an argument
-	 */
-	this.crm.script.backgroundLibraries.push = function (nodeId, libraries, callback) {
-		sendCrmMessage('scriptBackgroundLibraryPush', callback, {
-			nodeId: nodeId,
-			libraries: libraries
-		});
-	};
-
-	/**
-	 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
-	 * and returns them as an array in the callback function
-	 *
-	 * @permission crmGet
-	 * @permission crmWrite
-	 * @param {number} nodeId - The node to splice
-	 * @param {nunber} start - The index of the array at which to start splicing
-	 * @param {nunber} amount - The amount of items to splice
-	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
-	 */
-	this.crm.script.backgroundLibraries.splice = function (nodeId, start, amount, callback) {
-		sendCrmMessage('scriptBackgroundLibrarySplice', callback, {
-			nodeId: nodeId,
-			start: start,
-			amount: amount
-		});
-	};
-
-	/**
 	 * Sets the script of node with ID nodeId to value "script"
 	 *
 	 * @permission crmGet
@@ -1803,6 +1704,94 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	};
 
 	/*
+	 * All functions related specifically to the script's libraries
+	 *
+	 * @type Object
+	 */
+	this.crm.script.libraries = {};
+
+	/**
+	 * Pushes given libraries to the node with ID nodeId's libraries array,
+	 * make sure to register them first or an error is thrown, only works on script nodes
+	 *
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node to edit
+	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
+	 * @param {string} libraries.name - The name of the library
+	 * @param {function} callback - A callback with the new array as an argument
+	 */
+	this.crm.script.libraries.push = function (nodeId, libraries, callback) {
+		sendCrmMessage('scriptLibraryPush', callback, {
+			nodeId: nodeId,
+			libraries: libraries
+		});
+	};
+
+	/**
+	 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
+	 * and returns them as an array in the callback function, only works on script nodes
+	 *
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node to splice
+	 * @param {nunber} start - The index of the array at which to start splicing
+	 * @param {nunber} amount - The amount of items to splice
+	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+	 */
+	this.crm.script.libraries.splice = function (nodeId, start, amount, callback) {
+		sendCrmMessage('scriptLibrarySplice', callback, {
+			nodeId: nodeId,
+			start: start,
+			amount: amount
+		});
+	};
+
+	/*
+	 * All functions related specifically to the background script's libraries
+	 *
+	 * @type Object
+	 */
+	this.crm.script.backgroundLibraries = {};
+
+	/**
+	 * Pushes given libraries to the node with ID nodeId's libraries array,
+	 * make sure to register them first or an error is thrown, only works on script nodes
+	 *
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node to edit
+	 * @param {Object[]|Object} libraries - One library or an array of libraries to push
+	 * @param {string} libraries.name - The name of the library
+	 * @param {function} callback - A callback with the new array as an argument
+	 */
+	this.crm.script.backgroundLibraries.push = function (nodeId, libraries, callback) {
+		sendCrmMessage('scriptBackgroundLibraryPush', callback, {
+			nodeId: nodeId,
+			libraries: libraries
+		});
+	};
+
+	/**
+	 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
+	 * and returns them as an array in the callback function, only works on script nodes
+	 *
+	 * @permission crmGet
+	 * @permission crmWrite
+	 * @param {number} nodeId - The node to splice
+	 * @param {nunber} start - The index of the array at which to start splicing
+	 * @param {nunber} amount - The amount of items to splice
+	 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+	 */
+	this.crm.script.backgroundLibraries.splice = function (nodeId, start, amount, callback) {
+		sendCrmMessage('scriptBackgroundLibrarySplice', callback, {
+			nodeId: nodeId,
+			start: start,
+			amount: amount
+		});
+	};
+
+	/*
 	 * All functions related specifically to the menu type
 	 *
 	 * @type Object
@@ -1810,7 +1799,7 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	this.crm.menu = {};
 
 	/**
-	 * Gets the children of the node with ID nodeId
+	 * Gets the children of the node with ID nodeId, only works for menu type nodes
 	 *
 	 * @permission crmGet
 	 * @param {number} nodeId - The id of the node of which to get the children
@@ -1823,7 +1812,9 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	};
 
 	/**
-	 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
+	 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds,
+	 * removes the to-be-child-node from the old location
+	 * only works for menu type nodes
 	 *
 	 * @permission crmGet
 	 * @permission crmWrite
@@ -1839,7 +1830,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 	};
 
 	/**
-	 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
+	 * Pushes the nodes with IDs childrenIds to the node with ID nodeId,
+	 * only works for menu type nodes
 	 *
 	 * @permission crmGet
 	 * @permission crmWrite
@@ -1856,7 +1848,8 @@ function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, grease
 
 	/**
 	 * Splices the children of the node with ID nodeId, starting at "start" and splicing "amount" items,
-	 * the removed items will be put in the root of the tree instead
+	 * the removed items will be put in the root of the tree instead,
+	 * only works for menu type nodes
 	 *
 	 * @permission crmGet
 	 * @permission crmWrite
