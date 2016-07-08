@@ -3,8 +3,12 @@ set -e
 cd "Custom Right-Click Menu"
 
 echo "Starting grunt tests";
-grunt test
+grunt testBuild
 echo "Finished grunt tests";
+
+echo "Starting unit tests";
+npm test
+echo "Finished unit tests";
 
 echo "Changing branches";
 grunt website
