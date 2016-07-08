@@ -2225,7 +2225,14 @@
 				CRMOnPage: true,
 				editCRMInRM: false,
 				hideToolsRibbon: false,
-				shrinkTitleRibbon: false
+				shrinkTitleRibbon: false,
+				libraries: [
+					{ "location": 'jQuery.js', "name": 'jQuery' },
+					{ "location": 'mooTools.js', "name": 'mooTools' },
+					{ "location": 'YUI.js', "name": 'YUI' },
+					{ "location": 'Angular.js', "name": 'Angular' },
+					{ "location": "jqlite.js", "name": 'jqlite' }
+				]
 			};
 
 			//Save local storage
@@ -2237,13 +2244,6 @@
 			//Sync storage
 			var defaultSyncStorage = {
 				editor: {
-					libraries: [
-						{ "location": 'jQuery.js', "name": 'jQuery' },
-						{ "location": 'mooTools.js', "name": 'mooTools' },
-						{ "location": 'YUI.js', "name": 'YUI' },
-						{ "location": 'Angular.js', "name": 'Angular' },
-						{ "location": "jqlite.js", "name": 'jqlite' }
-					],
 					keyBindings: {
 						autocomplete: 'Ctrl-Space',
 						showType: 'Ctrl-I',
@@ -2304,7 +2304,14 @@
 				CRMOnPage: true,
 				editCRMInRM: false,
 				hideToolsRibbon: false,
-				shrinkTitleRibbon: false
+				shrinkTitleRibbon: false,
+				libraries: [
+					{ "location": 'jQuery.js', "name": 'jQuery' },
+					{ "location": 'mooTools.js', "name": 'mooTools' },
+					{ "location": 'YUI.js', "name": 'YUI' },
+					{ "location": 'Angular.js', "name": 'Angular' },
+					{ "location": "jqlite.js", "name": 'jqlite' }
+				]
 			};
 
 			//Save local storage
@@ -2316,13 +2323,6 @@
 			//Sync storage
 			var defaultSyncStorage = {
 				editor: {
-					libraries: [
-						{ "location": 'jQuery.js', "name": 'jQuery' },
-						{ "location": 'mooTools.js', "name": 'mooTools' },
-						{ "location": 'YUI.js', "name": 'YUI' },
-						{ "location": 'Angular.js', "name": 'Angular' },
-						{ "location": "jqlite.js", "name": 'jqlite' }
-					],
 					keyBindings: {
 						autocomplete: 'Ctrl-Space',
 						showType: 'Ctrl-I',

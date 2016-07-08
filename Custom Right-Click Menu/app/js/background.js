@@ -2386,13 +2386,6 @@
 					});
 				});
 			},
-			getChildren: function () {
-				_this.checkPermissions(['crmGet'], function () {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
-						_this.respondSuccess(node.children || []);
-					});
-				});
-			},
 			getNodeType: function () {
 				_this.checkPermissions(['crmGet'], function () {
 					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
@@ -2845,7 +2838,7 @@
 						if (node.type === 'link') {
 							_this.respondSuccess(node.value);
 						} else {
-							_this.respondSuccess(node.linkval);
+							_this.respondSuccess(node.linkVal);
 						}
 						return true;
 					});
@@ -2871,26 +2864,19 @@
 						}
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							var itemsLength = _this.message.items.length;
-							if (itemsLength !== undefined) { //Array
-								for (var i = 0; i < itemsLength; i++) {
-									_this.message.items[i].newTab = (_this.message.items[i].newTab === false ? false : true);
-								}
-								if (node.type === 'link') {
-									node.value.push(_this.message.items);
-								} else {
+							if (Array.isArray(_this.message.items)) { //Array
+								if (node.type !== 'link') {
 									node.linkVal = node.linkVal || [];
-									node.linkVal.push(_this.message.items);
+								}
+								for (var i = 0; i < _this.message.items.length; i++) {
+									_this.message.items[i].newTab = !!_this.message.items[i].newTab;
+									node[(node.type === 'link' ? 'value' : 'linkVal')]
+										.push(_this.message.items[i]);
 								}
 							} else { //Object
-								if (_this.message.items.newTab !== undefined) {
-									if (typeof _this.message.items.newTab !== 'boolean') {
-										_this.respondError('The newtab property in given item is not of type boolean');
-										return false;
-									}
-								}
+								_this.message.items.newTab = !!_this.message.items.newTab; 
 								if (!_this.message.items.url) {
-									_this.respondError('The URL property is not defined in the given item');
+									_this.respondError('For not all values in the array items is the property url defined');
 									return false;
 								}
 								if (node.type === 'link') {
@@ -2922,26 +2908,25 @@
 								val: 'amount',
 								type: 'number'
 							}
-						], [
-							function () {
-								var spliced;
-								if (node.type === 'link') {
-									spliced = node.value.splice(_this.message.start, _this.message.amount);
-									updateCrm();
-									_this.respondSuccess(spliced, safe(node).value);
-								} else {
-									node.linkVal = node.linkVal || [];
-									spliced = node.linkVal.splice(_this.message.start, _this.message.amount);
-									updateCrm();
-									_this.respondSuccess(spliced, safe(node).linkVal);
-								}
+						], function () {
+							var spliced;
+							if (node.type === 'link') {
+								spliced = node.value.splice(_this.message.start, _this.message.amount);
+								updateCrm();
+								_this.respondSuccess(spliced, safe(node).value);
+							} else {
+								node.linkVal = node.linkVal || [];
+								spliced = node.linkVal.splice(_this.message.start, _this.message.amount);
+								updateCrm();
+								_this.respondSuccess(spliced, safe(node).linkVal);
 							}
-						]);
+							}
+						);
 					});
 
 				});
 			},
-			setScriptLaunchMode: function () {
+			setLaunchMode: function () {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
 						{
@@ -2952,11 +2937,10 @@
 						}
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							if (node.type === 'script') {
+							if (node.type === 'script' || node.type === 'stylesheet') {
 								node.value.launchMode = _this.message.launchMode;
 							} else {
-								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.launchMode = _this.message.launchMode;
+								_this.respondError('Node is not of type script or stylesheet');
 							}
 							updateCrm();
 							_this.respondSuccess(safe(node));
@@ -2965,13 +2949,13 @@
 					});
 				});
 			},
-			getScriptLaunchMode: function () {
+			getLaunchMode: function () {
 				_this.checkPermissions(['crmGet'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						if (node.type === 'script') {
+						if (node.type === 'script' || node.type === 'stylesheet') {
 							_this.respondSuccess(node.value.launchMode);
 						} else {
-							(node.scriptVal && _this.respondSuccess(node.scriptVal.launchMode)) || _this.respondSuccess(undefined);
+							_this.respondError('Node is not of type script or stylesheet');
 						}
 					});
 
@@ -3000,7 +2984,7 @@
 							if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
 								//Use URL
 								var done = false;
-								var xhr = new XMLHttpRequest();
+								var xhr = new window.XMLHttpRequest();
 								xhr.open('GET', _this.message.url, true);
 								xhr.onreadystatechange = function () {
 									if (xhr.readyState === 4 && xhr.status === 200) {
@@ -3058,31 +3042,51 @@
 						}
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+							function doesLibraryExist(lib) {
+								for (var i = 0; i < window.globals.storages.storageLocal.libraries.length; i++) {
+									if (window.globals.storages.storageLocal.libraries[i].name.toLowerCase() === lib.name.toLowerCase()) {
+										return window.globals.storages.storageLocal.libraries[i].name;
+									}
+								}
+								return false;
+							}
+
+							function isAlreadyUsed(lib) {
+								for (var i = 0; i < node.value.libraries.length; i++) {
+									if (node.value.libraries[i].name === lib.name) {
+										return true;
+									}
+								}
+								return false;
+							}
+
+							if (node.type !== 'script') {
+								_this.respondError('Node is not of type script');
+								return false;
+							}
 							if (Array.isArray(_this.message.libraries)) { //Array
 								for (var i = 0; i < _this.message.libraries.length; i++) {
-									if (node.type === 'script') {
-										node.value.libraries.push(_this.message.libraries);
-									} else {
-										node.scriptVal = node.scriptVal || {};
-										node.scriptVal.libraries = node.scriptVal.libraries || [];
-										node.scriptVal.libraries.push(_this.message.libraries);
+									var originalName = _this.message.libraries[i].name;
+									if (!(_this.message.libraries[i].name = doesLibraryExist(_this.message.libraries[i]))) {
+										_this.respondError('Library ' + originalName + ' is not registered');
+										return false;
+									}
+									if (!isAlreadyUsed(_this.message.libraries[i])) {
+										node.value.libraries.push(_this.message.libraries[i]);
 									}
 								}
 							} else { //Object
-								if (node.type === 'script') {
+								var originalName = _this.message.libraries.name;
+									if (!(_this.message.libraries.name = doesLibraryExist(_this.message.libraries))) {
+										_this.respondError('Library ' + originalName + ' is not registered');
+										return false;
+									}
+								if (!isAlreadyUsed(_this.message.libraries)) {
 									node.value.libraries.push(_this.message.libraries);
-								} else {
-									node.scriptVal = node.scriptVal || {};
-									node.scriptVal.libraries = node.scriptVal.libraries || [];
-									node.scriptVal.libraries.push(_this.message.libraries);
 								}
 							}
 							updateCrm();
-							if (node.type === 'script') {
-								_this.respondSuccess(safe(node).value.libraries);
-							} else {
-								_this.respondSuccess(node.scriptVal.libraries);
-							}
+							_this.respondSuccess(safe(node).value.libraries);
 							return true;
 						});
 					});
@@ -3106,11 +3110,7 @@
 								updateCrm();
 								_this.respondSuccess(spliced, safe(node).value.libraries);
 							} else {
-								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.libraries = node.scriptVal.libraries || [];
-								spliced = node.scriptVal.libraries.splice(_this.message.start, _this.message.amount);
-								updateCrm();
-								_this.respondSuccess(spliced, node.scriptVal.libraries);
+								_this.respondError('Node is not of type script');
 							}
 							return true;
 						});
@@ -3136,31 +3136,51 @@
 						}
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+							function doesLibraryExist(lib) {
+								for (var i = 0; i < window.globals.storages.storageLocal.libraries.length; i++) {
+									if (window.globals.storages.storageLocal.libraries[i].name.toLowerCase() === lib.name.toLowerCase()) {
+										return window.globals.storages.storageLocal.libraries[i].name;
+									}
+								}
+								return false;
+							}
+
+							function isAlreadyUsed(lib) {
+								for (var i = 0; i < node.value.backgroundLibraries.length; i++) {
+									if (node.value.backgroundLibraries[i].name === lib.name) {
+										return true;
+									}
+								}
+								return false;
+							}
+
+							if (node.type !== 'script') {
+								_this.respondError('Node is not of type script');
+								return false;
+							}
 							if (Array.isArray(_this.message.libraries)) { //Array
 								for (var i = 0; i < _this.message.libraries.length; i++) {
-									if (node.type === 'script') {
-										node.value.backgroundLibraries.push(_this.message.libraries);
-									} else {
-										node.scriptVal = node.scriptVal || {};
-										node.scriptVal.backgroundLibraries = node.scriptVal.backgroundLibraries || [];
-										node.scriptVal.backgroundLibraries.push(_this.message.libraries);
+									var originalName = _this.message.libraries[i].name;
+									if (!(_this.message.libraries[i].name = doesLibraryExist(_this.message.libraries[i]))) {
+										_this.respondError('Library ' + originalName + ' is not registered');
+										return false;
+									}
+									if (!isAlreadyUsed(_this.message.libraries[i])) {
+										node.value.backgroundLibraries.push(_this.message.libraries[i]);
 									}
 								}
 							} else { //Object
-								if (node.type === 'script') {
+								var originalName = _this.message.libraries.name;
+									if (!(_this.message.libraries.name = doesLibraryExist(_this.message.libraries))) {
+										_this.respondError('Library ' + originalName + ' is not registered');
+										return false;
+									}
+								if (!isAlreadyUsed(_this.message.libraries)) {
 									node.value.backgroundLibraries.push(_this.message.libraries);
-								} else {
-									node.scriptVal = node.scriptVal || {};
-									node.scriptVal.backgroundLibraries = node.scriptVal.backgroundLibraries || [];
-									node.scriptVal.backgroundLibraries.push(_this.message.libraries);
 								}
 							}
-							updateCrm([_this.message.nodeId]);
-							if (node.type === 'script') {
-								_this.respondSuccess(safe(node).value.backgroundLibraries);
-							} else {
-								_this.respondSuccess(node.scriptVal.backgroundLibraries);
-							}
+							updateCrm();
+							_this.respondSuccess(safe(node).value.backgroundLibraries);
 							return true;
 						});
 					});
@@ -3205,10 +3225,10 @@
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							if (node.type === 'script') {
-								node.value.script = script;
+								node.value.script = _this.message.script;
 							} else {
 								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.script = script;
+								node.scriptVal.script = _this.message.script;
 							}
 							updateCrm();
 							_this.respondSuccess(safe(node));
@@ -3229,6 +3249,40 @@
 
 				});
 			},
+			setStylesheetValue: function () {
+				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
+					_this.typeCheck([
+						{
+							val: 'stylesheet',
+							type: 'string'
+						}
+					], function () {
+						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+							if (node.type === 'stylesheet') {
+								node.value.stylesheet = _this.message.stylesheet;
+							} else {
+								node.stylesheetVal = node.scriptVal || {};
+								node.stylesheetVal.stylesheet = _this.message.stylesheet;
+							}
+							updateCrm();
+							_this.respondSuccess(safe(node));
+							return true;
+						});
+					});
+				});
+			},
+			getStylesheetValue: function () {
+				_this.checkPermissions(['crmGet'], function () {
+					_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
+						if (node.type === 'stylesheet') {
+							_this.respondSuccess(node.value.stylesheet);
+						} else {
+							(node.stylesheetVall && _this.respondSuccess(node.stylesheetVal.stylesheet)) || _this.respondSuccess(undefined);
+						}
+					});
+
+				});
+			},
 			setBackgroundScriptValue: function () {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.typeCheck([
@@ -3239,10 +3293,10 @@
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							if (node.type === 'script') {
-								node.value.backgroundScript = script;
+								node.value.backgroundScript = _this.message.script;
 							} else {
 								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.backgroundScript = script;
+								node.scriptVal.backgroundScript = _this.message.script;
 							}
 							updateCrm([_this.message.nodeId]);
 							_this.respondSuccess(safe(node));
@@ -3269,7 +3323,7 @@
 						if (node.type === 'menu') {
 							_this.respondSuccess(node.children);
 						} else {
-							_this.respondSuccess(node.menuVal);
+							_this.respondError('Node is not of type menu');
 						}
 					});
 
@@ -3284,6 +3338,10 @@
 						}
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
+							if (node.type !== 'menu') {
+								_this.respondError('Node is not of type menu');
+							}
+
 							var i;
 							for (i = 0; i < _this.message.childrenIds.length; i++) {
 								if (typeof _this.message.childrenIds[i] !== 'number') {
@@ -3291,17 +3349,24 @@
 									return false;
 								}
 							}
-							var children = [];
+
+							var oldLength = node.children.length;
+
 							for (i = 0; i < _this.message.childrenIds.length; i++) {
-								children.push(_this.getNodeFromId(_this.message.childrenIds[i], true, true));
+								var toMove = _this.getNodeFromId(_this.message.childrenIds[i], false, true);
+								_this.moveNode(toMove, {
+										position: 'lastChild',
+										node: _this.message.nodeId
+									}, {
+										children: _this.lookup(toMove.path, window.globals.crm.crmTree, true),
+										index: toMove.path[toMove.path.length - 1]	
+									});
 							}
-							if (node.type === 'menu') {
-								node.children = children;
-							} else {
-								node.menuVal = children;
-							}
+
+							_this.getNodeFromId(node.id, false, true).children.splice(0, oldLength);
+
 							updateCrm();
-							_this.respondSuccess(safe(node));
+							_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
 							return true;
 						});
 					});
@@ -3315,7 +3380,11 @@
 							type: 'array'
 						}
 					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+						_this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
+							if (node.type !== 'menu') {
+								_this.respondError('Node is not of type menu');
+							}
+
 							var i;
 							for (i = 0; i < _this.message.childrenIds.length; i++) {
 								if (typeof _this.message.childrenIds[i] !== 'number') {
@@ -3323,17 +3392,20 @@
 									return false;
 								}
 							}
-							var children = [];
+
 							for (i = 0; i < _this.message.childrenIds.length; i++) {
-								children[i] = _this.getNodeFromId(_this.message.childrenIds[i], false, true);
+								var toMove = _this.getNodeFromId(_this.message.childrenIds[i], false, true);
+								_this.moveNode(toMove, {
+										position: 'lastChild',
+										node: _this.message.nodeId
+									}, {
+										children: _this.lookup(toMove.path, window.globals.crm.crmTree, true),
+										index: toMove.path[toMove.path.length - 1]	
+									});
 							}
-							if (node.type === 'menu') {
-								node.children.push(children);
-							} else {
-								node.menuVal.push(children);
-							}
+
 							updateCrm();
-							_this.respondSuccess(safe(node));
+							_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
 							return true;
 						});
 					});
@@ -3350,10 +3422,18 @@
 							type: 'number'
 						}
 					], function () {
-						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							var spliced = (node.type === 'menu' ? node.children : node.menuVal).splice(_this.message.start, _this.message.amount);
+						_this.getNodeFromId(_this.message.nodeId, false).run(function (node) {
+							if (node.type !== 'menu') {
+								_this.respondError('Node is not of type menu');
+							}
+
+							var spliced = node.children.splice(
+								_this.message.start, _this.message.amount);
+
 							updateCrm();
-							_this.respondSuccess(spliced, (node.type === 'menu' ? safe(node).children : safe(node).menuVal));
+							_this.respondSuccess(spliced.map(function(splicedNode) {
+								return makeSafe(splicedNode);
+							}), _this.getNodeFromId(node.id, true, true).children);
 							return true;
 						});
 					});
@@ -3635,19 +3715,19 @@
 					return false;
 				}
 				optionals[toCheckName] = true;
-				if (toCheck[i].min && typeof toCheckValue === 'number') {
+				if (toCheck[i].min !== undefined && typeof toCheckValue === 'number') {
 					if (toCheck[i].min > toCheckValue) {
 						this.respondError('Value for ' + toCheckName + ' is smaller than ' + toCheck[i].min);
 						return false;
 					}
 				}
-				if (toCheck[i].max && typeof toCheckValue === 'number') {
+				if (toCheck[i].max !== undefined && typeof toCheckValue === 'number') {
 					if (toCheck[i].max < toCheckValue) {
 						this.respondError('Value for ' + toCheckName + ' is bigger than ' + toCheck[i].max);
 						return false;
 					}
 				}
-				if (matchingType === 'array' && toCheck[i].forChildren) {
+				if (toCheckIsArray && matchingType.indexOf('array') && toCheck[i].forChildren) {
 					for (j = 0; j < toCheckValue.length; j++) {
 						for (k = 0; k < toCheck[i].forChildren.length; k++) {
 							toCheckChildrenName = toCheck[i].forChildren[k].val;
@@ -3880,7 +3960,8 @@
 	}
 
 	function convertFileToDataURI(url, callback) {
-		var xhr = new XMLHttpRequest();
+		console.log('this xhr is ran');
+		var xhr = new window.XMLHttpRequest();
 		xhr.responseType = 'blob';
 		xhr.onload = function () {
 			var reader = new FileReader();
@@ -4378,7 +4459,14 @@
 			CRMOnPage: true,
 			editCRMInRM: false,
 			hideToolsRibbon: false,
-			shrinkTitleRibbon: false
+			shrinkTitleRibbon: false,
+			libraries: [
+				{ "location": 'jQuery.js', "name": 'jQuery' },
+				{ "location": 'mooTools.js', "name": 'mooTools' },
+				{ "location": 'YUI.js', "name": 'YUI' },
+				{ "location": 'Angular.js', "name": 'Angular' },
+				{ "location": "jqlite.js", "name": 'jqlite' }
+			]
 		};
 
 		//Save local storage
@@ -4387,13 +4475,6 @@
 		//Sync storage
 		var defaultSyncStorage = {
 			editor: {
-				libraries: [
-					{ "location": 'jQuery.js', "name": 'jQuery' },
-					{ "location": 'mooTools.js', "name": 'mooTools' },
-					{ "location": 'YUI.js', "name": 'YUI' },
-					{ "location": 'Angular.js', "name": 'Angular' },
-					{ "location": "jqlite.js", "name": 'jqlite' }
-				],
 				keyBindings: {
 					autocomplete: 'Ctrl-Space',
 					showType: 'Ctrl-I',
