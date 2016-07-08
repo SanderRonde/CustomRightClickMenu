@@ -8,9 +8,6 @@
     "url": "https://github.com/SanderRonde/CustomRightClickMenu/issues",
     "email": "awsdfgvhbjn@gmail.com"
   },
-  "dependencies": {
-    "grunt-mocha-test": "^0.12.7"
-  },
   "description": "Customize your right-click menu",
   "devDependencies": {
     "chai": "^3.5.0",
@@ -22,12 +19,14 @@
     "grunt-contrib-cssmin": "^0.12.3",
     "grunt-contrib-htmlmin": "^0.4.0",
     "grunt-contrib-uglify": "^1.0.1",
+    "grunt-mocha-test": "^0.12.7",
     "grunt-processhtml": "^0.3.8",
     "grunt-string-replace": "^1.2.1",
     "grunt-vulcanize": "^1.0.0",
     "grunt-zip": "^0.16.2",
     "mocha": "^2.5.3",
-    "mocha-steps": "^1.0.0"
+    "mocha-steps": "^1.0.0",
+    "request": "^2.72.0"
   },
   "license": "MIT",
   "name": "custom-right-click-menu",
@@ -35,6 +34,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
+  },
+  "scripts": {
+    "test": "mocha"
   },
   "version": "2.0.0"
 }
