@@ -42,7 +42,7 @@ else
 fi
 
 echo "Committing changes";
-git add .
+git add . --quiet
 git commit -m "Deploy to Github Pages" --quiet
 echo "Committed changes";
 
