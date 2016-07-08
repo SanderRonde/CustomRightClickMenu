@@ -2281,6 +2281,7 @@
 			_this.updateEditorZoom();
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
+			_this.buildNodePaths(_this.settings.crm, []);
 			window.doc.editCRMInRM.setCheckboxDisabledValue(false);
 			Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
 				setting.init(defaultLocalStorage);
@@ -2363,6 +2364,7 @@
 			_this.updateEditorZoom();
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
+			_this.buildNodePaths(_this.settings.crm, []);
 			window.doc.editCRMInRM.setCheckboxDisabledValue(false);
 			Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
 				setting.init(defaultLocalStorage);
@@ -2398,6 +2400,16 @@
 			}
 		},
 		//#endregion
+
+		buildNodePaths: function(tree, currentPath) {
+			for (var i = 0; i < tree.length; i++) {
+				var childPath = currentPath.concat([i]);
+				tree[i].path = childPath;
+				if (tree[i].children) {
+					this.buildNodePaths(tree[i].children, childPath);
+				}
+			}
+		},
 
 		animateLoadingBar: function(settings, progress) {
 			var _this = this;
@@ -2484,6 +2496,7 @@
 								_this.updateEditorZoom();
 								_this.orderNodesById(items.crm);
 								_this.pageDemo.create();
+								_this.buildNodePaths(items.crm, []);
 								window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
 									.CRMOnPage);
 							}
@@ -3434,6 +3447,7 @@
 					this.parent.settings.crm = insertInto(value, this.parent.settings.crm);
 				}
 				window.app.upload();
+				window.app.buildNodePaths(window.app.settings.crm, []);
 			},
 
 			/**
@@ -3459,11 +3473,13 @@
 					toMoveContainer.splice(toMoveIndex, 1);
 				}
 				window.app.upload();
+				window.app.buildNodePaths(window.app.settings.crm, []);
 			},
 
 			remove: function(index) {
 				this.lookup(index, true).splice(index[index.length - 1], 1);
 				window.app.upload();
+				window.app.buildNodePaths(window.app.settings.crm, []);
 			}
 		}
 	});
