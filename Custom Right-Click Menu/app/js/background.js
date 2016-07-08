@@ -236,6 +236,28 @@
 			//#region Templates
 			templates: {
 				/**
+				 * Merges two arrays
+				 *
+				 * @param {any[]} mainArray - The main array
+				 * @param {any[]} additions - The additions array
+				 * @returns {any[]} The merged arrays
+				 */
+				mergeArrays: function(mainArray, additionArray) {
+					for (var i = 0; i < additionArray.length; i++) {
+						if (mainArray[i] && typeof additionArray[i] === 'object') {
+							if (Array.isArray(additionArray[i])) {
+								mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
+							} else {
+								mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+							}
+						} else {
+							mainArray[i] = additionArray[i];
+						}
+					}
+					return mainArray;
+				},
+
+				/**
 				 * Merges two objects
 				 *
 				 * @param {Object} mainObject - The main object
@@ -247,7 +269,11 @@
 					for (var key in additions) {
 						if (additions.hasOwnProperty(key)) {
 							if (typeof additions[key] === 'object') {
-								this.mergeObjects(mainObject[key], additions[key]);
+								if (Array.isArray(additions[key])) {
+									mainObject[key] = this.mergeArrays(mainObject[key] || [], additions[key]);
+								} else {
+									mainObject[key] = this.mergeObjects(mainObject[key] || {}, additions[key]);
+								}
 							} else {
 								mainObject[key] = additions[key];
 							}
@@ -512,7 +538,7 @@
 	}
 
 	function safe(node) {
-		return crmByIdSafe[node.id];
+		return window.globals.crm.crmByIdSafe[node.id];
 	}
 	//#endregion
 
@@ -1360,7 +1386,15 @@
 	});
 	//#endregion
 
+	function triggerMatchesScheme(trigger) {
+		var reg = new RegExp(/(file:\/\/\/.*|(\*|http|https|file|ftp):\/\/(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(\/(.*))?|(<all_urls>))/);
+		return reg.exec(trigger);
+	}
+
 	function prepareTrigger(trigger) {
+		if (trigger === '<all_urls>') {
+			return trigger;
+		}
 		if (trigger.replace(/\s/g,'') === '') {
 			return null;
 		}
@@ -1533,9 +1567,20 @@
 		return null;
 	}
 
+	function buildNodePaths(tree, currentPath) {
+		for (var i = 0; i < tree.length; i++) {
+			var childPath = currentPath.concat([i]);
+			tree[i].path = childPath;
+			if (tree[i].children) {
+				buildNodePaths(tree[i].children, childPath);
+			}
+		}
+	}
+
 	function updateCRMValues() {
 		window.globals.crm.crmTree = window.globals.storages.settingsStorage.crm;
 		window.globals.crm.safeTree = buildSafeTree(window.globals.storages.settingsStorage.crm);
+		buildNodePaths(window.globals.crm.crmTree, []);
 		buildByIdObjects();
 	}
 
@@ -1655,7 +1700,7 @@
 	}
 
 	function createBackgroundPage(node) {
-		if (!node.value.backgroundScript || node.value.backgroundScript === '') {
+		if (!node || node.type !== 'script' || !node.value.backgroundScript || node.value.backgroundScript === '') {
 			return;
 		}
 
@@ -1931,11 +1976,9 @@
 	}
 
 	function parseNode(node, isSafe) {
-		if (isSafe) {
-			window.globals.crm.crmByIdSafe[node.id] = makeSafe(node);
-		} else {
-			window.globals.crm.crmById[node.id] = node;
-		}
+		window.globals.crm[isSafe ? 'crmByIdSafe' : 'crmById'][node.id] = (
+			isSafe ? makeSafe(node) : node
+		);
 		if (node.children && node.children.length > 0) {
 			for (var i = 0; i < node.children.length; i++) {
 				parseNode(node.children[i], isSafe);
@@ -1945,10 +1988,10 @@
 
 	function buildByIdObjects() {
 		var i;
+		window.globals.crm.crmById = {};
+		window.globals.crm.crmByIdSafe = {};
 		for (i = 0; i < window.globals.crm.crmTree.length; i++) {
 			parseNode(window.globals.crm.crmTree[i]);
-		}
-		for (i = 0; i < window.globals.crm.safeTree.length; i++) {
 			parseNode(window.globals.crm.safeTree[i], true);
 		}
 	}
@@ -2106,7 +2149,11 @@
 	}
 
 	function updateCrm(toUpdate) {
-		uploadChanges('crm', []);
+		uploadChanges('settings', [{
+			key: 'crm',
+			newValue: JSON.parse(JSON.stringify(window.globals.crm.crmTree))
+		}]);
+		updateCRMValues();
 		buildPageCRM(window.globals.storages.settingsStorage);
 
 		if (toUpdate) {
@@ -2330,9 +2377,12 @@
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						var pathToSearch = JSON.parse(JSON.stringify(node.path));
 						pathToSearch.pop();
-						_this.crmFunctions.getNodeIdFromPath(pathToSearch, function (id) {
-							_this.respondSuccess(window.globals.crm.crmById[_this.getNodeFromId(id, true, true)]);
-						});
+						if (pathToSearch.length === 0) {
+							_this.respondSuccess(window.globals.crm.safeTree);
+						} else {
+							var lookedUp = _this.lookup(pathToSearch, window.globals.crm.safeTree, false);
+							_this.respondSuccess(lookedUp);
+						}
 					});
 				});
 			},
@@ -2464,89 +2514,40 @@
 					], function(optionals) {
 						var id = generateItemId();
 						var i;
-						var type = (_this.message.options.type === 'link' ||
-							_this.message.options.type === 'script' ||
-							_this.message.options.type === 'stylesheet' ||
-							_this.message.options.type === 'menu' ||
-							_this.message.options.type === 'divider' ? _this.message.options.type : 'link');
-						var node = {
-							type: type,
-							name: _this.message.options.name || 'name',
-							id: id,
-							children: [],
-							nodeInfo: _this.getNodeFromId(_this.message.id, false, true).nodeInfo
-						};
+						var node = _this.message.options;
+						node = makeSafe(node);
+						node.id = id;
+						node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true).nodeInfo;
 						_this.getNodeFromId(_this.message.id, false, true).local && (node.local = true);
-						if (type === 'link') {
-							if (optionals['options.linkData']) {
-								node.value = _this.message.options.linkData;
-								var value = node.value;
-								for (i = 0; i < value.length; i++) {
-									node.value[i].newTab = (node.value[i].newTab === false ? false : true);
-								}
-							} else {
-								node.value = [
-									{
-										url: 'http://example.com',
-										newTab: true
-									}
-								];
-							}
-							if (optionals['options.usesTriggers']) {
-								node.showOnSpecified = _this.message.options.usesTriggers;
-							}
-							if (optionals['options.triggers']) {
-								node.triggers = _this.message.options.triggers;
-								node.showOnSpecified = true;
-							}
-						} else if (type === 'script') {
-							if (optionals['options.scriptData']) {
-								node.value = {
-									script: _this.message.options.scriptData.script,
-									launchMode: (optionals['options.ScriptData.launchMode'] ? _this.message.options.scriptData.launchMode : 0),
-									triggers: _this.message.options.scriptData.triggers || [],
-									libraries: _this.message.options.scriptData.libraries || []
-								};
-							} else {
-								node.value = {
-									script: '',
-									launchMod: 0,
-									triggers: [],
-									libraries: []
-								};
-							}
-						} else if (type === 'stylesheet') {
-							if (optionals['options.stylesheetData']) {
-								node.value = {
-									stylesheet: _this.message.options.stylesheetData.stylesheet,
-									launchMode: (optionals['options.stylesheetData.launchMode'] ? _this.message.options.stylesheetData.launchMode : 0),
-									triggers: _this.message.options.stylesheetData.triggers || [],
-									toggle: (_this.message.options.stylesheetData.toggle === false ? false : true),
-									defaultOn: (_this.message.options.stylesheetData.defaultOn === false ? false : true)
-								};
-							} else {
-								node.value = {
-									stylesheet: '',
-									launchmode: 0,
-									triggers: [],
-									toggle: true,
-									defaultOn: true
-								}
-							}
-						} else {
-							node.value = {};
-							if (optionals['options.usesTriggers']) {
-								node.showOnSpecified = _this.message.options.usesTriggers;
-							}
-							if (optionals['options.triggers']) {
-								node.triggers = _this.message.options.triggers;
-								node.showOnSpecified = true;
-							}
+
+						var newNode;
+						switch (_this.message.options.type) {
+							case 'script':
+								newNode = getTemplates().getDefaultLinkNode(node);
+								newNode.type = 'script';
+								break;
+							case 'stylesheet':
+								newNode = getTemplates().getDefaultLinkNode(node);
+								newNode.type = 'stylesheet';
+								break;
+							case 'menu':
+								newNode = getTemplates().getDefaultLinkNode(node);
+								newNode.type = 'menu';
+								break;
+							case 'divider':
+								newNode = getTemplates().getDefaultLinkNode(node);
+								newNode.type = 'divider';
+								break;
+							case 'link':
+							default:
+								newNode = getTemplates().getDefaultLinkNode(node);
+								newNode.type = 'link';
+								break;
 						}
 
-						if (_this.moveNode(node, _this.message.options.position)) {
-							updateCrm([node.id]);
-							_this.respondSuccess(node);
+						if ((newNode = _this.moveNode(newNode, _this.message.options.position))) {
+							updateCrm([newNode.id]);
+							_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
 						} else {
 							_this.respondError('Failed to place node');
 						}
@@ -2579,9 +2580,9 @@
 							if (optionals['options.name']) {
 								newNode.name = _this.message.options.name;
 							}
-							if (_this.moveNode(newNode, _this.message.options.position)) {
+							if ((newNode = _this.moveNode(newNode, _this.message.options.position))) {
 								updateCrm([newNode.id]);
-								_this.respondSuccess(newNode);
+								_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
 							}
 							return true;
 						});
@@ -2593,9 +2594,16 @@
 			moveNode: function () {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						if (_this.moveNode(node, _this.message.position)) {
+						//Remove original from CRM
+						var parentChildren = _this.lookup(node.path, window.globals.crm.crmTree, true);
+						//parentChildren.splice(node.path[node.path.length - 1], 1);
+
+						if ((node = _this.moveNode(node, _this.message.position, {
+							children: parentChildren,
+							index: node.path[node.path.length - 1]
+						}))) {
 							updateCrm();
-							_this.respondSuccess(safe(node));
+							_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
 						}
 					});
 				});
@@ -2603,12 +2611,18 @@
 			deleteNode: function () {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
+						debugger;
 						var parentChildren = _this.lookup(node.path, window.globals.crm.crmTree, true);
 						parentChildren.splice(node.path[node.path.length - 1], 1);
-						chrome.contextMenus.remove(window.globals.crmValues.contextMenuIds[node.id], function () {
+						if (window.globals.crmValues.contextMenuIds[node.id] !== undefined) {
+							chrome.contextMenus.remove(window.globals.crmValues.contextMenuIds[node.id], function () {
+								updateCrm([_this.message.nodeId]);
+								_this.respondSuccess(true);
+							});
+						} else {
 							updateCrm([_this.message.nodeId]);
 							_this.respondSuccess(true);
-						});
+						}
 					});
 				});
 			},
@@ -2638,7 +2652,21 @@
 									_this.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
 									return false;
 								} else {
+									var oldType = node.type.toLowerCase();
 									node.type = _this.message.options.type;
+									
+									if (oldType === 'menu') {
+										node.menuVal = node.children;
+										node.value = node[_this.message.options.type + 'Val'] || {};
+									} else {
+										node[oldType + 'Val'] = node.value;
+										node.value = node[_this.message.options.type + 'Val'] || {};
+									}
+
+									if (node.type === 'menu') {
+										node.children = node.value || [];
+										node.value = null;
+									}
 								}
 							}
 							if (optionals['options.name']) {
@@ -2679,6 +2707,10 @@
 							var matchPatterns = [];
 							window.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 							for (var i = 0; i < node.triggers.length; i++) {
+								if (!triggerMatchesScheme(node.triggers[i].url)) {
+									_this.respondError('Triggers don\'t match URL scheme');
+									return false;
+								}
 								var preparedUrl = prepareTrigger(node.triggers[i].url);
 								if (node.triggers.not) {
 									window.globals.crmValues.hideNodesOnPagesData[node.id].push(preparedUrl);
@@ -2699,7 +2731,11 @@
 			getTriggerUsage: function () {
 				_this.checkPermissions(['crmGet'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						_this.respondSuccess(node.showOnSpecified);
+						if (node.type === 'menu' || node.type === 'link' || node.type === 'divider') {
+							_this.respondSuccess(node.showOnSpecified);
+						} else {
+							_this.respondError('Node is not of right type, can only be menu, link or divider');
+						}
 					});
 				});
 			},
@@ -2712,14 +2748,18 @@
 						}
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-							node.showOnSpecified = _this.message.useTriggers;
-							updateCrm();
-							chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
-								documentUrlPatterns: ['<all_urls>']
-							}, function () {
+							if (node.type === 'menu' || node.type === 'link' || node.type === 'divider') {
+								node.showOnSpecified = _this.message.useTriggers;
 								updateCrm();
-								_this.respondSuccess(safe(node));
-							});
+								chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
+									documentUrlPatterns: ['<all_urls>']
+								}, function () {
+									updateCrm();
+									_this.respondSuccess(safe(node));
+								});
+							} else {
+								_this.respondError('Node is not of right type, can only be menu, link or divider');
+							}
 						});
 					});
 				});
@@ -3350,7 +3390,6 @@
 			return true;
 		}
 		var length = path.length - 1;
-		hold && length--;
 		for (var i = 0; i < length; i++) {
 			if (data && data[path[i]]) {
 				data = data[path[i]].children;
@@ -3361,13 +3400,13 @@
 		return (hold ? data : data[path[length]]) || false;
 	};
 
-	CRMFunction.prototype.checkType = function (toCheck, type, name, optional, ifndef, array, ifdef) {
-		if (!toCheck) {
+	CRMFunction.prototype.checkType = function (toCheck, type, name, optional, ifndef, isArray, ifdef) {
+		if (toCheck === undefined || toCheck === null) {
 			if (optional) {
 				ifndef && ifndef();
 				return true;
 			} else {
-				if (array) {
+				if (isArray) {
 					this.respondError('Not all values for ' + name + ' are defined');
 				} else {
 					this.respondError('Value for ' + name + ' is not defined');
@@ -3377,7 +3416,7 @@
 		} else {
 			if (type === 'array') {
 				if (typeof toCheck !== 'object' || Array.isArray(toCheck)) {
-					if (array) {
+					if (isArray) {
 						this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
 					} else {
 						this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
@@ -3386,7 +3425,7 @@
 				}
 			}
 			if (typeof toCheck !== type) {
-				if (array) {
+				if (isArray) {
 					this.respondError('Not all values for ' + name + ' are of type ' + type + ', they are instead of type ' + typeof toCheck);
 				} else {
 					this.respondError('Value for ' + name + ' is not of type ' + type + ', it is instead of type ' + typeof toCheck);
@@ -3398,103 +3437,131 @@
 		return true;
 	};
 
-	CRMFunction.prototype.moveNode = function (node, position) {
-		node = JSON.parse(JSON.stringify(node));
+	CRMFunction.prototype.moveNode = function (node, position, removeOld) {
+		var _this = this;
+
+		//Capture old CRM tree
+		var oldCrmTree = JSON.parse(JSON.stringify(window.globals.crm.crmTree));
+
+		//Put the node in the tree
 		var relativeNode;
-		var isRoot = false;
 		var parentChildren;
-		if (position) {
-			if (!this.checkType(position, 'object', 'position')) {
-				return false;
-			}
-			if (!this.checkType(position.node, 'number', 'node', true, function () {
-				relativeNode = window.globals.crm.crmTree;
-				isRoot = true;
-			})) {
-				return false;
-			}
-			if (!this.checkType(position.relation, 'string', 'relation', true, function () {
-				position.relation = 'firstSibling';
-				relativeNode = window.globals.crm.crmTree;
-				isRoot = true;
-			})) {
-				return false;
-			}
-			relativeNode = relativeNode || this.getNodeFromId(node, false, true);
-			if (relativeNode === false) {
-				relativeNode = window.globals.crm.crmTree;
-				isRoot = true;
-			}
-			switch (position.relation) {
-				case 'before':
-					if (isRoot) {
-						pushIntoArray(node, 0, window.globals.crm.crmTree);
-					} else {
-						parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
-						if (relativeNode.path.length > 0) {
-							pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
-						}
-					}
-					break;
-				case 'firstSibling':
-					if (isRoot) {
-						pushIntoArray(node, 0, window.globals.crm.crmTree);
-					} else {
-						parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
-						pushIntoArray(node, 0, parentChildren);
-					}
-					break;
-				case 'firstChild':
-					if (isRoot) {
-						pushIntoArray(node, 0, window.globals.crm.crmTree);
-					} else if (relativeNode.type === 'menu') {
-						pushIntoArray(node, 0, relativeNode.children);
-					} else {
-						this.respondError('Supplied node is not of type "menu"');
-						return false;
-					}
-					break;
-				case 'after':
-					if (isRoot) {
-						pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
-					} else {
-						parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
-						if (relativeNode.path.length > 0) {
-							pushIntoArray(node, relativeNode.path[relativeNode.path.length + 1] + 1, parentChildren);
-						}
-					}
-					break;
-				case 'lastSibling':
-					if (isRoot) {
-						pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
-					} else {
-						parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
-						pushIntoArray(node, parentChildren.length - 1, parentChildren);
-					}
-					break;
-				case 'lastChild':
-					if (isRoot) {
-						pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
-					} else if (relativeNode.type === 'menu') {
-						pushIntoArray(node, relativeNode.children.length - 1, relativeNode.children);
-					} else {
-						this.respondError('Supplied node is not of type "menu"');
-						return false;
-					}
-					break;
-			}
-		} else {
-			//Place in default position, firstChild of root
-			pushIntoArray(node, 0, window.globals.crm.crmTree);
+		position = position || {};
+
+		if (!this.checkType(position, 'object', 'position')) {
+			return false;
 		}
-		var pathMinusOne = JSON.parse(JSON.stringify(node.path));
-		pathMinusOne.splice(pathMinusOne.length - 1, 1);
-		eval('window.globals.crm.crmTree[' + pathMinusOne.join('].children[') + '].children.splice(' + node.path[node.path.length - 1] + ', 1)');
-		return true;
+
+		if (!this.checkType(position.node, 'number', 'node', true, null, false, function() {
+			if (!(relativeNode = _this.getNodeFromId(position.node, false, true))) {
+				return false;
+			}
+		})) {
+			return false;
+		}
+
+		if (!this.checkType(position.relation, 'string', 'relation', true)) {
+			return false;
+		}
+		relativeNode = relativeNode || window.globals.crm.crmTree;
+
+		var isRoot = relativeNode === window.globals.crm.crmTree;
+
+		switch (position.relation) {
+			case 'before':
+				if (isRoot) {
+					pushIntoArray(node, 0, window.globals.crm.crmTree);
+					if (removeOld && window.globals.crm.crmTree === removeOld.children) {
+						removeOld.index++;
+					}
+				} else {
+					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
+					if (removeOld && parentChildren === removeOld.children) {
+						removeOld.index++;
+					}
+				}
+				break;
+			case 'firstSibling':
+				if (isRoot) {
+					pushIntoArray(node, 0, window.globals.crm.crmTree);
+					if (removeOld && window.globals.crm.crmTree === removeOld.children) {
+						removeOld.index++;
+					}
+				} else {
+					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					pushIntoArray(node, 0, parentChildren);
+					if (removeOld && parentChildren === removeOld.children) {
+						removeOld.index++;
+					}
+				}
+				break;
+			case 'after':
+				if (isRoot) {
+					pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
+				} else {
+					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					if (relativeNode.path.length > 0) {
+						pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1] + 1, parentChildren);
+					}
+				}
+				break;
+			case 'lastSibling':
+				if (isRoot) {
+					pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
+				} else {
+					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					pushIntoArray(node, parentChildren.length, parentChildren);
+				}
+				break;
+			case 'firstChild':
+				if (isRoot) {
+					pushIntoArray(node, 0, window.globals.crm.crmTree);
+					if (removeOld && window.globals.crm.crmTree === removeOld.children) {
+						removeOld.index++;
+					}
+				} else if (relativeNode.type === 'menu') {
+					pushIntoArray(node, 0, relativeNode.children);
+					if (removeOld && relativeNode.children === removeOld.children) {
+						removeOld.index++;
+					}
+				} else {
+					this.respondError('Supplied node is not of type "menu"');
+					return false;
+				}
+				break;
+			default:
+			case 'lastChild':
+				if (isRoot) {
+					pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
+				} else if (relativeNode.type === 'menu') {
+					pushIntoArray(node, relativeNode.children.length, relativeNode.children);
+				} else {
+					this.respondError('Supplied node is not of type "menu"');
+					return false;
+				}
+				break;
+		}
+
+		if (removeOld) {
+			removeOld.children.splice(removeOld.index, 1);
+		}
+
+		//Update settings
+		applyChanges({
+			type: 'optionsPage',
+			settingsChanges: [{
+				key: 'crm',
+				oldValue: oldCrmTree,
+				newValue: JSON.parse(JSON.stringify(window.globals.crm.crmTree))
+			}]
+		});
+
+		return node;
 	};
 
-	CRMFunction.prototype.getNodeFromId = function (id, isSafe, synchronous) {
-		var node = (isSafe ? window.globals.crm.crmByIdSafe : window.globals.crm.crmById)[id];
+	CRMFunction.prototype.getNodeFromId = function (id, makeSafe, synchronous) {
+		var node = (makeSafe ? window.globals.crm.crmByIdSafe : window.globals.crm.crmById)[id];
 		if (node) {
 			if (synchronous) {
 				return node;
@@ -3628,7 +3695,13 @@
 		}
 		var permitted = true;
 		var notPermitted = [];
-		var node = this.getNodeFromId(this.message.id, false, true);
+		
+		var node;
+		if (!(node = window.globals.crm.crmById[this.message.id])) {
+			this.respondError('The node you are running this script from no longer exist, no CRM API calls are allowed');
+			return false;
+		}
+
 		if (node.isLocal) {
 			callback && callback(optional);
 		} else {
@@ -5027,7 +5100,7 @@
 					result.then(function(data) {
 						setStorages(data.storageLocalCopy, data.settingsStorage, data.chromeStorageLocal, callback);
 					}, function(err) {
-						console.log(err);
+						console.warn(err);
 						throw err;
 					});
 				} else {
