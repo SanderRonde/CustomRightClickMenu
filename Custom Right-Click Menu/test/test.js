@@ -1,7 +1,8 @@
 'use strict';
-var mochaSteps = require('mocha-steps');
-var assert = require('chai').assert;
-var fs = require('fs');
+const mochaSteps = require('mocha-steps');
+const assert = require('chai').assert;
+const request = require('request');
+const fs = require('fs');
 
 function isDefaultKey(key) {
 	return !(key !== 'getItem' && key !== 'setItem' && key !== 'length' && key !== 'clear' && key !== 'removeItem');
@@ -980,7 +981,22 @@ describe('CRMAPI', () => {
 
 	var bgPagePortMessageListeners = [];
 	var crmAPIPortMessageListeners = [];
+	var Worker = function() {
+		return  {
+			postMessage: function() {
+
+			},
+			addEventListener: function(){}
+		}
+	}
 	var chrome = {
+		app: {
+			getDetails: function() {
+				return {
+					version: 2.0
+				}
+			}
+		},
 		runtime: {
 			getURL: function () { return 'chrome-extension://something/'; },
 			onConnect: {
@@ -1134,7 +1150,14 @@ describe('CRMAPI', () => {
 			CRMOnPage: true,
 			editCRMInRM: false,
 			hideToolsRibbon: false,
-			shrinkTitleRibbon: false
+			shrinkTitleRibbon: false,
+			libraries: [
+				{ "location": 'jQuery.js', "name": 'jQuery' },
+				{ "location": 'mooTools.js', "name": 'mooTools' },
+				{ "location": 'YUI.js', "name": 'YUI' },
+				{ "location": 'Angular.js', "name": 'Angular' },
+				{ "location": "jqlite.js", "name": 'jqlite' }
+			]
 		}, 'default settings are set');
 	});
 	step('should be able to set a new CRM', () => {
@@ -1155,7 +1178,7 @@ describe('CRMAPI', () => {
 	});
 	step('should be able to keep a CRM in persistent storage', () => {
 		assert.deepEqual(storageSync, {
-			section0: `{\"editor\":{\"libraries\":[{\"location\":\"jQuery.js\",\"name\":\"jQuery\"},{\"location\":\"mooTools.js\",\"name\":\"mooTools\"},{\"location\":\"YUI.js\",\"name\":\"YUI\"},{\"location\":\"Angular.js\",\"name\":\"Angular\"},{\"location\":\"jqlite.js\",\"name\":\"jqlite\"}],\"keyBindings\":{\"autocomplete\":\"Ctrl-Space\",\"showType\":\"Ctrl-I\",\"showDocs\":\"Ctrl-O\",\"goToDef\":\"Alt-.\",\"rename\":\"Ctrl-Q\",\"selectName\":\"Ctrl-.\"},\"showToolsRibbon\":true,\"tabSize\":\"4\",\"theme\":\"dark\",\"useTabs\":true,\"zoom\":100},\"shrinkTitleRibbon\":false,\"crm\":[{\"name\":\"menu\",\"onContentTypes\":[true,true,true,true,true,true],\"type\":\"menu\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":0,\"path\":[0],\"index\":0,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"children\":[],\"expanded\":false},{\"name\":\"link\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"link\",\"showOnSpecified\":true,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":true},{\"url\":\"www.google.com\",\"not\":false}],\"isLocal\":true,\"value\":[{\"url\":\"https://www.google.com\",\"newTab\":true},{\"url\":\"www.youtube.com\",\"newTab\":false}],\"id\":1,\"path\":[1],\"index\":1,\"expanded\":false},{\"name\":\"script\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"script\",\"showOnSpecified\":false,\"isLocal\":true,\"value\":{\"launchMode\":0,\"backgroundLibraries\":[],\"libraries\":[],\"script\":\"// ==UserScript==\\n// @name\\tscript\\n// @CRM_contentTypes\\t[true, true, true, false, false, false]\\n// @CRM_launchMode\\t2\\n// @grant\\tnone\\n// @match\\t*://*.google.com/*\\n// @exclude\\t*://*.example.com/*\\n// ==/UserScript==\\nconsole.log('Hello');\",\"backgroundScript\":\"\",\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.google.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":true}],\"metaTags\":{\"name\":[\"script\"],\"CRM_contentTypes\":[\"[true, true, true, false, false, false]\"],\"CRM_launchMode\":[\"2\"],\"grant\":[\"none\"],\"match\":[\"*://*.google.com/*\"],\"exclude\":[\"*://*.example.com/*\"]}},\"id\":2,\"expanded\":false,\"path\":[2],\"index\":2,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"nodeInfo\":{\"permissions\":[\"none\"]},\"triggers\":[{\"url\":\"*://*.google.com/*\",\"not\":false},{\"url\":\"*://*.example.com/*\",\"not\":true},{\"url\":\"*://*.google.com/*\",\"not\":false},{\"url\":\"*://*.example.com/*\",\"not\":true}]},{\"name\":\"stylesheet\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"stylesheet\",\"showOnSpecified\":false,\"isLocal\":true,\"value\":{\"stylesheet\":\"/* ==UserScript==\\n// @name\\tstylesheet\\n// @CRM_contentTypes\\t[true, true, true, false, false, false]\\n// @CRM_launchMode\\t3\\n// @CRM_stylesheet\\ttrue\\n// @grant\\tnone\\n// @match\\t*://*.example.com/*\\n// ==/UserScript== */\\nbody {\\n\\tbackground-color: red;\\n}\",\"launchMode\":0,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false}],\"toggle\":true,\"defaultOn\":true,\"metaTags\":{\"name\":[\"stylesheet\"],\"CRM_contentTypes\":[\"[true, true, true, false, false, false]\"],\"CRM_launchMode\":[\"3\"],\"CRM_stylesheet\":[\"true\"],\"grant\":[\"none\"],\"match\":[\"*://*.example.com/*\"]}},\"id\":3,\"expanded\":false,\"path\":[3],\"index\":3,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"nodeInfo\":{},\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}]},{\"name\":\"divider\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"divider\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":4,\"expanded\":false,\"path\":[4],\"index\":4,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}]},{\"name\":\"menu\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"menu\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":5,\"expanded\":true,\"path\":[5],\"index\":5,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"children\":[{\"name\":\"lots of links\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"link\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":[{\"url\":\"https://www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":false},{\"url\":\"www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":true}],\"id\":6,\"expanded\":false,\"path\":[5,0],\"index\":0}]}]}`,
+			section0: `{\"editor\":{\"keyBindings\":{\"autocomplete\":\"Ctrl-Space\",\"showType\":\"Ctrl-I\",\"showDocs\":\"Ctrl-O\",\"goToDef\":\"Alt-.\",\"rename\":\"Ctrl-Q\",\"selectName\":\"Ctrl-.\"},\"showToolsRibbon\":true,\"tabSize\":\"4\",\"theme\":\"dark\",\"useTabs\":true,\"zoom\":100},\"shrinkTitleRibbon\":false,\"crm\":[{\"name\":\"menu\",\"onContentTypes\":[true,true,true,true,true,true],\"type\":\"menu\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":0,\"path\":[0],\"index\":0,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"children\":[],\"expanded\":false},{\"name\":\"link\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"link\",\"showOnSpecified\":true,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":true},{\"url\":\"www.google.com\",\"not\":false}],\"isLocal\":true,\"value\":[{\"url\":\"https://www.google.com\",\"newTab\":true},{\"url\":\"www.youtube.com\",\"newTab\":false}],\"id\":1,\"path\":[1],\"index\":1,\"expanded\":false},{\"name\":\"script\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"script\",\"showOnSpecified\":false,\"isLocal\":true,\"value\":{\"launchMode\":0,\"backgroundLibraries\":[],\"libraries\":[],\"script\":\"// ==UserScript==\\n// @name\\tscript\\n// @CRM_contentTypes\\t[true, true, true, false, false, false]\\n// @CRM_launchMode\\t2\\n// @grant\\tnone\\n// @match\\t*://*.google.com/*\\n// @exclude\\t*://*.example.com/*\\n// ==/UserScript==\\nconsole.log('Hello');\",\"backgroundScript\":\"\",\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.google.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":true}],\"metaTags\":{\"name\":[\"script\"],\"CRM_contentTypes\":[\"[true, true, true, false, false, false]\"],\"CRM_launchMode\":[\"2\"],\"grant\":[\"none\"],\"match\":[\"*://*.google.com/*\"],\"exclude\":[\"*://*.example.com/*\"]}},\"id\":2,\"expanded\":false,\"path\":[2],\"index\":2,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"nodeInfo\":{\"permissions\":[\"none\"]},\"triggers\":[{\"url\":\"*://*.google.com/*\",\"not\":false},{\"url\":\"*://*.example.com/*\",\"not\":true},{\"url\":\"*://*.google.com/*\",\"not\":false},{\"url\":\"*://*.example.com/*\",\"not\":true}]},{\"name\":\"stylesheet\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"stylesheet\",\"showOnSpecified\":false,\"isLocal\":true,\"value\":{\"stylesheet\":\"/* ==UserScript==\\n// @name\\tstylesheet\\n// @CRM_contentTypes\\t[true, true, true, false, false, false]\\n// @CRM_launchMode\\t3\\n// @CRM_stylesheet\\ttrue\\n// @grant\\tnone\\n// @match\\t*://*.example.com/*\\n// ==/UserScript== */\\nbody {\\n\\tbackground-color: red;\\n}\",\"launchMode\":0,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false}],\"toggle\":true,\"defaultOn\":true,\"metaTags\":{\"name\":[\"stylesheet\"],\"CRM_contentTypes\":[\"[true, true, true, false, false, false]\"],\"CRM_launchMode\":[\"3\"],\"CRM_stylesheet\":[\"true\"],\"grant\":[\"none\"],\"match\":[\"*://*.example.com/*\"]}},\"id\":3,\"expanded\":false,\"path\":[3],\"index\":3,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"nodeInfo\":{},\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}]},{\"name\":\"divider\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"divider\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":4,\"expanded\":false,\"path\":[4],\"index\":4,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}]},{\"name\":\"menu\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"menu\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":5,\"expanded\":true,\"path\":[5],\"index\":5,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"children\":[{\"name\":\"lots of links\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"link\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":[{\"url\":\"https://www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":false},{\"url\":\"www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":true}],\"id\":6,\"expanded\":false,\"path\":[5,0],\"index\":0}]}]}`,
 			indexes: ['section0']
 		});
 	});
@@ -1877,6 +1900,58 @@ describe('CRMAPI', () => {
 			}), 'calling chrome function does not throw');
 		});
 	});
+	describe('libraries', () => {
+		before(() => {
+			function XHRWrapper() {
+				var _this = this;
+
+				this.method = 'GET';
+				this.url = 'http://www.example.com';
+				this.responseType = 'idunno';
+
+				this.onload = null;
+				this.open = function(method, url) {
+					_this.method = method;
+					_this.url = url;
+				}
+				this.send = function() {
+					//Simple get
+					request(_this.url, (err, res, body) => {
+						_this.status = res.statusCode;
+						_this.readyState = (!err ? 4 : 'not4');
+						_this.responseText = body;
+						_this.onreadystatechange && _this.onreadystatechange();
+						_this.onload && _this.onload();
+					});
+				}
+			}
+			window.XMLHttpRequest = XHRWrapper;
+		});
+		describe('register()', () => {
+			it('should correctly register a library solely by its url and fetch it', (done) => {
+				crmAPI.libraries.register('someLibrary', {
+					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+				}, (library) => {
+					assert.isDefined(library, 'library is defined');
+					assert.isObject(library, 'library is an object');
+					assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
+					done();
+				});
+			}).timeout(5000).slow(5000);
+			it('should register a library by its code', (done) => {
+				crmAPI.libraries.register('someOtherLibrary', {
+					code: 'some code'
+				}, (library) => {
+					assert.isDefined(library, 'library is defined');
+					assert.deepEqual(library, {
+						name: 'someOtherLibrary',
+						code: 'some code'
+					});
+					done();
+				});
+			});
+		});
+	});
 	describe('crm', () => {
 		describe('getTree()', () => {
 			it('should return the crm subtree', (done) => {
@@ -1949,7 +2024,7 @@ describe('CRMAPI', () => {
 				crmAPI.crm.queryCrm({}, (results) => {
 					assert.isDefined(results, 'results is defined');
 					assert.isArray(results, 'query result is an array');
-					assert.sameDeepMembers(results, safeNodes);
+					assert.sameDeepMembers(results, safeNodes, 'both arrays have the same members');
 				});
 			});
 			it('should return all nodes matching queried name', () => {
@@ -2032,22 +2107,6 @@ describe('CRMAPI', () => {
 				assert.throws(() => {
 					crmAPI.crm.getParentNode(999, (parent) => { });
 				}, /There is no node with the id you supplied \(([0-9]+)\)/);
-			});
-		});
-		describe('getChildren()', () => {
-			it('should return the node\'s children when passed a correct id', () => {
-				crmAPI.crm.getChildren(safeTestCRMTree[5].id, (children) => {
-					assert.isDefined(children, 'children are defined');
-					assert.isArray(children, 'children is an array');
-					assert.deepEqual(children, safeTestCRMTree[5].children, 'children match expected children');
-				});
-			});
-			it('should return an empty array when given a non-menu node', () => {
-				crmAPI.crm.getChildren(safeTestCRMTree[1].id, (children) => {
-					assert.isDefined(children, 'children are defined');
-					assert.isArray(children, 'children is an array');
-					assert.lengthOf(children, 0, 'children is an empty array');
-				});
 			});
 		});
 		describe('getNodeType()', () => {
@@ -2584,7 +2643,7 @@ describe('CRMAPI', () => {
 						assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
 					});
 				});
-			});
+			}).slow(150);
 			it('should throw an error when given an invalid url', () => {
 				let triggers = [{
 					url: 'somesite.com',
@@ -2638,7 +2697,505 @@ describe('CRMAPI', () => {
 				}, /Node is not of right type, can only be menu, link or divider/);
 			});
 		});
+		describe('setLaunchMode()', () => {
+			beforeEach(resetTree);
+			it('should correctly set it when given a valid node and value', () => {
+				crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, 1, (newNode) => {
+					assert.strictEqual(newNode.value.launchMode, 1, 'launch modes match');
+				});
+			});
+			it('should throw an error when given a non-script or non-stylesheet node', () => {
+				assert.throws(() => {
+					crmAPI.crm.setLaunchMode(safeTestCRMTree[0].id, 1, (newNode) => { });
+				}, /Node is not of type script or stylesheet/);
+			});
+			it('should throw an error when given an invalid launch mode', () => {
+				assert.throws(() => {
+					crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, -5, (newNode) => { });
+				}, /Value for launchMode is smaller than 0/);
+			});
+			it('should throw an error when given an invalid launch mode', () => {
+				assert.throws(() => {
+					crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, 5, (newNode) => { });
+				}, /Value for launchMode is bigger than 3/);
+			});
+		});
+		describe('getLaunchMode()', () => {
+			before(resetTree);
+			it('should correctly get the launchMode for scripts or stylesheets', () => {
+				crmAPI.crm.getLaunchMode(safeTestCRMTree[3].id, (launchMode) => {
+					assert.strictEqual(launchMode, safeTestCRMTree[3].value.launchMode, 
+						'launchMode matches expected');
+				});
+			});
+			it('should throw an error when given an invalid node type', () => {
+				assert.throws(() => {
+					crmAPI.crm.getLaunchMode(safeTestCRMTree[0].id, (newNode) => { });
+				}, /Node is not of type script or stylesheet/);
+			});
+		});
 		describe('stylesheet', () => {
+			describe('setStylesheet()', () => {
+				beforeEach(resetTree);
+				it('should correctly set the stylesheet on stylesheet nodes', () => {
+					crmAPI.crm.stylesheet.setStylesheet(safeTestCRMTree[3].id, 'testValue', (newNode) => {
+						assert.isDefined(newNode, 'node has been passed along');
+						assert.strictEqual(newNode.value.stylesheet, 'testValue', 'stylesheet has been set');
+						assert.strictEqual(window.globals.crm.crmTree[3].value.stylesheet, 'testValue',
+							'stylesheet has been correctly updated in tree');
+					});
+				});
+				it('should correctly set the stylesheet on non-stylesheet nodes', () => {
+					crmAPI.crm.stylesheet.setStylesheet(safeTestCRMTree[2].id, 'testValue', (newNode) => {
+						assert.isDefined(newNode, 'node has been passed along');
+						assert.strictEqual(newNode.stylesheetVal.stylesheet, 'testValue',
+							'stylesheet has been set');
+						assert.strictEqual(window.globals.crm.crmTree[2].stylesheetVal.stylesheet,
+						 	'testValue', 'stylesheet has been correctly updated in tree');
+					});
+				});
+			});
+			describe('getStylesheet()', () => {
+				before(resetTree);
+				it('should correctly get the value of stylesheet type nodes', () => {
+					crmAPI.crm.stylesheet.getStylesheet(safeTestCRMTree[3].id, (stylesheet) => {
+						assert.isDefined(stylesheet, 'stylesheet has been passed along');
+						assert.strictEqual(stylesheet, safeTestCRMTree[3].value.stylesheet,
+							'stylesheets match');
+					});
+				});
+				it('should correctly get the value of non-stylesheet type nodes', () => {
+					crmAPI.crm.stylesheet.getStylesheet(safeTestCRMTree[2].id, (stylesheet) => {
+						assert.strictEqual(stylesheet, (
+							safeTestCRMTree[2].stylesheetVal ? 
+								safeTestCRMTree[2].stylesheetVal.stylesheet :
+								undefined
+							), 'stylesheets match');
+					});
+				});
+			});
+		});
+		describe('link', () => {
+			describe('getLinks()', () => {
+				it('should correctly get the links of a link-type node', () => {
+					crmAPI.crm.link.getLinks(safeTestCRMTree[5].children[0].id, (linkValue) => {
+						assert.deepEqual(linkValue, safeTestCRMTree[5].children[0].value, 'link values match');
+					});
+				});
+				it('should correctly get the links of a non-link-type node', () => {
+					crmAPI.crm.link.getLinks(safeTestCRMTree[3].id, (linkValue) => {
+						if (linkValue) {
+							assert.deepEqual(linkValue, safeTestCRMTree[3].linkVal, 'link values match');
+						} else {
+							assert.strictEqual(linkValue, safeTestCRMTree[3].linkVal, 'link values match');
+						}
+					});
+				});
+			});
+			describe('push()', () => {
+				beforeEach(resetTree);
+
+				it('should correctly set it when passed an array of links', () => {
+					crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, [{
+						url: 'firstlink.com'
+					}, {
+						url: 'secondlink.com',
+						newTab: false
+					}, {
+						url: 'thirdlink.com',
+						newTab: true
+					}], (newValue) => {
+						assert.sameDeepMembers(newValue, safeTestCRMTree[5].children[0].value.concat([{
+							url: 'firstlink.com',
+							newTab: false
+						}, {
+							url: 'secondlink.com',
+							newTab: false
+						}, {
+							url: 'thirdlink.com',
+							newTab: true
+						}]), 'link value matches expected');
+					});
+				});
+				it('should correctly set it when passed a link object', () => {
+					crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, {
+						url: 'firstlink.com'
+					}, (newValue) => {
+						assert.sameDeepMembers(newValue, safeTestCRMTree[5].children[0].value.concat([{
+							url: 'firstlink.com',
+							newTab: false
+						}]), 'link value matches expected');
+					});
+				});
+				it('should throw an error when the link is missing (array)', () => {
+					assert.throws(() => {
+						crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, [{
+						}, {
+							newTab: false
+						}, {
+							newTab: true
+						}], (newValue) => { });
+					}, /For not all values in the array items is the property url defined/)
+				});
+				it('should throw an error when the link is missing (objec)', () => {
+					assert.throws(() => {
+						crmAPI.crm.link.push(safeTestCRMTree[5].children[0].id, { }, (newValue) => { });
+					}, /For not all values in the array items is the property url defined/);
+				})
+			});
+			describe('splice()', () => {
+				beforeEach(resetTree);
+				it('should correctly splice at index 0 and amount 1', () => {
+					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 1, (spliced) => {
+						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						let splicedExpected = linkCopy.splice(0, 1);
+
+						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+							'new value matches expected');
+						assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+					});
+				});
+				it('should correctly splice at index not-0 and amount 1', () => {
+					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 2, 1, (spliced) => {
+						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						let splicedExpected = linkCopy.splice(2, 1);
+
+						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+							'new value matches expected');
+						assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+					});
+				});
+				it('should correctly splice at index 0 and amount 2', () => {
+					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 2, (spliced) => {
+						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						let splicedExpected = linkCopy.splice(0, 2);
+
+						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+							'new value matches expected');
+						assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+					});
+				});
+				it('should correctly splice at index non-0 and amount 2', () => {
+					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 1, 2, (spliced) => {
+						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						let splicedExpected = linkCopy.splice(1, 2);
+
+						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
+							'new value matches expected');
+						assert.deepEqual(spliced, splicedExpected, 'spliced node matches expected node');
+					});
+				});
+			});
+		});
+		describe('script', () => {
+			describe('setScript()', () => {
+				beforeEach(resetTree);
+				it('should correctly set the script on script nodes', () => {
+					crmAPI.crm.script.setScript(safeTestCRMTree[2].id, 'testValue', (newNode) => {
+						assert.isDefined(newNode, 'node has been passed along');
+						assert.strictEqual(newNode.value.script, 'testValue', 'script has been set');
+						assert.strictEqual(window.globals.crm.crmTree[2].value.script, 'testValue',
+							'script has been correctly updated in tree');
+					});
+				});
+				it('should correctly set the script on non-script nodes', () => {
+					crmAPI.crm.script.setScript(safeTestCRMTree[3].id, 'testValue', (newNode) => {
+						assert.isDefined(newNode, 'node has been passed along');
+						assert.strictEqual(newNode.scriptVal.script, 'testValue',
+							'script has been set');
+						assert.strictEqual(window.globals.crm.crmTree[3].scriptVal.script,
+						 	'testValue', 'script has been correctly updated in tree');
+					});
+				});
+			});
+			describe('getScript()', () => {
+				before(resetTree);
+				it('should correctly get the value of script type nodes', () => {
+					crmAPI.crm.script.getScript(safeTestCRMTree[2].id, (script) => {
+						assert.isDefined(script, 'script has been passed along');
+						assert.strictEqual(script, safeTestCRMTree[2].value.script,
+							'scripts match');
+					});
+				});
+				it('should correctly get the value of non-script type nodes', () => {
+					crmAPI.crm.script.getScript(safeTestCRMTree[3].id, (script) => {
+						assert.strictEqual(script, (
+							safeTestCRMTree[2].scriptVal ? 
+								safeTestCRMTree[2].scriptVal.script :
+								undefined
+							), 'scripts match');
+					});
+				});
+			});
+			describe('setBackgroundScript()', () => {				
+				//This has the exact same implementation as other script setting but
+				//testing this is kinda hard because it starts the background script and a
+				//lot of stuff happens as a result of that (web workers etc) that i can't 
+				//really emulate
+			});
+			describe('getBackgroundScript()', () => {
+				before(resetTree);
+				it('should correctly get the value of backgroundScript type nodes', () => {
+					crmAPI.crm.script.getBackgroundScript(safeTestCRMTree[2].id, (backgroundScript) => {
+						assert.isDefined(backgroundScript, 'backgroundScript has been passed along');
+						assert.strictEqual(backgroundScript, safeTestCRMTree[2].value.backgroundScript,
+							'backgroundScripts match');
+					});
+				});
+				it('should correctly get the value of non-script type nodes', () => {
+					crmAPI.crm.script.getScript(safeTestCRMTree[3].id, (backgroundScript) => {
+						assert.strictEqual(backgroundScript, (
+							safeTestCRMTree[2].scriptVal ? 
+								safeTestCRMTree[2].scriptVal.backgroundScript :
+								undefined
+							), 'backgroundScripts match');
+					});
+				});
+			});
+			describe('libraries', () => {
+				describe('push()', () => {
+					beforeEach(resetTree);
+					it('should correctly push an existing library (single)', () => {
+						crmAPI.crm.script.libraries.push(safeTestCRMTree[2].id, {
+							name: 'jQuery'
+						}, (libs) => {
+							assert.deepEqual(libs, safeTestCRMTree[2].value.libraries.concat([{
+								name: 'jQuery'
+							}]), 'new libs matches expected libraries');
+						});
+					});
+					it('should correctly push an existing library (array)', () => {
+						crmAPI.crm.script.libraries.push(safeTestCRMTree[2].id, 
+							[{
+								name: 'jQuery'
+							}, {
+								name: 'mooTools'
+							}, {
+								name: 'jqlite'
+							}, {
+								name: 'angular'
+							}], (libs) => {
+							assert.deepEqual(libs, safeTestCRMTree[2].value.libraries.concat(
+								[{
+									name: 'jQuery'
+								}, {
+									name: 'mooTools'
+								}, {
+									name: 'jqlite'
+								}, {
+									name: 'Angular'
+								}]
+							), 'new libs matches expected libraries');
+						});
+					});
+					it('should throw an error when pushing to a non-script node', () => {
+						assert.throws(() => {
+							crmAPI.crm.script.libraries.push(safeTestCRMTree[0].id, {
+								name: 'jQuery'
+							}, () => {});
+						}, /Node is not of type script/);
+					});
+					it('should throw an error when pushing a not-registered library', () => {
+						assert.throws(() => {
+							crmAPI.crm.script.libraries.push(safeTestCRMTree[2].id, {
+								name: 'fakeLibrary'
+							}, () => {});
+						}, /Library fakeLibrary is not registered/);
+					});
+				});
+				describe('splice()', () => {
+					beforeEach(resetTree);
+
+					it('should correctly splice at index 0 and amount 1', () => {
+						crmAPI.crm.script.libraries.splice(safeTestCRMTree[2].id, 0, 1, (spliced) => {
+							let scriptCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2].value.libraries));
+							let splicedExpected = scriptCopy.splice(0, 1);
+
+							assert.deepEqual(window.globals.crm.crmTree[2].value.libraries, scriptCopy, 
+								'new value matches expected');
+							assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+						});
+					});
+					it('should correctly splice at index not-0 and amount 1', () => {
+						crmAPI.crm.script.libraries.splice(safeTestCRMTree[2].id, 2, 1, (spliced) => {
+							let scriptCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2].value.libraries));
+							let splicedExpected = scriptCopy.splice(2, 1);
+
+							assert.deepEqual(window.globals.crm.crmTree[2].value.libraries, scriptCopy, 
+								'new value matches expected');
+							assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+						});
+					});
+				});
+			});
+			describe('backgroundLibraries', () => {
+				describe('push()', () => {
+					beforeEach(resetTree);
+					it('should correctly push an existing library (single)', () => {
+						crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[2].id, {
+							name: 'jQuery'
+						}, (libs) => {
+							assert.deepEqual(libs, safeTestCRMTree[2].value.backgroundLibraries.concat([{
+								name: 'jQuery'
+							}]), 'new libs matches expected libraries');
+						});
+					});
+					it('should correctly push an existing library (array)', () => {
+						crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[2].id, 
+							[{
+								name: 'jQuery'
+							}, {
+								name: 'mooTools'
+							}, {
+								name: 'jqlite'
+							}, {
+								name: 'angular'
+							}], (libs) => {
+							assert.deepEqual(libs, safeTestCRMTree[2].value.backgroundLibraries.concat(
+								[{
+									name: 'jQuery'
+								}, {
+									name: 'mooTools'
+								}, {
+									name: 'jqlite'
+								}, {
+									name: 'Angular'
+								}]
+							), 'new libs matches expected libraries');
+						});
+					});
+					it('should throw an error when pushing to a non-script node', () => {
+						assert.throws(() => {
+							crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[0].id, {
+								name: 'jQuery'
+							}, () => {});
+						}, /Node is not of type script/);
+					});
+					it('should throw an error when pushing a not-registered library', () => {
+						assert.throws(() => {
+							crmAPI.crm.script.backgroundLibraries.push(safeTestCRMTree[2].id, {
+								name: 'fakeLibrary'
+							}, () => {});
+						}, /Library fakeLibrary is not registered/);
+					});
+				});
+				describe('splice()', () => {
+					beforeEach(resetTree);
+
+					it('should correctly splice at index 0 and amount 1', () => {
+						crmAPI.crm.script.backgroundLibraries.splice(safeTestCRMTree[2].id, 0, 1, (spliced) => {
+							let scriptCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2].value.backgroundLibraries));
+							let splicedExpected = scriptCopy.splice(0, 1);
+
+							assert.deepEqual(window.globals.crm.crmTree[2].value.backgroundLibraries, scriptCopy, 
+								'new value matches expected');
+							assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+						});
+					});
+					it('should correctly splice at index not-0 and amount 1', () => {
+						crmAPI.crm.script.backgroundLibraries.splice(safeTestCRMTree[2].id, 2, 1, (spliced) => {
+							let scriptCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2].value.backgroundLibraries));
+							let splicedExpected = scriptCopy.splice(2, 1);
+
+							assert.deepEqual(window.globals.crm.crmTree[2].value.backgroundLibraries, scriptCopy, 
+								'new value matches expected');
+							assert.deepEqual(spliced, splicedExpected, 'spliced library matches expected library');
+						});
+					});
+				});
+			});
+		});
+		describe('menu', () => {
+			describe('getChildren()', () => {
+				before(resetTree);
+				it('should return the node\'s children when passed a correct id', () => {
+					crmAPI.crm.menu.getChildren(safeTestCRMTree[5].id, (children) => {
+						assert.isDefined(children, 'children are defined');
+						assert.isArray(children, 'children is an array');
+						assert.deepEqual(children, safeTestCRMTree[5].children, 'children match expected children');
+					});
+				});
+				it('should throw an error when given a non-menu node', () => {
+					assert.throws(() => {
+						crmAPI.crm.menu.getChildren(safeTestCRMTree[1].id, (children) => {
+							assert.isDefined(children, 'children are defined');
+							assert.isArray(children, 'children is an array');
+							assert.lengthOf(children, 0, 'children is an empty array');
+						});
+					}, /Node is not of type menu/);
+				});
+			});
+			describe('setChildren()', () => {
+				beforeEach(resetTree);
+
+				it('should set the children and remove the old ones', () => {
+					crmAPI.crm.menu.setChildren(safeTestCRMTree[5].id, [
+						safeTestCRMTree[1].id,
+						safeTestCRMTree[2].id
+					], (newNode) => {
+						let firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
+						firstNodeCopy.path = newNode.children[0].path;
+						assert.deepEqual(newNode.children[0], firstNodeCopy, 'first node was moved correctly');
+
+						let secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+						secondNodeCopy.path = newNode.children[1].path;
+						assert.deepEqual(newNode.children[1], secondNodeCopy, 'second node was moved correctly');
+
+						assert.notDeepEqual(newNode.children[0], window.globals.crm.crmTree[1],
+							'original node has been removed');
+						assert.notDeepEqual(newNode.children[1], window.globals.crm.crmTree[2],
+							'original node has been removed');
+
+						assert.lengthOf(newNode.children, 2, 'new node has correct size children array');
+					});
+				});
+				it('should throw an error when trying to run this on a non-menu node', () => {
+					assert.throws(() => {
+						crmAPI.crm.menu.setChildren(safeTestCRMTree[1].id, [], () => {});
+					}, /Node is not of type menu/);
+				});
+			});
+			describe('push()', () => {
+				beforeEach(resetTree);
+
+				it('should set the children', () => {
+					crmAPI.crm.menu.push(safeTestCRMTree[5].id, [
+						safeTestCRMTree[1].id,
+						safeTestCRMTree[2].id
+					], (newNode) => {
+						let firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
+						firstNodeCopy.path = newNode.children[1].path;
+						assert.deepEqual(newNode.children[1], firstNodeCopy, 'first node was moved correctly');
+
+						let secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+						secondNodeCopy.path = newNode.children[2].path;
+						assert.deepEqual(newNode.children[2], secondNodeCopy, 'second node was moved correctly');
+
+						assert.notDeepEqual(newNode.children[1], window.globals.crm.crmTree[1],
+							'original node has been removed');
+						assert.notDeepEqual(newNode.children[2], window.globals.crm.crmTree[2],
+							'original node has been removed');
+
+						assert.lengthOf(newNode.children, 3, 'new node has correct size children array');
+					});
+				});
+				it('should throw an error when trying to run this on a non-menu node', () => {
+					assert.throws(() => {
+						crmAPI.crm.menu.push(safeTestCRMTree[1].id, [], () => {});
+					}, /Node is not of type menu/);
+				});
+			});
+			describe('splice()', () => {
+				beforeEach(resetTree);
+
+				it('should correctly splice at index 0 and amount 1', () => {
+					crmAPI.crm.menu.splice(safeTestCRMTree[5].id, 0, 1, (spliced) => {
+						assert.lengthOf(window.globals.crm.crmTree[5].children, 0, 'new node has 0 children');
+						assert.deepEqual(spliced[0], safeTestCRMTree[5].children[0],
+							'spliced child matches expected child');
+					});
+				});
+			});
 		});
 	});
 });
