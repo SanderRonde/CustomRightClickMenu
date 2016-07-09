@@ -415,7 +415,7 @@ Polymer.DraggableNodeBehavior = {
 				}
 			}
 		});
-		this.$.dragger.addEventListener('mouseup', function() {
+		this.$.dragger.addEventListener('mouseup', function(e) {
 			if (e.which === 1) {
 				e.stopPropagation();
 				if (_this._readyForMouseUp) {
@@ -432,40 +432,5 @@ Polymer.DraggableNodeBehavior = {
 			onMouseMove: this._onMouseMove.bind(this),
 			onScroll: this._onScroll.bind(this) 
 		}
-
-		// $(this.$.dragger)
-		// 	.off('mousedown')
-		// 	.on('mousedown', function (e) {
-		// 		if (e.which === 1) {
-		// 			_this._readyForMouseUp = false;
-		// 			_this._startDrag(e);
-		// 			_this._readyForMouseUp = true;
-		// 			if (_this._execMouseUp) {
-		// 				_this._stopDrag();
-		// 			}
-		// 		}
-		// 	})
-		// 	.off('mouseup')
-		// 	.on('mouseup', function (e) {
-		// 		if (e.which === 1) {
-		// 			e.stopPropagation();
-		// 			if (_this._readyForMouseUp) {
-		// 				_this._stopDrag();
-		// 			} else {
-		// 				_this._execMouseUp = true;
-		// 			}
-		// 		}
-		// 	});
-		// this._bodyDragWrapper = this._bodyDrag.bind(this);
-		// this._bodyScrollFunction = this._bodyScroll.bind(this);
-		// this._blurFunction = this._stopDrag.bind(this);
-		// this._stopDragFunction = function () {
-		// 	if (_this.dragging) {
-		// 		_this._stopDrag();
-		// 	}
-		// }
-		// this._mouseMovementFunction = this._recordMouseMovemenent.bind(this);
-		// this._sideScrollFunction = this._sideDrag.bind(this);
-		// this.column = this.parentNode.index;
 	}
 }
