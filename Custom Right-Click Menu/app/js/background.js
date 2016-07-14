@@ -821,7 +821,7 @@
 				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
 			} else {
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
-				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(css) + '));document.head.appendChild(CRMSSInsert);';
 			}
 			chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
 				checked: (window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = !window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id])
@@ -835,7 +835,7 @@
 
 	function createStylesheetClickHandler(node) {
 		return function (info, tab) {
-			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + node.value.stylesheet + '"));document.head.appendChild(CRMSSInsert);';
+			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(node.value.stylesheet) + '));document.head.appendChild(CRMSSInsert);';
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -1521,7 +1521,7 @@
 				className = node.id + '' + replaceStylesheetTabs[i].id;
 				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
 				css = node.value.stylesheet.replace(/[ |\n]/g, '');
-				code += 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode("' + css + '"));document.head.appendChild(CRMSSInsert);';
+				code += 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(css) + '));document.head.appendChild(CRMSSInsert);';
 				chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
 					code: code,
 					allFrames: true
