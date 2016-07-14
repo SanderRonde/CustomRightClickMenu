@@ -134,12 +134,12 @@ module.exports = function(grunt) {
 			},
 			codeMirrorMinify: {
 				files: {
-					'build/js/codeMirrorFile.min.js': [
-						'app/js/codemirror.js',
-						'app/js/diff_match_patch.js',
-						'app/js/codeMirrorAddons.js',
+					'build/js/libraries/codemirror/codeMirrorFile.min.js': [
+						'app/js/libraries/codemirror/codemirror.js',
+						'app/js/libraries//diff_match_patch.js',
+						'app/js/libraries/codemirror/codeMirrorAddons.js',
 						'app/js/userscriptMetadataCodemirror.js',
-						'app/js/codemirrorJs.js',
+						'app/js/libraries/codemirror/codemirrorJs.js',
 						'app/js/crmAPIDefs.js'
 					]
 			}
@@ -160,8 +160,10 @@ module.exports = function(grunt) {
 				seperator: ';\n'
 			},
 			jqueryConcat: {
-				src: ['app/js/jquery-2.0.3.min.js', 'app/js/jquery-ui.min.js', 'app/js/jquery.requestAnimationFrame.min.js', 'app/js/jquery.contextMenu.js', 'app/js/jquery.bez.js'],
-				dest: 'build/js/jqueryFiles.min.js'
+				src: ['app/js/libraries/jquery/jquery-2.0.3.min.js', 'app/js/libraries/jquery/jquery-ui.min.js',
+					 'app/js/libraries/jquery/jquery.requestAnimationFrame.min.js', 'app/js/libraries/jquery/jquery.contextMenu.js',
+					 'app/js/libraries/jquery/jquery.bez.js'],
+				dest: 'build/js/libraries/jquery/jqueryFiles.min.js'
 			}
 		},
 		usebanner: {
@@ -172,7 +174,7 @@ module.exports = function(grunt) {
 					linebreak: true
 				},
 				files: {
-					src: ['build/js/codeMirrorFiles.min.js']
+					src: ['build/js/libraries/codemirror/codeMirrorFiles.min.js']
 				}
 			},
 			htmlBanners: {
@@ -246,7 +248,7 @@ module.exports = function(grunt) {
 						],
 						dest: 'build/'
 					}, //Elements
-					{ expand: true, cwd: 'app/', src: ['js/jsonfn.js', 'js/md5.js', 'js/jquery-2.0.3.min.js'], dest: 'build/' }, //JS libs
+					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.min.js'], dest: 'build/' }, //JS libs
 					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
 				]
 			},
