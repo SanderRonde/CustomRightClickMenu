@@ -532,7 +532,7 @@ describe('Conversion', () => {
 		let diffMatchPatchCode;
 		step('should be able to read diff_match_patch.js', () => {
 			assert.doesNotThrow(run(() => {
-				diffMatchPatchCode = fs.readFileSync('./app/js/diff_match_patch.js', {
+				diffMatchPatchCode = fs.readFileSync('./app/js/libraries/diff_match_patch.js', {
 					encoding: 'utf8'
 				});
 			}), 'File diff_match_patch.js is readable');
@@ -545,7 +545,7 @@ describe('Conversion', () => {
 		let codemirrorJsCode;
 		step('should be able to read codemirror.js', () => {
 			assert.doesNotThrow(run(() => {
-				codemirrorJsCode = fs.readFileSync('./app/js/codemirror.js', {
+				codemirrorJsCode = fs.readFileSync('./app/js/libraries/codemirror/codemirror.js', {
 					encoding: 'utf8'
 				});
 			}), 'File codemirror.js is readable');
@@ -558,7 +558,7 @@ describe('Conversion', () => {
 		let ternCode;
 		step('should be able to read codeMirrorAddons.js', () => {
 			assert.doesNotThrow(run(() => {
-				ternCode = fs.readFileSync('./app/js/codeMirrorAddons.js', {
+				ternCode = fs.readFileSync('./app/js/libraries/codemirror/codeMirrorAddons.js', {
 					encoding: 'utf8'
 				});
 			}), 'File codeMirrorAddons.js is readable');
