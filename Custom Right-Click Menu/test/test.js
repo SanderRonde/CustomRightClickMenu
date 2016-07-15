@@ -824,9 +824,6 @@ describe('Conversion', () => {
 		});
 	});
 	describe('converting scripts', () => {
-		return true;
-		//TODO turn back on
-
 		before((done) => {
 			crmAppDone.then(done);
 		});

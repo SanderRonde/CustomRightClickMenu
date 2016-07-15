@@ -804,6 +804,7 @@ window.Polymer({
 				}
 			}
 		}
+		window.app.upload();
 		this.build(null, true, false);
 
 		this.isSelecting = false;

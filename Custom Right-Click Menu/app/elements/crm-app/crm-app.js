@@ -2515,7 +2515,6 @@
 								setTimeout(function() {
 									//Check out if the code is actually different
 									var node = _this.nodesById[storageLocal.editing.id];
-									console.log(node);
 									var nodeCurrentCode = (node.type === 'script' ? node.value.script :
 										node.value.stylesheet);
 									if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
@@ -2766,6 +2765,24 @@
 					type: 'script',
 					isLocal: true,
 					value: this.getDefaultScriptValue(options.value)
+				}
+
+				return this.mergeObjects(defaultNode, options);
+			},
+
+			/**
+			 * Gets the default stylesheet node object with given options applied
+			 *
+			 * @param {Object} options - Any pre-set properties
+			 * @returns {Object} A stylesheet node with specified properties set
+			 */
+			getDefaultStylesheetNode: function(options) {
+				var defaultNode = {
+					name: 'name',
+					onContentTypes: [true, true, true, false, false, false],
+					type: 'stylesheet',
+					isLocal: true,
+					value: this.getDefaultStylesheetValue(options.value)
 				}
 
 				return this.mergeObjects(defaultNode, options);

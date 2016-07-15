@@ -1,8 +1,5 @@
-/// <reference path="jsonfn.js"/>
 /// <reference path="../../scripts/_references.js"/>
-/// <reference path="jquery-2.0.3.min.js"/>
-/// <reference path="md5.js" />
-/// <reference path="codeMirrorAddons.js" />
+
 'use strict';
 
 //#region Sandbox
@@ -385,6 +382,25 @@
 				},
 
 				/**
+				 * Gets the default stylesheet node object with given options applied
+				 *
+				 * @param {Object} options - Any pre-set properties
+				 * @returns {Object} A stylesheet node with specified properties set
+				 */
+				getDefaultStylesheetNode: function(options) {
+					var defaultNode = {
+						name: 'name',
+						onContentTypes: [true, true, true, false, false, false],
+						type: 'stylesheet',
+						isLocal: true,
+						value: this.getDefaultStylesheetValue(options.value)
+					}
+
+					return this.mergeObjects(defaultNode, options);
+				},
+
+
+				/**
 				 * Gets the default divider or menu node object with given options applied
 				 *
 				 * @param {String} type - The type of node
@@ -574,7 +590,7 @@
 		var stylesheetStatus = window.globals.crmValues.stylesheetNodeStatusses[oldId];
 		var settings = window.globals.crmValues.contextMenuInfoById[node.id].settings;
 		if (node.node.type === 'stylesheet' && node.node.value.toggle) {
-			settings.enabled = stylesheetStatus;
+			settings.checked = stylesheetStatus;
 		}
 		settings.parentId = parentId;
 
@@ -835,7 +851,8 @@
 
 	function createStylesheetClickHandler(node) {
 		return function (info, tab) {
-			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(node.value.stylesheet) + '));document.head.appendChild(CRMSSInsert);';
+			var className = node.id + '' + tab.id;
+			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.classList.add("styleNodes' + className + '");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(node.value.stylesheet) + '));document.head.appendChild(CRMSSInsert);';
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -1118,7 +1135,6 @@
 		if (node.type === 'script') {
 			createScriptClickHandler(node)({}, tab);
 		} else if (node.type === 'stylesheet') {
-			window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = false;
 			createStylesheetClickHandler(node)({}, tab);
 		} else if (node.type === 'link') {
 			createLinkClickHandler(node)({}, tab);
@@ -1335,7 +1351,7 @@
 							executeNode(window.globals.toExecuteNodes.always[i], tab);
 						}
 						for (i = 0; i < toExecute.length; i++) {
-							executeNode(toExecute.node, toExecute.tab);
+							executeNode(toExecute[i].node, toExecute[i].tab);
 						}
 						respond({
 							matched: toExecute.length > 0
@@ -1347,7 +1363,7 @@
 	}
 
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
-		if (updatedInfo.status === 'loading') {
+		if (updatedInfo.status === 'loading' && updatedInfo.url) {
 			//It's loading
 			chrome.tabs.get(tabId, function(tab) {
 				if (tab.url.indexOf('chrome') !== 0 && window.globals.crmValues.tabData[tabId]) {
@@ -1448,8 +1464,9 @@
 				if (node.value.toggle) {
 					rightClickItemOptions.type = 'checkbox';
 					rightClickItemOptions.onclick = createStylesheetToggleHandler(node);
+					rightClickItemOptions.checked = node.value.defaultOn;
 				} else {
-					rightClickItemOptions.onclick = createStylesheetClickHandler();
+					rightClickItemOptions.onclick = createStylesheetClickHandler(node);
 				}
 				window.globals.crmValues.stylesheetNodeStatusses[node.id] = {};
 				break;
@@ -4218,6 +4235,105 @@
 		['blocking']);
 	//#endregion
 
+	//#region Stylesheet Installation
+	function triggerify(url) {
+		var match = /((http|https|file|ftp):\/\/)?(www\.)?((\w+)\.)*((\w+)?|(\w+)?(\/(.*)))?/g.exec(url);
+
+		return [
+			match[2] || '*',
+			'://',
+			(match[4] && match[6]) ? match[4] + match[6] : '*',
+			match[7] || '/'
+		].join('');
+	}
+
+	function extractStylesheetData(data) {
+		//Get the @document declaration
+		if (data.domains.length === 0 && data.regexps.length === 0 &&
+			data.urlPrefixes.length && data.urls.length === 0) {
+			return {
+				launchMode: 1,
+				triggers: [],
+				code: data.code
+			}
+		}
+
+		var triggers = [];
+		data.domains.forEach(function(domainRule) {
+			triggers.push('*://' + domainRule + '/*');
+		});
+		data.regexps.forEach(function(regexpRule) {
+			var match = /((http|https|file|ftp):\/\/)?(www\.)?((\w+)\.)*((\w+)?|(\w+)?(\/(.*)))?/g.exec(regexpRule);
+			triggers.push([
+				(match[2] ? (match[2].indexOf('*') > -1 ?
+					'*' : match[2]) : '*'),
+				'://',
+				((match[4] && match[6]) ? 
+					((match[4].indexOf('*') > -1 || match[6].indexOf('*') > -1) ?
+						'*': match[4] + match[6]) : '*'),
+				(match[7] ? (match[7].indexOf('*') > -1 ? 
+					'*' : match[7]) : '*')
+			].join(''));
+		});
+		data.urlPrefixes.forEach(function(urlPrefixRule) {
+			if (triggerMatchesScheme(urlPrefixRule)) {
+				triggers.push(ruleBody + '*');
+			} else {
+				triggers.push(triggerify(ruleBody + '*'));
+			}
+		});
+		data.urls.forEach(function(urlRule) {
+			if (triggerMatchesScheme(ruleBody)) {
+				triggers.push(ruleBody);
+			} else {
+				triggers.push(triggerify(ruleBody));
+			}
+		});
+
+		return {
+			launchMode: 2,
+			triggers: triggers.map(function(trigger) {
+				return {
+					url: trigger,
+					not: false
+				}
+			}),
+			code: data.code
+		}
+	}
+
+	function installStylesheet(data) {
+		var stylesheetData = JSON.parse(data.code); 
+
+		stylesheetData.sections.forEach(function(section) {
+			var sectionData = extractStylesheetData(section);
+			var node = window.globals.constants.templates.getDefaultStylesheetNode({
+				isLocal: false,
+				name: stylesheetData.name,
+				nodeInfo: {
+					version: 1,
+					source: {
+						updateURL: stylesheetData.updateUrl,
+						url: stylesheetData.url,
+						author: data.author
+					},
+					permissions: [],
+					installDate: new Date().toLocaleDateString()
+				},
+				triggers: sectionData.triggers,
+				value: {
+					launchMode: sectionData.launchMode,
+					stylesheet: sectionData.code
+				},
+				id: generateItemId()
+			});
+
+			var crmFn = new CRMFunction({}, 'null');
+			crmFn.moveNode(node, {}, null);
+		});
+	}
+	//#endregion
+
 	//#region Message Passing
 	function createCallbackMessageHandlerInstance(tabId, id) {
 		return function(data) {
@@ -4345,6 +4461,10 @@
 				break;
 			case 'newTabCreated':
 				executeScriptsForTab(messageSender.tab.id, response);
+				break;
+			case 'styleInstall':
+				debugger;
+				installStylesheet(message.data);
 				break;
 		}
 	}
@@ -5298,5 +5418,5 @@
 }(chrome.runtime.getURL('').split('chrome-extension://')[1].split('/')[0])); //Gets the extension's URL through a blocking instead of a callback function
 
 if (typeof module === 'undefined') {
-	console.log('If you\'re here to check out your background script, get its ID (you can type getID(name) to find the ID), and hit the fitler button on the top-left. Then input that ID to filter only on those messages');
+	console.log('If you\'re here to check out your background script, get its ID (you can type getID("name") to find the ID), and hit the fitler button on the top-left. Then input that ID to filter only on those messages');
 }
