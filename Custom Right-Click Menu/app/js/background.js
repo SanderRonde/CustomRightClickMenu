@@ -760,7 +760,6 @@
 			applyNodeChangesOntree(window.globals.crmValues.rootId, window.globals.crmValues.contextMenuItemTree, changes);
 		});
 
-		debugger;
 		var statuses = window.globals.crmValues.stylesheetNodeStatusses;
 		for (var nodeId in statuses) {
 			if (statuses.hasOwnProperty(nodeId) && statuses[nodeId]) {
@@ -839,7 +838,6 @@
 	//#region Stylesheet Click Handler
 	function createStylesheetToggleHandler(node) {
 		return function (info, tab) {
-			debugger;
 			var code;
 			var className = node.id + '' + tab.id;
 			if (info.wasChecked) {
@@ -1490,7 +1488,6 @@
 				} else {
 					rightClickItemOptions.onclick = createStylesheetClickHandler(node);
 				}
-				debugger;
 				window.globals.crmValues.stylesheetNodeStatusses[node.id] = {
 					defaultValue: node.value.defaultOn
 				};
@@ -1668,7 +1665,6 @@
 	}
 
 	chrome.tabs.onRemoved.addListener(function (tabId) {
-		debugger;
 		//Delete all data for this tabId
 		var node;
 		for (node in window.globals.crmValues.stylesheetNodeStatusses) {
