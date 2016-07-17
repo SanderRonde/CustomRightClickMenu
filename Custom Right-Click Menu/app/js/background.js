@@ -79,10 +79,12 @@
 					console.log.apply(console, ['Background page [' + id + ']: '].concat(JSON.parse(data.data)));
 					break;
 			}
-			callbacks.forEach(function(callback) {
-				callback(data);
-			});
-			callbacks = [];
+			if (callbacks) {
+				callbacks.forEach(function(callback) {
+					callback(data);
+				});
+				callbacks = [];
+			}
 		}, false);
 
 		worker.postMessage({
@@ -590,7 +592,7 @@
 		var stylesheetStatus = window.globals.crmValues.stylesheetNodeStatusses[oldId];
 		var settings = window.globals.crmValues.contextMenuInfoById[node.id].settings;
 		if (node.node.type === 'stylesheet' && node.node.value.toggle) {
-			settings.checked = stylesheetStatus;
+			settings.checked = node.node.value.defaultOn;
 		}
 		settings.parentId = parentId;
 
@@ -685,6 +687,7 @@
 		var currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
 		chrome.tabs.get(currentTabId, function (tab) {
 			if (chrome.runtime.lastError) {
+				console.log(chrome.runtime.lastError);
 				return;
 			}
 
@@ -757,13 +760,18 @@
 			applyNodeChangesOntree(window.globals.crmValues.rootId, window.globals.crmValues.contextMenuItemTree, changes);
 		});
 
-		for (var nodeId in window.globals.crmValues.stylesheetNodeStatusses) {
-			if (window.globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(nodeId) && window.globals.crmValues.stylesheetNodeStatusses[nodeId]) {
+		debugger;
+		var statuses = window.globals.crmValues.stylesheetNodeStatusses;
+		for (var nodeId in statuses) {
+			if (statuses.hasOwnProperty(nodeId) && statuses[nodeId]) {
 				chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[nodeId], {
-					checked: window.globals.crmValues.stylesheetNodeStatusses[nodeId][currentTabId]
+					checked: typeof statuses[nodeId][currentTabId] !== 'boolean' ? 
+						statuses[nodeId].defaultValue : 
+						statuses[nodeId][currentTabId]
 				}, function() {
-					// ReSharper disable once WrongExpressionStatement
-					chrome.runtime.lastError;
+					if (chrome.runtime.lastError) {
+						console.log(chrome.runtime.lastError);
+					}
 				});
 			}
 		}
@@ -831,17 +839,22 @@
 	//#region Stylesheet Click Handler
 	function createStylesheetToggleHandler(node) {
 		return function (info, tab) {
+			debugger;
 			var code;
 			var className = node.id + '' + tab.id;
-			if (window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id]) {
-				code = 'var nodes = document.querySelectorAll(".styleNodes' + className + '");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
+			if (info.wasChecked) {
+				code = ['var nodes = Array.from(document.querySelectorAll(".styleNodes' + className + '")).forEach(function(node){',
+				'node.remove();',
+				'});'].join('');
 			} else {
 				var css = node.value.stylesheet.replace(/[ |\n]/g, '');
-				code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(css) + '));document.head.appendChild(CRMSSInsert);';
+				code = ['var CRMSSInsert=document.createElement("style");',
+				'CRMSSInsert.className="styleNodes' + className + '";',
+				'CRMSSInsert.type="text/css";',
+				'CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(css) + '));',
+				'document.head.appendChild(CRMSSInsert);'].join('');
 			}
-			chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
-				checked: (window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = !window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id])
-			});
+			window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = info.checked;
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -852,7 +865,16 @@
 	function createStylesheetClickHandler(node) {
 		return function (info, tab) {
 			var className = node.id + '' + tab.id;
-			var code = 'var CRMSSInsert=document.createElement("style");CRMSSInsert.classList.add("styleNodes' + className + '");CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(node.value.stylesheet) + '));document.head.appendChild(CRMSSInsert);';
+			var code = ['(function() {',
+			'if (document.querySelector(".styleNodes' + className + '")) {',
+			'return false;',
+			'}',
+			'var CRMSSInsert=document.createElement("style");',
+			'CRMSSInsert.classList.add("styleNodes' + className + '");',
+			'CRMSSInsert.type="text/css";',
+			'CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(node.value.stylesheet) + '));',
+			'document.head.appendChild(CRMSSInsert);',
+			'}());'].join('');
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
@@ -1120,7 +1142,7 @@
 			//Update after creating a new node
 			for (var key in window.globals.crmValues.stylesheetNodeStatusses[node.id]) {
 				if (window.globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(key) && window.globals.crmValues.stylesheetNodeStatusses[key]) {
-					if (window.globals.crmValues.stylesheetNodeStatusses[node.id][key]) {
+					if (window.globals.crmValues.stylesheetNodeStatusses[node.id][key] && key !== 'defaultValue') {
 						replaceOnTabs.push({
 							id: key
 						});
@@ -1468,7 +1490,10 @@
 				} else {
 					rightClickItemOptions.onclick = createStylesheetClickHandler(node);
 				}
-				window.globals.crmValues.stylesheetNodeStatusses[node.id] = {};
+				debugger;
+				window.globals.crmValues.stylesheetNodeStatusses[node.id] = {
+					defaultValue: node.value.defaultOn
+				};
 				break;
 		}
 
@@ -1643,14 +1668,14 @@
 	}
 
 	chrome.tabs.onRemoved.addListener(function (tabId) {
+		debugger;
 		//Delete all data for this tabId
 		var node;
 		for (node in window.globals.crmValues.stylesheetNodeStatusses) {
 			if (window.globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(node) && window.globals.crmValues.stylesheetNodeStatusses[node]) {
-				window.globals.crmValues.stylesheetNodeStatusses[node[tabId]] = undefined;
+				window.globals.crmValues.stylesheetNodeStatusses[node][tabId] = undefined;
 			}
 		}
-		window.globals.crmValues.tabData[tabId] = undefined;
 
 		//Delete this instance if it exists
 		var deleted = [];
@@ -1672,6 +1697,8 @@
 				messageType: 'instancesUpdate'
 			});
 		}
+
+		delete window.globals.crmValues.tabData[tabId];
 	});
 	//#endregion
 
@@ -2621,7 +2648,6 @@
 			deleteNode: function () {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						debugger;
 						var parentChildren = _this.lookup(node.path, window.globals.crm.crmTree, true);
 						parentChildren.splice(node.path[node.path.length - 1], 1);
 						if (window.globals.crmValues.contextMenuIds[node.id] !== undefined) {
@@ -4463,7 +4489,6 @@
 				executeScriptsForTab(messageSender.tab.id, response);
 				break;
 			case 'styleInstall':
-				debugger;
 				installStylesheet(message.data);
 				break;
 		}
@@ -4501,14 +4526,18 @@
 						if (window.globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) &&
 							window.globals.crmValues.nodeInstances[message.id][instance]) {
 
-							instancesArr.push(instance);
-							window.globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
-								change: {
-									type: 'added',
-									value: message.tabId
-								},
-								messageType: 'instancesUpdate'
-							});
+							try {
+								window.globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
+									change: {
+										type: 'added',
+										value: message.tabId
+									},
+									messageType: 'instancesUpdate'
+								});
+								instancesArr.push(instance);
+							} catch(e) {
+								delete window.globals.crmValues.nodeInstances[message.id][instance];
+							}
 						}
 					}
 

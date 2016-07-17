@@ -1,6 +1,5 @@
 ﻿(function () {
 	function log(args) {
-		//self.log(err);
 		self.postMessage({
 			type: 'log',
 			data: JSON.stringify(args)
@@ -13,7 +12,8 @@
 		if (err.indexOf('eval') > -1) {
 			err = (new Error()).stack.split('\n')[3];
 		}
-		log(args.concat(['				at', err.split('at')[1]]));
+		var errSplit = err.split('at');
+		log(args.concat(['				at', errSplit.slice(1, errSplit.length).join('at')]));
 	}
 
 	self.logNoStack = function() {
@@ -71,29 +71,58 @@
 	}
 
 	self.addEventListener('message', function (e) {
-		try {
-			var data = e.data;
-			switch (data.type) {
-			case 'init':
+		var data = e.data;
+		switch (data.type) {
+		case 'init':
+			var loadedLibraries = true;
+			(function() {
+				var window = self;
 				data.libraries.forEach(function(library) {
-					importScripts(library);
+					try {
+						importScripts(library);
+					} catch (error) {
+						loadedLibraries = false;
+						self.logNoStack([
+							error.name,
+							' occurred in loading library ',
+							library.split(/(\/|\\)/).pop(),
+							'\n',
+							'Message: '].join(''),
+							error.message, 
+							'.\nStack:', 
+							error.stack);
+					}
 				});
-				returnHandshake = function() {
-					return null;
-				}
-				(function(script, log) {
-					eval(script);
-				}(data.script, log));
-				break;
-			case 'verifiy':
-			case 'message':
-				if (verifyKey(data.key)) {
-					handshakeData.handler(JSON.parse(data.message));
-				}
-				break;
+			}());
+			returnHandshake = function() {
+				return null;
 			}
-		} catch (error) {
-			self.logNoStack(error.name + ' occurred in background page.\nMessage: ', error.message, '.\nStack:', error.stack.split('\n'));
+			if (!loadedLibraries) {
+				return;
+			}
+			console.log('Loaded libraries, launching script');
+			(function(script, log) {
+				try {
+					eval(['(function(window) {', script, '}(typeof window === \'undefined\' ? self : window));'].join(''));
+				} catch (error) {
+					self.logNoStack([
+						error.name,
+						' occurred in executing background script',
+						'\n',
+						'Message: '].join(''),
+						error.message, 
+						'.\nStack:', 
+						error.stack);
+				}
+				log('Succesfully launched sript');
+			}(data.script, self.log));
+			break;
+		case 'verifiy':
+		case 'message':
+			if (verifyKey(data.key)) {
+				handshakeData.handler(JSON.parse(data.message));
+			}
+			break;
 		}
 	});
 }());
