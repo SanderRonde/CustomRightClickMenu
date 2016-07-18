@@ -741,13 +741,14 @@ textarea {
 	width: calc(100% - 48px);
 	outline: none;
 	border: none;
-	border-bottom: 1px solid rgb(60,60,60);
+	border-bottom: 2px solid rgb(60,60,60);
 	padding-bottom: 2px;
 	resize: none;
+	transition: border-color 150ms ease-in-out;
 }
 
 textarea#exportJSONData:focus {
-	border: 1px solid rgba(0, 67, 255, 0.35);
+	border-bottom: 2px solid rgb(69, 57, 255);
 }
 
 #warning {
@@ -944,4 +945,13 @@ html {
 
 .pageCont {
 	min-width: 1000px;
+}
+
+#exportCopyButton {
+	padding-top: 17px;
+}
+
+#exportInputLine {
+	display: flex;
+	justify-content: space-between;
 }
