@@ -1145,6 +1145,7 @@ describe('CRMAPI', () => {
 			authorName: 'anonymous',
 			showOptions: true,
 			CRMOnPage: true,
+			recoverUnsavedData: false,
 			editCRMInRM: false,
 			hideToolsRibbon: false,
 			shrinkTitleRibbon: false,
