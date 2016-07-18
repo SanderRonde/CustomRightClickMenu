@@ -4601,6 +4601,7 @@
 			notFirstTime: true,
 			authorName: 'anonymous',
 			showOptions: true,
+			recoverUnsavedData: false,
 			CRMOnPage: true,
 			editCRMInRM: false,
 			hideToolsRibbon: false,

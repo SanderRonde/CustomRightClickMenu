@@ -1036,7 +1036,7 @@
 						} else {
 							crmItem.value.stylesheet = editingObj.val;
 						}
-						options.upload();
+						window.app.upload();
 						chrome.storage.local.set({
 							editing: null
 						});
@@ -2222,6 +2222,7 @@
 				notFirstTime: true,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
+				recoverUnsavedData: false,
 				CRMOnPage: true,
 				editCRMInRM: false,
 				hideToolsRibbon: false,
@@ -2301,6 +2302,7 @@
 				notFirstTime: true,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
+				recoverUnsavedData: false,
 				CRMOnPage: true,
 				editCRMInRM: false,
 				hideToolsRibbon: false,

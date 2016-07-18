@@ -873,9 +873,11 @@
 		},
 
 		finishEditing: function() {
-			chrome.storage.local.set({
-				editing: null
-			});
+			if (window.app.storageLocal.recoverUnsavedData) {
+				chrome.storage.local.set({
+					editing: null
+				});
+			}
 		},
 
 		cancelChanges: function() {
@@ -1866,35 +1868,37 @@
 			this.$.editorPlaceholder.style.display = 'flex';
 			this.$.editorPlaceholder.style.opacity = 1;
 			window.externalEditor.init();
-			chrome.storage.local.set({
-				editing: {
-					val: this.item.value.script,
-					id: this.item.id,
-					mode: _this.mode,
-					crmType: window.app.crmType
-				}
-			});
-			this.savingInterval = window.setInterval(function() {
-				if (_this.active && _this.editor) {
-					//Save
-					var val = _this.editor.getValue();
-					chrome.storage.local.set({
-						editing: {
-							val: val,
-							id: _this.item.id,
-							mode: _this.mode,
-							crmType: window.app.crmType
-						}
-						// ReSharper disable once WrongExpressionStatement
-					}, function() { chrome.runtime.lastError; });
-				} else {
-					//Stop this interval
-					chrome.storage.local.set({
-						editing: false
-					});
-					window.clearInterval(_this.savingInterval);
-				}
-			}, 5000);
+			if (window.app.storageLocal.recoverUnsavedData) {
+				chrome.storage.local.set({
+					editing: {
+						val: this.item.value.script,
+						id: this.item.id,
+						mode: _this.mode,
+						crmType: window.app.crmType
+					}
+				});
+				this.savingInterval = window.setInterval(function() {
+					if (_this.active && _this.editor) {
+						//Save
+						var val = _this.editor.getValue();
+						chrome.storage.local.set({
+							editing: {
+								val: val,
+								id: _this.item.id,
+								mode: _this.mode,
+								crmType: window.app.crmType
+							}
+							// ReSharper disable once WrongExpressionStatement
+						}, function() { chrome.runtime.lastError; });
+					} else {
+						//Stop this interval
+						chrome.storage.local.set({
+							editing: false
+						});
+						window.clearInterval(_this.savingInterval);
+					}
+				}, 5000);
+			}
 			this.active = true;
 			setTimeout(function() {
 				_this.loadEditor(_this.$.editorCont);

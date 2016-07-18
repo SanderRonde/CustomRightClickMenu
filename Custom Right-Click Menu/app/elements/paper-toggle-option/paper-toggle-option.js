@@ -21,4 +21,4 @@
 		this.toggled = !this.toggled;
 		window.app.setLocal(id, this.toggled);
 	}
-})
+});

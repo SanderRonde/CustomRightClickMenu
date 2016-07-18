@@ -259,7 +259,6 @@
 	 * Is triggered when the option in the dropdown menu changes animates in what's needed
 	 */
 	selectorStateChange: function (prevState, state) {
-		debugger;
 		var _this = this;
 		var newStates = {
 			showContentTypeChooser: (state === 0 || state === 3),
@@ -367,7 +366,6 @@
 	},
 
 	initDropdown: function () {
-		debugger;
 		this.showTriggers = (this.item.value.launchMode > 1);
 		this.showContentTypeChooser = (this.item.value.launchMode === 0 || 3);
 		if (this.showTriggers) {
