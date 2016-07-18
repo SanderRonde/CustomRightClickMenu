@@ -865,11 +865,11 @@
 		},
 
 		exportScriptAsCRM: function() {
-			window.app.editCRM.exportSingleNode(getExportData(), 'CRM');
+			window.app.editCRM.exportSingleNode(this.getExportData(), 'CRM');
 		},
 
 		exportScriptAsUserscript: function() {
-			window.app.editCRM.exportSingleNode(getExportData(), 'Userscript');
+			window.app.editCRM.exportSingleNode(this.getExportData(), 'Userscript');
 		},
 
 		finishEditing: function() {
@@ -1856,6 +1856,7 @@
 			this._init();
 			this.$.dropdownMenu.init();
 			this.$.exportMenu.init();
+			this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'Export As';
 			this.initDropdown();
 			this.selectorStateChange(0, this.newSettings.launchMode)
 			this.addDialogToMetaTagUpdateListeners();
