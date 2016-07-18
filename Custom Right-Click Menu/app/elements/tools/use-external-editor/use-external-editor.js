@@ -144,7 +144,7 @@ Polymer({
 	 */
 	updateFromExternal: function(msg) {
 		if (this.connection.id === msg.connectionId) {
-			if (window.scriptEdit) {
+			if (window.scriptEdit && window.scriptEdit.active) {
 				window.scriptEdit.editor.setValue(msg.code);
 			} else {
 				window.stylesheetEdit.newSettings.value.stylesheet = msg.code;
@@ -165,7 +165,7 @@ Polymer({
 			});
 		} catch (e) {
 		}
-		if (window.scriptEdit) {
+		if (window.scriptEdit && window.scriptEdit.active) {
 			window.scriptEdit.reloadEditor();
 		} else {
 			window.stylesheetEdit.reloadEditor();
@@ -256,7 +256,7 @@ Polymer({
 
 
 		$toolsCont.appendTo(
-				$((window.scriptEdit ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
+				$((window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
 				.find('.CodeMirror-scroll'))[0]
 			.animate([
 				{
@@ -291,7 +291,7 @@ Polymer({
 					_this.connection.filePath = msg.path;
 					app.upload();
 					_this.connection.fileConnected = true;
-					(window.scriptEdit ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
+					(window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
 					_this.createEditingOverlay();
 					_this.appPort.onMessage.removeListener(tempListener);
 				}
@@ -300,17 +300,17 @@ Polymer({
 			if (item.file) {
 				this.appPort.postMessage({
 					status: 'connected',
-					action: (window.scriptEdit ? 'setupScript' : 'setupStylesheet'),
+					action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
-					code: (window.scriptEdit ? item.value.script : item.value.stylesheet),
+					code: (window.scriptEdit && window.scriptEdit.active ? item.value.script : item.value.stylesheet),
 					id: item.file.id
 				});
 			} else {
 				this.appPort.postMessage({
 					status: 'connected',
-					action: (window.scriptEdit ? 'setupScript' : 'setupStylesheet'),
+					action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
-					code: (window.scriptEdit ? item.value.script : item.value.stylesheet)
+					code: (window.scriptEdit && window.scriptEdit.active ? item.value.script : item.value.stylesheet)
 				});
 			}
 		} else {
@@ -338,7 +338,7 @@ Polymer({
 				var _this = this;
 				window.doc.externalEditorChooseFile.init(msg.local, msg.external, function(result) {
 					if (result !== false) {
-						if (window.scriptEdit) {
+						if (window.scriptEdit && window.scriptEdit.active) {
 							window.scriptEdit.editor.setValue(result);
 						} else {
 							window.stylesheetEdit.newSettings.value.stylesheet = result;
