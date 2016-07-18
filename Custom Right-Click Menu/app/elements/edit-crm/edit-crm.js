@@ -558,7 +558,7 @@ window.Polymer({
 	},
 
 	getMetaTags: function(script) {
-		var metaLines = getMetaLines(script);
+		var metaLines = this.getMetaLines(script);
 
 		var metaTags = {};
 		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
@@ -584,7 +584,7 @@ window.Polymer({
 		}
 	},
 
-	getUserscriptString: function(node) {
+	getUserscriptString: function(node, author) {
 		var i;
 		var script = node.value.script;
 		var scriptSplit = script.split('\n');
@@ -592,15 +592,19 @@ window.Polymer({
 		var metaTags = {};
 		if (metaIndexes.start !== -1) {
 			//Remove metaLines
-			scriptSplit.splice(metaIndexes.start, (metaIndexes.end - metaIndexes.start));
+			scriptSplit.splice(metaIndexes.start, (metaIndexes.end - metaIndexes.start) + 1);
 			metaTags = this.getMetaTags(script);
 		}
 
 		this.setMetaTagIfSet(metaTags, 'name', 'name', node);
-		this.setMetaTagIfSet(metaTags, 'author', 'author', node.nodeInfo);
+		author = (metaTags.nodeInfo && metaTags.nodeInfo.author) || author || 'anonymous';
+		if (!Array.isArray(author)) {
+			author = [author];
+		}
+		metaTags['author'] = author;
 		this.setMetaTagIfSet(metaTags, 'downloadURL', 'url', node.nodeInfo);
 		this.setMetaTagIfSet(metaTags, 'version', 'version', node);
-		metaTags.CRM_contentTypes = JSON.stringify(node.onContentTypes);
+		metaTags.CRM_contentTypes = [JSON.stringify(node.onContentTypes)];
 		this.setMetaTagIfSet(metaTags, 'grant', 'permissions', node);
 
 		var matches = [];
@@ -659,7 +663,7 @@ window.Polymer({
 		for (var metaKey in metaTags) {
 			if (metaTags.hasOwnProperty(metaKey)) {
 				for (i = 0; i < metaTags[metaKey].length; i++) {
-					metaLines.push('// @require ' + metaKey + '	' + metaTags[metaKey][i]);
+					metaLines.push('// @' + metaKey + '	' + metaTags[metaKey][i]);
 				}
 			}
 		}
@@ -672,54 +676,92 @@ window.Polymer({
 		return newScript;
 	},
 
-	userscriptExportNameChange: function(userscriptString, author) {
-		var linesSplit = userscriptString.split('\n');
-		var metaTagFirstLine = -1;
-		for (var i = 0; i < linesSplit.length; i++) {
-			if (linesSplit[i].indexOf(/\/\/((\s)*)@author/) > -1) {
-				//Replace just this line
-				linesSplit[i] = '// @author	' + author;
-				return linesSplit.join('\n');
+	generateDocumentRule: function(node) {
+		var rules = node.triggers.map(function(trigger) {
+			if (trigger.indexOf('*') === -1) {
+				return 'url(' + trigger + ')';
+			} else {
+				var schemeAndDomainPath = trigger.split('://');
+				var scheme = schemeAndDomainPath[0];
+				var domainPath = schemeAndDomainPath.slice(1).join('://');
+				var domainAndPath = domainPath.split('/');
+				var domain = domainAndPath[0];
+				var path = domainAndPath.slice(1).join('/');
+
+				var schemeWildCard = scheme.indexOf('*') > -1;
+				var domainWildcard = domain.indexOf('*') > -1;
+				var pathWildcard = path.indexOf('*') > -1;
+
+				if (~~schemeWildCard + ~~domainWildcard + ~~pathWildcard > 1 ||
+					domainWildcard || schemeWildCard) {
+					//Use regex
+					return 'regexp("' +
+						trigger
+							.replace(/\*/, '.*')
+							.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") +
+						'")';
+				} else {
+					return 'url-prefix(' + scheme + '://' + domain + ')';
+				}
 			}
-			else if (metaTagFirstLine === -1 && linesSplit[i].indexOf('==UserScript==') > -1) {
-				metaTagFirstLine = i;
+		});
+
+		var match;
+		var indentation;
+		var lines = node.value.stylesheet.split('\n');
+		for (var i = 0; i < lines.length; i++) {
+			if ((match = /(\s+)(\w+)/.match(lines[i]))) {
+				indentation = match[1];
+				break;
 			}
 		}
+		indentation = indentation || '	';
 
-		//Insert after the tag
-		var firstPartSplice = linesSplit.splice(0, metaTagFirstLine);
-		var result = firstPartSplice;
-		result = result.concat(['// @author	' + author]);
-		result = result.concat(linesSplit);
-		return result.join('\n');
+		return '@-moz-document ' + rules.join(', ') + ' {' + 
+				lines.map(function(line) {
+					return indentation + line;
+				}).join('\n') + 
+			'}';
+	},
+
+	getExportString: function(node, type, author) {
+		switch (type) {
+			case 'Userscript':
+				return this.getUserscriptString(node, author);
+			case 'Userstyle':
+				//Turn triggers into @document rules
+				if (node.value.launchMode === 0 || node.value.launchMode === 1) {
+					//On clicking
+					return node.value.stylesheet;
+				} else {
+					return this.generateDocumentRule(node);
+				}
+			default:
+			case 'CRM':
+				return this.crmExportNameChange(node, author);
+		}
 	},
 
 	exportSingleNode: function(exportNode, exportType) {
 		var _this = this;
-		var safeNode = this.makeNodeSafe(exportNode);
 
 		var textArea = $('#exportJSONData')[0];
 
-		var userscriptString = _this.getUserscriptString(safeNode);
-
-		textArea.value = (exportType === 'CRM' ? this.crmExportNameChange() : userscriptString);
+		textArea.value = this.getExportString(exportNode, exportType, null);
+		$('#exportAuthorName')[0].value = (exportNode.nodeInfo && exportNode.nodeInfo.author) || '';
 		$('#exportAuthorName').on('change', function () {
 			var author = this.value;
 			chrome.storage.local.set({
 				authorName: author
 			});
 			var data;
-			if (exportType === 'CRM') {
-				data = _this.crmExportNameChange();
-			} else {
-				data = userscriptString = _this.userscriptExportNameChange(userscriptString, author);
-			}
+			data = _this.getExportString(exportNode, exportType, author);
 			textArea.value = data;
 		});
 		$('#exportDialog')[0].open();
 		setTimeout(function() {
-			textarea.focus();
-			textarea.select();
+			textArea.focus();
+			textArea.select();
 		}, 150);
 	},
 
