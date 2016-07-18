@@ -20,7 +20,8 @@
 	_dropdownSelectChange: function(_this) {
 		var paperItems = $(_this).find('paper-item');
 		var newState = _this._paperMenu.selected;
-		_this.$.dropdownSelected.innerHTML = paperItems[newState].children[1].innerHTML;
+		_this.$.dropdownSelected.innerHTML = (paperItems[newState].children[1] && 
+												paperItems[newState].children[1].innerHTML) || 'Export As';
 	},
 
 	init: function () {
