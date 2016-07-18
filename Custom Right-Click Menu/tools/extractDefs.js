@@ -486,9 +486,11 @@ function extractDefs(js, isTernExtraction, docsLoc) {
 	var lines = js.split('\n');
 
 	var indentation = getIndentation(lines);
+	console.log('used indentation is', indentation);
 
 	var searchingCommentEnd = false;
-	var propRegex = new RegExp('(\\s{' + indentation + '})this.(\\w+)');
+	var propRegex = new RegExp('(\\s{' + indentation * 2 + '})this.(\\w+)');
+	console.log(propRegex);
 	var typeDefRegex = new RegExp(/(\s+)\* @typedef/);
 	var callbackRegex = new RegExp(/(\s+)\* @callback/);
 	for (var i = 0; i < lines.length; i++) {
