@@ -440,6 +440,8 @@ script-edit #settingsContainer {
 #exportMenu {
 	display:inline-block;
 	height: 40px;
+	z-index: 10;
+	position: relative;
 }
 
 	#exportMenu paper-menu {
