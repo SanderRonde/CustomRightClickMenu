@@ -216,3 +216,5 @@ Custom Right-Click Menu.sln
 /Custom Right-Click Menu/web.config
 
 app/js/*.map.js
+
+.vscode
