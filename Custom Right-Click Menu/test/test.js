@@ -823,7 +823,8 @@ describe('Conversion', () => {
 			});
 		});
 	});
-	describe('converting scripts', () => {
+	describe('converting scripts', function() {
+		this.slow(1000);
 		before((done) => {
 			crmAppDone.then(done);
 		});
