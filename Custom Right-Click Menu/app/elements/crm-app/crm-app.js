@@ -382,6 +382,27 @@
 		},
 		//BETA end
 
+		copyExporedToClipboard: function() {
+			var snipRange = document.createRange();
+			snipRange.selectNode(this.$.exportJSONData);
+			var selection = window.getSelection();
+			selection.removeAllRanges();
+			selection.addRange(snipRange);
+			try {
+				document.execCommand('copy');
+				this.$.exportCopyButton.icon = 'done';
+			} catch (err) {
+				// Copy command is not available
+				console.error(err);
+				this.$.exportCopyButton.icon = 'error';
+			}
+			// Return to the copy button after a second.
+			this.async(function() {
+				this.$.exportCopyButton.icon = 'content-copy';
+			}, 1000);
+			selection.removeAllRanges();
+		},
+
 		isVersionUpdateTabX: function(currentTab, desiredTab) {
 			return currentTab === desiredTab;
 		},
@@ -3314,7 +3335,7 @@
 					items = _this.buildForCrmType(0);
 					if (_this.getChildrenAmount(items) > 0) {
 						$.contextMenu({
-							selector: 'body, #editCrm.page, .crmType.pageType',
+							selector: '.container, #editCrm.page, .crmType.pageType',
 							items: items
 						});
 					}
