@@ -158,7 +158,7 @@
 		};
 	}
 
-	function setMetaTags(cm, content) {
+	function setMetaTags(cm, content, forceCreate) {
 		var oldMetaTags = null;
 		if (cm.metaTags) {
 			oldMetaTags = JSON.parse(JSON.stringify(cm.metaTags));
@@ -172,7 +172,27 @@
 		var lines = content.split('\n');
 		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
 		if (metaLines.length === 0) {
-			cm.metaTags = {};
+			if (metaStart === undefined && metaEnd === undefined && forceCreate) {
+				cm.doc.replaceRange('// ==UserScript==\n// ==/UserScript==\n', {
+					line: 0,
+					ch: 0
+				}, {
+					line: 0,
+					ch: 0
+				});
+				cm.metaTags = {
+					metaEnd: {
+						line: 1,
+						ch: 18
+					}, 
+					metaStart: {
+						line: 0,
+						ch: 3
+					},
+					metaTags: {}
+				}
+			}
+			cm.metaTags = cm.metaTags || {};
 			return null;
 		}
 
@@ -426,7 +446,7 @@
 	});
 
 	codemirror.defineExtension('removeMetaTags', function(cm, key, value) {
-		setMetaTags(cm, cm.getValue());
+		setMetaTags(cm, cm.getValue(), true);
 		ignoreUpdate = true;
 		if (cm.metaTags) {
 			for (var index in cm.metaTags.metaIndexes) {
@@ -448,7 +468,7 @@
 	});
 
 	codemirror.defineExtension('updateMetaTags', function(cm, key, oldValue, value, singleValue) {
-		setMetaTags(cm, cm.getValue());
+		setMetaTags(cm, cm.getValue(), true);
 		ignoreUpdate = true;
 		if (cm.metaTags) {
 			for (var index in cm.metaTags.metaIndexes) {
@@ -470,7 +490,7 @@
 	});
 
 	codemirror.defineExtension('addMetaTags', function(cm, key, value, line) {
-		setMetaTags(cm, cm.getValue());
+		setMetaTags(cm, cm.getValue(), true);
 		ignoreUpdate = true;
 		if (cm.metaTags) {
 			cm.doc.replaceRange('// @' + key + '	' + value + '\n', {
