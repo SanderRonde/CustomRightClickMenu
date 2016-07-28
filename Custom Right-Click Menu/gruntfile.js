@@ -149,7 +149,7 @@ module.exports = function(grunt) {
 					{
 						expand: true,
 						cwd: 'app/js',
-						src: ['background.js', 'crmapi.js', 'crmAPIDefs.js', 'crmAPIDocs.js', 'contentscript.js', 'sandbox.js'],
+						src: ['background.js', 'crmapi.js', 'crmAPIDefs.js', 'crmAPIDocs.js', 'contentscript.js', 'sandbox.js', 'installStylesheet.js'],
 						dest: 'build/js/'
 					}
 				]
