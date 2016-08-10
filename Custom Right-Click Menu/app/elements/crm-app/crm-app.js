@@ -172,11 +172,6 @@
 				notify: true,
 				value: 0,
 				observer: 'versionUpdateChanged'
-			},
-			betaTestMessageOption: {
-				type: Number,
-				notify: true,
-				value: 2
 			}
 		},
 
@@ -259,128 +254,6 @@
 		isOnlyGlobalExclude: function () {
 			return this.globalExcludes.length === 1;
 		},
-
-		//BETA start
-		isBetaTestMessageOptionX: function(current, expected) {
-			return current === expected;
-		},
-
-		betaTestOptionZero: function() {
-			this.async(function() {
-				if (this.$.betaTestOptionZero.active) {
-					this.betaTestMessageOption = 0;
-					this.$.betaTestOptionOne.active = false;
-				} else {
-					this.betaTestMessageOption = 2;
-				}
-			});
-		},
-
-		betaTestOptionOne: function() {
-			this.async(function () {
-				if (this.$.betaTestOptionOne.active) {
-					this.betaTestMessageOption = 1;
-					this.$.betaTestOptionZero.active = false;
-				} else {
-					this.betaTestMessageOption = 2;
-				}
-			});
-		},
-
-		betaTestMessageNext: function () {
-			if (!window.doc.betaTestMessageTabSlider.classList.contains('nextTab')) {
-				//Go to next page
-				window.doc.betaTestMessagePrevButton.hidden = false;
-				window.doc.betaTestMessageButtonNextTxt.hidden = true;
-				window.doc.betaTestMessageButtonCompleteTxt.hidden = false;
-				window.doc.betaTestMessageTabSlider.classList.add('nextTab');
-				this.async(function() {
-					var titleHeight = this.$.betaTestMessageSecondTabTitle.getBoundingClientRect().height;
-					var contentHeight = this.$.betaTestMessageSecondTabContent.getBoundingClientRect().height;
-					var heightPx = (titleHeight + contentHeight) + 'px';
-					window.doc.betaTestMessageTabSlider.animate([
-						{
-							height: window.doc.betaTestMessageTabSlider.getBoundingClientRect().height + 'px'
-						}, {
-							height: heightPx
-						}
-					], {
-						duration: 500,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					}).onfinish = function() {
-						window.doc.betaTestMessageTabSlider.style.height = heightPx;
-					};
-				}, 500);
-			} else {
-				//Process and exit
-				if (this.betaTestMessageOption === 0) {
-					var json = this.$.prevVersionImportTextarea.value;
-					try {
-						json = JSON.parse(json);
-						for (var localStorageKey in json) {
-							if (json.hasOwnProperty(localStorageKey)) {
-								localStorage.setItem(localStorageKey, json[localStorageKey]);
-							}
-						}
-						this.$.betaTestImportErrorLine.style.opacity = 0;
-						this.$.betaTestMessageDialog.close();
-						this.handleFirstTime(this);
-					} catch (e) {
-						this.$.betaTestImportErrorLine.style.opacity = 1;
-					}
-				} else {
-					this.handleFirstTime(this);
-				}
-				console.log(document.querySelector('#betaTestMessageDialog'));
-				document.querySelector('#betaTestMessageDialog').close();
-			}
-		},
-
-		betaTestMessagePrev: function () {
-			var titleHeight = this.$.betaMessageFirstTabTitle.getBoundingClientRect().height;
-			var contentHeight = this.$.betaMessageFirstTabContent.getBoundingClientRect().height;
-			var heightPx = (titleHeight + contentHeight) + 'px';
-			window.doc.betaTestMessageTabSlider.animate([
-				{
-					height: window.doc.betaTestMessageTabSlider.getBoundingClientRect().height + 'px'
-				}, {
-					height: heightPx
-				}
-			], {
-				duration: 500,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function () {
-				window.doc.betaTestMessageTabSlider.style.height = heightPx;
-			};
-			this.async(function() {
-				window.doc.betaTestMessagePrevButton.hidden = true;
-				window.doc.betaTestMessageButtonNextTxt.hidden = false;
-				window.doc.betaTestMessageButtonCompleteTxt.hidden = true;
-				window.doc.betaTestMessageTabSlider.classList.remove('nextTab');
-			}, 500);
-		},
-
-		copySnippetToClipboard: function() {
-			var snipRange = document.createRange();
-			snipRange.selectNodeContents(this.$.betaTestCode);
-			var selection = window.getSelection();
-			selection.removeAllRanges();
-			selection.addRange(snipRange);
-			try {
-				document.execCommand('copy');
-				this.$.copyButton.icon = 'done';
-			} catch (err) {
-				// Copy command is not available
-				console.error(err);
-				this.$.copyButton.icon = 'error';
-			}
-			// Return to the copy button after a second.
-			this.async(function() {
-				this.$.copyButton.icon = 'content-copy';
-			}, 1000);
-			selection.removeAllRanges();
-		},
-		//BETA end
 
 		copyExporedToClipboard: function() {
 			var snipRange = document.createRange();
@@ -2405,12 +2278,6 @@
 						_this.handleDataTransfer(_this);
 						_this.async(function() {
 							window.doc.versionUpdateDialog.open();
-						}, 2000);
-					} else {
-						//BETA
-						_this.async(function() {
-							_this.betaTestMessageOption = 2;
-							window.doc.betaTestMessageDialog.open();
 						}, 2000);
 					}
 				} catch (e) {

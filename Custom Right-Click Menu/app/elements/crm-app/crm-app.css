@@ -526,7 +526,7 @@ body.editingScript .cssTool {
 	background-color: rgb(210, 210, 210);
 }
 
-#requestPermissionsDialog, #scriptPermissionDialog, #exportDialog, #versionUpdateDialog, #betaTestMessageDialog {
+#requestPermissionsDialog, #scriptPermissionDialog, #exportDialog, #versionUpdateDialog {
 	width: 800px;
 	position: static!important;
 	top: inherit!important;
@@ -898,49 +898,6 @@ html {
 #gifCropper {
 	width: 413.5px;
 	overflow: hidden;
-}
-
-/*BETA*/
-
-#betaTestMessageTabSlider {
-	display: flex;
-	overflow: hidden;
-	width: 1804px;
-	transform: translateX(0);
-	transition: transform 500ms ease-in-out;
-}
-
-#betaTestMessageTabSlider.nextTab {
-	transform: translateX(-1052px);
-}
-
-.betaTestMessageTab {
-	width: 752px;
-}
-
-	.betaTestMessageTab:first-child {
-		margin-right: 300px;
-	}
-
-#betaTestOptionZero, #betaTestOptionOne {
-	font-size: 150%;
-}
-
-	#betaTestOptionZero[active], #betaTestOptionOne[active] {
-		font-weight:bold;
-	}
-
-#prevVersionImportTextarea {
-	width: 745px;
-}
-
-#betaTestMessageTabCont {
-	overflow: hidden;
-}
-
-#betaTestImportErrorLine {
-	color: red;
-	opacity: 0;
 }
 
 .pageCont {

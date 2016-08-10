@@ -243,8 +243,7 @@ module.exports = function(grunt) {
 							'elements/crm-app/*',
 							'elements/installing/*',
 							'bower_components/polymer/*',
-							'bower_components/webcomponentsjs/webcomponents.min.js',
-							'elements/error-reporting-tool/*'
+							'bower_components/webcomponentsjs/webcomponents.min.js'
 						],
 						dest: 'build/'
 					}, //Elements
