@@ -55,4 +55,4 @@ if [ "$TRAVIS_BRANCH" == "master" ]; then
 
   git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --quiet 
   echo "Pushed github pages to branch";
-]
+fi
