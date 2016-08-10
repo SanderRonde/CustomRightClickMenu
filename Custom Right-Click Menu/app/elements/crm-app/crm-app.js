@@ -3487,7 +3487,7 @@
 					this.parent.settings.crm = insertInto(value, this.parent.settings.crm);
 				}
 				window.app.upload();
-				window.app.buildNodePaths(window.app.settings.crm, []);
+				window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
 			},
 
 			/**
@@ -3513,13 +3513,13 @@
 					toMoveContainer.splice(toMoveIndex, 1);
 				}
 				window.app.upload();
-				window.app.buildNodePaths(window.app.settings.crm, []);
+				window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
 			},
 
 			remove: function(index) {
 				this.lookup(index, true).splice(index[index.length - 1], 1);
 				window.app.upload();
-				window.app.buildNodePaths(window.app.settings.crm, []);
+				window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
 			}
 		}
 	});

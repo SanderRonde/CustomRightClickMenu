@@ -393,9 +393,7 @@ window.Polymer({
 	},
 
 	/**
-	 * @fn build: function ()
-	 *
-	 * @brief Builds the crm object
+	 * Builds the crm object
 	 * 		  
 	 * @param setItems - Set choices for menus by the user
 	 * @param quick - Do it quicker than normal

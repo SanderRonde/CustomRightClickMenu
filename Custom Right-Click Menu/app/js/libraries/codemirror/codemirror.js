@@ -9703,8 +9703,7 @@
 
 		// THE END
 
-		CodeMirror.version = '5.4.0';
-
+		CodeMirror.version = '5.4.0'; 
 		return CodeMirror;
 	});
 }.apply(window));

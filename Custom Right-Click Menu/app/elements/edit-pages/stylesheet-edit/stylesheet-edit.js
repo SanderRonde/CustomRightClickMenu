@@ -239,15 +239,15 @@
 	},
 
 	cancelChanges: function () {
-		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
+		this.active = false;
 	},
 
 	saveChanges: function () {
-		this.active = false;
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
+		this.active = false;
 	},
 	//#endregion
 

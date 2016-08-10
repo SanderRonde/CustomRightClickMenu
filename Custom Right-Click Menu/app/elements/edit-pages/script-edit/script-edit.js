@@ -881,9 +881,9 @@
 		},
 
 		cancelChanges: function() {
-			this.active = false;
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
+			this.active = false;
 		},
 
 		getMetaTagValues: function () {
@@ -892,10 +892,10 @@
 
 		saveChanges: function (resultStorage) {
 			this.changeTab('main');
-			this.active = false;
 			resultStorage.value.metaTags = this.getMetaTagValues();
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
+			this.active = false;
 		},
 
 		openPermissionsDialog: function (item, callback) {
