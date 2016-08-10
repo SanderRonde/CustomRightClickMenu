@@ -3,6 +3,7 @@ node_js: "node"
 branches:
   only:
     - master
+    - beta
 before_install: 
   - cd "Custom Right-Click Menu"
   - npm install grunt -g
