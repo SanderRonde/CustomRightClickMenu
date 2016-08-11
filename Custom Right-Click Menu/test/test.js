@@ -1071,6 +1071,17 @@ describe('CRMAPI', () => {
 					}
 				}
 			},
+			getManifest: function() {
+				return {
+					version: JSON
+						.parse(String(fs
+							.readFileSync('./app/manifest.json'), {
+								encoding: 'utf8'
+							})
+							.replace(/\/\*.+\*\//g, ''))
+						.version
+				}
+			},
 			lastError: null
 		},
 		contextMenus: {
@@ -1182,6 +1193,9 @@ describe('CRMAPI', () => {
 			globalExcludes: [''],
 			latestId: 1,
 			key: {},
+			lastUpdatedAt: JSON.parse(String(fs.readFileSync('./app/manifest.json'), {
+								encoding: 'utf8'
+							}).replace(/\/\*.+\*\//g, '')).version,
 			notFirstTime: true,
 			authorName: 'anonymous',
 			showOptions: true,

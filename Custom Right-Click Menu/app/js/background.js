@@ -579,7 +579,7 @@
 
 	function getFirstRowChange(row, changes) {
 		for (var i = 0; i < row.length; i++) {
-			if (changes[row[i].id]) {
+			if (row[i] && changes[row[i].id]) {
 				return i;
 			}
 		}
@@ -676,8 +676,10 @@
 
 	function getNodeStatusses(subtree, hiddenNodes, shownNodes) {
 		for (var i = 0; i < subtree.length; i++) {
-			(subtree[i].enabled ? shownNodes : hiddenNodes).push(subtree[i]);
-			getNodeStatusses(subtree[i].children, hiddenNodes, shownNodes);
+			if (subtree[i]) {
+				(subtree[i].enabled ? shownNodes : hiddenNodes).push(subtree[i]);
+				getNodeStatusses(subtree[i].children, hiddenNodes, shownNodes);
+			}
 		}
 	}
 
@@ -973,11 +975,13 @@
 				var runAt = metaData['run-at'] || 'document_end';
 				var excludes = [];
 				var includes = [];
-				for (i = 0; i < node.triggers.length; i++) {
-					if (node.triggers[i].not) {
-						excludes.push(node.triggers[i]);
-					} else {
-						includes.push(node.triggers[i]);
+				if (node.triggers) {
+					for (i = 0; i < node.triggers.length; i++) {
+						if (node.triggers[i].not) {
+							excludes.push(node.triggers[i]);
+						} else {
+							includes.push(node.triggers[i]);
+						}
 					}
 				}
 
@@ -1179,43 +1183,54 @@
 			var matchPath;
 			var urlPath;
 
-			var matchPatternSplit = matchPattern.split('://');
-			var matchScheme = matchPatternSplit[0];
-			if (matchPatternSplit[1].indexOf('/') === -1) {
-				matchHost = matchPatternSplit[1];
-				matchPath = '/';
-			} else {
-				matchPatternSplit = matchPatternSplit[1].split('/');
-				matchHost = matchPatternSplit.splice(0, 1)[0];
-				matchPath = matchPatternSplit.join('/');
-			}
+			try {
+				var matchPatternSplit = matchPattern.split('://');
+				var matchScheme = matchPatternSplit[0];
 
-			var urlPatternSplit = url.split('://');
-			var urlScheme = urlPatternSplit[0];
-			if (urlPatternSplit[1].indexOf('/') === -1) {
-				urlHost = urlPatternSplit[1];
-				urlPath = '/';
-			} else {
-				urlPatternSplit = urlPatternSplit[1].split('/');
-				urlHost = urlPatternSplit.splice(0, 1);
-				urlPath = urlPatternSplit.join('/');
-			}
-
-			if (matchScheme !== '*' && matchScheme !== urlScheme) {
-				return false;
-			}
-
-			matchHost = new RegExp(escapeRegExp(matchHost));
-			if (!matchHost.test(urlHost)) {
-				return false;
-			}
-
-			matchPath = new RegExp(escapeRegExp(matchPath));
-			if (matchPath.test(urlPath)) {
-				if (not) {
-					return false;
+				if (matchPatternSplit[1].indexOf('/') === -1) {
+					matchHost = matchPatternSplit[1];
+					matchPath = '/';
 				} else {
-					matches = true;
+					matchPatternSplit = matchPatternSplit[1].split('/');
+					matchHost = matchPatternSplit.splice(0, 1)[0];
+					matchPath = matchPatternSplit.join('/');
+				}
+
+				var urlPatternSplit = url.split('://');
+				var urlScheme = urlPatternSplit[0];
+				if (urlPatternSplit[1].indexOf('/') === -1) {
+					urlHost = urlPatternSplit[1];
+					urlPath = '/';
+				} else {
+					urlPatternSplit = urlPatternSplit[1].split('/');
+					urlHost = urlPatternSplit.splice(0, 1);
+					urlPath = urlPatternSplit.join('/');
+				}
+
+				if (matchScheme !== '*' && matchScheme !== urlScheme) {
+					return false;
+				}
+
+				matchHost = new RegExp(escapeRegExp(matchHost));
+				if (!matchHost.test(urlHost)) {
+					return false;
+				}
+
+				matchPath = new RegExp(escapeRegExp(matchPath));
+				if (matchPath.test(urlPath)) {
+					if (not) {
+						return false;
+					} else {
+						matches = true;
+					}
+				}
+			} catch (e) {
+				if (new RegExp('(.+)' + matchScheme.replace(/\*/g, '(.+)') + '(.+)').test(url)) {
+					if (not) {
+						return false;
+					} else {
+						matches = true;
+					}
 				}
 			}
 		}
@@ -1444,7 +1459,6 @@
 	}
 
 	function addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder) {
-
 		//On by default
 		if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 			if (launchMode === 0) { //Run on clicking
@@ -1496,6 +1510,7 @@
 
 		var id = chrome.contextMenus.create(rightClickItemOptions, function () {
 			if (chrome.runtime.lastError) {
+				console.log('ayy', chrome.runtime.lastError);
 				if (rightClickItemOptions.documentUrlPatterns) {
 					console.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
 					delete rightClickItemOptions.documentUrlPatterns;
@@ -4599,7 +4614,7 @@
 			latestId: 0,
 			useStorageSync: true,
 			notFirstTime: true,
-			lastUpdatedAt: chrome.runtiem.getManifest().version,
+			lastUpdatedAt: chrome.runtime.getManifest().version,
 			authorName: 'anonymous',
 			showOptions: true,
 			recoverUnsavedData: false,
@@ -5285,11 +5300,11 @@
 	function isFirstTime(storageLocal) {
 		var currentVersion = chrome.runtime.getManifest().version;
 		if (storageLocal.lastUpdatedAt === currentVersion) {
-			return true;
+			return false;
 		} else {
 			if (storageLocal.lastUpdatedAt) {		
 				upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
-				return true;
+				return false;
 			}
 			//Determine if it's a transfer from CRM version 1.*
 			if (!localStorage.getItem('transferred')) {
@@ -5334,6 +5349,7 @@
 			chrome.storage.local.get(function (chromeStorageLocal) {
 				var result;
 				if ((result = isFirstTime(chromeStorageLocal))) {
+					console.log(result);
 					result(function(data) {
 						setStorages(data.storageLocalCopy, data.settingsStorage, data.chromeStorageLocal, callback);
 					}, function(err) {

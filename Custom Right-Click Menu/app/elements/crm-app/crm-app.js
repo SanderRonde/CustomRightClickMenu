@@ -2084,7 +2084,7 @@
 					node = this.templates.getDefaultScriptNode({
 						name: name,
 						id: id,
-						triggers: triggers,
+						triggers: triggers || [],
 						value: {
 							launchMode: parseInt(scriptLaunchMode, 10),
 							updateNotice: true,
@@ -2150,7 +2150,7 @@
 				latestId: 0,
 				useStorageSync: true,
 				notFirstTime: true,
-				lastUpdatedAt: chrome.runtiem.getManifest().version,
+				lastUpdatedAt: chrome.runtime.getManifest().version,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
 				recoverUnsavedData: false,
@@ -2236,7 +2236,7 @@
 				latestId: 0,
 				useStorageSync: true,
 				notFirstTime: true,
-				lastUpdatedAt: chrome.runtiem.getManifest().version,
+				lastUpdatedAt: chrome.runtime.getManifest().version,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
 				recoverUnsavedData: false,
@@ -2318,7 +2318,6 @@
 
 		checkFirstTime: function(storageLocal) {
 			var _this = this;
-			debugger;
 			var currentVersion = chrome.runtime.getManifest().version;
 			if (storageLocal.lastUpdatedAt === currentVersion) {
 				return true;
