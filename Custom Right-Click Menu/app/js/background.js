@@ -5254,30 +5254,26 @@
 	function handleTransfer() {
 		localStorage.setItem('transferred', true);
 
-		var promiseResolve;
-		var promise = new Promise(function(resolve, reject) {
-			promiseResolve = resolve;
-		});
+		return function(resolve) {
+			if (!window.CodeMirror.TernServer) {
+				//Wait until TernServer is loaded
+				window.setTimeout(function() {
+					handleDataTransfer().then(function(data) {
+						resolve(data);
+					});
+				}, 200);
+			} else {
 
-		if (!window.CodeMirror.TernServer) {
-			//Wait until TernServer is loaded
-			window.setTimeout(function() {
-				handleDataTransfer().then(function(data) {
-					promiseResolve(data);
+				var result = handleFirstRun();
+				result.defaultSyncStorage.crm = transferCRMFromOld(localStorage.getItem('whatpage'));
+
+				resolve({
+					settingsStorage: result.defaultSyncStorage,
+					storageLocalCopy: result.storageLocalCopy,
+					chromeStorageLocal: result.storageLocal
 				});
-			}, 200);
-		} else {
-
-			var result = handleFirstRun();
-			result.defaultSyncStorage.crm = transferCRMFromOld(localStorage.getItem('whatpage'));
-
-			promiseResolve({
-				settingsStorage: result.defaultSyncStorage,
-				storageLocalCopy: result.storageLocalCopy,
-				chromeStorageLocal: result.storageLocal
-			});
 		}
-		return promise;
+		}
 	}
 	//#endregion
 
@@ -5290,10 +5286,9 @@
 				return handleTransfer();
 			} else {
 				var firstRunResult = handleFirstRun();
-				var promise = new Promise(function(resolve, reject) {
+				return function(resolve) {
 					resolve(firstRunResult);
-				});
-				return promise;
+				}
 			}
 		}
 	}
@@ -5329,7 +5324,7 @@
 			chrome.storage.local.get(function (chromeStorageLocal) {
 				var result;
 				if ((result = isFirstTime(chromeStorageLocal))) {
-					result.then(function(data) {
+					result(function(data) {
 						setStorages(data.storageLocalCopy, data.settingsStorage, data.chromeStorageLocal, callback);
 					}, function(err) {
 						console.warn(err);

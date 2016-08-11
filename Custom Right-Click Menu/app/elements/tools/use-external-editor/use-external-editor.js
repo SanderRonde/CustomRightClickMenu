@@ -390,7 +390,7 @@ Polymer({
 			this.connection.status = 'connecting';
 			this.connection.stage = 0;
 			this.connection.fileConnected = false;
-			this.connectionPromise = new Promise(function(resolve, reject) {
+			this.connectionPromise = function(resolve, reject) {
 				function promiseListener(msg) {
 					if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
 						_this.appPort.onMessage.removeListener(promiseListener);
@@ -414,7 +414,7 @@ Polymer({
 					message: 'hi',
 					stage: 0
 				});
-			}).then(function(msg) {
+			}(function(msg) {
 				_this.connection.stage = 2; //We have sent confirmation that we are there
 				_this.appPort.postMessage({
 					status: 'connecting',
@@ -426,7 +426,7 @@ Polymer({
 				_this.connection.connected = true;
 				_this.connection.state = 'connected';
 				_this.connection.id = msg.connectionId;
-				}).catch(function() {
+			}, function() {
 				_this.errorHandler();
 			});
 		}

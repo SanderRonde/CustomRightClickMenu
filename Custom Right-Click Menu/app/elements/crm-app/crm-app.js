@@ -2368,10 +2368,10 @@
 			}
 		},
 
-		setupLoadingBar: function (promise) {
+		setupLoadingBar: function (fn) {
 			var callback = null;
-			promise.then(function(result) {
-				callback = result;
+			fn(function(cb) {
+				callback = cb;	
 			});
 
 			var _this = this;
@@ -2416,7 +2416,7 @@
 			window.app = this;
 			window.doc = window.app.$;
 
-			this.setupLoadingBar(new Promise(function(resolve) {
+			this.setupLoadingBar(function(resolve) {
 				chrome.storage.local.get(function(storageLocal) {
 					if (_this.checkFirstTime(storageLocal)) {
 						resolve(function() {
@@ -2540,7 +2540,7 @@
 						});
 					}
 				});
-			}));
+			});
 
 			this.show = false;
 

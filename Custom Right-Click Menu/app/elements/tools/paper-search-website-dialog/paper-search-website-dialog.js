@@ -216,7 +216,7 @@
 		this.hideAllWindows('loadingWindow');
 		this.$.loadingWindow.style.display = 'block';
 		this.fit();
-		var promise = promiser.apply(this).then(function() {
+		var promise = promiser.apply(this)(function() {
 			_this.$.manualInputListChoiceInput.invalid = false;
 			_this.switchToWindow(window);
 			spinner.active = false;
@@ -265,7 +265,7 @@
 	 */
 	processSearchEngines: function() {
 		var _this = this;
-		return new Promise(function(resolve, reject) {
+		return function(resolve, rejct) {
 			var worker = new Worker('elements/tools/paper-search-website-dialog/searchEngineWorker.js');
 			var data = _this.$.manualInputListChoiceInput.value;
 
@@ -284,7 +284,7 @@
 				worker.terminate();
 			});
 			worker.postMessage(data);
-		});
+		};
 	},
 
 	addSearchBinding: function(e) {
