@@ -719,6 +719,46 @@ describe('Conversion', () => {
 			assert.isArray(result[0].children, "Resulting node's children property is an array");
 			assert.lengthOf(result[0].children, 0, "Resulting node's children array has length 0");
 		});
+		it('should be able to convert a script with triggers', () => {
+			let result;
+			assert.doesNotThrow(run(() => {
+				result = crmApp.transferCRMFromOld(true,
+					createCrmLocalStorage([{
+						type: 'script',
+						name: 'testscript',
+						triggers: [{
+							url: 'google.com'
+						}, {
+							url: 'example.com'
+						}, {
+							url: 'youtube.com'
+						}],
+						value: {
+							launchMode: 2
+						}
+					}])
+				);
+			}), 'Converting does not throw an error');
+			assert.isDefined(result, 'Result is defined');
+			assert.isArray(result, 'Resulting CRM is an array');
+			assert.lengthOf(result, 1, 'Resulting CRM has one child');
+			assert.isObject(result[0], 'Resulting node is an object');
+			assert.strictEqual(result[0].type, 'script', 'Resulting node is of type script');
+			assert.strictEqual(result[0].name, 'testscript', "Resulting node's name should match given name");
+			assert.property(result[0], 'triggers', 'Resulting node has a triggers property');
+			assert.property(result[0].value, 'launchMode', 'Resulting node has a launchMode property');
+			assert.strictEqual(result[0].value.launchMode, 2, 'Resulting launch mode matches expected');
+			assert.deepEqual(result[0].triggers, [{
+				not: false,
+				url: 'google.com'
+			}, {
+				not: false,
+				url: 'example.com'
+			}, {
+				not: false,
+				url: 'youtube.com'
+			}], 'Triggers match expected');
+		});
 		it('should be able to convert a menu with some children with various types', () => {
 			let result;
 			assert.doesNotThrow(run(() => {
