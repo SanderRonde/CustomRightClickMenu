@@ -4615,6 +4615,8 @@
 			]
 		};
 
+		window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+
 		//Save local storage
 		chrome.storage.local.set(defaultLocalStorage);
 
@@ -5180,20 +5182,25 @@
 				var scriptData = scriptSplit[1];
 				var triggers = undefined;
 				var launchModeString = scriptLaunchMode + '';
-				if (launchModeString !== '0' && launchModeString !== '2') {
-					triggers = launchModeString.split('1,')[1].split(',');
-					triggers.map(function(item) {
-						return item.trim();
-					});
-					scriptLaunchMode = 1;
-				}
+				if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
+						triggers = launchModeString.split('1,')[1].split(',');
+						triggers = triggers.map(function(item) {
+							return {
+								not: false,
+								url: item.trim()
+							};
+						}).filter(function(item) {
+							return item.url !== '';
+						});
+						scriptLaunchMode = 2;
+					}
 				var id = generateItemId();
 				node = getTemplates().getDefaultScriptNode({
 					name: name,
 					id: id,
+					triggers: triggers,
 					value: {
 						launchMode: parseInt(scriptLaunchMode, 10),
-						triggers: triggers,
 						updateNotice: true,
 						oldScript: scriptData,
 						script: legacyScriptReplace.convertScriptFromLegacy(scriptData, function (oldScriptErrors, newScriptErrors, parseError) {
@@ -5247,7 +5254,7 @@
 	}
 
 	function handleTransfer() {
-		localStorage.setItem('firsttime', 'yes');
+		localStorage.setItem('transferred', true);
 
 		var promiseResolve;
 		var promise = new Promise(function(resolve, reject) {
