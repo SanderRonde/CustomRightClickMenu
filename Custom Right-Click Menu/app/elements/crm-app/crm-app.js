@@ -2327,6 +2327,8 @@
 					setTimeout(function() {
 						throw e;
 					}, 2500);
+					//Just clear the loading screen immediately
+					document.documentElement.classList.remove('elementsLoading');
 					return true;
 				}
 				return false;
@@ -2513,7 +2515,7 @@
 								});
 							} else {
 								//Send the "settings" object on the storage.local to the callback
-								_this.settingsJsonLength = JSON.stringify(storageLocal.settings).length;
+								_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
 								if (!storageLocal.settings) {
 									chrome.storage.local.set({
 										useStorageSync: true
