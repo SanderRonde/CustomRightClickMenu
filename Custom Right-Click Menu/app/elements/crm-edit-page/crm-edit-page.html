@@ -19,7 +19,7 @@
 							</div>
 							<div id="scriptUpdateMessage">
 								This script has been updated to use the new CRM API, read up about it <a href="../../html/crmAPIDocs.html" target="_blank">over here</a>. Depending on howmany chrome APIs you used, some issues may have occurred.
-								<div id="scriptUpdateStatus">[[getScriptUpdateStatus(item)]]</div> Click <span class="scriptUpdateTextButton" id="scriptUpdateShowDiff" on-tap="showScriptUpdateDiff">here</span> to compare the new and the old version and/or resolve any issues migrating or click <span class="scriptUpdateTextButton" id="scriptUpdateDismiss">here</span> to dismiss this dialog permanently.
+								<div id="scriptUpdateStatus">[[getScriptUpdateStatus(item)]]</div> Click <span class="scriptUpdateTextButton" id="scriptUpdateShowDiff" on-tap="showScriptUpdateDiff">here</span> to compare the new and the old version and/or resolve any issues migrating or click <span class="scriptUpdateTextButton" id="scriptUpdateDismiss" on-tap="hideUpdateMergeDialog">here</span> to dismiss this dialog permanently.
 							</div>
 							<div id="scriptUpdateHideDialog">
 								<paper-icon-button on-tap="hideUpdateMergeDialog" id="scriptUpdateHideDialogButton" icon="clear"></paper-icon-button>

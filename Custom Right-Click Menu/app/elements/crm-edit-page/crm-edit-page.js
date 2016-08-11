@@ -312,13 +312,15 @@ Polymer({
 		var oldScript = this.item.value.oldScript;
 		var newScript = this.item.value.script;
 		window.doc.externalEditorChooseFile.init(oldScript, newScript, function(result) {
-			delete window.app.storageLocal.upgradeErrors[_this.item.id];
+			if (window.app.storageLocal.upgradeErrors) {
+				delete window.app.storageLocal.upgradeErrors[_this.item.id];
+			}
 			window.scriptEdit.editor.setValue(result);
 			setTimeout(function() {
 				_this.hideUpdateMergeDialog();
 			}, 250);
 			chrome.storage.local.set({
-				upgradeErrors: window.app.storageLocal.upgradeErrors
+				upgradeErrors: window.app.storageLocal.upgradeErrors || {}
 			});
 		}, true, window.app.storageLocal.upgradeErrors && window.app.storageLocal.upgradeErrors[this.item.id]);
 		window.externalEditor.showMergeDialog(window.externalEditor, oldScript, newScript);

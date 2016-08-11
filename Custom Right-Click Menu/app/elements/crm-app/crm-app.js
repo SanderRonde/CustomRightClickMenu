@@ -1367,6 +1367,7 @@
 			chrome.storage.local.get(function (storageLocal) {
 				_this.storageLocal = storageLocal;
 				if (key === 'CRMOnPage') {
+					window.doc.editCRMInRM.setCheckboxDisabledValue &&
 					window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 				}
 				_this.upload();
@@ -2067,20 +2068,25 @@
 					var scriptData = scriptSplit[1];
 					var triggers = undefined;
 					var launchModeString = scriptLaunchMode + '';
-					if (launchModeString !== '0' && launchModeString !== '2') {
+					if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
 						triggers = launchModeString.split('1,')[1].split(',');
-						triggers.map(function(item) {
-							return item.trim();
+						triggers = triggers.map(function(item) {
+							return {
+								not: false,
+								url: item.trim()
+							};
+						}).filter(function(item) {
+							return item.url !== '';
 						});
-						scriptLaunchMode = 1;
+						scriptLaunchMode = 2;
 					}
 					var id = this.generateItemId();
 					node = this.templates.getDefaultScriptNode({
 						name: name,
 						id: id,
+						triggers: triggers,
 						value: {
 							launchMode: parseInt(scriptLaunchMode, 10),
-							triggers: triggers,
 							updateNotice: true,
 							oldScript: scriptData,
 							script: this.legacyScriptReplace.convertScriptFromLegacy(scriptData, this.generateScriptUpgradeErrorHandler(id))
@@ -2187,6 +2193,8 @@
 				crm: _this.transferCRMFromOld(localStorage.getItem('whatpage'))
 			};
 
+			window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+
 			//Save sync storage
 			_this.uploadStorageSyncData(defaultSyncStorage, _this);
 			_this.settings = defaultSyncStorage;
@@ -2207,10 +2215,13 @@
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
 			_this.buildNodePaths(_this.settings.crm, []);
-			window.doc.editCRMInRM.setCheckboxDisabledValue(false);
-			Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
-				setting.init(defaultLocalStorage);
-			});
+			window.setTimeout(function() {
+				window.doc.editCRMInRM.setCheckboxDisabledValue && 
+				window.doc.editCRMInRM.setCheckboxDisabledValue(false);
+				Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+					setting.init && setting.init(defaultLocalStorage);
+				});
+			}, 2500);
 		},
 
 		handleFirstTime: function(_this) {
@@ -2239,6 +2250,8 @@
 					{ "location": "jqlite.js", "name": 'jqlite' }
 				]
 			};
+
+			window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
 
 			//Save local storage
 			chrome.storage.local.set(defaultLocalStorage);
@@ -2304,7 +2317,7 @@
 			} else {
 				try {
 					//Determine if it's a transfer from CRM version 1.*
-					if (localStorage.getItem('firsttime') === 'no' && !localStorage.getItem('transferred')) {
+					if (!localStorage.getItem('transferred')) {
 						_this.handleDataTransfer(_this);
 						_this.async(function() {
 							window.doc.versionUpdateDialog.open();
@@ -2633,11 +2646,7 @@
 						'// @grant	none',
 						'// @match	*://*.example.com/*',
 						'// ==/UserScript== */'].join('\n'),
-					launchMode: 0,
-					triggers: [{
-						url: '*://*.example.com/*',
-						not: false
-					}]
+					launchMode: 0
 				};
 
 				return this.mergeObjects(value, options);
@@ -2662,11 +2671,7 @@
 						'// @grant	none',
 						'// @match	*://*.example.com/*',
 						'// ==/UserScript=='].join('\n'),
-					backgroundScript: '',
-					triggers: [{
-						url: '*://*.example.com/*',
-						not: false
-					}]
+					backgroundScript: ''
 				}
 
 				return this.mergeObjects(value, options);
@@ -2683,6 +2688,10 @@
 					name: 'name',
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'script',
+					triggers: [{
+						url: '*://*.example.com/*',
+						not: false
+					}],
 					isLocal: true,
 					value: this.getDefaultScriptValue(options.value)
 				}
@@ -2702,6 +2711,10 @@
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'stylesheet',
 					isLocal: true,
+					triggers: [{
+						url: '*://*.example.com/*',
+						not: false
+					}],
 					value: this.getDefaultStylesheetValue(options.value)
 				}
 
