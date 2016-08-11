@@ -4615,8 +4615,6 @@
 			]
 		};
 
-		window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-
 		//Save local storage
 		chrome.storage.local.set(defaultLocalStorage);
 
