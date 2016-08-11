@@ -519,24 +519,54 @@
 
 		importData: function() {
 			var data = this.$.importSettingsInput.value;
-			try {
-				data = JSON.parse(data);
-				this.$.importSettingsError.display = 'none';
-			} catch (e) {
-				this.$.importSettingsError.display = 'block';
-				return;
-			}
-
-			if (this.$.overWriteImport.checked && (data.local || data.storageLocal)) {
-				this.settings = data.nonLocal || this.settings;
-				this.storageLocal = data.local || this.storageLocal;
-			}
-			if (data.crm) {
-				if (this.$.overWriteImport.checked) {
-					this.settings.crm = data.crm;
-				} else {
-					this.addImportedNodes(data.crm);
+			if (!this.$.oldCRMImport.checked) {
+				try {
+					data = JSON.parse(data);
+					this.$.importSettingsError.style.display = 'none';
+				} catch (e) {
+					console.log(e);
+					this.$.importSettingsError.style.display = 'block';
+					return;
 				}
+
+				if (this.$.overWriteImport.checked && (data.local || data.storageLocal)) {
+					this.settings = data.nonLocal || this.settings;
+					this.storageLocal = data.local || this.storageLocal;
+				}
+				if (data.crm) {
+					if (this.$.overWriteImport.checked) {
+						this.settings.crm = data.crm;
+					} else {
+						this.addImportedNodes(data.crm);
+					}
+				}
+			} else {
+				try {
+					var settingsArr = data.split('%146%');
+					if (settingsArr[0] === 'all') {
+						this.storageLocal.showOptions = settingsArr[2];
+
+						var rows = settingsArr.slice(6);
+						var localStorageWrapper = function() {
+							this.getItem = function(index) {
+								if (index === 'numberofrows') {
+									return rows.length - 1;
+								}
+								return rows[index];
+							}
+						}
+
+						var crm = this.transferCRMFromOld(settingsArr[4], new localStorageWrapper());
+						this.settings.crm = crm;
+						window.app.editCRM.build(null, null, true);
+					} else {
+						alert('This method of importing no longer works, please export all your settings instead');
+					}
+				} catch(e) {
+					console.log(e);
+					this.$.importSettingsError.style.display = 'block';
+					return;
+				} 
 			}
 		},
 
@@ -2095,7 +2125,7 @@
 		},
 
 		handleDataTransfer: function(_this) {
-			localStorage.setItem('firsttime', 'yes');
+			localStorage.setItem('transferred', true);
 
 			if (!window.CodeMirror.TernServer) {
 				//Wait until TernServer is loaded
@@ -2274,7 +2304,7 @@
 			} else {
 				try {
 					//Determine if it's a transfer from CRM version 1.*
-					if (localStorage.getItem('firsttime') === 'no') {
+					if (localStorage.getItem('firsttime') === 'no' && !localStorage.getItem('transferred')) {
 						_this.handleDataTransfer(_this);
 						_this.async(function() {
 							window.doc.versionUpdateDialog.open();
