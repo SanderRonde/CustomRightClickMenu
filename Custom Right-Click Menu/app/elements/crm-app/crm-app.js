@@ -2150,6 +2150,7 @@
 				latestId: 0,
 				useStorageSync: true,
 				notFirstTime: true,
+				lastUpdatedAt: chrome.runtiem.getManifest().version,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
 				recoverUnsavedData: false,
@@ -2235,6 +2236,7 @@
 				latestId: 0,
 				useStorageSync: true,
 				notFirstTime: true,
+				lastUpdatedAt: chrome.runtiem.getManifest().version,
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
 				recoverUnsavedData: false,
@@ -2310,11 +2312,21 @@
 			});
 		},
 
+		upgradeVersion: function(oldVersion, newVersion) {
+			//No changes yet
+		},
+
 		checkFirstTime: function(storageLocal) {
 			var _this = this;
-			if (storageLocal.notFirstTime) {
+			debugger;
+			var currentVersion = chrome.runtime.getManifest().version;
+			if (storageLocal.lastUpdatedAt === currentVersion) {
 				return true;
 			} else {
+				if (storageLocal.lastUpdatedAt) {		
+					this.upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
+					return true;
+				}
 				try {
 					//Determine if it's a transfer from CRM version 1.*
 					if (!localStorage.getItem('transferred')) {
