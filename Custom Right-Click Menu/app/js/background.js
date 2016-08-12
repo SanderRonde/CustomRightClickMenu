@@ -4674,482 +4674,482 @@
 
 	//#region Transfer
 	var legacyScriptReplace = {
-			/**
-			 * Checks if given value is the property passed, disregarding quotes
-			 *
-			 * @param {string} toCheck - The string to compare it to
-			 * @param {string} prop - The value to be compared
-			 * @returns {boolean} Returns true if they are equal
-			 */
-			isProperty: function(toCheck, prop) {
-				if (toCheck === prop) {
-					return true;
-				}
-				return toCheck.replace(/['|"|`]/g, '') === prop;
-			},
+		/**
+		 * Checks if given value is the property passed, disregarding quotes
+		 *
+		 * @param {string} toCheck - The string to compare it to
+		 * @param {string} prop - The value to be compared
+		 * @returns {boolean} Returns true if they are equal
+		 */
+		isProperty: function(toCheck, prop) {
+			if (toCheck === prop) {
+				return true;
+			}
+			return toCheck.replace(/['|"|`]/g, '') === prop;
+		},
 
-			/**
-			 * Gets the lines where an expression begins and ends
-			 *
-			 * @param {Object[]} lines - All lines of the script
-			 * @param {Object[]} lineSeperators - An object for every line signaling the start and end
-			 * @param {Number} lineSeperators.start - The index of that line's first character in the
-			 *		entire script if all new lines were removed
-			 * @param {Number} lineSeperators.end - The index of that line's last character in the
-			 *		entire script if all new lines were removed
-			 * @param {Number} start - The first character's index of the function call whose line to find
-			 * @param {Number} end  - The last character's index of the function call whose line to find
-			 * @returns {Object} The line(s) on which the function was called, containing a "from" and
-			 *		"to" property that indicate the start and end of the line(s). Each "from" or "to"
-			 *		consists of an "index" and a "line" property signaling the char index and the line num
-			 */
-			getCallLines: function (lines, lineSeperators, start, end) {
-				var sep;
-				var line = {};
-				for (var i = 0; i < lineSeperators.length; i++) {
-					sep = lineSeperators[i];
-					if (sep.start <= start) {
-						line.from = {
-							index: sep.start,
-							line: i
-						}
+		/**
+		 * Gets the lines where an expression begins and ends
+		 *
+		 * @param {Object[]} lines - All lines of the script
+		 * @param {Object[]} lineSeperators - An object for every line signaling the start and end
+		 * @param {Number} lineSeperators.start - The index of that line's first character in the
+		 *		entire script if all new lines were removed
+			* @param {Number} lineSeperators.end - The index of that line's last character in the
+			*		entire script if all new lines were removed
+			* @param {Number} start - The first character's index of the function call whose line to find
+			* @param {Number} end  - The last character's index of the function call whose line to find
+			* @returns {Object} The line(s) on which the function was called, containing a "from" and
+			*		"to" property that indicate the start and end of the line(s). Each "from" or "to"
+			*		consists of an "index" and a "line" property signaling the char index and the line num
+			*/
+		getCallLines: function (lines, lineSeperators, start, end) {
+			var sep;
+			var line = {};
+			for (var i = 0; i < lineSeperators.length; i++) {
+				sep = lineSeperators[i];
+				if (sep.start <= start) {
+					line.from = {
+						index: sep.start,
+						line: i
 					}
-					if (sep.end >= end) {
-						line.to = {
-							index: sep.end,
-							line: i
-						};
+				}
+				if (sep.end >= end) {
+					line.to = {
+						index: sep.end,
+						line: i
+					};
+					break;
+				}
+			}
+
+			return line;
+		},
+
+		/**
+		 * Finds the function call expression around the expression whose data was passed
+		 *
+		 * @param {Object} data - The data associated with a chrome call
+		 * @returns {Object} The expression around the expression whose data was passed
+		 */
+		getFunctionCallExpressions: function(data) {
+			//Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
+			var index = data.parentExpressions.length - 1;
+			var expr = data.parentExpressions[index];
+			while (expr && expr.type !== 'CallExpression') {
+				expr = data.parentExpressions[--index];
+			}
+			return data.parentExpressions[index];
+		},
+
+		/**
+		 * Gets the chrome API in use by given function call expression
+		 *
+		 * @param {Object} expr - The expression whose function call to find
+		 * @param {Object} data - The data about that call
+		 * @returns {Object} An object containing the call on the "call"
+		 *		property and the arguments on the "args" property
+			*/
+		getChromeAPI: function (expr, data) {
+			data.functionCall = data.functionCall.map(function (prop) {
+				return prop.replace(/['|"|`]/g, '');
+			});
+			var functionCall = data.functionCall;
+			functionCall = functionCall.reverse();
+			if (functionCall[0] === 'chrome') {
+				functionCall.splice(0, 1);
+			}
+
+			var argsStart = expr.callee.end;
+			var argsEnd = expr.end;
+			var args = data.persistent.script.slice(argsStart, argsEnd);
+
+			return {
+				call: functionCall.join('.'),
+				args: args
+			}
+		},
+
+		/**
+		 * Gets the position of an index relative to the line instead of relative
+		 * to the entire script
+		 *
+		 * @param {Object[]} lines - All lines of the script
+		 * @param {Number} line - The line the index is on
+		 * @param {Number} index - The index relative to the entire script
+		 * @returns {Number} The index of the char relative to given line
+		 */
+		getLineIndexFromTotalIndex: function (lines, line, index) {
+			for (var i = 0; i < line; i++) {
+				index -= lines[i].length + 1;
+			}
+			return index;
+		},
+
+		replaceChromeFunction: function (data, expr, callLines) {
+			if (data.isReturn && !data.isValidReturn) {
+				return;
+			}
+
+			var lines = data.persistent.lines;
+
+			//Get chrome API
+			var i;
+			var chromeAPI = this.getChromeAPI(expr, data);
+			var firstLine = data.persistent.lines[callLines.from.line];
+			var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, ((data.returnExpr && data.returnExpr.start) || expr.callee.start));
+			var lineExprEnd = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, expr.callee.end);
+
+			var newLine = firstLine.slice(0, lineExprStart) +
+				'window.crmAPI.chrome(\'' + chromeAPI.call + '\')' +
+				firstLine.slice(lineExprEnd);
+			if (newLine[newLine.length - 1] === ';') {
+				newLine = newLine.slice(0, newLine.length - 1);
+			}
+
+			if (data.isReturn) {
+				newLine += '.return(function(' + data.returnName + ') {';
+				var usesTabs = true;
+				var spacesAmount = 0;
+				//Find out if the writer uses tabs or spaces
+				for (i = 0; i < data.persistent.lines.length; i++) {
+					if (data.persistent.lines[i].indexOf('	') === 0) {
+						usesTabs = true;
+						break;
+					} else if (data.persistent.lines[i].indexOf('  ') === 0) {
+						var split = data.persistent.lines[i].split(' ');
+						for (var j = 0; j < split.length; j++) {
+							if (split[j] === ' ') {
+								spacesAmount++;
+							} else {
+								break;
+							}
+						}
+						usesTabs = false;
 						break;
 					}
 				}
 
-				return line;
-			},
-
-			/**
-			 * Finds the function call expression around the expression whose data was passed
-			 *
-			 * @param {Object} data - The data associated with a chrome call
-			 * @returns {Object} The expression around the expression whose data was passed
-			 */
-			getFunctionCallExpressions: function(data) {
-				//Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
-				var index = data.parentExpressions.length - 1;
-				var expr = data.parentExpressions[index];
-				while (expr && expr.type !== 'CallExpression') {
-					expr = data.parentExpressions[--index];
+				var indent;
+				if (usesTabs) {
+					indent = '	';
 				}
-				return data.parentExpressions[index];
-			},
-
-			/**
-			 * Gets the chrome API in use by given function call expression
-			 *
-			 * @param {Object} expr - The expression whose function call to find
-			 * @param {Object} data - The data about that call
-			 * @returns {Object} An object containing the call on the "call"
-			 *		property and the arguments on the "args" property
-			 */
-			getChromeAPI: function (expr, data) {
-				data.functionCall = data.functionCall.map(function (prop) {
-					return prop.replace(/['|"|`]/g, '');
-				});
-				var functionCall = data.functionCall;
-				functionCall = functionCall.reverse();
-				if (functionCall[0] === 'chrome') {
-					functionCall.splice(0, 1);
+				else {
+					indent = [];
+					indent[spacesAmount] = ' ';
+					indent = indent.join(' ');
 				}
-
-				var argsStart = expr.callee.end;
-				var argsEnd = expr.end;
-				var args = data.persistent.script.slice(argsStart, argsEnd);
-
-				return {
-					call: functionCall.join('.'),
-					args: args
+				for (i = callLines.to.line + 1; i < data.persistent.lines.length; i++) {
+					data.persistent.lines[i] = indent + data.persistent.lines[i];
 				}
-			},
+				data.persistent.lines.push('}).send();');
 
-			/**
-			 * Gets the position of an index relative to the line instead of relative
-			 * to the entire script
-			 *
-			 * @param {Object[]} lines - All lines of the script
-			 * @param {Number} line - The line the index is on
-			 * @param {Number} index - The index relative to the entire script
-			 * @returns {Number} The index of the char relative to given line
-			 */
-			getLineIndexFromTotalIndex: function (lines, line, index) {
-				for (var i = 0; i < line; i++) {
-					index -= lines[i].length + 1;
-				}
-				return index;
-			},
+			} else {
+				newLine +=  '.send();';
+			}
+			lines[callLines.from.line] = newLine;
+			return;
+		},
 
-			replaceChromeFunction: function (data, expr, callLines) {
-				if (data.isReturn && !data.isValidReturn) {
-					return;
-				}
+		callsChromeFunction: function (callee, data, onError) {
+			data.parentExpressions.push(callee);
 
-				var lines = data.persistent.lines;
-
-				//Get chrome API
-				var i;
-				var chromeAPI = this.getChromeAPI(expr, data);
-				var firstLine = data.persistent.lines[callLines.from.line];
-				var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, ((data.returnExpr && data.returnExpr.start) || expr.callee.start));
-				var lineExprEnd = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, expr.callee.end);
-
-				var newLine = firstLine.slice(0, lineExprStart) +
-					'window.crmAPI.chrome(\'' + chromeAPI.call + '\')' +
-					firstLine.slice(lineExprEnd);
-				if (newLine[newLine.length - 1] === ';') {
-					newLine = newLine.slice(0, newLine.length - 1);
-				}
-
-				if (data.isReturn) {
-					newLine += '.return(function(' + data.returnName + ') {';
-					var usesTabs = true;
-					var spacesAmount = 0;
-					//Find out if the writer uses tabs or spaces
-					for (i = 0; i < data.persistent.lines.length; i++) {
-						if (data.persistent.lines[i].indexOf('	') === 0) {
-							usesTabs = true;
-							break;
-						} else if (data.persistent.lines[i].indexOf('  ') === 0) {
-							var split = data.persistent.lines[i].split(' ');
-							for (var j = 0; j < split.length; j++) {
-								if (split[j] === ' ') {
-									spacesAmount++;
-								} else {
-									break;
-								}
-							}
-							usesTabs = false;
-							break;
-						}
-					}
-
-					var indent;
-					if (usesTabs) {
-						indent = '	';
-					}
-					else {
-						indent = [];
-						indent[spacesAmount] = ' ';
-						indent = indent.join(' ');
-					}
-					for (i = callLines.to.line + 1; i < data.persistent.lines.length; i++) {
-						data.persistent.lines[i] = indent + data.persistent.lines[i];
-					}
-					data.persistent.lines.push('}).send();');
-
-				} else {
-					newLine +=  '.send();';
-				}
-				lines[callLines.from.line] = newLine;
-				return;
-			},
-
-			callsChromeFunction: function (callee, data, onError) {
-				data.parentExpressions.push(callee);
-
-				//Check if the function has any arguments and check those first
-				if (callee.arguments && callee.arguments.length > 0) {
-					for (var i = 0; i < callee.arguments.length; i++) {
-						if (this.findChromeExpression(callee.arguments[i], this.removeObjLink(data), onError)) {
-							return true;
-						}
-					}
-				}
-
-				if (callee.type !== 'MemberExpression') {
-					//This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
-					return this.findChromeExpression(callee, this.removeObjLink(data), onError);
-				}
-
-				//Continue checking the call itself
-				if (callee.property) {
-					data.functionCall = data.functionCall || [];
-					data.functionCall.push(callee.property.name || callee.property.raw);
-				}
-				if (callee.object && callee.object.name) {
-					//First object
-					var isWindowCall = (this.isProperty(callee.object.name, 'window') && this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
-					if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
-						data.expression = callee;
-						var expr = this.getFunctionCallExpressions(data);
-						var callLines = this.getCallLines(data.persistent.lines, data.persistent.lineSeperators, expr.start, expr.end);
-						if (data.isReturn && !data.isValidReturn) {
-							callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, callLines.from.index);
-							callLines.to.index = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.to.line, callLines.to.index);
-							onError(callLines, data.persistent.passes);
-							return false;
-						}
-						if (!data.persistent.diagnostic) {
-							this.replaceChromeFunction(data, expr, callLines);
-						}
+			//Check if the function has any arguments and check those first
+			if (callee.arguments && callee.arguments.length > 0) {
+				for (var i = 0; i < callee.arguments.length; i++) {
+					if (this.findChromeExpression(callee.arguments[i], this.removeObjLink(data), onError)) {
 						return true;
 					}
-				} else if (callee.object) {
-					return this.callsChromeFunction(callee.object, data, onError);
 				}
-				return false;
-			},
+			}
 
-			removeObjLink: function (data) {
-				var parentExpressions = data.parentExpressions || [];
-				var newObj = {};
-				for (var key in data) {
-					if (data.hasOwnProperty(key) && key !== 'parentExpressions' && key !== 'persistent') {
-						newObj[key] = data[key];
+			if (callee.type !== 'MemberExpression') {
+				//This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
+				return this.findChromeExpression(callee, this.removeObjLink(data), onError);
+			}
+
+			//Continue checking the call itself
+			if (callee.property) {
+				data.functionCall = data.functionCall || [];
+				data.functionCall.push(callee.property.name || callee.property.raw);
+			}
+			if (callee.object && callee.object.name) {
+				//First object
+				var isWindowCall = (this.isProperty(callee.object.name, 'window') && this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
+				if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
+					data.expression = callee;
+					var expr = this.getFunctionCallExpressions(data);
+					var callLines = this.getCallLines(data.persistent.lines, data.persistent.lineSeperators, expr.start, expr.end);
+					if (data.isReturn && !data.isValidReturn) {
+						callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line, callLines.from.index);
+						callLines.to.index = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.to.line, callLines.to.index);
+						onError(callLines, data.persistent.passes);
+						return false;
 					}
-				}
-
-				var newParentExpressions = [];
-				for (var i = 0; i < parentExpressions.length; i++) {
-					newParentExpressions.push(parentExpressions[i]);
-				}
-				newObj.persistent = data.persistent;
-				newObj.parentExpressions = newParentExpressions;
-				return newObj;
-			},
-
-			findChromeExpression: function (expression, data, onError) {
-				data.parentExpressions = data.parentExpressions || [];
-				data.parentExpressions.push(expression);
-
-				var i;
-				switch (expression.type) {
-					case 'VariableDeclaration':
-						data.isValidReturn = expression.declarations.length === 1;
-						for (i = 0; i < expression.declarations.length; i++) {
-							//Check if it's an actual chrome assignment
-							var declaration = expression.declarations[i];
-							if (declaration.init) {
-								var decData = this.removeObjLink(data);
-
-								var returnName = declaration.id.name;
-								decData.isReturn = true;
-								decData.returnExpr = expression;
-								decData.returnName = returnName;
-
-								if (this.findChromeExpression(declaration.init, decData, onError)) {
-									return true;
-								}
-							}
-						}
-						break;
-					case 'CallExpression':
-					case 'MemberExpression':
-						if (expression.arguments && expression.arguments.length > 0) {
-							for (i = 0; i < expression.arguments.length; i++) {
-								if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
-									return true;
-								}
-							}
-						}
-						data.functionCall = [];
-						return this.callsChromeFunction(expression.callee, data, onError);
-					case 'AssignmentExpression':
-						data.isReturn = true;
-						data.returnExpr = expression;
-						data.returnName = expression.left.name;
-
-						return this.findChromeExpression(expression.right, data, onError);
-					case 'FunctionExpression':
-					case 'FunctionDeclaration':
-						data.isReturn = false;
-						for (i = 0; i < expression.body.body.length; i++) {
-							if (this.findChromeExpression(expression.body.body[i], this.removeObjLink(data), onError)) {
-								return true;
-							}
-						}
-						break;
-					case 'ExpressionStatement':
-						return this.findChromeExpression(expression.expression, data, onError);
-					case 'SequenceExpression':
-						data.isReturn = false;
-						var lastExpression = expression.expressions.length - 1;
-						for (i = 0; i < expression.expressions.length; i++) {
-							if (i === lastExpression) {
-								data.isReturn = true;
-							}
-							if (this.findChromeExpression(expression.expressions[i], this.removeObjLink(data), onError)) {
-								return true;
-							}
-						}
-						break;
-					case 'UnaryExpression':
-					case 'ConditionalExpression':
-						data.isValidReturn = false;
-						data.isReturn = true;
-						if (this.findChromeExpression(expression.consequent, this.removeObjLink(data), onError)) {
-							return true;
-						}
-						if (this.findChromeExpression(expression.alternate, this.removeObjLink(data), onError)) {
-							return true;
-						}
-						break;
-					case 'IfStatement':
-						data.isReturn = false;
-						if (this.findChromeExpression(expression.consequent, this.removeObjLink(data), onError)) {
-							return true;
-						}
-						if (expression.alternate && this.findChromeExpression(expression.alternate, this.removeObjLink(data), onError)) {
-							return true;
-						}
-						break;
-					case 'LogicalExpression':
-						data.isReturn = true;
-						data.isValidReturn = false;
-						if (this.findChromeExpression(expression.left, this.removeObjLink(data), onError)) {
-							return true;
-						}
-						if (this.findChromeExpression(expression.right, this.removeObjLink(data), onError)) {
-							return true;
-						}
-						break;
-					case 'BlockStatement':
-						data.isReturn = false;
-						for (i = 0; i < expression.body.length; i++) {
-							if (this.findChromeExpression(expression.body[i], this.removeObjLink(data), onError)) {
-								return true;
-							}
-						}
-						break;
-					case 'ReturnStatement':
-						data.isReturn = true;
-						data.returnExpr = expression;
-						data.isValidReturn = false;
-						return this.findChromeExpression(expression.argument, data, onError);
-				}
-				return false;
-			},
-
-			/**
-			 * Generates an onError function that passes any errors into given container
-			 *
-			 * @param {Object[][]} container - A container array that contains arrays of errors for every pass
-			 *		of the script
-			 * @returns {function} A function that can be called with the "position" argument signaling the
-			 *		position of the error in the script and the "passes" argument which signals the amount
-			 *		of passes the script went through
-			 */
-			generateOnError: function(container) {
-				return function (position, passes) {
-					if (!container[passes]) {
-						container[passes] = [position];
-					} else {
-						container[passes].push(position);
+					if (!data.persistent.diagnostic) {
+						this.replaceChromeFunction(data, expr, callLines);
 					}
+					return true;
 				}
-			},
+			} else if (callee.object) {
+				return this.callsChromeFunction(callee.object, data, onError);
+			}
+			return false;
+		},
 
-			replaceChromeCalls: function (lines, passes, onError) {
-				//Analyze the file
-				var file = new window.TernFile('[doc]');
-				file.text = lines.join('\n');
-				var srv = new window.CodeMirror.TernServer({
-					defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+		removeObjLink: function (data) {
+			var parentExpressions = data.parentExpressions || [];
+			var newObj = {};
+			for (var key in data) {
+				if (data.hasOwnProperty(key) && key !== 'parentExpressions' && key !== 'persistent') {
+					newObj[key] = data[key];
+				}
+			}
+
+			var newParentExpressions = [];
+			for (var i = 0; i < parentExpressions.length; i++) {
+				newParentExpressions.push(parentExpressions[i]);
+			}
+			newObj.persistent = data.persistent;
+			newObj.parentExpressions = newParentExpressions;
+			return newObj;
+		},
+
+		findChromeExpression: function (expression, data, onError) {
+			data.parentExpressions = data.parentExpressions || [];
+			data.parentExpressions.push(expression);
+
+			var i;
+			switch (expression.type) {
+				case 'VariableDeclaration':
+					data.isValidReturn = expression.declarations.length === 1;
+					for (i = 0; i < expression.declarations.length; i++) {
+						//Check if it's an actual chrome assignment
+						var declaration = expression.declarations[i];
+						if (declaration.init) {
+							var decData = this.removeObjLink(data);
+
+							var returnName = declaration.id.name;
+							decData.isReturn = true;
+							decData.returnExpr = expression;
+							decData.returnName = returnName;
+
+							if (this.findChromeExpression(declaration.init, decData, onError)) {
+								return true;
+							}
+						}
+					}
+					break;
+				case 'CallExpression':
+				case 'MemberExpression':
+					if (expression.arguments && expression.arguments.length > 0) {
+						for (i = 0; i < expression.arguments.length; i++) {
+							if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
+								return true;
+							}
+						}
+					}
+					data.functionCall = [];
+					return this.callsChromeFunction(expression.callee, data, onError);
+				case 'AssignmentExpression':
+					data.isReturn = true;
+					data.returnExpr = expression;
+					data.returnName = expression.left.name;
+
+					return this.findChromeExpression(expression.right, data, onError);
+				case 'FunctionExpression':
+				case 'FunctionDeclaration':
+					data.isReturn = false;
+					for (i = 0; i < expression.body.body.length; i++) {
+						if (this.findChromeExpression(expression.body.body[i], this.removeObjLink(data), onError)) {
+							return true;
+						}
+					}
+					break;
+				case 'ExpressionStatement':
+					return this.findChromeExpression(expression.expression, data, onError);
+				case 'SequenceExpression':
+					data.isReturn = false;
+					var lastExpression = expression.expressions.length - 1;
+					for (i = 0; i < expression.expressions.length; i++) {
+						if (i === lastExpression) {
+							data.isReturn = true;
+						}
+						if (this.findChromeExpression(expression.expressions[i], this.removeObjLink(data), onError)) {
+							return true;
+						}
+					}
+					break;
+				case 'UnaryExpression':
+				case 'ConditionalExpression':
+					data.isValidReturn = false;
+					data.isReturn = true;
+					if (this.findChromeExpression(expression.consequent, this.removeObjLink(data), onError)) {
+						return true;
+					}
+					if (this.findChromeExpression(expression.alternate, this.removeObjLink(data), onError)) {
+						return true;
+					}
+					break;
+				case 'IfStatement':
+					data.isReturn = false;
+					if (this.findChromeExpression(expression.consequent, this.removeObjLink(data), onError)) {
+						return true;
+					}
+					if (expression.alternate && this.findChromeExpression(expression.alternate, this.removeObjLink(data), onError)) {
+						return true;
+					}
+					break;
+				case 'LogicalExpression':
+					data.isReturn = true;
+					data.isValidReturn = false;
+					if (this.findChromeExpression(expression.left, this.removeObjLink(data), onError)) {
+						return true;
+					}
+					if (this.findChromeExpression(expression.right, this.removeObjLink(data), onError)) {
+						return true;
+					}
+					break;
+				case 'BlockStatement':
+					data.isReturn = false;
+					for (i = 0; i < expression.body.length; i++) {
+						if (this.findChromeExpression(expression.body[i], this.removeObjLink(data), onError)) {
+							return true;
+						}
+					}
+					break;
+				case 'ReturnStatement':
+					data.isReturn = true;
+					data.returnExpr = expression;
+					data.isValidReturn = false;
+					return this.findChromeExpression(expression.argument, data, onError);
+			}
+			return false;
+		},
+
+		/**
+		 * Generates an onError function that passes any errors into given container
+		 *
+		 * @param {Object[][]} container - A container array that contains arrays of errors for every pass
+		 *		of the script
+			* @returns {function} A function that can be called with the "position" argument signaling the
+			*		position of the error in the script and the "passes" argument which signals the amount
+			*		of passes the script went through
+			*/
+		generateOnError: function(container) {
+			return function (position, passes) {
+				if (!container[passes]) {
+					container[passes] = [position];
+				} else {
+					container[passes].push(position);
+				}
+			}
+		},
+
+		replaceChromeCalls: function (lines, passes, onError) {
+			//Analyze the file
+			var file = new window.TernFile('[doc]');
+			file.text = lines.join('\n');
+			var srv = new window.CodeMirror.TernServer({
+				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+			});
+			window.tern.withContext(srv.cx, function() {
+				file.ast = window.tern.parse(file.text, srv.passes, {
+					directSourceFile: file,
+					allowReturnOutsideFunction: true,
+					allowImportExportEverywhere: true,
+					ecmaVersion: srv.ecmaVersion
 				});
-				window.tern.withContext(srv.cx, function() {
-					file.ast = window.tern.parse(file.text, srv.passes, {
-						directSourceFile: file,
-						allowReturnOutsideFunction: true,
-						allowImportExportEverywhere: true,
-						ecmaVersion: srv.ecmaVersion
-					});
+			});
+
+			var scriptExpressions = file.ast.body;
+
+			var i;
+			var index = 0;
+			var lineSeperators = [];
+			for (i = 0; i < lines.length; i++) {
+				lineSeperators.push({
+					start: index,
+					end: index += lines[i].length + 1
 				});
+			}
 
-				var scriptExpressions = file.ast.body;
+			var script = file.text;
 
-				var i;
-				var index = 0;
-				var lineSeperators = [];
-				for (i = 0; i < lines.length; i++) {
-					lineSeperators.push({
-						start: index,
-						end: index += lines[i].length + 1
-					});
-				}
+			//Check all expressions for chrome calls
+			var persistentData = {
+				lines: lines,
+				lineSeperators: lineSeperators,
+				script: script,
+				passes: passes
+			};
 
-				var script = file.text;
-
-				//Check all expressions for chrome calls
-				var persistentData = {
-					lines: lines,
-					lineSeperators: lineSeperators,
-					script: script,
-					passes: passes
-				};
-
-				var expression;
-				if (passes === 0) {
-					//Do one check, not replacing anything, to find any possible errors already
-					persistentData.diagnostic = true;
-					for (i = 0; i < scriptExpressions.length; i++) {
-						expression = scriptExpressions[i];
-						this.findChromeExpression(expression, { persistent: persistentData }, onError);
-					}
-					persistentData.diagnostic = false;
-				}
-
+			var expression;
+			if (passes === 0) {
+				//Do one check, not replacing anything, to find any possible errors already
+				persistentData.diagnostic = true;
 				for (i = 0; i < scriptExpressions.length; i++) {
 					expression = scriptExpressions[i];
-					if (this.findChromeExpression(expression, { persistent: persistentData }, onError)) {
-						script = this.replaceChromeCalls(persistentData.lines.join('\n').split('\n'), passes + 1, onError);
-						break;
-					}
+					this.findChromeExpression(expression, { persistent: persistentData }, onError);
 				}
-
-				return script;
-			},
-
-			/**
-			 * Removes any duplicate position entries from given array
-			 *
-			 * @param {Object[]} arr - An array containing position objects
-			 * @returns {Object[]} The same array with all duplicates removed
-			 */
-			removePositionDuplicates: function (arr) {
-				var jsonArr = [];
-				arr.forEach(function(item, index) {
-					jsonArr[index] = JSON.stringify(item);
-				});
-				arr = jsonArr.filter(function(item, pos) {
-					return jsonArr.indexOf(item) === pos;
-				});
-				return arr.map(function(item) {
-					return JSON.parse(item);
-				});
-			},
-
-			convertScriptFromLegacy: function(script, onError) {
-				//Remove execute locally
-				var lineIndex = script.indexOf('/*execute locally*/');
-				if (lineIndex !== -1) {
-					script = script.replace('/*execute locally*/\n', '');
-					if (lineIndex === script.indexOf('/*execute locally*/')) {
-						script = script.replace('/*execute locally*/', '');
-					}
-				}
-
-				var errors = [];
-				try {
-					script = this.replaceChromeCalls(script.split('\n'), 0, this.generateOnError(errors));
-				} catch (e) {
-					onError(null, null, true);
-				}
-
-				var firstPassErrors = errors[0];
-				var finalPassErrors = errors[errors.length - 1];
-				if (finalPassErrors) {
-					onError(this.removePositionDuplicates(firstPassErrors), this.removePositionDuplicates(finalPassErrors));
-				}
-
-				return script;
+				persistentData.diagnostic = false;
 			}
+
+			for (i = 0; i < scriptExpressions.length; i++) {
+				expression = scriptExpressions[i];
+				if (this.findChromeExpression(expression, { persistent: persistentData }, onError)) {
+					script = this.replaceChromeCalls(persistentData.lines.join('\n').split('\n'), passes + 1, onError);
+					break;
+				}
+			}
+
+			return script;
+		},
+
+		/**
+		 * Removes any duplicate position entries from given array
+		 *
+		 * @param {Object[]} arr - An array containing position objects
+		 * @returns {Object[]} The same array with all duplicates removed
+		 */
+		removePositionDuplicates: function (arr) {
+			var jsonArr = [];
+			arr.forEach(function(item, index) {
+				jsonArr[index] = JSON.stringify(item);
+			});
+			arr = jsonArr.filter(function(item, pos) {
+				return jsonArr.indexOf(item) === pos;
+			});
+			return arr.map(function(item) {
+				return JSON.parse(item);
+			});
+		},
+
+		convertScriptFromLegacy: function(script, onError) {
+			//Remove execute locally
+			var lineIndex = script.indexOf('/*execute locally*/');
+			if (lineIndex !== -1) {
+				script = script.replace('/*execute locally*/\n', '');
+				if (lineIndex === script.indexOf('/*execute locally*/')) {
+					script = script.replace('/*execute locally*/', '');
+				}
+			}
+
+			var errors = [];
+			try {
+				script = this.replaceChromeCalls(script.split('\n'), 0, this.generateOnError(errors));
+			} catch (e) {
+				onError(null, null, true);
+			}
+
+			var firstPassErrors = errors[0];
+			var finalPassErrors = errors[errors.length - 1];
+			if (finalPassErrors) {
+				onError(this.removePositionDuplicates(firstPassErrors), this.removePositionDuplicates(finalPassErrors));
+			}
+
+			return script;
+		}
 	};
 
 	function getTemplates() {
