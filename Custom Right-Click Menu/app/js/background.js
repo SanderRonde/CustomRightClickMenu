@@ -4259,7 +4259,7 @@
 	//#region Install Page
 	function handleUserJsRequest(details) {
 		var url = details.url;
-		if (url.indexOf('noCRM') === url.length - 5) {
+		if (url.indexOf('noInstall') === url.length - 5) {
 			return {};
 		}
 		return { redirectUrl: window.globals.constants.installUrl + '#' + url };

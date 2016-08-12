@@ -59,7 +59,7 @@
 		fetchUserscript: function(url) {
 			var _this = this;
 			$.ajax({
-				url: url + '?noCRM',
+				url: url + '?noInstall',
 				dataType: 'text'
 			}).done(function(script) {
 				_this.displayFetchedUserscript(script);
