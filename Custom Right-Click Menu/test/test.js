@@ -2770,7 +2770,7 @@ describe('CRMAPI', () => {
 			it('should throw an error when given an invalid launch mode', () => {
 				assert.throws(() => {
 					crmAPI.crm.setLaunchMode(safeTestCRMTree[3].id, 5, (newNode) => { });
-				}, /Value for launchMode is bigger than 3/);
+				}, /Value for launchMode is bigger than 4/);
 			});
 		});
 		describe('getLaunchMode()', () => {
