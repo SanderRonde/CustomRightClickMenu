@@ -2504,6 +2504,9 @@
 							} else {
 								_this.latestId = 0;
 							}
+							if (storageLocal.addedPermissions) {
+								storageLocal.addedPermissions.forE
+							}
 							if (storageLocal.useStorageSync) {
 								//Parse the data before sending it to the callback
 								chrome.storage.sync.get(function(storageSync) {
@@ -2576,7 +2579,8 @@
 			 */
 			mergeArrays: function(mainArray, additionArray) {
 				for (var i = 0; i < additionArray.length; i++) {
-					if (mainArray[i] && typeof additionArray[i] === 'object') {
+					if (mainArray[i] && typeof additionArray[i] === 'object' && 
+						mainArray[i] !== undefined && mainArray[i] !== null) {
 						if (Array.isArray(additionArray[i])) {
 							mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
 						} else {
@@ -2600,7 +2604,9 @@
 			mergeObjects: function(mainObject, additions) {
 				for (var key in additions) {
 					if (additions.hasOwnProperty(key)) {
-						if (typeof additions[key] === 'object') {
+						if (typeof additions[key] === 'object' &&
+							mainObject[key] !== undefined &&
+							mainObject[key] !== null) {
 							if (Array.isArray(additions[key])) {
 								mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
 							} else {

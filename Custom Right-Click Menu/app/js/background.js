@@ -243,7 +243,8 @@
 				 */
 				mergeArrays: function(mainArray, additionArray) {
 					for (var i = 0; i < additionArray.length; i++) {
-						if (mainArray[i] && typeof additionArray[i] === 'object') {
+						if (mainArray[i] && typeof additionArray[i] === 'object' && 
+							mainArray[i] !== undefined && mainArray[i] !== null) {
 							if (Array.isArray(additionArray[i])) {
 								mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
 							} else {
@@ -267,11 +268,13 @@
 				mergeObjects: function(mainObject, additions) {
 					for (var key in additions) {
 						if (additions.hasOwnProperty(key)) {
-							if (typeof additions[key] === 'object') {
+							if (typeof additions[key] === 'object' &&
+								mainObject[key] !== undefined &&
+								mainObject[key] !== null) {
 								if (Array.isArray(additions[key])) {
-									mainObject[key] = this.mergeArrays(mainObject[key] || [], additions[key]);
+									mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
 								} else {
-									mainObject[key] = this.mergeObjects(mainObject[key] || {}, additions[key]);
+									mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
 								}
 							} else {
 								mainObject[key] = additions[key];
@@ -1541,7 +1544,8 @@
 			'run on clicking': 0,
 			'always run': 1,
 			'run on specified pages': 2,
-			'only show on specified pages': 3
+			'only show on specified pages': 3,
+			'disabled': 4
 		};
 
 		var launchMode = (node.value && node.value.launchMode) || 0;
@@ -1549,7 +1553,7 @@
 			window.globals.toExecuteNodes.always.push(node);
 		} else if (launchMode === launchModes['run on specified pages']) {
 			window.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
-		} else {
+		} else if (launchMode !== launchMode['disabled']) {
 			addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
 		}
 	}
@@ -2987,7 +2991,7 @@
 							val: 'launchMode',
 							type: 'number',
 							min: 0,
-							max: 3
+							max: 4
 						}
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
@@ -3970,6 +3974,561 @@
 	}
 	//#endregion
 
+	//#region Updating Scripts
+	function isNewer(newVersion, oldVersion) {
+		var newSplit = newVersion.split('.');
+		var oldSplit = oldVersion.split('.');
+		
+		var longest = (newSplit.length > oldSplit.length ? 
+			newSplit.length : oldSplit.length);
+		for (var i = 0; i < longest; i++) {
+			var newNum = ~~newSplit[i];
+			var oldNum = ~~oldSplit[i];
+			if (newNum > oldNum) {
+				return true;
+			} else if (newNum < oldNum) {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	function convertTriggerToMatch(trigger) {
+		var protocolSplit = trigger.split('://')[0];
+		if (protocolSplit.length > 1 && protocolSplit[1] !== '') {
+			var protocol = protocolSplit[0];
+			if (protocolSplit[1] === '*') {
+				return protocol + '://*/*';
+			} else {
+				var hostSplit = protocolSplit[1].split('/');
+				var host = hostSplit[0];
+				var hostRegex = /(((\*\.)?)(([^\/\*\s])+))|(\*)/;
+				if (hostSplit.length > 1) {
+					var path = hostSplit[1];
+
+					if (host.match(hostRegex)) {
+						return null;
+					} else {
+						return protocol + '://' + host + '/' + path;
+					}
+				} else {
+					if (host.match(hostRegex)) {
+						return protocol + '://' + host + '/*';
+					} else {
+						return null;
+					}
+				}
+			}
+
+		} else {
+			//Only one protocol part, meaning it's either an asterisk
+			//or protocol*
+			if (trigger !== '*') {
+				var schemes = ['http', 'https', 'file', 'ftp'];
+				for (var i = 0; i < schemes.length; i++) {
+					if (protocolSplit[0].indexOf(schemes[i]) > -1) {
+						return schemes[i] + '://*/*';
+					}
+				}
+			}
+			return '*://*/*';
+		}
+	}
+
+	function createUserscriptTriggers(metaTags) {
+		var i;
+		var url;
+		var triggers = [];
+		var includes = metaTags.include;
+		if (includes) {
+			metaTags.match = [];
+			for (i = 0; i < includes.length; i++) {
+				url = convertTriggerToMatch(includes[i]);
+				if (!url) {
+					includes.splice(i, 1);
+					i--;
+				} else {
+					includes[i] = {
+						url: url,
+						not: false
+					};
+					metaTags.match.push(url);
+				}
+			}
+			triggers = triggers.concat(includes);
+		}
+		var match = metaTags.match;
+		if (match) {
+			metaTags.match = [];
+			match.map(function (item) {
+				metaTags.match.push(item);
+				return {
+					url: item,
+					not: false
+				}
+			});
+			triggers = triggers.concat(match);
+		}
+		var exclude = metaTags.exclude;
+		if (exclude) {
+			metaTags.excludes = [];
+			for (i = 0; i < includes.length; i++) {
+				url = convertTriggerToMatch(includes[i]);
+				if (!url) {
+					includes.splice(i, 1);
+					i--;
+				} else {
+					metaTags.excludes.push(url);
+					includes[i] = {
+						url: url,
+						not: true
+					};
+				}
+			}
+			triggers = triggers.concat(exclude);
+		}
+		return triggers;
+	}
+
+	function getlastMetaTagValue(metaTags, key) {
+		return metaTags[key] && metaTags[key][metaTags[key].length - 1];
+	}
+
+	function createUserscriptTypeData(metaTags, code, node) {
+		var launchMode;
+		if (getlastMetaTagValue(metaTags, 'CRM_stylesheet') === 'true') {
+			node.type = 'stylesheet';
+			launchMode = getlastMetaTagValue(metaTags, 'CRM_launchMode') || 0;
+			launchMode = metaTags.CRM_launchMode = parseInt(launchMode, 10);
+			node.value = {
+				stylesheet: code,
+				defaultOn: (metaTags.CRM_defaultOn = getlastMetaTagValue(metaTags, 'CRM_defaultOn') || false),
+				toggle: (metaTags.CRM_toggle = getlastMetaTagValue(metaTags, 'CRM_toggle') || false),
+				launchMode: launchMode
+			}
+		} else {
+			node.type = 'script';
+
+			//Libraries
+			var libs = [];
+			if (metaTags.CRM_libraries) {
+				metaTags.CRM_libraries.forEach(function(item) {
+					try {
+						libs.push(JSON.stringify(item));
+					} catch (e) {
+					};
+				});
+			};
+			metaTags.CRM_libraries = libs;
+
+			var anonymousLibs;
+			anonymousLibs = metaTags.require;
+			if (metaTags.require) {
+				for (i = 0; i < anonymousLibs.length; i++) {
+					var skip = false;
+					for (var j = 0; j < libs.length; j++) {
+						if (libs[j].url === anonymousLibs[i]) {
+							skip = true;
+							break;
+						}
+					}
+					if (skip) {
+						continue;
+					}
+					anonymousLibs[i] = {
+						url: anonymousLibs[i],
+						name: null
+					}
+				}
+			}
+
+			anonymousLibs.forEach(function(anonymousLib) {
+				anonymousLibsHandler({
+					type: 'register',
+					name: anonymousLib.url,
+					url: anonymousLib.url,
+					scriptId: node.id
+				})
+			})
+
+			for (i = 0; i < anonymousLibs.length; i++) {
+				libs.push(anonymousLibs[i].url);
+			}
+
+			launchMode = getlastMetaTagValue(metaTags, 'CRM_launchMode') || 0;
+			launchMode = metaTags.CRM_launchMode = parseInt(launchMode, 10);
+			node.value = {
+				script: code,
+				launchMode: launchMode,
+				libraries: libs
+			};
+		}
+	}
+
+	function applyMetaTags(code, metaTags, node) {
+		var metaTagsArr = [];
+
+		var metaValue;
+		var tags = metaTags;
+		for (var metaKey in tags) {
+			if (tags.hasOwnProperty(metaKey)) {
+				metaValue = tags[metaKey];
+				var value;
+				if (metaKey === 'CRM_contentTypes') {
+					value = JSON.stringify(metaValue);
+					metaTagsArr.push(' //' + metaKey + '	' + value);
+				} else {
+					for (var i = 0; i < metaValue.length; i++) {
+						value = metaValue[i];
+						metaTagsArr.push(' //' + metaKey + '	' + value);
+					}
+				}
+			}
+		}
+
+		var scriptSplit = (node.type === 'script' ? node.value.script : node.value.stylesheet).split('\n');
+
+		var finalMetaTags;
+		var beforeMetaTags;
+		
+		var metaIndexes = getMetaIndexes(code);
+		
+		if (metaIndexes && metaIndexes.start) {
+			beforeMetaTags = scriptSplit.splice(0, metaIndexes.start);
+			scriptSplit.splice(0, (metaIndexes.end - metaIndexes.start));
+		} else {
+			beforeMetaTags = [];
+		}
+		var afterMetaTags = scriptSplit;
+
+		finalMetaTags = beforeMetaTags;
+		finalMetaTags = finalMetaTags.concat(metaTagsArr);
+		finalMetaTags = finalMetaTags.concat(afterMetaTags);
+
+		node.value[node.type] = finalMetaTags.join('\n');
+	}
+
+
+	function removeOldNode(id) {
+		var children = window.globals.crm.crmById[id].children;
+		if (children) {
+			for (var i = 0; i < children.length; i++) {
+				removeOldNode(children[i].id);
+			}
+		}
+
+		if (window.globals.background.byId[id]) {
+			window.globals.background.byId[id].worker.terminate();
+			delete window.globals.background.byId[id];
+		}
+
+		var path = window.globals.crm.crmById[id].path;
+		delete window.globals.crm.crmById[id];
+		delete window.globals.crm.crmByIdSafe[id];
+
+		var contextMenuId = eval('window.globals.crmValues.contextMenuItemTree[' + path.join('][') + ']');
+		chrome.contextMenus.remove(contextMenuId, function() {
+			chrome.runtime.lastError;
+		});
+	}
+
+	function registerNode(node, oldPath) {
+		//Update it in CRM tree
+		if (oldPath !== undefined && oldPath !== null) {
+			eval('window.globals.storages.settingsStorage.crm[' + path.join('][') + '] = node');
+		} else {
+			window.globals.storages.settingsStorage.crm.push(node);
+		}
+	}
+
+	function installUserscript(metaTags, code, downloadURL, allowedPermissions, oldNodeId) {
+		var node = {};
+		var hasOldNode = false;
+		if (oldNodeId !== undefined && oldNodeId !== null) {
+			hasOldNode = true;
+			node.id = oldNodeId;
+		} else {
+			node.id = generateItemId();
+		}
+
+		node.name = (metaTags.name = getlastMetaTagValue(metaTags, 'name') || 'name');
+		node.triggers = createUserscriptTriggers(metaTags);
+		createUserscriptTypeData(metaTags, code, node);
+		var updateUrl = getlastMetaTagValue(metaTags, 'updateURL') || getlastMetaTagValue(metaTags, 'downloadURL');
+
+		//Requested permissions
+		var permissions = [];
+		if (metaTags.grant) {
+			permissions = metaTags.grant;
+			permissions.splice(permissions.indexOf('none'), 1);
+			metaTags.grant = permissions;
+		}
+
+		//NodeInfo
+		node.nodeInfo = {
+			version: getlastMetaTagValue(metaTags, 'version') || null,
+			source: {
+				updateURL: updateUrl || downloadURL,
+				url: updateUrl || getlastMetaTagValue(metaTags, 'namespace') || downloadURL,
+				author: getlastMetaTagValue(metaTags, 'author') || null
+			},
+			isRoot: true,
+			permissions: permissions,
+			lastUpdatedAt: new Date().toLocaleDateString(),
+			installDate: new Date().toLocaleDateString()
+		};
+
+		if (hasOldNode) {
+			node.nodeInfo.installDate = (window.globals.crm.crmById[oldNodeId] &&
+				window.globals.crm.crmById[oldNodeId].nodeInfo &&
+				window.globals.crm.crmById[oldNodeId].nodeInfo.installDate) || node.nodeInfo.installDate;
+		}
+
+		//Content types
+		if (getlastMetaTagValue(metaTags, 'CRM_contentTypes')) {
+			try {
+				node.onContentTypes = JSON.parse(getlastMetaTagValue(metaTags, 'CRM_contentTypes'));
+			} catch (e) {}
+		}
+		node.onContentTypes = metaTags.CRM_contentTypes = (node.onContentTypes || [true, true, true, true, true, true]);
+
+		//Allowed permissions
+		node.permissions = allowedPermissions;
+
+		//Resources
+		if (metaTags.resource) {
+			//Register resources
+			var resources = metaTags.resource;
+			resources.forEach(function(resource) {
+				var resourceSplit = resource.split(/(\s*)/);
+				var resourceName = resourceSplit[0];
+				var resourceUrl = resourceSplit[1];
+				resourceHandler({
+					type: 'register',
+					name: resourceName,
+					url: resourceUrl,
+					scriptId: node.id
+				});
+			});
+		}
+
+		//Uploading
+
+		applyMetaTags(code, metaTags, node);
+
+		chrome.storage.local.get('requestPermissions', function(keys) {
+			var requestPermissions = keys.requestPermissions;
+			requestPermissions = 
+				(requestPermissions &&
+					requestPermissions.permissions &&
+					requestPermissions.permissions.concat(node.permissions)) ||
+				node.permissions;
+			chrome.storage.local.set({
+				requestPermissions: requestPermissions
+			}, function() {
+				chrome.runtime.openOptionsPage();
+			});
+		});
+
+		if (node.type === 'script') {
+			node = window.globals.templates.getDefaultScriptNode(node);
+		} else {
+			node = window.globals.templates.getDefaultStylesheetNode(node);
+		}
+
+		if (hasOldNode) {
+			var path = window.globals.crm.crmById[oldNodeId].path;
+			return {
+				node: node,
+				path: path,
+				oldNodeId: oldNodeId
+			}
+		} else {
+			return {
+				node: node
+			}
+		}
+
+	}
+
+	function updateCRMNode(node, allowedPermissions, downloadURL, oldNodeId) {
+		var hasOldNode = false;
+		if (oldNodeId !== undefined && oldNodeId !== null) {
+			hasOldNode = true;
+		}
+
+		var node;
+		var templates = getTemplates();
+		switch (node.type) {
+			case 'script':
+				node = templates.getDefaultScriptNode(node);
+				break;
+			case 'stylesheet':
+				node = templates.getDefaultStylesheetNode(node);
+				break;
+			case 'menu':
+				node = templates.getDefaultMenuNode(node);
+				break;
+			case 'divider':
+				node = templates.getDefaultDividerNode(node);
+				break;
+			case 'link':
+				node = templates.getDefaultLinkNode(node);
+				break;
+		}
+
+		node.nodeInfo.downloadURL = downloadURL;
+		node.permissions = allowedPermissions;
+
+		if (hasOldNode) {
+			var path = window.globals.crm.crmById[oldNodeId].path;
+			return {
+				node: node,
+				path: path,
+				oldNodeId: oldNodeId
+			}
+		} else {
+			return {
+				node: node
+			}
+		}
+	}
+
+	function updateScripts(callback) {
+		var checking = [];
+		var updatedScripts = [];
+		var oldTree = JSON.parse(JSON.stringify(window.globals.storages.settingsStorage.crm));
+
+		function onDone() {
+			updatedScripts.forEach(function(updatedScript) {
+				if (updatedScript.path) { //Has old node
+					removeOldNode(updatedScript.oldNodeId);
+					registerNode(updatedScript.node, updatedScript.path);
+				} else {
+					registerNode(updatedScript.node);
+				}
+			});
+
+			uploadChanges('settings', [{
+				key: 'crm',
+				oldValue: oldTree,
+				newValue: window.globals.storage.settingsStorage.crm
+			}]);
+		}
+
+		for (var id in window.globals.crm.crmById) {
+			if (window.globals.crm.crmById.hasOwnProperty(id)) {
+				var node = window.globals.crm.crmById[id];
+				var isRoot = node.nodeInfo && node.nodeInfo.isRoot;
+				var downloadURL = node.nodeInfo &&
+					node.nodeInfo.source &&
+					(node.nodeInfo.source.updateURL || node.nodeInfo.source.downloadURL);
+				if (downloadURL && isRoot) {
+					var checkingId = checking.length;
+					checking[checkingId] = true;
+					if (new URL(downloadURL).host === undefined &&
+						(node.type === 'script' || node.type === 'stylesheet' || 
+						node.type === 'menu')) { //TODO when website launches
+						try {
+							convertFileToDataURI(
+								'example.com/isUpdated/' +
+								downloadURL.split('/').pop().split('.user.js')[0] + 
+								'/' + node.nodeInfo.version,
+								function(dataURI, dataString) {
+									var resultParsed = JSON.parse(dataString);
+									if (resultParsed.updated) {
+										if (!compareArray(node.nodeInfo.permissions, resultParsed.metaTags.grant) &&
+											!(resultParsed.metaTags.grant.length === 0 && resultParsed.metaTags.grant[0] === 'none')) {
+											//New permissions were added, notify user
+											chrome.storage.local.get('addedPermissions', function(data) {
+												var addedPermissions = data.addedPermissions || [];
+												addedPermissions.push({
+													node: node.id,
+													permissions: metaTags.grant.filter(function(newPermission) {
+														return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+													})
+												});
+												chrome.storage.local.set({
+													addedPermissions: addedPermissions
+												});
+												chrome.runtime.openOptionsPage();
+											});
+										}
+
+										updatedScripts.push(updateCRMNode(resultParsed.node,
+											node.nodeInfo.permissions,
+											downloadURL, node.id));
+									}	 
+									checking[checkingId] = false;
+									if (checking.filter(function(c) { return c; }).length === 0) {
+										onDone();
+									}
+								}, function() {
+									checking[checkingId] = false;
+									if (checking.filter(function(c) { return c; }).length === 0) {
+										onDone();
+									}
+								});
+						} catch (e) {
+							console.log('Tried to update script ', script.id, ' ', script.name,
+										' but could not reach download URL');
+						}
+					} else {
+						if (node.type === 'script' || node.type === 'stylesheet') {
+							//Do a request to get that script from its download URL
+							if (downloadURL) {
+								try {
+									convertFileToDataURI(downloadURL, function(dataURI, dataString) {
+										//Get the meta tags
+										var metaTags = getMetaTags(dataString);
+										if (isNewer(metaTags.version[0], node.nodeInfo.version)) {
+											if (!compareArray(node.nodeInfo.permissions, metaTags.grant) &&
+												!(metaTags.grant.length === 0 && metaTags.grant[0] === 'none')) {
+												//New permissions were added, notify user
+												chrome.storage.local.get('addedPermissions', function(data) {
+													var addedPermissions = data.addedPermissions || [];
+													addedPermissions.push({
+														node: node.id,
+														permissions: metaTags.grant.filter(function(newPermission) {
+															return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+														})
+													});
+													chrome.storage.local.set({
+														addedPermissions: addedPermissions
+													});
+													chrome.runtime.openOptionsPage();
+												});
+											}
+
+											updatedScripts.push(installUserscript(metaTags, 
+												dataString,
+												node.permissions,
+												downloadURL));
+										}
+
+										checking[checkingId] = false;
+										if (checking.filter(function(c) { return c; }).length === 0) {
+											onDone();
+										}
+									}, function() {
+										checking[checkingId] = false;
+										if (checking.filter(function(c) { return c; }).length === 0) {
+											onDone();
+										}
+									});
+								} catch (e) {
+									console.log('Tried to update script ', script.id, ' ', script.name,
+										' but could not reach download URL');
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	//#endregion
+
 	//#region GM Resources
 	function matchesHashes(hashes, data) {
 		var lastMatchingHash = null;
@@ -4013,8 +4572,7 @@
 		return false;
 	}
 
-	function convertFileToDataURI(url, callback) {
-		console.log('this xhr is ran');
+	function convertFileToDataURI(url, callback, onError) {
 		var xhr = new window.XMLHttpRequest();
 		xhr.responseType = 'blob';
 		xhr.onload = function () {
@@ -4024,6 +4582,9 @@
 			}
 			reader.readAsDataURL(xhr.response);
 		};
+		if (onError) {
+			xhr.onerror = onError;
+		}
 		xhr.open('GET', url);
 		xhr.send();
 	}
@@ -4501,6 +5062,17 @@
 				break;
 			case 'styleInstall':
 				installStylesheet(message.data);
+				break;
+			case 'updateScripts':
+				updateScripts(function(updated) {
+					response && response(updated);	
+				});
+				break;
+			case 'installUserScript':
+				installUserscript(message.data.metaTags,
+					message.data.script,
+					message.data.downloadURL,
+					message.data.allowedPermissions);
 				break;
 		}
 	}
@@ -5432,6 +6004,7 @@
 				//Checks if all values are still correct
 				checkIfResourcesAreUsed();
 				updateResourceValues();
+				updateScripts();
 
 				window.getID = function(name) {
 					name = name.toLocaleLowerCase();

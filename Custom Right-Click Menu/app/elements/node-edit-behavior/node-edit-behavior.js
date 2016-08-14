@@ -262,12 +262,12 @@
 		var _this = this;
 		var newStates = {
 			showContentTypeChooser: (state === 0 || state === 3),
-			showTriggers: (state > 1),
+			showTriggers: (state > 1 && state !== 4),
 			showInsteadOfExecute: (state === 3)
 		};
 		var oldStates = {
 			showContentTypeChooser: (prevState === 0 || prevState === 3),
-			showTriggers: (prevState > 1),
+			showTriggers: (prevState > 1 && prevState !== 4),
 			showInsteadOfExecute: (prevState === 3)
 		};
 
@@ -366,8 +366,8 @@
 	},
 
 	initDropdown: function () {
-		this.showTriggers = (this.item.value.launchMode > 1);
-		this.showContentTypeChooser = (this.item.value.launchMode === 0 || 3);
+		this.showTriggers = (this.item.value.launchMode > 1 && this.item.value.launchMode !== 4);
+		this.showContentTypeChooser = (this.item.value.launchMode === 0 || this.item.value.launchMode === 3);
 		if (this.showTriggers) {
 			this.$.executionTriggersContainer.style.display = 'block';
 			this.$.executionTriggersContainer.style.marginLeft = 0;

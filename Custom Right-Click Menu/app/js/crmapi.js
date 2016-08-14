@@ -1069,6 +1069,7 @@
 		 *		1 = always run
 		 *		2 = run on specified pages
 		 *		3 = only show on specified pages
+		 * 		4 = disabled
 		 * @property {string} value.script - The script for this node
 		 * @property {string} value.backgroundScript - The backgroundscript for this node
 		 * @property {Object} value.metaTags - The metaTags for the script, keys are the metaTags, values are
@@ -1090,6 +1091,7 @@
 		 *		1 = always run
 		 *		2 = run on specified pages
 		 *		3 = only show on specified pages
+		 * 		4 = disabled
 		 * @property {string} value.stylesheet - The script that is ran itself
 		 * @property {boolean} value.toggle - Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
 		 * @property {boolean} value.defaultOn - Whether the stylesheet is on by default or off, only used if toggle is true
@@ -1257,6 +1259,7 @@
 		 *		1 = always run
 		 *		2 = run on specified pages
 		 *		3 = only show on specified pages
+		 * 		4 = disabled
 		 * @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run, not required
 		 * @param {string} [options.scriptData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 		 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
@@ -1270,7 +1273,8 @@
 		 *		0 = run on clicking
 		 *		1 = always run
 		 *		2 = run on specified pages
-		 *		3 = only show on specified pages
+		 *		3 = only show on specified 
+		 * 		4 = disabled
 		 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 		 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
 		 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
@@ -1508,6 +1512,7 @@
 		 *		1 = always run
 		 *		2 = run on specified pages
 		 *		3 = only show on specified pages
+		 * 		4 = disabled
 		 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 		 */
 		this.crm.setLaunchMode = function (nodeId, launchMode, callback) {

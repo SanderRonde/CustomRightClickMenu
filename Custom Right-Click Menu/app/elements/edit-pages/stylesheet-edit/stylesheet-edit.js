@@ -889,7 +889,7 @@
 		this._init();
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
-		this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'Export As';
+		this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 		this.initDropdown();
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');

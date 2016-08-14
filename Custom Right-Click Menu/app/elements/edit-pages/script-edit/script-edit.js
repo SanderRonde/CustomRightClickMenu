@@ -1856,7 +1856,7 @@
 			this._init();
 			this.$.dropdownMenu.init();
 			this.$.exportMenu.init();
-			this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'Export As';
+			this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 			this.initDropdown();
 			this.selectorStateChange(0, this.newSettings.launchMode)
 			this.addDialogToMetaTagUpdateListeners();

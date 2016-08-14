@@ -637,6 +637,22 @@
 						</div>
 					</paper-dialog>
 				</center-element>
+				<center-element fullscreenoverlay id="addedPermissionsCenterer">
+					<paper-dialog with-backdrop id="addedPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<br>
+						<p>
+							Some node(s) have been updated and have added some new permissions.
+						</p>
+						<template is="dom-repeat"></template>
+						<div class="buttons">
+							<paper-button notshown$="[[isVersionUpdateTabX(versionUpdateTab, 0)]]" id="versionUpdatePrevTab" on-tap="goPrevVersionUpdateTab">previous</paper-button>
+							<paper-button id="versionUpdateNextTab" on-tap="goNextVersionUpdateTab">
+								<span hidden$="[[!isVersionUpdateTabX(versionUpdateTab, 4)]]">close</span>
+								<span hidden$="[[isVersionUpdateTabX(versionUpdateTab, 4)]]">next</span>
+							</paper-button>
+						</div>
+					</paper-dialog>
+				</center-element>
 				<paper-search-website-dialog id="paperSearchWebsiteDialog"></paper-search-website-dialog>
 				<use-external-editor id="useExternalEditor"></use-external-editor>
 				<div id="dummy"></div>
