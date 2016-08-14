@@ -46,7 +46,8 @@
 
 	"web_accessible_resources": [
 		"js/jquery-2.0.3.min.js",
-		"js/crmapi.js"
+		"js/crmapi.js",
+		"html/install.html"
 	],
 
 	"optional_permissions": [

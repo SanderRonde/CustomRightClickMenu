@@ -18,3 +18,12 @@ chrome.runtime.sendMessage({
 		matched = true;
 	}
 });
+
+var installURL = chrome.runtime.getURL('html/install.html');
+document.body.addEventListener('mousedown', function(e) {
+	var target = e.target;
+	if (target && target.href && target.href.indexOf(installURL) === -1 && target.href.match(/.+user\.js$/)) {
+		target.href = installURL + '#' + target.href;
+		target.target = '_blank';
+	}
+});

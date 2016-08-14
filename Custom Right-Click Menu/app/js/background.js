@@ -228,8 +228,6 @@
 		 */
 		scriptInstallListeners: {},
 		constants: {
-			//The url to the install page
-			installUrl: chrome.runtime.getURL('html/install.html'),
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
 			//#region Templates
@@ -4815,22 +4813,6 @@
 				break;
 		}
 	}
-	//#endregion
-
-	//#region Install Page
-	function handleUserJsRequest(details) {
-		var url = details.url;
-		if (url.indexOf('noInstall') === url.length - 5) {
-			return {};
-		}
-		return { redirectUrl: window.globals.constants.installUrl + '#' + url };
-	}
-
-	chrome.webRequest.onBeforeRequest.addListener(handleUserJsRequest,
-		{
-			urls: ['*://*/*.user.js']
-		},
-		['blocking']);
 	//#endregion
 
 	//#region Stylesheet Installation
