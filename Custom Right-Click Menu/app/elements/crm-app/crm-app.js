@@ -2453,8 +2453,7 @@
 
 							_this.bindListeners();
 							delete storageLocal.nodeStorage;
-							if (storageLocal.requestPermissions && storageLocal.requestPermissions
-								.length > 0) {
+							if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
 								_this.requestPermissions(storageLocal.requestPermissions);
 							}
 							if (storageLocal.editing) {

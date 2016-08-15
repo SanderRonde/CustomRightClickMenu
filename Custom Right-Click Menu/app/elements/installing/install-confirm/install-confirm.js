@@ -285,6 +285,8 @@
 					allowedPermissions: allowedPermissions 
 				}
 			});
+			this.$.installButtons.classList.add('installed');
+			this.$.scriptInstalled.classList.add('visible');
 		},
 
 		setMetaTag: function (name, values) {

@@ -3992,9 +3992,9 @@
 	}
 
 	function convertTriggerToMatch(trigger) {
-		var protocolSplit = trigger.split('://')[0];
-		if (protocolSplit.length > 1 && protocolSplit[1] !== '') {
-			var protocol = protocolSplit[0];
+		var protocolSplit = trigger.split('://');
+		var protocol = protocolSplit[0];
+		if (protocol.length > 1) {
 			if (protocolSplit[1] === '*') {
 				return protocol + '://*/*';
 			} else {
@@ -4023,10 +4023,8 @@
 			//or protocol*
 			if (trigger !== '*') {
 				var schemes = ['http', 'https', 'file', 'ftp'];
-				for (var i = 0; i < schemes.length; i++) {
-					if (protocolSplit[0].indexOf(schemes[i]) > -1) {
-						return schemes[i] + '://*/*';
-					}
+				if (schemes.indexOf(protocol) > -1) {
+					return schemes[schemes.indexOf(protocol)] + '://*/*';
 				}
 			}
 			return '*://*/*';
@@ -4120,7 +4118,7 @@
 			metaTags.CRM_libraries = libs;
 
 			var anonymousLibs;
-			anonymousLibs = metaTags.require;
+			anonymousLibs = metaTags.require || [];
 			if (metaTags.require) {
 				for (i = 0; i < anonymousLibs.length; i++) {
 					var skip = false;
@@ -4149,7 +4147,7 @@
 				})
 			})
 
-			for (i = 0; i < anonymousLibs.length; i++) {
+			for (var i = 0; i < anonymousLibs.length; i++) {
 				libs.push(anonymousLibs[i].url);
 			}
 
@@ -4240,6 +4238,7 @@
 	}
 
 	function installUserscript(metaTags, code, downloadURL, allowedPermissions, oldNodeId) {
+		debugger;
 		var node = {};
 		var hasOldNode = false;
 		if (oldNodeId !== undefined && oldNodeId !== null) {
@@ -4315,23 +4314,26 @@
 		applyMetaTags(code, metaTags, node);
 
 		chrome.storage.local.get('requestPermissions', function(keys) {
-			var requestPermissions = keys.requestPermissions;
-			requestPermissions = 
-				(requestPermissions &&
-					requestPermissions.permissions &&
-					requestPermissions.permissions.concat(node.permissions)) ||
-				node.permissions;
-			chrome.storage.local.set({
-				requestPermissions: requestPermissions
-			}, function() {
-				chrome.runtime.openOptionsPage();
+			chrome.permissions.getAll(function(permissions) {
+				var allowedPermissions = permissions.permissions;
+				var requestPermissions = keys.requestPermissions || [];
+				requestPermissions = requestPermissions.concat(node.permissions.filter(function(nodePermission) {
+					return allowedPermissions.indexOf(nodePermission) === -1;
+				}));
+				chrome.storage.local.set({
+					requestPermissions: requestPermissions
+				}, function() {
+					if (requestPermissions.length > 0) {
+						chrome.runtime.openOptionsPage();
+					}
+				});
 			});
 		});
 
 		if (node.type === 'script') {
-			node = window.globals.templates.getDefaultScriptNode(node);
+			node = window.globals.constants.templates.getDefaultScriptNode(node);
 		} else {
-			node = window.globals.templates.getDefaultStylesheetNode(node);
+			node = window.globals.constants.templates.getDefaultStylesheetNode(node);
 		}
 
 		if (hasOldNode) {
@@ -5976,6 +5978,9 @@
 				createBackgroundPages();
 				addResourceWebRequestListener();
 
+				chrome.storage.local.get(function(storageLocal) {
+					window.globals.latestId = storageLocal.latestId || 0;
+				});
 				chrome.storage.onChanged.addListener(function (changes, areaName) {
 					if (areaName === 'local' && changes.latestId) {
 						var highest = changes.latestId.newValue > changes.latestId.oldValue ? changes.latestId.newValue : changes.latestId.oldvalue;

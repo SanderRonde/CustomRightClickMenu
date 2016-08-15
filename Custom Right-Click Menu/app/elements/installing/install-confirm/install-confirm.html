@@ -3,6 +3,18 @@
 	<link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html"/>
 	<template>
 		<link rel="stylesheet" href="install-confirm.css"/>
+		<div id="scriptInstalled">
+			<center-element width="100vw" height="calc(100vh - 64px)">
+				<paper-material elevation="2" id="scriptInstalledBackground">
+					<div id="scriptInstalledCenterCont">
+						<div id="scriptInstalledCheckmarkCont">
+							<div id="scriptInstalledCheckmark"></div>
+						</div>
+						<div id="scriptInstalledText">Installed!</div>
+					</div>
+				</paper-material>
+			</center-element>
+		</div>
 		<div id="scriptInfo">
 			<div id="scriptInfoMeta">
 				<div class="infoData" id="descriptionInfo">
@@ -44,6 +56,7 @@
 		<div id="installButtons">
 			<paper-button on-tap="completeInstall" class="installButton" raised id="installButton">install</paper-button>
 			<paper-button on-tap="cancelInstall" class="installButton" raised id="cancelButton">cancel</paper-button>
+			<paper-button on-tap="cancelInstall" class="installButton" raised id="closePage">close</paper-button>
 		</div>
 		<script src="../../../js/libraries/codemirror/codemirror.js"></script>
 		<script src="../../../js/libraries/diff_match_patch.js"></script>
