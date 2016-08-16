@@ -29,7 +29,8 @@ declare namespace CRMAPI {
 		isRoot?: boolean; //False
 		permissions: Array<CRMPermission>;
 		source: {
-			url: string;
+			url?: string;
+			author?: string;
 		}
 	}
 
@@ -39,6 +40,13 @@ declare namespace CRMAPI {
 	type CRMContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
 
 	interface CRMTrigger {
+		/**
+		 * 	The URL of the site on which to run,
+		 * 	if launchMode is 2 aka run on specified pages can be any of these
+		 * 	https://wiki.greasespot.net/Include_and_exclude_rules
+		 * 	otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
+		 * 	https://developer.chrome.com/extensions/match_patterns
+		 */
 		url: string;
 		/**
 		 * If true, does NOT run on given site
@@ -61,6 +69,7 @@ declare namespace CRMAPI {
 		 * 1 = always run
 		 * 2 = run on specified pages
 		 * 3 = only show on specified pages
+		 * 4 = disabled
 		 *
 		 * @type {number}
 		 */
@@ -79,6 +88,7 @@ declare namespace CRMAPI {
 		 * 1 = always run
 		 * 2 = run on specified pages
 		 * 3 = only show on specified pages
+		 * 4 = disabled
 		 *
 		 * @type {number}
 		 */
@@ -670,7 +680,11 @@ declare namespace CRMAPI {
 			*		link, menu and divider)
 			* @param {Object[]} [options.triggers] - An array of objects telling the node to show on given triggers. (only applies to link,
 			*		 menu and divider)
-			* @param {string} [options.triggers.url ] - The URL to show the node on
+			* @param {string} [options.triggers.url ] - The URL of the site on which to run,
+			* 		if launchMode is 2 aka run on specified pages can be any of these
+			* 		https://wiki.greasespot.net/Include_and_exclude_rules
+			* 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
+			* 		https://developer.chrome.com/extensions/match_patterns
 			* @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
 			*		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
 			*		newTab boolean being whether or not it opens in a new tab.
@@ -683,8 +697,7 @@ declare namespace CRMAPI {
 			*		1 = always run
 			*		2 = run on specified pages
 			*		3 = only show on specified pages
-			* @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run, not required
-			* @param {string} [options.scriptData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
+			* 		4 = disabled
 			* @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
 			*		registered throws an error, so do that first, value not required
 			* @param {string} [options.scriptData.libraries.name] - The name of the library
@@ -697,11 +710,10 @@ declare namespace CRMAPI {
 			*		1 = always run
 			*		2 = run on specified pages
 			*		3 = only show on specified pages
+			* 		4 = disabled
 			* @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 			* @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
 			* @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
-			* @param {Object[]} [options.stylesheetData.triggers] - A trigger for the stylesheet to run, not required
-			* @param {string} [options.stylesheetData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 			* @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 			*/
 			createNode:(options: {
@@ -710,7 +722,8 @@ declare namespace CRMAPI {
 							type?: string;
 							usesTriggers?: boolean;
 							triggers?: {
-								url: string;
+								url: string,
+								not: boolean
 							}
 							linkData: LinkVal;
 							scriptData: ScriptVal;
@@ -803,7 +816,11 @@ declare namespace CRMAPI {
 			 * @permission crmWrite
 			 * @param {number} nodeId - The node of which to get the triggers
 			 * @param {Object[]} triggers - The triggers that launch this node, automatically turns triggers on
-			 * @param {string} triggers.url - The url of the trigger
+			 * @param {string} triggers.url - The URL of the site on which to run,
+			 * 		if launchMode is 2 aka run on specified pages can be any of these
+			 * 		https://wiki.greasespot.net/Include_and_exclude_rules
+			 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
+			 * 		https://developer.chrome.com/extensions/match_patterns
 			 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 			 */
@@ -878,6 +895,7 @@ declare namespace CRMAPI {
 			 *		1 = always run
 			 *		2 = run on specified pages
 			 *		3 = only show on specified pages
+			 * 		4 = disabled
 			 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 			 */
 			setLaunchMode: (nodeId: number, launchMode: number, callback: (node: SafeCRMNode) => void) => void,

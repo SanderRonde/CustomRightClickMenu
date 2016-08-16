@@ -1031,6 +1031,7 @@
 		 * @property {string|Object} nodeInfo.source - 'Local' if the node is non-remotely or created here,
 		 *		object if it IS remotely installed
 		 * @property {string} nodeInfo.source.url - The url that the node was installed from
+		 * @property {string} nodeInfo.source.author - The author of the node
 		 * @property {Number[]} path - The path to the node from the tree's root
 		 * @property {boolean[]} onContentTypes - The content types on which the node is visible
 		 *		there's 6 slots, for each slot true indicates it's shown and false indicates it's hidden
@@ -1038,8 +1039,11 @@
 		 *		respectively
 		 * @property {string[]} permissions - The permissions required by this script
 		 * @property {Object[]} triggers - The triggers for which to run this node
-		 * @property {string} triggers.url - The URL of the site on which to run, according to the chrome match patterns
-		 *		found at https://developer.chrome.com/extensions/match_patterns
+		 * @property {string} triggers.url - The URL of the site on which to run,
+		 * 		if launchMode is 2 aka run on specified pages can be any of these
+		 * 		https://wiki.greasespot.net/Include_and_exclude_rules
+		 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
+		 * 		https://developer.chrome.com/extensions/match_patterns
 		 * @property {boolean} triggers.not - If true does NOT run on given site
 		 * @property {CrmAPIInit~linkVal} linkVal - The value of the node if it were to switch to type link
 		 * @property {CrmAPIInit~scriptVal} scriptVal - The value of the node if it were to switch to type script
@@ -1246,7 +1250,11 @@
 		 *		link, menu and divider)
 		 * @param {Object[]} [options.triggers] - An array of objects telling the node to show on given triggers. (only applies to link,
 		 *		 menu and divider)
-		 * @param {string} [options.triggers.url ] - The URL to show the node on
+		 * @param {string} [options.triggers.url ] - The URL of the site on which to run,
+		 * 		if launchMode is 2 aka run on specified pages can be any of these
+		 * 		https://wiki.greasespot.net/Include_and_exclude_rules
+		 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
+		 * 		https://developer.chrome.com/extensions/match_patterns
 		 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
 		 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
 		 *		newTab boolean being whether or not it opens in a new tab.
@@ -1260,8 +1268,6 @@
 		 *		2 = run on specified pages
 		 *		3 = only show on specified pages
 		 * 		4 = disabled
-		 * @param {Object[]} [options.scriptData.triggers] - A trigger for the script to run, not required
-		 * @param {string} [options.scriptData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 		 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
 		 *		registered throws an error, so do that first, value not required
 		 * @param {string} [options.scriptData.libraries.name] - The name of the library
@@ -1278,8 +1284,6 @@
 		 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 		 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
 		 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
-		 * @param {Object[]} [options.stylesheetData.triggers] - A trigger for the stylesheet to run, not required
-		 * @param {string} [options.stylesheetData.triggers.url] - The URL of the site on which to run, regex is available but wrap it in parentheses
 		 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 		 */
 		this.crm.createNode = function (options, callback) {
@@ -1407,7 +1411,11 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to get the triggers
 		 * @param {Object[]} triggers - The triggers that launch this node, automatically turns triggers on
-		 * @param {string} triggers.url - The url of the trigger
+		 * @param {string} triggers.url - The URL of the site on which to run,
+		 * 		if launchMode is 2 aka run on specified pages can be any of these
+		 * 		https://wiki.greasespot.net/Include_and_exclude_rules
+		 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
+		 * 		https://developer.chrome.com/extensions/match_patterns
 		 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 		 */
