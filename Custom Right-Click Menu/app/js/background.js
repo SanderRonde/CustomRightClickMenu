@@ -979,9 +979,9 @@
 				if (node.triggers) {
 					for (i = 0; i < node.triggers.length; i++) {
 						if (node.triggers[i].not) {
-							excludes.push(node.triggers[i]);
+							excludes.push(node.triggers[i].url);
 						} else {
-							includes.push(node.triggers[i]);
+							includes.push(node.triggers[i].url);
 						}
 					}
 				}
@@ -1177,56 +1177,18 @@
 			var not = matchPatterns[i].not;
 			var matchPattern = matchPatterns[i].url;
 
-
-			//Split it
-			var matchHost;
-			var urlHost;
-			var matchPath;
-			var urlPath;
-
-			try {
-				var matchPatternSplit = matchPattern.split('://');
-				var matchScheme = matchPatternSplit[0];
-
-				if (matchPatternSplit[1].indexOf('/') === -1) {
-					matchHost = matchPatternSplit[1];
-					matchPath = '/';
-				} else {
-					matchPatternSplit = matchPatternSplit[1].split('/');
-					matchHost = matchPatternSplit.splice(0, 1)[0];
-					matchPath = matchPatternSplit.join('/');
-				}
-
-				var urlPatternSplit = url.split('://');
-				var urlScheme = urlPatternSplit[0];
-				if (urlPatternSplit[1].indexOf('/') === -1) {
-					urlHost = urlPatternSplit[1];
-					urlPath = '/';
-				} else {
-					urlPatternSplit = urlPatternSplit[1].split('/');
-					urlHost = urlPatternSplit.splice(0, 1);
-					urlPath = urlPatternSplit.join('/');
-				}
-
-				if (matchScheme !== '*' && matchScheme !== urlScheme) {
-					return false;
-				}
-
-				matchHost = new RegExp(escapeRegExp(matchHost));
-				if (!matchHost.test(urlHost)) {
-					return false;
-				}
-
-				matchPath = new RegExp(escapeRegExp(matchPath));
-				if (matchPath.test(urlPath)) {
+			if (matchPattern.indexOf('/') === 0 &&
+				matchPattern.split('').reverse().join('').indexOf('/') === 0) {
+				//It's regular expression
+				if (new RegExp(matchPath.slice(1, matchPattern.length - 1)).test(url)) {
 					if (not) {
 						return false;
 					} else {
 						matches = true;
 					}
 				}
-			} catch (e) {
-				if (new RegExp('(.+)' + matchScheme.replace(/\*/g, '(.+)') + '(.+)').test(url)) {
+			} else {
+				if (new RegExp('^(.+)' + matchPattern.replace(/\*/g, '(.+)') + '(.+)$').test(url)) {
 					if (not) {
 						return false;
 					} else {
@@ -1462,9 +1424,9 @@
 	function addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder) {
 		//On by default
 		if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
-			if (launchMode === 0) { //Run on clicking
+			if (launchMode === 0 || launchMode === 1) { //Run on clicking
 				window.globals.toExecuteNodes.always.push(node);
-			} else {
+			} else if (launchMode === 2 || launchMode === 3) {
 				window.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
 			}
 		}
@@ -1798,9 +1760,9 @@
 			var includes = [];
 			for (var i = 0; i < node.triggers.length; i++) {
 				if (node.triggers[i].not) {
-					excludes.push(node.triggers[i]);
+					excludes.push(node.triggers[i].url);
 				} else {
-					includes.push(node.triggers[i]);
+					includes.push(node.triggers[i].url);
 				}
 			}
 
@@ -2755,16 +2717,18 @@
 							updateCrm();
 							var matchPatterns = [];
 							window.globals.crmValues.hideNodesOnPagesData[node.id] = [];
-							for (var i = 0; i < node.triggers.length; i++) {
-								if (!triggerMatchesScheme(node.triggers[i].url)) {
-									_this.respondError('Triggers don\'t match URL scheme');
-									return false;
-								}
-								var preparedUrl = prepareTrigger(node.triggers[i].url);
-								if (node.triggers.not) {
-									window.globals.crmValues.hideNodesOnPagesData[node.id].push(preparedUrl);
-								} else {
-									matchPatterns.push(preparedUrl);
+							if (node.launchMode !== 3) {
+								for (var i = 0; i < node.triggers.length; i++) {
+									if (!triggerMatchesScheme(node.triggers[i].url)) {
+										_this.respondError('Triggers don\'t match URL scheme');
+										return false;
+									}
+									node.triggers[i].url = prepareTrigger(node.triggers[i].url);
+									if (node.triggers[i].not) {
+										window.globals.crmValues.hideNodesOnPagesData[node.id].push(node.triggers[i].url);
+									} else {
+										matchPatterns.push(node.triggers[i].url);
+									}
 								}
 							}
 							chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
@@ -4037,51 +4001,36 @@
 		var triggers = [];
 		var includes = metaTags.include;
 		if (includes) {
-			metaTags.match = [];
-			for (i = 0; i < includes.length; i++) {
-				url = convertTriggerToMatch(includes[i]);
-				if (!url) {
-					includes.splice(i, 1);
-					i--;
-				} else {
-					includes[i] = {
-						url: url,
-						not: false
-					};
-					metaTags.match.push(url);
-				}
-			}
-			triggers = triggers.concat(includes);
-		}
-		var match = metaTags.match;
-		if (match) {
-			metaTags.match = [];
-			match.map(function (item) {
-				metaTags.match.push(item);
+			triggers = triggers.concat(includes.map(function(include) {
 				return {
-					url: item,
+					url: include,
 					not: false
 				}
-			});
-			triggers = triggers.concat(match);
+			}).filter(function(include) {
+				return !!include.url;
+			}));
 		}
-		var exclude = metaTags.exclude;
-		if (exclude) {
-			metaTags.excludes = [];
-			for (i = 0; i < includes.length; i++) {
-				url = convertTriggerToMatch(includes[i]);
-				if (!url) {
-					includes.splice(i, 1);
-					i--;
-				} else {
-					metaTags.excludes.push(url);
-					includes[i] = {
-						url: url,
-						not: true
-					};
+		var matches = metaTags.match;
+		if (matches) {
+			triggers = triggers.concat(matches.map(function(match) {
+				return {
+					url: match,
+					not: false
 				}
-			}
-			triggers = triggers.concat(exclude);
+			}).filter(function(match) {
+				return !!match.url;
+			}));
+		}
+		var excludes = metaTags.exclude;
+		if (excludes) {
+			triggers = triggers.concat(excludes.map(function(exclude) {
+				return {
+					url: exclude,
+					not: false
+				}
+			}).filter(function(exclude) {
+				return !!exclude.url;
+			}));
 		}
 		return triggers;
 	}
@@ -4092,7 +4041,7 @@
 
 	function createUserscriptTypeData(metaTags, code, node) {
 		var launchMode;
-		if (getlastMetaTagValue(metaTags, 'CRM_stylesheet') === 'true') {
+		if (getlastMetaTagValue(metaTags, 'CRM_stylesheet')) {
 			node.type = 'stylesheet';
 			launchMode = getlastMetaTagValue(metaTags, 'CRM_launchMode') || 0;
 			launchMode = metaTags.CRM_launchMode = parseInt(launchMode, 10);
@@ -4172,11 +4121,11 @@
 				var value;
 				if (metaKey === 'CRM_contentTypes') {
 					value = JSON.stringify(metaValue);
-					metaTagsArr.push(' //' + metaKey + '	' + value);
+					metaTagsArr.push('// @' + metaKey + '	' + value);
 				} else {
 					for (var i = 0; i < metaValue.length; i++) {
 						value = metaValue[i];
-						metaTagsArr.push(' //' + metaKey + '	' + value);
+						metaTagsArr.push('// @' + metaKey + '	' + value);
 					}
 				}
 			}
@@ -4189,9 +4138,9 @@
 		
 		var metaIndexes = getMetaIndexes(code);
 		
-		if (metaIndexes && metaIndexes.start) {
-			beforeMetaTags = scriptSplit.splice(0, metaIndexes.start);
-			scriptSplit.splice(0, (metaIndexes.end - metaIndexes.start));
+		if (metaIndexes && metaIndexes.start !== undefined) {
+			beforeMetaTags = scriptSplit.splice(0, metaIndexes.start + 1);
+			scriptSplit.splice(metaIndexes.start, (metaIndexes.end - metaIndexes.start) - 1);
 		} else {
 			beforeMetaTags = [];
 		}
@@ -4238,7 +4187,6 @@
 	}
 
 	function installUserscript(metaTags, code, downloadURL, allowedPermissions, oldNodeId) {
-		debugger;
 		var node = {};
 		var hasOldNode = false;
 		if (oldNodeId !== undefined && oldNodeId !== null) {
@@ -4248,16 +4196,17 @@
 			node.id = generateItemId();
 		}
 
-		node.name = (metaTags.name = getlastMetaTagValue(metaTags, 'name') || 'name');
+		node.name = (metaTags.name = [getlastMetaTagValue(metaTags, 'name') || 'name'])[0];
 		node.triggers = createUserscriptTriggers(metaTags);
 		createUserscriptTypeData(metaTags, code, node);
-		var updateUrl = getlastMetaTagValue(metaTags, 'updateURL') || getlastMetaTagValue(metaTags, 'downloadURL');
+		var updateUrl = getlastMetaTagValue(metaTags, 'updateURL') ||
+			getlastMetaTagValue(metaTags, 'downloadURL') || downloadURL;
 
 		//Requested permissions
 		var permissions = [];
 		if (metaTags.grant) {
 			permissions = metaTags.grant;
-			permissions.splice(permissions.indexOf('none'), 1);
+			permissions = permissions.splice(permissions.indexOf('none'), 1);
 			metaTags.grant = permissions;
 		}
 
@@ -4412,7 +4361,7 @@
 			uploadChanges('settings', [{
 				key: 'crm',
 				oldValue: oldTree,
-				newValue: window.globals.storage.settingsStorage.crm
+				newValue: window.globals.storages.settingsStorage.crm
 			}]);
 		}
 
@@ -4576,11 +4525,25 @@
 		var xhr = new window.XMLHttpRequest();
 		xhr.responseType = 'blob';
 		xhr.onload = function () {
-			var reader = new FileReader();
-			reader.onloadend = function () {
-				callback(reader.result, xhr.responseText);
+			var readerResults = [null, null]; 
+
+			var blobReader = new FileReader();
+			blobReader.onloadend = function () {
+				readerResults[0] = blobReader.result;
+				if (readerResults[1]) {
+					callback(readerResults[0], readerResults[1]);
+				}
 			}
-			reader.readAsDataURL(xhr.response);
+			blobReader.readAsDataURL(xhr.response);
+			
+			var textReader = new FileReader();
+			textReader.onloadend = function () {
+				readerResults[1] = textReader.result;
+				if (readerResults[0]) {
+					callback(readerResults[0], readerResults[1]);
+				}
+			}
+			textReader.readAsText(xhr.response);
 		};
 		if (onError) {
 			xhr.onerror = onError;
@@ -5053,10 +5016,24 @@
 				});
 				break;
 			case 'installUserScript':
-				installUserscript(message.data.metaTags,
+				var oldTree = JSON.parse(JSON.stringify(window.globals.storages.settingsStorage.crm));
+				var newScript = installUserscript(message.data.metaTags,
 					message.data.script,
 					message.data.downloadURL,
 					message.data.allowedPermissions);
+
+				if (newScript.path) { //Has old node
+					removeOldNode(newScript.oldNodeId);
+					registerNode(newScript.node, newScript.path);
+				} else {
+					registerNode(newScript.node);
+				}
+
+				uploadChanges('settings', [{
+					key: 'crm',
+					oldValue: oldTree,
+					newValue: window.globals.storages.settingsStorage.crm
+				}]);
 				break;
 		}
 	}
