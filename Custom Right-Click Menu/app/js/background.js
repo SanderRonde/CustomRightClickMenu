@@ -690,7 +690,7 @@
 		var currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
 		chrome.tabs.get(currentTabId, function (tab) {
 			if (chrome.runtime.lastError) {
-				console.log(chrome.runtime.lastError);
+				console.log(chrome.runtime.lastError.message);
 				return;
 			}
 
@@ -1188,7 +1188,7 @@
 					}
 				}
 			} else {
-				if (new RegExp('^(.+)' + matchPattern.replace(/\*/g, '(.+)') + '(.+)$').test(url)) {
+				if (new RegExp('^' + matchPattern.replace(/\*/g, '(.+)') + '$').test(url)) {
 					if (not) {
 						return false;
 					} else {
@@ -1361,38 +1361,36 @@
 	}
 
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
-		if (updatedInfo.status === 'loading' && updatedInfo.url) {
-			//It's loading
+		if (updatedInfo.status === 'complete') {
+			//It's done loading
 			chrome.tabs.get(tabId, function(tab) {
 				if (tab.url.indexOf('chrome') !== 0 && window.globals.crmValues.tabData[tabId]) {
 					var i;
 					if (!urlIsGlobalExcluded(tab.url)) {
-						if (!urlIsGlobalExcluded(updatedInfo.url)) {
-							var toExecute = [];
-							for (var nodeId in window.globals.toExecuteNodes.onUrl) {
-								if (window.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && window.globals.toExecuteNodes.onUrl[nodeId]) {
-									if (matchesUrlSchemes(window.globals.toExecuteNodes.onUrl[nodeId], updatedInfo.url)) {
-										toExecute.push({
-											node: window.globals.crm.crmById[nodeId],
-											tab: tab
-										});
-									}
+						var toExecute = [];
+						for (var nodeId in window.globals.toExecuteNodes.onUrl) {
+							if (window.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && window.globals.toExecuteNodes.onUrl[nodeId]) {
+								if (matchesUrlSchemes(window.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
+									toExecute.push({
+										node: window.globals.crm.crmById[nodeId],
+										tab: tab
+									});
 								}
 							}
-
-							chrome.tabs.sendMessage(tabId, {
-								type: 'checkTabStatus',
-								data: {
-									willBeMatched: (toExecute.length > 0)
-								}
-							}, function (response) {
-								if (!response || response.notMatchedYet) {
-									for (i = 0; i < toExecute.length; i++) {
-										executeNode(toExecute.node, toExecute.tab);
-									}
-								}
-							});
 						}
+
+						chrome.tabs.sendMessage(tabId, {
+							type: 'checkTabStatus',
+							data: {
+								willBeMatched: (toExecute.length > 0)
+							}
+						}, function (response) {
+							if (!response || response.notMatchedYet) {
+								for (i = 0; i < toExecute.length; i++) {
+									executeNode(toExecute[i].node, toExecute[i].tab);
+								}
+							}
+						});
 					}
 				}
 			});
@@ -1664,7 +1662,7 @@
 		}
 
 		for (var i = 0; i < deleted.length; i++) {
-			window.globals.crmValues.tabData[tabId].nodes[deleted[i].node].port.postMessage({
+			window.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id].port.postMessage({
 				change: {
 					type: 'removed',
 					value: tabId
@@ -4043,7 +4041,7 @@
 		var launchMode;
 		if (getlastMetaTagValue(metaTags, 'CRM_stylesheet')) {
 			node.type = 'stylesheet';
-			launchMode = getlastMetaTagValue(metaTags, 'CRM_launchMode') || 0;
+			launchMode = getlastMetaTagValue(metaTags, 'CRM_launchMode') || 2;
 			launchMode = metaTags.CRM_launchMode = parseInt(launchMode, 10);
 			node.value = {
 				stylesheet: code,
@@ -4371,7 +4369,9 @@
 				var isRoot = node.nodeInfo && node.nodeInfo.isRoot;
 				var downloadURL = node.nodeInfo &&
 					node.nodeInfo.source &&
-					(node.nodeInfo.source.updateURL || node.nodeInfo.source.downloadURL);
+					(node.nodeInfo.source.url || 
+					 node.nodeInfo.source.updateURL ||
+					 node.nodeInfo.source.downloadURL);
 				if (downloadURL && isRoot) {
 					var checkingId = checking.length;
 					checking[checkingId] = true;
@@ -4384,33 +4384,38 @@
 								downloadURL.split('/').pop().split('.user.js')[0] + 
 								'/' + node.nodeInfo.version,
 								function(dataURI, dataString) {
-									var resultParsed = JSON.parse(dataString);
-									if (resultParsed.updated) {
-										if (!compareArray(node.nodeInfo.permissions, resultParsed.metaTags.grant) &&
-											!(resultParsed.metaTags.grant.length === 0 && resultParsed.metaTags.grant[0] === 'none')) {
-											//New permissions were added, notify user
-											chrome.storage.local.get('addedPermissions', function(data) {
-												var addedPermissions = data.addedPermissions || [];
-												addedPermissions.push({
-													node: node.id,
-													permissions: metaTags.grant.filter(function(newPermission) {
-														return node.nodeInfo.permissions.indexOf(newPermission) === -1;
-													})
+									try {
+										var resultParsed = JSON.parse(dataString);
+										if (resultParsed.updated) {
+											if (!compareArray(node.nodeInfo.permissions, resultParsed.metaTags.grant) &&
+												!(resultParsed.metaTags.grant.length === 0 && resultParsed.metaTags.grant[0] === 'none')) {
+												//New permissions were added, notify user
+												chrome.storage.local.get('addedPermissions', function(data) {
+													var addedPermissions = data.addedPermissions || [];
+													addedPermissions.push({
+														node: node.id,
+														permissions: metaTags.grant.filter(function(newPermission) {
+															return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+														})
+													});
+													chrome.storage.local.set({
+														addedPermissions: addedPermissions
+													});
+													chrome.runtime.openOptionsPage();
 												});
-												chrome.storage.local.set({
-													addedPermissions: addedPermissions
-												});
-												chrome.runtime.openOptionsPage();
-											});
-										}
+											}
 
-										updatedScripts.push(updateCRMNode(resultParsed.node,
-											node.nodeInfo.permissions,
-											downloadURL, node.id));
-									}	 
-									checking[checkingId] = false;
-									if (checking.filter(function(c) { return c; }).length === 0) {
-										onDone();
+											updatedScripts.push(updateCRMNode(resultParsed.node,
+												node.nodeInfo.permissions,
+												downloadURL, node.id));
+										}	 
+										checking[checkingId] = false;
+										if (checking.filter(function(c) { return c; }).length === 0) {
+											onDone();
+										}
+									} catch(e) {
+										console.log('Tried to update script ', script.id, ' ', script.name,
+										' but could not reach download URL');
 									}
 								}, function() {
 									checking[checkingId] = false;
@@ -4429,35 +4434,40 @@
 								try {
 									convertFileToDataURI(downloadURL, function(dataURI, dataString) {
 										//Get the meta tags
-										var metaTags = getMetaTags(dataString);
-										if (isNewer(metaTags.version[0], node.nodeInfo.version)) {
-											if (!compareArray(node.nodeInfo.permissions, metaTags.grant) &&
-												!(metaTags.grant.length === 0 && metaTags.grant[0] === 'none')) {
-												//New permissions were added, notify user
-												chrome.storage.local.get('addedPermissions', function(data) {
-													var addedPermissions = data.addedPermissions || [];
-													addedPermissions.push({
-														node: node.id,
-														permissions: metaTags.grant.filter(function(newPermission) {
-															return node.nodeInfo.permissions.indexOf(newPermission) === -1;
-														})
+										try {
+											var metaTags = getMetaTags(dataString);
+											if (isNewer(metaTags.version[0], node.nodeInfo.version)) {
+												if (!compareArray(node.nodeInfo.permissions, metaTags.grant) &&
+													!(metaTags.grant.length === 0 && metaTags.grant[0] === 'none')) {
+													//New permissions were added, notify user
+													chrome.storage.local.get('addedPermissions', function(data) {
+														var addedPermissions = data.addedPermissions || [];
+														addedPermissions.push({
+															node: node.id,
+															permissions: metaTags.grant.filter(function(newPermission) {
+																return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+															})
+														});
+														chrome.storage.local.set({
+															addedPermissions: addedPermissions
+														});
+														chrome.runtime.openOptionsPage();
 													});
-													chrome.storage.local.set({
-														addedPermissions: addedPermissions
-													});
-													chrome.runtime.openOptionsPage();
-												});
+												}
+
+												updatedScripts.push(installUserscript(metaTags, 
+													dataString,
+													node.permissions,
+													downloadURL));
 											}
 
-											updatedScripts.push(installUserscript(metaTags, 
-												dataString,
-												node.permissions,
-												downloadURL));
-										}
-
-										checking[checkingId] = false;
-										if (checking.filter(function(c) { return c; }).length === 0) {
-											onDone();
+											checking[checkingId] = false;
+											if (checking.filter(function(c) { return c; }).length === 0) {
+												onDone();
+											}
+										} catch(e) {
+											console.log('Tried to update script ', script.id, ' ', script.name,
+												' but could not reach download URL');
 										}
 									}, function() {
 										checking[checkingId] = false;
