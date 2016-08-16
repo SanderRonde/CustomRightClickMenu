@@ -269,7 +269,7 @@
 					break;
 				case 'name':
 					this.set('newSettings.name', (changeType === 'removed') ? '' : value[0]);
-					window.crmEditPage.updateName(this.newSettings.name[0]);
+					window.crmEditPage.updateName(this.newSettings.name);
 					break;
 				case 'version':
 					if (!this.newSettings.nodeInfo) {
