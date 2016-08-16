@@ -327,6 +327,17 @@ Polymer({
 		window.doc.externalEditorChooseFile.open();
 	},
 
+	getInstallDateTextFormat: function() {
+		var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+		var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+		if (window.Intl && typeof window.Intl === 'object') {
+			var date = new Date(window.Intl.DateTimeFormat().v8Parse(this.nodeInfo.installDate));
+			return Math.floor(new Date(Date.now() - date.getMilliseconds()).getMilliseconds() / (1000 * 60 * 60 * 24)) + ' days ago';
+		}
+		return null;
+	},
+
 	ready: function () {
 		$('.popupCont').click(function(e) {
 			e.stopPropagation();
