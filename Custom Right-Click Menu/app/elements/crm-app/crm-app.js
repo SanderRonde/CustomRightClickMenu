@@ -413,10 +413,11 @@
 						lineWrapping: true,
 						mode: 'javascript',
 						readOnly: false,
+						foldGutter: true,
 						theme: 'dark',
 						indentUnit: window.app.settings.editor.tabSize,
 						indentWithTabs: window.app.settings.editor.useTabs,
-						gutters: ['collapse-meta-tags', 'CodeMirror-lint-markers'],
+						gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
 						lint: window.CodeMirror.lint.javascript,
 						messageTryEditor: true,
 						undoDepth: 500
@@ -2419,6 +2420,10 @@
 				}
 			};
 			Polymer.telemetry.registrations = registrationArray;
+		},
+
+		hideGenericToast: function() {
+			this.$.messageToast.hide();
 		},
 
 		ready: function () {

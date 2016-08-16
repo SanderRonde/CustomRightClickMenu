@@ -303,31 +303,6 @@
 		}
 	}
 
-	function makeHideMarker() {
-		var marker = document.createElement('svg');
-		marker.innerHTML = '<svg width="30px" height="30px" class="codeMirrorHideMarker" xmlns="http://www.w3.org/2000/svg">' +
-			'<g>' +
-				'<rect id="svg_3" height="80%" width="80%" y="10%" x="10%" stroke-width="4%" stroke="#000" fill="#fff"/>' +
-				'<line y2="50%" x2="80%" y1="50%" x1="20%" stroke-width="12.5%" stroke="#000" fill="none"/>' +
-			'</g>' +
-			'</svg>';
-		marker.classList.add('codeMirrorHideMarker');
-		return marker;
-	}
-
-	function makeExpandMarker() {
-		var marker = document.createElement('div');
-		marker.innerHTML = '<svg width="30px" height="30px" class="codeMirrorHideMarker" xmlns="http://www.w3.org/2000/svg">' +
-			'<g>' +
-				'<rect id="svg_3" height="80%" width="80%" y="10%" x="10%" stroke-width="4%" stroke="#000" fill="#fff"/>' +
-				'<line y2="50%" x2="80%" y1="50%" x1="20%" stroke-width="12.5%" stroke="#000" fill="none"/>' +
-				'<line y2="80%" x2="50%" y1="20%" x1="50%" stroke-width="12.5%" stroke="#000" fill="none"/>' +
-			'</g>' +
-			'</svg>';
-		marker.classList.add('codeMirrorExpandMarker');
-		return marker;
-	}
-
 	function getMetaTagString(metaTags, addSlashes) {
 		var metaTagsArr = [(addSlashes ? '//' : '') + '==UserScript=='];
 
@@ -344,105 +319,6 @@
 
 		return metaTagsArr.join('\n');
 	}
-
-	function hideMetaTags(cm) {
-		//Make sure the metatags are saved one last time
-		setMetaTags(cm, cm.getValue());
-
-		//Save those changes
-		window.CodeMirror.signal(cm, 'metaTagChanged', null, cm.metaTags.metaTags);
-		window.CodeMirror.signal(cm, 'metaDisplayStatusChanged', {
-			status: 'hidden'
-		});
-
-		//Hide the metaTags
-		cm.doc.replaceRange('==UserScript/UserScript==', cm.metaTags.metaStart, cm.metaTags.metaEnd);
-		cm.metaTags.collapsedMarker = cm.doc.markText({
-			line: cm.metaTags.metaStart.line,
-			ch: cm.metaTags.metaStart.ch - 2
-		}, {
-			line: cm.metaTags.metaStart.line,
-			ch: cm.metaTags.metaStart.ch + 27
-		}, {
-			className: 'metaTagHiddenText',
-			inclusiveLeft: false,
-			inclusiveRight: false,
-			atomic: true,
-			readOnly: true,
-			title: getMetaTagString(cm.metaTags.metaTags, true)
-		});
-	}
-
-	function showMetaTags(cm, metaTags) {
-		//Get the index of the metaTags placeholder
-		var metaTagsStart = null;
-		var metaTagsEnd = null;
-
-		var lines = cm.getValue().split('\n');
-		for (var i = 0; i < lines.length; i++) {
-			var index = lines[i].indexOf('==UserScript/UserScript==');
-			if (index > -1) {
-				metaTagsStart = {
-					line: i,
-					ch: index
-				};
-				metaTagsEnd = {
-					line: i,
-					ch: i + 28
-				};
-				break;
-			}
-		}
-
-		var metaTagString;
-		if (metaTagsStart === null) {
-			//Insert at the first line
-			var firstLine = {
-				line: 0,
-				ch: 0
-			};
-			cm.doc.replaceRange('\n', {
-				line: 0,
-				ch: 2
-			});
-			metaTagsStart = firstLine;
-			metaTagsEnd = firstLine;
-			metaTagString = getMetaTagString(metaTags, true);
-		} else {
-			metaTagString = getMetaTagString(metaTags, false);
-		}
-
-		cm.metaTags.collapsedMarker && cm.metaTags.collapsedMarker.clear();
-		cm.doc.replaceRange(metaTagString, metaTagsStart, metaTagsEnd);
-		window.CodeMirror.signal(cm, 'metaDisplayStatusChanged', {
-			status: 'visible'
-		});
-	}
-
-	function handleGutterClick(cm, line) {
-		var lineInfo = cm.lineInfo(line);
-		if (lineInfo.gutterMarkers && lineInfo.gutterMarkers['collapse-meta-tags']) {
-			var element = lineInfo.gutterMarkers['collapse-meta-tags'];
-			var isExpand = element.classList.contains('codeMirrorExpandMarker');
-			if (isExpand) {
-				//Expand
-				showMetaTags(cm, cm.metaTags.metaTags);
-			}
-			else {
-				//Collapse
-				hideMetaTags(cm);
-			}
-			cm.setGutterMarker(line, 'collapse-meta-tags', isExpand ? makeHideMarker() : makeExpandMarker());
-		}
-	}
-
-	codemirror.defineExtension('hideMetaTags', function (cm) {
-		hideMetaTags(cm);
-	});
-
-	codemirror.defineExtension('showMetaTags', function (cm, metaTags) {
-		showMetaTags(cm, metaTags);
-	});
 
 	codemirror.defineExtension('removeMetaTags', function(cm, key, value) {
 		setMetaTags(cm, cm.getValue(), true);
@@ -517,23 +393,6 @@
 				return;
 			}
 			updateMetaTags(instance, changes);
-		});
-
-		var collapsed = false;
-		var lines = value.split('\n');
-		for (i = 0; i < lines.length; i++) {
-			if (lines[i].indexOf('==UserScript/UserScript==') > -1) {
-				collapsed = true;
-				break;
-			}
-		}
-		if (collapsed) {
-			cm.setGutterMarker(i, 'collapse-meta-tags', makeExpandMarker());
-		} else if (cm.metaTags && cm.metaTags.metaStart && cm.metaTags.metaStart.line) {
-			cm.setGutterMarker(cm.metaTags.metaStart.line, 'collapse-meta-tags', makeHideMarker());
-		}
-		cm.on('gutterClick', function(instance, line) {
-			handleGutterClick(instance, line);
 		});
 	});
 });

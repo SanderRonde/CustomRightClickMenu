@@ -873,13 +873,14 @@
 			value: content || this.item.value.stylesheet,
 			scrollbarStyle: 'simple',
 			lineWrapping: true,
+			foldGutter: true,
 			readOnly: (disable ? 'nocursor' : false),
 			theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 			indentUnit: window.app.settings.editor.tabSize,
 			indentWithTabs: window.app.settings.editor.useTabs,
 			messageStylesheetEdit: true,
 			extraKeys: { 'Ctrl-Space': 'autocomplete' },
-			gutters: ['CodeMirror-lint-markers'],
+			gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
 			lint: window.CodeMirror.lint.css
 		});
 	},

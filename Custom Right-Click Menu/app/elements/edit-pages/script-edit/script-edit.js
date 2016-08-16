@@ -577,26 +577,33 @@
 		},
 
 		clearTriggerAndNotifyMetaTags: function (e) {
+			if (this.querySelectorAll('.executionTrigger').length === 1) {
+				window.doc.messageToast.text = 'You need to have at least one trigger';
+				window.doc.messageToast.show();
+				return;
+			}
+
 			this.clearTrigger(e);
 
 			var index = 0;
 			var el = e.path[index];
 			while (el.tagName.toLowerCase() !== 'paper-icon-button') {
-				el = el[++index];
+				el = e.path[++index];
 			}
 
 			this.async(function () {
-				var inputVal = el.parentNode.children[0];
-				var checkboxVal = el.parentNode.children[1];
-				this.metaTagsUpdate([
-					{
-						key: 'triggers',
-						value: JSON.stringify({
-							url: inputVal,
-							not: checkboxVal
-						})
-					}
-				], 'dialog');
+				var inputVal = el.parentNode.children[1];
+				var checkboxVal = el.parentNode.children[0];
+				this.metaTagsUpdate({
+					'removed': [
+						{
+							key: 'match',
+							value: JSON.stringify({
+								url: inputVal.value,
+								not: checkboxVal.checked
+							})
+						}
+				]}, 'dialog');
 			}, 0);
 		},
 
@@ -640,33 +647,9 @@
 			}, 0);
 		},
 
-		triggerRemove: function(element) {
-			var $parent = $(element).parent();
-			var inputValue = $parent.children('.triggerInput')[0].value;
-			var checkboxValue = $parent.children('.executionTriggerNot')[0].checked;
-
-			this.metaTagsUpdate({
-				'removed': [
-					{
-						key: (checkboxValue ? 'match' : 'exclude'),
-						value: inputValue
-					}
-				]
-			}, 'dialog');
-		},
-
 		addTriggerAndAddListeners: function () {
 			var _this = this;
-			var newEl = this.addTrigger();
-			$(newEl).find('.executionTriggerNot').on('change', function () {
-				_this.triggerCheckboxChange.apply(_this, [this]);
-			});
-			$(newEl).find('.triggerInput').on('keydown', function () {
-				_this.triggerInputChange.apply(_this, [this]);
-			});
-			$(newEl).find('.executionTriggerClear').on('click', function () {
-				_this.triggerRemove.apply(_this, []);
-			});
+			this.addTrigger();
 			this.metaTagsUpdate({
 				'added': [
 					{
@@ -746,9 +729,6 @@
 			});
 			$('.triggerInput').on('keydown', function() {
 				_this.triggerInputChange.apply(_this, [this]);
-			});
-			$('.executionTriggerClear').on('click', function() {
-				_this.triggerRemove.apply(_this, [this]);
 			});
 			$('.scriptPermissionsToggle').on('change', function() {
 				var permission = $(this).parent().children('.requestPermissionName')[0].innerText;
@@ -1839,12 +1819,13 @@
 				scrollbarStyle: 'simple',
 				lineWrapping: true,
 				mode: 'javascript',
+				foldGutter: true,
 				readOnly: (disable ? 'nocursor' : false),
 				theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 				indentUnit: window.app.settings.editor.tabSize,
 				indentWithTabs: window.app.settings.editor.useTabs,
 				messageScriptEdit: true,
-				gutters: ['collapse-meta-tags', 'CodeMirror-lint-markers'],
+				gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
 				lint: window.CodeMirror.lint.javascript,
 				undoDepth: 500
 			});

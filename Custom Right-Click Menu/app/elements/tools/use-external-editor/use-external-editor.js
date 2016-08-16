@@ -593,6 +593,7 @@ Polymer({
 											scrollbarStyle: 'simple',
 											lineWrapping: true,
 											mode: 'javascript',
+											foldGutter: true,
 											theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 											indentUnit: window.app.settings.editor.tabSize,
 											indentWithTabs: window.app.settings.editor.useTabs,

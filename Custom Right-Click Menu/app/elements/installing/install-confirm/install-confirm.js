@@ -325,7 +325,6 @@
 			});
 
 			//Show info about the script, if available
-			//var tags = cm.metaTags.metaTags;
 			var interval = window.setInterval(function () {
 				if (cm.getMetaTags) {
 					window.clearInterval(interval);
@@ -349,11 +348,12 @@
 				onLoad: this.cmLoaded,
 				mode: 'javascript',
 				readOnly: 'nocursor',
+				foldGutter: true,
 				theme: (_this.settings.editor.theme === 'dark' ? 'dark' : 'default'),
 				indentUnit: _this.settings.editor.tabSize,
 				messageInstallConfirm: true,
 				indentWithTabs: _this.settings.editor.useTabs,
-				gutters: ['CodeMirror-lint-markers'],
+				gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
 				undoDepth: 500
 			});
 		},
