@@ -248,9 +248,12 @@
 	/**
 	 * Returns the pattern that triggers need to follow for the current launch mode
 	 */
-	_getPattern: function() {
+	_getPattern: function(e, a, b, c) {
+		Array.from(this.querySelectorAll('.triggerInput')).forEach(function(triggerInput) {
+			triggerInput.invalid = false;
+		});
 		//Execute when visiting specified, aka globbing etc
-		if (this.newSettings.value.launchMode === 2) {
+		if (this.newSettings.value.launchMode !== 3) {
 			return '(/(.+)/)|.+';
 		} else {
 			return '(file:\\/\\/\\/.*|(\\*|http|https|file|ftp)://(\\*\\.[^/]+|\\*|([^/\\*]+.[^/\\*]+))(/(.*))?|(<all_urls>))';
