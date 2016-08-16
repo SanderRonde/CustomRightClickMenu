@@ -35,28 +35,29 @@
 						<div id="nodeInfo" hidden$="[[hideNodeInfo(nodeInfo)]]">
 							<div id="nodeInfoData" hidden$="[[isLocal(nodeInfo.source)]]">
 								<span id="nodeInfoName">
-									<b>[[item.name]]</b> <b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>
+									<b title$="[[item.name]]" id="nodeInfoNameCont">[[item.name]]</b> <b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>
 								</span>
 								<span id="nodeInfoAuthor">
-									Created by <b>[[nodeInfo.author]]</b></span>, installed from <span id="nodeInfoFrom">
+									Created by <b title$="[[nodeInfo.source.author]]" id="nodeInfoAuthorCont">[[nodeInfo.source.author]]</b></span>,
+									installed from <span id="nodeInfoFrom">
 									<b>
-										<a id="nodeInfoUrl" target="_blank" href$="[[nodeInfo.source.url]]">[[nodeInfo.source.url]]</a>
+										<a id="nodeInfoUrl" title$="[[nodeInfo.source.url]]" target="_blank" href$="[[nodeInfo.source.url]]">(url)</a>
 									</b>
 								</span>
 							</div>
 							<div id="nodeInfoSource" hidden$="[[!hasInstallDate(nodeInfo)]]">
 								<span id="NodeInfoAcquiredThrough">
 									<span hidden$="[[!isLocal(nodeInfo.source)]]">
-										, created
+										Created
 									</span>
 									<span hidden$="[[isLocal(nodeInfo.source)]]">
-										, installed
+										Installed
 									</span>
 								</span>
 								<span id="installedOn">
 									on
 									<b>
-										<span id="NodeInfoInstallDate">[[nodeInfo.installDate]]</span>
+										<span id="NodeInfoInstallDate" title$="{{getInstallDateTextFormat(nodeInfo.installDate)}}">[[nodeInfo.installDate]]</span>
 									</b>
 								</span>
 							</div>

@@ -80,3 +80,17 @@ menu-edit, divider-edit, link-edit {
 	display: flex;
 	flex-direction: column;
 }
+
+#nodeInfo > div {
+	display: inline;
+}
+
+#nodeInfoNameCont, #nodeInfoAuthorCont {
+	max-width: 200px;
+	text-overflow: ellipsis;
+	display: inline-block;
+	height: 18px;
+	overflow: hidden;
+	white-space: nowrap;
+	margin-bottom: -4px;
+}
