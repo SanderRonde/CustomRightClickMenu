@@ -284,13 +284,13 @@
 			</div>
 			<div id="dialogs">
 				<!--Toasts-->
+				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
+					<span class="toastLink" on-tap="hideGenericToast" role="button">DISMISS</span>
+				</paper-toast>
 				<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
 				<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
 					<span id="menuSwitchUndoButton" role="button">UNDO</span>
 				</paper-toast>
-				<!--
-				//TODO place link
-				-->
 				<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed" duration="10000">
 					<a class="toastLink" href="https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn" target="_blank">INSTALL</a>
 					<span id="externalEditorTryAgainButton" role="button">RETRY</span>
