@@ -95,17 +95,23 @@
 								</svg>
 								<paper-material id="triggersInfoTxtCont" elevation="3">
 									<div id="triggersInfoTxt">
-										Regex is available, check the synthax <a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">here</a>.
+										For trigger mode "execute when visiting sides" urls need to match the following pattern
+										<a href="https://wiki.greasespot.net/Include_and_exclude_rules" target="_blank">this page</a>,
+										and for trigger mode "show when visiting specified sites" they need to match this pattern
+										<a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">this page</a>.
+										Regular URLs without wildcards (*) will always work.
 									</div>
 								</paper-material>
 							</div>
 						</div>
 						<br/>
-						<template is="dom-repeat" items="[[item.triggers]]" as="trigger">
+						<template is="dom-repeat" items="[[newSettings.triggers]]" as="trigger">
 							<div class="executionTrigger">
-								<paper-checkbox class="executionTriggerNot" checked="[[trigger.not]]" color="red">NOT</paper-checkbox>
-								<paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="[[trigger.url]]"></paper-input>
-								<paper-icon-button class="executionTriggerClear" on-tap="clearTrigger" icon="clear"></paper-icon-button>
+								<paper-checkbox class="executionTriggerNot" checked="{{trigger.not}}" color="red">NOT</paper-checkbox>
+								<paper-input pattern="{{_getPattern(newSettings.value.launchMode)}}" auto-validate="true"
+									label="{{_getLabel(newSettings.value.launchMode)}}" error-message="This is not a valid URL pattern!"
+									class="triggerInput" value="{{trigger.url}}"></paper-input>
+								<paper-icon-button class="executionTriggerClear" on-tap="clearTriggerAndNotifyMetaTags" icon="clear"></paper-icon-button>
 							</div>
 						</template>
 						<paper-button on-tap="addTrigger" raised id="addTrigger">Add</paper-button>

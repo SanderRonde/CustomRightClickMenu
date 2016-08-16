@@ -228,31 +228,44 @@
 		if (target.tagName === 'PAPER-ICON-BUTTON') {
 			target = target.children[0];
 		}
-		$(target.parentNode.parentNode).remove();
-		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
-		if (executionTriggers.length === 1) {
-			executionTriggers[0].style.display = 'none';
-		} else {
-			executionTriggers.forEach(function (item) {
-				item.style.display = 'block';
-			});
-		}
+		// $(target.parentNode.parentNode).remove();
+		this.splice(
+			'newSettings.triggers',
+			Array.from(this.querySelectorAll('.executionTrigger')).indexOf(target.parentNode.parentNode),
+			1);
 	},
 
 	/*
 	 * Adds a trigger to the list of triggers for the node
 	 */
 	addTrigger: function () {
-		var _this = this;
-		var newEl = $('<div class="executionTrigger"><paper-checkbox class="executionTriggerNot" color="red">NOT</paper-checkbox><paper-input pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern" error-message="This is not a valid URL pattern!" class="triggerInput" value="*://*.example.com/*"></paper-input><paper-icon-button on-tap="clearTrigger" icon="clear"><paper-icon-button on-tap="clearTrigger" icon="clear"></paper-icon-button></div>').insertBefore(this.$.addTrigger);
-		newEl.find('paper-icon-button').click(function (e) {
-			_this.clearTrigger.apply(_this, [e]);
+		this.push('newSettings.triggers', {
+			not: false,
+			url: '*://example.com/*'
 		});
-		var executionTriggers = $(this.$.executionTriggersContainer).find('paper-icon-button').toArray();
-		if (executionTriggers.length === 2) {
-			executionTriggers[0].style.display = 'block';
+	},
+
+	/**
+	 * Returns the pattern that triggers need to follow for the current launch mode
+	 */
+	_getPattern: function() {
+		//Execute when visiting specified, aka globbing etc
+		if (this.newSettings.value.launchMode === 2) {
+			return '(/(.+)/)|.+';
+		} else {
+			return '(file:\\/\\/\\/.*|(\\*|http|https|file|ftp)://(\\*\\.[^/]+|\\*|([^/\\*]+.[^/\\*]+))(/(.*))?|(<all_urls>))';
 		}
-		return newEl;
+	},
+
+	/**
+	 * Returns the label that a trigger needs to have for the current launchMode
+	 */
+	_getLabel: function() {
+		if (this.newSettings.value.launchMode === 2) {
+			return 'Globbing pattern or regex';
+		} else {
+			return 'URL match pattern';
+		}
 	},
 
 	/*
