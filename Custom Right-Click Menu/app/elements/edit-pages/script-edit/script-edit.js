@@ -1047,7 +1047,7 @@
 			//Introduce title at the top
 			var scriptTitle = window.app.$.editorCurrentScriptTitle;
 			var titleRibbonSize;
-			if (app.storageLocal.shrinkTitleRibbon) {
+			if (window.app.storageLocal.shrinkTitleRibbon) {
 				window.doc.editorTitleRibbon.style.fontSize = '40%';
 				scriptTitle.style.padding = 0;
 				titleRibbonSize = '-18px';
@@ -1063,7 +1063,7 @@
 					marginTop: 0
 				}
 			];
-			var margin = (app.storageLocal.hideToolsRibbon ? 0 : '-200px');
+			var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : 0);
 			scriptTitle.style.marginLeft = '-200px';
 			scriptTitleAnimation[0].marginLeft = '-200px';
 			scriptTitleAnimation[1].marginLeft = 0;
@@ -1086,6 +1086,7 @@
 				};
 			}, 200);
 			setTimeout(function() {
+				window.doc.dummy.style.height = '0';
 				$(window.doc.dummy).animate({
 					height: '50px'
 				}, {
@@ -1151,21 +1152,29 @@
 		popOutRibbons: function() {
 			var scriptTitle = window.app.$.editorCurrentScriptTitle;
 			var toolsRibbon = window.app.$.editorToolsRibbonContainer;
-			if (window.app.settings.editor.showToolsRibbon && toolsRibbon && toolsRibbon.classList.contains('visible')) {
-				scriptTitle.animate([
-					{
-						marginTop: 0,
-						marginLeft: 0
-					}, {
-						marginTop: '-51px',
-						marginLeft: '-200px'
-					}
-				], {
+
+			var toolsVisible = !window.app.storageLocal.hideToolsRibbon && 
+				toolsRibbon &&
+				toolsRibbon.classList.contains('visible'); 
+
+			var titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
+
+			var titleAnimation = [{
+				marginTop: 0,
+				marginLeft: 0
+			}, {
+				marginTop: titleExpanded ? '-51px' : '-18px',
+				marginLeft: (toolsVisible ? '-200px' : 0)
+			}];
+
+
+			if (toolsVisible) {
+				scriptTitle.animate(titleAnimation, {
 					duration: 800,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}).onfinish = function() {
-					scriptTitle.style.marginTop = '-51px';
-					scriptTitle.style.marginLeft = '-200px';
+					scriptTitle.style.marginTop = titleAnimation[1].marginTop;
+					scriptTitle.style.marginLeft = titleAnimation[1].marginLeft;
 				};
 				toolsRibbon.animate([
 					{
@@ -1182,7 +1191,7 @@
 					toolsRibbon.style.marginLeft = '-200px';
 				};
 			} else {
-				window.doc.dummy.style.height = '50px';
+				window.doc.dummy.style.height = (titleExpanded ? '50px' : '18px');
 				$(window.doc.dummy).animate({
 					height: 0
 				}, {
@@ -1196,17 +1205,15 @@
 					{
 						marginTop: 0
 					}, {
-						marginTop: '-51px'
+						marginTop: titleExpanded ? '-51px' : '-18px'
 					}
 				], {
 					duration: 800,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}).onfinish = function() {
-					this.effect.target.remove();
 					scriptTitle.style.display = 'none';
 					toolsRibbon.style.display = 'none';
-					scriptTitle.style.marginTop = '-51px';
-					toolsRibbon.remove();
+					scriptTitle.style.marginTop = (titleExpanded ? '-51px' : '-18px');
 				}
 			}
 		},
@@ -1242,9 +1249,9 @@
 
 			if (app.storageLocal.hideToolsRibbon !== undefined) {
 				if (app.storageLocal.hideToolsRibbon) {
-					window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
-				} else {
 					window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+				} else {
+					window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
 				}
 			} else {
 				chrome.storage.local.set({
