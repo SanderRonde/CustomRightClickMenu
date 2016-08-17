@@ -1189,6 +1189,8 @@ describe('CRMAPI', () => {
 			requestPermissions: [],
 			editing: null,
 			selectedCrmType: 0,
+			hideToolsRibbon: false,
+			shrinkTitleRibbon: false,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
 			latestId: 1,
