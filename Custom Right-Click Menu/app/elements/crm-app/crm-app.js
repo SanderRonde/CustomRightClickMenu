@@ -35,6 +35,21 @@
 		return target;
 	}
 
+	var settingsSchema = {
+		crm: [null],
+		editor: {
+			keyBindings: {
+				autocomplete: String,
+				goToDef: String,
+				rename: String,
+				selectName: String,
+				showDocs: String,
+				showType: String
+			},
+			showToolsRibbon: null
+		}
+	}
+
 	Polymer({
 		is: 'crm-app',
 
@@ -729,14 +744,14 @@
 		toggleToolsRibbon: function() {
 			if (window.app.storageLocal.hideToolsRibbon) {
 				$(window.doc.editorToolsRibbonContainer).animate({
-					marginLeft: '-200px'
-				}, 250);
-				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
-			} else {
-				$(window.doc.editorToolsRibbonContainer).animate({
 					marginLeft: 0
 				}, 250);
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
+			} else {
+				$(window.doc.editorToolsRibbonContainer).animate({
+					marginLeft: '-200px'
+				}, 250);
+				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 			}
 			window.app.storageLocal.hideToolsRibbon = !window.app.storageLocal.hideToolsRibbon;
 			window.app.upload();
@@ -2185,13 +2200,11 @@
 						rename: 'Ctrl-Q',
 						selectName: 'Ctrl-.'
 					},
-					showToolsRibbon: true,
 					tabSize: '4',
 					theme: 'dark',
 					useTabs: true,
 					zoom: 100
 				},
-				shrinkTitleRibbon: false,
 				crm: _this.transferCRMFromOld(localStorage.getItem('whatpage'))
 			};
 
@@ -2273,13 +2286,11 @@
 						rename: 'Ctrl-Q',
 						selectName: 'Ctrl-.'
 					},
-					showToolsRibbon: true,
 					tabSize: '4',
 					theme: 'dark',
 					useTabs: true,
 					zoom: 100
 				},
-				shrinkTitleRibbon: false,
 				crm: [
 					_this.templates.getDefaultLinkNode({
 						id: this.generateItemId()
@@ -2426,6 +2437,137 @@
 			this.$.messageToast.hide();
 		},
 
+		nextUpdatedScript: function() {
+			var index = this.$.scriptUpdatesToast.index;
+			this.$.scriptUpdatesToast.text = this.getUpdatedScriptString(
+				this.$.scriptUpdatesToast.scripts[++index]);
+			this.$.scriptUpdatesToast.index = index;
+
+			if (this.$.scriptUpdatesToast.scripts.length - index > 1) {
+				this.$.nextScriptUpdateButton.style.display = 'inline';
+			} else {
+				this.$.nextScriptUpdateButton.style.display = 'none';
+			}
+		},
+
+		hideScriptUpdatesToast: function() {
+			this.$.scriptUpdatesToast.hide();
+		},
+
+		getUpdatedScriptString: function(updatedScript) {
+			if (!updatedScript) {
+				return 'Please ignore';
+			}
+			return [
+				'Node ',
+				updatedScript.name,
+				' was updated from version ',
+				updatedScript.oldVersion,
+				' to version ',
+				updatedScript.newVersion
+			].join('');
+		},
+
+		encodeSettings: function(data) {
+			 
+		},
+
+		decodeSettings: function(data) {
+
+		},
+
+		get getPermissionDescription() {
+			return this.templates.getPermissionDescription;
+		},
+
+		applyAddedPermissions: function() {
+			var _this = this;
+			var panels = Array.from(window.doc
+				.addedPermissionsTabContainer
+				.querySelectorAll('.nodeAddedPermissionsCont'));
+			panels.forEach(function(panel) {
+				var node = _this.nodesById[panel.getAttribute('data-id')];
+				var permissions = Array.from(panel.querySelectorAll('paper-checkbox'))
+					.map(function(checkbox) {
+						if (checkbox.checked) {
+							return checkbox.getAttribute('data-permission');
+						}
+						return null;
+					}).filter(function(permission) {
+						return !!permission;
+					});
+				if (!Array.isArray(node.permissions)) {
+					node.permissions = [];
+				}
+				permissions.forEach(function(addedPermission) {
+					if (node.permissions.indexOf(addedPermission) === -1) {
+						node.permissions.push(addedPermission);
+					}
+				});
+				if (permissions.length > 0) {
+					//Updated meta tags
+					var scriptSplit = node.value.script.split('\n');
+					var metaEnd = null;
+					var grantNoneIndex = null;
+					for (var i = 0; i < scriptSplit.length; i++) {
+						if (/\/\/(\s+)@grant(\s+)none/.test(scriptSplit[i])) {
+							grantNoneIndex = i;
+						}
+						if (scriptSplit[i].indexOf('==/UserScript==') > -1) {
+							metaEnd = i;
+							break;
+						}
+					}
+					if (metaEnd !== null) {
+						var scriptEnd = scriptSplit.splice(metaEnd);
+						scriptSplit.splice(grantNoneIndex, 1);
+
+						permissions.forEach(function(addedPermission) {
+							scriptSplit.push('// @grant	' + addedPermission);
+						});
+						scriptSplit = scriptSplit.concat(scriptEnd);
+						node.value.script = scriptSplit.join('\n');
+					}
+				}
+			});
+			this.upload();
+		},
+
+		addedPermissionNext: function(id) {
+			var cont = window.doc.addedPermissionsTabContainer;
+			if (cont.tab === cont.maxTabs - 1) {
+				window.doc.addedPermissionsDialog.close();
+				this.applyAddedPermissions();
+				return;
+			}
+
+			if (cont.tab + 2 !== cont.maxTabs) {
+				window.doc.addedPermissionNextButton.querySelector('.close').style.display = 'none';
+				window.doc.addedPermissionNextButton.querySelector('.next').style.display = 'block';
+			} else {
+				window.doc.addedPermissionNextButton.querySelector('.close').style.display = 'block';
+				window.doc.addedPermissionNextButton.querySelector('.next').style.display = 'none';
+			}
+			cont.style.marginLeft = (++cont.tab * -800) + 'px';
+			window.doc.addedPermissionPrevButton.style.display = 'block';
+		},
+
+		addedPermissionPrev: function(id) {
+			var cont = window.doc.addedPermissionsTabContainer;
+			cont.style.marginLeft = (--cont.tab * -800) + 'px';
+
+			window.doc.addedPermissionPrevButton.style.display = (cont.tab === 0 ? 'none' : 'block');
+		},
+
+		getNodeName: function(nodeId) {
+			return window.app.nodesById[nodeId].name;
+		},
+
+		getNodeVersion: function(nodeId) {
+			return (window.app.nodesById[nodeId].nodeInfo && window.app.nodesById[nodeId].nodeInfo.version) ||
+				'1.0';
+		},
+
 		ready: function () {
 			var _this = this;
 			this.crm.parent = this;
@@ -2508,8 +2650,45 @@
 							} else {
 								_this.latestId = 0;
 							}
-							if (storageLocal.addedPermissions) {
-								storageLocal.addedPermissions.forE
+							if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
+								window.setTimeout(function() {
+									window.doc.addedPermissionsTabContainer.tab = 0;
+									window.doc.addedPermissionsTabContainer.maxTabs =
+										storageLocal.addedPermissions.length;
+									window.doc.addedPermissionsTabRepeater.items =
+										storageLocal.addedPermissions;
+
+									if (storageLocal.addedPermissions.length === 1) {
+										window.doc.addedPermissionNextButton.querySelector('.next')
+											.style.display = 'none';	
+									} else {
+										window.doc.addedPermissionNextButton.querySelector('.close')
+											.style.display = 'none';
+									}
+									window.doc.addedPermissionPrevButton.style.display = 'none';
+									window.doc.addedPermissionsTabRepeater.render();
+									window.doc.addedPermissionsDialog.open();
+									chrome.storage.local.set({
+										addedPermissions: null
+									});
+								}, 2500);
+							}
+							if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
+								_this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(
+									storageLocal.updatedScripts[0]);
+								_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+								_this.$.scriptUpdatesToast.index = 0;
+								_this.$.scriptUpdatesToast.show();
+
+								if (storageLocal.updatedScripts.length > 1) {
+									_this.$.nextScriptUpdateButton.style.display = 'inline';
+								} else {
+									_this.$.nextScriptUpdateButton.style.display = 'none';
+								}
+								chrome.storage.local.set({
+									updatedScripts: []
+								});
+								storageLocal.updatedScript = [];
 							}
 							if (storageLocal.useStorageSync) {
 								//Parse the data before sending it to the callback

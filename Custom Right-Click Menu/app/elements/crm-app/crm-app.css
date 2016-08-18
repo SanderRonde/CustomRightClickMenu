@@ -526,7 +526,11 @@ body.editingScript .cssTool {
 	background-color: rgb(210, 210, 210);
 }
 
-#requestPermissionsDialog, #scriptPermissionDialog, #exportDialog, #versionUpdateDialog {
+#requestPermissionsDialog,
+#scriptPermissionDialog,
+#exportDialog,
+#versionUpdateDialog, 
+#addedPermissionsDialog {
 	width: 800px;
 	position: static!important;
 	top: inherit!important;
@@ -911,4 +915,34 @@ html {
 #exportInputLine {
 	display: flex;
 	justify-content: space-between;
+}
+
+.nodeAddedHeader {
+	overflow: visible!important;
+	white-space: normal!important;
+}
+
+.nodeAddedPermissionsCont {
+	width: 750px;
+	display: inline-block;
+	overflow: visible;
+	margin-right: 50px;
+}
+
+#addedPermissionsTabContainer {
+	width: 10000px;
+	transition: margin-left 400ms ease-in-out;
+}
+
+#addedPermissionsDialog {
+	overflow: hidden;
+}
+
+.nodeAddedPermissionCont  {
+	margin-top: 20px;
+}
+
+.nodeAddedPermissionDescription {
+	margin-left: 10px;
+	margin-top: 5px;
 }

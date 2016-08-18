@@ -287,6 +287,10 @@
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
 					<span class="toastLink" on-tap="hideGenericToast" role="button">DISMISS</span>
 				</paper-toast>
+				<paper-toast id="scriptUpdatesToast" text="Please ignore this" duration="10000">
+					<span id="nextScriptUpdateButton" class="toastLink" on-tap="nextUpdatedScript" role="button">NEXT</span>
+					<span class="toastLink" on-tap="hideScriptUpdatesToast" role="button">DISMISS</span>
+				</paper-toast>
 				<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
 				<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
 					<span id="menuSwitchUndoButton" role="button">UNDO</span>
@@ -449,11 +453,12 @@
 				</center-element>
 				<center-element fullscreenoverlay id="scriptPermissionsCenterer">
 					<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+						<br>
 						<h2 class="requestPermissionsScriptName">
 							Managing permisions for script "[[name]]"
 						</h2>
 						<div>
-							Here you can allow or disallow permissions for the current script, marked permissions are asked for in the script and will probably be needed for script execution. You should however be careful not to just turn on everything since that might enable malicious scripts to do bad things. Permissions starting with "GM_" are greasemonkey permissions, these can also be used if you want to also share this script with greasemonkey/tampermonkey users. you don't actually need to turn them to use those APIs except the GM_download API and the GM_notification API since all the others are fairly harmless. However they will be required as metaTags if you run this script in greasemonkey/tampermonkey.
+							Here you can allow or disallow permissions for the current script, marked permissions are asked for in the script and will probably be needed for script execution. You should however be careful not to just turn on everything since that might enable malicious scripts to do bad things. Permissions starting with "GM_" are greasemonkey permissions, these can also be used if you want to also share this script with greasemonkey/tampermonkey users. You don't actually need to turn them on to use those APIs in this extension except the GM_download API and the GM_notification API since all the others are fairly harmless. However they will be required as metaTags if you run this script in greasemonkey/tampermonkey.
 						</div>
 						<div class="scriptPermissionsContainer">
 							<div class="scriptPermissionsUsedPermissionsTxt">
@@ -640,15 +645,41 @@
 				<center-element fullscreenoverlay id="addedPermissionsCenterer">
 					<paper-dialog with-backdrop id="addedPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<br>
-						<p>
-							Some node(s) have been updated and have added some new permissions.
-						</p>
-						<template is="dom-repeat"></template>
+						<div id="addedPermissionsTabContainer">
+							<template id="addedPermissionsTabRepeater" is="dom-repeat" as="nodeAddedPermission">
+								<div class="nodeAddedPermissionsCont" data-id$="[[nodeAddedPermission.node]]">
+									<h2 class="nodeAddedHeader">
+										The script 
+										<span>[[getNodeName(nodeAddedPermission.node)]]</span>
+										has been updated to version 
+										<span>[[getNodeVersion(nodeAddedPermission.node)]]</span>
+										and some new permissions have been requested. 
+									</h2>
+									<div class="nodeAddedPermissions">
+										<template is="dom-repeat" items="[[nodeAddedPermission.permissions]]" as="permission">
+											<div class="nodeAddedPermissionCont">
+												<div class="nodeAddedPermissionTop">
+													<div class="nodeAddedPermissionCheckbox">
+														<paper-checkbox 
+															data-permission$="[[permission]]">
+															<b>[[permission]]</b>
+														</paper-checkbox>
+													</div>
+												</div>
+												<div class="nodeAddedPermissionDescription">[[getPermissionDescription(permission)]]</div>
+											</div>
+										</template>
+									</div>
+								</div>
+							</template>
+						</div>
 						<div class="buttons">
-							<paper-button notshown$="[[isVersionUpdateTabX(versionUpdateTab, 0)]]" id="versionUpdatePrevTab" on-tap="goPrevVersionUpdateTab">previous</paper-button>
-							<paper-button id="versionUpdateNextTab" on-tap="goNextVersionUpdateTab">
-								<span hidden$="[[!isVersionUpdateTabX(versionUpdateTab, 4)]]">close</span>
-								<span hidden$="[[isVersionUpdateTabX(versionUpdateTab, 4)]]">next</span>
+							<paper-button
+								id="addedPermissionPrevButton"
+								on-tap="addedPermissionPrev">previous</paper-button>
+							<paper-button id="addedPermissionNextButton" on-tap="addedPermissionNext">
+								<span class="close">apply</span>
+								<span class="next">next</span>
 							</paper-button>
 						</div>
 					</paper-dialog>
