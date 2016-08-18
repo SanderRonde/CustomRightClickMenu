@@ -437,7 +437,8 @@ function resetTree() {
  */
 var window = {
 	JSON: JSON,
-	setTimeout: setTimeout
+	setTimeout: setTimeout,
+	setInterval: setInterval
 };
 
 // Simulate user-agent chrome on windows for codemirror
@@ -1009,7 +1010,8 @@ var bgPageOnMessageListener;
 describe('CRMAPI', () => {
 	window = {
 		JSON: JSON,
-		setTimeout: setTimeout
+		setTimeout: setTimeout,
+		setInterval: setInterval
 	};
 	let backgroundCode;
 	var storageSync = {};
