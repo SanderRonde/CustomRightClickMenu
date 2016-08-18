@@ -6023,6 +6023,9 @@
 				checkIfResourcesAreUsed();
 				updateResourceValues();
 				updateScripts();
+				window.setInterval(function() {
+					updateScripts();
+				}, 6 * 60 * 60 * 1000)
 
 				window.getID = function(name) {
 					name = name.toLocaleLowerCase();
