@@ -1364,7 +1364,10 @@
 		if (updatedInfo.status === 'complete') {
 			//It's done loading
 			chrome.tabs.get(tabId, function(tab) {
-				if (tab.url.indexOf('chrome') !== 0 && window.globals.crmValues.tabData[tabId]) {
+				if (chrome.runtime.lastError) {
+					return;
+				}
+				if (tab && tab.url.indexOf('chrome') !== 0 && window.globals.crmValues.tabData[tabId]) {
 					var i;
 					if (!urlIsGlobalExcluded(tab.url)) {
 						var toExecute = [];
@@ -1662,13 +1665,15 @@
 		}
 
 		for (var i = 0; i < deleted.length; i++) {
-			window.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id].port.postMessage({
-				change: {
-					type: 'removed',
-					value: tabId
-				},
-				messageType: 'instancesUpdate'
-			});
+			if (deleted[i].node && deleted[i].node.id !== undefined) {
+				window.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id].port.postMessage({
+					change: {
+						type: 'removed',
+						value: tabId
+					},
+					messageType: 'instancesUpdate'
+				});
+			}
 		}
 
 		delete window.globals.crmValues.tabData[tabId];
@@ -4030,6 +4035,9 @@
 				return !!exclude.url;
 			}));
 		}
+		triggers = triggers.map(function(trigger, index) {
+			return triggers.indexOf(trigger) === index;
+		});
 		return triggers;
 	}
 
@@ -4169,16 +4177,19 @@
 		delete window.globals.crm.crmById[id];
 		delete window.globals.crm.crmByIdSafe[id];
 
-		var contextMenuId = eval('window.globals.crmValues.contextMenuItemTree[' + path.join('][') + ']');
-		chrome.contextMenus.remove(contextMenuId, function() {
-			chrome.runtime.lastError;
-		});
+		var contextMenuId = window.globals.crmValues.contextMenuIds[id];
+		if (contextMenuId !== undefined && contextMenuId !== null) {
+			console.log(contextMenuId);
+			chrome.contextMenus.remove(contextMenuId, function() {
+				chrome.runtime.lastError;
+			});
+		}
 	}
 
 	function registerNode(node, oldPath) {
 		//Update it in CRM tree
 		if (oldPath !== undefined && oldPath !== null) {
-			eval('window.globals.storages.settingsStorage.crm[' + path.join('][') + '] = node');
+			eval('window.globals.storages.settingsStorage.crm[' + oldPath.join('][') + '] = node');
 		} else {
 			window.globals.storages.settingsStorage.crm.push(node);
 		}
@@ -4237,7 +4248,7 @@
 		node.onContentTypes = metaTags.CRM_contentTypes = (node.onContentTypes || [true, true, true, true, true, true]);
 
 		//Allowed permissions
-		node.permissions = allowedPermissions;
+		node.permissions = allowedPermissions || [];
 
 		//Resources
 		if (metaTags.resource) {
@@ -4262,11 +4273,14 @@
 
 		chrome.storage.local.get('requestPermissions', function(keys) {
 			chrome.permissions.getAll(function(permissions) {
-				var allowedPermissions = permissions.permissions;
+				var allowedPermissions = permissions.permissions || [];
 				var requestPermissions = keys.requestPermissions || [];
 				requestPermissions = requestPermissions.concat(node.permissions.filter(function(nodePermission) {
 					return allowedPermissions.indexOf(nodePermission) === -1;
 				}));
+				requestPermissions = requestPermissions.filter(function(nodePermission, index) {
+					return requestPermissions.indexOf(nodePermission) === index;
+				});
 				chrome.storage.local.set({
 					requestPermissions: requestPermissions
 				}, function() {
@@ -4341,12 +4355,135 @@
 		}
 	}
 
+	function checkNodeForUpdate(node, checking, checkingId, downloadURL, onDone, updatedScripts) {
+		if (new URL(downloadURL).host === undefined &&
+			(node.type === 'script' || node.type === 'stylesheet' || 
+			node.type === 'menu')) { //TODO when website launches
+			try {
+				convertFileToDataURI(
+					'example.com/isUpdated/' +
+					downloadURL.split('/').pop().split('.user.js')[0] + 
+					'/' + node.nodeInfo.version,
+					function(dataURI, dataString) {
+						try {
+							var resultParsed = JSON.parse(dataString);
+							if (resultParsed.updated) {
+								if (!compareArray(node.nodeInfo.permissions, resultParsed.metaTags.grant) &&
+									!(resultParsed.metaTags.grant.length === 0 && resultParsed.metaTags.grant[0] === 'none')) {
+									//New permissions were added, notify user
+									chrome.storage.local.get('addedPermissions', function(data) {
+										var addedPermissions = data.addedPermissions || [];
+										addedPermissions.push({
+											node: node.id,
+											permissions: metaTags.grant.filter(function(newPermission) {
+												return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+											})
+										});
+										chrome.storage.local.set({
+											addedPermissions: addedPermissions
+										});
+										chrome.runtime.openOptionsPage();
+									});
+								}
+
+								updatedScripts.push(updateCRMNode(resultParsed.node,
+									node.nodeInfo.permissions,
+									downloadURL, node.id));
+							}	 
+							checking[checkingId] = false;
+							if (checking.filter(function(c) { return c; }).length === 0) {
+								onDone();
+							}
+						} catch(e) {
+							console.log('Tried to update script ', node.id, ' ', node.name,
+							' but could not reach download URL');
+						}
+					}, function() {
+						checking[checkingId] = false;
+						if (checking.filter(function(c) { return c; }).length === 0) {
+							onDone();
+						}
+					});
+			} catch (e) {
+				console.log('Tried to update script ', node.id, ' ', node.name,
+							' but could not reach download URL');
+			}
+		} else {
+			if (node.type === 'script' || node.type === 'stylesheet') {
+				//Do a request to get that script from its download URL
+				if (downloadURL) {
+					try {
+						convertFileToDataURI(downloadURL, function(dataURI, dataString) {
+							//Get the meta tags
+							try {
+								var metaTags = getMetaTags(dataString);
+								if (isNewer(metaTags.version[0], node.nodeInfo.version)) {
+									if (!compareArray(node.nodeInfo.permissions, metaTags.grant) &&
+										!(metaTags.grant.length === 0 && metaTags.grant[0] === 'none')) {
+										//New permissions were added, notify user
+										chrome.storage.local.get('addedPermissions', function(data) {
+											var addedPermissions = data.addedPermissions || [];
+											addedPermissions.push({
+												node: node.id,
+												permissions: metaTags.grant.filter(function(newPermission) {
+													return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+												})
+											});
+											chrome.storage.local.set({
+												addedPermissions: addedPermissions
+											});
+											chrome.runtime.openOptionsPage();
+										});
+									}
+
+									updatedScripts.push(installUserscript(metaTags, 
+										dataString,
+										downloadURL,
+										node.permissions,
+										node.id));
+								}
+
+								checking[checkingId] = false;
+								if (checking.filter(function(c) { return c; }).length === 0) {
+									onDone();
+								}
+							} catch(e) {
+														console.log(e);
+
+								console.log('Tried to update script ', node.id, ' ', node.name,
+									' but could not reach download URL');
+							}
+						}, function() {
+							checking[checkingId] = false;
+							if (checking.filter(function(c) { return c; }).length === 0) {
+								onDone();
+							}
+						});
+					} catch (e) {
+						console.log('Tried to update script ', node.id, ' ', node.name,
+							' but could not reach download URL');
+					}
+				}
+			}
+		}
+	}
+
 	function updateScripts(callback) {
 		var checking = [];
 		var updatedScripts = [];
 		var oldTree = JSON.parse(JSON.stringify(window.globals.storages.settingsStorage.crm));
 
 		function onDone() {
+			var updatedData = updatedScripts.map(function(updatedScript) {
+				var oldNode = window.globals.crm.crmById[updatedScript.oldNodeId];
+				return {
+					name: updatedScript.node.name,
+					id: updatedScript.node.id,
+					oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version) || undefined,
+					newVersion: updatedScript.node.nodeInfo.version
+				}
+			})
+
 			updatedScripts.forEach(function(updatedScript) {
 				if (updatedScript.path) { //Has old node
 					removeOldNode(updatedScript.oldNodeId);
@@ -4361,6 +4498,16 @@
 				oldValue: oldTree,
 				newValue: window.globals.storages.settingsStorage.crm
 			}]);
+
+			chrome.storage.local.get('updatedScripts', function(storage) {
+				var updatedScripts = storage.updatedScripts || [];
+				updatedScripts = updatedScripts.concat(updatedData);
+				chrome.storage.local.set({
+					updatedScripts: updatedScripts
+				});
+			});
+
+			callback && callback(updatedData);
 		}
 
 		for (var id in window.globals.crm.crmById) {
@@ -4375,113 +4522,12 @@
 				if (downloadURL && isRoot) {
 					var checkingId = checking.length;
 					checking[checkingId] = true;
-					if (new URL(downloadURL).host === undefined &&
-						(node.type === 'script' || node.type === 'stylesheet' || 
-						node.type === 'menu')) { //TODO when website launches
-						try {
-							convertFileToDataURI(
-								'example.com/isUpdated/' +
-								downloadURL.split('/').pop().split('.user.js')[0] + 
-								'/' + node.nodeInfo.version,
-								function(dataURI, dataString) {
-									try {
-										var resultParsed = JSON.parse(dataString);
-										if (resultParsed.updated) {
-											if (!compareArray(node.nodeInfo.permissions, resultParsed.metaTags.grant) &&
-												!(resultParsed.metaTags.grant.length === 0 && resultParsed.metaTags.grant[0] === 'none')) {
-												//New permissions were added, notify user
-												chrome.storage.local.get('addedPermissions', function(data) {
-													var addedPermissions = data.addedPermissions || [];
-													addedPermissions.push({
-														node: node.id,
-														permissions: metaTags.grant.filter(function(newPermission) {
-															return node.nodeInfo.permissions.indexOf(newPermission) === -1;
-														})
-													});
-													chrome.storage.local.set({
-														addedPermissions: addedPermissions
-													});
-													chrome.runtime.openOptionsPage();
-												});
-											}
-
-											updatedScripts.push(updateCRMNode(resultParsed.node,
-												node.nodeInfo.permissions,
-												downloadURL, node.id));
-										}	 
-										checking[checkingId] = false;
-										if (checking.filter(function(c) { return c; }).length === 0) {
-											onDone();
-										}
-									} catch(e) {
-										console.log('Tried to update script ', script.id, ' ', script.name,
-										' but could not reach download URL');
-									}
-								}, function() {
-									checking[checkingId] = false;
-									if (checking.filter(function(c) { return c; }).length === 0) {
-										onDone();
-									}
-								});
-						} catch (e) {
-							console.log('Tried to update script ', script.id, ' ', script.name,
-										' but could not reach download URL');
-						}
-					} else {
-						if (node.type === 'script' || node.type === 'stylesheet') {
-							//Do a request to get that script from its download URL
-							if (downloadURL) {
-								try {
-									convertFileToDataURI(downloadURL, function(dataURI, dataString) {
-										//Get the meta tags
-										try {
-											var metaTags = getMetaTags(dataString);
-											if (isNewer(metaTags.version[0], node.nodeInfo.version)) {
-												if (!compareArray(node.nodeInfo.permissions, metaTags.grant) &&
-													!(metaTags.grant.length === 0 && metaTags.grant[0] === 'none')) {
-													//New permissions were added, notify user
-													chrome.storage.local.get('addedPermissions', function(data) {
-														var addedPermissions = data.addedPermissions || [];
-														addedPermissions.push({
-															node: node.id,
-															permissions: metaTags.grant.filter(function(newPermission) {
-																return node.nodeInfo.permissions.indexOf(newPermission) === -1;
-															})
-														});
-														chrome.storage.local.set({
-															addedPermissions: addedPermissions
-														});
-														chrome.runtime.openOptionsPage();
-													});
-												}
-
-												updatedScripts.push(installUserscript(metaTags, 
-													dataString,
-													node.permissions,
-													downloadURL));
-											}
-
-											checking[checkingId] = false;
-											if (checking.filter(function(c) { return c; }).length === 0) {
-												onDone();
-											}
-										} catch(e) {
-											console.log('Tried to update script ', script.id, ' ', script.name,
-												' but could not reach download URL');
-										}
-									}, function() {
-										checking[checkingId] = false;
-										if (checking.filter(function(c) { return c; }).length === 0) {
-											onDone();
-										}
-									});
-								} catch (e) {
-									console.log('Tried to update script ', script.id, ' ', script.name,
-										' but could not reach download URL');
-								}
-							}
-						}
-					}
+					checkNodeForUpdate(node,
+						checking,
+						checkingId,
+						downloadURL,
+						onDone,
+						updatedScripts);
 				}
 			}
 		}
@@ -5188,13 +5234,11 @@
 					rename: 'Ctrl-Q',
 					selectName: 'Ctrl-.'
 				},
-				showToolsRibbon: true,
 				tabSize: '4',
 				theme: 'dark',
 				useTabs: true,
 				zoom: 100
 			},
-			shrinkTitleRibbon: false,
 			crm: [
 				getTemplates().getDefaultLinkNode({
 					id: generateItemId()
