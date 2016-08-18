@@ -251,7 +251,7 @@ window.Polymer({
 		//Find last menu to auto-expand
 		if (list) {
 			list.forEach(function(item, index) {
-				if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
+			if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
 					lastMenu = index;
 					if (item.children.length > 0) {
 						lastFilledMenu = index;
