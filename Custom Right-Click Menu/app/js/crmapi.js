@@ -122,7 +122,7 @@
 		});
 		Object.defineProperty(this, 'permissions', {
 			get: function () {
-				return node.permissions;
+				return JSON.parse(JSON.stringify(node.permissions));
 			}
 		});
 		//#endregion
