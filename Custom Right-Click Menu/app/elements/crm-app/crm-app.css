@@ -5,8 +5,8 @@
 .container {
 	font-size:150%;
 	width: 1000px;
-	margin-left:auto;
-	margin-right:auto;
+	padding-left: calc((100vw - 1000px) / 2);
+	padding-right: calc((100vw - 1000px) / 2);
 }
 
 .contextMenu {
