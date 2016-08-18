@@ -331,7 +331,7 @@ Polymer({
 		var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 		var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-		if (window.Intl && typeof window.Intl === 'object') {
+		if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo) {
 			var date = new Date(window.Intl.DateTimeFormat().v8Parse(this.nodeInfo.installDate));
 			return Math.floor(new Date(Date.now() - date.getMilliseconds()).getMilliseconds() / (1000 * 60 * 60 * 24)) + ' days ago';
 		}
