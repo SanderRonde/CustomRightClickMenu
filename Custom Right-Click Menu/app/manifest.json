@@ -9,14 +9,7 @@
 	"short_name": "CRM",
 
 	"background": {
-		"scripts": [
-			"js/libraries/jquery/jquery-2.0.3.min.js",
-			/* build:json:remove */ "js/libraries/diff_match_patch.js", "js/libraries/codemirror/codemirror.js", "js/libraries/codemirror/codeMirrorAddons.js", /* /build */
-			/* build:json:uncomment */ //"js/libraries/codemirror/codeMirrorFile.min.js", /* /build */
-			"js/libraries/jsonfn.js",
-			"js/libraries/md5.js",
-			"js/background.js"
-		]
+		"page": "html/background.html"
 	},
 
 	"content_scripts": [

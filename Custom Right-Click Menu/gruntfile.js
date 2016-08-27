@@ -97,6 +97,7 @@ module.exports = function(grunt) {
 					}
 				},
 				files: {
+					'build/html/background.html': ['app/html/background.html'],
 					'build/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html'],
 					'build/elements/crm-app/crm-app.html': [
 						'build/elements/crm-app/crm-app.html'],
