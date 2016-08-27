@@ -6061,7 +6061,7 @@
 		});
 	}());
 	//#endregion
-}(chrome.runtime.getURL('').split('chrome-extension://')[1].split('/')[0])); //Gets the extension's URL through a blocking instead of a callback function
+}(chrome.runtime.getURL('').split('://')[1].split('/')[0])); //Gets the extension's URL through a blocking instead of a callback function
 
 if (typeof module === 'undefined') {
 	console.log('If you\'re here to check out your background script, get its ID (you can type getID("name") to find the ID), and hit the fitler button on the top-left. Then input that ID to filter only on those messages');
