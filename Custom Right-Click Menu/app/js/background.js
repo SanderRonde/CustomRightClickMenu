@@ -1,7 +1,5 @@
 /// <reference path="../../scripts/_references.js"/>
 
-'use strict';
-
 //#region Sandbox
 (function () {
 	function sandboxChromeFunction (fn, context, args, window, globals) {

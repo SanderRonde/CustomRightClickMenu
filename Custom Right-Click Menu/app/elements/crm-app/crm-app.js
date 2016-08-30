@@ -1,6 +1,4 @@
-﻿'use strict';
-
-(function() {
+﻿(function() {
 	window.runOrAddAsCallback = function(toRun, thisElement, params) {
 		if (window.app.settings) {
 			toRun.apply(thisElement, params);
