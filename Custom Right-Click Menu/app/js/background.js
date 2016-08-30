@@ -5868,10 +5868,10 @@
 			} else {
 
 				var result = handleFirstRun();
-				result.defaultSyncStorage.crm = transferCRMFromOld(localStorage.getItem('whatpage'));
+				result.settingsStorage.crm = transferCRMFromOld(localStorage.getItem('whatpage'));
 
 				resolve({
-					settingsStorage: result.defaultSyncStorage,
+					settingsStorage: result.settingsStorage,
 					storageLocalCopy: result.storageLocalCopy,
 					chromeStorageLocal: result.storageLocal
 				});
