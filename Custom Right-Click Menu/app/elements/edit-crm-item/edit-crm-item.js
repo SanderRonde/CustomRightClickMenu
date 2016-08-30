@@ -205,7 +205,7 @@ Polymer({
 			return node.children[0];
 		}
 
-		var path = Array.from(node.path);
+		var path = Array.prototype.slice.apply(node.path);
 		var currentNodeSiblings = window.app.crm.lookup(path, true);
 		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
 		while (currentNodeSiblings.length - 1 <= currentNodeIndex) {
@@ -216,7 +216,7 @@ Polymer({
 	},
 
 	getPreviousNode: function (node) {
-		var path = Array.from(node.path);
+		var path = Array.prototype.slice.apply(node.path);
 		var currentNodeSiblings = window.app.crm.lookup(path, true);
 		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
 		if (currentNodeIndex === 0) {

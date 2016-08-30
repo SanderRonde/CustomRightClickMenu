@@ -1,6 +1,5 @@
 ﻿/// <reference path="../../crm-app/crm-app.js" />
 (function () {
-	'use strict';
 	Polymer({
 		is: 'script-edit',
 
@@ -768,11 +767,11 @@
 		disableButtons: function() {
 			this.$.dropdownMenu.disable();
 			window.doc.paperGetPageProperties.disable();
-			Array.from(document.querySelectorAll('.showOnContentItemCheckbox', this))
+			Array.prototype.slice.apply(document.querySelectorAll('.showOnContentItemCheckbox', this))
 				.forEach(function(checkbox) {
 					checkbox.disabled = true;
 				});
-			Array.from(document.querySelectorAll('.ribbonTool '))
+			Array.prototype.slice.apply(document.querySelectorAll('.ribbonTool '))
 				.forEach(function(ribbonTool) {
 					if (ribbonTool.id !== 'externalEditorDialogTrigger' &&
 						ribbonTool.tagName === 'DIV') {
@@ -784,11 +783,11 @@
 		enableButtons: function() {
 			this.$.dropdownMenu.enable();
 			window.doc.paperGetPageProperties.enable();
-			Array.from(document.querySelectorAll('.showOnContentItemCheckbox', this))
+			Array.prototype.slice.apply(document.querySelectorAll('.showOnContentItemCheckbox', this))
 				.forEach(function (checkbox) {
 					checkbox.disabled = false;
 				});
-			Array.from(document.querySelectorAll('.ribbonTool '))
+			Array.prototype.slice.apply(document.querySelectorAll('.ribbonTool '))
 				.forEach(function (ribbonTool) {
 					if (ribbonTool.id !== 'externalEditorDialogTrigger' &&
 						ribbonTool.tagName === 'DIV') {
@@ -830,7 +829,7 @@
 				return;
 			}
 
-			Array.from(document.querySelectorAll('.editorTab', this)).forEach(
+			Array.prototype.slice.apply(document.querySelectorAll('.editorTab', this)).forEach(
 				function(tab) {
 					tab.classList.remove('active');
 				});

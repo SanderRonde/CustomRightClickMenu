@@ -844,7 +844,7 @@
 			var code;
 			var className = node.id + '' + tab.id;
 			if (info.wasChecked) {
-				code = ['var nodes = Array.from(document.querySelectorAll(".styleNodes' + className + '")).forEach(function(node){',
+				code = ['var nodes = Array.prototype.slice.apply(document.querySelectorAll(".styleNodes' + className + '")).forEach(function(node){',
 				'node.remove();',
 				'});'].join('');
 			} else {

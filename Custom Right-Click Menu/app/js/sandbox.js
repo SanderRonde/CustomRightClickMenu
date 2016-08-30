@@ -7,7 +7,7 @@
 	}
 
 	self.log = function () {
-		var args = Array.from(arguments);
+		var args = Array.prototype.slice.apply(arguments);
 		var err = (new Error()).stack.split('\n')[2];
 		if (err.indexOf('eval') > -1) {
 			err = (new Error()).stack.split('\n')[3];
@@ -17,7 +17,7 @@
 	}
 
 	self.logNoStack = function() {
-		log(Array.from(arguments));
+		log(Array.prototype.slice.apply(arguments));
 	}
 
 	self.console = {

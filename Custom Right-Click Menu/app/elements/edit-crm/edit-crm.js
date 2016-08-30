@@ -142,7 +142,7 @@ window.Polymer({
 		if (this.columns && document.contains(this.columns[0])) {
 			return this.columns;
 		}
-		return (this.columns = Array.from(this.$.mainCont.children).filter(function(element) {
+		return (this.columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element) {
 			return element.classList.contains('CRMEditColumnCont');
 		}));
 	},

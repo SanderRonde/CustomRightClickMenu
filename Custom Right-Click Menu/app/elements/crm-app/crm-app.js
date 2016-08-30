@@ -2233,7 +2233,7 @@
 			window.setTimeout(function() {
 				window.doc.editCRMInRM.setCheckboxDisabledValue && 
 				window.doc.editCRMInRM.setCheckboxDisabledValue(false);
-				Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
 					setting.init && setting.init(defaultLocalStorage);
 				});
 			}, 2500);
@@ -2319,7 +2319,7 @@
 			_this.pageDemo.create();
 			_this.buildNodePaths(_this.settings.crm, []);
 			window.doc.editCRMInRM.setCheckboxDisabledValue(false);
-			Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+			Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
 				setting.init(defaultLocalStorage);
 			});
 		},
@@ -2408,7 +2408,7 @@
 
 			var registeredElements = 0;
 			var importsAmount = 52;
-			var registrationArray = Array.from(Polymer.telemetry.registrations);
+			var registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
 			registrationArray.push = function (element) {
 				Array.prototype.push.call(registrationArray, element);
 				if (element.toString() === '[object HTMLElement]') {
@@ -2482,12 +2482,12 @@
 
 		applyAddedPermissions: function() {
 			var _this = this;
-			var panels = Array.from(window.doc
+			var panels = Array.prototype.slice.apply(window.doc
 				.addedPermissionsTabContainer
 				.querySelectorAll('.nodeAddedPermissionsCont'));
 			panels.forEach(function(panel) {
 				var node = _this.nodesById[panel.getAttribute('data-id')];
-				var permissions = Array.from(panel.querySelectorAll('paper-checkbox'))
+				var permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
 					.map(function(checkbox) {
 						if (checkbox.checked) {
 							return checkbox.getAttribute('data-permission');
@@ -2594,7 +2594,7 @@
 									.CRMOnPage);
 							}
 
-							Array.from(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+							Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
 								setting.init(storageLocal);
 							});
 

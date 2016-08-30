@@ -231,7 +231,7 @@
 		// $(target.parentNode.parentNode).remove();
 		this.splice(
 			'newSettings.triggers',
-			Array.from(this.querySelectorAll('.executionTrigger')).indexOf(target.parentNode.parentNode),
+			Array.prototype.slice.apply(this.querySelectorAll('.executionTrigger')).indexOf(target.parentNode.parentNode),
 			1);
 	},
 
@@ -249,7 +249,7 @@
 	 * Returns the pattern that triggers need to follow for the current launch mode
 	 */
 	_getPattern: function(e, a, b, c) {
-		Array.from(this.querySelectorAll('.triggerInput')).forEach(function(triggerInput) {
+		Array.prototype.slice.apply(this.querySelectorAll('.triggerInput')).forEach(function(triggerInput) {
 			triggerInput.invalid = false;
 		});
 		//Execute when visiting specified, aka globbing etc

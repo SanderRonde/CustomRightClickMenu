@@ -1982,7 +1982,7 @@
 		 * 	contrary to chrome.tabs.get where only one callback will occur.
 		 */
 		function persistentCallbackFunction() {
-			var fns = Array.from(arguments);
+			var fns = Array.prototype.slice.apply(arguments);
 			for (var i = 0; i < fns.length; i++) {
 				this.request.chromeAPIArguments.push({
 					type: 'fn',
@@ -2596,7 +2596,7 @@
 		 */
 		this.$crmAPI = function (selector, context) {
 			context = context || document;
-			return Array.from(context.querySelectorAll(selector));
+			return Array.prototype.slice.apply(context.querySelectorAll(selector));
 		};
 
 		window.$ = this.$crmAPI;

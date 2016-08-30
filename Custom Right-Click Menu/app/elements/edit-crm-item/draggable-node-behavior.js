@@ -337,16 +337,16 @@ Polymer.DraggableNodeBehavior = {
 			});
 		}
 		if (this.item) {
-			var itemPathCopy = Array.from(this.item.path);
+			var itemPathCopy = Array.prototype.slice.apply(this.item.path);
 			itemPathCopy.splice(itemPathCopy.length - 1, 1);
-			var newPathCopy = Array.from(newPath);
+			var newPathCopy = Array.prototype.slice.apply(newPath);
 			newPathCopy.splice(newPathCopy.length - 1, 1);
 
 			window.app.crm.move(this.item.path, newPath, window.app.compareArray(itemPathCopy, newPathCopy));
 			var newPathMinusOne = newPath;
 			newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
 			var newObj = window.app.editCRM.build(newPathMinusOne);
-			Array.from(window.app.editCRM.getCurrentColumn(this).children)
+			Array.prototype.slice.apply(window.app.editCRM.getCurrentColumn(this).children)
 				.forEach(function(element) {
 					element.style.display = 'table';
 				});
