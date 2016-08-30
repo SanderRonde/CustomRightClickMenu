@@ -2406,28 +2406,26 @@
 				shouldAnimate: false
 			}
 
-			var registeredElements = 0;
-			var importsAmount = 52;
+			var registeredElements = Polymer.telemetry.registrations.length;
+			var importsAmount = 59;
 			var registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
 			registrationArray.push = function (element) {
 				Array.prototype.push.call(registrationArray, element);
-				if (element.toString() === '[object HTMLElement]') {
-					registeredElements++;
-					var progress = Math.round((registeredElements / importsAmount) * 100) / 100;
-					_this.animateLoadingBar(loadingBarSettings, progress);
-					if (registeredElements === importsAmount) {
-						callback && callback();
-						//All elements have been loaded, unhide them all
-						window.setTimeout(function() {
-							document.documentElement.classList.remove('elementsLoading');
+				registeredElements++;
+				var progress = Math.round((registeredElements / importsAmount) * 100) / 100;
+				_this.animateLoadingBar(loadingBarSettings, progress);
+				if (registeredElements === importsAmount) {
+					callback && callback();
+					//All elements have been loaded, unhide them all
+					window.setTimeout(function() {
+						document.documentElement.classList.remove('elementsLoading');
 
-							//Clear the annoying CSS mime type messages and the /deep/ warning
-							!window.lastError && console.clear();
+						//Clear the annoying CSS mime type messages and the /deep/ warning
+						!window.lastError && console.clear();
 
-							console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
-								'font-size:120%;font-weight:bold;');
-						}, 200);
-					}
+						console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+							'font-size:120%;font-weight:bold;');
+					}, 200);
 				}
 			};
 			Polymer.telemetry.registrations = registrationArray;
