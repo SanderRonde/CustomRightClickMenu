@@ -41,7 +41,8 @@ you clicked on (page, link, selection, image, video or audio).
 
 ### Installing from the chrome web store
 
-The new live version can be found [here](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj).
+The beta version can be found [here](https://chrome.google.com/webstore/detail/custom-right-click-menu/fenehceojjegleckckhppcckanifnajg) and 
+the live version can be found [here](https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj).
 
 ### Installing from repo
 
