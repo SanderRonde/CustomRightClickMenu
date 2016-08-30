@@ -5936,7 +5936,6 @@
 			chrome.storage.local.get(function (chromeStorageLocal) {
 				var result;
 				if ((result = isFirstTime(chromeStorageLocal))) {
-					console.log(result);
 					result(function(data) {
 						setStorages(data.storageLocalCopy, data.settingsStorage, data.chromeStorageLocal, callback);
 					}, function(err) {
