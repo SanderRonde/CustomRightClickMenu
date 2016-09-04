@@ -1,106 +1,8 @@
 /// <reference path="../../scripts/_references.js"/>
 
-//#region Sandbox
-(function () {
-	function sandboxChromeFunction (fn, context, args, window, globals) {
-		return fn.apply(context, args);
-	}
-
-	window.sandboxChrome = function (chrome, api, args) {
-		var context = {};
-		var fn = window.chrome;
-		var apiSplit = api.split('.');
-		for (var i = 0; i < apiSplit.length; i++) {
-			context = fn;
-			fn = fn[apiSplit[i]];
-		}
-		var result = sandboxChromeFunction(fn, context, args);
-		return result;
-	}
-}());
-
-(function() {
-	// ReSharper disable once InconsistentNaming
-	function SandboxWorker(id, script, libraries, secretKey) {
-		this.script = script;
-
-		var worker = this.worker = new Worker('/js/sandbox.js');
-		this.id = id;
-
-		this.post = function(message) {
-			worker.postMessage(message);
-		}
-
-		var callbacks = [];
-		this.listen = function(callback) {
-			callbacks.push(callback);
-		}
-
-		var handler;
-
-		function postMessage(message) {
-			worker.postMessage({
-				type: 'message',
-				message: JSON.stringify(message),
-				key: secretKey.join('') + id + 'verified'
-			});
-		}
-
-		handler = window.createHandlerFunction({
-			postMessage: postMessage
-		});
-
-		function verifyKey(message, callback) {
-			if (message.key.join('') === secretKey.join('')) {
-				callback(JSON.parse(message.data));
-			} else {
-				console.log('Background page [' + id + ']: ',
-					'Tried to send an unauthenticated message');
-			}
-		}
-
-		var verified = false;
-
-		worker.addEventListener('message', function (e) {
-			var data = e.data;
-			switch (data.type) {
-				case 'handshake':
-				case 'crmapi':
-					if (!verified) {
-						console.log('Background page [' + id + ']: ',
-							'Ininitialized background page');
-						verified = true;
-					}
-					verifyKey(data, handler);
-					break;
-				case 'log':
-					console.log.apply(console, ['Background page [' + id + ']: '].concat(JSON.parse(data.data)));
-					break;
-			}
-			if (callbacks) {
-				callbacks.forEach(function(callback) {
-					callback(data);
-				});
-				callbacks = [];
-			}
-		}, false);
-
-		worker.postMessage({
-			type: 'init',
-			script: script,
-			libraries: libraries
-		});
-	}
-
-	window.sandbox = function (id, script, libraries, secretKey, callback) {
-		callback(new SandboxWorker(id, script, libraries, secretKey));
-	}
-}());
-//#endregion
-
-(function (extensionId) {
+(function (extensionId, globalObject, sandboxes) {
 	//#region Global Variables
-	window.globals = {
+	globalObject.globals = {
 		storages: {
 			settingsStorage: null,
 			globalExcludes: null,
@@ -194,12 +96,12 @@
 				};
 
 				try {
-					window.globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
+					globalObject.globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
 				} catch (e) {
 					if (e.message === 'Converting circular structure to JSON') {
 						message.data = 'Converting circular structure to JSON, getting a response from this API will not work';
 						message.type = 'error';
-						window.globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
+						globalObject.globals.crmValues.tabData[tabId].nodes[id].port.postMessage(message);
 					} else {
 						throw e;
 					}
@@ -211,7 +113,7 @@
 		 *		'id': id,
 		 *		'tabId': tabId,
 		 *		'notificationId': notificationId,
-		 * 		'onDone;: onDone,
+		 * 		'onDone': onDone,
 		 * 		'onClick': onClick
 		 *	}
 		 */
@@ -225,6 +127,25 @@
 		 *	}
 		 */
 		scriptInstallListeners: {},
+		/*
+		 * nodeId: {
+		 * 		logMessages: [{
+		 * 			'tabId': tabId,
+		 * 			'value': value,
+		 * 			'timestamp': timestamp
+		 * 		}]
+		 * },
+		 * filter: {
+		 * 		'id': id,
+		 * 		'tabId': tabId 
+		 * }
+		 */
+		logging: {
+			filter: {
+				id: null,
+				tabId: null
+			}
+		},
 		constants: {
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
@@ -359,7 +280,7 @@
 							url: '*://*.example.com/*',
 							not: false
 						}]
-					}
+					};
 
 					return this.mergeObjects(value, options);
 				},
@@ -377,7 +298,7 @@
 						type: 'script',
 						isLocal: true,
 						value: this.getDefaultScriptValue(options.value)
-					}
+					};
 
 					return this.mergeObjects(defaultNode, options);
 				},
@@ -395,7 +316,7 @@
 						type: 'stylesheet',
 						isLocal: true,
 						value: this.getDefaultStylesheetValue(options.value)
-					}
+					};
 
 					return this.mergeObjects(defaultNode, options);
 				},
@@ -415,7 +336,7 @@
 						onContentTypes: [true, true, true, false, false, false],
 						isLocal: true,
 						value: {}
-					}
+					};
 
 					return this.mergeObjects(defaultNode, options);
 				},
@@ -441,8 +362,17 @@
 				}
 			}
 			//#endregion
+		},
+		listeners: {
+			idVals: [],
+			tabVals: [],
+			ids: [],
+			tabs: [],
+			log: [],
+			variables: []
 		}
 	};
+	window.logging = globalObject.globals.logging;
 	//#endregion
 
 	//#region Helper Functions
@@ -460,7 +390,7 @@
 	var jsonFn = {
 		stringify: function (obj) {
 			return JSON.stringify(obj, function (key, value) {
-				if (value instanceof Function || typeof value == 'function') {
+				if (value instanceof Function || typeof value === 'function') {
 					return value.toString();
 				}
 				if (value instanceof RegExp) {
@@ -472,7 +402,7 @@
 		parse: function (str, date2Obj) {
 			var iso8061 = date2Obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ : false;
 			return JSON.parse(str, function (key, value) {
-				if (typeof value != 'string') {
+				if (typeof value !== 'string') {
 					return value;
 				}
 				if (value.length < 8) {
@@ -555,15 +485,182 @@
 	}
 
 	function safe(node) {
-		return window.globals.crm.crmByIdSafe[node.id];
+		return globalObject.globals.crm.crmByIdSafe[node.id];
+	}
+	//#endregion
+
+	//#region Logging
+	function log(nodeId, tabId) {
+		var args = Array.prototype.slice.apply(arguments, [2]);
+		if (globalObject.globals.logging.filter.id !== null) {
+			if (nodeId === globalObject.globals.logging.filter.id) {
+				if (globalObject.globals.logging.filter.tabId !== null) {
+					if (tabId === '*' || 
+						tabId === globalObject.globals.logging.filter.tabId) {
+							console.log.apply(console, args);
+						}
+				} else {
+					console.log.apply(console, args);
+				}
+			}
+		} else {
+			console.log.apply(console, args);
+		}
+	}
+
+	function prepareLog(nodeId, tabId) {
+		if (globalObject.globals.logging[nodeId]) {
+			if (!globalObject.globals.logging[nodeId][tabId]) {
+				globalObject.globals.logging[nodeId][tabId] = {};
+			}
+		} else {
+			var idObj = {
+				values: [],
+				logMessages: []
+			};
+			idObj[tabId] = {};
+			globalObject.globals.logging[nodeId] = idObj;
+		}
+	}
+
+	function backgroundPageLog(id) {
+		var args = Array.prototype.slice.apply(arguments);
+		var logValue = {
+			id: id,
+			tabId: 'background',
+			value: args,
+			timestamp: new Date().toLocaleString()
+		};
+		globalObject.globals.logging[id].logMessages.push(logValue);
+		updateLogs(logValue);
+	}
+
+	function logHandlerLog(message) {
+		var srcObj = {
+		}
+		var args = [
+			'Log[src:',
+			srcObj,
+			']: '
+		];
+		chrome.tabs.get(message.tabId, function(tab) {
+			srcObj.id = message.id;
+			srcObj.tabId = message.tabId;
+			srcObj.tab = tab;
+			srcObj.url = tab.url;
+			srcObj.tabTitle = tab.title;
+			srcObj.node = globalObject.globals.crm.crmById[message.id];
+			srcObj.nodeName = srcObj.node.name;
+		});
+		args = args.concat(message.data);
+		log.apply(globalObject, [message.id, message.tabId].concat(args));
+
+		var logValue = {
+			id: message.id,
+			tabId: message.tabId,
+			value: message.data,
+			timestamp: new Date().toLocaleString()
+		};
+		globalObject.globals.logging[message.id].logMessages.push(logValue);
+		updateLogs(logValue);
+	}
+
+	function logHandler(message) {
+		prepareLog(message.id, message.tabId);
+		switch (message.type) {
+			case 'log':
+				logHandlerLog(message);
+				break;
+		}
+	}
+	//#endregion
+
+	//#region Logging Listeners
+	function updateTabAndIdLists(force) {
+		//Make sure anybody is listening
+		var listeners = globalObject.globals.listeners;
+		if (!force && listeners.ids.length === 0 && listeners.tabs.length === 0) {
+			return {
+				ids: [],
+				tabs: []
+			};
+		}
+
+		var ids = {};
+		var tabIds = {};
+		var tabData = globalObject.globals.crmValues.tabData;
+		for (var tabId in tabData) {
+			if (tabData.hasOwnProperty(tabId)) {
+				if (tabId === '0') {
+					tabIds.background = true;
+				} else {
+					tabIds[tabId] = true;
+				}
+				var nodes = tabData[tabId].nodes;
+				for (var nodeId in nodes) {
+					if (nodes.hasOwnProperty(nodeId)) {
+						ids[nodeId] = true;
+					}
+				}
+			}
+		}
+
+		var idArr = [];
+		for (var id in ids) {
+			if (ids.hasOwnProperty(id)) {
+				idArr.push(id);
+			}
+		}
+
+		var tabArr = [];
+		for (tabId in tabIds) {
+			if (tabIds.hasOwnProperty(tabId)) {
+				tabArr.push(tabId);
+			}
+		}
+
+		idArr = idArr.sort(function(a,b) {
+			return a - b;
+		});
+
+		tabArr = tabArr.sort(function(a,b) {
+			return a - b;
+		});
+
+		if (!compareArray(idArr, listeners.idVals)) {
+			listeners.ids.forEach(function(idListener) {
+				idListener(idArr);
+			});
+			listeners.idVals = idArr;
+		}
+		if (!compareArray(tabArr, listeners.tabVals)) {
+			listeners.tabs.forEach(function(tabListener) {
+				tabListener(tabArr);
+			});
+			listeners.tabVals = tabArr;
+		}
+
+		return {
+			ids: idArr,
+			tabs: tabArr
+		};
+	}
+
+	function updateLogs(newLog) {
+		globalObject.globals.listeners.log.forEach(function(logListener) {
+			var idMatches = logListener.id === 'all' || logListener.id === newLog.id;
+			var tabMatches = logListener.tab === 'all' || logListener.tab === newLog.tabId;
+			if (idMatches && tabMatches) {
+				logListener.listener(newLog);
+			}
+		});
 	}
 	//#endregion
 
 	//#region Right-Click Menu Handling/Building
 	function removeNode(node) {
 		chrome.contextMenus.remove(node.id, function() {
-			// ReSharper disable once WrongExpressionStatement
-			chrome.runtime.lastError;
+			if (chrome.runtime.lastError) {}
 		});
 	}
 
@@ -588,8 +685,8 @@
 	function reCreateNode(parentId, node, changes) {
 		var oldId = node.id;
 		node.enabled = true;
-		var stylesheetStatus = window.globals.crmValues.stylesheetNodeStatusses[oldId];
-		var settings = window.globals.crmValues.contextMenuInfoById[node.id].settings;
+		var stylesheetStatus = globalObject.globals.crmValues.stylesheetNodeStatusses[oldId];
+		var settings = globalObject.globals.crmValues.contextMenuInfoById[node.id].settings;
 		if (node.node.type === 'stylesheet' && node.node.value.toggle) {
 			settings.checked = node.node.value.defaultOn;
 		}
@@ -601,10 +698,10 @@
 
 		//Update ID
 		node.id = id;
-		window.globals.crmValues.contextMenuIds[node.node.id] = id;
-		window.globals.crmValues.contextMenuInfoById[id] = window.globals.crmValues.contextMenuInfoById[oldId];
-		window.globals.crmValues.contextMenuInfoById[oldId] = undefined;
-		window.globals.crmValues.contextMenuInfoById[id].enabled = true;
+		globalObject.globals.crmValues.contextMenuIds[node.node.id] = id;
+		globalObject.globals.crmValues.contextMenuInfoById[id] = globalObject.globals.crmValues.contextMenuInfoById[oldId];
+		globalObject.globals.crmValues.contextMenuInfoById[oldId] = undefined;
+		globalObject.globals.crmValues.contextMenuInfoById[id].enabled = true;
 
 		if (node.children) {
 			buildSubTreeFromNothing(id, node.children, changes);
@@ -616,7 +713,7 @@
 			if ((changes[tree[i].id] && changes[tree[i].id].type === 'show') || !changes[tree[i].id]) {
 				reCreateNode(parentId, tree[i], changes);
 			} else {
-				window.globals.crmValues.contextMenuInfoById[id].enabled = false;
+				globalObject.globals.crmValues.contextMenuInfoById[id].enabled = false;
 			}
 		}
 	}
@@ -630,7 +727,9 @@
 		if (firstChangeIndex < tree.length) {
 			for (i = 0; i < firstChangeIndex; i++) {
 				//Normally check its children
-				tree[i].children && tree[i].children.length > 0 && applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
+				if (tree[i].children && tree[i].children.length > 0) {
+					applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
+				}
 			}
 		}
 
@@ -664,9 +763,9 @@
 						}
 					}
 
-					enableAfter.forEach(function (node) {
-						reCreateNode(parentId, node, changes);
-					});
+					for (var k = 0; k < enableAfter.length; k++) {
+						reCreateNode(parentId, enableAfter[k], changes);
+					}
 				}
 			}
 		}
@@ -700,13 +799,13 @@
 			var changes = {};
 			var shownNodes = [];
 			var hiddenNodes = [];
-			getNodeStatusses(window.globals.crmValues.contextMenuItemTree, hiddenNodes, shownNodes);
+			getNodeStatusses(globalObject.globals.crmValues.contextMenuItemTree, hiddenNodes, shownNodes);
 
 
 			//Find nodes to enable
 			var hideOn;
 			for (i = 0; i < hiddenNodes.length; i++) {
-				hideOn = window.globals.crmValues.hideNodesOnPagesData[hiddenNodes[i].node.id];
+				hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[hiddenNodes[i].node.id];
 				if (!hideOn || !matchesUrlSchemes(hideOn, tab.url)) {
 					//Don't hide on current url
 					toEnable.push({
@@ -718,7 +817,7 @@
 
 			//Find nodes to hide
 			for (i = 0; i < shownNodes.length; i++) {
-				hideOn = window.globals.crmValues.hideNodesOnPagesData[shownNodes[i].node.id];
+				hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[shownNodes[i].node.id];
 				if (hideOn) {
 					if (matchesUrlSchemes(hideOn, tab.url)) {
 						//Don't hide on current url
@@ -733,7 +832,7 @@
 			//Re-check if the toEnable nodes might be disabled after all
 			var length = toEnable.length;
 			for (i = 0; i < length; i++) {
-				hideOn = window.globals.crmValues.hideNodesOnPagesData[toEnable[i].node.id];
+				hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[toEnable[i].node.id];
 				if (hideOn) {
 					if (matchesUrlSchemes(hideOn, tab.url)) {
 						//Don't hide on current url
@@ -758,21 +857,24 @@
 			}
 
 			//Apply changes
-			applyNodeChangesOntree(window.globals.crmValues.rootId, window.globals.crmValues.contextMenuItemTree, changes);
+			applyNodeChangesOntree(globalObject.globals.crmValues.rootId, globalObject.globals.crmValues.contextMenuItemTree, changes);
 		});
 
-		var statuses = window.globals.crmValues.stylesheetNodeStatusses;
+		var statuses = globalObject.globals.crmValues.stylesheetNodeStatusses;
+
+		function checkForRuntimeErrors() {
+			if (chrome.runtime.lastError) {
+				console.log(chrome.runtime.lastError);
+			}
+		}
+
 		for (var nodeId in statuses) {
 			if (statuses.hasOwnProperty(nodeId) && statuses[nodeId]) {
-				chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[nodeId], {
+				chrome.contextMenus.update(globalObject.globals.crmValues.contextMenuIds[nodeId], {
 					checked: typeof statuses[nodeId][currentTabId] !== 'boolean' ? 
 						statuses[nodeId].defaultValue : 
 						statuses[nodeId][currentTabId]
-				}, function() {
-					if (chrome.runtime.lastError) {
-						console.log(chrome.runtime.lastError);
-					}
-				});
+				}, checkForRuntimeErrors);
 			}
 		}
 	}
@@ -785,8 +887,8 @@
 		for (i = 0; i < 25; i++) {
 			key[i] = Math.round(Math.random() * 100);
 		}
-		if (!window.globals.keys[key]) {
-			window.globals.keys[key] = true;
+		if (!globalObject.globals.keys[key]) {
+			globalObject.globals.keys[key] = true;
 			return key;
 		} else {
 			return createSecretKey();
@@ -832,7 +934,7 @@
 					url: sanitizeUrl(finalUrl)
 				});
 			}
-		}
+		};
 	}
 	//#endregion
 
@@ -853,12 +955,12 @@
 				'CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(css) + '));',
 				'document.head.appendChild(CRMSSInsert);'].join('');
 			}
-			window.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = info.checked;
+			globalObject.globals.crmValues.stylesheetNodeStatusses[node.id][tab.id] = info.checked;
 			chrome.tabs.executeScript(tab.id, {
 				code: code,
 				allFrames: true
 			});
-		}
+		};
 	}
 
 	function createStylesheetClickHandler(node) {
@@ -878,7 +980,7 @@
 				code: code,
 				allFrames: true
 			});
-		}
+		};
 	}
 	//#endregion
 
@@ -888,7 +990,7 @@
 			if (scripts.length > i) {
 				chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId, scripts, i + 1));
 			}
-		}
+		};
 	}
 
 	function executeScripts(tabId, scripts) {
@@ -942,6 +1044,15 @@
 		return metaTags;
 	}
 
+	function generateMetaAccessFunction(metaData) {
+		return function (key) {
+			if (metaData[key]) {
+				return metaData[key][0];
+			}
+			return undefined;
+		};
+	}
+
 	function createScriptClickHandler(node) {
 		return function (info, tab) {
 			var key = [];
@@ -960,14 +1071,15 @@
 				});
 			} else {
 				var i;
-				window.globals.crmValues.tabData[tab.id] = window.globals.crmValues.tabData[tab.id] || {
+				globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals.crmValues.tabData[tab.id] || {
 					libraries: {},
 					nodes: {},
 					crmAPI: false
 				};
-				window.globals.crmValues.tabData[tab.id].nodes[node.id] = {
+				globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = {
 					secretKey: key
 				};
+				updateTabAndIdLists();
 
 				var metaData = getMetaTags(node.value.script);
 				var metaString = getMetaLines(node.value.script) || undefined;
@@ -984,12 +1096,7 @@
 					}
 				}
 
-				function metaVal(key) {
-					if (metaData[key]) {
-						return metaData[key][0];
-					}
-					return undefined;
-				}
+				var metaVal = generateMetaAccessFunction(metaData);
 
 				var greaseMonkeyData = {
 					info: {
@@ -997,13 +1104,13 @@
 							author: metaVal('author') || '',
 							copyright: metaVal('copyright'),
 							description: metaVal('description'),
-							excludes: metaData['excludes'],
+							excludes: metaData.excludes,
 							homepage: metaVal('homepage'),
 							icon: metaVal('icon'),
 							icon64: metaVal('icon64'),
-							includes: metaData['includes'],
+							includes: metaData.includes,
 							lastUpdated: 0, //Never updated
-							matches: metaData['matches'],
+							matches: metaData.matches,
 							isIncognito: tab.incognito,
 							downloadMode: 'browser',
 							name: node.name,
@@ -1020,8 +1127,8 @@
 								override: {
 									excludes: true,
 									includes: true,
-									orig_excludes: metaData['excludes'],
-									orig_includes: metaData['includes'],
+									orig_excludes: metaData.excludes,
+									orig_includes: metaData.includes,
 									use_excludes: excludes,
 									use_includes: includes
 								}
@@ -1042,16 +1149,16 @@
 					},
 					resources: getScriptResources(node.id) || {}
 				};
-				window.globals.storages.nodeStorage[node.id] = window.globals.storages.nodeStorage[node.id] || {};
+				globalObject.globals.storages.nodeStorage[node.id] = globalObject.globals.storages.nodeStorage[node.id] || {};
 
-				var nodeStorage = window.globals.storages.nodeStorage[node.id];
+				var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
 
 				var indentUnit;
-				if (window.globals.storages.settingsStorage.editor.useTabs) {
+				if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 					indentUnit = '	';
 				} else {
 					indentUnit = [];
-					indentUnit[window.globals.storages.settingsStorage.editor.tabSize || 2] = '';
+					indentUnit[globalObject.globals.storages.settingsStorage.editor.tabSize || 2] = '';
 					indentUnit = indentUnit.join(' ');
 				}
 
@@ -1081,18 +1188,18 @@
 				var scripts = [];
 				for (i = 0; i < node.value.libraries.length; i++) {
 					var lib;
-					if (window.globals.storages.storageLocal.libraries) {
-						for (var j = 0; j < window.globals.storages.storageLocal.libraries.length; j++) {
-							if (window.globals.storages.storageLocal.libraries[j].name === node.value.libraries[i].name) {
-								lib = window.globals.storages.storageLocal.libraries[j];
+					if (globalObject.globals.storages.storageLocal.libraries) {
+						for (var j = 0; j < globalObject.globals.storages.storageLocal.libraries.length; j++) {
+							if (globalObject.globals.storages.storageLocal.libraries[j].name === node.value.libraries[i].name) {
+								lib = globalObject.globals.storages.storageLocal.libraries[j];
 								break;
 							} else {
 								//Resource hasn't been registered with its name, try if it's an anonymous one
 								if (node.value.libraries[i].name === null) {
 									//Check if the value has been registered as a resource
-									if (window.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
+									if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
 										lib = {
-											code: window.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
+											code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
 										};
 									}
 								}
@@ -1124,26 +1231,26 @@
 
 				executeScripts(tab.id, scripts);
 			}
-		}
+		};
 	}
 
 	function createOptionsPageHandler() {
 		return function () {
 			chrome.runtime.openOptionsPage();
-		}
+		};
 	}
 	//#endregion
 
 	function getStylesheetReplacementTabs(node) {
 		var replaceOnTabs = [];
-		if (window.globals.crmValues.contextMenuIds[node.id] && //Node already exists
-				window.globals.crm.crmById[node.id].type === 'stylesheet' && node.type === 'stylesheet' && //Node type stayed stylesheet
-				window.globals.crm.crmById[node.id].value.stylesheet !== node.value.stylesheet) { //Value changed
+		if (globalObject.globals.crmValues.contextMenuIds[node.id] && //Node already exists
+				globalObject.globals.crm.crmById[node.id].type === 'stylesheet' && node.type === 'stylesheet' && //Node type stayed stylesheet
+				globalObject.globals.crm.crmById[node.id].value.stylesheet !== node.value.stylesheet) { //Value changed
 
 			//Update after creating a new node
-			for (var key in window.globals.crmValues.stylesheetNodeStatusses[node.id]) {
-				if (window.globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(key) && window.globals.crmValues.stylesheetNodeStatusses[key]) {
-					if (window.globals.crmValues.stylesheetNodeStatusses[node.id][key] && key !== 'defaultValue') {
+			for (var key in globalObject.globals.crmValues.stylesheetNodeStatusses[node.id]) {
+				if (globalObject.globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(key) && globalObject.globals.crmValues.stylesheetNodeStatusses[key]) {
+					if (globalObject.globals.crmValues.stylesheetNodeStatusses[node.id][key] && key !== 'defaultValue') {
 						replaceOnTabs.push({
 							id: key
 						});
@@ -1204,20 +1311,29 @@
 			return url;
 		}
 
-		var schemeSplit = url.split('://');
-		var scheme = schemeSplit[0];
+		try {
+			var schemeSplit = url.split('://');
+			var scheme = schemeSplit[0];
 
-		var hostAndPath = schemeSplit[1];
-		var hostAndPathSplit = hostAndPath.split('/');
+			var hostAndPath = schemeSplit[1];
+			var hostAndPathSplit = hostAndPath.split('/');
 
-		var host = hostAndPathSplit[0];
-		var path = hostAndPathSplit.splice(1).join('/');
+			var host = hostAndPathSplit[0];
+			var path = hostAndPathSplit.splice(1).join('/');
 
-		return {
-			scheme: scheme,
-			host: host,
-			path: path
-		};
+			return {
+				scheme: scheme,
+				host: host,
+				path: path
+			};
+		} catch(e) {
+			return {
+				scheme: '*',
+				host: '*',
+				path: '*',
+				invalid: true
+			};
+		}
 	}
 
 	function validatePatternUrl(url) {
@@ -1226,7 +1342,10 @@
 		}
 		url = url.trim();
 		var pattern = parsePattern(url);
-		if (window.globals.constants.validSchemes.indexOf(pattern.scheme) === -1) {
+		if (pattern.invalid) {
+			return null;
+		}
+		if (globalObject.globals.constants.validSchemes.indexOf(pattern.scheme) === -1) {
 			return null;
 		}
 
@@ -1309,11 +1428,11 @@
 	}
 
 	function urlIsGlobalExcluded(url) {
-		if (window.globals.storages.globalExcludes.indexOf('<all_urls>') > -1) {
+		if (globalObject.globals.storages.globalExcludes.indexOf('<all_urls>') > -1) {
 			return true;
 		}
-		for (var i = 0; i < window.globals.storages.globalExcludes.length; i++) {
-			if (window.globals.storages.globalExcludes[i] !== null && urlMatchesPattern(window.globals.storages.globalExcludes[i], url)) {
+		for (var i = 0; i < globalObject.globals.storages.globalExcludes.length; i++) {
+			if (globalObject.globals.storages.globalExcludes[i] !== null && urlMatchesPattern(globalObject.globals.storages.globalExcludes[i], url)) {
 				return true;
 			}
 		}
@@ -1322,29 +1441,30 @@
 
 	function executeScriptsForTab(tabId, respond) {
 		chrome.tabs.get(tabId, function(tab) {
-			if (tab.url.indexOf('chrome') !== 0 && !window.globals.crmValues.tabData[tabId]) {
+			if (tab.url.indexOf('chrome') !== 0 && !globalObject.globals.crmValues.tabData[tabId]) {
 				var i;
-				window.globals.crmValues.tabData[tab.id] = {
+				globalObject.globals.crmValues.tabData[tab.id] = {
 					libraries: {},
 					nodes: {},
 					crmAPI: false
 				};
+				updateTabAndIdLists();
 				if (!urlIsGlobalExcluded(tab.url)) {
 					if (!urlIsGlobalExcluded(tab.url)) {
 						var toExecute = [];
-						for (var nodeId in window.globals.toExecuteNodes.onUrl) {
-							if (window.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && window.globals.toExecuteNodes.onUrl[nodeId]) {
-								if (matchesUrlSchemes(window.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
+						for (var nodeId in globalObject.globals.toExecuteNodes.onUrl) {
+							if (globalObject.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globalObject.globals.toExecuteNodes.onUrl[nodeId]) {
+								if (matchesUrlSchemes(globalObject.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
 									toExecute.push({
-										node: window.globals.crm.crmById[nodeId],
+										node: globalObject.globals.crm.crmById[nodeId],
 										tab: tab
 									});
 								}
 							}
 						}
 
-						for (i = 0; i < window.globals.toExecuteNodes.always.length; i++) {
-							executeNode(window.globals.toExecuteNodes.always[i], tab);
+						for (i = 0; i < globalObject.globals.toExecuteNodes.always.length; i++) {
+							executeNode(globalObject.globals.toExecuteNodes.always[i], tab);
 						}
 						for (i = 0; i < toExecute.length; i++) {
 							executeNode(toExecute[i].node, toExecute[i].tab);
@@ -1359,43 +1479,49 @@
 	}
 
 	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
-		if (updatedInfo.status === 'complete') {
-			//It's done loading
-			chrome.tabs.get(tabId, function(tab) {
-				if (chrome.runtime.lastError) {
-					return;
-				}
-				if (tab && tab.url.indexOf('chrome') !== 0 && window.globals.crmValues.tabData[tabId]) {
-					var i;
-					if (!urlIsGlobalExcluded(tab.url)) {
-						var toExecute = [];
-						for (var nodeId in window.globals.toExecuteNodes.onUrl) {
-							if (window.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && window.globals.toExecuteNodes.onUrl[nodeId]) {
-								if (matchesUrlSchemes(window.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
-									toExecute.push({
-										node: window.globals.crm.crmById[nodeId],
-										tab: tab
-									});
-								}
-							}
-						}
+		// if (updatedInfo.status === 'complete' || updatedInfo.status === 'loading') {
+		// 	//It's done loading
+		// 	chrome.tabs.get(tabId, function(tab) {
+		// 		if (chrome.runtime.lastError) {
+		// 			return;
+		// 		}
+		// 		if (tab && tab.url.indexOf('chrome') !== 0 && globalObject.globals.crmValues.tabData[tabId]) {
+		// 			var i;
+		// 			if (!urlIsGlobalExcluded(tab.url)) {
+		// 				var toExecute = globalObject.globals.toExecuteNodes.always.map(function(node) {
+		// 					return {
+		// 						node: node,
+		// 						tab: tab
+		// 					}
+		// 				});
+		// 				for (var nodeId in globalObject.globals.toExecuteNodes.onUrl) {
+		// 					if (globalObject.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globalObject.globals.toExecuteNodes.onUrl[nodeId]) {
+		// 						if (matchesUrlSchemes(globalObject.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
+		// 							toExecute.push({
+		// 								node: globalObject.globals.crm.crmById[nodeId],
+		// 								tab: tab
+		// 							});
+		// 						}
+		// 					}
+		// 				}
 
-						chrome.tabs.sendMessage(tabId, {
-							type: 'checkTabStatus',
-							data: {
-								willBeMatched: (toExecute.length > 0)
-							}
-						}, function (response) {
-							if (!response || response.notMatchedYet) {
-								for (i = 0; i < toExecute.length; i++) {
-									executeNode(toExecute[i].node, toExecute[i].tab);
-								}
-							}
-						});
-					}
-				}
-			});
-		}
+		// 				chrome.tabs.sendMessage(tabId, {
+		// 					type: 'checkTabStatus',
+		// 					data: {
+		// 						willBeMatched: (toExecute.length > 0)
+		// 					}
+		// 				}, function (response) {
+		// 					debugger;
+		// 					if (!response || response.notMatchedYet) {
+		// 						for (i = 0; i < toExecute.length; i++) {
+		// 							executeNode(toExecute[i].node, toExecute[i].tab);
+		// 						}
+		// 					}
+		// 				});
+		// 			}
+		// 		}
+		// 	});
+		// }
 	});
 	//#endregion
 
@@ -1424,20 +1550,20 @@
 		//On by default
 		if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 			if (launchMode === 0 || launchMode === 1) { //Run on clicking
-				window.globals.toExecuteNodes.always.push(node);
+				globalObject.globals.toExecuteNodes.always.push(node);
 			} else if (launchMode === 2 || launchMode === 3) {
-				window.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
+				globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
 			}
 		}
 
 		if (launchMode === 3) { //Show on specified pages
 			rightClickItemOptions.documentUrlPatterns = [];
-			window.globals.crmValues.hideNodesOnPagesData[node.id] = [];
+			globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 			for (var i = 0; i < node.triggers.length; i++) {
 				var prepared = prepareTrigger(node.triggers[i].url);
 				if (prepared) {
 					if (node.triggers[i].not) {
-						window.globals.crmValues.hideNodesOnPagesData[node.id].push(prepared);
+						globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push(prepared);
 					} else {
 						rightClickItemOptions.documentUrlPatterns.push(prepared);
 					}
@@ -1464,7 +1590,7 @@
 				} else {
 					rightClickItemOptions.onclick = createStylesheetClickHandler(node);
 				}
-				window.globals.crmValues.stylesheetNodeStatusses[node.id] = {
+				globalObject.globals.crmValues.stylesheetNodeStatusses[node.id] = {
 					defaultValue: node.value.defaultOn
 				};
 				break;
@@ -1472,11 +1598,10 @@
 
 		var id = chrome.contextMenus.create(rightClickItemOptions, function () {
 			if (chrome.runtime.lastError) {
-				console.log('ayy', chrome.runtime.lastError);
 				if (rightClickItemOptions.documentUrlPatterns) {
 					console.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
 					delete rightClickItemOptions.documentUrlPatterns;
-					window.globals.crmValues.rightClickItemSettingsById[id] = rightClickItemOptions;
+					globalObject.globals.crmValues.rightClickItemSettingsById[id] = rightClickItemOptions;
 					id = chrome.contextMenus.create(rightClickItemOptions, function () {
 						id = chrome.contextMenus.create({
 							title: 'ERROR',
@@ -1490,7 +1615,7 @@
 			}
 		});
 
-		window.globals.crmValues.contextMenuInfoById[id] = {
+		globalObject.globals.crmValues.contextMenuInfoById[id] = {
 			settings: rightClickItemOptions
 		};
 
@@ -1509,10 +1634,10 @@
 
 		var launchMode = (node.value && node.value.launchMode) || 0;
 		if (launchMode === launchModes['always run']) {
-			window.globals.toExecuteNodes.always.push(node);
+			globalObject.globals.toExecuteNodes.always.push(node);
 		} else if (launchMode === launchModes['run on specified pages']) {
-			window.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
-		} else if (launchMode !== launchMode['disabled']) {
+			globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
+		} else if (launchMode !== launchMode.disabled) {
 			addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
 		}
 	}
@@ -1543,7 +1668,7 @@
 					code: code,
 					allFrames: true
 				});
-				window.globals.crmValues.stylesheetNodeStatusses[node.id][replaceStylesheetTabs[i].id] = true;
+				globalObject.globals.crmValues.stylesheetNodeStatusses[node.id][replaceStylesheetTabs[i].id] = true;
 			}
 		}
 
@@ -1553,7 +1678,7 @@
 	function buildPageCRMTree(node, parentId, path, parentTree) {
 		var i;
 		var id = createNode(node, parentId);
-		window.globals.crmValues.contextMenuIds[node.id] = id;
+		globalObject.globals.crmValues.contextMenuIds[node.id] = id;
 		if (id !== null) {
 			var children = [];
 			if (node.children) {
@@ -1572,7 +1697,7 @@
 					}
 				}
 			}
-			window.globals.crmValues.contextMenuInfoById[id].path = path;
+			globalObject.globals.crmValues.contextMenuInfoById[id].path = path;
 			return {
 				id: id,
 				path: path,
@@ -1595,36 +1720,36 @@
 	}
 
 	function updateCRMValues() {
-		window.globals.crm.crmTree = window.globals.storages.settingsStorage.crm;
-		window.globals.crm.safeTree = buildSafeTree(window.globals.storages.settingsStorage.crm);
-		buildNodePaths(window.globals.crm.crmTree, []);
+		globalObject.globals.crm.crmTree = globalObject.globals.storages.settingsStorage.crm;
+		globalObject.globals.crm.safeTree = buildSafeTree(globalObject.globals.storages.settingsStorage.crm);
+		buildNodePaths(globalObject.globals.crm.crmTree, []);
 		buildByIdObjects();
 	}
 
 	function buildPageCRM(storageSync) {
 		var i;
-		var length = window.globals.crm.crmTree.length;
-		window.globals.crmValues.stylesheetNodeStatusses = {};
+		var length = globalObject.globals.crm.crmTree.length;
+		globalObject.globals.crmValues.stylesheetNodeStatusses = {};
 		chrome.contextMenus.removeAll();
-		window.globals.crmValues.rootId = chrome.contextMenus.create({
+		globalObject.globals.crmValues.rootId = chrome.contextMenus.create({
 			title: 'Custom Menu',
 			contexts: ['page', 'selection', 'link', 'image', 'video', 'audio']
 		});
-		window.globals.toExecuteNodes = {
+		globalObject.globals.toExecuteNodes = {
 			onUrl: [],
 			always: []
 		};
 		for (i = 0; i < length; i++) {
-			var result = buildPageCRMTree(window.globals.crm.crmTree[i], window.globals.crmValues.rootId, [i], window.globals.crmValues.contextMenuItemTree);
+			var result = buildPageCRMTree(globalObject.globals.crm.crmTree[i], globalObject.globals.crmValues.rootId, [i], globalObject.globals.crmValues.contextMenuItemTree);
 			if (result) {
-				window.globals.crmValues.contextMenuItemTree[i] = {
+				globalObject.globals.crmValues.contextMenuItemTree[i] = {
 					index: i,
 					id: result.id,
 					enabled: true,
-					node: window.globals.crm.crmTree[i],
-					parentId: window.globals.crmValues.rootId,
+					node: globalObject.globals.crm.crmTree[i],
+					parentId: globalObject.globals.crmValues.rootId,
 					children: result.children,
-					parentTree: window.globals.crmValues.contextMenuItemTree
+					parentTree: globalObject.globals.crmValues.contextMenuItemTree
 				};
 			}
 		}
@@ -1632,12 +1757,12 @@
 		if (storageSync.showOptions) {
 			chrome.contextMenus.create({
 				type: 'separator',
-				parentId: window.globals.crmValues.rootId
+				parentId: globalObject.globals.crmValues.rootId
 			});
 			chrome.contextMenus.create({
 				title: 'Options',
 				onclick: createOptionsPageHandler(),
-				parentId: window.globals.crmValues.rootId
+				parentId: globalObject.globals.crmValues.rootId
 			});
 		}
 	}
@@ -1645,26 +1770,26 @@
 	chrome.tabs.onRemoved.addListener(function (tabId) {
 		//Delete all data for this tabId
 		var node;
-		for (node in window.globals.crmValues.stylesheetNodeStatusses) {
-			if (window.globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(node) && window.globals.crmValues.stylesheetNodeStatusses[node]) {
-				window.globals.crmValues.stylesheetNodeStatusses[node][tabId] = undefined;
+		for (node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
+			if (globalObject.globals.crmValues.stylesheetNodeStatusses.hasOwnProperty(node) && globalObject.globals.crmValues.stylesheetNodeStatusses[node]) {
+				globalObject.globals.crmValues.stylesheetNodeStatusses[node][tabId] = undefined;
 			}
 		}
 
 		//Delete this instance if it exists
 		var deleted = [];
-		for (node in window.globals.crmValues.nodeInstances) {
-			if (window.globals.crmValues.nodeInstances.hasOwnProperty(node) && window.globals.crmValues.nodeInstances[node]) {
-				if (window.globals.crmValues.nodeInstances[node][tabId]) {
+		for (node in globalObject.globals.crmValues.nodeInstances) {
+			if (globalObject.globals.crmValues.nodeInstances.hasOwnProperty(node) && globalObject.globals.crmValues.nodeInstances[node]) {
+				if (globalObject.globals.crmValues.nodeInstances[node][tabId]) {
 					deleted.push(node);
-					window.globals.crmValues.nodeInstances[node][tabId] = undefined;
+					globalObject.globals.crmValues.nodeInstances[node][tabId] = undefined;
 				}
 			}
 		}
 
 		for (var i = 0; i < deleted.length; i++) {
 			if (deleted[i].node && deleted[i].node.id !== undefined) {
-				window.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id].port.postMessage({
+				globalObject.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id].port.postMessage({
 					change: {
 						type: 'removed',
 						value: tabId
@@ -1674,7 +1799,8 @@
 			}
 		}
 
-		delete window.globals.crmValues.tabData[tabId];
+		delete globalObject.globals.crmValues.tabData[tabId];
+		updateTabAndIdLists();
 	});
 	//#endregion
 
@@ -1684,19 +1810,19 @@
 		var code = [];
 		for (var i = 0; i < node.value.libraries.length; i++) {
 			var lib;
-			if (window.globals.storages.storageLocal.libraries) {
-				for (var j = 0; j < window.globals.storages.storageLocal.libraries.length; j++) {
-					if (window.globals.storages.storageLocal.libraries[j].name === node.value
+			if (globalObject.globals.storages.storageLocal.libraries) {
+				for (var j = 0; j < globalObject.globals.storages.storageLocal.libraries.length; j++) {
+					if (globalObject.globals.storages.storageLocal.libraries[j].name === node.value
 						.libraries[i].name) {
-						lib = window.globals.storages.storageLocal.libraries[j];
+						lib = globalObject.globals.storages.storageLocal.libraries[j];
 						break;
 					} else {
 						//Resource hasn't been registered with its name, try if it's an anonymous one
 						if (node.value.libraries[i].name === null) {
 							//Check if the value has been registered as a resource
-							if (window.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
+							if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
 								lib = {
-									code: window.globals.storages.urlDataPairs[node.value.libraries[i].url]
+									code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]
 										.dataString
 								};
 							}
@@ -1716,7 +1842,7 @@
 		return {
 			libraries: libraries,
 			code: code
-		}
+		};
 	}
 
 	function createBackgroundPage(node) {
@@ -1725,10 +1851,10 @@
 		}
 
 		var isRestart = false;
-		if (window.globals.background.byId[node.id]) {
+		if (globalObject.globals.background.byId[node.id]) {
 			isRestart = true;
 			console.log('Background page [' + node.id + ']: ', 'Restarting background page...');
-			window.globals.background.byId[node.id].worker.terminate();
+			globalObject.globals.background.byId[node.id].worker.terminate();
 			console.log('Background page [' + node.id + ']: ', 'Terminated background page...');
 		}
 
@@ -1745,14 +1871,15 @@
 			err = e;
 		}
 		if (!err) {
-			window.globals.crmValues.tabData[0] = window.globals.crmValues.tabData[0] || {
+			globalObject.globals.crmValues.tabData[0] = globalObject.globals.crmValues.tabData[0] || {
 				libraries: {},
 				nodes: {},
 				crmAPI: false
 			};
-			window.globals.crmValues.tabData[0].nodes[node.id] = {
+			globalObject.globals.crmValues.tabData[0].nodes[node.id] = {
 				secretKey: key
 			};
+			updateTabAndIdLists();
 
 			var metaData = getMetaTags(node.value.script);
 			var metaString = getMetaLines(node.value.script) || undefined;
@@ -1768,11 +1895,11 @@
 			}
 
 			var indentUnit;
-			if (window.globals.storages.settingsStorage.editor.useTabs) {
+			if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 				indentUnit = '	';
 			} else {
 				indentUnit = [];
-				indentUnit[window.globals.storages.settingsStorage.editor.tabSize || 2] = '';
+				indentUnit[globalObject.globals.storages.settingsStorage.editor.tabSize || 2] = '';
 				indentUnit = indentUnit.join(' ');
 			}
 
@@ -1780,12 +1907,7 @@
 				return indentUnit + line;
 			}).join('\n');
 
-			function metaVal(key) {
-				if (metaData[key]) {
-					return metaData[key][0];
-				}
-				return undefined;
-			}
+			var metaVal = generateMetaAccessFunction(metaData);
 
 			var greaseMonkeyData = {
 				info: {
@@ -1793,13 +1915,13 @@
 						author: metaVal('author') || '',
 						copyright: metaVal('copyright'),
 						description: metaVal('description'),
-						excludes: metaData['excludes'],
+						excludes: metaData.excludes,
 						homepage: metaVal('homepage'),
 						icon: metaVal('icon'),
 						icon64: metaVal('icon64'),
-						includes: metaData['includes'],
+						includes: metaData.includes,
 						lastUpdated: 0, //Never updated
-						matches: metaData['matches'],
+						matches: metaData.matches,
 						isIncognito: false,
 						downloadMode: 'browser',
 						name: node.name,
@@ -1816,8 +1938,8 @@
 							override: {
 								excludes: true,
 								includes: true,
-								orig_excludes: metaData['excludes'],
-								orig_includes: metaData['includes'],
+								orig_excludes: metaData.excludes,
+								orig_includes: metaData.includes,
 								use_excludes: excludes,
 								use_includes: includes
 							}
@@ -1838,9 +1960,9 @@
 				},
 				resources: {}
 			};
-			window.globals.storages.nodeStorage[node.id] = window.globals.storages.nodeStorage[node.id] || {};
+			globalObject.globals.storages.nodeStorage[node.id] = globalObject.globals.storages.nodeStorage[node.id] || {};
 
-			var nodeStorage = window.globals.storages.nodeStorage[node.id];
+			var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
 
 			libraries.push('/js/crmapi.js');
 			code = [code.join('\n'), [
@@ -1861,11 +1983,11 @@
 				'}'
 			].join('\n');
 
-			window.sandbox(node.id, code, libraries, key, function(worker) {
-				window.globals.background.workers.push(worker);
-				window.globals.background.byId[node.id] = worker;
+			sandboxes.sandbox(node.id, code, libraries, key, function(worker) {
+				globalObject.globals.background.workers.push(worker);
+				globalObject.globals.background.byId[node.id] = worker;
 				if (isRestart) {
-					console.log('Background page [' + node.id + ']: ', 'Restarted background page...');
+					log(node.id, '*', 'Background page [' + node.id + ']: ', 'Restarted background page...');
 				}
 			});
 		} else {
@@ -1876,9 +1998,9 @@
 
 	function createBackgroundPages() {
 		//Iterate through every node
-		for (var nodeId in window.globals.crm.crmById) {
-			if (window.globals.crm.crmById.hasOwnProperty(nodeId)) {
-				var node = window.globals.crm.crmById[nodeId];
+		for (var nodeId in globalObject.globals.crm.crmById) {
+			if (globalObject.globals.crm.crmById.hasOwnProperty(nodeId)) {
+				var node = globalObject.globals.crm.crmById[nodeId];
 				if (node.type === 'script') {
 					createBackgroundPage(node);
 				}
@@ -1940,17 +2062,17 @@
 	}
 
 	function generateItemId() {
-		window.globals.latestId = window.globals.latestId || 0;
-		window.globals.latestId++;
+		globalObject.globals.latestId = globalObject.globals.latestId || 0;
+		globalObject.globals.latestId++;
 		chrome.storage.local.set({
-			latestId: window.globals.latestId
+			latestId: globalObject.globals.latestId
 		});
-		return window.globals.latestId;
+		return globalObject.globals.latestId;
 	}
 
 	function refreshPermissions() {
 		chrome.permissions.getAll(function (available) {
-			window.globals.availablePermissions = available.permissions;
+			globalObject.globals.availablePermissions = available.permissions;
 		});
 	}
 
@@ -1975,7 +2097,7 @@
 					}
 				}
 			});	
-		}
+		};
 	}
 
 	function makeSafe(node) {
@@ -1996,7 +2118,7 @@
 	}
 
 	function parseNode(node, isSafe) {
-		window.globals.crm[isSafe ? 'crmByIdSafe' : 'crmById'][node.id] = (
+		globalObject.globals.crm[isSafe ? 'crmByIdSafe' : 'crmById'][node.id] = (
 			isSafe ? makeSafe(node) : node
 		);
 		if (node.children && node.children.length > 0) {
@@ -2008,11 +2130,11 @@
 
 	function buildByIdObjects() {
 		var i;
-		window.globals.crm.crmById = {};
-		window.globals.crm.crmByIdSafe = {};
-		for (i = 0; i < window.globals.crm.crmTree.length; i++) {
-			parseNode(window.globals.crm.crmTree[i]);
-			parseNode(window.globals.crm.safeTree[i], true);
+		globalObject.globals.crm.crmById = {};
+		globalObject.globals.crm.crmByIdSafe = {};
+		for (i = 0; i < globalObject.globals.crm.crmTree.length; i++) {
+			parseNode(globalObject.globals.crm.crmTree[i]);
+			parseNode(globalObject.globals.crm.safeTree[i], true);
 		}
 	}
 
@@ -2057,7 +2179,7 @@
 	function uploadChanges(type, changes, useStorageSync) {
 		switch (type) {
 			case 'local':
-				chrome.storage.local.set(window.globals.storages.storageLocal);
+				chrome.storage.local.set(globalObject.globals.storages.storageLocal);
 				for (var i = 0; i < changes.length; i++) {
 					if (changes[i].key === 'useStorageSync') {
 						uploadChanges('settings', [], changes[i].newValue);
@@ -2066,13 +2188,13 @@
 				break;
 			case 'settings':
 				if (useStorageSync !== undefined) {
-					window.globals.storages.settingsStorage.useStorageSync = useStorageSync;
+					globalObject.globals.storages.settingsStorage.useStorageSync = useStorageSync;
 				}
 
-				var settingsJson = JSON.stringify(window.globals.storages.settingsStorage);
-				if (!window.globals.storages.storageLocal.useStorageSync) {
+				var settingsJson = JSON.stringify(globalObject.globals.storages.settingsStorage);
+				if (!globalObject.globals.storages.storageLocal.useStorageSync) {
 					chrome.storage.local.set({
-						settings: window.globals.storages.settingsStorage
+						settings: globalObject.globals.storages.settingsStorage
 					}, function () {
 						if (chrome.runtime.lastError) {
 							console.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
@@ -2081,7 +2203,7 @@
 								if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
 									updateCRMValues();
 									checkBackgroundPagesForChange(changes);
-									buildPageCRM(window.globals.storages.settingsStorage);
+									buildPageCRM(globalObject.globals.storages.settingsStorage);
 									break;
 								}
 							}
@@ -2115,7 +2237,7 @@
 									if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
 										updateCRMValues();
 										checkBackgroundPagesForChange(changes);
-										buildPageCRM(window.globals.storages.settingsStorage);
+										buildPageCRM(globalObject.globals.storages.settingsStorage);
 										break;
 									}
 								}
@@ -2148,7 +2270,7 @@
 	function checkBackgroundPagesForChange(changes, toUpdate) {
 		if (toUpdate) {
 			toUpdate.forEach(function(id) {
-				createBackgroundPage(window.globals.crm.crmById[id]);
+				createBackgroundPage(globalObject.globals.crm.crmById[id]);
 			});
 		}
 
@@ -2159,8 +2281,8 @@
 				orderBackgroundPagesById(changes[i].newValue, ordered);
 				for (var id in ordered) {
 					if (ordered.hasOwnProperty(id)) {
-						if (window.globals.background.byId[id] && window.globals.background.byId[id].script !== ordered[id]) {
-							createBackgroundPage(window.globals.crm.crmById[id]);
+						if (globalObject.globals.background.byId[id] && globalObject.globals.background.byId[id].script !== ordered[id]) {
+							createBackgroundPage(globalObject.globals.crm.crmById[id]);
 						}
 					}
 				}
@@ -2171,10 +2293,10 @@
 	function updateCrm(toUpdate) {
 		uploadChanges('settings', [{
 			key: 'crm',
-			newValue: JSON.parse(JSON.stringify(window.globals.crm.crmTree))
+			newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree))
 		}]);
 		updateCRMValues();
-		buildPageCRM(window.globals.storages.settingsStorage);
+		buildPageCRM(globalObject.globals.storages.settingsStorage);
 
 		if (toUpdate) {
 			checkBackgroundPagesForChange([], toUpdate);
@@ -2183,13 +2305,13 @@
 
 	function notifyNodeStorageChanges(id, tabId, changes) {
 		//Update in storage
-		window.globals.crm.crmById[id].storage = window.globals.storages.nodeStorage[id];
+		globalObject.globals.crm.crmById[id].storage = globalObject.globals.storages.nodeStorage[id];
 		chrome.storage.local.set({
-			nodeStorage: window.globals.storages.nodeStorage
+			nodeStorage: globalObject.globals.storages.nodeStorage
 		});
 
 		//Notify all pages running that node
-		var tabData = window.globals.crmValues.tabData;
+		var tabData = globalObject.globals.crmValues.tabData;
 		for (var tab in tabData) {
 			if (tabData.hasOwnProperty(tab) && tabData[tab]) {
 				if (tab !== tabId) {
@@ -2215,26 +2337,26 @@
 		switch (data.type) {
 			case 'optionsPage':
 				if (data.localChanges) {
-					applyChangeForStorageType(window.globals.storages.storageLocal, data.localChanges);
+					applyChangeForStorageType(globalObject.globals.storages.storageLocal, data.localChanges);
 					uploadChanges('local', data.localChanges);
 				}
 				if (data.settingsChanges) {
-					applyChangeForStorageType(window.globals.storages.settingsStorage, data.settingsChanges);
+					applyChangeForStorageType(globalObject.globals.storages.settingsStorage, data.settingsChanges);
 					uploadChanges('settings', data.settingsChanges);
 				}
 				break;
 			case 'libraries':
-				applyChangeForStorageType(window.globals.storages.storageLocal, [
+				applyChangeForStorageType(globalObject.globals.storages.storageLocal, [
 					{
 						key: 'libraries',
 						newValue: data.libraries,
-						oldValue: window.globals.settings.storageLocal.libraries
+						oldValue: globalObject.globals.settings.storageLocal.libraries
 					}
 				]);
 				break;
 			case 'nodeStorage':
-				window.globals.storages.nodeStorage[data.id] = window.globals.storages.nodeStorage[data.id] || {};
-				applyChangeForStorageType(window.globals.storages.nodeStorage[data.id], data.nodeStorageChanges);
+				globalObject.globals.storages.nodeStorage[data.id] = globalObject.globals.storages.nodeStorage[data.id] || {};
+				applyChangeForStorageType(globalObject.globals.storages.nodeStorage[data.id], data.nodeStorageChanges);
 				notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
 				break;
 		}
@@ -2247,14 +2369,14 @@
 			type: type,
 			callbackId: message.onFinish,
 			messageType: 'callback'
-		}
+		};
 		msg.data = (type === 'error' || type === 'chromeError' ? {
 			error: data,
 			stackTrace: stackTrace,
 			lineNumber: message.lineNumber
 		} : data);
 		try {
-			window.globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
+			globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
 				respondToCrmAPI(message, 'error', 'Converting circular structure to JSON, this API will not work');
@@ -2275,17 +2397,26 @@
 		respondToCrmAPI(message, 'chromeError', error, stackTrace);
 	}
 
+	function flattenCrm(searchScope, obj) {
+		searchScope.push(obj);
+		if (obj.children) {
+			obj.children.forEach(function(child) {
+				flattenCrm(searchScope, child);
+			});
+		}
+	}
+
 	function runCrmFunction(toRun, _this) {
 		var crmFunctions = {
 			getTree: function () {
 				_this.checkPermissions(['crmGet'], function () {
-					_this.respondSuccess(window.globals.crm.safeTree);
+					_this.respondSuccess(globalObject.globals.crm.safeTree);
 				});
 			},
 			getSubTree: function (id) {
 				_this.checkPermissions(['crmGet'], function () {
 					if (typeof _this.message.nodeId === 'number') {
-						var node = window.globals.crm.crmByIdSafe[_this.message.nodeId];
+						var node = globalObject.globals.crm.crmByIdSafe[_this.message.nodeId];
 						if (node) {
 							_this.respondSuccess([node]);
 						} else {
@@ -2299,7 +2430,7 @@
 			getNode: function () {
 				_this.checkPermissions(['crmGet'], function () {
 					if (typeof _this.message.nodeId === 'number') {
-						var node = window.globals.crm.crmByIdSafe[_this.message.nodeId];
+						var node = globalObject.globals.crm.crmByIdSafe[_this.message.nodeId];
 						if (node) {
 							_this.respondSuccess(node);
 						} else {
@@ -2313,7 +2444,7 @@
 			getNodeIdFromPath: function (path) {
 				_this.checkPermissions(['crmGet'], function () {
 					var pathToSearch = path || _this.message.path;
-					var lookedUp = _this.lookup(pathToSearch, window.globals.crm.safeTree, false);
+					var lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm.safeTree, false);
 					if (lookedUp === true) {
 						return false;
 					} else if (lookedUp === false) {
@@ -2346,8 +2477,10 @@
 						}
 					], function (optionals) {
 						var crmArray = [];
-						for (var id in window.globals.crm.crmById) {
-							crmArray.push(window.globals.crm.crmByIdSafe[id]);
+						for (var id in globalObject.globals.crm.crmById) {
+							if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
+								crmArray.push(globalObject.globals.crm.crmByIdSafe[id]);
+							}
 						}
 
 						var searchScope;
@@ -2359,15 +2492,9 @@
 							}
 
 							searchScope = [];
-							function flattenCrm(obj) {
-								searchScope.push(obj);
-								if (obj.children) {
-									obj.children.forEach(function(child) {
-										flattenCrm(child);
-									});
-								}
-							}
-							searchScopeObjChildren.forEach(flattenCrm);
+							searchScopeObjChildren.forEach(function(child) {
+								flattenCrm(searchScope, child);
+							});
 						}
 						searchScope = searchScope || crmArray;
 
@@ -2398,9 +2525,9 @@
 						var pathToSearch = JSON.parse(JSON.stringify(node.path));
 						pathToSearch.pop();
 						if (pathToSearch.length === 0) {
-							_this.respondSuccess(window.globals.crm.safeTree);
+							_this.respondSuccess(globalObject.globals.crm.safeTree);
 						} else {
-							var lookedUp = _this.lookup(pathToSearch, window.globals.crm.safeTree, false);
+							var lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm.safeTree, false);
 							_this.respondSuccess(lookedUp);
 						}
 					});
@@ -2551,8 +2678,8 @@
 								newNode = getTemplates().getDefaultLinkNode(node);
 								newNode.type = 'divider';
 								break;
-							case 'link':
 							default:
+							case 'link':
 								newNode = getTemplates().getDefaultLinkNode(node);
 								newNode.type = 'link';
 								break;
@@ -2608,7 +2735,7 @@
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 						//Remove original from CRM
-						var parentChildren = _this.lookup(node.path, window.globals.crm.crmTree, true);
+						var parentChildren = _this.lookup(node.path, globalObject.globals.crm.crmTree, true);
 						//parentChildren.splice(node.path[node.path.length - 1], 1);
 
 						if ((node = _this.moveNode(node, _this.message.position, {
@@ -2624,10 +2751,10 @@
 			deleteNode: function () {
 				_this.checkPermissions(['crmGet', 'crmWrite'], function () {
 					_this.getNodeFromId(_this.message.nodeId).run(function (node) {
-						var parentChildren = _this.lookup(node.path, window.globals.crm.crmTree, true);
+						var parentChildren = _this.lookup(node.path, globalObject.globals.crm.crmTree, true);
 						parentChildren.splice(node.path[node.path.length - 1], 1);
-						if (window.globals.crmValues.contextMenuIds[node.id] !== undefined) {
-							chrome.contextMenus.remove(window.globals.crmValues.contextMenuIds[node.id], function () {
+						if (globalObject.globals.crmValues.contextMenuIds[node.id] !== undefined) {
+							chrome.contextMenus.remove(globalObject.globals.crmValues.contextMenuIds[node.id], function () {
 								updateCrm([_this.message.nodeId]);
 								_this.respondSuccess(true);
 							});
@@ -2717,7 +2844,7 @@
 							node.showOnSpecified = true;
 							updateCrm();
 							var matchPatterns = [];
-							window.globals.crmValues.hideNodesOnPagesData[node.id] = [];
+							globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 							if (node.launchMode !== 3) {
 								for (var i = 0; i < node.triggers.length; i++) {
 									if (!triggerMatchesScheme(node.triggers[i].url)) {
@@ -2726,13 +2853,13 @@
 									}
 									node.triggers[i].url = prepareTrigger(node.triggers[i].url);
 									if (node.triggers[i].not) {
-										window.globals.crmValues.hideNodesOnPagesData[node.id].push(node.triggers[i].url);
+										globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push(node.triggers[i].url);
 									} else {
 										matchPatterns.push(node.triggers[i].url);
 									}
 								}
 							}
-							chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
+							chrome.contextMenus.update(globalObject.globals.crmValues.contextMenuIds[node.id], {
 								documentUrlPatterns: matchPatterns
 							}, function () {
 								updateCrm();
@@ -2765,7 +2892,7 @@
 							if (node.type === 'menu' || node.type === 'link' || node.type === 'divider') {
 								node.showOnSpecified = _this.message.useTriggers;
 								updateCrm();
-								chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
+								chrome.contextMenus.update(globalObject.globals.crmValues.contextMenuIds[node.id], {
 									documentUrlPatterns: ['<all_urls>']
 								}, function () {
 									updateCrm();
@@ -2801,7 +2928,7 @@
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							node.onContentTypes[_this.message.index] = _this.message.value;
 							updateCrm();
-							chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
+							chrome.contextMenus.update(globalObject.globals.crmValues.contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function () {
 								updateCrm();
@@ -2842,7 +2969,7 @@
 								contentTypes = [true, true, true, true, true, true];
 							}
 							node.onContentTypes = contentTypes;
-							chrome.contextMenus.update(window.globals.crmValues.contextMenuIds[node.id], {
+							chrome.contextMenus.update(globalObject.globals.crmValues.contextMenuIds[node.id], {
 								contexts: getContexts(node.onContentTypes)
 							}, function () {
 								updateCrm();
@@ -3001,7 +3128,7 @@
 						var newLibrary = {
 							name: _this.message.name
 						};
-						if (optionals['url']) {
+						if (optionals.url) {
 							if (_this.message.url.indexOf('.js') === _this.message.url.length - 3) {
 								//Use URL
 								var done = false;
@@ -3012,9 +3139,9 @@
 										done = true;
 										newLibrary.code = xhr.responseText;
 										newLibrary.url = _this.message.url;
-										window.globals.storages.storageLocal.libraries.push(newLibrary);
+										globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
 										chrome.storage.local.set({
-											libraries: window.globals.storages.storageLocal.libraries
+											libraries: globalObject.globals.storages.storageLocal.libraries
 										});
 										_this.respondSuccess(newLibrary);
 									}
@@ -3029,9 +3156,9 @@
 								_this.respondError('No valid URL given');
 								return false;
 							}
-						} else if (optionals['code']) {
+						} else if (optionals.code) {
 							newLibrary.code = _this.message.code;
-							window.globals.storages.storageLocal.libraries.push(newLibrary);
+							globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
 							chrome.storage.local.set({
 								libraries: storageLocal.libraries
 							});
@@ -3064,9 +3191,9 @@
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							function doesLibraryExist(lib) {
-								for (var i = 0; i < window.globals.storages.storageLocal.libraries.length; i++) {
-									if (window.globals.storages.storageLocal.libraries[i].name.toLowerCase() === lib.name.toLowerCase()) {
-										return window.globals.storages.storageLocal.libraries[i].name;
+								for (var i = 0; i < globalObject.globals.storages.storageLocal.libraries.length; i++) {
+									if (globalObject.globals.storages.storageLocal.libraries[i].name.toLowerCase() === lib.name.toLowerCase()) {
+										return globalObject.globals.storages.storageLocal.libraries[i].name;
 									}
 								}
 								return false;
@@ -3097,9 +3224,9 @@
 									}
 								}
 							} else { //Object
-								var originalName = _this.message.libraries.name;
+								var name = _this.message.libraries.name;
 									if (!(_this.message.libraries.name = doesLibraryExist(_this.message.libraries))) {
-										_this.respondError('Library ' + originalName + ' is not registered');
+										_this.respondError('Library ' + name + ' is not registered');
 										return false;
 									}
 								if (!isAlreadyUsed(_this.message.libraries)) {
@@ -3158,9 +3285,9 @@
 					], function () {
 						_this.getNodeFromId(_this.message.nodeId).run(function (node) {
 							function doesLibraryExist(lib) {
-								for (var i = 0; i < window.globals.storages.storageLocal.libraries.length; i++) {
-									if (window.globals.storages.storageLocal.libraries[i].name.toLowerCase() === lib.name.toLowerCase()) {
-										return window.globals.storages.storageLocal.libraries[i].name;
+								for (var i = 0; i < globalObject.globals.storages.storageLocal.libraries.length; i++) {
+									if (globalObject.globals.storages.storageLocal.libraries[i].name.toLowerCase() === lib.name.toLowerCase()) {
+										return globalObject.globals.storages.storageLocal.libraries[i].name;
 									}
 								}
 								return false;
@@ -3191,9 +3318,9 @@
 									}
 								}
 							} else { //Object
-								var originalName = _this.message.libraries.name;
+								var name = _this.message.libraries.name;
 									if (!(_this.message.libraries.name = doesLibraryExist(_this.message.libraries))) {
-										_this.respondError('Library ' + originalName + ' is not registered');
+										_this.respondError('Library ' + name + ' is not registered');
 										return false;
 									}
 								if (!isAlreadyUsed(_this.message.libraries)) {
@@ -3379,7 +3506,7 @@
 										position: 'lastChild',
 										node: _this.message.nodeId
 									}, {
-										children: _this.lookup(toMove.path, window.globals.crm.crmTree, true),
+										children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree, true),
 										index: toMove.path[toMove.path.length - 1]	
 									});
 							}
@@ -3420,7 +3547,7 @@
 										position: 'lastChild',
 										node: _this.message.nodeId
 									}, {
-										children: _this.lookup(toMove.path, window.globals.crm.crmTree, true),
+										children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree, true),
 										index: toMove.path[toMove.path.length - 1]	
 									});
 							}
@@ -3542,7 +3669,7 @@
 		var _this = this;
 
 		//Capture old CRM tree
-		var oldCrmTree = JSON.parse(JSON.stringify(window.globals.crm.crmTree));
+		var oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree));
 
 		//Put the node in the tree
 		var relativeNode;
@@ -3564,19 +3691,19 @@
 		if (!this.checkType(position.relation, 'string', 'relation', true)) {
 			return false;
 		}
-		relativeNode = relativeNode || window.globals.crm.crmTree;
+		relativeNode = relativeNode || globalObject.globals.crm.crmTree;
 
-		var isRoot = relativeNode === window.globals.crm.crmTree;
+		var isRoot = relativeNode === globalObject.globals.crm.crmTree;
 
 		switch (position.relation) {
 			case 'before':
 				if (isRoot) {
-					pushIntoArray(node, 0, window.globals.crm.crmTree);
-					if (removeOld && window.globals.crm.crmTree === removeOld.children) {
+					pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children) {
 						removeOld.index++;
 					}
 				} else {
-					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					parentChildren = this.lookup(relativeNode.path, globalObject.globals.crm.crmTree, true);
 					pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
 					if (removeOld && parentChildren === removeOld.children) {
 						removeOld.index++;
@@ -3585,12 +3712,12 @@
 				break;
 			case 'firstSibling':
 				if (isRoot) {
-					pushIntoArray(node, 0, window.globals.crm.crmTree);
-					if (removeOld && window.globals.crm.crmTree === removeOld.children) {
+					pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children) {
 						removeOld.index++;
 					}
 				} else {
-					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					parentChildren = this.lookup(relativeNode.path, globalObject.globals.crm.crmTree, true);
 					pushIntoArray(node, 0, parentChildren);
 					if (removeOld && parentChildren === removeOld.children) {
 						removeOld.index++;
@@ -3599,9 +3726,9 @@
 				break;
 			case 'after':
 				if (isRoot) {
-					pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
+					pushIntoArray(node, globalObject.globals.crm.crmTree.length, globalObject.globals.crm.crmTree);
 				} else {
-					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					parentChildren = this.lookup(relativeNode.path, globalObject.globals.crm.crmTree, true);
 					if (relativeNode.path.length > 0) {
 						pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1] + 1, parentChildren);
 					}
@@ -3609,16 +3736,16 @@
 				break;
 			case 'lastSibling':
 				if (isRoot) {
-					pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
+					pushIntoArray(node, globalObject.globals.crm.crmTree.length, globalObject.globals.crm.crmTree);
 				} else {
-					parentChildren = this.lookup(relativeNode.path, window.globals.crm.crmTree, true);
+					parentChildren = this.lookup(relativeNode.path, globalObject.globals.crm.crmTree, true);
 					pushIntoArray(node, parentChildren.length, parentChildren);
 				}
 				break;
 			case 'firstChild':
 				if (isRoot) {
-					pushIntoArray(node, 0, window.globals.crm.crmTree);
-					if (removeOld && window.globals.crm.crmTree === removeOld.children) {
+					pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children) {
 						removeOld.index++;
 					}
 				} else if (relativeNode.type === 'menu') {
@@ -3634,7 +3761,7 @@
 			default:
 			case 'lastChild':
 				if (isRoot) {
-					pushIntoArray(node, window.globals.crm.crmTree.length, window.globals.crm.crmTree);
+					pushIntoArray(node, globalObject.globals.crm.crmTree.length, globalObject.globals.crm.crmTree);
 				} else if (relativeNode.type === 'menu') {
 					pushIntoArray(node, relativeNode.children.length, relativeNode.children);
 				} else {
@@ -3654,7 +3781,7 @@
 			settingsChanges: [{
 				key: 'crm',
 				oldValue: oldCrmTree,
-				newValue: JSON.parse(JSON.stringify(window.globals.crm.crmTree))
+				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree))
 			}]
 		});
 
@@ -3662,7 +3789,7 @@
 	};
 
 	CRMFunction.prototype.getNodeFromId = function (id, makeSafe, synchronous) {
-		var node = (makeSafe ? window.globals.crm.crmByIdSafe : window.globals.crm.crmById)[id];
+		var node = (makeSafe ? globalObject.globals.crm.crmByIdSafe : globalObject.globals.crm.crmById)[id];
 		if (node) {
 			if (synchronous) {
 				return node;
@@ -3798,7 +3925,7 @@
 		var notPermitted = [];
 		
 		var node;
-		if (!(node = window.globals.crm.crmById[this.message.id])) {
+		if (!(node = globalObject.globals.crm.crmById[this.message.id])) {
 			this.respondError('The node you are running this script from no longer exist, no CRM API calls are allowed');
 			return false;
 		}
@@ -3854,7 +3981,7 @@
 				callbackId: callbackIndex,
 				params: params
 			});
-		}
+		};
 	}
 
 	function createReturnFunction(message, callbackIndex) {
@@ -3863,17 +3990,213 @@
 				callbackId: callbackIndex,
 				params: [result]
 			});
+		};
+	}
+
+	function sendMessageThroughComm(message) {
+		var instancesObj = globalObject.globals.crmValues.nodeInstances[message.id];
+		var instancesArr = [];
+		for (var tabInstance in instancesObj) {
+			if (instancesObj.hasOwnProperty(tabInstance)) {
+				instancesArr.push({
+					id: tabInstance,
+					instance: instancesObj[tabInstance]
+				});
+			}
+		}		
+
+		var args = [];
+		var fns = [];
+		for (var i = 0; i < message.args.length; i++) {
+			if (message.args[i].type === 'fn') {
+				fns.push(message.args[i]);
+			} else if (message.args[i].type === 'arg') {
+				if (args.length > 2 && typeof args[0] === 'string') {
+					args = args.slice(1);
+				}
+				args.push(message.args[i]);
+			}
+		}
+
+		if (fns.length > 0) {
+			console.warn('Message responseCallbacks are not supported');
+		}
+
+		for (i = 0; i < instanceArr.length; i++) {
+			tabData[instanceArr[i].id].nodes[message.id].port.postMessage({
+				messageType: 'instanceMessage',
+				message: args[0]
+			});
 		}
 	}
 
+	function checkForRuntimeMessages(message) {
+		var api = message.api.split('.').slice(1);
+		if (message.api.split('.')[0] !== 'runtime') {
+			return false;
+		}
+		var i;
+		var args = [];
+		var fns = [];
+		var returns = [];
+		switch (api) {
+			case 'getBackgroundPage':
+				console.warn('The chrome.runtime.getBackgroundPage API should not be used');
+				if (!message.args[0] || message.args[0].type !== 'fn') {
+					throwChromeError(message, 'First argument of getBackgroundPage should be a function');
+					return true;
+				}
+				respondToCrmAPI(message, 'success', {
+					callbackId: message.args[0].val,
+					params: [{}]
+				});
+				return true;
+			case 'openOptionsPage':
+				if (message.args[0] && message.args[0].type !== 'fn') {
+					throwChromeError(message, 'First argument of openOptionsPage should be a function');
+					return true;
+				}
+				chrome.runtime.openOptionsPage(function() {
+					if (message.args[0]) {
+						respondToCrmAPI(message, 'success', {
+							callbackId: message.args[0].val,
+							params: [] 
+						});
+					}
+				});
+				return true;
+			case 'getManifest':
+				if (!message.args[0] || message.args[0].type !== 'return') {
+					throwChromeError(message, 'getManifest should have a function to return to');
+					return true;
+				}
+				createReturnFunction(message, message.args[0].val)(chrome.runtime.getManifest());
+				return true;
+			case 'getURL':
+				for (i = 0; i < message.args.length; i++) {
+					if (message.args[i].type === 'return') {
+						returns.push(message.args[i].val);
+					} else if (message.args[i].type === 'arg') {
+						args.push(message.args[i].val);
+					} else {
+						throwChromeError(message, 'getURL should not have a function as an argument');
+						return true;
+					}
+				}
+				if (returns.length === 0 || args.length === 0) {
+					throwChromeError(message, 'getURL should be a return function with at least one argument');
+				}
+				createReturnFunction(message, returns[0])(chrome.runtime.getURL(args[0]));
+				return true;
+			case 'connect':
+			case 'connectNative':
+			case 'setUninstallURL':
+			case 'sendNativeMessage':
+			case 'requestUpdateCheck':
+				throwChromeError(message, 'This API should not be accessed');
+				return true;
+			case 'reload':
+				chrome.runtime.reload();
+				return true;
+			case 'restart':
+				chrome.runtime.restart();
+				return true;
+			case 'restartAfterDelay':
+				for (i = 0; i < message.args.length; i++) {
+					if (message.args[i].type === 'fn') {
+						fns.push(message.args[i].val);
+					} else if (message.args[i].type === 'arg') {
+						args.push(message.args[i].val);
+					} else {
+						throwChromeError(message, 'restartAfterDelay should not have a return as an argument');
+						return true;
+					}
+				}
+				chrome.runtime.restartAfterDelay(args[0], function() {
+					respondToCrmAPI(message, 'success', {
+						callbackId: fns[0],
+						params: []
+					});
+				});
+				return true;
+			case 'getPlatformInfo':
+				if (message.args[0] && message.args[0].type !== 'fn') {
+					throwChromeError(message, 'First argument of getPlatformInfo should be a function');
+					return true;
+				}
+				chrome.runtime.getPlatformInfo(function(platformInfo) {
+					if (message.args[0]) {
+						respondToCrmAPI(message, 'success', {
+							callbackId: message.args[0].val,
+							params: [platformInfo] 
+						});
+					}
+				});
+				return true;
+			case 'getPackageDirectoryEntry':
+				if (message.args[0] && message.args[0].type !== 'fn') {
+					throwChromeError(message, 'First argument of getPackageDirectoryEntry should be a function');
+					return true;
+				}
+				chrome.runtime.getPackageDirectoryEntry(function(directoryInfo) {
+					if (message.args[0]) {
+						respondToCrmAPI(message, 'success', {
+							callbackId: message.args[0].val,
+							params: [directoryInfo] 
+						});
+					}
+				});
+				return true;
+		}
+
+		if (api.split('.').length > 1) {
+			if (!message.args[0] || message.args[0].type !== 'fn') {
+				throwChromeError(message, 'First argument should be a function');
+			}
+
+			var allowedTargets = [
+				'onStartup',
+				'onInstalled',
+				'onSuspend',
+				'onSuspendCanceled',
+				'onUpdateAvailable',
+				'onRestartRequired'
+			];
+			var listenerTarget = api.split('.')[0];
+			if (allowedTargets.indexOf(listenerTarget) > -1) {
+				chrome.runtime[listenerTarget].addListener(function() {
+					var params = Array.prototype.slice.apply(arguments);
+					respondToCrmAPI(message, 'success', {
+						callbackId: message.args[0].val,
+						params: params
+					});
+				});
+				return true;
+			} else if (allowedTargets === 'onMessage') {
+				throwChromeError(message, 'This method of listening to messages is not allowed,' +
+					' use crmAPI.comm instead');
+				return true;
+			} else {
+				throwChromeError(message, 'You are not allowed to listen to given event');
+				return true;
+			}
+		}
+		return false;
+	}
+
 	function chromeHandler(message) {
-		var node = window.globals.crm.crmById[message.id];
+		var node = globalObject.globals.crm.crmById[message.id];
 		if (!/[a-z|A-Z|0-9]*/.test(message.api)) {
 			throwChromeError(message, 'Passed API "' + message.api + '" is not alphanumeric.');
 			return false;
 		}
+		else if (checkForRuntimeMessages(message)) {
+			return false;
+		}
 		else if (message.api === 'runtime.sendMessage') {
-			throwChromeError(message, 'The chrome.runtime.sendMessage API is not allowed');
+			console.warn('The chrome.runtime.sendMessage API is not meant to be used, use ' + 
+				'crmAPI.comm instead');
+			sendMessageThroughComm(message);
 			return false;
 		}
 		var apiPermission = message.requestType || message.api.split('.')[0];
@@ -3896,7 +4219,7 @@
 			throwChromeError(message, 'Permissions ' + apiPermission + ' is not available for use or does not exist.');
 			return false;
 		}
-		if (window.globals.availablePermissions.indexOf(apiPermission) === -1) {
+		if (globalObject.globals.availablePermissions.indexOf(apiPermission) === -1) {
 			throwChromeError(message, 'Permissions ' + apiPermission + ' not available to the extension, visit options page');
 			chrome.storage.local.get('requestPermissions', function (storageData) {
 				var perms = storageData.requestPermissions || [apiPermission];
@@ -3926,12 +4249,13 @@
 
 		var result;
 		try {
-			result = window.sandboxChrome(window.globals.chrome, message.api, params);
+			result = sandboxes.sandboxChrome(globalObject.globals.chrome, message.api, params);
 			for (i = 0; i < returnFunctions.length; i++) {
 				returnFunctions[i](result);
 			}
 		} catch (e) {
 			throwChromeError(message, e.message, e.stack);
+			return false;
 		}
 		return true;
 	}
@@ -4006,7 +4330,7 @@
 				return {
 					url: include,
 					not: false
-				}
+				};
 			}).filter(function(include) {
 				return !!include.url;
 			}));
@@ -4017,7 +4341,7 @@
 				return {
 					url: match,
 					not: false
-				}
+				};
 			}).filter(function(match) {
 				return !!match.url;
 			}));
@@ -4028,7 +4352,7 @@
 				return {
 					url: exclude,
 					not: false
-				}
+				};
 			}).filter(function(exclude) {
 				return !!exclude.url;
 			}));
@@ -4054,7 +4378,7 @@
 				defaultOn: (metaTags.CRM_defaultOn = getlastMetaTagValue(metaTags, 'CRM_defaultOn') || false),
 				toggle: (metaTags.CRM_toggle = getlastMetaTagValue(metaTags, 'CRM_toggle') || false),
 				launchMode: launchMode
-			}
+			};
 		} else {
 			node.type = 'script';
 
@@ -4064,10 +4388,9 @@
 				metaTags.CRM_libraries.forEach(function(item) {
 					try {
 						libs.push(JSON.stringify(item));
-					} catch (e) {
-					};
+					} catch (e) { }
 				});
-			};
+			}
 			metaTags.CRM_libraries = libs;
 
 			var anonymousLibs;
@@ -4087,7 +4410,7 @@
 					anonymousLibs[i] = {
 						url: anonymousLibs[i],
 						name: null
-					}
+					};
 				}
 			}
 
@@ -4097,8 +4420,8 @@
 					name: anonymousLib.url,
 					url: anonymousLib.url,
 					scriptId: node.id
-				})
-			})
+				});
+			});
 
 			for (var i = 0; i < anonymousLibs.length; i++) {
 				libs.push(anonymousLibs[i].url);
@@ -4159,25 +4482,24 @@
 
 
 	function removeOldNode(id) {
-		var children = window.globals.crm.crmById[id].children;
+		var children = globalObject.globals.crm.crmById[id].children;
 		if (children) {
 			for (var i = 0; i < children.length; i++) {
 				removeOldNode(children[i].id);
 			}
 		}
 
-		if (window.globals.background.byId[id]) {
-			window.globals.background.byId[id].worker.terminate();
-			delete window.globals.background.byId[id];
+		if (globalObject.globals.background.byId[id]) {
+			globalObject.globals.background.byId[id].worker.terminate();
+			delete globalObject.globals.background.byId[id];
 		}
 
-		var path = window.globals.crm.crmById[id].path;
-		delete window.globals.crm.crmById[id];
-		delete window.globals.crm.crmByIdSafe[id];
+		var path = globalObject.globals.crm.crmById[id].path;
+		delete globalObject.globals.crm.crmById[id];
+		delete globalObject.globals.crm.crmByIdSafe[id];
 
-		var contextMenuId = window.globals.crmValues.contextMenuIds[id];
+		var contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
 		if (contextMenuId !== undefined && contextMenuId !== null) {
-			console.log(contextMenuId);
 			chrome.contextMenus.remove(contextMenuId, function() {
 				chrome.runtime.lastError;
 			});
@@ -4187,9 +4509,9 @@
 	function registerNode(node, oldPath) {
 		//Update it in CRM tree
 		if (oldPath !== undefined && oldPath !== null) {
-			eval('window.globals.storages.settingsStorage.crm[' + oldPath.join('][') + '] = node');
+			eval('globalObject.globals.storages.settingsStorage.crm[' + oldPath.join('][') + '] = node');
 		} else {
-			window.globals.storages.settingsStorage.crm.push(node);
+			globalObject.globals.storages.settingsStorage.crm.push(node);
 		}
 	}
 
@@ -4232,9 +4554,9 @@
 		};
 
 		if (hasOldNode) {
-			node.nodeInfo.installDate = (window.globals.crm.crmById[oldNodeId] &&
-				window.globals.crm.crmById[oldNodeId].nodeInfo &&
-				window.globals.crm.crmById[oldNodeId].nodeInfo.installDate) || node.nodeInfo.installDate;
+			node.nodeInfo.installDate = (globalObject.globals.crm.crmById[oldNodeId] &&
+				globalObject.globals.crm.crmById[oldNodeId].nodeInfo &&
+				globalObject.globals.crm.crmById[oldNodeId].nodeInfo.installDate) || node.nodeInfo.installDate;
 		}
 
 		//Content types
@@ -4290,22 +4612,22 @@
 		});
 
 		if (node.type === 'script') {
-			node = window.globals.constants.templates.getDefaultScriptNode(node);
+			node = globalObject.globals.constants.templates.getDefaultScriptNode(node);
 		} else {
-			node = window.globals.constants.templates.getDefaultStylesheetNode(node);
+			node = globalObject.globals.constants.templates.getDefaultStylesheetNode(node);
 		}
 
 		if (hasOldNode) {
-			var path = window.globals.crm.crmById[oldNodeId].path;
+			var path = globalObject.globals.crm.crmById[oldNodeId].path;
 			return {
 				node: node,
 				path: path,
 				oldNodeId: oldNodeId
-			}
+			};
 		} else {
 			return {
 				node: node
-			}
+			};
 		}
 
 	}
@@ -4316,7 +4638,6 @@
 			hasOldNode = true;
 		}
 
-		var node;
 		var templates = getTemplates();
 		switch (node.type) {
 			case 'script':
@@ -4340,16 +4661,16 @@
 		node.permissions = allowedPermissions;
 
 		if (hasOldNode) {
-			var path = window.globals.crm.crmById[oldNodeId].path;
+			var path = globalObject.globals.crm.crmById[oldNodeId].path;
 			return {
 				node: node,
 				path: path,
 				oldNodeId: oldNodeId
-			}
+			};
 		} else {
 			return {
 				node: node
-			}
+			};
 		}
 	}
 
@@ -4469,18 +4790,18 @@
 	function updateScripts(callback) {
 		var checking = [];
 		var updatedScripts = [];
-		var oldTree = JSON.parse(JSON.stringify(window.globals.storages.settingsStorage.crm));
+		var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages.settingsStorage.crm));
 
 		function onDone() {
 			var updatedData = updatedScripts.map(function(updatedScript) {
-				var oldNode = window.globals.crm.crmById[updatedScript.oldNodeId];
+				var oldNode = globalObject.globals.crm.crmById[updatedScript.oldNodeId];
 				return {
 					name: updatedScript.node.name,
 					id: updatedScript.node.id,
 					oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version) || undefined,
 					newVersion: updatedScript.node.nodeInfo.version
-				}
-			})
+				};
+			});
 
 			updatedScripts.forEach(function(updatedScript) {
 				if (updatedScript.path) { //Has old node
@@ -4494,7 +4815,7 @@
 			uploadChanges('settings', [{
 				key: 'crm',
 				oldValue: oldTree,
-				newValue: window.globals.storages.settingsStorage.crm
+				newValue: globalObject.globals.storages.settingsStorage.crm
 			}]);
 
 			chrome.storage.local.get('updatedScripts', function(storage) {
@@ -4508,9 +4829,9 @@
 			callback && callback(updatedData);
 		}
 
-		for (var id in window.globals.crm.crmById) {
-			if (window.globals.crm.crmById.hasOwnProperty(id)) {
-				var node = window.globals.crm.crmById[id];
+		for (var id in globalObject.globals.crm.crmById) {
+			if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
+				var node = globalObject.globals.crm.crmById[id];
 				var isRoot = node.nodeInfo && node.nodeInfo.isRoot;
 				var downloadURL = node.nodeInfo &&
 					node.nodeInfo.source &&
@@ -4538,7 +4859,7 @@
 		hashes = hashes.reverse();
 		for (var i = 0; i < hashes.length; i++) {
 			var lowerCase = hash.algorithm.toLowerCase;
-			if (window.globals.constants.supportedHashes.indexOf(lowerCase()) !== -1) {
+			if (globalObject.globals.constants.supportedHashes.indexOf(lowerCase()) !== -1) {
 				lastMatchingHash = {
 					algorithm: lowerCase,
 					hash: hashes[i].hash
@@ -4587,7 +4908,7 @@
 				if (readerResults[1]) {
 					callback(readerResults[0], readerResults[1]);
 				}
-			}
+			};
 			blobReader.readAsDataURL(xhr.response);
 			
 			var textReader = new FileReader();
@@ -4596,7 +4917,7 @@
 				if (readerResults[0]) {
 					callback(readerResults[0], readerResults[1]);
 				}
-			}
+			};
 			textReader.readAsText(xhr.response);
 		};
 		if (onError) {
@@ -4608,19 +4929,19 @@
 
 	function getUrlData(scriptId, url, callback) {
 		//First check if the data has already been fetched
-		if (window.globals.storages.urlDataPairs[url]) {
-			if (window.globals.storages.urlDataPairs[url].refs.indexOf(scriptId) === -1) {
-				window.globals.storages.urlDataPairs[url].refs.push(scriptId);
+		if (globalObject.globals.storages.urlDataPairs[url]) {
+			if (globalObject.globals.storages.urlDataPairs[url].refs.indexOf(scriptId) === -1) {
+				globalObject.globals.storages.urlDataPairs[url].refs.push(scriptId);
 			}
-			callback(window.globals.storages.urlDataPairs[url].dataURI, window.globals.storages.urlDataPairs[url].dataString);
+			callback(globalObject.globals.storages.urlDataPairs[url].dataURI, globalObject.globals.storages.urlDataPairs[url].dataString);
 		} else {
 			convertFileToDataURI(url, function(dataURI, dataString) {
 				//Write the data away to the url-data-pairs object
-				window.globals.storages.urlDataPairs[url] = {
+				globalObject.globals.storages.urlDataPairs[url] = {
 					dataURI: dataURI,
 					dataString: dataString,
 					refs: [scriptId]
-				}
+				};
 				callback(dataURI, dataString);
 			});
 		}
@@ -4644,22 +4965,22 @@
 		var registerHashes = getHashes(url);
 		if (window.navigator.onLine) {
 			getUrlData(scriptId, url, function (dataURI, dataString) {
-				var resources = window.globals.storages.resources;
+				var resources = globalObject.globals.storages.resources;
 				resources[scriptId] = resources[scriptId] || {};
 				resources[scriptId][name] = {
 					name: name,
 					sourceUrl: url,
 					matchesHashes: matchesHashes(dataString, registerHashes),
 					crmUrl: 'chrome-extension://' + extensionId + '/resource/' + scriptId + '/' + name
-				}
+				};
 				chrome.storage.local.set({
 					resources: resources,
-					urlDataPairs: window.globals.storages.urlDataPairs
+					urlDataPairs: globalObject.globals.storages.urlDataPairs
 				});
 			});
 		}
 
-		var resourceKeys = window.globals.storages.resourceKeys;
+		var resourceKeys = globalObject.globals.storages.resourceKeys;
 		for (var i = 0; i < resourceKeys.length; i++) {
 			if (resourceKeys[i].name === name && resourceKeys[i].scriptId === scriptId) {
 				return;
@@ -4677,16 +4998,16 @@
 	}
 
 	function compareResource(key) {
-		var resources = window.globals.storages.resources;
+		var resources = globalObject.globals.storages.resources;
 		convertFileToDataURI(key.sourceUrl, function (dataURI, dataString) {
 			if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) || resources[key.scriptId][key.name].dataURI !== dataURI) {
 				//Data URIs do not match, just update the url ref
-				window.globals.storages.urlDataPairs[key.url].dataURI = dataURI;
-				window.globals.storages.urlDataPairs[key.url].dataString = dataString;
+				globalObject.globals.storages.urlDataPairs[key.url].dataURI = dataURI;
+				globalObject.globals.storages.urlDataPairs[key.url].dataString = dataString;
 
 				chrome.storage.local.set({
 					resources: resources,
-					urlDataPairs: window.globals.storages.urlDataPairs
+					urlDataPairs: globalObject.globals.storages.urlDataPairs
 				});
 			}
 		});
@@ -4695,47 +5016,47 @@
 	function generateUpdateCallback(resourceKey) {
 		return function () {
 			compareResource(resourceKey);
-		}
+		};
 	}
 
 	function updateResourceValues() {
-		for (var i = 0; i < window.globals.storages.resourceKeys.length; i++) {
-			setTimeout(generateUpdateCallback(window.globals.storages.resourceKeys[i]), (i * 1000));
+		for (var i = 0; i < globalObject.globals.storages.resourceKeys.length; i++) {
+			setTimeout(generateUpdateCallback(globalObject.globals.storages.resourceKeys[i]), (i * 1000));
 		}
 	}
 
 	function removeResource(name, url, scriptId) {
-		for (var i = 0; i < window.globals.storages.resourceKeys.length; i++) {
-			if (window.globals.storages.resourceKeys[i].name === name && window.globals.storages.resourceKeys[i].scriptId === scriptId && window.globals.storages.resourceKeys[i].url === url) {
-				window.globals.storages.resourceKeys.splice(i, 1);
+		for (var i = 0; i < globalObject.globals.storages.resourceKeys.length; i++) {
+			if (globalObject.globals.storages.resourceKeys[i].name === name && globalObject.globals.storages.resourceKeys[i].scriptId === scriptId && globalObject.globals.storages.resourceKeys[i].url === url) {
+				globalObject.globals.storages.resourceKeys.splice(i, 1);
 				break;
 			}
 		}
 
-		var urlDataLink = window.globals.storages.urlDataPairs[window.globals.storages.resources[scriptId][name].url];
+		var urlDataLink = globalObject.globals.storages.urlDataPairs[globalObject.globals.storages.resources[scriptId][name].url];
 		if (urlDataLink) {
 			urlDataLink.refs.splice(urlDataLink.indexOf(scriptId), 1);
 			if (urlDataLink.refs.length === 0) {
 				//No more refs, clear it
-				delete window.globals.storages.urlDataPairs[window.globals.storages.resources[scriptId][name].url];
+				delete globalObject.globals.storages.urlDataPairs[globalObject.globals.storages.resources[scriptId][name].url];
 			}
 		}
-		if (window.globals.storages.resources && window.globals.storages.resources[scriptId] && window.globals.storages.resources[scriptId][name]) {
-			delete window.globals.storages.resources[scriptId][name];
+		if (globalObject.globals.storages.resources && globalObject.globals.storages.resources[scriptId] && globalObject.globals.storages.resources[scriptId][name]) {
+			delete globalObject.globals.storages.resources[scriptId][name];
 		}
 
 		chrome.storage.local.set({
-			resourceKeys: window.globals.storages.resourceKeys,
-			resources: window.globals.storages.resources,
-			urlDataPairs: window.globals.storages.urlDataPairs
+			resourceKeys: globalObject.globals.storages.resourceKeys,
+			resources: globalObject.globals.storages.resources,
+			urlDataPairs: globalObject.globals.storages.urlDataPairs
 		});
 	}
 
 	function checkIfResourcesAreUsed() {
 		var resourceNames = [];
-		for (var resourceForScript in window.globals.storages.resources) {
-			if (window.globals.storages.resources.hasOwnProperty(resourceForScript) && window.globals.storages.resources[resourceForScript]) {
-				var scriptResources = window.globals.storages.resources[resourceForScript];
+		for (var resourceForScript in globalObject.globals.storages.resources) {
+			if (globalObject.globals.storages.resources.hasOwnProperty(resourceForScript) && globalObject.globals.storages.resources[resourceForScript]) {
+				var scriptResources = globalObject.globals.storages.resources[resourceForScript];
 				for (var resourceName in scriptResources) {
 					if (scriptResources.hasOwnProperty(resourceName) && scriptResources[resourceName]) {
 						resourceNames.push(scriptResources.name);
@@ -4744,15 +5065,15 @@
 			}
 		}
 
-		for (var id in window.globals.crm.crmById) {
-			if (window.globals.crm.crmById.hasOwnProperty(id) && window.globals.crm.crmById[id]) {
-				if (window.globals.crm.crmById[id].type === 'script') {
+		for (var id in globalObject.globals.crm.crmById) {
+			if (globalObject.globals.crm.crmById.hasOwnProperty(id) && globalObject.globals.crm.crmById[id]) {
+				if (globalObject.globals.crm.crmById[id].type === 'script') {
 					var i;
-					if (window.globals.crm.crmById[id].value.script) {
+					if (globalObject.globals.crm.crmById[id].value.script) {
 						var resourceObj = {};
-						var metaTags = getMetaTags(window.globals.crm.crmById[id].value.script);
+						var metaTags = getMetaTags(globalObject.globals.crm.crmById[id].value.script);
 						var resources = metaTags.resource;
-						var libs = window.globals.crm.crmById[id].value.libraries;
+						var libs = globalObject.globals.crm.crmById[id].value.libraries;
 						for (i = 0; i < libs.length; i++) {
 							if (libs[i] === null) {
 								resourceObj[libs[i].url] = true;
@@ -4773,14 +5094,14 @@
 	}
 
 	function getResourceData(name, scriptId) {
-		if (window.globals.storages.resources[scriptId][name] && window.globals.storages.resources[scriptId][name].matchesHashes) {
-			return window.globals.storages.urlDataPairs[window.globals.storages.resources[scriptId][name].url].dataURI;
+		if (globalObject.globals.storages.resources[scriptId][name] && globalObject.globals.storages.resources[scriptId][name].matchesHashes) {
+			return globalObject.globals.storages.urlDataPairs[globalObject.globals.storages.resources[scriptId][name].url].dataURI;
 		}
 		return null;
 	}
 
 	function getScriptResources(scriptId) {
-		return window.globals.storages.resources[scriptId];
+		return globalObject.globals.storages.resources[scriptId];
 	}
 
 	function getResourcesArrayForScript(scriptId) {
@@ -4854,7 +5175,7 @@
 				launchMode: 1,
 				triggers: [],
 				code: data.code
-			}
+			};
 		}
 
 		var triggers = [];
@@ -4895,10 +5216,10 @@
 				return {
 					url: trigger,
 					not: false
-				}
+				};
 			}),
 			code: data.code
-		}
+		};
 	}
 
 	function installStylesheet(data) {
@@ -4906,7 +5227,7 @@
 
 		stylesheetData.sections.forEach(function(section) {
 			var sectionData = extractStylesheetData(section);
-			var node = window.globals.constants.templates.getDefaultStylesheetNode({
+			var node = globalObject.globals.constants.templates.getDefaultStylesheetNode({
 				isLocal: false,
 				name: stylesheetData.name,
 				nodeInfo: {
@@ -4936,8 +5257,8 @@
 	//#region Message Passing
 	function createCallbackMessageHandlerInstance(tabId, id) {
 		return function(data) {
-			window.globals.sendCallbackMessage(tabId, id, data);
-		}
+			globalObject.globals.sendCallbackMessage(tabId, id, data);
+		};
 	}
 
 	function respondToInstanceMessageCallback(message, status, data) {
@@ -4945,10 +5266,10 @@
 			type: status,
 			callbackId: message.onFinish,
 			messageType: 'callback'
-		}
+		};
 		msg.data = data;
 		try {
-			window.globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
+			globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id].port.postMessage(msg);
 		} catch (e) {
 			if (e.message === 'Converting circular structure to JSON') {
 				respondToInstanceMessageCallback(message, 'error', 'Converting circular structure to JSON, getting a response from this API will not work');
@@ -4960,9 +5281,9 @@
 
 	function sendInstanceMessage(message) {
 		var data = message.data;
-		var tabData = window.globals.crmValues.tabData;
-		if (window.globals.crmValues.nodeInstances[data.id][data.toInstanceId] && tabData[data.toInstanceId] && tabData[data.toInstanceId].nodes[data.id]) {
-			if (window.globals.crmValues.nodeInstances[data.id][data.toInstanceId].hasHandler) {
+		var tabData = globalObject.globals.crmValues.tabData;
+		if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId] && tabData[data.toInstanceId] && tabData[data.toInstanceId].nodes[data.id]) {
+			if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId].hasHandler) {
 				tabData[data.toInstanceId].nodes[data.id].port.postMessage({
 					messageType: 'instanceMessage',
 					message: data.message
@@ -4980,7 +5301,7 @@
 		var msg = message.message;
 		var cb = message.response;
 
-		window.globals.background.byId[message.id].post({
+		globalObject.globals.background.byId[message.id].post({
 			type: 'comm',
 			message: {
 				type: 'backgroundMessage',
@@ -4992,7 +5313,7 @@
 	}
 
 	function changeInstanceHandlerStatus(message) {
-		window.globals.crmValues.nodeInstances[message.id][message.tabId].hasHandler = message.data.hasHandler;
+		globalObject.globals.crmValues.nodeInstances[message.id][message.tabId].hasHandler = message.data.hasHandler;
 	}
 
 	function addNotificationListener(message) {
@@ -5007,9 +5328,9 @@
 	}
 
 	chrome.notifications.onClicked.addListener(function (notificationId) {
-		var notification = window.globals.notificationListeners[notificationId];
+		var notification = globalObject.globals.notificationListeners[notificationId];
 		if (notification && notification.onClick !== undefined) {
-			window.globals.sendCallbackMessage(notification.tabId, notification.id, {
+			globalObject.globals.sendCallbackMessage(notification.tabId, notification.id, {
 				err: false,
 				args: [notificationId],
 				callbackId: notification.onClick
@@ -5017,19 +5338,22 @@
 		}
 	});
 	chrome.notifications.onClosed.addListener(function(notificationId, byUser) {
-		var notification = window.globals.notificationListeners[notificationId];
+		var notification = globalObject.globals.notificationListeners[notificationId];
 		if (notification && notification.onDone !== undefined) {
-			window.globals.sendCallbackMessage(notification.tabId, notification.id, {
+			globalObject.globals.sendCallbackMessage(notification.tabId, notification.id, {
 				err: false,
 				args: [notificationId, byUser],
 				callbackId: notification.onClick
 			});
 		}
-		delete window.globals.notificationListeners[notificationId];
+		delete globalObject.globals.notificationListeners[notificationId];
 	});
 
 	function handleRuntimeMessage(message, messageSender, response) {
 		switch (message.type) {
+			case 'logCrmAPIValue':
+				logHandler(message.data);
+				break;
 			case 'resource':
 				resourceHandler(message.data);
 				break;
@@ -5037,6 +5361,7 @@
 				anonymousLibsHandler(message.data);
 				break;
 			case 'updateStorage':
+				debugger;
 				applyChanges(message.data);
 				break;
 			case 'sendInstanceMessage':
@@ -5070,7 +5395,7 @@
 				});
 				break;
 			case 'installUserScript':
-				var oldTree = JSON.parse(JSON.stringify(window.globals.storages.settingsStorage.crm));
+				var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages.settingsStorage.crm));
 				var newScript = installUserscript(message.data.metaTags,
 					message.data.script,
 					message.data.downloadURL,
@@ -5086,7 +5411,7 @@
 				uploadChanges('settings', [{
 					key: 'crm',
 					oldValue: oldTree,
-					newValue: window.globals.storages.settingsStorage.crm
+					newValue: globalObject.globals.storages.settingsStorage.crm
 				}]);
 				break;
 		}
@@ -5108,24 +5433,24 @@
 
 	window.createHandlerFunction = function(port) {
 		return function (message, messageSender, respond) {
-			var tabNodeData = window.globals.crmValues.tabData[message.tabId].nodes[message.id];
+			var tabNodeData = globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id];
 			if (!tabNodeData.port) {
 				if (compareArray(tabNodeData.secretKey, message.key)) {
 					delete tabNodeData.secretKey;
 					tabNodeData.port = port;
 
-					if (!window.globals.crmValues.nodeInstances[message.id]) {
-						window.globals.crmValues.nodeInstances[message.id] = {}
+					if (!globalObject.globals.crmValues.nodeInstances[message.id]) {
+						globalObject.globals.crmValues.nodeInstances[message.id] = {};
 					}
 
 					var instance;
 					var instancesArr = [];
-					for (instance in window.globals.crmValues.nodeInstances[message.id]) {
-						if (window.globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) &&
-							window.globals.crmValues.nodeInstances[message.id][instance]) {
+					for (instance in globalObject.globals.crmValues.nodeInstances[message.id]) {
+						if (globalObject.globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) &&
+							globalObject.globals.crmValues.nodeInstances[message.id][instance]) {
 
 							try {
-								window.globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
+								globalObject.globals.crmValues.tabData[instance].nodes[message.id].port.postMessage({
 									change: {
 										type: 'added',
 										value: message.tabId
@@ -5134,12 +5459,12 @@
 								});
 								instancesArr.push(instance);
 							} catch(e) {
-								delete window.globals.crmValues.nodeInstances[message.id][instance];
+								delete globalObject.globals.crmValues.nodeInstances[message.id][instance];
 							}
 						}
 					}
 
-					window.globals.crmValues.nodeInstances[message.id][message.tabId] = {
+					globalObject.globals.crmValues.nodeInstances[message.id][message.tabId] = {
 						hasHandler: false
 					};
 
@@ -5151,8 +5476,8 @@
 			} else {
 				handleCrmAPIMessage(message, messageSender, respond);
 			}
-		}
-	}
+		};
+	};
 	//#endregion
 
 	//#region Startup
@@ -5297,7 +5622,7 @@
 					line.from = {
 						index: sep.start,
 						line: i
-					}
+					};
 				}
 				if (sep.end >= end) {
 					line.to = {
@@ -5352,7 +5677,7 @@
 			return {
 				call: functionCall.join('.'),
 				args: args
-			}
+			};
 		},
 
 		/**
@@ -5628,7 +5953,7 @@
 				} else {
 					container[passes].push(position);
 				}
-			}
+			};
 		},
 
 		replaceChromeCalls: function (lines, passes, onError) {
@@ -5636,7 +5961,7 @@
 			var file = new window.TernFile('[doc]');
 			file.text = lines.join('\n');
 			var srv = new window.CodeMirror.TernServer({
-				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 			});
 			window.tern.withContext(srv.cx, function() {
 				file.ast = window.tern.parse(file.text, srv.passes, {
@@ -5738,7 +6063,7 @@
 	};
 
 	function getTemplates() {
-		return window.globals.constants.templates;
+		return globalObject.globals.constants.templates;
 	}
 
 	function parseOldCRMNode(string, openInNewTab) {
@@ -5779,7 +6104,7 @@
 				var scriptSplit = nodeData.split('%124');
 				var scriptLaunchMode = scriptSplit[0];
 				var scriptData = scriptSplit[1];
-				var triggers = undefined;
+				var triggers;
 				var launchModeString = scriptLaunchMode + '';
 				if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
 						triggers = launchModeString.split('1,')[1].split(',');
@@ -5864,7 +6189,6 @@
 					});
 				}, 200);
 			} else {
-
 				var result = handleFirstRun();
 				result.settingsStorage.crm = transferCRMFromOld(localStorage.getItem('whatpage'));
 
@@ -5873,8 +6197,8 @@
 					storageLocalCopy: result.storageLocalCopy,
 					chromeStorageLocal: result.storageLocal
 				});
-		}
-		}
+			}
+		};
 	}
 	//#endregion
 
@@ -5898,7 +6222,7 @@
 				var firstRunResult = handleFirstRun();
 				return function(resolve) {
 					resolve(firstRunResult);
-				}
+				};
 			}
 		}
 	}
@@ -5914,15 +6238,15 @@
 	}
 
 	function setStorages(storageLocalCopy, settingsStorage, chromeStorageLocal, callback) {
-		window.globals.storages.storageLocal = storageLocalCopy;
-		window.globals.storages.settingsStorage = settingsStorage;
+		globalObject.globals.storages.storageLocal = storageLocalCopy;
+		globalObject.globals.storages.settingsStorage = settingsStorage;
 
-		window.globals.storages.globalExcludes = setIfNotSet(chromeStorageLocal, 'globalExcludes', []);;
-		window.globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
-		window.globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
-		window.globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
-		window.globals.storages.globalExcludes.map(validatePatternUrl);
-		window.globals.storages.urlDataPairs = setIfNotSet(chromeStorageLocal, 'urlDataPairs', {});
+		globalObject.globals.storages.globalExcludes = setIfNotSet(chromeStorageLocal, 'globalExcludes', []);
+		globalObject.globals.storages.resources = setIfNotSet(chromeStorageLocal, 'resources', []);
+		globalObject.globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal, 'nodeStorage', {});
+		globalObject.globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
+		globalObject.globals.storages.globalExcludes.map(validatePatternUrl);
+		globalObject.globals.storages.urlDataPairs = setIfNotSet(chromeStorageLocal, 'urlDataPairs', {});
 
 		updateCRMValues();
 
@@ -6002,17 +6326,17 @@
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				chrome.runtime.onMessage.addListener(handleRuntimeMessage);
-				buildPageCRM(window.globals.storages.settingsStorage);
+				buildPageCRM(globalObject.globals.storages.settingsStorage);
 				createBackgroundPages();
 				addResourceWebRequestListener();
 
 				chrome.storage.local.get(function(storageLocal) {
-					window.globals.latestId = storageLocal.latestId || 0;
+					globalObject.globals.latestId = storageLocal.latestId || 0;
 				});
 				chrome.storage.onChanged.addListener(function (changes, areaName) {
 					if (areaName === 'local' && changes.latestId) {
 						var highest = changes.latestId.newValue > changes.latestId.oldValue ? changes.latestId.newValue : changes.latestId.oldvalue;
-						window.globals.latestId = highest
+						globalObject.globals.latestId = highest;
 					}
 				});
 
@@ -6022,14 +6346,14 @@
 				updateScripts();
 				window.setInterval(function() {
 					updateScripts();
-				}, 6 * 60 * 60 * 1000)
+				}, 6 * 60 * 60 * 1000);
 
 				window.getID = function(name) {
 					name = name.toLocaleLowerCase();
 					var matches = [];
-					for (var id in window.globals.crm.crmById) {
-						if (window.globals.crm.crmById.hasOwnProperty(id)) {
-							var node = window.globals.crm.crmById[id];
+					for (var id in globalObject.globals.crm.crmById) {
+						if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
+							var node = globalObject.globals.crm.crmById[id];
 							if (node.type === 'script' && typeof node.name === 'string' && name === node.name.toLocaleLowerCase()) {
 								matches.push({
 									id: id,
@@ -6050,7 +6374,101 @@
 							console.log('Id is', match.id, ', script is', match.node);
 						});
 					}
+				};
+
+				window.filter = function(nodeId, tabId) {
+					globalObject.globals.logging.filter = {
+						nodeId: nodeId,
+						tabId: tabId !== undefined ? tabId : null
+					};
+				};
+
+				window._listenIds = function(listener) {
+					listener(updateTabAndIdLists(true).ids);
+					globalObject.globals.listeners.ids.push(listener);
+				};
+
+				window._listenTabs = function(listener) {
+					listener(updateTabAndIdLists(true).tabs);
+					globalObject.globals.listeners.tabs.push(listener);
+				};
+
+				function sortMessages(messages) {
+					return messages.sort(function(a,b) {
+						return new Date(a.timestamp) - new Date(b.timestamp);
+					});
 				}
+
+				function getLog(id, tab) {
+					var messages = [];
+					if (id === 'all') {
+						for (var nodeId in globalObject.globals.logging) {
+							if (globalObject.globals.logging.hasOwnProperty(nodeId) &&
+								nodeId !== 'filter') {
+								messages = messages.concat(
+									globalObject.globals.logging[nodeId].logMessages
+								);
+							}
+						}
+						return sortMessages(messages);
+					} else {
+						messages = globalObject.globals.logging[nodeId].logMessages;
+						if (tab === 'all') {
+							return sortMessages(messages);
+						}
+						return sortMessages(messages.filter(function(message) {
+							return message.tabId === tab;
+						}));
+					}
+				}
+
+				function updateLog(id, tab) {
+					if (id === 'ALL') {
+						this.id = 'all';
+					} else {
+						this.id = id;
+					}
+					if (tab === 'ALL') {
+						this.tab = 'all';
+					} else if (tab.toLowerCase() === 'background') {
+						this.tab = 0;
+					} else {
+						this.tab = tab;
+					}
+
+					return getLog(this.id, this.tab);
+				}
+
+				window._listenLog = function(callback) {
+					var filterObj = {
+						id: 'all',
+						tab: 'all'
+					}
+					filterObj.update = _updateLog.bind(filterObj)
+
+					globalObject.globals.listeners.log.push(filterObj);
+
+					return getLog('all', 'all');
+				};
+
+				window._getIdCurrentTabs = function(id) {
+					var tabs = [];
+
+					var tabData = globalObject.globals.crmValues.tabData;
+					for (var tabId in tabData) {
+						if (tabData.hasOwnProperty(tabId)) {
+							if (tabData[tabId].nodes[id] || id === 0) {
+								if (tabId === '0') {
+									tabs.push('background');
+								} else {
+									tabs.push(tabId);
+								}
+							}
+						}
+					}
+
+					return tabs;
+				};
 			} catch(e) {
 				console.log(e);
 				throw e;
@@ -6058,8 +6476,114 @@
 		});
 	}());
 	//#endregion
-}(chrome.runtime.getURL('').split('://')[1].split('/')[0])); //Gets the extension's URL through a blocking instead of a callback function
+}(
+	chrome.runtime.getURL('').split('://')[1].split('/')[0], //Gets the extension's URL through a blocking instead of a callback function
+	typeof module === 'undefined' ? {} : window),
+	(function (global) {
+		function sandboxChromeFunction (fn, context, args, window, globals) {
+			return fn.apply(context, args);
+		}
+
+		global.sandboxChrome = function (chrome, api, args) {
+			var context = {};
+			var fn = global.chrome;
+			var apiSplit = api.split('.');
+			for (var i = 0; i < apiSplit.length; i++) {
+				context = fn;
+				fn = fn[apiSplit[i]];
+			}
+			var result = sandboxChromeFunction(fn, context, args);
+			return result;
+		};
+
+		return global;
+	}(function() {
+		var global = {};
+
+		// ReSharper disable once InconsistentNaming
+		function SandboxWorker(id, script, libraries, secretKey) {
+			this.script = script;
+
+			var worker = this.worker = new Worker('/js/sandbox.js');
+			this.id = id;
+
+			this.post = function(message) {
+				worker.postMessage(message);
+			};
+
+			var callbacks = [];
+			this.listen = function(callback) {
+				callbacks.push(callback);
+			};
+
+			var handler;
+
+			function postMessage(message) {
+				worker.postMessage({
+					type: 'message',
+					message: JSON.stringify(message),
+					key: secretKey.join('') + id + 'verified'
+				});
+			}
+
+			handler = window.createHandlerFunction({
+				postMessage: postMessage
+			});
+
+			function verifyKey(message, callback) {
+				if (message.key.join('') === secretKey.join('')) {
+					callback(JSON.parse(message.data));
+				} else {
+					backgroundPageLog(id, 'Background page [' + id + ']: ',
+						'Tried to send an unauthenticated message');
+				}
+			}
+
+			var verified = false;
+
+			worker.addEventListener('message', function (e) {
+				var data = e.data;
+				switch (data.type) {
+					case 'handshake':
+					case 'crmapi':
+						if (!verified) {
+							backgroundPageLog(id, 'Background page [' + id + ']: ',
+								'Ininitialized background page');
+							verified = true;
+						}
+						verifyKey(data, handler);
+						break;
+					case 'log':
+						backgroundPageLog.apply(window, [id, 'Background page [' + id + ']: '].concat(JSON.parse(data.data)));
+						break;
+				}
+				if (callbacks) {
+					callbacks.forEach(function(callback) {
+						callback(data);
+					});
+					callbacks = [];
+				}
+			}, false);
+
+			worker.postMessage({
+				type: 'init',
+				script: script,
+				libraries: libraries
+			});
+		}
+
+		global.sandbox = function (id, script, libraries, secretKey, callback) {
+			callback(new SandboxWorker(id, script, libraries, secretKey));
+		};
+		
+		return global;
+	}()))
+);
 
 if (typeof module === 'undefined') {
-	console.log('If you\'re here to check out your background script, get its ID (you can type getID("name") to find the ID), and hit the fitler button on the top-left. Then input that ID to filter only on those messages');
+	console.log('If you\'re here to check out your background script,' + 
+		' get its ID (you can type getID("name") to find the ID),' + 
+		' and type filter(id, [optional tabId]) to show only those messages.' +
+		' You can also visit the logging page for even better logging over at ',
+		chrome.runtime.getURL('logging.html'));
 }

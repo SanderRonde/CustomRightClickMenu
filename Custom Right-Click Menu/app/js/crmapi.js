@@ -77,7 +77,7 @@
 		var jsonFn = {
 			stringify: function (obj) {
 				return JSON.stringify(obj, function (key, value) {
-					if (value instanceof Function || typeof value == 'function') {
+					if (value instanceof Function || typeof value === 'function') {
 						return value.toString();
 					}
 					if (value instanceof RegExp) {
@@ -89,7 +89,7 @@
 			parse: function (str, date2Obj) {
 				var iso8061 = date2Obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d *)?)Z$/ : false;
 				return JSON.parse(str, function (key, value) {
-					if (typeof value != 'string') {
+					if (typeof value !== 'string') {
 						return value;
 					}
 					if (value.length < 8) {
@@ -136,7 +136,7 @@
 			this.add = function(fn) {
 				_this._items[++_this._index] = fn;
 				return _this._index;
-			}
+			};
 
 			this.remove = function(fnOrIndex) {
 				if (typeof fnOrIndex === 'number' || typeof fnOrIndex === 'string') {
@@ -150,11 +150,11 @@
 						}
 					}
 				}
-			}
+			};
 
 			this.get = function(idx) {
 				return _this._items[idx];
-			}
+			};
 
 			this.forEach = function(cb) {
 				for (var fnIdx in _this._items) {
@@ -162,7 +162,7 @@
 						cb(_this._items[fnIdx], fnIdx);
 					}
 				}
-			}
+			};
 			
 			Object.defineProperty(this, 'length', {
 				get: function() {
@@ -172,7 +172,7 @@
 					});
 					return len;
 				}
-			})
+			});
 		}
 
 		var callInfo = new CallbackStorage();
@@ -280,7 +280,7 @@
 						maxCalls: message.onFinish.maxCalls,
 						persistent: message.onFinish.persistent
 					});
-				};
+				}
 				port.postMessage(message);
 			};
 			queue.forEach(function (message) {
@@ -322,6 +322,9 @@
 						break;
 					case 'storageUpdate':
 						remoteStorageChange(message.changes);
+						break;
+					case 'logValueUpdate':
+						updateLogValue(message);
 						break;
 					case 'instancesUpdate':
 						instancesChange(message.change);
@@ -1937,7 +1940,7 @@
 							request.chromeAPIArguments.push({
 								type: 'fn',
 								isPersistent: false,
-								val: createCallback(arg, new Error, {
+								val: createCallback(arg, new Error(), {
 									maxCalls: 1
 								})
 							});
@@ -1969,7 +1972,7 @@
 		function chromeReturnFunction(fn) {
 			this.request.chromeAPIArguments.push({
 				type: 'return',
-				val: createCallback(fn, new Error, {
+				val: createCallback(fn, new Error(), {
 					maxCalls: 1
 				})
 			});
@@ -1987,7 +1990,7 @@
 				this.request.chromeAPIArguments.push({
 					type: 'fn',
 					isPersistent: true,
-					val: createCallback(fns[i], new Error, {
+					val: createCallback(fns[i], new Error(), {
 						persistent: true
 					})
 				});
@@ -2011,6 +2014,45 @@
 					}
 				}
 			});
+
+			function showStackTrace() {
+				if (messageOrParams.stackTrace) {
+					console.warn('Remote stack trace:');
+					messageOr.stackTrace.forEach(function(line) { console.warn(line); });
+				}
+				console.warn((messageOrParams.stackTrace ? 'Local s': 'S') + 'tack trace:');
+				stackTrace.forEach(function(line) { console.warn(line); });
+			}
+
+			function onFinishFn(status, messageOrParams, stackTrace) {
+				if (status === 'error' || status === 'chromeError') {
+					if (requestThis.request.onError) {
+						requestThis.request.onError(messageOrParams);
+					} else if (_this.onError) {
+						_this.onError(messageOrParams);
+					}
+					if (_this.stackTraces) {
+						window.setTimeout(showStackTrace, 5);
+					}
+					if (_this.errors) {
+						throw new Error('CrmAPIError: ' + messageOrParams.error);
+					} else if (!_this.onError) {
+						console.warn('CrmAPIError: ' + messageOrParams.error);
+					}
+				} else {
+					callInfo.get(messageOrParams.callbackId).callback.apply(window, messageOrParams.params);
+					if (!callInfo.get(messageOrParams.callbackId).persistent) {
+						callInfo.remove(messageOrParams.callbackId);
+					}
+				}
+			}
+
+			var onFinish = {
+				maxCalls: maxCalls,
+				persistent: isPersistent,
+				fn: onFinishFn
+			};
+
 			var message = {
 				type: 'chrome',
 				id: id,
@@ -2018,44 +2060,7 @@
 				args: requestThis.request.chromeAPIArguments,
 				tabId: tabData.id,
 				requestType: requestThis.request.type,
-				onFinish: {
-					maxCalls: maxCalls,
-					persistent: isPersistent,
-					fn:  function (status, messageOrParams, stackTrace) {
-						if (status === 'error' || status === 'chromeError') {
-							if (requestThis.request.onError) {
-								requestThis.request.onError(messageOrParams);
-							}
-							else if (_this.onError) {
-								_this.onError(messageOrParams);
-							}
-							if (_this.stackTraces) {
-								setTimeout(function () {
-									if (messageOrParams.stackTrace) {
-										console.warn('Remote stack trace:');
-										messageOrParams.stackTrace.forEach(function (line) {
-											console.warn(line);
-										});
-									}
-									console.warn((messageOrParams.stackTrace ? 'Local s' : 'S') + 'tack trace:');
-									stackTrace.forEach(function (line) {
-										console.warn(line);
-									});
-								}, 5);
-							}
-							if (_this.errors) {
-								throw new Error('CrmAPIError: ' + messageOrParams.error);
-							} else if (!_this.onError) {
-								console.warn('CrmAPIError: ' + messageOrParams.error);
-							}
-						} else {
-							callInfo.get(messageOrParams.callbackId).callback.apply(window, messageOrParams.params);
-							if (!callInfo.get(messageOrParams.callbackId).persistent) {
-								callInfo.remove(messageOrParams.callbackId);
-							}
-						}
-					}
-				}
+				onFinish: onFinish
 			};
 			sendMessage(message);
 		}
@@ -2280,8 +2285,9 @@
 		//From https://gist.github.com/arantius/3123124
 		function setupRequestEvent(aOpts, aReq, aEventName) {
 			'use strict';
-			if (!aOpts['on' + aEventName])
+			if (!aOpts['on' + aEventName]) {
 				return;
+			}
 			aReq.addEventListener(aEventName, function (aEvent) {
 				var responseState = {
 					responseText: aReq.responseText,
@@ -2301,8 +2307,9 @@
 					case 'error':
 						break;
 					default:
-						if (4 !== aReq.readyState)
+						if (4 !== aReq.readyState) {
 							break;
+						}
 						responseState.responseHeaders = aReq.getAllResponseHeaders();
 						responseState.status = aReq.status;
 						responseState.statusText = aReq.statusText;
@@ -2541,10 +2548,10 @@
 			}
 			details.type = 'basic';
 			details.iconUrl = details.iconUrl || chrome.runtime.getURl('icon-large.png');
-			onclick = details.onclick && createCallbackFunction(details.onclick, new Error, {
+			onclick = details.onclick && createCallbackFunction(details.onclick, new Error(), {
 				maxCalls: 1
 			});
-			var ondone = details.ondone && createCallbackFunction(details.ondone, new Error, {
+			var ondone = details.ondone && createCallbackFunction(details.ondone, new Error(), {
 				maxCalls: 1
 			});
 			delete details.onclick;
@@ -2599,7 +2606,29 @@
 			return Array.prototype.slice.apply(context.querySelectorAll(selector));
 		};
 
-		window.$ = this.$crmAPI;
+		window.$ = window.$ || this.$crmAPI;
+
+		/**
+		 * Logs given arguments to the background page and logger page
+		 * 
+		 * @param {any} argument - An argument to pass (can be as many as you want)
+		 * 		in the form of crmAPI.log(a,b,c,d);
+		 */
+		this.log = function() {
+			sendMessage({
+				id: id,
+				type: 'logCrmAPIValue',
+				tabId: _this.tabId,
+				data: {
+					type: 'log',
+					data: Array.prototype.slice.apply(arguments),
+					id: id,
+					tabId: _this.tabId
+				}
+			});
+		};
+
+		window.log = window.log || this.log;
 		//#endregion
 
 		return this;
