@@ -27,5 +27,11 @@
 	init: function () {
 		var paperItems = $(this).find('paper-item');
 		this.$.dropdownSelected.innerHTML = $(paperItems[this.selected]).children('.menuOptionName').html();
+	},
+
+	ready: function() {
+		if (this.getAttribute('init') !== null) {
+			this.init();
+		}
 	}
 });

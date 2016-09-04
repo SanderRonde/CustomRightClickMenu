@@ -64,7 +64,7 @@ paper-menu .content {
 }
 
 paper-item[aria-selected=true] .menuSelectedCheckmark {
-	display: block;
+	display: inline-block;
 }
 
 paper-item[aria-selected=true] .menuOptionName {
@@ -77,4 +77,12 @@ paper-dropdown-menu[indent=false] #dropdownSelectedCont {
 
 #contentCont[overflowing] .content {
 	margin-bottom: -15px;
+}
+
+paper-dropdown-menu {
+	display: flex;
+}
+
+#dropdownLabel {
+	margin-right: 15px;
 }

@@ -130,9 +130,9 @@
 		});
 	},
 
-	ready: function() {
+	refreshListeners: function() {
 		var _this = this;
-		this._paperItems = $(this).find('paper-item').on('click', function () {
+		this._paperItems = $(this).find('paper-item').off('click').on('click', function () {
 			setTimeout(function () {
 				_this._fireListeners(_this);
 				if (_this._dropdownSelectChange) {
@@ -140,6 +140,11 @@
 				}
 			}, 50);
 		});
+	},
+
+	ready: function() {
+		var _this = this;
+		this.refreshListeners();
 		this._paperDropdownEl = this;
 		this._paperMenu = $(this).find('paper-menu')[0];
 		setTimeout(function () {
@@ -214,6 +219,10 @@
 	 * Open the dropdown menu
 	 */
 	open: function() {
+		if (this.onopen) {
+			this.onopen();
+		}
+
 		var _this = this;
 		if (!this._expanded) {
 			this._expanded = true;
