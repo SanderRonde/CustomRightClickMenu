@@ -1,0 +1,26 @@
+﻿<dom-module id="log-page">
+	<link rel="import" href="../../bower_components/paper-toolbar/paper-toolbar.html" />
+	<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html" />
+	<link rel="import" href="../../elements/center-element/center-element.html" />
+	<link rel="import" href="../../elements/log-console/log-console.html" />
+	<template>
+		<link rel="stylesheet" href="log-page.css" />
+		<div id="pageContainer">
+			<paper-toolbar id="toolbar">
+				<div flex title class="title" id="title">Logs</div>
+			</paper-toolbar>
+			<div id="loadingContainer" hide$="{{!isLoading}}">
+				<center-element width="100vw" height="calc(100vh - 64px)">
+					<div>
+						<div id="spinnerCenterer">
+							<paper-spinner id="spinner" active></paper-spinner>
+						</div>
+						<div id="loadingText">Loading</div>
+					</div>
+				</center-element>
+			</div>
+			<log-console></log-console>
+		</div>
+	</template>
+</dom-module>
+<script src="log-page.js"></script>

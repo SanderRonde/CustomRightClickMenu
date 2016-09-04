@@ -1,0 +1,19 @@
+<dom-module id="log-string">
+	<style>
+		#value.number {
+			color: rgb(200,255,200);
+		}
+
+		#value.boolean {
+			color: rgb(100,100,255);
+		}
+
+		#value.string {
+			color: rgb(255,200,200);
+		}
+	</style>
+	<template>
+		<div id="value">[[_parse(data)]]</div>
+	</template>
+</dom-module>
+<script src="log-string.js"></script>

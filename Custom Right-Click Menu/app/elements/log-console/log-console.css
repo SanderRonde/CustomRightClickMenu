@@ -1,0 +1,147 @@
+﻿#consoleCont {
+	margin: 10px;
+	width: calc(100vw - 20px);
+	height: calc(100vh - 84px);
+	background-color: rgb(40,40,40);
+}
+
+#linesCont {
+	font-family: 'Consolas';
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.line:first-child {
+	padding-top: 10px;
+}
+
+.line:last-child {
+	padding-bottom: 5px;
+}
+
+#linesCont {
+	padding: 0 10px;
+}
+
+.lineTimestamp {
+	color: rgb(200,200,200);
+	display: inline-block;
+	margin-right: 10px;
+}
+
+.lineContent {
+	color: rgb(255,255,255);
+	display: inline-block;
+}
+
+.line {
+	border-bottom: 1px solid rgb(60,60,60);
+	margin: 1px 0;
+}
+
+.lineContent > echo-html > * {
+	display: inline-block;
+}
+
+#consoleInfo {
+	height: 30px;
+	display: flex;
+	justify-content: space-between;
+	color: white;
+	font-size: 150%;
+	padding: 0 10px;
+}
+
+#filterCont {
+	display:flex;
+	justify-content: flex-start;
+}
+
+.centerVertical {
+	display: flex;
+	justify-content: center;
+	flex-direction: column;
+	height: 100%;
+}
+
+#consoleInfoTxtCont {
+	cursor: pointer;
+	float: right;
+	margin-top: 7px;
+}
+
+#whatIsThis .active, #whatIsThis #consoleInfoTxtCont {
+	display: none;
+}
+
+#whatIsThis .inactive {
+	display: flex;
+}
+
+#whatIsThis:hover .active, #whatIsThis:hover #consoleInfoTxtCont {
+	display: flex;
+}
+
+#whatIsThis:hover .inactive {
+	display:none;
+}
+
+#consoleInfoTxt {
+	position: absolute;
+    z-index: 10000;
+    margin-top: -24px;
+    margin-left: 24px;
+    width: 250px;
+    background-color: #4c4c4c;
+    border: 1px solid black;
+    padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
+}
+
+	#consoleInfoTxt.expandLeft {
+		margin-left: -263px;
+	}
+
+#tabFilter, #idFilter {
+	position: relative;
+}
+
+#consoleStats {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+#consoleStats > * {
+	margin-left: 10px;
+}
+
+.dropdownFilter {
+	margin-right: 10px;
+}
+
+.dropdownFilter paper-dropdown-menu paper-menu {
+	background-color: rgb(40,40,40);
+	width: 150px;
+	padding: 0;
+}
+
+.dropdownFilter #dropdownSelectedCont {
+	margin: 0;
+}
+
+.dropdownFilter #dropdownSelected {
+	font-size: 100%;
+	color: white;
+}
+
+.dropdownFilter paper-item {
+	color: white;
+	display: block;
+	padding: 8px;
+}
+
+.dropdownFilter .menuSelectedCheckmark {
+	transform: translateY(2px);
+}

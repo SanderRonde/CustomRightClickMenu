@@ -1,0 +1,112 @@
+﻿<dom-module id="log-console">
+	<template>
+		<link rel="import" href="../../bower_components/paper-material/paper-material.html" />
+		<link rel="import" href="../../bower_components/paper-input/paper-input.html" />
+		<link rel="import" href="../../bower_components/paper-menu/paper-menu.html"/>
+		<link rel="import" href="../../elements/paper-dropdown-menu/paper-dropdown-menu.html" />
+		<link rel="import" href="../../elements/echo-html/echo-html.html" />
+		<link rel="import" href="../../elements/log-visualizers/log-array/log-array.html" />
+		<link rel="import" href="../../elements/log-visualizers/log-function/log-function.html" />
+		<link rel="import" href="../../elements/log-visualizers/log-object/log-object.html" />
+		<link rel="import" href="../../elements/log-visualizers/log-string/log-string.html" />
+		<link rel="stylesheet" href="log-console.css" />
+		<paper-material id="consoleCont" elevation="5">
+			<div id="console">
+				<paper-material elevation="2">
+					<div id="consoleInfo">
+						<div id="filterCont">
+							<div id="idFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu id="idDropdown" label="ID" init overflowing indent="false" selected="0">
+									<paper-menu selected="0">
+										<paper-item>
+											<div class="menuSelectedCheckmark">
+												<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+											</div>
+											<span class="menuOptionName">ALL</span>
+										</paper-item>
+										<template id="idRepeat" is="dom-repeat" items="{{ids}}" as="id">
+											<paper-item>
+												<div class="menuSelectedCheckmark">
+													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+												</div>
+												<span class="menuOptionName">[[id]]</span>
+											</paper-item>
+										</template>
+									</paper-menu>
+								</paper-dropdown-menu>
+							</div>
+							<div id="tabFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu id="tabDropdown" label="Tab" init overflowing indent="false" selected="0">
+									<paper-menu selected="0">
+										<paper-item>
+											<div class="menuSelectedCheckmark">
+												<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+											</div>
+											<span class="menuOptionName">ALL</span>
+										</paper-item>
+										<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, tabs)}}" as="tab">
+											<paper-item>
+												<div class="menuSelectedCheckmark">
+													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+												</div>
+												<span class="menuOptionName">[[tab]]</span>
+											</paper-item>
+										</template>
+									</paper-menu>
+								</paper-dropdown-menu>
+							</div>
+							<div id="textFilter">
+								
+							</div>
+						</div>
+						<div id="consoleStats">
+							<div id="whatIsThis">
+								<div class="centerVertical inactive">
+									<svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+										<path d="M0 0h24v24H0z" fill="none"/>
+										<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
+									</svg>
+								</div>
+								<div class="centerVertical active">
+									<svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+										<path d="M0 0h24v24H0z" fill="none"/>
+										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+									</svg>
+								</div>
+								<paper-material id="consoleInfoTxtCont" elevation="3">
+									<div id="consoleInfoTxt" class="expandLeft">
+										This page serves as a sort of devTools for specific instances of scripts on tabs.
+										You can access its variables and run them just as you would in the chrome dev tools,
+										simply select an ID and a tab ID and get started.
+									</div>
+								</paper-material>
+							</div>
+							<div class="centerVertical">
+								<div id="totalLines">
+									<span id="totalLinesNumber">[[_getTotalLines(lines)]]</span> lines
+								</div>
+							</div>
+						</div>
+					</div>
+				</paper-material>
+				<div id="linesCont">
+					<template is="dom-repeat" items="{{lines}}" as="line">
+						<div class="line">
+							<div class="lineTimestamp">[[line.timestamp]]</div>
+							<div class="lineContent">
+								<echo-html html="[[line.content]]"></echo-html>
+							</div>
+						</div>
+					</template>
+				</div>
+				<div id="inputFieldCont"></div>
+			</div>
+		</paper-material>
+	</template>
+</dom-module>
+<script src="../../js/libraries/jquery/jquery-2.0.3.min.js"></script>
+<script src="../../js/libraries/jquery/jquery-ui.min.js"></script>
+<script src="../../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+<script src="../../js/libraries/jquery/jquery.contextMenu.js"></script>
+<script src="../../js/libraries/jquery/jquery.bez.js"></script>
+<script src="log-console.js"></script>
