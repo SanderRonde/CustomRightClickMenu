@@ -223,7 +223,7 @@ module.exports = function(grunt) {
 			build: {
 				files: [
 					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'build/' }, //Fonts
-					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/options.html'], dest: 'build/' }, //HTML files
+					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html'], dest: 'build/' }, //HTML files
 					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'build/' }, //Default libraries
 					{
 						expand: true,
