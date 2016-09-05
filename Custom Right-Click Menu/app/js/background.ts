@@ -2013,52 +2013,6 @@ interface GlobalObject {
 			}
 		});
 	}
-
-	chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
-		// if (updatedInfo.status === 'complete' || updatedInfo.status === 'loading') {
-		// 	//It's done loading
-		// 	chrome.tabs.get(tabId, function(tab) {
-		// 		if (chrome.runtime.lastError) {
-		// 			return;
-		// 		}
-		// 		if (tab && tab.url.indexOf('chrome') !== 0 && globalObject.globals.crmValues.tabData[tabId]) {
-		// 			var i;
-		// 			if (!urlIsGlobalExcluded(tab.url)) {
-		// 				var toExecute = globalObject.globals.toExecuteNodes.always.map(function(node) {
-		// 					return {
-		// 						node: node,
-		// 						tab: tab
-		// 					}
-		// 				});
-		// 				for (var nodeId in globalObject.globals.toExecuteNodes.onUrl) {
-		// 					if (globalObject.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globalObject.globals.toExecuteNodes.onUrl[nodeId]) {
-		// 						if (matchesUrlSchemes(globalObject.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
-		// 							toExecute.push({
-		// 								node: globalObject.globals.crm.crmById[nodeId],
-		// 								tab: tab
-		// 							});
-		// 						}
-		// 					}
-		// 				}
-
-		// 				chrome.tabs.sendMessage(tabId, {
-		// 					type: 'checkTabStatus',
-		// 					data: {
-		// 						willBeMatched: (toExecute.length > 0)
-		// 					}
-		// 				}, function (response) {
-		// 					debugger;
-		// 					if (!response || response.notMatchedYet) {
-		// 						for (i = 0; i < toExecute.length; i++) {
-		// 							executeNode(toExecute[i].node, toExecute[i].tab);
-		// 						}
-		// 					}
-		// 				});
-		// 			}
-		// 		}
-		// 	});
-		// }
-	});
 	//#endregion
 
 	function triggerMatchesScheme(trigger) {
