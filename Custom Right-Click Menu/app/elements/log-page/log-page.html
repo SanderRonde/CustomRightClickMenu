@@ -9,16 +9,6 @@
 			<paper-toolbar id="toolbar">
 				<div flex title class="title" id="title">Logs</div>
 			</paper-toolbar>
-			<div id="loadingContainer" hide$="{{!isLoading}}">
-				<center-element width="100vw" height="calc(100vh - 64px)">
-					<div>
-						<div id="spinnerCenterer">
-							<paper-spinner id="spinner" active></paper-spinner>
-						</div>
-						<div id="loadingText">Loading</div>
-					</div>
-				</center-element>
-			</div>
 			<log-console></log-console>
 		</div>
 	</template>

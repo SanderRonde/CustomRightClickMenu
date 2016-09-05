@@ -489,6 +489,17 @@
 	}
 	//#endregion
 
+	//#region LogExecution
+	function executeCRMCode(message) {
+		//Get the port
+		
+	}
+
+	function getCRMHints(message) {
+
+	}
+	//#endregion
+
 	//#region Logging
 	function log(nodeId, tabId) {
 		var args = Array.prototype.slice.apply(arguments, [2]);
@@ -523,12 +534,15 @@
 		}
 	}
 
-	function backgroundPageLog(id) {
+	function backgroundPageLog(id, lineNumber) {
 		var args = Array.prototype.slice.apply(arguments);
 		var logValue = {
 			id: id,
 			tabId: 'background',
+			nodeTitle: globalObject.globals.crm.crmById[id].name,
+			tabtitle: 'Background Page',
 			value: args,
+			lineNumber: lineNumber,
 			timestamp: new Date().toLocaleString()
 		};
 		globalObject.globals.logging[id].logMessages.push(logValue);
@@ -536,13 +550,21 @@
 	}
 
 	function logHandlerLog(message) {
-		var srcObj = {
-		}
+		var srcObj = {}
 		var args = [
 			'Log[src:',
 			srcObj,
 			']: '
 		];
+
+		var logValue = {
+			id: message.id,
+			tabId: message.tabId,
+			value: message.data,
+			lineNumber: message.lineNumber || '?',
+			timestamp: new Date().toLocaleString()
+		};
+
 		chrome.tabs.get(message.tabId, function(tab) {
 			srcObj.id = message.id;
 			srcObj.tabId = message.tabId;
@@ -551,18 +573,15 @@
 			srcObj.tabTitle = tab.title;
 			srcObj.node = globalObject.globals.crm.crmById[message.id];
 			srcObj.nodeName = srcObj.node.name;
+
+			logValue.tabTitle = tab.title;
+			logValue.nodeTitle = srcObj.nodeName;
+
+			globalObject.globals.logging[message.id].logMessages.push(logValue);
+			updateLogs(logValue);
 		});
 		args = args.concat(message.data);
 		log.apply(globalObject, [message.id, message.tabId].concat(args));
-
-		var logValue = {
-			id: message.id,
-			tabId: message.tabId,
-			value: message.data,
-			timestamp: new Date().toLocaleString()
-		};
-		globalObject.globals.logging[message.id].logMessages.push(logValue);
-		updateLogs(logValue);
 	}
 
 	function logHandler(message) {
@@ -1441,7 +1460,7 @@
 
 	function executeScriptsForTab(tabId, respond) {
 		chrome.tabs.get(tabId, function(tab) {
-			if (tab.url.indexOf('chrome') !== 0 && !globalObject.globals.crmValues.tabData[tabId]) {
+			if (tab.url.indexOf('chrome') !== 0) {
 				var i;
 				globalObject.globals.crmValues.tabData[tab.id] = {
 					libraries: {},
@@ -4249,7 +4268,7 @@
 
 		var result;
 		try {
-			result = sandboxes.sandboxChrome(globalObject.globals.chrome, message.api, params);
+			result = sandboxes.sandboxChrome(message.api, params);
 			for (i = 0; i < returnFunctions.length; i++) {
 				returnFunctions[i](result);
 			}
@@ -5351,6 +5370,12 @@
 
 	function handleRuntimeMessage(message, messageSender, response) {
 		switch (message.type) {
+			case 'executeCRMCode':
+				executeCRMCode(message.data);
+				break;
+			case 'getCRMHints':
+				getCRMHints(message.data);
+				break;
 			case 'logCrmAPIValue':
 				logHandler(message.data);
 				break;
@@ -6399,7 +6424,26 @@
 					});
 				}
 
-				function getLog(id, tab) {
+				function filterMessageText(messages, filter) {
+					if (filter === '') {
+						return messages;
+					}
+
+					var filterRegex = new RegExp(filter);
+					return messages.filter(function(message) {
+						for (var i = 0; i < message.value.length; i++) {
+							if (typeof message.value[i] !== 'function' &&
+								typeof message.value[i] !== 'object') {
+									if (filterRegex.test(String(message.value[i]))) {
+										return true;
+									}
+								}
+						}
+						return false;
+					});
+				}
+
+				function getLog(id, tab, text) {
 					var messages = [];
 					if (id === 'all') {
 						for (var nodeId in globalObject.globals.logging) {
@@ -6410,41 +6454,50 @@
 								);
 							}
 						}
-						return sortMessages(messages);
 					} else {
-						messages = globalObject.globals.logging[nodeId].logMessages;
-						if (tab === 'all') {
-							return sortMessages(messages);
-						}
-						return sortMessages(messages.filter(function(message) {
+						messages = globalObject.globals.logging[id].logMessages;
+					}
+					if (tab === 'all') {
+						return sortMessages(filterMessageText(messages, text));
+					} else {
+						return sortMessages(filterMessageText(messages.filter(function(message) {
 							return message.tabId === tab;
-						}));
+						}), text));
 					}
 				}
 
-				function updateLog(id, tab) {
-					if (id === 'ALL') {
+				function updateLog(id, tab, textFilter) {
+					if (id === 'ALL' || id === 0) {
 						this.id = 'all';
 					} else {
 						this.id = id;
 					}
-					if (tab === 'ALL') {
+					if (tab === 'ALL' || tab === 0) {
 						this.tab = 'all';
-					} else if (tab.toLowerCase() === 'background') {
+					} else if (typeof tab === 'string' && tab.toLowerCase() === 'background') {
 						this.tab = 0;
 					} else {
 						this.tab = tab;
 					}
+					if (!textFilter) {
+						this.text = '';
+					} else {
+						this.text = textFilter;
+					}
 
-					return getLog(this.id, this.tab);
+					return getLog(this.id, this.tab, this.text);
 				}
 
-				window._listenLog = function(callback) {
+				window._listenLog = function(listener, callback) {
 					var filterObj = {
 						id: 'all',
-						tab: 'all'
+						tab: 'all',
+						text: '',
+						listener: listener
 					}
-					filterObj.update = _updateLog.bind(filterObj)
+					filterObj.update = updateLog.bind(filterObj)
+
+					callback(filterObj);
 
 					globalObject.globals.listeners.log.push(filterObj);
 
@@ -6478,21 +6531,21 @@
 	//#endregion
 }(
 	chrome.runtime.getURL('').split('://')[1].split('/')[0], //Gets the extension's URL through a blocking instead of a callback function
-	typeof module === 'undefined' ? {} : window),
-	(function (global) {
-		function sandboxChromeFunction (fn, context, args, window, globals) {
+	typeof module === 'undefined' ? {} : window,
+	function (global) {
+		function sandboxChromeFunction (fn, context, args, window, global, chrome) {
 			return fn.apply(context, args);
 		}
 
-		global.sandboxChrome = function (chrome, api, args) {
+		global.sandboxChrome = function (api, args) {
 			var context = {};
-			var fn = global.chrome;
+			var fn = window.chrome;
 			var apiSplit = api.split('.');
 			for (var i = 0; i < apiSplit.length; i++) {
 				context = fn;
 				fn = fn[apiSplit[i]];
 			}
-			var result = sandboxChromeFunction(fn, context, args);
+			var result = sandboxChromeFunction(fn, context, args, null, null, null);
 			return result;
 		};
 
@@ -6534,7 +6587,7 @@
 				if (message.key.join('') === secretKey.join('')) {
 					callback(JSON.parse(message.data));
 				} else {
-					backgroundPageLog(id, 'Background page [' + id + ']: ',
+					backgroundPageLog(id, null, 'Background page [' + id + ']: ',
 						'Tried to send an unauthenticated message');
 				}
 			}
@@ -6547,14 +6600,14 @@
 					case 'handshake':
 					case 'crmapi':
 						if (!verified) {
-							backgroundPageLog(id, 'Background page [' + id + ']: ',
+							backgroundPageLog(id, null, 'Background page [' + id + ']: ',
 								'Ininitialized background page');
 							verified = true;
 						}
 						verifyKey(data, handler);
 						break;
 					case 'log':
-						backgroundPageLog.apply(window, [id, 'Background page [' + id + ']: '].concat(JSON.parse(data.data)));
+						backgroundPageLog.apply(window, [id, message.lineNumber, 'Background page [' + id + ']: '].concat(JSON.parse(data.data)));
 						break;
 				}
 				if (callbacks) {
@@ -6577,8 +6630,8 @@
 		};
 		
 		return global;
-	}()))
-);
+	}())
+));
 
 if (typeof module === 'undefined') {
 	console.log('If you\'re here to check out your background script,' + 

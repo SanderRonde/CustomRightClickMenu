@@ -3,6 +3,7 @@
 		<link rel="import" href="../../bower_components/paper-material/paper-material.html" />
 		<link rel="import" href="../../bower_components/paper-input/paper-input.html" />
 		<link rel="import" href="../../bower_components/paper-menu/paper-menu.html"/>
+		<link rel="import" href="../../bower_components/paper-toast/paper-toast.html" />
 		<link rel="import" href="../../elements/paper-dropdown-menu/paper-dropdown-menu.html" />
 		<link rel="import" href="../../elements/echo-html/echo-html.html" />
 		<link rel="import" href="../../elements/log-visualizers/log-array/log-array.html" />
@@ -55,8 +56,8 @@
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
-							<div id="textFilter">
-								
+							<div id="textFilterCont">
+								<paper-input label="filter" id="textFilter" no-label-float="true" value="{{textfilter}}" on-change="_textFilterChange"></paper-input>
 							</div>
 						</div>
 						<div id="consoleStats">
@@ -92,16 +93,31 @@
 				<div id="linesCont">
 					<template is="dom-repeat" items="{{lines}}" as="line">
 						<div class="line">
-							<div class="lineTimestamp">[[line.timestamp]]</div>
-							<div class="lineContent">
-								<echo-html html="[[line.content]]"></echo-html>
+							<div class="lineData">
+								<div class="lineTimestamp">[[line.timestamp]]</div>
+								<div class="lineContent">
+									<echo-html html="[[line.content]]"></echo-html>
+								</div>
+							</div>
+							<div class="lineSource">
+								<span class="lineSourceIdCont" title$="[[line.nodeTitle]]">[id-<span class="lineSourceId">[[line.id]]</span>]</span><span class="lineSourceTabCont" on-tap="_takeToTab" tabindex="1" title$="[[line.tabTitle]]">[tab-<span class="lineSourceTab">[[line.tabId]]</span>]</span><span class="lineSourceLineCont">@<span class="lineSourceLineNumber">[[_stripWhitespace(line.lineNumber)]]</span></span>
 							</div>
 						</div>
 					</template>
+					<div id="inputFieldCont">
+						<div id="inputFieldPrefix">&gt;</div>
+						<div id="inputFieldWarning">
+							Running code is not possible in the current context (select both an ID and a tab)
+						</div>
+						<textarea rows="1" style="resize:none;" type="text" id="consoleInput" on-keydown="_inputKeypress"></textarea>
+					</div>
 				</div>
-				<div id="inputFieldCont"></div>
 			</div>
+			<div id="consoleFiller" on-tap="_focusInput"></div>
 		</paper-material>
+		<paper-toast id="genericToast" text="">
+			<span class="toastLink" on-tap="_hideGenericToast" role="button">DISMISS</span>
+		</paper-toast>
 	</template>
 </dom-module>
 <script src="../../js/libraries/jquery/jquery-2.0.3.min.js"></script>

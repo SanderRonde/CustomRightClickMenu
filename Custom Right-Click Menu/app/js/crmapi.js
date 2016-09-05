@@ -2615,6 +2615,13 @@
 		 * 		in the form of crmAPI.log(a,b,c,d);
 		 */
 		this.log = function() {
+			var err = (new Error()).stack.split('\n')[2];
+			if (err.indexOf('eval') > -1) {
+				err = (new Error()).stack.split('\n')[3];
+			}
+			var errSplit = err.split('at');
+			var lineNumber = errSplit.slice(1, errSplit.length).join('at');
+
 			sendMessage({
 				id: id,
 				type: 'logCrmAPIValue',
@@ -2623,6 +2630,7 @@
 					type: 'log',
 					data: Array.prototype.slice.apply(arguments),
 					id: id,
+					lineNumber: lineNumber,
 					tabId: _this.tabId
 				}
 			});

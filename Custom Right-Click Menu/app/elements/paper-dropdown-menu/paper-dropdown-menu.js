@@ -11,7 +11,11 @@
 		 * @type Number
 		 * @default 0
 		 */
-		selected: Number
+		selected: {
+			type: Number,
+			reflectToAttribute: true,
+			notify: true
+		}
 	},
 
 	/*

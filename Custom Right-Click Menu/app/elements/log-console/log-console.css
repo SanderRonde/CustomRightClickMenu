@@ -3,12 +3,21 @@
 	width: calc(100vw - 20px);
 	height: calc(100vh - 84px);
 	background-color: rgb(40,40,40);
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+}
+
+#consoleFiller {
+	flex-grow: 100;
 }
 
 #linesCont {
 	font-family: 'Consolas';
-	overflow-y: auto;
+	overflow-y: scroll;
 	overflow-x: hidden;
+	padding: 0 10px;
+	max-height: calc(100vh - 114px);
 }
 
 .line:first-child {
@@ -17,10 +26,6 @@
 
 .line:last-child {
 	padding-bottom: 5px;
-}
-
-#linesCont {
-	padding: 0 10px;
 }
 
 .lineTimestamp {
@@ -37,6 +42,8 @@
 .line {
 	border-bottom: 1px solid rgb(60,60,60);
 	margin: 1px 0;
+	display: flex;
+	justify-content: space-between;
 }
 
 .lineContent > echo-html > * {
@@ -144,4 +151,87 @@
 
 .dropdownFilter .menuSelectedCheckmark {
 	transform: translateY(2px);
+}
+
+.lineSource {
+	color: white;
+}
+
+.lineSourceTabCont {
+	cursor: pointer;
+	position: relative;
+}
+
+.lineSourceTabCont:hover {
+	text-decoration: underline;
+}
+
+.lineSourceTabCont:focus {
+	outline: none;
+}
+
+.lineSourceTabCont:focus::before {
+	background-color: rgba(0,0,0,.1);
+	border-radius: 2px;
+	bottom: -4px;
+	content: ' ';
+	left: -4px;
+	margin: auto;
+	padding: 4px;
+	position: absolute;
+	right: -4px;
+	top: -4px;
+}
+
+.toastLink {
+	color: rgb(238, 255, 65);
+	margin: 10px;
+	cursor: pointer;
+}
+
+#inputFieldPrefix {
+	color: rgb(255, 255, 255);
+	font-family: 'Consolas';
+	display: inline-block;
+}
+
+#consoleInput {
+	background-color: rgb(40,40,40);
+	border: 0;
+	outline: none;
+	color: white;
+	flex-grow: 100;
+	font-family: 'Consolas';
+	margin-left: 5px;
+	padding: 0;
+	overflow: hidden;
+}
+
+#textFilter input {
+	color: white;
+}
+
+#textFilter paper-input-container {
+	padding: 2px 0;
+}
+
+#inputFieldCont {
+	display: flex;
+	justify-content: flex-start;
+	margin-bottom: 3px;
+	position: relative;
+}
+
+#inputFieldWarning {
+	color: #FF5722;
+	position: absolute;
+	margin-left: 10px;
+	opacity: 0;
+	transition: opacity 150ms ease-in;
+	pointer-events: none;
+	user-select: none;
+}
+
+#inputFieldWarning.visible {
+	opacity: 1;
 }

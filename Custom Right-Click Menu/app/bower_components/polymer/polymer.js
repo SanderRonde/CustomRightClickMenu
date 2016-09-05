@@ -897,11 +897,8 @@ options = options || Polymer.nob;
 var node = options.node || this;
 var detail = detail === null || detail === undefined ? Polymer.nob : detail;
 var bubbles = options.bubbles === undefined ? true : options.bubbles;
-var event = new CustomEvent(type, {
-bubbles: Boolean(bubbles),
-cancelable: Boolean(options.cancelable),
-detail: detail
-});
+var event = document.createEvent('CustomEvent');
+event.initCustomEvent(type, Boolean(bubbles), Boolean(options.cancelable), detail);
 node.dispatchEvent(event);
 return event;
 },

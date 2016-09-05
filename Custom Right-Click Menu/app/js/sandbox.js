@@ -1,8 +1,9 @@
 ﻿(function () {
-	function log(args) {
+	function log(args, lineNo) {
 		self.postMessage({
 			type: 'log',
-			data: JSON.stringify(args)
+			data: JSON.stringify(args),
+			lineNo: lineNo
 		});
 	}
 
@@ -13,7 +14,7 @@
 			err = (new Error()).stack.split('\n')[3];
 		}
 		var errSplit = err.split('at');
-		log(args.concat(['				at', errSplit.slice(1, errSplit.length).join('at')]));
+		log(args, errSplit.slice(1, errSplit.length).join('at'));
 	}
 
 	self.logNoStack = function() {
