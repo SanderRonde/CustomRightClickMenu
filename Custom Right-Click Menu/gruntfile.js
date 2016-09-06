@@ -312,15 +312,9 @@ module.exports = function(grunt) {
 				options: {
 					replacements: [
 						{
-							pattern: /\/\* build:json:(\w+) \*\/(.*)\/\* \/build \*\//g,
+							pattern: /CRM-dev/g,
 							replacement: function (match, type, content) {
-								console.log(type);
-								if (type === 'remove') {
-									return '';
-								} else if (type === 'uncomment') {
-									return content.replace(/\/\//g, '');
-								}
-								return '';
+								return 'CRM';
 							}
 						}
 					]
