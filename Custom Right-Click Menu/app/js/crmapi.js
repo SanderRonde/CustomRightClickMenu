@@ -114,6 +114,117 @@
 		};
 		//#endregion
 
+		//#region DojoX.json.ref
+		/*
+			Copyright (c) 2004-2009, The Dojo Foundation All Rights Reserved.
+			Available via Academic Free License >= 2.1 OR the modified BSD license.
+			see: http://dojotoolkit.org/license for details
+		*/
+		var specialJSON = {
+			toJson: function(it, prettyPrint, idPrefix, indexSubObjects){
+				var useRefs = this._useRefs;
+				var addProp = this._addProp;
+				var refAttribute = this.refAttribute;
+				idPrefix = idPrefix || ''; // the id prefix for this context
+				var paths={};
+				var generated = {};
+				function serialize(it,path,_indentStr){
+					if(typeof it == 'object' && it){
+						var value;
+						if(it instanceof Date){ // properly serialize dates
+							return '"' + it.toLocaleString() + '"';
+						}
+						var id = it.__id;
+						if(id){ // we found an identifiable object, we will just serialize a reference to it... unless it is the root
+							if(path != '#' && ((useRefs && !id.match(/#/)) || paths[id])){
+								var ref = id;	
+								if(id.charAt(0)!='#'){
+									if(it.__clientId == id){
+										ref = "cid:" + id;
+									}else if(id.substring(0, idPrefix.length) == idPrefix){ // see if the reference is in the current context
+										// a reference with a prefix matching the current context, the prefix should be removed
+										ref = id.substring(idPrefix.length);
+									}else{
+										// a reference to a different context, assume relative url based referencing
+										ref = id;
+									}
+								}
+								var refObject = {};
+								refObject[refAttribute] = ref;
+								return serialize(refObject,'#');
+							}
+							path = id;
+						}else{
+							it.__id = path; // we will create path ids for other objects in case they are circular
+							generated[path] = it;
+						}
+						paths[path] = it;// save it here so they can be deleted at the end
+						_indentStr = _indentStr || "";
+						var nextIndent = prettyPrint ? _indentStr + '	' : "";
+						var newLine = prettyPrint ? "\n" : "";
+						var sep = prettyPrint ? " " : "";
+			
+						if(it instanceof Array){
+							var res = it.map(function(obj,i){
+								var val = serialize(obj, addProp(path, i), nextIndent);
+								if(typeof val != "string"){
+									val = "undefined";
+								}
+								return newLine + nextIndent + val;
+							});
+							return "[" + res.join("," + sep) + newLine + _indentStr + "]";
+						}
+			
+						var output = [];
+						for(var i in it){
+							if(it.hasOwnProperty(i)){
+								var keyStr;
+								if(typeof i == "number"){
+									keyStr = '"' + i + '"';
+								}else if(typeof i == "string" && (i.charAt(0) != '_' || i.charAt(1) != '_')){
+									// we don't serialize our internal properties __id and __clientId
+									keyStr = ('"' + i.replace(/(["\\])/g, '\\$1') + '"')
+										.replace(/[\f]/g, "\\f")
+										.replace(/[\b]/g, "\\b")
+										.replace(/[\n]/g, "\\n")
+	 	                				.replace(/[\t]/g, "\\t")
+										.replace(/[\r]/g, "\\r");
+								}else{
+									// skip non-string or number keys
+									continue;
+								}
+								var val = serialize(it[i],addProp(path, i),nextIndent);
+								if(typeof val != "string"){
+									// skip non-serializable values
+									continue;
+								}
+								output.push(newLine + nextIndent + keyStr + ":" + sep + val);
+							}
+						}
+						return "{" + output.join("," + sep) + newLine + _indentStr + "}";
+					}else if(typeof it == "function" && specialJSON.serializeFunctions){
+						return it.toString();
+					}
+			
+					return JSON.stringify(it); // use the default serializer for primitives
+				}
+				var json = serialize(it,'#','');
+				if(!indexSubObjects){
+					for(var i in generated)  {// cleanup the temporary path-generated ids
+						delete generated[i].__id;
+					}
+				}
+				return json;
+			},
+			_addProp: function(id, prop){
+				return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
+			},
+			refAttribute: "$ref",
+			_useRefs: false,
+			serializeFunctions: true
+		}
+		//#endregion
+
 		//#region Properties of this Object
 		Object.defineProperty(this, 'tabId', {
 			get: function () {
@@ -319,9 +430,10 @@
 			try {
 				val = {
 					type: 'success',
-					result: eval(message.code)
+					result: specialJSON.toJson(eval(message.code))
 				};
 				lineNumber = '<crmapi>:0';
+
 			} catch(e) {
 				val = {
 					type: 'error',
@@ -334,6 +446,7 @@
 				lineNumber = lineNumber.split(':')[1];
 				lineNumber = '<crmapi>:' + lineNumber;
 			}
+
 			sendMessage({
 				id: id,
 				type: 'logCrmAPIValue',
@@ -2677,7 +2790,7 @@
 				tabId: _this.tabId,
 				data: {
 					type: 'log',
-					data: Array.prototype.slice.apply(arguments),
+					data: specialJSON.toJson(Array.prototype.slice.apply(arguments)),
 					id: id,
 					lineNumber: lineNumber,
 					tabId: _this.tabId
