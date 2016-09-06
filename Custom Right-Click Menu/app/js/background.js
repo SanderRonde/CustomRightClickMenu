@@ -1,4 +1,5 @@
 /// <reference path="../../scripts/chrome.d.ts"/>
+window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 (function (extensionId, globalObject, sandboxes) {
     //#region Global Variables
     globalObject.globals = {
@@ -474,6 +475,11 @@
     //#region LogExecution
     function executeCRMCode(message) {
         //Get the port
+        globalObject.globals.crmValues.tabData[message.tab].nodes[message.id].port.postMessage({
+            messageType: 'executeCode',
+            code: message.code,
+            logCallbackIndex: message.logCallback.index
+        });
     }
     function getCRMHints(message) {
     }
@@ -484,6 +490,7 @@
         for (var _i = 2; _i < arguments.length; _i++) {
             data[_i - 2] = arguments[_i];
         }
+        console.log(arguments);
         var args = Array.prototype.slice.apply(arguments, [2]);
         if (globalObject.globals.logging.filter.id !== null) {
             if (nodeId === globalObject.globals.logging.filter.id) {
@@ -546,6 +553,8 @@
             timestamp: new Date().toLocaleString()
         };
         chrome.tabs.get(message.tabId, function (tab) {
+            args = args.concat(message.data);
+            log.apply(globalObject, [message.id, message.tabId].concat(args));
             srcObj.id = message.id;
             srcObj.tabId = message.tabId;
             srcObj.tab = tab;
@@ -558,14 +567,26 @@
             globalObject.globals.logging[message.id].logMessages.push(logValue);
             updateLogs(logValue);
         });
-        args = args.concat(message.data);
-        log.apply(globalObject, [message.id, message.tabId].concat(args));
     }
     function logHandler(message) {
         prepareLog(message.id, message.tabId);
         switch (message.type) {
             case 'log':
                 logHandlerLog(message);
+                break;
+            case 'evalResult':
+                chrome.tabs.get(message.tabId, function (tab) {
+                    globalObject.globals.listeners.log[message.data.callbackIndex].listener({
+                        id: message.id,
+                        tabId: message.tabId,
+                        nodeTitle: globalObject.globals.crm.crmById[message.id].name,
+                        value: message.data,
+                        tabTitle: tab.title,
+                        type: 'evalResult',
+                        lineNumber: message.data.lineNumber,
+                        timestamp: message.timestamp
+                    });
+                });
                 break;
         }
     }
@@ -1403,50 +1424,6 @@
             }
         });
     }
-    chrome.tabs.onUpdated.addListener(function (tabId, updatedInfo) {
-        // if (updatedInfo.status === 'complete' || updatedInfo.status === 'loading') {
-        // 	//It's done loading
-        // 	chrome.tabs.get(tabId, function(tab) {
-        // 		if (chrome.runtime.lastError) {
-        // 			return;
-        // 		}
-        // 		if (tab && tab.url.indexOf('chrome') !== 0 && globalObject.globals.crmValues.tabData[tabId]) {
-        // 			var i;
-        // 			if (!urlIsGlobalExcluded(tab.url)) {
-        // 				var toExecute = globalObject.globals.toExecuteNodes.always.map(function(node) {
-        // 					return {
-        // 						node: node,
-        // 						tab: tab
-        // 					}
-        // 				});
-        // 				for (var nodeId in globalObject.globals.toExecuteNodes.onUrl) {
-        // 					if (globalObject.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) && globalObject.globals.toExecuteNodes.onUrl[nodeId]) {
-        // 						if (matchesUrlSchemes(globalObject.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
-        // 							toExecute.push({
-        // 								node: globalObject.globals.crm.crmById[nodeId],
-        // 								tab: tab
-        // 							});
-        // 						}
-        // 					}
-        // 				}
-        // 				chrome.tabs.sendMessage(tabId, {
-        // 					type: 'checkTabStatus',
-        // 					data: {
-        // 						willBeMatched: (toExecute.length > 0)
-        // 					}
-        // 				}, function (response) {
-        // 					debugger;
-        // 					if (!response || response.notMatchedYet) {
-        // 						for (i = 0; i < toExecute.length; i++) {
-        // 							executeNode(toExecute[i].node, toExecute[i].tab);
-        // 						}
-        // 					}
-        // 				});
-        // 			}
-        // 		}
-        // 	});
-        // }
-    });
     //#endregion
     function triggerMatchesScheme(trigger) {
         var reg = /(file:\/\/\/.*|(\*|http|https|file|ftp):\/\/(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(\/(.*))?|(<all_urls>))/;
@@ -5163,7 +5140,6 @@
                 anonymousLibsHandler(message.data);
                 break;
             case 'updateStorage':
-                debugger;
                 applyChanges(message.data);
                 break;
             case 'sendInstanceMessage':
@@ -5186,7 +5162,9 @@
                 addNotificationListener(message);
                 break;
             case 'newTabCreated':
-                executeScriptsForTab(messageSender.tab.id, response);
+                if (messageSender && response) {
+                    executeScriptsForTab(messageSender.tab.id, response);
+                }
                 break;
             case 'styleInstall':
                 installStylesheet(message.data);
@@ -5222,6 +5200,9 @@
                 break;
             case 'chrome':
                 chromeHandler(message);
+                break;
+            default:
+                handleRuntimeMessage(message);
                 break;
         }
     }
@@ -6194,7 +6175,8 @@
                         tab: 'all',
                         text: '',
                         listener: listener,
-                        update: updateLog.bind(filterObj)
+                        update: updateLog.bind(filterObj),
+                        index: globalObject.globals.listeners.log.length
                     };
                     callback(filterObj);
                     globalObject.globals.listeners.log.push(filterObj);
@@ -6226,7 +6208,7 @@
     }());
     //#endregion
 }(chrome.runtime.getURL('').split('://')[1].split('/')[0], //Gets the extension's URL through a blocking instead of a callback function
-typeof module === 'undefined' ? {} : window, function (global) {
+typeof module !== 'undefined' || window.isDev ? window : {}, function (global) {
     function sandboxChromeFunction(fn, context, args, window, global, chrome) {
         return fn.apply(context, args);
     }

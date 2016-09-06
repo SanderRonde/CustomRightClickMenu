@@ -304,6 +304,52 @@
 
 		var instances = new CallbackStorage();
 
+		function executeCode(message) {		
+			var timestamp = new Date().toLocaleString();
+
+			var err = (new Error()).stack.split('\n')[2];
+			if (err.indexOf('eval') > -1) {
+				err = (new Error()).stack.split('\n')[3];
+			}
+			var errSplit = err.split('at');
+			var lineNumber = errSplit.slice(1, errSplit.length).join('at');
+				
+			var val;
+			var lineNumber;
+			try {
+				val = {
+					type: 'success',
+					result: eval(message.code)
+				};
+				lineNumber = '<crmapi>:0';
+			} catch(e) {
+				val = {
+					type: 'error',
+					result: {
+						stack: e.stack,
+						name: e.name,
+						message: e.message
+					}
+				};
+				lineNumber = lineNumber.split(':')[1];
+				lineNumber = '<crmapi>:' + lineNumber;
+			}
+			sendMessage({
+				id: id,
+				type: 'logCrmAPIValue',
+				tabId: _this.tabId,
+				data: {
+					type: 'evalResult',
+					value: val,
+					id: id,
+					callbackIndex: message.logCallbackIndex,
+					lineNumber: lineNumber,
+					timestamp: timestamp,
+					tabId: _this.tabId
+				}
+			});
+		}
+
 		function messageHandler(message) {
 			if (queue) {
 				//Update instance array
@@ -319,6 +365,9 @@
 				switch (message.messageType) {
 					case 'callback':
 						callbackHandler(message);
+						break;
+					case 'executeCode':
+						executeCode(message);
 						break;
 					case 'storageUpdate':
 						remoteStorageChange(message.changes);

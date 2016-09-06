@@ -50,7 +50,8 @@ interface TemplateSetupObject {
 }
 
 interface Window {
-	logging: Logging,
+	logging?: Logging,
+	isDev: boolean,
 	createHandlerFunction: (port: {
 		postMessage: Function
 	}) => (message: any, port: chrome.runtime.Port) => void,
@@ -59,29 +60,8 @@ interface Window {
 	_getIdCurrentTabs: (id: number) => Array<number>,
 	_listenIds: (listener: (newIds: Array<number>) => void) => void,
 	_listenTabs: (listener: (newTabs: Array<number>) => void) => void,
-	_listenLog: (listener: (newLine: {
-		id: number,
-		tabId: number|string,
-		nodeTitle: string,
-		tabTitle: string,
-		value: Array<any>,
-		lineNumber: string,
-		timestamp: string
-	}) => void, callback: (result: {
-		listener: (newLine: {
-			id: number,
-			tabId: number|string,
-			nodetitle: string,
-			tabTitle: string,
-			value: Array<any>,
-			lineNumber: string,
-			timestamp: string
-		}) => void,
-		id: number|string,
-		tab: number|string,
-		update: (id: any, tab: any, textFilter: any) => void,
-		text: string
-	}) => void) => void,
+	_listenLog: (listener: (newLine: LogListener) => void,
+		callback: (result: LogListenerObject) => void) => void,
 	XMLHttpRequest: any,
 	TextEncoder: any,
 	getID: (name: string) => void,
@@ -333,6 +313,25 @@ type SendCallbackMessage = (tabId: number, id: number, data: {
 	callbackId: number
 }) => void;
 
+type LogListener = (newLine: {
+	id: number,
+	tabId: number|string,
+	nodeTitle: string,
+	tabTitle: string,
+	value: Array<any>|any,
+	lineNumber: string,
+	timestamp: string,
+	type?: string
+}) => void;
+
+interface LogListenerObject {
+	listener: LogListener,
+	id: number|string,
+	tab: number|string,
+	text: string,
+	index: number
+}
+
 interface GlobalObject {
 	globals?: {
 		latestId: number,
@@ -482,23 +481,12 @@ interface GlobalObject {
 			tabVals: Array<number>,
 			ids: Array<(updatedIds: Array<number>) => void>,
 			tabs: Array<(updatedTabs: Array<number>) => void>,
-			log: Array<{
-				listener: (newLine: {
-					id: number,
-					tabId: number|string,
-					nodeTitle: string,
-					tabTitle: string,
-					value: Array<any>,
-					lineNumber: string,
-					timestamp: string
-				}) => void,
-				id: number|string,
-				tab: number|string,
-				text: string
-			}>
+			log: Array<LogListenerObject>
 		}
 	}
 }
+
+window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 (function (extensionId, globalObject: GlobalObject, sandboxes) {
 	//#region Global Variables
@@ -988,9 +976,18 @@ interface GlobalObject {
 	//#endregion
 
 	//#region LogExecution
-	function executeCRMCode(message) {
+	function executeCRMCode(message: {
+		code: string,
+		id: number,
+		tab: number,
+		logCallback: LogListenerObject
+	}) {
 		//Get the port
-		
+		globalObject.globals.crmValues.tabData[message.tab].nodes[message.id].port.postMessage({
+			messageType: 'executeCode',
+			code: message.code,
+			logCallbackIndex: message.logCallback.index
+		});
 	}
 
 	function getCRMHints(message) {
@@ -1000,6 +997,7 @@ interface GlobalObject {
 
 	//#region Logging
 	function log(nodeId, tabId, ...data) {
+		console.log(arguments);
 		var args = Array.prototype.slice.apply(arguments, [2]);
 		if (globalObject.globals.logging.filter.id !== null) {
 			if (nodeId === globalObject.globals.logging.filter.id) {
@@ -1080,6 +1078,9 @@ interface GlobalObject {
 		};
 
 		chrome.tabs.get(message.tabId, function(tab) {
+			args = args.concat(message.data);
+			log.apply(globalObject, [message.id, message.tabId].concat(args));
+
 			srcObj.id = message.id;
 			srcObj.tabId = message.tabId;
 			srcObj.tab = tab;
@@ -1094,8 +1095,6 @@ interface GlobalObject {
 			globalObject.globals.logging[message.id].logMessages.push(logValue);
 			updateLogs(logValue);
 		});
-		args = args.concat(message.data);
-		log.apply(globalObject, [message.id, message.tabId].concat(args));
 	}
 
 	function logHandler(message) {
@@ -1103,6 +1102,20 @@ interface GlobalObject {
 		switch (message.type) {
 			case 'log':
 				logHandlerLog(message);
+				break;
+			case 'evalResult':
+				chrome.tabs.get(message.tabId, function(tab) {
+					globalObject.globals.listeners.log[message.data.callbackIndex].listener({
+						id: message.id,
+						tabId: message.tabId,
+						nodeTitle: globalObject.globals.crm.crmById[message.id].name,
+						value: message.data,
+						tabTitle: tab.title, 
+						type: 'evalResult',
+						lineNumber: message.data.lineNumber,
+						timestamp: message.timestamp
+					});
+				});
 				break;
 		}
 	}
@@ -5899,7 +5912,7 @@ interface GlobalObject {
 		delete globalObject.globals.notificationListeners[notificationId];
 	});
 
-	function handleRuntimeMessage(message, messageSender, response) {
+	function handleRuntimeMessage(message, messageSender?: any, response?: any) {
 		switch (message.type) {
 			case 'executeCRMCode':
 				executeCRMCode(message.data);
@@ -5917,7 +5930,6 @@ interface GlobalObject {
 				anonymousLibsHandler(message.data);
 				break;
 			case 'updateStorage':
-				debugger;
 				applyChanges(message.data);
 				break;
 			case 'sendInstanceMessage':
@@ -5940,7 +5952,9 @@ interface GlobalObject {
 				addNotificationListener(message);
 				break;
 			case 'newTabCreated':
-				executeScriptsForTab(messageSender.tab.id, response);
+				if (messageSender && response) {
+					executeScriptsForTab(messageSender.tab.id, response);
+				}
 				break;
 			case 'styleInstall':
 				installStylesheet(message.data);
@@ -5981,6 +5995,9 @@ interface GlobalObject {
 				break;
 			case 'chrome':
 				chromeHandler(message);
+				break;
+			default:
+				handleRuntimeMessage(message);
 				break;
 		}
 	}
@@ -7044,7 +7061,8 @@ interface GlobalObject {
 						tab: 'all',
 						text: '',
 						listener: listener,
-						update: updateLog.bind(filterObj)
+						update: updateLog.bind(filterObj),
+						index: globalObject.globals.listeners.log.length
 					};
 
 					callback(filterObj);
@@ -7081,7 +7099,7 @@ interface GlobalObject {
 	//#endregion
 }(
 	chrome.runtime.getURL('').split('://')[1].split('/')[0], //Gets the extension's URL through a blocking instead of a callback function
-	typeof module === 'undefined' ? {} : window,
+	typeof module !== 'undefined' || window.isDev ? window : {},
 	function (global) {
 		function sandboxChromeFunction (fn, context, args, window, global, chrome) {
 			return fn.apply(context, args);

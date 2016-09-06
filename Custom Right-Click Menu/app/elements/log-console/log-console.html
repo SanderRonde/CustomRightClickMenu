@@ -1,5 +1,6 @@
 ﻿<dom-module id="log-console">
 	<template>
+		<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html" />
 		<link rel="import" href="../../bower_components/paper-material/paper-material.html" />
 		<link rel="import" href="../../bower_components/paper-input/paper-input.html" />
 		<link rel="import" href="../../bower_components/paper-menu/paper-menu.html"/>
@@ -92,7 +93,7 @@
 				</paper-material>
 				<div id="linesCont">
 					<template is="dom-repeat" items="{{lines}}" as="line">
-						<div class="line">
+						<div class="line"  data-error$="[[line.isError]]">
 							<div class="lineData">
 								<div class="lineTimestamp">[[line.timestamp]]</div>
 								<div class="lineContent">
@@ -105,11 +106,16 @@
 						</div>
 					</template>
 					<div id="inputFieldCont">
-						<div id="inputFieldPrefix">&gt;</div>
+						<div id="inputFieldPrefix" hidden$="[[waitingForEval]]">
+							&gt;
+						</div>
 						<div id="inputFieldWarning">
 							Running code is not possible in the current context (select both an ID and a tab)
 						</div>
-						<textarea rows="1" style="resize:none;" type="text" id="consoleInput" on-keydown="_inputKeypress"></textarea>
+						<textarea rows="1" style="resize:none;"
+							type="text" id="consoleInput"
+							on-keydown="_inputKeypress"
+							disabled$="[[waitingForEval]]"></textarea>
 					</div>
 				</div>
 			</div>

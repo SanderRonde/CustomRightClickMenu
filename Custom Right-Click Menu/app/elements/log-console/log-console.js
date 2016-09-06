@@ -38,11 +38,16 @@
 				type: String,
 				value: '',
 				notify: true
+			},
+			waitingForEval: {
+				type: Boolean,
+				value: false,
+				notify: true
 			}
 		},
 
 		observers: [
-			'_updateLog(selectedId, selectedTab, textfilter)',
+			'_updateLog(selectedId, selectedTab, textfilter)'
 		],
 
 		_hideGenericToast: function() {
@@ -93,9 +98,11 @@
 					data: {
 						code: code,
 						id: ~~this.ids[this.selectedId - 1],
-						tab: tabVal === 'background' ? tabVal : ~~tabVal
+						tab: tabVal === 'background' ? tabVal : ~~tabVal,
+						logListener: this._logListener
 					}
 				});
+				this.waitingForEval = true;
 			} else {
 				this.$.inputFieldWarning.classList.add('visible');
 				this.$.consoleInput.setAttribute('disabled', 'disabled');
@@ -184,6 +191,23 @@
 			return line;
 		},
 
+		_processEvalLine: function(line) {
+			var _this = this;
+			var lastEval = Array.prototype.slice.apply(
+				this.querySelectorAll('log-eval')).pop();
+			if (line.value.type === 'error') {
+				line.isError = true;
+				lastEval.result = '<log-error data="' +
+					_this._escapeHTML(JSON.stringify(data.value)) +
+					'"></log-error>';
+			} else {
+				lastEval.result = this._processLine(line).content;  
+			}
+			lastEval.done = true;
+			
+			this.waitingForEval = false;
+		},
+
 		_init: function(onDone) {
 			var _this = this;
 			chrome.runtime.getBackgroundPage(function(bgPage) {
@@ -198,14 +222,17 @@
 					_this.set('tabs', tabs);
 				});
 				_this.set('lines', bgPage._listenLog(function(logLine) {
-					_this.push('lines', _this._processLine(logLine));
+					console.log(logLine);
+					if (logLine.type && logLine.type === 'evalResult') {
+						_this._processEvalLine(logLine);
+					} else {
+						_this.push('lines', _this._processLine(logLine));
+					}
 				}, function(logListener) {
 					_this._logListener = logListener;
 				}).map(function(logLine) {
 					return _this._processLine(logLine);
 				}));
-				
-				console.log(_this.lines);
 			});
 
 			this.async(function() {

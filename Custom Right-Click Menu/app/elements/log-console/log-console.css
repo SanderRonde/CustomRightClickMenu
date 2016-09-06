@@ -235,3 +235,12 @@
 #inputFieldWarning.visible {
 	opacity: 1;
 }
+
+#prefixSpinner {
+	width: 10px;
+	height: 10px;
+}
+
+#console > paper-material {
+	margin-bottom: 5px;
+}
