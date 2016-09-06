@@ -15,7 +15,16 @@
 			type: Number,
 			reflectToAttribute: true,
 			notify: true
+		},
+		label: {
+			type: String,
+			notify: true,
+			value: ''
 		}
+	},
+
+	_hasNoLabel: function(label) {
+		return !(label && label !== '');
 	},
 
 	/*
