@@ -128,6 +128,9 @@
 				listener.listener.apply(listener.thisArg, [prevState, _this._paperMenu.selected]);
 			}
 		});
+		if (this.onchange) {
+			this.onchange(prevstate, this._paperMenu.selected);
+		}
 	},
 
 	refreshListeners: function() {

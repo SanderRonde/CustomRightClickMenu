@@ -1,4 +1,4 @@
-<dom-module id="log-string">
+<dom-module id="log-string" attributes="value">
 	<style>
 		#value.number {
 			color: rgb(200,255,200);
@@ -13,7 +13,7 @@
 		}
 	</style>
 	<template>
-		<div id="value">[[_parse(data)]]</div>
+		<div id="value">{{_getVal()}}</div>
 	</template>
 </dom-module>
 <script src="log-string.js"></script>

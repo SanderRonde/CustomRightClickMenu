@@ -2,20 +2,16 @@ Polymer({
 	is: 'log-string',
 
 	properties: {
-		data: {
+		value: {
 			notify: true
 		}
 	},
 
-	_parse: function(val) {
-		var parsed = JSON.parse(val);
-		if (typeof parsed === 'string') {
-			return '"' + parsed + '"';
-		}
-		return parsed;
-	},	
+	_getVal: function() {
+		return this.value;
+	},
 
 	ready: function() {
-		this.$.value.classList.add(typeof this._parse(this.data));
+		this.$.value.classList.add(typeof this.value);
 	}
 });

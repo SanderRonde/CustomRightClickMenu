@@ -7,6 +7,7 @@
 		<link rel="import" href="../../bower_components/paper-toast/paper-toast.html" />
 		<link rel="import" href="../../elements/paper-dropdown-menu/paper-dropdown-menu.html" />
 		<link rel="import" href="../../elements/echo-html/echo-html.html" />
+		<link rel="import" href="../../elements/log-visualizers/log-tag/log-tag.html" />
 		<link rel="import" href="../../elements/log-visualizers/log-array/log-array.html" />
 		<link rel="import" href="../../elements/log-visualizers/log-function/log-function.html" />
 		<link rel="import" href="../../elements/log-visualizers/log-object/log-object.html" />
@@ -92,19 +93,22 @@
 					</div>
 				</paper-material>
 				<div id="linesCont">
-					<template is="dom-repeat" items="{{lines}}" as="line">
+					<div id="lines"></div>
+					<!--<template is="dom-repeat" items="{{lines}}" as="line">
 						<div class="line"  data-error$="[[line.isError]]">
 							<div class="lineData">
 								<div class="lineTimestamp">[[line.timestamp]]</div>
 								<div class="lineContent">
-									<echo-html html="[[line.content]]"></echo-html>
+									<template is="dom-repeat" items="[[line.content]]" as="lineValue">
+										<log-tag tag="[[lineValue.tag]]" value="[[lineValue.value]]"></log-tag>
+									</template>
 								</div>
 							</div>
 							<div class="lineSource">
 								<span class="lineSourceIdCont" title$="[[line.nodeTitle]]">[id-<span class="lineSourceId">[[line.id]]</span>]</span><span class="lineSourceTabCont" on-tap="_takeToTab" tabindex="1" title$="[[line.tabTitle]]">[tab-<span class="lineSourceTab">[[line.tabId]]</span>]</span><span class="lineSourceLineCont">@<span class="lineSourceLineNumber">[[_stripWhitespace(line.lineNumber)]]</span></span>
 							</div>
 						</div>
-					</template>
+					</template>-->
 					<div id="inputFieldCont">
 						<div id="inputFieldPrefix" hidden$="[[waitingForEval]]">
 							&gt;
@@ -131,4 +135,6 @@
 <script src="../../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
 <script src="../../js/libraries/jquery/jquery.contextMenu.js"></script>
 <script src="../../js/libraries/jquery/jquery.bez.js"></script>
+<script src="../../js/libraries/react/react.js"></script>
+<script src="../../js/libraries/react/react-dom.js"></script>
 <script src="log-console.js"></script>

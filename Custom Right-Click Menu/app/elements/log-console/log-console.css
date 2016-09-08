@@ -36,7 +36,7 @@
 
 .lineContent {
 	color: rgb(255,255,255);
-	display: inline-block;
+	display: flex;
 }
 
 .line {
@@ -218,7 +218,7 @@
 #inputFieldCont {
 	display: flex;
 	justify-content: flex-start;
-	margin-bottom: 3px;
+	margin-bottom: 8px;
 	position: relative;
 }
 
@@ -243,4 +243,30 @@
 
 #console > paper-material {
 	margin-bottom: 5px;
+}
+
+log-tag > * {
+	display: inline-block;
+}
+
+log-tag > template {
+	display: none;
+	margin: 0;
+}
+
+.lineContent > log-tag {
+	padding: 0 4px;
+}
+
+.arrayComma {
+	display: inline;
+	margin-left: -5px;
+}
+
+.arrayComma:last-of-type {
+	display: none;
+}
+
+.lineData {
+	display: flex;
 }

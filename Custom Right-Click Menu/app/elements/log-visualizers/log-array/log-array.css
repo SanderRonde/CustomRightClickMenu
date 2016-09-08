@@ -1,0 +1,25 @@
+#previewArea {
+	display: flex;
+}
+
+#expandArrow {
+	cursor: pointer;
+	transition: transform 150ms linear;
+	fill: white;
+}
+
+#expandArrow[data-expanded="true"] {
+	transform: rotate(45deg);
+}
+
+.arrayElIndex, .arrayElValue {
+	display: inline-block;
+}
+
+#expandedElements {
+	margin-left: 17px;
+}
+
+.arrayEl:last-of-type {
+	margin-bottom: 5px;
+}

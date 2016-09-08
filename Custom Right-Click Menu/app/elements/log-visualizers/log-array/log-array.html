@@ -1,7 +1,37 @@
-<dom-module id="log-array">
+<dom-module id="log-array" attributes="val">
 	<template>
 		<link rel="stylesheet" href="log-array.css" />
-		
+		<div id="cont">
+			<div id="previewArea">
+				<div id="expandArrow" data-expanded$="[[!expanded]]" hidden$="[[!_overflows(value)]]"  on-tap="_expand">
+					<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 48 48">
+						<path d="M16 10v28l22-14z"/>
+					</svg>
+				</div>
+				<div id="previewCont">
+					<span id="arrStart">[</span>
+					<template id="previewTemplate" is="dom-repeat" as="arrayElement">
+						<template is="dom-if" if="[[arrayElement.special]]">
+							<span class="specialArrayElement">[[arrayElement.data]]</span>
+						</template>
+						<template is="dom-if" if="[[!arrayElement.special]]">
+							<log-tag auto value="[[arrayElement.data]]"></log-tag><div class="arrayComma">,</div>
+						</template>
+					</template>
+					<span id="arrEnd">]</span>
+				</div>
+			</div>
+			<div id="expandedElements" hidden$="[[!expanded]]">
+				<template is="dom-repeat" id="valueTemplate" as="arrayElement">
+					<div class="arrayEl">
+						<div class="arrayElIndex">[[index]]</div>:
+						<div class="arrayElValue">
+							<log-tag auto value="[[arrayElement]]"></log-tag>
+						</div>
+					</div>
+				</template>
+			</div>
+		</div>
 	</template>
 </dom-module>
 <script src="log-array.js"></script>
