@@ -349,190 +349,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     return this.getDefaultDividerOrMenuNode(options, 'menu');
                 }
             },
-            specialJSON: {
-                resolveJson: function (root, args) {
-                    args = args || {};
-                    var idAttribute = args.idAttribute || 'id';
-                    var refAttribute = this.refAttribute;
-                    var idAsRef = args.idAsRef;
-                    var prefix = args.idPrefix || '';
-                    var assignAbsoluteIds = args.assignAbsoluteIds;
-                    var index = args.index || {}; // create an index if one doesn't exist
-                    var timeStamps = args.timeStamps;
-                    var ref, reWalk = [];
-                    var pathResolveRegex = /^(.*\/)?(\w+:\/\/)|[^\/\.]+\/\.\.\/|^.*\/(\/)/;
-                    var addProp = this._addProp;
-                    var F = function () { };
-                    function walk(it, stop, defaultId, needsPrefix, schema, defaultObject) {
-                        // this walks the new graph, resolving references and making other changes
-                        var i, update, val, id = idAttribute in it ? it[idAttribute] : defaultId;
-                        if (idAttribute in it || ((id !== undefined) && needsPrefix)) {
-                            id = (prefix + id).replace(pathResolveRegex, '$2$3');
-                        }
-                        var target = defaultObject || it;
-                        if (id !== undefined) {
-                            if (assignAbsoluteIds) {
-                                it.__id = id;
-                            }
-                            if (args.schemas && (!(it instanceof Array)) &&
-                                (val = id.match(/^(.+\/)[^\.\[]*$/))) {
-                                schema = args.schemas[val[1]];
-                            }
-                            // if the id already exists in the system, we should use the existing object, and just 
-                            // update it... as long as the object is compatible
-                            if (index[id] && ((it instanceof Array) == (index[id] instanceof Array))) {
-                                target = index[id];
-                                delete target.$ref; // remove this artifact
-                                delete target._loadObject;
-                                update = true;
-                            }
-                            else {
-                                var proto = schema && schema.prototype; // and if has a prototype
-                                if (proto) {
-                                    // if the schema defines a prototype, that needs to be the prototype of the object
-                                    F.prototype = proto;
-                                    target = new F();
-                                }
-                            }
-                            index[id] = target; // add the prefix, set _id, and index it
-                            if (timeStamps) {
-                                timeStamps[id] = args.time;
-                            }
-                        }
-                        while (schema) {
-                            var properties = schema.properties;
-                            if (properties) {
-                                for (i in it) {
-                                    var propertyDefinition = properties[i];
-                                    console.log(it);
-                                    if (propertyDefinition && propertyDefinition.format == 'date-time' && typeof it[i] == 'string') {
-                                        it[i] = new Date(it[i]);
-                                    }
-                                }
-                            }
-                            schema = schema["extends"];
-                        }
-                        var length = it.length;
-                        for (i in it) {
-                            if (i == length) {
-                                break;
-                            }
-                            if (it.hasOwnProperty(i)) {
-                                val = it[i];
-                                if ((typeof val == 'object') && val && !(val instanceof Date) && i != '__parent') {
-                                    ref = val[refAttribute] || (idAsRef && val[idAttribute]);
-                                    if (!ref || !val.__parent) {
-                                        val.__parent = it;
-                                    }
-                                    if (ref) {
-                                        // make sure it is a safe reference
-                                        delete it[i]; // remove the property so it doesn't resolve to itself in the case of id.propertyName lazy values
-                                        var path = ref.toString().replace(/(#)([^\.\[])/, '$1.$2').match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/); // divide along the path
-                                        if ((ref = (path[1] == '$' || path[1] == 'this' || path[1] == '') ? root : index[(prefix + path[1]).replace(pathResolveRegex, '$2$3')])) {
-                                            // if there is a path, we will iterate through the path references
-                                            if (path[3]) {
-                                                path[3].replace(/(\[([^\]]+)\])|(\.?([^\.\[]+))/g, function (t, a, b, c, d) {
-                                                    ref = ref && ref[b ? b.replace(/[\"\'\\]/, '') : d];
-                                                });
-                                            }
-                                        }
-                                        if (ref) {
-                                            val = ref;
-                                        }
-                                        else {
-                                            // otherwise, no starting point was found (id not found), if stop is set, it does not exist, we have
-                                            // unloaded reference, if stop is not set, it may be in a part of the graph not walked yet,
-                                            // we will wait for the second loop
-                                            if (!stop) {
-                                                var rewalking;
-                                                if (!rewalking) {
-                                                    reWalk.push(target); // we need to rewalk it to resolve references
-                                                }
-                                                rewalking = true; // we only want to add it once
-                                                val = walk(val, false, val[refAttribute], true, propertyDefinition);
-                                                // create a lazy loaded object
-                                                val._loadObject = args.loader;
-                                            }
-                                        }
-                                    }
-                                    else {
-                                        if (!stop) {
-                                            // further walking may lead down circular loops
-                                            val = walk(val, reWalk == it, id === undefined ? undefined : addProp(id, i), // the default id to use
-                                            false, propertyDefinition, 
-                                            // if we have an existing object child, we want to 
-                                            // maintain it's identity, so we pass it as the default object
-                                            target != it && typeof target[i] == 'object' && target[i]);
-                                        }
-                                    }
-                                }
-                                it[i] = val;
-                                if (target != it && !target.__isDirty) {
-                                    var old = target[i];
-                                    target[i] = val; // only update if it changed
-                                    if (update && val !== old &&
-                                        !target._loadObject &&
-                                        !(i.charAt(0) == '_' && i.charAt(1) == '_') && i != "$ref" &&
-                                        !(val instanceof Date && old instanceof Date && val.getTime() == old.getTime()) &&
-                                        !(typeof val == 'function' && typeof old == 'function' && val.toString() == old.toString()) &&
-                                        index.onUpdate) {
-                                        index.onUpdate(target, i, old, val); // call the listener for each update
-                                    }
-                                }
-                            }
-                        }
-                        if (update && (idAttribute in it)) {
-                            // this means we are updating with a full representation of the object, we need to remove deleted
-                            for (i in target) {
-                                if (!target.__isDirty && target.hasOwnProperty(i) && !it.hasOwnProperty(i) && !(i.charAt(0) == '_' && i.charAt(1) == '_') && !(target instanceof Array && isNaN(i))) {
-                                    if (index.onUpdate && i != "_loadObject" && i != "_idAttr") {
-                                        index.onUpdate(target, i, target[i], undefined); // call the listener for each update
-                                    }
-                                    delete target[i];
-                                    while (target instanceof Array && target.length && target[target.length - 1] === undefined) {
-                                        // shorten the target if necessary
-                                        target.length--;
-                                    }
-                                }
-                            }
-                        }
-                        else {
-                            if (index.onLoad) {
-                                index.onLoad(target);
-                            }
-                        }
-                        return target;
-                    }
-                    if (root && typeof root == 'object') {
-                        root = walk(root, false, args.defaultId, true); // do the main walk through
-                        walk(reWalk, false); // re walk any parts that were not able to resolve references on the first round
-                    }
-                    return root;
-                },
-                fromJson: function (str, args) {
-                    function ref(target) {
-                        var refObject = {};
-                        refObject[this.refAttribute] = target;
-                        return refObject;
-                    }
-                    try {
-                        var root = eval('(' + str + ')'); // do the eval
-                    }
-                    catch (e) {
-                        throw new SyntaxError("Invalid JSON string: " + e.message + " parsing: " + str);
-                    }
-                    if (root) {
-                        return this.resolveJson(root, args);
-                    }
-                    return root;
-                },
-                _addProp: function (id, prop) {
-                    return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
-                },
-                refAttribute: "$ref",
-                _useRefs: false,
-                serializeFunctions: true
-            }
+            specialJSON: window.specialJSON
         },
         listeners: {
             idVals: [],
@@ -674,7 +491,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         for (var _i = 2; _i < arguments.length; _i++) {
             data[_i - 2] = arguments[_i];
         }
-        console.log(arguments);
         var args = Array.prototype.slice.apply(arguments, [2]);
         if (globalObject.globals.logging.filter.id !== null) {
             if (nodeId === globalObject.globals.logging.filter.id) {
@@ -5391,7 +5207,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         }
     }
     window.createHandlerFunction = function (port) {
-        return function (message, port) {
+        return function (message) {
             var tabNodeData = globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id];
             if (!tabNodeData.port) {
                 if (compareArray(tabNodeData.secretKey, message.key)) {
@@ -5528,7 +5344,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         return {
             settingsStorage: defaultSyncStorage,
             storageLocalCopy: storageLocalCopy,
-            storageLocal: storageLocal
+            chromeStorageLocal: storageLocal
         };
     }
     //#endregion
@@ -6099,7 +5915,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 resolve({
                     settingsStorage: result.settingsStorage,
                     storageLocalCopy: result.storageLocalCopy,
-                    chromeStorageLocal: result.storageLocal
+                    chromeStorageLocal: result.chromeStorageLocal
                 });
             }
         };
@@ -6481,3 +6297,186 @@ if (typeof module === 'undefined') {
         ' and type filter(id, [optional tabId]) to show only those messages.' +
         ' You can also visit the logging page for even better logging over at ', chrome.runtime.getURL('logging.html'));
 }
+window.specialJSON = {
+    resolveJson: function (root, args) {
+        args = args || {};
+        var idAttribute = args.idAttribute || 'id';
+        var refAttribute = this.refAttribute;
+        var idAsRef = args.idAsRef;
+        var prefix = args.idPrefix || '';
+        var assignAbsoluteIds = args.assignAbsoluteIds;
+        var index = args.index || {}; // create an index if one doesn't exist
+        var timeStamps = args.timeStamps;
+        var ref, reWalk = [];
+        var pathResolveRegex = /^(.*\/)?(\w+:\/\/)|[^\/\.]+\/\.\.\/|^.*\/(\/)/;
+        var addProp = this._addProp;
+        var F = function () { };
+        function walk(it, stop, defaultId, needsPrefix, schema, defaultObject) {
+            // this walks the new graph, resolving references and making other changes
+            var i, update, val, id = idAttribute in it ? it[idAttribute] : defaultId;
+            if (idAttribute in it || ((id !== undefined) && needsPrefix)) {
+                id = (prefix + id).replace(pathResolveRegex, '$2$3');
+            }
+            var target = defaultObject || it;
+            if (id !== undefined) {
+                if (assignAbsoluteIds) {
+                    it.__id = id;
+                }
+                if (args.schemas && (!(it instanceof Array)) &&
+                    (val = id.match(/^(.+\/)[^\.\[]*$/))) {
+                    schema = args.schemas[val[1]];
+                }
+                // if the id already exists in the system, we should use the existing object, and just 
+                // update it... as long as the object is compatible
+                if (index[id] && ((it instanceof Array) == (index[id] instanceof Array))) {
+                    target = index[id];
+                    delete target.$ref; // remove this artifact
+                    delete target._loadObject;
+                    update = true;
+                }
+                else {
+                    var proto = schema && schema.prototype; // and if has a prototype
+                    if (proto) {
+                        // if the schema defines a prototype, that needs to be the prototype of the object
+                        F.prototype = proto;
+                        target = new F();
+                    }
+                }
+                index[id] = target; // add the prefix, set _id, and index it
+                if (timeStamps) {
+                    timeStamps[id] = args.time;
+                }
+            }
+            while (schema) {
+                var properties = schema.properties;
+                if (properties) {
+                    for (i in it) {
+                        var propertyDefinition = properties[i];
+                        if (propertyDefinition && propertyDefinition.format == 'date-time' && typeof it[i] == 'string') {
+                            it[i] = new Date(it[i]);
+                        }
+                    }
+                }
+                schema = schema["extends"];
+            }
+            var length = it.length;
+            for (i in it) {
+                if (i == length) {
+                    break;
+                }
+                if (it.hasOwnProperty(i)) {
+                    val = it[i];
+                    if ((typeof val == 'object') && val && !(val instanceof Date) && i != '__parent') {
+                        ref = val[refAttribute] || (idAsRef && val[idAttribute]);
+                        if (!ref || !val.__parent) {
+                            val.__parent = it;
+                        }
+                        if (ref) {
+                            // make sure it is a safe reference
+                            delete it[i]; // remove the property so it doesn't resolve to itself in the case of id.propertyName lazy values
+                            var path = ref.toString().replace(/(#)([^\.\[])/, '$1.$2').match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/); // divide along the path
+                            if ((ref = (path[1] == '$' || path[1] == 'this' || path[1] == '') ? root : index[(prefix + path[1]).replace(pathResolveRegex, '$2$3')])) {
+                                // if there is a path, we will iterate through the path references
+                                if (path[3]) {
+                                    path[3].replace(/(\[([^\]]+)\])|(\.?([^\.\[]+))/g, function (t, a, b, c, d) {
+                                        ref = ref && ref[b ? b.replace(/[\"\'\\]/, '') : d];
+                                    });
+                                }
+                            }
+                            if (ref) {
+                                val = ref;
+                            }
+                            else {
+                                // otherwise, no starting point was found (id not found), if stop is set, it does not exist, we have
+                                // unloaded reference, if stop is not set, it may be in a part of the graph not walked yet,
+                                // we will wait for the second loop
+                                if (!stop) {
+                                    var rewalking;
+                                    if (!rewalking) {
+                                        reWalk.push(target); // we need to rewalk it to resolve references
+                                    }
+                                    rewalking = true; // we only want to add it once
+                                    val = walk(val, false, val[refAttribute], true, propertyDefinition);
+                                    // create a lazy loaded object
+                                    val._loadObject = args.loader;
+                                }
+                            }
+                        }
+                        else {
+                            if (!stop) {
+                                // further walking may lead down circular loops
+                                val = walk(val, reWalk == it, id === undefined ? undefined : addProp(id, i), // the default id to use
+                                false, propertyDefinition, 
+                                // if we have an existing object child, we want to 
+                                // maintain it's identity, so we pass it as the default object
+                                target != it && typeof target[i] == 'object' && target[i]);
+                            }
+                        }
+                    }
+                    it[i] = val;
+                    if (target != it && !target.__isDirty) {
+                        var old = target[i];
+                        target[i] = val; // only update if it changed
+                        if (update && val !== old &&
+                            !target._loadObject &&
+                            !(i.charAt(0) == '_' && i.charAt(1) == '_') && i != "$ref" &&
+                            !(val instanceof Date && old instanceof Date && val.getTime() == old.getTime()) &&
+                            !(typeof val == 'function' && typeof old == 'function' && val.toString() == old.toString()) &&
+                            index.onUpdate) {
+                            index.onUpdate(target, i, old, val); // call the listener for each update
+                        }
+                    }
+                }
+            }
+            if (update && (idAttribute in it)) {
+                // this means we are updating with a full representation of the object, we need to remove deleted
+                for (i in target) {
+                    if (!target.__isDirty && target.hasOwnProperty(i) && !it.hasOwnProperty(i) && !(i.charAt(0) == '_' && i.charAt(1) == '_') && !(target instanceof Array && isNaN(i))) {
+                        if (index.onUpdate && i != "_loadObject" && i != "_idAttr") {
+                            index.onUpdate(target, i, target[i], undefined); // call the listener for each update
+                        }
+                        delete target[i];
+                        while (target instanceof Array && target.length && target[target.length - 1] === undefined) {
+                            // shorten the target if necessary
+                            target.length--;
+                        }
+                    }
+                }
+            }
+            else {
+                if (index.onLoad) {
+                    index.onLoad(target);
+                }
+            }
+            return target;
+        }
+        if (root && typeof root == 'object') {
+            root = walk(root, false, args.defaultId, true); // do the main walk through
+            walk(reWalk, false); // re walk any parts that were not able to resolve references on the first round
+        }
+        return root;
+    },
+    fromJson: function (str, args) {
+        function ref(target) {
+            var refObject = {};
+            refObject[this.refAttribute] = target;
+            return refObject;
+        }
+        try {
+            var root = eval('(' + str + ')'); // do the eval
+        }
+        catch (e) {
+            throw new SyntaxError("Invalid JSON string: " + e.message + " parsing: " + str);
+        }
+        if (root) {
+            return this.resolveJson(root, args);
+        }
+        return root;
+    },
+    _addProp: function (id, prop) {
+        return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
+    },
+    refAttribute: "$ref",
+    _useRefs: false,
+    serializeFunctions: true
+};
