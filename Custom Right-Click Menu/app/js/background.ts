@@ -7,7 +7,7 @@ interface SettingsStorage extends AnyObj {
 		useTabs: boolean,
 		tabSize: number
 	},
-	crm: Array<CRMNode>
+	crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>
 }
 
 interface StorageLocal extends AnyObj {
@@ -50,38 +50,38 @@ interface TemplateSetupObject {
 }
 
 interface SpecialJSON {
-	resolveJson: (root: any, args: any) => any,
-	fromJson: (str: string, args?: any) => any,
-	_addProp: (id: any, prop: any) => any,
-	refAttribute: string,
-	_useRefs: boolean,
-	serializeFunctions: boolean
+	resolveJson: (root: any, args: any) => any;
+	fromJson: (str: string, args?: any) => any;
+	_addProp: (id: any, prop: any) => any;
+	refAttribute: string;
+	_useRefs: boolean;
+	serializeFunctions: boolean;
 }
 
 interface Window {
-	logging?: Logging,
-	isDev: boolean,
+	logging?: Logging;
+	isDev: boolean;
 	createHandlerFunction: (port: {
-		postMessage: Function
+		postMessage: (message: Object) => void
 	}) => (message: any, port: chrome.runtime.Port) => void,
-	backgroundPageLog: (id: number, source: string, ...params: Array<any>) => void,
-	filter: (nodeId: any, tabId: any) => void,
-	_getIdCurrentTabs: (id: number) => Array<number>,
-	_listenIds: (listener: (newIds: Array<number>) => void) => void,
-	_listenTabs: (listener: (newTabs: Array<number>) => void) => void,
-	_listenLog: (listener: (newLine: LogListener) => void,
-		callback: (result: LogListenerObject) => void) => void,
-	specialJSON: SpecialJSON,
-	XMLHttpRequest: any,
-	TextEncoder: any,
-	getID: (name: string) => void,
-	md5: (data: any) => string,
-	TernFile: any,
-	CodeMirror: any,
-	ecma5: any,
-	ecma6: any,
-	jqueryDefs: any,
-	browserDefs: any,
+	backgroundPageLog: (id: number, source: string, ...params: Array<any>) => void;
+	filter: (nodeId: any, tabId: any) => void;
+	_getIdCurrentTabs: (id: number) => Array<number>;
+	_listenIds: (listener: (newIds: Array<number>) => void) => void;
+	_listenTabs: (listener: (newTabs: Array<number>) => void) => void;
+	_listenLog: (listener: (newLine: LogListener) => void;
+		callback: (result: LogListenerObject) => void) => void;
+	specialJSON: SpecialJSON;
+	XMLHttpRequest: any;
+	TextEncoder: any;
+	getID: (name: string) => void;
+	md5: (data: any) => string;
+	TernFile: any;
+	CodeMirror: any;
+	ecma5: any;
+	ecma6: any;
+	jqueryDefs: any;
+	browserDefs: any;
 	tern: any
 }
 
@@ -96,18 +96,18 @@ interface CRMNodeInfo {
 		downloadURL?: string;
 		url?: string;
 		author?: string;
-	},
-	version?: string,
+	};
+	version?: string;
 	lastUpdatedAt?: string
 }
 
 interface ContextMenuItemTreeItem {
-	index: number,
-	id: number,
-	enabled: boolean,
-	node: CRMNode,
-	parentId: number,
-	children: Array<ContextMenuItemTreeItem>,
+	index: number;
+	id: number;
+	enabled: boolean;
+	node: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode;
+	parentId: number;
+	children: Array<ContextMenuItemTreeItem>;
 	parentTree: Array<ContextMenuItemTreeItem>
 } 
 
@@ -213,13 +213,13 @@ interface SafeCRMBaseNode {
 interface CRMBaseNode extends SafeCRMBaseNode {
 	index: number;
 	isLocal: boolean;
-	children: Array<CRMNode>;
+	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 }
 
 interface PassiveCRMNode extends CRMBaseNode {
 	showOnSpecified: boolean;
 	isLocal: boolean;
-	children: Array<CRMNode>;
+	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 }
 
 interface SafePassiveCRMNode extends SafeCRMBaseNode {
@@ -229,7 +229,7 @@ interface SafePassiveCRMNode extends SafeCRMBaseNode {
 interface ScriptNode extends CRMBaseNode {
 	type: string;
 	value: ScriptVal;
-	menuVal?: Array<CRMNode>;
+	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 	linkVal?: LinkVal;
 	stylesheetVal?: StylesheetVal;
 }
@@ -237,27 +237,27 @@ interface ScriptNode extends CRMBaseNode {
 interface StylesheetNode extends CRMBaseNode {
 	type: string;
 	value: StylesheetVal;
-	menuVal?: Array<CRMNode>;
+	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 	linkVal?: LinkVal;
 	scriptVal?: ScriptVal;
 }
 
 interface LinkNode extends PassiveCRMNode {
 	value: LinkVal;
-	menuVal?: Array<CRMNode>;
+	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 	scriptVal?: ScriptVal;
 	stylesheetVal?: StylesheetVal;
 }
 
 interface MenuNode extends PassiveCRMNode {
-	children: Array<CRMNode>;
+	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 	linkVal?: LinkVal;
 	scriptVal?: ScriptVal;
 	stylesheetVal?: StylesheetVal;
 }
 
 interface DividerNode extends PassiveCRMNode {
-	menuVal?: Array<CRMNode>;
+	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 	linkVal?: LinkVal;
 	scriptVal?: ScriptVal;
 	stylesheetVal?: StylesheetVal;
@@ -300,198 +300,197 @@ interface SafeDividerNode extends SafePassiveCRMNode {
 	stylesheetVal?: StylesheetVal;
 }
 
-type CRMNode = DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode;
-
 type SafeCRMNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
 
 interface AnyObj {
-	[key: string]: any,
+	[key: string]: any;
 	[key: number]: any
 }
 
 interface CRMSandboxWorker extends Worker {
-	id: number,
-	post: (message: any) => void,
-	listen: (callback: (data: any) => void) => void,
-	worker: Worker
+	id: number;
+	post: (message: any) => void;
+	listen: (callback: (data: any) => void) => void;
+	worker: Worker;
+	script: string
 }
 
 type SendCallbackMessage = (tabId: number, id: number, data: {
 	err: boolean,
-	errorMessage?: string,
-	args?: Array<any>,
+	errorMessage?: string;
+	args?: Array<any>;
 	callbackId: number
 }) => void;
 
 type LogListener = (newLine: {
-	id: number,
-	tabId: number|string,
-	nodeTitle: string,
-	tabTitle: string,
-	value: Array<any>|any,
-	lineNumber: string,
-	timestamp: string,
+	id: number;
+	tabId: number|string;
+	nodeTitle: string;
+	tabTitle: string;
+	value: Array<any>|any;
+	lineNumber: string;
+	timestamp: string;
 	type?: string
 }) => void;
 
 interface LogListenerObject {
-	listener: LogListener,
-	id: number|string,
-	tab: number|string,
-	text: string,
+	listener: LogListener;
+	id: number|string;
+	tab: number|string;
+	text: string;
 	index: number
 }
 
 interface GlobalObject {
 	globals?: {
-		latestId: number,
+		latestId: number;
 		storages: {
-			settingsStorage: SettingsStorage,
-			globalExcludes: Array<string>,
+			settingsStorage: SettingsStorage;
+			globalExcludes: Array<string>;
 			resourceKeys: Array<{
-				name: string,
-				sourceUrl: string,
+				name: string;
+				sourceUrl: string;
 				hashes: Array<{
-					algorithm: string,
+					algorithm: string;
 					hash: string
-				}>,
+				}>;
 				scriptId: number
-			}>,
+			}>;
 			urlDataPairs: {
 				[url: string]: {
-					dataString: string,
-					refs: Array<number>,
+					dataString: string;
+					refs: Array<number>;
 					dataURI: string
 				}
-			},
-			storageLocal: StorageLocal,
+			};
+			storageLocal: StorageLocal;
 			nodeStorage: {
 				[nodeId: number]: AnyObj
-			},
+			};
 			resources: {
 				[scriptId: number]: {
 					[name: string]: {
-						name: string,
-						sourceUrl: string,
-						matchesHashes: boolean,
-						dataURI: string,
+						name: string;
+						sourceUrl: string;
+						matchesHashes: boolean;
+						dataURI: string;
 						crmUrl: string
 					}
 				}
 			}
-		},
+		};
 		background: {
-			workers: Array<CRMSandboxWorker>,
+			workers: Array<CRMSandboxWorker>;
 			byId: {
 				[nodeId: number]: CRMSandboxWorker
 			}
-		},
+		};
 		crm: {
-			crmTree: Array<CRMNode>,
+			crmTree: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 			crmById: {
-				[id: number]: CRMNode
-			},
-			safeTree: Array<SafeCRMNode>,
+				[id: number]: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode
+			};
+			safeTree: Array<SafeCRMNode>;
 			crmByIdSafe: {
 				[id: number]: SafeCRMNode
 			}
-		},
+		};
 		keys: {
 			[secretKey: string]: boolean
-		},
-		availablePermissions: Array<string>,
+		};
+		availablePermissions: Array<string>;
 		crmValues: {
 			tabData: {
 				[tabId: number]: {
 					nodes: {
 						[nodeId: number]: {
-							secretKey: Array<number>,
+							secretKey: Array<number>;
 							port?: chrome.runtime.Port|{
-								postMessage: Function
+								postMessage(message: Object): void;
 							}
 						}
-					},
+					};
 					libraries: {
-						[library: string]: boolean
+						[library: string]: boolean;
 					}
 				}
-			},
-			rootId: number,
+			};
+			rootId: number;
 			contextMenuIds: {
 				[nodeId: number]: number
-			},
+			};
 			nodeInstances: {
 				[nodeId: number]: {
 					[instanceId: number]: {
 						hasHandler: boolean
 					}
 				}
-			},
+			};
 			contextMenuInfoById: {
 				[nodeId: number]: {
-					path: Array<number>,
-					settings: ContextMenuSettings,
+					path: Array<number>;
+					settings: ContextMenuSettings;
 					enabled: boolean
 				}
-			},
-			contextMenuItemTree: Array<ContextMenuItemTreeItem>,
+			};
+			contextMenuItemTree: Array<ContextMenuItemTreeItem>;
 			hideNodesOnPagesData: {
 				[nodeId: number]: Array<{
-					not: boolean,
+					not: boolean;
 					url: string
 				}>
-			},
+			};
 			stylesheetNodeStatusses: {
 				[nodeId: number]: {
 					[tabId: number]: boolean
 					defaultValue: boolean
-				},
+				};
 			}
-		},
+		};
 		toExecuteNodes: {
-			onUrl: Array<CRMNode>,
-			always: Array<CRMNode>
-		},
-		sendCallbackMessage: SendCallbackMessage,
+			onUrl: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+			always: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>
+		};
+		sendCallbackMessage: SendCallbackMessage;
 		notificationListeners: {
 			[notificationId: number]: {
-				id: number,
-				tabId: number,
-				notificationId: number,
-				onDone: number,
+				id: number;
+				tabId: number;
+				notificationId: number;
+				onDone: number;
 				onClick: number
 			}
-		},
+		};
 		scriptInstallListeners: {
 			[tabId: number]: {
-				id: number,
-				tabId: number,
+				id: number;
+				tabId: number;
 				callback: any
 			}
-		},
-		logging: Logging,
+		};
+		logging: Logging;
 		constants: {
-			supportedHashes: Array<string>,
-			validSchemes: Array<string>,
+			supportedHashes: Array<string>;
+			validSchemes: Array<string>;
 			templates: {
-				mergeArrays: (mainArray: Array<any>, additionArray: Array<any>) => Array<any>,
-				mergeObjects: (mainObject: TemplateSetupObject, additions: TemplateSetupObject) => any,
-				getDefaultLinkNode: (options: TemplateSetupObject) => LinkNode,
-				getDefaultStylesheetValue: (options: TemplateSetupObject) => StylesheetVal,
-				getDefaultScriptValue: (options: TemplateSetupObject) => ScriptVal,
-				getDefaultScriptNode: (options: TemplateSetupObject) => ScriptNode,
-				getDefaultStylesheetNode: (options: TemplateSetupObject) => StylesheetNode,
-				getDefaultDividerOrMenuNode: (options: TemplateSetupObject, type: string) => any,
-				getDefaultDividerNode: (options: TemplateSetupObject) => any,
+				mergeArrays: (mainArray: Array<any>, additionArray: Array<any>) => Array<any>;
+				mergeObjects: (mainObject: TemplateSetupObject, additions: TemplateSetupObject) => any;
+				getDefaultLinkNode: (options: TemplateSetupObject) => LinkNode;
+				getDefaultStylesheetValue: (options: TemplateSetupObject) => StylesheetVal;
+				getDefaultScriptValue: (options: TemplateSetupObject) => ScriptVal;
+				getDefaultScriptNode: (options: TemplateSetupObject) => ScriptNode;
+				getDefaultStylesheetNode: (options: TemplateSetupObject) => StylesheetNode;
+				getDefaultDividerOrMenuNode: (options: TemplateSetupObject, type: string) => any;
+				getDefaultDividerNode: (options: TemplateSetupObject) => any;
 				getDefaultMenuNode: (options: TemplateSetupObject) => any
-			},
+			};
 			specialJSON: SpecialJSON
-		},
+		};
 		listeners: {
-			idVals: Array<number>,
-			tabVals: Array<number>,
-			ids: Array<(updatedIds: Array<number>) => void>,
-			tabs: Array<(updatedTabs: Array<number>) => void>,
+			idVals: Array<number>;
+			tabVals: Array<number>;
+			ids: Array<(updatedIds: Array<number>) => void>;
+			tabs: Array<(updatedTabs: Array<number>) => void>;
 			log: Array<LogListenerObject>
 		}
 	}
@@ -1063,7 +1062,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			tab?: chrome.tabs.Tab,
 			url?: string,
 			tabTitle?: string,
-			node?: CRMNode,
+			node?: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode,
 			nodeName?: string
 		} = {}
 		var args = [
@@ -2204,7 +2203,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					var result: {
 						index?: number,
 						parentId?: number,
-						node?: CRMNode,
+						node?: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode,
 						parentTree?: ContextMenuItemTreeItem
 					} = buildPageCRMTree(node.children[i], id, newPath, children);
 					if (result) {
@@ -2802,7 +2801,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			if (changes[i].key === 'crm') {
 				var ordered = {};
 				orderBackgroundPagesById(changes[i].newValue, ordered);
-				for (var id in ordered) {
+				for (var id: number in ordered) {
 					if (ordered.hasOwnProperty(id)) {
 						if (globalObject.globals.background.byId[id] && globalObject.globals.background.byId[id].script !== ordered[id]) {
 							createBackgroundPage(globalObject.globals.crm.crmById[id]);
@@ -4327,8 +4326,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	};
 
 	CRMFunction.prototype.getNodeFromId = function(id, makeSafe, synchronous): {
-		run: (callback: (node: CRMNode|SafeCRMNode) => void) => void
-	}|CRMNode|SafeCRMNode|boolean {
+		run: (callback: (node: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode|SafeCRMNode) => void) => void
+	}|DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode|SafeCRMNode|boolean {
 		var node = (makeSafe ? globalObject.globals.crm.crmByIdSafe : globalObject.globals.crm.crmById)[id];
 		if (node) {
 			if (synchronous) {

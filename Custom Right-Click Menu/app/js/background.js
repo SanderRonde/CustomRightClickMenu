@@ -1754,7 +1754,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         if (!err) {
             globalObject.globals.crmValues.tabData[0] = globalObject.globals.crmValues.tabData[0] || {
                 libraries: {},
-                nodes: {}
+                nodes: {},
             };
             globalObject.globals.crmValues.tabData[0].nodes[node.id] = {
                 secretKey: key
@@ -2221,7 +2221,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         var msg = {
             type: type,
             callbackId: message.onFinish,
-            messageType: 'callback'
+            messageType: 'callback',
         };
         msg.data = (type === 'error' || type === 'chromeError' ? {
             error: data,
