@@ -426,7 +426,6 @@
 			var lineNumber = errSplit.slice(1, errSplit.length).join('at');
 				
 			var val;
-			var lineNumber;
 			try {
 				val = {
 					type: 'success',

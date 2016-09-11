@@ -1191,7 +1191,7 @@ describe('CRMAPI', () => {
 			shrinkTitleRibbon: false,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
-			latestId: 1,
+			latestId: 0,
 			key: {},
 			lastUpdatedAt: JSON.parse(String(fs.readFileSync('./app/manifest.json'), {
 								encoding: 'utf8'
@@ -1612,7 +1612,7 @@ describe('CRMAPI', () => {
 			assert.doesNotThrow(run(() => {
 				for (let i = 0; i < storageTestData.length; i++) {
 					if (Math.floor(Math.random() * 2)) {
-						listenerActivations[i] += 2;
+						listenerActivations[i] += 1;
 						crmAPI.storage.onChange.removeListener(listeners[i], storageTestData[i].key);
 					}
 				}
@@ -1647,7 +1647,7 @@ describe('CRMAPI', () => {
 
 			//If all listeners are 2, that means they got called twice, or were removed
 			for (let i = 0; i < storageTestData.length; i++) {
-				assert.strictEqual(listenerActivations[i], 2, `listener ${i} has been called once or removed`);
+				assert.strictEqual(listenerActivations[i], 1, `listener ${i} has been called once or removed`);
 			}
 
 			//Fetch the data using get
