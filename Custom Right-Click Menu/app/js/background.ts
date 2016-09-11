@@ -63,6 +63,7 @@ interface StorageLocal extends AnyObj {
 		name: string;
 		url?: string;
 		code?: string;
+		location?: string
 	}>,
 	requestPermissions: Array<string>;
 	editing: {
@@ -491,7 +492,7 @@ interface GlobalObject {
 			};
 			storageLocal: StorageLocal;
 			nodeStorage: {
-				[nodeId: number]: AnyObj;
+				[nodeId: number]: any;
 			};
 			resources: {
 				[scriptId: number]: {
@@ -614,6 +615,7 @@ interface GlobalObject {
 			};
 			specialJSON: SpecialJSON;
 			permissions: Array<string>;
+			contexts: Array<string>;
 		};
 		listeners: {
 			idVals: Array<number>;
@@ -715,7 +717,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
 			templates: {
-				mergeArrays: function(mainArray: Array<any>, additionArray: Array<any>): Array<any> {
+				mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any> {
 					for (let i = 0; i < additionArray.length; i++) {
 						if (mainArray[i] &&
 							typeof additionArray[i] === 'object' &&
@@ -732,7 +734,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainArray;
 				},
-				mergeObjects: function<T extends TU, TU>(mainObject: T, additions: TU): T {
+				mergeObjects<T extends TU, TU>(mainObject: T, additions: TU): T {
 					for (let key in additions) {
 						if (additions.hasOwnProperty(key)) {
 							if (typeof additions[key] === 'object' &&
@@ -750,7 +752,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainObject;
 				},
-				getDefaultLinkNode: function(options: any): LinkNode {
+				getDefaultLinkNode(options: any): LinkNode {
 					const defaultNode = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -773,7 +775,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultStylesheetValue: function (options: any): StylesheetVal {
+				getDefaultStylesheetValue(options: any): StylesheetVal {
 					const value = {
 						stylesheet: [
 							'// ==UserScript==',
@@ -790,7 +792,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(value, options);
 				},
-				getDefaultScriptValue: function (options: any): ScriptVal {
+				getDefaultScriptValue(options: any): ScriptVal {
 					const value = {
 						launchMode: CRMLaunchMode.ALWAYS_RUN,
 						backgroundLibraries: [],
@@ -809,7 +811,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(value, options);
 				},
-				getDefaultScriptNode: function(options: any): ScriptNode {
+				getDefaultScriptNode(options: any): ScriptNode {
 					const defaultNode = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -826,7 +828,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultStylesheetNode: function(options: any): StylesheetNode {
+				getDefaultStylesheetNode(options: any): StylesheetNode {
 					const defaultNode = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -843,7 +845,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultDividerOrMenuNode: function(options: any, type: 'divider' | 'menu'): DividerNode | MenuNode {
+				getDefaultDividerOrMenuNode(options: any, type: 'divider' | 'menu'): DividerNode | MenuNode {
 					const defaultNode = {
 						name: 'name',
 						type: type,
@@ -854,15 +856,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultDividerNode: function(options: any): DividerNode {
+				getDefaultDividerNode(options: any): DividerNode {
 					return this.getDefaultDividerOrMenuNode(options, 'divider');
 				},
-				getDefaultMenuNode: function(options: any): MenuNode {
+				getDefaultMenuNode(options: any): MenuNode {
 					return this.getDefaultDividerOrMenuNode(options, 'menu');
 				}
 			},
 			specialJSON: {
-				resolveJson: function(root, args) {
+				resolveJson(root, args) {
 					args = args || {};
 					var idAttribute = args.idAttribute || 'id';
 					var refAttribute = this.refAttribute;
@@ -1062,7 +1064,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return root;
 				},
 
-				fromJson: function(str, args) {
+				fromJson(str, args) {
 					function ref(target) { // support call styles references as well
 						var refObject = {};
 						refObject[this.refAttribute] = target;
@@ -1084,13 +1086,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				},
 
 
-				_addProp: function(id, prop) {
+				_addProp(id, prop) {
 					return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
 				},
 				refAttribute: "$ref",
 				_useRefs: false,
 				serializeFunctions: true
 			},
+			contexts: ['page', 'link', 'selection', 'image', 'video', 'audio'],
 			permissions: [
 				'alarms',
 				'background',
@@ -1899,9 +1902,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							globalObject.globals.crmValues.nodeInstances[message.id] = {};
 						}
 
-						var instance;
-						var instancesArr = [];
-						for (instance in globalObject.globals.crmValues.nodeInstances[message
+						const instancesArr = [];
+						for (let instance in globalObject.globals.crmValues.nodeInstances[message
 							.id]) {
 							if (globalObject.globals.crmValues.nodeInstances[message.id]
 								.hasOwnProperty(instance) &&
@@ -2190,1249 +2192,1250 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 	window.backgroundPageLog = Logging.backgroundPageLog;
 
-	const CRMFunctions = (() => {
-		return {
-			getTree: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.respondSuccess(globalObject.globals.crm.safeTree);
-				});
-			},
-			getSubTree: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					if (typeof _this.message.nodeId === 'number') {
-						var node = globalObject.globals.crm.crmByIdSafe[_this.message.nodeId];
-						if (node) {
-							_this.respondSuccess([node]);
-						} else {
-							_this.respondError('There is no node with id ' + (_this.message.nodeId));
-						}
+	const CRMFunctions = {
+		getTree(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.respondSuccess(globalObject.globals.crm.safeTree);
+			});
+		},
+		getSubTree(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				const nodeId = _this.message.nodeId;
+				if (typeof nodeId === 'number') {
+					const node = globalObject.globals.crm.crmByIdSafe[nodeId];
+					if (node) {
+						_this.respondSuccess([node]);
 					} else {
-						_this.respondError('No nodeId supplied');
+						_this.respondError(`There is no node with id ${nodeId}`);
 					}
-				});
-			},
-			getNode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					if (typeof _this.message.nodeId === 'number') {
-						var node = globalObject.globals.crm.crmByIdSafe[_this.message.nodeId];
-						if (node) {
-							_this.respondSuccess(node);
-						} else {
-							_this.respondError('There is no node with id ' + (_this.message.nodeId));
-						}
+				} else {
+					_this.respondError('No nodeId supplied');
+				}
+			});
+		},
+		getNode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				const nodeId = _this.message.nodeId;
+				if (typeof nodeId === 'number') {
+					const node = globalObject.globals.crm.crmByIdSafe[nodeId];
+					if (node) {
+						_this.respondSuccess(node);
 					} else {
-						_this.respondError('No nodeId supplied');
+						_this.respondError(`There is no node with id ${nodeId}`);
 					}
-				});
-			},
-			getNodeIdFromPath: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					var pathToSearch = _this.message['path'];
-					var lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
-						.safeTree, false);
-					if (lookedUp === true) {
-						return false;
-					} else if (lookedUp === false) {
-						_this.respondError('Path does not return a valid value');
-						return false;
-					} else {
-						_this.respondSuccess(lookedUp.id);
-						return lookedUp.id;
+				} else {
+					_this.respondError('No nodeId supplied');
+				}
+			});
+		},
+		getNodeIdFromPath(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				var pathToSearch = _this.message['path'];
+				var lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
+					.safeTree, false);
+				if (lookedUp === true) {
+					return false;
+				} else if (lookedUp === false) {
+					_this.respondError('Path does not return a valid value');
+					return false;
+				} else {
+					_this.respondSuccess(lookedUp.id);
+					return lookedUp.id;
+				}
+			});
+		},
+		queryCrm(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.typeCheck([
+					{
+						val: 'query',
+						type: 'object'
+					}, {
+						val: 'query.type',
+						type: 'string',
+						optional: true
+					}, {
+						val: 'query.inSubTree',
+						type: 'number',
+						optional: true
+					}, {
+						val: 'query.name',
+						type: 'string',
+						optional: true
 					}
-				});
-			},
-			queryCrm: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.typeCheck([
-						{
-							val: 'query',
-							type: 'object'
-						}, {
-							val: 'query.type',
-							type: 'string',
-							optional: true
-						}, {
-							val: 'query.inSubTree',
-							type: 'number',
-							optional: true
-						}, {
-							val: 'query.name',
-							type: 'string',
-							optional: true
+				], (optionals) => {
+					const crmArray = [];
+					for (let id in globalObject.globals.crm.crmById) {
+						if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
+							crmArray.push(globalObject.globals.crm.crmByIdSafe[id]);
 						}
-					], function(optionals) {
-						var crmArray = [];
-						for (var id in globalObject.globals.crm.crmById) {
-							if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
-								crmArray.push(globalObject.globals.crm.crmByIdSafe[id]);
-							}
+					}
+
+					let searchScope = null as any;
+					if (optionals['query.inSubTree']) {
+						const searchScopeObj = _this.getNodeFromId(_this.message['query'].inSubTree,
+							true, true);
+						let searchScopeObjChildren: Array<CRMNode> = [];
+						if (searchScopeObj) {
+							const menuSearchScopeObj = searchScopeObj as MenuNode;
+							searchScopeObjChildren = menuSearchScopeObj.children;
 						}
 
-						var searchScope;
-						if (optionals['query.inSubTree']) {
-							var searchScopeObj = _this.getNodeFromId(_this.message['query'].inSubTree,
-								true, true);
-							var searchScopeObjChildren: Array<CRMNode> = [];
-							if (searchScopeObj) {
-								const menuSearchScopeObj = searchScopeObj as MenuNode;
-								searchScopeObjChildren = menuSearchScopeObj.children;
-							}
-
-							searchScope = [];
-							searchScopeObjChildren.forEach(function(child) {
-								Helpers.flattenCrm(searchScope, child);
-							});
-						}
-						searchScope = searchScope || crmArray;
-
-						if (optionals['query.type']) {
-							searchScope = searchScope.filter(function(candidate) {
-								return candidate.type === _this.message['query'].type;
-							});
-						}
-
-						if (optionals['query.name']) {
-							searchScope = searchScope.filter(function(candidate) {
-								return candidate.name === _this.message['query'].name;
-							});
-						}
-
-						//Filter out all nulls
-						searchScope = searchScope.filter(function(result) {
-							return result !== null;
+						searchScope = [];
+						searchScopeObjChildren.forEach((child) => {
+							Helpers.flattenCrm(searchScope, child);
 						});
+					}
+					searchScope = searchScope as Array<any> || crmArray;
+					let searchScopeArr = searchScope as Array<any>;
 
-						_this.respondSuccess(searchScope);
-					});
+					if (optionals['query.type']) {
+						searchScopeArr = searchScopeArr.filter((candidate) => {
+							return candidate.type === _this.message['query'].type;
+						});
+					}
+
+					if (optionals['query.name']) {
+						searchScopeArr = searchScopeArr.filter((candidate) => {
+							return candidate.name === _this.message['query'].name;
+						});
+					}
+
+					//Filter out all nulls
+					searchScopeArr = searchScopeArr.filter((result) => {
+						return result !== null;
+					}) as Array<any>;
+
+					_this.respondSuccess(searchScopeArr);
 				});
-			},
-			getParentNode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						var pathToSearch = JSON.parse(JSON.stringify(node.path));
-						pathToSearch.pop();
-						if (pathToSearch.length === 0) {
-							_this.respondSuccess(globalObject.globals.crm.safeTree);
-						} else {
-							var lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
-								.safeTree, false);
-							_this.respondSuccess(lookedUp);
-						}
-					});
+			});
+		},
+		getParentNode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					const pathToSearch = JSON.parse(JSON.stringify(node.path));
+					pathToSearch.pop();
+					if (pathToSearch.length === 0) {
+						_this.respondSuccess(globalObject.globals.crm.safeTree);
+					} else {
+						const lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
+							.safeTree, false);
+						_this.respondSuccess(lookedUp);
+					}
 				});
-			},
-			getNodeType: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						_this.respondSuccess(node.type);
-					});
+			});
+		},
+		getNodeType(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					_this.respondSuccess(node.type);
 				});
-			},
-			getNodeValue: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						_this.respondSuccess(node.value);
-					});
+			});
+		},
+		getNodeValue(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					_this.respondSuccess(node.value);
 				});
-			},
-			createNode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'options',
-							type: 'object'
-						}, {
-							val: 'options.usesTriggers',
-							type: 'boolean',
-							optional: true
-						}, {
-							val: 'options.triggers',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							],
-							optional: true
-						}, {
-							val: 'options.linkData',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}, {
-									val: 'newTab',
-									type: 'boolean',
-									optional: true
-								}
-							],
-							optional: true
-						}, {
-							val: 'options.scriptData',
-							type: 'object',
-							optional: true
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.script',
-							type: 'string'
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.launchMode',
-							type: 'number',
-							optional: true,
-							min: 0,
-							max: 3
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.triggers',
-							type: 'array',
-							optional: true,
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							]
-						}, {
-							dependency: 'options.scriptData',
-							val: 'options.scriptData.libraries',
-							type: 'array',
-							optional: true,
-							forChildren: [
-								{
-									val: 'name',
-									type: 'string'
-								}
-							]
-						}, {
-							val: 'options.stylesheetData',
-							type: 'object',
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.launchMode',
-							type: 'number',
-							min: 0,
-							max: 3,
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.triggers',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							],
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.toggle',
-							type: 'boolean',
-							optional: true
-						}, {
-							dependency: 'options.stylesheetData',
-							val: 'options.stylesheetData.defaultOn',
-							type: 'boolean',
-							optional: true
-						}
-					], function(optionals) {
+			});
+		},
+		createNode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'options',
+						type: 'object'
+					}, {
+						val: 'options.usesTriggers',
+						type: 'boolean',
+						optional: true
+					}, {
+						val: 'options.triggers',
+						type: 'array',
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}
+						],
+						optional: true
+					}, {
+						val: 'options.linkData',
+						type: 'array',
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}, {
+								val: 'newTab',
+								type: 'boolean',
+								optional: true
+							}
+						],
+						optional: true
+					}, {
+						val: 'options.scriptData',
+						type: 'object',
+						optional: true
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.script',
+						type: 'string'
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.launchMode',
+						type: 'number',
+						optional: true,
+						min: 0,
+						max: 3
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.triggers',
+						type: 'array',
+						optional: true,
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}
+						]
+					}, {
+						dependency: 'options.scriptData',
+						val: 'options.scriptData.libraries',
+						type: 'array',
+						optional: true,
+						forChildren: [
+							{
+								val: 'name',
+								type: 'string'
+							}
+						]
+					}, {
+						val: 'options.stylesheetData',
+						type: 'object',
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.launchMode',
+						type: 'number',
+						min: 0,
+						max: 3,
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.triggers',
+						type: 'array',
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}
+						],
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.toggle',
+						type: 'boolean',
+						optional: true
+					}, {
+						dependency: 'options.stylesheetData',
+						val: 'options.stylesheetData.defaultOn',
+						type: 'boolean',
+						optional: true
+					}
+				], (optionals) => {
+					var id = Helpers.generateItemId();
+					var i;
+					var node = _this.message.options;
+					node = CRM.makeSafe(node);
+					node.id = id;
+					node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
+						.nodeInfo;
+					_this.getNodeFromId(_this.message.id, false, true).local &&
+						(node.local = true);
+
+					var newNode;
+					switch (_this.message.options.type) {
+						case 'script':
+							newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+							newNode.type = 'script';
+							break;
+						case 'stylesheet':
+							newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+							newNode.type = 'stylesheet';
+							break;
+						case 'menu':
+							newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+							newNode.type = 'menu';
+							break;
+						case 'divider':
+							newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+							newNode.type = 'divider';
+							break;
+						default:
+						case 'link':
+							newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+							newNode.type = 'link';
+							break;
+					}
+
+					if ((newNode = _this.moveNode(newNode, _this.message.options.position))) {
+						CRM.updateCrm([newNode.id]);
+						_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
+					} else {
+						_this.respondError('Failed to place node');
+					}
+					return true;
+				});
+			});
+		},
+		copyNode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'options',
+						type: 'object'
+					}, {
+						val: 'options.name',
+						type: 'string',
+						optional: true
+					}
+				], (optionals) => {
+					_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+						var newNode = JSON.parse(JSON.stringify(node));
 						var id = Helpers.generateItemId();
-						var i;
-						var node = _this.message.options;
-						node = CRM.makeSafe(node);
-						node.id = id;
-						node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
-							.nodeInfo;
-						_this.getNodeFromId(_this.message.id, false, true).local &&
-							(node.local = true);
-
-						var newNode;
-						switch (_this.message.options.type) {
-							case 'script':
-								newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
-								newNode.type = 'script';
-								break;
-							case 'stylesheet':
-								newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
-								newNode.type = 'stylesheet';
-								break;
-							case 'menu':
-								newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
-								newNode.type = 'menu';
-								break;
-							case 'divider':
-								newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
-								newNode.type = 'divider';
-								break;
-							default:
-							case 'link':
-								newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
-								newNode.type = 'link';
-								break;
+						newNode.id = id;
+						if (_this.getNodeFromId(_this.message.id, false, true).local === true &&
+							node.local === true) {
+							newNode.local = true;
 						}
-
-						if ((newNode = _this.moveNode(newNode, _this.message.options.position))) {
+						newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
+							.nodeInfo;
+						delete newNode.storage;
+						delete newNode.file;
+						if (optionals['options.name']) {
+							newNode.name = _this.message.options.name;
+						}
+						if ((newNode = _this.moveNode(newNode, _this.message.options
+							.position))) {
 							CRM.updateCrm([newNode.id]);
 							_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
-						} else {
-							_this.respondError('Failed to place node');
 						}
 						return true;
 					});
+					return true;
 				});
-			},
-			copyNode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'options',
-							type: 'object'
-						}, {
-							val: 'options.name',
-							type: 'string',
-							optional: true
-						}
-					], function(optionals) {
-						_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-							var newNode = JSON.parse(JSON.stringify(node));
-							var id = Helpers.generateItemId();
-							newNode.id = id;
-							if (_this.getNodeFromId(_this.message.id, false, true).local === true &&
-								node.local === true) {
-								newNode.local = true;
-							}
-							newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
-								.nodeInfo;
-							delete newNode.storage;
-							delete newNode.file;
-							if (optionals['options.name']) {
-								newNode.name = _this.message.options.name;
-							}
-							if ((newNode = _this.moveNode(newNode, _this.message.options
-								.position))) {
-								CRM.updateCrm([newNode.id]);
-								_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
-							}
-							return true;
-						});
-						return true;
-					});
-				});
-				return true;
-			},
-			moveNode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						//Remove original from CRM
-						var parentChildren = _this.lookup(node.path, globalObject.globals.crm
-							.crmTree, true);
-						//parentChildren.splice(node.path[node.path.length - 1], 1);
+			});
+			return true;
+		},
+		moveNode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					//Remove original from CRM
+					var parentChildren = _this.lookup(node.path, globalObject.globals.crm
+						.crmTree, true);
+					//parentChildren.splice(node.path[node.path.length - 1], 1);
 
-						if ((node = _this.moveNode(node, _this.message['position'], {
-							children: parentChildren,
-							index: node.path[node.path.length - 1]
-						}))) {
-							CRM.updateCrm();
-							_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
-						}
-					});
+					if ((node = _this.moveNode(node, _this.message['position'], {
+						children: parentChildren,
+						index: node.path[node.path.length - 1]
+					}))) {
+						CRM.updateCrm();
+						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
+					}
 				});
-			},
-			deleteNode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						var parentChildren = _this.lookup(node.path, globalObject.globals.crm
-							.crmTree, true);
-						parentChildren.splice(node.path[node.path.length - 1], 1);
-						if (globalObject.globals.crmValues.contextMenuIds[node
-								.id] !==
-							undefined) {
-							chrome.contextMenus.remove(globalObject.globals.crmValues
-								.contextMenuIds[node.id], function() {
-									CRM.updateCrm([_this.message.nodeId]);
-									_this.respondSuccess(true);
-								});
-						} else {
-							CRM.updateCrm([_this.message.nodeId]);
-							_this.respondSuccess(true);
-						}
-					});
+			});
+		},
+		deleteNode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					var parentChildren = _this.lookup(node.path, globalObject.globals.crm
+						.crmTree, true);
+					parentChildren.splice(node.path[node.path.length - 1], 1);
+					if (globalObject.globals.crmValues.contextMenuIds[node
+							.id] !==
+						undefined) {
+						chrome.contextMenus.remove(globalObject.globals.crmValues
+							.contextMenuIds[node.id], () => {
+								CRM.updateCrm([_this.message.nodeId]);
+								_this.respondSuccess(true);
+							});
+					} else {
+						CRM.updateCrm([_this.message.nodeId]);
+						_this.respondSuccess(true);
+					}
 				});
-			},
-			editNode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'options',
-							type: 'object'
-						}, {
-							val: 'options.name',
-							type: 'string',
-							optional: true
-						}, {
-							val: 'options.type',
-							type: 'string',
-							optional: true
-						}
-					], function(optionals) {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (optionals['options.type']) {
-								if (_this.message.options.type !== 'link' &&
-									_this.message.options.type !== 'script' &&
-									_this.message.options.type !== 'stylesheet' &&
-									_this.message.options.type !== 'menu' &&
-									_this.message.options.type !== 'divider') {
-									_this
-										.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
-									return false;
+			});
+		},
+		editNode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'options',
+						type: 'object'
+					}, {
+						val: 'options.name',
+						type: 'string',
+						optional: true
+					}, {
+						val: 'options.type',
+						type: 'string',
+						optional: true
+					}
+				], (optionals) => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						if (optionals['options.type']) {
+							if (_this.message.options.type !== 'link' &&
+								_this.message.options.type !== 'script' &&
+								_this.message.options.type !== 'stylesheet' &&
+								_this.message.options.type !== 'menu' &&
+								_this.message.options.type !== 'divider') {
+								_this
+									.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
+								return false;
+							} else {
+								var oldType = node.type.toLowerCase();
+								node.type = _this.message.options.type;
+
+								if (oldType === 'menu') {
+									node.menuVal = node.children;
+									node.value = node[_this.message.options.type + 'Val'] || {};
 								} else {
-									var oldType = node.type.toLowerCase();
-									node.type = _this.message.options.type;
+									node[oldType + 'Val'] = node.value;
+									node.value = node[_this.message.options.type + 'Val'] || {};
+								}
 
-									if (oldType === 'menu') {
-										node.menuVal = node.children;
-										node.value = node[_this.message.options.type + 'Val'] || {};
-									} else {
-										node[oldType + 'Val'] = node.value;
-										node.value = node[_this.message.options.type + 'Val'] || {};
-									}
-
-									if (node.type === 'menu') {
-										node.children = node.value || [];
-										node.value = null;
-									}
+								if (node.type === 'menu') {
+									node.children = node.value || [];
+									node.value = null;
 								}
 							}
-							if (optionals['options.name']) {
-								node.name = _this.message.options.name;
-							}
-							CRM.updateCrm([_this.message.id]);
-							_this.respondSuccess(Helpers.safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			getTriggers: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						_this.respondSuccess(node.triggers);
-					});
-				});
-			},
-			setTriggers: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'triggers',
-							type: 'array',
-							forChildren: [
-								{
-									val: 'url',
-									type: 'string'
-								}
-							]
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							node.triggers = _this.message['triggers'];
-							node.showOnSpecified = true;
-							CRM.updateCrm();
-							var matchPatterns = [];
-							globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
-							if (node.launchMode !== 3) {
-								for (var i = 0; i < node.triggers.length; i++) {
-									if (!URLParsing.triggerMatchesScheme(node.triggers[i].url)) {
-										_this.respondError('Triggers don\'t match URL scheme');
-										return false;
-									}
-									node.triggers[i].url = URLParsing.prepareTrigger(node.triggers[i].url);
-									if (node.triggers[i].not) {
-										globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push(node
-											.triggers[i].url);
-									} else {
-										matchPatterns.push(node.triggers[i].url);
-									}
-								}
-							}
-							chrome.contextMenus.update(globalObject.globals.crmValues
-								.contextMenuIds[node.id], {
-									documentUrlPatterns: matchPatterns
-								}, function() {
-									CRM.updateCrm();
-									_this.respondSuccess(Helpers.safe(node));
-								});
-						});
+						if (optionals['options.name']) {
+							node.name = _this.message.options.name;
+						}
+						CRM.updateCrm([_this.message.id]);
+						_this.respondSuccess(Helpers.safe(node));
+						return true;
 					});
 				});
-			},
-			getTriggerUsage: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			});
+		},
+		getTriggers(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.respondSuccess(node.triggers);
+				});
+			});
+		},
+		setTriggers(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'triggers',
+						type: 'array',
+						forChildren: [
+							{
+								val: 'url',
+								type: 'string'
+							}
+						]
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						node.triggers = _this.message['triggers'];
+						node.showOnSpecified = true;
+						CRM.updateCrm();
+						var matchPatterns = [];
+						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
+						if (node.launchMode !== 3) {
+							for (var i = 0; i < node.triggers.length; i++) {
+								if (!URLParsing.triggerMatchesScheme(node.triggers[i].url)) {
+									_this.respondError('Triggers don\'t match URL scheme');
+									return false;
+								}
+								node.triggers[i].url = URLParsing.prepareTrigger(node.triggers[i].url);
+								if (node.triggers[i].not) {
+									globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push(node
+										.triggers[i].url);
+								} else {
+									matchPatterns.push(node.triggers[i].url);
+								}
+							}
+						}
+						chrome.contextMenus.update(globalObject.globals.crmValues
+							.contextMenuIds[node.id], {
+								documentUrlPatterns: matchPatterns
+							}, () => {
+								CRM.updateCrm();
+								_this.respondSuccess(Helpers.safe(node));
+							});
+					});
+				});
+			});
+		},
+		getTriggerUsage(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					if (node.type === 'menu' ||
+						node.type === 'link' ||
+						node.type === 'divider') {
+						_this.respondSuccess(node.showOnSpecified);
+					} else {
+						_this
+							.respondError('Node is not of right type, can only be menu, link or divider');
+					}
+				});
+			});
+		},
+		setTriggerUsage(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'useTriggers',
+						type: 'boolean'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						if (node.type === 'menu' ||
 							node.type === 'link' ||
 							node.type === 'divider') {
-							_this.respondSuccess(node.showOnSpecified);
+							node.showOnSpecified = _this.message['useTriggers'];
+							CRM.updateCrm();
+							chrome.contextMenus.update(globalObject.globals.crmValues
+								.contextMenuIds[node.id], {
+									documentUrlPatterns: ['<all_urls>']
+								}, () => {
+									CRM.updateCrm();
+									_this.respondSuccess(Helpers.safe(node));
+								});
 						} else {
 							_this
 								.respondError('Node is not of right type, can only be menu, link or divider');
 						}
 					});
 				});
-			},
-			setTriggerUsage: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'useTriggers',
-							type: 'boolean'
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (node.type === 'menu' ||
-								node.type === 'link' ||
-								node.type === 'divider') {
-								node.showOnSpecified = _this.message['useTriggers'];
+			});
+		},
+		getContentTypes(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.respondSuccess(node.onContentTypes);
+				});
+			});
+		},
+		setContentType(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'index',
+						type: 'number',
+						min: 0,
+						max: 5
+					}, {
+						val: 'value',
+						type: 'boolean'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						node.onContentTypes[_this.message['index']] = _this.message['value'];
+						CRM.updateCrm();
+						chrome.contextMenus.update(globalObject.globals.crmValues
+							.contextMenuIds[node.id], {
+								contexts: CRM.getContexts(node.onContentTypes)
+							}, () => {
 								CRM.updateCrm();
-								chrome.contextMenus.update(globalObject.globals.crmValues
-									.contextMenuIds[node.id], {
-										documentUrlPatterns: ['<all_urls>']
-									}, function() {
-										CRM.updateCrm();
-										_this.respondSuccess(Helpers.safe(node));
-									});
-							} else {
+								_this.respondSuccess(node.onContentTypes);
+							});
+					});
+				});
+			});
+		},
+		setContentTypes(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'contentTypes',
+						type: 'array'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						var i;
+						for (i = 0; i < _this.message['contentTypes'].length; i++) {
+							if (typeof _this.message['contentTypes'][i] !== 'string') {
 								_this
-									.respondError('Node is not of right type, can only be menu, link or divider');
+									.respondError('Not all values in array contentTypes are of type string');
+								return false;
 							}
-						});
-					});
-				});
-			},
-			getContentTypes: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						_this.respondSuccess(node.onContentTypes);
-					});
-				});
-			},
-			setContentType: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'index',
-							type: 'number',
-							min: 0,
-							max: 5
-						}, {
-							val: 'value',
-							type: 'boolean'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							node.onContentTypes[_this.message['index']] = _this.message['value'];
-							CRM.updateCrm();
-							chrome.contextMenus.update(globalObject.globals.crmValues
-								.contextMenuIds[node.id], {
-									contexts: CRM.getContexts(node.onContentTypes)
-								}, function() {
-									CRM.updateCrm();
-									_this.respondSuccess(node.onContentTypes);
-								});
-						});
-					});
-				});
-			},
-			setContentTypes: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'contentTypes',
-							type: 'array'
+
+						var matches = 0;
+						var hasContentType;
+						var contentTypes = [];
+						var contentTypeStrings = [
+							'page', 'link', 'selection', 'image', 'video', 'audio'
+						];
+						for (i = 0; i < _this.message['contentTypes'].length; i++) {
+							hasContentType = _this.message['contentTypes']
+								.indexOf(contentTypeStrings[i]) >
+								-1;
+							hasContentType && matches++;
+							contentTypes[i] = hasContentType;
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							var i;
-							for (i = 0; i < _this.message['contentTypes'].length; i++) {
-								if (typeof _this.message['contentTypes'][i] !== 'string') {
-									_this
-										.respondError('Not all values in array contentTypes are of type string');
-									return false;
-								}
-							}
 
-							var matches = 0;
-							var hasContentType;
-							var contentTypes = [];
-							var contentTypeStrings = [
-								'page', 'link', 'selection', 'image', 'video', 'audio'
-							];
-							for (i = 0; i < _this.message['contentTypes'].length; i++) {
-								hasContentType = _this.message['contentTypes']
-									.indexOf(contentTypeStrings[i]) >
-									-1;
-								hasContentType && matches++;
-								contentTypes[i] = hasContentType;
-							}
-
-							if (!matches) {
-								contentTypes = [true, true, true, true, true, true];
-							}
-							node.onContentTypes = contentTypes;
-							chrome.contextMenus.update(globalObject.globals.crmValues
-								.contextMenuIds[node.id], {
-									contexts: CRM.getContexts(node.onContentTypes)
-								}, function() {
-									CRM.updateCrm();
-									_this.respondSuccess(Helpers.safe(node));
-								});
-							return true;
-						});
+						if (!matches) {
+							contentTypes = [true, true, true, true, true, true];
+						}
+						node.onContentTypes = contentTypes;
+						chrome.contextMenus.update(globalObject.globals.crmValues
+							.contextMenuIds[node.id], {
+								contexts: CRM.getContexts(node.onContentTypes)
+							}, () => {
+								CRM.updateCrm();
+								_this.respondSuccess(Helpers.safe(node));
+							});
+						return true;
 					});
 				});
-			},
-			linkGetLinks: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+			});
+		},
+		linkGetLinks(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					if (node.type === 'link') {
+						_this.respondSuccess(node.value);
+					} else {
+						_this.respondSuccess(node.linkVal);
+					}
+					return true;
+				});
+
+			});
+		},
+		linkPush(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'items',
+						type: 'object|array',
+						forChildren: [
+							{
+								val: 'newTab',
+								type: 'boolean',
+								optional: true
+							}, {
+								val: 'url',
+								type: 'string'
+							}
+						]
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						if (Array.isArray(_this.message['items'])) { //Array
+							if (node.type !== 'link') {
+								node.linkVal = node.linkVal || [];
+							}
+							for (var i = 0; i < _this.message['items'].length; i++) {
+								_this.message['items'][i].newTab = !!_this.message['items'][i].newTab;
+								node[(node.type === 'link' ? 'value' : 'linkVal')]
+									.push(_this.message['items'][i]);
+							}
+						} else { //Object
+							_this.message['items'].newTab = !!_this.message['items'].newTab;
+							if (!_this.message['items'].url) {
+								_this
+									.respondError('For not all values in the array items is the property url defined');
+								return false;
+							}
+							if (node.type === 'link') {
+								node.value.push(_this.message['items']);
+							} else {
+								node.linkVal.push = node.linkVal.push || [];
+								node.linkVal.push(_this.message['items']);
+							}
+						}
+						CRM.updateCrm();
 						if (node.type === 'link') {
-							_this.respondSuccess(node.value);
+							_this.respondSuccess(Helpers.safe(node).value);
 						} else {
-							_this.respondSuccess(node.linkVal);
+							_this.respondSuccess(Helpers.safe(node)['linkVal']);
 						}
 						return true;
 					});
-
 				});
-			},
-			linkPush: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
+			});
+		},
+		linkSplice(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
 					_this.typeCheck([
-						{
-							val: 'items',
-							type: 'object|array',
-							forChildren: [
-								{
-									val: 'newTab',
-									type: 'boolean',
-									optional: true
-								}, {
-									val: 'url',
-									type: 'string'
-								}
-							]
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (Array.isArray(_this.message['items'])) { //Array
-								if (node.type !== 'link') {
-									node.linkVal = node.linkVal || [];
-								}
-								for (var i = 0; i < _this.message['items'].length; i++) {
-									_this.message['items'][i].newTab = !!_this.message['items'][i].newTab;
-									node[(node.type === 'link' ? 'value' : 'linkVal')]
-										.push(_this.message['items'][i]);
-								}
-							} else { //Object
-								_this.message['items'].newTab = !!_this.message['items'].newTab;
-								if (!_this.message['items'].url) {
-									_this
-										.respondError('For not all values in the array items is the property url defined');
-									return false;
-								}
-								if (node.type === 'link') {
-									node.value.push(_this.message['items']);
-								} else {
-									node.linkVal.push = node.linkVal.push || [];
-									node.linkVal.push(_this.message['items']);
-								}
+							{
+								val: 'start',
+								type: 'number'
+							}, {
+								val: 'amount',
+								type: 'number'
 							}
-							CRM.updateCrm();
+						], () => {
+							var spliced;
 							if (node.type === 'link') {
-								_this.respondSuccess(Helpers.safe(node).value);
+								spliced = node.value.splice(_this.message['start'], _this.message['amount']);
+								CRM.updateCrm();
+								_this.respondSuccess(spliced, Helpers.safe(node).value);
 							} else {
-								_this.respondSuccess(Helpers.safe(node)['linkVal']);
+								node.linkVal = node.linkVal || [];
+								spliced = node.linkVal.splice(_this.message['start'], _this.message['amount']);
+								CRM.updateCrm();
+								_this.respondSuccess(spliced, Helpers.safe(node)['linkVal']);
 							}
-							return true;
-						});
-					});
-				});
-			},
-			linkSplice: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-						_this.typeCheck([
-								{
-									val: 'start',
-									type: 'number'
-								}, {
-									val: 'amount',
-									type: 'number'
-								}
-							], function() {
-								var spliced;
-								if (node.type === 'link') {
-									spliced = node.value.splice(_this.message['start'], _this.message['amount']);
-									CRM.updateCrm();
-									_this.respondSuccess(spliced, Helpers.safe(node).value);
-								} else {
-									node.linkVal = node.linkVal || [];
-									spliced = node.linkVal.splice(_this.message['start'], _this.message['amount']);
-									CRM.updateCrm();
-									_this.respondSuccess(spliced, Helpers.safe(node)['linkVal']);
-								}
-							}
-						);
-					});
-
-				});
-			},
-			setLaunchMode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'launchMode',
-							type: 'number',
-							min: 0,
-							max: 4
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (node.type === 'script' || node.type === 'stylesheet') {
-								node.value.launchMode = _this.message['launchMode'];
-							} else {
-								_this.respondError('Node is not of type script or stylesheet');
-							}
-							CRM.updateCrm();
-							_this.respondSuccess(Helpers.safe(node));
-							return true;
-						});
-					});
+					);
 				});
-			},
-			getLaunchMode: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId).run(function(node) {
+
+			});
+		},
+		setLaunchMode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'launchMode',
+						type: 'number',
+						min: 0,
+						max: 4
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						if (node.type === 'script' || node.type === 'stylesheet') {
-							_this.respondSuccess(node.value.launchMode);
+							node.value.launchMode = _this.message['launchMode'];
 						} else {
 							_this.respondError('Node is not of type script or stylesheet');
 						}
+						CRM.updateCrm();
+						_this.respondSuccess(Helpers.safe(node));
+						return true;
 					});
-
 				});
-			},
-			registerLibrary: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'name',
-							type: 'string'
-						}, {
-							val: 'url',
-							type: 'string',
-							optional: true
-						}, {
-							val: 'code',
-							type: 'string',
-							optional: true
+			});
+		},
+		getLaunchMode(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					if (node.type === 'script' || node.type === 'stylesheet') {
+						_this.respondSuccess(node.value.launchMode);
+					} else {
+						_this.respondError('Node is not of type script or stylesheet');
+					}
+				});
+
+			});
+		},
+		registerLibrary(_this: CRMFunction) {
+			_this.checkPermissions(['crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'name',
+						type: 'string'
+					}, {
+						val: 'url',
+						type: 'string',
+						optional: true
+					}, {
+						val: 'code',
+						type: 'string',
+						optional: true
+					}
+				], (optionals) => {
+					var newLibrary;
+					if (optionals['url']) {
+						if (_this.message['url'].indexOf('.js') === _this.message['url'].length - 3) {
+							//Use URL
+							var done = false;
+							var xhr = new window.XMLHttpRequest();
+							xhr.open('GET', _this.message['url'], true);
+							xhr.onreadystatechange = () => {
+								if (xhr.readyState === 4 && xhr.status === 200) {
+									done = true;
+									newLibrary = {
+										name: _this.message['name'],
+										code: xhr.responseText,
+										url: _this.message['url']
+									};
+									globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
+									chrome.storage.local.set({
+										libraries: globalObject.globals.storages.storageLocal.libraries
+									});
+									_this.respondSuccess(newLibrary);
+								}
+							};
+							setTimeout(() => {
+								if (!done) {
+									_this.respondError('Request timed out');
+								}
+							}, 5000);
+							xhr.send();
+						} else {
+							_this.respondError('No valid URL given');
+							return false;
 						}
-					], function(optionals) {
-						var newLibrary;
-						if (optionals['url']) {
-							if (_this.message['url'].indexOf('.js') === _this.message['url'].length - 3) {
-								//Use URL
-								var done = false;
-								var xhr = new window.XMLHttpRequest();
-								xhr.open('GET', _this.message['url'], true);
-								xhr.onreadystatechange = function() {
-									if (xhr.readyState === 4 && xhr.status === 200) {
-										done = true;
-										newLibrary = {
-											name: _this.message['name'],
-											code: xhr.responseText,
-											url: _this.message['url']
-										};
-										globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
-										chrome.storage.local.set({
-											libraries: globalObject.globals.storages.storageLocal.libraries
-										});
-										_this.respondSuccess(newLibrary);
-									}
-								};
-								setTimeout(function() {
-									if (!done) {
-										_this.respondError('Request timed out');
-									}
-								}, 5000);
-								xhr.send();
-							} else {
-								_this.respondError('No valid URL given');
+					} else if (optionals['code']) {
+						newLibrary = {
+							name: _this.message['name'],
+							code: _this.message['code']
+						};
+						globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
+						chrome.storage.local.set({
+							libraries: globalObject.globals.storages.storageLocal.libraries
+						});
+						_this.respondSuccess(newLibrary);
+					} else {
+						_this.respondError('No URL or code given');
+						return false;
+					}
+					return true;
+				});
+			});
+		},
+		scriptLibraryPush(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'libraries',
+						type: 'object|array',
+						forChildren: [
+							{
+								val: 'name',
+								type: 'string'
+							}
+						]
+					}, {
+						val: 'libraries.name',
+						type: 'string',
+						optional: true
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						function doesLibraryExist(lib: {
+							name: string;
+						}): string|boolean {
+							for (var i = 0;
+								i < globalObject.globals.storages.storageLocal.libraries.length;
+								i++) {
+								if (globalObject.globals.storages.storageLocal.libraries[i].name
+									.toLowerCase() ===
+									lib.name.toLowerCase()) {
+									return globalObject.globals.storages.storageLocal.libraries[i].name;
+								}
+							}
+							return false;
+						}
+
+						function isAlreadyUsed(lib) {
+							for (var i = 0; i < node.value.libraries.length; i++) {
+								if (node.value.libraries[i].name === lib.name) {
+									return true;
+								}
+							}
+							return false;
+						}
+
+						if (node.type !== 'script') {
+							_this.respondError('Node is not of type script');
+							return false;
+						}
+						if (Array.isArray(_this.message['libraries'])) { //Array
+							for (var i = 0; i < _this.message['libraries'].length; i++) {
+								var originalName = _this.message['libraries'][i].name;
+								if (!(_this.message['libraries'][i].name = doesLibraryExist(_this.message['libraries'][i]))) {
+									_this.respondError('Library ' + originalName + ' is not registered');
+									return false;
+								}
+								if (!isAlreadyUsed(_this.message['libraries'][i])) {
+									node.value.libraries.push(_this.message['libraries'][i]);
+								}
+							}
+						} else { //Object
+							var name = _this.message['libraries'].name;
+							if (!(_this.message['libraries'].name = doesLibraryExist(_this.message['libraries']))) {
+								_this.respondError('Library ' + name + ' is not registered');
 								return false;
 							}
-						} else if (optionals['code']) {
-							newLibrary = {
-								name: _this.message['name'],
-								code: _this.message['code']
-							};
-							globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
-							chrome.storage.local.set({
-								libraries: globalObject.globals.storages.storageLocal.libraries
-							});
-							_this.respondSuccess(newLibrary);
+							if (!isAlreadyUsed(_this.message['libraries'])) {
+								node.value.libraries.push(_this.message['libraries']);
+							}
+						}
+						CRM.updateCrm();
+						_this.respondSuccess(Helpers.safe(node).value.libraries);
+						return true;
+					});
+				});
+			});
+		},
+		scriptLibrarySplice(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'start',
+						type: 'number'
+					}, {
+						val: 'amount',
+						type: 'number'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						var spliced;
+						if (node.type === 'script') {
+							spliced = Helpers.safe(node).value.libraries.splice(_this.message['start'], _this
+								.message['amount']);
+							CRM.updateCrm();
+							_this.respondSuccess(spliced, Helpers.safe(node).value.libraries);
 						} else {
-							_this.respondError('No URL or code given');
-							return false;
+							_this.respondError('Node is not of type script');
 						}
 						return true;
 					});
 				});
-			},
-			scriptLibraryPush: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'libraries',
-							type: 'object|array',
-							forChildren: [
-								{
-									val: 'name',
-									type: 'string'
+			});
+		},
+		scriptBackgroundLibraryPush(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'libraries',
+						type: 'object|array',
+						forChildren: [
+							{
+								val: 'name',
+								type: 'string'
+							}
+						]
+					}, {
+						val: 'libraries.name',
+						type: 'string',
+						optional: true
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						function doesLibraryExist(lib): string|boolean {
+							for (var i = 0;
+								i < globalObject.globals.storages.storageLocal.libraries.length;
+								i++) {
+								if (globalObject.globals.storages.storageLocal.libraries[i].name
+									.toLowerCase() ===
+									lib.name.toLowerCase()) {
+									return globalObject.globals.storages.storageLocal.libraries[i].name;
 								}
-							]
-						}, {
-							val: 'libraries.name',
-							type: 'string',
-							optional: true
+							}
+							return false;
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							function doesLibraryExist(lib: {
-								name: string;
-							}): string|boolean {
-								for (var i = 0;
-									i < globalObject.globals.storages.storageLocal.libraries.length;
-									i++) {
-									if (globalObject.globals.storages.storageLocal.libraries[i].name
-										.toLowerCase() ===
-										lib.name.toLowerCase()) {
-										return globalObject.globals.storages.storageLocal.libraries[i].name;
-									}
-								}
-								return false;
-							}
 
-							function isAlreadyUsed(lib) {
-								for (var i = 0; i < node.value.libraries.length; i++) {
-									if (node.value.libraries[i].name === lib.name) {
-										return true;
-									}
+						function isAlreadyUsed(lib) {
+							for (var i = 0; i < node.value.backgroundLibraries.length; i++) {
+								if (node.value.backgroundLibraries[i].name === lib.name) {
+									return true;
 								}
-								return false;
 							}
+							return false;
+						}
 
-							if (node.type !== 'script') {
-								_this.respondError('Node is not of type script');
-								return false;
-							}
-							if (Array.isArray(_this.message['libraries'])) { //Array
-								for (var i = 0; i < _this.message['libraries'].length; i++) {
-									var originalName = _this.message['libraries'][i].name;
-									if (!(_this.message['libraries'][i].name = doesLibraryExist(_this.message['libraries'][i]))) {
-										_this.respondError('Library ' + originalName + ' is not registered');
-										return false;
-									}
-									if (!isAlreadyUsed(_this.message['libraries'][i])) {
-										node.value.libraries.push(_this.message['libraries'][i]);
-									}
-								}
-							} else { //Object
-								var name = _this.message['libraries'].name;
-								if (!(_this.message['libraries'].name = doesLibraryExist(_this.message['libraries']))) {
-									_this.respondError('Library ' + name + ' is not registered');
+						if (node.type !== 'script') {
+							_this.respondError('Node is not of type script');
+							return false;
+						}
+						if (Array.isArray(_this.message['libraries'])) { //Array
+							for (var i = 0; i < _this.message['libraries'].length; i++) {
+								var originalName = _this.message['libraries'][i].name;
+								if (!(_this.message['libraries'][i].name = doesLibraryExist(_this.message['libraries'][i]))) {
+									_this.respondError('Library ' + originalName + ' is not registered');
 									return false;
 								}
-								if (!isAlreadyUsed(_this.message['libraries'])) {
-									node.value.libraries.push(_this.message['libraries']);
+								if (!isAlreadyUsed(_this.message['libraries'][i])) {
+									node.value.backgroundLibraries.push(_this.message['libraries'][i]);
 								}
 							}
-							CRM.updateCrm();
-							_this.respondSuccess(Helpers.safe(node).value.libraries);
-							return true;
-						});
-					});
-				});
-			},
-			scriptLibrarySplice: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'start',
-							type: 'number'
-						}, {
-							val: 'amount',
-							type: 'number'
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							var spliced;
-							if (node.type === 'script') {
-								spliced = Helpers.safe(node).value.libraries.splice(_this.message['start'], _this
-									.message['amount']);
-								CRM.updateCrm();
-								_this.respondSuccess(spliced, Helpers.safe(node).value.libraries);
-							} else {
-								_this.respondError('Node is not of type script');
-							}
-							return true;
-						});
-					});
-				});
-			},
-			scriptBackgroundLibraryPush: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'libraries',
-							type: 'object|array',
-							forChildren: [
-								{
-									val: 'name',
-									type: 'string'
-								}
-							]
-						}, {
-							val: 'libraries.name',
-							type: 'string',
-							optional: true
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							function doesLibraryExist(lib): string|boolean {
-								for (var i = 0;
-									i < globalObject.globals.storages.storageLocal.libraries.length;
-									i++) {
-									if (globalObject.globals.storages.storageLocal.libraries[i].name
-										.toLowerCase() ===
-										lib.name.toLowerCase()) {
-										return globalObject.globals.storages.storageLocal.libraries[i].name;
-									}
-								}
+						} else { //Object
+							var name = _this.message['libraries'].name;
+							if (!(_this.message['libraries'].name = doesLibraryExist(_this.message['libraries']))) {
+								_this.respondError('Library ' + name + ' is not registered');
 								return false;
 							}
-
-							function isAlreadyUsed(lib) {
-								for (var i = 0; i < node.value.backgroundLibraries.length; i++) {
-									if (node.value.backgroundLibraries[i].name === lib.name) {
-										return true;
-									}
-								}
-								return false;
+							if (!isAlreadyUsed(_this.message['libraries'])) {
+								node.value.backgroundLibraries.push(_this.message['libraries']);
 							}
-
-							if (node.type !== 'script') {
-								_this.respondError('Node is not of type script');
-								return false;
-							}
-							if (Array.isArray(_this.message['libraries'])) { //Array
-								for (var i = 0; i < _this.message['libraries'].length; i++) {
-									var originalName = _this.message['libraries'][i].name;
-									if (!(_this.message['libraries'][i].name = doesLibraryExist(_this.message['libraries'][i]))) {
-										_this.respondError('Library ' + originalName + ' is not registered');
-										return false;
-									}
-									if (!isAlreadyUsed(_this.message['libraries'][i])) {
-										node.value.backgroundLibraries.push(_this.message['libraries'][i]);
-									}
-								}
-							} else { //Object
-								var name = _this.message['libraries'].name;
-								if (!(_this.message['libraries'].name = doesLibraryExist(_this.message['libraries']))) {
-									_this.respondError('Library ' + name + ' is not registered');
-									return false;
-								}
-								if (!isAlreadyUsed(_this.message['libraries'])) {
-									node.value.backgroundLibraries.push(_this.message['libraries']);
-								}
-							}
-							CRM.updateCrm();
-							_this.respondSuccess(Helpers.safe(node).value.backgroundLibraries);
-							return true;
-						});
-					});
-				});
-			},
-			scriptBackgroundLibrarySplice: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'start',
-							type: 'number'
-						}, {
-							val: 'amount',
-							type: 'number'
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							var spliced;
-							if (node.type === 'script') {
-								spliced = Helpers.safe(node).value.backgroundLibraries.splice(_this.message['start'], _this.message['amount']);
-								CRM.updateCrm([_this.message.nodeId]);
-								_this.respondSuccess(spliced, Helpers.safe(node).value.backgroundLibraries);
-							} else {
-								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.backgroundLibraries = node.scriptVal.libraries || [];
-								spliced = node.scriptVal.backgroundLibraries.splice(_this.message['start'],
-									_this.message['amount']);
-								CRM.updateCrm([_this.message.nodeId]);
-								_this.respondSuccess(spliced, node.scriptVal.backgroundLibraries);
-							}
-							return true;
-						});
+						CRM.updateCrm();
+						_this.respondSuccess(Helpers.safe(node).value.backgroundLibraries);
+						return true;
 					});
 				});
-			},
-			setScriptValue: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'script',
-							type: 'string'
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (node.type === 'script') {
-								node.value.script = _this.message['script'];
-							} else {
-								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.script = _this.message['script'];
-							}
-							CRM.updateCrm();
-							_this.respondSuccess(Helpers.safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			getScriptValue: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
+			});
+		},
+		scriptBackgroundLibrarySplice(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'start',
+						type: 'number'
+					}, {
+						val: 'amount',
+						type: 'number'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						var spliced;
 						if (node.type === 'script') {
-							_this.respondSuccess(node.value.script);
-						} else {
-							(node.scriptVal && _this.respondSuccess(node.scriptVal.script)) ||
-								_this.respondSuccess(undefined);
-						}
-					});
-
-				});
-			},
-			setStylesheetValue: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'stylesheet',
-							type: 'string'
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (node.type === 'stylesheet') {
-								node.value.stylesheet = _this.message['stylesheet'];
-							} else {
-								node.stylesheetVal = node.scriptVal || {};
-								node.stylesheetVal.stylesheet = _this.message['stylesheet'];
-							}
-							CRM.updateCrm();
-							_this.respondSuccess(Helpers.safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			getStylesheetValue: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						if (node.type === 'stylesheet') {
-							_this.respondSuccess(node.value.stylesheet);
-						} else {
-							(node.stylesheetVall &&
-									_this.respondSuccess(node.stylesheetVal.stylesheet)) ||
-								_this.respondSuccess(undefined);
-						}
-					});
-
-				});
-			},
-			setBackgroundScriptValue: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'script',
-							type: 'string'
-						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId).run(function(node) {
-							if (node.type === 'script') {
-								node.value.backgroundScript = _this.message['script'];
-							} else {
-								node.scriptVal = node.scriptVal || {};
-								node.scriptVal.backgroundScript = _this.message['script'];
-							}
+							spliced = Helpers.safe(node).value.backgroundLibraries.splice(_this.message['start'], _this.message['amount']);
 							CRM.updateCrm([_this.message.nodeId]);
-							_this.respondSuccess(Helpers.safe(node));
-							return true;
-						});
-					});
-				});
-			},
-			getBackgroundScriptValue: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						if (node.type === 'script') {
-							_this.respondSuccess(node.value.backgroundScript);
+							_this.respondSuccess(spliced, Helpers.safe(node).value.backgroundLibraries);
 						} else {
-							(node
-									.scriptVal &&
-									_this.respondSuccess(node.scriptVal.backgroundScript)) ||
-								_this.respondSuccess(undefined);
+							node.scriptVal = node.scriptVal || {};
+							node.scriptVal.backgroundLibraries = node.scriptVal.libraries || [];
+							spliced = node.scriptVal.backgroundLibraries.splice(_this.message['start'],
+								_this.message['amount']);
+							CRM.updateCrm([_this.message.nodeId]);
+							_this.respondSuccess(spliced, node.scriptVal.backgroundLibraries);
 						}
+						return true;
 					});
-
 				});
-			},
-			getMenuChildren: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet'], function() {
-					_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-						if (node.type === 'menu') {
-							_this.respondSuccess(node.children);
+			});
+		},
+		setScriptValue(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'script',
+						type: 'string'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						if (node.type === 'script') {
+							node.value.script = _this.message['script'];
 						} else {
+							node.scriptVal = node.scriptVal || {};
+							node.scriptVal.script = _this.message['script'];
+						}
+						CRM.updateCrm();
+						_this.respondSuccess(Helpers.safe(node));
+						return true;
+					});
+				});
+			});
+		},
+		getScriptValue(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					if (node.type === 'script') {
+						_this.respondSuccess(node.value.script);
+					} else {
+						(node.scriptVal && _this.respondSuccess(node.scriptVal.script)) ||
+							_this.respondSuccess(undefined);
+					}
+				});
+
+			});
+		},
+		setStylesheetValue(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'stylesheet',
+						type: 'string'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						if (node.type === 'stylesheet') {
+							node.value.stylesheet = _this.message['stylesheet'];
+						} else {
+							node.stylesheetVal = node.scriptVal || {};
+							node.stylesheetVal.stylesheet = _this.message['stylesheet'];
+						}
+						CRM.updateCrm();
+						_this.respondSuccess(Helpers.safe(node));
+						return true;
+					});
+				});
+			});
+		},
+		getStylesheetValue(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					if (node.type === 'stylesheet') {
+						_this.respondSuccess(node.value.stylesheet);
+					} else {
+						(node.stylesheetVall &&
+								_this.respondSuccess(node.stylesheetVal.stylesheet)) ||
+							_this.respondSuccess(undefined);
+					}
+				});
+
+			});
+		},
+		setBackgroundScriptValue(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'script',
+						type: 'string'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						if (node.type === 'script') {
+							node.value.backgroundScript = _this.message['script'];
+						} else {
+							node.scriptVal = node.scriptVal || {};
+							node.scriptVal.backgroundScript = _this.message['script'];
+						}
+						CRM.updateCrm([_this.message.nodeId]);
+						_this.respondSuccess(Helpers.safe(node));
+						return true;
+					});
+				});
+			});
+		},
+		getBackgroundScriptValue(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					if (node.type === 'script') {
+						_this.respondSuccess(node.value.backgroundScript);
+					} else {
+						(node
+								.scriptVal &&
+								_this.respondSuccess(node.scriptVal.backgroundScript)) ||
+							_this.respondSuccess(undefined);
+					}
+				});
+
+			});
+		},
+		getMenuChildren(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet'], () => {
+				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					if (node.type === 'menu') {
+						_this.respondSuccess(node.children);
+					} else {
+						_this.respondError('Node is not of type menu');
+					}
+				});
+
+			});
+		},
+		setMenuChildren(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'childrenIds',
+						type: 'array'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+						if (node.type !== 'menu') {
 							_this.respondError('Node is not of type menu');
 						}
-					});
 
-				});
-			},
-			setMenuChildren: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'childrenIds',
-							type: 'array'
+						var i;
+						for (i = 0; i < _this.message['childrenIds'].length; i++) {
+							if (typeof _this.message['childrenIds'][i] !== 'number') {
+								_this
+									.respondError('Not all values in array childrenIds are of type number');
+								return false;
+							}
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-							if (node.type !== 'menu') {
-								_this.respondError('Node is not of type menu');
-							}
 
-							var i;
-							for (i = 0; i < _this.message['childrenIds'].length; i++) {
-								if (typeof _this.message['childrenIds'][i] !== 'number') {
-									_this
-										.respondError('Not all values in array childrenIds are of type number');
-									return false;
-								}
-							}
+						var oldLength = node.children.length;
 
-							var oldLength = node.children.length;
-
-							for (i = 0; i < _this.message['childrenIds'].length; i++) {
-								var toMove = _this.getNodeFromId(_this.message['childrenIds'][i], false,
-									true);
-								_this.moveNode(toMove, {
-									relation: 'lastChild',
-									node: _this.message.nodeId
-								}, {
-									children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
-										true),
-									index: toMove.path[toMove.path.length - 1]
-								});
-							}
-
-							_this.getNodeFromId(node.id, false, true).children.splice(0, oldLength);
-
-							CRM.updateCrm();
-							_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
-							return true;
-						});
-					});
-				});
-			},
-			pushMenuChildren: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'childrenIds',
-							type: 'array'
+						for (i = 0; i < _this.message['childrenIds'].length; i++) {
+							var toMove = _this.getNodeFromId(_this.message['childrenIds'][i], false,
+								true);
+							_this.moveNode(toMove, {
+								relation: 'lastChild',
+								node: _this.message.nodeId
+							}, {
+								children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
+									true),
+								index: toMove.path[toMove.path.length - 1]
+							});
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId, true).run(function(node) {
-							if (node.type !== 'menu') {
-								_this.respondError('Node is not of type menu');
-							}
 
-							var i;
-							for (i = 0; i < _this.message['childrenIds'].length; i++) {
-								if (typeof _this.message['childrenIds'][i] !== 'number') {
-									_this
-										.respondError('Not all values in array childrenIds are of type number');
-									return false;
-								}
-							}
+						_this.getNodeFromId(node.id, false, true).children.splice(0, oldLength);
 
-							for (i = 0; i < _this.message['childrenIds'].length; i++) {
-								var toMove = _this.getNodeFromId(_this.message['childrenIds'][i], false,
-									true);
-								_this.moveNode(toMove, {
-									relation: 'lastChild',
-									node: _this.message.nodeId
-								}, {
-									children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
-										true),
-									index: toMove.path[toMove.path.length - 1]
-								});
-							}
-
-							CRM.updateCrm();
-							_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
-							return true;
-						});
+						CRM.updateCrm();
+						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
+						return true;
 					});
 				});
-			},
-			spliceMenuChildren: function(_this: CRMFunction) {
-				_this.checkPermissions(['crmGet', 'crmWrite'], function() {
-					_this.typeCheck([
-						{
-							val: 'start',
-							type: 'number'
-						}, {
-							val: 'amount',
-							type: 'number'
+			});
+		},
+		pushMenuChildren(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'childrenIds',
+						type: 'array'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+						if (node.type !== 'menu') {
+							_this.respondError('Node is not of type menu');
 						}
-					], function() {
-						_this.getNodeFromId(_this.message.nodeId, false).run(function(node) {
-							if (node.type !== 'menu') {
-								_this.respondError('Node is not of type menu');
+
+						var i;
+						for (i = 0; i < _this.message['childrenIds'].length; i++) {
+							if (typeof _this.message['childrenIds'][i] !== 'number') {
+								_this
+									.respondError('Not all values in array childrenIds are of type number');
+								return false;
 							}
+						}
 
-							var spliced = node.children.splice(
-								_this.message['start'], _this.message['amount']);
+						for (i = 0; i < _this.message['childrenIds'].length; i++) {
+							var toMove = _this.getNodeFromId(_this.message['childrenIds'][i], false,
+								true);
+							_this.moveNode(toMove, {
+								relation: 'lastChild',
+								node: _this.message.nodeId
+							}, {
+								children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
+									true),
+								index: toMove.path[toMove.path.length - 1]
+							});
+						}
 
-							CRM.updateCrm();
-							_this.respondSuccess(spliced.map(function(splicedNode) {
-								return CRM.makeSafe(splicedNode);
-							}), _this.getNodeFromId(node.id, true, true).children);
-							return true;
-						});
+						CRM.updateCrm();
+						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
+						return true;
 					});
 				});
-			}
-		};
-	})();
+			});
+		},
+		spliceMenuChildren(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'start',
+						type: 'number'
+					}, {
+						val: 'amount',
+						type: 'number'
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId, false).run((node) => {
+						if (node.type !== 'menu') {
+							_this.respondError('Node is not of type menu');
+						}
+
+						var spliced = node.children.splice(
+							_this.message['start'], _this.message['amount']);
+
+						CRM.updateCrm();
+						_this.respondSuccess(spliced.map((splicedNode) => {
+							return CRM.makeSafe(splicedNode);
+						}), _this.getNodeFromId(node.id, true, true).children);
+						return true;
+					});
+				});
+			});
+		}
+	};
 
 	const APIMessaging = (() => {
 		const exports = {
@@ -3472,7 +3475,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						console.warn('Error:', error);
 						if (stackTrace) {
 							var stacktraceSplit = stackTrace.split('\n');
-							stacktraceSplit.forEach(function(line) {
+							stacktraceSplit.forEach((line) => {
 								console.warn(line);
 							});
 						}
@@ -3616,9 +3619,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		moveNode(node: CRMNode, position: {
 			node?: number;
-			relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|'after'
+			relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|'after';
 		}, removeOld: any|boolean = false): boolean|CRMNode {
-			var _this = this;
+			var crmFunction = this;
 
 			//Capture old CRM tree
 			var oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree));
@@ -3633,8 +3636,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			if (!this.checkType(position.node, 'number', 'node', TypecheckOptional.OPTIONAL, null, false,
-				function() {
-					if (!(relativeNode = _this.getNodeFromId(position.node, false, true))) {
+				() => {
+					if (!(relativeNode = crmFunction.getNodeFromId(position.node, false, true))) {
 						return false;
 					}
 				})) {
@@ -3762,21 +3765,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return node;
 				}
 				return {
-					run: function(callback) {
+					run(callback) {
 						callback(node);
 					}
 				};
 			} else {
-				this.respondError('There is no node with the id you supplied (' + id + ')');
+				this.respondError(`There is no node with the id you supplied (${id})`);
 				if (synchronous) {
 					return false;
 				}
 				return {
-					run: function() {}
+					run: () => {}
 				};
 			}
 		};
-		typeCheck = function(toCheck: Array<{
+		typeCheck(toCheck: Array<{
 			val: string;
 			type: string;
 			optional?: boolean;
@@ -3789,21 +3792,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			min?: number;
 			max?: number;
 		}>, callback: (optionals?: {
-			[key: string]: any	
-		}) => void) {
-			var i, j, k, l;
-			var typesMatch;
-			var toCheckName;
-			var matchingType;
-			var toCheckTypes;
-			var toCheckValue;
-			var toCheckIsArray;
+			[key: string]: any;
+			}) => void) {
+			var typesMatch: boolean;
+			var toCheckName: string;
+			var matchingType: boolean | string;
+			var toCheckTypes: string[];
+			var toCheckValue: any;
+			var toCheckIsArray: boolean;
 			var optionals = {};
-			var toCheckChildrenName;
-			var toCheckChildrenType;
+			var toCheckChildrenName: string;
+			var toCheckChildrenType: string;
 			var toCheckChildrenValue;
-			var toCheckChildrenTypes;
-			for (i = 0; i < toCheck.length; i++) {
+			var toCheckChildrenTypes: string[];
+			for (let i = 0; i < toCheck.length; i++) {
 				toCheckName = toCheck[i].val;
 				if (toCheck[i].dependency) {
 					if (!optionals[toCheck[i].dependency]) {
@@ -3812,20 +3814,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 				toCheckTypes = toCheck[i].type.split('|');
-				toCheckValue = eval('this.message.' + toCheckName + ';');
+				toCheckValue = eval(`this.message.${toCheckName};`);
 				if (toCheckValue === undefined || toCheckValue === null) {
 					if (toCheck[i].optional) {
 						optionals[toCheckName] = false;
 						continue;
 					} else {
-						this.respondError('Value for ' + toCheckName + ' is not set');
+						this.respondError(`Value for ${toCheckName} is not set`);
 						return false;
 					}
 				} else {
 					toCheckIsArray = Array.isArray(toCheckValue);
 					typesMatch = false;
 					matchingType = false;
-					for (j = 0; j < toCheckTypes.length; j++) {
+					for (let j = 0; j < toCheckTypes.length; j++) {
 						if (toCheckTypes[j] === 'array') {
 							if (typeof toCheckValue === 'object' && Array.isArray(toCheckValue)) {
 								matchingType = toCheckTypes[j];
@@ -3839,53 +3841,40 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 					if (!typesMatch) {
-						this.respondError('Value for ' +
-							toCheckName +
-							' is not of type ' +
-							toCheckTypes.join(' or '));
+						this.respondError(`Value for ${toCheckName} is not of type ${toCheckTypes.join(' or ')}`);
 						return false;
 					}
 					optionals[toCheckName] = true;
 					if (toCheck[i].min !== undefined && typeof toCheckValue === 'number') {
 						if (toCheck[i].min > toCheckValue) {
-							this.respondError('Value for ' +
-								toCheckName +
-								' is smaller than ' +
-								toCheck[i].min);
+							this.respondError(`Value for ${toCheckName} is smaller than ${toCheck[i].min}`);
 							return false;
 						}
 					}
 					if (toCheck[i].max !== undefined && typeof toCheckValue === 'number') {
 						if (toCheck[i].max < toCheckValue) {
-							this.respondError('Value for ' +
-								toCheckName +
-								' is bigger than ' +
-								toCheck[i].max);
+							this.respondError(`Value for ${toCheckName} is bigger than ${toCheck[i].max}`);
 							return false;
 						}
 					}
 					if (toCheckIsArray &&
-						matchingType.indexOf('array') &&
+						toCheckTypes.indexOf('array') &&
 						toCheck[i].forChildren) {
-						for (j = 0; j < toCheckValue.length; j++) {
-							for (k = 0; k < toCheck[i].forChildren.length; k++) {
+						for (let j = 0; j < toCheckValue.length; j++) {
+							for (let k = 0; k < toCheck[i].forChildren.length; k++) {
 								toCheckChildrenName = toCheck[i].forChildren[k].val;
 								toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
 								if (toCheckChildrenValue === undefined || toCheckChildrenValue === null
 								) {
 									if (!toCheck[i].forChildren[k].optional) {
-										this.respondError('For not all values in the array ' +
-											toCheckName +
-											' is the property ' +
-											toCheckChildrenName +
-											' defined');
+										this.respondError(`For not all values in the array ${toCheckName} is the property ${toCheckChildrenName} defined`);
 										return false;
 									}
 								} else {
 									toCheckChildrenType = toCheck[i].forChildren[k].type;
 									toCheckChildrenTypes = toCheckChildrenType.split('|');
 									typesMatch = false;
-									for (l = 0; l < toCheckChildrenTypes.length; l++) {
+									for (let l = 0; l < toCheckChildrenTypes.length; l++) {
 										if (toCheckChildrenTypes[l] === 'array') {
 											if (typeof toCheckChildrenValue === 'object' &&
 												Array.isArray(toCheckChildrenValue) !== undefined) {
@@ -3898,12 +3887,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										}
 									}
 									if (!typesMatch) {
-										this.respondError('For not all values in the array ' +
-											toCheckName +
-											' is the property ' +
-											toCheckChildrenName +
-											' of type ' +
-											toCheckChildrenTypes.join(' or '));
+										this.respondError(`For not all values in the array ${toCheckName} is the property ${toCheckChildrenName} of type ${toCheckChildrenTypes.join(' or ')}`);
 										return false;
 									}
 								}
@@ -3915,12 +3899,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			callback(optionals);
 			return true;
 		};
-		checkPermissions = function(toCheck: Array<CRMPermission>, callback?: (optional: any) => void) {
-			var optional = [];
-			var permitted = true;
-			var notPermitted = [];
-
-			var node;
+		checkPermissions(toCheck: Array<CRMPermission>, callback?: (optional: any) => void) {
+			const optional = [];
+			let permitted = true;
+			let node: CRMNode;
 			if (!(node = globalObject.globals.crm.crmById[this.message.id])) {
 				this.respondError('The node you are running this script from no longer exist, no CRM API calls are allowed');
 				return false;
@@ -3929,14 +3911,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			if (node.isLocal) {
 				callback && callback(optional);
 			} else {
-				var i;
+				let notPermitted: Array<CRMPermission> = [];
 				if (!node.permissions || Helpers.compareArray(node.permissions, [])) {
 					if (toCheck.length > 0) {
 						permitted = false;
-						notPermitted.push(toCheck);
+						notPermitted = toCheck;
 					}
 				} else {
-					for (i = 0; i < toCheck.length; i++) {
+					for (let i = 0; i < toCheck.length; i++) {
 						if (node.permissions.indexOf(toCheck[i]) === -1) {
 							permitted = false;
 							notPermitted.push(toCheck[i]);
@@ -3945,14 +3927,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				if (!permitted) {
-					this.respondError('Permission' +
-						(notPermitted.length === 1 ?
-							' ' + notPermitted[0] :
-							's ' + notPermitted.join(', ')) +
-						' are not available to this script.');
+					this.respondError(`Permission${notPermitted.length === 1 ?
+						                               ` ${notPermitted[0]}` :
+						                               `s ${notPermitted.join(', ')}`} are not available to this script.`);
 				} else {
-					var length = optional.length;
-					for (i = 0; i < length; i++) {
+					let length = optional.length;
+					for (let i = 0; i < length; i++) {
 						if (node.permissions.indexOf(optional[i]) === -1) {
 							optional.splice(i, 1);
 							length--;
@@ -3962,6 +3942,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					callback && callback(optional);
 				}
 			}
+			return true;
 		};
 	}
 
@@ -3971,7 +3952,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			if (message.api.split('.')[0] !== 'runtime') {
 				return false;
 			}
-			var i;
 			var args = [];
 			var fns = [];
 			var returns = [];
@@ -3994,7 +3974,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							'First argument of openOptionsPage should be a function');
 						return true;
 					}
-					chrome.runtime.openOptionsPage(function() {
+					chrome.runtime.openOptionsPage(() => {
 						if (message.args[0]) {
 							APIMessaging.CRMMessage.respond(message, 'success', {
 								callbackId: message.args[0].val,
@@ -4013,7 +3993,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						.getManifest());
 					return true;
 				case 'getURL':
-					for (i = 0; i < message.args.length; i++) {
+					for (let i = 0; i < message.args.length; i++) {
 						if (message.args[i].type === 'return') {
 							returns.push(message.args[i].val);
 						} else if (message.args[i].type === 'arg') {
@@ -4044,7 +4024,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					chrome.runtime.restart();
 					return true;
 				case 'restartAfterDelay':
-					for (i = 0; i < message.args.length; i++) {
+					for (let i = 0; i < message.args.length; i++) {
 						if (message.args[i].type === 'fn') {
 							fns.push(message.args[i].val);
 						} else if (message.args[i].type === 'arg') {
@@ -4055,7 +4035,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return true;
 						}
 					}
-					chrome.runtime.restartAfterDelay(args[0], function() {
+					chrome.runtime.restartAfterDelay(args[0], () => {
 						APIMessaging.CRMMessage.respond(message, 'success', {
 							callbackId: fns[0],
 							params: []
@@ -4068,7 +4048,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							'First argument of getPlatformInfo should be a function');
 						return true;
 					}
-					chrome.runtime.getPlatformInfo(function(platformInfo) {
+					chrome.runtime.getPlatformInfo((platformInfo) => {
 						if (message.args[0]) {
 							APIMessaging.CRMMessage.respond(message, 'success', {
 								callbackId: message.args[0].val,
@@ -4083,7 +4063,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							'First argument of getPackageDirectoryEntry should be a function');
 						return true;
 					}
-					chrome.runtime.getPackageDirectoryEntry(function(directoryInfo) {
+					chrome.runtime.getPackageDirectoryEntry((directoryInfo) => {
 						if (message.args[0]) {
 							APIMessaging.CRMMessage.respond(message, 'success', {
 								callbackId: message.args[0].val,
@@ -4109,8 +4089,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				];
 				var listenerTarget = api.split('.')[0];
 				if (allowedTargets.indexOf(listenerTarget) > -1) {
-					chrome.runtime[listenerTarget].addListener(function() {
-						var params = Array.prototype.slice.apply(arguments);
+					chrome.runtime[listenerTarget].addListener((...listenerArgs) => {
+						var params = Array.prototype.slice.apply(listenerArgs);
 						APIMessaging.CRMMessage.respond(message, 'success', {
 							callbackId: message.args[0].val,
 							params: params
@@ -4143,9 +4123,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			handle(message: ChromeAPIMessage) {
 				const node = globalObject.globals.crm.crmById[message.id];
 				if (!/[a-z|A-Z|0-9]*/.test(message.api)) {
-					APIMessaging.ChromeMessage.throwError(message, 'Passed API "' +
-						message.api +
-						'" is not alphanumeric.');
+					APIMessaging.ChromeMessage.throwError(message, `Passed API "${message.api}" is not alphanumeric.`);
 					return false;
 				} else if (checkForRuntimeMessages(message)) {
 					return false;
@@ -4162,31 +4140,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					var chromeFound = (node.permissions.indexOf('chrome') !== -1);
 					apiFound = (node.permissions.indexOf(apiPermission) !== -1);
 					if (!chromeFound && !apiFound) {
-						APIMessaging.ChromeMessage.throwError(message, 'Both permissions chrome and ' +
-							apiPermission +
-							' not available to this script');
+						APIMessaging.ChromeMessage.throwError(message, `Both permissions chrome and ${apiPermission} not available to this script`);
 						return false;
 					} else if (!chromeFound) {
 						APIMessaging.ChromeMessage.throwError(message, 'Permission chrome not available to this script');
 						return false;
 					} else if (!apiFound) {
-						APIMessaging.ChromeMessage.throwError(message, 'Permission ' +
-							apiPermission +
-							' not avilable to this script');
+						APIMessaging.ChromeMessage.throwError(message, `Permission ${apiPermission} not avilable to this script`);
 						return false;
 					}
 				}
 				if (globalObject.globals.constants.permissions.indexOf(apiPermission) === -1) {
-					APIMessaging.ChromeMessage.throwError(message, 'Permissions ' +
-						apiPermission +
-						' is not available for use or does not exist.');
+					APIMessaging.ChromeMessage.throwError(message, `Permissions ${apiPermission} is not available for use or does not exist.`);
 					return false;
 				}
 				if (globalObject.globals.availablePermissions.indexOf(apiPermission) === -1) {
-					APIMessaging.ChromeMessage.throwError(message, 'Permissions ' +
-						apiPermission +
-						' not available to the extension, visit options page');
-					chrome.storage.local.get('requestPermissions', function(storageData) {
+					APIMessaging.ChromeMessage.throwError(message, `Permissions ${apiPermission} not available to the extension, visit options page`);
+					chrome.storage.local.get('requestPermissions', (storageData) => {
 						var perms = storageData['requestPermissions'] || [apiPermission];
 						chrome.storage.local.set({
 							requestPermissions: perms
@@ -4233,14 +4203,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			//First check if the data has already been fetched
 			if (globalObject.globals.storages.urlDataPairs[url]) {
 				if (globalObject.globals.storages.urlDataPairs[url].refs
-					.indexOf(scriptId) ===
-					-1) {
+					.indexOf(scriptId) === -1) {
 					globalObject.globals.storages.urlDataPairs[url].refs.push(scriptId);
 				}
 				callback(globalObject.globals.storages.urlDataPairs[url].dataURI,
 					globalObject.globals.storages.urlDataPairs[url].dataString);
 			} else {
-				Helpers.convertFileToDataURI(url, function(dataURI, dataString) {
+				Helpers.convertFileToDataURI(url, (dataURI, dataString) => {
 					//Write the data away to the url-data-pairs object
 					globalObject.globals.storages.urlDataPairs[url] = {
 						dataURI: dataURI,
@@ -4256,10 +4225,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			algorithm: string;
 			hash: string;
 		}> {
-			var hashes = [];
-			var hashString = url.split('#')[1];
-			var hashStrings = hashString.split(/[,|;]/g);
-			hashStrings.forEach(function(hash) {
+			const hashes = [];
+			const hashString = url.split('#')[1];
+			const hashStrings = hashString.split(/[,|;]/g);
+			hashStrings.forEach((hash) => {
 				var split = hash.split('=');
 				hashes.push({
 					algorithm: split[0],
@@ -4275,8 +4244,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}>, data: string) {
 			var lastMatchingHash = null;
 			hashes = hashes.reverse();
-			for (var i = 0; i < hashes.length; i++) {
-				var lowerCase = hashes[i].algorithm.toLowerCase;
+			for (let i = 0; i < hashes.length; i++) {
+				const lowerCase = hashes[i].algorithm.toLowerCase;
 				if (globalObject.globals.constants.supportedHashes.indexOf(lowerCase()) !==
 					-1) {
 					lastMatchingHash = {
@@ -4291,22 +4260,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return false;
 			}
 
-			var arrayBuffer = new window.TextEncoder('utf-8').encode(data);
+			const arrayBuffer = new window.TextEncoder('utf-8').encode(data);
 			switch (lastMatchingHash.algorithm) {
 				case 'md5':
 					return window.md5(data) === lastMatchingHash.hash;
 				case 'sha1':
-					window.crypto.subtle.digest('SHA-1', arrayBuffer).then(function(hash) {
+					window.crypto.subtle.digest('SHA-1', arrayBuffer).then((hash) => {
 						return hash === lastMatchingHash.hash;
 					});
 					break;
 				case 'sha384':
-					window.crypto.subtle.digest('SHA-384', arrayBuffer).then(function(hash) {
+					window.crypto.subtle.digest('SHA-384', arrayBuffer).then((hash) => {
 						return hash === lastMatchingHash.hash;
 					});
 					break;
 				case 'sha512':
-					window.crypto.subtle.digest('SHA-512', arrayBuffer).then(function(hash) {
+					window.crypto.subtle.digest('SHA-512', arrayBuffer).then((hash) => {
 						return hash === lastMatchingHash.hash;
 					});
 					break;
@@ -4318,15 +4287,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		function registerResource(name: string, url: string, scriptId: number) {
 			var registerHashes = getHashes(url);
 			if (window.navigator.onLine) {
-				getUrlData(scriptId, url, function (dataURI, dataString) {
-					var resources = globalObject.globals.storages.resources;
+				getUrlData(scriptId, url, (dataURI, dataString) => {
+					const resources = globalObject.globals.storages.resources;
 					resources[scriptId] = resources[scriptId] || {};
 					resources[scriptId][name] = {
 						name: name,
 						sourceUrl: url,
 						dataURI: dataURI,
 						matchesHashes: matchesHashes(registerHashes, dataString),
-						crmUrl: 'chrome-extension://' + extensionId + '/resource/' + scriptId + '/' + name
+						crmUrl: `chrome-extension://${extensionId}/resource/${scriptId}/${name}`
 					};
 					chrome.storage.local.set({
 						resources: resources,
@@ -4335,8 +4304,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			}
 
-			var resourceKeys = globalObject.globals.storages.resourceKeys;
-			for (var i = 0; i < resourceKeys.length; i++) {
+			const resourceKeys = globalObject.globals.storages.resourceKeys;
+			for (let i = 0; i < resourceKeys.length; i++) {
 				if (resourceKeys[i].name === name && resourceKeys[i].scriptId === scriptId) {
 					return;
 				}
@@ -4353,14 +4322,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 
 		function removeResource(name: string, scriptId: number) {
-			for (var i = 0; i < globalObject.globals.storages.resourceKeys.length; i++) {
+			for (let i = 0; i < globalObject.globals.storages.resourceKeys.length; i++) {
 				if (globalObject.globals.storages.resourceKeys[i].name === name &&
 					globalObject.globals.storages.resourceKeys[i].scriptId === scriptId) {
 					globalObject.globals.storages.resourceKeys.splice(i, 1);
 					break;
 				}
 			}
-			var urlDataLink = globalObject.globals.storages.urlDataPairs[
+			const urlDataLink = globalObject.globals.storages.urlDataPairs[
 				globalObject.globals.storages.resources[scriptId][name].sourceUrl
 			];
 			if (urlDataLink) {
@@ -4394,7 +4363,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			scriptId: number;
 		}) {
 			var resources = globalObject.globals.storages.resources;
-			Helpers.convertFileToDataURI(key.sourceUrl, function(dataURI, dataString) {
+			Helpers.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
 				if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
 					resources[key.scriptId][key.name].dataURI !== dataURI) {
 					//Data URIs do not match, just update the url ref
@@ -4418,7 +4387,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}>;
 			scriptId: number;
 		}) {
-			return function() {
+			return () => {
 				compareResource(resourceKey);
 			};
 		}
@@ -4444,7 +4413,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				};
 			})(),
 			Anonymous: (() => {
-				const exports = {
+				const anonymousResourcesExports = {
 					handle(message: {
 						type: string;
 						name: string;
@@ -4461,17 +4430,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 				};
-				return exports;
+				return anonymousResourcesExports;
 			})(),
 			checkIfResourcesAreUsed() {
-				var resourceNames = [];
-				for (var resourceForScript in globalObject.globals.storages.resources) {
+				const resourceNames = [];
+				for (let resourceForScript in globalObject.globals.storages.resources) {
 					if (globalObject.globals.storages.resources
 						.hasOwnProperty(resourceForScript) &&
 						globalObject.globals.storages.resources[resourceForScript]) {
-						var scriptResources = globalObject.globals.storages
+						let scriptResources = globalObject.globals.storages
 							.resources[resourceForScript];
-						for (var resourceName in scriptResources) {
+						for (let resourceName in scriptResources) {
 							if (scriptResources.hasOwnProperty(resourceName) &&
 								scriptResources[resourceName]) {
 								resourceNames.push(scriptResources[resourceName].name);
@@ -4480,26 +4449,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				for (var id in globalObject.globals.crm.crmById) {
+				for (let id in globalObject.globals.crm.crmById) {
 					if (globalObject.globals.crm.crmById.hasOwnProperty(id) &&
 						globalObject.globals.crm.crmById[id]) {
 						if (globalObject.globals.crm.crmById[id].type === 'script') {
-							var i;
 							if (globalObject.globals.crm.crmById[id].value.script) {
-								var resourceObj = {};
-								var metaTags = CRM.Script.MetaTags.getMetaTags(globalObject.globals.crm.crmById[id].value
+								const resourceObj = {};
+								const metaTags = CRM.Script.MetaTags.getMetaTags(globalObject.globals.crm.crmById[id].value
 									.script);
-								var resources = metaTags['resource'];
-								var libs = globalObject.globals.crm.crmById[id].value.libraries;
-								for (i = 0; i < libs.length; i++) {
+								const resources = metaTags['resource'];
+								const libs = globalObject.globals.crm.crmById[id].value.libraries;
+								for (let i = 0; i < libs.length; i++) {
 									if (libs[i] === null) {
 										resourceObj[libs[i].url] = true;
 									}
 								}
-								for (i = 0; i < resources; i++) {
+								for (let i = 0; i < resources; i++) {
 									resourceObj[resources[i]] = true;
 								}
-								for (i = 0; i < resourceNames.length; i++) {
+								for (let i = 0; i < resourceNames.length; i++) {
 									if (!resourceObj[resourceNames[i]]) {
 										removeResource(resourceNames[i], ~~id);
 									}
@@ -4510,7 +4478,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			},
 			updateResourceValues() {
-				for (var i = 0; i < globalObject.globals.storages.resourceKeys.length; i++) {
+				for (let i = 0; i < globalObject.globals.storages.resourceKeys.length; i++) {
 					setTimeout(generateUpdateCallback(globalObject.globals.storages
 						.resourceKeys[i]), (i * 1000));
 				}
@@ -4722,8 +4690,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 	const CRM = (() => {
 		function createCopyFunction(obj: CRMNode, target: SafeCRMNode): (props: Array<string>) => void {
-			return function(props: Array<string>) {
-				props.forEach(function(prop) {
+			return (props: Array<string>) => {
+				props.forEach((prop) => {
 					if (prop in obj) {
 						if (typeof obj[prop] === 'object') {
 							target[prop] = JSON.parse(JSON.stringify(obj[prop]));
@@ -4736,8 +4704,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 
 		function buildNodePaths(tree: Array<CRMNode>, currentPath: Array<number>) {
-			for (var i = 0; i < tree.length; i++) {
-				var childPath = currentPath.concat([i]);
+			for (let i = 0; i < tree.length; i++) {
+				const childPath = currentPath.concat([i]);
 				tree[i].path = childPath;
 				if (tree[i].children) {
 					buildNodePaths(tree[i].children, childPath);
@@ -4745,52 +4713,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		}
 
-		function buildPageCRMTree(node: CRMNode, parentId: number, path: Array<number>,
-		parentTree: Array<ContextMenuItemTreeItem>): {
-			id: number;
-			path: Array<number>;
-			enabled: boolean;
-			children: Array<ContextMenuItemTreeItem>;
-			index?: number;
-			parentId?: number;
-			node?: CRMNode;
-			parentTree?: Array<ContextMenuItemTreeItem>
-		} {
-			var i;
-			var id = exports.NodeCreation.createNode(node, parentId);
-			globalObject.globals.crmValues.contextMenuIds[node.id] = id;
-			if (id !== null) {
-				var children = [];
-				if (node.children) {
-					var visibleIndex = 0;
-					for (i = 0; i < node.children.length; i++) {
-						var newPath = JSON.parse(JSON.stringify(path));
-						newPath.push(visibleIndex);
-						var result = buildPageCRMTree(node.children[i], id, newPath, children);
-						if (result) {
-							visibleIndex++;
-							result.index = i;
-							result.parentId = id;
-							result.node = node.children[i];
-							result.parentTree = parentTree;
-							children.push(result);
-						}
-					}
-				}
-				globalObject.globals.crmValues.contextMenuInfoById[id].path = path;
-				return {
-					id: id,
-					path: path,
-					enabled: true,
-					children: children
-				};
-			}
-
-			return null;
-		}
-
 		function createOptionsPageHandler(): () => void {
-			return function() {
+			return () => {
 				chrome.runtime.openOptionsPage();
 			};
 		}
@@ -4805,7 +4729,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				]);
 				CRM.updateCRMValues();
-				CRM.buildPageCRM(globalObject.globals.storages.settingsStorage);
+				CRM.buildPageCRM();
 
 				if (toUpdate) {
 					Storages.checkBackgroundPagesForChange([], toUpdate);
@@ -4815,7 +4739,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				function generateMetaAccessFunction(metaData: {
 					[key: string]: any;
 				}): (key: string) => any {
-					return function(key: string) {
+					return (key: string) => {
 						if (metaData[key]) {
 							return metaData[key][0];
 						}
@@ -4824,12 +4748,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				function getResourcesArrayForScript(scriptId: number) {
-					var resourcesArray = [];
-					var scriptResources = globalObject.globals.storages.resources[scriptId];
+					const resourcesArray = [];
+					const scriptResources = globalObject.globals.storages.resources[scriptId];
 					if (!scriptResources) {
 						return [];
 					}
-					for (var resourceName in scriptResources) {
+					for (let resourceName in scriptResources) {
 						if (scriptResources.hasOwnProperty(resourceName)) {
 							resourcesArray.push(scriptResources[resourceName]);
 						}
@@ -4842,7 +4766,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						console.log(chrome.runtime.lastError);
 						return () => {};
 					}
-					return function() {
+					return () => {
 						if (scripts.length > i) {
 							chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId, scripts,
 								i + 1));
@@ -4856,7 +4780,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				const scriptExports = {
 					Running: (() => {
-						function urlIsGlobalExcluded(url) {
+						function urlIsGlobalExcluded(url: string): boolean {
 							if (globalObject.globals.storages.globalExcludes.indexOf('<all_urls>') > -1) {
 								return true;
 							}
@@ -4864,7 +4788,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								i < globalObject.globals.storages.globalExcludes.length;
 								i++
 							) {
-								let pattern = globalObject.globals.storages.globalExcludes[i] as MatchPattern;
+								const pattern = globalObject.globals.storages.globalExcludes[i] as MatchPattern;
 								if (pattern && URLParsing.urlMatchesPattern(pattern, url)) {
 									return true;
 								}
@@ -4939,9 +4863,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					})(),
 					Updating: (() => {
 						function removeOldNode(id: number) {
-							var children = globalObject.globals.crm.crmById[id].children;
+							const children = globalObject.globals.crm.crmById[id].children;
 							if (children) {
-								for (var i = 0; i < children.length; i++) {
+								for (let i = 0; i < children.length; i++) {
 									removeOldNode(children[i].id);
 								}
 							}
@@ -4954,9 +4878,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							delete globalObject.globals.crm.crmById[id];
 							delete globalObject.globals.crm.crmByIdSafe[id];
 
-							var contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
+							const contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
 							if (contextMenuId !== undefined && contextMenuId !== null) {
-								chrome.contextMenus.remove(contextMenuId, function() {
+								chrome.contextMenus.remove(contextMenuId, () => {
 									Helpers.checkForChromeErrors();
 								});
 							}
@@ -4965,16 +4889,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						function registerNode(node, oldPath?: Array<number>) {
 							//Update it in CRM tree
 							if (oldPath !== undefined && oldPath !== null) {
-								eval('globalObject.globals.storages.settingsStorage.crm[' +
-									oldPath.join('][') +
-									'] = node');
+								eval(`globalObject.globals.storages.settingsStorage.crm[${oldPath.join('][')}] = node`);
 							} else {
 								globalObject.globals.storages.settingsStorage.crm.push(node);
 							}
 						}
 
 						function getURL(url: string): HTMLAnchorElement {
-							var anchor = document.createElement('a');
+							const anchor = document.createElement('a');
 							anchor.href = url;
 							return anchor;
 						}
@@ -5014,7 +4936,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							node.permissions = allowedPermissions;
 
 							if (hasOldNode) {
-								var path = globalObject.globals.crm.crmById[oldNodeId].path;
+								const path = globalObject.globals.crm.crmById[oldNodeId].path;
 								return {
 									node: node,
 									path: path,
@@ -5028,24 +4950,24 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						function createUserscriptTriggers(metaTags: {
-							[key: string]: any
+							[key: string]: any;
 						}) {
 							var triggers = [];
-							var includes = metaTags['includes'];
+							const includes = metaTags['includes'];
 							if (includes) {
 								triggers = triggers.concat(includes.map(include => ({
 									url: include,
 									not: false
 								})).filter(include => (!!include.url)));
 							}
-							var matches = metaTags['match'];
+							const matches = metaTags['match'];
 							if (matches) {
 								triggers = triggers.concat(matches.map(match => ({
 									url: match,
 									not: false
 								})).filter(match => (!!match.url)));
 							}
-							var excludes = metaTags['exclude'];
+							const excludes = metaTags['exclude'];
 							if (excludes) {
 								triggers = triggers.concat(excludes.map(exclude => ({
 									url: exclude,
@@ -5060,11 +4982,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						function createUserscriptTypeData(metaTags: {
 							[key: string]: any;
 						}, code: string, node: PartialCRMNode) {
-							var launchMode;
+							let launchMode: CRMLaunchMode|string;
 							if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_stylesheet')) {
 								node.type = 'stylesheet';
-								launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') || 2;
-								launchMode = metaTags['CRM_launchMode'] = parseInt(launchMode, 10);
+								launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') || CRMLaunchMode.RUN_ON_SPECIFIED;
+								launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
 								node.value = {
 									stylesheet: code,
 									defaultOn: (metaTags['CRM_defaultOn'] =
@@ -5123,7 +5045,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 
 								launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') || 0;
-								launchMode = metaTags['CRM_launchMode'] = parseInt(launchMode, 10);
+								launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
 								node.value = {
 									script: code,
 									launchMode: launchMode,
@@ -5133,37 +5055,37 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						function applyMetaTags(code: string, metaTags: {
-							[key: string]: any
+							[key: string]: any;
 						}, node: PartialCRMNode) {
-							var metaTagsArr = [];
+							const metaTagsArr: Array<string> = [];
 
-							var metaValue;
-							var tags = metaTags;
-							for (var metaKey in tags) {
+							let metaValue;
+							const tags = metaTags;
+							for (let metaKey in tags) {
 								if (tags.hasOwnProperty(metaKey)) {
 									metaValue = tags[metaKey];
-									var value;
+									let value: string;
 									if (metaKey === 'CRM_contentTypes') {
 										value = JSON.stringify(metaValue);
-										metaTagsArr.push('// @' + metaKey + '	' + value);
+										metaTagsArr.push(`// @${metaKey}	${value}`);
 									} else {
-										for (var i = 0; i < metaValue.length; i++) {
+										for (let i = 0; i < metaValue.length; i++) {
 											value = metaValue[i];
-											metaTagsArr.push('// @' + metaKey + '	' + value);
+											metaTagsArr.push(`// @${metaKey}	${value}`);
 										}
 									}
 								}
 							}
 
 							
-							var scriptSplit = (node.type === 'script' ?
+							const scriptSplit = (node.type === 'script' ?
 												node.value.script :
 												node.value.stylesheet).split('\n');
 
-							var finalMetaTags;
-							var beforeMetaTags;
+							let finalMetaTags: Array<string>;
+							let beforeMetaTags: Array<string>;
 
-							var metaIndexes = CRM.Script.MetaTags.getMetaIndexes(code);
+							const metaIndexes = CRM.Script.MetaTags.getMetaIndexes(code);
 
 							if (metaIndexes && metaIndexes.start !== undefined) {
 								beforeMetaTags = scriptSplit.splice(0, metaIndexes.start + 1);
@@ -5172,7 +5094,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							} else {
 								beforeMetaTags = [];
 							}
-							var afterMetaTags = scriptSplit;
+							const afterMetaTags: Array<string> = scriptSplit;
 
 							finalMetaTags = beforeMetaTags;
 							finalMetaTags = finalMetaTags.concat(metaTagsArr);
@@ -5187,7 +5109,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								downloadURL: string;
 								allowedPermissions: Array<string>;
 								metaTags: {
-									[key: string]: any
+									[key: string]: any;
 								};
 							}) {
 								const oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
@@ -5214,7 +5136,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								]);
 							},
 							installUserscript(metaTags: {
-								[key: string]: any
+								[key: string]: any;
 							}, code: string, downloadURL: string, allowedPermissions: Array<string>,
 								oldNodeId?: number): {
 								node: CRMNode,
@@ -5289,8 +5211,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									var resources = metaTags['resource'];
 									resources.forEach(resource => {
 										const resourceSplit = resource.split(/(\s*)/);
-										const resourceName = resourceSplit[0];
-										const resourceUrl = resourceSplit[1];
+										const [resourceName, resourceUrl] = resourceSplit;
 										Resources.Resource.handle({
 											type: 'register',
 											name: resourceName,
@@ -5308,10 +5229,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									chrome.permissions.getAll((allowed: {
 										permissions: Array<string>;
 									}) => {
-										var allowedPermissions = allowed.permissions || [];
+										const requestPermissionsAllowed = allowed.permissions || [];
 										var requestPermissions = keys['requestPermissions'] || [];
 										requestPermissions = requestPermissions.concat(node.permissions
-											.filter(nodePermission => (allowedPermissions.indexOf(nodePermission) ===
+											.filter(nodePermission => (requestPermissionsAllowed.indexOf(nodePermission) ===
 												-1)));
 										requestPermissions = requestPermissions.filter((nodePermission,
 											index) => (requestPermissions.indexOf(nodePermission) === index));
@@ -5349,13 +5270,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 							},
 							updateScripts(callback?: (data: any) => void) {
-								var checking = [];
+								const checking = [];
 								var updatedScripts = [];
 								var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
 									.settingsStorage.crm));
 
 								function onDone() {
-									var updatedData = updatedScripts.map(function(updatedScript) {
+									var updatedData = updatedScripts.map((updatedScript) => {
 										var oldNode = globalObject.globals.crm.crmById[updatedScript.oldNodeId];
 										return {
 											name: updatedScript.node.name,
@@ -5366,7 +5287,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										};
 									});
 
-									updatedScripts.forEach(function(updatedScript) {
+									updatedScripts.forEach((updatedScript) => {
 										if (updatedScript.path) { //Has old node
 											removeOldNode(updatedScript.oldNodeId);
 											registerNode(updatedScript.node, updatedScript.path);
@@ -5383,8 +5304,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										}
 									]);
 
-									chrome.storage.local.get('updatedScripts', function(storage) {
-										var updatedScripts = storage['updatedScripts'] || [];
+									chrome.storage.local.get('updatedScripts', (storage) => {
+										updatedScripts = storage['updatedScripts'] || [];
 										updatedScripts = updatedScripts.concat(updatedData);
 										chrome.storage.local.set({
 											updatedScripts: updatedScripts
@@ -5394,17 +5315,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									callback && callback(updatedData);
 								}
 
-								for (var id in globalObject.globals.crm.crmById) {
+								for (let id in globalObject.globals.crm.crmById) {
 									if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
-										var node = globalObject.globals.crm.crmById[id];
-										var isRoot = node.nodeInfo && node.nodeInfo.isRoot;
-										var downloadURL = node.nodeInfo &&
+										const node = globalObject.globals.crm.crmById[id];
+										const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
+										const downloadURL = node.nodeInfo &&
 											node.nodeInfo.source &&
 											(node.nodeInfo.source.url ||
 												node.nodeInfo.source.updateURL ||
 												node.nodeInfo.source.downloadURL);
 										if (downloadURL && isRoot) {
-											var checkingId = checking.length;
+											const checkingId = checking.length;
 											checking[checkingId] = true;
 											checkNodeForUpdate(node,
 												checking,
@@ -5432,11 +5353,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									node.type === 'menu')) { //TODO when website launches
 								try {
 									Helpers.convertFileToDataURI(
-										'example.com/isUpdated/' +
-										downloadURL.split('/').pop().split('.user.js')[0] +
-										'/' +
-										node.nodeInfo.version,
-										function(dataURI, dataString) {
+										`example.com/isUpdated/${downloadURL.split('/').pop().split('.user.js')[0]}/${node.nodeInfo.version}`,
+										(dataURI, dataString) => {
 											try {
 												var resultParsed = JSON.parse(dataString);
 												if (resultParsed.updated) {
@@ -5445,12 +5363,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 														!(resultParsed.metaTags.grant.length === 0 &&
 															resultParsed.metaTags.grant[0] === 'none')) {
 														//New permissions were added, notify user
-														chrome.storage.local.get('addedPermissions', function(data) {
+														chrome.storage.local.get('addedPermissions', (data) => {
 															var addedPermissions = data['addedPermissions'] || [];
 															addedPermissions.push({
 																node: node.id,
 																permissions: resultParsed.metaTags.grant
-																	.filter(function(newPermission) {
+																	.filter((newPermission) => {
 																		return node.nodeInfo.permissions.indexOf(newPermission) === -1;
 																	})
 															});
@@ -5466,16 +5384,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 														downloadURL, node.id));
 												}
 												checking[checkingId] = false;
-												if (checking.filter(function(c) { return c; }).length === 0) {
+												if (checking.filter((c) => { return c; }).length === 0) {
 													onDone();
 												}
-											} catch (e) {
+											} catch (err) {
 												console.log('Tried to update script ', node.id, ' ', node.name,
 													' but could not reach download URL');
 											}
-										}, function() {
+										}, () => {
 											checking[checkingId] = false;
-											if (checking.filter(function(c) { return c; }).length === 0) {
+											if (checking.filter((c) => { return c; }).length === 0) {
 												onDone();
 											}
 										});
@@ -5488,7 +5406,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									//Do a request to get that script from its download URL
 									if (downloadURL) {
 										try {
-											Helpers.convertFileToDataURI(downloadURL, function(dataURI, dataString) {
+											Helpers.convertFileToDataURI(downloadURL, (dataURI, dataString) => {
 												//Get the meta tags
 												try {
 													var metaTags = getExports().Script.MetaTags.getMetaTags(dataString);
@@ -5499,11 +5417,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 																0 &&
 																metaTags['grant'][0] === 'none')) {
 															//New permissions were added, notify user
-															chrome.storage.local.get('addedPermissions', function(data) {
+															chrome.storage.local.get('addedPermissions', (data) => {
 																var addedPermissions = data['addedPermissions'] || [];
 																addedPermissions.push({
 																	node: node.id,
-																	permissions: metaTags['grant'].filter(function(newPermission) {
+																	permissions: metaTags['grant'].filter((newPermission) => {
 																		return node.nodeInfo.permissions.indexOf(newPermission) === -1;
 																	})
 																});
@@ -5522,18 +5440,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 													}
 
 													checking[checkingId] = false;
-													if (checking.filter(function(c) { return c; }).length === 0) {
+													if (checking.filter((c) => { return c; }).length === 0) {
 														onDone();
 													}
-												} catch (e) {
-													console.log(e);
+												} catch (err) {
+													console.log(err);
 
 													console.log('Tried to update script ', node.id, ' ', node.name,
 														' but could not reach download URL');
 												}
-											}, function() {
+											}, () => {
 												checking[checkingId] = false;
-												if (checking.filter(function(c) { return c; }).length === 0) {
+												if (checking.filter((c) => { return c; }).length === 0) {
 													onDone();
 												}
 											});
@@ -5554,10 +5472,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								start: number;
 								end: number;
 							} {
-								var metaStart = -1;
-								var metaEnd = -1;
-								var lines = script.split('\n');
-								for (var i = 0; i < lines.length; i++) {
+								let metaStart = -1;
+								let metaEnd = -1;
+								const lines = script.split('\n');
+								for (let i = 0; i < lines.length; i++) {
 									if (metaStart !== -1) {
 										if (lines[i].indexOf('==/UserScript==') > -1) {
 											metaEnd = i;
@@ -5573,12 +5491,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								};
 							},
 							getMetaLines(script: string): Array<string> {
-								var metaIndexes = getMetaTagExports().getMetaIndexes(script);
-								var metaStart = metaIndexes.start;
-								var metaEnd = metaIndexes.end;
-								var startPlusOne = metaStart + 1;
-								var lines = script.split('\n');
-								var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+								const metaIndexes = getMetaTagExports().getMetaIndexes(script);
+								const metaStart = metaIndexes.start;
+								const metaEnd = metaIndexes.end;
+								const startPlusOne = metaStart + 1;
+								const lines = script.split('\n');
+								const metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
 								return metaLines;
 							},
 							getMetaTags(script: string): {
@@ -5588,9 +5506,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 								const metaTags = {};
 								const regex = /@(\w+)(\s+)(.+)/;
-								var regexMatches;
 								for (let i = 0; i < metaLines.length; i++) {
-									regexMatches = metaLines[i].match(regex);
+									const regexMatches = metaLines[i].match(regex);
 									if (regexMatches) {
 										metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
 										metaTags[regexMatches[1]].push(regexMatches[3]);
@@ -5612,17 +5529,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					})(),
 					Background: (() => {
 						function loadBackgroundPageLibs(node: CRMNode): {
-							libraries: Array<string>,
-							code: Array<string>
+							libraries: Array<string>;
+							code: Array<string>;
 						} {
-							var libraries = [];
-							var code = [];
+							const libraries = [];
+							const code = [];
 							for (let i = 0; i < node.value.libraries.length; i++) {
-								var lib;
+								let lib: {
+									name: string;
+									url?: string;
+									code?: string;
+									location?: string;
+								} | {
+									code: string;
+									location?: string;
+								};
 								if (globalObject.globals.storages.storageLocal.libraries) {
-									for (let j = 0;
-										j < globalObject.globals.storages.storageLocal.libraries.length;
-										j++) {
+									for (let j = 0; j < globalObject.globals.storages.storageLocal.libraries.length; j++) {
 										if (globalObject.globals.storages.storageLocal.libraries[j].name ===
 											node.value
 											.libraries[i].name) {
@@ -5646,7 +5569,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 								if (lib) {
 									if (lib.location) {
-										libraries.push('/js/defaultLibraries/' + lib.location);
+										libraries.push(`/js/defaultLibraries/${lib.location}`);
 									} else {
 										code.push(lib.code);
 									}
@@ -5671,10 +5594,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								var isRestart = false;
 								if (globalObject.globals.background.byId[node.id]) {
 									isRestart = true;
-									console.log('Background page [' + node.id + ']: ',
+									console.log(`Background page [${node.id}]: `,
 										'Restarting background page...');
 									globalObject.globals.background.byId[node.id].worker.terminate();
-									console.log('Background page [' + node.id + ']: ',
+									console.log(`Background page [${node.id}]: `,
 										'Terminated background page...');
 								}
 
@@ -5715,15 +5638,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										}
 									}
 
-									var indentUnit;
+									var indentUnit: string;
 									if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 										indentUnit = '	';
 									} else {
-										indentUnit = [];
-										indentUnit[globalObject.globals.storages.settingsStorage.editor
-											.tabSize ||
-											2] = '';
-										indentUnit = indentUnit.join(' ');
+										indentUnit = new Array(globalObject.globals.storages.settingsStorage
+											.editor.tabSize || 2).join('');
 									}
 
 									var script = node.value.backgroundScript.split('\n').map((line) => {
@@ -5777,7 +5697,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											scriptMetaStr: metaString,
 											scriptSource: script,
 											scriptUpdateURL: metaVal('updateURL'),
-											scriptWillUpdate: false, //FUTURE maybe update
+											scriptWillUpdate: true,
 											scriptHandler: 'Custom Right-Click Menu',
 											version: chrome.runtime.getManifest().version
 										},
@@ -5791,15 +5711,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									libraries.push('/js/crmapi.js');
 									code = [
 										code.join('\n'), [
-											'var crmAPI = new CrmAPIInit(' +
-											[
+											`var crmAPI = new CrmAPIInit(${[
 												getExports().makeSafe(node), node.id, { id: 0 }, {}, key, nodeStorage,
 												greaseMonkeyData, true
 											]
 											.map((param) => {
 												return JSON.stringify(param);
-											}).join(', ') +
-											');'
+											}).join(', ')});`
 										].join(', '),
 										'try {',
 										script,
@@ -5812,11 +5730,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									];
 
 									sandboxes.sandbox(node.id, code.join('\n'), libraries, key,
-										function(worker) {
+										(worker) => {
 											globalObject.globals.background.workers.push(worker);
 											globalObject.globals.background.byId[node.id] = worker;
 											if (isRestart) {
-												Logging.log(node.id, '*', 'Background page [' + node.id + ']: ',
+												Logging.log(node.id, '*', `Background page [${node.id}]: `,
 													'Restarted background page...');
 											}
 										});
@@ -5828,9 +5746,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							},
 							createBackgroundPages() {
 								//Iterate through every node
-								for (var nodeId in globalObject.globals.crm.crmById) {
+								for (let nodeId in globalObject.globals.crm.crmById) {
 									if (globalObject.globals.crm.crmById.hasOwnProperty(nodeId)) {
-										var node = globalObject.globals.crm.crmById[nodeId];
+										const node = globalObject.globals.crm.crmById[nodeId];
 										if (node.type === 'script') {
 											getBackgroundPageExports().createBackgroundPage(node);
 										}
@@ -5844,7 +5762,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						return backgroundPageExports;
 					})(),
 					createHandler(node: CRMNode) {
-						return function(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
+						return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 							var key: Array<number> = [];
 							var err = false;
 							try {
@@ -5857,7 +5775,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								chrome.tabs.executeScript(tab.id, {
 									code:
 										'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
-								}, function() {
+								}, () => {
 									chrome.runtime.reload();
 								});
 							} else {
@@ -5937,7 +5855,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										scriptMetaStr: metaString,
 										scriptSource: node.value.script,
 										scriptUpdateURL: metaVal('updateURL'),
-										scriptWillUpdate: false, //FUTURE maybe update
+										scriptWillUpdate: true,
 										scriptHandler: 'Custom Right-Click Menu',
 										version: chrome.runtime.getManifest().version
 									},
@@ -5948,28 +5866,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 								var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
 
-								var indentUnit;
+								var indentUnit: string;
 								if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 									indentUnit = '	';
 								} else {
-									indentUnit = [];
-									indentUnit[globalObject.globals.storages.settingsStorage.editor.tabSize ||
-										2] = '';
-									indentUnit = indentUnit.join(' ');
+									indentUnit = new Array([globalObject.globals.storages.settingsStorage.editor.tabSize || 2]).join(' ');
 								}
 
-								var script = node.value.script.split('\n').map(function(line) {
+								var script = node.value.script.split('\n').map((line) => {
 									return indentUnit + line;
 								}).join('\n');
 
 								var code = [
 									[
-										'var crmAPI = new CrmAPIInit(' +
-										[getExports().makeSafe(node), node.id, tab, info, key, nodeStorage, greaseMonkeyData]
-										.map(function(param) {
+										`var crmAPI = new CrmAPIInit(${[getExports().makeSafe(node), node.id, tab, info, key, nodeStorage, greaseMonkeyData]
+										.map((param) => {
 											return JSON.stringify(param);
-										}).join(', ') +
-										');'
+										}).join(', ')});`
 									].join(', '),
 									'try {',
 									script,
@@ -5983,7 +5896,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 								var scripts = [];
 								for (i = 0; i < node.value.libraries.length; i++) {
-									var lib;
+									var lib: {
+										name: string;
+										url?: string;
+										code?: string;
+										location?: string;
+									} | {
+										code: string;
+										location?: string;
+									};
 									if (globalObject.globals.storages.storageLocal.libraries) {
 										for (var j = 0;
 											j < globalObject.globals.storages.storageLocal.libraries.length;
@@ -6010,7 +5931,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									if (lib) {
 										if (lib.location) {
 											scripts.push({
-												file: '/js/defaultLibraries/' + lib.location,
+												file: `/js/defaultLibraries/${lib.location}`,
 												runAt: runAt
 											});
 										} else {
@@ -6054,13 +5975,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (node.children) {
 					const menuNode = newNode as SafeMenuNode;
 					menuNode.children = [];
-					for (var i = 0; i < node.children.length; i++) {
+					for (let i = 0; i < node.children.length; i++) {
 						menuNode.children[i] = getExports().makeSafe(node.children[i]);
 					}
 					newNode = menuNode;
 				}
 
-				var copy = createCopyFunction(node, newNode);
+				const copy = createCopyFunction(node, newNode);
 
 				copy([
 					'id', 'path', 'type', 'name', 'value', 'linkVal',
@@ -6069,7 +5990,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				]);
 				return newNode as SafeCRMNode;
 			},
-			buildPageCRM(storageSync: SettingsStorage) {
+			buildPageCRM() {
 				const length = globalObject.globals.crm.crmTree.length;
 				globalObject.globals.crmValues.stylesheetNodeStatusses = {};
 				chrome.contextMenus.removeAll();
@@ -6082,7 +6003,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					always: []
 				};
 				for (let i = 0; i < length; i++) {
-					var result = buildPageCRMTree(globalObject.globals.crm.crmTree[i],
+					const result = buildPageCRMTree(globalObject.globals.crm.crmTree[i],
 						globalObject.globals.crmValues.rootId, [i], globalObject.globals.crmValues
 						.contextMenuItemTree);
 					if (result) {
@@ -6111,9 +6032,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			},
 			getContexts(contexts: CRMContentTypes): Array<string> {
-				var newContexts = [];
-				var textContexts = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-				for (var i = 0; i < 6; i++) {
+				const newContexts = [];
+				const textContexts = globalObject.globals.constants.contexts;
+				for (let i = 0; i < 6; i++) {
 					if (contexts[i]) {
 						newContexts.push(textContexts[i]);
 					}
@@ -6121,19 +6042,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return newContexts;
 			},
 			Link: (() => {
-				function sanitizeUrl(url) {
+				function sanitizeUrl(url: string): string {
 					if (url.indexOf('://') === -1) {
-						url = 'http://' + url;
+						url = `http://${url}`;
 					}
 					return url;
 				}
 				const linkExports = {
 					createHandler(node: CRMNode) {
-						return function(clickData: chrome.contextMenus.OnClickData,
-							tabInfo: chrome.tabs.Tab) {
-							var i;
-							var finalUrl;
-							for (i = 0; i < node.value.length; i++) {
+						return (clickData: chrome.contextMenus.OnClickData,
+							tabInfo: chrome.tabs.Tab) => {
+							var finalUrl: string;
+							for (let i = 0; i < node.value.length; i++) {
 								if (node.value[i].newTab) {
 									chrome.tabs.create({
 										windowId: tabInfo.windowId,
@@ -6157,12 +6077,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			Stylesheet: (() => {
 				const stylesheetExports = {
 					createToggleHandler(node: CRMNode) {
-						return function(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
-							var code;
+						return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
+							let code: string;
 							const className = node.id + '' + tab.id;
 							if (info.wasChecked) {
 								code = [
-									'var nodes = Array.prototype.slice.apply(document.querySelectorAll(".styleNodes' + className + '")).forEach(function(node){',
+									`var nodes = Array.prototype.slice.apply(document.querySelectorAll(".styleNodes${className}")).forEach(function(node){`,
 									'node.remove();',
 									'});'
 								].join('');
@@ -6170,11 +6090,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								const css = node.value.stylesheet.replace(/[ |\n]/g, '');
 								code = [
 									'var CRMSSInsert=document.createElement("style");',
-									'CRMSSInsert.className="styleNodes' + className + '";',
+									`CRMSSInsert.className="styleNodes${className}";`,
 									'CRMSSInsert.type="text/css";',
-									'CRMSSInsert.appendChild(document.createTextNode(' +
-									JSON.stringify(css) +
-									'));',
+									`CRMSSInsert.appendChild(document.createTextNode(${JSON.stringify(css)}));`,
 									'document.head.appendChild(CRMSSInsert);'
 								].join('');
 							}
@@ -6187,19 +6105,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						};
 					},
 					createClickHandler(node: CRMNode) {
-						return function(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
+						return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 							const className = node.id + '' + tab.id;
 							const code = [
 								'(function() {',
-								'if (document.querySelector(".styleNodes' + className + '")) {',
+								`if (document.querySelector(".styleNodes${className}")) {`,
 								'return false;',
 								'}',
 								'var CRMSSInsert=document.createElement("style");',
-								'CRMSSInsert.classList.add("styleNodes' + className + '");',
+								`CRMSSInsert.classList.add("styleNodes${className}");`,
 								'CRMSSInsert.type="text/css";',
-								'CRMSSInsert.appendChild(document.createTextNode(' +
-								JSON.stringify(node.value.stylesheet) +
-								'));',
+								`CRMSSInsert.appendChild(document.createTextNode(${JSON.stringify(node.value.stylesheet)}));`,
 								'document.head.appendChild(CRMSSInsert);',
 								'}());'
 							].join('');
@@ -6211,7 +6127,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					},
 					Installing: (() => {
 						function triggerify(url: string): string {
-							var match =
+							const match =
 								/((http|https|file|ftp):\/\/)?(www\.)?((\w+)\.)*((\w+)?|(\w+)?(\/(.*)))?/g
 									.exec(url);
 
@@ -6243,10 +6159,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 
 							var triggers = [];
-							data.domains.forEach(function(domainRule) {
-								triggers.push('*://' + domainRule + '/*');
+							data.domains.forEach((domainRule) => {
+								triggers.push(`*://${domainRule}/*`);
 							});
-							data.regexps.forEach(function(regexpRule) {
+							data.regexps.forEach((regexpRule) => {
 								var match =
 									/((http|https|file|ftp):\/\/)?(www\.)?((\w+)\.)*((\w+)?|(\w+)?(\/(.*)))?/g
 										.exec(regexpRule);
@@ -6269,14 +6185,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										'*')
 								].join(''));
 							});
-							data.urlPrefixes.forEach(function(urlPrefixRule) {
+							data.urlPrefixes.forEach((urlPrefixRule) => {
 								if (URLParsing.triggerMatchesScheme(urlPrefixRule)) {
 									triggers.push(urlPrefixRule + '*');
 								} else {
 									triggers.push(triggerify(urlPrefixRule + '*'));
 								}
 							});
-							data.urls.forEach(function(urlRule) {
+							data.urls.forEach((urlRule) => {
 								if (URLParsing.triggerMatchesScheme(urlRule)) {
 									triggers.push(urlRule);
 								} else {
@@ -6286,7 +6202,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 							return {
 								launchMode: 2,
-								triggers: triggers.map(function(trigger) {
+								triggers: triggers.map((trigger) => {
 									return {
 										url: trigger,
 										not: false
@@ -6314,7 +6230,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									url: string;
 								} = JSON.parse(data.code);
 
-								stylesheetData.sections.forEach(function(section) {
+								stylesheetData.sections.forEach((section) => {
 									var sectionData = extractStylesheetData(section);
 									var node = globalObject.globals.constants.templates
 										.getDefaultStylesheetNode({
@@ -6352,7 +6268,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				function getStylesheetReplacementTabs(node: CRMNode): Array<{
 					id: number;
 				}> {
-					var replaceOnTabs = [];
+					const replaceOnTabs = [];
 					if (globalObject.globals.crmValues.contextMenuIds[node
 							.id] && //Node already exists
 						globalObject.globals.crm.crmById[node.id].type === 'stylesheet' &&
@@ -6361,7 +6277,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						node.value.stylesheet) { //Value changed
 
 						//Update after creating a new node
-						for (var key in globalObject.globals.crmValues.stylesheetNodeStatusses[node
+						for (let key in globalObject.globals.crmValues.stylesheetNodeStatusses[node
 							.id]) {
 							if (globalObject.globals.crmValues.stylesheetNodeStatusses
 								.hasOwnProperty(key) &&
@@ -6437,13 +6353,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							break;
 					}
 
-					var id = chrome.contextMenus.create(rightClickItemOptions, function() {
+					var id = chrome.contextMenus.create(rightClickItemOptions, () => {
 						if (chrome.runtime.lastError) {
 							if (rightClickItemOptions.documentUrlPatterns) {
 								console
 									.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
 								delete rightClickItemOptions.documentUrlPatterns;
-								id = chrome.contextMenus.create(rightClickItemOptions, function() {
+								id = chrome.contextMenus.create(rightClickItemOptions, () => {
 									id = chrome.contextMenus.create({
 										title: 'ERROR',
 										onclick: createOptionsPageHandler()
@@ -6472,7 +6388,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
 					id: number;
 				}) {
-					var launchMode = (node.value && node.value.launchMode) || CRMLaunchMode.RUN_ON_CLICKING;
+					const launchMode = (node.value && node.value.launchMode) || CRMLaunchMode.RUN_ON_CLICKING;
 					if (launchMode === CRMLaunchMode.ALWAYS_RUN) {
 						globalObject.globals.toExecuteNodes.always.push(node);
 					} else if (launchMode === CRMLaunchMode.RUN_ON_SPECIFIED) {
@@ -6484,29 +6400,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				const nodeCreationExports = {
 					createNode(node: CRMNode, parentId: number) {
-						var replaceStylesheetTabs = getStylesheetReplacementTabs(node);
-						var rightClickItemOptions = {
+						const replaceStylesheetTabs = getStylesheetReplacementTabs(node);
+						const rightClickItemOptions = {
 							title: node.name,
 							contexts: getExports().getContexts(node.onContentTypes),
 							parentId: parentId
 						};
 
-						var idHolder = { id: null };
+						const idHolder = { id: null };
 						setLaunchModeData(node, rightClickItemOptions, idHolder);
-						var id = idHolder.id;
+						const id = idHolder.id;
 
 						if (replaceStylesheetTabs.length !== 0) {
-							var css;
-							var code;
-							var className;
-							for (var i = 0; i < replaceStylesheetTabs.length; i++) {
-								className = node.id + '' + replaceStylesheetTabs[i].id;
-								code = 'var nodes = document.querySelectorAll(".styleNodes' +
-									className +
-									'");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}';
-								css = node.value.stylesheet.replace(/[ |\n]/g, '');
+							for (let i = 0; i < replaceStylesheetTabs.length; i++) {
+								const className = node.id + '' + replaceStylesheetTabs[i].id;
+								let code = `var nodes = document.querySelectorAll(".styleNodes${className
+									}");var i;for (i = 0; i < nodes.length; i++) {nodes[i].remove();}`;
+								const css = node.value.stylesheet.replace(/[ |\n]/g, '');
 								code +=
-									'var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes' + className + '";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(' + JSON.stringify(css) + '));document.head.appendChild(CRMSSInsert);';
+									`var CRMSSInsert=document.createElement("style");CRMSSInsert.className="styleNodes${className}";CRMSSInsert.type="text/css";CRMSSInsert.appendChild(document.createTextNode(${JSON.stringify(css)}));document.head.appendChild(CRMSSInsert);`;
 								chrome.tabs.executeScript(replaceStylesheetTabs[i].id, {
 									code: code,
 									allFrames: true
@@ -6523,6 +6435,49 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			})()
 		};
 
+		function buildPageCRMTree(node: CRMNode, parentId: number, path: Array<number>,
+			parentTree: Array<ContextMenuItemTreeItem>): {
+				id: number;
+				path: Array<number>;
+				enabled: boolean;
+				children: Array<ContextMenuItemTreeItem>;
+				index?: number;
+				parentId?: number;
+				node?: CRMNode;
+				parentTree?: Array<ContextMenuItemTreeItem>;
+			} {
+			const id = exports.NodeCreation.createNode(node, parentId);
+			globalObject.globals.crmValues.contextMenuIds[node.id] = id;
+			if (id !== null) {
+				const children = [];
+				if (node.children) {
+					let visibleIndex = 0;
+					for (let i = 0; i < node.children.length; i++) {
+						const newPath = JSON.parse(JSON.stringify(path));
+						newPath.push(visibleIndex);
+						const result = buildPageCRMTree(node.children[i], id, newPath, children);
+						if (result) {
+							visibleIndex++;
+							result.index = i;
+							result.parentId = id;
+							result.node = node.children[i];
+							result.parentTree = parentTree;
+							children.push(result);
+						}
+					}
+				}
+				globalObject.globals.crmValues.contextMenuInfoById[id].path = path;
+				return {
+					id: id,
+					path: path,
+					enabled: true,
+					children: children
+				};
+			}
+
+			return null;
+		}
+
 		function getExports() {
 			return exports;
 		}
@@ -6532,17 +6487,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				isSafe ? exports.makeSafe(node) : node
 			);
 			if (node.children && node.children.length > 0) {
-				for (var i = 0; i < node.children.length; i++) {
+				for (let i = 0; i < node.children.length; i++) {
 					parseNode(node.children[i], isSafe);
 				}
 			}
 		}
 
 		function buildByIdObjects() {
-			var i;
 			globalObject.globals.crm.crmById = {};
 			globalObject.globals.crm.crmByIdSafe = {};
-			for (i = 0; i < globalObject.globals.crm.crmTree.length; i++) {
+			for (let i = 0; i < globalObject.globals.crm.crmTree.length; i++) {
 				parseNode(globalObject.globals.crm.crmTree[i]);
 				parseNode(globalObject.globals.crm.safeTree[i], true);
 			}
@@ -6550,8 +6504,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 		function safeTreeParse(node: CRMNode): SafeCRMNode {
 			if (node.children) {
-				var children = [];
-				for (var i = 0; i < node.children.length; i++) {
+				const children = [];
+				for (let i = 0; i < node.children.length; i++) {
 					children.push(safeTreeParse(node.children[i]));
 				}
 				node.children = children;
@@ -6560,9 +6514,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 
 		function buildSafeTree(crm: Array<CRMNode>): Array<SafeCRMNode> {
-			var treeCopy = JSON.parse(JSON.stringify(crm));
-			var safeBranch = [];
-			for (var i = 0; i < treeCopy.length; i++) {
+			const treeCopy = JSON.parse(JSON.stringify(crm));
+			const safeBranch = [];
+			for (let i = 0; i < treeCopy.length; i++) {
 				safeBranch.push(safeTreeParse(treeCopy[i]));
 			}
 			return safeBranch;
@@ -6574,7 +6528,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	const URLParsing = (() => {
 		const exports = {
 			triggerMatchesScheme(trigger: string): boolean {
-				var reg =
+				const reg =
 					/(file:\/\/\/.*|(\*|http|https|file|ftp):\/\/(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(\/(.*))?|(<all_urls>))/;
 				return reg.test(trigger);
 			},
@@ -6585,7 +6539,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (trigger.replace(/\s/g, '') === '') {
 					return null;
 				}
-				var newTrigger;
+				let newTrigger: string;
 				if (trigger.split('//')[1].indexOf('/') === -1) {
 					newTrigger = trigger + '/';
 				} else {
@@ -6594,28 +6548,32 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return newTrigger;
 			},
 			urlMatchesPattern(pattern: MatchPattern, url: string) {
-				var urlPattern;
+				let urlPattern: MatchPattern | '<all_urls>';
 				try {
 					urlPattern = parsePattern(url);
 				} catch (e) {
 					return false;
 				}
 
-				return (matchesScheme(pattern.scheme, urlPattern.scheme) &&
-					matchesHost(pattern.host, urlPattern.host) &&
-					matchesPath(pattern.path, urlPattern.path));
+				if (urlPattern === '<all_urls>') {
+					return true;
+				}
+				const matchPattern = urlPattern as MatchPattern;
+				return (matchesScheme(pattern.scheme, matchPattern.scheme) &&
+					matchesHost(pattern.host, matchPattern.host) &&
+					matchesPath(pattern.path, matchPattern.path));
 			},
 			validatePatternUrl(url: string): MatchPattern | void {
 				if (!url || typeof url !== 'string') {
 					return null;
 				}
 				url = url.trim();
-				var pattern = parsePattern(url);
+				const pattern = parsePattern(url);
 				if (pattern === '<all_urls>') {
 					return {
 						scheme: '*',
 						host: '*',
-						path: '*',
+						path: '*'
 					}
 				}
 				const matchPattern = pattern as MatchPattern;
@@ -6628,7 +6586,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return null;
 				}
 
-				var wildcardIndex = matchPattern.host.indexOf('*');
+				const wildcardIndex = matchPattern.host.indexOf('*');
 				if (wildcardIndex > -1) {
 					if (matchPattern.host.split('*').length > 2) {
 						return null;
@@ -6648,10 +6606,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				not: boolean;
 				url: string;
 			}>, url: string) {
-				var matches = false;
-				for (var i = 0; i < matchPatterns.length; i++) {
-					var not = matchPatterns[i].not;
-					var matchPattern = matchPatterns[i].url;
+				let matches = false;
+				for (let i = 0; i < matchPatterns.length; i++) {
+					const not = matchPatterns[i].not;
+					const matchPattern = matchPatterns[i].url;
 
 					if (matchPattern.indexOf('/') === 0 &&
 						matchPattern.split('').reverse().join('').indexOf('/') === 0) {
@@ -6664,7 +6622,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 					} else {
-						if (new RegExp('^' + matchPattern.replace(/\*/g, '(.+)') + '$').test(url)) {
+						if (new RegExp(`^${matchPattern.replace(/\*/g, '(.+)')}$`).test(url)) {
 							if (not) {
 								return false;
 							} else {
@@ -6679,23 +6637,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 		function parsePattern(url: string): MatchPattern|'<all_urls>' {
 			if (url === '<all_urls>') {
-				return '<all_urls>';//TODO dit fixen
+				return '<all_urls>';
 			}
 
 			try {
-				var schemeSplit = url.split('://');
-				var scheme = schemeSplit[0];
-
-				var hostAndPath = schemeSplit[1];
-				var hostAndPathSplit = hostAndPath.split('/');
-
-				var host = hostAndPathSplit[0];
-				var path = hostAndPathSplit.splice(1).join('/');
+				const [scheme, hostAndPath] = url.split('://');
+				const [host, ...path] = hostAndPath.split('/');
 
 				return {
 					scheme: scheme,
 					host: host,
-					path: path
+					path: path.join('/')
 				};
 			} catch (e) {
 				return {
@@ -6707,26 +6659,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		}
 
-		function escapeRegExp(str) {
-			return str.replace(/[\-\[\]\/\{\}\(\)\+\?\.\\\^\$\|]/g, '\\$&').replace(/\*/g,
-				'.*');
-		}
-
-		function matchesScheme(scheme1, scheme2) {
+		function matchesScheme(scheme1: string, scheme2: string): boolean {
 			if (scheme1 === '*') {
 				return true;
 			}
 			return scheme1 === scheme2;
 		}
 
-		function matchesHost(host1, host2) {
+		function matchesHost(host1: string, host2: string): boolean {
 			if (host1 === '*') {
 				return true;
 			}
 
 			if (host1[0] === '*') {
-				var host1Split = host1.slice(2);
-				var index = host2.indexOf(host1Split);
+				const host1Split = host1.slice(2);
+				const index = host2.indexOf(host1Split);
 				if (index === host2.length - host1Split.length) {
 					return true;
 				} else {
@@ -6737,10 +6684,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return (host1 === host2);
 		}
 
-		function matchesPath(path1, path2) {
-			var path1Split = path1.split('*');
-			var path1Length = path1Split.length;
-			var wildcards = path1Length - 1;
+		function matchesPath(path1: string, path2: string): boolean {
+			const path1Split = path1.split('*');
+			const path1Length = path1Split.length;
+			const wildcards = path1Length - 1;
 
 			if (wildcards === 0) {
 				return path1 === path2;
@@ -6751,7 +6698,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			path2 = path2.slice(path1Split[0].length);
-			for (var i = 1; i < path1Length; i++) {
+			for (let i = 1; i < path1Length; i++) {
 				if (path2.indexOf(path1Split[i]) === -1) {
 					return false;
 				}
@@ -6764,7 +6711,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	})();
 
 	const Storages = (() => {
-		function setIfNotSet(obj, key, defaultValue) {
+		function setIfNotSet<T>(obj: any, key: string, defaultValue: T): T {
 			if (obj[key]) {
 				return obj[key];
 			}
@@ -6774,8 +6721,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return defaultValue;
 		}
 
-		function applyChangeForStorageType(storageObj, changes) {
-			for (var i = 0; i < changes.length; i++) {
+		function applyChangeForStorageType(storageObj: {
+			[key: string]: any;
+			[key: number]: any;
+		}, changes: Array<StorageChange>) {
+			for (let i = 0; i < changes.length; i++) {
 				storageObj[changes[i].key] = changes[i].newValue;
 			}
 		}
@@ -6789,11 +6739,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			});
 
 			//Notify all pages running that node
-			var tabData = globalObject.globals.crmValues.tabData;
+			const tabData = globalObject.globals.crmValues.tabData;
 			for (let tab in tabData) {
 				if (tabData.hasOwnProperty(tab) && tabData[tab]) {
 					if (~~tab !== tabId) {
-						var nodes = tabData[tab].nodes;
+						const nodes = tabData[tab].nodes;
 						if (nodes[id]) {
 							nodes[id].port.postMessage({
 								changes: changes,
@@ -6805,8 +6755,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		}
 
-		function orderBackgroundPagesById(tree, obj) {
-			for (var i = 0; i < tree.length; i++) {
+		function orderBackgroundPagesById(tree: Array<CRMNode>, obj: {
+			[nodeId: number]: string;
+		}) {
+			for (let i = 0; i < tree.length; i++) {
 				if (tree[i].type === 'script') {
 					obj[tree[i].id] = tree[i].value.backgroundScript;
 				} else if (tree[i].type === 'menu' && tree[i].children) {
@@ -6821,16 +6773,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				newValue: any;
 				oldValue: any;
 			}>, toUpdate: Array<number> = []) {
-				toUpdate.forEach(function(id) {
+				toUpdate.forEach((id) => {
 					CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id]);
 				});
 
 					//Check if any background page updates occurred
-				for (var i = 0; i < changes.length; i++) {
+				for (let i = 0; i < changes.length; i++) {
 					if (changes[i].key === 'crm') {
-						var ordered = {};
+						const ordered: {
+							[nodeId: number]: string;
+						} = {};
 						orderBackgroundPagesById(changes[i].newValue, ordered);
-						for (var id in ordered) {
+						for (let id in ordered) {
 							if (ordered.hasOwnProperty(id)) {
 								if (globalObject.globals.background.byId[id] &&
 									globalObject.globals.background.byId[id].script !== ordered[id]) {
@@ -6846,7 +6800,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				switch (type) {
 					case 'local':
 						chrome.storage.local.set(globalObject.globals.storages.storageLocal);
-						for (var i = 0; i < changes.length; i++) {
+						for (let i = 0; i < changes.length; i++) {
 							if (changes[i].key === 'useStorageSync') {
 								getExports().uploadChanges('settings', [], changes[i].newValue);
 							}
@@ -6857,21 +6811,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							globalObject.globals.storages.storageLocal.useStorageSync = useStorageSync;
 						}
 
-						var settingsJson = JSON.stringify(globalObject.globals.storages
+						const settingsJson = JSON.stringify(globalObject.globals.storages
 							.settingsStorage);
 						if (!globalObject.globals.storages.storageLocal.useStorageSync) {
 							chrome.storage.local.set({
 								settings: globalObject.globals.storages.settingsStorage
-							}, function() {
+							}, () => {
 								if (chrome.runtime.lastError) {
 									console.log('Error on uploading to chrome.storage.local ', chrome.runtime
 										.lastError);
 								} else {
-									for (var i = 0; i < changes.length; i++) {
+									for (let i = 0; i < changes.length; i++) {
 										if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
 											CRM.updateCRMValues();
 											Storages.checkBackgroundPagesForChange(changes);
-											CRM.buildPageCRM(globalObject.globals.storages.settingsStorage);
+											CRM.buildPageCRM();
 											break;
 										}
 									}
@@ -6890,8 +6844,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								});
 							} else {
 								//Cut up all data into smaller JSON
-								var obj = getExports().cutData(settingsJson);
-								chrome.storage.sync.set(obj, function() {
+								const obj = getExports().cutData(settingsJson);
+								chrome.storage.sync.set(obj, () => {
 									if (chrome.runtime.lastError) {
 										//Switch to local storage
 										console.log('Error on uploading to chrome.storage.sync ', chrome.runtime
@@ -6902,11 +6856,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											getExports().uploadChanges('settings', changes);
 										});
 									} else {
-										for (var i = 0; i < changes.length; i++) {
+										for (let i = 0; i < changes.length; i++) {
 											if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
 												CRM.updateCRMValues();
 												Storages.checkBackgroundPagesForChange(changes);
-												CRM.buildPageCRM(globalObject.globals.storages.settingsStorage);
+												CRM.buildPageCRM();
 												break;
 											}
 										}
@@ -6974,16 +6928,28 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				globalObject.globals.storages.storageLocal = storageLocalCopy;
 				globalObject.globals.storages.settingsStorage = settingsStorage;
 
-				globalObject.globals.storages.globalExcludes = setIfNotSet(chromeStorageLocal,
-					'globalExcludes', []).map(URLParsing.validatePatternUrl);
+				globalObject.globals.storages
+					.globalExcludes = setIfNotSet(chromeStorageLocal,
+						'globalExcludes', [] as Array<string>).map(URLParsing.validatePatternUrl)
+					.filter((pattern) => {
+						return pattern !== null;
+					}) as Array<MatchPattern>;
 				globalObject.globals.storages.resources = setIfNotSet(chromeStorageLocal,
 					'resources', []);
 				globalObject.globals.storages.nodeStorage = setIfNotSet(chromeStorageLocal,
-					'nodeStorage', {});
+					'nodeStorage', {} as {
+						[nodeId: number]: any;
+					});
 				globalObject.globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal,
 					'resourceKeys', []);
 				globalObject.globals.storages.urlDataPairs = setIfNotSet(chromeStorageLocal,
-					'urlDataPairs', {});
+					'urlDataPairs', {} as {
+						[key: string]: {
+							dataString: string;
+							refs: Array<number>;
+							dataURI: string;
+						}	
+					});
 
 				CRM.updateCRMValues();
 
@@ -6994,13 +6960,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				[key: number]: string;
 			} {
 				var obj = {} as any;
-				var arrLength;
-				var sectionKey;
 				var indexes = [];
-				var splitJson = data.match(/[\s\S]{1,5000}/g);
-				splitJson.forEach(function(section) {
-					arrLength = indexes.length;
-					sectionKey = 'section' + arrLength;
+				const splitJson = data.match(/[\s\S]{1,5000}/g);
+				splitJson.forEach((section) => {
+					const arrLength = indexes.length;
+					const sectionKey = `section${arrLength}`;
 					obj[sectionKey] = section;
 					indexes[arrLength] = sectionKey;
 				});
@@ -7009,42 +6973,37 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			},
 			loadStorages(callback: () => void) {
 				chrome.storage.sync.get((chromeStorageSync) => {
-					chrome.storage.local.get((chromeStorageLocal) => {
-						var result;
+					chrome.storage.local.get((chromeStorageLocal: StorageLocal) => {
+						let result: boolean | ((resolve: (result: any) => void) => void);
 						if ((result = isFirstTime(chromeStorageLocal))) {
-							result((data) => {
+							const resultFn = result as ((resolve: (result: any) => void) => void);
+							resultFn((data) => {
 								getExports().setStorages(data.storageLocalCopy, data.settingsStorage, data
 									.chromeStorageLocal, callback);
-							}, function(err) {
-								console.warn(err);
-								throw err;
 							});
 						} else {
-							var storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
+							const storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
 							delete storageLocalCopy.resources;
 							delete storageLocalCopy.nodeStorage;
 							delete storageLocalCopy.urlDataPairs;
 							delete storageLocalCopy.resourceKeys;
 							delete storageLocalCopy.globalExcludes;
 
-							var indexes;
-							var jsonString;
-							var settingsStorage;
-							var settingsJsonArray;
+							let settingsStorage;
 							if (chromeStorageLocal['useStorageSync']) {
 								//Parse the data before sending it to the callback
-								indexes = chromeStorageSync['indexes'];
+								const indexes = chromeStorageSync['indexes'];
 								if (!indexes) {
 									chrome.storage.local.set({
 										useStorageSync: false
 									});
 									settingsStorage = chromeStorageLocal['settings'];
 								} else {
-									settingsJsonArray = [];
-									indexes.forEach(function(index) {
+									const settingsJsonArray = [];
+									indexes.forEach((index) => {
 										settingsJsonArray.push(chromeStorageSync[index]);
 									});
-									jsonString = settingsJsonArray.join('');
+									const jsonString = settingsJsonArray.join('');
 									settingsStorage = JSON.parse(jsonString);
 								}
 							} else {
@@ -7053,13 +7012,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									chrome.storage.local.set({
 										useStorageSync: true
 									});
-									indexes = chromeStorageSync['indexes'];
-									settingsJsonArray = [];
-									indexes.forEach(function(index) {
+									const indexes = chromeStorageSync['indexes'];
+									const settingsJsonArray = [];
+									indexes.forEach((index) => {
 										settingsJsonArray.push(chromeStorageSync[index]);
 									});
-									jsonString = settingsJsonArray.join('');
-									var settings = JSON.parse(jsonString);
+									const jsonString = settingsJsonArray.join('');
+									const settings = JSON.parse(jsonString);
 									settingsStorage = settings;
 								} else {
 									delete storageLocalCopy.settings;
@@ -7103,12 +7062,28 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					{ "location": 'mooTools.js', "name": 'mooTools' },
 					{ "location": 'YUI.js', "name": 'YUI' },
 					{ "location": 'Angular.js', "name": 'Angular' },
-					{ "location": "jqlite.js", "name": 'jqlite' }
+					{ "location": 'jqlite.js', "name": 'jqlite' }
 				]
 			};
 
 			//Sync storage
-			const defaultSyncStorage = {
+			const defaultSyncStorage: {
+				editor: {
+					keyBindings: {
+						autocomplete: string;
+						showType: string;
+						showDocs: string;
+						goToDef: string;
+						rename: string;
+						selectName: string
+					};
+					tabSize: string;
+					theme: string;
+					useTabs: boolean;
+					zoom: number
+				};
+				crm: Array<CRMNode>
+			} = {
 				editor: {
 					keyBindings: {
 						autocomplete: 'Ctrl-Space',
@@ -7177,13 +7152,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				type TransferOnError = (position: TransferOnErrorError, passes: number) => void
 
 				const legacyScriptReplace = {
-					isProperty: function(toCheck: string, prop: string): boolean {
+					isProperty(toCheck: string, prop: string): boolean {
 						if (toCheck === prop) {
 							return true;
 						}
 						return toCheck.replace(/['|"|`]/g, '') === prop;
 					},
-					getCallLines: function(lines: Array<string>, lineSeperators: Array<{
+					getCallLines(lines: Array<string>, lineSeperators: Array<{
 						start: number;
 						end: number;
 					}>, start: number, end: number): {
@@ -7196,8 +7171,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							line: number;
 						}
 					} {
-						var sep;
-						var line: {
+						const line: {
 							from: {
 								index: number,
 								line: number;
@@ -7207,8 +7181,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								line: number;
 							};
 						} = {} as any;
-						for (var i = 0; i < lineSeperators.length; i++) {
-							sep = lineSeperators[i];
+						for (let i = 0; i < lineSeperators.length; i++) {
+							const sep = lineSeperators[i];
 							if (sep.start <= start) {
 								line.from = {
 									index: sep.start,
@@ -7226,44 +7200,44 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						return line;
 					},
-					getFunctionCallExpressions: function(data: PersistentData): TernExpression {
+					getFunctionCallExpressions(data: PersistentData): TernExpression {
 						//Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
-						var index = data.parentExpressions.length - 1;
-						var expr = data.parentExpressions[index];
+						let index = data.parentExpressions.length - 1;
+						let expr = data.parentExpressions[index];
 						while (expr && expr.type !== 'CallExpression') {
 							expr = data.parentExpressions[--index];
 						}
 						return data.parentExpressions[index];
 					},
-					getChromeAPI: function(expr: TernExpression, data: PersistentData): {
+					getChromeAPI(expr: TernExpression, data: PersistentData): {
 						call: string;
 						args: string;
 					} {
-						data.functionCall = data.functionCall.map(function(prop) {
+						data.functionCall = data.functionCall.map((prop) => {
 							return prop.replace(/['|"|`]/g, '');
 						});
-						var functionCall = data.functionCall;
+						let functionCall = data.functionCall;
 						functionCall = functionCall.reverse();
 						if (functionCall[0] === 'chrome') {
 							functionCall.splice(0, 1);
 						}
 
-						var argsStart = expr.callee.end;
-						var argsEnd = expr.end;
-						var args = data.persistent.script.slice(argsStart, argsEnd);
+						const argsStart = expr.callee.end;
+						const argsEnd = expr.end;
+						const args = data.persistent.script.slice(argsStart, argsEnd);
 
 						return {
 							call: functionCall.join('.'),
 							args: args
 						};
 					},
-					getLineIndexFromTotalIndex: function(lines: Array<string>, line: number, index: number): number {
-						for (var i = 0; i < line; i++) {
+					getLineIndexFromTotalIndex(lines: Array<string>, line: number, index: number): number {
+						for (let i = 0; i < line; i++) {
 							index -= lines[i].length + 1;
 						}
 						return index;
 					},
-					replaceChromeFunction: function(data: PersistentData, expr: TernExpression, callLine: {
+					replaceChromeFunction(data: PersistentData, expr: TernExpression, callLine: {
 						from: {
 							line: number;
 						}
@@ -7278,7 +7252,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						var lines = data.persistent.lines;
 
 						//Get chrome API
-						var i;
 						var chromeAPI = this.getChromeAPI(expr, data);
 						var firstLine = data.persistent.lines[callLine.from.line];
 						var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines,
@@ -7297,11 +7270,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						if (data.isReturn) {
-							newLine += '.return(function(' + data.returnName + ') {';
+							newLine += `.return(function(${data.returnName}) {`;
 							var usesTabs = true;
 							var spacesAmount = 0;
 							//Find out if the writer uses tabs or spaces
-							for (i = 0; i < data.persistent.lines.length; i++) {
+							for (let i = 0; i < data.persistent.lines.length; i++) {
 								if (data.persistent.lines[i].indexOf('	') === 0) {
 									usesTabs = true;
 									break;
@@ -7319,15 +7292,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 							}
 
-							var indent;
+							let indent: String;
 							if (usesTabs) {
 								indent = '	';
 							} else {
-								indent = [];
-								indent[spacesAmount] = ' ';
-								indent = indent.join(' ');
+								indent = new Array(spacesAmount).join(' ');
 							}
-							for (i = callLine.to.line + 1; i < data.persistent.lines.length; i++) {
+							for (let i = callLine.to.line + 1; i < data.persistent.lines.length; i++) {
 								data.persistent.lines[i] = indent + data.persistent.lines[i];
 							}
 							data.persistent.lines.push('}).send();');
@@ -7338,12 +7309,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						lines[callLine.from.line] = newLine;
 						return;
 					},
-					callsChromeFunction: function(callee: TernExpression, data: PersistentData, onError: TransferOnError): boolean {
+					callsChromeFunction(callee: TernExpression, data: PersistentData, onError: TransferOnError): boolean {
 						data.parentExpressions.push(callee);
 
 						//Check if the function has any arguments and check those first
 						if (callee.arguments && callee.arguments.length > 0) {
-							for (var i = 0; i < callee.arguments.length; i++) {
+							for (let i = 0; i < callee.arguments.length; i++) {
 								if (this.findChromeExpression(callee.arguments[i], this
 									.removeObjLink(data), onError)) {
 									return true;
@@ -7363,12 +7334,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 						if (callee.object && callee.object.name) {
 							//First object
-							var isWindowCall = (this.isProperty(callee.object.name, 'window') &&
+							const isWindowCall = (this.isProperty(callee.object.name, 'window') &&
 								this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
 							if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
 								data.expression = callee;
-								var expr = this.getFunctionCallExpressions(data);
-								var callLines = this.getCallLines(data.persistent.lines, data.persistent
+								const expr = this.getFunctionCallExpressions(data);
+								const callLines = this.getCallLines(data.persistent.lines, data.persistent
 									.lineSeperators, expr.start, expr.end);
 								if (data.isReturn && !data.isValidReturn) {
 									callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent
@@ -7388,10 +7359,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 						return false;
 					},
-					removeObjLink: function(data: PersistentData): PersistentData {
-						var parentExpressions = data.parentExpressions || [];
-						var newObj: PersistentData = {} as any;
-						for (var key in data) {
+					removeObjLink(data: PersistentData): PersistentData {
+						const parentExpressions = data.parentExpressions || [];
+						const newObj: PersistentData = {} as any;
+						for (let key in data) {
 							if (data.hasOwnProperty(key) &&
 								key !== 'parentExpressions' &&
 								key !== 'persistent') {
@@ -7399,24 +7370,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						var newParentExpressions = [];
-						for (var i = 0; i < parentExpressions.length; i++) {
+						const newParentExpressions = [];
+						for (let i = 0; i < parentExpressions.length; i++) {
 							newParentExpressions.push(parentExpressions[i]);
 						}
 						newObj.persistent = data.persistent;
 						newObj.parentExpressions = newParentExpressions;
 						return newObj;
 					},
-					findChromeExpression: function(expression: TernExpression, data: PersistentData,
+					findChromeExpression(expression: TernExpression, data: PersistentData,
 						onError: TransferOnError): boolean {
 						data.parentExpressions = data.parentExpressions || [];
 						data.parentExpressions.push(expression);
 
-						var i;
 						switch (expression.type) {
 							case 'VariableDeclaration':
 								data.isValidReturn = expression.declarations.length === 1;
-								for (i = 0; i < expression.declarations.length; i++) {
+								for (let i = 0; i < expression.declarations.length; i++) {
 									//Check if it's an actual chrome assignment
 									var declaration = expression.declarations[i];
 									if (declaration.init) {
@@ -7436,7 +7406,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							case 'CallExpression':
 							case 'MemberExpression':
 								if (expression.arguments && expression.arguments.length > 0) {
-									for (i = 0; i < expression.arguments.length; i++) {
+									for (let i = 0; i < expression.arguments.length; i++) {
 										if (this.findChromeExpression(expression.arguments[i], this
 											.removeObjLink(data), onError)) {
 											return true;
@@ -7454,7 +7424,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							case 'FunctionExpression':
 							case 'FunctionDeclaration':
 								data.isReturn = false;
-								for (i = 0; i < expression.body.body.length; i++) {
+								for (let i = 0; i < expression.body.body.length; i++) {
 									if (this.findChromeExpression(expression.body.body[i], this
 										.removeObjLink(data), onError)) {
 										return true;
@@ -7466,7 +7436,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							case 'SequenceExpression':
 								data.isReturn = false;
 								var lastExpression = expression.expressions.length - 1;
-								for (i = 0; i < expression.expressions.length; i++) {
+								for (let i = 0; i < expression.expressions.length; i++) {
 									if (i === lastExpression) {
 										data.isReturn = true;
 									}
@@ -7515,7 +7485,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								break;
 							case 'BlockStatement':
 								data.isReturn = false;
-								for (i = 0; i < expression.body.length; i++) {
+								for (let i = 0; i < expression.body.length; i++) {
 									if (this.findChromeExpression(expression.body[i], this
 										.removeObjLink(data), onError)) {
 										return true;
@@ -7530,10 +7500,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 						return false;
 					},
-					generateOnError: function(container: Array<Array<TransferOnErrorError>>): (
+					generateOnError(container: Array<Array<TransferOnErrorError>>): (
 						position: TransferOnErrorError, passes: number
 					) => void {
-						return function(position: TransferOnErrorError, passes: number) {
+						return (position: TransferOnErrorError, passes: number) => {
 							if (!container[passes]) {
 								container[passes] = [position];
 							} else {
@@ -7541,7 +7511,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						};
 					},
-					replaceChromeCalls: function(lines: Array<string>, passes: number,
+					replaceChromeCalls(lines: Array<string>, passes: number,
 						onError: TransferOnError): string {
 						//Analyze the file
 						var file = new window.TernFile('[doc]');
@@ -7549,7 +7519,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						var srv = new window.CodeMirror.TernServer({
 							defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
 						});
-						window.tern.withContext(srv.cx, function() {
+						window.tern.withContext(srv.cx, () => {
 							file.ast = window.tern.parse(file.text, srv.passes, {
 								directSourceFile: file,
 								allowReturnOutsideFunction: true,
@@ -7558,22 +7528,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 						});
 
-						var scriptExpressions = file.ast.body;
+						const scriptExpressions = file.ast.body;
 
-						var i;
-						var index = 0;
-						var lineSeperators = [];
-						for (i = 0; i < lines.length; i++) {
+						let index = 0;
+						const lineSeperators = [];
+						for (let i = 0; i < lines.length; i++) {
 							lineSeperators.push({
 								start: index,
 								end: index += lines[i].length + 1
 							});
 						}
 
-						var script = file.text;
+						let script = file.text;
 
 						//Check all expressions for chrome calls
-						var persistentData: {
+						const persistentData: {
 							lines: Array<any>,
 							lineSeperators: Array<any>,
 							script: string,
@@ -7586,11 +7555,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							passes: passes
 						};
 
-						var expression;
+						let expression;
 						if (passes === 0) {
 							//Do one check, not replacing anything, to find any possible errors already
 							persistentData.diagnostic = true;
-							for (i = 0; i < scriptExpressions.length; i++) {
+							for (let i = 0; i < scriptExpressions.length; i++) {
 								expression = scriptExpressions[i];
 								this.findChromeExpression(expression, { persistent: persistentData },
 									onError);
@@ -7598,7 +7567,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							persistentData.diagnostic = false;
 						}
 
-						for (i = 0; i < scriptExpressions.length; i++) {
+						for (let i = 0; i < scriptExpressions.length; i++) {
 							expression = scriptExpressions[i];
 							if (this.findChromeExpression(expression, { persistent: persistentData },
 								onError)) {
@@ -7610,25 +7579,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						return script;
 					},
-					removePositionDuplicates: function(arr: Array<TransferOnErrorError>): Array<TransferOnErrorError> {
+					removePositionDuplicates(arr: Array<TransferOnErrorError>): Array<TransferOnErrorError> {
 						var jsonArr = [];
-						arr.forEach(function(item, index) {
+						arr.forEach((item, index) => {
 							jsonArr[index] = JSON.stringify(item);
 						});
-						jsonArr = jsonArr.filter(function(item, pos) {
+						jsonArr = jsonArr.filter((item, pos) => {
 							return jsonArr.indexOf(item) === pos;
 						});
-						return jsonArr.map(function(item) {
+						return jsonArr.map((item) => {
 							return JSON.parse(item);
 						});
 					},
-					convertScriptFromLegacy: function(script: string, onError: (
+					convertScriptFromLegacy(script: string, onError: (
 						oldScriptErrors: Array<Array<TransferOnErrorError>>,
 						newScriptErrors: Array<Array<TransferOnErrorError>>,
 						parseError?: boolean
 					) => void): string {
 						//Remove execute locally
-						var lineIndex = script.indexOf('/*execute locally*/');
+						const lineIndex = script.indexOf('/*execute locally*/');
 						if (lineIndex !== -1) {
 							script = script.replace('/*execute locally*/\n', '');
 							if (lineIndex === script.indexOf('/*execute locally*/')) {
@@ -7636,7 +7605,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						var errors = [];
+						const errors = [];
 						try {
 							script = this.replaceChromeCalls(script.split('\n'), 0, this
 								.generateOnError(errors));
@@ -7644,8 +7613,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							onError(null, null, true);
 						}
 
-						var firstPassErrors = errors[0];
-						var finalPassErrors = errors[errors.length - 1];
+						const firstPassErrors = errors[0];
+						const finalPassErrors = errors[errors.length - 1];
 						if (finalPassErrors) {
 							onError(this.removePositionDuplicates(firstPassErrors), this
 								.removePositionDuplicates(finalPassErrors));
@@ -7655,14 +7624,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				};
 				function parseOldCRMNode(string: string, openInNewTab: boolean): TransferOldNode {
-					var node: TransferOldNode = {} as any;
-					var oldNodeSplit = string.split('%123');
-					var name = oldNodeSplit[0];
-					var type = oldNodeSplit[1].toLowerCase();
-
-					var nodeData = oldNodeSplit[2];
-
-					switch (type) {
+					let node: TransferOldNode = {} as any;
+					const [name, type, nodeData] = string.split('%123');
+					switch (type.toLowerCase()) {
 						//Stylesheets don't exist yet so don't implement those
 						case 'link':
 							node = globalObject.globals.constants.templates.getDefaultLinkNode({
@@ -7690,19 +7654,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 							break;
 						case 'script':
-							var scriptSplit = nodeData.split('%124');
-							var scriptLaunchMode = scriptSplit[0];
-							var scriptData = scriptSplit[1];
-							var triggers;
-							var launchModeString = scriptLaunchMode + '';
+							let [scriptLaunchMode, scriptData] = nodeData.split('%124');
+							let triggers: Array<{
+								not: boolean;
+								url: string;
+							}>;
+							const launchModeString = scriptLaunchMode + '';
 							if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
-								triggers = launchModeString.split('1,')[1].split(',');
-								triggers = triggers.map(function(item) {
+								triggers = launchModeString.split('1,')[1].split(',').map((item) => {
 									return {
 										not: false,
 										url: item.trim()
 									};
-								}).filter(function(item) {
+								}).filter((item) => {
 									return item.url !== '';
 								});
 								scriptLaunchMode = '2';
@@ -7711,14 +7675,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							node = globalObject.globals.constants.templates.getDefaultScriptNode({
 								name: name,
 								id: id,
-								triggers: triggers,
 								value: {
 									launchMode: parseInt(scriptLaunchMode, 10),
 									updateNotice: true,
 									oldScript: scriptData,
 									script: legacyScriptReplace.convertScriptFromLegacy(scriptData,
-										function(oldScriptErrors, newScriptErrors, parseError) {
-											chrome.storage.local.get(function(keys) {
+										(oldScriptErrors, newScriptErrors, parseError) => {
+											chrome.storage.local.get((keys) => {
 												keys['upgradeErrors'] = keys['upgradeErrors'] || {};
 												keys['upgradeErrors'][id] = {
 													oldScript: oldScriptErrors,
@@ -7730,6 +7693,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										})
 								}
 							});
+							if (triggers) {
+								node.triggers = triggers;
+							}
 							break;
 					}
 
@@ -7737,7 +7703,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				function assignParents(parent: Array<CRMNode>, nodes: Array<TransferOldNode>, startIndex: number, endIndex: number) {
-					for (var i = startIndex; i < endIndex; i++) {
+					for (let i = startIndex; i < endIndex; i++) {
 						const currentIndex = i;
 						if (nodes[i].type === 'menu') {
 							const menuNode = nodes[i] as TransferOldMenuNode;
@@ -7756,16 +7722,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				const transferExports = {
-					transferCRMFromOld(openInNewTab) {
-						var amount = parseInt(localStorage.getItem('numberofrows'), 10) + 1;
+					transferCRMFromOld(openInNewTab): Array<CRMNode> {
+						const amount = parseInt(localStorage.getItem('numberofrows'), 10) + 1;
 
-						var nodes: Array<TransferOldNode> = [];
-						for (var i = 1; i < amount; i++) {
+						const nodes: Array<TransferOldNode> = [];
+						for (let i = 1; i < amount; i++) {
 							nodes.push(parseOldCRMNode(localStorage.getItem(String(i)), openInNewTab));
 						}
 
 						//Structure nodes with children etc
-						var crm = [];
+						const crm: Array<CRMNode> = [];
 						assignParents(crm, nodes, 0, nodes.length);
 						return crm;
 					}
@@ -7775,10 +7741,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			})();
 
 			const setupExports = {
-				handleFirstRun(): {
-					settingsStorage: SettingsStorage,
-					storageLocalCopy: StorageLocal,
-					chromeStorageLocal: StorageLocal
+				handleFirstRun(crm?: Array<CRMNode>): {
+					settingsStorage: SettingsStorage;
+					storageLocalCopy: StorageLocal;
+					chromeStorageLocal: StorageLocal;
 				} {
 					//Save local storage
 					chrome.storage.local.set(defaultLocalStorage);
@@ -7786,8 +7752,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					//Save sync storage
 					uploadStorageSyncData(defaultSyncStorage);
 
-					var storageLocal = defaultLocalStorage;
-					var storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
+					if (crm) {
+						defaultSyncStorage.crm = crm;
+					}
+
+					const storageLocal = defaultLocalStorage;
+					const storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
 					return {
 						settingsStorage: defaultSyncStorage,
 						storageLocalCopy: storageLocalCopy,
@@ -7810,41 +7780,36 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								});
 							}, 200);
 						} else {
-							var result = this.handleFirstRun();
-							result.settingsStorage.crm = TransferFromOld.transferCRMFromOld(localStorage
-								.getItem('whatpage'));
+							const result = this.handleFirstRun(TransferFromOld.transferCRMFromOld(localStorage
+								.getItem('whatpage')));
 
-							resolve({
-								settingsStorage: result.settingsStorage,
-								storageLocalCopy: result.storageLocalCopy,
-								chromeStorageLocal: result.chromeStorageLocal
-							});
+							resolve(result);
 						}
 					};
 				}
 			};
 
-			function uploadStorageSyncData(data) {
-				var settingsJson = JSON.stringify(data);
+			function uploadStorageSyncData(data: SettingsStorage) {
+				const settingsJson = JSON.stringify(data);
 
 				//Using chrome.storage.sync
 				if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
 					chrome.storage.local.set({
 						useStorageSync: false
-					}, function() {
+					}, () => {
 						uploadStorageSyncData(data);
 					});
 				} else {
 					//Cut up all data into smaller JSON
-					var obj = exports.cutData(settingsJson);
-					chrome.storage.sync.set(obj, function() {
+					const obj = exports.cutData(settingsJson);
+					chrome.storage.sync.set(obj, () => {
 						if (chrome.runtime.lastError) {
 							//Switch to local storage
 							console.log('Error on uploading to chrome.storage.sync ', chrome.runtime
 								.lastError);
 							chrome.storage.local.set({
 								useStorageSync: false
-							}, function() {
+							}, () => {
 								uploadStorageSyncData(data);
 							});
 						} else {
@@ -7866,7 +7831,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		type FirstTimeCallback = (resolve: (result) => void) => void;
 
 		function isFirstTime(storageLocal): boolean|FirstTimeCallback {
-			var currentVersion = chrome.runtime.getManifest().version;
+			const currentVersion = chrome.runtime.getManifest().version;
 			if (storageLocal.lastUpdatedAt === currentVersion) {
 				return false;
 			} else {
@@ -7879,7 +7844,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return SetupHandling.handleTransfer();
 				} else {
 					var firstRunResult = SetupHandling.handleFirstRun();
-					return function(resolve) {
+					return (resolve) => {
 						resolve(firstRunResult);
 					};
 				}
@@ -7890,14 +7855,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	})();
 
 	(() => {
-		Storages.loadStorages(function() {
+		Storages.loadStorages(() => {
 			try {
 				GlobalDeclarations.refreshPermissions();
-				chrome.runtime.onConnect.addListener(function(port) {
+				chrome.runtime.onConnect.addListener((port) => {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
-				CRM.buildPageCRM(globalObject.globals.storages.settingsStorage);
+				CRM.buildPageCRM();
 				CRM.Script.Background.createBackgroundPages();
 				GlobalDeclarations.init();
 
@@ -7905,7 +7870,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				Resources.checkIfResourcesAreUsed();
 				Resources.updateResourceValues();
 				CRM.Script.Updating.updateScripts();
-				window.setInterval(function() {
+				window.setInterval(() => {
 					CRM.Script.Updating.updateScripts();
 				}, 6 * 60 * 60 * 1000);
 
@@ -7922,7 +7887,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	.split('/')[0],
 	//Gets the extension's URL through a blocking instead of a callback function
 	typeof module !== 'undefined' || window.isDev ? window : {},
-	function(global) {
+	((global) => {
 		function sandboxChromeFunction(window, global, chrome, fn, context, args) {
 			return fn.apply(context, args);
 		}
@@ -7940,7 +7905,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		};
 
 		return global;
-	}(function() {
+	})(() => {
 		const global: {
 			sandbox: (id: number, script: string, libraries: Array<string>,
 				secretKey: Array<number>,
@@ -7986,13 +7951,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			var verified = false;
 
-			worker.addEventListener('message', function(e) {
+			worker.addEventListener('message', e => {
 				var data = e.data;
 				switch (data.type) {
 					case 'handshake':
 					case 'crmapi':
 						if (!verified) {
-							window.backgroundPageLog(id, null, 'Background page [' + id + ']: ',
+							window.backgroundPageLog(id, null, `Background page [${id}]: `,
 								'Ininitialized background page');
 							verified = true;
 						}
@@ -8000,12 +7965,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						break;
 					case 'log':
 						window.backgroundPageLog.apply(window,
-							[id, data.lineNumber, 'Background page [' + id + ']: '].concat(JSON
+							[id, data.lineNumber, `Background page [${id}]: `].concat(JSON
 								.parse(data.data)));
 						break;
 				}
 				if (callbacks) {
-					callbacks.forEach(function(callback) {
+					callbacks.forEach(callback => {
 						callback(data);
 					});
 					callbacks = [];
@@ -8019,13 +7984,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			});
 		}
 
-		global.sandbox = function(id: number, script: string, libraries: Array<string>,
-			secretKey: Array<number>, callback: (worker: CRMSandboxWorker) => void) {
+		global.sandbox = (id: number, script: string, libraries: Array<string>, secretKey: Array<number>, callback: (worker: CRMSandboxWorker) => void) => {
 			callback(new SandboxWorker(id, script, libraries, secretKey));
 		};
 
 		return global;
-	}())
+	})()
 );
 
 if (typeof module === 'undefined') {
