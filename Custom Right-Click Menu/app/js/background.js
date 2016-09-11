@@ -1878,30 +1878,31 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                 ], function () {
                     _this.getNodeFromId(_this.message.nodeId).run(function (node) {
-                        node.triggers = _this.message['triggers'];
+                        var triggers = _this.message['triggers'];
                         node['showOnSpecified'] = true;
                         CRM.updateCrm();
                         var matchPatterns = [];
                         globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
-                        if (node.value &&
+                        if (!node.value ||
                             node.value.launchMode !== 3 /* SHOW_ON_SPECIFIED */) {
-                            for (var i = 0; i < node.triggers.length; i++) {
-                                if (!URLParsing.triggerMatchesScheme(node.triggers[i].url)) {
+                            for (var i = 0; i < triggers.length; i++) {
+                                if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
                                     _this.respondError('Triggers don\'t match URL scheme');
                                     return false;
                                 }
-                                node.triggers[i].url = URLParsing.prepareTrigger(node.triggers[i].url);
-                                if (node.triggers[i].not) {
+                                triggers[i].url = URLParsing.prepareTrigger(triggers[i].url);
+                                if (triggers[i].not) {
                                     globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push({
                                         not: false,
-                                        url: node.triggers[i].url
+                                        url: triggers[i].url
                                     });
                                 }
                                 else {
-                                    matchPatterns.push(node.triggers[i].url);
+                                    matchPatterns.push(triggers[i].url);
                                 }
                             }
                         }
+                        node.triggers = triggers;
                         chrome.contextMenus.update(globalObject.globals.crmValues
                             .contextMenuIds[node.id], {
                             documentUrlPatterns: matchPatterns
@@ -6672,11 +6673,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 })(chrome.runtime.getURL('').split('://')[1]
     .split('/')[0], 
 //Gets the extension's URL through a blocking instead of a callback function
-typeof module !== 'undefined' || window.isDev ? window : {}, (function (global) {
-    function sandboxChromeFunction(window, global, chrome, fn, context, args) {
+typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxes) {
+    function sandboxChromeFunction(window, sandboxes, chrome, fn, context, args) {
         return fn.apply(context, args);
     }
-    global.sandboxChrome = function (api, args) {
+    sandboxes.sandboxChrome = function (api, args) {
         var context = {};
         var fn = window.chrome;
         var apiSplit = api.split('.');
@@ -6687,9 +6688,9 @@ typeof module !== 'undefined' || window.isDev ? window : {}, (function (global) 
         var result = sandboxChromeFunction(null, null, null, fn, context, args);
         return result;
     };
-    return global;
-})(function () {
-    var global = {};
+    return sandboxes;
+})((function () {
+    var sandboxes = {};
     function SandboxWorker(id, script, libraries, secretKey) {
         this.script = script;
         var worker = this.worker = new Worker('/js/sandbox.js');
@@ -6749,11 +6750,11 @@ typeof module !== 'undefined' || window.isDev ? window : {}, (function (global) 
             libraries: libraries
         });
     }
-    global.sandbox = function (id, script, libraries, secretKey, callback) {
+    sandboxes.sandbox = function (id, script, libraries, secretKey, callback) {
         callback(new SandboxWorker(id, script, libraries, secretKey));
     };
-    return global;
-})());
+    return sandboxes;
+})()));
 if (typeof module === 'undefined') {
     console.log('If you\'re here to check out your background script,' +
         ' get its ID (you can type getID("name") to find the ID),' +
