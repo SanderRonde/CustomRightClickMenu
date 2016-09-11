@@ -10,11 +10,11 @@ interface StorageChange {
 	key: string;
 }
 
-interface CRMAPIMessage<T, D> {
+interface CRMAPIMessage<T, TD> {
 	id: number;
 	tabId: number;
 	type: T;
-	data: D;
+	data: TD;
 	onFinish: any;
 	lineNumber?: string;
 }
@@ -35,7 +35,7 @@ interface ChromeAPIMessage extends CRMAPIMessage<'chrome',void> {
 	args: Array<{
 		type: 'fn'|'return'|'arg';
 		isPersistent?: boolean;
-		val: any	
+		val: any;	
 	}>;
 	requestType: CRMPermission;
 }
@@ -561,7 +561,10 @@ interface GlobalObject {
 			};
 			contextMenuItemTree: Array<ContextMenuItemTreeItem>;
 			hideNodesOnPagesData: {
-				[nodeId: number]: Array<string>;
+				[nodeId: number]: Array<{
+					not: boolean;
+					url: string;
+				}>;
 			};
 			stylesheetNodeStatusses: {
 				[nodeId: number]: {
@@ -858,7 +861,236 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return this.getDefaultDividerOrMenuNode(options, 'menu');
 				}
 			},
-			specialJSON: window.specialJSON,
+			specialJSON: {
+				resolveJson: function(root, args) {
+					args = args || {};
+					var idAttribute = args.idAttribute || 'id';
+					var refAttribute = this.refAttribute;
+					var idAsRef = args.idAsRef;
+					var prefix = args.idPrefix || '';
+					var assignAbsoluteIds = args.assignAbsoluteIds;
+					var index = args.index || {}; // create an index if one doesn't exist
+					var timeStamps = args.timeStamps;
+					var ref, reWalk = [];
+					var pathResolveRegex = /^(.*\/)?(\w+:\/\/)|[^\/\.]+\/\.\.\/|^.*\/(\/)/;
+					var addProp = this._addProp;
+					var F = function() {};
+
+					function walk(it, stop, defaultId?: any, needsPrefix?: any, schema?: any,
+						defaultObject?: any) {
+						// this walks the new graph, resolving references and making other changes
+						var i, update, val, id = idAttribute in it ? it[idAttribute] : defaultId;
+						if (idAttribute in it || ((id !== undefined) && needsPrefix)) {
+							id = (prefix + id).replace(pathResolveRegex, '$2$3');
+						}
+						var target = defaultObject || it;
+						if (id !== undefined) { // if there is an id available...
+							if (assignAbsoluteIds) {
+								it.__id = id;
+							}
+							if (args.schemas &&
+								(!(it instanceof Array)) &&
+								// won't try on arrays to do prototypes, plus it messes with queries 
+								(val = id
+									.match(/^(.+\/)[^\.\[]*$/))) { // if it has a direct table id (no paths)
+								schema = args.schemas[val[1]];
+							}
+							// if the id already exists in the system, we should use the existing object, and just 
+							// update it... as long as the object is compatible
+							if (index[id] && ((it instanceof Array) == (index[id] instanceof Array))) {
+								target = index[id];
+								delete target.$ref; // remove this artifact
+								delete target._loadObject;
+								update = true;
+							} else {
+								var proto = schema && schema.prototype; // and if has a prototype
+								if (proto) {
+									// if the schema defines a prototype, that needs to be the prototype of the object
+									F.prototype = proto;
+									target = new F();
+								}
+							}
+							index[id] = target; // add the prefix, set _id, and index it
+							if (timeStamps) {
+								timeStamps[id] = args.time;
+							}
+						}
+						while (schema) {
+							var properties = schema.properties;
+							if (properties) {
+								for (i in it) {
+									var propertyDefinition = properties[i];
+									if (propertyDefinition &&
+										propertyDefinition.format == 'date-time' &&
+										typeof it[i] == 'string') {
+										it[i] = new Date(it[i]);
+									}
+								}
+							}
+							schema = schema["extends"];
+						}
+						var length = it.length;
+						for (i in it) {
+							if (i == length) {
+								break;
+							}
+							if (it.hasOwnProperty(i)) {
+								val = it[i];
+								if ((typeof val == 'object') &&
+									val &&
+									!(val instanceof Date) &&
+									i != '__parent') {
+									ref = val[refAttribute] || (idAsRef && val[idAttribute]);
+									if (!ref || !val.__parent) {
+										val.__parent = it;
+									}
+									if (ref) { // a reference was found
+										// make sure it is a safe reference
+										delete it[i];
+										// remove the property so it doesn't resolve to itself in the case of id.propertyName lazy values
+										var path = ref.toString().replace(/(#)([^\.\[])/, '$1.$2')
+											.match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/); // divide along the path
+										if ((ref = (path[1] == '$' || path[1] == 'this' || path[1] == '') ?
+													root :
+													index[(prefix + path[1]).replace(pathResolveRegex,
+														'$2$3')])) {
+											// a $ indicates to start with the root, otherwise start with an id
+											// if there is a path, we will iterate through the path references
+											if (path[3]) {
+												path[3].replace(/(\[([^\]]+)\])|(\.?([^\.\[]+))/g, function(t, a, b, c,
+													d) {
+													ref = ref && ref[b ? b.replace(/[\"\'\\]/, '') : d];
+												});
+											}
+										}
+										if (ref) {
+											val = ref;
+										} else {
+											// otherwise, no starting point was found (id not found), if stop is set, it does not exist, we have
+											// unloaded reference, if stop is not set, it may be in a part of the graph not walked yet,
+											// we will wait for the second loop
+											if (!stop) {
+												var rewalking;
+												if (!rewalking) {
+													reWalk.push(target); // we need to rewalk it to resolve references
+												}
+												rewalking = true; // we only want to add it once
+												val = walk(val, false, val[refAttribute], true, propertyDefinition);
+												// create a lazy loaded object
+												val._loadObject = args.loader;
+											}
+										}
+									} else {
+										if (!stop) {
+											// if we are in stop, that means we are in the second loop, and we only need to check this current one,
+											// further walking may lead down circular loops
+											val = walk(
+												val,
+												reWalk == it,
+												id === undefined ? undefined : addProp(id, i), // the default id to use
+												false,
+												propertyDefinition,
+												// if we have an existing object child, we want to 
+												// maintain it's identity, so we pass it as the default object
+												target != it && typeof target[i] == 'object' && target[i]
+											);
+										}
+									}
+								}
+								it[i] = val;
+								if (target != it && !target.__isDirty) {
+									// do updates if we are updating an existing object and it's not dirty				
+									var old = target[i];
+									target[i] = val; // only update if it changed
+									if (update &&
+										val !== old && // see if it is different 
+										!target._loadObject && // no updates if we are just lazy loading
+										!(i.charAt(0) == '_' && i.charAt(1) == '_') &&
+										i != "$ref" &&
+										!(val instanceof Date &&
+											old instanceof Date &&
+											val
+											.getTime() ==
+											old.getTime()) && // make sure it isn't an identical date
+										!(typeof val == 'function' &&
+											typeof old == 'function' &&
+											val
+											.toString() ==
+											old.toString()) && // make sure it isn't an indentical function
+										index.onUpdate) {
+										index.onUpdate(target, i, old, val); // call the listener for each update
+									}
+								}
+							}
+						}
+
+						if (update && (idAttribute in it)) {
+							// this means we are updating with a full representation of the object, we need to remove deleted
+							for (i in target) {
+								if (!target.__isDirty &&
+									target.hasOwnProperty(i) &&
+									!it.hasOwnProperty(i) &&
+									!(i.charAt(0) == '_' && i.charAt(1) == '_') &&
+									!(target instanceof Array && isNaN(i))) {
+									if (index.onUpdate && i != "_loadObject" && i != "_idAttr") {
+										index.onUpdate(target, i, target[i],
+											undefined); // call the listener for each update
+									}
+									delete target[i];
+									while (target instanceof Array &&
+										target.length &&
+										target[target.length - 1] === undefined) {
+										// shorten the target if necessary
+										target.length--;
+									}
+								}
+							}
+						} else {
+							if (index.onLoad) {
+								index.onLoad(target);
+							}
+						}
+						return target;
+					}
+
+					if (root && typeof root == 'object') {
+						root = walk(root, false, args.defaultId, true); // do the main walk through
+						walk(reWalk,
+							false);
+						// re walk any parts that were not able to resolve references on the first round
+					}
+					return root;
+				},
+
+				fromJson: function(str, args) {
+					function ref(target) { // support call styles references as well
+						var refObject = {};
+						refObject[this.refAttribute] = target;
+						return refObject;
+					}
+
+					try {
+						var root = eval('(' + str + ')'); // do the eval
+					} catch (e) {
+						throw new SyntaxError("Invalid JSON string: " +
+							e.message +
+							" parsing: " +
+							str);
+					}
+					if (root) {
+						return this.resolveJson(root, args);
+					}
+					return root;
+				},
+
+
+				_addProp: function(id, prop) {
+					return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
+				},
+				refAttribute: "$ref",
+				_useRefs: false,
+				serializeFunctions: true
+			},
 			permissions: [
 				'alarms',
 				'background',
@@ -902,11 +1134,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 	};
 	window.logging = globalObject.globals.logging;
-
-	function checkForChromeErrors() {
-		// ReSharper disable once WrongExpressionStatement
-		chrome.runtime.lastError;
-	}
 
 	const Helpers = (() => {
 		const exports = {
@@ -981,7 +1208,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (!Array.isArray(secondArray[i])) {
 								return false;
 							}
-							if (!this.compareArray(firstArray[i], secondArray[i])) {
+							if (!getExports().compareArray(firstArray[i], secondArray[i])) {
 								return false;
 							}
 						} else if (!compareObj(firstArray[i], secondArray[i])) {
@@ -997,16 +1224,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return globalObject.globals.crm.crmByIdSafe[node.id];
 			},
 			createSecretKey(): Array<number> {
-				var key: Array<number> = [];
-				var i;
-				for (i = 0; i < 25; i++) {
+				const key: Array<number> = [];
+				for (let i = 0; i < 25; i++) {
 					key[i] = Math.round(Math.random() * 100);
 				}
 				if (!globalObject.globals.keys[key.join(',')]) {
 					globalObject.globals.keys[key.join(',')] = true;
 					return key;
 				} else {
-					return this.createSecretKey();
+					return getExports().createSecretKey();
 				}
 			},
 			generateItemId(): number {
@@ -1021,11 +1247,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				onError?: () => void) {
 				var xhr = new window.XMLHttpRequest();
 				xhr.responseType = 'blob';
-				xhr.onload = function() {
+				xhr.onload = () => {
 					var readerResults = [null, null];
 
 					var blobReader = new FileReader();
-					blobReader.onloadend = function() {
+					blobReader.onloadend = () => {
 						readerResults[0] = blobReader.result;
 						if (readerResults[1]) {
 							callback(readerResults[0], readerResults[1]);
@@ -1034,7 +1260,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					blobReader.readAsDataURL(xhr.response);
 
 					var textReader = new FileReader();
-					textReader.onloadend = function() {
+					textReader.onloadend = () => {
 						readerResults[1] = textReader.result;
 						if (readerResults[0]) {
 							callback(readerResults[0], readerResults[1]);
@@ -1049,15 +1275,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				xhr.send();
 			},
 			isNewer(newVersion: string, oldVersion: string): boolean {
-				var newSplit = newVersion.split('.');
-				var oldSplit = oldVersion.split('.');
+				const newSplit = newVersion.split('.');
+				const oldSplit = oldVersion.split('.');
 
-				var longest = (newSplit.length > oldSplit.length ?
+				const longest = (newSplit.length > oldSplit.length ?
 								newSplit.length :
 								oldSplit.length);
-				for (var i = 0; i < longest; i++) {
-					var newNum = ~~newSplit[i];
-					var oldNum = ~~oldSplit[i];
+				for (let i = 0; i < longest; i++) {
+					const newNum = ~~newSplit[i];
+					const oldNum = ~~oldSplit[i];
 					if (newNum > oldNum) {
 						return true;
 					} else if (newNum < oldNum) {
@@ -1085,10 +1311,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				searchScope.push(obj);
 				if (obj.children) {
 					obj.children.forEach((child) => {
-						this.flattenCrm(searchScope, child);
+						getExports().flattenCrm(searchScope, child);
 					});
 				}
+			},
+			checkForChromeErrors() {
+				// ReSharper disable once WrongExpressionStatement
+				chrome.runtime.lastError;
 			}
+		}
+
+		function getExports() {
+			return exports;
 		}
 
 		function compareObj(firstObj: Object, secondObj: Object): boolean {
@@ -1120,7 +1354,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	})();
 
 	const GlobalDeclarations = (() => {
-		function getResourceData(name, scriptId) {
+		function getResourceData(name: string, scriptId: number) {
 			if (globalObject.globals.storages.resources[scriptId][name] &&
 				globalObject.globals.storages.resources[scriptId][name].matchesHashes) {
 				return globalObject.globals.storages.urlDataPairs[globalObject.globals
@@ -1131,15 +1365,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 		const exports = {
 			initGlobalFunctions() {
-				window.getID = function(name: string) {
+				window.getID = (name: string) => {
 					name = name.toLocaleLowerCase();
-					var matches = [];
-					for (var id in globalObject.globals.crm.crmById) {
+					const matches = [];
+					for (let id in globalObject.globals.crm.crmById) {
 						if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
-							var node = globalObject.globals.crm.crmById[id];
+							const node = globalObject.globals.crm.crmById[id];
+							const nodeName = node.name;
 							if (node.type === 'script' &&
-								typeof node.name === 'string' &&
-								name === node.name.toLocaleLowerCase()) {
+								typeof nodeName === 'string' &&
+								name === nodeName.toLocaleLowerCase()) {
 								matches.push({
 									id: id,
 									node: node
@@ -1155,31 +1390,31 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							' and the script is ', matches[0].node);
 					} else {
 						console.log('Found multipe matches, here they are:');
-						matches.forEach(function(match) {
+						matches.forEach((match) => {
 							console.log('Id is', match.id, ', script is', match.node);
 						});
 					}
 				};
 
-				window.filter = function(nodeId: number|string, tabId: string|number|void) {
+				window.filter = (nodeId: number|string, tabId: string|number|void) => {
 					globalObject.globals.logging.filter = {
 						id: ~~nodeId,
 						tabId: tabId !== undefined ? ~~tabId : null
 					};
 				};
 
-				window._listenIds = function(listener: (ids: Array<number>) => void) {
+				window._listenIds = (listener: (ids: Array<number>) => void) => {
 					listener(Logging.Listeners.updateTabAndIdLists(true).ids);
 					globalObject.globals.listeners.ids.push(listener);
 				};
 
-				window._listenTabs = function(listener: (tabs: Array<number>) => void) {
+				window._listenTabs = (listener: (tabs: Array<number>) => void) => {
 					listener(Logging.Listeners.updateTabAndIdLists(true).tabs);
 					globalObject.globals.listeners.tabs.push(listener);
 				};
 
 				function sortMessages(messages: Array<LogListenerLine>): Array<LogListenerLine> {
-					return messages.sort(function(a, b) {
+					return messages.sort((a, b) => {
 						return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
 					});
 				}
@@ -1191,8 +1426,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					var filterRegex = new RegExp(filter);
-					return messages.filter(function(message) {
-						for (var i = 0; i < message.value.length; i++) {
+					return messages.filter((message) => {
+						for (let i = 0; i < message.value.length; i++) {
 							if (typeof message.value[i] !== 'function' &&
 								typeof message.value[i] !== 'object') {
 								if (filterRegex.test(String(message.value[i]))) {
@@ -1206,9 +1441,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				function getLog(id: string|number, tab: string|number, text: string): 
 				Array<LogListenerLine> {
-					var messages = [];
+					let messages = [];
 					if (id === 'all') {
-						for (var nodeId in globalObject.globals.logging) {
+						for (let nodeId in globalObject.globals.logging) {
 							if (globalObject.globals.logging.hasOwnProperty(nodeId) &&
 								nodeId !== 'filter') {
 								messages = messages.concat(
@@ -1222,7 +1457,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (tab === 'all') {
 						return sortMessages(filterMessageText(messages, text));
 					} else {
-						return sortMessages(filterMessageText(messages.filter(function(message) {
+						return sortMessages(filterMessageText(messages.filter((message) => {
 							return message.tabId === tab;
 						}), text));
 					}
@@ -1252,13 +1487,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				window._listenLog = (listener: LogListener, callback: (filterObj: LogListenerObject) => void):
 				Array<LogListenerLine> => {
-					var filterObj: LogListenerObject;
-					filterObj = {
+					var filterObj: LogListenerObject = {
 						id: 'all',
 						tab: 'all',
 						text: '',
 						listener: listener,
-						update: updateLog.bind(filterObj),
+						update(id, tab, textFilter) {
+							return updateLog.apply(this, [id, tab, textFilter]);
+						},
 						index: globalObject.globals.listeners.log.length
 					};
 
@@ -1289,20 +1525,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				};
 			},
 			refreshPermissions() {
-				chrome.permissions.getAll(function(available) {
+				chrome.permissions.getAll((available) => {
 					globalObject.globals.availablePermissions = available.permissions;
 				});
 			},
 			init: () => {
-				function removeNode(node) {
-					chrome.contextMenus.remove(node.id, function() {
-						if (chrome.runtime.lastError) {
-						}
+				function removeNode(node: ContextMenuItemTreeItem) {
+					chrome.contextMenus.remove(node.id, () => {
+						Helpers.checkForChromeErrors();
 					});
 				}
 
-				function setStatusForTree(tree, enabled) {
-					for (var i = 0; i < tree.length; i++) {
+				function setStatusForTree(tree: Array<ContextMenuItemTreeItem>, enabled: boolean) {
+					for (let i = 0; i < tree.length; i++) {
 						tree[i].enabled = enabled;
 						if (tree[i].children) {
 							setStatusForTree(tree[i].children, enabled);
@@ -1310,8 +1545,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				function getFirstRowChange(row, changes) {
-					for (var i = 0; i < row.length; i++) {
+				function getFirstRowChange(row: Array<ContextMenuItemTreeItem>, changes: {
+					[nodeId: number]: {
+						node: CRMNode;
+						type: 'hide' | 'show';
+					}
+				}) {
+					for (let i = 0; i < row.length; i++) {
 						if (row[i] && changes[row[i].id]) {
 							return i;
 						}
@@ -1319,12 +1559,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return Infinity;
 				}
 
-				function reCreateNode(parentId, node: ContextMenuItemTreeItem, changes) {
-					var oldId = node.id;
+				function reCreateNode(parentId, node: ContextMenuItemTreeItem, changes: {
+					[nodeId: number]: {
+						node: CRMNode;
+						type: 'hide' | 'show';
+					}
+				}) {
+					const oldId = node.id;
 					node.enabled = true;
-					var stylesheetStatus = globalObject.globals.crmValues
-						.stylesheetNodeStatusses[oldId];
-					var settings = globalObject.globals.crmValues.contextMenuInfoById[node.id]
+					const settings = globalObject.globals.crmValues.contextMenuInfoById[node.id]
 						.settings;
 					if (node.node.type === 'stylesheet' && node.node.value.toggle) {
 						settings.checked = node.node.value.defaultOn;
@@ -1333,7 +1576,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					//This is added by chrome to the object during/after creation so delete it manually
 					delete settings.generatedId;
-					var id = chrome.contextMenus.create(settings);
+					const id = chrome.contextMenus.create(settings);
 
 					//Update ID
 					node.id = id;
@@ -1348,8 +1591,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				function buildSubTreeFromNothing(parentId, tree, changes) {
-					for (var i = 0; i < tree.length; i++) {
+				function buildSubTreeFromNothing(parentId: number, tree: Array<ContextMenuItemTreeItem>, changes: {
+					[nodeId: number]: {
+						node: CRMNode;
+						type: 'hide'|'show';
+					}
+				}) {
+					for (let i = 0; i < tree.length; i++) {
 						if ((changes[tree[i].id] && changes[tree[i].id].type === 'show') ||
 							!changes[tree[i].id]) {
 							reCreateNode(parentId, tree[i], changes);
@@ -1360,14 +1608,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				function applyNodeChangesOntree(parentId, tree, changes) {
+				function applyNodeChangesOntree(parentId: number, tree: Array<ContextMenuItemTreeItem>, changes: {
+					[nodeId: number]: {
+						node: CRMNode;
+						type: 'hide' | 'show';
+					}
+				}) {
 					//Remove all nodes below it and re-enable them and its children
 
 					//Remove all nodes below it and store them
-					var i;
-					var firstChangeIndex = getFirstRowChange(tree, changes);
+					const firstChangeIndex = getFirstRowChange(tree, changes);
 					if (firstChangeIndex < tree.length) {
-						for (i = 0; i < firstChangeIndex; i++) {
+						for (let i = 0; i < firstChangeIndex; i++) {
 							//Normally check its children
 							if (tree[i].children && tree[i].children.length > 0) {
 								applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
@@ -1375,7 +1627,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 
-					for (i = firstChangeIndex; i < tree.length; i++) {
+					for (let i = firstChangeIndex; i < tree.length; i++) {
 						if (changes[tree[i].id]) {
 							if (changes[tree[i].id].type === 'hide') {
 								//Don't check its children, just remove it
@@ -1388,13 +1640,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 							} else {
 								//Remove every node after it and show them again
-								var j;
-								var enableAfter = [tree[i]];
-								for (j = i + 1; j < tree.length; j++) {
+								const enableAfter = [tree[i]];
+								for (let j = i + 1; j < tree.length; j++) {
 									if (changes[tree[j].id]) {
 										if (changes[tree[j].id].type === 'hide') {
 											removeNode(tree[j]);
-											changes[tree[j].id].node.enabled = false;
+											globalObject.globals.crmValues.contextMenuItemTree[tree[j].id]
+												.enabled = false;
 										} else { //Is in toShow
 											enableAfter.push(tree[j]);
 										}
@@ -1404,8 +1656,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									}
 								}
 
-								for (var k = 0; k < enableAfter.length; k++) {
-									reCreateNode(parentId, enableAfter[k], changes);
+								for (let j = 0; j < enableAfter.length; j++) {
+									reCreateNode(parentId, enableAfter[j], changes);
 								}
 							}
 						}
@@ -1413,8 +1665,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				}
 
-				function getNodeStatusses(subtree, hiddenNodes, shownNodes) {
-					for (var i = 0; i < subtree.length; i++) {
+				function getNodeStatusses(subtree: Array<ContextMenuItemTreeItem>, hiddenNodes: Array<ContextMenuItemTreeItem>,
+					shownNodes: Array<ContextMenuItemTreeItem>) {
+					for (let i = 0; i < subtree.length; i++) {
 						if (subtree[i]) {
 							(subtree[i].enabled ? shownNodes : hiddenNodes).push(subtree[i]);
 							getNodeStatusses(subtree[i].children, hiddenNodes, shownNodes);
@@ -1422,11 +1675,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				function tabChangeListener(changeInfo) {
+				function tabChangeListener(changeInfo: {
+					tabIds?: Array<number>;
+					tabs: Array<number>;
+					windowId?: number;
+				}) {
 					//Horrible workaround that allows the hiding of nodes on certain url's that
 					//	surprisingly only takes ~1-2ms per tab switch.
-					var currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
-					chrome.tabs.get(currentTabId, function(tab) {
+					const currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
+					chrome.tabs.get(currentTabId, (tab) => {
 						if (chrome.runtime.lastError) {
 							console.log(chrome.runtime.lastError.message);
 							return;
@@ -1436,8 +1693,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						var toHide = [];
 						var toEnable = [];
 
-						var i;
-						var changes = {};
+						var changes: {
+							[nodeId: number]: {
+								node: CRMNode;
+								type: 'hide' | 'show';
+							}
+						} = {};
 						var shownNodes = [];
 						var hiddenNodes = [];
 						getNodeStatusses(globalObject.globals.crmValues.contextMenuItemTree,
@@ -1445,8 +1706,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 
 						//Find nodes to enable
-						var hideOn;
-						for (i = 0; i < hiddenNodes.length; i++) {
+						let hideOn: Array<{
+							not: boolean;
+							url: string;
+						}>;
+						for (let i = 0; i < hiddenNodes.length; i++) {
 							hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[hiddenNodes[i]
 								.node.id];
 							if (!hideOn || !URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
@@ -1459,7 +1723,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						//Find nodes to hide
-						for (i = 0; i < shownNodes.length; i++) {
+						for (let i = 0; i < shownNodes.length; i++) {
 							hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[shownNodes[i]
 								.node.id];
 							if (hideOn) {
@@ -1475,7 +1739,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						//Re-check if the toEnable nodes might be disabled after all
 						var length = toEnable.length;
-						for (i = 0; i < length; i++) {
+						for (let i = 0; i < length; i++) {
 							hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[toEnable[i]
 								.node.id];
 							if (hideOn) {
@@ -1488,13 +1752,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						for (i = 0; i < toHide.length; i++) {
+						for (let i = 0; i < toHide.length; i++) {
 							changes[toHide[i].id] = {
 								node: toHide[i].node,
 								type: 'hide'
 							};
 						}
-						for (i = 0; i < toEnable.length; i++) {
+						for (let i = 0; i < toEnable.length; i++) {
 							changes[toEnable[i].id] = {
 								node: toEnable[i].node,
 								type: 'show'
@@ -1506,7 +1770,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							.globals.crmValues.contextMenuItemTree, changes);
 					});
 
-					var statuses = globalObject.globals.crmValues.stylesheetNodeStatusses;
+					const statuses = globalObject.globals.crmValues.stylesheetNodeStatusses;
 
 					function checkForRuntimeErrors() {
 						if (chrome.runtime.lastError) {
@@ -1514,7 +1778,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 
-					for (var nodeId in statuses) {
+					for (let nodeId in statuses) {
 						if (statuses.hasOwnProperty(nodeId) && statuses[nodeId]) {
 							chrome.contextMenus.update(globalObject.globals.crmValues
 								.contextMenuIds[nodeId], {
@@ -1527,12 +1791,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				chrome.tabs.onHighlighted.addListener(tabChangeListener);
-				chrome.storage.local.get(function(storageLocal) {
+				chrome.storage.local.get((storageLocal) => {
 					globalObject.globals.latestId = storageLocal['latestId'] || 0;
 				});
-				chrome.storage.onChanged.addListener(function(changes, areaName) {
+				chrome.storage.onChanged.addListener((changes, areaName) => {
 					if (areaName === 'local' && changes['latestId']) {
-						var highest = changes['latestId']
+						const highest = changes['latestId']
 							              .newValue >
 							              changes['latestId'].oldValue ?
 							              changes['latestId'].newValue :
@@ -1541,22 +1805,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				});
 				chrome.webRequest.onBeforeRequest.addListener(
-					function(details) {
-						var split = details.url.split('chrome-extension://' +
-							extensionId +
-							'/resource/')[1].split('/');
-						var name = split[0];
-						var scriptId = split[1];
+					(details) => {
+						const split = details.url.split(`chrome-extension://${extensionId}/resource/`)[1].split('/');
+						const name = split[0];
+						const scriptId = ~~split[1];
 						return {
 							redirectUrl: getResourceData(name, scriptId)
 						};
 					}, {
-						urls: ['chrome-extension://' + extensionId + '/resource/*']
+						urls: [`chrome-extension://${extensionId}/resource/*`]
 					}, ['blocking']);
-				chrome.tabs.onRemoved.addListener(function(tabId) {
+				chrome.tabs.onRemoved.addListener((tabId) => {
 					//Delete all data for this tabId
-					var node;
-					for (node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
+					for (let node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
 						if (globalObject.globals.crmValues.stylesheetNodeStatusses
 							.hasOwnProperty(node) &&
 							globalObject.globals.crmValues.stylesheetNodeStatusses[node]) {
@@ -1566,8 +1827,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					//Delete this instance if it exists
-					var deleted = [];
-					for (node in globalObject.globals.crmValues.nodeInstances) {
+					const deleted = [];
+					for (let node in globalObject.globals.crmValues.nodeInstances) {
 						if (globalObject.globals.crmValues.nodeInstances.hasOwnProperty(node) &&
 							globalObject.globals.crmValues.nodeInstances[node]) {
 							if (globalObject.globals.crmValues.nodeInstances[node][tabId]) {
@@ -1577,7 +1838,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 
-					for (var i = 0; i < deleted.length; i++) {
+					for (let i = 0; i < deleted.length; i++) {
 						if (deleted[i].node && deleted[i].node.id !== undefined) {
 							globalObject.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id].port
 								.postMessage({
@@ -1620,8 +1881,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			}
 		};
-		window.createHandlerFunction = function(port) {
-			return function(message) {
+
+		interface HandshakeMessage extends CRMAPIMessage<string, any> {
+			key?: Array<number>
+		}
+
+		window.createHandlerFunction = (port) => {
+			return (message: HandshakeMessage) => {
 				var tabNodeData = globalObject.globals.crmValues.tabData[message.tabId]
 					.nodes[message.id];
 				if (!tabNodeData.port) {
@@ -1695,7 +1961,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					},
 
 					getCRMHints(message: any) {
-
+						//TODO
 					}
 				}
 			})(),
@@ -1717,13 +1983,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			},
 
-			backgroundPageLog(id, lineNumber) {
-				var args = Array.prototype.slice.apply(arguments);
-				var logValue = {
+			backgroundPageLog(id: number, lineNumber: string, ...args: Array<any>) {
+				const logValue = {
 					id: id,
 					tabId: 'background',
 					nodeTitle: globalObject.globals.crm.crmById[id].name,
-					tabtitle: 'Background Page',
+					tabTitle: 'Background Page',
 					value: args,
 					lineNumber: lineNumber,
 					timestamp: new Date().toLocaleString()
@@ -1735,7 +2000,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			logHandler(message: {
 				type: string;
 				id: number;
-				data: Array<any>;
+				data: string;
 				lineNumber: string;
 				tabId: number;
 				callbackIndex?: number;
@@ -1766,7 +2031,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return {
 					updateTabAndIdLists(force?: boolean) {
 						//Make sure anybody is listening
-						var listeners = globalObject.globals.listeners;
+						const listeners = globalObject.globals.listeners;
 						if (!force && listeners.ids.length === 0 && listeners.tabs.length === 0) {
 							return {
 								ids: [],
@@ -1774,12 +2039,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							};
 						}
 
-						var ids = {};
-						var tabIds: {
+						const ids = {};
+						const tabIds: {
 							[tabId: string]: boolean,
 							[tabId: number]: boolean;
 						} = {};
-						var tabData = globalObject.globals.crmValues.tabData;
+						const tabData = globalObject.globals.crmValues.tabData;
 						for (let tabId in tabData) {
 							if (tabData.hasOwnProperty(tabId)) {
 								if (tabId === '0') {
@@ -1787,8 +2052,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								} else {
 									tabIds[tabId] = true;
 								}
-								var nodes = tabData[tabId].nodes;
-								for (var nodeId in nodes) {
+								const nodes = tabData[tabId].nodes;
+								for (let nodeId in nodes) {
 									if (nodes.hasOwnProperty(nodeId)) {
 										ids[nodeId] = true;
 									}
@@ -1810,22 +2075,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						idArr = idArr.sort(function(a, b) {
+						idArr = idArr.sort((a, b) => {
 							return a - b;
 						});
 
-						tabArr = tabArr.sort(function(a, b) {
+						tabArr = tabArr.sort((a, b) => {
 							return a - b;
 						});
 
 						if (!Helpers.compareArray(idArr, listeners.idVals)) {
-							listeners.ids.forEach(function(idListener) {
+							listeners.ids.forEach((idListener) => {
 								idListener(idArr);
 							});
 							listeners.idVals = idArr;
 						}
 						if (!Helpers.compareArray(tabArr, listeners.tabVals)) {
-							listeners.tabs.forEach(function(tabListener) {
+							listeners.tabs.forEach((tabListener) => {
 								tabListener(tabArr);
 							});
 							listeners.tabVals = tabArr;
@@ -1840,13 +2105,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			})()
 		};
 
-		function prepareLog(nodeId, tabId) {
+		function prepareLog(nodeId: number, tabId: number) {
 			if (globalObject.globals.logging[nodeId]) {
 				if (!globalObject.globals.logging[nodeId][tabId]) {
 					globalObject.globals.logging[nodeId][tabId] = {};
 				}
 			} else {
-				var idObj = {
+				const idObj = {
 					values: [],
 					logMessages: []
 				};
@@ -1855,10 +2120,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		}
 
-		function updateLogs(newLog) {
-			globalObject.globals.listeners.log.forEach(function(logListener) {
-				var idMatches = logListener.id === 'all' || logListener.id === newLog.id;
-				var tabMatches = logListener.tab === 'all' ||
+		function updateLogs(newLog: LogListenerLine) {
+			globalObject.globals.listeners.log.forEach((logListener) => {
+				const idMatches = logListener.id === 'all' || logListener.id === newLog.id;
+				const tabMatches = logListener.tab === 'all' ||
 					logListener.tab === newLog.tabId;
 				if (idMatches && tabMatches) {
 					logListener.listener(newLog);
@@ -1866,42 +2131,43 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			});
 		}
 
-		function logHandlerLog(message) {
+		function logHandlerLog(message: {
+				type: string;
+				id: number;
+				data: string;
+				lineNumber: string;
+				tabId: number;
+				callbackIndex?: number;
+				timestamp?: string;
+			}) {
 			var srcObj: {
-				id?: number,
-				tabId?: number,
-				tab?: chrome.tabs.Tab,
-				url?: string,
-				tabTitle?: string,
-				node?: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode,
-				nodeName?: string;
-			} = {};
+				id: number,
+				tabId: number,
+				tab: chrome.tabs.Tab,
+				url: string,
+				tabTitle: string,
+				node: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode,
+				nodeName: string;
+			} = {} as any;
 			var args = [
 				'Log[src:',
 				srcObj,
 				']: '
 			];
 
-			var logValue: {
-				id: number,
-				tabId: number,
-				value: Array<any>,
-				lineNumber: string,
-				timestamp: string,
-				tabTitle?: string,
-				nodeTitle?: string;
-			} = {
+			var logValue: LogListenerLine = {
 				id: message.id,
 				tabId: message.tabId,
 				value: message.data,
 				lineNumber: message.lineNumber || '?',
 				timestamp: new Date().toLocaleString()
-			};
+			} as any;
 
 			chrome.tabs.get(message.tabId, (tab) => {
 				args = args.concat(globalObject.globals.constants.specialJSON
 					.fromJson(message.data));
-				exports.log.apply(globalObject, [message.id, message.tabId].concat(args));
+				exports.log.bind(globalObject, message.id, message.tabId)
+					.apply(globalObject, args);
 
 				srcObj.id = message.id;
 				srcObj.tabId = message.tabId;
@@ -3169,7 +3435,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	})();
 
 	const APIMessaging = (() => {
-		return {
+		const exports = {
 			CRMMessage: (() => {
 				return {
 					respond(message: CRMAPIMessage<'crm'|'chrome', any>,
@@ -3218,7 +3484,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			createReturn(message: CRMAPIMessage<'crm'|'chrome', any>,
 				callbackIndex: number) {
 				return (result) => {
-					this.CRMMessage.respond(message, 'success', {
+					getExports().CRMMessage.respond(message, 'success', {
 						callbackId: callbackIndex,
 						params: [result]
 					});
@@ -3262,6 +3528,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		};
+		function getExports() {
+			return exports;
+		}
+		return exports;
 	})();
 
 	interface LookupData {
@@ -4438,12 +4708,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						ChromeHandler.handle(message);
 						break;
 					default:
-						this.handleRuntimeMessage(message);
+						getExports().handleRuntimeMessage(message);
 						break;
 				}
 			}
 		};
 
+		function getExports() {
+			return exports;
+		}
 		return exports;
 	})();
 
@@ -4565,6 +4838,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				function executeScript(tabId: number, scripts: Array<string>, i: number) {
+					if (chrome.runtime.lastError) {
+						console.log(chrome.runtime.lastError);
+						return () => {};
+					}
 					return function() {
 						if (scripts.length > i) {
 							chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId, scripts,
@@ -4680,7 +4957,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							var contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
 							if (contextMenuId !== undefined && contextMenuId !== null) {
 								chrome.contextMenus.remove(contextMenuId, function() {
-									checkForChromeErrors();
+									Helpers.checkForChromeErrors();
 								});
 							}
 						}
@@ -5296,7 +5573,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								};
 							},
 							getMetaLines(script: string): Array<string> {
-								var metaIndexes = this.getMetaIndexes(script);
+								var metaIndexes = getMetaTagExports().getMetaIndexes(script);
 								var metaStart = metaIndexes.start;
 								var metaEnd = metaIndexes.end;
 								var startPlusOne = metaStart + 1;
@@ -5307,7 +5584,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							getMetaTags(script: string): {
 								[key: string]: any
 							} {
-								const metaLines = this.getMetaLines(script);
+								const metaLines = getMetaTagExports().getMetaLines(script);
 
 								const metaTags = {};
 								const regex = /@(\w+)(\s+)(.+)/;
@@ -5328,6 +5605,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								return metaTags[key] && metaTags[key][metaTags[key].length - 1];
 							}
 						};
+						function getMetaTagExports() {
+							return metaTagExports;
+						}
 						return metaTagExports;
 					})(),
 					Background: (() => {
@@ -5552,12 +5832,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									if (globalObject.globals.crm.crmById.hasOwnProperty(nodeId)) {
 										var node = globalObject.globals.crm.crmById[nodeId];
 										if (node.type === 'script') {
-											this.createBackgroundPage(node);
+											getBackgroundPageExports().createBackgroundPage(node);
 										}
 									}
 								}
 							}
 						};
+						function getBackgroundPageExports() {
+							return backgroundPageExports;
+						}
 						return backgroundPageExports;
 					})(),
 					createHandler(node: CRMNode) {
@@ -5772,7 +6055,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const menuNode = newNode as SafeMenuNode;
 					menuNode.children = [];
 					for (var i = 0; i < node.children.length; i++) {
-						menuNode.children[i] = this.makeSafe(node.children[i]);
+						menuNode.children[i] = getExports().makeSafe(node.children[i]);
 					}
 					newNode = menuNode;
 				}
@@ -6118,7 +6401,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (prepared) {
 								if (node.triggers[i].not) {
 									globalObject.globals.crmValues.hideNodesOnPagesData[node.id]
-										.push(prepared);
+										.push({
+											not: false,
+											url: prepared
+										});
 								} else {
 									rightClickItemOptions.documentUrlPatterns.push(prepared);
 								}
@@ -6132,10 +6418,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							rightClickItemOptions.type = 'separator';
 							break;
 						case 'link':
-							rightClickItemOptions.onclick = this.Link.createHandler(node);
+							rightClickItemOptions.onclick = getExports().Link.createHandler(node);
 							break;
 						case 'script':
-							rightClickItemOptions.onclick = this.Script.createHandler(node);
+							rightClickItemOptions.onclick = getExports().Script.createHandler(node);
 							break;
 						case 'stylesheet':
 							if (node.value.toggle) {
@@ -6186,7 +6472,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
 					id: number;
 				}) {
-					var launchMode = (node.value && node.value.launchMode) || CRMLaunchMode.ALWAYS_RUN;
+					var launchMode = (node.value && node.value.launchMode) || CRMLaunchMode.RUN_ON_CLICKING;
 					if (launchMode === CRMLaunchMode.ALWAYS_RUN) {
 						globalObject.globals.toExecuteNodes.always.push(node);
 					} else if (launchMode === CRMLaunchMode.RUN_ON_SPECIFIED) {
@@ -6562,7 +6848,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						chrome.storage.local.set(globalObject.globals.storages.storageLocal);
 						for (var i = 0; i < changes.length; i++) {
 							if (changes[i].key === 'useStorageSync') {
-								this.uploadChanges('settings', [], changes[i].newValue);
+								getExports().uploadChanges('settings', [], changes[i].newValue);
 							}
 						}
 						break;
@@ -6600,11 +6886,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								chrome.storage.local.set({
 									useStorageSync: false
 								}, () => {
-									this.uploadChanges('settings', changes);
+									getExports().uploadChanges('settings', changes);
 								});
 							} else {
 								//Cut up all data into smaller JSON
-								var obj = this.cutData(settingsJson);
+								var obj = getExports().cutData(settingsJson);
 								chrome.storage.sync.set(obj, function() {
 									if (chrome.runtime.lastError) {
 										//Switch to local storage
@@ -6613,7 +6899,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										chrome.storage.local.set({
 											useStorageSync: false
 										}, () => {
-											this.uploadChanges('settings', changes);
+											getExports().uploadChanges('settings', changes);
 										});
 									} else {
 										for (var i = 0; i < changes.length; i++) {
@@ -6657,12 +6943,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						if (data.localChanges) {
 							applyChangeForStorageType(globalObject.globals.storages.storageLocal, data
 								.localChanges);
-							this.uploadChanges('local', data.localChanges);
+							getExports().uploadChanges('local', data.localChanges);
 						}
 						if (data.settingsChanges) {
 							applyChangeForStorageType(globalObject.globals.storages.settingsStorage,
 								data.settingsChanges);
-							this.uploadChanges('settings', data.settingsChanges);
+							getExports().uploadChanges('settings', data.settingsChanges);
 						}
 						break;
 					case 'libraries':
@@ -6727,7 +7013,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						var result;
 						if ((result = isFirstTime(chromeStorageLocal))) {
 							result((data) => {
-								this.setStorages(data.storageLocalCopy, data.settingsStorage, data
+								getExports().setStorages(data.storageLocalCopy, data.settingsStorage, data
 									.chromeStorageLocal, callback);
 							}, function(err) {
 								console.warn(err);
@@ -6781,13 +7067,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 							}
 
-							this.setStorages(storageLocalCopy, settingsStorage, chromeStorageLocal,
+							getExports().setStorages(storageLocalCopy, settingsStorage, chromeStorageLocal,
 								callback);
 						}
 					});
 				});
 			}
 		};
+
+		function getExports() {
+			return exports;
+		}
 
 		const SetupHandling = (() => {
 			//Local storage
@@ -7745,234 +8035,3 @@ if (typeof module === 'undefined') {
 		' You can also visit the logging page for even better logging over at ',
 		chrome.runtime.getURL('logging.html'));
 }
-
-window.specialJSON = {
-	resolveJson: function(root, args) {
-		args = args || {};
-		var idAttribute = args.idAttribute || 'id';
-		var refAttribute = this.refAttribute;
-		var idAsRef = args.idAsRef;
-		var prefix = args.idPrefix || '';
-		var assignAbsoluteIds = args.assignAbsoluteIds;
-		var index = args.index || {}; // create an index if one doesn't exist
-		var timeStamps = args.timeStamps;
-		var ref, reWalk = [];
-		var pathResolveRegex = /^(.*\/)?(\w+:\/\/)|[^\/\.]+\/\.\.\/|^.*\/(\/)/;
-		var addProp = this._addProp;
-		var F = function() {};
-
-		function walk(it, stop, defaultId?: any, needsPrefix?: any, schema?: any,
-			defaultObject?: any) {
-			// this walks the new graph, resolving references and making other changes
-			var i, update, val, id = idAttribute in it ? it[idAttribute] : defaultId;
-			if (idAttribute in it || ((id !== undefined) && needsPrefix)) {
-				id = (prefix + id).replace(pathResolveRegex, '$2$3');
-			}
-			var target = defaultObject || it;
-			if (id !== undefined) { // if there is an id available...
-				if (assignAbsoluteIds) {
-					it.__id = id;
-				}
-				if (args.schemas &&
-					(!(it instanceof Array)) &&
-					// won't try on arrays to do prototypes, plus it messes with queries 
-					(val = id
-						.match(/^(.+\/)[^\.\[]*$/))) { // if it has a direct table id (no paths)
-					schema = args.schemas[val[1]];
-				}
-				// if the id already exists in the system, we should use the existing object, and just 
-				// update it... as long as the object is compatible
-				if (index[id] && ((it instanceof Array) == (index[id] instanceof Array))) {
-					target = index[id];
-					delete target.$ref; // remove this artifact
-					delete target._loadObject;
-					update = true;
-				} else {
-					var proto = schema && schema.prototype; // and if has a prototype
-					if (proto) {
-						// if the schema defines a prototype, that needs to be the prototype of the object
-						F.prototype = proto;
-						target = new F();
-					}
-				}
-				index[id] = target; // add the prefix, set _id, and index it
-				if (timeStamps) {
-					timeStamps[id] = args.time;
-				}
-			}
-			while (schema) {
-				var properties = schema.properties;
-				if (properties) {
-					for (i in it) {
-						var propertyDefinition = properties[i];
-						if (propertyDefinition &&
-							propertyDefinition.format == 'date-time' &&
-							typeof it[i] == 'string') {
-							it[i] = new Date(it[i]);
-						}
-					}
-				}
-				schema = schema["extends"];
-			}
-			var length = it.length;
-			for (i in it) {
-				if (i == length) {
-					break;
-				}
-				if (it.hasOwnProperty(i)) {
-					val = it[i];
-					if ((typeof val == 'object') &&
-						val &&
-						!(val instanceof Date) &&
-						i != '__parent') {
-						ref = val[refAttribute] || (idAsRef && val[idAttribute]);
-						if (!ref || !val.__parent) {
-							val.__parent = it;
-						}
-						if (ref) { // a reference was found
-							// make sure it is a safe reference
-							delete it[i];
-							// remove the property so it doesn't resolve to itself in the case of id.propertyName lazy values
-							var path = ref.toString().replace(/(#)([^\.\[])/, '$1.$2')
-								.match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/); // divide along the path
-							if ((ref = (path[1] == '$' || path[1] == 'this' || path[1] == '') ?
-								           root :
-								           index[(prefix + path[1]).replace(pathResolveRegex,
-									           '$2$3')])) {
-								// a $ indicates to start with the root, otherwise start with an id
-								// if there is a path, we will iterate through the path references
-								if (path[3]) {
-									path[3].replace(/(\[([^\]]+)\])|(\.?([^\.\[]+))/g, function(t, a, b, c,
-										d) {
-										ref = ref && ref[b ? b.replace(/[\"\'\\]/, '') : d];
-									});
-								}
-							}
-							if (ref) {
-								val = ref;
-							} else {
-								// otherwise, no starting point was found (id not found), if stop is set, it does not exist, we have
-								// unloaded reference, if stop is not set, it may be in a part of the graph not walked yet,
-								// we will wait for the second loop
-								if (!stop) {
-									var rewalking;
-									if (!rewalking) {
-										reWalk.push(target); // we need to rewalk it to resolve references
-									}
-									rewalking = true; // we only want to add it once
-									val = walk(val, false, val[refAttribute], true, propertyDefinition);
-									// create a lazy loaded object
-									val._loadObject = args.loader;
-								}
-							}
-						} else {
-							if (!stop) {
-								// if we are in stop, that means we are in the second loop, and we only need to check this current one,
-								// further walking may lead down circular loops
-								val = walk(
-									val,
-									reWalk == it,
-									id === undefined ? undefined : addProp(id, i), // the default id to use
-									false,
-									propertyDefinition,
-									// if we have an existing object child, we want to 
-									// maintain it's identity, so we pass it as the default object
-									target != it && typeof target[i] == 'object' && target[i]
-								);
-							}
-						}
-					}
-					it[i] = val;
-					if (target != it && !target.__isDirty) {
-						// do updates if we are updating an existing object and it's not dirty				
-						var old = target[i];
-						target[i] = val; // only update if it changed
-						if (update &&
-							val !== old && // see if it is different 
-							!target._loadObject && // no updates if we are just lazy loading
-							!(i.charAt(0) == '_' && i.charAt(1) == '_') &&
-							i != "$ref" &&
-							!(val instanceof Date &&
-								old instanceof Date &&
-								val
-								.getTime() ==
-								old.getTime()) && // make sure it isn't an identical date
-							!(typeof val == 'function' &&
-								typeof old == 'function' &&
-								val
-								.toString() ==
-								old.toString()) && // make sure it isn't an indentical function
-							index.onUpdate) {
-							index.onUpdate(target, i, old, val); // call the listener for each update
-						}
-					}
-				}
-			}
-
-			if (update && (idAttribute in it)) {
-				// this means we are updating with a full representation of the object, we need to remove deleted
-				for (i in target) {
-					if (!target.__isDirty &&
-						target.hasOwnProperty(i) &&
-						!it.hasOwnProperty(i) &&
-						!(i.charAt(0) == '_' && i.charAt(1) == '_') &&
-						!(target instanceof Array && isNaN(i))) {
-						if (index.onUpdate && i != "_loadObject" && i != "_idAttr") {
-							index.onUpdate(target, i, target[i],
-								undefined); // call the listener for each update
-						}
-						delete target[i];
-						while (target instanceof Array &&
-							target.length &&
-							target[target.length - 1] === undefined) {
-							// shorten the target if necessary
-							target.length--;
-						}
-					}
-				}
-			} else {
-				if (index.onLoad) {
-					index.onLoad(target);
-				}
-			}
-			return target;
-		}
-
-		if (root && typeof root == 'object') {
-			root = walk(root, false, args.defaultId, true); // do the main walk through
-			walk(reWalk,
-				false);
-			// re walk any parts that were not able to resolve references on the first round
-		}
-		return root;
-	},
-
-	fromJson: function(str, args) {
-		function ref(target) { // support call styles references as well
-			var refObject = {};
-			refObject[this.refAttribute] = target;
-			return refObject;
-		}
-
-		try {
-			var root = eval('(' + str + ')'); // do the eval
-		} catch (e) {
-			throw new SyntaxError("Invalid JSON string: " +
-				e.message +
-				" parsing: " +
-				str);
-		}
-		if (root) {
-			return this.resolveJson(root, args);
-		}
-		return root;
-	},
-
-
-	_addProp: function(id, prop) {
-		return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
-	},
-	refAttribute: "$ref",
-	_useRefs: false,
-	serializeFunctions: true
-};
