@@ -256,6 +256,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 // won't try on arrays to do prototypes, plus it messes with queries 
                                 (val = id
                                     .match(/^(.+\/)[^\.\[]*$/))) {
+                                // if it has a direct table id (no paths)
                                 schema = args.schemas[val[1]];
                             }
                             // if the id already exists in the system, we should use the existing object, and just 
@@ -313,7 +314,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         delete it[i];
                                         // remove the property so it doesn't resolve to itself in the case of id.propertyName lazy values
                                         var path = ref.toString().replace(/(#)([^\.\[])/, '$1.$2')
-                                            .match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/); // divide along the path
+                                            .match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/);
+                                        // divide along the path
                                         if ((ref = (path[1] == '$' || path[1] == 'this' || path[1] == '') ?
                                             root :
                                             index[(prefix + path[1]).replace(pathResolveRegex, '$2$3')])) {
@@ -348,7 +350,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         if (!stop) {
                                             // if we are in stop, that means we are in the second loop, and we only need to check this current one,
                                             // further walking may lead down circular loops
-                                            val = walk(val, reWalk == it, id === undefined ? undefined : addProp(id, i), // the default id to use
+                                            val = walk(val, reWalk == it, id === undefined ? undefined : addProp(id, i), 
+                                            // the default id to use
                                             false, propertyDefinition, 
                                             // if we have an existing object child, we want to 
                                             // maintain it's identity, so we pass it as the default object
@@ -888,7 +891,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 function reCreateNode(parentId, node, changes) {
                     var oldId = node.id;
                     node.enabled = true;
-                    var settings = globalObject.globals.crmValues.contextMenuInfoById[node.id]
+                    var settings = globalObject.globals.crmValues.contextMenuInfoById[node
+                        .id]
                         .settings;
                     if (node.node.type === 'stylesheet' && node.node.value.toggle) {
                         settings.checked = node.node.value.defaultOn;
@@ -900,7 +904,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     //Update ID
                     node.id = id;
                     globalObject.globals.crmValues.contextMenuIds[node.node.id] = id;
-                    globalObject.globals.crmValues.contextMenuInfoById[id] = globalObject.globals
+                    globalObject.globals.crmValues.contextMenuInfoById[id] = globalObject
+                        .globals
                         .crmValues.contextMenuInfoById[oldId];
                     globalObject.globals.crmValues.contextMenuInfoById[oldId] = undefined;
                     globalObject.globals.crmValues.contextMenuInfoById[id].enabled = true;
@@ -996,7 +1001,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         //Find nodes to enable
                         var hideOn;
                         for (var i = 0; i < hiddenNodes.length; i++) {
-                            hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[hiddenNodes[i]
+                            hideOn = globalObject.globals.crmValues
+                                .hideNodesOnPagesData[hiddenNodes[i]
                                 .node.id];
                             if (!hideOn || !URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
                                 //Don't hide on current url
@@ -1008,7 +1014,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                         //Find nodes to hide
                         for (var i = 0; i < shownNodes.length; i++) {
-                            hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[shownNodes[i]
+                            hideOn = globalObject.globals.crmValues
+                                .hideNodesOnPagesData[shownNodes[i]
                                 .node.id];
                             if (hideOn) {
                                 if (URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
@@ -1082,7 +1089,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                 });
                 chrome.webRequest.onBeforeRequest.addListener(function (details) {
-                    var split = details.url.split("chrome-extension://" + extensionId + "/resource/")[1].split('/');
+                    var split = details.url
+                        .split("chrome-extension://" + extensionId + "/resource/")[1].split('/');
                     var name = split[0];
                     var scriptId = ~~split[1];
                     return {
@@ -1114,7 +1122,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     for (var i = 0; i < deleted.length; i++) {
                         if (deleted[i].node && deleted[i].node.id !== undefined) {
-                            globalObject.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id].port
+                            globalObject.globals.crmValues.tabData[tabId].nodes[deleted[i].node.id]
+                                .port
                                 .postMessage({
                                 change: {
                                     type: 'removed',
@@ -1131,7 +1140,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     var notification = globalObject.globals
                         .notificationListeners[notificationId];
                     if (notification && notification.onClick !== undefined) {
-                        globalObject.globals.sendCallbackMessage(notification.tabId, notification.id, {
+                        globalObject.globals.sendCallbackMessage(notification.tabId, notification
+                            .id, {
                             err: false,
                             args: [notificationId],
                             callbackId: notification.onClick
@@ -1142,7 +1152,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     var notification = globalObject.globals
                         .notificationListeners[notificationId];
                     if (notification && notification.onDone !== undefined) {
-                        globalObject.globals.sendCallbackMessage(notification.tabId, notification.id, {
+                        globalObject.globals.sendCallbackMessage(notification.tabId, notification
+                            .id, {
                             err: false,
                             args: [notificationId, byUser],
                             callbackId: notification.onClick
@@ -1186,7 +1197,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 }
                             }
                         }
-                        globalObject.globals.crmValues.nodeInstances[message.id][message.tabId] = {
+                        globalObject.globals.crmValues.nodeInstances[message.id][message
+                            .tabId] = {
                             hasHandler: false
                         };
                         port.postMessage({
@@ -1462,8 +1474,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     return false;
                 }
                 else {
-                    _this.respondSuccess(lookedUp.id);
-                    return lookedUp.id;
+                    var lookedUpNode = lookedUp;
+                    _this.respondSuccess(lookedUpNode.id);
+                    return lookedUpNode.id;
                 }
             });
         },
@@ -1495,7 +1508,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     var searchScope = null;
                     if (optionals['query.inSubTree']) {
-                        var searchScopeObj = _this.getNodeFromId(_this.message['query'].inSubTree, true, true);
+                        var searchScopeObj = _this.getNodeFromId(_this.message['query']
+                            .inSubTree, true, true);
                         var searchScopeObjChildren = [];
                         if (searchScopeObj) {
                             var menuSearchScopeObj = searchScopeObj;
@@ -1673,24 +1687,29 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     var newNode;
                     switch (_this.message.options.type) {
                         case 'script':
-                            newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+                            newNode = globalObject.globals.constants.templates
+                                .getDefaultLinkNode(node);
                             newNode.type = 'script';
                             break;
                         case 'stylesheet':
-                            newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+                            newNode = globalObject.globals.constants.templates
+                                .getDefaultLinkNode(node);
                             newNode.type = 'stylesheet';
                             break;
                         case 'menu':
-                            newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+                            newNode = globalObject.globals.constants.templates
+                                .getDefaultLinkNode(node);
                             newNode.type = 'menu';
                             break;
                         case 'divider':
-                            newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+                            newNode = globalObject.globals.constants.templates
+                                .getDefaultLinkNode(node);
                             newNode.type = 'divider';
                             break;
                         default:
                         case 'link':
-                            newNode = globalObject.globals.constants.templates.getDefaultLinkNode(node);
+                            newNode = globalObject.globals.constants.templates
+                                .getDefaultLinkNode(node);
                             newNode.type = 'link';
                             break;
                     }
@@ -1722,8 +1741,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         var id = Helpers.generateItemId();
                         newNode.id = id;
                         if (_this.getNodeFromId(_this.message.id, false, true).local === true &&
-                            node.local === true) {
-                            newNode.local = true;
+                            node.isLocal === true) {
+                            newNode.isLocal = true;
                         }
                         newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
                             .nodeInfo;
@@ -1814,7 +1833,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 var oldType = node.type.toLowerCase();
                                 node.type = _this.message.options.type;
                                 if (oldType === 'menu') {
-                                    node.menuVal = node.children;
+                                    node['menuVal'] = node.children;
                                     node.value = node[_this.message.options.type + 'Val'] || {};
                                 }
                                 else {
@@ -1860,11 +1879,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 ], function () {
                     _this.getNodeFromId(_this.message.nodeId).run(function (node) {
                         node.triggers = _this.message['triggers'];
-                        node.showOnSpecified = true;
+                        node['showOnSpecified'] = true;
                         CRM.updateCrm();
                         var matchPatterns = [];
                         globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
-                        if (node.launchMode !== 3) {
+                        if (node.value &&
+                            node.value.launchMode !== 3 /* SHOW_ON_SPECIFIED */) {
                             for (var i = 0; i < node.triggers.length; i++) {
                                 if (!URLParsing.triggerMatchesScheme(node.triggers[i].url)) {
                                     _this.respondError('Triggers don\'t match URL scheme');
@@ -1872,8 +1892,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 }
                                 node.triggers[i].url = URLParsing.prepareTrigger(node.triggers[i].url);
                                 if (node.triggers[i].not) {
-                                    globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push(node
-                                        .triggers[i].url);
+                                    globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push({
+                                        not: false,
+                                        url: node.triggers[i].url
+                                    });
                                 }
                                 else {
                                     matchPatterns.push(node.triggers[i].url);
@@ -1897,7 +1919,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     if (node.type === 'menu' ||
                         node.type === 'link' ||
                         node.type === 'divider') {
-                        _this.respondSuccess(node.showOnSpecified);
+                        _this.respondSuccess(node['showOnSpecified']);
                     }
                     else {
                         _this
@@ -1918,7 +1940,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         if (node.type === 'menu' ||
                             node.type === 'link' ||
                             node.type === 'divider') {
-                            node.showOnSpecified = _this.message['useTriggers'];
+                            node['showOnSpecified'] = _this.message['useTriggers'];
                             CRM.updateCrm();
                             chrome.contextMenus.update(globalObject.globals.crmValues
                                 .contextMenuIds[node.id], {
@@ -2003,7 +2025,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         if (!matches) {
                             contentTypes = [true, true, true, true, true, true];
                         }
-                        node.onContentTypes = contentTypes;
+                        node['onContentTypes'] = contentTypes;
                         chrome.contextMenus.update(globalObject.globals.crmValues
                             .contextMenuIds[node.id], {
                             contexts: CRM.getContexts(node.onContentTypes)
@@ -2023,7 +2045,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         _this.respondSuccess(node.value);
                     }
                     else {
-                        _this.respondSuccess(node.linkVal);
+                        _this.respondSuccess(node['linkVal']);
                     }
                     return true;
                 });
@@ -2050,7 +2072,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     _this.getNodeFromId(_this.message.nodeId).run(function (node) {
                         if (Array.isArray(_this.message['items'])) {
                             if (node.type !== 'link') {
-                                node.linkVal = node.linkVal || [];
+                                node['linkVal'] = node['linkVal'] || [];
                             }
                             for (var i = 0; i < _this.message['items'].length; i++) {
                                 _this.message['items'][i].newTab = !!_this.message['items'][i].newTab;
@@ -2069,8 +2091,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 node.value.push(_this.message['items']);
                             }
                             else {
-                                node.linkVal.push = node.linkVal.push || [];
-                                node.linkVal.push(_this.message['items']);
+                                node['linkVal'].push = node['linkVal'].push || [];
+                                node['linkVal'].push(_this.message['items']);
                             }
                         }
                         CRM.updateCrm();
@@ -2099,13 +2121,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     ], function () {
                         var spliced;
                         if (node.type === 'link') {
-                            spliced = node.value.splice(_this.message['start'], _this.message['amount']);
+                            spliced = node.value.splice(_this.message['start'], _this
+                                .message['amount']);
                             CRM.updateCrm();
                             _this.respondSuccess(spliced, Helpers.safe(node).value);
                         }
                         else {
-                            node.linkVal = node.linkVal || [];
-                            spliced = node.linkVal.splice(_this.message['start'], _this.message['amount']);
+                            node['linkVal'] = node['linkVal'] || [];
+                            spliced = node['linkVal'].splice(_this.message['start'], _this
+                                .message['amount']);
                             CRM.updateCrm();
                             _this.respondSuccess(spliced, Helpers.safe(node)['linkVal']);
                         }
@@ -2167,7 +2191,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 ], function (optionals) {
                     var newLibrary;
                     if (optionals['url']) {
-                        if (_this.message['url'].indexOf('.js') === _this.message['url'].length - 3) {
+                        if (_this.message['url'].indexOf('.js') ===
+                            _this.message['url'].length - 3) {
                             //Use URL
                             var done = false;
                             var xhr = new window.XMLHttpRequest();
@@ -2262,7 +2287,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         if (Array.isArray(_this.message['libraries'])) {
                             for (var i = 0; i < _this.message['libraries'].length; i++) {
                                 var originalName = _this.message['libraries'][i].name;
-                                if (!(_this.message['libraries'][i].name = doesLibraryExist(_this.message['libraries'][i]))) {
+                                if (!(_this.message['libraries'][i].name = doesLibraryExist(_this
+                                    .message['libraries'][i]))) {
                                     _this.respondError('Library ' + originalName + ' is not registered');
                                     return false;
                                 }
@@ -2273,7 +2299,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                         else {
                             var name = _this.message['libraries'].name;
-                            if (!(_this.message['libraries'].name = doesLibraryExist(_this.message['libraries']))) {
+                            if (!(_this.message['libraries'].name = doesLibraryExist(_this
+                                .message['libraries']))) {
                                 _this.respondError('Library ' + name + ' is not registered');
                                 return false;
                             }
@@ -2302,7 +2329,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     _this.getNodeFromId(_this.message.nodeId).run(function (node) {
                         var spliced;
                         if (node.type === 'script') {
-                            spliced = Helpers.safe(node).value.libraries.splice(_this.message['start'], _this
+                            spliced = Helpers.safe(node).value.libraries.splice(_this
+                                .message['start'], _this
                                 .message['amount']);
                             CRM.updateCrm();
                             _this.respondSuccess(spliced, Helpers.safe(node).value.libraries);
@@ -2359,7 +2387,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         if (Array.isArray(_this.message['libraries'])) {
                             for (var i = 0; i < _this.message['libraries'].length; i++) {
                                 var originalName = _this.message['libraries'][i].name;
-                                if (!(_this.message['libraries'][i].name = doesLibraryExist(_this.message['libraries'][i]))) {
+                                if (!(_this.message['libraries'][i].name = doesLibraryExist(_this
+                                    .message['libraries'][i]))) {
                                     _this.respondError('Library ' + originalName + ' is not registered');
                                     return false;
                                 }
@@ -2370,7 +2399,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                         else {
                             var name = _this.message['libraries'].name;
-                            if (!(_this.message['libraries'].name = doesLibraryExist(_this.message['libraries']))) {
+                            if (!(_this.message['libraries'].name = doesLibraryExist(_this
+                                .message['libraries']))) {
                                 _this.respondError('Library ' + name + ' is not registered');
                                 return false;
                             }
@@ -2399,16 +2429,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     _this.getNodeFromId(_this.message.nodeId).run(function (node) {
                         var spliced;
                         if (node.type === 'script') {
-                            spliced = Helpers.safe(node).value.backgroundLibraries.splice(_this.message['start'], _this.message['amount']);
+                            spliced = Helpers.safe(node).value.backgroundLibraries.splice(_this
+                                .message['start'], _this.message['amount']);
                             CRM.updateCrm([_this.message.nodeId]);
-                            _this.respondSuccess(spliced, Helpers.safe(node).value.backgroundLibraries);
+                            _this.respondSuccess(spliced, Helpers.safe(node).value
+                                .backgroundLibraries);
                         }
                         else {
-                            node.scriptVal = node.scriptVal || {};
-                            node.scriptVal.backgroundLibraries = node.scriptVal.libraries || [];
-                            spliced = node.scriptVal.backgroundLibraries.splice(_this.message['start'], _this.message['amount']);
+                            node['scriptVal'] = node['scriptVal'] || {};
+                            node['scriptVal']
+                                .backgroundLibraries = node['scriptVal'].libraries || [];
+                            spliced = node['scriptVal'].backgroundLibraries.splice(_this
+                                .message['start'], _this.message['amount']);
                             CRM.updateCrm([_this.message.nodeId]);
-                            _this.respondSuccess(spliced, node.scriptVal.backgroundLibraries);
+                            _this.respondSuccess(spliced, node['scriptVal'].backgroundLibraries);
                         }
                         return true;
                     });
@@ -2428,8 +2462,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             node.value.script = _this.message['script'];
                         }
                         else {
-                            node.scriptVal = node.scriptVal || {};
-                            node.scriptVal.script = _this.message['script'];
+                            node['scriptVal'] = node['scriptVal'] || {};
+                            node['scriptVal'].script = _this.message['script'];
                         }
                         CRM.updateCrm();
                         _this.respondSuccess(Helpers.safe(node));
@@ -2445,7 +2479,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         _this.respondSuccess(node.value.script);
                     }
                     else {
-                        (node.scriptVal && _this.respondSuccess(node.scriptVal.script)) ||
+                        (node['scriptVal'] && _this.respondSuccess(node['scriptVal'].script)) ||
                             _this.respondSuccess(undefined);
                     }
                 });
@@ -2464,8 +2498,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             node.value.stylesheet = _this.message['stylesheet'];
                         }
                         else {
-                            node.stylesheetVal = node.scriptVal || {};
-                            node.stylesheetVal.stylesheet = _this.message['stylesheet'];
+                            node['stylesheetVal'] = node['stylesheetVal'] || {};
+                            node['stylesheetVal'].stylesheet = _this.message['stylesheet'];
                         }
                         CRM.updateCrm();
                         _this.respondSuccess(Helpers.safe(node));
@@ -2481,8 +2515,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         _this.respondSuccess(node.value.stylesheet);
                     }
                     else {
-                        (node.stylesheetVall &&
-                            _this.respondSuccess(node.stylesheetVal.stylesheet)) ||
+                        (node['stylesheetVal'] &&
+                            _this.respondSuccess(node['stylesheetVal'].stylesheet)) ||
                             _this.respondSuccess(undefined);
                     }
                 });
@@ -2501,8 +2535,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             node.value.backgroundScript = _this.message['script'];
                         }
                         else {
-                            node.scriptVal = node.scriptVal || {};
-                            node.scriptVal.backgroundScript = _this.message['script'];
+                            node['scriptVal'] = node['scriptVal'] || {};
+                            node['scriptVal'].backgroundScript = _this.message['script'];
                         }
                         CRM.updateCrm([_this.message.nodeId]);
                         _this.respondSuccess(Helpers.safe(node));
@@ -2518,9 +2552,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         _this.respondSuccess(node.value.backgroundScript);
                     }
                     else {
-                        (node
-                            .scriptVal &&
-                            _this.respondSuccess(node.scriptVal.backgroundScript)) ||
+                        (node['scriptVal'] &&
+                            _this.respondSuccess(node['scriptVal'].backgroundScript)) ||
                             _this.respondSuccess(undefined);
                     }
                 });
@@ -2530,7 +2563,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             _this.checkPermissions(['crmGet'], function () {
                 _this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
                     if (node.type === 'menu') {
-                        _this.respondSuccess(node.children);
+                        _this.respondSuccess(node['children']);
                     }
                     else {
                         _this.respondError('Node is not of type menu');
@@ -2558,7 +2591,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 return false;
                             }
                         }
-                        var oldLength = node.children.length;
+                        var oldLength = node['children'].length;
                         for (i = 0; i < _this.message['childrenIds'].length; i++) {
                             var toMove = _this.getNodeFromId(_this.message['childrenIds'][i], false, true);
                             _this.moveNode(toMove, {
@@ -2625,7 +2658,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         type: 'number'
                     }
                 ], function () {
-                    _this.getNodeFromId(_this.message.nodeId, false).run(function (node) {
+                    _this.getNodeFromId(_this.message.nodeId).run(function (node) {
                         if (node.type !== 'menu') {
                             _this.respondError('Node is not of type menu');
                         }
@@ -2658,7 +2691,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             } :
                             data);
                         try {
-                            globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id].port
+                            globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id]
+                                .port
                                 .postMessage(msg);
                         }
                         catch (e) {
@@ -2723,7 +2757,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     console.warn('Message responseCallbacks are not supported');
                 }
                 for (var i = 0; i < instancesArr.length; i++) {
-                    globalObject.globals.crmValues.tabData[instancesArr[i].id].nodes[message.id]
+                    globalObject.globals.crmValues.tabData[instancesArr[i].id].nodes[message
+                        .id]
                         .port.postMessage({
                         messageType: 'instanceMessage',
                         message: args[0]
@@ -2821,7 +2856,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             if (removeOld === void 0) { removeOld = false; }
             var crmFunction = this;
             //Capture old CRM tree
-            var oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree));
+            var oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm
+                .crmTree));
             //Put the node in the tree
             var relativeNode;
             var parentChildren;
@@ -2852,7 +2888,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     else {
                         parentChildren = this.lookup(relativeNode.path, globalObject.globals.crm
                             .crmTree, true);
-                        Helpers.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
+                        Helpers.pushIntoArray(node, relativeNode
+                            .path[relativeNode.path.length - 1], parentChildren);
                         if (removeOld && parentChildren === removeOld.children) {
                             removeOld.index++;
                         }
@@ -2883,7 +2920,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         parentChildren = this.lookup(relativeNode.path, globalObject.globals.crm
                             .crmTree, true);
                         if (relativeNode.path.length > 0) {
-                            Helpers.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1] + 1, parentChildren);
+                            Helpers.pushIntoArray(node, relativeNode
+                                .path[relativeNode.path.length - 1] +
+                                1, parentChildren);
                         }
                     }
                     break;
@@ -2923,7 +2962,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             .globals.crm.crmTree);
                     }
                     else if (relativeNode.type === 'menu') {
-                        Helpers.pushIntoArray(node, relativeNode.children.length, relativeNode.children);
+                        Helpers.pushIntoArray(node, relativeNode.children.length, relativeNode
+                            .children);
                     }
                     else {
                         this.respondError('Supplied node is not of type "menu"');
@@ -3025,19 +3065,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                     }
                     if (!typesMatch) {
-                        this.respondError("Value for " + toCheckName + " is not of type " + toCheckTypes.join(' or '));
+                        this.respondError("Value for " + toCheckName + " is not of type " + toCheckTypes
+                            .join(' or '));
                         return false;
                     }
                     optionals[toCheckName] = true;
                     if (toCheck[i].min !== undefined && typeof toCheckValue === 'number') {
                         if (toCheck[i].min > toCheckValue) {
-                            this.respondError("Value for " + toCheckName + " is smaller than " + toCheck[i].min);
+                            this.respondError("Value for " + toCheckName + " is smaller than " + toCheck[i]
+                                .min);
                             return false;
                         }
                     }
                     if (toCheck[i].max !== undefined && typeof toCheckValue === 'number') {
                         if (toCheck[i].max < toCheckValue) {
-                            this.respondError("Value for " + toCheckName + " is bigger than " + toCheck[i].max);
+                            this.respondError("Value for " + toCheckName + " is bigger than " + toCheck[i]
+                                .max);
                             return false;
                         }
                     }
@@ -3050,7 +3093,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
                                 if (toCheckChildrenValue === undefined || toCheckChildrenValue === null) {
                                     if (!toCheck[i].forChildren[k].optional) {
-                                        this.respondError("For not all values in the array " + toCheckName + " is the property " + toCheckChildrenName + " defined");
+                                        this
+                                            .respondError("For not all values in the array " + toCheckName + " is the property " + toCheckChildrenName + " defined");
                                         return false;
                                     }
                                 }
@@ -3072,7 +3116,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         }
                                     }
                                     if (!typesMatch) {
-                                        this.respondError("For not all values in the array " + toCheckName + " is the property " + toCheckChildrenName + " of type " + toCheckChildrenTypes.join(' or '));
+                                        this
+                                            .respondError("For not all values in the array " + toCheckName + " is the property " + toCheckChildrenName + " of type " + toCheckChildrenTypes.join(' or '));
                                         return false;
                                     }
                                 }
@@ -3090,7 +3135,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             var permitted = true;
             var node;
             if (!(node = globalObject.globals.crm.crmById[this.message.id])) {
-                this.respondError('The node you are running this script from no longer exist, no CRM API calls are allowed');
+                this
+                    .respondError('The node you are running this script from no longer exist, no CRM API calls are allowed');
                 return false;
             }
             if (node.isLocal) {
@@ -3115,7 +3161,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 if (!permitted) {
                     this.respondError("Permission" + (notPermitted.length === 1 ?
                         " " + notPermitted[0] :
-                        "s " + notPermitted.join(', ')) + " are not available to this script.");
+                        "s " + notPermitted
+                            .join(', ')) + " are not available to this script.");
                 }
                 else {
                     var length_1 = optional.length;
@@ -3145,7 +3192,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             var returns = [];
             switch (api) {
                 case 'getBackgroundPage':
-                    console.warn('The chrome.runtime.getBackgroundPage API should not be used');
+                    console
+                        .warn('The chrome.runtime.getBackgroundPage API should not be used');
                     if (!message.args[0] || message.args[0].type !== 'fn') {
                         APIMessaging.ChromeMessage.throwError(message, 'First argument of getBackgroundPage should be a function');
                         return true;
@@ -3193,7 +3241,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     if (returns.length === 0 || args.length === 0) {
                         APIMessaging.ChromeMessage.throwError(message, 'getURL should be a return function with at least one argument');
                     }
-                    APIMessaging.createReturn(message, returns[0])(chrome.runtime.getURL(args[0]));
+                    APIMessaging.createReturn(message, returns[0])(chrome.runtime
+                        .getURL(args[0]));
                     return true;
                 case 'connect':
                 case 'connectNative':
@@ -3312,7 +3361,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             handle: function (message) {
                 var node = globalObject.globals.crm.crmById[message.id];
                 if (!/[a-z|A-Z|0-9]*/.test(message.api)) {
-                    APIMessaging.ChromeMessage.throwError(message, "Passed API \"" + message.api + "\" is not alphanumeric.");
+                    APIMessaging.ChromeMessage.throwError(message, "Passed API \"" + message
+                        .api + "\" is not alphanumeric.");
                     return false;
                 }
                 else if (checkForRuntimeMessages(message)) {
@@ -3325,7 +3375,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     APIMessaging.sendThroughComm(message);
                     return false;
                 }
-                var apiPermission = message.requestType || message.api.split('.')[0];
+                var apiPermission = message
+                    .requestType ||
+                    message.api.split('.')[0];
                 if (!node.isLocal) {
                     var apiFound;
                     var chromeFound = (node.permissions.indexOf('chrome') !== -1);
@@ -3343,11 +3395,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         return false;
                     }
                 }
-                if (globalObject.globals.constants.permissions.indexOf(apiPermission) === -1) {
+                if (globalObject.globals.constants.permissions
+                    .indexOf(apiPermission) ===
+                    -1) {
                     APIMessaging.ChromeMessage.throwError(message, "Permissions " + apiPermission + " is not available for use or does not exist.");
                     return false;
                 }
-                if (globalObject.globals.availablePermissions.indexOf(apiPermission) === -1) {
+                if (globalObject.globals.availablePermissions
+                    .indexOf(apiPermission) ===
+                    -1) {
                     APIMessaging.ChromeMessage.throwError(message, "Permissions " + apiPermission + " not available to the extension, visit options page");
                     chrome.storage.local.get('requestPermissions', function (storageData) {
                         var perms = storageData['requestPermissions'] || [apiPermission];
@@ -3369,7 +3425,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             params.push(createChromeFnCallbackHandler(message, message.args[i].val));
                             break;
                         case 'return':
-                            returnFunctions.push(APIMessaging.createReturn(message, message.args[i].val));
+                            returnFunctions.push(APIMessaging.createReturn(message, message.args[i]
+                                .val));
                             break;
                     }
                 }
@@ -3394,7 +3451,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             //First check if the data has already been fetched
             if (globalObject.globals.storages.urlDataPairs[url]) {
                 if (globalObject.globals.storages.urlDataPairs[url].refs
-                    .indexOf(scriptId) === -1) {
+                    .indexOf(scriptId) ===
+                    -1) {
                     globalObject.globals.storages.urlDataPairs[url].refs.push(scriptId);
                 }
                 callback(globalObject.globals.storages.urlDataPairs[url].dataURI, globalObject.globals.storages.urlDataPairs[url].dataString);
@@ -3484,7 +3542,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             }
             var resourceKeys = globalObject.globals.storages.resourceKeys;
             for (var i = 0; i < resourceKeys.length; i++) {
-                if (resourceKeys[i].name === name && resourceKeys[i].scriptId === scriptId) {
+                if (resourceKeys[i]
+                    .name ===
+                    name &&
+                    resourceKeys[i].scriptId === scriptId) {
                     return;
                 }
             }
@@ -3532,8 +3593,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
                     resources[key.scriptId][key.name].dataURI !== dataURI) {
                     //Data URIs do not match, just update the url ref
-                    globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
-                    globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
+                    globalObject.globals.storages.urlDataPairs[key.sourceUrl]
+                        .dataURI = dataURI;
+                    globalObject.globals.storages.urlDataPairs[key.sourceUrl]
+                        .dataString = dataString;
                     chrome.storage.local.set({
                         resources: resources,
                         urlDataPairs: globalObject.globals.storages.urlDataPairs
@@ -3598,7 +3661,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         if (globalObject.globals.crm.crmById[id].type === 'script') {
                             if (globalObject.globals.crm.crmById[id].value.script) {
                                 var resourceObj = {};
-                                var metaTags = CRM.Script.MetaTags.getMetaTags(globalObject.globals.crm.crmById[id].value
+                                var metaTags = CRM.Script.MetaTags.getMetaTags(globalObject.globals
+                                    .crm.crmById[id].value
                                     .script);
                                 var resources = metaTags['resource'];
                                 var libs = globalObject.globals.crm.crmById[id].value.libraries;
@@ -3640,7 +3704,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         data: data
                     };
                     try {
-                        globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id].port
+                        globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id]
+                            .port
                             .postMessage(msg);
                     }
                     catch (e) {
@@ -3659,7 +3724,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         .toInstanceId] &&
                         tabData[data.toInstanceId] &&
                         tabData[data.toInstanceId].nodes[data.id]) {
-                        if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId]
+                        if (globalObject.globals.crmValues.nodeInstances[data.id][data
+                            .toInstanceId]
                             .hasHandler) {
                             tabData[data.toInstanceId].nodes[data.id].port.postMessage({
                                 messageType: 'instanceMessage',
@@ -3874,11 +3940,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 var scriptExports = {
                     Running: (function () {
                         function urlIsGlobalExcluded(url) {
-                            if (globalObject.globals.storages.globalExcludes.indexOf('<all_urls>') > -1) {
+                            if (globalObject.globals.storages.globalExcludes.indexOf('<all_urls>') >
+                                -1) {
                                 return true;
                             }
                             for (var i = 0; i < globalObject.globals.storages.globalExcludes.length; i++) {
-                                var pattern = globalObject.globals.storages.globalExcludes[i];
+                                var pattern = globalObject.globals.storages
+                                    .globalExcludes[i];
                                 if (pattern && URLParsing.urlMatchesPattern(pattern, url)) {
                                     return true;
                                 }
@@ -3920,9 +3988,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         if (!urlIsGlobalExcluded(tab.url)) {
                                             var toExecute = [];
                                             for (var nodeId in globalObject.globals.toExecuteNodes.onUrl) {
-                                                if (globalObject.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) &&
+                                                if (globalObject.globals.toExecuteNodes.onUrl
+                                                    .hasOwnProperty(nodeId) &&
                                                     globalObject.globals.toExecuteNodes.onUrl[nodeId]) {
-                                                    if (URLParsing.matchesUrlSchemes(globalObject.globals.toExecuteNodes.onUrl[nodeId], tab.url)) {
+                                                    if (URLParsing.matchesUrlSchemes(globalObject.globals
+                                                        .toExecuteNodes.onUrl[nodeId], tab.url)) {
                                                         toExecute.push({
                                                             node: globalObject.globals.crm.crmById[nodeId],
                                                             tab: tab
@@ -3970,7 +4040,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         function registerNode(node, oldPath) {
                             //Update it in CRM tree
                             if (oldPath !== undefined && oldPath !== null) {
-                                eval("globalObject.globals.storages.settingsStorage.crm[" + oldPath.join('][') + "] = node");
+                                eval("globalObject.globals.storages.settingsStorage.crm[" + oldPath
+                                    .join('][') + "] = node");
                             }
                             else {
                                 globalObject.globals.storages.settingsStorage.crm.push(node);
@@ -4052,13 +4123,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             var launchMode;
                             if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_stylesheet')) {
                                 node.type = 'stylesheet';
-                                launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') || 2 /* RUN_ON_SPECIFIED */;
+                                launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') ||
+                                    2 /* RUN_ON_SPECIFIED */;
                                 launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
                                 node.value = {
                                     stylesheet: code,
                                     defaultOn: (metaTags['CRM_defaultOn'] =
-                                        CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_defaultOn') || false),
-                                    toggle: (metaTags['CRM_toggle'] = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_toggle') ||
+                                        CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_defaultOn') ||
+                                            false),
+                                    toggle: (metaTags['CRM_toggle'] = CRM.Script.MetaTags
+                                        .getlastMetaTagValue(metaTags, 'CRM_toggle') ||
                                         false),
                                     launchMode: launchMode
                                 };
@@ -4107,7 +4181,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 for (var i = 0; i < anonymousLibs.length; i++) {
                                     libs.push(anonymousLibs[i].url);
                                 }
-                                launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') || 0;
+                                launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') ||
+                                    0;
                                 launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
                                 node.value = {
                                     script: code,
@@ -4159,7 +4234,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             install: function (message) {
                                 var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
                                     .settingsStorage.crm));
-                                var newScript = CRM.Script.Updating.installUserscript(message.metaTags, message.script, message.downloadURL, message.allowedPermissions);
+                                var newScript = CRM.Script.Updating.installUserscript(message
+                                    .metaTags, message.script, message.downloadURL, message.allowedPermissions);
                                 if (newScript.path) {
                                     var nodePath = newScript.path;
                                     removeOldNode(newScript.oldNodeId);
@@ -4187,7 +4263,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     node.id = Helpers.generateItemId();
                                 }
                                 node.name = (metaTags['name'] = [
-                                    CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name'])[0];
+                                    CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name'
+                                ])[0];
                                 node.triggers = createUserscriptTriggers(metaTags);
                                 createUserscriptTypeData(metaTags, code, node);
                                 var updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'updateURL') ||
@@ -4202,11 +4279,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 }
                                 //NodeInfo
                                 node.nodeInfo = {
-                                    version: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'version') || null,
+                                    version: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'version') ||
+                                        null,
                                     source: {
                                         updateURL: updateUrl || downloadURL,
-                                        url: updateUrl || CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'namespace') || downloadURL,
-                                        author: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'author') || null
+                                        url: updateUrl ||
+                                            CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'namespace') ||
+                                            downloadURL,
+                                        author: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'author') ||
+                                            null
                                     },
                                     isRoot: true,
                                     permissions: permissions,
@@ -4214,7 +4295,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     installDate: new Date().toLocaleDateString()
                                 };
                                 if (hasOldNode) {
-                                    node.nodeInfo.installDate = (globalObject.globals.crm.crmById[oldNodeId] &&
+                                    node.nodeInfo.installDate = (globalObject.globals.crm
+                                        .crmById[oldNodeId] &&
                                         globalObject.globals.crm.crmById[oldNodeId].nodeInfo &&
                                         globalObject.globals.crm.crmById[oldNodeId].nodeInfo.installDate) ||
                                         node.nodeInfo.installDate;
@@ -4222,7 +4304,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 //Content types
                                 if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_contentTypes')) {
                                     try {
-                                        node.onContentTypes = JSON.parse(CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_contentTypes'));
+                                        node.onContentTypes = JSON.parse(CRM.Script.MetaTags
+                                            .getlastMetaTagValue(metaTags, 'CRM_contentTypes'));
                                     }
                                     catch (e) {
                                     }
@@ -4255,7 +4338,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         var requestPermissionsAllowed = allowed.permissions || [];
                                         var requestPermissions = keys['requestPermissions'] || [];
                                         requestPermissions = requestPermissions.concat(node.permissions
-                                            .filter(function (nodePermission) { return (requestPermissionsAllowed.indexOf(nodePermission) ===
+                                            .filter(function (nodePermission) { return (requestPermissionsAllowed
+                                            .indexOf(nodePermission) ===
                                             -1); }));
                                         requestPermissions = requestPermissions.filter(function (nodePermission, index) {
                                             return (requestPermissions.indexOf(nodePermission) === index);
@@ -4270,7 +4354,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     });
                                 });
                                 if (node.type === 'script') {
-                                    node = globalObject.globals.constants.templates.getDefaultScriptNode(node);
+                                    node = globalObject.globals.constants.templates
+                                        .getDefaultScriptNode(node);
                                 }
                                 else {
                                     node = globalObject.globals.constants.templates
@@ -4299,7 +4384,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     .settingsStorage.crm));
                                 function onDone() {
                                     var updatedData = updatedScripts.map(function (updatedScript) {
-                                        var oldNode = globalObject.globals.crm.crmById[updatedScript.oldNodeId];
+                                        var oldNode = globalObject.globals.crm.crmById[updatedScript
+                                            .oldNodeId];
                                         return {
                                             name: updatedScript.node.name,
                                             id: updatedScript.node.id,
@@ -4357,11 +4443,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     node.type === 'stylesheet' ||
                                     node.type === 'menu')) {
                                 try {
-                                    Helpers.convertFileToDataURI("example.com/isUpdated/" + downloadURL.split('/').pop().split('.user.js')[0] + "/" + node.nodeInfo.version, function (dataURI, dataString) {
+                                    Helpers.convertFileToDataURI("example.com/isUpdated/" + downloadURL.split('/').pop()
+                                        .split('.user.js')[0] + "/" + node.nodeInfo.version, function (dataURI, dataString) {
                                         try {
                                             var resultParsed = JSON.parse(dataString);
                                             if (resultParsed.updated) {
-                                                if (!Helpers.compareArray(node.nodeInfo.permissions, resultParsed.metaTags
+                                                if (!Helpers.compareArray(node.nodeInfo.permissions, resultParsed
+                                                    .metaTags
                                                     .grant) &&
                                                     !(resultParsed.metaTags.grant.length === 0 &&
                                                         resultParsed.metaTags.grant[0] === 'none')) {
@@ -4372,7 +4460,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                                             node: node.id,
                                                             permissions: resultParsed.metaTags.grant
                                                                 .filter(function (newPermission) {
-                                                                return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+                                                                return node.nodeInfo.permissions
+                                                                    .indexOf(newPermission) ===
+                                                                    -1;
                                                             })
                                                         });
                                                         chrome.storage.local.set({
@@ -4410,8 +4500,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                             Helpers.convertFileToDataURI(downloadURL, function (dataURI, dataString) {
                                                 //Get the meta tags
                                                 try {
-                                                    var metaTags = getExports().Script.MetaTags.getMetaTags(dataString);
-                                                    if (Helpers.isNewer(metaTags['version'][0], node.nodeInfo.version)) {
+                                                    var metaTags = getExports().Script.MetaTags
+                                                        .getMetaTags(dataString);
+                                                    if (Helpers.isNewer(metaTags['version'][0], node.nodeInfo
+                                                        .version)) {
                                                         if (!Helpers.compareArray(node.nodeInfo.permissions, metaTags['grant']) &&
                                                             !(metaTags['grant']
                                                                 .length ===
@@ -4423,7 +4515,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                                                 addedPermissions.push({
                                                                     node: node.id,
                                                                     permissions: metaTags['grant'].filter(function (newPermission) {
-                                                                        return node.nodeInfo.permissions.indexOf(newPermission) === -1;
+                                                                        return node.nodeInfo.permissions
+                                                                            .indexOf(newPermission) ===
+                                                                            -1;
                                                                     })
                                                                 });
                                                                 chrome.storage.local.set({
@@ -4530,7 +4624,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                             //Resource hasn't been registered with its name, try if it's an anonymous one
                                             if (node.value.libraries[i].name === null) {
                                                 //Check if the value has been registered as a resource
-                                                if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i]
+                                                if (globalObject.globals.storages.urlDataPairs[node.value
+                                                    .libraries[i]
                                                     .url]) {
                                                     lib = {
                                                         code: globalObject.globals.storages.urlDataPairs[node.value
@@ -4584,7 +4679,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     err = e;
                                 }
                                 if (!err) {
-                                    globalObject.globals.crmValues.tabData[0] = globalObject.globals.crmValues
+                                    globalObject.globals.crmValues.tabData[0] = globalObject.globals
+                                        .crmValues
                                         .tabData[0] ||
                                         {
                                             libraries: {},
@@ -4594,8 +4690,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         secretKey: key
                                     };
                                     Logging.Listeners.updateTabAndIdLists();
-                                    var metaData = getExports().Script.MetaTags.getMetaTags(node.value.script);
-                                    var metaString = getExports().Script.MetaTags.getMetaLines(node.value.script) || undefined;
+                                    var metaData = getExports().Script.MetaTags.getMetaTags(node.value
+                                        .script);
+                                    var metaString = getExports().Script.MetaTags.getMetaLines(node.value
+                                        .script) ||
+                                        undefined;
                                     var runAt = metaData['run-at'] || 'document_end';
                                     var excludes = [];
                                     var includes = [];
@@ -4613,7 +4712,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     }
                                     else {
                                         indentUnit = new Array(globalObject.globals.storages.settingsStorage
-                                            .editor.tabSize || 2).join('');
+                                            .editor.tabSize ||
+                                            2).join('');
                                     }
                                     var script = node.value.backgroundScript.split('\n').map(function (line) {
                                         return indentUnit + line;
@@ -4677,7 +4777,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     code = [
                                         code.join('\n'), [
                                             ("var crmAPI = new CrmAPIInit(" + [
-                                                getExports().makeSafe(node), node.id, { id: 0 }, {}, key, nodeStorage,
+                                                getExports().makeSafe(node), node.id, { id: 0 }, {}, key,
+                                                nodeStorage,
                                                 greaseMonkeyData, true
                                             ]
                                                 .map(function (param) {
@@ -4755,7 +4856,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 };
                                 Logging.Listeners.updateTabAndIdLists();
                                 var metaData = getExports().Script.MetaTags.getMetaTags(node.value.script);
-                                var metaString = getExports().Script.MetaTags.getMetaLines(node.value.script) || undefined;
+                                var metaString = getExports().Script.MetaTags.getMetaLines(node.value
+                                    .script) ||
+                                    undefined;
                                 var runAt = metaData['run-at'] || 'document_end';
                                 var excludes = [];
                                 var includes = [];
@@ -4829,14 +4932,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     indentUnit = '	';
                                 }
                                 else {
-                                    indentUnit = new Array([globalObject.globals.storages.settingsStorage.editor.tabSize || 2]).join(' ');
+                                    indentUnit = new Array([
+                                        globalObject.globals.storages.settingsStorage.editor.tabSize || 2
+                                    ]).join(' ');
                                 }
                                 var script = node.value.script.split('\n').map(function (line) {
                                     return indentUnit + line;
                                 }).join('\n');
                                 var code = [
                                     [
-                                        ("var crmAPI = new CrmAPIInit(" + [getExports().makeSafe(node), node.id, tab, info, key, nodeStorage, greaseMonkeyData]
+                                        ("var crmAPI = new CrmAPIInit(" + [
+                                            getExports().makeSafe(node), node.id, tab, info, key, nodeStorage,
+                                            greaseMonkeyData
+                                        ]
                                             .map(function (param) {
                                             return JSON.stringify(param);
                                         }).join(', ') + ");")
@@ -4864,7 +4972,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                                 //Resource hasn't been registered with its name, try if it's an anonymous one
                                                 if (node.value.libraries[i].name === null) {
                                                     //Check if the value has been registered as a resource
-                                                    if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i]
+                                                    if (globalObject.globals.storages.urlDataPairs[node.value
+                                                        .libraries[i]
                                                         .url]) {
                                                         lib = {
                                                             code: globalObject.globals.storages.urlDataPairs[node.value
@@ -5035,7 +5144,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     'var CRMSSInsert=document.createElement("style");',
                                     ("CRMSSInsert.className=\"styleNodes" + className + "\";"),
                                     'CRMSSInsert.type="text/css";',
-                                    ("CRMSSInsert.appendChild(document.createTextNode(" + JSON.stringify(css) + "));"),
+                                    ("CRMSSInsert.appendChild(document.createTextNode(" + JSON
+                                        .stringify(css) + "));"),
                                     'document.head.appendChild(CRMSSInsert);'
                                 ].join('');
                             }
@@ -5058,7 +5168,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 'var CRMSSInsert=document.createElement("style");',
                                 ("CRMSSInsert.classList.add(\"styleNodes" + className + "\");"),
                                 'CRMSSInsert.type="text/css";',
-                                ("CRMSSInsert.appendChild(document.createTextNode(" + JSON.stringify(node.value.stylesheet) + "));"),
+                                ("CRMSSInsert.appendChild(document.createTextNode(" + JSON.stringify(node
+                                    .value.stylesheet) + "));"),
                                 'document.head.appendChild(CRMSSInsert);',
                                 '}());'
                             ].join('');
@@ -5190,12 +5301,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         globalObject.globals.crm.crmById[node.id].value.stylesheet !==
                             node.value.stylesheet) {
                         //Update after creating a new node
-                        for (var key in globalObject.globals.crmValues.stylesheetNodeStatusses[node
+                        for (var key in globalObject.globals.crmValues
+                            .stylesheetNodeStatusses[node
                             .id]) {
                             if (globalObject.globals.crmValues.stylesheetNodeStatusses
                                 .hasOwnProperty(key) &&
                                 globalObject.globals.crmValues.stylesheetNodeStatusses[key]) {
-                                if (globalObject.globals.crmValues.stylesheetNodeStatusses[node.id][key] &&
+                                if (globalObject.globals.crmValues.stylesheetNodeStatusses[node
+                                    .id][key] &&
                                     key !== 'defaultValue') {
                                     replaceOnTabs.push({
                                         id: key
@@ -5208,7 +5321,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
                 function addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder) {
                     //On by default
-                    if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
+                    if (node
+                        .type ===
+                        'stylesheet' &&
+                        node.value.toggle &&
+                        node.value.defaultOn) {
                         if (launchMode === 1 /* ALWAYS_RUN */ ||
                             launchMode === 0 /* RUN_ON_CLICKING */) {
                             globalObject.globals.toExecuteNodes.always.push(node);
@@ -5251,11 +5368,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         case 'stylesheet':
                             if (node.value.toggle) {
                                 rightClickItemOptions.type = 'checkbox';
-                                rightClickItemOptions.onclick = getExports().Stylesheet.createToggleHandler(node);
+                                rightClickItemOptions.onclick = getExports().Stylesheet
+                                    .createToggleHandler(node);
                                 rightClickItemOptions.checked = node.value.defaultOn;
                             }
                             else {
-                                rightClickItemOptions.onclick = getExports().Stylesheet.createClickHandler(node);
+                                rightClickItemOptions.onclick = getExports().Stylesheet
+                                    .createClickHandler(node);
                             }
                             globalObject.globals.crmValues.stylesheetNodeStatusses[node.id] = {
                                 defaultValue: node.value.defaultOn
@@ -5291,7 +5410,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     idHolder.id = id;
                 }
                 function setLaunchModeData(node, rightClickItemOptions, idHolder) {
-                    var launchMode = (node.value && node.value.launchMode) || 0 /* RUN_ON_CLICKING */;
+                    var launchMode = (node.value && node.value.launchMode) ||
+                        0 /* RUN_ON_CLICKING */;
                     if (launchMode === 1 /* ALWAYS_RUN */) {
                         globalObject.globals.toExecuteNodes.always.push(node);
                     }
@@ -5489,7 +5609,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     if (matchPattern.indexOf('/') === 0 &&
                         matchPattern.split('').reverse().join('').indexOf('/') === 0) {
                         //It's regular expression
-                        if (new RegExp(matchPattern.slice(1, matchPattern.length - 1)).test(url)) {
+                        if (new RegExp(matchPattern.slice(1, matchPattern.length - 1))
+                            .test(url)) {
                             if (not) {
                                 return false;
                             }
@@ -5629,7 +5750,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             checkBackgroundPagesForChange: function (changes, toUpdate) {
                 if (toUpdate === void 0) { toUpdate = []; }
                 toUpdate.forEach(function (id) {
-                    CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id]);
+                    CRM.Script.Background.createBackgroundPage(globalObject.globals.crm
+                        .crmById[id]);
                 });
                 //Check if any background page updates occurred
                 for (var i = 0; i < changes.length; i++) {
@@ -5640,7 +5762,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             if (ordered.hasOwnProperty(id)) {
                                 if (globalObject.globals.background.byId[id] &&
                                     globalObject.globals.background.byId[id].script !== ordered[id]) {
-                                    CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id]);
+                                    CRM.Script.Background.createBackgroundPage(globalObject.globals.crm
+                                        .crmById[id]);
                                 }
                             }
                         }
@@ -5660,7 +5783,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         break;
                     case 'settings':
                         if (useStorageSync !== null) {
-                            globalObject.globals.storages.storageLocal.useStorageSync = useStorageSync;
+                            globalObject.globals.storages.storageLocal
+                                .useStorageSync = useStorageSync;
                         }
                         var settingsJson = JSON.stringify(globalObject.globals.storages
                             .settingsStorage);
@@ -5669,7 +5793,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 settings: globalObject.globals.storages.settingsStorage
                             }, function () {
                                 if (chrome.runtime.lastError) {
-                                    console.log('Error on uploading to chrome.storage.local ', chrome.runtime
+                                    console.log('Error on uploading to chrome.storage.local ', chrome
+                                        .runtime
                                         .lastError);
                                 }
                                 else {
@@ -5702,7 +5827,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 chrome.storage.sync.set(obj, function () {
                                     if (chrome.runtime.lastError) {
                                         //Switch to local storage
-                                        console.log('Error on uploading to chrome.storage.sync ', chrome.runtime
+                                        console.log('Error on uploading to chrome.storage.sync ', chrome
+                                            .runtime
                                             .lastError);
                                         chrome.storage.local.set({
                                             useStorageSync: false
@@ -6018,7 +6144,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             else {
                                 indent = new Array(spacesAmount).join(' ');
                             }
-                            for (var i = callLine.to.line + 1; i < data.persistent.lines.length; i++) {
+                            for (var i = callLine.to
+                                .line +
+                                1; i < data.persistent.lines.length; i++) {
                                 data.persistent.lines[i] = indent + data.persistent.lines[i];
                             }
                             data.persistent.lines.push('}).send();');
@@ -6056,7 +6184,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
                                 data.expression = callee;
                                 var expr = this.getFunctionCallExpressions(data);
-                                var callLines = this.getCallLines(data.persistent.lines, data.persistent
+                                var callLines = this.getCallLines(data.persistent.lines, data
+                                    .persistent
                                     .lineSeperators, expr.start, expr.end);
                                 if (data.isReturn && !data.isValidReturn) {
                                     callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent
@@ -6178,7 +6307,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     return true;
                                 }
                                 if (expression.alternate &&
-                                    this.findChromeExpression(expression.alternate, this.removeObjLink(data), onError)) {
+                                    this.findChromeExpression(expression.alternate, this
+                                        .removeObjLink(data), onError)) {
                                     return true;
                                 }
                                 break;
@@ -6188,7 +6318,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 if (this.findChromeExpression(expression.left, this.removeObjLink(data), onError)) {
                                     return true;
                                 }
-                                if (this.findChromeExpression(expression.right, this.removeObjLink(data), onError)) {
+                                if (this.findChromeExpression(expression.right, this
+                                    .removeObjLink(data), onError)) {
                                     return true;
                                 }
                                 break;
@@ -6442,7 +6573,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             }, 200);
                         }
                         else {
-                            var result = _this.handleFirstRun(TransferFromOld.transferCRMFromOld(localStorage
+                            var result = _this.handleFirstRun(TransferFromOld
+                                .transferCRMFromOld(localStorage
                                 .getItem('whatpage')));
                             resolve(result);
                         }
