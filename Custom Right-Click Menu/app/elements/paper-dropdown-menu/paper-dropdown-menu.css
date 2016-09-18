@@ -51,7 +51,7 @@ paper-menu .content {
 	display: none;
 }
 
-.menuSelectedCheckmark, .addLibraryPlusImg, span {
+.menuSelectedCheckmark, .addLibraryPlusImg {
 	margin-right: 0 !important;
 }
 
