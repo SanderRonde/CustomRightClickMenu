@@ -1,55 +1,5 @@
 ﻿(function() {
-	var el = React.DOM;
-
-	var line = React.createClass({
-		openTab: function() {
-
-		},
-
-		render: function() {
-			return (
-				el.div({
-					className: 'line',
-					error: this.value.type === 'error',
-				},
-					el.div({
-						className: 'lineData',
-					},
-						el.div({
-							className: 'lineTimestamp'
-						}, 
-							this.timestamp
-							),
-						el.div({
-							className: 'lineContent'
-							})
-						),
-					el.div({
-						className: 'lineSource'
-					},
-						el.span({
-							className: 'lineSourceIdCont',
-							title: this.nodeTitle
-						},
-							'[id-',
-							el.span({
-								className: 'lineSourceId'
-							},
-								this.id
-								)
-							),
-						el.span({
-							className: 'lineSourceTabCont',
-							onClick: this.openTab
-						})
-						)
-					)
-				)
-		}
-	});
-
-	console.log(x);
-
+	'use strict';
 	Polymer({
 		is: 'log-console',
 
@@ -57,8 +7,8 @@
 
 		properties: {
 			lines: {
-				type: Array,
-				value: [],
+				value: 0,
+				type: Number,
 				notify: true
 			},
 			ids: {
@@ -72,7 +22,7 @@
 				value: 0
 			},
 			selectedTab: {
-				type: Number,
+				type: Number, 
 				notify: true,
 				value: 0
 			},
@@ -98,6 +48,10 @@
 			_this: {
 
 			}
+		},
+
+		set lines(value) {
+			console.log(value);
 		},
 
 		observers: [
@@ -180,15 +134,15 @@
 
 		_updateLog: function(selectedId, selectedTab, textfilter) {
 			var tabVal = this.tabs && this.tabs[~~selectedTab - 1];
-			this.lines = (this._logListener && this._logListener.update(
-				~~this.ids[~~selectedId - 1], 
-				tabVal === 'background' ? tabVal : ~~tabVal,
-				textfilter
-			)) || [];
+			// this.lines = (this._logListener && this._logListener.update(
+			// 	~~this.ids[~~selectedId - 1], 
+			// 	tabVal === 'background' ? tabVal : ~~tabVal,
+			// 	textfilter
+			// )) || [];
 		},
 
 		_getTotalLines: function(lines) {
-			return lines.length;
+			return this.lines;
 		},
 
 		_getIdTabs: function(selectedId, tabs) {
@@ -211,30 +165,7 @@
 		},
 
 		_processLine: function(line) {
-			var _this = this;
-			line.content = _this._specialJSON.fromJson(line.value).map(function(value) {
-				var result = {
-					value: value
-				};
-				switch (typeof value) {
-					case 'function':
-						result.tag = 'function';
-						result.value = value.toString();
-						break;
-					case 'object':
-						if (Array.isArray(value)) {
-							result.tag = 'array';
-						} else {
-							result.tag = 'object';
-						}
-						break;
-					default:
-						result.tag = 'string';
-						break;
-				}
-				return result;
-			});
-			return line;
+			this.logLines.add(this._specialJSON.fromJson(line.value), line);
 		},
 
 		_processEvalLine: function(line) {
@@ -255,63 +186,6 @@
 			this.waitingForEval = false;
 		},
 
-		_generateLine: function(lineValue) {
-			var line = document.createElement('div');
-			line.classList.add('line');
-
-			line.innerHTML = [
-				'<div class="lineData">',
-					'<div class="lineTimestamp">[[line.timestamp]]</div>',
-					'<div class="lineContent"></div>',
-				'</div>',
-				'<div class="lineSource">',
-					'<span class="lineSourceIdCont" title="' + lineValue.nodeTitle + 
-					'">[id-<span class="lineSourceId">' + lineValue.id +
-					'</span>]</span><span class="lineSourceTabCont" tabindex="1" title="' + 
-					lineValue.tabTitle + '">[tab-<span class="lineSourceTab">' + 
-					lineValue.tabId + '</span>]</span><span class="lineSourceLineCont">' + 
-					'@<span class="lineSourceLineNumber">' + lineValue.lineNumber.trim() + '</span></span>',
-				'</div>'].join('\n');
-			line.querySelector('.lineSourceTabCont').addEventListener('click', this._takeToTab);
-
-			return {
-				line: line,
-				lineCont: line.querySelector('.lineContent')
-			}
-		},
-
-		_generateHTML: function(lineValue) {
-			var _this = this;
-			var lineResult = this._generateLine(lineValue);
-
-			var line = lineResult.line;
-			var lineCont = lineResult.lineCont;
-			
-			this.specialJSON.fromJson(line.value).map(function(value) {
-				switch (typeof value) {
-					case 'function':
-						result.tag = 'function';
-						result.value = value.toString();
-						break;
-					case 'object':
-						if (Array.isArray(value)) {
-							result.tag = 'array';
-						} else {
-							result.tag = 'object';
-						}
-						break;
-					default:
-						result.tag = 'string';
-						break;
-				}
-				return value;
-			}).forEach(function(value) {
-				lineCont.appendChild(value);
-			});
-
-			return line;
-		},
-
 		_init: function(onDone) {
 			var _this = this;
 			chrome.runtime.getBackgroundPage(function(bgPage) {
@@ -325,18 +199,20 @@
 				bgPage._listenTabs(function(tabs) {
 					_this.set('tabs', tabs);
 				});
-				_this.set('lines', bgPage._listenLog(function(logLine) {
+				bgPage._listenLog(function(logLine) {
 					if (logLine.type && logLine.type === 'evalResult') {
-						_this.push('lines', _this._processEvalLine(logLine));
+						_this._processEvalLine(logLine)
+					} else if (logLine.type && logLine.type === 'hints') {
+						_this._processLine(logLine);
 					} else {
 						this.$.lines.appendChild(_this._generateHTML(logLine));
 						//_this.push('lines', _this._processLine(logLine));
 					}
 				}, function(logListener) {
 					_this._logListener = logListener;
-				}).map(function(logLine) {
-					return _this._processLine(logLine);
-				}));
+				}).forEach(function(logLine) {
+					_this._processLine(logLine);
+				});
 			});
 
 			this.async(function() {
@@ -363,10 +239,163 @@
 			}, 1000);
 		},
 
+		_contextStoreAsLocal: function() {
+			var source = this.$.contextMenu.source;
+			var sourceVal = source.props.value;
+
+			//Get the LogLine
+			while (source.props.parent) {
+				sourceVal = source.props.value;
+				source = source.props.parent;
+			}
+
+			var sourceLine = source;
+
+			//Get the index of this element in the logLine
+			var index = sourceLine.props.value.indexOf(sourceVal);
+
+			var logLine = sourceLine.props.line;
+		
+			//Send a message to the background page
+			chrome.runtime.sendMessage({
+				type: 'createLocalLogVariable',
+				data: {
+					code: {
+						index: index,
+						path: this._contextCopyPath(true),
+						logId: logLine.logId
+					},
+					id: logLine.id,
+					tab: logLine.tabId,
+					logListener: this._logListener
+				}
+			});
+		},
+
+		_contextLogValue: function() {
+			var source = this.$.contextMenu.source;
+			this.logLines.add([source.props.value], {
+				id: 'local',
+				tabId: 'local',
+				nodeTitle: 'logger page',
+				tabTitle: 'logger page',
+				value: [source.props.value],
+				lineNumber: '<log-console>:0:0',
+				timestamp: new Date().toLocaleString()
+			});
+		},
+
+		_contextClearConsole: function() {
+			this.logLines.clear();
+		},
+
+		_copy: function(value) {
+			this.$.copySource.innerText = value;
+			var snipRange = document.createRange();
+			snipRange.selectNode(this.$.copySource);
+			var selection = window.getSelection();
+			selection.removeAllRanges();
+			selection.addRange(snipRange);
+			try {
+				document.execCommand('copy');
+			} catch(e) {
+				console.log(e);
+			}
+
+			selection.removeAllRanges();
+		},
+
+		_contextCopyAsJSON: function() {
+			var value = this.$.contextMenu.source.props.value;
+			this._copy(JSON.stringify(value, function(key, value) {
+				if (key === '__parent' || key === '__proto__') {
+					return undefined;
+				}
+				return value;
+			}) || '');	
+		},
+
+		_contextCopyPath: function(noCopy) {
+			var path = [];
+			var source = this.$.contextMenu.source;
+			var childValue = source.props.value;
+			while (source.props.parent && !source.props.parent.isLine()) {
+				source = source.props.parent;
+				if (Array.isArray(source.props.value)) {
+					path.push('[' + source.props.value.indexOf(childValue) + ']');
+				} else {
+					var keys = Object.getOwnPropertyNames(source.props.value).concat(['__proto__']);
+					var foundValue = false;
+					for (var i = 0; i < keys.length; i++) {
+						if (source.props.value[keys[i]] === childValue) {
+							if (/[a-z|A-Z]/.exec(keys[i].charAt(0))) {
+								path.push('.' + keys[i]);
+							} else {
+								path.push('["' + keys[i] + '"]');
+							}
+							foundValue = true;
+							break;
+						}
+					}
+					if (!foundValue) {
+						return false;
+					}
+				}
+				childValue = source.props.value;
+			}
+
+			if (!noCopy) {
+				this._copy(path.reverse().join(''));
+			} else {
+				return path.reverse().join('');
+			}
+		},
+
+		_setPossibleOptions: function(source) {
+			var enableCopyAsJSON = false;
+			try {
+				JSON.stringify(source.props.value, function(key, value) {
+					if (key === '__parent' || key === '__proto__') {
+						return undefined;
+					}
+					return value;
+				}) !== undefined;
+				enableCopyAsJSON = true;
+			} catch(e) { console.log(e); }
+
+			var logLine = source;
+			do { logLine = logLine.props.parent; } while (logLine.props.parent);
+			var enableCreateLocalVar = !!logLine.props.line.logId;
+
+			this.$.copyAsJSON.classList[enableCopyAsJSON ? 'remove' : 'add']('disabled');
+			this.$.storeAsLocal.classList[enableCreateLocalVar ? 'remove': 'add']('disabled');
+		},
+
+		initContextMenu: function(source, event) {
+			var contextMenu = this.$.contextMenu;
+			contextMenu.style.left = event.clientX + 'px';
+			contextMenu.style.top = event.clientY + 'px';
+			contextMenu.source = source;
+
+			this._setPossibleOptions(source);
+
+			contextMenu.classList.add('visible');
+		},
+
 		ready: function() {
-			var _this = this;
-			this._this = this;
+			var _this = this._this = this;
 			window.logConsole = this;
+
+			_this.logLines = ReactDOM.render(
+				React.createElement(
+					window.logElements.logLines, {
+						items: []
+					}),
+				this.$.lines);
+
+			document.body.addEventListener('click', function() {
+				_this.$.contextMenu.classList.remove('visible');
+			});
 
 			this.async(function() {
 				this._init(function() {
