@@ -121,107 +121,9 @@
 			see: http://dojotoolkit.org/license for details
 		*/
 		var specialJSON = {
-			toJson: function(it, prettyPrint, idPrefix, indexSubObjects){
-				var useRefs = this._useRefs;
-				var addProp = this._addProp;
-				var refAttribute = this.refAttribute;
-				idPrefix = idPrefix || ''; // the id prefix for this context
-				var paths={};
-				var generated = {};
-				function serialize(it,path,_indentStr){
-					if(typeof it == 'object' && it){
-						var value;
-						if(it instanceof Date){ // properly serialize dates
-							return '"' + it.toLocaleString() + '"';
-						}
-						var id = it.__id;
-						if(id){ // we found an identifiable object, we will just serialize a reference to it... unless it is the root
-							if(path != '#' && ((useRefs && !id.match(/#/)) || paths[id])){
-								var ref = id;	
-								if(id.charAt(0)!='#'){
-									if(it.__clientId == id){
-										ref = "cid:" + id;
-									}else if(id.substring(0, idPrefix.length) == idPrefix){ // see if the reference is in the current context
-										// a reference with a prefix matching the current context, the prefix should be removed
-										ref = id.substring(idPrefix.length);
-									}else{
-										// a reference to a different context, assume relative url based referencing
-										ref = id;
-									}
-								}
-								var refObject = {};
-								refObject[refAttribute] = ref;
-								return serialize(refObject,'#');
-							}
-							path = id;
-						}else{
-							it.__id = path; // we will create path ids for other objects in case they are circular
-							generated[path] = it;
-						}
-						paths[path] = it;// save it here so they can be deleted at the end
-						_indentStr = _indentStr || "";
-						var nextIndent = prettyPrint ? _indentStr + '	' : "";
-						var newLine = prettyPrint ? "\n" : "";
-						var sep = prettyPrint ? " " : "";
-			
-						if(it instanceof Array){
-							var res = it.map(function(obj,i){
-								var val = serialize(obj, addProp(path, i), nextIndent);
-								if(typeof val != "string"){
-									val = "undefined";
-								}
-								return newLine + nextIndent + val;
-							});
-							return "[" + res.join("," + sep) + newLine + _indentStr + "]";
-						}
-			
-						var output = [];
-						for(var i in it){
-							if(it.hasOwnProperty(i)){
-								var keyStr;
-								if(typeof i == "number"){
-									keyStr = '"' + i + '"';
-								}else if(typeof i == "string" && (i.charAt(0) != '_' || i.charAt(1) != '_')){
-									// we don't serialize our internal properties __id and __clientId
-									keyStr = ('"' + i.replace(/(["\\])/g, '\\$1') + '"')
-										.replace(/[\f]/g, "\\f")
-										.replace(/[\b]/g, "\\b")
-										.replace(/[\n]/g, "\\n")
-	 	                				.replace(/[\t]/g, "\\t")
-										.replace(/[\r]/g, "\\r");
-								}else{
-									// skip non-string or number keys
-									continue;
-								}
-								var val = serialize(it[i],addProp(path, i),nextIndent);
-								if(typeof val != "string"){
-									// skip non-serializable values
-									continue;
-								}
-								output.push(newLine + nextIndent + keyStr + ":" + sep + val);
-							}
-						}
-						return "{" + output.join("," + sep) + newLine + _indentStr + "}";
-					}else if(typeof it == "function" && specialJSON.serializeFunctions){
-						return it.toString();
-					}
-			
-					return JSON.stringify(it); // use the default serializer for primitives
-				}
-				var json = serialize(it,'#','');
-				if(!indexSubObjects){
-					for(var i in generated)  {// cleanup the temporary path-generated ids
-						delete generated[i].__id;
-					}
-				}
-				return json;
-			},
-			_addProp: function(id, prop){
-				return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
-			},
-			refAttribute: "$ref",
-			_useRefs: false,
-			serializeFunctions: true
+			toJson: function(data) {
+				
+			}
 		}
 		//#endregion
 
@@ -429,7 +331,7 @@
 			try {
 				val = {
 					type: 'success',
-					result: specialJSON.toJson(eval(message.code))
+					result: specialJSON.toJson(eval.apply(window, [message.code]))
 				};
 				lineNumber = '<crmapi>:0';
 
@@ -462,6 +364,155 @@
 			});
 		}
 
+		function getObjectProperties(target) {
+			var prototypeKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(target));
+			var targetKeys = [];
+			for (var key in target) {
+				targetKeys.push(key);
+			}
+
+			return prototypeKeys.concat(targetKeys);
+		}
+
+		var leadingWordRegex = /^(\w+)/;
+		var sectionRegex = /^((\[(['"`])(\w+)\3\])|(\.(\w+)))/;
+		var endRegex = /^(\.(\w+)?|\[((['"`])((\w+)(\11)?)?)?)?/;
+		function getCodeSections(code) {
+			var leadingWord = code.exec(leadingWordRegex)[1];
+			code = code.slice(leadingWord.length);
+
+			var subsections = [];
+			var subsection;
+			while ((subsection = sectionRegex.exec(code))) {
+				var word = subsection[4] || subsection[5];
+				subsections.push(word);
+				code = code.slice(word.length);
+			}
+
+			var end = endRegex.exec(code);
+			if (end) {
+				end = {
+					type: end[3] ? 'brackets' : 'dotnotation',
+					currentWord: end[2] || end[6]
+				};
+			}
+			return {
+				lead: leadingWord,
+				words: subsections,
+				end: end
+			}
+		}
+
+		var hintRegex = /^(\w+)((\[(['"`])(\w+)\4\])|(\.(\w+)))+(\.(\w+)?|\[((['"`])((\w+)(\11)?)?)?)$/;
+		function getSuggestions(message) {
+			var isValidString = hintRegex.exec(message.code);
+			var strSections = getCodeSections(message.code);
+			if (!strSections.end) {
+				return null;
+			}
+
+			if (!(strSections.lead in window)) {
+				return null;
+			}
+			var target = window[strSections.lead];
+			if (target) {
+				var i;
+				for (i = 0; i < strSections.words.length; i++) {
+					if (!(strSections.words[i] in target)) {
+						return null;
+					}
+					target = target[strSections.words[i]];
+				}
+
+				//Now for the actual hinting
+				var hints = {
+					full: [],
+					partial: []
+				};
+
+				var properties = getObjectProperties(target);
+				for (i = 0; i < properties.length; i++) {
+					if (properties[i] === strSections.end.currentWord) {
+						hints.full.push(properties[i]);
+					} else if (properties[i].indexOf(strSections.end.currentWord) === 0) {
+						hints.partial.push(properties[i]);
+					}
+				}
+
+				return hints.full.sort().concat(hints.partial.sort());
+			}
+			return null;
+		}
+
+		function getHints(message) {
+			var suggestions = getSuggestions(message);
+			suggestions = suggestions || [];
+
+			sendMessage({
+				id: id,
+				type: 'displayHints',
+				tabId: _this.tabId,
+				data: {
+					hints: suggestions,
+					id: id,
+					callbackIndex: message.logCallbackIndex,
+					tabId: _this.tabId
+				}
+			});
+		}
+
+		function saveLogValue(value, container, str) {
+			if (typeof value === 'object') {
+				if (Array.isArray(value)) {
+					for (var i = 0; i < value.length; i++) {
+						var elString = str + '[' + i + ']';
+						container[elString] = value[i];
+						saveLogValue(value[i], container, elString)
+					}
+				} else {
+					Object.getOwnPropertyNames(value).forEach(function(key) {
+						var elString;
+						if (/[a-z|A-Z]/.exec(key[0])) {
+							elString = str + '.' + key;
+						} else {
+							elString = str + '["' + key + '"]';
+						}
+
+						container[elString] = value[key];
+						saveLogValue(value[key], container, elString);
+					});
+				}
+			}
+			return container;
+		}
+
+		var sentLogs = ['filler'];
+		function saveLogValues(arr) {
+			var easyMode = false;
+			try {
+				JSON.stringify(arr);
+				easyMode = true;
+			} catch(e) { }
+
+			if (easyMode) {
+				sentLogs.push(arr.map(function(value) {
+					return saveLogValue(value, [], '');
+				}));
+			} else {
+				
+			}
+
+
+			sentLogs.push(arr);
+			return sentLogs.length - 1;
+		}
+
+		function createLocalVariable(message) {
+			var log = sentLogs[message.code.logId];
+
+			
+		}
+
 		function messageHandler(message) {
 			if (queue) {
 				//Update instance array
@@ -478,8 +529,11 @@
 					case 'callback':
 						callbackHandler(message);
 						break;
-					case 'executeCode':
+					case 'executeCRMCode':
 						executeCode(message);
+						break;
+					case 'getCRMMHints':
+						getHints(message);
 						break;
 					case 'storageUpdate':
 						remoteStorageChange(message.changes);
@@ -495,6 +549,9 @@
 						break;
 					case 'backgroundMessage':
 						backgroundPageMessageHandler(message);
+						break;
+					case 'createLocalLogVariable':
+						createLocalVariable(message);
 						break;
 				}
 			}
@@ -2783,14 +2840,18 @@
 			var errSplit = err.split('at');
 			var lineNumber = errSplit.slice(1, errSplit.length).join('at');
 
+			var args = Array.prototype.slice.apply(arguments);
+			var data = specialJSON.toJson(args);
+
 			sendMessage({
 				id: id,
 				type: 'logCrmAPIValue',
 				tabId: _this.tabId,
 				data: {
 					type: 'log',
-					data: specialJSON.toJson(Array.prototype.slice.apply(arguments)),
+					data: data,
 					id: id,
+					logId: saveLogValues(args),
 					lineNumber: lineNumber,
 					tabId: _this.tabId
 				}
