@@ -1,4 +1,9 @@
-﻿#consoleCont {
+﻿/*console*/
+#copySource {
+	opacity: 0;
+}
+
+#consoleCont {
 	margin: 10px;
 	width: calc(100vw - 20px);
 	height: calc(100vh - 84px);
@@ -30,24 +35,20 @@
 
 .lineTimestamp {
 	color: rgb(200,200,200);
-	display: inline-block;
+	display: inline;
 	margin-right: 10px;
 }
 
 .lineContent {
 	color: rgb(255,255,255);
-	display: flex;
+	display: inline;
 }
 
-.line {
+.logLine {
 	border-bottom: 1px solid rgb(60,60,60);
-	margin: 1px 0;
+	margin: 3px 0;
 	display: flex;
 	justify-content: space-between;
-}
-
-.lineContent > echo-html > * {
-	display: inline-block;
 }
 
 #consoleInfo {
@@ -245,28 +246,136 @@
 	margin-bottom: 5px;
 }
 
-log-tag > * {
+.lineContent > * {
+	margin-right: 10px;
+	display: inline-block;
+}
+/*console end*/
+
+/*object*/
+.objectElementValueCont {
+	display: flex;
+	margin-right: 3px;
+}
+
+.objectElementPreviewArea, .objectElementPreviewCont {
+	display: flex;
+}
+
+.objectElementExpandArrow {
+	cursor: pointer;
+	transition: transform 150ms linear;
+	fill: white;
+	user-select: none;
+}
+
+.objectElementExpandArrow.toggled {
+	transform: rotate(90deg);
+}
+
+.expandedObjectElement {
+	display: flex;
+}
+
+.expandedObjectElementIndex {
+	direction: flex;
+	flex-direction: column;
+} 
+
+.objectElementExpanded {
+	margin-left: 17px;
+	flex-direction: column;
+	display: none;
+}
+
+.objectElementExpanded.visible {
+	display: flex;
+}
+
+.expandedobjectElement:last-of-type {
+	margin-bottom: 5px;
+}
+
+.expandedObjectElementValue {
+	margin-left: 5px;
 	display: inline-block;
 }
 
-log-tag > template {
+.objectElementKey {
+	color: #83d8ff;
+}
+
+.specialArrayElement {
+	font-weight: bold;
+    font-family: 'Roboto';
+}
+/*object end*/
+
+/*string*/
+.stringElementValue[type="string"] {
+	color: rgb(255,200,200);
+}
+
+.stringElementValue[type="number"] {
+	color: rgb(200,255,200);
+}
+
+.stringElementValue[type="boolean"] {
+	color: rgb(100,100,255);
+}
+/*string end*/
+
+/*function*/
+.functionElementExpanded {
+	margin-left: 17px;
+	flex-direction: column;
 	display: none;
-	margin: 0;
 }
 
-.lineContent > log-tag {
-	padding: 0 4px;
-}
-
-.arrayComma {
-	display: inline;
-	margin-left: -5px;
-}
-
-.arrayComma:last-of-type {
-	display: none;
-}
-
-.lineData {
+.functionElementExpanded.visible {
 	display: flex;
 }
+
+.functionElementPrefix, .functionElementPrefixCont, .functionElementValue {
+	display: inline;
+}
+
+.functionElementKeyword {
+	color: #ff61ff;
+}
+
+.functionElementPreviewArea {
+	display: flex;
+}
+
+.functionElement {
+	display: flex;
+	flex-direction: column
+}
+/*function end*/
+
+/*context menu*/
+#contextMenu {
+	display: none;
+	position: absolute;
+	background-color: #f1f1f1;
+	font-size: 120%;
+}
+
+#contextMenu.visible {
+	display: block;
+}
+
+.contextMenuElement {
+	padding: 8px;
+	cursor: pointer;
+}
+
+.contextMenuElement:hover {
+	background-color: #c3c3c3;
+}
+
+.contextMenuElement.disabled {
+	display: none;
+}
+/*context menu end*/

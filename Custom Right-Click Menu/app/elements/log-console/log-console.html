@@ -7,11 +7,6 @@
 		<link rel="import" href="../../bower_components/paper-toast/paper-toast.html" />
 		<link rel="import" href="../../elements/paper-dropdown-menu/paper-dropdown-menu.html" />
 		<link rel="import" href="../../elements/echo-html/echo-html.html" />
-		<link rel="import" href="../../elements/log-visualizers/log-tag/log-tag.html" />
-		<link rel="import" href="../../elements/log-visualizers/log-array/log-array.html" />
-		<link rel="import" href="../../elements/log-visualizers/log-function/log-function.html" />
-		<link rel="import" href="../../elements/log-visualizers/log-object/log-object.html" />
-		<link rel="import" href="../../elements/log-visualizers/log-string/log-string.html" />
 		<link rel="stylesheet" href="log-console.css" />
 		<paper-material id="consoleCont" elevation="5">
 			<div id="console">
@@ -32,7 +27,7 @@
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
 												</div>
-												<span class="menuOptionName">[[id]]</span>
+												<span title$="[[id.title]]" class="menuOptionName">[[id.id]]</span>
 											</paper-item>
 										</template>
 									</paper-menu>
@@ -52,7 +47,7 @@
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
 												</div>
-												<span class="menuOptionName">[[tab]]</span>
+												<span title$="[[tab.title]]" class="menuOptionName">[[tab.id]]</span>
 											</paper-item>
 										</template>
 									</paper-menu>
@@ -79,8 +74,9 @@
 								<paper-material id="consoleInfoTxtCont" elevation="3">
 									<div id="consoleInfoTxt" class="expandLeft">
 										This page serves as a sort of devTools for specific instances of scripts on tabs.
-										You can access its variables and run them just as you would in the chrome dev tools,
-										simply select an ID and a tab ID and get started.
+										You can choose to view logs for all instances, specific nodes, specific tabs, or a combination
+										of both. You can access a specific instance's variables and get/set them just as you would
+										in the chrome dev tools, to do this simply select an ID and a tab ID. 
 									</div>
 								</paper-material>
 							</div>
@@ -94,21 +90,6 @@
 				</paper-material>
 				<div id="linesCont">
 					<div id="lines"></div>
-					<!--<template is="dom-repeat" items="{{lines}}" as="line">
-						<div class="line"  data-error$="[[line.isError]]">
-							<div class="lineData">
-								<div class="lineTimestamp">[[line.timestamp]]</div>
-								<div class="lineContent">
-									<template is="dom-repeat" items="[[line.content]]" as="lineValue">
-										<log-tag tag="[[lineValue.tag]]" value="[[lineValue.value]]"></log-tag>
-									</template>
-								</div>
-							</div>
-							<div class="lineSource">
-								<span class="lineSourceIdCont" title$="[[line.nodeTitle]]">[id-<span class="lineSourceId">[[line.id]]</span>]</span><span class="lineSourceTabCont" on-tap="_takeToTab" tabindex="1" title$="[[line.tabTitle]]">[tab-<span class="lineSourceTab">[[line.tabId]]</span>]</span><span class="lineSourceLineCont">@<span class="lineSourceLineNumber">[[_stripWhitespace(line.lineNumber)]]</span></span>
-							</div>
-						</div>
-					</template>-->
 					<div id="inputFieldCont">
 						<div id="inputFieldPrefix" hidden$="[[waitingForEval]]">
 							&gt;
@@ -125,6 +106,24 @@
 			</div>
 			<div id="consoleFiller" on-tap="_focusInput"></div>
 		</paper-material>
+		<div id="contextMenu">
+			<div on-tap="_contextStoreAsLocal" id="storeAsLocal" class="contextMenuElement">
+				Store as local variable
+			</div>
+			<div on-tap="_contextLogValue" id="logValue" class="contextMenuElement">
+				Log this
+			</div>
+			<div on-tap="_contextCopyAsJSON" id="copyAsJSON" class="contextMenuElement">
+				Copy as JSON
+			</div>
+			<div on-tap="_contextCopyPath" id="copyPath" class="contextMenuElement">
+				Copy path
+			</div>
+			<div on-tap="_contextClearConsole" id="clearConsole" class="contextMenuElement">
+				Clear console
+			</div>
+		</div>
+		<span id="copySource"></span>
 		<paper-toast id="genericToast" text="">
 			<span class="toastLink" on-tap="_hideGenericToast" role="button">DISMISS</span>
 		</paper-toast>
@@ -137,4 +136,5 @@
 <script src="../../js/libraries/jquery/jquery.bez.js"></script>
 <script src="../../js/libraries/react/react.js"></script>
 <script src="../../js/libraries/react/react-dom.js"></script>
+<script src="log-elements.js"></script>
 <script src="log-console.js"></script>
