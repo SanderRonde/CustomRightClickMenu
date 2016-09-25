@@ -332,7 +332,15 @@ Polymer({
 		var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 		if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo) {
-			var date = new Date(window.Intl.DateTimeFormat().v8Parse(this.nodeInfo.installDate));
+			var format = (new Date('1-13-2016').toLocaleDateString() === '1-13-2016' ? 'eu' : 'na');
+			var date;
+			if (format === 'eu') {
+				date = this.nodeInfo.installDate.split('-');
+				date = date[1] + '-' + date[0] + '-' + date[2];
+			} else {
+				date = this.nodeInfo.installDate;
+			}
+			date = new Date(date);
 			return Math.floor(new Date(Date.now() - date.getMilliseconds()).getMilliseconds() / (1000 * 60 * 60 * 24)) + ' days ago';
 		}
 		return null;
