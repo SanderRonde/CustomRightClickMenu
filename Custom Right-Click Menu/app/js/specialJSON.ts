@@ -22,23 +22,43 @@ type ArrOrObj = Array<any>|{
 }
 
 window.specialJSON = {
-	_stringifyNonObject(data: string|number|Function|RegExp|boolean): string {
+	_stringifyNonObject(data: string|number|Function|RegExp|Date|boolean): string {
 		if (typeof data === 'function') {
-			return `__fn$${data.toString()}$fn__`;
+			const fn = data.toString();
+			const match = this._fnRegex.exec(fn);
+			return `__fn$${`(${match[2]}){${match[10]}}`}$fn__`;
 		}
 		if (data instanceof RegExp) {
 			return `__regexp$${data + ''}$regexp__`;
+		}
+		if (data instanceof Date) {
+			return `__date$${JSON.stringify(data)}$date__`;
 		}
 		if (typeof data === 'string') {
 			data = (data as string).replace(/\$/g, '\\$');
 		}
 		return JSON.stringify(data);
 	},
-	_fnRegex: /^.+\(((\w+(,?))+)$/,
-	_parseNonObject(data: string): string|number|Function|RegExp|boolean {
+	_fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
+	_specialStringRegex: /^__(fn|regexp|date)(.+)\1__$/,
+	_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
+	_parseNonObject(data: string): string|number|Function|RegExp|Date|boolean {
 		var dataParsed = JSON.parse(data);
 		if (typeof dataParsed === 'string') {
-
+			let parsed;
+			if ((parsed = this._specialStringRegex.exec(dataParsed))) {
+				switch (parsed[1]) {
+					case 'fn':
+						const fnRegexed = this._fnCommRegex.exec(dataParsed[2]);
+						return new Function(...fnRegexed[1].split(',').concat(fnRegexed[6]));
+					case 'regexp':
+						return new RegExp(dataParsed[2]);
+					case 'date':
+						return new Date(dataParsed[2]);
+				}
+			} else {
+				return dataParsed.replace(/\\\$/g, '$');
+			}
 		}
 		return dataParsed;
 	},
