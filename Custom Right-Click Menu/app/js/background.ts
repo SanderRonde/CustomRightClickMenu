@@ -149,7 +149,7 @@ interface SpecialJSON {
 	_toJSON: (copyTarget: ArrOrObj, data: any, path: Array<string|number>, refData: {
 		refs: Refs,
 		paths: Array<Array<string|number>>,
-		originalvalues: Array<any>
+		originalValues: Array<any>
 	}) => {
 		refs: Refs;
 		data: ArrOrObj;
