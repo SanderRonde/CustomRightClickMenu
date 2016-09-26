@@ -119,16 +119,47 @@ interface TemplateSetupObject {
 	children?: any;
 }
 
-interface SpecialJSON {
-	_iterate: any;
-	toJSON: any;
+type Refs = Array<Array<any>|{
+	[key: string]: any
+}>;
 
-	resolveJson: (root: any, args: any) => any;
-	fromJson: (str: string, args?: any) => any;
-	_addProp: (id: any, prop: any) => any;
-	refAttribute: string;
-	_useRefs: boolean;
-	serializeFunctions: boolean;
+type ParsingRefs = Array<{
+	ref: Array<any>|{
+		[key: string]: any
+	};
+	parsed: boolean;
+}>;
+
+type Obj = {
+	[key: string]: any
+};
+
+type ArrOrObj = Array<any>|{
+	[key: string]: any
+}
+
+
+interface SpecialJSON {
+	_regexFlagNames: Array<'global'|'multiline'|'sticky'|'unicode'|'ignoreCase'>;
+	_getRegexFlags: (expr: RegExp) => Array<string>;
+	_stringifyNonObject: (data: string|number|Function|RegExp|Date|boolean) => string;
+	_fnRegex: RegExp;
+	_specialStringRegex: RegExp;
+	_fnCommRegex: RegExp;
+	_refRegex: RegExp;
+	_parseNonObject: (data: string) => string|number|Function|RegExp|Date|boolean;
+	_iterate: (iterable: ArrOrObj, fn: (data: any, index: string|number, container: ArrOrObj) => any) => ArrOrObj;
+	_isObject: (data: any) => boolean;
+	_toJSON: (data: any, refs: Array<Refs>) => {
+		refs: Refs;
+		data: ArrOrObj;
+		rootType: 'normal'|'array'|'object';
+	};
+	_replaceRefs: (data: ArrOrObj, refs: ParsingRefs) => ArrOrObj;
+
+	toJSON: (data: any, refs: Refs) => string;
+	fromJSON: (str: string) => any;
+
 }
 
 interface Window {
@@ -872,31 +903,103 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			},
 			specialJSON: {
-				_iterate<T>(iterable: Array<T>|{
-					[key: string]: T
-				}, fn: (data: T, index: string|number, container: Array<T>|{
-					[key: string]: T
-				}) => T) {
+				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
+				_getRegexFlags(expr: RegExp): Array<string> {
+					const flags = [];
+					this._regexFlagNames.forEach((flagName: string) => {
+						if (expr[flagName]) {
+							if (flagName === 'sticky') {
+								flags.push('y');
+							} else {
+								flags.push(flagName[0]);
+							}
+						}
+					});
+					return flags;
+				},
+				_stringifyNonObject(data: string|number|Function|RegExp|Date|boolean): string {
+					if (typeof data === 'function') {
+						const fn = data.toString();
+						const match = this._fnRegex.exec(fn);
+						data = `__fn$${`(${match[2]}){${match[10]}}`}$fn__`;
+					} else if (data instanceof RegExp) {
+						data = `__regexp$${JSON.stringify({
+							regexp: (data as RegExp).source,
+							flags: this._getRegexFlags(data)
+						})}$regexp__`;
+					} else if (data instanceof Date) {
+						data = `__date$${data + ''}$date__`;
+					} else if (typeof data === 'string') {
+						data = (data as string).replace(/\$/g, '\\$');
+					}
+					return JSON.stringify(data);
+				},
+				_fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
+				_specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
+				_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
+				_parseNonObject(data: string): string|number|Function|RegExp|Date|boolean {
+					var dataParsed = JSON.parse(data);
+					if (typeof dataParsed === 'string') {
+						let matchedData;
+						if ((matchedData = this._specialStringRegex.exec(dataParsed))) {
+							const dataContent = matchedData[2];
+							switch (matchedData[1]) {
+								case 'fn':
+									const fnRegexed = this._fnCommRegex.exec(dataContent);
+									if (fnRegexed[1].trim() !== '') {
+										return new Function(fnRegexed[1].split(','), fnRegexed[6]);
+									} else {
+										return new Function(fnRegexed[6]);
+									}
+								case 'regexp':
+									const regExpParsed = JSON.parse(dataContent);
+									return new RegExp(regExpParsed.regexp, regExpParsed.flags.join(''));
+								case 'date':
+									return new Date();
+							}
+						} else {
+							return dataParsed.replace(/\\\$/g, '$');
+						}
+					}
+					return dataParsed;
+				},
+				_iterate(iterable: ArrOrObj,
+				fn: (data: any, index: string|number, container: ArrOrObj) => any): ArrOrObj {
 					if (Array.isArray(iterable)) {
-						iterable.map(fn);
+						(iterable as Array<any>).forEach((data: any, key: number, container: Array<any>) => {
+							iterable[key] = fn(data, key, container);
+						});
 					} else {
 						Object.getOwnPropertyNames(iterable).forEach((key) => {
 							iterable[key] = fn(iterable[key], key, iterable);
 						});
 					}
+					return iterable;
 				},
-				toJSON<T>(data: any, refs: Array<Array<T>|{
-					[key: string]: T
-				}> = []) {
-					if (typeof data !== 'object') {
+				_isObject(data: any): boolean {
+					if (data instanceof Date || data instanceof RegExp || data instanceof Function) {
+						return false;
+					}
+					return typeof data === 'object' && !Array.isArray(data)
+				},
+				_toJSON(data: any, refs: Refs = []): {
+					refs: Refs;
+					data: ArrOrObj;
+					rootType: 'normal'|'array'|'object';
+				} {
+					if (!(this._isObject(data) || Array.isArray(data))) {
 						return {
 							refs: [],
-							data: JSON.stringify(data)
+							data: this._stringifyNonObject(data),
+							rootType: 'normal'
 						};
 					} else {
+						if (refs.indexOf(data) === -1) {
+							refs.push(data);
+						}
 						this._iterate(data, (element: any, key: string|number) => {
-							if (typeof data !== 'object') {
-								return JSON.stringify(data).replace(/\$/g, '\\$');
+							if (!(this._isObject(element) || Array.isArray(element))) {
+								return this._stringifyNonObject(element);
 							} else {
 								let index;
 								if ((index = refs.indexOf(element)) === -1) {
@@ -904,249 +1007,100 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 									//Filler
 									refs.push(null);
-									refs[index] = this.toJSON(element, refs);
+									const newData = this._toJSON(element, refs);
+									refs[index] = newData.data;
 								}
 								return `__$${index}$__`;
 							}
 						});
 						return {
 							refs: refs,
-							data: data
+							data: data,
+							rootType: Array.isArray(data) ? 'array' : 'object'
 						};
 					}
 				},
-
-				resolveJson(root, args) {
-					args = args || {};
-					var idAttribute = args.idAttribute || 'id';
-					var refAttribute = this.refAttribute;
-					var idAsRef = args.idAsRef;
-					var prefix = args.idPrefix || '';
-					var assignAbsoluteIds = args.assignAbsoluteIds;
-					var index = args.index || {}; // create an index if one doesn't exist
-					var timeStamps = args.timeStamps;
-					var ref, reWalk = [];
-					var pathResolveRegex = /^(.*\/)?(\w+:\/\/)|[^\/\.]+\/\.\.\/|^.*\/(\/)/;
-					var addProp = this._addProp;
-					var F = function() {};
-
-					function walk(it, stop, defaultId?: any, needsPrefix?: any, schema?: any,
-						defaultObject?: any) {
-						// this walks the new graph, resolving references and making other changes
-						var i, update, val, id = idAttribute in it ? it[idAttribute] : defaultId;
-						if (idAttribute in it || ((id !== undefined) && needsPrefix)) {
-							id = (prefix + id).replace(pathResolveRegex, '$2$3');
+				toJSON(data: any, refs: Refs = []): string {
+					if (!(this._isObject(data) || Array.isArray(data))) {
+						return JSON.stringify({
+							refs: [],
+							data: this._stringifyNonObject(data),
+							rootType: 'normal'
+						});
+					} else {
+						if (refs.indexOf(data) === -1) {
+							refs.push(data);
 						}
-						var target = defaultObject || it;
-						if (id !== undefined) { // if there is an id available...
-							if (assignAbsoluteIds) {
-								it.__id = id;
-							}
-							if (args.schemas &&
-								(!(it instanceof Array)) &&
-								// won't try on arrays to do prototypes, plus it messes with queries 
-								(val = id
-									.match(/^(.+\/)[^\.\[]*$/))) {
-								// if it has a direct table id (no paths)
-								schema = args.schemas[val[1]];
-							}
-							// if the id already exists in the system, we should use the existing object, and just 
-							// update it... as long as the object is compatible
-							if (index[id] && ((it instanceof Array) === (index[id] instanceof Array))
-							) {
-								target = index[id];
-								delete target.$ref; // remove this artifact
-								delete target._loadObject;
-								update = true;
+						this._iterate(data, (element: any, key: string|number) => {
+							if (!(this._isObject(element) || Array.isArray(element))) {
+								return this._stringifyNonObject(element);
 							} else {
-								var proto = schema && schema.prototype; // and if has a prototype
-								if (proto) {
-									// if the schema defines a prototype, that needs to be the prototype of the object
-									F.prototype = proto;
-									target = new F();
-								}
-							}
-							index[id] = target; // add the prefix, set _id, and index it
-							if (timeStamps) {
-								timeStamps[id] = args.time;
-							}
-						}
-						while (schema) {
-							var properties = schema.properties;
-							if (properties) {
-								for (i in it) {
-									if (it.hasOwnProperty(i)) {
-										var propertyDefinition = properties[i];
-										if (propertyDefinition &&
-											propertyDefinition.format === 'date-time' &&
-											typeof it[i] === 'string') {
-											it[i] = new Date(it[i]);
-										}
-									}
-								}
-							}
-							schema = schema["extends"];
-						}
-						var length = it.length;
-						for (i in it) {
-							if (it.hasOwnProperty(i)) {
-								if (i === length) {
-									break;
-								}
-								val = it[i];
-								if ((typeof val === 'object') &&
-									val &&
-									!(val instanceof Date) &&
-									i !== '__parent') {
-									ref = val[refAttribute] || (idAsRef && val[idAttribute]);
-									if (!ref || !val.__parent) {
-										val.__parent = it;
-									}
-									if (ref) { // a reference was found
-										// make sure it is a safe reference
-										delete it[i];
-										// remove the property so it doesn't resolve to itself in the case of id.propertyName lazy values
-										var path = ref.toString().replace(/(#)([^\.\[])/, '$1.$2')
-											.match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/);
-										// divide along the path
-										if ((ref = (path[1] === '$' || path[1] === 'this' || path[1] === '') ?
-											           root :
-											           index[(prefix + path[1]).replace(pathResolveRegex,
-												           '$2$3')])) {
-											// a $ indicates to start with the root, otherwise start with an id
-											// if there is a path, we will iterate through the path references
-											if (path[3]) {
-												path[3].replace(/(\[([^\]]+)\])|(\.?([^\.\[]+))/g, function(t, a, b,
-													c,
-													d) {
-													ref = ref && ref[b ? b.replace(/[\"\'\\]/, '') : d];
-												});
-											}
-										}
-										if (ref) {
-											val = ref;
-										} else {
-											// otherwise, no starting point was found (id not found), if stop is set, it does not exist, we have
-											// unloaded reference, if stop is not set, it may be in a part of the graph not walked yet,
-											// we will wait for the second loop
-											if (!stop) {
-												var rewalking;
-												if (!rewalking) {
-													reWalk.push(target); // we need to rewalk it to resolve references
-												}
-												rewalking = true; // we only want to add it once
-												val = walk(val, false, val[refAttribute], true, propertyDefinition);
-												// create a lazy loaded object
-												val._loadObject = args.loader;
-											}
-										}
-									} else {
-										if (!stop) {
-											// if we are in stop, that means we are in the second loop, and we only need to check this current one,
-											// further walking may lead down circular loops
-											val = walk(
-												val,
-												reWalk === it,
-												id === undefined ? undefined : addProp(id, i),
-												// the default id to use
-												false,
-												propertyDefinition,
-												// if we have an existing object child, we want to 
-												// maintain it's identity, so we pass it as the default object
-												target !== it && typeof target[i] === 'object' && target[i]
-											);
-										}
-									}
-								}
-								it[i] = val;
-								if (target !== it && !target.__isDirty) {
-									// do updates if we are updating an existing object and it's not dirty				
-									var old = target[i];
-									target[i] = val; // only update if it changed
-									if (update &&
-										val !== old && // see if it is different 
-										!target._loadObject && // no updates if we are just lazy loading
-										!(i.charAt(0) === '_' && i.charAt(1) === '_') &&
-										i !== "$ref" &&
-										!(val instanceof Date &&
-											old instanceof Date &&
-											val
-											.getTime() ===
-											old.getTime()) && // make sure it isn't an identical date
-										!(typeof val === 'function' &&
-											typeof old === 'function' &&
-											val
-											.toString() ===
-											old.toString()) && // make sure it isn't an indentical function
-										index.onUpdate) {
-										index.onUpdate(target, i, old,
-											val); // call the listener for each update
-									}
-								}
-							}
-						}
+								let index;
+								if ((index = refs.indexOf(element)) === -1) {
+									index = refs.length;
 
-						if (update && (idAttribute in it)) {
-							// this means we are updating with a full representation of the object, we need to remove deleted
-							for (i in target) {
-								if (!target.__isDirty &&
-									target.hasOwnProperty(i) &&
-									!it.hasOwnProperty(i) &&
-									!(i.charAt(0) === '_' && i.charAt(1) === '_') &&
-									!(target instanceof Array && isNaN(i))) {
-									if (index.onUpdate && i !== "_loadObject" && i !== "_idAttr") {
-										index.onUpdate(target, i, target[i],
-											undefined); // call the listener for each update
-									}
-									delete target[i];
-									while (target instanceof Array &&
-										target.length &&
-										target[target.length - 1] === undefined) {
-										// shorten the target if necessary
-										target.length--;
-									}
+									//Filler
+									refs.push(null);
+									var newData = this._toJSON(element, refs).data;
+									refs[index] = newData;
 								}
+								return `__$${index}$__`;
 							}
+						});
+						return JSON.stringify({
+							refs: refs,
+							data: data,
+							rootType: Array.isArray(data) ? 'array' : 'object'
+						});
+					}
+				},
+				_refRegex: /^__\$(\d+)\$__$/,
+				_replaceRefs(data: ArrOrObj, refs: ParsingRefs): ArrOrObj {
+					this._iterate(data, (element: string) => {
+						let match;
+						if ((match = this._refRegex.exec(element))) {
+							const refNumber = match[1];
+							const ref = refs[~~refNumber];
+							if (ref.parsed) {
+								return ref.ref;
+							}
+							ref.parsed = true;
+							return this._replaceRefs(ref.ref, refs);
 						} else {
-							if (index.onLoad) {
-								index.onLoad(target);
-							}
+							return this._parseNonObject(element);
 						}
-						return target;
-					}
+					});
 
-					if (root && typeof root === 'object') {
-						root = walk(root, false, args.defaultId,
-							true); // do the main walk through
-						walk(reWalk,
-							false);
-						// re walk any parts that were not able to resolve references on the first round
-					}
-					return root;
+					return data;
 				},
+				fromJSON(str: string): any {
+					const parsed: {
+						refs: Refs;
+						data: any;
+						rootType: 'normal'|'array'|'object';
+					} = JSON.parse(str);
 
-				fromJson(str, args) {
-					try {
-						var root = eval('(' + str + ')'); // do the eval
-					} catch (e) {
-						throw new SyntaxError("Invalid JSON string: " +
-							e.message +
-							" parsing: " +
-							str);
+					parsed.refs = parsed.refs.map((ref) => {
+						return {
+							ref: ref,
+							parsed: false
+						};
+					});
+
+					const refs = parsed.refs as Array<{
+						ref: Array<any>|{
+							[key: string]: any
+						};
+						parsed: boolean;
+					}>;
+
+					if (parsed.rootType === 'normal') {
+						return JSON.parse(parsed.data);
 					}
-					if (root) {
-						return this.resolveJson(root, args);
-					}
-					return root;
-				},
 
-
-				_addProp(id, prop) {
-					return id + (id.match(/#/) ? id.length === 1 ? '' : '.' : '#') + prop;
-				},
-				refAttribute: "$ref",
-				_useRefs: false,
-				serializeFunctions: true
+					refs[0].parsed = true;
+					return this._replaceRefs(refs[0].ref, refs);
+				}
 			},
 			contexts: ['page', 'link', 'selection', 'image', 'video', 'audio'],
 			permissions: [
@@ -2257,7 +2211,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			chrome.tabs.get(message.tabId, (tab) => {
 				args = args.concat(globalObject.globals.constants.specialJSON
-					.fromJson(message.data));
+					.fromJSON(message.data));
 				exports.log.bind(globalObject, message.id, message.tabId)
 					.apply(globalObject, args);
 

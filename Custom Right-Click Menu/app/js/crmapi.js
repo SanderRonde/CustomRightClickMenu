@@ -121,10 +121,201 @@
 			see: http://dojotoolkit.org/license for details
 		*/
 		var specialJSON = {
-			toJson: function(data) {
-				
+			_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
+			_getRegexFlags: function (expr) {
+				var flags = [];
+				this._regexFlagNames.forEach(function (flagName) {
+					if (expr[flagName]) {
+						if (flagName === 'sticky') {
+							flags.push('y');
+						}
+						else {
+							flags.push(flagName[0]);
+						}
+					}
+				});
+				return flags;
+			},
+			_stringifyNonObject: function (data) {
+				if (typeof data === 'function') {
+					var fn = data.toString();
+					var match = this._fnRegex.exec(fn);
+					data = "__fn$" + "(" + match[2] + "){" + match[10] + "}" + "$fn__";
+				}
+				else if (data instanceof RegExp) {
+					data = "__regexp$" + JSON.stringify({
+						regexp: data.source,
+						flags: this._getRegexFlags(data)
+					}) + "$regexp__";
+				}
+				else if (data instanceof Date) {
+					data = "__date$" + (data + '') + "$date__";
+				}
+				else if (typeof data === 'string') {
+					data = data.replace(/\$/g, '\\$');
+				}
+				return JSON.stringify(data);
+			},
+			_fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
+			_specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
+			_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
+			_parseNonObject: function (data) {
+				var dataParsed = JSON.parse(data);
+				if (typeof dataParsed === 'string') {
+					var matchedData = void 0;
+					if ((matchedData = this._specialStringRegex.exec(dataParsed))) {
+						var dataContent = matchedData[2];
+						switch (matchedData[1]) {
+							case 'fn':
+								var fnRegexed = this._fnCommRegex.exec(dataContent);
+								if (fnRegexed[1].trim() !== '') {
+									return new Function(fnRegexed[1].split(','), fnRegexed[6]);
+								}
+								else {
+									return new Function(fnRegexed[6]);
+								}
+							case 'regexp':
+								var regExpParsed = JSON.parse(dataContent);
+								return new RegExp(regExpParsed.regexp, regExpParsed.flags.join(''));
+							case 'date':
+								return new Date();
+						}
+					}
+					else {
+						return dataParsed.replace(/\\\$/g, '$');
+					}
+				}
+				return dataParsed;
+			},
+			_iterate: function (iterable, fn) {
+				if (Array.isArray(iterable)) {
+					iterable.forEach(function (data, key, container) {
+						iterable[key] = fn(data, key, container);
+					});
+				}
+				else {
+					Object.getOwnPropertyNames(iterable).forEach(function (key) {
+						iterable[key] = fn(iterable[key], key, iterable);
+					});
+				}
+				return iterable;
+			},
+			_isObject: function (data) {
+				if (data instanceof Date || data instanceof RegExp || data instanceof Function) {
+					return false;
+				}
+				return typeof data === 'object' && !Array.isArray(data);
+			},
+			_toJSON: function (data, refs) {
+				var _this = this;
+				if (refs === void 0) { refs = []; }
+				if (!(this._isObject(data) || Array.isArray(data))) {
+					return {
+						refs: [],
+						data: this._stringifyNonObject(data),
+						rootType: 'normal'
+					};
+				}
+				else {
+					if (refs.indexOf(data) === -1) {
+						refs.push(data);
+					}
+					this._iterate(data, function (element, key) {
+						if (!(_this._isObject(element) || Array.isArray(element))) {
+							return _this._stringifyNonObject(element);
+						}
+						else {
+							var index = void 0;
+							if ((index = refs.indexOf(element)) === -1) {
+								index = refs.length;
+								//Filler
+								refs.push(null);
+								var newData = _this._toJSON(element, refs);
+								refs[index] = newData.data;
+							}
+							return "__$" + index + "$__";
+						}
+					});
+					return {
+						refs: refs,
+						data: data,
+						rootType: Array.isArray(data) ? 'array' : 'object'
+					};
+				}
+			},
+			toJSON: function (data, refs) {
+				var _this = this;
+				if (refs === void 0) { refs = []; }
+				if (!(this._isObject(data) || Array.isArray(data))) {
+					return JSON.stringify({
+						refs: [],
+						data: this._stringifyNonObject(data),
+						rootType: 'normal'
+					});
+				}
+				else {
+					if (refs.indexOf(data) === -1) {
+						refs.push(data);
+					}
+					this._iterate(data, function (element, key) {
+						if (!(_this._isObject(element) || Array.isArray(element))) {
+							return _this._stringifyNonObject(element);
+						}
+						else {
+							var index = void 0;
+							if ((index = refs.indexOf(element)) === -1) {
+								index = refs.length;
+								//Filler
+								refs.push(null);
+								var newData = _this._toJSON(element, refs).data;
+								refs[index] = newData;
+							}
+							return "__$" + index + "$__";
+						}
+					});
+					return JSON.stringify({
+						refs: refs,
+						data: data,
+						rootType: Array.isArray(data) ? 'array' : 'object'
+					});
+				}
+			},
+			_refRegex: /^__\$(\d+)\$__$/,
+			_replaceRefs: function (data, refs) {
+				var _this = this;
+				this._iterate(data, function (element) {
+					var match;
+					if ((match = _this._refRegex.exec(element))) {
+						var refNumber = match[1];
+						var ref = refs[~~refNumber];
+						if (ref.parsed) {
+							return ref.ref;
+						}
+						ref.parsed = true;
+						return _this._replaceRefs(ref.ref, refs);
+					}
+					else {
+						return _this._parseNonObject(element);
+					}
+				});
+				return data;
+			},
+			fromJSON: function (str) {
+				var parsed = JSON.parse(str);
+				parsed.refs = parsed.refs.map(function (ref) {
+					return {
+						ref: ref,
+						parsed: false
+					};
+				});
+				var refs = parsed.refs;
+				if (parsed.rootType === 'normal') {
+					return JSON.parse(parsed.data);
+				}
+				refs[0].parsed = true;
+				return this._replaceRefs(refs[0].ref, refs);
 			}
-		}
+		};
 		//#endregion
 
 		//#region Properties of this Object
