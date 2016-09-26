@@ -293,18 +293,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     return dataParsed;
                 },
-                _iterate: function (iterable, fn) {
+                _iterate: function (copyTarget, iterable, fn) {
                     if (Array.isArray(iterable)) {
+                        copyTarget = copyTarget || [];
                         iterable.forEach(function (data, key, container) {
-                            iterable[key] = fn(data, key, container);
+                            copyTarget[key] = fn(data, key, container);
                         });
                     }
                     else {
+                        copyTarget = copyTarget || {};
                         Object.getOwnPropertyNames(iterable).forEach(function (key) {
-                            iterable[key] = fn(iterable[key], key, iterable);
+                            copyTarget[key] = fn(iterable[key], key, iterable);
                         });
                     }
-                    return iterable;
+                    return copyTarget;
                 },
                 _isObject: function (data) {
                     if (data instanceof Date || data instanceof RegExp || data instanceof Function) {
@@ -312,9 +314,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     return typeof data === 'object' && !Array.isArray(data);
                 },
-                _toJSON: function (data, refs) {
+                _toJSON: function (copyTarget, data, path, refData) {
                     var _this = this;
-                    if (refs === void 0) { refs = []; }
                     if (!(this._isObject(data) || Array.isArray(data))) {
                         return {
                             refs: [],
@@ -323,28 +324,34 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         };
                     }
                     else {
-                        if (refs.indexOf(data) === -1) {
-                            refs.push(data);
+                        if (refData.originalValues.indexOf(data) === -1) {
+                            var index = refData.refs.length;
+                            refData.refs[index] = copyTarget;
+                            refData.paths[index] = path;
+                            refData.originalValues[index] = data;
                         }
-                        this._iterate(data, function (element, key) {
+                        copyTarget = this._iterate(copyTarget, data, function (element, key) {
                             if (!(_this._isObject(element) || Array.isArray(element))) {
                                 return _this._stringifyNonObject(element);
                             }
                             else {
                                 var index = void 0;
-                                if ((index = refs.indexOf(element)) === -1) {
-                                    index = refs.length;
+                                if ((index = refData.originalValues.indexOf(element)) === -1) {
+                                    index = refData.refs.length;
+                                    copyTarget = (Array.isArray(element) ? [] : {});
                                     //Filler
-                                    refs.push(null);
-                                    var newData = _this._toJSON(element, refs);
-                                    refs[index] = newData.data;
+                                    refData.refs.push(null);
+                                    refData.paths[index] = path;
+                                    var newData = _this._toJSON(copyTarget[key], element, path.concat(key), refData);
+                                    refData.refs[index] = newData.data;
+                                    refData.originalValues[index] = element;
                                 }
                                 return "__$" + index + "$__";
                             }
                         });
                         return {
-                            refs: refs,
-                            data: data,
+                            refs: refData.refs,
+                            data: copyTarget,
                             rootType: Array.isArray(data) ? 'array' : 'object'
                         };
                     }
@@ -352,28 +359,36 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 toJSON: function (data, refs) {
                     var _this = this;
                     if (refs === void 0) { refs = []; }
+                    var paths = [[]];
+                    var originalValues = [data];
                     if (!(this._isObject(data) || Array.isArray(data))) {
                         return JSON.stringify({
                             refs: [],
                             data: this._stringifyNonObject(data),
-                            rootType: 'normal'
+                            rootType: 'normal',
+                            paths: []
                         });
                     }
                     else {
-                        if (refs.indexOf(data) === -1) {
-                            refs.push(data);
-                        }
-                        this._iterate(data, function (element, key) {
+                        var copyTarget_1 = (Array.isArray(data) ? [] : {});
+                        refs.push(copyTarget_1);
+                        copyTarget_1 = this._iterate(copyTarget_1, data, function (element, key) {
                             if (!(_this._isObject(element) || Array.isArray(element))) {
                                 return _this._stringifyNonObject(element);
                             }
                             else {
                                 var index = void 0;
-                                if ((index = refs.indexOf(element)) === -1) {
+                                if ((index = originalValues.indexOf(element)) === -1) {
                                     index = refs.length;
                                     //Filler
                                     refs.push(null);
-                                    var newData = _this._toJSON(element, refs).data;
+                                    var newData = _this._toJSON(copyTarget_1[key], element, [key], {
+                                        refs: refs,
+                                        paths: paths,
+                                        originalValues: originalValues
+                                    }).data;
+                                    originalValues[index] = element;
+                                    paths[index] = [key];
                                     refs[index] = newData;
                                 }
                                 return "__$" + index + "$__";
@@ -381,15 +396,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         });
                         return JSON.stringify({
                             refs: refs,
-                            data: data,
-                            rootType: Array.isArray(data) ? 'array' : 'object'
+                            data: copyTarget_1,
+                            rootType: Array.isArray(data) ? 'array' : 'object',
+                            paths: paths
                         });
                     }
                 },
                 _refRegex: /^__\$(\d+)\$__$/,
                 _replaceRefs: function (data, refs) {
                     var _this = this;
-                    this._iterate(data, function (element) {
+                    this._iterate(data, data, function (element) {
                         var match;
                         if ((match = _this._refRegex.exec(element))) {
                             var refNumber = match[1];

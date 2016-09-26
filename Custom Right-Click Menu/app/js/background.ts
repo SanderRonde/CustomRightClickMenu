@@ -119,14 +119,10 @@ interface TemplateSetupObject {
 	children?: any;
 }
 
-type Refs = Array<Array<any>|{
-	[key: string]: any
-}>;
+type Refs = Array<any>;
 
 type ParsingRefs = Array<{
-	ref: Array<any>|{
-		[key: string]: any
-	};
+	ref: Refs;
 	parsed: boolean;
 }>;
 
@@ -148,9 +144,13 @@ interface SpecialJSON {
 	_fnCommRegex: RegExp;
 	_refRegex: RegExp;
 	_parseNonObject: (data: string) => string|number|Function|RegExp|Date|boolean;
-	_iterate: (iterable: ArrOrObj, fn: (data: any, index: string|number, container: ArrOrObj) => any) => ArrOrObj;
+	_iterate: (copyTarget: ArrOrObj, iterable: ArrOrObj, fn: (data: any, index: string|number, container: ArrOrObj) => any) => ArrOrObj;
 	_isObject: (data: any) => boolean;
-	_toJSON: (data: any, refs: Array<Refs>) => {
+	_toJSON: (copyTarget: ArrOrObj, data: any, path: Array<string|number>, refData: {
+		refs: Refs,
+		paths: Array<Array<string|number>>,
+		originalvalues: Array<any>
+	}) => {
 		refs: Refs;
 		data: ArrOrObj;
 		rootType: 'normal'|'array'|'object';
@@ -159,7 +159,6 @@ interface SpecialJSON {
 
 	toJSON: (data: any, refs: Refs) => string;
 	fromJSON: (str: string) => any;
-
 }
 
 interface Window {
@@ -175,7 +174,6 @@ interface Window {
 	_listenTabs: (listener: (newTabs: Array<number>) => void) => void;
 	_listenLog: (listener: LogListener,
 		callback: (result: LogListenerObject) => void) => void;
-	specialJSON: SpecialJSON;
 	XMLHttpRequest: any;
 	TextEncoder: any;
 	getID: (name: string) => void;
@@ -974,26 +972,32 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return dataParsed;
 				},
-				_iterate(iterable: ArrOrObj,
-				fn: (data: any, index: string|number, container: ArrOrObj) => any): ArrOrObj {
+				_iterate(copyTarget: ArrOrObj, iterable: ArrOrObj,
+				fn: (data: any, index: string|number, container: ArrOrObj) => any) {
 					if (Array.isArray(iterable)) {
+						copyTarget = copyTarget || [];
 						(iterable as Array<any>).forEach((data: any, key: number, container: Array<any>) => {
-							iterable[key] = fn(data, key, container);
+							copyTarget[key] = fn(data, key, container);
 						});
 					} else {
+						copyTarget = copyTarget || {};
 						Object.getOwnPropertyNames(iterable).forEach((key) => {
-							iterable[key] = fn(iterable[key], key, iterable);
+							copyTarget[key] = fn(iterable[key], key, iterable);
 						});
 					}
-					return iterable;
+					return copyTarget;
 				},
 				_isObject(data: any): boolean {
 					if (data instanceof Date || data instanceof RegExp || data instanceof Function) {
 						return false;
 					}
-					return typeof data === 'object' && !Array.isArray(data)
+					return typeof data === 'object' && !Array.isArray(data);
 				},
-				_toJSON(data: any, refs: Refs = []): {
+				_toJSON(copyTarget: ArrOrObj, data: any, path: Array<string|number>, refData: {
+					refs: Refs,
+					paths: Array<Array<string|number>>,
+					originalValues: Array<any>
+				}): {
 					refs: Refs;
 					data: ArrOrObj;
 					rootType: 'normal'|'array'|'object';
@@ -1005,54 +1009,71 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							rootType: 'normal'
 						};
 					} else {
-						if (refs.indexOf(data) === -1) {
-							refs.push(data);
+						if (refData.originalValues.indexOf(data) === -1) {
+							const index = refData.refs.length;
+							refData.refs[index] = copyTarget;
+							refData.paths[index] = path;
+							refData.originalValues[index] = data; 
 						}
-						this._iterate(data, (element: any, key: string|number) => {
+						copyTarget = this._iterate(copyTarget, data, (element: any, key: string|number) => {
 							if (!(this._isObject(element) || Array.isArray(element))) {
 								return this._stringifyNonObject(element);
 							} else {
 								let index;
-								if ((index = refs.indexOf(element)) === -1) {
-									index = refs.length;
+								if ((index = refData.originalValues.indexOf(element)) === -1) {
+									index = refData.refs.length;
+
+									copyTarget = (Array.isArray(element) ? [] : {});
 
 									//Filler
-									refs.push(null);
-									const newData = this._toJSON(element, refs);
-									refs[index] = newData.data;
+									refData.refs.push(null);
+									refData.paths[index] = path;
+									const newData = this._toJSON(copyTarget[key], element, path.concat(key), refData);
+									refData.refs[index] = newData.data;
+									refData.originalValues[index]= element;
 								}
 								return `__$${index}$__`;
 							}
 						});
 						return {
-							refs: refs,
-							data: data,
+							refs: refData.refs,
+							data: copyTarget,
 							rootType: Array.isArray(data) ? 'array' : 'object'
 						};
 					}
 				},
 				toJSON(data: any, refs: Refs = []): string {
+					const paths: Array<Array<string|number>> = [[]];
+					const originalValues = [data];
+
 					if (!(this._isObject(data) || Array.isArray(data))) {
 						return JSON.stringify({
 							refs: [],
 							data: this._stringifyNonObject(data),
-							rootType: 'normal'
+							rootType: 'normal',
+							paths: []
 						});
 					} else {
-						if (refs.indexOf(data) === -1) {
-							refs.push(data);
-						}
-						this._iterate(data, (element: any, key: string|number) => {
+						let copyTarget = (Array.isArray(data) ? [] : {});
+
+						refs.push(copyTarget);
+						copyTarget = this._iterate(copyTarget, data, (element: any, key: string|number) => {
 							if (!(this._isObject(element) || Array.isArray(element))) {
 								return this._stringifyNonObject(element);
 							} else {
 								let index;
-								if ((index = refs.indexOf(element)) === -1) {
+								if ((index = originalValues.indexOf(element)) === -1) {
 									index = refs.length;
 
 									//Filler
 									refs.push(null);
-									var newData = this._toJSON(element, refs).data;
+									var newData = this._toJSON(copyTarget[key], element, [key], {
+										refs: refs,
+										paths: paths,
+										originalValues: originalValues
+									}).data;
+									originalValues[index] = element;
+									paths[index] = [key];
 									refs[index] = newData;
 								}
 								return `__$${index}$__`;
@@ -1060,14 +1081,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						});
 						return JSON.stringify({
 							refs: refs,
-							data: data,
-							rootType: Array.isArray(data) ? 'array' : 'object'
+							data: copyTarget,
+							rootType: Array.isArray(data) ? 'array' : 'object',
+							paths: paths
 						});
 					}
 				},
 				_refRegex: /^__\$(\d+)\$__$/,
 				_replaceRefs(data: ArrOrObj, refs: ParsingRefs): ArrOrObj {
-					this._iterate(data, (element: string) => {
+					this._iterate(data, data, (element: string) => {
 						let match;
 						if ((match = this._refRegex.exec(element))) {
 							const refNumber = match[1];

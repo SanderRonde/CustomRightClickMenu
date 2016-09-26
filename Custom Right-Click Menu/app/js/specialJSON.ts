@@ -2,9 +2,7 @@ interface Window {
 	specialJSON: any;
 }
 
-type Refs = Array<Array<any>|{
-	[key: string]: any
-}>;
+type Refs = Array<any>;
 
 type ParsingRefs = Array<{
 	ref: Array<any>|{
@@ -106,7 +104,7 @@ window.specialJSON = {
 	_toJSON(copyTarget: ArrOrObj, data: any, path: Array<string|number>, refData: {
 		refs: Refs,
 		paths: Array<Array<string|number>>,
-		originalValues: any
+		originalValues: Array<any>
 	}): {
 		refs: Refs;
 		data: ArrOrObj;
