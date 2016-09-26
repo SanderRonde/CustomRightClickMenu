@@ -477,7 +477,18 @@ interface LogListenerLine {
 	tabId: number|string;
 	nodeTitle?: string;
 	tabTitle?: string;
-	value?: Array<any>|any;
+	data?: Array<any>|any;
+	val?: {
+		type: 'success';
+		result: any;
+	} | {
+		type: 'error';
+		result: {
+			stack: string;
+			name: string;
+			message: string;
+		}
+	}
 	logId?: number;
 	lineNumber?: string;
 	timestamp?: string;
@@ -1441,12 +1452,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						return messages;
 					}
 
-					var filterRegex = new RegExp(filter);
+				var filterRegex = new RegExp(filter);
 					return messages.filter((message) => {
-						for (let i = 0; i < message.value.length; i++) {
-							if (typeof message.value[i] !== 'function' &&
-								typeof message.value[i] !== 'object') {
-								if (filterRegex.test(String(message.value[i]))) {
+						for (let i = 0; i < message.data.length; i++) {
+							if (typeof message.data[i] !== 'function' &&
+								typeof message.data[i] !== 'object') {
+								if (filterRegex.test(String(message.data[i]))) {
 									return true;
 								}
 							}
@@ -2042,12 +2053,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			logHandler(message: {
 				type: string;
 				id: number;
-				data: string;
 				lineNumber: string;
 				tabId: number;
 				logId: number;
 				callbackIndex?: number;
 				timestamp?: string;
+				data?: any;
+				val?: {
+					type: 'success';
+					result: string;
+				} | {
+					type: 'error';
+					result: {
+						stack: string;
+						name: string;
+						message: string;
+					}
+				}
 			}) {
 				prepareLog(message.id, message.tabId);
 				switch (message.type) {
@@ -2057,17 +2079,30 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								id: message.id,
 								tabId: message.tabId,
 								nodeTitle: globalObject.globals.crm.crmById[message.id].name,
-								value: message.data,
 								tabTitle: tab.title,
 								type: 'evalResult',
 								lineNumber: message.lineNumber,
-								timestamp: message.timestamp
+								timestamp: message.timestamp,
+								val: (message.val.type === 'success') ?
+									{
+										type: 'success',
+										result: globalObject.globals.constants.specialJSON.fromJSON(message.val.result as string)
+									} : message.val
 							});
 						});
 						break;
 					case 'log':
 					default:
-						logHandlerLog(message);
+						logHandlerLog({
+							type: message.type,
+							id: message.id,
+							data: message.data,
+							lineNumber: message.lineNumber,
+							tabId: message.tabId,
+							logId: message.logId,
+							callbackIndex: message.callbackIndex,
+							timestamp: message.type
+						});
 						break;
 				}
 			},

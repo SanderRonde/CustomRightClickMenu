@@ -522,7 +522,7 @@
 			try {
 				val = {
 					type: 'success',
-					result: specialJSON.toJson(eval.apply(window, [message.code]))
+					result: specialJSON.toJSON(eval.apply(window, [message.code]))
 				};
 				lineNumber = '<crmapi>:0';
 
@@ -596,7 +596,6 @@
 
 		var hintRegex = /^(\w+)((\[(['"`])(\w+)\4\])|(\.(\w+)))+(\.(\w+)?|\[((['"`])((\w+)(\11)?)?)?)$/;
 		function getSuggestions(message) {
-			var isValidString = hintRegex.exec(message.code);
 			var strSections = getCodeSections(message.code);
 			if (!strSections.end) {
 				return null;
@@ -652,50 +651,20 @@
 			});
 		}
 
-		function saveLogValue(value, container, str) {
-			if (typeof value === 'object') {
-				if (Array.isArray(value)) {
-					for (var i = 0; i < value.length; i++) {
-						var elString = str + '[' + i + ']';
-						container[elString] = value[i];
-						saveLogValue(value[i], container, elString)
-					}
-				} else {
-					Object.getOwnPropertyNames(value).forEach(function(key) {
-						var elString;
-						if (/[a-z|A-Z]/.exec(key[0])) {
-							elString = str + '.' + key;
-						} else {
-							elString = str + '["' + key + '"]';
-						}
-
-						container[elString] = value[key];
-						saveLogValue(value[key], container, elString);
-					});
-				}
-			}
-			return container;
-		}
-
 		var sentLogs = ['filler'];
 		function saveLogValues(arr) {
-			var easyMode = false;
-			try {
-				JSON.stringify(arr);
-				easyMode = true;
-			} catch(e) { }
+			var clone = JSON.parse(JSON.stringify(arr));
+			var data = specialJSON._toJSON(arr);
 
-			if (easyMode) {
-				sentLogs.push(arr.map(function(value) {
-					return saveLogValue(value, [], '');
-				}));
-			} else {
+			sentLogs.push({
+				refs: data.refs,
 				
+			})
+
+			return {
+				data: data,
+				logId: sentLogs.length - 1
 			}
-
-
-			sentLogs.push(arr);
-			return sentLogs.length - 1;
 		}
 
 		function createLocalVariable(message) {
@@ -3032,7 +3001,7 @@
 			var lineNumber = errSplit.slice(1, errSplit.length).join('at');
 
 			var args = Array.prototype.slice.apply(arguments);
-			var data = specialJSON.toJson(args);
+			var result = saveLogValues(args);
 
 			sendMessage({
 				id: id,
@@ -3040,9 +3009,9 @@
 				tabId: _this.tabId,
 				data: {
 					type: 'log',
-					data: data,
+					data: result.data,
 					id: id,
-					logId: saveLogValues(args),
+					logId: result.logId,
 					lineNumber: lineNumber,
 					tabId: _this.tabId
 				}

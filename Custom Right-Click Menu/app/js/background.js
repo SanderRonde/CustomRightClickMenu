@@ -227,224 +227,200 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             },
             specialJSON: {
-                resolveJson: function (root, args) {
-                    args = args || {};
-                    var idAttribute = args.idAttribute || 'id';
-                    var refAttribute = this.refAttribute;
-                    var idAsRef = args.idAsRef;
-                    var prefix = args.idPrefix || '';
-                    var assignAbsoluteIds = args.assignAbsoluteIds;
-                    var index = args.index || {}; // create an index if one doesn't exist
-                    var timeStamps = args.timeStamps;
-                    var ref, reWalk = [];
-                    var pathResolveRegex = /^(.*\/)?(\w+:\/\/)|[^\/\.]+\/\.\.\/|^.*\/(\/)/;
-                    var addProp = this._addProp;
-                    var F = function () { };
-                    function walk(it, stop, defaultId, needsPrefix, schema, defaultObject) {
-                        // this walks the new graph, resolving references and making other changes
-                        var i, update, val, id = idAttribute in it ? it[idAttribute] : defaultId;
-                        if (idAttribute in it || ((id !== undefined) && needsPrefix)) {
-                            id = (prefix + id).replace(pathResolveRegex, '$2$3');
-                        }
-                        var target = defaultObject || it;
-                        if (id !== undefined) {
-                            if (assignAbsoluteIds) {
-                                it.__id = id;
-                            }
-                            if (args.schemas &&
-                                (!(it instanceof Array)) &&
-                                // won't try on arrays to do prototypes, plus it messes with queries 
-                                (val = id
-                                    .match(/^(.+\/)[^\.\[]*$/))) {
-                                // if it has a direct table id (no paths)
-                                schema = args.schemas[val[1]];
-                            }
-                            // if the id already exists in the system, we should use the existing object, and just 
-                            // update it... as long as the object is compatible
-                            if (index[id] && ((it instanceof Array) == (index[id] instanceof Array))) {
-                                target = index[id];
-                                delete target.$ref; // remove this artifact
-                                delete target._loadObject;
-                                update = true;
+                _regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
+                _getRegexFlags: function (expr) {
+                    var flags = [];
+                    this._regexFlagNames.forEach(function (flagName) {
+                        if (expr[flagName]) {
+                            if (flagName === 'sticky') {
+                                flags.push('y');
                             }
                             else {
-                                var proto = schema && schema.prototype; // and if has a prototype
-                                if (proto) {
-                                    // if the schema defines a prototype, that needs to be the prototype of the object
-                                    F.prototype = proto;
-                                    target = new F();
-                                }
-                            }
-                            index[id] = target; // add the prefix, set _id, and index it
-                            if (timeStamps) {
-                                timeStamps[id] = args.time;
+                                flags.push(flagName[0]);
                             }
                         }
-                        while (schema) {
-                            var properties = schema.properties;
-                            if (properties) {
-                                for (i in it) {
-                                    var propertyDefinition = properties[i];
-                                    if (propertyDefinition &&
-                                        propertyDefinition.format == 'date-time' &&
-                                        typeof it[i] == 'string') {
-                                        it[i] = new Date(it[i]);
-                                    }
-                                }
-                            }
-                            schema = schema["extends"];
-                        }
-                        var length = it.length;
-                        for (i in it) {
-                            if (i == length) {
-                                break;
-                            }
-                            if (it.hasOwnProperty(i)) {
-                                val = it[i];
-                                if ((typeof val == 'object') &&
-                                    val &&
-                                    !(val instanceof Date) &&
-                                    i != '__parent') {
-                                    ref = val[refAttribute] || (idAsRef && val[idAttribute]);
-                                    if (!ref || !val.__parent) {
-                                        val.__parent = it;
-                                    }
-                                    if (ref) {
-                                        // make sure it is a safe reference
-                                        delete it[i];
-                                        // remove the property so it doesn't resolve to itself in the case of id.propertyName lazy values
-                                        var path = ref.toString().replace(/(#)([^\.\[])/, '$1.$2')
-                                            .match(/(^([^\[]*\/)?[^#\.\[]*)#?([\.\[].*)?/);
-                                        // divide along the path
-                                        if ((ref = (path[1] == '$' || path[1] == 'this' || path[1] == '') ?
-                                            root :
-                                            index[(prefix + path[1]).replace(pathResolveRegex, '$2$3')])) {
-                                            // a $ indicates to start with the root, otherwise start with an id
-                                            // if there is a path, we will iterate through the path references
-                                            if (path[3]) {
-                                                path[3].replace(/(\[([^\]]+)\])|(\.?([^\.\[]+))/g, function (t, a, b, c, d) {
-                                                    ref = ref && ref[b ? b.replace(/[\"\'\\]/, '') : d];
-                                                });
-                                            }
-                                        }
-                                        if (ref) {
-                                            val = ref;
-                                        }
-                                        else {
-                                            // otherwise, no starting point was found (id not found), if stop is set, it does not exist, we have
-                                            // unloaded reference, if stop is not set, it may be in a part of the graph not walked yet,
-                                            // we will wait for the second loop
-                                            if (!stop) {
-                                                var rewalking;
-                                                if (!rewalking) {
-                                                    reWalk.push(target); // we need to rewalk it to resolve references
-                                                }
-                                                rewalking = true; // we only want to add it once
-                                                val = walk(val, false, val[refAttribute], true, propertyDefinition);
-                                                // create a lazy loaded object
-                                                val._loadObject = args.loader;
-                                            }
-                                        }
+                    });
+                    return flags;
+                },
+                _stringifyNonObject: function (data) {
+                    if (typeof data === 'function') {
+                        var fn = data.toString();
+                        var match = this._fnRegex.exec(fn);
+                        data = "__fn$" + "(" + match[2] + "){" + match[10] + "}" + "$fn__";
+                    }
+                    else if (data instanceof RegExp) {
+                        data = "__regexp$" + JSON.stringify({
+                            regexp: data.source,
+                            flags: this._getRegexFlags(data)
+                        }) + "$regexp__";
+                    }
+                    else if (data instanceof Date) {
+                        data = "__date$" + (data + '') + "$date__";
+                    }
+                    else if (typeof data === 'string') {
+                        data = data.replace(/\$/g, '\\$');
+                    }
+                    return JSON.stringify(data);
+                },
+                _fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
+                _specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
+                _fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
+                _parseNonObject: function (data) {
+                    var dataParsed = JSON.parse(data);
+                    if (typeof dataParsed === 'string') {
+                        var matchedData = void 0;
+                        if ((matchedData = this._specialStringRegex.exec(dataParsed))) {
+                            var dataContent = matchedData[2];
+                            switch (matchedData[1]) {
+                                case 'fn':
+                                    var fnRegexed = this._fnCommRegex.exec(dataContent);
+                                    if (fnRegexed[1].trim() !== '') {
+                                        return new Function(fnRegexed[1].split(','), fnRegexed[6]);
                                     }
                                     else {
-                                        if (!stop) {
-                                            // if we are in stop, that means we are in the second loop, and we only need to check this current one,
-                                            // further walking may lead down circular loops
-                                            val = walk(val, reWalk == it, id === undefined ? undefined : addProp(id, i), 
-                                            // the default id to use
-                                            false, propertyDefinition, 
-                                            // if we have an existing object child, we want to 
-                                            // maintain it's identity, so we pass it as the default object
-                                            target != it && typeof target[i] == 'object' && target[i]);
-                                        }
+                                        return new Function(fnRegexed[6]);
                                     }
-                                }
-                                it[i] = val;
-                                if (target != it && !target.__isDirty) {
-                                    // do updates if we are updating an existing object and it's not dirty				
-                                    var old = target[i];
-                                    target[i] = val; // only update if it changed
-                                    if (update &&
-                                        val !== old &&
-                                        !target._loadObject &&
-                                        !(i.charAt(0) == '_' && i.charAt(1) == '_') &&
-                                        i != "$ref" &&
-                                        !(val instanceof Date &&
-                                            old instanceof Date &&
-                                            val
-                                                .getTime() ==
-                                                old.getTime()) &&
-                                        !(typeof val == 'function' &&
-                                            typeof old == 'function' &&
-                                            val
-                                                .toString() ==
-                                                old.toString()) &&
-                                        index.onUpdate) {
-                                        index.onUpdate(target, i, old, val); // call the listener for each update
-                                    }
-                                }
-                            }
-                        }
-                        if (update && (idAttribute in it)) {
-                            // this means we are updating with a full representation of the object, we need to remove deleted
-                            for (i in target) {
-                                if (!target.__isDirty &&
-                                    target.hasOwnProperty(i) &&
-                                    !it.hasOwnProperty(i) &&
-                                    !(i.charAt(0) == '_' && i.charAt(1) == '_') &&
-                                    !(target instanceof Array && isNaN(i))) {
-                                    if (index.onUpdate && i != "_loadObject" && i != "_idAttr") {
-                                        index.onUpdate(target, i, target[i], undefined); // call the listener for each update
-                                    }
-                                    delete target[i];
-                                    while (target instanceof Array &&
-                                        target.length &&
-                                        target[target.length - 1] === undefined) {
-                                        // shorten the target if necessary
-                                        target.length--;
-                                    }
-                                }
+                                case 'regexp':
+                                    var regExpParsed = JSON.parse(dataContent);
+                                    return new RegExp(regExpParsed.regexp, regExpParsed.flags.join(''));
+                                case 'date':
+                                    return new Date();
                             }
                         }
                         else {
-                            if (index.onLoad) {
-                                index.onLoad(target);
-                            }
+                            return dataParsed.replace(/\\\$/g, '$');
                         }
-                        return target;
                     }
-                    if (root && typeof root == 'object') {
-                        root = walk(root, false, args.defaultId, true); // do the main walk through
-                        walk(reWalk, false);
-                    }
-                    return root;
+                    return dataParsed;
                 },
-                fromJson: function (str, args) {
-                    function ref(target) {
-                        var refObject = {};
-                        refObject[this.refAttribute] = target;
-                        return refObject;
+                _iterate: function (iterable, fn) {
+                    if (Array.isArray(iterable)) {
+                        iterable.forEach(function (data, key, container) {
+                            iterable[key] = fn(data, key, container);
+                        });
                     }
-                    try {
-                        var root = eval('(' + str + ')'); // do the eval
+                    else {
+                        Object.getOwnPropertyNames(iterable).forEach(function (key) {
+                            iterable[key] = fn(iterable[key], key, iterable);
+                        });
                     }
-                    catch (e) {
-                        throw new SyntaxError("Invalid JSON string: " +
-                            e.message +
-                            " parsing: " +
-                            str);
-                    }
-                    if (root) {
-                        return this.resolveJson(root, args);
-                    }
-                    return root;
+                    return iterable;
                 },
-                _addProp: function (id, prop) {
-                    return id + (id.match(/#/) ? id.length == 1 ? '' : '.' : '#') + prop;
+                _isObject: function (data) {
+                    if (data instanceof Date || data instanceof RegExp || data instanceof Function) {
+                        return false;
+                    }
+                    return typeof data === 'object' && !Array.isArray(data);
                 },
-                refAttribute: "$ref",
-                _useRefs: false,
-                serializeFunctions: true
+                _toJSON: function (data, refs) {
+                    var _this = this;
+                    if (refs === void 0) { refs = []; }
+                    if (!(this._isObject(data) || Array.isArray(data))) {
+                        return {
+                            refs: [],
+                            data: this._stringifyNonObject(data),
+                            rootType: 'normal'
+                        };
+                    }
+                    else {
+                        if (refs.indexOf(data) === -1) {
+                            refs.push(data);
+                        }
+                        this._iterate(data, function (element, key) {
+                            if (!(_this._isObject(element) || Array.isArray(element))) {
+                                return _this._stringifyNonObject(element);
+                            }
+                            else {
+                                var index = void 0;
+                                if ((index = refs.indexOf(element)) === -1) {
+                                    index = refs.length;
+                                    //Filler
+                                    refs.push(null);
+                                    var newData = _this._toJSON(element, refs);
+                                    refs[index] = newData.data;
+                                }
+                                return "__$" + index + "$__";
+                            }
+                        });
+                        return {
+                            refs: refs,
+                            data: data,
+                            rootType: Array.isArray(data) ? 'array' : 'object'
+                        };
+                    }
+                },
+                toJSON: function (data, refs) {
+                    var _this = this;
+                    if (refs === void 0) { refs = []; }
+                    if (!(this._isObject(data) || Array.isArray(data))) {
+                        return JSON.stringify({
+                            refs: [],
+                            data: this._stringifyNonObject(data),
+                            rootType: 'normal'
+                        });
+                    }
+                    else {
+                        if (refs.indexOf(data) === -1) {
+                            refs.push(data);
+                        }
+                        this._iterate(data, function (element, key) {
+                            if (!(_this._isObject(element) || Array.isArray(element))) {
+                                return _this._stringifyNonObject(element);
+                            }
+                            else {
+                                var index = void 0;
+                                if ((index = refs.indexOf(element)) === -1) {
+                                    index = refs.length;
+                                    //Filler
+                                    refs.push(null);
+                                    var newData = _this._toJSON(element, refs).data;
+                                    refs[index] = newData;
+                                }
+                                return "__$" + index + "$__";
+                            }
+                        });
+                        return JSON.stringify({
+                            refs: refs,
+                            data: data,
+                            rootType: Array.isArray(data) ? 'array' : 'object'
+                        });
+                    }
+                },
+                _refRegex: /^__\$(\d+)\$__$/,
+                _replaceRefs: function (data, refs) {
+                    var _this = this;
+                    this._iterate(data, function (element) {
+                        var match;
+                        if ((match = _this._refRegex.exec(element))) {
+                            var refNumber = match[1];
+                            var ref = refs[~~refNumber];
+                            if (ref.parsed) {
+                                return ref.ref;
+                            }
+                            ref.parsed = true;
+                            return _this._replaceRefs(ref.ref, refs);
+                        }
+                        else {
+                            return _this._parseNonObject(element);
+                        }
+                    });
+                    return data;
+                },
+                fromJSON: function (str) {
+                    var parsed = JSON.parse(str);
+                    parsed.refs = parsed.refs.map(function (ref) {
+                        return {
+                            ref: ref,
+                            parsed: false
+                        };
+                    });
+                    var refs = parsed.refs;
+                    if (parsed.rootType === 'normal') {
+                        return JSON.parse(parsed.data);
+                    }
+                    refs[0].parsed = true;
+                    return this._replaceRefs(refs[0].ref, refs);
+                }
             },
             contexts: ['page', 'link', 'selection', 'image', 'video', 'audio'],
             permissions: [
@@ -668,9 +644,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     });
                 }
             },
-            checkForChromeErrors: function () {
-                // ReSharper disable once WrongExpressionStatement
-                chrome.runtime.lastError;
+            checkForChromeErrors: function (log) {
+                if (chrome.runtime.lastError && log) {
+                    console.log('chrome runtime error', chrome.runtime.lastError);
+                }
             }
         };
         function getExports() {
@@ -771,10 +748,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     var filterRegex = new RegExp(filter);
                     return messages.filter(function (message) {
-                        for (var i = 0; i < message.value.length; i++) {
-                            if (typeof message.value[i] !== 'function' &&
-                                typeof message.value[i] !== 'object') {
-                                if (filterRegex.test(String(message.value[i]))) {
+                        for (var i = 0; i < message.data.length; i++) {
+                            if (typeof message.data[i] !== 'function' &&
+                                typeof message.data[i] !== 'object') {
+                                if (filterRegex.test(String(message.data[i]))) {
                                     return true;
                                 }
                             }
@@ -850,7 +827,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         if (tabData.hasOwnProperty(tabId)) {
                             if (tabData[tabId].nodes[id] || id === 0) {
                                 if (tabId === '0') {
-                                    tabs.push('background');
+                                    tabs.push({
+                                        id: 'background',
+                                        title: 'background'
+                                    });
                                 }
                                 else {
                                     tabs.push(tabId);
@@ -869,7 +849,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             init: function () {
                 function removeNode(node) {
                     chrome.contextMenus.remove(node.id, function () {
-                        Helpers.checkForChromeErrors();
+                        Helpers.checkForChromeErrors(false);
                     });
                 }
                 function setStatusForTree(tree, enabled) {
@@ -1218,17 +1198,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         var exports = {
             LogExecution: (function () {
                 return {
-                    executeCRMCode: function (message) {
+                    executeCRMCode: function (message, type) {
                         //Get the port
                         globalObject.globals.crmValues.tabData[message.tab].nodes[message.id].port
                             .postMessage({
-                            messageType: 'executeCode',
+                            messageType: type,
                             code: message.code,
                             logCallbackIndex: message.logListener.index
                         });
                     },
-                    getCRMHints: function (message) {
-                        //TODO
+                    displayHints: function (message) {
+                        globalObject.globals.listeners.log[message.data.callbackIndex].listener({
+                            id: message.id,
+                            tabId: message.tabId,
+                            type: 'hints',
+                            suggestions: message.data.hints
+                        });
                     }
                 };
             })(),
@@ -1254,7 +1239,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     console.log.apply(console, args);
                 }
             },
-            backgroundPageLog: function (id, lineNumber) {
+            backgroundPageLog: function (id, sourceData) {
                 var args = [];
                 for (var _i = 2; _i < arguments.length; _i++) {
                     args[_i - 2] = arguments[_i];
@@ -1265,7 +1250,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     nodeTitle: globalObject.globals.crm.crmById[id].name,
                     tabTitle: 'Background Page',
                     value: args,
-                    lineNumber: lineNumber,
+                    lineNumber: sourceData[0],
+                    logId: sourceData[1],
                     timestamp: new Date().toLocaleString()
                 };
                 globalObject.globals.logging[id].logMessages.push(logValue);
@@ -1274,21 +1260,35 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             logHandler: function (message) {
                 prepareLog(message.id, message.tabId);
                 switch (message.type) {
-                    case 'log':
-                        logHandlerLog(message);
-                        break;
                     case 'evalResult':
                         chrome.tabs.get(message.tabId, function (tab) {
                             globalObject.globals.listeners.log[message.callbackIndex].listener({
                                 id: message.id,
                                 tabId: message.tabId,
                                 nodeTitle: globalObject.globals.crm.crmById[message.id].name,
-                                value: message.data,
                                 tabTitle: tab.title,
                                 type: 'evalResult',
                                 lineNumber: message.lineNumber,
-                                timestamp: message.timestamp
+                                timestamp: message.timestamp,
+                                val: (message.val.type === 'success') ?
+                                    {
+                                        type: 'success',
+                                        result: globalObject.globals.constants.specialJSON.fromJSON(message.val.result)
+                                    } : message.val
                             });
+                        });
+                        break;
+                    case 'log':
+                    default:
+                        logHandlerLog({
+                            type: message.type,
+                            id: message.id,
+                            data: message.data,
+                            lineNumber: message.lineNumber,
+                            tabId: message.tabId,
+                            logId: message.logId,
+                            callbackIndex: message.callbackIndex,
+                            timestamp: message.type
                         });
                         break;
                 }
@@ -1397,12 +1397,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 id: message.id,
                 tabId: message.tabId,
                 value: message.data,
+                logId: message.logId,
                 lineNumber: message.lineNumber || '?',
                 timestamp: new Date().toLocaleString()
             };
             chrome.tabs.get(message.tabId, function (tab) {
                 args = args.concat(globalObject.globals.constants.specialJSON
-                    .fromJson(message.data));
+                    .fromJSON(message.data));
                 exports.log.bind(globalObject, message.id, message.tabId)
                     .apply(globalObject, args);
                 srcObj.id = message.id;
@@ -1676,14 +1677,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                 ], function (optionals) {
                     var id = Helpers.generateItemId();
-                    var i;
                     var node = _this.message.options;
                     node = CRM.makeSafe(node);
                     node.id = id;
                     node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
                         .nodeInfo;
-                    _this.getNodeFromId(_this.message.id, false, true).local &&
-                        (node.local = true);
+                    if (_this.getNodeFromId(_this.message.id, false, true).local) {
+                        node.local = true;
+                    }
                     var newNode;
                     switch (_this.message.options.type) {
                         case 'script':
@@ -2020,7 +2021,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             hasContentType = _this.message['contentTypes']
                                 .indexOf(contentTypeStrings[i]) >
                                 -1;
-                            hasContentType && matches++;
+                            if (hasContentType) {
+                                matches++;
+                            }
                             contentTypes[i] = hasContentType;
                         }
                         if (!matches) {
@@ -2473,15 +2476,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 });
             });
         },
-        getScriptValue: function (_this) {
-            _this.checkPermissions(['crmGet'], function () {
-                _this.getNodeFromId(_this.message.nodeId, true).run(function (node) {
+        getScriptValue: function (__this) {
+            var _this = this;
+            __this.checkPermissions(['crmGet'], function () {
+                __this.getNodeFromId(__this.message.nodeId, true).run(function (node) {
                     if (node.type === 'script') {
-                        _this.respondSuccess(node.value.script);
+                        __this.respondSuccess(node.value.script);
                     }
                     else {
-                        (node['scriptVal'] && _this.respondSuccess(node['scriptVal'].script)) ||
-                            _this.respondSuccess(undefined);
+                        if (node['scriptVal']) {
+                            _this.respondSuccess(node['scriptVal'].script);
+                        }
+                        else {
+                            __this.respondSuccess(undefined);
+                        }
                     }
                 });
             });
@@ -2516,9 +2524,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         _this.respondSuccess(node.value.stylesheet);
                     }
                     else {
-                        (node['stylesheetVal'] &&
-                            _this.respondSuccess(node['stylesheetVal'].stylesheet)) ||
+                        if (node['stylesheetVal']) {
+                            _this.respondSuccess(node['stylesheetVal'].stylesheet);
+                        }
+                        else {
                             _this.respondSuccess(undefined);
+                        }
                     }
                 });
             });
@@ -2553,9 +2564,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         _this.respondSuccess(node.value.backgroundScript);
                     }
                     else {
-                        (node['scriptVal'] &&
-                            _this.respondSuccess(node['scriptVal'].backgroundScript)) ||
+                        if (node['scriptVal']) {
+                            _this.respondSuccess(node['scriptVal'].backgroundScript);
+                        }
+                        else {
                             _this.respondSuccess(undefined);
+                        }
                     }
                 });
             });
@@ -2811,7 +2825,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             if (isArray === void 0) { isArray = false; }
             if (toCheck === undefined || toCheck === null) {
                 if (optional) {
-                    ifndef && ifndef();
+                    if (ifndef) {
+                        ifndef();
+                    }
                     return true;
                 }
                 else {
@@ -2850,7 +2866,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     return false;
                 }
             }
-            ifdef && ifdef();
+            if (ifdef) {
+                ifdef();
+            }
             return true;
         };
         CRMFunction.prototype.moveNode = function (node, position, removeOld) {
@@ -3141,7 +3159,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 return false;
             }
             if (node.isLocal) {
-                callback && callback(optional);
+                if (callback) {
+                    callback(optional);
+                }
             }
             else {
                 var notPermitted = [];
@@ -3174,7 +3194,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             i--;
                         }
                     }
-                    callback && callback(optional);
+                    if (callback) {
+                        callback(optional);
+                    }
                 }
             }
             return true;
@@ -3785,10 +3807,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             handleRuntimeMessage: function (message, messageSender, respond) {
                 switch (message.type) {
                     case 'executeCRMCode':
-                        Logging.LogExecution.executeCRMCode(message.data);
-                        break;
                     case 'getCRMHints':
-                        Logging.LogExecution.getCRMHints(message.data);
+                    case 'createLocalLogVariable':
+                        Logging.LogExecution.executeCRMCode(message.data, message.type);
+                        break;
+                    case 'displayHints':
+                        Logging.LogExecution.displayHints(message);
                         break;
                     case 'logCrmAPIValue':
                         Logging.logHandler(message.data);
@@ -3831,7 +3855,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         break;
                     case 'updateScripts':
                         CRM.Script.Updating.updateScripts(function (updated) {
-                            respond && respond(updated);
+                            if (respond) {
+                                respond(updated);
+                            }
                         });
                         break;
                     case 'installUserScript':
@@ -4034,7 +4060,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             var contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
                             if (contextMenuId !== undefined && contextMenuId !== null) {
                                 chrome.contextMenus.remove(contextMenuId, function () {
-                                    Helpers.checkForChromeErrors();
+                                    Helpers.checkForChromeErrors(false);
                                 });
                             }
                         }
@@ -4418,7 +4444,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                             updatedScripts: updatedScripts
                                         });
                                     });
-                                    callback && callback(updatedData);
+                                    if (callback) {
+                                        callback(updatedData);
+                                    }
                                 }
                                 for (var id in globalObject.globals.crm.crmById) {
                                     if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
@@ -5013,9 +5041,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         };
                     }
                 };
-                function getScriptExports() {
-                    return scriptExports;
-                }
                 return scriptExports;
             })(),
             updateCRMValues: function () {
@@ -5905,7 +5930,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 globalObject.globals.storages.resourceKeys = setIfNotSet(chromeStorageLocal, 'resourceKeys', []);
                 globalObject.globals.storages.urlDataPairs = setIfNotSet(chromeStorageLocal, 'urlDataPairs', {});
                 CRM.updateCRMValues();
-                callback && callback();
+                if (callback) {
+                    callback();
+                }
             },
             cutData: function (data) {
                 var obj = {};
@@ -6733,7 +6760,7 @@ typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxe
                     verifyKey(data, handler);
                     break;
                 case 'log':
-                    window.backgroundPageLog.apply(window, [id, data.lineNumber, ("Background page [" + id + "]: ")].concat(JSON
+                    window.backgroundPageLog.apply(window, [id, [data.lineNo, data.logId], ("Background page [" + id + "]: ")].concat(JSON
                         .parse(data.data)));
                     break;
             }
