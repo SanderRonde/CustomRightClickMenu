@@ -1,14 +1,9 @@
 ﻿(function () {
-	var sentLogs = [];
-
 	function log(args, lineNo) {
-		sentLogs.push(args);
-
 		self.postMessage({
 			type: 'log',
 			data: JSON.stringify(args),
-			lineNo: lineNo,
-			logId: sentLogs.length - 1
+			lineNo: lineNo
 		});
 	}
 
