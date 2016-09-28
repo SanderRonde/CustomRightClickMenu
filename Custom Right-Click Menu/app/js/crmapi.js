@@ -114,12 +114,6 @@
 		};
 		//#endregion
 
-		//#region DojoX.json.ref
-		/*
-			Copyright (c) 2004-2009, The Dojo Foundation All Rights Reserved.
-			Available via Academic Free License >= 2.1 OR the modified BSD license.
-			see: http://dojotoolkit.org/license for details
-		*/
 		var specialJSON = {
 			_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
 			_getRegexFlags: function (expr) {
@@ -332,7 +326,6 @@
 				return this._replaceRefs(refs[0].ref, refs);
 			}
 		};
-		//#endregion
 
 		//#region Properties of this Object
 		Object.defineProperty(this, 'tabId', {
