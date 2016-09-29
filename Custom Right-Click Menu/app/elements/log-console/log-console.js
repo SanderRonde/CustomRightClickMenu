@@ -186,7 +186,7 @@
 			this.waitingForEval = false;
 		},
 
-		_init: function(onDone) {
+		_init: function() {
 			var _this = this;
 			chrome.runtime.getBackgroundPage(function(bgPage) {
 				_this.bgPage = bgPage;
