@@ -734,8 +734,8 @@ paper-button.blue {
 }
 
 textarea {
-	width:100%;
-	resize:none;
+	width: 1000px;
+	resize: none;
 	margin-top: 5px;
 }
 
@@ -811,6 +811,7 @@ edit-crm-item {
 
 html {
 	overflow-y: visible;
+	overflow-x: hidden;
 }
 
 #versionUpdateDialog {
