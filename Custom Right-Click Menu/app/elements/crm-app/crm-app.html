@@ -200,12 +200,37 @@
 					</div>
 				</div>
 				<br /><br />
+				<div class="URIScheme">
+					<div class="bigTxt">
+						Launching programs instead of links
+					</div>
+					<div class="URISchemeDescr">
+						You may want to launch programs on your computer as well, instead of only using links.
+						This is possible, but requires a bit of extra effort because of chrome's security restrictions.
+						Directly linking to files on your computer to open them is not possible (at least not for executable programs),
+						this is why you'll need to set up a custom (local only) URI that launches the program you want to launch.
+						If you want to read up about it some more check out <a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" target="_blank">this</a> page.
+						To make this possible you'll need to add a key/value pair in your registry. After doing this, instead of http:// use yourscheme:// as a link<br>
+						If you are on a mac you can use
+						<a href="https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX" target="_blank">this</a>
+						method. If you are on a windows computer you can do this yourself if you
+						want to (follow <a href="https://support.microsoft.com/nl-nl/kb/310516" target="_blank">these</a> instructions),
+						or you can generate a file you can download that will write the key/value pair for you by hitting the button below.
+						The second method is a lot easier and faster but it's understandable if you don't trust this extension in which case you can do it manually.
+					</div>
+					<div class="URISchemeGenerator">
+						<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
+						<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="This is not a valid scheme" label="URI scheme name" value="myscheme"></paper-input>
+						<paper-button raised class="blue" on-tap="_generateRegexFile">GENERATE</paper-button>
+					</div>
+				</div>
+				<br /><br />
 				<div class="globalExcludes">
 					<div class="bigTxt">
 						Global Excludes
 					</div>
 					<div class="globalExcludesDescr">
-						There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns">https://developer.chrome.com/extensions/match_patterns</a>
+						There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
 					</div>
 					<div class="globalExcludesItems">
 						<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">

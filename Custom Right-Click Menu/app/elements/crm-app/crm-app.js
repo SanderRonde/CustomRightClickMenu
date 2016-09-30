@@ -297,6 +297,31 @@
 			window.open(chrome.runtime.getURL('html/logging.html'), '_blank');
 		},
 
+		_generateRegexFile: function() {
+			var filePath = this.$.URISchemeFilePath.value.replace(/\\/g, '\\\\')
+			var schemeName = this.$.URISchemeSchemeName.value;
+
+			var regFile = [
+				'Windows Registry Editor Version 5.00',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + ']',
+				'@="URL:' + schemeName +' Protocol"',
+				'"URL Protocol"=""',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell]',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open]',
+				'',
+				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
+				'@="\\"' + filePath + '\\""'
+			].join('\n');
+			console.log(regFile);
+			chrome.downloads.download({
+				url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
+				filename: schemeName + '.reg'
+			});
+		},
+
 		goNextVersionUpdateTab: function () {
 			if (this.versionUpdateTab === 4) {
 				this.$.versionUpdateDialog.close();
