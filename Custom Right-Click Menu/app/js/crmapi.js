@@ -250,12 +250,12 @@
 				var paths = [[]];
 				var originalValues = [data];
 				if (!(this._isObject(data) || Array.isArray(data))) {
-					return JSON.stringify({
+					return {
 						refs: [],
 						data: this._stringifyNonObject(data),
 						rootType: 'normal',
 						paths: []
-					});
+					};
 				}
 				else {
 					var copyTarget_1 = (Array.isArray(data) ? [] : {});
@@ -282,12 +282,12 @@
 							return "__$" + index + "$__";
 						}
 					});
-					return JSON.stringify({
+					return {
 						refs: refs,
 						data: copyTarget_1,
 						rootType: Array.isArray(data) ? 'array' : 'object',
 						paths: paths
-					});
+					};
 				}
 			},
 			_refRegex: /^__\$(\d+)\$__$/,
@@ -520,20 +520,20 @@
 		function executeCode(message) {		
 			var timestamp = new Date().toLocaleString();
 
-			var err = (new Error()).stack.split('\n')[2];
+			var err = (new Error()).stack.split('\n')[1];
 			if (err.indexOf('eval') > -1) {
-				err = (new Error()).stack.split('\n')[3];
+				err = (new Error()).stack.split('\n')[2];
 			}
 			var errSplit = err.split('at');
-			var lineNumber = errSplit.slice(1, errSplit.length).join('at');
 				
 			var val;
 			try {
+				var global = (isBackground ? self : window);
 				val = {
 					type: 'success',
-					result: specialJSON.toJSON(eval.apply(window, [message.code]))
+					result: JSON.stringify(specialJSON.toJSON(
+						eval.apply(global, [message.code])))
 				};
-				lineNumber = '<crmapi>:0';
 
 			} catch(e) {
 				val = {
@@ -544,8 +544,6 @@
 						message: e.message
 					}
 				};
-				lineNumber = lineNumber.split(':')[1];
-				lineNumber = '<crmapi>:' + lineNumber;
 			}
 
 			sendMessage({
@@ -557,7 +555,7 @@
 					value: val,
 					id: id,
 					callbackIndex: message.logCallbackIndex,
-					lineNumber: lineNumber,
+					lineNumber: '<eval>:0',
 					timestamp: timestamp,
 					tabId: _this.tabId
 				}
@@ -662,24 +660,42 @@
 
 		var sentLogs = ['filler'];
 		function saveLogValues(arr) {
-			var clone = JSON.parse(JSON.stringify(arr));
-			var data = specialJSON._toJSON(arr);
+			var data = specialJSON.toJSON(arr);
 
-			sentLogs.push({
-				refs: data.refs,
-				
-			})
+			sentLogs.push(data);
 
 			return {
 				data: data,
 				logId: sentLogs.length - 1
-			}
+			};
+		}
+
+		function createVariable(log, index) {
+			var global = (isBackground ? self : window);
+
+			var i;
+			for (i = 0; 'temp' + i in global; i++) { }
+
+			global['temp' + i] = log.originalValues[index];
 		}
 
 		function createLocalVariable(message) {
 			var log = sentLogs[message.code.logId];
+			var bracketPath = '[' + message.code.index + ']' +
+				message.code.path.replace(/\.(\w+)/g, function(fullString, match) {
+					return '["' + match + '"]';
+				});
 
-			
+			console.log(bracketPath);
+
+			console.log(log.paths);
+			for (var i = 0; i < log.paths.length; i++) {
+				if (bracketPath === log.paths[i].join('')) {
+					console.log('creating ', i, 'on log', log);
+					createVariable(log, i);
+					break;
+				}
+			}
 		}
 
 		function messageHandler(message) {
@@ -3007,7 +3023,10 @@
 				err = (new Error()).stack.split('\n')[3];
 			}
 			var errSplit = err.split('at');
-			var lineNumber = errSplit.slice(1, errSplit.length).join('at');
+			var lineNumber = errSplit
+				.slice(1, errSplit.length)
+				.join('at')
+				.replace(/anonymous/, 'script');
 
 			var args = Array.prototype.slice.apply(arguments);
 			var result = saveLogValues(args);
@@ -3018,7 +3037,7 @@
 				tabId: _this.tabId,
 				data: {
 					type: 'log',
-					data: result.data,
+					data: JSON.stringify(result.data),
 					id: id,
 					logId: result.logId,
 					lineNumber: lineNumber,
