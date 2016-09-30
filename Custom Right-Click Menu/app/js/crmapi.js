@@ -254,6 +254,7 @@
 						refs: [],
 						data: this._stringifyNonObject(data),
 						rootType: 'normal',
+						originalValues: originalValues,
 						paths: []
 					};
 				}
@@ -285,6 +286,7 @@
 					return {
 						refs: refs,
 						data: copyTarget_1,
+						originalValues: originalValues,
 						rootType: Array.isArray(data) ? 'array' : 'object',
 						paths: paths
 					};
@@ -674,28 +676,36 @@
 			var global = (isBackground ? self : window);
 
 			var i;
-			for (i = 0; 'temp' + i in global; i++) { }
+			for (i = 1; 'temp' + i in global; i++) { }
 
 			global['temp' + i] = log.originalValues[index];
+			return 'temp' + i;
 		}
 
 		function createLocalVariable(message) {
 			var log = sentLogs[message.code.logId];
-			var bracketPath = '[' + message.code.index + ']' +
+			var bracketPath = ('[' + message.code.index + ']' +
 				message.code.path.replace(/\.(\w+)/g, function(fullString, match) {
 					return '["' + match + '"]';
-				});
+				})).split('][');
+			
+			bracketPath[0] = bracketPath[0].slice(1);
+			bracketPath[bracketPath.length - 1] = bracketPath[bracketPath.length - 1].slice(
+				0, bracketPath[bracketPath.length - 1].length - 1
+			);
 
-			console.log(bracketPath);
+			bracketPath = JSON.stringify(bracketPath.map(function(pathValue) {
+				return JSON.parse(pathValue);
+			}));
 
-			console.log(log.paths);
 			for (var i = 0; i < log.paths.length; i++) {
-				if (bracketPath === log.paths[i].join('')) {
-					console.log('creating ', i, 'on log', log);
-					createVariable(log, i);
-					break;
+				if (bracketPath === JSON.stringify(log.paths[i])) {
+					var createdVariableName = createVariable(log, i);
+					this.log('Created local variable ' + createdVariableName);
+					return;
 				}
 			}
+			this.log('Could not create local variable');
 		}
 
 		function messageHandler(message) {

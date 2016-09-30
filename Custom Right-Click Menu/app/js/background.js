@@ -1,4 +1,3 @@
-/// <reference path="../../scripts/Promise.d.ts" />
 /// <reference path="../../scripts/chrome.d.ts"/>
 ;
 ;
@@ -665,6 +664,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 if (chrome.runtime.lastError && log) {
                     console.log('chrome runtime error', chrome.runtime.lastError);
                 }
+            },
+            removeTab: function (tabId) {
+                var nodeStatusses = globalObject.globals.crmValues.stylesheetNodeStatusses;
+                for (var nodeId in nodeStatusses) {
+                    if (nodeStatusses.hasOwnProperty(nodeId)) {
+                        if (nodeStatusses[nodeId][tabId]) {
+                            delete nodeStatusses[nodeId][tabId];
+                        }
+                    }
+                }
+                delete globalObject.globals.crmValues.tabData[tabId];
             }
         };
         function getExports() {
@@ -837,30 +847,60 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     globalObject.globals.listeners.log.push(filterObj);
                     return getLog('all', 'all', '');
                 };
-                window._getIdCurrentTabs = function (id, callback) {
-                    var tabs = [];
-                    var promises = [];
+                function checkJobs(jobs, oldResults, onDone) {
+                    if (jobs[0].finished) {
+                        return;
+                    }
+                    for (var i = 0; i < jobs.length; i++) {
+                        if (jobs[i].done === false) {
+                            return;
+                        }
+                    }
+                    jobs[0].finished = true;
+                    var newResults = jobs
+                        .map(function (job) { return job.result; })
+                        .filter(function (jobResult) { return !!jobResult; });
+                    //Preserve === equality if nothing changed
+                    if (JSON.stringify(newResults) === JSON.stringify(oldResults)) {
+                        onDone(oldResults);
+                    }
+                    else {
+                        onDone(newResults);
+                    }
+                }
+                window._getIdCurrentTabs = function (id, currentTabs, callback) {
+                    var jobs = [];
                     var tabData = globalObject.globals.crmValues.tabData;
                     var _loop_1 = function(tabId) {
                         if (tabData.hasOwnProperty(tabId)) {
                             if (tabData[tabId].nodes[id] || id === 0) {
                                 if (tabId === '0') {
-                                    promises.push(new Promise(function (resolve) {
-                                        resolve({
+                                    jobs.push({
+                                        done: true,
+                                        result: {
                                             id: 'background',
                                             title: 'background'
-                                        });
-                                    }));
+                                        }
+                                    });
                                 }
                                 else {
-                                    promises.push(new Promise(function (resolve) {
-                                        chrome.tabs.get(~~tabId, function (tab) {
-                                            resolve({
-                                                id: ~~tabId,
-                                                title: tab.title
-                                            });
+                                    var index_1 = jobs.length;
+                                    jobs.push({
+                                        done: false
+                                    });
+                                    chrome.tabs.get(~~tabId, function (tab) {
+                                        if (chrome.runtime.lastError) {
+                                            //Tab does not exist, remove it from tabData
+                                            Helpers.removeTab(~~tabId);
+                                            return;
+                                        }
+                                        jobs[index_1].done = true;
+                                        jobs[index_1].result = ({
+                                            id: ~~tabId,
+                                            title: tab.title
                                         });
-                                    }));
+                                        checkJobs(jobs, currentTabs, callback);
+                                    });
                                 }
                             }
                         }
@@ -868,9 +908,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     for (var tabId in tabData) {
                         _loop_1(tabId);
                     }
-                    Promise.all(promises).then(function (tabs) {
-                        callback(tabs);
-                    });
+                    checkJobs(jobs, currentTabs, callback);
                 };
             },
             refreshPermissions: function () {
@@ -1232,6 +1270,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 return {
                     executeCRMCode: function (message, type) {
                         //Get the port
+                        if (!globalObject.globals.crmValues.tabData[message.tab]) {
+                            return;
+                        }
                         globalObject.globals.crmValues.tabData[message.tab].nodes[message.id].port
                             .postMessage({
                             messageType: type,
@@ -1416,9 +1457,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         }
         function updateLogs(newLog) {
             globalObject.globals.listeners.log.forEach(function (logListener) {
-                var idMatches = logListener.id === 'all' || logListener.id === newLog.id;
+                var idMatches = logListener.id === 'all' || ~~logListener.id === ~~newLog.id;
                 var tabMatches = logListener.tab === 'all' ||
-                    logListener.tab === newLog.tabId;
+                    (logListener.tab === 'background' && logListener.tab === newLog.tabId) ||
+                    (logListener.tab !== 'background' && ~~logListener.tab === ~~newLog.tabId);
                 if (idMatches && tabMatches) {
                     logListener.listener(newLog);
                 }

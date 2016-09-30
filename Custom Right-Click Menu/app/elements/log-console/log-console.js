@@ -195,7 +195,7 @@
 				return tabs;
 			}
 			if (this.bgPage) {
-				this.bgPage._getIdCurrentTabs(~~this.ids[~~selectedId - 1], function(newTabs) {
+				this.bgPage._getIdCurrentTabs(~~this.ids[~~selectedId - 1], this.tabs, function(newTabs) {
 					_this.set('tabs', newTabs);
 				});
 				return tabs;
@@ -432,7 +432,8 @@
 			_this.logLines = ReactDOM.render(
 				React.createElement(
 					window.logElements.logLines, {
-						items: []
+						items: [],
+						logConsole: _this
 					}),
 				this.$.lines);
 

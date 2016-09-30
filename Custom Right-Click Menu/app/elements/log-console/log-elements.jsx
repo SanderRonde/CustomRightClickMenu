@@ -367,10 +367,10 @@ window.logElements = (() => {
 				}])
 			});
 
-			window.logConsole.set('lines', this.state.lines.length);
+			this.props.logConsole.set('lines', this.state.lines.length);
 		}
 		popEval() {
-			const lines = this.state.lines;
+			const lines = this.state.lines.reverse();
 			let popped = null;
 			for (let i = 0; i < lines.length; i++) {
 				if (lines[i].line.isEval) {
@@ -381,10 +381,10 @@ window.logElements = (() => {
 
 			if (popped) {
 				this.setState({
-					lines: lines
+					lines: lines.reverse()
 				});
 
-				window.logConsole.set('lines', this.state.lines.length);
+				this.props.logConsole.set('lines', this.state.lines.length);
 			}
 
 			return popped[0];
@@ -394,7 +394,7 @@ window.logElements = (() => {
 				lines: []
 			});
 
-			window.logConsole.set('lines', this.state.lines.length);
+			this.props.logConsole.set('lines', this.state.lines.length);
 		}
 		render() {
 			const children = [];

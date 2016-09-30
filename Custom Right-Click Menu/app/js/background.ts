@@ -1,4 +1,3 @@
-/// <reference path="../../scripts/Promise.d.ts" />
 /// <reference path="../../scripts/chrome.d.ts"/>
 
 
@@ -176,7 +175,7 @@ interface Window {
 	}) => (message: any, port: chrome.runtime.Port) => void;
 	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
 	filter: (nodeId: any, tabId: any) => void;
-	_getIdCurrentTabs: (id: number, callback: (tabs: Array<{
+	_getIdCurrentTabs: (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<{
 		id: number|'background';
 		title: string;
 	}>) => void) => void;
@@ -1381,6 +1380,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (chrome.runtime.lastError && log) {
 					console.log('chrome runtime error', chrome.runtime.lastError);
 				}
+			},
+			removeTab(tabId: number) {
+				const nodeStatusses = globalObject.globals.crmValues.stylesheetNodeStatusses;
+				for (let nodeId in nodeStatusses) {
+					if (nodeStatusses.hasOwnProperty(nodeId)) {
+						if (nodeStatusses[nodeId][tabId]) {
+							delete nodeStatusses[nodeId][tabId];
+						}
+					}
+				}
+
+				delete globalObject.globals.crmValues.tabData[tabId];
 			}
 		};
 
@@ -1554,62 +1565,98 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				window._listenLog = (listener: LogListener,
-						callback: (filterObj: LogListenerObject) => void):
-					Array<LogListenerLine> => {
-						var filterObj: LogListenerObject = {
-							id: 'all',
-							tab: 'all',
-							text: '',
-							listener: listener,
-							update(id, tab, textFilter) {
-								return updateLog.apply(this, [id, tab, textFilter]);
-							},
-							index: globalObject.globals.listeners.log.length
-						};
-
-						callback(filterObj);
-
-						globalObject.globals.listeners.log.push(filterObj);
-
-						return getLog('all', 'all', '');
+					callback: (filterObj: LogListenerObject) => void):
+				Array<LogListenerLine> => {
+					var filterObj: LogListenerObject = {
+						id: 'all',
+						tab: 'all',
+						text: '',
+						listener: listener,
+						update(id, tab, textFilter) {
+							return updateLog.apply(this, [id, tab, textFilter]);
+						},
+						index: globalObject.globals.listeners.log.length
 					};
 
-				window._getIdCurrentTabs = (id: number, callback: (tabs: Array<TabData>) => void) => {
-					const tabs = [];
+					callback(filterObj);
 
-					const promises: Array<Promise<{
-						id: number|'background';
-						title: string;
-					}>> = [];
+					globalObject.globals.listeners.log.push(filterObj);
+
+					return getLog('all', 'all', '');
+				};
+
+				function checkJobs<T>(jobs: Array<{
+					done: boolean;
+					result?: T;
+					finished?: boolean;
+				}>, oldResults: Array<T>, onDone: (results: Array<T>) => void): void {
+					if (jobs[0].finished) {
+						return;
+					}
+					for (let i = 0; i < jobs.length; i++) {
+						if (jobs[i].done === false) {
+							return;
+						}
+					}
+					jobs[0].finished = true;
+					const newResults = jobs
+						.map((job) => job.result)
+						.filter((jobResult) => !!jobResult);
+
+					//Preserve === equality if nothing changed
+					if (JSON.stringify(newResults) === JSON.stringify(oldResults)) {
+						onDone(oldResults);
+					} else {
+						onDone(newResults);
+					}
+				}
+
+				window._getIdCurrentTabs = (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => {
+					const jobs: Array<{
+						done: boolean;
+						result?: {
+							id: number|'background';
+							title: string;
+						};
+						finished?: boolean;
+					}> = [];
 
 					const tabData = globalObject.globals.crmValues.tabData;
 					for (let tabId in tabData) {
 						if (tabData.hasOwnProperty(tabId)) {
 							if (tabData[tabId].nodes[id] || id === 0) {
 								if (tabId === '0') {
-									promises.push(new Promise((resolve) => {
-										resolve({
+									jobs.push({
+										done: true,
+										result: {
 											id: 'background',
 											title: 'background'
-										});
-									}))
+										}
+									});
 								} else {
-									promises.push(new Promise((resolve) => {
-										chrome.tabs.get(~~tabId, (tab) => {
-											resolve({
-												id: ~~tabId,
-												title: tab.title
-											});
+									let index = jobs.length;
+									jobs.push({
+										done: false
+									});
+									chrome.tabs.get(~~tabId, (tab) => {
+										if (chrome.runtime.lastError) {
+											//Tab does not exist, remove it from tabData
+											Helpers.removeTab(~~tabId);
+											return;
+										}
+
+										jobs[index].done = true;
+										jobs[index].result = ({
+											id: ~~tabId,
+											title: tab.title
 										});
-									}));
+										checkJobs(jobs, currentTabs, callback);
+									});
 								}
 							}
 						}
 					}
-
-					Promise.all(promises).then((tabs) => {
-						callback(tabs);
-					});
+					checkJobs(jobs, currentTabs, callback);
 				};
 			},
 			refreshPermissions() {
@@ -2052,6 +2099,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						logListener: LogListenerObject;
 					}, type: 'executeCRMCode'|'getCRMHints'|'createLocalLogVariable') {
 						//Get the port
+						if (!globalObject.globals.crmValues.tabData[message.tab]) {
+							return;
+						}
 						globalObject.globals.crmValues.tabData[message.tab].nodes[message.id].port
 							.postMessage({
 								messageType: type,
@@ -2274,9 +2324,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 		function updateLogs(newLog: LogListenerLine) {
 			globalObject.globals.listeners.log.forEach((logListener) => {
-				const idMatches = logListener.id === 'all' || logListener.id === newLog.id;
+				const idMatches = logListener.id === 'all' || ~~logListener.id === ~~newLog.id;
 				const tabMatches = logListener.tab === 'all' ||
-					logListener.tab === newLog.tabId;
+					(logListener.tab === 'background' && logListener.tab === newLog.tabId) ||
+					(logListener.tab !== 'background' && ~~logListener.tab === ~~newLog.tabId)
 				if (idMatches && tabMatches) {
 					logListener.listener(newLog);
 				}
