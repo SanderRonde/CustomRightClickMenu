@@ -293,6 +293,10 @@
 			return currentTab === desiredTab;
 		},
 
+		_openLogging: function() {
+			window.open(chrome.runtime.getURL('html/logging.html'), '_blank');
+		},
+
 		goNextVersionUpdateTab: function () {
 			if (this.versionUpdateTab === 4) {
 				this.$.versionUpdateDialog.close();

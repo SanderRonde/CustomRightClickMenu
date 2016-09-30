@@ -251,6 +251,19 @@
 					<paper-button class="blue" raised id="exportButton" on-tap="exportData">Export</paper-button>
 				</div>
 				<br/><br/>
+				<div class="loggingButtonCont">
+					<div class="bigTxt">
+						Checking your scripts' logs
+					</div>
+					<div class="loggingDescr">
+						Clicking on this button will take you to a page where you can monitor your scripts' logs
+						from one central place. Think of it as a chrome dev tools for all your scripts and with
+						only your logs. <br />
+						To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
+					</div>
+					<paper-button class="blue" raised on-tap="_openLogging">Logging</paper-button>
+				</div>
+				<br/><br/>
 				<div class="privacyPolicyCont">
 					<div class="bigTxt">
 						Privacy Policy
