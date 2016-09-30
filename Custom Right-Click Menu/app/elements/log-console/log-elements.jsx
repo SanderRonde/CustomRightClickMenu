@@ -1,17 +1,24 @@
 window.logElements = (() => {
-	function getTag(item, parent) {
-		if (item === null) {
-			return <StringElement parent={parent} value={item}/>;
+	function getTag(item, parent, additionalProps) {
+		additionalProps = additionalProps || {};
+
+		if (additionalProps.isEval) {
+			return <EvalElement {...additionalProps} parent={parent} value={item}/>;
 		}
+
+		if (item === null || item === undefined) {
+			return <StringElement {...additionalProps} parent={parent} value={item}/>;
+		}
+
 
 		switch (typeof item) {
 			case 'function':
-				return <FunctionElement parent={parent} value={item}/>;
+				return <FunctionElement {...additionalProps} parent={parent} value={item}/>;
 			case 'object':
-				return <ObjectElement parent={parent} value={item}/>;
+				return <ObjectElement {...additionalProps} parent={parent} value={item}/>;
 			case 'string':
 			default:
-				return <StringElement parent={parent} value={item}/>;
+				return <StringElement {...additionalProps} parent={parent} value={item}/>;
 		}
 	}
 
@@ -27,6 +34,36 @@ window.logElements = (() => {
 		}
 	}
 
+	class EvalElement extends LogElement {
+		componentDidMount() {
+			if (this.props.hasResult) {
+				this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
+			}
+		}
+		isLine() {
+			return true;
+		}
+		render() {
+			return (
+				<div ref="cont" className="evalElementContainer">
+					<div className="evalElementCommand">
+						<div className="evalElementCommandPrefix">&gt;</div>
+						<div className="evalElementCommandValue">{this.props.value.code}</div>
+					</div>
+					<div className="evalElementStatus">
+						{(this.props.value.hasResult ?
+							<div className="evalElementReturn">
+								<div className="evalElementReturnPrefix">&lt;</div>
+								<div className="evalElementReturnValue">{getTag(this.props.value.result, this)}</div>
+							</div>
+							: 
+							<paper-spinner className="tinySpinner" active></paper-spinner>)}
+					</div>
+				</div>
+			);
+		}
+	}
+
 	class StringElement extends LogElement {
 		componentDidMount() {
 			if (!this.props.nolistener) {
@@ -35,9 +72,15 @@ window.logElements = (() => {
 		}
 		render() {
 			var type = typeof this.props.value;
+			var value;
+			if (this.props.value === null || this.props.value === undefined) {
+				value = this.props.value + '';
+			} else {
+				value = JSON.stringify(this.props.value);
+			}
 			return <div ref="cont" className="stringElementValue"
 				type={type}>
-					{JSON.stringify(this.props.value) + ' '	}
+					{value + ' '	}
 				</div>
 		}
 	};
@@ -116,7 +159,6 @@ window.logElements = (() => {
 			});
 		} else {
 			var props = Object.getOwnPropertyNames(item).map(function(key) {
-				deep && console.log(key);
 				if (key === '__proto__' && item[key] === null) {
 					return null;
 				} else if (key !== '__parent') {
@@ -161,7 +203,9 @@ window.logElements = (() => {
 					expandedElements.push(
 						<div className="expandedObjectElement">
 							<div className="expandedObjectElementIndex">{item.index}:</div>
-							<div className="expandedObjectElementValue">{getTag(item.value, _this)}</div>
+							<div className="expandedObjectElementValue">{getTag(item.value, _this, {
+								isProto: item.index === '__proto__'
+							})}</div>
 							{i < lastElementIndex ? <span className="arrayComma">,</span> : null}
 						</div>
 					);
@@ -193,7 +237,8 @@ window.logElements = (() => {
 			var overflows = (dataType === 'object' && dataPairs.length > 3) || 
 				(dataType === 'array' && dataPairs.length > 10);
 			var nonOverflowItems = dataPairs.slice(0, (
-				dataType === 'object' ? 3 : 10
+				this.props.isProto ? 0 :
+					dataType === 'object' ? 3 : 10
 			));
 
 			if (overflows) {
@@ -289,14 +334,16 @@ window.logElements = (() => {
 			});
 		}
 		render() {
-			var takeToTab = this.takeToTab.bind(this);
+			const takeToTab = this.takeToTab.bind(this);
 			return (
 				<div data-error={this.props.line.isError} className="logLine">
 					<div className="lineData">
 						<div className="lineTimestamp">{this.props.line.timestamp}</div>
 						<div className="lineContent">
-							{this.props.value.map(function(value) {
-								return getTag(value, this);
+							{this.props.value.map((value) => {
+								return getTag(value, this, {
+									isEval: this.props.line.isEval
+								});
 							})}
 						</div>
 					</div>
@@ -320,14 +367,34 @@ window.logElements = (() => {
 				}])
 			});
 
-			window.logConsole.lines = this.state.lines.length;
+			window.logConsole.set('lines', this.state.lines.length);
+		}
+		popEval() {
+			const lines = this.state.lines;
+			let popped = null;
+			for (let i = 0; i < lines.length; i++) {
+				if (lines[i].line.isEval) {
+					popped = lines.splice(i, 1);
+					break;
+				}
+			}
+
+			if (popped) {
+				this.setState({
+					lines: lines
+				});
+
+				window.logConsole.set('lines', this.state.lines.length);
+			}
+
+			return popped[0];
 		}
 		clear() {
 			this.setState({
 				lines: []
 			});
 
-			window.logConsole.lines = this.state.lines.length;
+			window.logConsole.set('lines', this.state.lines.length);
 		}
 		render() {
 			const children = [];

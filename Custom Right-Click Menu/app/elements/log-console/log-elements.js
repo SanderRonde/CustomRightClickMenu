@@ -1,17 +1,25 @@
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 window.logElements = (() => {
-	function getTag(item, parent) {
-		if (item === null) {
-			return React.createElement(StringElement, { parent: parent, value: item });
+	function getTag(item, parent, additionalProps) {
+		additionalProps = additionalProps || {};
+
+		if (additionalProps.isEval) {
+			return React.createElement(EvalElement, _extends({}, additionalProps, { parent: parent, value: item }));
+		}
+
+		if (item === null || item === undefined) {
+			return React.createElement(StringElement, _extends({}, additionalProps, { parent: parent, value: item }));
 		}
 
 		switch (typeof item) {
 			case 'function':
-				return React.createElement(FunctionElement, { parent: parent, value: item });
+				return React.createElement(FunctionElement, _extends({}, additionalProps, { parent: parent, value: item }));
 			case 'object':
-				return React.createElement(ObjectElement, { parent: parent, value: item });
+				return React.createElement(ObjectElement, _extends({}, additionalProps, { parent: parent, value: item }));
 			case 'string':
 			default:
-				return React.createElement(StringElement, { parent: parent, value: item });
+				return React.createElement(StringElement, _extends({}, additionalProps, { parent: parent, value: item }));
 		}
 	}
 
@@ -27,6 +35,55 @@ window.logElements = (() => {
 		}
 	}
 
+	class EvalElement extends LogElement {
+		componentDidMount() {
+			if (this.props.hasResult) {
+				this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
+			}
+		}
+		isLine() {
+			return true;
+		}
+		render() {
+			return React.createElement(
+				'div',
+				{ ref: 'cont', className: 'evalElementContainer' },
+				React.createElement(
+					'div',
+					{ className: 'evalElementCommand' },
+					React.createElement(
+						'div',
+						{ className: 'evalElementCommandPrefix' },
+						'>'
+					),
+					React.createElement(
+						'div',
+						{ className: 'evalElementCommandValue' },
+						this.props.value.code
+					)
+				),
+				React.createElement(
+					'div',
+					{ className: 'evalElementStatus' },
+					this.props.value.hasResult ? React.createElement(
+						'div',
+						{ className: 'evalElementReturn' },
+						React.createElement(
+							'div',
+							{ className: 'evalElementReturnPrefix' },
+							'<'
+						),
+						React.createElement(
+							'div',
+							{ className: 'evalElementReturnValue' },
+							getTag(this.props.value.result, this)
+						)
+					) : React.createElement('paper-spinner', { className: 'tinySpinner', active: true })
+				)
+			);
+		}
+	}
+
 	class StringElement extends LogElement {
 		componentDidMount() {
 			if (!this.props.nolistener) {
@@ -35,11 +92,17 @@ window.logElements = (() => {
 		}
 		render() {
 			var type = typeof this.props.value;
+			var value;
+			if (this.props.value === null || this.props.value === undefined) {
+				value = this.props.value + '';
+			} else {
+				value = JSON.stringify(this.props.value);
+			}
 			return React.createElement(
 				'div',
 				{ ref: 'cont', className: 'stringElementValue',
 					type: type },
-				JSON.stringify(this.props.value) + ' '
+				value + ' '
 			);
 		}
 	};
@@ -168,7 +231,6 @@ window.logElements = (() => {
 			});
 		} else {
 			var props = Object.getOwnPropertyNames(item).map(function (key) {
-				deep && console.log(key);
 				if (key === '__proto__' && item[key] === null) {
 					return null;
 				} else if (key !== '__parent') {
@@ -222,7 +284,9 @@ window.logElements = (() => {
 						React.createElement(
 							'div',
 							{ className: 'expandedObjectElementValue' },
-							getTag(item.value, _this)
+							getTag(item.value, _this, {
+								isProto: item.index === '__proto__'
+							})
 						),
 						i < lastElementIndex ? React.createElement(
 							'span',
@@ -254,7 +318,7 @@ window.logElements = (() => {
 				return typeof pair.value === 'object';
 			}).length > 0;
 			var overflows = dataType === 'object' && dataPairs.length > 3 || dataType === 'array' && dataPairs.length > 10;
-			var nonOverflowItems = dataPairs.slice(0, dataType === 'object' ? 3 : 10);
+			var nonOverflowItems = dataPairs.slice(0, this.props.isProto ? 0 : dataType === 'object' ? 3 : 10);
 
 			if (overflows) {
 				nonOverflowItems.push({
@@ -419,7 +483,7 @@ window.logElements = (() => {
 			});
 		}
 		render() {
-			var takeToTab = this.takeToTab.bind(this);
+			const takeToTab = this.takeToTab.bind(this);
 			return React.createElement(
 				'div',
 				{ 'data-error': this.props.line.isError, className: 'logLine' },
@@ -434,8 +498,10 @@ window.logElements = (() => {
 					React.createElement(
 						'div',
 						{ className: 'lineContent' },
-						this.props.value.map(function (value) {
-							return getTag(value, this);
+						this.props.value.map(value => {
+							return getTag(value, this, {
+								isEval: this.props.line.isEval
+							});
 						})
 					)
 				),
@@ -491,14 +557,34 @@ window.logElements = (() => {
 				}])
 			});
 
-			window.logConsole.lines = this.state.lines.length;
+			window.logConsole.set('lines', this.state.lines.length);
+		}
+		popEval() {
+			const lines = this.state.lines;
+			let popped = null;
+			for (let i = 0; i < lines.length; i++) {
+				if (lines[i].line.isEval) {
+					popped = lines.splice(i, 1);
+					break;
+				}
+			}
+
+			if (popped) {
+				this.setState({
+					lines: lines
+				});
+
+				window.logConsole.set('lines', this.state.lines.length);
+			}
+
+			return popped[0];
 		}
 		clear() {
 			this.setState({
 				lines: []
 			});
 
-			window.logConsole.lines = this.state.lines.length;
+			window.logConsole.set('lines', this.state.lines.length);
 		}
 		render() {
 			const children = [];

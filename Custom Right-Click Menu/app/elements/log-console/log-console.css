@@ -61,6 +61,7 @@
 }
 
 #filterCont {
+	z-index: 500;
 	display:flex;
 	justify-content: flex-start;
 }
@@ -354,6 +355,19 @@
 }
 /*function end*/
 
+/*eval*/
+.evalElementCommandPrefix, 
+.evalElementCommandValue, 
+.evalElementReturnPrefix, 
+.evalElementReturnValue {
+	display: inline-block;
+}
+
+.evalElementCommandValue, .evalElementReturnValue {
+	padding-left: 10px;
+}
+/*eval end*/
+
 /*context menu*/
 #contextMenu {
 	display: none;
@@ -379,3 +393,12 @@
 	display: none;
 }
 /*context menu end*/
+
+.evalElementStatus paper-spinner {
+	width: 13px;
+	height: 13px;
+}
+
+.evalElementStatus paper-spinner .circle {
+	border-width: 2px;
+}
