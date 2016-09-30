@@ -134,7 +134,6 @@
 	},
 
 	refreshListeners: function() {
-		console.log('refreshing listeners');
 		var _this = this;
 		this._paperItems = $(this).find('paper-item').off('click').on('click', function () {
 			setTimeout(function () {
