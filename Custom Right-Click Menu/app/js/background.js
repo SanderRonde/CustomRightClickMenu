@@ -1,3 +1,4 @@
+/// <reference path="../../scripts/Promise.d.ts" />
 /// <reference path="../../scripts/chrome.d.ts"/>
 ;
 ;
@@ -502,7 +503,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             return value.toString();
                         }
                         if (value instanceof RegExp) {
-                            return "_PxEgEr_" + value;
+                            return '_PxEgEr_' + value;
                         }
                         return value;
                     });
@@ -836,25 +837,40 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     globalObject.globals.listeners.log.push(filterObj);
                     return getLog('all', 'all', '');
                 };
-                window._getIdCurrentTabs = function (id) {
+                window._getIdCurrentTabs = function (id, callback) {
                     var tabs = [];
+                    var promises = [];
                     var tabData = globalObject.globals.crmValues.tabData;
-                    for (var tabId in tabData) {
+                    var _loop_1 = function(tabId) {
                         if (tabData.hasOwnProperty(tabId)) {
                             if (tabData[tabId].nodes[id] || id === 0) {
                                 if (tabId === '0') {
-                                    tabs.push({
-                                        id: 'background',
-                                        title: 'background'
-                                    });
+                                    promises.push(new Promise(function (resolve) {
+                                        resolve({
+                                            id: 'background',
+                                            title: 'background'
+                                        });
+                                    }));
                                 }
                                 else {
-                                    tabs.push(tabId);
+                                    promises.push(new Promise(function (resolve) {
+                                        chrome.tabs.get(~~tabId, function (tab) {
+                                            resolve({
+                                                id: ~~tabId,
+                                                title: tab.title
+                                            });
+                                        });
+                                    }));
                                 }
                             }
                         }
+                    };
+                    for (var tabId in tabData) {
+                        _loop_1(tabId);
                     }
-                    return tabs;
+                    Promise.all(promises).then(function (tabs) {
+                        callback(tabs);
+                    });
                 };
             },
             refreshPermissions: function () {
@@ -1286,11 +1302,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 type: 'evalResult',
                                 lineNumber: message.lineNumber,
                                 timestamp: message.timestamp,
-                                val: (message.val.type === 'success') ?
+                                val: (message.value.type === 'success') ?
                                     {
                                         type: 'success',
-                                        result: globalObject.globals.constants.specialJSON.fromJSON(message.val.result)
-                                    } : message.val
+                                        result: globalObject.globals.constants.specialJSON.fromJSON(message.value.result)
+                                    } : message.value
                             });
                         });
                         break;
@@ -1357,9 +1373,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         tabArr = tabArr.sort(function (a, b) {
                             return a - b;
                         });
+                        var idPairs = idArr.map(function (id) {
+                            return {
+                                id: id,
+                                title: globalObject.globals.crm.crmById[id].name
+                            };
+                        });
                         if (!Helpers.compareArray(idArr, listeners.idVals)) {
                             listeners.ids.forEach(function (idListener) {
-                                idListener(idArr);
+                                idListener(idPairs);
                             });
                             listeners.idVals = idArr;
                         }
@@ -1370,7 +1392,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             listeners.tabVals = tabArr;
                         }
                         return {
-                            ids: idArr,
+                            ids: idPairs,
                             tabs: tabArr
                         };
                     }
@@ -1412,14 +1434,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             var logValue = {
                 id: message.id,
                 tabId: message.tabId,
-                value: message.data,
                 logId: message.logId,
                 lineNumber: message.lineNumber || '?',
                 timestamp: new Date().toLocaleString()
             };
             chrome.tabs.get(message.tabId, function (tab) {
-                args = args.concat(globalObject.globals.constants.specialJSON
-                    .fromJSON(message.data));
+                var data = globalObject.globals.constants.specialJSON
+                    .fromJSON(message.data);
+                args = args.concat(data);
                 exports.log.bind(globalObject, message.id, message.tabId)
                     .apply(globalObject, args);
                 srcObj.id = message.id;
@@ -1431,6 +1453,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 srcObj.nodeName = srcObj.node.name;
                 logValue.tabTitle = tab.title;
                 logValue.nodeTitle = srcObj.nodeName;
+                logValue.data = data;
                 globalObject.globals.logging[message.id].logMessages.push(logValue);
                 updateLogs(logValue);
             });
@@ -3973,7 +3996,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     return function () {
                         if (scripts.length > i) {
-                            chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId, scripts, i + 1));
+                            try {
+                                chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId, scripts, i + 1));
+                            }
+                            catch (e) {
+                            }
                         }
                     };
                 }
@@ -6804,3 +6831,4 @@ if (typeof module === 'undefined') {
         ' and type filter(id, [optional tabId]) to show only those messages.' +
         ' You can also visit the logging page for even better logging over at ', chrome.runtime.getURL('logging.html'));
 }
+//# sourceMappingURL=background.js.map

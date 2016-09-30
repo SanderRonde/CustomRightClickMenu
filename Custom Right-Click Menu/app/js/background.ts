@@ -1,8 +1,15 @@
+/// <reference path="../../scripts/Promise.d.ts" />
 /// <reference path="../../scripts/chrome.d.ts"/>
+
 
 declare var module: void;
 
 type VoidFn = () => void;
+
+interface TabData {
+	id: number|'background';
+	title: string;
+}
 
 interface StorageChange {
 	oldValue: any;
@@ -169,9 +176,15 @@ interface Window {
 	}) => (message: any, port: chrome.runtime.Port) => void;
 	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
 	filter: (nodeId: any, tabId: any) => void;
-	_getIdCurrentTabs: (id: number) => Array<number|'background'>;
-	_listenIds: (listener: (newIds: Array<number>) => void) => void;
-	_listenTabs: (listener: (newTabs: Array<number>) => void) => void;
+	_getIdCurrentTabs: (id: number, callback: (tabs: Array<{
+		id: number|'background';
+		title: string;
+	}>) => void) => void;
+	_listenIds: (listener: (newIds: Array<{
+		id: number;
+		title: string;
+	}>) => void) => void;
+	_listenTabs: (listener: (newTabs: Array<TabData>) => void) => void;
 	_listenLog: (listener: LogListener,
 		callback: (result: LogListenerObject) => void) => void;
 	XMLHttpRequest: any;
@@ -486,7 +499,7 @@ interface LogListenerLine {
 			name: string;
 			message: string;
 		}
-	}
+	};
 	logId?: number;
 	lineNumber?: string;
 	timestamp?: string;
@@ -666,8 +679,11 @@ interface GlobalObject {
 		listeners: {
 			idVals: Array<number>;
 			tabVals: Array<number>;
-			ids: Array<(updatedIds: Array<number>) => void>;
-			tabs: Array<(updatedTabs: Array<number>) => void>;
+			ids: Array<(updatedIds: Array<{
+				id: number;
+				title: string;
+			}>) => void>;
+			tabs: Array<(updatedTabs: Array<TabData>) => void>;
 			log: Array<LogListenerObject>;
 		};
 	};
@@ -1200,15 +1216,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return value.toString();
 						}
 						if (value instanceof RegExp) {
-							return `_PxEgEr_${value}`;
+							return '_PxEgEr_' + value;
 						}
 						return value;
 					});
 				},
 				parse: (str: string, date2Obj?: boolean): any => {
 					var iso8061 = date2Obj ?
-						              /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ :
-						              false;
+						/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ :
+						false;
 					return JSON.parse(str, (key: string, value: any) => {
 						if (typeof value !== 'string') {
 							return value;
@@ -1450,12 +1466,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					};
 				};
 
-				window._listenIds = (listener: (ids: Array<number>) => void) => {
+				window._listenIds = (listener: (ids: Array<{
+					id: number;
+					title: string;
+				}>) => void) => {
 					listener(Logging.Listeners.updateTabAndIdLists(true).ids);
 					globalObject.globals.listeners.ids.push(listener);
 				};
 
-				window._listenTabs = (listener: (tabs: Array<number>) => void) => {
+				window._listenTabs = (listener: (tabs: Array<TabData>) => void) => {
 					listener(Logging.Listeners.updateTabAndIdLists(true).tabs);
 					globalObject.globals.listeners.tabs.push(listener);
 				};
@@ -1555,26 +1574,42 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						return getLog('all', 'all', '');
 					};
 
-				window._getIdCurrentTabs = (id: number): Array<number|'background'> => {
+				window._getIdCurrentTabs = (id: number, callback: (tabs: Array<TabData>) => void) => {
 					const tabs = [];
+
+					const promises: Array<Promise<{
+						id: number|'background';
+						title: string;
+					}>> = [];
 
 					const tabData = globalObject.globals.crmValues.tabData;
 					for (let tabId in tabData) {
 						if (tabData.hasOwnProperty(tabId)) {
 							if (tabData[tabId].nodes[id] || id === 0) {
 								if (tabId === '0') {
-									tabs.push({
-										id: 'background',
-										title: 'background'
-									});
+									promises.push(new Promise((resolve) => {
+										resolve({
+											id: 'background',
+											title: 'background'
+										});
+									}))
 								} else {
-									tabs.push(tabId);
+									promises.push(new Promise((resolve) => {
+										chrome.tabs.get(~~tabId, (tab) => {
+											resolve({
+												id: ~~tabId,
+												title: tab.title
+											});
+										});
+									}));
 								}
 							}
 						}
 					}
 
-					return tabs;
+					Promise.all(promises).then((tabs) => {
+						callback(tabs);
+					});
 				};
 			},
 			refreshPermissions() {
@@ -2081,7 +2116,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				callbackIndex?: number;
 				timestamp?: string;
 				data?: any;
-				val?: {
+				value?: {
 					type: 'success';
 					result: string;
 				} | {
@@ -2105,11 +2140,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								type: 'evalResult',
 								lineNumber: message.lineNumber,
 								timestamp: message.timestamp,
-								val: (message.val.type === 'success') ?
+								val: (message.value.type === 'success') ?
 									{
 										type: 'success',
-										result: globalObject.globals.constants.specialJSON.fromJSON(message.val.result as string)
-									} : message.val
+										result: globalObject.globals.constants.specialJSON.fromJSON(message.value.result as string)
+									} : message.value
 							});
 						});
 						break;
@@ -2130,7 +2165,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			},
 			Listeners: (() => {
 				return {
-					updateTabAndIdLists(force?: boolean) {
+					updateTabAndIdLists(force?: boolean): {
+						ids: Array<{
+							id: number;
+							title: string;
+						}>;
+						tabs: Array<TabData>
+					} {
 						//Make sure anybody is listening
 						const listeners = globalObject.globals.listeners;
 						if (!force && listeners.ids.length === 0 && listeners.tabs.length === 0) {
@@ -2183,10 +2224,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						tabArr = tabArr.sort((a, b) => {
 							return a - b;
 						});
+						
+						const idPairs: Array<{
+							id: number;
+							title: string;
+						}> = idArr.map((id) => {
+							return {
+								id: id,
+								title: globalObject.globals.crm.crmById[id].name
+							}	
+						});
 
 						if (!Helpers.compareArray(idArr, listeners.idVals)) {
 							listeners.ids.forEach((idListener) => {
-								idListener(idArr);
+								idListener(idPairs);
 							});
 							listeners.idVals = idArr;
 						}
@@ -2198,7 +2249,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						return {
-							ids: idArr,
+							ids: idPairs,
 							tabs: tabArr
 						};
 					}
@@ -2260,15 +2311,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			var logValue: LogListenerLine = {
 				id: message.id,
 				tabId: message.tabId,
-				value: message.data,
 				logId: message.logId,
 				lineNumber: message.lineNumber || '?',
 				timestamp: new Date().toLocaleString()
 			} as any;
 
 			chrome.tabs.get(message.tabId, (tab) => {
-				args = args.concat(globalObject.globals.constants.specialJSON
-					.fromJSON(message.data));
+				const data: Array<any> = globalObject.globals.constants.specialJSON
+					.fromJSON(message.data);
+				args = args.concat(data);
 				exports.log.bind(globalObject, message.id, message.tabId)
 					.apply(globalObject, args);
 
@@ -2282,6 +2333,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				logValue.tabTitle = tab.title;
 				logValue.nodeTitle = srcObj.nodeName;
+				logValue.data = data;
 
 				globalObject.globals.logging[message.id].logMessages.push(logValue);
 				updateLogs(logValue);
@@ -5015,9 +5067,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return () => {
 						if (scripts.length > i) {
-							chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId,
-								scripts,
-								i + 1));
+							try {
+								chrome.tabs.executeScript(tabId, scripts[i], executeScript(tabId,
+									scripts,
+									i + 1));
+							} catch (e) {
+								//The tab was closed during execution
+							}
 						}
 					};
 				}
