@@ -129,11 +129,12 @@
 			}
 		});
 		if (this.onchange) {
-			this.onchange(prevstate, this._paperMenu.selected);
+			this.onchange(prevState, this._paperMenu.selected);
 		}
 	},
 
 	refreshListeners: function() {
+		console.log('refreshing listeners');
 		var _this = this;
 		this._paperItems = $(this).find('paper-item').off('click').on('click', function () {
 			setTimeout(function () {
