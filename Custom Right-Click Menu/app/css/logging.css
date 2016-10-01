@@ -8,3 +8,8 @@
 	border-radius: 10px;
 	width: 8px;
 }
+
+body {
+	font-size: 75%;
+	font-family: "Segoe UI", Tahoma, sans-serif;
+}
