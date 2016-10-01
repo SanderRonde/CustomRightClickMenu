@@ -315,7 +315,6 @@
 				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
 				'@="\\"' + filePath + '\\""'
 			].join('\n');
-			console.log(regFile);
 			chrome.downloads.download({
 				url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 				filename: schemeName + '.reg'
