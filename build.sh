@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-cd "Custom Right-Click Menu"
-
 echo "Starting grunt tests";
 grunt testBuild
 echo "Finished grunt tests";
