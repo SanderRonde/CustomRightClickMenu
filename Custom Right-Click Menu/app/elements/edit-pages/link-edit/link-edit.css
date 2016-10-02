@@ -41,6 +41,7 @@ input {
 	display:flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;
+	-webkit-justify-content: center;
 	justify-content: center;
 }
 

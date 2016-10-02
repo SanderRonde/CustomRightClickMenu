@@ -459,6 +459,7 @@ span.CodeMirror-selectedtext { background: none; }
 	-webkit-flex-direction: row;
 	flex-direction: row;
 	margin-top: 30px;
+	-webkit-justify-content: center;
 	justify-content: center;
 }
 

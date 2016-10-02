@@ -12,6 +12,7 @@
 	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	-webkit-justify-content: flex-start;
 	justify-content: flex-start;
 }
 
@@ -51,6 +52,7 @@
 	margin: 3px 0;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-justify-content: space-between;
 	justify-content: space-between;
 }
 
@@ -58,6 +60,7 @@
 	height: 30px;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-justify-content: space-between;
 	justify-content: space-between;
 	color: white;
 	font-size: 150%;
@@ -67,12 +70,14 @@
 #filterCont {
 	z-index: 500;
 	display:flex;
+	-webkit-justify-content: flex-start;
 	justify-content: flex-start;
 }
 
 .centerVertical {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-justify-content: center;
 	justify-content: center;
 	-webkit-flex-direction: column;
 	flex-direction: column;
@@ -129,6 +134,7 @@
 	display: flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;
+	-webkit-justify-content: flex-end;
 	justify-content: flex-end;
 }
 
@@ -230,6 +236,7 @@
 #inputFieldCont {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-justify-content: flex-start;
 	justify-content: flex-start;
 	margin-bottom: 8px;
 	position: relative;

@@ -179,6 +179,7 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 	background-color: white;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-justify-content: center;
 	justify-content: center;
 }
 

@@ -150,6 +150,7 @@ flex-direction: column;
 }
 
 #editorPlaceholder, #editorPlaceHolderCenterer {
+	-webkit-justify-content: center;
 	justify-content: center;
 }
 
@@ -316,6 +317,7 @@ script-edit #settingsContainer {
 	display: flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;
+	-webkit-justify-content: flex-start;
 	justify-content: flex-start;
 }
 

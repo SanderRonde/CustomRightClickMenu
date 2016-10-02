@@ -11,6 +11,7 @@ paper-toolbar {
 	display: flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;
+	-webkit-justify-content: flex-start;
 	justify-content: flex-start;
 }
 
@@ -203,6 +204,7 @@ a:focus::before {
 	.mainScrollBar .title {
 		display: -webkit-flex;
 		display: flex;
+		-webkit-justify-content: center;
 		justify-content: center;
 		-webkit-flex-direction: row;
 		flex-direction: row;

@@ -9,6 +9,7 @@
 flex-direction: row;
 	-webkit-flex-direction: row;
 	flex-direction: row;
+	-webkit-justify-content: space-between;
 	justify-content: space-between;
 }
 
