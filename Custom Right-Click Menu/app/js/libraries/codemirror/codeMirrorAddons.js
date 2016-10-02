@@ -1,6 +1,5 @@
 ﻿// CodeMirror, copyright (c) by Marijn Haverbeke and others 
 // Distributed under an MIT license: http://codemirror.net/LICENSE
-window.supportsAnimate = !!document.body.animate;
 (function(exports, module, global) {
 	!function(e) {
 		typeof exports == "object" && typeof module == "object" ? e(require("../../lib/codemirror")) : typeof define == "function" && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(window.CodeMirror) : window.codeMirrorToLoad ? (window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e]) : window.codeMirrorToLoad = { toLoad: [e] };
@@ -17280,6 +17279,7 @@ window.supportsAnimate = !!document.body.animate;
 			
 			var p, h = !1;
 			
+			window.supportsAnimate = !!document.createElement('div').animate;
 			function animateElement(el, transformation, options, onFinish) {
 				if (window.supportsAnimate) {
 					var animation = el.animate(transformation, options);
