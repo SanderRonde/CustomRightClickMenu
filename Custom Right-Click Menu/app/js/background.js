@@ -1186,31 +1186,33 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     delete globalObject.globals.crmValues.tabData[tabId];
                     Logging.Listeners.updateTabAndIdLists();
                 });
-                chrome.notifications.onClicked.addListener(function (notificationId) {
-                    var notification = globalObject.globals
-                        .notificationListeners[notificationId];
-                    if (notification && notification.onClick !== undefined) {
-                        globalObject.globals.sendCallbackMessage(notification.tabId, notification
-                            .id, {
-                            err: false,
-                            args: [notificationId],
-                            callbackId: notification.onClick
-                        });
-                    }
-                });
-                chrome.notifications.onClosed.addListener(function (notificationId, byUser) {
-                    var notification = globalObject.globals
-                        .notificationListeners[notificationId];
-                    if (notification && notification.onDone !== undefined) {
-                        globalObject.globals.sendCallbackMessage(notification.tabId, notification
-                            .id, {
-                            err: false,
-                            args: [notificationId, byUser],
-                            callbackId: notification.onClick
-                        });
-                    }
-                    delete globalObject.globals.notificationListeners[notificationId];
-                });
+                if (chrome.notifications) {
+                    chrome.notifications.onClicked.addListener(function (notificationId) {
+                        var notification = globalObject.globals
+                            .notificationListeners[notificationId];
+                        if (notification && notification.onClick !== undefined) {
+                            globalObject.globals.sendCallbackMessage(notification.tabId, notification
+                                .id, {
+                                err: false,
+                                args: [notificationId],
+                                callbackId: notification.onClick
+                            });
+                        }
+                    });
+                    chrome.notifications.onClosed.addListener(function (notificationId, byUser) {
+                        var notification = globalObject.globals
+                            .notificationListeners[notificationId];
+                        if (notification && notification.onDone !== undefined) {
+                            globalObject.globals.sendCallbackMessage(notification.tabId, notification
+                                .id, {
+                                err: false,
+                                args: [notificationId, byUser],
+                                callbackId: notification.onClick
+                            });
+                        }
+                        delete globalObject.globals.notificationListeners[notificationId];
+                    });
+                }
             }
         };
         window.createHandlerFunction = function (port) {
@@ -6873,4 +6875,3 @@ if (typeof module === 'undefined') {
         ' and type filter(id, [optional tabId]) to show only those messages.' +
         ' You can also visit the logging page for even better logging over at ', chrome.runtime.getURL('logging.html'));
 }
-//# sourceMappingURL=background.js.map

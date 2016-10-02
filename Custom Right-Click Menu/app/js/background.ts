@@ -1999,33 +1999,35 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					delete globalObject.globals.crmValues.tabData[tabId];
 					Logging.Listeners.updateTabAndIdLists();
 				});
-				chrome.notifications.onClicked.addListener((notificationId) => {
-					const notification = globalObject.globals
-						.notificationListeners[notificationId];
-					if (notification && notification.onClick !== undefined) {
-						globalObject.globals.sendCallbackMessage(notification.tabId, notification
-							.id,
-							{
-								err: false,
-								args: [notificationId],
-								callbackId: notification.onClick
-							});
-					}
-				});
-				chrome.notifications.onClosed.addListener((notificationId, byUser) => {
-					const notification = globalObject.globals
-						.notificationListeners[notificationId];
-					if (notification && notification.onDone !== undefined) {
-						globalObject.globals.sendCallbackMessage(notification.tabId, notification
-							.id,
-							{
-								err: false,
-								args: [notificationId, byUser],
-								callbackId: notification.onClick
-							});
-					}
-					delete globalObject.globals.notificationListeners[notificationId];
-				});
+				if (chrome.notifications) {
+					chrome.notifications.onClicked.addListener((notificationId) => {
+						const notification = globalObject.globals
+							.notificationListeners[notificationId];
+						if (notification && notification.onClick !== undefined) {
+							globalObject.globals.sendCallbackMessage(notification.tabId, notification
+								.id,
+								{
+									err: false,
+									args: [notificationId],
+									callbackId: notification.onClick
+								});
+						}
+					});
+					chrome.notifications.onClosed.addListener((notificationId, byUser) => {
+						const notification = globalObject.globals
+							.notificationListeners[notificationId];
+						if (notification && notification.onDone !== undefined) {
+							globalObject.globals.sendCallbackMessage(notification.tabId, notification
+								.id,
+								{
+									err: false,
+									args: [notificationId, byUser],
+									callbackId: notification.onClick
+								});
+						}
+						delete globalObject.globals.notificationListeners[notificationId];
+					});
+				}
 			}
 		};
 
