@@ -17,6 +17,7 @@
 }
 
 #consoleFiller {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
@@ -218,6 +219,7 @@
 	border: 0;
 	outline: none;
 	color: white;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 	font-family: 'Consolas';
 	margin-left: 5px;

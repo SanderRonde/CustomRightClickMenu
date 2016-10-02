@@ -18,6 +18,7 @@
 }
 
 #centerVertical {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 	-webkit-flex-direction: column;
 	flex-direction: column;

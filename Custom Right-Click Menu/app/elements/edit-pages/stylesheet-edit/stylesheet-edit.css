@@ -50,10 +50,12 @@ flex-direction: column;
 
 .triggerInput {
 	display: inline-block;
+	-webkit-flex-grow: 5;
 	flex-grow: 5;
 }
 
 #container, #flexRow, #flexColumn, #editorCont, .CodeMirror, .CodeMirror-scroll, #editorPlaceholder {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 	display: -webkit-flex;
 	display: flex;
@@ -318,6 +320,7 @@ stylesheet-edit #settingsContainer {
 }
 
 #editorJSLintGlobalsInput {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 

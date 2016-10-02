@@ -483,6 +483,7 @@ span.CodeMirror-selectedtext { background: none; }
 .codeMirrorCloseDialogButtonCont {
 	margin-top: 7px;
 	right: 0;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 

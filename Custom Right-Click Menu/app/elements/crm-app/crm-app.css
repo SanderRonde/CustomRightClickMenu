@@ -129,6 +129,7 @@ paper-ripple {
 	display:flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
@@ -349,10 +350,12 @@ a:focus::before {
 	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
 	#chooseFileMergerPlaceholder center-element {
+		-webkit-flex-grow: 100;
 		flex-grow: 100;
 	}
 
@@ -388,6 +391,7 @@ a:focus::before {
 }
 
 #chooseFilemergerContainer {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 	display: -webkit-flex;
 	display: flex;
@@ -494,10 +498,12 @@ paper-toast {
 	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
 	#restoreChangesOldCodeCont .CodeMirror, #restoreChangeUnsaveddCodeCont .CodeMirror {
+		-webkit-flex-grow: 100;
 		flex-grow: 100;
 	}
 
@@ -537,6 +543,7 @@ body.editingScript .cssTool {
 	}
 
 .CodeMirror-sizer {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
@@ -829,6 +836,7 @@ edit-crm-item {
 }
 
 .globalExcludeInput {
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 

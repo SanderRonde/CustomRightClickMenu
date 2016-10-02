@@ -24,6 +24,7 @@ flex-direction: row;
 
 
 .defaultLinkName {
+	-webkit-flex-grow: 3;
 	flex-grow: 3;
 	margin-left: 10px;
 	margin-right: 10px;

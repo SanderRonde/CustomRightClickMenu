@@ -20,6 +20,7 @@
 }
 
 	.textAndInputContainer paper-input {
+		-webkit-flex-grow: 100;
 		flex-grow: 100;
 		margin-left:14px;
 	}
@@ -46,6 +47,7 @@
 
 .searchOptionURL {
 	margin-left: 5px;
+	-webkit-flex-grow: 100;
 	flex-grow: 100;
 }
 
