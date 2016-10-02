@@ -198,8 +198,6 @@ iron-overlay-backdrop {
 	display: none;
 	height: 300px;
 	width: 300px;
-	-ms--webkit-flex-direction: column;
-flex-direction: column;
 	-webkit-flex-direction: column;
 	flex-direction: column;
 	-webkit-justify-content: center;
@@ -209,8 +207,6 @@ flex-direction: column;
 #addLibraryLoadingDialogCenterer {
 	display: -webkit-flex;
 	display: flex;
-	-ms--webkit-flex-direction: row;
-flex-direction: row;
 	-webkit-flex-direction: row;
 	flex-direction: row;
 	-webkit-justify-content: center;

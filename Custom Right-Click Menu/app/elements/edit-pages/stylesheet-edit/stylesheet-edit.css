@@ -27,8 +27,6 @@ input {
 	width: 500px;
 	display: -webkit-flex;
 	display: flex;
-	-ms--webkit-flex-direction: column;
-flex-direction: column;
 	-webkit-flex-direction: column;
 	flex-direction: column;
 }
@@ -59,8 +57,6 @@ flex-direction: column;
 	flex-grow: 100;
 	display: -webkit-flex;
 	display: flex;
-	-ms--webkit-flex-direction: column;
-flex-direction: column;
 	-webkit-flex-direction: column;
 	flex-direction: column;
 }
@@ -165,8 +161,6 @@ flex-direction: column;
 #editorPlaceHolderCenterer {
 	display: -webkit-flex;
 	display: flex;
-	-ms--webkit-flex-direction: row;
-flex-direction: row;
 	-webkit-flex-direction: row;
 	flex-direction: row;
 }

@@ -7,8 +7,7 @@
 #horizontalCenterer {
 	display: -webkit-flex;
 	display: flex;
-	-ms--webkit-flex-direction: row;
-flex-direction: row;
+	flex-direction: row;
 	-webkit-flex-direction: row;
 	flex-direction: row;
 	-webkit-justify-content: center;
@@ -20,10 +19,9 @@ flex-direction: row;
 }
 
 #verticalCenterer {
-display: -webkit-flex;
-		display: flex;
-	-ms--webkit-flex-direction: column;
-flex-direction: column;
+	display: -webkit-flex;
+	display: flex;
+	flex-direction: column;
 	-webkit-flex-direction: column;
 	flex-direction: column;
 	-webkit-justify-content: center;
