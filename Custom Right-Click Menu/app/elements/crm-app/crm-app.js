@@ -32,13 +32,13 @@
 				}
 			};
 			$(this).animate(properties[1], options.duration, function() {
-				console.log(returnVal);
 				if (returnVal.onfinish) {
 					returnVal.onfinish();
 				}
 			});
 			return returnVal;
-		}
+		};
+		HTMLElement.prototype.animate.isJqueryFill = true;
 	}
 
 	/**
@@ -2431,23 +2431,27 @@
 
 		animateLoadingBar: function(settings, progress) {
 			var _this = this;
-			if (settings.isAnimating) {
-				settings.toReach = progress;
-				settings.shouldAnimate = true;
+			if (settings.progressBar.animate.isJqueryFill) {
+				settings.progressBar.style.transform = 'scaleX(' + progress + ')';
 			} else {
-				settings.isAnimating = true;
-				settings.progressBar.animate([{
-					transform: 'scaleX(' + settings.lastReachedProgress + ')'
-				}, {
-					transform: 'scaleX(' + progress + ')'
-				}], {
-					duration: 200,
-					easing: 'linear'
-				}).onfinish = function() {
-					settings.lastReachedProgress = progress;
-					settings.isAnimating = false;
-					_this.animateLoadingBar(settings, settings.toReach);
-				};
+				if (settings.isAnimating) {
+					settings.toReach = progress;
+					settings.shouldAnimate = true;
+				} else {
+					settings.isAnimating = true;
+					settings.progressBar.animate([{
+						transform: 'scaleX(' + settings.lastReachedProgress + ')'
+					}, {
+						transform: 'scaleX(' + progress + ')'
+					}], {
+						duration: 200,
+						easing: 'linear'
+					}).onfinish = function() {
+						settings.lastReachedProgress = progress;
+						settings.isAnimating = false;
+						_this.animateLoadingBar(settings, settings.toReach);
+					};
+				}
 			}
 		},
 
