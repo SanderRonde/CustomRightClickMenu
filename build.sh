@@ -21,7 +21,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   git fetch
 
   git reset --hard
-  git checkout -b gh-pages --track origin/gh-pages
+  git checkout -b gh-pages
   echo "Changed branches";
 
   npm install

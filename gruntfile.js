@@ -280,6 +280,14 @@ module.exports = function(grunt) {
 						dest: 'build/website/'
 					}
 				]
+			},
+			moveWebsite: {
+				files: [{
+					expand: true,
+					cwd: 'build/website',
+					src: ['**/*.*'],
+					dest: './'
+				}]
 			}
 		},
 		htmlmin: {
@@ -463,6 +471,9 @@ module.exports = function(grunt) {
 
 	//Extracts the files needed for the website and places them in build/website
 	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
+
+	//Moves the website to the root dir
+	grunt.registerTask('moveWebsite', ['copy:moveWebsite']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
