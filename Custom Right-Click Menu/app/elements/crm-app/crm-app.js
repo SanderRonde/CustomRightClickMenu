@@ -2431,8 +2431,11 @@
 
 		animateLoadingBar: function(settings, progress) {
 			var _this = this;
+			var scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
+			var scaleAfter = 'scaleX(' + progress + ')';
 			if (settings.progressBar.animate.isJqueryFill) {
-				settings.progressBar.style.transform = 'scaleX(' + progress + ')';
+				settings.progressBar.style.transform = scaleAfter;
+				settings.progressBar.style.WebkitTransform = scaleAfter;
 			} else {
 				if (settings.isAnimating) {
 					settings.toReach = progress;
@@ -2440,9 +2443,11 @@
 				} else {
 					settings.isAnimating = true;
 					settings.progressBar.animate([{
-						transform: 'scaleX(' + settings.lastReachedProgress + ')'
+						transform: scaleBefore,
+						WebkitTransform: scaleBefore
 					}, {
-						transform: 'scaleX(' + progress + ')'
+						transform: scaleAfter,
+						WebkitTransform: scaleAfter
 					}], {
 						duration: 200,
 						easing: 'linear'
