@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 cd "Custom Right-Click Menu"
@@ -10,7 +11,7 @@ echo "Starting unit tests";
 npm test
 echo "Finished unit tests";
 
-if [ "$TRAVIS_BRANCH" == "master" ]; then
+if [ "$TRAVIS_BRANCH" = "master" ]; then
   echo "Changing branches";
   grunt website
 
