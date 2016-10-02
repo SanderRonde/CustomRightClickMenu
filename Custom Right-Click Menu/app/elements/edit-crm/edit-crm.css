@@ -29,6 +29,7 @@
 #mainCont {
 	overflow-y: hidden;
 	overflow-x: scroll;
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: row;
 	flex-direction: row;

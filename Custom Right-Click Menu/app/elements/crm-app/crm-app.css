@@ -133,6 +133,7 @@ paper-ripple {
 	width: 200px;
 	background-color: white;
 	justify-content: space-between;
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 }
@@ -196,6 +197,7 @@ iron-overlay-backdrop {
 }
 
 #addLibraryLoadingDialogCenterer {
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: row;
 	flex-direction: row;
@@ -266,6 +268,7 @@ iron-overlay-backdrop {
 	height: 75px;
 	font-size: 196%;
 	vertical-align: middle;
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -326,6 +329,7 @@ a:focus::before {
 }
 
 #chooseFileMergerPlaceholder, #chooseFileMergerEditor {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	flex-grow: 100;
@@ -368,12 +372,14 @@ a:focus::before {
 
 #chooseFilemergerContainer {
 	flex-grow: 100;
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	display: none;
 }
 
 #chooseFileMergerText {
+	display: -webkit-flex;
 	display: flex;
 	justify-content: space-between;
 	margin: 0 -33px 10px -33px;
@@ -464,6 +470,7 @@ paper-toast {
 	}
 
 #restoreChangesOldCodeCont, #restoreChangeUnsaveddCodeCont {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	flex-grow: 100;
@@ -486,6 +493,7 @@ body.editingScript .cssTool {
 }
 
 #showCssTipsButton {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
@@ -585,6 +593,7 @@ body.editingScript .cssTool {
 }
 
 #requestPermissionsLineCont {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
@@ -619,6 +628,7 @@ body.editingScript .cssTool {
 	}
 
 #shrinkTitleRibbonButtonCont, #showHideToolsRibbonCont {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
@@ -684,6 +694,7 @@ body.editingScript .cssTool {
 }
 
 #crmEditPageTopTextContainer {
+	display: -webkit-flex;
 	display: flex;
 	justify-content: space-between;
 }
@@ -764,6 +775,7 @@ textarea#exportJSONData:focus {
 }
 
 #crmButtonsContainer {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -783,6 +795,7 @@ edit-crm-item {
 }
 
 .globalExcludeContainer {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -827,6 +840,7 @@ html {
 }
 
 #versionUpdateTabSlider {
+	display: -webkit-flex;
 	display: flex;
 	transition: transform 500ms ease-in-out;
 }
@@ -914,6 +928,7 @@ html {
 }
 
 #exportInputLine {
+	display: -webkit-flex;
 	display: flex;
 	justify-content: space-between;
 }

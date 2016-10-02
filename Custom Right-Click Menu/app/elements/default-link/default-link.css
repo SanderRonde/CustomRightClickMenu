@@ -3,6 +3,7 @@
 }
 
 .defaultLinkCont {
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: row;
 	flex-direction: row;

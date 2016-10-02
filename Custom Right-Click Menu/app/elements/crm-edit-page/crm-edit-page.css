@@ -5,6 +5,7 @@
 }
 
 #horizontalCenterer {
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: row;
 	flex-direction: row;
@@ -16,7 +17,8 @@
 }
 
 #verticalCenterer {
-	display: flex;
+display: -webkit-flex;
+		display: flex;
 	-ms-flex-direction: column;
 	flex-direction: column;
 	justify-content: center;
@@ -53,6 +55,7 @@
 }
 
 #scriptUpdateWarningIcon {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -77,6 +80,7 @@
 	}
 
 menu-edit, divider-edit, link-edit {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 }

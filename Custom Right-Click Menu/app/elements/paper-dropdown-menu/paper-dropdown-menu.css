@@ -80,6 +80,7 @@ paper-dropdown-menu[indent=false] #dropdownSelectedCont {
 }
 
 paper-dropdown-menu {
+	display: -webkit-flex;
 	display: flex;
 }
 

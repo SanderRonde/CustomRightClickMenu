@@ -23,12 +23,14 @@ input {
 #scriptEditorCont {
 	margin-left: 30px;
 	width: 500px;
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: column;
 	flex-direction: column;
 }
 
 #settingsCont {
+	display: -webkit-flex;
 	display: flex;
 	padding-bottom: 11px;
 }
@@ -38,6 +40,7 @@ input {
 }
 
 .executionTrigger {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -48,6 +51,7 @@ input {
 
 #container, #flexRow, #flexColumn, #editorCont, .CodeMirror, .CodeMirror-scroll, #editorPlaceholder {
 	flex-grow: 100;
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: column;
 	flex-direction: column;
@@ -129,6 +133,7 @@ input {
 	z-index: 50;
 	overflow:hidden;
 	padding:2px;
+	display: -webkit-flex;
 	display: flex;
 	margin-top:-2px;
 	margin-right:-1px;
@@ -149,6 +154,7 @@ input {
 }
 
 #editorPlaceHolderCenterer {
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: row;
 	flex-direction: row;
@@ -299,6 +305,7 @@ script-edit #settingsContainer {
 }
 
 #editorJSLintGlobalsFlexCont {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
@@ -317,6 +324,7 @@ script-edit #settingsContainer {
 }
 
 #editorThemeFontSize {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	padding-bottom:10px;
@@ -462,6 +470,7 @@ script-edit #settingsContainer {
 }
 
 .editorTabsCont {
+	display: -webkit-flex;
 	display: flex;
 	margin-left: 48px;
 }

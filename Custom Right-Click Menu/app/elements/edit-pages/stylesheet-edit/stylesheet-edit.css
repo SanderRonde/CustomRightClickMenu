@@ -1,6 +1,7 @@
 ﻿#stylesheetEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 }
@@ -23,12 +24,14 @@ input {
 #stylesheetEditorCont {
 	margin-left: 30px;
 	width: 500px;
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: column;
 	flex-direction: column;
 }
 
 #settingsCont {
+	display: -webkit-flex;
 	display: flex;
 	padding-bottom: 11px;
 }
@@ -38,6 +41,7 @@ input {
 }
 
 .executionTrigger {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -48,6 +52,7 @@ input {
 
 #container, #flexRow, #flexColumn, #editorCont, .CodeMirror, .CodeMirror-scroll, #editorPlaceholder {
 	flex-grow: 100;
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: column;
 	flex-direction: column;
@@ -129,6 +134,7 @@ input {
 	z-index: 50;
 	overflow:hidden;
 	padding:2px;
+	display: -webkit-flex;
 	display: flex;
 	margin-top:-2px;
 	margin-right:-1px;
@@ -149,6 +155,7 @@ input {
 }
 
 #editorPlaceHolderCenterer {
+	display: -webkit-flex;
 	display: flex;
 	-ms-flex-direction: row;
 	flex-direction: row;
@@ -294,6 +301,7 @@ stylesheet-edit #settingsContainer {
 }
 
 #editorJSLintGlobalsFlexCont {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
@@ -312,6 +320,7 @@ stylesheet-edit #settingsContainer {
 }
 
 #editorThemeFontSize {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	padding-bottom:10px;
@@ -373,6 +382,7 @@ stylesheet-edit #settingsContainer {
 }
 
 #toggleButtonsCont {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	justify-content: space-around;

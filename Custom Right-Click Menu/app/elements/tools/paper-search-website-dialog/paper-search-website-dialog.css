@@ -13,6 +13,7 @@
 }
 
 .textAndInputContainer {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 }
@@ -36,6 +37,7 @@
 }
 
 .searchOptionContainer {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 }

@@ -8,6 +8,7 @@
 	width: calc(100vw - 20px);
 	height: calc(100vh - 84px);
 	background-color: rgb(40,40,40);
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
@@ -47,12 +48,14 @@
 .logLine {
 	border-bottom: 1px solid rgb(60,60,60);
 	margin: 3px 0;
+	display: -webkit-flex;
 	display: flex;
 	justify-content: space-between;
 }
 
 #consoleInfo {
 	height: 30px;
+	display: -webkit-flex;
 	display: flex;
 	justify-content: space-between;
 	color: white;
@@ -67,6 +70,7 @@
 }
 
 .centerVertical {
+	display: -webkit-flex;
 	display: flex;
 	justify-content: center;
 	flex-direction: column;
@@ -84,10 +88,12 @@
 }
 
 #whatIsThis .inactive {
+	display: -webkit-flex;
 	display: flex;
 }
 
 #whatIsThis:hover .active, #whatIsThis:hover #consoleInfoTxtCont {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -117,6 +123,7 @@
 }
 
 #consoleStats {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-end;
@@ -218,6 +225,7 @@
 }
 
 #inputFieldCont {
+	display: -webkit-flex;
 	display: flex;
 	justify-content: flex-start;
 	margin-bottom: 8px;
@@ -255,11 +263,13 @@
 
 /*object*/
 .objectElementValueCont {
+	display: -webkit-flex;
 	display: flex;
 	margin-right: 3px;
 }
 
 .objectElementPreviewArea, .objectElementPreviewCont {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -275,6 +285,7 @@
 }
 
 .expandedObjectElement {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -290,6 +301,7 @@
 }
 
 .objectElementExpanded.visible {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -334,6 +346,7 @@
 }
 
 .functionElementExpanded.visible {
+	display: -webkit-flex;
 	display: flex;
 }
 
@@ -346,10 +359,12 @@
 }
 
 .functionElementPreviewArea {
+	display: -webkit-flex;
 	display: flex;
 }
 
 .functionElement {
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column
 }

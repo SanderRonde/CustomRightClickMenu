@@ -454,6 +454,7 @@ span.CodeMirror-selectedtext { background: none; }
 }
 
 .codeMirrorSearchDialogSearchCont {
+  display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	margin-top: 30px;
@@ -471,6 +472,7 @@ span.CodeMirror-selectedtext { background: none; }
 	}
 
 .codeMirrorSearchDialogButtons, .codeMirrorSearchDialogReplaceButtons {
+  display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 }
@@ -490,6 +492,7 @@ span.CodeMirror-selectedtext { background: none; }
 }
 
 .codeMirrorSearchDialogReplaceCont {
+  display: -webkit-flex;
 	display: flex;
 	flex-direction: row;
 	margin-top: -6px;

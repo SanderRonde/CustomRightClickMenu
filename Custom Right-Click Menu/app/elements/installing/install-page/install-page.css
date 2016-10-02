@@ -23,6 +23,7 @@
 }
 
 #spinnerCenterer {
+	display: -webkit-flex;
 	display: flex;
 	justify-content: center;
 	width:100%;

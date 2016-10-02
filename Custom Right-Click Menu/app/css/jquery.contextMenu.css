@@ -48,6 +48,7 @@
 	line-height:27px;
 	font-size:120%;
 	color:black;
+	display: -webkit-flex;
 	display: flex;
 }
 

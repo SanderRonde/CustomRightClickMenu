@@ -1,9 +1,11 @@
 ﻿center-element {
+	display: -webkit-flex;
 	display: flex;
 	pointer-events: none;
 }
 
 #centerHorizontal, #centerVertical {
+	display: -webkit-flex;
 	display: flex;
 	justify-content: center;
 }
