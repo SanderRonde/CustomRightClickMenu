@@ -11,12 +11,14 @@
 }
 
 #centerHorizontal {
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	width: 100%;
 }
 
 #centerVertical {
 	flex-grow: 100;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 

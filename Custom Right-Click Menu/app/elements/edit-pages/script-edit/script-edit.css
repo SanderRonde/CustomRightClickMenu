@@ -2,6 +2,7 @@
 	max-height: 100vh;
 	max-width: 100vw;
 	display:flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -25,7 +26,9 @@ input {
 	width: 500px;
 	display: -webkit-flex;
 	display: flex;
-	-ms-flex-direction: column;
+	-ms--webkit-flex-direction: column;
+flex-direction: column;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -53,7 +56,9 @@ input {
 	flex-grow: 100;
 	display: -webkit-flex;
 	display: flex;
-	-ms-flex-direction: column;
+	-ms--webkit-flex-direction: column;
+flex-direction: column;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -156,7 +161,9 @@ input {
 #editorPlaceHolderCenterer {
 	display: -webkit-flex;
 	display: flex;
-	-ms-flex-direction: row;
+	-ms--webkit-flex-direction: row;
+flex-direction: row;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 }
 
@@ -307,6 +314,7 @@ script-edit #settingsContainer {
 #editorJSLintGlobalsFlexCont {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: flex-start;
 }
@@ -326,6 +334,7 @@ script-edit #settingsContainer {
 #editorThemeFontSize {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	padding-bottom:10px;
 }

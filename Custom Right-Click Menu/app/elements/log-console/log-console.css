@@ -10,6 +10,7 @@
 	background-color: rgb(40,40,40);
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	justify-content: flex-start;
 }
@@ -73,6 +74,7 @@
 	display: -webkit-flex;
 	display: flex;
 	justify-content: center;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	height: 100%;
 }
@@ -125,6 +127,7 @@
 #consoleStats {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: flex-end;
 }
@@ -291,11 +294,13 @@
 
 .expandedObjectElementIndex {
 	direction: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 } 
 
 .objectElementExpanded {
 	margin-left: 17px;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	display: none;
 }
@@ -341,6 +346,7 @@
 /*function*/
 .functionElementExpanded {
 	margin-left: 17px;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	display: none;
 }

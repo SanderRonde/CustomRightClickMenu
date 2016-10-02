@@ -9,6 +9,7 @@ paper-toolbar {
 #container {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: flex-start;
 }
@@ -203,6 +204,7 @@ a:focus::before {
 		display: -webkit-flex;
 		display: flex;
 		justify-content: center;
+		-webkit-flex-direction: row;
 		flex-direction: row;
 		width: 100%;
 		font-size: 350%;

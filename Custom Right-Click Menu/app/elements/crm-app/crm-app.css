@@ -101,6 +101,7 @@ paper-ripple {
 #fullscreenEditor {
 	position: fixed;
 	z-index:100;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -113,6 +114,7 @@ paper-ripple {
 	margin-top: -51px;
 	margin-left:-200px;
 	display: none;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: space-between;
 	-webkit-user-select:none;
@@ -124,6 +126,7 @@ paper-ripple {
 
 #fullscreenEditorHorizontal {
 	display:flex;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	flex-grow: 100;
 }
@@ -135,6 +138,7 @@ paper-ripple {
 	justify-content: space-between;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -191,7 +195,9 @@ iron-overlay-backdrop {
 	display: none;
 	height: 300px;
 	width: 300px;
-	-ms-flex-direction: column;
+	-ms--webkit-flex-direction: column;
+flex-direction: column;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	justify-content: center;
 }
@@ -199,7 +205,9 @@ iron-overlay-backdrop {
 #addLibraryLoadingDialogCenterer {
 	display: -webkit-flex;
 	display: flex;
-	-ms-flex-direction: row;
+	-ms--webkit-flex-direction: row;
+flex-direction: row;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: center;
 }
@@ -270,6 +278,7 @@ iron-overlay-backdrop {
 	vertical-align: middle;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	justify-content: center;
 	padding-left: 16px;
@@ -323,6 +332,7 @@ a:focus::before {
 #chooseFileMerger {
 	display: none;
 	height: 100%;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	justify-content: center;
 	padding-top: 5px;
@@ -331,6 +341,7 @@ a:focus::before {
 #chooseFileMergerPlaceholder, #chooseFileMergerEditor {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	flex-grow: 100;
 }
@@ -374,6 +385,7 @@ a:focus::before {
 	flex-grow: 100;
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	display: none;
 }
@@ -456,6 +468,7 @@ paper-toast {
 	display: none;
 	width: 800px;
 	height: 600px;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 }
 
@@ -472,6 +485,7 @@ paper-toast {
 #restoreChangesOldCodeCont, #restoreChangeUnsaveddCodeCont {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	flex-grow: 100;
 }
@@ -495,6 +509,7 @@ body.editingScript .cssTool {
 #showCssTipsButton {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: flex-start;
 	font-size: 200%;
@@ -595,6 +610,7 @@ body.editingScript .cssTool {
 #requestPermissionsLineCont {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: flex-end;
 	margin-bottom:20px;
@@ -630,6 +646,7 @@ body.editingScript .cssTool {
 #shrinkTitleRibbonButtonCont, #showHideToolsRibbonCont {
 	display: -webkit-flex;
 	display: flex;
+	-webkit-flex-direction: column;
 	flex-direction: column;
 	justify-content: flex-end;
 }

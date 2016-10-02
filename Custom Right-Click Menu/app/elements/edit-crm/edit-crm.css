@@ -31,7 +31,9 @@
 	overflow-x: scroll;
 	display: -webkit-flex;
 	display: flex;
-	-ms-flex-direction: row;
+	-ms--webkit-flex-direction: row;
+flex-direction: row;
+	-webkit-flex-direction: row;
 	flex-direction: row;
 	justify-content: flex-start;
 	-webkit-user-select: none;
