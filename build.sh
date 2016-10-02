@@ -44,6 +44,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
     exit 0;
   fi
 
+  git show-ref
   git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" -f --set upstream origin gh-pages
   echo "Pushed github pages to branch";
 fi
