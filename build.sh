@@ -26,6 +26,8 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
 
   npm install
 
+  ls
+
   grunt moveWebsite
 
   set +e
