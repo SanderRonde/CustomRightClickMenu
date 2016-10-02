@@ -1,4 +1,5 @@
-﻿Polymer({
+﻿debugger;
+Polymer({
 	is: 'paper-search-website-dialog',
 
 	//#region property declarations
@@ -376,6 +377,7 @@
 	 * Adds basic listeners
 	 */
 	ready: function() {
+		debugger;
 		this.$.paperSearchWebsiteDialog.addEventListener('iron-overlay-closed ', this.clear);
 	},
 
