@@ -33,15 +33,6 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   set +e
   git diff-index --quiet HEAD
 
-  changes=$?;
-  if [ $changes -eq 0 ] ; then #No changes
-    echo "No changes to the website were made";
-    exit 0;
-  else
-    echo "Changes occurred";
-    git diff;
-  fi
-
   echo "Committing changes";
   git add . &> /dev/null
   git commit -m "Deploy to Github Pages" --quiet 
@@ -53,6 +44,6 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
     exit 0;
   fi
 
-  git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --quiet 
+  git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" 
   echo "Pushed github pages to branch";
 fi
