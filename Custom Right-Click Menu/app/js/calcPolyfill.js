@@ -65,7 +65,7 @@ document.body.addEventListener('CRMLoaded', function() {
 	}
 
 	function calculate(str) {
-		var parenthesesRegex = /\\((.*)\\)/;
+		var parenthesesRegex = /\((.*)\)/;
 		var match = null;
 		if ((match = parenthesesRegex.exec(str))) {
 			return calculate(str.replace(match[0], calculate(match[1])));
@@ -81,11 +81,20 @@ document.body.addEventListener('CRMLoaded', function() {
 		var dummy = document.createElement('div');
 		dummy.style.width = 'calc(100vw - 100px)';
 		document.body.appendChild(dummy);
-		if (true || dummy.getBoundingClientRect().width !== window.innerWidth - 100) {
+		if (dummy.getBoundingClientRect().width !== window.innerWidth - 100) {
 			(function(calcs) {
 				var toUpdate = [];
 
+
 				calcs.forEach(function(calc) {
+					var key = calc.key;
+					var dashIndex;
+					while ((dashIndex = key.indexOf('-')) > -1) {
+						key = key.slice(0, dashIndex) +
+							key[dashIndex + 1].toUpperCase() +
+							key.slice(dashIndex + 2); 
+					}
+
 					if (!calc.elements) {
 						return null;
 					}
@@ -101,13 +110,13 @@ document.body.addEventListener('CRMLoaded', function() {
 						toUpdate.push({
 							calculation: calcString,
 							elements: elements,
-							key: calc.key
+							key: key
 						});
 					}
 					var result = calculate(calcString);
 
 					elements.forEach(function(el) {
-						el.style[calc.key] = result + 'px';
+						el.style[key] = result + 'px';
 					});
 				});
 
@@ -115,7 +124,7 @@ document.body.addEventListener('CRMLoaded', function() {
 					toUpdate.forEach(function(calcToUpdate) {
 						var result = calculate(calcToUpdate.calculation);
 						calcToUpdate.elements.forEach(function(element) {
-							element.style[calc.key] = result + 'px';
+							element.style[calcToUpdate.key] = result + 'px';
 						});
 					})
 				}
@@ -139,11 +148,17 @@ document.body.addEventListener('CRMLoaded', function() {
 				});
 				return calculations;
 			}(function(stylesheetBlocks) {
-				var cssRuleRegex = /(\s*)((\w|-)+)(\s*):(\s*)((\w|\(|\)|-|,|\s)+);(\s*)/;
+				var cssRuleRegex = /(\s*)((\w|-)+)(\s*):(\s*)((\w|%|\/|\*|\+|\(|\)|-|,|\s)+);(\s*)/;
 				return stylesheetBlocks.map(function(stylesheetBlock) {
+					if (stylesheetBlock.ruleText.indexOf('calc') === -1) {
+						return null;
+					}
+					if (stylesheetBlock.ruleText.indexOf('vh') === -1 && stylesheetBlock.ruleText.indexOf('vw') === -1) {
+						return null;
+					}
 					var rules = [];
 					var match = null;
-					var blockMatch = stylesheetBlock.ruleText.match(/(\s*)((\w|-)+)(\s*):(\s*)((\w|\(|\)|-|,|\s)+);(\s*)/g);
+					var blockMatch = stylesheetBlock.ruleText.match(/(\s*)((\w|-)+)(\s*):(\s*)((\w|%|\/|\*|\+|\(|\)|-|,|\s)+);(\s*)/g);
 					if (blockMatch) {
 						blockMatch.forEach(function(matchedString) {
 							var match = matchedString.match(cssRuleRegex)
@@ -151,13 +166,14 @@ document.body.addEventListener('CRMLoaded', function() {
 								key: match[2],
 								value: match[6]
 							});
-							stylesheetBlock.ruleText = stylesheetBlock.ruleText.replace(match[0], '');
 						});
 						return {
 							rules: rules,
 							elements: stylesheetBlock.elements
 						};
 					}
+				}).filter(function(block) {
+					return block !== null;
 				});
 			}(function(stylesheets) {
 				var stylesheetBlocks = [];
@@ -180,8 +196,6 @@ document.body.addEventListener('CRMLoaded', function() {
 									ruleText: match[5]
 								});
 							} catch(e) { }
-
-							stylesheetContent = stylesheetContent.replace(match[0], '');
 						});
 					}
 				});

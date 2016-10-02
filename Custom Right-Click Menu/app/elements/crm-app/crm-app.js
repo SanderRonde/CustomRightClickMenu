@@ -9,12 +9,33 @@
 
 	if (!document.createElement('div').animate) {
 		HTMLElement.prototype.animate = function(properties, options) {
-			var returnVal = {};
+			if (!properties[1]) {
+				return {
+					play: function() {},
+					reverse: this.play
+				}
+			}
+
+			var direction = 'forwards';
+			var returnVal = {
+				play: function() {
+					$(this).animate(properties[~~direction === 'forwards'],
+						(options && options.duration) || 500, function() {
+						if (returnVal.onfinish) {
+							returnVal.onfinish();
+						}
+					})
+				},
+				reverse: function() {
+					direction = 'backwards';
+					this.play();
+				}
+			};
 			$(this).animate(properties[1], options.duration, function() {
 				if (returnVal.onfinish) {
 					returnVal.onfinish();
 				}
-			})
+			});
 			return returnVal;
 		}
 	}
