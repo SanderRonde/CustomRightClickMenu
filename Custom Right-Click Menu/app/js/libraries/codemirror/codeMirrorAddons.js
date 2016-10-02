@@ -1,5 +1,6 @@
 ﻿// CodeMirror, copyright (c) by Marijn Haverbeke and others 
 // Distributed under an MIT license: http://codemirror.net/LICENSE
+window.supportsAnimate = !!document.body.animate;
 (function(exports, module, global) {
 	!function(e) {
 		typeof exports == "object" && typeof module == "object" ? e(require("../../lib/codemirror")) : typeof define == "function" && define.amd ? define(["../../lib/codemirror"], e) : window.CodeMirror ? e(window.CodeMirror) : window.codeMirrorToLoad ? (window.codeMirrorToLoad.toLoad ? window.codeMirrorToLoad.toLoad.push(e) : window.codeMirrorToLoad.toLoad = [e]) : window.codeMirrorToLoad = { toLoad: [e] };
@@ -17279,64 +17280,69 @@
 			
 			var p, h = !1;
 			
+			function animateElement(el, transformation, options, onFinish) {
+				if (window.supportsAnimate) {
+					var animation = el.animate(transformation, options);
+					animation.onfinish = onFinish;
+					return animation;
+				} else {
+					$(el).animate(transformation[1], options.duration, onFinish);
+					return {
+						play: function() {
+							$(el).animate(transformation[1], options.duration, onFinish);
+						}
+					};
+				}
+			}
+
 			window.searchDialog = d;
-			var M = d.animate([{
+			var M = animateElement(d, [{
 				marginBottom: 0
 			}, {
 				marginBottom: "-45px"
 			}], {
 				duration: 250
-			});
-			M.onfinish = function() {
+			}, function() {
 				d.style.marginBottom = h ? 0 : "-45px"
-			}
-			;
-			var k = d.animate([{
+			});
+			var k = animateElement(d, [{
 				marginBottom: 0
 			}, {
 				marginBottom: "-85px"
 			}], {
 				duration: 250
-			});
-			k.onfinish = function() {
+			}, function() {
 				d.style.marginBottom = "-85px",
 				d.style.display = "none"
-			}
-			;
-			var A = d.animate([{
+			});
+			var A = animateElement(d, [{
 				marginBottom: "-45px"
 			}, {
 				marginBottom: "-85px"
 			}], {
 				duration: 250
-			});
-			A.onfinish = function() {
+			}, function() {
 				d.style.marginBottom = "-85px",
 				d.style.display = "none"
-			}
-			;
-			var R = d.animate([{
+			});
+			var R = animateElement(d, [{
 				marginBottom: "-85px"
 			}, {
 				marginBottom: "-45px"
 			}], {
 				duration: 250
-			});
-			R.onfinish = function() {
+			}, function() {
 				d.style.marginBottom = "-45px"
-			}
-			;
-			var D = d.animate([{
+			});
+			var D = animateElement(d, [{
 				marginBottom: "-85px"
 			}, {
 				marginBottom: 0
 			}], {
 				duration: 250
-			});
-			D.onfinish = function() {
+			}, function() {
 				d.style.marginBottom = 0
-			}
-			,
+			});
 			d.style.marginBottom = "-45px",
 			m.addEventListener("click", n),
 			S.addEventListener("click", i),
