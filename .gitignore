@@ -196,14 +196,14 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
-/Custom Right-Click Menu/app/bower_comonents_uncrisp/polymer
-/Custom Right-Click Menu/app/bower_components_fixed
-/Custom Right-Click Menu/app/bower_components_test
-/Custom Right-Click Menu/app/bower_components_test_test
-/Custom Right-Click Menu/app/bower_components_uncrisp
-/Custom Right-Click Menu/app/web.*.*
-/Custom Right-Click Menu/DebugSettings.template.xml
-/Custom Right-Click Menu/build
+/app/bower_comonents_uncrisp/polymer
+/app/bower_components_fixed
+/app/bower_components_test
+/app/bower_components_test_test
+/app/bower_components_uncrisp
+/app/web.*.*
+/DebugSettings.template.xml
+/build
 *.DotSettings
 /Custom Right-Click Menu.VC.db
 /Custom Right-Click Menu.VC.VC.opendb
@@ -215,7 +215,7 @@ Custom Right-Click Menu.sln
 /Custom Right-Click Menu/web.Release.config
 /Custom Right-Click Menu/web.config
 
-/Custom Right-Click Menu/app/js/*.map.js
-/Custom Right-Click Menu/app/js/*.js.map
+/app/js/*.map.js
+/app/js/*.js.map
 
 .vscode

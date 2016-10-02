@@ -7,11 +7,6 @@
 		"curly": true,
 		"class-name": true,
 		"semicolon": ["always"],
-		"triple-equals": true,
-		"no-unreachable": true,
-		"forin": true,
-		"label-position": true,
-		"no-unsafe-finally": true,
-		"no-trailing-whitespace": true
+		"triple-equals": true
 	}
 }
