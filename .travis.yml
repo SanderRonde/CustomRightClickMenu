@@ -5,7 +5,6 @@ branches:
     - master
     - beta
 before_install: 
-  - cd "Custom Right-Click Menu"
   - npm install grunt -g
 install:
   - npm install
