@@ -1,4 +1,4 @@
-/// <reference path="../../../scripts/_references.js"/>
+/// <reference path="../../../tools/definitions/_references.js"/>
 'use strict';
 
 window.Polymer({

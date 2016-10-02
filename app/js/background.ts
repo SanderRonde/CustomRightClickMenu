@@ -1,4 +1,4 @@
-/// <reference path="../../scripts/chrome.d.ts"/>
+/// <reference path="../../tools/definitions/chrome.d.ts"/>
 
 
 declare var module: void;

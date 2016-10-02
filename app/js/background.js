@@ -1,4 +1,4 @@
-/// <reference path="../../scripts/chrome.d.ts"/>
+/// <reference path="../../tools/definitions/chrome.d.ts"/>
 ;
 ;
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
