@@ -32,6 +32,7 @@
 				}
 			};
 			$(this).animate(properties[1], options.duration, function() {
+				console.log(returnVal);
 				if (returnVal.onfinish) {
 					returnVal.onfinish();
 				}

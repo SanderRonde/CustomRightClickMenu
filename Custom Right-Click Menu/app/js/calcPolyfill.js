@@ -1,4 +1,5 @@
 document.body.addEventListener('CRMLoaded', function() {
+	debugger;
 	function makeNum(str) {
 		if (typeof str === 'number') {
 			return str;
