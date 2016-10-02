@@ -15,6 +15,13 @@
 				this.isLoading = false;
 			}
 			window.logPage = this;
+
+			window.setTimeout(function() {
+				var event = document.createEvent("HTMLEvents");
+				event.initEvent("CRMLoaded", true, true);
+				event.eventName = "CRMLoaded";
+				document.body.dispatchEvent(event);
+			}, 2500);
 		}
 	});
 }());
