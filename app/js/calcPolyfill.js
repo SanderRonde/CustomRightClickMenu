@@ -79,13 +79,11 @@ document.body.addEventListener('CRMLoaded', function() {
 
 
 	(function() {
-		var dummy = document.createElement('div');
-		dummy.style.width = 'calc(100vw - 100px)';
-		document.body.appendChild(dummy);
-		if (dummy.getBoundingClientRect().width !== window.innerWidth - 100) {
+		var el = document.createElement('div');
+		el.style.cssText = 'width: calc(100vw - 100px)';
+		if (!el.style.length) {
 			(function(calcs) {
 				var toUpdate = [];
-
 
 				calcs.forEach(function(calc) {
 					var key = calc.key;
