@@ -2469,6 +2469,7 @@
 			var importsAmount = 59;
 			var registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
 			registrationArray.push = function (element) {
+				console.log('registered', element);
 				Array.prototype.push.call(registrationArray, element);
 				registeredElements++;
 				var progress = Math.round((registeredElements / importsAmount) * 100) / 100;
