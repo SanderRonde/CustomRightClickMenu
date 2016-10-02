@@ -27,7 +27,6 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   npm install
 
   grunt moveWebsite
-  cd ../
 
   set +e
   git diff-index --quiet HEAD

@@ -8,8 +8,6 @@ before_install:
   - npm install grunt -g
 install:
   - npm install
-before_script:
-  - cd "../"
 script: sh ./build.sh
 notifications:
   email:
