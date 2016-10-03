@@ -7,7 +7,7 @@
 	"version": "1.1.2",
 
 	"background": {
-	"scripts": ["jquery-2.0.3.min.js", "background.js"]
+		"scripts": ["jquery-2.0.3.min.js", "background.js"]
 	},
 
 	"content_scripts": [
@@ -20,10 +20,10 @@
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 
 	"permissions": [  
-	"tabs",
-	"<all_urls>",
-	"activeTab",
-	"contextMenus"
+		"tabs",
+		"<all_urls>",
+		"activeTab",
+		"contextMenus"
 	],
   
 	"web_accessible_resources": [
@@ -33,32 +33,32 @@
 	],
   
 	"optional_permissions": [
-	"http://*/",
-	"alarms",
-	"background",
-	"bookmarks",
-	"browsingData",
-	"clipboardRead",
-	"clipboardWrite",
-	"contentSettings",
-	"cookies",
-	"desktopCapture",
-	"downloads",
-	"history",
-	"idle",
-	"notifications",
-	"management",
-	"notifications",
-	"power",
-	"privacy",
-	"pushMessaging",
-	"storage",
-	"topSites",
-	"tabCapture",
-	"tts",
-	"webNavigation",
-	"webRequest",
-	"webRequestBlocking"
+		"http://*/",
+		"alarms",
+		"background",
+		"bookmarks",
+		"browsingData",
+		"clipboardRead",
+		"clipboardWrite",
+		"contentSettings",
+		"cookies",
+		"desktopCapture",
+		"downloads",
+		"history",
+		"idle",
+		"notifications",
+		"management",
+		"notifications",
+		"power",
+		"privacy",
+		"pushMessaging",
+		"storage",
+		"topSites",
+		"tabCapture",
+		"tts",
+		"webNavigation",
+		"webRequest",
+		"webRequestBlocking"
 	],
   
 
@@ -67,5 +67,4 @@
 	"48": "icon-small.png",
 	"128": "icon-large.png"
 	}  
-
 }
