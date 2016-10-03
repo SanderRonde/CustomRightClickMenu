@@ -42,6 +42,6 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
     exit 0;
   fi
 
-  git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --force
+  git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --force --quiet
   echo "Pushed github pages to branch";
 fi
