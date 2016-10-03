@@ -472,7 +472,7 @@ module.exports = function(grunt) {
 	//Extracts the files needed for the website and places them in build/website
 	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
-	//Moves the website to the root dir
+	//Moves the website from build/website to the root dir
 	grunt.registerTask('moveWebsite', ['copy:moveWebsite']);
 
 	//Builds the extension and places the zip and all other files in build/
