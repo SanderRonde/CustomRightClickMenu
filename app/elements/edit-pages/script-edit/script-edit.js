@@ -240,6 +240,7 @@
 
 		updateFromScriptApplier: function (changeType, key, value, oldValue) {
 			var i;
+			var metaTags = this.newSettings.value.metaTags;
 			switch (key) {
 				case 'downloadURL':
 				case 'updateURL':
@@ -382,7 +383,7 @@
 						});
 					}
 
-					function sendRemoveMessageval() {
+					function sendRemoveMessageval(val) {
 						chrome.runtime.sendMessage({
 							type: 'resource',
 							data: {
@@ -399,11 +400,11 @@
 							sendCreateMessage(value);
 							break;
 						case 'changed':
-							sendRemoveMessage(oldValue);
+							sendRemoveMessageval(oldValue);
 							sendCreateMessage(value);
 							break;
 						case 'removed':
-							sendRemoveMessage(value);
+							sendRemoveMessageval(value);
 							break;
 					}
 					break;
@@ -647,7 +648,6 @@
 		},
 
 		addTriggerAndAddListeners: function () {
-			var _this = this;
 			this.addTrigger();
 			this.metaTagsUpdate({
 				'added': [
@@ -878,6 +878,7 @@
 		},
 
 		openPermissionsDialog: function (item, callback) {
+			var _this = this;
 			var nodeItem;
 			var settingsStorage;
 			if (!item || item.type === 'tap') {
@@ -916,7 +917,7 @@
 						toggled: isActive,
 						required: isAsked,
 						description: window.app.templates.getPermissionDescription(permission)
-					}
+					};
 
 					if (isAsked && isActive) {
 						requiredActive.push(permissionObj);
@@ -974,7 +975,7 @@
 										//Accepted, remove from to-request permissions if it's there
 										chrome.storage.local.get(function(e) {
 											var permissionsToRequest = e.requestPermissions;
-											requestPermissions.splice(requestPermissions.indexOf(permission), 1);
+											permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 											chrome.storage.local.set({
 												requestPermissions: permissionsToRequest
 											});
@@ -1123,7 +1124,7 @@
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			}).onfinish = function() {
 				this.effect.target.style.marginLeft = 0;
-			}
+			};
 		},
 
 		/*
@@ -1213,7 +1214,7 @@
 					scriptTitle.style.display = 'none';
 					toolsRibbon.style.display = 'none';
 					scriptTitle.style.marginTop = (titleExpanded ? '-51px' : '-18px');
-				}
+				};
 			}
 		},
 
@@ -1246,8 +1247,8 @@
 			var viewportWidth = $horizontalCenterer.width();
 			var viewPortHeight = $horizontalCenterer.height();
 
-			if (app.storageLocal.hideToolsRibbon !== undefined) {
-				if (app.storageLocal.hideToolsRibbon) {
+			if (window.app.storageLocal.hideToolsRibbon !== undefined) {
+				if (window.app.storageLocal.hideToolsRibbon) {
 					window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 				} else {
 					window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
@@ -1256,11 +1257,11 @@
 				chrome.storage.local.set({
 					hideToolsRibbon: false
 				});
-				app.storageLocal.hideToolsRibbon = false;
+				window.app.storageLocal.hideToolsRibbon = false;
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 			}
-			if (app.storageLocal.shrinkTitleRibbon !== undefined) {
-				if (app.storageLocal.shrinkTitleRibbon) {
+			if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
+				if (window.app.storageLocal.shrinkTitleRibbon) {
 					window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 				} else {
 					window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
@@ -1269,7 +1270,7 @@
 				chrome.storage.local.set({
 					shrinkTitleRibbon: false
 				});
-				app.storageLocal.shrinkTitleRibbon = false;
+				window.app.storageLocal.shrinkTitleRibbon = false;
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 			}
 
@@ -1292,7 +1293,7 @@
 					this.style.width = '100vw';
 					this.style.height = '100vh';
 					buttonShadow.style.position = 'fixed';
-					app.$.fullscreenEditorHorizontal.style.height = '100vh';
+					window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
 					_this.popInRibbons();
 				}
 			});
@@ -1805,7 +1806,7 @@
 					});
 					this.editorPlaceHolderAnimation.onfinish = function() {
 						this.effect.target.style.display = 'none';
-					}
+					};
 				}
 			}
 			this.initTernKeyBindings();
@@ -1845,7 +1846,7 @@
 			this.$.exportMenu.init();
 			this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 			this.initDropdown();
-			this.selectorStateChange(0, this.newSettings.launchMode)
+			this.selectorStateChange(0, this.newSettings.launchMode);
 			this.addDialogToMetaTagUpdateListeners();
 			window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
 				defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]

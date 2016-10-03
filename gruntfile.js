@@ -330,7 +330,7 @@ module.exports = function(grunt) {
 					replacements: [
 						{
 							pattern: /CRM-dev/g,
-							replacement: function (match, type, content) {
+							replacement: function () {
 								return 'CRM';
 							}
 						}
@@ -486,4 +486,4 @@ module.exports = function(grunt) {
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['mochaTest', 'testBuild']);
-}
+};

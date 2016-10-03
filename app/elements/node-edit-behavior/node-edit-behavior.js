@@ -98,7 +98,7 @@
 			triggers[i] = {
 				url: inputs[i].value,
 				not: inputs[i].parentNode.children[0].checked
-			}
+			};
 		}
 		resultStorage.triggers = triggers;
 	},
@@ -149,7 +149,7 @@
 		}
 
 		if (usesDefaultStorage) {
-			app.upload();
+			window.app.upload();
 		}
 	},
 
@@ -248,7 +248,7 @@
 	/**
 	 * Returns the pattern that triggers need to follow for the current launch mode
 	 */
-	_getPattern: function(e, a, b, c) {
+	_getPattern: function() {
 		Array.prototype.slice.apply(this.querySelectorAll('.triggerInput')).forEach(function(triggerInput) {
 			triggerInput.invalid = false;
 		});

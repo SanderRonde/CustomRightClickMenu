@@ -1,11 +1,3 @@
-/* global options */
-function toArray(toConvert) {
-	var array = [];
-	for (var i = 0; i < toConvert.length; i++) {
-		array[i] = toConvert[i];
-	}
-	return array;
-}
 
 Polymer({
 	is: 'edit-crm-item',
@@ -275,7 +267,7 @@ Polymer({
 			window.setTimeout(function() {
 				window.app.editCRM.getCRMElementFromPath(node.path).onSelect(true);
 			}, wait);
-		}
+		};
 	},
 
 	selectFromXToThis: function () {
@@ -393,7 +385,7 @@ Polymer({
 	_getOnSelectFunction: function(_this, index) {
 		return function () {
 			window.app.editCRM.getCRMElementFromPath(_this.item.children[index].path).onSelect(true);
-		}
+		};
 	},
 
 	onSelect: function (selectCheckbox, dontSelectChildren) {
@@ -410,7 +402,7 @@ Polymer({
 	_getOnDeselectFunction: function (_this, index) {
 		return function () {
 			window.app.editCRM.getCRMElementFromPath(_this.item.children[index].path).onDeselect(true);
-		}
+		};
 	},
 
 	onDeselect: function (selectCheckbox, dontSelectChildren) {

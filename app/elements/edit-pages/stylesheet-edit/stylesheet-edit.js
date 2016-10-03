@@ -273,7 +273,7 @@
 		//Introduce title at the top
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
-		if (app.storageLocal.shrinkTitleRibbon) {
+		if (window.app.storageLocal.shrinkTitleRibbon) {
 			window.doc.editorTitleRibbon.style.fontSize = '40%';
 			scriptTitle.style.padding = 0;
 			titleRibbonSize = '-18px';
@@ -349,7 +349,7 @@
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 		}).onfinish = function () {
 			this.effect.target.style.marginLeft = 0;
-		}
+		};
 	},
 
 	/*
@@ -439,7 +439,7 @@
 					scriptTitle.style.display = 'none';
 					toolsRibbon.style.display = 'none';
 					scriptTitle.style.marginTop = (titleExpanded ? '-51px' : '-18px');
-				}
+				};
 			}
 	},
 
@@ -468,8 +468,8 @@
 		var viewportWidth = $horizontalCenterer.width();
 		var viewPortHeight = $horizontalCenterer.height();
 
-		if (app.storageLocal.hideToolsRibbon !== undefined) {
-			if (app.storageLocal.hideToolsRibbon) {
+		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
+			if (window.app.storageLocal.hideToolsRibbon) {
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 			} else {
 				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
@@ -478,11 +478,11 @@
 			chrome.storage.local.set({
 				hideToolsRibbon: false
 			});
-			app.storageLocal.hideToolsRibbon = false;
+			window.app.storageLocal.hideToolsRibbon = false;
 			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 		}
-		if (app.storageLocal.shrinkTitleRibbon !== undefined) {
-			if (app.storageLocal.shrinkTitleRibbon) {
+		if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
+			if (window.app.storageLocal.shrinkTitleRibbon) {
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 			} else {
 				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
@@ -491,7 +491,7 @@
 			chrome.storage.local.set({
 				shrinkTitleRibbon: false
 			});
-			app.storageLocal.shrinkTitleRibbon = false;
+			window.app.storageLocal.shrinkTitleRibbon = false;
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 		}
 
@@ -513,7 +513,7 @@
 				this.style.width = '100vw';
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
-				app.$.fullscreenEditorHorizontal.style.height = '100vh';
+				window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
 				window.colorFunction.func({
 					from: {
 						line: 0
@@ -860,7 +860,7 @@
 				});
 				this.editorPlaceHolderAnimation.onfinish = function () {
 					this.effect.target.style.display = 'none';
-				}
+				};
 			}
 		}
 	},

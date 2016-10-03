@@ -9,14 +9,14 @@ function getStylesheetData(selector, callback) {
 	} else {
 		var xhr = new XMLHttpRequest();
 		xhr.onreadystatechange = function() {
-			if (xhr.readyState == 4 && callback) {
+			if (xhr.readyState === 4 && callback) {
 				if (xhr.status >= 400) {
 					callback(null);
 				} else {
 					callback(xhr.responseText);
 				}
 			}
-		}
+		};
 		if (metaData.length > 2000) {
 			var parts = metaData.split("?");
 			xhr.open("POST", parts[0], true);
@@ -59,7 +59,7 @@ document.addEventListener("stylishInstallChrome", function() {
 
 var button = document.getElementById('stylish-installed-style-not-installed-chrome');
 if (button) {
-	button.childNodes && button.childNodes[2] && (button.childNodes[2].nodeValue = 'Install with CRM')
+	button.childNodes && button.childNodes[2] && (button.childNodes[2].nodeValue = 'Install with CRM');
 }
 
 //Give the code a while to run and register the listener

@@ -159,7 +159,7 @@ Polymer({
 		_this.libraries = libraries;
 	},
 
-	confirmLibraryFile: function (_this, name, code) {
+	confirmLibraryFile: function (_this, name, code, url) {
 		window.doc.addLibraryProcessContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {

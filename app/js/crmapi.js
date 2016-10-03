@@ -526,7 +526,6 @@
 			if (err.indexOf('eval') > -1) {
 				err = (new Error()).stack.split('\n')[2];
 			}
-			var errSplit = err.split('at');
 				
 			var val;
 			try {
@@ -603,7 +602,6 @@
 			}
 		}
 
-		var hintRegex = /^(\w+)((\[(['"`])(\w+)\4\])|(\.(\w+)))+(\.(\w+)?|\[((['"`])((\w+)(\11)?)?)?)$/;
 		function getSuggestions(message) {
 			var strSections = getCodeSections(message.code);
 			if (!strSections.end) {
@@ -733,9 +731,6 @@
 					case 'storageUpdate':
 						remoteStorageChange(message.changes);
 						break;
-					case 'logValueUpdate':
-						updateLogValue(message);
-						break;
 					case 'instancesUpdate':
 						instancesChange(message.change);
 						break;
@@ -827,26 +822,6 @@
 				dataChild = dataChild[path[i]];
 			}
 			return dataChild;
-		}
-
-		/**
-		 * Merges two objects where the main object is overwritten
-		 *
-		 * @param {Object} mainObject - The object to merge it INTO
-		 * @param {Object} additions - The object to merge INTO IT
-		 * @returns {Object} - The merged object
-		 */
-		function mergeObjects(mainObject, additions) {
-			for (var key in additions) {
-				if (additions.hasOwnProperty(key)) {
-					if (typeof additions[key] === 'object') {
-						mergeObjects(mainObject[key], additions[key]);
-					} else {
-						mainObject[key] = additions[key];
-					}
-				}
-			}
-			return mainObject;
 		}
 
 		/**
@@ -1303,7 +1278,6 @@
 		 * @param {string} [key] - The key to check
 		 */
 		this.storage.onChange.removeListener = function (listener, key) {
-			var i;
 			var indexes;
 			if (typeof listener === 'number') {
 				storageListeners.remove(listener);
@@ -2428,10 +2402,10 @@
 				}
 			});
 
-			function showStackTrace() {
+			function showStackTrace(messageOrParams, stackTrace) {
 				if (messageOrParams.stackTrace) {
 					console.warn('Remote stack trace:');
-					messageOr.stackTrace.forEach(function(line) { console.warn(line); });
+					messageOrParams.stackTrace.forEach(function(line) { console.warn(line); });
 				}
 				console.warn((messageOrParams.stackTrace ? 'Local s': 'S') + 'tack trace:');
 				stackTrace.forEach(function(line) { console.warn(line); });
@@ -2445,7 +2419,9 @@
 						_this.onError(messageOrParams);
 					}
 					if (_this.stackTraces) {
-						window.setTimeout(showStackTrace, 5);
+						window.setTimeout(function() {
+							showStackTrace(messageOrParams, stackTrace);	
+						}, 5);
 					}
 					if (_this.errors) {
 						throw new Error('CrmAPIError: ' + messageOrParams.error);

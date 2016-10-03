@@ -5,7 +5,7 @@
 		} else {
 			window.app.addSettingsReadyCallback(toRun, thisElement, params);
 		}
-	}
+	};
 
 	if (!document.createElement('div').animate) {
 		HTMLElement.prototype.animate = function(properties, options) {
@@ -13,7 +13,7 @@
 				return {
 					play: function() {},
 					reverse: this.play
-				}
+				};
 			}
 
 			var direction = 'forwards';
@@ -24,7 +24,7 @@
 						if (returnVal.onfinish) {
 							returnVal.onfinish();
 						}
-					})
+					});
 				},
 				reverse: function() {
 					direction = 'backwards';
@@ -65,21 +65,6 @@
 			target.push(toAdd);
 		}
 		return target;
-	}
-
-	var settingsSchema = {
-		crm: [null],
-		editor: {
-			keyBindings: {
-				autocomplete: String,
-				goToDef: String,
-				rename: String,
-				selectName: String,
-				showDocs: String,
-				showType: String
-			},
-			showToolsRibbon: null
-		}
 	}
 
 	Polymer({
@@ -253,7 +238,7 @@
 		},
 
 		compareArray: function(firstArray, secondArray) {
-			if (!!firstArray !== !!secondArray) {
+			if (!firstArray !== !!secondArray) {
 				return true;
 			} else if (!firstArray || !secondArray) {
 				return false;
@@ -332,7 +317,7 @@
 		},
 
 		_generateRegexFile: function() {
-			var filePath = this.$.URISchemeFilePath.value.replace(/\\/g, '\\\\')
+			var filePath = this.$.URISchemeFilePath.value.replace(/\\/g, '\\\\');
 			var schemeName = this.$.URISchemeSchemeName.value;
 
 			var regFile = [
@@ -409,7 +394,7 @@
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 						}).onfinish = function() {
 							tabCont.style.height = newHeightPx;
-						}
+						};
 					}, 500);
 				}
 			}
@@ -467,7 +452,7 @@
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 						}).onfinish = function () {
 							tabCont.style.height = newHeightPx;
-						}
+						};
 					}, 500);
 				}
 			}
@@ -629,8 +614,8 @@
 									return rows.length - 1;
 								}
 								return rows[index];
-							}
-						}
+							};
+						};
 
 						var crm = this.transferCRMFromOld(settingsArr[4], new localStorageWrapper());
 						this.settings.crm = crm;
@@ -1124,7 +1109,7 @@
 								document.body.style.pointerEvents = 'all';
 							});
 						};
-					}
+					};
 
 					var path = _this.nodesById[editingObj.id].path;
 					var highlightItem = function() {
@@ -1166,7 +1151,7 @@
 								document.body.style.pointerEvents = 'all';
 							});
 						}
-					}
+					};
 
 					window.doc.highlightChangedScript.addEventListener('click', function() {
 						//Find the element first
@@ -1545,7 +1530,7 @@
 						line.from = {
 							index: sep.start,
 							line: i
-						}
+						};
 					}
 					if (sep.end >= end) {
 						line.to = {
@@ -1600,7 +1585,7 @@
 				return {
 					call: functionCall.join('.'),
 					args: args
-				}
+				};
 			},
 
 			/**
@@ -1695,7 +1680,7 @@
 					//Only do this for the current scope
 					var scopeLength = null;
 					var idx = null;
-					for (var i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
+					for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
 						if (data.parentExpressions[i].type === 'BlockStatement' || 
 								(data.parentExpressions[i].type === 'FunctionExpression' && 
 									data.parentExpressions[i].body.type === 'BlockStatement')) {
@@ -1706,7 +1691,7 @@
 							while (scopeLength > 0) {
 								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line + (++idx), data.parentExpressions[i].end);
 							}
-							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line + (idx - 1), data.parentExpressions[i].end)
+							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLines.from.line + (idx - 1), data.parentExpressions[i].end);
 						}
 					}
 					if (idx === null) {
@@ -1963,7 +1948,7 @@
 					} else {
 						container[passes].push(position);
 					}
-				}
+				};
 			},
 
 			replaceChromeCalls: function(lines, passes, onError) {
@@ -2094,7 +2079,7 @@
 					};
 					chrome.storage.local.set({ upgradeErrors: keys.upgradeErrors });
 				});
-			}
+			};
 		},
 
 		parseOldCRMNode: function (string, openInNewTab) {
@@ -2142,7 +2127,7 @@
 					var scriptSplit = nodeData.split('%124');
 					var scriptLaunchMode = scriptSplit[0];
 					var scriptData = scriptSplit[1];
-					var triggers = undefined;
+					var triggers;
 					var launchModeString = scriptLaunchMode + '';
 					if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
 						triggers = launchModeString.split('1,')[1].split(',');
@@ -2473,7 +2458,7 @@
 				toReach: 0,
 				isAnimating: false,
 				shouldAnimate: false
-			}
+			};
 
 			var registeredElements = Polymer.telemetry.registrations.length;
 			var importsAmount = 59;
@@ -2540,14 +2525,6 @@
 			].join('');
 		},
 
-		encodeSettings: function(data) {
-			 
-		},
-
-		decodeSettings: function(data) {
-
-		},
-
 		get getPermissionDescription() {
 			return this.templates.getPermissionDescription;
 		},
@@ -2605,7 +2582,7 @@
 			this.upload();
 		},
 
-		addedPermissionNext: function(id) {
+		addedPermissionNext: function() {
 			var cont = window.doc.addedPermissionsTabContainer;
 			if (cont.tab === cont.maxTabs - 1) {
 				window.doc.addedPermissionsDialog.close();
@@ -2624,7 +2601,7 @@
 			window.doc.addedPermissionPrevButton.style.display = 'block';
 		},
 
-		addedPermissionPrev: function(id) {
+		addedPermissionPrev: function() {
 			var cont = window.doc.addedPermissionsTabContainer;
 			cont.style.marginLeft = (--cont.tab * -800) + 'px';
 
@@ -2946,7 +2923,7 @@
 						'// @match	*://*.example.com/*',
 						'// ==/UserScript=='].join('\n'),
 					backgroundScript: ''
-				}
+				};
 
 				return this.mergeObjects(value, options);
 			},
@@ -2968,7 +2945,7 @@
 					}],
 					isLocal: true,
 					value: this.getDefaultScriptValue(options.value)
-				}
+				};
 
 				return this.mergeObjects(defaultNode, options);
 			},
@@ -2990,7 +2967,7 @@
 						not: false
 					}],
 					value: this.getDefaultStylesheetValue(options.value)
-				}
+				};
 
 				return this.mergeObjects(defaultNode, options);
 			},
@@ -3009,7 +2986,7 @@
 					onContentTypes: [true, true, true, false, false, false],
 					isLocal: true,
 					value: {}
-				}
+				};
 
 				return this.mergeObjects(defaultNode, options);
 			},
@@ -3229,7 +3206,7 @@
 						for (var i = 0; i < data.length; i++) {
 							window.open(data[i].url, '_blank');
 						}
-					}
+					};
 				},
 
 				/**
@@ -3239,10 +3216,10 @@
 				 *
 				 * @returns {Function} the function to execute on click a script
 				 */
-				script: function(data) {
+				script: function() {
 					return function() {
-						eval(data);
-					}
+						alert('This would run a script');
+					};
 				},
 
 				/**
@@ -3262,7 +3239,7 @@
 
 						return function() {
 							alert('This would toggle a stylesheet ' + (state ? 'on' : 'off'));
-						}
+						};
 					},
 					/**
 					 * Makes an onclick handler for stylesheets
@@ -3271,7 +3248,7 @@
 					 *
 					 * @returns {Function} the function to execute on click a stylesheet
 					 */
-					normal: function(data) {
+					normal: function() {
 						return function() {
 							alert('This would apply a stylesheet');
 						}
@@ -3551,17 +3528,18 @@
 				var _this = this;
 				var toLoad = 0;
 				this.removeContextMenus();
-				if ('requestIdleCallback' in window) {
-					function loadContextMenus(deadline) {
-						while (toLoad < 6 && deadline.timeRemaining() > 0) {
-							_this.bindContextMenu(toLoad++);
-						}
 
-						if (toLoad !== 5) {
-							window.requestIdleCallback(loadContextMenus);
-						}
+				function loadContextMenus(deadline) {
+					while (toLoad < 6 && deadline.timeRemaining() > 0) {
+						_this.bindContextMenu(toLoad++);
 					}
 
+					if (toLoad !== 5) {
+						window.requestIdleCallback(loadContextMenus);
+					}
+				}
+
+				if ('requestIdleCallback' in window) {
 					window.requestIdleCallback(loadContextMenus);
 				} else {
 					while (toLoad < 6) {
@@ -3653,7 +3631,7 @@
 					// ReSharper disable once WrongExpressionStatement
 					data;
 					eval(evalPath + '[key] = data');
-				}
+				};
 			},
 
 			/**

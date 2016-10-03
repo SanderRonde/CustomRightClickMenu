@@ -55,6 +55,6 @@
 				]
 			});
 		}
-		app.crm.add(newItem);
+		window.app.crm.add(newItem);
 	}
-})
+});

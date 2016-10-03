@@ -599,7 +599,7 @@ window.Polymer({
 		if (!Array.isArray(author)) {
 			author = [author];
 		}
-		metaTags['author'] = author;
+		metaTags.author = author;
 		this.setMetaTagIfSet(metaTags, 'downloadURL', 'url', node.nodeInfo);
 		this.setMetaTagIfSet(metaTags, 'version', 'version', node);
 		metaTags.CRM_contentTypes = [JSON.stringify(node.onContentTypes)];
@@ -764,6 +764,8 @@ window.Polymer({
 	},
 
 	exportGivenNodes: function(exports) {
+		var _this = this;
+
 		var safeExports = [];
 		for (var i = 0; i < exports.length; i++) {
 			safeExports[i] = this.makeNodeSafe(exports[i]);
@@ -780,7 +782,7 @@ window.Polymer({
 				authorName: author
 			});
 			for (var j = 0; j < safeExports.length; j++) {
-				this.changeAuthor(safeExports[j], author);
+				_this.changeAuthor(safeExports[j], author);
 			}
 			dataJson = JSON.stringify({
 				crm: safeExports
@@ -804,8 +806,8 @@ window.Polymer({
 	exportGivenNodeIDs: function(toExport, exportType) {
 		exportType = exportType || 'CRM';
 		var exports = [];
-		for (var i = 0; i < app.settings.crm.length; i++) {
-			this.extractUniqueChildren(app.settings.crm[i], toExport, exports);
+		for (var i = 0; i < window.app.settings.crm.length; i++) {
+			this.extractUniqueChildren(window.app.settings.crm[i], toExport, exports);
 		}
 
 		this.exportGivenNodes(exports, exportType);
@@ -896,6 +898,6 @@ window.Polymer({
 		for (var i = 0; i < 6; i++) {
 			window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
 		}
-		runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, (quick ? [null, true] : []));
+		window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, (quick ? [null, true] : []));
 	}
 });

@@ -136,7 +136,7 @@ Polymer({
 						node: this.$.overlayCont,
 						duration: 300
 					}
-				}
+				};
 			}
 		},
 		/**
@@ -238,7 +238,7 @@ Polymer({
 			
 		document.body.style.overflow = 'hidden';
 		document.body.style.marginRight = '17px';
-		app.show = true;
+		window.app.show = true;
 		this.opened = true;
 		this.$.overlayCont.style.display = 'block';
 		this.playAnimation('entry');
@@ -328,9 +328,6 @@ Polymer({
 	},
 
 	getInstallDateTextFormat: function() {
-		var days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-		var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-
 		if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo) {
 			var format = (new Date('1-13-2016').toLocaleDateString() === '1-13-2016' ? 'eu' : 'na');
 			var date;

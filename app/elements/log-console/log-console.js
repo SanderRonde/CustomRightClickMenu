@@ -50,10 +50,6 @@
 			}
 		},
 
-		set lines(value) {
-			console.log(value);
-		},
-
 		observers: [
 			'_updateLog(selectedId, selectedTab, textfilter)'
 		],
@@ -117,7 +113,7 @@
 					tabId: selectedItems.tab.id,
 					lineNumber: '<eval>:0',
 					timestamp: new Date().toLocaleString()
-				})
+				});
 			} else {
 				this.$.inputFieldWarning.classList.add('visible');
 				this.$.consoleInput.setAttribute('disabled', 'disabled');
@@ -147,7 +143,7 @@
 			var tabVal = (this.tabs && this.tabs[~~this.selectedTab - 1]) || {
 				id: 'all',
 				title: 'all'
-			}
+			};
 			var idVal = this.selectedId === 0 ? {
 				id: 'all',
 				title: 'all'
@@ -163,7 +159,7 @@
 			return {
 				id: selectedItems.id.id,
 				tab: selectedItems.tab.id
-			}
+			};
 		},
 
 		_updateLog: function(selectedId, selectedTab, textfilter) {
@@ -185,7 +181,7 @@
 			this.lines = lines.length;
 		},
 
-		_getTotalLines: function(lines) {
+		_getTotalLines: function() {
 			return this.lines;
 		},
 
@@ -218,7 +214,6 @@
 		},
 
 		_processEvalLine: function(line) {
-			var _this = this;
 			if (line.val.type === 'error') {
 				line.isError = true;
 			}
@@ -245,7 +240,7 @@
 				});
 				bgPage._listenLog(function(logLine) {
 					if (logLine.type && logLine.type === 'evalResult') {
-						_this._processEvalLine(logLine)
+						_this._processEvalLine(logLine);
 					} else if (logLine.type && logLine.type === 'hints') {
 						_this._processLine(logLine);
 					} else {
@@ -266,7 +261,7 @@
 						_this.async(function() {
 							menu.refreshListeners.apply(menu);
 						}, 100);
-					}
+					};
 					menu.onchange = function(oldState, newState) {
 						menus.forEach(function(menu) {
 							menu.close();

@@ -216,7 +216,7 @@
 		this.hideAllWindows('loadingWindow');
 		this.$.loadingWindow.style.display = 'block';
 		this.fit();
-		var promise = promiser.apply(this)(function() {
+		promiser.apply(this)(function() {
 			_this.$.manualInputListChoiceInput.invalid = false;
 			_this.switchToWindow(window);
 			spinner.active = false;
@@ -224,7 +224,7 @@
 			_this.$.manualInputListChoiceInput.invalid = true;
 			spinner.active = false;
 		});
-		},
+	},
 	//#endregion
 
 	//#region Event handlers
@@ -245,7 +245,7 @@
 		}
 		codeLines.push('');
 		var code = codeLines.join('\n');
-		window.scriptEdit.insertSnippet(scriptEdit, code, true);
+		window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
 		setTimeout(function() {
 			_this.hide();
 			_this.switchToWindow('initialWindow');
@@ -265,7 +265,7 @@
 	 */
 	processSearchEngines: function() {
 		var _this = this;
-		return function(resolve, rejct) {
+		return function(resolve, reject) {
 			var worker = new Worker('elements/tools/paper-search-website-dialog/searchEngineWorker.js');
 			var data = _this.$.manualInputListChoiceInput.value;
 
@@ -412,8 +412,6 @@
 	 * Waits a bit before fitting the element
 	 */
 	fixFit: function() {
-		var textarea = this.$.manualInputListChoiceInput;
-		var value = textarea.value;
 		var paperInputContainer = $(this.$.manualInputListChoiceInput).find('paper-input-container')[0];
 		paperInputContainer.style.height = '200px';
 		this.fit();

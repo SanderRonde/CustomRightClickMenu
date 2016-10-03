@@ -15,11 +15,11 @@
 		}
 		var errSplit = err.split('at');
 		log(args, errSplit.slice(1, errSplit.length).join('at'));
-	}
+	};
 
 	self.logNoStack = function() {
 		log(Array.prototype.slice.apply(arguments));
-	}
+	};
 
 	self.console = {
 		log: self.log
@@ -55,10 +55,10 @@
 					key: secretKey
 				});
 			}
-		}
-	}
+		};
+	};
 
-	function returnHandshake() {
+	var returnHandshake = function() {
 		return handshake;
 	}
 
@@ -97,7 +97,7 @@
 			}());
 			returnHandshake = function() {
 				return null;
-			}
+			};
 			if (!loadedLibraries) {
 				return;
 			}

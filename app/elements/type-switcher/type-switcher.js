@@ -294,6 +294,26 @@
 			typeChoices[i].setAttribute('type', this.remainingTypes[i]);
 		}
 
+		function reverseMenuTypeChoice(columnCont) {
+			paperToast.hide();
+			item.children = item.menuVal;
+			delete item.menuVal;
+			item.type = 'menu';
+			item.value = '';
+				
+			editCrmEl.type = prevType;
+			editCrmEl.calculateType();
+			_this.ready();
+			for (i = 0; i < _this.remainingTypes.length; i++) {
+				typeChoices[i].setAttribute('type', _this.remainingTypes[i]);
+			}
+
+			//Un-shadow items
+			_this.shadowColumns(columnCont, true);
+
+			window.app.settings.shadowStart = null;
+		}
+
 		if (prevType === 'menu') {
 			//Turn children into "shadow items"
 			var column = this.parentNode.parentNode.parentNode.parentNode;
@@ -307,38 +327,23 @@
 			console.log(columnCont);
 			this.shadowColumns(columnCont, false);
 
-			app.settings.shadowStart = column.index + 1;
+			window.app.settings.shadowStart = column.index + 1;
 
 			var paperToast = $('#changedToMenuToast');
-			function reverseMenuTypeChoice() {
-				paperToast.hide();
-				item.children = item.menuVal;
-				delete item.menuVal;
-				item.type = 'menu';
-				item.value = '';
-					
-				editCrmEl.type = prevType;
-				editCrmEl.calculateType();
-				_this.ready();
-				for (i = 0; i < _this.remainingTypes.length; i++) {
-					typeChoices[i].setAttribute('type', _this.remainingTypes[i]);
-				}
-
-				//Un-shadow items
-				_this.shadowColumns(columnCont, true);
-
-				app.settings.shadowStart = null;
-			}
 
 			//Show a paper-toast
-			paperToast.on('click', reverseMenuTypeChoice);
+			paperToast.on('click', function() {
+				reverseMenuTypeChoice(columnCont);
+			});
 			paperToast[0].show();
 			setTimeout(function() {
-				paperToast.off('click', reverseMenuTypeChoice);
+				paperToast.off('click', function() {
+					reverseMenuTypeChoice(columnCont);
+				});
 			}, 10000);
 		}
 
 		this.closeTypeSwitchContainer(true);
-		app.upload();
+		window.app.upload();
 	}
 });

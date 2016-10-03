@@ -133,7 +133,6 @@ Polymer.DraggableNodeBehavior = {
 		this.$$('paper-ripple').style.display = 'block';
 		this.style.pointerEvents = 'all';
 		this._changeDraggingState(false);
-		var _this = this;
 		document.body.removeEventListener('mouseup', this._listeners.stopDrag);
 		document.body.style.webkitUserSelect = 'initial';
 		window.removeEventListener('scroll', this._listeners.onScroll);
@@ -379,7 +378,6 @@ Polymer.DraggableNodeBehavior = {
 		this._filler = $('<div class="crmItemFiller"></div>');
 		this._filler.index = this.index;
 		this._filler.column = this.parentNode.index;
-		var _this = this;
 
 		document.body.addEventListener('mouseup', this._listeners.stopDrag);
 		document.body.addEventListener('mousemove', this._listeners.onMouseMove);
@@ -431,6 +429,6 @@ Polymer.DraggableNodeBehavior = {
 			stopDrag: this._stopDrag.bind(this),
 			onMouseMove: this._onMouseMove.bind(this),
 			onScroll: this._onScroll.bind(this) 
-		}
+		};
 	}
-}
+};

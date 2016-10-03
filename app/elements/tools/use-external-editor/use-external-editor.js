@@ -286,16 +286,16 @@ Polymer({
 						item.file = {
 							id: msg.id,
 							path: msg.path
-						}
+						};
 					}
 					_this.connection.filePath = msg.path;
-					app.upload();
+					window.app.upload();
 					_this.connection.fileConnected = true;
 					(window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.reloadEditor(true) : window.stylesheetEdit.reloadEditor(true));
 					_this.createEditingOverlay();
 					_this.appPort.onMessage.removeListener(tempListener);
 				}
-			}
+			};
 			this.appPort.onMessage.addListener(tempListener);
 			if (item.file) {
 				this.appPort.postMessage({
@@ -474,7 +474,7 @@ Polymer({
 					window.externalEditor.editor.left.orig.refresh();
 					window.externalEditor.editor.right.orig.refresh();
 				};
-			}
+			};
 		}
 	},
 
@@ -605,7 +605,7 @@ Polymer({
 										});
 									}, 150);
 								}
-							}
+							};
 						}
 					};
 				}
@@ -678,7 +678,7 @@ Polymer({
 				index = 0;
 			}
 			return index;
-		}
+		};
 	},
 
 	generateNextErrorFinder: function (isLeftEditor, errors) {
@@ -703,7 +703,7 @@ Polymer({
 				var sideEditorLine = sideEditorLineTranslationArray[errors[errorIndex].from.line];
 				var mainEditorLine = _this.findReverseLineTranslation(_this, sideEditorLine, mainEditor);
 				if (_this.containEachother(mainEditor.getLine(mainEditorLine), sideEditor.getLine(errors[errorIndex].from.line))) {
-					error = errors[errorIndex];;
+					error = errors[errorIndex];
 					break;
 				}
 			}
@@ -724,7 +724,7 @@ Polymer({
 				//No errors were found, show the toast
 				window.doc.noErrorsFound.show();
 			}
-		}
+		};
 	},
 
 	/*
@@ -743,7 +743,7 @@ Polymer({
 					action: 'refreshFromApp'
 				});
 			}
-		}
+		};
 		window.doc.externalEditorChooseFile.init = function (local, file, callback, isUpdate, updateErrors) {
 			window.doc.chooseFileCurrentTxt.innerText = (isUpdate ? 'Old' : 'CRM Editor');
 			window.doc.chooseFileNewTxt.innerText = (isUpdate ? 'New' : 'File');
@@ -766,6 +766,30 @@ Polymer({
 			}
 			rightErrorButton.listeners = [];
 
+			function markerFn() {
+				setTimeout(function() {
+					//Mark left part
+					var j;
+					for (j = 0; j < updateErrors.oldScript.length; j++) {
+						window.externalEditor.editor.left.orig.markText(updateErrors.oldScript[j].from, updateErrors.oldScript[j].to, {
+							className: 'updateError',
+							inclusiveLeft: false,
+							inclusiveRight: false
+						});
+					}
+
+					//Mark right part
+					for (j = 0; j < updateErrors.newScript.length; j++) {
+						window.externalEditor.editor.right.orig.markText(updateErrors.newScript[j].from, updateErrors.newScript[j].to, {
+							className: 'updateError',
+							inclusiveLeft: false,
+							inclusiveRight: false
+						});
+					}
+					window.doc.externalEditorChooseFile.removeEventListener('iron-overlay-opened', markerFn);
+				}, 2000);
+			}
+
 			if (updateErrors) {
 				window.doc.updateMergerCont.style.display = 'block';
 				var errorsNumber = (updateErrors.parseError ? '1' : updateErrors.oldScript.length);
@@ -778,30 +802,6 @@ Polymer({
 					rightErrorButton.addEventListener('click', listenerRight);
 					leftErrorButton.listeners.push(listenerLeft);
 					rightErrorButton.listeners.push(listenerRight);
-
-					function markerFn() {
-						setTimeout(function() {
-							//Mark left part
-							var j;
-							for (j = 0; j < updateErrors.oldScript.length; j++) {
-								window.externalEditor.editor.left.orig.markText(updateErrors.oldScript[j].from, updateErrors.oldScript[j].to, {
-									className: 'updateError',
-									inclusiveLeft: false,
-									inclusiveRight: false
-								});
-							}
-
-							//Mark right part
-							for (j = 0; j < updateErrors.newScript.length; j++) {
-								window.externalEditor.editor.right.orig.markText(updateErrors.newScript[j].from, updateErrors.newScript[j].to, {
-									className: 'updateError',
-									inclusiveLeft: false,
-									inclusiveRight: false
-								});
-							}
-							window.doc.externalEditorChooseFile.removeEventListener('iron-overlay-opened', markerFn);
-						}, 2000);
-					}
 
 					window.doc.externalEditorChooseFile.addEventListener('iron-overlay-opened', markerFn);
 				} else {
@@ -827,7 +827,7 @@ Polymer({
 				window.doc.externalEditorChooseFile.style.top = _this.dialogStyleProperties.top + 'px';
 				window.doc.externalEditorChooseFile.style.left = _this.dialogStyleProperties.left + 'px';
 			}
-		}
+		};
 		window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
 			_this.establishConnection(true);
 			window.doc.externalEditorErrorToast.hide();
@@ -917,8 +917,8 @@ Polymer({
 									window.doc.chooseFileMainDialog.style.marginTop = '20px';
 									window.doc.chooseFileMainDialog.style.opacity = 1;
 								};
-							};
-						}
+							}
+						};
 					}
 				};
 			}

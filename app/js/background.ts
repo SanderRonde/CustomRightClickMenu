@@ -2284,7 +2284,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return {
 								id: id,
 								title: globalObject.globals.crm.crmById[id].name
-							}	
+							};
 						});
 
 						if (!Helpers.compareArray(idArr, listeners.idVals)) {
@@ -2329,7 +2329,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				const idMatches = logListener.id === 'all' || ~~logListener.id === ~~newLog.id;
 				const tabMatches = logListener.tab === 'all' ||
 					(logListener.tab === 'background' && logListener.tab === newLog.tabId) ||
-					(logListener.tab !== 'background' && ~~logListener.tab === ~~newLog.tabId)
+					(logListener.tab !== 'background' && ~~logListener.tab === ~~newLog.tabId);
 				if (idMatches && tabMatches) {
 					logListener.listener(newLog);
 				}
