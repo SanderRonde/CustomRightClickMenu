@@ -32,8 +32,11 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   git diff-index --quiet HEAD
 
   echo "Committing changes";
-  git add -A . &> /dev/null
-  git commit -m "Deploy to Github Pages" --quiet 
+  git status
+  git add -A .
+  git status
+  git commit -m "Deploy to Github Pages" --quiet
+  git status 
   echo "Committed changes";
 
   echo "Pushing changes";
