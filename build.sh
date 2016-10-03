@@ -32,11 +32,8 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   git diff-index --quiet HEAD
 
   echo "Committing changes";
-  git status
   git add -A .
-  git status
   git commit -m "Deploy to Github Pages" --quiet
-  git status 
   echo "Committed changes";
 
   echo "Pushing changes";
@@ -45,6 +42,6 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
     exit 0;
   fi
 
-  git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --force --quiet
+  git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --force
   echo "Pushed github pages to branch";
 fi
