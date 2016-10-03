@@ -34,9 +34,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   echo "Committing changes";
   git status
   git add -A .
-  git add .
-  git add -A
-  git add
+  git status
   git commit -m "Deploy to Github Pages" --quiet
   git status 
   echo "Committed changes";
