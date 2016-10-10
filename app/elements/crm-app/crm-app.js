@@ -312,6 +312,10 @@
 			return currentTab === desiredTab;
 		},
 
+		_toggleBugReportingTool: function() {
+			window.errorReportingTool.toggleVisibility();
+		},
+
 		_openLogging: function() {
 			window.open(chrome.runtime.getURL('html/logging.html'), '_blank');
 		},
@@ -2622,6 +2626,23 @@
 			this.crm.parent = this;
 			window.app = this;
 			window.doc = window.app.$;
+
+			var controlPresses = 0;
+			document.body.addEventListener('keydown', function(event) {
+				if (event.key === 'Control') {
+					controlPresses++;
+					window.setTimeout(function() {
+						if (controlPresses >= 3) {
+							_this._toggleBugReportingTool();
+							controlPresses = 0;
+						} else {
+							if (controlPresses > 0) {
+								controlPresses--;
+							}
+						}
+					}, 800);
+				}
+			});
 
 			this.setupLoadingBar(function(resolve) {
 				chrome.storage.local.get(function(storageLocal) {
