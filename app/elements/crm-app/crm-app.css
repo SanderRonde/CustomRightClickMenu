@@ -826,6 +826,10 @@ edit-crm-item {
 	display:block;
 }
 
+edit-crm-item:focus {
+	font-weight: bold;
+}
+
 .globalExcludeContainer {
 	display: -webkit-flex;
 	display: flex;

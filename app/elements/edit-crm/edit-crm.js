@@ -132,6 +132,10 @@ window.Polymer({
 		return !crmLoading && crm.length === 0;
 	},
 
+	_getAriaLabel: function(item) {
+		return 'Edit item "' + item.name + '"';
+	},
+
 	/**
 	 * Gets the columns in this crm-edit element
 	 * 
