@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>
+			UI Testing CRM
+		</title>
+		<style>
+			html {
+				overflow: hidden;
+			}
+
+			body {
+				margin: 0;
+			}
+
+			iframe {
+				border: none;
+				height: 100vh;
+				width: 1000vw;
+			}
+		</style>
+		<style type="text/css">
+			/*#region Fonts*/
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 400;
+				src: url(../../app/fonts/Roboto-Regular.ttf);
+			}
+
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 500;
+				src: url(../../app/fonts/Roboto-Medium.ttf);
+			}
+
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 700;
+				src: url(../../app/fonts/Roboto-Bold.ttf);
+			}
+
+			@font-face {
+				font-family: 'Inconsolata';
+				font-style: normal;
+				font-weight: 400;
+				src: url(../../app/fonts/Inconsolata-Regular.ttf);
+			}
+
+			@font-face {
+				font-family: 'Inconsolata';
+				font-style: normal;
+				font-weight: 700;
+				src: url(../../app/fonts/Inconsolata-Bold.ttf);
+			}
+
+			body {
+				font-size: 75%;
+				font-family: 'Roboto', "segoe UI", tahoma, sans serif;
+			}
+			/*#endregion*/
+
+			/*#region Splash screen*/
+			#splashScreen {
+				top: 0;
+				bottom: 0;
+				right: 0;
+				left: 0;
+				background-color: #FF5722;
+				position: fixed;
+				z-index: 999999999999999;
+				color: white;
+				opacity: 0;
+				transition: opacity 500ms ease-in-out;
+				pointer-events: none;
+				overflow: hidden;
+			}
+
+			#splashScreenVerticalCenterer, #splashScreenHorizontalCenterer {
+				display: -webkit-flex;
+				display: flex;
+				-webkit-justify-content: center;
+				justify-content: center;
+				height: 100vh;
+			}
+
+			#splashScreenVerticalCenterer {
+				-webkit-flex-direction: column;
+				flex-direction: column;
+			}
+
+			#splashScreenHorizontalCenterer {
+				-webkit-flex-direction: row;
+				flex-direction: row;
+			}
+
+			#splashScreenTitle {
+				font-size: 800%;
+				font-size: calc(100vw / 20);
+			}
+
+			#splashScreenLoaderCenterer {
+				display: -webkit-flex;
+				display: flex;
+				-webkit-flex-direction: row;
+				flex-direction: row;
+				-webkit-justify-content: center;
+				justify-content: center;
+			}
+
+			.elementsLoading #splashScreen {
+				opacity: 1;
+				pointer-events: initial;
+			}
+
+			#splashScreenProgressBarCont {
+				width: 50vw;
+				height: 4px;
+				background-color: rgb(224, 224, 224);
+				margin-top: 20px;
+				position: relative;
+			}
+
+			#splashScreenProgressBarLoader {
+				will-change: transform;
+				-webkit-transform-origin: left center;
+				transform-origin: left center;
+				position: absolute;
+				-webkit-transform: scaleX(0);
+				transform: scaleX(0);
+				background-color: rgb(38, 153, 244);
+				width: 50vw;
+				height: 4px;
+			}
+			/*#endregion*/
+		</style>
+		<link async rel="stylesheet" href="../../app/css/codemirror.css" />
+		<script src="../../app/bower_components/webcomponentsjs/webcomponents.min.js"></script>
+		<link rel="import" href="../../app/bower_components/polymer/polymer.html" />
+		<link async rel="import" href="../../app/elements/crm-app/crm-app.html" />
+		<link async rel="import" href="../../app/elements/error-reporting-tool/error-reporting-tool.html" />
+	</head>
+	<body>
+		<script src="chrome-api-dummy.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery-2.0.3.min.js"></script>
+		<script src="../../app/js//libraries/diff_match_patch.js"></script> 
+		<script src="../../app/js//libraries/codemirror/codemirror.js"></script>
+		<script src="../../app/js//libraries/codemirror/codeMirrorAddons.js"></script>
+		<script src="../../app/js//libraries/jsonfn.js"></script>
+		<script src="../../app/js//libraries/md5.js"></script>
+		<script src="../../app/js/background.js"></script>
+		<div id="splashScreen">
+			<div id="splashScreenHorizontalCenterer">
+				<div id="splashScreenVerticalCenterer">
+					<div id="splashScreenTitle">
+						Custom Right-Click Menu
+					</div>
+					<div id="splashScreenLoaderCenterer">
+						<div id="splashScreenProgressBarCont">
+							<div id="splashScreenProgressBarLoader"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<error-reporting-tool class="elementLoading"></error-reporting-tool>
+		<crm-app class="elementLoading"></crm-app>
+		<script src="../../app/js/libraries/jquery/jquery-ui.min.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery.contextMenu.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery.bez.js"></script>
+		<script defer src="../../app/js/userscriptMetadataCodemirror.js" async></script>
+		<script defer src="../../app/js/libraries/codemirror/codemirrorJs.js" async></script>
+		<script defer src="../../app/js/crmAPIDefs.js" async></script>
+		<script src="../../app/js/calcPolyfill.js" defer async></script>
+	</body>
+</html>
