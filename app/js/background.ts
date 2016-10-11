@@ -1234,7 +1234,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						const prefix = value.substring(0, 8);
 
-						if (iso8061 && value.match(iso8061)) {
+						if (iso8061 && value.match(iso8061 as RegExp)) {
 							return new Date(value);
 						}
 						if (prefix === 'function') {
@@ -3798,6 +3798,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		run: (callback: (node: T) => void) => void;
 	}
 
+	type TypeCheckTypes = 'string'|'function'|'number'|'object'|'array';
+
 	class CRMFunction {
 		constructor(public message: CRMFunctionMessage, public action: string) {
 			CRMFunctions[action](this);
@@ -3833,8 +3835,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			return (hold ? data : data[path[length]]) || false;
 		}
-
-		checkType(toCheck: any, type: 'string'|'function'|'number'|'object',
+		checkType(toCheck: any, type: TypeCheckTypes,
 			name?: string,
 			optional: TypecheckOptional = TypecheckOptional.REQUIRED,
 			ifndef?: () => void,
@@ -8349,7 +8350,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	.split('/')[0],
 	//Gets the extension's URL through a blocking instead of a callback function
 	typeof module !== 'undefined' || window.isDev ? window : {},
-	((sandboxes) => {
+	((sandboxes: {
+		sandbox: (id: number, script: string, libraries: Array<string>,
+			secretKey: Array<number>,
+			callback: (worker: CRMSandboxWorker) => void) => void;
+		sandboxChrome?: any;
+	}) => {
 		function sandboxChromeFunction(window, sandboxes, chrome, fn, context, args) {
 			return fn.apply(context, args);
 		}
@@ -8366,12 +8372,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return result;
 		};
 
-		return sandboxes;
+		return sandboxes as {
+			sandbox: (id: number, script: string, libraries: Array<string>,
+				secretKey: Array<number>,
+				callback: (worker: CRMSandboxWorker) => void) => void;
+			sandboxChrome: (api: string, args: Array<any>) => any;
+		};
 	})((() => {
 		const sandboxes: {
 			sandbox: (id: number, script: string, libraries: Array<string>,
 				secretKey: Array<number>,
 				callback: (worker: CRMSandboxWorker) => void) => void;
+			sandboxChrome?: any;
 		} = {} as any;
 
 		function SandboxWorker(id: number, script: string, libraries: Array<string>,
