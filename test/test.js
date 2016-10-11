@@ -1125,22 +1125,33 @@ describe('CRMAPI', () => {
 		},
 		storage: {
 			sync: {
-				get: function (cb) { cb(); },
+				get: function (key, cb) {
+					if (typeof key === 'function') {
+						key(storageSync);
+					} else {
+						const result = {};
+						result[key] = storageSync[key];
+						cb(result);
+					}
+				},
 				set: function (data, cb) {
 					for (var objKey in data) {
 						if (data.hasOwnProperty(objKey)) {
 							storageSync[objKey] = data[objKey];
 						}
 					}
-					cb && cb();
+					cb && cb(storageSync);
 				}
 			},
 			local: {
 				get: function (key, cb) {
-					if (typeof key !== 'function') {
-						return cb(storageLocal[key]);
+					if (typeof key === 'function') {
+						key(storageLocal);
+					} else {
+						const result = {};
+						result[key] = storageLocal[key];
+						cb(result);
 					}
-					return key(storageLocal);
 				},
 				set: function (obj, cb) {
 					for (let objKey in obj) {
@@ -1155,7 +1166,7 @@ describe('CRMAPI', () => {
 							storageLocal[objKey] = obj[objKey];
 						}
 					}
-					cb && cb();
+					cb && cb(storageLocal);
 				}
 			},
 			onChanged: {
