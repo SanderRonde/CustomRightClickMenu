@@ -36,8 +36,6 @@
 			'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
 			'}\n';
 
-		debugger;
-
 		var newItem;
 		if (this.searchEngine !== undefined) {
 			newItem = window.app.templates.getDefaultScriptNode({
