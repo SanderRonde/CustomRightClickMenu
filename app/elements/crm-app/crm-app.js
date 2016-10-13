@@ -338,9 +338,24 @@
 				'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
 				'@="\\"' + filePath + '\\""'
 			].join('\n');
-			chrome.downloads.download({
-				url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
-				filename: schemeName + '.reg'
+			chrome.permissions.contains({
+				permissions: ['downloads']
+			}, function(hasPermission) {
+				if (hasPermission) {
+					chrome.downloads.download({
+						url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
+						filename: schemeName + '.reg'
+					});
+				} else {
+					chrome.permissions.request({
+						permissions: ['downloads']
+					}, function(granted) {
+						chrome.downloads.download({
+							url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
+							filename: schemeName + '.reg'
+						});
+					});
+				}
 			});
 		},
 
@@ -845,8 +860,7 @@
 		},
 
 		launchSearchWebsiteTool: function () {
-			if (this.item && this.item.type === 'script' &&
-				window.scriptEdit && window.scriptEdit.mode === 'main') {
+			if (this.item && this.item.type === 'script' && window.scriptEdit) {
 				this.$.paperSearchWebsiteDialog.init();
 				this.$.paperSearchWebsiteDialog.show();
 			}
