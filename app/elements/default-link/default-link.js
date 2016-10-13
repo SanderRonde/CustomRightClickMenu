@@ -8,7 +8,7 @@
 	 * @type Boolean
 	 * @value false
 	 */
-	searchengine: false,
+	searchEngine: false,
 
 	properties: {
 		href: {
@@ -26,7 +26,7 @@
 		var name = $(this.$.input).val();
 		var script = '' +
 			'var query;\n' +
-			'var url = ' + link + '\n' +
+			'var url = "' + link + '";\n' +
 			'if (crmAPI.getSelection()) {\n' +
 			'	query = crmAPI.getSelection();\n' +
 			'} else {\n' +
@@ -36,8 +36,10 @@
 			'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
 			'}\n';
 
-	var newItem;
-		if (this.searchengine) {
+		debugger;
+
+		var newItem;
+		if (this.searchEngine !== undefined) {
 			newItem = window.app.templates.getDefaultScriptNode({
 				name: name,
 				value: {
