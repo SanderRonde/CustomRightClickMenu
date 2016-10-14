@@ -27,10 +27,12 @@
     "grunt-string-replace": "^1.2.1",
     "grunt-vulcanize": "^1.0.0",
     "grunt-zip": "^0.16.2",
+    "http-server": "^0.9.0",
     "mocha": "^2.5.3",
     "mocha-steps": "^1.0.0",
     "request": "^2.72.0",
-    "selenium-webdriver": "^3.0.0-beta-3"
+    "selenium-webdriver": "^3.0.0-beta-3",
+    "typescript": "^2.0.3"
   },
   "license": "MIT",
   "name": "custom-right-click-menu",
