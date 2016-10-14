@@ -15,3 +15,8 @@ notifications:
   email:
     on_success: change
     on_failure: change
+addons:
+  browserstack:
+    username: "Your BrowserStack username"
+    access_key:
+      secure: gkTXHPdt+X+nmDPycOOE6fI3nnaTPGtudQ1C4V0bXkHBXa9QOCK7Drzx1HxmaTkmJZA5mRGEmh++kXZw2SoyC6nvZ6m19E69I0R7SyYdQoEYiwe5glBzBqQiSYXs8IUzPwUhs5KF1uPT0azsq35rBRmYmo5xJ4fMJwlTbKy7JFqI5Q/UnsLq6XiD2Ksfkc9/HNqAk3vKDfLBOyvCFcmE8QZChtqHz/7Eqv93AmwgRDU1p4+GmVfuj/a0sGVVDRvYVft7BgWvhQ5U3a1MCSXmdAZ/0JTdI8AwoKMT1mbYujHfQbqcu6Lq7JLMqO1EJC6+Dn7VPeQROK3Q3ppVvmf7Ncmo79HpL/OJbYUP30pmXw4IDt350QwKWWDuI9+e645abAni5SMFMcz9IStbWZTfJf/eK05oOprb1fdoU2fPl5e+46UTgQt5rwcsu9W03mVLivExNM7Mq29i3MtPijvCJbd7QAP1KXD1Otdr9hAEjxYQTP3nLWtTmNafSBHNMSJUU/gS+6wRxj7mpxE+xoiFjXWRWJRA3QRMJXtC4kOLWdlSMC1eA93LoLkLvefo7ryiVrt7eXMDCl3Bi+q/oXfMEBfYMJ6KT1Ikm5nHuTInfhyTV73xRkGcbIKIwj4q685gsjdNdhTHX+DMoLQMgdnetG3lUCkFGpLD06YWIFJPdiQ=
