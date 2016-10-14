@@ -1,5 +1,5 @@
-let storageLocal= {};
-let storageSync = {};
+window.storageLocal= {};
+window.storageSync = {};
 const storageListeners = [];
 
 function storageGenerator(container) {
@@ -58,6 +58,14 @@ window.chrome = {
 		},
 		removeAll: () => {
 
+		}
+	},
+	downloads: {
+		download: (settings) => {
+			window.chrome._lastCall = {
+				api: 'downloads.download',
+				args: [settings]
+			}
 		}
 	},
 	runtime: {
@@ -146,6 +154,12 @@ window.chrome = {
 					"unlimitedStorage"
 				]
 			});
+		},
+		contains: (permissionsObject, callback) => {
+			callback(true);
+		},
+		request: (permissionsObject, callback) => {
+			callback(true);
 		}
 	},
 	storage: {
