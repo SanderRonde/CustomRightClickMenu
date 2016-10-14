@@ -435,7 +435,7 @@ module.exports = function(grunt) {
 				options: {
 					quiet: false
 				},
-				src: ['test/**/*.js']
+				src: ['test/test.js', 'test/UITest.js']
 			}
 		}
 	});
