@@ -1,12 +1,15 @@
 #!/bin/bash
 set -e
 
-echo "Starting grunt tests";
+http-server -p 1234 .
+
+echo "Starting build tests";
 grunt testBuild
-echo "Finished grunt tests";
+echo "Finished build tests";
 
 echo "Starting unit tests";
-npm test
+mocha test/test.js
+mocha test/UITest.js
 echo "Finished unit tests";
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
