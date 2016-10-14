@@ -1968,7 +1968,7 @@ describe('CRMAPI', () => {
 				var _this = this;
 
 				this.method = 'GET';
-				this.url = 'http://www.example.com';
+				this.url = 'https://www.example.com';
 				this.responseType = 'idunno';
 
 				this.onload = null;

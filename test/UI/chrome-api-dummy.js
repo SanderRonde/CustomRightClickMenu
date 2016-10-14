@@ -191,7 +191,7 @@ function createRandomTab() {
 		highlighted: false,
 		active: false,
 		pinned: false,
-		url: 'http://www.example.com',
+		url: 'https://www.example.com',
 		title: 'example',
 		status: 'loading',
 		incognito: false

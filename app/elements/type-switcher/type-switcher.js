@@ -227,7 +227,7 @@
 
 					item.value = [
 						{
-							value: 'http://www.example.com',
+							value: 'https://www.example.com',
 							newTab: true
 						}
 					];
