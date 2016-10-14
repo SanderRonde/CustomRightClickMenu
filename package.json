@@ -12,6 +12,7 @@
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-preset-react": "^6.11.1",
+    "btoa": "^1.1.2",
     "chai": "^3.5.0",
     "grunt": "^0.4.5",
     "grunt-banner": "^0.4.0",
