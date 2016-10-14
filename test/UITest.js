@@ -20,7 +20,8 @@ before('Driver connect', function (done) {
         'resolution': '1920x1080',
         'browserstack.user': secrets.user,
         'browserstack.key': secrets.key,
-        'browserstack.local': true
+        'browserstack.local': true,
+        'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
     };
     driver = new webdriver.Builder()
         .usingServer('http://hub-cloud.browserstack.com/wd/hub')
@@ -35,6 +36,57 @@ before('Driver connect', function (done) {
 after('Driver disconnect', function () {
     driver.quit();
 });
+function getCRM(driver) {
+    return new webdriver.promise.Promise(function (resolve) {
+        driver
+            .executeScript(inlineFn(function () {
+            return JSON.stringify(window.app.settings.crm);
+        }))
+            .then(function (str) {
+            resolve(JSON.parse(str));
+        });
+    });
+}
+function saveDialog(dialog) {
+    return dialog
+        .findElement(webdriver.By.id('saveButton'))
+        .click();
+}
+function cancelDialog(dialog) {
+    return dialog
+        .findElement(webdriver.By.id('cancelButton'))
+        .click();
+}
+function getDialog(driver, type) {
+    return new webdriver.promise.Promise(function (resolve) {
+        driver
+            .findElement(webdriver.By.tagName(type + "-edit"))
+            .then(function (element) {
+            setTimeout(function () {
+                resolve(element);
+            }, 500);
+        });
+    });
+}
+function promisify(data, fn, previousFn, index) {
+    return function () {
+    };
+}
+function generatePromiseChain(data, fn, index, resolve) {
+    if (index !== data.length) {
+        fn(data[index]).then(function () {
+            generatePromiseChain(data, fn, index + 1, resolve);
+        });
+    }
+    else {
+        resolve(null);
+    }
+}
+function forEachPromise(data, fn) {
+    return new webdriver.promise.Promise(function (resolve) {
+        generatePromiseChain(data, fn, 0, resolve);
+    });
+}
 function getRandomString(length) {
     return new Array(length).join(' ').split(' ').map(function () {
         var randomNum = ~~(Math.random() * 62);
@@ -76,18 +128,9 @@ function inlineFn(fn, args) {
     });
     return str;
 }
-function getCRM(driver, callback) {
-    driver
-        .executeScript(inlineFn(function () {
-        return JSON.stringify(window.app.settings.crm);
-    }))
-        .then(function (str) {
-        callback(JSON.parse(str));
-    });
-}
 describe('CheckboxOptions', function () {
     this.timeout(3000);
-    this.slow(1500);
+    this.slow(2000);
     var checkboxDefaults = {
         showOptions: true,
         recoverUnsavedData: false,
@@ -122,7 +165,7 @@ describe('CheckboxOptions', function () {
 });
 describe('Commonly used links', function () {
     this.timeout(5000);
-    this.slow(1500);
+    this.slow(3000);
     it('should be addable', function (done) {
         driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
             elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(function () {
@@ -187,7 +230,7 @@ describe('Commonly used links', function () {
 });
 describe('SearchEngines', function () {
     this.timeout(5000);
-    this.slow(1500);
+    this.slow(3000);
     it('should be addable', function (done) {
         driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
             var index = elements.length - 1;
@@ -305,7 +348,7 @@ describe('URIScheme', function () {
             done();
         });
     }
-    this.slow(5000);
+    this.slow(7000);
     this.timeout(50000);
     afterEach('Reset page settings', resetSettings);
     var defaultToExecutePath = 'C:\\files\\my_file.exe';
@@ -357,10 +400,10 @@ describe('URIScheme', function () {
         });
     });
 });
-describe('CRM', function () {
+describe('CRM Editing', function () {
     var defaultName = 'name';
-    beforeEach('Reset page settings', resetSettings);
     describe('Type Switching', function () {
+        beforeEach('Reset page settings', resetSettings);
         function testTypeSwitch(driver, type, done) {
             driver.executeAsyncScript(inlineFn(function (args) {
                 var crmItem = document.getElementsByTagName('edit-crm-item').item(0);
@@ -397,52 +440,43 @@ describe('CRM', function () {
         });
     });
     describe('Link Dialog', function () {
-        this.timeout(10000);
-        function getLinkDialog(callback) {
-            driver
-                .findElement(webdriver.By.tagName('link-edit'))
-                .then(function (element) {
-                setTimeout(function () {
-                    callback(element);
-                }, 500);
-            });
-        }
+        this.timeout(30000);
         beforeEach('Reset and open dialog', openDialogAndReset);
-        it('name property should be editable when saved', function (done) {
-            var name = getRandomString(25);
-            getLinkDialog(function (dialog) {
-                dialog
-                    .findElement(webdriver.By.id('nameInput'))
-                    .findElement(webdriver.By.tagName('input'))
-                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
-                    .then(function () {
-                    return dialog
-                        .findElement(webdriver.By.id('saveButton'))
-                        .click();
-                })
-                    .then(function () {
-                    getCRM(driver, function (crm) {
+        describe('Name Input', function () {
+            this.slow(7000);
+            it('should be editable when saved', function (done) {
+                var name = getRandomString(25);
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('nameInput'))
+                        .findElement(webdriver.By.tagName('input'))
+                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
                         assert.strictEqual(crm[0].type, 'link', 'type is link');
                         assert.strictEqual(crm[0].name, name, 'name has been properly saved');
                         done();
                     });
                 });
             });
-        });
-        it('name property should not change when not saved', function (done) {
-            var name = getRandomString(25);
-            getLinkDialog(function (dialog) {
-                dialog
-                    .findElement(webdriver.By.id('nameInput'))
-                    .findElement(webdriver.By.tagName('input'))
-                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
-                    .then(function () {
-                    return dialog
-                        .findElement(webdriver.By.id('cancelButton'))
-                        .click();
-                })
-                    .then(function () {
-                    getCRM(driver, function (crm) {
+            it('should not change when not saved', function (done) {
+                var name = getRandomString(25);
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('nameInput'))
+                        .findElement(webdriver.By.tagName('input'))
+                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .then(function () {
+                        return cancelDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
                         assert.strictEqual(crm[0].type, 'link', 'type is link');
                         assert.strictEqual(crm[0].name, defaultName, 'name has not been saved');
                         done();
@@ -450,38 +484,39 @@ describe('CRM', function () {
                 });
             });
         });
-        it('matches should be addable when saved', function (done) {
-            getLinkDialog(function (dialog) {
-                dialog
-                    .findElement(webdriver.By.id('showOnSpecified'))
-                    .click()
-                    .then(function () {
-                    return driver
-                        .findElement(webdriver.By.id('addTrigger'))
-                        .then(function (button) {
-                        return button.click().then(function () {
-                            return button.click();
-                        });
-                    });
-                }).then(function () {
-                    setTimeout(function () {
-                        driver
-                            .findElements(webdriver.By.className('executionTrigger'))
-                            .then(function (triggers) {
-                            return triggers[0]
-                                .findElement(webdriver.By.tagName('paper-checkbox'))
-                                .click()
-                                .then(function () {
-                                return triggers[1]
-                                    .findElement(webdriver.By.tagName('input'))
-                                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+        describe('Triggers', function () {
+            this.slow(9000);
+            it('should be addable/editable when saved', function (done) {
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('showOnSpecified'))
+                        .click()
+                        .then(function () {
+                        return driver
+                            .findElement(webdriver.By.id('addTrigger'))
+                            .then(function (button) {
+                            return button.click().then(function () {
+                                return button.click();
                             });
-                        }).then(function () {
-                            return driver
-                                .findElement(webdriver.By.id('saveButton'))
-                                .click();
-                        }).then(function () {
-                            getCRM(driver, function (crm) {
+                        });
+                    }).then(function () {
+                        setTimeout(function () {
+                            driver
+                                .findElements(webdriver.By.className('executionTrigger'))
+                                .then(function (triggers) {
+                                return triggers[0]
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click()
+                                    .then(function () {
+                                    return triggers[1]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                });
+                            }).then(function () {
+                                return saveDialog(dialog);
+                            }).then(function () {
+                                return getCRM(driver);
+                            }).then(function (crm) {
                                 assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
                                 assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
                                 assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
@@ -489,8 +524,356 @@ describe('CRM', function () {
                                 assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
                                 done();
                             });
+                        }, 500);
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('showOnSpecified'))
+                        .click()
+                        .then(function () {
+                        return driver
+                            .findElement(webdriver.By.id('addTrigger'))
+                            .then(function (button) {
+                            return button.click().then(function () {
+                                return button.click();
+                            });
                         });
-                    }, 500);
+                    }).then(function () {
+                        setTimeout(function () {
+                            driver
+                                .findElements(webdriver.By.className('executionTrigger'))
+                                .then(function (triggers) {
+                                return triggers[0]
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click()
+                                    .then(function () {
+                                    return triggers[0]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                })
+                                    .then(function () {
+                                    return triggers[1]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                });
+                            }).then(function () {
+                                return cancelDialog(dialog);
+                            }).then(function () {
+                                return getCRM(driver);
+                            }).then(function (crm) {
+                                assert.lengthOf(crm[0].triggers, 1, 'no triggers have been added');
+                                assert.isFalse(crm[0].triggers[0].not, 'first trigger NOT status did not change');
+                                assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
+                                done();
+                            });
+                        }, 500);
+                    });
+                });
+            });
+        });
+        describe('Content Types', function () {
+            this.slow(15000);
+            var defaultContentTypes = [true, true, true, false, false, false];
+            it('should be editable through clicking on the checkboxes', function (done) {
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        newContentTypes = crm[0].onContentTypes;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should be editable through clicking on the icons', function (done) {
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.className('showOnContentItemIcon'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should be editable through clicking on the names', function (done) {
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.className('showOnContentItemTxt'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return cancelDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isTrue(crm[0].onContentTypes[0], 'content types that were on did not change');
+                        assert.isFalse(crm[0].onContentTypes[4], 'content types that were off did not change');
+                        assert.deepEqual(crm[0].onContentTypes, defaultContentTypes, 'all content types were not toggled');
+                        done();
+                    });
+                });
+            });
+        });
+        describe('Links', function () {
+            this.slow(15000);
+            it('open in new tab property should be editable', function (done) {
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.className('linkChangeCont'))
+                        .findElement(webdriver.By.tagName('paper-checkbox'))
+                        .click()
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+                        assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
+                        done();
+                    });
+                });
+            });
+            it('url property should be editable', function (done) {
+                var newUrl = 'www.google.com';
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.className('linkChangeCont'))
+                        .findElement(webdriver.By.tagName('input'))
+                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl)
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+                        assert.strictEqual(crm[0].value[0].url, newUrl, 'url has been changed');
+                        done();
+                    });
+                });
+            });
+            it('should be addable', function (done) {
+                var defaultLink = {
+                    newTab: true,
+                    url: 'https://www.example.com'
+                };
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('changeLink'))
+                        .findElement(webdriver.By.tagName('paper-button'))
+                        .then(function (button) {
+                        return button
+                            .click()
+                            .then(function () {
+                            return button.click();
+                        })
+                            .then(function () {
+                            return button.click();
+                        });
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+                        assert.deepEqual(crm[0].value, Array.apply(null, Array(4)).map(function (_) { return defaultLink; }), 'new links match default link value');
+                        done();
+                    });
+                });
+            });
+            it('should be editable when newly added', function (done) {
+                var newUrl = 'www.google.com';
+                var newValue = {
+                    newTab: true,
+                    url: newUrl
+                };
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('changeLink'))
+                        .findElement(webdriver.By.tagName('paper-button'))
+                        .then(function (button) {
+                        return button
+                            .click()
+                            .then(function () {
+                            return button.click();
+                        })
+                            .then(function () {
+                            return button.click();
+                        });
+                    })
+                        .then(function () {
+                        return driver.wait(new webdriver.promise.Promise(function (resolve) {
+                            setTimeout(resolve, 500);
+                        }));
+                    })
+                        .then(function () {
+                        return dialog
+                            .findElements(webdriver.By.className('linkChangeCont'));
+                    })
+                        .then(function (elements) {
+                        return forEachPromise(elements, function (element) {
+                            return new webdriver.promise.Promise(function (resolve) {
+                                setTimeout(function () {
+                                    element
+                                        .findElement(webdriver.By.tagName('paper-checkbox'))
+                                        .click()
+                                        .then(function () {
+                                        return element
+                                            .findElement(webdriver.By.tagName('input'))
+                                            .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
+                                    }).then(function () {
+                                        resolve(null);
+                                    });
+                                }, 250);
+                            });
+                        });
+                    })
+                        .then(function () {
+                        return driver.wait(new webdriver.promise.Promise(function (resolve) {
+                            setTimeout(resolve, 250);
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+                        //Only one newTab can be false at a time
+                        var newLinks = Array.apply(null, Array(4))
+                            .map(function (_) { return JSON.parse(JSON.stringify(newValue)); });
+                        newLinks[3].newTab = false;
+                        assert.deepEqual(crm[0].value, newLinks, 'new links match changed link value');
+                        done();
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                var newUrl = 'www.google.com';
+                var defaultLink = {
+                    newTab: true,
+                    url: 'https://www.example.com'
+                };
+                getDialog(driver, 'link').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('changeLink'))
+                        .findElement(webdriver.By.tagName('paper-button'))
+                        .then(function (button) {
+                        return button
+                            .click()
+                            .then(function () {
+                            return button.click();
+                        })
+                            .then(function () {
+                            return button.click();
+                        });
+                    })
+                        .then(function () {
+                        return dialog
+                            .findElements(webdriver.By.className('linkChangeCont'));
+                    })
+                        .then(function (elements) {
+                        return forEachPromise(elements, function (element) {
+                            return element
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click()
+                                .then(function () {
+                                return element
+                                    .findElement(webdriver.By.tagName('input'))
+                                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
+                            });
+                        });
+                    })
+                        .then(function () {
+                        return cancelDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
+                        assert.deepEqual(crm[0].value, [defaultLink], 'link value has stayed the same');
+                        done();
+                    });
                 });
             });
         });
