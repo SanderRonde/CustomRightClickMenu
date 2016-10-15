@@ -255,7 +255,7 @@ window.Polymer({
 		//Find last menu to auto-expand
 		if (list) {
 			list.forEach(function(item, index) {
-			if ((item.type === 'menu' || window.app.settings.shadowStart && item.menuVal) && !hidden[item.id]) {
+				if ((item.type === 'menu' || (window.app.shadowStart && item.menuVal)) && !hidden[item.id]) {
 					lastMenu = index;
 					if (item.children.length > 0) {
 						lastFilledMenu = index;
@@ -348,7 +348,7 @@ window.Polymer({
 				column.indent[indentTop - 1] = undefined;
 				column.list = list;
 				column.index = columnNum;
-				if (window.app.settings.shadowStart && window.app.settings.shadowStart <= columnNum) {
+				if (window.app.shadowStart && window.app.shadowStart <= columnNum) {
 					column.shadow = true;
 				}
 
@@ -358,7 +358,7 @@ window.Polymer({
 						item.expanded = false;
 					});
 					list[lastMenu].expanded = true;
-					if (window.app.settings.shadowStart && list[lastMenu].menuVal) {
+					if (window.app.shadowStart && list[lastMenu].menuVal) {
 						list = list[lastMenu].menuVal;
 					} else {
 						list = list[lastMenu].children;
