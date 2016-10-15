@@ -868,7 +868,7 @@ describe('CRM Editing', function(this: MochaFn) {
 			});
 		}
 		this.timeout(20000);
-		this.slow(6000);
+		this.slow(7000);
 		
 		it('should be able to switch to a script', function(done)  {
 			resetSettingsPromise().then(() => {
@@ -929,7 +929,7 @@ describe('CRM Editing', function(this: MochaFn) {
 		before('Reset settings', resetSettings);
 
 		describe('Name Input', function(this: MochaFn) {
-			this.slow(7000);
+			this.slow(10000);
 
 			after('Reset settings', resetSettings);
 
@@ -1297,7 +1297,7 @@ describe('CRM Editing', function(this: MochaFn) {
 			});
 		});
 		describe('Links', function(this: MochaFn) {
-			this.slow(20000);
+			this.slow(22500);
 
 			after('Reset settings', resetSettings);
 
@@ -1543,7 +1543,7 @@ describe('CRM Editing', function(this: MochaFn) {
 		before('Reset settings', resetSettings);
 
 		describe('Name Input', function(this: MochaFn) {
-			this.slow(7000);
+			this.slow(10000);
 
 			after('Reset settings', resetSettings);
 
@@ -1617,7 +1617,7 @@ describe('CRM Editing', function(this: MochaFn) {
 			});
 		});
 		describe('Triggers', function(this: MochaFn) {
-			this.slow(9000);
+			this.slow(150000);
 
 			after('Reset settings', resetSettings);
 
@@ -1925,7 +1925,7 @@ describe('CRM Editing', function(this: MochaFn) {
 		before('Reset settings', resetSettings);
 
 		describe('Name Input', function(this: MochaFn) {
-			this.slow(7000);
+			this.slow(10000);
 
 			after('Reset settings', resetSettings);
 
@@ -1999,7 +1999,7 @@ describe('CRM Editing', function(this: MochaFn) {
 			});
 		});
 		describe('Triggers', function(this: MochaFn) {
-			this.slow(9000);
+			this.slow(150000);
 
 			after('Reset settings', resetSettings);
 

@@ -578,7 +578,7 @@ describe('CRM Editing', function () {
             });
         }
         this.timeout(20000);
-        this.slow(6000);
+        this.slow(7000);
         it('should be able to switch to a script', function (done) {
             resetSettingsPromise().then(function () {
                 testTypeSwitch(driver, 'script', done);
@@ -636,7 +636,7 @@ describe('CRM Editing', function () {
         this.timeout(30000);
         before('Reset settings', resetSettings);
         describe('Name Input', function () {
-            this.slow(7000);
+            this.slow(10000);
             after('Reset settings', resetSettings);
             it('should not change when not saved', function (done) {
                 before('Reset settings', resetSettings);
@@ -952,7 +952,7 @@ describe('CRM Editing', function () {
             });
         });
         describe('Links', function () {
-            this.slow(20000);
+            this.slow(22500);
             after('Reset settings', resetSettings);
             it('open in new tab property should be editable', function (done) {
                 resetSettingsPromise().then(function () {
@@ -1183,7 +1183,7 @@ describe('CRM Editing', function () {
         this.timeout(30000);
         before('Reset settings', resetSettings);
         describe('Name Input', function () {
-            this.slow(7000);
+            this.slow(10000);
             after('Reset settings', resetSettings);
             it('should not change when not saved', function (done) {
                 before('Reset settings', resetSettings);
@@ -1247,7 +1247,7 @@ describe('CRM Editing', function () {
             });
         });
         describe('Triggers', function () {
-            this.slow(9000);
+            this.slow(150000);
             after('Reset settings', resetSettings);
             it('should not change when not saved', function (done) {
                 resetSettingsPromise().then(function () {
@@ -1511,7 +1511,7 @@ describe('CRM Editing', function () {
         this.timeout(30000);
         before('Reset settings', resetSettings);
         describe('Name Input', function () {
-            this.slow(7000);
+            this.slow(10000);
             after('Reset settings', resetSettings);
             it('should not change when not saved', function (done) {
                 before('Reset settings', resetSettings);
@@ -1575,7 +1575,7 @@ describe('CRM Editing', function () {
             });
         });
         describe('Triggers', function () {
-            this.slow(9000);
+            this.slow(150000);
             after('Reset settings', resetSettings);
             it('should not change when not saved', function (done) {
                 resetSettingsPromise().then(function () {
