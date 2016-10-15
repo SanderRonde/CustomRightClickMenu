@@ -826,7 +826,7 @@ edit-crm-item {
 	display:block;
 }
 
-edit-crm-item:focus {
+edit-crm-item:focus .CRMItemTitle {
 	font-weight: bold;
 }
 
