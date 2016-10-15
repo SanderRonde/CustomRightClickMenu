@@ -9,8 +9,11 @@ echo "Finished build tests";
 
 echo "Starting unit tests";
 mocha test/test.js
-mocha test/UITest.js
 echo "Finished unit tests";
+
+echo "Starting UI tests";
+mocha test/UITest.js
+echo "Finished UI tests";
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
   echo "Changing branches";
