@@ -6645,10 +6645,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
                 var transferExports = {
                     transferCRMFromOld: function (openInNewTab) {
-                        var amount = parseInt(localStorage.getItem('numberofrows'), 10) + 1;
+                        var amount = parseInt(window.localStorage.getItem('numberofrows'), 10) + 1;
                         var nodes = [];
                         for (var i = 1; i < amount; i++) {
-                            nodes.push(parseOldCRMNode(localStorage.getItem(String(i)), openInNewTab));
+                            nodes.push(parseOldCRMNode(window.localStorage.getItem(String(i)), openInNewTab));
                         }
                         //Structure nodes with children etc
                         var crm = [];
@@ -6660,7 +6660,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             })();
             var setupExports = {
                 handleFirstRun: function (crm) {
-                    localStorage.setItem('transferred', 'true');
+                    window.localStorage.setItem('transferred', 'true');
                     //Save local storage
                     chrome.storage.local.set(defaultLocalStorage);
                     //Save sync storage
@@ -6678,7 +6678,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 },
                 handleTransfer: function () {
                     var _this = this;
-                    localStorage.setItem('transferred', 'true');
+                    window.localStorage.setItem('transferred', 'true');
                     return function (resolve) {
                         if (!window.CodeMirror.TernServer) {
                             //Wait until TernServer is loaded
@@ -6690,7 +6690,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                         else {
                             var result = _this.handleFirstRun(TransferFromOld
-                                .transferCRMFromOld(localStorage
+                                .transferCRMFromOld(window.localStorage
                                 .getItem('whatpage')));
                             resolve(result);
                         }
@@ -6745,7 +6745,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     return false;
                 }
                 //Determine if it's a transfer from CRM version 1.*
-                if (!localStorage.getItem('transferred')) {
+                if (!window.localStorage.getItem('transferred')) {
                     return SetupHandling.handleTransfer();
                 }
                 else {

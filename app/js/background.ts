@@ -8184,11 +8184,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				const transferExports = {
 					transferCRMFromOld(openInNewTab): Array<CRMNode> {
-						const amount = parseInt(localStorage.getItem('numberofrows'), 10) + 1;
+						const amount = parseInt(window.localStorage.getItem('numberofrows'), 10) + 1;
 
 						const nodes: Array<TransferOldNode> = [];
 						for (let i = 1; i < amount; i++) {
-							nodes.push(parseOldCRMNode(localStorage.getItem(String(i)),
+							nodes.push(parseOldCRMNode(window.localStorage.getItem(String(i)),
 								openInNewTab));
 						}
 
@@ -8208,7 +8208,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					storageLocalCopy: StorageLocal;
 					chromeStorageLocal: StorageLocal;
 				} {
-					localStorage.setItem('transferred', 'true');
+					window.localStorage.setItem('transferred', 'true');
 
 					//Save local storage
 					chrome.storage.local.set(defaultLocalStorage);
@@ -8233,7 +8233,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					storageLocalCopy: StorageLocal;
 					chromeStorageLocal: StorageLocal;
 				}) => void) => void {
-					localStorage.setItem('transferred', 'true');
+					window.localStorage.setItem('transferred', 'true');
 
 					return (resolve) => {
 						if (!window.CodeMirror.TernServer) {
@@ -8245,7 +8245,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}, 200);
 						} else {
 							const result = this.handleFirstRun(TransferFromOld
-								.transferCRMFromOld(localStorage
+								.transferCRMFromOld(window.localStorage
 									.getItem('whatpage')));
 
 							resolve(result);
@@ -8305,7 +8305,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return false;
 				}
 				//Determine if it's a transfer from CRM version 1.*
-				if (!localStorage.getItem('transferred')) {
+				if (!window.localStorage.getItem('transferred')) {
 					return SetupHandling.handleTransfer();
 				} else {
 					var firstRunResult = SetupHandling.handleFirstRun();
