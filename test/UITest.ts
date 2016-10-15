@@ -1207,8 +1207,8 @@ describe('CRM Editing', function(this: MochaFn) {
 							return getCRM(driver);
 						})
 						.then((crm) => {
-							assert.strictEqual(crm[0].type, 'link', 
-								'type is link');
+							assert.strictEqual(crm[0].type, 'divider', 
+								'divider is link');
 							assert.strictEqual(crm[0].name, name, 
 								'name has been properly saved');
 							done();
@@ -1228,8 +1228,8 @@ describe('CRM Editing', function(this: MochaFn) {
 						.then(() => {
 							return getCRM(driver);
 						}).then((crm) => {
-							assert.strictEqual(crm[0].type, 'link', 
-								'type is link');
+							assert.strictEqual(crm[0].type, 'divider', 
+								'type is divider');
 							assert.strictEqual(crm[0].name, defaultName, 
 								'name has not been saved');
 							done();
@@ -1488,8 +1488,8 @@ describe('CRM Editing', function(this: MochaFn) {
 							return getCRM(driver);
 						})
 						.then((crm) => {
-							assert.strictEqual(crm[0].type, 'link', 
-								'type is link');
+							assert.strictEqual(crm[0].type, 'menu', 
+								'type is menu');
 							assert.strictEqual(crm[0].name, name, 
 								'name has been properly saved');
 							done();
@@ -1509,8 +1509,8 @@ describe('CRM Editing', function(this: MochaFn) {
 						.then(() => {
 							return getCRM(driver);
 						}).then((crm) => {
-							assert.strictEqual(crm[0].type, 'link', 
-								'type is link');
+							assert.strictEqual(crm[0].type, 'menu', 
+								'type is menu');
 							assert.strictEqual(crm[0].name, defaultName, 
 								'name has not been saved');
 							done();
