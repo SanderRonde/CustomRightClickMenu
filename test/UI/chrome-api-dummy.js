@@ -1,49 +1,57 @@
-window.storageLocal= {};
-window.storageSync = {};
-const storageListeners = [];
+window.storageLocal = JSON.parse(localStorage.getItem('local')) || {};
+window.storageSync = JSON.parse(localStorage.getItem('sync')) || {};
+var storageListeners = [];
+
+function syncToLocalStorage() {
+	localStorage.setItem('local', JSON.stringify(window.storageLocal));
+	localStorage.setItem('sync', JSON.stringify(window.storageSync));
+}
 
 function storageGenerator(container) {
 	return {
-		get: (key, callback) => {
+		get: function(key, callback) {
 			if (typeof key === 'function') {
 				key(container);
 			} else {
-				const result = {};
+				var result = {};
 				result[key] = container[key];
 				callback(result);
 			}
 		},
-		set: (data, callback) => {
+		set: function(data, callback) {
 			for (var objKey in data) {
 				if (data.hasOwnProperty(objKey)) {
-					const oldData = container[objKey];
+					var oldData = container[objKey];
 					container[objKey] = data[objKey];
 					storageListeners.forEach((listener) => {
-						const changedData = {};
+						var changedData = {};
 						changedData[objKey] = {
 							oldValue: oldData,
 							newValue: data[objKey]
 						}
-						listener(changedData, (container === storageSync ? 'sync' : 'local'));
+						listener(changedData, (container === window.storageSync ? 'sync' : 'local'));
 					});
 				}
 			}
+			syncToLocalStorage();
 			callback && callback(container);
 		},
-		clear: () => {
-			for (let key in container) {
-				this.set(key, undefined);
-			}
+		clear: function() {
+			container === window.storageSync ? 
+				(window.storageSync = {}) : 
+				(window.storageLocal = {});
+			localStorage.removeItem('local');
+			localStorage.removeItem('sync');
 		}
 	}
 }
 
-const tabs = {};
-const contextMenus = {};
-const tabListeners = [];
-const extensionId = 'glloknfjojplkpphcmpgkcemckbcbmhe';
+var tabs = {};
+var contextMenus = {};
+var tabListeners = [];
+var extensionId = 'glloknfjojplkpphcmpgkcemckbcbmhe';
 
-let onMessageListener = null; 
+var onMessageListener = null; 
 
 window.chrome = {
 	contextMenus: {
@@ -179,7 +187,7 @@ window.chrome = {
 };
 
 function createRandomTab() {
-	let id = ~~(Math.random() * 1000000)
+	var id = ~~(Math.random() * 1000000)
 	while (tabs[id]) {
 		id = ~~(Math.random() * 1000000);
 	}
@@ -206,8 +214,8 @@ function createRandomTab() {
 window.setTimeout(createRandomTab, 1000);
 
 function deleteRandomTab() {
-	const keys = Object.getOwnPropertyNames(tabs);
-	const deleteKey = keys[Math.random() * keys];
+	var keys = Object.getOwnPropertyNames(tabs);
+	var deleteKey = keys[Math.random() * keys];
 	tabs[deleteKey] = undefined;
 	delete tabs[deleteKey];
 
