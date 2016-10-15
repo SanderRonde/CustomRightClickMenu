@@ -115,6 +115,32 @@ function openDialogAndReset(done) {
         setTimeout(done, 500);
     });
 }
+function switchToTypeResetAndOpenDialog(type) {
+    return function (done) {
+        resetSettings.call(this, function () {
+            driver.executeAsyncScript(inlineFn(function (args) {
+                var crmItem = document.getElementsByTagName('edit-crm-item').item(0);
+                crmItem.typeIndicatorMouseOver();
+                window.setTimeout(function () {
+                    var typeSwitcher = crmItem.querySelector('type-switcher');
+                    typeSwitcher.openTypeSwitchContainer();
+                    window.setTimeout(function () {
+                        typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]')
+                            .click();
+                        args[0]();
+                    }, 300);
+                }, 300);
+            }, {
+                type: type
+            })).then(function () {
+                setTimeout(function () {
+                    driver.findElement(webdriver.By.tagName('edit-crm-item')).click();
+                    setTimeout(done, 500);
+                }, 300);
+            });
+        });
+    };
+}
 function inlineFn(fn, args) {
     if (args === void 0) { args = {}; }
     var str = "return (" + fn.toString() + ")(arguments)";
@@ -128,6 +154,19 @@ function inlineFn(fn, args) {
     });
     return str;
 }
+describe('Loading', function () {
+    this.timeout(5000);
+    this.slow(2000);
+    it('should happen without errors', function (done) {
+        driver
+            .executeScript(inlineFn(function () {
+            return window.lastError ? window.lastError : 'noError';
+        })).then(function (result) {
+            assert.notStrictEqual(result, 'noError', 'no errors should be thrown when loading');
+            done();
+        });
+    });
+});
 describe('CheckboxOptions', function () {
     this.timeout(3000);
     this.slow(2000);
@@ -872,6 +911,500 @@ describe('CRM Editing', function () {
                         .then(function (crm) {
                         assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
                         assert.deepEqual(crm[0].value, [defaultLink], 'link value has stayed the same');
+                        done();
+                    });
+                });
+            });
+        });
+    });
+    describe('Divider Dialog', function () {
+        this.timeout(30000);
+        beforeEach('Reset and open dialog', switchToTypeResetAndOpenDialog('divider'));
+        describe('Name Input', function () {
+            this.slow(7000);
+            it('should be editable when saved', function (done) {
+                var name = getRandomString(25);
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('nameInput'))
+                        .findElement(webdriver.By.tagName('input'))
+                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.strictEqual(crm[0].type, 'link', 'type is link');
+                        assert.strictEqual(crm[0].name, name, 'name has been properly saved');
+                        done();
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                var name = getRandomString(25);
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('nameInput'))
+                        .findElement(webdriver.By.tagName('input'))
+                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .then(function () {
+                        return cancelDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.strictEqual(crm[0].type, 'link', 'type is link');
+                        assert.strictEqual(crm[0].name, defaultName, 'name has not been saved');
+                        done();
+                    });
+                });
+            });
+        });
+        describe('Triggers', function () {
+            this.slow(9000);
+            it('should be addable/editable when saved', function (done) {
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('showOnSpecified'))
+                        .click()
+                        .then(function () {
+                        return driver
+                            .findElement(webdriver.By.id('addTrigger'))
+                            .then(function (button) {
+                            return button.click().then(function () {
+                                return button.click();
+                            });
+                        });
+                    }).then(function () {
+                        setTimeout(function () {
+                            driver
+                                .findElements(webdriver.By.className('executionTrigger'))
+                                .then(function (triggers) {
+                                return triggers[0]
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click()
+                                    .then(function () {
+                                    return triggers[1]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                });
+                            }).then(function () {
+                                return saveDialog(dialog);
+                            }).then(function () {
+                                return getCRM(driver);
+                            }).then(function (crm) {
+                                assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
+                                assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
+                                assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
+                                assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
+                                assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
+                                done();
+                            });
+                        }, 500);
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('showOnSpecified'))
+                        .click()
+                        .then(function () {
+                        return driver
+                            .findElement(webdriver.By.id('addTrigger'))
+                            .then(function (button) {
+                            return button.click().then(function () {
+                                return button.click();
+                            });
+                        });
+                    }).then(function () {
+                        setTimeout(function () {
+                            driver
+                                .findElements(webdriver.By.className('executionTrigger'))
+                                .then(function (triggers) {
+                                return triggers[0]
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click()
+                                    .then(function () {
+                                    return triggers[0]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                })
+                                    .then(function () {
+                                    return triggers[1]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                });
+                            }).then(function () {
+                                return cancelDialog(dialog);
+                            }).then(function () {
+                                return getCRM(driver);
+                            }).then(function (crm) {
+                                assert.lengthOf(crm[0].triggers, 1, 'no triggers have been added');
+                                assert.isFalse(crm[0].triggers[0].not, 'first trigger NOT status did not change');
+                                assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
+                                done();
+                            });
+                        }, 500);
+                    });
+                });
+            });
+        });
+        describe('Content Types', function () {
+            this.slow(15000);
+            var defaultContentTypes = [true, true, true, false, false, false];
+            it('should be editable through clicking on the checkboxes', function (done) {
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        newContentTypes = crm[0].onContentTypes;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should be editable through clicking on the icons', function (done) {
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.className('showOnContentItemIcon'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should be editable through clicking on the names', function (done) {
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.className('showOnContentItemTxt'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                getDialog(driver, 'divider').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return cancelDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isTrue(crm[0].onContentTypes[0], 'content types that were on did not change');
+                        assert.isFalse(crm[0].onContentTypes[4], 'content types that were off did not change');
+                        assert.deepEqual(crm[0].onContentTypes, defaultContentTypes, 'all content types were not toggled');
+                        done();
+                    });
+                });
+            });
+        });
+    });
+    describe('Menu Dialog', function () {
+        this.timeout(30000);
+        beforeEach('Reset and open dialog', switchToTypeResetAndOpenDialog('menu'));
+        describe('Name Input', function () {
+            this.slow(7000);
+            it('should be editable when saved', function (done) {
+                var name = getRandomString(25);
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('nameInput'))
+                        .findElement(webdriver.By.tagName('input'))
+                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.strictEqual(crm[0].type, 'link', 'type is link');
+                        assert.strictEqual(crm[0].name, name, 'name has been properly saved');
+                        done();
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                var name = getRandomString(25);
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('nameInput'))
+                        .findElement(webdriver.By.tagName('input'))
+                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .then(function () {
+                        return cancelDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.strictEqual(crm[0].type, 'link', 'type is link');
+                        assert.strictEqual(crm[0].name, defaultName, 'name has not been saved');
+                        done();
+                    });
+                });
+            });
+        });
+        describe('Triggers', function () {
+            this.slow(9000);
+            it('should be addable/editable when saved', function (done) {
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('showOnSpecified'))
+                        .click()
+                        .then(function () {
+                        return driver
+                            .findElement(webdriver.By.id('addTrigger'))
+                            .then(function (button) {
+                            return button.click().then(function () {
+                                return button.click();
+                            });
+                        });
+                    }).then(function () {
+                        setTimeout(function () {
+                            driver
+                                .findElements(webdriver.By.className('executionTrigger'))
+                                .then(function (triggers) {
+                                return triggers[0]
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click()
+                                    .then(function () {
+                                    return triggers[1]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                });
+                            }).then(function () {
+                                return saveDialog(dialog);
+                            }).then(function () {
+                                return getCRM(driver);
+                            }).then(function (crm) {
+                                assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
+                                assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
+                                assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
+                                assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
+                                assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
+                                done();
+                            });
+                        }, 500);
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElement(webdriver.By.id('showOnSpecified'))
+                        .click()
+                        .then(function () {
+                        return driver
+                            .findElement(webdriver.By.id('addTrigger'))
+                            .then(function (button) {
+                            return button.click().then(function () {
+                                return button.click();
+                            });
+                        });
+                    }).then(function () {
+                        setTimeout(function () {
+                            driver
+                                .findElements(webdriver.By.className('executionTrigger'))
+                                .then(function (triggers) {
+                                return triggers[0]
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click()
+                                    .then(function () {
+                                    return triggers[0]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                })
+                                    .then(function () {
+                                    return triggers[1]
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                });
+                            }).then(function () {
+                                return cancelDialog(dialog);
+                            }).then(function () {
+                                return getCRM(driver);
+                            }).then(function (crm) {
+                                assert.lengthOf(crm[0].triggers, 1, 'no triggers have been added');
+                                assert.isFalse(crm[0].triggers[0].not, 'first trigger NOT status did not change');
+                                assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
+                                done();
+                            });
+                        }, 500);
+                    });
+                });
+            });
+        });
+        describe('Content Types', function () {
+            this.slow(15000);
+            var defaultContentTypes = [true, true, true, false, false, false];
+            it('should be editable through clicking on the checkboxes', function (done) {
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        newContentTypes = crm[0].onContentTypes;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should be editable through clicking on the icons', function (done) {
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.className('showOnContentItemIcon'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    })
+                        .then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should be editable through clicking on the names', function (done) {
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.className('showOnContentItemTxt'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return saveDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
+                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
+                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                        //CRM prevents you from turning off all content types and 4 is the one that stays on
+                        newContentTypes[2] = true;
+                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                        done();
+                    });
+                });
+            });
+            it('should not change when not saved', function (done) {
+                getDialog(driver, 'menu').then(function (dialog) {
+                    dialog
+                        .findElements(webdriver.By.className('showOnContentItemCont'))
+                        .then(function (elements) {
+                        return webdriver.promise.all(elements.map(function (element) {
+                            return element
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click();
+                        }));
+                    })
+                        .then(function () {
+                        return cancelDialog(dialog);
+                    })
+                        .then(function () {
+                        return getCRM(driver);
+                    }).then(function (crm) {
+                        assert.isTrue(crm[0].onContentTypes[0], 'content types that were on did not change');
+                        assert.isFalse(crm[0].onContentTypes[4], 'content types that were off did not change');
+                        assert.deepEqual(crm[0].onContentTypes, defaultContentTypes, 'all content types were not toggled');
                         done();
                     });
                 });
