@@ -6660,6 +6660,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             })();
             var setupExports = {
                 handleFirstRun: function (crm) {
+                    localStorage.setItem('transferred', 'true');
                     //Save local storage
                     chrome.storage.local.set(defaultLocalStorage);
                     //Save sync storage

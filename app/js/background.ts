@@ -8208,6 +8208,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					storageLocalCopy: StorageLocal;
 					chromeStorageLocal: StorageLocal;
 				} {
+					localStorage.setItem('transferred', 'true');
+
 					//Save local storage
 					chrome.storage.local.set(defaultLocalStorage);
 

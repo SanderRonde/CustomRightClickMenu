@@ -238,8 +238,8 @@
 		},
 
 		compareArray: function(firstArray, secondArray) {
-			if (!firstArray !== !!secondArray) {
-				return true;
+			if (!firstArray !== !secondArray) {
+				return false;
 			} else if (!firstArray || !secondArray) {
 				return false;
 			}
@@ -985,6 +985,7 @@
 			var settingsCopy = this.settingsCopy;
 			var hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
 			var haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
+
 			if (hasLocalChanged || haveSettingsChanged) {
 				//Changes occured
 				chrome.runtime.sendMessage({
@@ -2209,6 +2210,21 @@
 			return crm;
 		},
 
+		initCheckboxes: function(defaultLocalStorage) {
+			var _this = this;
+			if (window.doc.editCRMInRM.setCheckboxDisabledValue) {
+				window.doc.editCRMInRM.setCheckboxDisabledValue && 
+				window.doc.editCRMInRM.setCheckboxDisabledValue(false);
+				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+					setting.init && setting.init(defaultLocalStorage);
+				});
+			} else {
+				window.setTimeout(function() {
+					_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
+				}, 1000);
+			}
+		},
+
 		handleDataTransfer: function(_this) {
 			localStorage.setItem('transferred', true);
 
@@ -2293,12 +2309,9 @@
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
 			_this.buildNodePaths(_this.settings.crm, []);
+
 			window.setTimeout(function() {
-				window.doc.editCRMInRM.setCheckboxDisabledValue && 
-				window.doc.editCRMInRM.setCheckboxDisabledValue(false);
-				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
-					setting.init && setting.init(defaultLocalStorage);
-				});
+				_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
 			}, 2500);
 		},
 
@@ -2381,10 +2394,12 @@
 			_this.orderNodesById(defaultSyncStorage.crm);
 			_this.pageDemo.create();
 			_this.buildNodePaths(_this.settings.crm, []);
-			window.doc.editCRMInRM.setCheckboxDisabledValue(false);
-			Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
-				setting.init(defaultLocalStorage);
-			});
+
+			window.setTimeout(function() {
+				_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
+			}, 2500);
+
+			localStorage.setItem('transferred', true);
 		},
 
 		upgradeVersion: function(oldVersion, newVersion) {
@@ -2408,6 +2423,8 @@
 						_this.async(function() {
 							window.doc.versionUpdateDialog.open();
 						}, 2000);
+					} else {
+						_this.handleFirstTime(_this);
 					}
 				} catch (e) {
 					setTimeout(function() {
@@ -3588,7 +3605,7 @@
 			 */
 			create: function () {
 				if (!$.contextMenu) {
-					window.setTimeout(this.create, 500);
+					window.setTimeout(this.create.bind(this), 500);
 					return;
 				}
 				
