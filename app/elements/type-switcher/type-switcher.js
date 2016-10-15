@@ -191,10 +191,15 @@
 	changeType: function(e) {
 		var _this = this;
 		var type;
-		if (e.path[0].tagName === 'SPAN') {
-			type = e.path[0].innerHTML;
+
+		if (typeof e === 'string') {
+			type = e;
 		} else {
-			type = e.path[0].children[0].innerHTML;
+			if (e.path[0].tagName === 'SPAN') {
+				type = e.path[0].innerHTML;
+			} else {
+				type = e.path[0].children[0].innerHTML;
+			}
 		}
 		var editCrmEl = this.parentNode.parentNode.parentNode;
 		var item = editCrmEl.item;
@@ -233,7 +238,7 @@
 					];
 					break;
 				case 'script':
-					if (item.triggers) {
+					if (item.value && item.value.triggers) {
 						triggers = item.triggers;
 						delete item.triggers;
 					}
@@ -246,7 +251,7 @@
 					});
 					break;
 				case 'divider':
-					if (item.value.triggers) {
+					if (item.value && item.value.triggers) {
 						item.triggers = item.value.triggers;
 						delete item.value.triggers;
 					}
@@ -257,7 +262,7 @@
 					}];
 					break;
 				case 'menu':
-					if (item.value.triggers) {
+					if (item.value && item.value.triggers) {
 						item.triggers = item.value.triggers;
 						delete item.value.triggers;
 					}
@@ -268,7 +273,7 @@
 					}];
 					break;
 				case 'stylesheet':
-					if (item.triggers) {
+					if (item.value && item.value.triggers) {
 						triggers = item.triggers;
 						delete item.triggers;
 					}
@@ -311,7 +316,7 @@
 			//Un-shadow items
 			_this.shadowColumns(columnCont, true);
 
-			window.app.settings.shadowStart = null;
+			window.app.shadowStart = null;
 		}
 
 		if (prevType === 'menu') {
@@ -327,7 +332,7 @@
 			console.log(columnCont);
 			this.shadowColumns(columnCont, false);
 
-			window.app.settings.shadowStart = column.index + 1;
+			window.app.shadowStart = column.index + 1;
 
 			var paperToast = $('#changedToMenuToast');
 
