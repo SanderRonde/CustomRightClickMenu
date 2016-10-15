@@ -3587,6 +3587,11 @@
 			 * Creates the on-page example
 			 */
 			create: function () {
+				if (!$.contextMenu) {
+					window.setTimeout(this.create, 500);
+					return;
+				}
+				
 				if (this.parent.storageLocal.CRMOnPage) {
 					this.loadContextMenus();
 				} else {
