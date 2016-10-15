@@ -5,7 +5,7 @@
 var chai = require('chai');
 var webdriver = require('selenium-webdriver');
 var mochaSteps = require('mocha-steps');
-var secrets = require('./secrets');
+var secrets = require('./UI/secrets');
 var btoa = require('btoa');
 var assert = chai.assert;
 var driver;
