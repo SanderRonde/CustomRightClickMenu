@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-http-server -p 1234 .
+http-server -p 1234 . &
 
 echo "Starting build tests";
 grunt testBuild
