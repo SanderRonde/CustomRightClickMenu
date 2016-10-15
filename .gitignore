@@ -218,6 +218,6 @@ Custom Right-Click Menu.sln
 /app/js/*.map.js
 /app/js/*.js.map
 
-/test/secrets.js
+/test/UI/secrets.js
 
 .vscode
