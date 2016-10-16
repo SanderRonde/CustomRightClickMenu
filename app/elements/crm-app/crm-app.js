@@ -3582,19 +3582,20 @@
 				var _this = this;
 				var toLoad = 0;
 				this.removeContextMenus();
+				var callbackId;
 
 				function loadContextMenus(deadline) {
 					while (toLoad < 6 && deadline.timeRemaining() > 0) {
 						_this.bindContextMenu(toLoad++);
 					}
 
-					if (toLoad !== 5) {
-						window.requestIdleCallback(loadContextMenus);
+					if (toLoad >= 6) {
+						window.cancelIdleCallback(callbackId);
 					}
 				}
 
 				if ('requestIdleCallback' in window) {
-					window.requestIdleCallback(loadContextMenus);
+					callbackId = window.requestIdleCallback(loadContextMenus);
 				} else {
 					while (toLoad < 6) {
 						_this.bindContextMenu(toLoad++);
