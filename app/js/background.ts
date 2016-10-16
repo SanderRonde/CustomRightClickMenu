@@ -51,7 +51,7 @@ interface SettingsStorage extends AnyObj {
 		useTabs: boolean;
 		tabSize: string;
 		theme: string;
-		zoom: number;
+		zoom: string;
 		keyBindings: {
 			autocomplete: string;
 			showType: string;
