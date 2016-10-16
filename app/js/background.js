@@ -6152,7 +6152,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     tabSize: '4',
                     theme: 'dark',
                     useTabs: true,
-                    zoom: 100
+                    zoom: '100'
                 },
                 crm: [
                     globalObject.globals.constants.templates.getDefaultLinkNode({
