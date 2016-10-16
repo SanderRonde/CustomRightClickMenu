@@ -766,34 +766,10 @@
 		//#region DialogFunctions
 		disableButtons: function() {
 			this.$.dropdownMenu.disable();
-			window.doc.paperGetPageProperties.disable();
-			Array.prototype.slice.apply(document.querySelectorAll('.showOnContentItemCheckbox', this))
-				.forEach(function(checkbox) {
-					checkbox.disabled = true;
-				});
-			Array.prototype.slice.apply(document.querySelectorAll('.ribbonTool '))
-				.forEach(function(ribbonTool) {
-					if (ribbonTool.id !== 'externalEditorDialogTrigger' &&
-						ribbonTool.tagName === 'DIV') {
-						ribbonTool.style.color = 'rgb(176, 220, 255)';
-					}
-				});
 		},
 
 		enableButtons: function() {
 			this.$.dropdownMenu.enable();
-			window.doc.paperGetPageProperties.enable();
-			Array.prototype.slice.apply(document.querySelectorAll('.showOnContentItemCheckbox', this))
-				.forEach(function (checkbox) {
-					checkbox.disabled = false;
-				});
-			Array.prototype.slice.apply(document.querySelectorAll('.ribbonTool '))
-				.forEach(function (ribbonTool) {
-					if (ribbonTool.id !== 'externalEditorDialogTrigger' &&
-						ribbonTool.tagName === 'DIV') {
-						ribbonTool.style.color = 'rgb(38, 153, 244)';
-					}
-				});
 		},
 
 		changeTab: function(mode) {
