@@ -1699,14 +1699,14 @@
 			for (var i = 0; i < this.keyBindings.length; i++) {
 				value = window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey] || this.keyBindings[i].defaultKey;
 				$cont = $('<div class="keyBindingSetting"></div>');
-				$('<div class="keyBindingSettingName">' + this.keyBindings[i].name + '</div>').appendTo($cont);
 				$input = $('<div class="keyBindingSettingInput"></div>');
-				$keyInput = $('<paper-input label="Press some keys" class="keyBindingSettingKeyInput" value="' + value + '"></paper-input>');
+				$keyInput = $('<paper-input label="' + this.keyBindings[i].name + '" class="keyBindingSettingKeyInput" value="' + value + '"></paper-input>');
 				keyInput = $keyInput[0];
 				keyInput.lastValue = value;
 				keyInput.addEventListener('keydown', this.createKeyBindingListener(keyInput, this.keyBindings[i]));
 				$keyInput.appendTo($input);
 				$input.appendTo($cont);
+				$('<br>').appendTo($cont);
 				$cont.appendTo(settingsContainer);
 			}
 		},
