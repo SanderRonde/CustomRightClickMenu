@@ -254,7 +254,7 @@
 	//#region Fullscreen
 	/*
 	 * Inserts given snippet of code into the editor
-	 * @param {element} _this The scriptEdit element/object
+	 * @param {element} _this The stylesheetEdit element/object
 	 * @param {string} snippet - The snippet to be pasted
 	 * @param {boolean} noReplace - If true, no replacement on the %s is done
 	 */
@@ -617,11 +617,11 @@
 			},
 			complete: function() {
 				if (_this.fullscreen) {
-					var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+					var settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
 					settingsCont.style.overflow = 'scroll';
 					settingsCont.style.overflowX = 'hidden';
 					settingsCont.style.height = 'calc(100vh - 66px)';
-					var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					var bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
 					bubbleCont.style.position = 'fixed';
 					bubbleCont.style.zIndex = 50;
 				}
@@ -660,10 +660,10 @@
 				}
 
 				if (_this.fullscreen) {
-					var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+					var settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
 					settingsCont.style.height = '376px';
 					settingsCont.style.overflowX = 'hidden';
-					var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					var bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
 					bubbleCont.style.position = 'absolute';
 					bubbleCont.style.zIndex = 'auto';
 				}
