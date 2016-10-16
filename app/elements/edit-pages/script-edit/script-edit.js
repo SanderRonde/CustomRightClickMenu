@@ -1634,6 +1634,7 @@
 				var _this = this;
 				setTimeout(function() {
 					window.app.settings.editor.zoom = _this.value;
+					window.app.upload();
 				}, 0);
 			}).appendTo(fontSize);
 
