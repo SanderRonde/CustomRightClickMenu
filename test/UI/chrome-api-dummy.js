@@ -47,16 +47,26 @@ function storageGenerator(container) {
 }
 
 var tabs = {};
-var contextMenus = {};
 var tabListeners = [];
 var extensionId = 'glloknfjojplkpphcmpgkcemckbcbmhe';
 
 var onMessageListener = null; 
 
+const currentContextMenu = [];
+const usedIds = [];
+
 window.chrome = {
+	_lastCall: null,
+	_currentContextMenu: currentContextMenu,
 	contextMenus: {
 		create: (data, callback) => {
+			let id = Math.random() * 1000000;
+			while (usedIds.indexOf(id) > -1) {
+				id = Math.random() * 1000000;
+			}
+
 			callback && callback();
+			return id;
 		},
 		update: (data, callback) => {
 			callback && callback();
@@ -65,7 +75,9 @@ window.chrome = {
 			callback && callback();
 		},
 		removeAll: () => {
-
+			while (currentContextMenu.length > 0) {
+				currentContextMenu.pop();
+			}
 		}
 	},
 	downloads: {
