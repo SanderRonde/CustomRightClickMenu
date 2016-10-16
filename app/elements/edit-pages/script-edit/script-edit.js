@@ -898,7 +898,8 @@
 				var permissions = window.app.templates.getScriptPermissions();
 				extensionWideEnabledPermissions = extensionWideEnabledPermissions.permissions;
 
-				var askedPermissions = nodeItem.nodeInfo.permissions || [];
+				var askedPermissions = (nodeItem.nodeInfo &&
+					nodeItem.nodeInfo.permissions) || [];
 
 				var requiredActive = [];
 				var requiredInactive = [];
