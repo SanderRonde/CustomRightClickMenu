@@ -2906,6 +2906,15 @@
 				return mainObject;
 			},
 
+			getDefaultNodeInfo: function(options) {
+				const defaultNodeInfo = {
+					permissions: [],
+					source: { }
+				};
+
+				return this.mergeObjects(defaultNodeInfo, options);
+			},
+
 			/**
 			 * Gets the default link node object with given options applied
 			 *
@@ -2918,6 +2927,7 @@
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'link',
 					showOnSpecified: false,
+					nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 					triggers: [{
 						url: '*://*.example.com/*',
 						not: false
@@ -2993,6 +3003,7 @@
 					name: 'name',
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'script',
+					nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 					triggers: [{
 						url: '*://*.example.com/*',
 						not: false
@@ -3015,6 +3026,7 @@
 					name: 'name',
 					onContentTypes: [true, true, true, false, false, false],
 					type: 'stylesheet',
+					nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 					isLocal: true,
 					triggers: [{
 						url: '*://*.example.com/*',
@@ -3037,6 +3049,7 @@
 				var defaultNode = {
 					name: 'name',
 					type: type,
+					nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 					onContentTypes: [true, true, true, false, false, false],
 					isLocal: true,
 					value: {}

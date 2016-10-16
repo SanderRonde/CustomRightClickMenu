@@ -662,6 +662,7 @@ interface GlobalObject {
 			templates: {
 				mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any>;
 				mergeObjects<T extends TU, TU>(mainObject: T, additions: TU): TU;
+				getDefaultNodeInfo(options: any): CRMNodeInfo;
 				getDefaultLinkNode(options: any): LinkNode;
 				getDefaultStylesheetValue(options: any): StylesheetVal;
 				getDefaultScriptValue(options: any): ScriptVal;
@@ -814,12 +815,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainObject;
 				},
+				getDefaultNodeInfo(options: any): CRMNodeInfo {
+					const defaultNodeInfo = {
+						permissions: [],
+						source: { }
+					};
+
+					return this.mergeObjects(defaultNodeInfo, options);
+				},
 				getDefaultLinkNode(options: any): LinkNode {
 					const defaultNode = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'link',
 						showOnSpecified: false,
+						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 						triggers: [
 							{
 								url: '*://*.example.com/*',
@@ -879,6 +889,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'script',
 						isLocal: true,
+						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 						triggers: [
 							{
 								url: '*://*.example.com/*',
@@ -896,6 +907,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'stylesheet',
 						isLocal: true,
+						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 						triggers: [
 							{
 								url: '*://*.example.com/*',
@@ -912,6 +924,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const defaultNode = {
 						name: 'name',
 						type: type,
+						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 						onContentTypes: [true, true, true, false, false, false],
 						isLocal: true,
 						value: {}
@@ -7524,7 +7537,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					tabSize: string;
 					theme: string;
 					useTabs: boolean;
-					zoom: number
+					zoom: string
 				};
 				crm: Array<CRMNode>
 			} = {

@@ -121,12 +121,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     return mainObject;
                 },
+                getDefaultNodeInfo: function (options) {
+                    var defaultNodeInfo = {
+                        permissions: [],
+                        source: {}
+                    };
+                    return this.mergeObjects(defaultNodeInfo, options);
+                },
                 getDefaultLinkNode: function (options) {
                     var defaultNode = {
                         name: 'name',
                         onContentTypes: [true, true, true, false, false, false],
                         type: 'link',
                         showOnSpecified: false,
+                        nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
                         triggers: [
                             {
                                 url: '*://*.example.com/*',
@@ -183,6 +191,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         onContentTypes: [true, true, true, false, false, false],
                         type: 'script',
                         isLocal: true,
+                        nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
                         triggers: [
                             {
                                 url: '*://*.example.com/*',
@@ -199,6 +208,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         onContentTypes: [true, true, true, false, false, false],
                         type: 'stylesheet',
                         isLocal: true,
+                        nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
                         triggers: [
                             {
                                 url: '*://*.example.com/*',
@@ -213,6 +223,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     var defaultNode = {
                         name: 'name',
                         type: type,
+                        nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
                         onContentTypes: [true, true, true, false, false, false],
                         isLocal: true,
                         value: {}
