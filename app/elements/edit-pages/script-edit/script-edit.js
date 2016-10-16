@@ -1657,7 +1657,7 @@
 			var tabSize = $('<div id="editorTabSizeSettingCont">' +
 				'<div id="editorTabSizeInput">' +
 				'<paper-input-container>' +
-				'<label>Tab size</label>' +
+				'<label>Indent size</label>' +
 				'<input min="1" is="iron-input" type="number" value="' + window.app.settings.editor.tabSize + '"/>' +
 				'</paper-input-container>' +
 				'</div>' +
