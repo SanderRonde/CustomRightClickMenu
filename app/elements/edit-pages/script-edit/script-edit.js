@@ -1337,7 +1337,7 @@
 			if (this.fullscreen) {
 				circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight)) + 100;
 			} else {
-				circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 100;
+				circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 200;
 			}
 			var negHalfRadius = -circleRadius;
 			circleRadius = circleRadius * 2;
