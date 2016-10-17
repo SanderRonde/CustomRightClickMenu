@@ -17,11 +17,11 @@
 			<br/>
 			<div id="toggleButtonsCont">
 				<div class="toggleButtonOption">
-					<paper-toggle-button id="isTogglableButton" on-change="toggleStatusChange" checked="{{newSettings.value.toggle}}"></paper-toggle-button>
+					<paper-toggle-button id="isTogglableButton" checked="{{newSettings.value.toggle}}"></paper-toggle-button>
 					<span class="toggleButtonTxt">Is Togglable</span>
 				</div>
 				<div class="toggleButtonOption">
-					<paper-toggle-button id="isDefaultOnButton" on-change="toggleDefaultStatus" disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}"></paper-toggle-button>
+					<paper-toggle-button id="isDefaultOnButton" disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}"></paper-toggle-button>
 					<span class="toggleButtonTxt">On by default</span>
 				</div>
 				<div id="toggleInfoCont">
