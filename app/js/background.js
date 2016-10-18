@@ -1,4 +1,5 @@
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
+window.logs = [];
 ;
 ;
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
@@ -5459,7 +5460,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
                         }
                     }
-                    if (launchMode === 3 /* SHOW_ON_SPECIFIED */) {
+                    if ((node['showOnSpecified'] &&
+                        (node.type === 'link' || node.type === 'divider' ||
+                            node.type === 'menu')) ||
+                        launchMode === 3 /* SHOW_ON_SPECIFIED */) {
                         rightClickItemOptions.documentUrlPatterns = [];
                         globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
                         for (var i = 0; i < node.triggers.length; i++) {

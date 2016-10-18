@@ -1,7 +1,8 @@
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
 
-
 declare var module: void;
+
+window.logs = [];
 
 type VoidFn = () => void;
 
@@ -168,6 +169,7 @@ interface SpecialJSON {
 }
 
 interface Window {
+	logs: Array<any>;
 	logging?: Logging;
 	isDev: boolean;
 	createHandlerFunction: (port: {
@@ -5085,6 +5087,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			};
 		}
 
+		type ClickHandler = (clickData: chrome.contextMenus.OnClickData,
+				tabInfo: chrome.tabs.Tab) => void;
+
 		const exports = {
 			updateCrm(toUpdate?: Array<number>) {
 				Storages.uploadChanges('settings', [
@@ -6185,7 +6190,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						return backgroundPageExports;
 					})(),
-					createHandler(node: CRMNode) {
+					createHandler(node: CRMNode): ClickHandler {
 						return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 							var key: Array<number> = [];
 							var err = false;
@@ -6480,7 +6485,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				const linkExports = {
-					createHandler(node: CRMNode) {
+					createHandler(node: CRMNode): ClickHandler {
 						return (clickData: chrome.contextMenus.OnClickData,
 							tabInfo: chrome.tabs.Tab) => {
 							var finalUrl: string;
@@ -6507,7 +6512,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			})(),
 			Stylesheet: (() => {
 				const stylesheetExports = {
-					createToggleHandler(node: CRMNode) {
+					createToggleHandler(node: CRMNode): ClickHandler {
 						return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 							let code: string;
 							const className = node.id + '' + tab.id;
@@ -6536,7 +6541,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 						};
 					},
-					createClickHandler(node: CRMNode) {
+					createClickHandler(node: CRMNode): ClickHandler {
 						return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 							const className = node.id + '' + tab.id;
 							const code = [
@@ -6748,24 +6753,28 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 
-					if (launchMode === CRMLaunchMode.SHOW_ON_SPECIFIED) {
-						rightClickItemOptions.documentUrlPatterns = [];
-						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
-						for (var i = 0; i < node.triggers.length; i++) {
-							var prepared = URLParsing.prepareTrigger(node.triggers[i].url);
-							if (prepared) {
-								if (node.triggers[i].not) {
-									globalObject.globals.crmValues.hideNodesOnPagesData[node.id]
-										.push({
-											not: false,
-											url: prepared
-										});
-								} else {
-									rightClickItemOptions.documentUrlPatterns.push(prepared);
+
+					if ((node['showOnSpecified'] &&
+						(node.type === 'link' || node.type === 'divider' ||
+						node.type === 'menu')) ||
+						launchMode === CRMLaunchMode.SHOW_ON_SPECIFIED) {
+							rightClickItemOptions.documentUrlPatterns = [];
+							globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
+							for (var i = 0; i < node.triggers.length; i++) {
+								var prepared = URLParsing.prepareTrigger(node.triggers[i].url);
+								if (prepared) {
+									if (node.triggers[i].not) {
+										globalObject.globals.crmValues.hideNodesOnPagesData[node.id]
+											.push({
+												not: false,
+												url: prepared
+											});
+									} else {
+										rightClickItemOptions.documentUrlPatterns.push(prepared);
+									}
 								}
 							}
 						}
-					}
 
 					//It requires a click handler
 					switch (node.type) {

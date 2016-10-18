@@ -8,8 +8,73 @@
 ////////////////////
 // Global object
 ////////////////////
+interface Chrome {
+	accessibilityFeatures: typeof chrome.accessibilityFeatures;
+	alarms: typeof chrome.alarms;
+	browser: typeof chrome.browser;
+	bookmarks: typeof chrome.bookmarks;
+	browserAction: typeof chrome.browserAction;
+	browsingData: typeof chrome.browsingData;
+	commands: typeof chrome.commands;
+	contentSettings: typeof chrome.contentSettings;
+	contextMenus: typeof chrome.contextMenus;
+	cookies: typeof chrome.cookies;
+	declarativeContent: {
+		PageStateUrlDetails: chrome.declarativeContent.PageStateUrlDetails;
+		PageStateMatcher: chrome.declarativeContent.PageStateMatcher;
+	};
+	declarativeWebRequest: typeof chrome.declarativeWebRequest;
+	desktopCapture: typeof chrome.desktopCapture;
+	devtools: typeof chrome.devtools;
+	documentScan: typeof chrome.documentScan;
+	downloads: typeof chrome.downloads;
+	enterprise: typeof chrome.enterprise;
+	events: {
+		UrlFilter: chrome.events.UrlFilter;
+		Rule: chrome.events.Rule;	
+	};
+	extension: typeof chrome.extension;
+	fileBrowserHandler: typeof chrome.fileBrowserHandler;
+	fileSystemProvider: typeof chrome.fileSystemProvider;
+	fontSettings: typeof chrome.fontSettings;
+	gcm: typeof chrome.gcm;
+	history: typeof chrome.history;
+	identity: typeof chrome.identity;
+	idle: typeof chrome.idle;
+	input: typeof chrome.input;
+	management: typeof chrome.management;
+	networking: typeof chrome.networking;
+	notifications: typeof chrome.notifications;
+	omnibox: typeof chrome.omnibox;
+	pageAction: typeof chrome.pageAction;
+	pageCapture: typeof chrome.pageCapture;
+	permissions: typeof chrome.permissions;
+	platformKeys: typeof chrome.platformKeys;
+	power: typeof chrome.power;
+	printerProvider: typeof chrome.printerProvider;
+	privacy: typeof chrome.privacy;
+	proxy: typeof chrome.proxy;
+	runtime: typeof chrome.runtime;
+	scriptBadge: typeof chrome.scriptBadge
+	sessions: typeof chrome.sessions;
+	storage: typeof chrome.storage;
+	socket: typeof chrome.socket;
+	system: typeof chrome.system;
+	tabCapture: typeof chrome.tabCapture;
+	tabs: typeof chrome.tabs;
+	topSites: typeof chrome.topSites;
+	tts: typeof chrome.tts;
+	ttsEngine: typeof chrome.ttsEngine;
+	vpnProvider: typeof chrome.vpnProvider;
+	wallpaper: typeof chrome.wallpaper;
+	webNavigation: typeof chrome.webNavigation;
+	webRequest: typeof chrome.webRequest;
+	webstore: typeof chrome.webstore;
+	windows: typeof chrome.windows;
+}
+
 interface Window {
-    chrome: typeof chrome;
+    chrome: Chrome
 }
 
 ////////////////////

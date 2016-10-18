@@ -23,7 +23,7 @@ function storageGenerator(container) {
 				if (data.hasOwnProperty(objKey)) {
 					var oldData = container[objKey];
 					container[objKey] = data[objKey];
-					storageListeners.forEach((listener) => {
+					storageListeners.forEach(function(listener) {
 						var changedData = {};
 						changedData[objKey] = {
 							oldValue: oldData,
@@ -46,42 +46,96 @@ function storageGenerator(container) {
 	}
 }
 
-var tabs = {};
-var tabListeners = [];
 var extensionId = 'glloknfjojplkpphcmpgkcemckbcbmhe';
 
 var onMessageListener = null; 
 
 const currentContextMenu = [];
 const usedIds = [];
+const activeTabs = [];
 
 window.chrome = {
 	_lastCall: null,
 	_currentContextMenu: currentContextMenu,
+	_activeTabs: activeTabs,
 	contextMenus: {
-		create: (data, callback) => {
-			let id = Math.random() * 1000000;
+		create: function(data, callback) {
+			var id = ~~(Math.random() * 1000000) + 1
 			while (usedIds.indexOf(id) > -1) {
-				id = Math.random() * 1000000;
+				id = ~~(Math.random() * 1000000) + 1;
+			}
+			
+			data.type = data.type || 'normal';
+			data.documentUrlPatterns = data.documentUrlPatterns || []; 
+
+			window.logs.push(...[data, id]);
+			usedIds.push(id);
+			if (data.parentId) {
+				for (var i = 0; i < currentContextMenu.length; i++) {
+					if (currentContextMenu[i].id === data.parentId) {
+						currentContextMenu[i].children.push({
+							id: id,
+							createProperties: data,
+							currentProperties: data,
+							children: []
+						});
+						break;
+					}
+				}
+			} else {
+				currentContextMenu.push({
+					id: id,
+					createProperties: data,
+					currentProperties: data,
+					children: []
+				});
 			}
 
 			callback && callback();
 			return id;
 		},
-		update: (data, callback) => {
+		update: function(id, data, callback) {
+			var index = null;
+			for (var i = 0; i < currentContextMenu.length; i++) {
+				if (currentContextMenu[i].id === id) {
+					index = i;
+				}
+			}
+			if (index === null) {
+				chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
+			} else {
+				var currentProperties = currentContextMenu[index].currentProperties
+				for (var key in data) {
+					if (data.hasOwnProperty(data)) {
+						currentProperties[key] = data[key];
+					}
+				}
+			}
+			callback && callback();
+			chrome.runtime.lastError = undefined;
+		},
+		remove: function(id, callback) {
+			var index = null;
+			for (var i = 0; i < currentContextMenu.length; i++) {
+				if (currentContextMenu[i].id === id) {
+					index = i;
+				}
+			}
+			if (index === null) {
+				chrome.runtime.lastError = new Error('No contextMenu with id ' + id + ' exists');
+			}
+			currentContextMenu.slice(index, 1);
 			callback && callback();
 		},
-		remove: (id, callback) => {
-			callback && callback();
-		},
-		removeAll: () => {
+		removeAll: function(callback) {
 			while (currentContextMenu.length > 0) {
 				currentContextMenu.pop();
 			}
+			callback && callback();
 		}
 	},
 	downloads: {
-		download: (settings) => {
+		download: function(settings) {
 			window.chrome._lastCall = {
 				api: 'downloads.download',
 				args: [settings]
@@ -89,78 +143,84 @@ window.chrome = {
 		}
 	},
 	runtime: {
-		getManifest: () => {
+		getManifest: function() {
 			return {
 				short_name: 'dev',
 				version: '2.0'
 			}
 		},
-		connect: () => {
+		connect: function() {
 			return {
 				onMessage: {
-					addListener: () => {},
-					removeListener: () => {}
+					addListener: function() {},
+					removeListener: function() {}
 				},
-				postMessage: () => {}
+				postMessage: function() {}
 			}
 		},
-		openOptionsPage: (callback) => {
+		openOptionsPage: function(callback) {
 			callback && callback();
 		},
-		getURL: (arg) => {
+		getURL: function(arg) {
 			return `chrome-extension://${extensionId}/${arg}`;
 		},
-		reload: () => {},
-		restart: () => {},
-		restartAfterDelay: (callback) => { callback(); },
-		getPlatformInfo: (callback) => {
+		reload: function() {},
+		restart: function() {},
+		restartAfterDelay: function(callback) { callback(); },
+		getPlatformInfo: function(callback) {
 			callback({});
 		},
-		getPackageDirectoryEntry: (callback) => {
+		getPackageDirectoryEntry: function(callback) {
 			callback({});
 		},
 		lastError: undefined,
 		onConnect: {
-			addListener: (listener) => {
+			addListener: function(listener) {
 
 			}
 		},
 		onMessage: {
-			addListener: (listener) => {
+			addListener: function(listener) {
 				onMessageListener = listener;
 			}
 		},
-		sendMessage: (message) => {
+		sendMessage: function(message) {
 			onMessageListener && onMessageListener(message);
 		}
 	},
 	tabs: {
-		get: (id, callback) => {
-			if (tabs[id]) {
-				callback(tabs[id]);
-			} else {
-				window.chrome.runtime.lastError = new Error(`No tab with id: ${id}`);
-				callback(undefined);
-				window.chrome.runtime.lastError = undefined;
-			}
+		get: function(id, callback) {
+			callback({});
 		},
-		getCurrent: (callback) => {
-			callback(tabs[Object.getOwnPropertyNames(tabs)[0]]);
+		getCurrent: function(callback) {
+			callback({});
 		},
 		onRemoved: {
-			addListener: (listener) => {
-				tabListeners.push(listener);
+			addListener: function(listener) {
 			}
 		},
-		executeScript: (tabId, script, callback) => {
+		executeScript: function(tabId, script, callback) {
 			callback();
 		},
 		onHighlighted: {
-			addListener: () => {}
+			addListener: function() {}
+		},
+		create: function(data) {
+			activeTabs.push({
+				type: 'create',
+				data: data
+			});
+		},
+		update: function(id, data) {
+			activeTabs.push({
+				type: 'update',
+				id: id,
+				data: data
+			});
 		}
 	},
 	permissions: {
-		getAll: (callback) => {
+		getAll: function(callback) {
 			callback({
 				permissions: [
 					"tabs",
@@ -175,10 +235,10 @@ window.chrome = {
 				]
 			});
 		},
-		contains: (permissionsObject, callback) => {
+		contains: function(permissionsObject, callback) {
 			callback(true);
 		},
-		request: (permissionsObject, callback) => {
+		request: function(permissionsObject, callback) {
 			callback(true);
 		}
 	},
@@ -186,55 +246,14 @@ window.chrome = {
 		local: storageGenerator(storageLocal),
 		sync: storageGenerator(storageSync),
 		onChanged: {
-			addListener: (listener) => {
+			addListener: function(listener) {
 				storageListeners.push(listener);
 			}
 		}
 	},
 	webRequest: {
 		onBeforeRequest: {
-			addListener: () => {}
+			addListener: function() {}
 		}
 	}
 };
-
-function createRandomTab() {
-	var id = ~~(Math.random() * 1000000)
-	while (tabs[id]) {
-		id = ~~(Math.random() * 1000000);
-	}
-
-	tabs[id] = {
-		id: id,
-		index: ~~(Math.random() * 100),
-		windowId: ~~(Math.random() * 100),
-		highlighted: false,
-		active: false,
-		pinned: false,
-		url: 'https://www.example.com',
-		title: 'example',
-		status: 'loading',
-		incognito: false
-	};
-
-	window.setTimeout(() => {
-		tabs[id].status = 'complete';
-	}, 500);
-
-	window.setTimeout(createRandomTab, Math.random() * 1000);	
-}
-window.setTimeout(createRandomTab, 1000);
-
-function deleteRandomTab() {
-	var keys = Object.getOwnPropertyNames(tabs);
-	var deleteKey = keys[Math.random() * keys];
-	tabs[deleteKey] = undefined;
-	delete tabs[deleteKey];
-
-	tabListeners.forEach((listener) => {
-		listener(deleteKey);
-	})
-
-	window.setTimeout(deleteRandomTab, Math.random() * 3000);
-}
-window.setTimeout(deleteRandomTab, 2000);

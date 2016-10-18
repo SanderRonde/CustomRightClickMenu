@@ -1,5 +1,7 @@
-/// <reference path="defs/selenium-webdriver.d.ts" />
-/// <reference path="defs/chai.d.ts" />
+/// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
+/// <reference path="../tools/definitions/chai.d.ts" />
+/// <reference path="../tools/definitions/chrome.d.ts" />
+
 
 interface AnyObj {
 	[key: string]: any;
@@ -69,16 +71,34 @@ interface StorageObject {
 	clear: () => void;
 }
 
+type ChromeType = typeof chrome;
+
+interface ContextMenuItem {
+	id: number;
+	createProperties: chrome.contextMenus.CreateProperties;
+	currentProperties: chrome.contextMenus.CreateProperties;
+	children: Array<ContextMenuItem>;
+}
+
+type ContextMenu = Array<ContextMenuItem>;
+
+type ActiveTabs = Array<{
+	type: 'create'|'update';
+	data: any;
+	id?: number;
+}>
+
+interface AppChrome extends Chrome {
+	_lastCall: ChromeLastCall;
+	_currentContextMenu: ContextMenu;
+	_activeTabs: ActiveTabs;
+}
+
 interface AppWindow extends Window {
 	app: any;
 	lastError: any|void;
-	chrome: {
-		_lastCall: ChromeLastCall;
-		storage: {
-			local: StorageObject,
-			sync: StorageObject
-		};
-	};
+	chrome: AppChrome
+	logs: Array<any>;
 }
 
 type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
@@ -289,7 +309,178 @@ after('Driver disconnect', () => {
 	driver.quit();
 });
 
-function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise<SettingsStorage> {
+const sentIds = [];
+function getRandomId() {
+	let id;
+	do {
+		id = ~~(Math.random() * 10000);
+	} while (sentIds.indexOf(id) > -1);
+	sentIds.push(id);
+	return id;
+}
+
+const templates = {
+	mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any> {
+		for (let i = 0; i < additionArray.length; i++) {
+			if (mainArray[i] &&
+				typeof additionArray[i] === 'object' &&
+				mainArray[i] !== undefined &&
+				mainArray[i] !== null) {
+				if (Array.isArray(additionArray[i])) {
+					mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
+				} else {
+					mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+				}
+			} else {
+				mainArray[i] = additionArray[i];
+			}
+		}
+		return mainArray;
+	},
+	mergeObjects<T extends TU, TU>(mainObject: T, additions: TU): T {
+		for (let key in additions) {
+			if (additions.hasOwnProperty(key)) {
+				if (typeof additions[key] === 'object' &&
+					mainObject[key] !== undefined &&
+					mainObject[key] !== null) {
+					if (Array.isArray(additions[key])) {
+						mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+					} else {
+						mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
+					}
+				} else {
+					mainObject[key] = additions[key];
+				}
+			}
+		}
+		return mainObject;
+	},
+	getDefaultNodeInfo(options: CRMNodeInfo): CRMNodeInfo {
+		const defaultNodeInfo = {
+			permissions: [],
+			source: { }
+		};
+
+		return this.mergeObjects(defaultNodeInfo, options);
+	},
+	getDefaultLinkNode(options: any): LinkNode {
+		const defaultNode = {
+			name: 'name',
+			onContentTypes: [true, true, true, false, false, false],
+			type: 'link',
+			showOnSpecified: false,
+			nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+			triggers: [
+				{
+					url: '*://*.example.com/*',
+					not: false
+				}
+			],
+			isLocal: true,
+			value: [
+				{
+					newTab: true,
+					url: 'https://www.example.com'
+				}
+			]
+		};
+
+		return this.mergeObjects(defaultNode, options);
+	},
+	getDefaultStylesheetValue(options: any): StylesheetVal {
+		const value = {
+			stylesheet: [
+				'// ==UserScript==',
+				'// @name	name',
+				'// @CRM_contentTypes	[true, true, true, false, false, false]',
+				'// @CRM_launchMode	0',
+				'// @CRM_stylesheet	true',
+				'// @grant	none',
+				'// @match	*://*.example.com/*',
+				'// ==/UserScript=='
+			].join('\n'),
+			launchMode: CRMLaunchMode.ALWAYS_RUN
+		} as StylesheetVal;
+
+		return this.mergeObjects(value, options);
+	},
+	getDefaultScriptValue(options: any): ScriptVal {
+		const value = {
+			launchMode: CRMLaunchMode.ALWAYS_RUN,
+			backgroundLibraries: [],
+			libraries: [],
+			script: [
+				'// ==UserScript==',
+				'// @name	name',
+				'// @CRM_contentTypes	[true, true, true, false, false, false]',
+				'// @CRM_launchMode	0',
+				'// @grant	none',
+				'// @match	*://*.example.com/*',
+				'// ==/UserScript=='
+			].join('\n'),
+			backgroundScript: ''
+		};
+
+		return this.mergeObjects(value, options);
+	},
+	getDefaultScriptNode(options: any): ScriptNode {
+		const defaultNode = {
+			name: 'name',
+			onContentTypes: [true, true, true, false, false, false],
+			type: 'script',
+			isLocal: true,
+			nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+			triggers: [
+				{
+					url: '*://*.example.com/*',
+					not: false
+				}
+			],
+			value: this.getDefaultScriptValue(options.value)
+		};
+
+		return this.mergeObjects(defaultNode, options);
+	},
+	getDefaultStylesheetNode(options: any): StylesheetNode {
+		const defaultNode = {
+			name: 'name',
+			onContentTypes: [true, true, true, false, false, false],
+			type: 'stylesheet',
+			isLocal: true,
+			nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+			triggers: [
+				{
+					url: '*://*.example.com/*',
+					not: false
+				}
+			],
+			value: this.getDefaultStylesheetValue(options.value)
+		};
+
+		return this.mergeObjects(defaultNode, options);
+	},
+	getDefaultDividerOrMenuNode(options: any, type: 'divider' | 'menu'):
+	DividerNode | MenuNode {
+		const defaultNode = {
+			name: 'name',
+			type: type,
+			nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+			onContentTypes: [true, true, true, false, false, false],
+			isLocal: true,
+			value: {}
+		};
+
+		return this.mergeObjects(defaultNode, options);
+	},
+	getDefaultDividerNode(options: any): DividerNode {
+		return this.getDefaultDividerOrMenuNode(options, 'divider');
+	},
+	getDefaultMenuNode(options: any): MenuNode {
+		return this.getDefaultDividerOrMenuNode(options, 'menu');
+	}
+};
+
+function getSyncSettings(): webdriver.promise.Promise<SettingsStorage> {
 	return new webdriver.promise.Promise((resolve) => { 
 		driver
 			.executeScript(inlineFn(() => {
@@ -301,15 +492,25 @@ function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise
 	}); 
 }
 
-function getCRM(driver: webdriver.WebDriver): webdriver.promise.Promise<CRM> {
+function getCRM(): webdriver.promise.Promise<CRM> {
 	return new webdriver.promise.Promise((resolve) => { 
 		driver
 			.executeScript(inlineFn(() => {
 				return JSON.stringify(window.app.settings.crm);
-			}))
-			.then((str: string) => {
+			})).then((str: string) => {
 				resolve(JSON.parse(str) as CRM);
 			})
+	});
+}
+
+function getContextMenu(): webdriver.promise.Promise<ContextMenu> {
+	return new webdriver.promise.Promise((resolve) => {
+		driver
+			.executeScript(inlineFn(() => {
+				return JSON.stringify(window.chrome._currentContextMenu[0].children);
+			})).then((str: string) => {
+				resolve(JSON.parse(str) as ContextMenu);
+			});
 	});
 }
 
@@ -382,21 +583,11 @@ function getRandomString(length: number): string {
 	}).join('');
 }
 
-function resetSettings(done) {
-	this.timeout(15000);
-	driver.executeScript(inlineFn(() => {
-		window.chrome.storage.local.clear();
-		window.chrome.storage.sync.clear();
-		return true;
-	})).then((result) => {
-		return driver.get('http://localhost:1234/test/UI/UITest.html#noClear');
-	}).then(() => {
-		done();
-	});
-}
-
-function resetSettingsPromise(): webdriver.promise.Promise<any> {
-	return new webdriver.promise.Promise((resolve) => {
+function resetSettings(_this: MochaFn, done: (...args: Array<any>) => void): void;
+function resetSettings(_this: MochaFn): webdriver.promise.Promise<any>; 
+function resetSettings(_this: MochaFn, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
+	_this.timeout(15000);
+	const promise = new webdriver.promise.Promise((resolve) => {
 		driver.executeScript(inlineFn(() => {
 			window.chrome.storage.local.clear();
 			window.chrome.storage.sync.clear();
@@ -407,21 +598,29 @@ function resetSettingsPromise(): webdriver.promise.Promise<any> {
 			resolve(null);
 		});
 	});
+	if (done) {
+		promise.then(done);
+	} else {
+		return promise;
+	}
 }
 
-function reloadPage(done) {
-	this.timeout(150000);
-	driver
+function reloadPage(done: (...args: Array<any>) => void): void;
+function reloadPage(): webdriver.promise.Promise<any>; 
+function reloadPage(done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
+	this.timeout(15000);
+	const promise = new webdriver.promise.Promise((resolve) => {
+		driver
 		.get('http://localhost:1234/test/UI/UITest.html#noClear')
 		.then(() => {
-			done();
+			resolve(null);
 		});
-}
-
-function reloadPagePromise(_this: MochaFn) {
-	return new webdriver.promise.Promise((resolve) => {
-		reloadPage.apply(_this, [resolve]);
 	});
+	if (done) {
+		promise.then(done);
+	} else {
+		return promise;
+	}
 }
 
 function openDialogAndReload(done) {
@@ -483,6 +682,7 @@ function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: a
 	return str;
 }
 
+/*
 describe('Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
 		this.timeout(5000);
@@ -538,7 +738,7 @@ describe('Page', function(this: MochaFn) {
 					});
 			});
 			it(`${checkboxId} should be saved`, function(done) {
-				reloadPagePromise(this).then(() => {
+				reloadPage().then(() => {
 					return driver
 						.executeScript(inlineFn(() => {
 							return JSON.stringify({
@@ -571,13 +771,15 @@ describe('Page', function(this: MochaFn) {
 		let searchEngineLink = '';
 		let defaultLinkName = '';
 
-		before('Reset settings', resetSettings);
+		before('Reset settings', function() {
+			resetSettings(this);
+		});
 		it('should be addable', function(done)  {
 			driver.findElements(webdriver.By.tagName('default-link')).then((elements) => {
 				elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(() => {
 					elements[0].findElement(webdriver.By.tagName('input')).getAttribute('value').then((name) => {
 						elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-							getCRM(driver).then((crm: Array<LinkNode>) => {
+							getCRM().then((crm: Array<LinkNode>) => {
 								searchEngineLink = link;
 								defaultLinkName = name;
 
@@ -611,7 +813,7 @@ describe('Page', function(this: MochaFn) {
 						return button.click();
 					}).then(() => {
 						elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-							getCRM(driver).then((crm: Array<LinkNode>) => {
+							getCRM().then((crm: Array<LinkNode>) => {
 								const element = crm[crm.length - 1];
 
 								assert.strictEqual(element.name, name, 
@@ -633,8 +835,8 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		it('should be saved', function(done) {
-			reloadPagePromise(this).then(() => {
-				return getCRM(driver);
+			reloadPage().then(() => {
+				return getCRM();
 			})
 			.then((crm: Array<LinkNode>) => {
 				const element = crm[crm.length - 2];
@@ -676,7 +878,9 @@ describe('Page', function(this: MochaFn) {
 		let searchEngineLink = '';
 		let searchEngineName = '';
 
-		before('Reset settings', resetSettings);
+		before('Reset settings', function() {
+			resetSettings(this);
+		});
 
 		it('should be addable', function(done)  {
 			driver.findElements(webdriver.By.tagName('default-link')).then((elements) => {
@@ -684,7 +888,7 @@ describe('Page', function(this: MochaFn) {
 				elements[index].findElement(webdriver.By.tagName('paper-button')).click().then(() => {
 					elements[index].findElement(webdriver.By.tagName('input')).getAttribute('value').then((name) => {
 						elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-							getCRM(driver).then((crm: Array<ScriptNode>) => {
+							getCRM().then((crm: Array<ScriptNode>) => {
 								const element = crm[crm.length - 1];
 
 								searchEngineLink = link;
@@ -727,7 +931,7 @@ describe('Page', function(this: MochaFn) {
 						return button.click();
 					}).then(() => {
 						elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-							getCRM(driver).then((crm: Array<ScriptNode>) => {
+							getCRM().then((crm: Array<ScriptNode>) => {
 								const element = crm[crm.length - 1];
 								
 								assert.strictEqual(element.name, name, 
@@ -757,8 +961,8 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		it('should be saved on page reload', function(done) {
-			reloadPagePromise(this).then(() => {
-				return getCRM(driver);
+			reloadPage().then(() => {
+				return getCRM();
 			})
 			.then((crm: Array<ScriptNode>) => {
 				const element1 = crm[crm.length - 2];
@@ -811,7 +1015,9 @@ describe('Page', function(this: MochaFn) {
 	});
 	describe('URIScheme', function(this: MochaFn) {
 
-		before('Reset settings', resetSettings);
+		before('Reset settings', function() {
+			resetSettings(this);
+		});
 
 		function testURIScheme(driver: webdriver.WebDriver,
 			done: () => void, toExecutePath: string, schemeName: string) {
@@ -855,7 +1061,9 @@ describe('Page', function(this: MochaFn) {
 
 		this.slow(7000);
 		this.timeout(50000);
-		afterEach('Reset page settings', resetSettings);
+		afterEach('Reset page settings', function() {
+			resetSettings(this);
+		});
 
 		const defaultToExecutePath = 'C:\\files\\my_file.exe';
 		const defaultSchemeName = 'myscheme';
@@ -913,13 +1121,17 @@ describe('Page', function(this: MochaFn) {
 		describe('Name Input', function(this: MochaFn) {
 			this.slow(10000);
 
-			after('Reset settings', resetSettings);
+			after('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			it('should not change when not saved', function(done) {
-				before('Reset settings', resetSettings);
+				before('Reset settings', function() {
+				resetSettings(this);
+			});
 
 				const name = getRandomString(25);
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() =>{
 					return getDialog(driver, type);
@@ -932,7 +1144,7 @@ describe('Page', function(this: MochaFn) {
 							return cancelDialog(dialog);
 						})
 						.then(() => {
-							return getCRM(driver);
+							return getCRM();
 						}).then((crm) => {
 							assert.strictEqual(crm[0].type, type, 
 								`type is ${type}`);
@@ -944,9 +1156,11 @@ describe('Page', function(this: MochaFn) {
 			});
 			const name = getRandomString(25);
 			it('should be editable when saved', function(done)  {
-				before('Reset settings', resetSettings);
+				before('Reset settings', function() {
+					resetSettings(this);
+				});
 
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() =>{
 					return getDialog(driver, type);
@@ -959,7 +1173,7 @@ describe('Page', function(this: MochaFn) {
 							return saveDialog(dialog);
 						})
 						.then(() => {
-							return getCRM(driver);
+							return getCRM();
 						})
 						.then((crm) => {
 							assert.strictEqual(crm[0].type, type, 
@@ -971,9 +1185,9 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be saved when changed', function(done) {
-				reloadPagePromise(this)
+				reloadPage()
 					.then(() => {
-						return getCRM(driver);
+						return getCRM();
 					})
 					.then((crm) => {
 						assert.strictEqual(crm[0].type, type, 
@@ -990,10 +1204,12 @@ describe('Page', function(this: MochaFn) {
 		describe('Triggers', function(this: MochaFn) {
 			this.slow(150000);
 
-			after('Reset settings', resetSettings);
+			after('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			it('should not change when not saved', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type)
@@ -1030,7 +1246,7 @@ describe('Page', function(this: MochaFn) {
 									}).then(() => {
 										return cancelDialog(dialog);
 									}).then(() => {
-										return getCRM(driver);
+										return getCRM();
 									}).then((crm) => {
 										assert.lengthOf(crm[0].triggers, 1, 
 											'no triggers have been added');
@@ -1046,7 +1262,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be addable/editable when saved', (done) => {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type)
@@ -1078,7 +1294,7 @@ describe('Page', function(this: MochaFn) {
 									}).then(() => {
 										return saveDialog(dialog);
 									}).then(() => {
-										return getCRM(driver);
+										return getCRM();
 									}).then((crm) => {
 										assert.lengthOf(crm[0].triggers, 3, 
 											'trigger has been added');
@@ -1099,8 +1315,8 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved on page reload', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getCRM(driver);
+				reloadPage().then(() => {
+					return getCRM();
 				}).then((crm) => {
 					assert.lengthOf(crm[0].triggers, 3, 
 						'trigger has been added');
@@ -1125,10 +1341,12 @@ describe('Page', function(this: MochaFn) {
 			this.slow(15000);
 			const defaultContentTypes = [true, true, true, false, false, false];
 
-			after('Reset settings', resetSettings);
+			after('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			it('should be editable through clicking on the checkboxes', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog('link');
 				}).then(() => {
 					return getDialog(driver, 'link')
@@ -1146,7 +1364,7 @@ describe('Page', function(this: MochaFn) {
 							return saveDialog(dialog);
 						})
 						.then(() => {
-							return getCRM(driver);
+							return getCRM();
 						}).then((crm) => {
 							assert.isFalse(crm[0].onContentTypes[0], 
 								'content types that were on were switched off');
@@ -1164,7 +1382,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be editable through clicking on the icons', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog('link');
 				}).then(() => {
 					return getDialog(driver, 'link')
@@ -1182,7 +1400,7 @@ describe('Page', function(this: MochaFn) {
 							return saveDialog(dialog);
 						})
 						.then(() => {
-							return getCRM(driver);
+							return getCRM();
 						})
 						.then((crm) => {
 							assert.isFalse(crm[0].onContentTypes[0], 
@@ -1200,7 +1418,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be editable through clicking on the names', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog('link');
 				}).then(() => {
 					return getDialog(driver, 'link')
@@ -1218,7 +1436,7 @@ describe('Page', function(this: MochaFn) {
 							return saveDialog(dialog);
 						})
 						.then(() => {
-							return getCRM(driver);
+							return getCRM();
 						}).then((crm) => {
 							assert.isFalse(crm[0].onContentTypes[0], 
 								'content types that were on were switched off');
@@ -1235,8 +1453,8 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved on page reload', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getCRM(driver);
+				reloadPage().then(() => {
+					return getCRM();
 				}).then((crm) => {
 					assert.isFalse(crm[0].onContentTypes[0], 
 						'content types that were on were switched off');
@@ -1252,7 +1470,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should not change when not saved', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					return openDialog('link');
 				}).then(() => {
 					return getDialog(driver, 'link')
@@ -1270,7 +1488,7 @@ describe('Page', function(this: MochaFn) {
 							return cancelDialog(dialog);
 						})
 						.then(() => {
-							return getCRM(driver);
+							return getCRM();
 						}).then((crm) => {
 							assert.isTrue(crm[0].onContentTypes[0], 
 								'content types that were on did not change');
@@ -1292,7 +1510,7 @@ describe('Page', function(this: MochaFn) {
 				describe(`Trigger option ${triggerOptionIndex}`, function(this: MochaFn) {
 					this.slow(20000);
 					it(`should be possible to select trigger option number`, function(done) {
-						resetSettingsPromise().then(() => {
+						resetSettings(this).then(() => {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type);
@@ -1313,7 +1531,7 @@ describe('Page', function(this: MochaFn) {
 								}).then(() => {
 									return saveDialog(dialog);
 								}).then(() => {
-									return getCRM(driver);
+									return getCRM();
 								}).then((crm: Array<StylesheetNode|ScriptNode>) => {
 									assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 										'launchmode is the same as expected');
@@ -1322,8 +1540,8 @@ describe('Page', function(this: MochaFn) {
 						});
 					});
 					it('should be saved on page reload', function(done) {
-						reloadPagePromise(this).then(() => {
-							return getCRM(driver);
+						reloadPage().then(() => {
+							return getCRM();
 						}).then((crm: Array<StylesheetNode|ScriptNode>) => {
 							assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 								'launchmode is the same as expected');
@@ -1331,7 +1549,7 @@ describe('Page', function(this: MochaFn) {
 						});
 					});
 					it('should not be saved when cancelled', function(done) {
-						resetSettingsPromise().then(() => {
+						resetSettings(this).then(() => {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type);
@@ -1352,7 +1570,7 @@ describe('Page', function(this: MochaFn) {
 								}).then(() => {
 									return cancelDialog(dialog);
 								}).then(() => {
-									return getCRM(driver);
+									return getCRM();
 								}).then((crm: Array<StylesheetNode|ScriptNode>) => {
 									assert.strictEqual(crm[0].value.launchMode, 0,
 										'launchmode is the same as before');
@@ -1366,7 +1584,7 @@ describe('Page', function(this: MochaFn) {
 				describe(`Trigger Option ${triggerOptionIndex} with URLs`, function(this: MochaFn) {
 					this.slow(22500);
 					it('should be editable', (done) => {
-						resetSettingsPromise().then(() => {
+						resetSettings(this).then(() => {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type)
@@ -1409,7 +1627,7 @@ describe('Page', function(this: MochaFn) {
 											}).then(() => {
 												return saveDialog(dialog);
 											}).then(() => {
-												return getCRM(driver);
+												return getCRM();
 											}).then((crm) => {
 												assert.lengthOf(crm[0].triggers, 3, 
 													'trigger has been added');
@@ -1430,7 +1648,7 @@ describe('Page', function(this: MochaFn) {
 						});
 					});
 					it('should be saved on page reload', (done) => {
-						getCRM(driver).then((crm: Array<StylesheetNode|ScriptNode>) => {
+						getCRM().then((crm: Array<StylesheetNode|ScriptNode>) => {
 							assert.lengthOf(crm[0].triggers, 3, 
 								'trigger has been added');
 							assert.isTrue(crm[0].triggers[0].not, 
@@ -1447,7 +1665,7 @@ describe('Page', function(this: MochaFn) {
 						});
 					});
 					it('should not be saved when cancelled', (done) => {
-						resetSettingsPromise().then(() => {
+						resetSettings(this).then(() => {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type)
@@ -1490,7 +1708,7 @@ describe('Page', function(this: MochaFn) {
 											}).then(() => {
 												return cancelDialog(dialog);
 											}).then(() => {
-												return getCRM(driver);
+												return getCRM();
 											}).then((crm) => {
 												assert.lengthOf(crm[0].triggers, 1, 
 													'no triggers have been added');
@@ -1511,8 +1729,9 @@ describe('Page', function(this: MochaFn) {
 	}
 
 	function testEditorSettings(type: NodeType) {
-		it('are togglable', (done) => {
-			resetSettingsPromise().then(() => {
+		it('are togglable', function(done) {
+			this.slow(13000);
+			resetSettings(this).then(() => {
 				return openDialog(type);
 			}).then(() => {
 				return getDialog(driver, type);
@@ -1521,17 +1740,22 @@ describe('Page', function(this: MochaFn) {
 					.findElement(webdriver.By.id('editorSettings'))
 					.click()
 					.then(() => {
+						return wait(500);
+					})
+					.then(() => {
 						return dialog
 							.findElement(webdriver.By.id('editorSettingsTxt'))
 							.isDisplayed()
 					})
 			}).then((isDisplayed) => {
 				assert.isTrue(isDisplayed, 'settings menu is visible');
+				done();
 			});
 		});
 		describe('Theme', function(this: MochaFn) {
-			it('is changable', (done) => {
-				resetSettingsPromise().then(() => {
+			it('is changable', function(done) {
+				this.slow(13000);
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
@@ -1540,45 +1764,58 @@ describe('Page', function(this: MochaFn) {
 						.findElement(webdriver.By.id('editorSettings'))
 						.click()
 						.then(() => {
+							return wait(500);
+						})
+						.then(() => {
 							return dialog
 								.findElement(webdriver.By.id('editorThemeSettingWhite'))
 								.click();
 						});
 				}).then(() => {
-					return getSyncSettings(driver);
+					return getSyncSettings();
 				}).then((settings) => {
-					assert.strictEqual(settings.editor.theme, 'default',
-						'theme has been switched to default (white)');
+					assert.strictEqual(settings.editor.theme, 'white',
+						'theme has been switched to white');
 					done();	
 				});
 			});
 			it('is preserved on page reload', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getSyncSettings(driver);
+				this.slow(6000);
+				reloadPage().then(() => {
+					return getSyncSettings();
 				}).then((settings) => {
-					assert.strictEqual(settings.editor.theme, 'default',
-						'theme has been switched to default (white)');
+					assert.strictEqual(settings.editor.theme, 'white',
+						'theme has been switched to white');
 					done();
 				});
 			});
 		});
 		describe('Zoom', function(this: MochaFn) {
 			const newZoom = '135';
-			it('is changable', (done) => {
-				resetSettingsPromise().then(() => {
+			it('is changable', function(done) {
+				this.slow(13000);
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
 				}).then((dialog) => {
 					return dialog
-						.findElement(webdriver.By.id('editorThemeFontSizeInput'))
-						.findElement(webdriver.By.tagName('input'))
-						.sendKeys(webdriver.Key.BACK_SPACE,
-							webdriver.Key.BACK_SPACE,
-							webdriver.Key.BACK_SPACE,
-							newZoom);
+						.findElement(webdriver.By.id('editorSettings'))
+						.click()
+						.then(() => {
+							return wait(500);
+						})
+						.then(() => {
+							return dialog
+								.findElement(webdriver.By.id('editorThemeFontSizeInput'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(webdriver.Key.BACK_SPACE,
+									webdriver.Key.BACK_SPACE,
+									webdriver.Key.BACK_SPACE,
+									newZoom);
+						});
 				}).then(() => {
-					return getSyncSettings(driver);
+					return getSyncSettings();
 				}).then((settings) => {
 					assert.strictEqual(settings.editor.zoom, newZoom,
 						'zoom has changed to the correct number');
@@ -1586,8 +1823,9 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('is preserved on page reload', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getSyncSettings(driver);
+				this.slow(6000);
+				reloadPage().then(() => {
+					return getSyncSettings();
 				}).then((settings) => {
 					assert.strictEqual(settings.editor.zoom, newZoom,
 						'zoom has changed to the correct number');
@@ -1596,18 +1834,27 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		describe('UseTabs', function(this: MochaFn) {
-			it('is changable', (done) => {
-				resetSettingsPromise().then(() => {
+			it('is changable', function(done) {
+				this.slow(13000);
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
 				}).then((dialog) => {
 					return dialog
-						.findElement(webdriver.By.id('editorTabsOrSpacesCheckbox'))
-						.findElement(webdriver.By.tagName('paper-checkbox'))
-						.click();
+						.findElement(webdriver.By.id('editorSettings'))
+						.click()
+						.then(() => {
+							return wait(500);
+						})
+						.then(() => {
+							return dialog
+								.findElement(webdriver.By.id('editorTabsOrSpacesCheckbox'))
+								.findElement(webdriver.By.tagName('paper-checkbox'))
+								.click();
+						});
 				}).then(() => {
-					return getSyncSettings(driver);
+					return getSyncSettings();
 				}).then((settings) => {
 					assert.isFalse(settings.editor.useTabs, 
 						'useTabs is off');
@@ -1615,8 +1862,9 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('is preserved on page reload', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getSyncSettings(driver);
+				this.slow(6000);
+				reloadPage().then(() => {
+					return getSyncSettings();
 				}).then((settings) => {
 					assert.isFalse(settings.editor.useTabs, 
 						'useTabs is off');
@@ -1626,21 +1874,38 @@ describe('Page', function(this: MochaFn) {
 		});
 		describe('Tab Size', function(this: MochaFn) {
 			const newTabSize = '8';
-			it('is changable', (done) => {
-				resetSettingsPromise().then(() => {
+			it('is changable', function(done) {
+				this.slow(13000);
+				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
 				}).then((dialog) => {
 					return dialog
-						.findElement(webdriver.By.id('editorTabSizeInput'))
-						.findElement(webdriver.By.tagName('input'))
-						.sendKeys(webdriver.Key.BACK_SPACE,
-							webdriver.Key.BACK_SPACE,
-							webdriver.Key.BACK_SPACE,
-							newTabSize);
+						.findElement(webdriver.By.id('editorSettings'))
+						.click()
+						.then(() => {
+							return wait(500);
+						})
+						.then(() => {
+							return dialog
+								.findElement(webdriver.By.id('editorTabSizeInput'))
+								.findElement(webdriver.By.tagName('input'))
+								.sendKeys(webdriver.Key.BACK_SPACE,
+									webdriver.Key.BACK_SPACE,
+									webdriver.Key.NULL,
+									webdriver.Key.DELETE,
+									webdriver.Key.DELETE,
+									newTabSize)
+								.then(() => {
+									//Click "some" element to un-focus the input
+									return dialog
+										.findElement(webdriver.By.id('editorSettings'))
+										.click();
+								})
+						});
 				}).then(() => {
-					return getSyncSettings(driver);
+					return getSyncSettings();
 				}).then((settings) => {
 					assert.strictEqual(settings.editor.tabSize, newTabSize,
 						'tab size has changed to the correct number');
@@ -1648,8 +1913,9 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('is preserved on page reload', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getSyncSettings(driver);
+				this.slow(6000);
+				reloadPage().then(() => {
+					return getSyncSettings();
 				}).then((settings) => {
 					assert.strictEqual(settings.editor.tabSize, newTabSize,
 						'tab size has changed to the correct number');
@@ -1660,7 +1926,9 @@ describe('Page', function(this: MochaFn) {
 	}
 
 	describe('CRM Editing', function(this: MochaFn) {
-		before('Reset settings', resetSettings);
+		before('Reset settings', function() {
+			resetSettings(this);
+		});
 
 		describe('Type Switching', function(this: MochaFn) {
 
@@ -1688,52 +1956,52 @@ describe('Page', function(this: MochaFn) {
 			this.slow(7000);
 			
 			it('should be able to switch to a script', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					testTypeSwitch(driver, 'script', done);
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getCRM(driver);
+				reloadPage().then(() => {
+					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
 					done();
 				});
 			});
 			it('should be able to switch to a menu', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					testTypeSwitch(driver, 'menu', done);
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getCRM(driver);
+				reloadPage().then(() => {
+					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
 					done();
 				});
 			});
 			it('should be able to switch to a divider', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					testTypeSwitch(driver, 'divider', done);
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getCRM(driver);
+				reloadPage().then(() => {
+					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
 					done();
 				});
 			});
 			it('should be able to switch to a stylesheet', function(done)  {
-				resetSettingsPromise().then(() => {
+				resetSettings(this).then(() => {
 					testTypeSwitch(driver, 'stylesheet', done);
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPagePromise(this).then(() => {
-					return getCRM(driver);
+				reloadPage().then(() => {
+					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'stylesheet', 'type has stayed the same');
 					done();
@@ -1744,7 +2012,9 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'link';
 
 			this.timeout(30000);
-			before('Reset settings', resetSettings);
+			before('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			testNameInput(type);
 			testVisibilityTriggers(type);
@@ -1753,10 +2023,12 @@ describe('Page', function(this: MochaFn) {
 			describe('Links', function(this: MochaFn) {
 				this.slow(22500);
 
-				after('Reset settings', resetSettings);
+				after('Reset settings', function() {
+					resetSettings(this);
+				});
 
 				it('open in new tab property should be editable', function(done)  {
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog('link');
 					}).then(() => {
 						return getDialog(driver, 'link')
@@ -1769,7 +2041,7 @@ describe('Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							})
 							.then(() => {
-								return getCRM(driver);
+								return getCRM();
 							})
 							.then((crm: Array<LinkNode>) => {
 								assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
@@ -1780,7 +2052,7 @@ describe('Page', function(this: MochaFn) {
 				});
 				it('url property should be editable', function(done)  {
 					const newUrl = 'www.google.com';
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog('link');
 					}).then(() => {
 						return getDialog(driver, 'link')
@@ -1793,7 +2065,7 @@ describe('Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							})
 							.then(() => {
-								return getCRM(driver);
+								return getCRM();
 							})
 							.then((crm: Array<LinkNode>) => {
 								assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
@@ -1808,7 +2080,7 @@ describe('Page', function(this: MochaFn) {
 						newTab: true,
 						url: 'https://www.example.com'
 					};
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog('link');
 					}).then(() => {
 						return getDialog(driver, 'link')
@@ -1830,7 +2102,7 @@ describe('Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							})
 							.then(() => {
-								return getCRM(driver);
+								return getCRM();
 							})
 							.then((crm: Array<LinkNode>) => {
 								assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
@@ -1847,7 +2119,7 @@ describe('Page', function(this: MochaFn) {
 						newTab: true,
 						url: newUrl
 					}
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog('link');
 					}).then(() => {
 						return getDialog(driver, 'link')
@@ -1897,7 +2169,7 @@ describe('Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							})
 							.then(() => {
-								return getCRM(driver);
+								return getCRM();
 							})
 							.then((crm: Array<LinkNode>) => {
 								assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
@@ -1920,8 +2192,8 @@ describe('Page', function(this: MochaFn) {
 						url: newUrl
 					}
 
-					reloadPagePromise(this).then(() => {
-						return getCRM(driver);
+					reloadPage().then(() => {
+						return getCRM();
 					}).then((crm) => {
 						assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
 
@@ -1941,7 +2213,7 @@ describe('Page', function(this: MochaFn) {
 						newTab: true,
 						url: 'https://www.example.com'
 					};
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog('link');
 					}).then(() => {
 						return getDialog(driver, 'link')
@@ -1979,7 +2251,7 @@ describe('Page', function(this: MochaFn) {
 								return cancelDialog(dialog);
 							})
 							.then(() => {
-								return getCRM(driver);
+								return getCRM();
 							})
 							.then((crm: Array<LinkNode>) => {
 								assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
@@ -1995,7 +2267,9 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'link';
 
 			this.timeout(30000);
-			before('Reset settings', resetSettings);
+			before('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			testNameInput(type);
 			testVisibilityTriggers(type);
@@ -2005,7 +2279,9 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'menu';
 
 			this.timeout(30000);
-			before('Reset settings', resetSettings);
+			before('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			testNameInput(type);
 			testVisibilityTriggers(type);
@@ -2015,7 +2291,9 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'stylesheet';
 
 			this.timeout(30000);
-			before('Reset settings', resetSettings);
+			before('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			testNameInput(type);
 			testContentTypes(type);
@@ -2023,7 +2301,7 @@ describe('Page', function(this: MochaFn) {
 
 			describe('Toggling', function(this: MochaFn) {
 				it('should be possible to toggle on', (done) => {
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog(type);
 					}).then(() => {
 						return getDialog(driver, type);
@@ -2034,7 +2312,7 @@ describe('Page', function(this: MochaFn) {
 							.then(() => {
 								return saveDialog(dialog);
 							}).then(() => {
-								return getCRM(driver);
+								return getCRM();
 							}).then((crm: Array<StylesheetNode>) => {
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 								done();
@@ -2042,15 +2320,15 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should be saved on page reload', function(done) {
-					reloadPagePromise(this).then(() => {
-						return getCRM(driver);
+					reloadPage().then(() => {
+						return getCRM();
 					}).then((crm: Array<StylesheetNode>) => {
 						assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 						done();
 					});
 				});
 				it('should be possible to toggle on-off', (done) => {
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog(type);
 					}).then(() => {
 						return getDialog(driver, type);
@@ -2067,7 +2345,7 @@ describe('Page', function(this: MochaFn) {
 							}).then(() => {
 								return saveDialog(dialog);
 							}).then(() => {
-								return getCRM(driver);
+								return getCRM();
 							}).then((crm: Array<StylesheetNode>) => {
 								assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
 								done();
@@ -2075,7 +2353,7 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should not be saved on cancel', (done) => {
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog(type);
 					}).then(() => {
 						return getDialog(driver, type);
@@ -2086,7 +2364,7 @@ describe('Page', function(this: MochaFn) {
 							.then(() => {
 								return cancelDialog(dialog);
 							}).then(() => {
-								return getCRM(driver);
+								return getCRM();
 							}).then((crm: Array<StylesheetNode>) => {
 								assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
 								done();
@@ -2096,7 +2374,7 @@ describe('Page', function(this: MochaFn) {
 			});
 			describe('Default State', function(this: MochaFn) {
 				it('should be togglable to true', (done) => {
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog(type);
 					}).then(() => {
 						return getDialog(driver, type);
@@ -2115,7 +2393,7 @@ describe('Page', function(this: MochaFn) {
 							}).then(() => {
 								return saveDialog(dialog);
 							}).then(() => {
-								return getCRM(driver);
+								return getCRM();
 							}).then((crm: Array<StylesheetNode>) => {
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 								assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
@@ -2124,8 +2402,8 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should be saved on page reset', function(done) {
-					reloadPagePromise(this).then(() => {
-						return getCRM(driver);
+					reloadPage().then(() => {
+						return getCRM();
 					}).then((crm: Array<StylesheetNode>) => {
 						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 						assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
@@ -2133,7 +2411,7 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should be togglable to false', (done) => {
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog(type);
 					}).then(() => {
 						return getDialog(driver, type);
@@ -2155,7 +2433,7 @@ describe('Page', function(this: MochaFn) {
 							}).then(() => {
 								return saveDialog(dialog);
 							}).then(() => {
-								return getCRM(driver);
+								return getCRM();
 							}).then((crm: Array<StylesheetNode>) => {
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 								assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to true');
@@ -2164,7 +2442,7 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should not be saved when cancelled', (done) => {
-					resetSettingsPromise().then(() => {
+					resetSettings(this).then(() => {
 						return openDialog(type);
 					}).then(() => {
 						return getDialog(driver, type);
@@ -2183,7 +2461,7 @@ describe('Page', function(this: MochaFn) {
 							}).then(() => {
 								return cancelDialog(dialog);
 							}).then(() => {
-								return getCRM(driver);
+								return getCRM();
 							}).then((crm: Array<StylesheetNode>) => {
 								assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
 								assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
@@ -2202,7 +2480,9 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'script';
 
 			this.timeout(30000);
-			before('Reset settings', resetSettings);
+			before('Reset settings', function() {
+				resetSettings(this);
+			});
 
 			testNameInput(type);
 			testContentTypes(type);
@@ -2231,10 +2511,517 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 });
+*/
+
+function getTypeName(index: number): string {
+	switch (index) {
+		case 0:
+			return 'page';
+		case 1:
+			return 'link';
+		case 2:
+			return 'selection';
+		case 3:
+			return 'image';
+		case 4:
+			return 'video';
+		case 5:
+			return 'audio';
+	}
+}
+
+function prepareTrigger(url: string): string {
+	if (url === '<all_urls>') {
+		return url;
+	}
+	if (url.replace(/\s/g, '') === '') {
+		return null;
+	}
+	let newTrigger: string;
+	if (url.split('//')[1].indexOf('/') === -1) {
+		newTrigger = url + '/';
+	} else {
+		newTrigger = url;
+	}
+	return newTrigger;
+}
+
+function sanitizeUrl(url: string): string {
+	if (url.indexOf('://') === -1) {
+		url = `http://${url}`;
+	}
+	return url;
+}
+
+interface NameCheckingCRM {
+	name: string;
+	children?: Array<NameCheckingCRM>;
+}
+
+function getCRMNames(crm: CRM): Array<NameCheckingCRM> {
+	return crm.map((node) => {
+		return {
+			name: node.name,
+			children: (node.children && node.children.length > 0)
+				? getCRMNames(node.children) : undefined
+		};
+	});
+}
+
+function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
+	return contextMenu.map((item) => {
+		return {
+			name: item.currentProperties.title,
+			children: (item.children && item.children.length > 0)
+				? getContextMenuNames(item.children) : undefined
+		}
+	});
+}
+
 describe('On-Page CRM', function(this: MochaFn) {
+	this.slow(200);
+	this.timeout(2000);
+
+	describe('Redraws on new CRM', function(this: MochaFn) {
+		const CRM1 = [
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			})
+		];
+		const CRM2 = [
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			})
+		];
+
+		before('Set CRM', function(done) {
+			resetSettings(this).then(() => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						return true;
+					}, {
+						crm: JSON.stringify(CRM1)
+					})).then(() => {
+						done();
+					});
+			});
+		});
+		it('should be using the first CRM', function(this: MochaFn, done) {
+			getContextMenu().then((contextMenu) => {
+				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1.concat([{
+					name: undefined
+				}, {
+					name: 'Options'
+				}] as Array<LinkNode>)), 'node orders and names match');
+				done();
+			});
+		});
+		it('should be able to switch to a new CRM', function(this: MochaFn, done) {
+			assert.doesNotThrow(() => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						return true;
+					}, {
+						crm: JSON.stringify(CRM2)
+					})).then(() => {
+						done();
+					});
+			}, 'settings CRM does not throw');
+		});
+		it('should be using the new CRM', function(this: MochaFn, done) {
+			getContextMenu().then((contextMenu) => {
+				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM2.concat([{
+					name: undefined
+				}, {
+					name: 'Options'
+				}] as Array<LinkNode>)), 'node orders and names match');
+				done();
+			});
+		});
+	});
 	describe('Links', function(this: MochaFn) {
-		it('match the given names', (done) => {
-			
+		this.timeout(2500);
+		this.slow(500);
+		const CRMNodes = [
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				showOnSpecified: false,
+				triggers: [{
+					url: 'http://www.somewebsite.com',
+					not: false
+				}]
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				showOnSpecified: true,
+				triggers: [{
+					url: 'http://www.somewebsite.com',
+					not: false
+				}]
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				showOnSpecified: true,
+				triggers: [{
+					url: 'http://www.somewebsite.com',
+					not: true
+				}]
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				showOnSpecified: true,
+				triggers: [{
+					url: 'http://www.somewebsite.com',
+					not: false
+				}],
+				onContentTypes: [true, false, false, false, false, false]
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				showOnSpecified: true,
+				triggers: [{
+					url: 'http://www.somewebsite.com',
+					not: false
+				}],
+				onContentTypes: [false, false, false, false, false, true]
+			}),
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				showOnSpecified: true,
+				triggers: [{
+					url: 'http://www.somewebsite.com',
+					not: false
+				}],
+				value: [{
+					url: 'www.a.com',
+					newTab: true
+				}, {
+					url: 'www.b.com',
+					newTab: false
+				}, {
+					url: 'www.c.com',
+					newTab: true
+				}]
+			}),
+		];
+		before('Set CRM', function(done) {
+			resetSettings(this).then(() => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						return true;
+					}, {
+						crm: JSON.stringify(CRMNodes)
+					})).then(() => {
+						done();
+					});
+			});
+		});
+		it('should match the given names and types', (done) => {
+			getContextMenu().then((contextMenu) => {
+				for (let i = 0; i < CRMNodes.length; i++) {
+					assert.isDefined(contextMenu[i], `node ${i} is defined`);
+					assert.strictEqual(contextMenu[i].currentProperties.title, 
+						CRMNodes[i].name, `names for ${i} match`);
+					assert.strictEqual(contextMenu[i].currentProperties.type,
+						'normal', `type for ${i} is normal`);
+				}				
+				done();
+			});
+		});
+		it('should match the given triggers', (done) => {
+			getContextMenu().then((contextMenu) => {
+				assert.lengthOf(contextMenu[0].createProperties.documentUrlPatterns,
+					0, 'triggers are turned off');
+				assert.deepEqual(contextMenu[1].createProperties.documentUrlPatterns,
+					CRMNodes[1].triggers.map((trigger) => {
+						return prepareTrigger(trigger.url);
+					}), 'triggers are turned on');
+				done();
+			});
+		});
+		it('should match the given content types', (done) => {
+			getContextMenu().then((contextMenu) => {
+				for (let i = 0; i < CRMNodes.length; i++) {
+					assert.sameDeepMembers(contextMenu[i].currentProperties.contexts,
+						CRMNodes[i].onContentTypes.map((enabled, index) => {
+							if (enabled) {
+								return getTypeName(index);
+							} else {
+								return null;
+							}
+						}).filter(item => item !== null), `content types for ${i} match`);
+				}
+				done();
+			});
+		});
+		it('should open the correct links when "clicked" for the default link', function(this: MochaFn, done) {
+			this.slow(2500);
+			this.timeout(5000);
+			const tabId = ~~(Math.random() * 100);
+			const windowId = ~~(Math.random() * 100);
+			getContextMenu().then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.chrome._currentContextMenu[0].children[4].currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						);
+						return true;
+					}, {
+						page: JSON.stringify({
+							menuItemId: contextMenu[4].id,
+							editable: false,
+							pageUrl: 'www.google.com'
+						}),
+						tab: JSON.stringify({
+							id: tabId,
+							index: 1,
+							windowId: windowId,
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						})
+					})).then(() => {
+						return driver
+							.executeScript(inlineFn(() => {
+								return JSON.stringify(window.chrome._activeTabs);
+							}));
+					}).then((str: string) => {
+						const activeTabs = JSON.parse(str) as ActiveTabs;
+						const expectedTabs = CRMNodes[4].value.map((link) => {
+							if (!link.newTab) {
+								return {
+									id:	tabId,
+									data: {
+										url: sanitizeUrl(link.url)
+									},
+									type: 'update'
+								}
+							} else {
+								return {
+									type: 'create',
+									data: {
+										windowId: windowId,
+										url: sanitizeUrl(link.url),
+										openerTabId: tabId
+									}
+								};
+							}
+						}) as ActiveTabs;
+
+						assert.sameDeepMembers(activeTabs, expectedTabs,
+							'opened tabs match expected');
+						done();
+					});
+			});
+		});
+		it('should open the correct links when "clicked" for multiple links', (done) => {
+			const tabId = ~~(Math.random() * 100);
+			const windowId = ~~(Math.random() * 100);
+			getContextMenu().then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						//Clear it without removing object-array-magic-address-linking
+						while (window.chrome._activeTabs.length > 0) {
+							window.chrome._activeTabs.pop();
+						}
+						return window.chrome._currentContextMenu[0].children[5].currentProperties.onclick(
+							REPLACE.page, REPLACE.tab
+						);
+					}, {
+						page: JSON.stringify({
+							menuItemId: contextMenu[5].id,
+							editable: false,
+							pageUrl: 'www.google.com'
+						}),
+						tab: JSON.stringify({
+							id: tabId,
+							index: 1,
+							windowId: windowId,
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						})
+					})).then((result) => {
+						return driver
+							.executeScript(inlineFn(() => {
+								return JSON.stringify(window.chrome._activeTabs);
+							}));
+					}).then((str: string) => {
+						const activeTabs = JSON.parse(str) as ActiveTabs;
+						const expectedTabs = CRMNodes[5].value.map((link) => {
+							if (!link.newTab) {
+								return {
+									id:	tabId,
+									data: {
+										url: sanitizeUrl(link.url)
+									},
+									type: 'update'
+								}
+							} else {
+								return {
+									type: 'create',
+									data: {
+										windowId: windowId,
+										url: sanitizeUrl(link.url),
+										openerTabId: tabId
+									}
+								};
+							}
+						}) as ActiveTabs;
+
+						assert.sameDeepMembers(activeTabs, expectedTabs,
+							'opened tabs match expected');
+						done();
+					});
+				});
+		});
+	});
+	describe('Menu & Divider', function(this: MochaFn) {
+		const CRMNodes = [
+			templates.getDefaultLinkNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			}),
+			templates.getDefaultDividerNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			}),
+			templates.getDefaultDividerNode({
+				name: getRandomString(25),
+				id: getRandomId()
+			}),
+			templates.getDefaultMenuNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				children: [
+					templates.getDefaultLinkNode({
+						name: getRandomString(25),
+						id: getRandomId()
+					}),
+					templates.getDefaultDividerNode({
+						name: getRandomString(25),
+						id: getRandomId()
+					}),
+					templates.getDefaultLinkNode({
+						name: getRandomString(25),
+						id: getRandomId()
+					}),
+					templates.getDefaultDividerNode({
+						name: getRandomString(25),
+						id: getRandomId()
+					}),
+					templates.getDefaultMenuNode({
+						name: getRandomString(25),
+						id: getRandomId(),
+						children: [
+							templates.getDefaultMenuNode({
+								name: getRandomString(25),
+								id: getRandomId(),
+								children: [
+									templates.getDefaultMenuNode({
+										name: getRandomString(25),
+										id: getRandomId(),
+										children: [
+											templates.getDefaultLinkNode({
+												name: getRandomString(25),
+												id: getRandomId()
+											}),
+											templates.getDefaultLinkNode({
+												name: getRandomString(25),
+												id: getRandomId()
+											}),
+											templates.getDefaultLinkNode({
+												name: getRandomString(25),
+												id: getRandomId()
+											}),
+											templates.getDefaultLinkNode({
+												name: getRandomString(25),
+												id: getRandomId()
+											}),
+										]
+									}),
+									templates.getDefaultLinkNode({
+										name: getRandomString(25),
+										id: getRandomId(),
+										children: []
+									})
+								]
+							})
+						]
+					})
+				]
+			})
+		];
+
+		before('Set CRM', function(done) {
+			driver
+				.executeScript(inlineFn(() => {
+					window.app.settings.crm = REPLACE.crm;
+					window.app.upload();
+					return true;
+				}, {
+					crm: JSON.stringify(CRMNodes)
+				})).then(() => {
+					done();
+				});
+		});
+
+		it('should have the correct structure', function(done) {
+			getContextMenu().then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						return window.logs;
+					}))
+					.then((logs) => {
+						console.log(logs);
+						console.log(JSON.stringify(contextMenu));
+						assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes.concat([{
+							name: undefined
+						}, {
+							name: 'Options'
+						}] as Array<LinkNode>)),
+							'structures match');
+						done();
+					});
+			})
 		});
 	});
 });
