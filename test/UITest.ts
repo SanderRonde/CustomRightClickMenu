@@ -605,10 +605,10 @@ function resetSettings(_this: MochaFn, done?: (...args: Array<any>) => void): we
 	}
 }
 
-function reloadPage(done: (...args: Array<any>) => void): void;
-function reloadPage(): webdriver.promise.Promise<any>; 
-function reloadPage(done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
-	this.timeout(15000);
+function reloadPage(_this: MochaFn, done: (...args: Array<any>) => void): void;
+function reloadPage(_this: MochaFn): webdriver.promise.Promise<any>; 
+function reloadPage(_this: MochaFn, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
+	_this.timeout(15000);
 	const promise = new webdriver.promise.Promise((resolve) => {
 		driver
 		.get('http://localhost:1234/test/UI/UITest.html#noClear')
@@ -682,7 +682,6 @@ function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: a
 	return str;
 }
 
-/*
 describe('Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
 		this.timeout(5000);
@@ -738,7 +737,7 @@ describe('Page', function(this: MochaFn) {
 					});
 			});
 			it(`${checkboxId} should be saved`, function(done) {
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return driver
 						.executeScript(inlineFn(() => {
 							return JSON.stringify({
@@ -835,7 +834,7 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		it('should be saved', function(done) {
-			reloadPage().then(() => {
+			reloadPage(this).then(() => {
 				return getCRM();
 			})
 			.then((crm: Array<LinkNode>) => {
@@ -961,7 +960,7 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		it('should be saved on page reload', function(done) {
-			reloadPage().then(() => {
+			reloadPage(this).then(() => {
 				return getCRM();
 			})
 			.then((crm: Array<ScriptNode>) => {
@@ -1185,7 +1184,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be saved when changed', function(done) {
-				reloadPage()
+				reloadPage(this)
 					.then(() => {
 						return getCRM();
 					})
@@ -1315,7 +1314,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved on page reload', function(done) {
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getCRM();
 				}).then((crm) => {
 					assert.lengthOf(crm[0].triggers, 3, 
@@ -1453,7 +1452,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved on page reload', function(done) {
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getCRM();
 				}).then((crm) => {
 					assert.isFalse(crm[0].onContentTypes[0], 
@@ -1509,7 +1508,7 @@ describe('Page', function(this: MochaFn) {
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function(this: MochaFn) {
 					this.slow(20000);
-					it(`should be possible to select trigger option number`, function(done) {
+					it(`should be possible to select trigger option number ${triggerOptionIndex}`, function(done) {
 						resetSettings(this).then(() => {
 							return openDialog(type);
 						}).then(() => {
@@ -1540,7 +1539,7 @@ describe('Page', function(this: MochaFn) {
 						});
 					});
 					it('should be saved on page reload', function(done) {
-						reloadPage().then(() => {
+						reloadPage(this).then(() => {
 							return getCRM();
 						}).then((crm: Array<StylesheetNode|ScriptNode>) => {
 							assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
@@ -1781,7 +1780,7 @@ describe('Page', function(this: MochaFn) {
 			});
 			it('is preserved on page reload', function(done) {
 				this.slow(6000);
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getSyncSettings();
 				}).then((settings) => {
 					assert.strictEqual(settings.editor.theme, 'white',
@@ -1824,7 +1823,7 @@ describe('Page', function(this: MochaFn) {
 			});
 			it('is preserved on page reload', function(done) {
 				this.slow(6000);
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getSyncSettings();
 				}).then((settings) => {
 					assert.strictEqual(settings.editor.zoom, newZoom,
@@ -1863,7 +1862,7 @@ describe('Page', function(this: MochaFn) {
 			});
 			it('is preserved on page reload', function(done) {
 				this.slow(6000);
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getSyncSettings();
 				}).then((settings) => {
 					assert.isFalse(settings.editor.useTabs, 
@@ -1914,7 +1913,7 @@ describe('Page', function(this: MochaFn) {
 			});
 			it('is preserved on page reload', function(done) {
 				this.slow(6000);
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getSyncSettings();
 				}).then((settings) => {
 					assert.strictEqual(settings.editor.tabSize, newTabSize,
@@ -1961,7 +1960,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
@@ -1974,7 +1973,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
@@ -1987,7 +1986,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
@@ -2000,7 +1999,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('should be preserved', function(done) {
-				reloadPage().then(() => {
+				reloadPage(this).then(() => {
 					return getCRM();
 				}).then((crm) => {
 					assert.strictEqual(crm[0].type, 'stylesheet', 'type has stayed the same');
@@ -2192,7 +2191,7 @@ describe('Page', function(this: MochaFn) {
 						url: newUrl
 					}
 
-					reloadPage().then(() => {
+					reloadPage(this).then(() => {
 						return getCRM();
 					}).then((crm) => {
 						assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
@@ -2320,7 +2319,7 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should be saved on page reload', function(done) {
-					reloadPage().then(() => {
+					reloadPage(this).then(() => {
 						return getCRM();
 					}).then((crm: Array<StylesheetNode>) => {
 						assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
@@ -2402,7 +2401,7 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should be saved on page reset', function(done) {
-					reloadPage().then(() => {
+					reloadPage(this).then(() => {
 						return getCRM();
 					}).then((crm: Array<StylesheetNode>) => {
 						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
@@ -2511,7 +2510,6 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 });
-*/
 
 function getTypeName(index: number): string {
 	switch (index) {
@@ -2637,6 +2635,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should be able to switch to a new CRM', function(this: MochaFn, done) {
+			this.slow(1200);
 			assert.doesNotThrow(() => {
 				driver
 					.executeScript(inlineFn(() => {
@@ -2651,6 +2650,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			}, 'settings CRM does not throw');
 		});
 		it('should be using the new CRM', function(this: MochaFn, done) {
+			this.slow(400);
 			getContextMenu().then((contextMenu) => {
 				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM2.concat([{
 					name: undefined
@@ -3005,14 +3005,13 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 
 		it('should have the correct structure', function(done) {
+			this.slow(500);
 			getContextMenu().then((contextMenu) => {
 				driver
 					.executeScript(inlineFn(() => {
 						return window.logs;
 					}))
 					.then((logs) => {
-						console.log(logs);
-						console.log(JSON.stringify(contextMenu));
 						assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes.concat([{
 							name: undefined
 						}, {
