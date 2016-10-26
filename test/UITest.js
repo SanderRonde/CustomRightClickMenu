@@ -395,8 +395,8 @@ describe('Page', function () {
         });
     });
     describe('CheckboxOptions', function () {
-        this.timeout(10000);
-        this.slow(6000);
+        this.timeout(20000);
+        this.slow(10000);
         var checkboxDefaults = {
             showOptions: true,
             recoverUnsavedData: false,
@@ -450,14 +450,15 @@ describe('Page', function () {
         });
     });
     describe('Commonly used links', function () {
-        this.timeout(5000);
-        this.slow(5000);
+        this.timeout(20000);
+        this.slow(10000);
         var searchEngineLink = '';
         var defaultLinkName = '';
         before('Reset settings', function () {
-            resetSettings(this);
+            return resetSettings(this);
         });
         it('should be addable', function (done) {
+            this.timeout(10000);
             driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
                 elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(function () {
                     elements[0].findElement(webdriver.By.tagName('input')).getAttribute('value').then(function (name) {
@@ -541,7 +542,7 @@ describe('Page', function () {
         var searchEngineLink = '';
         var searchEngineName = '';
         before('Reset settings', function () {
-            resetSettings(this);
+            return resetSettings(this);
         });
         it('should be addable', function (done) {
             driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
@@ -656,7 +657,7 @@ describe('Page', function () {
     });
     describe('URIScheme', function () {
         before('Reset settings', function () {
-            resetSettings(this);
+            return resetSettings(this);
         });
         function testURIScheme(driver, done, toExecutePath, schemeName) {
             driver
@@ -695,7 +696,7 @@ describe('Page', function () {
         this.slow(7000);
         this.timeout(50000);
         afterEach('Reset page settings', function () {
-            resetSettings(this);
+            return resetSettings(this);
         });
         var defaultToExecutePath = 'C:\\files\\my_file.exe';
         var defaultSchemeName = 'myscheme';
@@ -751,11 +752,11 @@ describe('Page', function () {
         describe('Name Input', function () {
             this.slow(10000);
             after('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             it('should not change when not saved', function (done) {
                 before('Reset settings', function () {
-                    resetSettings(this);
+                    return resetSettings(this);
                 });
                 var name = getRandomString(25);
                 resetSettings(this).then(function () {
@@ -782,7 +783,7 @@ describe('Page', function () {
             var name = getRandomString(25);
             it('should be editable when saved', function (done) {
                 before('Reset settings', function () {
-                    resetSettings(this);
+                    return resetSettings(this);
                 });
                 resetSettings(this).then(function () {
                     return openDialog(type);
@@ -824,7 +825,7 @@ describe('Page', function () {
             var _this = this;
             this.slow(150000);
             after('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             it('should not change when not saved', function (done) {
                 resetSettings(this).then(function () {
@@ -940,7 +941,7 @@ describe('Page', function () {
             this.slow(15000);
             var defaultContentTypes = [true, true, true, false, false, false];
             after('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             it('should be editable through clicking on the checkboxes', function (done) {
                 resetSettings(this).then(function () {
@@ -1465,7 +1466,7 @@ describe('Page', function () {
     }
     describe('CRM Editing', function () {
         before('Reset settings', function () {
-            resetSettings(this);
+            return resetSettings(this);
         });
         describe('Type Switching', function () {
             function testTypeSwitch(driver, type, done) {
@@ -1547,7 +1548,7 @@ describe('Page', function () {
             var type = 'link';
             this.timeout(30000);
             before('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             testNameInput(type);
             testVisibilityTriggers(type);
@@ -1555,7 +1556,7 @@ describe('Page', function () {
             describe('Links', function () {
                 this.slow(22500);
                 after('Reset settings', function () {
-                    resetSettings(this);
+                    return resetSettings(this);
                 });
                 it('open in new tab property should be editable', function (done) {
                     resetSettings(this).then(function () {
@@ -1786,7 +1787,7 @@ describe('Page', function () {
             var type = 'link';
             this.timeout(30000);
             before('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             testNameInput(type);
             testVisibilityTriggers(type);
@@ -1796,7 +1797,7 @@ describe('Page', function () {
             var type = 'menu';
             this.timeout(30000);
             before('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             testNameInput(type);
             testVisibilityTriggers(type);
@@ -1806,7 +1807,7 @@ describe('Page', function () {
             var type = 'stylesheet';
             this.timeout(30000);
             before('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             testNameInput(type);
             testContentTypes(type);
@@ -1994,7 +1995,7 @@ describe('Page', function () {
             var type = 'script';
             this.timeout(30000);
             before('Reset settings', function () {
-                resetSettings(this);
+                return resetSettings(this);
             });
             testNameInput(type);
             testContentTypes(type);

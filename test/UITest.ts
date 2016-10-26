@@ -699,8 +699,8 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 	describe('CheckboxOptions', function(this: MochaFn) {
-		this.timeout(10000);
-		this.slow(6000);
+		this.timeout(20000);
+		this.slow(10000);
 		const checkboxDefaults = {
 			showOptions: true,
 			recoverUnsavedData: false,
@@ -765,15 +765,16 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 	describe('Commonly used links', function(this: MochaFn) {
-		this.timeout(5000);
-		this.slow(5000);
+		this.timeout(20000);
+		this.slow(10000);
 		let searchEngineLink = '';
 		let defaultLinkName = '';
 
 		before('Reset settings', function() {
-			resetSettings(this);
+			return resetSettings(this);
 		});
-		it('should be addable', function(done)  {
+		it('should be addable', function(this: MochaFn, done)  {
+			this.timeout(10000);
 			driver.findElements(webdriver.By.tagName('default-link')).then((elements) => {
 				elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(() => {
 					elements[0].findElement(webdriver.By.tagName('input')).getAttribute('value').then((name) => {
@@ -878,7 +879,7 @@ describe('Page', function(this: MochaFn) {
 		let searchEngineName = '';
 
 		before('Reset settings', function() {
-			resetSettings(this);
+			return resetSettings(this);
 		});
 
 		it('should be addable', function(done)  {
@@ -1015,7 +1016,7 @@ describe('Page', function(this: MochaFn) {
 	describe('URIScheme', function(this: MochaFn) {
 
 		before('Reset settings', function() {
-			resetSettings(this);
+			return resetSettings(this);
 		});
 
 		function testURIScheme(driver: webdriver.WebDriver,
@@ -1061,7 +1062,7 @@ describe('Page', function(this: MochaFn) {
 		this.slow(7000);
 		this.timeout(50000);
 		afterEach('Reset page settings', function() {
-			resetSettings(this);
+			return resetSettings(this);
 		});
 
 		const defaultToExecutePath = 'C:\\files\\my_file.exe';
@@ -1121,13 +1122,13 @@ describe('Page', function(this: MochaFn) {
 			this.slow(10000);
 
 			after('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			it('should not change when not saved', function(done) {
 				before('Reset settings', function() {
-				resetSettings(this);
-			});
+					return resetSettings(this);
+				});
 
 				const name = getRandomString(25);
 				resetSettings(this).then(() => {
@@ -1156,7 +1157,7 @@ describe('Page', function(this: MochaFn) {
 			const name = getRandomString(25);
 			it('should be editable when saved', function(done)  {
 				before('Reset settings', function() {
-					resetSettings(this);
+					return resetSettings(this);
 				});
 
 				resetSettings(this).then(() => {
@@ -1204,7 +1205,7 @@ describe('Page', function(this: MochaFn) {
 			this.slow(150000);
 
 			after('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			it('should not change when not saved', function(done)  {
@@ -1341,7 +1342,7 @@ describe('Page', function(this: MochaFn) {
 			const defaultContentTypes = [true, true, true, false, false, false];
 
 			after('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			it('should be editable through clicking on the checkboxes', function(done)  {
@@ -1926,7 +1927,7 @@ describe('Page', function(this: MochaFn) {
 
 	describe('CRM Editing', function(this: MochaFn) {
 		before('Reset settings', function() {
-			resetSettings(this);
+			return resetSettings(this);
 		});
 
 		describe('Type Switching', function(this: MochaFn) {
@@ -2012,7 +2013,7 @@ describe('Page', function(this: MochaFn) {
 
 			this.timeout(30000);
 			before('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2023,7 +2024,7 @@ describe('Page', function(this: MochaFn) {
 				this.slow(22500);
 
 				after('Reset settings', function() {
-					resetSettings(this);
+					return resetSettings(this);
 				});
 
 				it('open in new tab property should be editable', function(done)  {
@@ -2267,7 +2268,7 @@ describe('Page', function(this: MochaFn) {
 
 			this.timeout(30000);
 			before('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2279,7 +2280,7 @@ describe('Page', function(this: MochaFn) {
 
 			this.timeout(30000);
 			before('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2291,7 +2292,7 @@ describe('Page', function(this: MochaFn) {
 
 			this.timeout(30000);
 			before('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
@@ -2480,7 +2481,7 @@ describe('Page', function(this: MochaFn) {
 
 			this.timeout(30000);
 			before('Reset settings', function() {
-				resetSettings(this);
+				return resetSettings(this);
 			});
 
 			testNameInput(type);
