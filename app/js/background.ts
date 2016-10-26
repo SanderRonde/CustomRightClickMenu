@@ -6993,8 +6993,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return null;
 				}
 				let newTrigger: string;
-				if (trigger.split('//')[1].indexOf('/') === -1) {
-					newTrigger = trigger + '/';
+				
+				const triggerSplit = trigger.split('//');
+				if (triggerSplit.length === 1) {
+					newTrigger = `http://${trigger}`;
+					triggerSplit[1] = triggerSplit[0];
+				}
+				if (triggerSplit[1].indexOf('/') === -1) {
+					newTrigger = `${trigger}/`;
 				} else {
 					newTrigger = trigger;
 				}
