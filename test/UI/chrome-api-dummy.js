@@ -50,9 +50,19 @@ var extensionId = 'glloknfjojplkpphcmpgkcemckbcbmhe';
 
 var onMessageListener = null; 
 
-const currentContextMenu = [];
-const usedIds = [];
-const activeTabs = [];
+var currentContextMenu = [];
+var usedIds = [];
+var activeTabs = [];
+
+function findItemWithId(arr, id, fn) {
+	for (var i = 0; i < arr.length; i++) {
+		if (arr[i].id === id) {
+			fn(arr[i]);
+			return;	
+		}
+		arr[i].children && findItemWithId(arr[i].children, id, fn);
+	}
+}
 
 window.chrome = {
 	_lastCall: null,
@@ -68,20 +78,16 @@ window.chrome = {
 			data.type = data.type || 'normal';
 			data.documentUrlPatterns = data.documentUrlPatterns || []; 
 
-			window.logs.push(...[data, id]);
 			usedIds.push(id);
 			if (data.parentId) {
-				for (var i = 0; i < currentContextMenu.length; i++) {
-					if (currentContextMenu[i].id === data.parentId) {
-						currentContextMenu[i].children.push({
-							id: id,
-							createProperties: data,
-							currentProperties: data,
-							children: []
-						});
-						break;
-					}
-				}
+				findItemWithId(currentContextMenu, data.parentId, function(parent) {
+					parent.children.push({
+						id: id,
+						createProperties: data,
+						currentProperties: data,
+						children: []
+					});
+				});
 			} else {
 				currentContextMenu.push({
 					id: id,
