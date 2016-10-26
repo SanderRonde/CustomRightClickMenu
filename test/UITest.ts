@@ -1514,6 +1514,8 @@ describe('Page', function(this: MochaFn) {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type);
+						}).then(() => {
+							return wait(500);
 						}).then((dialog) => {
 							dialog
 								.findElement(webdriver.By.id('dropdownMenu'))
@@ -1553,6 +1555,8 @@ describe('Page', function(this: MochaFn) {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type);
+						}).then(() => {
+							return wait(500);
 						}).then((dialog) => {
 							dialog
 								.findElement(webdriver.By.id('dropdownMenu'))
@@ -1588,6 +1592,8 @@ describe('Page', function(this: MochaFn) {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type)
+						}).then(() => {
+							return wait(500);
 						}).then((dialog) => {
 							dialog
 								.findElement(webdriver.By.id('dropdownMenu'))
@@ -1669,6 +1675,8 @@ describe('Page', function(this: MochaFn) {
 							return openDialog(type);
 						}).then(() => {
 							return getDialog(driver, type)
+						}).then(() => {
+							return wait(500);
 						}).then((dialog) => {
 							dialog
 								.findElement(webdriver.By.id('dropdownMenu'))
@@ -1735,6 +1743,8 @@ describe('Page', function(this: MochaFn) {
 				return openDialog(type);
 			}).then(() => {
 				return getDialog(driver, type);
+			}).then(() => {
+				return wait(500);
 			}).then((dialog) => {
 				return dialog
 					.findElement(webdriver.By.id('editorSettings'))
@@ -1759,6 +1769,8 @@ describe('Page', function(this: MochaFn) {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
+				}).then(() => {
+					return wait(500);
 				}).then((dialog) => {
 					return dialog
 						.findElement(webdriver.By.id('editorSettings'))
@@ -1798,6 +1810,8 @@ describe('Page', function(this: MochaFn) {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
+				}).then(() => {
+					return wait(500);
 				}).then((dialog) => {
 					return dialog
 						.findElement(webdriver.By.id('editorSettings'))
@@ -1840,6 +1854,8 @@ describe('Page', function(this: MochaFn) {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
+				}).then(() => {
+					return wait(500);
 				}).then((dialog) => {
 					return dialog
 						.findElement(webdriver.By.id('editorSettings'))
@@ -1880,6 +1896,8 @@ describe('Page', function(this: MochaFn) {
 					return openDialog(type);
 				}).then(() => {
 					return getDialog(driver, type);
+				}).then(() => {
+					return wait(500);
 				}).then((dialog) => {
 					return dialog
 						.findElement(webdriver.By.id('editorSettings'))
@@ -2291,6 +2309,7 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'stylesheet';
 
 			this.timeout(30000);
+			this.slow(12000);
 			before('Reset settings', function() {
 				return resetSettings(this);
 			});
@@ -2480,6 +2499,7 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'script';
 
 			this.timeout(30000);
+			this.slow(12000);
 			before('Reset settings', function() {
 				return resetSettings(this);
 			});

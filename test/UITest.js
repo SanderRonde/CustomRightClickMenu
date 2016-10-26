@@ -1091,6 +1091,8 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
+                        }).then(function () {
+                            return wait(500);
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
@@ -1128,6 +1130,8 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
+                        }).then(function () {
+                            return wait(500);
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
@@ -1163,6 +1167,8 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
+                        }).then(function () {
+                            return wait(500);
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
@@ -1230,6 +1236,8 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
+                        }).then(function () {
+                            return wait(500);
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
@@ -1291,6 +1299,8 @@ describe('Page', function () {
                 return openDialog(type);
             }).then(function () {
                 return getDialog(driver, type);
+            }).then(function () {
+                return wait(500);
             }).then(function (dialog) {
                 return dialog
                     .findElement(webdriver.By.id('editorSettings'))
@@ -1315,6 +1325,8 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
+                }).then(function () {
+                    return wait(500);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
@@ -1352,6 +1364,8 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
+                }).then(function () {
+                    return wait(500);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
@@ -1389,6 +1403,8 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
+                }).then(function () {
+                    return wait(500);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
@@ -1427,6 +1443,8 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
+                }).then(function () {
+                    return wait(500);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
@@ -1806,6 +1824,7 @@ describe('Page', function () {
         describe('Stylesheet Dialog', function () {
             var type = 'stylesheet';
             this.timeout(30000);
+            this.slow(12000);
             before('Reset settings', function () {
                 return resetSettings(this);
             });
@@ -1994,6 +2013,7 @@ describe('Page', function () {
         describe('Script Dialog', function () {
             var type = 'script';
             this.timeout(30000);
+            this.slow(12000);
             before('Reset settings', function () {
                 return resetSettings(this);
             });
