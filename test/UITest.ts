@@ -310,7 +310,7 @@ after('Driver disconnect', () => {
 });
 
 const sentIds = [];
-function getRandomId() {
+function getRandomId(): number {
 	let id;
 	do {
 		id = ~~(Math.random() * 10000);
