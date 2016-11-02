@@ -757,7 +757,8 @@ describe('Page', function () {
     function testNameInput(type) {
         var defaultName = 'name';
         describe('Name Input', function () {
-            this.slow(10000);
+            this.timeout(30000);
+            this.slow(20000);
             after('Reset settings', function () {
                 return resetSettings(this);
             });
@@ -832,6 +833,7 @@ describe('Page', function () {
     function testVisibilityTriggers(type) {
         describe('Triggers', function () {
             var _this = this;
+            this.timeout(30000);
             this.slow(150000);
             after('Reset settings', function () {
                 return resetSettings(this);
@@ -947,7 +949,8 @@ describe('Page', function () {
     }
     function testContentTypes(type) {
         describe('Content Types', function () {
-            this.slow(15000);
+            this.timeout(30000);
+            this.slow(20000);
             var defaultContentTypes = [true, true, true, false, false, false];
             after('Reset settings', function () {
                 return resetSettings(this);
@@ -1092,6 +1095,7 @@ describe('Page', function () {
     }
     function testClickTriggers(type) {
         describe('Click Triggers', function () {
+            this.timeout(30000);
             [0, 1, 2, 3, 4].forEach(function (triggerOptionIndex) {
                 describe("Trigger option " + triggerOptionIndex, function () {
                     this.slow(20000);
@@ -1306,6 +1310,7 @@ describe('Page', function () {
     }
     function testEditorSettings(type) {
         it('are togglable', function (done) {
+            this.timeout(30000);
             this.slow(13000);
             resetSettings(this).then(function () {
                 return openDialog(type);
@@ -1332,6 +1337,7 @@ describe('Page', function () {
             });
         });
         describe('Theme', function () {
+            this.timeout(30000);
             it('is changable', function (done) {
                 this.slow(13000);
                 resetSettings(this).then(function () {
@@ -1419,7 +1425,7 @@ describe('Page', function () {
         });
         describe('UseTabs', function () {
             it('is changable', function (done) {
-                this.slow(13000);
+                this.slow(17000);
                 resetSettings(this).then(function () {
                     return openDialog(type);
                 }).then(function () {
@@ -1459,7 +1465,7 @@ describe('Page', function () {
         describe('Tab Size', function () {
             var newTabSize = '8';
             it('is changable', function (done) {
-                this.slow(13000);
+                this.slow(17000);
                 resetSettings(this).then(function () {
                     return openDialog(type);
                 }).then(function () {

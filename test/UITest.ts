@@ -1127,7 +1127,8 @@ describe('Page', function(this: MochaFn) {
 	function testNameInput(type: NodeType) {
 		const defaultName = 'name';
 		describe('Name Input', function(this: MochaFn) {
-			this.slow(10000);
+			this.timeout(30000);
+			this.slow(20000);
 
 			after('Reset settings', function() {
 				return resetSettings(this);
@@ -1212,6 +1213,7 @@ describe('Page', function(this: MochaFn) {
 
 	function testVisibilityTriggers(type: NodeType) {
 		describe('Triggers', function(this: MochaFn) {
+			this.timeout(30000);
 			this.slow(150000);
 
 			after('Reset settings', function() {
@@ -1348,7 +1350,8 @@ describe('Page', function(this: MochaFn) {
 
 	function testContentTypes(type: NodeType) {
 		describe('Content Types', function(this: MochaFn) {
-			this.slow(15000);
+			this.timeout(30000);
+			this.slow(20000);
 			const defaultContentTypes = [true, true, true, false, false, false];
 
 			after('Reset settings', function() {
@@ -1516,6 +1519,7 @@ describe('Page', function(this: MochaFn) {
 
 	function testClickTriggers(type: NodeType) {
 		describe('Click Triggers', function(this: MochaFn) {
+			this.timeout(30000);
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function(this: MochaFn) {
 					this.slow(20000);
@@ -1748,6 +1752,7 @@ describe('Page', function(this: MochaFn) {
 
 	function testEditorSettings(type: NodeType) {
 		it('are togglable', function(done) {
+			this.timeout(30000);
 			this.slow(13000);
 			resetSettings(this).then(() => {
 				return openDialog(type);
@@ -1773,6 +1778,7 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		describe('Theme', function(this: MochaFn) {
+			this.timeout(30000);
 			it('is changable', function(done) {
 				this.slow(13000);
 				resetSettings(this).then(() => {
@@ -1867,7 +1873,7 @@ describe('Page', function(this: MochaFn) {
 		});
 		describe('UseTabs', function(this: MochaFn) {
 			it('is changable', function(done) {
-				this.slow(13000);
+				this.slow(17000);
 				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
@@ -1909,7 +1915,7 @@ describe('Page', function(this: MochaFn) {
 		describe('Tab Size', function(this: MochaFn) {
 			const newTabSize = '8';
 			it('is changable', function(done) {
-				this.slow(13000);
+				this.slow(17000);
 				resetSettings(this).then(() => {
 					return openDialog(type);
 				}).then(() => {
