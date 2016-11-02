@@ -1134,6 +1134,7 @@ describe('Page', function(this: MochaFn) {
 			});
 
 			it('should not change when not saved', function(done) {
+				this.slow(12000);
 				before('Reset settings', function() {
 					return resetSettings(this);
 				});
@@ -1164,6 +1165,7 @@ describe('Page', function(this: MochaFn) {
 			});
 			const name = getRandomString(25);
 			it('should be editable when saved', function(done)  {
+				this.slow(12000);
 				before('Reset settings', function() {
 					return resetSettings(this);
 				});
@@ -1533,7 +1535,7 @@ describe('Page', function(this: MochaFn) {
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.className('stylesheetLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -1574,7 +1576,7 @@ describe('Page', function(this: MochaFn) {
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.className('stylesheetLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -1607,11 +1609,11 @@ describe('Page', function(this: MochaFn) {
 								.findElement(webdriver.By.id('dropdownMenu'))
 								.click()
 								.then(() => {
-									wait(500);
+									wait(1000);
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.className('stylesheetLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -1694,7 +1696,7 @@ describe('Page', function(this: MochaFn) {
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.className('stylesheetLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -1823,18 +1825,26 @@ describe('Page', function(this: MochaFn) {
 				}).then((dialog) => {
 					return dialog
 						.findElement(webdriver.By.id('editorSettings'))
-						.click()
-						.then(() => {
-							return wait(500);
-						})
-						.then(() => {
-							return dialog
-								.findElement(webdriver.By.id('editorThemeFontSizeInput'))
-								.findElement(webdriver.By.tagName('input'))
-								.sendKeys(webdriver.Key.BACK_SPACE,
-									webdriver.Key.BACK_SPACE,
-									webdriver.Key.BACK_SPACE,
-									newZoom);
+						.then((editorSettings) => {
+							editorSettings
+								.click()
+								.then(() => {
+									return wait(500);
+								})
+								.then(() => {
+									return dialog
+										.findElement(webdriver.By.id('editorThemeFontSizeInput'))
+										.findElement(webdriver.By.tagName('input'))
+										.sendKeys(webdriver.Key.BACK_SPACE,
+											webdriver.Key.BACK_SPACE,
+											webdriver.Key.BACK_SPACE,
+											newZoom);
+								}).then(() => {
+									//Click the cogwheel to click "somewhere" to remove focus
+									return editorSettings.click();
+								}).then(() => {
+									return wait(500, dialog);
+								});
 						});
 				}).then(() => {
 					return getSyncSettings();
@@ -2234,6 +2244,7 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should not change when not saved', function(done)  {
+					this.slow(12000);
 					const newUrl = 'www.google.com';
 					const defaultLink = {
 						newTab: true,

@@ -362,9 +362,16 @@ function openDialog(type) {
         }
     });
 }
-function wait(time) {
+function wait(time, resolveParam) {
     return driver.wait(new webdriver.promise.Promise(function (resolve) {
-        setTimeout(resolve, time);
+        setTimeout(function () {
+            if (resolveParam) {
+                resolve(resolveParam);
+            }
+            else {
+                resolve(null);
+            }
+        }, time);
     }));
 }
 function inlineFn(fn, args) {
@@ -755,6 +762,7 @@ describe('Page', function () {
                 return resetSettings(this);
             });
             it('should not change when not saved', function (done) {
+                this.slow(12000);
                 before('Reset settings', function () {
                     return resetSettings(this);
                 });
@@ -782,6 +790,7 @@ describe('Page', function () {
             });
             var name = getRandomString(25);
             it('should be editable when saved', function (done) {
+                this.slow(12000);
                 before('Reset settings', function () {
                     return resetSettings(this);
                 });
@@ -1091,8 +1100,8 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
-                        }).then(function () {
-                            return wait(500);
+                        }).then(function (dialog) {
+                            return wait(500, dialog);
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
@@ -1102,7 +1111,7 @@ describe('Page', function () {
                             })
                                 .then(function () {
                                 return dialog
-                                    .findElements(webdriver.By.className('stylesheetLaunchOption'));
+                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
                             }).then(function (triggerOptions) {
                                 return triggerOptions[triggerOptionIndex].click();
                             }).then(function () {
@@ -1130,8 +1139,9 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
-                        }).then(function () {
-                            return wait(500);
+                        }).then(function (dialog) {
+                            return wait(500, dialog);
+                            ;
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
@@ -1141,7 +1151,7 @@ describe('Page', function () {
                             })
                                 .then(function () {
                                 return dialog
-                                    .findElements(webdriver.By.className('stylesheetLaunchOption'));
+                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
                             }).then(function (triggerOptions) {
                                 return triggerOptions[triggerOptionIndex].click();
                             }).then(function () {
@@ -1167,18 +1177,19 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
-                        }).then(function () {
-                            return wait(500);
+                        }).then(function (dialog) {
+                            return wait(500, dialog);
+                            ;
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
                                 .click()
                                 .then(function () {
-                                wait(500);
+                                wait(1000);
                             })
                                 .then(function () {
                                 return dialog
-                                    .findElements(webdriver.By.className('stylesheetLaunchOption'));
+                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
                             }).then(function (triggerOptions) {
                                 return triggerOptions[triggerOptionIndex].click();
                             }).then(function () {
@@ -1236,8 +1247,9 @@ describe('Page', function () {
                             return openDialog(type);
                         }).then(function () {
                             return getDialog(driver, type);
-                        }).then(function () {
-                            return wait(500);
+                        }).then(function (dialog) {
+                            return wait(500, dialog);
+                            ;
                         }).then(function (dialog) {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
@@ -1247,7 +1259,7 @@ describe('Page', function () {
                             })
                                 .then(function () {
                                 return dialog
-                                    .findElements(webdriver.By.className('stylesheetLaunchOption'));
+                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
                             }).then(function (triggerOptions) {
                                 return triggerOptions[triggerOptionIndex].click();
                             }).then(function () {
@@ -1299,8 +1311,9 @@ describe('Page', function () {
                 return openDialog(type);
             }).then(function () {
                 return getDialog(driver, type);
-            }).then(function () {
-                return wait(500);
+            }).then(function (dialog) {
+                return wait(500, dialog);
+                ;
             }).then(function (dialog) {
                 return dialog
                     .findElement(webdriver.By.id('editorSettings'))
@@ -1325,8 +1338,8 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
-                }).then(function () {
-                    return wait(500);
+                }).then(function (dialog) {
+                    return wait(500, dialog);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
@@ -1364,20 +1377,28 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
-                }).then(function () {
-                    return wait(500);
+                }).then(function (dialog) {
+                    return wait(500, dialog);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
-                        .click()
-                        .then(function () {
-                        return wait(500);
-                    })
-                        .then(function () {
-                        return dialog
-                            .findElement(webdriver.By.id('editorThemeFontSizeInput'))
-                            .findElement(webdriver.By.tagName('input'))
-                            .sendKeys(webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, newZoom);
+                        .then(function (editorSettings) {
+                        editorSettings
+                            .click()
+                            .then(function () {
+                            return wait(500);
+                        })
+                            .then(function () {
+                            return dialog
+                                .findElement(webdriver.By.id('editorThemeFontSizeInput'))
+                                .findElement(webdriver.By.tagName('input'))
+                                .sendKeys(webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, newZoom);
+                        }).then(function () {
+                            //Click the cogwheel to click "somewhere" to remove focus
+                            return editorSettings.click();
+                        }).then(function () {
+                            return wait(500, dialog);
+                        });
                     });
                 }).then(function () {
                     return getSyncSettings();
@@ -1403,8 +1424,8 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
-                }).then(function () {
-                    return wait(500);
+                }).then(function (dialog) {
+                    return wait(500, dialog);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
@@ -1443,8 +1464,8 @@ describe('Page', function () {
                     return openDialog(type);
                 }).then(function () {
                     return getDialog(driver, type);
-                }).then(function () {
-                    return wait(500);
+                }).then(function (dialog) {
+                    return wait(500, dialog);
                 }).then(function (dialog) {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
@@ -1747,6 +1768,7 @@ describe('Page', function () {
                     });
                 });
                 it('should not change when not saved', function (done) {
+                    this.slow(12000);
                     var newUrl = 'www.google.com';
                     var defaultLink = {
                         newTab: true,
