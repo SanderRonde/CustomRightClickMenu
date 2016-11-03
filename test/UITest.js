@@ -289,7 +289,7 @@ function getRandomString(length) {
     }).join('');
 }
 function resetSettings(_this, done) {
-    _this.timeout(15000);
+    _this.timeout(30000);
     var promise = new webdriver.promise.Promise(function (resolve) {
         driver.executeScript(inlineFn(function () {
             window.chrome.storage.local.clear();
@@ -309,7 +309,7 @@ function resetSettings(_this, done) {
     }
 }
 function reloadPage(_this, done) {
-    _this.timeout(15000);
+    _this.timeout(30000);
     var promise = new webdriver.promise.Promise(function (resolve) {
         driver
             .get('http://localhost:1234/test/UI/UITest.html#noClear')

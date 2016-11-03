@@ -586,7 +586,7 @@ function getRandomString(length: number): string {
 function resetSettings(_this: MochaFn, done: (...args: Array<any>) => void): void;
 function resetSettings(_this: MochaFn): webdriver.promise.Promise<any>; 
 function resetSettings(_this: MochaFn, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
-	_this.timeout(15000);
+	_this.timeout(30000);
 	const promise = new webdriver.promise.Promise((resolve) => {
 		driver.executeScript(inlineFn(() => {
 			window.chrome.storage.local.clear();
@@ -608,7 +608,7 @@ function resetSettings(_this: MochaFn, done?: (...args: Array<any>) => void): we
 function reloadPage(_this: MochaFn, done: (...args: Array<any>) => void): void;
 function reloadPage(_this: MochaFn): webdriver.promise.Promise<any>; 
 function reloadPage(_this: MochaFn, done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
-	_this.timeout(15000);
+	_this.timeout(30000);
 	const promise = new webdriver.promise.Promise((resolve) => {
 		driver
 		.get('http://localhost:1234/test/UI/UITest.html#noClear')
