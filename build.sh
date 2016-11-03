@@ -12,7 +12,7 @@ do
   #Get compile target
   FIRSTLINE=$(head -n 1 $FILE)
   COMPILE_TARGET=$(echo $FIRSTLINE | grep -o -G '=[a-zA-Z0-9]*')
-  COMPILE_TARGET=$(echo $COMPILE_TARGET | rev | cut -c 2- | rev)
+  COMPILE_TARGET=$(echo $COMPILE_TARGET | cut -c 2-)
 
   COMPILE_TARGET_LENGTH=$(echo COMPILE_TARGET | wc --chars)
   if [ COMPILE_TARGET_LENGTH = 1 ]; then
@@ -21,7 +21,7 @@ do
   fi
 
   #Compile
-  echo "Compiling target $COMPILE_TARGET"
+  echo "Compiling $FILE to target $COMPILE_TARGET"
   tsc --target $COMPILE_TARGET $FILE
 done
 
