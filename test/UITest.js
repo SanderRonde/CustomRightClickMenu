@@ -1119,7 +1119,7 @@ describe('Page', function () {
                             }).then(function (triggerOptions) {
                                 return triggerOptions[triggerOptionIndex].click();
                             }).then(function () {
-                                wait(300);
+                                wait(1500);
                             }).then(function () {
                                 return saveDialog(dialog);
                             }).then(function () {
@@ -1159,7 +1159,7 @@ describe('Page', function () {
                             }).then(function (triggerOptions) {
                                 return triggerOptions[triggerOptionIndex].click();
                             }).then(function () {
-                                wait(300);
+                                wait(1500);
                             }).then(function () {
                                 return cancelDialog(dialog);
                             }).then(function () {

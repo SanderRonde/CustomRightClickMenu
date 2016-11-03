@@ -1543,7 +1543,7 @@ describe('Page', function(this: MochaFn) {
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
-									wait(300);
+									wait(1500);
 								}).then(() => {
 									return saveDialog(dialog);
 								}).then(() => {
@@ -1584,7 +1584,7 @@ describe('Page', function(this: MochaFn) {
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
-									wait(300);
+									wait(1500);
 								}).then(() => {
 									return cancelDialog(dialog);
 								}).then(() => {
