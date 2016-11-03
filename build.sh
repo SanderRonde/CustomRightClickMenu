@@ -21,6 +21,7 @@ do
   fi
 
   #Compile
+  echo "Compiling target $COMPILE_TARGET"
   tsc --target $COMPILE_TARGET $FILE
 done
 
