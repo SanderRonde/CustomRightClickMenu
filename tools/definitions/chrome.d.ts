@@ -5870,9 +5870,7 @@ declare namespace chrome.tabCapture {
 		/** Optional. */
         video?: boolean;
 		/** Optional. */
-		audioConstraints?: MediaStreamConstraints;
 		/** Optional. */
-		videoConstraints?: MediaStreamConstraints;
 	}
 
 	interface CaptureStatusChangedEvent extends chrome.events.Event<(info: CaptureInfo) => void> {}
@@ -5882,7 +5880,7 @@ declare namespace chrome.tabCapture {
 	 * @param options Configures the returned media stream.
 	 * @param callback Callback with either the tab capture stream or null.
 	 */
-    export function capture(options: CaptureOptions, callback: (stream: MediaStream) => void): void;
+    //export function capture(options: CaptureOptions, callback: (stream: MediaStream) => void): void;
 	/**
 	 * Returns a list of tabs that have requested capture or are being captured, i.e. status != stopped and status != error. This allows extensions to inform the user that there is an existing tab capture that would prevent a new tab capture from succeeding (or to prevent redundant requests for the same tab).
 	 * @param callback Callback invoked with CaptureInfo[] for captured tabs.
