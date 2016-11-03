@@ -1,3 +1,4 @@
+//TSC-target=ES5
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/chai.d.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
@@ -277,7 +278,7 @@ const btoa = require('btoa');
 const assert = chai.assert;
 
 let driver: webdriver.WebDriver;
-before('Driver connect', function(this: MochaFn, done) {
+before('Driver connect', function(this: MochaFn, done: any) {
 	this.timeout(60000);
 
 	// Input capabilities

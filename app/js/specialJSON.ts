@@ -1,3 +1,4 @@
+//TSC-target=ES3
 interface Window {
 	specialJSON: any;
 }

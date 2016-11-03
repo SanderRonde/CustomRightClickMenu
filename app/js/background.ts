@@ -1,3 +1,4 @@
+//TSC-target=ES3
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
 
 declare var module: void;

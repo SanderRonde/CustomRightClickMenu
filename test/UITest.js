@@ -1,3 +1,4 @@
+//TSC-target=ES5
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/chai.d.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
