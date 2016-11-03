@@ -1,5 +1,6 @@
 //TSC-target=ES3
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
+/// <reference path="../../tools/definitions/node.d.ts" />
 window.logs = [];
 ;
 ;
