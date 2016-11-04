@@ -6938,5 +6938,5 @@ if (typeof module === 'undefined') {
     console.log('If you\'re here to check out your background script,' +
         ' get its ID (you can type getID("name") to find the ID),' +
         ' and type filter(id, [optional tabId]) to show only those messages.' +
-        ' You can also visit the logging page for even better logging over at ', chrome.runtime.getURL('logging.html'));
+        ' You can also visit the logging page for even better logging over at ', chrome.runtime.getURL('html/logging.html'));
 }
