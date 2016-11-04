@@ -7400,7 +7400,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				id?: number;
 				tabId?: number;
 			}) {
-				debugger;
 				switch (data.type) {
 					case 'optionsPage':
 						if (data.localChanges) {
