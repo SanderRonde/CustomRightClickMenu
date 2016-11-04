@@ -1408,12 +1408,12 @@
 		/**
 		 * The value of a standard node, all nodes inherit from this
 		 *
-		 * @typedef {Object} CrmAPIInit~crmNode
+		 * @typedef {Object} CrmNode
 		 * @property {Number} id - The ID of the node
 		 * @property {Number} index - The index of the node in its parent's children
 		 * @property {string} name - The name of the node
 		 * @property {string} type - The type of the node (link, script, menu or divider)
-		 * @property {CrmAPIInit~crmNode[]} children - The children of the object, only possible if type is menu and permision "CRM" is present
+		 * @property {CrmNode[]} children - The children of the object, only possible if type is menu and permision "CRM" is present
 		 * @property {Object} nodeInfo - Any info about the node, it's author and where it's downloaded from
 		 * @property {string} nodeInfo.installDate - The date on which the node was installed or created
 		 * @property {boolean} nodeInfo.isRoot - Whether the node is downloaded (false) or created locally (true)
@@ -1435,17 +1435,17 @@
 		 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
 		 * 		https://developer.chrome.com/extensions/match_patterns
 		 * @property {boolean} triggers.not - If true does NOT run on given site
-		 * @property {CrmAPIInit~linkVal} linkVal - The value of the node if it were to switch to type link
-		 * @property {CrmAPIInit~scriptVal} scriptVal - The value of the node if it were to switch to type script
-		 * @property {CrmAPIInit~stylesheetVal} stylesheetVal - The value fo the node if it were to switch to type stylesheet
+		 * @property {LinkVal} linkVal - The value of the node if it were to switch to type link
+		 * @property {ScriptVal} scriptVal - The value of the node if it were to switch to type script
+		 * @property {StylesheetVal} stylesheetVal - The value fo the node if it were to switch to type stylesheet
 		 * @property {Object[]} menuVal - The children of the node if it were to switch to type menu
 		 */
 
 		/**
 		 * The properties of a node if it's of type link
 		 *
-		 * @augments CrmAPIInit~crmNode
-		 * @typedef {Object[]} CrmAPIInit~linkVal
+		 * @augments CrmNode
+		 * @typedef {Object[]} LinkVal
 		 * @property {Object[]} value - The links in this link-node
 		 * @property {string} value.url - The URL to open
 		 * @property {boolean} value.newTab - True if the link is opened in a new tab
@@ -1455,8 +1455,8 @@
 		/**
 		 * The properties of a node if it's of type script
 		 *
-		 * @augments CrmAPIInit~crmNode
-		 * @typedef {Object} CrmAPIInit~scriptVal
+		 * @augments CrmNode
+		 * @typedef {Object} ScriptVal
 		 * @property {Object} value - The value of this script-node
 		 * @property {Number} value.launchMode - When to launch the script,
 		 *		0 = run on clicking
@@ -1477,8 +1477,8 @@
 		/**
 		 * The properties of a node if it's of type stylesheet
 		 *
-		 * @augments CrmAPIInit~crmNode
-		 * @typedef {Object} CrmAPIInit~stylesheetVal
+		 * @augments CrmNode
+		 * @typedef {Object} StylesheetVal
 		 * @property {Object} value - The value of this stylesheet
 		 * @property {Number} value.launchMode - When to launch the stylesheet,
 		 *		0 = run on clicking
@@ -1494,15 +1494,15 @@
 		/**
 		 * The properties of a node if it's of type menu
 		 *
-		 * @augments CrmAPIInit~crmNode
-		 * @typedef {Object} CrmAPIInit~menuVal
+		 * @augments CrmNode
+		 * @typedef {Object} MenuVal
 		 * @property {boolean} showOnSpecified - Whether the triggers are actually used, true if they are
 		 */
 
 		/**
 		 * The properties of a node if it's of type divider
 		 *
-		 * @augments CrmAPIInit~crmNode
+		 * @augments CrmNode
 		 * @typedef {Object} CrmAPIInit~dividerVal
 		 * @property {boolean} showOnSpecified - Whether the triggers are actually used, true if they are
 		 */
@@ -1511,7 +1511,7 @@
 		 * This callback is called on most crm functions
 		 *
 		 * @callback CrmAPIInit~crmCallback
-		 * @param {CrmAPIInit~crmNode} node - The node that has been processed/retrieved
+		 * @param {CrmNode} node - The node that has been processed/retrieved
 		 */
 
 		/**
@@ -1611,7 +1611,7 @@
 		 *
 		 * @permission crmGet
 		 * @param {number} nodeId - The id of the node whose value to get
-		 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal, CrmAPIInit~stylesheetVal or an empty object depending on type
+		 * @param {function} callback - A callback with parameter LinkVal, ScriptVal, StylesheetVal or an empty object depending on type
 		 */
 		this.crm.getNodeValue = function (nodeId, callback) {
 			sendCrmMessage('getNodeValue', callback, {
