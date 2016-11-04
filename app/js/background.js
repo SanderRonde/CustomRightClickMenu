@@ -810,7 +810,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                     }
                     else {
-                        messages = globalObject.globals.logging[id].logMessages;
+                        messages = globalObject.globals.logging[id].logMessages || [];
                     }
                     if (tab === 'all') {
                         return sortMessages(filterMessageText(messages, text));
@@ -1332,8 +1332,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 for (var _i = 2; _i < arguments.length; _i++) {
                     args[_i - 2] = arguments[_i];
                 }
-                var logValue = {
-                    id: id,
+                sourceData = sourceData || [undefined, undefined];
+                var srcObj = {
+                    id: id
+                };
+                var logArgs = [
+                    'Background page [', srcObj, ']: '
+                ].concat(args);
+                exports.log.bind(globalObject, id, 'background')
+                    .apply(globalObject, logArgs);
+                var srcObjDetails = {
                     tabId: 'background',
                     nodeTitle: globalObject.globals.crm.crmById[id].name,
                     tabTitle: 'Background Page',
@@ -1342,8 +1350,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     logId: sourceData[1],
                     timestamp: new Date().toLocaleString()
                 };
-                globalObject.globals.logging[id].logMessages.push(logValue);
-                updateLogs(logValue);
+                for (var key in srcObjDetails) {
+                    if (srcObjDetails.hasOwnProperty(key)) {
+                        srcObj[key] = srcObjDetails[key];
+                    }
+                }
+                globalObject.globals.logging[id] = globalObject.globals.logging[id] || {
+                    logMessages: []
+                };
+                globalObject.globals.logging[id].logMessages.push(srcObj);
+                updateLogs(srcObj);
             },
             logHandler: function (message) {
                 prepareLog(message.id, message.tabId);
@@ -4791,9 +4807,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 var isRestart = false;
                                 if (globalObject.globals.background.byId[node.id]) {
                                     isRestart = true;
-                                    console.log("Background page [" + node.id + "]: ", 'Restarting background page...');
+                                    Logging.backgroundPageLog(node.id, null, 'Restarting background page...');
                                     globalObject.globals.background.byId[node.id].worker.terminate();
-                                    console.log("Background page [" + node.id + "]: ", 'Terminated background page...');
+                                    Logging.backgroundPageLog(node.id, null, 'Terminated background page...');
                                 }
                                 var result = loadBackgroundPageLibs(node);
                                 var code = result.code;
@@ -4923,7 +4939,28 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         indentUnit + 'throw error;',
                                         '}'
                                     ];
-                                    sandboxes.sandbox(node.id, code.join('\n'), libraries, key, function (worker) {
+                                    sandboxes.sandbox(node.id, code.join('\n'), libraries, key, function () {
+                                        var instancesArr = [];
+                                        var nodeInstances = globalObject.globals.crmValues
+                                            .nodeInstances[node.id];
+                                        for (var instance in nodeInstances) {
+                                            if (nodeInstances.hasOwnProperty(instance) &&
+                                                nodeInstances[instance]) {
+                                                try {
+                                                    globalObject.globals.crmValues.tabData[instance]
+                                                        .nodes[node.id]
+                                                        .port.postMessage({
+                                                        messageType: 'dummy'
+                                                    });
+                                                    instancesArr.push(instance);
+                                                }
+                                                catch (e) {
+                                                    delete nodeInstances[instance];
+                                                }
+                                            }
+                                        }
+                                        return instancesArr;
+                                    }, function (worker) {
                                         globalObject.globals.background.workers.push(worker);
                                         globalObject.globals.background.byId[node.id] = worker;
                                         if (isRestart) {
@@ -5894,7 +5931,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         orderBackgroundPagesById(changes[i].newValue, ordered);
                         for (var id in ordered) {
                             if (ordered.hasOwnProperty(id)) {
-                                if (globalObject.globals.background.byId[id] &&
+                                if (!globalObject.globals.background.byId[id] ||
                                     globalObject.globals.background.byId[id].script !== ordered[id]) {
                                     CRM.Script.Background.createBackgroundPage(globalObject.globals.crm
                                         .crmById[id]);
@@ -5995,6 +6032,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             },
             applyChanges: function (data) {
+                debugger;
                 switch (data.type) {
                     case 'optionsPage':
                         if (data.localChanges) {
@@ -6827,7 +6865,7 @@ typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxe
     return sandboxes;
 })((function () {
     var sandboxes = {};
-    function SandboxWorker(id, script, libraries, secretKey) {
+    function SandboxWorker(id, script, libraries, secretKey, getInstances) {
         this.script = script;
         var worker = this.worker = new Worker('/js/sandbox.js');
         this.id = id;
@@ -6853,7 +6891,7 @@ typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxe
                 callback(JSON.parse(message.data));
             }
             else {
-                window.backgroundPageLog(id, null, 'Background page [' + id + ']: ', 'Tried to send an unauthenticated message');
+                window.backgroundPageLog(id, null, 'Tried to send an unauthenticated message');
             }
         }
         var verified = false;
@@ -6863,13 +6901,17 @@ typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxe
                 case 'handshake':
                 case 'crmapi':
                     if (!verified) {
-                        window.backgroundPageLog(id, null, "Background page [" + id + "]: ", 'Ininitialized background page');
+                        window.backgroundPageLog(id, null, 'Ininitialized background page');
+                        worker.postMessage({
+                            type: 'verify',
+                            instances: getInstances()
+                        });
                         verified = true;
                     }
                     verifyKey(data, handler);
                     break;
                 case 'log':
-                    window.backgroundPageLog.apply(window, [id, [data.lineNo, data.logId], ("Background page [" + id + "]: ")].concat(JSON
+                    window.backgroundPageLog.apply(window, [id, [data.lineNo, data.logId]].concat(JSON
                         .parse(data.data)));
                     break;
             }
@@ -6882,12 +6924,13 @@ typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxe
         }, false);
         worker.postMessage({
             type: 'init',
+            id: id,
             script: script,
             libraries: libraries
         });
     }
-    sandboxes.sandbox = function (id, script, libraries, secretKey, callback) {
-        callback(new SandboxWorker(id, script, libraries, secretKey));
+    sandboxes.sandbox = function (id, script, libraries, secretKey, getInstances, callback) {
+        callback(new SandboxWorker(id, script, libraries, secretKey, getInstances));
     };
     return sandboxes;
 })()));

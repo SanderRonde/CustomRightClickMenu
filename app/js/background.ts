@@ -695,7 +695,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 ((extensionId: string, globalObject: GlobalObject, sandboxes: {
 	sandboxChrome: (api: string, args: Array<any>) => any;
 	sandbox: (id: number, script: string, libraries: Array<string>,
-		secretKey: Array<number>,
+		secretKey: Array<number>, getInstances: () => Array<string>,
 		callback: (worker: CRMSandboxWorker) => void) => void;
 }) => {
 	//#region Global Variables
@@ -1545,7 +1545,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 					} else {
-						messages = globalObject.globals.logging[id].logMessages;
+						messages = globalObject.globals.logging[id].logMessages || [];
 					}
 					if (tab === 'all') {
 						return sortMessages(filterMessageText(messages, text));
@@ -2159,8 +2159,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			},
 
 			backgroundPageLog(id: number, sourceData: [string, number], ...args: Array<any>) {
-				const logValue = {
-					id: id,
+				sourceData = sourceData || [undefined, undefined];
+
+				const srcObj: LogListenerLine = {
+					id: id
+				} as any;
+				const logArgs = [
+					'Background page [', srcObj, ']: '
+				].concat(args);
+
+				exports.log.bind(globalObject, id, 'background')
+					.apply(globalObject, logArgs);
+
+				const srcObjDetails = {
 					tabId: 'background',
 					nodeTitle: globalObject.globals.crm.crmById[id].name,
 					tabTitle: 'Background Page',
@@ -2169,8 +2180,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					logId: sourceData[1],
 					timestamp: new Date().toLocaleString()
 				};
-				globalObject.globals.logging[id].logMessages.push(logValue);
-				updateLogs(logValue);
+				for (let key in srcObjDetails) {
+					if (srcObjDetails.hasOwnProperty(key)) {
+						srcObj[key] = srcObjDetails[key]; 
+					}
+				}
+				globalObject.globals.logging[id] = globalObject.globals.logging[id] || {
+					logMessages: []
+				};
+				globalObject.globals.logging[id].logMessages.push(srcObj);
+				updateLogs(srcObj);
 			},
 
 			logHandler(message: {
@@ -6013,10 +6032,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								var isRestart = false;
 								if (globalObject.globals.background.byId[node.id]) {
 									isRestart = true;
-									console.log(`Background page [${node.id}]: `,
+									
+									Logging.backgroundPageLog(node.id, null, 
 										'Restarting background page...');
 									globalObject.globals.background.byId[node.id].worker.terminate();
-									console.log(`Background page [${node.id}]: `,
+									Logging.backgroundPageLog(node.id, null, 
 										'Terminated background page...');
 								}
 
@@ -6155,6 +6175,28 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									];
 
 									sandboxes.sandbox(node.id, code.join('\n'), libraries, key,
+										() => {
+											const instancesArr = [];
+											const nodeInstances = globalObject.globals.crmValues
+												.nodeInstances[node.id];
+											for (let instance in nodeInstances) {
+												if (nodeInstances.hasOwnProperty(instance) &&
+													nodeInstances[instance]) {
+
+													try {
+														globalObject.globals.crmValues.tabData[instance]
+															.nodes[node.id]
+															.port.postMessage({
+																messageType: 'dummy'
+															});
+														instancesArr.push(instance);
+													} catch (e) {
+														delete nodeInstances[instance];
+													}
+												}
+											}
+											return instancesArr;
+										},
 										(worker) => {
 											globalObject.globals.background.workers.push(worker);
 											globalObject.globals.background.byId[node.id] = worker;
@@ -7247,7 +7289,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						orderBackgroundPagesById(changes[i].newValue, ordered);
 						for (let id in ordered) {
 							if (ordered.hasOwnProperty(id)) {
-								if (globalObject.globals.background.byId[id] &&
+								if (!globalObject.globals.background.byId[id] ||
 									globalObject.globals.background.byId[id].script !== ordered[id]) {
 									CRM.Script.Background.createBackgroundPage(globalObject.globals.crm
 										.crmById[id]);
@@ -7358,6 +7400,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				id?: number;
 				tabId?: number;
 			}) {
+				debugger;
 				switch (data.type) {
 					case 'optionsPage':
 						if (data.localChanges) {
@@ -8381,7 +8424,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	typeof module !== 'undefined' || window.isDev ? window : {},
 	((sandboxes: {
 		sandbox: (id: number, script: string, libraries: Array<string>,
-			secretKey: Array<number>,
+			secretKey: Array<number>, getInstances: () => Array<string>,
 			callback: (worker: CRMSandboxWorker) => void) => void;
 		sandboxChrome?: any;
 	}) => {
@@ -8410,13 +8453,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	})((() => {
 		const sandboxes: {
 			sandbox: (id: number, script: string, libraries: Array<string>,
-				secretKey: Array<number>,
+				secretKey: Array<number>, getInstances: () => Array<string>,
 				callback: (worker: CRMSandboxWorker) => void) => void;
 			sandboxChrome?: any;
 		} = {} as any;
 
 		function SandboxWorker(id: number, script: string, libraries: Array<string>,
-			secretKey: Array<number>) {
+			secretKey: Array<number>, getInstances: () => Array<string>) {
 			this.script = script;
 
 			var worker = this.worker = new Worker('/js/sandbox.js');
@@ -8447,7 +8490,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (message.key.join('') === secretKey.join('')) {
 					callback(JSON.parse(message.data));
 				} else {
-					window.backgroundPageLog(id, null, 'Background page [' + id + ']: ',
+					window.backgroundPageLog(id, null,
 						'Tried to send an unauthenticated message');
 				}
 			}
@@ -8460,15 +8503,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					case 'handshake':
 					case 'crmapi':
 						if (!verified) {
-							window.backgroundPageLog(id, null, `Background page [${id}]: `,
+							window.backgroundPageLog(id, null,
 								'Ininitialized background page');
+
+							worker.postMessage({
+								type: 'verify',
+								instances: getInstances()
+							});
 							verified = true;
 						}
 						verifyKey(data, handler);
 						break;
 					case 'log':
 						window.backgroundPageLog.apply(window,
-							[id, [data.lineNo, data.logId], `Background page [${id}]: `].concat(JSON
+							[id, [data.lineNo, data.logId]].concat(JSON
 								.parse(data.data)));
 						break;
 				}
@@ -8482,14 +8530,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			worker.postMessage({
 				type: 'init',
+				id: id,
 				script: script,
 				libraries: libraries
 			});
 		}
 
 		sandboxes.sandbox = (id: number, script: string, libraries: Array<string>,
-			secretKey: Array<number>, callback: (worker: CRMSandboxWorker) => void) => {
-			callback(new SandboxWorker(id, script, libraries, secretKey));
+			secretKey: Array<number>, getInstances: () => Array<string>, 
+			callback: (worker: CRMSandboxWorker) => void) => {
+			callback(new SandboxWorker(id, script, libraries, secretKey, getInstances));
 		};
 
 		return sandboxes;
