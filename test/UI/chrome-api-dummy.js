@@ -55,6 +55,7 @@ var usedIds = [];
 var activeTabs = [];
 var activatedScripts = [];
 var fakeTabs = {};
+var activatedBackgroundPages = [];
 
 function findItemWithId(arr, id, fn) {
 	for (var i = 0; i < arr.length; i++) {
@@ -72,6 +73,7 @@ window.chrome = {
 	_activeTabs: activeTabs,
 	_activatedScripts: activatedScripts,
 	_fakeTabs: fakeTabs,
+	_activatedBackgroundPages: activatedBackgroundPages,
 	_clearActivatedScripts: function() {
 		while (activatedScripts[0]) {
 			activatedScripts.splice(0, 1);
@@ -279,4 +281,13 @@ window.chrome = {
 			addListener: function() {}
 		}
 	}
+};
+
+var Worker = window.Worker = function() {
+	return {
+		postMessage: function(data) {
+			activatedBackgroundPages.push(data.id);
+		},
+		addEventListener: function() {}
+	};
 };
