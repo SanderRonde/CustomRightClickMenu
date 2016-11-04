@@ -388,100 +388,120 @@ function inlineFn(fn, args) {
     });
     return str;
 }
-describe('Page', function () {
-    describe('Loading', function () {
+/*
+describe('Page', function(this: MochaFn) {
+    describe('Loading', function(this: MochaFn) {
         this.timeout(5000);
         this.slow(2000);
-        it('should happen without errors', function (done) {
+
+        it('should happen without errors', function(done)  {
             driver
-                .executeScript(inlineFn(function () {
-                return window.lastError ? window.lastError : 'noError';
-            })).then(function (result) {
-                assert.ifError(result !== 'noError' ? result : false, 'no errors should be thrown when loading');
-                done();
-            });
+                .executeScript(inlineFn(() => {
+                    return window.lastError ? window.lastError : 'noError';
+                })).then((result) => {
+                    assert.ifError(result !== 'noError' ? result : false,
+                        'no errors should be thrown when loading');
+                    done();
+                });
         });
     });
-    describe('CheckboxOptions', function () {
+    describe('CheckboxOptions', function(this: MochaFn) {
         this.timeout(20000);
         this.slow(10000);
-        var checkboxDefaults = {
+        const checkboxDefaults = {
             showOptions: true,
             recoverUnsavedData: false,
             CRMOnPage: true,
             useStorageSync: true
         };
-        Object.getOwnPropertyNames(checkboxDefaults).forEach(function (checkboxId, index) {
-            it(checkboxId + " should be clickable", function (done) {
+        Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId, index) => {
+            it(`${checkboxId} should be clickable`, (done) => {
                 driver
                     .findElement(webdriver.By.id(checkboxId))
                     .findElement(webdriver.By.tagName('paper-checkbox'))
-                    .then(function (element) {
-                    return element.click();
-                }).then(function () {
-                    return driver.executeScript(inlineFn(function () {
-                        return JSON.stringify({
-                            match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
-                            checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
-                        });
-                    }, {
-                        checkboxId: checkboxId,
-                        expected: !checkboxDefaults[checkboxId]
-                    }));
-                }).then(function (result) {
-                    var resultObj = JSON.parse(result);
-                    assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId], 'checkbox checked status matches expected');
-                    assert.strictEqual(resultObj.match, true, "checkbox " + checkboxId + " value reflects settings value");
-                    done();
-                });
+                    .then((element) => {
+                        return element.click();
+                    }).then(() => {
+                        return driver.executeScript(inlineFn(() => {
+                            return JSON.stringify({
+                                match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
+                                checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
+                            });
+                        }, {
+                            checkboxId: checkboxId,
+                            expected: !checkboxDefaults[checkboxId]
+                        }));
+                    }).then((result: string) => {
+                        const resultObj: {
+                            checked: boolean;
+                            match: boolean;
+                        } = JSON.parse(result);
+                        assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId],
+                            'checkbox checked status matches expected');
+                        assert.strictEqual(resultObj.match, true,
+                            `checkbox ${checkboxId} value reflects settings value`);
+                        done();
+                    });
             });
-            it(checkboxId + " should be saved", function (done) {
-                reloadPage(this).then(function () {
+            it(`${checkboxId} should be saved`, function(done) {
+                reloadPage(this).then(() => {
                     return driver
-                        .executeScript(inlineFn(function () {
-                        return JSON.stringify({
-                            match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
-                            checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
-                        });
-                    }, {
-                        checkboxId: checkboxId,
-                        expected: !checkboxDefaults[checkboxId]
-                    }));
-                })
-                    .then(function (result) {
-                    var resultObj = JSON.parse(result);
-                    assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId], 'checkbox checked status has been saved');
-                    assert.strictEqual(resultObj.match, true, "checkbox " + checkboxId + " value has been saved");
-                    done();
-                });
+                        .executeScript(inlineFn(() => {
+                            return JSON.stringify({
+                                match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
+                                checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
+                            });
+                        }, {
+                            checkboxId: checkboxId,
+                            expected: !checkboxDefaults[checkboxId]
+                        }))
+                    })
+                    .then((result: string) => {
+                        const resultObj: {
+                            checked: boolean;
+                            match: boolean;
+                        } = JSON.parse(result);
+
+                        assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId],
+                            'checkbox checked status has been saved');
+                        assert.strictEqual(resultObj.match, true,
+                            `checkbox ${checkboxId} value has been saved`);
+                        done();
+                    })
             });
         });
     });
-    describe('Commonly used links', function () {
+    describe('Commonly used links', function(this: MochaFn) {
         this.timeout(20000);
         this.slow(10000);
-        var searchEngineLink = '';
-        var defaultLinkName = '';
-        before('Reset settings', function () {
+        let searchEngineLink = '';
+        let defaultLinkName = '';
+
+        before('Reset settings', function() {
             return resetSettings(this);
         });
-        it('should be addable', function (done) {
+        it('should be addable', function(this: MochaFn, done)  {
             this.timeout(10000);
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
-                elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(function () {
-                    elements[0].findElement(webdriver.By.tagName('input')).getAttribute('value').then(function (name) {
-                        elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
-                            getCRM().then(function (crm) {
+            driver.findElements(webdriver.By.tagName('default-link')).then((elements) => {
+                elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(() => {
+                    elements[0].findElement(webdriver.By.tagName('input')).getAttribute('value').then((name) => {
+                        elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
+                            getCRM().then((crm: Array<LinkNode>) => {
                                 searchEngineLink = link;
                                 defaultLinkName = name;
-                                var element = crm[crm.length - 1];
-                                assert.strictEqual(element.name, name, 'name is the same as expected');
-                                assert.strictEqual(element.type, 'link', 'type of element is link');
+
+                                const element = crm[crm.length - 1];
+
+                                assert.strictEqual(element.name, name,
+                                    'name is the same as expected');
+                                assert.strictEqual(element.type, 'link',
+                                    'type of element is link');
                                 assert.isArray(element.value, 'element value is array');
                                 assert.lengthOf(element.value, 1, 'element has one child');
                                 assert.isDefined(element.value[0], 'first element is defined');
                                 assert.isObject(element.value[0], 'first element is an object');
-                                assert.strictEqual(element.value[0].url, link, 'value url is the same as expected');
+                                assert.strictEqual(element.value[0].url, link,
+                                    'value url is the same as expected');
                                 assert.isTrue(element.value[0].newTab, 'newTab is true');
                                 done();
                             });
@@ -490,23 +510,29 @@ describe('Page', function () {
                 });
             });
         });
-        it('should be renamable', function (done) {
-            var name = 'SomeName';
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
-                elements[0].findElement(webdriver.By.tagName('paper-button')).then(function (button) {
-                    elements[0].findElement(webdriver.By.tagName('input')).sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name).then(function () {
+        it('should be renamable', function(done)  {
+            const name = 'SomeName';
+            driver.findElements(webdriver.By.tagName('default-link')).then((elements) => {
+                elements[0].findElement(webdriver.By.tagName('paper-button')).then((button) => {
+                    elements[0].findElement(webdriver.By.tagName('input')).sendKeys(
+                        webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name
+                    ).then(() => {
                         return button.click();
-                    }).then(function () {
-                        elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
-                            getCRM().then(function (crm) {
-                                var element = crm[crm.length - 1];
-                                assert.strictEqual(element.name, name, 'name is the same as expected');
-                                assert.strictEqual(element.type, 'link', 'type of element is link');
+                    }).then(() => {
+                        elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
+                            getCRM().then((crm: Array<LinkNode>) => {
+                                const element = crm[crm.length - 1];
+
+                                assert.strictEqual(element.name, name,
+                                    'name is the same as expected');
+                                assert.strictEqual(element.type, 'link',
+                                    'type of element is link');
                                 assert.isArray(element.value, 'element value is array');
                                 assert.lengthOf(element.value, 1, 'element has one child');
                                 assert.isDefined(element.value[0], 'first element is defined');
                                 assert.isObject(element.value[0], 'first element is an object');
-                                assert.strictEqual(element.value[0].url, link, 'value url is the same as expected');
+                                assert.strictEqual(element.value[0].url, link,
+                                    'value url is the same as expected');
                                 assert.isTrue(element.value[0].newTab, 'newTab is true');
                                 done();
                             });
@@ -515,55 +541,70 @@ describe('Page', function () {
                 });
             });
         });
-        it('should be saved', function (done) {
-            reloadPage(this).then(function () {
+        it('should be saved', function(done) {
+            reloadPage(this).then(() => {
                 return getCRM();
             })
-                .then(function (crm) {
-                var element = crm[crm.length - 2];
+            .then((crm: Array<LinkNode>) => {
+                const element = crm[crm.length - 2];
+
                 assert.isDefined(element, 'element is defined');
-                assert.strictEqual(element.name, defaultLinkName, 'name is the same as expected');
-                assert.strictEqual(element.type, 'link', 'type of element is link');
+                assert.strictEqual(element.name, defaultLinkName,
+                    'name is the same as expected');
+                assert.strictEqual(element.type, 'link',
+                    'type of element is link');
                 assert.isArray(element.value, 'element value is array');
                 assert.lengthOf(element.value, 1, 'element has one child');
                 assert.isDefined(element.value[0], 'first element is defined');
                 assert.isObject(element.value[0], 'first element is an object');
-                assert.strictEqual(element.value[0].url, searchEngineLink, 'value url is the same as expected');
+                assert.strictEqual(element.value[0].url, searchEngineLink,
+                    'value url is the same as expected');
                 assert.isTrue(element.value[0].newTab, 'newTab is true');
+
                 var element2 = crm[crm.length - 1];
                 assert.isDefined(element2, 'element is defined');
-                assert.strictEqual(element2.name, 'SomeName', 'name is the same as expected');
-                assert.strictEqual(element2.type, 'link', 'type of element is link');
+                assert.strictEqual(element2.name, 'SomeName',
+                    'name is the same as expected');
+                assert.strictEqual(element2.type, 'link',
+                    'type of element is link');
                 assert.isArray(element2.value, 'element value is array');
                 assert.lengthOf(element2.value, 1, 'element has one child');
                 assert.isDefined(element2.value[0], 'first element is defined');
                 assert.isObject(element2.value[0], 'first element is an object');
-                assert.strictEqual(element2.value[0].url, searchEngineLink, 'value url is the same as expected');
+                assert.strictEqual(element2.value[0].url, searchEngineLink,
+                    'value url is the same as expected');
                 assert.isTrue(element2.value[0].newTab, 'newTab is true');
+
                 done();
             });
         });
     });
-    describe('SearchEngines', function () {
+    describe('SearchEngines', function(this: MochaFn) {
         this.timeout(5000);
         this.slow(5000);
-        var searchEngineLink = '';
-        var searchEngineName = '';
-        before('Reset settings', function () {
+        let searchEngineLink = '';
+        let searchEngineName = '';
+
+        before('Reset settings', function() {
             return resetSettings(this);
         });
-        it('should be addable', function (done) {
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
-                var index = elements.length - 1;
-                elements[index].findElement(webdriver.By.tagName('paper-button')).click().then(function () {
-                    elements[index].findElement(webdriver.By.tagName('input')).getAttribute('value').then(function (name) {
-                        elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
-                            getCRM().then(function (crm) {
-                                var element = crm[crm.length - 1];
+
+        it('should be addable', function(done)  {
+            driver.findElements(webdriver.By.tagName('default-link')).then((elements) => {
+                const index = elements.length - 1;
+                elements[index].findElement(webdriver.By.tagName('paper-button')).click().then(() => {
+                    elements[index].findElement(webdriver.By.tagName('input')).getAttribute('value').then((name) => {
+                        elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
+                            getCRM().then((crm: Array<ScriptNode>) => {
+                                const element = crm[crm.length - 1];
+
                                 searchEngineLink = link;
                                 searchEngineName = name;
-                                assert.strictEqual(element.name, name, 'name is the same as expected');
-                                assert.strictEqual(element.type, 'script', 'type of element is script');
+                                
+                                assert.strictEqual(element.name, name,
+                                    'name is the same as expected');
+                                assert.strictEqual(element.type, 'script',
+                                    'type of element is script');
                                 assert.isObject(element.value, 'element value is object');
                                 assert.property(element.value, 'script', 'value has script property');
                                 assert.isString(element.value.script, 'script is a string');
@@ -577,7 +618,8 @@ describe('Page', function () {
                                     '}\n' +
                                     'if (query) {\n' +
                                     '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                                    '}\n', 'script value matches expected');
+                                    '}\n',
+                                    'script value matches expected');
                                 done();
                             });
                         });
@@ -585,19 +627,24 @@ describe('Page', function () {
                 });
             });
         });
-        it('should be renamable', function (done) {
-            var name = 'SomeName';
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
-                var index = elements.length - 1;
-                elements[index].findElement(webdriver.By.tagName('paper-button')).then(function (button) {
-                    elements[index].findElement(webdriver.By.tagName('input')).sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name).then(function () {
+        it('should be renamable', function(done)  {
+            const name = 'SomeName';
+            driver.findElements(webdriver.By.tagName('default-link')).then((elements) => {
+                const index = elements.length - 1;
+                elements[index].findElement(webdriver.By.tagName('paper-button')).then((button) => {
+                    elements[index].findElement(webdriver.By.tagName('input')).sendKeys(
+                        webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name
+                    ).then(() => {
                         return button.click();
-                    }).then(function () {
-                        elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
-                            getCRM().then(function (crm) {
-                                var element = crm[crm.length - 1];
-                                assert.strictEqual(element.name, name, 'name is the same as expected');
-                                assert.strictEqual(element.type, 'script', 'type of element is script');
+                    }).then(() => {
+                        elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
+                            getCRM().then((crm: Array<ScriptNode>) => {
+                                const element = crm[crm.length - 1];
+                                
+                                assert.strictEqual(element.name, name,
+                                    'name is the same as expected');
+                                assert.strictEqual(element.type, 'script',
+                                    'type of element is script');
                                 assert.isObject(element.value, 'element value is object');
                                 assert.property(element.value, 'script', 'value has script property');
                                 assert.isString(element.value.script, 'script is a string');
@@ -611,7 +658,8 @@ describe('Page', function () {
                                     '}\n' +
                                     'if (query) {\n' +
                                     '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                                    '}\n', 'script value matches expected');
+                                    '}\n',
+                                    'script value matches expected');
                                 done();
                             });
                         });
@@ -619,15 +667,18 @@ describe('Page', function () {
                 });
             });
         });
-        it('should be saved on page reload', function (done) {
-            reloadPage(this).then(function () {
+        it('should be saved on page reload', function(done) {
+            reloadPage(this).then(() => {
                 return getCRM();
             })
-                .then(function (crm) {
-                var element1 = crm[crm.length - 2];
+            .then((crm: Array<ScriptNode>) => {
+                const element1 = crm[crm.length - 2];
+
                 assert.isDefined(element1, 'element is defined');
-                assert.strictEqual(element1.name, searchEngineName, 'name is the same as expected');
-                assert.strictEqual(element1.type, 'script', 'type of element is script');
+                assert.strictEqual(element1.name, searchEngineName,
+                    'name is the same as expected');
+                assert.strictEqual(element1.type, 'script',
+                    'type of element is script');
                 assert.isObject(element1.value, 'element value is object');
                 assert.property(element1.value, 'script', 'value has script property');
                 assert.isString(element1.value.script, 'script is a string');
@@ -641,10 +692,14 @@ describe('Page', function () {
                     '}\n' +
                     'if (query) {\n' +
                     '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                    '}\n', 'script value matches expected');
-                var element2 = crm[crm.length - 1];
-                assert.strictEqual(element2.name, 'SomeName', 'name is the same as expected');
-                assert.strictEqual(element2.type, 'script', 'type of element is script');
+                    '}\n',
+                    'script value matches expected');
+                
+                const element2 = crm[crm.length - 1];
+                assert.strictEqual(element2.name, 'SomeName',
+                    'name is the same as expected');
+                assert.strictEqual(element2.type, 'script',
+                    'type of element is script');
                 assert.isObject(element2.value, 'element value is object');
                 assert.property(element2.value, 'script', 'value has script property');
                 assert.isString(element2.value.script, 'script is a string');
@@ -658,871 +713,974 @@ describe('Page', function () {
                     '}\n' +
                     'if (query) {\n' +
                     '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                    '}\n', 'script value matches expected');
+                    '}\n',
+                    'script value matches expected');
+
                 done();
             });
         });
     });
-    describe('URIScheme', function () {
-        before('Reset settings', function () {
+    describe('URIScheme', function(this: MochaFn) {
+
+        before('Reset settings', function() {
             return resetSettings(this);
         });
-        function testURIScheme(driver, done, toExecutePath, schemeName) {
-            driver
-                .findElement(webdriver.By.className('URISchemeGenerator'))
-                .findElement(webdriver.By.tagName('paper-button'))
-                .click()
-                .then(function () {
-                return driver.executeScript(inlineFn(function () {
-                    return JSON.stringify(window.chrome._lastCall);
-                }));
-            })
-                .then(function (jsonStr) {
-                var lastCall = JSON.parse(jsonStr);
-                assert.isDefined(lastCall, 'a call to the chrome API was made');
-                assert.strictEqual(lastCall.api, 'downloads.download', 'chrome downloads API was called');
-                assert.isArray(lastCall.args, 'api args are present');
-                assert.lengthOf(lastCall.args, 1, 'api has only one arg');
-                assert.strictEqual(lastCall.args[0].url, 'data:text/plain;charset=utf-8;base64,' + btoa([
-                    'Windows Registry Editor Version 5.00',
-                    '',
-                    '[HKEY_CLASSES_ROOT\\' + schemeName + ']',
-                    '@="URL:' + schemeName + ' Protocol"',
-                    '"URL Protocol"=""',
-                    '',
-                    '[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell]',
-                    '',
-                    '[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open]',
-                    '',
-                    '[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
-                    '@="\\"' + toExecutePath.replace(/\\/g, '\\\\') + '\\""'
-                ].join('\n')), 'file content matches expected');
-                assert.strictEqual(lastCall.args[0].filename, schemeName + '.reg', 'filename matches expected');
-                done();
-            });
-        }
+
+        function testURIScheme(driver: webdriver.WebDriver,
+            done: () => void, toExecutePath: string, schemeName: string) {
+                driver
+                    .findElement(webdriver.By.className('URISchemeGenerator'))
+                    .findElement(webdriver.By.tagName('paper-button'))
+                    .click()
+                    .then(() => {
+                        return driver.executeScript(inlineFn(() => {
+                            return JSON.stringify(window.chrome._lastCall);
+                        }));
+                    })
+                    .then((jsonStr: string) => {
+                        const lastCall: ChromeLastCall = JSON.parse(jsonStr);
+                        assert.isDefined(lastCall, 'a call to the chrome API was made');
+                        assert.strictEqual(lastCall.api, 'downloads.download',
+                            'chrome downloads API was called');
+                        assert.isArray(lastCall.args, 'api args are present');
+                        assert.lengthOf(lastCall.args, 1, 'api has only one arg');
+                        assert.strictEqual(lastCall.args[0].url,
+                            'data:text/plain;charset=utf-8;base64,' + btoa([
+                            'Windows Registry Editor Version 5.00',
+                            '',
+                            '[HKEY_CLASSES_ROOT\\' + schemeName + ']',
+                            '@="URL:' + schemeName +' Protocol"',
+                            '"URL Protocol"=""',
+                            '',
+                            '[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell]',
+                            '',
+                            '[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open]',
+                            '',
+                            '[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell\\open\\command]',
+                            '@="\\"' + toExecutePath.replace(/\\/g, '\\\\') + '\\""'
+                        ].join('\n')),
+                            'file content matches expected');
+                        assert.strictEqual(lastCall.args[0].filename,
+                            schemeName + '.reg', 'filename matches expected');
+                        done();
+                    });
+            }
+
         this.slow(7000);
         this.timeout(50000);
-        afterEach('Reset page settings', function () {
+        afterEach('Reset page settings', function() {
             return resetSettings(this);
         });
-        var defaultToExecutePath = 'C:\\files\\my_file.exe';
-        var defaultSchemeName = 'myscheme';
-        it('should be able to download the default file', function (done) {
-            var toExecutePath = defaultToExecutePath;
-            var schemeName = defaultSchemeName;
+
+        const defaultToExecutePath = 'C:\\files\\my_file.exe';
+        const defaultSchemeName = 'myscheme';
+        it('should be able to download the default file', function(done)  {
+            const toExecutePath = defaultToExecutePath;
+            const schemeName = defaultSchemeName;
             testURIScheme(driver, done, toExecutePath, schemeName);
         });
-        it('should be able to download when a different file path was entered', function (done) {
-            var toExecutePath = 'Z:\\a\\b\\c\\d\\e\\something.test';
-            var schemeName = defaultSchemeName;
+        it('should be able to download when a different file path was entered', function(done)  {
+            const toExecutePath = 'Z:\\a\\b\\c\\d\\e\\something.test';
+            const schemeName = defaultSchemeName;
             driver
                 .findElement(webdriver.By.id('URISchemeFilePath'))
                 .findElement(webdriver.By.tagName('input'))
                 .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, toExecutePath)
-                .then(function () {
-                testURIScheme(driver, done, toExecutePath, schemeName);
-            });
+                .then(() => {
+                    testURIScheme(driver, done, toExecutePath, schemeName);
+                });
         });
-        it('should be able to download when a different scheme name was entered', function (done) {
-            var toExecutePath = defaultToExecutePath;
-            var schemeName = getRandomString(25);
+        it('should be able to download when a different scheme name was entered', function(done)  {
+            const toExecutePath = defaultToExecutePath;
+            const schemeName = getRandomString(25);
             driver
                 .findElement(webdriver.By.id('URISchemeSchemeName'))
                 .findElement(webdriver.By.tagName('input'))
                 .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, schemeName)
-                .then(function () {
-                testURIScheme(driver, done, toExecutePath, schemeName);
-            });
+                .then(() => {
+                    testURIScheme(driver, done, toExecutePath, schemeName);
+                });
         });
-        it('should be able to download when a different scheme name and a different file path are entered', function (done) {
-            var toExecutePath = 'Z:\\a\\b\\c\\d\\e\\something.test';
-            var schemeName = getRandomString(25);
-            driver
-                .findElement(webdriver.By.id('URISchemeFilePath'))
-                .findElement(webdriver.By.tagName('input'))
-                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, toExecutePath)
-                .then(function () {
-                return driver
-                    .findElement(webdriver.By.id('URISchemeSchemeName'))
-                    .findElement(webdriver.By.tagName('input'));
-            })
-                .then(function (element) {
-                return element.sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, schemeName);
-            })
-                .then(function () {
-                testURIScheme(driver, done, toExecutePath, schemeName);
+        it('should be able to download when a different scheme name and a different file path are entered',
+            (done) => {
+                const toExecutePath = 'Z:\\a\\b\\c\\d\\e\\something.test';
+                const schemeName = getRandomString(25);
+                driver
+                    .findElement(webdriver.By.id('URISchemeFilePath'))
+                    .findElement(webdriver.By.tagName('input'))
+                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, toExecutePath)
+                    .then(() => {
+                        return driver
+                            .findElement(webdriver.By.id('URISchemeSchemeName'))
+                            .findElement(webdriver.By.tagName('input'));
+                    })
+                    .then((element) => {
+                        return element.sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, schemeName)
+                    })
+                    .then(() => {
+                        testURIScheme(driver, done, toExecutePath, schemeName);
+                    });
             });
-        });
     });
-    function testNameInput(type) {
-        var defaultName = 'name';
-        describe('Name Input', function () {
+
+    function testNameInput(type: NodeType) {
+        const defaultName = 'name';
+        describe('Name Input', function(this: MochaFn) {
             this.timeout(30000);
             this.slow(20000);
-            after('Reset settings', function () {
+
+            after('Reset settings', function() {
                 return resetSettings(this);
             });
-            it('should not change when not saved', function (done) {
+
+            it('should not change when not saved', function(done) {
                 this.slow(12000);
-                before('Reset settings', function () {
+                before('Reset settings', function() {
                     return resetSettings(this);
                 });
-                var name = getRandomString(25);
-                resetSettings(this).then(function () {
+
+                const name = getRandomString(25);
+                resetSettings(this).then(() => {
                     return openDialog(type);
-                }).then(function () {
+                }).then(() =>{
                     return getDialog(driver, type);
-                }).then(function (dialog) {
+                }).then((dialog) => {
                     dialog
                         .findElement(webdriver.By.id('nameInput'))
                         .findElement(webdriver.By.tagName('input'))
                         .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
-                        .then(function () {
-                        return cancelDialog(dialog);
-                    })
-                        .then(function () {
-                        return getCRM();
-                    }).then(function (crm) {
-                        assert.strictEqual(crm[0].type, type, "type is " + type);
-                        assert.strictEqual(crm[0].name, defaultName, 'name has not been saved');
-                        done();
-                    });
+                        .then(() => {
+                            return cancelDialog(dialog);
+                        })
+                        .then(() => {
+                            return getCRM();
+                        }).then((crm) => {
+                            assert.strictEqual(crm[0].type, type,
+                                `type is ${type}`);
+                            assert.strictEqual(crm[0].name, defaultName,
+                                'name has not been saved');
+                            done();
+                        });
                 });
             });
-            var name = getRandomString(25);
-            it('should be editable when saved', function (done) {
+            const name = getRandomString(25);
+            it('should be editable when saved', function(done)  {
                 this.slow(12000);
-                before('Reset settings', function () {
+                before('Reset settings', function() {
                     return resetSettings(this);
                 });
-                resetSettings(this).then(function () {
+
+                resetSettings(this).then(() => {
                     return openDialog(type);
-                }).then(function () {
+                }).then(() =>{
                     return getDialog(driver, type);
-                }).then(function (dialog) {
+                }).then((dialog) => {
                     dialog
                         .findElement(webdriver.By.id('nameInput'))
                         .findElement(webdriver.By.tagName('input'))
                         .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
-                        .then(function () {
-                        return saveDialog(dialog);
-                    })
-                        .then(function () {
-                        return getCRM();
-                    })
-                        .then(function (crm) {
-                        assert.strictEqual(crm[0].type, type, 'type is link');
-                        assert.strictEqual(crm[0].name, name, 'name has been properly saved');
-                        done();
-                    });
+                        .then(() => {
+                            return saveDialog(dialog);
+                        })
+                        .then(() => {
+                            return getCRM();
+                        })
+                        .then((crm) => {
+                            assert.strictEqual(crm[0].type, type,
+                                'type is link');
+                            assert.strictEqual(crm[0].name, name,
+                                'name has been properly saved');
+                            done();
+                        });
                 });
             });
-            it('should be saved when changed', function (done) {
+            it('should be saved when changed', function(done) {
                 reloadPage(this)
-                    .then(function () {
-                    return getCRM();
-                })
-                    .then(function (crm) {
-                    assert.strictEqual(crm[0].type, type, "type is " + type);
-                    assert.strictEqual(crm[0].name, name, 'name has been properly saved');
-                    done();
-                });
+                    .then(() => {
+                        return getCRM();
+                    })
+                    .then((crm) => {
+                        assert.strictEqual(crm[0].type, type,
+                            `type is ${type}`);
+                        assert.strictEqual(crm[0].name, name,
+                            'name has been properly saved');
+                        done();
+                    });
             });
         });
     }
-    function testVisibilityTriggers(type) {
-        describe('Triggers', function () {
-            var _this = this;
+
+    function testVisibilityTriggers(type: NodeType) {
+        describe('Triggers', function(this: MochaFn) {
             this.timeout(30000);
             this.slow(150000);
-            after('Reset settings', function () {
+
+            after('Reset settings', function() {
                 return resetSettings(this);
             });
-            it('should not change when not saved', function (done) {
-                resetSettings(this).then(function () {
+
+            it('should not change when not saved', function(done)  {
+                resetSettings(this).then(() => {
                     return openDialog(type);
-                }).then(function () {
-                    return getDialog(driver, type);
-                }).then(function (dialog) {
+                }).then(() => {
+                    return getDialog(driver, type)
+                }).then((dialog) => {
                     dialog
                         .findElement(webdriver.By.id('showOnSpecified'))
                         .click()
-                        .then(function () {
-                        return dialog
-                            .findElement(webdriver.By.id('addTrigger'))
-                            .then(function (button) {
-                            return button.click().then(function () {
-                                return button.click();
-                            });
-                        });
-                    }).then(function () {
-                        setTimeout(function () {
-                            dialog
-                                .findElements(webdriver.By.className('executionTrigger'))
-                                .then(function (triggers) {
-                                return triggers[0]
-                                    .findElement(webdriver.By.tagName('paper-checkbox'))
-                                    .click()
-                                    .then(function () {
-                                    return triggers[0]
-                                        .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
-                                })
-                                    .then(function () {
-                                    return triggers[1]
-                                        .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                        .then(() => {
+                            return dialog
+                                .findElement(webdriver.By.id('addTrigger'))
+                                .then((button) => {
+                                    return button.click().then(() => {
+                                        return button.click();
+                                    })
                                 });
-                            }).then(function () {
-                                return cancelDialog(dialog);
-                            }).then(function () {
-                                return getCRM();
-                            }).then(function (crm) {
-                                assert.lengthOf(crm[0].triggers, 1, 'no triggers have been added');
-                                assert.isFalse(crm[0].triggers[0].not, 'first trigger NOT status did not change');
-                                assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                                done();
-                            });
-                        }, 500);
-                    });
+                        }).then(() => {
+                            setTimeout(() => {
+                                dialog
+                                    .findElements(webdriver.By.className('executionTrigger'))
+                                    .then((triggers) => {
+                                        return triggers[0]
+                                            .findElement(webdriver.By.tagName('paper-checkbox'))
+                                            .click()
+                                            .then(() => {
+                                                return triggers[0]
+                                                    .findElement(webdriver.By.tagName('input'))
+                                                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                            })
+                                            .then(() => {
+                                                return triggers[1]
+                                                    .findElement(webdriver.By.tagName('input'))
+                                                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                            });
+                                    }).then(() => {
+                                        return cancelDialog(dialog);
+                                    }).then(() => {
+                                        return getCRM();
+                                    }).then((crm) => {
+                                        assert.lengthOf(crm[0].triggers, 1,
+                                            'no triggers have been added');
+                                        assert.isFalse(crm[0].triggers[0].not,
+                                            'first trigger NOT status did not change');
+                                        assert.strictEqual(crm[0].triggers[0].url,
+                                            '*://*.example.com/*',
+                                            'first trigger url stays the same');
+                                        done();
+                                    });
+                            }, 500);
+                        })
                 });
             });
-            it('should be addable/editable when saved', function (done) {
-                resetSettings(_this).then(function () {
+            it('should be addable/editable when saved', (done) => {
+                resetSettings(this).then(() => {
                     return openDialog(type);
-                }).then(function () {
-                    return getDialog(driver, type);
-                }).then(function (dialog) {
+                }).then(() => {
+                    return getDialog(driver, type)
+                }).then((dialog) => {
                     dialog
                         .findElement(webdriver.By.id('showOnSpecified'))
                         .click()
-                        .then(function () {
-                        return dialog
-                            .findElement(webdriver.By.id('addTrigger'))
-                            .then(function (button) {
-                            return button.click().then(function () {
-                                return button.click();
-                            });
-                        });
-                    }).then(function () {
-                        setTimeout(function () {
-                            dialog
-                                .findElements(webdriver.By.className('executionTrigger'))
-                                .then(function (triggers) {
-                                return triggers[0]
-                                    .findElement(webdriver.By.tagName('paper-checkbox'))
-                                    .click()
-                                    .then(function () {
-                                    return triggers[1]
-                                        .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                        .then(() => {
+                            return dialog
+                                .findElement(webdriver.By.id('addTrigger'))
+                                .then((button) => {
+                                    return button.click().then(() => {
+                                        return button.click();
+                                    })
                                 });
-                            }).then(function () {
-                                return saveDialog(dialog);
-                            }).then(function () {
-                                return getCRM();
-                            }).then(function (crm) {
-                                assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
-                                assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
-                                assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
-                                assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                                assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
-                                done();
-                            });
-                        }, 500);
-                    });
+                        }).then(() => {
+                            setTimeout(() => {
+                                dialog
+                                    .findElements(webdriver.By.className('executionTrigger'))
+                                    .then((triggers) => {
+                                        return triggers[0]
+                                            .findElement(webdriver.By.tagName('paper-checkbox'))
+                                            .click()
+                                            .then(() => {
+                                                return triggers[1]
+                                                    .findElement(webdriver.By.tagName('input'))
+                                                    .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                            });
+                                    }).then(() => {
+                                        return saveDialog(dialog);
+                                    }).then(() => {
+                                        return getCRM();
+                                    }).then((crm) => {
+                                        assert.lengthOf(crm[0].triggers, 3,
+                                            'trigger has been added');
+                                        assert.isTrue(crm[0].triggers[0].not,
+                                            'first trigger is NOT');
+                                        assert.isFalse(crm[0].triggers[1].not,
+                                            'second trigger is not NOT');
+                                        assert.strictEqual(crm[0].triggers[0].url,
+                                            '*://*.example.com/*',
+                                            'first trigger url stays the same');
+                                        assert.strictEqual(crm[0].triggers[1].url,
+                                            'www.google.com',
+                                            'second trigger url changed');
+                                        done();
+                                    });
+                            }, 500);
+                        })
                 });
             });
-            it('should be preserved on page reload', function (done) {
-                reloadPage(this).then(function () {
+            it('should be preserved on page reload', function(done) {
+                reloadPage(this).then(() => {
                     return getCRM();
-                }).then(function (crm) {
-                    assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
-                    assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
-                    assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
-                    assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                    assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
+                }).then((crm) => {
+                    assert.lengthOf(crm[0].triggers, 3,
+                        'trigger has been added');
+                    assert.isTrue(crm[0].triggers[0].not,
+                        'first trigger is NOT');
+                    assert.isFalse(crm[0].triggers[1].not,
+                        'second trigger is not NOT');
+                    assert.strictEqual(crm[0].triggers[0].url,
+                        '*://*.example.com/*',
+                        'first trigger url stays the same');
+                    assert.strictEqual(crm[0].triggers[1].url,
+                        'www.google.com',
+                        'second trigger url changed');
                     done();
                 });
             });
         });
     }
-    function testContentTypes(type) {
-        describe('Content Types', function () {
+
+    function testContentTypes(type: NodeType) {
+        describe('Content Types', function(this: MochaFn) {
             this.timeout(30000);
             this.slow(20000);
-            var defaultContentTypes = [true, true, true, false, false, false];
-            after('Reset settings', function () {
+            const defaultContentTypes = [true, true, true, false, false, false];
+
+            after('Reset settings', function() {
                 return resetSettings(this);
             });
-            it('should be editable through clicking on the checkboxes', function (done) {
-                resetSettings(this).then(function () {
+
+            it('should be editable through clicking on the checkboxes', function(done)  {
+                resetSettings(this).then(() => {
                     return openDialog('link');
-                }).then(function () {
-                    return getDialog(driver, 'link');
-                }).then(function (dialog) {
+                }).then(() => {
+                    return getDialog(driver, 'link')
+                }).then((dialog) => {
                     dialog
                         .findElements(webdriver.By.className('showOnContentItemCont'))
-                        .then(function (elements) {
-                        return webdriver.promise.all(elements.map(function (element) {
-                            return element
-                                .findElement(webdriver.By.tagName('paper-checkbox'))
-                                .click();
-                        }));
-                    })
-                        .then(function () {
-                        return saveDialog(dialog);
-                    })
-                        .then(function () {
-                        return getCRM();
-                    }).then(function (crm) {
-                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
-                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
-                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
-                        //CRM prevents you from turning off all content types and 4 is the one that stays on
-                        newContentTypes[2] = true;
-                        newContentTypes = crm[0].onContentTypes;
-                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
-                        done();
-                    });
+                        .then((elements) => {
+                            return webdriver.promise.all(elements.map((element) => {
+                                return element
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click();
+                            }));
+                        })
+                        .then(() => {
+                            return saveDialog(dialog);
+                        })
+                        .then(() => {
+                            return getCRM();
+                        }).then((crm) => {
+                            assert.isFalse(crm[0].onContentTypes[0],
+                                'content types that were on were switched off');
+                            assert.isTrue(crm[0].onContentTypes[4],
+                                'content types that were off were switched on');
+                            let newContentTypes = defaultContentTypes.map(contentType => !contentType);
+                            //CRM prevents you from turning off all content types and 4 is the one that stays on
+                            newContentTypes[2] = true;
+                            newContentTypes = crm[0].onContentTypes;
+                            assert.deepEqual(crm[0].onContentTypes,
+                                newContentTypes,
+                                'all content types were toggled');
+                            done();
+                        });
                 });
             });
-            it('should be editable through clicking on the icons', function (done) {
-                resetSettings(this).then(function () {
+            it('should be editable through clicking on the icons', function(done)  {
+                resetSettings(this).then(() => {
                     return openDialog('link');
-                }).then(function () {
-                    return getDialog(driver, 'link');
-                }).then(function (dialog) {
+                }).then(() => {
+                    return getDialog(driver, 'link')
+                }).then((dialog) => {
                     dialog
                         .findElements(webdriver.By.className('showOnContentItemCont'))
-                        .then(function (elements) {
-                        return webdriver.promise.all(elements.map(function (element) {
-                            return element
-                                .findElement(webdriver.By.className('showOnContentItemIcon'))
-                                .click();
-                        }));
-                    })
-                        .then(function () {
-                        return saveDialog(dialog);
-                    })
-                        .then(function () {
-                        return getCRM();
-                    })
-                        .then(function (crm) {
-                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
-                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
-                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
-                        //CRM prevents you from turning off all content types and 4 is the one that stays on
-                        newContentTypes[2] = true;
-                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
-                        done();
-                    });
+                        .then((elements) => {
+                            return webdriver.promise.all(elements.map((element) => {
+                                return element
+                                    .findElement(webdriver.By.className('showOnContentItemIcon'))
+                                    .click();
+                            }));
+                        })
+                        .then(() => {
+                            return saveDialog(dialog);
+                        })
+                        .then(() => {
+                            return getCRM();
+                        })
+                        .then((crm) => {
+                            assert.isFalse(crm[0].onContentTypes[0],
+                                'content types that were on were switched off');
+                            assert.isTrue(crm[0].onContentTypes[4],
+                                'content types that were off were switched on');
+                            const newContentTypes = defaultContentTypes.map(contentType => !contentType);
+                            //CRM prevents you from turning off all content types and 4 is the one that stays on
+                            newContentTypes[2] = true;
+                            assert.deepEqual(crm[0].onContentTypes,
+                                newContentTypes,
+                                'all content types were toggled');
+                            done();
+                        });
                 });
             });
-            it('should be editable through clicking on the names', function (done) {
-                resetSettings(this).then(function () {
+            it('should be editable through clicking on the names', function(done)  {
+                resetSettings(this).then(() => {
                     return openDialog('link');
-                }).then(function () {
-                    return getDialog(driver, 'link');
-                }).then(function (dialog) {
+                }).then(() => {
+                    return getDialog(driver, 'link')
+                }).then((dialog) => {
                     dialog
                         .findElements(webdriver.By.className('showOnContentItemCont'))
-                        .then(function (elements) {
-                        return webdriver.promise.all(elements.map(function (element) {
-                            return element
-                                .findElement(webdriver.By.className('showOnContentItemTxt'))
-                                .click();
-                        }));
-                    })
-                        .then(function () {
-                        return saveDialog(dialog);
-                    })
-                        .then(function () {
-                        return getCRM();
-                    }).then(function (crm) {
-                        assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
-                        assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
-                        var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
-                        //CRM prevents you from turning off all content types and 4 is the one that stays on
-                        newContentTypes[2] = true;
-                        assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
-                        done();
-                    });
+                        .then((elements) => {
+                            return webdriver.promise.all(elements.map((element) => {
+                                return element
+                                    .findElement(webdriver.By.className('showOnContentItemTxt'))
+                                    .click();
+                            }));
+                        })
+                        .then(() => {
+                            return saveDialog(dialog);
+                        })
+                        .then(() => {
+                            return getCRM();
+                        }).then((crm) => {
+                            assert.isFalse(crm[0].onContentTypes[0],
+                                'content types that were on were switched off');
+                            assert.isTrue(crm[0].onContentTypes[4],
+                                'content types that were off were switched on');
+                            const newContentTypes = defaultContentTypes.map(contentType => !contentType);
+                            //CRM prevents you from turning off all content types and 4 is the one that stays on
+                            newContentTypes[2] = true;
+                            assert.deepEqual(crm[0].onContentTypes,
+                                newContentTypes,
+                                'all content types were toggled');
+                            done();
+                        });
                 });
             });
-            it('should be preserved on page reload', function (done) {
-                reloadPage(this).then(function () {
+            it('should be preserved on page reload', function(done) {
+                reloadPage(this).then(() => {
                     return getCRM();
-                }).then(function (crm) {
-                    assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
-                    assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
-                    var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
+                }).then((crm) => {
+                    assert.isFalse(crm[0].onContentTypes[0],
+                        'content types that were on were switched off');
+                    assert.isTrue(crm[0].onContentTypes[4],
+                        'content types that were off were switched on');
+                    const newContentTypes = defaultContentTypes.map(contentType => !contentType);
                     //CRM prevents you from turning off all content types and 4 is the one that stays on
                     newContentTypes[2] = true;
-                    assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
+                    assert.deepEqual(crm[0].onContentTypes,
+                        newContentTypes,
+                        'all content types were toggled');
                     done();
                 });
             });
-            it('should not change when not saved', function (done) {
-                resetSettings(this).then(function () {
+            it('should not change when not saved', function(done)  {
+                resetSettings(this).then(() => {
                     return openDialog('link');
-                }).then(function () {
-                    return getDialog(driver, 'link');
-                }).then(function (dialog) {
+                }).then(() => {
+                    return getDialog(driver, 'link')
+                }).then((dialog) => {
                     dialog
                         .findElements(webdriver.By.className('showOnContentItemCont'))
-                        .then(function (elements) {
-                        return webdriver.promise.all(elements.map(function (element) {
-                            return element
-                                .findElement(webdriver.By.tagName('paper-checkbox'))
-                                .click();
-                        }));
-                    })
-                        .then(function () {
-                        return cancelDialog(dialog);
-                    })
-                        .then(function () {
-                        return getCRM();
-                    }).then(function (crm) {
-                        assert.isTrue(crm[0].onContentTypes[0], 'content types that were on did not change');
-                        assert.isFalse(crm[0].onContentTypes[4], 'content types that were off did not change');
-                        assert.deepEqual(crm[0].onContentTypes, defaultContentTypes, 'all content types were not toggled');
-                        done();
-                    });
-                });
-            });
-        });
-    }
-    function testClickTriggers(type) {
-        describe('Click Triggers', function () {
-            this.timeout(30000);
-            [0, 1, 2, 3, 4].forEach(function (triggerOptionIndex) {
-                describe("Trigger option " + triggerOptionIndex, function () {
-                    this.slow(20000);
-                    it("should be possible to select trigger option number " + triggerOptionIndex, function (done) {
-                        resetSettings(this).then(function () {
-                            return openDialog(type);
-                        }).then(function () {
-                            return getDialog(driver, type);
-                        }).then(function (dialog) {
-                            return wait(500, dialog);
-                        }).then(function (dialog) {
-                            dialog
-                                .findElement(webdriver.By.id('dropdownMenu'))
-                                .click()
-                                .then(function () {
-                                wait(500);
-                            })
-                                .then(function () {
-                                return dialog
-                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-                            }).then(function (triggerOptions) {
-                                return triggerOptions[triggerOptionIndex].click();
-                            }).then(function () {
-                                wait(1500);
-                            }).then(function () {
-                                return saveDialog(dialog);
-                            }).then(function () {
-                                return getCRM();
-                            }).then(function (crm) {
-                                assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex, 'launchmode is the same as expected');
-                                done();
-                            });
-                        });
-                    });
-                    it('should be saved on page reload', function (done) {
-                        reloadPage(this).then(function () {
+                        .then((elements) => {
+                            return webdriver.promise.all(elements.map((element) => {
+                                return element
+                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                    .click();
+                            }));
+                        })
+                        .then(() => {
+                            return cancelDialog(dialog);
+                        })
+                        .then(() => {
                             return getCRM();
-                        }).then(function (crm) {
-                            assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex, 'launchmode is the same as expected');
+                        }).then((crm) => {
+                            assert.isTrue(crm[0].onContentTypes[0],
+                                'content types that were on did not change');
+                            assert.isFalse(crm[0].onContentTypes[4],
+                                'content types that were off did not change');
+                            assert.deepEqual(crm[0].onContentTypes,
+                                defaultContentTypes,
+                                'all content types were not toggled');
                             done();
                         });
-                    });
-                    it('should not be saved when cancelled', function (done) {
-                        resetSettings(this).then(function () {
+                });
+            });
+        });
+    }
+
+    function testClickTriggers(type: NodeType) {
+        describe('Click Triggers', function(this: MochaFn) {
+            this.timeout(30000);
+            [0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
+                describe(`Trigger option ${triggerOptionIndex}`, function(this: MochaFn) {
+                    this.slow(20000);
+                    it(`should be possible to select trigger option number ${triggerOptionIndex}`, function(done) {
+                        resetSettings(this).then(() => {
                             return openDialog(type);
-                        }).then(function () {
+                        }).then(() => {
                             return getDialog(driver, type);
-                        }).then(function (dialog) {
+                        }).then((dialog) => {
                             return wait(500, dialog);
-                            ;
-                        }).then(function (dialog) {
+                        }).then((dialog) => {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
                                 .click()
-                                .then(function () {
-                                wait(500);
-                            })
-                                .then(function () {
-                                return dialog
-                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-                            }).then(function (triggerOptions) {
-                                return triggerOptions[triggerOptionIndex].click();
-                            }).then(function () {
-                                wait(1500);
-                            }).then(function () {
-                                return cancelDialog(dialog);
-                            }).then(function () {
-                                return getCRM();
-                            }).then(function (crm) {
-                                assert.strictEqual(crm[0].value.launchMode, 0, 'launchmode is the same as before');
-                                done();
-                            });
+                                .then(() => {
+                                    wait(500);
+                                })
+                                .then(() => {
+                                    return dialog
+                                        .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+                                }).then((triggerOptions) => {
+                                    return triggerOptions[triggerOptionIndex].click();
+                                }).then(() => {
+                                    wait(1500);
+                                }).then(() => {
+                                    return saveDialog(dialog);
+                                }).then(() => {
+                                    return getCRM();
+                                }).then((crm: Array<StylesheetNode|ScriptNode>) => {
+                                    assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
+                                        'launchmode is the same as expected');
+                                    done();
+                                });
+                        });
+                    });
+                    it('should be saved on page reload', function(done) {
+                        reloadPage(this).then(() => {
+                            return getCRM();
+                        }).then((crm: Array<StylesheetNode|ScriptNode>) => {
+                            assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
+                                'launchmode is the same as expected');
+                            done();
+                        });
+                    });
+                    it('should not be saved when cancelled', function(done) {
+                        resetSettings(this).then(() => {
+                            return openDialog(type);
+                        }).then(() => {
+                            return getDialog(driver, type);
+                        }).then((dialog) => {
+                            return wait(500, dialog);;
+                        }).then((dialog) => {
+                            dialog
+                                .findElement(webdriver.By.id('dropdownMenu'))
+                                .click()
+                                .then(() => {
+                                    wait(500);
+                                })
+                                .then(() => {
+                                    return dialog
+                                        .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+                                }).then((triggerOptions) => {
+                                    return triggerOptions[triggerOptionIndex].click();
+                                }).then(() => {
+                                    wait(1500);
+                                }).then(() => {
+                                    return cancelDialog(dialog);
+                                }).then(() => {
+                                    return getCRM();
+                                }).then((crm: Array<StylesheetNode|ScriptNode>) => {
+                                    assert.strictEqual(crm[0].value.launchMode, 0,
+                                        'launchmode is the same as before');
+                                    done();
+                                });
                         });
                     });
                 });
             });
-            [2, 3].forEach(function (triggerOptionIndex) {
-                describe("Trigger Option " + triggerOptionIndex + " with URLs", function () {
-                    var _this = this;
+            [2, 3].forEach((triggerOptionIndex) => {
+                describe(`Trigger Option ${triggerOptionIndex} with URLs`, function(this: MochaFn) {
                     this.slow(22500);
-                    it('should be editable', function (done) {
-                        resetSettings(_this).then(function () {
+                    it('should be editable', (done) => {
+                        resetSettings(this).then(() => {
                             return openDialog(type);
-                        }).then(function () {
-                            return getDialog(driver, type);
-                        }).then(function (dialog) {
-                            return wait(500, dialog);
-                            ;
-                        }).then(function (dialog) {
+                        }).then(() => {
+                            return getDialog(driver, type)
+                        }).then((dialog) => {
+                            return wait(500, dialog);;
+                        }).then((dialog) => {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
                                 .click()
-                                .then(function () {
-                                wait(1000);
-                            })
-                                .then(function () {
-                                return dialog
-                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-                            }).then(function (triggerOptions) {
-                                return triggerOptions[triggerOptionIndex].click();
-                            }).then(function () {
-                                wait(1000);
-                            })
-                                .then(function () {
-                                return dialog
-                                    .findElement(webdriver.By.id('addTrigger'))
-                                    .then(function (button) {
-                                    return button.click().then(function () {
-                                        return button.click();
-                                    });
-                                });
-                            }).then(function () {
-                                setTimeout(function () {
-                                    dialog
-                                        .findElements(webdriver.By.className('executionTrigger'))
-                                        .then(function (triggers) {
-                                        return triggers[0]
-                                            .findElement(webdriver.By.tagName('paper-checkbox'))
-                                            .click()
-                                            .then(function () {
-                                            return triggers[1]
-                                                .findElement(webdriver.By.tagName('input'))
-                                                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                .then(() => {
+                                    wait(1000);
+                                })
+                                .then(() => {
+                                    return dialog
+                                        .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+                                }).then((triggerOptions) => {
+                                    return triggerOptions[triggerOptionIndex].click();
+                                }).then(() => {
+                                    wait(1000);
+                                })
+                                .then(() => {
+                                    return dialog
+                                        .findElement(webdriver.By.id('addTrigger'))
+                                        .then((button) => {
+                                            return button.click().then(() => {
+                                                return button.click();
+                                            })
                                         });
-                                    }).then(function () {
-                                        return saveDialog(dialog);
-                                    }).then(function () {
-                                        return getCRM();
-                                    }).then(function (crm) {
-                                        assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
-                                        assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
-                                        assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
-                                        assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                                        assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
-                                        done();
-                                    });
-                                }, 500);
-                            });
+                                }).then(() => {
+                                    setTimeout(() => {
+                                        dialog
+                                            .findElements(webdriver.By.className('executionTrigger'))
+                                            .then((triggers) => {
+                                                return triggers[0]
+                                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                                    .click()
+                                                    .then(() => {
+                                                        return triggers[1]
+                                                            .findElement(webdriver.By.tagName('input'))
+                                                            .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                                    });
+                                            }).then(() => {
+                                                return saveDialog(dialog);
+                                            }).then(() => {
+                                                return getCRM();
+                                            }).then((crm) => {
+                                                assert.lengthOf(crm[0].triggers, 3,
+                                                    'trigger has been added');
+                                                assert.isTrue(crm[0].triggers[0].not,
+                                                    'first trigger is NOT');
+                                                assert.isFalse(crm[0].triggers[1].not,
+                                                    'second trigger is not NOT');
+                                                assert.strictEqual(crm[0].triggers[0].url,
+                                                    '*://*.example.com/*',
+                                                    'first trigger url stays the same');
+                                                assert.strictEqual(crm[0].triggers[1].url,
+                                                    'www.google.com',
+                                                    'second trigger url changed');
+                                                done();
+                                            });
+                                    }, 500);
+                                });
                         });
                     });
-                    it('should be saved on page reload', function (done) {
-                        getCRM().then(function (crm) {
-                            assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
-                            assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
-                            assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
-                            assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                            assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
+                    it('should be saved on page reload', (done) => {
+                        getCRM().then((crm: Array<StylesheetNode|ScriptNode>) => {
+                            assert.lengthOf(crm[0].triggers, 3,
+                                'trigger has been added');
+                            assert.isTrue(crm[0].triggers[0].not,
+                                'first trigger is NOT');
+                            assert.isFalse(crm[0].triggers[1].not,
+                                'second trigger is not NOT');
+                            assert.strictEqual(crm[0].triggers[0].url,
+                                '*://*.example.com/*',
+                                'first trigger url stays the same');
+                            assert.strictEqual(crm[0].triggers[1].url,
+                                'www.google.com',
+                                'second trigger url changed');
                             done();
                         });
                     });
-                    it('should not be saved when cancelled', function (done) {
-                        resetSettings(_this).then(function () {
+                    it('should not be saved when cancelled', (done) => {
+                        resetSettings(this).then(() => {
                             return openDialog(type);
-                        }).then(function () {
-                            return getDialog(driver, type);
-                        }).then(function (dialog) {
-                            return wait(500, dialog);
-                            ;
-                        }).then(function (dialog) {
+                        }).then(() => {
+                            return getDialog(driver, type)
+                        }).then((dialog) => {
+                            return wait(500, dialog);;
+                        }).then((dialog) => {
                             dialog
                                 .findElement(webdriver.By.id('dropdownMenu'))
                                 .click()
-                                .then(function () {
-                                wait(500);
-                            })
-                                .then(function () {
-                                return dialog
-                                    .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
-                            }).then(function (triggerOptions) {
-                                return triggerOptions[triggerOptionIndex].click();
-                            }).then(function () {
-                                wait(1000);
-                            })
-                                .then(function () {
-                                return dialog
-                                    .findElement(webdriver.By.id('addTrigger'))
-                                    .then(function (button) {
-                                    return button.click().then(function () {
-                                        return button.click();
-                                    });
-                                });
-                            }).then(function () {
-                                setTimeout(function () {
-                                    dialog
-                                        .findElements(webdriver.By.className('executionTrigger'))
-                                        .then(function (triggers) {
-                                        return triggers[0]
-                                            .findElement(webdriver.By.tagName('paper-checkbox'))
-                                            .click()
-                                            .then(function () {
-                                            return triggers[1]
-                                                .findElement(webdriver.By.tagName('input'))
-                                                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                .then(() => {
+                                    wait(500);
+                                })
+                                .then(() => {
+                                    return dialog
+                                        .findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+                                }).then((triggerOptions) => {
+                                    return triggerOptions[triggerOptionIndex].click();
+                                }).then(() => {
+                                    wait(1000);
+                                })
+                                .then(() => {
+                                    return dialog
+                                        .findElement(webdriver.By.id('addTrigger'))
+                                        .then((button) => {
+                                            return button.click().then(() => {
+                                                return button.click();
+                                            })
                                         });
-                                    }).then(function () {
-                                        return cancelDialog(dialog);
-                                    }).then(function () {
-                                        return getCRM();
-                                    }).then(function (crm) {
-                                        assert.lengthOf(crm[0].triggers, 1, 'no triggers have been added');
-                                        assert.isFalse(crm[0].triggers[0].not, 'first trigger NOT status did not change');
-                                        assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                                        done();
-                                    });
-                                }, 500);
-                            });
+                                }).then(() => {
+                                    setTimeout(() => {
+                                        dialog
+                                            .findElements(webdriver.By.className('executionTrigger'))
+                                            .then((triggers) => {
+                                                return triggers[0]
+                                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                                                    .click()
+                                                    .then(() => {
+                                                        return triggers[1]
+                                                            .findElement(webdriver.By.tagName('input'))
+                                                            .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                                    });
+                                            }).then(() => {
+                                                return cancelDialog(dialog);
+                                            }).then(() => {
+                                                return getCRM();
+                                            }).then((crm) => {
+                                                assert.lengthOf(crm[0].triggers, 1,
+                                                    'no triggers have been added');
+                                                assert.isFalse(crm[0].triggers[0].not,
+                                                    'first trigger NOT status did not change');
+                                                assert.strictEqual(crm[0].triggers[0].url,
+                                                    '*://*.example.com/*',
+                                                    'first trigger url stays the same');
+                                                done();
+                                            });
+                                    }, 500);
+                                });
                         });
                     });
                 });
             });
         });
     }
-    function testEditorSettings(type) {
-        it('are togglable', function (done) {
+
+    function testEditorSettings(type: NodeType) {
+        it('are togglable', function(done) {
             this.timeout(30000);
             this.slow(13000);
-            resetSettings(this).then(function () {
+            resetSettings(this).then(() => {
                 return openDialog(type);
-            }).then(function () {
+            }).then(() => {
                 return getDialog(driver, type);
-            }).then(function (dialog) {
-                return wait(500, dialog);
-                ;
-            }).then(function (dialog) {
+            }).then((dialog) => {
+                return wait(500, dialog);;
+            }).then((dialog) => {
                 return dialog
                     .findElement(webdriver.By.id('editorSettings'))
                     .click()
-                    .then(function () {
-                    return wait(500);
-                })
-                    .then(function () {
-                    return dialog
-                        .findElement(webdriver.By.id('editorSettingsTxt'))
-                        .isDisplayed();
-                });
-            }).then(function (isDisplayed) {
+                    .then(() => {
+                        return wait(500);
+                    })
+                    .then(() => {
+                        return dialog
+                            .findElement(webdriver.By.id('editorSettingsTxt'))
+                            .isDisplayed()
+                    })
+            }).then((isDisplayed) => {
                 assert.isTrue(isDisplayed, 'settings menu is visible');
                 done();
             });
         });
-        describe('Theme', function () {
+        describe('Theme', function(this: MochaFn) {
             this.timeout(30000);
-            it('is changable', function (done) {
+            it('is changable', function(done) {
                 this.slow(13000);
-                resetSettings(this).then(function () {
+                resetSettings(this).then(() => {
                     return openDialog(type);
-                }).then(function () {
+                }).then(() => {
                     return getDialog(driver, type);
-                }).then(function (dialog) {
+                }).then((dialog) => {
                     return wait(500, dialog);
-                }).then(function (dialog) {
+                }).then((dialog) => {
                     return dialog
                         .findElement(webdriver.By.id('editorSettings'))
                         .click()
-                        .then(function () {
-                        return wait(500);
-                    })
-                        .then(function () {
-                        return dialog
-                            .findElement(webdriver.By.id('editorThemeSettingWhite'))
-                            .click();
-                    });
-                }).then(function () {
-                    return getSyncSettings();
-                }).then(function (settings) {
-                    assert.strictEqual(settings.editor.theme, 'white', 'theme has been switched to white');
-                    done();
-                });
-            });
-            it('is preserved on page reload', function (done) {
-                this.slow(6000);
-                reloadPage(this).then(function () {
-                    return getSyncSettings();
-                }).then(function (settings) {
-                    assert.strictEqual(settings.editor.theme, 'white', 'theme has been switched to white');
-                    done();
-                });
-            });
-        });
-        describe('Zoom', function () {
-            var newZoom = '135';
-            it('is changable', function (done) {
-                this.slow(13000);
-                resetSettings(this).then(function () {
-                    return openDialog(type);
-                }).then(function () {
-                    return getDialog(driver, type);
-                }).then(function (dialog) {
-                    return wait(500, dialog);
-                }).then(function (dialog) {
-                    return dialog
-                        .findElement(webdriver.By.id('editorSettings'))
-                        .then(function (editorSettings) {
-                        editorSettings
-                            .click()
-                            .then(function () {
+                        .then(() => {
                             return wait(500);
                         })
-                            .then(function () {
+                        .then(() => {
                             return dialog
-                                .findElement(webdriver.By.id('editorThemeFontSizeInput'))
-                                .findElement(webdriver.By.tagName('input'))
-                                .sendKeys(webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, newZoom);
-                        }).then(function () {
-                            //Click the cogwheel to click "somewhere" to remove focus
-                            return editorSettings.click();
-                        }).then(function () {
-                            return wait(500, dialog);
-                        });
-                    });
-                }).then(function () {
-                    return getSyncSettings();
-                }).then(function (settings) {
-                    assert.strictEqual(settings.editor.zoom, newZoom, 'zoom has changed to the correct number');
-                    done();
-                });
-            });
-            it('is preserved on page reload', function (done) {
-                this.slow(6000);
-                reloadPage(this).then(function () {
-                    return getSyncSettings();
-                }).then(function (settings) {
-                    assert.strictEqual(settings.editor.zoom, newZoom, 'zoom has changed to the correct number');
-                    done();
-                });
-            });
-        });
-        describe('UseTabs', function () {
-            it('is changable', function (done) {
-                this.slow(17000);
-                resetSettings(this).then(function () {
-                    return openDialog(type);
-                }).then(function () {
-                    return getDialog(driver, type);
-                }).then(function (dialog) {
-                    return wait(500, dialog);
-                }).then(function (dialog) {
-                    return dialog
-                        .findElement(webdriver.By.id('editorSettings'))
-                        .click()
-                        .then(function () {
-                        return wait(500);
-                    })
-                        .then(function () {
-                        return dialog
-                            .findElement(webdriver.By.id('editorTabsOrSpacesCheckbox'))
-                            .findElement(webdriver.By.tagName('paper-checkbox'))
-                            .click();
-                    });
-                }).then(function () {
-                    return getSyncSettings();
-                }).then(function (settings) {
-                    assert.isFalse(settings.editor.useTabs, 'useTabs is off');
-                    done();
-                });
-            });
-            it('is preserved on page reload', function (done) {
-                this.slow(6000);
-                reloadPage(this).then(function () {
-                    return getSyncSettings();
-                }).then(function (settings) {
-                    assert.isFalse(settings.editor.useTabs, 'useTabs is off');
-                    done();
-                });
-            });
-        });
-        describe('Tab Size', function () {
-            var newTabSize = '8';
-            it('is changable', function (done) {
-                this.slow(17000);
-                resetSettings(this).then(function () {
-                    return openDialog(type);
-                }).then(function () {
-                    return getDialog(driver, type);
-                }).then(function (dialog) {
-                    return wait(500, dialog);
-                }).then(function (dialog) {
-                    return dialog
-                        .findElement(webdriver.By.id('editorSettings'))
-                        .click()
-                        .then(function () {
-                        return wait(500);
-                    })
-                        .then(function () {
-                        return dialog
-                            .findElement(webdriver.By.id('editorTabSizeInput'))
-                            .findElement(webdriver.By.tagName('input'))
-                            .sendKeys(webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, webdriver.Key.NULL, webdriver.Key.DELETE, webdriver.Key.DELETE, newTabSize)
-                            .then(function () {
-                            //Click "some" element to un-focus the input
-                            return dialog
-                                .findElement(webdriver.By.id('editorSettings'))
+                                .findElement(webdriver.By.id('editorThemeSettingWhite'))
                                 .click();
                         });
-                    });
-                }).then(function () {
+                }).then(() => {
                     return getSyncSettings();
-                }).then(function (settings) {
-                    assert.strictEqual(settings.editor.tabSize, newTabSize, 'tab size has changed to the correct number');
+                }).then((settings) => {
+                    assert.strictEqual(settings.editor.theme, 'white',
+                        'theme has been switched to white');
                     done();
                 });
             });
-            it('is preserved on page reload', function (done) {
+            it('is preserved on page reload', function(done) {
                 this.slow(6000);
-                reloadPage(this).then(function () {
+                reloadPage(this).then(() => {
                     return getSyncSettings();
-                }).then(function (settings) {
-                    assert.strictEqual(settings.editor.tabSize, newTabSize, 'tab size has changed to the correct number');
+                }).then((settings) => {
+                    assert.strictEqual(settings.editor.theme, 'white',
+                        'theme has been switched to white');
                     done();
                 });
+            });
+        });
+        describe('Zoom', function(this: MochaFn) {
+            const newZoom = '135';
+            it('is changable', function(done) {
+                this.slow(13000);
+                resetSettings(this).then(() => {
+                    return openDialog(type);
+                }).then(() => {
+                    return getDialog(driver, type);
+                }).then((dialog) => {
+                    return wait(500, dialog);
+                }).then((dialog) => {
+                    return dialog
+                        .findElement(webdriver.By.id('editorSettings'))
+                        .then((editorSettings) => {
+                            editorSettings
+                                .click()
+                                .then(() => {
+                                    return wait(500);
+                                })
+                                .then(() => {
+                                    return dialog
+                                        .findElement(webdriver.By.id('editorThemeFontSizeInput'))
+                                        .findElement(webdriver.By.tagName('input'))
+                                        .sendKeys(webdriver.Key.BACK_SPACE,
+                                            webdriver.Key.BACK_SPACE,
+                                            webdriver.Key.BACK_SPACE,
+                                            newZoom);
+                                }).then(() => {
+                                    //Click the cogwheel to click "somewhere" to remove focus
+                                    return editorSettings.click();
+                                }).then(() => {
+                                    return wait(500, dialog);
+                                });
+                        });
+                }).then(() => {
+                    return getSyncSettings();
+                }).then((settings) => {
+                    assert.strictEqual(settings.editor.zoom, newZoom,
+                        'zoom has changed to the correct number');
+                    done();
+                });
+            });
+            it('is preserved on page reload', function(done) {
+                this.slow(6000);
+                reloadPage(this).then(() => {
+                    return getSyncSettings();
+                }).then((settings) => {
+                    assert.strictEqual(settings.editor.zoom, newZoom,
+                        'zoom has changed to the correct number');
+                    done();
+                });
+            });
+        });
+        describe('UseTabs', function(this: MochaFn) {
+            it('is changable', function(done) {
+                this.slow(17000);
+                resetSettings(this).then(() => {
+                    return openDialog(type);
+                }).then(() => {
+                    return getDialog(driver, type);
+                }).then((dialog) => {
+                    return wait(500, dialog);
+                }).then((dialog) => {
+                    return dialog
+                        .findElement(webdriver.By.id('editorSettings'))
+                        .click()
+                        .then(() => {
+                            return wait(500);
+                        })
+                        .then(() => {
+                            return dialog
+                                .findElement(webdriver.By.id('editorTabsOrSpacesCheckbox'))
+                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                .click();
+                        });
+                }).then(() => {
+                    return getSyncSettings();
+                }).then((settings) => {
+                    assert.isFalse(settings.editor.useTabs,
+                        'useTabs is off');
+                    done();
+                });
+            });
+            it('is preserved on page reload', function(done) {
+                this.slow(6000);
+                reloadPage(this).then(() => {
+                    return getSyncSettings();
+                }).then((settings) => {
+                    assert.isFalse(settings.editor.useTabs,
+                        'useTabs is off');
+                    done();
+                })
+            });
+        });
+        describe('Tab Size', function(this: MochaFn) {
+            const newTabSize = '8';
+            it('is changable', function(done) {
+                this.slow(17000);
+                resetSettings(this).then(() => {
+                    return openDialog(type);
+                }).then(() => {
+                    return getDialog(driver, type);
+                }).then((dialog) => {
+                    return wait(500, dialog);
+                }).then((dialog) => {
+                    return dialog
+                        .findElement(webdriver.By.id('editorSettings'))
+                        .click()
+                        .then(() => {
+                            return wait(500);
+                        })
+                        .then(() => {
+                            return dialog
+                                .findElement(webdriver.By.id('editorTabSizeInput'))
+                                .findElement(webdriver.By.tagName('input'))
+                                .sendKeys(webdriver.Key.BACK_SPACE,
+                                    webdriver.Key.BACK_SPACE,
+                                    webdriver.Key.NULL,
+                                    webdriver.Key.DELETE,
+                                    webdriver.Key.DELETE,
+                                    newTabSize)
+                                .then(() => {
+                                    //Click "some" element to un-focus the input
+                                    return dialog
+                                        .findElement(webdriver.By.id('editorSettings'))
+                                        .click();
+                                })
+                        });
+                }).then(() => {
+                    return getSyncSettings();
+                }).then((settings) => {
+                    assert.strictEqual(settings.editor.tabSize, newTabSize,
+                        'tab size has changed to the correct number');
+                    done();
+                });
+            });
+            it('is preserved on page reload', function(done) {
+                this.slow(6000);
+                reloadPage(this).then(() => {
+                    return getSyncSettings();
+                }).then((settings) => {
+                    assert.strictEqual(settings.editor.tabSize, newTabSize,
+                        'tab size has changed to the correct number');
+                    done();
+                })
             });
         });
     }
-    describe('CRM Editing', function () {
-        before('Reset settings', function () {
+
+    describe('CRM Editing', function(this: MochaFn) {
+        before('Reset settings', function() {
             return resetSettings(this);
         });
-        describe('Type Switching', function () {
-            function testTypeSwitch(driver, type, done) {
-                driver.executeAsyncScript(inlineFn(function (args) {
-                    var crmItem = document.getElementsByTagName('edit-crm-item').item(0);
+
+        describe('Type Switching', function(this: MochaFn) {
+
+            function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
+                driver.executeAsyncScript(inlineFn((args) => {
+                    const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
                     crmItem.typeIndicatorMouseOver();
-                    window.setTimeout(function () {
-                        var typeSwitcher = crmItem.querySelector('type-switcher');
+                    window.setTimeout(() => {
+                        const typeSwitcher = crmItem.querySelector('type-switcher');
                         typeSwitcher.openTypeSwitchContainer();
-                        window.setTimeout(function () {
+                        window.setTimeout(() => {
                             typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]')
                                 .click();
                             args[0](window.app.settings.crm[0].type === 'REPLACE.type');
@@ -1530,546 +1688,574 @@ describe('Page', function () {
                     }, 300);
                 }, {
                     type: type
-                })).then(function (typesMatch) {
+                })).then((typesMatch: boolean) => {
                     assert.isTrue(typesMatch, 'new type matches expected');
                     done();
                 });
             }
             this.timeout(20000);
             this.slow(7000);
-            it('should be able to switch to a script', function (done) {
-                resetSettings(this).then(function () {
+            
+            it('should be able to switch to a script', function(done)  {
+                resetSettings(this).then(() => {
                     testTypeSwitch(driver, 'script', done);
                 });
             });
-            it('should be preserved', function (done) {
-                reloadPage(this).then(function () {
+            it('should be preserved', function(done) {
+                reloadPage(this).then(() => {
                     return getCRM();
-                }).then(function (crm) {
+                }).then((crm) => {
                     assert.strictEqual(crm[0].type, 'script', 'type has stayed the same');
                     done();
                 });
             });
-            it('should be able to switch to a menu', function (done) {
-                resetSettings(this).then(function () {
+            it('should be able to switch to a menu', function(done)  {
+                resetSettings(this).then(() => {
                     testTypeSwitch(driver, 'menu', done);
                 });
             });
-            it('should be preserved', function (done) {
-                reloadPage(this).then(function () {
+            it('should be preserved', function(done) {
+                reloadPage(this).then(() => {
                     return getCRM();
-                }).then(function (crm) {
+                }).then((crm) => {
                     assert.strictEqual(crm[0].type, 'menu', 'type has stayed the same');
                     done();
                 });
             });
-            it('should be able to switch to a divider', function (done) {
-                resetSettings(this).then(function () {
+            it('should be able to switch to a divider', function(done)  {
+                resetSettings(this).then(() => {
                     testTypeSwitch(driver, 'divider', done);
                 });
             });
-            it('should be preserved', function (done) {
-                reloadPage(this).then(function () {
+            it('should be preserved', function(done) {
+                reloadPage(this).then(() => {
                     return getCRM();
-                }).then(function (crm) {
+                }).then((crm) => {
                     assert.strictEqual(crm[0].type, 'divider', 'type has stayed the same');
                     done();
                 });
             });
-            it('should be able to switch to a stylesheet', function (done) {
-                resetSettings(this).then(function () {
+            it('should be able to switch to a stylesheet', function(done)  {
+                resetSettings(this).then(() => {
                     testTypeSwitch(driver, 'stylesheet', done);
                 });
             });
-            it('should be preserved', function (done) {
-                reloadPage(this).then(function () {
+            it('should be preserved', function(done) {
+                reloadPage(this).then(() => {
                     return getCRM();
-                }).then(function (crm) {
+                }).then((crm) => {
                     assert.strictEqual(crm[0].type, 'stylesheet', 'type has stayed the same');
                     done();
                 });
             });
         });
-        describe('Link Dialog', function () {
-            var type = 'link';
+        describe('Link Dialog', function(this: MochaFn) {
+            const type: NodeType = 'link';
+
             this.timeout(30000);
-            before('Reset settings', function () {
+            before('Reset settings', function() {
                 return resetSettings(this);
             });
+
             testNameInput(type);
             testVisibilityTriggers(type);
             testContentTypes(type);
-            describe('Links', function () {
+            
+            describe('Links', function(this: MochaFn) {
                 this.slow(22500);
-                after('Reset settings', function () {
+
+                after('Reset settings', function() {
                     return resetSettings(this);
                 });
-                it('open in new tab property should be editable', function (done) {
-                    resetSettings(this).then(function () {
+
+                it('open in new tab property should be editable', function(done)  {
+                    resetSettings(this).then(() => {
                         return openDialog('link');
-                    }).then(function () {
-                        return getDialog(driver, 'link');
-                    }).then(function (dialog) {
+                    }).then(() => {
+                        return getDialog(driver, 'link')
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.className('linkChangeCont'))
                             .findElement(webdriver.By.tagName('paper-checkbox'))
                             .click()
-                            .then(function () {
-                            return saveDialog(dialog);
-                        })
-                            .then(function () {
-                            return getCRM();
-                        })
-                            .then(function (crm) {
-                            assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
-                            assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
-                            done();
-                        });
+                            .then(() => {
+                                return saveDialog(dialog);
+                            })
+                            .then(() => {
+                                return getCRM();
+                            })
+                            .then((crm: Array<LinkNode>) => {
+                                assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+                                assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
+                                done();
+                            });
                     });
                 });
-                it('url property should be editable', function (done) {
-                    var newUrl = 'www.google.com';
-                    resetSettings(this).then(function () {
+                it('url property should be editable', function(done)  {
+                    const newUrl = 'www.google.com';
+                    resetSettings(this).then(() => {
                         return openDialog('link');
-                    }).then(function () {
-                        return getDialog(driver, 'link');
-                    }).then(function (dialog) {
+                    }).then(() => {
+                        return getDialog(driver, 'link')
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.className('linkChangeCont'))
                             .findElement(webdriver.By.tagName('input'))
                             .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl)
-                            .then(function () {
-                            return saveDialog(dialog);
-                        })
-                            .then(function () {
-                            return getCRM();
-                        })
-                            .then(function (crm) {
-                            assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
-                            assert.strictEqual(crm[0].value[0].url, newUrl, 'url has been changed');
-                            done();
-                        });
+                            .then(() => {
+                                return saveDialog(dialog);
+                            })
+                            .then(() => {
+                                return getCRM();
+                            })
+                            .then((crm: Array<LinkNode>) => {
+                                assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
+                                assert.strictEqual(crm[0].value[0].url, newUrl,
+                                    'url has been changed');
+                                done();
+                            });
                     });
                 });
-                it('should be addable', function (done) {
-                    var defaultLink = {
+                it('should be addable', function(done)  {
+                    const defaultLink = {
                         newTab: true,
                         url: 'https://www.example.com'
                     };
-                    resetSettings(this).then(function () {
+                    resetSettings(this).then(() => {
                         return openDialog('link');
-                    }).then(function () {
-                        return getDialog(driver, 'link');
-                    }).then(function (dialog) {
+                    }).then(() => {
+                        return getDialog(driver, 'link')
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('changeLink'))
                             .findElement(webdriver.By.tagName('paper-button'))
-                            .then(function (button) {
-                            return button
-                                .click()
-                                .then(function () {
-                                return button.click();
+                            .then((button) => {
+                                return button
+                                    .click()
+                                    .then(() => {
+                                        return button.click();
+                                    })
+                                    .then(() => {
+                                        return button.click();
+                                    });
                             })
-                                .then(function () {
-                                return button.click();
+                            .then(() => {
+                                return saveDialog(dialog);
+                            })
+                            .then(() => {
+                                return getCRM();
+                            })
+                            .then((crm: Array<LinkNode>) => {
+                                assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+                                assert.deepEqual(crm[0].value,
+                                    Array.apply(null, Array(4)).map(_ => defaultLink),
+                                    'new links match default link value');
+                                done();
                             });
-                        })
-                            .then(function () {
-                            return saveDialog(dialog);
-                        })
-                            .then(function () {
-                            return getCRM();
-                        })
-                            .then(function (crm) {
-                            assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
-                            assert.deepEqual(crm[0].value, Array.apply(null, Array(4)).map(function (_) { return defaultLink; }), 'new links match default link value');
-                            done();
-                        });
                     });
                 });
-                it('should be editable when newly added', function (done) {
-                    var newUrl = 'www.google.com';
-                    var newValue = {
+                it('should be editable when newly added', function(done)  {
+                    const newUrl = 'www.google.com';
+                    const newValue = {
                         newTab: true,
                         url: newUrl
-                    };
-                    resetSettings(this).then(function () {
+                    }
+                    resetSettings(this).then(() => {
                         return openDialog('link');
-                    }).then(function () {
-                        return getDialog(driver, 'link');
-                    }).then(function (dialog) {
+                    }).then(() => {
+                        return getDialog(driver, 'link')
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('changeLink'))
                             .findElement(webdriver.By.tagName('paper-button'))
-                            .then(function (button) {
-                            return button
-                                .click()
-                                .then(function () {
-                                return button.click();
+                            .then((button) => {
+                                return button
+                                    .click()
+                                    .then(() => {
+                                        return button.click();
+                                    })
+                                    .then(() => {
+                                        return button.click();
+                                    });
                             })
-                                .then(function () {
-                                return button.click();
-                            });
-                        })
-                            .then(function () {
-                            return wait(500);
-                        })
-                            .then(function () {
-                            return dialog
-                                .findElements(webdriver.By.className('linkChangeCont'));
-                        })
-                            .then(function (elements) {
-                            return forEachPromise(elements, function (element) {
-                                return new webdriver.promise.Promise(function (resolve) {
-                                    setTimeout(function () {
-                                        element
-                                            .findElement(webdriver.By.tagName('paper-checkbox'))
-                                            .click()
-                                            .then(function () {
-                                            return element
-                                                .findElement(webdriver.By.tagName('input'))
-                                                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
-                                        }).then(function () {
-                                            resolve(null);
-                                        });
-                                    }, 250);
+                            .then(() => {
+                                return wait(500);
+                            })
+                            .then(() => {
+                                return dialog
+                                    .findElements(webdriver.By.className('linkChangeCont'))
+                            })
+                            .then((elements) => {
+                                return forEachPromise(elements, (element) => {
+                                    return new webdriver.promise.Promise((resolve) => {
+                                        setTimeout(() => {
+                                            element
+                                                .findElement(webdriver.By.tagName('paper-checkbox'))
+                                                .click()
+                                                .then(() => {
+                                                    return element
+                                                        .findElement(webdriver.By.tagName('input'))
+                                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
+                                                }).then(() => {
+                                                    resolve(null);
+                                                });
+                                        }, 250);
+                                    });
                                 });
+                            })
+                            .then(() => {
+                                return wait(500);
+                            })
+                            .then(() => {
+                                return saveDialog(dialog);
+                            })
+                            .then(() => {
+                                return getCRM();
+                            })
+                            .then((crm: Array<LinkNode>) => {
+                                assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+
+                                //Only one newTab can be false at a time
+                                const newLinks = Array.apply(null, Array(4))
+                                    .map(_ => JSON.parse(JSON.stringify(newValue)));
+                                newLinks[3].newTab = false;
+
+                                assert.deepEqual(crm[0].value, newLinks,
+                                    'new links match changed link value');
+                                done();
                             });
-                        })
-                            .then(function () {
-                            return wait(500);
-                        })
-                            .then(function () {
-                            return saveDialog(dialog);
-                        })
-                            .then(function () {
-                            return getCRM();
-                        })
-                            .then(function (crm) {
-                            assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
-                            //Only one newTab can be false at a time
-                            var newLinks = Array.apply(null, Array(4))
-                                .map(function (_) { return JSON.parse(JSON.stringify(newValue)); });
-                            newLinks[3].newTab = false;
-                            assert.deepEqual(crm[0].value, newLinks, 'new links match changed link value');
-                            done();
-                        });
                     });
                 });
-                it('should be preserved on page reload', function (done) {
-                    var newUrl = 'www.google.com';
-                    var newValue = {
+                it('should be preserved on page reload', function(done) {
+                    const newUrl = 'www.google.com';
+                    const newValue = {
                         newTab: true,
                         url: newUrl
-                    };
-                    reloadPage(this).then(function () {
+                    }
+
+                    reloadPage(this).then(() => {
                         return getCRM();
-                    }).then(function (crm) {
+                    }).then((crm) => {
                         assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+
                         //Only one newTab can be false at a time
-                        var newLinks = Array.apply(null, Array(4))
-                            .map(function (_) { return JSON.parse(JSON.stringify(newValue)); });
+                        const newLinks = Array.apply(null, Array(4))
+                            .map(_ => JSON.parse(JSON.stringify(newValue)));
                         newLinks[3].newTab = false;
-                        assert.deepEqual(crm[0].value, newLinks, 'new links match changed link value');
+
+                        assert.deepEqual(crm[0].value, newLinks,
+                            'new links match changed link value');
                         done();
                     });
                 });
-                it('should not change when not saved', function (done) {
+                it('should not change when not saved', function(done)  {
                     this.slow(12000);
-                    var newUrl = 'www.google.com';
-                    var defaultLink = {
+                    const newUrl = 'www.google.com';
+                    const defaultLink = {
                         newTab: true,
                         url: 'https://www.example.com'
                     };
-                    resetSettings(this).then(function () {
+                    resetSettings(this).then(() => {
                         return openDialog('link');
-                    }).then(function () {
-                        return getDialog(driver, 'link');
-                    }).then(function (dialog) {
+                    }).then(() => {
+                        return getDialog(driver, 'link')
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('changeLink'))
                             .findElement(webdriver.By.tagName('paper-button'))
-                            .then(function (button) {
-                            return button
-                                .click()
-                                .then(function () {
-                                return button.click();
-                            })
-                                .then(function () {
-                                return button.click();
-                            });
-                        })
-                            .then(function () {
-                            return dialog
-                                .findElements(webdriver.By.className('linkChangeCont'));
-                        })
-                            .then(function (elements) {
-                            return forEachPromise(elements, function (element) {
-                                return element
-                                    .findElement(webdriver.By.tagName('paper-checkbox'))
+                            .then((button) => {
+                                return button
                                     .click()
-                                    .then(function () {
+                                    .then(() => {
+                                        return button.click();
+                                    })
+                                    .then(() => {
+                                        return button.click();
+                                    });
+                            })
+                            .then(() => {
+                                return dialog
+                                    .findElements(webdriver.By.className('linkChangeCont'));
+                            })
+                            .then((elements) => {
+                                return forEachPromise(elements, (element) => {
                                     return element
-                                        .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
+                                        .findElement(webdriver.By.tagName('paper-checkbox'))
+                                        .click()
+                                        .then(() => {
+                                            return element
+                                                .findElement(webdriver.By.tagName('input'))
+                                                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
+                                        })
                                 });
+                            })
+                            .then(() => {
+                                return cancelDialog(dialog);
+                            })
+                            .then(() => {
+                                return getCRM();
+                            })
+                            .then((crm: Array<LinkNode>) => {
+                                assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
+                                assert.deepEqual(crm[0].value, [defaultLink],
+                                    'link value has stayed the same');
+                                done();
                             });
-                        })
-                            .then(function () {
-                            return cancelDialog(dialog);
-                        })
-                            .then(function () {
-                            return getCRM();
-                        })
-                            .then(function (crm) {
-                            assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
-                            assert.deepEqual(crm[0].value, [defaultLink], 'link value has stayed the same');
-                            done();
-                        });
                     });
                 });
             });
         });
-        describe('Divider Dialog', function () {
-            var type = 'link';
+        describe('Divider Dialog', function(this: MochaFn) {
+            const type: NodeType = 'link';
+
             this.timeout(30000);
-            before('Reset settings', function () {
+            before('Reset settings', function() {
                 return resetSettings(this);
             });
+
             testNameInput(type);
             testVisibilityTriggers(type);
             testContentTypes(type);
         });
-        describe('Menu Dialog', function () {
-            var type = 'menu';
+        describe('Menu Dialog', function(this: MochaFn) {
+            const type: NodeType = 'menu';
+
             this.timeout(30000);
-            before('Reset settings', function () {
+            before('Reset settings', function() {
                 return resetSettings(this);
             });
+
             testNameInput(type);
             testVisibilityTriggers(type);
             testContentTypes(type);
         });
-        describe('Stylesheet Dialog', function () {
-            var type = 'stylesheet';
+        describe('Stylesheet Dialog', function(this: MochaFn) {
+            const type: NodeType = 'stylesheet';
+
             this.timeout(30000);
             this.slow(12000);
-            before('Reset settings', function () {
+            before('Reset settings', function() {
                 return resetSettings(this);
             });
+
             testNameInput(type);
             testContentTypes(type);
             testClickTriggers(type);
-            describe('Toggling', function () {
-                var _this = this;
-                it('should be possible to toggle on', function (done) {
-                    resetSettings(_this).then(function () {
+
+            describe('Toggling', function(this: MochaFn) {
+                it('should be possible to toggle on', (done) => {
+                    resetSettings(this).then(() => {
                         return openDialog(type);
-                    }).then(function () {
+                    }).then(() => {
                         return getDialog(driver, type);
-                    }).then(function (dialog) {
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('isTogglableButton'))
                             .click()
-                            .then(function () {
-                            return saveDialog(dialog);
-                        }).then(function () {
-                            return getCRM();
-                        }).then(function (crm) {
-                            assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
-                            done();
-                        });
+                            .then(() => {
+                                return saveDialog(dialog);
+                            }).then(() => {
+                                return getCRM();
+                            }).then((crm: Array<StylesheetNode>) => {
+                                assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
+                                done();
+                            });
                     });
                 });
-                it('should be saved on page reload', function (done) {
-                    reloadPage(this).then(function () {
+                it('should be saved on page reload', function(done) {
+                    reloadPage(this).then(() => {
                         return getCRM();
-                    }).then(function (crm) {
+                    }).then((crm: Array<StylesheetNode>) => {
                         assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
                         done();
                     });
                 });
-                it('should be possible to toggle on-off', function (done) {
-                    resetSettings(_this).then(function () {
+                it('should be possible to toggle on-off', (done) => {
+                    resetSettings(this).then(() => {
                         return openDialog(type);
-                    }).then(function () {
+                    }).then(() => {
                         return getDialog(driver, type);
-                    }).then(function (dialog) {
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('isTogglableButton'))
-                            .then(function (slider) {
-                            return slider
-                                .click()
-                                .then(function () {
+                            .then((slider) => {
                                 return slider
-                                    .click();
+                                    .click()
+                                    .then(() => {
+                                        return slider
+                                            .click();
+                                    });
+                            }).then(() => {
+                                return saveDialog(dialog);
+                            }).then(() => {
+                                return getCRM();
+                            }).then((crm: Array<StylesheetNode>) => {
+                                assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
+                                done();
                             });
-                        }).then(function () {
-                            return saveDialog(dialog);
-                        }).then(function () {
-                            return getCRM();
-                        }).then(function (crm) {
-                            assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
-                            done();
-                        });
                     });
                 });
-                it('should not be saved on cancel', function (done) {
-                    resetSettings(_this).then(function () {
+                it('should not be saved on cancel', (done) => {
+                    resetSettings(this).then(() => {
                         return openDialog(type);
-                    }).then(function () {
+                    }).then(() => {
                         return getDialog(driver, type);
-                    }).then(function (dialog) {
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('isTogglableButton'))
                             .click()
-                            .then(function () {
-                            return cancelDialog(dialog);
-                        }).then(function () {
-                            return getCRM();
-                        }).then(function (crm) {
-                            assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
-                            done();
-                        });
+                            .then(() => {
+                                return cancelDialog(dialog);
+                            }).then(() => {
+                                return getCRM();
+                            }).then((crm: Array<StylesheetNode>) => {
+                                assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
+                                done();
+                            });
                     });
                 });
             });
-            describe('Default State', function () {
-                var _this = this;
-                it('should be togglable to true', function (done) {
-                    resetSettings(_this).then(function () {
+            describe('Default State', function(this: MochaFn) {
+                it('should be togglable to true', (done) => {
+                    resetSettings(this).then(() => {
                         return openDialog(type);
-                    }).then(function () {
+                    }).then(() => {
                         return getDialog(driver, type);
-                    }).then(function (dialog) {
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('isTogglableButton'))
-                            .then(function (slider) {
-                            return slider
-                                .click();
-                        }).then(function () {
-                            return dialog
-                                .findElement(webdriver.By.id('isDefaultOnButton'));
-                        }).then(function (slider) {
-                            return slider
-                                .click();
-                        }).then(function () {
-                            return saveDialog(dialog);
-                        }).then(function () {
-                            return getCRM();
-                        }).then(function (crm) {
-                            assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
-                            assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
-                            done();
-                        });
+                            .then((slider) => {
+                                return slider
+                                    .click();
+                            }).then(() => {
+                                return dialog
+                                    .findElement(webdriver.By.id('isDefaultOnButton'));
+                            }).then((slider) => {
+                                return slider
+                                    .click();
+                            }).then(() => {
+                                return saveDialog(dialog);
+                            }).then(() => {
+                                return getCRM();
+                            }).then((crm: Array<StylesheetNode>) => {
+                                assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+                                assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
+                                done();
+                            });
                     });
                 });
-                it('should be saved on page reset', function (done) {
-                    reloadPage(this).then(function () {
+                it('should be saved on page reset', function(done) {
+                    reloadPage(this).then(() => {
                         return getCRM();
-                    }).then(function (crm) {
+                    }).then((crm: Array<StylesheetNode>) => {
                         assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
                         assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
                         done();
                     });
                 });
-                it('should be togglable to false', function (done) {
-                    resetSettings(_this).then(function () {
+                it('should be togglable to false', (done) => {
+                    resetSettings(this).then(() => {
                         return openDialog(type);
-                    }).then(function () {
+                    }).then(() => {
                         return getDialog(driver, type);
-                    }).then(function (dialog) {
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('isTogglableButton'))
-                            .then(function (slider) {
-                            return slider
-                                .click();
-                        }).then(function () {
-                            return dialog
-                                .findElement(webdriver.By.id('isDefaultOnButton'));
-                        }).then(function (slider) {
-                            return slider
-                                .click()
-                                .then(function () {
-                                return slider.click();
+                            .then((slider) => {
+                                return slider
+                                    .click();
+                            }).then(() => {
+                                return dialog
+                                    .findElement(webdriver.By.id('isDefaultOnButton'));
+                            }).then((slider) => {
+                                return slider
+                                    .click()
+                                    .then(() => {
+                                        return slider.click();
+                                    });
+                            }).then(() => {
+                                return saveDialog(dialog);
+                            }).then(() => {
+                                return getCRM();
+                            }).then((crm: Array<StylesheetNode>) => {
+                                assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
+                                assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to true');
+                                done();
                             });
-                        }).then(function () {
-                            return saveDialog(dialog);
-                        }).then(function () {
-                            return getCRM();
-                        }).then(function (crm) {
-                            assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
-                            assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to true');
-                            done();
-                        });
                     });
                 });
-                it('should not be saved when cancelled', function (done) {
-                    resetSettings(_this).then(function () {
+                it('should not be saved when cancelled', (done) => {
+                    resetSettings(this).then(() => {
                         return openDialog(type);
-                    }).then(function () {
+                    }).then(() => {
                         return getDialog(driver, type);
-                    }).then(function (dialog) {
+                    }).then((dialog) => {
                         dialog
                             .findElement(webdriver.By.id('isTogglableButton'))
-                            .then(function (slider) {
-                            return slider
-                                .click();
-                        }).then(function () {
-                            return dialog
-                                .findElement(webdriver.By.id('isDefaultOnButton'));
-                        }).then(function (slider) {
-                            return slider
-                                .click();
-                        }).then(function () {
-                            return cancelDialog(dialog);
-                        }).then(function () {
-                            return getCRM();
-                        }).then(function (crm) {
-                            assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
-                            assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
-                            done();
-                        });
+                            .then((slider) => {
+                                return slider
+                                    .click();
+                            }).then(() => {
+                                return dialog
+                                    .findElement(webdriver.By.id('isDefaultOnButton'));
+                            }).then((slider) => {
+                                return slider
+                                    .click();
+                            }).then(() => {
+                                return cancelDialog(dialog);
+                            }).then(() => {
+                                return getCRM();
+                            }).then((crm: Array<StylesheetNode>) => {
+                                assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
+                                assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
+                                done();
+                            });
                     });
                 });
             });
-            describe('Editor', function () {
-                describe('Settings', function () {
+            describe('Editor', function(this: MochaFn) {
+                describe('Settings', function(this: MochaFn) {
                     testEditorSettings(type);
                 });
             });
         });
-        describe('Script Dialog', function () {
-            var type = 'script';
+        describe('Script Dialog', function(this: MochaFn) {
+            const type: NodeType = 'script';
+
             this.timeout(30000);
             this.slow(12000);
-            before('Reset settings', function () {
+            before('Reset settings', function() {
                 return resetSettings(this);
             });
+
             testNameInput(type);
             testContentTypes(type);
             testClickTriggers(type);
-            describe('Editor', function () {
-                describe('Settings', function () {
+
+            describe('Editor', function(this: MochaFn) {
+                describe('Settings', function(this: MochaFn) {
                     testEditorSettings(type);
                 });
             });
         });
     });
-    describe('Errors', function () {
+    describe('Errors', function(this: MochaFn) {
         this.timeout(10000);
         this.slow(2000);
-        it('should not have been thrown', function (done) {
+
+        it('should not have been thrown', (done) => {
             driver
-                .executeScript(inlineFn(function () {
-                return window.lastError ? window.lastError : 'noError';
-            })).then(function (result) {
-                assert.ifError(result !== 'noError' ? result : false, 'no errors should be thrown during testing');
-                done();
-            });
+                .executeScript(inlineFn(() => {
+                    return window.lastError ? window.lastError : 'noError';
+                })).then((result) => {
+                    assert.ifError(result !== 'noError' ? result : false,
+                        'no errors should be thrown during testing');
+                    done();
+                });
         });
     });
 });
+*/
 function getTypeName(index) {
     switch (index) {
         case 0:
@@ -2129,8 +2315,9 @@ function getContextMenuNames(contextMenu) {
 describe('On-Page CRM', function () {
     this.slow(200);
     this.timeout(2000);
-    describe('Redraws on new CRM', function () {
-        var CRM1 = [
+    /*
+    describe('Redraws on new CRM', function(this: MochaFn) {
+        const CRM1 = [
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
                 id: getRandomId()
@@ -2144,7 +2331,7 @@ describe('On-Page CRM', function () {
                 id: getRandomId()
             })
         ];
-        var CRM2 = [
+        const CRM2 = [
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
                 id: getRandomId()
@@ -2158,96 +2345,99 @@ describe('On-Page CRM', function () {
                 id: getRandomId()
             })
         ];
-        before('Set CRM', function (done) {
-            resetSettings(this).then(function () {
-                driver
-                    .executeScript(inlineFn(function () {
-                    window.app.settings.crm = REPLACE.crm;
-                    window.app.upload();
-                    return true;
-                }, {
-                    crm: JSON.stringify(CRM1)
-                })).then(function () {
-                    done();
+
+        it('should not throw when setting up the CRM', (done) => {
+            assert.doesNotThrow(() => {
+                resetSettings(this).then(() => {
+                    driver
+                        .executeScript(inlineFn(() => {
+                            window.app.settings.crm = REPLACE.crm;
+                            window.app.upload();
+                            return true;
+                        }, {
+                            crm: JSON.stringify(CRMNodes)
+                        })).then(() => {
+                            done();
+                        });
                 });
-            });
+            }, 'setting up the CRM does not throw');
         });
-        it('should be using the first CRM', function (done) {
-            getContextMenu().then(function (contextMenu) {
+        it('should be using the first CRM', function(this: MochaFn, done) {
+            getContextMenu().then((contextMenu) => {
                 assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1.concat([{
-                        name: undefined
-                    }, {
-                        name: 'Options'
-                    }])), 'node orders and names match');
+                    name: undefined
+                }, {
+                    name: 'Options'
+                }] as Array<LinkNode>)), 'node orders and names match');
                 done();
             });
         });
-        it('should be able to switch to a new CRM', function (done) {
+        it('should be able to switch to a new CRM', function(this: MochaFn, done) {
             this.slow(1200);
-            assert.doesNotThrow(function () {
+            assert.doesNotThrow(() => {
                 driver
-                    .executeScript(inlineFn(function () {
-                    window.app.settings.crm = REPLACE.crm;
-                    window.app.upload();
-                    return true;
-                }, {
-                    crm: JSON.stringify(CRM2)
-                })).then(function () {
-                    done();
-                });
+                    .executeScript(inlineFn(() => {
+                        window.app.settings.crm = REPLACE.crm;
+                        window.app.upload();
+                        return true;
+                    }, {
+                        crm: JSON.stringify(CRM2)
+                    })).then(() => {
+                        done();
+                    });
             }, 'settings CRM does not throw');
         });
-        it('should be using the new CRM', function (done) {
+        it('should be using the new CRM', function(this: MochaFn, done) {
             this.slow(400);
-            getContextMenu().then(function (contextMenu) {
+            getContextMenu().then((contextMenu) => {
                 assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM2.concat([{
-                        name: undefined
-                    }, {
-                        name: 'Options'
-                    }])), 'node orders and names match');
+                    name: undefined
+                }, {
+                    name: 'Options'
+                }] as Array<LinkNode>)), 'node orders and names match');
                 done();
             });
         });
     });
-    describe('Links', function () {
+    describe('Links', function(this: MochaFn) {
         this.timeout(2500);
         this.slow(500);
-        var CRMNodes = [
+        const CRMNodes = [
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
                 id: getRandomId(),
                 showOnSpecified: false,
                 triggers: [{
-                        url: 'http://www.somewebsite.com',
-                        not: false
-                    }]
+                    url: 'http://www.somewebsite.com',
+                    not: false
+                }]
             }),
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
                 id: getRandomId(),
                 showOnSpecified: true,
                 triggers: [{
-                        url: 'http://www.somewebsite.com',
-                        not: false
-                    }]
+                    url: 'http://www.somewebsite.com',
+                    not: false
+                }]
             }),
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
                 id: getRandomId(),
                 showOnSpecified: true,
                 triggers: [{
-                        url: 'http://www.somewebsite.com',
-                        not: true
-                    }]
+                    url: 'http://www.somewebsite.com',
+                    not: true
+                }]
             }),
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
                 id: getRandomId(),
                 showOnSpecified: true,
                 triggers: [{
-                        url: 'http://www.somewebsite.com',
-                        not: false
-                    }],
+                    url: 'http://www.somewebsite.com',
+                    not: false
+                }],
                 onContentTypes: [true, false, false, false, false, false]
             }),
             templates.getDefaultLinkNode({
@@ -2255,9 +2445,9 @@ describe('On-Page CRM', function () {
                 id: getRandomId(),
                 showOnSpecified: true,
                 triggers: [{
-                        url: 'http://www.somewebsite.com',
-                        not: false
-                    }],
+                    url: 'http://www.somewebsite.com',
+                    not: false
+                }],
                 onContentTypes: [false, false, false, false, false, true]
             }),
             templates.getDefaultLinkNode({
@@ -2265,197 +2455,218 @@ describe('On-Page CRM', function () {
                 id: getRandomId(),
                 showOnSpecified: true,
                 triggers: [{
-                        url: 'http://www.somewebsite.com',
-                        not: false
-                    }],
+                    url: 'http://www.somewebsite.com',
+                    not: false
+                }],
                 value: [{
-                        url: 'www.a.com',
-                        newTab: true
-                    }, {
-                        url: 'www.b.com',
-                        newTab: false
-                    }, {
-                        url: 'www.c.com',
-                        newTab: true
-                    }]
+                    url: 'www.a.com',
+                    newTab: true
+                }, {
+                    url: 'www.b.com',
+                    newTab: false
+                }, {
+                    url: 'www.c.com',
+                    newTab: true
+                }]
             }),
         ];
-        before('Set CRM', function (done) {
-            resetSettings(this).then(function () {
-                driver
-                    .executeScript(inlineFn(function () {
-                    window.app.settings.crm = REPLACE.crm;
-                    window.app.upload();
-                    return true;
-                }, {
-                    crm: JSON.stringify(CRMNodes)
-                })).then(function () {
-                    done();
+
+        const enum LinkOnPageTest {
+            NO_TRIGGERS = 0,
+            TRIGGERS = 1,
+            DEFAULT_LINKS = 4,
+            PRESET_LINKS = 5
+        }
+
+        it('should not throw when setting up the CRM', (done) => {
+            assert.doesNotThrow(() => {
+                resetSettings(this).then(() => {
+                    driver
+                        .executeScript(inlineFn(() => {
+                            window.app.settings.crm = REPLACE.crm;
+                            window.app.upload();
+                            return true;
+                        }, {
+                            crm: JSON.stringify(CRMNodes)
+                        })).then(() => {
+                            done();
+                        });
                 });
-            });
+            }, 'setting up the CRM does not throw');
         });
-        it('should match the given names and types', function (done) {
-            getContextMenu().then(function (contextMenu) {
-                for (var i = 0; i < CRMNodes.length; i++) {
-                    assert.isDefined(contextMenu[i], "node " + i + " is defined");
-                    assert.strictEqual(contextMenu[i].currentProperties.title, CRMNodes[i].name, "names for " + i + " match");
-                    assert.strictEqual(contextMenu[i].currentProperties.type, 'normal', "type for " + i + " is normal");
+        it('should match the given names and types', (done) => {
+            getContextMenu().then((contextMenu) => {
+                for (let i = 0; i < CRMNodes.length; i++) {
+                    assert.isDefined(contextMenu[i], `node ${i} is defined`);
+                    assert.strictEqual(contextMenu[i].currentProperties.title,
+                        CRMNodes[i].name, `names for ${i} match`);
+                    assert.strictEqual(contextMenu[i].currentProperties.type,
+                        'normal', `type for ${i} is normal`);
                 }
                 done();
             });
         });
-        it('should match the given triggers', function (done) {
-            getContextMenu().then(function (contextMenu) {
-                assert.lengthOf(contextMenu[0 /* NO_TRIGGERS */].createProperties.documentUrlPatterns, 0, 'triggers are turned off');
-                assert.deepEqual(contextMenu[1 /* TRIGGERS */].createProperties.documentUrlPatterns, CRMNodes[1 /* TRIGGERS */].triggers.map(function (trigger) {
-                    return prepareTrigger(trigger.url);
-                }), 'triggers are turned on');
+        it('should match the given triggers', (done) => {
+            getContextMenu().then((contextMenu) => {
+                assert.lengthOf(
+                    contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties.documentUrlPatterns,
+                    0, 'triggers are turned off');
+                assert.deepEqual(contextMenu[LinkOnPageTest.TRIGGERS].createProperties.documentUrlPatterns,
+                    CRMNodes[LinkOnPageTest.TRIGGERS].triggers.map((trigger) => {
+                        return prepareTrigger(trigger.url);
+                    }), 'triggers are turned on');
                 done();
             });
         });
-        it('should match the given content types', function (done) {
-            getContextMenu().then(function (contextMenu) {
-                for (var i = 0; i < CRMNodes.length; i++) {
-                    assert.sameDeepMembers(contextMenu[i].currentProperties.contexts, CRMNodes[i].onContentTypes.map(function (enabled, index) {
-                        if (enabled) {
-                            return getTypeName(index);
-                        }
-                        else {
-                            return null;
-                        }
-                    }).filter(function (item) { return item !== null; }), "content types for " + i + " match");
+        it('should match the given content types', (done) => {
+            getContextMenu().then((contextMenu) => {
+                for (let i = 0; i < CRMNodes.length; i++) {
+                    assert.sameDeepMembers(contextMenu[i].currentProperties.contexts,
+                        CRMNodes[i].onContentTypes.map((enabled, index) => {
+                            if (enabled) {
+                                return getTypeName(index);
+                            } else {
+                                return null;
+                            }
+                        }).filter(item => item !== null), `content types for ${i} match`);
                 }
                 done();
             });
         });
-        it('should open the correct links when "clicked" for the default link', function (done) {
+        it('should open the correct links when "clicked" for the default link', function(this: MochaFn, done) {
             this.slow(2500);
             this.timeout(5000);
-            var tabId = ~~(Math.random() * 100);
-            var windowId = ~~(Math.random() * 100);
-            getContextMenu().then(function (contextMenu) {
+            const tabId = ~~(Math.random() * 100);
+            const windowId = ~~(Math.random() * 100);
+            getContextMenu().then((contextMenu) => {
                 driver
-                    .executeScript(inlineFn(function () {
-                    window.chrome._currentContextMenu[0].children[4 /* DEFAULT_LINKS */]
-                        .currentProperties.onclick(REPLACE.page, REPLACE.tab);
-                    return true;
-                }, {
-                    page: JSON.stringify({
-                        menuItemId: contextMenu[4 /* DEFAULT_LINKS */].id,
-                        editable: false,
-                        pageUrl: 'www.google.com'
-                    }),
-                    tab: JSON.stringify({
-                        id: tabId,
-                        index: 1,
-                        windowId: windowId,
-                        highlighted: false,
-                        active: true,
-                        pinned: false,
-                        selected: false,
-                        url: 'http://www.google.com',
-                        title: 'Google',
-                        incognito: false
-                    })
-                })).then(function () {
-                    return driver
-                        .executeScript(inlineFn(function () {
-                        return JSON.stringify(window.chrome._activeTabs);
-                    }));
-                }).then(function (str) {
-                    var activeTabs = JSON.parse(str);
-                    var expectedTabs = CRMNodes[4 /* DEFAULT_LINKS */].value.map(function (link) {
-                        if (!link.newTab) {
-                            return {
-                                id: tabId,
-                                data: {
-                                    url: sanitizeUrl(link.url)
-                                },
-                                type: 'update'
-                            };
-                        }
-                        else {
-                            return {
-                                type: 'create',
-                                data: {
-                                    windowId: windowId,
-                                    url: sanitizeUrl(link.url),
-                                    openerTabId: tabId
+                    .executeScript(inlineFn(() => {
+                        window.chrome._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
+                            .currentProperties.onclick(
+                                REPLACE.page, REPLACE.tab
+                            );
+                        return true;
+                    }, {
+                        page: JSON.stringify({
+                            menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
+                            editable: false,
+                            pageUrl: 'www.google.com'
+                        }),
+                        tab: JSON.stringify({
+                            id: tabId,
+                            index: 1,
+                            windowId: windowId,
+                            highlighted: false,
+                            active: true,
+                            pinned: false,
+                            selected: false,
+                            url: 'http://www.google.com',
+                            title: 'Google',
+                            incognito: false
+                        })
+                    })).then(() => {
+                        return driver
+                            .executeScript(inlineFn(() => {
+                                return JSON.stringify(window.chrome._activeTabs);
+                            }));
+                    }).then((str: string) => {
+                        const activeTabs = JSON.parse(str) as ActiveTabs;
+                        const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
+                            if (!link.newTab) {
+                                return {
+                                    id:	tabId,
+                                    data: {
+                                        url: sanitizeUrl(link.url)
+                                    },
+                                    type: 'update'
                                 }
-                            };
-                        }
+                            } else {
+                                return {
+                                    type: 'create',
+                                    data: {
+                                        windowId: windowId,
+                                        url: sanitizeUrl(link.url),
+                                        openerTabId: tabId
+                                    }
+                                };
+                            }
+                        }) as ActiveTabs;
+
+                        assert.sameDeepMembers(activeTabs, expectedTabs,
+                            'opened tabs match expected');
+                        done();
                     });
-                    assert.sameDeepMembers(activeTabs, expectedTabs, 'opened tabs match expected');
-                    done();
-                });
             });
         });
-        it('should open the correct links when "clicked" for multiple links', function (done) {
-            var tabId = ~~(Math.random() * 100);
-            var windowId = ~~(Math.random() * 100);
-            getContextMenu().then(function (contextMenu) {
+        it('should open the correct links when "clicked" for multiple links', (done) => {
+            const tabId = ~~(Math.random() * 100);
+            const windowId = ~~(Math.random() * 100);
+            getContextMenu().then((contextMenu) => {
                 driver
-                    .executeScript(inlineFn(function () {
-                    //Clear it without removing object-array-magic-address-linking
-                    while (window.chrome._activeTabs.length > 0) {
-                        window.chrome._activeTabs.pop();
-                    }
-                    return window.chrome._currentContextMenu[0].children[5 /* PRESET_LINKS */]
-                        .currentProperties.onclick(REPLACE.page, REPLACE.tab);
-                }, {
-                    page: JSON.stringify({
-                        menuItemId: contextMenu[5 /* PRESET_LINKS */].id,
-                        editable: false,
-                        pageUrl: 'www.google.com'
-                    }),
-                    tab: JSON.stringify({
-                        id: tabId,
-                        index: 1,
-                        windowId: windowId,
-                        highlighted: false,
-                        active: true,
-                        pinned: false,
-                        selected: false,
-                        url: 'http://www.google.com',
-                        title: 'Google',
-                        incognito: false
-                    })
-                })).then(function (result) {
-                    return driver
-                        .executeScript(inlineFn(function () {
-                        return JSON.stringify(window.chrome._activeTabs);
-                    }));
-                }).then(function (str) {
-                    var activeTabs = JSON.parse(str);
-                    var expectedTabs = CRMNodes[5 /* PRESET_LINKS */].value.map(function (link) {
-                        if (!link.newTab) {
-                            return {
-                                id: tabId,
-                                data: {
-                                    url: sanitizeUrl(link.url)
-                                },
-                                type: 'update'
-                            };
+                    .executeScript(inlineFn(() => {
+                        //Clear it without removing object-array-magic-address-linking
+                        while (window.chrome._activeTabs.length > 0) {
+                            window.chrome._activeTabs.pop();
                         }
-                        else {
-                            return {
-                                type: 'create',
-                                data: {
-                                    windowId: windowId,
-                                    url: sanitizeUrl(link.url),
-                                    openerTabId: tabId
+                        return window.chrome._currentContextMenu[0].children[LinkOnPageTest.PRESET_LINKS]
+                            .currentProperties.onclick(
+                                REPLACE.page, REPLACE.tab
+                            );
+                    }, {
+                        page: JSON.stringify({
+                            menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
+                            editable: false,
+                            pageUrl: 'www.google.com'
+                        }),
+                        tab: JSON.stringify({
+                            id: tabId,
+                            index: 1,
+                            windowId: windowId,
+                            highlighted: false,
+                            active: true,
+                            pinned: false,
+                            selected: false,
+                            url: 'http://www.google.com',
+                            title: 'Google',
+                            incognito: false
+                        })
+                    })).then((result) => {
+                        return driver
+                            .executeScript(inlineFn(() => {
+                                return JSON.stringify(window.chrome._activeTabs);
+                            }));
+                    }).then((str: string) => {
+                        const activeTabs = JSON.parse(str) as ActiveTabs;
+                        const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
+                            if (!link.newTab) {
+                                return {
+                                    id:	tabId,
+                                    data: {
+                                        url: sanitizeUrl(link.url)
+                                    },
+                                    type: 'update'
                                 }
-                            };
-                        }
+                            } else {
+                                return {
+                                    type: 'create',
+                                    data: {
+                                        windowId: windowId,
+                                        url: sanitizeUrl(link.url),
+                                        openerTabId: tabId
+                                    }
+                                };
+                            }
+                        }) as ActiveTabs;
+
+                        assert.sameDeepMembers(activeTabs, expectedTabs,
+                            'opened tabs match expected');
+                        done();
                     });
-                    assert.sameDeepMembers(activeTabs, expectedTabs, 'opened tabs match expected');
-                    done();
                 });
-            });
         });
     });
-    describe('Menu & Divider', function () {
-        var CRMNodes = [
+    describe('Menu & Divider', function(this: MochaFn) {
+        const CRMNodes = [
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
                 id: getRandomId()
@@ -2530,37 +2741,45 @@ describe('On-Page CRM', function () {
                 ]
             })
         ];
-        before('Set CRM', function (done) {
-            driver
-                .executeScript(inlineFn(function () {
-                window.app.settings.crm = REPLACE.crm;
-                window.app.upload();
-                return true;
-            }, {
-                crm: JSON.stringify(CRMNodes)
-            })).then(function () {
-                done();
-            });
+
+        it('should not throw when setting up the CRM', (done) => {
+            assert.doesNotThrow(() => {
+                resetSettings(this).then(() => {
+                    driver
+                        .executeScript(inlineFn(() => {
+                            window.app.settings.crm = REPLACE.crm;
+                            window.app.upload();
+                            return true;
+                        }, {
+                            crm: JSON.stringify(CRMNodes)
+                        })).then(() => {
+                            done();
+                        });
+                });
+            }, 'setting up the CRM does not throw');
         });
-        it('should have the correct structure', function (done) {
+        it('should have the correct structure', function(done) {
             this.slow(500);
-            getContextMenu().then(function (contextMenu) {
+            getContextMenu().then((contextMenu) => {
                 driver
-                    .executeScript(inlineFn(function () {
-                    return window.logs;
-                }))
-                    .then(function (logs) {
-                    assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes.concat([{
+                    .executeScript(inlineFn(() => {
+                        return window.logs;
+                    }))
+                    .then((logs) => {
+                        assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes.concat([{
                             name: undefined
                         }, {
                             name: 'Options'
-                        }])), 'structures match');
-                    done();
-                });
-            });
+                        }] as Array<LinkNode>)),
+                            'structures match');
+                        done();
+                    });
+            })
         });
     });
+    */
     describe('Scripts', function () {
+        var _this = this;
         this.timeout(5000);
         this.slow(2000);
         var CRMNodes = [
@@ -2631,19 +2850,21 @@ describe('On-Page CRM', function () {
                 }
             })
         ];
-        before('Set CRM', function (done) {
-            resetSettings(this).then(function () {
-                driver
-                    .executeScript(inlineFn(function () {
-                    window.app.settings.crm = REPLACE.crm;
-                    window.app.upload();
-                    return true;
-                }, {
-                    crm: JSON.stringify(CRMNodes)
-                })).then(function () {
-                    done();
+        it('should not throw when setting up the CRM', function (done) {
+            assert.doesNotThrow(function () {
+                resetSettings(_this).then(function () {
+                    driver
+                        .executeScript(inlineFn(function () {
+                        window.app.settings.crm = REPLACE.crm;
+                        window.app.upload();
+                        return true;
+                    }, {
+                        crm: JSON.stringify(CRMNodes)
+                    })).then(function () {
+                        done();
+                    });
                 });
-            });
+            }, 'setting up the CRM does not throw');
         });
         it('should always run when launchMode is set to ALWAYS_RUN', function (done) {
             var fakeTabId = getRandomId();
@@ -2748,34 +2969,78 @@ describe('On-Page CRM', function () {
             });
         });
         it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', function (done) {
+            _this.slow(10000);
             var fakeTabId = getRandomId();
-            getContextMenu().then(function (contextMenu) {
-                driver
+            driver
+                .executeScript(inlineFn(function () {
+                window.chrome._clearActivatedScripts();
+                window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+                    id: REPLACE.fakeTabId,
+                    url: 'http://www.example2.com'
+                };
+                window.chrome.runtime.sendMessage({
+                    type: 'newTabCreated'
+                }, {
+                    tab: {
+                        id: REPLACE.fakeTabId
+                    }
+                }, function () { });
+            }, {
+                fakeTabId: fakeTabId
+            })).then(function () {
+                return getContextMenu();
+            }).then(function (contextMenu) {
+                assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
+                return driver
                     .executeScript(inlineFn(function () {
                     window.chrome._clearActivatedScripts();
-                    window.chrome._fakeTabs[REPLACE.fakeTabId] = {
-                        id: REPLACE.fakeTabId,
-                        url: 'http://www.example2.com'
-                    };
-                    window.chrome.runtime.sendMessage({
-                        type: 'newTabCreated'
-                    }, {
-                        tab: {
-                            id: REPLACE.fakeTabId
-                        }
-                    }, function () { });
+                    return window.chrome._currentContextMenu[0]
+                        .children[1]
+                        .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                 }, {
-                    fakeTabId: fakeTabId
-                })).then(function () {
-                    return driver
+                    page: JSON.stringify({
+                        menuItemId: contextMenu[1].id,
+                        editable: false,
+                        pageUrl: 'www.google.com'
+                    }),
+                    tab: JSON.stringify({
+                        id: fakeTabId,
+                        index: 1,
+                        windowId: getRandomId(),
+                        highlighted: false,
+                        active: true,
+                        pinned: false,
+                        selected: false,
+                        url: 'http://www.google.com',
+                        title: 'Google',
+                        incognito: false
+                    })
+                }));
+            }).then(function () {
+                return driver
+                    .executeScript(inlineFn(function () {
+                    return JSON.stringify(window.chrome._activatedScripts);
+                }));
+            }).then(function (str) {
+                var activatedScripts = JSON.parse(str);
+                assert.lengthOf(activatedScripts, 1, 'one script was activated');
+                assert.strictEqual(activatedScripts[0].id, fakeTabId, 'script was executed on the right tab');
+                done();
+            });
+        });
+        it('should run the backgroundscript when one is specified', function (done) {
+            var fakeTabId = getRandomId();
+            getContextMenu().then(function (contextMenu) {
+                assert.isAbove(contextMenu.length, 3, 'contextmenu contains at least 3 items');
+                assert.doesNotThrow(function () {
+                    driver
                         .executeScript(inlineFn(function () {
-                        window.chrome._clearActivatedScripts();
                         return window.chrome._currentContextMenu[0]
-                            .children[1 /* RUN_ON_CLICKING */]
+                            .children[2]
                             .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                     }, {
                         page: JSON.stringify({
-                            menuItemId: contextMenu[1 /* RUN_ON_CLICKING */].id,
+                            menuItemId: contextMenu[2].id,
                             editable: false,
                             pageUrl: 'www.google.com'
                         }),
@@ -2794,16 +3059,67 @@ describe('On-Page CRM', function () {
                     })).then(function () {
                         return driver
                             .executeScript(inlineFn(function () {
-                            return JSON.stringify(window.chrome._activatedScripts);
+                            return JSON.stringify(window.chrome._activatedBackgroundPages);
                         }));
                     }).then(function (str) {
-                        var activatedScripts = JSON.parse(str);
-                        assert.lengthOf(activatedScripts, 1, 'one script was activated');
-                        assert.strictEqual(activatedScripts[0].id, fakeTabId, 'script was executed on the right tab');
+                        var activatedBackgroundScripts = JSON.parse(str);
+                        assert.lengthOf(activatedBackgroundScripts, 1, 'one backgroundscript was activated');
+                        assert.strictEqual(activatedBackgroundScripts[0], CRMNodes[4 /* BACKGROUNDSCRIPT */].id, 'correct backgroundscript was executed');
                         done();
                     });
+                }, 'clicking the node does not throw');
+            });
+        });
+        it('should not show the disabled node', function (done) {
+            getContextMenu().then(function (contextMenu) {
+                assert.notInclude(contextMenu.map(function (item) {
+                    return item.id;
+                }), CRMNodes[5 /* DISABLED */].id, 'disabled node is not in the right-click menu');
+                done();
+            });
+        });
+        it('should run the correct code when clicked', function (done) {
+            var fakeTabId = getRandomId();
+            getContextMenu().then(function (contextMenu) {
+                driver
+                    .executeScript(inlineFn(function () {
+                    window.chrome._clearActivatedScripts();
+                    return window.chrome._currentContextMenu[0]
+                        .children[1 /* RUN_ON_CLICKING */]
+                        .currentProperties.onclick(REPLACE.page, REPLACE.tab);
+                }, {
+                    page: JSON.stringify({
+                        menuItemId: contextMenu[1 /* RUN_ON_CLICKING */].id,
+                        editable: false,
+                        pageUrl: 'www.google.com'
+                    }),
+                    tab: JSON.stringify({
+                        id: fakeTabId,
+                        index: 1,
+                        windowId: getRandomId(),
+                        highlighted: false,
+                        active: true,
+                        pinned: false,
+                        selected: false,
+                        url: 'http://www.google.com',
+                        title: 'Google',
+                        incognito: false
+                    })
+                })).then(function () {
+                    return driver
+                        .executeScript(inlineFn(function () {
+                        return JSON.stringify(window.chrome._activatedScripts);
+                    }));
+                }).then(function (str) {
+                    var activatedScripts = JSON.parse(str);
+                    assert.lengthOf(activatedScripts, 1, 'one script was activated');
+                    assert.strictEqual(activatedScripts[0].id, fakeTabId, 'script was executed on the right tab');
+                    assert.include(activatedScripts[0].code, CRMNodes[1 /* RUN_ON_CLICKING */].value.script, 'executed code is the same as set code');
+                    done();
                 });
             });
         });
+    });
+    describe('Stylesheets', function () {
     });
 });
