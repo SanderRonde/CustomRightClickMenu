@@ -743,6 +743,8 @@
 					case 'createLocalLogVariable':
 						createLocalVariable(message);
 						break;
+					case 'dummy': 
+						break;
 				}
 			}
 		}
