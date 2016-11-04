@@ -2453,6 +2453,10 @@
 			var _this = this;
 			var scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
 			var scaleAfter = 'scaleX(' + progress + ')';
+			if (settings.max === settings.lastReachedProgress ||
+				settings.toReach > 1) {
+					return;
+				}
 			if (settings.progressBar.animate.isJqueryFill) {
 				settings.progressBar.style.transform = scaleAfter;
 				settings.progressBar.style.WebkitTransform = scaleAfter;
@@ -2487,16 +2491,17 @@
 			});
 
 			var _this = this;
+			var importsAmount = 59;
 			var loadingBarSettings = {
 				lastReachedProgress: 0,
 				progressBar: document.getElementById('splashScreenProgressBarLoader'),
 				toReach: 0,
 				isAnimating: false,
-				shouldAnimate: false
+				shouldAnimate: false,
+				max: importsAmount
 			};
 
 			var registeredElements = Polymer.telemetry.registrations.length;
-			var importsAmount = 59;
 			var registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
 			registrationArray.push = function (element) {
 				Array.prototype.push.call(registrationArray, element);
