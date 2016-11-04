@@ -53,6 +53,8 @@ var onMessageListener = null;
 var currentContextMenu = [];
 var usedIds = [];
 var activeTabs = [];
+var activatedScripts = [];
+var fakeTabs = {};
 
 function findItemWithId(arr, id, fn) {
 	for (var i = 0; i < arr.length; i++) {
@@ -68,6 +70,13 @@ window.chrome = {
 	_lastCall: null,
 	_currentContextMenu: currentContextMenu,
 	_activeTabs: activeTabs,
+	_activatedScripts: activatedScripts,
+	_fakeTabs: fakeTabs,
+	_clearActivatedScripts: function() {
+		while (activatedScripts[0]) {
+			activatedScripts.splice(0, 1);
+		}
+	},
 	contextMenus: {
 		create: function(data, callback) {
 			var id = ~~(Math.random() * 1000000) + 1
@@ -190,13 +199,14 @@ window.chrome = {
 				onMessageListener = listener;
 			}
 		},
-		sendMessage: function(message) {
-			onMessageListener && onMessageListener(message);
+		sendMessage: function(message, messageSender, respond) {
+			onMessageListener && onMessageListener(message,
+				messageSender, respond);
 		}
 	},
 	tabs: {
 		get: function(id, callback) {
-			callback({});
+			callback(fakeTabs[id]);
 		},
 		getCurrent: function(callback) {
 			callback({});
@@ -205,8 +215,15 @@ window.chrome = {
 			addListener: function(listener) {
 			}
 		},
-		executeScript: function(tabId, script, callback) {
-			callback();
+		executeScript: function(tabId, scriptSettings, callback) {
+			//Only add code-scripts, not libraries
+			if (scriptSettings.code) {
+				activatedScripts.push({
+					id: tabId,
+					code: scriptSettings.code
+				});
+			}
+			callback([]);
 		},
 		onHighlighted: {
 			addListener: function() {}

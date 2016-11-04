@@ -2306,8 +2306,8 @@ describe('On-Page CRM', function () {
         });
         it('should match the given triggers', function (done) {
             getContextMenu().then(function (contextMenu) {
-                assert.lengthOf(contextMenu[0].createProperties.documentUrlPatterns, 0, 'triggers are turned off');
-                assert.deepEqual(contextMenu[1].createProperties.documentUrlPatterns, CRMNodes[1].triggers.map(function (trigger) {
+                assert.lengthOf(contextMenu[0 /* NO_TRIGGERS */].createProperties.documentUrlPatterns, 0, 'triggers are turned off');
+                assert.deepEqual(contextMenu[1 /* TRIGGERS */].createProperties.documentUrlPatterns, CRMNodes[1 /* TRIGGERS */].triggers.map(function (trigger) {
                     return prepareTrigger(trigger.url);
                 }), 'triggers are turned on');
                 done();
@@ -2336,11 +2336,12 @@ describe('On-Page CRM', function () {
             getContextMenu().then(function (contextMenu) {
                 driver
                     .executeScript(inlineFn(function () {
-                    window.chrome._currentContextMenu[0].children[4].currentProperties.onclick(REPLACE.page, REPLACE.tab);
+                    window.chrome._currentContextMenu[0].children[4 /* DEFAULT_LINKS */]
+                        .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                     return true;
                 }, {
                     page: JSON.stringify({
-                        menuItemId: contextMenu[4].id,
+                        menuItemId: contextMenu[4 /* DEFAULT_LINKS */].id,
                         editable: false,
                         pageUrl: 'www.google.com'
                     }),
@@ -2363,7 +2364,7 @@ describe('On-Page CRM', function () {
                     }));
                 }).then(function (str) {
                     var activeTabs = JSON.parse(str);
-                    var expectedTabs = CRMNodes[4].value.map(function (link) {
+                    var expectedTabs = CRMNodes[4 /* DEFAULT_LINKS */].value.map(function (link) {
                         if (!link.newTab) {
                             return {
                                 id: tabId,
@@ -2399,10 +2400,11 @@ describe('On-Page CRM', function () {
                     while (window.chrome._activeTabs.length > 0) {
                         window.chrome._activeTabs.pop();
                     }
-                    return window.chrome._currentContextMenu[0].children[5].currentProperties.onclick(REPLACE.page, REPLACE.tab);
+                    return window.chrome._currentContextMenu[0].children[5 /* PRESET_LINKS */]
+                        .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                 }, {
                     page: JSON.stringify({
-                        menuItemId: contextMenu[5].id,
+                        menuItemId: contextMenu[5 /* PRESET_LINKS */].id,
                         editable: false,
                         pageUrl: 'www.google.com'
                     }),
@@ -2425,7 +2427,7 @@ describe('On-Page CRM', function () {
                     }));
                 }).then(function (str) {
                     var activeTabs = JSON.parse(str);
-                    var expectedTabs = CRMNodes[5].value.map(function (link) {
+                    var expectedTabs = CRMNodes[5 /* PRESET_LINKS */].value.map(function (link) {
                         if (!link.newTab) {
                             return {
                                 id: tabId,
@@ -2554,6 +2556,252 @@ describe('On-Page CRM', function () {
                             name: 'Options'
                         }])), 'structures match');
                     done();
+                });
+            });
+        });
+    });
+    describe('Scripts', function () {
+        this.timeout(5000);
+        this.slow(2000);
+        var CRMNodes = [
+            templates.getDefaultScriptNode({
+                name: getRandomString(25),
+                id: getRandomId(),
+                value: {
+                    launchMode: 1 /* ALWAYS_RUN */,
+                    script: 'console.log("executed script");'
+                }
+            }),
+            templates.getDefaultScriptNode({
+                name: getRandomString(25),
+                id: getRandomId(),
+                value: {
+                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    script: 'console.log("executed script");'
+                }
+            }),
+            templates.getDefaultScriptNode({
+                name: getRandomString(25),
+                id: getRandomId(),
+                triggers: [
+                    {
+                        url: 'http://www.example.com',
+                        not: false
+                    }
+                ],
+                value: {
+                    launchMode: 2 /* RUN_ON_SPECIFIED */,
+                    script: 'console.log("executed script");'
+                }
+            }),
+            templates.getDefaultScriptNode({
+                name: getRandomString(25),
+                id: getRandomId(),
+                triggers: [
+                    {
+                        url: 'http://www.example2.com',
+                        not: false
+                    }
+                ],
+                value: {
+                    launchMode: 3 /* SHOW_ON_SPECIFIED */,
+                    script: 'console.log("executed script");'
+                }
+            }),
+            templates.getDefaultScriptNode({
+                name: getRandomString(25),
+                id: getRandomId(),
+                triggers: [
+                    {
+                        url: 'http://www.example3.com',
+                        not: false
+                    }
+                ],
+                value: {
+                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    backgroundScript: 'console.log("executed backgroundscript")'
+                }
+            }),
+            templates.getDefaultScriptNode({
+                name: getRandomString(25),
+                id: getRandomId(),
+                value: {
+                    launchMode: 4 /* DISABLED */,
+                    script: 'console.log("executed script");'
+                }
+            })
+        ];
+        before('Set CRM', function (done) {
+            resetSettings(this).then(function () {
+                driver
+                    .executeScript(inlineFn(function () {
+                    window.app.settings.crm = REPLACE.crm;
+                    window.app.upload();
+                    return true;
+                }, {
+                    crm: JSON.stringify(CRMNodes)
+                })).then(function () {
+                    done();
+                });
+            });
+        });
+        it('should always run when launchMode is set to ALWAYS_RUN', function (done) {
+            var fakeTabId = getRandomId();
+            driver
+                .executeScript(inlineFn(function () {
+                window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+                    id: REPLACE.fakeTabId,
+                    url: 'http://www.notexample.com'
+                };
+                window.chrome.runtime.sendMessage({
+                    type: 'newTabCreated'
+                }, {
+                    tab: {
+                        id: REPLACE.fakeTabId
+                    }
+                }, function () { });
+            }, {
+                fakeTabId: fakeTabId
+            })).then(function () {
+                return wait(50);
+            }).then(function () {
+                return driver.executeScript(inlineFn(function () {
+                    return JSON.stringify(window.chrome._activatedScripts);
+                }));
+            }).then(function (str) {
+                var activatedScripts = JSON.parse(str);
+                assert.lengthOf(activatedScripts, 1, 'one script activated');
+                assert.strictEqual(activatedScripts[0].id, fakeTabId, 'script was executed on right tab');
+                done();
+            });
+        });
+        it('should run on clicking when launchMode is set to RUN_ON_CLICKING', function (done) {
+            var fakeTabId = getRandomId();
+            getContextMenu().then(function (contextMenu) {
+                driver
+                    .executeScript(inlineFn(function () {
+                    window.chrome._clearActivatedScripts();
+                    return window.chrome._currentContextMenu[0]
+                        .children[1 /* RUN_ON_CLICKING */]
+                        .currentProperties.onclick(REPLACE.page, REPLACE.tab);
+                }, {
+                    page: JSON.stringify({
+                        menuItemId: contextMenu[1 /* RUN_ON_CLICKING */].id,
+                        editable: false,
+                        pageUrl: 'www.google.com'
+                    }),
+                    tab: JSON.stringify({
+                        id: fakeTabId,
+                        index: 1,
+                        windowId: getRandomId(),
+                        highlighted: false,
+                        active: true,
+                        pinned: false,
+                        selected: false,
+                        url: 'http://www.google.com',
+                        title: 'Google',
+                        incognito: false
+                    })
+                })).then(function () {
+                    return driver
+                        .executeScript(inlineFn(function () {
+                        return JSON.stringify(window.chrome._activatedScripts);
+                    }));
+                }).then(function (str) {
+                    var activatedScripts = JSON.parse(str);
+                    assert.lengthOf(activatedScripts, 1, 'one script was activated');
+                    assert.strictEqual(activatedScripts[0].id, fakeTabId, 'script was executed on the right tab');
+                    done();
+                });
+            });
+        });
+        it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', function (done) {
+            var fakeTabId = getRandomId();
+            driver
+                .executeScript(inlineFn(function () {
+                window.chrome._clearActivatedScripts();
+                window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+                    id: REPLACE.fakeTabId,
+                    url: 'http://www.example.com'
+                };
+                window.chrome.runtime.sendMessage({
+                    type: 'newTabCreated'
+                }, {
+                    tab: {
+                        id: REPLACE.fakeTabId
+                    }
+                }, function () { });
+            }, {
+                fakeTabId: fakeTabId
+            })).then(function () {
+                return wait(50);
+            }).then(function () {
+                return driver.executeScript(inlineFn(function () {
+                    return JSON.stringify(window.chrome._activatedScripts);
+                }));
+            }).then(function (str) {
+                var activatedScripts = JSON.parse(str);
+                //First one is the ALWAYS_RUN script, ignore that
+                assert.lengthOf(activatedScripts, 2, 'two scripts activated');
+                assert.strictEqual(activatedScripts[1].id, fakeTabId, 'new script was executed on right tab');
+                done();
+            });
+        });
+        it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', function (done) {
+            var fakeTabId = getRandomId();
+            getContextMenu().then(function (contextMenu) {
+                driver
+                    .executeScript(inlineFn(function () {
+                    window.chrome._clearActivatedScripts();
+                    window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+                        id: REPLACE.fakeTabId,
+                        url: 'http://www.example2.com'
+                    };
+                    window.chrome.runtime.sendMessage({
+                        type: 'newTabCreated'
+                    }, {
+                        tab: {
+                            id: REPLACE.fakeTabId
+                        }
+                    }, function () { });
+                }, {
+                    fakeTabId: fakeTabId
+                })).then(function () {
+                    return driver
+                        .executeScript(inlineFn(function () {
+                        window.chrome._clearActivatedScripts();
+                        return window.chrome._currentContextMenu[0]
+                            .children[1 /* RUN_ON_CLICKING */]
+                            .currentProperties.onclick(REPLACE.page, REPLACE.tab);
+                    }, {
+                        page: JSON.stringify({
+                            menuItemId: contextMenu[1 /* RUN_ON_CLICKING */].id,
+                            editable: false,
+                            pageUrl: 'www.google.com'
+                        }),
+                        tab: JSON.stringify({
+                            id: fakeTabId,
+                            index: 1,
+                            windowId: getRandomId(),
+                            highlighted: false,
+                            active: true,
+                            pinned: false,
+                            selected: false,
+                            url: 'http://www.google.com',
+                            title: 'Google',
+                            incognito: false
+                        })
+                    })).then(function () {
+                        return driver
+                            .executeScript(inlineFn(function () {
+                            return JSON.stringify(window.chrome._activatedScripts);
+                        }));
+                    }).then(function (str) {
+                        var activatedScripts = JSON.parse(str);
+                        assert.lengthOf(activatedScripts, 1, 'one script was activated');
+                        assert.strictEqual(activatedScripts[0].id, fakeTabId, 'script was executed on the right tab');
+                        done();
+                    });
                 });
             });
         });

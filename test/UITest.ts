@@ -89,10 +89,23 @@ type ActiveTabs = Array<{
 	id?: number;
 }>
 
+interface ActivatedScript {
+	id: number;
+	code: string;
+}
+
+type ActivatedScripts = Array<ActivatedScript>;
+
 interface AppChrome extends Chrome {
 	_lastCall: ChromeLastCall;
 	_currentContextMenu: ContextMenu;
 	_activeTabs: ActiveTabs;
+	_activatedScripts: ActivatedScripts;
+	_clearActivatedScripts: () => void;
+	_fakeTabs: Array<{
+		id: number;
+		url: string;
+	}>;
 }
 
 interface AppWindow extends Window {
@@ -2779,6 +2792,14 @@ describe('On-Page CRM', function(this: MochaFn) {
 				}]
 			}),
 		];
+
+		const enum LinkOnPageTest {
+			NO_TRIGGERS = 0,
+			TRIGGERS = 1,
+			DEFAULT_LINKS = 4,
+			PRESET_LINKS = 5
+		}
+
 		before('Set CRM', function(done) {
 			resetSettings(this).then(() => {
 				driver
@@ -2807,10 +2828,11 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 		it('should match the given triggers', (done) => {
 			getContextMenu().then((contextMenu) => {
-				assert.lengthOf(contextMenu[0].createProperties.documentUrlPatterns,
+				assert.lengthOf(
+					contextMenu[LinkOnPageTest.NO_TRIGGERS].createProperties.documentUrlPatterns,
 					0, 'triggers are turned off');
-				assert.deepEqual(contextMenu[1].createProperties.documentUrlPatterns,
-					CRMNodes[1].triggers.map((trigger) => {
+				assert.deepEqual(contextMenu[LinkOnPageTest.TRIGGERS].createProperties.documentUrlPatterns,
+					CRMNodes[LinkOnPageTest.TRIGGERS].triggers.map((trigger) => {
 						return prepareTrigger(trigger.url);
 					}), 'triggers are turned on');
 				done();
@@ -2839,13 +2861,14 @@ describe('On-Page CRM', function(this: MochaFn) {
 			getContextMenu().then((contextMenu) => {
 				driver
 					.executeScript(inlineFn(() => {
-						window.chrome._currentContextMenu[0].children[4].currentProperties.onclick(
-							REPLACE.page, REPLACE.tab
-						);
+						window.chrome._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
 						return true;
 					}, {
 						page: JSON.stringify({
-							menuItemId: contextMenu[4].id,
+							menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
 							editable: false,
 							pageUrl: 'www.google.com'
 						}),
@@ -2868,7 +2891,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							}));
 					}).then((str: string) => {
 						const activeTabs = JSON.parse(str) as ActiveTabs;
-						const expectedTabs = CRMNodes[4].value.map((link) => {
+						const expectedTabs = CRMNodes[LinkOnPageTest.DEFAULT_LINKS].value.map((link) => {
 							if (!link.newTab) {
 								return {
 									id:	tabId,
@@ -2905,12 +2928,13 @@ describe('On-Page CRM', function(this: MochaFn) {
 						while (window.chrome._activeTabs.length > 0) {
 							window.chrome._activeTabs.pop();
 						}
-						return window.chrome._currentContextMenu[0].children[5].currentProperties.onclick(
-							REPLACE.page, REPLACE.tab
-						);
+						return window.chrome._currentContextMenu[0].children[LinkOnPageTest.PRESET_LINKS]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
 					}, {
 						page: JSON.stringify({
-							menuItemId: contextMenu[5].id,
+							menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
 							editable: false,
 							pageUrl: 'www.google.com'
 						}),
@@ -2933,7 +2957,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							}));
 					}).then((str: string) => {
 						const activeTabs = JSON.parse(str) as ActiveTabs;
-						const expectedTabs = CRMNodes[5].value.map((link) => {
+						const expectedTabs = CRMNodes[LinkOnPageTest.PRESET_LINKS].value.map((link) => {
 							if (!link.newTab) {
 								return {
 									id:	tabId,
@@ -3068,6 +3092,273 @@ describe('On-Page CRM', function(this: MochaFn) {
 						done();
 					});
 			})
+		});
+	});
+	describe('Scripts', function(this: MochaFn) {
+		this.timeout(5000);
+		this.slow(2000);
+
+		const CRMNodes = [
+			templates.getDefaultScriptNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					launchMode: CRMLaunchMode.ALWAYS_RUN,
+					script: 'console.log("executed script");'
+				}
+			}), 
+			templates.getDefaultScriptNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					script: 'console.log("executed script");'
+				}
+			}),
+			templates.getDefaultScriptNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				triggers: [
+					{
+						url: 'http://www.example.com',
+						not: false
+					}
+				],
+				value: {
+					launchMode: CRMLaunchMode.RUN_ON_SPECIFIED,
+					script: 'console.log("executed script");'
+				}
+			}),
+			templates.getDefaultScriptNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				triggers: [
+					{
+						url: 'http://www.example2.com',
+						not: false
+					}
+				],
+				value: {
+					launchMode: CRMLaunchMode.SHOW_ON_SPECIFIED,
+					script: 'console.log("executed script");'
+				}
+			}),
+			templates.getDefaultScriptNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				triggers: [
+					{
+						url: 'http://www.example3.com',
+						not: false
+					}
+				],
+				value: {
+					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					backgroundScript: 'console.log("executed backgroundscript")'
+				}
+			}),
+			templates.getDefaultScriptNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					launchMode: CRMLaunchMode.DISABLED,
+					script: 'console.log("executed script");'
+				}
+			})
+		];
+
+		const enum ScriptOnPageTests {
+			ALWAYS_RUN = 0,
+			RUN_ON_CLICKING = 1,
+			RUN_ON_SPECIFIED = 2,
+			SHOW_ON_SPECIFIED = 3,
+			BACKGROUNDSCRIPT = 4,
+			DISABLED = 5
+		}
+
+		before('Set CRM', function(done) {
+			resetSettings(this).then(() => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.app.settings.crm = REPLACE.crm;
+						window.app.upload();
+						return true;
+					}, {
+						crm: JSON.stringify(CRMNodes)
+					})).then(() => {
+						done();
+					});
+			});
+		});
+		it('should always run when launchMode is set to ALWAYS_RUN', (done) => {
+			const fakeTabId = getRandomId();
+			driver
+				.executeScript(inlineFn(() => {
+					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+						id: REPLACE.fakeTabId,
+						url: 'http://www.notexample.com'
+					};
+					window.chrome.runtime.sendMessage({
+						type: 'newTabCreated'
+					}, {
+						tab: {
+							id: REPLACE.fakeTabId
+						}
+					} as any, () => { });
+				}, {
+					fakeTabId: fakeTabId
+				})).then(() => {
+					return wait(50);
+				}).then(() => {
+					return driver.executeScript(inlineFn(() => {
+						return JSON.stringify(window.chrome._activatedScripts)
+					}));
+				}).then((str: string) => {
+					const activatedScripts = JSON.parse(str) as ActivatedScript;
+
+					assert.lengthOf(activatedScripts, 1, 'one script activated');
+					assert.strictEqual(activatedScripts[0].id, fakeTabId, 
+						'script was executed on right tab');
+					done();
+				});
+		});
+		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', (done) => {
+			const fakeTabId = getRandomId();
+			getContextMenu().then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.chrome._clearActivatedScripts();
+						return window.chrome._currentContextMenu[0]
+							.children[ScriptOnPageTests.RUN_ON_CLICKING]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
+					}, {
+						page: JSON.stringify({
+							menuItemId: contextMenu[ScriptOnPageTests.RUN_ON_CLICKING].id,
+							editable: false,
+							pageUrl: 'www.google.com'
+						}),
+						tab: JSON.stringify({
+							id: fakeTabId,
+							index: 1,
+							windowId: getRandomId(),
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						})
+					})).then(() => {
+						return driver
+							.executeScript(inlineFn(() => {
+								return JSON.stringify(window.chrome._activatedScripts);
+							}))
+					}).then((str: string) => {
+						const activatedScripts = JSON.parse(str) as ActivatedScript;
+						assert.lengthOf(activatedScripts, 1, 'one script was activated');
+						assert.strictEqual(activatedScripts[0].id, fakeTabId,
+							'script was executed on the right tab');
+						done();
+					});
+			});
+		});
+		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', (done) => {
+			const fakeTabId = getRandomId();
+			driver
+				.executeScript(inlineFn(() => {
+					window.chrome._clearActivatedScripts();
+					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+						id: REPLACE.fakeTabId,
+						url: 'http://www.example.com'
+					};
+					window.chrome.runtime.sendMessage({
+						type: 'newTabCreated'
+					}, {
+						tab: {
+							id: REPLACE.fakeTabId
+						}
+					} as any, () => { });
+				}, {
+					fakeTabId: fakeTabId
+				})).then(() => {
+					return wait(50);
+				}).then(() => {
+					return driver.executeScript(inlineFn(() => {
+						return JSON.stringify(window.chrome._activatedScripts)
+					}));
+				}).then((str: string) => {
+					const activatedScripts = JSON.parse(str) as ActivatedScript;
+
+					//First one is the ALWAYS_RUN script, ignore that
+					assert.lengthOf(activatedScripts, 2, 'two scripts activated');
+					assert.strictEqual(activatedScripts[1].id, fakeTabId, 
+						'new script was executed on right tab');
+					done();
+				});
+		});
+		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', (done) => {
+			const fakeTabId = getRandomId();
+			getContextMenu().then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.chrome._clearActivatedScripts();
+						window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+							id: REPLACE.fakeTabId,
+							url: 'http://www.example2.com'
+						};
+						window.chrome.runtime.sendMessage({
+							type: 'newTabCreated'
+						}, {
+							tab: {
+								id: REPLACE.fakeTabId
+							}
+						} as any, () => { });
+					}, {
+						fakeTabId: fakeTabId
+					})).then(() => {
+						return driver
+							.executeScript(inlineFn(() => {
+								window.chrome._clearActivatedScripts();
+								return window.chrome._currentContextMenu[0]
+									.children[ScriptOnPageTests.RUN_ON_CLICKING]
+									.currentProperties.onclick(
+										REPLACE.page, REPLACE.tab
+									);
+							}, {
+								page: JSON.stringify({
+									menuItemId: contextMenu[ScriptOnPageTests.RUN_ON_CLICKING].id,
+									editable: false,
+									pageUrl: 'www.google.com'
+								}),
+								tab: JSON.stringify({
+									id: fakeTabId,
+									index: 1,
+									windowId: getRandomId(),
+									highlighted: false,
+									active: true,
+									pinned: false,
+									selected: false,
+									url: 'http://www.google.com',
+									title: 'Google',
+									incognito: false
+								})
+							})).then(() => {
+								return driver
+									.executeScript(inlineFn(() => {
+										return JSON.stringify(window.chrome._activatedScripts);
+									}))
+							}).then((str: string) => {
+								const activatedScripts = JSON.parse(str) as ActivatedScript;
+								assert.lengthOf(activatedScripts, 1, 'one script was activated');
+								assert.strictEqual(activatedScripts[0].id, fakeTabId,
+									'script was executed on the right tab');
+								done();
+							});
+					});
+			});
 		});
 	});
 });
