@@ -1,5 +1,7 @@
 //TSC-target=ES3
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
+/// <reference path="../../tools/definitions/crm.d.ts" />
+/// <reference path="../../tools/definitions/specialJSON.d.ts" />
 
 window.logs = [];
 
@@ -113,8 +115,8 @@ interface Logging {
 	};
 }
 
-//Do not take this seriously, this is just to shut the compiler up,
-//the actual options are universal
+//Do not use this for reference, this is just to shut the compiler up,
+//the actual options can be anything
 interface TemplateSetupObject {
 	value?: any;
 	isLocal?: any;
@@ -123,48 +125,6 @@ interface TemplateSetupObject {
 	triggers?: any;
 	id?: any;
 	children?: any;
-}
-
-type Refs = Array<any>;
-
-type ParsingRefs = Array<{
-	ref: Refs;
-	parsed: boolean;
-}>;
-
-type Obj = {
-	[key: string]: any
-};
-
-type ArrOrObj = Array<any>|{
-	[key: string]: any
-}
-
-
-interface SpecialJSON {
-	_regexFlagNames: Array<'global'|'multiline'|'sticky'|'unicode'|'ignoreCase'>;
-	_getRegexFlags: (expr: RegExp) => Array<string>;
-	_stringifyNonObject: (data: string|number|Function|RegExp|Date|boolean) => string;
-	_fnRegex: RegExp;
-	_specialStringRegex: RegExp;
-	_fnCommRegex: RegExp;
-	_refRegex: RegExp;
-	_parseNonObject: (data: string) => string|number|Function|RegExp|Date|boolean;
-	_iterate: (copyTarget: ArrOrObj, iterable: ArrOrObj, fn: (data: any, index: string|number, container: ArrOrObj) => any) => ArrOrObj;
-	_isObject: (data: any) => boolean;
-	_toJSON: (copyTarget: ArrOrObj, data: any, path: Array<string|number>, refData: {
-		refs: Refs,
-		paths: Array<Array<string|number>>,
-		originalValues: Array<any>
-	}) => {
-		refs: Refs;
-		data: ArrOrObj;
-		rootType: 'normal'|'array'|'object';
-	};
-	_replaceRefs: (data: ArrOrObj, refs: ParsingRefs) => ArrOrObj;
-
-	toJSON: (data: any, refs: Refs) => string;
-	fromJSON: (str: string) => any;
 }
 
 interface Window {
@@ -200,22 +160,6 @@ interface Window {
 	tern: any;
 }
 
-type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
-
-interface CRMNodeInfo {
-	installDate?: string;
-	isRoot?: boolean;
-	permissions: Array<CRMPermission|string>;
-	source: {
-		updateURL?: string;
-		downloadURL?: string;
-		url?: string;
-		author?: string;
-	};
-	version?: string;
-	lastUpdatedAt?: string;
-}
-
 interface ContextMenuItemTreeItem {
 	index: number;
 	id: number;
@@ -225,243 +169,6 @@ interface ContextMenuItemTreeItem {
 	children: Array<ContextMenuItemTreeItem>;
 	parentTree: Array<ContextMenuItemTreeItem>;
 }
-
-/**
- * True means show on given type. ['page','link','selection','image','video','audio']
- */
-type CRMContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
-
-interface CRMTrigger {
-	/**
-	 * 	The URL of the site on which to run,
-	 * 	if launchMode is 2 aka run on specified pages can be any of these
-	 * 	https://wiki.greasespot.net/Include_and_exclude_rules
-	 * 	otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
-	 * 	https://developer.chrome.com/extensions/match_patterns
-	 */
-	url: string;
-	/**
-	 * If true, does NOT run on given site
-	 *
-	 * @type {boolean}
-	 */
-	not: boolean;
-}
-
-type CRMTriggers = Array<CRMTrigger>;
-
-interface CRMLibrary {
-	name: string;
-}
-
-type MetaTags = { [key: string]: Array<string|number> };
-
-const enum CRMLaunchMode {
-	RUN_ON_CLICKING = 0,
-	ALWAYS_RUN = 1,
-	RUN_ON_SPECIFIED = 2,
-	SHOW_ON_SPECIFIED = 3,
-	DISABLED = 4
-};
-
-const enum TypecheckOptional {
-	OPTIONAL = 1,
-	REQUIRED = 0
-}
-
-interface ScriptVal {
-	launchMode: CRMLaunchMode;
-	script: string;
-	backgroundScript: string;
-	metaTags: MetaTags;
-	libraries: Array<CRMLibrary>;
-	backgroundLibraries: Array<CRMLibrary>;
-}
-
-interface StylesheetVal {
-	launchMode: CRMLaunchMode;
-	stylesheet: string;
-	toggle: boolean;
-	defaultOn: boolean;
-}
-
-interface LinkNodeLink {
-	url: string;
-	newTab: boolean;
-}
-
-type LinkVal = Array<LinkNodeLink>
-
-type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
-
-interface SafeCRMBaseNode {
-	id: number;
-	index?: number;
-	path: Array<number>;
-	name: string;
-	type: NodeType;
-	nodeInfo: CRMNodeInfo;
-	storage: any;
-	onContentTypes: CRMContentTypes;
-	permissions: Array<CRMPermission>;
-	triggers: CRMTriggers;
-	value?: any;
-}
-
-interface CRMBaseNode extends SafeCRMBaseNode {
-	index?: number;
-	isLocal?: boolean;
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-}
-
-interface PassiveCRMNode extends CRMBaseNode {
-	showOnSpecified: boolean;
-	isLocal: boolean;
-	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-}
-
-interface SafePassiveCRMNode extends SafeCRMBaseNode {
-	showOnSpecified: boolean;
-}
-
-interface ScriptNode extends CRMBaseNode {
-	type: NodeType;
-	value: ScriptVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface StylesheetNode extends CRMBaseNode {
-	type: NodeType;
-	value: StylesheetVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-}
-
-interface LinkNode extends PassiveCRMNode {
-	value: LinkVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface MenuNode extends PassiveCRMNode {
-	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface DividerNode extends PassiveCRMNode {
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface SafeScriptNode extends SafeCRMBaseNode {
-	type: NodeType;
-	value: ScriptVal;
-	menuVal?: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface SafeStylesheetNode extends SafeCRMBaseNode {
-	type: NodeType;
-	value: StylesheetVal;
-	menuVal?: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-}
-
-interface SafeLinkNode extends SafePassiveCRMNode {
-	value: LinkVal;
-	menuVal?: Array<SafeCRMNode>;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface SafeMenuNode extends SafePassiveCRMNode {
-	children: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface SafeDividerNode extends SafePassiveCRMNode {
-	menuVal?: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-type SafeCRMNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
-
-interface PartialCRMBaseNode {
-	showOnSpecified?: boolean;
-	isLocal?: boolean;
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	id?: number;
-	index?: number;
-	path?: Array<number>;
-	name?: string;
-	type?: NodeType;
-	nodeInfo?: CRMNodeInfo;
-	storage?: any;
-	onContentTypes?: CRMContentTypes;
-	permissions?: Array<CRMPermission|string>;
-	triggers?: CRMTriggers;
-	value?: any;
-}
-
-interface PartialPassiveCRMNode extends PartialCRMBaseNode {
-	index?: number;
-	isLocal?: boolean;
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-}
-
-interface PartialScriptNode extends PartialCRMBaseNode {
-	type?: NodeType;
-	value?: ScriptVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface PartialStylesheetNode extends PartialCRMBaseNode {
-	type?: NodeType;
-	value?: StylesheetVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-}
-
-interface PartialLinkNode extends PartialPassiveCRMNode {
-	value?: LinkVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface PartialMenuNode extends PartialPassiveCRMNode {
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface PartialDividerNode extends PartialPassiveCRMNode {
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-type PartialCRMNode = PartialDividerNode | PartialMenuNode | PartialLinkNode |
-	PartialStylesheetNode | PartialScriptNode;
 
 interface AnyObj {
 	[key: string]: any;

@@ -1,23 +1,8 @@
 //TSC-target=ES3
+/// <reference path="../../tools/definitions/specialJSON.d.ts" />
+
 interface Window {
-	specialJSON: any;
-}
-
-type Refs = Array<any>;
-
-type ParsingRefs = Array<{
-	ref: Array<any>|{
-		[key: string]: any
-	};
-	parsed: boolean;
-}>;
-
-type Obj = {
-	[key: string]: any
-};
-
-type ArrOrObj = Array<any>|{
-	[key: string]: any
+	specialJSON: SpecialJSON;
 }
 
 window.specialJSON = {
