@@ -23,6 +23,8 @@ do
   #Compile
   echo "Compiling $FILE to target $COMPILE_TARGET"
   tsc --target $COMPILE_TARGET $FILE
+
+  cat $FILE;
 done
 
 CHANGED_FILES=$(git status | grep 'modified:')
@@ -37,21 +39,21 @@ if [ CHANGED_AMOUNT > 0 ] || [ "$TRAVIS_BRANCH" = "master" ]; then
   set +e
   git diff-index --quiet HEAD
 
-  git checkout origin/master
+  # git checkout master
 
-  echo "Committing changes";
-  git add -A .
-  git commit -m "Compile typescript files" --quiet
-  echo "Committed changes";
+  # echo "Committing changes";
+  # git add -A .
+  # git commit -m "Compile typescript files" --quiet
+  # echo "Committed changes";
 
-  echo "Pushing changes";
-  if [ $? -ne 0 ] ; then #Something went wrong committing, don't push
-    echo "Faulty commit, abort push";
-    exit 0;
-  fi
+  # echo "Pushing changes";
+  # if [ $? -ne 0 ] ; then #Something went wrong committing, don't push
+  #   echo "Faulty commit, abort push";
+  #   exit 0;
+  # fi
 
-  git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --force --quiet
-  echo "Pushed compiled typescript"
+  # git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --force --quiet
+  # echo "Pushed compiled typescript"
 
   set -e
 fi
