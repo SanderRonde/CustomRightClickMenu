@@ -25,14 +25,19 @@ do
   tsc --target $COMPILE_TARGET $FILE
 done
 
-CHANGED_FILES=$(git status | grep 'modified:' | wc -l)
-if [ CHANGED_FILES > 0 ] || [ "$TRAVIS_BRANCH" = "master" ]; then
+CHANGED_FILES=$(git status | grep 'modified:')
+CHANGED_AMOUNT=$(git status | grep 'modified:' | wc -l)
+if [ CHANGED_AMOUNT > 0 ] || [ "$TRAVIS_BRANCH" = "master" ]; then
   git config user.name "Travis CI"
   git config user.email "awsdfgvhbjn@gmail.com"
   git config --global push.default simple
 
+  echo "Non-compiled typescript files: $CHANGED_FILES";
+
   set +e
   git diff-index --quiet HEAD
+
+  git checkout origin/master
 
   echo "Committing changes";
   git add -A .
