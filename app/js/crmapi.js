@@ -1505,14 +1505,14 @@
 		 * The properties of a node if it's of type divider
 		 *
 		 * @augments CrmNode
-		 * @typedef {Object} CrmAPIInit~dividerVal
+		 * @typedef {Object} DividerVal
 		 * @property {boolean} showOnSpecified - Whether the triggers are actually used, true if they are
 		 */
 
 		/**
 		 * This callback is called on most crm functions
 		 *
-		 * @callback CrmAPIInit~crmCallback
+		 * @callback CrmCallback
 		 * @param {CrmNode} node - The node that has been processed/retrieved
 		 */
 
@@ -1543,7 +1543,7 @@
 		 * Gets the node with ID nodeId
 		 *
 		 * @permission crmGet
-		 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
+		 * @param {CrmCallback} callback - A function that is called when done
 		 */
 		this.crm.getNode = function (nodeId, callback) {
 			sendCrmMessage('getNode', callback, {
@@ -1574,7 +1574,7 @@
 		 * @param {string} [query.name] - The name of the item
 		 * @param {string} [query.type] - The type of the item (link, script, stylesheet, divider or menu)
 		 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
-		 * @param {CrmAPIInit~crmCallback} callback - A callback with the resulting nodes in an array
+		 * @param {CrmCallback} callback - A callback with the resulting nodes in an array
 		 */
 		this.crm.queryCrm = function (query, callback) {
 			sendCrmMessage('queryCrm', callback, {
@@ -1587,7 +1587,7 @@
 		 *
 		 * @permission crmGet
 		 * @param {number} nodeId - The node of which to get the parent
-		 * @param {CrmAPIInit~crmCallback} callback - A callback with the parent of the given node as an argument
+		 * @param {CrmCallback} callback - A callback with the parent of the given node as an argument
 		 */
 		this.crm.getParentNode = function (nodeId, callback) {
 			sendCrmMessage('getParentNode', callback, {
@@ -1676,7 +1676,7 @@
 		 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 		 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
 		 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
-		 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
+		 * @param {CrmCallback} callback - A callback given the new node as an argument
 		 */
 		this.crm.createNode = function (options, callback) {
 			sendCrmMessage('createNode', callback, {
@@ -1704,7 +1704,7 @@
 		 *		lastSibling: last of the subtree that given node is in
 		 *		before: before given node
 		 *		after: after the given node
-		 * @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
+		 * @param {CrmCallback} callback - A callback given the new node as an argument
 		 */
 		this.crm.copyNode = function (nodeId, options, callback) {
 			options = options || {};
@@ -1731,7 +1731,7 @@
 		 *		lastSibling: last of the subtree that given node is in
 		 *		before: before given node
 		 *		after: after the given node
-		 * @param {CrmAPIInit~crmCallback} callback - A function that gets called with the new node as an argument
+		 * @param {CrmCallback} callback - A function that gets called with the new node as an argument
 		 */
 		this.crm.moveNode = function (nodeId, position, callback) {
 			//To prevent the user's stuff from being disturbed if they re-use the object
@@ -1771,7 +1771,7 @@
 		 * @param {Object} options - An object containing the settings for what to edit
 		 * @param {string} [options.name] - Changes the name to given string
 		 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, contains the new node as an argument
+		 * @param {CrmCallback} callback - A function to run when done, contains the new node as an argument
 		 */
 		this.crm.editNode = function (nodeId, options, callback) {
 			options = options || {};
@@ -1788,7 +1788,7 @@
 		 *
 		 * @permission crmGet
 		 * @param {number} nodeId - The node of which to get the triggers
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers as an argument
+		 * @param {CrmCallback} callback - A function to run when done, with the triggers as an argument
 		 */
 		this.crm.getTriggers = function (nodeId, callback) {
 			sendCrmMessage('getTriggers', callback, {
@@ -1809,7 +1809,7 @@
 		 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
 		 * 		https://developer.chrome.com/extensions/match_patterns
 		 * @param {boolean} triggers.not - If true does NOT show the node on that URL
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+		 * @param {CrmCallback} callback - A function to run when done, with the node as an argument
 		 */
 		this.crm.setTriggers = function (nodeId, triggers, callback) {
 			sendCrmMessage('setTriggers', callback, {
@@ -1824,7 +1824,7 @@
 		 *
 		 * @permission crmGet
 		 * @param {number} nodeId - The node of which to get the triggers
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers' usage as an argument
+		 * @param {CrmCallback} callback - A function to run when done, with the triggers' usage as an argument
 		 */
 		this.crm.getTriggerUsage = function (nodeId, callback) {
 			sendCrmMessage('getTriggerUsage', callback, {
@@ -1839,7 +1839,7 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to set the triggers
 		 * @param {boolean} useTriggers - Whether the triggers should be used or not
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+		 * @param {CrmCallback} callback - A function to run when done, with the node as an argument
 		 */
 		this.crm.setTriggerUsage = function (nodeId, useTriggers, callback) {
 			sendCrmMessage('setTriggerUsage', callback, {
@@ -1854,7 +1854,7 @@
 		 * @permission crmGet
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to get the content types
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
+		 * @param {CrmCallback} callback - A function to run when done, with the content types array as an argument
 		 */
 		this.crm.getContentTypes = function (nodeId, callback) {
 			sendCrmMessage('getContentTypes', callback, {
@@ -1871,7 +1871,7 @@
 		 * @param {number} index - The index of the array to set, 0-5, ordered this way:
 		 *		page, link, selection, image, video, audio
 		 * @param {boolean} value - The new value at index "index"
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the new array as an argument
+		 * @param {CrmCallback} callback - A function to run when done, with the new array as an argument
 		 */
 		this.crm.setContentType = function (nodeId, index, value, callback) {
 			sendCrmMessage('setContentType', callback, {
@@ -1891,7 +1891,7 @@
 		 *		on that content type. Requires at least one type to be active, otherwise all are activated.
 		 *		The options are:
 		 *		page, link, selection, image, video, audio
-		 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+		 * @param {CrmCallback} callback - A function to run when done, with the node as an argument
 		 */
 		this.crm.setContentTypes = function (nodeId, contentTypes, callback) {
 			sendCrmMessage('setContentTypes', callback, {
@@ -1913,7 +1913,7 @@
 		 *		2 = run on specified pages
 		 *		3 = only show on specified pages
 		 * 		4 = disabled
-		 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
+		 * @param {CrmCallback} callback - A function that is ran when done with the new node as an argument
 		 */
 		this.crm.setLaunchMode = function (nodeId, launchMode, callback) {
 			sendCrmMessage('setLaunchMode', callback, {
@@ -1949,7 +1949,7 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to change the stylesheet
 		 * @param {string} stylesheet - The code to change to
-		 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+		 * @param {CrmCallback} callback - A function with the node as an argument
 		 */
 		this.crm.stylesheet.setStylesheet = function (nodeId, stylesheet, callback) {
 			sendCrmMessage('setStylesheetValue', callback, {
@@ -2051,7 +2051,7 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to change the script
 		 * @param {string} value - The code to change to
-		 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+		 * @param {CrmCallback} callback - A function with the node as an argument
 		 */
 		this.crm.script.setScript = function (nodeId, script, callback) {
 			sendCrmMessage('setScriptValue', callback, {
@@ -2080,7 +2080,7 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to change the script
 		 * @param {string} value - The code to change to
-		 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+		 * @param {CrmCallback} callback - A function with the node as an argument
 		 */
 		this.crm.script.setBackgroundScript = function (nodeId, script, callback) {
 			sendCrmMessage('setBackgroundScriptValue', callback, {
@@ -2202,7 +2202,7 @@
 		 *
 		 * @permission crmGet
 		 * @param {number} nodeId - The id of the node of which to get the children
-		 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
+		 * @param {CrmCallback} callback - A callback with the node as an argument
 		 */
 		this.crm.menu.getChildren = function (nodeId, callback) {
 			sendCrmMessage('getMenuChildren', callback, {
@@ -2219,7 +2219,7 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The id of the node of which to set the children
 		 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-		 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
+		 * @param {CrmCallback} callback - A callback with the node as an argument
 		 */
 		this.crm.menu.setChildren = function (nodeId, childrenIds, callback) {
 			sendCrmMessage('setMenuChildren', callback, {
@@ -2236,7 +2236,7 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The id of the node of which to push the children
 		 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-		 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
+		 * @param {CrmCallback} callback - A callback with the node as an argument
 		 */
 		this.crm.menu.push = function (nodeId, childrenIds, callback) {
 			sendCrmMessage('pushMenuChildren', callback, {

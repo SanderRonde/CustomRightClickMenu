@@ -352,7 +352,6 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 					}
 				}
 				defs.proto && (val['!proto'] = defs.proto);
-				defs.name = defs.name.split('~')[1];
 				val['!url'] = docsLoc + '#' + sanitizeName(defs.name);
 
 				if (isTernExtraction) {
