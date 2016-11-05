@@ -1,6 +1,6 @@
 //TSC-target=ES3
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
-/// <reference path="../../tools/definitions/crm.d.ts" />
+/// <reference path="../../tools/definitions/crm.ts" />
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
 
 window.logs = [];
@@ -10,6 +10,11 @@ type VoidFn = () => void;
 interface TabData {
 	id: number|'background';
 	title: string;
+}
+
+const enum TypecheckOptional {
+	OPTIONAL = 1,
+	REQUIRED = 0
 }
 
 interface StorageChange {
@@ -6281,8 +6286,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									'document.head.appendChild(CRMSSInsert);'
 								].join('');
 							}
-							globalObject.globals.crmValues.stylesheetNodeStatusses[node.id][tab
-								.id] = info.checked;
+							globalObject.globals.crmValues
+								.stylesheetNodeStatusses[node.id][tab.id] = info.checked;
 							chrome.tabs.executeScript(tab.id, {
 								code: code,
 								allFrames: true

@@ -2,7 +2,7 @@
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/chai.d.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
-
+/// <reference path="../tools/definitions/crm.ts" />
 
 interface AnyObj {
 	[key: string]: any;
@@ -89,20 +89,20 @@ type ActiveTabs = Array<{
 	id?: number;
 }>
 
-interface ActivatedScript {
+interface ExecutedScript {
 	id: number;
 	code: string;
 }
 
-type ActivatedScripts = Array<ActivatedScript>;
+type ExecutedScripts = Array<ExecutedScript>;
 
 interface AppChrome extends Chrome {
 	_lastCall: ChromeLastCall;
 	_currentContextMenu: ContextMenu;
 	_activeTabs: ActiveTabs;
-	_activatedScripts: ActivatedScripts;
+	_executedScripts: ExecutedScripts;
 	_activatedBackgroundPages: Array<number>;
-	_clearActivatedScripts: () => void;
+	_clearExecutedScripts: () => void;
 	_fakeTabs: Array<{
 		id: number;
 		url: string;
@@ -114,157 +114,8 @@ interface AppWindow extends Window {
 	lastError: any|void;
 	chrome: AppChrome
 	logs: Array<any>;
+	dummyContainer: HTMLDivElement;
 }
-
-type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
-
-interface CRMNodeInfo {
-	installDate?: string;
-	isRoot?: boolean;
-	permissions: Array<CRMPermission|string>;
-	source: {
-		updateURL?: string;
-		downloadURL?: string;
-		url?: string;
-		author?: string;
-	};
-	version?: string;
-	lastUpdatedAt?: string;
-}
-
-interface SafeCRMBaseNode {
-	id: number;
-	index?: number;
-	path: Array<number>;
-	name: string;
-	type: NodeType;
-	nodeInfo: CRMNodeInfo;
-	storage: any;
-	onContentTypes: CRMContentTypes;
-	permissions: Array<CRMPermission>;
-	triggers: CRMTriggers;
-	value?: any;
-}
-
-interface CRMBaseNode extends SafeCRMBaseNode {
-	index?: number;
-	isLocal?: boolean;
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-}
-
-type MetaTags = { [key: string]: Array<string|number> };
-
-const enum CRMLaunchMode {
-	RUN_ON_CLICKING = 0,
-	ALWAYS_RUN = 1,
-	RUN_ON_SPECIFIED = 2,
-	SHOW_ON_SPECIFIED = 3,
-	DISABLED = 4
-};
-
-const enum TypecheckOptional {
-	OPTIONAL = 1,
-	REQUIRED = 0
-}
-
-interface ScriptVal {
-	launchMode: CRMLaunchMode;
-	script: string;
-	backgroundScript: string;
-	metaTags: MetaTags;
-	libraries: Array<CRMLibrary>;
-	backgroundLibraries: Array<CRMLibrary>;
-}
-
-/**
- * True means show on given type. ['page','link','selection','image','video','audio']
- */
-type CRMContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
-
-interface CRMTrigger {
-	/**
-	 * 	The URL of the site on which to run,
-	 * 	if launchMode is 2 aka run on specified pages can be any of these
-	 * 	https://wiki.greasespot.net/Include_and_exclude_rules
-	 * 	otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
-	 * 	https://developer.chrome.com/extensions/match_patterns
-	 */
-	url: string;
-	/**
-	 * If true, does NOT run on given site
-	 *
-	 * @type {boolean}
-	 */
-	not: boolean;
-}
-
-type CRMTriggers = Array<CRMTrigger>;
-
-interface CRMLibrary {
-	name: string;
-}
-
-
-interface StylesheetVal {
-	launchMode: CRMLaunchMode;
-	stylesheet: string;
-	toggle: boolean;
-	defaultOn: boolean;
-}
-
-interface LinkNodeLink {
-	url: string;
-	newTab: boolean;
-}
-
-type LinkVal = Array<LinkNodeLink>
-
-type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
-
-interface PassiveCRMNode extends CRMBaseNode {
-	showOnSpecified: boolean;
-	isLocal: boolean;
-	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-}
-
-interface ScriptNode extends CRMBaseNode {
-	type: NodeType;
-	value: ScriptVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface StylesheetNode extends CRMBaseNode {
-	type: NodeType;
-	value: StylesheetVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-}
-
-interface LinkNode extends PassiveCRMNode {
-	value: LinkVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface MenuNode extends PassiveCRMNode {
-	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface DividerNode extends PassiveCRMNode {
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-type CRM = Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 
 declare const require: any;
 declare const describe: (name: string, fn: () => void) => void;
@@ -705,7 +556,6 @@ function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: a
 	return str;
 }
 
-/*
 describe('Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
 		this.timeout(5000);
@@ -2572,7 +2422,6 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 });
-*/
 
 function getTypeName(index: number): string {
 	switch (index) {
@@ -2643,7 +2492,6 @@ describe('On-Page CRM', function(this: MochaFn) {
 	this.slow(200);
 	this.timeout(2000);
 
-	/*
 	describe('Redraws on new CRM', function(this: MochaFn) {
 		const CRM1 = [
 			templates.getDefaultLinkNode({
@@ -2674,7 +2522,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 			})
 		];
 
-		it('should not throw when setting up the CRM', (done) => {
+		it('should not throw when setting up the CRM', function(done) {
+			this.slow(8000);
 			assert.doesNotThrow(() => {
 				resetSettings(this).then(() => {
 					driver
@@ -2683,13 +2532,13 @@ describe('On-Page CRM', function(this: MochaFn) {
 							window.app.upload();
 							return true;
 						}, {
-							crm: JSON.stringify(CRMNodes)
+							crm: JSON.stringify(CRM1)
 						})).then(() => {
 							done();
 						});
 				});
 			}, 'setting up the CRM does not throw');
-		});
+		})
 		it('should be using the first CRM', function(this: MochaFn, done) {
 			getContextMenu().then((contextMenu) => {
 				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1.concat([{
@@ -2806,7 +2655,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 			PRESET_LINKS = 5
 		}
 
-		it('should not throw when setting up the CRM', (done) => {
+		it('should not throw when setting up the CRM', function(done) {
+			this.slow(8000);
 			assert.doesNotThrow(() => {
 				resetSettings(this).then(() => {
 					driver
@@ -2821,7 +2671,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						});
 				});
 			}, 'setting up the CRM does not throw');
-		});
+		})
 		it('should match the given names and types', (done) => {
 			getContextMenu().then((contextMenu) => {
 				for (let i = 0; i < CRMNodes.length; i++) {
@@ -2861,7 +2711,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				done();
 			});
 		});
-		it('should open the correct links when "clicked" for the default link', function(this: MochaFn, done) {
+		it('should open the correct links when clicked for the default link', function(this: MochaFn, done) {
 			this.slow(2500);
 			this.timeout(5000);
 			const tabId = ~~(Math.random() * 100);
@@ -2926,7 +2776,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					});
 			});
 		});
-		it('should open the correct links when "clicked" for multiple links', (done) => {
+		it('should open the correct links when clicked for multiple links', (done) => {
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu().then((contextMenu) => {
@@ -3070,7 +2920,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 			})
 		];
 
-		it('should not throw when setting up the CRM', (done) => {
+		it('should not throw when setting up the CRM', function(done) {
+			this.slow(8000);
 			assert.doesNotThrow(() => {
 				resetSettings(this).then(() => {
 					driver
@@ -3085,7 +2936,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						});
 				});
 			}, 'setting up the CRM does not throw');
-		});
+		})
 		it('should have the correct structure', function(done) {
 			this.slow(500);
 			getContextMenu().then((contextMenu) => {
@@ -3105,7 +2956,6 @@ describe('On-Page CRM', function(this: MochaFn) {
 			})
 		});
 	});
-	*/
 	describe('Scripts', function(this: MochaFn) {
 		this.timeout(5000);
 		this.slow(2000);
@@ -3188,7 +3038,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 			DISABLED = 5
 		}
 
-		it('should not throw when setting up the CRM', (done) => {
+		it('should not throw when setting up the CRM', function(done) {
+			this.slow(8000);
 			assert.doesNotThrow(() => {
 				resetSettings(this).then(() => {
 					driver
@@ -3203,11 +3054,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 						});
 				});
 			}, 'setting up the CRM does not throw');
-		})
+		});
 		it('should always run when launchMode is set to ALWAYS_RUN', (done) => {
 			const fakeTabId = getRandomId();
 			driver
 				.executeScript(inlineFn(() => {
+					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
 						url: 'http://www.notexample.com'
@@ -3225,10 +3077,10 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return wait(50);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._activatedScripts)
+						return JSON.stringify(window.chrome._executedScripts)
 					}));
 				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ActivatedScript;
+					const activatedScripts = JSON.parse(str) as ExecutedScripts;
 
 					assert.lengthOf(activatedScripts, 1, 'one script activated');
 					assert.strictEqual(activatedScripts[0].id, fakeTabId, 
@@ -3241,7 +3093,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			getContextMenu().then((contextMenu) => {
 				driver
 					.executeScript(inlineFn(() => {
-						window.chrome._clearActivatedScripts();
+						window.chrome._clearExecutedScripts();
 						return window.chrome._currentContextMenu[0]
 							.children[ScriptOnPageTests.RUN_ON_CLICKING]
 							.currentProperties.onclick(
@@ -3249,7 +3101,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							);
 					}, {
 						page: JSON.stringify({
-							menuItemId: contextMenu[ScriptOnPageTests.RUN_ON_CLICKING].id,
+							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com'
 						}),
@@ -3268,10 +3120,10 @@ describe('On-Page CRM', function(this: MochaFn) {
 					})).then(() => {
 						return driver
 							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._activatedScripts);
+								return JSON.stringify(window.chrome._executedScripts);
 							}))
 					}).then((str: string) => {
-						const activatedScripts = JSON.parse(str) as ActivatedScript;
+						const activatedScripts = JSON.parse(str) as ExecutedScripts;
 						assert.lengthOf(activatedScripts, 1, 'one script was activated');
 						assert.strictEqual(activatedScripts[0].id, fakeTabId,
 							'script was executed on the right tab');
@@ -3283,7 +3135,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const fakeTabId = getRandomId();
 			driver
 				.executeScript(inlineFn(() => {
-					window.chrome._clearActivatedScripts();
+					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
 						url: 'http://www.example.com'
@@ -3301,10 +3153,10 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return wait(50);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._activatedScripts)
+						return JSON.stringify(window.chrome._executedScripts)
 					}));
 				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ActivatedScript;
+					const activatedScripts = JSON.parse(str) as ExecutedScripts;
 
 					//First one is the ALWAYS_RUN script, ignore that
 					assert.lengthOf(activatedScripts, 2, 'two scripts activated');
@@ -3314,11 +3166,11 @@ describe('On-Page CRM', function(this: MochaFn) {
 				});
 		});
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', (done) => {
-			this.slow(10000);
+			this.slow(25000);
 			const fakeTabId = getRandomId();
 			driver
 				.executeScript(inlineFn(() => {
-					window.chrome._clearActivatedScripts();
+					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
 						url: 'http://www.example2.com'
@@ -3339,7 +3191,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 
 					return driver
 						.executeScript(inlineFn(() => {
-							window.chrome._clearActivatedScripts();
+							window.chrome._clearExecutedScripts();
 							return window.chrome._currentContextMenu[0]
 								.children[1]
 								.currentProperties.onclick(
@@ -3347,7 +3199,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							);
 						}, {
 							page: JSON.stringify({
-								menuItemId: contextMenu[1].id,
+								menuItemId: contextMenu[0].id,
 								editable: false,
 								pageUrl: 'www.google.com'
 							}),
@@ -3367,17 +3219,18 @@ describe('On-Page CRM', function(this: MochaFn) {
 				}).then(() => {
 					return driver
 						.executeScript(inlineFn(() => {
-							return JSON.stringify(window.chrome._activatedScripts);
+							return JSON.stringify(window.chrome._executedScripts);
 						}))
 				}).then((str: string) => {
-					const activatedScripts = JSON.parse(str) as ActivatedScript;
+					const activatedScripts = JSON.parse(str) as ExecutedScripts;
 					assert.lengthOf(activatedScripts, 1, 'one script was activated');
 					assert.strictEqual(activatedScripts[0].id, fakeTabId,
 						'script was executed on the right tab');
 					done();
 				});
 		});
-		it('should run the backgroundscript when one is specified', (done) => {
+		it('should run the backgroundscript when one is specified', function(done) {
+			this.slow(8000);
 			const fakeTabId = getRandomId();
 			getContextMenu().then((contextMenu) => {
 				assert.isAbove(contextMenu.length, 3, 'contextmenu contains at least 3 items');
@@ -3392,7 +3245,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								);
 						}, {
 							page: JSON.stringify({
-								menuItemId: contextMenu[2].id,
+								menuItemId: contextMenu[0].id,
 								editable: false,
 								pageUrl: 'www.google.com'
 							}),
@@ -3439,7 +3292,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			getContextMenu().then((contextMenu) => {
 				driver
 					.executeScript(inlineFn(() => {
-						window.chrome._clearActivatedScripts();
+						window.chrome._clearExecutedScripts();
 						return window.chrome._currentContextMenu[0]
 							.children[ScriptOnPageTests.RUN_ON_CLICKING]
 							.currentProperties.onclick(
@@ -3447,7 +3300,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							);
 					}, {
 						page: JSON.stringify({
-							menuItemId: contextMenu[ScriptOnPageTests.RUN_ON_CLICKING].id,
+							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com'
 						}),
@@ -3466,10 +3319,10 @@ describe('On-Page CRM', function(this: MochaFn) {
 					})).then(() => {
 						return driver
 							.executeScript(inlineFn(() => {
-								return JSON.stringify(window.chrome._activatedScripts);
+								return JSON.stringify(window.chrome._executedScripts);
 							}))
 					}).then((str: string) => {
-						const activatedScripts = JSON.parse(str) as ActivatedScript;
+						const activatedScripts = JSON.parse(str) as ExecutedScripts;
 						assert.lengthOf(activatedScripts, 1, 'one script was activated');
 						assert.strictEqual(activatedScripts[0].id, fakeTabId,
 							'script was executed on the right tab');
@@ -3482,6 +3335,492 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 	});
 	describe('Stylesheets', function(this: MochaFn) {
+		this.timeout(5000);
+		this.slow(2000);
 
+		const CRMNodes = [
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					toggle: true,
+					defaultOn: false,
+					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					stylesheet: '#stylesheetTestDummy1 { width: 50px; height :50px; } /*1*/'
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					toggle: true,
+					defaultOn: true,
+					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					stylesheet: '#stylesheetTestDummy2 { width: 50px; height :50px; }/*2*/'
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					launchMode: CRMLaunchMode.ALWAYS_RUN,
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*3*/'
+				}
+			}), 
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*4*/'
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				triggers: [
+					{
+						url: 'http://www.example.com',
+						not: false
+					}
+				],
+				value: {
+					launchMode: CRMLaunchMode.RUN_ON_SPECIFIED,
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*5*/'
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				triggers: [
+					{
+						url: 'http://www.example2.com',
+						not: false
+					}
+				],
+				value: {
+					launchMode: CRMLaunchMode.SHOW_ON_SPECIFIED,
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*6*/'
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					launchMode: CRMLaunchMode.DISABLED,
+					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*7*/'
+				}
+			})
+		];
+
+		const enum StylesheetOnPageTests {
+			TOGGLE_DEFAULT_OFF = 0,
+			TOGGLE_DEFAULT_ON = 1,
+			ALWAYS_RUN = 2,
+			RUN_ON_CLICKING = 3,
+			RUN_ON_SPECIFIED = 4,
+			SHOW_ON_SPECIFIED = 5,
+			DISABLED = 6
+		}
+
+		it('should not throw when setting up the CRM', function(done) {
+			this.slow(8000);
+			assert.doesNotThrow(() => {
+				resetSettings(this).then(() => {
+					driver
+						.executeScript(inlineFn(() => {
+							window.app.settings.crm = REPLACE.crm;
+							window.app.upload();
+							return true;
+						}, {
+							crm: JSON.stringify(CRMNodes)
+						})).then(() => {
+							done();
+						});
+				});
+			}, 'setting up the CRM does not throw');
+		});
+		it('should always run when launchMode is set to ALWAYS_RUN', (done) => {
+			const fakeTabId = getRandomId();
+			driver
+				.executeScript(inlineFn(() => {
+					window.chrome._clearExecutedScripts();
+					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+						id: REPLACE.fakeTabId,
+						url: 'http://www.notexample.com'
+					};
+					
+					window.chrome.runtime.sendMessage({
+						type: 'newTabCreated'
+					}, {
+						tab: {
+							id: REPLACE.fakeTabId
+						}
+					} as any, () => { });
+				}, {
+					fakeTabId: fakeTabId
+				})).then(() => {
+					return wait(50);
+				}).then(() => {
+					return driver.executeScript(inlineFn(() => {
+						return JSON.stringify(window.chrome._executedScripts)
+					}));
+				}).then((str: string) => {
+					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+
+					//First one is the default on stylesheet, ignore that
+					assert.lengthOf(activatedScripts, 2, 'two stylesheets activated');
+					assert.strictEqual(activatedScripts[1].id, fakeTabId, 
+						'stylesheet was executed on right tab');
+					done();
+				});
+		});
+		it('should run on clicking when launchMode is set to RUN_ON_CLICKING', (done) => {
+			const fakeTabId = getRandomId();
+			getContextMenu().then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.chrome._clearExecutedScripts();
+						return window.chrome._currentContextMenu[0]
+							.children[2]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
+					}, {
+						page: JSON.stringify({
+							menuItemId: contextMenu[0].id,
+							editable: false,
+							pageUrl: 'www.google.com'
+						}),
+						tab: JSON.stringify({
+							id: fakeTabId,
+							index: 1,
+							windowId: getRandomId(),
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						})
+					})).then(() => {
+						return driver
+							.executeScript(inlineFn(() => {
+								return JSON.stringify(window.chrome._executedScripts);
+							}))
+					}).then((str: string) => {
+						const activatedScripts = JSON.parse(str) as ExecutedScripts;
+						assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
+						assert.strictEqual(activatedScripts[0].id, fakeTabId,
+							'stylesheet was executed on the right tab');
+						done();
+					});
+			});
+		});
+		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', (done) => {
+			const fakeTabId = getRandomId();
+			driver
+				.executeScript(inlineFn(() => {
+					window.chrome._clearExecutedScripts();
+					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+						id: REPLACE.fakeTabId,
+						url: 'http://www.example.com'
+					};
+					window.chrome.runtime.sendMessage({
+						type: 'newTabCreated'
+					}, {
+						tab: {
+							id: REPLACE.fakeTabId
+						}
+					} as any, () => { });
+				}, {
+					fakeTabId: fakeTabId
+				})).then(() => {
+					return wait(50);
+				}).then(() => {
+					return driver.executeScript(inlineFn(() => {
+						return JSON.stringify(window.chrome._executedScripts)
+					}));
+				}).then((str: string) => {
+					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+
+					//First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
+					assert.lengthOf(activatedScripts, 3, 'three stylesheets activated');
+					assert.strictEqual(activatedScripts[2].id, fakeTabId, 
+						'new stylesheet was executed on right tab');
+					done();
+				});
+		});
+		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', function(done) {
+			this.slow(10000);
+			const fakeTabId = getRandomId();
+			driver
+				.executeScript(inlineFn(() => {
+					window.chrome._clearExecutedScripts();
+					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
+						id: REPLACE.fakeTabId,
+						url: 'http://www.example2.com'
+					};
+					window.chrome.runtime.sendMessage({
+						type: 'newTabCreated'
+					}, {
+						tab: {
+							id: REPLACE.fakeTabId
+						}
+					} as any, () => { });
+				}, {
+					fakeTabId: fakeTabId
+				})).then(() => {
+					return getContextMenu();
+				}).then((contextMenu) => {
+					assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
+
+					return driver
+						.executeScript(inlineFn(() => {
+							window.chrome._clearExecutedScripts();
+							return window.chrome._currentContextMenu[0]
+								.children[3]
+								.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
+						}, {
+							page: JSON.stringify({
+								menuItemId: contextMenu[0].id,
+								editable: false,
+								pageUrl: 'www.google.com'
+							}),
+							tab: JSON.stringify({
+								id: fakeTabId,
+								index: 1,
+								windowId: getRandomId(),
+								highlighted: false,
+								active: true,
+								pinned: false,
+								selected: false,
+								url: 'http://www.google.com',
+								title: 'Google',
+								incognito: false
+							})
+						}));
+				}).then(() => {
+					return driver
+						.executeScript(inlineFn(() => {
+							return JSON.stringify(window.chrome._executedScripts);
+						}))
+				}).then((str: string) => {
+					const activatedScripts = JSON.parse(str) as ExecutedScripts;
+					assert.lengthOf(activatedScripts, 1, 'one script was activated');
+					assert.strictEqual(activatedScripts[0].id, fakeTabId,
+						'script was executed on the right tab');
+					done();
+				});
+		});
+		it('should not show the disabled node', (done) => {
+			getContextMenu().then((contextMenu) => {
+				assert.notInclude(contextMenu.map((item) => {
+					return item.id;
+				}), CRMNodes[StylesheetOnPageTests.DISABLED].id,
+					'disabled node is not in the right-click menu');
+				done();
+			});
+		});
+		it('should run the correct code when clicked', function(done) {
+			this.slow(4000);
+			const fakeTabId = getRandomId();
+			getContextMenu().then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.chrome._clearExecutedScripts();
+						return window.chrome._currentContextMenu[0]
+							.children[2]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
+					}, {
+						page: JSON.stringify({
+							menuItemId: contextMenu[0].id,
+							editable: false,
+							pageUrl: 'www.google.com'
+						}),
+						tab: JSON.stringify({
+							id: fakeTabId,
+							index: 1,
+							windowId: getRandomId(),
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						})
+					})).then(() => {
+						return driver
+							.executeScript(inlineFn(() => {
+								return JSON.stringify(window.chrome._executedScripts);
+							}))
+					}).then((str: string) => {
+						const executedScripts = JSON.parse(str) as ExecutedScripts;
+						assert.lengthOf(executedScripts, 1, 'one script was activated');
+						assert.strictEqual(executedScripts[0].id, fakeTabId,
+							'script was executed on the right tab');
+						assert.include(executedScripts[0].code,
+							CRMNodes[StylesheetOnPageTests.RUN_ON_CLICKING].value.stylesheet,
+							'executed code is the same as set code');
+						done();
+					});
+			});
+		});
+		it('should actually be applied to the page', function(done) {
+			this.slow(6000);
+			driver
+				.executeScript(inlineFn((args) => {
+					const dummyEl = document.createElement('div');
+					dummyEl.id = 'stylesheetTestDummy';
+
+					window.dummyContainer.appendChild(dummyEl);
+				})).then(() => {
+					return wait(100);
+				}).then(() => {
+					return driver.findElement(webdriver.By.id('stylesheetTestDummy'));
+				}).then((dummy) => {
+					return dummy.getSize();
+				}).then((dimensions) => {
+					assert.strictEqual(dimensions.width, 50, 'dummy element is 50px wide');
+					assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
+					done();
+				});
+		});
+		describe('Toggling', function(this: MochaFn) {
+			let dummy1: webdriver.WebElement;
+			let dummy2: webdriver.WebElement;
+
+			before('Setting up dummy elements', function(done) {
+				driver
+					.executeScript(inlineFn(() => {
+						const dummy1 = document.createElement('div');
+						dummy1.id = 'stylesheetTestDummy1';
+						
+						const dummy2 = document.createElement('div');
+						dummy2.id = 'stylesheetTestDummy2';
+
+						window.dummyContainer.appendChild(dummy1);
+						window.dummyContainer.appendChild(dummy2); 
+					})).then(() => {
+						return wait(50);
+					}).then(() => {
+						return webdriver.promise.all([
+							driver.findElement(webdriver.By.id('stylesheetTestDummy1')),
+							driver.findElement(webdriver.By.id('stylesheetTestDummy2'))
+						]);
+					}).then((results) => {
+						wait(150).then(() => {
+							dummy1 = results[0];
+							dummy2 = results[1];
+							done();
+						});
+					});
+			});
+			describe('Default off', function(this: MochaFn) {
+				const tabId = getRandomId();
+				this.timeout(10000);
+				it('should be off by default', (done) => {
+					wait(150).then(() => {
+						dummy1.getSize().then((dimensions) => {
+							assert.strictEqual(dimensions.width, 0,
+								'dummy element is 0px wide');
+							done();
+						});
+					});
+				});
+				it('should be on when clicked', (done) => {
+					getContextMenu().then((contextMenu) => {
+						driver.executeScript(inlineFn(() => {
+							return window.chrome._currentContextMenu[0]
+								.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+								.currentProperties.onclick(
+									REPLACE.page, REPLACE.tab
+								);
+						}, {
+							page: JSON.stringify({
+								menuItemId: contextMenu[0].id,
+								editable: false,
+								pageUrl: 'www.google.com',
+								wasChecked: false
+							}),
+							tab: JSON.stringify({
+								id: tabId,
+								index: 1,
+								windowId: getRandomId(),
+								highlighted: false,
+								active: true,
+								pinned: false,
+								selected: false,
+								url: 'http://www.google.com',
+								title: 'Google',
+								incognito: false
+							})
+						}))
+					}).then(() => {
+						return wait(100);
+					}).then(() => {
+						return dummy1.getSize();
+					}).then((dimensions) => {
+						assert.strictEqual(dimensions.width, 50,
+							'dummy element is 50px wide');
+						done();
+					});
+				});
+				it('should be off when clicked again', (done) => {
+					getContextMenu().then((contextMenu) => {
+						driver.executeScript(inlineFn(() => {
+							return window.chrome._currentContextMenu[0]
+								.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
+								.currentProperties.onclick(
+									REPLACE.page, REPLACE.tab
+								);
+						}, {
+							page: JSON.stringify({
+								menuItemId: contextMenu[0].id,
+								editable: false,
+								pageUrl: 'www.google.com',
+								wasChecked: true
+							}),
+							tab: JSON.stringify({
+								id: tabId,
+								index: 1,
+								windowId: getRandomId(),
+								highlighted: false,
+								active: true,
+								pinned: false,
+								selected: false,
+								url: 'http://www.google.com',
+								title: 'Google',
+								incognito: false
+							})
+						}))
+					}).then(() => {
+						return wait(100);
+					}).then(() => {
+						return dummy1.getSize();
+					}).then((dimensions) => {
+						assert.strictEqual(dimensions.width, 0,
+							'dummy element is 0px wide');
+						done();
+					});
+				});
+			});
+			describe('Default on', function(this: MochaFn) {
+				this.timeout(10000);
+				it('should be on by default', (done) => {
+					dummy2.getSize().then((dimensions) => {
+						assert.strictEqual(dimensions.width, 50,
+							'dummy element is 50px wide');
+						done();
+					});
+				});
+			});
+		});
 	});
 });

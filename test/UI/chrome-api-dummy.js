@@ -53,7 +53,7 @@ var onMessageListener = null;
 var currentContextMenu = [];
 var usedIds = [];
 var activeTabs = [];
-var activatedScripts = [];
+var executedScripts = [];
 var fakeTabs = {};
 var activatedBackgroundPages = [];
 
@@ -71,12 +71,12 @@ window.chrome = {
 	_lastCall: null,
 	_currentContextMenu: currentContextMenu,
 	_activeTabs: activeTabs,
-	_activatedScripts: activatedScripts,
+	_executedScripts: executedScripts,
 	_fakeTabs: fakeTabs,
 	_activatedBackgroundPages: activatedBackgroundPages,
-	_clearActivatedScripts: function() {
-		while (activatedScripts[0]) {
-			activatedScripts.splice(0, 1);
+	_clearExecutedScripts: function() {
+		while (executedScripts[0]) {
+			executedScripts.splice(0, 1);
 		}
 	},
 	contextMenus: {
@@ -220,12 +220,13 @@ window.chrome = {
 		executeScript: function(tabId, scriptSettings, callback) {
 			//Only add code-scripts, not libraries
 			if (scriptSettings.code) {
-				activatedScripts.push({
+				executedScripts.push({
 					id: tabId,
 					code: scriptSettings.code
 				});
+				eval(scriptSettings.code);
 			}
-			callback([]);
+			callback && callback([]);
 		},
 		onHighlighted: {
 			addListener: function() {}
@@ -291,3 +292,24 @@ var Worker = window.Worker = function() {
 		addEventListener: function() {}
 	};
 };
+
+var dummyContainer = window.dummyContainer = document.createElement('div');
+dummyContainer.id = 'dummyContainer';
+dummyContainer.style.width = '100vw';
+dummyContainer.style.position = 'fixed';
+dummyContainer.style.top = 0;
+dummyContainer.style.zIndex = 999999999;
+dummyContainer.style.display = 'flex';
+dummyContainer.style.flexDirection = 'row';
+dummyContainer.style.justifyContent = 'space-between';
+document.body.appendChild(dummyContainer);
+
+function addStyleString(str) {
+	var node = document.createElement('style');
+	node.innerHTML = str;
+	document.head.appendChild(node);
+}
+
+addStyleString(`#dummyContainer > * {
+	background-color: blue;
+}`);

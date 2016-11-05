@@ -1,6 +1,6 @@
 //TSC-target=ES3
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
-/// <reference path="../../tools/definitions/crm.d.ts" />
+/// <reference path="../../tools/definitions/crm.ts" />
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
 window.logs = [];
 ;
@@ -166,13 +166,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             '// @match	*://*.example.com/*',
                             '// ==/UserScript=='
                         ].join('\n'),
-                        launchMode: CRMLaunchMode.ALWAYS_RUN
+                        launchMode: 1 /* ALWAYS_RUN */
                     };
                     return this.mergeObjects(value, options);
                 },
                 getDefaultScriptValue: function (options) {
                     var value = {
-                        launchMode: CRMLaunchMode.ALWAYS_RUN,
+                        launchMode: 1 /* ALWAYS_RUN */,
                         backgroundLibraries: [],
                         libraries: [],
                         script: [
@@ -1998,7 +1998,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         var matchPatterns = [];
                         globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
                         if (!node.value ||
-                            node.value.launchMode !== CRMLaunchMode.SHOW_ON_SPECIFIED) {
+                            node.value.launchMode !== 3 /* SHOW_ON_SPECIFIED */) {
                             for (var i = 0; i < triggers.length; i++) {
                                 if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
                                     _this.respondError('Triggers don\'t match URL scheme');
@@ -2934,7 +2934,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             return (hold ? data : data[path[length]]) || false;
         };
         CRMFunction.prototype.checkType = function (toCheck, type, name, optional, ifndef, isArray, ifdef) {
-            if (optional === void 0) { optional = TypecheckOptional.REQUIRED; }
+            if (optional === void 0) { optional = 0 /* REQUIRED */; }
             if (isArray === void 0) { isArray = false; }
             if (toCheck === undefined || toCheck === null) {
                 if (optional) {
@@ -2997,15 +2997,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             if (!this.checkType(position, 'object', 'position')) {
                 return false;
             }
-            if (!this.checkType(position.node, 'number', 'node', TypecheckOptional
-                .OPTIONAL, null, false, function () {
+            if (!this.checkType(position.node, 'number', 'node', 1 /* OPTIONAL */, null, false, function () {
                 if (!(relativeNode = crmFunction.getNodeFromId(position.node, false, true))) {
                     return false;
                 }
             })) {
                 return false;
             }
-            if (!this.checkType(position.relation, 'string', 'relation', TypecheckOptional.OPTIONAL)) {
+            if (!this.checkType(position.relation, 'string', 'relation', 1 /* OPTIONAL */)) {
                 return false;
             }
             relativeNode = relativeNode || globalObject.globals.crm.crmTree;
@@ -4269,7 +4268,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_stylesheet')) {
                                 node.type = 'stylesheet';
                                 launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') ||
-                                    CRMLaunchMode.RUN_ON_SPECIFIED;
+                                    2 /* RUN_ON_SPECIFIED */;
                                 launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
                                 node.value = {
                                     stylesheet: code,
@@ -5314,8 +5313,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     'document.head.appendChild(CRMSSInsert);'
                                 ].join('');
                             }
-                            globalObject.globals.crmValues.stylesheetNodeStatusses[node.id][tab
-                                .id] = info.checked;
+                            globalObject.globals.crmValues
+                                .stylesheetNodeStatusses[node.id][tab.id] = info.checked;
                             chrome.tabs.executeScript(tab.id, {
                                 code: code,
                                 allFrames: true
@@ -5491,19 +5490,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         'stylesheet' &&
                         node.value.toggle &&
                         node.value.defaultOn) {
-                        if (launchMode === CRMLaunchMode.ALWAYS_RUN ||
-                            launchMode === CRMLaunchMode.RUN_ON_CLICKING) {
+                        if (launchMode === 1 /* ALWAYS_RUN */ ||
+                            launchMode === 0 /* RUN_ON_CLICKING */) {
                             globalObject.globals.toExecuteNodes.always.push(node);
                         }
-                        else if (launchMode === CRMLaunchMode.RUN_ON_SPECIFIED ||
-                            launchMode === CRMLaunchMode.SHOW_ON_SPECIFIED) {
+                        else if (launchMode === 2 /* RUN_ON_SPECIFIED */ ||
+                            launchMode === 3 /* SHOW_ON_SPECIFIED */) {
                             globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
                         }
                     }
                     if ((node['showOnSpecified'] &&
                         (node.type === 'link' || node.type === 'divider' ||
                             node.type === 'menu')) ||
-                        launchMode === CRMLaunchMode.SHOW_ON_SPECIFIED) {
+                        launchMode === 3 /* SHOW_ON_SPECIFIED */) {
                         rightClickItemOptions.documentUrlPatterns = [];
                         globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
                         for (var i = 0; i < node.triggers.length; i++) {
@@ -5579,14 +5578,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
                 function setLaunchModeData(node, rightClickItemOptions, idHolder) {
                     var launchMode = (node.value && node.value.launchMode) ||
-                        CRMLaunchMode.RUN_ON_CLICKING;
-                    if (launchMode === CRMLaunchMode.ALWAYS_RUN) {
+                        0 /* RUN_ON_CLICKING */;
+                    if (launchMode === 1 /* ALWAYS_RUN */) {
                         globalObject.globals.toExecuteNodes.always.push(node);
                     }
-                    else if (launchMode === CRMLaunchMode.RUN_ON_SPECIFIED) {
+                    else if (launchMode === 2 /* RUN_ON_SPECIFIED */) {
                         globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
                     }
-                    else if (launchMode !== CRMLaunchMode.DISABLED) {
+                    else if (launchMode !== 4 /* DISABLED */) {
                         addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
                     }
                 }

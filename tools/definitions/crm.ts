@@ -1,5 +1,13 @@
 type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
 
+const enum CRMLaunchMode {
+	RUN_ON_CLICKING = 0,
+	ALWAYS_RUN = 1,
+	RUN_ON_SPECIFIED = 2,
+	SHOW_ON_SPECIFIED = 3,
+	DISABLED = 4
+}
+
 interface CRMNodeInfo {
 	installDate?: string;
 	isRoot?: boolean;
@@ -12,19 +20,6 @@ interface CRMNodeInfo {
 	};
 	version?: string;
 	lastUpdatedAt?: string;
-}
-
-declare enum CRMLaunchMode {
-	RUN_ON_CLICKING = 0,
-	ALWAYS_RUN = 1,
-	RUN_ON_SPECIFIED = 2,
-	SHOW_ON_SPECIFIED = 3,
-	DISABLED = 4
-}
-
-declare enum TypecheckOptional {
-	OPTIONAL = 1,
-	REQUIRED = 0
 }
 
 /**
