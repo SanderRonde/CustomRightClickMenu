@@ -2,10 +2,11 @@
 
 //#region Drawer Animation
 var drawer = document.getElementById('sideDrawer');
-document.getElementById('menuToggler').addEventListener('click', function () {
+document.getElementById('menuToggler').addEventListener('click', function (e) {
 	setTimeout(function () {
 		drawer.classList.toggle('toggled');
 	}, 0);
+	e.stopPropagation();
 });
 
 document.getElementById('content').addEventListener('click', function () {
@@ -58,11 +59,18 @@ for (i = 0; i < sections.length; i++) {
 //#endregion
 
 //#region ScrollOffset
-window.addEventListener('hashchange', function() {
-	if (location.hash.length !== 0) {
-		window.scrollTo(window.scrollX, window.scrollY - 100);
+Array.prototype.slice.apply(document.querySelectorAll('a')).forEach(function(anchor) {
+	var hash = anchor.getAttribute('href');
+	if (hash && hash.indexOf('#') === 0) {
+		anchor.addEventListener('click', function(event) {
+			event.preventDefault();
+			window.scrollTo(window.scrollX, document
+				.querySelector('a[name="' + hash.slice(1)  + '"]')
+				.getBoundingClientRect()
+				.top + document.body.scrollTop - 100);
+		});
 	}
-});
+})
 
 window.setTimeout(function() {
 	if (location.hash.length !== 0) {

@@ -22,7 +22,7 @@ var generators = {
  */
 function sanitizeName(name) {
 	return name.replace(/ /g, '_').toLowerCase();
-};
+}
 
 /**
  * Gets the short description (like this line) from given comment lines
@@ -173,7 +173,7 @@ function convertCommentBlockToProperties(unparsedComment, descr) {
 				}
 			} else if (line.indexOf('@augments') === 0) {
 				isTypedef = true;
-				defs.proto = line.split('@augments')[1].trim().split('~')[1];
+				defs.proto = line.split('@augments')[1].trim();
 			} else if (line.indexOf('@typedef') === 0 || (isCb = line.indexOf('@callback') === 0)) {
 				isTypedef = true;
 				if (isCb) {
@@ -281,23 +281,21 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 						}
 						type = defs.params[i].type;
 						type = type.replace(/([\w|\?]+)\[\]/g, '[$1]');
-						type = type.split('~');
-						if (type[1]) {
-							type = type[1];
-						} else {
-							type = type[0];
-						}
 						if (paramName.indexOf('.') === -1) {
 							paramString.push(paramName + (isOptional ? '?' : '') + ': ' + type);
 						}
 
 						if (!isTernExtraction) {
-							detailedDefs.params.push({
+							var data = {
 								type: type,
 								name: paramName,
 								isOptional: isOptional,
 								descr: defs.params[i].paramDescr
-							});
+							};
+							if (defines[type]) {
+								data.linkTo = defines[type];
+							}
+							detailedDefs.params.push(data);
 						}
 					}
 				}
@@ -357,6 +355,7 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 				if (isTernExtraction) {
 					defines[defs.name] = val;
 				} else {
+					defines[defs.name] = '#' + sanitizeName(defs.name);
 					detailedDefs.type = 'define';
 					detailedDefs.descr = descr;
 					detailedDefs.name = defs.name;
@@ -366,13 +365,15 @@ function parseCommentBlock(detailedDefs, defines, cont, lines, start, end, locat
 			case 'prop':
 				type = defs.type;
 				if (type && type.indexOf('[]') > 0) {
-					type = '[' + type.slice(0, type.length - 2) + ']';
-				}
-				defs.type = defs.type.split('~');
-				if (defs.type[1]) {
-					defs.type = defs.type[1];
-				} else {
-					defs.type = defs.type[0];
+					var arrayContents = type.slice(0, type.length - 2);
+					if (defines[arrayContents]) {
+						detailedDefs.linkTo = defines[arrayContents];
+					}
+					type = '[' + arrayContents + ']';
+				} else if (type) {
+					if (defines[type]) {
+						detailedDefs.linkTo = defines[type];
+					}
 				}
 
 				if (isTernExtraction) {

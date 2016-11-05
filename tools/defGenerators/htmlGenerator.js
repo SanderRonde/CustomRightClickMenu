@@ -47,6 +47,16 @@
 
 var hashPrefix = '#';
 
+/**
+ * Sanitizes the name to fit the URL bar for linking to the docs webpage
+ *
+ * @param {string} name - The name to sanitize
+ * @returns {string} The sanitized name
+ */
+function sanitizeName(name) {
+	return name.replace(/ /g, '_').toLowerCase();
+}
+
 function categoriseHTML(detailedDefs) {
 	var defines = [];
 	var props = [];
@@ -227,15 +237,19 @@ function generateDoc(data) {
 											element('tbody', 'docDataPropTBody',
 											(data.props ? data.props.map(function (prop) {
 												return element('tr', 'docDataPropCont', [
-													element('td', 'docDataPropType', convertTypeBack(prop.type)),
-													element('td', 'docDataPropName', prop.name + (prop.isOptional ? ' (optional)' : '')),
+													element('td', 'docDataPropType', prop.linkTo ?
+														element('a', { href: prop.linkTo }, 'docDataParamTypeUrl',
+															convertTypeBack(prop.type)) :
+														convertTypeBack(prop.type)),
+													element('td', 'docDataPropName', 
+														prop.name + (prop.isOptional ? ' (optional)' : '')),
 													element('td', 'docDataPropDescr', prop.descr)
 												]);
 											}) : []))),
 										data.proto ? [br(),
 											element('div', 'docPropProtoTxt', 'Inherits from:'),
 											element('div', 'docPropProtoCont',
-												element('a', { href: hashPrefix + data.proto }, 'docPropProto', data.proto))
+												element('a', { href: hashPrefix + sanitizeName(data.proto) }, 'docPropProto', data.proto))
 										] : ''
 							]
 									: [
@@ -262,8 +276,12 @@ function generateDoc(data) {
 												element('tbody', 'docDataPropTBody',
 												(data.params ? data.params.map(function (param) {
 													return element('tr', 'docDataParaCont', [
-														element('td', 'docDataParamType', convertTypeBack(param.type)),
-														element('td', 'docDataParamName', param.name + (param.isOptional ? ' (optional)' : '')),
+														element('td', 'docDataParamType', param.linkTo ?
+														 	element('a', { href: param.linkTo }, 'docDataParamTypeUrl',
+															 	convertTypeBack(param.type)) :
+															convertTypeBack(param.type)),
+														element('td', 'docDataParamName', 
+															param.name + (param.isOptional ? ' (optional)' : '')),
 														element('td', 'docDataParamDescr', param.descr)
 													]);
 												}) : [])))

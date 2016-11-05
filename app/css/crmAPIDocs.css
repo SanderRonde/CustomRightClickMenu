@@ -17,6 +17,8 @@ paper-toolbar {
 
 #drawer {
 	width: 250px;
+	-webkit-transform: translateX(-250px);
+	-ms-transform: translateX(-250px);
 	transform: translateX(-250px);
 	transition: transform ease-in-out 0.3s;
 	z-index:10;
@@ -26,6 +28,8 @@ paper-toolbar {
 }
 
 	#sideDrawer.toggled #drawer {
+		-webkit-transform: translateX(0);
+		-ms-transform: translateX(0);
 		transform: translateX(0);
 	}
 
@@ -84,6 +88,7 @@ paper-toolbar .title {
 }
 
 .sectionTitle, .secondaryTitle {
+	text-transform: capitalize;
 	font-size: 300%;
 }
 
