@@ -8,6 +8,7 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_f2a12e06bc88_key -iv $encrypted_f2a12e06bc88_iv
   -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
 - npm install grunt -g
+- npm install typescript@2.0.6 -g
 install:
 - npm install
 script: sh ./build.sh
@@ -17,6 +18,6 @@ notifications:
     on_failure: change
 addons:
   browserstack:
-    username: "Your BrowserStack username"
+    username: "sanderronde1"
     access_key:
       secure: uKeeDZKoavvWTT7CcuHfodSItQKf7ot/TLtkhP9HWXhN2ad45ELjZ4p4b+U766vsML7TH/vUypFj9egguOlTG1OXx2jMBrT2vqz+nMWNEVFj8zZ6Lfj6bPaJD4eqAqrKby9HWX8ZweDG9+WgDlABKZ4kw08yVK98KrVHhgpgTLYVj066LOlzTG5XcvNj3nu/+Ld3LetNuKBw4/s6y+n+dBsYm0v7PWERQOWDb4vpD4Gg/J+lZXjJCbZg6OQV2F2Fzg8pH+17d8r3do4/TavI/VgdM0vdbvFHTISlaoh7qv2BKinhTvQTUXhjzxZApnUwtXY+XzM3LPuD0Y8/tWqUxVKu2CEbTDXHk8rbkxdeSmGjhdWsnkNyRg8U30MYUtS+WS+jz8n9IKxe5QOXy6cY0l0YlWobzT+xHBlpKPktur8r3Q9h0lVEr6BYaWe0r2Zz34hqQwkQj8bivheOSBoRXTqRlz3HYJAuetstNj1U96Xov0+ydJQK3CPqLliI1bCboQ05a7vBEOQ5M65BHNQ/ZUUDxZKRmj9dAIsEgqYAguX+dB3vebVeZGAvqtxFsEX0Z0YUbkHGDMHf1948hucot4ACuXQIXgPzgYI6347M3JxGyjrkFFbi9M7Qo7/ffp8vA3cHRtuqWecJj7tkD6Cb/I7cgyMAQDx1rUZmfZr0W9I=
