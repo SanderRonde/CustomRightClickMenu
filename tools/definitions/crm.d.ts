@@ -1,6 +1,6 @@
 type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
 
-declare enum CRMLaunchModes {
+declare const enum CRMLaunchModes {
 	RUN_ON_CLICKING = 0,
 	ALWAYS_RUN = 1,
 	RUN_ON_SPECIFIED = 2,
