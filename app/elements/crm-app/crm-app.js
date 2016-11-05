@@ -208,6 +208,16 @@
 		},
 
 		compareObj: function(firstObj, secondObj) {
+			if (!secondObj) {
+				if (!firstObj) {
+					return true;
+				}
+				return false;
+			}
+			if (!firstObj) {
+				return false;
+			}
+
 			for (var key in firstObj) {
 				if (firstObj.hasOwnProperty(key)) {
 					if (typeof firstObj[key] === 'object') {
