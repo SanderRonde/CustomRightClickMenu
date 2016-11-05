@@ -23,8 +23,6 @@ do
   #Compile
   echo "Compiling $FILE to target $COMPILE_TARGET"
   tsc --target $COMPILE_TARGET $FILE
-
-  cat $FILE;
 done
 
 CHANGED_FILES=$(git status | grep 'modified:')
@@ -35,6 +33,8 @@ if [ CHANGED_AMOUNT > 0 ] || [ "$TRAVIS_BRANCH" = "master" ]; then
   git config --global push.default simple
 
   echo "Non-compiled typescript files: $CHANGED_FILES";
+
+  cat "./app/js/specialJSON.js"
 
   set +e
   git diff-index --quiet HEAD
