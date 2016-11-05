@@ -1,7 +1,7 @@
 //TSC-target=ES3
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
-/// <reference path="../../tools/definitions/crm.ts" />
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
+/// <reference path="../../tools/definitions/crm.d.ts" />
 
 window.logs = [];
 
@@ -572,14 +572,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							'// @match	*://*.example.com/*',
 							'// ==/UserScript=='
 						].join('\n'),
-						launchMode: CRMLaunchMode.ALWAYS_RUN
+						launchMode: CRMLaunchModes.ALWAYS_RUN
 					} as StylesheetVal;
 
 					return this.mergeObjects(value, options);
 				},
 				getDefaultScriptValue(options: any): ScriptVal {
 					const value = {
-						launchMode: CRMLaunchMode.ALWAYS_RUN,
+						launchMode: CRMLaunchModes.ALWAYS_RUN,
 						backgroundLibraries: [],
 						libraries: [],
 						script: [
@@ -2607,7 +2607,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						var matchPatterns = [];
 						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 						if (!node.value ||
-							node.value.launchMode !== CRMLaunchMode.SHOW_ON_SPECIFIED) {
+							node.value.launchMode !== CRMLaunchModes.SHOW_ON_SPECIFIED) {
 							for (var i = 0; i < triggers.length; i++) {
 								if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
 									_this.respondError('Triggers don\'t match URL scheme');
@@ -5094,13 +5094,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						function createUserscriptTypeData(metaTags: {
 							[key: string]: any;
 						}, code: string, node: PartialCRMNode) {
-							let launchMode: CRMLaunchMode|string;
+							let launchMode: CRMLaunchModes|string;
 							if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 								'CRM_stylesheet')) {
 								node.type = 'stylesheet';
 								launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 										'CRM_launchMode') ||
-									CRMLaunchMode.RUN_ON_SPECIFIED;
+									CRMLaunchModes.RUN_ON_SPECIFIED;
 								launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
 								node.value = {
 									stylesheet: code,
@@ -6487,7 +6487,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return replaceOnTabs;
 				}
 
-				function addRightClickItemClick(node: CRMNode, launchMode: CRMLaunchMode,
+				function addRightClickItemClick(node: CRMNode, launchMode: CRMLaunchModes,
 					rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
 						id: number;
 					}) {
@@ -6497,11 +6497,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						'stylesheet' &&
 						node.value.toggle &&
 						node.value.defaultOn) {
-						if (launchMode === CRMLaunchMode.ALWAYS_RUN ||
-							launchMode === CRMLaunchMode.RUN_ON_CLICKING) {
+						if (launchMode === CRMLaunchModes.ALWAYS_RUN ||
+							launchMode === CRMLaunchModes.RUN_ON_CLICKING) {
 							globalObject.globals.toExecuteNodes.always.push(node);
-						} else if (launchMode === CRMLaunchMode.RUN_ON_SPECIFIED ||
-							launchMode === CRMLaunchMode.SHOW_ON_SPECIFIED) {
+						} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
+							launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
 							globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
 						}
 					}
@@ -6510,7 +6510,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if ((node['showOnSpecified'] &&
 						(node.type === 'link' || node.type === 'divider' ||
 						node.type === 'menu')) ||
-						launchMode === CRMLaunchMode.SHOW_ON_SPECIFIED) {
+						launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
 							rightClickItemOptions.documentUrlPatterns = [];
 							globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 							for (var i = 0; i < node.triggers.length; i++) {
@@ -6592,12 +6592,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						id: number;
 					}) {
 					const launchMode = (node.value && node.value.launchMode) ||
-						CRMLaunchMode.RUN_ON_CLICKING;
-					if (launchMode === CRMLaunchMode.ALWAYS_RUN) {
+						CRMLaunchModes.RUN_ON_CLICKING;
+					if (launchMode === CRMLaunchModes.ALWAYS_RUN) {
 						globalObject.globals.toExecuteNodes.always.push(node);
-					} else if (launchMode === CRMLaunchMode.RUN_ON_SPECIFIED) {
+					} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
 						globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
-					} else if (launchMode !== CRMLaunchMode.DISABLED) {
+					} else if (launchMode !== CRMLaunchModes.DISABLED) {
 						addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
 					}
 				}

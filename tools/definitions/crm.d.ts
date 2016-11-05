@@ -1,11 +1,16 @@
 type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
 
-const enum CRMLaunchMode {
+declare enum CRMLaunchModes {
 	RUN_ON_CLICKING = 0,
 	ALWAYS_RUN = 1,
 	RUN_ON_SPECIFIED = 2,
 	SHOW_ON_SPECIFIED = 3,
 	DISABLED = 4
+}
+
+declare enum test {
+	a = 1,
+	b = 2
 }
 
 interface CRMNodeInfo {
@@ -75,7 +80,7 @@ interface CRMBaseNode extends SafeCRMBaseNode {
 }
 
 interface ScriptVal {
-	launchMode: CRMLaunchMode;
+	launchMode: CRMLaunchModes;
 	script: string;
 	backgroundScript: string;
 	metaTags: MetaTags;
@@ -84,7 +89,7 @@ interface ScriptVal {
 }
 
 interface StylesheetVal {
-	launchMode: CRMLaunchMode;
+	launchMode: CRMLaunchModes;
 	stylesheet: string;
 	toggle: boolean;
 	defaultOn: boolean;

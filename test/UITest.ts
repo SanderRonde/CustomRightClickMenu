@@ -2,7 +2,7 @@
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/chai.d.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
-/// <reference path="../tools/definitions/crm.ts" />
+/// <reference path="../tools/definitions/crm.d.ts" />
 
 interface AnyObj {
 	[key: string]: any;
@@ -265,14 +265,14 @@ const templates = {
 				'// @match	*://*.example.com/*',
 				'// ==/UserScript=='
 			].join('\n'),
-			launchMode: CRMLaunchMode.ALWAYS_RUN
+			launchMode: CRMLaunchModes.ALWAYS_RUN
 		} as StylesheetVal;
 
 		return this.mergeObjects(value, options);
 	},
 	getDefaultScriptValue(options: any): ScriptVal {
 		const value = {
-			launchMode: CRMLaunchMode.ALWAYS_RUN,
+			launchMode: CRMLaunchModes.ALWAYS_RUN,
 			backgroundLibraries: [],
 			libraries: [],
 			script: [
@@ -2965,7 +2965,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
-					launchMode: CRMLaunchMode.ALWAYS_RUN,
+					launchMode: CRMLaunchModes.ALWAYS_RUN,
 					script: 'console.log("executed script");'
 				}
 			}), 
@@ -2973,7 +2973,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
-					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 					script: 'console.log("executed script");'
 				}
 			}),
@@ -2987,7 +2987,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					}
 				],
 				value: {
-					launchMode: CRMLaunchMode.RUN_ON_SPECIFIED,
+					launchMode: CRMLaunchModes.RUN_ON_SPECIFIED,
 					script: 'console.log("executed script");'
 				}
 			}),
@@ -3001,7 +3001,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					}
 				],
 				value: {
-					launchMode: CRMLaunchMode.SHOW_ON_SPECIFIED,
+					launchMode: CRMLaunchModes.SHOW_ON_SPECIFIED,
 					script: 'console.log("executed script");'
 				}
 			}),
@@ -3015,7 +3015,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					}
 				],
 				value: {
-					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 					backgroundScript: 'console.log("executed backgroundscript")'
 				}
 			}),
@@ -3023,7 +3023,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
-					launchMode: CRMLaunchMode.DISABLED,
+					launchMode: CRMLaunchModes.DISABLED,
 					script: 'console.log("executed script");'
 				}
 			})
@@ -3345,7 +3345,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				value: {
 					toggle: true,
 					defaultOn: false,
-					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 					stylesheet: '#stylesheetTestDummy1 { width: 50px; height :50px; } /*1*/'
 				}
 			}),
@@ -3355,7 +3355,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				value: {
 					toggle: true,
 					defaultOn: true,
-					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 					stylesheet: '#stylesheetTestDummy2 { width: 50px; height :50px; }/*2*/'
 				}
 			}),
@@ -3363,7 +3363,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
-					launchMode: CRMLaunchMode.ALWAYS_RUN,
+					launchMode: CRMLaunchModes.ALWAYS_RUN,
 					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*3*/'
 				}
 			}), 
@@ -3371,7 +3371,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
-					launchMode: CRMLaunchMode.RUN_ON_CLICKING,
+					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*4*/'
 				}
 			}),
@@ -3385,7 +3385,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					}
 				],
 				value: {
-					launchMode: CRMLaunchMode.RUN_ON_SPECIFIED,
+					launchMode: CRMLaunchModes.RUN_ON_SPECIFIED,
 					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*5*/'
 				}
 			}),
@@ -3399,7 +3399,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					}
 				],
 				value: {
-					launchMode: CRMLaunchMode.SHOW_ON_SPECIFIED,
+					launchMode: CRMLaunchModes.SHOW_ON_SPECIFIED,
 					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*6*/'
 				}
 			}),
@@ -3407,7 +3407,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				name: getRandomString(25),
 				id: getRandomId(),
 				value: {
-					launchMode: CRMLaunchMode.DISABLED,
+					launchMode: CRMLaunchModes.DISABLED,
 					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*7*/'
 				}
 			})

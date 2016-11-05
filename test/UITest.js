@@ -2,7 +2,7 @@
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/chai.d.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
-/// <reference path="../tools/definitions/crm.ts" />
+/// <reference path="../tools/definitions/crm.d.ts" />
 "use strict";
 var chai = require('chai');
 var webdriver = require('selenium-webdriver');
@@ -130,13 +130,13 @@ var templates = {
                 '// @match	*://*.example.com/*',
                 '// ==/UserScript=='
             ].join('\n'),
-            launchMode: 1 /* ALWAYS_RUN */
+            launchMode: CRMLaunchModes.ALWAYS_RUN
         };
         return this.mergeObjects(value, options);
     },
     getDefaultScriptValue: function (options) {
         var value = {
-            launchMode: 1 /* ALWAYS_RUN */,
+            launchMode: CRMLaunchModes.ALWAYS_RUN,
             backgroundLibraries: [],
             libraries: [],
             script: [
@@ -2583,7 +2583,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 1 /* ALWAYS_RUN */,
+                    launchMode: CRMLaunchModes.ALWAYS_RUN,
                     script: 'console.log("executed script");'
                 }
             }),
@@ -2591,7 +2591,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: CRMLaunchModes.RUN_ON_CLICKING,
                     script: 'console.log("executed script");'
                 }
             }),
@@ -2605,7 +2605,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 2 /* RUN_ON_SPECIFIED */,
+                    launchMode: CRMLaunchModes.RUN_ON_SPECIFIED,
                     script: 'console.log("executed script");'
                 }
             }),
@@ -2619,7 +2619,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 3 /* SHOW_ON_SPECIFIED */,
+                    launchMode: CRMLaunchModes.SHOW_ON_SPECIFIED,
                     script: 'console.log("executed script");'
                 }
             }),
@@ -2633,7 +2633,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: CRMLaunchModes.RUN_ON_CLICKING,
                     backgroundScript: 'console.log("executed backgroundscript")'
                 }
             }),
@@ -2641,7 +2641,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 4 /* DISABLED */,
+                    launchMode: CRMLaunchModes.DISABLED,
                     script: 'console.log("executed script");'
                 }
             })
@@ -2930,7 +2930,7 @@ describe('On-Page CRM', function () {
                 value: {
                     toggle: true,
                     defaultOn: false,
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: CRMLaunchModes.RUN_ON_CLICKING,
                     stylesheet: '#stylesheetTestDummy1 { width: 50px; height :50px; } /*1*/'
                 }
             }),
@@ -2940,7 +2940,7 @@ describe('On-Page CRM', function () {
                 value: {
                     toggle: true,
                     defaultOn: true,
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: CRMLaunchModes.RUN_ON_CLICKING,
                     stylesheet: '#stylesheetTestDummy2 { width: 50px; height :50px; }/*2*/'
                 }
             }),
@@ -2948,7 +2948,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 1 /* ALWAYS_RUN */,
+                    launchMode: CRMLaunchModes.ALWAYS_RUN,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*3*/'
                 }
             }),
@@ -2956,7 +2956,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: CRMLaunchModes.RUN_ON_CLICKING,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*4*/'
                 }
             }),
@@ -2970,7 +2970,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 2 /* RUN_ON_SPECIFIED */,
+                    launchMode: CRMLaunchModes.RUN_ON_SPECIFIED,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*5*/'
                 }
             }),
@@ -2984,7 +2984,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 3 /* SHOW_ON_SPECIFIED */,
+                    launchMode: CRMLaunchModes.SHOW_ON_SPECIFIED,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*6*/'
                 }
             }),
@@ -2992,7 +2992,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 4 /* DISABLED */,
+                    launchMode: CRMLaunchModes.DISABLED,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*7*/'
                 }
             })
