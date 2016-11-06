@@ -146,7 +146,7 @@ var run = (fn) => {
 		try {
 			fn();
 		} catch (e) {
-			console.log('Error', e);
+			//console.log('Error', e);
 			throw e;
 		}
 	};
@@ -1371,6 +1371,11 @@ describe('CRMAPI', () => {
 			}), 'CrmAPIInit class can be initialized');
 			assert.isDefined(window.crmAPI);
 			crmAPI = window.crmAPI;
+		});
+		step('stackTraces can be turned off', () => {
+			assert.doesNotThrow(() => {
+				crmAPI.stackTraces = false;
+			}, 'setting stacktraces to false does not throw');
 		});
 		step('should correctly return its arguments on certain calls', () => {
 			assert.deepEqual(crmAPI.getNode(), node, 'crmAPI.getNode works');
