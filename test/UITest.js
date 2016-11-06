@@ -600,8 +600,8 @@ describe('Page', function () {
         });
     });
     describe('SearchEngines', function () {
-        this.timeout(5000);
-        this.slow(5000);
+        this.timeout(10000);
+        this.slow(10000);
         var searchEngineLink = '';
         var searchEngineName = '';
         before('Reset settings', function () {

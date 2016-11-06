@@ -818,8 +818,8 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 	describe('SearchEngines', function(this: MochaFn) {
-		this.timeout(5000);
-		this.slow(5000);
+		this.timeout(10000);
+		this.slow(10000);
 		let searchEngineLink = '';
 		let searchEngineName = '';
 
