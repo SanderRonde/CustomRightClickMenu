@@ -14,6 +14,7 @@
     "babel-preset-react": "^6.11.1",
     "btoa": "^1.1.2",
     "chai": "^3.5.0",
+    "diff": "^3.0.1",
     "grunt": "^0.4.5",
     "grunt-banner": "^0.4.0",
     "grunt-contrib-clean": "^1.0.0",
@@ -32,6 +33,8 @@
     "mocha-steps": "^1.0.0",
     "request": "^2.72.0",
     "selenium-webdriver": "^3.0.0-beta-3",
+    "supports-color": "^3.1.2",
+    "tty": "^1.0.1",
     "typescript": "^2.0.6"
   },
   "license": "MIT",
