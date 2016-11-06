@@ -138,7 +138,6 @@ interface MochaFn {
 
 import * as chai from 'chai';
 import * as webdriver from 'selenium-webdriver';
-const parallel = require('mocha.parallel');
 const mochaSteps = require('mocha-steps');
 const secrets = require('./UI/secrets');
 const btoa = require('btoa');

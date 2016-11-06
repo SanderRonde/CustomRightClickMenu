@@ -6,7 +6,6 @@
 "use strict";
 var chai = require('chai');
 var webdriver = require('selenium-webdriver');
-var parallel = require('mocha.parallel');
 var mochaSteps = require('mocha-steps');
 var secrets = require('./UI/secrets');
 var btoa = require('btoa');
