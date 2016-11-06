@@ -2546,6 +2546,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			}, 'setting up the CRM does not throw');
 		})
 		it('should be using the first CRM', function(this: MochaFn, done) {
+			this.timeout(10000);
 			getContextMenu(driver).then((contextMenu) => {
 				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1.concat([{
 					name: undefined
