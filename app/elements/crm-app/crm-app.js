@@ -2465,6 +2465,8 @@
 			var scaleAfter = 'scaleX(' + progress + ')';
 			if (settings.max === settings.lastReachedProgress ||
 				settings.toReach > 1) {
+					settings.progressBar.style.transform = 'scaleX(1)';
+					settings.progressBar.style.WebkitTransform = 'scaleX(1)';
 					return;
 				}
 			if (settings.progressBar.animate.isJqueryFill) {
@@ -2488,6 +2490,8 @@
 					}).onfinish = function() {
 						settings.lastReachedProgress = progress;
 						settings.isAnimating = false;
+						settings.progressBar.style.transform = progress;
+						settings.progressBar.style.WebkitTransform = progress;
 						_this.animateLoadingBar(settings, settings.toReach);
 					};
 				}
