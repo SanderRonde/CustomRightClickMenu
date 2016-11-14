@@ -1988,6 +1988,9 @@ describe('CRMAPI', () => {
 				this.send = function() {
 					//Simple get
 					request(_this.url, (err, res, body) => {
+						if (err) {
+							throw err;
+						}
 						_this.status = res.statusCode;
 						_this.readyState = (!err ? 4 : 'not4');
 						_this.responseText = body;

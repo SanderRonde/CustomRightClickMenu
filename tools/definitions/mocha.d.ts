@@ -68,7 +68,7 @@ declare class Mocha {
     constructor(options?: {
         grep?: RegExp;
         ui?: string;
-        reporter?: string;
+        reporter?: string|Function;
         timeout?: number;
         bail?: boolean;
     });

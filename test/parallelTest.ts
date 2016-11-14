@@ -3,16 +3,33 @@
 
 import Mocha = require('mocha');
 import fs = require('fs');
+import readline = require('readline');
 
 interface ReporterBase {
 	color: (type: string, str: string) => string; 
+	cursor: {
+		hide(),
+		show(),
+		deleteLine(),
+		beginningOfLine(),
+		CR()
+	}
 }
 
+let quit: boolean = false;
 const Base: ReporterBase = require('./resources/reporterBase.js');
 const inherits = require('util').inherits;
+const cursor = Base.cursor;
 const color = Base.color;
 
 let failedTests: boolean = false;
+
+//Reading the same file twice with mocha does not work,
+//	it will try to re-read the exports which of course
+//	is nothing as you define tests with describe(), it() etc.
+//So store the tests of the first read one in a variable and
+//	assign it to the second one
+let firstReadTests = null;
 
 const enum Side {
 	LEFT = 0,
@@ -20,18 +37,28 @@ const enum Side {
 }
 
 function initRunner(side: Side): Mocha.IRunner {
-	const mocha = new Mocha();
+	const mocha = new Mocha({
+		reporter: function () {}
+	});
 	mocha.addFile('test/test.js');
-	return mocha.run((failures) => {
+	const runner = mocha.run((failures) => {
 		if (failures > 0) {
 			failedTests = true;
 		}
 	});
+	if (firstReadTests === null) {
+		firstReadTests = Object.assign({}, runner.suites);
+	} else {
+		runner.suites = firstReadTests;
+	}
+	return runner;
 }
 
 function getRunnerPromise(runner: Mocha.IRunner): Promise<any> {
 	return new Promise((resolve) => {
+		console.log('adding listener');
 		runner.on('end', () => {
+			console.log('ended');
 			resolve();
 		});
 	});
@@ -51,6 +78,7 @@ interface ChangeBaseData {
 	title: string;
 	speed: TestSpeed;
 	status: TestStatus;
+	duration: number;
 }
 
 interface PassedData extends ChangeBaseData {
@@ -102,7 +130,8 @@ class Reporter {
 				fullTitle: test.fullTitle(),
 				title: test.title,
 				speed: test.speed,
-				status: 'pass'
+				status: 'pass',
+				duration: test.duration
 			}, this.side);
 			this.current++;
 		});
@@ -115,7 +144,8 @@ class Reporter {
 				errData: {
 					message: test.message,
 					stack: test.stack
-				}
+				},
+				duration: test.duration
 			}, this.side);
 			this.current++;
 		});
@@ -167,18 +197,19 @@ type Tests = TestSuite|SingleTest;
 class ReporterContainer {
 	data: {
 		[side: number]: ReporterData
-	};
+	} = {};
 	tests: Array<Tests> = [];
 	currentSuites: Array<string> = []; 
 
 	constructor(reporter1: Reporter, reporter2: Reporter) {
 		Promise.all([reporter1.done, reporter2.done]).then(() => {
 			this.outputFinalReport();
+			quit = true;
 		});
 		const reporters: [Reporter, Reporter] = [reporter1, reporter2];
 		reporters.forEach((reporter) => {
-			reporter.onchange = this.dataChange;
-			reporter.onSuiteStatusChange = this.suiteChange;
+			reporter.onchange = this.dataChange.bind(this);
+			reporter.onSuiteStatusChange = this.suiteChange.bind(this);
 
 			this.data[reporter.side] = {
 				total: reporter.total,
@@ -207,6 +238,7 @@ class ReporterContainer {
 	}
 
 	suiteChange(suite: string, action: 'enter'|'exit', side: Side): void {
+		console.log(`${action} suite ${suite} for side ${side}`);
 		if (!this._isLeader(side)) {
 			return;
 		}
@@ -218,19 +250,100 @@ class ReporterContainer {
 	}
 
 	dataChange(data: ChangeData, side: Side): void {
-		if (data.status === 'pass') {
-			
+		if (this._isLeader(side)) {
+			let currentSuite: {
+				tests: Array<Tests>;
+			} = this;
+			for (let i = 0; i < this.currentSuites.length; i++) {
+				for (let j = currentSuite.tests.length - 1; j >= 0; j--) {
+					const possibleSuite = currentSuite.tests[j];
+					if (possibleSuite.title === this.currentSuites[i] &&
+						possibleSuite.type === 'suite') {
+							currentSuite = possibleSuite
+							break;
+						}
+				}
+			}
+			currentSuite.tests.push({
+				title: data.title,
+				type: 'single',
+				index: this.data[side].tests.length
+			});
+		}
+
+		if (data.status === 'fail') {
+			this.data[side].errors.push({
+				name: data.fullTitle,
+				data: data.errData
+			});
+		}
+
+		this.data[side].tests.push({
+			status: data.status,
+			speed: data.speed,
+			duration: data.duration
+		});
+
+		//this.printData();
+	}
+
+	_getTabs(amount: number): string {
+		let str = [];
+		for (let i = 0; i < amount; i++) {
+			str.push('\t');
+		}
+		return str.join('');
+	}
+
+	_printTest(name: string, index: number, indenting: number) {
+		process.stdout.write(`${this._getTabs(indenting)} Test ${name}\n`)
+	}
+
+	_printSuite(name: string, tests: Array<Tests>, indenting: number) {
+		process.stdout.write(`${this._getTabs(indenting)} Suite ${name}\n`)
+
+		for (let i = 0; i < tests.length; i++) {
+			const test = this.tests[i];
+			if (test.type === 'suite') {
+				this._printSuite(test.title, test.tests, indenting + 1);
+			} else {
+				this._printTest(test.title, test.index, indenting + 1);
+			}
+		}
+	}
+
+	printData() {
+		let indenting = 1;
+		for (let i = 0; i < this.tests.length; i++) {
+			const test = this.tests[i];
+			if (test.type === 'suite') {
+				this._printSuite(test.title, test.tests, 1);
+			} else {
+				this._printTest(test.title, test.index, 1);
+			}
 		}
 	}
 
 	outputFinalReport() {
+		console.log('Final report');
+		this.printData();
 
+		cursor.show();	
 	}
 }
 
+cursor.hide();
 const reporter = new ReporterContainer(
 	new Reporter(initRunner(Side.LEFT), Side.LEFT),
 	new Reporter(initRunner(Side.RIGHT), Side.RIGHT));
+
+
+function preventQuit() {
+	if (!quit) {
+		setInterval(preventQuit, 500);
+	}
+}
+preventQuit();
 
 // function Dot (runner) {
 //   Base.call(this, runner);
