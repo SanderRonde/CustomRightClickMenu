@@ -46,7 +46,7 @@ const enum Side {
 	RIGHT = 1
 }
 
-const fileName = 'test/test.js';
+const fileName = 'test/UITest.js';
 let fileReads = 0;
 let fileContents: string = null;
 

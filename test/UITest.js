@@ -11,17 +11,36 @@ var secrets = require('./UI/secrets');
 var btoa = require('btoa');
 var assert = chai.assert;
 var driver;
-var capabilities = {
-    'browserName': 'Chrome',
-    'os': 'Windows',
-    'os_version': '10',
-    'resolution': '1920x1080',
-    'browserstack.user': secrets.user,
-    'browserstack.key': secrets.key,
-    'browserstack.local': true,
-    'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-    'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-};
+var capabilities;
+switch (__filename.split('-').pop().split('.')[0]) {
+    case '1':
+        capabilities = {
+            'browserName': 'Chrome',
+            'browser_version': '26.0',
+            'os': 'Windows',
+            'os_version': '8',
+            'resolution': '1920x1080',
+            'browserstack.user': secrets.user,
+            'browserstack.key': secrets.key,
+            'browserstack.local': true,
+            'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+            'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+        };
+        break;
+    default:
+        capabilities = {
+            'browserName': 'Chrome',
+            'os': 'Windows',
+            'os_version': '10',
+            'resolution': '1920x1080',
+            'browserstack.user': secrets.user,
+            'browserstack.key': secrets.key,
+            'browserstack.local': true,
+            'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+            'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+        };
+        break;
+}
 before('Driver connect', function (done) {
     this.timeout(60000);
     var result = new webdriver.Builder()

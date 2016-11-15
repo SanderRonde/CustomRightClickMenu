@@ -9,7 +9,7 @@ var inherits = require('util').inherits;
 var cursor = Base.cursor;
 var color = Base.color;
 var failedTests = false;
-var fileName = 'test/test.js';
+var fileName = 'test/UITest.js';
 var fileReads = 0;
 var fileContents = null;
 function createExtraFile() {
