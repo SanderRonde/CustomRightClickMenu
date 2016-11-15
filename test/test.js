@@ -2064,9 +2064,6 @@ describe('CRMAPI', () => {
 		});
 		describe('getNode()', () => {
 			it('should return a node when given a correct id', () => {
-				if (Math.random() > 0.5) {
-					throw new Error('something');
-				}
 				safeTestCRMTree.forEach((testNode) => {
 					crmAPI.crm.getNode(testNode.id, (node) => {
 						assert.isDefined(node, 'resulting node is defined');
@@ -2076,9 +2073,6 @@ describe('CRMAPI', () => {
 				});
 			});
 			it('should throw an error when giving a non-existing node id', () => {
-				if (Math.random() > 0.5) {
-					throw new Error('something');
-				}
 				assert.throws(() => {
 					crmAPI.crm.getNode(999, () => {});
 				}, /There is no node with id ([0-9]+)/);
