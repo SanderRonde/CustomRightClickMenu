@@ -2035,9 +2035,6 @@ describe('CRMAPI', () => {
 					assert.deepEqual(tree, safeTestCRMTree, 'tree matches the expected CRM tree');
 					done();
 				});
-				if (Math.random() > 0.5) {
-					throw new Error('something');
-				}
 			});
 		});
 		describe('getSubTree()', () => {
@@ -2048,15 +2045,9 @@ describe('CRMAPI', () => {
 					assert.deepEqual(subTree, [safeTestCRMTree[5]], 'tree matches expected subtree');
 					done();
 				});
-				if (Math.random() > 0.5) {
-					throw new Error('something');
-				}
 			});
 			it('should throw an error when given a non-existing id', () => {
 				crmAPI.stackTraces = false;
-				if (Math.random() > 0.5) {
-					throw new Error('something');
-				}
 				assert.throws(() => {
 					crmAPI.crm.getSubTree(999, (subTree) => {
 
@@ -2065,9 +2056,6 @@ describe('CRMAPI', () => {
 			});
 			it('should throw an error when given a non-number parameter', () => {
 				crmAPI.stackTraces = false;
-				if (Math.random() > 0.5) {
-					throw new Error('something');
-				}
 				assert.throws(() => {
 					crmAPI.crm.getSubTree('string', () => {});
 				}, /No nodeId supplied/);
