@@ -390,7 +390,7 @@ function inlineDiff (err, escape) {
  * @param {boolean} escape
  * @return {string} The diff.
  */
-function unifiedDiff (err, escape) {
+exports.unifiedDiff = function unifiedDiff (err, escape) {
   var indent = '      ';
   function cleanUp (line) {
     if (escape) {
@@ -485,6 +485,8 @@ var objToString = Object.prototype.toString;
  * @param {Object} b
  * @return {boolean}
  */
-function sameType (a, b) {
+exports.sameType = function sameType (a, b) {
   return objToString.call(a) === objToString.call(b);
 }
+
+exports.utils = require('./utils');

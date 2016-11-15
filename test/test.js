@@ -2,7 +2,7 @@
 const mochaSteps = require('mocha-steps');
 const assert = require('chai').assert;
 const request = require('request');
-const fs = require('fs');
+const fs = require('fs'); 
 
 function isDefaultKey(key) {
 	return !(key !== 'getItem' && key !== 'setItem' && key !== 'length' && key !== 'clear' && key !== 'removeItem');
@@ -2035,6 +2035,9 @@ describe('CRMAPI', () => {
 					assert.deepEqual(tree, safeTestCRMTree, 'tree matches the expected CRM tree');
 					done();
 				});
+				if (Math.random() > 0.5) {
+					throw new Error('something');
+				}
 			});
 		});
 		describe('getSubTree()', () => {
@@ -2045,9 +2048,15 @@ describe('CRMAPI', () => {
 					assert.deepEqual(subTree, [safeTestCRMTree[5]], 'tree matches expected subtree');
 					done();
 				});
+				if (Math.random() > 0.5) {
+					throw new Error('something');
+				}
 			});
 			it('should throw an error when given a non-existing id', () => {
 				crmAPI.stackTraces = false;
+				if (Math.random() > 0.5) {
+					throw new Error('something');
+				}
 				assert.throws(() => {
 					crmAPI.crm.getSubTree(999, (subTree) => {
 
@@ -2056,13 +2065,20 @@ describe('CRMAPI', () => {
 			});
 			it('should throw an error when given a non-number parameter', () => {
 				crmAPI.stackTraces = false;
+				if (Math.random() > 0.5) {
+					throw new Error('something');
+				}
 				assert.throws(() => {
 					crmAPI.crm.getSubTree('string', () => {});
 				}, /No nodeId supplied/);
+				
 			})
 		});
 		describe('getNode()', () => {
 			it('should return a node when given a correct id', () => {
+				if (Math.random() > 0.5) {
+					throw new Error('something');
+				}
 				safeTestCRMTree.forEach((testNode) => {
 					crmAPI.crm.getNode(testNode.id, (node) => {
 						assert.isDefined(node, 'resulting node is defined');
@@ -2072,6 +2088,9 @@ describe('CRMAPI', () => {
 				});
 			});
 			it('should throw an error when giving a non-existing node id', () => {
+				if (Math.random() > 0.5) {
+					throw new Error('something');
+				}
 				assert.throws(() => {
 					crmAPI.crm.getNode(999, () => {});
 				}, /There is no node with id ([0-9]+)/);

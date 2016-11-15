@@ -13,7 +13,17 @@ interface ReporterBase {
 		deleteLine(),
 		beginningOfLine(),
 		CR()
-	}
+	};
+	symbols: {
+		ok: string;
+		err: string;
+		dot: string;
+		comma: string;
+		bang: string;
+	},
+	sameType(a: any, b: any): boolean;
+	utils: any;
+	unifiedDiff(err, escape);
 }
 
 let quit: boolean = false;
@@ -29,36 +39,73 @@ let failedTests: boolean = false;
 //	is nothing as you define tests with describe(), it() etc.
 //So store the tests of the first read one in a variable and
 //	assign it to the second one
-let firstReadTests = null;
+//let firstReadTests = null;
 
 const enum Side {
 	LEFT = 0,
 	RIGHT = 1
 }
 
+const fileName = 'test/test.js';
+let fileReads = 0;
+let fileContents: string = null;
+
+function createExtraFile(): string {
+	if (fileReads === 0) {
+		fileReads++;
+		return fileName;
+	}
+
+	fileContents = fileContents || fs.readFileSync(fileName, {
+		encoding: 'utf8'
+	});
+	let nameSplit = fileName.split('.');
+	const name = `${nameSplit[0]}-${fileReads++}.${nameSplit.slice(1).join('.')}`;
+
+	fs.writeFileSync(name, fileContents, {
+		encoding: 'utf8'
+	});	
+
+	return name;
+}
+
+function deleteExtraFiles() {
+	let nameSplit = fileName.split('.');
+	for (let i = 1; i <= fileReads; i++) {
+		try {
+			fs.unlinkSync(`${nameSplit[0]}-${i}.${nameSplit.slice(1).join('.')}`)
+		} catch (e) {
+			//File can't be deleted, it already has been
+			break;
+		}
+	}
+
+	process.exit(0);
+}
+
+process.on('exit', deleteExtraFiles);
+process.on('SIGINT', deleteExtraFiles);
+process.on('uncaughtException', (e) => {
+	console.log(e);
+	deleteExtraFiles();
+});
+
 function initRunner(side: Side): Mocha.IRunner {
 	const mocha = new Mocha({
 		reporter: function () {}
 	});
-	mocha.addFile('test/test.js');
+	mocha.addFile(createExtraFile());
 	const runner = mocha.run((failures) => {
 		if (failures > 0) {
 			failedTests = true;
 		}
 	});
-	if (firstReadTests === null) {
-		firstReadTests = Object.assign({}, runner.suites);
-	} else {
-		runner.suites = firstReadTests;
-	}
 	return runner;
 }
 
 function getRunnerPromise(runner: Mocha.IRunner): Promise<any> {
 	return new Promise((resolve) => {
-		console.log('adding listener');
 		runner.on('end', () => {
-			console.log('ended');
 			resolve();
 		});
 	});
@@ -71,6 +118,7 @@ type TestStatus = 'pass'|'fail';
 interface ErrorData {
 	message: string;
 	stack: string;
+	error: any;
 }
 
 interface ChangeBaseData {
@@ -124,8 +172,17 @@ class Reporter {
 		});
 	}
 
+	_setTestSpeed(test: Mocha.TestData) {
+		const slow = test.slow();
+		test.speed = (test.duration >= slow ? 
+			'slow' : (test.duration >= slow / 2 ?
+				'medium' : 'fast'));
+	}
+
 	setupDataListeners() {
 		this.runner.on('pass', (test) => {
+			this.current++;
+			this._setTestSpeed(test);
 			this.onchange({
 				fullTitle: test.fullTitle(),
 				title: test.title,
@@ -133,9 +190,10 @@ class Reporter {
 				status: 'pass',
 				duration: test.duration
 			}, this.side);
-			this.current++;
 		});
-		this.runner.on('fail', (test) => {
+		this.runner.on('fail', (test, err) => {
+			this.current++;
+			this._setTestSpeed(test);
 			this.onchange({
 				fullTitle: test.fullTitle(),
 				title: test.title,
@@ -143,19 +201,21 @@ class Reporter {
 				status: 'fail',
 				errData: {
 					message: test.message,
-					stack: test.stack
+					stack: test.stack,
+					error: err
 				},
 				duration: test.duration
 			}, this.side);
-			this.current++;
 		});
 	}
 
 	setupSuiteListeners() {
 		this.runner.on('suite', (suite) => {
+			this.current++;
 			this.onSuiteStatusChange(suite.title, 'enter', this.side);
 		});
 		this.runner.on('suite end', (suite) => {
+			this.current++;
 			this.onSuiteStatusChange(suite.title, 'exit', this.side);
 		});
 	}
@@ -177,29 +237,21 @@ interface ReporterData {
 	}>
 }
 
-interface TestBase {
-	title: string;
-	type: 'suite'|'single';
-}
-
-interface TestSuite extends TestBase {
-	type: 'suite';
-	tests: Array<Tests>;
-}
-
-interface SingleTest extends TestBase {
-	type: 'single';
+interface Tests {
 	index: number;
+	title: string;
 }
 
-type Tests = TestSuite|SingleTest;
+interface ErrorCont {
+	[key: number]: number;
+}
 
 class ReporterContainer {
 	data: {
 		[side: number]: ReporterData
 	} = {};
+	indenting: number = 0;
 	tests: Array<Tests> = [];
-	currentSuites: Array<string> = []; 
 
 	constructor(reporter1: Reporter, reporter2: Reporter) {
 		Promise.all([reporter1.done, reporter2.done]).then(() => {
@@ -230,7 +282,17 @@ class ReporterContainer {
 	_isLeader(side: Side): boolean {
 		//Hello from the
 		const otherSide = this._getOtherSide(side);
-		if (this.data[side].reporter.current > 
+		if (this.data[side].reporter.current >= 
+			this.data[otherSide].reporter.current) {
+				return true;
+			}
+		return false;
+	}
+
+	_isNotLeader(side: Side): boolean {
+		//Hello from the
+		const otherSide = this._getOtherSide(side);
+		if (this.data[side].reporter.current <= 
 			this.data[otherSide].reporter.current) {
 				return true;
 			}
@@ -238,39 +300,18 @@ class ReporterContainer {
 	}
 
 	suiteChange(suite: string, action: 'enter'|'exit', side: Side): void {
-		console.log(`${action} suite ${suite} for side ${side}`);
-		if (!this._isLeader(side)) {
-			return;
-		}
-		if (action === 'enter') {
-			this.currentSuites.push(suite);
-		} else {
-			this.currentSuites.pop();
+		if (this._isNotLeader(side)) {
+			if (action === 'enter') {
+				process.stdout.write(color('suite',
+					`${this._getIndenting(this.indenting)}${suite}\n`));
+				this.indenting++;
+			} else {
+				this.indenting--;
+			}
 		}
 	}
 
 	dataChange(data: ChangeData, side: Side): void {
-		if (this._isLeader(side)) {
-			let currentSuite: {
-				tests: Array<Tests>;
-			} = this;
-			for (let i = 0; i < this.currentSuites.length; i++) {
-				for (let j = currentSuite.tests.length - 1; j >= 0; j--) {
-					const possibleSuite = currentSuite.tests[j];
-					if (possibleSuite.title === this.currentSuites[i] &&
-						possibleSuite.type === 'suite') {
-							currentSuite = possibleSuite
-							break;
-						}
-				}
-			}
-			currentSuite.tests.push({
-				title: data.title,
-				type: 'single',
-				index: this.data[side].tests.length
-			});
-		}
-
 		if (data.status === 'fail') {
 			this.data[side].errors.push({
 				name: data.fullTitle,
@@ -284,49 +325,143 @@ class ReporterContainer {
 			duration: data.duration
 		});
 
-		//this.printData();
+		if (this._isNotLeader(side)) {
+			this.printLine(this.data[side].tests.length - 1, data.title);
+		}
 	}
 
-	_getTabs(amount: number): string {
+	_getIndenting(amount: number): string {
 		let str = [];
 		for (let i = 0; i < amount; i++) {
-			str.push('\t');
+			str.push('  ');
 		}
 		return str.join('');
 	}
 
-	_printTest(name: string, index: number, indenting: number) {
-		process.stdout.write(`${this._getTabs(indenting)} Test ${name}\n`)
-	}
+	printLine(index: number, name: string) {
+		const leftTest = this.data[Side.LEFT].tests[index];
+		const rightTest = this.data[Side.RIGHT].tests[index];
+		const indent = this._getIndenting(this.indenting);
 
-	_printSuite(name: string, tests: Array<Tests>, indenting: number) {
-		process.stdout.write(`${this._getTabs(indenting)} Suite ${name}\n`)
+		if (leftTest.status === rightTest.status) {
+			if (leftTest.status === 'pass') {
+				//Both passed
+				if (leftTest.speed === 'fast' && rightTest.speed === 'fast') {
+					console.log(`${indent}${color('checkmark', Base.symbols.ok)} ${
+						color('checkmark', Base.symbols.ok)
+					}${
+						color('pass', ' %s')
+					}`, name);
+				} else {
+					console.log(`${indent}${color('checkmark', Base.symbols.ok)} ${
+						color('checkmark', Base.symbols.ok)
+					}${
+						color('pass', ' %s')
+					}${color(leftTest.speed, ' (%dms)')}${color(rightTest.speed, ' (%dms)')}`,
+						name, leftTest.duration, rightTest.duration);;
+				}
+			} else {	
+				//Both failed
+				console.log(`${indent}${color('fail', 'X')} ${
+					color('fail', 'X')}${color('fail', ' %s, %s) %s')}`, 
+					`${this.data[Side.LEFT].errors.length}a`,
+					`${this.data[Side.RIGHT].errors.length}b`, name);
+			}
+		} else {
+			const failedIsLeft = leftTest.status === 'fail';
+			const isNotFast = failedIsLeft ? rightTest.speed !== 'fast' : leftTest.speed !== 'fast';
+			const nonFastSpeed = failedIsLeft ? rightTest.speed : leftTest.speed;
 
-		for (let i = 0; i < tests.length; i++) {
-			const test = this.tests[i];
-			if (test.type === 'suite') {
-				this._printSuite(test.title, test.tests, indenting + 1);
+			const errName = `${this.data[failedIsLeft ? Side.LEFT : Side.RIGHT].errors.length}${
+				failedIsLeft ? 'a' : 'b'
+			}`;
+			if (isNotFast) {
+				const duration = failedIsLeft ? rightTest.duration : leftTest.duration;
+				console.log(`${indent}${failedIsLeft ? color('fail', 'X') : 
+					color('checkmark', Base.symbols.ok)} ${!failedIsLeft ? color('fail', 'X') : 
+					color('checkmark', Base.symbols.ok)} ${color('fail', ` ${errName}) ${name}`)} ${
+						color(nonFastSpeed, ` (${duration}ms)`)
+					}`);
 			} else {
-				this._printTest(test.title, test.index, indenting + 1);
+				console.log(`${indent}${failedIsLeft ? color('fail', 'X') :
+					color('checkmark', Base.symbols.ok)} ${!failedIsLeft ? color('fail', 'X') : 
+					color('checkmark', Base.symbols.ok)} ${color('fail', ` ${errName}) ${name}`)}`);
 			}
 		}
 	}
 
-	printData() {
-		let indenting = 1;
-		for (let i = 0; i < this.tests.length; i++) {
-			const test = this.tests[i];
-			if (test.type === 'suite') {
-				this._printSuite(test.title, test.tests, 1);
+	listErrors(errors: Array<{
+		name: string;
+		data: ErrorData
+	}>, postfix: string) {
+		errors.forEach(function (test, i) {
+			// format
+			var fmt = color('error title', '  %s) %s:\n') +
+			color('error message', '     %s') +
+			color('error stack', '\n%s\n');
+
+			// msg
+			var msg;
+			var err = test.data.error;
+			var message;
+			if (err.message && typeof err.message.toString === 'function') {
+				message = err.message + '';
+			} else if (typeof err.inspect === 'function') {
+				message = err.inspect() + '';
 			} else {
-				this._printTest(test.title, test.index, 1);
+				message = '';
 			}
-		}
+			var stack = err.stack || message;
+			var index = message ? stack.indexOf(message) : -1;
+			var actual = err.actual;
+			var expected = err.expected;
+			var escape = true;
+
+			if (index === -1) {
+				msg = message;
+			} else {
+				index += message.length;
+				msg = stack.slice(0, index);
+				// remove msg from stack
+				stack = stack.slice(index + 1);
+			}
+
+			// uncaught
+			if (err.uncaught) {
+				msg = 'Uncaught ' + msg;
+			}
+			// explicitly show diff
+			if (err.showDiff !== false && Base.sameType(actual, expected) && expected !== undefined) {
+				escape = false;
+			if (!(Base.utils.isString(actual) && Base.utils.isString(expected))) {
+				err.actual = actual = Base.utils.stringify(actual);
+				err.expected = expected = Base.utils.stringify(expected);
+			}
+
+			fmt = color('error title', '  %s) %s:\n%s') + color('error stack', '\n%s\n');
+			var match = message.match(/^([^:]+): expected/);
+			msg = '\n      ' + color('error message', match ? match[1] : msg);
+
+				msg += Base.unifiedDiff(err, escape);
+			}
+
+			// indent stack trace
+			stack = stack.replace(/^/gm, '  ');
+
+			console.log(fmt, (i + 1) + postfix, test.name, msg, stack);
+		});
 	}
 
 	outputFinalReport() {
-		console.log('Final report');
-		this.printData();
+		console.log('done');
+		if (this.data[Side.LEFT].errors.length > 0 || this.data[Side.RIGHT].errors.length > 0) {
+			[Side.LEFT, Side.RIGHT].forEach((side) => {
+				if (this.data[side].errors.length > 0) {
+					this.listErrors(this.data[side].errors, side === Side.LEFT ?
+						'a' : 'b');
+				}
+			});
+		}
 
 		cursor.show();	
 	}
@@ -341,132 +476,8 @@ const reporter = new ReporterContainer(
 function preventQuit() {
 	if (!quit) {
 		setInterval(preventQuit, 500);
+	} else {
+		process.exit(0);
 	}
 }
 preventQuit();
-
-// function Dot (runner) {
-//   Base.call(this, runner);
-
-//   var self = this;
-//   var width = Base.window.width * 0.75 | 0;
-//   var n = -1;
-
-//   runner.on('start', function () {
-//     process.stdout.write('\n');
-//   });
-
-//   runner.on('pending', function () {
-//     if (++n % width === 0) {
-//       process.stdout.write('\n  ');
-//     }
-//     process.stdout.write(color('pending', Base.symbols.comma));
-//   });
-
-//   runner.on('pass', function (test) {
-//     if (++n % width === 0) {
-//       process.stdout.write('\n  ');
-//     }
-//     if (test.speed === 'slow') {
-//       process.stdout.write(color('bright yellow', Base.symbols.dot));
-//     } else {
-//       process.stdout.write(color(test.speed, Base.symbols.dot));
-//     }
-//   });
-
-//   runner.on('fail', function () {
-//     if (++n % width === 0) {
-//       process.stdout.write('\n  ');
-//     }
-//     process.stdout.write(color('fail', Base.symbols.bang));
-//   });
-
-//   runner.on('end', function () {
-//     console.log();
-//     Base.epilogue();
-//   });
-// }
-
-// inherits(Dot, Base);
-
-// 'use strict';
-
-// /**
-//  * Module dependencies.
-//  */
-
-// var Base = require('./base');
-// var inherits = require('../utils').inherits;
-// var color = Base.color;
-
-// /**
-//  * Expose `Spec`.
-//  */
-
-// exports = module.exports = Spec;
-
-// /**
-//  * Initialize a new `Spec` test reporter.
-//  *
-//  * @api public
-//  * @param {Runner} runner
-//  */
-// function Spec (runner) {
-//   Base.call(this, runner);
-
-//   var self = this;
-//   var indents = 0;
-//   var n = 0;
-
-//   function indent () {
-//     return Array(indents).join('  ');
-//   }
-
-//   runner.on('start', function () {
-//     console.log();
-//   });
-
-//   runner.on('suite', function (suite) {
-//     ++indents;
-//     console.log(color('suite', '%s%s'), indent(), suite.title);
-//   });
-
-//   runner.on('suite end', function () {
-//     --indents;
-//     if (indents === 1) {
-//       console.log();
-//     }
-//   });
-
-//   runner.on('pending', function (test) {
-//     var fmt = indent() + color('pending', '  - %s');
-//     console.log(fmt, test.title);
-//   });
-
-//   runner.on('pass', function (test) {
-//     var fmt;
-//     if (test.speed === 'fast') {
-//       fmt = indent() +
-//         color('checkmark', '  ' + Base.symbols.ok) +
-//         color('pass', ' %s');
-//       console.log(fmt, test.title);
-//     } else {
-//       fmt = indent() +
-//         color('checkmark', '  ' + Base.symbols.ok) +
-//         color('pass', ' %s') +
-//         color(test.speed, ' (%dms)');
-//       console.log(fmt, test.title, test.duration);
-//     }
-//   });
-
-//   runner.on('fail', function (test) {
-//     console.log(indent() + color('fail', '  %d) %s'), ++n, test.title);
-//   });
-
-//   runner.on('end', self.epilogue.bind(self));
-// }
-
-// /**
-//  * Inherit from `Base.prototype`.
-//  */
-// inherits(Spec, Base);

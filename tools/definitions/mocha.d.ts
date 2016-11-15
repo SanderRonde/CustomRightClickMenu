@@ -140,6 +140,7 @@ declare namespace Mocha {
 
 	interface TestData {
 		title: string;
+        err: any;
 		fullTitle: () => string;
 		duration: number;
 		currentRetry: () => number;
@@ -158,7 +159,7 @@ declare namespace Mocha {
 
 		on(event: 'start', callback: () => void): void;
 		on(event: 'pass', callback: (data: TestData) => void): void;
-		on(event: 'fail', callback: (data: FailedTestData) => void): void;
+		on(event: 'fail', callback: (data: FailedTestData, err: any) => void): void;
 		on(event: 'suite', callback: (data: { title: string }) => void): void;
 		on(event: 'suite end', callback: (data: { title: string }) => void): void;
 		on(event: RunnerEvent, callback: (data?: any) => void): void;
