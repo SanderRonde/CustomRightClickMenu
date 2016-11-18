@@ -16,9 +16,8 @@ switch (__filename.split('-').pop().split('.')[0]) {
     case '1':
         capabilities = {
             'browserName': 'Chrome',
-            'browser_version': '26.0',
             'os': 'Windows',
-            'os_version': '8',
+            'os_version': '10',
             'resolution': '1920x1080',
             'browserstack.user': secrets.user,
             'browserstack.key': secrets.key,
@@ -30,8 +29,9 @@ switch (__filename.split('-').pop().split('.')[0]) {
     default:
         capabilities = {
             'browserName': 'Chrome',
+            'browser_version': '26.0',
             'os': 'Windows',
-            'os_version': '10',
+            'os_version': '8',
             'resolution': '1920x1080',
             'browserstack.user': secrets.user,
             'browserstack.key': secrets.key,
@@ -41,15 +41,18 @@ switch (__filename.split('-').pop().split('.')[0]) {
         };
         break;
 }
+console.log(capabilities, __filename);
 before('Driver connect', function (done) {
     this.timeout(60000);
+    console.log('connecting', __filename);
     var result = new webdriver.Builder()
         .usingServer('http://hub-cloud.browserstack.com/wd/hub')
         .withCapabilities(capabilities)
         .build();
     result.get('http://localhost:1234/test/UI/UITest.html#noClear').then(function () {
         ;
-        result.manage().timeouts().setScriptTimeout(10000);
+        console.log('loaded', __filename);
+        //esult.manage().timeouts().setScriptTimeout(10000);
         driver = result;
         done();
     });
@@ -464,9 +467,11 @@ function getContextMenuNames(contextMenu) {
 }
 describe('Page', function () {
     describe('Loading', function () {
+        console.log('post setup', __filename);
         this.timeout(5000);
         this.slow(2000);
         it('should happen without errors', function (done) {
+            console.log('first actual test', __filename);
             driver
                 .executeScript(inlineFn(function () {
                 return window.lastError ? window.lastError : 'noError';
@@ -477,6 +482,7 @@ describe('Page', function () {
         });
     });
     describe('CheckboxOptions', function () {
+        var _this = this;
         this.timeout(20000);
         this.slow(10000);
         var checkboxDefaults = {
@@ -487,26 +493,28 @@ describe('Page', function () {
         };
         Object.getOwnPropertyNames(checkboxDefaults).forEach(function (checkboxId, index) {
             it(checkboxId + " should be clickable", function (done) {
-                driver
-                    .findElement(webdriver.By.id(checkboxId))
-                    .findElement(webdriver.By.tagName('paper-checkbox'))
-                    .then(function (element) {
-                    return element.click();
-                }).then(function () {
-                    return driver.executeScript(inlineFn(function () {
-                        return JSON.stringify({
-                            match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
-                            checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
-                        });
-                    }, {
-                        checkboxId: checkboxId,
-                        expected: !checkboxDefaults[checkboxId]
-                    }));
-                }).then(function (result) {
-                    var resultObj = JSON.parse(result);
-                    assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId], 'checkbox checked status matches expected');
-                    assert.strictEqual(resultObj.match, true, "checkbox " + checkboxId + " value reflects settings value");
-                    done();
+                reloadPage(_this, driver).then(function () {
+                    driver
+                        .findElement(webdriver.By.id(checkboxId))
+                        .findElement(webdriver.By.tagName('paper-checkbox'))
+                        .then(function (element) {
+                        return element.click();
+                    }).then(function () {
+                        return driver.executeScript(inlineFn(function () {
+                            return JSON.stringify({
+                                match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
+                                checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
+                            });
+                        }, {
+                            checkboxId: checkboxId,
+                            expected: !checkboxDefaults[checkboxId]
+                        }));
+                    }).then(function (result) {
+                        var resultObj = JSON.parse(result);
+                        assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId], 'checkbox checked status matches expected');
+                        assert.strictEqual(resultObj.match, true, "checkbox " + checkboxId + " value reflects settings value");
+                        done();
+                    });
                 });
             });
             it(checkboxId + " should be saved", function (done) {

@@ -152,9 +152,8 @@ switch (__filename.split('-').pop().split('.')[0]) {
 	case '1':
 		capabilities = {
 			'browserName' : 'Chrome',
-			'browser_version': '26.0',
 			'os' : 'Windows',
-			'os_version' : '8',
+			'os_version' : '10',
 			'resolution' : '1920x1080',
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
@@ -166,8 +165,9 @@ switch (__filename.split('-').pop().split('.')[0]) {
 	default: 
 		capabilities = {
 			'browserName' : 'Chrome',
+			'browser_version': '26.0',
 			'os' : 'Windows',
-			'os_version' : '10',
+			'os_version' : '8',
 			'resolution' : '1920x1080',
 			'browserstack.user' : secrets.user,
 			'browserstack.key' : secrets.key,
@@ -178,8 +178,12 @@ switch (__filename.split('-').pop().split('.')[0]) {
 		break;
 }
 
+console.log(capabilities, __filename);
+
 before('Driver connect', function(this: MochaFn, done: any) {
 	this.timeout(60000);
+
+	console.log('connecting', __filename);
 
 	const result = new webdriver.Builder()
 		.usingServer('http://hub-cloud.browserstack.com/wd/hub')
@@ -187,7 +191,8 @@ before('Driver connect', function(this: MochaFn, done: any) {
 		.build();
 
 	result.get('http://localhost:1234/test/UI/UITest.html#noClear').then(() => {;
-		result.manage().timeouts().setScriptTimeout(10000);
+		console.log('loaded', __filename);
+		//esult.manage().timeouts().setScriptTimeout(10000);
 		driver = result;
 		done();
 	});
@@ -649,10 +654,12 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 
 describe('Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
+		console.log('post setup', __filename);
 		this.timeout(5000);
 		this.slow(2000);
 
 		it('should happen without errors', function(done)  {
+			console.log('first actual test', __filename);
 			driver
 				.executeScript(inlineFn(() => {
 					return window.lastError ? window.lastError : 'noError';
@@ -674,32 +681,34 @@ describe('Page', function(this: MochaFn) {
 		};
 		Object.getOwnPropertyNames(checkboxDefaults).forEach((checkboxId, index) => {
 			it(`${checkboxId} should be clickable`, (done) => {
-				driver
-					.findElement(webdriver.By.id(checkboxId))
-					.findElement(webdriver.By.tagName('paper-checkbox'))
-					.then((element) => {
-						return element.click();
-					}).then(() => {
-						return driver.executeScript(inlineFn(() => {
-							return JSON.stringify({
-								match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
-								checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
-							});
-						}, {
-							checkboxId: checkboxId,
-							expected: !checkboxDefaults[checkboxId]
-						}));
-					}).then((result: string) => {
-						const resultObj: {
-							checked: boolean;
-							match: boolean;
-						} = JSON.parse(result);
-						assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId],
-							'checkbox checked status matches expected');
-						assert.strictEqual(resultObj.match, true, 
-							`checkbox ${checkboxId} value reflects settings value`);
-						done();
-					});
+				reloadPage(this, driver).then(() => {
+					driver
+						.findElement(webdriver.By.id(checkboxId))
+						.findElement(webdriver.By.tagName('paper-checkbox'))
+						.then((element) => {
+							return element.click();
+						}).then(() => {
+							return driver.executeScript(inlineFn(() => {
+								return JSON.stringify({
+									match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
+									checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
+								});
+							}, {
+								checkboxId: checkboxId,
+								expected: !checkboxDefaults[checkboxId]
+							}));
+						}).then((result: string) => {
+							const resultObj: {
+								checked: boolean;
+								match: boolean;
+							} = JSON.parse(result);
+							assert.strictEqual(resultObj.checked, !checkboxDefaults[checkboxId],
+								'checkbox checked status matches expected');
+							assert.strictEqual(resultObj.match, true, 
+								`checkbox ${checkboxId} value reflects settings value`);
+							done();
+						});
+				});
 			});
 			it(`${checkboxId} should be saved`, function(done) {
 				reloadPage(this, driver).then(() => {
