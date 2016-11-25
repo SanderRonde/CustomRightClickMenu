@@ -1011,3 +1011,7 @@ html {
 	padding-left: 4px;
 	padding-right: 4px;
 }
+
+paper-toggle-option #checkboxLabel {
+	max-width: 950px;
+}
