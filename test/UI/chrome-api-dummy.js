@@ -179,7 +179,7 @@ window.chrome = {
 			callback && callback();
 		},
 		getURL: function(arg) {
-			return `chrome-extension://${extensionId}/${arg}`;
+			return 'chrome-extension://' + extensionId + '/' + arg;
 		},
 		reload: function() {},
 		restart: function() {},
@@ -310,6 +310,6 @@ function addStyleString(str) {
 	document.head.appendChild(node);
 }
 
-addStyleString(`#dummyContainer > * {
-	background-color: blue;
-}`);
+addStyleString('#dummyContainer > * {\n' + 
+'	background-color: blue;\n' +
+'}');

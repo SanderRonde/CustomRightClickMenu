@@ -393,11 +393,11 @@
 
 	onError: function(message, source, lineno, colno, error) {
 		this.lastError = {
-			message,
-			source,
-			lineno,
-			colno,
-			error
+			message: message,
+			source: source,
+			lineno: lineno,
+			colno: colno,
+			error: error
 		};
 	},
 
