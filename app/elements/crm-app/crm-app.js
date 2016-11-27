@@ -331,8 +331,8 @@
 		},
 
 		_generateRegexFile: function() {
-			var filePath = this.$.URISchemeFilePath.value.replace(/\\/g, '\\\\');
-			var schemeName = this.$.URISchemeSchemeName.value;
+			var filePath = this.$.URISchemeFilePath.querySelector('input').value.replace(/\\/g, '\\\\');
+			var schemeName = this.$.URISchemeSchemeName.querySelector('input').value;
 
 			var regFile = [
 				'Windows Registry Editor Version 5.00',
@@ -2259,7 +2259,8 @@
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
 				recoverUnsavedData: false,
-				CRMOnPage: true,
+				CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
+					.split('.')[0] > 34,
 				editCRMInRM: false,
 				hideToolsRibbon: false,
 				shrinkTitleRibbon: false,
@@ -2340,7 +2341,8 @@
 				authorName: 'anonymous',
 				showOptions: (localStorage.getItem('optionson') !== 'false'),
 				recoverUnsavedData: false,
-				CRMOnPage: true,
+				CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
+					.split('.')[0] > 34,
 				editCRMInRM: false,
 				hideToolsRibbon: false,
 				shrinkTitleRibbon: false,
@@ -2533,6 +2535,12 @@
 							console.clear();
 						}
 
+						window.setTimeout(function() {
+							//Wait for the fade to pass
+							window.polymerElementsLoaded = true;
+							document.getElementById('splashScreen').style.display = 'none';
+						}, 500);
+
 						console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
 							'font-size:120%;font-weight:bold;');
 					}, 200);
@@ -2712,6 +2720,10 @@
 								_this.orderNodesById(items.crm);
 								_this.pageDemo.create();
 								_this.buildNodePaths(items.crm, []);
+
+								if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
+									window.doc.CRMOnPage.setCheckboxDisabledValue(true);
+								}
 								window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
 									.CRMOnPage);
 							}
@@ -3644,11 +3656,12 @@
 					return;
 				}
 				
-				if (this.parent.storageLocal.CRMOnPage) {
-					this.loadContextMenus();
-				} else {
-					this.removeContextMenus();
-				}
+				if (this.parent.storageLocal.CRMOnPage && 
+					~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] > 34) {
+						this.loadContextMenus();
+					} else {
+						this.removeContextMenus();
+					}
 			},
 
 			get parent() {

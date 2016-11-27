@@ -7278,7 +7278,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				authorName: 'anonymous',
 				showOptions: true,
 				recoverUnsavedData: false,
-				CRMOnPage: true,
+				CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
+					.split('.')[0] > 34,
 				editCRMInRM: false,
 				hideToolsRibbon: false,
 				shrinkTitleRibbon: false,

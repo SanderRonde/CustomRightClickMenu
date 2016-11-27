@@ -404,7 +404,7 @@ var // currently active contextMenu trigger
 						$(target).contextMenu({ x: x, y: y });
 					});
 				}
-
+				
 				root.$menu.trigger('contextmenu:hide');
 			}, 50);
 		},
