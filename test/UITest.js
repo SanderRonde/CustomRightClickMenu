@@ -14,17 +14,6 @@ var driver;
 var capabilities;
 switch (__filename.split('-').pop().split('.')[0]) {
     case '1':
-        capabilities = {
-            'browserName': 'Chrome',
-            'os': 'Windows',
-            'os_version': '10',
-            'resolution': '1920x1080',
-            'browserstack.user': secrets.user,
-            'browserstack.key': secrets.key,
-            'browserstack.local': true,
-            'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-            'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-        };
         break;
     default:
         capabilities = {
@@ -39,20 +28,27 @@ switch (__filename.split('-').pop().split('.')[0]) {
             'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
             'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
         };
+        capabilities = {
+            'browserName': 'Chrome',
+            'os': 'Windows',
+            'os_version': '10',
+            'resolution': '1920x1080',
+            'browserstack.user': secrets.user,
+            'browserstack.key': secrets.key,
+            'browserstack.local': true,
+            'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+            'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+        };
         break;
 }
-console.log(capabilities, __filename);
 before('Driver connect', function (done) {
     this.timeout(60000);
-    console.log('connecting', __filename);
     var result = new webdriver.Builder()
         .usingServer('http://hub-cloud.browserstack.com/wd/hub')
         .withCapabilities(capabilities)
         .build();
     result.get('http://localhost:1234/test/UI/UITest.html#noClear').then(function () {
         ;
-        console.log('loaded', __filename);
-        //esult.manage().timeouts().setScriptTimeout(10000);
         driver = result;
         done();
     });
@@ -268,9 +264,7 @@ function cancelDialog(dialog) {
 }
 function getDialog(driver, type) {
     return new webdriver.promise.Promise(function (resolve) {
-        driver
-            .findElement(webdriver.By.tagName(type + "-edit"))
-            .then(function (element) {
+        findElement(driver, webdriver.By.tagName(type + "-edit")).then(function (element) {
             setTimeout(function () {
                 resolve(element);
             }, 500);
@@ -302,11 +296,11 @@ function getRandomString(length) {
         if (randomNum <= 10) {
             return String(randomNum);
         }
-        else if (randomNum <= 36) {
+        else if (randomNum < 36) {
             return String.fromCharCode(randomNum + 87);
         }
         else {
-            return String.fromCharCode(randomNum + 49);
+            return String.fromCharCode(randomNum + 29);
         }
     }).join('');
 }
@@ -318,9 +312,9 @@ function resetSettings(_this, driver, done) {
             window.chrome.storage.sync.clear();
             return true;
         })).then(function (result) {
-            return driver.get('http://localhost:1234/test/UI/UITest.html#noClear');
+            return reloadPage(_this, driver);
         }).then(function () {
-            resolve(null);
+            resolve(undefined);
         });
     });
     if (done) {
@@ -331,12 +325,21 @@ function resetSettings(_this, driver, done) {
     }
 }
 function reloadPage(_this, driver, done) {
-    _this.timeout(30000);
+    _this.timeout(60000);
     var promise = new webdriver.promise.Promise(function (resolve) {
         driver
             .get('http://localhost:1234/test/UI/UITest.html#noClear')
             .then(function () {
-            resolve(null);
+            var timer = setInterval(function () {
+                driver.executeScript(inlineFn(function () {
+                    return window.polymerElementsLoaded;
+                })).then(function (loaded) {
+                    if (loaded) {
+                        clearInterval(timer);
+                        resolve(undefined);
+                    }
+                });
+            }, 2500);
         });
     });
     if (done) {
@@ -348,7 +351,7 @@ function reloadPage(_this, driver, done) {
 }
 function openDialogAndReload(driver, done) {
     reloadPage.apply(this, [function () {
-            driver.findElement(webdriver.By.tagName('edit-crm-item')).click().then(function () {
+            findElement(driver, webdriver.By.tagName('edit-crm-item')).click().then(function () {
                 setTimeout(done, 500);
             });
         }]);
@@ -375,7 +378,7 @@ function switchToTypeAndOpen(driver, type, done) {
 function openDialog(driver, type) {
     return new webdriver.promise.Promise(function (resolve) {
         if (type === 'link') {
-            driver.findElement(webdriver.By.tagName('edit-crm-item')).click().then(function () {
+            findElement(driver, webdriver.By.tagName('edit-crm-item')).click().then(function () {
                 setTimeout(resolve, 500);
             });
         }
@@ -396,6 +399,699 @@ function wait(driver, time, resolveParam) {
         }, time);
     }));
 }
+var FoundElementPromise = (function () {
+    function FoundElementPromise(resolver, opt_flow) {
+        this.promise = new webdriver.promise.Promise(resolver);
+    }
+    FoundElementPromise.prototype.then = function (opt_callback, opt_errback) {
+        if (opt_callback) {
+            if (opt_errback) {
+                return this.promise.then(opt_callback, opt_errback);
+            }
+            return this.promise.then(opt_callback);
+        }
+        return this.promise.then();
+    };
+    FoundElementPromise.prototype.click = function () {
+        var _this = this;
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.promise.then(function (element) {
+                element.click().then(function () {
+                    resolve(undefined);
+                });
+            });
+        });
+    };
+    FoundElementPromise.prototype.findElement = function (by) {
+        var _this = this;
+        return new FoundElementPromise(function (resolve) {
+            _this.promise.then(function (element) {
+                element.findElement(by).then(function (element) {
+                    resolve(element);
+                });
+            });
+        });
+    };
+    FoundElementPromise.prototype.findElements = function (by) {
+        var _this = this;
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.promise.then(function (element) {
+                element.findElements(by).then(function (element) {
+                    resolve(element);
+                });
+            });
+        });
+    };
+    FoundElementPromise.prototype.sendKeys = function () {
+        var _this = this;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.promise.then(function (element) {
+                element.sendKeys.apply(element, args).then(function () {
+                    resolve(undefined);
+                });
+            });
+        });
+    };
+    FoundElementPromise.prototype.isDisplayed = function () {
+        var _this = this;
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.promise.then(function (element) {
+                element.isDisplayed().then(function (isDisplayed) {
+                    resolve(isDisplayed);
+                });
+            });
+        });
+    };
+    FoundElementPromise.prototype.getAttribute = function (attr) {
+        var _this = this;
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.then(function (element) {
+                element.getAttribute(attr).then(function (value) {
+                    resolve(value);
+                });
+            });
+        });
+    };
+    FoundElementPromise.prototype.getSize = function () {
+        var _this = this;
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.then(function (element) {
+                element.getSize().then(function (size) {
+                    resolve(size);
+                });
+            });
+        });
+    };
+    FoundElementPromise.all = function (promises) {
+        return new webdriver.promise.Promise(function (resolve) {
+            var states = promises.map(function (promise, index) {
+                promise.then(function (result) {
+                    states[index].done = true;
+                    states[index].result = result;
+                    if (states.filter(function (state) {
+                        return !state.done;
+                    }).length === 0) {
+                        resolve(states.map(function (state) {
+                            return state.result;
+                        }));
+                    }
+                });
+                return {
+                    promise: promise,
+                    done: false
+                };
+            });
+        });
+    };
+    return FoundElementPromise;
+}());
+var FoundElement = (function () {
+    function FoundElement(selector, index, key, driver, parent) {
+        if (parent === void 0) { parent = null; }
+        this.selector = selector;
+        this.index = index;
+        this.key = key;
+        this.driver = driver;
+        this.parent = parent;
+    }
+    FoundElement.prototype.click = function () {
+        var _this = this;
+        var selectorList = [[this.selector, this.index, this.key]];
+        var currentElement = this;
+        while (currentElement.parent) {
+            currentElement = currentElement.parent;
+            selectorList.push([currentElement.selector, currentElement.index,
+                currentElement.key]);
+        }
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.driver.executeScript(inlineFn(function () {
+                var list = JSON.parse('REPLACE.selector');
+                var el = document.body;
+                for (var i = 0; i < list.length; i++) {
+                    el = el.querySelectorAll(list[i][0])[list[i][1]];
+                    if (list[i][2] !== 'self') {
+                        el = el[list[i][2]];
+                    }
+                }
+                el.click();
+            }, {
+                selector: JSON.stringify(selectorList.reverse())
+            })).then(function () {
+                resolve(undefined);
+            });
+        });
+    };
+    FoundElement.prototype.findElement = function (by) {
+        var _this = this;
+        var css = locatorToCss(by);
+        var selectorList = [[this.selector, this.index, this.key]];
+        var currentElement = this;
+        while (currentElement.parent) {
+            currentElement = currentElement.parent;
+            selectorList.push([currentElement.selector, currentElement.index,
+                currentElement.key]);
+        }
+        return new FoundElementPromise(function (resolve) {
+            _this.driver.executeScript(inlineFn(function () {
+                function isElement(obj) {
+                    return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
+                }
+                var list = JSON.parse('REPLACE.selector');
+                var el = document.body;
+                for (var i = 0; i < list.length; i++) {
+                    el = el.querySelectorAll(list[i][0])[list[i][1]];
+                    if (list[i][2] !== 'self') {
+                        el = el[list[i][2]];
+                    }
+                }
+                el = el.querySelector('REPLACE.css');
+                if (isElement(el)) {
+                    return 'self';
+                }
+                else if (!el) {
+                    return typeof el + " - " + el.toString();
+                }
+                else {
+                    var keys = Object.getOwnPropertyNames(el);
+                    for (var i = 0; i < keys.length; i++) {
+                        if (keys[i].slice(0, 2) === '__' &&
+                            keys[i].slice(-2) === '__' &&
+                            isElement(el[keys[i]])) {
+                            return keys[i];
+                        }
+                    }
+                    return keys.map(function (key) {
+                        return "key: " + key + ", type: " + (el[key] && el[key].toString());
+                    });
+                }
+            }, {
+                css: css,
+                selector: JSON.stringify(selectorList.reverse())
+            })).then(function (index) {
+                console.log('indexes are', index);
+                resolve(new FoundElement(css, 0, index, driver, _this));
+            });
+        });
+    };
+    FoundElement.prototype.findElements = function (by) {
+        var _this = this;
+        var css = locatorToCss(by);
+        var selectorList = [[this.selector, this.index, this.key]];
+        var currentElement = this;
+        while (currentElement.parent) {
+            currentElement = currentElement.parent;
+            selectorList.push([currentElement.selector, currentElement.index,
+                currentElement.key]);
+        }
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.driver.executeScript(inlineFn(function () {
+                function isElement(obj) {
+                    return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
+                }
+                var list = JSON.parse('REPLACE.selector');
+                var el = document.body;
+                for (var i = 0; i < list.length; i++) {
+                    el = el.querySelectorAll(list[i][0])[list[i][1]];
+                    if (list[i][2] !== 'self') {
+                        el = el[list[i][2]];
+                    }
+                }
+                var elList = el.querySelectorAll('REPLACE.css');
+                return JSON.stringify(Array.prototype.slice.apply(elList).map(function (element) {
+                    if (isElement(element)) {
+                        return 'self';
+                    }
+                    else {
+                        var keys = Object.getOwnPropertyNames(element);
+                        for (var i = 0; i < keys.length; i++) {
+                            if (keys[i].charAt(0) === '_' &&
+                                keys[i].charAt(1) === '_' &&
+                                isElement(element[keys[i]])) {
+                                return keys[i];
+                            }
+                        }
+                        throw new Error('Could not find element');
+                    }
+                }));
+            }, {
+                css: css,
+                selector: JSON.stringify(selectorList.reverse())
+            })).then(function (indexes) {
+                return new webdriver.promise.Promise(function (resolve) {
+                    resolve(JSON.parse(indexes).map(function (key, index) {
+                        return new FoundElement(css, index, key, driver, _this);
+                    }));
+                });
+            });
+        });
+    };
+    FoundElement.prototype.isDisplayed = function () {
+        var _this = this;
+        return new webdriver.promise.Promise(function (resolve) {
+            var selectorList = [[_this.selector, _this.index, _this.key]];
+            var currentElement = _this;
+            while (currentElement.parent) {
+                currentElement = currentElement.parent;
+                selectorList.push([currentElement.selector, currentElement.index,
+                    currentElement.key]);
+            }
+            _this.driver.executeScript(inlineFn(function () {
+                //From http://stackoverflow.com/a/18078554/2078892
+                var list = JSON.parse('REPLACE.selector');
+                var el = document.body;
+                for (var i = 0; i < list.length; i++) {
+                    el = el.querySelectorAll(list[i][0])[list[i][1]];
+                    if (list[i][2] !== 'self') {
+                        el = el[list[i][2]];
+                    }
+                }
+                function getOverflowState(element) {
+                    var region = element.getBoundingClientRect();
+                    var ownerDoc = element.ownerDocument;
+                    var htmlElem = ownerDoc.documentElement;
+                    var bodyElem = ownerDoc.body;
+                    var htmlOverflowStyle = htmlElem.style.overflow || 'auto';
+                    var treatAsFixedPosition;
+                    function getOverflowParent(e) {
+                        var position = e.style.position || 'static';
+                        if (position == 'fixed') {
+                            treatAsFixedPosition = true;
+                            return e == htmlElem ? null : htmlElem;
+                        }
+                        else {
+                            var parent = element.parentElement;
+                            while (parent && !canBeOverflowed(parent)) {
+                                parent = element.parentElement;
+                            }
+                            return parent;
+                        }
+                        function canBeOverflowed(container) {
+                            if (container == htmlElem) {
+                                return true;
+                            }
+                            var containerDisplay = (container.style.display || 'inline');
+                            if (containerDisplay.indexOf('inline') === 0) {
+                                return false;
+                            }
+                            if (position == 'absolute' &&
+                                (container.style.position || 'static') === 'static') {
+                                return false;
+                            }
+                            return true;
+                        }
+                    }
+                    function getOverflowStyles(e) {
+                        var overflowElem = e;
+                        if (htmlOverflowStyle == 'visible') {
+                            if (e == htmlElem && bodyElem) {
+                                overflowElem = bodyElem;
+                            }
+                            else if (e == bodyElem) {
+                                return { x: 'visible', y: 'visible' };
+                            }
+                        }
+                        var overflow = {
+                            x: overflowElem.style.overflowX || 'auto',
+                            y: overflowElem.style.overflowY || 'auto'
+                        };
+                        if (e == htmlElem) {
+                            overflow.x = overflow.x == 'visible' ? 'auto' : overflow.x;
+                            overflow.y = overflow.y == 'visible' ? 'auto' : overflow.y;
+                        }
+                        return overflow;
+                    }
+                    function getScroll(e) {
+                        if (e == htmlElem) {
+                            return {
+                                x: 0,
+                                y: 0
+                            };
+                        }
+                        else {
+                            return {
+                                x: e.scrollLeft,
+                                y: e.scrollTop
+                            };
+                        }
+                    }
+                    for (var container = getOverflowParent(element); !!container; container = getOverflowParent(container)) {
+                        var containerOverflow = getOverflowStyles(container);
+                        if (containerOverflow.x == 'visible' && containerOverflow.y == 'visible') {
+                            continue;
+                        }
+                        var containerRect = container.getBoundingClientRect();
+                        if (containerRect.width == 0 || containerRect.height == 0) {
+                            return 'hidden';
+                        }
+                        var underflowsX = region.right < containerRect.left;
+                        var underflowsY = region.bottom < containerRect.top;
+                        if ((underflowsX && containerOverflow.x == 'hidden') ||
+                            (underflowsY && containerOverflow.y == 'hidden')) {
+                            return 'hidden';
+                        }
+                        else if ((underflowsX && containerOverflow.x != 'visible') ||
+                            (underflowsY && containerOverflow.y != 'visible')) {
+                            var containerScroll = getScroll(container);
+                            var unscrollableX = region.right < containerRect.left - containerScroll.x;
+                            var unscrollableY = region.bottom < containerRect.top - containerScroll.y;
+                            if ((unscrollableX && containerOverflow.x != 'visible') ||
+                                (unscrollableY && containerOverflow.x != 'visible')) {
+                                return 'hidden';
+                            }
+                            var containerState = getOverflowState(container);
+                            return containerState == 'hidden' ?
+                                'hidden' : 'scroll';
+                        }
+                        var overflowsX = region.left >= containerRect.left + containerRect.width;
+                        var overflowsY = region.top >= containerRect.top + containerRect.height;
+                        if ((overflowsX && containerOverflow.x == 'hidden') ||
+                            (overflowsY && containerOverflow.y == 'hidden')) {
+                            return 'hidden';
+                        }
+                        else if ((overflowsX && containerOverflow.x != 'visible') ||
+                            (overflowsY && containerOverflow.y != 'visible')) {
+                            if (treatAsFixedPosition) {
+                                var docScroll = getScroll(container);
+                                if ((region.left >= htmlElem.scrollWidth - docScroll.x) ||
+                                    (region.right >= htmlElem.scrollHeight - docScroll.y)) {
+                                    return 'hidden';
+                                }
+                            }
+                            var containerState = getOverflowState(container);
+                            return containerState == 'hidden' ?
+                                'hidden' : 'scroll';
+                        }
+                    }
+                    return 'none';
+                }
+                function isShown(element) {
+                    if (element.tagName === 'OPTION' || element.tagName === 'OPTGROUP') {
+                        var optionEl = element;
+                        while (optionEl.tagName !== 'SELECT') {
+                            if (optionEl.parentElement) {
+                                optionEl = optionEl.parentElement;
+                            }
+                            else {
+                                return false;
+                            }
+                        }
+                        return isShown(optionEl);
+                    }
+                    if (element.tagName === 'INPUT' &&
+                        element.getAttribute('hidden') === null) {
+                        return false;
+                    }
+                    if (element.tagName === 'NOSCRIPT') {
+                        return false;
+                    }
+                    if (element.style.visibility == 'hidden') {
+                        return false;
+                    }
+                    function displayed(e) {
+                        if (e.style.display == 'none') {
+                            return false;
+                        }
+                        var parent = parent.parentElement;
+                        return !parent || displayed(parent);
+                    }
+                    if (!displayed(element)) {
+                        return false;
+                    }
+                    if (element.style.opacity === '0') {
+                        return false;
+                    }
+                    function isHidden(e) {
+                        if (e.hasAttribute) {
+                            if (e.hasAttribute('hidden')) {
+                                return false;
+                            }
+                        }
+                        else {
+                            return true;
+                        }
+                        var parent = e.parentElement;
+                        return !parent || isHidden(parent);
+                    }
+                    if (!isHidden(element)) {
+                        return false;
+                    }
+                    function positiveSize(e) {
+                        var rect = e.getBoundingClientRect();
+                        if (rect.height > 0 && rect.width > 0) {
+                            return true;
+                        }
+                        if (document.body.tagName === 'PATH' && (rect.height > 0 || rect.width > 0)) {
+                            var strokeWidth = element.style.strokeWidth;
+                            return !!strokeWidth && (parseInt(strokeWidth, 10) > 0);
+                        }
+                        // Zero-sized elements should still be considered to have positive size
+                        // if they have a child element or text node with positive size, unless
+                        // the element has an 'overflow' style of 'hidden'.
+                        return element.style.overflow != 'hidden' &&
+                            Array.prototype.slice.apply(e.childNodes).filter(function (n) {
+                                var bcr = n.getBoundingClientRect();
+                                return n.nodeType == n.TEXT_NODE ||
+                                    (bcr.width > 0 && bcr.height > 0);
+                            }).length > 0;
+                    }
+                    if (!positiveSize(element)) {
+                        return false;
+                    }
+                    // Elements that are hidden by overflow are not shown.
+                    if (getOverflowState(element) == 'hidden') {
+                        return false;
+                    }
+                }
+                return isShown(el);
+            }, {
+                selector: JSON.stringify(selectorList.reverse())
+            })).then(function (isDisplayed) {
+                resolve(isDisplayed);
+            });
+        });
+    };
+    FoundElement.prototype.sendKeys = function () {
+        var _this = this;
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
+        return new webdriver.promise.Promise(function (resolve) {
+            return webdriver.promise.all(args.map(function (arg) {
+                if (webdriver.promise.isPromise(arg)) {
+                    return arg;
+                }
+                return new webdriver.promise.Promise(function (instantResolve) {
+                    instantResolve(arg);
+                });
+            })).then(function (keys) {
+                var selectorList = [[_this.selector, _this.index, _this.key]];
+                var currentElement = _this;
+                while (currentElement.parent) {
+                    currentElement = currentElement.parent;
+                    selectorList.push([currentElement.selector, currentElement.index,
+                        currentElement.key]);
+                }
+                return new webdriver.promise.Promise(function (sentKeysResolve) {
+                    _this.driver.executeScript(inlineFn(function () {
+                        function isElement(obj) {
+                            return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
+                        }
+                        var list = REPLACE.selector;
+                        var el = document.body;
+                        for (var i = 0; i < list.length; i++) {
+                            el = el.querySelectorAll(list[i][0])[list[i][1]];
+                            if (list[i][2] !== 'self') {
+                                el = el[list[i][2]];
+                            }
+                        }
+                        var keyPresses = REPLACE.keypresses;
+                        var currentValue = el.value;
+                        for (var i = 0; i < keyPresses.length; i++) {
+                            switch (keyPresses[i]) {
+                                case 0 /* CLEAR_ALL */:
+                                    currentValue = '';
+                                    break;
+                                case 1 /* BACK_SPACE */:
+                                    currentValue = currentValue.slice(0, -1);
+                                    break;
+                                default:
+                                    currentValue += keyPresses[i];
+                                    break;
+                            }
+                        }
+                        el.value = currentValue;
+                    }, {
+                        selector: JSON.stringify(selectorList.reverse()),
+                        keypresses: JSON.stringify(keys)
+                    })).then(function () {
+                        sentKeysResolve(undefined);
+                    });
+                });
+            }).then(function () {
+                resolve(undefined);
+            });
+        });
+    };
+    FoundElement.prototype.getAttribute = function (attr) {
+        var _this = this;
+        var selectorList = [[this.selector, this.index, this.key]];
+        var currentElement = this;
+        while (currentElement.parent) {
+            currentElement = currentElement.parent;
+            selectorList.push([currentElement.selector, currentElement.index,
+                currentElement.key]);
+        }
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.driver.executeScript(inlineFn(function () {
+                var list = JSON.parse('REPLACE.selector');
+                var el = document.body;
+                for (var i = 0; i < list.length; i++) {
+                    el = el.querySelectorAll(list[i][0])[list[i][1]];
+                    if (list[i][2] !== 'self') {
+                        el = el[list[i][2]];
+                    }
+                }
+                var attr = el.getAttribute('REPLACE.attr');
+                return attr === undefined || attr === null ?
+                    el['REPLACE.attr'] : attr;
+            }, {
+                selector: JSON.stringify(selectorList.reverse()),
+                attr: attr
+            })).then(function (value) {
+                resolve(value);
+            });
+        });
+    };
+    FoundElement.prototype.getSize = function () {
+        var _this = this;
+        var selectorList = [[this.selector, this.index, this.key]];
+        var currentElement = this;
+        while (currentElement.parent) {
+            currentElement = currentElement.parent;
+            selectorList.push([currentElement.selector, currentElement.index,
+                currentElement.key]);
+        }
+        return new webdriver.promise.Promise(function (resolve) {
+            _this.driver.executeScript(inlineFn(function () {
+                var list = JSON.parse('REPLACE.selector');
+                var el = document.body;
+                for (var i = 0; i < list.length; i++) {
+                    el = el.querySelectorAll(list[i][0])[list[i][1]];
+                    if (list[i][2] !== 'self') {
+                        el = el[list[i][2]];
+                    }
+                }
+                var bcr = el.getBoundingClientRect();
+                return JSON.stringify({
+                    bottom: bcr.bottom,
+                    height: bcr.height,
+                    left: bcr.left,
+                    right: bcr.right,
+                    top: bcr.top,
+                    width: bcr.width
+                });
+            }, {
+                selector: JSON.stringify(selectorList.reverse())
+            })).then(function (bcr) {
+                resolve(JSON.parse(bcr));
+            });
+        });
+    };
+    return FoundElement;
+}());
+function locatorToCss(by) {
+    switch (by.using) {
+        case 'className':
+            return "." + by.value;
+        case 'css selector':
+            return by.value;
+        case 'id':
+            return "#" + by.value;
+        case 'linkText':
+            return "*[href=" + by.value + "]";
+        case 'name':
+            return "*[name=\"" + by.value + "\"]";
+        case 'tagName':
+            return by.value;
+        default:
+        case 'js':
+        case 'xpath':
+        case 'partialLinkText':
+            throw new Error('Not implemented');
+    }
+}
+function findElement(driver, by) {
+    var selector = locatorToCss(by);
+    return new FoundElementPromise(function (resolve) {
+        driver.executeScript(inlineFn(function () {
+            function isElement(obj) {
+                return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
+            }
+            var elContainer = document.querySelector('REPLACE.css');
+            if (isElement(elContainer)) {
+                return 'self';
+            }
+            else if (!elContainer) {
+                return typeof elContainer + " - " + elContainer.toString();
+            }
+            else {
+                var keys = Object.getOwnPropertyNames(elContainer);
+                for (var i = 0; i < keys.length; i++) {
+                    if (keys[i].slice(0, 2) === '__' &&
+                        keys[i].slice(-2) === '__' &&
+                        isElement(el[keys[i]])) {
+                        return keys[i];
+                    }
+                }
+                return keys.map(function (key) {
+                    return "key: " + key + ", type: " + (elContainer[key] && elContainer[key].toString());
+                });
+            }
+        }, {
+            css: selector
+        })).then(function (index) {
+            resolve(new FoundElement(selector, 0, index, driver));
+        });
+    });
+}
+function findElements(driver, by) {
+    var selector = locatorToCss(by);
+    return driver.executeScript(inlineFn(function () {
+        function isElement(obj) {
+            return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
+        }
+        var elList = document.querySelectorAll('REPLACE.css');
+        return JSON.stringify(Array.prototype.slice.apply(elList).map(function (element) {
+            if (isElement(element)) {
+                return 'self';
+            }
+            else {
+                var keys = Object.getOwnPropertyNames(element);
+                for (var i = 0; i < keys.length; i++) {
+                    if (keys[i].charAt(0) === '_' &&
+                        keys[i].charAt(1) === '_' &&
+                        isElement(element[keys[i]])) {
+                        return keys[i];
+                    }
+                }
+                throw new Error('Could not find element');
+            }
+        }));
+    }, {
+        css: selector
+    })).then(function (indexes) {
+        return new webdriver.promise.Promise(function (resolve) {
+            resolve(JSON.parse(indexes).map(function (key, index) {
+                return new FoundElement(selector, index, key, driver);
+            }));
+        });
+    });
+}
 function inlineFn(fn, args) {
     if (args === void 0) { args = {}; }
     var str = "return (" + fn.toString() + ")(arguments)";
@@ -404,7 +1100,10 @@ function inlineFn(fn, args) {
             str = str.replace(new RegExp("REPLACE." + key, 'g'), "' + " + JSON.stringify(args[key].split('\n')) + ".join('\\n') + '");
         }
         else {
-            str = str.replace(new RegExp("REPLACE." + key, 'g'), args[key]);
+            var arg = args[key];
+            str = str.replace(new RegExp("REPLACE." + key, 'g'), arg !== undefined &&
+                arg !== null && typeof arg === 'string' ?
+                arg.replace(/\\\"/g, "\\\\\"") : arg);
         }
     });
     return str;
@@ -467,11 +1166,9 @@ function getContextMenuNames(contextMenu) {
 }
 describe('Page', function () {
     describe('Loading', function () {
-        console.log('post setup', __filename);
         this.timeout(5000);
         this.slow(2000);
         it('should happen without errors', function (done) {
-            console.log('first actual test', __filename);
             driver
                 .executeScript(inlineFn(function () {
                 return window.lastError ? window.lastError : 'noError';
@@ -483,7 +1180,7 @@ describe('Page', function () {
     });
     describe('CheckboxOptions', function () {
         var _this = this;
-        this.timeout(20000);
+        this.timeout(60000);
         this.slow(10000);
         var checkboxDefaults = {
             showOptions: true,
@@ -491,12 +1188,14 @@ describe('Page', function () {
             CRMOnPage: true,
             useStorageSync: true
         };
+        //This is disabled for any chrome <= 34 versions
+        if (capabilities.browser_version && ~~capabilities.browser_version.split('.')[0] <= 34) {
+            delete checkboxDefaults.CRMOnPage;
+        }
         Object.getOwnPropertyNames(checkboxDefaults).forEach(function (checkboxId, index) {
             it(checkboxId + " should be clickable", function (done) {
                 reloadPage(_this, driver).then(function () {
-                    driver
-                        .findElement(webdriver.By.id(checkboxId))
-                        .findElement(webdriver.By.tagName('paper-checkbox'))
+                    findElement(driver, webdriver.By.css("#" + checkboxId + " paper-checkbox"))
                         .then(function (element) {
                         return element.click();
                     }).then(function () {
@@ -540,16 +1239,18 @@ describe('Page', function () {
         });
     });
     describe('Commonly used links', function () {
-        this.timeout(20000);
-        this.slow(10000);
+        this.timeout(60000);
+        this.slow(30000);
         var searchEngineLink = '';
         var defaultLinkName = '';
-        before('Reset settings', function () {
-            return resetSettings(this, driver);
+        before('Reset settings', function (done) {
+            resetSettings(this, driver).then(function () {
+                done();
+            });
         });
         it('should be addable', function (done) {
             this.timeout(10000);
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
+            findElements(driver, webdriver.By.tagName('default-link')).then(function (elements) {
                 elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(function () {
                     elements[0].findElement(webdriver.By.tagName('input')).getAttribute('value').then(function (name) {
                         elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
@@ -557,7 +1258,7 @@ describe('Page', function () {
                                 searchEngineLink = link;
                                 defaultLinkName = name;
                                 var element = crm[crm.length - 1];
-                                assert.strictEqual(element.name, name, 'name is the same as expected');
+                                assert.strictEqual(name, element.name, 'name is the same as expected');
                                 assert.strictEqual(element.type, 'link', 'type of element is link');
                                 assert.isArray(element.value, 'element value is array');
                                 assert.lengthOf(element.value, 1, 'element has one child');
@@ -574,15 +1275,15 @@ describe('Page', function () {
         });
         it('should be renamable', function (done) {
             var name = 'SomeName';
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
+            findElements(driver, webdriver.By.tagName('default-link')).then(function (elements) {
                 elements[0].findElement(webdriver.By.tagName('paper-button')).then(function (button) {
-                    elements[0].findElement(webdriver.By.tagName('input')).sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name).then(function () {
+                    elements[0].findElement(webdriver.By.tagName('input')).sendKeys(0 /* CLEAR_ALL */, name).then(function () {
                         return button.click();
                     }).then(function () {
                         elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
                             getCRM(driver).then(function (crm) {
                                 var element = crm[crm.length - 1];
-                                assert.strictEqual(element.name, name, 'name is the same as expected');
+                                assert.strictEqual(name, element.name, 'name is the same as expected');
                                 assert.strictEqual(element.type, 'link', 'type of element is link');
                                 assert.isArray(element.value, 'element value is array');
                                 assert.lengthOf(element.value, 1, 'element has one child');
@@ -627,15 +1328,15 @@ describe('Page', function () {
         });
     });
     describe('SearchEngines', function () {
-        this.timeout(10000);
-        this.slow(10000);
+        this.timeout(60000);
+        this.slow(30000);
         var searchEngineLink = '';
         var searchEngineName = '';
         before('Reset settings', function () {
             return resetSettings(this, driver);
         });
         it('should be addable', function (done) {
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
+            findElements(driver, webdriver.By.tagName('default-link')).then(function (elements) {
                 var index = elements.length - 1;
                 elements[index].findElement(webdriver.By.tagName('paper-button')).click().then(function () {
                     elements[index].findElement(webdriver.By.tagName('input')).getAttribute('value').then(function (name) {
@@ -669,10 +1370,10 @@ describe('Page', function () {
         });
         it('should be renamable', function (done) {
             var name = 'SomeName';
-            driver.findElements(webdriver.By.tagName('default-link')).then(function (elements) {
+            findElements(driver, webdriver.By.tagName('default-link')).then(function (elements) {
                 var index = elements.length - 1;
                 elements[index].findElement(webdriver.By.tagName('paper-button')).then(function (button) {
-                    elements[index].findElement(webdriver.By.tagName('input')).sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name).then(function () {
+                    elements[index].findElement(webdriver.By.tagName('input')).sendKeys(0 /* CLEAR_ALL */, name).then(function () {
                         return button.click();
                     }).then(function () {
                         elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
@@ -749,9 +1450,9 @@ describe('Page', function () {
         before('Reset settings', function () {
             return resetSettings(this, driver);
         });
+        this.timeout(60000);
         function testURIScheme(driver, done, toExecutePath, schemeName) {
-            driver
-                .findElement(webdriver.By.className('URISchemeGenerator'))
+            findElement(driver, webdriver.By.className('URISchemeGenerator'))
                 .findElement(webdriver.By.tagName('paper-button'))
                 .click()
                 .then(function () {
@@ -796,12 +1497,11 @@ describe('Page', function () {
             testURIScheme(driver, done, toExecutePath, schemeName);
         });
         it('should be able to download when a different file path was entered', function (done) {
-            var toExecutePath = 'Z:\\a\\b\\c\\d\\e\\something.test';
+            var toExecutePath = 'somefile.x.y.z';
             var schemeName = defaultSchemeName;
-            driver
-                .findElement(webdriver.By.id('URISchemeFilePath'))
+            findElement(driver, webdriver.By.id('URISchemeFilePath'))
                 .findElement(webdriver.By.tagName('input'))
-                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, toExecutePath)
+                .sendKeys(0 /* CLEAR_ALL */, toExecutePath)
                 .then(function () {
                 testURIScheme(driver, done, toExecutePath, schemeName);
             });
@@ -809,28 +1509,25 @@ describe('Page', function () {
         it('should be able to download when a different scheme name was entered', function (done) {
             var toExecutePath = defaultToExecutePath;
             var schemeName = getRandomString(25);
-            driver
-                .findElement(webdriver.By.id('URISchemeSchemeName'))
+            findElement(driver, webdriver.By.id('URISchemeSchemeName'))
                 .findElement(webdriver.By.tagName('input'))
-                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, schemeName)
+                .sendKeys(0 /* CLEAR_ALL */, schemeName)
                 .then(function () {
                 testURIScheme(driver, done, toExecutePath, schemeName);
             });
         });
         it('should be able to download when a different scheme name and a different file path are entered', function (done) {
-            var toExecutePath = 'Z:\\a\\b\\c\\d\\e\\something.test';
+            var toExecutePath = 'somefile.x.y.z';
             var schemeName = getRandomString(25);
-            driver
-                .findElement(webdriver.By.id('URISchemeFilePath'))
+            findElement(driver, webdriver.By.id('URISchemeFilePath'))
                 .findElement(webdriver.By.tagName('input'))
-                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, toExecutePath)
+                .sendKeys(0 /* CLEAR_ALL */, toExecutePath)
                 .then(function () {
-                return driver
-                    .findElement(webdriver.By.id('URISchemeSchemeName'))
+                return findElement(driver, webdriver.By.id('URISchemeSchemeName'))
                     .findElement(webdriver.By.tagName('input'));
             })
                 .then(function (element) {
-                return element.sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, schemeName);
+                return element.sendKeys(0 /* CLEAR_ALL */, schemeName);
             })
                 .then(function () {
                 testURIScheme(driver, done, toExecutePath, schemeName);
@@ -840,7 +1537,7 @@ describe('Page', function () {
     function testNameInput(type) {
         var defaultName = 'name';
         describe('Name Input', function () {
-            this.timeout(30000);
+            this.timeout(60000);
             this.slow(20000);
             after('Reset settings', function () {
                 return resetSettings(this, driver);
@@ -859,7 +1556,7 @@ describe('Page', function () {
                     dialog
                         .findElement(webdriver.By.id('nameInput'))
                         .findElement(webdriver.By.tagName('input'))
-                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .sendKeys(0 /* CLEAR_ALL */, name)
                         .then(function () {
                         return cancelDialog(dialog);
                     })
@@ -886,7 +1583,7 @@ describe('Page', function () {
                     dialog
                         .findElement(webdriver.By.id('nameInput'))
                         .findElement(webdriver.By.tagName('input'))
-                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, name)
+                        .sendKeys(0 /* CLEAR_ALL */, name)
                         .then(function () {
                         return saveDialog(dialog);
                     })
@@ -916,51 +1613,65 @@ describe('Page', function () {
     function testVisibilityTriggers(type) {
         describe('Triggers', function () {
             var _this = this;
-            this.timeout(30000);
-            this.slow(150000);
+            this.timeout(60000);
+            this.slow(15000);
             after('Reset settings', function () {
                 return resetSettings(this, driver);
             });
             it('should not change when not saved', function (done) {
                 resetSettings(this, driver).then(function () {
+                    console.log(1);
                     return openDialog(driver, type);
                 }).then(function () {
+                    console.log(2);
                     return getDialog(driver, type);
                 }).then(function (dialog) {
+                    console.log(3);
                     dialog
                         .findElement(webdriver.By.id('showOnSpecified'))
                         .click()
                         .then(function () {
+                        console.log(4);
                         return dialog
                             .findElement(webdriver.By.id('addTrigger'))
                             .then(function (button) {
+                            console.log(5);
                             return button.click().then(function () {
+                                console.log(6);
                                 return button.click();
                             });
                         });
                     }).then(function () {
+                        console.log(7);
                         setTimeout(function () {
+                            console.log(8);
                             dialog
                                 .findElements(webdriver.By.className('executionTrigger'))
                                 .then(function (triggers) {
+                                console.log(9);
                                 return triggers[0]
                                     .findElement(webdriver.By.tagName('paper-checkbox'))
                                     .click()
                                     .then(function () {
+                                    console.log(10);
                                     return triggers[0]
                                         .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                        .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
                                 })
                                     .then(function () {
+                                    console.log(11);
                                     return triggers[1]
                                         .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                        .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
                                 });
                             }).then(function () {
+                                console.log(12);
                                 return cancelDialog(dialog);
                             }).then(function () {
+                                console.log(13);
                                 return getCRM(driver);
                             }).then(function (crm) {
+                                console.log(14);
                                 assert.lengthOf(crm[0].triggers, 1, 'no triggers have been added');
                                 assert.isFalse(crm[0].triggers[0].not, 'first trigger NOT status did not change');
                                 assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
@@ -972,39 +1683,52 @@ describe('Page', function () {
             });
             it('should be addable/editable when saved', function (done) {
                 resetSettings(_this, driver).then(function () {
+                    console.log(1);
                     return openDialog(driver, type);
                 }).then(function () {
+                    console.log(2);
                     return getDialog(driver, type);
                 }).then(function (dialog) {
+                    console.log(3);
                     dialog
                         .findElement(webdriver.By.id('showOnSpecified'))
                         .click()
                         .then(function () {
+                        console.log(4);
                         return dialog
                             .findElement(webdriver.By.id('addTrigger'))
                             .then(function (button) {
+                            console.log(5);
                             return button.click().then(function () {
+                                console.log(6);
                                 return button.click();
                             });
                         });
                     }).then(function () {
+                        console.log(7);
                         setTimeout(function () {
+                            console.log(8);
                             dialog
                                 .findElements(webdriver.By.className('executionTrigger'))
                                 .then(function (triggers) {
+                                console.log(9);
                                 return triggers[0]
                                     .findElement(webdriver.By.tagName('paper-checkbox'))
                                     .click()
                                     .then(function () {
+                                    console.log(10);
                                     return triggers[1]
                                         .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                        .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
                                 });
                             }).then(function () {
+                                console.log(11);
                                 return saveDialog(dialog);
                             }).then(function () {
+                                console.log(12);
                                 return getCRM(driver);
                             }).then(function (crm) {
+                                console.log(13);
                                 assert.lengthOf(crm[0].triggers, 3, 'trigger has been added');
                                 assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
                                 assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
@@ -1050,7 +1774,10 @@ describe('Page', function () {
                         return webdriver.promise.all(elements.map(function (element) {
                             return element
                                 .findElement(webdriver.By.tagName('paper-checkbox'))
-                                .click();
+                                .click()
+                                .then(function () {
+                                return wait(driver, 25);
+                            });
                         }));
                     })
                         .then(function () {
@@ -1299,7 +2026,7 @@ describe('Page', function () {
                                             .then(function () {
                                             return triggers[1]
                                                 .findElement(webdriver.By.tagName('input'))
-                                                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                                .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
                                         });
                                     }).then(function () {
                                         return saveDialog(dialog);
@@ -1368,7 +2095,7 @@ describe('Page', function () {
                                             .then(function () {
                                             return triggers[1]
                                                 .findElement(webdriver.By.tagName('input'))
-                                                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, 'www.google.com');
+                                                .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
                                         });
                                     }).then(function () {
                                         return cancelDialog(dialog);
@@ -1477,7 +2204,7 @@ describe('Page', function () {
                             return dialog
                                 .findElement(webdriver.By.id('editorThemeFontSizeInput'))
                                 .findElement(webdriver.By.tagName('input'))
-                                .sendKeys(webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, newZoom);
+                                .sendKeys(1 /* BACK_SPACE */, 1 /* BACK_SPACE */, 1 /* BACK_SPACE */, newZoom);
                         }).then(function () {
                             //Click the cogwheel to click "somewhere" to remove focus
                             return editorSettings.click();
@@ -1562,7 +2289,7 @@ describe('Page', function () {
                         return dialog
                             .findElement(webdriver.By.id('editorTabSizeInput'))
                             .findElement(webdriver.By.tagName('input'))
-                            .sendKeys(webdriver.Key.BACK_SPACE, webdriver.Key.BACK_SPACE, webdriver.Key.NULL, webdriver.Key.DELETE, webdriver.Key.DELETE, newTabSize)
+                            .sendKeys(1 /* BACK_SPACE */, 1 /* BACK_SPACE */, newTabSize)
                             .then(function () {
                             //Click "some" element to un-focus the input
                             return dialog
@@ -1592,23 +2319,34 @@ describe('Page', function () {
         before('Reset settings', function () {
             return resetSettings(this, driver);
         });
+        this.timeout(60000);
         describe('Type Switching', function () {
             function testTypeSwitch(driver, type, done) {
-                driver.executeAsyncScript(inlineFn(function (args) {
+                driver.executeScript(inlineFn(function () {
                     var crmItem = document.getElementsByTagName('edit-crm-item').item(0);
                     crmItem.typeIndicatorMouseOver();
-                    window.setTimeout(function () {
+                })).then(function () {
+                    return wait(driver, 300);
+                }).then(function () {
+                    return driver.executeScript(inlineFn(function () {
+                        var crmItem = document.getElementsByTagName('edit-crm-item').item(0);
                         var typeSwitcher = crmItem.querySelector('type-switcher');
                         typeSwitcher.openTypeSwitchContainer();
-                        window.setTimeout(function () {
-                            typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]')
-                                .click();
-                            args[0](window.app.settings.crm[0].type === 'REPLACE.type');
-                        }, 300);
-                    }, 300);
-                }, {
-                    type: type
-                })).then(function (typesMatch) {
+                    }));
+                    ;
+                }).then(function () {
+                    return wait(driver, 300);
+                }).then(function () {
+                    return driver.executeScript(inlineFn(function () {
+                        var crmItem = document.getElementsByTagName('edit-crm-item').item(0);
+                        var typeSwitcher = crmItem.querySelector('type-switcher');
+                        typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]')
+                            .click();
+                        return window.app.settings.crm[0].type === 'REPLACE.type';
+                    }, {
+                        type: type
+                    }));
+                }).then(function (typesMatch) {
                     assert.isTrue(typesMatch, 'new type matches expected');
                     done();
                 });
@@ -1715,7 +2453,7 @@ describe('Page', function () {
                         dialog
                             .findElement(webdriver.By.className('linkChangeCont'))
                             .findElement(webdriver.By.tagName('input'))
-                            .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl)
+                            .sendKeys(0 /* CLEAR_ALL */, newUrl)
                             .then(function () {
                             return saveDialog(dialog);
                         })
@@ -1806,7 +2544,7 @@ describe('Page', function () {
                                             .then(function () {
                                             return element
                                                 .findElement(webdriver.By.tagName('input'))
-                                                .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
+                                                .sendKeys(0 /* CLEAR_ALL */, newUrl);
                                         }).then(function () {
                                             resolve(null);
                                         });
@@ -1889,7 +2627,7 @@ describe('Page', function () {
                                     .then(function () {
                                     return element
                                         .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(webdriver.Key.CONTROL, "a", webdriver.Key.NULL, newUrl);
+                                        .sendKeys(0 /* CLEAR_ALL */, newUrl);
                                 });
                             });
                         })
@@ -2135,7 +2873,7 @@ describe('Page', function () {
         });
     });
     describe('Errors', function () {
-        this.timeout(10000);
+        this.timeout(60000);
         this.slow(2000);
         it('should not have been thrown', function (done) {
             driver
@@ -2150,7 +2888,7 @@ describe('Page', function () {
 });
 describe('On-Page CRM', function () {
     this.slow(200);
-    this.timeout(2000);
+    this.timeout(10000);
     describe('Redraws on new CRM', function () {
         var CRM1 = [
             templates.getDefaultLinkNode({
@@ -2184,6 +2922,7 @@ describe('On-Page CRM', function () {
             var _this = this;
             this.slow(8000);
             assert.doesNotThrow(function () {
+                console.log(CRM1, JSON.stringify(CRM1));
                 resetSettings(_this, driver).then(function () {
                     driver
                         .executeScript(inlineFn(function () {
@@ -2192,14 +2931,15 @@ describe('On-Page CRM', function () {
                         return true;
                     }, {
                         crm: JSON.stringify(CRM1)
-                    })).then(function () {
+                    })).then(function (returned) {
+                        console.log('returned', returned);
                         done();
                     });
                 });
             }, 'setting up the CRM does not throw');
         });
         it('should be using the first CRM', function (done) {
-            this.timeout(10000);
+            this.timeout(60000);
             getContextMenu(driver).then(function (contextMenu) {
                 assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1.concat([{
                         name: undefined
@@ -2237,7 +2977,7 @@ describe('On-Page CRM', function () {
         });
     });
     describe('Links', function () {
-        this.timeout(2500);
+        this.timeout(60000);
         this.slow(500);
         var CRMNodes = [
             templates.getDefaultLinkNode({
@@ -2600,7 +3340,7 @@ describe('On-Page CRM', function () {
     describe('Scripts', function () {
         var _this = this;
         this.timeout(5000);
-        this.slow(2000);
+        this.slow(60000);
         var CRMNodes = [
             templates.getDefaultScriptNode({
                 name: getRandomString(25),
@@ -2944,7 +3684,7 @@ describe('On-Page CRM', function () {
         });
     });
     describe('Stylesheets', function () {
-        this.timeout(5000);
+        this.timeout(60000);
         this.slow(2000);
         var CRMNodes = [
             templates.getDefaultStylesheetNode({
@@ -2954,7 +3694,7 @@ describe('On-Page CRM', function () {
                     toggle: true,
                     defaultOn: false,
                     launchMode: 0 /* RUN_ON_CLICKING */,
-                    stylesheet: '#stylesheetTestDummy1 { width: 50px; height :50px; } /*1*/'
+                    stylesheet: '#stylesheetTestDummy1 { width: 50px; height :50px; }'
                 }
             }),
             templates.getDefaultStylesheetNode({
@@ -2964,7 +3704,7 @@ describe('On-Page CRM', function () {
                     toggle: true,
                     defaultOn: true,
                     launchMode: 0 /* RUN_ON_CLICKING */,
-                    stylesheet: '#stylesheetTestDummy2 { width: 50px; height :50px; }/*2*/'
+                    stylesheet: '#stylesheetTestDummy2 { width: 50px; height :50px; }'
                 }
             }),
             templates.getDefaultStylesheetNode({
@@ -2972,7 +3712,7 @@ describe('On-Page CRM', function () {
                 id: getRandomId(),
                 value: {
                     launchMode: 1 /* ALWAYS_RUN */,
-                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*3*/'
+                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
             templates.getDefaultStylesheetNode({
@@ -2980,7 +3720,7 @@ describe('On-Page CRM', function () {
                 id: getRandomId(),
                 value: {
                     launchMode: 0 /* RUN_ON_CLICKING */,
-                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*4*/'
+                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
             templates.getDefaultStylesheetNode({
@@ -2994,7 +3734,7 @@ describe('On-Page CRM', function () {
                 ],
                 value: {
                     launchMode: 2 /* RUN_ON_SPECIFIED */,
-                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*5*/'
+                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
             templates.getDefaultStylesheetNode({
@@ -3008,7 +3748,7 @@ describe('On-Page CRM', function () {
                 ],
                 value: {
                     launchMode: 3 /* SHOW_ON_SPECIFIED */,
-                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*6*/'
+                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
             templates.getDefaultStylesheetNode({
@@ -3016,7 +3756,7 @@ describe('On-Page CRM', function () {
                 id: getRandomId(),
                 value: {
                     launchMode: 4 /* DISABLED */,
-                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }/*7*/'
+                    stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             })
         ];
@@ -3262,7 +4002,7 @@ describe('On-Page CRM', function () {
             })).then(function () {
                 return wait(driver, 100);
             }).then(function () {
-                return driver.findElement(webdriver.By.id('stylesheetTestDummy'));
+                return findElement(driver, webdriver.By.id('stylesheetTestDummy'));
             }).then(function (dummy) {
                 return dummy.getSize();
             }).then(function (dimensions) {
@@ -3286,9 +4026,9 @@ describe('On-Page CRM', function () {
                 })).then(function () {
                     return wait(driver, 50);
                 }).then(function () {
-                    return webdriver.promise.all([
-                        driver.findElement(webdriver.By.id('stylesheetTestDummy1')),
-                        driver.findElement(webdriver.By.id('stylesheetTestDummy2'))
+                    return FoundElementPromise.all([
+                        findElement(driver, webdriver.By.id('stylesheetTestDummy1')),
+                        findElement(driver, webdriver.By.id('stylesheetTestDummy2'))
                     ]);
                 }).then(function (results) {
                     wait(driver, 150).then(function () {
