@@ -1044,7 +1044,7 @@ function findElement(driver, by) {
                 for (var i = 0; i < keys.length; i++) {
                     if (keys[i].slice(0, 2) === '__' &&
                         keys[i].slice(-2) === '__' &&
-                        isElement(el[keys[i]])) {
+                        isElement(elContainer[keys[i]])) {
                         return keys[i];
                     }
                 }
