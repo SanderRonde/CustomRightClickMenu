@@ -11,9 +11,9 @@ echo "Starting unit tests";
 mocha test/test.js
 echo "Finished unit tests";
 
-echo "Starting UI tests in parallel";
-node test/parallelTest.js
-echo "Finished UI tests in parallel";
+# echo "Starting UI tests in parallel";
+# node test/parallelTest.js
+# echo "Finished UI tests in parallel";
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
   echo "Changing branches";
