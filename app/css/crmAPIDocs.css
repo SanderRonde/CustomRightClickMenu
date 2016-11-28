@@ -250,3 +250,8 @@ a:focus::before {
 .docIndexEdge {
 	width: 100%;
 }
+
+#menuToggler {
+	height: 30px;
+	width: 30px;
+}
