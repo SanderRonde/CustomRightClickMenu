@@ -43,8 +43,6 @@ interface CRMTrigger {
 	url: string;
 	/**
 	 * If true, does NOT run on given site
-	 *
-	 * @type {boolean}
 	 */
 	not: boolean;
 }
@@ -53,31 +51,72 @@ type CRMTriggers = Array<CRMTrigger>;
 
 interface CRMLibrary {
 	name: string;
+	url?: string;
 }
 
 type MetaTags = { [key: string]: Array<string|number> };
 
 type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
 
-interface SafeCRMBaseNode {
+interface MadeSafeNode {
 	id: number;
+	path: Array<number>;
+	type: NodeType;
+	name: string;
+	children: SafeCRM|void;
+	linkVal: LinkVal|void;
+	menuVal: CRMTree|void;
+	scriptVal: ScriptVal|void;
+	stylesheetVal: StylesheetVal|void;
+	nodeInfo: CRMNodeInfo;
+	triggers: CRMTriggers;
+	onContentTypes: CRMContentTypes;
+	showOnSpecified?: boolean;
+	value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
+}
+
+
+type SafeKeys = keyof MadeSafeNode;
+
+type SafeNode<T extends MadeSafeNode> = Pick<T, SafeKeys>;
+
+type SetPreviousVals<T extends ScriptNode> = {
+	[P in keyof T]: number;
+};
+
+interface CRMBaseNode {
+	storage: {
+		[key: string]: any;
+		[key: number]: any;
+	};
 	index?: number;
+	isLocal: boolean;
+	permissions: Array<CRMPermission>;
+	children: CRMTree|SafeCRM|void;
+	id: number;
 	path: Array<number>;
 	name: string;
 	type: NodeType;
 	nodeInfo: CRMNodeInfo;
-	storage: any;
+	showOnSpecified?: boolean;
 	onContentTypes: CRMContentTypes;
-	permissions: Array<CRMPermission>;
 	triggers: CRMTriggers;
-	value?: any;
+	value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
+	linkVal: LinkVal|void;
+	menuVal: CRMTree|void;
+	scriptVal: ScriptVal|void;
+	stylesheetVal: StylesheetVal|void;
 }
 
-interface CRMBaseNode extends SafeCRMBaseNode {
-	index?: number;
-	isLocal?: boolean;
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+interface NonSafeBaseNodeBase extends CRMBaseNode {
+	children: CRMTree|void;
 }
+
+interface SafeBaseNodeBase extends CRMBaseNode {
+	children: SafeCRM|void;
+}
+
+type SafeCRMBaseNode = SafeNode<SafeBaseNodeBase>;
 
 interface ScriptVal {
 	launchMode: CRMLaunchModes;
@@ -104,151 +143,74 @@ type LinkVal = Array<LinkNodeLink>
 
 interface PassiveCRMNode extends CRMBaseNode {
 	showOnSpecified: boolean;
-	isLocal: boolean;
-	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+	children: CRMTree|SafeCRM|void;
 }
 
-interface ScriptNode extends CRMBaseNode {
-	type: NodeType;
+interface ScriptNode extends NonSafeBaseNodeBase {
+	type: 'script';
+	children: void;
 	value: ScriptVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	stylesheetVal?: StylesheetVal;
+	menuVal: CRMTree|void;
+	linkVal: LinkVal|void;
+	stylesheetVal: StylesheetVal|void;
+	scriptVal: void;
 }
 
-interface StylesheetNode extends CRMBaseNode {
-	type: NodeType;
+interface StylesheetNode extends NonSafeBaseNodeBase {
+	type: 'stylesheet';
+	children: void;
 	value: StylesheetVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
+	menuVal: CRMTree|void;
+	linkVal: LinkVal|void;
+	scriptVal: ScriptVal|void;
+	stylesheetVal: void;
 }
 
 interface LinkNode extends PassiveCRMNode {
+	type: 'link';
+	children: void;
 	value: LinkVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
+	menuVal: CRMTree|void;
+	scriptVal: ScriptVal|void;
+	stylesheetVal: StylesheetVal|void;
+	linkVal: void;
 }
 
-interface MenuNode extends PassiveCRMNode {
-	children: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
+interface MenuNodeBase extends PassiveCRMNode {
+	type: 'menu'
+	children: SafeCRM|CRMTree;
+	linkVal: LinkVal|void;
+	scriptVal: ScriptVal|void;
+	stylesheetVal: StylesheetVal|void;
+	menuVal: void;
+}
+
+interface SafeMenuNodeBase extends MenuNodeBase {
+	children: SafeCRM;
+}
+
+interface MenuNode extends MenuNodeBase {
+	children: CRMTree;
 }
 
 interface DividerNode extends PassiveCRMNode {
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
+	type: 'divider';
+	children: void;
+	menuVal: CRMTree|void;
+	linkVal: LinkVal|void;
+	scriptVal: ScriptVal|void;
+	stylesheetVal: StylesheetVal|void;
 }
 
-interface SafeScriptNode extends SafeCRMBaseNode {
-	type: NodeType;
-	value: ScriptVal;
-	menuVal?: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	stylesheetVal?: StylesheetVal;
-}
+type SafeMakableNodes = DividerNode | LinkNode | StylesheetNode | ScriptNode;
+type CRMNode = SafeMakableNodes | MenuNode;
+type CRMTree = Array<CRMNode>;
 
-interface SafeStylesheetNode extends SafeCRMBaseNode {
-	type: NodeType;
-	value: StylesheetVal;
-	menuVal?: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-}
-
-interface SafePassiveCRMNode extends SafeCRMBaseNode {
-	showOnSpecified: boolean;
-}
-
-interface SafeLinkNode extends SafePassiveCRMNode {
-	value: LinkVal;
-	menuVal?: Array<SafeCRMNode>;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface SafeMenuNode extends SafePassiveCRMNode {
-	children: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface SafeDividerNode extends SafePassiveCRMNode {
-	menuVal?: Array<SafeCRMNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
+type SafeScriptNode = SafeNode<ScriptNode>;
+type SafeStylesheetNode = SafeNode<StylesheetNode>;
+type SafeLinkNode = SafeNode<LinkNode>;
+type SafeMenuNode = SafeNode<SafeMenuNodeBase>;
+type SafeDividerNode = SafeNode<DividerNode>;
 
 type SafeCRMNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
-
-interface PartialCRMBaseNode {
-	showOnSpecified?: boolean;
-	isLocal?: boolean;
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	id?: number;
-	index?: number;
-	path?: Array<number>;
-	name?: string;
-	type?: NodeType;
-	nodeInfo?: CRMNodeInfo;
-	storage?: any;
-	onContentTypes?: CRMContentTypes;
-	permissions?: Array<CRMPermission|string>;
-	triggers?: CRMTriggers;
-	value?: any;
-}
-
-interface PartialPassiveCRMNode extends PartialCRMBaseNode {
-	index?: number;
-	isLocal?: boolean;
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-}
-
-interface PartialScriptNode extends PartialCRMBaseNode {
-	type?: NodeType;
-	value?: ScriptVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface PartialStylesheetNode extends PartialCRMBaseNode {
-	type?: NodeType;
-	value?: StylesheetVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-}
-
-interface PartialLinkNode extends PartialPassiveCRMNode {
-	value?: LinkVal;
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface PartialMenuNode extends PartialPassiveCRMNode {
-	children?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-interface PartialDividerNode extends PartialPassiveCRMNode {
-	menuVal?: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-	linkVal?: LinkVal;
-	scriptVal?: ScriptVal;
-	stylesheetVal?: StylesheetVal;
-}
-
-type PartialCRMNode = PartialDividerNode | PartialMenuNode | PartialLinkNode |
-	PartialStylesheetNode | PartialScriptNode;
-
-type CRM = Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+type SafeCRM = Array<SafeCRMNode>;
