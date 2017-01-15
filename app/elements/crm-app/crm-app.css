@@ -126,7 +126,8 @@ paper-ripple {
 }
 
 #fullscreenEditorHorizontal {
-	display:flex;
+	display: -webkit-flex;
+	display: flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;
 	-webkit-flex-grow: 100;
@@ -702,7 +703,7 @@ body.editingScript .cssTool {
 
 #crmTypeSelector {
 	margin-bottom: -1px;
-	display:flex;
+	display: flex;
 	-webkit-justify-content: center;
 	justify-content: center;
 	position: relative;
@@ -722,6 +723,7 @@ body.editingScript .cssTool {
 	width: 80px;
 	position: absolute;
 	background-repeat: round;
+	background-size: 100% 100%;
 }
 
 #crmEditPageTopTextContainer {

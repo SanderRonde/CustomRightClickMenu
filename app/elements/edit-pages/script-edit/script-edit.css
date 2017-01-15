@@ -1,7 +1,8 @@
 ﻿#scriptEditCont {
 	max-height: 100vh;
 	max-width: 100vw;
-	display:flex;
+	display: -webkit-flex;
+	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
 }

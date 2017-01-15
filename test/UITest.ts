@@ -165,17 +165,17 @@ switch (__filename.split('-').pop().split('.')[0]) {
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		};
-		capabilities = {
-			'browserName' : 'Chrome',
-			'os' : 'Windows',
-			'os_version' : '10',
-			'resolution' : '1920x1080',
-			'browserstack.user' : secrets.user,
-			'browserstack.key' : secrets.key,
-			'browserstack.local': true,
-			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-		};
+		// capabilities = {
+		// 	'browserName' : 'Chrome',
+		// 	'os' : 'Windows',
+		// 	'os_version' : '10',
+		// 	'resolution' : '1920x1080',
+		// 	'browserstack.user' : secrets.user,
+		// 	'browserstack.key' : secrets.key,
+		// 	'browserstack.local': true,
+		// 	'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+		// 	'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		// };
 		break;
 }
 
@@ -186,14 +186,10 @@ before('Driver connect', function(this: MochaFn, done: any) {
 		.withCapabilities(capabilities)
 		.build();
 
-	result.get('http://localhost:1234/test/UI/UITest.html#noClear').then(() => {;
+	result.get('http://localhost:1234/test/UI/UITest.html#noClear-test').then(() => {;
 		driver = result;
 		done();
 	});
-});
-
-after('Driver disconnect', () => {
-	driver.quit();
 });
 
 const sentIds = [];
@@ -224,7 +220,7 @@ const templates = {
 		}
 		return mainArray;
 	},
-	mergeObjects<T extends TU, TU>(mainObject: T, additions: TU): T {
+	mergeObjects<T extends U, U>(mainObject: T, additions: U): T {
 		for (let key in additions) {
 			if (additions.hasOwnProperty(key)) {
 				if (typeof additions[key] === 'object' &&
@@ -236,7 +232,7 @@ const templates = {
 						mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
 					}
 				} else {
-					mainObject[key] = additions[key];
+					mainObject[key] = additions[key] as any;
 				}
 			}
 		}
@@ -367,6 +363,43 @@ const templates = {
 	}
 };
 
+function findElementOnPage(selector: string): HTMLElement {
+	const list: Array<[string, number]> = JSON.parse(selector);
+	let el: Element = document.body;
+	for (let i = 0; i < list.length; i++) {
+		el = el.querySelectorAll(list[i][0])[list[i][1]];
+	}
+	return el as HTMLElement;
+}
+
+function checkIfListContainsElement(element: HTMLElement|Element): string {
+	const keys = Object.getOwnPropertyNames(element);
+	for (let i = 0; i < keys.length; i++) {
+		if (keys[i].slice(0, 2) === '__' && element[keys[i]] !== null) {
+			return keys[i];
+		}
+	}
+	throw new Error('Could not find element');
+}
+
+function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: any} = {},
+	...insertedFunctions: Array<Function>): string {
+		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
+			return (${fn.toString()})(arguments)`;
+		Object.getOwnPropertyNames(args).forEach((key) => {
+			if (typeof args[key] === 'string' && args[key].split('\n').length > 1) {
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
+					`' + ${JSON.stringify(args[key].split('\n'))}.join('\\n') + '`)
+			} else {
+				const arg = args[key];
+				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), arg !== undefined &&
+					arg !== null && typeof arg === 'string' ?
+						arg.replace(/\\\"/g, `\\\\\"`) : arg);
+			}
+		});
+		return str;
+	}
+
 function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise<SettingsStorage> {
 	return new webdriver.promise.Promise<SettingsStorage>((resolve) => { 
 		driver
@@ -379,13 +412,13 @@ function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise
 	}); 
 }
 
-function getCRM(driver: webdriver.WebDriver): webdriver.promise.Promise<CRM> {
-	return new webdriver.promise.Promise<CRM>((resolve) => { 
+function getCRM(driver: webdriver.WebDriver): webdriver.promise.Promise<CRMTree> {
+	return new webdriver.promise.Promise<CRMTree>((resolve) => { 
 		driver
 			.executeScript(inlineFn(() => {
 				return JSON.stringify(window.app.settings.crm);
 			})).then((str: string) => {
-				resolve(JSON.parse(str) as CRM);
+				resolve(JSON.parse(str) as CRMTree);
 			})
 	});
 }
@@ -500,7 +533,7 @@ function reloadPage(_this: MochaFn, driver: webdriver.WebDriver,
 		_this.timeout(60000);
 		const promise = new webdriver.promise.Promise<void>((resolve) => {
 			driver
-			.get('http://localhost:1234/test/UI/UITest.html#noClear')
+			.get('http://localhost:1234/test/UI/UITest.html#noClear-test')
 			.then(() => {
 				let timer = setInterval(() => {
 					driver.executeScript(inlineFn(() => {
@@ -552,8 +585,10 @@ function switchToTypeAndOpen(driver: webdriver.WebDriver, type: NodeType, done) 
 function openDialog(driver: webdriver.WebDriver, type: NodeType) {
 	return new webdriver.promise.Promise((resolve) => {
 		if (type === 'link') {
-			findElement(driver, webdriver.By.tagName('edit-crm-item')).click().then(() => {
-				setTimeout(resolve, 500);
+			driver.executeScript(inlineFn(() => {
+				(document.getElementsByTagName('edit-crm-item').item(0) as any).openEditPage();
+			})).then(() => {
+				wait(driver, 1000).then(resolve);
 			});
 		} else {
 			switchToTypeAndOpen(driver, type, resolve);
@@ -708,159 +743,96 @@ class FoundElementPromise {
 
 class FoundElement implements FoundElement {
 	constructor(public selector: string, public index: number,
-		public key: string, public driver: webdriver.WebDriver,
+		public driver: webdriver.WebDriver,
 		public parent: FoundElement = null) { }
 
 	click(): webdriver.promise.Promise<void> {
-		const selectorList = [[this.selector, this.index, this.key]];
+		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
 		while (currentElement.parent) {
 			currentElement = currentElement.parent;
-			selectorList.push([currentElement.selector, currentElement.index,
-				currentElement.key]);
+			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<void>((resolve) => {
 			this.driver.executeScript(inlineFn(() => {
-				const list: Array<[string, number, string]> = JSON.parse('REPLACE.selector');
-				let el: Element = document.body;
-				for (let i = 0; i < list.length; i++) {
-					el = el.querySelectorAll(list[i][0])[list[i][1]];
-					if (list[i][2] !== 'self') {
-						el = el[list[i][2]];
-					}
-				}
-				(el as HTMLElement).click();
+				findElementOnPage('REPLACE.selector').click();
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
-			})).then(() => {
+			}, findElementOnPage)).then(() => {
 				resolve(undefined);
 			});
 		});
 	}
 	findElement(by): FoundElementPromise {
 		const css = locatorToCss(by);
-		const selectorList = [[this.selector, this.index, this.key]];
+		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
 		while (currentElement.parent) {
 			currentElement = currentElement.parent;
-			selectorList.push([currentElement.selector, currentElement.index,
-				currentElement.key]);
+			selectorList.push([currentElement.selector, currentElement.index]);
 		}
-		return new FoundElementPromise((resolve) => {
+		return new FoundElementPromise((resolve, reject) => {
 			this.driver.executeScript(inlineFn(() => {
-				function isElement(obj) {
-					return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
-				}
+				const el = (findElementOnPage('REPLACE.selector') as Element)
+					.querySelector('REPLACE.css');
 
-				const list: Array<[string, number, string]> = JSON.parse('REPLACE.selector');
-				let el: Element = document.body;
-				for (let i = 0; i < list.length; i++) {
-					el = el.querySelectorAll(list[i][0])[list[i][1]];
-					if (list[i][2] !== 'self') {
-						el = el[list[i][2]];
-					}
+				if (el === null) {
+					return 'null';
 				}
-
-				el = el.querySelector('REPLACE.css');
-				if (isElement(el)) {
-					return 'self';
-				} else if (!el) {
-					return `${typeof el} - ${el.toString()}`;
-				} else {
-					const keys = Object.getOwnPropertyNames(el);
-					for (let i = 0; i < keys.length; i++) {
-						if (keys[i].slice(0,2) === '__' && 
-							keys[i].slice(-2) === '__'&&
-							isElement(el[keys[i]])) {
-								return keys[i];
-							}
-					}
-					return keys.map((key) => {
-						return `key: ${key}, type: ${el[key] && el[key].toString()}`;
-					});
-				}
+				return 'exists';
 			}, {
 				css: css,
 				selector: JSON.stringify(selectorList.reverse())
-			})).then((index: string) => {
-				console.log('indexes are', index);
-				resolve(new FoundElement(css, 0, index, driver, this));
+			}, findElementOnPage)).then((index: string) => {
+				if (index === 'null') {
+					reject(null);
+				} else {
+					resolve(new FoundElement(css, 0, driver, this));
+				}
 			});
 		});
 	}
 	findElements(by): webdriver.promise.Promise<Array<FoundElement>> {
 		const css = locatorToCss(by);
-		const selectorList = [[this.selector, this.index, this.key]];
+		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
 		while (currentElement.parent) {
 			currentElement = currentElement.parent;
-			selectorList.push([currentElement.selector, currentElement.index,
-				currentElement.key]);
+			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise((resolve) => {
 			this.driver.executeScript(inlineFn(() => {
-				function isElement(obj) {
-					return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
-				}
-
-				const list: Array<[string, number, string]> = JSON.parse('REPLACE.selector');
-				let el: Element = document.body;
-				for (let i = 0; i < list.length; i++) {
-					el = el.querySelectorAll(list[i][0])[list[i][1]];
-					if (list[i][2] !== 'self') {
-						el = el[list[i][2]];
-					}
-				}
-
-				const elList = el.querySelectorAll('REPLACE.css');
+				const elList = findElementOnPage('REPLACE.selector').querySelectorAll('REPLACE.css');
 				return JSON.stringify(Array.prototype.slice.apply(elList).map((element) => {
-					if (isElement(element)) {
-						return 'self';
-					} else {
-						const keys = Object.getOwnPropertyNames(element);
-						for (let i = 0; i < keys.length; i++) {
-							if (keys[i].charAt(0) === '_' && 
-								keys[i].charAt(1) === '_' &&
-								isElement(element[keys[i]])) {
-									return keys[i];
-								}
-						}
-						throw new Error('Could not find element');
+					if (element === null) {
+						return 'null';
 					}
+					return 'exists';
 				}));
 			}, {
 				css: css,
 				selector: JSON.stringify(selectorList.reverse())
-			})).then((indexes: string) => {
-				return new webdriver.promise.Promise((resolve) => {
-					resolve((JSON.parse(indexes) as Array<string>).map((key, index) => {
-						return new FoundElement(css, index, key, driver, this);
-					}));
-				});
+			}, findElementOnPage, checkIfListContainsElement)).then((indexes: string) => {
+				resolve((JSON.parse(indexes) as Array<string>).map((found, index) => {
+					if (found === 'exists') {
+						return new FoundElement(css, index, driver, this);
+					}
+					return null;
+				}).filter(item => item !== null));
 			});
 		});
 	}
 	isDisplayed(): webdriver.promise.Promise<boolean> {
 		return new webdriver.promise.Promise<boolean>((resolve) => {
-			const selectorList = [[this.selector, this.index, this.key]];
+			const selectorList = [[this.selector, this.index]];
 			let currentElement: FoundElement = this;
 			while (currentElement.parent) {
 				currentElement = currentElement.parent;
-				selectorList.push([currentElement.selector, currentElement.index,
-					currentElement.key]);
+				selectorList.push([currentElement.selector, currentElement.index]);
 			}
 
 			this.driver.executeScript(inlineFn(() => {
 				//From http://stackoverflow.com/a/18078554/2078892
-				const list: Array<[string, number, string]> = JSON.parse('REPLACE.selector');
-				let el: Element = document.body;
-				for (let i = 0; i < list.length; i++) {
-					el = el.querySelectorAll(list[i][0])[list[i][1]];
-					if (list[i][2] !== 'self') {
-						el = el[list[i][2]];
-					}
-				}
-
 				function getOverflowState(element: HTMLElement): string {
 					var region = element.getBoundingClientRect();
 					var ownerDoc = element.ownerDocument
@@ -1063,9 +1035,6 @@ class FoundElement implements FoundElement {
 							var strokeWidth = element.style.strokeWidth;
 							return !!strokeWidth && (parseInt(strokeWidth, 10) > 0);
 						}
-						// Zero-sized elements should still be considered to have positive size
-						// if they have a child element or text node with positive size, unless
-						// the element has an 'overflow' style of 'hidden'.
 						return element.style.overflow != 'hidden' &&
 							Array.prototype.slice.apply(e.childNodes).filter((n: HTMLElement) => {
 								const bcr = n.getBoundingClientRect();
@@ -1082,10 +1051,11 @@ class FoundElement implements FoundElement {
 						return false;
 					}
 				}
-				return isShown(el as HTMLElement);
+
+				return isShown(findElementOnPage('REPLACE.selector'));
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
-			})).then((isDisplayed: boolean) => {
+			}, findElementOnPage)).then((isDisplayed: boolean) => {
 				resolve(isDisplayed);
 			})
 		});
@@ -1101,30 +1071,17 @@ class FoundElement implements FoundElement {
 					instantResolve(arg);
 				});
 			})).then((keys: Array<string|InputKeys>) => {
-				const selectorList = [[this.selector, this.index, this.key]];
+				const selectorList = [[this.selector, this.index]];
 				let currentElement: FoundElement = this;
 				while (currentElement.parent) {
 					currentElement = currentElement.parent;
-					selectorList.push([currentElement.selector, currentElement.index,
-						currentElement.key]);
+					selectorList.push([currentElement.selector, currentElement.index]);
 				}
 				return new webdriver.promise.Promise((sentKeysResolve) => {
 					this.driver.executeScript(inlineFn(() => {
-						function isElement(obj) {
-							return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
-						}
-
-						const list: Array<[string, number, string]> = REPLACE.selector;
-						let el: Element = document.body;
-						for (let i = 0; i < list.length; i++) {
-							el = el.querySelectorAll(list[i][0])[list[i][1]];
-							if (list[i][2] !== 'self') {
-								el = el[list[i][2]];
-							}
-						}
-
+						const el = findElementOnPage('REPLACE.selector') as HTMLInputElement;
 						const keyPresses = REPLACE.keypresses as Array<string|InputKeys>;
-						let currentValue = (el as HTMLInputElement).value;
+						let currentValue = el.value;
 						for (let i = 0; i < keyPresses.length; i++) {
 							switch (keyPresses[i]) {
 								case InputKeys.CLEAR_ALL:
@@ -1138,11 +1095,11 @@ class FoundElement implements FoundElement {
 									break;
 							}
 						}
-						(el as HTMLInputElement).value = currentValue;
+						el.value = currentValue;
 					}, {
 						selector: JSON.stringify(selectorList.reverse()),
 						keypresses: JSON.stringify(keys)
-					})).then(() => {
+					}, findElementOnPage)).then(() => {
 						sentKeysResolve(undefined);
 					});
 				});
@@ -1152,53 +1109,36 @@ class FoundElement implements FoundElement {
 		})
 	}
 	getAttribute(attr: string): webdriver.promise.Promise<string> {
-		const selectorList = [[this.selector, this.index, this.key]];
+		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
 		while (currentElement.parent) {
 			currentElement = currentElement.parent;
-			selectorList.push([currentElement.selector, currentElement.index,
-				currentElement.key]);
+			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<string>((resolve) => {
 			this.driver.executeScript(inlineFn(() => {
-				const list: Array<[string, number, string]> = JSON.parse('REPLACE.selector');
-				let el: Element = document.body;
-				for (let i = 0; i < list.length; i++) {
-					el = el.querySelectorAll(list[i][0])[list[i][1]];
-					if (list[i][2] !== 'self') {
-						el = el[list[i][2]];
-					}
-				}
+				const el = findElementOnPage('REPLACE.selector');
 				const attr = el.getAttribute('REPLACE.attr');
 				return attr === undefined || attr === null ?
 					el['REPLACE.attr'] : attr;
 			}, {
 				selector: JSON.stringify(selectorList.reverse()),
 				attr: attr
-			})).then((value: string) => {
+			}, findElementOnPage)).then((value: string) => {
 				resolve(value);
 			});
 		});
 	}
 	getSize(): webdriver.promise.Promise<ClientRect> {
-		const selectorList = [[this.selector, this.index, this.key]];
+		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
 		while (currentElement.parent) {
 			currentElement = currentElement.parent;
-			selectorList.push([currentElement.selector, currentElement.index,
-				currentElement.key]);
+			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<ClientRect>((resolve) => {
 			this.driver.executeScript(inlineFn(() => {
-				const list: Array<[string, number, string]> = JSON.parse('REPLACE.selector');
-				let el: Element = document.body;
-				for (let i = 0; i < list.length; i++) {
-					el = el.querySelectorAll(list[i][0])[list[i][1]];
-					if (list[i][2] !== 'self') {
-						el = el[list[i][2]];
-					}
-				}
-				const bcr = el.getBoundingClientRect();
+				const bcr = findElementOnPage('REPLACE.selector').getBoundingClientRect();
 				return JSON.stringify({
 					bottom: bcr.bottom,
 					height: bcr.height,
@@ -1241,34 +1181,21 @@ function locatorToCss(by: webdriver.Locator): string {
 function findElement(driver: webdriver.WebDriver,
 					by: webdriver.Locator): FoundElementPromise {
 	const selector = locatorToCss(by);
-	return new FoundElementPromise((resolve) => {
+	return new FoundElementPromise((resolve, reject) => {
 		driver.executeScript(inlineFn(() => {
-			function isElement(obj) {
-				return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
-			}
-
 			const elContainer = document.querySelector('REPLACE.css');
-			if (isElement(elContainer)) {
-				return 'self';
-			} else if (!elContainer) {
-				return `${typeof elContainer} - ${elContainer.toString()}`;
-			} else {
-				const keys = Object.getOwnPropertyNames(elContainer);
-				for (let i = 0; i < keys.length; i++) {
-					if (keys[i].slice(0,2) === '__' && 
-						keys[i].slice(-2) === '__'&&
-						isElement(elContainer[keys[i]])) {
-							return keys[i];
-						}
-				}
-				return keys.map((key) => {
-					return `key: ${key}, type: ${elContainer[key] && elContainer[key].toString()}`;
-				});
+			if (elContainer === null) {
+				return 'null';
 			}
+			return 'exists';
 		}, {
 			css: selector
-		})).then((index: string) => {
-			resolve(new FoundElement(selector, 0, index, driver))
+		})).then((found: string) => {
+			if (found === 'exists') {
+				resolve(new FoundElement(selector, 0, driver))
+			} else {
+				reject(null);
+			}
 		});
 	});
 }
@@ -1277,51 +1204,25 @@ function findElements(driver: webdriver.WebDriver,
 					by: webdriver.Locator): webdriver.promise.Promise<Array<FoundElement>> {
 	const selector = locatorToCss(by);
 	return driver.executeScript(inlineFn(() => {
-		function isElement(obj) {
-			return obj && obj.toString && /\[object HTML(\w+)Element\]/.exec(obj.toString());
-		}
-
 		const elList = document.querySelectorAll('REPLACE.css');
 		return JSON.stringify(Array.prototype.slice.apply(elList).map((element) => {
-			if (isElement(element)) {
-				return 'self';
-			} else {
-				const keys = Object.getOwnPropertyNames(element);
-				for (let i = 0; i < keys.length; i++) {
-					if (keys[i].charAt(0) === '_' && 
-						keys[i].charAt(1) === '_' &&
-						isElement(element[keys[i]])) {
-							return keys[i];
-						}
-				}
-				throw new Error('Could not find element');
+			if (element === null) {
+				return 'null';
 			}
+			return 'exists';
 		}));
 	}, {
 		css: selector
 	})).then((indexes: string) => {
 		return new webdriver.promise.Promise((resolve) => {
-			resolve((JSON.parse(indexes) as Array<string>).map((key, index) => {
-				return new FoundElement(selector, index, key, driver);
-			}));
+			resolve((JSON.parse(indexes) as Array<string>).map((exists, index) => {
+				if (exists === 'exists') {
+					return new FoundElement(selector, index, driver);
+				}
+				return null;
+			}).filter(item => item !== null));
 		});
 	});
-}
-
-function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: any} = {}): string {
-	let str = `return (${fn.toString()})(arguments)`;
-	Object.getOwnPropertyNames(args).forEach((key) => {
-		if (typeof args[key] === 'string' && args[key].split('\n').length > 1) {
-			str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
-				`' + ${JSON.stringify(args[key].split('\n'))}.join('\\n') + '`)
-		} else {
-			const arg = args[key];
-			str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), arg !== undefined &&
-				arg !== null && typeof arg === 'string' ?
-					arg.replace(/\\\"/g, `\\\\\"`) : arg);
-		}
-	});
-	return str;
 }
 
 function getTypeName(index: number): string {
@@ -1369,7 +1270,7 @@ interface NameCheckingCRM {
 	children?: Array<NameCheckingCRM>;
 }
 
-function getCRMNames(crm: CRM): Array<NameCheckingCRM> {
+function getCRMNames(crm: CRMTree): Array<NameCheckingCRM> {
 	return crm.map((node) => {
 		return {
 			name: node.name,
@@ -1390,6 +1291,7 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 }
 
 describe('Page', function(this: MochaFn) {
+	/*
 	describe('Loading', function(this: MochaFn) {
 		this.timeout(5000);
 		this.slow(2000);
@@ -1407,7 +1309,7 @@ describe('Page', function(this: MochaFn) {
 	});
 	describe('CheckboxOptions', function(this: MochaFn) {
 		this.timeout(60000);
-		this.slow(10000);
+		this.slow(50000);
 		const checkboxDefaults = {
 			showOptions: true,
 			recoverUnsavedData: false,
@@ -1520,7 +1422,7 @@ describe('Page', function(this: MochaFn) {
 			const name = 'SomeName';
 			findElements(driver, webdriver.By.tagName('default-link')).then((elements) => {
 				elements[0].findElement(webdriver.By.tagName('paper-button')).then((button) => {
-					elements[0].findElement(webdriver.By.tagName('input')).sendKeys(
+					elements[0].sendKeys(
 						InputKeys.CLEAR_ALL, name
 					).then(() => {
 						return button.click();
@@ -1638,7 +1540,7 @@ describe('Page', function(this: MochaFn) {
 			findElements(driver, webdriver.By.tagName('default-link')).then((elements) => {
 				const index = elements.length - 1;
 				elements[index].findElement(webdriver.By.tagName('paper-button')).then((button) => {
-					elements[index].findElement(webdriver.By.tagName('input')).sendKeys(
+					elements[index].sendKeys(
 						InputKeys.CLEAR_ALL, name
 					).then(() => {
 						return button.click();
@@ -1788,7 +1690,6 @@ describe('Page', function(this: MochaFn) {
 			const toExecutePath = 'somefile.x.y.z';
 			const schemeName = defaultSchemeName;
 			findElement(driver, webdriver.By.id('URISchemeFilePath'))
-				.findElement(webdriver.By.tagName('input'))
 				.sendKeys(InputKeys.CLEAR_ALL, toExecutePath)
 				.then(() => {
 					testURIScheme(driver, done, toExecutePath, schemeName);
@@ -1798,7 +1699,6 @@ describe('Page', function(this: MochaFn) {
 			const toExecutePath = defaultToExecutePath;
 			const schemeName = getRandomString(25);
 			findElement(driver, webdriver.By.id('URISchemeSchemeName'))
-				.findElement(webdriver.By.tagName('input'))
 				.sendKeys(InputKeys.CLEAR_ALL, schemeName)
 				.then(() => {
 					testURIScheme(driver, done, toExecutePath, schemeName);
@@ -1809,11 +1709,9 @@ describe('Page', function(this: MochaFn) {
 				const toExecutePath = 'somefile.x.y.z';
 				const schemeName = getRandomString(25);
 				findElement(driver, webdriver.By.id('URISchemeFilePath'))
-					.findElement(webdriver.By.tagName('input'))
 					.sendKeys(InputKeys.CLEAR_ALL, toExecutePath)
 					.then(() => {
-						return findElement(driver, webdriver.By.id('URISchemeSchemeName'))
-							.findElement(webdriver.By.tagName('input'));
+						return findElement(driver, webdriver.By.id('URISchemeSchemeName'));
 					})
 					.then((element) => {
 						return element.sendKeys(InputKeys.CLEAR_ALL, schemeName)
@@ -1823,6 +1721,7 @@ describe('Page', function(this: MochaFn) {
 					});
 			});
 	});
+	*/
 
 	function testNameInput(type: NodeType) {
 		const defaultName = 'name';
@@ -1848,7 +1747,6 @@ describe('Page', function(this: MochaFn) {
 				}).then((dialog) => {
 					dialog
 						.findElement(webdriver.By.id('nameInput'))
-						.findElement(webdriver.By.tagName('input'))
 						.sendKeys(InputKeys.CLEAR_ALL, name)
 						.then(() => {
 							return cancelDialog(dialog);
@@ -1866,6 +1764,7 @@ describe('Page', function(this: MochaFn) {
 			});
 			const name = getRandomString(25);
 			it('should be editable when saved', function(done)  {
+				this.timeout(120000);
 				this.slow(12000);
 				before('Reset settings', function() {
 					return resetSettings(this, driver);
@@ -1873,17 +1772,19 @@ describe('Page', function(this: MochaFn) {
 
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
-				}).then(() =>{
+				}).then(() => {
 					return getDialog(driver, type);
 				}).then((dialog) => {
 					dialog
 						.findElement(webdriver.By.id('nameInput'))
-						.findElement(webdriver.By.tagName('input'))
 						.sendKeys(InputKeys.CLEAR_ALL, name)
-						.then(() => {
+						.then((res) => {
+							return wait(driver, 300);
+						}).then(() => {
 							return saveDialog(dialog);
-						})
-						.then(() => {
+						}).then(() => {
+							return wait(driver, 300);
+						}).then(() => {
 							return getCRM(driver);
 						})
 						.then((crm) => {
@@ -1899,8 +1800,7 @@ describe('Page', function(this: MochaFn) {
 				reloadPage(this, driver)
 					.then(() => {
 						return getCRM(driver);
-					})
-					.then((crm) => {
+					}).then((crm) => {
 						assert.strictEqual(crm[0].type, type, 
 							`type is ${type}`);
 						assert.strictEqual(crm[0].name, name, 
@@ -1922,58 +1822,42 @@ describe('Page', function(this: MochaFn) {
 
 			it('should not change when not saved', function(done)  {
 				resetSettings(this, driver).then(() => {
-					console.log(1);
 					return openDialog(driver, type);
 				}).then(() => {
-					console.log(2);
 					return getDialog(driver, type)
 				}).then((dialog) => {
-					console.log(3);
 					dialog
 						.findElement(webdriver.By.id('showOnSpecified'))
 						.click()
 						.then(() => {
-							console.log(4);
 							return dialog
 								.findElement(webdriver.By.id('addTrigger'))
 								.then((button) => {
-									console.log(5);
 									return button.click().then(() => {
-										console.log(6);
 										return button.click();
 									})
 								});
 						}).then(() => {
-							console.log(7);
 							setTimeout(() => {
-								console.log(8);
 								dialog
 									.findElements(webdriver.By.className('executionTrigger'))
 									.then((triggers) => {
-										console.log(9);
 										return triggers[0]
 											.findElement(webdriver.By.tagName('paper-checkbox'))
 											.click()
 											.then(() => {
-												console.log(10);
 												return triggers[0]
-													.findElement(webdriver.By.tagName('input'))
 													.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 											})
 											.then(() => {
-												console.log(11);
 												return triggers[1]
-													.findElement(webdriver.By.tagName('input'))
 													.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 											});
 									}).then(() => {
-										console.log(12);
 										return cancelDialog(dialog);
 									}).then(() => {
-										console.log(13);
 										return getCRM(driver);
 									}).then((crm) => {
-										console.log(14);
 										assert.lengthOf(crm[0].triggers, 1, 
 											'no triggers have been added');
 										assert.isFalse(crm[0].triggers[0].not, 
@@ -1989,52 +1873,39 @@ describe('Page', function(this: MochaFn) {
 			});
 			it('should be addable/editable when saved', (done) => {
 				resetSettings(this, driver).then(() => {
-					console.log(1);
 					return openDialog(driver, type);
 				}).then(() => {
-					console.log(2);
 					return getDialog(driver, type)
 				}).then((dialog) => {
-					console.log(3);
 					dialog
 						.findElement(webdriver.By.id('showOnSpecified'))
 						.click()
 						.then(() => {
-							console.log(4);
 							return dialog
 								.findElement(webdriver.By.id('addTrigger'))
 								.then((button) => {
-									console.log(5);
 									return button.click().then(() => {
-										console.log(6);
 										return button.click();
 									})
 								});
 						}).then(() => {
-							console.log(7);
 							setTimeout(() => {
-								console.log(8);
 								dialog
 									.findElements(webdriver.By.className('executionTrigger'))
 									.then((triggers) => {
-										console.log(9);
 										return triggers[0]
 											.findElement(webdriver.By.tagName('paper-checkbox'))
 											.click()
 											.then(() => {
-												console.log(10);
 												return triggers[1]
-													.findElement(webdriver.By.tagName('input'))
+													.findElement(webdriver.By.tagName('paper-input'))
 													.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 											});
 									}).then(() => {
-										console.log(11);
 										return saveDialog(dialog);
 									}).then(() => {
-										console.log(12);
 										return getCRM(driver);
 									}).then((crm) => {
-										console.log(13);
 										assert.lengthOf(crm[0].triggers, 3, 
 											'trigger has been added');
 										assert.isTrue(crm[0].triggers[0].not, 
@@ -2055,6 +1926,8 @@ describe('Page', function(this: MochaFn) {
 			});
 			it('should be preserved on page reload', function(done) {
 				reloadPage(this, driver).then(() => {
+					return wait(driver, 500);
+				}).then(() => {
 					return getCRM(driver);
 				}).then((crm) => {
 					assert.lengthOf(crm[0].triggers, 3, 
@@ -2249,10 +2122,10 @@ describe('Page', function(this: MochaFn) {
 
 	function testClickTriggers(type: NodeType) {
 		describe('Click Triggers', function(this: MochaFn) {
-			this.timeout(30000);
+			this.timeout(60000);
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function(this: MochaFn) {
-					this.slow(20000);
+					this.slow(30000);
 					it(`should be possible to select trigger option number ${triggerOptionIndex}`, function(done) {
 						resetSettings(this, driver).then(() => {
 							return openDialog(driver, type);
@@ -2371,7 +2244,6 @@ describe('Page', function(this: MochaFn) {
 													.click()
 													.then(() => {
 														return triggers[1]
-															.findElement(webdriver.By.tagName('input'))
 															.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 													});
 											}).then(() => {
@@ -2454,7 +2326,6 @@ describe('Page', function(this: MochaFn) {
 													.click()
 													.then(() => {
 														return triggers[1]
-															.findElement(webdriver.By.tagName('input'))
 															.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
 													});
 											}).then(() => {
@@ -2570,7 +2441,6 @@ describe('Page', function(this: MochaFn) {
 								.then(() => {
 									return dialog
 										.findElement(webdriver.By.id('editorThemeFontSizeInput'))
-										.findElement(webdriver.By.tagName('input'))
 										.sendKeys(InputKeys.BACK_SPACE,
 											InputKeys.BACK_SPACE,
 											InputKeys.BACK_SPACE,
@@ -2662,7 +2532,6 @@ describe('Page', function(this: MochaFn) {
 						.then(() => {
 							return dialog
 								.findElement(webdriver.By.id('editorTabSizeInput'))
-								.findElement(webdriver.By.tagName('input'))
 								.sendKeys(InputKeys.BACK_SPACE,
 									InputKeys.BACK_SPACE, newTabSize)
 								.then(() => {
@@ -2699,6 +2568,7 @@ describe('Page', function(this: MochaFn) {
 		});
 		this.timeout(60000);
 
+		/*
 		describe('Type Switching', function(this: MochaFn) {
 
 			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
@@ -2786,6 +2656,8 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 		});
+		*/
+		/*
 		describe('Link Dialog', function(this: MochaFn) {
 			const type: NodeType = 'link';
 
@@ -2797,7 +2669,7 @@ describe('Page', function(this: MochaFn) {
 			testNameInput(type);
 			testVisibilityTriggers(type);
 			testContentTypes(type);
-			
+
 			describe('Links', function(this: MochaFn) {
 				this.slow(22500);
 
@@ -2837,7 +2709,7 @@ describe('Page', function(this: MochaFn) {
 					}).then((dialog) => {
 						dialog
 							.findElement(webdriver.By.className('linkChangeCont'))
-							.findElement(webdriver.By.tagName('input'))
+							.findElement(webdriver.By.tagName('paper-input'))
 							.sendKeys(InputKeys.CLEAR_ALL, newUrl)
 							.then(() => {
 								return saveDialog(dialog);
@@ -2920,7 +2792,7 @@ describe('Page', function(this: MochaFn) {
 							})
 							.then(() => {
 								return dialog
-									.findElements(webdriver.By.className('linkChangeCont'))
+									.findElements(webdriver.By.className('linkChangeCont'));
 							})
 							.then((elements) => {
 								return forEachPromise(elements, (element) => {
@@ -2931,7 +2803,7 @@ describe('Page', function(this: MochaFn) {
 												.click()
 												.then(() => {
 													return element
-														.findElement(webdriver.By.tagName('input'))
+														.findElement(webdriver.By.tagName('paper-input'))
 														.sendKeys(InputKeys.CLEAR_ALL, newUrl);
 												}).then(() => {
 													resolve(null);
@@ -3021,7 +2893,6 @@ describe('Page', function(this: MochaFn) {
 										.click()
 										.then(() => {
 											return element
-												.findElement(webdriver.By.tagName('input'))
 												.sendKeys(InputKeys.CLEAR_ALL, newUrl);
 										})
 								});
@@ -3043,9 +2914,9 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		describe('Divider Dialog', function(this: MochaFn) {
-			const type: NodeType = 'link';
+			const type: NodeType = 'divider';
 
-			this.timeout(30000);
+			this.timeout(60000);
 			before('Reset settings', function() {
 				return resetSettings(this, driver);
 			});
@@ -3057,7 +2928,7 @@ describe('Page', function(this: MochaFn) {
 		describe('Menu Dialog', function(this: MochaFn) {
 			const type: NodeType = 'menu';
 
-			this.timeout(30000);
+			this.timeout(60000);
 			before('Reset settings', function() {
 				return resetSettings(this, driver);
 			});
@@ -3066,19 +2937,25 @@ describe('Page', function(this: MochaFn) {
 			testVisibilityTriggers(type);
 			testContentTypes(type);
 		});
+		*/
 		describe('Stylesheet Dialog', function(this: MochaFn) {
 			const type: NodeType = 'stylesheet';
 
-			this.timeout(30000);
+			this.timeout(60000);
 			this.slow(12000);
 			before('Reset settings', function() {
 				return resetSettings(this, driver);
 			});
 
+			/*
 			testNameInput(type);
 			testContentTypes(type);
+			*/
 			testClickTriggers(type);
+			/*
+			*/
 
+			/*
 			describe('Toggling', function(this: MochaFn) {
 				it('should be possible to toggle on', (done) => {
 					resetSettings(this, driver).then(() => {
@@ -3255,11 +3132,13 @@ describe('Page', function(this: MochaFn) {
 					testEditorSettings(type);
 				});
 			});
+			*/
 		});
+		/*
 		describe('Script Dialog', function(this: MochaFn) {
 			const type: NodeType = 'script';
 
-			this.timeout(30000);
+			this.timeout(60000);
 			this.slow(12000);
 			before('Reset settings', function() {
 				return resetSettings(this, driver);
@@ -3275,6 +3154,7 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 		});
+		*/
 	});
 	describe('Errors', function(this: MochaFn) {
 		this.timeout(60000);
@@ -3293,6 +3173,11 @@ describe('Page', function(this: MochaFn) {
 	});
 });
 
+after('Driver disconnect', () => {
+	driver.quit();
+});
+
+/*
 describe('On-Page CRM', function(this: MochaFn) {
 	this.slow(200);
 	this.timeout(10000);
@@ -3311,6 +3196,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				name: getRandomString(25),
 				id: getRandomId()
 			})
+		
 		];
 		const CRM2 = [
 			templates.getDefaultLinkNode({
@@ -4632,3 +4518,4 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 	});
 });
+*/

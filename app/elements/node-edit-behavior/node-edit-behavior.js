@@ -108,8 +108,8 @@
 		window.crmEditPage.animateOut();
 	},
 
-	save: function (resultStorage) {
-		if (resultStorage && Object.prototype.toString.apply(resultStorage).indexOf('CustomEvent') > -1) {
+	save: function (event, resultStorage) {
+		if (resultStorage) {
 			resultStorage = null;
 		}
 		var usesDefaultStorage = !resultStorage;
@@ -125,6 +125,7 @@
 		window.crmEditPage.animateOut();
 
 		var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
+		newSettings.name = this.$.nameInput.value;
 		itemInEditPage.name = newSettings.name;
 
 		if (!newSettings.onContentTypes[window.app.crmType]) {

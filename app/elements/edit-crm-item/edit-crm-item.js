@@ -130,6 +130,7 @@ Polymer({
 	},
 
 	ready: function () {
+		var _this = this;
 		this.classList.add('id' + this.item.id);
 		if (this.classList[0] !== 'wait') {
 			this.itemIndex = this.index;
@@ -148,6 +149,30 @@ Polymer({
 					this.onDeselect(true, true);
 				}
 			}
+		}
+		if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
+			this.$.typeSwitcher.addEventListener('mouseenter', function() {
+				_this.typeIndicatorMouseOver.apply(_this, []);
+			});
+			this.$.typeSwitcher.addEventListener('mouseleave', function() {
+				_this.typeIndicatorMouseLeave.apply(_this, []);
+			});
+		} else {
+			var hoveringTypeSwitcher = false;
+			this.$.typeSwitcher.addEventListener('mouseover', function(e) {
+				e.preventDefault();
+				e.stopPropagation();
+				if (!hoveringTypeSwitcher) {
+					hoveringTypeSwitcher = true;
+					_this.typeIndicatorMouseOver.apply(_this, []);
+				}
+			});
+			document.body.addEventListener('mouseover', function() {
+				if (hoveringTypeSwitcher) {
+					hoveringTypeSwitcher = false;
+					_this.typeIndicatorMouseLeave.apply(_this, []);
+				}
+			});
 		}
 	},
 
@@ -429,5 +454,4 @@ Polymer({
 	}
 
 	//#endregion
-
 });

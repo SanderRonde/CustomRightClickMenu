@@ -454,7 +454,7 @@ span.CodeMirror-selectedtext { background: none; }
 }
 
 .codeMirrorSearchDialogSearchCont {
-  display: -webkit-flex;
+	display: -webkit-flex;
 	display: flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;
@@ -474,7 +474,7 @@ span.CodeMirror-selectedtext { background: none; }
 	}
 
 .codeMirrorSearchDialogButtons, .codeMirrorSearchDialogReplaceButtons {
-  display: -webkit-flex;
+	display: -webkit-flex;
 	display: flex;
 	-webkit-flex-direction: row;
 	flex-direction: row;

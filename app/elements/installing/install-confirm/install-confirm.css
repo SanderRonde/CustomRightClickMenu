@@ -17,7 +17,8 @@
 
 #scriptInfo {
 	padding: 20px;
-	display:flex;
+	display: -webkit-flex;
+	display: flex;
 	padding-bottom:0;
 }
 
@@ -36,7 +37,8 @@
 .infoData {
 	font-size: 150%;
 	margin-bottom:15px;
-	display:flex;
+	display: -webkit-flex;
+	display: flex;
 }
 
 html {

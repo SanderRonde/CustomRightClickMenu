@@ -214,7 +214,7 @@
 	getExportData: function () {
 		$('stylesheet-edit #exportMenu paper-menu')[0].selected = 0;
 		var settings = {};
-		this.save(settings);
+		this.save(null, settings);
 		return settings;
 	},
 

@@ -16,13 +16,18 @@
 				};
 			}
 
+			var element = this;
 			var direction = 'forwards';
 			var returnVal = {
 				play: function() {
-					$(this).animate(properties[~~direction === 'forwards'],
+					$(element).animate(properties[~~(direction === 'forwards')],
 						(options && options.duration) || 500, function() {
 						if (returnVal.onfinish) {
-							returnVal.onfinish();
+							returnVal.onfinish.apply({
+								effect: {
+									target: element
+								}
+							});
 						}
 					});
 				},
@@ -33,7 +38,11 @@
 			};
 			$(this).animate(properties[1], options.duration, function() {
 				if (returnVal.onfinish) {
-					returnVal.onfinish();
+					returnVal.onfinish.apply({
+						effect: {
+							target: element
+						}
+					});
 				}
 			});
 			return returnVal;
@@ -2531,7 +2540,7 @@
 						document.documentElement.classList.remove('elementsLoading');
 
 						//Clear the annoying CSS mime type messages and the /deep/ warning
-						if (!window.lastError && location.hash !== '#noClear') {
+						if (!window.lastError && location.hash.indexOf('noClear') === -1) {
 							console.clear();
 						}
 

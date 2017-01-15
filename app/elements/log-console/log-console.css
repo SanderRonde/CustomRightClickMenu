@@ -70,7 +70,8 @@
 
 #filterCont {
 	z-index: 500;
-	display:flex;
+	display: -webkit-flex;
+	display: flex;
 	-webkit-justify-content: flex-start;
 	justify-content: flex-start;
 }

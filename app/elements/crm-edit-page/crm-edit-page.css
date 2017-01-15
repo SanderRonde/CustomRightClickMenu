@@ -20,6 +20,7 @@
 
 #verticalCenterer {
 	display: -webkit-flex;
+	display: -webkit-flex;
 	display: flex;
 	flex-direction: column;
 	-webkit-flex-direction: column;
@@ -34,7 +35,8 @@
     font-size: 125%;
     padding: 5px 8px;
 	pointer-events: all;
-	display:flex;
+	display: -webkit-flex;
+	display: flex;
     -webkit-justify-content: space-between;
     justify-content: space-between;
 }
