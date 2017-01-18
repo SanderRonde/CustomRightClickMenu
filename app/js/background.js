@@ -128,7 +128,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     if (options === void 0) { options = {}; }
                     var defaultNodeInfo = {
                         permissions: [],
-                        source: {}
+                        source: {
+                            author: 'anonymous'
+                        }
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
@@ -6977,4 +6979,3 @@ if (typeof module === 'undefined') {
         ' and type filter(id, [optional tabId]) to show only those messages.' +
         ' You can also visit the logging page for even better logging over at ', chrome.runtime.getURL('html/logging.html'));
 }
-//# sourceMappingURL=background.js.map

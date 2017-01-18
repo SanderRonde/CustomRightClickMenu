@@ -533,7 +533,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				getDefaultNodeInfo(options: any = {}): CRMNodeInfo {
 					const defaultNodeInfo: Partial<CRMNodeInfo> = {
 						permissions: [],
-						source: { }
+						source: { 
+							author: 'anonymous'
+						},
 					};
 
 					return this.mergeObjects(defaultNodeInfo, options);

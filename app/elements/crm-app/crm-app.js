@@ -2949,7 +2949,9 @@
 			getDefaultNodeInfo: function(options) {
 				const defaultNodeInfo = {
 					permissions: [],
-					source: { }
+					source: {
+						author: 'anonymous'
+					 }
 				};
 
 				return this.mergeObjects(defaultNodeInfo, options);
