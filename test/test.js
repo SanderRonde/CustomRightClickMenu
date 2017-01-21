@@ -2004,29 +2004,28 @@ describe('CRMAPI', () => {
 			window.XMLHttpRequest = XHRWrapper;
 		});
 		describe('register()', () => {
-			// it('should correctly register a library solely by its url and fetch it', (done) => {
-			// 	crmAPI.libraries.register('someLibrary', {
-			// 		url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
-			// 	}, (library) => {
-			// 		assert.isDefined(library, 'library is defined');
-			// 		assert.isObject(library, 'library is an object');
-			// 		assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
-			// 		done();
-			// 	});
-			// }).timeout(5000).slow(5000);
-			// it('should register a library by its code', (done) => {
-			// 	crmAPI.libraries.register('someOtherLibrary', {
-			// 		code: 'some code'
-			// 	}, (library) => {
-			// 		assert.isDefined(library, 'library is defined');
-			// 		assert.deepEqual(library, {
-			// 			name: 'someOtherLibrary',
-			// 			code: 'some code'
-			// 		});
-			// 		done();
-			// 	});
-			// });
-			//TODO
+			it('should correctly register a library solely by its url and fetch it', (done) => {
+				crmAPI.libraries.register('someLibrary', {
+					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+				}, (library) => {
+					assert.isDefined(library, 'library is defined');
+					assert.isObject(library, 'library is an object');
+					assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
+					done();
+				});
+			}).timeout(5000).slow(5000);
+			it('should register a library by its code', (done) => {
+				crmAPI.libraries.register('someOtherLibrary', {
+					code: 'some code'
+				}, (library) => {
+					assert.isDefined(library, 'library is defined');
+					assert.deepEqual(library, {
+						name: 'someOtherLibrary',
+						code: 'some code'
+					});
+					done();
+				});
+			});
 		});
 	});
 	describe('crm', () => {
