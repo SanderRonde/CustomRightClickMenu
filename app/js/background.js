@@ -129,7 +129,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     var defaultNodeInfo = {
                         permissions: [],
                         source: {
-                            author: 'anonymous'
+                            author: (globalObject.globals.storages.storageLocal &&
+                                globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
                         }
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
@@ -1685,8 +1686,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         _this.respondSuccess(globalObject.globals.crm.safeTree);
                     }
                     else {
-                        var x;
-                        x.children;
                         var lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
                             .safeTree, false);
                         _this.respondSuccess(lookedUp);
@@ -2022,25 +2021,41 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         var matchPatterns = [];
                         globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
                         if ((node.type === 'script' || node.type === 'stylesheet') &&
-                            node.value.launchMode !== 3 /* SHOW_ON_SPECIFIED */) {
+                            node.value.launchMode === 2 /* RUN_ON_SPECIFIED */) {
+                            for (var i = 0; i < triggers.length; i++) {
+                                var pattern = URLParsing.validatePatternUrl(triggers[i].url);
+                                if (!pattern) {
+                                    _this.respondSuccess('Triggers don\'t match URL scheme');
+                                    return false;
+                                }
+                            }
+                        }
+                        else {
+                            var isShowOnSpecified = ((node.type === 'script' || node.type === 'stylesheet') &&
+                                node.value.launchMode === 2 /* RUN_ON_SPECIFIED */);
                             for (var i = 0; i < triggers.length; i++) {
                                 if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
                                     _this.respondError('Triggers don\'t match URL scheme');
                                     return false;
                                 }
                                 triggers[i].url = URLParsing.prepareTrigger(triggers[i].url);
-                                if (triggers[i].not) {
-                                    globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push({
-                                        not: false,
-                                        url: triggers[i].url
-                                    });
-                                }
-                                else {
-                                    matchPatterns.push(triggers[i].url);
+                                if (isShowOnSpecified) {
+                                    if (triggers[i].not) {
+                                        globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push({
+                                            not: false,
+                                            url: triggers[i].url
+                                        });
+                                    }
+                                    else {
+                                        matchPatterns.push(triggers[i].url);
+                                    }
                                 }
                             }
                         }
                         node.triggers = triggers;
+                        if (matchPatterns.length === 0) {
+                            matchPatterns[0] = '<all_urls>';
+                        }
                         chrome.contextMenus.update(globalObject.globals.crmValues
                             .contextMenuIds[node.id], {
                             documentUrlPatterns: matchPatterns

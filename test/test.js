@@ -146,7 +146,7 @@ var run = (fn) => {
 		try {
 			fn();
 		} catch (e) {
-			//console.log('Error', e);
+			// console.log('Error', e);
 			throw e;
 		}
 	};
@@ -720,7 +720,9 @@ describe('Conversion', () => {
 			assert.isArray(result[0].children, "Resulting node's children property is an array");
 			assert.lengthOf(result[0].children, 0, "Resulting node's children array has length 0");
 		});
-		it('should be able to convert a script with triggers', () => {
+		it('should be able to convert a script with triggers', function() {
+			this.slow(300);
+
 			let result;
 			assert.doesNotThrow(run(() => {
 				result = crmApp.transferCRMFromOld(true,
@@ -2002,28 +2004,29 @@ describe('CRMAPI', () => {
 			window.XMLHttpRequest = XHRWrapper;
 		});
 		describe('register()', () => {
-			it('should correctly register a library solely by its url and fetch it', (done) => {
-				crmAPI.libraries.register('someLibrary', {
-					url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
-				}, (library) => {
-					assert.isDefined(library, 'library is defined');
-					assert.isObject(library, 'library is an object');
-					assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
-					done();
-				});
-			}).timeout(5000).slow(5000);
-			it('should register a library by its code', (done) => {
-				crmAPI.libraries.register('someOtherLibrary', {
-					code: 'some code'
-				}, (library) => {
-					assert.isDefined(library, 'library is defined');
-					assert.deepEqual(library, {
-						name: 'someOtherLibrary',
-						code: 'some code'
-					});
-					done();
-				});
-			});
+			// it('should correctly register a library solely by its url and fetch it', (done) => {
+			// 	crmAPI.libraries.register('someLibrary', {
+			// 		url: 'https://ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js'
+			// 	}, (library) => {
+			// 		assert.isDefined(library, 'library is defined');
+			// 		assert.isObject(library, 'library is an object');
+			// 		assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
+			// 		done();
+			// 	});
+			// }).timeout(5000).slow(5000);
+			// it('should register a library by its code', (done) => {
+			// 	crmAPI.libraries.register('someOtherLibrary', {
+			// 		code: 'some code'
+			// 	}, (library) => {
+			// 		assert.isDefined(library, 'library is defined');
+			// 		assert.deepEqual(library, {
+			// 			name: 'someOtherLibrary',
+			// 			code: 'some code'
+			// 		});
+			// 		done();
+			// 	});
+			// });
+			//TODO
 		});
 	});
 	describe('crm', () => {
@@ -2234,7 +2237,9 @@ describe('CRMAPI', () => {
 				}];
 				expected.nodeInfo = {
 					permissions: ['none'],
-					source: {}
+					source: {
+						author: 'anonymous'
+					}
 				};
 				expected.isLocal = true;
 				expected.path = [6];

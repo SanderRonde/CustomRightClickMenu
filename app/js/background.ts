@@ -534,7 +534,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const defaultNodeInfo: Partial<CRMNodeInfo> = {
 						permissions: [],
 						source: { 
-							author: 'anonymous'
+							author: (globalObject.globals.storages.storageLocal && 
+								globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
 						},
 					};
 
@@ -2265,8 +2266,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (pathToSearch.length === 0) {
 						_this.respondSuccess(globalObject.globals.crm.safeTree);
 					} else {
-						var x: SafeCRMNode;
-						x.children
 						const lookedUp = _this.lookup<SafeCRMNode>(pathToSearch, globalObject.globals.crm
 							.safeTree, false);
 						_this.respondSuccess(lookedUp);
@@ -2603,24 +2602,39 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						var matchPatterns = [];
 						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 						if ((node.type === 'script' || node.type === 'stylesheet') &&
-							node.value.launchMode !== CRMLaunchModes.SHOW_ON_SPECIFIED) {
+							node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
+							for (var i = 0; i < triggers.length; i++) {
+								const pattern = URLParsing.validatePatternUrl(triggers[i].url);
+								if (!pattern) {
+									_this.respondSuccess('Triggers don\'t match URL scheme');
+									return false;
+								}
+							}
+						} else {
+							const isShowOnSpecified = ((node.type === 'script' || node.type === 'stylesheet') &&
+								node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED);
 							for (var i = 0; i < triggers.length; i++) {
 								if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
 									_this.respondError('Triggers don\'t match URL scheme');
 									return false;
 								}
 								triggers[i].url = URLParsing.prepareTrigger(triggers[i].url);
-								if (triggers[i].not) {
-									globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push({
-										not: false,
-										url: triggers[i].url
-									});
-								} else {
-									matchPatterns.push(triggers[i].url);
+								if (isShowOnSpecified) {
+									if (triggers[i].not) {
+										globalObject.globals.crmValues.hideNodesOnPagesData[node.id].push({
+											not: false,
+											url: triggers[i].url
+										});
+									} else {
+										matchPatterns.push(triggers[i].url);
+									}
 								}
 							}
 						}
 						node.triggers = triggers;
+						if (matchPatterns.length === 0) {
+							matchPatterns[0] = '<all_urls>';
+						}
 						chrome.contextMenus.update(globalObject.globals.crmValues
 							.contextMenuIds[node.id], {
 								documentUrlPatterns: matchPatterns

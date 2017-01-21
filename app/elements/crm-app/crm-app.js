@@ -2992,7 +2992,7 @@
 				const defaultNodeInfo = {
 					permissions: [],
 					source: {
-						author: 'anonymous'
+						author: (this.parent && this.parent.storageLocal.authorName) || 'anonymous'
 					 }
 				};
 
@@ -3334,6 +3334,10 @@
 				};
 
 				return descriptions[permission];
+			},
+
+			get parent() {
+				return window.app;
 			}
 		},
 
