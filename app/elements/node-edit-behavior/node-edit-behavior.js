@@ -96,7 +96,7 @@
 		var triggers = [];
 		for (var i = 0; i < inputs.length; i++) {
 			triggers[i] = {
-				url: inputs[i].value,
+				url: inputs[i].querySelector('input').value,
 				not: inputs[i].parentNode.children[0].checked
 			};
 		}

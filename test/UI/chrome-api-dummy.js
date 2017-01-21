@@ -40,6 +40,9 @@ function storageGenerator(container) {
 			container === window.storageSync ? 
 				(window.storageSync = {}) : 
 				(window.storageLocal = {});
+			for (var key in container) {
+				delete container[key];
+			}
 			localStorage.removeItem('local');
 			localStorage.removeItem('sync');
 		}

@@ -1245,7 +1245,14 @@
 			$('.CodeMirror').each(function() {
 				this.CodeMirror.refresh();
 			});
-			var editor = (window.scriptEdit ? window.scriptEdit.editor : (window.stylesheetEdit ? window.stylesheetEdit.editor : null));
+			var editor = ((window.scriptEdit && window.scriptEdit.active) ? 
+				window.scriptEdit.editor :
+				((window.stylesheetEdit && window.stylesheetEdit.active) ? 
+					window.stylesheetEdit.editor :
+					null));
+			if (!editor) {
+				return;
+			}
 			window.colorFunction && window.colorFunction.func({
 				from: {
 					line: 0
@@ -2690,6 +2697,206 @@
 				'1.0';
 		},
 
+		setupStorages: function(resolve) {
+			var _this = this;
+			chrome.storage.local.get(function(storageLocal) {
+				if (_this.checkFirstTime(storageLocal)) {
+					resolve(function() {
+						function callback(items) {
+							_this.settings = items;
+							_this.settingsCopy = JSON.parse(JSON.stringify(items));
+							for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+								_this.onSettingsReadyCallbacks[i].callback.apply(_this
+									.onSettingsReadyCallbacks[i].thisElement, _this
+									.onSettingsReadyCallbacks[i].params);
+							}
+							_this.updateEditorZoom();
+							_this.orderNodesById(items.crm);
+							_this.pageDemo.create();
+							_this.buildNodePaths(items.crm, []);
+
+							if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
+								window.doc.CRMOnPage.setCheckboxDisabledValue(true);
+							}
+							window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
+								.CRMOnPage);
+						}
+
+						Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
+							setting.init(storageLocal);
+						});
+
+						_this.bindListeners();
+						delete storageLocal.nodeStorage;
+						if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
+							_this.requestPermissions(storageLocal.requestPermissions);
+						}
+						if (storageLocal.editing) {
+							setTimeout(function() {
+								//Check out if the code is actually different
+								var node = _this.nodesById[storageLocal.editing.id];
+								var nodeCurrentCode = (node.type === 'script' ? node.value.script :
+									node.value.stylesheet);
+								if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
+									_this.restoreUnsavedInstances(storageLocal.editing);
+								} else {
+									chrome.storage.local.set({
+										editing: null
+									});
+								}
+							}, 2500);
+						}
+						if (storageLocal.selectedCrmType !== undefined) {
+							_this.crmType = storageLocal.selectedCrmType;
+							_this.switchToIcons(storageLocal.selectedCrmType);
+						} else {
+							chrome.storage.local.set({
+								selectedCrmType: 0
+							});
+							_this.crmType = 0;
+							_this.switchToIcons(0);
+						}
+						if (storageLocal.jsLintGlobals) {
+							_this.jsLintGlobals = storageLocal.jsLintGlobals;
+						} else {
+							_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+							chrome.storage.local.set({
+								jsLintGlobals: _this.jsLintGlobals
+							});
+						}
+						if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
+							1) {
+							_this.globalExcludes = storageLocal.globalExcludes;
+						} else {
+							_this.globalExcludes = [''];
+							chrome.storage.local.set({
+								globalExcludes: _this.globalExcludes
+							});
+						}
+						if (storageLocal.latestId) {
+							_this.latestId = storageLocal.latestId;
+						} else {
+							_this.latestId = 0;
+						}
+						if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
+							window.setTimeout(function() {
+								window.doc.addedPermissionsTabContainer.tab = 0;
+								window.doc.addedPermissionsTabContainer.maxTabs =
+									storageLocal.addedPermissions.length;
+								window.doc.addedPermissionsTabRepeater.items =
+									storageLocal.addedPermissions;
+
+								if (storageLocal.addedPermissions.length === 1) {
+									window.doc.addedPermissionNextButton.querySelector('.next')
+										.style.display = 'none';	
+								} else {
+									window.doc.addedPermissionNextButton.querySelector('.close')
+										.style.display = 'none';
+								}
+								window.doc.addedPermissionPrevButton.style.display = 'none';
+								window.doc.addedPermissionsTabRepeater.render();
+								window.doc.addedPermissionsDialog.open();
+								chrome.storage.local.set({
+									addedPermissions: null
+								});
+							}, 2500);
+						}
+						if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
+							_this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(
+								storageLocal.updatedScripts[0]);
+							_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+							_this.$.scriptUpdatesToast.index = 0;
+							_this.$.scriptUpdatesToast.show();
+
+							if (storageLocal.updatedScripts.length > 1) {
+								_this.$.nextScriptUpdateButton.style.display = 'inline';
+							} else {
+								_this.$.nextScriptUpdateButton.style.display = 'none';
+							}
+							chrome.storage.local.set({
+								updatedScripts: []
+							});
+							storageLocal.updatedScript = [];
+						}
+
+						_this.storageLocal = storageLocal;
+						_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+						if (storageLocal.useStorageSync) {
+							//Parse the data before sending it to the callback
+							chrome.storage.sync.get(function(storageSync) {
+								var indexes = storageSync.indexes;
+								if (!indexes) {
+									chrome.storage.local.set({
+										useStorageSync: false
+									});
+									callback(storageLocal.settings);
+								} else {
+									var settingsJsonArray = [];
+									indexes.forEach(function(index) {
+										settingsJsonArray.push(storageSync[index]);
+									});
+									var jsonString = settingsJsonArray.join('');
+									_this.settingsJsonLength = jsonString.length;
+									var settings = JSON.parse(jsonString);
+									callback(settings);
+								}
+							});
+						} else {
+							//Send the "settings" object on the storage.local to the callback
+							_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
+							if (!storageLocal.settings) {
+								chrome.storage.local.set({
+									useStorageSync: true
+								});
+								chrome.storage.sync.get(function(storageSync) {
+									var indexes = storageSync.indexes;
+									var settingsJsonArray = [];
+									indexes.forEach(function(index) {
+										settingsJsonArray.push(storageSync[index]);
+									});
+									var jsonString = settingsJsonArray.join('');
+									_this.settingsJsonLength = jsonString.length;
+									var settings = JSON.parse(jsonString);
+									callback(settings);
+								});
+							} else {
+								callback(storageLocal.settings);
+							}
+						}
+					});
+				}
+			});
+		},
+
+		refreshPage: function() {
+			function onDone(fn) {
+				fn();
+			}
+
+			//Reset storages
+			this.setupStorages(onDone);
+
+			//Reset dialog
+			if (window.app.item) {
+				window[window.app.item.type + 'Edit'] && window[window.app.item.type + 'Edit'].cancel();
+			}
+			window.app.item = null;
+
+			//Reset checkboxes
+			this.initCheckboxes.apply(this, [window.app.storageLocal]);
+
+			//Reset default links and searchengines
+			Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function(link) {
+				link.reset();
+			});
+
+			//Reset regedit part
+			document.querySelector('#URISchemeFilePath').value = 'C:\\files\\my_file.exe';
+			document.querySelector('#URISchemeFilePath').querySelector('input').value = 'C:\\files\\my_file.exe';
+			document.querySelector('#URISchemeSchemeName').value = 'myscheme';
+			document.querySelector('#URISchemeSchemeName').querySelector('input').value = 'myscheme';
+		},
+
 		ready: function () {
 			var _this = this;
 			this.crm.parent = this;
@@ -2714,172 +2921,7 @@
 			});
 
 			this.setupLoadingBar(function(resolve) {
-				chrome.storage.local.get(function(storageLocal) {
-					if (_this.checkFirstTime(storageLocal)) {
-						resolve(function() {
-							function callback(items) {
-								_this.settings = items;
-								_this.settingsCopy = JSON.parse(JSON.stringify(items));
-								for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-									_this.onSettingsReadyCallbacks[i].callback.apply(_this
-										.onSettingsReadyCallbacks[i].thisElement, _this
-										.onSettingsReadyCallbacks[i].params);
-								}
-								_this.updateEditorZoom();
-								_this.orderNodesById(items.crm);
-								_this.pageDemo.create();
-								_this.buildNodePaths(items.crm, []);
-
-								if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
-									window.doc.CRMOnPage.setCheckboxDisabledValue(true);
-								}
-								window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
-									.CRMOnPage);
-							}
-
-							Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting) {
-								setting.init(storageLocal);
-							});
-
-							_this.bindListeners();
-							delete storageLocal.nodeStorage;
-							if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-								_this.requestPermissions(storageLocal.requestPermissions);
-							}
-							if (storageLocal.editing) {
-								setTimeout(function() {
-									//Check out if the code is actually different
-									var node = _this.nodesById[storageLocal.editing.id];
-									var nodeCurrentCode = (node.type === 'script' ? node.value.script :
-										node.value.stylesheet);
-									if (nodeCurrentCode.trim() !== storageLocal.editing.val.trim()) {
-										_this.restoreUnsavedInstances(storageLocal.editing);
-									} else {
-										chrome.storage.local.set({
-											editing: null
-										});
-									}
-								}, 2500);
-							}
-							if (storageLocal.selectedCrmType !== undefined) {
-								_this.crmType = storageLocal.selectedCrmType;
-								_this.switchToIcons(storageLocal.selectedCrmType);
-							} else {
-								chrome.storage.local.set({
-									selectedCrmType: 0
-								});
-								_this.crmType = 0;
-								_this.switchToIcons(0);
-							}
-							if (storageLocal.jsLintGlobals) {
-								_this.jsLintGlobals = storageLocal.jsLintGlobals;
-							} else {
-								_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-								chrome.storage.local.set({
-									jsLintGlobals: _this.jsLintGlobals
-								});
-							}
-							if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
-								1) {
-								_this.globalExcludes = storageLocal.globalExcludes;
-							} else {
-								_this.globalExcludes = [''];
-								chrome.storage.local.set({
-									globalExcludes: _this.globalExcludes
-								});
-							}
-							if (storageLocal.latestId) {
-								_this.latestId = storageLocal.latestId;
-							} else {
-								_this.latestId = 0;
-							}
-							if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
-								window.setTimeout(function() {
-									window.doc.addedPermissionsTabContainer.tab = 0;
-									window.doc.addedPermissionsTabContainer.maxTabs =
-										storageLocal.addedPermissions.length;
-									window.doc.addedPermissionsTabRepeater.items =
-										storageLocal.addedPermissions;
-
-									if (storageLocal.addedPermissions.length === 1) {
-										window.doc.addedPermissionNextButton.querySelector('.next')
-											.style.display = 'none';	
-									} else {
-										window.doc.addedPermissionNextButton.querySelector('.close')
-											.style.display = 'none';
-									}
-									window.doc.addedPermissionPrevButton.style.display = 'none';
-									window.doc.addedPermissionsTabRepeater.render();
-									window.doc.addedPermissionsDialog.open();
-									chrome.storage.local.set({
-										addedPermissions: null
-									});
-								}, 2500);
-							}
-							if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-								_this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(
-									storageLocal.updatedScripts[0]);
-								_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
-								_this.$.scriptUpdatesToast.index = 0;
-								_this.$.scriptUpdatesToast.show();
-
-								if (storageLocal.updatedScripts.length > 1) {
-									_this.$.nextScriptUpdateButton.style.display = 'inline';
-								} else {
-									_this.$.nextScriptUpdateButton.style.display = 'none';
-								}
-								chrome.storage.local.set({
-									updatedScripts: []
-								});
-								storageLocal.updatedScript = [];
-							}
-							if (storageLocal.useStorageSync) {
-								//Parse the data before sending it to the callback
-								chrome.storage.sync.get(function(storageSync) {
-									var indexes = storageSync.indexes;
-									if (!indexes) {
-										chrome.storage.local.set({
-											useStorageSync: false
-										});
-										callback(storageLocal.settings);
-									} else {
-										var settingsJsonArray = [];
-										indexes.forEach(function(index) {
-											settingsJsonArray.push(storageSync[index]);
-										});
-										var jsonString = settingsJsonArray.join('');
-										_this.settingsJsonLength = jsonString.length;
-										var settings = JSON.parse(jsonString);
-										callback(settings);
-									}
-								});
-							} else {
-								//Send the "settings" object on the storage.local to the callback
-								_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
-								if (!storageLocal.settings) {
-									chrome.storage.local.set({
-										useStorageSync: true
-									});
-									chrome.storage.sync.get(function(storageSync) {
-										var indexes = storageSync.indexes;
-										var settingsJsonArray = [];
-										indexes.forEach(function(index) {
-											settingsJsonArray.push(storageSync[index]);
-										});
-										var jsonString = settingsJsonArray.join('');
-										_this.settingsJsonLength = jsonString.length;
-										var settings = JSON.parse(jsonString);
-										callback(settings);
-									});
-								} else {
-									callback(storageLocal.settings);
-								}
-							}
-							_this.storageLocal = storageLocal;
-							_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
-						});
-					}
-				});
+				_this.setupStorages.apply(_this, [resolve]);
 			});
 
 			this.show = false;

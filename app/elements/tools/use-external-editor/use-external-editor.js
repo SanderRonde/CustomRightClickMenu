@@ -167,7 +167,7 @@ Polymer({
 		}
 		if (window.scriptEdit && window.scriptEdit.active) {
 			window.scriptEdit.reloadEditor();
-		} else {
+		} else if (window.stylesheetEdit && window.stylesheetEdit.active) {
 			window.stylesheetEdit.reloadEditor();
 		}
 	},

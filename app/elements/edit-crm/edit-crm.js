@@ -257,6 +257,7 @@ window.Polymer({
 			list.forEach(function(item, index) {
 				if ((item.type === 'menu' || (window.app.shadowStart && item.menuVal)) && !hidden[item.id]) {
 					lastMenu = index;
+					item.children = item.children || [];
 					if (item.children.length > 0) {
 						lastFilledMenu = index;
 					}

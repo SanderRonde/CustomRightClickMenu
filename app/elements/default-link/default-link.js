@@ -56,5 +56,9 @@
 			});
 		}
 		window.app.crm.add(newItem);
+	},
+
+	reset: function() {
+		this.querySelector('input').value = this.defaultName;
 	}
 });

@@ -325,11 +325,8 @@
 			console.log(column);
 			var columnCont = column.parentNode.parentNode;
 			var crmLength = window.app.editCRM.crm.length;
-			console.log(crmLength);
-			console.log(columnCont);
 			columnCont = $(columnCont).next()[0];
 
-			console.log(columnCont);
 			this.shadowColumns(columnCont, false);
 
 			window.app.shadowStart = column.index + 1;

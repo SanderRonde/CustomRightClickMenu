@@ -700,6 +700,9 @@
 	 * Reloads the editor completely (to apply new settings)
 	 */
 	reloadEditor: function (disable) {
+		if (!this.editor) {
+			return;
+		}
 		$(this.editor.display.wrapper).remove();
 		this.$.editorPlaceholder.style.display = 'flex';
 		this.$.editorPlaceholder.style.opacity = 1;
@@ -715,8 +718,7 @@
 
 		if (this.fullscreen) {
 			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.stylesheet, disable);
-		}
-		else {
+		} else {
 			this.loadEditor(this.$.editorCont, this.newSettings.value.stylesheet, disable);
 		}
 	},
@@ -763,13 +765,18 @@
 			'Editor zoom percentage:' +
 			'</div>').appendTo(settingsContainer);
 
-		$('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"></paper-input>').on('keypress change', function () {
-			var _this = this;
-			setTimeout(function () {
-				window.app.settings.editor.zoom = _this.value;
+		var zoomEl = $('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>');
+		zoomEl.appendTo(fontSize);
+		function updateZoomEl() {
+			setTimeout(function() {
+				window.app.settings.editor.zoom = zoomEl[0].querySelector('input').value;
 				window.app.upload();
 			}, 0);
-		}).appendTo(fontSize);
+		};
+		zoomEl.on('change', function() {
+			updateZoomEl();
+		});
+		this._updateZoomEl = updateZoomEl;
 
 		//The option to use tabs or spaces
 		var tabsOrSpaces = $('<div id="editorTabsOrSpacesSettingCont">' +
@@ -798,14 +805,18 @@
 			'</div>' +
 			'<br>').appendTo(settingsContainer);
 
-		//The main input for the size of tabs option
-		tabSize.find('input').change(function () {
-			var input = $(this);
-			setTimeout(function () {
-				window.app.settings.editor.tabSize = input.val();
+		function updateTabSizeEl() {
+			setTimeout(function() {
+				window.app.settings.editor.tabSize = tabSize.find('input')[0].value;
 				window.app.upload();
 			}, 0);
+		}
+
+		//The main input for the size of tabs option
+		tabSize.find('input').change(function() {
+			updateTabSizeEl();
 		});
+		this._updateTabSizeEl = updateTabSizeEl;
 	},
 
 	/*

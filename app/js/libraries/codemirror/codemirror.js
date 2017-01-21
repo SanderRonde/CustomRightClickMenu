@@ -7576,6 +7576,15 @@
 			return token;
 		}
 
+		function createTextNode(txt) {
+			try {
+				var content = document.createTextNode(txt);
+				return content;
+			} catch(e) {
+				return createTextNode(txt);
+			}
+		}
+
 		// Build up the DOM representation for a single token, and add it to
 		// the line map. Takes care to render special characters separately.
 		function buildToken(builder, text, style, startStyle, endStyle, title, css) {
@@ -7584,7 +7593,7 @@
 			var special = builder.cm.state.specialChars, mustWrap = false;
 			if (!special.test(text)) {
 				builder.col += text.length;
-				var content = document.createTextNode(displayText);
+				var content = createTextNode(displayText);
 				builder.map.push(builder.pos, builder.pos + text.length, content);
 				if (ie && ie_version < 9) mustWrap = true;
 				builder.pos += text.length;
