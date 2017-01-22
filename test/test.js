@@ -1082,6 +1082,7 @@ describe('CRMAPI', () => {
 					})
 					.replace(/\/\*.+\*\//g, ''))
 			},
+			openOptionsPage: function() { },
 			lastError: null
 		},
 		contextMenus: {
@@ -1205,6 +1206,7 @@ describe('CRMAPI', () => {
 			editing: null,
 			selectedCrmType: 0,
 			hideToolsRibbon: false,
+			isTransfer: true,
 			shrinkTitleRibbon: false,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
