@@ -884,10 +884,125 @@
 
 		#betaAnnouncementDialog {
 			width: 800px !important;
+			overflow: hidden;
 		}
 
 		#localStorageSettings {
 			opacity: 0;
+		}
+
+		#betaAnnouncementDialog #importSettings {
+			display: none;
+		}
+
+		#betaAnnouncementDialog.transferring #importSettings {
+			display: block;
+		}
+
+		#betaAnnouncementDialog.transferring #transferSettings {
+			display: none;
+		}
+
+		#dialogSlider {
+			display: flex;
+			display: -webkit-flex;
+			flex-direction: row;
+			justify-content: center;
+			width: 1550px;
+			overflow: hidden;
+			-webkit-transition: margin-left 300ms ease-in-out;
+			transition: margin-left 300ms ease-in-out;
+		}
+
+		#dialogSlider > div {
+			width: 750px;
+		}
+
+		#transferTxt {
+			margin-left: 50px;
+		}
+
+		#betaAnnouncementDialog.transferring #dialogSlider {
+			margin-left: -790px;
+		}
+
+		#checkmark {
+			-webkit-transform: rotate(45deg);
+			transform: rotate(45deg);
+			position: absolute;
+			top: 36px;
+			left: 24px;
+			width: 0;
+			height: 0;
+			border-style: solid;
+			border-top: none;
+			border-left: none;
+			border-right-width: 0;
+			border-bottom-width: 0;
+			border-color: white;
+			margin-left: 375px;
+			margin-top: 120px;
+		}
+
+		#betaAnnouncementDialog.completed #checkmark {
+			animation: checkmark-expand 140ms ease-out forwards;
+		}
+
+		@-webkit-keyframes checkmark-expand {
+			0% {
+				top: 36px;
+				left: 24px;
+				width: 0;
+				height: 0;
+				border-right-width: 6px;
+				border-bottom-width: 6px;
+			}
+			100% {
+				top: -4px;
+				left: 16px;
+				width: 20px;
+				height: 40px;
+				border-right-width: 6px;
+				border-bottom-width: 6px;
+			}
+		}
+
+		@keyframes checkmark-expand {
+			0% {
+				top: 36px;
+				left: 24px;
+				width: 0;
+				height: 0;
+				border-right-width: 6px;
+				border-bottom-width: 6px;
+			}
+			100% {
+				top: -4px;
+				left: 16px;
+				width: 20px;
+				height: 40px;
+				border-right-width: 6px;
+				border-bottom-width: 6px;
+			}
+		}
+
+		#importDoneCheckmark {
+			background-color: green;
+			position: absolute;
+			margin-top: 0;
+			padding: 0;
+			opacity: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 500;
+			-webkit-user-select: none;
+			pointer-events: none;
+			-webkit-transition: opacity 250ms ease-in-out;
+			transition: opacity 250ms ease-in-out;
+		}
+
+		#betaAnnouncementDialog.completed #importDoneCheckmark {
+			opacity: 1;
 		}
 	</style>
 
@@ -1262,23 +1377,33 @@
 	</center>
 
 	<center-element fullscreenoverlay id="betaAnnouncementCenterer">
-		<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" with-backdrop id="betaAnnouncementDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-			<br />
-			<h2>Custom Right-Click Menu 2.0 Beta</h2>
-			<div id="betaAnnouncementTxt">
-				I have been creating a new version of Custom Right-Click Menu for quite a while now and
-				it's nearing release. Because the extension has been rewritten from the ground up,
-				there may be quite a few bugs in the extension and I can't find them all by myself.
-				That's why I'm asking for your help. <br />
-				If you want to, you can join the beta and help improve the extension.
-				Your task is to simply use the extension and report any bugs you may find.
-				You can also suggest any features that you think are lacking.<br /><br />
-				To join simply click <a href="https://chrome.google.com/webstore/detail/fenehceojjegleckckhppcckanifnajg" target="_blank">here</a> to install the beta.
-				You might want to keep this tab open for installing the beta.<br/><br/>
-				If you have any questions/suggestions/issues, please email me at <a href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>
+		<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" with-backdrop id="betaAnnouncementDialog">
+			<div id="importDoneCheckmark">
+				<div id="checkmark"></div>
 			</div>
+			<br />
+			<h2>Custom Right-Click Menu Legacy</h2>
+			<div id="dialogSlider">
+				<div id="betaAnnouncementTxt">
+					Welcome to the legacy version of Custom Right-Click Menu. This version is intended for users who 
+					do not like the way the new version works/looks and would like to continue using this version instead.
+					If that is not the reason you downloaded this extension, I encourage you to check out 
+					<a href="https://chrome.google.com/webstore/detail/custom-right-click-menu/onnbmgmepodkilcbdodhfepllfmafmlj" target="_blank">version 2.0</a>.
+					If that is the reason you downloaded this extension, you will probably want to transfer your settings. 
+					To do this simply hit the "import" button below to get started. (You can always import using the import box in the settings if you want to do it later).
+				</div>
+				<div id="transferTxt">
+					In order to transfer your data you will first have to export it in the other instance of the extension.
+					Simply hit the "export" button and paste the result in the box below.<br><br>
+					<div id="importBoxCont">
+						<textarea id="importBox" rows="10" cols="100" label="paste settings here"></textarea>
+					</div>
+				</div>
+			</div>
+
 			<div class="buttons">
-				<paper-button id="copyMySettings">Copy Settings</paper-button>
+				<paper-button id="importSettings">Process</paper-button>
+				<paper-button id="transferSettings">Import</paper-button>
 				<paper-button id="closeBetaAnnouncement" dialog-dismiss>close</paper-button>
 			</div>
 		</paper-dialog>

@@ -218,8 +218,8 @@ document.getElementById("addsearchengines").onclick = function addsearchengines(
 }
 
 
-document.getElementById("importit").onclick = function importitems() {
-	var allthedata = document.getElementById("inputarea").value;
+function importData(callback, data) {
+	var allthedata = data || document.getElementById("inputarea").value;
 
 	var superarray = [];
 
@@ -246,7 +246,7 @@ document.getElementById("importit").onclick = function importitems() {
 			importvar++;
 		}
 
-		alert("done!");
+		callback();
 
 	}
 	else {
@@ -271,14 +271,20 @@ document.getElementById("importit").onclick = function importitems() {
 			danumberone++;
 		}
 
-		alert("done!");
+		callback();
 
 		localStorage.setItem("importstuff", allthatdatajwz);
 
-		window.location.reload();
-
+		window.setTimeout(function() {
+			window.location.reload();
+		}, 1000);
 	}
+}
 
+document.getElementById("importit").onclick = function() {
+	importData(function() {
+		alert('done!');
+	});
 }
 
 document.getElementById("bugsandsuggestions").onclick = function showorhidebugs() {
@@ -11104,34 +11110,26 @@ if (screen.width == "1440") {
 }
 
 
-document.getElementById('copyMySettings')
-	.addEventListener('click',
-		function () {
-			var lsSettings = document.getElementById('localStorageSettings');
-			lsSettings.innerText = JSON.stringify(localStorage);
+document.getElementById('transferSettings').addEventListener('click', function () {
+	document.getElementById('betaAnnouncementDialog').classList.add('transferring');
+});
 
-			var snipRange = document.createRange();
-			snipRange.selectNodeContents(lsSettings);
-			var selection = window.getSelection();
-			selection.removeAllRanges();
-			selection.addRange(snipRange);
-			try {
-				console.log('execced');
-				document.execCommand('copy');
-			} catch (err) {
-				// Copy command is not available
-				alert('Could not copy settings');
-			}
-			// Return to the copy button after a second.
-			selection.removeAllRanges();
-		});
+document.getElementById('importSettings').addEventListener('click', function() {
+	var data = document.getElementById('importBox').value;
+	importData(function() {
+		document.getElementById('betaAnnouncementDialog').classList.add('completed');
+		window.setTimeout(function() {
+			window.location.reload();
+		}, 1000);
+	}, data);
+})
 
 var isBetaURL = location.href.indexOf('beta') > -1;
 if (!localStorage.getItem('noBetaAnnouncement') || isBetaURL) {
 	window.setTimeout(function() {
 		document.getElementById('betaAnnouncementDialog').open();
 		localStorage.setItem('noBetaAnnouncement', true);
-	}, (isBetaURL ? 1000 : 3000));
+	}, 1000);
 }
 
 
