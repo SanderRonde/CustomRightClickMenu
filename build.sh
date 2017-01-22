@@ -12,13 +12,13 @@ mocha test/test.js
 echo "Finished unit tests";
 
 echo "Starting UI tests for old browser";
-node test/UITest.js
+mocha test/UITest.js
 echo "Finished UI test for old browser";
 
 cp test/UITest.js test/UITest-1.js
 
 echo "Starting UI tests for new browser";
-node test/UITest-1.js
+mocha test/UITest-1.js
 echo "Finished UI test for new browser";
 
 rm test/UITest-1.js
