@@ -2605,7 +2605,7 @@ describe('On-Page CRM', function () {
     describe('Links', function () {
         var _this = this;
         this.slow(150);
-        this.timeout(200);
+        this.timeout(500);
         var CRMNodes = [
             templates.getDefaultLinkNode({
                 name: getRandomString(25),

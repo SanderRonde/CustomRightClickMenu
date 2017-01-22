@@ -2993,7 +2993,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 	});
 	describe('Links', function(this: MochaFn) {
 		this.slow(150);
-		this.timeout(200);
+		this.timeout(500);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
