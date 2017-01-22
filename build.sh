@@ -3,28 +3,28 @@ set -e
 
 http-server -p 1234 . -s &
 
-echo "Starting build tests";
+echo "Build tests" && echo -en "travis_fold:start:build_tests\\r"
 grunt testBuild
-echo "Finished build tests";
+echo -en "travis_fold:end:build_tests\\r"
 
-echo "Starting unit tests";
+echo "Unit tests" && echo -en "travis_fold:start:unit_tests\\r"
 mocha test/test.js
-echo "Finished unit tests";
+echo -en "travis_fold:end:unit_tests\\r"
 
-echo "Starting UI tests for old browser";
+echo "UI Tests for old browser" && echo -en "travis_fold:start:ui_tests.1\\r"
 mocha test/UITest.js
-echo "Finished UI test for old browser";
+echo -en "travis_fold:end:ui_tests.1\\r"
 
+echo "UI Tests for new browser" && echo -en "travis_fold:start:ui_tests.2\\r"
 cp test/UITest.js test/UITest-1.js
-
-echo "Starting UI tests for new browser";
 mocha test/UITest-1.js
-echo "Finished UI test for new browser";
-
 rm test/UITest-1.js
+echo -en "travis_fold:end:ui_tests.2\\r"
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then
-  echo "Changing branches";
+  echo "Changing branches"
+
+  echo "Pushing to gh-pages" && echo -en "travis_fold:start:gh_pages\\r"
   grunt website
 
   git config user.name "Travis CI"
@@ -36,7 +36,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
 
   git reset --hard
   git checkout -b gh-pages
-  echo "Changed branches";
+  echo "Changed branches"
 
   npm install
 
@@ -45,17 +45,18 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   set +e
   git diff-index --quiet HEAD
 
-  echo "Committing changes";
+  echo "Committing changes"
   git add -A .
   git commit -m "Deploy to Github Pages" --quiet
-  echo "Committed changes";
+  echo "Committed changes"
 
-  echo "Pushing changes";
+  echo "Pushing changes"
   if [ $? -ne 0 ] ; then #Something went wrong committing, don't push
-    echo "Faulty commit, abort push";
-    exit 0;
+    echo "Faulty commit, abort push"
+    exit 0
   fi
 
   git push "https://${GITHUB_ACCESS_TOKEN}@github.com/SanderRonde/CustomRightClickMenu.git" --force --quiet
-  echo "Pushed github pages to branch";
+  echo "Pushed github pages to branch"
+  echo -en "travis_fold:end:gh_pages\\r"
 fi
