@@ -1,8 +1,8 @@
-//TSC-target=ES5
 /// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
 /// <reference path="../tools/definitions/chai.d.ts" />
 /// <reference path="../tools/definitions/chrome.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
+/// <reference path="../app/js/background.ts" />
 
 interface AnyObj {
 	[key: string]: any;
@@ -126,6 +126,7 @@ declare const before: (name: string, fn: (done: () => void) => void) => void;
 declare const beforeEach: (name: string, fn: (done?: () => void) => void) => void;
 declare const after: (name: string, fn: (done?: () => void) => void) => void;
 declare const afterEach: (name: string, fn: (done?: () => void) => void) => void;
+declare const globalObject: GlobalObject;
 declare const window: AppWindow;
 declare const REPLACE: any;
 declare const process: any;
@@ -152,6 +153,17 @@ let driver: webdriver.WebDriver;
 let capabilities;
 switch (__filename.split('-').pop().split('.')[0]) {
 	case '1':
+		capabilities = {
+			'browserName' : 'Chrome',
+			'os' : 'Windows',
+			'os_version' : '10',
+			'resolution' : '1920x1080',
+			'browserstack.user' : secrets.user,
+			'browserstack.key' : secrets.key,
+			'browserstack.local': true,
+			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
+			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+		};
 		break;
 	default: 
 		capabilities = {
@@ -166,22 +178,11 @@ switch (__filename.split('-').pop().split('.')[0]) {
 			'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
 			'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
 		};
-		// capabilities = {
-		// 	'browserName' : 'Chrome',
-		// 	'os' : 'Windows',
-		// 	'os_version' : '10',
-		// 	'resolution' : '1920x1080',
-		// 	'browserstack.user' : secrets.user,
-		// 	'browserstack.key' : secrets.key,
-		// 	'browserstack.local': true,
-		// 	'browserstack.debug': process.env.BROWSERSTACK_LOCAL_IDENTIFIER ? false : true,
-		// 	'browserstack.localIdentifier': process.env.BROWSERSTACK_LOCAL_IDENTIFIER
-		// };
 		break;
 }
 
 before('Driver connect', function(this: MochaFn, done: any) {
-	this.timeout(60000);
+	this.timeout(600000);
 	const result = new webdriver.Builder()
 		.usingServer('http://hub-cloud.browserstack.com/wd/hub')
 		.withCapabilities(capabilities)
@@ -929,7 +930,7 @@ class FoundElement implements FoundElement {
 				});
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
-			})).then((bcr: string) => {
+			}, findElementOnPage)).then((bcr: string) => {
 				resolve(JSON.parse(bcr) as ClientRect);
 			});
 		});
@@ -1070,11 +1071,10 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 	});
 }
 
-describe('Page', function(this: MochaFn) {
-	/*
+describe('Options Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
-		this.timeout(5000);
-		this.slow(2000);
+		this.timeout(60000);
+		this.slow(60000);
 
 		it('should happen without errors', function(done)  {
 			driver
@@ -1088,8 +1088,8 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 	describe('CheckboxOptions', function(this: MochaFn) {
-		this.timeout(60000);
-		this.slow(50000);
+		this.timeout(5000);
+		this.slow(4000);
 		const checkboxDefaults = {
 			showOptions: true,
 			recoverUnsavedData: false,
@@ -1158,8 +1158,8 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 	describe('Commonly used links', function(this: MochaFn) {
-		this.timeout(60000);
-		this.slow(30000);
+		this.timeout(15000);
+		this.slow(10000);
 		let searchEngineLink = '';
 		let defaultLinkName = '';
 
@@ -1264,8 +1264,8 @@ describe('Page', function(this: MochaFn) {
 		});
 	});
 	describe('SearchEngines', function(this: MochaFn) {
-		this.timeout(60000);
-		this.slow(30000);
+		this.timeout(150000);
+		this.slow(10000);
 		let searchEngineLink = '';
 		let searchEngineName = '';
 
@@ -1405,7 +1405,8 @@ describe('Page', function(this: MochaFn) {
 		before('Reset settings', function() {
 			return resetSettings(this, driver);
 		});
-		this.timeout(60000);
+		this.slow(5000);
+		this.timeout(7500);
 
 		function testURIScheme(driver: webdriver.WebDriver,
 			done: () => void, toExecutePath: string, schemeName: string) {
@@ -1446,8 +1447,6 @@ describe('Page', function(this: MochaFn) {
 					});
 			}
 
-		this.slow(7000);
-		this.timeout(50000);
 		afterEach('Reset page settings', function() {
 			return resetSettings(this, driver);
 		});
@@ -1494,16 +1493,14 @@ describe('Page', function(this: MochaFn) {
 					});
 			});
 	});
-	*/
 
 	function testNameInput(type: NodeType) {
 		const defaultName = 'name';
 		describe('Name Input', function(this: MochaFn) {
-			this.timeout(60000);
-			this.slow(20000);
+			this.timeout(10000);
+			this.slow(10000);
 
 			it('should not change when not saved', function(done) {
-				this.slow(12000);
 				before('Reset settings', function() {
 					return resetSettings(this, driver);
 				});
@@ -1533,8 +1530,6 @@ describe('Page', function(this: MochaFn) {
 			});
 			const name = getRandomString(25);
 			it('should be editable when saved', function(done)  {
-				this.timeout(120000);
-				this.slow(12000);
 				before('Reset settings', function() {
 					return resetSettings(this, driver);
 				});
@@ -1582,8 +1577,8 @@ describe('Page', function(this: MochaFn) {
 
 	function testVisibilityTriggers(type: NodeType) {
 		describe('Triggers', function(this: MochaFn) {
-			this.timeout(60000);
-			this.slow(15000);
+			this.timeout(15000);
+			this.slow(12000);
 
 			it('should not change when not saved', function(done)  {
 				resetSettings(this, driver).then(() => {
@@ -1716,7 +1711,7 @@ describe('Page', function(this: MochaFn) {
 	function testContentTypes(type: NodeType) {
 		describe('Content Types', function(this: MochaFn) {
 			this.timeout(30000);
-			this.slow(20000);
+			this.slow(15000);
 			const defaultContentTypes = [true, true, true, false, false, false];
 
 			it('should be editable through clicking on the checkboxes', function(this: MochaFn, done)  {
@@ -1886,10 +1881,11 @@ describe('Page', function(this: MochaFn) {
 
 	function testClickTriggers(type: NodeType) {
 		describe('Click Triggers', function(this: MochaFn) {
-			this.timeout(60000);
+			this.timeout(30000);
+			this.slow(25000);
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function(this: MochaFn) {
-					this.slow(50000);
+					this.retries(3);
 					it(`should be possible to select trigger option number ${triggerOptionIndex}`, function(done) {
 						resetSettings(this, driver).then(() => {
 							return openDialog(driver, type);
@@ -1967,7 +1963,6 @@ describe('Page', function(this: MochaFn) {
 			});
 			[2, 3].forEach((triggerOptionIndex) => {
 				describe(`Trigger Option ${triggerOptionIndex} with URLs`, function(this: MochaFn) {
-					this.slow(50000);
 					it('should be editable', (done) => {
 						resetSettings(this, driver).then(() => {
 							return openDialog(driver, type);
@@ -2118,9 +2113,9 @@ describe('Page', function(this: MochaFn) {
 
 	function testEditorSettings(type: NodeType) {
 		describe('Theme', function(this: MochaFn) {
-			this.timeout(30000);
+			this.slow(8000);
+			this.timeout(10000);
 			it('is changable', function(done) {
-				this.slow(13000);
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
 				}).then(() => {
@@ -2148,7 +2143,6 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('is preserved on page reload', function(done) {
-				this.slow(6000);
 				reloadPage(this, driver).then(() => {
 					return getSyncSettings(driver);
 				}).then((settings) => {
@@ -2159,9 +2153,11 @@ describe('Page', function(this: MochaFn) {
 			})
 		});
 		describe('Zoom', function(this: MochaFn) {
+			this.slow(30000);
+			this.timeout(40000);
+
 			const newZoom = '135';
 			it('is changable', function(done) {
-				this.slow(13000);
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
 				}).then(() => {
@@ -2204,7 +2200,6 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('is preserved on page reload', function(done) {
-				this.slow(6000);
 				reloadPage(this, driver).then(() => {
 					return getSyncSettings(driver);
 				}).then((settings) => {
@@ -2215,8 +2210,10 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		describe('UseTabs', function(this: MochaFn) {
+			this.slow(10000);
+			this.timeout(12000);
+
 			it('is changable', function(done) {
-				this.slow(17000);
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
 				}).then(() => {
@@ -2245,7 +2242,6 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			it('is preserved on page reload', function(done) {
-				this.slow(6000);
 				reloadPage(this, driver).then(() => {
 					return getSyncSettings(driver);
 				}).then((settings) => {
@@ -2256,10 +2252,11 @@ describe('Page', function(this: MochaFn) {
 			});
 		});
 		describe('Tab Size', function(this: MochaFn) {
+			this.slow(15000);
+			this.timeout(20000);
 			this.retries(3);
 			const newTabSize = '8';
 			it('is changable and preserved on page reload', function(done) {
-				this.slow(17000);
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
 				}).then(() => {
@@ -2311,7 +2308,6 @@ describe('Page', function(this: MochaFn) {
 		});
 		this.timeout(60000);
 
-		/*
 		describe('Type Switching', function(this: MochaFn) {
 
 			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
@@ -2343,8 +2339,8 @@ describe('Page', function(this: MochaFn) {
 					done();
 				});
 			}
-			this.timeout(20000);
-			this.slow(7000);
+			this.timeout(10000);
+			this.slow(5000);
 			
 			it('should be able to switch to a script', function(done)  {
 				resetSettings(this, driver).then(() => {
@@ -2403,6 +2399,7 @@ describe('Page', function(this: MochaFn) {
 			const type: NodeType = 'link';
 
 			this.timeout(30000);
+
 			before('Reset settings', function() {
 				return resetSettings(this, driver);
 			});
@@ -2412,7 +2409,8 @@ describe('Page', function(this: MochaFn) {
 			testContentTypes(type);
 
 			describe('Links', function(this: MochaFn) {
-				this.slow(22500);
+				this.slow(20000);
+				this.timeout(25000);
 
 				after('Reset settings', function() {
 					return resetSettings(this, driver);
@@ -2599,7 +2597,6 @@ describe('Page', function(this: MochaFn) {
 					});
 				});
 				it('should not change when not saved', function(done)  {
-					this.slow(12000);
 					const newUrl = 'www.google.com';
 					const defaultLink = {
 						newTab: true,
@@ -2681,8 +2678,6 @@ describe('Page', function(this: MochaFn) {
 		describe('Stylesheet Dialog', function(this: MochaFn) {
 			const type: NodeType = 'stylesheet';
 
-			this.timeout(60000);
-			this.slow(35000);
 			before('Reset settings', function() {
 				return resetSettings(this, driver);
 			});
@@ -2692,6 +2687,8 @@ describe('Page', function(this: MochaFn) {
 			testClickTriggers(type);
 
 			describe('Toggling', function(this: MochaFn) {
+				this.timeout(15000);
+				this.slow(7500);
 				it('should be possible to toggle on', (done) => {
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, type);
@@ -2765,6 +2762,8 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 			describe('Default State', function(this: MochaFn) {
+				this.slow(7500);
+				this.timeout(10000);
 				it('should be togglable to true', (done) => {
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, type);
@@ -2787,7 +2786,6 @@ describe('Page', function(this: MochaFn) {
 							}).then(() => {
 								return getCRM(driver);
 							}).then((crm: Array<StylesheetNode>) => {
-								console.log(crm);
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 								assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
 								done();
@@ -2798,7 +2796,6 @@ describe('Page', function(this: MochaFn) {
 					reloadPage(this, driver).then(() => {
 						return getCRM(driver);
 					}).then((crm: Array<StylesheetNode>) => {
-						console.log(crm);
 						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 						assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
 						done();
@@ -2829,7 +2826,6 @@ describe('Page', function(this: MochaFn) {
 							}).then(() => {
 								return getCRM(driver);
 							}).then((crm: Array<StylesheetNode>) => {
-								console.log(crm);
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 								assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to true');
 								done();
@@ -2858,7 +2854,6 @@ describe('Page', function(this: MochaFn) {
 							}).then(() => {
 								return getCRM(driver);
 							}).then((crm: Array<StylesheetNode>) => {
-								console.log(crm);
 								assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
 								assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
 								done();
@@ -2875,8 +2870,6 @@ describe('Page', function(this: MochaFn) {
 		describe('Script Dialog', function(this: MochaFn) {
 			const type: NodeType = 'script';
 
-			this.timeout(60000);
-			this.slow(12000);
 			before('Reset settings', function() {
 				return resetSettings(this, driver);
 			});
@@ -2891,11 +2884,10 @@ describe('Page', function(this: MochaFn) {
 				});
 			});
 		});
-		*/
 	});
 	describe('Errors', function(this: MochaFn) {
 		this.timeout(60000);
-		this.slow(2000);
+		this.slow(100);
 
 		it('should not have been thrown', (done) => {
 			driver
@@ -2920,10 +2912,10 @@ describe('Page', function(this: MochaFn) {
 });
 
 describe('On-Page CRM', function(this: MochaFn) {
-	this.slow(200);
-	this.timeout(10000);
-
 	describe('Redraws on new CRM', function(this: MochaFn) {
+		this.slow(250);
+		this.timeout(500);
+
 		const CRM1 = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
@@ -2955,19 +2947,17 @@ describe('On-Page CRM', function(this: MochaFn) {
 		];
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(8000);
+			this.slow(4000);
+			this.timeout(5000);
 			assert.doesNotThrow(() => {
-				console.log(CRM1, JSON.stringify(CRM1));
 				resetSettings(this, driver).then(() => {
 					driver
 						.executeScript(inlineFn(() => {
 							window.app.settings.crm = REPLACE.crm;
 							window.app.upload();
-							return true;
 						}, {
 							crm: JSON.stringify(CRM1)
-						})).then((returned) => {
-							console.log('returned', returned);
+						})).then(() => {
 							done();
 						});
 				});
@@ -2976,16 +2966,11 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should be using the first CRM', function(this: MochaFn, done) {
 			this.timeout(60000);
 			getContextMenu(driver).then((contextMenu) => {
-				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1.concat([{
-					name: undefined
-				}, {
-					name: 'Options'
-				}] as Array<LinkNode>)), 'node orders and names match');
+				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1), 'node orders and names match');
 				done();
 			});
 		});
 		it('should be able to switch to a new CRM', function(this: MochaFn, done) {
-			this.slow(1200);
 			assert.doesNotThrow(() => {
 				driver
 					.executeScript(inlineFn(() => {
@@ -3000,20 +2985,15 @@ describe('On-Page CRM', function(this: MochaFn) {
 			}, 'settings CRM does not throw');
 		});
 		it('should be using the new CRM', function(this: MochaFn, done) {
-			this.slow(400);
 			getContextMenu(driver).then((contextMenu) => {
-				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM2.concat([{
-					name: undefined
-				}, {
-					name: 'Options'
-				}] as Array<LinkNode>)), 'node orders and names match');
+				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM2), 'node orders and names match');
 				done();
 			});
 		});
 	});
 	describe('Links', function(this: MochaFn) {
-		this.timeout(60000);
-		this.slow(500);
+		this.slow(150);
+		this.timeout(200);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
@@ -3091,7 +3071,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(8000);
+			this.slow(4000);
+			this.timeout(5000);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
@@ -3147,8 +3128,6 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should open the correct links when clicked for the default link', function(this: MochaFn, done) {
-			this.slow(2500);
-			this.timeout(5000);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {
@@ -3212,6 +3191,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should open the correct links when clicked for multiple links', (done) => {
+			this.timeout(2000);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {
@@ -3356,7 +3336,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 		];
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(8000);
+			this.timeout(5000);
+			this.slow(4000);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
@@ -3373,18 +3354,15 @@ describe('On-Page CRM', function(this: MochaFn) {
 			}, 'setting up the CRM does not throw');
 		})
 		it('should have the correct structure', function(done) {
-			this.slow(500);
+			this.slow(400);
+			this.timeout(700);
 			getContextMenu(driver).then((contextMenu) => {
 				driver
 					.executeScript(inlineFn(() => {
 						return window.logs;
 					}))
 					.then((logs) => {
-						assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes.concat([{
-							name: undefined
-						}, {
-							name: 'Options'
-						}] as Array<LinkNode>)),
+						assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes),
 							'structures match');
 						done();
 					});
@@ -3392,8 +3370,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 	});
 	describe('Scripts', function(this: MochaFn) {
-		this.timeout(5000);
-		this.slow(60000);
+		this.slow(900);
+		this.timeout(2000);
 
 		const CRMNodes = [
 			templates.getDefaultScriptNode({
@@ -3401,7 +3379,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.ALWAYS_RUN,
-					script: 'console.log("executed script");'
+					script: 'console.log(\'executed script\');'
 				}
 			}), 
 			templates.getDefaultScriptNode({
@@ -3409,7 +3387,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
-					script: 'console.log("executed script");'
+					script: 'console.log(\'executed script\');'
 				}
 			}),
 			templates.getDefaultScriptNode({
@@ -3423,7 +3401,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				],
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_SPECIFIED,
-					script: 'console.log("executed script");'
+					script: 'console.log(\'executed script\');'
 				}
 			}),
 			templates.getDefaultScriptNode({
@@ -3437,7 +3415,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				],
 				value: {
 					launchMode: CRMLaunchModes.SHOW_ON_SPECIFIED,
-					script: 'console.log("executed script");'
+					script: 'console.log(\'executed script\');'
 				}
 			}),
 			templates.getDefaultScriptNode({
@@ -3451,7 +3429,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				],
 				value: {
 					launchMode: CRMLaunchModes.RUN_ON_CLICKING,
-					backgroundScript: 'console.log("executed backgroundscript")'
+					backgroundScript: 'console.log(\'executed backgroundscript\')'
 				}
 			}),
 			templates.getDefaultScriptNode({
@@ -3459,7 +3437,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 				id: getRandomId(),
 				value: {
 					launchMode: CRMLaunchModes.DISABLED,
-					script: 'console.log("executed script");'
+					script: 'console.log(\'executed script\');'
 				}
 			})
 		];
@@ -3474,7 +3452,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(8000);
+			this.timeout(5000);
+			this.slow(4000);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
@@ -3601,7 +3580,6 @@ describe('On-Page CRM', function(this: MochaFn) {
 				});
 		});
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', (done) => {
-			this.slow(25000);
 			const fakeTabId = getRandomId();
 			driver
 				.executeScript(inlineFn(() => {
@@ -3665,10 +3643,9 @@ describe('On-Page CRM', function(this: MochaFn) {
 				});
 		});
 		it('should run the backgroundscript when one is specified', function(done) {
-			this.slow(8000);
 			const fakeTabId = getRandomId();
 			getContextMenu(driver).then((contextMenu) => {
-				assert.isAbove(contextMenu.length, 3, 'contextmenu contains at least 3 items');
+				assert.isAbove(contextMenu.length, 1, 'contextmenu contains at least 1 items');
 
 				assert.doesNotThrow(() => {
 					driver
@@ -3770,8 +3747,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 	});
 	describe('Stylesheets', function(this: MochaFn) {
-		this.timeout(60000);
-		this.slow(2000);
+		this.slow(900);
+		this.timeout(2000);
 
 		const CRMNodes = [
 			templates.getDefaultStylesheetNode({
@@ -3859,7 +3836,8 @@ describe('On-Page CRM', function(this: MochaFn) {
 		}
 
 		it('should not throw when setting up the CRM', function(done) {
-			this.slow(8000);
+			this.timeout(5000);
+			this.slow(4000);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
@@ -3988,7 +3966,6 @@ describe('On-Page CRM', function(this: MochaFn) {
 				});
 		});
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', function(done) {
-			this.slow(10000);
 			const fakeTabId = getRandomId();
 			driver
 				.executeScript(inlineFn(() => {
@@ -4061,7 +4038,6 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should run the correct code when clicked', function(done) {
-			this.slow(4000);
 			const fakeTabId = getRandomId();
 			getContextMenu(driver).then((contextMenu) => {
 				driver
@@ -4108,7 +4084,6 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should actually be applied to the page', function(done) {
-			this.slow(6000);
 			driver
 				.executeScript(inlineFn((args) => {
 					const dummyEl = document.createElement('div');
@@ -4159,12 +4134,13 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 			describe('Default off', function(this: MochaFn) {
 				const tabId = getRandomId();
-				this.timeout(10000);
+				this.slow(600);
+				this.timeout(800);
 				it('should be off by default', (done) => {
 					wait(driver, 150).then(() => {
 						dummy1.getSize().then((dimensions) => {
-							assert.strictEqual(dimensions.width, 0,
-								'dummy element is 0px wide');
+							assert.notStrictEqual(dimensions.width, 50,
+								'dummy element is not 50px wide');
 							done();
 						});
 					});
@@ -4240,14 +4216,15 @@ describe('On-Page CRM', function(this: MochaFn) {
 					}).then(() => {
 						return dummy1.getSize();
 					}).then((dimensions) => {
-						assert.strictEqual(dimensions.width, 0,
-							'dummy element is 0px wide');
+						assert.notStrictEqual(dimensions.width, 50,
+							'dummy element is not 50px wide');
 						done();
 					});
 				});
 			});
 			describe('Default on', function(this: MochaFn) {
-				this.timeout(10000);
+				this.slow(300);
+				this.timeout(500);
 				it('should be on by default', (done) => {
 					dummy2.getSize().then((dimensions) => {
 						assert.strictEqual(dimensions.width, 50,
@@ -4260,7 +4237,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 	});
 	describe('Errors', function(this: MochaFn) {
 		this.timeout(60000);
-		this.slow(2000);
+		this.slow(100);
 
 		it('should not have been thrown', (done) => {
 			driver
