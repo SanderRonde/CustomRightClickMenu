@@ -1649,7 +1649,7 @@
 
 			function updateTabSizeEl() {
 				setTimeout(function() {
-					window.app.settings.editor.tabSize = tabSize.find('input').value;
+					window.app.settings.editor.tabSize = tabSize.find('input')[0].value;
 					window.app.upload();
 				}, 0);
 			}
