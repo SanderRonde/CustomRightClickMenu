@@ -8,11 +8,6 @@ declare const enum CRMLaunchModes {
 	DISABLED = 4
 }
 
-declare enum test {
-	a = 1,
-	b = 2
-}
-
 interface CRMNodeInfo {
 	installDate?: string;
 	isRoot?: boolean;
