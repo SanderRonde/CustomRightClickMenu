@@ -1,8 +1,7 @@
-//TSC-target=ES3
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
 /// <reference path="../../tools/definitions/crm.d.ts" />
-window.logs = [];
+/// <reference path="../../node_modules/@types/node/index.d.ts" />
 ;
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 (function (extensionId, globalObject, sandboxes) {
@@ -131,7 +130,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        }
+                        },
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
