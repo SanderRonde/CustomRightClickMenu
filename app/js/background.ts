@@ -7572,7 +7572,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}) => void) => void {
 				window.localStorage.setItem('transferred', 'true');
 
-				return (resolve) => {
+				chrome.storage.local.set({
+					isTransfer: true
+				});
+				chrome.runtime.openOptionsPage();
+
+				return ((resolve) => {
 					if (!window.CodeMirror.TernServer) {
 						//Wait until TernServer is loaded
 						window.setTimeout(() => {
@@ -7586,7 +7591,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						resolve(result);
 					}
-				};
+				});
 			}
 
 			private static _uploadStorageSyncData(data: SettingsStorage) {
@@ -7963,7 +7968,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return false;
 				}
 				//Determine if it's a transfer from CRM version 1.*
-				if (!window.localStorage.getItem('transferred')) {
+				if (!window.localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
 					return this.SetupHandling.handleTransfer();
 				} else {
 					var firstRunResult = this.SetupHandling.handleFirstRun();

@@ -2446,7 +2446,7 @@
 				}
 				try {
 					//Determine if it's a transfer from CRM version 1.*
-					if (!localStorage.getItem('transferred')) {
+					if (!localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
 						_this.handleDataTransfer(_this);
 						_this.async(function() {
 							window.doc.versionUpdateDialog.open();
@@ -2819,6 +2819,13 @@
 							storageLocal.updatedScript = [];
 						}
 
+						if (storageLocal.isTransfer) {
+							chrome.storage.local.set({
+								isTransfer: false
+							});
+							window.doc.versionUpdateDialog.open();
+						}
+
 						_this.storageLocal = storageLocal;
 						_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 						if (storageLocal.useStorageSync) {
@@ -2895,6 +2902,32 @@
 			document.querySelector('#URISchemeFilePath').querySelector('input').value = 'C:\\files\\my_file.exe';
 			document.querySelector('#URISchemeSchemeName').value = 'myscheme';
 			document.querySelector('#URISchemeSchemeName').querySelector('input').value = 'myscheme';
+		},
+
+		getLocalStorageKey: function(key) {
+			var data = localStorage.getItem(key);
+			if (data === undefined || data === null) {
+				return false;
+			}
+			return data;
+		},
+
+		exportToLegacy: function() {
+			var data = ["all", this.getLocalStorageKey('firsttime'),
+				this.getLocalStorageKey('options'),
+				this.getLocalStorageKey('firsttime'),
+				this.getLocalStorageKey('firsttime'),
+				this.getLocalStorageKey('firsttime'),
+				localStorage.optionson,
+				localStorage.waitforsearch, localStorage.whatpage,
+				localStorage.numberofrows].join('%146%');
+			
+			var rows = localStorage.getItem('numberofrows') || 0;
+			for (var i = 1; i <= rows; i++) {
+				data += "%146%" + localStorage.getItem(i);
+			}
+
+			window.doc.exportToLegacyOutput.value = data;
 		},
 
 		ready: function () {
