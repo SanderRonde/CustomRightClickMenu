@@ -196,7 +196,6 @@
 				});
 				return tabs;
 			} else {
-				//TODO tab format should be both ID and title instead of just ID
 				return [];
 			}
 		},
