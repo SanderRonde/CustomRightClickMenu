@@ -130,7 +130,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        }
+                        },
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
