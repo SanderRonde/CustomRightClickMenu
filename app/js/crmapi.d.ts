@@ -38,6 +38,22 @@ declare namespace CRMAPI {
 	 * True means show on given type. ['page','link','selection','image','video','audio']
 	 */
 	type CRMContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
+	enum CRMContentType {
+		page = 0,
+		link = 1,
+		selection = 2,
+		image = 3,
+		video = 4,
+		audio = 5
+	}
+
+	const enum CRMLaunchModes {
+		RUN_ON_CLICKING = 0,
+		ALWAYS_RUN = 1,
+		RUN_ON_SPECIFIED = 2,
+		SHOW_ON_SPECIFIED = 3,
+		DISABLED = 4
+	}
 
 	interface CRMTrigger {
 		/**
@@ -73,7 +89,7 @@ declare namespace CRMAPI {
 		 *
 		 * @type {number}
 		 */
-		launchMode: number;
+		launchMode: CRMLaunchModes;
 		script: string;
 		backgroundScript: string;
 		metaTags: MetaTags;
@@ -92,7 +108,7 @@ declare namespace CRMAPI {
 		 *
 		 * @type {number}
 		 */
-		launchMode: number;
+		launchMode: CRMLaunchModes;
 		stylesheet: string;
 		/**
 		 * Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
@@ -115,64 +131,135 @@ declare namespace CRMAPI {
 
 	type LinkVal = Array<LinkNodeLink>
 
-	type Type = string;
+	type NodeType = string;
 
-	interface SafeCRMNode {
+	interface CRMBaseNode {
+		storage: {
+			[key: string]: any;
+			[key: number]: any;
+		};
+		index?: number;
+		isLocal: boolean;
+		permissions: Array<CRMPermission>;
+		children: CRMTree|SafeCRM|void;
 		id: number;
-		index: number;
 		path: Array<number>;
 		name: string;
-		type: Type;
+		type: NodeType;
 		nodeInfo: CRMNodeInfo;
+		showOnSpecified?: boolean;
 		onContentTypes: CRMContentTypes;
-		permissions: Array<CRMPermission>;
 		triggers: CRMTriggers;
+		value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
+		linkVal: LinkVal|void;
+		menuVal: CRMTree|void;
+		scriptVal: ScriptVal|void;
+		stylesheetVal: StylesheetVal|void;
 	}
 
-	interface CRMNode extends SafeCRMNode {
-		index: number;
-	}
-
-	interface PassiveCRMNode extends CRMNode {
+	interface PassiveCRMNode extends CRMBaseNode {
 		showOnSpecified: boolean;
+		children: CRMTree|SafeCRM|void;
 	}
 
-	interface ScriptNode extends CRMNode {
-		type: string;
+	interface NonSafeBaseNodeBase extends CRMBaseNode {
+		children: CRMTree|void;
+	}
+
+	interface SafeBaseNodeBase extends CRMBaseNode {
+		children: SafeCRM|void;
+	}
+
+	interface ScriptNode extends NonSafeBaseNodeBase {
+		type: 'script';
+		children: void;
 		value: ScriptVal;
-		menuVal?: Array<CRMNode>;
-		linkVal?: LinkVal;
-		stylesheetVal?: StylesheetVal;
+		menuVal: CRMTree|void;
+		linkVal: LinkVal|void;
+		stylesheetVal: StylesheetVal|void;
+		scriptVal: void;
 	}
 
-	interface StylesheetNode extends CRMNode {
-		type: string;
+	interface StylesheetNode extends NonSafeBaseNodeBase {
+		type: 'stylesheet';
+		children: void;
 		value: StylesheetVal;
-		menuVal?: Array<CRMNode>;
-		linkVal?: LinkVal;
-		scriptVal?: ScriptVal;
+		menuVal: CRMTree|void;
+		linkVal: LinkVal|void;
+		scriptVal: ScriptVal|void;
+		stylesheetVal: void;
 	}
 
 	interface LinkNode extends PassiveCRMNode {
+		type: 'link';
+		children: void;
 		value: LinkVal;
-		menuVal?: Array<CRMNode>;
-		scriptVal?: ScriptVal;
-		stylesheetVal?: StylesheetVal;
+		menuVal: CRMTree|void;
+		scriptVal: ScriptVal|void;
+		stylesheetVal: StylesheetVal|void;
+		linkVal: void;
 	}
 
-	interface MenuNode extends PassiveCRMNode {
-		children: Array<CRMNode>;
-		linkVal?: LinkVal;
-		scriptVal?: ScriptVal;
-		stylesheetVal?: StylesheetVal;
+	interface MenuNodeBase extends PassiveCRMNode {
+		type: 'menu'
+		children: SafeCRM|CRMTree;
+		linkVal: LinkVal|void;
+		scriptVal: ScriptVal|void;
+		stylesheetVal: StylesheetVal|void;
+		menuVal: void;
+	}
+
+	interface SafeMenuNodeBase extends MenuNodeBase {
+		children: SafeCRM;
+	}
+
+	interface MenuNode extends MenuNodeBase {
+		children: CRMTree;
 	}
 
 	interface DividerNode extends PassiveCRMNode {
-		menuVal?: Array<CRMNode>;
-		linkVal?: LinkVal;
-		scriptVal?: ScriptVal;
-		stylesheetVal?: StylesheetVal;
+		type: 'divider';
+		children: void;
+		menuVal: CRMTree|void;
+		linkVal: LinkVal|void;
+		scriptVal: ScriptVal|void;
+		stylesheetVal: StylesheetVal|void;
 	}
+
+	interface MadeSafeNode {
+		id: number;
+		path: Array<number>;
+		type: NodeType;
+		name: string;
+		children: SafeCRM|void;
+		linkVal: LinkVal|void;
+		menuVal: CRMTree|void;
+		scriptVal: ScriptVal|void;
+		stylesheetVal: StylesheetVal|void;
+		nodeInfo: CRMNodeInfo;
+		triggers: CRMTriggers;
+		onContentTypes: CRMContentTypes;
+		showOnSpecified?: boolean;
+		value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
+	}
+
+
+	type SafeKeys = keyof MadeSafeNode;
+
+	type SafeNode<T extends MadeSafeNode> = Pick<T, SafeKeys>;
+
+	type SafeMakableNodes = DividerNode | LinkNode | StylesheetNode | ScriptNode;
+	type CRMNode = SafeMakableNodes | MenuNode;
+	type CRMTree = Array<CRMNode>;
+
+	type SafeScriptNode = SafeNode<ScriptNode>;
+	type SafeStylesheetNode = SafeNode<StylesheetNode>;
+	type SafeLinkNode = SafeNode<LinkNode>;
+	type SafeMenuNode = SafeNode<SafeMenuNodeBase>;
+	type SafeDividerNode = SafeNode<DividerNode>;
+
+	type SafeCRMNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
+	type SafeCRM = Array<SafeCRMNode>;
 
 	interface MutedInfo {
 		muted: boolean;
@@ -284,12 +371,7 @@ declare namespace CRMAPI {
 
 	interface Relation {
 		node: number;
-		relation?: string;
-	}
-
-	interface CRMLinkValueInstance {
-		newTab: boolean;
-		url: string;
+		relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|'after';
 	}
 
 	interface ChromeRequestReturn extends Function {
@@ -387,6 +469,11 @@ declare namespace CRMAPI {
 		 * The ID of the the tab this script is running on
 		 */
 		tabId: number;
+
+		/**
+		 * The ID of this node
+		 */
+		id: number;
 
 		/**
 		 * All permissions that are allowed on this script
@@ -581,7 +668,7 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @param {function} callback - A function that is called when done with the data as an argument
 			 */
-			getTree(callback: (data: any) => void): void,
+			getTree(callback: (data: Array<SafeCRMNode>) => void): void,
 
 			/**
 			 * Gets the CRM's tree from either the root or from the node with ID nodeId
@@ -590,7 +677,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The ID of the subtree's root node
 			 * @param {function} callback - A function that is called when done with the data as an argument
 			 */
-			getSubTree(nodeId: number, callback: (data: any) => void): void,
+			getSubTree(nodeId: number, callback: (data: Array<SafeCRMNode>) => void): void,
 
 			/**
 			 * Gets the node with ID nodeId
@@ -598,7 +685,7 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
 			 */
-			getNode(nodeId: number, callback: () => void): void,
+			getNode(nodeId: number, callback: (node: SafeCRMNode) => void): void,
 
 			/**
 			 * Gets a node's ID from a path to the node
@@ -621,7 +708,7 @@ declare namespace CRMAPI {
 			 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 			 * @param {CrmAPIInit~crmCallback} callback - A callback with the resulting nodes in an array
 			 */
-			queryCrm(query: { name?: string, type?: Type, inSubTree?: number}, callback: (results: Array<SafeCRMNode>) => void): void,
+			queryCrm(query: { name?: string, type?: NodeType, inSubTree?: number}, callback: (results: Array<SafeCRMNode>) => void): void,
 
 			/**
 			 * Gets the parent of the node with ID nodeId
@@ -648,7 +735,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The id of the node whose type to get
 			 * @param {function} callback - A callback with the type of the node as the parameter (link, script, menu or divider)
 			 */
-			getNodeType(nodeId: number, callback: (type: Type) => void): void,
+			getNodeType(nodeId: number, callback: (type: NodeType) => void): void,
 
 			/**
 			 * Gets the value of node with ID nodeId
@@ -657,7 +744,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The id of the node whose value to get
 			 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal, CrmAPIInit~stylesheetVal or an empty object depending on type
 			 */
-			getNodeValue(nodeId: number, callback: (value: LinkVal|ScriptVal|StylesheetVal|{}) => void): void,
+			getNodeValue(nodeId: number, callback: (value: LinkVal|ScriptVal|StylesheetVal|null) => void): void,
 
 			/**
 			 * Creates a node with the given options
@@ -716,18 +803,8 @@ declare namespace CRMAPI {
 			* @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
 			* @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 			*/
-			createNode:(options: {
+			createNode:(options: Partial<SafeCRMNode> & {
 							position?: Relation;
-							name?: string;
-							type?: string;
-							usesTriggers?: boolean;
-							triggers?: {
-								url: string,
-								not: boolean
-							}
-							linkData: LinkVal;
-							scriptData: ScriptVal;
-							stylesheetData: StylesheetVal;
 						}, callback: (node: SafeCRMNode) => void) => void,
 
 			/**
@@ -798,7 +875,7 @@ declare namespace CRMAPI {
 			 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, contains the new node as an argument
 			 */
-			editNode(nodeId: number, options: { name?: string, type?: string }, callback: (node: SafeCRMNode) => void): void,
+			editNode(nodeId: number, options: { name?: string, type?: NodeType }, callback: (node: SafeCRMNode) => void): void,
 
 			/**
 			 * Gets the triggers for given node
@@ -807,7 +884,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The node of which to get the triggers
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers as an argument
 			 */
-			getTriggers(nodeId: number, callback: (triggers: CRMTrigger) => void): void,
+			getTriggers(nodeId: number, callback: (triggers: Array<CRMTrigger>) => void): void,
 
 			/**
 			 * Sets the triggers for given node
@@ -824,7 +901,7 @@ declare namespace CRMAPI {
 			 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 			 */
-			setTriggers(nodeId: number, triggers: Array<{url: string, not: boolean}>, callback: (node: SafeCRMNode) => void): void,
+			setTriggers(nodeId: number, triggers: Array<CRMTrigger>, callback: (node: SafeCRMNode) => void): void,
 
 			/**
 			 * Gets the content types for given node
@@ -847,7 +924,7 @@ declare namespace CRMAPI {
 			* @param {boolean} value - The new value at index "index"
 			* @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the new array as an argument
 			*/
-			setContentType(nodeId: number, index: number, value: boolean, callback: (contentTypes: CRMContentTypes) => void): void,
+			setContentType(nodeId: number, index: CRMContentType, value: boolean, callback: (contentTypes: CRMContentTypes) => void): void,
 
 			/**
 			 * Sets the content types to given contentTypes array
@@ -898,7 +975,7 @@ declare namespace CRMAPI {
 			 * 		4 = disabled
 			 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 			 */
-			setLaunchMode(nodeId: number, launchMode: number, callback: (node: SafeCRMNode) => void): void,
+			setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback: (node: SafeCRMNode) => void): void,
 
 			/**
 			 * Gets the launchMode of the node with ID nodeId
@@ -907,7 +984,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The id of the node to get the launchMode of
 			 * @param {function} callback - A callback with the launchMode as an argument
 			 */
-			getLaunchMode(nodeId: number, callback: (launchMode: number) => void): void,
+			getLaunchMode(nodeId: number, callback: (launchMode: CRMLaunchModes) => void): void,
 
 			/**
 			 * All functions related specifically to the stylesheet type
@@ -931,7 +1008,7 @@ declare namespace CRMAPI {
 				 * @param {number} nodeId - The id of the node of which to get the stylesheet
 				 * @param {function} callback - A callback with the stylesheet's value as an argument
 				 */
-				getStylesheet(nodeId: number, callback: (node: SafeCRMNode) => void): void	
+				getStylesheet(nodeId: number, callback: (stylesheet: string) => void): void	
 			},
 
 			/*
@@ -947,7 +1024,7 @@ declare namespace CRMAPI {
 				 *		newTab: Whether the link should open in a new tab or the current tab
 				*		url: The URL of the link
 				*/
-				getLinks(nodeId: number, callback: (result: Array<CRMLinkValueInstance>) => void): void,
+				getLinks(nodeId: number, callback: (result: Array<LinkNodeLink>) => void): void,
 
 				/**
 				 * Pushes given items into the array of URLs of node with ID nodeId
@@ -960,10 +1037,10 @@ declare namespace CRMAPI {
 				 * @param {string} [items.url] - The URL to open on clicking the link
 				 * @param {functon} callback - A function that gets called when done with the new array as an argument
 				 */
-				push(nodeId: number, items: CRMLinkValueInstance,
-												callback: (arr: Array<CRMLinkValueInstance>) => void): void,
-				push(nodeId: number, items: Array<CRMLinkValueInstance>,
-												callback: (arr: Array<CRMLinkValueInstance>) => void): void
+				push(nodeId: number, items: LinkNodeLink,
+												callback: (arr: Array<LinkNodeLink>) => void): void,
+				push(nodeId: number, items: Array<LinkNodeLink>,
+												callback: (arr: Array<LinkNodeLink>) => void): void
 
 				/**
 				 * Splices the array of URLs of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -977,7 +1054,7 @@ declare namespace CRMAPI {
 				 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 */
 				splice(nodeId: number, start: number, amount: number,
-												callback: (spliced: Array<CRMLinkValueInstance>, newArr: Array<CRMLinkValueInstance>) => void): void
+												callback: (spliced: Array<LinkNodeLink>, newArr: Array<LinkNodeLink>) => void): void
 			},
 
 			script: {
