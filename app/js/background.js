@@ -1809,8 +1809,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         val: 'options.stylesheetData.defaultOn',
                         type: 'boolean',
                         optional: true
+                    }, {
+                        val: 'options.value',
+                        type: 'object',
+                        optional: true
                     }
                 ], function (optionals) {
+                    debugger;
                     var id = Helpers.generateItemId();
                     var node = _this.message.options;
                     node = CRM.makeSafe(node);
@@ -1824,22 +1829,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     switch (_this.message.options.type) {
                         case 'script':
                             newNode = globalObject.globals.constants.templates
-                                .getDefaultLinkNode(node);
+                                .getDefaultScriptNode(node);
                             newNode.type = 'script';
                             break;
                         case 'stylesheet':
                             newNode = globalObject.globals.constants.templates
-                                .getDefaultLinkNode(node);
+                                .getDefaultStylesheetNode(node);
                             newNode.type = 'stylesheet';
                             break;
                         case 'menu':
                             newNode = globalObject.globals.constants.templates
-                                .getDefaultLinkNode(node);
+                                .getDefaultMenuNode(node);
                             newNode.type = 'menu';
                             break;
                         case 'divider':
                             newNode = globalObject.globals.constants.templates
-                                .getDefaultLinkNode(node);
+                                .getDefaultDividerNode(node);
                             newNode.type = 'divider';
                             break;
                         default:
@@ -4096,7 +4101,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             chrome.contextMenus.removeAll();
             globalObject.globals.crmValues.rootId = chrome.contextMenus.create({
                 title: 'Custom Menu',
-                contexts: ['page', 'selection', 'link', 'image', 'video', 'audio']
+                contexts: ['all']
             });
             globalObject.globals.toExecuteNodes = {
                 onUrl: [],
@@ -4130,12 +4135,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             }
         };
         CRM.getContexts = function (contexts) {
-            var newContexts = [];
+            var newContexts = ['browser_action'];
             var textContexts = globalObject.globals.constants.contexts;
             for (var i = 0; i < 6; i++) {
                 if (contexts[i]) {
                     newContexts.push(textContexts[i]);
                 }
+            }
+            if (contexts[0]) {
+                newContexts.push('editable');
             }
             return newContexts;
         };
