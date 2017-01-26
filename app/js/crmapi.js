@@ -340,6 +340,11 @@
 				return JSON.parse(JSON.stringify(node.permissions));
 			}
 		});
+		Object.defineProperty(this, 'id', {
+			get: function() {
+				return id
+			}
+		});
 		//#endregion
 
 		//#region Communication
