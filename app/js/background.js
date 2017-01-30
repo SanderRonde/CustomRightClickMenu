@@ -5969,12 +5969,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                     break;
                 case 'settings':
+                    if (type === 'settings') {
+                        globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime();
+                    }
                     if (useStorageSync !== null) {
                         globalObject.globals.storages.storageLocal
                             .useStorageSync = useStorageSync;
                     }
                     var settingsJson = JSON.stringify(globalObject.globals.storages
                         .settingsStorage);
+                    chrome.storage.local.set({
+                        settingsVersionData: {
+                            current: {
+                                hash: window.md5(settingsJson),
+                                date: new Date().getTime()
+                            },
+                            latest: globalObject.globals.storages.storageLocal.settingsVersionData.latest,
+                            wasUpdated: globalObject.globals.storages.storageLocal.settingsVersionData.wasUpdated
+                        }
+                    });
                     if (!globalObject.globals.storages.storageLocal.useStorageSync) {
                         chrome.storage.local.set({
                             settings: globalObject.globals.storages.settingsStorage
@@ -6166,6 +6179,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 settingsStorage = chromeStorageLocal['settings'];
                             }
                         }
+                        _this._checkForStorageSyncUpdates(settingsStorage, chromeStorageLocal);
                         _this.setStorages(storageLocalCopy, settingsStorage, chromeStorageLocal, callback);
                     }
                 });
@@ -6244,24 +6258,112 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             }
         };
+        Storages._checkForStorageSyncUpdates = function (storageSync, storageLocal) {
+            var syncString = JSON.stringify(storageSync);
+            var hash = window.md5(syncString);
+            if (storageLocal.settingsVersionData.current.hash !== hash) {
+                //Data changed, show a message and update current hash
+                chrome.storage.local.set({
+                    settingsVersionData: {
+                        current: {
+                            hash: hash,
+                            date: storageSync.settingsLastUpdatedAt
+                        },
+                        latest: {
+                            hash: hash,
+                            date: storageSync.settingsLastUpdatedAt
+                        },
+                        wasUpdated: true
+                    }
+                });
+            }
+        };
         return Storages;
     }());
     Storages.SetupHandling = (_e = (function () {
             function SetupHandling() {
             }
+            //Local storage
+            SetupHandling._getDefaultStorages = function () {
+                var syncStorage = this._getDefaultSyncStorage();
+                var syncHash = window.md5(JSON.stringify(syncStorage));
+                return [{
+                        requestPermissions: [],
+                        editing: null,
+                        selectedCrmType: 0,
+                        jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
+                        globalExcludes: [''],
+                        latestId: 0,
+                        useStorageSync: true,
+                        notFirstTime: true,
+                        lastUpdatedAt: chrome.runtime.getManifest().version,
+                        authorName: 'anonymous',
+                        showOptions: true,
+                        recoverUnsavedData: false,
+                        CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
+                            .split('.')[0] > 34,
+                        editCRMInRM: false,
+                        hideToolsRibbon: false,
+                        shrinkTitleRibbon: false,
+                        libraries: [
+                            { "location": 'jQuery.js', "name": 'jQuery' },
+                            { "location": 'mooTools.js', "name": 'mooTools' },
+                            { "location": 'YUI.js', "name": 'YUI' },
+                            { "location": 'Angular.js', "name": 'Angular' },
+                            { "location": 'jqlite.js', "name": 'jqlite' }
+                        ],
+                        settingsVersionData: {
+                            current: {
+                                hash: syncHash,
+                                date: new Date().getTime()
+                            },
+                            latest: {
+                                hash: syncHash,
+                                date: new Date().getTime()
+                            },
+                            wasUpdated: false
+                        }
+                    }, syncStorage];
+            };
+            //Sync storage
+            SetupHandling._getDefaultSyncStorage = function () {
+                return {
+                    editor: {
+                        keyBindings: {
+                            autocomplete: 'Ctrl-Space',
+                            showType: 'Ctrl-I',
+                            showDocs: 'Ctrl-O',
+                            goToDef: 'Alt-.',
+                            rename: 'Ctrl-Q',
+                            selectName: 'Ctrl-.'
+                        },
+                        tabSize: '4',
+                        theme: 'dark',
+                        useTabs: true,
+                        zoom: '100'
+                    },
+                    crm: [
+                        globalObject.globals.constants.templates.getDefaultLinkNode({
+                            id: Helpers.generateItemId()
+                        })
+                    ],
+                    settingsLastUpdatedAt: new Date().getTime()
+                };
+            };
             SetupHandling.handleFirstRun = function (crm) {
                 window.localStorage.setItem('transferred', 'true');
+                var _a = this._getDefaultStorages(), defaultLocalStorage = _a[0], defaultSyncStorage = _a[1];
                 //Save local storage
-                chrome.storage.local.set(this._defaultLocalStorage);
+                chrome.storage.local.set(defaultLocalStorage);
                 //Save sync storage
-                this._uploadStorageSyncData(this._defaultSyncStorage);
+                this._uploadStorageSyncData(defaultSyncStorage);
                 if (crm) {
-                    this._defaultSyncStorage.crm = crm;
+                    defaultSyncStorage.crm = crm;
                 }
-                var storageLocal = this._defaultLocalStorage;
-                var storageLocalCopy = JSON.parse(JSON.stringify(this._defaultLocalStorage));
+                var storageLocal = defaultLocalStorage;
+                var storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
                 return {
-                    settingsStorage: this._defaultSyncStorage,
+                    settingsStorage: defaultSyncStorage,
                     storageLocalCopy: storageLocalCopy,
                     chromeStorageLocal: storageLocal
                 };
@@ -6839,55 +6941,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 return LegacyScriptReplace;
             }()),
             _f),
-        //Local storage
-        _e._defaultLocalStorage = {
-            requestPermissions: [],
-            editing: null,
-            selectedCrmType: 0,
-            jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
-            globalExcludes: [''],
-            latestId: 0,
-            useStorageSync: true,
-            notFirstTime: true,
-            lastUpdatedAt: chrome.runtime.getManifest().version,
-            authorName: 'anonymous',
-            showOptions: true,
-            recoverUnsavedData: false,
-            CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-                .split('.')[0] > 34,
-            editCRMInRM: false,
-            hideToolsRibbon: false,
-            shrinkTitleRibbon: false,
-            libraries: [
-                { "location": 'jQuery.js', "name": 'jQuery' },
-                { "location": 'mooTools.js', "name": 'mooTools' },
-                { "location": 'YUI.js', "name": 'YUI' },
-                { "location": 'Angular.js', "name": 'Angular' },
-                { "location": 'jqlite.js', "name": 'jqlite' }
-            ]
-        },
-        //Sync storage
-        _e._defaultSyncStorage = {
-            editor: {
-                keyBindings: {
-                    autocomplete: 'Ctrl-Space',
-                    showType: 'Ctrl-I',
-                    showDocs: 'Ctrl-O',
-                    goToDef: 'Alt-.',
-                    rename: 'Ctrl-Q',
-                    selectName: 'Ctrl-.'
-                },
-                tabSize: '4',
-                theme: 'dark',
-                useTabs: true,
-                zoom: '100'
-            },
-            crm: [
-                globalObject.globals.constants.templates.getDefaultLinkNode({
-                    id: Helpers.generateItemId()
-                })
-            ]
-        },
         _e);
     ;
     (function () {

@@ -146,6 +146,7 @@ interface SettingsStorage extends AnyObj {
 			selectName: string;
 		}
 	};
+	settingsLastUpdatedAt: number;
 	crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 }
 
@@ -177,6 +178,17 @@ interface StorageLocal extends AnyObj {
 	shrinkTitleRibbon: boolean;
 	showOptions: boolean;
 	useStorageSync: boolean;
+	settingsVersionData: {
+		current: {
+			hash: string;
+			date: number;
+		};
+		latest: {
+			hash: string;
+			date: number;
+		}
+		wasUpdated: boolean;
+	}
 }
 
 interface ContextMenuSettings extends chrome.contextMenus.CreateProperties {
@@ -7580,69 +7592,71 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			//Local storage
-			static _defaultLocalStorage = {
-				requestPermissions: [],
-				editing: null,
-				selectedCrmType: 0,
-				jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
-				globalExcludes: [''],
-				latestId: 0,
-				useStorageSync: true,
-				notFirstTime: true,
-				lastUpdatedAt: chrome.runtime.getManifest().version,
-				authorName: 'anonymous',
-				showOptions: true,
-				recoverUnsavedData: false,
-				CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-					.split('.')[0] > 34,
-				editCRMInRM: false,
-				hideToolsRibbon: false,
-				shrinkTitleRibbon: false,
-				libraries: [
-					{ "location": 'jQuery.js', "name": 'jQuery' },
-					{ "location": 'mooTools.js', "name": 'mooTools' },
-					{ "location": 'YUI.js', "name": 'YUI' },
-					{ "location": 'Angular.js', "name": 'Angular' },
-					{ "location": 'jqlite.js', "name": 'jqlite' }
-				]
+			static _getDefaultStorages(): [StorageLocal, SettingsStorage] {
+				const syncStorage = this._getDefaultSyncStorage();
+				const syncHash = window.md5(JSON.stringify(syncStorage));
+				return [{
+					requestPermissions: [],
+					editing: null,
+					selectedCrmType: 0,
+					jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
+					globalExcludes: [''],
+					latestId: 0,
+					useStorageSync: true,
+					notFirstTime: true,
+					lastUpdatedAt: chrome.runtime.getManifest().version,
+					authorName: 'anonymous',
+					showOptions: true,
+					recoverUnsavedData: false,
+					CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
+						.split('.')[0] > 34,
+					editCRMInRM: false,
+					hideToolsRibbon: false,
+					shrinkTitleRibbon: false,
+					libraries: [
+						{ "location": 'jQuery.js', "name": 'jQuery' },
+						{ "location": 'mooTools.js', "name": 'mooTools' },
+						{ "location": 'YUI.js', "name": 'YUI' },
+						{ "location": 'Angular.js', "name": 'Angular' },
+						{ "location": 'jqlite.js', "name": 'jqlite' }
+					],
+					settingsVersionData: {
+						current: {
+							hash: syncHash,
+							date: new Date().getTime()
+						},
+						latest: {
+							hash: syncHash,
+							date: new Date().getTime()
+						},
+						wasUpdated: false
+					}
+				}, syncStorage];
 			}
 			//Sync storage
-			static _defaultSyncStorage: {
-				editor: {
-					keyBindings: {
-						autocomplete: string;
-						showType: string;
-						showDocs: string;
-						goToDef: string;
-						rename: string;
-						selectName: string
-					};
-					tabSize: string;
-					theme: string;
-					useTabs: boolean;
-					zoom: string
-				};
-				crm: Array<CRMNode>
-			} = {
-				editor: {
-					keyBindings: {
-						autocomplete: 'Ctrl-Space',
-						showType: 'Ctrl-I',
-						showDocs: 'Ctrl-O',
-						goToDef: 'Alt-.',
-						rename: 'Ctrl-Q',
-						selectName: 'Ctrl-.'
+			static _getDefaultSyncStorage(): SettingsStorage {
+				return {
+					editor: {
+						keyBindings: {
+							autocomplete: 'Ctrl-Space',
+							showType: 'Ctrl-I',
+							showDocs: 'Ctrl-O',
+							goToDef: 'Alt-.',
+							rename: 'Ctrl-Q',
+							selectName: 'Ctrl-.'
+						},
+						tabSize: '4',
+						theme: 'dark',
+						useTabs: true,
+						zoom: '100'
 					},
-					tabSize: '4',
-					theme: 'dark',
-					useTabs: true,
-					zoom: '100'
-				},
-				crm: [
-					globalObject.globals.constants.templates.getDefaultLinkNode({
-						id: Helpers.generateItemId()
-					})
-				]
+					crm: [
+						globalObject.globals.constants.templates.getDefaultLinkNode({
+							id: Helpers.generateItemId()
+						})
+					],
+					settingsLastUpdatedAt: new Date().getTime()
+				}
 			}
 
 			static handleFirstRun(crm?: Array<CRMNode>): {
@@ -7652,20 +7666,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			} {
 				window.localStorage.setItem('transferred', 'true');
 
+				const [defaultLocalStorage, defaultSyncStorage] = this._getDefaultStorages();
+
 				//Save local storage
-				chrome.storage.local.set(this._defaultLocalStorage);
+				chrome.storage.local.set(defaultLocalStorage);
 
 				//Save sync storage
-				this._uploadStorageSyncData(this._defaultSyncStorage);
+				this._uploadStorageSyncData(defaultSyncStorage);
 
 				if (crm) {
-					this._defaultSyncStorage.crm = crm;
+					defaultSyncStorage.crm = crm;
 				}
 
-				const storageLocal = this._defaultLocalStorage;
-				const storageLocalCopy = JSON.parse(JSON.stringify(this._defaultLocalStorage));
+				const storageLocal = defaultLocalStorage;
+				const storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
 				return {
-					settingsStorage: this._defaultSyncStorage,
+					settingsStorage: defaultSyncStorage,
 					storageLocalCopy: storageLocalCopy,
 					chromeStorageLocal: storageLocal
 				};
@@ -7772,6 +7788,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					break;
 				case 'settings':
+					if (type === 'settings') {
+						globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime()
+					}
 					if (useStorageSync !== null) {
 						globalObject.globals.storages.storageLocal
 							.useStorageSync = useStorageSync;
@@ -7779,6 +7798,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					const settingsJson = JSON.stringify(globalObject.globals.storages
 						.settingsStorage);
+					chrome.storage.local.set({
+						settingsVersionData: {
+							current: {
+								hash: window.md5(settingsJson),
+								date: new Date().getTime()
+							},
+							latest: globalObject.globals.storages.storageLocal.settingsVersionData.latest,
+							wasUpdated: globalObject.globals.storages.storageLocal.settingsVersionData.wasUpdated
+						}
+					});
 					if (!globalObject.globals.storages.storageLocal.useStorageSync) {
 						chrome.storage.local.set({
 							settings: globalObject.globals.storages.settingsStorage
@@ -7998,6 +8027,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
+						this._checkForStorageSyncUpdates(settingsStorage, chromeStorageLocal);
+
 						this.setStorages(storageLocalCopy, settingsStorage,
 							chromeStorageLocal,
 							callback);
@@ -8081,6 +8112,27 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						resolve(firstRunResult);
 					};
 				}
+			}
+		}
+		private static _checkForStorageSyncUpdates(storageSync: SettingsStorage, storageLocal: StorageLocal) {
+			const syncString = JSON.stringify(storageSync);
+			const hash = window.md5(syncString);
+
+			if (storageLocal.settingsVersionData.current.hash !== hash) {
+				//Data changed, show a message and update current hash
+				chrome.storage.local.set({
+					settingsVersionData: {
+						current: {
+							hash: hash,
+							date: storageSync.settingsLastUpdatedAt
+						},
+						latest: {
+							hash: hash,
+							date: storageSync.settingsLastUpdatedAt
+						},
+						wasUpdated: true
+					}
+				})
 			}
 		}
 	};

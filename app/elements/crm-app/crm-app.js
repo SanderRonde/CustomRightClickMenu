@@ -2262,6 +2262,35 @@
 				return;
 			}
 
+			//Sync storage
+			var defaultSyncStorage = {
+				editor: {
+					keyBindings: {
+						autocomplete: 'Ctrl-Space',
+						showType: 'Ctrl-I',
+						showDocs: 'Ctrl-O',
+						goToDef: 'Alt-.',
+						rename: 'Ctrl-Q',
+						selectName: 'Ctrl-.'
+					},
+					tabSize: '4',
+					theme: 'dark',
+					useTabs: true,
+					zoom: 100
+				},
+				crm: _this.transferCRMFromOld(localStorage.getItem('whatpage')),
+				settingsLastUpdatedAt: new Date().getTime()
+			};
+
+			window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+
+			//Save sync storage
+			_this.uploadStorageSyncData(defaultSyncStorage, _this);
+			_this.settings = defaultSyncStorage;
+			var settingsJsonString = JSON.stringify(defaultSyncStorage);
+			_this.settingsCopy = JSON.parse(settingsJsonString);
+
+			var syncHash = window.md5(settingsJsonString);
 			var defaultLocalStorage = {
 				requestPermissions: [],
 				editing: null,
@@ -2286,41 +2315,24 @@
 					{ "location": 'YUI.js', "name": 'YUI' },
 					{ "location": 'Angular.js', "name": 'Angular' },
 					{ "location": "jqlite.js", "name": 'jqlite' }
-				]
+				],
+				settingsVersionData: {
+					current: {
+						hash: syncHash,
+						date: new Date().getTime()
+					},
+					latest: {
+						hash: syncHash,
+						date: new Date().getTime()
+					},
+					wasUpdated: false
+				}
 			};
 
 			//Save local storage
 			chrome.storage.local.set(defaultLocalStorage);
 			_this.storageLocal = defaultLocalStorage;
 			_this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
-
-
-			//Sync storage
-			var defaultSyncStorage = {
-				editor: {
-					keyBindings: {
-						autocomplete: 'Ctrl-Space',
-						showType: 'Ctrl-I',
-						showDocs: 'Ctrl-O',
-						goToDef: 'Alt-.',
-						rename: 'Ctrl-Q',
-						selectName: 'Ctrl-.'
-					},
-					tabSize: '4',
-					theme: 'dark',
-					useTabs: true,
-					zoom: 100
-				},
-				crm: _this.transferCRMFromOld(localStorage.getItem('whatpage'))
-			};
-
-			window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-
-			//Save sync storage
-			_this.uploadStorageSyncData(defaultSyncStorage, _this);
-			_this.settings = defaultSyncStorage;
-			var settingsJsonString = JSON.stringify(defaultSyncStorage);
-			_this.settingsCopy = JSON.parse(settingsJsonString);
 
 			//Go on with page execution
 			//Storage-local functions
@@ -2343,42 +2355,6 @@
 		},
 
 		handleFirstTime: function(_this) {
-			//Local storage
-			var defaultLocalStorage = {
-				requestPermissions: [],
-				editing: null,
-				selectedCrmType: 0,
-				jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
-				globalExcludes: [''],
-				latestId: 0,
-				useStorageSync: true,
-				notFirstTime: true,
-				lastUpdatedAt: chrome.runtime.getManifest().version,
-				authorName: 'anonymous',
-				showOptions: (localStorage.getItem('optionson') !== 'false'),
-				recoverUnsavedData: false,
-				CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-					.split('.')[0] > 34,
-				editCRMInRM: false,
-				hideToolsRibbon: false,
-				shrinkTitleRibbon: false,
-				libraries: [
-					{ "location": 'jQuery.js', "name": 'jQuery' },
-					{ "location": 'mooTools.js', "name": 'mooTools' },
-					{ "location": 'YUI.js', "name": 'YUI' },
-					{ "location": 'Angular.js', "name": 'Angular' },
-					{ "location": "jqlite.js", "name": 'jqlite' }
-				]
-			};
-
-			window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-
-			//Save local storage
-			chrome.storage.local.set(defaultLocalStorage);
-			_this.storageLocal = defaultLocalStorage;
-			_this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
-
-
 			//Sync storage
 			var defaultSyncStorage = {
 				editor: {
@@ -2407,6 +2383,52 @@
 			_this.settings = defaultSyncStorage;
 			var settingsJsonString = JSON.stringify(defaultSyncStorage);
 			_this.settingsCopy = JSON.parse(settingsJsonString);
+
+			var syncHash = window.md5(settingsJsonString);
+			var defaultLocalStorage = {
+				requestPermissions: [],
+				editing: null,
+				selectedCrmType: 0,
+				jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
+				globalExcludes: [''],
+				latestId: 0,
+				useStorageSync: true,
+				notFirstTime: true,
+				lastUpdatedAt: chrome.runtime.getManifest().version,
+				authorName: 'anonymous',
+				showOptions: (localStorage.getItem('optionson') !== 'false'),
+				recoverUnsavedData: false,
+				CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
+					.split('.')[0] > 34,
+				editCRMInRM: false,
+				hideToolsRibbon: false,
+				shrinkTitleRibbon: false,
+				libraries: [
+					{ "location": 'jQuery.js', "name": 'jQuery' },
+					{ "location": 'mooTools.js', "name": 'mooTools' },
+					{ "location": 'YUI.js', "name": 'YUI' },
+					{ "location": 'Angular.js', "name": 'Angular' },
+					{ "location": "jqlite.js", "name": 'jqlite' }
+				],
+				settingsVersionData: {
+					current: {
+						hash: syncHash,
+						date: new Date().getTime()
+					},
+					latest: {
+						hash: syncHash,
+						date: new Date().getTime()
+					},
+					wasUpdated: false
+				}
+			};
+
+			window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+
+			//Save local storage
+			chrome.storage.local.set(defaultLocalStorage);
+			_this.storageLocal = defaultLocalStorage;
+			_this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
 
 			//Go on with page execution
 			//Storage-local functions
@@ -2817,6 +2839,19 @@
 								updatedScripts: []
 							});
 							storageLocal.updatedScript = [];
+						}
+						if (storageLocal.settingsVersionData.wasUpdated) {
+							var versionData = storageLocal.settingsVersionData;
+							versionData.wasUpdated = false;
+							chrome.storage.local.set({
+								settingsVersionData: versionData	
+							});
+
+							var toast = window.doc.updatedSettingsToast;
+							toast.text = 'Settings were updated to those on ' + new Date(
+								versionData.latest.date
+							).toLocaleDateString();
+							toast.show();
 						}
 
 						if (storageLocal.isTransfer) {
