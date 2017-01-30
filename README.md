@@ -54,7 +54,7 @@ You can develop scripts both inside the extension and outside of it. By using th
 
 The CRM API allows you to edit the current state of the context menu right from a running script. This allows you to do things like create an "add website to menu" button, removing or adding subsections in a menu or even communicating with other running scripts. By also using a background script (which runs at all times and uses the same permissions/API), you can do pretty much everything a chrome extension could. The CRM API also features full compatibility with the [GreaseMonkey API](https://wiki.greasespot.net/Greasemonkey_Manual:API), so you can use all userscripts.
 
-There is a typescript definition file available for the CRM API over [here](https://github.com/SanderRonde/CustomRightClickMenu/tree/master/Custom%20Right-Click%20Menu/app/js/crmapi.ts) and you can find both an in-extension and [online](sanderronde.github.io/CustomRightClickMenu/) version of the documentation. The in-extension version can be found by going to /html/crmAPIDocs.html or by hitting the "go to definition" key in the CodeMirror editor.
+There is a typescript definition file available for the CRM API over [here](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/app/js/crmapi.d.ts) and you can find both an in-extension and [online](sanderronde.github.io/CustomRightClickMenu/) version of the documentation. The in-extension version can be found by going to /html/crmAPIDocs.html or by hitting the "go to definition" key in the CodeMirror editor.
 
 ## Contributing
 
