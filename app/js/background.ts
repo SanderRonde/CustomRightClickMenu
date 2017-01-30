@@ -10,6 +10,86 @@ interface TabData {
 	title: string;
 }
 
+interface ContextData {
+	clientX: number;
+	clientY: number;
+	offsetX: number;
+	offsetY: number;
+	pageX: number;
+	pageY: number;
+	screenX: number;
+	screenY: number;
+	which: number;
+	x: number;
+	y: number;
+	srcElement: number;
+	target: number;
+	toElement: number;
+}
+
+interface Resource {
+	dataURI: string;
+	name?: string;
+	sourceUrl: string;
+	crmUrl: string;
+}
+
+type Resources = { [name: string]: Resource }
+
+interface GreaseMonkeyDataInfo {
+	script: {
+		author?: string;
+		copyright?: string;
+		description?: string;
+		excludes?: Array<string>;
+		homepage?: string;
+		icon?: string;
+		icon64?: string;
+		includes?: Array<string>;
+		lastUpdated: number; //Never updated
+		matches?: Array<string>;
+		isIncognito: boolean;
+		downloadMode: string;
+		name: string;
+		namespace?: string;
+		options: {
+			awareOfChrome: boolean;
+			compat_arrayleft: boolean;
+			compat_foreach: boolean;
+			compat_forvarin: boolean;
+			compat_metadata: boolean;
+			compat_prototypes: boolean;
+			compat_uW_gmonkey: boolean;
+			noframes?: string;
+			override: {
+				excludes: boolean;
+				includes: boolean;
+				orig_excludes?: Array<string>;
+				orig_includes?: Array<string>;
+				use_excludes: Array<string>;
+				use_includes: Array<string>;
+			}
+		},
+		position: number;
+		resources: Array<Resource>;
+		"run-at": string;
+		system: boolean;
+		unwrap: boolean;
+		version?: number;
+	},
+	scriptMetaStr: string;
+	scriptSource: string;
+	scriptUpdateURL?: string;
+	scriptWillUpdate: boolean;
+	scriptHandler: string;
+	version: string;
+}
+
+interface GreaseMonkeyData {
+	info: GreaseMonkeyDataInfo,
+	resources: Resources
+}
+
 const enum TypecheckOptional {
 	OPTIONAL = 1,
 	REQUIRED = 0
@@ -4773,7 +4853,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return undefined;
 				};
 			}
-			private static _getResourcesArrayForScript(scriptId: number) {
+			private static _getResourcesArrayForScript(scriptId: number): Array<{
+					name: string;
+					sourceUrl: string;
+					matchesHashes: boolean;
+					dataURI: string;
+					crmUrl: string;
+				}> {
 				const resourcesArray = [];
 				const scriptResources = globalObject.globals.storages.resources[scriptId];
 				if (!scriptResources) {
@@ -5854,188 +5940,199 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							chrome.runtime.reload();
 						});
 					} else {
-						var i;
-						globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals
-							.crmValues.tabData[tab.id] ||
-							{
-								libraries: {},
-								nodes: {}
+						Promise.all([new Promise<ContextData>((resolve) => {
+							chrome.tabs.sendMessage(tab.id, {
+								type: 'getLastClickInfo'
+							}, (response: ContextData) => {
+								resolve(response);
+							});
+						}), new Promise<[any, GreaseMonkeyData, string, string, number, string]>((resolve) => {
+							let i: number;
+							globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals
+								.crmValues.tabData[tab.id] ||
+								{
+									libraries: {},
+									nodes: {}
+								};
+							globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = {
+								secretKey: key
 							};
-						globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = {
-							secretKey: key
-						};
-						Logging.Listeners.updateTabAndIdLists();
+							Logging.Listeners.updateTabAndIdLists();
 
-						var metaData: {
-							[key: string]: any;
-						} = CRM.Script.MetaTags.getMetaTags(node.value.script);
-						var metaString = CRM.Script.MetaTags.getMetaLines(node.value
-								.script) ||
-							undefined;
-						var runAt = metaData['run-at'] || 'document_end';
-						var excludes = [];
-						var includes = [];
-						if (node.triggers) {
-							for (i = 0; i < node.triggers.length; i++) {
-								if (node.triggers[i].not) {
-									excludes.push(node.triggers[i].url);
-								} else {
-									includes.push(node.triggers[i].url);
+							const metaData: {
+								[key: string]: any;
+							} = CRM.Script.MetaTags.getMetaTags(node.value.script);
+							const metaString = (CRM.Script.MetaTags.getMetaLines(node.value
+								.script) || []).join('\n');
+							const runAt: string = metaData['run-at'] || 'document_end';
+							const excludes: Array<string> = [];
+							const includes: Array<string> = [];
+							if (node.triggers) {
+								for (i = 0; i < node.triggers.length; i++) {
+									if (node.triggers[i].not) {
+										excludes.push(node.triggers[i].url);
+									} else {
+										includes.push(node.triggers[i].url);
+									}
 								}
 							}
-						}
 
-						var metaVal = CRM.Script._generateMetaAccessFunction(metaData);
+							const metaVal = CRM.Script._generateMetaAccessFunction(metaData);
 
-						var greaseMonkeyData = {
-							info: {
-								script: {
-									author: metaVal('author') || '',
-									copyright: metaVal('copyright'),
-									description: metaVal('description'),
-									excludes: metaData['excludes'],
-									homepage: metaVal('homepage'),
-									icon: metaVal('icon'),
-									icon64: metaVal('icon64'),
-									includes: metaData['includes'],
-									lastUpdated: 0, //Never updated
-									matches: metaData['matches'],
-									isIncognito: tab.incognito,
-									downloadMode: 'browser',
-									name: node.name,
-									namespace: metaVal('namespace'),
-									options: {
-										awareOfChrome: true,
-										compat_arrayleft: false,
-										compat_foreach: false,
-										compat_forvarin: false,
-										compat_metadata: false,
-										compat_prototypes: false,
-										compat_uW_gmonkey: false,
-										noframes: metaVal('noframes'),
-										override: {
-											excludes: true,
-											includes: true,
-											orig_excludes: metaData['excludes'],
-											orig_includes: metaData['includes'],
-											use_excludes: excludes,
-											use_includes: includes
-										}
+							const greaseMonkeyData: GreaseMonkeyData = {
+								info: {
+									script: {
+										author: metaVal('author') || '',
+										copyright: metaVal('copyright'),
+										description: metaVal('description'),
+										excludes: metaData['excludes'],
+										homepage: metaVal('homepage'),
+										icon: metaVal('icon'),
+										icon64: metaVal('icon64'),
+										includes: metaData['includes'],
+										lastUpdated: 0, //Never updated
+										matches: metaData['matches'],
+										isIncognito: tab.incognito,
+										downloadMode: 'browser',
+										name: node.name,
+										namespace: metaVal('namespace'),
+										options: {
+											awareOfChrome: true,
+											compat_arrayleft: false,
+											compat_foreach: false,
+											compat_forvarin: false,
+											compat_metadata: false,
+											compat_prototypes: false,
+											compat_uW_gmonkey: false,
+											noframes: metaVal('noframes'),
+											override: {
+												excludes: true,
+												includes: true,
+												orig_excludes: metaData['excludes'],
+												orig_includes: metaData['includes'],
+												use_excludes: excludes,
+												use_includes: includes
+											}
+										},
+										position: 1, // what does this mean?
+										resources: CRM.Script._getResourcesArrayForScript(node.id),
+										"run-at": runAt,
+										system: false,
+										unwrap: true,
+										version: metaVal('version')
 									},
-									position: 1, // what does this mean?
-									resources: CRM.Script._getResourcesArrayForScript(node.id),
-									"run-at": runAt,
-									system: false,
-									unwrap: true,
-									version: metaVal('version')
+									scriptMetaStr: metaString,
+									scriptSource: node.value.script,
+									scriptUpdateURL: metaVal('updateURL'),
+									scriptWillUpdate: true,
+									scriptHandler: 'Custom Right-Click Menu',
+									version: chrome.runtime.getManifest().version
 								},
-								scriptMetaStr: metaString,
-								scriptSource: node.value.script,
-								scriptUpdateURL: metaVal('updateURL'),
-								scriptWillUpdate: true,
-								scriptHandler: 'Custom Right-Click Menu',
-								version: chrome.runtime.getManifest().version
-							},
-							resources: globalObject.globals.storages.resources[node.id] || {}
-						};
-						globalObject.globals.storages.nodeStorage[node
-							.id] = globalObject.globals.storages.nodeStorage[node.id] || {};
-
-						var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
-
-						var indentUnit: string;
-						if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
-							indentUnit = '	';
-						} else {
-							indentUnit = new Array([
-								globalObject.globals.storages.settingsStorage.editor.tabSize || 2
-							]).join(' ');
-						}
-
-						var script = node.value.script.split('\n').map((line) => {
-							return indentUnit + line;
-						}).join('\n');
-
-						var code = [
-							[
-								`var crmAPI = new CrmAPIInit(${
-								[
-									CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
-									greaseMonkeyData
-								]
-								.map((param) => {
-									return JSON.stringify(param);
-								}).join(', ')});`
-							].join(', '),
-							'try {',
-							script,
-							'} catch (error) {',
-							indentUnit + 'if (crmAPI.debugOnError) {',
-							indentUnit + indentUnit + 'debugger;',
-							indentUnit + '}',
-							indentUnit + 'throw error;',
-							'}'
-						].join('\n');
-
-						var scripts = [];
-						for (i = 0; i < node.value.libraries.length; i++) {
-							var lib: {
-								name: string;
-								url?: string;
-								code?: string;
-								location?: string;
-							} | {
-								code: string;
-								location?: string;
+								resources: globalObject.globals.storages.resources[node.id] || {}
 							};
-							if (globalObject.globals.storages.storageLocal.libraries) {
-								for (var j = 0;
-									j < globalObject.globals.storages.storageLocal.libraries.length;
-									j++) {
-									if (globalObject.globals.storages.storageLocal.libraries[j].name ===
-										node.value.libraries[i].name) {
-										lib = globalObject.globals.storages.storageLocal.libraries[j];
-										break;
-									} else {
-										//Resource hasn't been registered with its name, try if it's an anonymous one
-										if (node.value.libraries[i].name === null) {
-											//Check if the value has been registered as a resource
-											if (globalObject.globals.storages.urlDataPairs[node.value
-												.libraries[i]
-												.url]) {
-												lib = {
-													code: globalObject.globals.storages.urlDataPairs[node.value
-														.libraries[i].url].dataString
-												};
+							globalObject.globals.storages.nodeStorage[node
+								.id] = globalObject.globals.storages.nodeStorage[node.id] || {};
+
+							const nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
+
+							var indentUnit: string;
+							if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
+								indentUnit = '	';
+							} else {
+								indentUnit = new Array([
+									globalObject.globals.storages.settingsStorage.editor.tabSize || 2
+								]).join(' ');
+							}
+
+							const script = node.value.script.split('\n').map((line) => {
+								return indentUnit + line;
+							}).join('\n');
+
+							resolve([nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt]);							
+						})]).then(([contextData, 
+							[nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt]]: [ContextData, 
+							[any, GreaseMonkeyData, string, string, number, string]]) => {
+							var code = [
+								[
+									`var crmAPI = new CrmAPIInit(${
+									[
+										CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
+										contextData, greaseMonkeyData
+									]
+									.map((param) => {
+										return JSON.stringify(param);
+									}).join(', ')});`
+								].join(', '),
+								'try {',
+								script,
+								'} catch (error) {',
+								indentUnit + 'if (crmAPI.debugOnError) {',
+								indentUnit + indentUnit + 'debugger;',
+								indentUnit + '}',
+								indentUnit + 'throw error;',
+								'}'
+							].join('\n');
+
+							var scripts = [];
+							for (i = 0; i < node.value.libraries.length; i++) {
+								var lib: {
+									name: string;
+									url?: string;
+									code?: string;
+									location?: string;
+								} | {
+									code: string;
+									location?: string;
+								};
+								if (globalObject.globals.storages.storageLocal.libraries) {
+									for (var j = 0;
+										j < globalObject.globals.storages.storageLocal.libraries.length;
+										j++) {
+										if (globalObject.globals.storages.storageLocal.libraries[j].name ===
+											node.value.libraries[i].name) {
+											lib = globalObject.globals.storages.storageLocal.libraries[j];
+											break;
+										} else {
+											//Resource hasn't been registered with its name, try if it's an anonymous one
+											if (node.value.libraries[i].name === null) {
+												//Check if the value has been registered as a resource
+												if (globalObject.globals.storages.urlDataPairs[node.value
+													.libraries[i]
+													.url]) {
+													lib = {
+														code: globalObject.globals.storages.urlDataPairs[node.value
+															.libraries[i].url].dataString
+													};
+												}
 											}
 										}
 									}
 								}
-							}
-							if (lib) {
-								if (lib.location) {
-									scripts.push({
-										file: `/js/defaultLibraries/${lib.location}`,
-										runAt: runAt
-									});
-								} else {
-									scripts.push({
-										code: lib.code,
-										runAt: runAt
-									});
+								if (lib) {
+									if (lib.location) {
+										scripts.push({
+											file: `/js/defaultLibraries/${lib.location}`,
+											runAt: runAt
+										});
+									} else {
+										scripts.push({
+											code: lib.code,
+											runAt: runAt
+										});
+									}
 								}
 							}
-						}
-						scripts.push({
-							file: '/js/crmapi.js',
-							runAt: runAt
-						});
-						scripts.push({
-							code: code,
-							runAt: runAt
-						});
+							scripts.push({
+								file: '/js/crmapi.js',
+								runAt: runAt
+							});
+							scripts.push({
+								code: code,
+								runAt: runAt
+							});
 
-						this._executeScripts(tab.id, scripts);
+							this._executeScripts(tab.id, scripts);
+						});
 					}
 				};
 			}

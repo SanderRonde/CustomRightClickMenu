@@ -12,10 +12,11 @@
 	 *		scripts from finding local scripts with more privilege and act as if they
 	 *		are those scripts to run stuff you don't want it to.
 	 * @param {Object} nodeStorage - The storage data for the node
+	 * @param {Object} contextData - The data related to the click on the page
 	 * @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
 	 * @param {Boolean} isBackground - If true, this page is functioning as a background page
 	 */
-	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, greasemonkeyData, isBackground) {
+	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground) {
 		var _this = this;
 
 		//#region Options
@@ -343,6 +344,11 @@
 		Object.defineProperty(this, 'id', {
 			get: function() {
 				return id
+			}
+		});
+		Object.defineProperty(this, 'contextData', {
+			get: function() {
+				return contextData;
 			}
 		});
 		//#endregion
@@ -774,6 +780,24 @@
 				params[_i - 0] = arguments[_i];
 			}
 		};
+
+		/**
+		 * Turns the class-index based number back to an element
+		 */
+		function findElementsOnPage() {
+			var targetClass = 'crm_element_identifier_' + contextData.target;
+			contextData.target = document.querySelector('.' + targetClass);
+			contextData.target.classList.remove(targetClass);
+
+			var toElementClass = 'crm_element_identifier_' + contextData.toElement;
+			contextData.toElement = document.querySelector('.' + toElementClass);
+			contextData.toElement.classList.remove(toElementClass);
+
+			var srcElementClass = 'crm_element_identifier_' + contextData.srcElement;
+			contextData.srcElement = document.querySelector('.' + srcElementClass);
+			contextData.srcElement.classList.remove(srcElementClass);
+		}
+		findElementsOnPage();
 
 		/**
 		 * Checks whether value matches given type and is defined and not null,

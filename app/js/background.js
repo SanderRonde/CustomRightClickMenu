@@ -130,7 +130,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        },
+                        }
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
@@ -4307,170 +4307,180 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         });
                     }
                     else {
-                        var i;
-                        globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals
-                            .crmValues.tabData[tab.id] ||
-                            {
-                                libraries: {},
-                                nodes: {}
-                            };
-                        globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = {
-                            secretKey: key
-                        };
-                        Logging.Listeners.updateTabAndIdLists();
-                        var metaData = CRM.Script.MetaTags.getMetaTags(node.value.script);
-                        var metaString = CRM.Script.MetaTags.getMetaLines(node.value
-                            .script) ||
-                            undefined;
-                        var runAt = metaData['run-at'] || 'document_end';
-                        var excludes = [];
-                        var includes = [];
-                        if (node.triggers) {
-                            for (i = 0; i < node.triggers.length; i++) {
-                                if (node.triggers[i].not) {
-                                    excludes.push(node.triggers[i].url);
+                        Promise.all([new Promise(function (resolve) {
+                                chrome.tabs.sendMessage(tab.id, {
+                                    type: 'getLastClickInfo'
+                                }, function (response) {
+                                    resolve(response);
+                                });
+                            }), new Promise(function (resolve) {
+                                var i;
+                                globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals
+                                    .crmValues.tabData[tab.id] ||
+                                    {
+                                        libraries: {},
+                                        nodes: {}
+                                    };
+                                globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = {
+                                    secretKey: key
+                                };
+                                Logging.Listeners.updateTabAndIdLists();
+                                var metaData = CRM.Script.MetaTags.getMetaTags(node.value.script);
+                                var metaString = (CRM.Script.MetaTags.getMetaLines(node.value
+                                    .script) || []).join('\n');
+                                var runAt = metaData['run-at'] || 'document_end';
+                                var excludes = [];
+                                var includes = [];
+                                if (node.triggers) {
+                                    for (i = 0; i < node.triggers.length; i++) {
+                                        if (node.triggers[i].not) {
+                                            excludes.push(node.triggers[i].url);
+                                        }
+                                        else {
+                                            includes.push(node.triggers[i].url);
+                                        }
+                                    }
+                                }
+                                var metaVal = CRM.Script._generateMetaAccessFunction(metaData);
+                                var greaseMonkeyData = {
+                                    info: {
+                                        script: {
+                                            author: metaVal('author') || '',
+                                            copyright: metaVal('copyright'),
+                                            description: metaVal('description'),
+                                            excludes: metaData['excludes'],
+                                            homepage: metaVal('homepage'),
+                                            icon: metaVal('icon'),
+                                            icon64: metaVal('icon64'),
+                                            includes: metaData['includes'],
+                                            lastUpdated: 0,
+                                            matches: metaData['matches'],
+                                            isIncognito: tab.incognito,
+                                            downloadMode: 'browser',
+                                            name: node.name,
+                                            namespace: metaVal('namespace'),
+                                            options: {
+                                                awareOfChrome: true,
+                                                compat_arrayleft: false,
+                                                compat_foreach: false,
+                                                compat_forvarin: false,
+                                                compat_metadata: false,
+                                                compat_prototypes: false,
+                                                compat_uW_gmonkey: false,
+                                                noframes: metaVal('noframes'),
+                                                override: {
+                                                    excludes: true,
+                                                    includes: true,
+                                                    orig_excludes: metaData['excludes'],
+                                                    orig_includes: metaData['includes'],
+                                                    use_excludes: excludes,
+                                                    use_includes: includes
+                                                }
+                                            },
+                                            position: 1,
+                                            resources: CRM.Script._getResourcesArrayForScript(node.id),
+                                            "run-at": runAt,
+                                            system: false,
+                                            unwrap: true,
+                                            version: metaVal('version')
+                                        },
+                                        scriptMetaStr: metaString,
+                                        scriptSource: node.value.script,
+                                        scriptUpdateURL: metaVal('updateURL'),
+                                        scriptWillUpdate: true,
+                                        scriptHandler: 'Custom Right-Click Menu',
+                                        version: chrome.runtime.getManifest().version
+                                    },
+                                    resources: globalObject.globals.storages.resources[node.id] || {}
+                                };
+                                globalObject.globals.storages.nodeStorage[node
+                                    .id] = globalObject.globals.storages.nodeStorage[node.id] || {};
+                                var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
+                                var indentUnit;
+                                if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
+                                    indentUnit = '	';
                                 }
                                 else {
-                                    includes.push(node.triggers[i].url);
+                                    indentUnit = new Array([
+                                        globalObject.globals.storages.settingsStorage.editor.tabSize || 2
+                                    ]).join(' ');
                                 }
-                            }
-                        }
-                        var metaVal = CRM.Script._generateMetaAccessFunction(metaData);
-                        var greaseMonkeyData = {
-                            info: {
-                                script: {
-                                    author: metaVal('author') || '',
-                                    copyright: metaVal('copyright'),
-                                    description: metaVal('description'),
-                                    excludes: metaData['excludes'],
-                                    homepage: metaVal('homepage'),
-                                    icon: metaVal('icon'),
-                                    icon64: metaVal('icon64'),
-                                    includes: metaData['includes'],
-                                    lastUpdated: 0,
-                                    matches: metaData['matches'],
-                                    isIncognito: tab.incognito,
-                                    downloadMode: 'browser',
-                                    name: node.name,
-                                    namespace: metaVal('namespace'),
-                                    options: {
-                                        awareOfChrome: true,
-                                        compat_arrayleft: false,
-                                        compat_foreach: false,
-                                        compat_forvarin: false,
-                                        compat_metadata: false,
-                                        compat_prototypes: false,
-                                        compat_uW_gmonkey: false,
-                                        noframes: metaVal('noframes'),
-                                        override: {
-                                            excludes: true,
-                                            includes: true,
-                                            orig_excludes: metaData['excludes'],
-                                            orig_includes: metaData['includes'],
-                                            use_excludes: excludes,
-                                            use_includes: includes
+                                var script = node.value.script.split('\n').map(function (line) {
+                                    return indentUnit + line;
+                                }).join('\n');
+                                resolve([nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt]);
+                            })]).then(function (_a) {
+                            var contextData = _a[0], _b = _a[1], nodeStorage = _b[0], greaseMonkeyData = _b[1], script = _b[2], indentUnit = _b[3], i = _b[4], runAt = _b[5];
+                            var code = [
+                                [
+                                    "var crmAPI = new CrmAPIInit(" + [
+                                        CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
+                                        contextData, greaseMonkeyData
+                                    ]
+                                        .map(function (param) {
+                                        return JSON.stringify(param);
+                                    }).join(', ') + ");"
+                                ].join(', '),
+                                'try {',
+                                script,
+                                '} catch (error) {',
+                                indentUnit + 'if (crmAPI.debugOnError) {',
+                                indentUnit + indentUnit + 'debugger;',
+                                indentUnit + '}',
+                                indentUnit + 'throw error;',
+                                '}'
+                            ].join('\n');
+                            var scripts = [];
+                            for (i = 0; i < node.value.libraries.length; i++) {
+                                var lib;
+                                if (globalObject.globals.storages.storageLocal.libraries) {
+                                    for (var j = 0; j < globalObject.globals.storages.storageLocal.libraries.length; j++) {
+                                        if (globalObject.globals.storages.storageLocal.libraries[j].name ===
+                                            node.value.libraries[i].name) {
+                                            lib = globalObject.globals.storages.storageLocal.libraries[j];
+                                            break;
                                         }
-                                    },
-                                    position: 1,
-                                    resources: CRM.Script._getResourcesArrayForScript(node.id),
-                                    "run-at": runAt,
-                                    system: false,
-                                    unwrap: true,
-                                    version: metaVal('version')
-                                },
-                                scriptMetaStr: metaString,
-                                scriptSource: node.value.script,
-                                scriptUpdateURL: metaVal('updateURL'),
-                                scriptWillUpdate: true,
-                                scriptHandler: 'Custom Right-Click Menu',
-                                version: chrome.runtime.getManifest().version
-                            },
-                            resources: globalObject.globals.storages.resources[node.id] || {}
-                        };
-                        globalObject.globals.storages.nodeStorage[node
-                            .id] = globalObject.globals.storages.nodeStorage[node.id] || {};
-                        var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
-                        var indentUnit;
-                        if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
-                            indentUnit = '	';
-                        }
-                        else {
-                            indentUnit = new Array([
-                                globalObject.globals.storages.settingsStorage.editor.tabSize || 2
-                            ]).join(' ');
-                        }
-                        var script = node.value.script.split('\n').map(function (line) {
-                            return indentUnit + line;
-                        }).join('\n');
-                        var code = [
-                            [
-                                "var crmAPI = new CrmAPIInit(" + [
-                                    CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
-                                    greaseMonkeyData
-                                ]
-                                    .map(function (param) {
-                                    return JSON.stringify(param);
-                                }).join(', ') + ");"
-                            ].join(', '),
-                            'try {',
-                            script,
-                            '} catch (error) {',
-                            indentUnit + 'if (crmAPI.debugOnError) {',
-                            indentUnit + indentUnit + 'debugger;',
-                            indentUnit + '}',
-                            indentUnit + 'throw error;',
-                            '}'
-                        ].join('\n');
-                        var scripts = [];
-                        for (i = 0; i < node.value.libraries.length; i++) {
-                            var lib;
-                            if (globalObject.globals.storages.storageLocal.libraries) {
-                                for (var j = 0; j < globalObject.globals.storages.storageLocal.libraries.length; j++) {
-                                    if (globalObject.globals.storages.storageLocal.libraries[j].name ===
-                                        node.value.libraries[i].name) {
-                                        lib = globalObject.globals.storages.storageLocal.libraries[j];
-                                        break;
-                                    }
-                                    else {
-                                        //Resource hasn't been registered with its name, try if it's an anonymous one
-                                        if (node.value.libraries[i].name === null) {
-                                            //Check if the value has been registered as a resource
-                                            if (globalObject.globals.storages.urlDataPairs[node.value
-                                                .libraries[i]
-                                                .url]) {
-                                                lib = {
-                                                    code: globalObject.globals.storages.urlDataPairs[node.value
-                                                        .libraries[i].url].dataString
-                                                };
+                                        else {
+                                            //Resource hasn't been registered with its name, try if it's an anonymous one
+                                            if (node.value.libraries[i].name === null) {
+                                                //Check if the value has been registered as a resource
+                                                if (globalObject.globals.storages.urlDataPairs[node.value
+                                                    .libraries[i]
+                                                    .url]) {
+                                                    lib = {
+                                                        code: globalObject.globals.storages.urlDataPairs[node.value
+                                                            .libraries[i].url].dataString
+                                                    };
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            if (lib) {
-                                if (lib.location) {
-                                    scripts.push({
-                                        file: "/js/defaultLibraries/" + lib.location,
-                                        runAt: runAt
-                                    });
+                                if (lib) {
+                                    if (lib.location) {
+                                        scripts.push({
+                                            file: "/js/defaultLibraries/" + lib.location,
+                                            runAt: runAt
+                                        });
+                                    }
+                                    else {
+                                        scripts.push({
+                                            code: lib.code,
+                                            runAt: runAt
+                                        });
+                                    }
                                 }
-                                else {
-                                    scripts.push({
-                                        code: lib.code,
-                                        runAt: runAt
-                                    });
-                                }
                             }
-                        }
-                        scripts.push({
-                            file: '/js/crmapi.js',
-                            runAt: runAt
+                            scripts.push({
+                                file: '/js/crmapi.js',
+                                runAt: runAt
+                            });
+                            scripts.push({
+                                code: code,
+                                runAt: runAt
+                            });
+                            _this._executeScripts(tab.id, scripts);
                         });
-                        scripts.push({
-                            code: code,
-                            runAt: runAt
-                        });
-                        _this._executeScripts(tab.id, scripts);
                     }
                 };
             };

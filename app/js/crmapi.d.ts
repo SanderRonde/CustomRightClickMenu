@@ -1,4 +1,21 @@
 declare namespace CRMAPI {
+	interface ContextData {
+		clientX: number;
+		clientY: number;
+		offsetX: number;
+		offsetY: number;
+		pageX: number;
+		pageY: number;
+		screenX: number;
+		screenY: number;
+		which: number;
+		x: number;
+		y: number;
+		srcElement: number;
+		target: number;
+		toElement: number;
+	}
+
 	interface ArrayConstructor {
 		from: (any) => Array<any>;
 	}
@@ -303,12 +320,14 @@ declare namespace CRMAPI {
 
 	type NodeStorage = { [key: string]: any|NodeStorage }
 
-	type Resources = { [name: string]: {
+	interface Resource {
 		dataURI: string;
 		dataString: string;
 		url: string;
 		crmUrl: string;
-	} }
+	}
+
+	type Resources = { [name: string]: Resource }
 
 	interface GreaseMonkeyDataInfo {
 		script: {
@@ -344,8 +363,8 @@ declare namespace CRMAPI {
 					use_includes: Array<string>;
 				}
 			},
-			position: boolean;
-			resources: Resources;
+			position: number;
+			resources: Array<Resource>;
 			"run-at": string;
 			system: boolean;
 			unwrap: boolean;
@@ -356,7 +375,7 @@ declare namespace CRMAPI {
 		scriptUpdateURL?: string;
 		scriptWillUpdate: boolean;
 		scriptHandler: string;
-		version: number;
+		version: string;
 	}
 
 	interface GreaseMonkeyData {
@@ -433,6 +452,7 @@ declare namespace CRMAPI {
 	*		scripts from finding local scripts with more privilege and act as if they
 	*		are those scripts to run stuff you don't want it to.
 	* @param {Object} nodeStorage - The storage data for the node
+	* @param {Object} contextData - The data related to the click on the page
 	* @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
 	* @param {Boolean} isBackground - If true, this page is functioning as a background page
 	*/
@@ -474,6 +494,11 @@ declare namespace CRMAPI {
 		 * The ID of this node
 		 */
 		id: number;
+
+		/**
+		 * Data about the click on the page
+		 */
+		contextData: ContextData;
 
 		/**
 		 * All permissions that are allowed on this script
