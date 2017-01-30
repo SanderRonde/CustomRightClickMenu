@@ -2840,6 +2840,7 @@
 							});
 							storageLocal.updatedScript = [];
 						}
+						console.log(storageLocal);
 						if (storageLocal.settingsVersionData.wasUpdated) {
 							var versionData = storageLocal.settingsVersionData;
 							versionData.wasUpdated = false;
@@ -3060,7 +3061,8 @@
 				const defaultNodeInfo = {
 					permissions: [],
 					source: {
-						author: (this.parent && this.parent.storageLocal.authorName) || 'anonymous'
+						author: (this.parent && this.parent.storageLocal &&
+							this.parent.storageLocal.authorName) || 'anonymous'
 					 }
 				};
 
