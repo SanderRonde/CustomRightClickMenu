@@ -246,6 +246,9 @@ window.chrome = {
 				id: id,
 				data: data
 			});
+		},
+		sendMessage: function(tab, data, respond) {
+			respond({});
 		}
 	},
 	permissions: {
