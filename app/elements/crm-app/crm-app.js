@@ -2840,7 +2840,6 @@
 							});
 							storageLocal.updatedScript = [];
 						}
-						console.log(storageLocal);
 						if (storageLocal.settingsVersionData.wasUpdated) {
 							var versionData = storageLocal.settingsVersionData;
 							versionData.wasUpdated = false;
