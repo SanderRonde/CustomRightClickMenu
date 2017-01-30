@@ -496,8 +496,8 @@ interface Extensions<T> extends Extendable<T> { }
 
 var Symbol = Symbol || ({
 	toStringTag: 'index'
-} as any) as SymbolConstructor;
-class Promiselike<T> implements Promise<T> {
+} as any);
+class Promiselike<T> {
 	_listeners: Array<(result: T) => void> = [];
 	_rejectListeners: Array<(reason: any) => void> = [];
 	_status: 'pending'|'rejected'|'fulfilled' = 'pending';
@@ -521,18 +521,18 @@ class Promiselike<T> implements Promise<T> {
 		});;
 	}
 
-	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promise<T> {
+	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promiselike<T> {
 		this._listeners.push(callback);
 		if (onrejected) {
 			this._rejectListeners.push(onrejected);
 		}
 		return this;
 	}
-	catch(onrejected: (reason: any) => void): Promise<T> {
+	catch(onrejected: (reason: any) => void): Promiselike<T> {
 		this._rejectListeners.push(onrejected);
 		return this;
 	}
-	get [Symbol.toStringTag](): 'Promise' {
+	get [(Symbol.toStringTag as any) as symbol](): 'Promise' {
 		return 'Promise';
 	}
 	static all(values) {
@@ -566,12 +566,12 @@ class Promiselike<T> implements Promise<T> {
 			});
 		});
 	}
-	static race<TAll>(values: Iterable<TAll | PromiseLike<TAll>>): Promise<TAll> {
-		return new Promiselike<TAll>((resolve, reject) => {
+	static race(values) {
+		return new Promiselike((resolve, reject) => {
 			const promises: Array<{
 				done: boolean;
-				result: TAll;
-			}> = Array.prototype.slice.apply(values).map((promise: Promise<TAll>) => {
+				result: any;
+			}> = Array.prototype.slice.apply(values).map((promise) => {
 				const obj = {
 					done: false,
 					result: undefined

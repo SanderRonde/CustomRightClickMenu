@@ -38,7 +38,7 @@ var Promiselike = (function () {
         }
         return this;
     };
-    Promiselike.prototype["catch"] = function (onrejected) {
+    Promiselike.prototype.catch = function (onrejected) {
         this._rejectListeners.push(onrejected);
         return this;
     };
@@ -222,7 +222,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        }
+                        },
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
