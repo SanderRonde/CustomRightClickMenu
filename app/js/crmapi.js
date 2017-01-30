@@ -787,15 +787,15 @@
 		function findElementsOnPage() {
 			var targetClass = 'crm_element_identifier_' + contextData.target;
 			contextData.target = window.document.querySelector('.' + targetClass);
-			contextData.target.classList.remove(targetClass);
+			contextData.target && contextData.target.classList.remove(targetClass);
 
 			var toElementClass = 'crm_element_identifier_' + contextData.toElement;
 			contextData.toElement = window.document.querySelector('.' + toElementClass);
-			contextData.toElement.classList.remove(toElementClass);
+			contextData.toElement && contextData.toElement.classList.remove(toElementClass);
 
 			var srcElementClass = 'crm_element_identifier_' + contextData.srcElement;
 			contextData.srcElement = window.document.querySelector('.' + srcElementClass);
-			contextData.srcElement.classList.remove(srcElementClass);
+			contextData.srcElement && contextData.srcElement.classList.remove(srcElementClass);
 		}
 		findElementsOnPage();
 
