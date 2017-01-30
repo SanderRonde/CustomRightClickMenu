@@ -494,6 +494,96 @@ interface Extendable<T> { }
 
 interface Extensions<T> extends Extendable<T> { }
 
+class Promiselike<T> implements Promise<T> {
+	_listeners: Array<(result: T) => void> = [];
+	_rejectListeners: Array<(reason: any) => void> = [];
+	_status: 'pending'|'rejected'|'fulfilled' = 'pending';
+	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void) {
+		initializer((result: T) => {
+			if (this._status !== 'pending') {
+				return;
+			}
+			this._status = 'fulfilled';
+			this._listeners.forEach((listener) => {
+				listener(result);
+			});
+		}, (rejectReason) => {
+			if (this._status !== 'pending') {
+				return;
+			}
+			this._status = 'rejected';
+			this._rejectListeners.forEach((rejectListener) => {
+				rejectListener(rejectReason);
+			})
+		});;
+	}
+
+	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promise<T> {
+		this._listeners.push(callback);
+		if (onrejected) {
+			this._rejectListeners.push(onrejected);
+		}
+		return this;
+	}
+	catch(onrejected: (reason: any) => void): Promise<T> {
+		this._rejectListeners.push(onrejected);
+		return this;
+	}
+	get [Symbol.toStringTag](): 'Promise' {
+		return 'Promise';
+	}
+	static all(values) {
+		let rejected: boolean = false;
+		return new Promiselike((resolve, reject) => {
+			const promises: Array<{
+				done: boolean;
+				result: any;
+			}> = Array.prototype.slice.apply(values).map((promise) => {
+				const obj = {
+					done: false,
+					result: undefined
+				};
+				promise.then((result) => {
+					obj.done = true;
+					obj.result = result;
+					if (rejected) {
+						return;
+					}
+					if (promises.filter((listPromise) => {
+						return !listPromise.done;
+					}).length === 0) {
+						resolve(promises.map((listPromise) => {
+							return listPromise.result;
+						}));
+					}
+				}, (reason) => {
+					reject(reason);
+				});
+				return obj;
+			});
+		});
+	}
+	static race<TAll>(values: Iterable<TAll | PromiseLike<TAll>>): Promise<TAll> {
+		return new Promiselike<TAll>((resolve, reject) => {
+			const promises: Array<{
+				done: boolean;
+				result: TAll;
+			}> = Array.prototype.slice.apply(values).map((promise: Promise<TAll>) => {
+				const obj = {
+					done: false,
+					result: undefined
+				};
+				promise.then((result) => {
+					resolve(result);
+				}, (reason) => {
+					reject(reason);
+				});
+				return obj;
+			});
+		});
+	}
+}
+
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 ((extensionId: string, globalObject: GlobalObject, sandboxes: {
@@ -5952,13 +6042,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							chrome.runtime.reload();
 						});
 					} else {
-						Promise.all([new Promise<ContextData>((resolve) => {
+						Promiselike.all([new Promiselike<ContextData>((resolve) => {
 							chrome.tabs.sendMessage(tab.id, {
 								type: 'getLastClickInfo'
 							}, (response: ContextData) => {
 								resolve(response);
 							});
-						}), new Promise<[any, GreaseMonkeyData, string, string, number, string]>((resolve) => {
+						}), new Promiselike<[any, GreaseMonkeyData, string, string, number, string]>((resolve) => {
 							let i: number;
 							globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals
 								.crmValues.tabData[tab.id] ||

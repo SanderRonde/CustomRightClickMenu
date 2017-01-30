@@ -3,6 +3,95 @@
 /// <reference path="../../tools/definitions/crm.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 ;
+var Promiselike = (function () {
+    function Promiselike(initializer) {
+        var _this = this;
+        this._listeners = [];
+        this._rejectListeners = [];
+        this._status = 'pending';
+        initializer(function (result) {
+            if (_this._status !== 'pending') {
+                return;
+            }
+            _this._status = 'fulfilled';
+            _this._listeners.forEach(function (listener) {
+                listener(result);
+            });
+        }, function (rejectReason) {
+            if (_this._status !== 'pending') {
+                return;
+            }
+            _this._status = 'rejected';
+            _this._rejectListeners.forEach(function (rejectListener) {
+                rejectListener(rejectReason);
+            });
+        });
+        ;
+    }
+    Promiselike.prototype.then = function (callback, onrejected) {
+        this._listeners.push(callback);
+        if (onrejected) {
+            this._rejectListeners.push(onrejected);
+        }
+        return this;
+    };
+    Promiselike.prototype["catch"] = function (onrejected) {
+        this._rejectListeners.push(onrejected);
+        return this;
+    };
+    Object.defineProperty(Promiselike.prototype, Symbol.toStringTag, {
+        get: function () {
+            return 'Promise';
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Promiselike.all = function (values) {
+        var rejected = false;
+        return new Promiselike(function (resolve, reject) {
+            var promises = Array.prototype.slice.apply(values).map(function (promise) {
+                var obj = {
+                    done: false,
+                    result: undefined
+                };
+                promise.then(function (result) {
+                    obj.done = true;
+                    obj.result = result;
+                    if (rejected) {
+                        return;
+                    }
+                    if (promises.filter(function (listPromise) {
+                        return !listPromise.done;
+                    }).length === 0) {
+                        resolve(promises.map(function (listPromise) {
+                            return listPromise.result;
+                        }));
+                    }
+                }, function (reason) {
+                    reject(reason);
+                });
+                return obj;
+            });
+        });
+    };
+    Promiselike.race = function (values) {
+        return new Promiselike(function (resolve, reject) {
+            var promises = Array.prototype.slice.apply(values).map(function (promise) {
+                var obj = {
+                    done: false,
+                    result: undefined
+                };
+                promise.then(function (result) {
+                    resolve(result);
+                }, function (reason) {
+                    reject(reason);
+                });
+                return obj;
+            });
+        });
+    };
+    return Promiselike;
+}());
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 (function (extensionId, globalObject, sandboxes) {
     //#region Global Variables
@@ -4307,13 +4396,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         });
                     }
                     else {
-                        Promise.all([new Promise(function (resolve) {
+                        Promiselike.all([new Promiselike(function (resolve) {
                                 chrome.tabs.sendMessage(tab.id, {
                                     type: 'getLastClickInfo'
                                 }, function (response) {
                                     resolve(response);
                                 });
-                            }), new Promise(function (resolve) {
+                            }), new Promiselike(function (resolve) {
                                 var i;
                                 globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals
                                     .crmValues.tabData[tab.id] ||
