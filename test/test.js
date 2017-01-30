@@ -438,7 +438,10 @@ function resetTree() {
 var window = {
 	JSON: JSON,
 	setTimeout: setTimeout,
-	setInterval: setInterval
+	setInterval: setInterval,
+	md5: function(input) {
+		return 'md5-hash';
+	}
 };
 
 // Simulate user-agent chrome on windows for codemirror
@@ -1013,7 +1016,21 @@ describe('CRMAPI', () => {
 	window = {
 		JSON: JSON,
 		setTimeout: setTimeout,
-		setInterval: setInterval
+		setInterval: setInterval,
+		md5: function() {
+			return 'md5-hash';
+		},
+		document: {
+			querySelector: function() {
+				return {
+					classList: {
+						remove: function() {
+							
+						}
+					}
+				}
+			}
+		}
 	};
 	let backgroundCode;
 	var storageSync = {};
@@ -1227,7 +1244,12 @@ describe('CRMAPI', () => {
 				{ "location": 'YUI.js', "name": 'YUI' },
 				{ "location": 'Angular.js', "name": 'Angular' },
 				{ "location": "jqlite.js", "name": 'jqlite' }
-			]
+			],
+			settingsVersionData: {
+				current: storageLocal.settingsVersionData.current,
+				latest: storageLocal.settingsVersionData.latest,
+				wasUpdated: false
+			}
 		}, 'default settings are set');
 	});
 	step('should be able to set a new CRM', () => {
@@ -1248,7 +1270,241 @@ describe('CRMAPI', () => {
 	});
 	step('should be able to keep a CRM in persistent storage', () => {
 		assert.deepEqual(storageSync, {
-			section0: `{\"editor\":{\"keyBindings\":{\"autocomplete\":\"Ctrl-Space\",\"showType\":\"Ctrl-I\",\"showDocs\":\"Ctrl-O\",\"goToDef\":\"Alt-.\",\"rename\":\"Ctrl-Q\",\"selectName\":\"Ctrl-.\"},\"tabSize\":\"4\",\"theme\":\"dark\",\"useTabs\":true,\"zoom\":\"100\"},\"crm\":[{\"name\":\"menu\",\"onContentTypes\":[true,true,true,true,true,true],\"type\":\"menu\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":0,\"path\":[0],\"index\":0,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"children\":[],\"expanded\":false},{\"name\":\"link\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"link\",\"showOnSpecified\":true,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":true},{\"url\":\"www.google.com\",\"not\":false}],\"isLocal\":true,\"value\":[{\"url\":\"https://www.google.com\",\"newTab\":true},{\"url\":\"www.youtube.com\",\"newTab\":false}],\"id\":1,\"path\":[1],\"index\":1,\"expanded\":false},{\"name\":\"script\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"script\",\"showOnSpecified\":false,\"isLocal\":true,\"value\":{\"launchMode\":0,\"backgroundLibraries\":[],\"libraries\":[],\"script\":\"// ==UserScript==\\n// @name\\tscript\\n// @CRM_contentTypes\\t[true, true, true, false, false, false]\\n// @CRM_launchMode\\t2\\n// @grant\\tnone\\n// @match\\t*://*.google.com/*\\n// @exclude\\t*://*.example.com/*\\n// ==/UserScript==\\nconsole.log('Hello');\",\"backgroundScript\":\"\",\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.google.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":true}],\"metaTags\":{\"name\":[\"script\"],\"CRM_contentTypes\":[\"[true, true, true, false, false, false]\"],\"CRM_launchMode\":[\"2\"],\"grant\":[\"none\"],\"match\":[\"*://*.google.com/*\"],\"exclude\":[\"*://*.example.com/*\"]}},\"id\":2,\"expanded\":false,\"path\":[2],\"index\":2,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"nodeInfo\":{\"permissions\":[\"none\"]},\"triggers\":[{\"url\":\"*://*.google.com/*\",\"not\":false},{\"url\":\"*://*.example.com/*\",\"not\":true},{\"url\":\"*://*.google.com/*\",\"not\":false},{\"url\":\"*://*.example.com/*\",\"not\":true}]},{\"name\":\"stylesheet\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"stylesheet\",\"showOnSpecified\":false,\"isLocal\":true,\"value\":{\"stylesheet\":\"/* ==UserScript==\\n// @name\\tstylesheet\\n// @CRM_contentTypes\\t[true, true, true, false, false, false]\\n// @CRM_launchMode\\t3\\n// @CRM_stylesheet\\ttrue\\n// @grant\\tnone\\n// @match\\t*://*.example.com/*\\n// ==/UserScript== */\\nbody {\\n\\tbackground-color: red;\\n}\",\"launchMode\":0,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false},{\"url\":[\"*://*.example.com/*\"],\"not\":false}],\"toggle\":true,\"defaultOn\":true,\"metaTags\":{\"name\":[\"stylesheet\"],\"CRM_contentTypes\":[\"[true, true, true, false, false, false]\"],\"CRM_launchMode\":[\"3\"],\"CRM_stylesheet\":[\"true\"],\"grant\":[\"none\"],\"match\":[\"*://*.example.com/*\"]}},\"id\":3,\"expanded\":false,\"path\":[3],\"index\":3,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"nodeInfo\":{},\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}]},{\"name\":\"divider\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"divider\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":4,\"expanded\":false,\"path\":[4],\"index\":4,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}]},{\"name\":\"menu\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"menu\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":null,\"id\":5,\"expanded\":true,\"path\":[5],\"index\":5,\"linkVal\":[{\"newTab\":true,\"url\":\"https://www.example.com\"}],\"children\":[{\"name\":\"lots of links\",\"onContentTypes\":[true,true,true,false,false,false],\"type\":\"link\",\"showOnSpecified\":false,\"triggers\":[{\"url\":\"*://*.example.com/*\",\"not\":false}],\"isLocal\":true,\"value\":[{\"url\":\"https://www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":false},{\"url\":\"www.example.com\",\"newTab\":true},{\"url\":\"www.example.com\",\"newTab\":true}],\"id\":6,\"expanded\":false,\"path\":[5,0],\"index\":0}]}]}`,
+			section0: JSON.stringify({
+				"editor": {
+					"keyBindings": {
+						"autocomplete": "Ctrl-Space",
+						"showType": "Ctrl-I",
+						"showDocs": "Ctrl-O",
+						"goToDef": "Alt-.",
+						"rename": "Ctrl-Q",
+						"selectName": "Ctrl-."
+					},
+					"tabSize": "4",
+					"theme": "dark",
+					"useTabs": true,
+					"zoom": "100"
+				},
+				"crm": [{
+					"name": "menu",
+					"onContentTypes": [true, true, true, true, true, true],
+					"type": "menu",
+					"showOnSpecified": false,
+					"triggers": [{
+						"url": "*://*.example.com/*",
+						"not": false
+					}],
+					"isLocal": true,
+					"value": null,
+					"id": 0,
+					"path": [0],
+					"index": 0,
+					"linkVal": [{
+						"newTab": true,
+						"url": "https://www.example.com"
+					}],
+					"children": [],
+					"expanded": false
+				}, {
+					"name": "link",
+					"onContentTypes": [true, true, true, false, false, false],
+					"type": "link",
+					"showOnSpecified": true,
+					"triggers": [{
+						"url": "*://*.example.com/*",
+						"not": true
+					}, {
+						"url": "www.google.com",
+						"not": false
+					}],
+					"isLocal": true,
+					"value": [{
+						"url": "https://www.google.com",
+						"newTab": true
+					}, {
+						"url": "www.youtube.com",
+						"newTab": false
+					}],
+					"id": 1,
+					"path": [1],
+					"index": 1,
+					"expanded": false
+				}, {
+					"name": "script",
+					"onContentTypes": [true, true, true, false, false, false],
+					"type": "script",
+					"showOnSpecified": false,
+					"isLocal": true,
+					"value": {
+						"launchMode": 0,
+						"backgroundLibraries": [],
+						"libraries": [],
+						"script": "// ==UserScript==\n// @name\tscript\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t2\n// @grant\tnone\n// @match\t*://*.google.com/*\n// @exclude\t*://*.example.com/*\n// ==/UserScript==\nconsole.log('Hello');",
+						"backgroundScript": "",
+						"triggers": [{
+							"url": "*://*.example.com/*",
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": false
+						}, {
+							"url": ["*://*.google.com/*"],
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": true
+						}],
+						"metaTags": {
+							"name": ["script"],
+							"CRM_contentTypes": ["[true, true, true, false, false, false]"],
+							"CRM_launchMode": ["2"],
+							"grant": ["none"],
+							"match": ["*://*.google.com/*"],
+							"exclude": ["*://*.example.com/*"]
+						}
+					},
+					"id": 2,
+					"expanded": false,
+					"path": [2],
+					"index": 2,
+					"linkVal": [{
+						"newTab": true,
+						"url": "https://www.example.com"
+					}],
+					"nodeInfo": {
+						"permissions": ["none"]
+					},
+					"triggers": [{
+						"url": "*://*.google.com/*",
+						"not": false
+					}, {
+						"url": "*://*.example.com/*",
+						"not": true
+					}, {
+						"url": "*://*.google.com/*",
+						"not": false
+					}, {
+						"url": "*://*.example.com/*",
+						"not": true
+					}]
+				}, {
+					"name": "stylesheet",
+					"onContentTypes": [true, true, true, false, false, false],
+					"type": "stylesheet",
+					"showOnSpecified": false,
+					"isLocal": true,
+					"value": {
+						"stylesheet": "/* ==UserScript==\n// @name\tstylesheet\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t3\n// @CRM_stylesheet\ttrue\n// @grant\tnone\n// @match\t*://*.example.com/*\n// ==/UserScript== */\nbody {\n\tbackground-color: red;\n}",
+						"launchMode": 0,
+						"triggers": [{
+							"url": "*://*.example.com/*",
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": false
+						}, {
+							"url": ["*://*.example.com/*"],
+							"not": false
+						}],
+						"toggle": true,
+						"defaultOn": true,
+						"metaTags": {
+							"name": ["stylesheet"],
+							"CRM_contentTypes": ["[true, true, true, false, false, false]"],
+							"CRM_launchMode": ["3"],
+							"CRM_stylesheet": ["true"],
+							"grant": ["none"],
+							"match": ["*://*.example.com/*"]
+						}
+					},
+					"id": 3,
+					"expanded": false,
+					"path": [3],
+					"index": 3,
+					"linkVal": [{
+						"newTab": true,
+						"url": "https://www.example.com"
+					}],
+					"nodeInfo": {},
+					"triggers": [{
+						"url": "*://*.example.com/*",
+						"not": false
+					}]
+				}, {
+					"name": "divider",
+					"onContentTypes": [true, true, true, false, false, false],
+					"type": "divider",
+					"showOnSpecified": false,
+					"triggers": [{
+						"url": "*://*.example.com/*",
+						"not": false
+					}],
+					"isLocal": true,
+					"value": null,
+					"id": 4,
+					"expanded": false,
+					"path": [4],
+					"index": 4,
+					"linkVal": [{
+						"newTab": true,
+						"url": "https://www.example.com"
+					}]
+				}, {
+					"name": "menu",
+					"onContentTypes": [true, true, true, false, false, false],
+					"type": "menu",
+					"showOnSpecified": false,
+					"triggers": [{
+						"url": "*://*.example.com/*",
+						"not": false
+					}],
+					"isLocal": true,
+					"value": null,
+					"id": 5,
+					"expanded": true,
+					"path": [5],
+					"index": 5,
+					"linkVal": [{
+						"newTab": true,
+						"url": "https://www.example.com"
+					}],
+					"children": [{
+						"name": "lots of links",
+						"onContentTypes": [true, true, true, false, false, false],
+						"type": "link",
+						"showOnSpecified": false,
+						"triggers": [{
+							"url": "*://*.example.com/*",
+							"not": false
+						}],
+						"isLocal": true,
+						"value": [{
+							"url": "https://www.example.com",
+							"newTab": true
+						}, {
+							"url": "www.example.com",
+							"newTab": true
+						}, {
+							"url": "www.example.com",
+							"newTab": false
+						}, {
+							"url": "www.example.com",
+							"newTab": true
+						}, {
+							"url": "www.example.com",
+							"newTab": true
+						}],
+						"id": 6,
+						"expanded": false,
+						"path": [5, 0],
+						"index": 0
+					}]
+				}],
+				settingsLastUpdatedAt: JSON.parse(storageSync.section0).settingsLastUpdatedAt
+			}),
 			indexes: ['section0']
 		});
 	});
@@ -1366,7 +1622,7 @@ describe('CRMAPI', () => {
 				let code =
 					'window.crmAPI = new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, nodeStorage,
-							greaseMonkeyData, false]
+							{}, greaseMonkeyData, false]
 						.map(function(param) {
 							return JSON.stringify(param);
 						}).join(', ') +
