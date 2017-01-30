@@ -3,6 +3,9 @@
 /// <reference path="../../tools/definitions/crm.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 ;
+var Symbol = Symbol || {
+    toStringTag: 'index'
+};
 var Promiselike = (function () {
     function Promiselike(initializer) {
         var _this = this;
