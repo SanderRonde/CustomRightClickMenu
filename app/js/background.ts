@@ -501,12 +501,15 @@ class Promiselike<T> {
 	_listeners: Array<(result: T) => void> = [];
 	_rejectListeners: Array<(reason: any) => void> = [];
 	_status: 'pending'|'rejected'|'fulfilled' = 'pending';
+	_result: T;
+	_rejectReason: any;
 	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void) {
 		initializer((result: T) => {
 			if (this._status !== 'pending') {
 				return;
 			}
 			this._status = 'fulfilled';
+			this._result = result;
 			this._listeners.forEach((listener) => {
 				listener(result);
 			});
@@ -514,6 +517,7 @@ class Promiselike<T> {
 			if (this._status !== 'pending') {
 				return;
 			}
+			this._rejectReason = rejectReason;
 			this._status = 'rejected';
 			this._rejectListeners.forEach((rejectListener) => {
 				rejectListener(rejectReason);
@@ -522,14 +526,23 @@ class Promiselike<T> {
 	}
 
 	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promiselike<T> {
+		if (this._status === 'fulfilled') {
+			callback(this._result)
+		}
 		this._listeners.push(callback);
 		if (onrejected) {
+			if (this._status === 'rejected') {
+				onrejected(this._rejectReason);
+			}
 			this._rejectListeners.push(onrejected);
 		}
 		return this;
 	}
 	catch(onrejected: (reason: any) => void): Promiselike<T> {
 		this._rejectListeners.push(onrejected);
+		if (this._status === 'rejected') {
+			onrejected(this._rejectReason);
+		}
 		return this;
 	}
 	get [(Symbol.toStringTag as any) as symbol](): 'Promise' {
@@ -541,12 +554,17 @@ class Promiselike<T> {
 			const promises: Array<{
 				done: boolean;
 				result: any;
+				promise: Promiselike<any>
 			}> = Array.prototype.slice.apply(values).map((promise) => {
 				const obj = {
 					done: false,
-					result: undefined
+					result: undefined,
+					promise: promise
 				};
-				promise.then((result) => {
+				return obj;
+			});
+			promises.forEach((obj) => {
+				obj.promise.then((result) => {
 					obj.done = true;
 					obj.result = result;
 					if (rejected) {
@@ -562,7 +580,6 @@ class Promiselike<T> {
 				}, (reason) => {
 					reject(reason);
 				});
-				return obj;
 			});
 		});
 	}

@@ -17,6 +17,7 @@ var Promiselike = (function () {
                 return;
             }
             _this._status = 'fulfilled';
+            _this._result = result;
             _this._listeners.forEach(function (listener) {
                 listener(result);
             });
@@ -24,6 +25,7 @@ var Promiselike = (function () {
             if (_this._status !== 'pending') {
                 return;
             }
+            _this._rejectReason = rejectReason;
             _this._status = 'rejected';
             _this._rejectListeners.forEach(function (rejectListener) {
                 rejectListener(rejectReason);
@@ -32,14 +34,23 @@ var Promiselike = (function () {
         ;
     }
     Promiselike.prototype.then = function (callback, onrejected) {
+        if (this._status === 'fulfilled') {
+            callback(this._result);
+        }
         this._listeners.push(callback);
         if (onrejected) {
+            if (this._status === 'rejected') {
+                onrejected(this._rejectReason);
+            }
             this._rejectListeners.push(onrejected);
         }
         return this;
     };
     Promiselike.prototype.catch = function (onrejected) {
         this._rejectListeners.push(onrejected);
+        if (this._status === 'rejected') {
+            onrejected(this._rejectReason);
+        }
         return this;
     };
     Object.defineProperty(Promiselike.prototype, Symbol.toStringTag, {
@@ -55,9 +66,13 @@ var Promiselike = (function () {
             var promises = Array.prototype.slice.apply(values).map(function (promise) {
                 var obj = {
                     done: false,
-                    result: undefined
+                    result: undefined,
+                    promise: promise
                 };
-                promise.then(function (result) {
+                return obj;
+            });
+            promises.forEach(function (obj) {
+                obj.promise.then(function (result) {
                     obj.done = true;
                     obj.result = result;
                     if (rejected) {
@@ -73,7 +88,6 @@ var Promiselike = (function () {
                 }, function (reason) {
                     reject(reason);
                 });
-                return obj;
             });
         });
     };
