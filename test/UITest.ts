@@ -3138,6 +3138,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should open the correct links when clicked for the default link', function(this: MochaFn, done) {
+			this.timeout(1000);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {

@@ -2739,6 +2739,7 @@ describe('On-Page CRM', function () {
             });
         });
         it('should open the correct links when clicked for the default link', function (done) {
+            this.timeout(1000);
             var tabId = ~~(Math.random() * 100);
             var windowId = ~~(Math.random() * 100);
             getContextMenu(driver).then(function (contextMenu) {
