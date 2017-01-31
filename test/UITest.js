@@ -2538,7 +2538,7 @@ describe('Options Page', function () {
 describe('On-Page CRM', function () {
     describe('Redraws on new CRM', function () {
         this.slow(250);
-        this.timeout(500);
+        this.timeout(1500);
         var CRM1 = [
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
@@ -2616,7 +2616,7 @@ describe('On-Page CRM', function () {
     describe('Links', function () {
         var _this = this;
         this.slow(150);
-        this.timeout(500);
+        this.timeout(1500);
         var CRMNodes = [
             templates.getDefaultLinkNode({
                 name: getRandomString(25),
@@ -2739,7 +2739,7 @@ describe('On-Page CRM', function () {
             });
         });
         it('should open the correct links when clicked for the default link', function (done) {
-            this.timeout(1000);
+            this.timeout(2000);
             var tabId = ~~(Math.random() * 100);
             var windowId = ~~(Math.random() * 100);
             getContextMenu(driver).then(function (contextMenu) {
@@ -2961,7 +2961,7 @@ describe('On-Page CRM', function () {
         });
         it('should have the correct structure', function (done) {
             this.slow(400);
-            this.timeout(700);
+            this.timeout(1400);
             getContextMenu(driver).then(function (contextMenu) {
                 driver
                     .executeScript(inlineFn(function () {
@@ -3674,7 +3674,7 @@ describe('On-Page CRM', function () {
             describe('Default off', function () {
                 var tabId = getRandomId();
                 this.slow(600);
-                this.timeout(800);
+                this.timeout(1600);
                 it('should be off by default', function (done) {
                     wait(driver, 150).then(function () {
                         dummy1.getSize().then(function (dimensions) {
@@ -3756,7 +3756,7 @@ describe('On-Page CRM', function () {
             });
             describe('Default on', function () {
                 this.slow(300);
-                this.timeout(500);
+                this.timeout(1500);
                 it('should be on by default', function (done) {
                     dummy2.getSize().then(function (dimensions) {
                         assert.strictEqual(dimensions.width, 50, 'dummy element is 50px wide');

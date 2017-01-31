@@ -2924,7 +2924,7 @@ describe('Options Page', function(this: MochaFn) {
 describe('On-Page CRM', function(this: MochaFn) {
 	describe('Redraws on new CRM', function(this: MochaFn) {
 		this.slow(250);
-		this.timeout(500);
+		this.timeout(1500);
 
 		const CRM1 = [
 			templates.getDefaultLinkNode({
@@ -3003,7 +3003,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 	});
 	describe('Links', function(this: MochaFn) {
 		this.slow(150);
-		this.timeout(500);
+		this.timeout(1500);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
@@ -3138,7 +3138,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should open the correct links when clicked for the default link', function(this: MochaFn, done) {
-			this.timeout(1000);
+			this.timeout(2000);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {
@@ -3366,7 +3366,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		})
 		it('should have the correct structure', function(done) {
 			this.slow(400);
-			this.timeout(700);
+			this.timeout(1400);
 			getContextMenu(driver).then((contextMenu) => {
 				driver
 					.executeScript(inlineFn(() => {
@@ -4146,7 +4146,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			describe('Default off', function(this: MochaFn) {
 				const tabId = getRandomId();
 				this.slow(600);
-				this.timeout(800);
+				this.timeout(1600);
 				it('should be off by default', (done) => {
 					wait(driver, 150).then(() => {
 						dummy1.getSize().then((dimensions) => {
@@ -4235,7 +4235,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 			describe('Default on', function(this: MochaFn) {
 				this.slow(300);
-				this.timeout(500);
+				this.timeout(1500);
 				it('should be on by default', (done) => {
 					dummy2.getSize().then((dimensions) => {
 						assert.strictEqual(dimensions.width, 50,
