@@ -11,9 +11,9 @@ declare namespace CRMAPI {
 		which: number;
 		x: number;
 		y: number;
-		srcElement: number;
-		target: number;
-		toElement: number;
+		srcElement: HTMLElement|void;
+		target: HTMLElement|void;
+		toElement: HTMLElement|void;
 	}
 
 	interface ArrayConstructor {
