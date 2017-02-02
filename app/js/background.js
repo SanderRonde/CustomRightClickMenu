@@ -3,9 +3,6 @@
 /// <reference path="../../tools/definitions/crm.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 ;
-var Symbol = Symbol || {
-    toStringTag: 'index'
-};
 var Promiselike = (function () {
     function Promiselike(initializer) {
         var _this = this;
@@ -46,20 +43,13 @@ var Promiselike = (function () {
         }
         return this;
     };
-    Promiselike.prototype.catch = function (onrejected) {
+    Promiselike.prototype["catch"] = function (onrejected) {
         this._rejectListeners.push(onrejected);
         if (this._status === 'rejected') {
             onrejected(this._rejectReason);
         }
         return this;
     };
-    Object.defineProperty(Promiselike.prototype, Symbol.toStringTag, {
-        get: function () {
-            return 'Promise';
-        },
-        enumerable: true,
-        configurable: true
-    });
     Promiselike.all = function (values) {
         var rejected = false;
         return new Promiselike(function (resolve, reject) {
@@ -236,7 +226,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        },
+                        }
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },

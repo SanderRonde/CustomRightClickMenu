@@ -494,9 +494,6 @@ interface Extendable<T> { }
 
 interface Extensions<T> extends Extendable<T> { }
 
-var Symbol = Symbol || ({
-	toStringTag: 'index'
-} as any);
 class Promiselike<T> {
 	_listeners: Array<(result: T) => void> = [];
 	_rejectListeners: Array<(reason: any) => void> = [];
@@ -544,9 +541,6 @@ class Promiselike<T> {
 			onrejected(this._rejectReason);
 		}
 		return this;
-	}
-	get [(Symbol.toStringTag as any) as symbol](): 'Promise' {
-		return 'Promise';
 	}
 	static all(values) {
 		let rejected: boolean = false;
