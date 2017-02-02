@@ -41,7 +41,7 @@
     "selenium-webdriver": "^3.0.0-beta-3",
     "supports-color": "^3.1.2",
     "tty": "^1.0.1",
-    "typescript": "^2.0.6",
+    "typescript": "^2.1.5",
     "util": "^0.10.3"
   },
   "license": "MIT",
