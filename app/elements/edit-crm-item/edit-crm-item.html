@@ -13,8 +13,8 @@
 			<!-- /build -->
 			<div id="itemCont">
 				<div class="item">
-					<type-switcher id="typeSwitcher" type="{{type}}"></type-switcher>
-					<div id="draggerOrCheckbox">
+					<type-switcher title="Click to change type" id="typeSwitcher" type="{{type}}"></type-switcher>
+					<div id="draggerOrCheckbox" title="Click and hold to drag node around">
 						<div id="dragger">
 							<div class="draggerImg">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 48" height="30" width="20">
@@ -26,12 +26,12 @@
 							<paper-checkbox on-tap="onToggle" id="checkbox"></paper-checkbox>
 						</div>
 					</div>
-					<div class="CRMItemTitle" ismenu$="{{isMenu}}" on-tap="checkClickType">
+					<div class="CRMItemTitle" title="Click to edit" ismenu$="{{isMenu}}" on-tap="checkClickType">
 						<span>{{name}}</span>
 						<paper-ripple></paper-ripple>
 					</div>
 					<template is="dom-if" if="{{isMenu}}">
-						<div on-click="openMenu" class="menuArrowCont">
+						<div title="Click to show contents" on-click="openMenu" class="menuArrowCont">
 							<div class="menuArrow">
 								<svg class="menuArrowImage" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
 									<path d="M16 10v28l22-14z"/>
