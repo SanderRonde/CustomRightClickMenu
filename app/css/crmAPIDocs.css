@@ -67,6 +67,7 @@ paper-toolbar .title {
 	display: flex;
 	flex-direction:row;
 	justify-content:center;
+	-webkit-justify-content: center;
 }
 
 	.content.extension {
