@@ -20,7 +20,7 @@ window.specialJSON = {
         if (typeof data === 'function') {
             var fn = data.toString();
             var match = this._fnRegex.exec(fn);
-            data = "__fn$" + "(" + match[2] + "){" + match[10] + "}" + "$fn__";
+            data = "__fn$" + ("(" + match[2] + "){" + match[10] + "}") + "$fn__";
         }
         else if (data instanceof RegExp) {
             data = "__regexp$" + JSON.stringify({
