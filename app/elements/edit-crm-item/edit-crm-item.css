@@ -62,6 +62,13 @@
 	background-size:cover;
 	width:5px;
 	height:8px;
+	fill: transparent;
+	stroke: black;
+	stroke-width: 5px;
+}
+
+.menuArrow[expanded] {
+	fill: black;
 }
 
 .menuArrowImage {

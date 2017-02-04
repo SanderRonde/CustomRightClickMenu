@@ -2,7 +2,7 @@
 <head>
 </head>
 <body>
-	<dom-module id="edit-crm-item" attributes="item shadow">
+	<dom-module id="edit-crm-item" attributes="item shadow expanded">
 		<template>
 			<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html"/>
 			<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html" />
@@ -31,8 +31,8 @@
 						<paper-ripple></paper-ripple>
 					</div>
 					<template is="dom-if" if="{{isMenu}}">
-						<div title="Click to show contents" on-click="openMenu" class="menuArrowCont">
-							<div class="menuArrow">
+						<div title$="[[getMenuExpandMessage(item)]]" on-click="openMenu" class="menuArrowCont">
+							<div class="menuArrow" expanded$="[[expanded]]">
 								<svg class="menuArrowImage" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
 									<path d="M16 10v28l22-14z"/>
 								</svg>

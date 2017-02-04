@@ -80,6 +80,10 @@ Polymer({
 		item: {
 			type: Object,
 			notify: true
+		},
+		expanded: {
+			type: Boolean,
+			notify: true
 		}
 	},
 
@@ -113,6 +117,11 @@ Polymer({
 	lastTypeSwitchMouseover: null,
 
 	//#endregion
+
+	getMenuExpandMessage: function() {
+		return 'Click to show ' + this.item.children.length + ' child' + 
+			(this.item.children.length > 1 ? 'ren' : '');
+	},
 
 	update: function() {
 		if (!this.classList.contains('id' + this.item.id)) {
