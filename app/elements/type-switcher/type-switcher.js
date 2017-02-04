@@ -189,6 +189,8 @@
 	},
 
 	changeType: function(e) {
+		window.app.editCRM.cancelAdding();
+		
 		var _this = this;
 		var type;
 
@@ -322,7 +324,6 @@
 		if (prevType === 'menu') {
 			//Turn children into "shadow items"
 			var column = this.parentNode.parentNode.parentNode.parentNode;
-			console.log(column);
 			var columnCont = column.parentNode.parentNode;
 			var crmLength = window.app.editCRM.crm.length;
 			columnCont = $(columnCont).next()[0];

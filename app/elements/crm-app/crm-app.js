@@ -3757,10 +3757,8 @@
 				function loadContextMenus(deadline) {
 					while (toLoad < 6 && deadline.timeRemaining() > 0) {
 						_this.bindContextMenu(toLoad++);
-					}
 
-					if (toLoad >= 6) {
-						window.cancelIdleCallback(callbackId);
+						window.requestIdleCallback(loadContextMenus);
 					}
 				}
 

@@ -71,3 +71,14 @@ paper-spinner {
 paper-material[is-empty] {
 	display: none;
 }
+
+.addingItemPlaceholder {
+	position: relative;
+    height: 50px;
+	background-color: #d2d2d2;
+	cursor: pointer;
+}
+
+.addingItemText {
+	height: 50px;
+}

@@ -106,7 +106,7 @@ window.Polymer({
 			notify: true,
 			computed: '_isCrmEmpty(crm, crmLoading)'
 		},
-		/*
+		/**
 		 * Whether the user is currently selecting nodes to remove
 		 * 
 		 * @attribute isSelecting
@@ -114,6 +114,18 @@ window.Polymer({
 		 * @default false
 		 */
 		isSelecting: {
+			type: Boolean,
+			value: false,
+			notify: true
+		},
+		/**
+		 * Whether the user is adding a node
+		 * 
+		 * @attribute isAdding
+		 * @type Boolean
+		 * @default false
+		 */
+		isAdding: {
 			type: Boolean,
 			value: false,
 			notify: true
@@ -125,7 +137,7 @@ window.Polymer({
 	},
 
 	_isColumnEmpty: function (column) {
-		return column.list.length === 0;
+		return column.list.length === 0 && !this.isAdding;
 	},
 
 	_isCrmEmpty: function(crm, crmLoading) {
@@ -335,7 +347,7 @@ window.Polymer({
 			shown += this.isNodeVisible(hiddenNodes, list[i], showContentTypes);
 		}
 
-		if (shown) {
+		if (shown || this.isAdding) {
 			while (lastMenu !== -1) {
 				if (setMenusLength > columnNum && !hiddenNodes[list[setMenus[columnNum]]]) {
 					lastMenu = setMenus[columnNum];
@@ -345,6 +357,7 @@ window.Polymer({
 				newSetMenus[columnNum] = lastMenu;
 				indent = this.getIndent(list, lastMenu, hiddenNodes);
 				column = {};
+				column.menuPath = path.concat(lastMenu);
 				column.indent = [];
 				column.indent[indentTop - 1] = undefined;
 				column.list = list;
@@ -372,9 +385,11 @@ window.Polymer({
 						currentVal.path[pathIndex] = item;
 					});
 					currentVal.index = index;
+					currentVal.isPossibleAddLocation = false;
 					currentVal.path.push(index);
 					return currentVal;
 				});
+				
 				length = column.list.length;
 				columnCopy = [];
 				for (i = 0; i < length; i++) {
@@ -461,12 +476,45 @@ window.Polymer({
 		_this._typeChanged(true);
 	},
 
-	addItem: function() {
+	addToPosition: function(e) {
+		var index = 0;
+		var node = e.path[index];
+		while (node.classList.contains('addingItemPlaceholder') === false) {
+			index++;
+			node = e.path[index];
+		}
+
+		this.addItem(JSON.parse(node.getAttribute('data-path')));
+		this.isAdding = false;
+	},
+
+	cancelAdding: function() {
+		if (this.isAdding) {
+			this.isAdding = false;
+			this.build(this.setItems, false, true);
+		}
+	},
+
+	toggleAddState: function() {
+		if (!this.isAdding) {
+			this.isSelecting && this.cancelSelecting();
+			this.isAdding = true;
+
+			this.build(this.setItems, false, true);
+		} else {
+			this.cancelAdding();
+		}
+	},
+
+	addItem: function(path) {
 		var newItem = window.app.templates.getDefaultLinkNode({
 			id: window.app.generateItemId()
 		});
-		window.app.crm.add(newItem);
+
+		var container = window.app.crm.lookup(path, true);
+		container.push(newItem);
 		window.app.editCRM.build(window.app.editCRM.setMenus, false, true);
+		window.app.upload();
 	},
 
 	getSelected: function() {

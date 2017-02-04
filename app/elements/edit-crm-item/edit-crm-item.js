@@ -339,12 +339,14 @@ Polymer({
 
 	checkClickType: function (e) {
 		if (e.detail.sourceEvent.ctrlKey) {
+			window.app.editCRM.cancelAdding();
 			window.app.editCRM.selectItems();
 			this.selectThisNode();
 		}
 		else if (this.classList.contains('selecting') && e.detail.sourceEvent.shiftKey) {
 			this.selectFromXToThis();
 		} else {
+			window.app.editCRM.cancelAdding();
 			this.openEditPage();
 		}
 	},

@@ -26,6 +26,16 @@
 								<template is="dom-repeat" items="{{column.list}}" as="row" observe="*" restamp="true">
 									<edit-crm-item role="button" tabindex="0" aria-label$="{{_getAriaLabel(row)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
 								</template>
+								<template is="dom-if" if="[[isAdding]]">
+									<div on-tap="addToPosition" class="addingItemPlaceholder" data-path$="{{column.menuPath}}">
+										<paper-ripple></paper-ripple>
+										<center-element class="addingItemText">
+											<div>
+												Add Here
+											</div>
+										</center-element>
+									</div>
+								</template>
 							</div>
 						</paper-material>
 					</div>
@@ -33,7 +43,11 @@
 			</div>
 			<div id="crmButtonsContainer">
 				<div id="crmButtons">
-					<paper-button class="blue" id="addButton" on-tap="addItem" raised hidden$="[[isSelecting]]">Add</paper-button>
+
+					<paper-button class="blue" id="addButton" on-tap="toggleAddState" raised hidden$="[[isSelecting]]">
+						<span hidden$="[[isAdding]]">Add</span>
+						<span hidden$="[[!isAdding]]">Cancel</span>
+					</paper-button>
 					<paper-button class="blue" id="removeButton" on-tap="selectItems" raised hidden$="[[isSelecting]]">Select</paper-button>
 
 					<paper-button class="blue" id="cancelSelecting" on-tap="cancelSelecting" raised hidden$="[[!isSelecting]]">Cancel</paper-button>
