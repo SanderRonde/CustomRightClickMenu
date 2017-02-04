@@ -82,3 +82,62 @@ paper-material[is-empty] {
 .addingItemText {
 	height: 50px;
 }
+
+#editCRMHelp {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: center;
+	justify-content: center;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+}
+
+#editCRMHelp > .infoDiv {
+	display: none;
+	position: absolute;
+    z-index: 10000;
+    margin-top: -24px;
+	margin-left: -263px;	
+    width: 250px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
+}
+
+#editCRMHelp > .infoDiv ul {
+	padding-left: 30px;
+}
+
+#editCRMHelp > svg {
+	cursor: pointer;
+}
+
+#editCRMHelp .active {
+	display: none;
+}
+
+#editCRMHelp:hover .active {
+	display: block;
+}
+
+#editCRMHelp:hover .inactive {
+	display: none;
+}
+
+#editCRMHelp:hover > .infoDiv {
+	display: block;
+}
+
+.infoSvg {
+	height: 20px;
+    width: 13px;
+    margin-bottom: -5px;
+}
+
+.triangleInfoSvg {
+	fill: transparent;
+	stroke: black;
+	stroke-width: 5px;
+}
