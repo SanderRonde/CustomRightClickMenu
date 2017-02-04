@@ -1,4 +1,3 @@
-//TSC-target=ES3
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
 
 interface Window {

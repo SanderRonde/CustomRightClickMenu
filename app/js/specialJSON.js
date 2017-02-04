@@ -1,4 +1,3 @@
-//TSC-target=ES3
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
 window.specialJSON = {
     _regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
