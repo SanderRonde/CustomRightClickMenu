@@ -1,6 +1,7 @@
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
 /// <reference path="../../tools/definitions/specialJSON.d.ts" />
 /// <reference path="../../tools/definitions/crm.d.ts" />
+/// <reference path="../../tools/definitions/tern.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 
 type VoidFn = () => void;
@@ -129,66 +130,6 @@ interface ChromeAPIMessage extends CRMAPIMessage<'chrome',void> {
 		val: any;
 	}>;
 	requestType: CRMPermission;
-}
-
-interface SettingsStorage extends AnyObj {
-	editor: {
-		useTabs: boolean;
-		tabSize: string;
-		theme: string;
-		zoom: string;
-		keyBindings: {
-			autocomplete: string;
-			showType: string;
-			showDocs: string;
-			goToDef: string;
-			rename: string;
-			selectName: string;
-		}
-	};
-	settingsLastUpdatedAt: number;
-	crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
-}
-
-interface StorageLocal extends AnyObj {
-	libraries: Array<{
-		name: string;
-		url?: string;
-		code?: string;
-		location?: string
-	}>;
-	requestPermissions: Array<string>;
-	editing: {
-		val: string;
-		id: number;
-		mode: string;
-		crmType: number;
-	} | void;
-	selectedCrmType: number;
-	jsLintGlobals: Array<string>;
-	globalExcludes: Array<string>;
-	latestId: number;
-	notFirstTime: boolean;
-	lastUpdatedAt: string;
-	authorName: string;
-	recoverUnsavedData: boolean;
-	CRMOnPage: boolean;
-	editCRMInRM: boolean;
-	hideToolsRibbon: boolean;
-	shrinkTitleRibbon: boolean;
-	showOptions: boolean;
-	useStorageSync: boolean;
-	settingsVersionData: {
-		current: {
-			hash: string;
-			date: number;
-		};
-		latest: {
-			hash: string;
-			date: number;
-		}
-		wasUpdated: boolean;
-	}
 }
 
 interface ContextMenuSettings extends chrome.contextMenus.CreateProperties {
@@ -724,7 +665,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainObject;
 				},
-				getDefaultNodeInfo(options: any = {}): CRMNodeInfo {
+				getDefaultNodeInfo(options: Partial<CRMNodeInfo> = {}): CRMNodeInfo {
 					const defaultNodeInfo: Partial<CRMNodeInfo> = {
 						permissions: [],
 						source: { 
@@ -735,7 +676,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNodeInfo, options);
 				},
-				getDefaultLinkNode(options: any = {}): LinkNode {
+				getDefaultLinkNode(options: Partial<LinkNode> = {}): LinkNode {
 					const defaultNode: Partial<LinkNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -759,7 +700,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultStylesheetValue(options: any = {}): StylesheetVal {
+				getDefaultStylesheetValue(options: Partial<StylesheetVal> = {}): StylesheetVal {
 					const value: StylesheetVal = {
 						stylesheet: [
 							'// ==UserScript==',
@@ -778,7 +719,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(value, options);
 				},
-				getDefaultScriptValue(options: any = {}): ScriptVal {
+				getDefaultScriptValue(options: Partial<ScriptVal> = {}): ScriptVal {
 					const value: ScriptVal = {
 						launchMode: CRMLaunchModes.ALWAYS_RUN,
 						backgroundLibraries: [],
@@ -798,7 +739,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(value, options);
 				},
-				getDefaultScriptNode(options: any = {}): ScriptNode {
+				getDefaultScriptNode(options: Partial<ScriptNode> = {}): ScriptNode {
 					const defaultNode: Partial<ScriptNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -816,7 +757,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultStylesheetNode(options: any = {}): StylesheetNode {
+				getDefaultStylesheetNode(options: Partial<StylesheetNode> = {}): StylesheetNode {
 					const defaultNode: Partial<StylesheetNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -834,7 +775,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultDividerOrMenuNode(options: any = {}, type: 'divider' | 'menu'):
+				getDefaultDividerOrMenuNode(options: Partial<PassiveCRMNode> = {}, type: 'divider' | 'menu'):
 				DividerNode | MenuNode {
 					const defaultNode: Partial<PassiveCRMNode> = {
 						name: 'name',
@@ -847,10 +788,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options);
 				},
-				getDefaultDividerNode(options: any = {}): DividerNode {
+				getDefaultDividerNode(options: Partial<DividerNode> = {}): DividerNode {
 					return this.getDefaultDividerOrMenuNode(options, 'divider');
 				},
-				getDefaultMenuNode(options: any = {}): MenuNode {
+				getDefaultMenuNode(options: Partial<MenuNode> = {}): MenuNode {
 					return this.getDefaultDividerOrMenuNode(options, 'menu');
 				}
 			},
@@ -7055,8 +6996,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	type TransferOldNode = TransferOldMenuNode | ScriptNode | StylesheetNode |
 		LinkNode | DividerNode;
 
-	type TernExpression = any;
-
 	interface PersistentData {
 		persistent: {
 			passes: number;
@@ -7256,7 +7195,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						lines[callLine.from.line] = newLine;
 						return;
 					}
-					static callsChromeFunction(callee: TernExpression, data: PersistentData, onError:
+					static callsChromeFunction(callee: TernCallExpression, data: PersistentData, onError:
 						TransferOnError): boolean {
 						data.parentExpressions.push(callee);
 
@@ -8076,7 +8015,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return obj;
 		}
 		static loadStorages(callback: () => void) {
-			chrome.storage.sync.get((chromeStorageSync) => {
+			chrome.storage.sync.get((chromeStorageSync: {
+				[key: string]: string
+			} & {
+				indexes: Array<string>;
+			}) => {
 				chrome.storage.local.get((chromeStorageLocal: StorageLocal) => {
 					let result: boolean | ((resolve: (result: any) => void) => void);
 					if ((result = this._isFirstTime(chromeStorageLocal))) {

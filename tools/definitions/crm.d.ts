@@ -209,3 +209,82 @@ type SafeDividerNode = SafeNode<DividerNode>;
 
 type SafeCRMNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
 type SafeCRM = Array<SafeCRMNode>;
+
+
+interface SettingsStorage extends AnyObj {
+	editor: {
+		useTabs: boolean;
+		tabSize: string;
+		theme: string;
+		zoom: string;
+		keyBindings: {
+			autocomplete: string;
+			showType: string;
+			showDocs: string;
+			goToDef: string;
+			rename: string;
+			selectName: string;
+		}
+	};
+	settingsLastUpdatedAt: number;
+	crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+}
+
+interface StorageLocal extends AnyObj {
+	libraries: Array<{
+		name: string;
+		url?: string;
+		code?: string;
+		location?: string
+	}>;
+	requestPermissions: Array<string>;
+	editing: {
+		val: string;
+		id: number;
+		mode: string;
+		crmType: number;
+	} | void;
+	selectedCrmType: number;
+	jsLintGlobals: Array<string>;
+	globalExcludes: Array<string>;
+	latestId: number;
+	notFirstTime: boolean;
+	lastUpdatedAt: string;
+	authorName: string;
+	recoverUnsavedData: boolean;
+	CRMOnPage: boolean;
+	editCRMInRM: boolean;
+	hideToolsRibbon: boolean;
+	shrinkTitleRibbon: boolean;
+	showOptions: boolean;
+	useStorageSync: boolean;
+	settingsVersionData: {
+		current: {
+			hash: string;
+			date: number;
+		};
+		latest: {
+			hash: string;
+			date: number;
+		}
+		wasUpdated: boolean;
+	};
+
+	upgradeErrors?: {
+		[id: number]: {
+			oldScript: Array<CursorPosition>;
+			newScript: Array<CursorPosition>;
+			generalError: boolean;
+		}
+	};
+	addedPermissions?: Array<{
+		node: number;
+		permissions: Array<string>;
+	}>;
+	updatedScripts?: Array<{
+		name: string;
+		oldVersion: string;
+		newVersion: string;
+	}>;
+	isTransfer?: boolean;
+}

@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": false,
+        "removeComments": false,
+        "preserveConstEnums": false,
+        "sourceMap": false,
+        "listFiles": true,
+        "pretty": true,
+        "target": "es3",
+        "watch": true
+	}, 
+    "allowJs": true,
+    "compileOnSave": true,
+    "include": [
+		"app/"
+	]
+}
