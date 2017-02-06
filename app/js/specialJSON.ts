@@ -7,9 +7,9 @@ interface Window {
 window.specialJSON = {
 	_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
 	_getRegexFlags(expr: RegExp): Array<string> {
-		const flags = [];
+		const flags: Array<string> = [];
 		this._regexFlagNames.forEach((flagName: string) => {
-			if (expr[flagName]) {
+			if ((expr as any)[flagName]) {
 				if (flagName === 'sticky') {
 					flags.push('y');
 				} else {
@@ -70,12 +70,12 @@ window.specialJSON = {
 		if (Array.isArray(iterable)) {
 			copyTarget = copyTarget || [];
 			(iterable as Array<any>).forEach((data: any, key: number, container: Array<any>) => {
-				copyTarget[key] = fn(data, key, container);
+				(copyTarget as any)[key] = fn(data, key, container);
 			});
 		} else {
 			copyTarget = copyTarget || {};
 			Object.getOwnPropertyNames(iterable).forEach((key) => {
-				copyTarget[key] = fn(iterable[key], key, iterable);
+				(copyTarget as any)[key] = fn(iterable[key], key, iterable);
 			});
 		}
 		return copyTarget;
@@ -160,7 +160,7 @@ window.specialJSON = {
 
 						//Filler
 						refs.push(null);
-						var newData = this._toJSON(copyTarget[key], element, [key], {
+						var newData = this._toJSON((copyTarget as any)[key], element, [key], {
 							refs: refs,
 							paths: paths,
 							originalValues: originalValues

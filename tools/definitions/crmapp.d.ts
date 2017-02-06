@@ -3,33 +3,49 @@
 /// <reference path="jquery.d.ts" />
 /// <reference path="codemirror.d.ts" />
 
-/// <reference path="../../app/elements/crm-app/crm-app.ts" />
-
-interface AddedPermissionsTabContainer extends HTMLElement {
-	tab: number;
-	maxTabs: number;
-}
-
 interface Window {
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
 	colorFunction: {
-		func(pos: LinePosition, cm: CodeMirror)
+		func(pos: LinePosition, cm: CodeMirror): void;
 	}
 	crmAPIDefs?: any;
 	lastError?: Error;
 	polymerElementsLoaded?: boolean;
+	requestIdleCallback(callback: (deadline: {
+		timeRemaining(): number;
+	}) => void): number;
 
 	doc: {
 		[key: string]: PossiblePolymerElement;
-		'addedPermissionsTabContainer': AddedPermissionsTabContainer;
 	};
 
-	app: typeof CRMApp;
-	errorReportingTool: typeof any;
-	scriptEdit: typeof ScriptEdit;
-	stylesheetEdit: typeof StylesheetEdit;
-	externalEditor: typeof ExternalEditor;
+	app: CRMApp;
+	changeLog: ChangeLog;
+	errorReportingTool: any;
+	scriptEdit: ScriptEdit;
+	stylesheetEdit: StylesheetEdit;
+	externalEditor: ExternalEditor;
 }
+
+interface JQContextMenuObj {
+	name: string;
+	callback(): void;
+
+	type?: 'checkbox';
+	selected?: boolean;
+	items?: {
+		[key: number]: JQContextMenuItem
+	};
+}
+
+interface JQueryStatic {
+	contextMenu(settings: {
+		selector: string;
+		items: Array<JQContextMenuItem>;
+	}|'destroy'): void;
+}
+
+type JQContextMenuItem = JQContextMenuObj|string;
 
 interface Animation {
 	onfinish?: () => void;
@@ -41,11 +57,13 @@ interface HTMLElement {
 	animate(properties: Array<Object>, options: {
 		duration?: number;
 		easing?: string;
+		fill?: 'forwards'|'backwards'|'both';
 	}): Animation;
 }
 
 interface CSSStyleDeclaration {
 	willChange: string;
+	WebkitTransform: string;
 }
 
 interface PolymerClickEvent extends MouseEvent {

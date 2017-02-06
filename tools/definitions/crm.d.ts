@@ -120,6 +120,8 @@ interface ScriptVal {
 	metaTags: MetaTags;
 	libraries: Array<CRMLibrary>;
 	backgroundLibraries: Array<CRMLibrary>;
+	updateNotice?: boolean;
+	oldScript?: string;
 }
 
 interface StylesheetVal {

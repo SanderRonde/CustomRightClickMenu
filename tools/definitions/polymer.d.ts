@@ -1,3 +1,7 @@
+/// <reference path="../../app/elements/center-element/center-element.ts" />
+/// <reference path="../../app/elements/crm-app/crm-app.ts" />
+
+
 interface Polymer {
 	(proto: {
 		is: string;
@@ -32,8 +36,8 @@ interface PolymerElementBase {
 	async(callback: () => void, time: number): void;
 	splice<T>(property: string, index: number, toRemove: number): Array<T>;
 	push<T>(property: string, item: any): number;
-	set(property: string, value: any);
-	fire(eventName: string, data: any);
+	set(property: string, value: any): void;
+	fire(eventName: string, data: any): void;
 }
 
 type PolymerElement<T> = HTMLElementCopy & T & PolymerElementBase;
@@ -47,16 +51,16 @@ interface PaperIconButton extends HTMLElement {
 }
 
 interface PaperDialog extends HTMLElement {
-	close();
-	open();
-	show();
-	init();
-	fit();
+	close(): void;
+	open(): void;
+	show(): void;
+	init(): void;
+	fit(): void;
 }
 
 interface PaperToast extends HTMLElement {
-	hide();
-	show();
+	hide(): void;
+	show(): void;
 	text: string;
 	duration: number;
 }
@@ -72,11 +76,7 @@ interface PaperCheckbox extends HTMLElement {
 interface DomRepeat extends HTMLTemplateElement {
 	items: Array<any>;
 	as: string;
-	render();
-}
-
-interface CenterElement extends HTMLElement {
-	//TODO
+	render(): void;
 }
 
 interface PaperToggleOption extends HTMLElement {

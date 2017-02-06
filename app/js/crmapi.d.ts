@@ -17,7 +17,7 @@ declare namespace CRMAPI {
 	}
 
 	interface ArrayConstructor {
-		from: (any) => Array<any>;
+		from: (any: any) => Array<any>;
 	}
 
 	type MetaTags = { [key: string]: Array<string|number> };
@@ -395,8 +395,8 @@ declare namespace CRMAPI {
 
 	interface ChromeRequestReturn extends Function {
 		(): ChromeRequestReturn;
-		args: (...params) => ChromeRequestReturn,
-		a: (...params) => ChromeRequestReturn,
+		args: (...params: Array<any>) => ChromeRequestReturn,
+		a: (...params: Array<any>) => ChromeRequestReturn,
 		return: (handler: (value: any) => void) => ChromeRequestReturn,
 		r: (handler: (value: any) => void) => ChromeRequestReturn,
 		persistent: (...functions: Array<Function>) => ChromeRequestReturn,
@@ -431,7 +431,7 @@ declare namespace CRMAPI {
 		ondone?: () => void;
 	}
 
-	type InstantCB = (callback) => void;
+	type InstantCB = (callback: () => void) => void;
 
 	type EmptyFn = () => void;
 
@@ -467,7 +467,7 @@ declare namespace CRMAPI {
 		 * If true, throws an error when one of your crmAPI calls is incorrect
 		 *		(such as a type mismatch or any other fail). True by default.
 		*/
-		errors;
+		errors: boolean;
 
 		/**
 		 * If true, when an error occurs anywhere in the script, opens the
@@ -476,13 +476,13 @@ declare namespace CRMAPI {
 		*		the error occurs on. This allows you to check any values
 		*		of variables to help you diagnose the issue.
 		*/
-		debugOnerror;
+		debugOnerror: boolean;
 
 		/**
 		 * When true, warns you after 5 seconds of not sending a chrome function
 		 * 		that you probably forgot to send it
 		 */
-		warnOnChromeFunctionNotSent;
+		warnOnChromeFunctionNotSent: boolean;
 
 
 		/**
@@ -535,8 +535,8 @@ declare namespace CRMAPI {
 			*		the message key of that object will be filled with the reason
 			*		it failed ("instance no longer exists" or "no listener exists")
 			*/
-			sendMessage(instance: number, message, callback: Function): void,
-			sendMessage(instance: Instance, message, callback: Function): void,
+			sendMessage(instance: number, message: any, callback: Function): void,
+			sendMessage(instance: Instance, message: any, callback: Function): void,
 			/**
 			 * Adds a listener for any comm-messages sent from other instances of
 			 * this script
@@ -1401,7 +1401,7 @@ declare namespace CRMAPI {
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_log}
 			 * @param {any} any - The data to log
 			 */
-			GM_log(...params): void,
+			GM_log(...params: Array<any>): void,
 
 			/**
 			 * Open specified URL in a new tab, open_in_background is not available here since that
