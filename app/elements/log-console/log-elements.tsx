@@ -1,8 +1,11 @@
-window.logElements = (() => {
-	function getTag(item, parent, additionalProps) {
-		additionalProps = additionalProps || {};
+/// <reference path="../../../tools/definitions/polymer.d.ts" />
+/// <reference path="../../../tools/definitions/react.d.ts" />
 
-		if (additionalProps.isEval) {
+window.logElements = (() => {
+	function getTag(item: any, parent: EvalElement|LogElement|LogLine, additionalProps: {
+		[key: string]: any;
+	} = {}): JSX.Element {
+		if (additionalProps['isEval']) {
 			return <EvalElement {...additionalProps} parent={parent} value={item}/>;
 		}
 
@@ -15,18 +18,23 @@ window.logElements = (() => {
 			case 'function':
 				return <FunctionElement {...additionalProps} parent={parent} value={item}/>;
 			case 'object':
-				return <ObjectElement {...additionalProps} parent={parent} value={item}/>;
+				return <ObjectElement {...additionalProps as any} parent={parent} value={item}/>;
 			case 'string':
 			default:
 				return <StringElement {...additionalProps} parent={parent} value={item}/>;
 		}
 	}
 
-	class LogElement extends React.Component {
-		constructor(props) {
+	class LogElement extends React.Component<any, any> {
+		refs: {
+			cont: HTMLElement;
+		}
+		parent: HTMLElement;
+
+		constructor(props: {}) {
 			super(props);
 		}
-		showContextMenu(e) {
+		showContextMenu(e: MouseEvent) {
 			window.logConsole.initContextMenu(this, e);
 			e.preventDefault();
 			e.stopPropagation();
@@ -34,13 +42,15 @@ window.logElements = (() => {
 		}
 	}
 
+	const PaperSpinner: any = 'Paper-Spinner';
+
 	class EvalElement extends LogElement {
 		componentDidMount() {
 			if (this.props.hasResult) {
 				this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
 			}
 		}
-		isLine() {
+		isLine(): true {
 			return true;
 		}
 		render() {
@@ -57,7 +67,7 @@ window.logElements = (() => {
 								<div className="evalElementReturnValue">{getTag(this.props.value.result, this)}</div>
 							</div>
 							: 
-							<paper-spinner className="tinySpinner" active></paper-spinner>)}
+							<PaperSpinner className="tinySpinner" active></PaperSpinner>)}
 					</div>
 				</div>
 			);
@@ -88,7 +98,13 @@ window.logElements = (() => {
 	var fnRegex = /^(.+)\{((.|\s|\n|\r)+)\}$/;
 
 	class FunctionElement extends LogElement {
-		constructor(props) {
+		refs: {
+			arrow: HTMLElement;
+			expandedElements: HTMLElement;
+			cont: HTMLElement;
+		}
+
+		constructor(props: any) {
 			super(props);
 		}
 		expand() {
@@ -149,7 +165,13 @@ window.logElements = (() => {
 		}
 	}
 
-	function getKeyValuePairs(item, deep) {
+	function getKeyValuePairs<T>(item: Array<T>|{
+			[key: string]: T;
+			[key: number]: T;
+		}, deep: boolean = false): Array<{
+			index: string|number;
+			value: T;
+		}> {
 		if (Array.isArray(item)) {
 			return item.map(function(value, index) {
 				return {
@@ -182,7 +204,7 @@ window.logElements = (() => {
 		}
 	}
 
-	function getKeys(item) {
+	function getKeys(item: string): number {
 		if (Array.isArray(item)) {
 			return item.length;
 		} else {
@@ -191,12 +213,29 @@ window.logElements = (() => {
 	}
 
 	class ObjectElement extends LogElement {
+		refs: {
+			arrow: HTMLElement;
+			expandedElements: HTMLElement;
+			cont: HTMLElement;
+		}
+		props: {
+			parent: EvalElement|LogLine|LogElement;
+			expanded: boolean;
+			renderedExpanded: boolean;
+			expandedElements: Array<JSX.Element>;
+			value: {
+				[key: string]: any;
+				[key: number]: any;
+			};
+			isProto: boolean;
+		}
+
 		expand() {
 			if (!this.props.expanded && !this.props.renderedExpanded) {
 				this.props.renderedExpanded = true;
 
 				var _this = this;
-				var expandedElements = [];
+				var expandedElements: Array<JSX.Element> = [];
 				var pairs = getKeyValuePairs(this.props.value, true);
 				var lastElementIndex = pairs.length - 1;
 				pairs.forEach(function(item, i, arr) {
@@ -236,7 +275,12 @@ window.logElements = (() => {
 				}).length > 0;
 			var overflows = (dataType === 'object' && dataPairs.length > 3) || 
 				(dataType === 'array' && dataPairs.length > 10);
-			var nonOverflowItems = dataPairs.slice(0, (
+			var nonOverflowItems: Array<{
+				index: string|number;
+				value: any;
+			}|{
+				overflow: boolean;
+			}> = dataPairs.slice(0, (
 				this.props.isProto ? 0 :
 					dataType === 'object' ? 3 : 10
 			));
@@ -258,8 +302,14 @@ window.logElements = (() => {
 						<div className="objectElementPreviewCont">
 							<span>{dataType === 'array' ? '[' : '{'}</span>
 							{nonOverflowItems.map(function(item, i, arr) {
-								var index = item.index;
-								var data = item.value;
+								var index = (item as {
+									index: string|number;
+									value: any;
+								}).index;
+								var data = (item as {
+									index: string|number;
+									value: any;
+								}).value;
 								if (typeof data === 'object') {
 									if (Array.isArray(data)) {
 										return (
@@ -286,7 +336,9 @@ window.logElements = (() => {
 											{i < lastElIndex ? <span className="arrayComma">,</span> : null}
 										</span>
 									)
-								} else if (item.overflow) {
+								} else if ((item as {
+									overflow: boolean;
+								}).overflow) {
 									return (
 										<span className="objectElementValueCont">
 											<span className="specialArrayElement">...</span>
@@ -312,8 +364,11 @@ window.logElements = (() => {
 		}
 	}
 
-	class LogLine extends React.Component {
-		constructor(props) {
+	class LogLine extends React.Component<any, any> {
+		constructor(props: {
+			line: LogLineData;
+			value: Array<any>;
+		}) {
 			super(props);
 		}
 		isLine() {
@@ -322,14 +377,19 @@ window.logElements = (() => {
 		takeToTab() {
 			chrome.tabs.get(~~this.props.line.tabId, function(tab) {
 				if (chrome.runtime.lastError) {
-					window.logConsole.$.genericToast.text = 'Tab has been closed';
-					window.logConsole.$.genericToast.show();
+					window.logConsole.$['genericToast'].text = 'Tab has been closed';
+					window.logConsole.$['genericToast'].show();
 					return;
 				}
 
 				chrome.tabs.highlight({
 					windowId: tab.windowId,
 					tabs: tab.index
+				}, () => {
+					if (chrome.runtime.lastError) {
+						console.log(chrome.runtime.lastError);
+						console.log('Something went wrong highlighting the tab');
+					}
 				});
 			});
 		}
@@ -340,7 +400,7 @@ window.logElements = (() => {
 					<div className="lineData">
 						<div className="lineTimestamp">{this.props.line.timestamp}</div>
 						<div className="lineContent">
-							{this.props.value.map((value) => {
+							{this.props.value.map((value: any) => {
 								return getTag(value, this, {
 									isEval: this.props.line.isEval
 								});
@@ -348,18 +408,24 @@ window.logElements = (() => {
 						</div>
 					</div>
 					<div className="lineSource">
-						<span className="lineSourceIdCont" title={this.props.line.nodeTitle}>[id-<span className="lineSourceId">{this.props.line.id}</span>]</span><span className="lineSourceTabCont" onClick={takeToTab} tabindex="1" title={this.props.line.tabTitle}>[tab-<span className="lineSourceTab">{this.props.line.tabId}</span>]</span><span className="lineSourceLineCont">@<span className="lineSourceLineNumber">{this.props.line.lineNumber.trim()}</span></span>
+						<span className="lineSourceIdCont" title={this.props.line.nodeTitle}>[id-<span className="lineSourceId">{this.props.line.id}</span>]</span><span className="lineSourceTabCont" onClick={takeToTab} tabIndex={1} title={this.props.line.tabTitle}>[tab-<span className="lineSourceTab">{this.props.line.tabId}</span>]</span><span className="lineSourceLineCont">@<span className="lineSourceLineNumber">{this.props.line.lineNumber.trim()}</span></span>
 					</div>
 				</div>
 			);
 		}
 	}
 
-	class LogLineContainer extends React.Component {
-		constructor(props) {
+	class LogLineContainer extends React.Component<any, any> implements LogLineContainerInterface {
+		state: {
+			lines: Array<{
+				data: Array<LogLineData>;
+				line: LogListenerLine;
+			}>;
+		}
+		constructor(props: {}) {
 			super(props);
 		}
-		add(lineData, line) {
+		add(lineData: Array<LogLineData>, line: LogListenerLine): void {
 			this.setState({
 				lines: this.state.lines.concat([{
 					data: lineData,
@@ -369,7 +435,10 @@ window.logElements = (() => {
 
 			this.props.logConsole.set('lines', this.state.lines.length);
 		}
-		popEval() {
+		popEval(): {
+			data: Array<LogLineData>;
+			line: LogListenerLine;
+		} {
 			const lines = this.state.lines.reverse();
 			let popped = null;
 			for (let i = 0; i < lines.length; i++) {
@@ -389,7 +458,7 @@ window.logElements = (() => {
 
 			return popped[0];
 		}
-		clear() {
+		clear(): void {
 			this.setState({
 				lines: []
 			});
@@ -399,8 +468,9 @@ window.logElements = (() => {
 		render() {
 			const children = [];
 
-			this.state = this.state || {};
-			this.state.lines = this.state.lines || [];
+			this.state = this.state || {
+				lines: []
+			};
 
 			for (var i = 0; i < this.state.lines.length; i++) {
 				children.push(<LogLine value={this.state.lines[i].data} line={this.state.lines[i].line}/>);
@@ -415,6 +485,6 @@ window.logElements = (() => {
 	}
 
 	return {
-		logLines: LogLineContainer
+		logLines: LogLineContainer as any
 	};
 })();

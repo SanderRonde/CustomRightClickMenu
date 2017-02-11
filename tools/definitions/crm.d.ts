@@ -11,8 +11,8 @@ declare const enum CRMLaunchModes {
 interface CRMNodeInfo {
 	installDate?: string;
 	isRoot?: boolean;
-	permissions: Array<CRMPermission|string>;
-	source: {
+	permissions: Array<Permission>;
+	source?: {
 		updateURL?: string;
 		downloadURL?: string;
 		url?: string;
@@ -47,6 +47,7 @@ type CRMTriggers = Array<CRMTrigger>;
 interface CRMLibrary {
 	name: string;
 	url?: string;
+	location?: 'jquery.js'|'angular.js'|'mooTools.js'|'yui.js'|'jqlite';
 }
 
 type MetaTags = { [key: string]: Array<string|number> };
@@ -79,14 +80,14 @@ type SetPreviousVals<T extends ScriptNode> = {
 	[P in keyof T]: number;
 };
 
-interface CRMBaseNode {
+interface CRMBaseNodeNoVal {
 	storage: {
 		[key: string]: any;
 		[key: number]: any;
 	};
 	index?: number;
 	isLocal: boolean;
-	permissions: Array<CRMPermission>;
+	permissions: Array<Permission>;
 	children: CRMTree|SafeCRM|void;
 	id: number;
 	path: Array<number>;
@@ -96,11 +97,14 @@ interface CRMBaseNode {
 	showOnSpecified?: boolean;
 	onContentTypes: CRMContentTypes;
 	triggers: CRMTriggers;
-	value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
 	linkVal: LinkVal|void;
 	menuVal: CRMTree|void;
 	scriptVal: ScriptVal|void;
 	stylesheetVal: StylesheetVal|void;
+}
+
+interface CRMBaseNode extends CRMBaseNodeNoVal {
+	value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
 }
 
 interface NonSafeBaseNodeBase extends CRMBaseNode {
@@ -122,6 +126,7 @@ interface ScriptVal {
 	backgroundLibraries: Array<CRMLibrary>;
 	updateNotice?: boolean;
 	oldScript?: string;
+	metaTagsHidden?: boolean;
 }
 
 interface StylesheetVal {
@@ -129,6 +134,7 @@ interface StylesheetVal {
 	stylesheet: string;
 	toggle: boolean;
 	defaultOn: boolean;
+	metaTagsHidden?: boolean;
 }
 
 interface LinkNodeLink {
@@ -153,6 +159,15 @@ interface ScriptNode extends NonSafeBaseNodeBase {
 	scriptVal: void;
 }
 
+type PartialScriptNode = Partial<CRMBaseNodeNoVal> & {
+	type?: 'script';
+	value?: Partial<ScriptVal>;
+	menuVal?: CRMTree|void;
+	linkVal?: LinkVal|void;
+	stylesheetVal?: StylesheetVal|void;
+	scriptVal?: void;
+}
+
 interface StylesheetNode extends NonSafeBaseNodeBase {
 	type: 'stylesheet';
 	children: void;
@@ -162,6 +177,16 @@ interface StylesheetNode extends NonSafeBaseNodeBase {
 	scriptVal: ScriptVal|void;
 	stylesheetVal: void;
 }
+
+type PartialStylesheetNode = Partial<CRMBaseNodeNoVal> & {
+	type?: 'stylesheet';
+	value?: Partial<StylesheetVal>;
+	menuVal?: CRMTree|void;
+	linkVal?: LinkVal|void;
+	stylesheetVal?: void;
+	scriptVal?: ScriptVal|void;
+}
+
 
 interface LinkNode extends PassiveCRMNode {
 	type: 'link';
@@ -212,27 +237,31 @@ type SafeDividerNode = SafeNode<DividerNode>;
 type SafeCRMNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
 type SafeCRM = Array<SafeCRMNode>;
 
+interface CRMKeyBindings {
+	autocomplete: string;
+	showType: string;
+	showDocs: string;
+	goToDef: string;
+	jumpBack: string;
+	rename: string;
+	selectName: string;
+}
 
-interface SettingsStorage extends AnyObj {
-	editor: {
-		useTabs: boolean;
-		tabSize: string;
-		theme: string;
-		zoom: string;
-		keyBindings: {
-			autocomplete: string;
-			showType: string;
-			showDocs: string;
-			goToDef: string;
-			rename: string;
-			selectName: string;
-		}
-	};
+interface CRMEditorSettings {
+	useTabs: boolean;
+	tabSize: string;
+	theme: string;
+	zoom: string;
+	keyBindings: CRMKeyBindings;
+}
+
+interface SettingsStorage {
+	editor: CRMEditorSettings;
 	settingsLastUpdatedAt: number;
 	crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
 }
 
-interface StorageLocal extends AnyObj {
+interface StorageLocal {
 	libraries: Array<{
 		name: string;
 		url?: string;

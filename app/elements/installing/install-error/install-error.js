@@ -1,3 +1,3 @@
-﻿Polymer({
-	is: 'install-error'
+Polymer({
+    is: 'install-error'
 });

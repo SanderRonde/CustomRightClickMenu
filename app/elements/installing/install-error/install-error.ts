@@ -1,0 +1,3 @@
+﻿Polymer({
+	is: 'install-error'
+});

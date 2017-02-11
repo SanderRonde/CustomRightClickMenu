@@ -165,7 +165,7 @@ type TransferOnError = (position: TransferOnErrorError,
 	passes: number) => void;
 
 type CRMApp = PolymerElement<typeof CA & typeof properties & {
-	editCRM: any;
+	editCRM: EditCrm;
 }>;
 
 type ScriptUpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
@@ -174,7 +174,7 @@ type ScriptUpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
 interface Extendable<T> { 
 	[key: string]: any;
 	[key: number]: any;
-	}
+}
 
 interface Extensions<T> extends Extendable<T> { }
 
@@ -182,6 +182,76 @@ interface AddedPermissionsTabContainer extends HTMLElement {
 	tab: number;
 	maxTabs: number;
 }
+
+interface ChromePermissionDescriptions {
+	alarms: string;
+	background: string;
+	bookmarks: string;
+	browsingData: string;
+	clipboardRead: string;
+	clipboardWrite: string;
+	cookies: string;
+	contentSettings: string;
+	declarativeContent: string;
+	desktopCapture: string;
+	downloads: string;
+	history: string;
+	identity: string;
+	idle: string;
+	management: string;
+	notifications: string;
+	pageCapture: string;
+	power: string;
+	privacy: string;
+	printerProvider: string;
+	sessions: string;
+	"system.cpu": string;
+	"system.memory": string;
+	"system.storage": string;
+	topSites: string;
+	tabCapture: string;
+	tts: string;
+	webNavigation: string;
+	webRequest: string;
+	webRequestBlocking: string;
+}
+
+interface CRMPermissionDescriptions {
+	//Script-specific descriptions
+	crmGet: string;
+	crmWrite: string;
+	chrome: string;
+}
+
+interface GMPermissioNDescriptions {
+	//Tampermonkey APIs
+	GM_addStyle: string;
+	GM_deleteValue: string;
+	GM_listValues: string;
+	GM_addValueChangeListener: string;
+	GM_removeValueChangeListener: string;
+	GM_setValue: string;
+	GM_getValue: string;
+	GM_log: string;
+	GM_getResourceText: string;
+	GM_getResourceURL: string;
+	GM_registerMenuCommand: string;
+	GM_unregisterMenuCommand: string;
+	GM_openInTab: string;
+	GM_xmlhttpRequest: string;
+	GM_download: string;
+	GM_getTab: string;
+	GM_saveTab: string;
+	GM_getTabs: string;
+	GM_notification: string;
+	GM_setClipboard: string;
+	GM_info: string;
+	unsafeWindow: string;
+}
+
+type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissioNDescriptions;
+
+type Permission = CRMPermission|keyof PermissionDescriptions;
 
 class CA {
 	static is = 'crm-app';
@@ -240,9 +310,16 @@ class CA {
 	} = {};
 
 	/**
+	 * The column index of the "shadow" node, if any
+	 */
+	static shadowStart: number;
+
+	/**
 	 * The global variables for the jsLint linter
 	 */
 	static jsLintGlobals: Array<string> = [];
+
+	static ternServer: TernServer;
 
 	static properties = properties;
 
@@ -576,7 +653,7 @@ class CA {
 	static runDialogsForImportedScripts(this: CRMApp, nodesToAdd: Array<CRMNode>, dialogs: Array<ScriptNode>) {
 		var _this = this;
 		if (dialogs[0]) {
-			var script = dialogs.splice(0, 1);
+			var script = dialogs.splice(0, 1)[0];
 			window.scriptEdit.openPermissionsDialog(script, function() {
 				_this.runDialogsForImportedScripts(nodesToAdd, dialogs);
 			});
@@ -640,7 +717,7 @@ class CA {
 		});
 	};
 
-	static addImportedNodes(this: CRMApp, nodesToAdd: Array<CRMNode>) {
+	static addImportedNodes(this: CRMApp, nodesToAdd: Array<CRMNode>): boolean {
 		var _this = this;
 		if (!nodesToAdd[0]) {
 			return false;
@@ -656,6 +733,18 @@ class CA {
 		this.findScriptsInSubtree(toAdd, scripts);
 		this.runDialogsForImportedScripts(nodesToAdd, scripts);
 		return true;
+	};
+
+	static crmForEach(this: CRMApp, tree: Array<CRMNode>, fn: (node: CRMNode) => void): CRMTree {
+		for (let i = 0; i < tree.length; i++) {
+			const node = tree[i];
+			if (node.type === 'menu' && node.children) {
+				this.crmForEach(node.children, fn);
+			}
+
+			fn(node);
+		}
+		return tree;
 	};
 
 	static importData(this: CRMApp) {
@@ -687,11 +776,15 @@ class CA {
 			}
 			if (data.crm) {
 				if (overWriteImport.checked) {
-					this.settings.crm = data.crm;
+					this.settings.crm = this.crmForEach(data.crm, (node) => {
+						node.id = this.generateItemId();
+					});
 				} else {
 					this.addImportedNodes(data.crm);
 				}
+				this.editCRM.build(null, null, true);
 			}
+			this.upload();
 		} else {
 			try {
 				const settingsArr: Array<any> = dataString.split('%146%');
@@ -715,7 +808,8 @@ class CA {
 
 					var crm = this.transferCRMFromOld(settingsArr[4], new localStorageWrapper());
 					this.settings.crm = crm;
-					window.app.editCRM.build(null, null, true);
+					this.editCRM.build(null, null, true);
+					this.upload();
 				} else {
 					alert('This method of importing no longer works, please export all your settings instead');
 				}
@@ -730,14 +824,14 @@ class CA {
 	static exportData(this: CRMApp) {
 		var _this = this;
 		const toExport: {
-			crm?: CRMTree;
+			crm?: SafeCRM;
 			local?: StorageLocal;
 			nonLocal?: SettingsStorage;
 		} = {} as any;
 		if ((this.$['exportCRM'] as PaperCheckbox).checked) {
 			toExport.crm = JSON.parse(JSON.stringify(_this.settings.crm));
 			for (var i = 0; i < toExport.crm.length; i++) {
-				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i]);
+				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i] as CRMNode);
 			}
 		}
 		if ((this.$['exportSettings'] as PaperCheckbox).checked) {
@@ -1358,7 +1452,7 @@ class CA {
 	/**
 	 * Shows the user a dialog and asks them to allow/deny those permissions
 	 */
-	static requestPermissions(this: CRMApp, toRequest: Array<string>,
+	static requestPermissions(this: CRMApp, toRequest: Array<Permission>,
 				force: boolean = false) {
 		var i;
 		var index;
@@ -2296,6 +2390,7 @@ class CA {
 					showDocs: 'Ctrl-O',
 					goToDef: 'Alt-.',
 					rename: 'Ctrl-Q',
+					jumpBack: 'Ctrl-,',
 					selectName: 'Ctrl-.'
 				},
 				tabSize: '4',
@@ -2389,6 +2484,7 @@ class CA {
 					showDocs: 'Ctrl-O',
 					goToDef: 'Alt-.',
 					rename: 'Ctrl-Q',
+					jumpBack: 'Ctrl-,',
 					selectName: 'Ctrl-.'
 				},
 				tabSize: '4',
@@ -2801,7 +2897,7 @@ class CA {
 					_this.bindListeners();
 					delete storageLocal.nodeStorage;
 					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-						_this.requestPermissions(storageLocal.requestPermissions);
+						_this.requestPermissions(storageLocal.requestPermissions as Array<Permission>);
 					}
 					if (storageLocal.editing) {
 						const editing = storageLocal.editing;
@@ -2900,7 +2996,7 @@ class CA {
 						});
 						storageLocal.updatedScripts = [];
 					}
-					if (storageLocal.settingsVersionData.wasUpdated) {
+					if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
 						var versionData = storageLocal.settingsVersionData;
 						versionData.wasUpdated = false;
 						chrome.storage.local.set({
@@ -3205,8 +3301,8 @@ class CA {
 		/**
 		 * Gets the default script node object with given options applied
 		 */
-		static getDefaultScriptNode(options: Partial<ScriptNode> = {}): ScriptNode {
-			const defaultNode: Partial<ScriptNode> = {
+		static getDefaultScriptNode(options: PartialScriptNode = {}): ScriptNode {
+			const defaultNode: PartialScriptNode = {
 				name: 'name',
 				onContentTypes: [true, true, true, false, false, false],
 				type: 'script',
@@ -3227,8 +3323,8 @@ class CA {
 		/**
 		 * Gets the default stylesheet node object with given options applied
 		 */
-		static getDefaultStylesheetNode(options: Partial<StylesheetNode> = {}): StylesheetNode {
-			const defaultNode: Partial<StylesheetNode> = {
+		static getDefaultStylesheetNode(options: PartialStylesheetNode = {}): StylesheetNode {
+			const defaultNode: PartialStylesheetNode = {
 				name: 'name',
 				onContentTypes: [true, true, true, false, false, false],
 				type: 'stylesheet',
@@ -3284,7 +3380,7 @@ class CA {
 		/**
 		 * Gets all permissions that can be requested by this extension
 		 */
-		static getPermissions(): Array<string> {
+		static getPermissions(): Array<Permission> {
 			return [
 				'alarms',
 				'background',
@@ -3322,7 +3418,7 @@ class CA {
 		/**
 		 * Gets all permissions that can be requested by this extension including those specific to scripts
 		 */
-		static getScriptPermissions(this: CRMApp): Array<string> {
+		static getScriptPermissions(): Array<Permission> {
 			return [
 				'alarms',
 				'background',
@@ -3381,11 +3477,8 @@ class CA {
 
 		/**
 		 * Gets the description for given permission
-		 *
-		 * @param {string} permission - The permission whose description to get
-		 * @returns {string} The description of given permission
 		 */
-		static getPermissionDescription(permission: string): string {
+		static getPermissionDescription(permission: Permission): string {
 			const descriptions = {
 				alarms: 'Makes it possible to create, view and remove alarms.',
 				background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
@@ -3445,10 +3538,11 @@ class CA {
 				GM_getTabs: 'Allows the readin gof all tab object - not implemented',
 				GM_notification: 'Allows sending desktop notifications',
 				GM_setClipboard: 'Allows copying data to the clipboard - not implemented',
-				GM_info: 'Allows the reading of some script info'
+				GM_info: 'Allows the reading of some script info',
+				unsafeWindow: 'Allows the running on an unsafe window object - not implemented'
 			};
 
-			return (descriptions as any)[permission];
+			return descriptions[permission];
 		};
 
 		static parent(): CRMApp {
@@ -3808,10 +3902,11 @@ class CA {
 			return 'window.app.settings.crm[' + (path.join('].children[')) + ']';
 		};
 
-		static lookup(path: Array<number>, returnArray: boolean): CRMNode|Array<CRMNode>;
+		static lookup(path: Array<number>, returnArray?: boolean): CRMNode|Array<CRMNode>;
 		static lookup(path: Array<number>, returnArray: false): CRMNode;
 		static lookup(path: Array<number>, returnArray: true): Array<CRMNode>;
-		static lookup(path: Array<number>, returnArray: boolean): CRMNode|Array<CRMNode> {
+		static lookup(path: Array<number>): CRMNode;
+		static lookup(path: Array<number>, returnArray: boolean = false): CRMNode|Array<CRMNode> {
 			var pathCopy = JSON.parse(JSON.stringify(path));
 			if (returnArray) {
 				pathCopy.splice(pathCopy.length - 1, 1);

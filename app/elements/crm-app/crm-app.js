@@ -423,7 +423,7 @@ var CA = (function () {
     CA.runDialogsForImportedScripts = function (nodesToAdd, dialogs) {
         var _this = this;
         if (dialogs[0]) {
-            var script = dialogs.splice(0, 1);
+            var script = dialogs.splice(0, 1)[0];
             window.scriptEdit.openPermissionsDialog(script, function () {
                 _this.runDialogsForImportedScripts(nodesToAdd, dialogs);
             });
@@ -500,7 +500,19 @@ var CA = (function () {
         return true;
     };
     ;
+    CA.crmForEach = function (tree, fn) {
+        for (var i = 0; i < tree.length; i++) {
+            var node = tree[i];
+            if (node.type === 'menu' && node.children) {
+                this.crmForEach(node.children, fn);
+            }
+            fn(node);
+        }
+        return tree;
+    };
+    ;
     CA.importData = function () {
+        var _this = this;
         var dataString = this.$['importSettingsInput'].value;
         if (!this.$['oldCRMImport'].checked) {
             var data = void 0;
@@ -520,12 +532,16 @@ var CA = (function () {
             }
             if (data.crm) {
                 if (overWriteImport.checked) {
-                    this.settings.crm = data.crm;
+                    this.settings.crm = this.crmForEach(data.crm, function (node) {
+                        node.id = _this.generateItemId();
+                    });
                 }
                 else {
                     this.addImportedNodes(data.crm);
                 }
+                this.editCRM.build(null, null, true);
             }
+            this.upload();
         }
         else {
             try {
@@ -543,7 +559,8 @@ var CA = (function () {
                     };
                     var crm = this.transferCRMFromOld(settingsArr[4], new localStorageWrapper());
                     this.settings.crm = crm;
-                    window.app.editCRM.build(null, null, true);
+                    this.editCRM.build(null, null, true);
+                    this.upload();
                 }
                 else {
                     alert('This method of importing no longer works, please export all your settings instead');
@@ -1572,6 +1589,7 @@ var CA = (function () {
                     showDocs: 'Ctrl-O',
                     goToDef: 'Alt-.',
                     rename: 'Ctrl-Q',
+                    jumpBack: 'Ctrl-,',
                     selectName: 'Ctrl-.'
                 },
                 tabSize: '4',
@@ -1658,6 +1676,7 @@ var CA = (function () {
                     showDocs: 'Ctrl-O',
                     goToDef: 'Alt-.',
                     rename: 'Ctrl-Q',
+                    jumpBack: 'Ctrl-,',
                     selectName: 'Ctrl-.'
                 },
                 tabSize: '4',
@@ -2124,7 +2143,7 @@ var CA = (function () {
                         });
                         storageLocal.updatedScripts = [];
                     }
-                    if (storageLocal.settingsVersionData.wasUpdated) {
+                    if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
                         var versionData = storageLocal.settingsVersionData;
                         versionData.wasUpdated = false;
                         chrome.storage.local.set({
@@ -3021,9 +3040,6 @@ CA.templates = (function () {
     ;
     /**
      * Gets the description for given permission
-     *
-     * @param {string} permission - The permission whose description to get
-     * @returns {string} The description of given permission
      */
     CRMAppTemplates.getPermissionDescription = function (permission) {
         var descriptions = {
@@ -3083,7 +3099,8 @@ CA.templates = (function () {
             GM_getTabs: 'Allows the readin gof all tab object - not implemented',
             GM_notification: 'Allows sending desktop notifications',
             GM_setClipboard: 'Allows copying data to the clipboard - not implemented',
-            GM_info: 'Allows the reading of some script info'
+            GM_info: 'Allows the reading of some script info',
+            unsafeWindow: 'Allows the running on an unsafe window object - not implemented'
         };
         return descriptions[permission];
     };
@@ -3446,6 +3463,7 @@ CA.crm = (function () {
     };
     ;
     CRMAppCRMFunctions.lookup = function (path, returnArray) {
+        if (returnArray === void 0) { returnArray = false; }
         var pathCopy = JSON.parse(JSON.stringify(path));
         if (returnArray) {
             pathCopy.splice(pathCopy.length - 1, 1);

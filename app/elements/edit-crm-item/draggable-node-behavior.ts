@@ -1,4 +1,4 @@
-/// <reference path="../../../tools/definitions/crmapp.d.ts" />
+///// <reference path="../../../tools/definitions/crmapp.d.ts" />
 
 interface Coordinate {
 	X: number,
@@ -10,7 +10,7 @@ interface FillerElement extends HTMLElement {
 	column: number;
 }
 
-class PDB {
+class DNB {
 	/**
 	  * Whether this item is currently being dragged
 	  */
@@ -74,7 +74,13 @@ class PDB {
 	 */
 	static _currentColumn: Element;
 
-	static _changeDraggingState(this: PolymerElement<typeof PDB>, isDragging: boolean) {
+	static _listeners: {
+		stopDrag: EventListenerObject;
+		onMouseMove: EventListenerObject;
+		onScroll: EventListenerObject;
+	};
+
+	static _changeDraggingState(this: DraggableNodeBehavior, isDragging: boolean) {
 		this.dragging = isDragging;
 		this.$['itemCont'].style.willChange = (isDragging ? 'transform' : 'initial');
 		this.$['itemCont'].style.zIndex = (isDragging ? '500' : '0');
@@ -83,7 +89,7 @@ class PDB {
 		currentColumn.draggingItem = this;
 	}
 
-	static _onScroll(this: PolymerElement<typeof PDB>) {
+	static _onScroll(this: DraggableNodeBehavior) {
 		var newScroll = $('body').scrollTop();
 		var difference = newScroll - this._scrollStart.Y;
 		this._dragStart.Y -= difference;
@@ -92,7 +98,7 @@ class PDB {
 		this._onDrag();
 	}
 
-	static _sideDrag(this: PolymerElement<typeof PDB>) {
+	static _sideDrag(this: DraggableNodeBehavior) {
 		var newScroll = $('.CRMEditColumnCont')[0].getBoundingClientRect().left;
 		var difference = newScroll - this._scrollStart.X;
 		this._dragStart.X -= difference;
@@ -101,7 +107,7 @@ class PDB {
 		this._onDrag();
 	}
 
-	static _stopDrag(this: PolymerElement<typeof PDB>) {
+	static _stopDrag(this: DraggableNodeBehavior) {
 		this.$$('paper-ripple').style.display = 'block';
 		this.style.pointerEvents = 'all';
 		this._changeDraggingState(false);
@@ -116,13 +122,13 @@ class PDB {
 		this._rebuildMenu();
 	}
 
-	static _onMouseMove(this: PolymerElement<typeof PDB>, event: MouseEvent) {
+	static _onMouseMove(this: DraggableNodeBehavior, event: MouseEvent) {
 		this._lastRecordedPos.X = event.clientX;
 		this._lastRecordedPos.Y = event.clientY;
 		this._cursorPosChanged = true;
 	}
 
-	static _onDrag(this: PolymerElement<typeof PDB>) {
+	static _onDrag(this: DraggableNodeBehavior) {
 		if (this._cursorPosChanged && this.dragging) {
 			this._cursorPosChanged = false;
 			var columnCorrection = 200 * (this._filler.column - this.parentNode.index);
@@ -197,7 +203,7 @@ class PDB {
 						}
 						this._filler.index = fillerIndex;
 
-						if (this.parentNode === this._filler[0].parentNode) {
+						if (this.parentNode === this._filler.parentNode) {
 							this._dragStart.Y -= 50;
 						} else if (this.parentNode === newColumn) {
 							this._dragStart.Y += 50;
@@ -239,11 +245,11 @@ class PDB {
 					this._filler.index = fillerIndex;
 					if (this._parentNode === newColumn) {
 						this._dragStart.Y += 50;
-					} else if (this._parentNode === this._filler[0].parentNode) {
+					} else if (this._parentNode === this._filler.parentNode) {
 						this._dragStart.Y -= 50;
 					}
 					
-					var paperMaterial = this._filler[0].parentNode.parentNode;
+					var paperMaterial = this._filler.parentNode.parentNode;
 					if (paperMaterial.isEmpty) {
 						paperMaterial.style.display = 'none';
 					}
@@ -260,7 +266,7 @@ class PDB {
 		}
 	}
 
-	static _snapItem(this: PolymerElement<typeof PDB>) {
+	static _snapItem(this: DraggableNodeBehavior) {
 		//Get the filler's current index and place the current item there
 		var parentChildrenList = window.app.editCRM.getEditCrmItems(window.app.editCRM
 			.getCurrentColumn(this), true);
@@ -275,7 +281,7 @@ class PDB {
 		}
 	}
 
-	static _rebuildMenu(this: PolymerElement<typeof PDB>) {
+	static _rebuildMenu(this: DraggableNodeBehavior) {
 		//Get original object
 		var newPath;
 		var $prev = $(this).prev();
@@ -300,8 +306,10 @@ class PDB {
 		else {
 			//No items exist yet, go to prev column and find the only expanded menu
 			window.app.editCRM.getEditCrmItems(window.app.editCRM
-				.getPrevColumn(this)).forEach(function(item) {
-				if (item.item.expanded) {
+				.getPrevColumn(this as EditCrmItem)).forEach(function(item) {
+				if ((item.item as MenuNode & {
+						expanded: boolean;
+					}).expanded) {
 					newPath = item.item.path;
 					newPath.push(0);
 				}
@@ -331,7 +339,7 @@ class PDB {
 		}
 	}
 
-	static _startDrag(this: PolymerElement<typeof PDB>, event: MouseEvent) {
+	static _startDrag(this: DraggableNodeBehavior, event: MouseEvent) {
 		this.$$('paper-ripple').style.display = 'none';
 		var extraSpacing = (($(this.parentNode).children('edit-crm-item').toArray().length - this.index) * -50);
 		this.style.pointerEvents = 'none';
@@ -374,7 +382,7 @@ class PDB {
 		this._onDrag();
 	}
 
-	static init(this: PolymerElement<typeof PDB>) {
+	static init(this: DraggableNodeBehavior) {
 		var _this = this;
 		this.$['dragger'].addEventListener('mousedown', function(e) {
 			if (e.which === 1) {
@@ -406,5 +414,5 @@ class PDB {
 	}
 };
 
-type DraggableNodeBehavior = typeof PDB;
-Polymer.DraggableNodeBehavior = PDB;
+type DraggableNodeBehavior = PolymerElement<typeof DNB>;
+Polymer.DraggableNodeBehavior = DNB as DraggableNodeBehavior;

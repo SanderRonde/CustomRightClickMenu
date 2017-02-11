@@ -1,22 +1,24 @@
-﻿Polymer({
-	is: 'divider-edit',
-
-	behaviors: [Polymer.NodeEditBehavior],
-
-	properties: {
-		item: {
-			type: Object,
-			value: {},
-			notify: true
-		}
-	},
-
-	init: function () {
-		this._init();
-	},
-
-	ready: function () {
-		window.dividerEdit = this;
-	}
-
-});
+/// <reference path="../../../../tools/definitions/crmapp.d.ts" />
+var dividerEditProperties = {
+    item: {
+        type: Object,
+        value: {},
+        notify: true
+    }
+};
+var DE = (function () {
+    function DE() {
+    }
+    DE.init = function () {
+        this._init();
+    };
+    ;
+    DE.ready = function () {
+        window.dividerEdit = this;
+    };
+    return DE;
+}());
+DE.is = 'divider-edit';
+DE.behaviors = [Polymer.NodeEditBehavior];
+DE.properties = dividerEditProperties;
+Polymer(DE);

@@ -1,22 +1,24 @@
-﻿Polymer({
-	is: 'menu-edit',
-
-	behaviors: [Polymer.NodeEditBehavior],
-
-	properties: {
-		item: {
-			type: Object,
-			value: {},
-			notify: true
-		}
-	},
-
-	init: function () {
-		this._init();
-	},
-
-	ready: function () {
-		window.menuEdit = this;
-	}
-
-});
+/// <reference path="../../../../tools/definitions/crmapp.d.ts" />
+var menuEditProperties = {
+    item: {
+        type: Object,
+        value: {},
+        notify: true
+    }
+};
+var ME = (function () {
+    function ME() {
+    }
+    ME.init = function () {
+        this._init();
+    };
+    ;
+    ME.ready = function () {
+        window.menuEdit = this;
+    };
+    return ME;
+}());
+ME.is = 'menu-edit';
+ME.behaviors = [Polymer.NodeEditBehavior];
+ME.properties = menuEditProperties;
+Polymer(ME);

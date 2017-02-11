@@ -2,11 +2,24 @@
 /// <reference path="polymer.d.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="codemirror.d.ts" />
+/// <reference path="../../app/elements/log-console/log-elements.tsx" />
+/// <reference path="../../app/js/background.ts" />
+
+interface LogLineContainerInterface {
+	add(lineData: Array<LogLineData>, line: LogListenerLine): void;
+	popEval(): {
+		data: Array<LogLineData>;
+		line: LogListenerLine;
+	};
+	clear(): void;
+	render(): JSX.Element;
+}
 
 interface Window {
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
 	colorFunction: {
 		func(pos: LinePosition, cm: CodeMirror): void;
+		cm: CodeMirror;
 	}
 	crmAPIDefs?: any;
 	lastError?: Error;
@@ -14,18 +27,51 @@ interface Window {
 	requestIdleCallback(callback: (deadline: {
 		timeRemaining(): number;
 	}) => void): number;
+	Intl: typeof Intl;
+	unescape(str: string): string;
 
 	doc: {
 		[key: string]: PossiblePolymerElement;
 	};
+	codeMirrorToLoad?: {
+		toLoad: Array<() => void>;
+		final(): void;
+	};
+	logElements?: {
+		logLines: React.Component<any, any>;
+	}
 
 	app: CRMApp;
+	cm: CodeMirror;
+	logPage: LogPage;
+	linkEdit: LinkEdit;
+	menuEdit: MenuEdit;
 	changeLog: ChangeLog;
-	errorReportingTool: any;
 	scriptEdit: ScriptEdit;
+	logConsole: LogConsole;
+	crmEditPage: CrmEditPage;
+	installPage: InstallPage;
+	dividerEdit: DividerEdit;
 	stylesheetEdit: StylesheetEdit;
+	installConfirm: InstallConfirm;
 	externalEditor: ExternalEditor;
+	errorReportingTool: ErrorReportingTool;
+	paperLibrariesSelector: PaperLibrariesSelector;
 }
+
+interface TernServer {
+	complete(cm: CodeMirror): void;
+	showType(cm: CodeMirror): void;
+	showDocs(cm: CodeMirror): void;
+	jumpToDef(cm: CodeMirror): void;
+	jumpBack(cm: CodeMirror): void;
+	rename(cm: CodeMirror): void;
+	selectName(cm: CodeMirror): void;
+
+	updateArgHints(cm: CodeMirror): void;
+}
+
+type EditPage = ScriptEdit|StylesheetEdit|LinkEdit|MenuEdit|DividerEdit;
 
 interface JQContextMenuObj {
 	name: string;
@@ -43,6 +89,7 @@ interface JQueryStatic {
 		selector: string;
 		items: Array<JQContextMenuItem>;
 	}|'destroy'): void;
+	bez(curve: Array<number>): string;
 }
 
 type JQContextMenuItem = JQContextMenuObj|string;
@@ -64,8 +111,4 @@ interface HTMLElement {
 interface CSSStyleDeclaration {
 	willChange: string;
 	WebkitTransform: string;
-}
-
-interface PolymerClickEvent extends MouseEvent {
-	path: Array<HTMLElement>;
 }

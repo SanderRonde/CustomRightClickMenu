@@ -1421,14 +1421,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 args[_i - 2] = arguments[_i];
             }
             sourceData = sourceData || [undefined, undefined];
-            var srcObj = {
-                id: id
-            };
-            var logArgs = [
-                'Background page [', srcObj, ']: '
-            ].concat(args);
-            Logging.log.bind(globalObject, id, 'background')
-                .apply(globalObject, logArgs);
             var srcObjDetails = {
                 tabId: 'background',
                 nodeTitle: globalObject.globals.crm.crmById[id].name,
@@ -1438,6 +1430,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 logId: sourceData[1],
                 timestamp: new Date().toLocaleString()
             };
+            var srcObj = {
+                id: id
+            };
+            var logArgs = [
+                'Background page [', srcObj, ']: '
+            ].concat(args);
+            Logging.log.bind(globalObject, id, 'background')
+                .apply(globalObject, logArgs);
             for (var key in srcObjDetails) {
                 if (srcObjDetails.hasOwnProperty(key)) {
                     srcObj[key] = srcObjDetails[key];
@@ -6258,7 +6258,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 chrome.storage.local.set({
                                     useStorageSync: false
                                 });
-                                settingsStorage = chromeStorageLocal['settings'];
+                                settingsStorage = chromeStorageLocal.settings;
                             }
                             else {
                                 var settingsJsonArray_1 = [];
@@ -6371,7 +6371,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         Storages._checkForStorageSyncUpdates = function (storageSync, storageLocal) {
             var syncString = JSON.stringify(storageSync);
             var hash = window.md5(syncString);
-            if (storageLocal.settingsVersionData.current.hash !== hash) {
+            if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.current.hash !== hash) {
                 //Data changed, show a message and update current hash
                 chrome.storage.local.set({
                     settingsVersionData: {
@@ -6445,6 +6445,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             showDocs: 'Ctrl-O',
                             goToDef: 'Alt-.',
                             rename: 'Ctrl-Q',
+                            jumpBack: 'Alt-,',
                             selectName: 'Ctrl-.'
                         },
                         tabSize: '4',

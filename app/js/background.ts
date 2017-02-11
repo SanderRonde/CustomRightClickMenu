@@ -174,17 +174,14 @@ interface Window {
 	}) => (message: any, port: chrome.runtime.Port) => void;
 	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
 	filter: (nodeId: any, tabId: any) => void;
-	_getIdCurrentTabs: (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<{
-		id: number|'background';
-		title: string;
-	}>) => void) => void;
+	_getIdCurrentTabs: (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => void;
 	_listenIds: (listener: (newIds: Array<{
 		id: number;
 		title: string;
 	}>) => void) => void;
 	_listenTabs: (listener: (newTabs: Array<TabData>) => void) => void;
-	_listenLog: (listener: LogListener,
-		callback: (result: LogListenerObject) => void) => void;
+	_listenLog: (listener: LogListener, 
+		callback: (result: LogListenerObject) => void) => Array<LogListenerLine>;
 	XMLHttpRequest: any;
 	TextEncoder: any;
 	getID: (name: string) => void;
@@ -228,12 +225,18 @@ type SendCallbackMessage = (tabId: number, id: number, data: {
 	callbackId: number;
 }) => void;
 
+interface LogLineData {
+	code: string;
+	result?: string;
+	hasResult?: boolean;
+}
+
 interface LogListenerLine {
-	id: number;
+	id: number|string;
 	tabId: number|string;
 	nodeTitle?: string;
 	tabTitle?: string;
-	data?: Array<any>|any;
+	data?: Array<LogLineData>;
 	val?: {
 		type: 'success';
 		result: any;
@@ -249,7 +252,10 @@ interface LogListenerLine {
 	lineNumber?: string;
 	timestamp?: string;
 	type?: string;
+	isEval?: boolean;
+	isError?: boolean;
 	suggestions?: Array<string>;
+	value?: Array<LogLineData>;
 }
 
 type LogListener = (newLine: LogListenerLine) => void;
@@ -258,7 +264,7 @@ interface LogListenerObject {
 	listener: LogListener;
 	id: number|string;
 	tab: number|string;
-	update: (id: string|number, tab: string|number, textFilter: string) => LogListenerLine;
+	update: (id: string|number, tab: string|number, textFilter: string) => Array<LogListenerLine>;
 	text: string;
 	index: number;
 }
@@ -431,11 +437,6 @@ interface GlobalObject {
 			log: Array<LogListenerObject>;
 		};
 	};
-}
-
-interface Extendable<T> { 
-	[key: string]: any;
-	[key: number]: any;
 }
 
 interface Extensions<T> extends Extendable<T> { }
@@ -1380,7 +1381,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 			var filterRegex = new RegExp(filter);
-				return messages.filter((message) => {
+				return messages.filter((message: LogListenerLine) => {
 					for (let i = 0; i < message.data.length; i++) {
 						if (typeof message.data[i] !== 'function' &&
 							typeof message.data[i] !== 'object') {
@@ -2121,16 +2122,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static backgroundPageLog(this: Window|Logging, id: number, sourceData: [string, number], ...args: Array<any>) {
 			sourceData = sourceData || [undefined, undefined];
 
-			const srcObj: LogListenerLine = {
-				id: id
-			} as any;
-			const logArgs = [
-				'Background page [', srcObj, ']: '
-			].concat(args);
-
-			Logging.log.bind(globalObject, id, 'background')
-				.apply(globalObject, logArgs);
-
 			const srcObjDetails = {
 				tabId: 'background',
 				nodeTitle: globalObject.globals.crm.crmById[id].name,
@@ -2140,9 +2131,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				logId: sourceData[1],
 				timestamp: new Date().toLocaleString()
 			};
+
+			const srcObj: LogListenerLine & typeof srcObjDetails = {
+				id: id
+			} as any;
+			const logArgs = [
+				'Background page [', srcObj, ']: '
+			].concat(args);
+
+			Logging.log.bind(globalObject, id, 'background')
+				.apply(globalObject, logArgs);
+
 			for (let key in srcObjDetails) {
 				if (srcObjDetails.hasOwnProperty(key)) {
-					(srcObj as any)[key] = (srcObjDetails as any)[key]; 
+					(srcObj as any)[key as keyof typeof srcObjDetails] = (srcObjDetails as any)[key]; 
 				}
 			}
 			globalObject.globals.logging[id] = globalObject.globals.logging[id] as any || {
@@ -5477,7 +5479,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				static installUserscript(metaTags: {
 						[key: string]: any;
-					}, code: string, downloadURL: string, allowedPermissions: Array<CRMPermission>,
+					}, code: string, downloadURL: string, allowedPermissions: Array<Permission>,
 					oldNodeId?: number): {
 						node: ScriptNode|StylesheetNode,
 						path?: Array<number>,
@@ -5726,7 +5728,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 													addedPermissions.push({
 														node: node.id,
 														permissions: resultParsed.metaTags.grant
-															.filter((newPermission: string) => {
+															.filter((newPermission: Permission) => {
 																return node.nodeInfo.permissions
 																	.indexOf(newPermission) ===
 																	-1;
@@ -5784,7 +5786,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 														var addedPermissions = data['addedPermissions'] || [];
 														addedPermissions.push({
 															node: node.id,
-															permissions: metaTags['grant'].filter((newPermission: string) => {
+															permissions: metaTags['grant'].filter((newPermission: Permission) => {
 																return node.nodeInfo.permissions
 																	.indexOf(newPermission) ===
 																	-1;
@@ -6859,10 +6861,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return (props: Array<string>) => {
 				props.forEach((prop) => {
 					if (prop in obj) {
-						if (typeof (obj as any)[prop] === 'object') {
-							(target as any)[prop] = JSON.parse(JSON.stringify((obj as any)[prop]));
+						if (typeof obj[prop as keyof CRMNode] === 'object') {
+							target[prop as keyof SafeCRMNode] = JSON.parse(JSON.stringify(obj[prop as keyof CRMNode]));
 						} else {
-							(target as any)[prop] = (obj as any)[prop];
+							(target as any)[prop] = obj[prop as keyof CRMNode];
 						}
 					}
 				});
@@ -7858,6 +7860,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							showDocs: 'Ctrl-O',
 							goToDef: 'Alt-.',
 							rename: 'Ctrl-Q',
+							jumpBack: 'Alt-,',
 							selectName: 'Ctrl-.'
 						},
 						tabSize: '4',
@@ -8192,7 +8195,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			} & {
 				indexes: Array<string>;
 			}) => {
-				chrome.storage.local.get((chromeStorageLocal: StorageLocal) => {
+				chrome.storage.local.get((chromeStorageLocal: StorageLocal & {
+					settings?: SettingsStorage;
+				}) => {
 					let result: boolean | ((resolve: (result: any) => void) => void);
 					if ((result = this._isFirstTime(chromeStorageLocal))) {
 						const resultFn = result as ((resolve: (result: any) => void) => void);
@@ -8217,7 +8222,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								chrome.storage.local.set({
 									useStorageSync: false
 								});
-								settingsStorage = chromeStorageLocal['settings'];
+								settingsStorage = chromeStorageLocal.settings;
 							} else {
 								const settingsJsonArray: Array<string> = [];
 								indexes.forEach((index) => {
@@ -8337,7 +8342,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			const syncString = JSON.stringify(storageSync);
 			const hash = window.md5(syncString);
 
-			if (storageLocal.settingsVersionData.current.hash !== hash) {
+			if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.current.hash !== hash) {
 				//Data changed, show a message and update current hash
 				chrome.storage.local.set({
 					settingsVersionData: {

@@ -1,8 +1,8 @@
-/// <reference path="../../../tools/definitions/crmapp.d.ts" />
-var PDB = (function () {
-    function PDB() {
+///// <reference path="../../../tools/definitions/crmapp.d.ts" />
+var DNB = (function () {
+    function DNB() {
     }
-    PDB._changeDraggingState = function (isDragging) {
+    DNB._changeDraggingState = function (isDragging) {
         this.dragging = isDragging;
         this.$['itemCont'].style.willChange = (isDragging ? 'transform' : 'initial');
         this.$['itemCont'].style.zIndex = (isDragging ? '500' : '0');
@@ -10,7 +10,7 @@ var PDB = (function () {
         currentColumn.dragging = isDragging;
         currentColumn.draggingItem = this;
     };
-    PDB._onScroll = function () {
+    DNB._onScroll = function () {
         var newScroll = $('body').scrollTop();
         var difference = newScroll - this._scrollStart.Y;
         this._dragStart.Y -= difference;
@@ -18,7 +18,7 @@ var PDB = (function () {
         this._scrollStart.Y = newScroll;
         this._onDrag();
     };
-    PDB._sideDrag = function () {
+    DNB._sideDrag = function () {
         var newScroll = $('.CRMEditColumnCont')[0].getBoundingClientRect().left;
         var difference = newScroll - this._scrollStart.X;
         this._dragStart.X -= difference;
@@ -26,7 +26,7 @@ var PDB = (function () {
         this._scrollStart.X = newScroll;
         this._onDrag();
     };
-    PDB._stopDrag = function () {
+    DNB._stopDrag = function () {
         this.$$('paper-ripple').style.display = 'block';
         this.style.pointerEvents = 'all';
         this._changeDraggingState(false);
@@ -39,12 +39,12 @@ var PDB = (function () {
         this._snapItem();
         this._rebuildMenu();
     };
-    PDB._onMouseMove = function (event) {
+    DNB._onMouseMove = function (event) {
         this._lastRecordedPos.X = event.clientX;
         this._lastRecordedPos.Y = event.clientY;
         this._cursorPosChanged = true;
     };
-    PDB._onDrag = function () {
+    DNB._onDrag = function () {
         if (this._cursorPosChanged && this.dragging) {
             this._cursorPosChanged = false;
             var columnCorrection = 200 * (this._filler.column - this.parentNode.index);
@@ -113,7 +113,7 @@ var PDB = (function () {
                             }
                         }
                         this._filler.index = fillerIndex;
-                        if (this.parentNode === this._filler[0].parentNode) {
+                        if (this.parentNode === this._filler.parentNode) {
                             this._dragStart.Y -= 50;
                         }
                         else if (this.parentNode === newColumn) {
@@ -156,10 +156,10 @@ var PDB = (function () {
                     if (this._parentNode === newColumn) {
                         this._dragStart.Y += 50;
                     }
-                    else if (this._parentNode === this._filler[0].parentNode) {
+                    else if (this._parentNode === this._filler.parentNode) {
                         this._dragStart.Y -= 50;
                     }
-                    var paperMaterial = this._filler[0].parentNode.parentNode;
+                    var paperMaterial = this._filler.parentNode.parentNode;
                     if (paperMaterial.isEmpty) {
                         paperMaterial.style.display = 'none';
                     }
@@ -173,7 +173,7 @@ var PDB = (function () {
             window.requestAnimationFrame(this._onDrag.bind(this));
         }
     };
-    PDB._snapItem = function () {
+    DNB._snapItem = function () {
         //Get the filler's current index and place the current item there
         var parentChildrenList = window.app.editCRM.getEditCrmItems(window.app.editCRM
             .getCurrentColumn(this), true);
@@ -186,7 +186,7 @@ var PDB = (function () {
             this._filler.remove();
         }
     };
-    PDB._rebuildMenu = function () {
+    DNB._rebuildMenu = function () {
         //Get original object
         var newPath;
         var $prev = $(this).prev();
@@ -239,7 +239,7 @@ var PDB = (function () {
             }, 0);
         }
     };
-    PDB._startDrag = function (event) {
+    DNB._startDrag = function (event) {
         this.$$('paper-ripple').style.display = 'none';
         var extraSpacing = (($(this.parentNode).children('edit-crm-item').toArray().length - this.index) * -50);
         this.style.pointerEvents = 'none';
@@ -276,7 +276,7 @@ var PDB = (function () {
         this.parentNode.appendChild(this);
         this._onDrag();
     };
-    PDB.init = function () {
+    DNB.init = function () {
         var _this = this;
         this.$['dragger'].addEventListener('mousedown', function (e) {
             if (e.which === 1) {
@@ -306,52 +306,52 @@ var PDB = (function () {
             onScroll: this._onScroll.bind(this)
         };
     };
-    return PDB;
+    return DNB;
 }());
 /**
   * Whether this item is currently being dragged
   */
-PDB.dragging = false;
+DNB.dragging = false;
 /**
   * Whether this item is currently being dragged
   */
-PDB._cursorPosChanged = true;
+DNB._cursorPosChanged = true;
 /**
  * The last recorded position of the mouse
  */
-PDB._lastRecordedPos = {
+DNB._lastRecordedPos = {
     X: 0,
     Y: 0
 };
 /**
  * The position at which the user started to drag the curent item
  */
-PDB._dragStart = {
+DNB._dragStart = {
     X: 0,
     Y: 0
 };
 /**
  * The position the mouse was relative to the corner when the drag started
  */
-PDB._mouseToCorner = {
+DNB._mouseToCorner = {
     X: 0,
     Y: 0
 };
 /**
  * Whether the element is ready for a mouse-up event
  */
-PDB._readyForMouseUp = true;
+DNB._readyForMouseUp = true;
 /**
  * Whether the element should execute a mouse-up event when ready for it
  */
-PDB._execMouseUp = false;
+DNB._execMouseUp = false;
 /**
  * What the getBoundingClientRect().top was for the CRM-container on drag
  * start
  */
-PDB._scrollStart = {
+DNB._scrollStart = {
     X: 0,
     Y: 0
 };
 ;
-Polymer.DraggableNodeBehavior = PDB;
+Polymer.DraggableNodeBehavior = DNB;
