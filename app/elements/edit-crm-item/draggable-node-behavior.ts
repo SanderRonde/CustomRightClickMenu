@@ -400,7 +400,7 @@ class DNB {
 				}
 			}
 		});
-		this.column = (this.parentElement as CRMBuilderColumn).index;
+		this.column = (this.parentNode as CRMBuilderColumn).index;
 
 		this._listeners = {
 			stopDrag: this._stopDrag.bind(this),

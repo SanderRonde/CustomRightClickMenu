@@ -146,7 +146,7 @@ var run = (fn) => {
 		try {
 			fn();
 		} catch (e) {
-			// console.log('Error', e);
+			console.log('Error', e);
 			throw e;
 		}
 	};
@@ -526,7 +526,7 @@ describe('Conversion', () => {
 						if (newScriptErrs) {
 							throw newScriptErrs;
 						}
-						if (parseError) {
+						if (parseErrors) {
 							throw new Error('Error parsing script');
 						}
 					};
@@ -1278,6 +1278,7 @@ describe('CRMAPI', () => {
 						"showDocs": "Ctrl-O",
 						"goToDef": "Alt-.",
 						"rename": "Ctrl-Q",
+						"jumpBack": "Alt-,",
 						"selectName": "Ctrl-."
 					},
 					"tabSize": "4",

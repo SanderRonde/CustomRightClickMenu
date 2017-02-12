@@ -1,7 +1,6 @@
 ﻿/// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/tern.d.ts" />
 
-
 interface JQContextMenuObj {
 	name: string;
 	callback(): void;
@@ -1808,6 +1807,7 @@ class CA {
 			var lines = data.persistent.lines;
 
 			//Get chrome API
+			let i;
 			var chromeAPI = this.getChromeAPI(expr, data);
 			var firstLine = data.persistent.lines[callLine.from.line];
 			var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines,
@@ -1817,16 +1817,30 @@ class CA {
 				callLine.from.line, expr.callee.end);
 
 			var newLine = firstLine.slice(0, lineExprStart) +
-				'window.crmAPI.chrome(\'' +
-				chromeAPI.call +
-				'\')' +
-				firstLine.slice(lineExprEnd);
-			if (newLine[newLine.length - 1] === ';') {
-				newLine = newLine.slice(0, newLine.length - 1);
+				`window.crmAPI.chrome('${chromeAPI.call}')`;
+
+			var lastChar = null;
+			while (newLine[(lastChar = newLine.length - 1)] === ' ') {
+				newLine = newLine.slice(0, lastChar);
+			}
+			if (newLine[(lastChar = newLine.length - 1)] === ';') {
+				newLine = newLine.slice(0, lastChar);
+			}
+
+			if (chromeAPI.args !== '()') {
+				var argsLines = chromeAPI.args.split('\n');
+				newLine += argsLines[0];
+				for (i = 1; i < argsLines.length; i++) {
+					lines[callLine.from.line + i] = argsLines[i]; 
+				}
 			}
 
 			if (data.isReturn) {
-				newLine += `.return(function(${data.returnName}) {`;
+				var lineRest = firstLine.slice(lineExprEnd + chromeAPI.args.split('\n')[0].length);
+				while (lineRest.indexOf(';') === 0) {
+					lineRest = lineRest.slice(1);
+				}
+				newLine += `.return(function(${data.returnName}) {` + lineRest;
 				var usesTabs = true;
 				var spacesAmount = 0;
 				//Find out if the writer uses tabs or spaces
@@ -1848,23 +1862,68 @@ class CA {
 					}
 				}
 
-				let indent: String;
-				if (usesTabs) {
-					indent = '	';
-				} else {
-					indent = new Array(spacesAmount).join(' ');
-				}
-				for (let i = callLine.to
-						.line +
-						1;
-					i < data.persistent.lines.length;
-					i++) {
-					data.persistent.lines[i] = indent + data.persistent.lines[i];
-				}
-				data.persistent.lines.push('}).send();');
+				var indent;
+					if (usesTabs) {
+						indent = '	';
+					} else {
+						indent = [];
+						indent[spacesAmount] = ' ';
+						indent = indent.join(' ');
+					}
+					
+					//Only do this for the current scope
+					var scopeLength = null;
+					var idx = null;
+					for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
+						if (data.parentExpressions[i].type === 'BlockStatement' || 
+								(data.parentExpressions[i].type === 'FunctionExpression' && 
+									(data.parentExpressions[i].body as TernBlockStatement).type === 'BlockStatement')) {
+							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
+							idx = 0;
+
+							//Get the lowest possible scopeLength as to stay on the last line of the scope
+							while (scopeLength > 0) {
+								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
+							}
+							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
+						}
+					}
+					if (idx === null) {
+						idx = (lines.length - callLine.from.line) + 1;
+					} 
+
+					var indents = 0;
+					var newLineData = lines[callLine.from.line];
+					while (newLineData.indexOf(indent) === 0) {
+						newLineData = newLineData.replace(indent, '');
+						indents++;
+					}
+
+					//Push in one extra line at the end of the expression
+					var prevLine;
+					var indentArr= [];
+					indentArr[indents] = '';
+					var prevLine2 = indentArr.join(indent) + '}).send();';
+					var max = data.persistent.lines.length + 1;
+					for (i = callLine.from.line; i < callLine.from.line + (idx - 1); i++) {
+						lines[i] = indent + lines[i];
+					}
+
+					//If it's going to add a new line, indent the last line as well
+					// if (idx === (lines.length - callLines.from.line) + 1) {
+					// 	lines[i] = indent + lines[i];
+					// }
+					for (i = callLine.from.line + (idx - 1); i < max; i++) {
+						prevLine = lines[i];
+						lines[i] = prevLine2; 
+						prevLine2 = prevLine;
+					}
 
 			} else {
-				newLine += '.send();';
+				lines[callLine.from.line + (i - 1)] = lines[callLine.from.line + (i - 1)] + '.send();';
+				if (i === 1) {
+					newLine += '.send();';
+				}
 			}
 			lines[callLine.from.line] = newLine;
 			return;
@@ -1968,16 +2027,31 @@ class CA {
 					break;
 				case 'CallExpression':
 				case 'MemberExpression':
+					const argsTocheck: Array<TernExpression> = [];
 					if (expression.arguments && expression.arguments.length > 0) {
 						for (let i = 0; i < expression.arguments.length; i++) {
-							if (this.findChromeExpression(expression.arguments[i], this
-								.removeObjLink(data), onError)) {
-								return true;
+							if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
+								//It's not a direct call to chrome, just handle this later after the function has been checked
+								argsTocheck.push(expression.arguments[i]);
+							} else {
+								if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
+									return true;
+								}
 							}
 						}
 					}
 					data.functionCall = [];
-					return this.callsChromeFunction(expression.callee, data, onError);
+					if (expression.callee) {
+						if (this.callsChromeFunction(expression.callee, data, onError)) {
+							return true;
+						}
+					}
+					for (let i = 0; i < argsTocheck.length; i++) {
+						if (this.findChromeExpression(argsTocheck[i], this.removeObjLink(data), onError)) {
+							return true;
+						}
+					}
+					break;
 				case 'AssignmentExpression':
 					data.isReturn = true;
 					data.returnExpr = expression;
@@ -2036,6 +2110,7 @@ class CA {
 					}
 					break;
 				case 'LogicalExpression':
+				case 'BinaryExpression':
 					data.isReturn = true;
 					data.isValidReturn = false;
 					if (this.findChromeExpression(expression.left, this.removeObjLink(data),
@@ -2062,6 +2137,16 @@ class CA {
 					data.returnExpr = expression;
 					data.isValidReturn = false;
 					return this.findChromeExpression(expression.argument, data, onError);
+				case 'ObjectExpressions':
+					data.isReturn = true;
+					data.isValidReturn = false;
+					for (let i = 0; i < expression.properties.length; i++) {
+						if (this.findChromeExpression(expression.properties[i].value, this
+							.removeObjLink(data), onError)) {
+							return true;
+						}
+					}
+					break;
 			}
 			return false;
 		}
@@ -2179,6 +2264,7 @@ class CA {
 					this.generateOnError(errors));
 			} catch (e) {
 				onError(null, null, true);
+				return script;
 			}
 
 			const firstPassErrors = errors[0];
@@ -3110,7 +3196,7 @@ class CA {
 		window.doc['exportToLegacyOutput'].value = data;
 	};
 
-	ready(this: CrmApp) {
+	static ready(this: CrmApp) {
 		var _this = this;
 		window.app = this;
 		window.doc = window.app.$;

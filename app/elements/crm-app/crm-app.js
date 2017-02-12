@@ -2272,7 +2272,7 @@ var CA = (function () {
         window.doc['exportToLegacyOutput'].value = data;
     };
     ;
-    CA.prototype.ready = function () {
+    CA.ready = function () {
         var _this = this;
         window.app = this;
         window.doc = window.app.$;
@@ -2401,31 +2401,44 @@ CA.legacyScriptReplace = (function () {
         }
         var lines = data.persistent.lines;
         //Get chrome API
+        var i;
         var chromeAPI = this.getChromeAPI(expr, data);
         var firstLine = data.persistent.lines[callLine.from.line];
         var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, ((data.returnExpr && data.returnExpr.start) ||
             expr.callee.start));
         var lineExprEnd = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, expr.callee.end);
         var newLine = firstLine.slice(0, lineExprStart) +
-            'window.crmAPI.chrome(\'' +
-            chromeAPI.call +
-            '\')' +
-            firstLine.slice(lineExprEnd);
-        if (newLine[newLine.length - 1] === ';') {
-            newLine = newLine.slice(0, newLine.length - 1);
+            ("window.crmAPI.chrome('" + chromeAPI.call + "')");
+        var lastChar = null;
+        while (newLine[(lastChar = newLine.length - 1)] === ' ') {
+            newLine = newLine.slice(0, lastChar);
+        }
+        if (newLine[(lastChar = newLine.length - 1)] === ';') {
+            newLine = newLine.slice(0, lastChar);
+        }
+        if (chromeAPI.args !== '()') {
+            var argsLines = chromeAPI.args.split('\n');
+            newLine += argsLines[0];
+            for (i = 1; i < argsLines.length; i++) {
+                lines[callLine.from.line + i] = argsLines[i];
+            }
         }
         if (data.isReturn) {
-            newLine += ".return(function(" + data.returnName + ") {";
+            var lineRest = firstLine.slice(lineExprEnd + chromeAPI.args.split('\n')[0].length);
+            while (lineRest.indexOf(';') === 0) {
+                lineRest = lineRest.slice(1);
+            }
+            newLine += ".return(function(" + data.returnName + ") {" + lineRest;
             var usesTabs = true;
             var spacesAmount = 0;
             //Find out if the writer uses tabs or spaces
-            for (var i = 0; i < data.persistent.lines.length; i++) {
-                if (data.persistent.lines[i].indexOf('	') === 0) {
+            for (var i_1 = 0; i_1 < data.persistent.lines.length; i_1++) {
+                if (data.persistent.lines[i_1].indexOf('	') === 0) {
                     usesTabs = true;
                     break;
                 }
-                else if (data.persistent.lines[i].indexOf('  ') === 0) {
-                    var split = data.persistent.lines[i].split(' ');
+                else if (data.persistent.lines[i_1].indexOf('  ') === 0) {
+                    var split = data.persistent.lines[i_1].split(' ');
                     for (var j = 0; j < split.length; j++) {
                         if (split[j] === ' ') {
                             spacesAmount++;
@@ -2438,22 +2451,64 @@ CA.legacyScriptReplace = (function () {
                     break;
                 }
             }
-            var indent = void 0;
+            var indent;
             if (usesTabs) {
                 indent = '	';
             }
             else {
-                indent = new Array(spacesAmount).join(' ');
+                indent = [];
+                indent[spacesAmount] = ' ';
+                indent = indent.join(' ');
             }
-            for (var i = callLine.to
-                .line +
-                1; i < data.persistent.lines.length; i++) {
-                data.persistent.lines[i] = indent + data.persistent.lines[i];
+            //Only do this for the current scope
+            var scopeLength = null;
+            var idx = null;
+            for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
+                if (data.parentExpressions[i].type === 'BlockStatement' ||
+                    (data.parentExpressions[i].type === 'FunctionExpression' &&
+                        data.parentExpressions[i].body.type === 'BlockStatement')) {
+                    scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
+                    idx = 0;
+                    //Get the lowest possible scopeLength as to stay on the last line of the scope
+                    while (scopeLength > 0) {
+                        scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
+                    }
+                    scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
+                }
             }
-            data.persistent.lines.push('}).send();');
+            if (idx === null) {
+                idx = (lines.length - callLine.from.line) + 1;
+            }
+            var indents = 0;
+            var newLineData = lines[callLine.from.line];
+            while (newLineData.indexOf(indent) === 0) {
+                newLineData = newLineData.replace(indent, '');
+                indents++;
+            }
+            //Push in one extra line at the end of the expression
+            var prevLine;
+            var indentArr = [];
+            indentArr[indents] = '';
+            var prevLine2 = indentArr.join(indent) + '}).send();';
+            var max = data.persistent.lines.length + 1;
+            for (i = callLine.from.line; i < callLine.from.line + (idx - 1); i++) {
+                lines[i] = indent + lines[i];
+            }
+            //If it's going to add a new line, indent the last line as well
+            // if (idx === (lines.length - callLines.from.line) + 1) {
+            // 	lines[i] = indent + lines[i];
+            // }
+            for (i = callLine.from.line + (idx - 1); i < max; i++) {
+                prevLine = lines[i];
+                lines[i] = prevLine2;
+                prevLine2 = prevLine;
+            }
         }
         else {
-            newLine += '.send();';
+            lines[callLine.from.line + (i - 1)] = lines[callLine.from.line + (i - 1)] + '.send();';
+            if (i === 1) {
+                newLine += '.send();';
+            }
         }
         lines[callLine.from.line] = newLine;
         return;
@@ -2548,16 +2603,32 @@ CA.legacyScriptReplace = (function () {
                 break;
             case 'CallExpression':
             case 'MemberExpression':
+                var argsTocheck = [];
                 if (expression.arguments && expression.arguments.length > 0) {
                     for (var i = 0; i < expression.arguments.length; i++) {
-                        if (this.findChromeExpression(expression.arguments[i], this
-                            .removeObjLink(data), onError)) {
-                            return true;
+                        if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
+                            //It's not a direct call to chrome, just handle this later after the function has been checked
+                            argsTocheck.push(expression.arguments[i]);
+                        }
+                        else {
+                            if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
+                                return true;
+                            }
                         }
                     }
                 }
                 data.functionCall = [];
-                return this.callsChromeFunction(expression.callee, data, onError);
+                if (expression.callee) {
+                    if (this.callsChromeFunction(expression.callee, data, onError)) {
+                        return true;
+                    }
+                }
+                for (var i = 0; i < argsTocheck.length; i++) {
+                    if (this.findChromeExpression(argsTocheck[i], this.removeObjLink(data), onError)) {
+                        return true;
+                    }
+                }
+                break;
             case 'AssignmentExpression':
                 data.isReturn = true;
                 data.returnExpr = expression;
@@ -2614,6 +2685,7 @@ CA.legacyScriptReplace = (function () {
                 }
                 break;
             case 'LogicalExpression':
+            case 'BinaryExpression':
                 data.isReturn = true;
                 data.isValidReturn = false;
                 if (this.findChromeExpression(expression.left, this.removeObjLink(data), onError)) {
@@ -2638,6 +2710,16 @@ CA.legacyScriptReplace = (function () {
                 data.returnExpr = expression;
                 data.isValidReturn = false;
                 return this.findChromeExpression(expression.argument, data, onError);
+            case 'ObjectExpressions':
+                data.isReturn = true;
+                data.isValidReturn = false;
+                for (var i = 0; i < expression.properties.length; i++) {
+                    if (this.findChromeExpression(expression.properties[i].value, this
+                        .removeObjLink(data), onError)) {
+                        return true;
+                    }
+                }
+                break;
         }
         return false;
     };
@@ -2734,6 +2816,7 @@ CA.legacyScriptReplace = (function () {
         }
         catch (e) {
             onError(null, null, true);
+            return script;
         }
         var firstPassErrors = errors[0];
         var finalPassErrors = errors[errors.length - 1];

@@ -293,7 +293,7 @@ var DNB = (function () {
                 }
             }
         });
-        this.column = this.parentElement.index;
+        this.column = this.parentNode.index;
         this._listeners = {
             stopDrag: this._stopDrag.bind(this),
             onMouseMove: this._onMouseMove.bind(this),

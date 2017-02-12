@@ -71,6 +71,19 @@ interface TernLogicalExpression extends TernBaseExpression {
 	right: TernExpression;
 }
 
+interface BinaryExpression extends TernBaseExpression {
+	type: 'BinaryExpression';
+	left: TernExpression;
+	right: TernExpression;
+}
+
+interface ObjectExpression extends TernBaseExpression {
+	type: 'ObjectExpressions';
+	properties: Array<{
+		value: TernExpression
+	}>;
+}
+
 interface TernReturnStatement extends TernBaseExpression {
 	type: 'ReturnStatement';
 	argument: TernExpression;
@@ -79,7 +92,7 @@ interface TernReturnStatement extends TernBaseExpression {
 type TernExpression = TernVariableDeclarationCont | TernCallExpression | TernAssignmentExpression|
 	TernFunctionExpression | TernBlockStatement | TernExpressionStatement|
 	TernSequenceExpressionStatement | TernConditionalExpression | TernIfStatement|
-	TernLogicalExpression | TernReturnStatement;
+	TernLogicalExpression | TernReturnStatement | BinaryExpression | ObjectExpression
 
 interface TernParsedFile {
 	body: Array<TernExpression>;
