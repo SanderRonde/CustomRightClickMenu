@@ -1,19 +1,5 @@
-/// <reference path="../../app/elements/center-element/center-element.ts" />
-/// <reference path="../../app/elements/crm-app/crm-app.ts" />
-/// <reference path="../../app/elements/crm-edit-page/crm-edit-page.ts" />
-/// <reference path="../../app/elements/default-link/default-link.ts" />
-/// <reference path="../../app/elements/echo-html/echo-html.ts" />
-/// <reference path="../../app/elements/edit-crm/edit-crm.ts" />
-/// <reference path="../../app/elements/edit-crm-item/edit-crm-item.ts" />
-/// <reference path="../../app/elements/edit-pages/divider-edit/divider-edit.ts" />
-/// <reference path="../../app/elements/edit-pages/link-edit/link-edit.ts" />
-/// <reference path="../../app/elements/edit-pages/menu-edit/menu-edit.ts" />
-/// <reference path="../../app/elements/edit-pages/script-edit/script-edit.ts" />
-/// <reference path="../../app/elements/edit-pages/stylesheet-edit/stylesheet-edit.ts" />
-/// <reference path="../../app/elements/installing/install-confirm/install-confirm.ts" />
-/// <reference path="../../app/elements/edit-crm-item/draggable-node-behavior.ts" />
-/// <reference path="../../app/elements/installing/install-page/install-page.ts" />
 ///// <reference path="../../app/elements/node-edit-behavior/node-edit-behavior.ts" />
+/// <reference path="../../app/elements/elements.d.ts" />
 
 interface Polymer {
 	(proto: {
@@ -32,6 +18,7 @@ interface Polymer {
 	}
 
 	NodeEditBehavior: NodeEditBehaviorBase;
+	PaperDropdownBehavior: PaperDropdownBehaviorBase;
 	DraggableNodeBehavior: DraggableNodeBehavior;
 	NeonAnimationRunnerBehavior: {
 		playAnimation(animation: string): void;	
@@ -67,7 +54,7 @@ interface PolymerDragEvent extends PolymerMouseEvent {
 
 type PossiblePolymerElement = HTMLElement | PaperIconButton | PaperDialog | PaperInput |
 	PaperCheckbox | CenterElement | DomRepeat | PaperToggleOption | PaperToast |
-	DefaultLink | EchoHtml | DividerEdit;
+	DefaultLink | EchoHtml | DividerEdit | PaperRadioGroup;
 
 interface PolymerElementBase {
 	$: {
@@ -75,7 +62,7 @@ interface PolymerElementBase {
 	};
 	$$(selector: string): HTMLElement;
 	async(callback: () => void, time: number): void;
-	splice<T>(property: string, index: number, toRemove: number): Array<T>;
+	splice<T>(property: string, index: number, toRemove: number, replaceWith?: T): Array<T>;
 	push<T>(property: string, item: any): number;
 	set(property: string, value: any): void;
 	fire(eventName: string, data: any): void;
@@ -86,18 +73,21 @@ type PolymerElement<T> = HTMLElementCopy & T & PolymerElementBase;
 
 declare const Polymer: Polymer;
 
-
 //Polymer elements
 interface PaperIconButton extends HTMLElement {
 	icon: string;
 }
 
-interface PaperDialog extends HTMLElement {
+interface PaperDialogBase extends HTMLElement {
+	toggle(): void;
 	close(): void;
 	open(): void;
 	show(): void;
-	init(): void;
 	fit(): void;
+}
+
+interface PaperDialog extends PaperDialogBase {
+	init(): void;
 }
 
 interface PaperToast extends HTMLElement {
@@ -110,10 +100,12 @@ interface PaperToast extends HTMLElement {
 interface PaperInput extends HTMLElement {
 	value: string;
 	invalid: boolean;
+	errorMessage: string;
 }
 
 interface PaperCheckbox extends HTMLElement {
 	checked: boolean;
+	disabled: boolean;
 }
 
 interface DomRepeat extends HTMLTemplateElement {
@@ -132,4 +124,12 @@ interface PaperMenu extends HTMLElement {
 
 interface PaperSpinner extends HTMLElement {
 	active?: boolean;
+}
+
+interface PaperRadioGroup extends HTMLElement {
+	selected: string;
+}
+
+interface PaperRadioButton extends HTMLElement {
+	checked: boolean;
 }

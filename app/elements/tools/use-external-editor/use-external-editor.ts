@@ -1,148 +1,186 @@
-Polymer({
-	is: 'use-external-editor',
+/// <reference path="../../elements.d.ts" />
 
-	/*
+type UseExternalEditor = PolymerElement<typeof UEE>;
+
+interface SetupConnectionMessage {
+	status: 'connecting';
+	stage: 1;
+	message: 'hey';
+	connectionId: number;
+}
+
+interface PingMessage {
+	status: 'ping';
+	message: 'hello?';
+	connectionId: number;
+}
+
+interface ChooseFileMessage {
+	status: 'connected';
+	action: 'chooseFile';
+	local: string;
+	external: string;
+	connectionId: number;
+}
+
+interface SetupExistingFileMessage {
+	status: 'connected';
+	action: 'setupStylesheet'|'setupScript';
+	existed: true;
+	path: string;
+	connectionId: number;
+}
+
+interface SetupNewFileMessage {
+	status: 'connected';
+	action: 'setupStylesheet'|'setupScript';
+	existed: false;
+	id: number;
+	path: string;
+	connectionId: number;
+}
+
+interface UpdateFromAppMessage {
+	status: 'connected';
+	action: 'updateFromApp';
+	connectionId: number;
+	code: string;
+}
+
+type ConnectedEditorMessage = ChooseFileMessage|SetupExistingFileMessage|SetupNewFileMessage|
+	UpdateFromAppMessage;
+
+type ExternalEditorMessage = SetupConnectionMessage|PingMessage|ConnectedEditorMessage;
+
+type ChooseFileDialog = PaperDialogBase & {
+	init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
+		updateErrors?: {
+			parseError: boolean;
+			newScript: Array<CursorPosition>;
+			oldScript: Array<CursorPosition>;
+		}): void;
+	local: string;
+	file: string;
+	callback(result: string|false): void;
+}
+
+class UEE {
+	static is: string = 'use-external-editor';
+
+	/**
 	 * The port at which the app is located
-	 *
-	 * @attribute appPort
-	 * @type Object
-	 * @default null
 	 */
-	appPort: null,
+	static appPort: chrome.runtime.Port = null;
 
-	/*
+	/**
 	 * The connection to the app and its status
-	 *
-	 * @attribute connection
-	 * @type Object
-	 * @default {status: 'no connection',connected: false}
 	 */
-	connection: {
+	static connection: {
+		status: string;
+		state?: string;
+		connected: boolean;
+		id?: number;
+		filePath?: string;
+		fileConnected?: boolean;
+		stage?: number;
+	} = {
 		status: 'no connection',
 		connected: false
-	},
+	};
 
-	/*
+	/**
 	 * The choose-script show animation for the main div
-	 *
-	 * @attribute dialogMainDivAnimationShow
-	 * @type Object
-	 * @default null
 	 */
-	dialogMainDivAnimationShow: null,
+	static dialogMainDivAnimationShow: Animation = null;
 
-	/*
+	/**
 	 * The choose-script hide animation for the main div
-	 *
-	 * @attribute dialogMainDivAnimationHide
-	 * @type Object
-	 * @default null
 	 */
-	dialogMainDivAnimationHide: null,
+	static dialogMainDivAnimationHide: Animation = null;
 
-	/*
+	/**
 	 * The choose-script show animation for the comparison div
-	 *
-	 * @attribute dialogComparisonDivAnimationShow
-	 * @type Object
-	 * @default null
 	 */
-	dialogComparisonDivAnimationShow: null,
+	static dialogComparisonDivAnimationShow: Animation = null;
 
-	/*
+	/**
 	 * The choose-script hide animation for the comparison div
-	 *
-	 * @attribute dialogComparisonDivAnimationHide
-	 * @type Object
-	 * @default null
 	 */
-	dialogComparisonDivAnimationHide: null,
+	static dialogComparisonDivAnimationHide: Animation = null;
 
-	/*
+	/**
 	 * The animation for expanding the dialog
-	 *
-	 * @attribute dialogExpansionAnimation
-	 * @type Object
-	 * @default null
 	 */
-	dialogExpansionAnimation: null,
+	static dialogExpansionAnimation: Animation = null;
 
-	/*
+	/**
 	 * The animation for contracting the dialog
-	 *
-	 * @attribute dialogContractionAniation
-	 * @type Object
-	 * @default null
 	 */
-	dialogContractionAniation: null,
+	static dialogContractionAniation: Animation = null;
 
-	/*
+	/**
 	 * Whether the chooseScript animation is showing the comparison dialog
-	 *
-	 * @attribute chooseScriptShowingComparison
-	 * @type Boolean
-	 * @default true
 	 */
-	chooseScriptShowingComparison: true,
+	static chooseScriptShowingComparison: boolean = true;
 
-	/*
+	/**
 	 * The CodeMirror editor used to merge your code
-	 *
-	 * @attribute editor
-	 * @type Object
-	 * @default null
 	 */
-	editor: null,
+	static editor: MergeViewCodeMirror = null;
 
-	/*
+	/**
 	 * The animation that fades in the editor
-	 *
-	 * @attribute editorFadeInAnimation
-	 * @type Object
-	 * @default null
 	 */
-	editorFadeInAnimation: null,
+	static editorFadeInAnimation: Animation = null;
 
-	/*
+	/**
 	 * The style properties of the dialog before expanding
-	 *
-	 * @attribute dialogStyleProperties
-	 * @type Object
-	 * @default {}
 	 */
-	dialogStyleProperties: {},
+	static dialogStyleProperties: ClientRect;
 
-	/*
+	/**
+	 * The node that is currently being edited
+	 */
+	static editingCRMItem: (ScriptNode|StylesheetNode) & {
+		file: {
+			id: number;
+			path: string;
+		}
+	}
+
+	/**
 	 * Initialize for use
 	 */
-	init: function() {
-		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
-		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
-		window.doc.externalEditorDialogTrigger.disabled = false;
-	},
+	static init(this: UseExternalEditor) {
+		window.doc['externalEditorDialogTrigger'].style.color = 'rgb(38, 153, 244)';
+		window.doc['externalEditorDialogTrigger'].classList.remove('disabled');
+		window.doc['externalEditorDialogTrigger'].disabled = false;
+	};
 
-	/*
+	/**
 	 * Notifies the user if something went wrong
 	 *
 	 * @param {string} error - What went wrong
 	 */
-	errorHandler: function() {
-		window.doc.externalEditorErrorToast.show();
-	},
+	static errorHandler(this: UseExternalEditor, error: string = 'Something went wrong') {
+		const toast = window.doc['externalEditorErrorToast'] as PaperToast;
+		toast.text = error;
+		toast.show();
+	};
 
-	postMessage: function(msg) {
+	static postMessage(this: UseExternalEditor, msg: any) {
 		try {
 			this.appPort.postMessage(msg);
 		} catch (e) {
-			//Close connection
+			//Closed connection
 		}
-	},
+	};
 
 
-	/*
+	/**
 	 * Updates the local copy of the script to what the external file's value is (external->local)
 	 */
-	updateFromExternal: function(msg) {
+	static updateFromExternal(this: UseExternalEditor, msg: UpdateFromAppMessage) {
 		if (this.connection.id === msg.connectionId) {
 			if (window.scriptEdit && window.scriptEdit.active) {
 				window.scriptEdit.editor.setValue(msg.code);
@@ -151,12 +189,12 @@ Polymer({
 				window.stylesheetEdit.editor.setValue(msg.code);
 			}
 		}
-	},
+	};
 
-	cancelOpenFiles: function() {
-		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
-		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
-		window.doc.externalEditorDialogTrigger.disabled = false;
+	static cancelOpenFiles(this: UseExternalEditor) {
+		window.doc['externalEditorDialogTrigger'].style.color = 'rgb(38, 153, 244)';
+		window.doc['externalEditorDialogTrigger'].classList.remove('disabled');
+		window.doc['externalEditorDialogTrigger'].disabled = false;
 
 		try {
 			this.appPort.postMessage({
@@ -170,13 +208,13 @@ Polymer({
 		} else if (window.stylesheetEdit && window.stylesheetEdit.active) {
 			window.stylesheetEdit.reloadEditor();
 		}
-	},
+	};
 
-	createEditingOverlay: function() {
+	static createEditingOverlay(this: UseExternalEditor) {
 		var _this = this;
-		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
-		window.doc.externalEditorDialogTrigger.disabled = true;
-		window.doc.externalEditorDialogTrigger.classList.add('disabled');
+		window.doc['externalEditorDialogTrigger'].style.color = 'rgb(175, 175, 175)';
+		window.doc['externalEditorDialogTrigger'].disabled = true;
+		window.doc['externalEditorDialogTrigger'].classList.add('disabled');
 		var $toolsCont = $('<div id="externalEditingTools"></div>');
 		$('<div id="externalEditingToolsTitle">Using external editor</div>').appendTo($toolsCont);
 		var $cont = $('<div id="externalEditingToolsButtonsCont"></div>').appendTo($toolsCont);
@@ -213,9 +251,10 @@ Polymer({
 				//Show location toast
 				var location = _this.connection.filePath;
 				location = location.replace(/\\/g, '/');
-				window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
-				window.doc.externalEditorLocationToast.text = 'File is located at: ' + location;
-				window.doc.externalEditorLocationToast.show();
+				window.doc['externalEditoOpenLocationInBrowser'].setAttribute('href', 'file:///' + location);
+				const externalEditorLocationToast = window.doc['externalEditorLocationToast'] as PaperToast;
+				externalEditorLocationToast.text = 'File is located at: ' + location;
+				externalEditorLocationToast.show();
 			})
 			.appendTo($cont);
 		$('<div id="externalEditingToolsCreateNewFile">' +
@@ -256,33 +295,33 @@ Polymer({
 
 
 		$toolsCont.appendTo(
-				$((window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
+			$((window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
 				.find('.CodeMirror-scroll'))[0]
-			.animate([
-				{
-					bottom: '-152px',
-					right: '-350px'
-				}, {
-					bottom: 0,
-					right: 0
-				}
-			], {
-				duration: 300,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function() {
-				this.effect.target.style.bottom = 0;
-				this.effect.target.style.right = 0;
-			};
-	},
+				.animate([
+					{
+						bottom: '-152px',
+						right: '-350px'
+					}, {
+						bottom: 0,
+						right: 0
+					}
+				], {
+					duration: 300,
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				}).onfinish = function(this: Animation) {
+					this.effect.target.style.bottom = '0';
+					this.effect.target.style.right = '0';
+				};
+	};
 
-	setupExternalEditing: function() {
+	static setupExternalEditing(this: UseExternalEditor) {
 		//Send a message to the app to create the item with its current script and name
 		var _this = this;
 		if (this.connection.connected) {
 			var item = this.editingCRMItem;
-			var tempListener = function(msg) {
+			var tempListener = function(msg: SetupExistingFileMessage|SetupNewFileMessage) {
 				if (msg.status === 'connected' && (msg.action === 'setupScript' || msg.action === 'setupStylesheet') && msg.connectionId === _this.connection.id) {
-					if (!msg.existed) {
+					if (msg.existed === false) {
 						item.file = {
 							id: msg.id,
 							path: msg.path
@@ -302,7 +341,8 @@ Polymer({
 					status: 'connected',
 					action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
-					code: (window.scriptEdit && window.scriptEdit.active ? item.value.script : item.value.stylesheet),
+					code: (window.scriptEdit && window.scriptEdit.active ? 
+						(item as ScriptNode).value.script : (item as StylesheetNode).value.stylesheet),
 					id: item.file.id
 				});
 			} else {
@@ -310,18 +350,19 @@ Polymer({
 					status: 'connected',
 					action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
-					code: (window.scriptEdit && window.scriptEdit.active ? item.value.script : item.value.stylesheet)
+					code: (window.scriptEdit && window.scriptEdit.active ? 
+						(item as ScriptNode).value.script : (item as StylesheetNode).value.stylesheet),
 				});
 			}
 		} else {
-			_this.errorHandler();
+			_this.errorHandler('Could not establish connection');
 		}
-	},
+	};
 
-	/*
+	/**
 	 * Sets up the external messages sent to go this element's handler
 	 */
-	setupMessageHandler: function() {
+	static setupMessageHandler(this: UseExternalEditor) {
 		var _this = this;
 		chrome.runtime.onConnectExternal.addListener(function(port) {
 			if (port.sender.id === 'obnfehdnkjmbijebdllfcnccllcfceli') {
@@ -330,13 +371,14 @@ Polymer({
 				});
 			}
 		});
-	},
+	};
 
-	appMessageHandler: function(msg) {
+	static appMessageHandler(this: UseExternalEditor, msg: ConnectedEditorMessage) {
 		switch (msg.action) {
 			case 'chooseFile':
 				var _this = this;
-				window.doc.externalEditorChooseFile.init(msg.local, msg.external, function(result) {
+				const chooseFileDialog = window.doc['externalEditorChooseFile'] as ChooseFileDialog;
+				chooseFileDialog.init(msg.local, msg.external, function(result) {
 					if (result !== false) {
 						if (window.scriptEdit && window.scriptEdit.active) {
 							window.scriptEdit.editor.setValue(result);
@@ -350,23 +392,21 @@ Polymer({
 							code: result
 						});
 					} else {
-						window.doc.externalEditorChooseFIle.close();
+						chooseFileDialog.close();
 					}
 				});
-				window.doc.externalEditorChooseFile.open();
+				chooseFileDialog.open();
 				break;
 			case 'updateFromApp':
 				this.updateFromExternal(msg);
 				break;
 		}
-	},
+	};
 
-	/*
+	/**
 	 * Takes actions based on what messages are received from the other extension
-	 *
-	 * @param {object} msg - The message passed along
 	 */
-	messageHandler: function(msg) {
+	static messageHandler(this: UseExternalEditor, msg: ExternalEditorMessage) {
 		switch (msg.status) {
 			case 'connected':
 				this.appMessageHandler(msg);
@@ -378,20 +418,20 @@ Polymer({
 				});
 				break;
 		}
-	},
+	};
 
-	/*
+	/**
 	 * Tries to establish a connection to the app (if installed)
 	 */
-	establishConnection: function(retry) {
+	static establishConnection(this: UseExternalEditor, retry: boolean = false) {
 		var _this = this;
 		if (!this.appPort) {
 			this.appPort = chrome.runtime.connect('hkjjmhkhhlmkflpihbikfpcojeofbjgn');
 			this.connection.status = 'connecting';
 			this.connection.stage = 0;
 			this.connection.fileConnected = false;
-			this.connectionPromise = function(resolve, reject) {
-				function promiseListener(msg) {
+			(function(resolve, reject) {
+				function promiseListener(msg: ExternalEditorMessage) {
 					if (msg.status === 'connecting' && msg.stage === 1 && msg.message === 'hey') {
 						_this.appPort.onMessage.removeListener(promiseListener);
 						resolve(msg);
@@ -414,7 +454,7 @@ Polymer({
 					message: 'hi',
 					stage: 0
 				});
-			}(function(msg) {
+			}(function(msg: ExternalEditorMessage) {
 				_this.connection.stage = 2; //We have sent confirmation that we are there
 				_this.appPort.postMessage({
 					status: 'connecting',
@@ -428,20 +468,20 @@ Polymer({
 				_this.connection.id = msg.connectionId;
 			}, function() {
 				_this.errorHandler();
-			});
+			}));
 		}
-	},
+	};
 
-	cmLoaded: function() {
-		var placeHolderRect = window.doc.chooseFileMergerPlaceholder.getBoundingClientRect();
-		window.doc.chooseFileMergerPlaceholder.style.width = placeHolderRect.width + 'px';
-		window.doc.chooseFileMergerPlaceholder.style.height = placeHolderRect.height + 'px';
-		window.doc.chooseFileMergerPlaceholder.style.position = 'absolute';
-		window.doc.chooseFileMergerPlaceholder.style.display = 'flex';
+	static cmLoaded(this: UseExternalEditor) {
+		var placeHolderRect = window.doc['chooseFileMergerPlaceholder'].getBoundingClientRect();
+		window.doc['chooseFileMergerPlaceholder'].style.width = placeHolderRect.width + 'px';
+		window.doc['chooseFileMergerPlaceholder'].style.height = placeHolderRect.height + 'px';
+		window.doc['chooseFileMergerPlaceholder'].style.position = 'absolute';
+		window.doc['chooseFileMergerPlaceholder'].style.display = 'flex';
 		if (this.editorFadeInAnimation) {
 			this.editorFadeInAnimation.play();
 		} else {
-			this.editorFadeInAnimation = window.doc.chooseFileMergerPlaceholder.animate([
+			this.editorFadeInAnimation = window.doc['chooseFileMergerPlaceholder'].animate([
 				{
 					opacity: 1
 				}, {
@@ -452,14 +492,14 @@ Polymer({
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			});
 			this.editorFadeInAnimation.onfinish = function() {
-				window.doc.chooseFileMergerPlaceholder.style.display = 'none';
-				window.doc.chooseFileMergerPlaceholder.style.position = 'initial';
-				window.doc.chooseFileMergerPlaceholder.style.width = 'auto';
-				window.doc.chooseFileMergerPlaceholder.style.height = 'auto';
+				window.doc['chooseFileMergerPlaceholder'].style.display = 'none';
+				window.doc['chooseFileMergerPlaceholder'].style.position = 'initial';
+				window.doc['chooseFileMergerPlaceholder'].style.width = 'auto';
+				window.doc['chooseFileMergerPlaceholder'].style.height = 'auto';
 
-				window.doc.chooseFilemergerContainer.style.opacity = 0;
-				window.doc.chooseFilemergerContainer.style.display = 'block';
-				window.doc.chooseFilemergerContainer.animate([
+				window.doc['chooseFilemergerContainer'].style.opacity = '0';
+				window.doc['chooseFilemergerContainer'].style.display = 'block';
+				window.doc['chooseFilemergerContainer'].animate([
 					{
 						opacity: 0
 					}, {
@@ -469,19 +509,19 @@ Polymer({
 					duration: 350,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}).onfinish = function() {
-					window.doc.chooseFilemergerContainer.style.opacity = 1;
+					window.doc['chooseFilemergerContainer'].style.opacity = '1';
 					window.externalEditor.editor.edit.refresh();
 					window.externalEditor.editor.left.orig.refresh();
 					window.externalEditor.editor.right.orig.refresh();
 				};
 			};
 		}
-	},
+	};
 
-	showMergeDialog: function(_this, oldScript, newScript) {
+	static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
 		//Animate the comparison in
-		var dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
-		var dialogStyle = window.doc.externalEditorChooseFile.style;
+		var dialogRect = window.doc['externalEditorChooseFile'].getBoundingClientRect();
+		var dialogStyle = window.doc['externalEditorChooseFile'].style;
 
 		_this.dialogStyleProperties = dialogRect;
 
@@ -489,12 +529,12 @@ Polymer({
 		dialogStyle.width = dialogRect.width + 'px';
 		dialogStyle.height = dialogRect.height + 'px';
 		document.body.style.overflow = 'hidden';
-		window.doc.chooseFileMainDialog.style.position = 'absolute';
+		window.doc['chooseFileMainDialog'].style.position = 'absolute';
 
 		if (_this.dialogMainDivAnimationHide) {
 			_this.dialogMainDivAnimationHide.play();
 		} else {
-			_this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
+			_this.dialogMainDivAnimationHide = window.doc['chooseFileMainDialog'].animate([
 				{
 					marginTop: '20px',
 					opacity: 1
@@ -507,9 +547,9 @@ Polymer({
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			});
 			_this.dialogMainDivAnimationHide.onfinish = function() {
-				window.doc.chooseFileMainDialog.style.display = 'none';
-				window.doc.chooseFileMainDialog.style.marginTop = 0;
-				window.doc.chooseFileMainDialog.style.opacity = 1;
+				window.doc['chooseFileMainDialog'].style.display = 'none';
+				window.doc['chooseFileMainDialog'].style.marginTop = '0';
+				window.doc['chooseFileMainDialog'].style.opacity = '1';
 
 				if (_this.dialogExpansionAnimation) {
 					_this.dialogExpansionAnimation.play();
@@ -535,7 +575,7 @@ Polymer({
 							left: '0px'
 						}
 					]);
-					_this.dialogExpansionAnimation = window.doc.externalEditorChooseFile.animate([
+					_this.dialogExpansionAnimation = window.doc['externalEditorChooseFile'].animate([
 						{
 							width: dialogRect.width,
 							height: dialogRect.height,
@@ -562,15 +602,15 @@ Polymer({
 					_this.dialogExpansionAnimation.onfinish = function() {
 						dialogStyle.width = '100vw';
 						dialogStyle.height = '100vh';
-						dialogStyle.top = 0;
-						dialogStyle.left = 0;
-						dialogStyle.margin = 0;
+						dialogStyle.top = '0';
+						dialogStyle.left = '0';
+						dialogStyle.margin = '0';
 
-						window.doc.chooseFileMerger.style.display = 'flex';
+						window.doc['chooseFileMerger'].style.display = 'flex';
 						if (_this.dialogComparisonDivAnimationShow) {
 							_this.dialogComparisonDivAnimationShow.play();
 						} else {
-							_this.dialogComparisonDivAnimationShow = window.doc.chooseFileMerger.animate([
+							_this.dialogComparisonDivAnimationShow = window.doc['chooseFileMerger'].animate([
 								{
 									marginTop: '70px',
 									opacity: 0
@@ -580,15 +620,15 @@ Polymer({
 								}
 							], {
 								duration: 250,
-								esing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 							});
 							_this.dialogComparisonDivAnimationShow.onfinish = function() {
-								window.doc.chooseFileMerger.style.marginTop = 0;
-								window.doc.chooseFileMerger.style.opacity = 1;
+								window.doc['chooseFileMerger'].style.marginTop = '0';
+								window.doc['chooseFileMerger'].style.opacity = '1';
 
 								if (!_this.editor) {
 									setTimeout(function () {
-										_this.editor = new window.CodeMirror.MergeView(window.doc.chooseFilemergerContainer, {
+										_this.editor = new window.CodeMirror.MergeView(window.doc['chooseFilemergerContainer'], {
 											lineNumbers: true,
 											scrollbarStyle: 'simple',
 											lineWrapping: true,
@@ -611,35 +651,41 @@ Polymer({
 				}
 			};
 		}
-	},
+	};
 
-	findChildWithClass: function(div, classToFind) {
+	static findChildWithClass(this: UseExternalEditor, div: HTMLElement, classToFind: string): HTMLElement {
 		for (var i = 0; i < div.children.length; i++) {
 			if (div.children[i].classList.contains(classToFind)) {
-				return div.children[i];
+				return div.children[i] as HTMLElement;
 			}
 		}
 		return null;
-	},
+	};
 
-	findChildWithTag: function(div, tag) {
+	static findChildWithTag(this: UseExternalEditor, div: HTMLElement, tag: string): HTMLElement {
 		for (var i = 0; i < div.children.length; i++) {
 			if (div.children[i].tagName.toLowerCase() === tag) {
-				return div.children[i];
+				return div.children[i] as HTMLElement;
 			}
 		}
 		return null;
-	},
+	};
 
-	generateLineIndexTranslationArray: function (_this, editor) {
+	static generateLineIndexTranslationArray(_this: UseExternalEditor, editor: CodeMirror & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		}): Array<number> {
 		var result = [];
 
 		var offset = 0;
 		var lineDivs = editor.display.lineDiv.children;
 		var lineWidget, seperator;
-		var lineHeight = _this.findChildWithTag(lineDivs[0], 'pre').getBoundingClientRect().height;
+		var lineHeight = _this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
 		for (var i = 0; i < lineDivs.length; i++) {
-			if ((lineWidget = _this.findChildWithClass(lineDivs[i], 'CodeMirror-linewidget')) &&
+			if ((lineWidget = _this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
 				(seperator = _this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
 				offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
 			}
@@ -647,16 +693,22 @@ Polymer({
 		}
 
 		return result;
-	},
+	};
 
-	findReverseLineTranslation: function(_this, line, editor) {
+	static findReverseLineTranslation(_this: UseExternalEditor, line: number, editor: CodeMirror & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		}) {
 		var i;
 		var offset = 0;
 		var lineDivs = editor.display.lineDiv.children;
 		var lineWidget, seperator;
-		var lineHeight = _this.findChildWithTag(lineDivs[0], 'pre').getBoundingClientRect().height;
+		var lineHeight = _this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
 		for (i = 0; i < lineDivs.length; i++) {
-			if ((lineWidget = _this.findChildWithClass(lineDivs[i], 'CodeMirror-linewidget')) &&
+			if ((lineWidget = _this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
 				(seperator = _this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
 				offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
 			}
@@ -665,29 +717,41 @@ Polymer({
 			}
 		}
 		return i;
-	},
+	};
 
-	containEachother: function(line1, line2) {
-		return (line1.indexOf(line2) > -1 ? true : line2.indexOf(line1));
-	},
+	static containEachother(this: UseExternalEditor, line1: string, line2: string): boolean {
+		return !!(line1.indexOf(line2) > -1 ? true : line2.indexOf(line1));
+	};
 
-	generateIncrementFunction: function(errors) {
+	static generateIncrementFunction(this: UseExternalEditor, errors: Array<CursorPosition>) {
 		var len = errors.length;
-		return function(index) {
+		return function(index: number) {
 			if (++index === len) {
 				index = 0;
 			}
 			return index;
 		};
-	},
+	};
 
-	generateNextErrorFinder: function (isLeftEditor, errors) {
+	static generateNextErrorFinder(this: UseExternalEditor, isLeftEditor: boolean, errors: Array<CursorPosition>) {
 		var i;
 		var _this = this;
-		var sideEditor = null;
-		var mainEditor = null;
+		var sideEditor: CodeMirror & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		} = null;
+		var mainEditor: CodeMirror & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		} = null;
 		var errorIndex = 0;
-		var sideEditorLineTranslationArray;
+		var sideEditorLineTranslationArray: Array<number>;
 		var incrementFunction = _this.generateIncrementFunction(errors);
 		return function () {
 			if (!sideEditor) {
@@ -711,7 +775,7 @@ Polymer({
 
 			if (error) {
 				//Scroll cursor to this line
-				$('.errorHighlight').each(function() {
+				$('.errorHighlight').each(function(this: HTMLElement) {
 					this.classList.remove('errorHighlight');
 				});
 				mainEditor.markText(error.from, error.to, {
@@ -722,15 +786,15 @@ Polymer({
 				});
 			} else {
 				//No errors were found, show the toast
-				window.doc.noErrorsFound.show();
+				(window.doc['noErrorsFound'] as PaperToast).show();
 			}
 		};
-	},
+	};
 
-	/*
+	/**
 	 * Makes the dialog clear itself after it closes
 	 */
-	ready: function() {
+	static ready(this: UseExternalEditor) {
 		var _this = this;
 		window.externalEditor = this;
 		this.establishConnection();
@@ -744,22 +808,32 @@ Polymer({
 				});
 			}
 		};
-		window.doc.externalEditorChooseFile.init = function (local, file, callback, isUpdate, updateErrors) {
-			window.doc.chooseFileCurrentTxt.innerText = (isUpdate ? 'Old' : 'CRM Editor');
-			window.doc.chooseFileNewTxt.innerText = (isUpdate ? 'New' : 'File');
-			window.doc.chooseFileTitleTxt.innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
-			window.doc.chooseFileStopMerging.style.display = (isUpdate ? 'none' : 'block');
-			window.doc.externalEditorChooseFile.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
+		const chooseFileDialog = window.doc['externalEditorChooseFile'] as ChooseFileDialog;
+		chooseFileDialog.init = function (local: string, file: string, callback: (result: string|false) => void,
+				isUpdate?: boolean, updateErrors?: {
+					parseError: boolean;
+					newScript: Array<CursorPosition>;
+					oldScript: Array<CursorPosition>;
+				}) {
+			window.doc['chooseFileCurrentTxt'].innerText = (isUpdate ? 'Old' : 'CRM Editor');
+			window.doc['chooseFileNewTxt'].innerText = (isUpdate ? 'New' : 'File');
+			window.doc['chooseFileTitleTxt'].innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
+			window.doc['chooseFileStopMerging'].style.display = (isUpdate ? 'none' : 'block');
+			chooseFileDialog.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
 
 			var i;
-			var leftErrorButton = window.doc.updateMergeLeftNextError;
+			var leftErrorButton = window.doc['updateMergeLeftNextError'] as HTMLElement & {
+				listeners: Array<() => void>
+			};
 			leftErrorButton.listeners = leftErrorButton.listeners || [];
 			for (i = 0; i < leftErrorButton.listeners.length; i++) {
 				leftErrorButton.removeEventListener('click', leftErrorButton.listeners[i]);
 			}
 			leftErrorButton.listeners = [];
 
-			var rightErrorButton = window.doc.updateMergeRightNextError;
+			var rightErrorButton = window.doc['updateMergeRightNextError'] as HTMLElement & {
+				listeners: Array<() => void>
+			};;
 			rightErrorButton.listeners = rightErrorButton.listeners || [];
 			for (i = 0; i < rightErrorButton.listeners.length; i++) {
 				rightErrorButton.removeEventListener('click', rightErrorButton.listeners[i]);
@@ -786,16 +860,16 @@ Polymer({
 							inclusiveRight: false
 						});
 					}
-					window.doc.externalEditorChooseFile.removeEventListener('iron-overlay-opened', markerFn);
+					chooseFileDialog.removeEventListener('iron-overlay-opened', markerFn);
 				}, 2000);
 			}
 
 			if (updateErrors) {
-				window.doc.updateMergerCont.style.display = 'block';
+				window.doc['updateMergerCont'].style.display = 'block';
 				var errorsNumber = (updateErrors.parseError ? '1' : updateErrors.oldScript.length);
-				window.doc.updateMergerTxt.innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
+				window.doc['updateMergerTxt'].innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
 				if (!updateErrors.parseError) {
-					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'block';
+					leftErrorButton.style.display = rightErrorButton.style.display = window.doc['updateMergePlaceholderBr'].style.display = 'block';
 					var listenerLeft = _this.generateNextErrorFinder(true, updateErrors.oldScript);
 					var listenerRight = _this.generateNextErrorFinder(false, updateErrors.newScript);
 					leftErrorButton.addEventListener('click', listenerLeft);
@@ -803,56 +877,56 @@ Polymer({
 					leftErrorButton.listeners.push(listenerLeft);
 					rightErrorButton.listeners.push(listenerRight);
 
-					window.doc.externalEditorChooseFile.addEventListener('iron-overlay-opened', markerFn);
+					chooseFileDialog.addEventListener('iron-overlay-opened', markerFn);
 				} else {
-					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'none';
+					leftErrorButton.style.display = rightErrorButton.style.display = window.doc['updateMergePlaceholderBr'].style.display = 'none';
 				}
 			} else {
-				window.doc.updateMergerCont.style.display = 'none';
+				window.doc['updateMergerCont'].style.display = 'none';
 			}
 
-			window.doc.externalEditorChooseFile.local = local;
-			window.doc.externalEditorChooseFile.file = file;
-			window.doc.externalEditorChooseFile.callback = callback;
+			chooseFileDialog.local = local;
+			chooseFileDialog.file = file;
+			chooseFileDialog.callback = callback;
 			_this.editor = null;
-			window.doc.chooseFilemergerContainer.innerHTML = '';
+			window.doc['chooseFilemergerContainer'].innerHTML = '';
 			document.body.style.overflow = 'auto';
-			window.doc.chooseFileMainDialog.style.position = 'static';
-			window.doc.chooseFileMainDialog.style.display = 'block';
-			window.doc.chooseFileMerger.style.display = 'none';
+			window.doc['chooseFileMainDialog'].style.position = 'static';
+			window.doc['chooseFileMainDialog'].style.display = 'block';
+			window.doc['chooseFileMerger'].style.display = 'none';
 
 			if (_this.dialogStyleProperties) {
-				window.doc.externalEditorChooseFile.style.width = _this.dialogStyleProperties.width + 'px';
-				window.doc.externalEditorChooseFile.style.height = _this.dialogStyleProperties.height + 'px';
-				window.doc.externalEditorChooseFile.style.top = _this.dialogStyleProperties.top + 'px';
-				window.doc.externalEditorChooseFile.style.left = _this.dialogStyleProperties.left + 'px';
+				chooseFileDialog.style.width = _this.dialogStyleProperties.width + 'px';
+				chooseFileDialog.style.height = _this.dialogStyleProperties.height + 'px';
+				chooseFileDialog.style.top = _this.dialogStyleProperties.top + 'px';
+				chooseFileDialog.style.left = _this.dialogStyleProperties.left + 'px';
 			}
 		};
-		window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
+		window.doc['externalEditorTryAgainButton'].addEventListener('click', function() {
 			_this.establishConnection(true);
-			window.doc.externalEditorErrorToast.hide();
+			(window.doc['externalEditorErrorToast'] as PaperToast).hide();
 		});
-		window.doc.chooseFileChooseFirst.addEventListener('click', function() {
-			if (window.doc.chooseFileRadioGroup.selected === 'local') {
-				window.doc.externalEditorChooseFile.callback(window.doc.externalEditorChooseFile.local);
+		window.doc['chooseFileChooseFirst'].addEventListener('click', function() {
+			if ((window.doc['chooseFileRadioGroup'] as PaperRadioGroup).selected === 'local') {
+				chooseFileDialog.callback(chooseFileDialog.local);
 			} else {
-				window.doc.externalEditorChooseFile.callback(window.doc.externalEditorChooseFile.file);
+				chooseFileDialog.callback(chooseFileDialog.file);
 			}
 		});
-		window.doc.chooseFileChooseMerge.addEventListener('click', function() {
-			window.doc.externalEditorChooseFile.callback(_this.editor.edit.getValue());
+		window.doc['chooseFileChooseMerge'].addEventListener('click', function() {
+			chooseFileDialog.callback(_this.editor.edit.getValue());
 		});
 		$('.closeChooseFileDialog').click(function() {
-			window.doc.externalEditorChooseFile.callback(false);
+			chooseFileDialog.callback(false);
 		});
-		window.doc.chooseFileMerge.addEventListener('click', function() {
-			_this.showMergeDialog(_this, window.doc.externalEditorChooseFile.local, window.doc.externalEditorChooseFile.file);
+		window.doc['chooseFileMerge'].addEventListener('click', function() {
+			_this.showMergeDialog(_this, chooseFileDialog.local, chooseFileDialog.file);
 		});
-		window.doc.chooseFileStopMerging.addEventListener('click', function() {
+		window.doc['chooseFileStopMerging'].addEventListener('click', function() {
 			if (_this.dialogComparisonDivAnimationHide) {
 				_this.dialogComparisonDivAnimationHide.play();
 			} else {
-				_this.dialogComparisonDivAnimationHide = window.doc.chooseFileMerger.animate([
+				_this.dialogComparisonDivAnimationHide = window.doc['chooseFileMerger'].animate([
 					{
 						marginTop: '0px',
 						opacity: 1
@@ -865,12 +939,12 @@ Polymer({
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				});
 				_this.dialogComparisonDivAnimationHide.onfinish = function() {
-					window.doc.chooseFileMerger.style.display = 'none';
+					window.doc['chooseFileMerger'].style.display = 'none';
 
 					if (_this.dialogContractionAniation) {
 						_this.dialogContractionAniation.play();
 					} else {
-						_this.dialogContractionAniation = window.doc.externalEditorChooseFile.animate([
+						_this.dialogContractionAniation = chooseFileDialog.animate([
 							{
 								width: '100vw',
 								height: '100vh',
@@ -889,19 +963,19 @@ Polymer({
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 						});
 						_this.dialogContractionAniation.onfinish = function() {
-							window.doc.externalEditorChooseFile.style.width = _this.dialogStyleProperties.width + 'px';
-							window.doc.externalEditorChooseFile.style.height = _this.dialogStyleProperties.height + 'px';
-							window.doc.externalEditorChooseFile.style.top = _this.dialogStyleProperties.top + 'px';
-							window.doc.externalEditorChooseFile.style.left = _this.dialogStyleProperties.left + 'px';
+							chooseFileDialog.style.width = _this.dialogStyleProperties.width + 'px';
+							chooseFileDialog.style.height = _this.dialogStyleProperties.height + 'px';
+							chooseFileDialog.style.top = _this.dialogStyleProperties.top + 'px';
+							chooseFileDialog.style.left = _this.dialogStyleProperties.left + 'px';
 
 							document.body.style.overflow = 'auto';
-							window.doc.chooseFileMainDialog.style.position = 'static';
+							window.doc['chooseFileMainDialog'].style.position = 'static';
 
-							window.doc.chooseFileMainDialog.style.display = 'block';
+							window.doc['chooseFileMainDialog'].style.display = 'block';
 							if (_this.dialogMainDivAnimationShow) {
 								_this.dialogMainDivAnimationShow.play();
 							} else {
-								_this.dialogMainDivAnimationShow = window.doc.chooseFileMainDialog.animate([
+								_this.dialogMainDivAnimationShow = window.doc['chooseFileMainDialog'].animate([
 									{
 										marginTop: '100px',
 										opacity: 0
@@ -914,8 +988,8 @@ Polymer({
 									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 								});
 								_this.dialogMainDivAnimationShow.onfinish = function() {
-									window.doc.chooseFileMainDialog.style.marginTop = '20px';
-									window.doc.chooseFileMainDialog.style.opacity = 1;
+									window.doc['chooseFileMainDialog'].style.marginTop = '20px';
+									window.doc['chooseFileMainDialog'].style.opacity = '1';
 								};
 							}
 						};
@@ -924,4 +998,6 @@ Polymer({
 			}
 		});
 	}
-});
+}
+
+Polymer(UEE);

@@ -1,4 +1,4 @@
-/// <reference path="../../../tools/definitions/crmapp.d.ts" />
+/// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/react.d.ts" />
 var logConsoleProperties = {
     lines: {

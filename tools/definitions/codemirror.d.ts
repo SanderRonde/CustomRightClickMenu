@@ -79,6 +79,45 @@ interface CMMetaInfo {
 }
 
 interface CodeMirror {
+	(container: HTMLElement, options: {
+		lineNumbers?: boolean;
+		value: string;
+		scrollbarStyle?: string;
+		lineWrapping?: boolean;
+		mode?: string;
+		readOnly?: boolean|string;
+		foldGutter?: boolean;
+		theme?: 'default'|'dark';
+		indentUnit?: string;
+		indentWithTabs?: boolean;
+		gutters?: Array<string>;
+		lint?: Function;
+		messageTryEditor?: boolean;
+		undoDepth?: number;
+
+	}): CodeMirror;
+	MergeView: {
+		new(container: HTMLElement, options: {
+			lineNumbers?: boolean;
+			value: string;
+			scrollbarStyle?: string;
+			lineWrapping?: boolean;
+			mode?: string;
+			readOnly?: boolean|string;
+			foldGutter?: boolean;
+			theme?: 'default'|'dark';
+			indentUnit?: string;
+			indentWithTabs?: boolean;
+			gutters?: Array<string>;
+			lint?: Function;
+			messageTryEditor?: boolean;
+			undoDepth?: number;
+			origLeft?: string;
+			origRight?: string;
+			connect?: string;
+			messageExternal?: boolean;
+		}): MergeViewCodeMirror;
+	}
 	display: HTMLElement & {
 		wrapper: HTMLElement;
 		sizer: HTMLElement;
@@ -99,11 +138,62 @@ interface CodeMirror {
 	getOption(option: string): any;
 	on(event: string, callback: Function): void;
 	lineCount(): number;
+	getLine(index: number): string;
+	markText(from: {
+		line: number;
+		index: number;
+	}, to: {
+		line: number;
+		index: number;
+	}, options: {
+		className?: string;
+		clearOnEnter?: boolean;
+		inclusiveLeft?: boolean;
+		inclusiveRight?: boolean;
+	}): void;
 
 	updateMetaTags(cm: CodeMirror, key: string, oldValue: string|number, value: string|number, singleValue?: boolean): void;
 	addMetaTags(cm: CodeMirror, key: string, value: string|number, line?: number): void;
 	getMetaTags(cm: CodeMirror): MetaTags;
 	removeMetaTags(cm: CodeMirror, key: string, value: string|number): number;
+
+	lint: {
+		javascript: Function;
+	}
+	TernServer: TernServer;
+}
+
+interface MergeViewCodeMirror extends CodeMirror {
+	display: HTMLElement & {
+		lineDiv: HTMLElement;
+		wrapper: HTMLElement;
+		sizer: HTMLElement;
+	}
+	edit: CodeMirror & {
+		display: HTMLElement & {
+			lineDiv: HTMLElement;
+			wrapper: HTMLElement;
+			sizer: HTMLElement;
+		}
+	};
+	left: {
+		orig: CodeMirror & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		};
+	};
+	right: {
+		orig: CodeMirror & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		};
+	}
 }
 
 interface LinePosition {

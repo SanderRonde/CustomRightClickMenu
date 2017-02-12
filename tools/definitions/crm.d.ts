@@ -1,5 +1,73 @@
 type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
 
+interface ChromePermissionDescriptions {
+	alarms: string;
+	background: string;
+	bookmarks: string;
+	browsingData: string;
+	clipboardRead: string;
+	clipboardWrite: string;
+	cookies: string;
+	contentSettings: string;
+	declarativeContent: string;
+	desktopCapture: string;
+	downloads: string;
+	history: string;
+	identity: string;
+	idle: string;
+	management: string;
+	notifications: string;
+	pageCapture: string;
+	power: string;
+	privacy: string;
+	printerProvider: string;
+	sessions: string;
+	"system.cpu": string;
+	"system.memory": string;
+	"system.storage": string;
+	topSites: string;
+	tabCapture: string;
+	tts: string;
+	webNavigation: string;
+	webRequest: string;
+	webRequestBlocking: string;
+}
+
+interface CRMPermissionDescriptions {
+	crmGet: string;
+	crmWrite: string;
+	chrome: string;
+}
+
+interface GMPermissioNDescriptions {
+	GM_addStyle: string;
+	GM_deleteValue: string;
+	GM_listValues: string;
+	GM_addValueChangeListener: string;
+	GM_removeValueChangeListener: string;
+	GM_setValue: string;
+	GM_getValue: string;
+	GM_log: string;
+	GM_getResourceText: string;
+	GM_getResourceURL: string;
+	GM_registerMenuCommand: string;
+	GM_unregisterMenuCommand: string;
+	GM_openInTab: string;
+	GM_xmlhttpRequest: string;
+	GM_download: string;
+	GM_getTab: string;
+	GM_saveTab: string;
+	GM_getTabs: string;
+	GM_notification: string;
+	GM_setClipboard: string;
+	GM_info: string;
+	unsafeWindow: string;
+}
+
+type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissioNDescriptions;
+
+type Permission = CRMPermission|keyof PermissionDescriptions;
+
 declare const enum CRMLaunchModes {
 	RUN_ON_CLICKING = 0,
 	ALWAYS_RUN = 1,

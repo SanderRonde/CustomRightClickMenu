@@ -1,4 +1,4 @@
-﻿/// <reference path="../../../../tools/definitions/crmapp.d.ts" />
+﻿/// <reference path="../../elements.d.ts" />
 
 const scriptEditProperties: {
 	item: ScriptNode;
@@ -659,11 +659,11 @@ class SCE {
 
 	//#region DialogFunctions
 	static disableButtons(this: ScriptEdit) {
-		(this.$['dropdownMenu'] as PaperDropdownMenu).disable();
+		(this.$['dropdownMenu'] as PaperDropdownInstance).disable();
 	};
 
 	static enableButtons(this: ScriptEdit) {
-		(this.$['dropdownMenu'] as PaperDropdownMenu).enable();
+		(this.$['dropdownMenu'] as PaperDropdownInstance).enable();
 	};
 
 	static changeTab(this: ScriptEdit, mode: 'main'|'background') {

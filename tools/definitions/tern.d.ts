@@ -80,3 +80,45 @@ type TernExpression = TernVariableDeclarationCont | TernCallExpression | TernAss
 	TernFunctionExpression | TernBlockStatement | TernExpressionStatement|
 	TernSequenceExpressionStatement | TernConditionalExpression | TernIfStatement|
 	TernLogicalExpression | TernReturnStatement;
+
+interface TernParsedFile {
+	body: Array<TernExpression>;
+}
+
+interface TernFile {
+	new(name: string): TernFile;
+	text: string;
+	ast: TernParsedFile;
+}
+
+type JSDefinitions = any;
+
+type TernContext = any;
+
+interface TernServer {
+	new(options: {
+		defs?: Array<JSDefinitions>;
+	}): TernServer;
+	cx: TernContext;
+	passes: number;
+	ecmaVersion: string;
+}
+
+interface Tern {
+	withContext(context: TernContext, callback: () => void): void;
+	parse(file: string, passes: number, options: {
+		directSourceFile?: TernFile;
+		allowReturnOutsideFunction?: boolean;
+		allowImportExportEverywhere?: boolean;
+		ecmaVersion?: string;
+	}): TernParsedFile;
+}
+
+interface Window {
+	TernFile: TernFile;
+	tern: Tern;
+	ecma5: JSDefinitions;
+	ecma6: JSDefinitions;
+	jqueryDefs: JSDefinitions;
+	browserDefs: JSDefinitions;
+}

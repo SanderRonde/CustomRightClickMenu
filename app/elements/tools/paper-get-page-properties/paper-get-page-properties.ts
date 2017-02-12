@@ -1,33 +1,31 @@
-﻿Polymer({
-	is: 'paper-get-page-properties',
+﻿/// <reference path="../../elements.d.ts" />
+
+type PaperGetPagePropertiesBase = PolymerElement<typeof PGPP>;
+
+class PGPP {
+	static is: string = 'paper-get-page-properties';
 
 	/**
      * The properties that can be chosen
-     * 
-     * @attribute options
-     * @type Array
-     * @default []
      */
-	options: [],
+	static options: Array<{
+		name: string;
+		id: string;	
+	}> = [];
 
 	/**
 	 * The event listener to send all onclick data to
-	 * 
-	 * @attribute listener
-	 * @type Function
-	 * @default function() {}
 	 */
-	listener: function() {},
+	static listener: (data: string) => void = function() {};
 
 	/**
 	 * Triggers an 'addsnippet' event and sends the snippet with it
-	 * @param {String} data - The code to be sent in the snippet
 	 */
-	sendData: function(data) {
+	static sendData(data: string) {
 		this.listener(data);
-	},
+	};
 
-	click: function(e) {
+	static click(e: PolymerClickEvent) {
 		var option = e.target.getAttribute('id').split('paperGetProperty')[1];
 		switch (option) {
 			case 'Selection':
@@ -58,14 +56,14 @@
 				this.sendData('document.title;');
 				break;
 		}
-	},
+	};
 	
-	init: function (listener) {
+	static init(this: PaperGetPageProperties, listener: (data: string) => void) {
 		this.listener = listener;
 		this.close();
-	},
+	};
 
-	ready: function() {
+	static ready() {
 		this.options = [
 			{
 				name: 'Selection',
@@ -96,7 +94,9 @@
 				id: 'paperGetPropertyTitle'
 			}
 		];
-	},
+	};
 
-	behaviors: [Polymer.PaperDropdownBehavior]
-});
+	static behaviors = [Polymer.PaperDropdownBehavior]
+}
+
+Polymer(PGPP);

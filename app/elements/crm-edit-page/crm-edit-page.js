@@ -1,4 +1,4 @@
-/// <reference path="../../../tools/definitions/crmapp.d.ts" />
+/// <reference path="../elements.d.ts" />
 var crmEditPageProperties = {
     animationConfig: {
         value: function () {
@@ -18,10 +18,6 @@ var crmEditPageProperties = {
     },
     /**
      * The item to edit
-     *
-     * @attribute item
-     * @type Object
-     * @default null
      */
     item: {
         type: Object,
@@ -30,23 +26,15 @@ var crmEditPageProperties = {
     },
     /**
      * The nodeInfo to display
-     *
-     * @attribute nodeInfo
-     * @type Object
-     * @default null
      */
     nodeInfo: {
         type: Object,
         value: {},
         notify: true
     },
-    /*
-        * Whether to hide the update message
-        *
-        * @attribute hideUpdateMessage
-        * @type Boolean
-        * @default true
-        */
+    /**
+     * Whether to hide the update message
+     */
     hideUpdateMessage: {
         type: Boolean,
         value: true,

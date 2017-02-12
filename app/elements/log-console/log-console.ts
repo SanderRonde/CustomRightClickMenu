@@ -1,4 +1,4 @@
-﻿/// <reference path="../../../tools/definitions/crmapp.d.ts" />
+﻿/// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/react.d.ts" />
 
 declare const ReactDOM: {
@@ -298,7 +298,7 @@ class LC {
 		});
 
 		this.async(function() {
-			var menus = Array.prototype.slice.apply(document.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownMenu>;
+			var menus = Array.prototype.slice.apply(document.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
 			menus.forEach(function(menu) {
 				menu.onopen = function() {
 					menu.querySelector('template').render();

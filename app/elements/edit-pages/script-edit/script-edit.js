@@ -1,4 +1,4 @@
-/// <reference path="../../../../tools/definitions/crmapp.d.ts" />
+/// <reference path="../../elements.d.ts" />
 var scriptEditProperties = {
     item: {
         type: Object,

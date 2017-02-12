@@ -1,4 +1,4 @@
-/// <reference path="../../../tools/definitions/crmapp.d.ts" />
+/// <reference path="../elements.d.ts" />
 
 const editCrmProperties: {
 	crm: CRMBuilder;
@@ -63,9 +63,11 @@ interface CRMColumn extends HTMLElement {
 		shadow: boolean;
 		index: number;	
 	}>;
+	dragging: boolean;
+	draggingItem: EditCrmItem;
 }
 
-interface CRMBuilderColumn {
+interface CRMBuilderColumn extends HTMLElement {
 	list: Array<CRMNode & {
 		expanded: boolean;
 		name: string;
@@ -77,6 +79,7 @@ interface CRMBuilderColumn {
 	indent: Array<void>;
 	index: number;
 	shadow: boolean;
+	isEmpty: boolean;
 }
 
 type CRMBuilder = Array<CRMBuilderColumn>;
@@ -392,7 +395,7 @@ class EC {
 					}>,
 					index: columnNum,
 					shadow: window.app.shadowStart && window.app.shadowStart <= columnNum
-				};
+				} as any;
 
 				if (lastMenu !== -1) {
 					indentTop += indent;
@@ -835,7 +838,7 @@ class EC {
 		textArea.value = this.getExportString(exportNode, exportType, null);
 		($('#exportAuthorName')[0] as HTMLTextAreaElement).value = 
 			(exportNode.nodeInfo && exportNode.nodeInfo.source && exportNode.nodeInfo.source.author) || 'anonymous';
-		$('#exportAuthorName').on('change', function () {
+		$('#exportAuthorName').on('change', function (this: PaperInput) {
 			var author = this.value;
 			chrome.storage.local.set({
 				authorName: author

@@ -1,4 +1,4 @@
-///// <reference path="../../../tools/definitions/crmapp.d.ts" />
+///// <reference path="../elements.d.ts" />
 
 interface Coordinate {
 	X: number,
@@ -9,6 +9,9 @@ interface FillerElement extends HTMLElement {
 	index: number;
 	column: number;
 }
+
+type DraggableNodeBehavior = PolymerElement<typeof DNB>;
+type DraggableNodeBehaviorInstance = DraggableNodeBehavior & EditCrmItem;
 
 class DNB {
 	/**
@@ -72,7 +75,7 @@ class DNB {
 	/**
 	 * The current column element
 	 */
-	static _currentColumn: Element;
+	static _currentColumn: CRMColumn;
 
 	static _listeners: {
 		stopDrag: EventListenerObject;
@@ -80,7 +83,7 @@ class DNB {
 		onScroll: EventListenerObject;
 	};
 
-	static _changeDraggingState(this: DraggableNodeBehavior, isDragging: boolean) {
+	static _changeDraggingState(this: DraggableNodeBehaviorInstance, isDragging: boolean) {
 		this.dragging = isDragging;
 		this.$['itemCont'].style.willChange = (isDragging ? 'transform' : 'initial');
 		this.$['itemCont'].style.zIndex = (isDragging ? '500' : '0');
@@ -89,7 +92,7 @@ class DNB {
 		currentColumn.draggingItem = this;
 	}
 
-	static _onScroll(this: DraggableNodeBehavior) {
+	static _onScroll(this: DraggableNodeBehaviorInstance) {
 		var newScroll = $('body').scrollTop();
 		var difference = newScroll - this._scrollStart.Y;
 		this._dragStart.Y -= difference;
@@ -98,7 +101,7 @@ class DNB {
 		this._onDrag();
 	}
 
-	static _sideDrag(this: DraggableNodeBehavior) {
+	static _sideDrag(this: DraggableNodeBehaviorInstance) {
 		var newScroll = $('.CRMEditColumnCont')[0].getBoundingClientRect().left;
 		var difference = newScroll - this._scrollStart.X;
 		this._dragStart.X -= difference;
@@ -107,7 +110,7 @@ class DNB {
 		this._onDrag();
 	}
 
-	static _stopDrag(this: DraggableNodeBehavior) {
+	static _stopDrag(this: DraggableNodeBehaviorInstance) {
 		this.$$('paper-ripple').style.display = 'block';
 		this.style.pointerEvents = 'all';
 		this._changeDraggingState(false);
@@ -122,16 +125,16 @@ class DNB {
 		this._rebuildMenu();
 	}
 
-	static _onMouseMove(this: DraggableNodeBehavior, event: MouseEvent) {
+	static _onMouseMove(this: DraggableNodeBehaviorInstance, event: MouseEvent) {
 		this._lastRecordedPos.X = event.clientX;
 		this._lastRecordedPos.Y = event.clientY;
 		this._cursorPosChanged = true;
 	}
 
-	static _onDrag(this: DraggableNodeBehavior) {
+	static _onDrag(this: DraggableNodeBehaviorInstance) {
 		if (this._cursorPosChanged && this.dragging) {
 			this._cursorPosChanged = false;
-			var columnCorrection = 200 * (this._filler.column - this.parentNode.index);
+			var columnCorrection = 200 * (this._filler.column - (this.parentElement as CRMBuilderColumn).index);
 			var spacingTop = this._lastRecordedPos.Y - this._dragStart.Y;
 			var x = (this._lastRecordedPos.X - this._dragStart.X + columnCorrection) + 'px';
 			var y = spacingTop + 'px';
@@ -212,8 +215,8 @@ class DNB {
 						$(this._filler).insertBefore(newColumnChildren[fillerIndex]);
 
 						if (newColumnLength === 0) {
-							newColumn.parentNode.style.display = 'block';
-							newColumn.parentNode.isEmpty = true;
+							newColumn.parentElement.style.display = 'block';
+							(newColumn.parentElement as CRMBuilderColumn).isEmpty = true;
 						}
 						this._filler.column = this._filler.column + 1;
 
@@ -243,13 +246,13 @@ class DNB {
 						}
 					}
 					this._filler.index = fillerIndex;
-					if (this._parentNode === newColumn) {
+					if (this.parentElement === newColumn) {
 						this._dragStart.Y += 50;
-					} else if (this._parentNode === this._filler.parentNode) {
+					} else if (this.parentElement === this._filler.parentNode) {
 						this._dragStart.Y -= 50;
 					}
 					
-					var paperMaterial = this._filler.parentNode.parentNode;
+					var paperMaterial = this._filler.parentElement.parentElement as CRMBuilderColumn;
 					if (paperMaterial.isEmpty) {
 						paperMaterial.style.display = 'none';
 					}
@@ -266,7 +269,7 @@ class DNB {
 		}
 	}
 
-	static _snapItem(this: DraggableNodeBehavior) {
+	static _snapItem(this: DraggableNodeBehaviorInstance) {
 		//Get the filler's current index and place the current item there
 		var parentChildrenList = window.app.editCRM.getEditCrmItems(window.app.editCRM
 			.getCurrentColumn(this), true);
@@ -281,7 +284,7 @@ class DNB {
 		}
 	}
 
-	static _rebuildMenu(this: DraggableNodeBehavior) {
+	static _rebuildMenu(this: DraggableNodeBehaviorInstance) {
 		//Get original object
 		var newPath;
 		var $prev = $(this).prev();
@@ -296,12 +299,12 @@ class DNB {
 		var next = $next[0];
 		if (prev) {
 			//A previous item exists, newpath is that path with + 1 on the last index
-			newPath = prev.item.path;
+			newPath = (prev as EditCrmItem).item.path;
 			newPath[newPath.length - 1] += 1;
 		}
 		else if (next) {
 			//The next item exists, newpath is that path
-			newPath = next.item.path;
+			newPath = (prev as EditCrmItem).item.path;
 		}
 		else {
 			//No items exist yet, go to prev column and find the only expanded menu
@@ -326,20 +329,13 @@ class DNB {
 			newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
 			var newObj = window.app.editCRM.build(newPathMinusOne);
 			Array.prototype.slice.apply(window.app.editCRM.getCurrentColumn(this).children)
-				.forEach(function(element) {
+				.forEach(function(element: HTMLElement) {
 					element.style.display = 'table';
 				});
-
-			setTimeout(function() {
-				//Make every node re-run "ready"
-				$(window.app.editCRM).find('edit-crm-item').each(function() {
-					this._recalculateIndex(newObj);
-				});
-			}, 0);
 		}
 	}
 
-	static _startDrag(this: DraggableNodeBehavior, event: MouseEvent) {
+	static _startDrag(this: DraggableNodeBehaviorInstance, event: MouseEvent) {
 		this.$$('paper-ripple').style.display = 'none';
 		var extraSpacing = (($(this.parentNode).children('edit-crm-item').toArray().length - this.index) * -50);
 		this.style.pointerEvents = 'none';
@@ -358,7 +354,7 @@ class DNB {
 		var x = $('something');
 		this._filler = $('<div class="crmItemFiller"></div>').get(0) as any;
 		this._filler.index = this.index;
-		this._filler.column = this.parentNode.index;
+		this._filler.column = (this.parentElement as CRMBuilderColumn).index;
 
 		document.body.addEventListener('mouseup', this._listeners.stopDrag);
 		document.body.addEventListener('mousemove', this._listeners.onMouseMove);
@@ -368,7 +364,7 @@ class DNB {
 
 
 		//Do visual stuff as to decrease delay between the visual stuff
-		if (this.isMenu && this.parentNode.items[this.index].expanded) {
+		if (this.isMenu && (this.parentElement as DomRepeat).items[this.index].expanded) {
 			//Collapse any columns to the right of this
 			var columnContChildren = window.app.editCRM.getColumns();
 			for (var i = this.column + 1; i < columnContChildren.length; i++) {
@@ -382,7 +378,7 @@ class DNB {
 		this._onDrag();
 	}
 
-	static init(this: DraggableNodeBehavior) {
+	static init(this: DraggableNodeBehaviorInstance) {
 		var _this = this;
 		this.$['dragger'].addEventListener('mousedown', function(e) {
 			if (e.which === 1) {
@@ -404,7 +400,7 @@ class DNB {
 				}
 			}
 		});
-		this.column = this.parentNode.index;
+		this.column = (this.parentElement as CRMBuilderColumn).index;
 
 		this._listeners = {
 			stopDrag: this._stopDrag.bind(this),
@@ -414,5 +410,4 @@ class DNB {
 	}
 };
 
-type DraggableNodeBehavior = PolymerElement<typeof DNB>;
 Polymer.DraggableNodeBehavior = DNB as DraggableNodeBehavior;

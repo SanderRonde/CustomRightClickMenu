@@ -1,19 +1,23 @@
-/// <reference path="../../../tools/definitions/crmapp.d.ts" />
+/// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/tern.d.ts" />
-window.runOrAddAsCallback = function (toRun, thisElement, params) {
+function runOrAddAsCallback(toRun, thisElement, params) {
     if (window.app.settings) {
         toRun.apply(thisElement, params);
     }
     else {
         window.app.addSettingsReadyCallback(toRun, thisElement, params);
     }
-};
+}
+;
 if (!document.createElement('div').animate) {
     HTMLElement.prototype.animate = function (properties, options) {
         if (!properties[1]) {
             return {
                 play: function () { },
-                reverse: this.play
+                reverse: function () { },
+                effect: {
+                    target: this
+                }
             };
         }
         var element = this;
@@ -33,6 +37,9 @@ if (!document.createElement('div').animate) {
             reverse: function () {
                 direction = 'backwards';
                 this.play();
+            },
+            effect: {
+                target: this
             }
         };
         $(this).animate(properties[1], options.duration, function () {
@@ -47,26 +54,6 @@ if (!document.createElement('div').animate) {
         return returnVal;
     };
     HTMLElement.prototype.animate.isJqueryFill = true;
-}
-/**
- * Inserts the value into given array
- */
-function insertInto(toAdd, target, position) {
-    if (position === void 0) { position = null; }
-    if (position) {
-        var temp1, i;
-        var temp2 = toAdd;
-        for (i = position; i < target.length; i++) {
-            temp1 = target[i];
-            target[i] = temp2;
-            temp2 = temp1;
-        }
-        target[i] = temp2;
-    }
-    else {
-        target.push(toAdd);
-    }
-    return target;
 }
 var properties = {
     settings: {
@@ -98,6 +85,27 @@ var properties = {
 var CA = (function () {
     function CA() {
     }
+    /**
+     * Inserts the value into given array
+     */
+    CA.insertInto = function (toAdd, target, position) {
+        if (position === void 0) { position = null; }
+        if (position) {
+            var temp1, i;
+            var temp2 = toAdd;
+            for (i = position; i < target.length; i++) {
+                temp1 = target[i];
+                target[i] = temp2;
+                temp2 = temp1;
+            }
+            target[i] = temp2;
+        }
+        else {
+            target.push(toAdd);
+        }
+        return target;
+    };
+    ;
     CA.compareObj = function (firstObj, secondObj) {
         if (!secondObj) {
             if (!firstObj) {
@@ -389,7 +397,7 @@ var CA = (function () {
         if (this.isVersionUpdateTabX(this.versionUpdateTab, 1)) {
             var versionUpdateDialog = this.$['versionUpdateDialog'];
             if (!versionUpdateDialog.editor) {
-                versionUpdateDialog.editor = new window.CodeMirror(this.$['tryOutEditor'], {
+                versionUpdateDialog.editor = window.CodeMirror(this.$['tryOutEditor'], {
                     lineNumbers: true,
                     value: '//some javascript code\nvar body = document.getElementById(\'body\');\nbody.style.color = \'red\';\n\n',
                     scrollbarStyle: 'simple',
@@ -549,14 +557,17 @@ var CA = (function () {
                 if (settingsArr[0] === 'all') {
                     this.storageLocal.showOptions = settingsArr[2];
                     var rows = settingsArr.slice(6);
-                    var localStorageWrapper = function () {
-                        this.getItem = function (index) {
+                    var localStorageWrapper = (function () {
+                        function localStorageWrapper() {
+                        }
+                        localStorageWrapper.prototype.getItem = function (index) {
                             if (index === 'numberofrows') {
-                                return rows.length - 1;
+                                return '' + (rows.length - 1);
                             }
                             return rows[index];
                         };
-                    };
+                        return localStorageWrapper;
+                    }());
                     var crm = this.transferCRMFromOld(settingsArr[4], new localStorageWrapper());
                     this.settings.crm = crm;
                     this.editCRM.build(null, null, true);
@@ -1038,7 +1049,7 @@ var CA = (function () {
                         duration: 250,
                         easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
                     }).onfinish = function () {
-                        this.effect.target.style.opacity = 0.6;
+                        this.effect.target.style.opacity = '0.6';
                         window.doc['restoreChangesDialog'].open();
                         $('.pageCont').animate({
                             backgroundColor: 'white'
@@ -1074,7 +1085,7 @@ var CA = (function () {
                             duration: 250,
                             easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
                         }).onfinish = function () {
-                            this.effect.target.style.opacity = 1;
+                            this.effect.target.style.opacity = '1';
                         };
                         setTimeout(function () {
                             stopHighlighting(crmElement);
@@ -3526,13 +3537,13 @@ CA.crm = (function () {
     CRMAppCRMFunctions.add = function (value, position) {
         if (position === void 0) { position = 'last'; }
         if (position === 'first') {
-            this.parent().settings.crm = insertInto(value, this.parent().settings.crm, 0);
+            this.parent().settings.crm = this.parent().insertInto(value, this.parent().settings.crm, 0);
         }
         else if (position === 'last' || position === undefined) {
             this.parent().settings.crm[this.parent().settings.crm.length] = value;
         }
         else {
-            this.parent().settings.crm = insertInto(value, this.parent().settings.crm);
+            this.parent().settings.crm = this.parent().insertInto(value, this.parent().settings.crm);
         }
         window.app.upload();
         window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
@@ -3548,11 +3559,11 @@ CA.crm = (function () {
         var newTarget = this.lookup(target, true);
         var targetIndex = target[target.length - 1];
         if (sameColumn && toMoveIndex > targetIndex) {
-            insertInto(toMoveItem, newTarget, targetIndex);
+            this.parent().insertInto(toMoveItem, newTarget, targetIndex);
             toMoveContainer.splice((~~toMoveIndex) + 1, 1);
         }
         else {
-            insertInto(toMoveItem, newTarget, targetIndex);
+            this.parent().insertInto(toMoveItem, newTarget, targetIndex);
             toMoveContainer.splice(toMoveIndex, 1);
         }
         window.app.upload();

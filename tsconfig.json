@@ -3,6 +3,7 @@
         "jsx": "react",
         "module": "commonjs",
         "noImplicitAny": true,
+        "noImplicitThis": true,
         "removeComments": false,
         "preserveConstEnums": false,
         "sourceMap": false,
@@ -14,6 +15,6 @@
     "allowJs": true,
     "compileOnSave": true,
     "include": [
-		"app/"
-	]
+        "app/"
+    ]
 }
