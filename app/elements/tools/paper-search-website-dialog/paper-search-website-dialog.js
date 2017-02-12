@@ -370,6 +370,15 @@ PSWD.fitted = true;
 /**
  * All the windows' id's of this dialog
  */
-PSWD.windows = ['initialWindow', 'chooseDefaultSearchWindow', 'manuallyInputSearchWebsiteWindow', 'processedListWindow', 'confirmationWindow', 'howToOpenWindow', 'successWindow', 'loadingWindow'];
+PSWD.windows = [
+    'initialWindow',
+    'chooseDefaultSearchWindow',
+    'manuallyInputSearchWebsiteWindow',
+    'processedListWindow',
+    'confirmationWindow',
+    'howToOpenWindow',
+    'successWindow',
+    'loadingWindow'
+];
 PSWD.properties = paperSearchWebsiteDialogProperties;
 Polymer(PSWD);

@@ -14,7 +14,7 @@ interface DividerEditBehaviorProperties extends NodeEditBehaviorProperties {
 	newSettings: Partial<DividerNode>;
 }
 
-type DividerEdit = PolymerElement<typeof DE & typeof dividerEditProperties>;
+type DividerEdit = PolymerElement<'divider-edit', typeof DE & typeof dividerEditProperties>;
 
 class DE {
 	static is: string = 'divider-edit';

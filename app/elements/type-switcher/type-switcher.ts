@@ -1,6 +1,6 @@
 ﻿/// <reference path="../elements.d.ts" />
 
-type TypeSwitcher = PolymerElement<typeof TS>;
+type TypeSwitcher = PolymerElement<'type-switcher', typeof TS>;
 
 class TS {
 	static is: string = 'type-switcher';
@@ -287,7 +287,7 @@ class TS {
 			paperToast.on('click', function() {
 				reverseMenuTypeChoice(columnCont);
 			});
-			(paperToast[0] as PaperToast).show();
+			(paperToast[0] as HTMLPaperToastElement).show();
 			setTimeout(function() {
 				paperToast.off('click', function() {
 					reverseMenuTypeChoice(columnCont);

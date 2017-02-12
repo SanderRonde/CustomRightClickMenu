@@ -95,7 +95,7 @@ const centerElementProperties: {
 	}
 } as any;
 
-type CenterElement = PolymerElement<typeof CE & typeof centerElementProperties>;
+type CenterElement = PolymerElement<'center-element', typeof CE & typeof centerElementProperties>;
 
 class CE {
 	static is: string = 'center-element';

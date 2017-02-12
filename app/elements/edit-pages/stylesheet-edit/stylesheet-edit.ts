@@ -14,7 +14,7 @@ interface StylesheetEditBehaviorProperties extends NodeEditBehaviorProperties {
 	newSettings: Partial<StylesheetNode>;
 }
 
-type StylesheetEdit = PolymerElement<typeof STE & typeof stylesheetEditProperties>;;
+type StylesheetEdit = PolymerElement<'stylesheet-edit', typeof STE & typeof stylesheetEditProperties>;;
 
 class STE {
 	static is: any = 'stylesheet-edit';
@@ -148,7 +148,7 @@ class STE {
 
 	//#region Dialog
 	static getExportData(this: NodeEditBehaviorStylesheetInstance): StylesheetNode {
-		($('stylesheet-edit #exportMenu paper-menu')[0] as PaperMenu).selected = 0;
+		($('stylesheet-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings = {};
 		this.save(null, settings);
 		return settings as StylesheetNode;
@@ -531,7 +531,7 @@ class STE {
 		this.settingsShadow[0].parentElement.style.height = editorHeight + '';
 		this.fullscreenEl.style.display = 'none';
 		var settingsInitialMarginLeft = -500;
-		($('#editorThemeFontSizeInput')[0] as PaperInput).value = window.app.settings.editor.zoom;
+		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
 
 		this.settingsShadow.css({
 			width: '50px',
@@ -742,7 +742,7 @@ class STE {
 
 		function updateTabSizeEl() {
 			setTimeout(function() {
-				window.app.settings.editor.tabSize = (tabSize.find('input')[0] as PaperInput).value;
+				window.app.settings.editor.tabSize = (tabSize.find('input')[0] as HTMLPaperInputElement).value;
 				window.app.upload();
 			}, 0);
 		}
@@ -856,8 +856,8 @@ class STE {
 	static init(this: NodeEditBehaviorStylesheetInstance) {
 		var _this = this;
 		this._init();
-		(this.$['dropdownMenu'] as PaperDropdownMenu).init();
-		(this.$['exportMenu'] as PaperDropdownMenu).init();
+		this.$['dropdownMenu'].init();
+		this.$['exportMenu'].init();
 		this.$['exportMenu'].querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 		this.initDropdown();
 		document.body.classList.remove('editingScript');

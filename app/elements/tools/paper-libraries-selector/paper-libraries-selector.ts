@@ -65,7 +65,7 @@ interface LibrarySelectorLibrary {
 	selected?: 'true'|'false';
 }
 
-type PaperLibrariesSelectorBase = PolymerElement<
+type PaperLibrariesSelectorBase = PolymerElement<'paper-libraries-selector',
 	typeof PLS & typeof paperLibrariesSelectorProperties
 >;
 
@@ -179,9 +179,9 @@ class PLS {
 		window.doc['addLibraryProcessContainer'].style.display = 'none';
 		window.doc['addLibraryLoadingDialog'].style.display = 'flex';
 		setTimeout(function() {
-			(window.doc['addLibraryConfirmationInput'] as PaperInput).value = code;
+			window.doc['addLibraryConfirmationInput'].value = code;
 			window.doc['addLibraryConfirmAddition'].addEventListener('click', function () {
-				(window.doc['addLibraryConfirmationInput'] as PaperInput).value = '';
+				window.doc['addLibraryConfirmationInput'].value = '';
 				_this.addLibraryFile(_this, name, code, url);
 			});
 			window.doc['addLibraryDenyConfirmation'].addEventListener('click', function() {
@@ -190,7 +190,7 @@ class PLS {
 				window.doc['addLibraryConfirmAddition'].removeEventListener('click');
 				window.doc['addLibraryDenyConfirmation'].removeEventListener('click');
 				window.doc['addLibraryUrlInput'].removeAttribute('invalid');
-				(window.doc['addLibraryConfirmationInput'] as PaperInput).value = '';
+				window.doc['addLibraryConfirmationInput'].value = '';
 			});
 			window.doc['addLibraryLoadingDialog'].style.display = 'none';
 			window.doc['addLibraryConfirmationContainer'].style.display = 'block';
@@ -246,7 +246,7 @@ class PLS {
 					window.doc['addLibraryDialogSuccesCheckmark'].style.display = 'block';
 					window.doc['addLibraryDialogSuccesCheckmark'].classList.add('animateIn');
 					setTimeout(function() {
-						(window.doc['addLibraryDialog'] as PaperDialog).toggle();
+						window.doc['addLibraryDialog'].toggle();
 						window.doc['addLibraryDialogSucces'].style.display = 'none';
 						window.doc['addLibraryLoadingDialog'].style.display = 'block';
 					}, 2500);
@@ -259,14 +259,14 @@ class PLS {
 		var _this = this;
 		if (e.target.classList.contains('addLibrary')) {
 			//Add new library dialog
-			(window.doc['addedLibraryName'] as PaperInput).value = '';
-			(window.doc['addLibraryUrlInput'] as PaperInput).value = '';
-			(window.doc['addLibraryManualInput'] as PaperInput).value = '';
-			(window.doc['addLibraryDialog'] as PaperDialog).toggle();
+			window.doc['addedLibraryName'].value = '';
+			window.doc['addLibraryUrlInput'].value = '';
+			window.doc['addLibraryManualInput'].value = '';
+			window.doc['addLibraryDialog'].toggle();
 			$(window.doc['addLibraryDialog'])
 				.find('#addLibraryButton')
 				.on('click', function(this: HTMLElement) {
-					var name = (window.doc['addedLibraryName'] as PaperInput).value;
+					var name = window.doc['addedLibraryName'].value;
 					var taken = false;
 					for (var i = 0; i < _this.installedLibraries.length; i++) {
 						if (_this.installedLibraries[i].name === name) {
@@ -275,8 +275,8 @@ class PLS {
 					}
 					if (name !== '' && !taken) {
 						this.removeAttribute('invalid');
-						if ((window.doc['addLibraryRadios'] as PaperRadioGroup).selected === 'url') {
-							var libraryInput = window.doc['addLibraryUrlInput'] as PaperInput;
+						if (window.doc['addLibraryRadios'].selected === 'url') {
+							var libraryInput = window.doc['addLibraryUrlInput'];
 							var url = libraryInput.value;
 							if (url[0] === '/' && url[1] === '/') {
 								url = 'http:' + url;
@@ -290,15 +290,15 @@ class PLS {
 								libraryInput.setAttribute('invalid', 'true');
 							});
 						} else {
-							_this.addLibraryFile(_this, name, (window.doc['addLibraryManualInput'] as PaperInput).value);
+							_this.addLibraryFile(_this, name, window.doc['addLibraryManualInput'].value);
 						}
 					} else {
 						if (taken) {
-							(window.doc['addedLibraryName'] as PaperInput).errorMessage = 'That name is already taken';
+							window.doc['addedLibraryName'].errorMessage = 'That name is already taken';
 						} else {
-							(window.doc['addedLibraryName'] as PaperInput).errorMessage = 'Please enter a name';
+							window.doc['addedLibraryName'].errorMessage = 'Please enter a name';
 						}
-						(window.doc['addedLibraryName'] as PaperInput).invalid = true;
+						window.doc['addedLibraryName'].invalid = true;
 					}
 				});
 		}

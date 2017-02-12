@@ -192,7 +192,6 @@ var IC = (function () {
     };
     ;
     IC.loadEditor = function (_this) {
-        var placeHolder = $(_this.$['editorPlaceholder']);
         !_this.settings.editor && (_this.settings.editor = {
             useTabs: true,
             theme: 'dark',

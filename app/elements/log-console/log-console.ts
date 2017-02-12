@@ -70,7 +70,7 @@ interface ContextMenuElement extends HTMLElement {
 	source: ContextMenuSource;
 }
 
-type LogConsole = PolymerElement<typeof LC & typeof logConsoleProperties>;
+type LogConsole = PolymerElement<'log-console', typeof LC & typeof logConsoleProperties>;
 
 class LC {
 	static is: string = 'log-console';
@@ -90,11 +90,11 @@ class LC {
 	static done: boolean;
 
 	static _hideGenericToast(this: LogConsole) {
-		(this.$['genericToast'] as PaperToast).hide();
+		this.$['genericToast'].hide();
 	};
 
 	static _textFilterChange(this: LogConsole) {
-		this.set('textfilter', (this.$['textFilter'] as PaperInput).value);
+		this.set('textfilter', this.$['textFilter'].value);
 	};
 
 	static _takeToTab(this: LogConsole, event: PolymerClickEvent) {
@@ -104,8 +104,8 @@ class LC {
 		
 		chrome.tabs.get(~~tabId, function(tab) {
 			if (chrome.runtime.lastError) {
-				(_this.$['genericToast'] as PaperToast).text = 'Tab has been closed';
-				(_this.$['genericToast'] as PaperToast).show();
+				_this.$['genericToast'].text = 'Tab has been closed';
+				_this.$['genericToast'].show();
 				return;
 			}
 
@@ -126,7 +126,7 @@ class LC {
 	};
 
 	static _fixTextareaLines(this: LogConsole) {
-		this.$['consoleInput'].setAttribute('rows', ((this.$['consoleInput'] as PaperInput).value.split('\n').length || 1) + '');
+		this.$['consoleInput'].setAttribute('rows', (this.$['consoleInput'].value.split('\n').length || 1) + '');
 		this.$['linesCont'].scrollTop = this.$['linesCont'].scrollHeight;
 	};
 
@@ -167,8 +167,8 @@ class LC {
 	static _inputKeypress(this: LogConsole, event: KeyboardEvent) {
 		if (event.key === 'Enter') {
 			if (!event.shiftKey) {
-				this._executeCode((this.$['consoleInput'] as PaperInput).value);
-				(this.$['consoleInput'] as PaperInput).value = '';
+				this._executeCode(this.$['consoleInput'].value);
+				this.$['consoleInput'].value = '';
 				this.$['consoleInput'].setAttribute('rows', '1');
 			} else {
 				this.async(this._fixTextareaLines, 10);
@@ -305,7 +305,7 @@ class LC {
 			var menus = Array.prototype.slice.apply(document.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
 			menus.forEach(function(menu) {
 				menu.onopen = function() {
-					(menu.querySelector('template') as DomRepeat).render();
+					(menu.querySelector('template') as HTMLDomRepeatElement).render();
 					_this.async(function() {
 						menu.refreshListeners.apply(menu);
 					}, 100);
@@ -328,7 +328,7 @@ class LC {
 	};
 
 	static _contextStoreAsLocal(this: LogConsole) {
-		var source = (this.$['contextMenu'] as ContextMenuElement).source;
+		var source = this.$['contextMenu'].source;
 		var sourceVal = source.props.value;
 
 		//Get the LogLine
@@ -361,7 +361,7 @@ class LC {
 	};
 
 	static _contextLogValue(this: LogConsole) {
-		var source = (this.$['contextMenu'] as ContextMenuElement).source;
+		var source = this.$['contextMenu'].source;
 		this.logLines.add([source.props.value as LogLineData], {
 			id: 'local',
 			tabId: 'local',
@@ -394,7 +394,7 @@ class LC {
 	};
 
 	static _contextCopyAsJSON(this: LogConsole) {
-		var value = (this.$['contextMenu'] as ContextMenuElement).source.props.value;
+		var value = this.$['contextMenu'].source.props.value;
 		this._copy(JSON.stringify(value, function(key, value) {
 			if (key === '__parent' || key === '__proto__') {
 				return undefined;
@@ -405,7 +405,7 @@ class LC {
 
 	static _contextCopyPath(this: LogConsole, noCopy: boolean = false): string|boolean {
 		var path = [];
-		var source = (this.$['contextMenu'] as ContextMenuElement).source;
+		var source = this.$['contextMenu'].source;
 		var childValue = source.props.value;
 		while (source.props.parent && !source.props.parent.isLine()) {
 			source = source.props.parent;
@@ -460,7 +460,7 @@ class LC {
 	};
 
 	static initContextMenu(this: LogConsole, source: ContextMenuSource, event: MouseEvent) {
-		var contextMenu = this.$['contextMenu'] as ContextMenuElement;
+		var contextMenu = this.$['contextMenu'];
 		contextMenu.style.left = event.clientX + 'px';
 		contextMenu.style.top = event.clientY + 'px';
 		contextMenu.source = source;

@@ -2,7 +2,7 @@
 /// <reference path="../../app/elements/fileIdMaps.d.ts" />
 
 interface PolymerInitializerProperties {
-	is: string;
+	is?: string;
 	properties?: {
 		[key: string]: {
 			type?: any;
@@ -38,6 +38,8 @@ interface PolymerMouseEvent {
 	};
 	target: PossiblePolymerElement;
 	type: 'tap'|'drag';
+	stopPropagation(): void;
+	preventDefault(): void;
 }
 
 interface PolymerClickEvent extends PolymerMouseEvent {
@@ -54,9 +56,9 @@ interface PolymerDragEvent extends PolymerMouseEvent {
 	type: 'drag';
 }
 
-type PossiblePolymerElement = HTMLElement | PaperIconButton | PaperDialog | PaperInput |
-	PaperCheckbox | CenterElement | DomRepeat | PaperToggleOption | PaperToast |
-	DefaultLink | EchoHtml | DividerEdit | PaperRadioGroup;
+type PossiblePolymerElement = HTMLElement | HTMLPaperIconButtonElement | HTMLPaperDialogElement | HTMLPaperInputElement |
+	HTMLPaperCheckboxElement | CenterElement | HTMLDomRepeatElement | PaperToggleOption | HTMLPaperToastElement |
+	DefaultLink | EchoHtml | DividerEdit | HTMLPaperRadioGroupElement;
 
 interface PolymerElementBase {
 	$$(selector: string): HTMLElement;
@@ -68,7 +70,7 @@ interface PolymerElementBase {
 	notifyPath(path: string, value: any): void;
 }
 
-type PolymerElement<, N extends keyof IDMap, T extends PolymerInitializerProperties> = 
+type PolymerElement<N extends keyof IDMap, T extends PolymerInitializerProperties> = 
 	HTMLElementCopy & T & PolymerElementBase & {
 		$: IDMap[N]	
 	};
@@ -76,7 +78,7 @@ type PolymerElement<, N extends keyof IDMap, T extends PolymerInitializerPropert
 declare const Polymer: Polymer;
 
 //Polymer elements
-interface PaperIconButton extends HTMLElement {
+interface HTMLPaperIconButtonElement extends HTMLElement {
 	icon: string;
 }
 
@@ -88,29 +90,28 @@ interface PaperDialogBase extends HTMLElement {
 	fit(): void;
 }
 
-interface PaperDialog extends PaperDialogBase {
+interface HTMLPaperDialogElement extends PaperDialogBase {
 	init(): void;
 }
 
-interface PaperToast extends HTMLElement {
+interface HTMLPaperToastElement extends HTMLElement {
 	hide(): void;
 	show(): void;
 	text: string;
 	duration: number;
 }
 
-interface PaperInput extends HTMLElement {
-	value: string;
+interface HTMLPaperInputElement extends HTMLInputElement {
 	invalid: boolean;
 	errorMessage: string;
 }
 
-interface PaperCheckbox extends HTMLElement {
+interface HTMLPaperCheckboxElement extends HTMLElement {
 	checked: boolean;
 	disabled: boolean;
 }
 
-interface DomRepeat extends HTMLTemplateElement {
+interface HTMLDomRepeatElement extends HTMLTemplateElement {
 	items: Array<any>;
 	as: string;
 	render(): void;
@@ -120,22 +121,57 @@ interface ElementListTagNameMap {
 	'edit-crm-item': NodeListOf<EditCrmItem>;
 }
 
-interface PaperMenu extends HTMLElement {
+interface HTMLPaperMenuElement extends HTMLElement {
 	selected: number;
 }
 
-interface PaperSpinner extends HTMLElement {
+interface HTMLPaperSpinnerElement extends HTMLElement {
 	active?: boolean;
 }
 
-interface PaperRadioGroup extends HTMLElement {
+interface HTMLPaperRadioGroupElement extends HTMLElement {
 	selected: string;
 }
 
-interface PaperRadioButton extends HTMLElement {
+interface HTMLPaperRadioButtonElement extends HTMLElement {
 	checked: boolean;
 }
 
-interface PaperMaterial extends HTMLElement {
+interface HTMLPaperMaterialElement extends HTMLElement {
 	elevation: string;
 }
+
+interface HTMLPaperButtonElement extends HTMLElement {
+	
+}
+
+interface HTMLPaperTextareaElement extends HTMLTextAreaElement {
+	invalid: boolean;
+}
+
+interface HTMLPaperItemElement extends HTMLElement {
+
+}
+
+interface HTMLPaperToggleButtonElement extends HTMLElement {
+
+}
+
+interface HTMLPaperToolbarElement extends HTMLElement {
+
+}
+
+interface SVGElement {
+	readonly style: CSSStyleDeclaration;
+}
+
+type HTMLPaperLibrariesSelectorElement = PaperLibrariesSelector;
+type HTMLPaperGetPagePropertiesElement = PaperGetPageProperties;
+type HTMLCrmEditPageElement = CrmEditPage;
+type HTMLPaperToggleOptionElement = PaperToggleOption;
+type HTMLEditCrmElement = EditCrm;
+type HTMLCenterElementElement = CenterElement;
+type HTMLPaperSearchWebsiteDialogElement = PaperSearchWebsiteDialog;
+type HTMLUseExternalEditorElement = UseExternalEditor;
+type HTMLTypeSwitcherElement = TypeSwitcher;
+type HTMLPaperDropdownMenuElement = PaperDropdownMenu;

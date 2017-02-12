@@ -19,8 +19,9 @@ const EditCrmItemProperties: {
 	}
 } as any;
 
-type EditCrmItem = PolymerElement<typeof ECI & typeof EditCrmItemProperties> & 
-	DraggableNodeBehavior;
+type EditCrmItem = PolymerElement<'edit-crm-item', 
+	typeof ECI & typeof EditCrmItemProperties> & 
+		DraggableNodeBehavior;
 
 class ECI {
 	static is: string = 'edit-crm-item';
@@ -122,7 +123,7 @@ class ECI {
 			this.calculateType();
 			this.itemIndex = this.index;
 			this.init();
-			this.$['typeSwitcher'] && (this.$['typeSwitcher'] as TypeSwitcher).ready && (this.$['typeSwitcher'] as TypeSwitcher).ready();
+			this.$['typeSwitcher'] && this.$['typeSwitcher'].ready && this.$['typeSwitcher'].ready();
 
 			if (window.app.editCRM.isSelecting) {
 				this.classList.add('selecting');
@@ -134,15 +135,15 @@ class ECI {
 			}
 		}
 		if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
-			(this.$['typeSwitcher'] as TypeSwitcher).addEventListener('mouseenter', function() {
+			this.$['typeSwitcher'].addEventListener('mouseenter', function() {
 				_this.typeIndicatorMouseOver.apply(_this, []);
 			});
-			(this.$['typeSwitcher'] as TypeSwitcher).addEventListener('mouseleave', function() {
+			this.$['typeSwitcher'].addEventListener('mouseleave', function() {
 				_this.typeIndicatorMouseLeave.apply(_this, []);
 			});
 		} else {
 			var hoveringTypeSwitcher = false;
-			(this.$['typeSwitcher'] as TypeSwitcher).addEventListener('mouseover', function(e) {
+			this.$['typeSwitcher'].addEventListener('mouseover', function(e: MouseEvent) {
 				e.preventDefault();
 				e.stopPropagation();
 				if (!hoveringTypeSwitcher) {
@@ -175,8 +176,8 @@ class ECI {
 
 	//#region editPageFunctions
 	static selectThisNode(this: EditCrmItem) {
-		var prevState = (this.$['checkbox'] as PaperCheckbox).checked;
-		(this.$['checkbox'] as PaperCheckbox).checked = !prevState;
+		var prevState = this.$['checkbox'].checked;
+		this.$['checkbox'].checked = !prevState;
 		if (document.getElementsByClassName('highlighted').length === 0) {
 			this.classList.add('firstHighlighted');
 		}
@@ -299,12 +300,12 @@ class ECI {
 		var relation = this.getNodesOrder(firstHighlightedItem, this.item);
 		if (relation === 'same') {
 			this.classList.add('highlighted');
-			(this.$['checkbox'] as PaperCheckbox).checked = true;
+			this.$['checkbox'].checked = true;
 			window.app.editCRM.selectedElements = [this.item.id];
 		}
 		else {
 			firstHighlightedNode.classList.add('highlighted');
-			(firstHighlightedNode.$['checkbox'] as PaperCheckbox).checked = true;
+			firstHighlightedNode.$['checkbox'].checked = true;
 			window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
 
 			var wait = 0;
@@ -319,7 +320,7 @@ class ECI {
 			//Finally select this node
 			window.setTimeout(function() {
 				_this.classList.add('highlighted');
-				(_this.$['checkbox'] as PaperCheckbox).checked = true;
+				_this.$['checkbox'].checked = true;
 				window.app.editCRM.selectedElements.push(_this.item.id);
 			}, wait);
 		}
@@ -379,7 +380,7 @@ class ECI {
 		var _this = this;
 		this.lastTypeSwitchMouseover = null;
 		if (!this.shadow) {
-			var typeSwitcher = this.$['typeSwitcher'] as TypeSwitcher;
+			var typeSwitcher = this.$['typeSwitcher'];
 			if (typeSwitcher.toggledOpen) {
 				typeSwitcher.closeTypeSwitchContainer(true, function() {
 					typeSwitcher.toggledOpen = false;
@@ -405,7 +406,7 @@ class ECI {
 
 	static onSelect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 		this.classList.add('highlighted');
-		selectCheckbox && ((this.$['checkbox'] as PaperCheckbox).checked = true);
+		selectCheckbox && (this.$['checkbox'].checked = true);
 		if (this.item.children && !dontSelectChildren) {
 			for (var i = 0; i < this.item.children.length; i++) {
 				setTimeout(this._getOnSelectFunction(this, i), (i * 35));
@@ -422,7 +423,7 @@ class ECI {
 
 	static onDeselect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 		this.classList.remove('highlighted');
-		selectCheckbox && ((this.$['checkbox'] as PaperCheckbox).checked = false);
+		selectCheckbox && (this.$['checkbox'].checked = false);
 		if (this.item.children && !dontSelectChildren) {
 			var selectedPaths = window.app.editCRM.selectedElements;
 			for (var i = 0; i < this.item.children.length; i++) {
@@ -435,7 +436,7 @@ class ECI {
 	static onToggle(this: EditCrmItem) {
 		var _this = this;
 		setTimeout(function () {
-			if ((_this.$['checkbox'] as PaperCheckbox).checked) {
+			if (_this.$['checkbox'].checked) {
 				_this.onSelect();
 			} else {
 				_this.onDeselect();

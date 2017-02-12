@@ -79,9 +79,15 @@ const paperSearchWebsiteDialogProperties: {
 	}
 } as any;
 
-type PaperSearchWebsiteDialog = PolymerElement<
+type PaperSearchWebsiteDialog = PolymerElement<'paper-search-website-dialog',
 	typeof PSWD & typeof paperSearchWebsiteDialogProperties
 >;
+
+type PaperSearchWebsiteDialogWindow = 'initialWindow'|
+		'chooseDefaultSearchWindow'|
+		'manuallyInputSearchWebsiteWindow'|
+		'processedListWindow'|'confirmationWindow'|
+		'howToOpenWindow'|'successWindow'|'loadingWindow';
 
 class PSWD {
 	static is: any = 'paper-search-website-dialog';
@@ -100,7 +106,17 @@ class PSWD {
 	/**
 	 * All the windows' id's of this dialog
 	 */
-	static windows: Array<string> = ['initialWindow', 'chooseDefaultSearchWindow', 'manuallyInputSearchWebsiteWindow', 'processedListWindow', 'confirmationWindow', 'howToOpenWindow', 'successWindow', 'loadingWindow'];
+	static windows: Array<PaperSearchWebsiteDialogWindow> =
+		[
+			'initialWindow',
+			'chooseDefaultSearchWindow',
+			'manuallyInputSearchWebsiteWindow',
+			'processedListWindow',
+			'confirmationWindow',
+			'howToOpenWindow',
+			'successWindow',
+			'loadingWindow'
+		];
 
 	static properties = paperSearchWebsiteDialogProperties;
 	//#endregion
@@ -145,7 +161,7 @@ class PSWD {
 	/**
 	 * Switches to given window, hiding the rest
 	 */
-	static switchToWindow(this: PaperSearchWebsiteDialog, window: string) {
+	static switchToWindow(this: PaperSearchWebsiteDialog, window: PaperSearchWebsiteDialogWindow) {
 		this.hideAllWindows(window);
 		if (window === 'successWindow') {
 			this.$['successWindow'].setAttribute('style', 'display:block;');
@@ -162,25 +178,25 @@ class PSWD {
 	 * Switches to the window specified in the button's attributes
 	 */
 	static switchWindow(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
-		this.switchToWindow(event.target.parentElement.getAttribute('window'));
+		this.switchToWindow(event.target.parentElement.getAttribute('window') as PaperSearchWebsiteDialogWindow);
 	};
 
 	/**
 	 * Loads given window if the promise is fulfilled, if the promise returns an error it switches to the previous window
 	 */
-	static loadWindow(this: PaperSearchWebsiteDialog, window: string, promiser: Promiser) {
+	static loadWindow(this: PaperSearchWebsiteDialog, window: PaperSearchWebsiteDialogWindow, promiser: Promiser) {
 		var _this = this;
-		var spinner = $(this).find('paper-spinner')[0] as PaperSpinner;
+		var spinner = $(this).find('paper-spinner')[0] as HTMLPaperSpinnerElement;
 		spinner.active = true;
 		this.hideAllWindows('loadingWindow');
 		this.$['loadingWindow'].style.display = 'block';
 		this.fit();
 		promiser.apply(this)(function() {
-			(_this.$['manualInputListChoiceInput'] as PaperInput).invalid = false;
+			_this.$['manualInputListChoiceInput'].invalid = false;
 			_this.switchToWindow(window);
 			spinner.active = false;
 		}, function() {
-			(_this.$['manualInputListChoiceInput'] as PaperInput).invalid = true;
+			_this.$['manualInputListChoiceInput'].invalid = true;
 			spinner.active = false;
 		});
 	};
@@ -215,7 +231,7 @@ class PSWD {
 	 * Go back one window and clear the manualInput textarea
 	 */
 	static backFromManualInput(this: PaperSearchWebsiteDialog) {
-		(this.$['manualInputListChoiceInput'] as PaperInput).value = '';
+		this.$['manualInputListChoiceInput'].value = '';
 		this.goBackWindow();
 	};
 
@@ -226,7 +242,7 @@ class PSWD {
 		var _this = this;
 		return function(resolve: (value?: any) => void, reject: (value?: any) => void) {
 			var worker = new Worker('elements/tools/paper-search-website-dialog/searchEngineWorker.js');
-			var data = (_this.$['manualInputListChoiceInput'] as PaperInput).value;
+			var data = _this.$['manualInputListChoiceInput'].value;
 
 			worker.addEventListener('message', function(e) {
 				var structuredSearchEngines = e.data.searchEngines;
@@ -256,7 +272,7 @@ class PSWD {
 	 */
 	static processManualInput(this: PaperSearchWebsiteDialog) {
 		if (this.selectedIsUrl) {
-			this.chosenUrl = (this.$['manualInputURLInput'] as PaperInput).value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
+			this.chosenUrl = this.$['manualInputURLInput'].value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
 			this.switchToWindow('confirmationWindow');
 		}
 		else {
@@ -268,7 +284,7 @@ class PSWD {
 	 * Apply the choice from the manual choice dialog
 	 */
 	static applyDefaultsUrls(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
-		switch ((this.$['searchWebsitesRadioGroup'] as PaperRadioGroup).selected) {
+		switch (this.$['searchWebsitesRadioGroup'].selected) {
 			case 'google':
 				this.chosenUrl = 'https://www.google.com/search?q=%s';
 				break;
@@ -289,7 +305,7 @@ class PSWD {
 	 * Confirms the choice of one of the search engines from the list
 	 */
 	static confirmManualSearchListInput(this: PaperSearchWebsiteDialog) {
-		this.chosenUrl = ($(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0] as PaperRadioButton & {
+		this.chosenUrl = ($(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement & {
 			url: string;
 		}).url;
 		this.switchToWindow('confirmationWindow');
@@ -299,12 +315,12 @@ class PSWD {
 	 * Cancels all radio buttons and checks the one you just clicked
 	 */
 	static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: PolymerClickEvent) {
-		($(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0] as PaperRadioButton).checked = false;
+		($(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement).checked = false;
 		var node = e.target;
 		while (node.tagName !== 'PAPER-RADIO-BUTTON') {
 			node = node.parentElement;
 		}
-		(node as PaperRadioButton).checked = true;
+		(node as HTMLPaperRadioButtonElement).checked = true;
 		this.disableManualButton = false;
 	};
 
@@ -312,7 +328,7 @@ class PSWD {
 	 * Confirms the initial window's choice, choosing between going for a default search url, or finding one yourself
 	 */
 	static confirmInitialChoice(this: PaperSearchWebsiteDialog) {
-		if ((this.$['initialWindowChoicesCont'] as PaperRadioGroup).selected === 'defaults') {
+		if (this.$['initialWindowChoicesCont'].selected === 'defaults') {
 			this.switchToWindow('chooseDefaultSearchWindow');
 		}
 		else {
@@ -326,7 +342,7 @@ class PSWD {
 	 * Clears all inputted information
 	 */
 	static clear(this: PaperSearchWebsiteDialog) {
-		(this.$['initialWindowChoicesCont'] as PaperRadioGroup).selected = 'defaults';
+		this.$['initialWindowChoicesCont'].selected = 'defaults';
 		this.switchToWindow('initialWindow');
 		this.searchList = [];
 	};
@@ -350,21 +366,21 @@ class PSWD {
 	 * Toggles the dialog
 	 */
 	static toggle(this: PaperSearchWebsiteDialog) {
-		(this.$['paperSearchWebsiteDialog'] as PaperDialog).toggle();
+		this.$['paperSearchWebsiteDialog'].toggle();
 	};
 
 	/**
 	 * Shows the dialog
 	 */
 	static show(this: PaperSearchWebsiteDialog) {
-		(this.$['paperSearchWebsiteDialog'] as PaperDialog).open();
+		this.$['paperSearchWebsiteDialog'].open();
 	};
 
 	/**
 	 * Hides the dialog
 	 */
 	static hide(this: PaperSearchWebsiteDialog) {
-		(this.$['paperSearchWebsiteDialog'] as PaperDialog).close();
+		this.$['paperSearchWebsiteDialog'].close();
 	};
 
 	/**
@@ -392,7 +408,7 @@ class PSWD {
 	 * Fits the dialog propertly
 	 */
 	static fit(this: PaperSearchWebsiteDialog) {
-		(this.$['paperSearchWebsiteDialog'] as PaperDialog).fit();
+		this.$['paperSearchWebsiteDialog'].fit();
 	}
 	//#endregion
 }

@@ -51,9 +51,7 @@ interface Window {
 	unescape(str: string): string;
 	md5: (input: any) => string;
 
-	doc: {
-		[key: string]: PossiblePolymerElement;
-	};
+	doc: IDMap['crm-app'];
 	logElements?: {
 		logLines: any;
 	}

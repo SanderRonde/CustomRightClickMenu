@@ -1,6 +1,10 @@
 /// <reference path="../../elements.d.ts" />
 
-type UseExternalEditor = PolymerElement<typeof UEE>;
+type UseExternalEditor = PolymerElement<'use-external-editor', typeof UEE>;
+
+type ListeningHTMLElement = HTMLElement & {
+	listeners: Array<() => void>
+}
 
 interface SetupConnectionMessage {
 	status: 'connecting';
@@ -55,7 +59,8 @@ type ExternalEditorMessage = SetupConnectionMessage|PingMessage|ConnectedEditorM
 type ChooseFileDialog = PaperDialogBase & {
 	init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
 		updateErrors?: {
-			parseError: boolean;
+			parseError?: boolean;
+			generalError?: boolean;
 			newScript: Array<CursorPosition>;
 			oldScript: Array<CursorPosition>;
 		}): void;
@@ -163,7 +168,7 @@ class UEE {
 	 * @param {string} error - What went wrong
 	 */
 	static errorHandler(this: UseExternalEditor, error: string = 'Something went wrong') {
-		const toast = window.doc['externalEditorErrorToast'] as PaperToast;
+		const toast = window.doc['externalEditorErrorToast'];
 		toast.text = error;
 		toast.show();
 	};
@@ -252,7 +257,7 @@ class UEE {
 				var location = _this.connection.filePath;
 				location = location.replace(/\\/g, '/');
 				window.doc['externalEditoOpenLocationInBrowser'].setAttribute('href', 'file:///' + location);
-				const externalEditorLocationToast = window.doc['externalEditorLocationToast'] as PaperToast;
+				const externalEditorLocationToast = window.doc['externalEditorLocationToast'];
 				externalEditorLocationToast.text = 'File is located at: ' + location;
 				externalEditorLocationToast.show();
 			})
@@ -377,7 +382,7 @@ class UEE {
 		switch (msg.action) {
 			case 'chooseFile':
 				var _this = this;
-				const chooseFileDialog = window.doc['externalEditorChooseFile'] as ChooseFileDialog;
+				const chooseFileDialog = window.doc['externalEditorChooseFile'];
 				chooseFileDialog.init(msg.local, msg.external, function(result) {
 					if (result !== false) {
 						if (window.scriptEdit && window.scriptEdit.active) {
@@ -786,7 +791,7 @@ class UEE {
 				});
 			} else {
 				//No errors were found, show the toast
-				(window.doc['noErrorsFound'] as PaperToast).show();
+				window.doc['noErrorsFound'].show();
 			}
 		};
 	};
@@ -822,18 +827,14 @@ class UEE {
 			chooseFileDialog.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
 
 			var i;
-			var leftErrorButton = window.doc['updateMergeLeftNextError'] as HTMLElement & {
-				listeners: Array<() => void>
-			};
+			var leftErrorButton = window.doc['updateMergeLeftNextError'];
 			leftErrorButton.listeners = leftErrorButton.listeners || [];
 			for (i = 0; i < leftErrorButton.listeners.length; i++) {
 				leftErrorButton.removeEventListener('click', leftErrorButton.listeners[i]);
 			}
 			leftErrorButton.listeners = [];
 
-			var rightErrorButton = window.doc['updateMergeRightNextError'] as HTMLElement & {
-				listeners: Array<() => void>
-			};;
+			var rightErrorButton = window.doc['updateMergeRightNextError'];
 			rightErrorButton.listeners = rightErrorButton.listeners || [];
 			for (i = 0; i < rightErrorButton.listeners.length; i++) {
 				rightErrorButton.removeEventListener('click', rightErrorButton.listeners[i]);
@@ -904,10 +905,10 @@ class UEE {
 		};
 		window.doc['externalEditorTryAgainButton'].addEventListener('click', function() {
 			_this.establishConnection(true);
-			(window.doc['externalEditorErrorToast'] as PaperToast).hide();
+			window.doc['externalEditorErrorToast'].hide();
 		});
 		window.doc['chooseFileChooseFirst'].addEventListener('click', function() {
-			if ((window.doc['chooseFileRadioGroup'] as PaperRadioGroup).selected === 'local') {
+			if (window.doc['chooseFileRadioGroup'].selected === 'local') {
 				chooseFileDialog.callback(chooseFileDialog.local);
 			} else {
 				chooseFileDialog.callback(chooseFileDialog.file);

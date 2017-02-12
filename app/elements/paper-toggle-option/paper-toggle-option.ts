@@ -9,7 +9,7 @@ const paperToggleOptionProperties: {
 	}
 } as any;
 
-type PaperToggleOption = PolymerElement<typeof PTO & typeof paperToggleOptionProperties>;
+type PaperToggleOption = PolymerElement<'paper-toggle-option', typeof PTO & typeof paperToggleOptionProperties>;
 
 class PTO {
 	static is: string = 'paper-toggle-option';
@@ -17,7 +17,7 @@ class PTO {
 	static properties = paperToggleOptionProperties;
 	
 	static setCheckboxDisabledValue(this: PaperToggleOption, value: boolean) {
-		(this.$['checkbox'] as PaperCheckbox).disabled = value;
+		this.$['checkbox'].disabled = value;
 	};
 
 	static init(this: PaperToggleOption, storage: StorageLocal) {

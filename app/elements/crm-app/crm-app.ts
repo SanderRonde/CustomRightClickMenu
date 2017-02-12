@@ -23,6 +23,19 @@ interface JQueryContextMenu extends JQueryStatic {
 	bez(curve: Array<number>): string;
 }
 
+type VersionUpdateDialog = HTMLPaperDialogElement & {
+	editor: CodeMirror;
+}
+
+type ScriptUpdatesToast = HTMLPaperToastElement & {
+	index: number;
+	scripts: Array<{
+		name: string;
+		oldVersion: string;
+		newVersion: string;	
+	}>;
+}
+
 window.runOrAddAsCallback = function(toRun: Function, thisElement: HTMLElement, params: Array<any>): void {
 	if (window.app.settings) {
 		toRun.apply(thisElement, params);
@@ -173,7 +186,7 @@ type TransferOnErrorError = {
 type TransferOnError = (position: TransferOnErrorError,
 	passes: number) => void;
 
-type CrmApp = PolymerElement<typeof CA & typeof properties & {
+type CrmApp = PolymerElement<'crm-app', typeof CA & typeof properties & {
 	editCRM: EditCrm;
 }>;
 
@@ -394,7 +407,7 @@ class CA {
 		selection.removeAllRanges();
 		selection.addRange(snipRange);
 
-		const button: PaperIconButton = this.$['exportCopyButton'] as PaperIconButton;
+		const button = this.$['exportCopyButton'];
 		try {
 			document.execCommand('copy');
 			button.icon = 'done';
@@ -463,7 +476,7 @@ class CA {
 
 	static goNextVersionUpdateTab(this: CrmApp) {
 		if (this.versionUpdateTab === 4) {
-			(this.$['versionUpdateDialog'] as PaperDialog).close();
+			this.$['versionUpdateDialog'].close();
 		} else {
 			var nextTabIndex = this.versionUpdateTab + 1;
 			const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as Array<HTMLElement>;
@@ -586,9 +599,7 @@ class CA {
 
 	static versionUpdateChanged(this: CrmApp) {
 		if (this.isVersionUpdateTabX(this.versionUpdateTab, 1)) {
-			const versionUpdateDialog = this.$['versionUpdateDialog'] as PaperDialog & {
-				editor: CodeMirror;
-			};
+			const versionUpdateDialog = this.$['versionUpdateDialog'];
 			if (!versionUpdateDialog.editor) {
 				versionUpdateDialog.editor = window.CodeMirror(this.$['tryOutEditor'], {
 					lineNumbers: true,
@@ -665,7 +676,7 @@ class CA {
 			node = e.path[++index];
 		}
 
-		const input = node as PaperInput;
+		const input = node as HTMLPaperInputElement;
 
 		var excludeIndex = null;
 		var allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -718,8 +729,8 @@ class CA {
 	};
 
 	static importData(this: CrmApp) {
-		var dataString = (this.$['importSettingsInput'] as HTMLTextAreaElement).value;
-		if (!(this.$['oldCRMImport'] as PaperCheckbox).checked) {
+		var dataString = this.$['importSettingsInput'].value;
+		if (!this.$['oldCRMImport'].checked) {
 			let data: {
 				crm?: CRMTree;
 				local?: StorageLocal;
@@ -739,7 +750,7 @@ class CA {
 				return;
 			}
 
-			const overWriteImport = this.$['overWriteImport'] as PaperCheckbox;
+			const overWriteImport = this.$['overWriteImport'];
 			if (overWriteImport.checked && (data.local || data.storageLocal)) {
 				this.settings = data.nonLocal || this.settings;
 				this.storageLocal = data.local || this.storageLocal;
@@ -793,18 +804,18 @@ class CA {
 			local?: StorageLocal;
 			nonLocal?: SettingsStorage;
 		} = {} as any;
-		if ((this.$['exportCRM'] as PaperCheckbox).checked) {
+		if (this.$['exportCRM'].checked) {
 			toExport.crm = JSON.parse(JSON.stringify(_this.settings.crm));
 			for (var i = 0; i < toExport.crm.length; i++) {
 				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i] as CRMNode);
 			}
 		}
-		if ((this.$['exportSettings'] as PaperCheckbox).checked) {
+		if (this.$['exportSettings'].checked) {
 			toExport.local = _this.storageLocal;
 			toExport.nonLocal = JSON.parse(JSON.stringify(_this.settings));
 			delete toExport.nonLocal.crm;
 		}
-		(this.$['exportSettingsOutput'] as HTMLTextAreaElement).value = JSON.stringify(toExport);
+		this.$['exportSettingsOutput'].value = JSON.stringify(toExport);
 	};
 
 	static showManagePermissions(this: CrmApp) {
@@ -1001,7 +1012,7 @@ class CA {
 
 	static launchSearchWebsiteTool(this: CrmApp) {
 		if (this.item && this.item.type === 'script' && window.scriptEdit) {
-			const paperSearchWebsiteDialog = this.$['paperSearchWebsiteDialog'] as PaperDialog;
+			const paperSearchWebsiteDialog = this.$['paperSearchWebsiteDialog'];
 			paperSearchWebsiteDialog.init();
 			paperSearchWebsiteDialog.show();
 		}
@@ -1028,7 +1039,7 @@ class CA {
 	};
 
 	static showCssTips(this: CrmApp) {
-		(window.doc['cssEditorInfoDialog'] as PaperDialog).open();
+		window.doc['cssEditorInfoDialog'].open();
 	};
 
 	static addSettingsReadyCallback(this: CrmApp, callback: Function, thisElement: HTMLElement, params: Array<any>) {
@@ -1226,7 +1237,7 @@ class CA {
 					window.doc['restoreChangesOldCode'].style.display = 'none';
 					window.doc['restoreChangesUnsavedCode'].style.display = 'none';
 					window.doc['restoreChangesMain'].style.display = 'block';
-					(window.doc['restoreChangesDialog'] as PaperDialog).fit();
+					window.doc['restoreChangesDialog'].fit();
 				});
 				$('.discardButton').on('click', function() {
 					chrome.storage.local.set({
@@ -1264,14 +1275,14 @@ class CA {
 					window.doc['restoreChangesMain'].style.display = 'none';
 					window.doc['restoreChangesUnsavedCode'].style.display = 'none';
 					window.doc['restoreChangesOldCode'].style.display = 'flex';
-					(window.doc['restoreChangesDialog'] as PaperDialog).fit();
+					window.doc['restoreChangesDialog'].fit();
 					oldEditor.refresh();
 				});
 				window.doc['restoreChangesShowUnsaved'].addEventListener('click', function() {
 					window.doc['restoreChangesMain'].style.display = 'none';
 					window.doc['restoreChangesOldCode'].style.display = 'none';
 					window.doc['restoreChangesUnsavedCode'].style.display = 'flex';
-					(window.doc['restoreChangesDialog'] as PaperDialog).fit();
+					window.doc['restoreChangesDialog'].fit();
 					unsavedEditor.refresh();
 				});
 
@@ -1287,7 +1298,7 @@ class CA {
 						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 					}).onfinish = function(this: Animation) {
 						this.effect.target.style.opacity = '0.6';
-						(window.doc['restoreChangesDialog'] as PaperDialog).open();
+						window.doc['restoreChangesDialog'].open();
 						$('.pageCont').animate({
 							backgroundColor: 'white'
 						}, 200);
@@ -1329,7 +1340,7 @@ class CA {
 							stopHighlighting(crmElement);
 						}, 2000);
 					} else {
-						(window.doc['restoreChangesDialog'] as PaperDialog).open();
+						window.doc['restoreChangesDialog'].open();
 						$('.pageCont').animate({
 							backgroundColor: 'white'
 						}, 200);
@@ -1347,7 +1358,7 @@ class CA {
 				window.doc['highlightChangedScript'].addEventListener('click', function() {
 					//Find the element first
 					//Check if the element is already visible
-					(window.doc['restoreChangesDialog'] as PaperDialog).close();
+					window.doc['restoreChangesDialog'].close();
 					$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
 					$('edit-crm-item').find('.item').css('opacity', 0.6);
 					$('.crmType').each(function (this: HTMLElement) {
@@ -1379,7 +1390,7 @@ class CA {
 					}, 500);
 				});
 				try {
-					(window.doc['restoreChangesDialog'] as PaperDialog).open();
+					window.doc['restoreChangesDialog'].open();
 				} catch (e) {
 					_this.restoreUnsavedInstances(editingObj, errs + 1);
 				}
@@ -1470,7 +1481,7 @@ class CA {
 				}
 				var requestPermissionsOther = $('#requestPermissionsOther')[0];
 
-				var overlay: PaperDialog;
+				var overlay: HTMLPaperDialogElement;
 
 				function handler() {
 					var el: HTMLElement & {
@@ -1522,7 +1533,7 @@ class CA {
 					});
 
 					var permission: string;
-					$('.requestPermissionButton').off('click').on('click', function(this: PaperCheckbox) {
+					$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
 						permission = this.previousElementSibling.previousElementSibling.textContent;
 						var slider = this;
 						if (this.checked) {
@@ -1574,7 +1585,7 @@ class CA {
 								chrome.storage.local.set({
 									requestPermissions: []
 								});
-								$('.requestPermissionButton.required').each(function(this: PaperCheckbox) {
+								$('.requestPermissionButton.required').each(function(this: HTMLPaperCheckboxElement) {
 									this.checked = true;
 								});
 							}
@@ -1585,11 +1596,11 @@ class CA {
 				var interval = window.setInterval(function() {
 					try {
 						const centerer = window.doc['requestPermissionsCenterer'] as CenterElement;
-						overlay = centerer.$['content'].children[0] as PaperDialog
+						overlay = centerer.$['content'].children[0] as HTMLPaperDialogElement
 						if (overlay.open) {
 							window.clearInterval(interval);
-							($('#requestedPermissionsTemplate')[0] as DomRepeat).items = requested;
-							($('#requestedPermissionsOtherTemplate')[0] as DomRepeat).items = other;
+							($('#requestedPermissionsTemplate')[0] as HTMLDomRepeatElement).items = requested;
+							($('#requestedPermissionsOtherTemplate')[0] as HTMLDomRepeatElement).items = other;
 							overlay.addEventListener('iron-overlay-opened', handler);
 							setTimeout(function() {
 								var requestedPermissionsCont = $('#requestedPermissionsCont')[0];
@@ -2562,7 +2573,7 @@ class CA {
 				if (!localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
 					_this.handleDataTransfer(_this);
 					_this.async(function() {
-						(window.doc['versionUpdateDialog'] as PaperDialog).open();
+						window.doc['versionUpdateDialog'].open();
 					}, 2000);
 				} else {
 					_this.handleFirstTime(_this);
@@ -2692,11 +2703,11 @@ class CA {
 	};
 
 	static hideGenericToast(this: CrmApp) {
-		(this.$['messageToast'] as PaperToast).hide();
+		this.$['messageToast'].hide();
 	};
 
 	static nextUpdatedScript(this: CrmApp) {
-		interface ScriptUpdateToast extends PaperToast {
+		interface ScriptUpdateToast extends HTMLPaperToastElement {
 			index: number;
 			scripts: Array<{
 				name: string;
@@ -2705,12 +2716,12 @@ class CA {
 			}>;
 		}
 
-		var index = (this.$['scriptUpdatesToast'] as ScriptUpdateToast).index;
-		(this.$['scriptUpdatesToast'] as ScriptUpdateToast).text = this.getUpdatedScriptString(
-			(this.$['scriptUpdatesToast'] as ScriptUpdateToast).scripts[++index]);
-		(this.$['scriptUpdatesToast'] as ScriptUpdateToast).index = index;
+		var index = this.$['scriptUpdatesToast'].index;
+		this.$['scriptUpdatesToast'].text = this.getUpdatedScriptString(
+			this.$['scriptUpdatesToast'].scripts[++index]);
+		this.$['scriptUpdatesToast'].index = index;
 
-		if ((this.$['scriptUpdatesToast'] as ScriptUpdateToast).scripts.length - index > 1) {
+		if (this.$['scriptUpdatesToast'].scripts.length - index > 1) {
 			this.$['nextScriptUpdateButton'].style.display = 'inline';
 		} else {
 			this.$['nextScriptUpdateButton'].style.display = 'none';
@@ -2718,7 +2729,7 @@ class CA {
 	};
 
 	static hideScriptUpdatesToast(this: CrmApp) {
-		(this.$['scriptUpdatesToast'] as PaperToast).hide();
+		this.$['scriptUpdatesToast'].hide();
 	};
 
 	static getUpdatedScriptString(this: CrmApp, updatedScript: {
@@ -2745,13 +2756,13 @@ class CA {
 
 	static applyAddedPermissions(this: CrmApp) {
 		var _this = this;
-		var panels = Array.prototype.slice.apply((
-			window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer)
-			.querySelectorAll('.nodeAddedPermissionsCont'));
+		var panels = Array.prototype.slice.apply(
+			window.doc['addedPermissionsTabContainer']
+				.querySelectorAll('.nodeAddedPermissionsCont'));
 		panels.forEach(function(panel: HTMLElement) {
 			var node = _this.nodesById[(panel.getAttribute('data-id') as any)as number] as ScriptNode;
 			var permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
-				.map(function(checkbox: PaperCheckbox) {
+				.map(function(checkbox: HTMLPaperCheckboxElement) {
 					if (checkbox.checked) {
 						return checkbox.getAttribute('data-permission');
 					}
@@ -2799,7 +2810,7 @@ class CA {
 	static addedPermissionNext(this: CrmApp) {
 		var cont = window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer;
 		if (cont.tab === cont.maxTabs - 1) {
-			(window.doc['addedPermissionsDialog'] as PaperDialog).close();
+			window.doc['addedPermissionsDialog'].close();
 			this.applyAddedPermissions();
 			return;
 		}
@@ -2921,7 +2932,7 @@ class CA {
 							(window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer).tab = 0;
 							(window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer).maxTabs =
 								storageLocal.addedPermissions.length;
-							(window.doc['addedPermissionsTabRepeater'] as DomRepeat).items =
+							window.doc['addedPermissionsTabRepeater'].items =
 								storageLocal.addedPermissions;
 
 							if (storageLocal.addedPermissions.length === 1) {
@@ -2932,15 +2943,15 @@ class CA {
 									.style.display = 'none';
 							}
 							window.doc['addedPermissionPrevButton'].style.display = 'none';
-							(window.doc['addedPermissionsTabRepeater'] as DomRepeat).render();
-							(window.doc['addedPermissionsDialog'] as PaperDialog).open();
+							window.doc['addedPermissionsTabRepeater'].render();
+							window.doc['addedPermissionsDialog'].open();
 							chrome.storage.local.set({
 								addedPermissions: null
 							});
 						}, 2500);
 					}
 					if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-						interface ScriptUpdatesToasts extends PaperToast {
+						interface ScriptUpdatesToasts extends HTMLPaperToastElement {
 							scripts: Array<{
 								name: string;
 								oldVersion: string;
@@ -2949,11 +2960,11 @@ class CA {
 							index: number;
 						}
 
-						(_this.$['scriptUpdatesToast'] as ScriptUpdatesToasts).text = _this.getUpdatedScriptString(
+						_this.$['scriptUpdatesToast'].text = _this.getUpdatedScriptString(
 							storageLocal.updatedScripts[0]);
-						(_this.$['scriptUpdatesToast'] as ScriptUpdatesToasts).scripts = storageLocal.updatedScripts;
-						(_this.$['scriptUpdatesToast'] as ScriptUpdatesToasts).index = 0;
-						(_this.$['scriptUpdatesToast'] as ScriptUpdatesToasts).show();
+						_this.$['scriptUpdatesToast'].scripts = storageLocal.updatedScripts;
+						_this.$['scriptUpdatesToast'].index = 0;
+						_this.$['scriptUpdatesToast'].show();
 
 						if (storageLocal.updatedScripts.length > 1) {
 							_this.$['nextScriptUpdateButton'].style.display = 'inline';
@@ -2972,7 +2983,7 @@ class CA {
 							settingsVersionData: versionData	
 						});
 
-						var toast = window.doc['updatedSettingsToast'] as PaperToast;
+						var toast = window.doc['updatedSettingsToast'];
 						toast.text = 'Settings were updated to those on ' + new Date(
 							versionData.latest.date
 						).toLocaleDateString();
@@ -2983,7 +2994,7 @@ class CA {
 						chrome.storage.local.set({
 							isTransfer: false
 						});
-						(window.doc['versionUpdateDialog'] as PaperDialog).open();
+						window.doc['versionUpdateDialog'].open();
 					}
 
 					_this.storageLocal = storageLocal;
@@ -3066,10 +3077,10 @@ class CA {
 		});
 
 		//Reset regedit part
-		(window.doc['URISchemeFilePath'] as PaperInput).value = 'C:\\files\\my_file.exe';
-		(window.doc['URISchemeFilePath'] as PaperInput).querySelector('input').value = 'C:\\files\\my_file.exe';
-		(window.doc['URISchemeSchemeName'] as PaperInput).value = 'myscheme';
-		(window.doc['URISchemeSchemeName'] as PaperInput).querySelector('input').value = 'myscheme';
+		window.doc['URISchemeFilePath'].value = 'C:\\files\\my_file.exe';
+		window.doc['URISchemeFilePath'].querySelector('input').value = 'C:\\files\\my_file.exe';
+		window.doc['URISchemeSchemeName'].value = 'myscheme';
+		window.doc['URISchemeSchemeName'].querySelector('input').value = 'myscheme';
 	};
 
 	static getLocalStorageKey(this: CrmApp, key: string): any {
@@ -3096,7 +3107,7 @@ class CA {
 			data += "%146%" + localStorage.getItem(i + '');
 		}
 
-		(window.doc['exportToLegacyOutput'] as HTMLTextAreaElement).value = data;
+		window.doc['exportToLegacyOutput'].value = data;
 	};
 
 	ready(this: CrmApp) {

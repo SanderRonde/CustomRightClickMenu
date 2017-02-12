@@ -49,7 +49,7 @@ const editCrmProperties: {
 	}
 } as any;
 
-type EditCrm = PolymerElement<typeof EC & typeof editCrmProperties>;
+type EditCrm = PolymerElement<'edit-crm', typeof EC & typeof editCrmProperties>;
 
 interface DragCoordinate {
 	X: number;
@@ -838,7 +838,7 @@ class EC {
 		textArea.value = this.getExportString(exportNode, exportType, null);
 		($('#exportAuthorName')[0] as HTMLTextAreaElement).value = 
 			(exportNode.nodeInfo && exportNode.nodeInfo.source && exportNode.nodeInfo.source.author) || 'anonymous';
-		$('#exportAuthorName').on('change', function (this: PaperInput) {
+		$('#exportAuthorName').on('change', function (this: HTMLPaperInputElement) {
 			var author = this.value;
 			chrome.storage.local.set({
 				authorName: author
@@ -847,7 +847,7 @@ class EC {
 			data = _this.getExportString(exportNode, exportType, author);
 			textArea.value = data;
 		});
-		($('#exportDialog')[0] as PaperDialog).open();
+		($('#exportDialog')[0] as HTMLPaperDialogElement).open();
 		setTimeout(function() {
 			textArea.focus();
 			textArea.select();
@@ -889,7 +889,7 @@ class EC {
 
 		$('#exportAuthorName').on('change' as any, authorNameChange);
 		textarea.value = JSON.stringify(data);
-		($('#exportDialog')[0] as PaperDialog).open();
+		($('#exportDialog')[0] as HTMLPaperDialogElement).open();
 		setTimeout(function() {
 			textarea.focus();
 			textarea.select();

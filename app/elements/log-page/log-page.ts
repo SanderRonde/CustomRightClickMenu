@@ -10,14 +10,14 @@ const logPageProperties: {
 	}
 } as any;
 
-type LogPage = PolymerElement<typeof LP & typeof logPageProperties>;
+type LogPage = PolymerElement<'log-page', typeof LP & typeof logPageProperties>;
 
 class LP {
 	static is: string = 'log-page';
 
 	static properties = logPageProperties;
 
-	static ready(this: LogPage) {
+static ready(this: LogPage) {
 		if (window.logConsole && window.logConsole.done) {
 			this.isLoading = false;
 		}

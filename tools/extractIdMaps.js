@@ -1,42 +1,131 @@
-var htmlParser = require('htmlparser2');
-var async = require('async');
-var path = require('path');
+const htmlParser = require('htmlparser2');
+const async = require('async');
+const path = require('path');
+
+const getFileTemplate = (content) => {
+	return `///<reference path="./elements.d.ts" />
+
+interface IDMap ${content}
+`;
+}
+
+
+function stringToType(str) {
+	return str.replace(/":"(\w+)"/g, '": $1');
+}
+
+function prettyify(str) {
+	str = str
+		.replace(/"(\w+)": (\w+),/g, '\t"$1": $2,\n')
+		.replace(/"(\w+)": (\w+)},/g, '\t"$1": $2\n},\n')
+		.replace(/"([\w|-]+)":{/g, '"$1":{\n')
+		.replace(/\n},"/g, '\n},\n"')
+		.replace(/{\n}/g, '{ }')
+		.replace(/"(\w+)": (\w+)}}/g, '\t"$1": $2\n}\n}')
+		.replace(/{"/g, '{\n"');
+	const split = str.split('\n');
+	return `${split[0]}\n${split.slice(1, -1).map((line) => {
+		return `\t${line}`;
+	}).join('\n')}\n${split.slice(-1)[0]}`;
+}
+
+function getTagType(name) {
+	switch (name) {
+		case 'svg':
+			return 'SVGElement';
+		case 'textarea':
+			return 'HTMLTextAreaElement';
+		case 'a':
+			return 'HTMLAnchorElement';
+		case 'h1':
+		case 'h2':
+		case 'h3':
+			return 'HTMLHeadingElement';
+		case 'br':
+			return 'HTMLBRElement';
+		case 'img':
+			return 'HTMLImageElement';
+		case 'b':
+			return 'HTMLElement';
+		default: 
+			return `HTML${name.split('-').map((word) => {
+				return word[0].toUpperCase() + word.slice(1);
+			}).join('')}Element`;
+	}
+}
 
 module.exports = function(grunt) {
 	grunt.registerMultiTask('extractIdMaps', 
 		'Extracts the ID to typescript type maps from HTML files', function() {
-			var fileObj = this.files[0];
-			var srcFile = fileObj.src[0];
-			var options = this.options({});
+			const fileObj = this.files[0];
+			const srcFile = fileObj.src[0];
+			const options = this.options({});
 
-			var done = this.async();
+			const done = this.async();
 
-			async.forEachSeries(this.files, function(fileObj, nextSeries) {
-				var srcFiles = fileObj.src.filter(function(filepath) {
-					if (!grunt.file.exists(filepath)) {
-						grunt.log.warn('File ' + filepath + ' does not exist');
-						return false;
-					}
-					return true;
-				})
+			const map = {
+				behavior: 'any'
+			};
 
-				if (srcFile.length === 0) {
-					return nextSeries();
-				}
-
-				async.concatSeries(srcFiles, function(file, nextFile) {
-					console.log(grunt.file.read(file));
-					const parser = new htmlParser.Parser({
-						onopentag: function(name, attribs) {
-							console.log(name, attribs);
+			Promise.all(this.files.map((fileObj) => {
+				return new Promise((resolve) => {
+					const srcFiles = fileObj.src.filter(function(filepath) {
+						if (!grunt.file.exists(filepath)) {
+							grunt.log.warn('File ' + filepath + ' does not exist');
+							return false;
 						}
+						return true;
+					})
+
+					if (srcFile.length === 0) {
+						return nextSeries();
+					}
+
+					let fileMapKey = 'unset';
+					const fileMap = {};
+
+					Promise.all(srcFiles.map((file) => {
+						return new Promise((resolveFile, rejectFile) => {
+							try {
+								const parser = new htmlParser.Parser({
+									onopentag: function(name, attribs) {
+										if (name === 'dom-module') {
+											fileMapKey = attribs.id;
+										} else if (name === 'template') {
+											if (attribs.id) {
+												fileMap[attribs.id] = attribs['data-element-type'] || 
+													getTagType(attribs.is);
+											}
+										} else {
+											if (attribs.id) {
+												fileMap[attribs.id] = attribs['data-element-type'] || 
+													getTagType(name);
+											}
+										}
+									}
+								});
+								parser.write(grunt.file.read(file));
+								parser.end();
+
+								if (fileMapKey !== 'unset') {
+									map[fileMapKey] = fileMap;
+								}
+
+								resolveFile();
+							} catch(e) {
+								rejectFile(file);
+							}
+						});
+					})).then(() => {
+						resolve();
+					}, (file) => {
+						grunt.log.warn(`Something went wrong parsing file ${file}`);
 					});
-					parser.write(grunt.file.read(file));
-					parser.end();
-					nextFile();
-				}, function() {
-					nextSeries();
 				});
-			}, done);
+			})).then(() => {
+				grunt.file.write(this.files[0].orig.dest, 
+					getFileTemplate(prettyify(stringToType(JSON.stringify(map)))));
+				done();
+			});
 		});
 }

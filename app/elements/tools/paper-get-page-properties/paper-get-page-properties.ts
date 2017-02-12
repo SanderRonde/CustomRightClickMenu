@@ -1,6 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
-type PaperGetPagePropertiesBase = PolymerElement<typeof PGPP>;
+type PaperGetPagePropertiesBase = PolymerElement<
+	'paper-get-page-properties', typeof PGPP>;
 
 class PGPP {
 	static is: string = 'paper-get-page-properties';

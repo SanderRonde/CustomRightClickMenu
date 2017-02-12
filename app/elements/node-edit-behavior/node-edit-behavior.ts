@@ -125,7 +125,7 @@ class NEB {
 		for (var i = 0; i < inputs.length; i++) {
 			triggers[i] = {
 				url: inputs[i].querySelector('input').value,
-				not: (inputs[i].parentElement.children[0] as PaperCheckbox).checked
+				not: (inputs[i].parentElement.children[0] as HTMLPaperCheckboxElement).checked
 			};
 		}
 		resultStorage.triggers = triggers;
@@ -159,7 +159,7 @@ class NEB {
 		window.crmEditPage.animateOut();
 
 		var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
-		newSettings.name = (this.$['nameInput'] as PaperInput).value;
+		newSettings.name = this.$['nameInput'].value;
 		itemInEditPage.name = newSettings.name;
 
 		if (!newSettings.onContentTypes[window.app.crmType]) {
@@ -228,12 +228,12 @@ class NEB {
 				index++;
 				element = e.path[index];
 			}
-			(element as PaperCheckbox).checked = true;
+			(element as HTMLPaperCheckboxElement).checked = true;
 			this[
 				element.parentElement.classList[1].split('Type')[0] + 'ContentSelected' as
 					keyof NodeEditBehaviorProperties
 			] = true;
-			(window.doc['contentTypeToast'] as PaperToast).show();
+			window.doc['contentTypeToast'].show();
 		}
 		return false;
 	};
@@ -248,7 +248,7 @@ class NEB {
 			index++;
 			element = e.path[index];
 		}
-		var checkbox = $(element).find('paper-checkbox')[0] as PaperCheckbox;
+		var checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
 		checkbox.checked = !checkbox.checked;
 		if (!checkbox.checked) {
 			this.checkToggledIconAmount({
@@ -292,7 +292,7 @@ class NEB {
 	 * Returns the pattern that triggers need to follow for the current launch mode
 	 */
 	static _getPattern(this: NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance) {
-		Array.prototype.slice.apply(this.querySelectorAll('.triggerInput')).forEach(function(triggerInput: PaperInput) {
+		Array.prototype.slice.apply(this.querySelectorAll('.triggerInput')).forEach(function(triggerInput: HTMLPaperInputElement) {
 			triggerInput.invalid = false;
 		});
 		//Execute when visiting specified, aka globbing etc
@@ -330,7 +330,7 @@ class NEB {
 			showInsteadOfExecute: (prevState === 3)
 		};
 
-		var triggersElement = this.$['executionTriggersContainer'];
+		var triggersElement = (this.$ as any)['executionTriggersContainer'] as HTMLDivElement;
 		var $triggersElement = $(triggersElement);
 		var contentTypeChooserElement = this.$['showOnContentContainer'];
 		var $contentTypeChooserElement = $(contentTypeChooserElement);
@@ -420,7 +420,7 @@ class NEB {
 		}
 
 		if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
-			this.$['showOrExecutetxt'].innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
+			((this.$ as any)['showOrExecutetxt'] as HTMLSpanElement).innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
 		}
 	};
 
@@ -445,7 +445,7 @@ class NEB {
 			this.$['showOnContentContainer'].style.marginLeft = '-110%';
 			this.$['showOnContentContainer'].style.height = '0';
 		}
-		(this.$['dropdownMenu'] as PaperDropdownMenu)._addListener(this.selectorStateChange, 'dropdownMenu', this);
+		this.$['dropdownMenu']._addListener(this.selectorStateChange, 'dropdownMenu', this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();
 			this.editor = null;

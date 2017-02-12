@@ -40,7 +40,7 @@ const installPageProperties: {
 	}
 } as any;
 
-type InstallPage = PolymerElement<typeof IP & typeof installPageProperties>;
+type InstallPage = PolymerElement<'install-page', typeof IP & typeof installPageProperties>;
 
 class IP {
 	static is: string = 'install-page';

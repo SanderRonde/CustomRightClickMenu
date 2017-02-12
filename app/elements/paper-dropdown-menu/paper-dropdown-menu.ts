@@ -19,7 +19,7 @@ const paperDropdownMenuProperties: {
 	}
 } as any;
 
-type PaperDropdownMenuBase = PolymerElement<
+type PaperDropdownMenuBase = PolymerElement<'paper-dropdown-menu',
 	typeof PDM & typeof paperDropdownBehaviorProperties
 >;
 

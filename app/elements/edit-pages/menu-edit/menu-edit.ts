@@ -14,7 +14,7 @@ interface MenuEditBehaviorProperties extends NodeEditBehaviorProperties {
 	newSettings: Partial<MenuNode>;
 }
 
-type MenuEdit = PolymerElement<typeof ME & typeof dividerEditProperties>;
+type MenuEdit = PolymerElement<'menu-edit', typeof ME & typeof dividerEditProperties>;
 
 class ME {
 	static is: string = 'menu-edit';

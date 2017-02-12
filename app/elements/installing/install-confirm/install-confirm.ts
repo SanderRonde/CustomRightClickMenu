@@ -10,7 +10,7 @@ const installConfirmProperties: {
 	}
 } as any;
 
-type InstallConfirm = PolymerElement<typeof IC & typeof installConfirmProperties>;
+type InstallConfirm = PolymerElement<'install-confirm', typeof IC & typeof installConfirmProperties>;
 
 class IC {
 	static is: string = 'install-confirm';
@@ -145,7 +145,7 @@ class IC {
 			el = el.parentElement;
 		}
 
-		const checkbox = el as PaperCheckbox;
+		const checkbox = el as HTMLPaperCheckboxElement;
 		if (checkbox.checked) {
 			var permission = checkbox.getAttribute('permission');
 			if (this.isManifestPermissions(permission as Permission)) {
@@ -173,7 +173,7 @@ class IC {
 
 	static completeInstall(this: InstallConfirm) {
 		var allowedPermissions: Array<Permission> = [];
-		$('.infoPermissionCheckbox').each(function(this: PaperCheckbox) {
+		$('.infoPermissionCheckbox').each(function(this: HTMLPaperCheckboxElement) {
 			this.checked && allowedPermissions.push(this.getAttribute('permission') as Permission);
 		});
 		chrome.runtime.sendMessage({
@@ -189,7 +189,7 @@ class IC {
 		this.$['scriptInstalled'].classList.add('visible');
 	};
 
-	static setMetaTag(this: InstallConfirm, name: string, values: Array<string|number>) {
+	static setMetaTag(this: InstallConfirm, name: keyof IDMap['install-confirm'], values: Array<string|number>) {
 		var value;
 		if (values) {
 			value = values[values.length - 1];
@@ -206,7 +206,7 @@ class IC {
 		window.installPage.$['title'].innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
 
 		this.$['sourceValue'].innerText = window.installPage.userscriptUrl;
-		(this.$['permissionValue'] as DomRepeat).items = tags['grant'] || ['none'];
+		this.$['permissionValue'].items = tags['grant'] || ['none'];
 		this.metaTags = tags;
 		this.metaInfo = metaInfo;
 	};
@@ -237,7 +237,6 @@ class IC {
 	};
 
 	static loadEditor(_this: InstallConfirm) {
-		var placeHolder = $(_this.$['editorPlaceholder']);
 		!_this.settings.editor && (_this.settings.editor = {
 			useTabs: true,
 			theme: 'dark',

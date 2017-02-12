@@ -10,7 +10,7 @@ interface FillerElement extends HTMLElement {
 	column: number;
 }
 
-type DraggableNodeBehavior = PolymerElement<typeof DNB>;
+type DraggableNodeBehavior = PolymerElement<'behavior', typeof DNB>;
 type DraggableNodeBehaviorInstance = DraggableNodeBehavior & EditCrmItem;
 
 class DNB {
@@ -309,7 +309,7 @@ class DNB {
 		else {
 			//No items exist yet, go to prev column and find the only expanded menu
 			window.app.editCRM.getEditCrmItems(window.app.editCRM
-				.getPrevColumn(this as EditCrmItem)).forEach(function(item) {
+				.getPrevColumn(this as EditCrmItem)).forEach(function(item: EditCrmItem) {
 				if ((item.item as MenuNode & {
 						expanded: boolean;
 					}).expanded) {
@@ -364,7 +364,7 @@ class DNB {
 
 
 		//Do visual stuff as to decrease delay between the visual stuff
-		if (this.isMenu && (this.parentElement as DomRepeat).items[this.index].expanded) {
+		if (this.isMenu && (this.parentElement as HTMLDomRepeatElement).items[this.index].expanded) {
 			//Collapse any columns to the right of this
 			var columnContChildren = window.app.editCRM.getColumns();
 			for (var i = this.column + 1; i < columnContChildren.length; i++) {
@@ -380,7 +380,7 @@ class DNB {
 
 	static init(this: DraggableNodeBehaviorInstance) {
 		var _this = this;
-		this.$['dragger'].addEventListener('mousedown', function(e) {
+		this.$['dragger'].addEventListener('mousedown', function(e: MouseEvent) {
 			if (e.which === 1) {
 				_this._readyForMouseUp = false;
 				_this._startDrag(e);
@@ -390,7 +390,7 @@ class DNB {
 				}
 			}
 		});
-		this.$['dragger'].addEventListener('mouseup', function(e) {
+		this.$['dragger'].addEventListener('mouseup', function(e: MouseEvent) {
 			if (e.which === 1) {
 				e.stopPropagation();
 				if (_this._readyForMouseUp) {

@@ -61,7 +61,7 @@ const crmEditPageProperties: {
 	}
 } as any;
 
-type CrmEditPage = PolymerElement<
+type CrmEditPage = PolymerElement<'crm-edit-page',
 	typeof CEP & typeof crmEditPageProperties & typeof Polymer.NeonAnimationRunnerBehavior
 >;
 
@@ -277,13 +277,7 @@ class CEP {
 		var _this = this;
 		var oldScript = (this.item as ScriptNode).value.oldScript;
 		var newScript = (this.item as ScriptNode).value.script;
-		const chooseDialog = (window.doc['externalEditorChooseFile'] as PaperDialog & {
-			init(oldScript: string, newScript: string, callback: (chosenScript: string) => void,
-				isUpdate: boolean, updateErrors: {
-					oldScript: Array<CursorPosition>;
-					newScript: Array<CursorPosition>
-				}): void;
-		});
+		const chooseDialog = window.doc['externalEditorChooseFile'];
 		chooseDialog.init(oldScript, newScript, function(chosenScript: string) {
 			if (window.app.storageLocal.upgradeErrors) {
 				delete window.app.storageLocal.upgradeErrors[_this.item.id];

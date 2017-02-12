@@ -355,7 +355,7 @@
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
 					<span class="toastLink" on-tap="hideGenericToast" role="button">DISMISS</span>
 				</paper-toast>
-				<paper-toast id="scriptUpdatesToast" text="Please ignore this" duration="10000">
+				<paper-toast data-element-type="ScriptUpdatesToast" id="scriptUpdatesToast" text="Please ignore this" duration="10000">
 					<span id="nextScriptUpdateButton" class="toastLink" on-tap="nextUpdatedScript" role="button">NEXT</span>
 					<span class="toastLink" on-tap="hideScriptUpdatesToast" role="button">DISMISS</span>
 				</paper-toast>
@@ -410,7 +410,7 @@
 						</div>
 					</div>
 				</paper-dialog>
-				<paper-dialog no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="chooseFileMainDialog">
 						<h2>Choose the file you want to keep</h2>
 						<paper-radio-group selected="local" id="chooseFileRadioGroup">
@@ -432,12 +432,12 @@
 						<div id="chooseFileMergerText">
 							<div id="chooseFileLeftTxtCont">
 								<div id="chooseFileCurrentTxt">CRM Editor</div>
-								<div id="updateMergeLeftNextError">click here to go to the next error.</div>
+								<div data-element-type="ListeningHTMLElement" id="updateMergeLeftNextError">click here to go to the next error.</div>
 							</div>
 							<div id="chooseFileResultTxt">Result<br id="updateMergePlaceholderBr" /></div>
 							<div id="chooseFileRightTxtCont">
 								<div id="chooseFileNewTxt">File</div>
-								<div id="updateMergeRightNextError">click here to go to the next error.</div>
+								<div data-element-type="ListeningHTMLElement" id="updateMergeRightNextError">click here to go to the next error.</div>
 							</div>
 						</div>
 						<div id="chooseFileMergerEditor">
@@ -625,7 +625,7 @@
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="versionUpdateCenterer">
-					<paper-dialog with-backdrop id="versionUpdateDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<paper-dialog data-element-type="VersionUpdateDialog" with-backdrop id="versionUpdateDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<br />
 						<div id="versionUpdateTabContainer" tab$="[[versionUpdateTab]]">
 							<div id="versionUpdateTabSlider">
@@ -714,7 +714,7 @@
 				<center-element fullscreenoverlay id="addedPermissionsCenterer">
 					<paper-dialog with-backdrop id="addedPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 						<br>
-						<div id="addedPermissionsTabContainer">
+						<div id="addedPermissionsTabContainer" data-element-type="AddedPermissionsTabContainer">
 							<template id="addedPermissionsTabRepeater" is="dom-repeat" as="nodeAddedPermission">
 								<div class="nodeAddedPermissionsCont" data-id$="[[nodeAddedPermission.node]]">
 									<h2 class="nodeAddedHeader">

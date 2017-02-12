@@ -235,9 +235,9 @@ class ERT {
 				this.$['highlightingTopSquare'].style.height = startYPx;
 				this.$['highlightingLeftSquare'].style.width = startYPx;
 
-				this.translateY(this.$['highlightingBotSquare'] as ErrorReportingToolSquare, startYPx);
-				this.translateY(this.$['highlightingLeftSquare'] as ErrorReportingToolSquare, startYPx);
-				this.translateY(this.$['highlightingRightSquare'] as ErrorReportingToolSquare, startYPx);
+				this.translateY(this.$['highlightingBotSquare'], startYPx);
+				this.translateY(this.$['highlightingLeftSquare'], startYPx);
+				this.translateY(this.$['highlightingRightSquare'], startYPx);
 				break;
 			case 'end':
 				this.$['highlightButtons'].classList.remove('hidden');

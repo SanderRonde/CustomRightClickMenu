@@ -16,7 +16,7 @@ const paperDropdownBehaviorProperties: {
 
 type PaperDropdownListener = (prevState: number, newState: number) => void;
 
-type PaperDropdownBehaviorBase = PolymerElement<
+type PaperDropdownBehaviorBase = PolymerElement<'behavior',
 	typeof PDB & typeof paperDropdownBehaviorProperties
 >;
 
@@ -31,12 +31,12 @@ class PDB {
 	/**
      * The paper dropdown menu element
      */
-	static _paperDropdownEl: HTMLElement = null;
+	static _paperDropdownEl: PaperDropdownMenu = null;
 
 	/**
      * The paper menu element
      */
-	static _paperMenu: PaperMenu = null;
+	static _paperMenu: HTMLPaperMenuElement = null;
 
 	/**
      * The dropdown selected container
@@ -127,11 +127,11 @@ class PDB {
 		});
 	};
 
-	static ready(this: PaperDropdownInstance) {
+	static ready(this: PaperDropdownMenu) {
 		var _this = this;
 		this.refreshListeners();
 		this._paperDropdownEl = this;
-		this._paperMenu = $(this).find('paper-menu')[0] as PaperMenu;
+		this._paperMenu = $(this).find('paper-menu')[0] as HTMLPaperMenuElement;
 		setTimeout(function () {
 			$(_this.$['dropdownSelectedCont']).insertBefore($(_this).find('.content'));
 		}, 200);
@@ -196,7 +196,7 @@ class PDB {
 			}
 			_this._startTime = null;
 			_this._paperMenu.style.boxShadow = 'rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0';
-			(_this._paperDropdownEl as PolymerElement<{}>).$['dropdownArrow'].style.transform = 'rotate(90deg)';
+			_this._paperDropdownEl.$['dropdownArrow'].style.transform = 'rotate(90deg)';
 		}
 	};
 

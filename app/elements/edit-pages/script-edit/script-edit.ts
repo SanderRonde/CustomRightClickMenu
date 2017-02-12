@@ -16,7 +16,7 @@ interface ScriptEditBehaviorProperties extends NodeEditBehaviorProperties {
 	newSettings: Partial<ScriptNode>;
 }
 
-type ScriptEdit = PolymerElement<typeof SCE & typeof scriptEditProperties>;
+type ScriptEdit = PolymerElement<'script-edit', typeof SCE & typeof scriptEditProperties>;
 
 class SCE {
 	static is: string = 'script-edit';
@@ -479,8 +479,8 @@ class SCE {
 
 	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		if (this.querySelectorAll('.executionTrigger').length === 1) {
-			(window.doc['messageToast'] as PaperToast).text = 'You need to have at least one trigger';
-			(window.doc['messageToast'] as PaperToast).show();
+			window.doc['messageToast'].text = 'You need to have at least one trigger';
+			window.doc['messageToast'].show();
 			return;
 		}
 
@@ -493,8 +493,8 @@ class SCE {
 		}
 
 		this.async(() => {
-			var inputVal = el.parentElement.children[1] as PaperInput;
-			var checkboxVal = el.parentElement.children[0] as PaperCheckbox;
+			var inputVal = el.parentElement.children[1] as HTMLPaperInputElement;
+			var checkboxVal = el.parentElement.children[0] as HTMLPaperCheckboxElement;
 			this.metaTagsUpdate({
 				'removed': [
 					{
@@ -520,19 +520,19 @@ class SCE {
 		}, 'dialog');
 	};
 
-	static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: PaperCheckbox) {
+	static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
 		var oldValue = !element.checked;
-		var inputValue = ($(element).parent().children('.triggerInput')[0] as PaperInput).value;
+		var inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
 
 		var line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
 		this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
 	};
 
-	static triggerInputChange(this: NodeEditBehaviorScriptInstance, element: PaperInput) {
+	static triggerInputChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement) {
 		var _this = this;
 		var oldValue = element.value;
 
-		var checkboxChecked = ($(element).parent().children('.executionTriggerNot')[0] as PaperCheckbox).checked;
+		var checkboxChecked = ($(element).parent().children('.executionTriggerNot')[0] as HTMLPaperCheckboxElement).checked;
 		setTimeout(function() {
 			var newValue = element.value;
 
@@ -570,13 +570,13 @@ class SCE {
 
 		var elements = $('script-edit .showOnContentItemCheckbox');
 		var elementType = element.classList[1].split('Type')[0];
-		var state = !(element as PaperCheckbox).checked;
+		var state = !(element as HTMLPaperCheckboxElement).checked;
 
 		var states = [];
 		var oldStates = [];
 		var types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
 		for (var i = 0; i < elements.length; i++) {
-			const checkbox = elements[i] as PaperCheckbox;
+			const checkbox = elements[i] as HTMLPaperCheckboxElement;
 			if (types[i] === elementType) {
 				states[i] = state;
 				oldStates[i] = !state;
@@ -601,12 +601,12 @@ class SCE {
 		const __this = this;
 
 		this.async(() => {
-			(this.$['dropdownMenu'] as PaperDropdownMenu)._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
+			this.$['dropdownMenu']._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
 		}, 0);
 
 		//Use jquery to also get the pre-change value
 		$(this.$['nameInput']).on('keydown', () => {
-			var el = this.$['nameInput'] as PaperInput;
+			var el = this.$['nameInput'];
 			var oldVal = el.value || '';
 			Array.isArray(oldVal) && (oldVal = oldVal[0]);
 			this.async(() => {
@@ -632,7 +632,7 @@ class SCE {
 		$('.triggerInput').on('keydown', function(this: HTMLElement) {
 			__this.triggerInputChange.apply(__this, [this]);
 		});
-		$('.scriptPermissionsToggle').on('change', function(this: PaperCheckbox) {
+		$('.scriptPermissionsToggle').on('change', function(this: HTMLPaperCheckboxElement) {
 			var permission = $(this).parent().children('.requestPermissionName')[0].innerText;
 			var prevState = !this.checked;
 			if (prevState) {
@@ -660,11 +660,11 @@ class SCE {
 
 	//#region DialogFunctions
 	static disableButtons(this: NodeEditBehaviorScriptInstance) {
-		(this.$['dropdownMenu'] as PaperDropdownInstance).disable();
+		this.$['dropdownMenu'].disable();
 	};
 
 	static enableButtons(this: NodeEditBehaviorScriptInstance) {
-		(this.$['dropdownMenu'] as PaperDropdownInstance).enable();
+		this.$['dropdownMenu'].enable();
 	};
 
 	static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
@@ -708,7 +708,7 @@ class SCE {
 	};
 
 	static getExportData(this: NodeEditBehaviorScriptInstance) {
-		($('script-edit #exportMenu paper-menu')[0] as PaperMenu).selected = 0;
+		($('script-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings = {};
 		this.save(null, settings);
 		return settings as ScriptNode;
@@ -854,7 +854,7 @@ class SCE {
 				});
 
 				var permission: Permission;
-				$('.requestPermissionButton').off('click').on('click', function(this: PaperCheckbox) {
+				$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
 					permission = this.previousElementSibling.previousElementSibling.textContent as Permission;
 					var slider = this;
 					var oldPermissions;
@@ -899,9 +899,9 @@ class SCE {
 				});
 			}
 
-			($('#scriptPermissionsTemplate')[0] as DomRepeat).items = permissionList;
+			($('#scriptPermissionsTemplate')[0] as HTMLDomRepeatElement).items = permissionList;
 			$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + nodeItem.name;
-			const scriptPermissionDialog = $('#scriptPermissionDialog')[0] as PaperDialog;
+			const scriptPermissionDialog = $('#scriptPermissionDialog')[0] as HTMLPaperDialogElement;
 			scriptPermissionDialog.addEventListener('iron-overlay-opened', cb);
 			scriptPermissionDialog.addEventListener('iron-overlay-closed', callback);
 			scriptPermissionDialog.open();
@@ -928,7 +928,7 @@ class SCE {
 	static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		(window.app.$['paperLibrariesSelector'] as PaperLibrariesSelector).init();
-		(window.app.$['paperGetPageProperties'] as PaperGetPageProperties).init(function (snippet) {
+		(window.app.$['paperGetPageProperties'] as PaperGetPageProperties).init(function (snippet: string) {
 			_this.insertSnippet(_this, snippet);
 		});
 	};
@@ -1264,7 +1264,7 @@ class SCE {
 		this.settingsShadow[0].parentElement.style.height = editorHeight + '';
 		this.fullscreenEl.style.display = 'none';
 		var settingsInitialMarginLeft = -500;
-		($('#editorThemeFontSizeInput')[0] as PaperInput).value = window.app.settings.editor.zoom;
+		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
 		this.settingsShadow.css({
 			width: '50px',
 			height: '50px',
@@ -1387,7 +1387,7 @@ class SCE {
 		}
 	};
 
-	static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: PaperInput & {
+	static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement & {
 			lastValue: string;
 		}, binding: {
 			name: string;
@@ -1591,7 +1591,7 @@ class SCE {
 
 		function updateTabSizeEl() {
 			setTimeout(function() {
-				window.app.settings.editor.tabSize = (tabSize.find('input')[0] as PaperInput).value;
+				window.app.settings.editor.tabSize = (tabSize.find('input')[0] as HTMLPaperInputElement).value;
 				window.app.upload();
 			}, 0);
 		}
@@ -1608,7 +1608,7 @@ class SCE {
 		var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
 
 		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">')
-			.keypress(function(this: PaperInput) {
+			.keypress(function(this: HTMLPaperInputElement) {
 				var _this = this;
 				setTimeout(function() {
 					var val = _this.value;
@@ -1637,7 +1637,7 @@ class SCE {
 			$cont = $('<div class="keyBindingSetting"></div>');
 			$input = $('<div class="keyBindingSettingInput"></div>');
 			$keyInput = $('<paper-input label="' + this.keyBindings[i].name + '" class="keyBindingSettingKeyInput" value="' + value + '"></paper-input>');
-			keyInput = $keyInput[0] as PaperInput & {
+			keyInput = $keyInput[0] as HTMLPaperInputElement & {
 				lastValue: string;
 			};
 			keyInput.lastValue = value;
@@ -1819,8 +1819,8 @@ class SCE {
 	static init(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		this._init();
-		(this.$['dropdownMenu'] as PaperDropdownMenu).init();
-		(this.$['exportMenu'] as PaperDropdownMenu).init();
+		this.$['dropdownMenu'].init();
+		this.$['exportMenu'].init();
 		this.$['exportMenu'].querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);

@@ -646,7 +646,6 @@ var UEE = (function () {
             }
             leftErrorButton.listeners = [];
             var rightErrorButton = window.doc['updateMergeRightNextError'];
-            ;
             rightErrorButton.listeners = rightErrorButton.listeners || [];
             for (i = 0; i < rightErrorButton.listeners.length; i++) {
                 rightErrorButton.removeEventListener('click', rightErrorButton.listeners[i]);

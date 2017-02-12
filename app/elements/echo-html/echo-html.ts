@@ -15,7 +15,8 @@ const echoHtmlProperties: {
 	}
 } as any;
 
-type EchoHtml = PolymerElement<typeof EH & typeof echoHtmlProperties>;
+type EchoHtml = PolymerElement<'echo-html',
+	typeof EH & typeof echoHtmlProperties>;
 
 class EH {
 	static is: string = 'echo-html';
