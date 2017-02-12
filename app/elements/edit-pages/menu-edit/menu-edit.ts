@@ -14,8 +14,7 @@ interface MenuEditBehaviorProperties extends NodeEditBehaviorProperties {
 	newSettings: Partial<MenuNode>;
 }
 
-type MenuEdit = PolymerElement<typeof ME & typeof dividerEditProperties> & 
-	NodeEditBehaviorBase & MenuEditBehaviorProperties;
+type MenuEdit = PolymerElement<typeof ME & typeof dividerEditProperties>;
 
 class ME {
 	static is: string = 'menu-edit';
@@ -24,11 +23,11 @@ class ME {
 
 	static properties = menuEditProperties;
 
-	static init(this: MenuEdit) {
+	static init(this: NodeEditBehaviorMenuInstance) {
 		this._init();
 	};
 
-	static ready(this: MenuEdit) {
+	static ready(this: NodeEditBehaviorMenuInstance) {
 		window.menuEdit = this;
 	}
 

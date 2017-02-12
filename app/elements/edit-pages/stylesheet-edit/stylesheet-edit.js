@@ -6,6 +6,7 @@ var stylesheetEditProperties = {
         notify: true
     }
 };
+;
 var STE = (function () {
     function STE() {
     }
@@ -72,7 +73,7 @@ var STE = (function () {
         var titleRibbonSize;
         if (window.app.storageLocal.shrinkTitleRibbon) {
             window.doc['editorTitleRibbon'].style.fontSize = '40%';
-            scriptTitle.style.padding = 0;
+            scriptTitle.style.padding = '0';
             titleRibbonSize = '-18px';
         }
         else {
@@ -87,7 +88,7 @@ var STE = (function () {
                 marginTop: 0
             }
         ];
-        var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : 0);
+        var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
         scriptTitle.style.marginLeft = '-200px';
         scriptTitleAnimation[0]['marginLeft'] = '-200px';
         scriptTitleAnimation[1]['marginLeft'] = 0;
@@ -122,9 +123,9 @@ var STE = (function () {
                 duration: 500,
                 easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
             }).onfinish = function () {
-                scriptTitle.style.marginTop = 0;
+                scriptTitle.style.marginTop = '0';
                 if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {
-                    scriptTitle.style.marginLeft = 0;
+                    scriptTitle.style.marginLeft = '0';
                 }
             };
         }, 200);
@@ -145,7 +146,7 @@ var STE = (function () {
             duration: 800,
             easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
         }).onfinish = function () {
-            this.effect.target.style.marginLeft = 0;
+            this.effect.target.style.marginLeft = '0';
         };
     };
     ;
@@ -190,8 +191,8 @@ var STE = (function () {
                 duration: 800,
                 easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
             }).onfinish = function () {
-                scriptTitle.style.marginTop = titleAnimation[1].marginTop;
-                scriptTitle.style.marginLeft = titleAnimation[1].marginLeft;
+                scriptTitle.style.marginTop = titleAnimation[1].marginTop + '';
+                scriptTitle.style.marginLeft = titleAnimation[1].marginLeft + '';
             };
             toolsRibbon.animate([
                 {
@@ -342,10 +343,10 @@ var STE = (function () {
                 duration: 500,
                 easing: 'easeOutCubic',
                 complete: function () {
-                    editorCont.style.marginLeft = 0;
-                    editorCont.style.marginTop = 0;
-                    editorCont.style.width = 0;
-                    editorCont.style.height = 0;
+                    editorCont.style.marginLeft = '0';
+                    editorCont.style.marginTop = '0';
+                    editorCont.style.width = '0';
+                    editorCont.style.height = '0';
                     $(_this.editor.display.wrapper).appendTo(_this.$['editorCont']).css({
                         height: _this.preFullscreenEditorDimensions.height,
                         marginTop: 0,
@@ -497,7 +498,7 @@ var STE = (function () {
         }
         $(this.editor.display.wrapper).remove();
         this.$['editorPlaceholder'].style.display = 'flex';
-        this.$['editorPlaceholder'].style.opacity = 1;
+        this.$['editorPlaceholder'].style.opacity = '1';
         this.$['editorPlaceholder'].style.position = 'absolute';
         var stylesheetLines = [];
         var lines = this.editor.doc.lineCount();
@@ -532,7 +533,7 @@ var STE = (function () {
         //The white theme option
         $('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.app.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
             .click(function () {
-            var themes = this.parentNode.children;
+            var themes = this.parentElement.children;
             themes[0].classList.add('currentTheme');
             themes[1].classList.remove('currentTheme');
             window.app.settings.editor.theme = 'white';
@@ -541,7 +542,7 @@ var STE = (function () {
         //The dark theme option
         $('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
             .click(function () {
-            var themes = this.parentNode.children;
+            var themes = this.parentElement.children;
             themes[0].classList.remove('currentTheme');
             themes[1].classList.add('currentTheme');
             window.app.settings.editor.theme = 'dark';
@@ -683,7 +684,7 @@ var STE = (function () {
                 selectName: window.scriptEdit.keyBindings[5].defaultKey
             }
         });
-        this.editor = new window.CodeMirror(container, {
+        this.editor = window.CodeMirror(container, {
             lineNumbers: true,
             mode: 'css',
             value: content || this.item.value.stylesheet,
@@ -712,7 +713,7 @@ var STE = (function () {
         document.body.classList.add('editingStylesheet');
         window.stylesheetEdit = this;
         this.$['editorPlaceholder'].style.display = 'flex';
-        this.$['editorPlaceholder'].style.opacity = 1;
+        this.$['editorPlaceholder'].style.opacity = '1';
         if (this.editor) {
             this.editor.display.wrapper.remove();
             this.editor = null;

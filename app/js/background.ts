@@ -186,13 +186,13 @@ interface Window {
 	TextEncoder: any;
 	getID: (name: string) => void;
 	md5: (data: any) => string;
-	TernFile: any;
-	CodeMirror: any;
+	TernFile: TernFile;
+	CodeMirror: CodeMirror;
 	ecma5: any;
 	ecma6: any;
 	jqueryDefs: any;
 	browserDefs: any;
-	tern: any;
+	tern: Tern;
 }
 
 interface ContextMenuItemTreeItem {
@@ -275,6 +275,20 @@ interface MatchPattern {
 	path: string;
 	invalid?: boolean;
 };
+
+interface CRMTemplates {
+	mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any>;
+	mergeObjects<T extends TU, TU>(mainObject: T, additions: TU): TU;
+	getDefaultNodeInfo(options?: any): CRMNodeInfo;
+	getDefaultLinkNode(options?: any): LinkNode;
+	getDefaultStylesheetValue(options?: any): StylesheetVal;
+	getDefaultScriptValue(options?: any): ScriptVal;
+	getDefaultScriptNode(options?: any): ScriptNode;
+	getDefaultStylesheetNode(options?: any): StylesheetNode;
+	getDefaultDividerOrMenuNode(options: any, type: any): DividerNode | MenuNode;
+	getDefaultDividerNode(options?: any): DividerNode;
+	getDefaultMenuNode(options?: any): MenuNode;
+}
 
 interface GlobalObject {
 	globals?: {
@@ -409,19 +423,7 @@ interface GlobalObject {
 		constants: {
 			supportedHashes: Array<string>;
 			validSchemes: Array<string>;
-			templates: {
-				mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any>;
-				mergeObjects<T extends TU, TU>(mainObject: T, additions: TU): TU;
-				getDefaultNodeInfo(options?: any): CRMNodeInfo;
-				getDefaultLinkNode(options?: any): LinkNode;
-				getDefaultStylesheetValue(options?: any): StylesheetVal;
-				getDefaultScriptValue(options?: any): ScriptVal;
-				getDefaultScriptNode(options?: any): ScriptNode;
-				getDefaultStylesheetNode(options?: any): StylesheetNode;
-				getDefaultDividerOrMenuNode(options: any, type: any): DividerNode | MenuNode;
-				getDefaultDividerNode(options?: any): DividerNode;
-				getDefaultMenuNode(options?: any): MenuNode;
-			};
+			templates: CRMTemplates;
 			specialJSON: SpecialJSON;
 			permissions: Array<string>;
 			contexts: Array<string>;
@@ -643,7 +645,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
 			templates: {
-				mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any> {
+				mergeArrays(this: CRMTemplates, mainArray: Array<any>, additionArray: Array<any>): Array<any> {
 					for (let i = 0; i < additionArray.length; i++) {
 						if (mainArray[i] &&
 							typeof additionArray[i] === 'object' &&
@@ -660,7 +662,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainArray;
 				},
-				mergeObjects<T>(mainObject: Extendable<T>, additions: Extensions<T>): Extendable<T> {
+				mergeObjects<T>(this: CRMTemplates, mainObject: Extendable<T>, additions: Extensions<T>): Extendable<T> {
 					for (let key in additions) {
 						if (additions.hasOwnProperty(key)) {
 							if (typeof additions[key] === 'object' &&
@@ -678,8 +680,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainObject;
 				},
-				getDefaultNodeInfo(options: Partial<CRMNodeInfo> = {}): CRMNodeInfo {
-					const defaultNodeInfo: Partial<CRMNodeInfo> = {
+				getDefaultNodeInfo(this: CRMTemplates, options: Partial<CRMNodeInfo> = {}): CRMNodeInfo {
+					const defaultNodeInfo: CRMNodeInfo = {
 						permissions: [],
 						source: { 
 							author: (globalObject.globals.storages.storageLocal && 
@@ -687,9 +689,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						},
 					};
 
-					return this.mergeObjects(defaultNodeInfo, options);
+					return this.mergeObjects(defaultNodeInfo, options) as CRMNodeInfo;
 				},
-				getDefaultLinkNode(options: Partial<LinkNode> = {}): LinkNode {
+				getDefaultLinkNode(this: CRMTemplates, options: Partial<LinkNode> = {}): LinkNode {
 					const defaultNode: Partial<LinkNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -711,9 +713,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						]
 					};
 
-					return this.mergeObjects(defaultNode, options);
+					return this.mergeObjects(defaultNode, options) as LinkNode;
 				},
-				getDefaultStylesheetValue(options: Partial<StylesheetVal> = {}): StylesheetVal {
+				getDefaultStylesheetValue(this: CRMTemplates, options: Partial<StylesheetVal> = {}): StylesheetVal {
 					const value: StylesheetVal = {
 						stylesheet: [
 							'// ==UserScript==',
@@ -730,9 +732,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						defaultOn: false
 					};
 
-					return this.mergeObjects(value, options);
+					return this.mergeObjects(value, options) as StylesheetVal;
 				},
-				getDefaultScriptValue(options: Partial<ScriptVal> = {}): ScriptVal {
+				getDefaultScriptValue(this: CRMTemplates, options: Partial<ScriptVal> = {}): ScriptVal {
 					const value: ScriptVal = {
 						launchMode: CRMLaunchModes.ALWAYS_RUN,
 						backgroundLibraries: [],
@@ -750,9 +752,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						metaTags: {}
 					};
 
-					return this.mergeObjects(value, options);
+					return this.mergeObjects(value, options) as ScriptVal;
 				},
-				getDefaultScriptNode(options: Partial<ScriptNode> = {}): ScriptNode {
+				getDefaultScriptNode(this: CRMTemplates, options: Partial<ScriptNode> = {}): ScriptNode {
 					const defaultNode: Partial<ScriptNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -768,9 +770,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						value: this.getDefaultScriptValue(options.value)
 					};
 
-					return this.mergeObjects(defaultNode, options);
+					return this.mergeObjects(defaultNode, options) as ScriptNode;
 				},
-				getDefaultStylesheetNode(options: Partial<StylesheetNode> = {}): StylesheetNode {
+				getDefaultStylesheetNode(this: CRMTemplates, options: Partial<StylesheetNode> = {}): StylesheetNode {
 					const defaultNode: Partial<StylesheetNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
@@ -786,9 +788,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						value: this.getDefaultStylesheetValue(options.value)
 					};
 
-					return this.mergeObjects(defaultNode, options);
+					return this.mergeObjects(defaultNode, options) as StylesheetNode;
 				},
-				getDefaultDividerOrMenuNode(options: Partial<PassiveCRMNode> = {}, type: 'divider' | 'menu'):
+				getDefaultDividerOrMenuNode(this: CRMTemplates, options: Partial<PassiveCRMNode> = {}, type: 'divider' | 'menu'):
 				DividerNode | MenuNode {
 					const defaultNode: Partial<PassiveCRMNode> = {
 						name: 'name',
@@ -796,21 +798,24 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 						onContentTypes: [true, true, true, false, false, false],
 						isLocal: true,
-						value: null
+						value: null,
+						showOnSpecified: true,
+						children: type === 'menu' ? [] : null,
+						permissions: [],
 					};
 
-					return this.mergeObjects(defaultNode, options);
+					return this.mergeObjects(defaultNode, options) as any;
 				},
-				getDefaultDividerNode(options: Partial<DividerNode> = {}): DividerNode {
-					return this.getDefaultDividerOrMenuNode(options, 'divider');
+				getDefaultDividerNode(this: CRMTemplates, options: Partial<DividerNode> = {}): DividerNode {
+					return this.getDefaultDividerOrMenuNode(options, 'divider') as DividerNode;
 				},
-				getDefaultMenuNode(options: Partial<MenuNode> = {}): MenuNode {
-					return this.getDefaultDividerOrMenuNode(options, 'menu');
+				getDefaultMenuNode(this: CRMTemplates, options: Partial<MenuNode> = {}): MenuNode {
+					return this.getDefaultDividerOrMenuNode(options, 'menu') as MenuNode;
 				}
 			},
 			specialJSON: {
 				_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
-				_getRegexFlags(expr: RegExp): Array<string> {
+				_getRegexFlags(this: SpecialJSON, expr: RegExp): Array<string> {
 					const flags: Array<string> = [];
 					this._regexFlagNames.forEach((flagName: string) => {
 						if ((expr as any)[flagName]) {
@@ -823,7 +828,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					});
 					return flags;
 				},
-				_stringifyNonObject(data: string|number|Function|RegExp|Date|boolean): string {
+				_stringifyNonObject(this: SpecialJSON, data: string|number|Function|RegExp|Date|boolean): string {
 					if (typeof data === 'function') {
 						const fn = data.toString();
 						const match = this._fnRegex.exec(fn);
@@ -843,7 +848,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				_fnRegex: /^(.|\s)*\(((\w+((\s*),?(\s*)))*)\)(\s*)(=>)?(\s*)\{((.|\n|\r)+)\}$/,
 				_specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
 				_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
-				_parseNonObject(data: string): string|number|Function|RegExp|Date|boolean {
+				_parseNonObject(this: SpecialJSON, data: string): string|number|Function|RegExp|Date|boolean {
 					var dataParsed = JSON.parse(data);
 					if (typeof dataParsed === 'string') {
 						let matchedData;
@@ -853,7 +858,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								case 'fn':
 									const fnRegexed = this._fnCommRegex.exec(dataContent);
 									if (fnRegexed[1].trim() !== '') {
-										return new Function(fnRegexed[1].split(','), fnRegexed[6]);
+										return Function(...fnRegexed[1].split(','), fnRegexed[6]);
 									} else {
 										return new Function(fnRegexed[6]);
 									}
@@ -869,7 +874,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return dataParsed;
 				},
-				_iterate(copyTarget: ArrOrObj, iterable: ArrOrObj,
+				_iterate(this: SpecialJSON, copyTarget: ArrOrObj, iterable: ArrOrObj,
 				fn: (data: any, index: string|number, container: ArrOrObj) => any) {
 					if (Array.isArray(iterable)) {
 						copyTarget = copyTarget || [];
@@ -884,20 +889,30 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return copyTarget;
 				},
-				_isObject(data: any): boolean {
+				_isObject(this: SpecialJSON, data: any): boolean {
 					if (data instanceof Date || data instanceof RegExp || data instanceof Function) {
 						return false;
 					}
 					return typeof data === 'object' && !Array.isArray(data);
 				},
-				_toJSON(copyTarget: ArrOrObj, data: any, path: Array<string|number>, refData: {
+				_toJSON(this: SpecialJSON, copyTarget: ArrOrObj, data: any, path: Array<string|number>, refData: {
 					refs: Refs,
 					paths: Array<Array<string|number>>,
 					originalValues: Array<any>
 				}): {
 					refs: Refs;
-					data: ArrOrObj;
-					rootType: 'normal'|'array'|'object';
+					data: Array<any>;
+					rootType: 'array';	
+				}|{
+					refs: Refs;
+					data: {
+						[key: string]: any;
+					};
+					rootType: 'object';
+				}|{
+					refs: Refs;
+					data: string;
+					rootType: 'normal';
 				} {
 					if (!(this._isObject(data) || Array.isArray(data))) {
 						return {
@@ -932,14 +947,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								return `__$${index}$__`;
 							}
 						});
-						return {
-							refs: refData.refs,
-							data: copyTarget,
-							rootType: Array.isArray(data) ? 'array' : 'object'
-						};
+						const isArr = Array.isArray(data);
+						if (isArr) {
+							return {
+								refs: refData.refs,
+								data: copyTarget as Array<any>,
+								rootType: 'array'
+							};
+						} else {
+							return {
+								refs: refData.refs,
+								data: copyTarget as {
+									[key: string]: any;
+								},
+								rootType: 'object'
+							};
+						}
 					}
 				},
-				toJSON(data: any, refs: Refs = []): string {
+				toJSON(this: SpecialJSON, data: any, refs: Refs = []): string {
 					const paths: Array<Array<string|number>> = [[]];
 					const originalValues = [data];
 
@@ -985,7 +1011,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				},
 				_refRegex: /^__\$(\d+)\$__$/,
-				_replaceRefs(data: ArrOrObj, refs: ParsingRefs): ArrOrObj {
+				_replaceRefs(this: SpecialJSON, data: ArrOrObj, refs: ParsingRefs): ArrOrObj {
 					this._iterate(data, data, (element: string) => {
 						let match;
 						if ((match = this._refRegex.exec(element))) {
@@ -1003,7 +1029,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return data;
 				},
-				fromJSON(str: string): any {
+				fromJSON(this: SpecialJSON, str: string): any {
 					const parsed: {
 						refs: Refs;
 						data: any;
@@ -1029,7 +1055,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					refs[0].parsed = true;
-					return this._replaceRefs(refs[0].ref, refs);
+					return this._replaceRefs(refs[0].ref, refs as ParsingRefs);
 				}
 			},
 			contexts: ['page', 'link', 'selection', 'image', 'video', 'audio'],
@@ -1258,7 +1284,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static flattenCrm(searchScope: Array<CRMNode>, obj: CRMNode) {
 			searchScope.push(obj);
 			if (obj.type === 'menu' && obj.children) {
-				obj.children.forEach(function (child: CRMNode) {
+				obj.children.forEach((child: CRMNode) => {
 					this.flattenCrm(searchScope, child);
 				});
 			}
@@ -1418,7 +1444,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 
-			function updateLog(id: number|'ALL', tab: number|'ALL'|'background', textFilter: string): Array<LogListenerLine> {
+			function updateLog(this: LogListenerObject, id: number|'ALL', tab: number|'ALL'|'background', textFilter: string): Array<LogListenerLine> {
 				if (id === 'ALL' || id === 0) {
 					this.id = 'all';
 				} else {
@@ -1449,7 +1475,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					text: '',
 					listener: listener,
 					update(id, tab, textFilter) {
-						return updateLog.apply(this, [id, tab, textFilter]);
+						return updateLog.apply(filterObj, [id, tab, textFilter]);
 					},
 					index: globalObject.globals.listeners.log.length
 				};
@@ -5631,6 +5657,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
 						.settingsStorage.crm));
 
+					var _this = this;
 					function onDone() {
 						var updatedData = updatedScripts.map((updatedScript) => {
 							var oldNode = globalObject.globals.crm.crmById[updatedScript
@@ -5647,10 +5674,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						updatedScripts.forEach((updatedScript) => {
 							if (updatedScript.path) { //Has old node
-								this._removeOldNode(updatedScript.oldNodeId);
-								this._registerNode(updatedScript.node, updatedScript.path);
+								_this._removeOldNode(updatedScript.oldNodeId);
+								_this._registerNode(updatedScript.node, updatedScript.path);
 							} else {
-								this._registerNode(updatedScript.node);
+								_this._registerNode(updatedScript.node);
 							}
 						});
 

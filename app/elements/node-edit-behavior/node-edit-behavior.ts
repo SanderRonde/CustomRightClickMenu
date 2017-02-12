@@ -1,4 +1,4 @@
-﻿/// <reference path="../../elements.d.ts" />
+﻿/// <reference path="../elements.d.ts" />
 
 interface NodeEditBehaviorProperties {
 	pageContentSelected: boolean;
@@ -64,13 +64,36 @@ const nodeEditBehaviorProperties: NodeEditBehaviorProperties = {
 
 type NodeEditBehaviorBase = typeof NEB & typeof nodeEditBehaviorProperties;
 
-type NodeEditBehavior = NodeEditBehaviorBase & {
+type NodeEditBehaviorInstanceBase = NodeEditBehaviorBase & {
 	cancelChanges?(): void;
-	newSettings: Partial<LinkNode>|Partial<MenuNode>|Partial<DividerNode>|
-		Partial<ScriptNode>|Partial<StylesheetNode>;
-} & (
-	DividerEdit|LinkEdit|ScriptEdit|StylesheetEdit|MenuEdit
-);
+	saveChanges?(settings: CRMNode): void;
+	mode?: 'background'|'main';
+	contentCheckboxChanged(e: {
+		path: Array<HTMLElement>;
+	}): void;
+	showTriggers?: boolean;
+	showContentTypeChooser?: boolean;
+}
+
+type NodeEditBehaviorScriptInstance = NodeEditBehaviorInstanceBase & ScriptEdit & {
+	newSettings: Partial<ScriptNode>
+};
+type NodeEditBehaviorStylesheetInstance = NodeEditBehaviorInstanceBase & StylesheetEdit & {
+	newSettings: Partial<StylesheetNode>;
+};
+type NodeEditBehaviorLinkInstance = NodeEditBehaviorInstanceBase & LinkEdit & {
+	newSettings: Partial<LinkNode>;
+};
+type NodeEditBehaviorMenuInstance = NodeEditBehaviorInstanceBase & MenuEdit & {
+	newSettings: Partial<MenuNode>;
+};
+type NodeEditBehaviorDividerInstance = NodeEditBehaviorInstanceBase & DividerEdit & {
+	newSettings: Partial<DividerNode>;
+};
+
+type NodeEditBehavior = NodeEditBehaviorScriptInstance|
+	NodeEditBehaviorStylesheetInstance|NodeEditBehaviorLinkInstance|
+	NodeEditBehaviorMenuInstance|NodeEditBehaviorDividerInstance;
 
 class NEB {
 	static properties = nodeEditBehaviorProperties;
@@ -109,11 +132,14 @@ class NEB {
 	};
 
 	static cancel(this: NodeEditBehavior) {
-		this.cancelChanges && this.cancelChanges();
+		if (this.cancelChanges) {
+			//This made the compiler angry
+			(this.cancelChanges as any)();
+		}
 		window.crmEditPage.animateOut();
 	};
 
-	static save(this: NodeEditBehavior, event: PolymerClickEvent, resultStorage?: Partial<CRMNode>) {
+	static save(this: NodeEditBehavior, event?: PolymerClickEvent, resultStorage?: Partial<CRMNode>) {
 		if (resultStorage) {
 			resultStorage = null;
 		}
@@ -123,24 +149,27 @@ class NEB {
 		}
 
 		var newSettings = this.newSettings;
-		this.saveChanges && this.saveChanges(newSettings);
+		if (this.saveChanges) {
+			//Also made the compiler angry
+			(this.saveChanges as any)(newSettings);
+		}
 
 		this.getContentTypeLaunchers(newSettings);
 		this.getTriggers(newSettings);
 		window.crmEditPage.animateOut();
 
 		var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
-		newSettings.name = this.$.nameInput.value;
+		newSettings.name = (this.$['nameInput'] as PaperInput).value;
 		itemInEditPage.name = newSettings.name;
 
 		if (!newSettings.onContentTypes[window.app.crmType]) {
 			window.app.editCRM.build(window.app.editCRM.setMenus);
 		}
 
-		if (newSettings.value) {
-			if (newSettings.value.launchMode !== undefined &&
-				newSettings.value.launchMode !== 0) {
-				newSettings.onContentTypes = [true, true, true, true, true, true];
+		if (newSettings.value && newSettings.type !== 'link') {
+			if ((newSettings as ScriptNode|StylesheetNode).value.launchMode !== undefined &&
+				(newSettings as ScriptNode|StylesheetNode).value.launchMode !== 0) {
+				(newSettings as ScriptNode|StylesheetNode).onContentTypes = [true, true, true, true, true, true];
 			} else {
 				if (!newSettings.onContentTypes[window.app.crmType]) {
 					window.app.editCRM.build(window.app.editCRM.setMenus);
@@ -150,7 +179,7 @@ class NEB {
 
 		for (var key in newSettings) {
 			if (newSettings.hasOwnProperty(key)) {
-				resultStorage[key as keyof CRMNode] = newSettings[key];
+				resultStorage[key as keyof CRMNode] = newSettings[key as keyof CRMNode];
 			}
 		}
 
@@ -166,18 +195,26 @@ class NEB {
 
 	static assignContentTypeSelectedValues(this: NodeEditBehavior) {
 		var i;
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		const arr = [
+			'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
+			'imageContentSelected', 'videoContentSelected', 'audioContentSelected'
+		];
 		for (i = 0; i < 6; i++) {
-			this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
+			this[arr[i] as keyof NodeEditBehaviorProperties] = this.item.onContentTypes[i];
 		}
 	};
 
-	static checkToggledIconAmount(this: NodeEditBehavior, e: PolymerClickEvent) {
+	static checkToggledIconAmount(this: NodeEditBehavior, e: {
+		path: Array<HTMLElement>;
+	}) {
 		var i;
 		var toggledAmount = 0;
-		var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		const arr = [
+			'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
+			'imageContentSelected', 'videoContentSelected', 'audioContentSelected'
+		];
 		for (i = 0; i < 6; i++) {
-			if (this[arr[i] + 'ContentSelected']) {
+			if (this[arr[i] as keyof NodeEditBehaviorProperties]) {
 				if (toggledAmount === 1) {
 					return true;
 				}
@@ -192,7 +229,10 @@ class NEB {
 				element = e.path[index];
 			}
 			(element as PaperCheckbox).checked = true;
-			this[element.parentElement.classList[1].split('Type')[0] + 'ContentSelected'] = true;
+			this[
+				element.parentElement.classList[1].split('Type')[0] + 'ContentSelected' as
+					keyof NodeEditBehaviorProperties
+			] = true;
 			(window.doc['contentTypeToast'] as PaperToast).show();
 		}
 		return false;
@@ -233,8 +273,7 @@ class NEB {
 			target = target.children[0] as PossiblePolymerElement;
 		}
 		// $(target.parentNode.parentNode).remove();
-		this.splice(
-			'newSettings.triggers',
+		this.splice('newSettings.triggers',
 			Array.prototype.slice.apply(this.querySelectorAll('.executionTrigger')).indexOf(target.parentNode.parentNode),
 			1);
 	};
@@ -252,7 +291,7 @@ class NEB {
 	/**
 	 * Returns the pattern that triggers need to follow for the current launch mode
 	 */
-	static _getPattern(this: NodeEditBehavior) {
+	static _getPattern(this: NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance) {
 		Array.prototype.slice.apply(this.querySelectorAll('.triggerInput')).forEach(function(triggerInput: PaperInput) {
 			triggerInput.invalid = false;
 		});
@@ -267,7 +306,7 @@ class NEB {
 	/**
 	 * Returns the label that a trigger needs to have for the current launchMode
 	 */
-	static _getLabel(this: NodeEditBehavior) {
+	static _getLabel(this: NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance) {
 		if (this.newSettings.value.launchMode === 2) {
 			return 'Globbing pattern or regex';
 		} else {
@@ -291,9 +330,9 @@ class NEB {
 			showInsteadOfExecute: (prevState === 3)
 		};
 
-		var triggersElement = this.$.executionTriggersContainer;
+		var triggersElement = this.$['executionTriggersContainer'];
 		var $triggersElement = $(triggersElement);
-		var contentTypeChooserElement = this.$.showOnContentContainer;
+		var contentTypeChooserElement = this.$['showOnContentContainer'];
 		var $contentTypeChooserElement = $(contentTypeChooserElement);
 
 		function animateTriggers(callback?: () => void) {
@@ -301,23 +340,23 @@ class NEB {
 			if (newStates.showTriggers) {
 				triggersElement.style.display = 'block';
 				triggersElement.style.marginLeft = '-110%';
-				triggersElement.style.height = 0;
+				triggersElement.style.height = '0';
 				$triggersElement.animate({
 					height: $triggersElement[0].scrollHeight
-				}, 300, function () {
+				}, 300, function (this: HTMLElement) {
 					$(this).animate({
 						marginLeft: 0
-					}, 200, function() {
+					}, 200, function(this: HTMLElement) {
 						this.style.height = 'auto';
 						callback && callback();
 					});
 				});
 			} else {
-				triggersElement.style.marginLeft = 0;
-				triggersElement.style.height = $triggersElement[0].scrollHeight;
+				triggersElement.style.marginLeft = '0';
+				triggersElement.style.height = $triggersElement[0].scrollHeight + '';
 				$triggersElement.animate({
 					marginLeft: '-110%'
-				}, 200, function () {
+				}, 200, function (this: HTMLElement) {
 					$(this).animate({
 						height: 0
 					}, 300, function () {
@@ -332,25 +371,25 @@ class NEB {
 		function animateContentTypeChooser(callback?: () => void) {
 			contentTypeChooserElement.style.height = 'auto';
 			if (newStates.showContentTypeChooser) {
-				contentTypeChooserElement.style.height = 0;
+				contentTypeChooserElement.style.height = '0';
 				contentTypeChooserElement.style.display = 'block';
 				contentTypeChooserElement.style.marginLeft = '-110%';
 				$contentTypeChooserElement.animate({
 					height: $contentTypeChooserElement[0].scrollHeight
-				}, 300, function () {
+				}, 300, function (this: HTMLElement) {
 					$(this).animate({
 						marginLeft: 0
-					}, 200, function () {
+					}, 200, function (this: HTMLElement) {
 						this.style.height = 'auto';
 						callback && callback();
 					});
 				});
 			} else {
-				contentTypeChooserElement.style.marginLeft = 0;
-				contentTypeChooserElement.style.height = $contentTypeChooserElement[0].scrollHeight;
+				contentTypeChooserElement.style.marginLeft = '0';
+				contentTypeChooserElement.style.height = $contentTypeChooserElement[0].scrollHeight + '';
 				$contentTypeChooserElement.animate({
 					marginLeft: '-110%'
-				}, 200, function () {
+				}, 200, function (this: HTMLElement) {
 					$(this).animate({
 						height: 0
 					}, 300, function () {
@@ -381,32 +420,32 @@ class NEB {
 		}
 
 		if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
-			this.$.showOrExecutetxt.innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
+			this.$['showOrExecutetxt'].innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
 		}
 	};
 
-	static initDropdown(this: NodeEditBehavior) {
+	static initDropdown(this: NodeEditBehaviorBase & (ScriptEdit|StylesheetEdit)) {
 		this.showTriggers = (this.item.value.launchMode > 1 && this.item.value.launchMode !== 4);
 		this.showContentTypeChooser = (this.item.value.launchMode === 0 || this.item.value.launchMode === 3);
 		if (this.showTriggers) {
-			this.$.executionTriggersContainer.style.display = 'block';
-			this.$.executionTriggersContainer.style.marginLeft = 0;
-			this.$.executionTriggersContainer.style.height = 'auto';
+			this.$['executionTriggersContainer'].style.display = 'block';
+			this.$['executionTriggersContainer'].style.marginLeft = '0';
+			this.$['executionTriggersContainer'].style.height = 'auto';
 		} else {
-			this.$.executionTriggersContainer.style.display = 'none';
-			this.$.executionTriggersContainer.style.marginLeft = '-110%';
-			this.$.executionTriggersContainer.style.height = 0;
+			this.$['executionTriggersContainer'].style.display = 'none';
+			this.$['executionTriggersContainer'].style.marginLeft = '-110%';
+			this.$['executionTriggersContainer'].style.height = '0';
 		}
 		if (this.showContentTypeChooser) {
-			this.$.showOnContentContainer.style.display = 'block';
-			this.$.showOnContentContainer.style.marginLeft = 0;
-			this.$.showOnContentContainer.style.height = 'auto';
+			this.$['showOnContentContainer'].style.display = 'block';
+			this.$['showOnContentContainer'].style.marginLeft = '0';
+			this.$['showOnContentContainer'].style.height = 'auto';
 		} else {
-			this.$.showOnContentContainer.style.display = 'none';
-			this.$.showOnContentContainer.style.marginLeft = '-110%';
-			this.$.showOnContentContainer.style.height = 0;
+			this.$['showOnContentContainer'].style.display = 'none';
+			this.$['showOnContentContainer'].style.marginLeft = '-110%';
+			this.$['showOnContentContainer'].style.height = '0';
 		}
-		this.$.dropdownMenu._addListener(this.selectorStateChange, 'dropdownMenu', this);
+		(this.$['dropdownMenu'] as PaperDropdownMenu)._addListener(this.selectorStateChange, 'dropdownMenu', this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();
 			this.editor = null;
@@ -419,7 +458,7 @@ class NEB {
 		window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
 		this.assignContentTypeSelectedValues();
 		setTimeout(function () {
-			_this.$.nameInput.focus();
+			_this.$['nameInput'].focus();
 		}, 350);
 	}
 }

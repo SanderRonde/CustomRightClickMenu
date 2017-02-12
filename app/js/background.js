@@ -338,7 +338,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
                         onContentTypes: [true, true, true, false, false, false],
                         isLocal: true,
-                        value: null
+                        value: null,
+                        showOnSpecified: true,
+                        children: type === 'menu' ? [] : null,
+                        permissions: []
                     };
                     return this.mergeObjects(defaultNode, options);
                 },
@@ -400,7 +403,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 case 'fn':
                                     var fnRegexed = this._fnCommRegex.exec(dataContent);
                                     if (fnRegexed[1].trim() !== '') {
-                                        return new Function(fnRegexed[1].split(','), fnRegexed[6]);
+                                        return Function.apply(void 0, fnRegexed[1].split(',').concat([fnRegexed[6]]));
                                     }
                                     else {
                                         return new Function(fnRegexed[6]);
@@ -474,11 +477,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 return "__$" + index + "$__";
                             }
                         });
-                        return {
-                            refs: refData.refs,
-                            data: copyTarget,
-                            rootType: Array.isArray(data) ? 'array' : 'object'
-                        };
+                        var isArr = Array.isArray(data);
+                        if (isArr) {
+                            return {
+                                refs: refData.refs,
+                                data: copyTarget,
+                                rootType: 'array'
+                            };
+                        }
+                        else {
+                            return {
+                                refs: refData.refs,
+                                data: copyTarget,
+                                rootType: 'object'
+                            };
+                        }
                     }
                 },
                 toJSON: function (data, refs) {
@@ -731,10 +744,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             return target;
         };
         Helpers.flattenCrm = function (searchScope, obj) {
+            var _this = this;
             searchScope.push(obj);
             if (obj.type === 'menu' && obj.children) {
                 obj.children.forEach(function (child) {
-                    this.flattenCrm(searchScope, child);
+                    _this.flattenCrm(searchScope, child);
                 });
             }
         };
@@ -953,7 +967,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     text: '',
                     listener: listener,
                     update: function (id, tab, textFilter) {
-                        return updateLog.apply(this, [id, tab, textFilter]);
+                        return updateLog.apply(filterObj, [id, tab, textFilter]);
                     },
                     index: globalObject.globals.listeners.log.length
                 };
@@ -5040,8 +5054,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 var updatedScripts = [];
                 var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
                     .settingsStorage.crm));
+                var _this = this;
                 function onDone() {
-                    var _this = this;
                     var updatedData = updatedScripts.map(function (updatedScript) {
                         var oldNode = globalObject.globals.crm.crmById[updatedScript
                             .oldNodeId];

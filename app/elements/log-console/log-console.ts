@@ -59,7 +59,9 @@ const logConsoleProperties: {
 interface ContextMenuSource {
 	props: {
 		value: Array<LogLineData>|LogLineData;
-		parent: React.Component<any, any>;
+		parent: React.Component<any, any> & {
+			isLine(): boolean;
+		};
 		line: LogListenerLine;
 	}
 }
@@ -85,23 +87,25 @@ class LC {
 		'_updateLog(selectedId, selectedTab, textfilter)'
 	];
 
+	static done: boolean;
+
 	static _hideGenericToast(this: LogConsole) {
-		this.$['genericToast'].hide();
+		(this.$['genericToast'] as PaperToast).hide();
 	};
 
 	static _textFilterChange(this: LogConsole) {
-		this.set('textfilter', this.$['textFilter'].value);
+		this.set('textfilter', (this.$['textFilter'] as PaperInput).value);
 	};
 
 	static _takeToTab(this: LogConsole, event: PolymerClickEvent) {
 		var _this = this;
 		var target = event.target;
-		var tabId = target.children[0].innerText;
+		var tabId = (target.children[0] as HTMLElement).innerText;
 		
 		chrome.tabs.get(~~tabId, function(tab) {
 			if (chrome.runtime.lastError) {
-				_this.$['genericToast'].text = 'Tab has been closed';
-				_this.$['genericToast'].show();
+				(_this.$['genericToast'] as PaperToast).text = 'Tab has been closed';
+				(_this.$['genericToast'] as PaperToast).show();
 				return;
 			}
 
@@ -122,7 +126,7 @@ class LC {
 	};
 
 	static _fixTextareaLines(this: LogConsole) {
-		this.$['consoleInput'].setAttribute('rows', (this.$['consoleInput'].value.split('\n').length || 1));
+		this.$['consoleInput'].setAttribute('rows', ((this.$['consoleInput'] as PaperInput).value.split('\n').length || 1) + '');
 		this.$['linesCont'].scrollTop = this.$['linesCont'].scrollHeight;
 	};
 
@@ -153,7 +157,7 @@ class LC {
 		} else {
 			this.$['inputFieldWarning'].classList.add('visible');
 			this.$['consoleInput'].setAttribute('disabled', 'disabled');
-			this.async(function() {
+			this.async(() => {
 				this.$['inputFieldWarning'].classList.remove('visible');
 				this.$['consoleInput'].removeAttribute('disabled');
 			}, 5000);
@@ -163,9 +167,9 @@ class LC {
 	static _inputKeypress(this: LogConsole, event: KeyboardEvent) {
 		if (event.key === 'Enter') {
 			if (!event.shiftKey) {
-				this._executeCode(this.$['consoleInput'].value);
-				this.$['consoleInput'].value = '';
-				this.$['consoleInput'].setAttribute('rows', 1);
+				this._executeCode((this.$['consoleInput'] as PaperInput).value);
+				(this.$['consoleInput'] as PaperInput).value = '';
+				this.$['consoleInput'].setAttribute('rows', '1');
 			} else {
 				this.async(this._fixTextareaLines, 10);
 			}
@@ -271,7 +275,7 @@ class LC {
 		this.waitingForEval = false;
 	};
 
-	static _init(this: LogConsole) {
+	static _init(this: LogConsole, callback: () => void) {
 		var _this = this;
 		chrome.runtime.getBackgroundPage(function(bgPage) {
 			_this.bgPage = bgPage;
@@ -301,12 +305,12 @@ class LC {
 			var menus = Array.prototype.slice.apply(document.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
 			menus.forEach(function(menu) {
 				menu.onopen = function() {
-					menu.querySelector('template').render();
+					(menu.querySelector('template') as DomRepeat).render();
 					_this.async(function() {
 						menu.refreshListeners.apply(menu);
 					}, 100);
 				};
-				menu.onchange = function(oldState: number, newState: number) {
+				(menu as PaperDropdownMenu).onchange= function(oldState: number, newState: number) {
 					menus.forEach(function(menu) {
 						menu.close();
 					});
@@ -316,13 +320,15 @@ class LC {
 					} else {
 						_this.set('selectedTab', newState);
 					}
-				};
+				} as any;
 			});
+
+			callback && callback();
 		}, 1000);
 	};
 
 	static _contextStoreAsLocal(this: LogConsole) {
-		var source = this.$['contextMenu'].source;
+		var source = (this.$['contextMenu'] as ContextMenuElement).source;
 		var sourceVal = source.props.value;
 
 		//Get the LogLine
@@ -334,7 +340,7 @@ class LC {
 		var sourceLine = source;
 
 		//Get the index of this element in the logLine
-		var index = sourceLine.props.value.indexOf(sourceVal);
+		var index = (sourceLine.props.value as Array<LogLineData>).indexOf(sourceVal as LogLineData);
 
 		var logLine = sourceLine.props.line;
 	
@@ -388,7 +394,7 @@ class LC {
 	};
 
 	static _contextCopyAsJSON(this: LogConsole) {
-		var value = this.$['contextMenu'].source.props.value;
+		var value = (this.$['contextMenu'] as ContextMenuElement).source.props.value;
 		this._copy(JSON.stringify(value, function(key, value) {
 			if (key === '__parent' || key === '__proto__') {
 				return undefined;
@@ -399,17 +405,17 @@ class LC {
 
 	static _contextCopyPath(this: LogConsole, noCopy: boolean = false): string|boolean {
 		var path = [];
-		var source = this.$['contextMenu'].source;
+		var source = (this.$['contextMenu'] as ContextMenuElement).source;
 		var childValue = source.props.value;
 		while (source.props.parent && !source.props.parent.isLine()) {
 			source = source.props.parent;
 			if (Array.isArray(source.props.value)) {
-				path.push('[' + source.props.value.indexOf(childValue) + ']');
+				path.push('[' + source.props.value.indexOf(childValue as LogLineData) + ']');
 			} else {
 				var keys = Object.getOwnPropertyNames(source.props.value).concat(['__proto__']);
 				var foundValue = false;
 				for (var i = 0; i < keys.length; i++) {
-					if (source.props.value[keys[i]] === childValue) {
+					if ((source.props.value as any)[keys[i]] === childValue) {
 						if (/[a-z|A-Z]/.exec(keys[i].charAt(0))) {
 							path.push('.' + keys[i]);
 						} else {
@@ -454,7 +460,7 @@ class LC {
 	};
 
 	static initContextMenu(this: LogConsole, source: ContextMenuSource, event: MouseEvent) {
-		var contextMenu = this.$['contextMenu'];
+		var contextMenu = this.$['contextMenu'] as ContextMenuElement;
 		contextMenu.style.left = event.clientX + 'px';
 		contextMenu.style.top = event.clientY + 'px';
 		contextMenu.source = source;
@@ -465,23 +471,23 @@ class LC {
 	};
 
 	static ready(this: LogConsole) {
-		var _this = this._this = this;
+		this._this = this;
 		window.logConsole = this;
 
-		_this.logLines = ReactDOM.render(
+		this.logLines = ReactDOM.render(
 			React.createElement(
 				(window.logElements.logLines as any) as string, {
 					items: [],
-					logConsole: _this
+					logConsole: this
 				}),
 			this.$['lines']);
 
-		document.body.addEventListener('click', function() {
-			_this.$['contextMenu'].classList.remove('visible');
+		document.body.addEventListener('click', () => {
+			this.$['contextMenu'].classList.remove('visible');
 		});
 
-		this.async(function() {
-			this._init(function() {
+		this.async(() => {
+			this._init(() => {
 				this.done = true;
 
 				if (window.logPage) {

@@ -47,7 +47,7 @@ var DNB = (function () {
     DNB._onDrag = function () {
         if (this._cursorPosChanged && this.dragging) {
             this._cursorPosChanged = false;
-            var columnCorrection = 200 * (this._filler.column - this.parentNode.index);
+            var columnCorrection = 200 * (this._filler.column - this.parentElement.index);
             var spacingTop = this._lastRecordedPos.Y - this._dragStart.Y;
             var x = (this._lastRecordedPos.X - this._dragStart.X + columnCorrection) + 'px';
             var y = spacingTop + 'px';
@@ -121,8 +121,8 @@ var DNB = (function () {
                         }
                         $(this._filler).insertBefore(newColumnChildren[fillerIndex]);
                         if (newColumnLength === 0) {
-                            newColumn.parentNode.style.display = 'block';
-                            newColumn.parentNode.isEmpty = true;
+                            newColumn.parentElement.style.display = 'block';
+                            newColumn.parentElement.isEmpty = true;
                         }
                         this._filler.column = this._filler.column + 1;
                         this._currentColumn = null;
@@ -153,13 +153,13 @@ var DNB = (function () {
                         }
                     }
                     this._filler.index = fillerIndex;
-                    if (this._parentNode === newColumn) {
+                    if (this.parentElement === newColumn) {
                         this._dragStart.Y += 50;
                     }
-                    else if (this._parentNode === this._filler.parentNode) {
+                    else if (this.parentElement === this._filler.parentNode) {
                         this._dragStart.Y -= 50;
                     }
-                    var paperMaterial = this._filler.parentNode.parentNode;
+                    var paperMaterial = this._filler.parentElement.parentElement;
                     if (paperMaterial.isEmpty) {
                         paperMaterial.style.display = 'none';
                     }
@@ -206,7 +206,7 @@ var DNB = (function () {
         }
         else if (next) {
             //The next item exists, newpath is that path
-            newPath = next.item.path;
+            newPath = prev.item.path;
         }
         else {
             //No items exist yet, go to prev column and find the only expanded menu
@@ -231,12 +231,6 @@ var DNB = (function () {
                 .forEach(function (element) {
                 element.style.display = 'table';
             });
-            setTimeout(function () {
-                //Make every node re-run "ready"
-                $(window.app.editCRM).find('edit-crm-item').each(function () {
-                    this._recalculateIndex(newObj);
-                });
-            }, 0);
         }
     };
     DNB._startDrag = function (event) {
@@ -257,14 +251,14 @@ var DNB = (function () {
         var x = $('something');
         this._filler = $('<div class="crmItemFiller"></div>').get(0);
         this._filler.index = this.index;
-        this._filler.column = this.parentNode.index;
+        this._filler.column = this.parentElement.index;
         document.body.addEventListener('mouseup', this._listeners.stopDrag);
         document.body.addEventListener('mousemove', this._listeners.onMouseMove);
         window.addEventListener('scroll', this._listeners.onScroll);
         window.addEventListener('blur', this._listeners.stopDrag);
         document.querySelector('#mainCont').addEventListener('scroll', this._listeners.onScroll);
         //Do visual stuff as to decrease delay between the visual stuff
-        if (this.isMenu && this.parentNode.items[this.index].expanded) {
+        if (this.isMenu && this.parentElement.items[this.index].expanded) {
             //Collapse any columns to the right of this
             var columnContChildren = window.app.editCRM.getColumns();
             for (var i = this.column + 1; i < columnContChildren.length; i++) {
@@ -299,7 +293,7 @@ var DNB = (function () {
                 }
             }
         });
-        this.column = this.parentNode.index;
+        this.column = this.parentElement.index;
         this._listeners = {
             stopDrag: this._stopDrag.bind(this),
             onMouseMove: this._onMouseMove.bind(this),

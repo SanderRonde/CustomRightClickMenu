@@ -16,8 +16,7 @@ interface ScriptEditBehaviorProperties extends NodeEditBehaviorProperties {
 	newSettings: Partial<ScriptNode>;
 }
 
-type ScriptEdit = PolymerElement<typeof SCE & typeof scriptEditProperties> & 
-	NodeEditBehaviorBase & ScriptEditBehaviorProperties;
+type ScriptEdit = PolymerElement<typeof SCE & typeof scriptEditProperties>;
 
 class SCE {
 	static is: string = 'script-edit';
@@ -158,7 +157,7 @@ class SCE {
 	//#endregion
 
 	//#region Metadata Updates
-	static preventCodemirrorNotification(this: ScriptEdit) {
+	static preventCodemirrorNotification(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		this.preventNotification = true;
 		if (this.preventNotificationTimeout) {
@@ -170,9 +169,10 @@ class SCE {
 		}, 20);
 	};
 
-	static updateFromScriptApplier(this: ScriptEdit, changeType: ChangeType, key: string,
+	static updateFromScriptApplier(this: NodeEditBehaviorScriptInstance, changeType: ChangeType, key: string,
 			value: any, oldValue: any) {
 		var i;
+		var _this = this;
 		var metaTags = this.newSettings.value.metaTags;
 
 		//Register as a resource
@@ -183,7 +183,7 @@ class SCE {
 					type: 'register',
 					name: val,
 					url: val,
-					scriptId: this.item.id
+					scriptId: _this.item.id
 				}
 			});
 		}
@@ -195,7 +195,7 @@ class SCE {
 					type: 'remove',
 					name: val,
 					url: val,
-					scriptId: this.item.id
+					scriptId: _this.item.id
 				}
 			});
 		}
@@ -207,7 +207,7 @@ class SCE {
 					type: 'register',
 					name: val.split(/(\s+)/)[0],
 					url: val.split(/(\s+)/)[1],
-					scriptId: this.item.id
+					scriptId: _this.item.id
 				}
 			});
 		}
@@ -219,7 +219,7 @@ class SCE {
 					type: 'remove',
 					name: val.split(/(\s+)/)[0],
 					url: val.split(/(\s+)/)[1],
-					scriptId: this.item.id
+					scriptId: _this.item.id
 				}
 			});
 		}
@@ -382,7 +382,7 @@ class SCE {
 		}
 	};
 
-	static metaTagsUpdateFromSettings(this: ScriptEdit, changeType: ChangeType, key: string, 
+	static metaTagsUpdateFromSettings(this: NodeEditBehaviorScriptInstance, changeType: ChangeType, key: string, 
 			value: string|number, oldValue?: string|number) {
 		var cm = this.editor;
 		switch (key) {
@@ -432,7 +432,7 @@ class SCE {
 		}
 	};
 
-	static metaTagsUpdate(this: ScriptEdit, changes: {
+	static metaTagsUpdate(this: NodeEditBehaviorScriptInstance, changes: {
 			changed?: Array<{
 				key: string;
 				value: string|number;
@@ -477,14 +477,14 @@ class SCE {
 		}
 	};
 
-	static clearTriggerAndNotifyMetaTags(this: ScriptEdit, e: PolymerClickEvent) {
+	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		if (this.querySelectorAll('.executionTrigger').length === 1) {
 			(window.doc['messageToast'] as PaperToast).text = 'You need to have at least one trigger';
 			(window.doc['messageToast'] as PaperToast).show();
 			return;
 		}
 
-		this.clearTrigger(e);
+		(this as NodeEditBehavior).clearTrigger(e);
 
 		var index = 0;
 		var el = e.path[index];
@@ -492,7 +492,7 @@ class SCE {
 			el = e.path[++index];
 		}
 
-		this.async(function () {
+		this.async(() => {
 			var inputVal = el.parentElement.children[1] as PaperInput;
 			var checkboxVal = el.parentElement.children[0] as PaperCheckbox;
 			this.metaTagsUpdate({
@@ -508,7 +508,7 @@ class SCE {
 		}, 0);
 	};
 
-	static launchModeUpdateFromDialog(this: ScriptEdit, prevState: number, state: number) {
+	static launchModeUpdateFromDialog(this: NodeEditBehaviorScriptInstance, prevState: number, state: number) {
 		this.metaTagsUpdate({
 			'changed': [
 				{
@@ -520,7 +520,7 @@ class SCE {
 		}, 'dialog');
 	};
 
-	static triggerCheckboxChange(this: ScriptEdit, element: PaperCheckbox) {
+	static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: PaperCheckbox) {
 		var oldValue = !element.checked;
 		var inputValue = ($(element).parent().children('.triggerInput')[0] as PaperInput).value;
 
@@ -528,7 +528,7 @@ class SCE {
 		this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
 	};
 
-	static triggerInputChange(this: ScriptEdit, element: PaperInput) {
+	static triggerInputChange(this: NodeEditBehaviorScriptInstance, element: PaperInput) {
 		var _this = this;
 		var oldValue = element.value;
 
@@ -548,7 +548,7 @@ class SCE {
 		}, 0);
 	};
 
-	static addTriggerAndAddListeners(this: ScriptEdit) {
+	static addTriggerAndAddListeners(this: NodeEditBehaviorScriptInstance) {
 		this.addTrigger();
 		this.metaTagsUpdate({
 			'added': [
@@ -560,7 +560,7 @@ class SCE {
 		}, 'dialog');
 	};
 
-	static contentCheckboxChanged(this: ScriptEdit, e: PolymerClickEvent) {
+	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		var index = 0;
 		var element = e.path[0];
 		while (element.tagName !== 'PAPER-CHECKBOX') {
@@ -597,22 +597,23 @@ class SCE {
 		}, 'dialog');
 	};
 
-	static addDialogToMetaTagUpdateListeners(this: ScriptEdit) {
-		var _this = this;
-		this.async(function() {
-			this.$['dropdownMenu']._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
+	static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
+		const __this = this;
+
+		this.async(() => {
+			(this.$['dropdownMenu'] as PaperDropdownMenu)._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
 		}, 0);
 
 		//Use jquery to also get the pre-change value
-		$(this.$['nameInput']).on('keydown', function() {
-			var el = _this.$['nameInput'] as PaperInput;
+		$(this.$['nameInput']).on('keydown', () => {
+			var el = this.$['nameInput'] as PaperInput;
 			var oldVal = el.value || '';
 			Array.isArray(oldVal) && (oldVal = oldVal[0]);
-			_this.async(function () {
+			this.async(() => {
 				var newVal = el.value || '';
 				Array.isArray(newVal) && (newVal = newVal[0]);
 				if (newVal !== oldVal) {
-					_this.metaTagsUpdate({
+					this.metaTagsUpdate({
 						'changed': [
 							{
 								key: 'name',
@@ -625,17 +626,17 @@ class SCE {
 			}, 5);
 		});
 
-		$('.executionTriggerNot').on('change', function () {
-			_this.triggerCheckboxChange.apply(_this, [this]);
+		$('.executionTriggerNot').on('change', function(this: HTMLElement) {
+			__this.triggerCheckboxChange.apply(__this, [this]);
 		});
-		$('.triggerInput').on('keydown', function() {
-			_this.triggerInputChange.apply(_this, [this]);
+		$('.triggerInput').on('keydown', function(this: HTMLElement) {
+			__this.triggerInputChange.apply(__this, [this]);
 		});
-		$('.scriptPermissionsToggle').on('change', function() {
+		$('.scriptPermissionsToggle').on('change', function(this: PaperCheckbox) {
 			var permission = $(this).parent().children('.requestPermissionName')[0].innerText;
 			var prevState = !this.checked;
 			if (prevState) {
-				_this.metaTagsUpdate({
+				__this.metaTagsUpdate({
 					'removed': [
 						{
 							key: 'grant',
@@ -644,7 +645,7 @@ class SCE {
 					]
 				}, 'dialog');
 			} else {
-				_this.metaTagsUpdate({
+				__this.metaTagsUpdate({
 					'added': [
 						{
 							key: 'grant',
@@ -658,15 +659,15 @@ class SCE {
 	//#endregion
 
 	//#region DialogFunctions
-	static disableButtons(this: ScriptEdit) {
+	static disableButtons(this: NodeEditBehaviorScriptInstance) {
 		(this.$['dropdownMenu'] as PaperDropdownInstance).disable();
 	};
 
-	static enableButtons(this: ScriptEdit) {
+	static enableButtons(this: NodeEditBehaviorScriptInstance) {
 		(this.$['dropdownMenu'] as PaperDropdownInstance).enable();
 	};
 
-	static changeTab(this: ScriptEdit, mode: 'main'|'background') {
+	static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
 		if (mode !== this.editorMode) {
 			if (mode === 'main') {
 				this.editorMode = 'main';
@@ -682,7 +683,7 @@ class SCE {
 		}
 	};
 
-	static changeTabEvent(this: ScriptEdit, e: PolymerClickEvent) {
+	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		var index = 0;
 		var element = e.path[0];
 		while (!element.classList.contains('editorTab')) {
@@ -706,22 +707,22 @@ class SCE {
 		element.classList.add('active');
 	};
 
-	static getExportData(this: ScriptEdit) {
+	static getExportData(this: NodeEditBehaviorScriptInstance) {
 		($('script-edit #exportMenu paper-menu')[0] as PaperMenu).selected = 0;
 		var settings = {};
 		this.save(null, settings);
 		return settings as ScriptNode;
 	};
 
-	static exportScriptAsCRM(this: ScriptEdit) {
+	static exportScriptAsCRM(this: NodeEditBehaviorScriptInstance) {
 		window.app.editCRM.exportSingleNode(this.getExportData(), 'CRM');
 	};
 
-	static exportScriptAsUserscript(this: ScriptEdit) {
+	static exportScriptAsUserscript(this: NodeEditBehaviorScriptInstance) {
 		window.app.editCRM.exportSingleNode(this.getExportData(), 'Userscript');
 	};
 
-	static finishEditing(this: ScriptEdit) {
+	static finishEditing(this: NodeEditBehaviorScriptInstance) {
 		if (window.app.storageLocal.recoverUnsavedData) {
 			chrome.storage.local.set({
 				editing: null
@@ -729,17 +730,17 @@ class SCE {
 		}
 	};
 
-	static cancelChanges(this: ScriptEdit) {
+	static cancelChanges(this: NodeEditBehaviorScriptInstance) {
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
 		this.active = false;
 	};
 
-	static getMetaTagValues(this: ScriptEdit) {
+	static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
 		return this.editor.metaTags.metaTags;
 	};
 
-	static saveChanges(this: ScriptEdit, resultStorage: Partial<ScriptNode>) {
+	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<ScriptNode>) {
 		this.changeTab('main');
 		resultStorage.value.metaTags = this.getMetaTagValues();
 		this.finishEditing();
@@ -747,7 +748,7 @@ class SCE {
 		this.active = false;
 	};
 
-	static openPermissionsDialog(this: ScriptEdit, item: PolymerClickEvent|ScriptNode,
+	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: PolymerClickEvent|ScriptNode,
 			callback: () => void) {
 		var _this = this;
 		var nodeItem: ScriptNode;
@@ -829,7 +830,7 @@ class SCE {
 
 			function cb() {
 				var el, svg;
-				$('.requestPermissionsShowBot').off('click').on('click', function() {
+				$('.requestPermissionsShowBot').off('click').on('click', function(this: HTMLElement) {
 					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
 						animation: Animation;
 					};
@@ -853,8 +854,8 @@ class SCE {
 				});
 
 				var permission: Permission;
-				$('.requestPermissionButton').off('click').on('click', function() {
-					permission = this.previousElementSibling.previousElementSibling.textContent;
+				$('.requestPermissionButton').off('click').on('click', function(this: PaperCheckbox) {
+					permission = this.previousElementSibling.previousElementSibling.textContent as Permission;
 					var slider = this;
 					var oldPermissions;
 					if (this.checked) {
@@ -912,7 +913,7 @@ class SCE {
 	/**
 	 * Inserts given snippet of code into the editor
 	 */
-	static insertSnippet(_this: ScriptEdit, snippet: string, noReplace: boolean = false) {
+	static insertSnippet(_this: NodeEditBehaviorScriptInstance, snippet: string, noReplace: boolean = false) {
 		this.editor.doc.replaceSelection(noReplace ?
 												snippet :
 												snippet.replace('%s', this.editor.doc
@@ -924,9 +925,9 @@ class SCE {
 		* Fills the editor-tools-ribbon on the left of the editor with elements
 		* @param {element} The - ribbon element to fill
 		*/
-	static initToolsRibbon(this: ScriptEdit) {
+	static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
-		window.app.$['paperLibrariesSelector'].init();
+		(window.app.$['paperLibrariesSelector'] as PaperLibrariesSelector).init();
 		(window.app.$['paperGetPageProperties'] as PaperGetPageProperties).init(function (snippet) {
 			_this.insertSnippet(_this, snippet);
 		});
@@ -935,13 +936,13 @@ class SCE {
 	/*
 		* Pops in the ribbons with an animation
 		*/
-	static popInRibbons(this: ScriptEdit) {
+	static popInRibbons(this: NodeEditBehaviorScriptInstance) {
 		//Introduce title at the top
 		var scriptTitle = window.app.$['editorCurrentScriptTitle'];
 		var titleRibbonSize;
 		if (window.app.storageLocal.shrinkTitleRibbon) {
 			window.doc['editorTitleRibbon'].style.fontSize = '40%';
-			scriptTitle.style.padding = 0;
+			scriptTitle.style.padding = '0';
 			titleRibbonSize = '-18px';
 		} else {
 			titleRibbonSize = '-51px';
@@ -959,7 +960,7 @@ class SCE {
 				marginTop: 0
 			}
 		];
-		var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : 0);
+		var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
 		scriptTitle.style.marginLeft = '-200px';
 		scriptTitleAnimation[0]['marginLeft'] = '-200px';
 		scriptTitleAnimation[1]['marginLeft'] = 0;
@@ -987,7 +988,7 @@ class SCE {
 				height: '50px'
 			}, {
 				duration: 500,
-				easing: $.bez([0.215, 0.610, 0.355, 1.000]),
+				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 				step: (now: number) => {
 					window.doc['fullscreenEditorHorizontal'].style.height = 'calc(100vh - ' + now + 'px)';
 				}
@@ -996,9 +997,9 @@ class SCE {
 				duration: 500,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			}).onfinish = function() {
-				scriptTitle.style.marginTop = 0;
+				scriptTitle.style.marginTop = '0';
 				if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {
-					scriptTitle.style.marginLeft = 0;
+					scriptTitle.style.marginLeft = '0';
 				}
 			};
 		}, 200);
@@ -1007,7 +1008,7 @@ class SCE {
 	/*
 		* Pops in only the tools ribbon
 		*/
-	static popInToolsRibbon(this: ScriptEdit) {
+	static popInToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		window.doc['editorToolsRibbonContainer'].style.display = 'flex';
 		window.doc['editorToolsRibbonContainer'].animate([
 			{
@@ -1018,15 +1019,15 @@ class SCE {
 		], {
 			duration: 800,
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-		}).onfinish = function() {
-			this.effect.target.style.marginLeft = 0;
+		}).onfinish = function(this: Animation) {
+			this.effect.target.style.marginLeft = '0';
 		};
 	};
 
 	/*
 		* Pops out only the tools ribbon
 		*/
-	static popOutToolsRibbon(this: ScriptEdit) {
+	static popOutToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		window.doc['editorToolsRibbonContainer'].animate([
 			{
 				marginLeft: 0
@@ -1036,7 +1037,7 @@ class SCE {
 		], {
 			duration: 800,
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-		}).onfinish = function() {
+		}).onfinish = function(this: Animation) {
 			this.effect.target.style.marginLeft = '-200px';
 			this.effect.target.classList.remove('visible');
 		};
@@ -1045,7 +1046,7 @@ class SCE {
 	/*
 		* Pops out the ribbons with an animation
 		*/
-	static popOutRibbons(this: ScriptEdit) {
+	static popOutRibbons(this: NodeEditBehaviorScriptInstance) {
 		var scriptTitle = window.app.$['editorCurrentScriptTitle'];
 		var toolsRibbon = window.app.$['editorToolsRibbonContainer'];
 
@@ -1069,8 +1070,8 @@ class SCE {
 				duration: 800,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			}).onfinish = function() {
-				scriptTitle.style.marginTop = titleAnimation[1].marginTop;
-				scriptTitle.style.marginLeft = titleAnimation[1].marginLeft;
+				scriptTitle.style.marginTop = titleAnimation[1].marginTop + '';
+				scriptTitle.style.marginLeft = titleAnimation[1].marginLeft + '';
 			};
 			toolsRibbon.animate([
 				{
@@ -1092,7 +1093,7 @@ class SCE {
 				height: 0
 			}, {
 				duration: 800,
-				easing: $['bez']([0.215, 0.610, 0.355, 1.000]),
+				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 				step: (now: number) => {
 					window.doc['fullscreenEditorHorizontal'].style.height = 'calc(100vh - ' + now + 'px)';
 				}
@@ -1117,7 +1118,7 @@ class SCE {
 	/*
 		* Enters fullscreen mode for the editor
 		*/
-	static enterFullScreen(this: ScriptEdit) {
+	static enterFullScreen(this: NodeEditBehaviorScriptInstance) {
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
 		var editorCont = window.doc['fullscreenEditor'];
 		var editorContStyle = editorCont.style;
@@ -1197,7 +1198,7 @@ class SCE {
 	/*
 		* Exits the editor's fullscreen mode
 		*/
-	static exitFullScreen(this: ScriptEdit) {
+	static exitFullScreen(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		this.popOutRibbons();
 		var $wrapper = $(_this.editor.display.wrapper);
@@ -1217,10 +1218,10 @@ class SCE {
 				duration: 500,
 				easing: 'easeOutCubic',
 				complete: () => {
-					editorCont.style.marginLeft = 0;
-					editorCont.style.marginTop = 0;
-					editorCont.style.width = 0;
-					editorCont.style.height = 0;
+					editorCont.style.marginLeft = '0';
+					editorCont.style.marginTop = '0';
+					editorCont.style.width = '0';
+					editorCont.style.height = '0';
 					$(_this.editor.display.wrapper).appendTo(_this.$['editorCont']).css({
 						height: _this.preFullscreenEditorDimensions.height,
 						marginTop: 0,
@@ -1234,7 +1235,7 @@ class SCE {
 	/**
  	 * Toggles fullscreen mode for the editor
 	 */
-	static toggleFullScreen(this: ScriptEdit) {
+	static toggleFullScreen(this: NodeEditBehaviorScriptInstance) {
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
 		this.fullscreen = !this.fullscreen;
 	};
@@ -1244,7 +1245,7 @@ class SCE {
 	/**
 	 * Shows the options for the editor
 	 */
-	static showOptions(this: ScriptEdit) {
+	static showOptions(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		this.unchangedEditorSettings = $['extend'](true, {}, window.app.settings.editor);
 		var editorWidth = $('.script-edit-codeMirror').width();
@@ -1299,7 +1300,7 @@ class SCE {
 	/*
 		* Hides the options for the editor
 		*/
-	static hideOptions(this: ScriptEdit) {
+	static hideOptions(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		var settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
@@ -1341,7 +1342,7 @@ class SCE {
 	/*
 		* Toggles the editor's options
 		*/
-	static toggleOptions(this: ScriptEdit) {
+	static toggleOptions(this: NodeEditBehaviorScriptInstance) {
 		(this.optionsShown ? this.hideOptions() : this.showOptions());
 		this.optionsShown = !this.optionsShown;
 	};
@@ -1353,7 +1354,7 @@ class SCE {
 	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the
 	 * icons' positions
 	 */
-	static scrollbarsUpdate(this: ScriptEdit, vertical: boolean) {
+	static scrollbarsUpdate(this: NodeEditBehaviorScriptInstance, vertical: boolean) {
 		if (vertical !== this.verticalVisible) {
 			if (vertical) {
 				this.buttonsContainer.style.right = '29px';
@@ -1367,10 +1368,10 @@ class SCE {
 	/*
 		* Reloads the editor completely (to apply new settings)
 		*/
-	static reloadEditor(this: ScriptEdit, disable: boolean = false) {
+	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
 		$(this.editor.display.wrapper).remove();
 		this.$['editorPlaceholder'].style.display = 'flex';
-		this.$['editorPlaceholder'].style.opacity = 1;
+		this.$['editorPlaceholder'].style.opacity = '1';
 		this.$['editorPlaceholder'].style.position = 'absolute';
 
 		this.newSettings.value.script = this.editor.doc.getValue();
@@ -1386,7 +1387,7 @@ class SCE {
 		}
 	};
 
-	static createKeyBindingListener(this: ScriptEdit, element: PaperInput & {
+	static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: PaperInput & {
 			lastValue: string;
 		}, binding: {
 			name: string;
@@ -1509,7 +1510,7 @@ class SCE {
 	/**
  	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
-	static fillEditorOptions(this: ScriptEdit) {
+	static fillEditorOptions(this: NodeEditBehaviorScriptInstance) {
 		var settingsContainer = $('<div id="settingsContainer"></div>').appendTo(this.editorOptions);
 		$('<div id="editorSettingsTxt">Editor Settings</div>').appendTo(settingsContainer);
 
@@ -1525,8 +1526,8 @@ class SCE {
 
 		//The white theme option
 		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.app.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
-			.click(function() {
-				var themes = this.parentNode.children;
+			.click(function(this: HTMLElement) {
+				var themes = this.parentElement.children;
 				themes[0].classList.add('currentTheme');
 				themes[1].classList.remove('currentTheme');
 				window.app.settings.editor.theme = 'white';
@@ -1535,8 +1536,8 @@ class SCE {
 
 		//The dark theme option
 		$('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
-			.click(function() {
-				var themes = this.parentNode.children;
+			.click(function(this: HTMLElement) {
+				var themes = this.parentElement.children;
 				themes[0].classList.remove('currentTheme');
 				themes[1].classList.add('currentTheme');
 				window.app.settings.editor.theme = 'dark';
@@ -1606,17 +1607,18 @@ class SCE {
 
 		var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
 
-		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">').keypress(function() {
-			var _this = this;
-			setTimeout(function() {
-				var val = _this.value;
-				var globals = val.split(',');
-				chrome.storage.local.set({
-					jsLintGlobals: globals
-				});
-				window.app.jsLintGlobals = globals;
-			}, 0);
-		}).appendTo(jsLintGlobalsCont);
+		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">')
+			.keypress(function(this: PaperInput) {
+				var _this = this;
+				setTimeout(function() {
+					var val = _this.value;
+					var globals = val.split(',');
+					chrome.storage.local.set({
+						jsLintGlobals: globals
+					});
+					window.app.jsLintGlobals = globals;
+				}, 0);
+			}).appendTo(jsLintGlobalsCont);
 
 		$('<div id="editorSettingsTxt">Key Bindings</div>').appendTo(settingsContainer);
 
@@ -1650,7 +1652,7 @@ class SCE {
 	/*
 		* Initializes the keybindings for the editor
 		*/
-	static initTernKeyBindings(this: ScriptEdit) {
+	static initTernKeyBindings(this: NodeEditBehaviorScriptInstance) {
 		var keySettings: {
 			[key: string]: (cm: CodeMirror) => void;
 		} = {};
@@ -1666,7 +1668,7 @@ class SCE {
 	/*
 		* Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 		*/
-	static cmLoaded(this: ScriptEdit, editor: CodeMirror) {
+	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirror) {
 		var _this = this;
 		this.editor = editor;
 		editor.refresh();
@@ -1764,7 +1766,7 @@ class SCE {
 					duration: 300,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				});
-				this.editorPlaceHolderAnimation.onfinish = function() {
+				this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
 					this.effect.target.style.display = 'none';
 				};
 			}
@@ -1775,7 +1777,7 @@ class SCE {
 	/**
 	 * Loads the codeMirror editor
 	 */
-	static loadEditor(this: ScriptEdit, container: HTMLElement, content: string = this.item.value.script,
+	static loadEditor(this: NodeEditBehaviorScriptInstance, container: HTMLElement, content: string = this.item.value.script,
 			disable: boolean = false) {
 		var placeHolder = $(this.$['editorPlaceholder']);
 		this.editorHeight = placeHolder.height();
@@ -1795,7 +1797,7 @@ class SCE {
 				selectName: this.keyBindings[5].defaultKey,
 			}
 		});
-		this.editor = new window.CodeMirror(container, {
+		this.editor = window.CodeMirror(container, {
 			lineNumbers: true,
 			value: content,
 			scrollbarStyle: 'simple',
@@ -1814,11 +1816,11 @@ class SCE {
 	};
 	//#endregion
 
-	static init(this: ScriptEdit) {
+	static init(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		this._init();
-		this.$['dropdownMenu'].init();
-		this.$['exportMenu'].init();
+		(this.$['dropdownMenu'] as PaperDropdownMenu).init();
+		(this.$['exportMenu'] as PaperDropdownMenu).init();
 		this.$['exportMenu'].querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
@@ -1830,7 +1832,7 @@ class SCE {
 		document.body.classList.add('editingScript');
 		window.scriptEdit = this;
 		this.$['editorPlaceholder'].style.display = 'flex';
-		this.$['editorPlaceholder'].style.opacity = 1;
+		this.$['editorPlaceholder'].style.opacity = '1';
 		window.externalEditor.init();
 		if (window.app.storageLocal.recoverUnsavedData) {
 			chrome.storage.local.set({

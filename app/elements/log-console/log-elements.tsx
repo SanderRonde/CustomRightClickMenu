@@ -377,8 +377,8 @@ window.logElements = (() => {
 		takeToTab() {
 			chrome.tabs.get(~~this.props.line.tabId, function(tab) {
 				if (chrome.runtime.lastError) {
-					window.logConsole.$['genericToast'].text = 'Tab has been closed';
-					window.logConsole.$['genericToast'].show();
+					(window.logConsole.$['genericToast'] as PaperToast).text = 'Tab has been closed';
+					(window.logConsole.$['genericToast'] as PaperToast).show();
 					return;
 				}
 

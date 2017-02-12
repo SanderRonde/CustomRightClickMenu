@@ -25,6 +25,7 @@ var SCE = (function () {
     ;
     SCE.updateFromScriptApplier = function (changeType, key, value, oldValue) {
         var i;
+        var _this = this;
         var metaTags = this.newSettings.value.metaTags;
         //Register as a resource
         function sendCreateAnonymousLibraryMessage(val) {
@@ -34,7 +35,7 @@ var SCE = (function () {
                     type: 'register',
                     name: val,
                     url: val,
-                    scriptId: this.item.id
+                    scriptId: _this.item.id
                 }
             });
         }
@@ -45,7 +46,7 @@ var SCE = (function () {
                     type: 'remove',
                     name: val,
                     url: val,
-                    scriptId: this.item.id
+                    scriptId: _this.item.id
                 }
             });
         }
@@ -56,7 +57,7 @@ var SCE = (function () {
                     type: 'register',
                     name: val.split(/(\s+)/)[0],
                     url: val.split(/(\s+)/)[1],
-                    scriptId: this.item.id
+                    scriptId: _this.item.id
                 }
             });
         }
@@ -67,7 +68,7 @@ var SCE = (function () {
                     type: 'remove',
                     name: val.split(/(\s+)/)[0],
                     url: val.split(/(\s+)/)[1],
-                    scriptId: this.item.id
+                    scriptId: _this.item.id
                 }
             });
         }
@@ -310,6 +311,7 @@ var SCE = (function () {
     };
     ;
     SCE.clearTriggerAndNotifyMetaTags = function (e) {
+        var _this = this;
         if (this.querySelectorAll('.executionTrigger').length === 1) {
             window.doc['messageToast'].text = 'You need to have at least one trigger';
             window.doc['messageToast'].show();
@@ -324,7 +326,7 @@ var SCE = (function () {
         this.async(function () {
             var inputVal = el.parentElement.children[1];
             var checkboxVal = el.parentElement.children[0];
-            this.metaTagsUpdate({
+            _this.metaTagsUpdate({
                 'removed': [
                     {
                         key: 'match',
@@ -424,8 +426,9 @@ var SCE = (function () {
     ;
     SCE.addDialogToMetaTagUpdateListeners = function () {
         var _this = this;
+        var __this = this;
         this.async(function () {
-            this.$['dropdownMenu']._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
+            _this.$['dropdownMenu']._addListener(_this.launchModeUpdateFromDialog, 'dropdownMenu', _this);
         }, 0);
         //Use jquery to also get the pre-change value
         $(this.$['nameInput']).on('keydown', function () {
@@ -449,16 +452,16 @@ var SCE = (function () {
             }, 5);
         });
         $('.executionTriggerNot').on('change', function () {
-            _this.triggerCheckboxChange.apply(_this, [this]);
+            __this.triggerCheckboxChange.apply(__this, [this]);
         });
         $('.triggerInput').on('keydown', function () {
-            _this.triggerInputChange.apply(_this, [this]);
+            __this.triggerInputChange.apply(__this, [this]);
         });
         $('.scriptPermissionsToggle').on('change', function () {
             var permission = $(this).parent().children('.requestPermissionName')[0].innerText;
             var prevState = !this.checked;
             if (prevState) {
-                _this.metaTagsUpdate({
+                __this.metaTagsUpdate({
                     'removed': [
                         {
                             key: 'grant',
@@ -468,7 +471,7 @@ var SCE = (function () {
                 }, 'dialog');
             }
             else {
-                _this.metaTagsUpdate({
+                __this.metaTagsUpdate({
                     'added': [
                         {
                             key: 'grant',
@@ -740,7 +743,7 @@ var SCE = (function () {
         var titleRibbonSize;
         if (window.app.storageLocal.shrinkTitleRibbon) {
             window.doc['editorTitleRibbon'].style.fontSize = '40%';
-            scriptTitle.style.padding = 0;
+            scriptTitle.style.padding = '0';
             titleRibbonSize = '-18px';
         }
         else {
@@ -755,7 +758,7 @@ var SCE = (function () {
                 marginTop: 0
             }
         ];
-        var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : 0);
+        var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
         scriptTitle.style.marginLeft = '-200px';
         scriptTitleAnimation[0]['marginLeft'] = '-200px';
         scriptTitleAnimation[1]['marginLeft'] = 0;
@@ -791,9 +794,9 @@ var SCE = (function () {
                 duration: 500,
                 easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
             }).onfinish = function () {
-                scriptTitle.style.marginTop = 0;
+                scriptTitle.style.marginTop = '0';
                 if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {
-                    scriptTitle.style.marginLeft = 0;
+                    scriptTitle.style.marginLeft = '0';
                 }
             };
         }, 200);
@@ -814,7 +817,7 @@ var SCE = (function () {
             duration: 800,
             easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
         }).onfinish = function () {
-            this.effect.target.style.marginLeft = 0;
+            this.effect.target.style.marginLeft = '0';
         };
     };
     ;
@@ -859,8 +862,8 @@ var SCE = (function () {
                 duration: 800,
                 easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
             }).onfinish = function () {
-                scriptTitle.style.marginTop = titleAnimation[1].marginTop;
-                scriptTitle.style.marginLeft = titleAnimation[1].marginLeft;
+                scriptTitle.style.marginTop = titleAnimation[1].marginTop + '';
+                scriptTitle.style.marginLeft = titleAnimation[1].marginLeft + '';
             };
             toolsRibbon.animate([
                 {
@@ -883,7 +886,7 @@ var SCE = (function () {
                 height: 0
             }, {
                 duration: 800,
-                easing: $['bez']([0.215, 0.610, 0.355, 1.000]),
+                easing: $.bez([0.215, 0.610, 0.355, 1.000]),
                 step: function (now) {
                     window.doc['fullscreenEditorHorizontal'].style.height = 'calc(100vh - ' + now + 'px)';
                 }
@@ -1008,10 +1011,10 @@ var SCE = (function () {
                 duration: 500,
                 easing: 'easeOutCubic',
                 complete: function () {
-                    editorCont.style.marginLeft = 0;
-                    editorCont.style.marginTop = 0;
-                    editorCont.style.width = 0;
-                    editorCont.style.height = 0;
+                    editorCont.style.marginLeft = '0';
+                    editorCont.style.marginTop = '0';
+                    editorCont.style.width = '0';
+                    editorCont.style.height = '0';
                     $(_this.editor.display.wrapper).appendTo(_this.$['editorCont']).css({
                         height: _this.preFullscreenEditorDimensions.height,
                         marginTop: 0,
@@ -1161,7 +1164,7 @@ var SCE = (function () {
         if (disable === void 0) { disable = false; }
         $(this.editor.display.wrapper).remove();
         this.$['editorPlaceholder'].style.display = 'flex';
-        this.$['editorPlaceholder'].style.opacity = 1;
+        this.$['editorPlaceholder'].style.opacity = '1';
         this.$['editorPlaceholder'].style.position = 'absolute';
         this.newSettings.value.script = this.editor.doc.getValue();
         this.editor = null;
@@ -1242,7 +1245,7 @@ var SCE = (function () {
         //The white theme option
         $('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.app.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
             .click(function () {
-            var themes = this.parentNode.children;
+            var themes = this.parentElement.children;
             themes[0].classList.add('currentTheme');
             themes[1].classList.remove('currentTheme');
             window.app.settings.editor.theme = 'white';
@@ -1251,7 +1254,7 @@ var SCE = (function () {
         //The dark theme option
         $('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
             .click(function () {
-            var themes = this.parentNode.children;
+            var themes = this.parentElement.children;
             themes[0].classList.remove('currentTheme');
             themes[1].classList.add('currentTheme');
             window.app.settings.editor.theme = 'dark';
@@ -1312,7 +1315,8 @@ var SCE = (function () {
         //The edit jsLint settings option
         var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
         var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
-        $('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">').keypress(function () {
+        $('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">')
+            .keypress(function () {
             var _this = this;
             setTimeout(function () {
                 var val = _this.value;
@@ -1477,7 +1481,7 @@ var SCE = (function () {
                 selectName: this.keyBindings[5].defaultKey
             }
         });
-        this.editor = new window.CodeMirror(container, {
+        this.editor = window.CodeMirror(container, {
             lineNumbers: true,
             value: content,
             scrollbarStyle: 'simple',
@@ -1512,7 +1516,7 @@ var SCE = (function () {
         document.body.classList.add('editingScript');
         window.scriptEdit = this;
         this.$['editorPlaceholder'].style.display = 'flex';
-        this.$['editorPlaceholder'].style.opacity = 1;
+        this.$['editorPlaceholder'].style.opacity = '1';
         window.externalEditor.init();
         if (window.app.storageLocal.recoverUnsavedData) {
             chrome.storage.local.set({

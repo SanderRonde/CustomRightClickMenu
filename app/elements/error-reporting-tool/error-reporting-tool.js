@@ -2,26 +2,14 @@
 var errorReportingTool = {
     /**
      * The type of the report
-     *
-     * @attribute reportType
-     * @type String
-     * @default 'b' + 'ug'
      */
     reportType: 'bug',
     /**
      * The screencap's dataURI
-     *
-     * @attribute image
-     * @type String
-     * @default null
      */
     image: '',
     /**
      * Whether this overlay needs to be hidden
-     *
-     * @attribute hide
-     * @type Boolean
-     * @default true
      */
     hide: {
         type: Boolean,
@@ -64,8 +52,8 @@ var ERT = (function () {
         img.onload = function () {
             //Crop the image
             context.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.setAttribute('height', cropData.height);
-            canvas.setAttribute('width', cropData.width);
+            canvas.setAttribute('height', cropData.height + '');
+            canvas.setAttribute('width', cropData.width + '');
             canvas.style.display = 'none';
             _this.appendChild(canvas);
             context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
@@ -284,18 +272,19 @@ var ERT = (function () {
     };
     ;
     ERT.checkCheckmark = function () {
+        var _this = this;
         this.$['bugButton'].classList.add('checkmark');
         this.async(function () {
-            this.$['reportingButtonElevation'].classList.add('checkmark');
-            this.$['bugCheckmarkCont'].classList.add('checkmark');
-            this.async(function () {
-                this.$['bugCheckmark'].classList.add('checked');
-                this.async(function () {
-                    this.$['bugCheckmarkCont'].classList.remove('checkmark');
-                    this.async(function () {
-                        this.$['reportingButtonElevation'].classList.remove('checkmark');
-                        this.$['bugButton'].classList.remove('checkmark');
-                        this.$['bugCheckmark'].classList.remove('checked');
+            _this.$['reportingButtonElevation'].classList.add('checkmark');
+            _this.$['bugCheckmarkCont'].classList.add('checkmark');
+            _this.async(function () {
+                _this.$['bugCheckmark'].classList.add('checked');
+                _this.async(function () {
+                    _this.$['bugCheckmarkCont'].classList.remove('checkmark');
+                    _this.async(function () {
+                        _this.$['reportingButtonElevation'].classList.remove('checkmark');
+                        _this.$['bugButton'].classList.remove('checkmark');
+                        _this.$['bugCheckmark'].classList.remove('checked');
                     }, 350);
                 }, 5000);
             }, 350);

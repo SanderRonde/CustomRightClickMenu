@@ -1,6 +1,7 @@
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
 /// <reference path="../../tools/definitions/codemirror.d.ts"/>
 /// <reference path="../../tools/definitions/polymer.d.ts"/>
+/// <reference path="../../tools/definitions/jquery.d.ts"/>
 /// <reference path="./center-element/center-element.ts" />
 /// <reference path="./change-log/change-log.ts" />
 /// <reference path="./crm-app/crm-app.ts" />
@@ -61,19 +62,33 @@ interface Window {
 	app: CrmApp;
 	cm: CodeMirror;
 	logPage: LogPage;
-	linkEdit: LinkEdit;
-	menuEdit: MenuEdit;
 	changeLog: ChangeLog;
-	scriptEdit: ScriptEdit;
 	logConsole: LogConsole;
 	crmEditPage: CrmEditPage;
 	installPage: InstallPage;
-	dividerEdit: DividerEdit;
-	stylesheetEdit: StylesheetEdit;
 	installConfirm: InstallConfirm;
 	externalEditor: UseExternalEditor;
 	errorReportingTool: ErrorReportingTool;
+	linkEdit: NodeEditBehaviorLinkInstance;
+	menuEdit: NodeEditBehaviorMenuInstance;
+	scriptEdit: NodeEditBehaviorScriptInstance;
+	dividerEdit: NodeEditBehaviorDividerInstance;
 	paperLibrariesSelector: PaperLibrariesSelector;
+	stylesheetEdit: NodeEditBehaviorStylesheetInstance;
+}
+
+type EditPage = NodeEditBehaviorScriptInstance|
+	NodeEditBehaviorStylesheetInstance|NodeEditBehaviorLinkInstance|
+	NodeEditBehaviorMenuInstance|NodeEditBehaviorDividerInstance;
+
+interface LogLineContainerInterface {
+	add(lineData: Array<LogLineData>, line: LogListenerLine): void;
+	popEval(): {
+		data: Array<LogLineData>;
+		line: LogListenerLine;
+	};
+	clear(): void;
+	render(): JSX.Element;
 }
 
 //Animation

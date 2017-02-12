@@ -1,3 +1,4 @@
+/// <reference path="../elements.d.ts" />
 var nodeEditBehaviorProperties = {
     /**
     * The new settings object, to be written on save
@@ -81,7 +82,10 @@ var NEB = (function () {
     };
     ;
     NEB.cancel = function () {
-        this.cancelChanges && this.cancelChanges();
+        if (this.cancelChanges) {
+            //This made the compiler angry
+            this.cancelChanges();
+        }
         window.crmEditPage.animateOut();
     };
     ;
@@ -94,17 +98,20 @@ var NEB = (function () {
             resultStorage = this.item;
         }
         var newSettings = this.newSettings;
-        this.saveChanges && this.saveChanges(newSettings);
+        if (this.saveChanges) {
+            //Also made the compiler angry
+            this.saveChanges(newSettings);
+        }
         this.getContentTypeLaunchers(newSettings);
         this.getTriggers(newSettings);
         window.crmEditPage.animateOut();
         var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
-        newSettings.name = this.$.nameInput.value;
+        newSettings.name = this.$['nameInput'].value;
         itemInEditPage.name = newSettings.name;
         if (!newSettings.onContentTypes[window.app.crmType]) {
             window.app.editCRM.build(window.app.editCRM.setMenus);
         }
-        if (newSettings.value) {
+        if (newSettings.value && newSettings.type !== 'link') {
             if (newSettings.value.launchMode !== undefined &&
                 newSettings.value.launchMode !== 0) {
                 newSettings.onContentTypes = [true, true, true, true, true, true];
@@ -132,18 +139,24 @@ var NEB = (function () {
     ;
     NEB.assignContentTypeSelectedValues = function () {
         var i;
-        var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+        var arr = [
+            'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
+            'imageContentSelected', 'videoContentSelected', 'audioContentSelected'
+        ];
         for (i = 0; i < 6; i++) {
-            this[arr[i] + 'ContentSelected'] = this.item.onContentTypes[i];
+            this[arr[i]] = this.item.onContentTypes[i];
         }
     };
     ;
     NEB.checkToggledIconAmount = function (e) {
         var i;
         var toggledAmount = 0;
-        var arr = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+        var arr = [
+            'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
+            'imageContentSelected', 'videoContentSelected', 'audioContentSelected'
+        ];
         for (i = 0; i < 6; i++) {
-            if (this[arr[i] + 'ContentSelected']) {
+            if (this[arr[i]]) {
                 if (toggledAmount === 1) {
                     return true;
                 }
@@ -253,16 +266,16 @@ var NEB = (function () {
             showTriggers: (prevState > 1 && prevState !== 4),
             showInsteadOfExecute: (prevState === 3)
         };
-        var triggersElement = this.$.executionTriggersContainer;
+        var triggersElement = this.$['executionTriggersContainer'];
         var $triggersElement = $(triggersElement);
-        var contentTypeChooserElement = this.$.showOnContentContainer;
+        var contentTypeChooserElement = this.$['showOnContentContainer'];
         var $contentTypeChooserElement = $(contentTypeChooserElement);
         function animateTriggers(callback) {
             triggersElement.style.height = 'auto';
             if (newStates.showTriggers) {
                 triggersElement.style.display = 'block';
                 triggersElement.style.marginLeft = '-110%';
-                triggersElement.style.height = 0;
+                triggersElement.style.height = '0';
                 $triggersElement.animate({
                     height: $triggersElement[0].scrollHeight
                 }, 300, function () {
@@ -275,8 +288,8 @@ var NEB = (function () {
                 });
             }
             else {
-                triggersElement.style.marginLeft = 0;
-                triggersElement.style.height = $triggersElement[0].scrollHeight;
+                triggersElement.style.marginLeft = '0';
+                triggersElement.style.height = $triggersElement[0].scrollHeight + '';
                 $triggersElement.animate({
                     marginLeft: '-110%'
                 }, 200, function () {
@@ -293,7 +306,7 @@ var NEB = (function () {
         function animateContentTypeChooser(callback) {
             contentTypeChooserElement.style.height = 'auto';
             if (newStates.showContentTypeChooser) {
-                contentTypeChooserElement.style.height = 0;
+                contentTypeChooserElement.style.height = '0';
                 contentTypeChooserElement.style.display = 'block';
                 contentTypeChooserElement.style.marginLeft = '-110%';
                 $contentTypeChooserElement.animate({
@@ -308,8 +321,8 @@ var NEB = (function () {
                 });
             }
             else {
-                contentTypeChooserElement.style.marginLeft = 0;
-                contentTypeChooserElement.style.height = $contentTypeChooserElement[0].scrollHeight;
+                contentTypeChooserElement.style.marginLeft = '0';
+                contentTypeChooserElement.style.height = $contentTypeChooserElement[0].scrollHeight + '';
                 $contentTypeChooserElement.animate({
                     marginLeft: '-110%'
                 }, 200, function () {
@@ -343,7 +356,7 @@ var NEB = (function () {
             animateContentTypeChooser();
         }
         if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {
-            this.$.showOrExecutetxt.innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
+            this.$['showOrExecutetxt'].innerText = (newStates.showInsteadOfExecute ? 'Show' : 'Execute');
         }
     };
     ;
@@ -351,26 +364,26 @@ var NEB = (function () {
         this.showTriggers = (this.item.value.launchMode > 1 && this.item.value.launchMode !== 4);
         this.showContentTypeChooser = (this.item.value.launchMode === 0 || this.item.value.launchMode === 3);
         if (this.showTriggers) {
-            this.$.executionTriggersContainer.style.display = 'block';
-            this.$.executionTriggersContainer.style.marginLeft = 0;
-            this.$.executionTriggersContainer.style.height = 'auto';
+            this.$['executionTriggersContainer'].style.display = 'block';
+            this.$['executionTriggersContainer'].style.marginLeft = '0';
+            this.$['executionTriggersContainer'].style.height = 'auto';
         }
         else {
-            this.$.executionTriggersContainer.style.display = 'none';
-            this.$.executionTriggersContainer.style.marginLeft = '-110%';
-            this.$.executionTriggersContainer.style.height = 0;
+            this.$['executionTriggersContainer'].style.display = 'none';
+            this.$['executionTriggersContainer'].style.marginLeft = '-110%';
+            this.$['executionTriggersContainer'].style.height = '0';
         }
         if (this.showContentTypeChooser) {
-            this.$.showOnContentContainer.style.display = 'block';
-            this.$.showOnContentContainer.style.marginLeft = 0;
-            this.$.showOnContentContainer.style.height = 'auto';
+            this.$['showOnContentContainer'].style.display = 'block';
+            this.$['showOnContentContainer'].style.marginLeft = '0';
+            this.$['showOnContentContainer'].style.height = 'auto';
         }
         else {
-            this.$.showOnContentContainer.style.display = 'none';
-            this.$.showOnContentContainer.style.marginLeft = '-110%';
-            this.$.showOnContentContainer.style.height = 0;
+            this.$['showOnContentContainer'].style.display = 'none';
+            this.$['showOnContentContainer'].style.marginLeft = '-110%';
+            this.$['showOnContentContainer'].style.height = '0';
         }
-        this.$.dropdownMenu._addListener(this.selectorStateChange, 'dropdownMenu', this);
+        this.$['dropdownMenu']._addListener(this.selectorStateChange, 'dropdownMenu', this);
         if (this.editor) {
             this.editor.display.wrapper.remove();
             this.editor = null;
@@ -383,7 +396,7 @@ var NEB = (function () {
         window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
         this.assignContentTypeSelectedValues();
         setTimeout(function () {
-            _this.$.nameInput.focus();
+            _this.$['nameInput'].focus();
         }, 350);
     };
     return NEB;

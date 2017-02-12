@@ -30,8 +30,18 @@ interface SpecialJSON {
 		originalValues: Array<any>
 	}) => {
 		refs: Refs;
-		data: ArrOrObj;
-		rootType: 'normal'|'array'|'object';
+		data: Array<any>;
+		rootType: 'array';	
+	}|{
+		refs: Refs;
+		data: {
+			[key: string]: any;
+		};
+		rootType: 'object';
+	}|{
+		refs: Refs;
+		data: string;
+		rootType: 'normal';
 	};
 	_replaceRefs: (data: ArrOrObj, refs: ParsingRefs) => ArrOrObj;
 

@@ -14,8 +14,7 @@ interface LinkEditBehaviorProperties extends NodeEditBehaviorProperties {
 	newSettings: Partial<ScriptNode>;
 }
 
-type LinkEdit = PolymerElement<typeof SCE & typeof linkEditProperties> & 
-	NodeEditBehaviorBase & LinkEditBehaviorProperties;
+type LinkEdit = PolymerElement<typeof SCE & typeof linkEditProperties>;
 
 class LE {
 	static is: string = 'link-edit';
@@ -24,18 +23,18 @@ class LE {
 
 	static properties = linkEditProperties;
 
-	static init(this: LinkEdit) {
+	static init(this: NodeEditBehaviorLinkInstance) {
 		this._init();
 	};
 
-	static ready(this: LinkEdit) {
+	static ready(this: NodeEditBehaviorLinkInstance) {
 		window.linkEdit = this;
 	};
 
-	static saveChanges(this: LinkEdit, resultStorage: Partial<LinkNode>) {
+	static saveChanges(this: NodeEditBehaviorLinkInstance, resultStorage: Partial<LinkNode>) {
 		//Get new "item"
 		resultStorage.value = [];
-		$(this.$['linksContainer']).find('.linkChangeCont').each(function () {
+		$(this.$['linksContainer']).find('.linkChangeCont').each(function (this: HTMLElement) {
 			resultStorage.value.push({
 				'url': ($(this).children('paper-input')[0] as PaperInput).value,
 				'newTab': ($(this).children('paper-checkbox')[0].getAttribute('aria-checked') !== 'true')
@@ -43,14 +42,14 @@ class LE {
 		});
 	};
 
-	static checkboxStateChange(this: LinkEdit, e: PolymerClickEvent) {
+	static checkboxStateChange(this: NodeEditBehaviorLinkInstance, e: PolymerClickEvent) {
 		//Get this checkbox
 		var pathIndex = 0;
 		while (e.path[pathIndex].tagName !== 'PAPER-CHECKBOX') {
 			pathIndex++;
 		}
 		var checkbox = e.path[pathIndex];
-		$(this.$['linksContainer']).find('paper-checkbox').each(function () {
+		$(this.$['linksContainer']).find('paper-checkbox').each(function (this: PaperCheckbox) {
 			if (this !== checkbox) {
 				this.removeAttribute('checked');
 			}

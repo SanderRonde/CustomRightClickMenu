@@ -1,14 +1,13 @@
 /// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/tern.d.ts" />
-function runOrAddAsCallback(toRun, thisElement, params) {
+window.runOrAddAsCallback = function (toRun, thisElement, params) {
     if (window.app.settings) {
         toRun.apply(thisElement, params);
     }
     else {
         window.app.addSettingsReadyCallback(toRun, thisElement, params);
     }
-}
-;
+};
 if (!document.createElement('div').animate) {
     HTMLElement.prototype.animate = function (properties, options) {
         if (!properties[1]) {
@@ -804,7 +803,9 @@ var CA = (function () {
     CA.launchExternalEditorDialog = function () {
         if (!window.doc['externalEditorDialogTrigger'].disabled) {
             window.externalEditor.init();
-            window.externalEditor.editingCRMItem = (window.scriptEdit ? window.scriptEdit.item : window.stylesheetEdit.item);
+            window.externalEditor.editingCRMItem =
+                ((window.scriptEdit && window.scriptEdit.active) ?
+                    window.scriptEdit.item : window.stylesheetEdit.item);
             window.externalEditor.setupExternalEditing();
         }
     };

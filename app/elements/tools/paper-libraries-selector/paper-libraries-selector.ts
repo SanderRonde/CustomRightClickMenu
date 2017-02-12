@@ -59,10 +59,10 @@ interface AnonymousLibrary {
 
 interface LibrarySelectorLibrary {
 	name?: string;
-	isLibrary: boolean;
+	isLibrary?: boolean;
 	url?: string;
-	classes: string;
-	selected: 'true'|'false';
+	classes?: string;
+	selected?: 'true'|'false';
 }
 
 type PaperLibrariesSelectorBase = PolymerElement<
@@ -326,9 +326,9 @@ class PLS {
 		}
 	};
 
-	static updateLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>, mode: 'main'|'background') {
+	static updateLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>, mode: 'main'|'background' = 'main') {
 		this.set('libraries', libraries);
-		this.mode = mode || 'main';
+		this.mode = mode;
 		this.init();
 	};
 

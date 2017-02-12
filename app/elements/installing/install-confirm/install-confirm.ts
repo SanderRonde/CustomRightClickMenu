@@ -114,14 +114,14 @@ class IC {
 
 	static showPermissionDescription(this: InstallConfirm, e: PolymerClickEvent) {
 		var el = e.target;
-		if (el.tagName.toLowerCase === 'div') {
-			el = el.children[0];
+		if (el.tagName.toLowerCase() === 'div') {
+			el = el.children[0] as HTMLElement;
 		}
 		else if (el.tagName.toLowerCase() === 'path') {
-			el = el.parentNode;
+			el = el.parentElement;
 		}
 
-		var children = el.parentNode.parentNode.parentNode.children;
+		var children = el.parentElement.parentElement.parentElement.children;
 		var description = children[children.length - 1];
 		if (el.classList.contains('shown')) {
 			$(description).stop().animate({
@@ -140,14 +140,15 @@ class IC {
 	};
 
 	static checkPermission(this: InstallConfirm, e: PolymerClickEvent) {
-		var checkbox = e.target;
-		while (checkbox.tagName.toLowerCase() !== 'paper-checkbox') {
-			checkbox = checkbox.parentNode;
+		var el = e.target;
+		while (el.tagName.toLowerCase() !== 'paper-checkbox') {
+			el = el.parentElement;
 		}
 
+		const checkbox = el as PaperCheckbox;
 		if (checkbox.checked) {
 			var permission = checkbox.getAttribute('permission');
-			if (this.isManifestPermissions(permission)) {
+			if (this.isManifestPermissions(permission as Permission)) {
 				chrome.permissions.getAll(function(permissions) {
 					var allowed = permissions.permissions;
 					if (allowed.indexOf(permission) === -1) {
@@ -172,8 +173,8 @@ class IC {
 
 	static completeInstall(this: InstallConfirm) {
 		var allowedPermissions: Array<Permission> = [];
-		$('.infoPermissionCheckbox').each(function() {
-			this.checked && allowedPermissions.push(this.getAttribute('permission'));
+		$('.infoPermissionCheckbox').each(function(this: PaperCheckbox) {
+			this.checked && allowedPermissions.push(this.getAttribute('permission') as Permission);
 		});
 		chrome.runtime.sendMessage({
 			type: 'installUserScript',
@@ -195,7 +196,7 @@ class IC {
 		} else {
 			value = '-';
 		}
-		this.$[name].innerText = value;
+		this.$[name].innerText = value + '';
 	};
 
 	static setMetaInformation(this: InstallConfirm, tags: MetaTags, metaInfo: CMMetaInfo) {
@@ -205,7 +206,7 @@ class IC {
 		window.installPage.$['title'].innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
 
 		this.$['sourceValue'].innerText = window.installPage.userscriptUrl;
-		this.$['permissionValue'].items = tags['grant'] || ['none'];
+		(this.$['permissionValue'] as DomRepeat).items = tags['grant'] || ['none'];
 		this.metaTags = tags;
 		this.metaInfo = metaInfo;
 	};
@@ -252,7 +253,7 @@ class IC {
 				selectName: window.scriptEdit.keyBindings[5].defaultKey,
 			}
 		});
-		new window.CodeMirror(_this.$['editorCont'], {
+		window.CodeMirror(_this.$['editorCont'], {
 			lineNumbers: true,
 			value: _this.script,
 			lineWrapping: true,

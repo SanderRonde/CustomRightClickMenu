@@ -291,7 +291,7 @@ class ECI {
 		var firstHighlightedItem = firstHighlightedNode.item;
 
 		//Deselect everything else
-		$('.highlighted').each(function() {
+		$('.highlighted').each(function(this: HTMLElement) {
 			this.classList.remove('highlighted');
 		});
 
@@ -350,10 +350,10 @@ class ECI {
 		if (!this.shadow) {
 			var time = Date.now();
 			this.lastTypeSwitchMouseover = time;
-			this.async(function() {
+			this.async(() => {
 				if (this.lastTypeSwitchMouseover === time) {
 					this.lastTypeSwitchMouseover = null;
-					this.animationEl = this.animationEl || this.$$('type-switcher').$$('.TSContainer');
+					this.animationEl = this.animationEl || (this.$$('type-switcher') as TypeSwitcher).$$('.TSContainer');
 					(this.typeIndicatorAnimation && this.typeIndicatorAnimation.play()) || (this.typeIndicatorAnimation = this.animationEl.animate([
 							{
 								marginLeft: '-193px'
@@ -383,8 +383,8 @@ class ECI {
 			if (typeSwitcher.toggledOpen) {
 				typeSwitcher.closeTypeSwitchContainer(true, function() {
 					typeSwitcher.toggledOpen = false;
-					typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
-					typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
+					typeSwitcher.$['typeSwitchChoicesContainer'].style.display = 'none';
+					typeSwitcher.$['typeSwitchArrow'].style.transform = 'rotate(180deg)';
 					_this.animateOut();
 				});
 			} else {

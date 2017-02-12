@@ -268,14 +268,15 @@ var ECI = (function () {
     };
     ;
     ECI.typeIndicatorMouseOver = function () {
+        var _this = this;
         if (!this.shadow) {
             var time = Date.now();
             this.lastTypeSwitchMouseover = time;
             this.async(function () {
-                if (this.lastTypeSwitchMouseover === time) {
-                    this.lastTypeSwitchMouseover = null;
-                    this.animationEl = this.animationEl || this.$$('type-switcher').$$('.TSContainer');
-                    (this.typeIndicatorAnimation && this.typeIndicatorAnimation.play()) || (this.typeIndicatorAnimation = this.animationEl.animate([
+                if (_this.lastTypeSwitchMouseover === time) {
+                    _this.lastTypeSwitchMouseover = null;
+                    _this.animationEl = _this.animationEl || _this.$$('type-switcher').$$('.TSContainer');
+                    (_this.typeIndicatorAnimation && _this.typeIndicatorAnimation.play()) || (_this.typeIndicatorAnimation = _this.animationEl.animate([
                         {
                             marginLeft: '-193px'
                         }, {
@@ -303,8 +304,8 @@ var ECI = (function () {
             if (typeSwitcher.toggledOpen) {
                 typeSwitcher.closeTypeSwitchContainer(true, function () {
                     typeSwitcher.toggledOpen = false;
-                    typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
-                    typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
+                    typeSwitcher.$['typeSwitchChoicesContainer'].style.display = 'none';
+                    typeSwitcher.$['typeSwitchArrow'].style.transform = 'rotate(180deg)';
                     _this.animateOut();
                 });
             }

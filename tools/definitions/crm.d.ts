@@ -149,7 +149,7 @@ type SetPreviousVals<T extends ScriptNode> = {
 };
 
 interface CRMBaseNodeNoVal {
-	storage: {
+	storage?: {
 		[key: string]: any;
 		[key: number]: any;
 	};

@@ -76,11 +76,12 @@ var LC = (function () {
     };
     ;
     LC._fixTextareaLines = function () {
-        this.$['consoleInput'].setAttribute('rows', (this.$['consoleInput'].value.split('\n').length || 1));
+        this.$['consoleInput'].setAttribute('rows', (this.$['consoleInput'].value.split('\n').length || 1) + '');
         this.$['linesCont'].scrollTop = this.$['linesCont'].scrollHeight;
     };
     ;
     LC._executeCode = function (code) {
+        var _this = this;
         if (this.selectedTab !== 0 && this.selectedId !== 0) {
             var selectedItems = this._getSelectedItems();
             chrome.runtime.sendMessage({
@@ -109,8 +110,8 @@ var LC = (function () {
             this.$['inputFieldWarning'].classList.add('visible');
             this.$['consoleInput'].setAttribute('disabled', 'disabled');
             this.async(function () {
-                this.$['inputFieldWarning'].classList.remove('visible');
-                this.$['consoleInput'].removeAttribute('disabled');
+                _this.$['inputFieldWarning'].classList.remove('visible');
+                _this.$['consoleInput'].removeAttribute('disabled');
             }, 5000);
         }
     };
@@ -120,7 +121,7 @@ var LC = (function () {
             if (!event.shiftKey) {
                 this._executeCode(this.$['consoleInput'].value);
                 this.$['consoleInput'].value = '';
-                this.$['consoleInput'].setAttribute('rows', 1);
+                this.$['consoleInput'].setAttribute('rows', '1');
             }
             else {
                 this.async(this._fixTextareaLines, 10);
@@ -213,7 +214,7 @@ var LC = (function () {
         this.waitingForEval = false;
     };
     ;
-    LC._init = function () {
+    LC._init = function (callback) {
         var _this = this;
         chrome.runtime.getBackgroundPage(function (bgPage) {
             _this.bgPage = bgPage;
@@ -260,6 +261,7 @@ var LC = (function () {
                     }
                 };
             });
+            callback && callback();
         }, 1000);
     };
     ;
@@ -406,18 +408,19 @@ var LC = (function () {
     };
     ;
     LC.ready = function () {
-        var _this = this._this = this;
+        var _this = this;
+        this._this = this;
         window.logConsole = this;
-        _this.logLines = ReactDOM.render(React.createElement(window.logElements.logLines, {
+        this.logLines = ReactDOM.render(React.createElement(window.logElements.logLines, {
             items: [],
-            logConsole: _this
+            logConsole: this
         }), this.$['lines']);
         document.body.addEventListener('click', function () {
             _this.$['contextMenu'].classList.remove('visible');
         });
         this.async(function () {
-            this._init(function () {
-                this.done = true;
+            _this._init(function () {
+                _this.done = true;
                 if (window.logPage) {
                     window.logPage.isLoading = false;
                 }

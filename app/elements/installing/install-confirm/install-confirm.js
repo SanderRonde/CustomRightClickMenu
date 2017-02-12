@@ -72,13 +72,13 @@ var IC = (function () {
     ;
     IC.showPermissionDescription = function (e) {
         var el = e.target;
-        if (el.tagName.toLowerCase === 'div') {
+        if (el.tagName.toLowerCase() === 'div') {
             el = el.children[0];
         }
         else if (el.tagName.toLowerCase() === 'path') {
-            el = el.parentNode;
+            el = el.parentElement;
         }
-        var children = el.parentNode.parentNode.parentNode.children;
+        var children = el.parentElement.parentElement.parentElement.children;
         var description = children[children.length - 1];
         if (el.classList.contains('shown')) {
             $(description).stop().animate({
@@ -98,10 +98,11 @@ var IC = (function () {
     };
     ;
     IC.checkPermission = function (e) {
-        var checkbox = e.target;
-        while (checkbox.tagName.toLowerCase() !== 'paper-checkbox') {
-            checkbox = checkbox.parentNode;
+        var el = e.target;
+        while (el.tagName.toLowerCase() !== 'paper-checkbox') {
+            el = el.parentElement;
         }
+        var checkbox = el;
         if (checkbox.checked) {
             var permission = checkbox.getAttribute('permission');
             if (this.isManifestPermissions(permission)) {
@@ -153,7 +154,7 @@ var IC = (function () {
         else {
             value = '-';
         }
-        this.$[name].innerText = value;
+        this.$[name].innerText = value + '';
     };
     ;
     IC.setMetaInformation = function (tags, metaInfo) {
@@ -207,7 +208,7 @@ var IC = (function () {
                 selectName: window.scriptEdit.keyBindings[5].defaultKey
             }
         });
-        new window.CodeMirror(_this.$['editorCont'], {
+        window.CodeMirror(_this.$['editorCont'], {
             lineNumbers: true,
             value: _this.script,
             lineWrapping: true,

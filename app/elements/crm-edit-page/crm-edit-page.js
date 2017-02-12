@@ -5,12 +5,12 @@ var crmEditPageProperties = {
             return {
                 'entry': {
                     name: 'scale-up-animation',
-                    node: this.$.overlayCont,
+                    node: this.$['overlayCont'],
                     duration: 300
                 },
                 'exit': {
                     name: 'scale-down-animation',
-                    node: this.$.overlayCont,
+                    node: this.$['overlayCont'],
                     duration: 300
                 }
             };

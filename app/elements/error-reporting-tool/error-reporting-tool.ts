@@ -7,26 +7,14 @@ const errorReportingTool: {
 } = {
 	/**
 	 * The type of the report
-	 * 
-	 * @attribute reportType
-	 * @type String
-	 * @default 'b' + 'ug'
 	 */
 	reportType: 'bug',
 	/**
 	 * The screencap's dataURI
-	 * 
-	 * @attribute image
-	 * @type String
-	 * @default null
 	 */
 	image: '',
 	/**
 	 * Whether this overlay needs to be hidden
-	 * 
-	 * @attribute hide
-	 * @type Boolean
-	 * @default true
 	 */
 	hide: {
 		type: Boolean,
@@ -34,6 +22,11 @@ const errorReportingTool: {
 		notify: true
 	}
 } as any;
+
+interface ErrorReportingToolSquare extends HTMLElement {
+	xPos: string;
+	yPos: string;
+}
 
 type ErrorReportingTool = PolymerElement<typeof ERT & typeof errorReportingTool>;
 
@@ -110,13 +103,13 @@ class ERT {
 		}, callback: () => void) {
 		var _this = this;
 		var img = new Image();
-		var canvas = _this.$['cropCanvas'];
+		const canvas = _this.$['cropCanvas'] as HTMLCanvasElement;
 		var context = canvas.getContext('2d');
 		img.onload = function () {
 			//Crop the image
 			context.clearRect(0, 0, canvas.width, canvas.height);
-			canvas.setAttribute('height', cropData.height);
-			canvas.setAttribute('width', cropData.width);
+			canvas.setAttribute('height', cropData.height + '');
+			canvas.setAttribute('width', cropData.width + '');
 			canvas.style.display = 'none';
 			_this.appendChild(canvas);
 			context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
@@ -167,26 +160,20 @@ class ERT {
 		return 'translate(' + x + ', ' + y + ')';
 	};
 
-	static translateX(this: ErrorReportingTool, el: HTMLElement & {
-			xPos: string;
-			yPos: string;
-		}, x: string) {
+	static translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
 		el.xPos = x;
 		el.style.transform = 'translate(' + x + ',' + (el.yPos || '0px') + ')';
 	};
 
-	static translateY(this: ErrorReportingTool, el: HTMLElement & {
-			xPos: string;
-			yPos: string;
-		}, y: string) {
+	static translateY(this: ErrorReportingTool, el: ErrorReportingToolSquare, y: string) {
 		el.yPos = y;
 		el.style.transform = 'translate(' + (el.xPos || '0px') + ',' + y + ')';
 	};
 
 	static setSelection(this: ErrorReportingTool, startX: number, startY: number,
 			width: number, height: number, posX: number, posY: number) {
-		var rightDiv = this.$['highlightingRightSquare'];
-		var leftDiv = this.$['highlightingLeftSquare'];
+		var rightDiv = this.$['highlightingRightSquare'] as ErrorReportingToolSquare;
+		var leftDiv = this.$['highlightingLeftSquare'] as ErrorReportingToolSquare;
 		if (this.lastPos.X !== posX) {
 			if (width < 0) {
 				var left = startX + width;
@@ -206,8 +193,8 @@ class ERT {
 		}
 
 		if (this.lastPos.Y !== posY) {
-			var topDiv = this.$['highlightingTopSquare'];
-			var botDiv = this.$['highlightingBotSquare'];
+			var topDiv = this.$['highlightingTopSquare'] as ErrorReportingToolSquare;
+			var botDiv = this.$['highlightingBotSquare'] as ErrorReportingToolSquare;
 			if (height < 0) {
 				var top = (startY + height);
 				var topPx = top + 'px';
@@ -248,9 +235,9 @@ class ERT {
 				this.$['highlightingTopSquare'].style.height = startYPx;
 				this.$['highlightingLeftSquare'].style.width = startYPx;
 
-				this.translateY(this.$['highlightingBotSquare'], startYPx);
-				this.translateY(this.$['highlightingLeftSquare'], startYPx);
-				this.translateY(this.$['highlightingRightSquare'], startYPx);
+				this.translateY(this.$['highlightingBotSquare'] as ErrorReportingToolSquare, startYPx);
+				this.translateY(this.$['highlightingLeftSquare'] as ErrorReportingToolSquare, startYPx);
+				this.translateY(this.$['highlightingRightSquare'] as ErrorReportingToolSquare, startYPx);
 				break;
 			case 'end':
 				this.$['highlightButtons'].classList.remove('hidden');
@@ -279,7 +266,7 @@ class ERT {
 
 	static cancelScreencap(this: ErrorReportingTool) {
 		this.hideScreencapArea();
-		this.$['errorReportingDialog'].open();
+		(this.$['errorReportingDialog'] as PaperDialog).open();
 	};
 
 	static finishScreencap(this: ErrorReportingTool) {
@@ -291,7 +278,7 @@ class ERT {
 			height: this.lastSize.Y,
 			width: this.lastSize.X
 		}, function() {
-			_this.$['errorReportingDialog'].open();
+			(_this.$['errorReportingDialog'] as PaperDialog).open();
 		});
 	};
 
@@ -305,14 +292,14 @@ class ERT {
 
 	static addCapture(this: ErrorReportingTool) {
 		var _this = this;
-		_this.$['errorReportingDialog'].close();
+		(_this.$['errorReportingDialog'] as PaperDialog).close();
 		this.selectScreenshotArea();
 	};
 
 	static reportBug(this: ErrorReportingTool) {
 		this.reportType = 'bug';
 		this.image = '';
-		this.$['errorReportingDialog'].open();
+		(this.$['errorReportingDialog'] as PaperDialog).open();
 	};
 
 	static convertImageToBlob(this: ErrorReportingTool, dataURI: string) {
@@ -363,14 +350,14 @@ class ERT {
 
 	static checkCheckmark(this: ErrorReportingTool) {
 		this.$['bugButton'].classList.add('checkmark');
-		this.async(function() {
+		this.async(() => {
 			this.$['reportingButtonElevation'].classList.add('checkmark');
 			this.$['bugCheckmarkCont'].classList.add('checkmark');
-			this.async(function() {
+			this.async(() => {
 				this.$['bugCheckmark'].classList.add('checked');
-				this.async(function() {
+				this.async(() => {
 					this.$['bugCheckmarkCont'].classList.remove('checkmark');
-					this.async(function() {
+					this.async(() => {
 						this.$['reportingButtonElevation'].classList.remove('checkmark');
 						this.$['bugButton'].classList.remove('checkmark');
 						this.$['bugCheckmark'].classList.remove('checked');
@@ -391,7 +378,7 @@ class ERT {
 		}, function (granted) {
 			if (granted) {
 				callback();
-				window.errorReportingTool.$['errorReportingDialog'].close();
+				(window.errorReportingTool.$['errorReportingDialog'] as PaperDialog).close();
 
 				//Do a nice checkmark animation on the report button
 				var listener = function() {
@@ -400,7 +387,7 @@ class ERT {
 				};
 				window.addEventListener('focus', listener);
 			} else {
-				window.doc['acceptDownloadToast'].show();
+				(window.doc['acceptDownloadToast'] as PaperToast).show();
 			}
 		});
 	};

@@ -78,45 +78,41 @@ interface CMMetaInfo {
 	}	
 }
 
-interface CodeMirror {
-	(container: HTMLElement, options: {
-		lineNumbers?: boolean;
-		value: string;
-		scrollbarStyle?: string;
-		lineWrapping?: boolean;
-		mode?: string;
-		readOnly?: boolean|string;
-		foldGutter?: boolean;
-		theme?: 'default'|'dark';
-		indentUnit?: string;
-		indentWithTabs?: boolean;
-		gutters?: Array<string>;
-		lint?: Function;
-		messageTryEditor?: boolean;
-		undoDepth?: number;
+interface CodeMirrorOptions {
+	lineNumbers?: boolean;
+	value: string;
+	scrollbarStyle?: string;
+	lineWrapping?: boolean;
+	mode?: string;
+	readOnly?: boolean|string;
+	foldGutter?: boolean;
+	theme?: 'default'|'dark';
+	indentUnit?: string;
+	indentWithTabs?: boolean;
+	gutters?: Array<string>;
+	lint?: Function;
+	messageTryEditor?: boolean;
+	undoDepth?: number;
+	messageStylesheetEdit?: boolean;
+	extraKeys?: {
+		[key: string]: string;
+	}
+	onLoad?: (el: CodeMirror) => void;
+	messageInstallConfirm?: boolean;
+	messageScriptEdit?: boolean;
+}
 
-	}): CodeMirror;
+interface MergeViewOptions extends CodeMirrorOptions {
+	origLeft?: string;
+	origRight?: string;
+	connect?: string;
+	messageExternal?: boolean;
+}
+
+interface CodeMirror {
+	(container: HTMLElement, options: CodeMirrorOptions): CodeMirror;
 	MergeView: {
-		new(container: HTMLElement, options: {
-			lineNumbers?: boolean;
-			value: string;
-			scrollbarStyle?: string;
-			lineWrapping?: boolean;
-			mode?: string;
-			readOnly?: boolean|string;
-			foldGutter?: boolean;
-			theme?: 'default'|'dark';
-			indentUnit?: string;
-			indentWithTabs?: boolean;
-			gutters?: Array<string>;
-			lint?: Function;
-			messageTryEditor?: boolean;
-			undoDepth?: number;
-			origLeft?: string;
-			origRight?: string;
-			connect?: string;
-			messageExternal?: boolean;
-		}): MergeViewCodeMirror;
+		new(container: HTMLElement, options: MergeViewOptions): MergeViewCodeMirror;
 	}
 	display: HTMLElement & {
 		wrapper: HTMLElement;
@@ -159,6 +155,7 @@ interface CodeMirror {
 
 	lint: {
 		javascript: Function;
+		css: Function;
 	}
 	TernServer: TernServer;
 }
