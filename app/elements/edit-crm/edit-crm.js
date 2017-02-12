@@ -331,7 +331,7 @@ var EC = (function () {
                 _this.crmLoading = false;
                 var els = document.getElementsByTagName('edit-crm-item');
                 for (var i = 0; i < els.length; i++) {
-                    els[i].update();
+                    els[i].update && els[i].update();
                 }
                 setTimeout(function () {
                     window.app.pageDemo.create();

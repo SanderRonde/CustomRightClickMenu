@@ -1,9 +1,10 @@
 /// <reference path="../elements.d.ts" />
 
-const EditCrmItemProperties: {
+const editCrmItemProperties: {
 	item: CRMNode;
 	expanded: boolean;
 	shadow: boolean;
+	itemName: string;
 } = {
 	item: {
 		type: Object,
@@ -16,22 +17,21 @@ const EditCrmItemProperties: {
 	shadow: {
 		type: Boolean,
 		notify: true
+	},
+	itemName: {
+		type: String,
+		notify: true
 	}
 } as any;
 
 type EditCrmItem = PolymerElement<'edit-crm-item', 
-	typeof ECI & typeof EditCrmItemProperties> & 
+	typeof ECI & typeof editCrmItemProperties> & 
 		DraggableNodeBehavior;
 
 class ECI {
 	static is: string = 'edit-crm-item';
 
 	static behaviors = [Polymer.DraggableNodeBehavior];
-
-	/**
-	  * The name of this item
-	  */
-	static name: string = '';
 
 	/**
 	  * The type of this item
@@ -68,7 +68,7 @@ class ECI {
 	 */
 	static column: number = -1;
 
-	static properties = EditCrmItemProperties;
+	static properties = editCrmItemProperties;
 
 	static itemIndex: number;
 
@@ -119,7 +119,7 @@ class ECI {
 		if (this.classList[0] !== 'wait') {
 			this.itemIndex = this.index;
 			this.item = this.item;
-			this.name = this.item.name;
+			this.itemName = this.item.name;
 			this.calculateType();
 			this.itemIndex = this.index;
 			this.init();

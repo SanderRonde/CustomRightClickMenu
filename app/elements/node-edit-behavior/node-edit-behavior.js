@@ -107,7 +107,7 @@ var NEB = (function () {
         window.crmEditPage.animateOut();
         var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
         newSettings.name = this.$['nameInput'].value;
-        itemInEditPage.name = newSettings.name;
+        itemInEditPage.itemName = newSettings.name;
         if (!newSettings.onContentTypes[window.app.crmType]) {
             window.app.editCRM.build(window.app.editCRM.setMenus);
         }

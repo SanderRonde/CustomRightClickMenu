@@ -481,7 +481,7 @@ class EC {
 				_this.crmLoading = false;
 				const els = document.getElementsByTagName('edit-crm-item');
 				for (let i = 0; i < els.length; i++) {
-					els[i].update();
+					els[i].update && els[i].update();
 				}
 				setTimeout(function() {
 					window.app.pageDemo.create();

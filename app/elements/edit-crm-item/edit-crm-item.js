@@ -1,5 +1,5 @@
 /// <reference path="../elements.d.ts" />
-var EditCrmItemProperties = {
+var editCrmItemProperties = {
     item: {
         type: Object,
         notify: true
@@ -10,6 +10,10 @@ var EditCrmItemProperties = {
     },
     shadow: {
         type: Boolean,
+        notify: true
+    },
+    itemName: {
+        type: String,
         notify: true
     }
 };
@@ -42,7 +46,7 @@ var ECI = (function () {
         if (this.classList[0] !== 'wait') {
             this.itemIndex = this.index;
             this.item = this.item;
-            this.name = this.item.name;
+            this.itemName = this.item.name;
             this.calculateType();
             this.itemIndex = this.index;
             this.init();
@@ -372,10 +376,6 @@ var ECI = (function () {
 ECI.is = 'edit-crm-item';
 ECI.behaviors = [Polymer.DraggableNodeBehavior];
 /**
-  * The name of this item
-  */
-ECI.name = '';
-/**
   * The type of this item
   */
 ECI.type = '';
@@ -403,7 +403,7 @@ ECI.isDivider = false;
  * The index of the item's column
  */
 ECI.column = -1;
-ECI.properties = EditCrmItemProperties;
+ECI.properties = editCrmItemProperties;
 //#region typeIndicatorProperties
 /**
  * The element to be animated
