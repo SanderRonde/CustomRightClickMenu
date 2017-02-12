@@ -437,6 +437,19 @@ module.exports = function(grunt) {
 				},
 				src: ['test/test.js', 'test/UITest.js']
 			}
+		},
+		extractIdMaps: {
+			app: {
+				options: {
+
+				},
+				files: [{
+					expand: true,
+					cwd: 'app/elements',
+					src: ['**/*.html', '!elements.html'],
+					dest: 'app/elements/fileIdMaps.d.ts'
+				}]
+			}
 		}
 	});
 
@@ -465,6 +478,9 @@ module.exports = function(grunt) {
 
 	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
 	grunt.registerTask('defs', ['extractDefs', 'processhtml:updateCRMDefs']);
+
+	//Extracts the HTML element ID to element type maps from HTML files
+	grunt.registerTask('updateTsIdMaps', ['extractIdMaps']);
 
 	//Extracts the external editor definitions and places them in build/
 	grunt.registerTask('externalEditorDefs', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);

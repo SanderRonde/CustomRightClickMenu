@@ -1,18 +1,20 @@
-///// <reference path="../../app/elements/node-edit-behavior/node-edit-behavior.ts" />
 /// <reference path="../../app/elements/elements.d.ts" />
+/// <reference path="../../app/elements/fileIdMaps.d.ts" />
+
+interface PolymerInitializerProperties {
+	is: string;
+	properties?: {
+		[key: string]: {
+			type?: any;
+			notify?: boolean;
+			value?: any;
+			observer?: string;
+		}
+	}
+}
 
 interface Polymer {
-	(proto: {
-		is: string;
-		properties?: {
-			[key: string]: {
-				type?: any;
-				notify?: boolean;
-				value?: any;
-				observer?: string;
-			}
-		}
-	}): void;
+	(proto: PolymerInitializerProperties): void;
 	telemetry: {
 		registrations: Array<HTMLElement>;
 	}
@@ -57,9 +59,6 @@ type PossiblePolymerElement = HTMLElement | PaperIconButton | PaperDialog | Pape
 	DefaultLink | EchoHtml | DividerEdit | PaperRadioGroup;
 
 interface PolymerElementBase {
-	$: {
-		[key: string]: PossiblePolymerElement;
-	};
 	$$(selector: string): HTMLElement;
 	async(callback: () => void, time: number): void;
 	splice<T>(property: string, index: number, toRemove: number, replaceWith?: T): Array<T>;
@@ -69,7 +68,10 @@ interface PolymerElementBase {
 	notifyPath(path: string, value: any): void;
 }
 
-type PolymerElement<T> = HTMLElementCopy & T & PolymerElementBase;
+type PolymerElement<, N extends keyof IDMap, T extends PolymerInitializerProperties> = 
+	HTMLElementCopy & T & PolymerElementBase & {
+		$: IDMap[N]	
+	};
 
 declare const Polymer: Polymer;
 
@@ -132,4 +134,8 @@ interface PaperRadioGroup extends HTMLElement {
 
 interface PaperRadioButton extends HTMLElement {
 	checked: boolean;
+}
+
+interface PaperMaterial extends HTMLElement {
+	elevation: string;
 }

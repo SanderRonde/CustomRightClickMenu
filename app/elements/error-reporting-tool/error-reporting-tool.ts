@@ -28,7 +28,7 @@ interface ErrorReportingToolSquare extends HTMLElement {
 	yPos: string;
 }
 
-type ErrorReportingTool = PolymerElement<typeof ERT & typeof errorReportingTool>;
+type ErrorReportingTool = PolymerElement<'error-reporting-tool', typeof ERT & typeof errorReportingTool>;
 
 class ERT {
 	static is: any = 'error-reporting-tool';
@@ -103,7 +103,7 @@ class ERT {
 		}, callback: () => void) {
 		var _this = this;
 		var img = new Image();
-		const canvas = _this.$['cropCanvas'] as HTMLCanvasElement;
+		const canvas = _this.$['cropCanvas'];
 		var context = canvas.getContext('2d');
 		img.onload = function () {
 			//Crop the image
@@ -172,8 +172,8 @@ class ERT {
 
 	static setSelection(this: ErrorReportingTool, startX: number, startY: number,
 			width: number, height: number, posX: number, posY: number) {
-		var rightDiv = this.$['highlightingRightSquare'] as ErrorReportingToolSquare;
-		var leftDiv = this.$['highlightingLeftSquare'] as ErrorReportingToolSquare;
+		var rightDiv = this.$['highlightingRightSquare'];
+		var leftDiv = this.$['highlightingLeftSquare'];
 		if (this.lastPos.X !== posX) {
 			if (width < 0) {
 				var left = startX + width;
@@ -193,8 +193,8 @@ class ERT {
 		}
 
 		if (this.lastPos.Y !== posY) {
-			var topDiv = this.$['highlightingTopSquare'] as ErrorReportingToolSquare;
-			var botDiv = this.$['highlightingBotSquare'] as ErrorReportingToolSquare;
+			var topDiv = this.$['highlightingTopSquare'];
+			var botDiv = this.$['highlightingBotSquare'];
 			if (height < 0) {
 				var top = (startY + height);
 				var topPx = top + 'px';
@@ -266,7 +266,7 @@ class ERT {
 
 	static cancelScreencap(this: ErrorReportingTool) {
 		this.hideScreencapArea();
-		(this.$['errorReportingDialog'] as PaperDialog).open();
+		this.$['errorReportingDialog'].open();
 	};
 
 	static finishScreencap(this: ErrorReportingTool) {
@@ -278,7 +278,7 @@ class ERT {
 			height: this.lastSize.Y,
 			width: this.lastSize.X
 		}, function() {
-			(_this.$['errorReportingDialog'] as PaperDialog).open();
+			_this.$['errorReportingDialog'].open();
 		});
 	};
 
@@ -292,14 +292,14 @@ class ERT {
 
 	static addCapture(this: ErrorReportingTool) {
 		var _this = this;
-		(_this.$['errorReportingDialog'] as PaperDialog).close();
+		_this.$['errorReportingDialog'].close();
 		this.selectScreenshotArea();
 	};
 
 	static reportBug(this: ErrorReportingTool) {
 		this.reportType = 'bug';
 		this.image = '';
-		(this.$['errorReportingDialog'] as PaperDialog).open();
+		this.$['errorReportingDialog'].open();
 	};
 
 	static convertImageToBlob(this: ErrorReportingTool, dataURI: string) {
@@ -378,7 +378,7 @@ class ERT {
 		}, function (granted) {
 			if (granted) {
 				callback();
-				(window.errorReportingTool.$['errorReportingDialog'] as PaperDialog).close();
+				window.errorReportingTool.$['errorReportingDialog'].close();
 
 				//Do a nice checkmark animation on the report button
 				var listener = function() {
@@ -387,7 +387,7 @@ class ERT {
 				};
 				window.addEventListener('focus', listener);
 			} else {
-				(window.doc['acceptDownloadToast'] as PaperToast).show();
+				window.doc['acceptDownloadToast'].show();
 			}
 		});
 	};
