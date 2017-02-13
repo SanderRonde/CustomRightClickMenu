@@ -133,9 +133,13 @@ module.exports = function(grunt) {
 					strip: true,
 					data: {}
 				},
-				files: {
-					'test/UI/UITest.html': ['./demo/index.html']
-				}
+				files: [
+					{
+						src: ['test/UI/UITest.html'],
+						dest: 'demo/index.html',
+						expand: false
+					}
+				]
 			},
 		},
 		uglify: {
@@ -294,7 +298,7 @@ module.exports = function(grunt) {
 				files: [{
 					expand: true,
 					cwd: 'build/website',
-					src: ['**/*.*'],
+					src: ['**/*.*', '!build/website/'],
 					dest: './documentation/'
 				}]
 			}
@@ -500,7 +504,8 @@ module.exports = function(grunt) {
 	//Moves the documentationWebsite from build/website to /documentation
 	grunt.registerTask('moveDocumentationWebsite', ['copy:moveDocumentationWebsite']);
 
-	grunt.registerTask('demoWebsite', ['processhtml:'])
+	//Moves the demo website to /demo
+	grunt.registerTask('demoWebsite', ['processhtml:demoWebsite'])
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
