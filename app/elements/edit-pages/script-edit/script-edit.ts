@@ -309,11 +309,11 @@ class SCE {
 						if (JSON.stringify(value[i]) !== JSON.stringify(oldValue[i])) {
 							if (changeType === 'changed') {
 								//Replace this one
-								this.set('newSettings.value.triggers.' + i + '.url', value[0]);
-								this.set('newSettings.value.triggers.' + i + '.not', isExclude);
+								this.set('newSettings.triggers.' + i + '.url', value[0]);
+								this.set('newSettings.triggers.' + i + '.not', isExclude);
 							} else {
 								//Remove this one
-								this.splice('newSettings.value.triggers', i, 1);
+								this.splice('newSettings.triggers', i, 1);
 							}
 							break;
 						}
@@ -324,7 +324,7 @@ class SCE {
 						this.newSettings.triggers = [];
 					}
 
-					this.push('newSettings.value.triggers', {
+					this.push('newSettings.triggers', {
 						url: value,
 						not: isExclude
 					});
