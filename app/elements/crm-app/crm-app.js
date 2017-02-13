@@ -3388,9 +3388,9 @@ CA.pageDemo = (_a = (function () {
             /**
              * Makes an onclick handler for scripts
              */
-            CRMAppPageDemoHandlers.script = function () {
+            CRMAppPageDemoHandlers.script = function (script) {
                 return function () {
-                    alert('This would run a script');
+                    alert("This would run the script " + script);
                 };
             };
             ;
@@ -3421,16 +3421,16 @@ CA.pageDemo = (_a = (function () {
             CRMAppPageDemoHandlersStylesheet.toggle = function (data, checked) {
                 var state = checked;
                 return function () {
-                    alert('This would toggle a stylesheet ' + (state ? 'on' : 'off'));
+                    alert("This would toggle the stylesheet " + data + " " + (state ? 'on' : 'off'));
                 };
             };
             ;
             /**
              * Makes an onclick handler for stylesheets
              */
-            CRMAppPageDemoHandlersStylesheet.normal = function () {
+            CRMAppPageDemoHandlersStylesheet.normal = function (stylesheet) {
                 return function () {
-                    alert('This would apply a stylesheet');
+                    alert("This would run the stylesheet " + stylesheet);
                 };
             };
             ;
@@ -3459,7 +3459,7 @@ CA.pageDemo = (_a = (function () {
         CRMAppPageDemoNode.script = function (toAdd) {
             return {
                 name: toAdd.name,
-                callback: this.parent().handlers.script()
+                callback: this.parent().handlers.script(toAdd.value.script)
             };
         };
         ;
@@ -3476,7 +3476,7 @@ CA.pageDemo = (_a = (function () {
                 item.callback = this.parent().handlers.stylesheet.toggle(toAdd.value.stylesheet, toAdd.value.defaultOn);
             }
             else {
-                item.callback = this.parent().handlers.stylesheet.normal();
+                item.callback = this.parent().handlers.stylesheet.normal(toAdd.value.stylesheet);
             }
             return item;
         };

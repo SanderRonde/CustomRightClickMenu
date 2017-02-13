@@ -3633,9 +3633,9 @@ class CA {
 			/**
 			 * Makes an onclick handler for scripts
 			 */
-			static script(): () => void {
+			static script(script: string): () => void {
 				return function() {
-					alert('This would run a script');
+					alert(`This would run the script ${script}`);
 				};
 			};
 
@@ -3650,15 +3650,15 @@ class CA {
 					var state = checked;
 
 					return function() {
-						alert('This would toggle a stylesheet ' + (state ? 'on' : 'off'));
+						alert(`This would toggle the stylesheet ${data} ${(state ? 'on' : 'off')}`);
 					};
 				};
 				/**
 				 * Makes an onclick handler for stylesheets
 				 */
-				static normal(): () => void {
+				static normal(stylesheet: string): () => void {
 					return function() {
-						alert('This would apply a stylesheet');
+						alert(`This would run the stylesheet ${stylesheet}`);
 					}
 				};
 
@@ -3699,7 +3699,7 @@ class CA {
 			static script(toAdd: ScriptNode): JQContextMenuObj {
 				return {
 					name: toAdd.name,
-					callback: this.parent().handlers.script()
+					callback: this.parent().handlers.script(toAdd.value.script)
 				}
 			};
 
@@ -3715,7 +3715,7 @@ class CA {
 					item.selected = toAdd.value.defaultOn;
 					item.callback = this.parent().handlers.stylesheet.toggle(toAdd.value.stylesheet, toAdd.value.defaultOn);
 				} else {
-					item.callback = this.parent().handlers.stylesheet.normal();
+					item.callback = this.parent().handlers.stylesheet.normal(toAdd.value.stylesheet);
 				}
 				return item;
 			};

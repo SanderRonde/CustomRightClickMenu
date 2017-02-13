@@ -156,12 +156,12 @@ var SCE = (function () {
                         if (JSON.stringify(value[i]) !== JSON.stringify(oldValue[i])) {
                             if (changeType === 'changed') {
                                 //Replace this one
-                                this.set('newSettings.value.triggers.' + i + '.url', value[0]);
-                                this.set('newSettings.value.triggers.' + i + '.not', isExclude);
+                                this.set('newSettings.triggers.' + i + '.url', value[0]);
+                                this.set('newSettings.triggers.' + i + '.not', isExclude);
                             }
                             else {
                                 //Remove this one
-                                this.splice('newSettings.value.triggers', i, 1);
+                                this.splice('newSettings.triggers', i, 1);
                             }
                             break;
                         }
@@ -172,7 +172,7 @@ var SCE = (function () {
                     if (!this.newSettings.triggers) {
                         this.newSettings.triggers = [];
                     }
-                    this.push('newSettings.value.triggers', {
+                    this.push('newSettings.triggers', {
                         url: value,
                         not: isExclude
                     });
