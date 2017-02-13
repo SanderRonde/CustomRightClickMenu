@@ -17182,7 +17182,7 @@
 				}
 			}
 			function c() {
-				null  === d.parentNode.parentNode && ($(d).appendTo(scriptEdit.editor.display.wrapper)),
+				null  === d.parentNode && ($(d).appendTo(scriptEdit.editor.display.wrapper)),
 				h || (M.reverse(),
 				h = !0),
 				setTimeout(function() {

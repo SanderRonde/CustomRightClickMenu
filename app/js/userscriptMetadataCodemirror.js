@@ -225,6 +225,10 @@
 		return null;
 	}
 
+	function isInRange(low, high, toTest) {
+		return toTest >= low && toTest <= high;
+	}
+
 	function updateMetaTags(cm, changes) {
 		if (cm.metaTags && cm.metaTags.metaTags) {
 			var i, j;
@@ -232,6 +236,7 @@
 			var contentLines = content.split('\n');
 			for (i = 0; i < changes.length; i++) {
 				var changeLineStart = changes[i].from.line;
+				var changeLineEnd = changes[i].to.line;
 				var linesChanged = changes[i].text.length;
 				var lastMetaTagIndex = cm.metaTags.metaEnd.line - 1;
 				var firstMetaTagIndex = cm.metaTags.metaStart.line + 1;
@@ -244,7 +249,8 @@
 				if (changes[i].text.length !== changes[i].removed.length) {
 					//Insertion or removal
 					tagsChanged = setMetaTags(cm, content);
-				} else if (changes[i].to.line < lastMetaTagIndex || changeLineStart > firstMetaTagIndex) {
+				} else if (isInRange(firstMetaTagIndex, lastMetaTagIndex, changeLineStart) ||
+					isInRange(firstMetaTagIndex, lastMetaTagIndex, changeLineEnd)) {
 					for (j = 0; j < linesChanged; j++) {
 						var changeLine = changeLineStart + j;
 

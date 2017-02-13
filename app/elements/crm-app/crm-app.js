@@ -1642,13 +1642,7 @@ var CA = (function () {
             editCRMInRM: false,
             hideToolsRibbon: false,
             shrinkTitleRibbon: false,
-            libraries: [
-                { "location": 'jQuery.js', "name": 'jQuery' },
-                { "location": 'mooTools.js', "name": 'mooTools' },
-                { "location": 'YUI.js', "name": 'YUI' },
-                { "location": 'Angular.js', "name": 'Angular' },
-                { "location": "jqlite.js", "name": 'jqlite' }
-            ],
+            libraries: [],
             settingsVersionData: {
                 current: {
                     hash: syncHash,
@@ -1732,13 +1726,7 @@ var CA = (function () {
             editCRMInRM: false,
             hideToolsRibbon: false,
             shrinkTitleRibbon: false,
-            libraries: [
-                { "location": 'jQuery.js', "name": 'jQuery' },
-                { "location": 'mooTools.js', "name": 'mooTools' },
-                { "location": 'YUI.js', "name": 'YUI' },
-                { "location": 'Angular.js', "name": 'Angular' },
-                { "location": "jqlite.js", "name": 'jqlite' }
-            ],
+            libraries: [],
             settingsVersionData: {
                 current: {
                     hash: syncHash,
@@ -1975,30 +1963,6 @@ var CA = (function () {
                     node.permissions.push(addedPermission);
                 }
             });
-            if (permissions.length > 0) {
-                //Updated meta tags
-                var scriptSplit = node.value.script.split('\n');
-                var metaEnd = null;
-                var grantNoneIndex = null;
-                for (var i = 0; i < scriptSplit.length; i++) {
-                    if (/\/\/(\s+)@grant(\s+)none/.test(scriptSplit[i])) {
-                        grantNoneIndex = i;
-                    }
-                    if (scriptSplit[i].indexOf('==/UserScript==') > -1) {
-                        metaEnd = i;
-                        break;
-                    }
-                }
-                if (metaEnd !== null) {
-                    var scriptEnd = scriptSplit.splice(metaEnd);
-                    scriptSplit.splice(grantNoneIndex, 1);
-                    permissions.forEach(function (addedPermission) {
-                        scriptSplit.push('// @grant	' + addedPermission);
-                    });
-                    scriptSplit = scriptSplit.concat(scriptEnd);
-                    node.value.script = scriptSplit.join('\n');
-                }
-            }
         });
         this.upload();
     };
@@ -2928,16 +2892,7 @@ CA.templates = (function () {
     CRMAppTemplates.getDefaultStylesheetValue = function (options) {
         if (options === void 0) { options = {}; }
         var value = {
-            stylesheet: [
-                '/* ==UserScript==',
-                '// @name	name',
-                '// @CRM_contentTypes	[true, true, true, false, false, false]',
-                '// @CRM_launchMode	0',
-                '// @CRM_stylesheet	true',
-                '// @grant	none',
-                '// @match	*://*.example.com/*',
-                '// ==/UserScript== */'
-            ].join('\n'),
+            stylesheet: [].join('\n'),
             launchMode: 0 /* RUN_ON_CLICKING */,
             toggle: false,
             defaultOn: false
@@ -2954,15 +2909,7 @@ CA.templates = (function () {
             launchMode: 0 /* RUN_ON_CLICKING */,
             backgroundLibraries: [],
             libraries: [],
-            script: [
-                '// ==UserScript==',
-                '// @name	name',
-                '// @CRM_contentTypes	[true, true, true, false, false, false]',
-                '// @CRM_launchMode	0',
-                '// @grant	none',
-                '// @match	*://*.example.com/*',
-                '// ==/UserScript=='
-            ].join('\n'),
+            script: [].join('\n'),
             backgroundScript: '',
             metaTags: {}
         };

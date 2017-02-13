@@ -113,11 +113,11 @@ class SCE {
 	 * The editor's dimensions before it goes fullscreen
 	 */
 	static preFullscreenEditorDimensions: {
-		width: string;
-		height: string;
-		marginTop: string;
-		marginLeft: string;
-	};
+		width?: string;
+		height?: string;
+		marginTop?: string;
+		marginLeft?: string;
+	} = {};
 
 	/**
 	 * Prevent the codemirror editor from signalling again for a while
@@ -267,18 +267,31 @@ class SCE {
 			case 'require':
 				//Change anonymous libraries to requires
 				var libraries = this.newSettings.value.libraries;
-				for (var k = 0; k < libraries.length; k++) {
-					if (libraries[k].name === null) {
-						libraries.splice(k, 1);
-						k--;
-					}
-				}
-				metaTags['require'].forEach(function(url: string) {
+				if (changeType === 'added') {
 					libraries.push({
 						name: null,
-						url: url
+						url: value
 					});
-				});
+				} else {
+					let toSearch = changeType === 'changed' ? 
+						oldValue : value;
+					let index = -1;
+					for (let i = 0 ; i < libraries.length; i++) {
+						if (libraries[i].url === toSearch) {
+							index = i;
+							break;
+						}
+					}
+					if (changeType === 'changed') {
+						libraries.splice(index, 1, {
+							name: null,
+							url: value
+						});
+					} else {
+						libraries.splice(index, 1);
+					}
+				}
+
 				this.set('newSettings.value.libraries', libraries);
 				window.paperLibrariesSelector.updateLibraries(libraries);
 
@@ -382,101 +395,6 @@ class SCE {
 		}
 	};
 
-	static metaTagsUpdateFromSettings(this: NodeEditBehaviorScriptInstance, changeType: ChangeType, key: string, 
-			value: string|number, oldValue?: string|number) {
-		var cm = this.editor;
-		switch (key) {
-			case 'name':
-				cm.updateMetaTags(cm, key, oldValue, value, true);
-				break;
-			case 'CRM_launchMode':
-				cm.updateMetaTags(cm, key, oldValue, value, true);
-				break;
-			case 'permission':
-				switch (changeType) {
-					case 'added':
-						//If the only @grant is "none", remove it,
-						cm.removeMetaTags(cm, 'match', 'none');
-						cm.addMetaTags(cm, 'match', value);
-						break;
-					case 'removed':
-						cm.removeMetaTags(cm, 'match', value);
-						break;
-				}
-				break;
-			case 'match':
-			case 'include':
-			case 'exclude':
-				switch (changeType) {
-					case 'added':
-						cm.addMetaTags(cm, key, value);
-						break;
-					case 'changed':
-						cm.updateMetaTags(cm, key, oldValue, value, false);
-						break;
-					case 'removed':
-						cm.removeMetaTags(cm, key, value);
-						break;
-				}
-				break;
-			case 'CRM_contentTypes':
-				cm.updateMetaTags(cm, key, oldValue, value, true);
-				break;
-			case 'grant':
-				if (changeType === 'added') {
-					cm.addMetaTags(cm, key, value);
-				} else {
-					cm.removeMetaTags(cm, key, value);
-				}
-				break;
-		}
-	};
-
-	static metaTagsUpdate(this: NodeEditBehaviorScriptInstance, changes: {
-			changed?: Array<{
-				key: string;
-				value: string|number;
-				oldValue: string|number;
-			}>;
-			removed?: Array<{
-				key: string;
-				value: string|number;
-				oldValue?: string|number;
-			}>;
-			added?: Array<{
-				key: string;
-				value: string|number;
-				oldValue?: string|number;
-			}>;
-		}, source: 'script'|'dialog') {
-		if (!changes || this.editorMode === 'background') {
-			return;
-		}
-		var i, j;
-		var key, value, oldValue;
-		var changeTypes: Array<ChangeType> = ['changed', 'removed', 'added'];
-		this.newSettings.nodeInfo = this.newSettings.nodeInfo || {
-			permissions: []
-		};
-		for (i = 0; i < changeTypes.length; i++) {
-			var changeType: ChangeType = changeTypes[i];
-			const changesArray = changes[changeType];
-			if (changesArray) {
-				for (j = 0; j < changesArray.length; j++) {
-					key = changesArray[j].key;
-					value = changesArray[j].value;
-					oldValue = changesArray[j].oldValue;
-					if (source === 'script') {
-						this.updateFromScriptApplier(changeType, key, value, oldValue);
-					} else {
-						this.metaTagsUpdateFromSettings(changeType, key, value, oldValue);
-						this.preventCodemirrorNotification();
-					}
-				}
-			}
-		}
-	};
-
 	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		if (this.querySelectorAll('.executionTrigger').length === 1) {
 			window.doc['messageToast'].text = 'You need to have at least one trigger';
@@ -491,33 +409,6 @@ class SCE {
 		while (el.tagName.toLowerCase() !== 'paper-icon-button') {
 			el = e.path[++index];
 		}
-
-		this.async(() => {
-			var inputVal = el.parentElement.children[1] as HTMLPaperInputElement;
-			var checkboxVal = el.parentElement.children[0] as HTMLPaperCheckboxElement;
-			this.metaTagsUpdate({
-				'removed': [
-					{
-						key: 'match',
-						value: JSON.stringify({
-							url: inputVal.value,
-							not: checkboxVal.checked
-						})
-					}
-			]}, 'dialog');
-		}, 0);
-	};
-
-	static launchModeUpdateFromDialog(this: NodeEditBehaviorScriptInstance, prevState: number, state: number) {
-		this.metaTagsUpdate({
-			'changed': [
-				{
-					key: 'CRM_launchMode',
-					value: state,
-					oldValue: prevState
-				}
-			]
-		}, 'dialog');
 	};
 
 	static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
@@ -533,31 +424,10 @@ class SCE {
 		var oldValue = element.value;
 
 		var checkboxChecked = ($(element).parent().children('.executionTriggerNot')[0] as HTMLPaperCheckboxElement).checked;
-		setTimeout(function() {
-			var newValue = element.value;
-
-			_this.metaTagsUpdate({
-				'changed': [
-					{
-						key: (checkboxChecked ? 'exclude' : 'match'),
-						oldValue: oldValue,
-						value: newValue
-					}
-				]
-			}, 'dialog');
-		}, 0);
 	};
 
 	static addTriggerAndAddListeners(this: NodeEditBehaviorScriptInstance) {
 		this.addTrigger();
-		this.metaTagsUpdate({
-			'added': [
-				{
-					key: 'match',
-					value: '*://*.example.com/*'
-				}
-			]
-		}, 'dialog');
 	};
 
 	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
@@ -585,45 +455,16 @@ class SCE {
 				oldStates[i] = checkbox.checked;
 			}
 		}
-
-		this.metaTagsUpdate({
-			'changed': [
-				{
-					key: 'CRM_contentTypes',
-					oldValue: JSON.stringify(oldStates),
-					value: JSON.stringify(states)
-				}
-			]
-		}, 'dialog');
 	};
 
 	static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
 		const __this = this;
-
-		this.async(() => {
-			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
-		}, 0);
 
 		//Use jquery to also get the pre-change value
 		$(this.$.nameInput).on('keydown', () => {
 			var el = this.$.nameInput;
 			var oldVal = el.value || '';
 			Array.isArray(oldVal) && (oldVal = oldVal[0]);
-			this.async(() => {
-				var newVal = el.value || '';
-				Array.isArray(newVal) && (newVal = newVal[0]);
-				if (newVal !== oldVal) {
-					this.metaTagsUpdate({
-						'changed': [
-							{
-								key: 'name',
-								value: newVal,
-								oldValue: oldVal
-							}
-						]
-					}, 'dialog');
-				}
-			}, 5);
 		});
 
 		$('.executionTriggerNot').on('change', function(this: HTMLElement) {
@@ -631,29 +472,6 @@ class SCE {
 		});
 		$('.triggerInput').on('keydown', function(this: HTMLElement) {
 			__this.triggerInputChange.apply(__this, [this]);
-		});
-		$('.scriptPermissionsToggle').on('change', function(this: HTMLPaperCheckboxElement) {
-			var permission = $(this).parent().children('.requestPermissionName')[0].innerText;
-			var prevState = !this.checked;
-			if (prevState) {
-				__this.metaTagsUpdate({
-					'removed': [
-						{
-							key: 'grant',
-							value: permission
-						}
-					]
-				}, 'dialog');
-			} else {
-				__this.metaTagsUpdate({
-					'added': [
-						{
-							key: 'grant',
-							value: permission
-						}
-					]
-				}, 'dialog');
-			}
 		});
 	};
 	//#endregion
@@ -880,7 +698,6 @@ class SCE {
 									settingsStorage.permissions = settingsStorage.permissions || [];
 									oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 									settingsStorage.permissions.push(permission);
-									_this.metaTagsUpdateFromSettings('added', 'permission', permission);
 								}
 							});
 						} else {
@@ -888,13 +705,11 @@ class SCE {
 							settingsStorage.permissions = settingsStorage.permissions || [];
 							oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 							settingsStorage.permissions.push(permission);
-							_this.metaTagsUpdateFromSettings('added', 'permission', permission);
 						}
 					} else {
 						//Remove from script's permissions
 						oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 						settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
-						_this.metaTagsUpdateFromSettings('removed', 'permission', permission);
 					}
 				});
 			}
@@ -1692,9 +1507,6 @@ class SCE {
 			[key: string]: string|number;
 		}) {
 			if (_this.editorMode === 'main') {
-				if (!_this.preventNotification) {
-					_this.metaTagsUpdate(changes, 'script');
-				}
 				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 			}
 		});

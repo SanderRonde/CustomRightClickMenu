@@ -117,10 +117,15 @@ interface CRMTrigger {
 
 type CRMTriggers = Array<CRMTrigger>;
 
-interface CRMLibrary {
+type CRMLibrary = {
 	name: string;
-	url?: string;
-	location?: 'jquery.js'|'angular.js'|'mooTools.js'|'yui.js'|'jqlite';
+	url: null;
+}|{
+	name: null;
+	url: string;
+}|{
+	name: string;
+	url: string;
 }
 
 type MetaTags = { [key: string]: Array<string|number> };
@@ -336,10 +341,9 @@ interface SettingsStorage {
 
 interface StorageLocal {
 	libraries: Array<{
-		name: string;
+		name?: string;
 		url?: string;
-		code?: string;
-		location?: string
+		code: string;
 	}>;
 	requestPermissions: Array<string>;
 	editing: {

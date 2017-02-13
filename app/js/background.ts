@@ -717,16 +717,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				},
 				getDefaultStylesheetValue(this: CRMTemplates, options: Partial<StylesheetVal> = {}): StylesheetVal {
 					const value: StylesheetVal = {
-						stylesheet: [
-							'// ==UserScript==',
-							'// @name	name',
-							'// @CRM_contentTypes	[true, true, true, false, false, false]',
-							'// @CRM_launchMode	0',
-							'// @CRM_stylesheet	true',
-							'// @grant	none',
-							'// @match	*://*.example.com/*',
-							'// ==/UserScript=='
-						].join('\n'),
+						stylesheet: [].join('\n'),
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						toggle: false,
 						defaultOn: false
@@ -739,15 +730,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						backgroundLibraries: [],
 						libraries: [],
-						script: [
-							'// ==UserScript==',
-							'// @name	name',
-							'// @CRM_contentTypes	[true, true, true, false, false, false]',
-							'// @CRM_launchMode	0',
-							'// @grant	none',
-							'// @match	*://*.example.com/*',
-							'// ==/UserScript=='
-						].join('\n'),
+						script: [].join('\n'),
 						backgroundScript: '',
 						metaTags: {}
 					};
@@ -3254,11 +3237,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				], () => {
 					const msg = _this.message as CRMFunctionMessage & {
-						libraries: Array<{
-							name: string;
-						}>|{
-							name: string;
-						}
+						libraries: Array<CRMLibrary>|CRMLibrary;
 					}
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						function doesLibraryExist(lib: {
@@ -3278,7 +3257,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						function isAlreadyUsed(script: ScriptNode, lib: CRMLibrary): boolean {
 							for (var i = 0; i < script.value.libraries.length; i++) {
-								if (script.value.libraries[i].name === lib.name) {
+								if (script.value.libraries[i].name === (lib.name || null) && 
+									script.value.libraries[i].url === (lib.url || null)) {
 									return true;
 								}
 							}
@@ -3368,11 +3348,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				], () => {
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
-							libraries: {
-								name: string;
-							}|Array<{
-								name: string;
-							}>
+							libraries: Array<CRMLibrary>|CRMLibrary
 						}
 
 						function doesLibraryExist(lib: {
@@ -3391,8 +3367,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						function isAlreadyUsed(script: ScriptNode, lib: CRMLibrary) {
-							for (var i = 0; i < script.value.backgroundLibraries.length; i++) {
-								if (script.value.backgroundLibraries[i].name === lib.name) {
+							for (var i = 0; i < script.value.libraries.length; i++) {
+								if (script.value.libraries[i].name === (lib.name || null) && 
+									script.value.libraries[i].url === (lib.url || null)) {
 									return true;
 								}
 							}
@@ -7944,13 +7921,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					editCRMInRM: false,
 					hideToolsRibbon: false,
 					shrinkTitleRibbon: false,
-					libraries: [
-						{ "location": 'jQuery.js', "name": 'jQuery' },
-						{ "location": 'mooTools.js', "name": 'mooTools' },
-						{ "location": 'YUI.js', "name": 'YUI' },
-						{ "location": 'Angular.js', "name": 'Angular' },
-						{ "location": 'jqlite.js', "name": 'jqlite' }
-					],
+					libraries: [],
 					settingsVersionData: {
 						current: {
 							hash: syncHash,

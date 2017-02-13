@@ -714,25 +714,7 @@ class EC {
 			metaTags['require'] = [];
 			for (i = 0; i < node.value.libraries.length; i++) {
 				//Turn into requires
-				if (node.value.libraries[i].location) {
-					switch (node.value.libraries[i].location) {
-					case 'jquery.js':
-						metaTags['require'].push('https://code.jquery.com/jquery-2.1.4.min.js');
-						break;
-					case 'angular.js':
-						metaTags['require'].push('https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.7/angular.min.js');
-						break;
-					case 'mooTools.js':
-						metaTags['require'].push('https://cdnjs.cloudlare.com/ajax/libs/mootools/1.5.2/mootools-core.min.js');
-						break;
-					case 'yui.js':
-						metaTags['require'].push('https://cdnjs.cloudlare.com/ajax/libs/yui/3.18.1/yui/yui-min.js');
-						break;
-					case 'jqlite':
-						metaTags['require'].push('https://raw.githubusercontent.com/jstools/jqlite/master/jqlite.min.js');
-							break;
-					}
-				} else {
+				if (node.value.libraries[i].url) {
 					metaTags['require'].push(node.value.libraries[i].url);
 				}
 			}

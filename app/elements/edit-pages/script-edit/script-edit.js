@@ -115,18 +115,32 @@ var SCE = (function () {
             case 'require':
                 //Change anonymous libraries to requires
                 var libraries = this.newSettings.value.libraries;
-                for (var k = 0; k < libraries.length; k++) {
-                    if (libraries[k].name === null) {
-                        libraries.splice(k, 1);
-                        k--;
-                    }
-                }
-                metaTags['require'].forEach(function (url) {
+                if (changeType === 'added') {
                     libraries.push({
                         name: null,
-                        url: url
+                        url: value
                     });
-                });
+                }
+                else {
+                    var toSearch = changeType === 'changed' ?
+                        oldValue : value;
+                    var index = -1;
+                    for (var i_1 = 0; i_1 < libraries.length; i_1++) {
+                        if (libraries[i_1].url === toSearch) {
+                            index = i_1;
+                            break;
+                        }
+                    }
+                    if (changeType === 'changed') {
+                        libraries.splice(index, 1, {
+                            name: null,
+                            url: value
+                        });
+                    }
+                    else {
+                        libraries.splice(index, 1);
+                    }
+                }
                 this.set('newSettings.value.libraries', libraries);
                 window.paperLibrariesSelector.updateLibraries(libraries);
                 switch (changeType) {
@@ -230,88 +244,7 @@ var SCE = (function () {
         }
     };
     ;
-    SCE.metaTagsUpdateFromSettings = function (changeType, key, value, oldValue) {
-        var cm = this.editor;
-        switch (key) {
-            case 'name':
-                cm.updateMetaTags(cm, key, oldValue, value, true);
-                break;
-            case 'CRM_launchMode':
-                cm.updateMetaTags(cm, key, oldValue, value, true);
-                break;
-            case 'permission':
-                switch (changeType) {
-                    case 'added':
-                        //If the only @grant is "none", remove it,
-                        cm.removeMetaTags(cm, 'match', 'none');
-                        cm.addMetaTags(cm, 'match', value);
-                        break;
-                    case 'removed':
-                        cm.removeMetaTags(cm, 'match', value);
-                        break;
-                }
-                break;
-            case 'match':
-            case 'include':
-            case 'exclude':
-                switch (changeType) {
-                    case 'added':
-                        cm.addMetaTags(cm, key, value);
-                        break;
-                    case 'changed':
-                        cm.updateMetaTags(cm, key, oldValue, value, false);
-                        break;
-                    case 'removed':
-                        cm.removeMetaTags(cm, key, value);
-                        break;
-                }
-                break;
-            case 'CRM_contentTypes':
-                cm.updateMetaTags(cm, key, oldValue, value, true);
-                break;
-            case 'grant':
-                if (changeType === 'added') {
-                    cm.addMetaTags(cm, key, value);
-                }
-                else {
-                    cm.removeMetaTags(cm, key, value);
-                }
-                break;
-        }
-    };
-    ;
-    SCE.metaTagsUpdate = function (changes, source) {
-        if (!changes || this.editorMode === 'background') {
-            return;
-        }
-        var i, j;
-        var key, value, oldValue;
-        var changeTypes = ['changed', 'removed', 'added'];
-        this.newSettings.nodeInfo = this.newSettings.nodeInfo || {
-            permissions: []
-        };
-        for (i = 0; i < changeTypes.length; i++) {
-            var changeType = changeTypes[i];
-            var changesArray = changes[changeType];
-            if (changesArray) {
-                for (j = 0; j < changesArray.length; j++) {
-                    key = changesArray[j].key;
-                    value = changesArray[j].value;
-                    oldValue = changesArray[j].oldValue;
-                    if (source === 'script') {
-                        this.updateFromScriptApplier(changeType, key, value, oldValue);
-                    }
-                    else {
-                        this.metaTagsUpdateFromSettings(changeType, key, value, oldValue);
-                        this.preventCodemirrorNotification();
-                    }
-                }
-            }
-        }
-    };
-    ;
     SCE.clearTriggerAndNotifyMetaTags = function (e) {
-        var _this = this;
         if (this.querySelectorAll('.executionTrigger').length === 1) {
             window.doc['messageToast'].text = 'You need to have at least one trigger';
             window.doc['messageToast'].show();
@@ -323,33 +256,6 @@ var SCE = (function () {
         while (el.tagName.toLowerCase() !== 'paper-icon-button') {
             el = e.path[++index];
         }
-        this.async(function () {
-            var inputVal = el.parentElement.children[1];
-            var checkboxVal = el.parentElement.children[0];
-            _this.metaTagsUpdate({
-                'removed': [
-                    {
-                        key: 'match',
-                        value: JSON.stringify({
-                            url: inputVal.value,
-                            not: checkboxVal.checked
-                        })
-                    }
-                ]
-            }, 'dialog');
-        }, 0);
-    };
-    ;
-    SCE.launchModeUpdateFromDialog = function (prevState, state) {
-        this.metaTagsUpdate({
-            'changed': [
-                {
-                    key: 'CRM_launchMode',
-                    value: state,
-                    oldValue: prevState
-                }
-            ]
-        }, 'dialog');
     };
     ;
     SCE.triggerCheckboxChange = function (element) {
@@ -363,30 +269,10 @@ var SCE = (function () {
         var _this = this;
         var oldValue = element.value;
         var checkboxChecked = $(element).parent().children('.executionTriggerNot')[0].checked;
-        setTimeout(function () {
-            var newValue = element.value;
-            _this.metaTagsUpdate({
-                'changed': [
-                    {
-                        key: (checkboxChecked ? 'exclude' : 'match'),
-                        oldValue: oldValue,
-                        value: newValue
-                    }
-                ]
-            }, 'dialog');
-        }, 0);
     };
     ;
     SCE.addTriggerAndAddListeners = function () {
         this.addTrigger();
-        this.metaTagsUpdate({
-            'added': [
-                {
-                    key: 'match',
-                    value: '*://*.example.com/*'
-                }
-            ]
-        }, 'dialog');
     };
     ;
     SCE.contentCheckboxChanged = function (e) {
@@ -413,73 +299,22 @@ var SCE = (function () {
                 oldStates[i] = checkbox.checked;
             }
         }
-        this.metaTagsUpdate({
-            'changed': [
-                {
-                    key: 'CRM_contentTypes',
-                    oldValue: JSON.stringify(oldStates),
-                    value: JSON.stringify(states)
-                }
-            ]
-        }, 'dialog');
     };
     ;
     SCE.addDialogToMetaTagUpdateListeners = function () {
         var _this = this;
         var __this = this;
-        this.async(function () {
-            _this.$.dropdownMenu._addListener(_this.launchModeUpdateFromDialog, 'dropdownMenu', _this);
-        }, 0);
         //Use jquery to also get the pre-change value
         $(this.$.nameInput).on('keydown', function () {
             var el = _this.$.nameInput;
             var oldVal = el.value || '';
             Array.isArray(oldVal) && (oldVal = oldVal[0]);
-            _this.async(function () {
-                var newVal = el.value || '';
-                Array.isArray(newVal) && (newVal = newVal[0]);
-                if (newVal !== oldVal) {
-                    _this.metaTagsUpdate({
-                        'changed': [
-                            {
-                                key: 'name',
-                                value: newVal,
-                                oldValue: oldVal
-                            }
-                        ]
-                    }, 'dialog');
-                }
-            }, 5);
         });
         $('.executionTriggerNot').on('change', function () {
             __this.triggerCheckboxChange.apply(__this, [this]);
         });
         $('.triggerInput').on('keydown', function () {
             __this.triggerInputChange.apply(__this, [this]);
-        });
-        $('.scriptPermissionsToggle').on('change', function () {
-            var permission = $(this).parent().children('.requestPermissionName')[0].innerText;
-            var prevState = !this.checked;
-            if (prevState) {
-                __this.metaTagsUpdate({
-                    'removed': [
-                        {
-                            key: 'grant',
-                            value: permission
-                        }
-                    ]
-                }, 'dialog');
-            }
-            else {
-                __this.metaTagsUpdate({
-                    'added': [
-                        {
-                            key: 'grant',
-                            value: permission
-                        }
-                    ]
-                }, 'dialog');
-            }
         });
     };
     ;
@@ -680,7 +515,6 @@ var SCE = (function () {
                                     settingsStorage.permissions = settingsStorage.permissions || [];
                                     oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
                                     settingsStorage.permissions.push(permission);
-                                    _this.metaTagsUpdateFromSettings('added', 'permission', permission);
                                 }
                             });
                         }
@@ -689,14 +523,12 @@ var SCE = (function () {
                             settingsStorage.permissions = settingsStorage.permissions || [];
                             oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
                             settingsStorage.permissions.push(permission);
-                            _this.metaTagsUpdateFromSettings('added', 'permission', permission);
                         }
                     }
                     else {
                         //Remove from script's permissions
                         oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
                         settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
-                        _this.metaTagsUpdateFromSettings('removed', 'permission', permission);
                     }
                 });
             }
@@ -1376,9 +1208,6 @@ var SCE = (function () {
         editor.refresh();
         editor.on('metaTagChanged', function (changes, metaTags) {
             if (_this.editorMode === 'main') {
-                if (!_this.preventNotification) {
-                    _this.metaTagsUpdate(changes, 'script');
-                }
                 _this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
             }
         });
@@ -1623,6 +1452,10 @@ SCE.editorOptions = null;
  * The settings shadow element which is the circle on options
  */
 SCE.settingsShadow = null;
+/**
+ * The editor's dimensions before it goes fullscreen
+ */
+SCE.preFullscreenEditorDimensions = {};
 /**
  * Prevent the codemirror editor from signalling again for a while
  */

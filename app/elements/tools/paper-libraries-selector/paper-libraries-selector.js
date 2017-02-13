@@ -46,24 +46,7 @@ var PLS = (function () {
                 _this.installedLibraries = keys.libraries;
             }
             else {
-                _this.installedLibraries = [
-                    {
-                        name: 'jQuery 2.1.4',
-                        location: 'jquery.js'
-                    }, {
-                        name: 'angular 1.4.7',
-                        location: 'angular.js'
-                    }, {
-                        name: 'mooTools 1.5.2',
-                        location: 'mooTools.js'
-                    }, {
-                        name: 'yui 3.18.1',
-                        location: 'yui.js'
-                    }, {
-                        name: 'jqlite 0.2.37',
-                        location: 'jqlite.js'
-                    }
-                ];
+                _this.installedLibraries = [];
                 chrome.storage.local.set({
                     libaries: _this.installedLibraries
                 });
@@ -167,6 +150,13 @@ var PLS = (function () {
                 code: code,
                 url: url
             });
+            _this.usedlibraries.push({
+                name: name,
+                url: url
+            });
+            chrome.storage.local.set({
+                libraries: _this.installedLibraries
+            });
             if (_this.mode === 'main') {
                 window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor, 'require', url);
             }
@@ -210,6 +200,10 @@ var PLS = (function () {
                     }, 2500);
                 }
             });
+            var contentEl = _this.$$('paper-menu').querySelector('.content');
+            contentEl.style.height +=
+                (~~contentEl.style.height.split('px')[0] + 48) + 'px';
+            _this.init();
         }, 250);
     };
     ;
@@ -280,15 +274,34 @@ var PLS = (function () {
         }
         else if (_this.mode === 'main') {
             //Checking or un-checking something
-            var lib = e.target.getAttribute('data-url');
-            var changeType = (e.target.classList.contains('iron-selected') ? 'addMetaTags' : 'removeMetaTags');
-            window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib);
+            var lib = e.target.dataLib;
+            var changeType = (e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
+            if (lib.url) {
+                window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib.url);
+            }
+            if (changeType === 'addMetaTags') {
+                window.scriptEdit.newSettings.value.libraries.push({
+                    name: lib.name || null,
+                    url: lib.url
+                });
+            }
+            else {
+                var index = -1;
+                for (var i = 0; i < window.scriptEdit.newSettings.value.libraries.length; i++) {
+                    if (window.scriptEdit.newSettings.value.libraries[i].url === lib.url &&
+                        window.scriptEdit.newSettings.value.libraries[i].name === lib.name) {
+                        index = i;
+                        break;
+                    }
+                }
+                window.scriptEdit.newSettings.value.libraries.splice(index, 1);
+            }
         }
     };
     ;
     PLS.updateLibraries = function (libraries, mode) {
         if (mode === void 0) { mode = 'main'; }
-        this.set('libraries', libraries);
+        this.set('usedlibraries', libraries);
         this.mode = mode;
         this.init();
     };

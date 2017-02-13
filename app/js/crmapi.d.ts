@@ -91,8 +91,13 @@ declare namespace CRMAPI {
 
 	type CRMTriggers = Array<CRMTrigger>;
 
-	interface CRMLibrary {
+	type CRMLibrary = {
 		name: string;
+	}|{
+		url: string;
+	}| {
+		name: string;
+		url: string;
 	}
 
 	interface ScriptVal {

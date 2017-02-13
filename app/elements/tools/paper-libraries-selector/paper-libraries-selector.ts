@@ -1,10 +1,10 @@
 /// <reference path="../../elements.d.ts" />
 
 const paperLibrariesSelectorProperties: {
-	usedlibraries: Array<LibrarySelectorLibrary>;
+	usedlibraries: Array<CRMLibrary>;
 	libraries: Array<LibrarySelectorLibrary>;
 	selected: Array<number>;
-	installedLibraries: Array<ShippedLibrary>;
+	installedLibraries: Array<LibrarySelectorLibrary>;
 	mode: 'main'|'background';
 
 } = {
@@ -45,13 +45,6 @@ const paperLibrariesSelectorProperties: {
 	}
 } as any;
 
-interface ShippedLibrary {
-	name: string;
-	url?: string;
-	code?: string;
-	location?: string
-}
-
 interface AnonymousLibrary {
 	isLibrary: boolean;
 	url: string;
@@ -61,6 +54,7 @@ interface LibrarySelectorLibrary {
 	name?: string;
 	isLibrary?: boolean;
 	url?: string;
+	code?: string;
 	classes?: string;
 	selected?: 'true'|'false';
 }
@@ -81,24 +75,7 @@ class PLS {
 			if (keys.libraries) {
 				_this.installedLibraries = keys.libraries;
 			} else {
-				_this.installedLibraries = [
-					{
-						name: 'jQuery 2.1.4',
-						location: 'jquery.js'
-					}, {
-						name: 'angular 1.4.7',
-						location: 'angular.js'
-					}, {
-						name: 'mooTools 1.5.2',
-						location: 'mooTools.js'
-					}, {
-						name: 'yui 3.18.1',
-						location: 'yui.js'
-					}, {
-						name: 'jqlite 0.2.37',
-						location: 'jqlite.js'
-					}
-				];
+				_this.installedLibraries = [];
 				chrome.storage.local.set({
 					libaries: _this.installedLibraries
 				});
@@ -171,7 +148,7 @@ class PLS {
 			classes: 'library addLibrary',
 			selected: 'false',
 			isLibrary: false
-		});
+		} as any);
 		_this.libraries = libraries;
 	};
 
@@ -205,6 +182,13 @@ class PLS {
 				name: name,
 				code: code,
 				url: url
+			});
+			_this.usedlibraries.push({
+				name: name,
+				url: url
+			});
+			chrome.storage.local.set({
+				libraries: _this.installedLibraries
 			});
 			if (_this.mode === 'main') {
 				window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor,
@@ -252,6 +236,12 @@ class PLS {
 					}, 2500);
 				}
 			});
+
+			const contentEl = _this.$$('paper-menu').querySelector('.content') as HTMLElement;
+			contentEl.style.height += 
+				(~~contentEl.style.height.split('px')[0] + 48) + 'px';
+
+			_this.init();
 		}, 250);
 	};
 
@@ -320,14 +310,35 @@ class PLS {
 			});
 		} else if (_this.mode === 'main') {
 			//Checking or un-checking something
-			var lib = e.target.getAttribute('data-url');
-			var changeType: 'addMetaTags'|'removeMetaTags' = (e.target.classList.contains('iron-selected') ? 'addMetaTags' : 'removeMetaTags');
-			window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib);
+			var lib = (e.target as HTMLElement & {
+				dataLib: LibrarySelectorLibrary;
+			}).dataLib;
+			var changeType: 'addMetaTags'|'removeMetaTags' = 
+				(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
+			if (lib.url) {
+				window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib.url);
+			}
+			if (changeType === 'addMetaTags') {
+				window.scriptEdit.newSettings.value.libraries.push({
+					name: lib.name || null,
+					url: lib.url
+				});
+			} else {
+				let index = -1;
+				for (let i = 0; i < window.scriptEdit.newSettings.value.libraries.length; i++) {
+					if (window.scriptEdit.newSettings.value.libraries[i].url === lib.url && 
+						window.scriptEdit.newSettings.value.libraries[i].name === lib.name) {
+						index = i;
+						break;
+					}
+				}
+				window.scriptEdit.newSettings.value.libraries.splice(index, 1);
+			}
 		}
 	};
 
 	static updateLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>, mode: 'main'|'background' = 'main') {
-		this.set('libraries', libraries);
+		this.set('usedlibraries', libraries);
 		this.mode = mode;
 		this.init();
 	};

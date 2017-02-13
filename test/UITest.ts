@@ -292,16 +292,7 @@ const templates = {
 	},
 	getDefaultStylesheetValue(options: any): StylesheetVal {
 		const value = {
-			stylesheet: [
-				'// ==UserScript==',
-				'// @name	name',
-				'// @CRM_contentTypes	[true, true, true, false, false, false]',
-				'// @CRM_launchMode	0',
-				'// @CRM_stylesheet	true',
-				'// @grant	none',
-				'// @match	*://*.example.com/*',
-				'// ==/UserScript=='
-			].join('\n'),
+			stylesheet: [].join('\n'),
 			launchMode: CRMLaunchModes.ALWAYS_RUN
 		} as StylesheetVal;
 
@@ -312,15 +303,7 @@ const templates = {
 			launchMode: CRMLaunchModes.ALWAYS_RUN,
 			backgroundLibraries: [],
 			libraries: [],
-			script: [
-				'// ==UserScript==',
-				'// @name	name',
-				'// @CRM_contentTypes	[true, true, true, false, false, false]',
-				'// @CRM_launchMode	0',
-				'// @grant	none',
-				'// @match	*://*.example.com/*',
-				'// ==/UserScript=='
-			].join('\n'),
+			script: [].join('\n'),
 			backgroundScript: ''
 		};
 
@@ -1080,6 +1063,23 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 	});
 }
 
+function enterEditorFullscreen(_this: MochaFn, driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<void> {
+	return resetSettings(_this, driver).then(() => {
+		return openDialog(driver, type);
+	}).then(() => {
+		return getDialog(driver, type);
+	}).then((dialog) => {
+		return wait(driver, 500, dialog);
+	}).then((dialog) => {
+		return dialog
+			.findElement(webdriver.By.id('editorFullScreen'))
+			.click()
+			.then(() => {
+				return wait(driver, 500);
+			});
+	})
+}
+
 describe('Options Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
 		this.timeout(60000);
@@ -1096,6 +1096,7 @@ describe('Options Page', function(this: MochaFn) {
 				});
 		});
 	});
+	/*
 	describe('CheckboxOptions', function(this: MochaFn) {
 		this.timeout(5000);
 		this.slow(4000);
@@ -1503,6 +1504,7 @@ describe('Options Page', function(this: MochaFn) {
 			});
 	});
 
+	*/
 	function testNameInput(type: NodeType) {
 		const defaultName = 'name';
 		describe('Name Input', function(this: MochaFn) {
@@ -2317,6 +2319,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 		this.timeout(60000);
 
+		/*
 		describe('Type Switching', function(this: MochaFn) {
 
 			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
@@ -2876,6 +2879,7 @@ describe('Options Page', function(this: MochaFn) {
 				});
 			});
 		});
+		*/
 		describe('Script Dialog', function(this: MochaFn) {
 			const type: NodeType = 'script';
 
@@ -2883,13 +2887,27 @@ describe('Options Page', function(this: MochaFn) {
 				return resetSettings(this, driver);
 			});
 
+			/*
 			testNameInput(type);
 			testContentTypes(type);
 			testClickTriggers(type);
+			*/
 
 			describe('Editor', function(this: MochaFn) {
 				describe('Settings', function(this: MochaFn) {
 					testEditorSettings(type);
+				});
+				describe('Fullscreen Tools', function(this: MochaFn) {
+					this.slow(30000);
+					this.timeout(40000);
+
+					describe('Libraries', function(this: MochaFn) {
+						
+					});
+
+					enterEditorFullscreen(this, driver, type).then((dialog) => {
+
+					});
 				});
 			});
 		});
@@ -2922,6 +2940,7 @@ describe('Options Page', function(this: MochaFn) {
 	});
 });
 
+/*
 describe('On-Page CRM', function(this: MochaFn) {
 	describe('Redraws on new CRM', function(this: MochaFn) {
 		this.slow(250);
@@ -4274,6 +4293,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 	});
 });
+*/
 
 after('quit driver', () => {
 	console.log('quitting');
