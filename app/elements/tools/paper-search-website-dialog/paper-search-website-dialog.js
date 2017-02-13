@@ -112,7 +112,7 @@ var PSWD = (function () {
     PSWD.switchToWindow = function (window) {
         this.hideAllWindows(window);
         if (window === 'successWindow') {
-            this.$['successWindow'].setAttribute('style', 'display:block;');
+            this.$.successWindow.setAttribute('style', 'display:block;');
             this.insertCode();
         }
         else {
@@ -137,14 +137,14 @@ var PSWD = (function () {
         var spinner = $(this).find('paper-spinner')[0];
         spinner.active = true;
         this.hideAllWindows('loadingWindow');
-        this.$['loadingWindow'].style.display = 'block';
+        this.$.loadingWindow.style.display = 'block';
         this.fit();
         promiser.apply(this)(function () {
-            _this.$['manualInputListChoiceInput'].invalid = false;
+            _this.$.manualInputListChoiceInput.invalid = false;
             _this.switchToWindow(window);
             spinner.active = false;
         }, function () {
-            _this.$['manualInputListChoiceInput'].invalid = true;
+            _this.$.manualInputListChoiceInput.invalid = true;
             spinner.active = false;
         });
     };
@@ -179,7 +179,7 @@ var PSWD = (function () {
      * Go back one window and clear the manualInput textarea
      */
     PSWD.backFromManualInput = function () {
-        this.$['manualInputListChoiceInput'].value = '';
+        this.$.manualInputListChoiceInput.value = '';
         this.goBackWindow();
     };
     ;
@@ -190,7 +190,7 @@ var PSWD = (function () {
         var _this = this;
         return function (resolve, reject) {
             var worker = new Worker('elements/tools/paper-search-website-dialog/searchEngineWorker.js');
-            var data = _this.$['manualInputListChoiceInput'].value;
+            var data = _this.$.manualInputListChoiceInput.value;
             worker.addEventListener('message', function (e) {
                 var structuredSearchEngines = e.data.searchEngines;
                 $('.SEImportError').remove();
@@ -219,7 +219,7 @@ var PSWD = (function () {
      */
     PSWD.processManualInput = function () {
         if (this.selectedIsUrl) {
-            this.chosenUrl = this.$['manualInputURLInput'].value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
+            this.chosenUrl = this.$.manualInputURLInput.value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
             this.switchToWindow('confirmationWindow');
         }
         else {
@@ -231,7 +231,7 @@ var PSWD = (function () {
      * Apply the choice from the manual choice dialog
      */
     PSWD.applyDefaultsUrls = function (event) {
-        switch (this.$['searchWebsitesRadioGroup'].selected) {
+        switch (this.$.searchWebsitesRadioGroup.selected) {
             case 'google':
                 this.chosenUrl = 'https://www.google.com/search?q=%s';
                 break;
@@ -252,7 +252,7 @@ var PSWD = (function () {
      * Confirms the choice of one of the search engines from the list
      */
     PSWD.confirmManualSearchListInput = function () {
-        this.chosenUrl = $(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0].url;
+        this.chosenUrl = $(this.$.listInputSearchList).find('paper-radio-button[checked]')[0].url;
         this.switchToWindow('confirmationWindow');
     };
     ;
@@ -260,7 +260,7 @@ var PSWD = (function () {
      * Cancels all radio buttons and checks the one you just clicked
      */
     PSWD.cancelAllRadiobuttons = function (e) {
-        $(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0].checked = false;
+        $(this.$.listInputSearchList).find('paper-radio-button[checked]')[0].checked = false;
         var node = e.target;
         while (node.tagName !== 'PAPER-RADIO-BUTTON') {
             node = node.parentElement;
@@ -273,7 +273,7 @@ var PSWD = (function () {
      * Confirms the initial window's choice, choosing between going for a default search url, or finding one yourself
      */
     PSWD.confirmInitialChoice = function () {
-        if (this.$['initialWindowChoicesCont'].selected === 'defaults') {
+        if (this.$.initialWindowChoicesCont.selected === 'defaults') {
             this.switchToWindow('chooseDefaultSearchWindow');
         }
         else {
@@ -287,7 +287,7 @@ var PSWD = (function () {
      * Clears all inputted information
      */
     PSWD.clear = function () {
-        this.$['initialWindowChoicesCont'].selected = 'defaults';
+        this.$.initialWindowChoicesCont.selected = 'defaults';
         this.switchToWindow('initialWindow');
         this.searchList = [];
     };
@@ -296,7 +296,7 @@ var PSWD = (function () {
      * Adds basic listeners
      */
     PSWD.ready = function () {
-        this.$['paperSearchWebsiteDialog'].addEventListener('iron-overlay-closed ', this.clear);
+        this.$.paperSearchWebsiteDialog.addEventListener('iron-overlay-closed ', this.clear);
     };
     ;
     /**
@@ -311,28 +311,28 @@ var PSWD = (function () {
      * Toggles the dialog
      */
     PSWD.toggle = function () {
-        this.$['paperSearchWebsiteDialog'].toggle();
+        this.$.paperSearchWebsiteDialog.toggle();
     };
     ;
     /**
      * Shows the dialog
      */
     PSWD.show = function () {
-        this.$['paperSearchWebsiteDialog'].open();
+        this.$.paperSearchWebsiteDialog.open();
     };
     ;
     /**
      * Hides the dialog
      */
     PSWD.hide = function () {
-        this.$['paperSearchWebsiteDialog'].close();
+        this.$.paperSearchWebsiteDialog.close();
     };
     ;
     /**
      * Waits a bit before fitting the element
      */
     PSWD.fixFit = function () {
-        var paperInputContainer = $(this.$['manualInputListChoiceInput']).find('paper-input-container')[0];
+        var paperInputContainer = $(this.$.manualInputListChoiceInput).find('paper-input-container')[0];
         paperInputContainer.style.height = '200px';
         this.fit();
         paperInputContainer.style.height = 'auto';
@@ -353,7 +353,7 @@ var PSWD = (function () {
      * Fits the dialog propertly
      */
     PSWD.fit = function () {
-        this.$['paperSearchWebsiteDialog'].fit();
+        this.$.paperSearchWebsiteDialog.fit();
     };
     return PSWD;
 }());

@@ -428,11 +428,11 @@ var SCE = (function () {
         var _this = this;
         var __this = this;
         this.async(function () {
-            _this.$['dropdownMenu']._addListener(_this.launchModeUpdateFromDialog, 'dropdownMenu', _this);
+            _this.$.dropdownMenu._addListener(_this.launchModeUpdateFromDialog, 'dropdownMenu', _this);
         }, 0);
         //Use jquery to also get the pre-change value
-        $(this.$['nameInput']).on('keydown', function () {
-            var el = _this.$['nameInput'];
+        $(this.$.nameInput).on('keydown', function () {
+            var el = _this.$.nameInput;
             var oldVal = el.value || '';
             Array.isArray(oldVal) && (oldVal = oldVal[0]);
             _this.async(function () {
@@ -486,11 +486,11 @@ var SCE = (function () {
     //#endregion
     //#region DialogFunctions
     SCE.disableButtons = function () {
-        this.$['dropdownMenu'].disable();
+        this.$.dropdownMenu.disable();
     };
     ;
     SCE.enableButtons = function () {
-        this.$['dropdownMenu'].enable();
+        this.$.dropdownMenu.enable();
     };
     ;
     SCE.changeTab = function (mode) {
@@ -728,8 +728,8 @@ var SCE = (function () {
         */
     SCE.initToolsRibbon = function () {
         var _this = this;
-        window.app.$['paperLibrariesSelector'].init();
-        window.app.$['paperGetPageProperties'].init(function (snippet) {
+        window.app.$.paperLibrariesSelector.init();
+        window.app.$.paperGetPageProperties.init(function (snippet) {
             _this.insertSnippet(_this, snippet);
         });
     };
@@ -739,7 +739,7 @@ var SCE = (function () {
         */
     SCE.popInRibbons = function () {
         //Introduce title at the top
-        var scriptTitle = window.app.$['editorCurrentScriptTitle'];
+        var scriptTitle = window.app.$.editorCurrentScriptTitle;
         var titleRibbonSize;
         if (window.app.storageLocal.shrinkTitleRibbon) {
             window.doc['editorTitleRibbon'].style.fontSize = '40%';
@@ -844,8 +844,8 @@ var SCE = (function () {
         * Pops out the ribbons with an animation
         */
     SCE.popOutRibbons = function () {
-        var scriptTitle = window.app.$['editorCurrentScriptTitle'];
-        var toolsRibbon = window.app.$['editorToolsRibbonContainer'];
+        var scriptTitle = window.app.$.editorCurrentScriptTitle;
+        var toolsRibbon = window.app.$.editorToolsRibbonContainer;
         var toolsVisible = !window.app.storageLocal.hideToolsRibbon &&
             toolsRibbon &&
             toolsRibbon.classList.contains('visible');
@@ -982,7 +982,7 @@ var SCE = (function () {
                 _this.style.width = '100vw';
                 _this.style.height = '100vh';
                 buttonShadow.style.position = 'fixed';
-                window.app.$['fullscreenEditorHorizontal'].style.height = '100vh';
+                window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
                 _this.popInRibbons();
             }
         });
@@ -1015,7 +1015,7 @@ var SCE = (function () {
                     editorCont.style.marginTop = '0';
                     editorCont.style.width = '0';
                     editorCont.style.height = '0';
-                    $(_this.editor.display.wrapper).appendTo(_this.$['editorCont']).css({
+                    $(_this.editor.display.wrapper).appendTo(_this.$.editorCont).css({
                         height: _this.preFullscreenEditorDimensions.height,
                         marginTop: 0,
                         marginLeft: 0
@@ -1040,7 +1040,7 @@ var SCE = (function () {
      */
     SCE.showOptions = function () {
         var _this = this;
-        this.unchangedEditorSettings = $['extend'](true, {}, window.app.settings.editor);
+        this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
         var editorWidth = $('.script-edit-codeMirror').width();
         var editorHeight = $('.script-edit-codeMirror').height();
         var circleRadius;
@@ -1163,9 +1163,9 @@ var SCE = (function () {
     SCE.reloadEditor = function (disable) {
         if (disable === void 0) { disable = false; }
         $(this.editor.display.wrapper).remove();
-        this.$['editorPlaceholder'].style.display = 'flex';
-        this.$['editorPlaceholder'].style.opacity = '1';
-        this.$['editorPlaceholder'].style.position = 'absolute';
+        this.$.editorPlaceholder.style.display = 'flex';
+        this.$.editorPlaceholder.style.opacity = '1';
+        this.$.editorPlaceholder.style.position = 'absolute';
         this.newSettings.value.script = this.editor.doc.getValue();
         this.editor = null;
         var value = (this.editorMode === 'main' ?
@@ -1175,7 +1175,7 @@ var SCE = (function () {
             this.loadEditor(window.doc['fullscreenEditorHorizontal'], value, disable);
         }
         else {
-            this.loadEditor(this.$['editorCont'], value, disable);
+            this.loadEditor(this.$.editorCont, value, disable);
         }
     };
     ;
@@ -1382,8 +1382,8 @@ var SCE = (function () {
                 _this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
             }
         });
-        this.$['mainEditorTab'].classList.add('active');
-        this.$['backgroundEditorTab'].classList.remove('active');
+        this.$.mainEditorTab.classList.add('active');
+        this.$.backgroundEditorTab.classList.remove('active');
         editor.on('metaDisplayStatusChanged', function (info) {
             _this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
         });
@@ -1426,20 +1426,20 @@ var SCE = (function () {
         }
         if (this.fullscreen) {
             editor.display.wrapper.style.height = 'auto';
-            this.$['editorPlaceholder'].style.display = 'none';
+            this.$.editorPlaceholder.style.display = 'none';
             $buttonShadow[0].style.right = '-1px';
             $buttonShadow[0].style.position = 'absolute';
             this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
         }
         else {
-            this.$['editorPlaceholder'].style.height = this.editorHeight + 'px';
-            this.$['editorPlaceholder'].style.width = this.editorWidth + 'px';
-            this.$['editorPlaceholder'].style.position = 'absolute';
+            this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
+            this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
+            this.$.editorPlaceholder.style.position = 'absolute';
             if (this.editorPlaceHolderAnimation) {
                 this.editorPlaceHolderAnimation.play();
             }
             else {
-                this.editorPlaceHolderAnimation = this.$['editorPlaceholder'].animate([
+                this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
                     {
                         opacity: 1
                     }, {
@@ -1463,7 +1463,7 @@ var SCE = (function () {
     SCE.loadEditor = function (container, content, disable) {
         if (content === void 0) { content = this.item.value.script; }
         if (disable === void 0) { disable = false; }
-        var placeHolder = $(this.$['editorPlaceholder']);
+        var placeHolder = $(this.$.editorPlaceholder);
         this.editorHeight = placeHolder.height();
         this.editorWidth = placeHolder.width();
         !window.app.settings.editor && (window.app.settings.editor = {
@@ -1503,9 +1503,9 @@ var SCE = (function () {
     SCE.init = function () {
         var _this = this;
         this._init();
-        this.$['dropdownMenu'].init();
-        this.$['exportMenu'].init();
-        this.$['exportMenu'].querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
+        this.$.dropdownMenu.init();
+        this.$.exportMenu.init();
+        this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
         this.initDropdown();
         this.selectorStateChange(0, this.newSettings.value.launchMode);
         this.addDialogToMetaTagUpdateListeners();
@@ -1515,8 +1515,8 @@ var SCE = (function () {
         document.body.classList.remove('editingStylesheet');
         document.body.classList.add('editingScript');
         window.scriptEdit = this;
-        this.$['editorPlaceholder'].style.display = 'flex';
-        this.$['editorPlaceholder'].style.opacity = '1';
+        this.$.editorPlaceholder.style.display = 'flex';
+        this.$.editorPlaceholder.style.opacity = '1';
         window.externalEditor.init();
         if (window.app.storageLocal.recoverUnsavedData) {
             chrome.storage.local.set({
@@ -1551,7 +1551,7 @@ var SCE = (function () {
         }
         this.active = true;
         setTimeout(function () {
-            _this.loadEditor(_this.$['editorCont']);
+            _this.loadEditor(_this.$.editorCont);
         }, 750);
     };
     return SCE;

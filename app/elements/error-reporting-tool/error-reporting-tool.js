@@ -47,7 +47,7 @@ var ERT = (function () {
     ERT.cropScreenshot = function (dataURI, cropData, callback) {
         var _this = this;
         var img = new Image();
-        var canvas = _this.$['cropCanvas'];
+        var canvas = _this.$.cropCanvas;
         var context = canvas.getContext('2d');
         img.onload = function () {
             //Crop the image
@@ -77,12 +77,12 @@ var ERT = (function () {
     ERT.screenshot = function (cropData, callback) {
         var _this = this;
         //Make sure the overlay is gone for a while
-        this.$['overlay'].style.display = 'none';
+        this.$.overlay.style.display = 'none';
         chrome.tabs.captureVisibleTab({
             format: 'png'
         }, function (dataURI) {
             //Turn it on again
-            _this.$['overlay'].style.display = 'block';
+            _this.$.overlay.style.display = 'block';
             _this.cropScreenshot(dataURI, cropData, callback);
         });
     };
@@ -107,8 +107,8 @@ var ERT = (function () {
     };
     ;
     ERT.setSelection = function (startX, startY, width, height, posX, posY) {
-        var rightDiv = this.$['highlightingRightSquare'];
-        var leftDiv = this.$['highlightingLeftSquare'];
+        var rightDiv = this.$.highlightingRightSquare;
+        var leftDiv = this.$.highlightingLeftSquare;
         if (this.lastPos.X !== posX) {
             if (width < 0) {
                 var left = startX + width;
@@ -124,8 +124,8 @@ var ERT = (function () {
             }
         }
         if (this.lastPos.Y !== posY) {
-            var topDiv = this.$['highlightingTopSquare'];
-            var botDiv = this.$['highlightingBotSquare'];
+            var topDiv = this.$.highlightingTopSquare;
+            var botDiv = this.$.highlightingBotSquare;
             if (height < 0) {
                 var top = (startY + height);
                 var topPx = top + 'px';
@@ -152,20 +152,20 @@ var ERT = (function () {
     ERT.handleSelection = function (e) {
         switch (e.detail.state) {
             case 'start':
-                this.$['highlightButtons'].classList.add('hidden');
+                this.$.highlightButtons.classList.add('hidden');
                 var startYPx = e.detail.y + 'px';
                 this.lastSize.X = this.lastSize.Y = 0;
                 this.dragStart.X = this.lastPos.X = e.detail.x;
                 this.dragStart.Y = this.lastPos.Y = e.detail.y;
-                this.$['highlightingTopSquare'].style.width = '100vw';
-                this.$['highlightingTopSquare'].style.height = startYPx;
-                this.$['highlightingLeftSquare'].style.width = startYPx;
-                this.translateY(this.$['highlightingBotSquare'], startYPx);
-                this.translateY(this.$['highlightingLeftSquare'], startYPx);
-                this.translateY(this.$['highlightingRightSquare'], startYPx);
+                this.$.highlightingTopSquare.style.width = '100vw';
+                this.$.highlightingTopSquare.style.height = startYPx;
+                this.$.highlightingLeftSquare.style.width = startYPx;
+                this.translateY(this.$.highlightingBotSquare, startYPx);
+                this.translateY(this.$.highlightingLeftSquare, startYPx);
+                this.translateY(this.$.highlightingRightSquare, startYPx);
                 break;
             case 'end':
-                this.$['highlightButtons'].classList.remove('hidden');
+                this.$.highlightButtons.classList.remove('hidden');
             case 'track':
                 if (e.detail.x !== this.lastPos.X || e.detail.y !== this.lastPos.Y) {
                     var width = (e.detail.x - this.dragStart.X);
@@ -182,16 +182,16 @@ var ERT = (function () {
     ;
     //#endregion
     ERT.hideScreencapArea = function () {
-        this.$['highlightingTopSquare'].style.height = '100vh';
-        this.$['highlightingTopSquare'].style.width = '100vw';
+        this.$.highlightingTopSquare.style.height = '100vh';
+        this.$.highlightingTopSquare.style.width = '100vw';
         this.setSelection(0, 0, 0, 0, 0, 0);
-        this.$['overlay'].classList.remove('toggled');
-        this.$['overlay'].style.pointerEvents = 'none';
+        this.$.overlay.classList.remove('toggled');
+        this.$.overlay.style.pointerEvents = 'none';
     };
     ;
     ERT.cancelScreencap = function () {
         this.hideScreencapArea();
-        this.$['errorReportingDialog'].open();
+        this.$.errorReportingDialog.open();
     };
     ;
     ERT.finishScreencap = function () {
@@ -203,28 +203,28 @@ var ERT = (function () {
             height: this.lastSize.Y,
             width: this.lastSize.X
         }, function () {
-            _this.$['errorReportingDialog'].open();
+            _this.$.errorReportingDialog.open();
         });
     };
     ;
     ERT.selectScreenshotArea = function () {
-        this.$['highlightingTopSquare'].style.height = '100vh';
-        this.$['highlightingTopSquare'].style.width = '100vw';
+        this.$.highlightingTopSquare.style.height = '100vh';
+        this.$.highlightingTopSquare.style.width = '100vw';
         this.setSelection(0, 0, 0, 0, 0, 0);
-        this.$['overlay'].classList.add('toggled');
-        this.$['overlay'].style.pointerEvents = 'initial';
+        this.$.overlay.classList.add('toggled');
+        this.$.overlay.style.pointerEvents = 'initial';
     };
     ;
     ERT.addCapture = function () {
         var _this = this;
-        _this.$['errorReportingDialog'].close();
+        _this.$.errorReportingDialog.close();
         this.selectScreenshotArea();
     };
     ;
     ERT.reportBug = function () {
         this.reportType = 'bug';
         this.image = '';
-        this.$['errorReportingDialog'].open();
+        this.$.errorReportingDialog.open();
     };
     ;
     ERT.convertImageToBlob = function (dataURI) {
@@ -273,18 +273,18 @@ var ERT = (function () {
     ;
     ERT.checkCheckmark = function () {
         var _this = this;
-        this.$['bugButton'].classList.add('checkmark');
+        this.$.bugButton.classList.add('checkmark');
         this.async(function () {
-            _this.$['reportingButtonElevation'].classList.add('checkmark');
-            _this.$['bugCheckmarkCont'].classList.add('checkmark');
+            _this.$.reportingButtonElevation.classList.add('checkmark');
+            _this.$.bugCheckmarkCont.classList.add('checkmark');
             _this.async(function () {
-                _this.$['bugCheckmark'].classList.add('checked');
+                _this.$.bugCheckmark.classList.add('checked');
                 _this.async(function () {
-                    _this.$['bugCheckmarkCont'].classList.remove('checkmark');
+                    _this.$.bugCheckmarkCont.classList.remove('checkmark');
                     _this.async(function () {
-                        _this.$['reportingButtonElevation'].classList.remove('checkmark');
-                        _this.$['bugButton'].classList.remove('checkmark');
-                        _this.$['bugCheckmark'].classList.remove('checked');
+                        _this.$.reportingButtonElevation.classList.remove('checkmark');
+                        _this.$.bugButton.classList.remove('checkmark');
+                        _this.$.bugCheckmark.classList.remove('checked');
                     }, 350);
                 }, 5000);
             }, 350);
@@ -301,7 +301,7 @@ var ERT = (function () {
         }, function (granted) {
             if (granted) {
                 callback();
-                window.errorReportingTool.$['errorReportingDialog'].close();
+                window.errorReportingTool.$.errorReportingDialog.close();
                 //Do a nice checkmark animation on the report button
                 var listener = function () {
                     _this.checkCheckmark();

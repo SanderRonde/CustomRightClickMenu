@@ -133,7 +133,7 @@ class PDB {
 		this._paperDropdownEl = this;
 		this._paperMenu = $(this).find('paper-menu')[0] as HTMLPaperMenuElement;
 		setTimeout(function () {
-			$(_this.$['dropdownSelectedCont']).insertBefore($(_this).find('.content'));
+			$(_this.$.dropdownSelectedCont).insertBefore($(_this).find('.content'));
 		}, 200);
 		this._dropdownSelectedCont = $(this).find('#dropdownSelectedCont')[0];
 		if (this.getAttribute('indent') === 'false') {
@@ -196,7 +196,7 @@ class PDB {
 			}
 			_this._startTime = null;
 			_this._paperMenu.style.boxShadow = 'rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0';
-			_this._paperDropdownEl.$['dropdownArrow'].style.transform = 'rotate(90deg)';
+			_this._paperDropdownEl.$.dropdownArrow.style.transform = 'rotate(90deg)';
 		}
 	};
 
@@ -229,7 +229,7 @@ class PDB {
 					easing: 'easeOutCubic',
 					duration: 300,
 					complete() {
-						_this.$['dropdownArrow'].style.transform = 'rotate(270deg)';
+						_this.$.dropdownArrow.style.transform = 'rotate(270deg)';
 					}
 				});
 			}, 100);
@@ -290,12 +290,12 @@ class PDB {
 	static disable(this: PaperDropdownInstance) {
 		this.disabled = true;
 		this._expanded && this.close && this.close();
-		this.$['dropdownSelected'].style.color = 'rgb(176, 220, 255)';
+		this.$.dropdownSelected.style.color = 'rgb(176, 220, 255)';
 	};
 
 	static enable(this: PaperDropdownInstance) {
 		this.disabled = false;
-		this.$['dropdownSelected'].style.color = 'rgb(38, 153, 244)';
+		this.$.dropdownSelected.style.color = 'rgb(38, 153, 244)';
 	}
 }
 

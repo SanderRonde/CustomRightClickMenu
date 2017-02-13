@@ -42,11 +42,11 @@ var LC = (function () {
     function LC() {
     }
     LC._hideGenericToast = function () {
-        this.$['genericToast'].hide();
+        this.$.genericToast.hide();
     };
     ;
     LC._textFilterChange = function () {
-        this.set('textfilter', this.$['textFilter'].value);
+        this.set('textfilter', this.$.textFilter.value);
     };
     ;
     LC._takeToTab = function (event) {
@@ -55,8 +55,8 @@ var LC = (function () {
         var tabId = target.children[0].innerText;
         chrome.tabs.get(~~tabId, function (tab) {
             if (chrome.runtime.lastError) {
-                _this.$['genericToast'].text = 'Tab has been closed';
-                _this.$['genericToast'].show();
+                _this.$.genericToast.text = 'Tab has been closed';
+                _this.$.genericToast.show();
                 return;
             }
             chrome.tabs.highlight({
@@ -72,12 +72,12 @@ var LC = (function () {
     };
     ;
     LC._focusInput = function () {
-        this.$['consoleInput'].focus();
+        this.$.consoleInput.focus();
     };
     ;
     LC._fixTextareaLines = function () {
-        this.$['consoleInput'].setAttribute('rows', (this.$['consoleInput'].value.split('\n').length || 1) + '');
-        this.$['linesCont'].scrollTop = this.$['linesCont'].scrollHeight;
+        this.$.consoleInput.setAttribute('rows', (this.$.consoleInput.value.split('\n').length || 1) + '');
+        this.$.linesCont.scrollTop = this.$.linesCont.scrollHeight;
     };
     ;
     LC._executeCode = function (code) {
@@ -107,11 +107,11 @@ var LC = (function () {
             });
         }
         else {
-            this.$['inputFieldWarning'].classList.add('visible');
-            this.$['consoleInput'].setAttribute('disabled', 'disabled');
+            this.$.inputFieldWarning.classList.add('visible');
+            this.$.consoleInput.setAttribute('disabled', 'disabled');
             this.async(function () {
-                _this.$['inputFieldWarning'].classList.remove('visible');
-                _this.$['consoleInput'].removeAttribute('disabled');
+                _this.$.inputFieldWarning.classList.remove('visible');
+                _this.$.consoleInput.removeAttribute('disabled');
             }, 5000);
         }
     };
@@ -119,9 +119,9 @@ var LC = (function () {
     LC._inputKeypress = function (event) {
         if (event.key === 'Enter') {
             if (!event.shiftKey) {
-                this._executeCode(this.$['consoleInput'].value);
-                this.$['consoleInput'].value = '';
-                this.$['consoleInput'].setAttribute('rows', '1');
+                this._executeCode(this.$.consoleInput.value);
+                this.$.consoleInput.value = '';
+                this.$.consoleInput.setAttribute('rows', '1');
             }
             else {
                 this.async(this._fixTextareaLines, 10);
@@ -130,7 +130,7 @@ var LC = (function () {
         else if (event.key === 'Backspace' || event.key === 'Delete') {
             this.async(this._fixTextareaLines, 10);
         }
-        this.$['linesCont'].scrollTop = this.$['linesCont'].scrollHeight;
+        this.$.linesCont.scrollTop = this.$.linesCont.scrollHeight;
     };
     ;
     LC._getSelectedItems = function () {
@@ -266,7 +266,7 @@ var LC = (function () {
     };
     ;
     LC._contextStoreAsLocal = function () {
-        var source = this.$['contextMenu'].source;
+        var source = this.$.contextMenu.source;
         var sourceVal = source.props.value;
         //Get the LogLine
         while (source.props.parent) {
@@ -294,7 +294,7 @@ var LC = (function () {
     };
     ;
     LC._contextLogValue = function () {
-        var source = this.$['contextMenu'].source;
+        var source = this.$.contextMenu.source;
         this.logLines.add([source.props.value], {
             id: 'local',
             tabId: 'local',
@@ -311,9 +311,9 @@ var LC = (function () {
     };
     ;
     LC._copy = function (value) {
-        this.$['copySource'].innerText = value;
+        this.$.copySource.innerText = value;
         var snipRange = document.createRange();
-        snipRange.selectNode(this.$['copySource']);
+        snipRange.selectNode(this.$.copySource);
         var selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(snipRange);
@@ -327,7 +327,7 @@ var LC = (function () {
     };
     ;
     LC._contextCopyAsJSON = function () {
-        var value = this.$['contextMenu'].source.props.value;
+        var value = this.$.contextMenu.source.props.value;
         this._copy(JSON.stringify(value, function (key, value) {
             if (key === '__parent' || key === '__proto__') {
                 return undefined;
@@ -339,7 +339,7 @@ var LC = (function () {
     LC._contextCopyPath = function (noCopy) {
         if (noCopy === void 0) { noCopy = false; }
         var path = [];
-        var source = this.$['contextMenu'].source;
+        var source = this.$.contextMenu.source;
         var childValue = source.props.value;
         while (source.props.parent && !source.props.parent.isLine()) {
             source = source.props.parent;
@@ -394,12 +394,12 @@ var LC = (function () {
             logLine = logLine.props.parent;
         } while (logLine.props.parent);
         var enableCreateLocalVar = !!logLine.props.line.logId;
-        this.$['copyAsJSON'].classList[enableCopyAsJSON ? 'remove' : 'add']('disabled');
-        this.$['storeAsLocal'].classList[enableCreateLocalVar ? 'remove' : 'add']('disabled');
+        this.$.copyAsJSON.classList[enableCopyAsJSON ? 'remove' : 'add']('disabled');
+        this.$.storeAsLocal.classList[enableCreateLocalVar ? 'remove' : 'add']('disabled');
     };
     ;
     LC.initContextMenu = function (source, event) {
-        var contextMenu = this.$['contextMenu'];
+        var contextMenu = this.$.contextMenu;
         contextMenu.style.left = event.clientX + 'px';
         contextMenu.style.top = event.clientY + 'px';
         contextMenu.source = source;
@@ -414,9 +414,9 @@ var LC = (function () {
         this.logLines = ReactDOM.render(React.createElement(window.logElements.logLines, {
             items: [],
             logConsole: this
-        }), this.$['lines']);
+        }), this.$.lines);
         document.body.addEventListener('click', function () {
-            _this.$['contextMenu'].classList.remove('visible');
+            _this.$.contextMenu.classList.remove('visible');
         });
         this.async(function () {
             _this._init(function () {

@@ -164,7 +164,7 @@ class PSWD {
 	static switchToWindow(this: PaperSearchWebsiteDialog, window: PaperSearchWebsiteDialogWindow) {
 		this.hideAllWindows(window);
 		if (window === 'successWindow') {
-			this.$['successWindow'].setAttribute('style', 'display:block;');
+			this.$.successWindow.setAttribute('style', 'display:block;');
 			this.insertCode();
 		}
 		else {
@@ -189,14 +189,14 @@ class PSWD {
 		var spinner = $(this).find('paper-spinner')[0] as HTMLPaperSpinnerElement;
 		spinner.active = true;
 		this.hideAllWindows('loadingWindow');
-		this.$['loadingWindow'].style.display = 'block';
+		this.$.loadingWindow.style.display = 'block';
 		this.fit();
 		promiser.apply(this)(function() {
-			_this.$['manualInputListChoiceInput'].invalid = false;
+			_this.$.manualInputListChoiceInput.invalid = false;
 			_this.switchToWindow(window);
 			spinner.active = false;
 		}, function() {
-			_this.$['manualInputListChoiceInput'].invalid = true;
+			_this.$.manualInputListChoiceInput.invalid = true;
 			spinner.active = false;
 		});
 	};
@@ -231,7 +231,7 @@ class PSWD {
 	 * Go back one window and clear the manualInput textarea
 	 */
 	static backFromManualInput(this: PaperSearchWebsiteDialog) {
-		this.$['manualInputListChoiceInput'].value = '';
+		this.$.manualInputListChoiceInput.value = '';
 		this.goBackWindow();
 	};
 
@@ -242,7 +242,7 @@ class PSWD {
 		var _this = this;
 		return function(resolve: (value?: any) => void, reject: (value?: any) => void) {
 			var worker = new Worker('elements/tools/paper-search-website-dialog/searchEngineWorker.js');
-			var data = _this.$['manualInputListChoiceInput'].value;
+			var data = _this.$.manualInputListChoiceInput.value;
 
 			worker.addEventListener('message', function(e) {
 				var structuredSearchEngines = e.data.searchEngines;
@@ -272,7 +272,7 @@ class PSWD {
 	 */
 	static processManualInput(this: PaperSearchWebsiteDialog) {
 		if (this.selectedIsUrl) {
-			this.chosenUrl = this.$['manualInputURLInput'].value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
+			this.chosenUrl = this.$.manualInputURLInput.value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
 			this.switchToWindow('confirmationWindow');
 		}
 		else {
@@ -284,7 +284,7 @@ class PSWD {
 	 * Apply the choice from the manual choice dialog
 	 */
 	static applyDefaultsUrls(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
-		switch (this.$['searchWebsitesRadioGroup'].selected) {
+		switch (this.$.searchWebsitesRadioGroup.selected) {
 			case 'google':
 				this.chosenUrl = 'https://www.google.com/search?q=%s';
 				break;
@@ -305,7 +305,7 @@ class PSWD {
 	 * Confirms the choice of one of the search engines from the list
 	 */
 	static confirmManualSearchListInput(this: PaperSearchWebsiteDialog) {
-		this.chosenUrl = ($(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement & {
+		this.chosenUrl = ($(this.$.listInputSearchList).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement & {
 			url: string;
 		}).url;
 		this.switchToWindow('confirmationWindow');
@@ -315,7 +315,7 @@ class PSWD {
 	 * Cancels all radio buttons and checks the one you just clicked
 	 */
 	static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: PolymerClickEvent) {
-		($(this.$['listInputSearchList']).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement).checked = false;
+		($(this.$.listInputSearchList).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement).checked = false;
 		var node = e.target;
 		while (node.tagName !== 'PAPER-RADIO-BUTTON') {
 			node = node.parentElement;
@@ -328,7 +328,7 @@ class PSWD {
 	 * Confirms the initial window's choice, choosing between going for a default search url, or finding one yourself
 	 */
 	static confirmInitialChoice(this: PaperSearchWebsiteDialog) {
-		if (this.$['initialWindowChoicesCont'].selected === 'defaults') {
+		if (this.$.initialWindowChoicesCont.selected === 'defaults') {
 			this.switchToWindow('chooseDefaultSearchWindow');
 		}
 		else {
@@ -342,7 +342,7 @@ class PSWD {
 	 * Clears all inputted information
 	 */
 	static clear(this: PaperSearchWebsiteDialog) {
-		this.$['initialWindowChoicesCont'].selected = 'defaults';
+		this.$.initialWindowChoicesCont.selected = 'defaults';
 		this.switchToWindow('initialWindow');
 		this.searchList = [];
 	};
@@ -351,7 +351,7 @@ class PSWD {
 	 * Adds basic listeners
 	 */
 	static ready(this: PaperSearchWebsiteDialog) {
-		this.$['paperSearchWebsiteDialog'].addEventListener('iron-overlay-closed ', this.clear);
+		this.$.paperSearchWebsiteDialog.addEventListener('iron-overlay-closed ', this.clear);
 	};
 
 	/**
@@ -366,28 +366,28 @@ class PSWD {
 	 * Toggles the dialog
 	 */
 	static toggle(this: PaperSearchWebsiteDialog) {
-		this.$['paperSearchWebsiteDialog'].toggle();
+		this.$.paperSearchWebsiteDialog.toggle();
 	};
 
 	/**
 	 * Shows the dialog
 	 */
 	static show(this: PaperSearchWebsiteDialog) {
-		this.$['paperSearchWebsiteDialog'].open();
+		this.$.paperSearchWebsiteDialog.open();
 	};
 
 	/**
 	 * Hides the dialog
 	 */
 	static hide(this: PaperSearchWebsiteDialog) {
-		this.$['paperSearchWebsiteDialog'].close();
+		this.$.paperSearchWebsiteDialog.close();
 	};
 
 	/**
 	 * Waits a bit before fitting the element
 	 */
 	static fixFit(this: PaperSearchWebsiteDialog) {
-		var paperInputContainer = $(this.$['manualInputListChoiceInput']).find('paper-input-container')[0];
+		var paperInputContainer = $(this.$.manualInputListChoiceInput).find('paper-input-container')[0];
 		paperInputContainer.style.height = '200px';
 		this.fit();
 		paperInputContainer.style.height = 'auto';
@@ -408,7 +408,7 @@ class PSWD {
 	 * Fits the dialog propertly
 	 */
 	static fit(this: PaperSearchWebsiteDialog) {
-		this.$['paperSearchWebsiteDialog'].fit();
+		this.$.paperSearchWebsiteDialog.fit();
 	}
 	//#endregion
 }

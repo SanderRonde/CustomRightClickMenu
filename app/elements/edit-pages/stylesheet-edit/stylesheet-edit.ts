@@ -204,7 +204,7 @@ class STE {
 	 */
 	static popInRibbons(this: NodeEditBehaviorStylesheetInstance) {
 		//Introduce title at the top
-		var scriptTitle = window.app.$['editorCurrentScriptTitle'];
+		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
 		if (window.app.storageLocal.shrinkTitleRibbon) {
 			window.doc['editorTitleRibbon'].style.fontSize = '40%';
@@ -312,8 +312,8 @@ class STE {
 	 * Pops out the ribbons with an animation
 	 */
 	static popOutRibbons(this: NodeEditBehaviorStylesheetInstance) {
-		var scriptTitle = window.app.$['editorCurrentScriptTitle'];
-			var toolsRibbon = window.app.$['editorToolsRibbonContainer'];
+		var scriptTitle = window.app.$.editorCurrentScriptTitle;
+			var toolsRibbon = window.app.$.editorToolsRibbonContainer;
 
 			var toolsVisible = !window.app.storageLocal.hideToolsRibbon && 
 				toolsRibbon &&
@@ -449,7 +449,7 @@ class STE {
 				this.style.width = '100vw';
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
-				window.app.$['fullscreenEditorHorizontal'].style.height = '100vh';
+				window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
 				window.colorFunction.func({
 					from: {
 						line: 0
@@ -489,7 +489,7 @@ class STE {
 					editorCont.style.marginTop = '0';
 					editorCont.style.width = '0';
 					editorCont.style.height = '0';
-					$(_this.editor.display.wrapper).appendTo(_this.$['editorCont']).css({
+					$(_this.editor.display.wrapper).appendTo(_this.$.editorCont).css({
 						height: _this.preFullscreenEditorDimensions.height,
 						marginTop: 0,
 						marginLeft: 0
@@ -639,9 +639,9 @@ class STE {
 			return;
 		}
 		$(this.editor.display.wrapper).remove();
-		this.$['editorPlaceholder'].style.display = 'flex';
-		this.$['editorPlaceholder'].style.opacity = '1';
-		this.$['editorPlaceholder'].style.position = 'absolute';
+		this.$.editorPlaceholder.style.display = 'flex';
+		this.$.editorPlaceholder.style.opacity = '1';
+		this.$.editorPlaceholder.style.position = 'absolute';
 
 		const stylesheetLines = [];
 		var lines = this.editor.doc.lineCount();
@@ -654,7 +654,7 @@ class STE {
 		if (this.fullscreen) {
 			this.loadEditor(window.doc['fullscreenEditorHorizontal'], this.newSettings.value.stylesheet, disable);
 		} else {
-			this.loadEditor(this.$['editorCont'], this.newSettings.value.stylesheet, disable);
+			this.loadEditor(this.$.editorCont, this.newSettings.value.stylesheet, disable);
 		}
 	};
 
@@ -782,20 +782,20 @@ class STE {
 		}
 		if (this.fullscreen) {
 			element.display.wrapper.style.height = 'auto';
-			this.$['editorPlaceholder'].style.display = 'none';
+			this.$.editorPlaceholder.style.display = 'none';
 			$buttonShadow[0].style.right = '-1px';
 			$buttonShadow[0].style.position = 'absolute';
 			this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		}
 		else {
-			this.$['editorPlaceholder'].style.height = this.editorHeight + 'px';
-			this.$['editorPlaceholder'].style.width = this.editorWidth + 'px';
-			this.$['editorPlaceholder'].style.position = 'absolute';
+			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
+			this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
+			this.$.editorPlaceholder.style.position = 'absolute';
 			if (this.editorPlaceHolderAnimation) {
 				this.editorPlaceHolderAnimation.play();
 			}
 			else {
-				this.editorPlaceHolderAnimation = this.$['editorPlaceholder'].animate([
+				this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
 					{
 						opacity: 1
 					}, {
@@ -817,7 +817,7 @@ class STE {
 	 */
 	static loadEditor(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement, content: string = this.item.value.stylesheet,
 			disable: boolean = false) {
-		var placeHolder = $(this.$['editorPlaceholder']);
+		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {
@@ -856,15 +856,15 @@ class STE {
 	static init(this: NodeEditBehaviorStylesheetInstance) {
 		var _this = this;
 		this._init();
-		this.$['dropdownMenu'].init();
-		this.$['exportMenu'].init();
-		this.$['exportMenu'].querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
+		this.$.dropdownMenu.init();
+		this.$.exportMenu.init();
+		this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 		this.initDropdown();
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');
 		window.stylesheetEdit = this;
-		this.$['editorPlaceholder'].style.display = 'flex';
-		this.$['editorPlaceholder'].style.opacity = '1';
+		this.$.editorPlaceholder.style.display = 'flex';
+		this.$.editorPlaceholder.style.opacity = '1';
 		if (this.editor) {
 			this.editor.display.wrapper.remove();
 			this.editor = null;
@@ -903,7 +903,7 @@ class STE {
 		}
 		this.active = true;
 		setTimeout(function () {
-			_this.loadEditor(_this.$['editorCont']);
+			_this.loadEditor(_this.$.editorCont);
 		}, 750);
 	}
 }

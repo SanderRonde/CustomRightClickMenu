@@ -27,13 +27,13 @@ var PDM = (function () {
     PDM._dropdownSelectChange = function (_this) {
         var paperItems = $(_this).find('paper-item');
         var newState = _this._paperMenu.selected;
-        _this.$['dropdownSelected'].innerHTML = (paperItems[newState].children[1] &&
+        _this.$.dropdownSelected.innerHTML = (paperItems[newState].children[1] &&
             paperItems[newState].children[1].innerHTML) || 'EXPORT AS';
     };
     ;
     PDM.init = function () {
         var paperItems = $(this).find('paper-item');
-        this.$['dropdownSelected'].innerHTML = $(paperItems[this.selected]).children('.menuOptionName').html();
+        this.$.dropdownSelected.innerHTML = $(paperItems[this.selected]).children('.menuOptionName').html();
     };
     ;
     PDM.ready = function () {

@@ -85,8 +85,8 @@ class DNB {
 
 	static _changeDraggingState(this: DraggableNodeBehaviorInstance, isDragging: boolean) {
 		this.dragging = isDragging;
-		this.$['itemCont'].style.willChange = (isDragging ? 'transform' : 'initial');
-		this.$['itemCont'].style.zIndex = (isDragging ? '500' : '0');
+		this.$.itemCont.style.willChange = (isDragging ? 'transform' : 'initial');
+		this.$.itemCont.style.zIndex = (isDragging ? '500' : '0');
 		var currentColumn = window.app.editCRM.getCurrentColumn(this);
 		currentColumn.dragging = isDragging;
 		currentColumn.draggingItem = this;
@@ -138,7 +138,7 @@ class DNB {
 			var spacingTop = this._lastRecordedPos.Y - this._dragStart.Y;
 			var x = (this._lastRecordedPos.X - this._dragStart.X + columnCorrection) + 'px';
 			var y = spacingTop + 'px';
-			this.$['itemCont'].style.transform = 'translate(' + x + ', ' + y + ')';
+			this.$.itemCont.style.transform = 'translate(' + x + ', ' + y + ')';
 			var thisBoundingClientRect = this.getBoundingClientRect();
 			var thisTop = (this._lastRecordedPos.Y - this._mouseToCorner.Y);
 			var thisLeft = (this._lastRecordedPos.X - this._mouseToCorner.X) -
@@ -276,10 +276,10 @@ class DNB {
 		if (this._filler) {
 			$(this).insertBefore(parentChildrenList[this._filler.index]);
 
-			this.$['itemCont'].style.position = 'relative';
+			this.$.itemCont.style.position = 'relative';
 			this.style.position = 'relative';
-			this.$['itemCont'].style.transform = 'initial';
-			this.$['itemCont'].style.marginTop = '0';
+			this.$.itemCont.style.transform = 'initial';
+			this.$.itemCont.style.marginTop = '0';
 			this._filler.remove();
 		}
 	}
@@ -373,14 +373,14 @@ class DNB {
 		}
 
 		$(this._filler).insertBefore(this);
-		this.$['itemCont'].style.marginTop = extraSpacing + 'px';
+		this.$.itemCont.style.marginTop = extraSpacing + 'px';
 		this.parentNode.appendChild(this);
 		this._onDrag();
 	}
 
 	static init(this: DraggableNodeBehaviorInstance) {
 		var _this = this;
-		this.$['dragger'].addEventListener('mousedown', function(e: MouseEvent) {
+		this.$.dragger.addEventListener('mousedown', function(e: MouseEvent) {
 			if (e.which === 1) {
 				_this._readyForMouseUp = false;
 				_this._startDrag(e);
@@ -390,7 +390,7 @@ class DNB {
 				}
 			}
 		});
-		this.$['dragger'].addEventListener('mouseup', function(e: MouseEvent) {
+		this.$.dragger.addEventListener('mouseup', function(e: MouseEvent) {
 			if (e.which === 1) {
 				e.stopPropagation();
 				if (_this._readyForMouseUp) {

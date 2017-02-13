@@ -17,7 +17,7 @@ class PTO {
 	static properties = paperToggleOptionProperties;
 	
 	static setCheckboxDisabledValue(this: PaperToggleOption, value: boolean) {
-		this.$['checkbox'].disabled = value;
+		this.$.checkbox.disabled = value;
 	};
 
 	static init(this: PaperToggleOption, storage: StorageLocal) {

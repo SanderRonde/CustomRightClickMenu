@@ -5,12 +5,12 @@ var crmEditPageProperties = {
             return {
                 'entry': {
                     name: 'scale-up-animation',
-                    node: this.$['overlayCont'],
+                    node: this.$.overlayCont,
                     duration: 300
                 },
                 'exit': {
                     name: 'scale-down-animation',
-                    node: this.$['overlayCont'],
+                    node: this.$.overlayCont,
                     duration: 300
                 }
             };
@@ -67,7 +67,7 @@ var CEP = (function () {
     CEP._onNeonAnimationFinish = function () {
         if (!this.opened) {
             this.$overlayEl[0].style.display = 'none';
-            this.$['overlayCont'].style.display = 'none';
+            this.$.overlayCont.style.display = 'none';
             document.body.style.overflow = 'auto';
             document.body.style.marginRight = '0';
             window.app.show = false;
@@ -99,7 +99,7 @@ var CEP = (function () {
         document.body.style.marginRight = '17px';
         window.app.show = true;
         this.opened = true;
-        this.$['overlayCont'].style.display = 'block';
+        this.$.overlayCont.style.display = 'block';
         this.playAnimation('entry');
     };
     ;
@@ -147,9 +147,9 @@ var CEP = (function () {
     CEP.hideUpdateMergeDialog = function () {
         var _this = this;
         if (this.showUpgradeNotice(this.hideUpdateMessage, this.item)) {
-            var height = this.$['scriptUpdateNotice'].getBoundingClientRect().height;
+            var height = this.$.scriptUpdateNotice.getBoundingClientRect().height;
             var marginBot = '-' + height + 'px';
-            this.$['scriptUpdateNotice'].animate([
+            this.$.scriptUpdateNotice.animate([
                 {
                     marginBottom: '0px'
                 }, {
@@ -159,7 +159,7 @@ var CEP = (function () {
                 duration: 350,
                 easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
             }).onfinish = function () {
-                _this.$['scriptUpdateNotice'].style.marginBottom = marginBot;
+                _this.$.scriptUpdateNotice.style.marginBottom = marginBot;
                 _this.hideUpdateMessage = true;
             };
         }

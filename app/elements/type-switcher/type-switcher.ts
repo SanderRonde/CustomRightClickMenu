@@ -69,7 +69,7 @@ class TS {
 			this.isDivider = true;
 			this.remainingTypes = ['link', 'script', 'menu', 'stylesheet'];
 		}
-		this.$['typeTxt'].innerHTML = this.type;
+		this.$.typeTxt.innerHTML = this.type;
 	};
 
 	static colorTypeChoices(this: TypeSwitcher) {
@@ -86,8 +86,8 @@ class TS {
 			easing: 'easeInCubic',
 			duration: (quick ? 80 : 300),
 			complete() {
-				_this.$['typeSwitchChoicesContainer'].style.display = 'none';
-				_this.$['typeSwitchArrow'].style.transform = 'rotate(180deg)';
+				_this.$.typeSwitchChoicesContainer.style.display = 'none';
+				_this.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
 				callback && callback();
 			}
 		});
@@ -98,8 +98,8 @@ class TS {
 			this.colorTypeChoices();
 			this.colored = true;
 		}
-		this.$['typeSwitchChoicesContainer'].style.display = 'block';
-		this.$['typeSwitchArrow'].style.transform = 'rotate(90deg)';
+		this.$.typeSwitchChoicesContainer.style.display = 'block';
+		this.$.typeSwitchArrow.style.transform = 'rotate(90deg)';
 		$(this.parentNode.parentNode).stop().animate({
 			height: 250
 		}, {

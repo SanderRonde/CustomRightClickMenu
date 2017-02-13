@@ -9,7 +9,7 @@ var PTO = (function () {
     function PTO() {
     }
     PTO.setCheckboxDisabledValue = function (value) {
-        this.$['checkbox'].disabled = value;
+        this.$.checkbox.disabled = value;
     };
     ;
     PTO.init = function (storage) {

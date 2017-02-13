@@ -20,7 +20,7 @@ var LE = (function () {
     LE.saveChanges = function (resultStorage) {
         //Get new "item"
         resultStorage.value = [];
-        $(this.$['linksContainer']).find('.linkChangeCont').each(function () {
+        $(this.$.linksContainer).find('.linkChangeCont').each(function () {
             resultStorage.value.push({
                 'url': $(this).children('paper-input')[0].value,
                 'newTab': ($(this).children('paper-checkbox')[0].getAttribute('aria-checked') !== 'true')
@@ -35,7 +35,7 @@ var LE = (function () {
             pathIndex++;
         }
         var checkbox = e.path[pathIndex];
-        $(this.$['linksContainer']).find('paper-checkbox').each(function () {
+        $(this.$.linksContainer).find('paper-checkbox').each(function () {
             if (this !== checkbox) {
                 this.removeAttribute('checked');
             }

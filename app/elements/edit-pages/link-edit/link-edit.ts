@@ -34,7 +34,7 @@ class LE {
 	static saveChanges(this: NodeEditBehaviorLinkInstance, resultStorage: Partial<LinkNode>) {
 		//Get new "item"
 		resultStorage.value = [];
-		$(this.$['linksContainer']).find('.linkChangeCont').each(function (this: HTMLElement) {
+		$(this.$.linksContainer).find('.linkChangeCont').each(function (this: HTMLElement) {
 			resultStorage.value.push({
 				'url': ($(this).children('paper-input')[0] as HTMLPaperInputElement).value,
 				'newTab': ($(this).children('paper-checkbox')[0].getAttribute('aria-checked') !== 'true')
@@ -49,7 +49,7 @@ class LE {
 			pathIndex++;
 		}
 		var checkbox = e.path[pathIndex];
-		$(this.$['linksContainer']).find('paper-checkbox').each(function (this: HTMLPaperCheckboxElement) {
+		$(this.$.linksContainer).find('paper-checkbox').each(function (this: HTMLPaperCheckboxElement) {
 			if (this !== checkbox) {
 				this.removeAttribute('checked');
 			}

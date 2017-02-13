@@ -405,12 +405,12 @@ class CA {
 
 	static copyExporedToClipboard(this: CrmApp) {
 		var snipRange = document.createRange();
-		snipRange.selectNode(this.$['exportJSONData']);
+		snipRange.selectNode(this.$.exportJSONData);
 		var selection = window.getSelection();
 		selection.removeAllRanges();
 		selection.addRange(snipRange);
 
-		const button = this.$['exportCopyButton'];
+		const button = this.$.exportCopyButton;
 		try {
 			document.execCommand('copy');
 			button.icon = 'done';
@@ -439,8 +439,8 @@ class CA {
 	};
 
 	static _generateRegexFile(this: CrmApp) {
-		var filePath = this.$['URISchemeFilePath'].querySelector('input').value.replace(/\\/g, '\\\\');
-		var schemeName = this.$['URISchemeSchemeName'].querySelector('input').value;
+		var filePath = this.$.URISchemeFilePath.querySelector('input').value.replace(/\\/g, '\\\\');
+		var schemeName = this.$.URISchemeSchemeName.querySelector('input').value;
 
 		var regFile = [
 			'Windows Registry Editor Version 5.00',
@@ -479,7 +479,7 @@ class CA {
 
 	static goNextVersionUpdateTab(this: CrmApp) {
 		if (this.versionUpdateTab === 4) {
-			this.$['versionUpdateDialog'].close();
+			this.$.versionUpdateDialog.close();
 		} else {
 			var nextTabIndex = this.versionUpdateTab + 1;
 			const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as Array<HTMLElement>;
@@ -498,7 +498,7 @@ class CA {
 
 			var _this = this;
 			var newHeightPx = newHeight + 'px';
-			var tabCont = this.$['versionUpdateTabSlider'];
+			var tabCont = this.$.versionUpdateTabSlider;
 
 			var currentHeight = tabCont.getBoundingClientRect().height;
 			if (newHeight > currentHeight) {
@@ -556,7 +556,7 @@ class CA {
 
 			var _this = this;
 			var newHeightPx = newHeight + 'px';
-			var tabCont = this.$['versionUpdateTabSlider'];
+			var tabCont = this.$.versionUpdateTabSlider;
 
 			var currentHeight = tabCont.getBoundingClientRect().height;
 			if (newHeight > currentHeight) {
@@ -602,9 +602,9 @@ class CA {
 
 	static versionUpdateChanged(this: CrmApp) {
 		if (this.isVersionUpdateTabX(this.versionUpdateTab, 1)) {
-			const versionUpdateDialog = this.$['versionUpdateDialog'];
+			const versionUpdateDialog = this.$.versionUpdateDialog;
 			if (!versionUpdateDialog.editor) {
-				versionUpdateDialog.editor = window.CodeMirror(this.$['tryOutEditor'], {
+				versionUpdateDialog.editor = window.CodeMirror(this.$.tryOutEditor, {
 					lineNumbers: true,
 					value: '//some javascript code\nvar body = document.getElementById(\'body\');\nbody.style.color = \'red\';\n\n',
 					scrollbarStyle: 'simple',
@@ -732,8 +732,8 @@ class CA {
 	};
 
 	static importData(this: CrmApp) {
-		var dataString = this.$['importSettingsInput'].value;
-		if (!this.$['oldCRMImport'].checked) {
+		var dataString = this.$.importSettingsInput.value;
+		if (!this.$.oldCRMImport.checked) {
 			let data: {
 				crm?: CRMTree;
 				local?: StorageLocal;
@@ -746,14 +746,14 @@ class CA {
 					storageLocal?: StorageLocal;
 					settings: SettingsStorage;
 				}
-				this.$['importSettingsError'].style.display = 'none';
+				this.$.importSettingsError.style.display = 'none';
 			} catch (e) {
 				console.log(e);
-				this.$['importSettingsError'].style.display = 'block';
+				this.$.importSettingsError.style.display = 'block';
 				return;
 			}
 
-			const overWriteImport = this.$['overWriteImport'];
+			const overWriteImport = this.$.overWriteImport;
 			if (overWriteImport.checked && (data.local || data.storageLocal)) {
 				this.settings = data.nonLocal || this.settings;
 				this.storageLocal = data.local || this.storageLocal;
@@ -794,7 +794,7 @@ class CA {
 				}
 			} catch(e) {
 				console.log(e);
-				this.$['importSettingsError'].style.display = 'block';
+				this.$.importSettingsError.style.display = 'block';
 				return;
 			} 
 		}
@@ -807,18 +807,18 @@ class CA {
 			local?: StorageLocal;
 			nonLocal?: SettingsStorage;
 		} = {} as any;
-		if (this.$['exportCRM'].checked) {
+		if (this.$.exportCRM.checked) {
 			toExport.crm = JSON.parse(JSON.stringify(_this.settings.crm));
 			for (var i = 0; i < toExport.crm.length; i++) {
 				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i] as CRMNode);
 			}
 		}
-		if (this.$['exportSettings'].checked) {
+		if (this.$.exportSettings.checked) {
 			toExport.local = _this.storageLocal;
 			toExport.nonLocal = JSON.parse(JSON.stringify(_this.settings));
 			delete toExport.nonLocal.crm;
 		}
-		this.$['exportSettingsOutput'].value = JSON.stringify(toExport);
+		this.$.exportSettingsOutput.value = JSON.stringify(toExport);
 	};
 
 	static showManagePermissions(this: CrmApp) {
@@ -1015,7 +1015,7 @@ class CA {
 
 	static launchSearchWebsiteTool(this: CrmApp) {
 		if (this.item && this.item.type === 'script' && window.scriptEdit) {
-			const paperSearchWebsiteDialog = this.$['paperSearchWebsiteDialog'];
+			const paperSearchWebsiteDialog = this.$.paperSearchWebsiteDialog;
 			paperSearchWebsiteDialog.init();
 			paperSearchWebsiteDialog.show();
 		}
@@ -1599,7 +1599,7 @@ class CA {
 				var interval = window.setInterval(function() {
 					try {
 						const centerer = window.doc['requestPermissionsCenterer'] as CenterElement;
-						overlay = centerer.$['content'].children[0] as HTMLPaperDialogElement
+						overlay = centerer.$.content.children[0] as HTMLPaperDialogElement
 						if (overlay.open) {
 							window.clearInterval(interval);
 							($('#requestedPermissionsTemplate')[0] as HTMLDomRepeatElement).items = requested;
@@ -2793,7 +2793,7 @@ class CA {
 	};
 
 	static hideGenericToast(this: CrmApp) {
-		this.$['messageToast'].hide();
+		this.$.messageToast.hide();
 	};
 
 	static nextUpdatedScript(this: CrmApp) {
@@ -2806,20 +2806,20 @@ class CA {
 			}>;
 		}
 
-		var index = this.$['scriptUpdatesToast'].index;
-		this.$['scriptUpdatesToast'].text = this.getUpdatedScriptString(
-			this.$['scriptUpdatesToast'].scripts[++index]);
-		this.$['scriptUpdatesToast'].index = index;
+		var index = this.$.scriptUpdatesToast.index;
+		this.$.scriptUpdatesToast.text = this.getUpdatedScriptString(
+			this.$.scriptUpdatesToast.scripts[++index]);
+		this.$.scriptUpdatesToast.index = index;
 
-		if (this.$['scriptUpdatesToast'].scripts.length - index > 1) {
-			this.$['nextScriptUpdateButton'].style.display = 'inline';
+		if (this.$.scriptUpdatesToast.scripts.length - index > 1) {
+			this.$.nextScriptUpdateButton.style.display = 'inline';
 		} else {
-			this.$['nextScriptUpdateButton'].style.display = 'none';
+			this.$.nextScriptUpdateButton.style.display = 'none';
 		}
 	};
 
 	static hideScriptUpdatesToast(this: CrmApp) {
-		this.$['scriptUpdatesToast'].hide();
+		this.$.scriptUpdatesToast.hide();
 	};
 
 	static getUpdatedScriptString(this: CrmApp, updatedScript: {
@@ -3050,16 +3050,16 @@ class CA {
 							index: number;
 						}
 
-						_this.$['scriptUpdatesToast'].text = _this.getUpdatedScriptString(
+						_this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(
 							storageLocal.updatedScripts[0]);
-						_this.$['scriptUpdatesToast'].scripts = storageLocal.updatedScripts;
-						_this.$['scriptUpdatesToast'].index = 0;
-						_this.$['scriptUpdatesToast'].show();
+						_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+						_this.$.scriptUpdatesToast.index = 0;
+						_this.$.scriptUpdatesToast.show();
 
 						if (storageLocal.updatedScripts.length > 1) {
-							_this.$['nextScriptUpdateButton'].style.display = 'inline';
+							_this.$.nextScriptUpdateButton.style.display = 'inline';
 						} else {
-							_this.$['nextScriptUpdateButton'].style.display = 'none';
+							_this.$.nextScriptUpdateButton.style.display = 'none';
 						}
 						chrome.storage.local.set({
 							updatedScripts: []

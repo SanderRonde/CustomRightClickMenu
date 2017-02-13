@@ -206,11 +206,11 @@ var CA = (function () {
     ;
     CA.copyExporedToClipboard = function () {
         var snipRange = document.createRange();
-        snipRange.selectNode(this.$['exportJSONData']);
+        snipRange.selectNode(this.$.exportJSONData);
         var selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(snipRange);
-        var button = this.$['exportCopyButton'];
+        var button = this.$.exportCopyButton;
         try {
             document.execCommand('copy');
             button.icon = 'done';
@@ -240,8 +240,8 @@ var CA = (function () {
     };
     ;
     CA._generateRegexFile = function () {
-        var filePath = this.$['URISchemeFilePath'].querySelector('input').value.replace(/\\/g, '\\\\');
-        var schemeName = this.$['URISchemeSchemeName'].querySelector('input').value;
+        var filePath = this.$.URISchemeFilePath.querySelector('input').value.replace(/\\/g, '\\\\');
+        var schemeName = this.$.URISchemeSchemeName.querySelector('input').value;
         var regFile = [
             'Windows Registry Editor Version 5.00',
             '',
@@ -280,7 +280,7 @@ var CA = (function () {
     ;
     CA.goNextVersionUpdateTab = function () {
         if (this.versionUpdateTab === 4) {
-            this.$['versionUpdateDialog'].close();
+            this.$.versionUpdateDialog.close();
         }
         else {
             var nextTabIndex = this.versionUpdateTab + 1;
@@ -298,7 +298,7 @@ var CA = (function () {
             selector.style.height = '0';
             var _this = this;
             var newHeightPx = newHeight + 'px';
-            var tabCont = this.$['versionUpdateTabSlider'];
+            var tabCont = this.$.versionUpdateTabSlider;
             var currentHeight = tabCont.getBoundingClientRect().height;
             if (newHeight > currentHeight) {
                 tabCont.animate([
@@ -353,7 +353,7 @@ var CA = (function () {
             selector.style.height = '0';
             var _this = this;
             var newHeightPx = newHeight + 'px';
-            var tabCont = this.$['versionUpdateTabSlider'];
+            var tabCont = this.$.versionUpdateTabSlider;
             var currentHeight = tabCont.getBoundingClientRect().height;
             if (newHeight > currentHeight) {
                 tabCont.animate([
@@ -399,9 +399,9 @@ var CA = (function () {
     ;
     CA.versionUpdateChanged = function () {
         if (this.isVersionUpdateTabX(this.versionUpdateTab, 1)) {
-            var versionUpdateDialog = this.$['versionUpdateDialog'];
+            var versionUpdateDialog = this.$.versionUpdateDialog;
             if (!versionUpdateDialog.editor) {
-                versionUpdateDialog.editor = window.CodeMirror(this.$['tryOutEditor'], {
+                versionUpdateDialog.editor = window.CodeMirror(this.$.tryOutEditor, {
                     lineNumbers: true,
                     value: '//some javascript code\nvar body = document.getElementById(\'body\');\nbody.style.color = \'red\';\n\n',
                     scrollbarStyle: 'simple',
@@ -525,19 +525,19 @@ var CA = (function () {
     ;
     CA.importData = function () {
         var _this = this;
-        var dataString = this.$['importSettingsInput'].value;
-        if (!this.$['oldCRMImport'].checked) {
+        var dataString = this.$.importSettingsInput.value;
+        if (!this.$.oldCRMImport.checked) {
             var data = void 0;
             try {
                 data = JSON.parse(dataString);
-                this.$['importSettingsError'].style.display = 'none';
+                this.$.importSettingsError.style.display = 'none';
             }
             catch (e) {
                 console.log(e);
-                this.$['importSettingsError'].style.display = 'block';
+                this.$.importSettingsError.style.display = 'block';
                 return;
             }
-            var overWriteImport = this.$['overWriteImport'];
+            var overWriteImport = this.$.overWriteImport;
             if (overWriteImport.checked && (data.local || data.storageLocal)) {
                 this.settings = data.nonLocal || this.settings;
                 this.storageLocal = data.local || this.storageLocal;
@@ -583,7 +583,7 @@ var CA = (function () {
             }
             catch (e) {
                 console.log(e);
-                this.$['importSettingsError'].style.display = 'block';
+                this.$.importSettingsError.style.display = 'block';
                 return;
             }
         }
@@ -592,18 +592,18 @@ var CA = (function () {
     CA.exportData = function () {
         var _this = this;
         var toExport = {};
-        if (this.$['exportCRM'].checked) {
+        if (this.$.exportCRM.checked) {
             toExport.crm = JSON.parse(JSON.stringify(_this.settings.crm));
             for (var i = 0; i < toExport.crm.length; i++) {
                 toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i]);
             }
         }
-        if (this.$['exportSettings'].checked) {
+        if (this.$.exportSettings.checked) {
             toExport.local = _this.storageLocal;
             toExport.nonLocal = JSON.parse(JSON.stringify(_this.settings));
             delete toExport.nonLocal.crm;
         }
-        this.$['exportSettingsOutput'].value = JSON.stringify(toExport);
+        this.$.exportSettingsOutput.value = JSON.stringify(toExport);
     };
     ;
     CA.showManagePermissions = function () {
@@ -799,7 +799,7 @@ var CA = (function () {
     ;
     CA.launchSearchWebsiteTool = function () {
         if (this.item && this.item.type === 'script' && window.scriptEdit) {
-            var paperSearchWebsiteDialog = this.$['paperSearchWebsiteDialog'];
+            var paperSearchWebsiteDialog = this.$.paperSearchWebsiteDialog;
             paperSearchWebsiteDialog.init();
             paperSearchWebsiteDialog.show();
         }
@@ -1339,7 +1339,7 @@ var CA = (function () {
                 var interval = window.setInterval(function () {
                     try {
                         var centerer = window.doc['requestPermissionsCenterer'];
-                        overlay = centerer.$['content'].children[0];
+                        overlay = centerer.$.content.children[0];
                         if (overlay.open) {
                             window.clearInterval(interval);
                             $('#requestedPermissionsTemplate')[0].items = requested;
@@ -1915,23 +1915,23 @@ var CA = (function () {
     };
     ;
     CA.hideGenericToast = function () {
-        this.$['messageToast'].hide();
+        this.$.messageToast.hide();
     };
     ;
     CA.nextUpdatedScript = function () {
-        var index = this.$['scriptUpdatesToast'].index;
-        this.$['scriptUpdatesToast'].text = this.getUpdatedScriptString(this.$['scriptUpdatesToast'].scripts[++index]);
-        this.$['scriptUpdatesToast'].index = index;
-        if (this.$['scriptUpdatesToast'].scripts.length - index > 1) {
-            this.$['nextScriptUpdateButton'].style.display = 'inline';
+        var index = this.$.scriptUpdatesToast.index;
+        this.$.scriptUpdatesToast.text = this.getUpdatedScriptString(this.$.scriptUpdatesToast.scripts[++index]);
+        this.$.scriptUpdatesToast.index = index;
+        if (this.$.scriptUpdatesToast.scripts.length - index > 1) {
+            this.$.nextScriptUpdateButton.style.display = 'inline';
         }
         else {
-            this.$['nextScriptUpdateButton'].style.display = 'none';
+            this.$.nextScriptUpdateButton.style.display = 'none';
         }
     };
     ;
     CA.hideScriptUpdatesToast = function () {
-        this.$['scriptUpdatesToast'].hide();
+        this.$.scriptUpdatesToast.hide();
     };
     ;
     CA.getUpdatedScriptString = function (updatedScript) {
@@ -2145,15 +2145,15 @@ var CA = (function () {
                         }, 2500);
                     }
                     if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-                        _this.$['scriptUpdatesToast'].text = _this.getUpdatedScriptString(storageLocal.updatedScripts[0]);
-                        _this.$['scriptUpdatesToast'].scripts = storageLocal.updatedScripts;
-                        _this.$['scriptUpdatesToast'].index = 0;
-                        _this.$['scriptUpdatesToast'].show();
+                        _this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(storageLocal.updatedScripts[0]);
+                        _this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+                        _this.$.scriptUpdatesToast.index = 0;
+                        _this.$.scriptUpdatesToast.show();
                         if (storageLocal.updatedScripts.length > 1) {
-                            _this.$['nextScriptUpdateButton'].style.display = 'inline';
+                            _this.$.nextScriptUpdateButton.style.display = 'inline';
                         }
                         else {
-                            _this.$['nextScriptUpdateButton'].style.display = 'none';
+                            _this.$.nextScriptUpdateButton.style.display = 'none';
                         }
                         chrome.storage.local.set({
                             updatedScripts: []

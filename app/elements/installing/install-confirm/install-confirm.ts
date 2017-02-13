@@ -185,8 +185,8 @@ class IC {
 				allowedPermissions: allowedPermissions 
 			}
 		});
-		this.$['installButtons'].classList.add('installed');
-		this.$['scriptInstalled'].classList.add('visible');
+		this.$.installButtons.classList.add('installed');
+		this.$.scriptInstalled.classList.add('visible');
 	};
 
 	static setMetaTag(this: InstallConfirm, name: keyof IDMap['install-confirm'], values: Array<string|number>) {
@@ -203,10 +203,10 @@ class IC {
 		this.setMetaTag('descriptionValue', tags['description']);
 		this.setMetaTag('authorValue', tags['author']);
 
-		window.installPage.$['title'].innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
+		window.installPage.$.title.innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
 
-		this.$['sourceValue'].innerText = window.installPage.userscriptUrl;
-		this.$['permissionValue'].items = tags['grant'] || ['none'];
+		this.$.sourceValue.innerText = window.installPage.userscriptUrl;
+		this.$.permissionValue.items = tags['grant'] || ['none'];
 		this.metaTags = tags;
 		this.metaInfo = metaInfo;
 	};
@@ -252,7 +252,7 @@ class IC {
 				selectName: window.scriptEdit.keyBindings[5].defaultKey,
 			}
 		});
-		window.CodeMirror(_this.$['editorCont'], {
+		window.CodeMirror(_this.$.editorCont, {
 			lineNumbers: true,
 			value: _this.script,
 			lineWrapping: true,

@@ -50,7 +50,7 @@ var ECI = (function () {
             this.calculateType();
             this.itemIndex = this.index;
             this.init();
-            this.$['typeSwitcher'] && this.$['typeSwitcher'].ready && this.$['typeSwitcher'].ready();
+            this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
             if (window.app.editCRM.isSelecting) {
                 this.classList.add('selecting');
                 if (window.app.editCRM.selectedElements.indexOf(this.item.id) > -1) {
@@ -62,16 +62,16 @@ var ECI = (function () {
             }
         }
         if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
-            this.$['typeSwitcher'].addEventListener('mouseenter', function () {
+            this.$.typeSwitcher.addEventListener('mouseenter', function () {
                 _this.typeIndicatorMouseOver.apply(_this, []);
             });
-            this.$['typeSwitcher'].addEventListener('mouseleave', function () {
+            this.$.typeSwitcher.addEventListener('mouseleave', function () {
                 _this.typeIndicatorMouseLeave.apply(_this, []);
             });
         }
         else {
             var hoveringTypeSwitcher = false;
-            this.$['typeSwitcher'].addEventListener('mouseover', function (e) {
+            this.$.typeSwitcher.addEventListener('mouseover', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
                 if (!hoveringTypeSwitcher) {
@@ -102,8 +102,8 @@ var ECI = (function () {
     ;
     //#region editPageFunctions
     ECI.selectThisNode = function () {
-        var prevState = this.$['checkbox'].checked;
-        this.$['checkbox'].checked = !prevState;
+        var prevState = this.$.checkbox.checked;
+        this.$.checkbox.checked = !prevState;
         if (document.getElementsByClassName('highlighted').length === 0) {
             this.classList.add('firstHighlighted');
         }
@@ -225,12 +225,12 @@ var ECI = (function () {
         var relation = this.getNodesOrder(firstHighlightedItem, this.item);
         if (relation === 'same') {
             this.classList.add('highlighted');
-            this.$['checkbox'].checked = true;
+            this.$.checkbox.checked = true;
             window.app.editCRM.selectedElements = [this.item.id];
         }
         else {
             firstHighlightedNode.classList.add('highlighted');
-            firstHighlightedNode.$['checkbox'].checked = true;
+            firstHighlightedNode.$.checkbox.checked = true;
             window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
             var wait = 0;
             var nodeWalker = (relation === 'after' ? this.getNextNode : this.getPreviousNode);
@@ -243,7 +243,7 @@ var ECI = (function () {
             //Finally select this node
             window.setTimeout(function () {
                 _this.classList.add('highlighted');
-                _this.$['checkbox'].checked = true;
+                _this.$.checkbox.checked = true;
                 window.app.editCRM.selectedElements.push(_this.item.id);
             }, wait);
         }
@@ -304,12 +304,12 @@ var ECI = (function () {
         var _this = this;
         this.lastTypeSwitchMouseover = null;
         if (!this.shadow) {
-            var typeSwitcher = this.$['typeSwitcher'];
+            var typeSwitcher = this.$.typeSwitcher;
             if (typeSwitcher.toggledOpen) {
                 typeSwitcher.closeTypeSwitchContainer(true, function () {
                     typeSwitcher.toggledOpen = false;
-                    typeSwitcher.$['typeSwitchChoicesContainer'].style.display = 'none';
-                    typeSwitcher.$['typeSwitchArrow'].style.transform = 'rotate(180deg)';
+                    typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
+                    typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
                     _this.animateOut();
                 });
             }
@@ -331,7 +331,7 @@ var ECI = (function () {
         if (selectCheckbox === void 0) { selectCheckbox = false; }
         if (dontSelectChildren === void 0) { dontSelectChildren = false; }
         this.classList.add('highlighted');
-        selectCheckbox && (this.$['checkbox'].checked = true);
+        selectCheckbox && (this.$.checkbox.checked = true);
         if (this.item.children && !dontSelectChildren) {
             for (var i = 0; i < this.item.children.length; i++) {
                 setTimeout(this._getOnSelectFunction(this, i), (i * 35));
@@ -350,7 +350,7 @@ var ECI = (function () {
         if (selectCheckbox === void 0) { selectCheckbox = false; }
         if (dontSelectChildren === void 0) { dontSelectChildren = false; }
         this.classList.remove('highlighted');
-        selectCheckbox && (this.$['checkbox'].checked = false);
+        selectCheckbox && (this.$.checkbox.checked = false);
         if (this.item.children && !dontSelectChildren) {
             var selectedPaths = window.app.editCRM.selectedElements;
             for (var i = 0; i < this.item.children.length; i++) {
@@ -363,7 +363,7 @@ var ECI = (function () {
     ECI.onToggle = function () {
         var _this = this;
         setTimeout(function () {
-            if (_this.$['checkbox'].checked) {
+            if (_this.$.checkbox.checked) {
                 _this.onSelect();
             }
             else {

@@ -81,7 +81,7 @@ class IP {
 
 	static ready(this: InstallPage) {
 		this.userscriptUrl = this.getUserscriptUrl();
-		this.$['title'].innerHTML = 'Installing userscript from ' + this.userscriptUrl;
+		this.$.title.innerHTML = 'Installing userscript from ' + this.userscriptUrl;
 		this.fetchUserscript(this.userscriptUrl);
 		window.installPage = this;
 	}

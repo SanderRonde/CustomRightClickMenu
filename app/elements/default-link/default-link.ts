@@ -30,7 +30,7 @@ class DL {
 
 	static onClick(this: DefaultLink) {
 		var link = this.href;
-		var name = $(this.$['input']).val();
+		var name = $(this.$.input).val();
 		var script = 
 `var query;
 var url = "${link}";

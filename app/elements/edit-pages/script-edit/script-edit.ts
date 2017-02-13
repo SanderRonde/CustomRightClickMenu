@@ -601,12 +601,12 @@ class SCE {
 		const __this = this;
 
 		this.async(() => {
-			this.$['dropdownMenu']._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
+			this.$.dropdownMenu._addListener(this.launchModeUpdateFromDialog, 'dropdownMenu', this);
 		}, 0);
 
 		//Use jquery to also get the pre-change value
-		$(this.$['nameInput']).on('keydown', () => {
-			var el = this.$['nameInput'];
+		$(this.$.nameInput).on('keydown', () => {
+			var el = this.$.nameInput;
 			var oldVal = el.value || '';
 			Array.isArray(oldVal) && (oldVal = oldVal[0]);
 			this.async(() => {
@@ -660,11 +660,11 @@ class SCE {
 
 	//#region DialogFunctions
 	static disableButtons(this: NodeEditBehaviorScriptInstance) {
-		this.$['dropdownMenu'].disable();
+		this.$.dropdownMenu.disable();
 	};
 
 	static enableButtons(this: NodeEditBehaviorScriptInstance) {
-		this.$['dropdownMenu'].enable();
+		this.$.dropdownMenu.enable();
 	};
 
 	static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
@@ -927,8 +927,8 @@ class SCE {
 		*/
 	static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
-		(window.app.$['paperLibrariesSelector'] as PaperLibrariesSelector).init();
-		(window.app.$['paperGetPageProperties'] as PaperGetPageProperties).init(function (snippet: string) {
+		(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
+		(window.app.$.paperGetPageProperties as PaperGetPageProperties).init(function (snippet: string) {
 			_this.insertSnippet(_this, snippet);
 		});
 	};
@@ -938,7 +938,7 @@ class SCE {
 		*/
 	static popInRibbons(this: NodeEditBehaviorScriptInstance) {
 		//Introduce title at the top
-		var scriptTitle = window.app.$['editorCurrentScriptTitle'];
+		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
 		if (window.app.storageLocal.shrinkTitleRibbon) {
 			window.doc['editorTitleRibbon'].style.fontSize = '40%';
@@ -1047,8 +1047,8 @@ class SCE {
 		* Pops out the ribbons with an animation
 		*/
 	static popOutRibbons(this: NodeEditBehaviorScriptInstance) {
-		var scriptTitle = window.app.$['editorCurrentScriptTitle'];
-		var toolsRibbon = window.app.$['editorToolsRibbonContainer'];
+		var scriptTitle = window.app.$.editorCurrentScriptTitle;
+		var toolsRibbon = window.app.$.editorToolsRibbonContainer;
 
 		var toolsVisible = !window.app.storageLocal.hideToolsRibbon && 
 			toolsRibbon &&
@@ -1189,7 +1189,7 @@ class SCE {
 				this.style.width = '100vw';
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
-				window.app.$['fullscreenEditorHorizontal'].style.height = '100vh';
+				window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
 				this.popInRibbons();
 			}
 		});
@@ -1222,7 +1222,7 @@ class SCE {
 					editorCont.style.marginTop = '0';
 					editorCont.style.width = '0';
 					editorCont.style.height = '0';
-					$(_this.editor.display.wrapper).appendTo(_this.$['editorCont']).css({
+					$(_this.editor.display.wrapper).appendTo(_this.$.editorCont).css({
 						height: _this.preFullscreenEditorDimensions.height,
 						marginTop: 0,
 						marginLeft: 0
@@ -1247,7 +1247,7 @@ class SCE {
 	 */
 	static showOptions(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
-		this.unchangedEditorSettings = $['extend'](true, {}, window.app.settings.editor);
+		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
 		var editorWidth = $('.script-edit-codeMirror').width();
 		var editorHeight = $('.script-edit-codeMirror').height();
 		var circleRadius;
@@ -1370,9 +1370,9 @@ class SCE {
 		*/
 	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
 		$(this.editor.display.wrapper).remove();
-		this.$['editorPlaceholder'].style.display = 'flex';
-		this.$['editorPlaceholder'].style.opacity = '1';
-		this.$['editorPlaceholder'].style.position = 'absolute';
+		this.$.editorPlaceholder.style.display = 'flex';
+		this.$.editorPlaceholder.style.opacity = '1';
+		this.$.editorPlaceholder.style.position = 'absolute';
 
 		this.newSettings.value.script = this.editor.doc.getValue();
 		this.editor = null;
@@ -1383,7 +1383,7 @@ class SCE {
 		if (this.fullscreen) {
 			this.loadEditor(window.doc['fullscreenEditorHorizontal'], value, disable);
 		} else {
-			this.loadEditor(this.$['editorCont'], value, disable);
+			this.loadEditor(this.$.editorCont, value, disable);
 		}
 	};
 
@@ -1698,8 +1698,8 @@ class SCE {
 				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 			}
 		});
-		this.$['mainEditorTab'].classList.add('active');
-		this.$['backgroundEditorTab'].classList.remove('active');
+		this.$.mainEditorTab.classList.add('active');
+		this.$.backgroundEditorTab.classList.remove('active');
 		editor.on('metaDisplayStatusChanged', function(info: {
 			status: string
 		}) {
@@ -1745,18 +1745,18 @@ class SCE {
 		}
 		if (this.fullscreen) {
 			editor.display.wrapper.style.height = 'auto';
-			this.$['editorPlaceholder'].style.display = 'none';
+			this.$.editorPlaceholder.style.display = 'none';
 			$buttonShadow[0].style.right = '-1px';
 			$buttonShadow[0].style.position = 'absolute';
 			this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		} else {
-			this.$['editorPlaceholder'].style.height = this.editorHeight + 'px';
-			this.$['editorPlaceholder'].style.width = this.editorWidth + 'px';
-			this.$['editorPlaceholder'].style.position = 'absolute';
+			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
+			this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
+			this.$.editorPlaceholder.style.position = 'absolute';
 			if (this.editorPlaceHolderAnimation) {
 				this.editorPlaceHolderAnimation.play();
 			} else {
-				this.editorPlaceHolderAnimation = this.$['editorPlaceholder'].animate([
+				this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
 					{
 						opacity: 1
 					}, {
@@ -1779,7 +1779,7 @@ class SCE {
 	 */
 	static loadEditor(this: NodeEditBehaviorScriptInstance, container: HTMLElement, content: string = this.item.value.script,
 			disable: boolean = false) {
-		var placeHolder = $(this.$['editorPlaceholder']);
+		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {
@@ -1819,9 +1819,9 @@ class SCE {
 	static init(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		this._init();
-		this.$['dropdownMenu'].init();
-		this.$['exportMenu'].init();
-		this.$['exportMenu'].querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
+		this.$.dropdownMenu.init();
+		this.$.exportMenu.init();
+		this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
 		this.addDialogToMetaTagUpdateListeners();
@@ -1831,8 +1831,8 @@ class SCE {
 		document.body.classList.remove('editingStylesheet');
 		document.body.classList.add('editingScript');
 		window.scriptEdit = this;
-		this.$['editorPlaceholder'].style.display = 'flex';
-		this.$['editorPlaceholder'].style.opacity = '1';
+		this.$.editorPlaceholder.style.display = 'flex';
+		this.$.editorPlaceholder.style.opacity = '1';
 		window.externalEditor.init();
 		if (window.app.storageLocal.recoverUnsavedData) {
 			chrome.storage.local.set({
@@ -1867,7 +1867,7 @@ class SCE {
 		}
 		this.active = true;
 		setTimeout(function() {
-			_this.loadEditor(_this.$['editorCont']);
+			_this.loadEditor(_this.$.editorCont);
 		}, 750);
 	}
 }

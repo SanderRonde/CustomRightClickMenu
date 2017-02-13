@@ -68,7 +68,7 @@ var IP = (function () {
     ;
     IP.ready = function () {
         this.userscriptUrl = this.getUserscriptUrl();
-        this.$['title'].innerHTML = 'Installing userscript from ' + this.userscriptUrl;
+        this.$.title.innerHTML = 'Installing userscript from ' + this.userscriptUrl;
         this.fetchUserscript(this.userscriptUrl);
         window.installPage = this;
     };

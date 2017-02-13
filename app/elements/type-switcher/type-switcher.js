@@ -23,7 +23,7 @@ var TS = (function () {
             this.isDivider = true;
             this.remainingTypes = ['link', 'script', 'menu', 'stylesheet'];
         }
-        this.$['typeTxt'].innerHTML = this.type;
+        this.$.typeTxt.innerHTML = this.type;
     };
     ;
     TS.colorTypeChoices = function () {
@@ -41,8 +41,8 @@ var TS = (function () {
             easing: 'easeInCubic',
             duration: (quick ? 80 : 300),
             complete: function () {
-                _this.$['typeSwitchChoicesContainer'].style.display = 'none';
-                _this.$['typeSwitchArrow'].style.transform = 'rotate(180deg)';
+                _this.$.typeSwitchChoicesContainer.style.display = 'none';
+                _this.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
                 callback && callback();
             }
         });
@@ -53,8 +53,8 @@ var TS = (function () {
             this.colorTypeChoices();
             this.colored = true;
         }
-        this.$['typeSwitchChoicesContainer'].style.display = 'block';
-        this.$['typeSwitchArrow'].style.transform = 'rotate(90deg)';
+        this.$.typeSwitchChoicesContainer.style.display = 'block';
+        this.$.typeSwitchArrow.style.transform = 'rotate(90deg)';
         $(this.parentNode.parentNode).stop().animate({
             height: 250
         }, {

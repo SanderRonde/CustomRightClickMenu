@@ -103,7 +103,7 @@ class ERT {
 		}, callback: () => void) {
 		var _this = this;
 		var img = new Image();
-		const canvas = _this.$['cropCanvas'];
+		const canvas = _this.$.cropCanvas;
 		var context = canvas.getContext('2d');
 		img.onload = function () {
 			//Crop the image
@@ -141,12 +141,12 @@ class ERT {
 		}, callback: () => void) {
 		var _this = this;
 		//Make sure the overlay is gone for a while
-		this.$['overlay'].style.display = 'none';
+		this.$.overlay.style.display = 'none';
 		chrome.tabs.captureVisibleTab({
 			format: 'png'
 		}, function (dataURI) {
 			//Turn it on again
-			_this.$['overlay'].style.display = 'block';
+			_this.$.overlay.style.display = 'block';
 			_this.cropScreenshot(dataURI, cropData, callback);
 		});
 	};
@@ -172,8 +172,8 @@ class ERT {
 
 	static setSelection(this: ErrorReportingTool, startX: number, startY: number,
 			width: number, height: number, posX: number, posY: number) {
-		var rightDiv = this.$['highlightingRightSquare'];
-		var leftDiv = this.$['highlightingLeftSquare'];
+		var rightDiv = this.$.highlightingRightSquare;
+		var leftDiv = this.$.highlightingLeftSquare;
 		if (this.lastPos.X !== posX) {
 			if (width < 0) {
 				var left = startX + width;
@@ -193,8 +193,8 @@ class ERT {
 		}
 
 		if (this.lastPos.Y !== posY) {
-			var topDiv = this.$['highlightingTopSquare'];
-			var botDiv = this.$['highlightingBotSquare'];
+			var topDiv = this.$.highlightingTopSquare;
+			var botDiv = this.$.highlightingBotSquare;
 			if (height < 0) {
 				var top = (startY + height);
 				var topPx = top + 'px';
@@ -224,23 +224,23 @@ class ERT {
 	static handleSelection(this: ErrorReportingTool, e: PolymerDragEvent) {
 		switch (e.detail.state) {
 			case 'start':
-				this.$['highlightButtons'].classList.add('hidden');
+				this.$.highlightButtons.classList.add('hidden');
 
 				var startYPx = e.detail.y + 'px';
 				this.lastSize.X = this.lastSize.Y = 0;
 				this.dragStart.X = this.lastPos.X = e.detail.x;
 				this.dragStart.Y = this.lastPos.Y = e.detail.y;
 
-				this.$['highlightingTopSquare'].style.width = '100vw';
-				this.$['highlightingTopSquare'].style.height = startYPx;
-				this.$['highlightingLeftSquare'].style.width = startYPx;
+				this.$.highlightingTopSquare.style.width = '100vw';
+				this.$.highlightingTopSquare.style.height = startYPx;
+				this.$.highlightingLeftSquare.style.width = startYPx;
 
-				this.translateY(this.$['highlightingBotSquare'], startYPx);
-				this.translateY(this.$['highlightingLeftSquare'], startYPx);
-				this.translateY(this.$['highlightingRightSquare'], startYPx);
+				this.translateY(this.$.highlightingBotSquare, startYPx);
+				this.translateY(this.$.highlightingLeftSquare, startYPx);
+				this.translateY(this.$.highlightingRightSquare, startYPx);
 				break;
 			case 'end':
-				this.$['highlightButtons'].classList.remove('hidden');
+				this.$.highlightButtons.classList.remove('hidden');
 			case 'track':
 				if (e.detail.x !== this.lastPos.X || e.detail.y !== this.lastPos.Y) {
 					var width = (e.detail.x - this.dragStart.X);
@@ -257,16 +257,16 @@ class ERT {
 	//#endregion
 	
 	static hideScreencapArea(this: ErrorReportingTool) {
-		this.$['highlightingTopSquare'].style.height = '100vh';
-		this.$['highlightingTopSquare'].style.width = '100vw';
+		this.$.highlightingTopSquare.style.height = '100vh';
+		this.$.highlightingTopSquare.style.width = '100vw';
 		this.setSelection(0, 0, 0, 0, 0, 0);
-		this.$['overlay'].classList.remove('toggled');
-		this.$['overlay'].style.pointerEvents = 'none';
+		this.$.overlay.classList.remove('toggled');
+		this.$.overlay.style.pointerEvents = 'none';
 	};
 
 	static cancelScreencap(this: ErrorReportingTool) {
 		this.hideScreencapArea();
-		this.$['errorReportingDialog'].open();
+		this.$.errorReportingDialog.open();
 	};
 
 	static finishScreencap(this: ErrorReportingTool) {
@@ -278,28 +278,28 @@ class ERT {
 			height: this.lastSize.Y,
 			width: this.lastSize.X
 		}, function() {
-			_this.$['errorReportingDialog'].open();
+			_this.$.errorReportingDialog.open();
 		});
 	};
 
 	static selectScreenshotArea(this: ErrorReportingTool) {
-		this.$['highlightingTopSquare'].style.height = '100vh';
-		this.$['highlightingTopSquare'].style.width = '100vw';
+		this.$.highlightingTopSquare.style.height = '100vh';
+		this.$.highlightingTopSquare.style.width = '100vw';
 		this.setSelection(0, 0, 0, 0, 0, 0);
-		this.$['overlay'].classList.add('toggled');
-		this.$['overlay'].style.pointerEvents = 'initial';
+		this.$.overlay.classList.add('toggled');
+		this.$.overlay.style.pointerEvents = 'initial';
 	};
 
 	static addCapture(this: ErrorReportingTool) {
 		var _this = this;
-		_this.$['errorReportingDialog'].close();
+		_this.$.errorReportingDialog.close();
 		this.selectScreenshotArea();
 	};
 
 	static reportBug(this: ErrorReportingTool) {
 		this.reportType = 'bug';
 		this.image = '';
-		this.$['errorReportingDialog'].open();
+		this.$.errorReportingDialog.open();
 	};
 
 	static convertImageToBlob(this: ErrorReportingTool, dataURI: string) {
@@ -349,18 +349,18 @@ class ERT {
 	};
 
 	static checkCheckmark(this: ErrorReportingTool) {
-		this.$['bugButton'].classList.add('checkmark');
+		this.$.bugButton.classList.add('checkmark');
 		this.async(() => {
-			this.$['reportingButtonElevation'].classList.add('checkmark');
-			this.$['bugCheckmarkCont'].classList.add('checkmark');
+			this.$.reportingButtonElevation.classList.add('checkmark');
+			this.$.bugCheckmarkCont.classList.add('checkmark');
 			this.async(() => {
-				this.$['bugCheckmark'].classList.add('checked');
+				this.$.bugCheckmark.classList.add('checked');
 				this.async(() => {
-					this.$['bugCheckmarkCont'].classList.remove('checkmark');
+					this.$.bugCheckmarkCont.classList.remove('checkmark');
 					this.async(() => {
-						this.$['reportingButtonElevation'].classList.remove('checkmark');
-						this.$['bugButton'].classList.remove('checkmark');
-						this.$['bugCheckmark'].classList.remove('checked');
+						this.$.reportingButtonElevation.classList.remove('checkmark');
+						this.$.bugButton.classList.remove('checkmark');
+						this.$.bugCheckmark.classList.remove('checked');
 					}, 350);
 				},5000);
 			}, 350);
@@ -378,7 +378,7 @@ class ERT {
 		}, function (granted) {
 			if (granted) {
 				callback();
-				window.errorReportingTool.$['errorReportingDialog'].close();
+				window.errorReportingTool.$.errorReportingDialog.close();
 
 				//Do a nice checkmark animation on the report button
 				var listener = function() {

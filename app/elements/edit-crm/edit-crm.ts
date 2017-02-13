@@ -175,7 +175,7 @@ class EC {
 		if (this.columns && document.contains(this.columns[0])) {
 			return this.columns;
 		}
-		return (this.columns = Array.prototype.slice.apply(this.$['mainCont'].children).filter(function(element: CRMColumn|HTMLElement) {
+		return (this.columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element: CRMColumn|HTMLElement) {
 			return element.classList.contains('CRMEditColumnCont');
 		}));
 	};
@@ -251,7 +251,7 @@ class EC {
 		for (i = 0; i < window.app.settings.crm.length; i++) {
 			this.isNodeVisible(hiddenNodes, window.app.settings.crm[i], window.app.crmType);
 		}
-		var items: Array<EditCrmItem> = $($(window.app.editCRM.$['mainCont']).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children as any;
+		var items: Array<EditCrmItem> = $($(window.app.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children as any;
 		var index = path[path.length - 1];
 		for (i = 0; i < items.length; i++) {
 			if (items[i].item && items[i].item.id && hiddenNodes[items[i].item.id]) {
@@ -465,7 +465,7 @@ class EC {
 			hight = column.indent.length + column.list.length;
 			hight > highest && (highest = hight);
 		});
-		this.$['mainCont'].style.minHeight = (highest * 50) + 'px';
+		this.$.mainCont.style.minHeight = (highest * 50) + 'px';
 
 		this.crm = [];
 		if (this.currentTimeout !== null) {
@@ -978,7 +978,7 @@ class EC {
 			}
 		}
 
-		var cols = this.$['mainCont'].children;
+		var cols = this.$.mainCont.children;
 		var row = cols[path.length + 1].children;
 		for (i = 0; i < row.length; i++) {
 			if (row[i].tagName === 'PAPER-MATERIAL') {

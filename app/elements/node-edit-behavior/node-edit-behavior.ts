@@ -159,7 +159,7 @@ class NEB {
 		window.crmEditPage.animateOut();
 
 		var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
-		newSettings.name = this.$['nameInput'].value;
+		newSettings.name = this.$.nameInput.value;
 		itemInEditPage.itemName = newSettings.name;
 
 		if (!newSettings.onContentTypes[window.app.crmType]) {
@@ -332,7 +332,7 @@ class NEB {
 
 		var triggersElement = (this.$ as any)['executionTriggersContainer'] as HTMLDivElement;
 		var $triggersElement = $(triggersElement);
-		var contentTypeChooserElement = this.$['showOnContentContainer'];
+		var contentTypeChooserElement = this.$.showOnContentContainer;
 		var $contentTypeChooserElement = $(contentTypeChooserElement);
 
 		function animateTriggers(callback?: () => void) {
@@ -428,24 +428,24 @@ class NEB {
 		this.showTriggers = (this.item.value.launchMode > 1 && this.item.value.launchMode !== 4);
 		this.showContentTypeChooser = (this.item.value.launchMode === 0 || this.item.value.launchMode === 3);
 		if (this.showTriggers) {
-			this.$['executionTriggersContainer'].style.display = 'block';
-			this.$['executionTriggersContainer'].style.marginLeft = '0';
-			this.$['executionTriggersContainer'].style.height = 'auto';
+			this.$.executionTriggersContainer.style.display = 'block';
+			this.$.executionTriggersContainer.style.marginLeft = '0';
+			this.$.executionTriggersContainer.style.height = 'auto';
 		} else {
-			this.$['executionTriggersContainer'].style.display = 'none';
-			this.$['executionTriggersContainer'].style.marginLeft = '-110%';
-			this.$['executionTriggersContainer'].style.height = '0';
+			this.$.executionTriggersContainer.style.display = 'none';
+			this.$.executionTriggersContainer.style.marginLeft = '-110%';
+			this.$.executionTriggersContainer.style.height = '0';
 		}
 		if (this.showContentTypeChooser) {
-			this.$['showOnContentContainer'].style.display = 'block';
-			this.$['showOnContentContainer'].style.marginLeft = '0';
-			this.$['showOnContentContainer'].style.height = 'auto';
+			this.$.showOnContentContainer.style.display = 'block';
+			this.$.showOnContentContainer.style.marginLeft = '0';
+			this.$.showOnContentContainer.style.height = 'auto';
 		} else {
-			this.$['showOnContentContainer'].style.display = 'none';
-			this.$['showOnContentContainer'].style.marginLeft = '-110%';
-			this.$['showOnContentContainer'].style.height = '0';
+			this.$.showOnContentContainer.style.display = 'none';
+			this.$.showOnContentContainer.style.marginLeft = '-110%';
+			this.$.showOnContentContainer.style.height = '0';
 		}
-		this.$['dropdownMenu']._addListener(this.selectorStateChange, 'dropdownMenu', this);
+		this.$.dropdownMenu._addListener(this.selectorStateChange, 'dropdownMenu', this);
 		if (this.editor) {
 			this.editor.display.wrapper.remove();
 			this.editor = null;
@@ -458,7 +458,7 @@ class NEB {
 		window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
 		this.assignContentTypeSelectedValues();
 		setTimeout(function () {
-			_this.$['nameInput'].focus();
+			_this.$.nameInput.focus();
 		}, 350);
 	}
 }

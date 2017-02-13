@@ -142,8 +142,8 @@ var IC = (function () {
                 allowedPermissions: allowedPermissions
             }
         });
-        this.$['installButtons'].classList.add('installed');
-        this.$['scriptInstalled'].classList.add('visible');
+        this.$.installButtons.classList.add('installed');
+        this.$.scriptInstalled.classList.add('visible');
     };
     ;
     IC.setMetaTag = function (name, values) {
@@ -160,9 +160,9 @@ var IC = (function () {
     IC.setMetaInformation = function (tags, metaInfo) {
         this.setMetaTag('descriptionValue', tags['description']);
         this.setMetaTag('authorValue', tags['author']);
-        window.installPage.$['title'].innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
-        this.$['sourceValue'].innerText = window.installPage.userscriptUrl;
-        this.$['permissionValue'].items = tags['grant'] || ['none'];
+        window.installPage.$.title.innerHTML = 'Installing ' + (tags['name'] && tags['name'][0]);
+        this.$.sourceValue.innerText = window.installPage.userscriptUrl;
+        this.$.permissionValue.items = tags['grant'] || ['none'];
         this.metaTags = tags;
         this.metaInfo = metaInfo;
     };
@@ -207,7 +207,7 @@ var IC = (function () {
                 selectName: window.scriptEdit.keyBindings[5].defaultKey
             }
         });
-        window.CodeMirror(_this.$['editorCont'], {
+        window.CodeMirror(_this.$.editorCont, {
             lineNumbers: true,
             value: _this.script,
             lineWrapping: true,
