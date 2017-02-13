@@ -277,10 +277,19 @@ class CA {
 	 */
 	static jsLintGlobals: Array<string> = [];
 
+	/**
+	 * The tern server used for key bindings
+	 */
 	static ternServer: TernServer;
 
 	static properties = properties;
 	
+	static getPageTitle(): string {
+		return location.href.indexOf('demo') > -1 ? 
+			'Demo, actual right-click menu does NOT work in demo' :
+			'Custom Right-Click Menu';
+	}
+
 	/**
 	 * Inserts the value into given array
 	 */

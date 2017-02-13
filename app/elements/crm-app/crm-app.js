@@ -84,6 +84,11 @@ var properties = {
 var CA = (function () {
     function CA() {
     }
+    CA.getPageTitle = function () {
+        return location.href.indexOf('demo') > -1 ?
+            'Demo, actual right-click menu does NOT work in demo' :
+            'Custom Right-Click Menu';
+    };
     /**
      * Inserts the value into given array
      */
