@@ -7,6 +7,12 @@ do anything you want all from your right-click menu. Featuring full GreaseMonkey
 [![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=master)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
 [![Tested with BrowserStack](http://i.imgur.com/3Mi2Fja.png)](https://www.browserstack.com/)
 
+## Demo
+
+A demo can be found over [here](https://sanderronde.github.io/CustomRightClickMenu/demo/). This demo does ofcourse not offer
+full functionality as it has no access to your actual browser APIs, but it does give a good view of the interface, a little bit of
+a context menu demo on-page and access to settings.
+
 ## About
 
 ### Custom CSS
