@@ -1238,13 +1238,7 @@ describe('CRMAPI', () => {
 			CRMOnPage: true,
 			recoverUnsavedData: false,
 			editCRMInRM: false,
-			libraries: [
-				{ "location": 'jQuery.js', "name": 'jQuery' },
-				{ "location": 'mooTools.js', "name": 'mooTools' },
-				{ "location": 'YUI.js', "name": 'YUI' },
-				{ "location": 'Angular.js', "name": 'Angular' },
-				{ "location": "jqlite.js", "name": 'jqlite' }
-			],
+			libraries: [],
 			settingsVersionData: {
 				current: storageLocal.settingsVersionData.current,
 				latest: storageLocal.settingsVersionData.latest,
