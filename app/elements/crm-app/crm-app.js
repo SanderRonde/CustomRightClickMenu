@@ -2933,7 +2933,7 @@ CA.templates = (function () {
                 '// @match	*://*.example.com/*',
                 '// ==/UserScript== */'
             ].join('\n'),
-            launchMode: 1 /* ALWAYS_RUN */,
+            launchMode: 0 /* RUN_ON_CLICKING */,
             toggle: false,
             defaultOn: false
         };
@@ -2946,7 +2946,7 @@ CA.templates = (function () {
     CRMAppTemplates.getDefaultScriptValue = function (options) {
         if (options === void 0) { options = {}; }
         var value = {
-            launchMode: 1 /* ALWAYS_RUN */,
+            launchMode: 0 /* RUN_ON_CLICKING */,
             backgroundLibraries: [],
             libraries: [],
             script: [

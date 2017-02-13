@@ -1,5 +1,10 @@
 type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
 
+interface Extendable<T> { 
+	[key: string]: any;
+	[key: number]: any;
+}
+
 interface ChromePermissionDescriptions {
 	alarms: string;
 	background: string;

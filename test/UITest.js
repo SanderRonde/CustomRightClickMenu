@@ -3,6 +3,7 @@
 /// <reference path="../tools/definitions/chrome.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
 /// <reference path="../app/js/background.ts" />
+/// <reference path="../tools/definitions/codemirror.d.ts" />
 "use strict";
 var chai = require("chai");
 var webdriver = require("selenium-webdriver");
@@ -1071,7 +1072,7 @@ describe('Options Page', function () {
                                     '}\n' +
                                     'if (query) {\n' +
                                     '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                                    '}\n', 'script value matches expected');
+                                    '}', 'script1 value matches expected');
                                 var renameName = 'SomeName';
                                 findElements(driver, webdriver.By.tagName('default-link')).then(function (elements) {
                                     var index = elements.length - 1;
@@ -1097,7 +1098,7 @@ describe('Options Page', function () {
                                                         '}\n' +
                                                         'if (query) {\n' +
                                                         '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                                                        '}\n', 'script value matches expected');
+                                                        '}', 'script value matches expected');
                                                     reloadPage(_this, driver).then(function () {
                                                         return getCRM(driver);
                                                     })
@@ -1119,7 +1120,7 @@ describe('Options Page', function () {
                                                             '}\n' +
                                                             'if (query) {\n' +
                                                             '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                                                            '}\n', 'script value matches expected');
+                                                            '}', 'script value matches expected');
                                                         var element2 = crm[crm.length - 1];
                                                         assert.strictEqual(element2.name, 'SomeName', 'name is the same as expected');
                                                         assert.strictEqual(element2.type, 'script', 'type of element is script');
@@ -1136,7 +1137,7 @@ describe('Options Page', function () {
                                                             '}\n' +
                                                             'if (query) {\n' +
                                                             '	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-                                                            '}\n', 'script value matches expected');
+                                                            '}', 'script2 value matches expected');
                                                         done();
                                                     });
                                                 });

@@ -192,11 +192,6 @@ type CrmApp = PolymerElement<'crm-app', typeof CA & typeof properties & {
 type ScriptUpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
 	newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
 
-interface Extendable<T> { 
-	[key: string]: any;
-	[key: number]: any;
-}
-
 interface Extensions<T> extends Extendable<T> { }
 
 interface AddedPermissionsTabContainer extends HTMLElement {
@@ -3332,7 +3327,7 @@ class CA {
 					'// @grant	none',
 					'// @match	*://*.example.com/*',
 					'// ==/UserScript== */'].join('\n'),
-				launchMode: CRMLaunchModes.ALWAYS_RUN,
+				launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 				toggle: false,
 				defaultOn: false
 			};
@@ -3345,7 +3340,7 @@ class CA {
 		 */
 		static getDefaultScriptValue(options: Partial<ScriptVal> = {}): ScriptVal {
 			const value: ScriptVal = {
-				launchMode: CRMLaunchModes.ALWAYS_RUN,
+				launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 				backgroundLibraries: [],
 				libraries: [],
 				script: [

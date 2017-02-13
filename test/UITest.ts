@@ -3,6 +3,7 @@
 /// <reference path="../tools/definitions/chrome.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
 /// <reference path="../app/js/background.ts" />
+/// <reference path="../tools/definitions/codemirror.d.ts" />
 
 interface AnyObj {
 	[key: string]: any;
@@ -1311,8 +1312,8 @@ describe('Options Page', function(this: MochaFn) {
 									'}\n' +
 									'if (query) {\n' +
 									'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-									'}\n',
-									'script value matches expected');
+									'}',
+									'script1 value matches expected');
 								
 								const renameName = 'SomeName';
 								findElements(driver, webdriver.By.tagName('default-link')).then((elements) => {
@@ -1344,7 +1345,7 @@ describe('Options Page', function(this: MochaFn) {
 														'}\n' +
 														'if (query) {\n' +
 														'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-														'}\n',
+														'}',
 														'script value matches expected');
 													
 													reloadPage(this, driver).then(() => {
@@ -1371,7 +1372,7 @@ describe('Options Page', function(this: MochaFn) {
 															'}\n' +
 															'if (query) {\n' +
 															'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-															'}\n',
+															'}',
 															'script value matches expected');
 														
 														const element2 = crm[crm.length - 1];	
@@ -1392,8 +1393,8 @@ describe('Options Page', function(this: MochaFn) {
 															'}\n' +
 															'if (query) {\n' +
 															'	window.open(url.replace(/%s/g,query), \'_blank\');\n' +
-															'}\n',
-															'script value matches expected');
+															'}',
+															'script2 value matches expected');
 
 														done();
 													});

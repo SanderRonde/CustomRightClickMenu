@@ -15,7 +15,7 @@ var DL = (function () {
     DL.onClick = function () {
         var link = this.href;
         var name = $(this.$['input']).val();
-        var script = "\nvar query;\nvar url = \"' + link + '\";\nif (crmAPI.getSelection()) {\n\tquery = crmAPI.getSelection();\n} else {\n\tquery = window.prompt('Please enter a search query');\n}\nif (query) {\n\twindow.open(url.replace(/%s/g,query), '_blank');\n};";
+        var script = "var query;\nvar url = \"" + link + "\";\nif (crmAPI.getSelection()) {\n\tquery = crmAPI.getSelection();\n} else {\n\tquery = window.prompt('Please enter a search query');\n}\nif (query) {\n\twindow.open(url.replace(/%s/g,query), '_blank');\n}";
         var newItem;
         if (this.searchEngine !== undefined) {
             newItem = window.app.templates.getDefaultScriptNode({

@@ -372,7 +372,8 @@ class EC {
 
 		if (shown || this.isAdding) {
 			while (lastMenu !== -1) {
-				if (setMenusLength > columnNum && !hiddenNodes[list[setMenus[columnNum]].id]) {
+				if (setMenusLength > columnNum && setMenus[columnNum] !== -1 &&
+						!hiddenNodes[list[setMenus[columnNum]].id]) {
 					lastMenu = setMenus[columnNum];
 				} else {
 					lastMenu = this.getLastMenu(list, hiddenNodes);

@@ -31,9 +31,9 @@ class DL {
 	static onClick(this: DefaultLink) {
 		var link = this.href;
 		var name = $(this.$['input']).val();
-		var script = `
-var query;
-var url = "' + link + '";
+		var script = 
+`var query;
+var url = "${link}";
 if (crmAPI.getSelection()) {
 	query = crmAPI.getSelection();
 } else {
@@ -41,7 +41,7 @@ if (crmAPI.getSelection()) {
 }
 if (query) {
 	window.open(url.replace(/%s/g,query), \'_blank\');
-};`;
+}`;
 
 		var newItem;
 		if (this.searchEngine !== undefined) {

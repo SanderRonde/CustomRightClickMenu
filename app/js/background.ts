@@ -727,7 +727,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							'// @match	*://*.example.com/*',
 							'// ==/UserScript=='
 						].join('\n'),
-						launchMode: CRMLaunchModes.ALWAYS_RUN,
+						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						toggle: false,
 						defaultOn: false
 					};
@@ -736,7 +736,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				},
 				getDefaultScriptValue(this: CRMTemplates, options: Partial<ScriptVal> = {}): ScriptVal {
 					const value: ScriptVal = {
-						launchMode: CRMLaunchModes.ALWAYS_RUN,
+						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						backgroundLibraries: [],
 						libraries: [],
 						script: [
