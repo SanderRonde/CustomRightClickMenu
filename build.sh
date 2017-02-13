@@ -25,7 +25,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   echo "Changing branches"
 
   echo "Pushing to gh-pages" && echo -en "travis_fold:start:gh_pages\\r"
-  grunt website
+  grunt documentationWebsite
 
   git config user.name "Travis CI"
   git config user.email "awsdfgvhbjn@gmail.com"
@@ -40,7 +40,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
 
   npm install
 
-  grunt moveWebsite
+  grunt moveDocumentationWebsite
 
   set +e
   git diff-index --quiet HEAD

@@ -105,7 +105,7 @@ module.exports = function(grunt) {
 
 				}
 			},
-			website: {
+			documentationWebsite: {
 				options: {
 					strip: true,
 					data: {
@@ -127,7 +127,16 @@ module.exports = function(grunt) {
 					src: ['**/*.html'],
 					dest: 'build/elements'
 				}]
-			}
+			},
+			demoWebsite: {
+				options: {
+					strip: true,
+					data: {}
+				},
+				files: {
+					'test/UI/UITest.html': ['./demo/index.html']
+				}
+			},
 		},
 		uglify: {
 			options: {
@@ -261,7 +270,7 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
 				]
 			},
-			website: {
+			documentationWebsite: {
 				files: [
 					{
 						expand: true,
@@ -281,12 +290,12 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			moveWebsite: {
+			moveDocumentationWebsite: {
 				files: [{
 					expand: true,
 					cwd: 'build/website',
 					src: ['**/*.*'],
-					dest: './'
+					dest: './documentation/'
 				}]
 			}
 		},
@@ -391,7 +400,7 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/elements/installing/', src: 'install-imports.html', dest: 'build/' }
 				]
 			},
-			website: {
+			documentationWebsite: {
 				options: {
 					ignore: [
 						'bower_components/polymer/polymer.html',
@@ -417,7 +426,7 @@ module.exports = function(grunt) {
 			]
 		},
 		vulcanize: {
-			website: {
+			documentationWebsite: {
 				options: {
 					abspath: 'build/website/',
 					inlineScripts: true,
@@ -485,11 +494,13 @@ module.exports = function(grunt) {
 	//Extracts the external editor definitions and places them in build/
 	grunt.registerTask('externalEditorDefs', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 
-	//Extracts the files needed for the website and places them in build/website
-	grunt.registerTask('website', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:website', 'copyImportedElements:website', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:website', 'defsNoClean', 'removePrefix', 'vulcanize']);
+	//Extracts the files needed for the documentationWebsite and places them in build/website
+	grunt.registerTask('documentationWebsite', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:documentationWebsite', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
-	//Moves the website from build/website to the root dir
-	grunt.registerTask('moveWebsite', ['copy:moveWebsite']);
+	//Moves the documentationWebsite from build/website to /documentation
+	grunt.registerTask('moveDocumentationWebsite', ['copy:moveDocumentationWebsite']);
+
+	grunt.registerTask('demoWebsite', ['processhtml:'])
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
@@ -498,7 +509,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
 
 	//Tests whether the extension can be built properly without errors
-	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'website', 'cleanBuild']);
+	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['mochaTest', 'testBuild']);
