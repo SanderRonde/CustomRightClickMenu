@@ -50,11 +50,11 @@ Clone the repo, run npm install and run the grunt "build" task, load the extensi
 
 ## Developing Scripts
 
-You can develop scripts both inside the extension and outside of it. By using the [external editor](https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn) you can edit in your preferred editor while still having the changes sync up to the extension. Editing inside the extension features code completion by [CodeMirror](https://codemirror.net/) and [Tern](http://ternjs.net/) on both the [CRM API](http://sanderronde.github.io/CustomRightClickMenu/) and regular browser functions.
+You can develop scripts both inside the extension and outside of it. By using the [external editor](https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn) you can edit in your preferred editor while still having the changes sync up to the extension. Editing inside the extension features code completion by [CodeMirror](https://codemirror.net/) and [Tern](http://ternjs.net/) on both the [CRM API](http://sanderronde.github.io/CustomRightClickMenu/documentation) and regular browser functions.
 
 The CRM API allows you to edit the current state of the context menu right from a running script. This allows you to do things like create an "add website to menu" button, removing or adding subsections in a menu or even communicating with other running scripts. By also using a background script (which runs at all times and uses the same permissions/API), you can do pretty much everything a chrome extension could. The CRM API also features full compatibility with the [GreaseMonkey API](https://wiki.greasespot.net/Greasemonkey_Manual:API), so you can use all userscripts.
 
-There is a typescript definition file available for the CRM API over [here](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/app/js/crmapi.d.ts) and you can find both an in-extension and [online](sanderronde.github.io/CustomRightClickMenu/) version of the documentation. The in-extension version can be found by going to /html/crmAPIDocs.html or by hitting the "go to definition" key in the CodeMirror editor.
+There is a typescript definition file available for the CRM API over [here](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/app/js/crmapi.d.ts) and you can find both an in-extension and [online](sanderronde.github.io/CustomRightClickMenu/documentation) version of the documentation. The in-extension version can be found by going to /html/crmAPIDocs.html or by hitting the "go to definition" key in the CodeMirror editor.
 
 ## Contributing
 
