@@ -26,6 +26,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
 
   echo "Pushing to gh-pages" && echo -en "travis_fold:start:gh_pages\\r"
   grunt documentationWebsite
+  grunt demoWebsite
 
   git config user.name "Travis CI"
   git config user.email "awsdfgvhbjn@gmail.com"
