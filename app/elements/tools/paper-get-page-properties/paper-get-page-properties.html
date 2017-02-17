@@ -11,7 +11,7 @@
 		</div>
 		<paper-menu multi role="menu">
 			<template is="dom-repeat" items="{{options}}" as="option">
-				<paper-item on-tap="click" id$="[[option.id]]" tabindex="-1">
+				<paper-item on-tap="_click" id$="[[option.id]]" tabindex="-1">
 					<span class="propertyName">[[option.name]]</span>
 				</paper-item>
 			</template>

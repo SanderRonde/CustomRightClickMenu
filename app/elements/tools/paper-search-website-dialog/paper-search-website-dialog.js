@@ -146,6 +146,7 @@ var PSWD = (function () {
         }, function () {
             _this.$.manualInputListChoiceInput.invalid = true;
             spinner.active = false;
+            _this.switchToWindow('manuallyInputSearchWebsiteWindow');
         });
     };
     ;
@@ -156,18 +157,9 @@ var PSWD = (function () {
      */
     PSWD.insertCode = function () {
         var _this = this;
-        var codeLines = [''];
-        codeLines.push('var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');');
-        codeLines.push('var url = \'' + this.chosenUrl + '\';');
-        codeLines.push('var toOpen = url.replace(/%s/g,search);');
-        if (this.howToOpen === 'newTab') {
-            codeLines.push('window.open(toOpen, \'_blank\');');
-        }
-        else {
-            codeLines.push('location.href = toOpen;');
-        }
-        codeLines.push('');
-        var code = codeLines.join('\n');
+        var code = "var search = crmAPI.getSelection() || prompt('Please enter a search query');\nvar url = '" + this.chosenUrl + "';\nvar toOpen = url.replace(/%s/g,search);\n" + (this.howToOpen === 'newTab' ?
+            "window.open(toOpen, '_blank');" :
+            "location.href = toOpen;");
         window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
         setTimeout(function () {
             _this.hide();
@@ -189,10 +181,9 @@ var PSWD = (function () {
     PSWD.processSearchEngines = function () {
         var _this = this;
         return function (resolve, reject) {
-            var worker = new Worker('elements/tools/paper-search-website-dialog/searchEngineWorker.js');
             var data = _this.$.manualInputListChoiceInput.value;
-            worker.addEventListener('message', function (e) {
-                var structuredSearchEngines = e.data.searchEngines;
+            try {
+                var structuredSearchEngines = JSON.parse(data);
                 $('.SEImportError').remove();
                 if (structuredSearchEngines.length !== 0) {
                     _this.disableManualButton = true;
@@ -203,9 +194,10 @@ var PSWD = (function () {
                     //Show error
                     reject('data was invalid');
                 }
-                worker.terminate();
-            });
-            worker.postMessage(data);
+            }
+            catch (e) {
+                reject('data was invalid');
+            }
         };
     };
     ;

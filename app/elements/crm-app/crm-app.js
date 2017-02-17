@@ -2200,7 +2200,8 @@ var CA = (function () {
         this.setupStorages(onDone);
         //Reset dialog
         if (window.app.item) {
-            window[window.app.item.type + 'Edit'] && window[window.app.item.type + 'Edit'].cancel();
+            var dialog = window[window.app.item.type + 'Edit'];
+            dialog && dialog.cancel();
         }
         window.app.item = null;
         //Reset checkboxes
@@ -2214,6 +2215,10 @@ var CA = (function () {
         window.doc['URISchemeFilePath'].querySelector('input').value = 'C:\\files\\my_file.exe';
         window.doc['URISchemeSchemeName'].value = 'myscheme';
         window.doc['URISchemeSchemeName'].querySelector('input').value = 'myscheme';
+        //Hide all open dialogs
+        Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach(function (dialog) {
+            dialog.opened && dialog.close();
+        });
     };
     ;
     CA.getLocalStorageKey = function (key) {

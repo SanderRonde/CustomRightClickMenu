@@ -145,6 +145,7 @@ import * as webdriver from 'selenium-webdriver';
 const mochaSteps = require('mocha-steps');
 const secrets = require('./UI/secrets');
 const btoa = require('btoa');
+const xhr = require('xhr');
 
 const assert = chai.assert;
 
@@ -169,7 +170,7 @@ switch (__filename.split('-').pop().split('.')[0]) {
 	default: 
 		capabilities = {
 			'browserName' : 'Chrome',
-			'browser_version': '26.0',
+			//'browser_version': '26.0',
 			'os' : 'Windows',
 			'os_version' : '8',
 			'resolution' : '1920x1080',
@@ -528,7 +529,7 @@ function resetSettings(_this: MochaFn, driver: webdriver.WebDriver,
 					console.log(e);
 					throw e;
 				}
-				return wait(driver, 1000);
+				return wait(driver, 1500);
 			}).then(() => {
 				resolve(null);
 			});
@@ -638,6 +639,7 @@ interface FoundElement {
 	sendKeys(...args: Array<string|webdriver.promise.Promise<string>|InputKeys>
 			): webdriver.promise.Promise<void>;
 	getAttribute(attr: string): webdriver.promise.Promise<string>;
+	getProperty(prop: string): webdriver.promise.Promise<any>;
 	getSize(): webdriver.promise.Promise<ClientRect>;
 }
 
@@ -715,6 +717,15 @@ class FoundElementPromise {
 			});
 		});
 	}
+	getProperty(prop: string): webdriver.promise.Promise<any> {
+		return new webdriver.promise.Promise<any>((resolve) => {
+			this.then((element) => {
+				element.getProperty(prop).then((value) => {
+					resolve(value);
+				});
+			});
+		});
+	}
 	getSize(): webdriver.promise.Promise<ClientRect> {
 		return new webdriver.promise.Promise<ClientRect>((resolve) => {
 			this.then((element) => {
@@ -769,7 +780,8 @@ class FoundElement implements FoundElement {
 				findElementOnPage('REPLACE.selector').click();
 			}, {
 				selector: JSON.stringify(selectorList.reverse())
-			}, findElementOnPage)).then(() => {
+			}, findElementOnPage)).then((e) => {
+				e && console.log(e);
 				resolve(undefined);
 			});
 		});
@@ -880,6 +892,26 @@ class FoundElement implements FoundElement {
 				resolve(undefined);
 			});
 		})
+	}
+	getProperty(prop: string): webdriver.promise.Promise<any> {
+		const selectorList = [[this.selector, this.index]];
+		let currentElement: FoundElement = this;
+		while (currentElement.parent) {
+			currentElement = currentElement.parent;
+			selectorList.push([currentElement.selector, currentElement.index]);
+		}
+		return new webdriver.promise.Promise<any>((resolve) => {
+			this.driver.executeScript(inlineFn(() => {
+				const el = findElementOnPage('REPLACE.selector');
+				const val = el['REPLACE.prop'];
+				return JSON.stringify(val);
+			}, {
+				selector: JSON.stringify(selectorList.reverse()),
+				prop: prop
+			}, findElementOnPage)).then((value: string) => {
+				resolve(JSON.parse(value));
+			});
+		});
 	}
 	getAttribute(attr: string): webdriver.promise.Promise<string> {
 		const selectorList = [[this.selector, this.index]];
@@ -1038,6 +1070,22 @@ function sanitizeUrl(url: string): string {
 	return url;
 }
 
+function subtractStrings(biggest: string, smallest: string): string {
+	return biggest.slice(smallest.length);
+}
+
+function getEditorValue(driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<string> {
+	return new webdriver.promise.Promise<string>((resolve) => {
+		driver.executeScript(inlineFn(() => {
+			return window['REPLACE.editor'].editor.getValue();
+		}, {
+			editor: type === 'script' ? 'scriptEdit' : 'stylesheetEdit'
+		})).then((value: string) => {
+			resolve(value);
+		})
+	});
+}
+
 interface NameCheckingCRM {
 	name: string;
 	children?: Array<NameCheckingCRM>;
@@ -1063,21 +1111,25 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 	});
 }
 
-function enterEditorFullscreen(_this: MochaFn, driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<void> {
-	return resetSettings(_this, driver).then(() => {
+function enterEditorFullscreen(_this: MochaFn, driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<FoundElement> {
+	return new webdriver.promise.Promise<FoundElement>((resolve) => {
+		resetSettings(_this, driver).then(() => {
 		return openDialog(driver, type);
-	}).then(() => {
-		return getDialog(driver, type);
-	}).then((dialog) => {
-		return wait(driver, 500, dialog);
-	}).then((dialog) => {
-		return dialog
-			.findElement(webdriver.By.id('editorFullScreen'))
-			.click()
-			.then(() => {
-				return wait(driver, 500);
-			});
-	})
+		}).then(() => {
+			return getDialog(driver, type);
+		}).then((dialog) => {
+			return wait(driver, 500, dialog);
+		}).then((dialog) => {
+			return dialog
+				.findElement(webdriver.By.id('editorFullScreen'))
+				.click()
+				.then(() => {
+					return wait(driver, 500);
+				}).then(() => {
+					resolve(dialog);
+				});
+		})
+	});
 }
 
 describe('Options Page', function(this: MochaFn) {
@@ -1096,6 +1148,7 @@ describe('Options Page', function(this: MochaFn) {
 				});
 		});
 	});
+	/*
 	describe('CheckboxOptions', function(this: MochaFn) {
 		this.timeout(5000);
 		this.slow(4000);
@@ -1502,6 +1555,7 @@ describe('Options Page', function(this: MochaFn) {
 					});
 			});
 	});
+	*/
 
 	function testNameInput(type: NodeType) {
 		const defaultName = 'name';
@@ -2317,6 +2371,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 		this.timeout(60000);
 
+		/*
 		describe('Type Switching', function(this: MochaFn) {
 
 			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
@@ -2876,6 +2931,7 @@ describe('Options Page', function(this: MochaFn) {
 				});
 			});
 		});
+		*/
 		describe('Script Dialog', function(this: MochaFn) {
 			const type: NodeType = 'script';
 
@@ -2883,26 +2939,741 @@ describe('Options Page', function(this: MochaFn) {
 				return resetSettings(this, driver);
 			});
 
+			/*
 			testNameInput(type);
 			testContentTypes(type);
 			testClickTriggers(type);
+			*/
 
 			describe('Editor', function(this: MochaFn) {
+				/*
 				describe('Settings', function(this: MochaFn) {
 					testEditorSettings(type);
 				});
-				// describe('Fullscreen Tools', function(this: MochaFn) {
-				// 	this.slow(30000);
-				// 	this.timeout(40000);
+				*/
+				describe('Fullscreen Tools', function(this: MochaFn) {
+					this.slow(30000);
+					this.timeout(40000);
 
-				// 	describe('Libraries', function(this: MochaFn) {
-						
-				// 	});
+					describe('Libraries', function(this: MochaFn) {
+						afterEach('Close dialog', (done) => {
+							driver.executeScript(inlineFn(() => {
+								(document.getElementById('addLibraryDialog') as any).close();
+							})).then(() => {
+								done();
+							})
+						});
 
-				// 	enterEditorFullscreen(this, driver, type).then((dialog) => {
+						it('should be possible to add your own library through a URL', (done) => {
+							const tabId = getRandomId();
+							const libName = getRandomString(25);
+							const libUrl = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js';
 
-				// 	});
-				// });
+							enterEditorFullscreen(this, driver, type).then((dialog) => {
+								return findElement(driver, webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
+									.click()
+									.then(() => {
+										return wait(driver, 500, dialog);
+									}).then(() => {
+										return findElement(driver, webdriver.By.className('addLibrary'))
+											.click()
+											.then(() => {
+												return wait(driver, 500, dialog);
+											});
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
+											.findElement(webdriver.By.tagName('input'))
+											.sendKeys(InputKeys.CLEAR_ALL, libUrl)
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return webdriver.promise.all([
+											findElement(driver, webdriver.By.id('addedLibraryName'))
+												.getProperty('invalid'),
+											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
+												.getSize()
+										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
+											assert.isTrue(isInvalid, 'Name should be marked as invalid');
+											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key) => {
+												return libSizes[key] !== 0;
+											}).length !== 0, 'Current dialog should be visible');
+
+											console.log('tested this first thing');
+											return findElement(driver, webdriver.By.id('addedLibraryName'))
+												.findElement(webdriver.By.tagName('input'))
+												.sendKeys(InputKeys.CLEAR_ALL, libName);
+										});
+									}).then(() => {
+										return wait(driver, 10000);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return wait(driver, 5000);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
+											.click();
+									}).then(() => {
+										return wait(driver, 5000);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('editorFullScreen'))
+											.click();
+									}).then(() => {
+										return wait(driver, 5000);
+									}).then(() => {
+										return saveDialog(dialog);
+									}).then(() => {
+										return getCRM(driver);
+									}).then((crm: [ScriptNode]) => {
+										assert.include(crm[0].value.libraries, {
+											name: libName,
+											url: libUrl
+										}, 'Library was added');
+
+										return wait(driver, 200);
+									});
+							}).then(() => {
+								//Get the code that is stored at given test URL
+								return new webdriver.promise.Promise<string>((resolve) => {
+									xhr.post(libUrl, (err, resp) => {
+										assert.ifError(err, 'Should not fail the GET request');
+										resolve(resp);
+									});
+								});
+							}).then((jqCode) => {
+								getContextMenu(driver).then((contextMenu) => {
+									driver
+										.executeScript(inlineFn(() => {
+											window.chrome._clearExecutedScripts();
+											return window.chrome._currentContextMenu[0]
+												.children[0]
+												.currentProperties.onclick(
+													REPLACE.page, REPLACE.tab
+												);
+										}, {
+											page: JSON.stringify({
+												menuItemId: contextMenu[0].id,
+												editable: false,
+												pageUrl: 'www.google.com'
+											}),
+											tab: JSON.stringify({
+												id: tabId,
+												index: 1,
+												windowId: getRandomId(),
+												highlighted: false,
+												active: true,
+												pinned: false,
+												selected: false,
+												url: 'http://www.google.com',
+												title: 'Google',
+												incognito: false
+											})
+										})).then(() => {
+											return driver
+												.executeScript(inlineFn(() => {
+													return JSON.stringify(window.chrome._executedScripts);
+												}))
+										}).then((str: string) => {
+											const activatedScripts = JSON.parse(str) as ExecutedScripts;
+
+											assert.include(activatedScripts, {
+												id: tabId,
+												code: jqCode
+											}, 'library was properly executed');;
+											done();
+										});
+								});
+							});
+						});
+						/*
+						it('should not add a library through url when not saved', (done) => {
+							const libName = getRandomString(25);
+							const libUrl = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js';
+
+							enterEditorFullscreen(this, driver, type).then((dialog) => {
+								findElement(driver, webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
+									.click()
+									.then(() => {
+										return wait(driver, 500, dialog);
+									}).then(() => {
+										return findElement(driver, webdriver.By.className('addLibrary'))
+											.click()
+											.then(() => {
+												return wait(driver, 500, dialog);
+											});
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
+											.findElement(webdriver.By.tagName('input'))
+											.sendKeys(InputKeys.CLEAR_ALL, libUrl)
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return webdriver.promise.all([
+											findElement(driver, webdriver.By.id('addedLibraryName'))
+												.getProperty('invalid'),
+											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
+												.getSize()
+										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
+											assert.isTrue(isInvalid, 'Name should be marked as invalid');
+											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key) => {
+												return libSizes[key] !== 0;
+											}).length !== 0, 'Current dialog should be visible');
+
+											return findElement(driver, webdriver.By.id('addedLibraryName'))
+												.findElement(webdriver.By.tagName('input'))
+												.sendKeys(InputKeys.CLEAR_ALL, libName);
+										});
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return wait(driver, 2000);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
+											.click();
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('editorFullScreen'))
+											.click();
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return cancelDialog(dialog);
+									}).then(() => {
+										return getCRM(driver);
+									}).then((crm: [ScriptNode]) => {
+										assert.notInclude(crm[0].value.libraries, {
+											name: libName,
+											url: libUrl
+										}, 'Library was not added');
+										done();
+									});
+							});
+						});
+						it('should be possible to add your own library through code', (done) => {
+							const libName = getRandomString(25);
+							const testCode = getRandomString(100);
+							const tabId = getRandomId();
+
+							enterEditorFullscreen(this, driver, type).then((dialog) => {
+								return findElement(driver, webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
+									.click()
+									.then(() => {
+										return wait(driver, 500, dialog);
+									}).then(() => {
+										return findElement(driver, webdriver.By.className('addLibrary'))
+											.click()
+											.then(() => {
+												return wait(driver, 500, dialog);
+											});
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryManualOption'))
+											.click();
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryManualInput'))
+											.findElement(webdriver.By.tagName('textarea'))
+											.sendKeys(InputKeys.CLEAR_ALL, testCode);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return webdriver.promise.all([
+											findElement(driver, webdriver.By.id('addedLibraryName'))
+												.getProperty('invalid'),
+											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
+												.getSize()
+										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
+											assert.isTrue(isInvalid, 'Name should be marked as invalid');
+											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key) => {
+												return libSizes[key] !== 0;
+											}).length !== 0, 'Current dialog should be visible');
+
+											return findElement(driver, webdriver.By.id('addedLibraryName'))
+												.findElement(webdriver.By.tagName('input'))
+												.sendKeys(InputKeys.CLEAR_ALL, libName);
+										});
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return wait(driver, 2000);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
+											.click();
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('editorFullScreen'))
+											.click();
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return saveDialog(dialog);
+									}).then(() => {
+										return getCRM(driver);
+									}).then((crm: [ScriptNode]) => {
+										assert.include(crm[0].value.libraries, {
+											name: libName,
+											url: null
+										}, 'Library was added');
+									});
+							}).then(() => {
+								getContextMenu(driver).then((contextMenu) => {
+									driver
+										.executeScript(inlineFn(() => {
+											window.chrome._clearExecutedScripts();
+											return window.chrome._currentContextMenu[0]
+												.children[0]
+												.currentProperties.onclick(
+													REPLACE.page, REPLACE.tab
+												);
+										}, {
+											page: JSON.stringify({
+												menuItemId: contextMenu[0].id,
+												editable: false,
+												pageUrl: 'www.google.com'
+											}),
+											tab: JSON.stringify({
+												id: tabId,
+												index: 1,
+												windowId: getRandomId(),
+												highlighted: false,
+												active: true,
+												pinned: false,
+												selected: false,
+												url: 'http://www.google.com',
+												title: 'Google',
+												incognito: false
+											})
+										})).then(() => {
+											return driver
+												.executeScript(inlineFn(() => {
+													return JSON.stringify(window.chrome._executedScripts);
+												}))
+										}).then((str: string) => {
+											const activatedScripts = JSON.parse(str) as ExecutedScripts;
+
+											assert.include(activatedScripts, {
+												id: tabId,
+												code: testCode
+											}, 'library was properly executed');;
+											done();
+										});
+								});
+							});
+						});
+						it('should not add a library through url when not saved', (done) => {
+							const libName = getRandomString(25);
+							const testCode = getRandomString(100);
+
+							enterEditorFullscreen(this, driver, type).then((dialog) => {
+								findElement(driver, webdriver.By.id('paperLibrariesSelector'))
+									.findElement(webdriver.By.id('dropdownSelectedCont'))
+									.click()
+									.then(() => {
+										return wait(driver, 500, dialog);
+									}).then(() => {
+										return findElement(driver, webdriver.By.className('addLibrary'))
+											.click()
+											.then(() => {
+												return wait(driver, 500, dialog);
+											});
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryManualOption'))
+											.click();
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryManualInput'))
+											.findElement(webdriver.By.tagName('textarea'))
+											.sendKeys(InputKeys.CLEAR_ALL, testCode);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return webdriver.promise.all([
+											findElement(driver, webdriver.By.id('addedLibraryName'))
+												.getProperty('invalid'),
+											findElement(driver, webdriver.By.id('addLibraryProcessContainer'))
+												.getSize()
+										]).then(([isInvalid, libSizes]: [boolean, ClientRect]) => {
+											assert.isTrue(isInvalid, 'Name should be marked as invalid');
+											assert.isTrue(Array.prototype.slice.apply(Object.getOwnPropertyNames(libSizes)).filter((key) => {
+												return libSizes[key] !== 0;
+											}).length !== 0, 'Current dialog should be visible');
+
+											return findElement(driver, webdriver.By.id('addedLibraryName'))
+												.findElement(webdriver.By.tagName('input'))
+												.sendKeys(InputKeys.CLEAR_ALL, libName);
+										});
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryButton'))
+											.click();
+									}).then(() => {
+										return wait(driver, 2000);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('addLibraryConfirmAddition'))
+											.click();
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return findElement(driver, webdriver.By.id('editorFullScreen'))
+											.click();
+									}).then(() => {
+										return wait(driver, 500);
+									}).then(() => {
+										return cancelDialog(dialog);
+									}).then(() => {
+										return getCRM(driver);
+									}).then((crm: [ScriptNode]) => {
+										assert.notInclude(crm[0].value.libraries, {
+											name: libName,
+											url: testCode
+										}, 'Library was not added');
+										done();
+									});
+							});
+						});
+						*/
+					});
+					/*
+					describe('GetPageProperties', function(this: MochaFn) {
+						const pagePropertyPairs = {
+							paperGetPropertySelection: 'crmAPI.getSelection();\n',
+							paperGetPropertyUrl: 'window.location.href;\n',
+							paperGetPropertyHost: 'window.location.host;\n',
+							paperGetPropertyPath: 'window.location.path;\n',
+							paperGetPropertyProtocol: 'window.location.protocol;\n',
+							paperGetPropertyWidth: 'window.innerWidth;\n',
+							paperGetPropertyHeight: 'window.innerHeight;\n',
+							paperGetPropertyPixels: 'window.scrollY;\n',
+							paperGetPropertyTitle: 'document.title;\n'
+						};
+						Object.getOwnPropertyNames(pagePropertyPairs).forEach((prop) => {
+							it(`should be able to insert the ${prop} property`, (done) => {
+								enterEditorFullscreen(this, driver, type).then((dialog) => {
+									getEditorValue(driver, type).then((prevCode) => {
+										findElement(driver, webdriver.By.id('paperGetPageProperties'))
+											.click().then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												findElement(driver, webdriver.By.id(prop))
+													.click()
+													.then(() => {
+														return wait(driver, 500);
+													}).then(() => {
+														return getEditorValue(driver, type);
+													}).then((newCode) => {
+														assert.strictEqual(subtractStrings(newCode, prevCode),
+															pagePropertyPairs[prop], 
+															'Added text should match expected');
+													}).then(() => {
+														return findElement(driver, webdriver.By.id('editorFullScreen'))
+															.click();
+													}).then(() => {
+														return wait(driver, 500);
+													}).then(() => {
+														return cancelDialog(dialog);
+													}).then(() => {
+														done();
+													});
+											});
+									});
+								});
+							});
+						});
+					});
+					describe('Search Website', function(this: MochaFn) {
+						afterEach('Close dialog', (done) => {
+							driver.executeScript(inlineFn(() => {
+								(document.getElementById('paperSearchWebsiteDialog') as any).opened &&
+								(document.getElementById('paperSearchWebsiteDialog') as any).hide();
+							})).then(() => {
+								done();
+							});
+						});
+
+						describe('Default SearchEngines', function(this: MochaFn){
+							it('should correctly add a search engine script (new tab)', (done) => {
+								enterEditorFullscreen(this, driver, type).then((dialog) => {
+									getEditorValue(driver, type).then((prevCode) => {
+										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
+										.click()
+										.then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('paperSearchWebsiteDialog'))
+											.findElement(webdriver.By.id('initialWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElement(webdriver.By.css('paper-button:nth-child(2)'))
+											.click()
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('chooseDefaultSearchWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('confirmationWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('howToOpenWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return getEditorValue(driver, type);
+										}).then((newCode) => {
+											console.log(newCode, prevCode);
+											assert.strictEqual(
+												subtractStrings(newCode, prevCode),
+												[
+													'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+													'var url = \'https://www.google.com/search?q=%s\';',
+													'var toOpen = url.replace(/%s/g,search);',
+													'window.open(toOpen, \'_blank\');'
+												].join('\n'), 'Added code matches expected');
+												done();
+										});
+									});
+								});
+							});
+							it('should correctly add a search engine script (current tab)', (done) => {
+								enterEditorFullscreen(this, driver, type).then((dialog) => {
+									getEditorValue(driver, type).then((prevCode) => {
+										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
+										.click()
+										.then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('paperSearchWebsiteDialog'))
+											.findElement(webdriver.By.id('initialWindow'))
+											.findElement(webdriver.By.className('buttons'))
+											.findElement(webdriver.By.css('paper-button:nth-child(2)'))
+											.click()
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('chooseDefaultSearchWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('confirmationWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('howToOpenLink'))
+												.findElements(webdriver.By.tagName('paper-radio-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('howToOpenWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return getEditorValue(driver, type);
+										}).then((newCode) => {
+											console.log(newCode, prevCode);
+											assert.strictEqual(
+												subtractStrings(newCode, prevCode),
+												[
+													'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+													'var url = \'https://www.google.com/search?q=%s\';',
+													'var toOpen = url.replace(/%s/g,search);',
+													'location.href = toOpen;'
+												].join('\n'), 'Added code matches expected');
+												done();
+										});
+									});
+								});
+							});
+						});
+						describe('Custom Input', function(this: MochaFn) {
+							it('should be able to add one from a search URL', (done) => {
+								const exampleSearchURL = 
+									`http://www.${getRandomString(10)}/?${getRandomString(10)}=customRightClickMenu}`;
+
+								enterEditorFullscreen(this, driver, type).then((dialog) => {
+									getEditorValue(driver, type).then((prevCode) => {
+										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
+										.click()
+										.then(() => {
+											return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
+												.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
+												.click();
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('confirmationWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('howToOpenWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+										}).then(() => {
+											return wait(driver, 500);
+										}).then(() => {
+											getEditorValue(driver, type).then((newCode) => {
+												assert.strictEqual(subtractStrings(newCode, prevCode),
+													[
+														'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+														`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
+														'var toOpen = url.replace(/%s/g,search);',
+														'window.open(toOpen, \'_blank\');'
+													].join('\n'), 'Script should match expected value');
+												done();
+											});
+										});
+									});
+								});
+							});
+							it('should be able to add one from your visited websites', (done) => {
+								const exampleVisitedWebsites: Array<{
+									name: string;
+									url: string;
+									searchUrl: string;
+								}> = [{
+									name: getRandomString(20),
+									url: getRandomString(20),
+									searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
+								}];
+
+								enterEditorFullscreen(this, driver, type).then((dialog) => {
+									getEditorValue(driver, type).then((oldValue) => {
+										findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
+											.click()
+											.then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
+													.findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
+													.click();
+											}).then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return findElement(driver, webdriver.By.id('manulInputSavedChoice'))
+													.click();
+											}).then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return driver.executeScript(inlineFn(() => {
+													document.querySelector('#manualInputListChoiceInput')
+														.querySelector('textarea').value = 'REPLACE.websites';
+												}, {
+													websites: JSON.stringify(exampleVisitedWebsites)
+												}));
+											}).then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+											}).then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return findElement(driver, webdriver.By.id('processedListWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+											}).then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return findElement(driver, webdriver.By.id('confirmationWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+											}).then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return findElement(driver, webdriver.By.id('howToOpenWindow'))
+												.findElement(webdriver.By.className('buttons'))
+												.findElements(webdriver.By.tagName('paper-button'))
+												.then((elements) => {
+													elements[1].click();
+												});
+											}).then(() => {
+												return wait(driver, 500);
+											}).then(() => {
+												return getEditorValue(driver, type);
+											}).then((newValue) => {
+												assert.strictEqual(subtractStrings(newValue, oldValue),
+													[
+														'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+														`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
+														'var toOpen = url.replace(/%s/g,search);',
+														'window.open(toOpen, \'_blank\');'
+													].join('\n'), 'Added script should match expected');
+												done();
+											});
+									});
+								});
+							});
+						});
+					});
+					*/
+				});
 			});
 		});
 	});
@@ -2935,6 +3706,7 @@ describe('Options Page', function(this: MochaFn) {
 });
 
 
+/*
 describe('On-Page CRM', function(this: MochaFn) {
 	describe('Redraws on new CRM', function(this: MochaFn) {
 		this.slow(250);
@@ -4287,6 +5059,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 	});
 });
+*/
 
 after('quit driver', () => {
 	console.log('quitting');

@@ -277,7 +277,7 @@ class CEP {
 		var _this = this;
 		var oldScript = (this.item as ScriptNode).value.oldScript;
 		var newScript = (this.item as ScriptNode).value.script;
-		const chooseDialog = window.doc['externalEditorChooseFile'];
+		const chooseDialog = window.doc.externalEditorChooseFile;
 		chooseDialog.init(oldScript, newScript, function(chosenScript: string) {
 			if (window.app.storageLocal.upgradeErrors) {
 				delete window.app.storageLocal.upgradeErrors[_this.item.id];

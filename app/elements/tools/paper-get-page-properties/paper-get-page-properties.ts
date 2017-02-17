@@ -26,35 +26,35 @@ class PGPP {
 		this.listener(data);
 	};
 
-	static click(e: PolymerClickEvent) {
+	static _click(e: PolymerClickEvent) {
 		var option = e.target.getAttribute('id').split('paperGetProperty')[1];
 		switch (option) {
 			case 'Selection':
-				this.sendData('crmAPI.getSelection();');
+				this.sendData('crmAPI.getSelection();\n');
 				break;
 			case 'Url':
-				this.sendData('window.location.href;');
+				this.sendData('window.location.href;\n');
 				break;
 			case 'Host':
-				this.sendData('window.location.host;');
+				this.sendData('window.location.host;\n');
 				break;
 			case 'Path':
-				this.sendData('window.location.path;');
+				this.sendData('window.location.path;\n');
 				break;
 			case 'Protocol':
-				this.sendData('window.location.protocol;');
+				this.sendData('window.location.protocol;\n');
 				break;
 			case 'Width':
-				this.sendData('window.innerWidth;');
+				this.sendData('window.innerWidth;\n');
 				break;
 			case 'Height':
-				this.sendData('window.innerHeight;');
+				this.sendData('window.innerHeight;\n');
 				break;
 			case 'Pixels':
-				this.sendData('window.scrollY;');
+				this.sendData('window.scrollY;\n');
 				break;
 			case 'Title':
-				this.sendData('document.title;');
+				this.sendData('document.title;\n');
 				break;
 		}
 	};

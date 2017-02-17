@@ -233,7 +233,7 @@ class NEB {
 				element.parentElement.classList[1].split('Type')[0] + 'ContentSelected' as
 					keyof NodeEditBehaviorProperties
 			] = true;
-			window.doc['contentTypeToast'].show();
+			window.doc.contentTypeToast.show();
 		}
 		return false;
 	};

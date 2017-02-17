@@ -157,9 +157,9 @@ class UEE {
 	 * Initialize for use
 	 */
 	static init(this: UseExternalEditor) {
-		window.doc['externalEditorDialogTrigger'].style.color = 'rgb(38, 153, 244)';
-		window.doc['externalEditorDialogTrigger'].classList.remove('disabled');
-		window.doc['externalEditorDialogTrigger'].disabled = false;
+		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
+		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
+		window.doc.externalEditorDialogTrigger.disabled = false;
 	};
 
 	/**
@@ -168,7 +168,7 @@ class UEE {
 	 * @param {string} error - What went wrong
 	 */
 	static errorHandler(this: UseExternalEditor, error: string = 'Something went wrong') {
-		const toast = window.doc['externalEditorErrorToast'];
+		const toast = window.doc.externalEditorErrorToast;
 		toast.text = error;
 		toast.show();
 	};
@@ -197,9 +197,9 @@ class UEE {
 	};
 
 	static cancelOpenFiles(this: UseExternalEditor) {
-		window.doc['externalEditorDialogTrigger'].style.color = 'rgb(38, 153, 244)';
-		window.doc['externalEditorDialogTrigger'].classList.remove('disabled');
-		window.doc['externalEditorDialogTrigger'].disabled = false;
+		window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
+		window.doc.externalEditorDialogTrigger.classList.remove('disabled');
+		window.doc.externalEditorDialogTrigger.disabled = false;
 
 		try {
 			this.appPort.postMessage({
@@ -217,9 +217,9 @@ class UEE {
 
 	static createEditingOverlay(this: UseExternalEditor) {
 		var _this = this;
-		window.doc['externalEditorDialogTrigger'].style.color = 'rgb(175, 175, 175)';
-		window.doc['externalEditorDialogTrigger'].disabled = true;
-		window.doc['externalEditorDialogTrigger'].classList.add('disabled');
+		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
+		window.doc.externalEditorDialogTrigger.disabled = true;
+		window.doc.externalEditorDialogTrigger.classList.add('disabled');
 		var $toolsCont = $('<div id="externalEditingTools"></div>');
 		$('<div id="externalEditingToolsTitle">Using external editor</div>').appendTo($toolsCont);
 		var $cont = $('<div id="externalEditingToolsButtonsCont"></div>').appendTo($toolsCont);
@@ -256,8 +256,8 @@ class UEE {
 				//Show location toast
 				var location = _this.connection.filePath;
 				location = location.replace(/\\/g, '/');
-				window.doc['externalEditoOpenLocationInBrowser'].setAttribute('href', 'file:///' + location);
-				const externalEditorLocationToast = window.doc['externalEditorLocationToast'];
+				window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
+				const externalEditorLocationToast = window.doc.externalEditorLocationToast;
 				externalEditorLocationToast.text = 'File is located at: ' + location;
 				externalEditorLocationToast.show();
 			})
@@ -382,7 +382,7 @@ class UEE {
 		switch (msg.action) {
 			case 'chooseFile':
 				var _this = this;
-				const chooseFileDialog = window.doc['externalEditorChooseFile'];
+				const chooseFileDialog = window.doc.externalEditorChooseFile;
 				chooseFileDialog.init(msg.local, msg.external, function(result) {
 					if (result !== false) {
 						if (window.scriptEdit && window.scriptEdit.active) {
@@ -478,15 +478,15 @@ class UEE {
 	};
 
 	static cmLoaded(this: UseExternalEditor) {
-		var placeHolderRect = window.doc['chooseFileMergerPlaceholder'].getBoundingClientRect();
-		window.doc['chooseFileMergerPlaceholder'].style.width = placeHolderRect.width + 'px';
-		window.doc['chooseFileMergerPlaceholder'].style.height = placeHolderRect.height + 'px';
-		window.doc['chooseFileMergerPlaceholder'].style.position = 'absolute';
-		window.doc['chooseFileMergerPlaceholder'].style.display = 'flex';
+		var placeHolderRect = window.doc.chooseFileMergerPlaceholder.getBoundingClientRect();
+		window.doc.chooseFileMergerPlaceholder.style.width = placeHolderRect.width + 'px';
+		window.doc.chooseFileMergerPlaceholder.style.height = placeHolderRect.height + 'px';
+		window.doc.chooseFileMergerPlaceholder.style.position = 'absolute';
+		window.doc.chooseFileMergerPlaceholder.style.display = 'flex';
 		if (this.editorFadeInAnimation) {
 			this.editorFadeInAnimation.play();
 		} else {
-			this.editorFadeInAnimation = window.doc['chooseFileMergerPlaceholder'].animate([
+			this.editorFadeInAnimation = window.doc.chooseFileMergerPlaceholder.animate([
 				{
 					opacity: 1
 				}, {
@@ -497,14 +497,14 @@ class UEE {
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			});
 			this.editorFadeInAnimation.onfinish = function() {
-				window.doc['chooseFileMergerPlaceholder'].style.display = 'none';
-				window.doc['chooseFileMergerPlaceholder'].style.position = 'initial';
-				window.doc['chooseFileMergerPlaceholder'].style.width = 'auto';
-				window.doc['chooseFileMergerPlaceholder'].style.height = 'auto';
+				window.doc.chooseFileMergerPlaceholder.style.display = 'none';
+				window.doc.chooseFileMergerPlaceholder.style.position = 'initial';
+				window.doc.chooseFileMergerPlaceholder.style.width = 'auto';
+				window.doc.chooseFileMergerPlaceholder.style.height = 'auto';
 
-				window.doc['chooseFilemergerContainer'].style.opacity = '0';
-				window.doc['chooseFilemergerContainer'].style.display = 'block';
-				window.doc['chooseFilemergerContainer'].animate([
+				window.doc.chooseFilemergerContainer.style.opacity = '0';
+				window.doc.chooseFilemergerContainer.style.display = 'block';
+				window.doc.chooseFilemergerContainer.animate([
 					{
 						opacity: 0
 					}, {
@@ -514,7 +514,7 @@ class UEE {
 					duration: 350,
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				}).onfinish = function() {
-					window.doc['chooseFilemergerContainer'].style.opacity = '1';
+					window.doc.chooseFilemergerContainer.style.opacity = '1';
 					window.externalEditor.editor.edit.refresh();
 					window.externalEditor.editor.left.orig.refresh();
 					window.externalEditor.editor.right.orig.refresh();
@@ -525,8 +525,8 @@ class UEE {
 
 	static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
 		//Animate the comparison in
-		var dialogRect = window.doc['externalEditorChooseFile'].getBoundingClientRect();
-		var dialogStyle = window.doc['externalEditorChooseFile'].style;
+		var dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
+		var dialogStyle = window.doc.externalEditorChooseFile.style;
 
 		_this.dialogStyleProperties = dialogRect;
 
@@ -534,12 +534,12 @@ class UEE {
 		dialogStyle.width = dialogRect.width + 'px';
 		dialogStyle.height = dialogRect.height + 'px';
 		document.body.style.overflow = 'hidden';
-		window.doc['chooseFileMainDialog'].style.position = 'absolute';
+		window.doc.chooseFileMainDialog.style.position = 'absolute';
 
 		if (_this.dialogMainDivAnimationHide) {
 			_this.dialogMainDivAnimationHide.play();
 		} else {
-			_this.dialogMainDivAnimationHide = window.doc['chooseFileMainDialog'].animate([
+			_this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
 				{
 					marginTop: '20px',
 					opacity: 1
@@ -552,9 +552,9 @@ class UEE {
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			});
 			_this.dialogMainDivAnimationHide.onfinish = function() {
-				window.doc['chooseFileMainDialog'].style.display = 'none';
-				window.doc['chooseFileMainDialog'].style.marginTop = '0';
-				window.doc['chooseFileMainDialog'].style.opacity = '1';
+				window.doc.chooseFileMainDialog.style.display = 'none';
+				window.doc.chooseFileMainDialog.style.marginTop = '0';
+				window.doc.chooseFileMainDialog.style.opacity = '1';
 
 				if (_this.dialogExpansionAnimation) {
 					_this.dialogExpansionAnimation.play();
@@ -580,7 +580,7 @@ class UEE {
 							left: '0px'
 						}
 					]);
-					_this.dialogExpansionAnimation = window.doc['externalEditorChooseFile'].animate([
+					_this.dialogExpansionAnimation = window.doc.externalEditorChooseFile.animate([
 						{
 							width: dialogRect.width,
 							height: dialogRect.height,
@@ -611,11 +611,11 @@ class UEE {
 						dialogStyle.left = '0';
 						dialogStyle.margin = '0';
 
-						window.doc['chooseFileMerger'].style.display = 'flex';
+						window.doc.chooseFileMerger.style.display = 'flex';
 						if (_this.dialogComparisonDivAnimationShow) {
 							_this.dialogComparisonDivAnimationShow.play();
 						} else {
-							_this.dialogComparisonDivAnimationShow = window.doc['chooseFileMerger'].animate([
+							_this.dialogComparisonDivAnimationShow = window.doc.chooseFileMerger.animate([
 								{
 									marginTop: '70px',
 									opacity: 0
@@ -628,12 +628,12 @@ class UEE {
 								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 							});
 							_this.dialogComparisonDivAnimationShow.onfinish = function() {
-								window.doc['chooseFileMerger'].style.marginTop = '0';
-								window.doc['chooseFileMerger'].style.opacity = '1';
+								window.doc.chooseFileMerger.style.marginTop = '0';
+								window.doc.chooseFileMerger.style.opacity = '1';
 
 								if (!_this.editor) {
 									setTimeout(function () {
-										_this.editor = new window.CodeMirror.MergeView(window.doc['chooseFilemergerContainer'], {
+										_this.editor = new window.CodeMirror.MergeView(window.doc.chooseFilemergerContainer, {
 											lineNumbers: true,
 											scrollbarStyle: 'simple',
 											lineWrapping: true,
@@ -791,7 +791,7 @@ class UEE {
 				});
 			} else {
 				//No errors were found, show the toast
-				window.doc['noErrorsFound'].show();
+				window.doc.noErrorsFound.show();
 			}
 		};
 	};
@@ -813,28 +813,28 @@ class UEE {
 				});
 			}
 		};
-		const chooseFileDialog = window.doc['externalEditorChooseFile'] as ChooseFileDialog;
+		const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
 		chooseFileDialog.init = function (local: string, file: string, callback: (result: string|false) => void,
 				isUpdate?: boolean, updateErrors?: {
 					parseError: boolean;
 					newScript: Array<CursorPosition>;
 					oldScript: Array<CursorPosition>;
 				}) {
-			window.doc['chooseFileCurrentTxt'].innerText = (isUpdate ? 'Old' : 'CRM Editor');
-			window.doc['chooseFileNewTxt'].innerText = (isUpdate ? 'New' : 'File');
-			window.doc['chooseFileTitleTxt'].innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
-			window.doc['chooseFileStopMerging'].style.display = (isUpdate ? 'none' : 'block');
+			window.doc.chooseFileCurrentTxt.innerText = (isUpdate ? 'Old' : 'CRM Editor');
+			window.doc.chooseFileNewTxt.innerText = (isUpdate ? 'New' : 'File');
+			window.doc.chooseFileTitleTxt.innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
+			window.doc.chooseFileStopMerging.style.display = (isUpdate ? 'none' : 'block');
 			chooseFileDialog.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
 
 			var i;
-			var leftErrorButton = window.doc['updateMergeLeftNextError'];
+			var leftErrorButton = window.doc.updateMergeLeftNextError;
 			leftErrorButton.listeners = leftErrorButton.listeners || [];
 			for (i = 0; i < leftErrorButton.listeners.length; i++) {
 				leftErrorButton.removeEventListener('click', leftErrorButton.listeners[i]);
 			}
 			leftErrorButton.listeners = [];
 
-			var rightErrorButton = window.doc['updateMergeRightNextError'];
+			var rightErrorButton = window.doc.updateMergeRightNextError;
 			rightErrorButton.listeners = rightErrorButton.listeners || [];
 			for (i = 0; i < rightErrorButton.listeners.length; i++) {
 				rightErrorButton.removeEventListener('click', rightErrorButton.listeners[i]);
@@ -866,11 +866,11 @@ class UEE {
 			}
 
 			if (updateErrors) {
-				window.doc['updateMergerCont'].style.display = 'block';
+				window.doc.updateMergerCont.style.display = 'block';
 				var errorsNumber = (updateErrors.parseError ? '1' : updateErrors.oldScript.length);
-				window.doc['updateMergerTxt'].innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
+				window.doc.updateMergerTxt.innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
 				if (!updateErrors.parseError) {
-					leftErrorButton.style.display = rightErrorButton.style.display = window.doc['updateMergePlaceholderBr'].style.display = 'block';
+					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'block';
 					var listenerLeft = _this.generateNextErrorFinder(true, updateErrors.oldScript);
 					var listenerRight = _this.generateNextErrorFinder(false, updateErrors.newScript);
 					leftErrorButton.addEventListener('click', listenerLeft);
@@ -880,21 +880,21 @@ class UEE {
 
 					chooseFileDialog.addEventListener('iron-overlay-opened', markerFn);
 				} else {
-					leftErrorButton.style.display = rightErrorButton.style.display = window.doc['updateMergePlaceholderBr'].style.display = 'none';
+					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'none';
 				}
 			} else {
-				window.doc['updateMergerCont'].style.display = 'none';
+				window.doc.updateMergerCont.style.display = 'none';
 			}
 
 			chooseFileDialog.local = local;
 			chooseFileDialog.file = file;
 			chooseFileDialog.callback = callback;
 			_this.editor = null;
-			window.doc['chooseFilemergerContainer'].innerHTML = '';
+			window.doc.chooseFilemergerContainer.innerHTML = '';
 			document.body.style.overflow = 'auto';
-			window.doc['chooseFileMainDialog'].style.position = 'static';
-			window.doc['chooseFileMainDialog'].style.display = 'block';
-			window.doc['chooseFileMerger'].style.display = 'none';
+			window.doc.chooseFileMainDialog.style.position = 'static';
+			window.doc.chooseFileMainDialog.style.display = 'block';
+			window.doc.chooseFileMerger.style.display = 'none';
 
 			if (_this.dialogStyleProperties) {
 				chooseFileDialog.style.width = _this.dialogStyleProperties.width + 'px';
@@ -903,31 +903,31 @@ class UEE {
 				chooseFileDialog.style.left = _this.dialogStyleProperties.left + 'px';
 			}
 		};
-		window.doc['externalEditorTryAgainButton'].addEventListener('click', function() {
+		window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
 			_this.establishConnection(true);
-			window.doc['externalEditorErrorToast'].hide();
+			window.doc.externalEditorErrorToast.hide();
 		});
-		window.doc['chooseFileChooseFirst'].addEventListener('click', function() {
-			if (window.doc['chooseFileRadioGroup'].selected === 'local') {
+		window.doc.chooseFileChooseFirst.addEventListener('click', function() {
+			if (window.doc.chooseFileRadioGroup.selected === 'local') {
 				chooseFileDialog.callback(chooseFileDialog.local);
 			} else {
 				chooseFileDialog.callback(chooseFileDialog.file);
 			}
 		});
-		window.doc['chooseFileChooseMerge'].addEventListener('click', function() {
+		window.doc.chooseFileChooseMerge.addEventListener('click', function() {
 			chooseFileDialog.callback(_this.editor.edit.getValue());
 		});
 		$('.closeChooseFileDialog').click(function() {
 			chooseFileDialog.callback(false);
 		});
-		window.doc['chooseFileMerge'].addEventListener('click', function() {
+		window.doc.chooseFileMerge.addEventListener('click', function() {
 			_this.showMergeDialog(_this, chooseFileDialog.local, chooseFileDialog.file);
 		});
-		window.doc['chooseFileStopMerging'].addEventListener('click', function() {
+		window.doc.chooseFileStopMerging.addEventListener('click', function() {
 			if (_this.dialogComparisonDivAnimationHide) {
 				_this.dialogComparisonDivAnimationHide.play();
 			} else {
-				_this.dialogComparisonDivAnimationHide = window.doc['chooseFileMerger'].animate([
+				_this.dialogComparisonDivAnimationHide = window.doc.chooseFileMerger.animate([
 					{
 						marginTop: '0px',
 						opacity: 1
@@ -940,7 +940,7 @@ class UEE {
 					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 				});
 				_this.dialogComparisonDivAnimationHide.onfinish = function() {
-					window.doc['chooseFileMerger'].style.display = 'none';
+					window.doc.chooseFileMerger.style.display = 'none';
 
 					if (_this.dialogContractionAniation) {
 						_this.dialogContractionAniation.play();
@@ -970,13 +970,13 @@ class UEE {
 							chooseFileDialog.style.left = _this.dialogStyleProperties.left + 'px';
 
 							document.body.style.overflow = 'auto';
-							window.doc['chooseFileMainDialog'].style.position = 'static';
+							window.doc.chooseFileMainDialog.style.position = 'static';
 
-							window.doc['chooseFileMainDialog'].style.display = 'block';
+							window.doc.chooseFileMainDialog.style.display = 'block';
 							if (_this.dialogMainDivAnimationShow) {
 								_this.dialogMainDivAnimationShow.play();
 							} else {
-								_this.dialogMainDivAnimationShow = window.doc['chooseFileMainDialog'].animate([
+								_this.dialogMainDivAnimationShow = window.doc.chooseFileMainDialog.animate([
 									{
 										marginTop: '100px',
 										opacity: 0
@@ -989,8 +989,8 @@ class UEE {
 									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 								});
 								_this.dialogMainDivAnimationShow.onfinish = function() {
-									window.doc['chooseFileMainDialog'].style.marginTop = '20px';
-									window.doc['chooseFileMainDialog'].style.opacity = '1';
+									window.doc.chooseFileMainDialog.style.marginTop = '20px';
+									window.doc.chooseFileMainDialog.style.opacity = '1';
 								};
 							}
 						};

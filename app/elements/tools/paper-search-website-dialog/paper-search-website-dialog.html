@@ -60,8 +60,19 @@
 						<paper-input id="manualInputURLInput" label="URL"></paper-input>
 					</div>
 					<div hidden$="[[selectedIsUrl]]" id="manualInputListChoice">
-						Please right-click the omnibar (the white bar above any page) and go to "edit search engines", there click on the "search engines" text, press CTRL+A, then CTRL+C and paste the contents into the box below.
-						<paper-textarea on-paste="fixFit" on-keyup="fixOnChange" title="no" id="manualInputListChoiceInput" label="paste here" error-message="invalid input"></paper-textarea>
+						Please right-click the omnibar (the white bar above any page) and go to "edit search engines", press F12, paste the following code in the "console" tab and paste the contents into the box below.
+						<br><br>
+						<code>
+							copy(JSON.stringify(Array.prototype.slice.apply(document.querySelectorAll('#search-engine-manager-page .deletable-item')).slice(0, -1).map(function(searchEngine) {
+								var data = searchEngine.querySelectorAll('.static-text.overruleable');
+									return {
+										name: data[0].innerText,
+										url: data[1].innerText,
+										searchUrl: data[2].innerText
+									};
+								})));
+						</code>
+						<paper-textarea on-paste="fixFit" on-keyup="fixOnChange" id="manualInputListChoiceInput" label="paste here" error-message="invalid input"></paper-textarea>
 					</div>
 					<div class="buttons">
 						<paper-button on-tap="backFromManualInput">Back</paper-button>

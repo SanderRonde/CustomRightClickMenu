@@ -16,9 +16,9 @@ mocha test/UITest.js
 echo -en "travis_fold:end:ui_tests.1\\r"
 
 echo "UI Tests for new browser" && echo -en "travis_fold:start:ui_tests.2\\r"
-cp test/UITest.js test/UITest-1.js
-mocha test/UITest-1.js
-rm test/UITest-1.js
+# cp test/UITest.js test/UITest-1.js
+# mocha test/UITest-1.js
+# rm test/UITest-1.js
 echo -en "travis_fold:end:ui_tests.2\\r"
 
 if [ "$TRAVIS_BRANCH" = "master" ]; then

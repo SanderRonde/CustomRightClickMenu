@@ -392,9 +392,15 @@ var SCE = (function () {
     };
     ;
     SCE.cancelChanges = function () {
-        this.finishEditing();
-        window.externalEditor.cancelOpenFiles();
-        this.active = false;
+        var _this = this;
+        if (this.fullscreen) {
+            this.exitFullScreen();
+        }
+        window.setTimeout(function () {
+            _this.finishEditing();
+            window.externalEditor.cancelOpenFiles();
+            _this.active = false;
+        }, this.fullscreen ? 500 : 0);
     };
     ;
     SCE.getMetaTagValues = function () {
@@ -745,6 +751,10 @@ var SCE = (function () {
         */
     SCE.enterFullScreen = function () {
         var _this = this;
+        if (this.fullscreen) {
+            return;
+        }
+        this.fullscreen = true;
         var rect = this.editor.display.wrapper.getBoundingClientRect();
         var editorCont = window.doc['fullscreenEditor'];
         var editorContStyle = editorCont.style;
@@ -765,7 +775,7 @@ var SCE = (function () {
         this.editor.display.wrapper.classList.remove('small');
         $editorWrapper.appendTo(window.doc['fullscreenEditorHorizontal']);
         var $horizontalCenterer = $('#horizontalCenterer');
-        var viewportWidth = $horizontalCenterer.width();
+        var viewportWidth = $horizontalCenterer.width() + 20;
         var viewPortHeight = $horizontalCenterer.height();
         if (window.app.storageLocal.hideToolsRibbon !== undefined) {
             if (window.app.storageLocal.hideToolsRibbon) {
@@ -824,6 +834,10 @@ var SCE = (function () {
         * Exits the editor's fullscreen mode
         */
     SCE.exitFullScreen = function () {
+        if (!this.fullscreen) {
+            return;
+        }
+        this.fullscreen = false;
         var _this = this;
         this.popOutRibbons();
         var $wrapper = $(_this.editor.display.wrapper);
@@ -994,11 +1008,13 @@ var SCE = (function () {
         */
     SCE.reloadEditor = function (disable) {
         if (disable === void 0) { disable = false; }
-        $(this.editor.display.wrapper).remove();
-        this.$.editorPlaceholder.style.display = 'flex';
-        this.$.editorPlaceholder.style.opacity = '1';
-        this.$.editorPlaceholder.style.position = 'absolute';
-        this.newSettings.value.script = this.editor.doc.getValue();
+        if (this.editor) {
+            $(this.editor.display.wrapper).remove();
+            this.$.editorPlaceholder.style.display = 'flex';
+            this.$.editorPlaceholder.style.opacity = '1';
+            this.$.editorPlaceholder.style.position = 'absolute';
+            this.newSettings.value.script = this.editor.doc.getValue();
+        }
         this.editor = null;
         var value = (this.editorMode === 'main' ?
             this.newSettings.value.script :

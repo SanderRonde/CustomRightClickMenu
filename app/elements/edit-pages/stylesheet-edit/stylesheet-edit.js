@@ -40,9 +40,15 @@ var STE = (function () {
     };
     ;
     STE.cancelChanges = function () {
-        this.finishEditing();
-        window.externalEditor.cancelOpenFiles();
-        this.active = false;
+        var _this = this;
+        if (this.fullscreen) {
+            this.exitFullScreen();
+        }
+        window.setTimeout(function () {
+            _this.finishEditing();
+            window.externalEditor.cancelOpenFiles();
+            _this.active = false;
+        }, this.fullscreen ? 500 : 0);
     };
     ;
     STE.saveChanges = function () {
@@ -242,6 +248,10 @@ var STE = (function () {
      */
     STE.enterFullScreen = function () {
         var _this = this;
+        if (this.fullscreen) {
+            return;
+        }
+        this.fullscreen = true;
         var rect = this.editor.display.wrapper.getBoundingClientRect();
         var editorCont = window.doc['fullscreenEditor'];
         var editorContStyle = editorCont.style;
@@ -258,7 +268,7 @@ var STE = (function () {
         this.editor.display.wrapper.classList.add('fullscreen');
         $editorWrapper.appendTo(window.doc['fullscreenEditorHorizontal']);
         var $horizontalCenterer = $('#horizontalCenterer');
-        var viewportWidth = $horizontalCenterer.width();
+        var viewportWidth = $horizontalCenterer.width() + 20;
         var viewPortHeight = $horizontalCenterer.height();
         if (window.app.storageLocal.hideToolsRibbon !== undefined) {
             if (window.app.storageLocal.hideToolsRibbon) {
@@ -325,6 +335,10 @@ var STE = (function () {
      * Exits the editor's fullscreen mode
      */
     STE.exitFullScreen = function () {
+        if (!this.fullscreen) {
+            return;
+        }
+        this.fullscreen = false;
         var _this = this;
         this.popOutRibbons();
         var $wrapper = $(_this.editor.display.wrapper);
@@ -493,19 +507,18 @@ var STE = (function () {
      */
     STE.reloadEditor = function (disable) {
         if (disable === void 0) { disable = false; }
-        if (!this.editor) {
-            return;
+        if (this.editor) {
+            $(this.editor.display.wrapper).remove();
+            this.$.editorPlaceholder.style.display = 'flex';
+            this.$.editorPlaceholder.style.opacity = '1';
+            this.$.editorPlaceholder.style.position = 'absolute';
+            var stylesheetLines = [];
+            var lines = this.editor.doc.lineCount();
+            for (var i = 0; i < lines; i++) {
+                stylesheetLines.push(this.editor.doc.getLine(i));
+            }
+            this.newSettings.value.stylesheet = stylesheetLines.join('\n');
         }
-        $(this.editor.display.wrapper).remove();
-        this.$.editorPlaceholder.style.display = 'flex';
-        this.$.editorPlaceholder.style.opacity = '1';
-        this.$.editorPlaceholder.style.position = 'absolute';
-        var stylesheetLines = [];
-        var lines = this.editor.doc.lineCount();
-        for (var i = 0; i < lines; i++) {
-            stylesheetLines.push(this.editor.doc.getLine(i));
-        }
-        this.newSettings.value.stylesheet = stylesheetLines.join('\n');
         this.editor = null;
         if (this.fullscreen) {
             this.loadEditor(window.doc['fullscreenEditorHorizontal'], this.newSettings.value.stylesheet, disable);
@@ -827,6 +840,10 @@ STE.editorOptions = null;
 
  */
 STE.settingsShadow = null;
+/**
+ * The editor's dimensions before it goes fullscreen
+ */
+STE.preFullscreenEditorDimensions = {};
 /**
  * The fullscreen animation
  */

@@ -198,6 +198,7 @@ class PSWD {
 		}, function() {
 			_this.$.manualInputListChoiceInput.invalid = true;
 			spinner.active = false;
+			_this.switchToWindow('manuallyInputSearchWebsiteWindow');
 		});
 	};
 	//#endregion
@@ -208,18 +209,14 @@ class PSWD {
 	 */
 	static insertCode(this: PaperSearchWebsiteDialog) {
 		var _this = this;
-		var codeLines = [''];
-		codeLines.push('var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');');
-		codeLines.push('var url = \'' + this.chosenUrl + '\';');
-		codeLines.push('var toOpen = url.replace(/%s/g,search);');
-		if (this.howToOpen === 'newTab') {
-			codeLines.push('window.open(toOpen, \'_blank\');');
-		}
-		else {
-			codeLines.push('location.href = toOpen;');
-		}
-		codeLines.push('');
-		var code = codeLines.join('\n');
+		const code = 
+`var search = crmAPI.getSelection() || prompt('Please enter a search query');
+var url = '${this.chosenUrl}';
+var toOpen = url.replace(/%s/g,search);
+${this.howToOpen === 'newTab' ? 
+	`window.open(toOpen, '_blank');` : 
+	`location.href = toOpen;`
+}`;
 		window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
 		setTimeout(function() {
 			_this.hide();
@@ -241,11 +238,10 @@ class PSWD {
 	static processSearchEngines(this: PaperSearchWebsiteDialog) {
 		var _this = this;
 		return function(resolve: (value?: any) => void, reject: (value?: any) => void) {
-			var worker = new Worker('elements/tools/paper-search-website-dialog/searchEngineWorker.js');
-			var data = _this.$.manualInputListChoiceInput.value;
+			var data = _this.$.manualInputListChoiceInput.querySelector('textarea').value;
 
-			worker.addEventListener('message', function(e) {
-				var structuredSearchEngines = e.data.searchEngines;
+			try {
+				var structuredSearchEngines = JSON.parse(data);
 				$('.SEImportError').remove();
 				if (structuredSearchEngines.length !== 0) {
 					_this.disableManualButton = true;
@@ -256,9 +252,9 @@ class PSWD {
 					//Show error
 					reject('data was invalid');
 				}
-				worker.terminate();
-			});
-			worker.postMessage(data);
+			} catch(e) {
+				reject('data was invalid');
+			}
 		};
 	};
 
@@ -272,7 +268,10 @@ class PSWD {
 	 */
 	static processManualInput(this: PaperSearchWebsiteDialog) {
 		if (this.selectedIsUrl) {
-			this.chosenUrl = this.$.manualInputURLInput.value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
+			this.chosenUrl = this.$.manualInputURLInput
+				.querySelector('input')
+				.value
+				.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
 			this.switchToWindow('confirmationWindow');
 		}
 		else {

@@ -83,6 +83,7 @@ interface HTMLPaperIconButtonElement extends HTMLElement {
 }
 
 interface PaperDialogBase extends HTMLElement {
+	opened: boolean;
 	toggle(): void;
 	close(): void;
 	open(): void;

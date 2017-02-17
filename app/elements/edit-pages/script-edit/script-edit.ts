@@ -397,8 +397,8 @@ class SCE {
 
 	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		if (this.querySelectorAll('.executionTrigger').length === 1) {
-			window.doc['messageToast'].text = 'You need to have at least one trigger';
-			window.doc['messageToast'].show();
+			window.doc.messageToast.text = 'You need to have at least one trigger';
+			window.doc.messageToast.show();
 			return;
 		}
 
@@ -549,9 +549,14 @@ class SCE {
 	};
 
 	static cancelChanges(this: NodeEditBehaviorScriptInstance) {
-		this.finishEditing();
-		window.externalEditor.cancelOpenFiles();
-		this.active = false;
+		if (this.fullscreen) {
+			this.exitFullScreen();
+		}
+		window.setTimeout(() => {
+			this.finishEditing();
+			window.externalEditor.cancelOpenFiles();
+			this.active = false;
+		}, this.fullscreen ? 500 : 0);
 	};
 
 	static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
@@ -756,7 +761,7 @@ class SCE {
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
 		if (window.app.storageLocal.shrinkTitleRibbon) {
-			window.doc['editorTitleRibbon'].style.fontSize = '40%';
+			window.doc.editorTitleRibbon.style.fontSize = '40%';
 			scriptTitle.style.padding = '0';
 			titleRibbonSize = '-18px';
 		} else {
@@ -782,8 +787,8 @@ class SCE {
 
 		this.initToolsRibbon();
 		setTimeout(function() {
-			window.doc['editorToolsRibbonContainer'].style.display = 'flex';
-			window.doc['editorToolsRibbonContainer'].animate([
+			window.doc.editorToolsRibbonContainer.style.display = 'flex';
+			window.doc.editorToolsRibbonContainer.animate([
 				{
 					marginLeft: '-200px'
 				}, {
@@ -793,19 +798,19 @@ class SCE {
 				duration: 500,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 			}).onfinish = function() {
-				window.doc['editorToolsRibbonContainer'].style.marginLeft = margin;
-				window.doc['editorToolsRibbonContainer'].classList.add('visible');
+				window.doc.editorToolsRibbonContainer.style.marginLeft = margin;
+				window.doc.editorToolsRibbonContainer.classList.add('visible');
 			};
 		}, 200);
 		setTimeout(function() {
-			window.doc['dummy'].style.height = '0';
-			$(window.doc['dummy']).animate({
+			window.doc.dummy.style.height = '0';
+			$(window.doc.dummy).animate({
 				height: '50px'
 			}, {
 				duration: 500,
 				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 				step: (now: number) => {
-					window.doc['fullscreenEditorHorizontal'].style.height = 'calc(100vh - ' + now + 'px)';
+					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
 				}
 			});
 			scriptTitle.animate(scriptTitleAnimation, {
@@ -824,8 +829,8 @@ class SCE {
 		* Pops in only the tools ribbon
 		*/
 	static popInToolsRibbon(this: NodeEditBehaviorScriptInstance) {
-		window.doc['editorToolsRibbonContainer'].style.display = 'flex';
-		window.doc['editorToolsRibbonContainer'].animate([
+		window.doc.editorToolsRibbonContainer.style.display = 'flex';
+		window.doc.editorToolsRibbonContainer.animate([
 			{
 				marginLeft: '-200px'
 			}, {
@@ -843,7 +848,7 @@ class SCE {
 		* Pops out only the tools ribbon
 		*/
 	static popOutToolsRibbon(this: NodeEditBehaviorScriptInstance) {
-		window.doc['editorToolsRibbonContainer'].animate([
+		window.doc.editorToolsRibbonContainer.animate([
 			{
 				marginLeft: 0
 			}, {
@@ -903,14 +908,14 @@ class SCE {
 				toolsRibbon.style.marginLeft = '-200px';
 			};
 		} else {
-			window.doc['dummy'].style.height = (titleExpanded ? '50px' : '18px');
-			$(window.doc['dummy']).animate({
+			window.doc.dummy.style.height = (titleExpanded ? '50px' : '18px');
+			$(window.doc.dummy).animate({
 				height: 0
 			}, {
 				duration: 800,
 				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 				step: (now: number) => {
-					window.doc['fullscreenEditorHorizontal'].style.height = 'calc(100vh - ' + now + 'px)';
+					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
 				}
 			});
 			scriptTitle.animate([
@@ -934,8 +939,13 @@ class SCE {
 		* Enters fullscreen mode for the editor
 		*/
 	static enterFullScreen(this: NodeEditBehaviorScriptInstance) {
+		if (this.fullscreen) {
+			return;
+		}
+		this.fullscreen = true;
+
 		var rect = this.editor.display.wrapper.getBoundingClientRect();
-		var editorCont = window.doc['fullscreenEditor'];
+		var editorCont = window.doc.fullscreenEditor;
 		var editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
 		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
@@ -953,36 +963,36 @@ class SCE {
 		this.editor.display.wrapper.classList.add('fullscreen');
 		this.editor.display.wrapper.classList.remove('small');
 
-		$editorWrapper.appendTo(window.doc['fullscreenEditorHorizontal']);
+		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
 		var $horizontalCenterer = $('#horizontalCenterer');
-		var viewportWidth = $horizontalCenterer.width();
+		var viewportWidth = $horizontalCenterer.width() + 20;
 		var viewPortHeight = $horizontalCenterer.height();
 
 		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
 			if (window.app.storageLocal.hideToolsRibbon) {
-				window.doc['showHideToolsRibbonButton'].style.transform = 'rotate(0deg)';
+				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 			} else {
-				window.doc['showHideToolsRibbonButton'].style.transform = 'rotate(180deg)';
+				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
 			}
 		} else {
 			chrome.storage.local.set({
 				hideToolsRibbon: false
 			});
 			window.app.storageLocal.hideToolsRibbon = false;
-			window.doc['showHideToolsRibbonButton'].style.transform = 'rotate(0deg)';
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 		}
 		if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
 			if (window.app.storageLocal.shrinkTitleRibbon) {
-				window.doc['shrinkTitleRibbonButton'].style.transform = 'rotate(90deg)';
+				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 			} else {
-				window.doc['shrinkTitleRibbonButton'].style.transform = 'rotate(270deg)';
+				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 			}
 		} else {
 			chrome.storage.local.set({
 				shrinkTitleRibbon: false
 			});
 			window.app.storageLocal.shrinkTitleRibbon = false;
-			window.doc['shrinkTitleRibbonButton'].style.transform = 'rotate(270deg)';
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 		}
 
 
@@ -1014,6 +1024,11 @@ class SCE {
 		* Exits the editor's fullscreen mode
 		*/
 	static exitFullScreen(this: NodeEditBehaviorScriptInstance) {
+		if (!this.fullscreen) {
+			return;
+		}
+		this.fullscreen = false;
+
 		var _this = this;
 		this.popOutRibbons();
 		var $wrapper = $(_this.editor.display.wrapper);
@@ -1022,7 +1037,7 @@ class SCE {
 		setTimeout(function() {
 			_this.editor.display.wrapper.classList.remove('fullscreen');
 			_this.editor.display.wrapper.classList.add('small');
-			var editorCont = window.doc['fullscreenEditor'];
+			var editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			$(editorCont).animate({
 				width: _this.preFullscreenEditorDimensions.width,
@@ -1184,19 +1199,21 @@ class SCE {
 		* Reloads the editor completely (to apply new settings)
 		*/
 	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
-		$(this.editor.display.wrapper).remove();
-		this.$.editorPlaceholder.style.display = 'flex';
-		this.$.editorPlaceholder.style.opacity = '1';
-		this.$.editorPlaceholder.style.position = 'absolute';
+		if (this.editor) {
+			$(this.editor.display.wrapper).remove();
+			this.$.editorPlaceholder.style.display = 'flex';
+			this.$.editorPlaceholder.style.opacity = '1';
+			this.$.editorPlaceholder.style.position = 'absolute';
 
-		this.newSettings.value.script = this.editor.doc.getValue();
+			this.newSettings.value.script = this.editor.doc.getValue();
+		}
 		this.editor = null;
 
 		var value = (this.editorMode === 'main' ?
 			this.newSettings.value.script :
 			this.newSettings.value.backgroundScript);
 		if (this.fullscreen) {
-			this.loadEditor(window.doc['fullscreenEditorHorizontal'], value, disable);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, value, disable);
 		} else {
 			this.loadEditor(this.$.editorCont, value, disable);
 		}

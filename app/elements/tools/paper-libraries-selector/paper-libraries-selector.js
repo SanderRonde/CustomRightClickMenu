@@ -142,6 +142,7 @@ var PLS = (function () {
     };
     ;
     PLS.addLibraryFile = function (_this, name, code, url) {
+        if (url === void 0) { url = null; }
         window.doc['addLibraryConfirmationContainer'].style.display = 'none';
         window.doc['addLibraryLoadingDialog'].style.display = 'flex';
         setTimeout(function () {
@@ -157,7 +158,7 @@ var PLS = (function () {
             chrome.storage.local.set({
                 libraries: _this.installedLibraries
             });
-            if (_this.mode === 'main') {
+            if (_this.mode === 'main' && url !== null) {
                 window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor, 'require', url);
             }
             chrome.runtime.sendMessage({
@@ -218,6 +219,10 @@ var PLS = (function () {
             $(window.doc['addLibraryDialog'])
                 .find('#addLibraryButton')
                 .on('click', function () {
+                window.doc.addLibraryProcessContainer.style.display = 'block';
+                window.doc.addLibraryLoadingDialog.style.display = 'none';
+                window.doc.addLibraryConfirmationContainer.style.display = 'none';
+                window.doc.addLibraryDialogSucces.style.display = 'none';
                 var name = window.doc['addedLibraryName'].value;
                 var taken = false;
                 for (var i = 0; i < _this.installedLibraries.length; i++) {

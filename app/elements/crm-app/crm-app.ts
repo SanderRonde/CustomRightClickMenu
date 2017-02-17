@@ -961,15 +961,15 @@ class CA {
 
 	static toggleToolsRibbon(this: CrmApp) {
 		if (window.app.storageLocal.hideToolsRibbon) {
-			$(window.doc['editorToolsRibbonContainer']).animate({
+			$(window.doc.editorToolsRibbonContainer).animate({
 				marginLeft: 0
 			}, 250);
-			window.doc['showHideToolsRibbonButton'].style.transform = 'rotate(180deg)';
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
 		} else {
-			$(window.doc['editorToolsRibbonContainer']).animate({
+			$(window.doc.editorToolsRibbonContainer).animate({
 				marginLeft: '-200px'
 			}, 250);
-			window.doc['showHideToolsRibbonButton'].style.transform = 'rotate(0deg)';
+			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 		}
 		window.app.storageLocal.hideToolsRibbon = !window.app.storageLocal.hideToolsRibbon;
 		window.app.upload();
@@ -979,10 +979,10 @@ class CA {
 		var viewportHeight = window.innerHeight;
 		var $settingsCont = $('#settingsContainer');
 		if (window.app.storageLocal.shrinkTitleRibbon) {
-			$(window.doc['editorTitleRibbon']).animate({
+			$(window.doc.editorTitleRibbon).animate({
 				fontSize: '100%'
 			}, 250);
-			$(window.doc['editorCurrentScriptTitle']).animate({
+			$(window.doc.editorCurrentScriptTitle).animate({
 				paddingTop: '4px',
 				paddingBottom: '4px'
 			}, 250);
@@ -991,12 +991,12 @@ class CA {
 			}, 250, function() {
 				$settingsCont[0].style.height = 'calc(100vh - 66px)';
 			});
-			window.doc['shrinkTitleRibbonButton'].style.transform = 'rotate(270deg)';
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 		} else {
-			$(window.doc['editorTitleRibbon']).animate({
+			$(window.doc.editorTitleRibbon).animate({
 				fontSize: '40%'
 			}, 250);
-			$(window.doc['editorCurrentScriptTitle']).animate({
+			$(window.doc.editorCurrentScriptTitle).animate({
 				paddingTop: 0,
 				paddingBottom: 0
 			}, 250);
@@ -1005,7 +1005,7 @@ class CA {
 			}, 250, function() {
 				$settingsCont[0].style.height = 'calc(100vh - 29px)';
 			});
-			window.doc['shrinkTitleRibbonButton'].style.transform = 'rotate(90deg)';
+			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 		}
 		window.app.storageLocal.shrinkTitleRibbon = !window.app.storageLocal.shrinkTitleRibbon;
 		chrome.storage.local.set({
@@ -1022,7 +1022,7 @@ class CA {
 	};
 
 	static launchExternalEditorDialog(this: CrmApp) {
-		if (!(window.doc['externalEditorDialogTrigger'] as HTMLElement & {
+		if (!(window.doc.externalEditorDialogTrigger as HTMLElement & {
 			disabled: boolean;
 		}).disabled) {
 			window.externalEditor.init();
@@ -1042,7 +1042,7 @@ class CA {
 	};
 
 	static showCssTips(this: CrmApp) {
-		window.doc['cssEditorInfoDialog'].open();
+		window.doc.cssEditorInfoDialog.open();
 	};
 
 	static addSettingsReadyCallback(this: CrmApp, callback: Function, thisElement: HTMLElement, params: Array<any>) {
@@ -1183,13 +1183,13 @@ class CA {
 	};
 
 	static bindListeners(this: CrmApp) {
-		var urlInput = window.doc['addLibraryUrlInput'];
-		var manualInput = window.doc['addLibraryManualInput'];
-		window.doc['addLibraryUrlOption'].addEventListener('change', function() {
+		var urlInput = window.doc.addLibraryUrlInput;
+		var manualInput = window.doc.addLibraryManualInput;
+		window.doc.addLibraryUrlOption.addEventListener('change', function() {
 			manualInput.style.display = 'none';
 			urlInput.style.display = 'block';
 		});
-		window.doc['addLibraryManualOption'].addEventListener('change', function() {
+		window.doc.addLibraryManualOption.addEventListener('change', function() {
 			urlInput.style.display = 'none';
 			manualInput.style.display = 'block';
 		});
@@ -1232,15 +1232,15 @@ class CA {
 					});
 					window.setTimeout(function() {
 						//Remove the CodeMirror instances for performance
-						window.doc['restoreChangesOldCodeCont'].innerHTML = '';
-						window.doc['restoreChangeUnsaveddCodeCont'].innerHTML = '';
+						window.doc.restoreChangesOldCodeCont.innerHTML = '';
+						window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 					}, 500);
 				});
 				$('.restoreChangesBack').on('click', function() {
-					window.doc['restoreChangesOldCode'].style.display = 'none';
-					window.doc['restoreChangesUnsavedCode'].style.display = 'none';
-					window.doc['restoreChangesMain'].style.display = 'block';
-					window.doc['restoreChangesDialog'].fit();
+					window.doc.restoreChangesOldCode.style.display = 'none';
+					window.doc.restoreChangesUnsavedCode.style.display = 'none';
+					window.doc.restoreChangesMain.style.display = 'block';
+					window.doc.restoreChangesDialog.fit();
 				});
 				$('.discardButton').on('click', function() {
 					chrome.storage.local.set({
@@ -1248,13 +1248,13 @@ class CA {
 					});
 					window.setTimeout(function () {
 						//Remove the CodeMirror instances for performance
-						window.doc['restoreChangesOldCodeCont'].innerHTML = '';
-						window.doc['restoreChangeUnsaveddCodeCont'].innerHTML = '';
+						window.doc.restoreChangesOldCodeCont.innerHTML = '';
+						window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 					}, 500);
 				});
-				window.doc['restoreChangeUnsaveddCodeCont'].innerHTML = '';
-				window.doc['restoreChangesOldCodeCont'].innerHTML = '';
-				var oldEditor = window.CodeMirror(window.doc['restoreChangesOldCodeCont'], {
+				window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+				window.doc.restoreChangesOldCodeCont.innerHTML = '';
+				var oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
 					lineNumbers: true,
 					value: code,
 					scrollbarStyle: 'simple',
@@ -1264,7 +1264,7 @@ class CA {
 					indentUnit: window.app.settings.editor.tabSize,
 					indentWithTabs: window.app.settings.editor.useTabs
 				});
-				var unsavedEditor = window.CodeMirror(window.doc['restoreChangeUnsaveddCodeCont'], {
+				var unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
 					lineNumbers: true,
 					value: editingObj.val,
 					scrollbarStyle: 'simple',
@@ -1274,18 +1274,18 @@ class CA {
 					indentUnit: window.app.settings.editor.tabSize,
 					indentWithTabs: window.app.settings.editor.useTabs
 				});
-				window.doc['restoreChangesShowOld'].addEventListener('click', function() {
-					window.doc['restoreChangesMain'].style.display = 'none';
-					window.doc['restoreChangesUnsavedCode'].style.display = 'none';
-					window.doc['restoreChangesOldCode'].style.display = 'flex';
-					window.doc['restoreChangesDialog'].fit();
+				window.doc.restoreChangesShowOld.addEventListener('click', function() {
+					window.doc.restoreChangesMain.style.display = 'none';
+					window.doc.restoreChangesUnsavedCode.style.display = 'none';
+					window.doc.restoreChangesOldCode.style.display = 'flex';
+					window.doc.restoreChangesDialog.fit();
 					oldEditor.refresh();
 				});
-				window.doc['restoreChangesShowUnsaved'].addEventListener('click', function() {
-					window.doc['restoreChangesMain'].style.display = 'none';
-					window.doc['restoreChangesOldCode'].style.display = 'none';
-					window.doc['restoreChangesUnsavedCode'].style.display = 'flex';
-					window.doc['restoreChangesDialog'].fit();
+				window.doc.restoreChangesShowUnsaved.addEventListener('click', function() {
+					window.doc.restoreChangesMain.style.display = 'none';
+					window.doc.restoreChangesOldCode.style.display = 'none';
+					window.doc.restoreChangesUnsavedCode.style.display = 'flex';
+					window.doc.restoreChangesDialog.fit();
 					unsavedEditor.refresh();
 				});
 
@@ -1301,7 +1301,7 @@ class CA {
 						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
 					}).onfinish = function(this: Animation) {
 						this.effect.target.style.opacity = '0.6';
-						window.doc['restoreChangesDialog'].open();
+						window.doc.restoreChangesDialog.open();
 						$('.pageCont').animate({
 							backgroundColor: 'white'
 						}, 200);
@@ -1343,7 +1343,7 @@ class CA {
 							stopHighlighting(crmElement);
 						}, 2000);
 					} else {
-						window.doc['restoreChangesDialog'].open();
+						window.doc.restoreChangesDialog.open();
 						$('.pageCont').animate({
 							backgroundColor: 'white'
 						}, 200);
@@ -1358,10 +1358,10 @@ class CA {
 					}
 				};
 
-				window.doc['highlightChangedScript'].addEventListener('click', function() {
+				window.doc.highlightChangedScript.addEventListener('click', function() {
 					//Find the element first
 					//Check if the element is already visible
-					window.doc['restoreChangesDialog'].close();
+					window.doc.restoreChangesDialog.close();
 					$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
 					$('edit-crm-item').find('.item').css('opacity', 0.6);
 					$('.crmType').each(function (this: HTMLElement) {
@@ -1393,7 +1393,7 @@ class CA {
 					}, 500);
 				});
 				try {
-					window.doc['restoreChangesDialog'].open();
+					window.doc.restoreChangesDialog.open();
 				} catch (e) {
 					_this.restoreUnsavedInstances(editingObj, errs + 1);
 				}
@@ -1598,7 +1598,7 @@ class CA {
 
 				var interval = window.setInterval(function() {
 					try {
-						const centerer = window.doc['requestPermissionsCenterer'] as CenterElement;
+						const centerer = window.doc.requestPermissionsCenterer as CenterElement;
 						overlay = centerer.$.content.children[0] as HTMLPaperDialogElement
 						if (overlay.open) {
 							window.clearInterval(interval);
@@ -1641,8 +1641,8 @@ class CA {
 		chrome.storage.local.get(function (storageLocal: StorageLocal) {
 			_this.storageLocal = storageLocal;
 			if (key === 'CRMOnPage') {
-				(window.doc['editCRMInRM'] as PaperToggleOption).setCheckboxDisabledValue &&
-				(window.doc['editCRMInRM'] as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
+				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
+				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 			}
 			_this.upload();
 		});
@@ -2427,9 +2427,9 @@ class CA {
 
 	static initCheckboxes(this: CrmApp, defaultLocalStorage: StorageLocal) {
 		var _this = this;
-		if ((window.doc['editCRMInRM'] as PaperToggleOption).setCheckboxDisabledValue) {
-			(window.doc['editCRMInRM'] as PaperToggleOption).setCheckboxDisabledValue && 
-			(window.doc['editCRMInRM'] as PaperToggleOption).setCheckboxDisabledValue(false);
+		if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
+			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue && 
+			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
 			Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
 				setting.init && setting.init(defaultLocalStorage);
 			});
@@ -2651,7 +2651,7 @@ class CA {
 				if (!localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
 					_this.handleDataTransfer(_this);
 					_this.async(function() {
-						window.doc['versionUpdateDialog'].open();
+						window.doc.versionUpdateDialog.open();
 					}, 2000);
 				} else {
 					_this.handleFirstTime(_this);
@@ -2835,7 +2835,7 @@ class CA {
 	static applyAddedPermissions(this: CrmApp) {
 		var _this = this;
 		var panels = Array.prototype.slice.apply(
-			window.doc['addedPermissionsTabContainer']
+			window.doc.addedPermissionsTabContainer
 				.querySelectorAll('.nodeAddedPermissionsCont'));
 		panels.forEach(function(panel: HTMLElement) {
 			var node = _this.nodesById[(panel.getAttribute('data-id') as any)as number] as ScriptNode;
@@ -2861,29 +2861,29 @@ class CA {
 	};
 
 	static addedPermissionNext(this: CrmApp) {
-		var cont = window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer;
+		var cont = window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer;
 		if (cont.tab === cont.maxTabs - 1) {
-			window.doc['addedPermissionsDialog'].close();
+			window.doc.addedPermissionsDialog.close();
 			this.applyAddedPermissions();
 			return;
 		}
 
 		if (cont.tab + 2 !== cont.maxTabs) {
-			(window.doc['addedPermissionNextButton'].querySelector('.close') as HTMLElement).style.display = 'none';
-			(window.doc['addedPermissionNextButton'].querySelector('.next') as HTMLElement).style.display = 'block';
+			(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement).style.display = 'none';
+			(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement).style.display = 'block';
 		} else {
-			(window.doc['addedPermissionNextButton'].querySelector('.close') as HTMLElement).style.display = 'block';
-			(window.doc['addedPermissionNextButton'].querySelector('.next') as HTMLElement).style.display = 'none';
+			(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement).style.display = 'block';
+			(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement).style.display = 'none';
 		}
 		cont.style.marginLeft = (++cont.tab * -800) + 'px';
-		window.doc['addedPermissionPrevButton'].style.display = 'block';
+		window.doc.addedPermissionPrevButton.style.display = 'block';
 	};
 
 	static addedPermissionPrev(this: CrmApp) {
-		var cont = window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer;
+		var cont = window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer;
 		cont.style.marginLeft = (--cont.tab * -800) + 'px';
 
-		window.doc['addedPermissionPrevButton'].style.display = (cont.tab === 0 ? 'none' : 'block');
+		window.doc.addedPermissionPrevButton.style.display = (cont.tab === 0 ? 'none' : 'block');
 	};
 
 	static getNodeName(this: CrmApp, nodeId: number) {
@@ -2917,9 +2917,9 @@ class CA {
 						_this.buildNodePaths(items.crm, []);
 
 						if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
-							(window.doc['CRMOnPage'] as PaperToggleOption).setCheckboxDisabledValue(true);
+							(window.doc.CRMOnPage as PaperToggleOption).setCheckboxDisabledValue(true);
 						}
-						(window.doc['editCRMInRM'] as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
+						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
 							.CRMOnPage);
 					}
 
@@ -2982,22 +2982,22 @@ class CA {
 					}
 					if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
 						window.setTimeout(function() {
-							(window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer).tab = 0;
-							(window.doc['addedPermissionsTabContainer'] as AddedPermissionsTabContainer).maxTabs =
+							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
+							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
 								storageLocal.addedPermissions.length;
-							window.doc['addedPermissionsTabRepeater'].items =
+							window.doc.addedPermissionsTabRepeater.items =
 								storageLocal.addedPermissions;
 
 							if (storageLocal.addedPermissions.length === 1) {
-								(window.doc['addedPermissionNextButton'].querySelector('.next') as HTMLElement)
+								(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
 									.style.display = 'none';	
 							} else {
-								(window.doc['addedPermissionNextButton'].querySelector('.close') as HTMLElement)
+								(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
 									.style.display = 'none';
 							}
-							window.doc['addedPermissionPrevButton'].style.display = 'none';
-							window.doc['addedPermissionsTabRepeater'].render();
-							window.doc['addedPermissionsDialog'].open();
+							window.doc.addedPermissionPrevButton.style.display = 'none';
+							window.doc.addedPermissionsTabRepeater.render();
+							window.doc.addedPermissionsDialog.open();
 							chrome.storage.local.set({
 								addedPermissions: null
 							});
@@ -3036,7 +3036,7 @@ class CA {
 							settingsVersionData: versionData	
 						});
 
-						var toast = window.doc['updatedSettingsToast'];
+						var toast = window.doc.updatedSettingsToast;
 						toast.text = 'Settings were updated to those on ' + new Date(
 							versionData.latest.date
 						).toLocaleDateString();
@@ -3047,7 +3047,7 @@ class CA {
 						chrome.storage.local.set({
 							isTransfer: false
 						});
-						window.doc['versionUpdateDialog'].open();
+						window.doc.versionUpdateDialog.open();
 					}
 
 					_this.storageLocal = storageLocal;
@@ -3117,7 +3117,9 @@ class CA {
 
 		//Reset dialog
 		if (window.app.item) {
-			(window as any)[window.app.item.type + 'Edit'] && (window as any)[window.app.item.type + 'Edit'].cancel();
+			const dialog = window[window.app.item.type + 'Edit' as
+				'scriptEdit'|'stylesheetEdit'|'linkEdit'|'dividerEdit'|'menuEdit'];
+			dialog && dialog.cancel();
 		}
 		window.app.item = null;
 
@@ -3130,10 +3132,15 @@ class CA {
 		});
 
 		//Reset regedit part
-		window.doc['URISchemeFilePath'].value = 'C:\\files\\my_file.exe';
-		window.doc['URISchemeFilePath'].querySelector('input').value = 'C:\\files\\my_file.exe';
-		window.doc['URISchemeSchemeName'].value = 'myscheme';
-		window.doc['URISchemeSchemeName'].querySelector('input').value = 'myscheme';
+		window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
+		window.doc.URISchemeFilePath.querySelector('input').value = 'C:\\files\\my_file.exe';
+		window.doc.URISchemeSchemeName.value = 'myscheme';
+		window.doc.URISchemeSchemeName.querySelector('input').value = 'myscheme';
+
+		//Hide all open dialogs
+		Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
+			dialog.opened && dialog.close();
+		});
 	};
 
 	static getLocalStorageKey(this: CrmApp, key: string): any {
@@ -3160,7 +3167,7 @@ class CA {
 			data += "%146%" + localStorage.getItem(i + '');
 		}
 
-		window.doc['exportToLegacyOutput'].value = data;
+		window.doc.exportToLegacyOutput.value = data;
 	};
 
 	static ready(this: CrmApp) {
