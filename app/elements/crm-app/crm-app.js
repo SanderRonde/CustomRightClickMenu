@@ -743,16 +743,16 @@ var CA = (function () {
     ;
     CA.toggleToolsRibbon = function () {
         if (window.app.storageLocal.hideToolsRibbon) {
-            $(window.doc['editorToolsRibbonContainer']).animate({
+            $(window.doc.editorToolsRibbonContainer).animate({
                 marginLeft: 0
             }, 250);
-            window.doc['showHideToolsRibbonButton'].style.transform = 'rotate(180deg)';
+            window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
         }
         else {
-            $(window.doc['editorToolsRibbonContainer']).animate({
+            $(window.doc.editorToolsRibbonContainer).animate({
                 marginLeft: '-200px'
             }, 250);
-            window.doc['showHideToolsRibbonButton'].style.transform = 'rotate(0deg)';
+            window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
         }
         window.app.storageLocal.hideToolsRibbon = !window.app.storageLocal.hideToolsRibbon;
         window.app.upload();
@@ -762,10 +762,10 @@ var CA = (function () {
         var viewportHeight = window.innerHeight;
         var $settingsCont = $('#settingsContainer');
         if (window.app.storageLocal.shrinkTitleRibbon) {
-            $(window.doc['editorTitleRibbon']).animate({
+            $(window.doc.editorTitleRibbon).animate({
                 fontSize: '100%'
             }, 250);
-            $(window.doc['editorCurrentScriptTitle']).animate({
+            $(window.doc.editorCurrentScriptTitle).animate({
                 paddingTop: '4px',
                 paddingBottom: '4px'
             }, 250);
@@ -774,13 +774,13 @@ var CA = (function () {
             }, 250, function () {
                 $settingsCont[0].style.height = 'calc(100vh - 66px)';
             });
-            window.doc['shrinkTitleRibbonButton'].style.transform = 'rotate(270deg)';
+            window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
         }
         else {
-            $(window.doc['editorTitleRibbon']).animate({
+            $(window.doc.editorTitleRibbon).animate({
                 fontSize: '40%'
             }, 250);
-            $(window.doc['editorCurrentScriptTitle']).animate({
+            $(window.doc.editorCurrentScriptTitle).animate({
                 paddingTop: 0,
                 paddingBottom: 0
             }, 250);
@@ -789,7 +789,7 @@ var CA = (function () {
             }, 250, function () {
                 $settingsCont[0].style.height = 'calc(100vh - 29px)';
             });
-            window.doc['shrinkTitleRibbonButton'].style.transform = 'rotate(90deg)';
+            window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
         }
         window.app.storageLocal.shrinkTitleRibbon = !window.app.storageLocal.shrinkTitleRibbon;
         chrome.storage.local.set({
@@ -806,7 +806,7 @@ var CA = (function () {
     };
     ;
     CA.launchExternalEditorDialog = function () {
-        if (!window.doc['externalEditorDialogTrigger'].disabled) {
+        if (!window.doc.externalEditorDialogTrigger.disabled) {
             window.externalEditor.init();
             window.externalEditor.editingCRMItem =
                 ((window.scriptEdit && window.scriptEdit.active) ?
@@ -824,7 +824,7 @@ var CA = (function () {
     };
     ;
     CA.showCssTips = function () {
-        window.doc['cssEditorInfoDialog'].open();
+        window.doc.cssEditorInfoDialog.open();
     };
     ;
     CA.addSettingsReadyCallback = function (callback, thisElement, params) {
@@ -916,15 +916,16 @@ var CA = (function () {
     /**
      * Uploads the settings to chrome.storage
      */
-    CA.upload = function () {
+    CA.upload = function (force) {
+        if (force === void 0) { force = false; }
         //Send changes to background-page, background-page uploads everything
         //Compare storageLocal objects
         var localChanges = [];
         var storageLocal = this.storageLocal;
-        var storageLocalCopy = this.storageLocalCopy;
+        var storageLocalCopy = force ? {} : this.storageLocalCopy;
         var settingsChanges = [];
         var settings = this.settings;
-        var settingsCopy = this.settingsCopy;
+        var settingsCopy = force ? {} : this.settingsCopy;
         var hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
         var haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
         if (hasLocalChanged || haveSettingsChanged) {
@@ -942,13 +943,13 @@ var CA = (function () {
     };
     ;
     CA.bindListeners = function () {
-        var urlInput = window.doc['addLibraryUrlInput'];
-        var manualInput = window.doc['addLibraryManualInput'];
-        window.doc['addLibraryUrlOption'].addEventListener('change', function () {
+        var urlInput = window.doc.addLibraryUrlInput;
+        var manualInput = window.doc.addLibraryManualInput;
+        window.doc.addLibraryUrlOption.addEventListener('change', function () {
             manualInput.style.display = 'none';
             urlInput.style.display = 'block';
         });
-        window.doc['addLibraryManualOption'].addEventListener('change', function () {
+        window.doc.addLibraryManualOption.addEventListener('change', function () {
             urlInput.style.display = 'none';
             manualInput.style.display = 'block';
         });
@@ -988,15 +989,15 @@ var CA = (function () {
                     });
                     window.setTimeout(function () {
                         //Remove the CodeMirror instances for performance
-                        window.doc['restoreChangesOldCodeCont'].innerHTML = '';
-                        window.doc['restoreChangeUnsaveddCodeCont'].innerHTML = '';
+                        window.doc.restoreChangesOldCodeCont.innerHTML = '';
+                        window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
                     }, 500);
                 });
                 $('.restoreChangesBack').on('click', function () {
-                    window.doc['restoreChangesOldCode'].style.display = 'none';
-                    window.doc['restoreChangesUnsavedCode'].style.display = 'none';
-                    window.doc['restoreChangesMain'].style.display = 'block';
-                    window.doc['restoreChangesDialog'].fit();
+                    window.doc.restoreChangesOldCode.style.display = 'none';
+                    window.doc.restoreChangesUnsavedCode.style.display = 'none';
+                    window.doc.restoreChangesMain.style.display = 'block';
+                    window.doc.restoreChangesDialog.fit();
                 });
                 $('.discardButton').on('click', function () {
                     chrome.storage.local.set({
@@ -1004,13 +1005,13 @@ var CA = (function () {
                     });
                     window.setTimeout(function () {
                         //Remove the CodeMirror instances for performance
-                        window.doc['restoreChangesOldCodeCont'].innerHTML = '';
-                        window.doc['restoreChangeUnsaveddCodeCont'].innerHTML = '';
+                        window.doc.restoreChangesOldCodeCont.innerHTML = '';
+                        window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
                     }, 500);
                 });
-                window.doc['restoreChangeUnsaveddCodeCont'].innerHTML = '';
-                window.doc['restoreChangesOldCodeCont'].innerHTML = '';
-                var oldEditor = window.CodeMirror(window.doc['restoreChangesOldCodeCont'], {
+                window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+                window.doc.restoreChangesOldCodeCont.innerHTML = '';
+                var oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
                     lineNumbers: true,
                     value: code,
                     scrollbarStyle: 'simple',
@@ -1020,7 +1021,7 @@ var CA = (function () {
                     indentUnit: window.app.settings.editor.tabSize,
                     indentWithTabs: window.app.settings.editor.useTabs
                 });
-                var unsavedEditor = window.CodeMirror(window.doc['restoreChangeUnsaveddCodeCont'], {
+                var unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
                     lineNumbers: true,
                     value: editingObj.val,
                     scrollbarStyle: 'simple',
@@ -1030,18 +1031,18 @@ var CA = (function () {
                     indentUnit: window.app.settings.editor.tabSize,
                     indentWithTabs: window.app.settings.editor.useTabs
                 });
-                window.doc['restoreChangesShowOld'].addEventListener('click', function () {
-                    window.doc['restoreChangesMain'].style.display = 'none';
-                    window.doc['restoreChangesUnsavedCode'].style.display = 'none';
-                    window.doc['restoreChangesOldCode'].style.display = 'flex';
-                    window.doc['restoreChangesDialog'].fit();
+                window.doc.restoreChangesShowOld.addEventListener('click', function () {
+                    window.doc.restoreChangesMain.style.display = 'none';
+                    window.doc.restoreChangesUnsavedCode.style.display = 'none';
+                    window.doc.restoreChangesOldCode.style.display = 'flex';
+                    window.doc.restoreChangesDialog.fit();
                     oldEditor.refresh();
                 });
-                window.doc['restoreChangesShowUnsaved'].addEventListener('click', function () {
-                    window.doc['restoreChangesMain'].style.display = 'none';
-                    window.doc['restoreChangesOldCode'].style.display = 'none';
-                    window.doc['restoreChangesUnsavedCode'].style.display = 'flex';
-                    window.doc['restoreChangesDialog'].fit();
+                window.doc.restoreChangesShowUnsaved.addEventListener('click', function () {
+                    window.doc.restoreChangesMain.style.display = 'none';
+                    window.doc.restoreChangesOldCode.style.display = 'none';
+                    window.doc.restoreChangesUnsavedCode.style.display = 'flex';
+                    window.doc.restoreChangesDialog.fit();
                     unsavedEditor.refresh();
                 });
                 var stopHighlighting = function (element) {
@@ -1056,7 +1057,7 @@ var CA = (function () {
                         easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
                     }).onfinish = function () {
                         this.effect.target.style.opacity = '0.6';
-                        window.doc['restoreChangesDialog'].open();
+                        window.doc.restoreChangesDialog.open();
                         $('.pageCont').animate({
                             backgroundColor: 'white'
                         }, 200);
@@ -1098,7 +1099,7 @@ var CA = (function () {
                         }, 2000);
                     }
                     else {
-                        window.doc['restoreChangesDialog'].open();
+                        window.doc.restoreChangesDialog.open();
                         $('.pageCont').animate({
                             backgroundColor: 'white'
                         }, 200);
@@ -1112,10 +1113,10 @@ var CA = (function () {
                         });
                     }
                 };
-                window.doc['highlightChangedScript'].addEventListener('click', function () {
+                window.doc.highlightChangedScript.addEventListener('click', function () {
                     //Find the element first
                     //Check if the element is already visible
-                    window.doc['restoreChangesDialog'].close();
+                    window.doc.restoreChangesDialog.close();
                     $('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
                     $('edit-crm-item').find('.item').css('opacity', 0.6);
                     $('.crmType').each(function () {
@@ -1148,7 +1149,7 @@ var CA = (function () {
                     }, 500);
                 });
                 try {
-                    window.doc['restoreChangesDialog'].open();
+                    window.doc.restoreChangesDialog.open();
                 }
                 catch (e) {
                     _this.restoreUnsavedInstances(editingObj, errs + 1);
@@ -1338,7 +1339,7 @@ var CA = (function () {
                 }
                 var interval = window.setInterval(function () {
                     try {
-                        var centerer = window.doc['requestPermissionsCenterer'];
+                        var centerer = window.doc.requestPermissionsCenterer;
                         overlay = centerer.$.content.children[0];
                         if (overlay.open) {
                             window.clearInterval(interval);
@@ -1380,8 +1381,8 @@ var CA = (function () {
         chrome.storage.local.get(function (storageLocal) {
             _this.storageLocal = storageLocal;
             if (key === 'CRMOnPage') {
-                window.doc['editCRMInRM'].setCheckboxDisabledValue &&
-                    window.doc['editCRMInRM'].setCheckboxDisabledValue(!storageLocal.CRMOnPage);
+                window.doc.editCRMInRM.setCheckboxDisabledValue &&
+                    window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal.CRMOnPage);
             }
             _this.upload();
         });
@@ -1574,9 +1575,9 @@ var CA = (function () {
     ;
     CA.initCheckboxes = function (defaultLocalStorage) {
         var _this = this;
-        if (window.doc['editCRMInRM'].setCheckboxDisabledValue) {
-            window.doc['editCRMInRM'].setCheckboxDisabledValue &&
-                window.doc['editCRMInRM'].setCheckboxDisabledValue(false);
+        if (window.doc.editCRMInRM.setCheckboxDisabledValue) {
+            window.doc.editCRMInRM.setCheckboxDisabledValue &&
+                window.doc.editCRMInRM.setCheckboxDisabledValue(false);
             Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function (setting) {
                 setting.init && setting.init(defaultLocalStorage);
             });
@@ -1783,7 +1784,7 @@ var CA = (function () {
                 if (!localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
                     _this.handleDataTransfer(_this);
                     _this.async(function () {
-                        window.doc['versionUpdateDialog'].open();
+                        window.doc.versionUpdateDialog.open();
                     }, 2000);
                 }
                 else {
@@ -1942,7 +1943,7 @@ var CA = (function () {
     ;
     CA.applyAddedPermissions = function () {
         var _this = this;
-        var panels = Array.prototype.slice.apply(window.doc['addedPermissionsTabContainer']
+        var panels = Array.prototype.slice.apply(window.doc.addedPermissionsTabContainer
             .querySelectorAll('.nodeAddedPermissionsCont'));
         panels.forEach(function (panel) {
             var node = _this.nodesById[panel.getAttribute('data-id')];
@@ -1968,28 +1969,28 @@ var CA = (function () {
     };
     ;
     CA.addedPermissionNext = function () {
-        var cont = window.doc['addedPermissionsTabContainer'];
+        var cont = window.doc.addedPermissionsTabContainer;
         if (cont.tab === cont.maxTabs - 1) {
-            window.doc['addedPermissionsDialog'].close();
+            window.doc.addedPermissionsDialog.close();
             this.applyAddedPermissions();
             return;
         }
         if (cont.tab + 2 !== cont.maxTabs) {
-            window.doc['addedPermissionNextButton'].querySelector('.close').style.display = 'none';
-            window.doc['addedPermissionNextButton'].querySelector('.next').style.display = 'block';
+            window.doc.addedPermissionNextButton.querySelector('.close').style.display = 'none';
+            window.doc.addedPermissionNextButton.querySelector('.next').style.display = 'block';
         }
         else {
-            window.doc['addedPermissionNextButton'].querySelector('.close').style.display = 'block';
-            window.doc['addedPermissionNextButton'].querySelector('.next').style.display = 'none';
+            window.doc.addedPermissionNextButton.querySelector('.close').style.display = 'block';
+            window.doc.addedPermissionNextButton.querySelector('.next').style.display = 'none';
         }
         cont.style.marginLeft = (++cont.tab * -800) + 'px';
-        window.doc['addedPermissionPrevButton'].style.display = 'block';
+        window.doc.addedPermissionPrevButton.style.display = 'block';
     };
     ;
     CA.addedPermissionPrev = function () {
-        var cont = window.doc['addedPermissionsTabContainer'];
+        var cont = window.doc.addedPermissionsTabContainer;
         cont.style.marginLeft = (--cont.tab * -800) + 'px';
-        window.doc['addedPermissionPrevButton'].style.display = (cont.tab === 0 ? 'none' : 'block');
+        window.doc.addedPermissionPrevButton.style.display = (cont.tab === 0 ? 'none' : 'block');
     };
     ;
     CA.getNodeName = function (nodeId) {
@@ -2010,18 +2011,16 @@ var CA = (function () {
                         _this.settings = items;
                         _this.settingsCopy = JSON.parse(JSON.stringify(items));
                         for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-                            _this.onSettingsReadyCallbacks[i].callback.apply(_this
-                                .onSettingsReadyCallbacks[i].thisElement, _this
-                                .onSettingsReadyCallbacks[i].params);
+                            _this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
                         }
                         _this.updateEditorZoom();
                         _this.orderNodesById(items.crm);
                         _this.pageDemo.create();
                         _this.buildNodePaths(items.crm, []);
                         if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
-                            window.doc['CRMOnPage'].setCheckboxDisabledValue(true);
+                            window.doc.CRMOnPage.setCheckboxDisabledValue(true);
                         }
-                        window.doc['editCRMInRM'].setCheckboxDisabledValue(!storageLocal
+                        window.doc.editCRMInRM.setCheckboxDisabledValue(!storageLocal
                             .CRMOnPage);
                     }
                     Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function (setting) {
@@ -2087,22 +2086,22 @@ var CA = (function () {
                     }
                     if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
                         window.setTimeout(function () {
-                            window.doc['addedPermissionsTabContainer'].tab = 0;
-                            window.doc['addedPermissionsTabContainer'].maxTabs =
+                            window.doc.addedPermissionsTabContainer.tab = 0;
+                            window.doc.addedPermissionsTabContainer.maxTabs =
                                 storageLocal.addedPermissions.length;
-                            window.doc['addedPermissionsTabRepeater'].items =
+                            window.doc.addedPermissionsTabRepeater.items =
                                 storageLocal.addedPermissions;
                             if (storageLocal.addedPermissions.length === 1) {
-                                window.doc['addedPermissionNextButton'].querySelector('.next')
+                                window.doc.addedPermissionNextButton.querySelector('.next')
                                     .style.display = 'none';
                             }
                             else {
-                                window.doc['addedPermissionNextButton'].querySelector('.close')
+                                window.doc.addedPermissionNextButton.querySelector('.close')
                                     .style.display = 'none';
                             }
-                            window.doc['addedPermissionPrevButton'].style.display = 'none';
-                            window.doc['addedPermissionsTabRepeater'].render();
-                            window.doc['addedPermissionsDialog'].open();
+                            window.doc.addedPermissionPrevButton.style.display = 'none';
+                            window.doc.addedPermissionsTabRepeater.render();
+                            window.doc.addedPermissionsDialog.open();
                             chrome.storage.local.set({
                                 addedPermissions: null
                             });
@@ -2130,7 +2129,7 @@ var CA = (function () {
                         chrome.storage.local.set({
                             settingsVersionData: versionData
                         });
-                        var toast = window.doc['updatedSettingsToast'];
+                        var toast = window.doc.updatedSettingsToast;
                         toast.text = 'Settings were updated to those on ' + new Date(versionData.latest.date).toLocaleDateString();
                         toast.show();
                     }
@@ -2138,7 +2137,7 @@ var CA = (function () {
                         chrome.storage.local.set({
                             isTransfer: false
                         });
-                        window.doc['versionUpdateDialog'].open();
+                        window.doc.versionUpdateDialog.open();
                     }
                     _this.storageLocal = storageLocal;
                     _this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
@@ -2196,14 +2195,15 @@ var CA = (function () {
         function onDone(fn) {
             fn();
         }
-        //Reset storages
-        this.setupStorages(onDone);
         //Reset dialog
         if (window.app.item) {
             var dialog = window[window.app.item.type + 'Edit'];
             dialog && dialog.cancel();
         }
         window.app.item = null;
+        window.app.settings = window.app.storageLocal = null;
+        //Reset storages
+        this.setupStorages(onDone);
         //Reset checkboxes
         this.initCheckboxes.apply(this, [window.app.storageLocal]);
         //Reset default links and searchengines
@@ -2211,14 +2211,15 @@ var CA = (function () {
             link.reset();
         });
         //Reset regedit part
-        window.doc['URISchemeFilePath'].value = 'C:\\files\\my_file.exe';
-        window.doc['URISchemeFilePath'].querySelector('input').value = 'C:\\files\\my_file.exe';
-        window.doc['URISchemeSchemeName'].value = 'myscheme';
-        window.doc['URISchemeSchemeName'].querySelector('input').value = 'myscheme';
+        window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
+        window.doc.URISchemeFilePath.querySelector('input').value = 'C:\\files\\my_file.exe';
+        window.doc.URISchemeSchemeName.value = 'myscheme';
+        window.doc.URISchemeSchemeName.querySelector('input').value = 'myscheme';
         //Hide all open dialogs
         Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach(function (dialog) {
             dialog.opened && dialog.close();
         });
+        this.upload(true);
     };
     ;
     CA.getLocalStorageKey = function (key) {
@@ -2243,7 +2244,7 @@ var CA = (function () {
         for (var i = 1; i <= rows; i++) {
             data += "%146%" + localStorage.getItem(i + '');
         }
-        window.doc['exportToLegacyOutput'].value = data;
+        window.doc.exportToLegacyOutput.value = data;
     };
     ;
     CA.ready = function () {
@@ -2853,6 +2854,25 @@ CA.templates = (function () {
         return mainObject;
     };
     ;
+    CRMAppTemplates.mergeObjectsWithoutAssignment = function (mainObject, additions) {
+        for (var key in additions) {
+            if (additions.hasOwnProperty(key)) {
+                if (typeof additions[key] === 'object' &&
+                    mainObject[key] !== undefined &&
+                    mainObject[key] !== null) {
+                    if (Array.isArray(additions[key])) {
+                        this.mergeArrays(mainObject[key], additions[key]);
+                    }
+                    else {
+                        this.mergeObjects(mainObject[key], additions[key]);
+                    }
+                }
+                else {
+                    mainObject[key] = additions[key];
+                }
+            }
+        }
+    };
     CRMAppTemplates.getDefaultNodeInfo = function (options) {
         if (options === void 0) { options = {}; }
         var defaultNodeInfo = {
@@ -3622,6 +3642,7 @@ CA.crm = (function () {
     };
     return CRMAppCRMFunctions;
 }());
+CA._log = [];
 ;
 Polymer(CA);
 var _a, _b;

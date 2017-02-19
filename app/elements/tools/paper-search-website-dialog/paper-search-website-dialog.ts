@@ -178,7 +178,13 @@ class PSWD {
 	 * Switches to the window specified in the button's attributes
 	 */
 	static switchWindow(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
-		this.switchToWindow(event.target.parentElement.getAttribute('window') as PaperSearchWebsiteDialogWindow);
+		var el = event.path[0];
+		let index = 0;
+		while (el.tagName.toLowerCase() !== 'paper-button') {
+			el = event.path[++index];
+		}
+		window.app._log.push(`Currently switching to window ${el.getAttribute('window')}`);
+		this.switchToWindow(el.getAttribute('window') as PaperSearchWebsiteDialogWindow);
 	};
 
 	/**
@@ -283,6 +289,7 @@ ${this.howToOpen === 'newTab' ?
 	 * Apply the choice from the manual choice dialog
 	 */
 	static applyDefaultsUrls(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
+		window.app._log.push(`Currently choosing one, chose ${this.$.searchWebsitesRadioGroup.selected}`);
 		switch (this.$.searchWebsitesRadioGroup.selected) {
 			case 'google':
 				this.chosenUrl = 'https://www.google.com/search?q=%s';

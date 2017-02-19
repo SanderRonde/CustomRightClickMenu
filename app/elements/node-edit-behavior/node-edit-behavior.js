@@ -82,6 +82,9 @@ var NEB = (function () {
     };
     ;
     NEB.cancel = function () {
+        Array.prototype.slice.apply(document.querySelectorAll('CodeMirror-Tern-tooltip')).forEach(function (toolTip) {
+            toolTip.remove();
+        });
         if (this.cancelChanges) {
             //This made the compiler angry
             this.cancelChanges();
@@ -90,18 +93,19 @@ var NEB = (function () {
     };
     ;
     NEB.save = function (event, resultStorage) {
-        if (resultStorage) {
-            resultStorage = null;
-        }
-        var usesDefaultStorage = !resultStorage;
-        if (usesDefaultStorage) {
+        var usesDefaultStorage = false;
+        if (resultStorage === null || typeof resultStorage.x === 'number') {
             resultStorage = this.item;
+            usesDefaultStorage = true;
         }
         var newSettings = this.newSettings;
         if (this.saveChanges) {
             //Also made the compiler angry
             this.saveChanges(newSettings);
         }
+        Array.prototype.slice.apply(document.querySelectorAll('CodeMirror-Tern-tooltip')).forEach(function (toolTip) {
+            toolTip.remove();
+        });
         this.getContentTypeLaunchers(newSettings);
         this.getTriggers(newSettings);
         window.crmEditPage.animateOut();
@@ -122,11 +126,7 @@ var NEB = (function () {
                 }
             }
         }
-        for (var key in newSettings) {
-            if (newSettings.hasOwnProperty(key)) {
-                resultStorage[key] = newSettings[key];
-            }
-        }
+        window.app.templates.mergeObjectsWithoutAssignment(resultStorage, newSettings);
         if (usesDefaultStorage) {
             window.app.upload();
         }
@@ -172,7 +172,7 @@ var NEB = (function () {
             }
             element.checked = true;
             this[element.parentElement.classList[1].split('Type')[0] + 'ContentSelected'] = true;
-            window.doc['contentTypeToast'].show();
+            window.doc.contentTypeToast.show();
         }
         return false;
     };

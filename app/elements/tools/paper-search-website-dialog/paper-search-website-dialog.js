@@ -126,7 +126,13 @@ var PSWD = (function () {
      * Switches to the window specified in the button's attributes
      */
     PSWD.switchWindow = function (event) {
-        this.switchToWindow(event.target.parentElement.getAttribute('window'));
+        var el = event.path[0];
+        var index = 0;
+        while (el.tagName.toLowerCase() !== 'paper-button') {
+            el = event.path[++index];
+        }
+        window.app._log.push("Currently switching to window " + el.getAttribute('window'));
+        this.switchToWindow(el.getAttribute('window'));
     };
     ;
     /**
@@ -181,7 +187,7 @@ var PSWD = (function () {
     PSWD.processSearchEngines = function () {
         var _this = this;
         return function (resolve, reject) {
-            var data = _this.$.manualInputListChoiceInput.value;
+            var data = _this.$.manualInputListChoiceInput.querySelector('textarea').value;
             try {
                 var structuredSearchEngines = JSON.parse(data);
                 $('.SEImportError').remove();
@@ -211,7 +217,10 @@ var PSWD = (function () {
      */
     PSWD.processManualInput = function () {
         if (this.selectedIsUrl) {
-            this.chosenUrl = this.$.manualInputURLInput.value.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
+            this.chosenUrl = this.$.manualInputURLInput
+                .querySelector('input')
+                .value
+                .replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
             this.switchToWindow('confirmationWindow');
         }
         else {
@@ -223,6 +232,7 @@ var PSWD = (function () {
      * Apply the choice from the manual choice dialog
      */
     PSWD.applyDefaultsUrls = function (event) {
+        window.app._log.push("Currently choosing one, chose " + this.$.searchWebsitesRadioGroup.selected);
         switch (this.$.searchWebsitesRadioGroup.selected) {
             case 'google':
                 this.chosenUrl = 'https://www.google.com/search?q=%s';

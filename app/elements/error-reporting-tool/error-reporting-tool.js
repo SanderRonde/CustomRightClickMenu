@@ -310,7 +310,7 @@ var ERT = (function () {
                 window.addEventListener('focus', listener);
             }
             else {
-                window.doc['acceptDownloadToast'].show();
+                window.doc.acceptDownloadToast.show();
             }
         });
     };

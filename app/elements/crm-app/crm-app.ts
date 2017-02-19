@@ -1146,7 +1146,7 @@ class CA {
 	/**
 	 * Uploads the settings to chrome.storage
 	 */
-	static upload(this: CrmApp) {
+	static upload(this: CrmApp, force: boolean = false) {
 		//Send changes to background-page, background-page uploads everything
 		//Compare storageLocal objects
 		var localChanges: Array<{
@@ -1155,7 +1155,7 @@ class CA {
 			key: any;
 		}> = [];
 		var storageLocal = this.storageLocal;
-		var storageLocalCopy = this.storageLocalCopy;
+		var storageLocalCopy = force ? {} : this.storageLocalCopy;
 
 		var settingsChanges: Array<{
 			oldValue: any;
@@ -1163,7 +1163,7 @@ class CA {
 			key: any;
 		}> = [];
 		var settings = this.settings;
-		var settingsCopy = this.settingsCopy;
+		var settingsCopy = force ? {} : this.settingsCopy;
 		var hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
 		var haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
 
@@ -2907,9 +2907,9 @@ class CA {
 						_this.settings = items;
 						_this.settingsCopy = JSON.parse(JSON.stringify(items));
 						for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-							_this.onSettingsReadyCallbacks[i].callback.apply(_this
-								.onSettingsReadyCallbacks[i].thisElement, _this
-								.onSettingsReadyCallbacks[i].params);
+							_this.onSettingsReadyCallbacks[i].callback.apply(
+								_this.onSettingsReadyCallbacks[i].thisElement,
+								_this.onSettingsReadyCallbacks[i].params);
 						}
 						_this.updateEditorZoom();
 						_this.orderNodesById(items.crm);
@@ -3112,9 +3112,6 @@ class CA {
 			fn();
 		}
 
-		//Reset storages
-		this.setupStorages(onDone);
-
 		//Reset dialog
 		if (window.app.item) {
 			const dialog = window[window.app.item.type + 'Edit' as
@@ -3122,6 +3119,11 @@ class CA {
 			dialog && dialog.cancel();
 		}
 		window.app.item = null;
+
+		window.app.settings = window.app.storageLocal = null;
+
+		//Reset storages
+		this.setupStorages(onDone);
 
 		//Reset checkboxes
 		this.initCheckboxes.apply(this, [window.app.storageLocal]);
@@ -3141,6 +3143,8 @@ class CA {
 		Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
 			dialog.opened && dialog.close();
 		});
+
+		this.upload(true);
 	};
 
 	static getLocalStorageKey(this: CrmApp, key: string): any {
@@ -3216,7 +3220,7 @@ class CA {
 		static mergeArrays<T, U>(mainArray: Array<T|Array<T>>, additionArray: Array<U|Array<U>>): Array<T|U|Array<T|U>> {
 			const newArray: Array<T|U|Array<T|U>> = [];
 
-			for (var i = 0; i < additionArray.length; i++) {
+			for (let i = 0; i < additionArray.length; i++) {
 				if (mainArray[i] && typeof additionArray[i] === 'object' && 
 					mainArray[i] !== undefined && mainArray[i] !== null) {
 					if (Array.isArray(additionArray[i])) {
@@ -3235,8 +3239,8 @@ class CA {
 		/**
 		 * Merges two objects
 		 */
-		static mergeObjects<T>(mainObject: Extendable<T>, additions: Extensions<T>): any {
-			for (var key in additions) {
+		static mergeObjects<T>(mainObject: Extendable<T>, additions: Extensions<T>): Extendable<T> {
+			for (let key in additions) {
 				if (additions.hasOwnProperty(key)) {
 					if (typeof additions[key] === 'object' &&
 						mainObject[key] !== undefined &&
@@ -3254,6 +3258,24 @@ class CA {
 			return mainObject;
 		};
 
+		static mergeObjectsWithoutAssignment<T>(mainObject: Extendable<T>, additions: Extensions<T>) {
+			for (let key in additions) {
+				if (additions.hasOwnProperty(key)) {
+					if (typeof additions[key] === 'object' &&
+						mainObject[key] !== undefined &&
+						mainObject[key] !== null) {
+						if (Array.isArray(additions[key])) {
+							this.mergeArrays(mainObject[key], additions[key]);
+						} else {
+							this.mergeObjects(mainObject[key], additions[key]);
+						}
+					} else {
+						mainObject[key] = additions[key];
+					}
+				}
+			}
+		}
+
 		static getDefaultNodeInfo(options: Partial<CRMNodeInfo> = {}): CRMNodeInfo {
 			const defaultNodeInfo: Partial<CRMNodeInfo> = {
 				permissions: [],
@@ -3263,7 +3285,7 @@ class CA {
 					}
 			};
 
-			return this.mergeObjects(defaultNodeInfo, options);
+			return this.mergeObjects(defaultNodeInfo, options) as CRMNodeInfo;
 		};
 
 		/**
@@ -3289,7 +3311,7 @@ class CA {
 				]
 			};
 
-			return this.mergeObjects(defaultNode, options);
+			return this.mergeObjects(defaultNode, options) as LinkNode;
 		};
 
 		/**
@@ -3303,7 +3325,7 @@ class CA {
 				defaultOn: false
 			};
 
-			return this.mergeObjects(value, options);
+			return this.mergeObjects(value, options) as StylesheetVal;
 		};
 
 		/**
@@ -3319,7 +3341,7 @@ class CA {
 				metaTags: {}
 			};
 
-			return this.mergeObjects(value, options);
+			return this.mergeObjects(value, options) as ScriptVal;
 		};
 
 		/**
@@ -3341,7 +3363,7 @@ class CA {
 				value: this.getDefaultScriptValue(options.value)
 			};
 
-			return this.mergeObjects(defaultNode, options);
+			return this.mergeObjects(defaultNode, options) as ScriptNode;
 		};
 
 		/**
@@ -3363,7 +3385,7 @@ class CA {
 				value: this.getDefaultStylesheetValue(options.value)
 			};
 
-			return this.mergeObjects(defaultNode, options);
+			return this.mergeObjects(defaultNode, options) as StylesheetNode;
 		};
 
 		/**
@@ -3384,7 +3406,7 @@ class CA {
 				value: null
 			};
 
-			return this.mergeObjects(defaultNode, options);
+			return this.mergeObjects(defaultNode, options) as DividerNode|MenuNode;
 		};
 
 		/**
@@ -4043,6 +4065,8 @@ class CA {
 			return window.app;
 		}
 	};
+
+	static _log: Array<any> = [];
 };
 
 Polymer(CA);

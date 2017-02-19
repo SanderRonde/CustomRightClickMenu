@@ -75,12 +75,14 @@ type NodeEditBehaviorInstanceBase = NodeEditBehaviorBase & {
 	showContentTypeChooser?: boolean;
 }
 
-type NodeEditBehaviorScriptInstance = NodeEditBehaviorInstanceBase & ScriptEdit & {
-	newSettings: Partial<ScriptNode>
-};
-type NodeEditBehaviorStylesheetInstance = NodeEditBehaviorInstanceBase & StylesheetEdit & {
-	newSettings: Partial<StylesheetNode>;
-};
+type NodeEditBehaviorScriptInstance = NodeEditBehaviorInstanceBase & 
+	CodeEditBehaviorScriptInstance & {
+		newSettings: Partial<ScriptNode>
+	};
+type NodeEditBehaviorStylesheetInstance = NodeEditBehaviorInstanceBase &
+	CodeEditBehaviorStylesheetInstance & {
+		newSettings: Partial<StylesheetNode>;
+	};
 type NodeEditBehaviorLinkInstance = NodeEditBehaviorInstanceBase & LinkEdit & {
 	newSettings: Partial<LinkNode>;
 };
@@ -132,6 +134,10 @@ class NEB {
 	};
 
 	static cancel(this: NodeEditBehavior) {
+		Array.prototype.slice.apply(document.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
+			toolTip.remove();
+		});
+
 		if (this.cancelChanges) {
 			//This made the compiler angry
 			(this.cancelChanges as any)();
@@ -139,13 +145,11 @@ class NEB {
 		window.crmEditPage.animateOut();
 	};
 
-	static save(this: NodeEditBehavior, event?: PolymerClickEvent, resultStorage?: Partial<CRMNode>) {
-		if (resultStorage) {
-			resultStorage = null;
-		}
-		var usesDefaultStorage = !resultStorage;
-		if (usesDefaultStorage) {
+	static save(this: NodeEditBehavior, event?: PolymerClickEvent, resultStorage?: Partial<CRMNode>|MouseEvent) {
+		var usesDefaultStorage = false;
+		if (resultStorage === null || typeof (resultStorage as MouseEvent).x === 'number') {
 			resultStorage = this.item;
+			usesDefaultStorage = true;
 		}
 
 		var newSettings = this.newSettings;
@@ -153,6 +157,10 @@ class NEB {
 			//Also made the compiler angry
 			(this.saveChanges as any)(newSettings);
 		}
+
+		Array.prototype.slice.apply(document.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
+			toolTip.remove();
+		});
 
 		this.getContentTypeLaunchers(newSettings);
 		this.getTriggers(newSettings);
@@ -177,11 +185,7 @@ class NEB {
 			}
 		}
 
-		for (var key in newSettings) {
-			if (newSettings.hasOwnProperty(key)) {
-				resultStorage[key as keyof CRMNode] = newSettings[key as keyof CRMNode];
-			}
-		}
+		window.app.templates.mergeObjectsWithoutAssignment(resultStorage, newSettings);
 
 		if (usesDefaultStorage) {
 			window.app.upload();
@@ -424,7 +428,7 @@ class NEB {
 		}
 	};
 
-	static initDropdown(this: NodeEditBehaviorBase & (ScriptEdit|StylesheetEdit)) {
+	static initDropdown(this: CodeEditBehavior) {
 		this.showTriggers = (this.item.value.launchMode > 1 && this.item.value.launchMode !== 4);
 		this.showContentTypeChooser = (this.item.value.launchMode === 0 || this.item.value.launchMode === 3);
 		if (this.showTriggers) {

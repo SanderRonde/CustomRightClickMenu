@@ -565,7 +565,7 @@ var EC = (function () {
             this.setMetaTagIfSet(metaTags, 'CRM_defaultOn', 'defaultOn', node.value);
             //Convert stylesheet to GM API stylesheet insertion
             var stylesheetCode = codeSplit.join('\n');
-            codeSplit = ['GM_addStyle(\'', stylesheetCode.replace(/\n/g, ''), '\');'];
+            codeSplit = ["GM_addStyle('" + stylesheetCode.replace(/\n/g, '\\n\' + \n\'') + "');"];
         }
         var metaLines = [];
         for (var metaKey in metaTags) {
@@ -575,10 +575,7 @@ var EC = (function () {
                 }
             }
         }
-        var newScript = '// ==UserScript==\n';
-        newScript += metaLines.join('\n');
-        newScript += '// ==/UserScript==\n';
-        newScript += codeSplit.join('\n');
+        var newScript = "// ==UserScript==\n" + metaLines.join('\n') + "\n// ==/UserScript\n" + codeSplit.join('\n');
         return newScript;
     };
     ;
@@ -648,19 +645,22 @@ var EC = (function () {
     };
     ;
     EC.exportSingleNode = function (exportNode, exportType) {
-        var _this = this;
+        var __this = this;
         var textArea = $('#exportJSONData')[0];
         textArea.value = this.getExportString(exportNode, exportType, null);
         $('#exportAuthorName')[0].value =
             (exportNode.nodeInfo && exportNode.nodeInfo.source && exportNode.nodeInfo.source.author) || 'anonymous';
-        $('#exportAuthorName').on('change', function () {
-            var author = this.value;
-            chrome.storage.local.set({
-                authorName: author
-            });
-            var data;
-            data = _this.getExportString(exportNode, exportType, author);
-            textArea.value = data;
+        $('#exportAuthorName').on('keydown', function () {
+            var _this = this;
+            window.setTimeout(function () {
+                var author = _this.value;
+                chrome.storage.local.set({
+                    authorName: author
+                });
+                var data;
+                data = __this.getExportString(exportNode, exportType, author);
+                textArea.value = data;
+            }, 0);
         });
         $('#exportDialog')[0].open();
         setTimeout(function () {

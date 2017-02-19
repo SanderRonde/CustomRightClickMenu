@@ -727,7 +727,7 @@ class EC {
 
 			//Convert stylesheet to GM API stylesheet insertion
 			var stylesheetCode = codeSplit.join('\n');
-			codeSplit = ['GM_addStyle(\'', stylesheetCode.replace(/\n/g, ''), '\');'];
+			codeSplit = [`GM_addStyle('${stylesheetCode.replace(/\n/g, '\\n\' + \n\'')}');`];
 		}
 
 		var metaLines = [];
@@ -739,10 +739,11 @@ class EC {
 			}
 		}
 
-		var newScript = '// ==UserScript==\n';
-		newScript += metaLines.join('\n');
-		newScript += '// ==/UserScript==\n';
-		newScript += codeSplit.join('\n');
+		const newScript = 
+`// ==UserScript==
+${metaLines.join('\n')}
+// ==/UserScript
+${codeSplit.join('\n')}`;
 
 		return newScript;
 	};
@@ -814,21 +815,23 @@ class EC {
 	};
 
 	static exportSingleNode(this: EditCrm, exportNode: CRMNode, exportType: string) {
-		var _this = this;
+		var __this = this;
 
 		var textArea = $('#exportJSONData')[0] as HTMLTextAreaElement;
 
 		textArea.value = this.getExportString(exportNode, exportType, null);
 		($('#exportAuthorName')[0] as HTMLTextAreaElement).value = 
 			(exportNode.nodeInfo && exportNode.nodeInfo.source && exportNode.nodeInfo.source.author) || 'anonymous';
-		$('#exportAuthorName').on('change', function (this: HTMLPaperInputElement) {
-			var author = this.value;
-			chrome.storage.local.set({
-				authorName: author
-			});
-			var data;
-			data = _this.getExportString(exportNode, exportType, author);
-			textArea.value = data;
+		$('#exportAuthorName').on('keydown', function (this: HTMLPaperInputElement) {
+			window.setTimeout(() => {
+				var author = this.value;
+				chrome.storage.local.set({
+					authorName: author
+				});
+				var data;
+				data = __this.getExportString(exportNode, exportType, author);
+				textArea.value = data;
+			}, 0);
 		});
 		($('#exportDialog')[0] as HTMLPaperDialogElement).open();
 		setTimeout(function() {
