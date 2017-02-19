@@ -1,6 +1,8 @@
 ///<reference path="./elements.d.ts" />
 
-interface IDMap {	"behavior": any,
+interface IDMap 
+{
+	"behavior":{ },
 	"center-element":{
 		"centerVertical": HTMLDivElement,
 		"centerHorizontal": HTMLDivElement,
@@ -473,7 +475,8 @@ interface IDMap {	"behavior": any,
 		"libraryInfoTxt": HTMLDivElement,
 		"dropdownSelectedCont": HTMLDivElement,
 		"dropdownSelected": HTMLDivElement,
-		"dropdownArrow": SVGElement
+		"dropdownArrow": SVGElement,
+		"dropdown": HTMLPaperMenuElement
 	},
 	"paper-search-website-dialog":{
 		"paperSearchWebsiteDialog": HTMLPaperDialogElement,
