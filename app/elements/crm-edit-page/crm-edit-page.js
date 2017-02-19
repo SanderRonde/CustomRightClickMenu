@@ -170,7 +170,7 @@ var CEP = (function () {
         var _this = this;
         var oldScript = this.item.value.oldScript;
         var newScript = this.item.value.script;
-        var chooseDialog = window.doc['externalEditorChooseFile'];
+        var chooseDialog = window.doc.externalEditorChooseFile;
         chooseDialog.init(oldScript, newScript, function (chosenScript) {
             if (window.app.storageLocal.upgradeErrors) {
                 delete window.app.storageLocal.upgradeErrors[_this.item.id];
