@@ -6310,29 +6310,24 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									name: string;
 									url?: string;
 									code?: string;
-									location?: string;
 								} | {
 									code: string;
-									location?: string;
 								};
-								if (globalObject.globals.storages.storageLocal.libraries) {
-									for (var j = 0;
-										j < globalObject.globals.storages.storageLocal.libraries.length;
-										j++) {
-										if (globalObject.globals.storages.storageLocal.libraries[j].name ===
-											node.value.libraries[i].name) {
-											lib = globalObject.globals.storages.storageLocal.libraries[j];
+								const globalLibs = globalObject.globals.storages.storageLocal.libraries;
+								if (globalLibs) {
+									for (var j = 0; j < globalLibs.length; j++) {
+										if (globalLibs[j].name === node.value.libraries[i].name) {
+											lib = globalLibs[j];
 											break;
 										} else {
 											//Resource hasn't been registered with its name, try if it's an anonymous one
 											if (node.value.libraries[i].name === null) {
 												//Check if the value has been registered as a resource
-												if (globalObject.globals.storages.urlDataPairs[node.value
-													.libraries[i]
-													.url]) {
+												if (globalObject.globals.storages.urlDataPairs[
+													node.value.libraries[i].url]) {
 													lib = {
-														code: globalObject.globals.storages.urlDataPairs[node.value
-															.libraries[i].url].dataString
+														code: globalObject.globals.storages.urlDataPairs[
+															node.value.libraries[i].url].dataString
 													};
 												}
 											}
@@ -6340,17 +6335,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									}
 								}
 								if (lib) {
-									if (lib.location) {
-										scripts.push({
-											file: `/js/defaultLibraries/${lib.location}`,
-											runAt: runAt
-										});
-									} else {
-										scripts.push({
-											code: lib.code,
-											runAt: runAt
-										});
-									}
+									scripts.push({
+										code: lib.code,
+										runAt: runAt
+									});
 								}
 							}
 							scripts.push({

@@ -44,7 +44,7 @@ var Promiselike = (function () {
         }
         return this;
     };
-    Promiselike.prototype.catch = function (onrejected) {
+    Promiselike.prototype["catch"] = function (onrejected) {
         this._rejectListeners.push(onrejected);
         if (this._status === 'rejected') {
             onrejected(this._rejectReason);
@@ -227,7 +227,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        },
+                        }
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
@@ -324,7 +324,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         value: null,
                         showOnSpecified: true,
                         children: type === 'menu' ? [] : null,
-                        permissions: [],
+                        permissions: []
                     };
                     return this.mergeObjects(defaultNode, options);
                 },
@@ -4543,23 +4543,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             var scripts = [];
                             for (i = 0; i < node.value.libraries.length; i++) {
                                 var lib;
-                                if (globalObject.globals.storages.storageLocal.libraries) {
-                                    for (var j = 0; j < globalObject.globals.storages.storageLocal.libraries.length; j++) {
-                                        if (globalObject.globals.storages.storageLocal.libraries[j].name ===
-                                            node.value.libraries[i].name) {
-                                            lib = globalObject.globals.storages.storageLocal.libraries[j];
+                                var globalLibs = globalObject.globals.storages.storageLocal.libraries;
+                                if (globalLibs) {
+                                    for (var j = 0; j < globalLibs.length; j++) {
+                                        if (globalLibs[j].name === node.value.libraries[i].name) {
+                                            lib = globalLibs[j];
                                             break;
                                         }
                                         else {
                                             //Resource hasn't been registered with its name, try if it's an anonymous one
                                             if (node.value.libraries[i].name === null) {
                                                 //Check if the value has been registered as a resource
-                                                if (globalObject.globals.storages.urlDataPairs[node.value
-                                                    .libraries[i]
-                                                    .url]) {
+                                                if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
                                                     lib = {
-                                                        code: globalObject.globals.storages.urlDataPairs[node.value
-                                                            .libraries[i].url].dataString
+                                                        code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
                                                     };
                                                 }
                                             }
@@ -4567,18 +4564,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     }
                                 }
                                 if (lib) {
-                                    if (lib.location) {
-                                        scripts.push({
-                                            file: "/js/defaultLibraries/" + lib.location,
-                                            runAt: runAt
-                                        });
-                                    }
-                                    else {
-                                        scripts.push({
-                                            code: lib.code,
-                                            runAt: runAt
-                                        });
-                                    }
+                                    scripts.push({
+                                        code: lib.code,
+                                        runAt: runAt
+                                    });
                                 }
                             }
                             scripts.push({
