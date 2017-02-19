@@ -5,7 +5,8 @@ const path = require('path');
 const getFileTemplate = (content) => {
 	return `///<reference path="./elements.d.ts" />
 
-interface IDMap ${content}
+interface IDMap 
+${content}
 `;
 }
 
@@ -22,7 +23,8 @@ function prettyify(str) {
 		.replace(/\n},"/g, '\n},\n"')
 		.replace(/{\n}/g, '{ }')
 		.replace(/"(\w+)": (\w+)}}/g, '\t"$1": $2\n}\n}')
-		.replace(/{"/g, '{\n"');
+		.replace(/{"/g, '{\n"')
+		.replace(/:"{ }",/, ':{ },\n');
 	const split = str.split('\n');
 	return `${split[0]}\n${split.slice(1, -1).map((line) => {
 		return `\t${line}`;
@@ -64,7 +66,7 @@ module.exports = function(grunt) {
 			const done = this.async();
 
 			const map = {
-				behavior: 'any'
+				behavior: '{ }'
 			};
 
 			Promise.all(this.files.map((fileObj) => {
