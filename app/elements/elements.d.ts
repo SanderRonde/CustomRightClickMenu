@@ -16,6 +16,7 @@
 /// <reference path="./edit-pages/menu-edit/menu-edit.ts" />
 /// <reference path="./edit-pages/script-edit/script-edit.ts" />
 /// <reference path="./edit-pages/stylesheet-edit/stylesheet-edit.ts" />
+/// <reference path="./edit-pages/code-edit-pages/code-edit-behavior.ts" />
 /// <reference path="./error-reporting-tool/error-reporting-tool.ts" />
 /// <reference path="./installing/install-confirm/install-confirm.ts" />
 /// <reference path="./installing/install-error/install-error.ts" />
