@@ -19,6 +19,7 @@ interface Polymer {
 		registrations: Array<HTMLElement>;
 	}
 
+	CodeEditBehavior: CodeEditBehavior;
 	NodeEditBehavior: NodeEditBehaviorBase;
 	PaperDropdownBehavior: PaperDropdownBehaviorBase;
 	DraggableNodeBehavior: DraggableNodeBehavior;
@@ -87,7 +88,6 @@ interface PaperDialogBase extends HTMLElement {
 	toggle(): void;
 	close(): void;
 	open(): void;
-	show(): void;
 	fit(): void;
 }
 
