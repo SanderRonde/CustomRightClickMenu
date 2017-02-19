@@ -4,7 +4,11 @@ const paperLibrariesSelectorProperties: {
 	usedlibraries: Array<CRMLibrary>;
 	libraries: Array<LibrarySelectorLibrary>;
 	selected: Array<number>;
-	installedLibraries: Array<LibrarySelectorLibrary>;
+	installedLibraries: Array<{
+		name?: string;
+		url?: string;
+		code: string;
+	}>;
 	mode: 'main'|'background';
 
 } = {
@@ -90,6 +94,10 @@ class PLS {
 	
 	static init(this: PaperLibrariesSelector) {
 		var _this = this;
+		if (this._expanded) {
+			this.close();
+		}
+
 		var anonymous: Array<LibrarySelectorLibrary> = [];
 		var selectedObj: {
 			[key: string]: boolean;
@@ -111,8 +119,7 @@ class PLS {
 			if (selectedObj[item.name.toLowerCase()]) {
 				itemCopy.classes = 'library iron-selected';
 				itemCopy.selected = 'true';
-			}
-			else {
+			} else {
 				itemCopy.classes = 'library';
 				itemCopy.selected = 'false';
 			}
@@ -124,11 +131,12 @@ class PLS {
 
 		var anonymousLibraries: Array<LibrarySelectorLibrary> = [];
 		anonymous.forEach(function(item) {
-			const itemCopy: LibrarySelectorLibrary = {} as any;
-			itemCopy.isLibrary = true;
-			itemCopy.name = item.url + ' (anonymous)';
-			itemCopy.classes = 'library iron-selected anonymous';
-			itemCopy.selected = 'true';
+			const itemCopy: LibrarySelectorLibrary = {
+				isLibrary: true,
+				name: `${item.url} (anonymous)`,
+				classes: 'library iron-selected anonymous',
+				selected: 'true'
+			};
 			anonymousLibraries.push(itemCopy);
 		});
 		anonymousLibraries.sort(function (first, second) {
@@ -160,6 +168,9 @@ class PLS {
 			window.doc.addLibraryConfirmAddition.addEventListener('click', function () {
 				window.doc.addLibraryConfirmationInput.value = '';
 				_this.addLibraryFile(_this, name, code, url);
+				window.doc.addLibraryConfirmAddition.removeEventListener('click');
+				window.doc.addLibraryDenyConfirmation.removeEventListener('click');
+				window.doc.addLibraryUrlInput.removeAttribute('invalid');
 			});
 			window.doc.addLibraryDenyConfirmation.addEventListener('click', function() {
 				window.doc.addLibraryConfirmationContainer.style.display = 'none';
@@ -177,6 +188,7 @@ class PLS {
 	static addLibraryFile(_this: PaperLibrariesSelector, name: string, code: string, url: string = null) {
 		window.doc.addLibraryConfirmationContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
+
 		setTimeout(function() {
 			_this.installedLibraries.push({
 				name: name,
@@ -245,22 +257,25 @@ class PLS {
 		}, 250);
 	};
 
-	static click(this: PaperLibrariesSelector, e: PolymerClickEvent) {
+	static _click(this: PaperLibrariesSelector, e: PolymerClickEvent) {
 		var _this = this;
 		if (e.target.classList.contains('addLibrary')) {
 			//Add new library dialog
-			window.doc.addedLibraryName.value = '';
-			window.doc.addLibraryUrlInput.value = '';
-			window.doc.addLibraryManualInput.value = '';
-			window.doc.addLibraryDialog.toggle();
+			window.doc.addedLibraryName.querySelector('input').value = '';
+			window.doc.addLibraryUrlInput.querySelector('input').value = '';
+			window.doc.addLibraryManualInput.querySelector('textarea').value = '';
+
+			window.doc.addLibraryProcessContainer.style.display = 'block';
+			window.doc.addLibraryLoadingDialog.style.display = 'none';
+			window.doc.addLibraryConfirmationContainer.style.display = 'none';
+			window.doc.addLibraryDialogSucces.style.display = 'none';
+
+			window.doc.addedLibraryName.invalid = false;
+
+			window.doc.addLibraryDialog.open();
 			$(window.doc.addLibraryDialog)
 				.find('#addLibraryButton')
 				.on('click', function(this: HTMLElement) {
-					window.doc.addLibraryProcessContainer.style.display = 'block';
-					window.doc.addLibraryLoadingDialog.style.display = 'none';
-					window.doc.addLibraryConfirmationContainer.style.display = 'none';
-					window.doc.addLibraryDialogSucces.style.display = 'none';
-
 					var name = window.doc.addedLibraryName.querySelector('input').value;
 					var taken = false;
 					for (var i = 0; i < _this.installedLibraries.length; i++) {
@@ -285,7 +300,7 @@ class PLS {
 								libraryInput.setAttribute('invalid', 'true');
 							});
 						} else {
-							_this.addLibraryFile(_this, name, window.doc.addLibraryManualInput.value);
+							_this.addLibraryFile(_this, name, window.doc.addLibraryManualInput.querySelector('textarea').value);
 						}
 					} else {
 						if (taken) {
@@ -296,8 +311,7 @@ class PLS {
 						window.doc.addedLibraryName.invalid = true;
 					}
 				});
-		}
-		else if (e.target.classList.contains('anonymous')) {
+		} else if (e.target.classList.contains('anonymous')) {
 			var url = e.target.getAttribute('data-url');
 			if (_this.mode === 'main') {
 				window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor,

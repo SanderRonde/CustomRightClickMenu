@@ -61,6 +61,9 @@ var PLS = (function () {
     ;
     PLS.init = function () {
         var _this = this;
+        if (this._expanded) {
+            this.close();
+        }
         var anonymous = [];
         var selectedObj = {};
         this.usedlibraries.forEach(function (item) {
@@ -93,11 +96,12 @@ var PLS = (function () {
         });
         var anonymousLibraries = [];
         anonymous.forEach(function (item) {
-            var itemCopy = {};
-            itemCopy.isLibrary = true;
-            itemCopy.name = item.url + ' (anonymous)';
-            itemCopy.classes = 'library iron-selected anonymous';
-            itemCopy.selected = 'true';
+            var itemCopy = {
+                isLibrary: true,
+                name: item.url + " (anonymous)",
+                classes: 'library iron-selected anonymous',
+                selected: 'true'
+            };
             anonymousLibraries.push(itemCopy);
         });
         anonymousLibraries.sort(function (first, second) {
@@ -120,31 +124,34 @@ var PLS = (function () {
     };
     ;
     PLS.confirmLibraryFile = function (_this, name, code, url) {
-        window.doc['addLibraryProcessContainer'].style.display = 'none';
-        window.doc['addLibraryLoadingDialog'].style.display = 'flex';
+        window.doc.addLibraryProcessContainer.style.display = 'none';
+        window.doc.addLibraryLoadingDialog.style.display = 'flex';
         setTimeout(function () {
-            window.doc['addLibraryConfirmationInput'].value = code;
-            window.doc['addLibraryConfirmAddition'].addEventListener('click', function () {
-                window.doc['addLibraryConfirmationInput'].value = '';
+            window.doc.addLibraryConfirmationInput.value = code;
+            window.doc.addLibraryConfirmAddition.addEventListener('click', function () {
+                window.doc.addLibraryConfirmationInput.value = '';
                 _this.addLibraryFile(_this, name, code, url);
+                window.doc.addLibraryConfirmAddition.removeEventListener('click');
+                window.doc.addLibraryDenyConfirmation.removeEventListener('click');
+                window.doc.addLibraryUrlInput.removeAttribute('invalid');
             });
-            window.doc['addLibraryDenyConfirmation'].addEventListener('click', function () {
-                window.doc['addLibraryConfirmationContainer'].style.display = 'none';
-                window.doc['addLibraryProcessContainer'].style.display = 'block';
-                window.doc['addLibraryConfirmAddition'].removeEventListener('click');
-                window.doc['addLibraryDenyConfirmation'].removeEventListener('click');
-                window.doc['addLibraryUrlInput'].removeAttribute('invalid');
-                window.doc['addLibraryConfirmationInput'].value = '';
+            window.doc.addLibraryDenyConfirmation.addEventListener('click', function () {
+                window.doc.addLibraryConfirmationContainer.style.display = 'none';
+                window.doc.addLibraryProcessContainer.style.display = 'block';
+                window.doc.addLibraryConfirmAddition.removeEventListener('click');
+                window.doc.addLibraryDenyConfirmation.removeEventListener('click');
+                window.doc.addLibraryUrlInput.removeAttribute('invalid');
+                window.doc.addLibraryConfirmationInput.value = '';
             });
-            window.doc['addLibraryLoadingDialog'].style.display = 'none';
-            window.doc['addLibraryConfirmationContainer'].style.display = 'block';
+            window.doc.addLibraryLoadingDialog.style.display = 'none';
+            window.doc.addLibraryConfirmationContainer.style.display = 'block';
         }, 250);
     };
     ;
     PLS.addLibraryFile = function (_this, name, code, url) {
         if (url === void 0) { url = null; }
-        window.doc['addLibraryConfirmationContainer'].style.display = 'none';
-        window.doc['addLibraryLoadingDialog'].style.display = 'flex';
+        window.doc.addLibraryConfirmationContainer.style.display = 'none';
+        window.doc.addLibraryLoadingDialog.style.display = 'flex';
         setTimeout(function () {
             _this.installedLibraries.push({
                 name: name,
@@ -181,23 +188,23 @@ var PLS = (function () {
                 duration: 250,
                 easing: 'easeInCubic'
             });
-            window.doc['addLibraryLoadingDialog'].style.display = 'none';
-            window.doc['addLibraryConfirmationContainer'].style.display = 'none';
-            window.doc['addLibraryProcessContainer'].style.display = 'none';
-            window.doc['addLibraryDialogSucces'].style.display = 'block';
-            window.doc['addLibraryDialogSuccesCheckmark'].style.display = 'none';
-            $(window.doc['addLibraryDialogSucces']).animate({
+            window.doc.addLibraryLoadingDialog.style.display = 'none';
+            window.doc.addLibraryConfirmationContainer.style.display = 'none';
+            window.doc.addLibraryProcessContainer.style.display = 'none';
+            window.doc.addLibraryDialogSucces.style.display = 'block';
+            window.doc.addLibraryDialogSuccesCheckmark.style.display = 'none';
+            $(window.doc.addLibraryDialogSucces).animate({
                 backgroundColor: 'rgb(38,153,244)'
             }, {
                 duration: 300,
                 easing: 'easeOutCubic',
                 complete: function () {
-                    window.doc['addLibraryDialogSuccesCheckmark'].style.display = 'block';
-                    window.doc['addLibraryDialogSuccesCheckmark'].classList.add('animateIn');
+                    window.doc.addLibraryDialogSuccesCheckmark.style.display = 'block';
+                    window.doc.addLibraryDialogSuccesCheckmark.classList.add('animateIn');
                     setTimeout(function () {
-                        window.doc['addLibraryDialog'].toggle();
-                        window.doc['addLibraryDialogSucces'].style.display = 'none';
-                        window.doc['addLibraryLoadingDialog'].style.display = 'block';
+                        window.doc.addLibraryDialog.toggle();
+                        window.doc.addLibraryDialogSucces.style.display = 'none';
+                        window.doc.addLibraryLoadingDialog.style.display = 'block';
                     }, 2500);
                 }
             });
@@ -208,22 +215,23 @@ var PLS = (function () {
         }, 250);
     };
     ;
-    PLS.click = function (e) {
+    PLS._click = function (e) {
         var _this = this;
         if (e.target.classList.contains('addLibrary')) {
             //Add new library dialog
-            window.doc['addedLibraryName'].value = '';
-            window.doc['addLibraryUrlInput'].value = '';
-            window.doc['addLibraryManualInput'].value = '';
-            window.doc['addLibraryDialog'].toggle();
-            $(window.doc['addLibraryDialog'])
+            window.doc.addedLibraryName.querySelector('input').value = '';
+            window.doc.addLibraryUrlInput.querySelector('input').value = '';
+            window.doc.addLibraryManualInput.querySelector('textarea').value = '';
+            window.doc.addLibraryProcessContainer.style.display = 'block';
+            window.doc.addLibraryLoadingDialog.style.display = 'none';
+            window.doc.addLibraryConfirmationContainer.style.display = 'none';
+            window.doc.addLibraryDialogSucces.style.display = 'none';
+            window.doc.addedLibraryName.invalid = false;
+            window.doc.addLibraryDialog.open();
+            $(window.doc.addLibraryDialog)
                 .find('#addLibraryButton')
                 .on('click', function () {
-                window.doc.addLibraryProcessContainer.style.display = 'block';
-                window.doc.addLibraryLoadingDialog.style.display = 'none';
-                window.doc.addLibraryConfirmationContainer.style.display = 'none';
-                window.doc.addLibraryDialogSucces.style.display = 'none';
-                var name = window.doc['addedLibraryName'].value;
+                var name = window.doc.addedLibraryName.querySelector('input').value;
                 var taken = false;
                 for (var i = 0; i < _this.installedLibraries.length; i++) {
                     if (_this.installedLibraries[i].name === name) {
@@ -232,9 +240,9 @@ var PLS = (function () {
                 }
                 if (name !== '' && !taken) {
                     this.removeAttribute('invalid');
-                    if (window.doc['addLibraryRadios'].selected === 'url') {
-                        var libraryInput = window.doc['addLibraryUrlInput'];
-                        var url = libraryInput.value;
+                    if (window.doc.addLibraryRadios.selected === 'url') {
+                        var libraryInput = window.doc.addLibraryUrlInput;
+                        var url = libraryInput.querySelector('input').value;
                         if (url[0] === '/' && url[1] === '/') {
                             url = 'http:' + url;
                         }
@@ -248,17 +256,17 @@ var PLS = (function () {
                         });
                     }
                     else {
-                        _this.addLibraryFile(_this, name, window.doc['addLibraryManualInput'].value);
+                        _this.addLibraryFile(_this, name, window.doc.addLibraryManualInput.querySelector('textarea').value);
                     }
                 }
                 else {
                     if (taken) {
-                        window.doc['addedLibraryName'].errorMessage = 'That name is already taken';
+                        window.doc.addedLibraryName.errorMessage = 'That name is already taken';
                     }
                     else {
-                        window.doc['addedLibraryName'].errorMessage = 'Please enter a name';
+                        window.doc.addedLibraryName.errorMessage = 'Please enter a name';
                     }
-                    window.doc['addedLibraryName'].invalid = true;
+                    window.doc.addedLibraryName.invalid = true;
                 }
             });
         }
