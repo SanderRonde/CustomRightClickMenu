@@ -294,7 +294,8 @@ const templates = {
 	getDefaultStylesheetValue(options: any): StylesheetVal {
 		const value = {
 			stylesheet: [].join('\n'),
-			launchMode: CRMLaunchModes.ALWAYS_RUN
+			launchMode: CRMLaunchModes.ALWAYS_RUN,
+			options: {},
 		} as StylesheetVal;
 
 		return this.mergeObjects(value, options);
@@ -305,7 +306,8 @@ const templates = {
 			backgroundLibraries: [],
 			libraries: [],
 			script: [].join('\n'),
-			backgroundScript: ''
+			backgroundScript: '',
+			options: {},
 		};
 
 		return this.mergeObjects(value, options);
