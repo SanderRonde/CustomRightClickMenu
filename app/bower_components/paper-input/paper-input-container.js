@@ -126,14 +126,17 @@
     ready: function() {
       this.addEventListener('focus', this._boundOnFocus, true);
       this.addEventListener('blur', this._boundOnBlur, true);
+    },
+
+    attached: function() {
       if (this.attrForValue) {
+        this._inputElement && 
         this._inputElement.addEventListener(this._valueChangedEvent, this._boundValueChanged);
       } else {
         this.addEventListener('input', this._onInput);
       }
-    },
 
-    attached: function() {
+      this._inputElement && 
       this._handleValue(this._inputElement);
     },
 

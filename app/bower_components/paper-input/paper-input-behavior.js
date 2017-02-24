@@ -90,14 +90,6 @@
       },
 
       /**
-       * The maximum length of the input value. Bind this to the `<input is="iron-input">`'s
-       * `maxlength` property.
-       */
-      maxlength: {
-        type: Number
-      },
-
-      /**
        * The error message to display when the input is invalid. Bind this to the
        * `<paper-input-error>`'s content, if using.
        */
@@ -173,10 +165,40 @@
       },
 
       /**
-       * Bind this to the `<input is="iron-input">`'s `minlength` property.
+       * The minimum length of the input value.
+       * If you're using PaperInputBehavior to implement your own paper-input-like
+       * element, bind this to the `<input is="iron-input">`'s `minlength` property.
        */
       minlength: {
         type: Number
+      },
+
+      /**
+       * The maximum length of the input value.
+       * If you're using PaperInputBehavior to implement your own paper-input-like
+       * element, bind this to the `<input is="iron-input">`'s `maxlength` property.
+       */
+      maxlength: {
+        type: Number
+      },
+
+      /**
+       * The minimum (numeric or date-time) input value.
+       * If you're using PaperInputBehavior to implement your own paper-input-like
+       * element, bind this to the `<input is="iron-input">`'s `min` property.
+       */
+      min: {
+        type: String
+      },
+
+      /**
+       * The maximum (numeric or date-time) input value.
+       * Can be a String (e.g. `"2000-01-01"`) or a Number (e.g. `2`).
+       * If you're using PaperInputBehavior to implement your own paper-input-like
+       * element, bind this to the `<input is="iron-input">`'s `max` property.
+       */
+      max: {
+        type: String
       },
 
       /**
