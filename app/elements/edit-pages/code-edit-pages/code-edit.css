@@ -401,17 +401,6 @@ input {
 }
 
 
-#container {
-	-webkit-flex-direction: row;
-	flex-direction: row;
-	width: 220%;
-	transition: transform 300ms ease-in-out;
-}
-
-#container.options {
-	transform: translateX(-54.5%);
-}
-
 #codeOptionsContainer {
 	width: 45.5%;
 	margin-left: 9%;

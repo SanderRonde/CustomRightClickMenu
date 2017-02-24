@@ -73,7 +73,7 @@ type NodeEditBehaviorInstanceBase = NodeEditBehaviorBase & {
 	}): void;
 	showTriggers?: boolean;
 	showContentTypeChooser?: boolean;
-}
+};
 
 type NodeEditBehaviorScriptInstance = NodeEditBehaviorInstanceBase & 
 	CodeEditBehaviorScriptInstance & {
@@ -118,7 +118,7 @@ class NEB {
 		];
 		resultStorage.onContentTypes = arr.map((key) => {
 			return this[key] as boolean;
-		}) as CRMContentTypes
+		}) as CRMContentTypes;
 	};
 
 	static getTriggers(this: NodeEditBehavior, resultStorage: Partial<CRMNode>) {

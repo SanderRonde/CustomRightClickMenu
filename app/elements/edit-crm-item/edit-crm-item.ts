@@ -5,6 +5,8 @@ const editCrmItemProperties: {
 	expanded: boolean;
 	shadow: boolean;
 	itemName: string;
+	isMenu: boolean;
+	isCode: boolean;
 } = {
 	item: {
 		type: Object,
@@ -20,6 +22,14 @@ const editCrmItemProperties: {
 	},
 	itemName: {
 		type: String,
+		notify: true
+	},
+	isMenu: {
+		type: Boolean,
+		notify: true
+	},
+	isCode: {
+		type: Boolean,
 		notify: true
 	}
 } as any;
@@ -37,11 +47,6 @@ class ECI {
 	  * The type of this item
 	  */
 	static type: string = '';
-
-	/**
-	  * Whether this item is a menu or not
-	  */
-	static isMenu: boolean = false;
 
 	/**
 	 * Whether the item is a link
@@ -92,6 +97,10 @@ class ECI {
 	static lastTypeSwitchMouseover: number = null;
 
 	//#endregion
+
+	static _openCodeSettings(this: EditCrmItem) {
+		window.app.initCodeOptions(this.item as ScriptNode|StylesheetNode);
+	}
 
 	static getMenuExpandMessage(this: EditCrmItem) {
 		return 'Click to show ' + (this.item as MenuNode).children.length + ' child' + 
@@ -174,7 +183,6 @@ class ECI {
 		window.app.editCRM.build(this.item.path, false, true);
 	};
 
-	//#region editPageFunctions
 	static selectThisNode(this: EditCrmItem) {
 		var prevState = this.$.checkbox.checked;
 		this.$.checkbox.checked = !prevState;
@@ -339,12 +347,20 @@ class ECI {
 			this.openEditPage();
 		}
 	};
-	//#endregion
 
-	//#region typeIndicatorFunctions
 	static calculateType(this: EditCrmItem) {
 		this.type = this.item.type;
-		((this.isScript = this.item.type === 'script') && (this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isLink = this.item.type === 'link') && (this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isStylesheet = this.item.type === 'stylesheet') && (this.isMenu = this.isDivider = false)) || ((this.isMenu = this.item.type === 'menu') && (this.isDivider = false)) || (this.isDivider = true);
+		((this.isScript = this.item.type === 'script') &&
+			(this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false)) || 
+		((this.isLink = this.item.type === 'link') && 
+			(this.isMenu = this.isDivider = this.isStylesheet = false)) || 
+		((this.isStylesheet = this.item.type === 'stylesheet') && 
+			(this.isMenu = this.isDivider = false)) || 
+		((this.isMenu = this.item.type === 'menu') && 
+			(this.isDivider = false)) || 
+		(this.isDivider = true);
+
+		this.isCode = this.isScript || this.isStylesheet;
 	};
 
 	static typeIndicatorMouseOver(this: EditCrmItem) {
@@ -394,10 +410,6 @@ class ECI {
 		}
 	};
 
-	//#endregion
-
-	//#region deletionFunctions
-
 	static _getOnSelectFunction(_this: EditCrmItem, index: number) {
 		return function () {
 			window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRMNode>)[index].path).onSelect(true);
@@ -443,8 +455,6 @@ class ECI {
 			}
 		}, 0);
 	}
-
-	//#endregion
 }
 
 Polymer(ECI);

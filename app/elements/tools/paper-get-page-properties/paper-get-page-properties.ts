@@ -97,7 +97,7 @@ class PGPP {
 		];
 	};
 
-	static behaviors = [Polymer.PaperDropdownBehavior]
+	static behaviors = [Polymer.PaperDropdownBehavior];
 }
 
 Polymer(PGPP);

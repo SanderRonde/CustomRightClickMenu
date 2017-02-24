@@ -119,13 +119,13 @@ class ERT {
 			var newImg = new Image();
 			newImg.onload = function() {
 				_this.scaleScreenshot(canvas, context, newImg, callback);
-			}
+			};
 			newImg.src = base64;
 
 			var imgTag = document.createElement('img');
 			imgTag.src = base64;
 			document.body.appendChild(imgTag);
-		}
+		};
 		img.src = dataURI;
 
 		var imgTag2 = document.createElement('img');
@@ -305,10 +305,11 @@ class ERT {
 	static convertImageToBlob(this: ErrorReportingTool, dataURI: string) {
 		// convert base64/URLEncoded data component to raw binary data held in a string
 		var byteString;
-		if (dataURI.split(',')[0].indexOf('base64') >= 0)
+		if (dataURI.split(',')[0].indexOf('base64') >= 0) {
 			byteString = atob(dataURI.split(',')[1]);
-		else
+		} else {
 			byteString = window.unescape(dataURI.split(',')[1]);
+		}
 
 		// separate out the mime component
 		var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
@@ -421,4 +422,4 @@ class ERT {
 	}
 }
 
-Polymer(ERT)
+Polymer(ERT);

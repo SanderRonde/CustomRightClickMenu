@@ -44,7 +44,7 @@ var Promiselike = (function () {
         }
         return this;
     };
-    Promiselike.prototype["catch"] = function (onrejected) {
+    Promiselike.prototype.catch = function (onrejected) {
         this._rejectListeners.push(onrejected);
         if (this._status === 'rejected') {
             onrejected(this._rejectReason);
@@ -84,17 +84,12 @@ var Promiselike = (function () {
     };
     Promiselike.race = function (values) {
         return new Promiselike(function (resolve, reject) {
-            var promises = Array.prototype.slice.apply(values).map(function (promise) {
-                var obj = {
-                    done: false,
-                    result: undefined
-                };
+            Array.prototype.slice.apply(values).map(function (promise) {
                 promise.then(function (result) {
                     resolve(result);
                 }, function (reason) {
                     reject(reason);
                 });
-                return obj;
             });
         });
     };
@@ -227,7 +222,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        }
+                        },
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
@@ -261,7 +256,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         stylesheet: [].join('\n'),
                         launchMode: 0 /* RUN_ON_CLICKING */,
                         toggle: false,
-                        defaultOn: false
+                        defaultOn: false,
+                        options: {}
                     };
                     return this.mergeObjects(value, options);
                 },
@@ -273,7 +269,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         libraries: [],
                         script: [].join('\n'),
                         backgroundScript: '',
-                        metaTags: {}
+                        metaTags: {},
+                        options: {}
                     };
                     return this.mergeObjects(value, options);
                 },
@@ -324,7 +321,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         value: null,
                         showOnSpecified: true,
                         children: type === 'menu' ? [] : null,
-                        permissions: []
+                        permissions: [],
                     };
                     return this.mergeObjects(defaultNode, options);
                 },
@@ -4783,7 +4780,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         toggle: (metaTags['CRM_toggle'] = CRM.Script.MetaTags
                             .getlastMetaTagValue(metaTags, 'CRM_toggle') ||
                             false),
-                        launchMode: launchMode
+                        launchMode: launchMode,
+                        options: {}
                     };
                 }
                 else {

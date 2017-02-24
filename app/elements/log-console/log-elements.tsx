@@ -28,7 +28,7 @@ window.logElements = (() => {
 	class LogElement extends React.Component<any, any> {
 		refs: {
 			cont: HTMLElement;
-		}
+		};
 		parent: HTMLElement;
 
 		constructor(props: {}) {
@@ -41,8 +41,6 @@ window.logElements = (() => {
 			return false;
 		}
 	}
-
-	const PaperSpinner: any = 'Paper-Spinner';
 
 	class EvalElement extends LogElement {
 		componentDidMount() {
@@ -67,7 +65,7 @@ window.logElements = (() => {
 								<div className="evalElementReturnValue">{getTag(this.props.value.result, this)}</div>
 							</div>
 							: 
-							<PaperSpinner className="tinySpinner" active></PaperSpinner>)}
+							<paper-spinner className="tinySpinner" active></paper-spinner>)}
 					</div>
 				</div>
 			);
@@ -91,7 +89,7 @@ window.logElements = (() => {
 			return <div ref="cont" className="stringElementValue"
 				type={type}>
 					{value + ' '	}
-				</div>
+				</div>;;
 		}
 	};
 
@@ -102,7 +100,7 @@ window.logElements = (() => {
 			arrow: HTMLElement;
 			expandedElements: HTMLElement;
 			cont: HTMLElement;
-		}
+		};
 
 		constructor(props: any) {
 			super(props);
@@ -120,7 +118,6 @@ window.logElements = (() => {
 			var functionPrefix = fnMatch[1];
 			var functionText = fnMatch[2];
 			var functionKeywordIndex = functionPrefix.indexOf('function') || 0;
-			var functionName = functionPrefix.slice(0, functionPrefix.indexOf('()')).trim();
 
 			var expandClick = this.expand.bind(this);
 
@@ -161,7 +158,7 @@ window.logElements = (() => {
 						</div>
 					</div>
 				</div>
-			)
+			);
 		}
 	}
 
@@ -204,20 +201,12 @@ window.logElements = (() => {
 		}
 	}
 
-	function getKeys(item: string): number {
-		if (Array.isArray(item)) {
-			return item.length;
-		} else {
-			return Object.getOwnPropertyNames(item).length;
-		}
-	}
-
 	class ObjectElement extends LogElement {
 		refs: {
 			arrow: HTMLElement;
 			expandedElements: HTMLElement;
 			cont: HTMLElement;
-		}
+		};
 		props: {
 			parent: EvalElement|LogLine|LogElement;
 			expanded: boolean;
@@ -228,7 +217,7 @@ window.logElements = (() => {
 				[key: number]: any;
 			};
 			isProto: boolean;
-		}
+		};
 
 		expand() {
 			if (!this.props.expanded && !this.props.renderedExpanded) {
@@ -264,7 +253,7 @@ window.logElements = (() => {
 			this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
 		}
 		render() {
-			var dataType = Array.isArray(this.props.value) ? 'array' : 'object';
+			var dataType = Array.isArray(this.props.value) ? 'arr' : 'object';
 			var expandClick = this.expand.bind(this);
 			var dataPairs = getKeyValuePairs(this.props.value);
 			var lastElIndex = dataPairs.length - 1;
@@ -274,7 +263,7 @@ window.logElements = (() => {
 					return typeof pair.value === 'object';
 				}).length > 0;
 			var overflows = (dataType === 'object' && dataPairs.length > 3) || 
-				(dataType === 'array' && dataPairs.length > 10);
+				(dataType === 'arr' && dataPairs.length > 10);
 			var nonOverflowItems: Array<{
 				index: string|number;
 				value: any;
@@ -300,7 +289,7 @@ window.logElements = (() => {
 							</svg>
 						</div>
 						<div className="objectElementPreviewCont">
-							<span>{dataType === 'array' ? '[' : '{'}</span>
+							<span>{dataType === 'arr' ? '[' : '{'}</span>
 							{nonOverflowItems.map(function(item, i, arr) {
 								var index = (item as {
 									index: string|number;
@@ -318,7 +307,7 @@ window.logElements = (() => {
 												<span className="specialArrayElement">Array</span>
 												{i < lastElIndex ? <span className="arrayComma">,</span> : null}
 											</span>
-										)
+										);;
 									} else {
 										return (
 											<span className="objectElementValueCont">
@@ -326,7 +315,7 @@ window.logElements = (() => {
 												<span className="specialArrayElement">Object</span>
 												{i < lastElIndex ? <span className="arrayComma">,</span> : null}
 											</span>
-										)
+										);;
 									}
 								}  else if (typeof data === 'function') {
 									return (
@@ -335,7 +324,7 @@ window.logElements = (() => {
 											<span className="specialArrayElement">Function</span>
 											{i < lastElIndex ? <span className="arrayComma">,</span> : null}
 										</span>
-									)
+									);;
 								} else if ((item as {
 									overflow: boolean;
 								}).overflow) {
@@ -343,7 +332,7 @@ window.logElements = (() => {
 										<span className="objectElementValueCont">
 											<span className="specialArrayElement">...</span>
 										</span>
-									)
+									);;
 								}
 								return (
 									<span className="objectElementValueCont">
@@ -351,16 +340,16 @@ window.logElements = (() => {
 										<StringElement nolistener={"true"} value={data}/>
 										{i < lastElIndex ? <span className="arrayComma">,</span> : null}
 									</span>
-								)
+								);;
 							}, this)}
-							<span>{dataType === 'array' ? ']' : '}'}</span>
+							<span>{dataType === 'arr' ? ']' : '}'}</span>
 						</div>
 					</div>
 					<div ref="expandedElements" className="objectElementExpanded">
 						{this.props.expandedElements}
 					</div>
 				</div>
-			)
+			);;
 		}
 	}
 
@@ -421,7 +410,7 @@ window.logElements = (() => {
 				data: Array<LogLineData>;
 				line: LogListenerLine;
 			}>;
-		}
+		};;
 		constructor(props: {}) {
 			super(props);
 		}
@@ -464,7 +453,7 @@ window.logElements = (() => {
 			});
 
 			this.props.logConsole.set('lines', this.state.lines.length);
-		}
+	}
 		render() {
 			const children = [];
 
@@ -480,7 +469,7 @@ window.logElements = (() => {
 				<div className="logLines">
 					{children}
 				</div>
-			)
+			);;
 		}
 	}
 

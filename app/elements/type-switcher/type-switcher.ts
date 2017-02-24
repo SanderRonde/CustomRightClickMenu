@@ -274,7 +274,6 @@ class TS {
 				index: number;	
 			};
 			var columnCont = column.parentElement.parentElement;
-			var crmLength = window.app.editCRM.crm.length;
 			columnCont = $(columnCont).next()[0];
 
 			this.shadowColumns(columnCont, false);

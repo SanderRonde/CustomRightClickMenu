@@ -4,7 +4,7 @@ type UseExternalEditor = PolymerElement<'use-external-editor', typeof UEE>;
 
 type ListeningHTMLElement = HTMLElement & {
 	listeners: Array<() => void>
-}
+};
 
 interface SetupConnectionMessage {
 	status: 'connecting';
@@ -67,7 +67,7 @@ type ChooseFileDialog = PaperDialogBase & {
 	local: string;
 	file: string;
 	callback(result: string|false): void;
-}
+};
 
 class UEE {
 	static is: string = 'use-external-editor';
@@ -131,7 +131,7 @@ class UEE {
 	/**
 	 * The CodeMirror editor used to merge your code
 	 */
-	static editor: MergeViewCodeMirror = null;
+	static editor: MergeViewCodeMirrorInstance = null;
 
 	/**
 	 * The animation that fades in the editor
@@ -151,7 +151,7 @@ class UEE {
 			id: number;
 			path: string;
 		}
-	}
+	};
 
 	/**
 	 * Initialize for use
@@ -676,7 +676,7 @@ class UEE {
 		return null;
 	};
 
-	static generateLineIndexTranslationArray(_this: UseExternalEditor, editor: CodeMirror & {
+	static generateLineIndexTranslationArray(_this: UseExternalEditor, editor: CodeMirrorInstance & {
 			display: HTMLElement & {
 				lineDiv: HTMLElement;
 				wrapper: HTMLElement;
@@ -700,7 +700,7 @@ class UEE {
 		return result;
 	};
 
-	static findReverseLineTranslation(_this: UseExternalEditor, line: number, editor: CodeMirror & {
+	static findReverseLineTranslation(_this: UseExternalEditor, line: number, editor: CodeMirrorInstance & {
 			display: HTMLElement & {
 				lineDiv: HTMLElement;
 				wrapper: HTMLElement;
@@ -741,14 +741,14 @@ class UEE {
 	static generateNextErrorFinder(this: UseExternalEditor, isLeftEditor: boolean, errors: Array<CursorPosition>) {
 		var i;
 		var _this = this;
-		var sideEditor: CodeMirror & {
+		var sideEditor: CodeMirrorInstance & {
 			display: HTMLElement & {
 				lineDiv: HTMLElement;
 				wrapper: HTMLElement;
 				sizer: HTMLElement;
 			}
 		} = null;
-		var mainEditor: CodeMirror & {
+		var mainEditor: CodeMirrorInstance & {
 			display: HTMLElement & {
 				lineDiv: HTMLElement;
 				wrapper: HTMLElement;

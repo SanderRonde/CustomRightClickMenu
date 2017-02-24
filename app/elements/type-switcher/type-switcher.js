@@ -218,7 +218,6 @@ var TS = (function () {
             //Turn children into "shadow items"
             var column = this.parentElement.parentElement.parentElement.parentElement;
             var columnCont = column.parentElement.parentElement;
-            var crmLength = window.app.editCRM.crm.length;
             columnCont = $(columnCont).next()[0];
             this.shadowColumns(columnCont, false);
             window.app.shadowStart = column.index + 1;

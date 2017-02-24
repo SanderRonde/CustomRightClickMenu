@@ -851,7 +851,7 @@ ${codeSplit.join('\n')}`;
 			crm: safeExports
 		};
 
-		var textarea = $('#exportJSONData')[0] as HTMLTextAreaElement
+		var textarea = $('#exportJSONData')[0] as HTMLTextAreaElement;
 
 		function authorNameChange(event: {
 			target: {

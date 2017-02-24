@@ -1,10 +1,15 @@
 /// <reference path="../../../tools/definitions/polymer.d.ts" />
 /// <reference path="../../../tools/definitions/react.d.ts" />
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __assign = (this && this.__assign) || Object.assign || function(t) {
     for (var s, i = 1, n = arguments.length; i < n; i++) {
         s = arguments[i];
@@ -45,7 +50,6 @@ window.logElements = (function () {
         };
         return LogElement;
     }(React.Component));
-    var PaperSpinner = 'Paper-Spinner';
     var EvalElement = (function (_super) {
         __extends(EvalElement, _super);
         function EvalElement() {
@@ -69,7 +73,7 @@ window.logElements = (function () {
                         React.createElement("div", { className: "evalElementReturnPrefix" }, "<"),
                         React.createElement("div", { className: "evalElementReturnValue" }, getTag(this.props.value.result, this)))
                     :
-                        React.createElement(PaperSpinner, { className: "tinySpinner", active: true })))));
+                        React.createElement("paper-spinner", { className: "tinySpinner", active: true })))));
         };
         return EvalElement;
     }(LogElement));
@@ -93,6 +97,7 @@ window.logElements = (function () {
                 value = JSON.stringify(this.props.value);
             }
             return React.createElement("div", { ref: "cont", className: "stringElementValue", type: type }, value + ' ');
+            ;
         };
         return StringElement;
     }(LogElement));
@@ -116,7 +121,6 @@ window.logElements = (function () {
             var functionPrefix = fnMatch[1];
             var functionText = fnMatch[2];
             var functionKeywordIndex = functionPrefix.indexOf('function') || 0;
-            var functionName = functionPrefix.slice(0, functionPrefix.indexOf('()')).trim();
             var expandClick = this.expand.bind(this);
             return (React.createElement("div", { ref: "cont", className: "functionElementCont" },
                 React.createElement("div", { className: "functionElement" },
@@ -175,14 +179,6 @@ window.logElements = (function () {
             return props;
         }
     }
-    function getKeys(item) {
-        if (Array.isArray(item)) {
-            return item.length;
-        }
-        else {
-            return Object.getOwnPropertyNames(item).length;
-        }
-    }
     var ObjectElement = (function (_super) {
         __extends(ObjectElement, _super);
         function ObjectElement() {
@@ -217,7 +213,7 @@ window.logElements = (function () {
             this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
         };
         ObjectElement.prototype.render = function () {
-            var dataType = Array.isArray(this.props.value) ? 'array' : 'object';
+            var dataType = Array.isArray(this.props.value) ? 'arr' : 'object';
             var expandClick = this.expand.bind(this);
             var dataPairs = getKeyValuePairs(this.props.value);
             var lastElIndex = dataPairs.length - 1;
@@ -227,7 +223,7 @@ window.logElements = (function () {
                     return typeof pair.value === 'object';
                 }).length > 0;
             var overflows = (dataType === 'object' && dataPairs.length > 3) ||
-                (dataType === 'array' && dataPairs.length > 10);
+                (dataType === 'arr' && dataPairs.length > 10);
             var nonOverflowItems = dataPairs.slice(0, (this.props.isProto ? 0 :
                 dataType === 'object' ? 3 : 10));
             if (overflows) {
@@ -241,7 +237,7 @@ window.logElements = (function () {
                         React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", width: "14", height: "14", viewBox: "0 0 48 48" },
                             React.createElement("path", { d: "M16 10v28l22-14z" }))),
                     React.createElement("div", { className: "objectElementPreviewCont" },
-                        React.createElement("span", null, dataType === 'array' ? '[' : '{'),
+                        React.createElement("span", null, dataType === 'arr' ? '[' : '{'),
                         nonOverflowItems.map(function (item, i, arr) {
                             var index = item.index;
                             var data = item.value;
@@ -253,6 +249,7 @@ window.logElements = (function () {
                                             ":") : null,
                                         React.createElement("span", { className: "specialArrayElement" }, "Array"),
                                         i < lastElIndex ? React.createElement("span", { className: "arrayComma" }, ",") : null));
+                                    ;
                                 }
                                 else {
                                     return (React.createElement("span", { className: "objectElementValueCont" },
@@ -261,6 +258,7 @@ window.logElements = (function () {
                                             ":") : null,
                                         React.createElement("span", { className: "specialArrayElement" }, "Object"),
                                         i < lastElIndex ? React.createElement("span", { className: "arrayComma" }, ",") : null));
+                                    ;
                                 }
                             }
                             else if (typeof data === 'function') {
@@ -270,10 +268,12 @@ window.logElements = (function () {
                                         ":") : null,
                                     React.createElement("span", { className: "specialArrayElement" }, "Function"),
                                     i < lastElIndex ? React.createElement("span", { className: "arrayComma" }, ",") : null));
+                                ;
                             }
                             else if (item.overflow) {
                                 return (React.createElement("span", { className: "objectElementValueCont" },
                                     React.createElement("span", { className: "specialArrayElement" }, "...")));
+                                ;
                             }
                             return (React.createElement("span", { className: "objectElementValueCont" },
                                 dataType === 'object' ? React.createElement("span", { className: "objectElementKey" },
@@ -281,9 +281,11 @@ window.logElements = (function () {
                                     ":") : null,
                                 React.createElement(StringElement, { nolistener: "true", value: data }),
                                 i < lastElIndex ? React.createElement("span", { className: "arrayComma" }, ",") : null));
+                            ;
                         }, this),
-                        React.createElement("span", null, dataType === 'array' ? ']' : '}'))),
+                        React.createElement("span", null, dataType === 'arr' ? ']' : '}'))),
                 React.createElement("div", { ref: "expandedElements", className: "objectElementExpanded" }, this.props.expandedElements)));
+            ;
         };
         return ObjectElement;
     }(LogElement));
@@ -344,6 +346,7 @@ window.logElements = (function () {
         function LogLineContainer(props) {
             return _super.call(this, props) || this;
         }
+        ;
         LogLineContainer.prototype.add = function (lineData, line) {
             this.setState({
                 lines: this.state.lines.concat([{
@@ -385,6 +388,7 @@ window.logElements = (function () {
                 children.push(React.createElement(LogLine, { value: this.state.lines[i].data, line: this.state.lines[i].line }));
             }
             return (React.createElement("div", { className: "logLines" }, children));
+            ;
         };
         return LogLineContainer;
     }(React.Component));

@@ -211,7 +211,7 @@ class IC {
 		this.metaInfo = metaInfo;
 	};
 
-	static cmLoaded(this: InstallConfirm, cm: CodeMirror) {
+	static cmLoaded(this: InstallConfirm, cm: CodeMirrorInstance) {
 		var _this = this;
 		$('<style id="editorZoomStyle">' +
 		'.CodeMirror, .CodeMirror-focused {' +

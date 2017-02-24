@@ -362,7 +362,7 @@ class PLS {
 		this.init();
 	};
 
-	static behaviors = [Polymer.PaperDropdownBehavior]
+	static behaviors = [Polymer.PaperDropdownBehavior];
 }
 
 Polymer(PLS);

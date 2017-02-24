@@ -2,8 +2,8 @@
 /// <reference path="../../../tools/definitions/react.d.ts" />
 
 declare const ReactDOM: {
-	render(el: React.DOMElement<any, any>, container: HTMLElement): LogLineContainerInterface;
-}
+	render<T>(el: React.ReactElement<T>, container: HTMLElement): any;
+};
 
 const logConsoleProperties: {
 	lines: number;
@@ -63,7 +63,7 @@ interface ContextMenuSource {
 			isLine(): boolean;
 		};
 		line: LogListenerLine;
-	}
+	};
 }
 
 interface ContextMenuElement extends HTMLElement {
@@ -474,13 +474,13 @@ class LC {
 		this._this = this;
 		window.logConsole = this;
 
-		this.logLines = ReactDOM.render(
+		this.logLines = (ReactDOM.render(
 			React.createElement(
 				(window.logElements.logLines as any) as string, {
 					items: [],
 					logConsole: this
 				}),
-			this.$.lines);
+			this.$.lines) as any) as LogLineContainerInterface;
 
 		document.body.addEventListener('click', () => {
 			this.$.contextMenu.classList.remove('visible');

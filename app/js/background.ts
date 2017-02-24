@@ -35,7 +35,7 @@ interface Resource {
 	crmUrl: string;
 }
 
-type Resources = { [name: string]: Resource }
+type Resources = { [name: string]: Resource };
 
 interface GreaseMonkeyDataInfo {
 	script: {
@@ -77,7 +77,7 @@ interface GreaseMonkeyDataInfo {
 		system: boolean;
 		unwrap: boolean;
 		version?: number;
-	},
+	};
 	scriptMetaStr: string;
 	scriptSource: string;
 	scriptUpdateURL?: string;
@@ -87,8 +87,8 @@ interface GreaseMonkeyDataInfo {
 }
 
 interface GreaseMonkeyData {
-	info: GreaseMonkeyDataInfo,
-	resources: Resources
+	info: GreaseMonkeyDataInfo;
+	resources: Resources;
 }
 
 const enum TypecheckOptional {
@@ -467,13 +467,13 @@ class Promiselike<T> {
 			this._status = 'rejected';
 			this._rejectListeners.forEach((rejectListener) => {
 				rejectListener(rejectReason);
-			})
+			});
 		});;
 	}
 
 	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promiselike<T> {
 		if (this._status === 'fulfilled') {
-			callback(this._result)
+			callback(this._result);
 		}
 		this._listeners.push(callback);
 		if (onrejected) {
@@ -532,23 +532,12 @@ class Promiselike<T> {
 	}
 	static race(values: Array<Promiselike<any>>) {
 		return new Promiselike((resolve, reject) => {
-			const promises: Array<{
-				done: boolean;
-				result: any;
-			}> = Array.prototype.slice.apply(values).map((promise: Promiselike<any>) => {
-				const obj: {
-					done: boolean;
-					result: any;
-				} = {
-					done: false,
-					result: undefined
-				};
+			Array.prototype.slice.apply(values).map((promise: Promiselike<any>) => {
 				promise.then((result) => {
 					resolve(result);
 				}, (reason) => {
 					reject(reason);
 				});
-				return obj;
 			});
 		});
 	}
@@ -720,7 +709,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						stylesheet: [].join('\n'),
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						toggle: false,
-						defaultOn: false
+						defaultOn: false,
+						options: {}
 					};
 
 					return this.mergeObjects(value, options) as StylesheetVal;
@@ -732,7 +722,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						libraries: [],
 						script: [].join('\n'),
 						backgroundScript: '',
-						metaTags: {}
+						metaTags: {},
+						options: {}
 					};
 
 					return this.mergeObjects(value, options) as ScriptVal;
@@ -1138,7 +1129,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return value;
 				});
 			}
-		}
+		};
 		static compareArray(firstArray: Array<any>, secondArray: Array<any>): boolean {
 			if (!firstArray && !secondArray) {
 				return false;
@@ -2016,7 +2007,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					suggestions: message.data.hints
 				});
 			}
-		}
+		};
 		static Listeners = class Listeners {
 			static parent = Logging;
 
@@ -2110,7 +2101,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					tabs: tabArr
 				};
 			}
-		}
+		};
 
 		static log(nodeId: number, tabId: number | string, ...args: Array<any>) {
 			if (globalObject.globals.logging.filter.id !== null) {
@@ -2390,7 +2381,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							inSubTree: number;
 							name: string;
 						}
-					})
+					});
 
 					const crmArray = [];
 					for (let id in globalObject.globals.crm.crmById) {
@@ -2731,7 +2722,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							options: {
 								type: string;
 							}
-						}
+						};
 
 						if (optionals['options.type']) {
 							if (_this.message.options.type !== 'link' &&
@@ -2797,7 +2788,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								url: string;
 								not: boolean;
 							}>;
-						}
+						};
 						const triggers = msg['triggers'];
 						node['showOnSpecified'] = true;
 						CRM.updateCrm();
@@ -2872,7 +2863,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				], () => {
 					const msg = _this.message as CRMFunctionMessage & {
 						useTriggers: boolean;
-					}
+					};
 
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						if (node.type === 'menu' ||
@@ -2945,7 +2936,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							contentTypes: Array<string>;
-						}
+						};
 
 						var i;
 						for (i = 0; i < msg['contentTypes'].length; i++) {
@@ -3085,7 +3076,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							const msg = _this.message as CRMFunctionMessage & {
 								start: number;
 								amount: number;
-							}
+							};
 
 							var spliced;
 							if (node.type === 'link') {
@@ -3118,7 +3109,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							launchMode: CRMLaunchModes;
-						}
+						};
 
 						if (node.type === 'script' || node.type === 'stylesheet') {
 							node.value.launchMode = msg['launchMode'];
@@ -3165,7 +3156,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						url?: string;
 						name: string;
 						code?: string;
-					}
+					};
 					
 					var newLibrary;
 					if (optionals['url']) {
@@ -3238,7 +3229,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				], () => {
 					const msg = _this.message as CRMFunctionMessage & {
 						libraries: Array<CRMLibrary>|CRMLibrary;
-					}
+					};
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						function doesLibraryExist(lib: {
 							name: string;
@@ -3313,7 +3304,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						const msg = _this.message as CRMFunctionMessage & {
 							start: number;
 							amount: number;
-						}
+						};
 
 						var spliced;
 						if (node.type === 'script') {
@@ -3349,7 +3340,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							libraries: Array<CRMLibrary>|CRMLibrary
-						}
+						};
 
 						function doesLibraryExist(lib: {
 							name: string;
@@ -3423,7 +3414,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const msg = _this.message as CRMFunctionMessage & {
 						start: number;
 						amount: number;
-					}
+					};
 
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						var spliced;
@@ -3747,7 +3738,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 			}
-		}
+		};
 		static ChromeMessage = class ChromeMessage {
 			static throwError(message: ChromeAPIMessage, error: string, stackTrace?: string) {
 				console.warn('Error:', error);
@@ -3760,7 +3751,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				APIMessaging.CRMMessage.respond(message, 'chromeError', error,
 					stackTrace);
 			}
-		}
+		};
 		static createReturn(message: CRMAPIMessage<'crm'|'chrome', any>,
 			callbackIndex: number) {
 			return (result: any) => {
@@ -3833,7 +3824,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 	type GetNodeFromIdCallback<T> = {
 		run: (callback: (node: T) => void) => void;
-	}
+	};
 
 	type TypeCheckTypes = 'string'|'function'|'number'|'object'|'array';
 
@@ -3989,7 +3980,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					} else {
 						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRMNode>
+							.crmTree, true) as Array<CRMNode>;
 						Helpers.pushIntoArray(node, 0, parentChildren);
 						if (removeOld && parentChildren === removeOld.children) {
 							removeOld.index++;
@@ -4579,7 +4570,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						break;
 				}
 			}
-		}
+		};
 		static Anonymous = class Anonymous {
 			static handle(message: {
 				type: string;
@@ -4596,7 +4587,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						break;
 				}
 			}
-		}
+		};
 
 		static checkIfResourcesAreUsed() {
 			const resourceNames = [];
@@ -4926,7 +4917,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				globalObject.globals.crmValues.nodeInstances[message.id][message.tabId]
 					.hasHandler = message.data.hasHandler;
 			}
-		}
+		};
 		static BackgroundPageMessage = class BackgroundPageMessage {
 			static send(message: {
 				id: number;
@@ -4947,7 +4938,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				});
 			}
-		}
+		};
 		static NotificationListener = class NotificationListener {
 			static listen(message: CRMAPIMessage<string, {
 				notificationId: number;
@@ -4965,7 +4956,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					onClick: data.onClick
 				};
 			}
-		}
+		};
 
 		static handleRuntimeMessage(message: CRMAPIMessage<string, any>,
 			messageSender?: chrome.runtime.MessageSender,
@@ -5195,7 +5186,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					});
 				}
 
-			}
+			};
 			static Updating = class Updating {
 				private static _removeOldNode(id: number) {
 					const children = globalObject.globals.crm.crmById[id].children;
@@ -5331,7 +5322,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								.getlastMetaTagValue(metaTags,
 									'CRM_toggle') ||
 								false),
-							launchMode: launchMode
+							launchMode: launchMode,
+							options: {}
 						};
 					} else {
 						node.type = 'script';
@@ -5834,7 +5826,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 				}
-			}
+			};
 			static MetaTags = class MetaTags {
 				static getMetaIndexes(script: string): {
 					start: number;
@@ -5891,7 +5883,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}, key: string) {
 					return metaTags[key] && metaTags[key][metaTags[key].length - 1];
 				}
-			}
+			};
 			static Background = class Background {
 				private static _loadBackgroundPageLibs(node: ScriptNode): {
 					libraries: Array<string>;
@@ -6152,7 +6144,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-			}
+			};
 			static createHandler(node: ScriptNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 					var key: Array<number> = [];
@@ -6355,7 +6347,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				};
 			}
-		}
+		};
 		static Link = class Link {
 			private static _sanitizeUrl(url: string): string {
 				if (url.indexOf('://') === -1) {
@@ -6386,7 +6378,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				};
 			}
-		}
+		};
 		static Stylesheet = class Stylesheet {
 			static createToggleHandler(node: StylesheetNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
@@ -6570,9 +6562,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						crmFn.moveNode(node, {}, null);
 					});
 				}
-			}
+			};
 
-		}
+		};
 		static NodeCreation = class NodeCreation {
 			private static _getStylesheetReplacementTabs(node: CRMNode): Array<{
 				id: number;
@@ -6748,7 +6740,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				return id;
 			}
-		}
+		};
 
 		static updateCrm(toUpdate?: Array<number>) {
 			Storages.uploadChanges('settings', [
@@ -7157,7 +7149,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		isLocal: boolean;
 		index: number;
 		stylesheetVal?: StylesheetVal;
-	}
+	};
 
 	type TransferOldNode = TransferOldMenuNode | ScriptNode | StylesheetNode |
 		LinkNode | DividerNode;
@@ -7769,7 +7761,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						return script;
 					}
-				}
+				};
 
 				static transferCRMFromOld(openInNewTab: boolean): Array<CRMNode> {
 					const amount = parseInt(window.localStorage.getItem('numberofrows'), 10) + 1;
@@ -7885,7 +7877,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						parent.push(nodes[currentIndex] as CRMNode);
 					}
 				}
-			}
+			};
 
 			//Local storage
 			static _getDefaultStorages(): [StorageLocal, SettingsStorage] {
@@ -7947,7 +7939,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						})
 					],
 					settingsLastUpdatedAt: new Date().getTime()
-				}
+				};
 			}
 
 			static handleFirstRun(crm?: Array<CRMNode>): {
@@ -8080,7 +8072,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					break;
 				case 'settings':
 					if (type === 'settings') {
-						globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime()
+						globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime();
 					}
 					if (useStorageSync !== null) {
 						globalObject.globals.storages.storageLocal
@@ -8429,7 +8421,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						},
 						wasUpdated: true
 					}
-				})
+				});
 			}
 		}
 	};

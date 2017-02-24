@@ -15,12 +15,23 @@ var editCrmItemProperties = {
     itemName: {
         type: String,
         notify: true
+    },
+    isMenu: {
+        type: Boolean,
+        notify: true
+    },
+    isCode: {
+        type: Boolean,
+        notify: true
     }
 };
 var ECI = (function () {
     function ECI() {
     }
     //#endregion
+    ECI._openCodeSettings = function () {
+        window.app.initCodeOptions(this.item);
+    };
     ECI.getMenuExpandMessage = function () {
         return 'Click to show ' + this.item.children.length + ' child' +
             (this.item.children.length > 1 ? 'ren' : '');
@@ -100,7 +111,6 @@ var ECI = (function () {
         window.app.editCRM.build(this.item.path, false, true);
     };
     ;
-    //#region editPageFunctions
     ECI.selectThisNode = function () {
         var prevState = this.$.checkbox.checked;
         this.$.checkbox.checked = !prevState;
@@ -264,11 +274,18 @@ var ECI = (function () {
         }
     };
     ;
-    //#endregion
-    //#region typeIndicatorFunctions
     ECI.calculateType = function () {
         this.type = this.item.type;
-        ((this.isScript = this.item.type === 'script') && (this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isLink = this.item.type === 'link') && (this.isMenu = this.isDivider = this.isStylesheet = false)) || ((this.isStylesheet = this.item.type === 'stylesheet') && (this.isMenu = this.isDivider = false)) || ((this.isMenu = this.item.type === 'menu') && (this.isDivider = false)) || (this.isDivider = true);
+        ((this.isScript = this.item.type === 'script') &&
+            (this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false)) ||
+            ((this.isLink = this.item.type === 'link') &&
+                (this.isMenu = this.isDivider = this.isStylesheet = false)) ||
+            ((this.isStylesheet = this.item.type === 'stylesheet') &&
+                (this.isMenu = this.isDivider = false)) ||
+            ((this.isMenu = this.item.type === 'menu') &&
+                (this.isDivider = false)) ||
+            (this.isDivider = true);
+        this.isCode = this.isScript || this.isStylesheet;
     };
     ;
     ECI.typeIndicatorMouseOver = function () {
@@ -319,8 +336,6 @@ var ECI = (function () {
         }
     };
     ;
-    //#endregion
-    //#region deletionFunctions
     ECI._getOnSelectFunction = function (_this, index) {
         return function () {
             window.app.editCRM.getCRMElementFromPath(_this.item.children[index].path).onSelect(true);
@@ -379,10 +394,6 @@ ECI.behaviors = [Polymer.DraggableNodeBehavior];
   * The type of this item
   */
 ECI.type = '';
-/**
-  * Whether this item is a menu or not
-  */
-ECI.isMenu = false;
 /**
  * Whether the item is a link
  */
