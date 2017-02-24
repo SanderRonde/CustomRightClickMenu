@@ -8378,7 +8378,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
-		private static _upgradeVersion() {//oldVersion: string, newVersion: string) {
+		private static _upgradeVersion(oldVersion: string, newVersion: string) {
 			//No changes yet
 		}
 		private static _isFirstTime(storageLocal: StorageLocal): boolean|FirstTimeCallback {

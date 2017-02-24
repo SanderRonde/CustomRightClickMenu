@@ -809,7 +809,7 @@ class CEB {
 		if (isDev) {
 			return JSON.stringify(options);
 		} else {
-			
+			return '';
 		}
 	};
 

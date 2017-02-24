@@ -366,9 +366,7 @@ var LC = (function () {
         if (!noCopy) {
             this._copy(path.reverse().join(''));
         }
-        else {
-            return path.reverse().join('');
-        }
+        return path.reverse().join('');
     };
     ;
     LC._setPossibleOptions = function (source) {

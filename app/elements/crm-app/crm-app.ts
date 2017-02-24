@@ -2660,7 +2660,7 @@ class CA {
 		localStorage.setItem('transferred', 'true');
 	};
 
-	static upgradeVersion(this: CrmApp) { //oldVersion: string, newVersion: string) {
+	static upgradeVersion(this: CrmApp, oldVersion: string, newVersion: string) {
 		//No changes yet
 	};
 
@@ -2671,7 +2671,7 @@ class CA {
 			return true;
 		} else {
 			if (storageLocal.lastUpdatedAt) {		
-				this.upgradeVersion();//storageLocal.lastUpdatedAt, currentVersion);
+				this.upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 				return true;
 			}
 			try {

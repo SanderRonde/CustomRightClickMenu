@@ -6242,7 +6242,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             }
         };
-        Storages._upgradeVersion = function () {
+        Storages._upgradeVersion = function (oldVersion, newVersion) {
         };
         Storages._isFirstTime = function (storageLocal) {
             var currentVersion = chrome.runtime.getManifest().version;

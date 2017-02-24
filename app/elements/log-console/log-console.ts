@@ -434,9 +434,8 @@ class LC {
 
 		if (!noCopy) {
 			this._copy(path.reverse().join(''));
-		} else {
-			return path.reverse().join('');
 		}
+		return path.reverse().join('');
 	};
 
 	static _setPossibleOptions(this: LogConsole, source: ContextMenuSource) {

@@ -227,7 +227,7 @@ window.logElements = (() => {
 				var expandedElements: Array<JSX.Element> = [];
 				var pairs = getKeyValuePairs(this.props.value, true);
 				var lastElementIndex = pairs.length - 1;
-				pairs.forEach(function(item, i, arr) {
+				pairs.forEach(function(item, i) {
 					expandedElements.push(
 						<div className="expandedObjectElement">
 							<div className="expandedObjectElementIndex">{item.index}:</div>
@@ -290,7 +290,7 @@ window.logElements = (() => {
 						</div>
 						<div className="objectElementPreviewCont">
 							<span>{dataType === 'arr' ? '[' : '{'}</span>
-							{nonOverflowItems.map(function(item, i, arr) {
+							{nonOverflowItems.map(function(item, i) {
 								var index = (item as {
 									index: string|number;
 									value: any;

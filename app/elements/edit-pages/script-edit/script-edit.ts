@@ -396,7 +396,7 @@ class SCE {
 		return this.editor.metaTags.metaTags;
 	};
 
-	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<ScriptNode>) {
+	static saveChanges(this: NodeEditBehaviorScriptInstance) {
 		this.changeTab('main');
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();

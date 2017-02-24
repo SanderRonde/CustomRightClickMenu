@@ -356,7 +356,7 @@ var SCE = (function () {
         return this.editor.metaTags.metaTags;
     };
     ;
-    SCE.saveChanges = function (resultStorage) {
+    SCE.saveChanges = function () {
         this.changeTab('main');
         this.finishEditing();
         window.externalEditor.cancelOpenFiles();

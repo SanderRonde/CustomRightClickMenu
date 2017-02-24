@@ -1,14 +1,19 @@
 {
     "compilerOptions": {
         "jsx": "react",
+        "alwaysStrict": true,
+        "baseUrl": "./tools/definitions/",
+        "forceConsistentCasingInFileNames": true,
         "module": "commonjs",
         "noImplicitAny": true,
         "noImplicitThis": true,
-        "removeComments": false,
+        "removeComments": true,
         "preserveConstEnums": false,
-        "sourceMap": false,
         "listFiles": true,
         "pretty": true,
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
         "target": "es3",
         "watch": true
 	}, 

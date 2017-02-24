@@ -1714,7 +1714,7 @@ var CA = (function () {
         localStorage.setItem('transferred', 'true');
     };
     ;
-    CA.upgradeVersion = function () {
+    CA.upgradeVersion = function (oldVersion, newVersion) {
     };
     ;
     CA.checkFirstTime = function (storageLocal) {
@@ -1725,7 +1725,7 @@ var CA = (function () {
         }
         else {
             if (storageLocal.lastUpdatedAt) {
-                this.upgradeVersion();
+                this.upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
                 return true;
             }
             try {

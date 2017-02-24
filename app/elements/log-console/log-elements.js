@@ -190,7 +190,7 @@ window.logElements = (function () {
                 var expandedElements = [];
                 var pairs = getKeyValuePairs(this.props.value, true);
                 var lastElementIndex = pairs.length - 1;
-                pairs.forEach(function (item, i, arr) {
+                pairs.forEach(function (item, i) {
                     expandedElements.push(React.createElement("div", { className: "expandedObjectElement" },
                         React.createElement("div", { className: "expandedObjectElementIndex" },
                             item.index,
@@ -237,7 +237,7 @@ window.logElements = (function () {
                             React.createElement("path", { d: "M16 10v28l22-14z" }))),
                     React.createElement("div", { className: "objectElementPreviewCont" },
                         React.createElement("span", null, dataType === 'arr' ? '[' : '{'),
-                        nonOverflowItems.map(function (item, i, arr) {
+                        nonOverflowItems.map(function (item, i) {
                             var index = item.index;
                             var data = item.value;
                             if (typeof data === 'object') {

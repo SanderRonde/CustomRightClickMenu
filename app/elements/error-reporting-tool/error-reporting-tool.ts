@@ -83,7 +83,7 @@ class ERT {
 	};
 
 	static scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
-			context: CanvasRenderingContext2D, newImg: HTMLImageElement, callback: () => void) {
+			newImg: HTMLImageElement, callback: () => void) {
 		this.image = canvas.toDataURL();
 		var maxViewportHeight = window.innerHeight - 450;
 		if (maxViewportHeight > 750) {
@@ -118,7 +118,7 @@ class ERT {
 			var base64 = canvas.toDataURL();
 			var newImg = new Image();
 			newImg.onload = function() {
-				_this.scaleScreenshot(canvas, context, newImg, callback);
+				_this.scaleScreenshot(canvas, newImg, callback);
 			};
 			newImg.src = base64;
 
@@ -241,6 +241,7 @@ class ERT {
 				break;
 			case 'end':
 				this.$.highlightButtons.classList.remove('hidden');
+				break;
 			case 'track':
 				if (e.detail.x !== this.lastPos.X || e.detail.y !== this.lastPos.Y) {
 					var width = (e.detail.x - this.dragStart.X);

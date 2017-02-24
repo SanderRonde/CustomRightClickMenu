@@ -573,6 +573,7 @@ var CEB = (function () {
             return JSON.stringify(options);
         }
         else {
+            return '';
         }
     };
     ;
