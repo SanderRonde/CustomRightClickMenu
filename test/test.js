@@ -213,7 +213,7 @@ const testCRMTree = [{
 			"url": "https://www.example.com"
 		}],
 		"children": [],
-		"expanded": false
+		"expanded": false,
 	}, {
 		"name": "link",
 		"onContentTypes": [true, true, true, false, false, false],
@@ -270,7 +270,8 @@ const testCRMTree = [{
 				"grant": ["none"],
 				"match": ["*://*.google.com/*"],
 				"exclude": ["*://*.example.com/*"]
-			}
+			},
+			"options": {}
 		},
 		"id": 2,
 		"expanded": false,
@@ -327,7 +328,8 @@ const testCRMTree = [{
 				"CRM_stylesheet": ["true"],
 				"grant": ["none"],
 				"match": ["*://*.example.com/*"]
-			}
+			},
+			"options": {}
 		},
 		"id": 3,
 		"expanded": false,
@@ -1356,7 +1358,8 @@ describe('CRMAPI', () => {
 							"grant": ["none"],
 							"match": ["*://*.google.com/*"],
 							"exclude": ["*://*.example.com/*"]
-						}
+						},
+						"options": {}
 					},
 					"id": 2,
 					"expanded": false,
@@ -1413,7 +1416,8 @@ describe('CRMAPI', () => {
 							"CRM_stylesheet": ["true"],
 							"grant": ["none"],
 							"match": ["*://*.example.com/*"]
-						}
+						},
+						"options": {}
 					},
 					"id": 3,
 					"expanded": false,
@@ -2872,7 +2876,8 @@ describe('CRMAPI', () => {
 							"CRM_stylesheet": ["true"],
 							"grant": ["none"],
 							"match": ["*://*.example.com/*"]
-						}
+						},
+						"options": {}
 					};
 					localCopy.value = null;
 					localCopy.children = [];
