@@ -375,6 +375,18 @@
 				<paper-toast id="acceptDownloadToast" text="Please accept the permission request to report a bug or suggest a feature" duration="3500"></paper-toast>
 				<paper-toast id="updatedSettingsToast" text="Settings were updated to those on xx-xx-xxxx" duration="5000"></paper-toast>
 				<!--Dialogs-->
+				<paper-dialog id="codeSettingsDialog" data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<h2 id="codeSettingsTitle"></h2>
+					<div id="codeSettingsOptions">
+						<template is="dom-repeat" id="codeSettingsRepeat" as="codeSetting">
+							<span>[[codeSetting.key]]</span>
+						</template>
+					</div>
+					<div class="buttons">
+						<paper-button dialog-confirm on-tap="confirmCodeSettings">Save</paper-button>
+						<paper-button dialog-dismiss>Cancel</paper-button>
+					</div>
+				</paper-dialog>
 				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="restoreChangesMain">
 						<h2>It's been detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>

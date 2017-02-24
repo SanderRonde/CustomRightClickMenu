@@ -95,6 +95,79 @@ interface CRMNodeInfo {
 	lastUpdatedAt?: string;
 }
 
+interface CRMOptionNumber {
+	type: 'number';
+	minimum?: number;
+	maximum?: number;
+	descr?: string;
+	value: null|number;
+}
+
+interface CRMOptionString {
+	type: 'string';
+	minLength?: number;
+	maxLength?: number;
+	format?: string;
+	descr?: string;
+	value: null|string;
+}
+
+interface CRMOptionChoiceBase {
+	type: 'choice';
+	descr?: string;
+}
+interface CRMOptionChoiceString extends CRMOptionChoiceBase {
+	values: 'string';
+	value: null|Array<string>;
+}
+interface CRMOptionChoiceNumber extends CRMOptionChoiceBase {
+	values: 'number';
+	value: null|Array<number>;
+}
+interface CRMOptionChoiceStringNumber extends CRMOptionChoiceBase {
+	values: ['string', 'number']|['number', 'string'];
+	value: null|Array<number|string>;
+}
+type CRMOptionChoice = CRMOptionChoiceString|CRMOptionChoiceNumber|CRMOptionChoiceStringNumber;
+
+interface CRMOptionCheckbox {
+	type: 'boolean';
+	descr?: string;
+	value: null|boolean;
+}
+
+interface CRMOptionArrayBase {
+	type: 'array';
+	minItems?: number;
+	maxItems?: number;
+	descr?: string;
+}
+interface CRMOptionArrayString extends CRMOptionArrayBase {
+	items: 'string';
+	value: null|Array<string>;
+}
+interface CRMOptionArrayNumber extends CRMOptionArrayBase {
+	items: 'number';
+	value: null|Array<number>;
+}
+interface CRMOptionArrayStringNumber extends CRMOptionArrayBase {
+	items: ['string', 'number']|['number', 'string'];
+	value: null|Array<number|string>;
+}
+type CRMOptionArray = CRMOptionArrayString|CRMOptionArrayNumber|CRMOptionArrayStringNumber;
+
+type Remove<T, K extends keyof T> = T & {
+	[P in K]?: void;
+}
+
+type CRMOptionsValue = CRMOptionCheckbox|CRMOptionString|CRMOptionChoiceBase|
+	CRMOptionArray|CRMOptionNumber;
+
+type CRMOptions = {
+	[key: string]: CRMOptionsValue;
+	[key: number]: CRMOptionsValue;
+}
+
 /**
  * True means show on given type. ['page','link','selection','image','video','audio']
  */
@@ -205,6 +278,7 @@ interface ScriptVal {
 	updateNotice?: boolean;
 	oldScript?: string;
 	metaTagsHidden?: boolean;
+	options: CRMOptions;
 }
 
 interface StylesheetVal {
@@ -213,6 +287,7 @@ interface StylesheetVal {
 	toggle: boolean;
 	defaultOn: boolean;
 	metaTagsHidden?: boolean;
+	options: CRMOptions;
 }
 
 interface LinkNodeLink {

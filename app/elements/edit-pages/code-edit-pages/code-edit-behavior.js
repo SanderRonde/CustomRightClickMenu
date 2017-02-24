@@ -294,10 +294,10 @@ var CEB = (function () {
         }, {
             duration: 500,
             easing: 'easeOutCubic',
-            complete: function (el) {
+            complete: function () {
                 _this.editor.refresh();
-                el.style.width = '100vw';
-                el.style.height = '100vh';
+                editorCont.style.width = '100vw';
+                editorCont.style.height = '100vh';
                 buttonShadow.style.position = 'fixed';
                 window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
                 if (_this.item.type === 'stylesheet') {
@@ -370,7 +370,6 @@ var CEB = (function () {
      */
     CEB.showOptions = function () {
         var _this = this;
-        var __this = this;
         this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
         var thisCm = this.isScript ?
             $('.script-edit-codeMirror') :
@@ -622,6 +621,89 @@ var CEB = (function () {
         }
     };
     ;
+    CEB.getOptionsString = function (options, isDev) {
+        if (isDev) {
+            return JSON.stringify(options);
+        }
+        else {
+        }
+    };
+    ;
+    CEB.changeToOptionsTab = function () {
+        if (this.editorTab === 'options') {
+            return;
+        }
+        this.$.flexRow.classList.add('options');
+        var options = {
+            number: {
+                type: 'number',
+                minimum: 0,
+                maximum: 6,
+                descr: 'this is a number',
+                value: 3
+            },
+            string: {
+                type: 'string',
+                minLength: 2,
+                maxLength: 10,
+                value: 'abcd',
+                descr: 'this is a string'
+            },
+            boolean: {
+                type: 'boolean',
+                value: null,
+                descr: 'this is a boolean'
+            },
+            array: {
+                type: 'array',
+                items: 'string',
+                value: ['hai', 3],
+                descr: 'this is an array'
+            },
+            option: {
+                type: 'choice',
+                values: 'number',
+                value: [1, 2, 3]
+            }
+        };
+        if (this.isScript) {
+            this.disableButtons();
+            if (this.editorTab === 'main') {
+                this.newSettings.value.script =
+                    this.editor.getValue();
+            }
+            else {
+                this.newSettings.value.backgroundScript =
+                    this.editor.getValue();
+            }
+        }
+        else {
+            this.newSettings.value.stylesheet =
+                this.editor.getValue();
+        }
+        var doc = window.CodeMirror.Doc(this.getOptionsString(options, false), {
+            name: 'javascript',
+            useJsonSchema: true,
+            jsonSchema: options
+        });
+        this.editorDoc = this.editor.swapDoc(doc);
+        this.editorTab = 'options';
+    };
+    ;
+    CEB.hideOptionsTab = function () {
+        if (this.editorTab !== 'options') {
+            return;
+        }
+        this.$.flexRow.classList.remove('options');
+        this.editor.swapDoc(this.editorDoc);
+        if (this.isScript) {
+            this.editorTab = this.editorMode;
+            if (this.editorTab === 'main') {
+                this.enableButtons();
+            }
+        }
+    };
+    ;
     return CEB;
 }());
 /**
@@ -700,6 +782,9 @@ CEB.preventNotification = false;
  * The timeout that resets the preventNotification bool
  */
 CEB.preventNotificationTimeout = null;
+/**
+ * The editor tab that is currently open
+ */
 CEB.editorTab = 'main';
 /**
  * The fullscreen animation

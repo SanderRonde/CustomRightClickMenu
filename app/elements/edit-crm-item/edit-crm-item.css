@@ -41,6 +41,24 @@
 		width: 145px;
 	}
 
+	.CRMItemTitle[iscode] {
+		width: 133px;
+	}
+
+.codeSettingsButton {
+	position: relative;
+	right: 0;
+	display: flex;
+	display: -webkit-flex;
+	flex-direction: column;
+	-webkit-justify-content: center;
+	justify-content: center;
+}
+
+.codeSettingsButton:hover {
+	background-color: rgb(240, 240, 240);
+}
+
 .menuArrowCont {
 	position: relative;
 	right: 0;
@@ -99,6 +117,7 @@
 	display: -webkit-inline-box;
 	background-color: white;
 	fill: black;
+	height: 50px;
 	transition: background-color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), color 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000), fill 500ms cubic-bezier(0.215, 0.610, 0.355, 1.000);
 }
 

@@ -7,7 +7,7 @@ type CodeEditBehaviorIntanceBase = CodeEditBehaviorBase;
 type CodeEditBehaviorScriptInstance = CodeEditBehaviorIntanceBase & 
 	ScriptEdit & {
 		isScript: true;
-	}
+	};
 
 type CodeEditBehaviorStylesheetInstance = CodeEditBehaviorIntanceBase & 
 	StylesheetEdit & {
@@ -32,7 +32,7 @@ class CEB {
 	/**
 	 * The editor
 	 */
-	static editor: CodeMirror = null;
+	static editor: CodeMirrorInstance = null;
 
 	/**
 	 * Whether the vertical scrollbar is already shown
@@ -124,6 +124,9 @@ class CEB {
 	 */
 	static preventNotificationTimeout: number = null;
 
+	/**
+	 * The editor tab that is currently open
+	 */
 	static editorTab: 'main'|'background'|'options' = 'main';
 
 	/**
@@ -136,11 +139,22 @@ class CEB {
 	 */
 	static optionsAnimations: Array<Animation> = [];
 
-	static _updateZoomEl: () => void
+	/**
+	 * A function to update the zoom element (for testing)
+	 */
+	static _updateZoomEl: () => void;
 
+	/**
+	 * A function to update the tabSize element (for testing)
+	 */
 	static _updateTabSizeEl: () => void;
 
+	/**
+	 * The animation object for the editor's placeholder
+	 */
 	static editorPlaceHolderAnimation: Animation;
+
+	static editorDoc: CodeMirrorDocInstance;
 
 	static exportAsCRM(this: CodeEditBehavior) {
 		window.app.editCRM.exportSingleNode(this.getExportData(), 'CRM');
@@ -442,10 +456,10 @@ class CEB {
 		}, {
 			duration: 500,
 			easing: 'easeOutCubic',
-			complete: (el: HTMLElement) =>  {
+			complete: () =>  {
 				this.editor.refresh();
-				el.style.width = '100vw';
-				el.style.height = '100vh';
+				editorCont.style.width = '100vw';
+				editorCont.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
 				window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
 
@@ -520,7 +534,6 @@ class CEB {
 	 * Shows the options for the editor
 	 */
 	static showOptions(this: CodeEditBehavior) {
-		var __this = this;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
 		const thisCm = this.isScript ?
 			$('.script-edit-codeMirror') :
@@ -608,7 +621,7 @@ class CEB {
 				}
 
 				if (_this.fullscreen) {
-					var settingsCont = thisCm.find('#settingsContainer')[0]
+					var settingsCont = thisCm.find('#settingsContainer')[0];
 					settingsCont.style.height = '376px';
 					settingsCont.style.overflowX = 'hidden';
 					var bubbleCont = thisCm.find('#bubbleCont')[0];
@@ -736,7 +749,7 @@ class CEB {
 		tabSize.find('input').change(function() {
 			updateTabSizeEl();
 		});	
-		this._updateTabSizeEl = updateTabSizeEl
+		this._updateTabSizeEl = updateTabSizeEl;
 
 		if (!this.isScript) {
 			return;
@@ -788,6 +801,95 @@ class CEB {
 			$input.appendTo($cont);
 			$('<br>').appendTo($cont);
 			$cont.appendTo(settingsContainer);
+		}
+	};
+
+
+	static getOptionsString(this: CodeEditBehavior, options: CRMOptions, isDev: boolean): string {
+		if (isDev) {
+			return JSON.stringify(options);
+		} else {
+			
+		}
+	};
+
+	static changeToOptionsTab(this: CodeEditBehavior) {
+		if (this.editorTab === 'options') {
+			return;
+		}
+		this.$.flexRow.classList.add('options');		
+
+		const options: CRMOptions = {
+			number: {
+				type: 'number',
+				minimum: 0,
+				maximum: 6,
+				descr: 'this is a number',
+				value: 3
+			},
+			string: {
+				type: 'string',
+				minLength: 2,
+				maxLength: 10,
+				value: 'abcd',
+				descr: 'this is a string'
+			},
+			boolean: {
+				type: 'boolean',
+				value: null,
+				descr: 'this is a boolean'
+			},
+			array: {
+				type: 'array',
+				items: 'string',
+				value: ['hai', 3],
+				descr: 'this is an array'
+			},
+			option: {
+				type: 'choice',
+				values: 'number',
+				value: [1,2,3]
+			}
+		} as CRMOptions;
+
+		if (this.isScript) {
+			(this as NodeEditBehaviorScriptInstance).disableButtons();
+
+			if (this.editorTab === 'main') {
+				(this as NodeEditBehaviorScriptInstance).newSettings.value.script =
+					this.editor.getValue();
+			} else {
+				(this as NodeEditBehaviorScriptInstance).newSettings.value.backgroundScript =
+					this.editor.getValue();
+			}
+		} else {
+			(this as NodeEditBehaviorStylesheetInstance).newSettings.value.stylesheet =
+				this.editor.getValue();
+		}
+
+		
+		const doc = window.CodeMirror.Doc(this.getOptionsString(options, false), {
+			name: 'javascript',
+			useJsonSchema: true,
+			jsonSchema: options
+		});
+		this.editorDoc = this.editor.swapDoc(doc);
+
+		this.editorTab = 'options';
+	};
+
+	static hideOptionsTab(this: CodeEditBehavior) {
+		if (this.editorTab !== 'options') {
+			return;
+		}
+		this.$.flexRow.classList.remove('options');		
+
+		this.editor.swapDoc(this.editorDoc);
+		if (this.isScript) {
+			this.editorTab = (this as NodeEditBehaviorScriptInstance).editorMode;
+			if (this.editorTab === 'main') {
+				(this as NodeEditBehaviorScriptInstance).enableButtons();
+			}
 		}
 	};
 };
