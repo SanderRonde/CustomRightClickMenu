@@ -39,8 +39,8 @@ interface Window {
 	};
 	CodeMirror: CodeMirror;
 	colorFunction: {
-		func(pos: LinePosition, cm: CodeMirror): void;
-		cm: CodeMirror;
+		func(pos: LinePosition, cm: CodeMirrorInstance): void;
+		cm: CodeMirrorInstance;
 	}
 	crmAPIDefs?: any;
 	lastError?: Error;
@@ -55,13 +55,13 @@ interface Window {
 	doc: IDMap['crm-app'];
 	logElements?: {
 		logLines: any;
-	}
+	};
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
 
 	app: CrmApp;
-	cm: CodeMirror;
 	logPage: LogPage;
 	changeLog: ChangeLog;
+	cm: CodeMirrorInstance;
 	logConsole: LogConsole;
 	crmEditPage: CrmEditPage;
 	installPage: InstallPage;
