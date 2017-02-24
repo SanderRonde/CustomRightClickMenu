@@ -1032,7 +1032,7 @@
 			return idx;
 		};
 
-		/*
+		/**
 		 * Removes a listener currently added by using comm.addListener
 		 *
 		 * @param {listener|number} listener - The listener to remove or the number returned
@@ -1275,7 +1275,7 @@
 			return undefined;
 		};
 
-		/*
+		/**
 		 * Functions related to the onChange event of the storage API
 		 *
 		 * @type Object
@@ -1331,7 +1331,7 @@
 		//#endregion
 
 		//#region PageAPI
-		/*
+		/**
 		 * General CRM API functions
 		 *
 		 * @type Object
@@ -1964,7 +1964,7 @@
 			});
 		};
 
-		/*
+		/**
 		 * All functions related specifically to the stylesheet type
 		 *
 		 * @type Object
@@ -2007,7 +2007,7 @@
 		 * affected (script, menu, divider, name, type etc.)
 		 */
 
-		/*
+		/**
 		 * All functions related specifically to the link type
 		 *
 		 * @type Object
@@ -2066,7 +2066,7 @@
 			});
 		};
 
-		/*
+		/**
 		 * All functions related specifically to the script type
 		 *
 		 * @type Object
@@ -2131,7 +2131,7 @@
 			});
 		};
 
-		/*
+		/**
 		 * All functions related specifically to the script's libraries
 		 *
 		 * @type Object
@@ -2175,7 +2175,7 @@
 			});
 		};
 
-		/*
+		/**
 		 * All functions related specifically to the background script's libraries
 		 *
 		 * @type Object
@@ -2219,7 +2219,7 @@
 			});
 		};
 
-		/*
+		/**
 		 * All functions related specifically to the menu type
 		 *
 		 * @type Object
@@ -2559,7 +2559,7 @@
 		 */
 		this.GM = {};
 
-		/*
+		/**
 		 * Returns any info about the script
 		 *
 		 * @see {@link https://tampermonkey.net/documentation.php#GM_info}
@@ -2675,7 +2675,7 @@
 			window.open(url);
 		};
 
-		/*
+		/**
 		 * This is only here to prevent errors from occuring when calling any of these functions,
 		 * this function does nothing
 		 *
@@ -2684,7 +2684,7 @@
 		 */
 		this.GM.GM_registerMenuCommand = emptyFn;
 
-		/*
+		/**
 		 * This is only here to prevent errors from occuring when calling any of these functions,
 		 * this function does nothing
 		 *
@@ -2693,7 +2693,7 @@
 		 */
 		this.GM.GM_unregisterMenuCommand = emptyFn;
 
-		/*
+		/**
 		 * This is only here to prevent errors from occuring when calling any of these functions,
 		 * this function does nothing
 		 *
@@ -2739,7 +2739,7 @@
 			});
 		}
 
-		/*
+		/**
 		 * Sends an xmlhttpRequest with given parameters
 		 *
 		 * @see {@link https://tampermonkey.net/documentation.php#GM_xmlhttpRequest}
@@ -2876,7 +2876,7 @@
 			cb();
 		}
 
-		/*
+		/**
 		 * Please use the comms API instead of this one
 		 *
 		 * @see {@link https://tampermonkey.net/documentation.php#GM_getTab}
@@ -2884,7 +2884,7 @@
 		 */
 		this.GM.GM_getTab = instantCb;
 
-		/*
+		/**
 		 * Please use the comms API instead of this one
 		 *
 		 * @see {@link https://tampermonkey.net/documentation.php#GM_getTabs}
@@ -2892,7 +2892,7 @@
 		 */
 		this.GM.GM_getTabs = instantCb;
 
-		/*
+		/**
 		 * Please use the comms API instead of this one, this one does nothing
 		 *
 		 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
