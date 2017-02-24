@@ -2802,6 +2802,10 @@ declare global {
             tspan: React.SVGProps;
             use: React.SVGProps;
             view: React.SVGProps;
+
+            'paper-spinner': React.HTMLProps<HTMLPaperSpinnerElement> & {
+                active: boolean;
+            }
         }
     }
 }
