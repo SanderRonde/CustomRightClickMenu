@@ -107,6 +107,10 @@ interface HTMLPaperInputElement extends HTMLInputElement {
 	errorMessage: string;
 }
 
+interface HTMLPaperInputContainerElement extends HTMLElement {
+	
+}
+
 interface HTMLPaperCheckboxElement extends HTMLElement {
 	checked: boolean;
 	disabled: boolean;
@@ -127,7 +131,7 @@ interface HTMLPaperMenuElement extends HTMLElement {
 }
 
 interface HTMLPaperSpinnerElement extends HTMLElement {
-	active?: boolean;
+	active: boolean;
 }
 
 interface HTMLPaperRadioGroupElement extends HTMLElement {
@@ -155,7 +159,7 @@ interface HTMLPaperItemElement extends HTMLElement {
 }
 
 interface HTMLPaperToggleButtonElement extends HTMLElement {
-
+	checked: boolean;
 }
 
 interface HTMLPaperToolbarElement extends HTMLElement {
