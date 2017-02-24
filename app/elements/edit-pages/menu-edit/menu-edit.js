@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var menuEditProperties = {
     item: {
         type: Object,

@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var linkEditProperties = {
     item: {
         type: Object,
@@ -18,7 +18,6 @@ var LE = (function () {
     };
     ;
     LE.saveChanges = function (resultStorage) {
-        //Get new "item"
         resultStorage.value = [];
         $(this.$.linksContainer).find('.linkChangeCont').each(function () {
             resultStorage.value.push({
@@ -29,7 +28,6 @@ var LE = (function () {
     };
     ;
     LE.checkboxStateChange = function (e) {
-        //Get this checkbox
         var pathIndex = 0;
         while (e.path[pathIndex].tagName !== 'PAPER-CHECKBOX') {
             pathIndex++;

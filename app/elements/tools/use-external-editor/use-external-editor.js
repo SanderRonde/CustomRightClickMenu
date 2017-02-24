@@ -1,21 +1,13 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var UEE = (function () {
     function UEE() {
     }
-    /**
-     * Initialize for use
-     */
     UEE.init = function () {
         window.doc.externalEditorDialogTrigger.style.color = 'rgb(38, 153, 244)';
         window.doc.externalEditorDialogTrigger.classList.remove('disabled');
         window.doc.externalEditorDialogTrigger.disabled = false;
     };
     ;
-    /**
-     * Notifies the user if something went wrong
-     *
-     * @param {string} error - What went wrong
-     */
     UEE.errorHandler = function (error) {
         if (error === void 0) { error = 'Something went wrong'; }
         var toast = window.doc.externalEditorErrorToast;
@@ -31,9 +23,6 @@ var UEE = (function () {
         }
     };
     ;
-    /**
-     * Updates the local copy of the script to what the external file's value is (external->local)
-     */
     UEE.updateFromExternal = function (msg) {
         if (this.connection.id === msg.connectionId) {
             if (window.scriptEdit && window.scriptEdit.active) {
@@ -103,7 +92,6 @@ var UEE = (function () {
             '</div>' +
             '</div>')
             .click(function () {
-            //Show location toast
             var location = _this.connection.filePath;
             location = location.replace(/\\/g, '/');
             window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
@@ -167,7 +155,6 @@ var UEE = (function () {
     };
     ;
     UEE.setupExternalEditing = function () {
-        //Send a message to the app to create the item with its current script and name
         var _this = this;
         if (this.connection.connected) {
             var item = this.editingCRMItem;
@@ -213,9 +200,6 @@ var UEE = (function () {
         }
     };
     ;
-    /**
-     * Sets up the external messages sent to go this element's handler
-     */
     UEE.setupMessageHandler = function () {
         var _this = this;
         chrome.runtime.onConnectExternal.addListener(function (port) {
@@ -259,9 +243,6 @@ var UEE = (function () {
         }
     };
     ;
-    /**
-     * Takes actions based on what messages are received from the other extension
-     */
     UEE.messageHandler = function (msg) {
         switch (msg.status) {
             case 'connected':
@@ -276,9 +257,6 @@ var UEE = (function () {
         }
     };
     ;
-    /**
-     * Tries to establish a connection to the app (if installed)
-     */
     UEE.establishConnection = function (retry) {
         if (retry === void 0) { retry = false; }
         var _this = this;
@@ -309,13 +287,12 @@ var UEE = (function () {
                     stage: 0
                 });
             }(function (msg) {
-                _this.connection.stage = 2; //We have sent confirmation that we are there
+                _this.connection.stage = 2;
                 _this.appPort.postMessage({
                     status: 'connecting',
                     message: 'hello',
                     stage: 2
                 });
-                //Connection is now done
                 _this.connection.connected = true;
                 _this.connection.state = 'connected';
                 _this.connection.id = msg.connectionId;
@@ -372,7 +349,6 @@ var UEE = (function () {
     };
     ;
     UEE.showMergeDialog = function (_this, oldScript, newScript) {
-        //Animate the comparison in
         var dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
         var dialogStyle = window.doc.externalEditorChooseFile.style;
         _this.dialogStyleProperties = dialogRect;
@@ -584,8 +560,6 @@ var UEE = (function () {
                 sideEditorLineTranslationArray = _this.generateLineIndexTranslationArray(_this, sideEditor);
             }
             var error = null;
-            //For all errors, check if the main editor contains that line at the line it's supposed to contain it,
-            //if not, try a different error, else just show the toast
             for (i = errorIndex, errorIndex = incrementFunction(errorIndex); i !== errorIndex; errorIndex = incrementFunction(errorIndex)) {
                 var sideEditorLine = sideEditorLineTranslationArray[errors[errorIndex].from.line];
                 var mainEditorLine = _this.findReverseLineTranslation(_this, sideEditorLine, mainEditor);
@@ -596,7 +570,6 @@ var UEE = (function () {
             }
             errorIndex = incrementFunction(i);
             if (error) {
-                //Scroll cursor to this line
                 $('.errorHighlight').each(function () {
                     this.classList.remove('errorHighlight');
                 });
@@ -608,15 +581,11 @@ var UEE = (function () {
                 });
             }
             else {
-                //No errors were found, show the toast
                 window.doc.noErrorsFound.show();
             }
         };
     };
     ;
-    /**
-     * Makes the dialog clear itself after it closes
-     */
     UEE.ready = function () {
         var _this = this;
         window.externalEditor = this;
@@ -624,7 +593,6 @@ var UEE = (function () {
         this.init();
         window.onfocus = function () {
             if (_this.connection.fileConnected) {
-                //File is connected, ask for an update
                 _this.postMessage({
                     status: 'connected',
                     action: 'refreshFromApp'
@@ -653,7 +621,6 @@ var UEE = (function () {
             rightErrorButton.listeners = [];
             function markerFn() {
                 setTimeout(function () {
-                    //Mark left part
                     var j;
                     for (j = 0; j < updateErrors.oldScript.length; j++) {
                         window.externalEditor.editor.left.orig.markText(updateErrors.oldScript[j].from, updateErrors.oldScript[j].to, {
@@ -662,7 +629,6 @@ var UEE = (function () {
                             inclusiveRight: false
                         });
                     }
-                    //Mark right part
                     for (j = 0; j < updateErrors.newScript.length; j++) {
                         window.externalEditor.editor.right.orig.markText(updateErrors.newScript[j].from, updateErrors.newScript[j].to, {
                             className: 'updateError',
@@ -810,51 +776,18 @@ var UEE = (function () {
     return UEE;
 }());
 UEE.is = 'use-external-editor';
-/**
- * The port at which the app is located
- */
 UEE.appPort = null;
-/**
- * The connection to the app and its status
- */
 UEE.connection = {
     status: 'no connection',
     connected: false
 };
-/**
- * The choose-script show animation for the main div
- */
 UEE.dialogMainDivAnimationShow = null;
-/**
- * The choose-script hide animation for the main div
- */
 UEE.dialogMainDivAnimationHide = null;
-/**
- * The choose-script show animation for the comparison div
- */
 UEE.dialogComparisonDivAnimationShow = null;
-/**
- * The choose-script hide animation for the comparison div
- */
 UEE.dialogComparisonDivAnimationHide = null;
-/**
- * The animation for expanding the dialog
- */
 UEE.dialogExpansionAnimation = null;
-/**
- * The animation for contracting the dialog
- */
 UEE.dialogContractionAniation = null;
-/**
- * Whether the chooseScript animation is showing the comparison dialog
- */
 UEE.chooseScriptShowingComparison = true;
-/**
- * The CodeMirror editor used to merge your code
- */
 UEE.editor = null;
-/**
- * The animation that fades in the editor
- */
 UEE.editorFadeInAnimation = null;
 Polymer(UEE);

@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var scriptEditProperties = {
     item: {
         type: Object,
@@ -9,7 +9,6 @@ var scriptEditProperties = {
 var SCE = (function () {
     function SCE() {
     }
-    //#region Metadata Updates
     SCE.preventCodemirrorNotification = function () {
         var _this = this;
         this.preventNotification = true;
@@ -26,7 +25,6 @@ var SCE = (function () {
         var i;
         var _this = this;
         var metaTags = this.newSettings.value.metaTags;
-        //Register as a resource
         function sendCreateAnonymousLibraryMessage(val) {
             chrome.runtime.sendMessage({
                 type: 'anonymousLibrary',
@@ -112,7 +110,6 @@ var SCE = (function () {
                 window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
                 break;
             case 'require':
-                //Change anonymous libraries to requires
                 var libraries = this.newSettings.value.libraries;
                 if (changeType === 'added') {
                     libraries.push({
@@ -168,12 +165,10 @@ var SCE = (function () {
                     for (i = 0; i < triggers.length; i++) {
                         if (JSON.stringify(value[i]) !== JSON.stringify(oldValue[i])) {
                             if (changeType === 'changed') {
-                                //Replace this one
                                 this.set('newSettings.triggers.' + i + '.url', value[0]);
                                 this.set('newSettings.triggers.' + i + '.not', isExclude);
                             }
                             else {
-                                //Remove this one
                                 this.splice('newSettings.triggers', i, 1);
                             }
                             break;
@@ -181,7 +176,6 @@ var SCE = (function () {
                     }
                 }
                 else {
-                    //Add another one
                     if (!this.newSettings.triggers) {
                         this.newSettings.triggers = [];
                     }
@@ -192,7 +186,6 @@ var SCE = (function () {
                 }
                 break;
             case 'resource':
-                //Get the one that was added
                 switch (changeType) {
                     case 'added':
                         sendCreateMessage(value);
@@ -230,7 +223,6 @@ var SCE = (function () {
                         valArray[i] = false;
                     }
                 }
-                //If removed, don't do anything
                 if (changeType !== 'removed') {
                     this.set('newSettings.onContentTypes', valArray);
                 }
@@ -289,7 +281,6 @@ var SCE = (function () {
     ;
     SCE.addDialogToMetaTagUpdateListeners = function () {
         var _this = this;
-        //Use jquery to also get the pre-change value
         $(this.$.nameInput).on('keydown', function () {
             var el = _this.$.nameInput;
             var oldVal = el.value || '';
@@ -297,8 +288,6 @@ var SCE = (function () {
         });
     };
     ;
-    //#endregion
-    //#region DialogFunctions
     SCE.disableButtons = function () {
         this.$.dropdownMenu.disable();
     };
@@ -342,7 +331,6 @@ var SCE = (function () {
             this.changeTab('background');
         }
         else {
-            //Switch from and to options page, don't reload editor
             if (mode === 'options') {
                 this.changeToOptionsTab();
             }
@@ -379,7 +367,6 @@ var SCE = (function () {
         var nodeItem;
         var settingsStorage;
         if (!item || item.type === 'tap') {
-            //It's an event, ignore it
             nodeItem = this.item;
             settingsStorage = this.newSettings;
         }
@@ -387,7 +374,6 @@ var SCE = (function () {
             nodeItem = item;
             settingsStorage = item;
         }
-        //Prepare all permissions
         chrome.permissions.getAll(function (extensionWideEnabledPermissions) {
             if (!nodeItem.permissions) {
                 nodeItem.permissions = [];
@@ -464,11 +450,9 @@ var SCE = (function () {
                                 permissions: [permission]
                             }, function (accepted) {
                                 if (!accepted) {
-                                    //The user didn't accept, don't pretend it's active when it's not, turn it off
                                     slider.checked = false;
                                 }
                                 else {
-                                    //Accepted, remove from to-request permissions if it's there
                                     chrome.storage.local.get(function (e) {
                                         var permissionsToRequest = e.requestPermissions;
                                         permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
@@ -476,7 +460,6 @@ var SCE = (function () {
                                             requestPermissions: permissionsToRequest
                                         });
                                     });
-                                    //Add to script's permissions
                                     settingsStorage.permissions = settingsStorage.permissions || [];
                                     oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
                                     settingsStorage.permissions.push(permission);
@@ -484,14 +467,12 @@ var SCE = (function () {
                             });
                         }
                         else {
-                            //Add to script's permissions
                             settingsStorage.permissions = settingsStorage.permissions || [];
                             oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
                             settingsStorage.permissions.push(permission);
                         }
                     }
                     else {
-                        //Remove from script's permissions
                         oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
                         settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
                     }
@@ -506,10 +487,6 @@ var SCE = (function () {
         });
     };
     ;
-    //#endregion
-    /**
-     * Fills the editor-tools-ribbon on the left of the editor with elements
-     */
     SCE.initToolsRibbon = function () {
         var _this = this;
         window.app.$.paperLibrariesSelector.init();
@@ -518,10 +495,6 @@ var SCE = (function () {
         });
     };
     ;
-    //#region Editor
-    /**
-     * Reloads the editor completely (to apply new settings)
-     */
     SCE.reloadEditor = function (disable) {
         if (disable === void 0) { disable = false; }
         if (this.editor) {
@@ -547,9 +520,7 @@ var SCE = (function () {
         var _this = this;
         return function (event) {
             event.preventDefault();
-            //Make sure it's not just one modifier key being pressed and nothing else
             if (event.keyCode < 16 || event.keyCode > 18) {
-                //Make sure at least one modifier is being pressed
                 if (event.altKey || event.shiftKey || event.ctrlKey) {
                     var values = [];
                     if (event.ctrlKey) {
@@ -575,7 +546,6 @@ var SCE = (function () {
                     };
                     var prevValue = window.app.settings.editor.keyBindings[binding.storageKey];
                     if (prevValue) {
-                        //Remove previous one
                         var prevKeyMap = {};
                         prevKeyMap[prevValue] = binding.fn;
                         window.scriptEdit.editor.removeKeyMap(prevKeyMap);
@@ -591,9 +561,6 @@ var SCE = (function () {
         };
     };
     ;
-    /**
-     * Initializes the keybindings for the editor
-     */
     SCE.initTernKeyBindings = function () {
         var keySettings = {};
         for (var i = 0; i < this.keyBindings.length; i++) {
@@ -605,9 +572,6 @@ var SCE = (function () {
         });
     };
     ;
-    /**
-     * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
-     */
     SCE.cmLoaded = function (editor) {
         var _this = this;
         this.editor = editor;
@@ -645,7 +609,6 @@ var SCE = (function () {
         var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(editor.display.sizer).children().first());
         this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
         var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
-        //The bubble on settings open
         var $shadow = this.settingsShadow = $('<paper-material elevation="5" id="settingsShadow"></paper-material>').appendTo(bubbleCont);
         var $editorOptionsContainer = $('<div id="editorOptionsContainer"></div>').appendTo($shadow);
         this.editorOptions = $('<paper-material id="editorOptions" elevation="5"></paper-material>').appendTo($editorOptionsContainer);
@@ -692,9 +655,6 @@ var SCE = (function () {
         this.initTernKeyBindings();
     };
     ;
-    /**
-     * Loads the codeMirror editor
-     */
     SCE.loadEditor = function (container, content, disable) {
         if (content === void 0) { content = this.item.value.script; }
         if (disable === void 0) { disable = false; }
@@ -734,7 +694,6 @@ var SCE = (function () {
         });
     };
     ;
-    //#endregion
     SCE.init = function () {
         this.isScript = true;
         var _this = this;
@@ -765,7 +724,6 @@ var SCE = (function () {
             });
             this.savingInterval = window.setInterval(function () {
                 if (_this.active && _this.editor) {
-                    //Save
                     var val = _this.editor.getValue();
                     chrome.storage.local.set({
                         editing: {
@@ -777,7 +735,6 @@ var SCE = (function () {
                     }, function () { chrome.runtime.lastError; });
                 }
                 else {
-                    //Stop this interval
                     chrome.storage.local.set({
                         editing: false
                     });
@@ -794,9 +751,6 @@ var SCE = (function () {
 }());
 SCE.is = 'script-edit';
 SCE.behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
-/**
- * The mode the editor is in (main or background)
- */
 SCE.editorMode = 'main';
 SCE.properties = scriptEditProperties;
 SCE.keyBindings = [

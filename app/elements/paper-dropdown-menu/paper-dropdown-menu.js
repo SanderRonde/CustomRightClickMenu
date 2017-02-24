@@ -1,8 +1,5 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var paperDropdownMenuProperties = {
-    /**
-     * The currently selected item
-     */
     selected: {
         type: Number,
         reflectToAttribute: true,
@@ -21,9 +18,6 @@ var PDM = (function () {
         return !(label && label !== '');
     };
     ;
-    /*
-     * Fires when the selected item changes
-     */
     PDM._dropdownSelectChange = function (_this) {
         var paperItems = $(_this).find('paper-item');
         var newState = _this._paperMenu.selected;

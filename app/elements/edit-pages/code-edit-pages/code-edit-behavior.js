@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var CEB = (function () {
     function CEB() {
     }
@@ -30,9 +30,6 @@ var CEB = (function () {
         }, this.fullscreen ? 500 : 0);
     };
     ;
-    /**
-     * Inserts given snippet of code into the editor
-     */
     CEB.insertSnippet = function (_this, snippet, noReplace) {
         if (noReplace === void 0) { noReplace = false; }
         this.editor.doc.replaceSelection(noReplace ?
@@ -41,11 +38,7 @@ var CEB = (function () {
                 .getSelection()));
     };
     ;
-    /**
-     * Pops in the tools ribbon
-     */
     CEB.popInRibbons = function () {
-        //Introduce title at the top
         var scriptTitle = window.app.$.editorCurrentScriptTitle;
         var titleRibbonSize;
         if (window.app.storageLocal.shrinkTitleRibbon) {
@@ -111,9 +104,6 @@ var CEB = (function () {
         }, 200);
     };
     ;
-    /**
-     * Pops in only the tools ribbon
-     */
     CEB.popInToolsRibbon = function () {
         window.doc.editorToolsRibbon.style.display = 'flex';
         window.doc.editorToolsRibbon.animate([
@@ -130,9 +120,6 @@ var CEB = (function () {
         };
     };
     ;
-    /*
-     * Pops out only the tools ribbon
-     */
     CEB.popOutToolsRibbon = function () {
         window.doc.editorToolsRibbonContainer.animate([
             {
@@ -149,9 +136,6 @@ var CEB = (function () {
         };
     };
     ;
-    /**
-     * Pops out the ribbons with an animation
-     */
     CEB.popOutRibbons = function () {
         var scriptTitle = window.app.$.editorCurrentScriptTitle;
         var toolsRibbon = window.app.$.editorToolsRibbonContainer;
@@ -217,9 +201,6 @@ var CEB = (function () {
         }
     };
     ;
-    /**
-     * Enter fullscreen mode for the editor
-     */
     CEB.enterFullScreen = function () {
         var _this = this;
         if (this.fullscreen) {
@@ -241,7 +222,6 @@ var CEB = (function () {
                 __this.editorMode;
         }
         this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-        //this.fullscreenEl.style.display = 'none';
         var $editorWrapper = $(this.editor.display.wrapper);
         var buttonShadow = $editorWrapper.find('#buttonShadow')[0];
         buttonShadow.style.position = 'absolute';
@@ -285,7 +265,6 @@ var CEB = (function () {
         $editorWrapper[0].style.height = 'auto';
         document.documentElement.style.overflow = 'hidden';
         editorCont.style.display = 'flex';
-        //Animate to corners
         $(editorCont).animate({
             width: viewportWidth,
             height: viewPortHeight,
@@ -315,9 +294,6 @@ var CEB = (function () {
         });
     };
     ;
-    /*
-     * Exits the editor's fullscreen mode
-     */
     CEB.exitFullScreen = function () {
         if (!this.fullscreen) {
             return;
@@ -358,16 +334,10 @@ var CEB = (function () {
         }, 800);
     };
     ;
-    /**
-     * Toggles fullscreen mode for the editor
-     */
     CEB.toggleFullScreen = function () {
         (this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
     };
     ;
-    /**
-     * Shows the options for the editor
-     */
     CEB.showOptions = function () {
         var _this = this;
         this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
@@ -377,7 +347,6 @@ var CEB = (function () {
         var editorWidth = thisCm.width();
         var editorHeight = thisCm.height();
         var circleRadius;
-        //Add a bit just in case
         if (this.fullscreen) {
             circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight)) + 100;
         }
@@ -423,9 +392,6 @@ var CEB = (function () {
         });
     };
     ;
-    /**
-     * Hides the options for the editor
-     */
     CEB.hideOptions = function () {
         var _this = this;
         var thisCm = this.isScript ?
@@ -467,18 +433,11 @@ var CEB = (function () {
         });
     };
     ;
-    /**
-     * Toggles the editor's options
-     */
     CEB.toggleOptions = function () {
         (this.optionsShown ? this.hideOptions() : this.showOptions());
         this.optionsShown = !this.optionsShown;
     };
     ;
-    /**
-     * Triggered when the scrollbars get updated (hidden or showed) and adapts the
-     * icons' positions
-     */
     CEB.scrollbarsUpdate = function (vertical) {
         if (vertical !== this.verticalVisible) {
             if (vertical) {
@@ -491,13 +450,9 @@ var CEB = (function () {
         }
     };
     ;
-    /**
-     * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
-     */
     CEB.fillEditorOptions = function () {
         var settingsContainer = $('<div id="settingsContainer"></div>').appendTo(this.editorOptions);
         $('<div id="editorSettingsTxt">Editor Settings</div>').appendTo(settingsContainer);
-        //The settings for the theme
         var theme = $('<div id="editorThemeSettingCont">' +
             '<div id="editorThemeSettingTxt">' +
             'Theme: ' +
@@ -506,7 +461,6 @@ var CEB = (function () {
             '</div>' +
             '</div>' +
             '<br>').appendTo(settingsContainer);
-        //The white theme option
         $('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.app.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
             .click(function () {
             var themes = this.parentElement.children;
@@ -515,7 +469,6 @@ var CEB = (function () {
             window.app.settings.editor.theme = 'white';
             window.app.upload();
         }).appendTo(theme.find('#editorThemeSettingChoicesCont'));
-        //The dark theme option
         $('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
             .click(function () {
             var themes = this.parentElement.children;
@@ -524,7 +477,6 @@ var CEB = (function () {
             window.app.settings.editor.theme = 'dark';
             window.app.upload();
         }).appendTo(theme.find('#editorThemeSettingChoicesCont'));
-        //The font size
         var fontSize = $('<div id="editorThemeFontSize">' +
             'Editor zoom percentage:' +
             '</div>').appendTo(settingsContainer);
@@ -541,7 +493,6 @@ var CEB = (function () {
             updateZoomEl();
         });
         this._updateZoomEl = updateZoomEl;
-        //The option to use tabs or spaces
         var tabsOrSpaces = $('<div id="editorTabsOrSpacesSettingCont">' +
             '<div id="editorTabsOrSpacesCheckbox">' +
             '</div>' +
@@ -550,12 +501,10 @@ var CEB = (function () {
             '</div>' +
             '</div>' +
             '<br>').appendTo(settingsContainer);
-        //The main checkbox for the tabs or spaces option
         $('<paper-checkbox ' + (window.app.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function () {
             window.app.settings.editor.useTabs = !window.app.settings.editor.useTabs;
             window.app.upload();
         }).appendTo(tabsOrSpaces.find('#editorTabsOrSpacesCheckbox'));
-        //The option for the size of tabs
         var tabSize = $('<div id="editorTabSizeSettingCont">' +
             '<div id="editorTabSizeInput">' +
             '<paper-input-container>' +
@@ -571,7 +520,6 @@ var CEB = (function () {
                 window.app.upload();
             }, 0);
         }
-        //The main input for the size of tabs option
         tabSize.find('input').change(function () {
             updateTabSizeEl();
         });
@@ -580,7 +528,6 @@ var CEB = (function () {
             return;
         }
         var _this = this;
-        //The edit jsLint settings option
         var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
         var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
         $('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">')
@@ -706,93 +653,27 @@ var CEB = (function () {
     ;
     return CEB;
 }());
-/**
- * An interval to save any work not discarder or saved (say if your browser/pc crashes)
- */
 CEB.savingInterval = 0;
-/**
- * Whether this dialog is active
- */
 CEB.active = false;
-/**
- * The editor
- */
 CEB.editor = null;
-/**
- * Whether the vertical scrollbar is already shown
- */
 CEB.verticalVisible = false;
-/**
- * Whether the horizontal scrollbar is already shown
- */
 CEB.horizontalVisible = false;
-/**
- * The settings element on the top-right of the editor
- */
 CEB.settingsEl = null;
-/**
- * The fullscreen element on the bottom-right of the editor
- */
 CEB.fullscreenEl = null;
-/**
- * The container of the fullscreen and settings buttons
- */
 CEB.buttonsContainer = null;
-/**
- * The editor's starting height
- */
 CEB.editorHeight = 0;
-/**
- * The editor's starting width
- */
 CEB.editorWidth = 0;
-/**
- * Whether to show the trigger editing section
- */
 CEB.showTriggers = false;
-/**
- * Whether to show the section that allows you to choose on which content to show this
- */
 CEB.showContentTypeChooser = false;
-/**
- * Whether the options are shown
- */
 CEB.optionsShown = false;
-/**
- * Whether the editor is in fullscreen mode
- */
 CEB.fullscreen = false;
-/**
- * The element that contains the editor's options
- */
 CEB.editorOptions = null;
-/**
- * The settings shadow element which is the circle on options
- */
 CEB.settingsShadow = null;
-/**
- * The editor's dimensions before it goes fullscreen
- */
 CEB.preFullscreenEditorDimensions = {};
-/**
- * Prevent the codemirror editor from signalling again for a while
- */
 CEB.preventNotification = false;
-/**
- * The timeout that resets the preventNotification bool
- */
 CEB.preventNotificationTimeout = null;
-/**
- * The editor tab that is currently open
- */
 CEB.editorTab = 'main';
-/**
- * The fullscreen animation
- */
 CEB.fullscreenAnimation = null;
-/**
- * The show options animation player
- */
 CEB.optionsAnimations = [];
 ;
 Polymer.CodeEditBehavior = CEB;

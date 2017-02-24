@@ -1,4 +1,4 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var editCrmProperties = {
     crm: {
         type: Array,
@@ -16,25 +16,11 @@ var editCrmProperties = {
         notify: true,
         computed: '_isCrmEmpty(crm, crmLoading)'
     },
-    /**
-     * Whether the user is currently selecting nodes to remove
-     *
-     * @attribute isSelecting
-     * @type Boolean
-     * @default false
-     */
     isSelecting: {
         type: Boolean,
         value: false,
         notify: true
     },
-    /**
-     * Whether the user is adding a node
-     *
-     * @attribute isAdding
-     * @type Boolean
-     * @default false
-     */
     isAdding: {
         type: Boolean,
         value: false,
@@ -60,11 +46,7 @@ var EC = (function () {
         return 'Edit item "' + item.name + '"';
     };
     ;
-    /**
-     * Gets the columns in this crm-edit element
-     */
     EC.getColumns = function () {
-        //Check if the nodes still exist 
         if (this.columns && document.contains(this.columns[0])) {
             return this.columns;
         }
@@ -73,16 +55,10 @@ var EC = (function () {
         }));
     };
     ;
-    /**
-     * Gets the column with given index
-     */
     EC.getColumn = function (index) {
         return this.getColumns()[index];
     };
     ;
-    /**
-     * Gets the current column
-     */
     EC.getCurrentColumn = function (element) {
         var fillerIndex = (element._filler && element._filler.column);
         if (typeof fillerIndex !== 'number') {
@@ -93,9 +69,6 @@ var EC = (function () {
             fillerIndex));
     };
     ;
-    /**
-     * Gets the next column
-     */
     EC.getNextColumn = function (element) {
         var fillerIndex = (element._filler && element._filler.column);
         if (typeof fillerIndex !== 'number') {
@@ -106,9 +79,6 @@ var EC = (function () {
             fillerIndex + 1));
     };
     ;
-    /**
-     * Gets the previous column
-     */
     EC.getPrevColumn = function (element) {
         var fillerIndex = (element._filler && element._filler.column);
         if (typeof fillerIndex !== 'number') {
@@ -119,9 +89,6 @@ var EC = (function () {
             fillerIndex - 1));
     };
     ;
-    /**
-     * Gets the edit-crm-item nodes in the given colume
-     */
     EC.getEditCrmItems = function (column, includeTemplate) {
         if (includeTemplate === void 0) { includeTemplate = false; }
         return $(column)
@@ -147,18 +114,9 @@ var EC = (function () {
         return index;
     };
     ;
-    /**
-     * Gets the last menu of the list.
-     *
-     * @param list - The list.
-     * @param hidden - The hidden nodes
-     *
-     * @return The last menu on the given list.
-     */
     EC.getLastMenu = function (list, hidden) {
         var lastMenu = -1;
         var lastFilledMenu = -1;
-        //Find last menu to auto-expand
         if (list) {
             list.forEach(function (item, index) {
                 if ((item.type === 'menu' || (window.app.shadowStart && item.menuVal)) && !hidden[item.id]) {
@@ -176,9 +134,6 @@ var EC = (function () {
         return lastMenu;
     };
     ;
-    /**
-     * Returns whether the node is visible or not (1 if it's visible)
-     */
     EC.isNodeVisible = function (result, node, showContentType) {
         var length;
         if (node.children && node.children.length > 0) {
@@ -206,13 +161,6 @@ var EC = (function () {
         return visibleIndent;
     };
     ;
-    /**
-     * Builds crm edit object.
-     *
-     * @param setMenus - An array of menus that are set to be opened (by user input).
-     *
-     * @return the CRM edit object
-     */
     EC.buildCRMEditObj = function (setMenus) {
         var column;
         var indent;
@@ -226,7 +174,6 @@ var EC = (function () {
         var list = window.app.settings.crm;
         var setMenusLength = setMenus.length;
         var showContentTypes = window.app.crmType;
-        //Hide all nodes that should be hidden
         var hiddenNodes = {};
         var shown = 0;
         for (var i = 0; i < list.length; i++) {
@@ -292,15 +239,6 @@ var EC = (function () {
         };
     };
     ;
-    /**
-     * Builds the crm object
-     *
-     * @param setItems - Set choices for menus by the user
-     * @param quick - Do it quicker than normal
-     * @param superquick - Don't show a loading image and do it immediately
-     *
-     * @return The object to be sent to Polymer
-     */
     EC.build = function (setItems, quick, superquick) {
         if (quick === void 0) { quick = false; }
         if (superquick === void 0) { superquick = false; }
@@ -309,8 +247,6 @@ var EC = (function () {
         var obj = this.buildCRMEditObj(setItems);
         this.setMenus = obj.setMenus;
         var crmBuilder = obj.crm;
-        //Get the highest column's height and apply it to the element to prevent
-        //the page from going and shrinking quickly
         var hight;
         var highest = 0;
         crmBuilder.forEach(function (column) {
@@ -522,7 +458,6 @@ var EC = (function () {
         var metaIndexes = this.getMetaIndexes(code);
         var metaTags = {};
         if (metaIndexes.start !== -1) {
-            //Remove metaLines
             codeSplit.splice(metaIndexes.start, (metaIndexes.end - metaIndexes.start) + 1);
             metaTags = this.getMetaTags(code);
         }
@@ -553,7 +488,6 @@ var EC = (function () {
         if (node.type === 'script' && node.value.libraries) {
             metaTags['require'] = [];
             for (i = 0; i < node.value.libraries.length; i++) {
-                //Turn into requires
                 if (node.value.libraries[i].url) {
                     metaTags['require'].push(node.value.libraries[i].url);
                 }
@@ -563,7 +497,6 @@ var EC = (function () {
             metaTags['CRM_stylesheet'] = ['true'];
             this.setMetaTagIfSet(metaTags, 'CRM_toggle', 'toggle', node.value);
             this.setMetaTagIfSet(metaTags, 'CRM_defaultOn', 'defaultOn', node.value);
-            //Convert stylesheet to GM API stylesheet insertion
             var stylesheetCode = codeSplit.join('\n');
             codeSplit = ["GM_addStyle('" + stylesheetCode.replace(/\n/g, '\\n\' + \n\'') + "');"];
         }
@@ -596,7 +529,6 @@ var EC = (function () {
                 var pathWildcard = path.indexOf('*') > -1;
                 if (~~schemeWildCard + ~~domainWildcard + ~~pathWildcard > 1 ||
                     domainWildcard || schemeWildCard) {
-                    //Use regex
                     return 'regexp("' +
                         trigger.url
                             .replace(/\*/, '.*')
@@ -630,9 +562,7 @@ var EC = (function () {
             case 'Userscript':
                 return this.getUserscriptString(node, author);
             case 'Userstyle':
-                //Turn triggers into @document rules
                 if (node.value.launchMode === 0 || node.value.launchMode === 1) {
-                    //On clicking
                     return node.value.stylesheet;
                 }
                 else {
@@ -708,8 +638,7 @@ var EC = (function () {
         }
     };
     ;
-    EC.exportGivenNodeIDs = function (toExport, exportType) {
-        if (exportType === void 0) { exportType = 'CRM'; }
+    EC.exportGivenNodeIDs = function (toExport) {
         var exports = [];
         for (var i = 0; i < window.app.settings.crm.length; i++) {
             this.extractUniqueChildren(window.app.settings.crm[i], toExport, exports);
@@ -725,7 +654,6 @@ var EC = (function () {
     EC.cancelSelecting = function () {
         var _this = this;
         var editCrmItems = document.getElementsByTagName('edit-crm-item');
-        //Select items
         for (var i = 0; i < editCrmItems.length; i++) {
             editCrmItems[i].classList.remove('selecting');
             editCrmItems[i].classList.remove('highlighted');
@@ -758,7 +686,6 @@ var EC = (function () {
     EC.selectItems = function () {
         var _this = this;
         var editCrmItems = document.getElementsByTagName('edit-crm-item');
-        //Select items
         for (var i = 0; i < editCrmItems.length; i++) {
             editCrmItems[i].classList.add('selecting');
         }
@@ -807,45 +734,13 @@ var EC = (function () {
     return EC;
 }());
 EC.is = 'edit-crm';
-/**
- * The currently used timeout for settings the crm
- */
 EC.currentTimeout = null;
-/**
- * The currently used set menus
- */
 EC.setMenus = [];
-/**
- * The element used to display drag area
- */
 EC.dragAreaEl = null;
-/**
- * The coordinates of the location the user started dragging
- *
- * @attribute dragAreaPos
- * @type Object
- * @default null
- */
 EC.dragAreaPos = null;
-/**
- * The handler for scrolling the body
- *
- * @attribute scrollHandler
- * @type Function
- * @default null
- */
 EC.scrollHandler = null;
-/**
- * The leftmost CRM column for getting scroll from the left
- */
 EC.firstCRMColumnEl = null;
-/**
- * A list of selected nodes
- */
 EC.selectedElements = [];
-/**
- * A list of all the column elements
- */
 EC.columns = [];
 EC.properties = editCrmProperties;
 EC.listeners = {

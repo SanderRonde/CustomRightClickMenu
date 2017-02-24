@@ -1092,7 +1092,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		 */
 		static jsonFn = {
 			stringify: (obj: any): string => {
-				return JSON.stringify(obj, (key: string, value: any) => {
+				return JSON.stringify(obj, (_: string, value: any) => {
 					if (value instanceof Function || typeof value === 'function') {
 						return value.toString();
 					}
@@ -2567,8 +2567,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						type: 'object',
 						optional: true
 					}
-				], (optionals) => {
-					debugger;
+				], () => {
 					var id = Helpers.generateItemId();
 					var node = _this.message.options;
 					node = CRM.makeSafe(node);
@@ -2800,7 +2799,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								const pattern = URLParsing.validatePatternUrl(triggers[i].url);
 								if (!pattern) {
 									_this.respondSuccess('Triggers don\'t match URL scheme');
-									return false;
+									return;
 								}
 							}
 						} else {
@@ -2809,7 +2808,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							for (var i = 0; i < triggers.length; i++) {
 								if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
 									_this.respondError('Triggers don\'t match URL scheme');
-									return false;
+									return;
 								}
 								triggers[i].url = URLParsing.prepareTrigger(triggers[i].url);
 								if (isShowOnSpecified) {
@@ -3938,7 +3937,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				() => {
 					if (!(relativeNode = crmFunction.getNodeFromId(position.node, false,
 						true))) {
-						return false;
+						return;
 					}
 				})) {
 				return false;
@@ -7196,7 +7195,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 						return toCheck.replace(/['|"|`]/g, '') === prop;
 					}
-					static getCallLines(lines: Array<string>, lineSeperators: Array<{
+					static getCallLines(lineSeperators: Array<{
 						start: number;
 						end: number;
 					}>, start: number, end: number): {
@@ -7445,8 +7444,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
 								data.expression = callee;
 								const expr = this.getFunctionCallExpressions(data);
-								const callLines = this.getCallLines(data.persistent.lines, data
-									.persistent
+								const callLines = this.getCallLines(data.persistent
 									.lineSeperators, expr.start, expr.end);
 								if (data.isReturn && !data.isValidReturn) {
 									callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent
@@ -8380,7 +8378,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
-		private static _upgradeVersion(oldVersion: string, newVersion: string) {
+		private static _upgradeVersion() {//oldVersion: string, newVersion: string) {
 			//No changes yet
 		}
 		private static _isFirstTime(storageLocal: StorageLocal): boolean|FirstTimeCallback {

@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var stylesheetEditProperties = {
     item: {
         type: Object,
@@ -49,9 +49,6 @@ var STE = (function () {
         element.classList.add('active');
     };
     ;
-    /**
-     * Reloads the editor completely (to apply new settings)
-     */
     STE.reloadEditor = function (disable) {
         if (disable === void 0) { disable = false; }
         if (this.editor) {
@@ -75,9 +72,6 @@ var STE = (function () {
         }
     };
     ;
-    /**
-     * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
-     */
     STE.cmLoaded = function (element) {
         var _this = this;
         this.editor = element;
@@ -87,7 +81,6 @@ var STE = (function () {
         var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
         this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
         var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
-        //The bubble on settings open
         var $shadow = this.settingsShadow = $('<paper-material elevation="5" id="settingsShadow"></paper-material>').appendTo(bubbleCont);
         var $editorOptionsContainer = $('<div id="editorOptionsContainer"></div>').appendTo($shadow);
         this.editorOptions = $('<paper-material id="editorOptions" elevation="5"></paper-material>').appendTo($editorOptionsContainer);
@@ -133,9 +126,6 @@ var STE = (function () {
         }
     };
     ;
-    /**
-     * Loads the codeMirror editor
-     */
     STE.loadEditor = function (container, content, disable) {
         if (content === void 0) { content = this.item.value.stylesheet; }
         if (disable === void 0) { disable = false; }
@@ -203,7 +193,6 @@ var STE = (function () {
             });
             this.savingInterval = window.setInterval(function () {
                 if (_this.active && _this.editor) {
-                    //Save
                     var val;
                     try {
                         val = _this.editor.getValue();
@@ -218,7 +207,6 @@ var STE = (function () {
                     catch (e) { }
                 }
                 else {
-                    //Stop this interval
                     chrome.storage.local.set({
                         editing: false
                     });

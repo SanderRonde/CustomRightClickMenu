@@ -1,4 +1,4 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var TS = (function () {
     function TS() {
     }
@@ -189,7 +189,6 @@ var TS = (function () {
                     break;
             }
         }
-        //Update color
         editCrmEl.type = item.type;
         editCrmEl.calculateType();
         this.ready();
@@ -210,19 +209,16 @@ var TS = (function () {
             for (i = 0; i < _this.remainingTypes.length; i++) {
                 typeChoices[i].setAttribute('type', _this.remainingTypes[i]);
             }
-            //Un-shadow items
             _this.shadowColumns(columnCont, true);
             window.app.shadowStart = null;
         }
         if (prevType === 'menu') {
-            //Turn children into "shadow items"
             var column = this.parentElement.parentElement.parentElement.parentElement;
             var columnCont = column.parentElement.parentElement;
             columnCont = $(columnCont).next()[0];
             this.shadowColumns(columnCont, false);
             window.app.shadowStart = column.index + 1;
             var paperToast = $('#changedToMenuToast');
-            //Show a paper-toast
             paperToast.on('click', function () {
                 reverseMenuTypeChoice(columnCont);
             });
@@ -239,36 +235,12 @@ var TS = (function () {
     return TS;
 }());
 TS.is = 'type-switcher';
-/**
- * Whether the item is a link
- */
 TS.isLink = false;
-/**
- * Whether the item is a script
- */
 TS.isScript = false;
-/**
- * Whether the item is a divider
- */
 TS.isDivider = false;
-/**
- * Whether the item is a menu
- */
 TS.isMenu = false;
-/**
- * Whether the item is a stylesheet
- */
 TS.isStylesheet = false;
-/**
- * All types other than this one
- */
 TS.remainingTypes = [];
-/**
- * Whether the choices container is toggled open
- */
 TS.toggledOpen = false;
-/**
- * Whether the items are already colored
- */
 TS.colored = false;
 Polymer(TS);

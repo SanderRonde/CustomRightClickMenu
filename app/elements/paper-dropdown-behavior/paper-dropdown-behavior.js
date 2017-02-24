@@ -1,8 +1,5 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var paperDropdownBehaviorProperties = {
-    /**
-     * The selected item
-     */
     selected: {
         type: Number,
         value: 0,
@@ -13,9 +10,6 @@ var paperDropdownBehaviorProperties = {
 var PDB = (function () {
     function PDB() {
     }
-    /*
-     * Adds a listener that fires when a new value is selected
-     */
     PDB._addListener = function (listener, id, thisArg) {
         var found = false;
         for (var i = 0; i < this._listeners.length; i++) {
@@ -32,9 +26,6 @@ var PDB = (function () {
         }
     };
     ;
-    /*
-     * Fires all added listeners, triggers when a new value is selected
-     */
     PDB._fireListeners = function () {
         var _this = this;
         var prevState = this.selected;
@@ -75,9 +66,6 @@ var PDB = (function () {
         }
     };
     ;
-    /*
-     * Animates the box-shadow in on clicking the main blue text
-     */
     PDB._animateBoxShadowIn = function (timestamp, _this) {
         if (!_this._startTime) {
             _this._startTime = timestamp;
@@ -104,9 +92,6 @@ var PDB = (function () {
         }
     };
     ;
-    /*
-     * Animates the box-shadow out on clicking the main blue text again
-     */
     PDB._animateBoxShadowOut = function (timestamp, _this) {
         if (!_this._startTime) {
             _this._startTime = timestamp;
@@ -134,9 +119,6 @@ var PDB = (function () {
         }
     };
     ;
-    /*
-     * Open the dropdown menu
-     */
     PDB.open = function () {
         if (this.onopen) {
             this.onopen();
@@ -167,9 +149,6 @@ var PDB = (function () {
         }
     };
     ;
-    /*
-     * Close the dropdown menu
-     */
     PDB.close = function () {
         var _this = this;
         if (this._expanded) {
@@ -193,19 +172,12 @@ var PDB = (function () {
         }
     };
     ;
-    /*
-     * Toggles the dropdown menu, tirggers on clicking the main blue text
-     */
     PDB._toggleDropdown = function () {
         if (!this.disabled) {
             (this._expanded ? this.close() : this.open());
         }
     };
     ;
-    /**
-     * Gets the currently selected item(s)
-     * @returns {Array} The currently selected item(s) in array form
-     */
     PDB.getSelected = function () {
         if ($(this).find('.iron-selected.addLibrary')[0]) {
             this.selected.pop();
@@ -229,40 +201,13 @@ var PDB = (function () {
     return PDB;
 }());
 PDB.properties = paperDropdownBehaviorProperties;
-/**
-* The start time for the current animation
-*/
 PDB._startTime = null;
-/**
- * The paper dropdown menu element
- */
 PDB._paperDropdownEl = null;
-/**
- * The paper menu element
- */
 PDB._paperMenu = null;
-/**
- * The dropdown selected container
- */
 PDB._dropdownSelectedCont = null;
-/**
-* The listeners for this element
-*/
 PDB._listeners = [];
-/**
-* Whether the menu is expanded
-*/
 PDB._expanded = false;
-/**
-* Whether the menu should have an indent from the left part of the screen
-*/
 PDB.indent = true;
-/**
- * The previous state before the current one
- */
 PDB._prevState = null;
-/**
- * Whether the menu is disabled
- */
 PDB.disabled = false;
 Polymer.PaperDropdownBehavior = PDB;

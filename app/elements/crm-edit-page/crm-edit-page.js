@@ -1,4 +1,4 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var crmEditPageProperties = {
     animationConfig: {
         value: function () {
@@ -16,25 +16,16 @@ var crmEditPageProperties = {
             };
         }
     },
-    /**
-     * The item to edit
-     */
     item: {
         type: Object,
         value: null,
         notify: true
     },
-    /**
-     * The nodeInfo to display
-     */
     nodeInfo: {
         type: Object,
         value: {},
         notify: true
     },
-    /**
-     * Whether to hide the update message
-     */
     hideUpdateMessage: {
         type: Boolean,
         value: true,
@@ -262,53 +253,17 @@ var CEP = (function () {
 }());
 CEP.is = 'crm-edit-page';
 CEP.behaviors = [Polymer.NeonAnimationRunnerBehavior];
-/**
- * Whether the item is a link
- */
 CEP.isLink = false;
-/**
- * Whether the item is a script
- */
 CEP.isScript = false;
-/**
- * Whether the item is a divider
- */
 CEP.isDivider = false;
-/**
- * Whether the item is a menu
- */
 CEP.isMenu = false;
-/**
- * Whether the item is a stylesheet
- */
 CEP.isStylesheet = false;
-/**
- * The link item
- */
 CEP.linkItem = {};
-/**
- * The script item
- */
 CEP.scriptItem = {};
-/**
- * The divider item
- */
 CEP.dividerItem = {};
-/**
- * The menu item
- */
 CEP.menuItem = {};
-/**
- * The stylesheet item
- */
 CEP.stylesheetItem = {};
-/**
- * Whether the page is opened
- */
 CEP.opened = false;
-/**
- * The overlayEl animation
- */
 CEP.overlayAnimation = null;
 CEP.properties = crmEditPageProperties;
 CEP.listeners = {

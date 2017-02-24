@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var installConfirmProperties = {
     script: {
         type: String,
@@ -17,7 +17,6 @@ var IC = (function () {
         }
         chrome.storage.local.get(function (storageLocal) {
             if (storageLocal.useStorageSync) {
-                //Parse the data before sending it to the callback
                 chrome.storage.sync.get(function (storageSync) {
                     var indexes = storageSync.indexes;
                     if (!indexes) {
@@ -38,7 +37,6 @@ var IC = (function () {
                 });
             }
             else {
-                //Send the "settings" object on the storage.local to the callback
                 if (!storageLocal.settings) {
                     chrome.storage.local.set({
                         useStorageSync: true
@@ -179,7 +177,6 @@ var IC = (function () {
         $(cm.display.wrapper).keypress(function (e) {
             e.which === 8 && e.preventDefault();
         });
-        //Show info about the script, if available
         var interval = window.setInterval(function () {
             if (cm.getMetaTags) {
                 window.clearInterval(interval);
@@ -250,9 +247,6 @@ var IC = (function () {
     return IC;
 }());
 IC.is = 'install-confirm';
-/**
- * The metatags for the script
- */
 IC.metaTags = {};
 IC.properties = installConfirmProperties;
 Polymer(IC);

@@ -1,4 +1,4 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var editCrmItemProperties = {
     item: {
         type: Object,
@@ -28,7 +28,6 @@ var editCrmItemProperties = {
 var ECI = (function () {
     function ECI() {
     }
-    //#endregion
     ECI._openCodeSettings = function () {
         window.app.initCodeOptions(this.item);
     };
@@ -39,7 +38,6 @@ var ECI = (function () {
     ;
     ECI.update = function () {
         if (!this.classList.contains('id' + this.item.id)) {
-            //Remove old ID and call ready
             var classes = this.classList;
             for (var i = 0; i < classes.length; i++) {
                 if (classes[i].indexOf('id') > -1) {
@@ -164,7 +162,6 @@ var ECI = (function () {
         var currentNodeSiblings = window.app.crm.lookup(path, true);
         var currentNodeIndex = path.splice(path.length - 1, 1)[0];
         if (currentNodeIndex === 0) {
-            //return parent
             var parent = window.app.crm.lookup(path);
             return parent;
         }
@@ -179,7 +176,6 @@ var ECI = (function () {
         var i;
         var referencePath = reference.path;
         var otherPath = other.path;
-        //Check if they're the same
         if (referencePath.length === otherPath.length) {
             var same = true;
             for (i = 0; i < referencePath.length; i++) {
@@ -224,14 +220,11 @@ var ECI = (function () {
     ;
     ECI.selectFromXToThis = function () {
         var _this = this;
-        //Get the first highlighted node
         var firstHighlightedNode = document.getElementsByClassName('firstHighlighted')[0];
         var firstHighlightedItem = firstHighlightedNode.item;
-        //Deselect everything else
         $('.highlighted').each(function () {
             this.classList.remove('highlighted');
         });
-        //Find out if the clicked on node is before, at, or after the first highlighted node
         var relation = this.getNodesOrder(firstHighlightedItem, this.item);
         if (relation === 'same') {
             this.classList.add('highlighted');
@@ -250,7 +243,6 @@ var ECI = (function () {
                 wait += 35;
                 node = nodeWalker(node);
             }
-            //Finally select this node
             window.setTimeout(function () {
                 _this.classList.add('highlighted');
                 _this.$.checkbox.checked = true;
@@ -390,42 +382,14 @@ var ECI = (function () {
 }());
 ECI.is = 'edit-crm-item';
 ECI.behaviors = [Polymer.DraggableNodeBehavior];
-/**
-  * The type of this item
-  */
 ECI.type = '';
-/**
- * Whether the item is a link
- */
 ECI.isLink = false;
-/**
- * Whether the item is a script
- */
 ECI.isScript = false;
-/**
- * Whether the item is a stylesheet
- */
 ECI.isStylesheet = false;
-/**
- * Whether the item is a divider
- */
 ECI.isDivider = false;
-/**
- * The index of the item's column
- */
 ECI.column = -1;
 ECI.properties = editCrmItemProperties;
-//#region typeIndicatorProperties
-/**
- * The element to be animated
- */
 ECI.animationEl = null;
-/**
- * The showing animation of the type indicator
- */
 ECI.typeIndicatorAnimation = null;
-/**
- * The time of the last mouseover over the type-switcher
- */
 ECI.lastTypeSwitchMouseover = null;
 Polymer(ECI);

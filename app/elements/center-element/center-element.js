@@ -1,84 +1,35 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var centerElementProperties = {
-    /**
-     * The width of the element
-     *
-     * @attribute width
-     * @type String
-     * @default null
-     */
     width: {
         type: String,
         value: null,
         observer: 'recalculateStyles'
     },
-    /**
-     * The height of the element
-     *
-     * @attribute height
-     * @type String
-     * @default null
-     */
     height: {
         type: String,
         value: null,
         observer: 'recalculateStyles'
     },
-    /**
-     * Whether the center-element should be fullscreen
-     *
-     * @attribute fullscreen
-     * @type Boolean
-     * @default false
-     */
     fullscreen: {
         type: Boolean,
         value: false,
         observer: 'recalculateStyles'
     },
-    /**
-     * Whether the center-element should be an overlay-type fullscreen element
-     *
-     * @attribute fullscreenoverlay
-     * @type Boolean
-     * @default null
-     */
     fullscreenoverlay: {
         type: Boolean,
         value: false,
         observer: 'recalculateStyles'
     },
-    /**
-     * Whether the overlay should be shown
-     *
-     * @attribute hide
-     * @type Boolean
-     * @default false
-     */
     hide: {
         type: Boolean,
         value: false,
         notify: true
     },
-    /**
-     * The requested permissions, only used by one overlay but it has to be specified here
-     *
-     * @attribute requestedPermissions
-     * @type Array
-     * @default []
-     */
     requestedPermissions: {
         type: Array,
         value: [],
         notify: true
     },
-    /**
-     * The other permissions, only used by one overlay but it has to be specified here
-     *
-     * @attribute otherPermissions
-     * @type Array
-     * @default []
-     */
     otherPermissions: {
         type: Array,
         value: [],
@@ -88,9 +39,6 @@ var centerElementProperties = {
 var CE = (function () {
     function CE() {
     }
-    /*
-     * Recalculates all the styles that should be applied
-     */
     CE.recalculateStyles = function () {
         if (this.fullscreenoverlay) {
             this.style.position = 'fixed';

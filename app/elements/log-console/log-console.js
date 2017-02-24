@@ -1,5 +1,4 @@
-/// <reference path="../elements.d.ts" />
-/// <reference path="../../../tools/definitions/react.d.ts" />
+"use strict";
 var logConsoleProperties = {
     lines: {
         value: 0,
@@ -268,16 +267,13 @@ var LC = (function () {
     LC._contextStoreAsLocal = function () {
         var source = this.$.contextMenu.source;
         var sourceVal = source.props.value;
-        //Get the LogLine
         while (source.props.parent) {
             sourceVal = source.props.value;
             source = source.props.parent;
         }
         var sourceLine = source;
-        //Get the index of this element in the logLine
         var index = sourceLine.props.value.indexOf(sourceVal);
         var logLine = sourceLine.props.line;
-        //Send a message to the background page
         chrome.runtime.sendMessage({
             type: 'createLocalLogVariable',
             data: {

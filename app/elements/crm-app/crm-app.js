@@ -1,5 +1,4 @@
-/// <reference path="../elements.d.ts" />
-/// <reference path="../../../tools/definitions/tern.d.ts" />
+"use strict";
 window.runOrAddAsCallback = function (toRun, thisElement, params) {
     if (window.app.settings) {
         toRun.apply(thisElement, params);
@@ -105,9 +104,6 @@ var CA = (function () {
         this.$.codeSettingsDialog.open();
         this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
     };
-    /**
-     * Inserts the value into given array
-     */
     CA.insertInto = function (toAdd, target, position) {
         if (position === void 0) { position = null; }
         if (position) {
@@ -146,7 +142,6 @@ var CA = (function () {
                         if (!Array.isArray(secondObj[key])) {
                             return false;
                         }
-                        // ReSharper disable once FunctionsUsedBeforeDeclared
                         if (!this.compareArray(firstObj[key], secondObj[key])) {
                             return false;
                         }
@@ -232,11 +227,9 @@ var CA = (function () {
             button.icon = 'done';
         }
         catch (err) {
-            // Copy command is not available
             console.error(err);
             button.icon = 'error';
         }
-        // Return to the copy button after a second.
         this.async(function () {
             button.icon = 'content-copy';
         }, 1000);
@@ -284,7 +277,7 @@ var CA = (function () {
             else {
                 chrome.permissions.request({
                     permissions: ['downloads']
-                }, function (granted) {
+                }, function () {
                     chrome.downloads.download({
                         url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
                         filename: schemeName + '.reg'
@@ -639,16 +632,13 @@ var CA = (function () {
         var red;
         var green;
         if (this.settingsJsonLength <= 51200) {
-            //Green to yellow, increase red
             green = 255;
             red = (this.settingsJsonLength / 51200) * 255;
         }
         else {
-            //Yellow to red, reduce green
             red = 255;
             green = 255 - (((this.settingsJsonLength - 51200) / 51200) * 255);
         }
-        //Darken a bit
         red = Math.floor(red * 0.7);
         green = Math.floor(green * 0.7);
         return 'color: rgb(' + red + ', ' + green + ', 0);';
@@ -695,7 +685,6 @@ var CA = (function () {
                     selectedType = i;
                 }
                 else {
-                    //Drop an element for some magic
                     crmEl.style.boxShadow = 'none';
                     crmEl.style.backgroundColor = 'white';
                     crmEl.classList.remove('toggled');
@@ -727,7 +716,6 @@ var CA = (function () {
                     selectedType = i;
                 }
                 else {
-                    //Drop an element for some magic
                     crmEl.style.boxShadow = 'none';
                     crmEl.style.backgroundColor = 'white';
                     crmEl.classList.remove('toggled');
@@ -744,9 +732,6 @@ var CA = (function () {
         }
     };
     ;
-    /**
-     * Generates an ID for a node
-     */
     CA.generateItemId = function () {
         var _this = this;
         this.latestId = this.latestId || 0;
@@ -852,42 +837,31 @@ var CA = (function () {
     };
     ;
     CA.areValuesDifferent = function (val1, val2) {
-        //Array or object
         var obj1ValIsArray = Array.isArray(val1);
         var obj2ValIsArray = Array.isArray(val2);
         var obj1ValIsObjOrArray = typeof val1 === 'object';
         var obj2ValIsObjOrArray = typeof val2 === 'object';
         if (obj1ValIsObjOrArray) {
-            //Array or object
             if (!obj2ValIsObjOrArray) {
                 return true;
             }
             else {
-                //Both objects or arrays
-                //1 is an array
                 if (obj1ValIsArray) {
-                    //2 is not an array
                     if (!obj2ValIsArray) {
                         return true;
                     }
                     else {
-                        //Both are arrays, compare them
                         if (!this.compareArray(val1, val2)) {
-                            //Changes have been found, also say the container arrays have changed
                             return true;
                         }
                     }
                 }
                 else {
-                    //1 is not an array, check if 2 is
                     if (obj2ValIsArray) {
-                        //2 is an array, changes
                         return true;
                     }
                     else {
-                        //2 is also not an array, they are both objects
                         if (!this.compareObj(val1, val2)) {
-                            //Changes have been found, also say the container arrays have changed
                             return true;
                         }
                     }
@@ -895,7 +869,6 @@ var CA = (function () {
             }
         }
         else if (val1 !== val2) {
-            //They are both normal string/number/bool values, do a normal comparison
             return true;
         }
         return false;
@@ -929,13 +902,8 @@ var CA = (function () {
         return changes.length > 0;
     };
     ;
-    /**
-     * Uploads the settings to chrome.storage
-     */
     CA.upload = function (force) {
         if (force === void 0) { force = false; }
-        //Send changes to background-page, background-page uploads everything
-        //Compare storageLocal objects
         var localChanges = [];
         var storageLocal = this.storageLocal;
         var storageLocalCopy = force ? {} : this.storageLocalCopy;
@@ -945,7 +913,6 @@ var CA = (function () {
         var hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
         var haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
         if (hasLocalChanged || haveSettingsChanged) {
-            //Changes occured
             chrome.runtime.sendMessage({
                 type: 'updateStorage',
                 data: {
@@ -1004,7 +971,6 @@ var CA = (function () {
                         editing: null
                     });
                     window.setTimeout(function () {
-                        //Remove the CodeMirror instances for performance
                         window.doc.restoreChangesOldCodeCont.innerHTML = '';
                         window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
                     }, 500);
@@ -1020,7 +986,6 @@ var CA = (function () {
                         editing: null
                     });
                     window.setTimeout(function () {
-                        //Remove the CodeMirror instances for performance
                         window.doc.restoreChangesOldCodeCont.innerHTML = '';
                         window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
                     }, 500);
@@ -1096,7 +1061,6 @@ var CA = (function () {
                     var $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
                     var editCRMItems = $($crmEditColumn).children('edit-crm-item');
                     var crmElement = editCRMItems[path[path.length - 1]];
-                    //Just in case the item doesn't exist (anymore)
                     if ($(crmElement).find('.item')[0]) {
                         $(crmElement).find('.item')[0].animate([
                             {
@@ -1130,8 +1094,6 @@ var CA = (function () {
                     }
                 };
                 window.doc.highlightChangedScript.addEventListener('click', function () {
-                    //Find the element first
-                    //Check if the element is already visible
                     window.doc.restoreChangesDialog.close();
                     $('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
                     $('edit-crm-item').find('.item').css('opacity', 0.6);
@@ -1140,7 +1102,6 @@ var CA = (function () {
                     });
                     setTimeout(function () {
                         if (path.length === 1) {
-                            //Always visible
                             highlightItem();
                         }
                         else {
@@ -1152,7 +1113,6 @@ var CA = (function () {
                                 }
                             }
                             if (!visible) {
-                                //Make it visible
                                 var popped = JSON.parse(JSON.stringify(path.length));
                                 popped.pop();
                                 window.app.editCRM.build(popped);
@@ -1203,9 +1163,6 @@ var CA = (function () {
         }, editor);
     };
     ;
-    /**
-     * Shows the user a dialog and asks them to allow/deny those permissions
-     */
     CA.requestPermissions = function (toRequest, force) {
         if (force === void 0) { force = false; }
         var i;
@@ -1301,11 +1258,9 @@ var CA = (function () {
                                     permissions: [permission]
                                 }, function (accepted) {
                                     if (!accepted) {
-                                        //The user didn't accept, don't pretend it's active when it's not, turn it off
                                         slider.checked = false;
                                     }
                                     else {
-                                        //Accepted, remove from to-request permissions
                                         chrome.storage.local.get(function (e) {
                                             var permissionsToRequest = e.requestPermissions;
                                             permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
@@ -1317,7 +1272,6 @@ var CA = (function () {
                                 });
                             }
                             catch (e) {
-                                //Accepted, remove from to-request permissions
                                 chrome.storage.local.get(function (e) {
                                     var permissionsToRequest = e.requestPermissions;
                                     permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
@@ -1332,7 +1286,6 @@ var CA = (function () {
                                 permissions: [permission]
                             }, function (removed) {
                                 if (!removed) {
-                                    //It didn't get removed
                                     slider.checked = true;
                                 }
                             });
@@ -1412,7 +1365,6 @@ var CA = (function () {
         }
     };
     ;
-    //#region First-Time Data
     CA.cutData = function (data) {
         var obj = {};
         var arrLength;
@@ -1431,7 +1383,6 @@ var CA = (function () {
     ;
     CA.uploadStorageSyncData = function (data, _this) {
         var settingsJson = JSON.stringify(data);
-        //Using chrome.storage.sync
         if (settingsJson.length >= 101400) {
             chrome.storage.local.set({
                 useStorageSync: false
@@ -1440,11 +1391,9 @@ var CA = (function () {
             });
         }
         else {
-            //Cut up all data into smaller JSON
             var obj = _this.cutData(settingsJson);
             chrome.storage.sync.set(obj, function () {
                 if (chrome.runtime.lastError) {
-                    //Switch to local storage
                     console.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
                     chrome.storage.local.set({
                         useStorageSync: false
@@ -1491,7 +1440,6 @@ var CA = (function () {
         var type = oldNodeSplit[1].toLowerCase();
         var nodeData = oldNodeSplit[2];
         switch (type) {
-            //Stylesheets don't exist yet so don't implement those
             case 'link':
                 var split;
                 if (nodeData.indexOf(', ') > -1) {
@@ -1581,7 +1529,6 @@ var CA = (function () {
         for (i = 1; i < amount; i++) {
             nodes.push(this.parseOldCRMNode(storageSource.getItem(i), openInNewTab));
         }
-        //Structure nodes with children etc
         var crm = [];
         this.assignParents(crm, nodes, {
             index: 0
@@ -1608,13 +1555,11 @@ var CA = (function () {
     CA.handleDataTransfer = function (_this) {
         localStorage.setItem('transferred', 'true');
         if (!window.CodeMirror.TernServer) {
-            //Wait until TernServer is loaded
             window.setTimeout(function () {
                 _this.handleDataTransfer(_this);
             }, 200);
             return;
         }
-        //Sync storage
         var defaultSyncStorage = {
             editor: {
                 keyBindings: {
@@ -1635,7 +1580,6 @@ var CA = (function () {
             settingsLastUpdatedAt: new Date().getTime()
         };
         window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-        //Save sync storage
         _this.uploadStorageSyncData(defaultSyncStorage, _this);
         _this.settings = defaultSyncStorage;
         var settingsJsonString = JSON.stringify(defaultSyncStorage);
@@ -1672,16 +1616,12 @@ var CA = (function () {
                 wasUpdated: false
             }
         };
-        //Save local storage
         chrome.storage.local.set(defaultLocalStorage);
         _this.storageLocal = defaultLocalStorage;
         _this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
-        //Go on with page execution
-        //Storage-local functions
         _this.crmType = 0;
         _this.switchToIcons(0);
         _this.settingsJsonLength = settingsJsonString.length;
-        //Storage-sync functions
         for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
             _this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
         }
@@ -1695,7 +1635,6 @@ var CA = (function () {
     };
     ;
     CA.handleFirstTime = function (_this) {
-        //Sync storage
         var defaultSyncStorage = {
             editor: {
                 keyBindings: {
@@ -1719,7 +1658,6 @@ var CA = (function () {
             ],
             settingsLastUpdatedAt: new Date().getTime()
         };
-        //Save sync storage
         _this.uploadStorageSyncData(defaultSyncStorage, _this);
         _this.settings = defaultSyncStorage;
         var settingsJsonString = JSON.stringify(defaultSyncStorage);
@@ -1757,16 +1695,12 @@ var CA = (function () {
             }
         };
         window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-        //Save local storage
         chrome.storage.local.set(defaultLocalStorage);
         _this.storageLocal = defaultLocalStorage;
         _this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
-        //Go on with page execution
-        //Storage-local functions
         _this.crmType = 0;
         _this.switchToIcons(0);
         _this.settingsJsonLength = settingsJsonString.length;
-        //Storage-sync functions
         for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
             _this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
         }
@@ -1780,8 +1714,7 @@ var CA = (function () {
         localStorage.setItem('transferred', 'true');
     };
     ;
-    CA.upgradeVersion = function (oldVersion, newVersion) {
-        //No changes yet
+    CA.upgradeVersion = function () {
     };
     ;
     CA.checkFirstTime = function (storageLocal) {
@@ -1792,11 +1725,10 @@ var CA = (function () {
         }
         else {
             if (storageLocal.lastUpdatedAt) {
-                this.upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
+                this.upgradeVersion();
                 return true;
             }
             try {
-                //Determine if it's a transfer from CRM version 1.*
                 if (!localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
                     _this.handleDataTransfer(_this);
                     _this.async(function () {
@@ -1811,7 +1743,6 @@ var CA = (function () {
                 setTimeout(function () {
                     throw e;
                 }, 2500);
-                //Just clear the loading screen immediately
                 document.documentElement.classList.remove('elementsLoading');
                 return true;
             }
@@ -1819,7 +1750,6 @@ var CA = (function () {
         }
     };
     ;
-    //#endregion
     CA.buildNodePaths = function (tree, currentPath) {
         for (var i = 0; i < tree.length; i++) {
             var childPath = currentPath.concat([i]);
@@ -1896,15 +1826,12 @@ var CA = (function () {
             _this.animateLoadingBar(loadingBarSettings, progress);
             if (registeredElements === importsAmount) {
                 callback && callback();
-                //All elements have been loaded, unhide them all
                 window.setTimeout(function () {
                     document.documentElement.classList.remove('elementsLoading');
-                    //Clear the annoying CSS mime type messages and the /deep/ warning
                     if (!window.lastError && location.hash.indexOf('noClear') === -1) {
                         console.clear();
                     }
                     window.setTimeout(function () {
-                        //Wait for the fade to pass
                         window.polymerElementsLoaded = true;
                         document.getElementById('splashScreen').style.display = 'none';
                     }, 500);
@@ -2050,7 +1977,6 @@ var CA = (function () {
                     if (storageLocal.editing) {
                         var editing_1 = storageLocal.editing;
                         setTimeout(function () {
-                            //Check out if the code is actually different
                             var node = _this.nodesById[editing_1.id];
                             var nodeCurrentCode = (node.type === 'script' ? node.value.script :
                                 node.value.stylesheet);
@@ -2158,7 +2084,6 @@ var CA = (function () {
                     _this.storageLocal = storageLocal;
                     _this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
                     if (storageLocal.useStorageSync) {
-                        //Parse the data before sending it to the callback
                         chrome.storage.sync.get(function (storageSync) {
                             var indexes = storageSync.indexes;
                             if (!indexes) {
@@ -2180,7 +2105,6 @@ var CA = (function () {
                         });
                     }
                     else {
-                        //Send the "settings" object on the storage.local to the callback
                         _this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
                         if (!storageLocal.settings) {
                             chrome.storage.local.set({
@@ -2211,27 +2135,21 @@ var CA = (function () {
         function onDone(fn) {
             fn();
         }
-        //Reset dialog
         if (window.app.item) {
             var dialog = window[window.app.item.type + 'Edit'];
             dialog && dialog.cancel();
         }
         window.app.item = null;
         window.app.settings = window.app.storageLocal = null;
-        //Reset storages
         this.setupStorages(onDone);
-        //Reset checkboxes
         this.initCheckboxes.apply(this, [window.app.storageLocal]);
-        //Reset default links and searchengines
         Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function (link) {
             link.reset();
         });
-        //Reset regedit part
         window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
         window.doc.URISchemeFilePath.querySelector('input').value = 'C:\\files\\my_file.exe';
         window.doc.URISchemeSchemeName.value = 'myscheme';
         window.doc.URISchemeSchemeName.querySelector('input').value = 'myscheme';
-        //Hide all open dialogs
         Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach(function (dialog) {
             dialog.opened && dialog.close();
         });
@@ -2299,30 +2217,11 @@ var CA = (function () {
     return CA;
 }());
 CA.is = 'crm-app';
-/**
-     * Whether to show the item-edit-page
-     */
 CA.show = false;
-/**
-     * What item to show in the item-edit-page
-     */
 CA.item = null;
-/**
- * The file that is used to write to when using an exteral editor
- */
 CA.file = null;
-/**
- * The last-used unique ID
- */
 CA.latestId = -1;
-/**
- * The nodes in an object where the key is the ID and the
- * value is the node
- */
 CA.nodesById = {};
-/**
- * The global variables for the jsLint linter
- */
 CA.jsLintGlobals = [];
 CA.properties = properties;
 CA.legacyScriptReplace = (function () {
@@ -2334,7 +2233,7 @@ CA.legacyScriptReplace = (function () {
         }
         return toCheck.replace(/['|"|`]/g, '') === prop;
     };
-    LegacyScriptReplace.getCallLines = function (lines, lineSeperators, start, end) {
+    LegacyScriptReplace.getCallLines = function (lineSeperators, start, end) {
         var line = {};
         for (var i = 0; i < lineSeperators.length; i++) {
             var sep = lineSeperators[i];
@@ -2355,7 +2254,6 @@ CA.legacyScriptReplace = (function () {
         return line;
     };
     LegacyScriptReplace.getFunctionCallExpressions = function (data) {
-        //Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
         var index = data.parentExpressions.length - 1;
         var expr = data.parentExpressions[index];
         while (expr && expr.type !== 'CallExpression') {
@@ -2391,7 +2289,6 @@ CA.legacyScriptReplace = (function () {
             return;
         }
         var lines = data.persistent.lines;
-        //Get chrome API
         var i;
         var chromeAPI = this.getChromeAPI(expr, data);
         var firstLine = data.persistent.lines[callLine.from.line];
@@ -2422,7 +2319,6 @@ CA.legacyScriptReplace = (function () {
             newLine += ".return(function(" + data.returnName + ") {" + lineRest;
             var usesTabs = true;
             var spacesAmount = 0;
-            //Find out if the writer uses tabs or spaces
             for (var i_1 = 0; i_1 < data.persistent.lines.length; i_1++) {
                 if (data.persistent.lines[i_1].indexOf('	') === 0) {
                     usesTabs = true;
@@ -2451,7 +2347,6 @@ CA.legacyScriptReplace = (function () {
                 indent[spacesAmount] = ' ';
                 indent = indent.join(' ');
             }
-            //Only do this for the current scope
             var scopeLength = null;
             var idx = null;
             for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
@@ -2460,7 +2355,6 @@ CA.legacyScriptReplace = (function () {
                         data.parentExpressions[i].body.type === 'BlockStatement')) {
                     scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
                     idx = 0;
-                    //Get the lowest possible scopeLength as to stay on the last line of the scope
                     while (scopeLength > 0) {
                         scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
                     }
@@ -2476,7 +2370,6 @@ CA.legacyScriptReplace = (function () {
                 newLineData = newLineData.replace(indent, '');
                 indents++;
             }
-            //Push in one extra line at the end of the expression
             var prevLine;
             var indentArr = [];
             indentArr[indents] = '';
@@ -2485,10 +2378,6 @@ CA.legacyScriptReplace = (function () {
             for (i = callLine.from.line; i < callLine.from.line + (idx - 1); i++) {
                 lines[i] = indent + lines[i];
             }
-            //If it's going to add a new line, indent the last line as well
-            // if (idx === (lines.length - callLines.from.line) + 1) {
-            // 	lines[i] = indent + lines[i];
-            // }
             for (i = callLine.from.line + (idx - 1); i < max; i++) {
                 prevLine = lines[i];
                 lines[i] = prevLine2;
@@ -2506,7 +2395,6 @@ CA.legacyScriptReplace = (function () {
     };
     LegacyScriptReplace.callsChromeFunction = function (callee, data, onError) {
         data.parentExpressions.push(callee);
-        //Check if the function has any arguments and check those first
         if (callee.arguments && callee.arguments.length > 0) {
             for (var i = 0; i < callee.arguments.length; i++) {
                 if (this.findChromeExpression(callee.arguments[i], this
@@ -2516,22 +2404,19 @@ CA.legacyScriptReplace = (function () {
             }
         }
         if (callee.type !== 'MemberExpression') {
-            //This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
             return this.findChromeExpression(callee, this.removeObjLink(data), onError);
         }
-        //Continue checking the call itself
         if (callee.property) {
             data.functionCall = data.functionCall || [];
             data.functionCall.push(callee.property.name || callee.property.raw);
         }
         if (callee.object && callee.object.name) {
-            //First object
             var isWindowCall = (this.isProperty(callee.object.name, 'window') &&
                 this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
             if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
                 data.expression = callee;
                 var expr = this.getFunctionCallExpressions(data);
-                var callLines = this.getCallLines(data.persistent.lines, data
+                var callLines = this.getCallLines(data
                     .persistent
                     .lineSeperators, expr.start, expr.end);
                 if (data.isReturn && !data.isValidReturn) {
@@ -2578,7 +2463,6 @@ CA.legacyScriptReplace = (function () {
             case 'VariableDeclaration':
                 data.isValidReturn = expression.declarations.length === 1;
                 for (var i = 0; i < expression.declarations.length; i++) {
-                    //Check if it's an actual chrome assignment
                     var declaration = expression.declarations[i];
                     if (declaration.init) {
                         var decData = this.removeObjLink(data);
@@ -2598,7 +2482,6 @@ CA.legacyScriptReplace = (function () {
                 if (expression.arguments && expression.arguments.length > 0) {
                     for (var i = 0; i < expression.arguments.length; i++) {
                         if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
-                            //It's not a direct call to chrome, just handle this later after the function has been checked
                             argsTocheck.push(expression.arguments[i]);
                         }
                         else {
@@ -2725,7 +2608,6 @@ CA.legacyScriptReplace = (function () {
         };
     };
     LegacyScriptReplace.replaceChromeCalls = function (lines, passes, onError) {
-        //Analyze the file
         var file = new window.TernFile('[doc]');
         file.text = lines.join('\n');
         var srv = new window.CodeMirror.TernServer({
@@ -2749,7 +2631,6 @@ CA.legacyScriptReplace = (function () {
             });
         }
         var script = file.text;
-        //Check all expressions for chrome calls
         var persistentData = {
             lines: lines,
             lineSeperators: lineSeperators,
@@ -2758,7 +2639,6 @@ CA.legacyScriptReplace = (function () {
         };
         var expression;
         if (passes === 0) {
-            //Do one check, not replacing anything, to find any possible errors already
             persistentData.diagnostic = true;
             for (var i = 0; i < scriptExpressions.length; i++) {
                 expression = scriptExpressions[i];
@@ -2793,7 +2673,6 @@ CA.legacyScriptReplace = (function () {
         });
     };
     LegacyScriptReplace.convertScriptFromLegacy = function (script, onError) {
-        //Remove execute locally
         var lineIndex = script.indexOf('/*execute locally*/');
         if (lineIndex !== -1) {
             script = script.replace('/*execute locally*/\n', '');
@@ -2818,15 +2697,9 @@ CA.legacyScriptReplace = (function () {
     };
     return LegacyScriptReplace;
 }());
-/**
- * Any templates
- */
 CA.templates = (function () {
     function CRMAppTemplates() {
     }
-    /**
-     * Merges two arrays
-     */
     CRMAppTemplates.mergeArrays = function (mainArray, additionArray) {
         var newArray = [];
         for (var i = 0; i < additionArray.length; i++) {
@@ -2846,9 +2719,6 @@ CA.templates = (function () {
         return newArray;
     };
     ;
-    /**
-     * Merges two objects
-     */
     CRMAppTemplates.mergeObjects = function (mainObject, additions) {
         for (var key in additions) {
             if (additions.hasOwnProperty(key)) {
@@ -2901,9 +2771,6 @@ CA.templates = (function () {
         return this.mergeObjects(defaultNodeInfo, options);
     };
     ;
-    /**
-     * Gets the default link node object with given options applied
-     */
     CRMAppTemplates.getDefaultLinkNode = function (options) {
         if (options === void 0) { options = {}; }
         var defaultNode = {
@@ -2927,14 +2794,11 @@ CA.templates = (function () {
         return this.mergeObjects(defaultNode, options);
     };
     ;
-    /**
-     * Gets the default stylesheet value object with given options applied
-     */
     CRMAppTemplates.getDefaultStylesheetValue = function (options) {
         if (options === void 0) { options = {}; }
         var value = {
             stylesheet: [].join('\n'),
-            launchMode: 0 /* RUN_ON_CLICKING */,
+            launchMode: 0,
             toggle: false,
             defaultOn: false,
             options: {}
@@ -2942,13 +2806,10 @@ CA.templates = (function () {
         return this.mergeObjects(value, options);
     };
     ;
-    /**
-     * Gets the default script value object with given options applied
-     */
     CRMAppTemplates.getDefaultScriptValue = function (options) {
         if (options === void 0) { options = {}; }
         var value = {
-            launchMode: 0 /* RUN_ON_CLICKING */,
+            launchMode: 0,
             backgroundLibraries: [],
             libraries: [],
             script: [].join('\n'),
@@ -2959,9 +2820,6 @@ CA.templates = (function () {
         return this.mergeObjects(value, options);
     };
     ;
-    /**
-     * Gets the default script node object with given options applied
-     */
     CRMAppTemplates.getDefaultScriptNode = function (options) {
         if (options === void 0) { options = {}; }
         var defaultNode = {
@@ -2981,9 +2839,6 @@ CA.templates = (function () {
         return this.mergeObjects(defaultNode, options);
     };
     ;
-    /**
-     * Gets the default stylesheet node object with given options applied
-     */
     CRMAppTemplates.getDefaultStylesheetNode = function (options) {
         if (options === void 0) { options = {}; }
         var defaultNode = {
@@ -3016,25 +2871,16 @@ CA.templates = (function () {
         return this.mergeObjects(defaultNode, options);
     };
     ;
-    /**
-     * Gets the default divider node object with given options applied
-     */
     CRMAppTemplates.getDefaultDividerNode = function (options) {
         if (options === void 0) { options = {}; }
         return this.getDefaultDividerOrMenuNode(options, 'divider');
     };
     ;
-    /**
-     * Gets the default menu node object with given options applied
-     */
     CRMAppTemplates.getDefaultMenuNode = function (options) {
         if (options === void 0) { options = {}; }
         return this.getDefaultDividerOrMenuNode(options, 'menu');
     };
     ;
-    /**
-     * Gets all permissions that can be requested by this extension
-     */
     CRMAppTemplates.getPermissions = function () {
         return [
             'alarms',
@@ -3070,9 +2916,6 @@ CA.templates = (function () {
         ];
     };
     ;
-    /**
-     * Gets all permissions that can be requested by this extension including those specific to scripts
-     */
     CRMAppTemplates.getScriptPermissions = function () {
         return [
             'alarms',
@@ -3106,11 +2949,9 @@ CA.templates = (function () {
             'webNavigation',
             'webRequest',
             'webRequestBlocking',
-            //Script-specific permissions
             'crmGet',
             'crmWrite',
             'chrome',
-            //GM_Permissions
             'GM_info',
             'GM_deleteValue',
             'GM_getValue',
@@ -3128,9 +2969,6 @@ CA.templates = (function () {
         ];
     };
     ;
-    /**
-     * Gets the description for given permission
-     */
     CRMAppTemplates.getPermissionDescription = function (permission) {
         var descriptions = {
             alarms: 'Makes it possible to create, view and remove alarms.',
@@ -3164,11 +3002,9 @@ CA.templates = (function () {
                 ' (https://developer.chrome.com/extensions/webNavigation)',
             webRequest: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. (https://developer.chrome.com/extensions/webRequest)',
             webRequestBlocking: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. This also allows the script to block certain requests for example for blocking ads or bad sites. (https://developer.chrome.com/extensions/webRequest)',
-            //Script-specific descriptions
             crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
             crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
             chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.',
-            //Tampermonkey APIs
             GM_addStyle: 'Allows the adding of certain styles to the document through this API',
             GM_deleteValue: 'Allows the deletion of storage items',
             GM_listValues: 'Allows the listing of all storage data',
@@ -3200,15 +3036,9 @@ CA.templates = (function () {
     };
     return CRMAppTemplates;
 }());
-/**
- * Functions related to the on-page example of your current CRM
- */
 CA.pageDemo = (_a = (function () {
         function CRMAppPageDemo() {
         }
-        /**
-         * Returns whether the node is visible or not (1 if it's visible)
-         */
         CRMAppPageDemo.isNodeVisible = function (node, showContentType) {
             var i;
             var length;
@@ -3232,11 +3062,6 @@ CA.pageDemo = (_a = (function () {
             return 1;
         };
         ;
-        /**
-         * Builds the context-menu for given crmType
-         *
-         * @param {Number} crmType - The type of the content the menu will be shown on
-         */
         CRMAppPageDemo.buildForCrmType = function (crmType) {
             var _this = this;
             var index = {
@@ -3342,9 +3167,6 @@ CA.pageDemo = (_a = (function () {
             }
         };
         ;
-        /**
-         * Creates the on-page example
-         */
         CRMAppPageDemo.create = function () {
             if (!$.contextMenu) {
                 window.setTimeout(this.create.bind(this), 500);
@@ -3369,9 +3191,6 @@ CA.pageDemo = (_a = (function () {
     _a.handlers = (_b = (function () {
             function CRMAppPageDemoHandlers() {
             }
-            /**
-             * Makes an onclick handler for links
-             */
             CRMAppPageDemoHandlers.link = function (data) {
                 return function () {
                     for (var i = 0; i < data.length; i++) {
@@ -3380,18 +3199,12 @@ CA.pageDemo = (_a = (function () {
                 };
             };
             ;
-            /**
-             * Makes an onclick handler for scripts
-             */
             CRMAppPageDemoHandlers.script = function (script) {
                 return function () {
                     alert("This would run the script " + script);
                 };
             };
             ;
-            /**
-             * Makes an onclick handler to edit the node on clicking it
-             */
             CRMAppPageDemoHandlers.edit = function (node) {
                 var _this = this;
                 return function () {
@@ -3404,15 +3217,9 @@ CA.pageDemo = (_a = (function () {
             };
             return CRMAppPageDemoHandlers;
         }()),
-        /**
-         * The stylesheet handlers
-         */
         _b.stylesheet = (function () {
             function CRMAppPageDemoHandlersStylesheet() {
             }
-            /**
-             * Makes an onclick handler for stylesheets
-             */
             CRMAppPageDemoHandlersStylesheet.toggle = function (data, checked) {
                 var state = checked;
                 return function () {
@@ -3420,9 +3227,6 @@ CA.pageDemo = (_a = (function () {
                 };
             };
             ;
-            /**
-             * Makes an onclick handler for stylesheets
-             */
             CRMAppPageDemoHandlersStylesheet.normal = function (stylesheet) {
                 return function () {
                     alert("This would run the stylesheet " + stylesheet);
@@ -3438,9 +3242,6 @@ CA.pageDemo = (_a = (function () {
     _a.node = (function () {
         function CRMAppPageDemoNode() {
         }
-        /**
-         * Adds a link to the CRM
-         */
         CRMAppPageDemoNode.link = function (toAdd) {
             return {
                 name: toAdd.name,
@@ -3448,9 +3249,6 @@ CA.pageDemo = (_a = (function () {
             };
         };
         ;
-        /**
-         * Adds a script to the CRM
-         */
         CRMAppPageDemoNode.script = function (toAdd) {
             return {
                 name: toAdd.name,
@@ -3458,9 +3256,6 @@ CA.pageDemo = (_a = (function () {
             };
         };
         ;
-        /**
-         * Adds a stylesheet to the CRM
-         */
         CRMAppPageDemoNode.stylesheet = function (toAdd) {
             var item = {
                 name: toAdd.name
@@ -3476,9 +3271,6 @@ CA.pageDemo = (_a = (function () {
             return item;
         };
         ;
-        /**
-         * An editable node
-         */
         CRMAppPageDemoNode.editable = function (toAdd) {
             return {
                 name: toAdd.name,
@@ -3486,16 +3278,10 @@ CA.pageDemo = (_a = (function () {
             };
         };
         ;
-        /**
-         * Adds a divider to the CRM
-         */
         CRMAppPageDemoNode.divider = function () {
             return '---------';
         };
         ;
-        /**
-         * Adds a menu to the CRM
-         */
         CRMAppPageDemoNode.menu = function (toAdd, crmType, index) {
             var _this = this;
             var item = {
@@ -3542,9 +3328,6 @@ CA.pageDemo = (_a = (function () {
     }()),
     _a.contextMenuItems = [],
     _a);
-/**
- * CRM functions.
- */
 CA.crm = (function () {
     function CRMAppCRMFunctions() {
     }
@@ -3603,16 +3386,6 @@ CA.crm = (function () {
         return null;
     };
     ;
-    CRMAppCRMFunctions.setDataInCrm = function (path) {
-        var evalPath = this._getEvalPath(path);
-        return function (key, data) {
-            eval(evalPath + '[key] = data');
-        };
-    };
-    ;
-    /**
-     * Adds value to the CRM
-     */
     CRMAppCRMFunctions.add = function (value, position) {
         if (position === void 0) { position = 'last'; }
         if (position === 'first') {
@@ -3628,9 +3401,6 @@ CA.crm = (function () {
         window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
     };
     ;
-    /**
-     * Moves a value in the CRM from one place to another
-     */
     CRMAppCRMFunctions.move = function (toMove, target, sameColumn) {
         var toMoveContainer = this.lookup(toMove, true);
         var toMoveIndex = toMove[toMove.length - 1];

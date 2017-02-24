@@ -890,7 +890,7 @@ ${codeSplit.join('\n')}`;
 		}
 	};
 
-	static exportGivenNodeIDs(this: EditCrm, toExport: Array<number>, exportType: string = 'CRM') {
+	static exportGivenNodeIDs(this: EditCrm, toExport: Array<number>) {
 		var exports: Array<CRMNode> = [];
 		for (var i = 0; i < window.app.settings.crm.length; i++) {
 			this.extractUniqueChildren(window.app.settings.crm[i], toExport, exports);

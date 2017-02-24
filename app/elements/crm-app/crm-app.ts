@@ -495,7 +495,7 @@ class CA {
 			} else {
 				chrome.permissions.request({
 					permissions: ['downloads']
-				}, function(granted) {
+				}, function() {
 					chrome.downloads.download({
 						url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 						filename: schemeName + '.reg'
@@ -1743,7 +1743,7 @@ class CA {
 			}
 			return toCheck.replace(/['|"|`]/g, '') === prop;
 		}
-		static getCallLines(lines: Array<string>, lineSeperators: Array<{
+		static getCallLines(lineSeperators: Array<{
 			start: number;
 			end: number;
 		}>, start: number, end: number): {
@@ -1992,7 +1992,7 @@ class CA {
 				if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
 					data.expression = callee;
 					const expr = this.getFunctionCallExpressions(data);
-					const callLines = this.getCallLines(data.persistent.lines, data
+					const callLines = this.getCallLines(data
 						.persistent
 						.lineSeperators, expr.start, expr.end);
 					if (data.isReturn && !data.isValidReturn) {
@@ -2660,7 +2660,7 @@ class CA {
 		localStorage.setItem('transferred', 'true');
 	};
 
-	static upgradeVersion(this: CrmApp, oldVersion: string, newVersion: string) {
+	static upgradeVersion(this: CrmApp) { //oldVersion: string, newVersion: string) {
 		//No changes yet
 	};
 
@@ -2671,7 +2671,7 @@ class CA {
 			return true;
 		} else {
 			if (storageLocal.lastUpdatedAt) {		
-				this.upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
+				this.upgradeVersion();//storageLocal.lastUpdatedAt, currentVersion);
 				return true;
 			}
 			try {
@@ -2813,15 +2813,6 @@ class CA {
 	};
 
 	static nextUpdatedScript(this: CrmApp) {
-		interface ScriptUpdateToast extends HTMLPaperToastElement {
-			index: number;
-			scripts: Array<{
-				name: string;
-				oldVersion: string;
-				newVersion: string;
-			}>;
-		}
-
 		var index = this.$.scriptUpdatesToast.index;
 		this.$.scriptUpdatesToast.text = this.getUpdatedScriptString(
 			this.$.scriptUpdatesToast.scripts[++index]);
@@ -3032,15 +3023,6 @@ class CA {
 						}, 2500);
 					}
 					if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-						interface ScriptUpdatesToasts extends HTMLPaperToastElement {
-							scripts: Array<{
-								name: string;
-								oldVersion: string;
-								newVersion: string;
-							}>;
-							index: number;
-						}
-
 						_this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(
 							storageLocal.updatedScripts[0]);
 						_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
@@ -4039,13 +4021,6 @@ class CA {
 				}
 			}
 			return null;
-		};
-
-		static setDataInCrm(path: Array<number>): (key: string, data: any) => void {
-			var evalPath = this._getEvalPath(path);
-			return function(key, data) {
-				eval(evalPath + '[key] = data');
-			};
 		};
 
 		/**

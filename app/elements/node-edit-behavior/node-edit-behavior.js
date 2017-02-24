@@ -1,51 +1,30 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var nodeEditBehaviorProperties = {
-    /**
-    * The new settings object, to be written on save
-    */
     newSettings: {
         type: Object,
         notify: true,
         value: {}
     },
-    /**
-    * Whether the indicator for content type "page" should be selected
-    */
     pageContentSelected: {
         type: Boolean,
         notify: true
     },
-    /**
-    * Whether the indicator for content type "link" should be selected
-    */
     linkContentSelected: {
         type: Boolean,
         notify: true
     },
-    /**
-    * Whether the indicator for content type "selection" should be selected
-    */
     selectionContentSelected: {
         type: Boolean,
         notify: true
     },
-    /**
-    * Whether the indicator for content type "image" should be selected
-    */
     imageContentSelected: {
         type: Boolean,
         notify: true
     },
-    /**
-    * Whether the indicator for content type "video" should be selected
-    */
     videoContentSelected: {
         type: Boolean,
         notify: true
     },
-    /**
-    * Whether the indicator for content type "audio" should be selected
-    */
     audioContentSelected: {
         type: Boolean,
         notify: true
@@ -86,7 +65,6 @@ var NEB = (function () {
             toolTip.remove();
         });
         if (this.cancelChanges) {
-            //This made the compiler angry
             this.cancelChanges();
         }
         window.crmEditPage.animateOut();
@@ -100,7 +78,6 @@ var NEB = (function () {
         }
         var newSettings = this.newSettings;
         if (this.saveChanges) {
-            //Also made the compiler angry
             this.saveChanges(newSettings);
         }
         Array.prototype.slice.apply(document.querySelectorAll('CodeMirror-Tern-tooltip')).forEach(function (toolTip) {
@@ -201,21 +178,14 @@ var NEB = (function () {
         }
     };
     ;
-    /**
-     * Clears the trigger that is currently clicked on
-     */
     NEB.clearTrigger = function (event) {
         var target = event.target;
         if (target.tagName === 'PAPER-ICON-BUTTON') {
             target = target.children[0];
         }
-        // $(target.parentNode.parentNode).remove();
         this.splice('newSettings.triggers', Array.prototype.slice.apply(this.querySelectorAll('.executionTrigger')).indexOf(target.parentNode.parentNode), 1);
     };
     ;
-    /**
-     * Adds a trigger to the list of triggers for the node
-     */
     NEB.addTrigger = function () {
         this.push('newSettings.triggers', {
             not: false,
@@ -223,14 +193,10 @@ var NEB = (function () {
         });
     };
     ;
-    /**
-     * Returns the pattern that triggers need to follow for the current launch mode
-     */
     NEB._getPattern = function () {
         Array.prototype.slice.apply(this.querySelectorAll('.triggerInput')).forEach(function (triggerInput) {
             triggerInput.invalid = false;
         });
-        //Execute when visiting specified, aka globbing etc
         if (this.newSettings.value.launchMode !== 3) {
             return '(/(.+)/)|.+';
         }
@@ -239,9 +205,6 @@ var NEB = (function () {
         }
     };
     ;
-    /**
-     * Returns the label that a trigger needs to have for the current launchMode
-     */
     NEB._getLabel = function () {
         if (this.newSettings.value.launchMode === 2) {
             return 'Globbing pattern or regex';
@@ -251,9 +214,6 @@ var NEB = (function () {
         }
     };
     ;
-    /**
-     * Is triggered when the option in the dropdown menu changes animates in what's needed
-     */
     NEB.selectorStateChange = function (prevState, state) {
         var _this = this;
         var newStates = {

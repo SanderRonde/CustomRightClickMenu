@@ -1,35 +1,20 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var paperLibrariesSelectorProperties = {
-    /**
-     * The libraries currently in use by the script
-     */
     usedlibraries: {
         type: Array,
         notify: true
     },
-    /**
-     * The libraries for use in the HTML, already marked up
-     */
     libraries: {
         type: Array,
         notify: true
     },
-    /**
-     * The currently selected (used) libraries' indexes
-     */
     selected: {
         type: Array,
         notify: true
     },
-    /**
-     * The libraries installed in the extension
-     */
     installedLibraries: {
         type: Array
     },
-    /**
-     * The type of script that's currenly being edited (main or background)
-     */
     mode: {
         type: String,
         value: 'main'
@@ -218,7 +203,6 @@ var PLS = (function () {
     PLS._click = function (e) {
         var _this = this;
         if (e.target.classList.contains('addLibrary')) {
-            //Add new library dialog
             window.doc.addedLibraryName.querySelector('input').value = '';
             window.doc.addLibraryUrlInput.querySelector('input').value = '';
             window.doc.addLibraryManualInput.querySelector('textarea').value = '';
@@ -286,7 +270,6 @@ var PLS = (function () {
             });
         }
         else if (_this.mode === 'main') {
-            //Checking or un-checking something
             var lib = e.target.dataLib;
             var changeType = (e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
             if (lib.url) {

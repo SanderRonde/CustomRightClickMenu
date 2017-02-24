@@ -1,10 +1,7 @@
-/// <reference path="../../elements.d.ts" />
+"use strict";
 var PGPP = (function () {
     function PGPP() {
     }
-    /**
-     * Triggers an 'addsnippet' event and sends the snippet with it
-     */
     PGPP.sendData = function (data) {
         this.listener(data);
     };
@@ -83,13 +80,7 @@ var PGPP = (function () {
     return PGPP;
 }());
 PGPP.is = 'paper-get-page-properties';
-/**
- * The properties that can be chosen
- */
 PGPP.options = [];
-/**
- * The event listener to send all onclick data to
- */
 PGPP.listener = function () { };
 PGPP.behaviors = [Polymer.PaperDropdownBehavior];
 Polymer(PGPP);

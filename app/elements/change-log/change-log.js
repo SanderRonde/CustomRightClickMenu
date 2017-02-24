@@ -1,12 +1,5 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var changeLogProperties = {
-    /**
-     * The changelog that is displayed
-     *
-     * @attribute changelog
-     * @type Array
-     * @value []
-     */
     changelog: {
         type: Array,
         value: [],
@@ -16,10 +9,6 @@ var changeLogProperties = {
 var CL = (function () {
     function CL() {
     }
-    /**
-     * Turns the object-based changelog into an array-based changelog
-     * for polymer to iterate through
-     */
     CL.makeChangelogArray = function (changelog) {
         var arrayChangelog = [];
         for (var versionEntry in changelog) {
@@ -33,9 +22,6 @@ var CL = (function () {
         return arrayChangelog;
     };
     ;
-    /**
-     * Turns a version string into 3 seperate version parts
-     */
     CL.splitVersion = function (versionString) {
         var split = versionString.split('.');
         return {
@@ -45,10 +31,6 @@ var CL = (function () {
         };
     };
     ;
-    /**
-     * Compares two versions and returns true if A is lower,
-     *		false if B is lower and 0 if they are equal
-     */
     CL.compareVersions = function (versionStringA, versionStringB) {
         var aSplit = this.splitVersion(versionStringA);
         var bSplit = this.splitVersion(versionStringB);
@@ -64,16 +46,10 @@ var CL = (function () {
         return 0;
     };
     ;
-    /**
-     * The function used in javascript's sort function
-     */
     CL.sortFunction = function (a, b) {
         return window.changeLog.compareVersions(a.version, b.version);
     };
     ;
-    /**
-     * Sorts the changelog from highest version first to lowest last
-     */
     CL.sortChangelog = function (changelog) {
         return changelog.sort(this.sortFunction);
     };

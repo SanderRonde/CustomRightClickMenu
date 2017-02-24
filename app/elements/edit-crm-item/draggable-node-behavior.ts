@@ -327,7 +327,7 @@ class DNB {
 			window.app.crm.move(this.item.path, newPath, window.app.compareArray(itemPathCopy, newPathCopy));
 			var newPathMinusOne = newPath;
 			newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
-			var newObj = window.app.editCRM.build(newPathMinusOne);
+			window.app.editCRM.build(newPathMinusOne);
 			Array.prototype.slice.apply(window.app.editCRM.getCurrentColumn(this).children)
 				.forEach(function(element: HTMLElement) {
 					element.style.display = 'table';
@@ -351,7 +351,6 @@ class DNB {
 
 		this._changeDraggingState(true);
 		this.style.position = 'absolute';
-		var x = $('something');
 		this._filler = $('<div class="crmItemFiller"></div>').get(0) as any;
 		this._filler.index = this.index;
 		this._filler.column = (this.parentElement as CRMBuilderColumn).index;

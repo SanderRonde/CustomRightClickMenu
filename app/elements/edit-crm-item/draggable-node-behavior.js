@@ -1,4 +1,4 @@
-///// <reference path="../elements.d.ts" />
+"use strict";
 var DNB = (function () {
     function DNB() {
     }
@@ -33,7 +33,6 @@ var DNB = (function () {
         document.body.removeEventListener('mouseup', this._listeners.stopDrag);
         document.body.style.webkitUserSelect = 'initial';
         window.removeEventListener('scroll', this._listeners.onScroll);
-        //Doesn't propertly unbind
         window.removeEventListener('blur', this._listeners.stopDrag);
         document.querySelector('#mainCont').removeEventListener('scroll', this._listeners.onScroll);
         this._snapItem();
@@ -56,7 +55,6 @@ var DNB = (function () {
             var thisTop = (this._lastRecordedPos.Y - this._mouseToCorner.Y);
             var thisLeft = (this._lastRecordedPos.X - this._mouseToCorner.X) -
                 thisBoundingClientRect.left - columnCorrection;
-            //Vertically space elements
             if (!this._currentColumn) {
                 this._currentColumn = window.app.editCRM.getCurrentColumn(this);
             }
@@ -86,7 +84,6 @@ var DNB = (function () {
                     this._filler.index++;
                 }
             }
-            //Horizontally space elements
             var newColumn, newColumnChildren, newColumnLength, fillerIndex, currentChild, currentBoundingClientRect, i;
             if (thisLeft > 150) {
                 var nextColumnCont = window.app.editCRM.getNextColumn(this);
@@ -174,7 +171,6 @@ var DNB = (function () {
         }
     };
     DNB._snapItem = function () {
-        //Get the filler's current index and place the current item there
         var parentChildrenList = window.app.editCRM.getEditCrmItems(window.app.editCRM
             .getCurrentColumn(this), true);
         if (this._filler) {
@@ -187,7 +183,6 @@ var DNB = (function () {
         }
     };
     DNB._rebuildMenu = function () {
-        //Get original object
         var newPath;
         var $prev = $(this).prev();
         while ($prev[0] && $prev[0].tagName !== 'EDIT-CRM-ITEM') {
@@ -200,16 +195,13 @@ var DNB = (function () {
         }
         var next = $next[0];
         if (prev) {
-            //A previous item exists, newpath is that path with + 1 on the last index
             newPath = prev.item.path;
             newPath[newPath.length - 1] += 1;
         }
         else if (next) {
-            //The next item exists, newpath is that path
             newPath = prev.item.path;
         }
         else {
-            //No items exist yet, go to prev column and find the only expanded menu
             window.app.editCRM.getEditCrmItems(window.app.editCRM
                 .getPrevColumn(this)).forEach(function (item) {
                 if (item.item.expanded) {
@@ -226,7 +218,7 @@ var DNB = (function () {
             window.app.crm.move(this.item.path, newPath, window.app.compareArray(itemPathCopy, newPathCopy));
             var newPathMinusOne = newPath;
             newPathMinusOne.splice(newPathMinusOne.length - 1, 1);
-            var newObj = window.app.editCRM.build(newPathMinusOne);
+            window.app.editCRM.build(newPathMinusOne);
             Array.prototype.slice.apply(window.app.editCRM.getCurrentColumn(this).children)
                 .forEach(function (element) {
                 element.style.display = 'table';
@@ -248,7 +240,6 @@ var DNB = (function () {
         this._mouseToCorner.Y = event.clientY - boundingClientRect.top;
         this._changeDraggingState(true);
         this.style.position = 'absolute';
-        var x = $('something');
         this._filler = $('<div class="crmItemFiller"></div>').get(0);
         this._filler.index = this.index;
         this._filler.column = this.parentElement.index;
@@ -257,9 +248,7 @@ var DNB = (function () {
         window.addEventListener('scroll', this._listeners.onScroll);
         window.addEventListener('blur', this._listeners.stopDrag);
         document.querySelector('#mainCont').addEventListener('scroll', this._listeners.onScroll);
-        //Do visual stuff as to decrease delay between the visual stuff
         if (this.isMenu && this.parentElement.items[this.index].expanded) {
-            //Collapse any columns to the right of this
             var columnContChildren = window.app.editCRM.getColumns();
             for (var i = this.column + 1; i < columnContChildren.length; i++) {
                 columnContChildren[i].style.display = 'none';
@@ -302,47 +291,22 @@ var DNB = (function () {
     };
     return DNB;
 }());
-/**
-  * Whether this item is currently being dragged
-  */
 DNB.dragging = false;
-/**
-  * Whether this item is currently being dragged
-  */
 DNB._cursorPosChanged = true;
-/**
- * The last recorded position of the mouse
- */
 DNB._lastRecordedPos = {
     X: 0,
     Y: 0
 };
-/**
- * The position at which the user started to drag the curent item
- */
 DNB._dragStart = {
     X: 0,
     Y: 0
 };
-/**
- * The position the mouse was relative to the corner when the drag started
- */
 DNB._mouseToCorner = {
     X: 0,
     Y: 0
 };
-/**
- * Whether the element is ready for a mouse-up event
- */
 DNB._readyForMouseUp = true;
-/**
- * Whether the element should execute a mouse-up event when ready for it
- */
 DNB._execMouseUp = false;
-/**
- * What the getBoundingClientRect().top was for the CRM-container on drag
- * start
- */
 DNB._scrollStart = {
     X: 0,
     Y: 0

@@ -1,4 +1,4 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var defaultLinkProperties = {
     href: {
         type: String,
@@ -45,9 +45,6 @@ var DL = (function () {
     return DL;
 }());
 DL.is = 'default-link';
-/**
- * Whether the link is a search-engine
- */
 DL.searchEngine = false;
 DL.properties = defaultLinkProperties;
 Polymer(DL);

@@ -1,16 +1,7 @@
-/// <reference path="../elements.d.ts" />
+"use strict";
 var errorReportingTool = {
-    /**
-     * The type of the report
-     */
     reportType: 'bug',
-    /**
-     * The screencap's dataURI
-     */
     image: '',
-    /**
-     * Whether this overlay needs to be hidden
-     */
     hide: {
         type: Boolean,
         value: true,
@@ -50,14 +41,12 @@ var ERT = (function () {
         var canvas = _this.$.cropCanvas;
         var context = canvas.getContext('2d');
         img.onload = function () {
-            //Crop the image
             context.clearRect(0, 0, canvas.width, canvas.height);
             canvas.setAttribute('height', cropData.height + '');
             canvas.setAttribute('width', cropData.width + '');
             canvas.style.display = 'none';
             _this.appendChild(canvas);
             context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
-            //Scale the image to fit the canvas
             var base64 = canvas.toDataURL();
             var newImg = new Image();
             newImg.onload = function () {
@@ -76,18 +65,15 @@ var ERT = (function () {
     ;
     ERT.screenshot = function (cropData, callback) {
         var _this = this;
-        //Make sure the overlay is gone for a while
         this.$.overlay.style.display = 'none';
         chrome.tabs.captureVisibleTab({
             format: 'png'
         }, function (dataURI) {
-            //Turn it on again
             _this.$.overlay.style.display = 'block';
             _this.cropScreenshot(dataURI, cropData, callback);
         });
     };
     ;
-    //#region Selection Square
     ERT.px = function (num) {
         return num + 'px';
     };
@@ -180,7 +166,6 @@ var ERT = (function () {
         }
     };
     ;
-    //#endregion
     ERT.hideScreencapArea = function () {
         this.$.highlightingTopSquare.style.height = '100vh';
         this.$.highlightingTopSquare.style.width = '100vw';
@@ -228,7 +213,6 @@ var ERT = (function () {
     };
     ;
     ERT.convertImageToBlob = function (dataURI) {
-        // convert base64/URLEncoded data component to raw binary data held in a string
         var byteString;
         if (dataURI.split(',')[0].indexOf('base64') >= 0) {
             byteString = atob(dataURI.split(',')[1]);
@@ -236,9 +220,7 @@ var ERT = (function () {
         else {
             byteString = window.unescape(dataURI.split(',')[1]);
         }
-        // separate out the mime component
         var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-        // write the bytes of the string to a typed array
         var ia = new Uint8Array(byteString.length);
         for (var i = 0; i < byteString.length; i++) {
             ia[i] = byteString.charCodeAt(i);
@@ -262,7 +244,7 @@ var ERT = (function () {
                         };
                         chrome.downloads.download({
                             url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
-                            filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
+                            filename: 'settings.txt'
                         }, callback);
                     });
                 });
@@ -295,7 +277,6 @@ var ERT = (function () {
     ;
     ERT.getDownloadPermission = function (callback) {
         var _this = this;
-        //Download the files
         chrome.permissions.request({
             permissions: [
                 'downloads'
@@ -304,7 +285,6 @@ var ERT = (function () {
             if (granted) {
                 callback();
                 window.errorReportingTool.$.errorReportingDialog.close();
-                //Do a nice checkmark animation on the report button
                 var listener = function () {
                     _this.checkCheckmark();
                     window.removeEventListener('focus', listener);
@@ -321,7 +301,6 @@ var ERT = (function () {
         var _this = this;
         this.getDownloadPermission(function () {
             _this.downloadFiles(function () {
-                //Take the user to the github page
                 var messageBody = 'WRITE MESSAGE HERE\n';
                 var title = (_this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
                 window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
