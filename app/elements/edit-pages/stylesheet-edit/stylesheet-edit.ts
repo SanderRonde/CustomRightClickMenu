@@ -23,7 +23,6 @@ static behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
 
 	static properties = stylesheetEditProperties;
 
-	//#region Dialog
 	static getExportData(this: NodeEditBehaviorStylesheetInstance): StylesheetNode {
 		($('stylesheet-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings: StylesheetNode = {} as any;
@@ -41,9 +40,30 @@ static behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
 		window.externalEditor.cancelOpenFiles();
 		this.active = false;
 	};
-	//#endregion
 
+	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
+		var index = 0;
+		var element = e.path[0];
+		while (!element.classList.contains('editorTab')) {
+			index++;
+			element = e.path[index];
+		}
 
+		const mode = element.classList.contains('mainEditorTab') ? 
+			'main' : 'options';
+		
+		if (mode === 'options') {
+			this.changeToOptionsTab();
+		} else {
+			this.hideOptionsTab();
+		}
+
+		Array.prototype.slice.apply(this.querySelectorAll('.editorTab')).forEach(
+			function(tab: HTMLElement) {
+				tab.classList.remove('active');
+			});
+		element.classList.add('active');
+	};
 
 	/**
 	 * Reloads the editor completely (to apply new settings)
@@ -76,7 +96,7 @@ static behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
 	/**
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
-	static cmLoaded(this: NodeEditBehaviorStylesheetInstance, element: CodeMirror) {
+	static cmLoaded(this: NodeEditBehaviorStylesheetInstance, element: CodeMirrorInstance) {
 		var _this = this;
 		this.editor = element;
 		element.refresh();

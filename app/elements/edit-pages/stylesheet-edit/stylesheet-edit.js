@@ -10,7 +10,6 @@ var stylesheetEditProperties = {
 var STE = (function () {
     function STE() {
     }
-    //#region Dialog
     STE.getExportData = function () {
         $('stylesheet-edit #exportMenu paper-menu')[0].selected = 0;
         var settings = {};
@@ -29,7 +28,27 @@ var STE = (function () {
         this.active = false;
     };
     ;
-    //#endregion
+    STE.changeTabEvent = function (e) {
+        var index = 0;
+        var element = e.path[0];
+        while (!element.classList.contains('editorTab')) {
+            index++;
+            element = e.path[index];
+        }
+        var mode = element.classList.contains('mainEditorTab') ?
+            'main' : 'options';
+        if (mode === 'options') {
+            this.changeToOptionsTab();
+        }
+        else {
+            this.hideOptionsTab();
+        }
+        Array.prototype.slice.apply(this.querySelectorAll('.editorTab')).forEach(function (tab) {
+            tab.classList.remove('active');
+        });
+        element.classList.add('active');
+    };
+    ;
     /**
      * Reloads the editor completely (to apply new settings)
      */

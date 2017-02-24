@@ -15,7 +15,7 @@ interface CodeMirrorEditor {
 		height: number;
 		lines: CodeMirrorLine; 
 	}>;
-	parent: CodeMirrorDoc;
+	parent: CodeMirrorDocInstance;
 }
 
 interface CMPosition {
@@ -23,7 +23,7 @@ interface CMPosition {
 	ch: number;
 }
 
-interface CodeMirrorDoc {
+interface CodeMirrorDocInstance {
 	canEdit: boolean;
 	children: CodeMirrorEditor;
 	cleanGeneration: number;
@@ -65,6 +65,34 @@ interface CodeMirrorDoc {
 	getLine(index: number): string;
 }
 
+type CodeMirrorModes = 'javascript'|'css';
+
+interface NextChainable {
+	name: string;
+	next?: NextChainable;
+}
+
+type CodeMirrorMode = 'javascript'|'css'|{
+	name: 'css';	
+}|{
+	name: 'javascript';
+	json?: boolean;
+	statementIndent?: number;
+	jsonld?: boolean;
+	typescript?: boolean;
+	wordCharacters?: RegExp;
+	doubleIndentSwitch?: boolean;
+	localVars?: NextChainable;
+	globalVars?: NextChainable;
+
+	useJsonSchema?: boolean;
+	jsonSchema?: CRMOptions;
+}
+
+interface CodeMirrorDoc {
+	(text: string, mode: CodeMirrorMode, firstLineNumber?: number): CodeMirrorDocInstance;
+}
+
 interface CMMetaInfo {
 	metaStart: CMPosition;
 	metaEnd: CMPosition;
@@ -83,7 +111,7 @@ interface CodeMirrorOptions {
 	value: string;
 	scrollbarStyle?: string;
 	lineWrapping?: boolean;
-	mode?: string;
+	mode?: CodeMirrorMode;
 	readOnly?: boolean|string;
 	foldGutter?: boolean;
 	theme?: 'default'|'dark';
@@ -97,7 +125,7 @@ interface CodeMirrorOptions {
 	extraKeys?: {
 		[key: string]: string;
 	}
-	onLoad?: (el: CodeMirror) => void;
+	onLoad?: (el: CodeMirrorInstance) => void;
 	messageInstallConfirm?: boolean;
 	messageScriptEdit?: boolean;
 }
@@ -109,16 +137,12 @@ interface MergeViewOptions extends CodeMirrorOptions {
 	messageExternal?: boolean;
 }
 
-interface CodeMirror {
-	(container: HTMLElement, options: CodeMirrorOptions): CodeMirror;
-	MergeView: {
-		new(container: HTMLElement, options: MergeViewOptions): MergeViewCodeMirror;
-	}
+interface CodeMirrorInstance {
 	display: HTMLElement & {
 		wrapper: HTMLElement;
 		sizer: HTMLElement;
 	};
-	doc: CodeMirrorDoc;
+	doc: CodeMirrorDocInstance;
 	metaTags: CMMetaInfo;
 	refresh(): void;
 	performLint(): void;
@@ -147,12 +171,21 @@ interface CodeMirror {
 		inclusiveLeft?: boolean;
 		inclusiveRight?: boolean;
 	}): void;
+	swapDoc(newDoc: CodeMirrorDocInstance): CodeMirrorDocInstance;
 
-	updateMetaTags(cm: CodeMirror, key: string, oldValue: string|number, value: string|number, singleValue?: boolean): void;
-	addMetaTags(cm: CodeMirror, key: string, value: string|number, line?: number): void;
-	getMetaTags(cm: CodeMirror): MetaTags;
-	removeMetaTags(cm: CodeMirror, key: string, value: string|number): number;
+	updateMetaTags(cm: CodeMirrorInstance, key: string, oldValue: string|number, value: string|number, singleValue?: boolean): void;
+	addMetaTags(cm: CodeMirrorInstance, key: string, value: string|number, line?: number): void;
+	getMetaTags(cm: CodeMirrorInstance): MetaTags;
+	removeMetaTags(cm: CodeMirrorInstance, key: string, value: string|number): number;
+}
 
+interface CodeMirror {
+	(container: HTMLElement, options: CodeMirrorOptions): CodeMirrorInstance;
+	MergeView: {
+		new(container: HTMLElement, options: MergeViewOptions): MergeViewCodeMirrorInstance;
+	}
+
+	Doc: CodeMirrorDoc
 	lint: {
 		javascript: Function;
 		css: Function;
@@ -160,13 +193,13 @@ interface CodeMirror {
 	TernServer: TernServer;
 }
 
-interface MergeViewCodeMirror extends CodeMirror {
+interface MergeViewCodeMirrorInstance extends CodeMirrorInstance {
 	display: HTMLElement & {
 		lineDiv: HTMLElement;
 		wrapper: HTMLElement;
 		sizer: HTMLElement;
 	}
-	edit: CodeMirror & {
+	edit: CodeMirrorInstance & {
 		display: HTMLElement & {
 			lineDiv: HTMLElement;
 			wrapper: HTMLElement;
@@ -174,7 +207,7 @@ interface MergeViewCodeMirror extends CodeMirror {
 		}
 	};
 	left: {
-		orig: CodeMirror & {
+		orig: CodeMirrorInstance & {
 			display: HTMLElement & {
 				lineDiv: HTMLElement;
 				wrapper: HTMLElement;
@@ -183,7 +216,7 @@ interface MergeViewCodeMirror extends CodeMirror {
 		};
 	};
 	right: {
-		orig: CodeMirror & {
+		orig: CodeMirrorInstance & {
 			display: HTMLElement & {
 				lineDiv: HTMLElement;
 				wrapper: HTMLElement;

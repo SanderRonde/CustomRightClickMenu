@@ -257,19 +257,6 @@ var SCE = (function () {
         }
     };
     ;
-    SCE.triggerCheckboxChange = function (element) {
-        var oldValue = !element.checked;
-        var inputValue = $(element).parent().children('.triggerInput')[0].value;
-        var line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
-        this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
-    };
-    ;
-    SCE.triggerInputChange = function (element) {
-        var _this = this;
-        var oldValue = element.value;
-        var checkboxChecked = $(element).parent().children('.executionTriggerNot')[0].checked;
-    };
-    ;
     SCE.addTriggerAndAddListeners = function () {
         this.addTrigger();
     };
@@ -302,18 +289,11 @@ var SCE = (function () {
     ;
     SCE.addDialogToMetaTagUpdateListeners = function () {
         var _this = this;
-        var __this = this;
         //Use jquery to also get the pre-change value
         $(this.$.nameInput).on('keydown', function () {
             var el = _this.$.nameInput;
             var oldVal = el.value || '';
             Array.isArray(oldVal) && (oldVal = oldVal[0]);
-        });
-        $('.executionTriggerNot').on('change', function () {
-            __this.triggerCheckboxChange.apply(__this, [this]);
-        });
-        $('.triggerInput').on('keydown', function () {
-            __this.triggerInputChange.apply(__this, [this]);
         });
     };
     ;
@@ -346,20 +326,6 @@ var SCE = (function () {
         }
     };
     ;
-    SCE.changeToOptionsTab = function () {
-        if (this.editorTab === 'options') {
-            return;
-        }
-        this.$.container.classList.add('options');
-        this.editorTab = 'options';
-    };
-    SCE.hideOptionsTab = function () {
-        if (this.editorTab !== 'options') {
-            return;
-        }
-        this.$.container.classList.remove('options');
-        this.editorTab = this.editorMode;
-    };
     SCE.changeTabEvent = function (e) {
         var index = 0;
         var element = e.path[0];
@@ -384,7 +350,7 @@ var SCE = (function () {
                 this.hideOptionsTab();
             }
         }
-        Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(function (tab) {
+        Array.prototype.slice.apply(this.querySelectorAll('.editorTab')).forEach(function (tab) {
             tab.classList.remove('active');
         });
         element.classList.add('active');
@@ -410,7 +376,6 @@ var SCE = (function () {
     };
     ;
     SCE.openPermissionsDialog = function (item, callback) {
-        var _this = this;
         var nodeItem;
         var settingsStorage;
         if (!item || item.type === 'tap') {

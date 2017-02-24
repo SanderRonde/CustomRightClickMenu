@@ -285,21 +285,6 @@ class SCE {
 		}
 	};
 
-	static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
-		var oldValue = !element.checked;
-		var inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
-
-		var line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
-		this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
-	};
-
-	static triggerInputChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement) {
-		var _this = this;
-		var oldValue = element.value;
-
-		var checkboxChecked = ($(element).parent().children('.executionTriggerNot')[0] as HTMLPaperCheckboxElement).checked;
-	};
-
 	static addTriggerAndAddListeners(this: NodeEditBehaviorScriptInstance) {
 		this.addTrigger();
 	};
@@ -332,20 +317,11 @@ class SCE {
 	};
 
 	static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
-		const __this = this;
-
 		//Use jquery to also get the pre-change value
 		$(this.$.nameInput).on('keydown', () => {
 			var el = this.$.nameInput;
 			var oldVal = el.value || '';
 			Array.isArray(oldVal) && (oldVal = oldVal[0]);
-		});
-
-		$('.executionTriggerNot').on('change', function(this: HTMLElement) {
-			__this.triggerCheckboxChange.apply(__this, [this]);
-		});
-		$('.triggerInput').on('keydown', function(this: HTMLElement) {
-			__this.triggerInputChange.apply(__this, [this]);
 		});
 	};
 	//#endregion
@@ -376,25 +352,7 @@ class SCE {
 			}
 		}
 	};
-
-	static changeToOptionsTab(this: NodeEditBehaviorScriptInstance) {
-		if (this.editorTab === 'options') {
-			return;
-		}
-		this.$.container.classList.add('options');		
-
-		this.editorTab = 'options';
-	}
-
-	static hideOptionsTab(this: NodeEditBehaviorScriptInstance) {
-		if (this.editorTab !== 'options') {
-			return;
-		}
-		this.$.container.classList.remove('options');		
-
-		this.editorTab = this.editorMode;
-	}
-
+	
 	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		var index = 0;
 		var element = e.path[0];
@@ -419,7 +377,7 @@ class SCE {
 			}
 		}
 
-		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+		Array.prototype.slice.apply(this.querySelectorAll('.editorTab')).forEach(
 			function(tab: HTMLElement) {
 				tab.classList.remove('active');
 			});
@@ -447,7 +405,6 @@ class SCE {
 
 	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: PolymerClickEvent|ScriptNode,
 			callback: () => void) {
-		var _this = this;
 		var nodeItem: ScriptNode;
 		var settingsStorage: Partial<ScriptNode>;
 		if (!item || item.type === 'tap') {
@@ -779,7 +736,7 @@ class SCE {
 	/**
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
-	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirror) {
+	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirrorInstance) {
 		var _this = this;
 		this.editor = editor;
 		editor.refresh();

@@ -89,6 +89,22 @@ var CA = (function () {
             'Demo, actual right-click menu does NOT work in demo' :
             'Custom Right-Click Menu';
     };
+    CA._generateCodeOptionsArray = function (settings) {
+        return Object.getOwnPropertyNames(settings).map(function (key) {
+            return {
+                key: key,
+                value: settings[key]
+            };
+        });
+    };
+    CA.initCodeOptions = function (node) {
+        this.$.codeSettingsDialog.item = node;
+        this.$.codeSettingsDialog.isScript = node.type === 'script';
+        this.$.codeSettingsDialog.settingsContainer = JSON.parse(JSON.stringify(node.value.options));
+        this.$.codeSettingsTitle.innerText = "Changing the options for " + node.name;
+        this.$.codeSettingsDialog.open();
+        this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
+    };
     /**
      * Inserts the value into given array
      */
@@ -561,18 +577,18 @@ var CA = (function () {
                 if (settingsArr[0] === 'all') {
                     this.storageLocal.showOptions = settingsArr[2];
                     var rows = settingsArr.slice(6);
-                    var localStorageWrapper = (function () {
-                        function localStorageWrapper() {
+                    var LocalStorageWrapper = (function () {
+                        function LocalStorageWrapper() {
                         }
-                        localStorageWrapper.prototype.getItem = function (index) {
+                        LocalStorageWrapper.prototype.getItem = function (index) {
                             if (index === 'numberofrows') {
                                 return '' + (rows.length - 1);
                             }
                             return rows[index];
                         };
-                        return localStorageWrapper;
+                        return LocalStorageWrapper;
                     }());
-                    var crm = this.transferCRMFromOld(settingsArr[4], new localStorageWrapper());
+                    var crm = this.transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
                     this.settings.crm = crm;
                     this.editCRM.build(null, null, true);
                     this.upload();
@@ -2920,7 +2936,8 @@ CA.templates = (function () {
             stylesheet: [].join('\n'),
             launchMode: 0 /* RUN_ON_CLICKING */,
             toggle: false,
-            defaultOn: false
+            defaultOn: false,
+            options: {}
         };
         return this.mergeObjects(value, options);
     };
@@ -2936,7 +2953,8 @@ CA.templates = (function () {
             libraries: [],
             script: [].join('\n'),
             backgroundScript: '',
-            metaTags: {}
+            metaTags: {},
+            options: {}
         };
         return this.mergeObjects(value, options);
     };

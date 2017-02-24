@@ -23,8 +23,8 @@ interface JQueryContextMenu extends JQueryStatic {
 }
 
 type VersionUpdateDialog = HTMLPaperDialogElement & {
-	editor: CodeMirror;
-}
+	editor: CodeMirrorInstance;
+};
 
 type ScriptUpdatesToast = HTMLPaperToastElement & {
 	index: number;
@@ -33,7 +33,7 @@ type ScriptUpdatesToast = HTMLPaperToastElement & {
 		oldVersion: string;
 		newVersion: string;	
 	}>;
-}
+};
 
 window.runOrAddAsCallback = function(toRun: Function, thisElement: HTMLElement, params: Array<any>): void {
 	if (window.app.settings) {
@@ -211,6 +211,12 @@ interface TernServer {
 	updateArgHints(cm: CodeMirror): void;
 }
 
+interface CodeSettingsDialog extends HTMLPaperDialogElement {
+	item?: ScriptNode|StylesheetNode;
+	isScript?: boolean;
+	settingsContainer?: CRMOptions;
+}
+
 class CA {
 	static is = 'crm-app';
 
@@ -288,6 +294,28 @@ class CA {
 		return location.href.indexOf('demo') > -1 ? 
 			'Demo, actual right-click menu does NOT work in demo' :
 			'Custom Right-Click Menu';
+	}
+
+	static _generateCodeOptionsArray<T extends CRMOptions>(this: CrmApp, settings: T): Array<{
+		key: keyof T;
+		value: T[keyof T]
+	}> {
+		return Object.getOwnPropertyNames(settings).map((key: keyof T) => {
+			return {
+				key: key,
+				value: settings[key]
+			};
+		});
+	}
+
+	static initCodeOptions(this: CrmApp, node: ScriptNode|StylesheetNode) {
+		this.$.codeSettingsDialog.item = node;
+		this.$.codeSettingsDialog.isScript = node.type === 'script';
+		this.$.codeSettingsDialog.settingsContainer = JSON.parse(JSON.stringify(node.value.options));
+		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
+		this.$.codeSettingsDialog.open();
+
+		this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
 	}
 
 	/**
@@ -595,7 +623,7 @@ class CA {
 		}
 	};
 
-	static tryEditorLoaded(this: CrmApp, cm: CodeMirror) {
+	static tryEditorLoaded(this: CrmApp, cm: CodeMirrorInstance) {
 		cm.display.wrapper.classList.add('try-editor-codemirror');
 		cm.refresh();
 	};
@@ -745,7 +773,7 @@ class CA {
 					local?: StorageLocal;
 					storageLocal?: StorageLocal;
 					settings: SettingsStorage;
-				}
+				};
 				this.$.importSettingsError.style.display = 'none';
 			} catch (e) {
 				console.log(e);
@@ -776,7 +804,7 @@ class CA {
 					this.storageLocal.showOptions = settingsArr[2];
 
 					var rows = settingsArr.slice(6);
-					class localStorageWrapper {
+					class LocalStorageWrapper {
 						getItem(index: 'numberofrows'|number): string {
 							if (index === 'numberofrows') {
 								return '' + (rows.length - 1);
@@ -785,7 +813,7 @@ class CA {
 						}
 					}
 
-					var crm = this.transferCRMFromOld(settingsArr[4], new localStorageWrapper());
+					var crm = this.transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
 					this.settings.crm = crm;
 					this.editCRM.build(null, null, true);
 					this.upload();
@@ -1410,7 +1438,7 @@ class CA {
 			'}' +
 			'</style>').appendTo('head');
 		$('.CodeMirror').each(function(this: HTMLElement & {
-			CodeMirror: CodeMirror;
+			CodeMirror: CodeMirrorInstance;
 		}) {
 			this.CodeMirror.refresh();
 		});
@@ -1599,7 +1627,7 @@ class CA {
 				var interval = window.setInterval(function() {
 					try {
 						const centerer = window.doc.requestPermissionsCenterer as CenterElement;
-						overlay = centerer.$.content.children[0] as HTMLPaperDialogElement
+						overlay = centerer.$.content.children[0] as HTMLPaperDialogElement;
 						if (overlay.open) {
 							window.clearInterval(interval);
 							($('#requestedPermissionsTemplate')[0] as HTMLDomRepeatElement).items = requested;
@@ -2280,7 +2308,7 @@ class CA {
 
 			return script;
 		}
-	}
+	};
 
 	static generateScriptUpgradeErrorHandler(this: CrmApp, id: number): ScriptUpgradeErrorHandler {
 		return function(oldScriptErrors, newScriptErrors, parseError) {
@@ -3322,7 +3350,8 @@ class CA {
 				stylesheet: [].join('\n'),
 				launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 				toggle: false,
-				defaultOn: false
+				defaultOn: false,
+				options: {}
 			};
 
 			return this.mergeObjects(value, options) as StylesheetVal;
@@ -3338,7 +3367,8 @@ class CA {
 				libraries: [],
 				script: [].join('\n'),
 				backgroundScript: '',
-				metaTags: {}
+				metaTags: {},
+				options: {}
 			};
 
 			return this.mergeObjects(value, options) as ScriptVal;
@@ -3644,7 +3674,7 @@ class CA {
 				static normal(stylesheet: string): () => void {
 					return function() {
 						alert(`This would run the stylesheet ${stylesheet}`);
-					}
+					};
 				};
 
 				static parent(): typeof window.app.pageDemo.handlers {
@@ -3659,7 +3689,7 @@ class CA {
 				var _this = this;
 				return function() {
 					_this.parent().parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
-				}
+				};
 			};
 
 			static parent(): typeof CRMAppPageDemo {
@@ -3675,7 +3705,7 @@ class CA {
 				return {
 					name: toAdd.name,
 					callback: this.parent().handlers.link(toAdd.value)
-				}
+				};
 			};
 
 			/**
@@ -3685,7 +3715,7 @@ class CA {
 				return {
 					name: toAdd.name,
 					callback: this.parent().handlers.script(toAdd.value.script)
-				}
+				};
 			};
 
 			/**
