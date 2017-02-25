@@ -54,7 +54,7 @@
     "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
   },
   "scripts": {
-    "test": "mocha test/test.js && mocha test/UITest.js"
+    "test": "grunt testBuild && mocha test/test.js"
   },
   "version": "2.0.0",
   "dependencies": {
