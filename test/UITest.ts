@@ -3470,7 +3470,6 @@ describe('Options Page', function(this: MochaFn) {
 										}).then(() => {
 											return getEditorValue(driver, type);
 										}).then((newCode) => {
-											console.log(newCode, prevCode);
 											assert.strictEqual(
 												subtractStrings(newCode, prevCode),
 												[
@@ -3535,7 +3534,6 @@ describe('Options Page', function(this: MochaFn) {
 										}).then(() => {
 											return getEditorValue(driver, type);
 										}).then((newCode) => {
-											console.log(newCode, prevCode);
 											assert.strictEqual(
 												subtractStrings(newCode, prevCode),
 												[
