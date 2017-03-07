@@ -1,15 +1,11 @@
-/// <reference path="../tools/definitions/selenium-webdriver.d.ts" />
-/// <reference path="../tools/definitions/chai.d.ts" />
-/// <reference path="../tools/definitions/chrome.d.ts" />
-/// <reference path="../tools/definitions/crm.d.ts" />
-/// <reference path="../app/js/background.ts" />
-/// <reference path="../tools/definitions/codemirror.d.ts" />
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var chai = require("chai");
 var webdriver = require("selenium-webdriver");
-var mochaSteps = require('mocha-steps');
+require('mocha-steps');
 var secrets = require('./UI/secrets');
 var request = require('request');
+var btoa = require('btoa');
 var assert = chai.assert;
 var driver;
 var capabilities;
@@ -30,7 +26,6 @@ switch (__filename.split('-').pop().split('.')[0]) {
     default:
         capabilities = {
             'browserName': 'Chrome',
-            //'browser_version': '26.0',
             'os': 'Windows',
             'os_version': '8',
             'resolution': '1920x1080',
@@ -86,10 +81,10 @@ var templates = {
                 mainArray[i] !== undefined &&
                 mainArray[i] !== null) {
                 if (Array.isArray(additionArray[i])) {
-                    mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
+                    mainArray[i] = templates.mergeArrays(mainArray[i], additionArray[i]);
                 }
                 else {
-                    mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+                    mainArray[i] = templates.mergeObjects(mainArray[i], additionArray[i]);
                 }
             }
             else {
@@ -105,10 +100,10 @@ var templates = {
                     mainObject[key] !== undefined &&
                     mainObject[key] !== null) {
                     if (Array.isArray(additions[key])) {
-                        mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
+                        mainObject[key] = templates.mergeArrays(mainObject[key], additions[key]);
                     }
                     else {
-                        mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
+                        mainObject[key] = templates.mergeObjects(mainObject[key], additions[key]);
                     }
                 }
                 else {
@@ -123,7 +118,7 @@ var templates = {
             permissions: [],
             source: {}
         };
-        return this.mergeObjects(defaultNodeInfo, options);
+        return templates.mergeObjects(defaultNodeInfo, options);
     },
     getDefaultLinkNode: function (options) {
         var defaultNode = {
@@ -131,7 +126,7 @@ var templates = {
             onContentTypes: [true, true, true, false, false, false],
             type: 'link',
             showOnSpecified: false,
-            nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+            nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
             triggers: [
                 {
                     url: '*://*.example.com/*',
@@ -146,26 +141,27 @@ var templates = {
                 }
             ]
         };
-        return this.mergeObjects(defaultNode, options);
+        return templates.mergeObjects(defaultNode, options);
     },
     getDefaultStylesheetValue: function (options) {
         var value = {
             stylesheet: [].join('\n'),
-            launchMode: 1 /* ALWAYS_RUN */,
+            launchMode: 1,
             options: {},
         };
-        return this.mergeObjects(value, options);
+        return templates.mergeObjects(value, options);
     },
     getDefaultScriptValue: function (options) {
         var value = {
-            launchMode: 1 /* ALWAYS_RUN */,
+            launchMode: 1,
             backgroundLibraries: [],
             libraries: [],
             script: [].join('\n'),
             backgroundScript: '',
             options: {},
+            metaTags: {}
         };
-        return this.mergeObjects(value, options);
+        return templates.mergeObjects(value, options);
     },
     getDefaultScriptNode: function (options) {
         var defaultNode = {
@@ -173,16 +169,16 @@ var templates = {
             onContentTypes: [true, true, true, false, false, false],
             type: 'script',
             isLocal: true,
-            nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+            nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
             triggers: [
                 {
                     url: '*://*.example.com/*',
                     not: false
                 }
             ],
-            value: this.getDefaultScriptValue(options.value)
+            value: templates.getDefaultScriptValue(options.value)
         };
-        return this.mergeObjects(defaultNode, options);
+        return templates.mergeObjects(defaultNode, options);
     },
     getDefaultStylesheetNode: function (options) {
         var defaultNode = {
@@ -190,33 +186,33 @@ var templates = {
             onContentTypes: [true, true, true, false, false, false],
             type: 'stylesheet',
             isLocal: true,
-            nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+            nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
             triggers: [
                 {
                     url: '*://*.example.com/*',
                     not: false
                 }
             ],
-            value: this.getDefaultStylesheetValue(options.value)
+            value: templates.getDefaultStylesheetValue(options.value)
         };
-        return this.mergeObjects(defaultNode, options);
+        return templates.mergeObjects(defaultNode, options);
     },
     getDefaultDividerOrMenuNode: function (options, type) {
         var defaultNode = {
             name: 'name',
             type: type,
-            nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
+            nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
             onContentTypes: [true, true, true, false, false, false],
             isLocal: true,
             value: {}
         };
-        return this.mergeObjects(defaultNode, options);
+        return templates.mergeObjects(defaultNode, options);
     },
     getDefaultDividerNode: function (options) {
-        return this.getDefaultDividerOrMenuNode(options, 'divider');
+        return templates.getDefaultDividerOrMenuNode(options, 'divider');
     },
     getDefaultMenuNode: function (options) {
-        return this.getDefaultDividerOrMenuNode(options, 'menu');
+        return templates.getDefaultDividerOrMenuNode(options, 'menu');
     }
 };
 function findElementOnPage(selector) {
@@ -343,6 +339,7 @@ function resetSettings(_this, driver, done) {
                 window.chrome.storage.local.clear();
                 window.chrome.storage.sync.clear();
                 window.app.refreshPage();
+                return null;
             }
             catch (e) {
                 return {
@@ -374,6 +371,7 @@ function reloadPage(_this, driver, done) {
             driver.executeScript(inlineFn(function () {
                 try {
                     window.app.refreshPage();
+                    return null;
                 }
                 catch (e) {
                     return {
@@ -670,10 +668,10 @@ var FoundElement = (function () {
                         var currentValue = el.value || '';
                         for (var i = 0; i < keyPresses.length; i++) {
                             switch (keyPresses[i]) {
-                                case 0 /* CLEAR_ALL */:
+                                case 0:
                                     currentValue = '';
                                     break;
-                                case 1 /* BACK_SPACE */:
+                                case 1:
                                     currentValue = currentValue.slice(0, -1);
                                     break;
                                 default:
@@ -832,8 +830,6 @@ function findElements(driver, by) {
 }
 function getTypeName(index) {
     switch (index) {
-        case 0:
-            return 'page';
         case 1:
             return 'link';
         case 2:
@@ -844,6 +840,9 @@ function getTypeName(index) {
             return 'video';
         case 5:
             return 'audio';
+        default:
+        case 0:
+            return 'page';
     }
 }
 function prepareTrigger(url) {
@@ -919,7 +918,6 @@ function getLog(driver) {
         driver.executeScript(inlineFn(function () {
             return JSON.stringify(window.app._log);
         })).then(function (str) {
-            console.log(str);
             resolve(str);
         });
     });
@@ -968,7 +966,6 @@ describe('Options Page', function () {
             CRMOnPage: true,
             useStorageSync: true
         };
-        //This is disabled for any chrome <= 34 versions
         if (capabilities.browser_version && ~~capabilities.browser_version.split('.')[0] <= 34) {
             delete checkboxDefaults.CRMOnPage;
         }
@@ -1048,7 +1045,7 @@ describe('Options Page', function () {
                                 var renameName = 'SomeName';
                                 findElements(driver, webdriver.By.tagName('default-link')).then(function (elements) {
                                     elements[0].findElement(webdriver.By.tagName('paper-button')).then(function (button) {
-                                        elements[0].findElement(webdriver.By.tagName('input')).sendKeys(0 /* CLEAR_ALL */, renameName).then(function () {
+                                        elements[0].findElement(webdriver.By.tagName('input')).sendKeys(0, renameName).then(function () {
                                             return button.click();
                                         }).then(function () {
                                             elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
@@ -1140,7 +1137,7 @@ describe('Options Page', function () {
                                 findElements(driver, webdriver.By.tagName('default-link')).then(function (elements) {
                                     var index = elements.length - 1;
                                     elements[index].findElement(webdriver.By.tagName('paper-button')).then(function (button) {
-                                        elements[index].findElement(webdriver.By.tagName('input')).sendKeys(0 /* CLEAR_ALL */, renameName).then(function () {
+                                        elements[index].findElement(webdriver.By.tagName('input')).sendKeys(0, renameName).then(function () {
                                             return button.click();
                                         }).then(function () {
                                             elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then(function (link) {
@@ -1268,7 +1265,7 @@ describe('Options Page', function () {
             var toExecutePath = 'somefile.x.y.z';
             var schemeName = defaultSchemeName;
             findElement(driver, webdriver.By.id('URISchemeFilePath'))
-                .sendKeys(0 /* CLEAR_ALL */, toExecutePath)
+                .sendKeys(0, toExecutePath)
                 .then(function () {
                 testURIScheme(driver, done, toExecutePath, schemeName);
             });
@@ -1277,7 +1274,7 @@ describe('Options Page', function () {
             var toExecutePath = defaultToExecutePath;
             var schemeName = getRandomString(25);
             findElement(driver, webdriver.By.id('URISchemeSchemeName'))
-                .sendKeys(0 /* CLEAR_ALL */, schemeName)
+                .sendKeys(0, schemeName)
                 .then(function () {
                 testURIScheme(driver, done, toExecutePath, schemeName);
             });
@@ -1286,12 +1283,12 @@ describe('Options Page', function () {
             var toExecutePath = 'somefile.x.y.z';
             var schemeName = getRandomString(25);
             findElement(driver, webdriver.By.id('URISchemeFilePath'))
-                .sendKeys(0 /* CLEAR_ALL */, toExecutePath)
+                .sendKeys(0, toExecutePath)
                 .then(function () {
                 return findElement(driver, webdriver.By.id('URISchemeSchemeName'));
             })
                 .then(function (element) {
-                return element.sendKeys(0 /* CLEAR_ALL */, schemeName);
+                return element.sendKeys(0, schemeName);
             })
                 .then(function () {
                 testURIScheme(driver, done, toExecutePath, schemeName);
@@ -1315,7 +1312,7 @@ describe('Options Page', function () {
                 }).then(function (dialog) {
                     dialog
                         .findElement(webdriver.By.id('nameInput'))
-                        .sendKeys(0 /* CLEAR_ALL */, name)
+                        .sendKeys(0, name)
                         .then(function () {
                         return cancelDialog(dialog);
                     })
@@ -1340,7 +1337,7 @@ describe('Options Page', function () {
                 }).then(function (dialog) {
                     dialog
                         .findElement(webdriver.By.id('nameInput'))
-                        .sendKeys(0 /* CLEAR_ALL */, name)
+                        .sendKeys(0, name)
                         .then(function (res) {
                         return wait(driver, 300);
                     }).then(function () {
@@ -1401,11 +1398,11 @@ describe('Options Page', function () {
                                     .click()
                                     .then(function () {
                                     return triggers[0]
-                                        .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
+                                        .sendKeys(0, 'www.google.com');
                                 })
                                     .then(function () {
                                     return triggers[1]
-                                        .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
+                                        .sendKeys(0, 'www.google.com');
                                 });
                             }).then(function () {
                                 return cancelDialog(dialog);
@@ -1449,7 +1446,7 @@ describe('Options Page', function () {
                                     .then(function () {
                                     return triggers[1]
                                         .findElement(webdriver.By.tagName('paper-input'))
-                                        .sendKeys(0 /* CLEAR_ALL */, 'http://www.google.com');
+                                        .sendKeys(0, 'http://www.google.com');
                                 });
                             }).then(function () {
                                 return saveDialog(dialog);
@@ -1516,7 +1513,6 @@ describe('Options Page', function () {
                         assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
                         assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
                         var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
-                        //CRM prevents you from turning off all content types and 4 is the one that stays on
                         newContentTypes[2] = true;
                         newContentTypes = crm[0].onContentTypes;
                         assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
@@ -1550,7 +1546,6 @@ describe('Options Page', function () {
                         assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
                         assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
                         var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
-                        //CRM prevents you from turning off all content types and 4 is the one that stays on
                         newContentTypes[2] = true;
                         assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
                         done();
@@ -1582,7 +1577,6 @@ describe('Options Page', function () {
                         assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
                         assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
                         var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
-                        //CRM prevents you from turning off all content types and 4 is the one that stays on
                         newContentTypes[2] = true;
                         assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
                         done();
@@ -1596,7 +1590,6 @@ describe('Options Page', function () {
                     assert.isFalse(crm[0].onContentTypes[0], 'content types that were on were switched off');
                     assert.isTrue(crm[0].onContentTypes[4], 'content types that were off were switched on');
                     var newContentTypes = defaultContentTypes.map(function (contentType) { return !contentType; });
-                    //CRM prevents you from turning off all content types and 4 is the one that stays on
                     newContentTypes[2] = true;
                     assert.deepEqual(crm[0].onContentTypes, newContentTypes, 'all content types were toggled');
                     done();
@@ -1755,7 +1748,7 @@ describe('Options Page', function () {
                                             .then(function () {
                                             return triggers[1]
                                                 .findElement(webdriver.By.tagName('input'))
-                                                .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
+                                                .sendKeys(0, 'www.google.com');
                                         });
                                     }).then(function () {
                                         return saveDialog(dialog);
@@ -1823,7 +1816,7 @@ describe('Options Page', function () {
                                             .click()
                                             .then(function () {
                                             return triggers[1]
-                                                .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
+                                                .sendKeys(0, 'www.google.com');
                                         });
                                     }).then(function () {
                                         return cancelDialog(dialog);
@@ -1906,7 +1899,7 @@ describe('Options Page', function () {
                             return dialog
                                 .findElement(webdriver.By.id('editorThemeFontSizeInput'))
                                 .findElement(webdriver.By.tagName('input'))
-                                .sendKeys(1 /* BACK_SPACE */, 1 /* BACK_SPACE */, 1 /* BACK_SPACE */, newZoom);
+                                .sendKeys(1, 1, 1, newZoom);
                         }).then(function () {
                             return driver.executeScript(inlineFn(function () {
                                 (window.app.item.type === 'stylesheet' ?
@@ -1996,7 +1989,7 @@ describe('Options Page', function () {
                         return dialog
                             .findElement(webdriver.By.id('editorTabSizeInput'))
                             .findElement(webdriver.By.tagName('input'))
-                            .sendKeys(1 /* BACK_SPACE */, 1 /* BACK_SPACE */, newTabSize)
+                            .sendKeys(1, 1, newTabSize)
                             .then(function () {
                             return driver.executeScript(inlineFn(function () {
                                 (window.app.item.type === 'stylesheet' ?
@@ -2158,7 +2151,7 @@ describe('Options Page', function () {
                         dialog
                             .findElement(webdriver.By.className('linkChangeCont'))
                             .findElement(webdriver.By.tagName('paper-input'))
-                            .sendKeys(0 /* CLEAR_ALL */, newUrl)
+                            .sendKeys(0, newUrl)
                             .then(function () {
                             return saveDialog(dialog);
                         })
@@ -2203,7 +2196,7 @@ describe('Options Page', function () {
                         })
                             .then(function (crm) {
                             assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
-                            assert.deepEqual(crm[0].value, Array.apply(null, Array(4)).map(function (_) { return defaultLink; }), 'new links match default link value');
+                            assert.deepEqual(crm[0].value, Array.apply(null, Array(4)).map(function () { return defaultLink; }), 'new links match default link value');
                             done();
                         });
                     });
@@ -2249,7 +2242,7 @@ describe('Options Page', function () {
                                             .then(function () {
                                             return element
                                                 .findElement(webdriver.By.tagName('paper-input'))
-                                                .sendKeys(0 /* CLEAR_ALL */, newUrl);
+                                                .sendKeys(0, newUrl);
                                         }).then(function () {
                                             resolve(null);
                                         });
@@ -2268,9 +2261,8 @@ describe('Options Page', function () {
                         })
                             .then(function (crm) {
                             assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
-                            //Only one newTab can be false at a time
                             var newLinks = Array.apply(null, Array(4))
-                                .map(function (_) { return JSON.parse(JSON.stringify(newValue)); });
+                                .map(function () { return JSON.parse(JSON.stringify(newValue)); });
                             newLinks[3].newTab = false;
                             assert.deepEqual(crm[0].value, newLinks, 'new links match changed link value');
                             done();
@@ -2287,9 +2279,8 @@ describe('Options Page', function () {
                         return getCRM(driver);
                     }).then(function (crm) {
                         assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
-                        //Only one newTab can be false at a time
                         var newLinks = Array.apply(null, Array(4))
-                            .map(function (_) { return JSON.parse(JSON.stringify(newValue)); });
+                            .map(function () { return JSON.parse(JSON.stringify(newValue)); });
                         newLinks[3].newTab = false;
                         assert.deepEqual(crm[0].value, newLinks, 'new links match changed link value');
                         done();
@@ -2330,7 +2321,7 @@ describe('Options Page', function () {
                                     .click()
                                     .then(function () {
                                     return element
-                                        .sendKeys(0 /* CLEAR_ALL */, newUrl);
+                                        .sendKeys(0, newUrl);
                                 });
                             });
                         })
@@ -2603,7 +2594,7 @@ describe('Options Page', function () {
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
                                         .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(0 /* CLEAR_ALL */, libUrl);
+                                        .sendKeys(0, libUrl);
                                 }).then(function () {
                                     return wait(driver, 1000);
                                 }).then(function () {
@@ -2625,7 +2616,7 @@ describe('Options Page', function () {
                                         }).length !== 0, 'Current dialog should be visible');
                                         return findElement(driver, webdriver.By.id('addedLibraryName'))
                                             .findElement(webdriver.By.tagName('input'))
-                                            .sendKeys(0 /* CLEAR_ALL */, libName);
+                                            .sendKeys(0, libName);
                                     });
                                 }).then(function () {
                                     return wait(driver, 3000);
@@ -2659,7 +2650,6 @@ describe('Options Page', function () {
                                     return wait(driver, 200);
                                 });
                             }).then(function () {
-                                //Get the code that is stored at given test URL
                                 return new webdriver.promise.Promise(function (resolve) {
                                     request(libUrl, function (err, res, body) {
                                         assert.ifError(err, 'Should not fail the GET request');
@@ -2734,7 +2724,7 @@ describe('Options Page', function () {
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
                                         .findElement(webdriver.By.tagName('input'))
-                                        .sendKeys(0 /* CLEAR_ALL */, libUrl);
+                                        .sendKeys(0, libUrl);
                                 }).then(function () {
                                     return wait(driver, 1000);
                                 }).then(function () {
@@ -2756,7 +2746,7 @@ describe('Options Page', function () {
                                         }).length !== 0, 'Current dialog should be visible');
                                         return findElement(driver, webdriver.By.id('addedLibraryName'))
                                             .findElement(webdriver.By.tagName('input'))
-                                            .sendKeys(0 /* CLEAR_ALL */, libName);
+                                            .sendKeys(0, libName);
                                     });
                                 }).then(function () {
                                     return wait(driver, 5000);
@@ -2813,7 +2803,7 @@ describe('Options Page', function () {
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryManualInput'))
                                         .findElement(webdriver.By.tagName('textarea'))
-                                        .sendKeys(0 /* CLEAR_ALL */, testCode);
+                                        .sendKeys(0, testCode);
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryButton'))
                                         .click();
@@ -2831,7 +2821,7 @@ describe('Options Page', function () {
                                         }).length !== 0, 'Current dialog should be visible');
                                         return findElement(driver, webdriver.By.id('addedLibraryName'))
                                             .findElement(webdriver.By.tagName('input'))
-                                            .sendKeys(0 /* CLEAR_ALL */, libName);
+                                            .sendKeys(0, libName);
                                     });
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryButton'))
@@ -2921,7 +2911,7 @@ describe('Options Page', function () {
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryManualInput'))
                                         .findElement(webdriver.By.tagName('textarea'))
-                                        .sendKeys(0 /* CLEAR_ALL */, testCode);
+                                        .sendKeys(0, testCode);
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryButton'))
                                         .click();
@@ -2939,7 +2929,7 @@ describe('Options Page', function () {
                                         }).length !== 0, 'Current dialog should be visible');
                                         return findElement(driver, webdriver.By.id('addedLibraryName'))
                                             .findElement(webdriver.By.tagName('input'))
-                                            .sendKeys(0 /* CLEAR_ALL */, libName);
+                                            .sendKeys(0, libName);
                                     });
                                 }).then(function () {
                                     return findElement(driver, webdriver.By.id('addLibraryButton'))
@@ -3147,154 +3137,6 @@ describe('Options Page', function () {
                                 });
                             });
                         });
-                        /*
-                        describe('Custom Input', function(this: MochaFn) {
-                            it('should be able to add one from a search URL', (done) => {
-                                const exampleSearchURL =
-                                    `http://www.${getRandomString(10)}/?${getRandomString(10)}=customRightClickMenu}`;
-
-                                enterEditorFullscreen(this, driver, type).then((dialog) => {
-                                    getEditorValue(driver, type).then((prevCode) => {
-                                        findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
-                                        .click()
-                                        .then(() => {
-                                            return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
-                                                .findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
-                                                .click();
-                                        }).then(() => {
-                                            return wait(driver, 500);
-                                        }).then(() => {
-                                            return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
-                                                .findElement(webdriver.By.className('buttons'))
-                                                .findElements(webdriver.By.tagName('paper-button'))
-                                                .then((elements) => {
-                                                    elements[1].click();
-                                                });
-                                        }).then(() => {
-                                            return wait(driver, 500);
-                                        }).then(() => {
-                                            return findElement(driver, webdriver.By.id('confirmationWindow'))
-                                                .findElement(webdriver.By.className('buttons'))
-                                                .findElements(webdriver.By.tagName('paper-button'))
-                                                .then((elements) => {
-                                                    elements[1].click();
-                                                });
-                                        }).then(() => {
-                                            return wait(driver, 500);
-                                        }).then(() => {
-                                            return findElement(driver, webdriver.By.id('howToOpenWindow'))
-                                                .findElement(webdriver.By.className('buttons'))
-                                                .findElements(webdriver.By.tagName('paper-button'))
-                                                .then((elements) => {
-                                                    elements[1].click();
-                                                });
-                                        }).then(() => {
-                                            return wait(driver, 500);
-                                        }).then(() => {
-                                            getEditorValue(driver, type).then((newCode) => {
-                                                assert.strictEqual(subtractStrings(newCode, prevCode),
-                                                    [
-                                                        'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
-                                                        `var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
-                                                        'var toOpen = url.replace(/%s/g,search);',
-                                                        'window.open(toOpen, \'_blank\');'
-                                                    ].join('\n'), 'Script should match expected value');
-                                                done();
-                                            });
-                                        });
-                                    });
-                                });
-                            });
-                            it('should be able to add one from your visited websites', (done) => {
-                                const exampleVisitedWebsites: Array<{
-                                    name: string;
-                                    url: string;
-                                    searchUrl: string;
-                                }> = [{
-                                    name: getRandomString(20),
-                                    url: getRandomString(20),
-                                    searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
-                                }];
-
-                                enterEditorFullscreen(this, driver, type).then((dialog) => {
-                                    getEditorValue(driver, type).then((oldValue) => {
-                                        findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
-                                            .click()
-                                            .then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
-                                                    .findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
-                                                    .click();
-                                            }).then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return findElement(driver, webdriver.By.id('manulInputSavedChoice'))
-                                                    .click();
-                                            }).then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return driver.executeScript(inlineFn(() => {
-                                                    document.querySelector('#manualInputListChoiceInput')
-                                                        .querySelector('textarea').value = 'REPLACE.websites';
-                                                }, {
-                                                    websites: JSON.stringify(exampleVisitedWebsites)
-                                                }));
-                                            }).then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
-                                                .findElement(webdriver.By.className('buttons'))
-                                                .findElements(webdriver.By.tagName('paper-button'))
-                                                .then((elements) => {
-                                                    elements[1].click();
-                                                });
-                                            }).then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return findElement(driver, webdriver.By.id('processedListWindow'))
-                                                .findElement(webdriver.By.className('buttons'))
-                                                .findElements(webdriver.By.tagName('paper-button'))
-                                                .then((elements) => {
-                                                    elements[1].click();
-                                                });
-                                            }).then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return findElement(driver, webdriver.By.id('confirmationWindow'))
-                                                .findElement(webdriver.By.className('buttons'))
-                                                .findElements(webdriver.By.tagName('paper-button'))
-                                                .then((elements) => {
-                                                    elements[1].click();
-                                                });
-                                            }).then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return findElement(driver, webdriver.By.id('howToOpenWindow'))
-                                                .findElement(webdriver.By.className('buttons'))
-                                                .findElements(webdriver.By.tagName('paper-button'))
-                                                .then((elements) => {
-                                                    elements[1].click();
-                                                });
-                                            }).then(() => {
-                                                return wait(driver, 500);
-                                            }).then(() => {
-                                                return getEditorValue(driver, type);
-                                            }).then((newValue) => {
-                                                assert.strictEqual(subtractStrings(newValue, oldValue),
-                                                    [
-                                                        'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
-                                                        `var url = '${exampleVisitedWebsites[0].searchUrl}';`,
-                                                        'var toOpen = url.replace(/%s/g,search);',
-                                                        'window.open(toOpen, \'_blank\');'
-                                                    ].join('\n'), 'Added script should match expected');
-                                                done();
-                                            });
-                                    });
-                                });
-                            });
-                        });
-                        */
                     });
                 });
             });
@@ -3505,8 +3347,8 @@ describe('On-Page CRM', function () {
         });
         it('should match the given triggers', function (done) {
             getContextMenu(driver).then(function (contextMenu) {
-                assert.lengthOf(contextMenu[0 /* NO_TRIGGERS */].createProperties.documentUrlPatterns, 0, 'triggers are turned off');
-                assert.deepEqual(contextMenu[1 /* TRIGGERS */].createProperties.documentUrlPatterns, CRMNodes[1 /* TRIGGERS */].triggers.map(function (trigger) {
+                assert.lengthOf(contextMenu[0].createProperties.documentUrlPatterns, 0, 'triggers are turned off');
+                assert.deepEqual(contextMenu[1].createProperties.documentUrlPatterns, CRMNodes[1].triggers.map(function (trigger) {
                     return prepareTrigger(trigger.url);
                 }), 'triggers are turned on');
                 done();
@@ -3534,12 +3376,12 @@ describe('On-Page CRM', function () {
             getContextMenu(driver).then(function (contextMenu) {
                 driver
                     .executeScript(inlineFn(function () {
-                    window.chrome._currentContextMenu[0].children[4 /* DEFAULT_LINKS */]
+                    window.chrome._currentContextMenu[0].children[4]
                         .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                     return true;
                 }, {
                     page: JSON.stringify({
-                        menuItemId: contextMenu[4 /* DEFAULT_LINKS */].id,
+                        menuItemId: contextMenu[4].id,
                         editable: false,
                         pageUrl: 'www.google.com'
                     }),
@@ -3562,7 +3404,7 @@ describe('On-Page CRM', function () {
                     }));
                 }).then(function (str) {
                     var activeTabs = JSON.parse(str);
-                    var expectedTabs = CRMNodes[4 /* DEFAULT_LINKS */].value.map(function (link) {
+                    var expectedTabs = CRMNodes[4].value.map(function (link) {
                         if (!link.newTab) {
                             return {
                                 id: tabId,
@@ -3595,15 +3437,14 @@ describe('On-Page CRM', function () {
             getContextMenu(driver).then(function (contextMenu) {
                 driver
                     .executeScript(inlineFn(function () {
-                    //Clear it without removing object-array-magic-address-linking
                     while (window.chrome._activeTabs.length > 0) {
                         window.chrome._activeTabs.pop();
                     }
-                    return window.chrome._currentContextMenu[0].children[5 /* PRESET_LINKS */]
+                    return window.chrome._currentContextMenu[0].children[5]
                         .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                 }, {
                     page: JSON.stringify({
-                        menuItemId: contextMenu[5 /* PRESET_LINKS */].id,
+                        menuItemId: contextMenu[5].id,
                         editable: false,
                         pageUrl: 'www.google.com'
                     }),
@@ -3626,7 +3467,7 @@ describe('On-Page CRM', function () {
                     }));
                 }).then(function (str) {
                     var activeTabs = JSON.parse(str);
-                    var expectedTabs = CRMNodes[5 /* PRESET_LINKS */].value.map(function (link) {
+                    var expectedTabs = CRMNodes[5].value.map(function (link) {
                         if (!link.newTab) {
                             return {
                                 id: tabId,
@@ -3771,7 +3612,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 1 /* ALWAYS_RUN */,
+                    launchMode: 1,
                     script: 'console.log(\'executed script\');'
                 }
             }),
@@ -3779,7 +3620,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: 0,
                     script: 'console.log(\'executed script\');'
                 }
             }),
@@ -3793,7 +3634,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 2 /* RUN_ON_SPECIFIED */,
+                    launchMode: 2,
                     script: 'console.log(\'executed script\');'
                 }
             }),
@@ -3807,7 +3648,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 3 /* SHOW_ON_SPECIFIED */,
+                    launchMode: 3,
                     script: 'console.log(\'executed script\');'
                 }
             }),
@@ -3821,7 +3662,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: 0,
                     backgroundScript: 'console.log(\'executed backgroundscript\')'
                 }
             }),
@@ -3829,7 +3670,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 4 /* DISABLED */,
+                    launchMode: 4,
                     script: 'console.log(\'executed script\');'
                 }
             })
@@ -3891,7 +3732,7 @@ describe('On-Page CRM', function () {
                     .executeScript(inlineFn(function () {
                     window.chrome._clearExecutedScripts();
                     return window.chrome._currentContextMenu[0]
-                        .children[1 /* RUN_ON_CLICKING */]
+                        .children[1]
                         .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                 }, {
                     page: JSON.stringify({
@@ -3950,7 +3791,6 @@ describe('On-Page CRM', function () {
                 }));
             }).then(function (str) {
                 var activatedScripts = JSON.parse(str);
-                //First one is the ALWAYS_RUN script, ignore that
                 assert.lengthOf(activatedScripts, 2, 'two scripts activated');
                 assert.strictEqual(activatedScripts[1].id, fakeTabId, 'new script was executed on right tab');
                 done();
@@ -4051,7 +3891,7 @@ describe('On-Page CRM', function () {
                     }).then(function (str) {
                         var activatedBackgroundScripts = JSON.parse(str);
                         assert.lengthOf(activatedBackgroundScripts, 1, 'one backgroundscript was activated');
-                        assert.strictEqual(activatedBackgroundScripts[0], CRMNodes[4 /* BACKGROUNDSCRIPT */].id, 'correct backgroundscript was executed');
+                        assert.strictEqual(activatedBackgroundScripts[0], CRMNodes[4].id, 'correct backgroundscript was executed');
                         done();
                     });
                 }, 'clicking the node does not throw');
@@ -4061,7 +3901,7 @@ describe('On-Page CRM', function () {
             getContextMenu(driver).then(function (contextMenu) {
                 assert.notInclude(contextMenu.map(function (item) {
                     return item.id;
-                }), CRMNodes[5 /* DISABLED */].id, 'disabled node is not in the right-click menu');
+                }), CRMNodes[5].id, 'disabled node is not in the right-click menu');
                 done();
             });
         });
@@ -4072,7 +3912,7 @@ describe('On-Page CRM', function () {
                     .executeScript(inlineFn(function () {
                     window.chrome._clearExecutedScripts();
                     return window.chrome._currentContextMenu[0]
-                        .children[1 /* RUN_ON_CLICKING */]
+                        .children[1]
                         .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                 }, {
                     page: JSON.stringify({
@@ -4101,7 +3941,7 @@ describe('On-Page CRM', function () {
                     var activatedScripts = JSON.parse(str);
                     assert.lengthOf(activatedScripts, 1, 'one script was activated');
                     assert.strictEqual(activatedScripts[0].id, fakeTabId, 'script was executed on the right tab');
-                    assert.include(activatedScripts[0].code, CRMNodes[1 /* RUN_ON_CLICKING */].value.script, 'executed code is the same as set code');
+                    assert.include(activatedScripts[0].code, CRMNodes[1].value.script, 'executed code is the same as set code');
                     done();
                 });
             });
@@ -4117,7 +3957,7 @@ describe('On-Page CRM', function () {
                 value: {
                     toggle: true,
                     defaultOn: false,
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: 0,
                     stylesheet: '#stylesheetTestDummy1 { width: 50px; height :50px; }'
                 }
             }),
@@ -4127,7 +3967,7 @@ describe('On-Page CRM', function () {
                 value: {
                     toggle: true,
                     defaultOn: true,
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: 0,
                     stylesheet: '#stylesheetTestDummy2 { width: 50px; height :50px; }'
                 }
             }),
@@ -4135,7 +3975,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 1 /* ALWAYS_RUN */,
+                    launchMode: 1,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
@@ -4143,7 +3983,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 0 /* RUN_ON_CLICKING */,
+                    launchMode: 0,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
@@ -4157,7 +3997,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 2 /* RUN_ON_SPECIFIED */,
+                    launchMode: 2,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
@@ -4171,7 +4011,7 @@ describe('On-Page CRM', function () {
                     }
                 ],
                 value: {
-                    launchMode: 3 /* SHOW_ON_SPECIFIED */,
+                    launchMode: 3,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             }),
@@ -4179,7 +4019,7 @@ describe('On-Page CRM', function () {
                 name: getRandomString(25),
                 id: getRandomId(),
                 value: {
-                    launchMode: 4 /* DISABLED */,
+                    launchMode: 4,
                     stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
                 }
             })
@@ -4229,7 +4069,6 @@ describe('On-Page CRM', function () {
                 }));
             }).then(function (str) {
                 var activatedScripts = JSON.parse(str);
-                //First one is the default on stylesheet, ignore that
                 assert.lengthOf(activatedScripts, 2, 'two stylesheets activated');
                 assert.strictEqual(activatedScripts[1].id, fakeTabId, 'stylesheet was executed on right tab');
                 done();
@@ -4301,7 +4140,6 @@ describe('On-Page CRM', function () {
                 }));
             }).then(function (str) {
                 var activatedScripts = JSON.parse(str);
-                //First one is the ALWAYS_RUN stylesheet, second one is the default on one ignore that
                 assert.lengthOf(activatedScripts, 3, 'three stylesheets activated');
                 assert.strictEqual(activatedScripts[2].id, fakeTabId, 'new stylesheet was executed on right tab');
                 done();
@@ -4370,7 +4208,7 @@ describe('On-Page CRM', function () {
             getContextMenu(driver).then(function (contextMenu) {
                 assert.notInclude(contextMenu.map(function (item) {
                     return item.id;
-                }), CRMNodes[6 /* DISABLED */].id, 'disabled node is not in the right-click menu');
+                }), CRMNodes[6].id, 'disabled node is not in the right-click menu');
                 done();
             });
         });
@@ -4410,7 +4248,7 @@ describe('On-Page CRM', function () {
                     var executedScripts = JSON.parse(str);
                     assert.lengthOf(executedScripts, 1, 'one script was activated');
                     assert.strictEqual(executedScripts[0].id, fakeTabId, 'script was executed on the right tab');
-                    assert.include(executedScripts[0].code, CRMNodes[3 /* RUN_ON_CLICKING */].value.stylesheet, 'executed code is the same as set code');
+                    assert.include(executedScripts[0].code, CRMNodes[3].value.stylesheet, 'executed code is the same as set code');
                     done();
                 });
             });
@@ -4476,7 +4314,7 @@ describe('On-Page CRM', function () {
                     getContextMenu(driver).then(function (contextMenu) {
                         driver.executeScript(inlineFn(function () {
                             return window.chrome._currentContextMenu[0]
-                                .children[0 /* TOGGLE_DEFAULT_OFF */]
+                                .children[0]
                                 .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                         }, {
                             page: JSON.stringify({
@@ -4511,7 +4349,7 @@ describe('On-Page CRM', function () {
                     getContextMenu(driver).then(function (contextMenu) {
                         driver.executeScript(inlineFn(function () {
                             return window.chrome._currentContextMenu[0]
-                                .children[0 /* TOGGLE_DEFAULT_OFF */]
+                                .children[0]
                                 .currentProperties.onclick(REPLACE.page, REPLACE.tab);
                         }, {
                             page: JSON.stringify({
