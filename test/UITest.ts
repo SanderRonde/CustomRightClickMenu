@@ -2959,6 +2959,7 @@ describe('Options Page', function(this: MochaFn) {
 					this.slow(70000);
 					this.timeout(100000);
 
+					/*
 					describe('Libraries', function(this: MochaFn) {
 						afterEach('Close dialog', (done) => {
 							driver.executeScript(inlineFn(() => {
@@ -3548,7 +3549,6 @@ describe('Options Page', function(this: MochaFn) {
 								});
 							});
 						});
-						/*
 						describe('Custom Input', function(this: MochaFn) {
 							it('should be able to add one from a search URL', (done) => {
 								const exampleSearchURL = 
@@ -3695,8 +3695,8 @@ describe('Options Page', function(this: MochaFn) {
 								});
 							});
 						});
-						*/
 					});
+					*/
 				});
 			});
 		});
