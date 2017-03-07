@@ -5,7 +5,6 @@
 <dom-module id="stylesheet-edit" attributes="item">
 <template>
 	<!-- build:css inline stylesheet-edit.css -->
-	<link rel="stylesheet" href="../code-edit-pages/code-edit.css" />
 	<link rel="stylesheet" href="stylesheet-edit.css" />
 	<!-- /build -->
 	<div id="codeEditCont">
@@ -25,7 +24,7 @@
 						<paper-toggle-button id="isDefaultOnButton" disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}"></paper-toggle-button>
 						<span class="toggleButtonTxt">On by default</span>
 					</div>
-					<div id="codeInfoCont">
+					<div id="toggleInfoCont">
 						<svg class="inactive" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 							<path d="M0 0h24v24H0z" fill="none"/>
 							<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
@@ -34,8 +33,8 @@
 							<path d="M0 0h24v24H0z" fill="none"/>
 							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 						</svg>
-						<paper-material id="codeInfoTxtCont" elevation="3">
-							<div id="codeInfoTxt">
+						<paper-material id="toggleInfoTxtCont" elevation="3">
+							<div id="toggleInfoTxt">
 								Non-togglable CSS is not in the right-click menu but always active instead.
 							</div>
 						</paper-material>
@@ -198,24 +197,16 @@
 					</div>
 				</div>
 			</div>
-			<div id="codeEditorCont">
+			<div id="stylesheetEditorCont">
 				<div class="itemEditBigTxt">Stylesheet</div>
-				<div class="editorTabsCont">
-					<div id="mainEditorTab" class="editorTab mainEditorTab active" on-tap="changeTabEvent">
-						<div class="editorTabTxt">Main</div>
-						<paper-ripple></paper-ripple>
-					</div>
-					<div id="codeOptionsTab" class="editorTab optionsTab" on-tap="changeTabEvent">
-						<div class="editorTabTxt">Options</div>
-						<paper-ripple></paper-ripple>
-					</div>
-				</div>
-				<div id="flexRow">
-					<div id="flexColumn">
-						<div id="editorCont">
-							<div id="editorPlaceholder">
-								<div id="editorPlaceHolderCenterer">
-									<paper-spinner active></paper-spinner>
+				<div id="container">
+					<div id="flexRow">
+						<div id="flexColumn">
+							<div id="editorCont">
+								<div id="editorPlaceholder">
+									<div id="editorPlaceHolderCenterer">
+										<paper-spinner active></paper-spinner>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -242,6 +233,7 @@
 	</div>
 </template>
 </dom-module>
+<script src="../code-edit-pages/code-edit-behavior.js"></script>
 <script src="stylesheet-edit.js"></script>
 </body>
 </html>

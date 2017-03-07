@@ -4,7 +4,6 @@
 <dom-module id="script-edit" attributes="item">
 	<template>
 		<!-- build:css inline script-edit.css -->
-		<link rel="stylesheet" href="../code-edit-pages/code-edit.css" />
 		<link rel="stylesheet" href="script-edit.css" />
 		<!-- /build -->
 		<div id="codeEditCont">
@@ -193,10 +192,10 @@
 							<paper-ripple></paper-ripple>
 						</div>
 						<div id="scriptOptionsTab" class="editorTab optionsTab" on-tap="changeTabEvent">
-							<div class="editorTabTxt">Options</div>
-							<paper-ripple></paper-ripple>
-						</div>
-						<div id="codeInfoCont">
+ +							<div class="editorTabTxt">Options</div>
+ +							<paper-ripple></paper-ripple>
+ +						</div>
+ +						<div id="codeInfoCont">
 							<svg class="inactive" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 								<path d="M0 0h24v24H0z" fill="none" />
 								<path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z" />
@@ -212,12 +211,14 @@
 							</paper-material>
 						</div>
 					</div>
-					<div id="flexRow">
-						<div id="flexColumn">
-							<div id="editorCont">
-								<div id="editorPlaceholder">
-									<div id="editorPlaceHolderCenterer">
-										<paper-spinner active></paper-spinner>
+					<div id="container">
+						<div id="flexRow">
+							<div id="flexColumn">
+								<div id="editorCont">
+									<div id="editorPlaceholder">
+										<div id="editorPlaceHolderCenterer">
+											<paper-spinner active></paper-spinner>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -243,6 +244,7 @@
 		</div>
 	</template>
 </dom-module>
+<script src="../code-edit-pages/code-edit-behavior.js"></script>
 <script src="script-edit.js"></script>
 </body>
 </html>

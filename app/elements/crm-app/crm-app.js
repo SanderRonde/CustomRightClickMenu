@@ -2701,22 +2701,21 @@ CA.templates = (function () {
     function CRMAppTemplates() {
     }
     CRMAppTemplates.mergeArrays = function (mainArray, additionArray) {
-        var newArray = [];
         for (var i = 0; i < additionArray.length; i++) {
             if (mainArray[i] && typeof additionArray[i] === 'object' &&
                 mainArray[i] !== undefined && mainArray[i] !== null) {
                 if (Array.isArray(additionArray[i])) {
-                    newArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
+                    mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
                 }
                 else {
-                    newArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
+                    mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
                 }
             }
             else {
-                newArray[i] = additionArray[i];
+                mainArray[i] = additionArray[i];
             }
         }
-        return newArray;
+        return mainArray;
     };
     ;
     CRMAppTemplates.mergeObjects = function (mainObject, additions) {

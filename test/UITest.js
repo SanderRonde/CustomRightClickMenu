@@ -10,7 +10,6 @@ var webdriver = require("selenium-webdriver");
 var mochaSteps = require('mocha-steps');
 var secrets = require('./UI/secrets');
 var request = require('request');
-var btoa = require('btoa');
 var assert = chai.assert;
 var driver;
 var capabilities;
@@ -31,7 +30,7 @@ switch (__filename.split('-').pop().split('.')[0]) {
     default:
         capabilities = {
             'browserName': 'Chrome',
-            'browser_version': '26.0',
+            //'browser_version': '26.0',
             'os': 'Windows',
             'os_version': '8',
             'resolution': '1920x1080',
@@ -307,10 +306,6 @@ function getDialog(driver, type) {
         });
     });
 }
-function promisify(data, fn, previousFn, index) {
-    return function () {
-    };
-}
 function generatePromiseChain(data, fn, index, resolve) {
     if (index !== data.length) {
         fn(data[index]).then(function () {
@@ -404,17 +399,10 @@ function reloadPage(_this, driver, done) {
         return promise;
     }
 }
-function openDialogAndReload(driver, done) {
-    reloadPage.apply(this, [function () {
-            findElement(driver, webdriver.By.tagName('edit-crm-item')).click().then(function () {
-                setTimeout(done, 500);
-            });
-        }]);
-}
 function switchToTypeAndOpen(driver, type, done) {
     driver.executeScript(inlineFn(function () {
         var crmItem = document.getElementsByTagName('edit-crm-item').item(0);
-        var typeSwitcher = crmItem.querySelector('type-switcher').changeType('REPLACE.type');
+        crmItem.querySelector('type-switcher').changeType('REPLACE.type');
         return true;
     }, {
         type: type
@@ -911,6 +899,20 @@ function getContextMenuNames(contextMenu) {
                 ? getContextMenuNames(item.children) : undefined
         };
     });
+}
+function assertContextMenuEquality(contextMenu, CRMNodes) {
+    try {
+        assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes), 'structures match');
+    }
+    catch (e) {
+        assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes).concat([{
+                children: undefined,
+                name: undefined
+            }, {
+                children: undefined,
+                name: 'Options'
+            }]), 'structures match');
+    }
 }
 function getLog(driver) {
     return new webdriver.promise.Promise(function (resolve) {
@@ -1447,7 +1449,7 @@ describe('Options Page', function () {
                                     .then(function () {
                                     return triggers[1]
                                         .findElement(webdriver.By.tagName('paper-input'))
-                                        .sendKeys(0 /* CLEAR_ALL */, 'www.google.com');
+                                        .sendKeys(0 /* CLEAR_ALL */, 'http://www.google.com');
                                 });
                             }).then(function () {
                                 return saveDialog(dialog);
@@ -1458,7 +1460,7 @@ describe('Options Page', function () {
                                 assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
                                 assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
                                 assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                                assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
+                                assert.strictEqual(crm[0].triggers[1].url, 'http://www.google.com', 'second trigger url changed');
                                 done();
                             });
                         }, 500);
@@ -1475,7 +1477,7 @@ describe('Options Page', function () {
                     assert.isTrue(crm[0].triggers[0].not, 'first trigger is NOT');
                     assert.isFalse(crm[0].triggers[1].not, 'second trigger is not NOT');
                     assert.strictEqual(crm[0].triggers[0].url, '*://*.example.com/*', 'first trigger url stays the same');
-                    assert.strictEqual(crm[0].triggers[1].url, 'www.google.com', 'second trigger url changed');
+                    assert.strictEqual(crm[0].triggers[1].url, 'http://www.google.com', 'second trigger url changed');
                     done();
                 });
             });
@@ -2661,7 +2663,7 @@ describe('Options Page', function () {
                                 return new webdriver.promise.Promise(function (resolve) {
                                     request(libUrl, function (err, res, body) {
                                         assert.ifError(err, 'Should not fail the GET request');
-                                        if (res.statusCode == 200) {
+                                        if (res.statusCode === 200) {
                                             resolve(body);
                                         }
                                         else {
@@ -3071,7 +3073,6 @@ describe('Options Page', function () {
                                         }).then(function () {
                                             return getEditorValue(driver, type);
                                         }).then(function (newCode) {
-                                            console.log(newCode, prevCode);
                                             assert.strictEqual(subtractStrings(newCode, prevCode), [
                                                 'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
                                                 'var url = \'https://www.google.com/search?q=%s\';',
@@ -3134,7 +3135,6 @@ describe('Options Page', function () {
                                         }).then(function () {
                                             return getEditorValue(driver, type);
                                         }).then(function (newCode) {
-                                            console.log(newCode, prevCode);
                                             assert.strictEqual(subtractStrings(newCode, prevCode), [
                                                 'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
                                                 'var url = \'https://www.google.com/search?q=%s\';',
@@ -3377,7 +3377,7 @@ describe('On-Page CRM', function () {
         it('should be using the first CRM', function (done) {
             this.timeout(60000);
             getContextMenu(driver).then(function (contextMenu) {
-                assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1), 'node orders and names match');
+                assertContextMenuEquality(contextMenu, CRM1);
                 done();
             });
         });
@@ -3397,7 +3397,7 @@ describe('On-Page CRM', function () {
         });
         it('should be using the new CRM', function (done) {
             getContextMenu(driver).then(function (contextMenu) {
-                assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM2), 'node orders and names match');
+                assertContextMenuEquality(contextMenu, CRM2);
                 done();
             });
         });
@@ -3757,7 +3757,7 @@ describe('On-Page CRM', function () {
                     return window.logs;
                 }))
                     .then(function (logs) {
-                    assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes), 'structures match');
+                    assertContextMenuEquality(contextMenu, CRMNodes);
                     done();
                 });
             });

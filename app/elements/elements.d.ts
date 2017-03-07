@@ -37,7 +37,7 @@ interface Window {
 		toLoad: Array<() => void>;
 		final(): void;
 	};
-	CodeMirror: CodeMirror;
+	CodeMirror: CodeMirrorInstance;
 	colorFunction: {
 		func(pos: LinePosition, cm: CodeMirrorInstance): void;
 		cm: CodeMirrorInstance;

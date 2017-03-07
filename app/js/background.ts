@@ -187,7 +187,7 @@ interface Window {
 	getID: (name: string) => void;
 	md5: (data: any) => string;
 	TernFile: TernFile;
-	CodeMirror: CodeMirror;
+	CodeMirror: CodeMirrorInstance;
 	ecma5: any;
 	ecma6: any;
 	jqueryDefs: any;

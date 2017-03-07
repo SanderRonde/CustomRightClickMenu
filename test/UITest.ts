@@ -88,7 +88,7 @@ type ActiveTabs = Array<{
 	type: 'create'|'update';
 	data: any;
 	id?: number;
-}>
+}>;
 
 interface ExecutedScript {
 	id: number;
@@ -113,7 +113,7 @@ interface AppChrome extends Chrome {
 interface AppWindow extends Window {
 	app: any;
 	lastError: any|void;
-	chrome: AppChrome
+	chrome: AppChrome;
 	logs: Array<any>;
 	dummyContainer: HTMLDivElement;
 	polymerElementsLoaded: boolean;
@@ -145,7 +145,6 @@ import * as webdriver from 'selenium-webdriver';
 const mochaSteps = require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
-const btoa = require('btoa');
 
 const assert = chai.assert;
 
@@ -170,7 +169,7 @@ switch (__filename.split('-').pop().split('.')[0]) {
 	default: 
 		capabilities = {
 			'browserName' : 'Chrome',
-			'browser_version': '26.0',
+			//'browser_version': '26.0',
 			'os' : 'Windows',
 			'os_version' : '8',
 			'resolution' : '1920x1080',
@@ -202,7 +201,7 @@ before('Driver connect', function(this: MochaFn, done: any) {
 		driver = result;
 		let timer = setInterval(() => {
 			driver.executeScript(inlineFn(() => {
-				return window.polymerElementsLoaded
+				return window.polymerElementsLoaded;
 			})).then((loaded) => {
 				if (loaded) {
 					clearInterval(timer);
@@ -395,7 +394,7 @@ function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: a
 		Object.getOwnPropertyNames(args).forEach((key) => {
 			if (typeof args[key] === 'string' && args[key].split('\n').length > 1) {
 				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
-					`' + ${JSON.stringify(args[key].split('\n'))}.join('\\n') + '`)
+					`' + ${JSON.stringify(args[key].split('\n'))}.join('\\n') + '`);
 			} else {
 				const arg = args[key];
 				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), arg !== undefined &&
@@ -414,7 +413,7 @@ function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise
 			}))
 			.then((str: string) => {
 				resolve(JSON.parse(str) as SettingsStorage);
-			})
+			});
 	}); 
 }
 
@@ -425,7 +424,7 @@ function getCRM(driver: webdriver.WebDriver): webdriver.promise.Promise<CRMTree>
 				return JSON.stringify(window.app.settings.crm);
 			})).then((str: string) => {
 				resolve(JSON.parse(str) as CRMTree);
-			})
+			});
 	});
 }
 
@@ -464,15 +463,6 @@ function getDialog(driver: webdriver.WebDriver, type: DialogType):
 		});
 	}
 
-function promisify<T>(data: Array<T>, 
-	fn: (data: T) => webdriver.promise.Promise<any>,
-	previousFn: () => void,
-	index: number): () => void {
-		return () => {
-
-		}
-	}
-
 function generatePromiseChain<T>(data: Array<T>,
 	fn: (data: T) => webdriver.promise.Promise<any>,
 	index: number,
@@ -480,7 +470,7 @@ function generatePromiseChain<T>(data: Array<T>,
 		if (index !== data.length) {
 			fn(data[index]).then(() => {
 				generatePromiseChain(data, fn, index + 1, resolve);
-			})
+			});
 		} else {
 			resolve(null);
 		}
@@ -523,7 +513,7 @@ function resetSettings(_this: MochaFn, driver: webdriver.WebDriver,
 					return {
 						message: e.message,
 						stack: e.stack
-					}
+					};
 				}
 			})).then((e) => {
 				if (e) {
@@ -557,7 +547,7 @@ function reloadPage(_this: MochaFn, driver: webdriver.WebDriver,
 						return {
 							message: e.message,
 							stack: e.stack
-						}
+						};
 					}
 				})).then((e) => {
 					if (e) {
@@ -577,18 +567,10 @@ function reloadPage(_this: MochaFn, driver: webdriver.WebDriver,
 		}
 	}
 
-function openDialogAndReload(driver: webdriver.WebDriver, done: VoidFn) {
-	reloadPage.apply(this, [() => {
-		findElement(driver, webdriver.By.tagName('edit-crm-item')).click().then(() => {
-			setTimeout(done, 500);
-		});
-	}]);
-}
-
 function switchToTypeAndOpen(driver: webdriver.WebDriver, type: NodeType, done) {
 	driver.executeScript(inlineFn(() => {
 		const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
-		const typeSwitcher = crmItem.querySelector('type-switcher').changeType('REPLACE.type');
+		crmItem.querySelector('type-switcher').changeType('REPLACE.type');
 		return true;
 	}, {
 		type: type
@@ -734,7 +716,7 @@ class FoundElementPromise {
 					resolve(size);
 				});
 			});
-		})
+		});
 	}
 
 	static all(promises: Array<FoundElementPromise>): webdriver.promise.Promise<Array<FoundElement>> {
@@ -892,7 +874,7 @@ class FoundElement implements FoundElement {
 			}).then(() => {
 				resolve(undefined);
 			});
-		})
+		});
 	}
 	getProperty(prop: string): webdriver.promise.Promise<any> {
 		const selectorList = [[this.selector, this.index]];
@@ -973,7 +955,7 @@ function locatorToCss(by: webdriver.Locator): string {
 		case 'linkText':
 			return `*[href=${by.value}]`;
 		case 'name':
-			return  `*[name="${by.value}"]`
+			return  `*[name="${by.value}"]`;
 		case 'tagName':
 			return by.value;
 		default:
@@ -998,7 +980,7 @@ function findElement(driver: webdriver.WebDriver,
 			css: selector
 		})).then((found: string) => {
 			if (found === 'exists') {
-				resolve(new FoundElement(selector, 0, driver))
+				resolve(new FoundElement(selector, 0, driver));
 			} else {
 				reject(null);
 			}
@@ -1083,7 +1065,7 @@ function getEditorValue(driver: webdriver.WebDriver, type: DialogType): webdrive
 			editor: type === 'script' ? 'scriptEdit' : 'stylesheetEdit'
 		})).then((value: string) => {
 			resolve(value);
-		})
+		});
 	});
 }
 
@@ -1108,8 +1090,24 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 			name: item.currentProperties.title,
 			children: (item.children && item.children.length > 0)
 				? getContextMenuNames(item.children) : undefined
-		}
+		};
 	});
+}
+
+function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRMTree) {
+	try {
+		assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes),
+			'structures match');
+	} catch(e) {
+		assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes).concat([{
+			children: undefined,
+			name: undefined
+		}, {
+			children: undefined,
+			name: 'Options'
+		}]),
+			'structures match');
+	}
 }
 
 function getLog(driver: webdriver.WebDriver): webdriver.promise.Promise<string> {
@@ -1140,7 +1138,7 @@ function enterEditorFullscreen(_this: MochaFn, driver: webdriver.WebDriver, type
 				}).then(() => {
 					resolve(dialog);
 				});
-		})
+		});
 	});
 }
 
@@ -1213,7 +1211,7 @@ describe('Options Page', function(this: MochaFn) {
 						}, {
 							checkboxId: checkboxId,
 							expected: !checkboxDefaults[checkboxId]
-						}))
+						}));
 					})
 					.then((result: string) => {
 						const resultObj: {
@@ -1226,7 +1224,7 @@ describe('Options Page', function(this: MochaFn) {
 						assert.strictEqual(resultObj.match, true, 
 							`checkbox ${checkboxId} value has been saved`);
 						done();
-					})
+					});
 			});
 		});
 	});
@@ -1559,7 +1557,7 @@ describe('Options Page', function(this: MochaFn) {
 						return findElement(driver, webdriver.By.id('URISchemeSchemeName'));
 					})
 					.then((element) => {
-						return element.sendKeys(InputKeys.CLEAR_ALL, schemeName)
+						return element.sendKeys(InputKeys.CLEAR_ALL, schemeName);
 					})
 					.then(() => {
 						testURIScheme(driver, done, toExecutePath, schemeName);
@@ -1657,7 +1655,7 @@ describe('Options Page', function(this: MochaFn) {
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
 				}).then(() => {
-					return getDialog(driver, type)
+					return getDialog(driver, type);
 				}).then((dialog) => {
 					dialog
 						.findElement(webdriver.By.id('showOnSpecified'))
@@ -1668,7 +1666,7 @@ describe('Options Page', function(this: MochaFn) {
 								.then((button) => {
 									return button.click().then(() => {
 										return button.click();
-									})
+									});
 								});
 						}).then(() => {
 							setTimeout(() => {
@@ -1701,14 +1699,14 @@ describe('Options Page', function(this: MochaFn) {
 										done();
 									});
 							}, 500);
-						})
+						});
 				});
 			});
 			it('should be addable/editable when saved', (done) => {
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
 				}).then(() => {
-					return getDialog(driver, type)
+					return getDialog(driver, type);
 				}).then((dialog) => {
 					dialog
 						.findElement(webdriver.By.id('showOnSpecified'))
@@ -1719,7 +1717,7 @@ describe('Options Page', function(this: MochaFn) {
 								.then((button) => {
 									return button.click().then(() => {
 										return button.click();
-									})
+									});
 								});
 						}).then(() => {
 							setTimeout(() => {
@@ -1732,7 +1730,7 @@ describe('Options Page', function(this: MochaFn) {
 											.then(() => {
 												return triggers[1]
 													.findElement(webdriver.By.tagName('paper-input'))
-													.sendKeys(InputKeys.CLEAR_ALL, 'www.google.com');
+													.sendKeys(InputKeys.CLEAR_ALL, 'http://www.google.com');
 											});
 									}).then(() => {
 										return saveDialog(dialog);
@@ -1749,12 +1747,12 @@ describe('Options Page', function(this: MochaFn) {
 											'*://*.example.com/*',
 											'first trigger url stays the same');
 										assert.strictEqual(crm[0].triggers[1].url,
-											'www.google.com',
+											'http://www.google.com',
 											'second trigger url changed');
 										done();
 									});
 							}, 500);
-						})
+						});
 				});
 			});
 			it('should be preserved on page reload', function(done) {
@@ -1773,7 +1771,7 @@ describe('Options Page', function(this: MochaFn) {
 						'*://*.example.com/*',
 						'first trigger url stays the same');
 					assert.strictEqual(crm[0].triggers[1].url,
-						'www.google.com',
+						'http://www.google.com',
 						'second trigger url changed');
 					done();
 				});
@@ -1792,7 +1790,7 @@ describe('Options Page', function(this: MochaFn) {
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, 'link');
 				}).then(() => {
-					return getDialog(driver, 'link')
+					return getDialog(driver, 'link');
 				}).then((dialog) => {
 					dialog
 						.findElements(webdriver.By.className('showOnContentItemCont'))
@@ -1832,7 +1830,7 @@ describe('Options Page', function(this: MochaFn) {
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, 'link');
 				}).then(() => {
-					return getDialog(driver, 'link')
+					return getDialog(driver, 'link');
 				}).then((dialog) => {
 					dialog
 						.findElements(webdriver.By.className('showOnContentItemCont'))
@@ -1869,7 +1867,7 @@ describe('Options Page', function(this: MochaFn) {
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, 'link');
 				}).then(() => {
-					return getDialog(driver, 'link')
+					return getDialog(driver, 'link');
 				}).then((dialog) => {
 					dialog
 						.findElements(webdriver.By.className('showOnContentItemCont'))
@@ -1921,7 +1919,7 @@ describe('Options Page', function(this: MochaFn) {
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, 'link');
 				}).then(() => {
-					return getDialog(driver, 'link')
+					return getDialog(driver, 'link');
 				}).then((dialog) => {
 					dialog
 						.findElements(webdriver.By.className('showOnContentItemCont'))
@@ -1975,7 +1973,7 @@ describe('Options Page', function(this: MochaFn) {
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -2016,7 +2014,7 @@ describe('Options Page', function(this: MochaFn) {
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -2040,7 +2038,7 @@ describe('Options Page', function(this: MochaFn) {
 						resetSettings(this, driver).then(() => {
 							return openDialog(driver, type);
 						}).then(() => {
-							return getDialog(driver, type)
+							return getDialog(driver, type);
 						}).then((dialog) => {
 							return wait(driver, 500, dialog);
 						}).then((dialog) => {
@@ -2052,7 +2050,7 @@ describe('Options Page', function(this: MochaFn) {
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -2064,7 +2062,7 @@ describe('Options Page', function(this: MochaFn) {
 										.then((button) => {
 											return button.click().then(() => {
 												return button.click();
-											})
+											});
 										});
 								}).then(() => {
 									setTimeout(() => {
@@ -2123,7 +2121,7 @@ describe('Options Page', function(this: MochaFn) {
 						resetSettings(this, driver).then(() => {
 							return openDialog(driver, type);
 						}).then(() => {
-							return getDialog(driver, type)
+							return getDialog(driver, type);
 						}).then((dialog) => {
 							return wait(driver, 500, dialog);
 						}).then((dialog) => {
@@ -2135,7 +2133,7 @@ describe('Options Page', function(this: MochaFn) {
 								})
 								.then(() => {
 									return dialog
-										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'))
+										.findElements(webdriver.By.css('.stylesheetLaunchOption, .scriptLaunchOption'));
 								}).then((triggerOptions) => {
 									return triggerOptions[triggerOptionIndex].click();
 								}).then(() => {
@@ -2147,7 +2145,7 @@ describe('Options Page', function(this: MochaFn) {
 										.then((button) => {
 											return button.click().then(() => {
 												return button.click();
-											})
+											});
 										});
 								}).then(() => {
 									setTimeout(() => {
@@ -2223,7 +2221,7 @@ describe('Options Page', function(this: MochaFn) {
 						'theme has been switched to white');
 					done();
 				});
-			})
+			});
 		});
 		describe('Zoom', function(this: MochaFn) {
 			this.slow(30000);
@@ -2321,7 +2319,7 @@ describe('Options Page', function(this: MochaFn) {
 					assert.isFalse(settings.editor.useTabs, 
 						'useTabs is off');
 					done();
-				})
+				});
 			});
 		});
 		describe('Tab Size', function(this: MochaFn) {
@@ -2355,7 +2353,7 @@ describe('Options Page', function(this: MochaFn) {
 											(window as any).stylesheetEdit : 
 											(window as any).scriptEdit)._updateTabSizeEl();
 									}));
-								})
+								});
 						});
 				}).then(() => {
 					return getSyncSettings(driver);
@@ -2369,7 +2367,7 @@ describe('Options Page', function(this: MochaFn) {
 						assert.strictEqual(settings.editor.tabSize, newTabSize,
 							'tab size has changed to the correct number');
 						done();
-					})
+					});
 				});
 			});
 		});
@@ -2493,7 +2491,7 @@ describe('Options Page', function(this: MochaFn) {
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, 'link');
 					}).then(() => {
-						return getDialog(driver, 'link')
+						return getDialog(driver, 'link');
 					}).then((dialog) => {
 						dialog
 							.findElement(webdriver.By.className('linkChangeCont'))
@@ -2517,7 +2515,7 @@ describe('Options Page', function(this: MochaFn) {
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, 'link');
 					}).then(() => {
-						return getDialog(driver, 'link')
+						return getDialog(driver, 'link');
 					}).then((dialog) => {
 						dialog
 							.findElement(webdriver.By.className('linkChangeCont'))
@@ -2545,7 +2543,7 @@ describe('Options Page', function(this: MochaFn) {
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, 'link');
 					}).then(() => {
-						return getDialog(driver, 'link')
+						return getDialog(driver, 'link');
 					}).then((dialog) => {
 						dialog
 							.findElement(webdriver.By.id('changeLink'))
@@ -2580,11 +2578,11 @@ describe('Options Page', function(this: MochaFn) {
 					const newValue = {
 						newTab: true,
 						url: newUrl
-					}
+					};
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, 'link');
 					}).then(() => {
-						return getDialog(driver, 'link')
+						return getDialog(driver, 'link');
 					}).then((dialog) => {
 						dialog
 							.findElement(webdriver.By.id('changeLink'))
@@ -2652,7 +2650,7 @@ describe('Options Page', function(this: MochaFn) {
 					const newValue = {
 						newTab: true,
 						url: newUrl
-					}
+					};
 
 					reloadPage(this, driver).then(() => {
 						return getCRM(driver);
@@ -2678,7 +2676,7 @@ describe('Options Page', function(this: MochaFn) {
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, 'link');
 					}).then(() => {
-						return getDialog(driver, 'link')
+						return getDialog(driver, 'link');
 					}).then((dialog) => {
 						dialog
 							.findElement(webdriver.By.id('changeLink'))
@@ -2705,7 +2703,7 @@ describe('Options Page', function(this: MochaFn) {
 										.then(() => {
 											return element
 												.sendKeys(InputKeys.CLEAR_ALL, newUrl);
-										})
+										});
 								});
 							})
 							.then(() => {
@@ -2959,14 +2957,13 @@ describe('Options Page', function(this: MochaFn) {
 					this.slow(70000);
 					this.timeout(100000);
 
-					/*
 					describe('Libraries', function(this: MochaFn) {
 						afterEach('Close dialog', (done) => {
 							driver.executeScript(inlineFn(() => {
 								(document.getElementById('addLibraryDialog') as any).close();
 							})).then(() => {
 								done();
-							})
+							});
 						});
 
 						it('should be possible to add your own library through a URL', (done) => {
@@ -2989,7 +2986,7 @@ describe('Options Page', function(this: MochaFn) {
 									}).then(() => {
 										return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
 											.findElement(webdriver.By.tagName('input'))
-											.sendKeys(InputKeys.CLEAR_ALL, libUrl)
+											.sendKeys(InputKeys.CLEAR_ALL, libUrl);
 									}).then(() => {
 										return wait(driver, 1000);
 									}).then(() => {
@@ -3051,7 +3048,7 @@ describe('Options Page', function(this: MochaFn) {
 									request(libUrl, (err, res, body) => {
 										assert.ifError(err, 'Should not fail the GET request');
 
-										if (res.statusCode == 200) {
+										if (res.statusCode === 200) {
 											resolve(body);
 										} else {
 											assert.ifError(new Error('err'), 'Should get 200 statuscode when doing GET request');
@@ -3092,7 +3089,7 @@ describe('Options Page', function(this: MochaFn) {
 													const str = JSON.stringify(window.chrome._executedScripts);
 													window.chrome._clearExecutedScripts();
 													return str;
-												}))
+												}));
 										}).then((str: string) => {
 											const activatedScripts = JSON.parse(str) as ExecutedScripts;
 
@@ -3124,7 +3121,7 @@ describe('Options Page', function(this: MochaFn) {
 									}).then(() => {
 										return findElement(driver, webdriver.By.id('addLibraryUrlInput'))
 											.findElement(webdriver.By.tagName('input'))
-											.sendKeys(InputKeys.CLEAR_ALL, libUrl)
+											.sendKeys(InputKeys.CLEAR_ALL, libUrl);
 									}).then(() => {
 										return wait(driver, 1000);
 									}).then(() => {
@@ -3283,7 +3280,7 @@ describe('Options Page', function(this: MochaFn) {
 											return driver
 												.executeScript(inlineFn(() => {
 													return JSON.stringify(window.chrome._executedScripts);
-												}))
+												}));
 										}).then((str: string) => {
 											const activatedScripts = JSON.parse(str) as ExecutedScripts;
 
@@ -3436,7 +3433,7 @@ describe('Options Page', function(this: MochaFn) {
 											.findElement(webdriver.By.id('initialWindow'))
 											.findElement(webdriver.By.className('buttons'))
 											.findElement(webdriver.By.css('paper-button:nth-child(2)'))
-											.click()
+											.click();
 										}).then(() => {
 											return wait(driver, 500);
 										}).then(() => {
@@ -3496,7 +3493,7 @@ describe('Options Page', function(this: MochaFn) {
 											.findElement(webdriver.By.id('initialWindow'))
 											.findElement(webdriver.By.className('buttons'))
 											.findElement(webdriver.By.css('paper-button:nth-child(2)'))
-											.click()
+											.click();
 										}).then(() => {
 											return findElement(driver, webdriver.By.id('chooseDefaultSearchWindow'))
 												.findElement(webdriver.By.className('buttons'))
@@ -3549,6 +3546,7 @@ describe('Options Page', function(this: MochaFn) {
 								});
 							});
 						});
+						/*
 						describe('Custom Input', function(this: MochaFn) {
 							it('should be able to add one from a search URL', (done) => {
 								const exampleSearchURL = 
@@ -3695,8 +3693,8 @@ describe('Options Page', function(this: MochaFn) {
 								});
 							});
 						});
+						*/
 					});
-					*/
 				});
 			});
 		});
@@ -3728,7 +3726,6 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	});
 });
-
 
 describe('On-Page CRM', function(this: MochaFn) {
 	describe('Redraws on new CRM', function(this: MochaFn) {
@@ -3781,11 +3778,11 @@ describe('On-Page CRM', function(this: MochaFn) {
 						});
 				});
 			}, 'setting up the CRM does not throw');
-		})
+		});
 		it('should be using the first CRM', function(this: MochaFn, done) {
 			this.timeout(60000);
 			getContextMenu(driver).then((contextMenu) => {
-				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM1), 'node orders and names match');
+				assertContextMenuEquality(contextMenu, CRM1);
 				done();
 			});
 		});
@@ -3805,7 +3802,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 		it('should be using the new CRM', function(this: MochaFn, done) {
 			getContextMenu(driver).then((contextMenu) => {
-				assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRM2), 'node orders and names match');
+				assertContextMenuEquality(contextMenu, CRM2);
 				done();
 			});
 		});
@@ -3906,7 +3903,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						});
 				});
 			}, 'setting up the CRM does not throw');
-		})
+		});
 		it('should match the given names and types', (done) => {
 			getContextMenu(driver).then((contextMenu) => {
 				for (let i = 0; i < CRMNodes.length; i++) {
@@ -3991,7 +3988,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 										url: sanitizeUrl(link.url)
 									},
 									type: 'update'
-								}
+								};
 							} else {
 								return {
 									type: 'create',
@@ -4058,7 +4055,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 										url: sanitizeUrl(link.url)
 									},
 									type: 'update'
-								}
+								};
 							} else {
 								return {
 									type: 'create',
@@ -4172,7 +4169,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						});
 				});
 			}, 'setting up the CRM does not throw');
-		})
+		});
 		it('should have the correct structure', function(done) {
 			this.slow(400);
 			this.timeout(1400);
@@ -4182,11 +4179,10 @@ describe('On-Page CRM', function(this: MochaFn) {
 						return window.logs;
 					}))
 					.then((logs) => {
-						assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes),
-							'structures match');
+						assertContextMenuEquality(contextMenu, CRMNodes);
 						done();
 					});
-			})
+			});
 		});
 	});
 	describe('Scripts', function(this: MochaFn) {
@@ -4311,7 +4307,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return wait(driver, 50);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts)
+						return JSON.stringify(window.chrome._executedScripts);
 					}));
 				}).then((str: string) => {
 					const activatedScripts = JSON.parse(str) as ExecutedScripts;
@@ -4355,7 +4351,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						return driver
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
-							}))
+							}));
 					}).then((str: string) => {
 						const activatedScripts = JSON.parse(str) as ExecutedScripts;
 						assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4387,7 +4383,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return wait(driver, 50);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts)
+						return JSON.stringify(window.chrome._executedScripts);
 					}));
 				}).then((str: string) => {
 					const activatedScripts = JSON.parse(str) as ExecutedScripts;
@@ -4453,7 +4449,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return driver
 						.executeScript(inlineFn(() => {
 							return JSON.stringify(window.chrome._executedScripts);
-						}))
+						}));
 				}).then((str: string) => {
 					const activatedScripts = JSON.parse(str) as ExecutedScripts;
 					assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4497,7 +4493,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							return driver
 								.executeScript(inlineFn(() => {
 									return JSON.stringify(window.chrome._activatedBackgroundPages);
-								}))
+								}));
 						}).then((str: string) => {
 							const activatedBackgroundScripts = JSON.parse(str) as Array<number>;
 							assert.lengthOf(activatedBackgroundScripts, 1,
@@ -4552,7 +4548,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						return driver
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
-							}))
+							}));
 					}).then((str: string) => {
 						const activatedScripts = JSON.parse(str) as ExecutedScripts;
 						assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4696,7 +4692,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return wait(driver, 50);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts)
+						return JSON.stringify(window.chrome._executedScripts);
 					}));
 				}).then((str: string) => {
 					const activatedScripts = JSON.parse(str) as ExecutedScripts;
@@ -4741,7 +4737,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						return driver
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
-							}))
+							}));
 					}).then((str: string) => {
 						const activatedScripts = JSON.parse(str) as ExecutedScripts;
 						assert.lengthOf(activatedScripts, 1, 'one stylesheet was activated');
@@ -4773,7 +4769,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return wait(driver, 50);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						return JSON.stringify(window.chrome._executedScripts)
+						return JSON.stringify(window.chrome._executedScripts);
 					}));
 				}).then((str: string) => {
 					const activatedScripts = JSON.parse(str) as ExecutedScripts;
@@ -4839,7 +4835,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					return driver
 						.executeScript(inlineFn(() => {
 							return JSON.stringify(window.chrome._executedScripts);
-						}))
+						}));
 				}).then((str: string) => {
 					const activatedScripts = JSON.parse(str) as ExecutedScripts;
 					assert.lengthOf(activatedScripts, 1, 'one script was activated');
@@ -4890,7 +4886,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						return driver
 							.executeScript(inlineFn(() => {
 								return JSON.stringify(window.chrome._executedScripts);
-							}))
+							}));
 					}).then((str: string) => {
 						const executedScripts = JSON.parse(str) as ExecutedScripts;
 						assert.lengthOf(executedScripts, 1, 'one script was activated');
@@ -4992,7 +4988,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								title: 'Google',
 								incognito: false
 							})
-						}))
+						}));
 					}).then(() => {
 						return wait(driver, 100);
 					}).then(() => {
@@ -5030,7 +5026,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								title: 'Google',
 								incognito: false
 							})
-						}))
+						}));
 					}).then(() => {
 						return wait(driver, 100);
 					}).then(() => {

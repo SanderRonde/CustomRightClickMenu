@@ -200,15 +200,15 @@ interface AddedPermissionsTabContainer extends HTMLElement {
 }
 
 interface TernServer {
-	complete(cm: CodeMirror): void;
-	showType(cm: CodeMirror): void;
-	showDocs(cm: CodeMirror): void;
-	jumpToDef(cm: CodeMirror): void;
-	jumpBack(cm: CodeMirror): void;
-	rename(cm: CodeMirror): void;
-	selectName(cm: CodeMirror): void;
+	complete(cm: CodeMirrorInstance): void;
+	showType(cm: CodeMirrorInstance): void;
+	showDocs(cm: CodeMirrorInstance): void;
+	jumpToDef(cm: CodeMirrorInstance): void;
+	jumpBack(cm: CodeMirrorInstance): void;
+	rename(cm: CodeMirrorInstance): void;
+	selectName(cm: CodeMirrorInstance): void;
 
-	updateArgHints(cm: CodeMirror): void;
+	updateArgHints(cm: CodeMirrorInstance): void;
 }
 
 interface CodeSettingsDialog extends HTMLPaperDialogElement {
@@ -3227,23 +3227,21 @@ class CA {
 		/**
 		 * Merges two arrays
 		 */
-		static mergeArrays<T, U>(mainArray: Array<T|Array<T>>, additionArray: Array<U|Array<U>>): Array<T|U|Array<T|U>> {
-			const newArray: Array<T|U|Array<T|U>> = [];
-
+		static mergeArrays<T, U>(mainArray: Array<T|Array<T>|U|Array<U>>, additionArray: Array<U|Array<U>>): Array<T|U|Array<T|U>> {
 			for (let i = 0; i < additionArray.length; i++) {
 				if (mainArray[i] && typeof additionArray[i] === 'object' && 
 					mainArray[i] !== undefined && mainArray[i] !== null) {
 					if (Array.isArray(additionArray[i])) {
-						newArray[i] = this.mergeArrays((mainArray[i] as any) as Array<T>,
-							(additionArray[i] as any) as Array<U>) as Array<T|U>;
+						mainArray[i] = this.mergeArrays((mainArray[i] as any) as Array<T>,
+							(additionArray[i] as any) as Array<U>) as Array<T>|Array<U>;
 					} else {
-						newArray[i] = this.mergeObjects(mainArray[i], additionArray[i]) as any;
+						mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]) as any;
 					}
 				} else {
-					newArray[i] = additionArray[i];
+					mainArray[i] = additionArray[i];
 				}
 			}
-			return newArray;
+			return mainArray;
 		};
 
 		/**

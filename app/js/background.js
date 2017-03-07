@@ -1,4 +1,8 @@
-"use strict";
+/// <reference path="../../tools/definitions/chrome.d.ts"/>
+/// <reference path="../../tools/definitions/specialJSON.d.ts" />
+/// <reference path="../../tools/definitions/crm.d.ts" />
+/// <reference path="../../tools/definitions/tern.d.ts" />
+/// <reference path="../../node_modules/@types/node/index.d.ts" />
 ;
 var Promiselike = (function () {
     function Promiselike(initializer) {
@@ -40,7 +44,7 @@ var Promiselike = (function () {
         }
         return this;
     };
-    Promiselike.prototype["catch"] = function (onrejected) {
+    Promiselike.prototype.catch = function (onrejected) {
         this._rejectListeners.push(onrejected);
         if (this._status === 'rejected') {
             onrejected(this._rejectReason);
@@ -93,6 +97,7 @@ var Promiselike = (function () {
 }());
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 (function (extensionId, globalObject, sandboxes) {
+    //#region Global Variables
     globalObject.globals = {
         latestId: 0,
         storages: {
@@ -217,7 +222,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        }
+                        },
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
@@ -249,7 +254,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     if (options === void 0) { options = {}; }
                     var value = {
                         stylesheet: [].join('\n'),
-                        launchMode: 0,
+                        launchMode: 0 /* RUN_ON_CLICKING */,
                         toggle: false,
                         defaultOn: false,
                         options: {}
@@ -259,7 +264,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 getDefaultScriptValue: function (options) {
                     if (options === void 0) { options = {}; }
                     var value = {
-                        launchMode: 0,
+                        launchMode: 0 /* RUN_ON_CLICKING */,
                         backgroundLibraries: [],
                         libraries: [],
                         script: [].join('\n'),
@@ -316,7 +321,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         value: null,
                         showOnSpecified: true,
                         children: type === 'menu' ? [] : null,
-                        permissions: []
+                        permissions: [],
                     };
                     return this.mergeObjects(defaultNode, options);
                 },
@@ -442,6 +447,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 if ((index = refData.originalValues.indexOf(element)) === -1) {
                                     index = refData.refs.length;
                                     copyTarget = (Array.isArray(element) ? [] : {});
+                                    //Filler
                                     refData.refs.push(null);
                                     refData.paths[index] = path;
                                     var newData = _this._toJSON(copyTarget[key], element, path.concat(key), refData);
@@ -492,6 +498,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 var index = void 0;
                                 if ((index = originalValues.indexOf(element)) === -1) {
                                     index = refs.length;
+                                    //Filler
                                     refs.push(null);
                                     var newData = _this._toJSON(copyTarget_1[key], element, [key], {
                                         refs: refs,
@@ -769,6 +776,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         };
         return Helpers;
     }());
+    /**
+     * JSONfn - javascript (both node.js and browser) plugin to stringify,
+     *          parse and clone objects with Functions, Regexp and Date.
+     *
+     * Version - 0.60.00
+     * Copyright (c) 2012 - 2014 Vadim Kiryukhin
+     * vkiryukhin @ gmail.com
+     * http://www.eslinstructor.net/jsonfn/
+     *
+     * Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
+     */
     Helpers.jsonFn = {
         stringify: function (obj) {
             return JSON.stringify(obj, function (_, value) {
@@ -950,6 +968,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 var newResults = jobs
                     .map(function (job) { return job.result; })
                     .filter(function (jobResult) { return !!jobResult; });
+                //Preserve === equality if nothing changed
                 if (JSON.stringify(newResults) === JSON.stringify(oldResults)) {
                     onDone(oldResults);
                 }
@@ -979,6 +998,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 });
                                 chrome.tabs.get(~~tabId, function (tab) {
                                     if (chrome.runtime.lastError) {
+                                        //Tab does not exist, remove it from tabData
                                         Helpers.removeTab(~~tabId);
                                         return;
                                     }
@@ -1088,8 +1108,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     settings.checked = node.node.value.defaultOn;
                 }
                 settings.parentId = parentId;
+                //This is added by chrome to the object during/after creation so delete it manually
                 delete settings.generatedId;
                 var id = chrome.contextMenus.create(settings);
+                //Update ID
                 node.id = id;
                 globalObject.globals.crmValues.contextMenuIds[node.node.id] = id;
                 globalObject.globals.crmValues.contextMenuInfoById[id] = globalObject
@@ -1114,9 +1136,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             }
             function applyNodeChangesOntree(parentId, tree, changes) {
+                //Remove all nodes below it and re-enable them and its children
+                //Remove all nodes below it and store them
                 var firstChangeIndex = getFirstRowChange(tree, changes);
                 if (firstChangeIndex < tree.length) {
                     for (var i = 0; i < firstChangeIndex; i++) {
+                        //Normally check its children
                         if (tree[i].children && tree[i].children.length > 0) {
                             applyNodeChangesOntree(tree[i].id, tree[i].children, changes);
                         }
@@ -1125,13 +1150,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 for (var i = firstChangeIndex; i < tree.length; i++) {
                     if (changes[tree[i].id]) {
                         if (changes[tree[i].id].type === 'hide') {
+                            //Don't check its children, just remove it
                             removeNode(tree[i]);
+                            //Set it and its children's status to hidden
                             tree[i].enabled = false;
                             if (tree[i].children) {
                                 setStatusForTree(tree[i].children, false);
                             }
                         }
                         else {
+                            //Remove every node after it and show them again
                             var enableAfter = [tree[i]];
                             for (var j = i + 1; j < tree.length; j++) {
                                 if (changes[tree[j].id]) {
@@ -1165,36 +1193,43 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             }
             function tabChangeListener(changeInfo) {
+                //Horrible workaround that allows the hiding of nodes on certain url's that
+                //	surprisingly only takes ~1-2ms per tab switch.
                 var currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
                 chrome.tabs.get(currentTabId, function (tab) {
                     if (chrome.runtime.lastError) {
                         console.log(chrome.runtime.lastError.message);
                         return;
                     }
+                    //Show/remove nodes based on current URL
                     var toHide = [];
                     var toEnable = [];
                     var changes = {};
                     var shownNodes = [];
                     var hiddenNodes = [];
                     getNodeStatusses(globalObject.globals.crmValues.contextMenuItemTree, hiddenNodes, shownNodes);
+                    //Find nodes to enable
                     var hideOn;
                     for (var i = 0; i < hiddenNodes.length; i++) {
                         hideOn = globalObject.globals.crmValues
                             .hideNodesOnPagesData[hiddenNodes[i]
                             .node.id];
                         if (!hideOn || !URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
+                            //Don't hide on current url
                             toEnable.push({
                                 node: hiddenNodes[i].node,
                                 id: hiddenNodes[i].id
                             });
                         }
                     }
+                    //Find nodes to hide
                     for (var i = 0; i < shownNodes.length; i++) {
                         hideOn = globalObject.globals.crmValues
                             .hideNodesOnPagesData[shownNodes[i]
                             .node.id];
                         if (hideOn) {
                             if (URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
+                                //Don't hide on current url
                                 toHide.push({
                                     node: shownNodes[i].node,
                                     id: shownNodes[i].id
@@ -1202,12 +1237,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             }
                         }
                     }
+                    //Re-check if the toEnable nodes might be disabled after all
                     var length = toEnable.length;
                     for (var i = 0; i < length; i++) {
                         hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[toEnable[i]
                             .node.id];
                         if (hideOn) {
                             if (URLParsing.matchesUrlSchemes(hideOn, tab.url)) {
+                                //Don't hide on current url
                                 toEnable.splice(i, 1);
                                 length--;
                                 i--;
@@ -1226,6 +1263,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             type: 'show'
                         };
                     }
+                    //Apply changes
                     applyNodeChangesOntree(globalObject.globals.crmValues.rootId, globalObject
                         .globals.crmValues.contextMenuItemTree, changes);
                 });
@@ -1272,6 +1310,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 urls: ["chrome-extension://" + extensionId + "/resource/*"]
             }, ['blocking']);
             chrome.tabs.onRemoved.addListener(function (tabId) {
+                //Delete all data for this tabId
                 for (var node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
                     if (globalObject.globals.crmValues.stylesheetNodeStatusses
                         .hasOwnProperty(node) &&
@@ -1280,6 +1319,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             .stylesheetNodeStatusses[node][tabId] = undefined;
                     }
                 }
+                //Delete this instance if it exists
                 var deleted = [];
                 for (var node in globalObject.globals.crmValues.nodeInstances) {
                     if (globalObject.globals.crmValues.nodeInstances.hasOwnProperty(node) &&
@@ -1506,6 +1546,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             function LogExecution() {
             }
             LogExecution.executeCRMCode = function (message, type) {
+                //Get the port
                 if (!globalObject.globals.crmValues.tabData[message.tab]) {
                     return;
                 }
@@ -1532,6 +1573,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             function Listeners() {
             }
             Listeners.updateTabAndIdLists = function (force) {
+                //Make sure anybody is listening
                 var listeners = globalObject.globals.listeners;
                 if (!force && listeners.ids.length === 0 && listeners.tabs.length === 0) {
                     return {
@@ -1718,6 +1760,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             return candidate.name === msg['query'].name;
                         });
                     }
+                    //Filter out all nulls
                     searchScopeArr = searchScopeArr.filter(function (result) {
                         return result !== null;
                     });
@@ -1956,8 +1999,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             _this.checkPermissions(['crmGet', 'crmWrite'], function () {
                 _this.getNodeFromId(_this.message.nodeId).run(function (node) {
                     var msg = _this.message;
+                    //Remove original from CRM
                     var parentChildren = _this.lookup(node.path, globalObject.globals.crm
                         .crmTree, true);
+                    //parentChildren.splice(node.path[node.path.length - 1], 1);
                     if ((node = _this.moveNode(node, msg['position'], {
                         children: parentChildren,
                         index: node.path[node.path.length - 1]
@@ -2074,7 +2119,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         var matchPatterns = [];
                         globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
                         if ((node.type === 'script' || node.type === 'stylesheet') &&
-                            node.value.launchMode === 2) {
+                            node.value.launchMode === 2 /* RUN_ON_SPECIFIED */) {
                             for (var i = 0; i < triggers.length; i++) {
                                 var pattern = URLParsing.validatePatternUrl(triggers[i].url);
                                 if (!pattern) {
@@ -2085,7 +2130,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                         else {
                             var isShowOnSpecified = ((node.type === 'script' || node.type === 'stylesheet') &&
-                                node.value.launchMode === 2);
+                                node.value.launchMode === 2 /* RUN_ON_SPECIFIED */);
                             for (var i = 0; i < triggers.length; i++) {
                                 if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
                                     _this.respondError('Triggers don\'t match URL scheme');
@@ -2413,6 +2458,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     if (optionals['url']) {
                         if (msg['url'].indexOf('.js') ===
                             msg['url'].length - 3) {
+                            //Use URL
                             var done = false;
                             var xhr = new window.XMLHttpRequest();
                             xhr.open('GET', msg['url'], true);
@@ -3049,7 +3095,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             return (hold ? data : data[path[length]]) || false;
         };
         CRMFunction.prototype.checkType = function (toCheck, type, name, optional, ifndef, isArray, ifdef) {
-            if (optional === void 0) { optional = 0; }
+            if (optional === void 0) { optional = 0 /* REQUIRED */; }
             if (isArray === void 0) { isArray = false; }
             if (toCheck === undefined || toCheck === null) {
                 if (optional) {
@@ -3102,22 +3148,24 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         CRMFunction.prototype.moveNode = function (node, position, removeOld) {
             if (removeOld === void 0) { removeOld = false; }
             var crmFunction = this;
+            //Capture old CRM tree
             var oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm
                 .crmTree));
+            //Put the node in the tree
             var relativeNode;
             var parentChildren;
             position = position || {};
             if (!this.checkType(position, 'object', 'position')) {
                 return false;
             }
-            if (!this.checkType(position.node, 'number', 'node', 1, null, false, function () {
+            if (!this.checkType(position.node, 'number', 'node', 1 /* OPTIONAL */, null, false, function () {
                 if (!(relativeNode = crmFunction.getNodeFromId(position.node, false, true))) {
                     return;
                 }
             })) {
                 return false;
             }
-            if (!this.checkType(position.relation, 'string', 'relation', 1)) {
+            if (!this.checkType(position.relation, 'string', 'relation', 1 /* OPTIONAL */)) {
                 return false;
             }
             relativeNode = relativeNode || globalObject.globals.crm.crmTree;
@@ -3218,6 +3266,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             if (removeOld) {
                 removeOld.children.splice(removeOld.index, 1);
             }
+            //Update settings
             Storages.applyChanges({
                 type: 'optionsPage',
                 settingsChanges: [
@@ -3748,6 +3797,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             }
         };
         Resources._getUrlData = function (scriptId, url, callback) {
+            //First check if the data has already been fetched
             if (globalObject.globals.storages.urlDataPairs[url]) {
                 if (globalObject.globals.storages.urlDataPairs[url].refs
                     .indexOf(scriptId) ===
@@ -3758,6 +3808,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             }
             else {
                 Helpers.convertFileToDataURI(url, function (dataURI, dataString) {
+                    //Write the data away to the url-data-pairs object
                     globalObject.globals.storages.urlDataPairs[url] = {
                         dataURI: dataURI,
                         dataString: dataString,
@@ -3870,6 +3921,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             if (urlDataLink) {
                 urlDataLink.refs.splice(urlDataLink.refs.indexOf(scriptId), 1);
                 if (urlDataLink.refs.length === 0) {
+                    //No more refs, clear it
                     delete globalObject.globals.storages.urlDataPairs[globalObject.globals
                         .storages.resources[scriptId][name].sourceUrl];
                 }
@@ -3890,6 +3942,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             Helpers.convertFileToDataURI(key.sourceUrl, function (dataURI, dataString) {
                 if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
                     resources[key.scriptId][key.name].dataURI !== dataURI) {
+                    //Data URIs do not match, just update the url ref
                     globalObject.globals.storages.urlDataPairs[key.sourceUrl]
                         .dataURI = dataURI;
                     globalObject.globals.storages.urlDataPairs[key.sourceUrl]
@@ -4349,6 +4402,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         key = Helpers.createSecretKey();
                     }
                     catch (e) {
+                        //There somehow was a stack overflow
                         err = e;
                     }
                     if (err) {
@@ -4493,7 +4547,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                             break;
                                         }
                                         else {
+                                            //Resource hasn't been registered with its name, try if it's an anonymous one
                                             if (node.value.libraries[i].name === null) {
+                                                //Check if the value has been registered as a resource
                                                 if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
                                                     lib = {
                                                         code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
@@ -4628,6 +4684,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             };
             Updating._registerNode = function (node, oldPath) {
+                //Update it in CRM tree
                 if (oldPath !== undefined && oldPath !== null) {
                     eval("globalObject.globals.storages.settingsStorage.crm[" + oldPath
                         .join('][') + "] = node");
@@ -4712,7 +4769,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     node = node;
                     node.type = 'stylesheet';
                     launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_launchMode') ||
-                        2;
+                        2 /* RUN_ON_SPECIFIED */;
                     launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
                     node.value = {
                         stylesheet: code,
@@ -4729,6 +4786,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 else {
                     node.type = 'script';
                     node = node;
+                    //Libraries
                     var libs = [];
                     if (metaTags['CRM_libraries']) {
                         metaTags['CRM_libraries'].forEach(function (item) {
@@ -4858,12 +4916,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 var updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'updateURL') ||
                     CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'downloadURL') ||
                     downloadURL;
+                //Requested permissions
                 var permissions = [];
                 if (metaTags['grant']) {
                     permissions = metaTags['grant'];
                     permissions = permissions.splice(permissions.indexOf('none'), 1);
                     metaTags['grant'] = permissions;
                 }
+                //NodeInfo
                 node.nodeInfo = {
                     version: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'version') ||
                         null,
@@ -4887,6 +4947,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         globalObject.globals.crm.crmById[oldNodeId].nodeInfo.installDate) ||
                         node.nodeInfo.installDate;
                 }
+                //Content types
                 if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_contentTypes')) {
                     try {
                         node.onContentTypes = JSON.parse(CRM.Script.MetaTags
@@ -4899,8 +4960,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     node.onContentTypes = [true, true, true, true, true, true];
                 }
                 metaTags['CRM_contentTypes'] = node.onContentTypes;
+                //Allowed permissions
                 node.permissions = allowedPermissions || [];
+                //Resources
                 if (metaTags['resource']) {
+                    //Register resources
                     var resources = metaTags['resource'];
                     resources.forEach(function (resource) {
                         var resourceSplit = resource.split(/(\s*)/);
@@ -4913,6 +4977,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         });
                     });
                 }
+                //Uploading
                 this._applyMetaTags(code, metaTags, node);
                 chrome.storage.local.get('requestPermissions', function (keys) {
                     chrome.permissions.getAll(function (allowed) {
@@ -5034,6 +5099,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                         .grant) &&
                                         !(resultParsed.metaTags.grant.length === 0 &&
                                             resultParsed.metaTags.grant[0] === 'none')) {
+                                        //New permissions were added, notify user
                                         chrome.storage.local.get('addedPermissions', function (data) {
                                             var addedPermissions = data['addedPermissions'] || [];
                                             addedPermissions.push({
@@ -5074,9 +5140,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
                 else {
                     if (node.type === 'script' || node.type === 'stylesheet') {
+                        //Do a request to get that script from its download URL
                         if (downloadURL) {
                             try {
                                 Helpers.convertFileToDataURI(downloadURL, function (dataURI, dataString) {
+                                    //Get the meta tags
                                     try {
                                         var metaTags = CRM.Script.MetaTags
                                             .getMetaTags(dataString);
@@ -5087,6 +5155,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                                     .length ===
                                                     0 &&
                                                     metaTags['grant'][0] === 'none')) {
+                                                //New permissions were added, notify user
                                                 chrome.storage.local.get('addedPermissions', function (data) {
                                                     var addedPermissions = data['addedPermissions'] || [];
                                                     addedPermissions.push({
@@ -5197,7 +5266,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 break;
                             }
                             else {
+                                //Resource hasn't been registered with its name, try if it's an anonymous one
                                 if (node.value.libraries[i].name === null) {
+                                    //Check if the value has been registered as a resource
                                     if (globalObject.globals.storages.urlDataPairs[node.value
                                         .libraries[i].url]) {
                                         lib = {
@@ -5247,6 +5318,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     key = Helpers.createSecretKey();
                 }
                 catch (e) {
+                    //There somehow was a stack overflow
                     err = e;
                 }
                 if (!err) {
@@ -5401,6 +5473,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 }
             };
             Background.createBackgroundPages = function () {
+                //Iterate through every node
                 for (var nodeId in globalObject.globals.crm.crmById) {
                     if (globalObject.globals.crm.crmById.hasOwnProperty(nodeId)) {
                         var node = globalObject.globals.crm.crmById[nodeId];
@@ -5519,6 +5592,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             };
             Installing._extractStylesheetData = function (data) {
                 var _this = this;
+                //Get the @document declaration
                 if (data.domains.length === 0 &&
                     data.regexps.length === 0 &&
                     data.urlPrefixes.length &&
@@ -5625,6 +5699,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 crmNode.type === 'stylesheet' &&
                 node.type === 'stylesheet' &&
                 crmNode.value.stylesheet !== node.value.stylesheet) {
+                //Update after creating a new node
                 for (var key in globalObject.globals.crmValues
                     .stylesheetNodeStatusses[node
                     .id]) {
@@ -5644,19 +5719,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             return replaceOnTabs;
         };
         NodeCreation._addRightClickItemClick = function (node, launchMode, rightClickItemOptions, idHolder) {
+            //On by default
             if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
-                if (launchMode === 1 ||
-                    launchMode === 0) {
+                if (launchMode === 1 /* ALWAYS_RUN */ ||
+                    launchMode === 0 /* RUN_ON_CLICKING */) {
                     globalObject.globals.toExecuteNodes.always.push(node);
                 }
-                else if (launchMode === 2 ||
-                    launchMode === 3) {
+                else if (launchMode === 2 /* RUN_ON_SPECIFIED */ ||
+                    launchMode === 3 /* SHOW_ON_SPECIFIED */) {
                     globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
                 }
             }
             if ((node['showOnSpecified'] && (node.type === 'link' || node.type === 'divider' ||
                 node.type === 'menu')) ||
-                launchMode === 3) {
+                launchMode === 3 /* SHOW_ON_SPECIFIED */) {
                 rightClickItemOptions.documentUrlPatterns = [];
                 globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
                 for (var i = 0; i < node.triggers.length; i++) {
@@ -5675,6 +5751,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     }
                 }
             }
+            //It requires a click handler
             switch (node.type) {
                 case 'divider':
                     rightClickItemOptions.type = 'separator';
@@ -5731,14 +5808,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         };
         NodeCreation._setLaunchModeData = function (node, rightClickItemOptions, idHolder) {
             var launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
-                node.value.launchMode) || 0;
-            if (launchMode === 1) {
+                node.value.launchMode) || 0 /* RUN_ON_CLICKING */;
+            if (launchMode === 1 /* ALWAYS_RUN */) {
                 globalObject.globals.toExecuteNodes.always.push(node);
             }
-            else if (launchMode === 2) {
+            else if (launchMode === 2 /* RUN_ON_SPECIFIED */) {
                 globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
             }
-            else if (launchMode !== 4) {
+            else if (launchMode !== 4 /* DISABLED */) {
                 this._addRightClickItemClick(node, launchMode, rightClickItemOptions, idHolder);
             }
         };
@@ -5861,6 +5938,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 var matchPattern = matchPatterns[i].url;
                 if (matchPattern.indexOf('/') === 0 &&
                     matchPattern.split('').reverse().join('').indexOf('/') === 0) {
+                    //It's regular expression
                     if (new RegExp(matchPattern.slice(1, matchPattern.length - 1))
                         .test(url)) {
                         if (not) {
@@ -5957,6 +6035,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             toUpdate.forEach(function (id) {
                 CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id]);
             });
+            //Check if any background page updates occurred
             for (var i = 0; i < changes.length; i++) {
                 if (changes[i].key === 'crm') {
                     var ordered = {};
@@ -6029,6 +6108,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         });
                     }
                     else {
+                        //Using chrome.storage.sync
                         if (settingsJson.length >= 101400) {
                             chrome.storage.local.set({
                                 useStorageSync: false
@@ -6037,9 +6117,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             });
                         }
                         else {
+                            //Cut up all data into smaller JSON
                             var obj = this.cutData(settingsJson);
                             chrome.storage.sync.set(obj, function () {
                                 if (chrome.runtime.lastError) {
+                                    //Switch to local storage
                                     console.log('Error on uploading to chrome.storage.sync ', chrome
                                         .runtime
                                         .lastError);
@@ -6155,6 +6237,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         delete storageLocalCopy.globalExcludes;
                         var settingsStorage = void 0;
                         if (chromeStorageLocal['useStorageSync']) {
+                            //Parse the data before sending it to the callback
                             var indexes = chromeStorageSync['indexes'];
                             if (!indexes) {
                                 chrome.storage.local.set({
@@ -6172,6 +6255,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             }
                         }
                         else {
+                            //Send the "settings" object on the storage.local to the callback
                             if (!chromeStorageLocal['settings']) {
                                 chrome.storage.local.set({
                                     useStorageSync: true
@@ -6211,11 +6295,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             }
         };
         Storages._notifyNodeStorageChanges = function (id, tabId, changes) {
+            //Update in storage
             globalObject.globals.crm.crmById[id].storage = globalObject.globals.storages
                 .nodeStorage[id];
             chrome.storage.local.set({
                 nodeStorage: globalObject.globals.storages.nodeStorage
             });
+            //Notify all pages running that node
             var tabData = globalObject.globals.crmValues.tabData;
             for (var tab in tabData) {
                 if (tabData.hasOwnProperty(tab) && tabData[tab]) {
@@ -6243,6 +6329,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             }
         };
         Storages._upgradeVersion = function (oldVersion, newVersion) {
+            //No changes yet
         };
         Storages._isFirstTime = function (storageLocal) {
             var currentVersion = chrome.runtime.getManifest().version;
@@ -6254,6 +6341,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     this._upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
                     return false;
                 }
+                //Determine if it's a transfer from CRM version 1.*
                 if (!window.localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
                     return this.SetupHandling.handleTransfer();
                 }
@@ -6269,6 +6357,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             var syncString = JSON.stringify(storageSync);
             var hash = window.md5(syncString);
             if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.current.hash !== hash) {
+                //Data changed, show a message and update current hash
                 chrome.storage.local.set({
                     settingsVersionData: {
                         current: {
@@ -6289,6 +6378,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
     Storages.SetupHandling = (_e = (function () {
             function SetupHandling() {
             }
+            //Local storage
             SetupHandling._getDefaultStorages = function () {
                 var syncStorage = this._getDefaultSyncStorage();
                 var syncHash = window.md5(JSON.stringify(syncStorage));
@@ -6324,6 +6414,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                     }, syncStorage];
             };
+            //Sync storage
             SetupHandling._getDefaultSyncStorage = function () {
                 return {
                     editor: {
@@ -6352,7 +6443,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             SetupHandling.handleFirstRun = function (crm) {
                 window.localStorage.setItem('transferred', 'true');
                 var _a = this._getDefaultStorages(), defaultLocalStorage = _a[0], defaultSyncStorage = _a[1];
+                //Save local storage
                 chrome.storage.local.set(defaultLocalStorage);
+                //Save sync storage
                 this._uploadStorageSyncData(defaultSyncStorage);
                 if (crm) {
                     defaultSyncStorage.crm = crm;
@@ -6374,6 +6467,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 chrome.runtime.openOptionsPage();
                 return (function (resolve) {
                     if (!window.CodeMirror.TernServer) {
+                        //Wait until TernServer is loaded
                         window.setTimeout(function () {
                             _this.handleTransfer()(function (data) {
                                 resolve(data);
@@ -6389,6 +6483,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
             SetupHandling._uploadStorageSyncData = function (data) {
                 var _this = this;
                 var settingsJson = JSON.stringify(data);
+                //Using chrome.storage.sync
                 if (settingsJson.length >= 101400) {
                     chrome.storage.local.set({
                         useStorageSync: false
@@ -6397,9 +6492,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     });
                 }
                 else {
+                    //Cut up all data into smaller JSON
                     var obj = Storages.cutData(settingsJson);
                     chrome.storage.sync.set(obj, function () {
                         if (chrome.runtime.lastError) {
+                            //Switch to local storage
                             console.log('Error on uploading to chrome.storage.sync ', chrome.runtime
                                 .lastError);
                             chrome.storage.local.set({
@@ -6427,6 +6524,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     for (var i = 1; i < amount; i++) {
                         nodes.push(this._parseOldCRMNode(window.localStorage.getItem(String(i)), openInNewTab));
                     }
+                    //Structure nodes with children etc
                     var crm = [];
                     this._assignParents(crm, nodes, 0, nodes.length);
                     return crm;
@@ -6435,6 +6533,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     var node = {};
                     var _a = string.split('%123'), name = _a[0], type = _a[1], nodeData = _a[2];
                     switch (type.toLowerCase()) {
+                        //Stylesheets don't exist yet so don't implement those
                         case 'link':
                             node = globalObject.globals.constants.templates.getDefaultLinkNode({
                                 name: name,
@@ -6510,6 +6609,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         if (nodes[i].type === 'menu') {
                             var menuNode = nodes[i];
                             var start = i + 1;
+                            //The amount of children it has
                             i += parseInt(menuNode.children, 10);
                             var end = i + 1;
                             var children = [];
@@ -6550,6 +6650,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     return line;
                 };
                 LegacyScriptReplace.getFunctionCallExpressions = function (data) {
+                    //Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
                     var index = data.parentExpressions.length - 1;
                     var expr = data.parentExpressions[index];
                     while (expr && expr.type !== 'CallExpression') {
@@ -6585,6 +6686,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         return;
                     }
                     var lines = data.persistent.lines;
+                    //Get chrome API
                     var i;
                     var chromeAPI = this.getChromeAPI(expr, data);
                     var firstLine = data.persistent.lines[callLine.from.line];
@@ -6615,6 +6717,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         newLine += ".return(function(" + data.returnName + ") {" + lineRest;
                         var usesTabs = true;
                         var spacesAmount = 0;
+                        //Find out if the writer uses tabs or spaces
                         for (var i_1 = 0; i_1 < data.persistent.lines.length; i_1++) {
                             if (data.persistent.lines[i_1].indexOf('	') === 0) {
                                 usesTabs = true;
@@ -6643,6 +6746,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             indent[spacesAmount] = ' ';
                             indent = indent.join(' ');
                         }
+                        //Only do this for the current scope
                         var scopeLength = null;
                         var idx = null;
                         for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
@@ -6651,6 +6755,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     data.parentExpressions[i].body.type === 'BlockStatement')) {
                                 scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
                                 idx = 0;
+                                //Get the lowest possible scopeLength as to stay on the last line of the scope
                                 while (scopeLength > 0) {
                                     scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
                                 }
@@ -6666,6 +6771,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             newLineData = newLineData.replace(indent, '');
                             indents++;
                         }
+                        //Push in one extra line at the end of the expression
                         var prevLine;
                         var indentArr = [];
                         indentArr[indents] = '';
@@ -6674,6 +6780,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         for (i = callLine.from.line; i < callLine.from.line + (idx - 1); i++) {
                             lines[i] = indent + lines[i];
                         }
+                        //If it's going to add a new line, indent the last line as well
+                        // if (idx === (lines.length - callLines.from.line) + 1) {
+                        // 	lines[i] = indent + lines[i];
+                        // }
                         for (i = callLine.from.line + (idx - 1); i < max; i++) {
                             prevLine = lines[i];
                             lines[i] = prevLine2;
@@ -6691,6 +6801,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 };
                 LegacyScriptReplace.callsChromeFunction = function (callee, data, onError) {
                     data.parentExpressions.push(callee);
+                    //Check if the function has any arguments and check those first
                     if (callee.arguments && callee.arguments.length > 0) {
                         for (var i = 0; i < callee.arguments.length; i++) {
                             if (this.findChromeExpression(callee.arguments[i], this
@@ -6700,13 +6811,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         }
                     }
                     if (callee.type !== 'MemberExpression') {
+                        //This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
                         return this.findChromeExpression(callee, this.removeObjLink(data), onError);
                     }
+                    //Continue checking the call itself
                     if (callee.property) {
                         data.functionCall = data.functionCall || [];
                         data.functionCall.push(callee.property.name || callee.property.raw);
                     }
                     if (callee.object && callee.object.name) {
+                        //First object
                         var isWindowCall = (this.isProperty(callee.object.name, 'window') &&
                             this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
                         if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
@@ -6758,6 +6872,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         case 'VariableDeclaration':
                             data.isValidReturn = expression.declarations.length === 1;
                             for (var i = 0; i < expression.declarations.length; i++) {
+                                //Check if it's an actual chrome assignment
                                 var declaration = expression.declarations[i];
                                 if (declaration.init) {
                                     var decData = this.removeObjLink(data);
@@ -6777,6 +6892,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             if (expression.arguments && expression.arguments.length > 0) {
                                 for (var i = 0; i < expression.arguments.length; i++) {
                                     if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
+                                        //It's not a direct call to chrome, just handle this later after the function has been checked
                                         argsTocheck.push(expression.arguments[i]);
                                     }
                                     else {
@@ -6903,6 +7019,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     };
                 };
                 LegacyScriptReplace.replaceChromeCalls = function (lines, passes, onError) {
+                    //Analyze the file
                     var file = new window.TernFile('[doc]');
                     file.text = lines.join('\n');
                     var srv = new window.CodeMirror.TernServer({
@@ -6926,6 +7043,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         });
                     }
                     var script = file.text;
+                    //Check all expressions for chrome calls
                     var persistentData = {
                         lines: lines,
                         lineSeperators: lineSeperators,
@@ -6934,6 +7052,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     };
                     var expression;
                     if (passes === 0) {
+                        //Do one check, not replacing anything, to find any possible errors already
                         persistentData.diagnostic = true;
                         for (var i = 0; i < scriptExpressions.length; i++) {
                             expression = scriptExpressions[i];
@@ -6968,6 +7087,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                     });
                 };
                 LegacyScriptReplace.convertScriptFromLegacy = function (script, onError) {
+                    //Remove execute locally
                     var lineIndex = script.indexOf('/*execute locally*/');
                     if (lineIndex !== -1) {
                         script = script.replace('/*execute locally*/\n', '');
@@ -7007,6 +7127,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                 CRM.buildPageCRM();
                 CRM.Script.Background.createBackgroundPages();
                 GlobalDeclarations.init();
+                //Checks if all values are still correct
                 Resources.checkIfResourcesAreUsed();
                 Resources.updateResourceValues();
                 CRM.Script.Updating.updateScripts();
@@ -7022,8 +7143,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
         });
     })();
     var _a, _b, _c, _d, _e, _f;
+    //#endregion
 })(chrome.runtime.getURL('').split('://')[1]
-    .split('/')[0], typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxes) {
+    .split('/')[0], 
+//Gets the extension's URL through a blocking instead of a callback function
+typeof module !== 'undefined' || window.isDev ? window : {}, (function (sandboxes) {
     function sandboxChromeFunction(window, sandboxes, chrome, fn, context, args) {
         return fn.apply(context, args);
     }

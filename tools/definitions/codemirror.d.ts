@@ -27,7 +27,7 @@ interface CodeMirrorDocInstance {
 	canEdit: boolean;
 	children: CodeMirrorEditor;
 	cleanGeneration: number;
-	cm: CodeMirror;
+	cm: CodeMirrorInstance;
 	first: number;
 	frontier: number;
 	height: number;
@@ -149,10 +149,10 @@ interface CodeMirrorInstance {
 	getValue(): string;
 	setValue(value: string): void;
 	removeKeyMap(map: string|{
-		[key: string]: (cm: CodeMirror) => void;
+		[key: string]: (cm: CodeMirrorInstance) => void;
 	}): void;
 	addKeyMap(map: {
-		[key: string]: (cm: CodeMirror) => void;
+		[key: string]: (cm: CodeMirrorInstance) => void;
 	}, bottom?: boolean): void;
 	setOption(option: string, value: any): void;
 	getOption(option: string): any;
@@ -179,7 +179,7 @@ interface CodeMirrorInstance {
 	removeMetaTags(cm: CodeMirrorInstance, key: string, value: string|number): number;
 }
 
-interface CodeMirror {
+interface CodeMirrorInstance {
 	(container: HTMLElement, options: CodeMirrorOptions): CodeMirrorInstance;
 	MergeView: {
 		new(container: HTMLElement, options: MergeViewOptions): MergeViewCodeMirrorInstance;
