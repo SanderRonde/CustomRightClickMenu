@@ -145,6 +145,7 @@ import * as webdriver from 'selenium-webdriver';
 const mochaSteps = require('mocha-steps');
 const secrets = require('./UI/secrets');
 const request = require('request');
+const btoa = require('btoa');
 
 const assert = chai.assert;
 
@@ -1115,7 +1116,7 @@ function getLog(driver: webdriver.WebDriver): webdriver.promise.Promise<string> 
 		driver.executeScript(inlineFn(() => {
 			return JSON.stringify(window.app._log);
 		})).then((str: string) => {
-			console.log(str);
+			//console.log(str);
 			resolve(str);
 		});
 	});
