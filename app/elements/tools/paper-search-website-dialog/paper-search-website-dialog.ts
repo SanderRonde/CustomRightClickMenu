@@ -10,7 +10,6 @@ const paperSearchWebsiteDialogProperties: {
 	searchQuery: string;
 	searchTestResult: string;
 	disableManualButton: boolean;
-	howToOpen: 'newTab';
 } = {
 	/**
 	 * The selected option in the manual input section
@@ -67,14 +66,6 @@ const paperSearchWebsiteDialogProperties: {
 	disableManualButton: {
 		type: Boolean,
 		value: false,
-		notify: true
-	},
-	/**
-	 * How to open the link
-	 */
-	howToOpen: {
-		type: String,
-		value: 'newTab',
 		notify: true
 	}
 } as any;
@@ -217,9 +208,9 @@ class PSWD {
 `var search = crmAPI.getSelection() || prompt('Please enter a search query');
 var url = '${this.chosenUrl}';
 var toOpen = url.replace(/%s/g,search);
-${this.howToOpen === 'newTab' ? 
-	`window.open(toOpen, '_blank');` : 
-	`location.href = toOpen;`
+${this.$.howToOpenLink.selected === 'currentTab' ? 
+	`location.href = toOpen;` :
+	`window.open(toOpen, '_blank');`
 }`;
 		window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
 		setTimeout(function() {

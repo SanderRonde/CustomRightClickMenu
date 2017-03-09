@@ -35,11 +35,6 @@ var paperSearchWebsiteDialogProperties = {
         type: Boolean,
         value: false,
         notify: true
-    },
-    howToOpen: {
-        type: String,
-        value: 'newTab',
-        notify: true
     }
 };
 var PSWD = (function () {
@@ -110,9 +105,9 @@ var PSWD = (function () {
     ;
     PSWD.insertCode = function () {
         var _this = this;
-        var code = "var search = crmAPI.getSelection() || prompt('Please enter a search query');\nvar url = '" + this.chosenUrl + "';\nvar toOpen = url.replace(/%s/g,search);\n" + (this.howToOpen === 'newTab' ?
-            "window.open(toOpen, '_blank');" :
-            "location.href = toOpen;");
+        var code = "var search = crmAPI.getSelection() || prompt('Please enter a search query');\nvar url = '" + this.chosenUrl + "';\nvar toOpen = url.replace(/%s/g,search);\n" + (this.$.howToOpenLink.selected === 'currentTab' ?
+            "location.href = toOpen;" :
+            "window.open(toOpen, '_blank');");
         window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
         setTimeout(function () {
             _this.hide();
