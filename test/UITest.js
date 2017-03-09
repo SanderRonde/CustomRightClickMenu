@@ -3188,7 +3188,7 @@ describe('Options Page', function () {
                                                     'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
                                                     "var url = '" + exampleSearchURL.replace('customRightClickMenu', '%s') + "';",
                                                     'var toOpen = url.replace(/%s/g,search);',
-                                                    'window.open(toOpen, \'_blank\');'
+                                                    'location.href = toOpen;'
                                                 ].join('\n'), 'Script should match expected value');
                                                 done();
                                             });
@@ -3275,7 +3275,7 @@ describe('Options Page', function () {
                                                 'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
                                                 "var url = '" + exampleVisitedWebsites[0].searchUrl + "';",
                                                 'var toOpen = url.replace(/%s/g,search);',
-                                                'window.open(toOpen, \'_blank\');'
+                                                'location.href = toOpen;'
                                             ].join('\n'), 'Added script should match expected');
                                             done();
                                         });

@@ -2936,7 +2936,6 @@ describe('Options Page', function(this: MochaFn) {
 				describe('Fullscreen Tools', function(this: MochaFn) {
 					this.slow(70000);
 					this.timeout(100000);
-
 					describe('Libraries', function(this: MochaFn) {
 						afterEach('Close dialog', (done) => {
 							driver.executeScript(inlineFn(() => {
@@ -3581,7 +3580,7 @@ describe('Options Page', function(this: MochaFn) {
 														'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
 														`var url = '${exampleSearchURL.replace('customRightClickMenu', '%s')}';`,
 														'var toOpen = url.replace(/%s/g,search);',
-														'window.open(toOpen, \'_blank\');'
+														'location.href = toOpen;'
 													].join('\n'), 'Script should match expected value');
 												done();
 											});
@@ -3674,7 +3673,7 @@ describe('Options Page', function(this: MochaFn) {
 														'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
 														`var url = '${exampleVisitedWebsites[0].searchUrl}';`,
 														'var toOpen = url.replace(/%s/g,search);',
-														'window.open(toOpen, \'_blank\');'
+														'location.href = toOpen;'
 													].join('\n'), 'Added script should match expected');
 												done();
 											});
