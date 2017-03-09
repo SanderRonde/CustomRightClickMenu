@@ -918,6 +918,7 @@ function getLog(driver) {
         driver.executeScript(inlineFn(function () {
             return JSON.stringify(window.app._log);
         })).then(function (str) {
+            console.log(str);
             resolve(str);
         });
     });
@@ -3057,8 +3058,6 @@ describe('Options Page', function () {
                                                 elements[1].click();
                                             });
                                         }).then(function () {
-                                            return getLog(driver);
-                                        }).then(function () {
                                             return wait(driver, 500);
                                         }).then(function () {
                                             return getEditorValue(driver, type);
@@ -3131,6 +3130,153 @@ describe('Options Page', function () {
                                                 'var toOpen = url.replace(/%s/g,search);',
                                                 'location.href = toOpen;'
                                             ].join('\n'), 'Added code matches expected');
+                                            done();
+                                        });
+                                    });
+                                });
+                            });
+                        });
+                        describe('Custom Input', function () {
+                            var _this = this;
+                            it('should be able to add one from a search URL', function (done) {
+                                var exampleSearchURL = "http://www." + getRandomString(10) + "/?" + getRandomString(10) + "=customRightClickMenu}";
+                                enterEditorFullscreen(_this, driver, type).then(function (dialog) {
+                                    getEditorValue(driver, type).then(function (prevCode) {
+                                        findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
+                                            .click()
+                                            .then(function () {
+                                            return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
+                                                .findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
+                                                .click();
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+                                                .findElement(webdriver.By.id('manualInputURLInput'))
+                                                .findElement(webdriver.By.tagName('input'))
+                                                .sendKeys(0, exampleSearchURL);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+                                                .findElement(webdriver.By.className('buttons'))
+                                                .findElements(webdriver.By.tagName('paper-button'))
+                                                .then(function (elements) {
+                                                elements[1].click();
+                                            });
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('confirmationWindow'))
+                                                .findElement(webdriver.By.className('buttons'))
+                                                .findElements(webdriver.By.tagName('paper-button'))
+                                                .then(function (elements) {
+                                                elements[1].click();
+                                            });
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('howToOpenWindow'))
+                                                .findElement(webdriver.By.className('buttons'))
+                                                .findElements(webdriver.By.tagName('paper-button'))
+                                                .then(function (elements) {
+                                                elements[1].click();
+                                            });
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            getEditorValue(driver, type).then(function (newCode) {
+                                                assert.strictEqual(subtractStrings(newCode, prevCode), [
+                                                    'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+                                                    "var url = '" + exampleSearchURL.replace('customRightClickMenu', '%s') + "';",
+                                                    'var toOpen = url.replace(/%s/g,search);',
+                                                    'window.open(toOpen, \'_blank\');'
+                                                ].join('\n'), 'Script should match expected value');
+                                                done();
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                            it('should be able to add one from your visited websites', function (done) {
+                                var exampleVisitedWebsites = [{
+                                        name: getRandomString(20),
+                                        url: "http://www." + getRandomString(20) + ".com",
+                                        searchUrl: getRandomString(20) + "%s" + getRandomString(10)
+                                    }];
+                                enterEditorFullscreen(_this, driver, type).then(function (dialog) {
+                                    getEditorValue(driver, type).then(function (oldValue) {
+                                        findElement(driver, webdriver.By.id('paperSearchWebsitesToolTrigger'))
+                                            .click()
+                                            .then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('initialWindowChoicesCont'))
+                                                .findElement(webdriver.By.css('paper-radio-button:nth-child(2)'))
+                                                .click();
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('manulInputSavedChoice'))
+                                                .click();
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return driver.executeScript(inlineFn(function () {
+                                                document.querySelector('#manualInputListChoiceInput')
+                                                    .querySelector('textarea').value = 'REPLACE.websites';
+                                            }, {
+                                                websites: JSON.stringify(exampleVisitedWebsites)
+                                            }));
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+                                                .findElement(webdriver.By.className('buttons'))
+                                                .findElements(webdriver.By.tagName('paper-button'))
+                                                .then(function (elements) {
+                                                elements[1].click();
+                                            });
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('processedListWindow'))
+                                                .findElement(webdriver.By.className('searchOptionCheckbox'))
+                                                .click();
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('processedListWindow'))
+                                                .findElement(webdriver.By.className('buttons'))
+                                                .findElements(webdriver.By.tagName('paper-button'))
+                                                .then(function (elements) {
+                                                elements[1].click();
+                                            });
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('confirmationWindow'))
+                                                .findElement(webdriver.By.className('buttons'))
+                                                .findElements(webdriver.By.tagName('paper-button'))
+                                                .then(function (elements) {
+                                                elements[1].click();
+                                            });
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return findElement(driver, webdriver.By.id('howToOpenWindow'))
+                                                .findElement(webdriver.By.className('buttons'))
+                                                .findElements(webdriver.By.tagName('paper-button'))
+                                                .then(function (elements) {
+                                                elements[1].click();
+                                            });
+                                        }).then(function () {
+                                            return wait(driver, 500);
+                                        }).then(function () {
+                                            return getEditorValue(driver, type);
+                                        }).then(function (newValue) {
+                                            assert.strictEqual(subtractStrings(newValue, oldValue), [
+                                                'var search = crmAPI.getSelection() || prompt(\'Please enter a search query\');',
+                                                "var url = '" + exampleVisitedWebsites[0].searchUrl + "';",
+                                                'var toOpen = url.replace(/%s/g,search);',
+                                                'window.open(toOpen, \'_blank\');'
+                                            ].join('\n'), 'Added script should match expected');
                                             done();
                                         });
                                     });

@@ -1095,7 +1095,7 @@ function getLog(driver: webdriver.WebDriver): webdriver.promise.Promise<string> 
 		driver.executeScript(inlineFn(() => {
 			return JSON.stringify(window.app._log);
 		})).then((str: string) => {
-			//console.log(str);
+			console.log(str);
 			resolve(str);
 		});
 	});
@@ -3443,8 +3443,7 @@ describe('Options Page', function(this: MochaFn) {
 												.then((elements) => {
 													elements[1].click();
 												});
-										}).then(() => {
-											return getLog(driver);
+			
 										}).then(() => {
 											return wait(driver, 500);
 										}).then(() => {
@@ -3528,7 +3527,6 @@ describe('Options Page', function(this: MochaFn) {
 								});
 							});
 						});
-						/*
 						describe('Custom Input', function(this: MochaFn) {
 							it('should be able to add one from a search URL', (done) => {
 								const exampleSearchURL = 
@@ -3544,6 +3542,11 @@ describe('Options Page', function(this: MochaFn) {
 												.click();
 										}).then(() => {
 											return wait(driver, 500);
+										}).then(() => {
+											return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
+												.findElement(webdriver.By.id('manualInputURLInput'))
+												.findElement(webdriver.By.tagName('input'))
+												.sendKeys(InputKeys.CLEAR_ALL, exampleSearchURL);
 										}).then(() => {
 											return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
 												.findElement(webdriver.By.className('buttons'))
@@ -3593,7 +3596,7 @@ describe('Options Page', function(this: MochaFn) {
 									searchUrl: string;
 								}> = [{
 									name: getRandomString(20),
-									url: getRandomString(20),
+									url: `http://www.${getRandomString(20)}.com`,
 									searchUrl: `${getRandomString(20)}%s${getRandomString(10)}`
 								}];
 
@@ -3625,38 +3628,42 @@ describe('Options Page', function(this: MochaFn) {
 												return wait(driver, 500);
 											}).then(() => {
 												return findElement(driver, webdriver.By.id('manuallyInputSearchWebsiteWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
+													.findElement(webdriver.By.className('buttons'))
+													.findElements(webdriver.By.tagName('paper-button'))
+													.then((elements) => {
+														elements[1].click();
+													});
 											}).then(() => {
 												return wait(driver, 500);
 											}).then(() => {
 												return findElement(driver, webdriver.By.id('processedListWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
+													.findElement(webdriver.By.className('searchOptionCheckbox'))
+													.click();
+											}).then(() => {
+												return findElement(driver, webdriver.By.id('processedListWindow'))
+													.findElement(webdriver.By.className('buttons'))
+													.findElements(webdriver.By.tagName('paper-button'))
+													.then((elements) => {
+														elements[1].click();
+													});
 											}).then(() => {
 												return wait(driver, 500);
 											}).then(() => {
 												return findElement(driver, webdriver.By.id('confirmationWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
+													.findElement(webdriver.By.className('buttons'))
+													.findElements(webdriver.By.tagName('paper-button'))
+													.then((elements) => {
+														elements[1].click();
+													});
 											}).then(() => {
 												return wait(driver, 500);
 											}).then(() => {
 												return findElement(driver, webdriver.By.id('howToOpenWindow'))
-												.findElement(webdriver.By.className('buttons'))
-												.findElements(webdriver.By.tagName('paper-button'))
-												.then((elements) => {
-													elements[1].click();
-												});
+													.findElement(webdriver.By.className('buttons'))
+													.findElements(webdriver.By.tagName('paper-button'))
+													.then((elements) => {
+														elements[1].click();
+													});
 											}).then(() => {
 												return wait(driver, 500);
 											}).then(() => {
@@ -3675,7 +3682,6 @@ describe('Options Page', function(this: MochaFn) {
 								});
 							});
 						});
-						*/
 					});
 				});
 			});

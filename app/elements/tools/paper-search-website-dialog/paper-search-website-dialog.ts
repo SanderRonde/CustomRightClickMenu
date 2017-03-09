@@ -166,8 +166,7 @@ class PSWD {
 		if (window === 'successWindow') {
 			this.$.successWindow.setAttribute('style', 'display:block;');
 			this.insertCode();
-		}
-		else {
+		} else {
 			this.$[window].style.display = 'block';
 		}
 		this.windowPath.push(this.windows.indexOf(window));
@@ -183,7 +182,6 @@ class PSWD {
 		while (el.tagName.toLowerCase() !== 'paper-button') {
 			el = event.path[++index];
 		}
-		window.app._log.push(`Currently switching to window ${el.getAttribute('window')}`);
 		this.switchToWindow(el.getAttribute('window') as PaperSearchWebsiteDialogWindow);
 	};
 
@@ -264,11 +262,6 @@ ${this.howToOpen === 'newTab' ?
 		};
 	};
 
-	static addSearchBinding(this: PaperSearchWebsiteDialog, e: PolymerClickEvent) {
-		this.chosenUrl = e.target.parentElement.getAttribute('url');
-		this.switchToWindow('confirmationWindow');
-	};
-
 	/**
 	 * Processes the manual input and shows either a list of URLs or only one depending on radio-button choice
 	 */
@@ -279,8 +272,7 @@ ${this.howToOpen === 'newTab' ?
 				.value
 				.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
 			this.switchToWindow('confirmationWindow');
-		}
-		else {
+		} else {
 			this.loadWindow('processedListWindow', this.processSearchEngines);
 		}
 	};
@@ -289,7 +281,6 @@ ${this.howToOpen === 'newTab' ?
 	 * Apply the choice from the manual choice dialog
 	 */
 	static applyDefaultsUrls(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
-		window.app._log.push(`Currently choosing one, chose ${this.$.searchWebsitesRadioGroup.selected}`);
 		switch (this.$.searchWebsitesRadioGroup.selected) {
 			case 'google':
 				this.chosenUrl = 'https://www.google.com/search?q=%s';

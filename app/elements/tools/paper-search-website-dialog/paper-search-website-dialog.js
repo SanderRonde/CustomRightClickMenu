@@ -87,7 +87,6 @@ var PSWD = (function () {
         while (el.tagName.toLowerCase() !== 'paper-button') {
             el = event.path[++index];
         }
-        window.app._log.push("Currently switching to window " + el.getAttribute('window'));
         this.switchToWindow(el.getAttribute('window'));
     };
     ;
@@ -148,11 +147,6 @@ var PSWD = (function () {
         };
     };
     ;
-    PSWD.addSearchBinding = function (e) {
-        this.chosenUrl = e.target.parentElement.getAttribute('url');
-        this.switchToWindow('confirmationWindow');
-    };
-    ;
     PSWD.processManualInput = function () {
         if (this.selectedIsUrl) {
             this.chosenUrl = this.$.manualInputURLInput
@@ -167,7 +161,6 @@ var PSWD = (function () {
     };
     ;
     PSWD.applyDefaultsUrls = function (event) {
-        window.app._log.push("Currently choosing one, chose " + this.$.searchWebsitesRadioGroup.selected);
         switch (this.$.searchWebsitesRadioGroup.selected) {
             case 'google':
                 this.chosenUrl = 'https://www.google.com/search?q=%s';
