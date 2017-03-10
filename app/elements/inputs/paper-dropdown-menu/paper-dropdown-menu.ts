@@ -1,4 +1,4 @@
-﻿/// <reference path="../elements.d.ts" />
+﻿/// <reference path="../../elements.d.ts" />
 
 const paperDropdownMenuProperties: {
 	selected: number;
