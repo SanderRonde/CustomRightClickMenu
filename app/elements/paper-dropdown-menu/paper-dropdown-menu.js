@@ -9,6 +9,14 @@ var paperDropdownMenuProperties = {
         type: String,
         notify: true,
         value: ''
+    },
+    fancylabel: {
+        type: Boolean,
+        value: false
+    },
+    subtext: {
+        type: String,
+        value: ''
     }
 };
 var PDM = (function () {
@@ -18,6 +26,12 @@ var PDM = (function () {
         return !(label && label !== '');
     };
     ;
+    PDM._hasNoSubtext = function (subtext) {
+        return !(subtext && subtext !== '');
+    };
+    PDM._hasFancyLabel = function (fancylabel) {
+        return !!this.fancylabel;
+    };
     PDM._dropdownSelectChange = function (_this) {
         var paperItems = $(_this).find('paper-item');
         var newState = _this._paperMenu.selected;
@@ -28,6 +42,7 @@ var PDM = (function () {
     PDM.init = function () {
         var paperItems = $(this).find('paper-item');
         this.$.dropdownSelected.innerHTML = $(paperItems[this.selected]).children('.menuOptionName').html();
+        this.refreshListeners();
     };
     ;
     PDM.ready = function () {

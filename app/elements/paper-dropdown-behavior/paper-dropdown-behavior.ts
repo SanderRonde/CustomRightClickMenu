@@ -2,6 +2,7 @@
 
 const paperDropdownBehaviorProperties: {
 	selected: number|Array<number>;
+	raised: boolean;
 } = {
 	/**
 	 * The selected item
@@ -11,6 +12,10 @@ const paperDropdownBehaviorProperties: {
 		value: 0,
 		notify: true,
 		reflectToAttribute: true
+	},
+	raised: {
+		type: Boolean,
+		value: false
 	}
 } as any;
 
@@ -139,6 +144,11 @@ class PDB {
 		if (this.getAttribute('indent') === 'false') {
 			this.indent = false;
 		}
+		if (this.raised) {
+			window.requestAnimationFrame(function(time) {
+				_this._animateBoxShadowIn(time, _this);
+			});
+		}
 	};
 
 	/*
@@ -202,7 +212,7 @@ class PDB {
 
 	/*
 	 * Open the dropdown menu
-	 */
+	*/
 	static open(this: PaperDropdownInstance) {
 		if (this.onopen) {
 			this.onopen();
@@ -211,9 +221,11 @@ class PDB {
 		var _this = this;
 		if (!this._expanded) {
 			this._expanded = true;
-			window.requestAnimationFrame(function(time) {
-				_this._animateBoxShadowIn(time, _this);
-			});
+			if (!this.raised) {
+				window.requestAnimationFrame(function(time) {
+					_this._animateBoxShadowIn(time, _this);
+				});
+			}
 			setTimeout(function() {
 				var content = $(_this._paperMenu).find('.content');
 				content.css('display', 'block');
@@ -256,9 +268,11 @@ class PDB {
 				duration: 300,
 				complete(this: HTMLElement) {
 					this.style.display = 'none';
-					window.requestAnimationFrame(function(time) {
-						_this._animateBoxShadowOut(time, _this);
-					});
+					if (!_this.raised) {
+						window.requestAnimationFrame(function(time) {
+							_this._animateBoxShadowOut(time, _this);
+						});
+					}
 				}
 			});
 		}

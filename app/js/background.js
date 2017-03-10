@@ -40,7 +40,7 @@ var Promiselike = (function () {
         }
         return this;
     };
-    Promiselike.prototype.catch = function (onrejected) {
+    Promiselike.prototype["catch"] = function (onrejected) {
         this._rejectListeners.push(onrejected);
         if (this._status === 'rejected') {
             onrejected(this._rejectReason);
@@ -217,7 +217,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        },
+                        }
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
@@ -316,7 +316,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         value: null,
                         showOnSpecified: true,
                         children: type === 'menu' ? [] : null,
-                        permissions: [],
+                        permissions: []
                     };
                     return this.mergeObjects(defaultNode, options);
                 },

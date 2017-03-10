@@ -1017,3 +1017,7 @@ html {
 paper-toggle-option #checkboxLabel {
 	max-width: 950px;
 }
+
+.codeSettingsDialog .menuSelectedCheckmar {
+	width: 29px;
+}

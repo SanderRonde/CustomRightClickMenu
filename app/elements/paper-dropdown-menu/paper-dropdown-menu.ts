@@ -3,6 +3,8 @@
 const paperDropdownMenuProperties: {
 	selected: number;
 	label: string;
+	fancylabel: boolean;
+	subtext: string;
 } = {
 	/**
 	 * The currently selected item
@@ -16,8 +18,18 @@ const paperDropdownMenuProperties: {
 		type: String,
 		notify: true,
 		value: ''
+	},
+	fancylabel: {
+		type: Boolean,
+		value: false
+	},
+	subtext: {
+		type: String,
+		value: ''
 	}
 } as any;
+
+type PaperDropdownMenuProperties = typeof paperDropdownMenuProperties;
 
 type PaperDropdownMenuBase = PolymerElement<'paper-dropdown-menu',
 	typeof PDM & typeof paperDropdownBehaviorProperties
@@ -34,6 +46,14 @@ class PDM {
 		return !(label && label !== '');
 	};
 
+	static _hasNoSubtext(subtext: string): boolean {
+		return !(subtext && subtext !== '');
+	}
+
+	static _hasFancyLabel(this: PaperDropdownMenu, fancylabel: boolean) {
+		return !!this.fancylabel;
+	}
+
 	/*
 	 * Fires when the selected item changes
 	 */
@@ -47,6 +67,7 @@ class PDM {
 	static init(this: PaperDropdownMenu) {
 		var paperItems = $(this).find('paper-item');
 		this.$.dropdownSelected.innerHTML = $(paperItems[this.selected as number]).children('.menuOptionName').html();
+		this.refreshListeners();
 	};
 
 	static ready(this: PaperDropdownMenu) {

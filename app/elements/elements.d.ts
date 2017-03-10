@@ -116,7 +116,7 @@ interface CSSStyleDeclaration {
 	WebkitTransform: string;
 }
 
-type PaperDropdownMenu = PaperDropdownMenuBase & PaperDropdownBehaviorBase;
+type PaperDropdownMenu = (PaperDropdownMenuBase & PaperDropdownBehaviorBase) & PaperDropdownMenuProperties;
 type PaperGetPageProperties = PaperGetPagePropertiesBase & PaperDropdownBehaviorBase;
 type PaperLibrariesSelector = PaperLibrariesSelectorBase & PaperDropdownBehaviorBase;
 

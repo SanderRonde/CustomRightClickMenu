@@ -5,6 +5,10 @@ var paperDropdownBehaviorProperties = {
         value: 0,
         notify: true,
         reflectToAttribute: true
+    },
+    raised: {
+        type: Boolean,
+        value: false
     }
 };
 var PDB = (function () {
@@ -63,6 +67,11 @@ var PDB = (function () {
         this._dropdownSelectedCont = $(this).find('#dropdownSelectedCont')[0];
         if (this.getAttribute('indent') === 'false') {
             this.indent = false;
+        }
+        if (this.raised) {
+            window.requestAnimationFrame(function (time) {
+                _this._animateBoxShadowIn(time, _this);
+            });
         }
     };
     ;
@@ -126,9 +135,11 @@ var PDB = (function () {
         var _this = this;
         if (!this._expanded) {
             this._expanded = true;
-            window.requestAnimationFrame(function (time) {
-                _this._animateBoxShadowIn(time, _this);
-            });
+            if (!this.raised) {
+                window.requestAnimationFrame(function (time) {
+                    _this._animateBoxShadowIn(time, _this);
+                });
+            }
             setTimeout(function () {
                 var content = $(_this._paperMenu).find('.content');
                 content.css('display', 'block');
@@ -164,9 +175,11 @@ var PDB = (function () {
                 duration: 300,
                 complete: function () {
                     this.style.display = 'none';
-                    window.requestAnimationFrame(function (time) {
-                        _this._animateBoxShadowOut(time, _this);
-                    });
+                    if (!_this.raised) {
+                        window.requestAnimationFrame(function (time) {
+                            _this._animateBoxShadowOut(time, _this);
+                        });
+                    }
                 }
             });
         }

@@ -105,7 +105,6 @@ interface CRMOptionNumber {
 
 interface CRMOptionString {
 	type: 'string';
-	minLength?: number;
 	maxLength?: number;
 	format?: string;
 	descr?: string;
@@ -115,6 +114,7 @@ interface CRMOptionString {
 interface CRMOptionChoiceBase {
 	type: 'choice';
 	descr?: string;
+	selected: number;
 }
 interface CRMOptionChoiceString extends CRMOptionChoiceBase {
 	values: 'string';

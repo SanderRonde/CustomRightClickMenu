@@ -375,11 +375,59 @@
 				<paper-toast id="acceptDownloadToast" text="Please accept the permission request to report a bug or suggest a feature" duration="3500"></paper-toast>
 				<paper-toast id="updatedSettingsToast" text="Settings were updated to those on xx-xx-xxxx" duration="5000"></paper-toast>
 				<!--Dialogs-->
-				<paper-dialog id="codeSettingsDialog" data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog id="codeSettingsDialog" no-cancel-on-outside-click no-cancel-on-esc-key data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<h2 id="codeSettingsTitle"></h2>
 					<div id="codeSettingsOptions">
 						<template is="dom-repeat" id="codeSettingsRepeat" as="codeSetting">
-							<span>[[codeSetting.key]]</span>
+							<div class="codeSettingSetting">
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'number')}}">
+									<paper-input type="number" placeholder="[[codeSetting.value.descr]]"
+										value="{{codeSetting.value.value}}" min="[[codeSetting.value.minimum]]"
+										max="[[codeSetting.value.maximum]]"
+										label="[[codeSetting.key]]"
+										title="[[codeSetting.value.descr]]"></paper-input>
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'boolean')}}">
+									<paper-checkbox checked="{{codeSetting.value.value}}">
+										<span>
+											<b>[[codeSetting.key]]</b>
+											<template is="dom-if" if="[[codeSetting.value.descr]]">
+												<span>: <span>[[codeSetting.value.descr]]</span></span>
+											</template>
+										</span>
+									</paper-checkbox>
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'string')}}">
+									<paper-input type="text" placeholder="[[codeSetting.value.descr]]"
+										value="{{codeSetting.value.value}}"
+										maxlength="[[codeSetting.value.maxLength]]"
+										label="[[codeSetting.key]]"
+										title="[[codeSetting.value.descr]]"></paper-input>
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'array')}}">
+									isArr
+								</template>
+								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'choice')}}">
+									<paper-dropdown-menu title="[[codeSetting.value.descr]]" 
+											label="[[codeSetting.key]]" indent="true" 
+											fancylabel raised subtext="[[codeSetting.key]]"
+											selected="{{codeSetting.value.selected}}">
+										<paper-menu selected="{{codeSetting.value.selected}}">
+											<template id="tabRepeat" is="dom-repeat" items="[[codeSetting.value.value]]" as="codeSettingOption">
+												<paper-item>
+													<div class="menuSelectedCheckmark">
+														<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48">
+															<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/>
+														</svg>
+													</div>
+													<span title$="[[codeSettingOption]]" class="menuOptionName">[[codeSettingOption]]</span>
+												</paper-item>
+											</template>
+										</paper-menu>
+									</paper-dropdown-menu>
+								</template>
+							</div>
+							<br />
 						</template>
 					</div>
 					<div class="buttons">

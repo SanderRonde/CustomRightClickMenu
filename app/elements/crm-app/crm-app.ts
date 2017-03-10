@@ -296,6 +296,10 @@ class CA {
 			'Custom Right-Click Menu';
 	}
 
+	static _isOfType(option: CRMOptionsValue, type: CRMOptionsValue['type']): boolean {
+		return option.type === type;
+	}
+
 	static _generateCodeOptionsArray<T extends CRMOptions>(this: CrmApp, settings: T): Array<{
 		key: keyof T;
 		value: T[keyof T]
@@ -313,9 +317,16 @@ class CA {
 		this.$.codeSettingsDialog.isScript = node.type === 'script';
 		this.$.codeSettingsDialog.settingsContainer = JSON.parse(JSON.stringify(node.value.options));
 		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
-		this.$.codeSettingsDialog.open();
 
 		this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
+		this.async(() => {
+			this.$.codeSettingsDialog.fit();
+			Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
+				.forEach((el: PaperDropdownMenu) => {
+					el.init();
+				});
+			this.$.codeSettingsDialog.open();
+		}, 100);
 	}
 
 	/**

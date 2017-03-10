@@ -88,6 +88,9 @@ var CA = (function () {
             'Demo, actual right-click menu does NOT work in demo' :
             'Custom Right-Click Menu';
     };
+    CA._isOfType = function (option, type) {
+        return option.type === type;
+    };
     CA._generateCodeOptionsArray = function (settings) {
         return Object.getOwnPropertyNames(settings).map(function (key) {
             return {
@@ -97,12 +100,20 @@ var CA = (function () {
         });
     };
     CA.initCodeOptions = function (node) {
+        var _this = this;
         this.$.codeSettingsDialog.item = node;
         this.$.codeSettingsDialog.isScript = node.type === 'script';
         this.$.codeSettingsDialog.settingsContainer = JSON.parse(JSON.stringify(node.value.options));
         this.$.codeSettingsTitle.innerText = "Changing the options for " + node.name;
-        this.$.codeSettingsDialog.open();
         this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
+        this.async(function () {
+            _this.$.codeSettingsDialog.fit();
+            Array.prototype.slice.apply(_this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
+                .forEach(function (el) {
+                el.init();
+            });
+            _this.$.codeSettingsDialog.open();
+        }, 100);
     };
     CA.insertInto = function (toAdd, target, position) {
         if (position === void 0) { position = null; }
