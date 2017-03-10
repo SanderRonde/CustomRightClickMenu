@@ -1829,7 +1829,7 @@ var CA = (function () {
             callback = cb;
         });
         var _this = this;
-        var importsAmount = 59;
+        var importsAmount = 62;
         var loadingBarSettings = {
             lastReachedProgress: 0,
             progressBar: document.getElementById('splashScreenProgressBarLoader'),
