@@ -226,13 +226,8 @@ class NEB {
 			}
 		}
 		if (!toggledAmount) {
-			var index = 0;
-			var element = e.path[0];
-			while (element.tagName !== 'PAPER-CHECKBOX') {
-				index++;
-				element = e.path[index];
-			}
-			(element as HTMLPaperCheckboxElement).checked = true;
+			const element = window.app.findElementWithTagname(e.path, 'paper-checkbox');
+			element.checked = true;
 			this[
 				element.parentElement.classList[1].split('Type')[0] + 'ContentSelected' as
 					keyof NodeEditBehaviorProperties
@@ -246,12 +241,7 @@ class NEB {
 		if (this.mode && this.mode === 'background') {
 			return;
 		}
-		var index = 0;
-		var element = e.path[0];
-		while (!element.classList.contains('showOnContentItemCont')) {
-			index++;
-			element = e.path[index];
-		}
+		const element = window.app.findElementWithClassName(e.path, 'showOnContentItemCont');
 		var checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
 		checkbox.checked = !checkbox.checked;
 		if (!checkbox.checked) {

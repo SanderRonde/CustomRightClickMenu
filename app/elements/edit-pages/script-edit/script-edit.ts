@@ -272,12 +272,6 @@ class SCE {
 		}
 
 		(this as NodeEditBehavior).clearTrigger(e);
-
-		var index = 0;
-		var el = e.path[index];
-		while (el.tagName.toLowerCase() !== 'paper-icon-button') {
-			el = e.path[++index];
-		}
 	};
 
 	static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
@@ -293,12 +287,7 @@ class SCE {
 	};
 
 	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
-		var index = 0;
-		var element = e.path[0];
-		while (element.tagName !== 'PAPER-CHECKBOX') {
-			index++;
-			element = e.path[index];
-		}
+		const element = window.app.findElementWithTagname(e.path, 'paper-checkbox');
 
 		var elements = $('script-edit .showOnContentItemCheckbox');
 		var elementType = element.classList[1].split('Type')[0];
@@ -361,12 +350,7 @@ class SCE {
 	};
 
 	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
-		var index = 0;
-		var element = e.path[0];
-		while (!element.classList.contains('editorTab')) {
-			index++;
-			element = e.path[index];
-		}
+		const element = window.app.findElementWithClassName(e.path, 'editorTab');
 
 		var isMain = element.classList.contains('mainEditorTab');
 		if (isMain && this.editorMode !== 'main') {

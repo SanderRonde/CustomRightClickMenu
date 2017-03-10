@@ -77,11 +77,7 @@ var PSWD = (function () {
     };
     ;
     PSWD.switchWindow = function (event) {
-        var el = event.path[0];
-        var index = 0;
-        while (el.tagName.toLowerCase() !== 'paper-button') {
-            el = event.path[++index];
-        }
+        var el = window.app.findElementWithTagname(event.path, 'paper-button');
         this.switchToWindow(el.getAttribute('window'));
     };
     ;

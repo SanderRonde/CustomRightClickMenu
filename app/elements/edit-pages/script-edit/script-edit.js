@@ -242,11 +242,6 @@ var SCE = (function () {
             return;
         }
         this.clearTrigger(e);
-        var index = 0;
-        var el = e.path[index];
-        while (el.tagName.toLowerCase() !== 'paper-icon-button') {
-            el = e.path[++index];
-        }
     };
     ;
     SCE.triggerCheckboxChange = function (element) {
@@ -261,12 +256,7 @@ var SCE = (function () {
     };
     ;
     SCE.contentCheckboxChanged = function (e) {
-        var index = 0;
-        var element = e.path[0];
-        while (element.tagName !== 'PAPER-CHECKBOX') {
-            index++;
-            element = e.path[index];
-        }
+        var element = window.app.findElementWithTagname(e.path, 'paper-checkbox');
         var elements = $('script-edit .showOnContentItemCheckbox');
         var elementType = element.classList[1].split('Type')[0];
         var state = !element.checked;
@@ -325,12 +315,7 @@ var SCE = (function () {
     };
     ;
     SCE.changeTabEvent = function (e) {
-        var index = 0;
-        var element = e.path[0];
-        while (!element.classList.contains('editorTab')) {
-            index++;
-            element = e.path[index];
-        }
+        var element = window.app.findElementWithClassName(e.path, 'editorTab');
         var isMain = element.classList.contains('mainEditorTab');
         if (isMain && this.editorMode !== 'main') {
             this.changeTab('main');

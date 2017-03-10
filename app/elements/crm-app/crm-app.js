@@ -83,10 +83,35 @@ var properties = {
 var CA = (function () {
     function CA() {
     }
+    CA.findElementWithTagname = function (path, tagName) {
+        var index = 0;
+        var node = path[0];
+        while (node.tagName.toLowerCase() !== tagName) {
+            node = path[++index];
+            if (index > path.length) {
+                return null;
+            }
+        }
+        return node;
+    };
+    CA.findElementWithClassName = function (path, className) {
+        var index = 0;
+        var node = path[0];
+        while (!node.classList.contains(className)) {
+            node = path[++index];
+            if (index > path.length) {
+                return null;
+            }
+        }
+        return node;
+    };
     CA.getPageTitle = function () {
         return location.href.indexOf('demo') > -1 ?
             'Demo, actual right-click menu does NOT work in demo' :
             'Custom Right-Click Menu';
+    };
+    CA._getString = function (str) {
+        return str || '';
     };
     CA._isOfType = function (option, type) {
         return option.type === type;
@@ -466,11 +491,7 @@ var CA = (function () {
     };
     ;
     CA.removeGlobalExclude = function (e) {
-        var index = 0;
-        var node = e.path[0];
-        while (node.tagName.toLowerCase() !== 'paper-icon-button') {
-            node = e.path[++index];
-        }
+        var node = this.findElementWithTagname(e.path, 'paper-icon-button');
         var excludeIndex = null;
         var allExcludes = document.getElementsByClassName('globalExcludeContainer');
         for (var i = 0; i < allExcludes.length; i++) {
@@ -490,12 +511,7 @@ var CA = (function () {
     };
     ;
     CA.globalExcludeChange = function (e) {
-        var index = 0;
-        var node = e.path[0];
-        while (node.tagName.toLowerCase() !== 'paper-input') {
-            node = e.path[++index];
-        }
-        var input = node;
+        var input = this.findElementWithTagname(e.path, 'paper-input');
         var excludeIndex = null;
         var allExcludes = document.getElementsByClassName('globalExcludeContainer');
         for (var i = 0; i < allExcludes.length; i++) {
@@ -704,13 +720,7 @@ var CA = (function () {
             }
         }
         else {
-            var index = 0;
-            var path = e.path[index];
-            while (!path.classList.contains('crmType')) {
-                index++;
-                path = e.path[index];
-            }
-            var element = path;
+            var element = this.findElementWithClassName(e.path, 'crmType');
             var crmTypes = document.querySelectorAll('.crmType');
             for (i = 0; i < 6; i++) {
                 crmEl = crmTypes.item(i);

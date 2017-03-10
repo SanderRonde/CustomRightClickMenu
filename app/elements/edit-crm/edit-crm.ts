@@ -507,12 +507,7 @@ class EC {
 	};
 
 	static addToPosition(this: EditCrm, e: PolymerClickEvent) {
-		var index = 0;
-		var node = e.path[index];
-		while (node.classList.contains('addingItemPlaceholder') === false) {
-			index++;
-			node = e.path[index];
-		}
+		const node = window.app.findElementWithClassName(e.path, 'addingItemPlaceholder');
 
 		this.addItem(JSON.parse(node.getAttribute('data-path')));
 		this.isAdding = false;

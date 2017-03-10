@@ -294,12 +294,7 @@ var EC = (function () {
     };
     ;
     EC.addToPosition = function (e) {
-        var index = 0;
-        var node = e.path[index];
-        while (node.classList.contains('addingItemPlaceholder') === false) {
-            index++;
-            node = e.path[index];
-        }
+        var node = window.app.findElementWithClassName(e.path, 'addingItemPlaceholder');
         this.addItem(JSON.parse(node.getAttribute('data-path')));
         this.isAdding = false;
     };

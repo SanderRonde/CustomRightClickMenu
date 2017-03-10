@@ -28,11 +28,7 @@ var LE = (function () {
     };
     ;
     LE.checkboxStateChange = function (e) {
-        var pathIndex = 0;
-        while (e.path[pathIndex].tagName !== 'PAPER-CHECKBOX') {
-            pathIndex++;
-        }
-        var checkbox = e.path[pathIndex];
+        var checkbox = window.app.findElementWithTagname(e.path, 'paper-checkbox');
         $(this.$.linksContainer).find('paper-checkbox').each(function () {
             if (this !== checkbox) {
                 this.removeAttribute('checked');
@@ -48,11 +44,8 @@ var LE = (function () {
     };
     ;
     LE.toggleCheckbox = function (e) {
-        var pathIndex = 0;
-        while (!e.path[pathIndex].classList.contains('linkChangeCont')) {
-            pathIndex++;
-        }
-        $(e.path[pathIndex]).children('paper-checkbox').click();
+        $(window.app.findElementWithClassName(e.path, 'linkChangeCont'))
+            .children('paper-checkbox').click();
     };
     return LE;
 }());

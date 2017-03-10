@@ -290,13 +290,45 @@ class CA {
 
 	static properties = properties;
 	
+	static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<PossiblePolymerElement>, tagName: T): ElementTagNameMaps[T] {
+		let index = 0;
+		let node = path[0];
+		while (node.tagName.toLowerCase() !== tagName) {
+			node = path[++index];
+			
+			if (index > path.length) {
+				return null;
+			}
+		}
+		return node;
+	}
+
+	static findElementWithClassName(path: Array<PossiblePolymerElement>, className: string): PossiblePolymerElement {
+		let index = 0;
+		let node = path[0];
+		while (!node.classList.contains(className)) {
+			node = path[++index];
+			
+			if (index > path.length) {
+				return null;
+			}
+		}
+		return node;
+	}
+
 	static getPageTitle(): string {
 		return location.href.indexOf('demo') > -1 ? 
 			'Demo, actual right-click menu does NOT work in demo' :
 			'Custom Right-Click Menu';
 	}
 
-	static _isOfType(option: CRMOptionsValue, type: CRMOptionsValue['type']): boolean {
+	static _getString(str: string|null): string {
+		return str || '';
+	}
+
+	static _isOfType<T extends {
+		type: string;
+	}>(option: T, type: T['type']): boolean {
 		return option.type === type;
 	}
 
@@ -686,11 +718,7 @@ class CA {
 	};
 
 	static removeGlobalExclude(this: CrmApp, e: PolymerClickEvent) {
-		var index = 0;
-		var node = e.path[0];
-		while (node.tagName.toLowerCase() !== 'paper-icon-button') {
-			node = e.path[++index];
-		}
+		const node = this.findElementWithTagname(e.path, 'paper-icon-button');
 
 		var excludeIndex = null;
 		var allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -712,13 +740,7 @@ class CA {
 	};
 
 	static globalExcludeChange(this: CrmApp, e: PolymerClickEvent) {
-		var index = 0;
-		var node = e.path[0];
-		while (node.tagName.toLowerCase() !== 'paper-input') {
-			node = e.path[++index];
-		}
-
-		const input = node as HTMLPaperInputElement;
+		const input = this.findElementWithTagname(e.path, 'paper-input');
 
 		var excludeIndex = null;
 		var allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -944,13 +966,7 @@ class CA {
 				}
 			}
 		} else {
-			var index = 0;
-			var path = e.path[index];
-			while (!path.classList.contains('crmType')) {
-				index++;
-				path = e.path[index];
-			}
-			var element = path;
+			const element = this.findElementWithClassName(e.path, 'crmType');
 			var crmTypes = document.querySelectorAll('.crmType');
 			for (i = 0; i < 6; i++) {
 				crmEl = crmTypes.item(i) as HTMLElement;
