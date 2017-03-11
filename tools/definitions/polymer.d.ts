@@ -180,3 +180,43 @@ type HTMLPaperSearchWebsiteDialogElement = PaperSearchWebsiteDialog;
 type HTMLUseExternalEditorElement = UseExternalEditor;
 type HTMLTypeSwitcherElement = TypeSwitcher;
 type HTMLPaperDropdownMenuElement = PaperDropdownMenu;
+type HTMLPaperArrayInputElement = PaperArrayInput;
+
+type PolymerElementTagNameMap = {
+	'paper-icon-button': HTMLPaperIconButtonElement;
+	'paper-dialog': HTMLPaperDialogElement;
+	'paper-toast': HTMLPaperToastElement;
+	'paper-input': HTMLPaperInputElement;
+	'paper-input-container': HTMLPaperInputContainerElement;
+	'paper-checkbox': HTMLPaperCheckboxElement;
+	'dom-repeat': HTMLDomRepeatElement;
+	'paper-menu': HTMLPaperMenuElement;
+	'paper-spinner': HTMLPaperSpinnerElement;
+	'paper-radio-group': HTMLPaperRadioGroupElement;
+	'paper-radio-button': HTMLPaperRadioButtonElement;
+	'paper-material': HTMLPaperMaterialElement;
+	'paper-button': HTMLPaperButtonElement;
+	'paper-textarea': HTMLPaperTextareaElement;
+	'paper-item': HTMLPaperItemElement;
+	'paper-toggle-button': HTMLPaperToggleButtonElement;
+	'paper-toolbar': HTMLPaperToolbarElement;
+	'paper-libraries-selector': HTMLPaperLibrariesSelectorElement;
+	'paper-get-page-properties': HTMLPaperGetPagePropertiesElement;
+	'crm-edit-page': HTMLCrmEditPageElement;
+	'paper-toggle-option': HTMLPaperToggleOptionElement;
+	'edit-crm': HTMLEditCrmElement;
+	'center-element': HTMLCenterElementElement;
+	'paper-serach-website-dialog': HTMLPaperSearchWebsiteDialogElement;
+	'use-external-editor': HTMLUseExternalEditorElement;
+	'type-switcher': HTMLTypeSwitcherElement;
+	'paper-dropdown-menu': HTMLPaperDropdownMenuElement;
+	'paper-array-input': HTMLPaperArrayInputElement;
+};
+
+type ElementTagNameMaps = PolymerElementTagNameMap & 
+	HTMLElementTagNameMap & ElementTagNameMap;
+
+interface NodeSelector {
+	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
+	querySelectorAll<K extends keyof ElementTagNameMaps>(selectors: K): NodeListOf<ElementTagNameMaps[K]> | null;
+}
