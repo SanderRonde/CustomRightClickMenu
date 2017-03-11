@@ -1,0 +1,52 @@
+<html>
+<head>
+</head>
+<body>
+<dom-module id="paper-array-input" attributes="values max title type subtext">
+	<link rel="stylesheet" href="paper-array-input.css">
+	<template>
+		<paper-material elevation="3" id="arrayInput">
+			<template is="dom-if" if="[[_stringIsSet(title)]]">
+				<div id="arrayInputTitleContainer">
+					<div id="arrayInputTitle">
+						<span>[[title]]</span>
+					</div>
+					<template is="dom-if" if="[[_stringIsSet(subtext)]]">
+						<div id="arrayInputSubtext">
+							<span>[[subtext]]</span>
+						</div>
+					</template>
+				</div>
+			</template>
+			<div id="arrayInputContainer">
+				<div id="arrayInputItems">
+					<template is="dom-if" if="[[_hasItems(values)]]">
+						<template is="dom-repeat" items="{{values}}" as="item">
+							<div class="arrayInputLine">
+								<paper-input no-label-float type="[[type]]" value="{{item}}"></paper-input>
+								<div class="arrayInputRemoveLine">
+									<paper-icon-button class="removeLineButton" on-tap="clearLine" icon="clear">
+									</paper-icon-button>
+								</div>
+							</div>
+						</template>
+					</template>
+					<template is="dom-if" if="[[!_hasItems(values)]]">
+						<div id="arrayInputNoItemsMessage">
+							No items!
+						</div>
+					</template>
+				</div>
+				<div id="arrayInputAddPositioner">
+					<div id="maxElementsReachedCenterer">
+						<span id="maxElementsReachedMessage">maximum reached (<span>[[max]]</span>)</span>
+					</div>
+					<paper-button on-tap="addLine" raised>add</paper-button>
+				</div>
+			</div>
+		</paper-material>
+	</template>
+</dom-module>
+<script src="paper-array-input.js"></script>
+</body>
+</html>

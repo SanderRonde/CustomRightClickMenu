@@ -1,0 +1,52 @@
+.arrayInputLine {
+	display: -webkit-flex;
+	display: flex;
+}
+
+#arrayInput {
+	padding: 8px;
+}
+
+#arrayInputTitle {
+	font-weight: bold;
+	text-transform: capitalize;
+	font-size: 150%;
+}
+
+#arrayInputTitleContainer {
+	text-align: center;
+	border-bottom: 1px solid #c3c3c3;
+	padding-bottom: 5px;
+}
+
+#arrayInputAddPositioner {
+	border-top: 1px solid #c3c3c3;
+	padding-top: 5px;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: space-between;
+	justify-content: space-between;
+}
+
+#arrayInputNoItemsMessage {
+	padding: 10px;
+}
+
+#maxElementsReachedMessage {
+	color: #ff3614;
+	font-weight: bold;
+	opacity: 0;
+	transition: opacity 250ms ease-in-out;
+} 
+
+#maxElementsReachedMessage.visible {
+	opacity: 1;
+}
+
+#maxElementsReachedCenterer {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: flex-end;
+	justify-content: flex-end;
+	flex-direction: column;
+}
