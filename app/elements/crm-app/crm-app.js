@@ -120,15 +120,67 @@ var CA = (function () {
         return Object.getOwnPropertyNames(settings).map(function (key) {
             return {
                 key: key,
-                value: settings[key]
+                value: JSON.parse(JSON.stringify(settings[key]))
             };
         });
+    };
+    CA._getCodeSettingsFromDialog = function () {
+        var _this = this;
+        var obj = {};
+        Array.prototype.slice.apply(this.querySelectorAll('.codeSettingSetting'))
+            .forEach(function (element) {
+            var value;
+            var key = element.getAttribute('data-key');
+            var type = element.getAttribute('data-type');
+            var currentVal = _this.$.codeSettingsDialog.item.value.options[key];
+            switch (type) {
+                case 'number':
+                    value = _this.templates.mergeObjects(currentVal, {
+                        value: ~~element.querySelector('paper-input').value
+                    });
+                    break;
+                case 'string':
+                    value = _this.templates.mergeObjects(currentVal, {
+                        value: element.querySelector('paper-input').value
+                    });
+                    break;
+                case 'boolean':
+                    value = _this.templates.mergeObjects(currentVal, {
+                        value: element.querySelector('paper-checkbox').checked
+                    });
+                    break;
+                case 'choice':
+                    value = _this.templates.mergeObjects(currentVal, {
+                        selected: element.querySelector('paper-dropdown-menu').selected
+                    });
+                    break;
+                case 'array':
+                    var arrayInput = element.querySelector('paper-array-input');
+                    arrayInput.saveSettings();
+                    var values = arrayInput.values;
+                    if (currentVal.items === 'string') {
+                        values = values.map(function (value) { return value + ''; });
+                    }
+                    else {
+                        values = values.map(function (value) { return ~~value; });
+                    }
+                    value = _this.templates.mergeObjects(currentVal, {
+                        value: values
+                    });
+                    break;
+            }
+            obj[key] = value;
+        });
+        return obj;
+    };
+    CA.confirmCodeSettings = function () {
+        var options = this._getCodeSettingsFromDialog();
+        this.$.codeSettingsDialog.item.value.options = options;
+        this.upload();
     };
     CA.initCodeOptions = function (node) {
         var _this = this;
         this.$.codeSettingsDialog.item = node;
-        this.$.codeSettingsDialog.isScript = node.type === 'script';
-        this.$.codeSettingsDialog.settingsContainer = JSON.parse(JSON.stringify(node.value.options));
         this.$.codeSettingsTitle.innerText = "Changing the options for " + node.name;
         this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
         this.async(function () {

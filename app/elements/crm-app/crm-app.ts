@@ -1,4 +1,4 @@
-﻿/// <reference path="../elements.d.ts" />
+/// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/tern.d.ts" />
 
 interface JQContextMenuObj {
@@ -213,8 +213,6 @@ interface TernServer {
 
 interface CodeSettingsDialog extends HTMLPaperDialogElement {
 	item?: ScriptNode|StylesheetNode;
-	isScript?: boolean;
-	settingsContainer?: CRMOptions;
 }
 
 class CA {
@@ -339,15 +337,70 @@ class CA {
 		return Object.getOwnPropertyNames(settings).map((key: keyof T) => {
 			return {
 				key: key,
-				value: settings[key]
+				value: JSON.parse(JSON.stringify(settings[key]))
 			};
 		});
 	}
 
+	static _getCodeSettingsFromDialog(this: CrmApp): CRMOptions {
+		const obj: CRMOptions = {};
+		Array.prototype.slice.apply(this.querySelectorAll('.codeSettingSetting'))
+			.forEach((element: HTMLElement) => {
+				let value: CRMOptionsValue;
+				const key = element.getAttribute('data-key');
+				const type = element.getAttribute('data-type') as CRMOptionsValue['type'];
+				const currentVal = this.$.codeSettingsDialog.item.value.options[key];
+				switch (type) {
+					case 'number':
+						value = this.templates.mergeObjects(currentVal, {
+							value: ~~element.querySelector('paper-input').value
+						});
+						break;
+					case 'string':
+						value = this.templates.mergeObjects(currentVal, {
+							value: element.querySelector('paper-input').value
+						});
+						break;
+					case 'boolean':
+						value = this.templates.mergeObjects(currentVal, {
+							value: element.querySelector('paper-checkbox').checked
+						});
+						break;
+					case 'choice':
+						value = this.templates.mergeObjects(currentVal, {
+							selected: element.querySelector('paper-dropdown-menu').selected
+						});
+						break;
+					case 'array':
+						const arrayInput = element.querySelector('paper-array-input');
+						arrayInput.saveSettings();
+						let values = arrayInput.values;
+						if ((currentVal as CRMOptionArray).items === 'string') {
+							//Strings
+							values = values.map(value => value + '');
+						} else {
+							//Numbers
+							values = values.map(value => ~~value);
+						}
+						value = this.templates.mergeObjects(currentVal, {
+							value: values
+						});
+						break;
+				}
+				obj[key] = value;
+			});
+		return obj;
+	}
+
+	static confirmCodeSettings(this: CrmApp) {
+		const options = this._getCodeSettingsFromDialog();
+		this.$.codeSettingsDialog.item.value.options = options;
+
+		this.upload();
+	}
+
 	static initCodeOptions(this: CrmApp, node: ScriptNode|StylesheetNode) {
 		this.$.codeSettingsDialog.item = node;
-		this.$.codeSettingsDialog.isScript = node.type === 'script';
-		this.$.codeSettingsDialog.settingsContainer = JSON.parse(JSON.stringify(node.value.options));
 		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
 
 		this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
@@ -3254,15 +3307,15 @@ class CA {
 		/**
 		 * Merges two arrays
 		 */
-		static mergeArrays<T, U>(mainArray: Array<T|Array<T>|U|Array<U>>, additionArray: Array<U|Array<U>>): Array<T|U|Array<T|U>> {
+		static mergeArrays<T extends Array<T>|Array<U>, U>(mainArray: T, additionArray: T): T {
 			for (let i = 0; i < additionArray.length; i++) {
 				if (mainArray[i] && typeof additionArray[i] === 'object' && 
 					mainArray[i] !== undefined && mainArray[i] !== null) {
 					if (Array.isArray(additionArray[i])) {
-						mainArray[i] = this.mergeArrays((mainArray[i] as any) as Array<T>,
-							(additionArray[i] as any) as Array<U>) as Array<T>|Array<U>;
+						mainArray[i] = this.mergeArrays<T, U>(mainArray[i] as T,
+							additionArray[i] as T);
 					} else {
-						mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]) as any;
+						mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
 					}
 				} else {
 					mainArray[i] = additionArray[i];
@@ -3274,7 +3327,10 @@ class CA {
 		/**
 		 * Merges two objects
 		 */
-		static mergeObjects<T>(mainObject: Extendable<T>, additions: Extensions<T>): Extendable<T> {
+		static mergeObjects<T extends {
+			[key: string]: any;
+			[key: number]: any;
+		}, Y extends Partial<T>>(mainObject: T, additions: Y): T & Y {
 			for (let key in additions) {
 				if (additions.hasOwnProperty(key)) {
 					if (typeof additions[key] === 'object' &&
@@ -3286,14 +3342,17 @@ class CA {
 							mainObject[key] = this.mergeObjects(mainObject[key], additions[key]);
 						}
 					} else {
-						mainObject[key] = additions[key];
+						mainObject[key] = (additions[key] as any) as T[keyof T];
 					}
 				}
 			}
-			return mainObject;
+			return mainObject as T & Y;
 		};
 
-		static mergeObjectsWithoutAssignment<T>(mainObject: Extendable<T>, additions: Extensions<T>) {
+		static mergeObjectsWithoutAssignment<T extends {
+			[key: string]: any;
+			[key: number]: any;
+		}, Y extends Partial<T>>(mainObject: T, additions: Y) {
 			for (let key in additions) {
 				if (additions.hasOwnProperty(key)) {
 					if (typeof additions[key] === 'object' &&

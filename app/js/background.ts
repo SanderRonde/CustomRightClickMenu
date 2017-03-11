@@ -277,8 +277,11 @@ interface MatchPattern {
 };
 
 interface CRMTemplates {
-	mergeArrays(mainArray: Array<any>, additionArray: Array<any>): Array<any>;
-	mergeObjects<T extends TU, TU>(mainObject: T, additions: TU): TU;
+	mergeArrays<T extends Array<T>|Array<U>, U>(this: CRMTemplates, mainArray: T, additionArray: T): T
+	mergeObjects<T extends {
+			[key: string]: any;
+			[key: number]: any;
+		}, Y extends Partial<T>>(this: CRMTemplates, mainObject: T, additions: Y): T & Y;
 	getDefaultNodeInfo(options?: any): CRMNodeInfo;
 	getDefaultLinkNode(options?: any): LinkNode;
 	getDefaultStylesheetValue(options?: any): StylesheetVal;
@@ -634,14 +637,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			supportedHashes: ['sha1', 'sha256', 'sha384', 'sha512', 'md5'],
 			validSchemes: ['http', 'https', 'file', 'ftp', '*'],
 			templates: {
-				mergeArrays(this: CRMTemplates, mainArray: Array<any>, additionArray: Array<any>): Array<any> {
+				mergeArrays<T extends Array<T>|Array<U>, U>(this: CRMTemplates, mainArray: T, additionArray: T): T {
 					for (let i = 0; i < additionArray.length; i++) {
 						if (mainArray[i] &&
 							typeof additionArray[i] === 'object' &&
 							mainArray[i] !== undefined &&
 							mainArray[i] !== null) {
 							if (Array.isArray(additionArray[i])) {
-								mainArray[i] = this.mergeArrays(mainArray[i], additionArray[i]);
+								mainArray[i] = this.mergeArrays(mainArray[i] as T, additionArray[i] as T);
 							} else {
 								mainArray[i] = this.mergeObjects(mainArray[i], additionArray[i]);
 							}
@@ -651,7 +654,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainArray;
 				},
-				mergeObjects<T>(this: CRMTemplates, mainObject: Extendable<T>, additions: Extensions<T>): Extendable<T> {
+				mergeObjects<T extends {
+					[key: string]: any;
+					[key: number]: any;
+				}, Y extends Partial<T>>(this: CRMTemplates, mainObject: T, additions: Y): T & Y {
 					for (let key in additions) {
 						if (additions.hasOwnProperty(key)) {
 							if (typeof additions[key] === 'object' &&
@@ -667,7 +673,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 					}
-					return mainObject;
+					return mainObject as T & Y;
 				},
 				getDefaultNodeInfo(this: CRMTemplates, options: Partial<CRMNodeInfo> = {}): CRMNodeInfo {
 					const defaultNodeInfo: CRMNodeInfo = {
