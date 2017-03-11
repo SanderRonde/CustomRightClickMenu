@@ -18,12 +18,12 @@
 					<paper-input no-label-float id="nameInput" value="{{newSettings.name}}" on-keydown="inputKeyPress"></paper-input>
 				</div>
 				<br/>
-				<div id="codeButtonsCont">
-					<div class="codeButtonOption">
+				<div id="toggleButtonsCont">
+					<div class="toggleButtonOption">
 						<paper-toggle-button id="isTogglableButton" checked="{{newSettings.value.toggle}}"></paper-toggle-button>
 						<span class="codeButtonTxt">Is Togglable</span>
 					</div>
-					<div class="codeButtonOption">
+					<div class="toggleButtonOption">
 						<paper-toggle-button id="isDefaultOnButton" disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}"></paper-toggle-button>
 						<span class="codeButtonTxt">On by default</span>
 					</div>
