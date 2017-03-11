@@ -100,6 +100,7 @@ paper-dropdown-menu[fancylabel] {
 	font-size: 150%;
     font-weight: bold;
     text-transform: capitalize;
+	text-align: center;
 }
 
 #fancyDropdownSubtext {
