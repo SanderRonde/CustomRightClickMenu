@@ -111,24 +111,12 @@ interface CRMOptionString {
 	value: null|string;
 }
 
-interface CRMOptionChoiceBase {
+interface CRMOptionChoice {
 	type: 'choice';
 	descr?: string;
 	selected: number;
+	values: Array<string|number>;
 }
-interface CRMOptionChoiceString extends CRMOptionChoiceBase {
-	values: 'string';
-	value: null|Array<string>;
-}
-interface CRMOptionChoiceNumber extends CRMOptionChoiceBase {
-	values: 'number';
-	value: null|Array<number>;
-}
-interface CRMOptionChoiceStringNumber extends CRMOptionChoiceBase {
-	values: ['string', 'number']|['number', 'string'];
-	value: null|Array<number|string>;
-}
-type CRMOptionChoice = CRMOptionChoiceString|CRMOptionChoiceNumber|CRMOptionChoiceStringNumber;
 
 interface CRMOptionCheckbox {
 	type: 'boolean';
@@ -138,7 +126,6 @@ interface CRMOptionCheckbox {
 
 interface CRMOptionArrayBase {
 	type: 'array';
-	minItems?: number;
 	maxItems?: number;
 	descr?: string;
 }
@@ -150,17 +137,13 @@ interface CRMOptionArrayNumber extends CRMOptionArrayBase {
 	items: 'number';
 	value: null|Array<number>;
 }
-interface CRMOptionArrayStringNumber extends CRMOptionArrayBase {
-	items: ['string', 'number']|['number', 'string'];
-	value: null|Array<number|string>;
-}
-type CRMOptionArray = CRMOptionArrayString|CRMOptionArrayNumber|CRMOptionArrayStringNumber;
+type CRMOptionArray = CRMOptionArrayString|CRMOptionArrayNumber;
 
 type Remove<T, K extends keyof T> = T & {
 	[P in K]?: void;
 }
 
-type CRMOptionsValue = CRMOptionCheckbox|CRMOptionString|CRMOptionChoiceBase|
+type CRMOptionsValue = CRMOptionCheckbox|CRMOptionString|CRMOptionChoice|
 	CRMOptionArray|CRMOptionNumber;
 
 type CRMOptions = {
