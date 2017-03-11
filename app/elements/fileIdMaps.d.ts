@@ -68,6 +68,7 @@ interface IDMap
 		"codeSettingsTitle": HTMLHeadingElement,
 		"codeSettingsOptions": HTMLDivElement,
 		"codeSettingsRepeat": HTMLDomRepeatElement,
+		"tabRepeat": HTMLDomRepeatElement,
 		"restoreChangesDialog": HTMLPaperDialogElement,
 		"restoreChangesMain": HTMLDivElement,
 		"highlightChangedScript": HTMLDivElement,
@@ -307,6 +308,7 @@ interface IDMap
 		"codeInfoCont": HTMLDivElement,
 		"codeInfoTxtCont": HTMLPaperMaterialElement,
 		"codeInfoTxt": HTMLDivElement,
+		"container": HTMLDivElement,
 		"flexRow": HTMLDivElement,
 		"flexColumn": HTMLDivElement,
 		"editorCont": HTMLDivElement,
@@ -327,9 +329,9 @@ interface IDMap
 		"toggleButtonsCont": HTMLDivElement,
 		"isTogglableButton": HTMLPaperToggleButtonElement,
 		"isDefaultOnButton": HTMLPaperToggleButtonElement,
-		"codeInfoCont": HTMLDivElement,
-		"codeInfoTxtCont": HTMLPaperMaterialElement,
-		"codeInfoTxt": HTMLDivElement,
+		"toggleInfoCont": HTMLDivElement,
+		"toggleInfoTxtCont": HTMLPaperMaterialElement,
+		"toggleInfoTxt": HTMLDivElement,
 		"triggersCont": HTMLDivElement,
 		"dropdownMenu": HTMLPaperDropdownMenuElement,
 		"executeOnClickOption": HTMLPaperItemElement,
@@ -346,9 +348,8 @@ interface IDMap
 		"addTrigger": HTMLPaperButtonElement,
 		"showOnContentContainer": HTMLDivElement,
 		"showOnContentIconsContainer": HTMLDivElement,
-		"codeEditorCont": HTMLDivElement,
-		"mainEditorTab": HTMLDivElement,
-		"codeOptionsTab": HTMLDivElement,
+		"stylesheetEditorCont": HTMLDivElement,
+		"container": HTMLDivElement,
 		"flexRow": HTMLDivElement,
 		"flexColumn": HTMLDivElement,
 		"editorCont": HTMLDivElement,
@@ -380,6 +381,30 @@ interface IDMap
 		"highlightingBotSquare": ErrorReportingToolSquare,
 		"errorReportingCenterer": HTMLCenterElementElement,
 		"errorReportingDialog": HTMLPaperDialogElement
+	},
+	"paper-array-input":{
+		"arrayInput": HTMLPaperMaterialElement,
+		"arrayInputTitleContainer": HTMLDivElement,
+		"arrayInputTitle": HTMLDivElement,
+		"arrayInputSubtext": HTMLDivElement,
+		"arrayInputContainer": HTMLDivElement,
+		"arrayInputItems": HTMLDivElement,
+		"arrayInputNoItemsMessage": HTMLDivElement,
+		"arrayInputAddPositioner": HTMLDivElement,
+		"maxElementsReachedCenterer": HTMLDivElement,
+		"maxElementsReachedMessage": HTMLSpanElement
+	},
+	"paper-dropdown-menu":{
+		"fancyDropdownlabel": HTMLDivElement,
+		"fancyDropdownSubtext": HTMLDivElement,
+		"dropdownLabel": HTMLDivElement,
+		"dropdownSelectedCont": HTMLDivElement,
+		"dropdownSelected": HTMLDivElement,
+		"dropdownArrow": SVGElement,
+		"contentCont": HTMLDivElement
+	},
+	"paper-toggle-option":{
+		"checkbox": HTMLPaperCheckboxElement
 	},
 	"install-confirm":{
 		"scriptInstalled": HTMLDivElement,
@@ -458,16 +483,6 @@ interface IDMap
 		"pageContainer": HTMLDivElement,
 		"toolbar": HTMLPaperToolbarElement,
 		"title": HTMLDivElement
-	},
-	"paper-dropdown-menu":{
-		"dropdownLabel": HTMLDivElement,
-		"dropdownSelectedCont": HTMLDivElement,
-		"dropdownSelected": HTMLDivElement,
-		"dropdownArrow": SVGElement,
-		"contentCont": HTMLDivElement
-	},
-	"paper-toggle-option":{
-		"checkbox": HTMLPaperCheckboxElement
 	},
 	"paper-get-page-properties":{
 		"dropdownSelectedCont": HTMLDivElement,
