@@ -379,41 +379,45 @@
 					<h2 id="codeSettingsTitle"></h2>
 					<div id="codeSettingsOptions">
 						<template is="dom-repeat" id="codeSettingsRepeat" as="codeSetting">
-							<div class="codeSettingSetting">
+							<div class="codeSettingSetting" data-key$="[[codeSetting.key]]" data-type$="[[codeSetting.value.type]]">
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'number')}}">
-									<paper-input type="number" placeholder="[[codeSetting.value.descr]]"
+									<paper-input type="number" placeholder="[[_getString(codeSetting.value.descr)]]"
 										value="{{codeSetting.value.value}}" min="[[codeSetting.value.minimum]]"
 										max="[[codeSetting.value.maximum]]"
 										label="[[codeSetting.key]]"
-										title="[[codeSetting.value.descr]]"></paper-input>
+										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'boolean')}}">
 									<paper-checkbox checked="{{codeSetting.value.value}}">
 										<span>
 											<b>[[codeSetting.key]]</b>
-											<template is="dom-if" if="[[codeSetting.value.descr]]">
-												<span>: <span>[[codeSetting.value.descr]]</span></span>
+											<template is="dom-if" if="[[_getString(codeSetting.value.descr)]]">
+												<span>: <span>[[_getString(codeSetting.value.descr)]]</span></span>
 											</template>
 										</span>
 									</paper-checkbox>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'string')}}">
-									<paper-input type="text" placeholder="[[codeSetting.value.descr]]"
+									<paper-input type="text" placeholder="[[_getString(codeSetting.value.descr)]]"
 										value="{{codeSetting.value.value}}"
 										maxlength="[[codeSetting.value.maxLength]]"
 										label="[[codeSetting.key]]"
-										title="[[codeSetting.value.descr]]"></paper-input>
+										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'array')}}">
-									isArr
+									<paper-array-input values="{{codeSetting.value.value}}" 
+										max="[[codeSetting.value.maxItems]]"
+										subtext="[[codeSetting.value.descr]]"
+										title="[[codeSetting.key]]"
+										type="[[codeSetting.value.items]]"></paper-array-input>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'choice')}}">
-									<paper-dropdown-menu title="[[codeSetting.value.descr]]" 
+									<paper-dropdown-menu title="[[_getString(codeSetting.value.descr)]]" 
 											label="[[codeSetting.key]]" indent="true" 
 											fancylabel raised subtext="[[codeSetting.key]]"
 											selected="{{codeSetting.value.selected}}">
 										<paper-menu selected="{{codeSetting.value.selected}}">
-											<template id="tabRepeat" is="dom-repeat" items="[[codeSetting.value.value]]" as="codeSettingOption">
+											<template id="tabRepeat" is="dom-repeat" items="[[codeSetting.value.values]]" as="codeSettingOption">
 												<paper-item>
 													<div class="menuSelectedCheckmark">
 														<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48">

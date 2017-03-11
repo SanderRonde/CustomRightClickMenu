@@ -1021,3 +1021,7 @@ paper-toggle-option #checkboxLabel {
 .codeSettingsDialog .menuSelectedCheckmar {
 	width: 29px;
 }
+
+#codeSettingsDialog {
+	overflow-y: scroll;
+}
