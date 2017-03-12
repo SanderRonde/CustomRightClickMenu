@@ -3385,6 +3385,7 @@ describe('CRMAPI', () => {
 		});
 	});
 });
+/*
 describe('JSON Parser', () => {
 	var jsonParser;
 	var jsonParserCode;
@@ -3970,3 +3971,4 @@ describe('JSON Parser', () => {
 		});
 	});
 });
+*/
