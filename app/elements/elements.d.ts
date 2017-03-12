@@ -32,13 +32,39 @@
 /// <reference path="./tools/paper-search-website-dialog/paper-search-website-dialog.ts" />
 /// <reference path="./tools/use-external-editor/use-external-editor.ts" />
 /// <reference path="./type-switcher/type-switcher.ts" />
+/// <reference path="./edit-pages/code-edit-pages/jsonParser.ts" />
+
+interface Completion {
+
+}
+
+interface Completions {
+	completions: Array<Completion>;
+	end: {
+		ch: number;
+		line: number;
+	};
+	isObjectKey: boolean;
+	isProperty: boolean;
+	start: {
+		ch: number;
+		line: number;
+	}
+}
+
+interface CMCompletionFns {
+	resolvePos(file: TernFile, pos: {
+		line: number;
+		ch: number;
+	}): number;
+}
 
 interface Window {
 	codeMirrorToLoad?: {
-		toLoad: Array<() => void>;
-		final(): void;
+		toLoad: Array<(cm: CodeMirror) => void>;
+		final?(): void;
 	};
-	CodeMirror: CodeMirrorInstance;
+	CodeMirror: CodeMirror;
 	colorFunction: {
 		func(pos: LinePosition, cm: CodeMirrorInstance): void;
 		cm: CodeMirrorInstance;
@@ -58,6 +84,30 @@ interface Window {
 		logLines: any;
 	};
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
+	completionsOptions(query: {
+		start: {
+			line: number;
+			ch: number;
+		};
+		end: {
+			line: number;
+			ch: number;
+		}
+	}, file: TernFile, fns: CMCompletionFns): Completions;
+	parseCodeOptions(file: TernFile, query: {
+		start: {
+			line: number;
+			ch: number;
+		};
+		end: {
+			line: number;
+			ch: number;
+		};
+	}, fns: CMCompletionFns, full: boolean): {
+		options: JSONOptions;
+		cursor: CursorState;
+	}
+	useOptionsCompletions: boolean;
 
 	app: CrmApp;
 	logPage: LogPage;

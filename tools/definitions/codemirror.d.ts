@@ -90,7 +90,7 @@ type CodeMirrorMode = 'javascript'|'css'|{
 }
 
 interface CodeMirrorDoc {
-	(text: string, mode: CodeMirrorMode, firstLineNumber?: number): CodeMirrorDocInstance;
+	new(text: string, mode: CodeMirrorMode, firstLineNumber?: number): CodeMirrorDocInstance;
 }
 
 interface CMMetaInfo {
@@ -179,11 +179,66 @@ interface CodeMirrorInstance {
 	removeMetaTags(cm: CodeMirrorInstance, key: string, value: string|number): number;
 }
 
-interface CodeMirrorInstance {
+interface CodeMirrorTokenStream {
+	next(): string;
+	match(toMatch: string|RegExp): boolean;
+	eat(toEat: string|RegExp): boolean;
+	skipToEnd(): void;
+	eatWhile(condition: RegExp): void;
+	eatSpace(): void;
+	current(): string;
+	peek(): string;
+	eol(): boolean;
+	column(): number;
+
+	start: string;
+	string: string;
+}
+
+interface Lexical {
+	indented: number;
+	column: number;
+	type: string;
+	align: boolean;
+	prev: Lexical;
+	info: number|string;
+}
+
+interface CodeMirrorState {
+	tokenize(stream: CodeMirrorTokenStream, state: CodeMirrorState): string;
+	lastType: string;
+	cc: Array<(type?: string, content?: string) => void>;
+	lexical: Lexical;
+	localVars: {
+		[key: string]: any;
+	};
+	context: {
+		[key: string]: any;
+	};
+	indented: number;
+}
+
+interface CodeMirrorModeConfig {
+	startState(basecolumn?: number): CodeMirrorState;
+	token(stream: CodeMirrorTokenStream, state: CodeMirrorState): string;
+	indent(state: CodeMirrorState, textAfter?: string): number;
+
+	electricInput: RegExp;
+	blockCommentStart: string|null;		
+	blockCommentEnd: string|null;
+	lineComment: string|null;
+	fold: string;
+	closeBrackets: string;
+}
+
+interface CodeMirror {
 	(container: HTMLElement, options: CodeMirrorOptions): CodeMirrorInstance;
 	MergeView: {
 		new(container: HTMLElement, options: MergeViewOptions): MergeViewCodeMirrorInstance;
 	}
+
+	defineMode(modeName: string, mode: (config: Object, parserConfig: Object) => void): CodeMirrorModeConfig;
+	registerHelper(event: string, mode: string, _: any): void;
 
 	Doc: CodeMirrorDoc
 	lint: {

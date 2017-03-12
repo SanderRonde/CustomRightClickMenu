@@ -5,6 +5,7 @@ interface TernBaseExpression {
 	callee: TernCallExpression;
 	body?: TernBlockStatement|Array<TernExpression>;
 	name: string;
+	sourceFile: TernFile;
 }
 
 interface TernVariableDeclaration {
@@ -89,10 +90,17 @@ interface TernReturnStatement extends TernBaseExpression {
 	argument: TernExpression;
 }
 
+interface TernLiteral extends TernBaseExpression {
+	type: 'Literal';
+	value: string;
+	raw: string;
+}
+
 type TernExpression = TernVariableDeclarationCont | TernCallExpression | TernAssignmentExpression|
 	TernFunctionExpression | TernBlockStatement | TernExpressionStatement|
 	TernSequenceExpressionStatement | TernConditionalExpression | TernIfStatement|
-	TernLogicalExpression | TernReturnStatement | BinaryExpression | ObjectExpression
+	TernLogicalExpression | TernReturnStatement | BinaryExpression | ObjectExpression |
+	TernLiteral;
 
 interface TernParsedFile {
 	body: Array<TernExpression>;
