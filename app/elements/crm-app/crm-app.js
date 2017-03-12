@@ -105,6 +105,13 @@ var CA = (function () {
         }
         return node;
     };
+    CA.arrayToObj = function (arr) {
+        var obj = {};
+        arr.forEach(function (el) {
+            obj[el.key] = el.value;
+        });
+        return obj;
+    };
     CA.getPageTitle = function () {
         return location.href.indexOf('demo') > -1 ?
             'Demo, actual right-click menu does NOT work in demo' :

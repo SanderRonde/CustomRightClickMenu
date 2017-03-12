@@ -352,13 +352,22 @@ class SCE {
 	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		const element = window.app.findElementWithClassName(e.path, 'editorTab');
 
-		var isMain = element.classList.contains('mainEditorTab');
+		const isMain = element.classList.contains('mainEditorTab');
+		const isBackground = element.classList.contains('backgroundEditorTab');
 		if (isMain && this.editorMode !== 'main') {
+			element.classList.remove('optionsEditorTab');
+			this.hideCodeOptions();
+			this.initTernKeyBindings();
 			this.changeTab('main');
-		} else if (!isMain && this.editorMode === 'main') {
+		} else if (!isMain && isBackground && this.editorMode !== 'background') {
+			element.classList.remove('optionsEditorTab');
+			this.hideCodeOptions();
+			this.initTernKeyBindings();
 			this.changeTab('background');
-		} else {
-			return;
+		} else if (!isBackground && this.editorMode !== 'options') {
+			element.classList.add('optionsEditorTab');
+			this.showCodeOptions();
+			this.editorMode = 'options';
 		}
 
 		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(

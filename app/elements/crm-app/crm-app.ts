@@ -314,6 +314,17 @@ class CA {
 		return node;
 	}
 
+	static arrayToObj<T extends Array<S>, S extends {
+		key: I;
+		value: U
+	}, U, I extends string>(arr: T): Record<I, U> {
+		const obj: Record<I, U> = {} as Record<I, U>;
+		arr.forEach((el) => {
+			obj[el.key] = el.value;
+		});
+		return obj;
+	}
+
 	static getPageTitle(): string {
 		return location.href.indexOf('demo') > -1 ? 
 			'Demo, actual right-click menu does NOT work in demo' :

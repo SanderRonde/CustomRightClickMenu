@@ -15,6 +15,8 @@ type CodeEditBehaviorStylesheetInstance = CodeEditBehaviorIntanceBase &
 type CodeEditBehavior = NodeEditBehaviorScriptInstance|
 	NodeEditBehaviorStylesheetInstance;
 
+type CodeNode = ScriptNode|StylesheetNode;
+
 class CEB {
 	/**
 	 * An interval to save any work not discarder or saved (say if your browser/pc crashes)
@@ -124,7 +126,7 @@ class CEB {
 	/**
 	 * The mode the editor is in (main or background)
 	 */
-	static editorMode: 'main'|'background' = 'main';
+	static editorMode: 'main'|'background'|'options' = 'main';
 
 	static _updateZoomEl: () => void;
 
@@ -141,6 +143,8 @@ class CEB {
 	static optionsAnimations: Array<Animation> = [];
 
 	static editorPlaceHolderAnimation: Animation;
+
+	static otherDoc: CodeMirrorDocInstance = null;
 
 	static finishEditing(this: CodeEditBehavior) {
 		if (window.app.storageLocal.recoverUnsavedData) {
@@ -211,6 +215,26 @@ class CEB {
 			this.verticalVisible = !this.verticalVisible;
 		}
 	};
+
+	static getCmInstance(this: CodeEditBehavior): CodeMirrorInstance {
+		if (this.item.type === 'script') {
+			return window.scriptEdit.editor;
+		}
+		return window.stylesheetEdit.editor;
+	}
+
+	static showCodeOptions(this: CodeEditBehavior) {
+		const doc = new window.CodeMirror.Doc(JSON.stringify(this.item.value.options, null, '\t'), {
+			name: 'javascript',
+			json: true
+		});
+		this.otherDoc = this.getCmInstance().swapDoc(doc);
+		window.useOptionsCompletions = true;
+	}
+
+	static hideCodeOptions(this: CodeEditBehavior) {
+		
+	}
 }
 
 Polymer.CodeEditBehavior = CEB as CodeEditBehavior;

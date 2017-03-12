@@ -56,6 +56,22 @@ var CEB = (function () {
         }
     };
     ;
+    CEB.getCmInstance = function () {
+        if (this.item.type === 'script') {
+            return window.scriptEdit.editor;
+        }
+        return window.stylesheetEdit.editor;
+    };
+    CEB.showCodeOptions = function () {
+        var doc = new window.CodeMirror.Doc(JSON.stringify(this.item.value.options, null, '\t'), {
+            name: 'javascript',
+            json: true
+        });
+        this.otherDoc = this.getCmInstance().swapDoc(doc);
+        window.useOptionsCompletions = true;
+    };
+    CEB.hideCodeOptions = function () {
+    };
     return CEB;
 }());
 CEB.savingInterval = 0;
@@ -80,4 +96,5 @@ CEB.preventNotificationTimeout = null;
 CEB.editorMode = 'main';
 CEB.fullscreenAnimation = null;
 CEB.optionsAnimations = [];
+CEB.otherDoc = null;
 Polymer.CodeEditBehavior = CEB;

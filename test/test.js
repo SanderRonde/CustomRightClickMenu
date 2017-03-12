@@ -3385,3 +3385,588 @@ describe('CRMAPI', () => {
 		});
 	});
 });
+describe('JSON Parser', () => {
+	var jsonParser;
+	var jsonParserCode;
+	var crmApp;
+	var crmAppCode;
+
+	function resolvePos(file, pos) {
+		var split = file.split('\n');
+		var length = 0;
+		for (var i = 0; i < split.length; i++) {
+			if (i === pos.line) {
+				return length + pos.ch;
+			} else {
+				length += split[i].length + 1;
+			}
+		}
+		return length;
+	}
+	var ternFns = {
+		resolvePos: resolvePos
+	}
+
+	describe('is testable', function() {
+		this.slow(1000);
+		var elements = {};
+		const Polymer = (element) => {
+			elements[element.is] = element;
+		};
+		const chrome = {
+			storage: {
+				local: {
+					set: function () { }
+				}
+			}
+		};
+		step('should be able to read crm-app.js', () => {
+			assert.doesNotThrow(run(() => {
+				crmAppCode = fs.readFileSync('./app/elements/crm-app/crm-app.js', {
+					encoding: 'utf8'
+				});
+			}), 'File crm-app.js is readable');
+		});
+		step('crm-app.js should be runnable', () => {
+			assert.doesNotThrow(run(() => {
+				eval(crmAppCode);
+			}), 'File crm-app.js is executable');
+			crmAppResolve();
+			crmApp = elements['crm-app'];
+		});
+		step('crm-app.js should be defined', () => {
+			assert.isDefined(crmApp, 'crmApp is defined');
+		});
+		step('should be able to read jsonParser.js', () => {
+			assert.doesNotThrow(run(() => {
+				jsonParserCode = fs.readFileSync(
+					'./app/elements/edit-pages/code-edit-pages/jsonParser.js', {
+						encoding: 'utf8'
+					});
+			}), 'File jsonParser.js is readable')
+		});
+		step('jsonParser.js should be runnable', () => {
+			assert.doesNotThrow(run(() => {
+				eval(jsonParserCode);
+			}), 'File jsonParser.js is executable');
+		});
+		step('jsonParser.js should be defined', () => {
+			assert.isDefined(window.parseCodeOptions, 
+				'parseCodeOptions is defined');
+		});
+		step('should have a transferCRMFromOld property that is a function', () => {
+			assert.isDefined(crmApp.transferCRMFromOld, 'Function is defined');
+			assert.isFunction(crmApp.transferCRMFromOld, 'Function is a function');
+		});
+		step('should have a generateScriptUpgradeErrorHandler property that is a function', () => {
+			assert.isDefined(crmApp.transferCRMFromOld, 'Function is defined');
+			assert.isFunction(crmApp.transferCRMFromOld, 'Function is a function');
+		});
+		step('generateScriptUpgradeErrorHandler should be overwritable', () => {
+			assert.doesNotThrow(run(() => {
+				crmApp.generateScriptUpgradeErrorHandler = () => {
+					return (oldScriptErrs, newScriptErrs, parseErrors, errors) => {
+						if (Array.isArray(errors)) {
+							if (Array.isArray(errors[0])) {
+								throw errors[0][0];
+							}
+							throw errors[0];
+						} else if (errors) {
+							throw errors;
+						}
+						if (oldScriptErrs) {
+							throw oldScriptErrs;
+						}
+						if (newScriptErrs) {
+							throw newScriptErrs;
+						}
+						if (parseErrors) {
+							throw new Error('Error parsing script');
+						}
+					};
+				};
+			}), 'generateScriptUpgradeErrorHandler is overwritable');
+		});
+		let diffMatchPatchCode;
+		step('should be able to read diff_match_patch.js', () => {
+			assert.doesNotThrow(run(() => {
+				diffMatchPatchCode = fs.readFileSync('./app/js/libraries/diff_match_patch.js', {
+					encoding: 'utf8'
+				});
+			}), 'File diff_match_patch.js is readable');
+		});
+		step('should be able to run diff_match_patch.js', () => {
+			assert.doesNotThrow(run(() => {
+				eval(diffMatchPatchCode);
+			}), 'File diff_match_patch.js is runnable');
+		});
+		let codemirrorJsCode;
+		step('should be able to read codemirror.js', () => {
+			assert.doesNotThrow(run(() => {
+				codemirrorJsCode = fs.readFileSync('./app/js/libraries/codemirror/codemirror.js', {
+					encoding: 'utf8'
+				});
+			}), 'File codemirror.js is readable');
+		});
+		step('should be able to run codemirror.js', () => {
+			assert.doesNotThrow(run(() => {
+				eval(codemirrorJsCode);
+			}), 'File codemirror.js is runnable');
+		});
+		let ternCode;
+		step('should be able to read codeMirrorAddons.js', () => {
+			assert.doesNotThrow(run(() => {
+				ternCode = fs.readFileSync('./app/js/libraries/codemirror/codeMirrorAddons.js', {
+					encoding: 'utf8'
+				});
+			}), 'File codeMirrorAddons.js is readable');
+		});
+		step('should be able to run codeMirrorAddons.js', () => {
+			assert.doesNotThrow(run(() => {
+				eval(ternCode);
+			}), 'File codeMirrorAddons.js is runnable');
+		});
+	});
+
+	var outOfRangeCursor = {
+		start: {
+			line: -1,
+			ch: 0
+		},
+		end: {
+			line: -1,
+			ch: 0
+		}
+	};
+	function genTernFile(text) {
+		return {
+			text: text
+		}
+	}
+	function parseCode(text, cursor, expectedObject, expectedCursorOrArrays, errs) {
+		assert.doesNotThrow(run(() => {
+			var val = window.parseCodeOptions(genTernFile(text), cursor, ternFns, true);
+			assert.deepEqual(val.options, expectedObject,
+				'parsed JSON object matches expected');
+			if (expectedCursor !== void 0) {
+				assert.deepEqual(val.cursor, expectedCursor, 
+					'parsed JSON cursor should match expected');
+			}
+			if (err !== void 0) {
+				assert.lengthOf(val.errs, errs.length, 'should only have thrown one error');
+				assert.strictEqual(val.errs[0].message, err.message,
+					'error messages should be the same');	
+			}
+		}), 'jsonParser does not throw error');
+	}
+	function strIndexedObject(obj) {
+		const newObj = {};
+		Object.getOwnPropertyNames(obj).forEach((index) => {
+			newObj[`"${index}"`] = obj[index];
+		});
+		return newObj;
+	}
+	function parseObjNoCursor(obj) {
+		parseCode(JSON.stringify(obj), outOfRangeCursor, strIndexedObject(obj));
+	}
+	function indexToPos(str, index) {
+		var split = str.split('\n');
+		var currentIndex = 0;
+		for (var i = 0; i < split.length; i++) {
+			var lineLength = (split[i].length + 1);
+			currentIndex += lineLength;
+			if (index <= currentIndex) {
+				return {
+					start: {
+						line: i,
+						ch: index - (currentIndex - lineLength)
+					},
+					end: {
+						line: i,
+						ch: index - (currentIndex - lineLength)
+					}
+				};
+			}
+		}
+		return {
+			start: {
+				line: -1,
+				ch: 0
+			},
+			end: {
+				line: -1,
+				ch: 0
+			}
+		}
+	}
+	function parseStrWithCursor(str, expectedCursor) {
+		//Find cursor
+		var cursor = str.indexOf('_');
+		var objStr = str.slice(0, cursor) + str.slice(cursor + 1);
+		parseCode(objStr, indexToPos(str, cursor), JSON.parse(objStr), 
+			expectedCursor);
+	}
+	function parseInvalidJSONWithoutCursor(str, expectedObj, errs) {
+		errs = errs.map((msg) => {
+			const errIndex = str.indexOf('$');
+			str = str.slice(0, errIndex) + str.slice(errIndex + 1);
+			return {
+				err: {
+					message: msg,
+					index: errIndex
+				}
+			}
+		});
+		var objStr = str.slice(0, err) + str.slice(err + 1);
+		parseCode(objStr, outOfRangeCursor, expectedObj,
+			void 0, errs);
+	}
+
+	describe('valid JSON', () => {
+		describe('no cursor', () => {
+			it('should be able to parse an empty object', () => {
+				parseObjNoCursor({});
+			});
+			it('should be able to parse a key-string pair', () => {
+				parseObjNoCursor({"key": "value"});
+			});
+			it('should be able to parse a key-number pair', () => {
+				parseObjNoCursor({"key": 3});
+			})
+			it('should be able to parse a key-negative-number pair', () => {
+				parseObjNoCursor({"key": -5});
+			})
+			it('should be able to parse a key-float pair', () => {
+				parseObjNoCursor({"key": 3.1234});
+			})
+			it('should be able to parse a key-negative-float pair', () => {
+				parseObjNoCursor({"key": -3.4321});
+			})
+			it('should be able to parse a key-bool-true pair', () => {
+				parseObjNoCursor({"key": true});
+			})
+			it('should be able to parse a key-bool-false pair', () => {
+				parseObjNoCursor({"key": false});
+			})
+			it('should be able to parse multiple key-value pairs', () => {
+				parseObjNoCursor({
+					key: "value",
+					key2: 3,
+					key3: -5,
+					key4: 123.456,
+					key5: -1234.567,
+					key6: true,
+					key7: false
+				});
+			});
+			it('should be able to parse a key-array-of-strings pair', () => {
+				parseObjNoCursor({
+					key: ["a", "b", "c", "d", "e"]
+				});
+			});
+			it('should be able to parse a key-array-of-numbers pair', () => {
+				parseObjNoCursor({
+					key: [0, -1, 2, -3, 4, 5]
+				});
+			});
+			it('should be able to parse a key-array-of-floats pair', () => {
+				parseObjNoCursor({
+					key: [1.234, -12.34, 5.6]
+				});
+			});
+			it('should be able to parse a key-mixed-array pair', () => {
+				parseObjNoCursor({
+					key: ["a", 0, 3 -4, -1.2, "B"]
+				});
+			});
+			it('should be able to parse a key-object pair', () => {
+				parseObjNoCursor({
+					key: {
+						key: "value"
+					}
+				});
+			});
+			it('should be able to parse a more complex key-object pair', () => {
+				parseObjNoCursor({
+					key: {
+						key: "value",
+						key2: 3,
+						key3: -5,
+						key4: 123.456,
+						key5: -1234.567,
+						key6: true,
+						key7: false
+					}
+				});
+			});
+			it('should be able to parse multiple complex key-object pairs', () => {
+				parseObjNoCursor({
+					key: {
+						key: "value",
+						key2: 3,
+						key3: -5,
+						key4: 123.456,
+						key5: -1234.567,
+						key6: true,
+						key7: false
+					},
+					key2: {
+						key: "value",
+						key2: 3,
+						key3: -5,
+						key4: 123.456,
+						key5: -1234.567,
+						key6: true,
+						key7: false
+					},
+					key3: {
+						key: "value",
+						key2: 3,
+						key3: -5,
+						key4: 123.456,
+						key5: -1234.567,
+						key6: true,
+						key7: false
+					}
+				});
+			});
+		});
+		describe('with cursor', () => {
+			it('should be able to find the cursor location in the key', () => {
+				parseStrWithCursor(`{
+					_"key": "value"
+				}`, {
+					type: 'key',
+					key: '',
+					scope: []
+				});
+				parseStrWithCursor(`{
+					"_key": "value"
+				}`, {
+					type: 'key',
+					key: '"',
+					scope: []
+				});
+				parseStrWithCursor(`{
+					"k_ey": "value"
+				}`, {
+					type: 'key',
+					key: '"k',
+					scope: []
+				});
+				parseStrWithCursor(`{
+					"key_": "value"
+				}`, {
+					type: 'key',
+					key: '"key',
+					scope: []
+				});
+			});
+			it('should return an empty cursor when at the colon', () => {
+				parseStrWithCursor(`{
+					"key"_: "value"
+				}`, undefined);
+			});
+			it('should return an empty cursor when at the brackets', () => {
+				parseStrWithCursor(`_{
+					"key": "value"
+				}`, undefined);
+				parseStrWithCursor(`{
+					"key": "value"
+				_}`, undefined);
+				parseStrWithCursor(`{
+					"key": "value"
+				}_`, undefined);
+			});
+			it('should be able to find the cursor in a nested object string', () => {
+				parseStrWithCursor(`{
+					"key": {
+						"_index": "value"
+					}
+				}`, {
+					type: 'key',
+					key: '"',
+					scope: ['key']
+				});
+				parseStrWithCursor(`{
+					"key": {
+						"i_ndex": "value"
+					}
+				}`, {
+					type: 'key',
+					key: '"i',
+					scope: ['key']
+				});
+				parseStrWithCursor(`{
+					"key": {
+						"index_": "value"
+					}
+				}`, {
+					type: 'key',
+					key: '"index',
+					scope: ['key']
+				});
+			});
+			describe('values', () => {
+				it('should be able to find the cursor in a string', () => {
+					parseStrWithCursor(`{
+						"key": _"value"	
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '',
+						scope: []
+					});
+					parseStrWithCursor(`{
+						"key": "_value"	
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '"',
+						scope: []
+					});
+					parseStrWithCursor(`{
+						"key": "val_ue"	
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '"val',
+						scope: []
+					});
+					parseStrWithCursor(`{
+						"key": "value_"	
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '"value',
+						scope: []
+					});
+				});
+				it('should be able to find the cursor in a nested string', () => {
+					parseStrWithCursor(`{
+						"index": {
+							"key": _"value"	
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": "_value"	
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '"',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": "val_ue"	
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '"val',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": "value_"	
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '"value',
+						scope: ['index']
+					});
+				});
+				it('should be able to find the cursor in a boolean', () => {
+					parseStrWithCursor(`{
+						"index": {
+							"key": _true
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": tr_ue
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: 'tr',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": tru_e
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: 'tru',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": _false
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: '',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": fa_lse
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: 'fa',
+						scope: ['index']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": fals_e
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: 'fals',
+						scope: ['index']
+					});
+				});
+			});
+		});
+	});
+	describe('invalid JSON', () => {
+		describe('no cursor', () => {
+			it('should throw an error when the key is invalid', () => {
+				parseInvalidJSONWithoutCursor(`{
+					$index: "value",
+					"key": "value"
+				}`, {
+					key: "value"
+				}, 'Unexpected i');
+			});
+			it('should thrown an error when the key is missing', () => {
+				parseInvalidJSONWithoutCursor(`{
+					$: "value",
+					"key": "value"
+				}`, {
+					key: "value"
+				}, 'Unexpected :');
+			});
+		});
+	});
+});

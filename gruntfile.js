@@ -154,6 +154,7 @@ module.exports = function(grunt) {
 						'app/js/libraries/codemirror/codeMirrorAddons.js',
 						'app/js/userscriptMetadataCodemirror.js',
 						'app/js/libraries/codemirror/codemirrorJs.js',
+						'app/js/libraries/codemirror/codemirrorCodeOptionsJson.js',
 						'app/js/crmAPIDefs.js'
 					]
 			}

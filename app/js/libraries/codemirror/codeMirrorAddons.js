@@ -6360,6 +6360,12 @@
 	 * @return {?}
 	 */
 	function findCompletions(srv, query, file) {
+		if (window.useOptionsCompletions) {
+			return window.completionsOptions(query, file, {
+					resolvePos: resolvePos
+				});
+		}
+
 		/**
 		 * @param {string} prop
 		 * @param {?} obj
@@ -15879,7 +15885,6 @@
 			}
 			,
 			Z = e.scopeAt = function (e, t, r) {
-				console.trace();
 
 				var o = n.findNodeAround(e, t, function (e, t) {
 					return "ScopeBody" == e && t.scope
