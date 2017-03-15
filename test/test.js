@@ -146,7 +146,7 @@ var run = (fn) => {
 		try {
 			fn();
 		} catch (e) {
-			console.log('Error', e);
+			//console.log('Error', e);
 			throw e;
 		}
 	};
@@ -3385,7 +3385,6 @@ describe('CRMAPI', () => {
 		});
 	});
 });
-/*
 describe('JSON Parser', () => {
 	var jsonParser;
 	var jsonParserCode;
@@ -3393,7 +3392,7 @@ describe('JSON Parser', () => {
 	var crmAppCode;
 
 	function resolvePos(file, pos) {
-		var split = file.split('\n');
+		var split = file.text.split('\n');
 		var length = 0;
 		for (var i = 0; i < split.length; i++) {
 			if (i === pos.line) {
@@ -3544,31 +3543,61 @@ describe('JSON Parser', () => {
 			text: text
 		}
 	}
-	function parseCode(text, cursor, expectedObject, expectedCursorOrArrays, errs) {
+	function parseCode(text, cursor, expectedObject, expectedCursor, errs) {
+		var val;
 		assert.doesNotThrow(run(() => {
-			var val = window.parseCodeOptions(genTernFile(text), cursor, ternFns, true);
-			assert.deepEqual(val.options, expectedObject,
-				'parsed JSON object matches expected');
-			if (expectedCursor !== void 0) {
-				assert.deepEqual(val.cursor, expectedCursor, 
-					'parsed JSON cursor should match expected');
-			}
-			if (err !== void 0) {
-				assert.lengthOf(val.errs, errs.length, 'should only have thrown one error');
-				assert.strictEqual(val.errs[0].message, err.message,
-					'error messages should be the same');	
-			}
+			val = window.parseCodeOptions(genTernFile(text), cursor, ternFns, true);
 		}), 'jsonParser does not throw error');
+		assert.deepEqual(val.options, expectedObject,
+			'parsed JSON object matches expected');
+		if (expectedCursor !== void 0) {
+			assert.deepEqual(val.cursor, expectedCursor, 
+				'parsed JSON cursor should match expected');
+		}
+		if (errs !== void 0) {
+			assert.lengthOf(val.errs, errs.length, 'should have thrown the same amount of errors');
+			const expectedErrors = val.errs.map(function(errData) {
+				errData.message = errData.err.message;
+				delete errData.err;
+				return errData;
+			});
+			assert.sameDeepMembers(expectedErrors, errs, 'error messages should be the same');	
+		}
 	}
 	function strIndexedObject(obj) {
 		const newObj = {};
 		Object.getOwnPropertyNames(obj).forEach((index) => {
 			newObj[`"${index}"`] = obj[index];
+			if (typeof obj[index] === 'object' && !Array.isArray(obj[index])) {
+				newObj[`"${index}"`] = strIndexedObject(obj[index]);
+			}
 		});
 		return newObj;
 	}
+	function addQuotesToValues(obj) {
+		if (Array.isArray(obj)) {
+			return obj.map(function(value) {
+				if (typeof value === 'object') {
+					return addQuotesToValues(value);
+				} else {
+					return typeof value === 'string' ? 
+						`"${value}"` : (value + '');
+				}	
+			});
+		} else {
+			Object.getOwnPropertyNames(obj).forEach((index) => {
+				if (typeof obj[index] === 'object') {
+					obj[index] = addQuotesToValues(obj[index]);
+				} else {
+					obj[index] = typeof obj[index] === 'string' ? 
+						`"${obj[index]}"` : (obj[index] + '');
+				}
+			});
+			return obj;
+		}
+	}
 	function parseObjNoCursor(obj) {
-		parseCode(JSON.stringify(obj), outOfRangeCursor, strIndexedObject(obj));
+		parseCode(JSON.stringify(obj), outOfRangeCursor, addQuotesToValues(strIndexedObject(obj)));
 	}
 	function indexToPos(str, index) {
 		var split = str.split('\n');
@@ -3604,23 +3633,30 @@ describe('JSON Parser', () => {
 		//Find cursor
 		var cursor = str.indexOf('_');
 		var objStr = str.slice(0, cursor) + str.slice(cursor + 1);
-		parseCode(objStr, indexToPos(str, cursor), JSON.parse(objStr), 
+		parseCode(objStr, indexToPos(str, cursor), 
+			addQuotesToValues(strIndexedObject(JSON.parse(objStr))), 
 			expectedCursor);
 	}
 	function parseInvalidJSONWithoutCursor(str, expectedObj, errs) {
-		errs = errs.map((msg) => {
+		errs = errs.map(function(msg) {
 			const errIndex = str.indexOf('$');
+			assert.notStrictEqual(errIndex, -1, 'Every error should have a location');
 			str = str.slice(0, errIndex) + str.slice(errIndex + 1);
 			return {
-				err: {
-					message: msg,
-					index: errIndex
-				}
+				message: msg,
+				index: errIndex
 			}
 		});
-		var objStr = str.slice(0, err) + str.slice(err + 1);
-		parseCode(objStr, outOfRangeCursor, expectedObj,
+		parseCode(str, outOfRangeCursor, 
+			addQuotesToValues(strIndexedObject(expectedObj)),
 			void 0, errs);
+	}
+	function parseInvalidJSONWithCursor(str, expectedObj, expectedCursor) {
+		var cursor = str.indexOf('_');
+		var objStr = str.slice(0, cursor) + str.slice(cursor + 1);
+		parseCode(objStr, indexToPos(str, cursor), 
+			addQuotesToValues(strIndexedObject(expectedObj)), 
+			expectedCursor);
 	}
 
 	describe('valid JSON', () => {
@@ -3787,7 +3823,7 @@ describe('JSON Parser', () => {
 				}`, {
 					type: 'key',
 					key: '"',
-					scope: ['key']
+					scope: ['"key"']
 				});
 				parseStrWithCursor(`{
 					"key": {
@@ -3796,7 +3832,7 @@ describe('JSON Parser', () => {
 				}`, {
 					type: 'key',
 					key: '"i',
-					scope: ['key']
+					scope: ['"key"']
 				});
 				parseStrWithCursor(`{
 					"key": {
@@ -3805,7 +3841,7 @@ describe('JSON Parser', () => {
 				}`, {
 					type: 'key',
 					key: '"index',
-					scope: ['key']
+					scope: ['"key"']
 				});
 			});
 			describe('values', () => {
@@ -3852,7 +3888,7 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: '',
-						scope: ['index']
+						scope: ['"index"']
 					});
 					parseStrWithCursor(`{
 						"index": {
@@ -3862,7 +3898,7 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: '"',
-						scope: ['index']
+						scope: ['"index"']
 					});
 					parseStrWithCursor(`{
 						"index": {
@@ -3872,7 +3908,7 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: '"val',
-						scope: ['index']
+						scope: ['"index"']
 					});
 					parseStrWithCursor(`{
 						"index": {
@@ -3882,10 +3918,10 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: '"value',
-						scope: ['index']
+						scope: ['"index"']
 					});
 				});
-				it('should be able to find the cursor in a boolean', () => {
+				it('should be able to find the cursor at the start of a boolean', () => {
 					parseStrWithCursor(`{
 						"index": {
 							"key": _true
@@ -3894,27 +3930,7 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: '',
-						scope: ['index']
-					});
-					parseStrWithCursor(`{
-						"index": {
-							"key": tr_ue
-						}
-					}`, {
-						type: 'value',
-						key: '"key"',
-						value: 'tr',
-						scope: ['index']
-					});
-					parseStrWithCursor(`{
-						"index": {
-							"key": tru_e
-						}
-					}`, {
-						type: 'value',
-						key: '"key"',
-						value: 'tru',
-						scope: ['index']
+						scope: ['"index"']
 					});
 					parseStrWithCursor(`{
 						"index": {
@@ -3924,7 +3940,29 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: '',
-						scope: ['index']
+						scope: ['"index"']
+					});
+				});
+				it('should be able to find the cursor in a boolean', () => {
+					parseStrWithCursor(`{
+						"index": {
+							"key": tr_ue
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: 'tr',
+						scope: ['"index"']
+					});
+					parseStrWithCursor(`{
+						"index": {
+							"key": tru_e
+						}
+					}`, {
+						type: 'value',
+						key: '"key"',
+						value: 'tru',
+						scope: ['"index"']
 					});
 					parseStrWithCursor(`{
 						"index": {
@@ -3934,7 +3972,7 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: 'fa',
-						scope: ['index']
+						scope: ['"index"']
 					});
 					parseStrWithCursor(`{
 						"index": {
@@ -3944,7 +3982,17 @@ describe('JSON Parser', () => {
 						type: 'value',
 						key: '"key"',
 						value: 'fals',
-						scope: ['index']
+						scope: ['"index"']
+					});
+				});
+				it('should be able to find the cursor in an array', () => {
+					parseStrWithCursor(`{
+						"index": [ true, tr_ue, true, true ]	
+					}`, {
+						type: 'value',
+						key: '"index"',
+						value: 'tr',
+						scope: []
 					});
 				});
 			});
@@ -3954,21 +4002,305 @@ describe('JSON Parser', () => {
 		describe('no cursor', () => {
 			it('should throw an error when the key is invalid', () => {
 				parseInvalidJSONWithoutCursor(`{
-					$index: "value",
-					"key": "value"
+					"key1": "value1",
+					$index: "value2",
+					"key2": "value3"
 				}`, {
-					key: "value"
-				}, 'Unexpected i');
+					key1: "value1",
+					index: "value2",
+					key2: "value3"
+				}, [`Unexpected 'i', expected '"'`]);
 			});
 			it('should thrown an error when the key is missing', () => {
 				parseInvalidJSONWithoutCursor(`{
-					$: "value",
+					"key1": "value1",
+					$: "value2",
+					"key2": "value3"
+				}`, {
+					key1: "value1",
+					"": "value2",
+					key2: "value3"
+				}, [`Unexpected ':', expected key`]);
+			});
+			it('should thrown an error when the colon is missing and there\'s a next one', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value1",
+					"key"$"value",
+					"index":"value2"
+				}`, {
+					key1: "value1",
+					index: "value2"
+				}, [`Unexpected '"', expected ':'`]);
+			});
+			it('should thrown an error when the colon is missing', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value1",
+					"key"$"value"
+				$}`, {
+					key1: "value1"
+				}, [`Unexpected '"', expected ':'`]);
+			});
+			it('should throw an error when the quote is missing', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value1",
+					"key": $value",
+					"index":"value2"
+				}`, {
+					key1: "value1",
+					index: "value2"
+				}, [`Unknown value 'value"'`]);
+			});
+			it('should throw an error when the value is missing', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value1",
+					"key": $,
+					"index":"value2"
+				}`, {
+					key1: "value1",
+					index: "value2"
+				}, [`Unexpected ',', expected value`]);
+			});
+			it('should thrown an error when the comma is missing', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value1",
 					"key": "value"
+					$"index":"value2",
+					"key4": "val3"
+				}`, {
+					key1: "value1",
+					key: "value",
+					key4: "val3"
+				}, [`Unexpected '"', expected ','`]);
+			});
+			it('should thrown an error when only a partial value is found', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value1",
+					"key": $fal,
+					"key4": "val3"
+				}`, {
+					key1: "value1",
+					key4: "val3"
+				}, [`Unknown value 'fal'`]);
+			});
+			it('should thrown an error when only a partial value is found', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value1",
+					"key": $tru,
+					"key4": "val3"
+				}`, {
+					key1: "value1",
+					key4: "val3"
+				}, [`Unknown value 'tru'`]);
+			});
+			it('should throw an error when unclosed brackets are found', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": {
+						"key3": "value4"	
+					,
+					"key2": "value"
+				$}`, {
+					key1: {
+						key3: "value4",
+						key2: "value"
+					}
+				}, [`Missing '}'`]);
+			});
+			it('should throw an error when there\'s additional input', () => {
+				parseInvalidJSONWithoutCursor(`{
+					"key1": "value"
+				}$, {
+					"some": "thing"	
+				}`, {
+					key1: "value"
+				}, ['Expected eof']);
+			});
+		});
+		describe('with cursor', () => {
+			it('should find the cursor when starting to type a line', () => {
+				parseInvalidJSONWithCursor(`{
+					"key": "value",
+					_,
+					"key2": "value2"
+				}`, {
+					key: "value",
+					key2: "value2"
+				}, {
+					type: 'key',
+					key: '',
+					scope: []
+				});
+				parseInvalidJSONWithCursor(`{
+					"key": "value",
+					_
+					"key2": "value2"
+				}`, {
+					key: "value",
+					key2: "value2"
+				}, {
+					type: 'key',
+					key: '',
+					scope: []
+				});
+			});
+			it('should find the cursor when typing a key', () => {
+				parseInvalidJSONWithCursor(`{
+					"key": "value",
+					"k_,
+					"key2": "value2"
 				}`, {
 					key: "value"
-				}, 'Unexpected :');
+				}, {
+					type: 'key',
+					key: '"k',
+					scope: []
+				}, [`Unexpected end of string`]);
+				parseInvalidJSONWithCursor(`{
+					"key": "value",
+					"k_
+					"key2": "value2"
+				}`, {
+					key: "value"
+				}, {
+					type: 'key',
+					key: '"k',
+					scope: []
+				}, ['Unexpected end of string']);
+			});
+			it('should find the cursor when typing a quoteless key', () => {
+				parseInvalidJSONWithCursor(`{
+					"key": "value",
+					key_,
+					"key2": "value2"
+				}`, {
+					key: "value",
+					key2: "value2"
+				}, {
+					type: 'key',
+					key: 'key',
+					scope: []
+				});
+				parseInvalidJSONWithCursor(`{
+					"key": "value",
+					key_
+					"key2": "value2"
+				}`, {
+					key: "value",
+					'key"key2"': "value2"
+				}, {
+					type: 'key',
+					key: 'key',
+					scope: []
+				});
+			});
+			it('should find the cursor when about to type a value', () => {
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": _,
+					"key2": "value2"
+				}`, {
+					key1: "value1",
+					key2: "value2"
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: '',
+					scope: []
+				});
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": _
+					"key2": "value2"
+				}`, {
+					key1: "value1"
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: '',
+					scope: []
+				});
+			});
+			it('should find the cursor when typing a string value', () => {
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": "val_,
+					"key2": "value2"
+				}`, {
+					key1: "value1"
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: '"val',
+					scope: []
+				});
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": "val_
+					"key2": "value2"
+				}`, {
+					key1: "value1"
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: '"val',
+					scope: []
+				});
+			});
+			it('should find the cursor when typing a number value', () => {
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": 123_,
+					"key2": "value2"
+				}`, {
+					key1: "value1",
+					key: 123,
+					key2: "value2"
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: '123',
+					scope: []
+				});
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": 123_
+					"key2": "value2"
+				}`, {
+					key1: "value1",
+					key: 123
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: '123',
+					scope: []
+				});
+			});
+			it('should find the cursor when typing a boolean value', () => {
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": fal_,
+					"key2": "value2"
+				}`, {
+					key1: "value1",
+					key2: "value2"
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: 'fal',
+					scope: []
+				});
+				parseInvalidJSONWithCursor(`{
+					"key1": "value1",
+					"key": tru_
+					"key2": "value2"
+				}`, {
+					key1: "value1"
+				}, {
+					type: 'value',
+					key: '"key"',
+					value: 'tru',
+					scope: []
+				});
 			});
 		});
 	});
 });
-*/

@@ -106,6 +106,10 @@ interface Window {
 	}, fns: CMCompletionFns, full: boolean): {
 		options: JSONOptions;
 		cursor: CursorState;
+		errs: Array<{
+			err: Error;
+			index: number;
+		}>;
 	}
 	useOptionsCompletions: boolean;
 
