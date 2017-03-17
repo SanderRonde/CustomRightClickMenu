@@ -460,6 +460,7 @@ declare namespace CRMAPI {
 	* @param {Object} contextData - The data related to the click on the page
 	* @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
 	* @param {Boolean} isBackground - If true, this page is functioning as a background page
+	* @param {Object} options - The options the user has entered for this script/stylesheet
 	*/
 	interface CRMAPIInit {
 		/**
@@ -489,6 +490,12 @@ declare namespace CRMAPI {
 		 */
 		warnOnChromeFunctionNotSent: boolean;
 
+		/**
+		 * Returns the options for this script/stylesheet. Any missing values are 
+		 *		filled in with the corresponding field in the 'defaults' param
+		 * 
+		 */
+		options<T extends Object, O extends Object>(defaults?: T): T & O;
 
 		/**
 		 * The ID of the the tab this script is running on

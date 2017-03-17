@@ -4467,7 +4467,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                 [
                                     "var crmAPI = new CrmAPIInit(" + [
                                         CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
-                                        contextData, greaseMonkeyData
+                                        contextData, greaseMonkeyData, false, (node.value && node.value.options) || {}
                                     ]
                                         .map(function (param) {
                                         return JSON.stringify(param);
@@ -5350,7 +5350,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             "var crmAPI = new CrmAPIInit(" + [
                                 CRM.makeSafe(node), node.id, { id: 0 }, {}, key,
                                 nodeStorage,
-                                greaseMonkeyData, true
+                                greaseMonkeyData, true, (node.value && node.value.options) || {}
                             ]
                                 .map(function (param) {
                                 return JSON.stringify(param);

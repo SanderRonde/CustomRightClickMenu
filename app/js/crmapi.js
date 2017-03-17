@@ -15,8 +15,9 @@
 	 * @param {Object} contextData - The data related to the click on the page
 	 * @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
 	 * @param {Boolean} isBackground - If true, this page is functioning as a background page
+	 * @param {Object} options - The options the user has entered for this script/stylesheet
 	 */
-	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground) {
+	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options) {
 		var _this = this;
 
 		//#region Options
@@ -61,6 +62,17 @@
 		 * @type boolean
 		 */
 		this.warnOnChromeFunctionNotSent = true;
+
+		/**
+		 * Returns the options for this script/stylesheet. Any missing values are 
+		 * 		filled in with the corresponding field in the 'defaults' param
+		 * 
+		 * @param {Object} [defaults] - The default values of any key-value pairs
+		 * @returns {Object} The options combined with the defaults
+		 */
+		this.options = function(defaults) {
+			return mergeObjects(defaults || {}, options);
+		}
 		//#endregion
 
 		//#region JSONfn
@@ -780,6 +792,42 @@
 				params[_i - 0] = arguments[_i];
 			}
 		};
+
+		function mergeArrays(mainArray, additionArray) {
+			for (var i = 0; i < additionArray.length; i++) {
+				if (mainArray[i] && typeof additionArray[i] === 'object' && 
+					mainArray[i] !== undefined && mainArray[i] !== null) {
+					if (Array.isArray(additionArray[i])) {
+						mainArray[i] = mergeArrays(mainArray[i] as T,
+							additionArray[i] as T);
+					} else {
+						mainArray[i] = mergeObjects(mainArray[i], additionArray[i]);
+					}
+				} else {
+					mainArray[i] = additionArray[i];
+				}
+			}
+			return mainArray;
+		}
+
+		function mergeObjects(mainObject, additions) {
+			for (var key in additions) {
+				if (additions.hasOwnProperty(key)) {
+					if (typeof additions[key] === 'object' &&
+						mainObject[key] !== undefined &&
+						mainObject[key] !== null) {
+						if (Array.isArray(additions[key])) {
+							mainObject[key] = mergeArrays(mainObject[key], additions[key]);
+						} else {
+							mainObject[key] = mergeObjects(mainObject[key], additions[key]);
+						}
+					} else {
+						mainObject[key] = additions[key]
+					}
+				}
+			}
+			return mainObject;
+		}
 
 		/**
 		 * Turns the class-index based number back to an element

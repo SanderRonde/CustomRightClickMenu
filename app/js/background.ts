@@ -187,7 +187,7 @@ interface Window {
 	getID: (name: string) => void;
 	md5: (data: any) => string;
 	TernFile: TernFile;
-	CodeMirror: CodeMirrorInstance;
+	CodeMirror: CodeMirror;
 	ecma5: any;
 	ecma6: any;
 	jqueryDefs: any;
@@ -6083,7 +6083,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								`var crmAPI = new CrmAPIInit(${[
 									CRM.makeSafe(node), node.id, { id: 0 }, {}, key,
 									nodeStorage,
-									greaseMonkeyData, true
+									greaseMonkeyData, true, (node.value && node.value.options) || {}
 								]
 								.map((param) => {
 									return JSON.stringify(param);
@@ -6285,7 +6285,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									`var crmAPI = new CrmAPIInit(${
 									[
 										CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
-										contextData, greaseMonkeyData
+										contextData, greaseMonkeyData, false, (node.value && node.value.options) || {}
 									]
 									.map((param) => {
 										return JSON.stringify(param);
