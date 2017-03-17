@@ -798,8 +798,8 @@
 				if (mainArray[i] && typeof additionArray[i] === 'object' && 
 					mainArray[i] !== undefined && mainArray[i] !== null) {
 					if (Array.isArray(additionArray[i])) {
-						mainArray[i] = mergeArrays(mainArray[i] as T,
-							additionArray[i] as T);
+						mainArray[i] = mergeArrays(mainArray[i],
+							additionArray[i]);
 					} else {
 						mainArray[i] = mergeObjects(mainArray[i], additionArray[i]);
 					}
