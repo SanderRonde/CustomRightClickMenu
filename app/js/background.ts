@@ -6090,7 +6090,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}).join(', ')});`
 							].join(', '),
 							'try {',
-							script,
+								'function main(menuitemid, parentmenuitemid, mediatype,' +
+								'linkurl, srcurl, pageurl, frameurl, frameid,' + 
+								'selectiontext, editable, waschecked, checked) {',
+									script,
+								'}',
+								'main()',
 							'} catch (error) {',
 							indentUnit + 'if (crmAPI.debugOnError) {',
 							indentUnit + indentUnit + 'debugger;',
@@ -6292,7 +6297,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									}).join(', ')});`
 								].join(', '),
 								'try {',
-								script,
+									'function main(menuitemid, parentmenuitemid, mediatype,' +
+									'linkurl, srcurl, pageurl, frameurl, frameid,' + 
+									'selectiontext, editable, waschecked, checked) {',
+										'debugger;' + script,
+									'}',
+									`main.apply(this, ${
+										JSON.stringify([
+											info.menuItemId, info.parentMenuItemId, info.mediaType,
+											info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
+											(info as any).frameId, info.selectionText,
+											info.editable, info.wasChecked, info.checked
+										])
+									})`,
 								'} catch (error) {',
 								indentUnit + 'if (crmAPI.debugOnError) {',
 								indentUnit + indentUnit + 'debugger;',
