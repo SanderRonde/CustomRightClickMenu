@@ -13,6 +13,7 @@ interface KeyLine {
 	type: 'key'|'value';
 	index: number;
 	scope: Array<string>;
+	chars: number;
 }
 
 interface KeyLines {
@@ -184,8 +185,9 @@ type JSONParseErrors = Array<JSONParseError>;
 				}
 				type = 'object';
 				state.scope.push(key);
-				const { options, cursor, newIndex, errs } = parseRawObject(state.str, state.pos, state.index + 1, state.scope);
+				const { options, cursor, newIndex, errs, keyLines } = parseRawObject(state.str, state.pos, state.index + 1, state.scope, state.keyLines);
 				state.errs = state.errs.concat(errs);
+				state.keyLines = keyLines;
 				state.scope.pop();
 				state.cursor = state.cursor || cursor;
 				state.index = newIndex;
@@ -500,6 +502,7 @@ type JSONParseErrors = Array<JSONParseError>;
 				if (partialStr.length > 0) {
 					partialStr.push(ch);
 				} else {
+					const oldIndex = state.index;
 					const value = parseString(state, ch);
 					if (state.cursor && state.cursor.type === 'unknown') {
 						state.cursor.type = 'key';
@@ -516,8 +519,9 @@ type JSONParseErrors = Array<JSONParseError>;
 						state.keyLines[value] = state.keyLines[value] || [];
 						state.keyLines[value].push({
 							type: 'key',
-							index: state.index,
-							scope: state.scope.slice(0)
+							index: oldIndex,
+							scope: state.scope.slice(0),
+							chars: (state.index - oldIndex) + 1
 						});
 					}
 				}
@@ -565,7 +569,8 @@ type JSONParseErrors = Array<JSONParseError>;
 					state.keyLines[foundStr].push({
 						type: 'value',
 						index: oldIndex,
-						scope: state.scope.slice(0)
+						scope: state.scope.slice(0),
+						chars: state.index - oldIndex
 					});
 				}
 				propValue = value;
@@ -665,7 +670,7 @@ type JSONParseErrors = Array<JSONParseError>;
 		return newObj;
 	}
 
-	function parseRawObject(str: string, pos: number, index: number = 1, scope: Array<string> = []): {
+	function parseRawObject(str: string, pos: number, index: number = 1, scope: Array<string> = [], keyLines: KeyLines = {}): {
 		options: JSONOptions;
 		cursor: CursorState|null;
 		newIndex: number;
@@ -696,7 +701,7 @@ type JSONParseErrors = Array<JSONParseError>;
 			strLines: str.split('\n'),
 			pos: pos,
 			scope: scope,
-			keyLines: {}
+			keyLines: keyLines
 		}
 		
 		let unrecognizedCursor: boolean = false;
@@ -864,8 +869,11 @@ type JSONParseErrors = Array<JSONParseError>;
 	const enum KeyLineScope {
 		root
 	}
-	function getKeyLineIndex(key: string, type: 'key' | 'value', keyLines: KeyLines, scope: string | KeyLineScope): number {
-		const keyLineArr = keyLines[scope].filter((keyLine) => {
+	function getKeyLineIndex(key: string, type: 'key' | 'value', keyLines: KeyLines, scope: string | KeyLineScope): {
+		errStart: number;
+		errChars: number;
+	} {
+		const keyLineArr = keyLines[key].filter((keyLine) => {
 			if (keyLine.type !== type) {
 				return false;
 			}
@@ -878,9 +886,15 @@ type JSONParseErrors = Array<JSONParseError>;
 			return true;
 		});
 		if (keyLineArr.length > 0) {
-			return keyLineArr[0].index;
+			return {
+				errStart: keyLineArr[0].index,
+				errChars: keyLineArr[0].chars
+			}
 		}
-		return 0;
+		return {
+			errStart: 0,
+			errChars: 0
+		}
 	}
 
 	function isKeyAllowed(key: string, type: ValueType): boolean {
@@ -889,6 +903,7 @@ type JSONParseErrors = Array<JSONParseError>;
 
 	const enum Types {
 		Any,
+		AnyArr,
 		StrArr,
 		NumArr,
 		StrNumArr
@@ -896,6 +911,10 @@ type JSONParseErrors = Array<JSONParseError>;
 	function getValueType(value: any) {
 		if (!Array.isArray(value)) {
 			value = JSON.parse(value);
+		} else {
+			value = value.map((val) => {
+				return JSON.parse(val);
+			});
 		}
 
 		if (typeof value === 'object' && Array.isArray(value)) {
@@ -910,15 +929,14 @@ type JSONParseErrors = Array<JSONParseError>;
 				}
 			}
 
-			let finalType: Types;
 			if (type.length === 0) {
-				finalType = Types.Any;
+				return Types.AnyArr;
 			} else if (type.length === 1) {
-				finalType = type[0] === String ? Types.StrArr : Types.NumArr;
+				return type[0] === String ?
+					Types.StrArr : Types.NumArr;
 			} else {
-				finalType = Types.StrNumArr;
+				return Types.StrNumArr;
 			}
-			return [Array, 'OF', finalType];
 		} else {
 			switch (typeof value) {
 				case 'boolean':
@@ -937,6 +955,15 @@ type JSONParseErrors = Array<JSONParseError>;
 
 	function constructorsMatch(value: any, expected: any): boolean {
 		if (!Array.isArray(value) && !Array.isArray(expected)) {
+			if (expected === Types.Any) {
+				return true;
+			}
+			if ((expected === Types.AnyArr || expected === Types.StrNumArr) && (
+				value === Types.NumArr || value === Types.StrArr ||
+				value === Types.StrNumArr
+			)) {
+				return true;
+			}
 			return value === expected;
 		} else if (Array.isArray(value)) {
 			for (let i = 0; i < value.length; i++) {
@@ -961,6 +988,8 @@ type JSONParseErrors = Array<JSONParseError>;
 
 		if (typeof value === 'string' && typeof expected === 'string') {
 			return value.slice(1, -1) === expected;
+		} else if (value === null && expected === null) {
+			return true;
 		}
 		return constructorsMatch(valueType, expected);
 	}
@@ -976,6 +1005,16 @@ type JSONParseErrors = Array<JSONParseError>;
 				return 'number';
 			case Boolean:
 				return 'boolean';
+			case Types.Any:
+				return 'any';
+			case Types.AnyArr:
+				return 'any[]';
+			case Types.NumArr:
+				return 'number[]';
+			case Types.StrArr:
+				return 'string[]';
+			case Types.StrNumArr:
+				return 'string/number[]';
 		}
 		if (Array.isArray(type)) {
 			return getKeyValueType(type[0]);
@@ -1014,11 +1053,11 @@ type JSONParseErrors = Array<JSONParseError>;
 
 			if (typeof options[rootKey] !== 'object' || Array.isArray(options[rootKey])) {
 				//Value of root is not actually an object, throw error
-				const errStart = getKeyLineIndex(rootKey, 'key', keyLines, KeyLineScope.root);
+				const { errStart, errChars } = getKeyLineIndex(rootKey, 'key', keyLines, KeyLineScope.root);
 				errors.push({
 					err: new Error(`Value of '${rootKey}' is not an object`),
 					index: errStart,
-					chars: text.slice(errStart).indexOf(',')
+					chars: errChars
 				});
 				continue;
 			}
@@ -1032,10 +1071,11 @@ type JSONParseErrors = Array<JSONParseError>;
 				//Check if the key is allowed in the current type
 				if (!isKeyAllowed(key, valueTypes[rootKey].slice(1, -1) as ValueType)) {
 					//Key is not allowed, throw error
+					const { errStart, errChars } = getKeyLineIndex(key, 'key', keyLines, rootKey);
 					errors.push({
 						err: new Error(`Key '${key}' is not allowed in type '${valueTypes[rootKey]}'`),
-						index: getKeyLineIndex(key, 'key', keyLines, rootKey),
-						chars: key.length
+						index: errStart,
+						chars: errChars
 					});
 					continue;
 				}
@@ -1044,13 +1084,13 @@ type JSONParseErrors = Array<JSONParseError>;
 				const valueType = valueTypes[rootKey];
 				if (!doObjTypesMatch(setting[key], (typeKeyMaps[valueType as keyof typeof typeKeyMaps] as any)[key])) {
 					//Not allowed, throw error
-					const errStart = getKeyLineIndex(key, 'value', keyLines, rootKey);
+					const { errStart, errChars } = getKeyLineIndex(key, 'value', keyLines, rootKey);
 					errors.push({
 						err: new Error(`Value '${setting[key]}' is not allowed for key '${key}', only values of type '${getKeyValueType(
 							(typeKeyMaps[valueType as keyof typeof typeKeyMaps] as any)[key]
 						)}' allowed`),
 						index: errStart,
-						chars: text.slice(errStart).indexOf(',')
+						chars: errChars
 					});
 				}
 			}
@@ -1232,27 +1272,58 @@ type JSONParseErrors = Array<JSONParseError>;
 		return x.join(char);
 	}
 
+	function getInstancesOfChars(text: string, chars: Array<string>): number {
+		let amount: number = 0;
+		let firstIndex: number;
+		while ((firstIndex = chars.map((char) => {
+			return text.indexOf(char);
+		}).filter((index) => {
+			return index !== -1;
+		})[0]) !== undefined) {
+			text = text.slice(0, firstIndex) + text.slice(firstIndex + 1);
+			amount++;
+		}
+		return amount;
+	}
+
 	function createPointerMessage(text: string, fromIndex: number, from: {
 		line: number;
 		ch: number;
 	}, chars: number, message: string): string {
-		//Read max 26 chars
-		const padding = (26 - Math.min(chars, 20)) / 2;
+		//Highlight a max of 30 chars, after that cut off
+		const highlightCutOff = chars > 30;
+		const highlightedChars = Math.min(chars, 30);
 
-		let readStart: number = fromIndex - padding;
-		let readEnd: number = fromIndex + chars + padding;
-		if (from.ch <= padding) {
-			readStart = fromIndex;
-			readEnd = fromIndex + 26;
-		}
-		if (padding === 3) {
-			//Don't do padding on the right
-			readStart = fromIndex - (padding * 2);
-			readEnd = fromIndex + Math.min(chars, 20);
+		//Show a max of 40 chars
+		const padding = highlightCutOff ?
+			10 : Math.ceil((40 - highlightedChars) / 2);
+
+		let readStart, highlightStart, highlightEnd, readEnd = 0;
+
+		//Don't start reading before the current line
+		readStart = (fromIndex - from.ch) + Math.max(from.ch - padding, 0);
+		highlightStart = readStart + Math.min(from.ch, padding);
+		highlightEnd = highlightStart + highlightedChars;
+		if (highlightCutOff) {
+			readEnd = highlightEnd;
+		} else {
+			readEnd = highlightEnd + padding;
 		}
 
-		return `${text.slice(readStart, readEnd)}
-${padChars('-', fromIndex - readStart)}${padChars('^', Math.min(chars, 20))}
+		const leftPaddingText = text.slice(readStart, highlightStart);
+		const highlightedText = text.slice(highlightStart, highlightEnd);
+		const rightPaddingText = text.slice(highlightEnd, readEnd);
+
+		const leftPaddingWhitespace = getInstancesOfChars(leftPaddingText, ['\t', '\n']);
+		const highlightWhitespace = getInstancesOfChars(highlightedText, ['\t', '\n']);
+
+		return `${(leftPaddingText + highlightedText + rightPaddingText).replace(/(\n|\t)/g, '')}${
+			highlightCutOff ? ' ...' : ''
+		}
+${
+	padChars('-', Math.min(from.ch, padding) - leftPaddingWhitespace)
+}${
+	padChars('^', highlightedChars - highlightWhitespace)}
 ${message}`;
 	}
 
@@ -1266,18 +1337,38 @@ ${message}`;
 		let { options, errs, keyLines } = window.parseCodeOptions({
 			text: text
 		}, emptyCursor, ternFns);
-		errs = errs.concat(getObjectValidationErrors(text, options, keyLines));
+		const warnings = getObjectValidationErrors(text, options, keyLines);
+		const messages = errs.map((err) => {
+			return {
+				severity: 'error',
+				index: err.index,
+				chars: err.chars,
+				err: err.err
+			}
+		}).concat(warnings.map((err) => {
+			return {
+				severity: 'warning',
+				index: err.index,
+				chars: err.chars,
+				err: err.err
+			}
+		})) as Array<{
+			severity: 'error'|'warning';
+			index: number;
+			chars: number;
+			err: Error;
+		}>;
 
 		let output: LintMessages = [];
 		const splitLines = text.split('\n');
-		for (let i = 0; i < errs.length; i++) {
-			const from = strIndexToPos(splitLines, errs[i].index);
-			const to = strIndexToPos(splitLines, errs[i].index + errs[i].chars);
+		for (let i = 0; i < messages.length; i++) {
+			const from = strIndexToPos(splitLines, messages[i].index);
+			const to = strIndexToPos(splitLines, messages[i].index + messages[i].chars);
 			output.push({
 				from: from,
 				to: to,
-				severity: 'error',
-				message: createPointerMessage(text, errs[i].index, from, errs[i].chars, errs[i].err.message)
+				severity: messages[i].severity,
+				message: createPointerMessage(text, messages[i].index, from, messages[i].chars, messages[i].err.message)
 			});
 		}
 		return output;

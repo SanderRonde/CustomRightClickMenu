@@ -136,8 +136,9 @@
                 }
                 type = 'object';
                 state.scope.push(key);
-                var _a = parseRawObject(state.str, state.pos, state.index + 1, state.scope), options = _a.options, cursor = _a.cursor, newIndex = _a.newIndex, errs = _a.errs;
+                var _a = parseRawObject(state.str, state.pos, state.index + 1, state.scope, state.keyLines), options = _a.options, cursor = _a.cursor, newIndex = _a.newIndex, errs = _a.errs, keyLines = _a.keyLines;
                 state.errs = state.errs.concat(errs);
+                state.keyLines = keyLines;
                 state.scope.pop();
                 state.cursor = state.cursor || cursor;
                 state.index = newIndex;
@@ -462,6 +463,7 @@
                     partialStr.push(ch);
                 }
                 else {
+                    var oldIndex = state.index;
                     var value = parseString(state, ch);
                     if (state.cursor && state.cursor.type === 'unknown') {
                         state.cursor.type = 'key';
@@ -478,8 +480,9 @@
                         state.keyLines[value] = state.keyLines[value] || [];
                         state.keyLines[value].push({
                             type: 'key',
-                            index: state.index,
-                            scope: state.scope.slice(0)
+                            index: oldIndex,
+                            scope: state.scope.slice(0),
+                            chars: (state.index - oldIndex) + 1
                         });
                     }
                 }
@@ -530,7 +533,8 @@
                     state.keyLines[foundStr].push({
                         type: 'value',
                         index: oldIndex,
-                        scope: state.scope.slice(0)
+                        scope: state.scope.slice(0),
+                        chars: state.index - oldIndex
                     });
                 }
                 propValue = value;
@@ -629,9 +633,10 @@
         });
         return newObj;
     }
-    function parseRawObject(str, pos, index, scope) {
+    function parseRawObject(str, pos, index, scope, keyLines) {
         if (index === void 0) { index = 1; }
         if (scope === void 0) { scope = []; }
+        if (keyLines === void 0) { keyLines = {}; }
         if (pos !== -1 && (pos < index || pos > str.length)) {
             try {
                 var section = str.slice(index - 1, findMatchingBrace(str, index));
@@ -655,7 +660,7 @@
             strLines: str.split('\n'),
             pos: pos,
             scope: scope,
-            keyLines: {}
+            keyLines: keyLines
         };
         var unrecognizedCursor = false;
         for (; state.index < str.length && (ch = str[state.index]); state.index++) {
@@ -745,7 +750,7 @@
             '"type"': 'choice',
             '"descr"': String,
             '"selected"': Number,
-            '"values"': [3, null]
+            '"values"': [4, null]
         },
         '"boolean"': {
             '"type"': 'boolean',
@@ -763,14 +768,14 @@
             '"maxItems"': Number,
             '"descr"': String,
             '"items"': 'string',
-            '"value"': [1, null]
+            '"value"': [2, null]
         },
         '"arrNumber"': {
             '"type"': 'array',
             '"maxItems"': Number,
             '"descr"': String,
             '"items"': 'number',
-            '"value"': [2, null]
+            '"value"': [3, null]
         },
         '"unknown"': {
             '"type"': String,
@@ -792,7 +797,7 @@
     };
     var keyRegex = /^"(\w+)"$/;
     function getKeyLineIndex(key, type, keyLines, scope) {
-        var keyLineArr = keyLines[scope].filter(function (keyLine) {
+        var keyLineArr = keyLines[key].filter(function (keyLine) {
             if (keyLine.type !== type) {
                 return false;
             }
@@ -805,9 +810,15 @@
             return true;
         });
         if (keyLineArr.length > 0) {
-            return keyLineArr[0].index;
+            return {
+                errStart: keyLineArr[0].index,
+                errChars: keyLineArr[0].chars
+            };
         }
-        return 0;
+        return {
+            errStart: 0,
+            errChars: 0
+        };
     }
     function isKeyAllowed(key, type) {
         return typeKeyMaps["\"" + type + "\""].hasOwnProperty(key);
@@ -815,6 +826,11 @@
     function getValueType(value) {
         if (!Array.isArray(value)) {
             value = JSON.parse(value);
+        }
+        else {
+            value = value.map(function (val) {
+                return JSON.parse(val);
+            });
         }
         if (typeof value === 'object' && Array.isArray(value)) {
             var types = value.map(function (val) {
@@ -826,17 +842,16 @@
                     type.push(types[i]);
                 }
             }
-            var finalType = void 0;
             if (type.length === 0) {
-                finalType = 0;
+                return 1;
             }
             else if (type.length === 1) {
-                finalType = type[0] === String ? 1 : 2;
+                return type[0] === String ?
+                    2 : 3;
             }
             else {
-                finalType = 3;
+                return 4;
             }
-            return [Array, 'OF', finalType];
         }
         else {
             switch (typeof value) {
@@ -855,6 +870,13 @@
     }
     function constructorsMatch(value, expected) {
         if (!Array.isArray(value) && !Array.isArray(expected)) {
+            if (expected === 0) {
+                return true;
+            }
+            if ((expected === 1 || expected === 4) && (value === 3 || value === 2 ||
+                value === 4)) {
+                return true;
+            }
             return value === expected;
         }
         else if (Array.isArray(value)) {
@@ -880,6 +902,9 @@
         if (typeof value === 'string' && typeof expected === 'string') {
             return value.slice(1, -1) === expected;
         }
+        else if (value === null && expected === null) {
+            return true;
+        }
         return constructorsMatch(valueType, expected);
     }
     function getKeyValueType(type) {
@@ -893,6 +918,16 @@
                 return 'number';
             case Boolean:
                 return 'boolean';
+            case 0:
+                return 'any';
+            case 1:
+                return 'any[]';
+            case 3:
+                return 'number[]';
+            case 2:
+                return 'string[]';
+            case 4:
+                return 'string/number[]';
         }
         if (Array.isArray(type)) {
             return getKeyValueType(type[0]);
@@ -925,11 +960,11 @@
                 continue;
             }
             if (typeof options[rootKey] !== 'object' || Array.isArray(options[rootKey])) {
-                var errStart = getKeyLineIndex(rootKey, 'key', keyLines, 0);
+                var _a = getKeyLineIndex(rootKey, 'key', keyLines, 0), errStart = _a.errStart, errChars = _a.errChars;
                 errors.push({
                     err: new Error("Value of '" + rootKey + "' is not an object"),
                     index: errStart,
-                    chars: text.slice(errStart).indexOf(',')
+                    chars: errChars
                 });
                 continue;
             }
@@ -938,20 +973,21 @@
                     continue;
                 }
                 if (!isKeyAllowed(key, valueTypes[rootKey].slice(1, -1))) {
+                    var _b = getKeyLineIndex(key, 'key', keyLines, rootKey), errStart = _b.errStart, errChars = _b.errChars;
                     errors.push({
                         err: new Error("Key '" + key + "' is not allowed in type '" + valueTypes[rootKey] + "'"),
-                        index: getKeyLineIndex(key, 'key', keyLines, rootKey),
-                        chars: key.length
+                        index: errStart,
+                        chars: errChars
                     });
                     continue;
                 }
                 var valueType = valueTypes[rootKey];
                 if (!doObjTypesMatch(setting[key], typeKeyMaps[valueType][key])) {
-                    var errStart = getKeyLineIndex(key, 'value', keyLines, rootKey);
+                    var _c = getKeyLineIndex(key, 'value', keyLines, rootKey), errStart = _c.errStart, errChars = _c.errChars;
                     errors.push({
                         err: new Error("Value '" + setting[key] + "' is not allowed for key '" + key + "', only values of type '" + getKeyValueType(typeKeyMaps[valueType][key]) + "' allowed"),
                         index: errStart,
-                        chars: text.slice(errStart).indexOf(',')
+                        chars: errChars
                     });
                 }
             }
@@ -1107,19 +1143,40 @@
         x[amount] = undefined;
         return x.join(char);
     }
+    function getInstancesOfChars(text, chars) {
+        var amount = 0;
+        var firstIndex;
+        while ((firstIndex = chars.map(function (char) {
+            return text.indexOf(char);
+        }).filter(function (index) {
+            return index !== -1;
+        })[0]) !== undefined) {
+            text = text.slice(0, firstIndex) + text.slice(firstIndex + 1);
+            amount++;
+        }
+        return amount;
+    }
     function createPointerMessage(text, fromIndex, from, chars, message) {
-        var padding = (26 - Math.min(chars, 20)) / 2;
-        var readStart = fromIndex - padding;
-        var readEnd = fromIndex + chars + padding;
-        if (from.ch <= padding) {
-            readStart = fromIndex;
-            readEnd = fromIndex + 26;
+        var highlightCutOff = chars > 30;
+        var highlightedChars = Math.min(chars, 30);
+        var padding = highlightCutOff ?
+            10 : Math.ceil((40 - highlightedChars) / 2);
+        var readStart, highlightStart, highlightEnd, readEnd = 0;
+        readStart = (fromIndex - from.ch) + Math.max(from.ch - padding, 0);
+        highlightStart = readStart + Math.min(from.ch, padding);
+        highlightEnd = highlightStart + highlightedChars;
+        if (highlightCutOff) {
+            readEnd = highlightEnd;
         }
-        if (padding === 3) {
-            readStart = fromIndex - (padding * 2);
-            readEnd = fromIndex + Math.min(chars, 20);
+        else {
+            readEnd = highlightEnd + padding;
         }
-        return text.slice(readStart, readEnd) + "\n" + padChars('-', fromIndex - readStart) + padChars('^', Math.min(chars, 20)) + "\n" + message;
+        var leftPaddingText = text.slice(readStart, highlightStart);
+        var highlightedText = text.slice(highlightStart, highlightEnd);
+        var rightPaddingText = text.slice(highlightEnd, readEnd);
+        var leftPaddingWhitespace = getInstancesOfChars(leftPaddingText, ['\t', '\n']);
+        var highlightWhitespace = getInstancesOfChars(highlightedText, ['\t', '\n']);
+        return "" + (leftPaddingText + highlightedText + rightPaddingText).replace(/(\n|\t)/g, '') + (highlightCutOff ? ' ...' : '') + "\n" + padChars('-', Math.min(from.ch, padding) - leftPaddingWhitespace) + padChars('^', highlightedChars - highlightWhitespace) + "\n" + message;
     }
     window.CodeMirror.lint.optionsJSON = function (text, _, cm) {
         if (!window.useOptionsCompletions) {
@@ -1130,17 +1187,32 @@
         var _a = window.parseCodeOptions({
             text: text
         }, emptyCursor, ternFns), options = _a.options, errs = _a.errs, keyLines = _a.keyLines;
-        errs = errs.concat(getObjectValidationErrors(text, options, keyLines));
+        var warnings = getObjectValidationErrors(text, options, keyLines);
+        var messages = errs.map(function (err) {
+            return {
+                severity: 'error',
+                index: err.index,
+                chars: err.chars,
+                err: err.err
+            };
+        }).concat(warnings.map(function (err) {
+            return {
+                severity: 'warning',
+                index: err.index,
+                chars: err.chars,
+                err: err.err
+            };
+        }));
         var output = [];
         var splitLines = text.split('\n');
-        for (var i = 0; i < errs.length; i++) {
-            var from = strIndexToPos(splitLines, errs[i].index);
-            var to = strIndexToPos(splitLines, errs[i].index + errs[i].chars);
+        for (var i = 0; i < messages.length; i++) {
+            var from = strIndexToPos(splitLines, messages[i].index);
+            var to = strIndexToPos(splitLines, messages[i].index + messages[i].chars);
             output.push({
                 from: from,
                 to: to,
-                severity: 'error',
-                message: createPointerMessage(text, errs[i].index, from, errs[i].chars, errs[i].err.message)
+                severity: messages[i].severity,
+                message: createPointerMessage(text, messages[i].index, from, messages[i].chars, messages[i].err.message)
             });
         }
         return output;

@@ -18166,7 +18166,7 @@
 			function c(n, o, t, a) {
 				var i = document.createElement("div")
 				, s = i;
-				return i.className = "CodeMirror-lint-marker-warning",
+				return i.className = "CodeMirror-lint-marker-" + o,
 				t && (s = i.appendChild(document.createElement("div")),
 				s.className = "CodeMirror-lint-marker-multiple"),
 				0 != a && e.on(s, "mouseover", function(e) {
@@ -18185,7 +18185,7 @@
 			}
 			function d(e) {
 				var n = document.createElement("div");
-				return n.className = "CodeMirror-lint-message-warning",
+				return n.className = "CodeMirror-lint-message-" + e.severity,
 				n.appendChild(document.createTextNode(e.message)),
 				n
 			}
@@ -18206,11 +18206,11 @@
 							t.formatAnnotation && (p = t.formatAnnotation(p)),
 							o.hasGutter && s.appendChild(d(p)),
 							p.to && o.marked.push(e.markText(p.from, p.to, {
-								className: "CodeMirror-lint-mark-warning",
+								className: "CodeMirror-lint-mark-" + p.severity,
 								__annotation: p
 							}))
 						}
-						o.hasGutter && e.setGutterMarker(r, h, c(s, "warning", i.length > 1, o.options.tooltips))
+						o.hasGutter && e.setGutterMarker(r, h, c(s, p.severity, i.length > 1, o.options.tooltips))
 					}
 				}
 				t.onUpdateLinting && t.onUpdateLinting(n, a, e)
