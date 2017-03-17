@@ -1,5 +1,8 @@
 "use strict";
 (function () {
+    if (window.completionsOptions) {
+        return;
+    }
     function parseString(state, strChar) {
         var ch;
         var escaping = false;
@@ -17,7 +20,8 @@
             if (ch === '\n') {
                 state.errs.push({
                     err: new Error('Unexpected end of string'),
-                    index: state.index
+                    index: state.index,
+                    chars: 1
                 });
                 return undefined;
             }
@@ -42,7 +46,8 @@
     function throwUnexpectedValueError(state) {
         state.errs.push({
             err: new Error("Unexpected '" + state.str[state.index] + "', expected ','"),
-            index: state.index
+            index: state.index,
+            chars: 1
         });
         var firstComma = state.str.slice(state.index)
             .indexOf(',');
@@ -57,7 +62,8 @@
     function getSkipToChar(state) {
         state.errs.push({
             err: new Error("Unexpected '" + state.str[state.index] + "', expected ':'"),
-            index: state.index
+            index: state.index,
+            chars: 1
         });
         var firstColon = state.str.slice(state.index)
             .indexOf(':');
@@ -117,7 +123,8 @@
             if (state.str.slice(state.index, state.index + 4) === '\\eof') {
                 state.errs.push({
                     err: new Error("Missing '}'"),
-                    index: state.index - 1
+                    index: state.index - 1,
+                    chars: 1
                 });
                 state.index -= 1;
                 break;
@@ -129,7 +136,8 @@
                 }
                 type = 'object';
                 state.scope.push(key);
-                var _a = parseRawObject(state.str, state.pos, state.index + 1, state.scope), options = _a.options, cursor = _a.cursor, newIndex = _a.newIndex;
+                var _a = parseRawObject(state.str, state.pos, state.index + 1, state.scope), options = _a.options, cursor = _a.cursor, newIndex = _a.newIndex, errs = _a.errs;
+                state.errs = state.errs.concat(errs);
                 state.scope.pop();
                 state.cursor = state.cursor || cursor;
                 state.index = newIndex;
@@ -139,7 +147,8 @@
                 else {
                     state.errs.push({
                         err: new Error("Missing ','"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
             }
@@ -157,7 +166,8 @@
                     state.errs.push({
                         err: new Error("Unexpected ']', expected " + (type !== 'none' ?
                             "','" : 'value')),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
             }
@@ -180,7 +190,8 @@
                 else {
                     state.errs.push({
                         err: new Error("Missing ','"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
             }
@@ -235,7 +246,8 @@
                 else {
                     state.errs.push({
                         err: new Error("Missing ','"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
             }
@@ -262,7 +274,8 @@
                 else {
                     state.errs.push({
                         err: new Error("Missing ','"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
             }
@@ -289,7 +302,8 @@
                 else {
                     state.errs.push({
                         err: new Error("Missing ','"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
             }
@@ -316,7 +330,8 @@
                 else {
                     state.errs.push({
                         err: new Error("Missing ','"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
             }
@@ -352,7 +367,8 @@
                     if (type === 'none') {
                         state.errs.push({
                             err: new Error("Unexpected ',', expected value"),
-                            index: state.index
+                            index: state.index,
+                            chars: 1
                         });
                     }
                     break;
@@ -391,7 +407,8 @@
             case 'unknown':
                 state.errs.push({
                     err: new Error("Unknown value '" + unknownValue.join('') + "'"),
-                    index: unknownValueStart
+                    index: unknownValueStart,
+                    chars: unknownValue.length
                 });
                 if (state.cursor && Array.isArray(state.cursor.value)) {
                     state.cursor.value = state.cursor.value.join('');
@@ -433,7 +450,8 @@
                 if (state.errs.length === 0 || !/Missing '}'/.test(state.errs[state.errs.length - 1].err.message)) {
                     state.errs.push({
                         err: new Error("Missing '}'"),
-                        index: state.index - 1
+                        index: state.index - 1,
+                        chars: 1
                     });
                 }
                 state.index -= 1;
@@ -457,6 +475,12 @@
                     }
                     else {
                         foundStr = value;
+                        state.keyLines[value] = state.keyLines[value] || [];
+                        state.keyLines[value].push({
+                            type: 'key',
+                            index: state.index,
+                            scope: state.scope.slice(0)
+                        });
                     }
                 }
             }
@@ -479,7 +503,8 @@
                 if (foundColon) {
                     state.errs.push({
                         err: new Error("Unexpected ':', expected value"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
                 else {
@@ -489,7 +514,8 @@
                     else {
                         state.errs.push({
                             err: new Error("Unexpected ':', expected key"),
-                            index: state.index
+                            index: state.index,
+                            chars: 1
                         });
                         foundColon = true;
                     }
@@ -497,7 +523,16 @@
             }
             else if (foundColon) {
                 state.index -= 1;
+                var oldIndex = state.index;
                 var value = parseValue(state, foundStr);
+                if (value !== undefined) {
+                    state.keyLines[foundStr] = state.keyLines[foundStr] || [];
+                    state.keyLines[foundStr].push({
+                        type: 'value',
+                        index: oldIndex,
+                        scope: state.scope.slice(0)
+                    });
+                }
                 propValue = value;
                 break;
             }
@@ -512,7 +547,8 @@
                 if (state.errs.length === 0 || !/Unexpected '(\w|\d)', expected '"'/.test(state.errs[state.errs.length - 1].err.message)) {
                     state.errs.push({
                         err: new Error("Unexpected '" + ch + "', expected '\"'"),
-                        index: state.index
+                        index: state.index,
+                        chars: 1
                     });
                 }
                 partialStr.push(ch);
@@ -596,14 +632,15 @@
     function parseRawObject(str, pos, index, scope) {
         if (index === void 0) { index = 1; }
         if (scope === void 0) { scope = []; }
-        if (pos < index || pos > str.length) {
+        if (pos !== -1 && (pos < index || pos > str.length)) {
             try {
                 var section = str.slice(index - 1, findMatchingBrace(str, index));
                 return {
                     options: strIndexedObject(JSON.parse(section)),
                     cursor: null,
                     newIndex: index + section.length,
-                    errs: []
+                    errs: [],
+                    keyLines: {}
                 };
             }
             catch (e) { }
@@ -615,8 +652,10 @@
             errs: [],
             index: index,
             str: str,
+            strLines: str.split('\n'),
             pos: pos,
-            scope: scope
+            scope: scope,
+            keyLines: {}
         };
         var unrecognizedCursor = false;
         for (; state.index < str.length && (ch = str[state.index]); state.index++) {
@@ -635,30 +674,489 @@
                 obj[key] = value;
             }
         }
+        if (unrecognizedCursor) {
+            state.cursor = {
+                type: 'key',
+                key: '',
+                scope: state.scope.slice(0)
+            };
+        }
         return {
             options: obj,
             cursor: state.cursor,
             newIndex: state.index,
-            errs: state.errs
+            errs: state.errs,
+            keyLines: state.keyLines
         };
     }
-    window.parseCodeOptions = function (file, query, fns, full) {
+    window.parseCodeOptions = function (file, query, fns) {
         var pos = fns.resolvePos(file, query.end);
         var res = parseRawObject(file.text + '\\eof', pos);
         if (file.text.length - 1 > res.newIndex) {
             if (!/^(\n|\t|\s)*$/.test(file.text.slice(res.newIndex))) {
                 res.errs.push({
                     err: new Error('Expected eof'),
-                    index: res.newIndex + 1
+                    index: res.newIndex + 1,
+                    chars: 1
                 });
             }
         }
         return res;
     };
+    function getValueTypes(options) {
+        var types = {};
+        for (var key in options) {
+            var value = options[key];
+            switch (value['"type"']) {
+                case '"string"':
+                case '"boolean"':
+                case '"choice"':
+                case '"number"':
+                    types[key] = value['"type"'];
+                    break;
+                case '"array"':
+                    types[key] = value['"items"'] === '"string"' ?
+                        '"arrString"' : (value['"items"'] === '"number"' ?
+                        '"arrNumber"' : '"array"');
+                    break;
+                default:
+                    types[key] = '"unknown"';
+                    break;
+            }
+        }
+        return types;
+    }
+    var typeKeyMaps = {
+        '"number"': {
+            '"type"': 'number',
+            '"minimum"': Number,
+            '"maximum"': Number,
+            '"descr"': String,
+            '"value"': [Number, null]
+        },
+        '"string"': {
+            '"type"': 'string',
+            '"maxLength"': Number,
+            '"format"': String,
+            '"descr"': String,
+            '"value"': [String, null]
+        },
+        '"choice"': {
+            '"type"': 'choice',
+            '"descr"': String,
+            '"selected"': Number,
+            '"values"': [3, null]
+        },
+        '"boolean"': {
+            '"type"': 'boolean',
+            '"descr"': String,
+            '"value"': [Boolean, null]
+        },
+        '"array"': {
+            '"type"': 'array',
+            '"maxItems"': Number,
+            '"descr"': String,
+            '"items"': String
+        },
+        '"arrString"': {
+            '"type"': 'array',
+            '"maxItems"': Number,
+            '"descr"': String,
+            '"items"': 'string',
+            '"value"': [1, null]
+        },
+        '"arrNumber"': {
+            '"type"': 'array',
+            '"maxItems"': Number,
+            '"descr"': String,
+            '"items"': 'number',
+            '"value"': [2, null]
+        },
+        '"unknown"': {
+            '"type"': String,
+            '"descr"': String
+        }
+    };
+    var keyDescriptions = {
+        '"type"': 'The type of the option',
+        '"minimum"': 'The minimum value of the number',
+        '"maximum"': 'The maximum value of the number',
+        '"descr"': 'The description of this option',
+        '"value"': 'The value of this option',
+        '"maxLength"': 'The maximum length of the string',
+        '"format"': 'A regex string the value has to match',
+        '"selected"': 'The selected option',
+        '"values"': 'The possible values',
+        '"maxItems"': 'The maximum number of values',
+        '"items"': 'The array of values'
+    };
+    var keyRegex = /^"(\w+)"$/;
+    function getKeyLineIndex(key, type, keyLines, scope) {
+        var keyLineArr = keyLines[scope].filter(function (keyLine) {
+            if (keyLine.type !== type) {
+                return false;
+            }
+            if (keyLine.scope.length > 0 && scope === 0) {
+                return false;
+            }
+            if (keyLine.scope[0] !== scope) {
+                return false;
+            }
+            return true;
+        });
+        if (keyLineArr.length > 0) {
+            return keyLineArr[0].index;
+        }
+        return 0;
+    }
+    function isKeyAllowed(key, type) {
+        return typeKeyMaps["\"" + type + "\""].hasOwnProperty(key);
+    }
+    function getValueType(value) {
+        if (!Array.isArray(value)) {
+            value = JSON.parse(value);
+        }
+        if (typeof value === 'object' && Array.isArray(value)) {
+            var types = value.map(function (val) {
+                return typeof val === 'string' ? String : Number;
+            });
+            var type = [];
+            for (var i = 0; i < types.length; i++) {
+                if (type.indexOf(types[i]) === -1) {
+                    type.push(types[i]);
+                }
+            }
+            var finalType = void 0;
+            if (type.length === 0) {
+                finalType = 0;
+            }
+            else if (type.length === 1) {
+                finalType = type[0] === String ? 1 : 2;
+            }
+            else {
+                finalType = 3;
+            }
+            return [Array, 'OF', finalType];
+        }
+        else {
+            switch (typeof value) {
+                case 'boolean':
+                    return Boolean;
+                case 'number':
+                    return Number;
+                case 'string':
+                    return String;
+                case null:
+                    return null;
+                default:
+                    return undefined;
+            }
+        }
+    }
+    function constructorsMatch(value, expected) {
+        if (!Array.isArray(value) && !Array.isArray(expected)) {
+            return value === expected;
+        }
+        else if (Array.isArray(value)) {
+            for (var i = 0; i < value.length; i++) {
+                if (constructorsMatch(value[i], expected)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else if (Array.isArray(expected)) {
+            for (var i = 0; i < expected.length; i++) {
+                if (constructorsMatch(value, expected[i])) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+    function doObjTypesMatch(value, expected) {
+        var valueType = getValueType(value);
+        if (typeof value === 'string' && typeof expected === 'string') {
+            return value.slice(1, -1) === expected;
+        }
+        return constructorsMatch(valueType, expected);
+    }
+    function getKeyValueType(type) {
+        if (typeof type === 'string') {
+            return type;
+        }
+        switch (type) {
+            case String:
+                return 'string';
+            case Number:
+                return 'number';
+            case Boolean:
+                return 'boolean';
+        }
+        if (Array.isArray(type)) {
+            return getKeyValueType(type[0]);
+        }
+        return '?';
+    }
+    function getTernType(type) {
+        if (typeof type === 'string') {
+            return 'string';
+        }
+        switch (type) {
+            case String:
+                return 'string';
+            case Number:
+                return 'number';
+            case Boolean:
+                return 'bool';
+        }
+        if (Array.isArray(type)) {
+            return "[" + getKeyValueType(type[0]) + "]";
+        }
+        return '?';
+    }
+    function getObjectValidationErrors(text, options, keyLines) {
+        var errors = [];
+        var valueTypes = getValueTypes(options);
+        for (var rootKey in options) {
+            var setting = options[rootKey];
+            if (!keyRegex.exec(rootKey)) {
+                continue;
+            }
+            if (typeof options[rootKey] !== 'object' || Array.isArray(options[rootKey])) {
+                var errStart = getKeyLineIndex(rootKey, 'key', keyLines, 0);
+                errors.push({
+                    err: new Error("Value of '" + rootKey + "' is not an object"),
+                    index: errStart,
+                    chars: text.slice(errStart).indexOf(',')
+                });
+                continue;
+            }
+            for (var key in setting) {
+                if (!keyRegex.exec(key)) {
+                    continue;
+                }
+                if (!isKeyAllowed(key, valueTypes[rootKey].slice(1, -1))) {
+                    errors.push({
+                        err: new Error("Key '" + key + "' is not allowed in type '" + valueTypes[rootKey] + "'"),
+                        index: getKeyLineIndex(key, 'key', keyLines, rootKey),
+                        chars: key.length
+                    });
+                    continue;
+                }
+                var valueType = valueTypes[rootKey];
+                if (!doObjTypesMatch(setting[key], typeKeyMaps[valueType][key])) {
+                    var errStart = getKeyLineIndex(key, 'value', keyLines, rootKey);
+                    errors.push({
+                        err: new Error("Value '" + setting[key] + "' is not allowed for key '" + key + "', only values of type '" + getKeyValueType(typeKeyMaps[valueType][key]) + "' allowed"),
+                        index: errStart,
+                        chars: text.slice(errStart).indexOf(',')
+                    });
+                }
+            }
+        }
+        return errors;
+    }
+    function getPossibleValues(key, type, obj) {
+        switch (type.slice(1, -1)) {
+            case 'number':
+                if (key === '"value"' && obj['"minimum"'] !== undefined && obj['"maximum"'] !== undefined) {
+                    var vals = [];
+                    for (var i = 0; i < 10 && (i + ~~obj['"minimum"']) < ~~obj['"maximum"']; i++) {
+                        vals.push({
+                            name: i + '',
+                            doc: i + '',
+                            type: 'number'
+                        });
+                    }
+                    return vals;
+                }
+                return [];
+            case 'string':
+                return [];
+            case 'choice':
+                if (key === '"selected"' && obj['"values"']) {
+                    return obj['"values"'].map(function (num) {
+                        return {
+                            name: num + '',
+                            doc: num + '',
+                            type: typeof num
+                        };
+                    });
+                }
+                return [];
+            case 'boolean':
+                if (key === '"value"') {
+                    return [{
+                            doc: 'true',
+                            name: 'true',
+                            type: 'bool'
+                        }, {
+                            doc: 'false',
+                            name: 'false',
+                            type: 'bool'
+                        }];
+                }
+                return [];
+            case 'arrNumber':
+            case 'arrString':
+                if (key === 'items') {
+                    return [{
+                            doc: 'An array of strings',
+                            name: 'string',
+                            type: 'string'
+                        }, {
+                            doc: 'An array of numbes',
+                            name: 'number',
+                            type: 'string'
+                        }];
+                }
+                return [];
+            case 'unknown':
+            default:
+                if (key === 'type') {
+                    return [{
+                            doc: 'An input for a number',
+                            name: 'number',
+                            type: 'string'
+                        }, {
+                            doc: 'An input for a string',
+                            name: 'string',
+                            type: 'string'
+                        }, {
+                            doc: 'An input allowing you to choose one of the given values',
+                            name: 'choice',
+                            type: 'string'
+                        }, {
+                            doc: 'A checkbox allowing you to choose true or false',
+                            name: 'boolean',
+                            type: 'string'
+                        }, {
+                            doc: 'A list that allows multiple inputs',
+                            name: 'array',
+                            type: 'string'
+                        }];
+                }
+                return [];
+        }
+    }
+    function getCompletions(options, cursor) {
+        if (!cursor) {
+            return [];
+        }
+        if (cursor.scope.length !== 1) {
+            return [];
+        }
+        var obj = options[cursor.scope[0]];
+        var objType = getValueTypes(options)[cursor.scope[0]];
+        var possibleKeys = Object.getOwnPropertyNames(typeKeyMaps[objType]);
+        if (cursor.type === 'key') {
+            for (var key in obj) {
+                possibleKeys.splice(possibleKeys.indexOf(key), 1);
+            }
+            return possibleKeys.filter(function (key) {
+                return key.indexOf(cursor.key) === 0 ||
+                    key.indexOf("\"" + cursor.key + "\"") === 0;
+            }).map(function (str) {
+                return {
+                    name: str,
+                    doc: keyDescriptions[cursor.key],
+                    type: getTernType(typeKeyMaps[objType][cursor.key])
+                };
+            });
+        }
+        else {
+            if (!keyRegex.exec(cursor.key)) {
+                return [];
+            }
+            if (possibleKeys.indexOf(cursor.key) === -1) {
+                return [];
+            }
+            var values = getPossibleValues(cursor.key, objType, obj);
+            return values.filter(function (key) {
+                return key.name.indexOf(cursor.value) === 0;
+            });
+        }
+    }
+    var emptyCursor = {
+        start: {
+            line: -1,
+            ch: 0
+        },
+        end: {
+            line: -1,
+            ch: 0
+        }
+    };
+    var ternFns = {
+        resolvePos: function () { return -1; }
+    };
+    function strIndexToPos(splitLines, index) {
+        var chars = 0;
+        for (var i = 0; i < splitLines.length; i++) {
+            if (chars + splitLines[i].length >= index) {
+                return window.CodeMirror.Pos(i, index - chars);
+            }
+            chars += splitLines[i].length + 1;
+        }
+        return window.CodeMirror.Pos(splitLines.length, 0);
+    }
+    function padChars(char, amount) {
+        var x = [];
+        x[amount] = undefined;
+        return x.join(char);
+    }
+    function createPointerMessage(text, fromIndex, from, chars, message) {
+        var padding = (26 - Math.min(chars, 20)) / 2;
+        var readStart = fromIndex - padding;
+        var readEnd = fromIndex + chars + padding;
+        if (from.ch <= padding) {
+            readStart = fromIndex;
+            readEnd = fromIndex + 26;
+        }
+        if (padding === 3) {
+            readStart = fromIndex - (padding * 2);
+            readEnd = fromIndex + Math.min(chars, 20);
+        }
+        return text.slice(readStart, readEnd) + "\n" + padChars('-', fromIndex - readStart) + padChars('^', Math.min(chars, 20)) + "\n" + message;
+    }
+    window.CodeMirror.lint.optionsJSON = function (text, _, cm) {
+        if (!window.useOptionsCompletions) {
+            return cm.getOption('mode') === 'javascript' ?
+                window.CodeMirror.lint.javascript(text, _, cm) :
+                window.CodeMirror.lint.css(text, _, cm);
+        }
+        var _a = window.parseCodeOptions({
+            text: text
+        }, emptyCursor, ternFns), options = _a.options, errs = _a.errs, keyLines = _a.keyLines;
+        errs = errs.concat(getObjectValidationErrors(text, options, keyLines));
+        var output = [];
+        var splitLines = text.split('\n');
+        for (var i = 0; i < errs.length; i++) {
+            var from = strIndexToPos(splitLines, errs[i].index);
+            var to = strIndexToPos(splitLines, errs[i].index + errs[i].chars);
+            output.push({
+                from: from,
+                to: to,
+                severity: 'error',
+                message: createPointerMessage(text, errs[i].index, from, errs[i].chars, errs[i].err.message)
+            });
+        }
+        return output;
+    };
     window.completionsOptions = function (query, file, fns) {
-        var cursor = window.parseCodeOptions(file, query, fns, false).cursor;
+        var _a = window.parseCodeOptions(file, query, fns), options = _a.options, cursor = _a.cursor;
+        var completions;
+        try {
+            completions = getCompletions(options, cursor);
+        }
+        catch (e) {
+            completions = [];
+        }
+        console.log(options, cursor, completions);
         return {
-            completions: [],
+            completions: completions,
             start: query.start || query.end,
             end: query.end,
             isObjectKey: cursor && cursor.type === 'key',

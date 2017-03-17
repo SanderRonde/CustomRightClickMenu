@@ -402,6 +402,7 @@
 										value="{{codeSetting.value.value}}"
 										maxlength="[[codeSetting.value.maxLength]]"
 										label="[[codeSetting.key]]"
+										pattern="[[codeSetting.format]]"
 										title="[[_getString(codeSetting.value.descr)]]"></paper-input>
 								</template>
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'array')}}">

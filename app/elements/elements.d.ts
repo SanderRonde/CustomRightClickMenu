@@ -35,7 +35,10 @@
 /// <reference path="./edit-pages/code-edit-pages/jsonParser.ts" />
 
 interface Completion {
-
+	doc: string;
+	name: string;
+	type: string;
+	url?: string;
 }
 
 interface Completions {
@@ -94,7 +97,19 @@ interface Window {
 			ch: number;
 		}
 	}, file: TernFile, fns: CMCompletionFns): Completions;
-	parseCodeOptions(file: TernFile, query: {
+	completionsOptions(query: {
+		start: {
+			line: number;
+			ch: number;
+		};
+		end: {
+			line: number;
+			ch: number;
+		}
+	}, file: TernFile, fns: CMCompletionFns): Completions;
+	parseCodeOptions(file: {
+		text: string;
+	}, query: {
 		start: {
 			line: number;
 			ch: number;
@@ -103,13 +118,11 @@ interface Window {
 			line: number;
 			ch: number;
 		};
-	}, fns: CMCompletionFns, full: boolean): {
+	}, fns: CMCompletionFns): {
 		options: JSONOptions;
 		cursor: CursorState;
-		errs: Array<{
-			err: Error;
-			index: number;
-		}>;
+		errs: JSONParseErrors;
+		keyLines: KeyLines;
 	}
 	useOptionsCompletions: boolean;
 

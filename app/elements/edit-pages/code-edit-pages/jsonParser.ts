@@ -9,17 +9,39 @@ interface CursorState {
 	scope: Array<string>;
 }
 
+interface KeyLine {
+	type: 'key'|'value';
+	index: number;
+	scope: Array<string>;
+}
+
+interface KeyLines {
+	[key: string]: Array<KeyLine>;
+}
+
+interface JSONParseError {
+	err: Error;
+	index: number;
+	chars: number;
+}
+
+type JSONParseErrors = Array<JSONParseError>;
+
 (() => {
+
+	if (window.completionsOptions) {
+		return;
+	}
+
 	interface JSONParseState {
 		cursor: CursorState;
-		errs: Array<{
-			err: Error;
-			index: number;
-		}>,
+		errs: JSONParseErrors,
 		index: number;
 		str: string;
+		strLines: Array<string>;
 		pos: number;
 		scope: Array<string>;
+		keyLines: KeyLines;
 	}
 
 	function parseString(state: JSONParseState, strChar: '"'|"'"): string {
@@ -40,7 +62,8 @@ interface CursorState {
 			if (ch === '\n') {
 				state.errs.push({
 					err: new Error('Unexpected end of string'),
-					index: state.index
+					index: state.index,
+					chars: 1
 				});
 				return undefined;
 			} else if (ch === '\\') {
@@ -62,7 +85,8 @@ interface CursorState {
 	function throwUnexpectedValueError(state: JSONParseState) {
 		state.errs.push({
 			err: new Error(`Unexpected '${state.str[state.index]}', expected ','`),
-			index: state.index
+			index: state.index,
+			chars: 1
 		});
 		const firstComma = state.str.slice(state.index)
 			.indexOf(',');
@@ -81,7 +105,8 @@ interface CursorState {
 	function getSkipToChar(state: JSONParseState): '}'|','|':' {
 		state.errs.push({
 			err: new Error(`Unexpected '${state.str[state.index]}', expected ':'`),
-			index: state.index
+			index: state.index,
+			chars: 1
 		});
 		const firstColon = state.str.slice(state.index)
 			.indexOf(':');
@@ -146,7 +171,8 @@ interface CursorState {
 			if (state.str.slice(state.index, state.index + 4) === '\\eof') {
 				state.errs.push({
 					err: new Error(`Missing '}'`),
-					index: state.index - 1
+					index: state.index - 1,
+					chars: 1
 				});
 				state.index -= 1;
 				break;
@@ -158,7 +184,8 @@ interface CursorState {
 				}
 				type = 'object';
 				state.scope.push(key);
-				const { options, cursor, newIndex } = parseRawObject(state.str, state.pos, state.index + 1, state.scope);
+				const { options, cursor, newIndex, errs } = parseRawObject(state.str, state.pos, state.index + 1, state.scope);
+				state.errs = state.errs.concat(errs);
 				state.scope.pop();
 				state.cursor = state.cursor || cursor;
 				state.index = newIndex;
@@ -167,7 +194,8 @@ interface CursorState {
 				} else {
 					state.errs.push({
 						err: new Error(`Missing ','`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				}
 			} else if (ch === '[') {
@@ -183,7 +211,8 @@ interface CursorState {
 					state.errs.push({
 						err: new Error(`Unexpected ']', expected ${type !== 'none' ?
 							`','` : 'value'}`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				}
 			} else if (unknownValue.length === 0 && ch === '"' || ch === "'") {
@@ -205,7 +234,8 @@ interface CursorState {
 				} else {
 					state.errs.push({
 						err: new Error(`Missing ','`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				}
 			} else if (ch === '-') {
@@ -256,7 +286,8 @@ interface CursorState {
 				} else {
 					state.errs.push({
 						err: new Error(`Missing ','`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				}
 			} else if (state.str.slice(state.index, state.index + 5) === 'false') {
@@ -281,7 +312,8 @@ interface CursorState {
 				} else {
 					state.errs.push({
 						err: new Error(`Missing ','`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				}
 			} else if (state.str.slice(state.index, state.index + 4) === 'null') {
@@ -306,7 +338,8 @@ interface CursorState {
 				} else {
 					state.errs.push({
 						err: new Error(`Missing ','`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				}
 			} else if (state.str.slice(state.index, state.index + 9) === 'undefined') {
@@ -331,7 +364,8 @@ interface CursorState {
 				} else {
 					state.errs.push({
 						err: new Error(`Missing ','`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				}
 			} else if (ch === '}') {
@@ -365,7 +399,8 @@ interface CursorState {
 					if (type === 'none') {
 						state.errs.push({
 							err: new Error(`Unexpected ',', expected value`),
-							index: state.index
+							index: state.index,
+							chars: 1
 						});
 					}
 					break;
@@ -405,7 +440,8 @@ interface CursorState {
 			case 'unknown':
 				state.errs.push({
 					err: new Error(`Unknown value '${unknownValue.join('')}'`),
-					index: unknownValueStart
+					index: unknownValueStart,
+					chars: unknownValue.length
 				});
 				if (state.cursor && Array.isArray(state.cursor.value)) {
 					state.cursor.value = state.cursor.value.join('');
@@ -453,7 +489,8 @@ interface CursorState {
 				if (state.errs.length === 0 || !/Missing '}'/.test(state.errs[state.errs.length - 1].err.message)) {
 					state.errs.push({
 						err: new Error(`Missing '}'`),
-						index: state.index - 1
+						index: state.index - 1,
+						chars: 1
 					});
 				}
 				state.index -= 1;
@@ -475,6 +512,13 @@ interface CursorState {
 						break;
 					} else {
 						foundStr = value;
+
+						state.keyLines[value] = state.keyLines[value] || [];
+						state.keyLines[value].push({
+							type: 'key',
+							index: state.index,
+							scope: state.scope.slice(0)
+						});
 					}
 				}
 			} else if (foundStr && !foundColon && (ch === '"' || ch === "'")) {
@@ -496,7 +540,8 @@ interface CursorState {
 				if (foundColon) {
 					state.errs.push({
 						err: new Error(`Unexpected ':', expected value`),
-						index: state.index
+						index: state.index,
+						chars: 1
 					});
 				} else {
 					if (foundStr || partialStr.length > 0) {
@@ -504,14 +549,25 @@ interface CursorState {
 					} else {
 						state.errs.push({
 							err: new Error(`Unexpected ':', expected key`),
-							index: state.index
+							index: state.index,
+							chars: 1
 						});
 						foundColon = true;
 					}
 				}
 			} else if (foundColon) {
 				state.index -= 1;
+
+				const oldIndex = state.index;
 				const value = parseValue(state, foundStr);
+				if (value !== undefined) {
+					state.keyLines[foundStr] = state.keyLines[foundStr] || [];
+					state.keyLines[foundStr].push({
+						type: 'value',
+						index: oldIndex,
+						scope: state.scope.slice(0)
+					});
+				}
 				propValue = value;
 				break;
 			} else if (!foundColon && /\w|\d/.test(ch)) {
@@ -526,7 +582,8 @@ interface CursorState {
 					state.errs[state.errs.length - 1].err.message)) {
 						state.errs.push({
 							err: new Error(`Unexpected '${ch}', expected '"'`),
-							index: state.index
+							index: state.index,
+							chars: 1
 						});
 					}
 				partialStr.push(ch);
@@ -612,19 +669,18 @@ interface CursorState {
 		options: JSONOptions;
 		cursor: CursorState|null;
 		newIndex: number;
-		errs: Array<{
-			err: Error;
-			index: number;
-		}>;
+		errs: JSONParseErrors;
+		keyLines: KeyLines;
 	} {
-		if (pos < index || pos > str.length) {
+		if (pos !== -1 && (pos < index || pos > str.length)) {
 			try {
 				const section = str.slice(index - 1, findMatchingBrace(str, index));
 				return {
 					options: strIndexedObject(JSON.parse(section)),
 					cursor: null,
 					newIndex: index + section.length,
-					errs: []
+					errs: [],
+					keyLines: {}
 				}
 			} catch(e) { }
 		}
@@ -637,8 +693,10 @@ interface CursorState {
 			errs: [],
 			index: index,
 			str: str,
+			strLines: str.split('\n'),
 			pos: pos,
-			scope: scope
+			scope: scope,
+			keyLines: {}
 		}
 		
 		let unrecognizedCursor: boolean = false;
@@ -659,11 +717,21 @@ interface CursorState {
 			}
 		}
 
+		if (unrecognizedCursor) {
+			//This must be an unrecognized key then
+			state.cursor = {
+				type: 'key',
+				key: '',
+				scope: state.scope.slice(0)
+			}
+		}
+
 		return {
 			options: obj,
 			cursor: state.cursor,
 			newIndex: state.index,
-			errs: state.errs
+			errs: state.errs,
+			keyLines: state.keyLines
 		}
 	}
 
@@ -676,13 +744,11 @@ interface CursorState {
 			line: number;
 			ch: number;
 		}
-	}, fns: CMCompletionFns, full: boolean): {
+	}, fns: CMCompletionFns): {
 		options: JSONOptions;
 		cursor: CursorState;
-		errs: Array<{
-			err: Error;
-			index: number;
-		}>;
+		errs: JSONParseErrors;
+		keyLines: KeyLines;
 	} => {
 		const pos = fns.resolvePos(file, query.end);
 		const res = parseRawObject(file.text + '\\eof', pos);
@@ -691,18 +757,553 @@ interface CursorState {
 			if (!/^(\n|\t|\s)*$/.test(file.text.slice(res.newIndex))) {
 				res.errs.push({
 					err: new Error('Expected eof'),
-					index: res.newIndex + 1
+					index: res.newIndex + 1,
+					chars: 1
 				});
 			}
 		}
 		return res;
 	}
 
-	window.completionsOptions = (query, file, fns): Completions => {
+	type ParsedJSON = Partial<CRMOptionsValue> & {
+		[key: string]: any;
+	};
+
+	type ValueType = 'boolean'|'choice'|'string'|'number'|'array'|'arrString'|'arrNumber'|'unknown';
+	function getValueTypes<K extends string>(options: Record<K, ParsedJSON>): Record<K, string> {
+		const types: Record<K, string> = {} as Record<K, string>;
+		for (let key in options) {
+			let value = options[key];
+			switch (value['"type"']) {
+				case '"string"':
+				case '"boolean"':
+				case '"choice"':
+				case '"number"':
+					types[key] = value['"type"'];
+					break;
+				case '"array"':
+					types[key] = value['"items"'] === '"string"' ?
+						'"arrString"' : (value['"items"'] === '"number"' ? 
+							'"arrNumber"' : '"array"');
+					break;
+				default:
+					types[key] = '"unknown"';
+					break;
+			}
+		}
+		return types;
+	}
+
+	const typeKeyMaps = {
+		'"number"': {
+			'"type"': 'number',
+			'"minimum"': Number,
+			'"maximum"': Number,
+			'"descr"': String,
+			'"value"': [Number, null]
+		},
+		'"string"': {
+			'"type"': 'string',
+			'"maxLength"': Number,
+			'"format"': String,
+			'"descr"': String,
+			'"value"': [String, null]
+		},
+		'"choice"': {
+			'"type"': 'choice',
+			'"descr"': String,
+			'"selected"': Number,
+			'"values"': [Types.StrNumArr, null]
+		},
+		'"boolean"': {
+			'"type"': 'boolean',
+			'"descr"': String,
+			'"value"': [Boolean, null]
+		},
+		'"array"': {
+			'"type"': 'array',
+			'"maxItems"': Number,
+			'"descr"': String,
+			'"items"': String
+		},
+		'"arrString"': {
+			'"type"': 'array',
+			'"maxItems"': Number,
+			'"descr"': String,
+			'"items"': 'string',
+			'"value"': [Types.StrArr, null]
+		},
+		'"arrNumber"': {
+			'"type"': 'array',
+			'"maxItems"': Number,
+			'"descr"': String,
+			'"items"': 'number',
+			'"value"': [Types.NumArr, null]
+		},
+		'"unknown"': {
+			'"type"': String,
+			'"descr"': String
+		}
+	};
+
+	const keyDescriptions = {
+		'"type"': 'The type of the option',
+		'"minimum"': 'The minimum value of the number',
+		'"maximum"': 'The maximum value of the number',
+		'"descr"': 'The description of this option',
+		'"value"': 'The value of this option',
+		'"maxLength"': 'The maximum length of the string',
+		'"format"': 'A regex string the value has to match',
+		'"selected"': 'The selected option',
+		'"values"': 'The possible values',
+		'"maxItems"': 'The maximum number of values',
+		'"items"': 'The array of values'
+	};
+
+	const keyRegex = /^"(\w+)"$/;
+	const enum KeyLineScope {
+		root
+	}
+	function getKeyLineIndex(key: string, type: 'key' | 'value', keyLines: KeyLines, scope: string | KeyLineScope): number {
+		const keyLineArr = keyLines[scope].filter((keyLine) => {
+			if (keyLine.type !== type) {
+				return false;
+			}
+			if (keyLine.scope.length > 0 && scope === KeyLineScope.root) {
+				return false;
+			}
+			if (keyLine.scope[0] !== scope) {
+				return false;
+			}
+			return true;
+		});
+		if (keyLineArr.length > 0) {
+			return keyLineArr[0].index;
+		}
+		return 0;
+	}
+
+	function isKeyAllowed(key: string, type: ValueType): boolean {
+		return typeKeyMaps[`"${type}"` as keyof typeof typeKeyMaps].hasOwnProperty(key)
+	}
+
+	const enum Types {
+		Any,
+		StrArr,
+		NumArr,
+		StrNumArr
+	}
+	function getValueType(value: any) {
+		if (!Array.isArray(value)) {
+			value = JSON.parse(value);
+		}
+
+		if (typeof value === 'object' && Array.isArray(value)) {
+			//Get the type of the array
+			const types = value.map((val) => {
+				return typeof val === 'string' ? String : Number;
+			});
+			let type: Array<StringConstructor|NumberConstructor> = [];
+			for (let i = 0; i < types.length; i++) {
+				if (type.indexOf(types[i]) === -1) {
+					type.push(types[i]);
+				}
+			}
+
+			let finalType: Types;
+			if (type.length === 0) {
+				finalType = Types.Any;
+			} else if (type.length === 1) {
+				finalType = type[0] === String ? Types.StrArr : Types.NumArr;
+			} else {
+				finalType = Types.StrNumArr;
+			}
+			return [Array, 'OF', finalType];
+		} else {
+			switch (typeof value) {
+				case 'boolean':
+					return Boolean;
+				case 'number':
+					return Number;
+				case 'string':
+					return String;
+				case null:
+					return null;
+				default:
+					return undefined;
+			}
+		}
+	}
+
+	function constructorsMatch(value: any, expected: any): boolean {
+		if (!Array.isArray(value) && !Array.isArray(expected)) {
+			return value === expected;
+		} else if (Array.isArray(value)) {
+			for (let i = 0; i < value.length; i++) {
+				if (constructorsMatch(value[i], expected)) {
+					return true;
+				}
+			}
+			return false;
+		} else if (Array.isArray(expected)) {
+			for (let i = 0; i < expected.length; i++) {
+				if (constructorsMatch(value, expected[i])) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return false;
+	}
+
+	function doObjTypesMatch(value: any, expected: any): boolean {
+		const valueType = getValueType(value);
+
+		if (typeof value === 'string' && typeof expected === 'string') {
+			return value.slice(1, -1) === expected;
+		}
+		return constructorsMatch(valueType, expected);
+	}
+
+	function getKeyValueType(type: any): string {
+		if (typeof type === 'string') {
+			return type;
+		}
+		switch (type) {
+			case String:
+				return 'string';
+			case Number:
+				return 'number';
+			case Boolean:
+				return 'boolean';
+		}
+		if (Array.isArray(type)) {
+			return getKeyValueType(type[0]);
+		}
+		return '?';
+	}
+
+	function getTernType(type: any): string {
+		if (typeof type === 'string') {
+			return 'string';
+		}
+		switch (type) {
+			case String:
+				return 'string';
+			case Number:
+				return 'number';
+			case Boolean:
+				return 'bool';
+		}
+		if (Array.isArray(type)) {
+			return `[${getKeyValueType(type[0])}]`;
+		}
+		return '?';
+	}
+
+	function getObjectValidationErrors(text: string, options: JSONOptions, keyLines: KeyLines): JSONParseErrors {
+		const errors: JSONParseErrors = [];
+		const valueTypes = getValueTypes(options);
+		for (let rootKey in options) {
+			const setting = options[rootKey];
+
+			//Check if the key is valid, if it's not an error has already been printed anyway
+			if (!keyRegex.exec(rootKey)) {
+				continue;
+			}
+
+			if (typeof options[rootKey] !== 'object' || Array.isArray(options[rootKey])) {
+				//Value of root is not actually an object, throw error
+				const errStart = getKeyLineIndex(rootKey, 'key', keyLines, KeyLineScope.root);
+				errors.push({
+					err: new Error(`Value of '${rootKey}' is not an object`),
+					index: errStart,
+					chars: text.slice(errStart).indexOf(',')
+				});
+				continue;
+			}
+
+			for (let key in setting) {
+				//Check if the key is a valid string
+				if (!keyRegex.exec(key)) {
+					continue;
+				}
+
+				//Check if the key is allowed in the current type
+				if (!isKeyAllowed(key, valueTypes[rootKey].slice(1, -1) as ValueType)) {
+					//Key is not allowed, throw error
+					errors.push({
+						err: new Error(`Key '${key}' is not allowed in type '${valueTypes[rootKey]}'`),
+						index: getKeyLineIndex(key, 'key', keyLines, rootKey),
+						chars: key.length
+					});
+					continue;
+				}
+
+				//Check if the value is allowed in the current key/type
+				const valueType = valueTypes[rootKey];
+				if (!doObjTypesMatch(setting[key], (typeKeyMaps[valueType as keyof typeof typeKeyMaps] as any)[key])) {
+					//Not allowed, throw error
+					const errStart = getKeyLineIndex(key, 'value', keyLines, rootKey);
+					errors.push({
+						err: new Error(`Value '${setting[key]}' is not allowed for key '${key}', only values of type '${getKeyValueType(
+							(typeKeyMaps[valueType as keyof typeof typeKeyMaps] as any)[key]
+						)}' allowed`),
+						index: errStart,
+						chars: text.slice(errStart).indexOf(',')
+					});
+				}
+			}
+		}
+		return errors;
+	}
+
+	function getPossibleValues(key: string, type: string, obj: any): Array<Completion> {
+		switch (type.slice(1, -1)) {
+			case 'number':
+				if (key === '"value"' && obj['"minimum"'] !== undefined && obj['"maximum"'] !== undefined) {
+					let vals: Array<Completion> = [];
+					for (let i = 0; i < 10 && (i + ~~obj['"minimum"']) < ~~obj['"maximum"']; i++) {
+						vals.push({
+							name: i + '',
+							doc: i + '',
+							type: 'number'
+						});
+					}
+					return vals;
+				}
+				return [];
+			case 'string':
+				return [];
+			case 'choice':
+				if (key === '"selected"' && obj['"values"']) {
+					return obj['"values"'].map((num: string|number) => {
+						return {
+							name: num + '',
+							doc: num + '',
+							type: typeof num
+						};
+					});
+				}
+				return [];
+			case 'boolean':
+				if (key === '"value"') {
+					return [{
+						doc: 'true',
+						name: 'true',
+						type: 'bool'
+					}, {
+						doc: 'false',
+						name: 'false',
+						type: 'bool'
+					}];
+				}
+				return [];
+			case 'arrNumber':
+			case 'arrString':
+				if (key === 'items') {
+					return [{
+						doc: 'An array of strings',
+						name: 'string',
+						type: 'string'
+					}, {
+						doc: 'An array of numbes',
+						name: 'number',
+						type: 'string'
+					}];
+				}
+				return [];
+			case 'unknown':
+			default:
+				if (key === 'type') {
+					return [{
+						doc: 'An input for a number',
+						name: 'number',
+						type: 'string'
+					}, {
+						doc: 'An input for a string',
+						name: 'string',
+						type: 'string'
+					}, {
+						doc: 'An input allowing you to choose one of the given values',
+						name: 'choice',
+						type: 'string'
+					}, {
+						doc: 'A checkbox allowing you to choose true or false',
+						name: 'boolean',
+						type: 'string'
+					}, {
+						doc: 'A list that allows multiple inputs',
+						name: 'array',
+						type: 'string'
+					}];
+				}
+				return [];
+		}
+	}
+
+	function getCompletions(options: JSONOptions, cursor: CursorState): Array<Completion> {
+		if (!cursor) {
+			return [];
+		}
+
+		if (cursor.scope.length !== 1) {
+			//Root scope, no suggestions
+			return [];
+		}
+
+		//Get the object that it's about
+		const obj = options[cursor.scope[0]];
+
+		//It's a key of that object, find out its type first
+		const objType = getValueTypes(options)[cursor.scope[0]];
+
+		//Then find out what keys are legitimate
+		const possibleKeys = Object.getOwnPropertyNames(typeKeyMaps[objType as keyof typeof typeKeyMaps]);
+
+		if (cursor.type === 'key') {
+			for (let key in obj) {
+				possibleKeys.splice(possibleKeys.indexOf(key), 1);
+			}
+
+			return possibleKeys.filter((key) => {
+				return key.indexOf(cursor.key as string) === 0 ||
+					key.indexOf(`"${cursor.key}"`) === 0;
+			}).map((str) => {
+				return {
+					name: str,
+					doc: keyDescriptions[cursor.key as keyof typeof keyDescriptions],
+					type: getTernType(
+						(typeKeyMaps[objType as keyof typeof typeKeyMaps] as any)[cursor.key as string]
+					)
+				}
+			});
+		} else {
+			//It's a value, find out whether the key is even legitimate
+			if (!keyRegex.exec(cursor.key as string)) {
+				return [];
+			}
+
+			//getPossibleValuesIt's a valid string, find out if it's allowed in that type
+			if (possibleKeys.indexOf(cursor.key as string) === -1) {
+				//Invalid key
+				return [];
+			}
+
+			//Valid key, get possible values
+			const values = getPossibleValues(cursor.key as string, objType, obj);
+			return values.filter((key) => {
+				return key.name.indexOf(cursor.value) === 0;
+			});
+		}
+	}
+
+	const emptyCursor = {
+		start: {
+			line: -1,
+			ch: 0
+		},
+		end: {
+			line: -1,
+			ch: 0
+		}
+	};
+	var ternFns = {
+		resolvePos: () => {return -1}
+	}
+
+	function strIndexToPos(splitLines: Array<string>, index: number): {
+		line: number;
+		ch: number;
+	} {
+		let chars: number = 0;
+		for (let i = 0; i < splitLines.length; i++) {
+			if (chars + splitLines[i].length >= index) {
+				return window.CodeMirror.Pos(i, index - chars);
+			}
+			chars += splitLines[i].length + 1;
+		}
+		return window.CodeMirror.Pos(splitLines.length, 0);
+	}
+
+	function padChars(char: string, amount: number): string {
+		let x: Array<void> = [];
+		x[amount] = undefined;
+		return x.join(char);
+	}
+
+	function createPointerMessage(text: string, fromIndex: number, from: {
+		line: number;
+		ch: number;
+	}, chars: number, message: string): string {
+		//Read max 26 chars
+		const padding = (26 - Math.min(chars, 20)) / 2;
+
+		let readStart: number = fromIndex - padding;
+		let readEnd: number = fromIndex + chars + padding;
+		if (from.ch <= padding) {
+			readStart = fromIndex;
+			readEnd = fromIndex + 26;
+		}
+		if (padding === 3) {
+			//Don't do padding on the right
+			readStart = fromIndex - (padding * 2);
+			readEnd = fromIndex + Math.min(chars, 20);
+		}
+
+		return `${text.slice(readStart, readEnd)}
+${padChars('-', fromIndex - readStart)}${padChars('^', Math.min(chars, 20))}
+${message}`;
+	}
+
+	window.CodeMirror.lint.optionsJSON = (text: string, _: any, cm: CodeMirrorInstance): LintMessages => {
+		if (!window.useOptionsCompletions) {
+			return cm.getOption('mode') === 'javascript' ?
+				window.CodeMirror.lint.javascript(text, _, cm) :
+				window.CodeMirror.lint.css(text, _, cm);
+		}
+		
+		let { options, errs, keyLines } = window.parseCodeOptions({
+			text: text
+		}, emptyCursor, ternFns);
+		errs = errs.concat(getObjectValidationErrors(text, options, keyLines));
+
+		let output: LintMessages = [];
+		const splitLines = text.split('\n');
+		for (let i = 0; i < errs.length; i++) {
+			const from = strIndexToPos(splitLines, errs[i].index);
+			const to = strIndexToPos(splitLines, errs[i].index + errs[i].chars);
+			output.push({
+				from: from,
+				to: to,
+				severity: 'error',
+				message: createPointerMessage(text, errs[i].index, from, errs[i].chars, errs[i].err.message)
+			});
+		}
+		return output;
+	};
+
+	window.completionsOptions = (query: {
+		start: {
+			line: number;
+			ch: number;
+		};
+		end: {
+			line: number;
+			ch: number;
+		}
+	}, file: TernFile, fns: CMCompletionFns): Completions => {
 		//Get current scope
-		const { cursor } = window.parseCodeOptions(file, query, fns, false);
+		const { options, cursor } = window.parseCodeOptions(file, query, fns);
+		let completions: Array<Completion>;
+		try {
+			completions = getCompletions(options, cursor);
+		} catch(e) {
+			completions = [];
+		}
+		console.log(options, cursor, completions);
 		return {
-			completions: [],
+			completions: completions,
 			start: query.start || query.end,
 			end: query.end,
 			isObjectKey: cursor && cursor.type === 'key',

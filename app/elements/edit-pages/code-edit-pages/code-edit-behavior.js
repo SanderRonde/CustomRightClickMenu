@@ -63,14 +63,16 @@ var CEB = (function () {
         return window.stylesheetEdit.editor;
     };
     CEB.showCodeOptions = function () {
+        window.useOptionsCompletions = true;
         var doc = new window.CodeMirror.Doc(JSON.stringify(this.item.value.options, null, '\t'), {
             name: 'javascript',
             json: true
         });
         this.otherDoc = this.getCmInstance().swapDoc(doc);
-        window.useOptionsCompletions = true;
+        this.getCmInstance().performLint();
     };
     CEB.hideCodeOptions = function () {
+        window.useOptionsCompletions = false;
     };
     return CEB;
 }());

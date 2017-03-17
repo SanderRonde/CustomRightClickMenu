@@ -1068,6 +1068,10 @@ var SCE = (function () {
         editor.on('metaDisplayStatusChanged', function (info) {
             _this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
         });
+        editor.performLint();
+        editor.on('changes', function () {
+            editor.performLint();
+        });
         if (this.newSettings.value.metaTagsHidden) {
             editor.doc.markText({
                 line: editor.metaTags.metaStart.line,
@@ -1171,7 +1175,7 @@ var SCE = (function () {
             indentWithTabs: window.app.settings.editor.useTabs,
             messageScriptEdit: true,
             gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
-            lint: window.CodeMirror.lint.javascript,
+            lint: window.CodeMirror.lint.optionsJSON,
             undoDepth: 500
         });
     };

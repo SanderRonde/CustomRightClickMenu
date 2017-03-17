@@ -34,7 +34,7 @@ interface CodeMirrorDocInstance {
 	history: any;
 	id: number;
 	mode: any;
-	modeOptions: string;
+	modeOption: CodeMirrorMode;
 	scrollLeft: number;
 	scrollTop: number;
 	sel: any;
@@ -128,6 +128,7 @@ interface CodeMirrorOptions {
 	onLoad?: (el: CodeMirrorInstance) => void;
 	messageInstallConfirm?: boolean;
 	messageScriptEdit?: boolean;
+	json?: boolean;
 }
 
 interface MergeViewOptions extends CodeMirrorOptions {
@@ -231,6 +232,21 @@ interface CodeMirrorModeConfig {
 	closeBrackets: string;
 }
 
+interface LintMessage {
+	message: string;
+	severity: 'warning'|'error';
+	from: {
+		line: number;
+		ch: number;
+	};
+	to: {
+		line: number;
+		ch: number;
+	};
+}
+
+type LintMessages = Array<LintMessage>;
+
 interface CodeMirror {
 	(container: HTMLElement, options: CodeMirrorOptions): CodeMirrorInstance;
 	MergeView: {
@@ -238,12 +254,19 @@ interface CodeMirror {
 	}
 
 	defineMode(modeName: string, mode: (config: Object, parserConfig: Object) => void): CodeMirrorModeConfig;
-	registerHelper(event: string, mode: string, _: any): void;
+	defineInitHook(callback: (cm: CodeMirrorInstance) => void): void;
+	registerHelper(event: string, mode: string, handler: (text: string, options: CodeMirrorOptions) => any): void;
+	registerHelper(event: 'lint', mode: string, handler: (text: string, options: CodeMirrorOptions) => LintMessages): void;
+	Pos(line: number, index: number): {
+		line: number;
+		ch: number;
+	}
 
 	Doc: CodeMirrorDoc
 	lint: {
 		javascript: Function;
 		css: Function;
+		optionsJSON: Function;
 	}
 	TernServer: TernServer;
 }

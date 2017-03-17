@@ -6362,8 +6362,8 @@
 	function findCompletions(srv, query, file) {
 		if (window.useOptionsCompletions) {
 			return window.completionsOptions(query, file, {
-					resolvePos: resolvePos
-				});
+				resolvePos: resolvePos
+			});
 		}
 
 		/**
@@ -18177,7 +18177,8 @@
 			function u(e) {
 				for (var n = [], o = 0; o < e.length; ++o) {
 					var t = e[o]
-					, a = t.line;
+					, a = t.line === undefined ? 
+						(t.from && t.from.line) : t.line;
 					(n[a] || (n[a] = [])).push(t)
 				}
 				return n

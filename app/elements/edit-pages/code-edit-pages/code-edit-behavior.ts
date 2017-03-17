@@ -224,16 +224,17 @@ class CEB {
 	}
 
 	static showCodeOptions(this: CodeEditBehavior) {
+		window.useOptionsCompletions = true;
 		const doc = new window.CodeMirror.Doc(JSON.stringify(this.item.value.options, null, '\t'), {
 			name: 'javascript',
 			json: true
 		});
 		this.otherDoc = this.getCmInstance().swapDoc(doc);
-		window.useOptionsCompletions = true;
+		this.getCmInstance().performLint();
 	}
 
 	static hideCodeOptions(this: CodeEditBehavior) {
-		
+		window.useOptionsCompletions = false;
 	}
 }
 

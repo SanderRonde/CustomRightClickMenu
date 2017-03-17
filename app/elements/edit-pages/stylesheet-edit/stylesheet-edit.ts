@@ -604,6 +604,10 @@ class STE {
 		element.refresh();
 		element.display.wrapper.classList.remove('script-edit-codeMirror');
 		element.display.wrapper.classList.add('stylesheet-edit-codeMirror');
+		element.performLint();
+		element.on('changes', () => {
+			element.performLint();
+		});
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
@@ -690,7 +694,7 @@ class STE {
 			messageStylesheetEdit: true,
 			extraKeys: { 'Ctrl-Space': 'autocomplete' },
 			gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
-			lint: window.CodeMirror.lint.css
+			lint: window.CodeMirror.lint.optionsJSON
 		});
 	};
 

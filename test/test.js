@@ -3643,8 +3643,9 @@ describe('JSON Parser', () => {
 			assert.notStrictEqual(errIndex, -1, 'Every error should have a location');
 			str = str.slice(0, errIndex) + str.slice(errIndex + 1);
 			return {
-				message: msg,
-				index: errIndex
+				message: msg[0],
+				index: errIndex,
+				chars: msg[1]
 			}
 		});
 		parseCode(str, outOfRangeCursor, 
@@ -4009,7 +4010,7 @@ describe('JSON Parser', () => {
 					key1: "value1",
 					index: "value2",
 					key2: "value3"
-				}, [`Unexpected 'i', expected '"'`]);
+				}, [[`Unexpected 'i', expected '"'`, 1]]);
 			});
 			it('should thrown an error when the key is missing', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4020,7 +4021,7 @@ describe('JSON Parser', () => {
 					key1: "value1",
 					"": "value2",
 					key2: "value3"
-				}, [`Unexpected ':', expected key`]);
+				}, [[`Unexpected ':', expected key`, 1]]);
 			});
 			it('should thrown an error when the colon is missing and there\'s a next one', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4030,7 +4031,7 @@ describe('JSON Parser', () => {
 				}`, {
 					key1: "value1",
 					index: "value2"
-				}, [`Unexpected '"', expected ':'`]);
+				}, [[`Unexpected '"', expected ':'`, 1]]);
 			});
 			it('should thrown an error when the colon is missing', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4038,7 +4039,7 @@ describe('JSON Parser', () => {
 					"key"$"value"
 				$}`, {
 					key1: "value1"
-				}, [`Unexpected '"', expected ':'`]);
+				}, [[`Unexpected '"', expected ':'`, 1]]);
 			});
 			it('should throw an error when the quote is missing', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4048,7 +4049,7 @@ describe('JSON Parser', () => {
 				}`, {
 					key1: "value1",
 					index: "value2"
-				}, [`Unknown value 'value"'`]);
+				}, [[`Unknown value 'value"'`, 6]]);
 			});
 			it('should throw an error when the value is missing', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4058,7 +4059,7 @@ describe('JSON Parser', () => {
 				}`, {
 					key1: "value1",
 					index: "value2"
-				}, [`Unexpected ',', expected value`]);
+				}, [[`Unexpected ',', expected value`, 1]]);
 			});
 			it('should thrown an error when the comma is missing', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4070,7 +4071,7 @@ describe('JSON Parser', () => {
 					key1: "value1",
 					key: "value",
 					key4: "val3"
-				}, [`Unexpected '"', expected ','`]);
+				}, [[`Unexpected '"', expected ','`, 1]]);
 			});
 			it('should thrown an error when only a partial value is found', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4080,7 +4081,7 @@ describe('JSON Parser', () => {
 				}`, {
 					key1: "value1",
 					key4: "val3"
-				}, [`Unknown value 'fal'`]);
+				}, [[`Unknown value 'fal'`, 3]]);
 			});
 			it('should thrown an error when only a partial value is found', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4090,7 +4091,7 @@ describe('JSON Parser', () => {
 				}`, {
 					key1: "value1",
 					key4: "val3"
-				}, [`Unknown value 'tru'`]);
+				}, [[`Unknown value 'tru'`, 3]]);
 			});
 			it('should throw an error when unclosed brackets are found', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4103,7 +4104,7 @@ describe('JSON Parser', () => {
 						key3: "value4",
 						key2: "value"
 					}
-				}, [`Missing '}'`]);
+				}, [[`Missing '}'`, 1]]);
 			});
 			it('should throw an error when there\'s additional input', () => {
 				parseInvalidJSONWithoutCursor(`{
@@ -4112,7 +4113,7 @@ describe('JSON Parser', () => {
 					"some": "thing"	
 				}`, {
 					key1: "value"
-				}, ['Expected eof']);
+				}, [['Expected eof', 1]]);
 			});
 		});
 		describe('with cursor', () => {
