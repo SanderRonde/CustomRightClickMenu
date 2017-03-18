@@ -4474,12 +4474,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                                     }).join(', ') + ");"
                                 ].join(', '),
                                 'try {',
-                                'function main(menuitemid, parentmenuitemid, mediatype,' +
+                                'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
                                     'linkurl, srcurl, pageurl, frameurl, frameid,' +
                                     'selectiontext, editable, waschecked, checked) {',
+                                'window.chrome = chrome;',
                                 script,
                                 '}',
                                 "main.apply(this, " + JSON.stringify([
+                                    node.isLocal ? chrome : void 0,
                                     info.menuItemId, info.parentMenuItemId, info.mediaType,
                                     info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
                                     info.frameId, info.selectionText,
@@ -5367,12 +5369,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                             }).join(', ') + ");"
                         ].join(', '),
                         'try {',
-                        'function main(menuitemid, parentmenuitemid, mediatype,' +
+                        'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
                             'linkurl, srcurl, pageurl, frameurl, frameid,' +
                             'selectiontext, editable, waschecked, checked) {',
+                        'window.chrome = chrome;',
                         script,
                         '}',
-                        'main()',
+                        "main(" + (node.isLocal ? chrome : void 0) + ")",
                         '} catch (error) {',
                         indentUnit + 'if (crmAPI.debugOnError) {',
                         indentUnit + indentUnit + 'debugger;',
