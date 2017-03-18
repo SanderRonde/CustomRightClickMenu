@@ -453,15 +453,16 @@ declare namespace CRMAPI {
 	 * @param {number} tabData - Any data about the tab the script is currently running on
 	 * @param {Object} clickData - Any data associated with clicking this item in the
 	 *		context menu, only available if launchMode is equal to 0 (on click)
-	* @param {number[]} secretyKey - An array of integers, generated to keep downloaded
-	*		scripts from finding local scripts with more privilege and act as if they
-	*		are those scripts to run stuff you don't want it to.
-	* @param {Object} nodeStorage - The storage data for the node
-	* @param {Object} contextData - The data related to the click on the page
-	* @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
-	* @param {Boolean} isBackground - If true, this page is functioning as a background page
-	* @param {Object} options - The options the user has entered for this script/stylesheet
-	*/
+	 * @param {number[]} secretyKey - An array of integers, generated to keep downloaded
+	 *		scripts from finding local scripts with more privilege and act as if they
+	 *		are those scripts to run stuff you don't want it to.
+	 * @param {Object} nodeStorage - The storage data for the node
+	 * @param {Object} contextData - The data related to the click on the page
+	 * @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
+	 * @param {Boolean} isBackground - If true, this page is functioning as a background page
+	 * @param {Object} options - The options the user has entered for this script/stylesheet
+	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
+	 */
 	interface CRMAPIInit {
 		/**
 		 * When true, shows stacktraces on error in the console of the page

@@ -18,8 +18,14 @@ interface TernVariableDeclarationCont extends TernBaseExpression {
 	declarations: Array<TernVariableDeclaration>;
 }
 
+interface TernMemberExpression extends TernBaseExpression {
+	type: 'MemberExpression';
+	object: TernIdentifier;
+	property: TernIdentifier;
+}
+
 interface TernCallExpression extends TernBaseExpression {
-	type: 'CallExpression'|'MemberExpression';
+	type: 'CallExpression';
 	arguments: Array<TernExpression>;
 	property?: {
 		name: string;
@@ -96,11 +102,16 @@ interface TernLiteral extends TernBaseExpression {
 	raw: string;
 }
 
+interface TernIdentifier extends TernBaseExpression {
+	type: 'Identifier';
+	name: string;
+}
+
 type TernExpression = TernVariableDeclarationCont | TernCallExpression | TernAssignmentExpression|
 	TernFunctionExpression | TernBlockStatement | TernExpressionStatement|
 	TernSequenceExpressionStatement | TernConditionalExpression | TernIfStatement|
 	TernLogicalExpression | TernReturnStatement | BinaryExpression | ObjectExpression |
-	TernLiteral;
+	TernLiteral | TernIdentifier | TernMemberExpression;
 
 interface TernParsedFile {
 	body: Array<TernExpression>;

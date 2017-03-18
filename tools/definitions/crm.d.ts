@@ -436,13 +436,7 @@ interface StorageLocal {
 		wasUpdated: boolean;
 	};
 
-	upgradeErrors?: {
-		[id: number]: {
-			oldScript: Array<CursorPosition>;
-			newScript: Array<CursorPosition>;
-			generalError: boolean;
-		}
-	};
+
 	addedPermissions?: Array<{
 		node: number;
 		permissions: Array<string>;

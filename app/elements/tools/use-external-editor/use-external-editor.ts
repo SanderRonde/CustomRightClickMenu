@@ -57,13 +57,7 @@ type ConnectedEditorMessage = ChooseFileMessage|SetupExistingFileMessage|SetupNe
 type ExternalEditorMessage = SetupConnectionMessage|PingMessage|ConnectedEditorMessage;
 
 type ChooseFileDialog = PaperDialogBase & {
-	init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
-		updateErrors?: {
-			parseError?: boolean;
-			generalError?: boolean;
-			newScript: Array<CursorPosition>;
-			oldScript: Array<CursorPosition>;
-		}): void;
+	init(local: string, file: string, callback: (result: string|false) => void): void;
 	local: string;
 	file: string;
 	callback(result: string|false): void;
@@ -814,18 +808,7 @@ class UEE {
 			}
 		};
 		const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
-		chooseFileDialog.init = function (local: string, file: string, callback: (result: string|false) => void,
-				isUpdate?: boolean, updateErrors?: {
-					parseError: boolean;
-					newScript: Array<CursorPosition>;
-					oldScript: Array<CursorPosition>;
-				}) {
-			window.doc.chooseFileCurrentTxt.innerText = (isUpdate ? 'Old' : 'CRM Editor');
-			window.doc.chooseFileNewTxt.innerText = (isUpdate ? 'New' : 'File');
-			window.doc.chooseFileTitleTxt.innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
-			window.doc.chooseFileStopMerging.style.display = (isUpdate ? 'none' : 'block');
-			chooseFileDialog.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
-
+		chooseFileDialog.init = function (local: string, file: string, callback: (result: string|false) => void) {
 			var i;
 			var leftErrorButton = window.doc.updateMergeLeftNextError;
 			leftErrorButton.listeners = leftErrorButton.listeners || [];
@@ -841,50 +824,7 @@ class UEE {
 			}
 			rightErrorButton.listeners = [];
 
-			function markerFn() {
-				setTimeout(function() {
-					//Mark left part
-					var j;
-					for (j = 0; j < updateErrors.oldScript.length; j++) {
-						window.externalEditor.editor.left.orig.markText(updateErrors.oldScript[j].from, updateErrors.oldScript[j].to, {
-							className: 'updateError',
-							inclusiveLeft: false,
-							inclusiveRight: false
-						});
-					}
-
-					//Mark right part
-					for (j = 0; j < updateErrors.newScript.length; j++) {
-						window.externalEditor.editor.right.orig.markText(updateErrors.newScript[j].from, updateErrors.newScript[j].to, {
-							className: 'updateError',
-							inclusiveLeft: false,
-							inclusiveRight: false
-						});
-					}
-					chooseFileDialog.removeEventListener('iron-overlay-opened', markerFn);
-				}, 2000);
-			}
-
-			if (updateErrors) {
-				window.doc.updateMergerCont.style.display = 'block';
-				var errorsNumber = (updateErrors.parseError ? '1' : updateErrors.oldScript.length);
-				window.doc.updateMergerTxt.innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
-				if (!updateErrors.parseError) {
-					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'block';
-					var listenerLeft = _this.generateNextErrorFinder(true, updateErrors.oldScript);
-					var listenerRight = _this.generateNextErrorFinder(false, updateErrors.newScript);
-					leftErrorButton.addEventListener('click', listenerLeft);
-					rightErrorButton.addEventListener('click', listenerRight);
-					leftErrorButton.listeners.push(listenerLeft);
-					rightErrorButton.listeners.push(listenerRight);
-
-					chooseFileDialog.addEventListener('iron-overlay-opened', markerFn);
-				} else {
-					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'none';
-				}
-			} else {
-				window.doc.updateMergerCont.style.display = 'none';
-			}
+			window.doc.updateMergerCont.style.display = 'none';
 
 			chooseFileDialog.local = local;
 			chooseFileDialog.file = file;

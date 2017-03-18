@@ -6077,13 +6077,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
 
+						const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
+								node.isLocal;
+
 						libraries.push('/js/crmapi.js');
 						code = [
 							code.join('\n'), [
 								`var crmAPI = new CrmAPIInit(${[
 									CRM.makeSafe(node), node.id, { id: 0 }, {}, key,
 									nodeStorage,
-									greaseMonkeyData, true, (node.value && node.value.options) || {}
+									greaseMonkeyData, true, (node.value && node.value.options) || {},
+									enableBackwardsCompatibility
 								]
 								.map((param) => {
 									return JSON.stringify(param);
@@ -6096,7 +6100,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									'window.chrome = chrome;',
 									script,
 								'}',
-								`main(${node.isLocal ? chrome : void 0})`,
+								`main(${node.isLocal ? 'chrome' : 'void 0'})`,
 							'} catch (error) {',
 							indentUnit + 'if (crmAPI.debugOnError) {',
 							indentUnit + indentUnit + 'debugger;',
@@ -6286,12 +6290,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						})]).then(([contextData, 
 							[nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt]]: [ContextData, 
 							[any, GreaseMonkeyData, string, string, number, string]]) => {
+
+							const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
+								node.isLocal;
 							var code = [
 								[
 									`var crmAPI = new CrmAPIInit(${
 									[
 										CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
-										contextData, greaseMonkeyData, false, (node.value && node.value.options) || {}
+										contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
+										enableBackwardsCompatibility
 									]
 									.map((param) => {
 										return JSON.stringify(param);
@@ -6304,15 +6312,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										'window.chrome = chrome;',
 										script,
 									'}',
-									`main.apply(this, ${
+									`main.apply(this, [${node.isLocal ? 'chrome' : 'void 0'}].concat(${
 										JSON.stringify([
-											node.isLocal ? chrome : void 0,
 											info.menuItemId, info.parentMenuItemId, info.mediaType,
 											info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
 											(info as any).frameId, info.selectionText,
 											info.editable, info.wasChecked, info.checked
 										])
-									})`,
+									}))`,
 								'} catch (error) {',
 								indentUnit + 'if (crmAPI.debugOnError) {',
 								indentUnit + indentUnit + 'debugger;',
@@ -7208,450 +7215,105 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 	};
 
-	type TransferOnError = (position: TransferOnErrorError,
-		passes: number) => void;
-
 	class Storages {
 		static SetupHandling = class SetupHandling {
 			static TransferFromOld = class TransferFromOld {
 				static LegacyScriptReplace = class LegacyScriptReplace {
-					static isProperty(toCheck: string, prop: string): boolean {
-						if (toCheck === prop) {
-							return true;
-						}
-						return toCheck.replace(/['|"|`]/g, '') === prop;
-					}
-					static getCallLines(lineSeperators: Array<{
-						start: number;
-						end: number;
-					}>, start: number, end: number): {
-						from: {
-							index: number;
-							line: number;
-						};
-						to: {
-							index: number;
-							line: number;
-						}
-					} {
-						const line: {
-							from: {
-								index: number,
-								line: number;
-							},
-							to: {
-								index: number,
-								line: number;
-							};
-						} = {} as any;
-						for (let i = 0; i < lineSeperators.length; i++) {
-							const sep = lineSeperators[i];
-							if (sep.start <= start) {
-								line.from = {
-									index: sep.start,
-									line: i
-								};
-							}
-							if (sep.end >= end) {
-								line.to = {
-									index: sep.end,
-									line: i
-								};
-								break;
-							}
-						}
-
-						return line;
-					}
-					static getFunctionCallExpressions(data: PersistentData): TernExpression {
-						//Keep looking through the parent expressions untill a CallExpression or MemberExpression is found
-						let index = data.parentExpressions.length - 1;
-						let expr = data.parentExpressions[index];
-						while (expr && expr.type !== 'CallExpression') {
-							expr = data.parentExpressions[--index];
-						}
-						return data.parentExpressions[index];
-					}
-					static getChromeAPI(expr: TernExpression, data: PersistentData): {
-						call: string;
-						args: string;
-					} {
-						data.functionCall = data.functionCall.map((prop) => {
-							return prop.replace(/['|"|`]/g, '');
-						});
-						let functionCall = data.functionCall;
-						functionCall = functionCall.reverse();
-						if (functionCall[0] === 'chrome') {
-							functionCall.splice(0, 1);
-						}
-
-						const argsStart = expr.callee.end;
-						const argsEnd = expr.end;
-						const args = data.persistent.script.slice(argsStart, argsEnd);
-
-						return {
-							call: functionCall.join('.'),
-							args: args
-						};
-					}
-					static getLineIndexFromTotalIndex(lines: Array<string>, line: number, index:
-						number): number {
-						for (let i = 0; i < line; i++) {
-							index -= lines[i].length + 1;
-						}
-						return index;
-					}
-					static replaceChromeFunction(data: PersistentData, expr: TernExpression, callLine:
-						{
-							from: {
-								line: number;
-							}
-							to: {
-								line: number;
-							}
-						}) {
-						if (data.isReturn && !data.isValidReturn) {
-							return;
-						}
-
-						var lines = data.persistent.lines;
-
-						//Get chrome API
-						let i;
-						var chromeAPI = this.getChromeAPI(expr, data);
-						var firstLine = data.persistent.lines[callLine.from.line];
-						var lineExprStart = this.getLineIndexFromTotalIndex(data.persistent.lines,
-							callLine.from.line, ((data.returnExpr && data.returnExpr.start) ||
-								expr.callee.start));
-						var lineExprEnd = this.getLineIndexFromTotalIndex(data.persistent.lines,
-							callLine.from.line, expr.callee.end);
-
-						var newLine = firstLine.slice(0, lineExprStart) +
-							`window.crmAPI.chrome('${chromeAPI.call}')`;
-
-						var lastChar = null;
-						while (newLine[(lastChar = newLine.length - 1)] === ' ') {
-							newLine = newLine.slice(0, lastChar);
-						}
-						if (newLine[(lastChar = newLine.length - 1)] === ';') {
-							newLine = newLine.slice(0, lastChar);
-						}
-
-						if (chromeAPI.args !== '()') {
-							var argsLines = chromeAPI.args.split('\n');
-							newLine += argsLines[0];
-							for (i = 1; i < argsLines.length; i++) {
-								lines[callLine.from.line + i] = argsLines[i]; 
-							}
-						}
-
-						if (data.isReturn) {
-							var lineRest = firstLine.slice(lineExprEnd + chromeAPI.args.split('\n')[0].length);
-							while (lineRest.indexOf(';') === 0) {
-								lineRest = lineRest.slice(1);
-							}
-							newLine += `.return(function(${data.returnName}) {` + lineRest;
-							var usesTabs = true;
-							var spacesAmount = 0;
-							//Find out if the writer uses tabs or spaces
-							for (let i = 0; i < data.persistent.lines.length; i++) {
-								if (data.persistent.lines[i].indexOf('	') === 0) {
-									usesTabs = true;
-									break;
-								} else if (data.persistent.lines[i].indexOf('  ') === 0) {
-									var split = data.persistent.lines[i].split(' ');
-									for (var j = 0; j < split.length; j++) {
-										if (split[j] === ' ') {
-											spacesAmount++;
-										} else {
-											break;
-										}
-									}
-									usesTabs = false;
-									break;
-								}
-							}
-
-							var indent;
-								if (usesTabs) {
-									indent = '	';
-								} else {
-									indent = [];
-									indent[spacesAmount] = ' ';
-									indent = indent.join(' ');
-								}
-								
-								//Only do this for the current scope
-								var scopeLength = null;
-								var idx = null;
-								for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
-									if (data.parentExpressions[i].type === 'BlockStatement' || 
-											(data.parentExpressions[i].type === 'FunctionExpression' && 
-												(data.parentExpressions[i].body as TernBlockStatement).type === 'BlockStatement')) {
-										scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
-										idx = 0;
-
-										//Get the lowest possible scopeLength as to stay on the last line of the scope
-										while (scopeLength > 0) {
-											scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
-										}
-										scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
-									}
-								}
-								if (idx === null) {
-									idx = (lines.length - callLine.from.line) + 1;
-								} 
-
-								var indents = 0;
-								var newLineData = lines[callLine.from.line];
-								while (newLineData.indexOf(indent) === 0) {
-									newLineData = newLineData.replace(indent, '');
-									indents++;
-								}
-
-								//Push in one extra line at the end of the expression
-								var prevLine;
-								var indentArr= [];
-								indentArr[indents] = '';
-								var prevLine2 = indentArr.join(indent) + '}).send();';
-								var max = data.persistent.lines.length + 1;
-								for (i = callLine.from.line; i < callLine.from.line + (idx - 1); i++) {
-									lines[i] = indent + lines[i];
-								}
-
-								//If it's going to add a new line, indent the last line as well
-								// if (idx === (lines.length - callLines.from.line) + 1) {
-								// 	lines[i] = indent + lines[i];
-								// }
-								for (i = callLine.from.line + (idx - 1); i < max; i++) {
-									prevLine = lines[i];
-									lines[i] = prevLine2; 
-									prevLine2 = prevLine;
-								}
-
-						} else {
-							lines[callLine.from.line + (i - 1)] = lines[callLine.from.line + (i - 1)] + '.send();';
-							if (i === 1) {
-								newLine += '.send();';
-							}
-						}
-						lines[callLine.from.line] = newLine;
-						return;
-					}
-					static callsChromeFunction(callee: TernCallExpression, data: PersistentData, onError:
-						TransferOnError): boolean {
-						data.parentExpressions.push(callee);
-
-						//Check if the function has any arguments and check those first
-						if (callee.arguments && callee.arguments.length > 0) {
-							for (let i = 0; i < callee.arguments.length; i++) {
-								if (this.findChromeExpression(callee.arguments[i], this
-									.removeObjLink(data), onError)) {
-									return true;
-								}
-							}
-						}
-
-						if (callee.type !== 'MemberExpression') {
-							//This is a call upon something (like a call in crmAPI.chrome), check the previous expression first
-							return this.findChromeExpression(callee, this.removeObjLink(data),
-								onError);
-						}
-
-						//Continue checking the call itself
-						if (callee.property) {
-							data.functionCall = data.functionCall || [];
-							data.functionCall.push(callee.property.name || callee.property.raw);
-						}
-						if (callee.object && callee.object.name) {
-							//First object
-							const isWindowCall = (this.isProperty(callee.object.name, 'window') &&
-								this.isProperty(callee.property.name || callee.property.raw, 'chrome'));
-							if (isWindowCall || this.isProperty(callee.object.name, 'chrome')) {
-								data.expression = callee;
-								const expr = this.getFunctionCallExpressions(data);
-								const callLines = this.getCallLines(data.persistent
-									.lineSeperators, expr.start, expr.end);
-								if (data.isReturn && !data.isValidReturn) {
-									callLines.from.index = this.getLineIndexFromTotalIndex(data.persistent
-										.lines, callLines.from.line, callLines.from.index);
-									callLines.to.index = this.getLineIndexFromTotalIndex(data.persistent
-										.lines, callLines.to.line, callLines.to.index);
-									onError(callLines, data.persistent.passes);
-									return false;
-								}
-								if (!data.persistent.diagnostic) {
-									this.replaceChromeFunction(data, expr, callLines);
-								}
-								return true;
-							}
-						} else if (callee.object) {
-							return this.callsChromeFunction(callee.object, data, onError);
-						}
-						return false;
-					}
-					static removeObjLink(data: PersistentData): PersistentData {
-						const parentExpressions = data.parentExpressions || [];
-						const newObj: PersistentData = {} as any;
-						for (let key in data) {
-							if (data.hasOwnProperty(key) &&
-								key !== 'parentExpressions' &&
-								key !== 'persistent') {
-								(newObj as any)[key] = (data as any)[key];
-							}
-						}
-
-						const newParentExpressions = [];
-						for (let i = 0; i < parentExpressions.length; i++) {
-							newParentExpressions.push(parentExpressions[i]);
-						}
-						newObj.persistent = data.persistent;
-						newObj.parentExpressions = newParentExpressions;
-						return newObj;
-					}
-					static findChromeExpression(expression: TernExpression, data: PersistentData,
-						onError: TransferOnError): boolean {
+					static findLocalStorageExpression(expression: TernExpression, data: PersistentData): boolean {
 						data.parentExpressions = data.parentExpressions || [];
 						data.parentExpressions.push(expression);
 
 						switch (expression.type) {
+							case 'Identifier':
+								if (expression.name === 'localStorage') {
+									data.persistent.script = 
+										data.persistent.script.slice(0, expression.start) + 
+										'localStorageProxy' + 
+										data.persistent.script.slice(expression.end);
+									data.persistent.lines = data.persistent.script.split('\n');
+									return true;
+								}
+								break;
 							case 'VariableDeclaration':
 								data.isValidReturn = expression.declarations.length === 1;
 								for (let i = 0; i < expression.declarations.length; i++) {
 									//Check if it's an actual chrome assignment
 									var declaration = expression.declarations[i];
 									if (declaration.init) {
-										var decData = this.removeObjLink(data);
-
-										var returnName = declaration.id.name;
-										decData.isReturn = true;
-										decData.returnExpr = expression;
-										decData.returnName = returnName;
-
-										if (this.findChromeExpression(declaration.init, decData, onError)) {
+										if (this.findLocalStorageExpression(declaration.init, data)) {
 											return true;
 										}
 									}
 								}
 								break;
-							case 'CallExpression':
 							case 'MemberExpression':
-								const argsTocheck: Array<TernExpression> = [];
+								if (this.findLocalStorageExpression(expression.object, data)) {
+									return true;
+								}
+								return this.findLocalStorageExpression(expression.property, data);
+							case 'CallExpression':
 								if (expression.arguments && expression.arguments.length > 0) {
 									for (let i = 0; i < expression.arguments.length; i++) {
-										if (expression.arguments[i].type !== 'MemberExpression' && expression.arguments[i].type !== 'CallExpression') {
-											//It's not a direct call to chrome, just handle this later after the function has been checked
-											argsTocheck.push(expression.arguments[i]);
-										} else {
-											if (this.findChromeExpression(expression.arguments[i], this.removeObjLink(data), onError)) {
-												return true;
-											}
+										if (this.findLocalStorageExpression(expression.arguments[i], data)) {
+											return true;
 										}
 									}
 								}
-								data.functionCall = [];
 								if (expression.callee) {
-									if (this.callsChromeFunction(expression.callee, data, onError)) {
-										return true;
-									}
-								}
-								for (let i = 0; i < argsTocheck.length; i++) {
-									if (this.findChromeExpression(argsTocheck[i], this.removeObjLink(data), onError)) {
-										return true;
-									}
+									return this.findLocalStorageExpression(expression.callee, data);
 								}
 								break;
 							case 'AssignmentExpression':
-								data.isReturn = true;
-								data.returnExpr = expression;
-								data.returnName = expression.left.name;
-
-								return this.findChromeExpression(expression.right, data, onError);
+								return this.findLocalStorageExpression(expression.right, data);
 							case 'FunctionExpression':
 							case 'FunctionDeclaration':
-								data.isReturn = false;
 								for (let i = 0; i < expression.body.body.length; i++) {
-									if (this.findChromeExpression(expression.body.body[i], this
-										.removeObjLink(data), onError)) {
+									if (this.findLocalStorageExpression(expression.body.body[i], data)) {
 										return true;
 									}
 								}
 								break;
 							case 'ExpressionStatement':
-								return this.findChromeExpression(expression.expression, data, onError);
+								return this.findLocalStorageExpression(expression.expression, data);
 							case 'SequenceExpression':
-								data.isReturn = false;
-								var lastExpression = expression.expressions.length - 1;
 								for (let i = 0; i < expression.expressions.length; i++) {
-									if (i === lastExpression) {
-										data.isReturn = true;
-									}
-									if (this.findChromeExpression(expression.expressions[i], this
-										.removeObjLink(data), onError)) {
+									if (this.findLocalStorageExpression(expression.expressions[i], data)) {
 										return true;
 									}
 								}
 								break;
 							case 'UnaryExpression':
 							case 'ConditionalExpression':
-								data.isValidReturn = false;
-								data.isReturn = true;
-								if (this.findChromeExpression(expression.consequent, this
-									.removeObjLink(data), onError)) {
+								if (this.findLocalStorageExpression(expression.consequent, data)) {
 									return true;
 								}
-								if (this.findChromeExpression(expression.alternate, this
-									.removeObjLink(data), onError)) {
-									return true;
-								}
-								break;
+								return this.findLocalStorageExpression(expression.alternate, data)
 							case 'IfStatement':
-								data.isReturn = false;
-								if (this.findChromeExpression(expression.consequent, this
-									.removeObjLink(data), onError)) {
+								if (this.findLocalStorageExpression(expression.consequent, data)) {
 									return true;
 								}
-								if (expression.alternate &&
-									this.findChromeExpression(expression.alternate, this
-										.removeObjLink(data),
-										onError)) {
-									return true;
+								if (expression.alternate) {
+									return this.findLocalStorageExpression(expression.alternate, data);
 								}
 								break;
 							case 'LogicalExpression':
 							case 'BinaryExpression':
-								data.isReturn = true;
-								data.isValidReturn = false;
-								if (this.findChromeExpression(expression.left, this.removeObjLink(data),
-									onError)) {
+								if (this.findLocalStorageExpression(expression.left, data)) {
 									return true;
 								}
-								if (this.findChromeExpression(expression.right, this
-									.removeObjLink(data),
-									onError)) {
-									return true;
-								}
-								break;
+								return this.findLocalStorageExpression(expression.right, data)
 							case 'BlockStatement':
-								data.isReturn = false;
 								for (let i = 0; i < expression.body.length; i++) {
-									if (this.findChromeExpression(expression.body[i], this
-										.removeObjLink(data), onError)) {
+									if (this.findLocalStorageExpression(expression.body[i], data)) {
 										return true;
 									}
 								}
 								break;
 							case 'ReturnStatement':
-								data.isReturn = true;
-								data.returnExpr = expression;
-								data.isValidReturn = false;
-								return this.findChromeExpression(expression.argument, data, onError);
+								return this.findLocalStorageExpression(expression.argument, data);
 							case 'ObjectExpressions':
-								data.isReturn = true;
-								data.isValidReturn = false;
 								for (let i = 0; i < expression.properties.length; i++) {
-									if (this.findChromeExpression(expression.properties[i].value, this
-										.removeObjLink(data), onError)) {
+									if (this.findLocalStorageExpression(expression.properties[i].value, data)) {
 										return true;
 									}
 								}
@@ -7659,19 +7321,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 						return false;
 					}
-					static generateOnError(container: Array<Array<TransferOnErrorError>>): (
-						position: TransferOnErrorError, passes: number
-					) => void {
-						return (position: TransferOnErrorError, passes: number) => {
-							if (!container[passes]) {
-								container[passes] = [position];
-							} else {
-								container[passes].push(position);
-							}
-						};
+					static getLineSeperators(lines: Array<string>): Array<{
+						start: number;
+						end: number;
+					}> {
+						let index = 0;
+						const lineSeperators = [];
+						for (let i = 0; i < lines.length; i++) {
+							lineSeperators.push({
+								start: index,
+								end: index += lines[i].length + 1
+							});
+						}
+						return lineSeperators;
 					}
-					static replaceChromeCalls(lines: Array<string>, passes: number,
-						onError: TransferOnError): string {
+					static replaceLocalStorageCalls(lines: Array<string>): string {
 						//Analyze the file
 						var file = new window.TernFile('[doc]');
 						file.text = lines.join('\n');
@@ -7689,15 +7353,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						const scriptExpressions = file.ast.body;
 
-						let index = 0;
-						const lineSeperators = [];
-						for (let i = 0; i < lines.length; i++) {
-							lineSeperators.push({
-								start: index,
-								end: index += lines[i].length + 1
-							});
-						}
-
 						let script = file.text;
 
 						//Check all expressions for chrome calls
@@ -7705,40 +7360,24 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							lines: Array<any>,
 							lineSeperators: Array<any>,
 							script: string,
-							passes: number,
 							diagnostic?: boolean;
 						} = {
 							lines: lines,
-							lineSeperators: lineSeperators,
-							script: script,
-							passes: passes
+							lineSeperators: this.getLineSeperators(lines),
+							script: script
 						};
 
-						let expression;
-						if (passes === 0) {
-							//Do one check, not replacing anything, to find any possible errors already
-							persistentData.diagnostic = true;
-							for (let i = 0; i < scriptExpressions.length; i++) {
-								expression = scriptExpressions[i];
-								this.findChromeExpression(expression, {
-										persistent: persistentData 
-									} as PersistentData, onError);
-							}
-							persistentData.diagnostic = false;
-						}
-
 						for (let i = 0; i < scriptExpressions.length; i++) {
-							expression = scriptExpressions[i];
-							if (this.findChromeExpression(expression, {
-									persistent: persistentData 
-								} as PersistentData, onError)) {
-								script = this.replaceChromeCalls(persistentData.lines.join('\n')
-									.split('\n'), passes + 1, onError);
-								break;
+							const expression = scriptExpressions[i];
+							if (this.findLocalStorageExpression(expression, {
+								persistent: persistentData 
+							} as PersistentData)) {
+								//Margins may have changed, redo tern stuff
+								return this.replaceLocalStorageCalls(persistentData.lines);
 							}
 						}
 
-						return script;
+						return persistentData.script;
 					}
 					static removePositionDuplicates(arr: Array<TransferOnErrorError>):
 						Array<TransferOnErrorError> {
@@ -7753,11 +7392,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								return JSON.parse(item);
 							});
 						}
-					static convertScriptFromLegacy(script: string, onError: (
-						oldScriptErrors: Array<TransferOnErrorError>,
-						newScriptErrors: Array<TransferOnErrorError>,
-						parseError?: boolean
-					) => void): string {
+					static convertScriptFromLegacy(script: string): string {
 						//Remove execute locally
 						const lineIndex = script.indexOf('/*execute locally*/');
 						if (lineIndex !== -1) {
@@ -7765,22 +7400,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (lineIndex === script.indexOf('/*execute locally*/')) {
 								script = script.replace('/*execute locally*/', '');
 							}
-						}
-
-						const errors: Array<Array<TransferOnErrorError>> = [];
-						try {
-							script = this.replaceChromeCalls(script.split('\n'), 0, 
-								this.generateOnError(errors));
-						} catch (e) {
-							onError(null, null, true);
+						} else {
 							return script;
 						}
 
-						const firstPassErrors = errors[0];
-						const finalPassErrors = errors[errors.length - 1];
-						if (finalPassErrors) {
-							onError(this.removePositionDuplicates(firstPassErrors), 
-								this.removePositionDuplicates(finalPassErrors));
+						try {
+							script = this.replaceLocalStorageCalls(script.split('\n'));
+						} catch (e) {
+							return script;
 						}
 
 						return script;
@@ -7860,18 +7487,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									updateNotice: true,
 									oldScript: scriptData,
 									script: Storages.SetupHandling.TransferFromOld.LegacyScriptReplace
-										.convertScriptFromLegacy(scriptData,
-											(oldScriptErrors, newScriptErrors, parseError) => {
-												chrome.storage.local.get((keys) => {
-													keys['upgradeErrors'] = keys['upgradeErrors'] || {};
-													keys['upgradeErrors'][id] = {
-														oldScript: oldScriptErrors,
-														newScript: newScriptErrors,
-														parseError: parseError
-													};
-													chrome.storage.local.set({ upgradeErrors: keys['upgradeErrors'] });
-												});
-											})
+										.convertScriptFromLegacy(scriptData)
 								}
 							});
 							if (triggers) {

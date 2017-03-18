@@ -1,4 +1,8 @@
 (function(window) {
+	var chromeHolder = {
+		chrome: chrome
+	}
+
 	/**
 	 * A class for constructing the CRM API
 	 *
@@ -16,8 +20,9 @@
 	 * @param {Object} greasemonkeyData - Any greasemonkey data, including metadata
 	 * @param {Boolean} isBackground - If true, this page is functioning as a background page
 	 * @param {Object} options - The options the user has entered for this script/stylesheet
+	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
 	 */
-	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options) {
+	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options, enableBackwardsCompatibility) {
 		var _this = this;
 
 		//#region Options
@@ -505,7 +510,7 @@
 		};
 		var port;
 		if (!isBackground) {
-			port = chrome.runtime.connect({
+			port = chromeHolder.chrome.runtime.connect({
 				name: JSON.stringify(secretKey)
 			});
 		}
@@ -3015,7 +3020,7 @@
 				};
 			}
 			details.type = 'basic';
-			details.iconUrl = details.iconUrl || chrome.runtime.getURl('icon-large.png');
+			details.iconUrl = details.iconUrl || chromeHolder.chrome.runtime.getURl('icon-large.png');
 			onclick = details.onclick && createCallbackFunction(details.onclick, new Error(), {
 				maxCalls: 1
 			});
