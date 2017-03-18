@@ -6300,7 +6300,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									'function main(menuitemid, parentmenuitemid, mediatype,' +
 									'linkurl, srcurl, pageurl, frameurl, frameid,' + 
 									'selectiontext, editable, waschecked, checked) {',
-										'debugger;' + script,
+										script,
 									'}',
 									`main.apply(this, ${
 										JSON.stringify([
