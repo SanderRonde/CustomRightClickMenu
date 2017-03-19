@@ -3,7 +3,7 @@ set -e
 
 http-server -p 1234 . -s &
 
-npm install -g typescript@2.2.1
+npm install -g typescript@latest
 tsc --watch false
 cd test
 tsc --watch false
