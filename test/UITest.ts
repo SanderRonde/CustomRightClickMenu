@@ -1090,16 +1090,16 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRMTree) 
 	}
 }
 
-function getLog(driver: webdriver.WebDriver): webdriver.promise.Promise<string> {
-	return new webdriver.promise.Promise<string>((resolve) => {
-		driver.executeScript(inlineFn(() => {
-			return JSON.stringify(window.app._log);
-		})).then((str: string) => {
-			console.log(str);
-			resolve(str);
-		});
-	});
-}
+// function getLog(driver: webdriver.WebDriver): webdriver.promise.Promise<string> {
+// 	return new webdriver.promise.Promise<string>((resolve) => {
+// 		driver.executeScript(inlineFn(() => {
+// 			return JSON.stringify(window.app._log);
+// 		})).then((str: string) => {
+// 			console.log(str);
+// 			resolve(str);
+// 		});
+// 	});
+// }
 
 function enterEditorFullscreen(_this: MochaFn, driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<FoundElement> {
 	return new webdriver.promise.Promise<FoundElement>((resolve) => {

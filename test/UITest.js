@@ -913,16 +913,6 @@ function assertContextMenuEquality(contextMenu, CRMNodes) {
             }]), 'structures match');
     }
 }
-function getLog(driver) {
-    return new webdriver.promise.Promise(function (resolve) {
-        driver.executeScript(inlineFn(function () {
-            return JSON.stringify(window.app._log);
-        })).then(function (str) {
-            console.log(str);
-            resolve(str);
-        });
-    });
-}
 function enterEditorFullscreen(_this, driver, type) {
     return new webdriver.promise.Promise(function (resolve) {
         resetSettings(_this, driver).then(function () {
