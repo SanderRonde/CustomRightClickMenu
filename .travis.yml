@@ -8,7 +8,6 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_f2a12e06bc88_key -iv $encrypted_f2a12e06bc88_iv
   -in test/UI/secrets.js.enc -out test/UI/secrets.js -d
 - npm install grunt -g
-- npm install typescript@2.0.6 -g
 install:
 - npm install
 script: sh ./build.sh
