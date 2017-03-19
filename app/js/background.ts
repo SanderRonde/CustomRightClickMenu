@@ -6075,7 +6075,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							};
 						globalObject.globals.crmValues.tabData[0].nodes[node.id] = {
 							secretKey: key,
-							usesLocalStorage: script.indexOf('localStorageProxy') > -1
+							usesLocalStorage: node.value.backgroundScript.indexOf('localStorageProxy') > -1
 						};
 						Logging.Listeners.updateTabAndIdLists();
 

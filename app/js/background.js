@@ -40,7 +40,7 @@ var Promiselike = (function () {
         }
         return this;
     };
-    Promiselike.prototype["catch"] = function (onrejected) {
+    Promiselike.prototype.catch = function (onrejected) {
         this._rejectListeners.push(onrejected);
         if (this._status === 'rejected') {
             onrejected(this._rejectReason);
@@ -217,7 +217,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         source: {
                             author: (globalObject.globals.storages.storageLocal &&
                                 globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-                        }
+                        },
                     };
                     return this.mergeObjects(defaultNodeInfo, options);
                 },
@@ -316,7 +316,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         value: null,
                         showOnSpecified: true,
                         children: type === 'menu' ? [] : null,
-                        permissions: []
+                        permissions: [],
                     };
                     return this.mergeObjects(defaultNode, options);
                 },
@@ -5418,7 +5418,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
                         };
                     globalObject.globals.crmValues.tabData[0].nodes[node.id] = {
                         secretKey: key,
-                        usesLocalStorage: script.indexOf('localStorageProxy') > -1
+                        usesLocalStorage: node.value.backgroundScript.indexOf('localStorageProxy') > -1
                     };
                     Logging.Listeners.updateTabAndIdLists();
                     var metaData = CRM.Script.MetaTags.getMetaTags(node.value
