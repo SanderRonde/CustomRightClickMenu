@@ -222,3 +222,4 @@ Custom Right-Click Menu.sln
 /test/UI/secrets.js
 
 .vscode
+app/elements/*.js
