@@ -3,9 +3,9 @@ set -e
 
 http-server -p 1234 . -s &
 
-tsc
+tsc --watch false
 cd test
-tsc
+tsc --watch false
 cd ../
 
 echo "Build tests" && echo -en "travis_fold:start:build_tests\\r"
