@@ -360,6 +360,7 @@ interface GlobalObject {
 							port?: chrome.runtime.Port|{
 								postMessage(message: Object): void;
 							};
+							usesLocalStorage: boolean;
 						};
 					};
 					libraries: {
@@ -2995,7 +2996,74 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return true;
 				});
+			});
+		}
+		static linkSetLinks(_this: CRMFunction) {
+			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				_this.typeCheck([
+					{
+						val: 'items',
+						type: 'object|array',
+						forChildren: [
+							{
+								val: 'newTab',
+								type: 'boolean',
+								optional: true
+							}, {
+								val: 'url',
+								type: 'string'
+							}
+						]
+					}
+				], () => {
+					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+						const msg = _this.message as CRMFunctionMessage & {
+							items: Array<{
+								newTab: boolean;
+								url: string;
+							}>|{
+								newTab: boolean;
+								url: string;
+							};
+						};
 
+						const items = msg['items'];
+						if (Array.isArray(items)) { //Array
+							if (node.type !== 'link') {
+								node['linkVal'] = node['linkVal'] || [];
+							}
+							node.value = [];
+							for (var i = 0; i < items.length; i++) {
+								items[i].newTab = !!items[i].newTab;
+								if (node.type === 'link') {
+									node.value.push(items[i]);
+								} else {
+									node.linkVal = node.linkVal || [];
+									node.linkVal.push(items[i]);
+								}
+							}
+						} else { //Object
+							items.newTab = !!items.newTab;
+							if (!items.url) {
+								_this
+									.respondError('For not all values in the array items is the property url defined');
+								return false;
+							}
+							if (node.type === 'link') {
+								node.value = [items];
+							} else {
+								node.linkVal = [items];
+							}
+						}
+						CRM.updateCrm();
+						if (node.type === 'link') {
+							_this.respondSuccess(Helpers.safe(node).value);
+						} else {
+							_this.respondSuccess(Helpers.safe(node)['linkVal']);
+						}
+						return true;
+					});
+				});
 			});
 		}
 		static linkPush(_this: CRMFunction) {
@@ -4896,13 +4964,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}) {
 				const data = message.data;
 				const tabData = globalObject.globals.crmValues.tabData;
-				if (globalObject.globals.crmValues.nodeInstances[data.id][data
-						.toInstanceId] &&
+				if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId] &&
 					tabData[data.toInstanceId] &&
 					tabData[data.toInstanceId].nodes[data.id]) {
-					if (globalObject.globals.crmValues.nodeInstances[data.id][data
-							.toInstanceId]
-						.hasHandler) {
+					if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId].hasHandler) {
 						tabData[data.toInstanceId].nodes[data.id].port.postMessage({
 							messageType: 'instanceMessage',
 							message: data.message
@@ -5030,6 +5095,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				case 'installUserScript':
 					CRM.Script.Updating.install(message.data);
 					break;
+				case 'applyLocalStorage':
+					localStorage.setItem(message.data.key, message.data.value);
+					break;
 			}
 		}
 		static handleCrmAPIMessage(message: CRMFunctionMessage|ChromeAPIMessage) {
@@ -5043,6 +5111,26 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				default:
 					this.handleRuntimeMessage(message);
 					break;
+			}
+		}
+		static signalNewCRM() {
+			const storage = CRM.converToLegacy();
+
+			const tabData = globalObject.globals.crmValues.tabData;
+			for (let tabId in tabData) {
+				for (let nodeId in tabData[tabId].nodes) {
+					if (tabData[tabId].nodes[nodeId].usesLocalStorage &&
+						globalObject.globals.crm.crmById[nodeId].isLocal) {
+						try {
+							tabData[tabId].nodes[nodeId].port.postMessage({
+								messageType: 'localStorageProxy',
+								message: storage
+							});
+						} catch(e) {
+							//Looks like it's closed
+						}
+					}
+				}
 			}
 		}
 	}
@@ -5986,7 +6074,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								nodes: {}
 							};
 						globalObject.globals.crmValues.tabData[0].nodes[node.id] = {
-							secretKey: key
+							secretKey: key,
+							usesLocalStorage: script.indexOf('localStorageProxy') > -1
 						};
 						Logging.Listeners.updateTabAndIdLists();
 
@@ -6193,7 +6282,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									nodes: {}
 								};
 							globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = {
-								secretKey: key
+								secretKey: key,
+								usesLocalStorage: node.value.script.indexOf('localStorageProxy') > -1
 							};
 							Logging.Listeners.updateTabAndIdLists();
 
@@ -6784,6 +6874,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			]);
 			CRM.updateCRMValues();
 			CRM.buildPageCRM();
+			MessageHandling.signalNewCRM();
 
 			if (toUpdate) {
 				Storages.checkBackgroundPagesForChange([], toUpdate);
@@ -6871,7 +6962,81 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			return newContexts;
 		}
+		static converToLegacy(): {
+			[key: number]: string;
+			[key: string]: string;
+		} {
+			const { arr } = this._walkCRM(globalObject.globals.crm.crmTree, {
+				arr: []
+			});
 
+			const res: {
+				[key: number]: string;
+				[key: string]: string;
+			} = { };
+
+			for (let i = 0; i < arr.length; i++) {
+				res[i] = this._convertNodeToLegacy(arr[i]);
+			}
+
+			res.customcolors = '0';
+			res.firsttime = 'no';
+			res.noBeatAnnouncement = 'true';
+			res.numberofrows = arr.length + '';
+			res.optionson = globalObject.globals.storages.storageLocal.showOptions.toString();
+			res.scriptoptions = '0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0';
+			res.waitforsearch = 'false';
+			res.whatpage = 'false';
+
+			res.indexIds = JSON.stringify(arr.map((node) => {
+				return node.id
+			}));
+
+			return res;
+		}
+
+		private static _convertNodeToLegacy(node: CRMNode): string {
+			switch (node.type) {
+				case 'divider':
+					return [node.name, 'Divider', ''].join('%123');
+				case 'link':
+					return [node.name, 'Link', node.value.map((val) => {
+						return val.url
+					}).join(',')].join('%123');
+				case 'menu':
+					return [node.name, 'Menu', node.children.length].join('%123');
+				case 'script':
+					return [
+						node.name,
+						'Script', 
+						[
+							node.value.launchMode, 
+							node.value.script
+						].join('%124')
+					].join('%123');
+				case 'stylesheet':
+					return [
+						node.name, 
+						'Script', 
+						[
+							node.value.launchMode,
+							node.value.stylesheet
+						].join('%124')
+					].join('%123');
+			}
+		}
+		private static _walkCRM(crm: CRMTree, state: {
+			arr: Array<CRMNode>;
+		}) {
+			for (let i = 0; i < crm.length; i++) {
+				var node = crm[i];
+				state.arr.push(node);
+				if (node.type === 'menu' && node.children) {
+					this._walkCRM(node.children, state);
+				}
+			}
+			return state;
+		}
 		private static _createCopyFunction(obj: CRMNode,
 			target: SafeCRMNode): (props: Array<string>) => void {
 			return (props: Array<string>) => {
@@ -7745,6 +7910,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										CRM.updateCRMValues();
 										Storages.checkBackgroundPagesForChange(changes);
 										CRM.buildPageCRM();
+										MessageHandling.signalNewCRM();
 										break;
 									}
 								}
@@ -7781,6 +7947,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											CRM.updateCRMValues();
 											Storages.checkBackgroundPagesForChange(changes);
 											CRM.buildPageCRM();
+											MessageHandling.signalNewCRM();
 											break;
 										}
 									}

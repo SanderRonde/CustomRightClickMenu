@@ -146,7 +146,7 @@ var run = (fn) => {
 		try {
 			fn();
 		} catch (e) {
-			//console.log('Error', e);
+			console.log('Error', e);
 			throw e;
 		}
 	};
@@ -3088,6 +3088,55 @@ describe('CRMAPI', () => {
 						}
 					});
 				});
+			});
+			describe('setLinks()', () => {
+				it('should correctly set it when passed an array of links', () => {
+					crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, [{
+						url: 'firstlink.com'
+					}, {
+						url: 'secondlink.com',
+						newTab: false
+					}, {
+						url: 'thirdlink.com',
+						newTab: true
+					}], (newValue) => {
+						assert.sameDeepMembers(newValue, [{
+							url: 'firstlink.com',
+							newTab: false
+						}, {
+							url: 'secondlink.com',
+							newTab: false
+						}, {
+							url: 'thirdlink.com',
+							newTab: true
+						}], 'link value matches expected');
+					});
+				});
+				it('should correctly set it when passed a link object', () => {
+					crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, {
+						url: 'firstlink.com'
+					}, (newValue) => {
+						assert.sameDeepMembers(newValue, [{
+							url: 'firstlink.com',
+							newTab: false
+						}], 'link value matches expected');
+					});
+				});
+				it('should throw an error when the link is missing (array)', () => {
+					assert.throws(() => {
+						crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, [{
+						}, {
+							newTab: false
+						}, {
+							newTab: true
+						}], (newValue) => { });
+					}, /For not all values in the array items is the property url defined/)
+				});
+				it('should throw an error when the link is missing (objec)', () => {
+					assert.throws(() => {
+						crmAPI.crm.link.setLinks(safeTestCRMTree[5].children[0].id, { }, (newValue) => { });
+					}, /For not all values in the array items is the property url defined/);
+				})
 			});
 			describe('push()', () => {
 				beforeEach(resetTree);

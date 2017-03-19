@@ -3,6 +3,40 @@
 		chrome: chrome
 	}
 
+	var localStorageProxy = { };
+
+	Object.defineProperty(window, 'localStorageProxy', {
+		get: function() {
+			return localStorageProxy;
+		}
+	})
+
+	Object.defineProperty(localStorageProxy, 'getItem', {
+		get: function() {
+			return function(key) {
+				return localStorage[key];
+			}
+		}
+	});
+
+	var localStorageProxyData = {
+		onSet: function(key, value) {
+
+		}
+	}
+	
+	Object.defineProperty(localStorageProxy, 'setItem', {
+		get: function(key, value) {
+			return localStorageProxyData.onSet;
+		}
+	});
+
+	Object.defineProperty(localStorageProxy, 'clear', {
+		get: function() {
+			return function() {}
+		}
+	});
+
 	/**
 	 * A class for constructing the CRM API
 	 *
@@ -24,6 +58,10 @@
 	 */
 	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options, enableBackwardsCompatibility) {
 		var _this = this;
+
+		if (!enableBackwardsCompatibility) {
+			localStorageProxy = localStorage;
+		}
 
 		//#region Options
 		/**
@@ -765,6 +803,9 @@
 					case 'instanceMessage':
 						instanceMessageHandler(message);
 						break;
+					case 'localStorageProxy':
+						localStorageProxyHandler(message);
+						break;
 					case 'backgroundMessage':
 						backgroundPageMessageHandler(message);
 						break;
@@ -946,6 +987,121 @@
 						sendMessage: generateSendInstanceMessageFunction(change.value)
 					});
 					break;
+			}
+		}
+
+		function localStorageProxyHandler(message) {
+			var indexes = message.message.indexIds;
+
+			for (var key in message.message) {
+				if (key !== 'indexIds') {
+					try {
+						localStorageProxy.defineProperty(localStorageProxy, key, {
+							get: function() {
+								return localStorageProxy[key];
+							},
+							set: function(key, value) {
+								localStorageProxyData.onSet(key, value);
+							}
+						});
+					} catch(e) {
+						//Already defined
+					}
+				}
+			}
+
+			localStorageProxyData.onSet = function(key, value) {
+
+				if (!isNaN(parseInt(key, 10))) {
+					var index = parseInt(key, 10);
+
+					//It's an index key
+					var oldValue = localStorageProxy[key];
+					var newValue = value;
+					localStorageProxy[key] = value;
+
+					var oldData = oldValue.split('%123');
+					var newData = newValue.split('%123');
+
+					if (index >= message.message.numberofrows) {
+						//Create new node
+						var createOptions = {
+							name: newData[0],
+							type: newData[1]
+						};
+
+						switch (newData[1]) {
+							case 'Link':
+								createOptions.linkData = newData[2].split(',').map(function(link) {
+									return {
+										url: link,
+										newTab: true
+									}
+								});
+								break;
+							case 'Script':
+								var newScriptData = newData[2].split('%124');
+								createOptions.scriptData = {
+									launchMode: newScriptData[0],
+									script: newScriptData[1]
+								}
+								break;
+						}
+
+						_this.crm.createNode(createOptions);
+					} else {
+						var changeData = {};
+						if (oldData[0] !== newData[0]) {
+							//Name was changed
+							changeData.name = newData[0];
+						}
+						if (oldData[1] !== newData[1]) {
+							//Type was changed
+							changeData.type = newData[1];
+						}
+
+						function handleValueChanges() {
+							if (oldData[2] !== newData[2]) {
+								//Data was changed
+								switch (newData[1]) {
+									case 'Link':
+										var newLinks = newData[2].split(',').map(function(link) {
+											return {
+												url: link,
+												newTab: true
+											}
+										});
+										_this.crm.link.setLinks(indexes[index], newLinks);
+										break;
+									case 'Script':
+										var newScriptData = newData[2].split('%124');
+										_this.crm.script.setScript(indexes[index], newScriptData[1], function() {
+											_this.crm.setLaunchMode(indexes[index], newScriptData[0]);
+										});
+										break;
+								}
+							}
+						}
+
+						if (changeData.name || changeData.type) {
+							_this.crm.editNode(indexes[index], changeData, handleValueChanges);
+						} else {
+							handleValueChanges();
+						}
+					}
+				} else {
+					//Send message
+					localStorageProxy[key] = value;
+					sendMessage({
+						id: id,
+						type: 'applyLocalStorage',
+						data: {
+							key: key,
+							value: value
+						},
+						tabId: _this.tabId
+					});
+				}
 			}
 		}
 
@@ -2079,6 +2235,24 @@
 		this.crm.link.getLinks = function (nodeId, callback) {
 			sendCrmMessage('linkGetLinks', callback, {
 				nodeId: nodeId
+			});
+		};
+
+		/**
+		 * Gets the links of the node with ID nodeId
+		 *
+		 * @permission crmGet
+		 * @permission crmWrite
+		 * @param {number} nodeId - The id of the node to get the links from
+		 * @param {Object[]|Object} items - The items to push
+		 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
+		 * @param {string} [items.url] - The URL to open on clicking the link
+		 * @param {functon} callback - A function that gets called when done with the new array as an argument
+		 */
+		this.crm.link.setLinks = function (nodeId, items, callback) {
+			sendCrmMessage('linkSetLinks', callback, {
+				nodeId: nodeId,
+				items: items
 			});
 		};
 
