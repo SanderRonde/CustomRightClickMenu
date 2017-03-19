@@ -302,6 +302,16 @@ module.exports = function(grunt) {
 					src: ['**/*.*', '!build/website/'],
 					dest: './documentation/'
 				}]
+			},
+			gitignore: {
+				files: [{
+					expand: false,
+					cwd: './',
+					src: [
+						'tools/gh-pages-gitignore.gitignore'
+					],
+					dest: './.gitignore'
+				}]
 			}
 		},
 		htmlmin: {
@@ -486,6 +496,9 @@ module.exports = function(grunt) {
 	grunt.registerTask('extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 	grunt.registerTask('defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
 
+
+	//Moves the gitignore for the gh-pages branch to the root
+	grunt.registerTask('changeGitIgnore' ['copy:gitignore']);
 
 	//Cleans the build dir
 	grunt.registerTask('cleanBuild', ['clean:build']);
