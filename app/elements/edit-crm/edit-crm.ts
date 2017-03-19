@@ -191,7 +191,7 @@ class EC {
 	 * Gets the current column
 	 */
 	static getCurrentColumn(this: EditCrm, element: EditCrmItem): CRMColumn {
-		var fillerIndex = (element._filler && element._filler.column);
+		var fillerIndex = (element._filler && element._filler.state.column);
 		if (typeof fillerIndex !== 'number') {
 			fillerIndex = null;
 		}
@@ -206,7 +206,7 @@ class EC {
 	 * Gets the next column
 	 */
 	static getNextColumn(this: EditCrm, element: EditCrmItem): CRMColumn {
-		var fillerIndex = (element._filler && element._filler.column);
+		var fillerIndex = (element._filler && element._filler.state.column);
 		if (typeof fillerIndex !== 'number') {
 			fillerIndex = null;
 		}
@@ -221,7 +221,7 @@ class EC {
 	 * Gets the previous column
 	 */
 	static getPrevColumn(this: EditCrm, element: EditCrmItem): CRMColumn {
-		var fillerIndex = (element._filler && element._filler.column);
+		var fillerIndex = (element._filler && element._filler.state.column);
 		if (typeof fillerIndex !== 'number') {
 			fillerIndex = null;
 		}
