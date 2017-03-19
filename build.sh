@@ -3,6 +3,11 @@ set -e
 
 http-server -p 1234 . -s &
 
+tsc
+cd test
+tsc
+cd ../
+
 echo "Build tests" && echo -en "travis_fold:start:build_tests\\r"
 grunt testBuild
 echo -en "travis_fold:end:build_tests\\r"
