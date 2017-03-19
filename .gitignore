@@ -221,5 +221,9 @@ Custom Right-Click Menu.sln
 
 /test/UI/secrets.js
 
+app/js/background.js
 .vscode
-app/elements/*.js
+app/elements/*/*.js
+app/elements/**/*.js
+test/UITest.js
+!app/elements/change-log/changelog.js
