@@ -5,13 +5,37 @@ interface Coordinate {
 	Y: number
 }
 
-interface FillerElement extends HTMLElement {
+interface FillerDragStateBase {
+	type: string;
+}
+
+interface FillerBetweenState extends FillerDragStateBase {
+	type: 'between';
+	indexBefore: number;
+	indexAfter: number;
+	column: number;
+}
+
+interface FillerOnState extends FillerDragStateBase {
+	type: 'on';
 	index: number;
 	column: number;
 }
 
+type FillerDragState = FillerBetweenState|FillerOnState;
+
+interface FillerElement extends HTMLElement {
+	state: FillerDragState;
+}
+
 type DraggableNodeBehavior = PolymerElement<'behavior', typeof DNB>;
 type DraggableNodeBehaviorInstance = DraggableNodeBehavior & EditCrmItem;
+
+const NODE_HEIGHT = 50;
+const NODE_WIDTH = 150;
+const ON_NODE_TARGET_PERCENTAGE = 0.6;
+
+const ON_NODE_TARGET_SIZE = NODE_HEIGHT * ON_NODE_TARGET_PERCENTAGE;
 
 class DNB {
 	/**
@@ -86,19 +110,22 @@ class DNB {
 	static _changeDraggingState(this: DraggableNodeBehaviorInstance, isDragging: boolean) {
 		this.dragging = isDragging;
 		this.$.itemCont.style.willChange = (isDragging ? 'transform' : 'initial');
-		this.$.itemCont.style.zIndex = (isDragging ? '500' : '0');
-		var currentColumn = window.app.editCRM.getCurrentColumn(this);
-		currentColumn.dragging = isDragging;
-		currentColumn.draggingItem = this;
+		this.$.itemCont.style.zIndex = (isDragging ? '50000' : '0');
+		document.body.style.webkitUserSelect = isDragging ? 'none' : 'initial';
 	}
 
 	static _onScroll(this: DraggableNodeBehaviorInstance) {
-		var newScroll = $('body').scrollTop();
-		var difference = newScroll - this._scrollStart.Y;
-		this._dragStart.Y -= difference;
-		this._lastRecordedPos.Y -= difference;
-		this._scrollStart.Y = newScroll;
-		this._onDrag();
+		const newScrollY = document.body.scrollTop;
+		const diffY = newScrollY - this._scrollStart.Y;
+		this._dragStart.Y -= diffY;
+		this._lastRecordedPos.Y -= diffY;
+		this._scrollStart.Y = newScrollY;
+		
+		const newScrollX = document.querySelector('.CRMEditColumnCont').getBoundingClientRect().left;
+		const diffX = newScrollX - this._scrollStart.X;
+		this._dragStart.X -= diffX;
+		this._lastRecordedPos.X -= diffX;
+		this._scrollStart.X = newScrollX;
 	}
 
 	static _sideDrag(this: DraggableNodeBehaviorInstance) {
@@ -111,18 +138,20 @@ class DNB {
 	}
 
 	static _stopDrag(this: DraggableNodeBehaviorInstance) {
-		this.$$('paper-ripple').style.display = 'block';
-		this.style.pointerEvents = 'all';
-		this._changeDraggingState(false);
-		document.body.removeEventListener('mouseup', this._listeners.stopDrag);
-		document.body.style.webkitUserSelect = 'initial';
-		window.removeEventListener('scroll', this._listeners.onScroll);
+		// this.$$('paper-ripple').style.display = 'block';
+		// this.style.pointerEvents = 'all';
+		// this._changeDraggingState(false);
+		// document.body.removeEventListener('mouseup', this._listeners.stopDrag);
+		// document.body.style.webkitUserSelect = 'initial';
+		// window.removeEventListener('scroll', this._listeners.onScroll);
 
-		//Doesn't propertly unbind
-		window.removeEventListener('blur', this._listeners.stopDrag);
-		document.querySelector('#mainCont').removeEventListener('scroll', this._listeners.onScroll);
-		this._snapItem();
-		this._rebuildMenu();
+		// //Doesn't propertly unbind
+		// window.removeEventListener('blur', this._listeners.stopDrag);
+		// document.querySelector('#mainCont').removeEventListener('scroll', this._listeners.onScroll);
+		// this._snapItem();
+		// this._rebuildMenu();
+
+		this._changeDraggingState(false);
 	}
 
 	static _onMouseMove(this: DraggableNodeBehaviorInstance, event: MouseEvent) {
@@ -131,157 +160,94 @@ class DNB {
 		this._cursorPosChanged = true;
 	}
 
-	static _onDrag(this: DraggableNodeBehaviorInstance) {
-		if (this._cursorPosChanged && this.dragging) {
-			this._cursorPosChanged = false;
-			var columnCorrection = 200 * (this._filler.column - (this.parentElement as CRMBuilderColumn).index);
-			var spacingTop = this._lastRecordedPos.Y - this._dragStart.Y;
-			var x = (this._lastRecordedPos.X - this._dragStart.X + columnCorrection) + 'px';
-			var y = spacingTop + 'px';
-			this.$.itemCont.style.transform = 'translate(' + x + ', ' + y + ')';
-			var thisBoundingClientRect = this.getBoundingClientRect();
-			var thisTop = (this._lastRecordedPos.Y - this._mouseToCorner.Y);
-			var thisLeft = (this._lastRecordedPos.X - this._mouseToCorner.X) -
-							thisBoundingClientRect.left - columnCorrection;
+	static _updateDraggedNodePosition(this: DraggableNodeBehaviorInstance, offset: {
+		X: number;
+		Y: number;
+	}) {
+		const { X, Y } = offset;
+		this.$.itemCont.style.transform = `translate(${X}px, ${Y}px)`;
+	}
 
-			//Vertically space elements
-			if (!this._currentColumn) {
-				this._currentColumn = window.app.editCRM.getCurrentColumn(this);
+	static _isBetween(target: number, minimum: number, maximum: number): boolean {
+		return target >= minimum && target <= maximum;
+	}
+
+	static _getNodeDragState(this: DraggableNodeBehaviorInstance, offset: {
+		X: number;
+		Y: number;
+	}): FillerDragState {
+		let { X, Y } = offset;
+		Y = Y - this._mouseToCorner.Y;
+		X = X - this._mouseToCorner.X;
+
+		const halfNodeTargetSize = ON_NODE_TARGET_SIZE / 2;
+		const halfNodeHeight = NODE_HEIGHT / 2;
+		if (this._isBetween(Y % NODE_HEIGHT, halfNodeHeight - halfNodeTargetSize, halfNodeTargetSize)) {
+			//On a node
+			return {
+				type: 'on',
+				index: Math.round(Y / NODE_HEIGHT),
+				column: Math.round(X / NODE_WIDTH)
 			}
-			var parentChildrenList = window.app.editCRM.getEditCrmItems(this._currentColumn);
-			var prev = parentChildrenList[this._filler.index - 1];
-			var next = parentChildrenList[this._filler.index];
-			var fillerPrevTop;
-			if (prev) {
-				fillerPrevTop = prev.getBoundingClientRect().top;
+		} else {
+			//Between nodes
+			if (Y % NODE_HEIGHT > halfNodeHeight) {
+				//Between this and its successor
+				return {
+					type: 'between',
+					column: Math.round(X / NODE_WIDTH),
+					indexBefore: Math.round(Y / NODE_HEIGHT),
+					indexAfter: Math.round(Y / NODE_HEIGHT) + 1
+				}
 			} else {
-				fillerPrevTop = -999;
-			}
-			if (thisTop < fillerPrevTop + 25) {
-				this._filler.index--;
-				$(this._filler).insertBefore(prev);
-			} else if (next) {
-				var fillerNextTop = next.getBoundingClientRect().top;
-				if (thisTop > fillerNextTop - 25) {
-					if (parentChildrenList.length !== this._filler.index + 1) {
-						$(this._filler).insertBefore(parentChildrenList[this._filler.index + 1]);
-					} else {
-						$(this._filler).insertBefore(parentChildrenList[this._filler.index]);
-					}
-					this._filler.index++;
-				}
-			}
-
-			//Horizontally space elements
-			var newColumn,
-				newColumnChildren,
-				newColumnLength,
-				fillerIndex,
-				currentChild,
-				currentBoundingClientRect,
-				i;
-			if (thisLeft > 150) {
-				var nextColumnCont = window.app.editCRM.getNextColumn(this);
-				if (nextColumnCont) {
-					if (nextColumnCont.style.display !== 'none') {
-						this._dragStart.X += 200;
-						newColumn = nextColumnCont.querySelector('paper-material').querySelector('.CRMEditColumn');
-						newColumnChildren = newColumn.children;
-						newColumnLength = newColumnChildren.length - 1;
-						fillerIndex = 0;
-
-						if (this._lastRecordedPos.Y >
-							newColumnChildren[newColumnLength].getBoundingClientRect().top - 25) {
-							fillerIndex = newColumnLength;
-						} else {
-							for (i = 0; i < newColumnLength; i++) {
-								currentChild = newColumn.children[i];
-								currentBoundingClientRect = currentChild.getBoundingClientRect();
-								if (this._lastRecordedPos.Y >= currentBoundingClientRect.top &&
-									this._lastRecordedPos.Y <= currentBoundingClientRect.top) {
-									fillerIndex = i;
-									break;
-								}
-							}
-						}
-						this._filler.index = fillerIndex;
-
-						if (this.parentNode === this._filler.parentNode) {
-							this._dragStart.Y -= 50;
-						} else if (this.parentNode === newColumn) {
-							this._dragStart.Y += 50;
-						}
-
-						$(this._filler).insertBefore(newColumnChildren[fillerIndex]);
-
-						if (newColumnLength === 0) {
-							newColumn.parentElement.style.display = 'block';
-							(newColumn.parentElement as CRMBuilderColumn).isEmpty = true;
-						}
-						this._filler.column = this._filler.column + 1;
-
-						this._currentColumn = null;
-					}
-				}
-			} else if (thisLeft < -50) {
-				var prevColumnCont = window.app.editCRM.getPrevColumn(this);
-				if (prevColumnCont) {
-					this._dragStart.X -= 200;
-					newColumn = prevColumnCont.querySelector('paper-material').querySelector('.CRMEditColumn');
-					newColumnChildren = newColumn.children;
-					newColumnLength = newColumnChildren.length - 1;
-					fillerIndex = 0;
-					if (this._lastRecordedPos.Y >
-						newColumnChildren[newColumnLength - 1].getBoundingClientRect().top - 25) {
-						fillerIndex = newColumnLength;
-					} else {
-						for (i = 0; i < newColumnLength; i++) {
-							currentChild = newColumn.children[i];
-							currentBoundingClientRect = currentChild.getBoundingClientRect();
-							if (this._lastRecordedPos.Y >= currentBoundingClientRect.top &&
-								this._lastRecordedPos.Y <= currentBoundingClientRect.top) {
-								fillerIndex = i;
-								break;
-							}
-						}
-					}
-					this._filler.index = fillerIndex;
-					if (this.parentElement === newColumn) {
-						this._dragStart.Y += 50;
-					} else if (this.parentElement === this._filler.parentNode) {
-						this._dragStart.Y -= 50;
-					}
-					
-					var paperMaterial = this._filler.parentElement.parentElement as CRMBuilderColumn;
-					if (paperMaterial.isEmpty) {
-						paperMaterial.style.display = 'none';
-					}
-
-					$(this._filler).insertBefore(newColumnChildren[fillerIndex]);
-					this._filler.column -= 1;
-
-					this._currentColumn = null;
+				//Between this and its predecessor
+				return {
+					type: 'between',
+					column: Math.round(X / NODE_WIDTH),
+					indexBefore: Math.round(Y / NODE_HEIGHT - 1),
+					indexAfter: Math.round(Y / NODE_HEIGHT)
 				}
 			}
 		}
-		if (this.dragging) {
-			window.requestAnimationFrame(this._onDrag.bind(this));
+	}
+	
+	static _moveFiller(this: DraggableNodeBehaviorInstance, position: FillerDragState) {
+		
+	}
+
+	static _onDrag(this: DraggableNodeBehaviorInstance) {
+		if (!this.dragging) {
+			return;
 		}
+
+		if (this._cursorPosChanged) {
+			console.log(this._lastRecordedPos.X - this._dragStart.X, 
+				this._lastRecordedPos.Y - this._dragStart.Y);
+
+			const offset = {
+				X: this._lastRecordedPos.X - this._dragStart.X,
+				Y: this._lastRecordedPos.Y - this._dragStart.Y
+			}
+			this._updateDraggedNodePosition(offset);
+			this._moveFiller(this._getNodeDragState(offset));
+		}
+
+		window.requestAnimationFrame(this._onDrag.bind(this));
 	}
 
 	static _snapItem(this: DraggableNodeBehaviorInstance) {
-		//Get the filler's current index and place the current item there
-		var parentChildrenList = window.app.editCRM.getEditCrmItems(window.app.editCRM
-			.getCurrentColumn(this), true);
-		if (this._filler) {
-			$(this).insertBefore(parentChildrenList[this._filler.index]);
+		// //Get the filler's current index and place the current item there
+		// var parentChildrenList = window.app.editCRM.getEditCrmItems(window.app.editCRM
+		// 	.getCurrentColumn(this), true);
+		// if (this._filler) {
+		// 	$(this).insertBefore(parentChildrenList[this._filler.index]);
 
-			this.$.itemCont.style.position = 'relative';
-			this.style.position = 'relative';
-			this.$.itemCont.style.transform = 'initial';
-			this.$.itemCont.style.marginTop = '0';
-			this._filler.remove();
-		}
+		// 	this.$.itemCont.style.position = 'relative';
+		// 	this.style.position = 'relative';
+		// 	this.$.itemCont.style.transform = 'initial';
+		// 	this.$.itemCont.style.marginTop = '0';
+		// 	this._filler.remove();
+		// }
 	}
 
 	static _rebuildMenu(this: DraggableNodeBehaviorInstance) {
@@ -335,31 +301,56 @@ class DNB {
 		}
 	}
 
-	static _startDrag(this: DraggableNodeBehaviorInstance, event: MouseEvent) {
-		this.$$('paper-ripple').style.display = 'none';
-		var extraSpacing = (($(this.parentNode).children('edit-crm-item').toArray().length - this.index) * -50);
-		this.style.pointerEvents = 'none';
+	static _setDragStartPositions(this: DraggableNodeBehaviorInstance, event: MouseEvent) {
 		this._dragStart.X = event.clientX;
 		this._dragStart.Y = event.clientY;
-		this._lastRecordedPos.X = event.clientX;
-		this._lastRecordedPos.Y = event.clientY;
-		this._scrollStart.Y = $('body').scrollTop();
-		this._scrollStart.X = $('.CRMEditColumnCont')[0].getBoundingClientRect().left;
-		var boundingClientRect = this.getBoundingClientRect();
-		this._mouseToCorner.X = event.clientX - boundingClientRect.left;
-		this._mouseToCorner.Y = event.clientY - boundingClientRect.top;
+		this._scrollStart.Y = document.body.scrollTop;
+		this._scrollStart.X = document.querySelector('.CRMEditColumnCont').getBoundingClientRect().left;
 
+		const bcr = this.getBoundingClientRect();
+		this._mouseToCorner.X = event.clientX - bcr.left;
+		this._mouseToCorner.Y = event.clientY - bcr.top;
+	}
+
+	static _updateCursorPosition(this: DraggableNodeBehaviorInstance, event: MouseEvent) {
+		this._lastRecordedPos.X = event.clientX;
+		this._lastRecordedPos.Y = event.clientX;
+	}
+
+	static _startDrag(this: DraggableNodeBehaviorInstance, event: MouseEvent) {
 		this._changeDraggingState(true);
+
+		this.$$('paper-ripple').style.display = 'none';
+
+		this._setDragStartPositions(event);
+		this._updateCursorPosition(event);
+
 		this.style.position = 'absolute';
 		this._filler = $('<div class="crmItemFiller"></div>').get(0) as any;
-		this._filler.index = this.index;
-		this._filler.column = (this.parentElement as CRMBuilderColumn).index;
+		this._filler.state = {
+			type: 'between',
+			indexBefore: this.index - 1,
+			indexAfter: this.index,
+			column: (this.parentElement as CRMBuilderColumn).index
+		}
 
-		document.body.addEventListener('mouseup', this._listeners.stopDrag);
-		document.body.addEventListener('mousemove', this._listeners.onMouseMove);
-		window.addEventListener('scroll', this._listeners.onScroll);
-		window.addEventListener('blur', this._listeners.stopDrag);
-		document.querySelector('#mainCont').addEventListener('scroll', this._listeners.onScroll);
+		document.body.addEventListener('mouseup', () => {
+			this._stopDrag();
+		});
+		document.body.addEventListener('mousemove', (e) => {
+			if (this.dragging) {
+				this._onMouseMove(e);
+			}
+		});
+		window.addEventListener('scroll', () => {
+			this._onScroll();
+		});
+		window.addEventListener('blur', () => {
+			console.log('stop drag');
+		});
+		document.querySelector('#mainCont').addEventListener('scroll', () => {
+			this._onScroll();
+		});
 
 
 		//Do visual stuff as to decrease delay between the visual stuff
@@ -372,40 +363,30 @@ class DNB {
 		}
 
 		$(this._filler).insertBefore(this);
-		this.$.itemCont.style.marginTop = extraSpacing + 'px';
-		this.parentNode.appendChild(this);
+		this.$.itemCont.style.marginTop = `${this.index * 50}px`;
+
+		window.app.editCRM.insertBefore(this, window.app.editCRM.children[0]);
 		this._onDrag();
 	}
 
 	static init(this: DraggableNodeBehaviorInstance) {
-		var _this = this;
-		this.$.dragger.addEventListener('mousedown', function(e: MouseEvent) {
+		this.$.dragger.addEventListener('mousedown', (e: MouseEvent) => {
 			if (e.which === 1) {
-				_this._readyForMouseUp = false;
-				_this._startDrag(e);
-				_this._readyForMouseUp = true;
-				if (_this._execMouseUp) {
-					_this._stopDrag();
+				this._readyForMouseUp = false;
+				this._startDrag(e);
+				this._readyForMouseUp = true;
+				if (this._execMouseUp) {
+					this._stopDrag();
 				}
 			}
 		});
-		this.$.dragger.addEventListener('mouseup', function(e: MouseEvent) {
+		this.$.dragger.addEventListener('mouseup', (e: MouseEvent) => {
 			if (e.which === 1) {
 				e.stopPropagation();
-				if (_this._readyForMouseUp) {
-					_this._stopDrag();
-				} else {
-					_this._execMouseUp = true;
-				}
+				this._stopDrag();
 			}
 		});
 		this.column = (this.parentNode as CRMBuilderColumn).index;
-
-		this._listeners = {
-			stopDrag: this._stopDrag.bind(this),
-			onMouseMove: this._onMouseMove.bind(this),
-			onScroll: this._onScroll.bind(this) 
-		};
 	}
 };
 
