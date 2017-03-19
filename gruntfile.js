@@ -498,7 +498,7 @@ module.exports = function(grunt) {
 
 
 	//Moves the gitignore for the gh-pages branch to the root
-	grunt.registerTask('changeGitIgnore' ['copy:gitignore']);
+	grunt.registerTask('changeGitIgnore', ['copy:gitignore']);
 
 	//Cleans the build dir
 	grunt.registerTask('cleanBuild', ['clean:build']);
