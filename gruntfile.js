@@ -151,6 +151,7 @@ module.exports = function(grunt) {
 					'build/js/libraries/codemirror/codeMirrorFile.min.js': [
 						'app/js/libraries/codemirror/codemirror.js',
 						'app/js/libraries//diff_match_patch.js',
+						'app/js/libraries/sortable.js',
 						'app/js/libraries/codemirror/codeMirrorAddons.js',
 						'app/js/userscriptMetadataCodemirror.js',
 						'app/js/libraries/codemirror/codemirrorJs.js',
@@ -184,7 +185,7 @@ module.exports = function(grunt) {
 				seperator: ';\n'
 			},
 			jqueryConcat: {
-				src: ['app/js/libraries/jquery/jquery-2.0.3.min.js', 'app/js/libraries/jquery/jquery-ui.min.js',
+				src: ['app/js/libraries/jquery/jquery-2.0.3.js', 'app/js/libraries/jquery/jquery-ui.min.js',
 					 'app/js/libraries/jquery/jquery.requestAnimationFrame.min.js', 'app/js/libraries/jquery/jquery.contextMenu.js',
 					 'app/js/libraries/jquery/jquery.bez.js'],
 				dest: 'build/js/libraries/jquery/jqueryFiles.min.js'
