@@ -84,6 +84,55 @@ interface CRMBuilderColumn extends HTMLElement {
 
 type CRMBuilder = Array<CRMBuilderColumn>;
 
+interface SortableInstance {
+	option<T>(name: string, value?: T): T;
+	closest(el: string, selector?: HTMLElement): HTMLElement|null;
+	toArray(): Array<string>;
+	sort(order: Array<string>): void;
+	save(): void;
+	destroy(): void;
+}
+
+interface Sortable {
+	new(target: HTMLElement, options: {
+		group?: string;
+		sort?: boolean;
+		delay?: number;
+		disabled?: boolean;
+		store?: any;
+		animation?: number;
+		handle?: string;
+		filter?: string;
+		preventOnFilter?: boolean;
+		draggable?: string;
+		ghostClass?: string;
+		chosenClass?: string;
+		dragClass?: string;
+		dataIdAttr?: string;
+		forceFallback?: boolean;
+		fallbackClass?: string;
+		fallbackOnBody?: boolean;
+		fallbackTolerance?: number;
+		scroll: boolean;
+		scrollFn?(offsetX: number, offsetY: number, originalEvent: Event): void;
+		scrollSensitivirt?: number;
+		scrollSpeed?: number;
+		
+		setData?(dataTransfer: any, dragEl: HTMLElement): void;
+		onChoose?(evt: Event): void;
+		onStart?(evt: Event): void;
+		onEnd?(evt: Event): void;
+		onAdd?(evt: Event): void;
+		onUpdate?(evt: Event): void;
+		onSort?(evt: Event): void;
+		onFilter?(evt: Event): void;
+		onMove?(evt: Event, originalEvent: Event): void;
+		onClone?(evt: Event): void;
+	}): SortableInstance;
+}
+
+declare const Sortable: Sortable;
+
 class EC {
 	static is: string = 'edit-crm';
 
@@ -144,6 +193,11 @@ class EC {
 	 * The menus that are set to be shown in the crm
 	 */
 	static setItems: Array<number>;
+
+	/**
+	 * The sortable object
+	 */
+	static sortables: Array<SortableInstance> = [];
 
 	static firstCRMColumn() {
 		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2] as HTMLElement));
@@ -458,6 +512,24 @@ class EC {
 		};
 	};
 
+
+	static createSorter(this: EditCrm) {
+		this.sortables = this.sortables.filter((sortable) => {
+			sortable.destroy();
+			return false;
+		});
+		this.getColumns().forEach((column) => {
+			this.sortables.push(new Sortable(column, {
+				group: 'crm',
+				animation: 150,
+				handle: '.dragger',
+				ghostClass: 'draggingCRMItem',
+				chosenClass: 'draggingFiller',
+				scroll: true
+			}));
+		});
+	}
+
 	/**
 	 * Builds the crm object
 	 * 		  
@@ -468,7 +540,6 @@ class EC {
 	 * @return The object to be sent to Polymer
 	 */
 	static build(this: EditCrm, setItems: Array<number>, quick: boolean = false, superquick: boolean = false): CRMBuilder {
-		var _this = this;
 		setItems = setItems || [];
 		var obj = this.buildCRMEditObj(setItems);
 		this.setMenus = obj.setMenus;
@@ -491,26 +562,27 @@ class EC {
 		this.crmLoading = true;
 		this.columns = null;
 
-		function func() {
-			_this.crm = crmBuilder;
-			_this.notifyPath('crm', _this.crm);
-			_this.currentTimeout = null;
-			setTimeout(function() {
-				_this.crmLoading = false;
+		function func(this: EditCrm) {
+			this.crm = crmBuilder;
+			this.notifyPath('crm', this.crm);
+			this.currentTimeout = null;
+			setTimeout(() => {
+				this.crmLoading = false;
 				const els = document.getElementsByTagName('edit-crm-item');
 				for (let i = 0; i < els.length; i++) {
 					els[i].update && els[i].update();
 				}
-				setTimeout(function() {
+				setTimeout(() => {
 					window.app.pageDemo.create();
+					this.createSorter();
 				}, 0);
 			}, 50);
 		}
 
 		if (superquick) {
-			func();
+			func.apply(this);
 		} else {
-			this.currentTimeout = window.setTimeout(func, quick ? 150 : 1000);
+			this.currentTimeout = window.setTimeout(func.bind(this), quick ? 150 : 1000);
 		}
 		return crmBuilder;
 	};

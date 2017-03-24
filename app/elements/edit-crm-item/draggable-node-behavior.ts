@@ -476,6 +476,7 @@ class DNB {
 	}
 
 	static init(this: DraggableNodeBehaviorInstance) {
+		return;
 		this.$.dragger.addEventListener('mousedown', (e: MouseEvent) => {
 			if (e.which === 1) {
 				this._readyForMouseUp = false;

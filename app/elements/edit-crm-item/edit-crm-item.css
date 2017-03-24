@@ -100,7 +100,7 @@
 	margin-top: -8px;
 }
 
-#dragger {
+.dragger {
 	width: 30px;
 	height: 50px;
 	-webkit-user-select: none;

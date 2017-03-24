@@ -135,6 +135,11 @@ class ECI {
 	};
 
 	static ready(this: EditCrmItem) {
+		if (this.classList.contains('draggingFiller')) {
+			//It's a dragging copy
+			return;
+		}
+
 		var _this = this;
 		this.classList.add('id' + this.item.id);
 		if (this.classList[0] !== 'wait') {
