@@ -20,12 +20,16 @@ interface FillerOnState extends FillerDragStateBase {
 	type: 'on';
 	index: number;
 	column: number;
+	indexBefore: number;
+	indexAfter: number;
 }
 
 type FillerDragState = FillerBetweenState|FillerOnState;
 
 interface FillerElement extends HTMLElement {
 	state: FillerDragState;
+	isFiller: true;
+	getIndex(): number;
 }
 
 type DraggableNodeBehavior = PolymerElement<'behavior', typeof DNB>;
@@ -109,6 +113,7 @@ class DNB {
 
 	static _changeDraggingState(this: DraggableNodeBehaviorInstance, isDragging: boolean) {
 		this.dragging = isDragging;
+		this.classList[isDragging ? 'add' : 'remove']('dragging');
 		this.$.itemCont.style.willChange = (isDragging ? 'transform' : 'initial');
 		this.$.itemCont.style.zIndex = (isDragging ? '50000' : '0');
 		document.body.style.webkitUserSelect = isDragging ? 'none' : 'initial';
@@ -177,42 +182,131 @@ class DNB {
 		Y: number;
 	}): FillerDragState {
 		let { X, Y } = offset;
+
+		const halfNodeHeight = NODE_HEIGHT / 2;
+
 		Y = Y - this._mouseToCorner.Y;
 		X = X - this._mouseToCorner.X;
+		console.log('-----');
 
 		const halfNodeTargetSize = ON_NODE_TARGET_SIZE / 2;
-		const halfNodeHeight = NODE_HEIGHT / 2;
-		if (this._isBetween(Y % NODE_HEIGHT, halfNodeHeight - halfNodeTargetSize, halfNodeTargetSize)) {
+		console.log(Y);
+		//This gets rid of anything that happens when it's negative
+		const relativePosition = ((Y % NODE_HEIGHT) + NODE_HEIGHT) % NODE_HEIGHT;
+		if (this._isBetween(relativePosition, halfNodeHeight - halfNodeTargetSize, halfNodeHeight + halfNodeTargetSize)) {
 			//On a node
+			const indexY = Math.floor(Y / NODE_HEIGHT);
+			const roundedY = Math.round(Y / NODE_HEIGHT);
 			return {
 				type: 'on',
-				index: Math.round(Y / NODE_HEIGHT),
-				column: Math.round(X / NODE_WIDTH)
+				index: indexY,
+				indexBefore: roundedY - 1,
+				indexAfter: roundedY,
+				column: Math.floor(X / NODE_WIDTH)
 			}
 		} else {
 			//Between nodes
-			if (Y % NODE_HEIGHT > halfNodeHeight) {
-				//Between this and its successor
-				return {
-					type: 'between',
-					column: Math.round(X / NODE_WIDTH),
-					indexBefore: Math.round(Y / NODE_HEIGHT),
-					indexAfter: Math.round(Y / NODE_HEIGHT) + 1
-				}
-			} else {
-				//Between this and its predecessor
-				return {
-					type: 'between',
-					column: Math.round(X / NODE_WIDTH),
-					indexBefore: Math.round(Y / NODE_HEIGHT - 1),
-					indexAfter: Math.round(Y / NODE_HEIGHT)
-				}
+			const indexY = Math.round(Y / NODE_HEIGHT);
+			//Between this and its successor
+			return {
+				type: 'between',
+				column: Math.floor(X / NODE_WIDTH),
+				indexBefore: indexY - 1,
+				indexAfter: indexY
 			}
 		}
 	}
+
+	static _findNodeAtRelativePosition(this: DraggableNodeBehaviorInstance, position: {
+		index: number;
+		column: number;
+	}): EditCrmItem|'filler' {
+		let absoluteIndex = this.index + position.index;
+		let absoluteColumn = this.column() + position.column;
+
+		//Find out if that column even exists
+		const columns = window.app.editCRM.getColumns();
+		if (!columns[absoluteColumn]) {
+			//Keep moving towards zero until a column is found
+			if (absoluteColumn < 0) {
+				absoluteColumn = 0;
+			}
+			while (!columns[absoluteColumn]) {
+				absoluteColumn -= 1;
+			}
+		}
+
+		const column = columns[absoluteColumn];
+
+		//Find out if there exists a node at that index
+		const nodes = window.app.editCRM.getEditCrmNodes(column);
+
+		absoluteIndex -= window.app.editCRM.crm[absoluteColumn].indent.length;
+		if (!nodes[absoluteIndex]) {
+			if (absoluteIndex < 0) {
+				absoluteIndex = 0;
+			}
+			while (!nodes[absoluteIndex]) {
+				absoluteIndex -= 1;
+			}
+		}
+
+		if (nodes[absoluteIndex].isFiller) {
+			return 'filler';
+		}
+		const editCrmNodes = window.app.editCRM.getEditCrmItems(column);
+		return editCrmNodes[absoluteIndex] || editCrmNodes[absoluteIndex - 1];
+	}
 	
 	static _moveFiller(this: DraggableNodeBehaviorInstance, position: FillerDragState) {
-		
+		if (position.type === 'on') {
+			//Find out what type of node the node being pointed at is
+			const pointedAtNode = this._findNodeAtRelativePosition(position);
+			if (pointedAtNode !== 'filler' && pointedAtNode.item.type === 'menu') {
+				//Hovering over a menu node, expose its children
+				
+				//Check if it's already expanded
+				if (!pointedAtNode.expanded) {
+					pointedAtNode.classList.add('pulse');
+					pointedAtNode.openMenu();
+					Array.prototype.slice.apply(document.querySelectorAll('.menuArrow')).forEach((menuArrow: HTMLElement) => {
+						menuArrow.removeAttribute('expanded');
+					});
+					pointedAtNode.querySelector('.menuArrow').setAttribute('expanded', 'expanded');
+					this.async(() => {
+						pointedAtNode.classList.remove('pulse');
+					}, 1000);
+					this._filler.state = position;
+					return;
+				}
+			}
+		}
+
+		//Not on a node, it's between some nodes
+		const beforeNode = this._findNodeAtRelativePosition({
+			column: position.column,
+			index: position.indexBefore
+		});
+
+		const afterNode = this._findNodeAtRelativePosition({
+			column: position.column,
+			index: position.indexAfter
+		});
+
+		if (beforeNode !== 'filler' && afterNode !== 'filler') {
+			const column = window.app.editCRM.getColumn(window.app.editCRM.getNodeColumnIndex(beforeNode));
+			if (beforeNode === afterNode) {
+				//It's at one of the edges, determine which one and insert the filler at the edge
+				if (beforeNode.index === 0) {
+					column.insertBefore(this._filler, column.children[0]);
+				} else {
+					column.appendChild(this._filler);
+				}
+			} else {
+				column.insertBefore(this._filler, afterNode);	
+			}
+		}
+		this._filler.state = position;
 	}
 
 	static _onDrag(this: DraggableNodeBehaviorInstance) {
@@ -229,7 +323,9 @@ class DNB {
 				Y: this._lastRecordedPos.Y - this._dragStart.Y
 			}
 			this._updateDraggedNodePosition(offset);
-			this._moveFiller(this._getNodeDragState(offset));
+			const pos = this._getNodeDragState(offset);
+			console.log(pos);
+			this._moveFiller(pos);
 		}
 
 		window.requestAnimationFrame(this._onDrag.bind(this));
@@ -274,7 +370,7 @@ class DNB {
 		}
 		else {
 			//No items exist yet, go to prev column and find the only expanded menu
-			window.app.editCRM.getEditCrmItems(window.app.editCRM
+			window.app.editCRM.getEditCrmNodes(window.app.editCRM
 				.getPrevColumn(this as EditCrmItem)).forEach(function(item: EditCrmItem) {
 				if ((item.item as MenuNode & {
 						expanded: boolean;
@@ -326,12 +422,22 @@ class DNB {
 		this._updateCursorPosition(event);
 
 		this.style.position = 'absolute';
-		this._filler = $('<div class="crmItemFiller"></div>').get(0) as any;
+		this._filler = $('<div class="crmItemFiller"></div>').get(0) as FillerElement;
 		this._filler.state = {
 			type: 'between',
 			indexBefore: this.index - 1,
 			indexAfter: this.index,
 			column: (this.parentElement as CRMBuilderColumn).index
+		}
+		this._filler.isFiller = true;
+		this._filler.getIndex = () => {
+			if (this.previousSibling) {
+				return (this.previousSibling as EditCrmItem).index + 1;
+			} else if (this.nextSibling) {
+				return (this.nextSibling as EditCrmItem).index - 1;
+			}
+			//If it has no siblings, it's the only node and as such the first
+			return 0;
 		}
 
 		document.body.addEventListener('mouseup', () => {
@@ -357,7 +463,7 @@ class DNB {
 		if (this.isMenu && (this.parentElement as HTMLDomRepeatElement).items[this.index].expanded) {
 			//Collapse any columns to the right of this
 			var columnContChildren = window.app.editCRM.getColumns();
-			for (var i = this.column + 1; i < columnContChildren.length; i++) {
+			for (var i = this.column() + 1; i < columnContChildren.length; i++) {
 				columnContChildren[i].style.display = 'none';
 			}
 		}
@@ -366,7 +472,7 @@ class DNB {
 		this.$.itemCont.style.marginTop = `${this.index * 50}px`;
 
 		window.app.editCRM.insertBefore(this, window.app.editCRM.children[0]);
-		this._onDrag();
+		this.async(this._onDrag, 0);
 	}
 
 	static init(this: DraggableNodeBehaviorInstance) {
@@ -386,7 +492,6 @@ class DNB {
 				this._stopDrag();
 			}
 		});
-		this.column = (this.parentNode as CRMBuilderColumn).index;
 	}
 };
 

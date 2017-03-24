@@ -177,6 +177,8 @@ class EC {
 		}
 		return (this.columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element: CRMColumn|HTMLElement) {
 			return element.classList.contains('CRMEditColumnCont');
+		}).map((columnCont: CRMColumn) => {
+			return columnCont.querySelector('.CRMEditColumn');
 		}));
 	};
 
@@ -186,6 +188,15 @@ class EC {
 	static getColumn(this: EditCrm, index: number): CRMColumn {
 		return this.getColumns()[index];
 	};
+
+	static getNodeColumnIndex(this: EditCrm, node: EditCrmItem|FillerElement): number {
+		if (node.isFiller === false) {
+			return node.column();
+		}
+		return (node.parentNode as HTMLElement & {
+			index: number;
+		}).index;
+	}
 
 	/**
 	 * Gets the current column
@@ -226,21 +237,27 @@ class EC {
 			fillerIndex = null;
 		}
 		return this.getColumn((fillerIndex === null ?
-			                       (element.parentNode as HTMLElement & {
-									   index: number;
-								   }).index - 1 :
-			                       fillerIndex - 1));
+			(element.parentNode as HTMLElement & {
+				index: number;
+			}).index - 1 :
+			fillerIndex - 1));
 	};
 
 	/**
 	 * Gets the edit-crm-item nodes in the given colume
 	 */
-	static getEditCrmItems(this: EditCrm, column: CRMColumn, includeTemplate: boolean = false): Array<EditCrmItem> {
-		return $(column)
-			.children('paper-material')
-			.children('.CRMEditColumn')
-			.children(!includeTemplate ? 'edit-crm-item' : undefined)
-			.toArray() as Array<EditCrmItem>;
+	static getEditCrmNodes(this: EditCrm, column: CRMColumn): Array<EditCrmItem|FillerElement> {
+		return Array.prototype.slice.apply(column.children).filter((el: HTMLElement) => {
+			const tagName = el.tagName.toLowerCase();
+			return tagName === 'div' || tagName === 'edit-crm-item';
+		});
+	};
+
+	static getEditCrmItems(this: EditCrm, column: CRMColumn): Array<EditCrmItem> {
+		return Array.prototype.slice.apply(column.children).filter((el: HTMLElement) => {
+			const tagName = el.tagName.toLowerCase();
+			return tagName === 'edit-crm-item';
+		});
 	};
 
 	static getCurrentTypeIndex(this: EditCrm, path: Array<number>): number {

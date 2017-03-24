@@ -1266,6 +1266,8 @@ class CA {
 	 * Uploads the settings to chrome.storage
 	 */
 	static upload(this: CrmApp, force: boolean = false) {
+		return;
+
 		//Send changes to background-page, background-page uploads everything
 		//Compare storageLocal objects
 		var localChanges: Array<{

@@ -68,16 +68,28 @@ class ECI {
 	 */
 	static isDivider: boolean = false;
 
+	static _column: number = -1;
+
 	/**
 	 * The index of the item's column
 	 */
-	static column: number = -1;
+	static column(this: DraggableNodeBehaviorInstance): number {
+		if (this._column === -1) {
+			if (this.dragging) {
+				return this._column = (this._filler.parentNode as CRMBuilderColumn).index;
+			}
+			return this._column = (this.parentNode as CRMBuilderColumn).index;
+		}
+		return this._column;
+	}
 
 	static properties = editCrmItemProperties;
 
 	static itemIndex: number;
 
 	static index: number;
+
+	static isFiller: false = false;
 
 	//#region typeIndicatorProperties
 

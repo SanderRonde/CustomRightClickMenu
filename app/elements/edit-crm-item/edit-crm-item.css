@@ -18,6 +18,10 @@
 		opacity: 0.5;
 	}
 
+	edit-crm-item.dragging {
+		outline: none;
+	}
+
 #typeSwitcher {
 	height: 100%;
 	text-transform: uppercase;
@@ -149,6 +153,10 @@ edit-crm-item.selecting #checkboxCont {
 
 edit-crm-item.selecting #dragger {
 	display:none;
+}
+
+edit-crm-item.pulse .item {
+	background-color: #91ff9f;
 }
 
 paper-checkbox {
