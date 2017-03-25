@@ -70,8 +70,6 @@ class ECI {
 
 	static index: number;
 
-	//#region typeIndicatorProperties
-
 	/**
      * The element to be animated
      */
@@ -91,8 +89,6 @@ class ECI {
 	 * The column this element is currently in
 	 */
 	static currentColumn: CRMColumnElement;
-
-	//#endregion
 
 	static _openCodeSettings(this: EditCrmItem) {
 		window.app.initCodeOptions(this.item as ScriptNode|StylesheetNode);

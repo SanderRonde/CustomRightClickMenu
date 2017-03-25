@@ -83,7 +83,6 @@ type PaperSearchWebsiteDialogWindow = 'initialWindow'|
 class PSWD {
 	static is: any = 'paper-search-website-dialog';
 
-	//#region property declarations
 	/**
 	 * The path of windows chosen
 	 */
@@ -110,9 +109,7 @@ class PSWD {
 		];
 
 	static properties = paperSearchWebsiteDialogProperties;
-	//#endregion
 
-	//#region navigation functions
 	/**
 	 * Gets the result of the query when choosing given searchQuery
 	 */
@@ -192,9 +189,7 @@ class PSWD {
 			_this.switchToWindow('manuallyInputSearchWebsiteWindow');
 		});
 	};
-	//#endregion
 
-	//#region Event handlers
 	/**
 	 * Inserts the chosen code and closes the dialog
 	 */
@@ -319,9 +314,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 			this.switchToWindow('manuallyInputSearchWebsiteWindow');
 		}
 	};
-	//#endregion
 
-	//#region Element's functions
 	/**
 	 * Clears all inputted information
 	 */
@@ -394,7 +387,6 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	static fit(this: PaperSearchWebsiteDialog) {
 		this.$.paperSearchWebsiteDialog.fit();
 	}
-	//#endregion
 }
 
 Polymer(PSWD);

@@ -20,9 +20,7 @@ class STE {
 	static properties = stylesheetEditProperties;
 
 	static editorPlaceHolderAnimation: Animation;
-	//#endregion
 
-	//#region Dialog
 	static getExportData(this: NodeEditBehaviorStylesheetInstance): StylesheetNode {
 		($('stylesheet-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings = {};
@@ -58,9 +56,7 @@ class STE {
 		window.externalEditor.cancelOpenFiles();
 		this.active = false;
 	};
-	//#endregion
 
-	//#region Fullscreen
 	/**
 	 * Pops in the ribbons with an animation
 	 */
@@ -352,9 +348,7 @@ class STE {
 			});
 		}, 800);
 	};
-	//#endregion
 
-	//#region Options
 	/**
 	 * Shows the options for the editor
 	 */
@@ -452,7 +446,6 @@ class STE {
 			}
 		});
 	};
-	//#endregion
 
 	/**
 	 * Reloads the editor completely (to apply new settings)

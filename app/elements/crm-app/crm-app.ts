@@ -1700,7 +1700,6 @@ class CA {
 		}
 	};
 
-	//#region First-Time Data
 	static cutData(this: CrmApp, data: any) {
 		var obj: {
 			[key: string]: string;
@@ -2292,7 +2291,6 @@ class CA {
 			return false;
 		}
 	};
-	//#endregion
 
 	static buildNodePaths(this: CrmApp, tree: CRMTree, currentPath: Array<number>) {
 		for (var i = 0; i < tree.length; i++) {

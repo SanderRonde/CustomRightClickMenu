@@ -535,7 +535,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		secretKey: Array<number>, getInstances: () => Array<string>,
 	callback: (worker: any) => void) => void;
 }) => {
-	//#region Global Variables
 	globalObject.globals = {
 		latestId: 0,
 		storages: {
@@ -8219,7 +8218,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		});
 	})();
-	//#endregion
 })(
 	chrome.runtime.getURL('').split('://')[1]
 	.split('/')[0],

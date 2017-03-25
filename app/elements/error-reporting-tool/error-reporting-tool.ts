@@ -151,7 +151,6 @@ class ERT {
 		});
 	};
 
-	//#region Selection Square
 	static px(this: ErrorReportingTool, num: number): string {
 		return num + 'px';
 	};
@@ -251,7 +250,6 @@ class ERT {
 				break;
 		}
 	};
-	//#endregion
 	
 	static hideScreencapArea(this: ErrorReportingTool) {
 		this.$.highlightingTopSquare.style.height = '100vh';

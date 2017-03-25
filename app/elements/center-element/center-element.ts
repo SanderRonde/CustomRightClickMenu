@@ -102,7 +102,7 @@ class CE {
 
 	static properties = centerElementProperties;
 
-	/*
+	/**
 	 * Recalculates all the styles that should be applied
 	 */
 	static recalculateStyles(this: CenterElement) {

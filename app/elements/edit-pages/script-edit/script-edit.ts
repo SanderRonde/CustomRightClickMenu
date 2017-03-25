@@ -79,9 +79,7 @@ class SCE {
 			__this.triggerCheckboxChange.apply(__this, [this]);
 		});
 	};
-	//#endregion
 
-	//#region DialogFunctions
 	static disableButtons(this: NodeEditBehaviorScriptInstance) {
 		this.$.dropdownMenu.disable();
 	};
@@ -327,9 +325,7 @@ class SCE {
 			scriptPermissionDialog.open();
 		});
 	};
-	//#endregion
 
-	//#region Fullscreen
 	/**
 	 * Fills the editor-tools-ribbon on the left of the editor with elements
 	 */
@@ -630,9 +626,7 @@ class SCE {
 			});
 		}, 800);
 	};
-	//#endregion
 
-	//#region Options
 	/**
 	 * Shows the options for the editor
 	 */
@@ -729,9 +723,6 @@ class SCE {
 			}
 		});
 	};
-	//#endregion
-
-	//#region Editor
 
 	/**
 	 * Reloads the editor completely (to apply new settings)
@@ -1185,7 +1176,6 @@ class SCE {
 			undoDepth: 500
 		});
 	};
-	//#endregion
 
 	static init(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
