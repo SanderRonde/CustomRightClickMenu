@@ -15,8 +15,6 @@ type CodeEditBehaviorStylesheetInstance = CodeEditBehaviorIntanceBase &
 type CodeEditBehavior = NodeEditBehaviorScriptInstance|
 	NodeEditBehaviorStylesheetInstance;
 
-type CodeNode = ScriptNode|StylesheetNode;
-
 class CEB {
 	/**
 	 * An interval to save any work not discarder or saved (say if your browser/pc crashes)
@@ -114,16 +112,6 @@ class CEB {
 	} = {};
 
 	/**
-	 * Prevent the codemirror editor from signalling again for a while
-	 */
-	static preventNotification: boolean = false;
-
-	/**
-	 * The timeout that resets the preventNotification bool
-	 */
-	static preventNotificationTimeout: number = null;
-
-	/**
 	 * The mode the editor is in (main or background)
 	 */
 	static editorMode: 'main'|'background'|'options' = 'main';
@@ -131,16 +119,6 @@ class CEB {
 	static _updateZoomEl: () => void;
 
 	static _updateTabSizeEl: () => void;
-
-	/**
-	 * The fullscreen animation
-	 */
-	static fullscreenAnimation: Animation = null;
-
-	/**
-	 * The show options animation player
-	 */
-	static optionsAnimations: Array<Animation> = [];
 
 	static editorPlaceHolderAnimation: Animation;
 

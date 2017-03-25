@@ -131,46 +131,13 @@ const properties: {
 	}
 } as any;
 
-interface PersistentScriptConversionData {
-	script: string;
-	lines: Array<string>;
+interface PersistentData {
 	lineSeperators: Array<{
 		start: number;
 		end: number;
 	}>;
-	passes: number;
-	diagnostic: boolean;
-}
-
-interface ScriptConversionData {
-	parentExpressions: Array<Tern.Expression>;
-	functionCall: Array<string>;
-	isReturn: boolean;
-	isValidReturn: boolean;
-	returnName: string;
-	returnExpr: Tern.Expression;
-	expression: Tern.Expression;
-	persistent: PersistentScriptConversionData;
-}
-
-interface PersistentData {
-	persistent: {
-		passes: number;
-		diagnostic: boolean;
-		lineSeperators: Array<{
-			start: number;
-			end: number;
-		}>;
-		script: string;
-		lines: Array<string>;
-	};
-	parentExpressions: Array<Tern.Expression>;
-	functionCall: Array<string>;
-	isReturn: boolean;
-	isValidReturn: boolean;
-	returnExpr: Tern.Expression;
-	returnName: string;
-	expression: Tern.Expression;
+	script: string;
+	lines: Array<string>;
 }
 
 type TransferOnErrorError = {
@@ -225,11 +192,6 @@ class CA {
 	 * The item to show, if it is a stylesheet
 	 */
 	static stylesheetItem: StylesheetNode;
-
-	/**
-	 * The file that is used to write to when using an exteral editor
-	 */
-	static file: FileEntry = null;
 
 	/**
 	 * The last-used unique ID
@@ -300,17 +262,6 @@ class CA {
 			}
 		}
 		return node;
-	}
-
-	static arrayToObj<T extends Array<S>, S extends {
-		key: I;
-		value: U
-	}, U, I extends string>(arr: T): Record<I, U> {
-		const obj: Record<I, U> = {} as Record<I, U>;
-		arr.forEach((el) => {
-			obj[el.key] = el.value;
-		});
-		return obj;
 	}
 
 	static getPageTitle(): string {
@@ -1211,24 +1162,6 @@ class CA {
 		return false;
 	};
 
-	static getArrDifferences<T, S>(this: CrmApp, arr1: Array<T>, arr2: Array<S>, changes: Array<{
-		oldValue: S;
-		newValue: T;
-		key: number;
-	}>): boolean {
-		for (var index = 0; index < arr1.length; index++) {
-			if (this.areValuesDifferent(arr1[index], arr2[index])) {
-				changes.push({
-					oldValue: arr2[index],
-					newValue: arr1[index],
-					key: index
-				});
-			}
-		}
-
-		return changes.length > 0;
-	};
-
 	static getObjDifferences<T, S>(this: CrmApp, obj1: {
 		[key: string]: T
 		[key: number]: T
@@ -1821,22 +1754,18 @@ class CA {
 
 	static legacyScriptReplace = class LegacyScriptReplace {
 		static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
-			data.parentExpressions = data.parentExpressions || [];
-			data.parentExpressions.push(expression);
-
 			switch (expression.type) {
 				case 'Identifier':
 					if (expression.name === 'localStorage') {
-						data.persistent.script = 
-							data.persistent.script.slice(0, expression.start) + 
+						data.script = 
+							data.script.slice(0, expression.start) + 
 							'localStorageProxy' + 
-							data.persistent.script.slice(expression.end);
-						data.persistent.lines = data.persistent.script.split('\n');
+							data.script.slice(expression.end);
+						data.lines = data.script.split('\n');
 						return true;
 					}
 					break;
 				case 'VariableDeclaration':
-					data.isValidReturn = expression.declarations.length === 1;
 					for (let i = 0; i < expression.declarations.length; i++) {
 						//Check if it's an actual chrome assignment
 						var declaration = expression.declarations[i];
@@ -1957,12 +1886,7 @@ class CA {
 			let script = file.text;
 
 			//Check all expressions for chrome calls
-			const persistentData: {
-				lines: Array<any>,
-				lineSeperators: Array<any>,
-				script: string,
-				diagnostic?: boolean;
-			} = {
+			const persistentData: PersistentData = {
 				lines: lines,
 				lineSeperators: this.getLineSeperators(lines),
 				script: script
@@ -1970,9 +1894,7 @@ class CA {
 
 			for (let i = 0; i < scriptExpressions.length; i++) {
 				const expression = scriptExpressions[i];
-				if (this.findLocalStorageExpression(expression, {
-					persistent: persistentData 
-				} as PersistentData)) {
+				if (this.findLocalStorageExpression(expression, persistentData)) {
 					//Margins may have changed, redo tern stuff
 					return this.replaceLocalStorageCalls(persistentData.lines);
 				}
@@ -3758,8 +3680,6 @@ class CA {
 			return window.app;
 		}
 	};
-
-	static _log: Array<any> = [];
 };
 
 Polymer(CA);

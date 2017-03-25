@@ -4,8 +4,6 @@
 /// <reference path="../../tools/definitions/tern.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
 
-type VoidFn = () => void;
-
 interface TabData {
 	id: number|'background';
 	title: string;
@@ -153,20 +151,7 @@ interface Logging {
 	};
 }
 
-//Do not use this for reference, this is just to shut the compiler up,
-//the actual options can be anything
-interface TemplateSetupObject {
-	value?: any;
-	isLocal?: any;
-	name?: any;
-	nodeInfo?: any;
-	triggers?: any;
-	id?: any;
-	children?: any;
-}
-
 interface Window {
-	logs: Array<any>;
 	logging?: Logging;
 	isDev: boolean;
 	createHandlerFunction: (port: {
@@ -203,11 +188,6 @@ interface ContextMenuItemTreeItem {
 	parentId: number;
 	children: Array<ContextMenuItemTreeItem>;
 	parentTree: Array<ContextMenuItemTreeItem>;
-}
-
-interface AnyObj {
-	[key: string]: any;
-	[key: number]: any;
 }
 
 interface CRMSandboxWorker extends Worker {
@@ -6221,7 +6201,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 								return instancesArr;
 							},
-							(worker) => {
+							(worker: CRMSandboxWorker) => {
 								globalObject.globals.background.workers.push(worker);
 								globalObject.globals.background.byId[node.id] = worker;
 								if (isRestart) {
@@ -7352,23 +7332,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		LinkNode | DividerNode;
 
 	interface PersistentData {
-		persistent: {
-			passes: number;
-			diagnostic: boolean;
-			lineSeperators: Array<{
-				start: number;
-				end: number;
-			}>;
-			script: string;
-			lines: Array<string>;
-		};
-		parentExpressions: Array<Tern.Expression>;
-		functionCall: Array<string>;
-		isReturn: boolean;
-		isValidReturn: boolean;
-		returnExpr: Tern.Expression;
-		returnName: string;
-		expression: Tern.Expression;
+		lineSeperators: Array<{
+			start: number;
+			end: number;
+		}>;
+		script: string;
+		lines: Array<string>;
 	}
 
 	type TransferOnErrorError = {
@@ -7385,22 +7354,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static TransferFromOld = class TransferFromOld {
 				static LegacyScriptReplace = class LegacyScriptReplace {
 					static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
-						data.parentExpressions = data.parentExpressions || [];
-						data.parentExpressions.push(expression);
-
 						switch (expression.type) {
 							case 'Identifier':
 								if (expression.name === 'localStorage') {
-									data.persistent.script = 
-										data.persistent.script.slice(0, expression.start) + 
+									data.script = 
+										data.script.slice(0, expression.start) + 
 										'localStorageProxy' + 
-										data.persistent.script.slice(expression.end);
-									data.persistent.lines = data.persistent.script.split('\n');
+										data.script.slice(expression.end);
+									data.lines = data.script.split('\n');
 									return true;
 								}
 								break;
 							case 'VariableDeclaration':
-								data.isValidReturn = expression.declarations.length === 1;
 								for (let i = 0; i < expression.declarations.length; i++) {
 									//Check if it's an actual chrome assignment
 									var declaration = expression.declarations[i];
@@ -7521,12 +7486,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						let script = file.text;
 
 						//Check all expressions for chrome calls
-						const persistentData: {
-							lines: Array<any>,
-							lineSeperators: Array<any>,
-							script: string,
-							diagnostic?: boolean;
-						} = {
+						const persistentData: PersistentData = {
 							lines: lines,
 							lineSeperators: this.getLineSeperators(lines),
 							script: script
@@ -7534,9 +7494,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						for (let i = 0; i < scriptExpressions.length; i++) {
 							const expression = scriptExpressions[i];
-							if (this.findLocalStorageExpression(expression, {
-								persistent: persistentData 
-							} as PersistentData)) {
+							if (this.findLocalStorageExpression(expression, persistentData)) {
 								//Margins may have changed, redo tern stuff
 								return this.replaceLocalStorageCalls(persistentData.lines);
 							}

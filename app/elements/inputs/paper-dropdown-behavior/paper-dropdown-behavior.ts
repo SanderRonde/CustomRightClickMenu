@@ -68,11 +68,6 @@ class PDB {
 	static indent: boolean = true;
 
 	/**
-	 * The previous state before the current one
-	 */
-	static _prevState: number = null;
-
-	/**
 	 * Whether the menu is disabled
 	 */
 	static disabled: boolean = false;
@@ -84,7 +79,7 @@ class PDB {
 
 	static overflowing: boolean;
 
-	/*
+	/**
 	 * Adds a listener that fires when a new value is selected
 	 */
 	static _addListener(this: PaperDropdownInstance, listener: PaperDropdownListener,
@@ -104,7 +99,7 @@ class PDB {
 		}
 	};
 
-	/*
+	/**
 	 * Fires all added listeners, triggers when a new value is selected
 	 */
 	static _fireListeners(this: PaperDropdownInstance) {
@@ -151,7 +146,7 @@ class PDB {
 		}
 	};
 
-	/*
+	/**
 	 * Animates the box-shadow in on clicking the main blue text
 	 */
 	static _animateBoxShadowIn(timestamp: number, _this: PaperDropdownInstance) {
@@ -180,7 +175,7 @@ class PDB {
 		}
 	};
 
-	/*
+	/**
 	 * Animates the box-shadow out on clicking the main blue text again
 	 */
 	static _animateBoxShadowOut(timestamp: number, _this: PaperDropdownInstance) {
@@ -210,7 +205,7 @@ class PDB {
 		}
 	};
 
-	/*
+	/**
 	 * Open the dropdown menu
 	*/
 	static open(this: PaperDropdownInstance) {
@@ -248,7 +243,7 @@ class PDB {
 		}
 	};
 
-	/*
+	/**
 	 * Close the dropdown menu
 	 */
 	static close(this: PaperDropdownInstance) {
@@ -278,7 +273,7 @@ class PDB {
 		}
 	};
 
-	/*
+	/**
 	 * Toggles the dropdown menu, tirggers on clicking the main blue text
 	 */
 	static _toggleDropdown(this: PaperDropdownInstance) {

@@ -54,7 +54,7 @@ class PDM {
 		return !!this.fancylabel;
 	}
 
-	/*
+	/**
 	 * Fires when the selected item changes
 	 */
 	static _dropdownSelectChange(_this: PaperDropdownMenu) {

@@ -156,10 +156,6 @@ class ERT {
 		return num + 'px';
 	};
 
-	static translate(this: ErrorReportingTool, x: string, y: string): string {
-		return 'translate(' + x + ', ' + y + ')';
-	};
-
 	static translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
 		el.xPos = x;
 		el.style.transform = 'translate(' + x + ',' + (el.yPos || '0px') + ')';

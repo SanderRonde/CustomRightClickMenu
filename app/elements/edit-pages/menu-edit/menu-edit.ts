@@ -10,10 +10,6 @@ const menuEditProperties: {
 	}
 } as any;
 
-interface MenuEditBehaviorProperties extends NodeEditBehaviorProperties {
-	newSettings: Partial<MenuNode>;
-}
-
 type MenuEdit = PolymerElement<'menu-edit', typeof ME & typeof dividerEditProperties>;
 
 class ME {

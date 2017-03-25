@@ -10,10 +10,6 @@ const dividerEditProperties: {
 	}
 } as any;
 
-interface DividerEditBehaviorProperties extends NodeEditBehaviorProperties {
-	newSettings: Partial<DividerNode>;
-}
-
 type DividerEdit = PolymerElement<'divider-edit', typeof DE & typeof dividerEditProperties>;
 
 class DE {

@@ -10,10 +10,6 @@ const linkEditProperties: {
 	}
 } as any;
 
-interface LinkEditBehaviorProperties extends NodeEditBehaviorProperties {
-	newSettings: Partial<ScriptNode>;
-}
-
 type LinkEdit = PolymerElement<'link-edit', typeof SCE & typeof linkEditProperties>;
 
 class LE {

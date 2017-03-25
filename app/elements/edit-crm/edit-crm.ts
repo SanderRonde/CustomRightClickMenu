@@ -51,11 +51,6 @@ const editCrmProperties: {
 
 type EditCrm = PolymerElement<'edit-crm', typeof EC & typeof editCrmProperties>;
 
-interface DragCoordinate {
-	X: number;
-	Y: number;
-}
-
 interface CRMColumn {
 	list: Array<CRMNode & {
 		expanded: boolean;
@@ -195,39 +190,6 @@ class EC {
 	static setMenus: Array<number> = [];
 
 	/**
-	 * The element used to display drag area
-	 */
-	static dragAreaEl: HTMLElement = null;
-
-	/**
-	 * The coordinates of the location the user started dragging
-	 * 
-	 * @attribute dragAreaPos
-	 * @type Object
-	 * @default null
-	 */
-	static dragAreaPos: DragCoordinate = null;
-
-	/**
-	 * The handler for scrolling the body
-	 * 
-	 * @attribute scrollHandler
-	 * @type Function
-	 * @default null
-	 */
-	static scrollHandler: EventListenerObject = null;
-
-	/**
-	 * The last drag event
-	 */
-	static lastDragEvent: MouseEvent;
-
-	/**
-	 * The leftmost CRM column for getting scroll from the left
-	 */
-	static firstCRMColumnEl: HTMLElement = null;
-
-	/**
 	 * A list of selected nodes
 	 */
 	static selectedElements: Array<number> = [];
@@ -246,10 +208,6 @@ class EC {
 	 * The sortable object
 	 */
 	static sortables: Array<Sortable.Instance> = [];
-
-	static firstCRMColumn() {
-		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2] as HTMLElement));
-	};
 
 	static properties = editCrmProperties;
 
@@ -282,24 +240,6 @@ class EC {
 		}).map((columnCont: CRMColumnElement) => {
 			return columnCont.querySelector('.CRMEditColumn');
 		}));
-	};
-
-	static getCurrentTypeIndex(this: EditCrm, path: Array<number>): number {
-		var i;
-		var hiddenNodes: {
-			[nodeId: number]: boolean; 
-		} = {};
-		for (i = 0; i < window.app.settings.crm.length; i++) {
-			this.isNodeVisible(hiddenNodes, window.app.settings.crm[i], window.app.crmType);
-		}
-		var items: Array<EditCrmItem> = $($(window.app.editCRM.$.mainCont).children('.CRMEditColumnCont')[path.length - 1]).children('paper-material').children('.CRMEditColumn')[0].children as any;
-		var index = path[path.length - 1];
-		for (i = 0; i < items.length; i++) {
-			if (items[i].item && items[i].item.id && hiddenNodes[items[i].item.id]) {
-				index--;
-			}
-		}
-		return index;
 	};
 
 	/**

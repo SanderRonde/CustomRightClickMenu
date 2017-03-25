@@ -64,15 +64,11 @@ class ECI {
 	 */
 	static isDivider: boolean = false;
 
-	static _column: number = -1;
-
 	static properties = editCrmItemProperties;
 
 	static itemIndex: number;
 
 	static index: number;
-
-	static isFiller: false = false;
 
 	//#region typeIndicatorProperties
 
@@ -171,16 +167,6 @@ class ECI {
 				}
 			});
 		}
-	};
-
-	static recalculateIndex(this: EditCrmItem, itemsObj: CRMBuilder) {
-		this.index = $(this.parentNode).children().toArray().indexOf(this);
-		this.item = (itemsObj[
-			$(this.parentNode.parentNode.parentNode)
-				.children()
-				.toArray()
-				.indexOf(this.parentElement.parentElement) as number
-			] as CRMBuilderColumn).list[this.index];
 	};
 
 	static openMenu(this: EditCrmItem) {

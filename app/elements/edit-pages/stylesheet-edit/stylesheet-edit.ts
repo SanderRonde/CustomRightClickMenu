@@ -10,31 +10,12 @@ const stylesheetEditProperties: {
 	}
 } as any;
 
-interface StylesheetEditBehaviorProperties extends NodeEditBehaviorProperties {
-	newSettings: Partial<StylesheetNode>;
-}
-
 type StylesheetEdit = PolymerElement<'stylesheet-edit', typeof STE & typeof stylesheetEditProperties>;;
 
 class STE {
 	static is: any = 'stylesheet-edit';
 
 	static behaviors: any = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
-
-	/**
-	 * The fullscreen animation
-	 */
-	static fullscreenAnimation: Animation = null;
-
-	/**
-	 * The show options animation player
-	 */
-	static optionsAnimations: Array<Animation> = [];
-
-	/**
-	 * The timeout that resets the preventNotification bool
-	 */
-	static preventNotificationTimeout: number = null;
 
 	static properties = stylesheetEditProperties;
 

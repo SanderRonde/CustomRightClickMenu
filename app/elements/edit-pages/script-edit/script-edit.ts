@@ -12,10 +12,6 @@ const scriptEditProperties: {
 
 type ChangeType = 'removed'|'added'|'changed';
 
-interface ScriptEditBehaviorProperties extends NodeEditBehaviorProperties {
-	newSettings: Partial<ScriptNode>;
-}
-
 type ScriptEdit = PolymerElement<'script-edit', typeof SCE & typeof scriptEditProperties>;
 
 class SCE {
@@ -24,245 +20,6 @@ class SCE {
 	static behaviors = [Polymer.NodeEditBehavior, Polymer.CodeEditBehavior];
 
 	static properties = scriptEditProperties;
-
-	//#region Metadata Updates
-	static preventCodemirrorNotification(this: NodeEditBehaviorScriptInstance) {
-		var _this = this;
-		this.preventNotification = true;
-		if (this.preventNotificationTimeout) {
-			window.clearTimeout(this.preventNotificationTimeout);
-		}
-		this.preventNotificationTimeout = window.setTimeout(function() {
-			_this.preventNotification = false;
-			_this.preventNotificationTimeout = null;
-		}, 20);
-	};
-
-	static updateFromScriptApplier(this: NodeEditBehaviorScriptInstance, changeType: ChangeType, key: string,
-			value: any, oldValue: any) {
-		var i;
-		var _this = this;
-		var metaTags = this.newSettings.value.metaTags;
-
-		//Register as a resource
-		function sendCreateAnonymousLibraryMessage(val: string) {
-			chrome.runtime.sendMessage({
-				type: 'anonymousLibrary',
-				data: {
-					type: 'register',
-					name: val,
-					url: val,
-					scriptId: _this.item.id
-				}
-			});
-		}
-
-		function sendRemoveAnonymousLibraryMessage(val: string) {
-			chrome.runtime.sendMessage({
-				type: 'anonymousLibrary',
-				data: {
-					type: 'remove',
-					name: val,
-					url: val,
-					scriptId: _this.item.id
-				}
-			});
-		}
-
-		function sendCreateMessage(val: string) {
-			chrome.runtime.sendMessage({
-				type: 'resource',
-				data: {
-					type: 'register',
-					name: val.split(/(\s+)/)[0],
-					url: val.split(/(\s+)/)[1],
-					scriptId: _this.item.id
-				}
-			});
-		}
-
-		function sendRemoveMessageval(val: string) {
-			chrome.runtime.sendMessage({
-				type: 'resource',
-				data: {
-					type: 'remove',
-					name: val.split(/(\s+)/)[0],
-					url: val.split(/(\s+)/)[1],
-					scriptId: _this.item.id
-				}
-			});
-		}
-
-
-		switch (key) {
-			case 'downloadURL':
-			case 'updateURL':
-			case 'namespace':
-				if (changeType === 'removed') {
-					if (this.newSettings.nodeInfo.source && this.newSettings.nodeInfo.source.url) {
-						this.newSettings.nodeInfo.source.url = ((metaTags['downloadURL'] && metaTags['downloadURL'][0]) ||
-							(metaTags['updateURL'] && metaTags['updateURL'][0]) ||
-							(metaTags['namespace'] && metaTags['namespace'][0]) ||
-							this.newSettings.nodeInfo.source.downloadURL ||
-							null) as string;
-					}
-				} else {
-					this.newSettings.nodeInfo.source = this.newSettings.nodeInfo.source || {
-						updateURL: (key === 'namespace' ? '' : undefined),
-						url: value[0]
-					};
-					if (key === 'namespace') {
-						this.newSettings.nodeInfo.source.updateURL = value[0];
-					}
-					if (!this.newSettings.nodeInfo.source.url) {
-						this.newSettings.nodeInfo.source.url = value[0];
-					}
-					window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
-				}
-				break;
-			case 'name':
-				this.set('newSettings.name', (changeType === 'removed') ? '' : value[0]);
-				window.crmEditPage.updateName(this.newSettings.name);
-				break;
-			case 'version':
-				if (!this.newSettings.nodeInfo) {
-					this.newSettings.nodeInfo = {
-						permissions: []
-					};
-				}
-				this.set('newSettings.nodeInfo.version', (changeType === 'removed') ? null : value[0]);
-				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
-				break;
-			case 'require':
-				//Change anonymous libraries to requires
-				var libraries = this.newSettings.value.libraries;
-				if (changeType === 'added') {
-					libraries.push({
-						name: null,
-						url: value
-					});
-				} else {
-					let toSearch = changeType === 'changed' ? 
-						oldValue : value;
-					let index = -1;
-					for (let i = 0 ; i < libraries.length; i++) {
-						if (libraries[i].url === toSearch) {
-							index = i;
-							break;
-						}
-					}
-					if (changeType === 'changed') {
-						libraries.splice(index, 1, {
-							name: null,
-							url: value
-						});
-					} else {
-						libraries.splice(index, 1);
-					}
-				}
-
-				this.set('newSettings.value.libraries', libraries);
-				window.paperLibrariesSelector.updateLibraries(libraries);
-
-				switch (changeType) {
-					case 'added':
-						sendCreateAnonymousLibraryMessage(value as string);
-						break;
-					case 'changed':
-						sendRemoveAnonymousLibraryMessage(oldValue);
-						sendCreateAnonymousLibraryMessage(value);
-						break;
-					case 'removed':
-						sendRemoveAnonymousLibraryMessage(value);
-						break;
-				}
-				break;
-			case 'author':
-				this.set('newSettings.nodeInfo.source.author', (changeType === 'removed') ? null : value[0]);
-				window.crmEditPage.updateNodeInfo(this.newSettings.nodeInfo);
-				break;
-			case 'include':
-			case 'match':
-			case 'exclude':
-				var isExclude = (key === 'exclude');
-				if (changeType === 'changed' || changeType === 'removed') {
-					var triggers = this.newSettings.triggers;
-					for (i = 0; i < triggers.length; i++) {
-						if (JSON.stringify(value[i]) !== JSON.stringify(oldValue[i])) {
-							if (changeType === 'changed') {
-								//Replace this one
-								this.set('newSettings.triggers.' + i + '.url', value[0]);
-								this.set('newSettings.triggers.' + i + '.not', isExclude);
-							} else {
-								//Remove this one
-								this.splice('newSettings.triggers', i, 1);
-							}
-							break;
-						}
-					}
-				} else {
-					//Add another one
-					if (!this.newSettings.triggers) {
-						this.newSettings.triggers = [];
-					}
-
-					this.push('newSettings.triggers', {
-						url: value,
-						not: isExclude
-					});
-				}
-				break;
-			case 'resource':
-				//Get the one that was added
-				switch (changeType) {
-					case 'added':
-						sendCreateMessage(value);
-						break;
-					case 'changed':
-						sendRemoveMessageval(oldValue);
-						sendCreateMessage(value);
-						break;
-					case 'removed':
-						sendRemoveMessageval(value);
-						break;
-				}
-				break;
-			case 'grant':
-				this.newSettings.nodeInfo = this.newSettings.nodeInfo || {
-					permissions: []
-				};
-				this.newSettings.nodeInfo.permissions = this.newSettings.nodeInfo.permissions || [];
-
-				this.set('newSettings.nodeInfo.permissions', value);
-				break;
-			case 'CRM_contentType':
-				var val = value[0];
-				var valArray;
-				try {
-					valArray = JSON.parse(val);
-				} catch (e) {
-					valArray = [];
-				}
-				for (i = 0; i < 6; i++) {
-					if (valArray[i]) {
-						valArray[i] = true;
-					} else {
-						valArray[i] = false;
-					}
-				}
-
-				//If removed, don't do anything
-				if (changeType !== 'removed') {
-					this.set('newSettings.onContentTypes', valArray);
-				}
-				break;
-			case 'CRM_launchMode':
-				if (changeType !== 'removed') {
-					this.set('newSettings.value.launchMode', ~~value[0]);
-				}
-				break;
-		}
-	};
 
 	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
 		if (this.querySelectorAll('.executionTrigger').length === 1) {
@@ -573,10 +330,9 @@ class SCE {
 	//#endregion
 
 	//#region Fullscreen
-	/*
-		* Fills the editor-tools-ribbon on the left of the editor with elements
-		* @param {element} The - ribbon element to fill
-		*/
+	/**
+	 * Fills the editor-tools-ribbon on the left of the editor with elements
+	 */
 	static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
@@ -585,9 +341,9 @@ class SCE {
 		});
 	};
 
-	/*
-		* Pops in the ribbons with an animation
-		*/
+	/**
+	 * Pops in the ribbons with an animation
+	 */
 	static popInRibbons(this: NodeEditBehaviorScriptInstance) {
 		//Introduce title at the top
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
@@ -657,9 +413,9 @@ class SCE {
 		}, 200);
 	};
 
-	/*
-		* Pops in only the tools ribbon
-		*/
+	/**
+	 * Pops in only the tools ribbon
+	 */
 	static popInToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		window.doc.editorToolsRibbonContainer.style.display = 'flex';
 		window.doc.editorToolsRibbonContainer.animate([
@@ -676,9 +432,9 @@ class SCE {
 		};
 	};
 
-	/*
-		* Pops out the ribbons with an animation
-		*/
+	/**
+	 * Pops out the ribbons with an animation
+	 */
 	static popOutRibbons(this: NodeEditBehaviorScriptInstance) {
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var toolsRibbon = window.app.$.editorToolsRibbonContainer;
@@ -748,9 +504,9 @@ class SCE {
 		}
 	};
 
-	/*
-		* Enters fullscreen mode for the editor
-		*/
+	/**
+	 * Enters fullscreen mode for the editor
+	 */
 	static enterFullScreen(this: NodeEditBehaviorScriptInstance) {
 		if (this.fullscreen) {
 			return;
@@ -833,9 +589,9 @@ class SCE {
 		});
 	};
 
-	/*
-		* Exits the editor's fullscreen mode
-		*/
+	/**
+	 * Exits the editor's fullscreen mode
+	 */
 	static exitFullScreen(this: NodeEditBehaviorScriptInstance) {
 		if (!this.fullscreen) {
 			return;
@@ -932,9 +688,9 @@ class SCE {
 		});
 	};
 
-	/*
-		* Hides the options for the editor
-		*/
+	/**
+	 * Hides the options for the editor
+	 */
 	static hideOptions(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		var settingsInitialMarginLeft = -500;
@@ -977,9 +733,9 @@ class SCE {
 
 	//#region Editor
 
-	/*
-		* Reloads the editor completely (to apply new settings)
-		*/
+	/**
+	 * Reloads the editor completely (to apply new settings)
+	 */
 	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
 		if (this.editor) {
 			$(this.editor.display.wrapper).remove();
@@ -1263,9 +1019,9 @@ class SCE {
 		}
 	};
 
-	/*
-		* Initializes the keybindings for the editor
-		*/
+	/**
+	 * Initializes the keybindings for the editor
+	 */
 	static initTernKeyBindings(this: NodeEditBehaviorScriptInstance) {
 		var keySettings: {
 			[key: string]: (cm: CodeMirrorInstance) => void;
@@ -1279,9 +1035,9 @@ class SCE {
 		});
 	};
 
-	/*
-		* Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
-		*/
+	/**
+	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
+	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirrorInstance) {
 		var _this = this;
 		this.editor = editor;

@@ -71,11 +71,6 @@ class CEP {
 	static behaviors = [Polymer.NeonAnimationRunnerBehavior];
 
 	/**
-	 * The item that was originally clicked on
-	 */
-	static clicksrc: HTMLElement;
-
-	/**
 	 * Whether the item is a link
 	 */
 	static isLink: boolean = false;
@@ -184,7 +179,7 @@ class CEP {
 		}
 	};
 
-	static unassignItems() {
+	static unassignItems(this: CrmEditPage) {
 		this.isLink = this.isScript = this.isStylesheet = this.isMenu = this.isDivider = false;
 		this.linkItem = this.scriptItem = this.stylesheetItem = this.menuItem = this.dividerItem = {} as any;
 	};
