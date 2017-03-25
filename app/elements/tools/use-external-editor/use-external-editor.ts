@@ -1,6 +1,6 @@
 /// <reference path="../../elements.d.ts" />
 
-type UseExternalEditor = PolymerElement<'use-external-editor', typeof UEE>;
+type UseExternalEditor = Polymer.El<'use-external-editor', typeof UEE>;
 
 type ListeningHTMLElement = HTMLElement & {
 	listeners: Array<() => void>

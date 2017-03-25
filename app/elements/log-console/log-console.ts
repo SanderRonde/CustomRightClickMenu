@@ -70,7 +70,7 @@ interface ContextMenuElement extends HTMLElement {
 	source: ContextMenuSource;
 }
 
-type LogConsole = PolymerElement<'log-console', typeof LC & typeof logConsoleProperties>;
+type LogConsole = Polymer.El<'log-console', typeof LC & typeof logConsoleProperties>;
 
 class LC {
 	static is: string = 'log-console';
@@ -97,7 +97,7 @@ class LC {
 		this.set('textfilter', this.$.textFilter.value);
 	};
 
-	static _takeToTab(this: LogConsole, event: PolymerClickEvent) {
+	static _takeToTab(this: LogConsole, event: Polymer.ClickEvent) {
 		var _this = this;
 		var target = event.target;
 		var tabId = (target.children[0] as HTMLElement).innerText;

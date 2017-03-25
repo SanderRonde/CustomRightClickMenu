@@ -12,7 +12,7 @@ const scriptEditProperties: {
 
 type ChangeType = 'removed'|'added'|'changed';
 
-type ScriptEdit = PolymerElement<'script-edit', typeof SCE & typeof scriptEditProperties>;
+type ScriptEdit = Polymer.El<'script-edit', typeof SCE & typeof scriptEditProperties>;
 
 class SCE {
 	static is: string = 'script-edit';
@@ -21,7 +21,7 @@ class SCE {
 
 	static properties = scriptEditProperties;
 
-	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
+	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
 		if (this.querySelectorAll('.executionTrigger').length === 1) {
 			window.doc.messageToast.text = 'You need to have at least one trigger';
 			window.doc.messageToast.show();
@@ -43,7 +43,7 @@ class SCE {
 		this.addTrigger();
 	};
 
-	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
+	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
 		const element = window.app.findElementWithTagname(e.path, 'paper-checkbox');
 
 		var elements = $('script-edit .showOnContentItemCheckbox');
@@ -104,7 +104,7 @@ class SCE {
 		}
 	};
 
-	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: PolymerClickEvent) {
+	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
 		const element = window.app.findElementWithClassName(e.path, 'editorTab');
 
 		const isMain = element.classList.contains('mainEditorTab');
@@ -170,7 +170,7 @@ class SCE {
 		this.active = false;
 	};
 
-	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: PolymerClickEvent|ScriptNode,
+	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|ScriptNode,
 			callback: () => void) {
 		var nodeItem: ScriptNode;
 		var settingsStorage: Partial<ScriptNode>;

@@ -152,7 +152,7 @@ type TransferOnErrorError = {
 type TransferOnError = (position: TransferOnErrorError,
 	passes: number) => void;
 
-type CrmApp = PolymerElement<'crm-app', typeof CA & typeof properties & {
+type CrmApp = Polymer.El<'crm-app', typeof CA & typeof properties & {
 	editCRM: EditCrm;
 }>;
 
@@ -238,7 +238,7 @@ class CA {
 
 	static properties = properties;
 	
-	static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<PossiblePolymerElement>, tagName: T): ElementTagNameMaps[T] {
+	static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<Polymer.Element>, tagName: T): ElementTagNameMaps[T] {
 		let index = 0;
 		let node = path[0];
 		while (node.tagName.toLowerCase() !== tagName) {
@@ -251,7 +251,7 @@ class CA {
 		return node;
 	}
 
-	static findElementWithClassName(path: Array<PossiblePolymerElement>, className: string): PossiblePolymerElement {
+	static findElementWithClassName(path: Array<Polymer.Element>, className: string): Polymer.Element {
 		let index = 0;
 		let node = path[0];
 		while (!node.classList.contains(className)) {
@@ -720,7 +720,7 @@ class CA {
 		}
 	};
 
-	static removeGlobalExclude(this: CrmApp, e: PolymerClickEvent) {
+	static removeGlobalExclude(this: CrmApp, e: Polymer.ClickEvent) {
 		const node = this.findElementWithTagname(e.path, 'paper-icon-button');
 
 		var excludeIndex = null;
@@ -742,7 +742,7 @@ class CA {
 		this.push('globalExcludes', '');
 	};
 
-	static globalExcludeChange(this: CrmApp, e: PolymerClickEvent) {
+	static globalExcludeChange(this: CrmApp, e: Polymer.ClickEvent) {
 		const input = this.findElementWithTagname(e.path, 'paper-input');
 
 		var excludeIndex = null;
@@ -942,7 +942,7 @@ class CA {
 		this.fire('crmTypeChanged', {});
 	};
 
-	static iconSwitch(this: CrmApp, e: PolymerClickEvent, type: {
+	static iconSwitch(this: CrmApp, e: Polymer.ClickEvent, type: {
 		x?: any;
 	}|number) {
 		var i;

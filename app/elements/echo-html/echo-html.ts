@@ -15,7 +15,7 @@ const echoHtmlProperties: {
 	}
 } as any;
 
-type EchoHtml = PolymerElement<'echo-html',
+type EchoHtml = Polymer.El<'echo-html',
 	typeof EH & typeof echoHtmlProperties>;
 
 class EH {

@@ -26,7 +26,7 @@ interface Version {
 	minorVersion: number;
 }
 
-type ChangeLog = PolymerElement<'change-log', typeof CL & typeof changeLogProperties>;
+type ChangeLog = Polymer.El<'change-log', typeof CL & typeof changeLogProperties>;
 
 class CL {
 	static is: string = 'change-log';

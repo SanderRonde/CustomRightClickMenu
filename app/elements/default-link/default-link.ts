@@ -14,7 +14,7 @@ const defaultLinkProperties: {
 	}
 } as any;
 
-type DefaultLink = PolymerElement<'default-link',
+type DefaultLink = Polymer.El<'default-link',
 	typeof DL & typeof defaultLinkProperties
 >;
 

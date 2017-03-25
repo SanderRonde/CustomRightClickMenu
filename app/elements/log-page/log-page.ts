@@ -10,7 +10,7 @@ const logPageProperties: {
 	}
 } as any;
 
-type LogPage = PolymerElement<'log-page', typeof LP & typeof logPageProperties>;
+type LogPage = Polymer.El<'log-page', typeof LP & typeof logPageProperties>;
 
 class LP {
 	static is: string = 'log-page';

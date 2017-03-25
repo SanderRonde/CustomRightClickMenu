@@ -1,6 +1,6 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
-type PaperGetPagePropertiesBase = PolymerElement<
+type PaperGetPagePropertiesBase = Polymer.El<
 	'paper-get-page-properties', typeof PGPP>;
 
 class PGPP {
@@ -26,7 +26,7 @@ class PGPP {
 		this.listener(data);
 	};
 
-	static _click(e: PolymerClickEvent) {
+	static _click(e: Polymer.ClickEvent) {
 		var option = e.target.getAttribute('id').split('paperGetProperty')[1];
 		switch (option) {
 			case 'Selection':

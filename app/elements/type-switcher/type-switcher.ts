@@ -1,6 +1,6 @@
 ﻿/// <reference path="../elements.d.ts" />
 
-type TypeSwitcher = PolymerElement<'type-switcher', typeof TS>;
+type TypeSwitcher = Polymer.El<'type-switcher', typeof TS>;
 
 class TS {
 	static is: string = 'type-switcher';
@@ -159,7 +159,7 @@ class TS {
 		return false;
 	};
 
-	static changeType(this: TypeSwitcher, e: PolymerClickEvent) {
+	static changeType(this: TypeSwitcher, e: Polymer.ClickEvent) {
 		window.app.editCRM.cancelAdding();
 		
 		var _this = this;

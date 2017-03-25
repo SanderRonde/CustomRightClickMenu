@@ -145,7 +145,7 @@ class NEB {
 		window.crmEditPage.animateOut();
 	};
 
-	static save(this: NodeEditBehavior, event?: PolymerClickEvent, resultStorage?: Partial<CRMNode>|MouseEvent) {
+	static save(this: NodeEditBehavior, event?: Polymer.ClickEvent, resultStorage?: Partial<CRMNode>|MouseEvent) {
 		var usesDefaultStorage = false;
 		if (resultStorage === null || typeof (resultStorage as MouseEvent).x === 'number') {
 			resultStorage = this.item;
@@ -237,7 +237,7 @@ class NEB {
 		return false;
 	};
 
-	static toggleIcon(this: NodeEditBehavior, e: PolymerClickEvent) {
+	static toggleIcon(this: NodeEditBehavior, e: Polymer.ClickEvent) {
 		if (this.mode && this.mode === 'background') {
 			return;
 		}
@@ -261,10 +261,10 @@ class NEB {
 	/**
 	 * Clears the trigger that is currently clicked on
 	 */
-	static clearTrigger(this: NodeEditBehavior, event: PolymerClickEvent) {
+	static clearTrigger(this: NodeEditBehavior, event: Polymer.ClickEvent) {
 		var target = event.target;
 		if (target.tagName === 'PAPER-ICON-BUTTON') {
-			target = target.children[0] as PossiblePolymerElement;
+			target = target.children[0] as Polymer.Element;
 		}
 		// $(target.parentNode.parentNode).remove();
 		this.splice('newSettings.triggers',

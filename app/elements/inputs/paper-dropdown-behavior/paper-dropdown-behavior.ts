@@ -21,7 +21,7 @@ const paperDropdownBehaviorProperties: {
 
 type PaperDropdownListener = (prevState: number, newState: number) => void;
 
-type PaperDropdownBehaviorBase = PolymerElement<'behavior',
+type PaperDropdownBehaviorBase = Polymer.El<'behavior',
 	typeof PDB & typeof paperDropdownBehaviorProperties
 >;
 

@@ -49,7 +49,7 @@ const editCrmProperties: {
 	}
 } as any;
 
-type EditCrm = PolymerElement<'edit-crm', typeof EC & typeof editCrmProperties>;
+type EditCrm = Polymer.El<'edit-crm', typeof EC & typeof editCrmProperties>;
 
 interface CRMColumn {
 	list: Array<CRMNode & {
@@ -646,7 +646,7 @@ class EC {
 		this._typeChanged(true);
 	};
 
-	static addToPosition(this: EditCrm, e: PolymerClickEvent) {
+	static addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
 		const node = window.app.findElementWithClassName(e.path, 'addingItemPlaceholder');
 
 		this.addItem(JSON.parse(node.getAttribute('data-path')));

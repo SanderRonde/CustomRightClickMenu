@@ -10,7 +10,7 @@ const installConfirmProperties: {
 	}
 } as any;
 
-type InstallConfirm = PolymerElement<'install-confirm', typeof IC & typeof installConfirmProperties>;
+type InstallConfirm = Polymer.El<'install-confirm', typeof IC & typeof installConfirmProperties>;
 
 class IC {
 	static is: string = 'install-confirm';
@@ -112,7 +112,7 @@ class IC {
 		return permission === 'none';
 	};
 
-	static showPermissionDescription(this: InstallConfirm, e: PolymerClickEvent) {
+	static showPermissionDescription(this: InstallConfirm, e: Polymer.ClickEvent) {
 		var el = e.target;
 		if (el.tagName.toLowerCase() === 'div') {
 			el = el.children[0] as HTMLElement;
@@ -139,7 +139,7 @@ class IC {
 		return window.app.templates.getPermissions().indexOf(permission) > -1;
 	};
 
-	static checkPermission(this: InstallConfirm, e: PolymerClickEvent) {
+	static checkPermission(this: InstallConfirm, e: Polymer.ClickEvent) {
 		var el = e.target;
 		while (el.tagName.toLowerCase() !== 'paper-checkbox') {
 			el = el.parentElement;

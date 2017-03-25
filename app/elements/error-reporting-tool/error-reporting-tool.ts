@@ -28,7 +28,7 @@ interface ErrorReportingToolSquare extends HTMLElement {
 	yPos: string;
 }
 
-type ErrorReportingTool = PolymerElement<'error-reporting-tool', typeof ERT & typeof errorReportingTool>;
+type ErrorReportingTool = Polymer.El<'error-reporting-tool', typeof ERT & typeof errorReportingTool>;
 
 class ERT {
 	static is: any = 'error-reporting-tool';
@@ -216,7 +216,7 @@ class ERT {
 		}
 	};
 
-	static handleSelection(this: ErrorReportingTool, e: PolymerDragEvent) {
+	static handleSelection(this: ErrorReportingTool, e: Polymer.DragEvent) {
 		switch (e.detail.state) {
 			case 'start':
 				this.$.highlightButtons.classList.add('hidden');

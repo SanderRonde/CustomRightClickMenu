@@ -34,7 +34,7 @@ const editCrmItemProperties: {
 	}
 } as any;
 
-type EditCrmItem = PolymerElement<'edit-crm-item', 
+type EditCrmItem = Polymer.El<'edit-crm-item', 
 	typeof ECI & typeof editCrmItemProperties>;
 class ECI {
 	static is: string = 'edit-crm-item';
@@ -323,7 +323,7 @@ class ECI {
 		}
 	};
 
-	static checkClickType(this: EditCrmItem, e: PolymerClickEvent) {
+	static checkClickType(this: EditCrmItem, e: Polymer.ClickEvent) {
 		if (e.detail.sourceEvent.ctrlKey) {
 			window.app.editCRM.cancelAdding();
 			window.app.editCRM.selectItems();

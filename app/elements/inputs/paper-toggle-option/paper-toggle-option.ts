@@ -9,7 +9,7 @@ const paperToggleOptionProperties: {
 	}
 } as any;
 
-type PaperToggleOption = PolymerElement<'paper-toggle-option', typeof PTO & typeof paperToggleOptionProperties>;
+type PaperToggleOption = Polymer.El<'paper-toggle-option', typeof PTO & typeof paperToggleOptionProperties>;
 
 class PTO {
 	static is: string = 'paper-toggle-option';

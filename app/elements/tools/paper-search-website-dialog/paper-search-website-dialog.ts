@@ -70,7 +70,7 @@ const paperSearchWebsiteDialogProperties: {
 	}
 } as any;
 
-type PaperSearchWebsiteDialog = PolymerElement<'paper-search-website-dialog',
+type PaperSearchWebsiteDialog = Polymer.El<'paper-search-website-dialog',
 	typeof PSWD & typeof paperSearchWebsiteDialogProperties
 >;
 
@@ -164,7 +164,7 @@ class PSWD {
 	/**
 	 * Switches to the window specified in the button's attributes
 	 */
-	static switchWindow(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
+	static switchWindow(this: PaperSearchWebsiteDialog, event: Polymer.ClickEvent) {
 		const el = window.app.findElementWithTagname(event.path, 'paper-button');
 		this.switchToWindow(el.getAttribute('window') as PaperSearchWebsiteDialogWindow);
 	};
@@ -262,7 +262,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	/**
 	 * Apply the choice from the manual choice dialog
 	 */
-	static applyDefaultsUrls(this: PaperSearchWebsiteDialog, event: PolymerClickEvent) {
+	static applyDefaultsUrls(this: PaperSearchWebsiteDialog, event: Polymer.ClickEvent) {
 		switch (this.$.searchWebsitesRadioGroup.selected) {
 			case 'google':
 				this.chosenUrl = 'https://www.google.com/search?q=%s';
@@ -293,7 +293,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	/**
 	 * Cancels all radio buttons and checks the one you just clicked
 	 */
-	static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: PolymerClickEvent) {
+	static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: Polymer.ClickEvent) {
 		($(this.$.listInputSearchList).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement).checked = false;
 		var node = e.target;
 		while (node.tagName !== 'PAPER-RADIO-BUTTON') {

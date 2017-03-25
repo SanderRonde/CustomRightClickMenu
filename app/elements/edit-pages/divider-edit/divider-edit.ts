@@ -10,7 +10,7 @@ const dividerEditProperties: {
 	}
 } as any;
 
-type DividerEdit = PolymerElement<'divider-edit', typeof DE & typeof dividerEditProperties>;
+type DividerEdit = Polymer.El<'divider-edit', typeof DE & typeof dividerEditProperties>;
 
 class DE {
 	static is: string = 'divider-edit';

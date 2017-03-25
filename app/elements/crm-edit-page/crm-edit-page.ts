@@ -61,7 +61,7 @@ const crmEditPageProperties: {
 	}
 } as any;
 
-type CrmEditPage = PolymerElement<'crm-edit-page',
+type CrmEditPage = Polymer.El<'crm-edit-page',
 	typeof CEP & typeof crmEditPageProperties & typeof Polymer.NeonAnimationRunnerBehavior
 >;
 

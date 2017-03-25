@@ -10,7 +10,7 @@ const menuEditProperties: {
 	}
 } as any;
 
-type MenuEdit = PolymerElement<'menu-edit', typeof ME & typeof dividerEditProperties>;
+type MenuEdit = Polymer.El<'menu-edit', typeof ME & typeof dividerEditProperties>;
 
 class ME {
 	static is: string = 'menu-edit';

@@ -10,7 +10,7 @@ const linkEditProperties: {
 	}
 } as any;
 
-type LinkEdit = PolymerElement<'link-edit', typeof SCE & typeof linkEditProperties>;
+type LinkEdit = Polymer.El<'link-edit', typeof SCE & typeof linkEditProperties>;
 
 class LE {
 	static is: string = 'link-edit';
@@ -38,7 +38,7 @@ class LE {
 		});
 	};
 
-	static checkboxStateChange(this: NodeEditBehaviorLinkInstance, e: PolymerClickEvent) {
+	static checkboxStateChange(this: NodeEditBehaviorLinkInstance, e: Polymer.ClickEvent) {
 		//Get this checkbox
 		const checkbox = window.app.findElementWithTagname(e.path, 'paper-checkbox');
 		$(this.$.linksContainer).find('paper-checkbox').each(function (this: HTMLPaperCheckboxElement) {
@@ -55,7 +55,7 @@ class LE {
 		});
 	};
 
-	static toggleCheckbox(e: PolymerClickEvent) {
+	static toggleCheckbox(e: Polymer.ClickEvent) {
 		$(window.app.findElementWithClassName(e.path, 'linkChangeCont'))
 			.children('paper-checkbox').click();
 	}

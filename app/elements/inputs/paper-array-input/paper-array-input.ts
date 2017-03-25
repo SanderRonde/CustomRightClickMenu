@@ -30,7 +30,7 @@ const paperArrayInputProperties: {
 	}
 } as any;
 
-type PaperArrayInput = PolymerElement<'paper-array-input',
+type PaperArrayInput = Polymer.El<'paper-array-input',
 	typeof PAI & typeof paperArrayInputProperties>;
 
 class PAI {
@@ -74,7 +74,7 @@ class PAI {
 		this.push('values', '');
 	}
 
-	static clearLine(this: PaperArrayInput, e: PolymerClickEvent) {
+	static clearLine(this: PaperArrayInput, e: Polymer.ClickEvent) {
 		this.async(() => {
 			this.saveSettings();
 			const iconButton = window.app.findElementWithTagname(e.path, 'paper-icon-button');

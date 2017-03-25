@@ -63,7 +63,7 @@ interface LibrarySelectorLibrary {
 	selected?: 'true'|'false';
 }
 
-type PaperLibrariesSelectorBase = PolymerElement<'paper-libraries-selector',
+type PaperLibrariesSelectorBase = Polymer.El<'paper-libraries-selector',
 	typeof PLS & typeof paperLibrariesSelectorProperties
 >;
 
@@ -257,7 +257,7 @@ class PLS {
 		}, 250);
 	};
 
-	static _click(this: PaperLibrariesSelector, e: PolymerClickEvent) {
+	static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
 		var _this = this;
 		if (e.target.classList.contains('addLibrary')) {
 			//Add new library dialog
