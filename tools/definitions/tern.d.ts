@@ -1,154 +1,156 @@
-interface TernBaseExpression {
-	start: number;
-	end: number;	
-	type: string;
-	callee: TernCallExpression;
-	body?: TernBlockStatement|Array<TernExpression>;
-	name: string;
-	sourceFile: TernFile;
-}
-
-interface TernVariableDeclaration {
-	init: TernExpression;
-	id: TernExpression;
-}
-
-interface TernVariableDeclarationCont extends TernBaseExpression {
-	type: 'VariableDeclaration';
-	declarations: Array<TernVariableDeclaration>;
-}
-
-interface TernMemberExpression extends TernBaseExpression {
-	type: 'MemberExpression';
-	object: TernIdentifier;
-	property: TernIdentifier;
-}
-
-interface TernCallExpression extends TernBaseExpression {
-	type: 'CallExpression';
-	arguments: Array<TernExpression>;
-	property?: {
+declare namespace Tern {
+	interface BaseExpression {
+		start: number;
+		end: number;	
+		type: string;
+		callee: CallExpression;
+		body?: BlockStatement|Array<Expression>;
 		name: string;
+		sourceFile: File;
+	}
+
+	interface VariableDeclaration {
+		init: Expression;
+		id: Expression;
+	}
+
+	interface VariableDeclarationCont extends BaseExpression {
+		type: 'VariableDeclaration';
+		declarations: Array<VariableDeclaration>;
+	}
+
+	interface MemberExpression extends BaseExpression {
+		type: 'MemberExpression';
+		object: Identifier;
+		property: Identifier;
+	}
+
+	interface CallExpression extends BaseExpression {
+		type: 'CallExpression';
+		arguments: Array<Expression>;
+		property?: {
+			name: string;
+			raw: string;
+		}
+		object?: CallExpression;
+	}
+
+	interface AssignmentExpression extends BaseExpression {
+		type: 'AssignmentExpression';
+		left: Expression;
+		right: AssignmentExpression;
+	}
+
+	interface FunctionExpression extends BaseExpression {
+		type: 'FunctionExpression'|'FunctionDeclaration';
+		body: BlockStatement;
+	}
+
+	interface BlockStatement extends BaseExpression {
+		type: 'BlockStatement';
+		body: Array<Expression>;
+	}
+
+	interface ExpressionStatement extends BaseExpression {
+		type: 'ExpressionStatement';
+		expression: Expression;
+	}
+
+	interface SequenceExpressionStatement extends BaseExpression {
+		type: 'SequenceExpression';
+		expressions: Array<Expression>;
+	}
+
+	interface ConditionalExpression extends BaseExpression {
+		type: 'UnaryExpression'|'ConditionalExpression';
+		consequent: Expression;
+		alternate: Expression;
+	}
+
+	interface IfStatement extends BaseExpression {
+		type: 'IfStatement';
+		consequent: Expression;
+		alternate?: Expression;
+	}
+
+	interface LogicalExpression extends BaseExpression {
+		type: 'LogicalExpression';
+		left: Expression;
+		right: Expression;
+	}
+
+	interface BinaryExpression extends BaseExpression {
+		type: 'BinaryExpression';
+		left: Expression;
+		right: Expression;
+	}
+
+	interface ObjectExpression extends BaseExpression {
+		type: 'ObjectExpressions';
+		properties: Array<{
+			value: Expression
+		}>;
+	}
+
+	interface ReturnStatement extends BaseExpression {
+		type: 'ReturnStatement';
+		argument: Expression;
+	}
+
+	interface Literal extends BaseExpression {
+		type: 'Literal';
+		value: string;
 		raw: string;
 	}
-	object?: TernCallExpression;
-}
 
-interface TernAssignmentExpression extends TernBaseExpression {
-	type: 'AssignmentExpression';
-	left: TernExpression;
-	right: TernAssignmentExpression;
-}
+	interface Identifier extends BaseExpression {
+		type: 'Identifier';
+		name: string;
+	}
 
-interface TernFunctionExpression extends TernBaseExpression {
-	type: 'FunctionExpression'|'FunctionDeclaration';
-	body: TernBlockStatement;
-}
+	export type Expression = VariableDeclarationCont | CallExpression | AssignmentExpression|
+		FunctionExpression | BlockStatement | ExpressionStatement|
+		SequenceExpressionStatement | ConditionalExpression | IfStatement|
+		LogicalExpression | ReturnStatement | BinaryExpression | ObjectExpression |
+		Literal | Identifier | MemberExpression;
 
-interface TernBlockStatement extends TernBaseExpression {
-	type: 'BlockStatement';
-	body: Array<TernExpression>;
-}
+	interface ParsedFile {
+		body: Array<Expression>;
+	}
 
-interface TernExpressionStatement extends TernBaseExpression {
-	type: 'ExpressionStatement';
-	expression: TernExpression;
-}
+	export interface File {
+		new(name: string): File;
+		text: string;
+		ast: ParsedFile;
+	}
 
-interface TernSequenceExpressionStatement extends TernBaseExpression {
-	type: 'SequenceExpression';
-	expressions: Array<TernExpression>;
-}
+	type Context = any;
 
-interface TernConditionalExpression extends TernBaseExpression {
-	type: 'UnaryExpression'|'ConditionalExpression';
-	consequent: TernExpression;
-	alternate: TernExpression;
-}
+	interface Server {
+		new(options: {
+			defs?: Array<JSDefinitions>;
+		}): Server;
+		cx: Context;
+		passes: number;
+		ecmaVersion: string;
+	}
 
-interface TernIfStatement extends TernBaseExpression {
-	type: 'IfStatement';
-	consequent: TernExpression;
-	alternate?: TernExpression;
-}
-
-interface TernLogicalExpression extends TernBaseExpression {
-	type: 'LogicalExpression';
-	left: TernExpression;
-	right: TernExpression;
-}
-
-interface BinaryExpression extends TernBaseExpression {
-	type: 'BinaryExpression';
-	left: TernExpression;
-	right: TernExpression;
-}
-
-interface ObjectExpression extends TernBaseExpression {
-	type: 'ObjectExpressions';
-	properties: Array<{
-		value: TernExpression
-	}>;
-}
-
-interface TernReturnStatement extends TernBaseExpression {
-	type: 'ReturnStatement';
-	argument: TernExpression;
-}
-
-interface TernLiteral extends TernBaseExpression {
-	type: 'Literal';
-	value: string;
-	raw: string;
-}
-
-interface TernIdentifier extends TernBaseExpression {
-	type: 'Identifier';
-	name: string;
-}
-
-type TernExpression = TernVariableDeclarationCont | TernCallExpression | TernAssignmentExpression|
-	TernFunctionExpression | TernBlockStatement | TernExpressionStatement|
-	TernSequenceExpressionStatement | TernConditionalExpression | TernIfStatement|
-	TernLogicalExpression | TernReturnStatement | BinaryExpression | ObjectExpression |
-	TernLiteral | TernIdentifier | TernMemberExpression;
-
-interface TernParsedFile {
-	body: Array<TernExpression>;
-}
-
-interface TernFile {
-	new(name: string): TernFile;
-	text: string;
-	ast: TernParsedFile;
+	export interface Tern {
+		withContext(context: Context, callback: () => void): void;
+		parse(file: string, passes: number, options: {
+			directSourceFile?: File;
+			allowReturnOutsideFunction?: boolean;
+			allowImportExportEverywhere?: boolean;
+			ecmaVersion?: string;
+		}): ParsedFile;
+	}
 }
 
 type JSDefinitions = any;
 
-type TernContext = any;
-
-interface TernServer {
-	new(options: {
-		defs?: Array<JSDefinitions>;
-	}): TernServer;
-	cx: TernContext;
-	passes: number;
-	ecmaVersion: string;
-}
-
-interface Tern {
-	withContext(context: TernContext, callback: () => void): void;
-	parse(file: string, passes: number, options: {
-		directSourceFile?: TernFile;
-		allowReturnOutsideFunction?: boolean;
-		allowImportExportEverywhere?: boolean;
-		ecmaVersion?: string;
-	}): TernParsedFile;
-}
-
 interface Window {
-	TernFile: TernFile;
-	tern: Tern;
+	TernFile: Tern.File;
+	tern: Tern.Tern;
 	ecma5: JSDefinitions;
 	ecma6: JSDefinitions;
 	jqueryDefs: JSDefinitions;

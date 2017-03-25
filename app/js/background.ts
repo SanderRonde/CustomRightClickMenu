@@ -186,13 +186,13 @@ interface Window {
 	TextEncoder: any;
 	getID: (name: string) => void;
 	md5: (data: any) => string;
-	TernFile: TernFile;
+	TernFile: Tern.File;
 	CodeMirror: CodeMirror;
 	ecma5: any;
 	ecma6: any;
 	jqueryDefs: any;
 	browserDefs: any;
-	tern: Tern;
+	tern: Tern.Tern;
 }
 
 interface ContextMenuItemTreeItem {
@@ -7362,13 +7362,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			script: string;
 			lines: Array<string>;
 		};
-		parentExpressions: Array<TernExpression>;
+		parentExpressions: Array<Tern.Expression>;
 		functionCall: Array<string>;
 		isReturn: boolean;
 		isValidReturn: boolean;
-		returnExpr: TernExpression;
+		returnExpr: Tern.Expression;
 		returnName: string;
-		expression: TernExpression;
+		expression: Tern.Expression;
 	}
 
 	type TransferOnErrorError = {
@@ -7384,7 +7384,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static SetupHandling = class SetupHandling {
 			static TransferFromOld = class TransferFromOld {
 				static LegacyScriptReplace = class LegacyScriptReplace {
-					static findLocalStorageExpression(expression: TernExpression, data: PersistentData): boolean {
+					static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
 						data.parentExpressions = data.parentExpressions || [];
 						data.parentExpressions.push(expression);
 

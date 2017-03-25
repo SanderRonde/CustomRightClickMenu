@@ -268,7 +268,7 @@ interface CodeMirror {
 		css: Function;
 		optionsJSON: Function;
 	}
-	TernServer: TernServer;
+	TernServer: Tern.Server;
 }
 
 interface MergeViewCodeMirrorInstance extends CodeMirrorInstance {

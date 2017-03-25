@@ -10,7 +10,6 @@
 /// <reference path="./echo-html/echo-html.ts" />
 /// <reference path="./edit-crm/edit-crm.ts" />
 /// <reference path="./edit-crm-item/edit-crm-item.ts" />
-/// <reference path="./edit-crm-item/draggable-node-behavior.ts" />
 /// <reference path="./edit-pages/divider-edit/divider-edit.ts" />
 /// <reference path="./edit-pages/link-edit/link-edit.ts" />
 /// <reference path="./edit-pages/menu-edit/menu-edit.ts" />
@@ -56,7 +55,7 @@ interface Completions {
 }
 
 interface CMCompletionFns {
-	resolvePos(file: TernFile, pos: {
+	resolvePos(file: Tern.File, pos: {
 		line: number;
 		ch: number;
 	}): number;
@@ -96,7 +95,7 @@ interface Window {
 			line: number;
 			ch: number;
 		}
-	}, file: TernFile, fns: CMCompletionFns): Completions;
+	}, file: Tern.File, fns: CMCompletionFns): Completions;
 	completionsOptions(query: {
 		start: {
 			line: number;
@@ -106,7 +105,7 @@ interface Window {
 			line: number;
 			ch: number;
 		}
-	}, file: TernFile, fns: CMCompletionFns): Completions;
+	}, file: Tern.File, fns: CMCompletionFns): Completions;
 	parseCodeOptions(file: {
 		text: string;
 	}, query: {
