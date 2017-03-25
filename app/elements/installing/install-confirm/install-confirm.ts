@@ -18,17 +18,17 @@ class IC {
 	/**
 	 * The synced settings of the app
 	 */
-	static settings: SettingsStorage;
+	static settings: CRM.SettingsStorage;
 
 	/**
 	 * The local settings of the app
 	 */
-	static storageLocal: StorageLocal;
+	static storageLocal: CRM.StorageLocal;
 
 	/**
 	 * The metatags for the script
  	 */
-	static metaTags: MetaTags = {};
+	static metaTags: CRM.MetaTags = {};
 
 	/**
 	 * The metainfo for the script
@@ -38,20 +38,20 @@ class IC {
 	/**
 	 * The metatags to be given to the script
 	 */
-	static tags: MetaTags;
+	static tags: CRM.MetaTags;
 
 	static properties = installConfirmProperties;
 
 	static loadSettings(this: InstallConfirm, cb: () => void) {
 		var _this = this;
 
-		function callback(items: SettingsStorage) {
+		function callback(items: CRM.SettingsStorage) {
 			_this.settings = items;
 			cb && cb.apply(_this);
 		}
 
-		chrome.storage.local.get(function(storageLocal: StorageLocal & {
-			settings?: SettingsStorage;
+		chrome.storage.local.get(function(storageLocal: CRM.StorageLocal & {
+			settings?: CRM.SettingsStorage;
 		}) {
 			if (storageLocal.useStorageSync) {
 				//Parse the data before sending it to the callback
@@ -104,11 +104,11 @@ class IC {
 		});
 	};
 
-	static getDescription(this: InstallConfirm, permission: Permission): string {
+	static getDescription(this: InstallConfirm, permission: CRM.Permission): string {
 		return window.app.templates.getPermissionDescription(permission);
 	};
 
-	static isNonePermission(this: InstallConfirm, permission: Permission|'none'): boolean {
+	static isNonePermission(this: InstallConfirm, permission: CRM.Permission|'none'): boolean {
 		return permission === 'none';
 	};
 
@@ -135,7 +135,7 @@ class IC {
 		el.classList.toggle('shown');
 	};
 
-	static isManifestPermissions(this: InstallConfirm, permission: Permission): boolean {
+	static isManifestPermissions(this: InstallConfirm, permission: CRM.Permission): boolean {
 		return window.app.templates.getPermissions().indexOf(permission) > -1;
 	};
 
@@ -148,7 +148,7 @@ class IC {
 		const checkbox = el as HTMLPaperCheckboxElement;
 		if (checkbox.checked) {
 			var permission = checkbox.getAttribute('permission');
-			if (this.isManifestPermissions(permission as Permission)) {
+			if (this.isManifestPermissions(permission as CRM.Permission)) {
 				chrome.permissions.getAll(function(permissions) {
 					var allowed = permissions.permissions;
 					if (allowed.indexOf(permission) === -1) {
@@ -172,9 +172,9 @@ class IC {
 	};
 
 	static completeInstall(this: InstallConfirm) {
-		var allowedPermissions: Array<Permission> = [];
+		var allowedPermissions: Array<CRM.Permission> = [];
 		$('.infoPermissionCheckbox').each(function(this: HTMLPaperCheckboxElement) {
-			this.checked && allowedPermissions.push(this.getAttribute('permission') as Permission);
+			this.checked && allowedPermissions.push(this.getAttribute('permission') as CRM.Permission);
 		});
 		chrome.runtime.sendMessage({
 			type: 'installUserScript',
@@ -199,7 +199,7 @@ class IC {
 		this.$[name].innerText = value + '';
 	};
 
-	static setMetaInformation(this: InstallConfirm, tags: MetaTags, metaInfo: CMMetaInfo) {
+	static setMetaInformation(this: InstallConfirm, tags: CRM.MetaTags, metaInfo: CMMetaInfo) {
 		this.setMetaTag('descriptionValue', tags['description']);
 		this.setMetaTag('authorValue', tags['author']);
 

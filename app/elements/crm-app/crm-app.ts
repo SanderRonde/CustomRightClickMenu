@@ -93,7 +93,7 @@ if (!document.createElement('div').animate) {
 }
 
 const properties: {
-	settings: SettingsStorage;
+	settings: CRM.SettingsStorage;
 	onSettingsReadyCallbacks: Array<{
 		callback: Function;
 		thisElement: HTMLElement;
@@ -159,7 +159,7 @@ type CrmApp = Polymer.El<'crm-app', typeof CA & typeof properties & {
 type ScriptUpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
 	newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
 
-interface Extensions<T> extends Extendable<T> { }
+interface Extensions<T> extends CRM.Extendable<T> { }
 
 interface AddedPermissionsTabContainer extends HTMLElement {
 	tab: number;
@@ -167,7 +167,7 @@ interface AddedPermissionsTabContainer extends HTMLElement {
 }
 
 interface CodeSettingsDialog extends HTMLPaperDialogElement {
-	item?: ScriptNode|StylesheetNode;
+	item?: CRM.ScriptNode|CRM.StylesheetNode;
 }
 
 class CA {
@@ -181,17 +181,17 @@ class CA {
 	/**
 		 * What item to show in the item-edit-page
 		 */
-	static item: CRMNode = null;
+	static item: CRM.Node = null;
 
 	/**
 	 * The item to show, if it is a script
 	 */
-	static scriptItem: ScriptNode;
+	static scriptItem: CRM.ScriptNode;
 
 	/**
 	 * The item to show, if it is a stylesheet
 	 */
-	static stylesheetItem: StylesheetNode;
+	static stylesheetItem: CRM.StylesheetNode;
 
 	/**
 	 * The last-used unique ID
@@ -201,24 +201,24 @@ class CA {
 	/**
 	 * The value of the storage.local
 	 */
-	static storageLocal: StorageLocal;
+	static storageLocal: CRM.StorageLocal;
 
 	/**
 	 * A copy of the storage.local to compare when calling upload
 	 */
-	static storageLocalCopy: StorageLocal;
+	static storageLocalCopy: CRM.StorageLocal;
 
 	/**
 	 * A copy of the settings to compare when calling upload
 	 */
-	static settingsCopy: SettingsStorage;
+	static settingsCopy: CRM.SettingsStorage;
 
 	/**
 	 * The nodes in an object where the key is the ID and the
 	 * value is the node
 	 */
 	static nodesById: {
-		[key: number]: CRMNode
+		[key: number]: CRM.Node
 	} = {};
 
 	/**
@@ -280,7 +280,7 @@ class CA {
 		return option.type === type;
 	}
 
-	static _generateCodeOptionsArray<T extends CRMOptions>(this: CrmApp, settings: T): Array<{
+	static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T): Array<{
 		key: keyof T;
 		value: T[keyof T]
 	}> {
@@ -292,13 +292,13 @@ class CA {
 		});
 	}
 
-	static _getCodeSettingsFromDialog(this: CrmApp): CRMOptions {
-		const obj: CRMOptions = {};
+	static _getCodeSettingsFromDialog(this: CrmApp): CRM.Options {
+		const obj: CRM.Options = {};
 		Array.prototype.slice.apply(this.querySelectorAll('.codeSettingSetting'))
 			.forEach((element: HTMLElement) => {
-				let value: CRMOptionsValue;
+				let value: CRM.OptionsValue;
 				const key = element.getAttribute('data-key');
-				const type = element.getAttribute('data-type') as CRMOptionsValue['type'];
+				const type = element.getAttribute('data-type') as CRM.OptionsValue['type'];
 				const currentVal = this.$.codeSettingsDialog.item.value.options[key];
 				switch (type) {
 					case 'number':
@@ -325,7 +325,7 @@ class CA {
 						const arrayInput = element.querySelector('paper-array-input');
 						arrayInput.saveSettings();
 						let values = arrayInput.values;
-						if ((currentVal as CRMOptionArray).items === 'string') {
+						if ((currentVal as CRM.OptionArray).items === 'string') {
 							//Strings
 							values = values.map(value => value + '');
 						} else {
@@ -349,7 +349,7 @@ class CA {
 		this.upload();
 	}
 
-	static initCodeOptions(this: CrmApp, node: ScriptNode|StylesheetNode) {
+	static initCodeOptions(this: CrmApp, node: CRM.ScriptNode|CRM.StylesheetNode) {
 		this.$.codeSettingsDialog.item = node;
 		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
 
@@ -464,7 +464,7 @@ class CA {
 		return true;
 	}
 
-	static treeForEach(this: CrmApp, node: CRMNode, fn: (node: CRMNode) => any) {
+	static treeForEach(this: CrmApp, node: CRM.Node, fn: (node: CRM.Node) => any) {
 		fn(node);
 		if (node.children) {
 			for (var i = 0; i < node.children.length; i++) {
@@ -698,7 +698,7 @@ class CA {
 		}
 	};
 
-	static findScriptsInSubtree(this: CrmApp, toFind: CRMNode, container: Array<CRMNode>) {
+	static findScriptsInSubtree(this: CrmApp, toFind: CRM.Node, container: Array<CRM.Node>) {
 		if (toFind.type === 'script') {
 			container.push(toFind);
 		} else if (toFind.children) {
@@ -708,7 +708,7 @@ class CA {
 		}
 	};
 
-	static runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRMNode>, dialogs: Array<ScriptNode>) {
+	static runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
 		var _this = this;
 		if (dialogs[0]) {
 			var script = dialogs.splice(0, 1)[0];
@@ -765,7 +765,7 @@ class CA {
 		});
 	};
 
-	static addImportedNodes(this: CrmApp, nodesToAdd: Array<CRMNode>): boolean {
+	static addImportedNodes(this: CrmApp, nodesToAdd: Array<CRM.Node>): boolean {
 		var _this = this;
 		if (!nodesToAdd[0]) {
 			return false;
@@ -777,13 +777,13 @@ class CA {
 		});
 
 		this.crm.add(toAdd);
-		const scripts: Array<ScriptNode> = [];
+		const scripts: Array<CRM.ScriptNode> = [];
 		this.findScriptsInSubtree(toAdd, scripts);
 		this.runDialogsForImportedScripts(nodesToAdd, scripts);
 		return true;
 	};
 
-	static crmForEach(this: CrmApp, tree: Array<CRMNode>, fn: (node: CRMNode) => void): CRMTree {
+	static crmForEach(this: CrmApp, tree: Array<CRM.Node>, fn: (node: CRM.Node) => void): CRM.Tree {
 		for (let i = 0; i < tree.length; i++) {
 			const node = tree[i];
 			if (node.type === 'menu' && node.children) {
@@ -799,16 +799,16 @@ class CA {
 		var dataString = this.$.importSettingsInput.value;
 		if (!this.$.oldCRMImport.checked) {
 			let data: {
-				crm?: CRMTree;
-				local?: StorageLocal;
-				nonLocal?: SettingsStorage;
-				storageLocal?: StorageLocal;
+				crm?: CRM.Tree;
+				local?: CRM.StorageLocal;
+				nonLocal?: CRM.SettingsStorage;
+				storageLocal?: CRM.StorageLocal;
 			} ;
 			try {
 				data = JSON.parse(dataString) as {
-					local?: StorageLocal;
-					storageLocal?: StorageLocal;
-					settings: SettingsStorage;
+					local?: CRM.StorageLocal;
+					storageLocal?: CRM.StorageLocal;
+					settings: CRM.SettingsStorage;
 				};
 				this.$.importSettingsError.style.display = 'none';
 			} catch (e) {
@@ -871,14 +871,14 @@ class CA {
 	static exportData(this: CrmApp) {
 		var _this = this;
 		const toExport: {
-			crm?: SafeCRM;
-			local?: StorageLocal;
-			nonLocal?: SettingsStorage;
+			crm?: CRM.SafeTree;
+			local?: CRM.StorageLocal;
+			nonLocal?: CRM.SettingsStorage;
 		} = {} as any;
 		if (this.$.exportCRM.checked) {
 			toExport.crm = JSON.parse(JSON.stringify(_this.settings.crm));
 			for (var i = 0; i < toExport.crm.length; i++) {
-				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i] as CRMNode);
+				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i] as CRM.Node);
 			}
 		}
 		if (this.$.exportSettings.checked) {
@@ -1257,7 +1257,7 @@ class CA {
 				}, 500);
 			}
 			else {
-			const crmItem = _this.nodesById[editingObj.id] as ScriptNode|StylesheetNode;
+			const crmItem = _this.nodesById[editingObj.id] as CRM.ScriptNode|CRM.StylesheetNode;
 			var code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
 						crmItem.value.script : crmItem.value.backgroundScript) :
 						(crmItem.value.stylesheet));
@@ -1479,7 +1479,7 @@ class CA {
 	/**
 	 * Shows the user a dialog and asks them to allow/deny those permissions
 	 */
-	static requestPermissions(this: CrmApp, toRequest: Array<Permission>,
+	static requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
 				force: boolean = false) {
 		var i;
 		var index;
@@ -1593,7 +1593,7 @@ class CA {
 										slider.checked = false;
 									} else {
 										//Accepted, remove from to-request permissions
-										chrome.storage.local.get(function(e: StorageLocal) {
+										chrome.storage.local.get(function(e: CRM.StorageLocal) {
 											var permissionsToRequest = e.requestPermissions;
 											permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 											chrome.storage.local.set({
@@ -1604,7 +1604,7 @@ class CA {
 								});
 							} catch (e) {
 								//Accepted, remove from to-request permissions
-								chrome.storage.local.get(function(e: StorageLocal) {
+								chrome.storage.local.get(function(e: CRM.StorageLocal) {
 									var permissionsToRequest = e.requestPermissions;
 									permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 									chrome.storage.local.set({
@@ -1682,7 +1682,7 @@ class CA {
 		obj[key] = value;
 		var _this = this;
 		chrome.storage.local.set(obj);
-		chrome.storage.local.get(function (storageLocal: StorageLocal) {
+		chrome.storage.local.get(function (storageLocal: CRM.StorageLocal) {
 			_this.storageLocal = storageLocal;
 			if (key === 'CRMOnPage') {
 				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
@@ -1692,7 +1692,7 @@ class CA {
 		});
 	};
 
-	static orderNodesById(this: CrmApp, tree: CRMTree) {
+	static orderNodesById(this: CrmApp, tree: CRM.Tree) {
 		for (var i = 0; i < tree.length; i++) {
 			var node = tree[i];
 			this.nodesById[node.id] = node;
@@ -1720,7 +1720,7 @@ class CA {
 		return obj;
 	};
 
-	static uploadStorageSyncData(data: SettingsStorage, _this: CrmApp) {
+	static uploadStorageSyncData(data: CRM.SettingsStorage, _this: CrmApp) {
 		var settingsJson = JSON.stringify(data);
 
 		//Using chrome.storage.sync
@@ -1936,8 +1936,8 @@ class CA {
 		}
 	};
 
-	static parseOldCRMNode(this: CrmApp, string: string, openInNewTab: boolean): CRMNode {
-		var node: CRMNode = {} as any;
+	static parseOldCRMNode(this: CrmApp, string: string, openInNewTab: boolean): CRM.Node {
+		var node: CRM.Node = {} as any;
 		var oldNodeSplit = string.split('%123');
 		var name = oldNodeSplit[0];
 		var type = oldNodeSplit[1].toLowerCase();
@@ -2005,7 +2005,7 @@ class CA {
 						updateNotice: true,
 						oldScript: scriptData,
 						script: this.legacyScriptReplace.convertScriptFromLegacy(scriptData)
-					} as ScriptVal
+					} as CRM.ScriptVal
 				});
 				break;
 		}
@@ -2013,7 +2013,7 @@ class CA {
 		return node;
 	};
 
-	static assignParents(this: CrmApp, parent: CRMTree, nodes: Array<CRMNode>,
+	static assignParents(this: CrmApp, parent: CRM.Tree, nodes: Array<CRM.Node>,
 			index: {
 				index: number;
 			}, amount: number) {
@@ -2032,7 +2032,7 @@ class CA {
 
 	static transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
 		getItem(index: string|number): any;
-	} = localStorage): CRMTree {
+	} = localStorage): CRM.Tree {
 		var i;
 		var amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
@@ -2042,14 +2042,14 @@ class CA {
 		}
 
 		//Structure nodes with children etc
-		var crm: CRMTree = [];
+		var crm: CRM.Tree = [];
 		this.assignParents(crm, nodes, {
 			index: 0
 		}, nodes.length);
 		return crm;
 	};
 
-	static initCheckboxes(this: CrmApp, defaultLocalStorage: StorageLocal) {
+	static initCheckboxes(this: CrmApp, defaultLocalStorage: CRM.StorageLocal) {
 		var _this = this;
 		if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
 			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue && 
@@ -2076,7 +2076,7 @@ class CA {
 		}
 
 		//Sync storage
-		const defaultSyncStorage: SettingsStorage = {
+		const defaultSyncStorage: CRM.SettingsStorage = {
 			editor: {
 				keyBindings: {
 					autocomplete: 'Ctrl-Space',
@@ -2105,7 +2105,7 @@ class CA {
 		_this.settingsCopy = JSON.parse(settingsJsonString);
 
 		var syncHash = window.md5(settingsJsonString);
-		var defaultLocalStorage: StorageLocal = {
+		var defaultLocalStorage: CRM.StorageLocal = {
 			requestPermissions: [],
 			editing: null,
 			selectedCrmType: 0,
@@ -2164,7 +2164,7 @@ class CA {
 
 	static handleFirstTime(_this: CrmApp) {
 		//Sync storage
-		var defaultSyncStorage: SettingsStorage = {
+		var defaultSyncStorage: CRM.SettingsStorage = {
 			editor: {
 				keyBindings: {
 					autocomplete: 'Ctrl-Space',
@@ -2195,7 +2195,7 @@ class CA {
 		_this.settingsCopy = JSON.parse(settingsJsonString);
 
 		var syncHash = window.md5(settingsJsonString);
-		var defaultLocalStorage: StorageLocal = {
+		var defaultLocalStorage: CRM.StorageLocal = {
 			requestPermissions: [],
 			editing: null,
 			selectedCrmType: 0,
@@ -2260,7 +2260,7 @@ class CA {
 		//No changes yet
 	};
 
-	static checkFirstTime(this: CrmApp, storageLocal: StorageLocal) {
+	static checkFirstTime(this: CrmApp, storageLocal: CRM.StorageLocal) {
 		var _this = this;
 		var currentVersion = chrome.runtime.getManifest().version;
 		if (storageLocal.lastUpdatedAt === currentVersion) {
@@ -2292,7 +2292,7 @@ class CA {
 		}
 	};
 
-	static buildNodePaths(this: CrmApp, tree: CRMTree, currentPath: Array<number>) {
+	static buildNodePaths(this: CrmApp, tree: CRM.Tree, currentPath: Array<number>) {
 		for (var i = 0; i < tree.length; i++) {
 			var childPath = currentPath.concat([i]);
 			const node = tree[i];
@@ -2452,7 +2452,7 @@ class CA {
 			window.doc.addedPermissionsTabContainer
 				.querySelectorAll('.nodeAddedPermissionsCont'));
 		panels.forEach(function(panel: HTMLElement) {
-			var node = _this.nodesById[(panel.getAttribute('data-id') as any)as number] as ScriptNode;
+			var node = _this.nodesById[(panel.getAttribute('data-id') as any)as number] as CRM.ScriptNode;
 			var permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
 				.map(function(checkbox: HTMLPaperCheckboxElement) {
 					if (checkbox.checked) {
@@ -2465,7 +2465,7 @@ class CA {
 			if (!Array.isArray(node.permissions)) {
 				node.permissions = [];
 			}
-			permissions.forEach(function(addedPermission: CRMPermission) {
+			permissions.forEach(function(addedPermission: CRM.Permission) {
 				if (node.permissions.indexOf(addedPermission) === -1) {
 					node.permissions.push(addedPermission);
 				}
@@ -2511,13 +2511,13 @@ class CA {
 
 	static setupStorages(this: CrmApp, resolve: (callback: () => void) => void) {
 		var _this = this;
-		chrome.storage.local.get(function(storageLocal: StorageLocal & {
+		chrome.storage.local.get(function(storageLocal: CRM.StorageLocal & {
 			nodeStorage: any;
-			settings?: SettingsStorage;
+			settings?: CRM.SettingsStorage;
 		}) {
 			if (_this.checkFirstTime(storageLocal)) {
 				resolve(function() {
-					function callback(items: SettingsStorage) {
+					function callback(items: CRM.SettingsStorage) {
 						_this.settings = items;
 						_this.settingsCopy = JSON.parse(JSON.stringify(items));
 						for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
@@ -2544,13 +2544,13 @@ class CA {
 					_this.bindListeners();
 					delete storageLocal.nodeStorage;
 					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-						_this.requestPermissions(storageLocal.requestPermissions as Array<Permission>);
+						_this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
 					}
 					if (storageLocal.editing) {
 						const editing = storageLocal.editing;
 						setTimeout(function() {
 							//Check out if the code is actually different
-							const node = _this.nodesById[editing.id] as ScriptNode|StylesheetNode;
+							const node = _this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
 							var nodeCurrentCode = (node.type === 'script' ? node.value.script :
 								node.value.stylesheet);
 							if (nodeCurrentCode.trim() !== editing.val.trim()) {
@@ -2885,8 +2885,8 @@ class CA {
 			}
 		}
 
-		static getDefaultNodeInfo(options: Partial<CRMNodeInfo> = {}): CRMNodeInfo {
-			const defaultNodeInfo: Partial<CRMNodeInfo> = {
+		static getDefaultNodeInfo(options: Partial<CRM.NodeInfo> = {}): CRM.NodeInfo {
+			const defaultNodeInfo: Partial<CRM.NodeInfo> = {
 				permissions: [],
 				source: {
 					author: (this.parent() && this.parent().storageLocal &&
@@ -2894,14 +2894,14 @@ class CA {
 					}
 			};
 
-			return this.mergeObjects(defaultNodeInfo, options) as CRMNodeInfo;
+			return this.mergeObjects(defaultNodeInfo, options) as CRM.NodeInfo;
 		};
 
 		/**
 		 * Gets the default link node object with given options applied
 		 */
-		static getDefaultLinkNode(options: Partial<LinkNode> = {}): LinkNode {
-			const defaultNode: Partial<LinkNode> = {
+		static getDefaultLinkNode(options: Partial<CRM.LinkNode> = {}): CRM.LinkNode {
+			const defaultNode: Partial<CRM.LinkNode> = {
 				name: 'name',
 				onContentTypes: [true, true, true, false, false, false],
 				type: 'link',
@@ -2920,14 +2920,14 @@ class CA {
 				]
 			};
 
-			return this.mergeObjects(defaultNode, options) as LinkNode;
+			return this.mergeObjects(defaultNode, options) as CRM.LinkNode;
 		};
 
 		/**
 		 * Gets the default stylesheet value object with given options applied
 		 */
-		static getDefaultStylesheetValue(options: Partial<StylesheetVal> = {}): StylesheetVal {
-			const value: StylesheetVal = {
+		static getDefaultStylesheetValue(options: Partial<CRM.StylesheetVal> = {}): CRM.StylesheetVal {
+			const value: CRM.StylesheetVal = {
 				stylesheet: [].join('\n'),
 				launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 				toggle: false,
@@ -2935,14 +2935,14 @@ class CA {
 				options: {}
 			};
 
-			return this.mergeObjects(value, options) as StylesheetVal;
+			return this.mergeObjects(value, options) as CRM.StylesheetVal;
 		};
 
 		/**
 		 * Gets the default script value object with given options applied
 		 */
-		static getDefaultScriptValue(options: Partial<ScriptVal> = {}): ScriptVal {
-			const value: ScriptVal = {
+		static getDefaultScriptValue(options: Partial<CRM.ScriptVal> = {}): CRM.ScriptVal {
+			const value: CRM.ScriptVal = {
 				launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 				backgroundLibraries: [],
 				libraries: [],
@@ -2952,14 +2952,14 @@ class CA {
 				options: {}
 			};
 
-			return this.mergeObjects(value, options) as ScriptVal;
+			return this.mergeObjects(value, options) as CRM.ScriptVal;
 		};
 
 		/**
 		 * Gets the default script node object with given options applied
 		 */
-		static getDefaultScriptNode(options: PartialScriptNode = {}): ScriptNode {
-			const defaultNode: PartialScriptNode = {
+		static getDefaultScriptNode(options: CRM.PartialScriptNode = {}): CRM.ScriptNode {
+			const defaultNode: CRM.PartialScriptNode = {
 				name: 'name',
 				onContentTypes: [true, true, true, false, false, false],
 				type: 'script',
@@ -2974,14 +2974,14 @@ class CA {
 				value: this.getDefaultScriptValue(options.value)
 			};
 
-			return this.mergeObjects(defaultNode, options) as ScriptNode;
+			return this.mergeObjects(defaultNode, options) as CRM.ScriptNode;
 		};
 
 		/**
 		 * Gets the default stylesheet node object with given options applied
 		 */
-		static getDefaultStylesheetNode(options: PartialStylesheetNode = {}): StylesheetNode {
-			const defaultNode: PartialStylesheetNode = {
+		static getDefaultStylesheetNode(options: CRM.PartialStylesheetNode = {}): CRM.StylesheetNode {
+			const defaultNode: CRM.PartialStylesheetNode = {
 				name: 'name',
 				onContentTypes: [true, true, true, false, false, false],
 				type: 'stylesheet',
@@ -2996,19 +2996,19 @@ class CA {
 				value: this.getDefaultStylesheetValue(options.value)
 			};
 
-			return this.mergeObjects(defaultNode, options) as StylesheetNode;
+			return this.mergeObjects(defaultNode, options) as CRM.StylesheetNode;
 		};
 
 		/**
 		 * Gets the default divider or menu node object with given options applied
 		 */
-		static getDefaultDividerOrMenuNode(options: Partial<PassiveCRMNode>, type: 'divider' | 'menu'):
-		DividerNode | MenuNode;
-		static getDefaultDividerOrMenuNode(options: Partial<PassiveCRMNode>, type: 'divider'): DividerNode;
-		static getDefaultDividerOrMenuNode(options: Partial<PassiveCRMNode>, type: 'menu'): MenuNode;
-		static getDefaultDividerOrMenuNode(options: Partial<PassiveCRMNode> = {}, type: 'divider' | 'menu'):
-		DividerNode | MenuNode {
-			const defaultNode: Partial<PassiveCRMNode> = {
+		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider' | 'menu'):
+		CRM.DividerNode | CRM.MenuNode;
+		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider'): CRM.DividerNode;
+		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'menu'): CRM.MenuNode;
+		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode> = {}, type: 'divider' | 'menu'):
+		CRM.DividerNode | CRM.MenuNode {
+			const defaultNode: Partial<CRM.PassiveNode> = {
 				name: 'name',
 				type: type,
 				nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
@@ -3017,27 +3017,27 @@ class CA {
 				value: null
 			};
 
-			return this.mergeObjects(defaultNode, options) as DividerNode|MenuNode;
+			return this.mergeObjects(defaultNode, options) as CRM.DividerNode|CRM.MenuNode;
 		};
 
 		/**
 		 * Gets the default divider node object with given options applied
 		 */
-		static getDefaultDividerNode(options: Partial<DividerNode> = {}): DividerNode {
+		static getDefaultDividerNode(options: Partial<CRM.DividerNode> = {}): CRM.DividerNode {
 			return this.getDefaultDividerOrMenuNode(options, 'divider');
 		};
 
 		/**
 		 * Gets the default menu node object with given options applied
 		 */
-		static getDefaultMenuNode(options: Partial<MenuNode> = {}): MenuNode {
+		static getDefaultMenuNode(options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
 			return this.getDefaultDividerOrMenuNode(options, 'menu');
 		};
 
 		/**
 		 * Gets all permissions that can be requested by this extension
 		 */
-		static getPermissions(): Array<Permission> {
+		static getPermissions(): Array<CRM.Permission> {
 			return [
 				'alarms',
 				'background',
@@ -3075,7 +3075,7 @@ class CA {
 		/**
 		 * Gets all permissions that can be requested by this extension including those specific to scripts
 		 */
-		static getScriptPermissions(): Array<Permission> {
+		static getScriptPermissions(): Array<CRM.Permission> {
 			return [
 				'alarms',
 				'background',
@@ -3135,7 +3135,7 @@ class CA {
 		/**
 		 * Gets the description for given permission
 		 */
-		static getPermissionDescription(permission: Permission): string {
+		static getPermissionDescription(permission: CRM.Permission): string {
 			const descriptions = {
 				alarms: 'Makes it possible to create, view and remove alarms.',
 				background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
@@ -3218,7 +3218,7 @@ class CA {
 			/**
 			 * Makes an onclick handler for links
 			 */
-			static link(data: Array<LinkNodeLink>): () => void {
+			static link(data: Array<CRM.LinkNodeLink>): () => void {
 				return function() {
 					for (var i = 0; i < data.length; i++) {
 						window.open(data[i].url, '_blank');
@@ -3266,7 +3266,7 @@ class CA {
 			/**
 			 * Makes an onclick handler to edit the node on clicking it
 			 */
-			static edit(node: CRMNode): () => void {
+			static edit(node: CRM.Node): () => void {
 				var _this = this;
 				return function() {
 					_this.parent().parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
@@ -3282,7 +3282,7 @@ class CA {
 			/**
 			 * Adds a link to the CRM
 			 */
-			static link(toAdd: LinkNode): JQContextMenuObj {
+			static link(toAdd: CRM.LinkNode): JQContextMenuObj {
 				return {
 					name: toAdd.name,
 					callback: this.parent().handlers.link(toAdd.value)
@@ -3292,7 +3292,7 @@ class CA {
 			/**
 			 * Adds a script to the CRM
 			 */
-			static script(toAdd: ScriptNode): JQContextMenuObj {
+			static script(toAdd: CRM.ScriptNode): JQContextMenuObj {
 				return {
 					name: toAdd.name,
 					callback: this.parent().handlers.script(toAdd.value.script)
@@ -3302,7 +3302,7 @@ class CA {
 			/**
 			 * Adds a stylesheet to the CRM
 			 */
-			static stylesheet(toAdd: StylesheetNode): JQContextMenuObj {
+			static stylesheet(toAdd: CRM.StylesheetNode): JQContextMenuObj {
 				const item: JQContextMenuObj = {
 					name: toAdd.name
 				} as any;
@@ -3319,7 +3319,7 @@ class CA {
 			/**
 			 * An editable node
 			 */
-			static editable(toAdd: CRMNode): JQContextMenuObj {
+			static editable(toAdd: CRM.Node): JQContextMenuObj {
 				return {
 					name: toAdd.name,
 					callback: this.parent().handlers.edit(toAdd)
@@ -3337,7 +3337,7 @@ class CA {
 			/**
 			 * Adds a menu to the CRM
 			 */
-			static menu(toAdd: MenuNode, crmType: number, index: {
+			static menu(toAdd: CRM.MenuNode, crmType: number, index: {
 				num: number;
 			}): JQContextMenuItem {
 				var _this = this;
@@ -3388,7 +3388,7 @@ class CA {
 		/**
 		 * Returns whether the node is visible or not (1 if it's visible)
 		 */
-		static isNodeVisible(node: CRMNode, showContentType: number): number {
+		static isNodeVisible(node: CRM.Node, showContentType: number): number {
 			var i;
 			var length;
 			if (node.children && node.children.length > 0) {
@@ -3426,7 +3426,7 @@ class CA {
 				[key: number]: JQContextMenuItem
 			} = {};
 			var crm = window.app.settings.crm;
-			crm.forEach(function(node: CRMNode) {
+			crm.forEach(function(node: CRM.Node) {
 				if (_this.isNodeVisible(node, crmType)) {
 					if (_this.parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
 						childItems[index.num++] = _this.node.editable(node);
@@ -3559,11 +3559,11 @@ class CA {
 			return 'window.app.settings.crm[' + (path.join('].children[')) + ']';
 		};
 
-		static lookup(path: Array<number>, returnArray?: boolean): CRMNode|Array<CRMNode>;
-		static lookup(path: Array<number>, returnArray: false): CRMNode;
-		static lookup(path: Array<number>, returnArray: true): Array<CRMNode>;
-		static lookup(path: Array<number>): CRMNode;
-		static lookup(path: Array<number>, returnArray: boolean = false): CRMNode|Array<CRMNode> {
+		static lookup(path: Array<number>, returnArray?: boolean): CRM.Node|Array<CRM.Node>;
+		static lookup(path: Array<number>, returnArray: false): CRM.Node;
+		static lookup(path: Array<number>, returnArray: true): Array<CRM.Node>;
+		static lookup(path: Array<number>): CRM.Node;
+		static lookup(path: Array<number>, returnArray: boolean = false): CRM.Node|Array<CRM.Node> {
 			var pathCopy = JSON.parse(JSON.stringify(path));
 			if (returnArray) {
 				pathCopy.splice(pathCopy.length - 1, 1);
@@ -3581,10 +3581,10 @@ class CA {
 			return (returnArray ? result.children : result);
 		};
 
-		static _lookupId(id: number, returnArray: boolean, node: CRMNode): Array<CRMNode>|CRMNode|void;
-		static _lookupId(id: number, returnArray: false, node: CRMNode): CRMNode;
-		static _lookupId(id: number, returnArray: true, node: CRMNode): Array<CRMNode>;
-		static _lookupId(id: number, returnArray: boolean, node: CRMNode): Array<CRMNode>|CRMNode|void {
+		static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void;
+		static _lookupId(id: number, returnArray: false, node: CRM.Node): CRM.Node;
+		static _lookupId(id: number, returnArray: true, node: CRM.Node): Array<CRM.Node>;
+		static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void {
 			var nodeChildren = node.children;
 			if (nodeChildren) {
 				var el;
@@ -3601,10 +3601,10 @@ class CA {
 			return null;
 		};
 
-		static lookupId(id: number, returnArray: boolean): Array<CRMNode>|CRMNode;
-		static lookupId(id: number, returnArray: true): Array<CRMNode>;
-		static lookupId(id: number, returnArray: false): CRMNode;
-		static lookupId(id: number, returnArray: boolean): Array<CRMNode>|CRMNode {
+		static lookupId(id: number, returnArray: boolean): Array<CRM.Node>|CRM.Node;
+		static lookupId(id: number, returnArray: true): Array<CRM.Node>;
+		static lookupId(id: number, returnArray: false): CRM.Node;
+		static lookupId(id: number, returnArray: boolean): Array<CRM.Node>|CRM.Node {
 			if (!returnArray) {
 				return window.app.nodesById[id];
 			}
@@ -3625,7 +3625,7 @@ class CA {
 		/**
 		 * Adds value to the CRM
 		 */
-		static add<T extends CRMNode>(value: T, position: string = 'last') {
+		static add<T extends CRM.Node>(value: T, position: string = 'last') {
 			if (position === 'first') {
 				this.parent().settings.crm = this.parent().insertInto(value, this.parent().settings.crm, 0);
 			} else if (position === 'last' || position === undefined) {

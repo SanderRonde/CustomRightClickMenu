@@ -1,7 +1,7 @@
 /// <reference path="../elements.d.ts" />
 
 const editCrmItemProperties: {
-	item: CRMNode;
+	item: CRM.Node;
 	expanded: boolean;
 	shadow: boolean;
 	itemName: string;
@@ -91,12 +91,12 @@ class ECI {
 	static currentColumn: CRMColumnElement;
 
 	static _openCodeSettings(this: EditCrmItem) {
-		window.app.initCodeOptions(this.item as ScriptNode|StylesheetNode);
+		window.app.initCodeOptions(this.item as CRM.ScriptNode|CRM.StylesheetNode);
 	}
 
 	static getMenuExpandMessage(this: EditCrmItem) {
-		return 'Click to show ' + (this.item as MenuNode).children.length + ' child' + 
-			((this.item as MenuNode).children.length > 1 ? 'ren' : '');
+		return 'Click to show ' + (this.item as CRM.MenuNode).children.length + ' child' + 
+			((this.item as CRM.MenuNode).children.length > 1 ? 'ren' : '');
 	};
 
 	static update(this: EditCrmItem) {
@@ -203,7 +203,7 @@ class ECI {
 		}
 	};
 
-	static getNextNode(node: CRMNode): CRMNode {
+	static getNextNode(node: CRM.Node): CRM.Node {
 		if (node.children) {
 			return node.children[0];
 		}
@@ -218,13 +218,13 @@ class ECI {
 		return currentNodeSiblings[currentNodeIndex + 1];
 	};
 
-	static getPreviousNode(node: CRMNode): CRMNode {
+	static getPreviousNode(node: CRM.Node): CRM.Node {
 		var path = Array.prototype.slice.apply(node.path);
 		var currentNodeSiblings = window.app.crm.lookup(path, true);
 		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
 		if (currentNodeIndex === 0) {
 			//return parent
-			var parent = window.app.crm.lookup(path) as CRMNode;
+			var parent = window.app.crm.lookup(path) as CRM.Node;
 			return parent;
 		}
 		var possibleParent = currentNodeSiblings[currentNodeIndex - 1];
@@ -234,7 +234,7 @@ class ECI {
 		return possibleParent;
 	};
 
-	static getNodesOrder(this: EditCrmItem, reference: CRMNode, other: CRMNode): 'after'|'before'|'same' {
+	static getNodesOrder(this: EditCrmItem, reference: CRM.Node, other: CRM.Node): 'after'|'before'|'same' {
 		var i;
 		var referencePath = reference.path;
 		var otherPath = other.path;
@@ -273,7 +273,7 @@ class ECI {
 		return 'same';
 	};
 
-	static generateShiftSelectionCallback(this: EditCrmItem, node: CRMNode, wait: number): () => void {
+	static generateShiftSelectionCallback(this: EditCrmItem, node: CRM.Node, wait: number): () => void {
 		return function() {
 			window.setTimeout(function() {
 				window.app.editCRM.getCRMElementFromPath(node.path).onSelect(true);
@@ -401,7 +401,7 @@ class ECI {
 
 	static _getOnSelectFunction(_this: EditCrmItem, index: number) {
 		return function () {
-			window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRMNode>)[index].path).onSelect(true);
+			window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRM.Node>)[index].path).onSelect(true);
 		};
 	};
 
@@ -418,7 +418,7 @@ class ECI {
 
 	static _getOnDeselectFunction(_this: EditCrmItem, index: number) {
 		return function () {
-			window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRMNode>)[index].path).onDeselect(true);
+			window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRM.Node>)[index].path).onDeselect(true);
 		};
 	};
 

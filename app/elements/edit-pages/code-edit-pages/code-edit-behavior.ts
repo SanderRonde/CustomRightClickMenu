@@ -99,7 +99,7 @@ class CEB {
 	/**
 	 * The editor's settings before going to the settings page
 	 */
-	static unchangedEditorSettings: CRMEditorSettings;
+	static unchangedEditorSettings: CRM.EditorSettings;
 
 	/**
 	 * The editor's dimensions before it goes fullscreen

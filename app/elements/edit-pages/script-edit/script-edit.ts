@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 const scriptEditProperties: {
-	item: ScriptNode;
+	item: CRM.ScriptNode;
 } = {
 	item: {
 		type: Object,
@@ -136,7 +136,7 @@ class SCE {
 		($('script-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings = {};
 		this.save(null, settings);
-		return settings as ScriptNode;
+		return settings as CRM.ScriptNode;
 	};
 
 	static exportScriptAsCRM(this: NodeEditBehaviorScriptInstance) {
@@ -162,7 +162,7 @@ class SCE {
 		return this.editor.metaTags.metaTags;
 	};
 
-	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<ScriptNode>) {
+	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
 		this.changeTab('main');
 		resultStorage.value.metaTags = this.getMetaTagValues();
 		this.finishEditing();
@@ -170,10 +170,10 @@ class SCE {
 		this.active = false;
 	};
 
-	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|ScriptNode,
+	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|CRM.ScriptNode,
 			callback: () => void) {
-		var nodeItem: ScriptNode;
-		var settingsStorage: Partial<ScriptNode>;
+		var nodeItem: CRM.ScriptNode;
+		var settingsStorage: Partial<CRM.ScriptNode>;
 		if (!item || item.type === 'tap') {
 			//It's an event, ignore it
 			nodeItem = this.item;
@@ -224,7 +224,7 @@ class SCE {
 			var permissionObj;
 			permissions.forEach(function(permission) {
 				isAsked = askedPermissions.indexOf(permission) > -1;
-				isActive = scriptPermissions.indexOf(permission as CRMPermission) > -1;
+				isActive = scriptPermissions.indexOf(permission as CRM.Permission) > -1;
 
 				permissionObj = {
 					name: permission,
@@ -274,9 +274,9 @@ class SCE {
 					}
 				});
 
-				var permission: Permission;
+				var permission: CRM.Permission;
 				$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
-					permission = this.previousElementSibling.previousElementSibling.textContent as Permission;
+					permission = this.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
 					var slider = this;
 					var oldPermissions;
 					if (this.checked) {
@@ -289,7 +289,7 @@ class SCE {
 									slider.checked = false;
 								} else {
 									//Accepted, remove from to-request permissions if it's there
-									chrome.storage.local.get(function(e: StorageLocal) {
+									chrome.storage.local.get(function(e: CRM.StorageLocal) {
 										var permissionsToRequest = e.requestPermissions;
 										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 										chrome.storage.local.set({
@@ -753,7 +753,7 @@ class SCE {
 		}, binding: {
 			name: string;
 			defaultKey: string;
-			storageKey: keyof CRMKeyBindings;
+			storageKey: keyof CRM.KeyBindings;
 			fn(cm: CodeMirrorInstance): void;
 		}) {
 		return (event: KeyboardEvent) => {
@@ -813,7 +813,7 @@ class SCE {
 	static keyBindings: Array<{
 		name: string;
 		defaultKey: string;
-		storageKey: keyof CRMKeyBindings;
+		storageKey: keyof CRM.KeyBindings;
 		fn(cm: CodeMirrorInstance): void;
 	}> = [
 		{

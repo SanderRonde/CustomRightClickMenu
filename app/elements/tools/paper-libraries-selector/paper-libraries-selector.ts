@@ -1,7 +1,7 @@
 /// <reference path="../../elements.d.ts" />
 
 const paperLibrariesSelectorProperties: {
-	usedlibraries: Array<CRMLibrary>;
+	usedlibraries: Array<CRM.Library>;
 	libraries: Array<LibrarySelectorLibrary>;
 	selected: Array<number>;
 	installedLibraries: Array<{
@@ -75,7 +75,7 @@ class PLS {
 	static ready(this: PaperLibrariesSelector) {
 		var _this = this;
 		window.paperLibrariesSelector = this;
-		chrome.storage.local.get('libraries', function (keys: StorageLocal) {
+		chrome.storage.local.get('libraries', function (keys: CRM.StorageLocal) {
 			if (keys.libraries) {
 				_this.installedLibraries = keys.libraries;
 			} else {

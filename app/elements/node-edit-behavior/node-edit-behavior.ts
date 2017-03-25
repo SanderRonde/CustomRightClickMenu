@@ -66,7 +66,7 @@ type NodeEditBehaviorBase = typeof NEB & typeof nodeEditBehaviorProperties;
 
 type NodeEditBehaviorInstanceBase = NodeEditBehaviorBase & {
 	cancelChanges?(): void;
-	saveChanges?(settings: CRMNode): void;
+	saveChanges?(settings: CRM.Node): void;
 	mode?: 'background'|'main';
 	contentCheckboxChanged(e: {
 		path: Array<HTMLElement>;
@@ -77,20 +77,20 @@ type NodeEditBehaviorInstanceBase = NodeEditBehaviorBase & {
 
 type NodeEditBehaviorScriptInstance = NodeEditBehaviorInstanceBase & 
 	CodeEditBehaviorScriptInstance & {
-		newSettings: Partial<ScriptNode>
+		newSettings: Partial<CRM.ScriptNode>
 	};
 type NodeEditBehaviorStylesheetInstance = NodeEditBehaviorInstanceBase &
 	CodeEditBehaviorStylesheetInstance & {
-		newSettings: Partial<StylesheetNode>;
+		newSettings: Partial<CRM.StylesheetNode>;
 	};
 type NodeEditBehaviorLinkInstance = NodeEditBehaviorInstanceBase & LinkEdit & {
-	newSettings: Partial<LinkNode>;
+	newSettings: Partial<CRM.LinkNode>;
 };
 type NodeEditBehaviorMenuInstance = NodeEditBehaviorInstanceBase & MenuEdit & {
-	newSettings: Partial<MenuNode>;
+	newSettings: Partial<CRM.MenuNode>;
 };
 type NodeEditBehaviorDividerInstance = NodeEditBehaviorInstanceBase & DividerEdit & {
-	newSettings: Partial<DividerNode>;
+	newSettings: Partial<CRM.DividerNode>;
 };
 
 type NodeEditBehavior = NodeEditBehaviorScriptInstance|
@@ -100,7 +100,7 @@ type NodeEditBehavior = NodeEditBehaviorScriptInstance|
 class NEB {
 	static properties = nodeEditBehaviorProperties;
 
-	static getContentTypeLaunchers(this: NodeEditBehavior, resultStorage: Partial<CRMNode>) {
+	static getContentTypeLaunchers(this: NodeEditBehavior, resultStorage: Partial<CRM.Node>) {
 		const arr: [
 			keyof typeof nodeEditBehaviorProperties,
 			keyof typeof nodeEditBehaviorProperties,
@@ -118,10 +118,10 @@ class NEB {
 		];
 		resultStorage.onContentTypes = arr.map((key) => {
 			return this[key] as boolean;
-		}) as CRMContentTypes;
+		}) as CRM.ContentTypes;
 	};
 
-	static getTriggers(this: NodeEditBehavior, resultStorage: Partial<CRMNode>) {
+	static getTriggers(this: NodeEditBehavior, resultStorage: Partial<CRM.Node>) {
 		var inputs = $(this).find('.executionTrigger').find('paper-input');
 		var triggers = [];
 		for (var i = 0; i < inputs.length; i++) {
@@ -145,7 +145,7 @@ class NEB {
 		window.crmEditPage.animateOut();
 	};
 
-	static save(this: NodeEditBehavior, event?: Polymer.ClickEvent, resultStorage?: Partial<CRMNode>|MouseEvent) {
+	static save(this: NodeEditBehavior, event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
 		var usesDefaultStorage = false;
 		if (resultStorage === null || typeof (resultStorage as MouseEvent).x === 'number') {
 			resultStorage = this.item;
@@ -175,9 +175,9 @@ class NEB {
 		}
 
 		if (newSettings.value && newSettings.type !== 'link') {
-			if ((newSettings as ScriptNode|StylesheetNode).value.launchMode !== undefined &&
-				(newSettings as ScriptNode|StylesheetNode).value.launchMode !== 0) {
-				(newSettings as ScriptNode|StylesheetNode).onContentTypes = [true, true, true, true, true, true];
+			if ((newSettings as CRM.ScriptNode|CRM.StylesheetNode).value.launchMode !== undefined &&
+				(newSettings as CRM.ScriptNode|CRM.StylesheetNode).value.launchMode !== 0) {
+				(newSettings as CRM.ScriptNode|CRM.StylesheetNode).onContentTypes = [true, true, true, true, true, true];
 			} else {
 				if (!newSettings.onContentTypes[window.app.crmType]) {
 					window.app.editCRM.build(window.app.editCRM.setMenus);

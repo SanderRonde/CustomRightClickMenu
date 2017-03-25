@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 const linkEditProperties: {
-	item: LinkNode;
+	item: CRM.LinkNode;
 } = {
 	item: {
 		type: Object,
@@ -27,7 +27,7 @@ class LE {
 		window.linkEdit = this;
 	};
 
-	static saveChanges(this: NodeEditBehaviorLinkInstance, resultStorage: Partial<LinkNode>) {
+	static saveChanges(this: NodeEditBehaviorLinkInstance, resultStorage: Partial<CRM.LinkNode>) {
 		//Get new "item"
 		resultStorage.value = [];
 		$(this.$.linksContainer).find('.linkChangeCont').each(function (this: HTMLElement) {

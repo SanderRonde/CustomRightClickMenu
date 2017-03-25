@@ -15,8 +15,8 @@ const crmEditPageProperties: {
 			}
 		}
 	};
-	item: CRMNode;
-	nodeInfo: CRMNodeInfo;
+	item: CRM.Node;
+	nodeInfo: CRM.NodeInfo;
 	hideUpdateMessage: boolean;
 } = {
 	animationConfig: {
@@ -98,27 +98,27 @@ class CEP {
 	/**
 	 * The link item
 	 */
-	static linkItem: LinkNode = {} as any;
+	static linkItem: CRM.LinkNode = {} as any;
 
 	/**
 	 * The script item
 	 */
-	static scriptItem: ScriptNode = {} as any;
+	static scriptItem: CRM.ScriptNode = {} as any;
 
 	/**
 	 * The divider item
 	 */
-	static dividerItem: DividerNode = {} as any;
+	static dividerItem: CRM.DividerNode = {} as any;
 
 	/**
 	 * The menu item
 	 */
-	static menuItem: MenuNode = {} as any;
+	static menuItem: CRM.MenuNode = {} as any;
 
 	/**
 	 * The stylesheet item
 	 */
-	static stylesheetItem: StylesheetNode = {} as any;
+	static stylesheetItem: CRM.StylesheetNode = {} as any;
 
 	/**
      * Whether the page is opened
@@ -153,16 +153,16 @@ class CEP {
 		return source === 'local';
 	};
 
-	static nodeInfoExists(nodeInfo: CRMNodeInfo): boolean {
+	static nodeInfoExists(nodeInfo: CRM.NodeInfo): boolean {
 		return !!nodeInfo;
 	};
 
-	static hideNodeInfo(nodeInfo: CRMNodeInfo): boolean {
+	static hideNodeInfo(nodeInfo: CRM.NodeInfo): boolean {
 		return !this.nodeInfoExists(nodeInfo) ||
 			(this.isLocal(nodeInfo.source) && !this.hasInstallDate(nodeInfo));
 	};
 
-	static hasInstallDate(nodeInfo: CRMNodeInfo): boolean {
+	static hasInstallDate(nodeInfo: CRM.NodeInfo): boolean {
 		return this.nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
 	};
 
@@ -273,20 +273,20 @@ class CEP {
 		this.scriptItem = this.linkItem = this.dividerItem = this.menuItem = this.stylesheetItem = {} as any;
 		const node = this.item;
 		if ((valueStorer.isScript = node.type === 'script')) {
-			this.scriptItem = node as ScriptNode;
+			this.scriptItem = node as CRM.ScriptNode;
 			valueStorer.isLink = valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
 		} else if ((valueStorer.isLink = node.type === 'link')) {
-			this.linkItem = node as LinkNode;
+			this.linkItem = node as CRM.LinkNode;
 			valueStorer.isMenu = valueStorer.isDivider = valueStorer.isStylesheet = false;
 		} else if ((valueStorer.isStylesheet = node.type === 'stylesheet')) {
-			this.stylesheetItem = node as StylesheetNode;
+			this.stylesheetItem = node as CRM.StylesheetNode;
 			valueStorer.isMenu = valueStorer.isDivider = false;
 		} else if ((valueStorer.isMenu = node.type === 'menu')) {
-			this.menuItem = node as MenuNode;
+			this.menuItem = node as CRM.MenuNode;
 			valueStorer.isDivider = false;
 		} else {
 			valueStorer.isDivider = true;
-			this.dividerItem = node as DividerNode;
+			this.dividerItem = node as CRM.DividerNode;
 
 		}
 		setTimeout(function() {

@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 const dividerEditProperties: {
-	item: DividerNode;
+	item: CRM.DividerNode;
 } = {
 	item: {
 		type: Object,

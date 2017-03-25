@@ -20,8 +20,8 @@ class PTO {
 		this.$.checkbox.disabled = value;
 	};
 
-	static init(this: PaperToggleOption, storage: StorageLocal) {
-		this.toggled = storage[$(this).attr('id') as keyof StorageLocal] as boolean;
+	static init(this: PaperToggleOption, storage: CRM.StorageLocal) {
+		this.toggled = storage[$(this).attr('id') as keyof CRM.StorageLocal] as boolean;
 	};
 
 	static onClick(this: PaperToggleOption) {

@@ -770,7 +770,7 @@ type JSONParseErrors = Array<JSONParseError>;
 		return res;
 	}
 
-	type ParsedJSON = Partial<CRMOptionsValue> & {
+	type ParsedJSON = Partial<CRM.OptionsValue> & {
 		[key: string]: any;
 	};
 

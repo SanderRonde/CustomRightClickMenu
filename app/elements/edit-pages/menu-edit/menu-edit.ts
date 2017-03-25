@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 const menuEditProperties: {
-	item: MenuNode;
+	item: CRM.MenuNode;
 } = {
 	item: {
 		type: Object,

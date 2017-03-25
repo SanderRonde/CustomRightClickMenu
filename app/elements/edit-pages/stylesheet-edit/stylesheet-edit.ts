@@ -1,7 +1,7 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 const stylesheetEditProperties: {
-	item: StylesheetNode;
+	item: CRM.StylesheetNode;
 } = {
 	item: {
 		type: Object,
@@ -21,11 +21,11 @@ class STE {
 
 	static editorPlaceHolderAnimation: Animation;
 
-	static getExportData(this: NodeEditBehaviorStylesheetInstance): StylesheetNode {
+	static getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
 		($('stylesheet-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings = {};
 		this.save(null, settings);
-		return settings as StylesheetNode;
+		return settings as CRM.StylesheetNode;
 	};
 
 	static exportStylesheetAsCRM(this: NodeEditBehaviorStylesheetInstance) {

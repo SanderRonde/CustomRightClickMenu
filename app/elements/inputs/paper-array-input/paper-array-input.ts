@@ -4,7 +4,7 @@ const paperArrayInputProperties: {
 	values: Array<any>;
 	max: number;
 	title: string;
-	type: CRMOptionArray['items'];
+	type: CRM.OptionArray['items'];
 	subtext: string;
 } = {
 	values: {

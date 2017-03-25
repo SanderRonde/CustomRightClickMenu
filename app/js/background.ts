@@ -127,7 +127,7 @@ interface ChromeAPIMessage extends CRMAPIMessage<'chrome',void> {
 		isPersistent?: boolean;
 		val: any;
 	}>;
-	requestType: CRMPermission;
+	requestType: CRM.Permission;
 }
 
 interface ContextMenuSettings extends chrome.contextMenus.CreateProperties {
@@ -184,7 +184,7 @@ interface ContextMenuItemTreeItem {
 	index: number;
 	id: number;
 	enabled: boolean;
-	node: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode;
+	node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
 	parentId: number;
 	children: Array<ContextMenuItemTreeItem>;
 	parentTree: Array<ContextMenuItemTreeItem>;
@@ -262,22 +262,22 @@ interface CRMTemplates {
 			[key: string]: any;
 			[key: number]: any;
 		}, Y extends Partial<T>>(this: CRMTemplates, mainObject: T, additions: Y): T & Y;
-	getDefaultNodeInfo(options?: any): CRMNodeInfo;
-	getDefaultLinkNode(options?: any): LinkNode;
-	getDefaultStylesheetValue(options?: any): StylesheetVal;
-	getDefaultScriptValue(options?: any): ScriptVal;
-	getDefaultScriptNode(options?: any): ScriptNode;
-	getDefaultStylesheetNode(options?: any): StylesheetNode;
-	getDefaultDividerOrMenuNode(options: any, type: any): DividerNode | MenuNode;
-	getDefaultDividerNode(options?: any): DividerNode;
-	getDefaultMenuNode(options?: any): MenuNode;
+	getDefaultNodeInfo(options?: any): CRM.NodeInfo;
+	getDefaultLinkNode(options?: any): CRM.LinkNode;
+	getDefaultStylesheetValue(options?: any): CRM.StylesheetVal;
+	getDefaultScriptValue(options?: any): CRM.ScriptVal;
+	getDefaultScriptNode(options?: any): CRM.ScriptNode;
+	getDefaultStylesheetNode(options?: any): CRM.StylesheetNode;
+	getDefaultDividerOrMenuNode(options: any, type: any): CRM.DividerNode | CRM.MenuNode;
+	getDefaultDividerNode(options?: any): CRM.DividerNode;
+	getDefaultMenuNode(options?: any): CRM.MenuNode;
 }
 
 interface GlobalObject {
 	globals?: {
 		latestId: number;
 		storages: {
-			settingsStorage: SettingsStorage;
+			settingsStorage: CRM.SettingsStorage;
 			globalExcludes: Array<MatchPattern|'<all_urls>'>;
 			resourceKeys: Array<{
 				name: string;
@@ -295,7 +295,7 @@ interface GlobalObject {
 					dataURI: string;
 				};
 			};
-			storageLocal: StorageLocal;
+			storageLocal: CRM.StorageLocal;
 			nodeStorage: {
 				[nodeId: number]: any;
 			};
@@ -318,13 +318,13 @@ interface GlobalObject {
 			};
 		};
 		crm: {
-			crmTree: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+			crmTree: Array<CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
 			crmById: {
-				[id: number]: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode;
+				[id: number]: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
 			};
-			safeTree: Array<SafeCRMNode>;
+			safeTree: Array<CRM.SafeNode>;
 			crmByIdSafe: {
-				[id: number]: SafeCRMNode;
+				[id: number]: CRM.SafeNode;
 			};
 		};
 		keys: {
@@ -382,9 +382,9 @@ interface GlobalObject {
 		};
 		toExecuteNodes: {
 			onUrl: {
-				[nodeId: number]: Array<CRMTrigger>;
+				[nodeId: number]: Array<CRM.Trigger>;
 			};
-			always: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+			always: Array<CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
 		};
 		sendCallbackMessage: SendCallbackMessage;
 		notificationListeners: {
@@ -425,7 +425,7 @@ interface GlobalObject {
 	};
 }
 
-interface Extensions<T> extends Extendable<T> { }
+interface Extensions<T> extends CRM.Extendable<T> { }
 
 class Promiselike<T> {
 	_listeners: Array<(result: T) => void> = [];
@@ -655,8 +655,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return mainObject as T & Y;
 				},
-				getDefaultNodeInfo(this: CRMTemplates, options: Partial<CRMNodeInfo> = {}): CRMNodeInfo {
-					const defaultNodeInfo: CRMNodeInfo = {
+				getDefaultNodeInfo(this: CRMTemplates, options: Partial<CRM.NodeInfo> = {}): CRM.NodeInfo {
+					const defaultNodeInfo: CRM.NodeInfo = {
 						permissions: [],
 						source: { 
 							author: (globalObject.globals.storages.storageLocal && 
@@ -664,10 +664,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						},
 					};
 
-					return this.mergeObjects(defaultNodeInfo, options) as CRMNodeInfo;
+					return this.mergeObjects(defaultNodeInfo, options) as CRM.NodeInfo;
 				},
-				getDefaultLinkNode(this: CRMTemplates, options: Partial<LinkNode> = {}): LinkNode {
-					const defaultNode: Partial<LinkNode> = {
+				getDefaultLinkNode(this: CRMTemplates, options: Partial<CRM.LinkNode> = {}): CRM.LinkNode {
+					const defaultNode: Partial<CRM.LinkNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'link',
@@ -688,10 +688,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						]
 					};
 
-					return this.mergeObjects(defaultNode, options) as LinkNode;
+					return this.mergeObjects(defaultNode, options) as CRM.LinkNode;
 				},
-				getDefaultStylesheetValue(this: CRMTemplates, options: Partial<StylesheetVal> = {}): StylesheetVal {
-					const value: StylesheetVal = {
+				getDefaultStylesheetValue(this: CRMTemplates, options: Partial<CRM.StylesheetVal> = {}): CRM.StylesheetVal {
+					const value: CRM.StylesheetVal = {
 						stylesheet: [].join('\n'),
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						toggle: false,
@@ -699,10 +699,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						options: {}
 					};
 
-					return this.mergeObjects(value, options) as StylesheetVal;
+					return this.mergeObjects(value, options) as CRM.StylesheetVal;
 				},
-				getDefaultScriptValue(this: CRMTemplates, options: Partial<ScriptVal> = {}): ScriptVal {
-					const value: ScriptVal = {
+				getDefaultScriptValue(this: CRMTemplates, options: Partial<CRM.ScriptVal> = {}): CRM.ScriptVal {
+					const value: CRM.ScriptVal = {
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						backgroundLibraries: [],
 						libraries: [],
@@ -712,10 +712,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						options: {}
 					};
 
-					return this.mergeObjects(value, options) as ScriptVal;
+					return this.mergeObjects(value, options) as CRM.ScriptVal;
 				},
-				getDefaultScriptNode(this: CRMTemplates, options: Partial<ScriptNode> = {}): ScriptNode {
-					const defaultNode: Partial<ScriptNode> = {
+				getDefaultScriptNode(this: CRMTemplates, options: Partial<CRM.ScriptNode> = {}): CRM.ScriptNode {
+					const defaultNode: Partial<CRM.ScriptNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'script',
@@ -730,10 +730,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						value: this.getDefaultScriptValue(options.value)
 					};
 
-					return this.mergeObjects(defaultNode, options) as ScriptNode;
+					return this.mergeObjects(defaultNode, options) as CRM.ScriptNode;
 				},
-				getDefaultStylesheetNode(this: CRMTemplates, options: Partial<StylesheetNode> = {}): StylesheetNode {
-					const defaultNode: Partial<StylesheetNode> = {
+				getDefaultStylesheetNode(this: CRMTemplates, options: Partial<CRM.StylesheetNode> = {}): CRM.StylesheetNode {
+					const defaultNode: Partial<CRM.StylesheetNode> = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'stylesheet',
@@ -748,11 +748,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						value: this.getDefaultStylesheetValue(options.value)
 					};
 
-					return this.mergeObjects(defaultNode, options) as StylesheetNode;
+					return this.mergeObjects(defaultNode, options) as CRM.StylesheetNode;
 				},
-				getDefaultDividerOrMenuNode(this: CRMTemplates, options: Partial<PassiveCRMNode> = {}, type: 'divider' | 'menu'):
-				DividerNode | MenuNode {
-					const defaultNode: Partial<PassiveCRMNode> = {
+				getDefaultDividerOrMenuNode(this: CRMTemplates, options: Partial<CRM.PassiveNode> = {}, type: 'divider' | 'menu'):
+				CRM.DividerNode | CRM.MenuNode {
+					const defaultNode: Partial<CRM.PassiveNode> = {
 						name: 'name',
 						type: type,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
@@ -766,11 +766,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options) as any;
 				},
-				getDefaultDividerNode(this: CRMTemplates, options: Partial<DividerNode> = {}): DividerNode {
-					return this.getDefaultDividerOrMenuNode(options, 'divider') as DividerNode;
+				getDefaultDividerNode(this: CRMTemplates, options: Partial<CRM.DividerNode> = {}): CRM.DividerNode {
+					return this.getDefaultDividerOrMenuNode(options, 'divider') as CRM.DividerNode;
 				},
-				getDefaultMenuNode(this: CRMTemplates, options: Partial<MenuNode> = {}): MenuNode {
-					return this.getDefaultDividerOrMenuNode(options, 'menu') as MenuNode;
+				getDefaultMenuNode(this: CRMTemplates, options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
+					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				}
 			},
 			specialJSON: {
@@ -1147,13 +1147,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			return true;
 		}
-		static safe(node: MenuNode): SafeMenuNode;
-		static safe(node: LinkNode): SafeLinkNode;
-		static safe(node: ScriptNode): SafeScriptNode;
-		static safe(node: DividerNode): SafeDividerNode;
-		static safe(node: StylesheetNode): SafeStylesheetNode;
-		static safe(node: CRMNode): SafeCRMNode;
-		static safe(node: CRMNode): SafeCRMNode {
+		static safe(node: CRM.MenuNode): CRM.SafeMenuNode;
+		static safe(node: CRM.LinkNode): CRM.SafeLinkNode;
+		static safe(node: CRM.ScriptNode): CRM.SafeScriptNode;
+		static safe(node: CRM.DividerNode): CRM.SafeDividerNode;
+		static safe(node: CRM.StylesheetNode): CRM.SafeStylesheetNode;
+		static safe(node: CRM.Node): CRM.SafeNode;
+		static safe(node: CRM.Node): CRM.SafeNode {
 			return globalObject.globals.crm.crmByIdSafe[node.id];
 		}
 		static createSecretKey(): Array<number> {
@@ -1241,10 +1241,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			return target;
 		}
-		static flattenCrm(searchScope: Array<CRMNode>, obj: CRMNode) {
+		static flattenCrm(searchScope: Array<CRM.Node>, obj: CRM.Node) {
 			searchScope.push(obj);
 			if (obj.type === 'menu' && obj.children) {
-				obj.children.forEach((child: CRMNode) => {
+				obj.children.forEach((child: CRM.Node) => {
 					this.flattenCrm(searchScope, child);
 				});
 			}
@@ -1603,7 +1603,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			function getFirstRowChange(row: Array<ContextMenuItemTreeItem>, changes: {
 				[nodeId: number]: {
-					node: CRMNode;
+					node: CRM.Node;
 					type: 'hide' | 'show';
 				}
 			}) {
@@ -1617,7 +1617,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			function reCreateNode(parentId: number, node: ContextMenuItemTreeItem, changes: {
 				[nodeId: number]: {
-					node: CRMNode;
+					node: CRM.Node;
 					type: 'hide' | 'show';
 				}
 			}) {
@@ -1652,7 +1652,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			function buildSubTreeFromNothing(parentId: number,
 				tree: Array<ContextMenuItemTreeItem>, changes: {
 					[nodeId: number]: {
-						node: CRMNode;
+						node: CRM.Node;
 						type: 'hide'|'show';
 					}
 				}) {
@@ -1670,7 +1670,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			function applyNodeChangesOntree(parentId: number,
 				tree: Array<ContextMenuItemTreeItem>, changes: {
 					[nodeId: number]: {
-						node: CRMNode;
+						node: CRM.Node;
 						type: 'hide' | 'show';
 					}
 				}) {
@@ -1756,7 +1756,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					var changes: {
 						[nodeId: number]: {
-							node: CRMNode;
+							node: CRM.Node;
 							type: 'hide' | 'show';
 						}
 					} = {};
@@ -2241,7 +2241,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				tab: chrome.tabs.Tab,
 				url: string,
 				tabTitle: string,
-				node: DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode,
+				node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode,
 				nodeName: string;
 			} = {} as any;
 			var args = [
@@ -2335,7 +2335,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					_this.respondError('Path does not return a valid value');
 					return false;
 				} else {
-					const lookedUpNode = lookedUp as SafeCRMNode;
+					const lookedUpNode = lookedUp as CRM.SafeNode;
 					_this.respondSuccess(lookedUpNode.id);
 					return lookedUpNode.id;
 				}
@@ -2381,9 +2381,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						const searchScopeObj = _this.getNodeFromId(
 							msg['query'].inSubTree,
 							true, true);
-						let searchScopeObjChildren: Array<CRMNode> = [];
+						let searchScopeObjChildren: Array<CRM.Node> = [];
 						if (searchScopeObj) {
-							const menuSearchScopeObj = searchScopeObj as MenuNode;
+							const menuSearchScopeObj = searchScopeObj as CRM.MenuNode;
 							searchScopeObjChildren = menuSearchScopeObj.children;
 						}
 
@@ -2424,7 +2424,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (pathToSearch.length === 0) {
 						_this.respondSuccess(globalObject.globals.crm.safeTree);
 					} else {
-						const lookedUp = _this.lookup<SafeCRMNode>(pathToSearch, globalObject.globals.crm
+						const lookedUp = _this.lookup<CRM.SafeNode>(pathToSearch, globalObject.globals.crm
 							.safeTree, false);
 						_this.respondSuccess(lookedUp);
 					}
@@ -2564,7 +2564,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						node.local = true;
 					}
 
-					var newNode: CRMNode;
+					var newNode: CRM.Node;
 					switch (_this.message.options.type) {
 						case 'script':
 							newNode = globalObject.globals.constants.templates
@@ -2594,7 +2594,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							break;
 					}
 
-					if ((newNode = _this.moveNode(newNode, _this.message.options.position) as CRMNode)) {
+					if ((newNode = _this.moveNode(newNode, _this.message.options.position) as CRM.Node)) {
 						CRM.updateCrm([newNode.id]);
 						_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
 					} else {
@@ -2616,7 +2616,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						optional: true
 					}
 				], (optionals) => {
-					_this.getNodeFromId(_this.message.nodeId, true).run((node: CRMNode) => {
+					_this.getNodeFromId(_this.message.nodeId, true).run((node: CRM.Node) => {
 						var newNode = JSON.parse(JSON.stringify(node));
 						var id = Helpers.generateItemId();
 						newNode.id = id;
@@ -2658,7 +2658,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if ((node = _this.moveNode(node, msg['position'], {
 						children: parentChildren,
 						index: node.path[node.path.length - 1]
-					}) as CRMNode)) {
+					}) as CRM.Node)) {
 						CRM.updateCrm();
 						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
 					}
@@ -2669,7 +2669,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
 				_this.getNodeFromId(_this.message.nodeId).run((node) => {
 					var parentChildren = _this.lookup(node.path, globalObject.globals.crm
-						.crmTree, true) as Array<CRMNode>;
+						.crmTree, true) as Array<CRM.Node>;
 					parentChildren.splice(node.path[node.path.length - 1], 1);
 					if (globalObject.globals.crmValues.contextMenuIds[node
 							.id] !==
@@ -2731,7 +2731,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 
 								if (node.type === 'menu') {
-									node.children = (node.value as CRMTree) || [];
+									node.children = (node.value as CRM.Tree) || [];
 									node.value = null;
 								}
 							}
@@ -3280,7 +3280,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				], () => {
 					const msg = _this.message as CRMFunctionMessage & {
-						libraries: Array<CRMLibrary>|CRMLibrary;
+						libraries: Array<CRM.Library>|CRM.Library;
 					};
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						function doesLibraryExist(lib: {
@@ -3298,7 +3298,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return false;
 						}
 
-						function isAlreadyUsed(script: ScriptNode, lib: CRMLibrary): boolean {
+						function isAlreadyUsed(script: CRM.ScriptNode, lib: CRM.Library): boolean {
 							for (var i = 0; i < script.value.libraries.length; i++) {
 								if (script.value.libraries[i].name === (lib.name || null) && 
 									script.value.libraries[i].url === (lib.url || null)) {
@@ -3391,7 +3391,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				], () => {
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
-							libraries: Array<CRMLibrary>|CRMLibrary
+							libraries: Array<CRM.Library>|CRM.Library
 						};
 
 						function doesLibraryExist(lib: {
@@ -3409,7 +3409,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return false;
 						}
 
-						function isAlreadyUsed(script: ScriptNode, lib: CRMLibrary) {
+						function isAlreadyUsed(script: CRM.ScriptNode, lib: CRM.Library) {
 							for (var i = 0; i < script.value.libraries.length; i++) {
 								if (script.value.libraries[i].name === (lib.name || null) && 
 									script.value.libraries[i].url === (lib.url || null)) {
@@ -3442,7 +3442,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								return false;
 							}
 							if (!isAlreadyUsed(node, libraries)) {
-								node.value.backgroundLibraries.push(msg['libraries'] as CRMLibrary);
+								node.value.backgroundLibraries.push(msg['libraries'] as CRM.Library);
 							}
 						}
 						CRM.updateCrm();
@@ -3965,11 +3965,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return true;
 		}
 
-		moveNode(node: CRMNode, position: {
+		moveNode(node: CRM.Node, position: {
 			node?: number;
 			relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|
 			'after';
-		}, removeOld: any|boolean = false): boolean|CRMNode {
+		}, removeOld: any|boolean = false): boolean|CRM.Node {
 			var crmFunction = this;
 
 			//Capture old CRM tree
@@ -3977,7 +3977,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				.crmTree));
 
 			//Put the node in the tree
-			var relativeNode: Array<CRMNode>|CRMNode;
+			var relativeNode: Array<CRM.Node>|CRM.Node;
 			var parentChildren;
 			position = position || {};
 
@@ -4014,7 +4014,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					} else {
 						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRMNode>;
+							.crmTree, true) as Array<CRM.Node>;
 						Helpers.pushIntoArray(node, (relativeNode as any)
 							.path[(relativeNode as any).path.length - 1],
 							parentChildren);
@@ -4032,7 +4032,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					} else {
 						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRMNode>;
+							.crmTree, true) as Array<CRM.Node>;
 						Helpers.pushIntoArray(node, 0, parentChildren);
 						if (removeOld && parentChildren === removeOld.children) {
 							removeOld.index++;
@@ -4046,7 +4046,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							.globals.crm.crmTree);
 					} else {
 						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRMNode>;
+							.crmTree, true) as Array<CRM.Node>;
 						if ((relativeNode as any).path.length > 0) {
 							Helpers.pushIntoArray(node, (relativeNode as any)
 								.path[(relativeNode as any).path.length - 1] +
@@ -4061,7 +4061,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							.globals.crm.crmTree);
 					} else {
 						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRMNode>;
+							.crmTree, true) as Array<CRM.Node>;
 						Helpers.pushIntoArray(node, parentChildren.length, parentChildren);
 					}
 					break;
@@ -4072,9 +4072,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						) {
 							removeOld.index++;
 						}
-					} else if ((relativeNode as CRMNode).type === 'menu') {
-						Helpers.pushIntoArray(node, 0, (relativeNode as MenuNode).children);
-						if (removeOld && (relativeNode as MenuNode).children === removeOld.children) {
+					} else if ((relativeNode as CRM.Node).type === 'menu') {
+						Helpers.pushIntoArray(node, 0, (relativeNode as CRM.MenuNode).children);
+						if (removeOld && (relativeNode as CRM.MenuNode).children === removeOld.children) {
 							removeOld.index++;
 						}
 					} else {
@@ -4088,9 +4088,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
 							globalObject
 							.globals.crm.crmTree);
-					} else if ((relativeNode as MenuNode).type === 'menu') {
-						Helpers.pushIntoArray(node, (relativeNode as MenuNode).children.length,
-							(relativeNode as MenuNode).children);
+					} else if ((relativeNode as CRM.MenuNode).type === 'menu') {
+						Helpers.pushIntoArray(node, (relativeNode as CRM.MenuNode).children.length,
+							(relativeNode as CRM.MenuNode).children);
 					} else {
 						this.respondError('Supplied node is not of type "menu"');
 						return false;
@@ -4117,14 +4117,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return node;
 		}
 
-		getNodeFromId(id: number): GetNodeFromIdCallback<CRMNode>;
+		getNodeFromId(id: number): GetNodeFromIdCallback<CRM.Node>;
 		getNodeFromId(id: number,
-			makeSafe: boolean): GetNodeFromIdCallback<CRMNode|SafeCRMNode>;
+			makeSafe: boolean): GetNodeFromIdCallback<CRM.Node|CRM.SafeNode>;
 		getNodeFromId(id: number, makeSafe: boolean, synchronous: boolean):
-		GetNodeFromIdCallback<CRMNode|SafeCRMNode>|CRMNode|SafeCRMNode|boolean|any
+		GetNodeFromIdCallback<CRM.Node|CRM.SafeNode>|CRM.Node|CRM.SafeNode|boolean|any
 		getNodeFromId(id: number, makeSafe: boolean = false,
 			synchronous: boolean = false):
-		GetNodeFromIdCallback<CRMNode|SafeCRMNode>|CRMNode|SafeCRMNode|boolean|any {
+		GetNodeFromIdCallback<CRM.Node|CRM.SafeNode>|CRM.Node|CRM.SafeNode|boolean|any {
 			var node = (makeSafe ?
 				            globalObject.globals.crm.crmByIdSafe :
 				            globalObject.globals.crm.crmById)[id];
@@ -4133,7 +4133,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return node;
 				}
 				return {
-					run(callback: (node: SafeCRMNode) => void) {
+					run(callback: (node: CRM.SafeNode) => void) {
 						callback(node);
 					}
 				};
@@ -4280,11 +4280,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return true;
 		};
 
-		checkPermissions(toCheck: Array<CRMPermission>,
+		checkPermissions(toCheck: Array<CRM.Permission>,
 			callback?: (optional: any) => void) {
 			const optional: Array<any> = [];
 			let permitted = true;
-			let node: CRMNode;
+			let node: CRM.Node;
 			if (!(node = globalObject.globals.crm.crmById[this.message.id])) {
 				this
 					.respondError('The node you are running this script from no longer exist, no CRM API calls are allowed');
@@ -4296,7 +4296,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					callback(optional);
 				}
 			} else {
-				let notPermitted: Array<CRMPermission> = [];
+				let notPermitted: Array<CRM.Permission> = [];
 				if (!node.permissions || Helpers.compareArray(node.permissions, [])) {
 					if (toCheck.length > 0) {
 						permitted = false;
@@ -4353,7 +4353,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			var apiPermission = message
 				.requestType ||
-				message.api.split('.')[0] as CRMPermission;
+				message.api.split('.')[0] as CRM.Permission;
 			if (!node.isLocal) {
 				var apiFound;
 				var chromeFound = (node.permissions.indexOf('chrome') !== -1);
@@ -4659,7 +4659,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			for (let id in globalObject.globals.crm.crmById) {
-				let node: CRMNode;
+				let node: CRM.Node;
 				if (globalObject.globals.crm.crmById.hasOwnProperty(id) &&
 					(node = globalObject.globals.crm.crmById[id])) {
 					if (node.type === 'script') {
@@ -4668,7 +4668,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								[url: string]: boolean;
 							} = {};
 							const metaTags = CRM.Script.MetaTags.getMetaTags((globalObject.globals
-								.crm.crmById[id] as ScriptNode).value.script);
+								.crm.crmById[id] as CRM.ScriptNode).value.script);
 							const resources = metaTags['resource'];
 							const libs = node.value.libraries;
 							for (let i = 0; i < libs.length; i++) {
@@ -5195,9 +5195,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					return false;
 				}
-				private static _executeNode(node: CRMNode, tab: chrome.tabs.Tab) {
+				private static _executeNode(node: CRM.Node, tab: chrome.tabs.Tab) {
 					if (node.type === 'script') {
-						CRM.Script.createHandler(node as ScriptNode)({
+						CRM.Script.createHandler(node as CRM.ScriptNode)({
 							pageUrl: tab.url,
 							menuItemId: 0,
 							editable: false
@@ -5283,7 +5283,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						});
 					}
 				}
-				private static _registerNode(node: CRMNode, oldPath?: Array<number>) {
+				private static _registerNode(node: CRM.Node, oldPath?: Array<number>) {
 					//Update it in CRM tree
 					if (oldPath !== undefined && oldPath !== null) {
 						eval(`globalObject.globals.storages.settingsStorage.crm[${oldPath
@@ -5297,7 +5297,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					anchor.href = url;
 					return anchor;
 				}
-				private static _updateCRMNode(node: CRMNode, allowedPermissions: Array<CRMPermission>, downloadURL: string,
+				private static _updateCRMNode(node: CRM.Node, allowedPermissions: Array<CRM.Permission>, downloadURL: string,
 					oldNodeId?: number): {
 					node: any,
 					path: Array<number>,
@@ -5347,8 +5347,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				private static _createUserscriptTriggers(metaTags: {
 					[key: string]: any;
-				}): CRMTriggers {
-					var triggers: CRMTriggers = [];
+				}): CRM.Triggers {
+					var triggers: CRM.Triggers = [];
 					const includes: Array<string> = metaTags['includes'];
 					if (includes) {
 						triggers = triggers.concat(includes.map(include => ({
@@ -5375,11 +5375,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				private static _createUserscriptTypeData(metaTags: {
 					[key: string]: any;
-				}, code: string, node: Partial<CRMNode>) {
+				}, code: string, node: Partial<CRM.Node>) {
 					let launchMode: CRMLaunchModes|string;
 					if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 						'CRM_stylesheet')) {
-						node = node as StylesheetNode;
+						node = node as CRM.StylesheetNode;
 						node.type = 'stylesheet';
 						launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 								'CRM_launchMode') ||
@@ -5399,7 +5399,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						};
 					} else {
 						node.type = 'script';
-						node = node as ScriptNode;
+						node = node as CRM.ScriptNode;
 
 						//Libraries
 						var libs: Array<{
@@ -5465,7 +5465,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				private static _applyMetaTags(code: string, metaTags: {
 					[key: string]: any;
-				}, node: Partial<ScriptNode|StylesheetNode>) {
+				}, node: Partial<CRM.ScriptNode|CRM.StylesheetNode>) {
 					const metaTagsArr: Array<string> = [];
 
 					let metaValue;
@@ -5515,7 +5515,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				static install(message: {
 					script: string;
 					downloadURL: string;
-					allowedPermissions: Array<CRMPermission>;
+					allowedPermissions: Array<CRM.Permission>;
 					metaTags: {
 						[key: string]: any;
 					};
@@ -5546,13 +5546,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				static installUserscript(metaTags: {
 						[key: string]: any;
-					}, code: string, downloadURL: string, allowedPermissions: Array<Permission>,
+					}, code: string, downloadURL: string, allowedPermissions: Array<CRM.Permission>,
 					oldNodeId?: number): {
-						node: ScriptNode|StylesheetNode,
+						node: CRM.ScriptNode|CRM.StylesheetNode,
 						path?: Array<number>,
 						oldNodeId?: number,
 				} {
-					var node: Partial<ScriptNode|StylesheetNode> = {};
+					var node: Partial<CRM.ScriptNode|CRM.StylesheetNode> = {};
 					var hasOldNode = false;
 					if (oldNodeId !== undefined && oldNodeId !== null) {
 						hasOldNode = true;
@@ -5675,13 +5675,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (hasOldNode) {
 						var path = globalObject.globals.crm.crmById[oldNodeId].path;
 						return {
-							node: node as ScriptNode|StylesheetNode,
+							node: node as CRM.ScriptNode|CRM.StylesheetNode,
 							path: path,
 							oldNodeId: oldNodeId
 						};
 					} else {
 						return {
-							node: node as ScriptNode|StylesheetNode,
+							node: node as CRM.ScriptNode|CRM.StylesheetNode,
 							path: null,
 							oldNodeId: null
 						};
@@ -5692,7 +5692,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const checking = [];
 					var updatedScripts: Array<{
 						oldNodeId: number;
-						node: CRMNode;
+						node: CRM.Node;
 						path: Array<number>;
 					}> = [];
 					var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
@@ -5766,10 +5766,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				private static _checkNodeForUpdate(node: CRMNode, checking: Array<boolean>,
+				private static _checkNodeForUpdate(node: CRM.Node, checking: Array<boolean>,
 					checkingId: number, downloadURL: string, onDone: () => void,
 					updatedScripts: Array<{
-						node: CRMNode;
+						node: CRM.Node;
 						path?: Array<number>;
 						oldNodeId?: number;
 					}>) {
@@ -5796,7 +5796,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 													addedPermissions.push({
 														node: node.id,
 														permissions: resultParsed.metaTags.grant
-															.filter((newPermission: Permission) => {
+															.filter((newPermission: CRM.Permission) => {
 																return node.nodeInfo.permissions
 																	.indexOf(newPermission) ===
 																	-1;
@@ -5810,7 +5810,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											}
 
 											updatedScripts.push(this._updateCRMNode(resultParsed.node,
-												node.nodeInfo.permissions as Array<CRMPermission>,
+												node.nodeInfo.permissions as Array<CRM.Permission>,
 												downloadURL, node.id));
 										}
 										checking[checkingId] = false;
@@ -5854,7 +5854,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 														var addedPermissions = data['addedPermissions'] || [];
 														addedPermissions.push({
 															node: node.id,
-															permissions: metaTags['grant'].filter((newPermission: Permission) => {
+															permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
 																return node.nodeInfo.permissions
 																	.indexOf(newPermission) ===
 																	-1;
@@ -5957,7 +5957,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			};
 			static Background = class Background {
-				private static _loadBackgroundPageLibs(node: ScriptNode): {
+				private static _loadBackgroundPageLibs(node: CRM.ScriptNode): {
 					libraries: Array<string>;
 					code: Array<string>;
 				} {
@@ -6013,7 +6013,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					};
 				}
 
-				static createBackgroundPage(node: ScriptNode) {
+				static createBackgroundPage(node: CRM.ScriptNode) {
 					if (!node ||
 						node.type !== 'script' ||
 						!node.value.backgroundScript ||
@@ -6228,7 +6228,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 			};
-			static createHandler(node: ScriptNode): ClickHandler {
+			static createHandler(node: CRM.ScriptNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 					var key: Array<number> = [];
 					var err = false;
@@ -6457,7 +6457,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return url;
 			}
 
-			static createHandler(node: LinkNode): ClickHandler {
+			static createHandler(node: CRM.LinkNode): ClickHandler {
 				return (clickData: chrome.contextMenus.OnClickData,
 					tabInfo: chrome.tabs.Tab) => {
 					var finalUrl: string;
@@ -6481,7 +6481,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		};
 		static Stylesheet = class Stylesheet {
-			static createToggleHandler(node: StylesheetNode): ClickHandler {
+			static createToggleHandler(node: CRM.StylesheetNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 					let code: string;
 					const className = node.id + '' + tab.id;
@@ -6510,7 +6510,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					});
 				};
 			}
-			static createClickHandler(node: StylesheetNode): ClickHandler {
+			static createClickHandler(node: CRM.StylesheetNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 					const className = node.id + '' + tab.id;
 					const code = [
@@ -6667,7 +6667,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 		};
 		static NodeCreation = class NodeCreation {
-			private static _getStylesheetReplacementTabs(node: CRMNode): Array<{
+			private static _getStylesheetReplacementTabs(node: CRM.Node): Array<{
 				id: number;
 			}> {
 				const replaceOnTabs: Array<{
@@ -6698,7 +6698,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				return replaceOnTabs;
 			}
-			private static _addRightClickItemClick(node: CRMNode, launchMode: CRMLaunchModes,
+			private static _addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
 				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
 					id: number;
 				}) {
@@ -6791,7 +6791,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				idHolder.id = id;
 			}
-			private static _setLaunchModeData(node: CRMNode,
+			private static _setLaunchModeData(node: CRM.Node,
 				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
 					id: number;
 				}) {
@@ -6806,7 +6806,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 
-			static createNode(node: CRMNode, parentId: number) {
+			static createNode(node: CRM.Node, parentId: number) {
 				const replaceStylesheetTabs = this._getStylesheetReplacementTabs(node);
 				const rightClickItemOptions = {
 					title: node.name,
@@ -6821,7 +6821,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				const id = idHolder.id;
 
 				if (replaceStylesheetTabs.length !== 0) {
-					node = node as StylesheetNode;
+					node = node as CRM.StylesheetNode;
 					for (let i = 0; i < replaceStylesheetTabs.length; i++) {
 						const className = node.id + '' + replaceStylesheetTabs[i].id;
 						let code = `var nodes = document.querySelectorAll(".styleNodes${
@@ -6867,10 +6867,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			this._buildNodePaths(globalObject.globals.crm.crmTree, []);
 			this._buildByIdObjects();
 		}
-		static makeSafe(node: CRMNode): SafeCRMNode {
-			let newNode: SafeCRMNode = {} as any;
+		static makeSafe(node: CRM.Node): CRM.SafeNode {
+			let newNode: CRM.SafeNode = {} as any;
 			if (node.children) {
-				const menuNode = newNode as SafeMenuNode;
+				const menuNode = newNode as CRM.SafeMenuNode;
 				menuNode.children = [];
 				for (let i = 0; i < node.children.length; i++) {
 					menuNode.children[i] = this.makeSafe(node.children[i]);
@@ -6885,7 +6885,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				'menuVal', 'scriptVal', 'stylesheetVal', 'nodeInfo',
 				'triggers', 'onContentTypes', 'showOnSpecified'
 			]);
-			return newNode as SafeCRMNode;
+			return newNode as CRM.SafeNode;
 		}
 		static buildPageCRM() {
 			const length = globalObject.globals.crm.crmTree.length;
@@ -6928,7 +6928,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			}
 		}
-		static getContexts(contexts: CRMContentTypes): Array<string> {
+		static getContexts(contexts: CRM.ContentTypes): Array<string> {
 			const newContexts = ['browser_action'];
 			const textContexts = globalObject.globals.constants.contexts;
 			for (let i = 0; i < 6; i++) {
@@ -6974,7 +6974,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return res;
 		}
 
-		private static _convertNodeToLegacy(node: CRMNode): string {
+		private static _convertNodeToLegacy(node: CRM.Node): string {
 			switch (node.type) {
 				case 'divider':
 					return [node.name, 'Divider', ''].join('%123');
@@ -7004,8 +7004,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					].join('%123');
 			}
 		}
-		private static _walkCRM(crm: CRMTree, state: {
-			arr: Array<CRMNode>;
+		private static _walkCRM(crm: CRM.Tree, state: {
+			arr: Array<CRM.Node>;
 		}) {
 			for (let i = 0; i < crm.length; i++) {
 				var node = crm[i];
@@ -7016,21 +7016,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			return state;
 		}
-		private static _createCopyFunction(obj: CRMNode,
-			target: SafeCRMNode): (props: Array<string>) => void {
+		private static _createCopyFunction(obj: CRM.Node,
+			target: CRM.SafeNode): (props: Array<string>) => void {
 			return (props: Array<string>) => {
 				props.forEach((prop) => {
 					if (prop in obj) {
-						if (typeof obj[prop as keyof CRMNode] === 'object') {
-							target[prop as keyof SafeCRMNode] = JSON.parse(JSON.stringify(obj[prop as keyof CRMNode]));
+						if (typeof obj[prop as keyof CRM.Node] === 'object') {
+							target[prop as keyof CRM.SafeNode] = JSON.parse(JSON.stringify(obj[prop as keyof CRM.Node]));
 						} else {
-							(target as any)[prop] = obj[prop as keyof CRMNode];
+							(target as any)[prop] = obj[prop as keyof CRM.Node];
 						}
 					}
 				});
 			};
 		}
-		private static _buildNodePaths(tree: Array<CRMNode>, currentPath: Array<number>) {
+		private static _buildNodePaths(tree: Array<CRM.Node>, currentPath: Array<number>) {
 			for (let i = 0; i < tree.length; i++) {
 				const childPath = currentPath.concat([i]);
 				const child = tree[i];
@@ -7045,7 +7045,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				chrome.runtime.openOptionsPage();
 			};
 		}
-		private static _buildPageCRMTree(node: CRMNode, parentId: number,
+		private static _buildPageCRMTree(node: CRM.Node, parentId: number,
 			path: Array<number>,
 			parentTree: Array<ContextMenuItemTreeItem>): {
 			id: number;
@@ -7054,7 +7054,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			children: Array<ContextMenuItemTreeItem>;
 			index?: number;
 			parentId?: number;
-			node?: CRMNode;
+			node?: CRM.Node;
 			parentTree?: Array<ContextMenuItemTreeItem>;
 		} {
 			const id = this.NodeCreation.createNode(node, parentId);
@@ -7089,7 +7089,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return null;
 		}
 
-		private static _parseNode(node: CRMNode, isSafe: boolean = false) {
+		private static _parseNode(node: CRM.Node, isSafe: boolean = false) {
 			globalObject.globals.crm[isSafe ? 'crmByIdSafe' : 'crmById'][node.id] = (
 				isSafe ? this.makeSafe(node) : node
 			);
@@ -7109,7 +7109,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		}
 
-		private static _safeTreeParse(node: CRMNode): SafeCRMNode {
+		private static _safeTreeParse(node: CRM.Node): CRM.SafeNode {
 			if (node.children) {
 				const children = [];
 				for (let i = 0; i < node.children.length; i++) {
@@ -7120,7 +7120,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return this.makeSafe(node);
 		}
 
-		private static _buildSafeTree(crm: Array<CRMNode>): Array<SafeCRMNode> {
+		private static _buildSafeTree(crm: Array<CRM.Node>): Array<CRM.SafeNode> {
 			const treeCopy = JSON.parse(JSON.stringify(crm));
 			const safeBranch = [];
 			for (let i = 0; i < treeCopy.length; i++) {
@@ -7317,18 +7317,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 	type FirstTimeCallback = (resolve: (result: any) => void) => void;
 
-	type TransferOldMenuNode = SafeCRMBaseNode & {
+	type TransferOldMenuNode = CRM.SafeBaseNodeBase & {
 		children: string;
-		linkVal?: LinkVal;
-		scriptVal?: ScriptVal;
+		linkVal?: CRM.LinkVal;
+		scriptVal?: CRM.ScriptVal;
 		showOnSpecified: boolean;
 		isLocal: boolean;
 		index: number;
-		stylesheetVal?: StylesheetVal;
+		stylesheetVal?: CRM.StylesheetVal;
 	};
 
-	type TransferOldNode = TransferOldMenuNode | ScriptNode | StylesheetNode |
-		LinkNode | DividerNode;
+	type TransferOldNode = TransferOldMenuNode | CRM.ScriptNode | CRM.StylesheetNode |
+		CRM.LinkNode | CRM.DividerNode;
 
 	interface PersistentData {
 		lineSeperators: Array<{
@@ -7536,7 +7536,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				};
 
-				static transferCRMFromOld(openInNewTab: boolean): Array<CRMNode> {
+				static transferCRMFromOld(openInNewTab: boolean): Array<CRM.Node> {
 					const amount = parseInt(window.localStorage.getItem('numberofrows'), 10) + 1;
 
 					const nodes: Array<TransferOldNode> = [];
@@ -7546,7 +7546,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					//Structure nodes with children etc
-					const crm: Array<CRMNode> = [];
+					const crm: Array<CRM.Node> = [];
 					this._assignParents(crm, nodes, 0, nodes.length);
 					return crm;
 				}
@@ -7620,7 +7620,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return node;
 				}
-				private static _assignParents(parent: Array<CRMNode>,
+				private static _assignParents(parent: Array<CRM.Node>,
 					nodes: Array<TransferOldNode>, startIndex: number, endIndex: number) {
 					for (let i = startIndex; i < endIndex; i++) {
 						const currentIndex = i;
@@ -7636,13 +7636,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							this._assignParents(children, nodes, start, end);
 						}
 
-						parent.push(nodes[currentIndex] as CRMNode);
+						parent.push(nodes[currentIndex] as CRM.Node);
 					}
 				}
 			};
 
 			//Local storage
-			static _getDefaultStorages(): [StorageLocal, SettingsStorage] {
+			static _getDefaultStorages(): [CRM.StorageLocal, CRM.SettingsStorage] {
 				const syncStorage = this._getDefaultSyncStorage();
 				const syncHash = window.md5(JSON.stringify(syncStorage));
 				return [{
@@ -7678,7 +7678,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}, syncStorage];
 			}
 			//Sync storage
-			static _getDefaultSyncStorage(): SettingsStorage {
+			static _getDefaultSyncStorage(): CRM.SettingsStorage {
 				return {
 					editor: {
 						keyBindings: {
@@ -7704,10 +7704,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				};
 			}
 
-			static handleFirstRun(crm?: Array<CRMNode>): {
-				settingsStorage: SettingsStorage;
-				storageLocalCopy: StorageLocal;
-				chromeStorageLocal: StorageLocal;
+			static handleFirstRun(crm?: Array<CRM.Node>): {
+				settingsStorage: CRM.SettingsStorage;
+				storageLocalCopy: CRM.StorageLocal;
+				chromeStorageLocal: CRM.StorageLocal;
 			} {
 				window.localStorage.setItem('transferred', 'true');
 
@@ -7732,9 +7732,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				};
 			}
 			static handleTransfer(): (resolve: (data: {
-				settingsStorage: SettingsStorage;
-				storageLocalCopy: StorageLocal;
-				chromeStorageLocal: StorageLocal;
+				settingsStorage: CRM.SettingsStorage;
+				storageLocalCopy: CRM.StorageLocal;
+				chromeStorageLocal: CRM.StorageLocal;
 			}) => void) => void {
 				window.localStorage.setItem('transferred', 'true');
 
@@ -7760,7 +7760,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			}
 
-			private static _uploadStorageSyncData(data: SettingsStorage) {
+			private static _uploadStorageSyncData(data: CRM.SettingsStorage) {
 				const settingsJson = JSON.stringify(data);
 
 				//Using chrome.storage.sync
@@ -7799,7 +7799,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			oldValue: any;
 		}>, toUpdate: Array<number> = []) {
 			toUpdate.forEach((id) => {
-				CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id] as ScriptNode);
+				CRM.Script.Background.createBackgroundPage(globalObject.globals.crm.crmById[id] as CRM.ScriptNode);
 			});
 
 			//Check if any background page updates occurred
@@ -7813,7 +7813,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						if (ordered.hasOwnProperty(id)) {
 							const node = globalObject.globals.crm.crmById[id];
 							if (node.type === 'script' && (!node || node.value.script !== ordered[id])) {
-								CRM.Script.Background.createBackgroundPage(node as ScriptNode);
+								CRM.Script.Background.createBackgroundPage(node as CRM.ScriptNode);
 							}
 						}
 					}
@@ -7968,8 +7968,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					break;
 			}
 		}
-		static setStorages(storageLocalCopy: StorageLocal, settingsStorage: SettingsStorage,
-			chromeStorageLocal: StorageLocal, callback?: () => void) {
+		static setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
+			chromeStorageLocal: CRM.StorageLocal, callback?: () => void) {
 			globalObject.globals.storages.storageLocal = storageLocalCopy;
 			globalObject.globals.storages.settingsStorage = settingsStorage;
 
@@ -8024,8 +8024,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			} & {
 				indexes: Array<string>;
 			}) => {
-				chrome.storage.local.get((chromeStorageLocal: StorageLocal & {
-					settings?: SettingsStorage;
+				chrome.storage.local.get((chromeStorageLocal: CRM.StorageLocal & {
+					settings?: CRM.SettingsStorage;
 				}) => {
 					let result: boolean | ((resolve: (result: any) => void) => void);
 					if ((result = this._isFirstTime(chromeStorageLocal))) {
@@ -8132,7 +8132,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
-		private static _orderBackgroundPagesById(tree: Array<CRMNode>, obj: {
+		private static _orderBackgroundPagesById(tree: Array<CRM.Node>, obj: {
 			[nodeId: number]: string;
 		}) {
 			for (let i = 0; i < tree.length; i++) {
@@ -8147,7 +8147,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		private static _upgradeVersion(oldVersion: string, newVersion: string) {
 			//No changes yet
 		}
-		private static _isFirstTime(storageLocal: StorageLocal): boolean|FirstTimeCallback {
+		private static _isFirstTime(storageLocal: CRM.StorageLocal): boolean|FirstTimeCallback {
 			const currentVersion = chrome.runtime.getManifest().version;
 			if (storageLocal.lastUpdatedAt === currentVersion) {
 				return false;
@@ -8167,7 +8167,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
-		private static _checkForStorageSyncUpdates(storageSync: SettingsStorage, storageLocal: StorageLocal) {
+		private static _checkForStorageSyncUpdates(storageSync: CRM.SettingsStorage, storageLocal: CRM.StorageLocal) {
 			const syncString = JSON.stringify(storageSync);
 			const hash = window.md5(syncString);
 

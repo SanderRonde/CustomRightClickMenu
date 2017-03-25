@@ -140,7 +140,7 @@ class UEE {
 	/**
 	 * The node that is currently being edited
 	 */
-	static editingCRMItem: (ScriptNode|StylesheetNode) & {
+	static editingCRMItem: (CRM.ScriptNode|CRM.StylesheetNode) & {
 		file: {
 			id: number;
 			path: string;
@@ -341,7 +341,7 @@ class UEE {
 					action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
 					code: (window.scriptEdit && window.scriptEdit.active ? 
-						(item as ScriptNode).value.script : (item as StylesheetNode).value.stylesheet),
+						(item as CRM.ScriptNode).value.script : (item as CRM.StylesheetNode).value.stylesheet),
 					id: item.file.id
 				});
 			} else {
@@ -350,7 +350,7 @@ class UEE {
 					action: (window.scriptEdit && window.scriptEdit.active ? 'setupScript' : 'setupStylesheet'),
 					name: item.name,
 					code: (window.scriptEdit && window.scriptEdit.active ? 
-						(item as ScriptNode).value.script : (item as StylesheetNode).value.stylesheet),
+						(item as CRM.ScriptNode).value.script : (item as CRM.StylesheetNode).value.stylesheet),
 				});
 			}
 		} else {

@@ -86,7 +86,7 @@ type CodeMirrorMode = 'javascript'|'css'|{
 	globalVars?: NextChainable;
 
 	useJsonSchema?: boolean;
-	jsonSchema?: CRMOptions;
+	jsonSchema?: CRM.Options;
 }
 
 interface CodeMirrorDoc {
@@ -96,7 +96,7 @@ interface CodeMirrorDoc {
 interface CMMetaInfo {
 	metaStart: CMPosition;
 	metaEnd: CMPosition;
-	metaTags: MetaTags;
+	metaTags: CRM.MetaTags;
 	metaIndexes: {
 		[key: number]: {
 			line: number;
@@ -176,7 +176,7 @@ interface CodeMirrorInstance {
 
 	updateMetaTags(cm: CodeMirrorInstance, key: string, oldValue: string|number, value: string|number, singleValue?: boolean): void;
 	addMetaTags(cm: CodeMirrorInstance, key: string, value: string|number, line?: number): void;
-	getMetaTags(cm: CodeMirrorInstance): MetaTags;
+	getMetaTags(cm: CodeMirrorInstance): CRM.MetaTags;
 	removeMetaTags(cm: CodeMirrorInstance, key: string, value: string|number): number;
 }
 

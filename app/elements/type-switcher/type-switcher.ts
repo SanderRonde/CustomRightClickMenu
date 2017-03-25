@@ -8,7 +8,7 @@ class TS {
 	/**
 	 * The type of this item
 	 */
-	static type: NodeType;
+	static type: CRM.NodeType;
 
 	/**
 	 * Whether the item is a link
@@ -38,7 +38,7 @@ class TS {
 	/**
 	 * All types other than this one
 	 */
-	static remainingTypes: Array<NodeType> = [];
+	static remainingTypes: Array<CRM.NodeType> = [];
 
 	/**
 	 * Whether the choices container is toggled open
@@ -133,8 +133,8 @@ class TS {
 		}
 	};
 
-	static matchesTypeScheme(this: TypeSwitcher, type: NodeType, 
-			data: LinkVal|ScriptVal|StylesheetVal|null): boolean {
+	static matchesTypeScheme(this: TypeSwitcher, type: CRM.NodeType, 
+			data: CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null): boolean {
 		switch (type) {
 			case 'link':
 				if (Array.isArray(data)) {
@@ -163,15 +163,15 @@ class TS {
 		window.app.editCRM.cancelAdding();
 		
 		var _this = this;
-		var type: NodeType;
+		var type: CRM.NodeType;
 
 		if (typeof e === 'string') {
 			type = e;
 		} else {
 			if (e.path[0].tagName === 'SPAN') {
-				type = e.path[0].innerHTML as NodeType;
+				type = e.path[0].innerHTML as CRM.NodeType;
 			} else {
-				type = e.path[0].children[0].innerHTML as NodeType;
+				type = e.path[0].children[0].innerHTML as CRM.NodeType;
 			}
 		}
 		var editCrmEl = this.parentElement.parentElement.parentElement as EditCrmItem;
