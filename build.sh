@@ -4,9 +4,14 @@ set -e
 http-server -p 1234 . -s &
 
 npm install -g typescript@latest
+
+echo "Typescript Compiling App" && echo -en "travis_fold:start:ts_app\\r"
 tsc --watch false
+echo -en "travis_fold:end:ts_app\\r"
 cd test
+echo "Typescript Compiling Test" && echo -en "travis_fold:start:ts_test\\r"
 tsc --watch false
+echo -en "travis_fold:end:ts_test\\r"
 cd ../
 
 echo "Build tests" && echo -en "travis_fold:start:build_tests\\r"
