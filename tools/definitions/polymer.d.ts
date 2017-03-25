@@ -43,11 +43,11 @@ declare namespace Polymer {
 		preventDefault(): void;
 	}
 
-	interface ClickEvent extends PMouseEvent {
+	export interface ClickEvent extends PMouseEvent {
 		type: 'tap';
 	}
 
-	interface DragEvent extends PMouseEvent {
+	export interface DragEvent extends PMouseEvent {
 		detail: {
 			state: 'start'|'end'|'track';
 			sourceEvent: MouseEvent;
@@ -57,7 +57,7 @@ declare namespace Polymer {
 		type: 'drag';
 	}
 
-	type Element = HTMLElement | HTMLPaperIconButtonElement | HTMLPaperDialogElement | HTMLPaperInputElement |
+	export type Element = HTMLElement | HTMLPaperIconButtonElement | HTMLPaperDialogElement | HTMLPaperInputElement |
 		HTMLPaperCheckboxElement | CenterElement | HTMLDomRepeatElement | PaperToggleOption | HTMLPaperToastElement |
 		DefaultLink | EchoHtml | DividerEdit | HTMLPaperRadioGroupElement;
 
@@ -71,12 +71,12 @@ declare namespace Polymer {
 		notifyPath(path: string, value: any): void;
 	}
 
-	type El<N extends keyof IDMap, T extends InitializerProperties> = 
+	export type El<N extends keyof IDMap, T extends InitializerProperties> = 
 		HTMLElementCopy & T & ElementBase & {
 			$: IDMap[N]	
 		};
 
-	type ElementTagNameMap = {
+	export type ElementTagNameMap = {
 		'paper-icon-button': HTMLPaperIconButtonElement;
 		'paper-dialog': HTMLPaperDialogElement;
 		'paper-toast': HTMLPaperToastElement;
