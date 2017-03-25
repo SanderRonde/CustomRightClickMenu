@@ -592,6 +592,14 @@ type JSONParseErrors = Array<JSONParseError>;
 						});
 					}
 				partialStr.push(ch);
+			} else if (ch === '}') {
+				//If nothing's been read yet and it's just a bunch of spaces, just skip line
+				if (foundStr === null && foundColon === false && propValue === null) {
+					return {
+						key: undefined,
+						value: undefined
+					}
+				}
 			} else {
 				const skipToChar = getSkipToChar(state);
 				if (skipToChar === ':') {
@@ -1392,7 +1400,6 @@ ${message}`;
 		} catch(e) {
 			completions = [];
 		}
-		console.log(options, cursor, completions);
 		return {
 			completions: completions,
 			start: query.start || query.end,

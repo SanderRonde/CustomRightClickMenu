@@ -772,8 +772,7 @@
 		var s, a, l, c = "CodeMirror-hint", p = "CodeMirror-hint-active";
 		e.showHint = function(e, t, r) {
 			var n, o;
-			if (console.log(arguments),
-			!t)
+			if (!t)
 				return e.showHint(r);
 			if (r && r.async && (t.async = !0),
 			n = {

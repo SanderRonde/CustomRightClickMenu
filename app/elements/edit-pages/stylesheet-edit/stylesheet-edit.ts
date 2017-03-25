@@ -582,6 +582,13 @@ class STE {
 		element.on('changes', () => {
 			element.performLint();
 		});
+		const keys: {
+			[key: string]: (cm: CodeMirrorInstance) => void;
+		} = {};
+		keys[window.app.settings.editor.keyBindings.autocomplete] = (cm: CodeMirrorInstance) => {
+			window.app.ternServer.complete(cm);
+		}
+		this.editor.setOption('extraKeys', keys);
 		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(element.display.sizer).children().first());
 		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
 		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
@@ -688,6 +695,9 @@ class STE {
 			this.editor.display.wrapper.remove();
 			this.editor = null;
 		}
+		window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
+			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+		});
 		window.externalEditor.init();
 		if (window.app.storageLocal.recoverUnsavedData) {
 			chrome.storage.local.set({
@@ -724,6 +734,26 @@ class STE {
 		setTimeout(function () {
 			_this.loadEditor(_this.$.editorCont);
 		}, 750);
+	}
+
+	static changeTabEvent(this: NodeEditBehaviorStylesheetInstance, e: Polymer.ClickEvent) {
+		const element = window.app.findElementWithClassName(e.path, 'editorTab');
+
+		const isMain = element.classList.contains('mainEditorTab');
+		if (isMain && this.editorMode !== 'main') {
+			element.classList.remove('optionsEditorTab');
+			this.hideCodeOptions();
+		} else if (!isMain && this.editorMode === 'main') {
+			element.classList.add('optionsEditorTab');
+			this.showCodeOptions();
+			this.editorMode = 'options';
+		}
+
+		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+			function(tab: HTMLElement) {
+				tab.classList.remove('active');
+			});
+		element.classList.add('active');
 	}
 }
 
