@@ -199,18 +199,6 @@ interface AddedPermissionsTabContainer extends HTMLElement {
 	maxTabs: number;
 }
 
-interface TernServer {
-	complete(cm: CodeMirrorInstance): void;
-	showType(cm: CodeMirrorInstance): void;
-	showDocs(cm: CodeMirrorInstance): void;
-	jumpToDef(cm: CodeMirrorInstance): void;
-	jumpBack(cm: CodeMirrorInstance): void;
-	rename(cm: CodeMirrorInstance): void;
-	selectName(cm: CodeMirrorInstance): void;
-
-	updateArgHints(cm: CodeMirrorInstance): void;
-}
-
 interface CodeSettingsDialog extends HTMLPaperDialogElement {
 	item?: ScriptNode|StylesheetNode;
 }
@@ -284,7 +272,7 @@ class CA {
 	/**
 	 * The tern server used for key bindings
 	 */
-	static ternServer: TernServer;
+	static ternServer: Tern.ServerInstance;
 
 	static properties = properties;
 	

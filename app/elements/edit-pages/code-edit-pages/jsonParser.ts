@@ -740,7 +740,7 @@ type JSONParseErrors = Array<JSONParseError>;
 		}
 	}
 
-	window.parseCodeOptions = (file: TernFile, query: {
+	window.parseCodeOptions = (file: Tern.File, query: {
 		start: {
 			line: number;
 			ch: number;
@@ -1383,7 +1383,7 @@ ${message}`;
 			line: number;
 			ch: number;
 		}
-	}, file: TernFile, fns: CMCompletionFns): Completions => {
+	}, file: Tern.File, fns: CMCompletionFns): Completions => {
 		//Get current scope
 		const { options, cursor } = window.parseCodeOptions(file, query, fns);
 		let completions: Array<Completion>;

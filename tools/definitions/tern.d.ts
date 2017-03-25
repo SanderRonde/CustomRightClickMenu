@@ -129,7 +129,20 @@ declare namespace Tern {
 	interface Server {
 		new(options: {
 			defs?: Array<JSDefinitions>;
-		}): Server;
+		}): ServerInstance;
+	}
+
+	interface ServerInstance {
+		complete(cm: CodeMirrorInstance): void;
+		showType(cm: CodeMirrorInstance): void;
+		showDocs(cm: CodeMirrorInstance): void;
+		jumpToDef(cm: CodeMirrorInstance): void;
+		jumpBack(cm: CodeMirrorInstance): void;
+		rename(cm: CodeMirrorInstance): void;
+		selectName(cm: CodeMirrorInstance): void;
+
+		updateArgHints(cm: CodeMirrorInstance): void;
+		
 		cx: Context;
 		passes: number;
 		ecmaVersion: string;

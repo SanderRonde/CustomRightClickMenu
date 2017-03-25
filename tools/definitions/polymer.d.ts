@@ -22,7 +22,6 @@ interface Polymer {
 	CodeEditBehavior: CodeEditBehavior;
 	NodeEditBehavior: NodeEditBehaviorBase;
 	PaperDropdownBehavior: PaperDropdownBehaviorBase;
-	DraggableNodeBehavior: DraggableNodeBehavior;
 	NeonAnimationRunnerBehavior: {
 		playAnimation(animation: string): void;	
 	};
