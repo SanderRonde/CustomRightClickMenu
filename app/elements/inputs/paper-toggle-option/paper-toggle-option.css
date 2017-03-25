@@ -3,3 +3,66 @@
 	margin-top:8px;
 	margin-bottom:8px;
 }
+
+#disabledContainer {
+	display: inline-block;
+}
+
+#disabledInfo {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: center;
+	justify-content: center;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+}
+
+#disabledInfo > .infoDiv {
+	display: none;
+	position: absolute;
+    z-index: 10000;
+    margin-top: -24px;
+	margin-left: -263px;	
+    width: 250px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 5px;
+	font-size:15.6px;
+	font-weight:normal;
+}
+
+#disabledInfo > .infoDiv ul {
+	padding-left: 30px;
+}
+
+#disabledInfo > svg {
+	cursor: pointer;
+}
+
+#disabledInfo .active {
+	display: none;
+}
+
+#disabledInfo:hover .active {
+	display: block;
+}
+
+#disabledInfo:hover .inactive {
+	display: none;
+}
+
+#disabledInfo:hover > .infoDiv {
+	display: block;
+}
+
+.infoSvg {
+	height: 20px;
+    width: 13px;
+    margin-bottom: -5px;
+}
+
+.triangleInfoSvg {
+	fill: transparent;
+	stroke: black;
+	stroke-width: 5px;
+}

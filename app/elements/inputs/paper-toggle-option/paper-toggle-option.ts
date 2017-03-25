@@ -2,8 +2,26 @@
 
 const paperToggleOptionProperties: {
 	toggled: boolean;
+	disabled: boolean;
+	disabledreason: string;
+	showmessage: boolean;
 } = {
 	toggled: {
+		type: Boolean,
+		notify: true
+	},
+	disabled: {
+		type: Boolean,
+		notify: true
+	},
+	disabledreason: {
+		type: String,
+		notify: true,
+		value: `Your chrome version is too low for this to be possible (min is 34, you have ${
+			~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0]
+		})`
+	},
+	showmessage: {
 		type: Boolean,
 		notify: true
 	}
@@ -18,7 +36,12 @@ class PTO {
 	
 	static setCheckboxDisabledValue(this: PaperToggleOption, value: boolean) {
 		this.$.checkbox.disabled = value;
+		this.disabled = value;
 	};
+
+	static _showMessage(this: PaperToggleOption): boolean {
+		return this.disabled && this.showmessage;
+	}
 
 	static init(this: PaperToggleOption, storage: CRM.StorageLocal) {
 		this.toggled = storage[$(this).attr('id') as keyof CRM.StorageLocal] as boolean;
