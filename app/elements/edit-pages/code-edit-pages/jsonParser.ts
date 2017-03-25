@@ -36,7 +36,7 @@ type JSONParseErrors = Array<JSONParseError>;
 
 	interface JSONParseState {
 		cursor: CursorState;
-		errs: JSONParseErrors,
+		errs: JSONParseErrors;
 		index: number;
 		str: string;
 		strLines: Array<string>;
@@ -96,7 +96,7 @@ type JSONParseErrors = Array<JSONParseError>;
 			//Look if there is a bracket terminating it
 			const brace = findMatchingBrace(state.str,
 				state.index);
-			state.index = brace - 1
+			state.index = brace - 1;
 		} else {
 			//Terminating comma has been found, skip to there
 			state.index += firstComma;
@@ -165,7 +165,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						key: false,
 						scope: state.scope.slice(0),
 						value: val === undefined ? '' : val
-					}
+					};
 				}
 				continue;
 			}
@@ -263,7 +263,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						key: false,
 						scope: state.scope.slice(0),
 						value: values.join('')
-					}
+					};
 				}
 				values[arrIndex] = (values[arrIndex] || '') + ch;
 			} else if (state.str.slice(state.index, state.index + 4) === 'true') {
@@ -280,7 +280,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						scope: state.scope.slice(0),
 						key: false,
 						value: 'true'.slice(0, state.pos - state.index)
-					}
+					};
 				}
 				state.index += 3;
 				if (values.length === arrIndex) {
@@ -306,7 +306,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						scope: state.scope.slice(0),
 						key: false,
 						value: 'false'.slice(0, state.pos - state.index)
-					}
+					};
 				}
 				state.index += 4;
 				if (values.length === arrIndex) {
@@ -332,7 +332,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						scope: state.scope.slice(0),
 						key: false,
 						value: 'null'.slice(0, state.pos - state.index)
-					}
+					};
 				}
 				state.index += 3;
 				if (values.length === arrIndex) {
@@ -358,7 +358,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						scope: state.scope.slice(0),
 						key: false,
 						value: 'undefined'.slice(0, state.pos - state.index)
-					}
+					};
 				}
 				state.index += 8;
 				if (values.length === arrIndex) {
@@ -395,7 +395,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						key: false,
 						scope: state.scope.slice(0),
 						value: val === undefined ? '' : val
-					}
+					};
 				}
 				if (!inArray) {
 					if (type === 'none') {
@@ -422,7 +422,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						key: key,
 						value: unknownValue,
 						scope: state.scope.slice(0)
-					}
+					};
 				}
 			}
 		}
@@ -473,7 +473,7 @@ type JSONParseErrors = Array<JSONParseError>;
 							key: foundStr,
 							value: '',
 							scope: state.scope.slice(0)
-						}
+						};
 					}
 				} else {
 					//Still at the key
@@ -481,7 +481,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						type: 'key',
 						key: partialStr.join(''),
 						scope: state.scope.slice(0)
-					}
+					};
 				}
 			}
 			if (ch === '\n' || ch === '\t' || ch === ' ') {
@@ -581,7 +581,7 @@ type JSONParseErrors = Array<JSONParseError>;
 						type: 'key',
 						value: partialStr.join(''),
 						scope: state.scope.slice(0)
-					}
+					};
 				}
 				if (state.errs.length === 0 || !/Unexpected '(\w|\d)', expected '"'/.test(
 					state.errs[state.errs.length - 1].err.message)) {
@@ -618,7 +618,7 @@ type JSONParseErrors = Array<JSONParseError>;
 			key: foundStr === undefined ? 
 				undefined : (foundStr || `"${partialStr.join('')}"`),
 			value: propValue
-		}
+		};
 	}
 
 	function findMatchingBrace(str: string, start: number): number {
@@ -686,7 +686,7 @@ type JSONParseErrors = Array<JSONParseError>;
 					newIndex: index + section.length,
 					errs: [],
 					keyLines: {}
-				}
+				};
 			} catch(e) { }
 		}
 
@@ -702,7 +702,7 @@ type JSONParseErrors = Array<JSONParseError>;
 			pos: pos,
 			scope: scope,
 			keyLines: keyLines
-		}
+		};
 		
 		let unrecognizedCursor: boolean = false;
 		for (; state.index < str.length && (ch = str[state.index]); state.index++) {
@@ -728,7 +728,7 @@ type JSONParseErrors = Array<JSONParseError>;
 				type: 'key',
 				key: '',
 				scope: state.scope.slice(0)
-			}
+			};
 		}
 
 		return {
@@ -737,7 +737,7 @@ type JSONParseErrors = Array<JSONParseError>;
 			newIndex: state.index,
 			errs: state.errs,
 			keyLines: state.keyLines
-		}
+		};
 	}
 
 	window.parseCodeOptions = (file: Tern.File, query: {
@@ -768,7 +768,7 @@ type JSONParseErrors = Array<JSONParseError>;
 			}
 		}
 		return res;
-	}
+	};
 
 	type ParsedJSON = Partial<CRM.OptionsValue> & {
 		[key: string]: any;
@@ -889,16 +889,16 @@ type JSONParseErrors = Array<JSONParseError>;
 			return {
 				errStart: keyLineArr[0].index,
 				errChars: keyLineArr[0].chars
-			}
+			};
 		}
 		return {
 			errStart: 0,
 			errChars: 0
-		}
+		};
 	}
 
 	function isKeyAllowed(key: string, type: ValueType): boolean {
-		return typeKeyMaps[`"${type}"` as keyof typeof typeKeyMaps].hasOwnProperty(key)
+		return typeKeyMaps[`"${type}"` as keyof typeof typeKeyMaps].hasOwnProperty(key);
 	}
 
 	const enum Types {
@@ -1216,7 +1216,7 @@ type JSONParseErrors = Array<JSONParseError>;
 					type: getTernType(
 						(typeKeyMaps[objType as keyof typeof typeKeyMaps] as any)[cursor.key as string]
 					)
-				}
+				};
 			});
 		} else {
 			//It's a value, find out whether the key is even legitimate
@@ -1249,8 +1249,8 @@ type JSONParseErrors = Array<JSONParseError>;
 		}
 	};
 	var ternFns = {
-		resolvePos: () => {return -1}
-	}
+		resolvePos: () => {return -1;}
+	};
 
 	function strIndexToPos(splitLines: Array<string>, index: number): {
 		line: number;
@@ -1344,14 +1344,14 @@ ${message}`;
 				index: err.index,
 				chars: err.chars,
 				err: err.err
-			}
+			};
 		}).concat(warnings.map((err) => {
 			return {
 				severity: 'warning',
 				index: err.index,
 				chars: err.chars,
 				err: err.err
-			}
+			};
 		})) as Array<{
 			severity: 'error'|'warning';
 			index: number;
@@ -1400,5 +1400,5 @@ ${message}`;
 			isObjectKey: cursor && cursor.type === 'key',
 			isProperty: cursor && cursor.type === 'value'
 		};
-	}
+	};
 })();

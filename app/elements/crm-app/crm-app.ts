@@ -1816,8 +1816,8 @@ class CA {
 					if (this.findLocalStorageExpression(expression.consequent, data)) {
 						return true;
 					}
-					return this.findLocalStorageExpression(expression.alternate, data)
-				case 'IfStatement':
+					return this.findLocalStorageExpression(expression.alternate, data);
+				case 'IfStatement':;
 					if (this.findLocalStorageExpression(expression.consequent, data)) {
 						return true;
 					}
@@ -1830,7 +1830,7 @@ class CA {
 					if (this.findLocalStorageExpression(expression.left, data)) {
 						return true;
 					}
-					return this.findLocalStorageExpression(expression.right, data)
+					return this.findLocalStorageExpression(expression.right, data);
 				case 'BlockStatement':
 					for (let i = 0; i < expression.body.length; i++) {
 						if (this.findLocalStorageExpression(expression.body[i], data)) {

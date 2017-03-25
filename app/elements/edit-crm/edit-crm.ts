@@ -115,7 +115,7 @@ namespace Sortable {
 		clone: T;
 		oldIndex: number;
 		newIndex: number;
-	}
+	};
 
 	type DragEvent<T, U> = Event & {
 		/**
@@ -133,7 +133,7 @@ namespace Sortable {
 		draggedRect: ClientRect;
 		related: T;
 		relatedRect: ClientRect;
-	}
+	};
 
 	export interface Sortable {
 		new<T extends HTMLElement, U extends HTMLElement>(target: HTMLElement, options: {

@@ -5,7 +5,7 @@ type CodeEditBehaviorIntanceBase = CodeEditBehaviorBase;
 type CodeEditBehaviorScriptInstance = CodeEditBehaviorIntanceBase & 
 	ScriptEdit & {
 		isScript: true;
-	}
+	};
 
 type CodeEditBehaviorStylesheetInstance = CodeEditBehaviorIntanceBase & 
 	StylesheetEdit & {

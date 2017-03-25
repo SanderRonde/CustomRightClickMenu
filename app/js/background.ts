@@ -257,7 +257,7 @@ interface MatchPattern {
 };
 
 interface CRMTemplates {
-	mergeArrays<T extends Array<T>|Array<U>, U>(this: CRMTemplates, mainArray: T, additionArray: T): T
+	mergeArrays<T extends Array<T>|Array<U>, U>(this: CRMTemplates, mainArray: T, additionArray: T): T;
 	mergeObjects<T extends {
 			[key: string]: any;
 			[key: number]: any;
@@ -6968,7 +6968,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			res.whatpage = 'false';
 
 			res.indexIds = JSON.stringify(arr.map((node) => {
-				return node.id
+				return node.id;
 			}));
 
 			return res;
@@ -6980,7 +6980,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return [node.name, 'Divider', ''].join('%123');
 				case 'link':
 					return [node.name, 'Link', node.value.map((val) => {
-						return val.url
+						return val.url;
 					}).join(',')].join('%123');
 				case 'menu':
 					return [node.name, 'Menu', node.children.length].join('%123');
@@ -7416,7 +7416,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								if (this.findLocalStorageExpression(expression.consequent, data)) {
 									return true;
 								}
-								return this.findLocalStorageExpression(expression.alternate, data)
+								return this.findLocalStorageExpression(expression.alternate, data);
 							case 'IfStatement':
 								if (this.findLocalStorageExpression(expression.consequent, data)) {
 									return true;
@@ -7430,7 +7430,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								if (this.findLocalStorageExpression(expression.left, data)) {
 									return true;
 								}
-								return this.findLocalStorageExpression(expression.right, data)
+								return this.findLocalStorageExpression(expression.right, data);
 							case 'BlockStatement':
 								for (let i = 0; i < expression.body.length; i++) {
 									if (this.findLocalStorageExpression(expression.body[i], data)) {

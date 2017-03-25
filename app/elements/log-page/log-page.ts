@@ -17,7 +17,7 @@ class LP {
 
 	static properties = logPageProperties;
 
-static ready(this: LogPage) {
+	static ready(this: LogPage) {
 		if (window.logConsole && window.logConsole.done) {
 			this.isLoading = false;
 		}

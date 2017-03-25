@@ -961,7 +961,7 @@ class SCE {
 		tabSize.find('input').change(function() {
 			updateTabSizeEl();
 		});	
-		this._updateTabSizeEl = updateTabSizeEl
+		this._updateTabSizeEl = updateTabSizeEl;
 
 		//The edit jsLint settings option
 		var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
