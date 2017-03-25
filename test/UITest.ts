@@ -25,7 +25,7 @@ interface SettingsStorage extends AnyObj {
 			selectName: string;
 		}
 	};
-	crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+	crm: Array<CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
 }
 
 interface ChromeLastCall {
@@ -234,16 +234,16 @@ const templates = {
 		}
 		return mainObject;
 	},
-	getDefaultNodeInfo(options: CRMNodeInfo): CRMNodeInfo {
-		const defaultNodeInfo: CRMNodeInfo = {
+	getDefaultNodeInfo(options: CRM.NodeInfo): CRM.NodeInfo {
+		const defaultNodeInfo: CRM.NodeInfo = {
 			permissions: [],
 			source: { }
 		};
 
 		return templates.mergeObjects(defaultNodeInfo, options);
 	},
-	getDefaultLinkNode(options: any): LinkNode {
-		const defaultNode: LinkNode = {
+	getDefaultLinkNode(options: any): CRM.LinkNode {
+		const defaultNode: CRM.LinkNode = {
 			name: 'name',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'link',
@@ -262,21 +262,21 @@ const templates = {
 					url: 'https://www.example.com'
 				}
 			]
-		} as LinkNode;
+		} as CRM.LinkNode;
 
 		return templates.mergeObjects(defaultNode, options);
 	},
-	getDefaultStylesheetValue(options: any): StylesheetVal {
+	getDefaultStylesheetValue(options: any): CRM.StylesheetVal {
 		const value = {
 			stylesheet: [].join('\n'),
 			launchMode: CRMLaunchModes.ALWAYS_RUN,
 			options: {},
-		} as StylesheetVal;
+		} as CRM.StylesheetVal;
 
 		return templates.mergeObjects(value, options);
 	},
-	getDefaultScriptValue(options: any): ScriptVal {
-		const value: ScriptVal = {
+	getDefaultScriptValue(options: any): CRM.ScriptVal {
+		const value: CRM.ScriptVal = {
 			launchMode: CRMLaunchModes.ALWAYS_RUN,
 			backgroundLibraries: [],
 			libraries: [],
@@ -288,8 +288,8 @@ const templates = {
 
 		return templates.mergeObjects(value, options);
 	},
-	getDefaultScriptNode(options: any): ScriptNode {
-		const defaultNode: ScriptNode = {
+	getDefaultScriptNode(options: any): CRM.ScriptNode {
+		const defaultNode: CRM.ScriptNode = {
 			name: 'name',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'script',
@@ -302,12 +302,12 @@ const templates = {
 				}
 			],
 			value: templates.getDefaultScriptValue(options.value)
-		} as ScriptNode;
+		} as CRM.ScriptNode;
 
 		return templates.mergeObjects(defaultNode, options);
 	},
-	getDefaultStylesheetNode(options: any): StylesheetNode {
-		const defaultNode: StylesheetNode = {
+	getDefaultStylesheetNode(options: any): CRM.StylesheetNode {
+		const defaultNode: CRM.StylesheetNode = {
 			name: 'name',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'stylesheet',
@@ -320,28 +320,28 @@ const templates = {
 				}
 			],
 			value: templates.getDefaultStylesheetValue(options.value)
-		} as StylesheetNode;
+		} as CRM.StylesheetNode;
 
 		return templates.mergeObjects(defaultNode, options);
 	},
 	getDefaultDividerOrMenuNode(options: any, type: 'divider' | 'menu'):
-	DividerNode | MenuNode {
-		const defaultNode: DividerNode|MenuNode = {
+	CRM.DividerNode | CRM.MenuNode {
+		const defaultNode: CRM.DividerNode|CRM.MenuNode = {
 			name: 'name',
 			type: type,
 			nodeInfo: templates.getDefaultNodeInfo(options.nodeInfo),
 			onContentTypes: [true, true, true, false, false, false],
 			isLocal: true,
 			value: {}
-		} as DividerNode|MenuNode;
+		} as CRM.DividerNode|CRM.MenuNode;
 
 		return templates.mergeObjects(defaultNode, options);
 	},
-	getDefaultDividerNode(options: any): DividerNode {
-		return templates.getDefaultDividerOrMenuNode(options, 'divider') as DividerNode;
+	getDefaultDividerNode(options: any): CRM.DividerNode {
+		return templates.getDefaultDividerOrMenuNode(options, 'divider') as CRM.DividerNode;
 	},
-	getDefaultMenuNode(options: any): MenuNode {
-		return templates.getDefaultDividerOrMenuNode(options, 'menu') as MenuNode;
+	getDefaultMenuNode(options: any): CRM.MenuNode {
+		return templates.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 	}
 };
 
@@ -394,13 +394,13 @@ function getSyncSettings(driver: webdriver.WebDriver): webdriver.promise.Promise
 	}); 
 }
 
-function getCRM(driver: webdriver.WebDriver): webdriver.promise.Promise<CRMTree> {
-	return new webdriver.promise.Promise<CRMTree>((resolve) => { 
+function getCRM(driver: webdriver.WebDriver): webdriver.promise.Promise<CRM.Tree> {
+	return new webdriver.promise.Promise<CRM.Tree>((resolve) => { 
 		driver
 			.executeScript(inlineFn(() => {
 				return JSON.stringify(window.app.settings.crm);
 			})).then((str: string) => {
-				resolve(JSON.parse(str) as CRMTree);
+				resolve(JSON.parse(str) as CRM.Tree);
 			});
 	});
 }
@@ -546,7 +546,7 @@ function reloadPage(_this: MochaFn, driver: webdriver.WebDriver,
 		}
 	}
 
-function switchToTypeAndOpen(driver: webdriver.WebDriver, type: NodeType, done: () => void) {
+function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, done: () => void) {
 	driver.executeScript(inlineFn(() => {
 		const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
 		crmItem.querySelector('type-switcher').changeType('REPLACE.type');
@@ -566,7 +566,7 @@ function switchToTypeAndOpen(driver: webdriver.WebDriver, type: NodeType, done: 
 	});
 }
 
-function openDialog(driver: webdriver.WebDriver, type: NodeType) {
+function openDialog(driver: webdriver.WebDriver, type: CRM.NodeType) {
 	return new webdriver.promise.Promise((resolve) => {
 		if (type === 'link') {
 			driver.executeScript(inlineFn(() => {
@@ -1054,7 +1054,7 @@ interface NameCheckingCRM {
 	children?: Array<NameCheckingCRM>;
 }
 
-function getCRMNames(crm: CRMTree): Array<NameCheckingCRM> {
+function getCRMNames(crm: CRM.Tree): Array<NameCheckingCRM> {
 	return crm.map((node) => {
 		return {
 			name: node.name,
@@ -1074,7 +1074,7 @@ function getContextMenuNames(contextMenu: ContextMenu): Array<NameCheckingCRM> {
 	});
 }
 
-function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRMTree) {
+function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree) {
 	try {
 		assert.deepEqual(getContextMenuNames(contextMenu), getCRMNames(CRMNodes),
 			'structures match');
@@ -1223,7 +1223,7 @@ describe('Options Page', function(this: MochaFn) {
 				elements[0].findElement(webdriver.By.tagName('paper-button')).click().then(() => {
 					elements[0].findElement(webdriver.By.tagName('input')).getAttribute('value').then((name) => {
 						elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-							getCRM(driver).then((crm: Array<LinkNode>) => {
+							getCRM(driver).then((crm: Array<CRM.LinkNode>) => {
 								searchEngineLink = link;
 								defaultLinkName = name;
 
@@ -1251,7 +1251,7 @@ describe('Options Page', function(this: MochaFn) {
 											return button.click();
 										}).then(() => {
 											elements[0].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-												getCRM(driver).then((crm: Array<LinkNode>) => {
+												getCRM(driver).then((crm: Array<CRM.LinkNode>) => {
 													const element = crm[crm.length - 1];
 
 													assert.strictEqual(element.name, renameName,
@@ -1270,7 +1270,7 @@ describe('Options Page', function(this: MochaFn) {
 													reloadPage(this, driver).then(() => {
 														return getCRM(driver);
 													})
-													.then((crm: Array<LinkNode>) => {
+													.then((crm: Array<CRM.LinkNode>) => {
 														const element = crm[crm.length - 2];
 
 														assert.isDefined(element, 'element is defined');
@@ -1331,7 +1331,7 @@ describe('Options Page', function(this: MochaFn) {
 				elements[index].findElement(webdriver.By.tagName('paper-button')).click().then(() => {
 					elements[index].findElement(webdriver.By.tagName('input')).getAttribute('value').then((name) => {
 						elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-							getCRM(driver).then((crm: Array<ScriptNode>) => {
+							getCRM(driver).then((crm: Array<CRM.ScriptNode>) => {
 								const element = crm[crm.length - 1];
 
 								searchEngineLink = link;
@@ -1367,7 +1367,7 @@ describe('Options Page', function(this: MochaFn) {
 											return button.click();
 										}).then(() => {
 											elements[index].findElement(webdriver.By.tagName('a')).getAttribute('href').then((link) => {
-												getCRM(driver).then((crm: Array<ScriptNode>) => {
+												getCRM(driver).then((crm: Array<CRM.ScriptNode>) => {
 													const element = crm[crm.length - 1];
 													
 													assert.strictEqual(renameName, element.name, 
@@ -1393,7 +1393,7 @@ describe('Options Page', function(this: MochaFn) {
 													reloadPage(this, driver).then(() => {
 														return getCRM(driver);
 													})
-													.then((crm: Array<ScriptNode>) => {
+													.then((crm: Array<CRM.ScriptNode>) => {
 														const element1 = crm[crm.length - 2];
 
 														assert.isDefined(element1, 'element is defined');
@@ -1545,7 +1545,7 @@ describe('Options Page', function(this: MochaFn) {
 			});
 	});
 
-	function testNameInput(type: NodeType) {
+	function testNameInput(type: CRM.NodeType) {
 		const defaultName = 'name';
 		describe('Name Input', function(this: MochaFn) {
 			this.timeout(10000);
@@ -1626,7 +1626,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	}
 
-	function testVisibilityTriggers(type: NodeType) {
+	function testVisibilityTriggers(type: CRM.NodeType) {
 		describe('Triggers', function(this: MochaFn) {
 			this.timeout(15000);
 			this.slow(12000);
@@ -1759,7 +1759,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	}
 
-	function testContentTypes(type: NodeType) {
+	function testContentTypes(type: CRM.NodeType) {
 		describe('Content Types', function(this: MochaFn) {
 			this.timeout(30000);
 			this.slow(15000);
@@ -1930,7 +1930,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	}
 
-	function testClickTriggers(type: NodeType) {
+	function testClickTriggers(type: CRM.NodeType) {
 		describe('Click Triggers', function(this: MochaFn) {
 			this.timeout(30000);
 			this.slow(25000);
@@ -1962,7 +1962,7 @@ describe('Options Page', function(this: MochaFn) {
 									return saveDialog(dialog);
 								}).then(() => {
 									return getCRM(driver);
-								}).then((crm: Array<StylesheetNode|ScriptNode>) => {
+								}).then((crm: Array<CRM.StylesheetNode|CRM.ScriptNode>) => {
 									assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 										'launchmode is the same as expected');
 									done();
@@ -1972,7 +1972,7 @@ describe('Options Page', function(this: MochaFn) {
 					it('should be saved on page reload', function(this: MochaFn, done) {
 						reloadPage(this, driver).then(() => {
 							return getCRM(driver);
-						}).then((crm: Array<StylesheetNode|ScriptNode>) => {
+						}).then((crm: Array<CRM.StylesheetNode|CRM.ScriptNode>) => {
 							assert.strictEqual(crm[0].value.launchMode, triggerOptionIndex,
 								'launchmode is the same as expected');
 							done();
@@ -2003,7 +2003,7 @@ describe('Options Page', function(this: MochaFn) {
 									return cancelDialog(dialog);
 								}).then(() => {
 									return getCRM(driver);
-								}).then((crm: Array<StylesheetNode|ScriptNode>) => {
+								}).then((crm: Array<CRM.StylesheetNode|CRM.ScriptNode>) => {
 									assert.strictEqual(crm[0].value.launchMode, 0,
 										'launchmode is the same as before');
 									done();
@@ -2081,7 +2081,7 @@ describe('Options Page', function(this: MochaFn) {
 						});
 					});
 					it('should be saved on page reload', (done) => {
-						getCRM(driver).then((crm: Array<StylesheetNode|ScriptNode>) => {
+						getCRM(driver).then((crm: Array<CRM.StylesheetNode|CRM.ScriptNode>) => {
 							assert.lengthOf(crm[0].triggers, 3, 
 								'trigger has been added');
 							assert.isTrue(crm[0].triggers[0].not, 
@@ -2162,7 +2162,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	}
 
-	function testEditorSettings(type: NodeType) {
+	function testEditorSettings(type: CRM.NodeType) {
 		describe('Theme', function(this: MochaFn) {
 			this.slow(8000);
 			this.timeout(10000);
@@ -2447,7 +2447,7 @@ describe('Options Page', function(this: MochaFn) {
 			});
 		});
 		describe('Link Dialog', function(this: MochaFn) {
-			const type: NodeType = 'link';
+			const type: CRM.NodeType = 'link';
 
 			this.timeout(30000);
 
@@ -2483,7 +2483,7 @@ describe('Options Page', function(this: MochaFn) {
 							.then(() => {
 								return getCRM(driver);
 							})
-							.then((crm: Array<LinkNode>) => {
+							.then((crm: Array<CRM.LinkNode>) => {
 								assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
 								assert.isFalse(crm[0].value[0].newTab, 'newTab has been switched off');
 								done();
@@ -2507,7 +2507,7 @@ describe('Options Page', function(this: MochaFn) {
 							.then(() => {
 								return getCRM(driver);
 							})
-							.then((crm: Array<LinkNode>) => {
+							.then((crm: Array<CRM.LinkNode>) => {
 								assert.lengthOf(crm[0].value, 1, 'node has only 1 link');
 								assert.strictEqual(crm[0].value[0].url, newUrl,
 									'url has been changed');
@@ -2544,7 +2544,7 @@ describe('Options Page', function(this: MochaFn) {
 							.then(() => {
 								return getCRM(driver);
 							})
-							.then((crm: Array<LinkNode>) => {
+							.then((crm: Array<CRM.LinkNode>) => {
 								assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
 								assert.deepEqual(crm[0].value,
 									Array.apply(null, Array(4)).map(() => defaultLink),
@@ -2611,7 +2611,7 @@ describe('Options Page', function(this: MochaFn) {
 							.then(() => {
 								return getCRM(driver);
 							})
-							.then((crm: Array<LinkNode>) => {
+							.then((crm: Array<CRM.LinkNode>) => {
 								assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
 
 								//Only one newTab can be false at a time
@@ -2692,7 +2692,7 @@ describe('Options Page', function(this: MochaFn) {
 							.then(() => {
 								return getCRM(driver);
 							})
-							.then((crm: Array<LinkNode>) => {
+							.then((crm: Array<CRM.LinkNode>) => {
 								assert.lengthOf(crm[0].value, 1, 'node still has 1 link');
 								assert.deepEqual(crm[0].value, [defaultLink],
 									'link value has stayed the same');
@@ -2703,7 +2703,7 @@ describe('Options Page', function(this: MochaFn) {
 			});
 		});
 		describe('Divider Dialog', function(this: MochaFn) {
-			const type: NodeType = 'divider';
+			const type: CRM.NodeType = 'divider';
 
 			this.timeout(60000);
 			before('Reset settings', function(this: MochaFn) {
@@ -2715,7 +2715,7 @@ describe('Options Page', function(this: MochaFn) {
 			testContentTypes(type);
 		});
 		describe('Menu Dialog', function(this: MochaFn) {
-			const type: NodeType = 'menu';
+			const type: CRM.NodeType = 'menu';
 
 			this.timeout(60000);
 			before('Reset settings', function(this: MochaFn) {
@@ -2727,7 +2727,7 @@ describe('Options Page', function(this: MochaFn) {
 			testContentTypes(type);
 		});
 		describe('Stylesheet Dialog', function(this: MochaFn) {
-			const type: NodeType = 'stylesheet';
+			const type: CRM.NodeType = 'stylesheet';
 
 			before('Reset settings', function(this: MochaFn) {
 				return resetSettings(this, driver);
@@ -2753,7 +2753,7 @@ describe('Options Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							}).then(() => {
 								return getCRM(driver);
-							}).then((crm: Array<StylesheetNode>) => {
+							}).then((crm: Array<CRM.StylesheetNode>) => {
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 								done();
 							});
@@ -2762,7 +2762,7 @@ describe('Options Page', function(this: MochaFn) {
 				it('should be saved on page reload', function(this: MochaFn, done) {
 					reloadPage(this, driver).then(() => {
 						return getCRM(driver);
-					}).then((crm: Array<StylesheetNode>) => {
+					}).then((crm: Array<CRM.StylesheetNode>) => {
 						assert.isTrue(crm[0].value.toggle, 'toggle option is set to on');
 						done();
 					});
@@ -2786,7 +2786,7 @@ describe('Options Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							}).then(() => {
 								return getCRM(driver);
-							}).then((crm: Array<StylesheetNode>) => {
+							}).then((crm: Array<CRM.StylesheetNode>) => {
 								assert.isFalse(crm[0].value.toggle, 'toggle option is set to off');
 								done();
 							});
@@ -2805,7 +2805,7 @@ describe('Options Page', function(this: MochaFn) {
 								return cancelDialog(dialog);
 							}).then(() => {
 								return getCRM(driver);
-							}).then((crm: Array<StylesheetNode>) => {
+							}).then((crm: Array<CRM.StylesheetNode>) => {
 								assert.isNotTrue(crm[0].value.toggle, 'toggle option is unchanged');
 								done();
 							});
@@ -2836,7 +2836,7 @@ describe('Options Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							}).then(() => {
 								return getCRM(driver);
-							}).then((crm: Array<StylesheetNode>) => {
+							}).then((crm: Array<CRM.StylesheetNode>) => {
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 								assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
 								done();
@@ -2846,7 +2846,7 @@ describe('Options Page', function(this: MochaFn) {
 				it('should be saved on page reset', function(this: MochaFn, done) {
 					reloadPage(this, driver).then(() => {
 						return getCRM(driver);
-					}).then((crm: Array<StylesheetNode>) => {
+					}).then((crm: Array<CRM.StylesheetNode>) => {
 						assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 						assert.isTrue(crm[0].value.defaultOn, 'defaultOn is set to true');
 						done();
@@ -2876,7 +2876,7 @@ describe('Options Page', function(this: MochaFn) {
 								return saveDialog(dialog);
 							}).then(() => {
 								return getCRM(driver);
-							}).then((crm: Array<StylesheetNode>) => {
+							}).then((crm: Array<CRM.StylesheetNode>) => {
 								assert.isTrue(crm[0].value.toggle, 'toggle option is set to true');
 								assert.isFalse(crm[0].value.defaultOn, 'defaultOn is set to true');
 								done();
@@ -2904,7 +2904,7 @@ describe('Options Page', function(this: MochaFn) {
 								return cancelDialog(dialog);
 							}).then(() => {
 								return getCRM(driver);
-							}).then((crm: Array<StylesheetNode>) => {
+							}).then((crm: Array<CRM.StylesheetNode>) => {
 								assert.isNotTrue(crm[0].value.toggle, 'toggle option is set to false');
 								assert.isNotTrue(crm[0].value.defaultOn, 'defaultOn is set to false');
 								done();
@@ -2919,7 +2919,7 @@ describe('Options Page', function(this: MochaFn) {
 			});
 		});
 		describe('Script Dialog', function(this: MochaFn) {
-			const type: NodeType = 'script';
+			const type: CRM.NodeType = 'script';
 
 			before('Reset settings', function(this: MochaFn) {
 				return resetSettings(this, driver);
@@ -3013,7 +3013,7 @@ describe('Options Page', function(this: MochaFn) {
 										return wait(driver, 2000);
 									}).then(() => {
 										return getCRM(driver);
-									}).then((crm: [ScriptNode]) => {
+									}).then((crm: [CRM.ScriptNode]) => {
 										assert.include(crm[0].value.libraries, {
 											name: libName,
 											url: libUrl
@@ -3150,7 +3150,7 @@ describe('Options Page', function(this: MochaFn) {
 										return wait(driver, 2000);
 									}).then(() => {
 										return getCRM(driver);
-									}).then((crm: [ScriptNode]) => {
+									}).then((crm: [CRM.ScriptNode]) => {
 										assert.notInclude(crm[0].value.libraries, {
 											name: libName,
 											url: libUrl
@@ -3222,7 +3222,7 @@ describe('Options Page', function(this: MochaFn) {
 										return saveDialog(dialog);
 									}).then(() => {
 										return getCRM(driver);
-									}).then((crm: [ScriptNode]) => {
+									}).then((crm: [CRM.ScriptNode]) => {
 										assert.include(crm[0].value.libraries, {
 											name: libName,
 											url: null
@@ -3335,7 +3335,7 @@ describe('Options Page', function(this: MochaFn) {
 										return cancelDialog(dialog);
 									}).then(() => {
 										return getCRM(driver);
-									}).then((crm: [ScriptNode]) => {
+									}).then((crm: [CRM.ScriptNode]) => {
 										assert.notInclude(crm[0].value.libraries, {
 											name: libName,
 											url: testCode
