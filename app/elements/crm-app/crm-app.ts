@@ -143,13 +143,13 @@ interface PersistentScriptConversionData {
 }
 
 interface ScriptConversionData {
-	parentExpressions: Array<TernExpression>;
+	parentExpressions: Array<Tern.Expression>;
 	functionCall: Array<string>;
 	isReturn: boolean;
 	isValidReturn: boolean;
 	returnName: string;
-	returnExpr: TernExpression;
-	expression: TernExpression;
+	returnExpr: Tern.Expression;
+	expression: Tern.Expression;
 	persistent: PersistentScriptConversionData;
 }
 
@@ -164,13 +164,13 @@ interface PersistentData {
 		script: string;
 		lines: Array<string>;
 	};
-	parentExpressions: Array<TernExpression>;
+	parentExpressions: Array<Tern.Expression>;
 	functionCall: Array<string>;
 	isReturn: boolean;
 	isValidReturn: boolean;
-	returnExpr: TernExpression;
+	returnExpr: Tern.Expression;
 	returnName: string;
-	expression: TernExpression;
+	expression: Tern.Expression;
 }
 
 type TransferOnErrorError = {
@@ -891,7 +891,9 @@ class CA {
 				} else {
 					this.addImportedNodes(data.crm);
 				}
-				this.editCRM.build(null, null, true);
+				this.editCRM.build({
+					superquick: true
+				});
 			}
 			this.upload();
 		} else {
@@ -912,7 +914,9 @@ class CA {
 
 					var crm = this.transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
 					this.settings.crm = crm;
-					this.editCRM.build(null, null, true);
+					this.editCRM.build({
+						superquick: true
+					});
 					this.upload();
 				} else {
 					alert('This method of importing no longer works, please export all your settings instead');
@@ -1828,7 +1832,7 @@ class CA {
 	};
 
 	static legacyScriptReplace = class LegacyScriptReplace {
-		static findLocalStorageExpression(expression: TernExpression, data: PersistentData): boolean {
+		static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
 			data.parentExpressions = data.parentExpressions || [];
 			data.parentExpressions.push(expression);
 
@@ -3722,7 +3726,10 @@ class CA {
 				this.parent().settings.crm = this.parent().insertInto(value, this.parent().settings.crm);
 			}
 			window.app.upload();
-			window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
+			window.app.editCRM.build({
+				setItems: window.app.editCRM.setMenus,
+				superquick: true
+			});
 		};
 
 		/**
@@ -3744,13 +3751,19 @@ class CA {
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
 			window.app.upload();
-			window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
+			window.app.editCRM.build({
+				setItems: window.app.editCRM.setMenus,
+				quick: true
+			});
 		};
 
 		static remove(index: Array<number>) {
 			this.lookup(index, true).splice(index[index.length - 1], 1);
 			window.app.upload();
-			window.app.editCRM.build(window.app.editCRM.setMenus, null, true);
+			window.app.editCRM.build({
+				setItems: window.app.editCRM.setMenus,
+				superquick: true
+			});
 		};
 
 		static parent(): CrmApp {

@@ -56,7 +56,7 @@ interface DragCoordinate {
 	Y: number;
 }
 
-interface CRMColumn extends HTMLElement {
+interface CRMColumn {
 	list: Array<CRMNode & {
 		expanded: boolean;
 		name: string;
@@ -67,7 +67,17 @@ interface CRMColumn extends HTMLElement {
 	draggingItem: EditCrmItem;
 }
 
-interface CRMBuilderColumn extends HTMLElement {
+interface CRMColumnElement extends HTMLElement {
+	index: number;
+	items: Array<CRMNode & {
+		expanded: boolean;
+		name: string;
+		shadow: boolean;
+		index: number;	
+	}>;
+}
+
+interface CRMBuilderColumn {
 	list: Array<CRMNode & {
 		expanded: boolean;
 		name: string;
@@ -84,54 +94,92 @@ interface CRMBuilderColumn extends HTMLElement {
 
 type CRMBuilder = Array<CRMBuilderColumn>;
 
-interface SortableInstance {
-	option<T>(name: string, value?: T): T;
-	closest(el: string, selector?: HTMLElement): HTMLElement|null;
-	toArray(): Array<string>;
-	sort(order: Array<string>): void;
-	save(): void;
-	destroy(): void;
+namespace Sortable {
+	export interface Instance {
+		option<T>(name: string, value?: T): T;
+		closest(el: string, selector?: HTMLElement): HTMLElement|null;
+		toArray(): Array<string>;
+		sort(order: Array<string>): void;
+		save(): void;
+		destroy(): void;
+	}
+
+	type SortableEvent<T, U> = Event & {
+		/**
+		 * List in which the element is moved
+		 */
+		to: U;
+		/**
+		 * Previous list
+		 */
+		from: U;
+		/**
+		 * Dragged element
+		 */
+		item: T;
+		clone: T;
+		oldIndex: number;
+		newIndex: number;
+	}
+
+	type DragEvent<T, U> = Event & {
+		/**
+		 * List in which the element is moved
+		 */
+		to: U;
+		/**
+		 * Previous list
+		 */
+		from: U;
+		/**
+		 * Dragged element
+		 */
+		dragged: T;
+		draggedRect: ClientRect;
+		related: T;
+		relatedRect: ClientRect;
+	}
+
+	export interface Sortable {
+		new<T extends HTMLElement, U extends HTMLElement>(target: HTMLElement, options: {
+			group?: string;
+			sort?: boolean;
+			delay?: number;
+			disabled?: boolean;
+			store?: any;
+			animation?: number;
+			handle?: string;
+			filter?: string;
+			preventOnFilter?: boolean;
+			draggable?: string;
+			ghostClass?: string;
+			chosenClass?: string;
+			dragClass?: string;
+			dataIdAttr?: string;
+			forceFallback?: boolean;
+			fallbackClass?: string;
+			fallbackOnBody?: boolean;
+			fallbackTolerance?: number;
+			scroll: boolean;
+			scrollFn?(offsetX: number, offsetY: number, originalEvent: Event): void;
+			scrollSensitivirt?: number;
+			scrollSpeed?: number;
+			
+			setData?(dataTransfer: any, dragEl: T): void;
+			onChoose?(evt: SortableEvent<T, U>): void;
+			onStart?(evt: SortableEvent<T, U>): void;
+			onEnd?(evt: SortableEvent<T, U>): void;
+			onAdd?(evt: SortableEvent<T, U>): void;
+			onUpdate?(evt: SortableEvent<T, U>): void;
+			onSort?(evt: SortableEvent<T, U>): void;
+			onFilter?(evt: SortableEvent<T, U>): void;
+			onMove?(evt: DragEvent<T, U>, originalEvent: Event): void;
+			onClone?(evt: SortableEvent<T, U>): void;
+		}): Instance;
+	}
 }
 
-interface Sortable {
-	new(target: HTMLElement, options: {
-		group?: string;
-		sort?: boolean;
-		delay?: number;
-		disabled?: boolean;
-		store?: any;
-		animation?: number;
-		handle?: string;
-		filter?: string;
-		preventOnFilter?: boolean;
-		draggable?: string;
-		ghostClass?: string;
-		chosenClass?: string;
-		dragClass?: string;
-		dataIdAttr?: string;
-		forceFallback?: boolean;
-		fallbackClass?: string;
-		fallbackOnBody?: boolean;
-		fallbackTolerance?: number;
-		scroll: boolean;
-		scrollFn?(offsetX: number, offsetY: number, originalEvent: Event): void;
-		scrollSensitivirt?: number;
-		scrollSpeed?: number;
-		
-		setData?(dataTransfer: any, dragEl: HTMLElement): void;
-		onChoose?(evt: Event): void;
-		onStart?(evt: Event): void;
-		onEnd?(evt: Event): void;
-		onAdd?(evt: Event): void;
-		onUpdate?(evt: Event): void;
-		onSort?(evt: Event): void;
-		onFilter?(evt: Event): void;
-		onMove?(evt: Event, originalEvent: Event): void;
-		onClone?(evt: Event): void;
-	}): SortableInstance;
-}
-
-declare const Sortable: Sortable;
+declare const Sortable: Sortable.Sortable;
 
 class EC {
 	static is: string = 'edit-crm';
@@ -187,7 +235,7 @@ class EC {
 	/**
 	 * A list of all the column elements
 	 */
-	static columns: Array<CRMColumn> = [];
+	static columns: Array<CRMColumnElement> = [];
 
 	/**
 	 * The menus that are set to be shown in the crm
@@ -197,7 +245,7 @@ class EC {
 	/**
 	 * The sortable object
 	 */
-	static sortables: Array<SortableInstance> = [];
+	static sortables: Array<Sortable.Instance> = [];
 
 	static firstCRMColumn() {
 		return (this.firstCRMColumnEl || (this.firstCRMColumnEl = window.app.editCRM.children[1].children[2] as HTMLElement));
@@ -224,94 +272,16 @@ class EC {
 	/**
 	 * Gets the columns in this crm-edit element
 	 */
-	static getColumns(this: EditCrm): Array<CRMColumn> {
+	static getColumns(this: EditCrm): Array<CRMColumnElement> {
 		//Check if the nodes still exist 
 		if (this.columns && document.contains(this.columns[0])) {
 			return this.columns;
 		}
-		return (this.columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element: CRMColumn|HTMLElement) {
+		return (this.columns = Array.prototype.slice.apply(this.$.mainCont.children).filter(function(element: CRMColumnElement|HTMLElement) {
 			return element.classList.contains('CRMEditColumnCont');
-		}).map((columnCont: CRMColumn) => {
+		}).map((columnCont: CRMColumnElement) => {
 			return columnCont.querySelector('.CRMEditColumn');
 		}));
-	};
-
-	/**
-	 * Gets the column with given index
-	 */
-	static getColumn(this: EditCrm, index: number): CRMColumn {
-		return this.getColumns()[index];
-	};
-
-	static getNodeColumnIndex(this: EditCrm, node: EditCrmItem|FillerElement): number {
-		if (node.isFiller === false) {
-			return node.column();
-		}
-		return (node.parentNode as HTMLElement & {
-			index: number;
-		}).index;
-	}
-
-	/**
-	 * Gets the current column
-	 */
-	static getCurrentColumn(this: EditCrm, element: EditCrmItem): CRMColumn {
-		var fillerIndex = (element._filler && element._filler.state.column);
-		if (typeof fillerIndex !== 'number') {
-			fillerIndex = null;
-		}
-		return this.getColumn((fillerIndex === null || fillerIndex === undefined ?
-			                       (element.parentNode as HTMLElement & {
-									   index: number;
-								   }).index :
-			                       fillerIndex));
-	};
-
-	/**
-	 * Gets the next column
-	 */
-	static getNextColumn(this: EditCrm, element: EditCrmItem): CRMColumn {
-		var fillerIndex = (element._filler && element._filler.state.column);
-		if (typeof fillerIndex !== 'number') {
-			fillerIndex = null;
-		}
-		return this.getColumn((fillerIndex === null ?
-			                       (element.parentNode as HTMLElement & {
-									   index: number;
-								   }).index + 1 :
-			                       fillerIndex + 1));
-	};
-
-	/**
-	 * Gets the previous column
-	 */
-	static getPrevColumn(this: EditCrm, element: EditCrmItem): CRMColumn {
-		var fillerIndex = (element._filler && element._filler.state.column);
-		if (typeof fillerIndex !== 'number') {
-			fillerIndex = null;
-		}
-		return this.getColumn((fillerIndex === null ?
-			(element.parentNode as HTMLElement & {
-				index: number;
-			}).index - 1 :
-			fillerIndex - 1));
-	};
-
-	/**
-	 * Gets the edit-crm-item nodes in the given colume
-	 */
-	static getEditCrmNodes(this: EditCrm, column: CRMColumn): Array<EditCrmItem|FillerElement> {
-		return Array.prototype.slice.apply(column.children).filter((el: HTMLElement) => {
-			const tagName = el.tagName.toLowerCase();
-			return tagName === 'div' || tagName === 'edit-crm-item';
-		});
-	};
-
-	static getEditCrmItems(this: EditCrm, column: CRMColumn): Array<EditCrmItem> {
-		return Array.prototype.slice.apply(column.children).filter((el: HTMLElement) => {
-			const tagName = el.tagName.toLowerCase();
-			return tagName === 'edit-crm-item';
-		});
 	};
 
 	static getCurrentTypeIndex(this: EditCrm, path: Array<number>): number {
@@ -337,22 +307,25 @@ class EC {
 	 *
 	 * @param list - The list.
 	 * @param hidden - The hidden nodes
+	 * @param exclude - The menu not to choose
 	 *
 	 * @return The last menu on the given list.
 	 */
 	static getLastMenu(this: EditCrm, list: Array<CRMNode>, hidden: {
 		[nodeId: number]: boolean
-	}) {
+	}, exclude: number) {
 		var lastMenu = -1;
 		var lastFilledMenu = -1;
 		//Find last menu to auto-expand
 		if (list) {
 			list.forEach(function(item, index) {
 				if ((item.type === 'menu' || (window.app.shadowStart && item.menuVal)) && !hidden[item.id]) {
-					lastMenu = index;
 					item.children = item.children || [];
-					if (item.children.length > 0) {
-						lastFilledMenu = index;
+					if (exclude === undefined || index !== exclude) {
+						lastMenu = index;
+						if (item.children.length > 0) {
+							lastFilledMenu = index;
+						}
 					}
 				}
 			});
@@ -401,10 +374,11 @@ class EC {
 	 * Builds crm edit object.
 	 * 		  
 	 * @param setMenus - An array of menus that are set to be opened (by user input).
+	 * @param unsetMenus - An array of menus that should not be opened
 	 *
 	 * @return the CRM edit object
 	 */
-	static buildCRMEditObj(this: EditCrm, setMenus: Array<number>): {
+	static buildCRMEditObj(this: EditCrm, setMenus: Array<number>, unsetMenus: Array<number>): {
 		crm: CRMBuilder;
 		setMenus: Array<number>;
 	} {
@@ -447,7 +421,7 @@ class EC {
 						!hiddenNodes[list[setMenus[columnNum]].id]) {
 					lastMenu = setMenus[columnNum];
 				} else {
-					lastMenu = this.getLastMenu(list, hiddenNodes);
+					lastMenu = this.getLastMenu(list, hiddenNodes, unsetMenus[columnNum]);
 				}
 				newSetMenus[columnNum] = lastMenu;
 
@@ -469,11 +443,11 @@ class EC {
 					shadow: window.app.shadowStart && window.app.shadowStart <= columnNum
 				} as any;
 
+				list.forEach(function(item) {
+					item.expanded = false;
+				});
 				if (lastMenu !== -1) {
 					indentTop += indent;
-					list.forEach(function(item) {
-						item.expanded = false;
-					});
 					const lastNode = list[lastMenu];
 					lastNode.expanded = true;
 					if (window.app.shadowStart && lastNode.menuVal) {
@@ -512,20 +486,140 @@ class EC {
 		};
 	};
 
+	static setColumnContOffset(column: HTMLElement & {
+		offset: number;
+	}, offset: number, force: boolean = false) {
+		if (column.offset === undefined) {
+			column.offset = 0;
+		}
+
+		if (force) {
+			column.offset = offset;	
+		} else {
+			column.offset += offset;
+		}
+		column.style.transform = `translateY(${column.offset}px)`;
+	}
+
+	static moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
+		const topLevelColumns = window.app.editCRM.querySelectorAll('.CRMEditColumnCont');
+		for (let i = startColumn.index + 1; i < topLevelColumns.length; i++) {
+			this.setColumnContOffset(topLevelColumns[i] as HTMLElement & {
+				offset: number;
+			}, offset);
+		}
+	}
 
 	static createSorter(this: EditCrm) {
 		this.sortables = this.sortables.filter((sortable) => {
 			sortable.destroy();
 			return false;
 		});
-		this.getColumns().forEach((column) => {
-			this.sortables.push(new Sortable(column, {
+		this.getColumns().forEach((column, columnIndex, allColumns) => {
+			let draggedNode: EditCrmItem = null;
+			let lastRelated: EditCrmItem = null;
+			let moves: number = 0;
+			let movedUp: boolean = false;
+
+			this.sortables.push(new Sortable<EditCrmItem, CRMColumnElement>(column, {
 				group: 'crm',
-				animation: 150,
+				animation: 50,
 				handle: '.dragger',
 				ghostClass: 'draggingCRMItem',
 				chosenClass: 'draggingFiller',
-				scroll: true
+				scroll: true,
+				onChoose: (event) => {
+					const node = event.item;
+					draggedNode = node;
+					lastRelated = node;
+
+					//Collapse menu if it's a menu type node
+					if (node.item.type === 'menu' && node.expanded) {
+						//Hide all its children while dragging to avoid confusion
+
+						//Disabe expanded status
+						node.expanded = false;
+						node.querySelector('.menuArrow').removeAttribute('expanded');
+
+						//Hide columns to the right
+						for (let i = columnIndex + 1; i < allColumns.length; i++) {
+							allColumns[i].style.display = 'none';
+						}
+					}
+					node.currentColumn = column;
+				},
+				onEnd: (event) => {
+					//Get the current column
+					const newColumn = (event.item.parentNode as CRMColumnElement).index;
+					const index = event.newIndex;
+
+					//Upload changes
+					window.app.crm.move(event.item.item.path, 
+						window.app.editCRM.setMenus.slice(0, newColumn).concat(index), 
+						allColumns[newColumn] === column);
+				},
+				onMove: (event) => {
+					this.async(() => {
+						if (event.to !== event.dragged.currentColumn) {
+							//Column was switched
+
+							//Too many sortable bugs to rely on events, just calculate it
+							const topLevelColumns = window.app.editCRM.querySelectorAll('.CRMEditColumnCont') as NodeListOf<HTMLElement & {
+								offset: number;
+							}>;
+							const leftmostColumn = Math.min(event.dragged.currentColumn.index, event.to.index);
+
+							this.setColumnContOffset(topLevelColumns[leftmostColumn], 0, true);
+
+							for (let i = leftmostColumn; i < topLevelColumns.length - 1; i++) {
+								const col = topLevelColumns[i];
+								const colMenu: EditCrmItem = Array.prototype.slice.apply(col.querySelectorAll('edit-crm-item'))
+									.filter((node: EditCrmItem) => {
+										return node !== event.dragged && node.item && node.item.type === 'menu' && node.expanded;
+									})[0];
+
+								if (!colMenu) {
+									//No menu, exit loop
+									break;
+								}
+								const colMenuIndex = Array.prototype.slice.apply(colMenu.parentElement.children)
+									.indexOf(colMenu) + window.app.editCRM.crm[i].indent.length + col.offset;
+								
+								//Get the base offset of the next column
+								const baseOffset = window.app.editCRM.crm[i + 1].indent.length;
+
+								this.setColumnContOffset(topLevelColumns[i + 1], (
+									(colMenuIndex - baseOffset) * 50
+								), true);
+							}
+						} else {
+							//In-column switching
+
+							//Also move the children of any menu if the menu has moved
+							if (event.related.item.type === 'menu' && event.related.expanded) {
+								//It's passed an expanded menu in some direction
+
+								//If the menu node is below the dragged node before any events,
+								//that means that the dragged node is now above the menu node
+								if (event.relatedRect.top < event.draggedRect.top) {
+									//Above the menu node, move all other columns down
+									if (moves !== 1 || !movedUp) {
+										//Ignore second move-up, some weird bug in sortable causes this
+										this.moveFollowingColumns(event.to, 50);
+										movedUp = true;
+									}
+								} else {
+									//Below the menu node, move all other columns up
+									this.moveFollowingColumns(event.to, -50);
+								}
+							}
+						}
+
+						draggedNode.currentColumn = event.to;
+						lastRelated = event.related;
+						moves++;
+					}, 10);
+				}
 			}));
 		});
 	}
@@ -539,9 +633,26 @@ class EC {
 	 * 
 	 * @return The object to be sent to Polymer
 	 */
-	static build(this: EditCrm, setItems: Array<number>, quick: boolean = false, superquick: boolean = false): CRMBuilder {
+	static build(this: EditCrm, settings: {
+		setItems?: Array<number>;
+		unsetItems?: Array<number>;
+		quick?: boolean;
+		superquick?: boolean;
+	} = {
+		setItems: [],
+		unsetItems: [],
+		quick: false,
+		superquick: false
+	}): CRMBuilder {
+		let {
+			setItems, unsetItems, quick, superquick
+		} = settings;
 		setItems = setItems || [];
-		var obj = this.buildCRMEditObj(setItems);
+		unsetItems = unsetItems || [];
+		quick = quick || false;
+		superquick = superquick || false;
+
+		var obj = this.buildCRMEditObj(setItems, unsetItems);
 		this.setMenus = obj.setMenus;
 		const crmBuilder = obj.crm;
 
@@ -605,7 +716,10 @@ class EC {
 	static cancelAdding(this: EditCrm) {
 		if (this.isAdding) {
 			this.isAdding = false;
-			this.build(this.setItems, false, true);
+			this.build({
+				setItems: this.setItems,
+				superquick: true
+			});
 		}
 	};
 
@@ -614,7 +728,10 @@ class EC {
 			this.isSelecting && this.cancelSelecting();
 			this.isAdding = true;
 
-			this.build(this.setItems, false, true);
+			this.build({
+				setItems: this.setItems,
+				superquick: true
+			});
 		} else {
 			this.cancelAdding();
 		}
@@ -627,7 +744,10 @@ class EC {
 
 		var container = window.app.crm.lookup(path, true);
 		container.push(newItem);
-		window.app.editCRM.build(window.app.editCRM.setMenus, false, true);
+		window.app.editCRM.build({
+			setItems: window.app.editCRM.setMenus,
+			superquick: true
+		});
 		window.app.upload();
 	};
 
@@ -1017,7 +1137,9 @@ ${codeSplit.join('\n')}`;
 			}
 		}
 		window.app.upload();
-		this.build(null, true, false);
+		this.build({
+			quick: true
+		});
 
 		this.isSelecting = false;
 	};
@@ -1039,7 +1161,10 @@ ${codeSplit.join('\n')}`;
 		for (i = 0; i < path.length - 1; i++) {
 			if (this.setMenus[i] !== path[i]) {
 				if (showPath) {
-					this.build(path, false, true);
+					this.build({
+						setItems: path,
+						superquick: true
+					});
 					break;
 				} else {
 					return null;
@@ -1068,7 +1193,9 @@ ${codeSplit.join('\n')}`;
 		for (var i = 0; i < 6; i++) {
 			window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
 		}
-		window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, (quick ? [null, true] : []));
+		window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, [{
+			quick: quick
+		}]);
 	}
 }
 

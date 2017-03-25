@@ -22,6 +22,10 @@
 		outline: none;
 	}
 
+edit-crm-item.draggingFiller .item {
+	background-color: #78d3ff;
+}
+
 #typeSwitcher {
 	height: 100%;
 	text-transform: uppercase;

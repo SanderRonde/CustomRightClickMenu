@@ -35,13 +35,9 @@ const editCrmItemProperties: {
 } as any;
 
 type EditCrmItem = PolymerElement<'edit-crm-item', 
-	typeof ECI & typeof editCrmItemProperties> & 
-		DraggableNodeBehavior;
-
+	typeof ECI & typeof editCrmItemProperties>;
 class ECI {
 	static is: string = 'edit-crm-item';
-
-	static behaviors = [Polymer.DraggableNodeBehavior];
 
 	/**
 	  * The type of this item
@@ -70,19 +66,6 @@ class ECI {
 
 	static _column: number = -1;
 
-	/**
-	 * The index of the item's column
-	 */
-	static column(this: DraggableNodeBehaviorInstance): number {
-		if (this._column === -1) {
-			if (this.dragging) {
-				return this._column = (this._filler.parentNode as CRMBuilderColumn).index;
-			}
-			return this._column = (this.parentNode as CRMBuilderColumn).index;
-		}
-		return this._column;
-	}
-
 	static properties = editCrmItemProperties;
 
 	static itemIndex: number;
@@ -107,6 +90,11 @@ class ECI {
 	 * The time of the last mouseover over the type-switcher
 	 */
 	static lastTypeSwitchMouseover: number = null;
+
+	/**
+	 * The column this element is currently in
+	 */
+	static currentColumn: CRMColumnElement;
 
 	//#endregion
 
@@ -148,7 +136,6 @@ class ECI {
 			this.itemName = this.item.name;
 			this.calculateType();
 			this.itemIndex = this.index;
-			this.init();
 			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 
 			if (window.app.editCRM.isSelecting) {
@@ -197,7 +184,10 @@ class ECI {
 	};
 
 	static openMenu(this: EditCrmItem) {
-		window.app.editCRM.build(this.item.path, false, true);
+		window.app.editCRM.build({
+			setItems: this.item.path,
+			superquick: true
+		});
 	};
 
 	static selectThisNode(this: EditCrmItem) {

@@ -1,6 +1,7 @@
 ﻿.CRMEditColumn {
 	position: relative;
 	margin-left: 1px;
+
 }
 
 .indentFiller {
@@ -23,7 +24,7 @@
 	width: 200px;
 	/*I am not going to question how this works but it does*/
 	display:table;
-	animation: animateLeft 250ms ease-in;
+	animation: animateLeft 250ms ease-in, transform 50ms ease-in-out;;
 }
 
 #mainCont {
