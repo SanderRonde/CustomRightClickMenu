@@ -1015,7 +1015,7 @@ class CA {
 		var _this = this;
 		this.latestId = this.latestId || 0;
 		this.latestId++;
-		chrome.storage.local.set({
+		chrome.storage.sync.set({
 			latestId: _this.latestId
 		});
 		return this.latestId;
@@ -2092,6 +2092,7 @@ class CA {
 				useTabs: true,
 				zoom: '100'
 			},
+			latestId: 0,
 			crm: _this.transferCRMFromOld(localStorage.getItem('whatpage') === 'true'),
 			settingsLastUpdatedAt: new Date().getTime()
 		};
@@ -2111,7 +2112,6 @@ class CA {
 			selectedCrmType: 0,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
-			latestId: 0,
 			useStorageSync: true,
 			notFirstTime: true,
 			lastUpdatedAt: chrome.runtime.getManifest().version,
@@ -2185,6 +2185,7 @@ class CA {
 					id: _this.generateItemId()
 				})
 			],
+			latestId: 0,
 			settingsLastUpdatedAt: new Date().getTime()
 		};
 
@@ -2201,7 +2202,6 @@ class CA {
 			selectedCrmType: 0,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
-			latestId: 0,
 			useStorageSync: true,
 			notFirstTime: true,
 			lastUpdatedAt: chrome.runtime.getManifest().version,
@@ -2529,6 +2529,11 @@ class CA {
 						_this.orderNodesById(items.crm);
 						_this.pageDemo.create();
 						_this.buildNodePaths(items.crm, []);
+						if (_this.settings.latestId) {
+							_this.latestId = items.latestId;
+						} else {
+							_this.latestId = 0;
+						}
 
 						if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
 							(window.doc.CRMOnPage as PaperToggleOption).setCheckboxDisabledValue(true);
@@ -2588,11 +2593,6 @@ class CA {
 						chrome.storage.local.set({
 							globalExcludes: _this.globalExcludes
 						});
-					}
-					if (storageLocal.latestId) {
-						_this.latestId = storageLocal.latestId;
-					} else {
-						_this.latestId = 0;
 					}
 					if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
 						window.setTimeout(function() {

@@ -1171,7 +1171,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static generateItemId(): number {
 			globalObject.globals.latestId = globalObject.globals.latestId || 0;
 			globalObject.globals.latestId++;
-			chrome.storage.local.set({
+			chrome.storage.sync.set({
 				latestId: globalObject.globals.latestId
 			});
 			return globalObject.globals.latestId;
@@ -1854,11 +1854,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			chrome.tabs.onHighlighted.addListener(tabChangeListener);
-			chrome.storage.local.get((storageLocal) => {
+			chrome.storage.sync.get((storageLocal) => {
 				globalObject.globals.latestId = storageLocal['latestId'] || 0;
 			});
 			chrome.storage.onChanged.addListener((changes, areaName) => {
-				if (areaName === 'local' && changes['latestId']) {
+				if (areaName === 'sync' && changes['latestId']) {
 					const highest = changes['latestId']
 										.newValue >
 										changes['latestId'].oldValue ?
@@ -7651,7 +7651,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					selectedCrmType: 0,
 					jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 					globalExcludes: [''],
-					latestId: 0,
 					useStorageSync: true,
 					notFirstTime: true,
 					lastUpdatedAt: chrome.runtime.getManifest().version,
@@ -7700,7 +7699,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							id: Helpers.generateItemId()
 						})
 					],
-					settingsLastUpdatedAt: new Date().getTime()
+					settingsLastUpdatedAt: new Date().getTime(),
+					latestId: 0
 				};
 			}
 
