@@ -2081,7 +2081,7 @@ class CA {
 	};
 
 	private static handleDataTransfer(_this: CrmApp) {
-		localStorage.setItem('transferred', 'true');
+		localStorage.setItem('transferToVersion2', 'true');
 
 		if (!window.CodeMirror.TernServer) {
 			//Wait until TernServer is loaded
@@ -2269,7 +2269,7 @@ class CA {
 			_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
 		}, 2500);
 
-		localStorage.setItem('transferred', 'true');
+		localStorage.setItem('transferToVersion2', 'true');
 	};
 
 	private static upgradeVersion(this: CrmApp, oldVersion: string, newVersion: string) {
@@ -2282,13 +2282,13 @@ class CA {
 		if (storageLocal.lastUpdatedAt === currentVersion) {
 			return true;
 		} else {
-			if (storageLocal.lastUpdatedAt) {		
+			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {		
 				this.upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 				return true;
 			}
 			try {
 				//Determine if it's a transfer from CRM version 1.*
-				if (!localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
+				if (!localStorage.getItem('transferToVersion2') && window.localStorage.getItem('numberofrows') !== null) {
 					_this.handleDataTransfer(_this);
 					_this.async(function() {
 						window.doc.versionUpdateDialog.open();

@@ -1167,7 +1167,7 @@ describe('CRMAPI', () => {
 		window.localStorage = {
 			setItem: () => { },
 			getItem: (key) => {
-				if (key === 'transferred') {
+				if (key === 'transferToVersion2') {
 					return false;
 				}
 				if (key === 'numberofrows') {

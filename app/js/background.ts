@@ -7978,7 +7978,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				storageLocalCopy: CRM.StorageLocal;
 				chromeStorageLocal: CRM.StorageLocal;
 			} {
-				window.localStorage.setItem('transferred', 'true');
+				window.localStorage.setItem('transferToVersion2', 'true');
 
 				const [defaultLocalStorage, defaultSyncStorage] = this._getDefaultStorages();
 
@@ -8005,7 +8005,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				storageLocalCopy: CRM.StorageLocal;
 				chromeStorageLocal: CRM.StorageLocal;
 			}) => void) => void {
-				window.localStorage.setItem('transferred', 'true');
+				window.localStorage.setItem('transferToVersion2', 'true');
 
 				chrome.storage.local.set({
 					isTransfer: true
@@ -8422,12 +8422,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			if (storageLocal.lastUpdatedAt === currentVersion) {
 				return false;
 			} else {
-				if (storageLocal.lastUpdatedAt) {
+				if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {
 					this._upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 					return false;
 				}
 				//Determine if it's a transfer from CRM version 1.*
-				if (!window.localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== undefined) {
+				if (!window.localStorage.getItem('transferToVersion2') && window.localStorage.getItem('numberofrows') !== undefined) {
 					return this.SetupHandling.handleTransfer();
 				} else {
 					var firstRunResult = this.SetupHandling.handleFirstRun();
