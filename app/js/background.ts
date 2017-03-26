@@ -7780,6 +7780,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				};
 
 				private static _backupLocalStorage() {
+					if (typeof localStorage === 'undefined' || 
+						(typeof window.indexedDB === 'undefined' && typeof (window as any).webkitIndexedDB === 'undefined')) {
+						return;
+					}
+
 					const data = JSON.stringify(localStorage);
 					const idb: IDBFactory = window.indexedDB || (window as any).webkitIndexedDB;
 					const req = idb.open('localStorageBackup', 1);

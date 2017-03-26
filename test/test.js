@@ -1166,7 +1166,15 @@ describe('CRMAPI', () => {
 	step('should be able to read background.js', () => {
 		window.localStorage = {
 			setItem: () => { },
-			getItem: () => { }
+			getItem: (key) => {
+				if (key === 'transferred') {
+					return false;
+				}
+				if (key === 'numberofrows') {
+					return 0;
+				}
+				return undefined;	
+			 }
 		};
 		assert.doesNotThrow(run(() => {
 			backgroundCode = fs.readFileSync('./app/js/background.js', {
