@@ -410,7 +410,7 @@ input {
 	position: absolute;
 }
 
-#triggersInfoCont, #codeInfoCont {
+#triggersInfoCont, #codeInfoCont, #editorTabInfoCont {
 	cursor: pointer;
 	float: right;
 	margin-top: 7px;
@@ -420,27 +420,30 @@ input {
 	margin-top: 4px;
 }
 
-#triggersInfoCont .active, #codeInfoCont .active,
-#triggersInfoCont #triggersInfoTxtCont,
-#codeInfoCont #codeInfoTxtCont {
+#triggersInfoCont .active, #codeInfoCont .active, #editorTabInfoCont .active,
+#triggersInfoCont #triggersInfoTxtCont, #codeInfoCont #codeInfoTxtCont,
+#editorTabInfoCont #editorTabInfoTxtCont {
 	display: none;
 }
 
-#triggersInfoCont .inactive, #codeInfoCont .inactive {
+#triggersInfoCont .inactive, #codeInfoCont .inactive, #editorTabInfoCont .inactive {
 	display: block;
 }
 
 #triggersInfoCont:hover .active, #codeInfoCont:hover .active,
+#editorTabInfoCont:hover .active,
 #triggersInfoCont:hover #triggersInfoTxtCont,
-#codeInfoCont:hover #codeInfoTxtCont {
+#codeInfoCont:hover #codeInfoTxtCont,
+#editorTabInfoCont:hover #editorTabInfoTxtCont {
 	display: block;
 }
 
-#triggersInfoCont:hover .inactive, #codeInfoCont:hover .inactive {
+#triggersInfoCont:hover .inactive, #codeInfoCont:hover .inactive,
+#editorTabInfoCont:hover .inactive {
 	display:none;
 }
 
-#triggersInfoTxt, #codeInfoTxtCont {
+#triggersInfoTxt, #codeInfoTxtCont, #editorTabInfoTxtCont {
 	position: absolute;
     z-index: 10000;
     margin-top: -24px;
@@ -451,4 +454,5 @@ input {
     padding: 5px;
 	font-size:15.6px;
 	font-weight:normal;
+	cursor: default;
 }

@@ -91,16 +91,27 @@ class SCE {
 	static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
 		if (mode !== this.editorMode) {
 			if (mode === 'main') {
+				if (this.editorMode === 'background') {
+					this.newSettings.value.backgroundScript = this.editor.getValue();
+				}
 				this.editorMode = 'main';
 				this.enableButtons();
-				this.newSettings.value.backgroundScript = this.editor.getValue();
 				this.editor.setValue(this.newSettings.value.script);
-			} else {
+			} else if (mode === 'background') {
+				if (this.editorMode === 'main') {
+					this.newSettings.value.script = this.editor.getValue();
+				}
 				this.editorMode = 'background';
 				this.disableButtons();
-				this.newSettings.value.script = this.editor.getValue();
 				this.editor.setValue(this.newSettings.value.backgroundScript || '');
 			}
+
+			const element = document.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
+			Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+			function(tab: HTMLElement) {
+				tab.classList.remove('active');
+			});
+			element.classList.add('active');
 		}
 	};
 
@@ -111,16 +122,35 @@ class SCE {
 		const isBackground = element.classList.contains('backgroundEditorTab');
 		if (isMain && this.editorMode !== 'main') {
 			element.classList.remove('optionsEditorTab');
+			if (this.editorMode === 'options') {
+				try {
+					this.newSettings.value.options = JSON.parse(this.editor.getValue());
+				} catch(e) {
+					this.newSettings.value.options = this.editor.getValue();
+				}
+			}
 			this.hideCodeOptions();
 			this.initTernKeyBindings();
 			this.changeTab('main');
 		} else if (!isMain && isBackground && this.editorMode !== 'background') {
 			element.classList.remove('optionsEditorTab');
+			if (this.editorMode === 'options') {
+				try {
+					this.newSettings.value.options = JSON.parse(this.editor.getValue());
+				} catch(e) {
+					this.newSettings.value.options = this.editor.getValue();
+				}
+			}
 			this.hideCodeOptions();
 			this.initTernKeyBindings();
 			this.changeTab('background');
 		} else if (!isBackground && this.editorMode !== 'options') {
 			element.classList.add('optionsEditorTab');
+			if (this.editorMode === 'main') {
+				this.newSettings.value.script = this.editor.getValue();
+			} else if (this.editorMode === 'background') {
+				this.newSettings.value.backgroundScript = this.editor.getValue();
+			}
 			this.showCodeOptions();
 			this.editorMode = 'options';
 		}
@@ -163,10 +193,10 @@ class SCE {
 	};
 
 	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
-		this.changeTab('main');
 		resultStorage.value.metaTags = this.getMetaTagValues();
 		this.finishEditing();
 		window.externalEditor.cancelOpenFiles();
+		this.changeTab('main');
 		this.active = false;
 	};
 
@@ -517,8 +547,7 @@ class SCE {
 		editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
 		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
 		window.paperLibrariesSelector.updateLibraries((this.editorMode === 'main' ?
-			this.newSettings.value.libraries : this.newSettings.value
-			.backgroundLibraries || [])), this.editorMode;
+			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
 		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.fullscreenEl.style.display = 'none';
 		var $editorWrapper = $(this.editor.display.wrapper);
@@ -734,13 +763,32 @@ class SCE {
 			this.$.editorPlaceholder.style.opacity = '1';
 			this.$.editorPlaceholder.style.position = 'absolute';
 
-			this.newSettings.value.script = this.editor.doc.getValue();
+			if (this.editorMode === 'main') {
+				this.newSettings.value.script = this.editor.doc.getValue();
+			} else if (this.editorMode === 'background') {
+				this.newSettings.value.backgroundScript = this.editor.doc.getValue();
+			} else {
+				try {
+					this.newSettings.value.options = JSON.parse(this.editor.doc.getValue());
+				} catch(e) {
+					this.newSettings.value.options = this.editor.doc.getValue();
+				}
+			}
 		}
 		this.editor = null;
 
-		var value = (this.editorMode === 'main' ?
-			this.newSettings.value.script :
-			this.newSettings.value.backgroundScript);
+		var value;
+		if (this.editorMode === 'main') {
+			value = this.newSettings.value.script;
+		} else if (this.editorMode === 'background') {
+			value = this.newSettings.value.backgroundScript;
+		} else {
+			if (typeof this.newSettings.value.options === 'string') {
+				value = this.newSettings.value.options;
+			} else {
+				value = JSON.stringify(this.newSettings.value.options);
+			}
+		}
 		if (this.fullscreen) {
 			this.loadEditor(window.doc.fullscreenEditorHorizontal, value, disable);
 		} else {

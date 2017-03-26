@@ -130,6 +130,13 @@ class CEB {
 				editing: null
 			});
 		}
+		window.useOptionsCompletions = false;
+		this.hideCodeOptions();
+		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+			function(tab: HTMLElement) {
+				tab.classList.remove('active');
+			});
+		document.querySelector('.mainEditorTab').classList.add('active');
 	};
 
 		/**
@@ -203,16 +210,26 @@ class CEB {
 
 	static showCodeOptions(this: CodeEditBehavior) {
 		window.useOptionsCompletions = true;
-		const doc = new window.CodeMirror.Doc(JSON.stringify(this.item.value.options, null, '\t'), {
-			name: 'javascript',
-			json: true
-		});
-		this.otherDoc = this.getCmInstance().swapDoc(doc);
+		if (!this.otherDoc) {
+			const doc = new window.CodeMirror.Doc(typeof this.item.value.options === 'string' ?
+				this.item.value.options : JSON.stringify(this.item.value.options, null, '\t'), {
+				name: 'javascript',
+				json: true
+			});
+			this.otherDoc = this.getCmInstance().swapDoc(doc);
+		} else {
+			this.otherDoc = this.getCmInstance().swapDoc(this.otherDoc);
+		}
 		this.getCmInstance().performLint();
 	}
 
 	static hideCodeOptions(this: CodeEditBehavior) {
+		if (!window.useOptionsCompletions) {
+			return;
+		}
 		window.useOptionsCompletions = false;
+		this.otherDoc = this.getCmInstance().swapDoc(this.otherDoc);
+		this.getCmInstance().performLint();
 	}
 }
 

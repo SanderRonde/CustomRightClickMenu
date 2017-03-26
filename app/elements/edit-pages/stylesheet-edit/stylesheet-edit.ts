@@ -462,14 +462,24 @@ class STE {
 			for (var i = 0; i < lines; i++) {
 				stylesheetLines.push(this.editor.doc.getLine(i));
 			}
-			this.newSettings.value.stylesheet = stylesheetLines.join('\n');
+			if (this.editorMode === 'main') {
+				this.newSettings.value.stylesheet = stylesheetLines.join('\n');
+			} else {
+				try {
+					this.newSettings.value.options = JSON.parse(this.editor.doc.getValue());
+				} catch(e) {
+					this.newSettings.value.options = this.editor.doc.getValue();
+				}
+			}
 		}
 		this.editor = null;
 
+		const value = this.editorMode === 'main' ? 
+			this.newSettings.value.stylesheet : JSON.stringify(this.newSettings.value.options);
 		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, this.newSettings.value.stylesheet, disable);
+			this.loadEditor(window.doc.fullscreenEditorHorizontal, value, disable);
 		} else {
-			this.loadEditor(this.$.editorCont, this.newSettings.value.stylesheet, disable);
+			this.loadEditor(this.$.editorCont, value, disable);
 		}
 	};
 
@@ -742,9 +752,16 @@ class STE {
 		const isMain = element.classList.contains('mainEditorTab');
 		if (isMain && this.editorMode !== 'main') {
 			element.classList.remove('optionsEditorTab');
+			try {
+				this.newSettings.value.options = JSON.parse(this.editor.getValue());
+			} catch(e) {
+				this.newSettings.value.options = this.editor.getValue();
+			}
 			this.hideCodeOptions();
+			this.editorMode = 'main';
 		} else if (!isMain && this.editorMode === 'main') {
 			element.classList.add('optionsEditorTab');
+			this.newSettings.value.stylesheet = this.editor.getValue();
 			this.showCodeOptions();
 			this.editorMode = 'options';
 		}
