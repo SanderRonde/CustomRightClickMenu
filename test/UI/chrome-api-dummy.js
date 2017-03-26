@@ -207,6 +207,9 @@ window.chrome = {
 		sendMessage: function(message, messageSender, respond) {
 			onMessageListener && onMessageListener(message,
 				messageSender, respond);
+		},
+		onInstalled: {
+			addListener: () => {}
 		}
 	},
 	tabs: {
