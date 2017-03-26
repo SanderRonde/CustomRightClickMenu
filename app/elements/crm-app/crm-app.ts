@@ -2786,17 +2786,26 @@ class CA {
 	};
 
 	static ready(this: CrmApp) {
-		var _this = this;
 		window.app = this;
 		window.doc = window.app.$;
 
+		chrome.runtime.onInstalled.addListener((details) => {
+			if (details.reason === 'update') {
+				//Show a little message
+				this.$.messageToast.text = `Extension has been updated to version ${
+					chrome.runtime.getManifest().version
+				}`;
+				this.$.messageToast.show();
+			}
+		});
+
 		var controlPresses = 0;
-		document.body.addEventListener('keydown', function(event) {
+		document.body.addEventListener('keydown', (event) => {
 			if (event.key === 'Control') {
 				controlPresses++;
-				window.setTimeout(function() {
+				window.setTimeout(() => {
 					if (controlPresses >= 3) {
-						_this._toggleBugReportingTool();
+						this._toggleBugReportingTool();
 						controlPresses = 0;
 					} else {
 						if (controlPresses > 0) {
@@ -2807,16 +2816,16 @@ class CA {
 			}
 		});
 
-		this.setupLoadingBar(function(resolve) {
-			_this.setupStorages.apply(_this, [resolve]);
+		this.setupLoadingBar((resolve) => {
+			this.setupStorages.apply(this, [resolve]);
 		});
 
 		this.show = false;
 
-		chrome.storage.onChanged.addListener(function(changes, areaName) {
+		chrome.storage.onChanged.addListener((changes, areaName) => {
 			if (areaName === 'local' && changes['latestId']) {
 				var highest = changes['latestId'].newValue > changes['latestId'].oldValue ? changes['latestId'].newValue : changes['latestId'].oldValue;
-				_this.latestId = highest;
+				this.latestId = highest;
 			}
 		});
 	};
