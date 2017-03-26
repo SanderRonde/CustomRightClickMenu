@@ -11111,3 +11111,10 @@ if (screen.width == "1440") {
 
 //Send a message stating that this script is done loading
 chrome.runtime.sendMessage({ loading: "done" });
+
+//Remove transfer data if it's a rollback
+if (localStorage.getItem('transferToVersion2') == 'true') {
+	localStorage.removeItem('transferToVersion2');
+	chrome.storage.local.clear();
+	chrome.storage.sync.clear();
+}
