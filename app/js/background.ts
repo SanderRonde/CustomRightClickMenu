@@ -7779,7 +7779,26 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				};
 
+				private static _backupLocalStorage() {
+					const data = JSON.stringify(localStorage);
+					const idb: IDBFactory = window.indexedDB || (window as any).webkitIndexedDB;
+					const req = idb.open('localStorageBackup', 1);
+					req.onerror = () => { console.log('Error backing up localStorage data'); };
+					req.onupgradeneeded = (event) => {
+						const db: IDBDatabase = (event.target as any).result;
+						const objectStore = db.createObjectStore('data', {
+							keyPath: 'id'
+						});
+						objectStore.add({
+							id: 0,
+							data: data
+						});
+					}
+				}
+
 				static transferCRMFromOld(openInNewTab: boolean): Array<CRM.Node> {
+					this._backupLocalStorage();
+
 					const amount = parseInt(window.localStorage.getItem('numberofrows'), 10) + 1;
 
 					const nodes: Array<TransferOldNode> = [];
@@ -8403,7 +8422,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return false;
 				}
 				//Determine if it's a transfer from CRM version 1.*
-				if (!window.localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== null) {
+				if (!window.localStorage.getItem('transferred') && window.localStorage.getItem('numberofrows') !== undefined) {
 					return this.SetupHandling.handleTransfer();
 				} else {
 					var firstRunResult = this.SetupHandling.handleFirstRun();

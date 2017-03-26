@@ -2036,9 +2036,28 @@ class CA {
 		}
 	};
 
+	private static _backupLocalStorage() {
+		const data = JSON.stringify(localStorage);
+		const idb: IDBFactory = window.indexedDB || (window as any).webkitIndexedDB;
+		const req = idb.open('localStorageBackup', 1);
+		req.onerror = () => { console.log('Error backing up localStorage data'); };
+		req.onupgradeneeded = (event) => {
+			const db: IDBDatabase = (event.target as any).result;
+			const objectStore = db.createObjectStore('data', {
+				keyPath: 'id'
+			});
+			objectStore.add({
+				id: 0,
+				data: data
+			});
+		}
+	}
+
 	static transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
 		getItem(index: string|number): any;
 	} = localStorage): CRM.Tree {
+		this._backupLocalStorage();
+
 		var i;
 		var amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
