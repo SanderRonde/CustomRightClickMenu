@@ -36,7 +36,7 @@ class ERT {
 	/**
 	 * The startposition of the selected area
 	 */
-	static dragStart: {
+	private static dragStart: {
 		X: number;
 		Y: number;
 	};
@@ -44,7 +44,7 @@ class ERT {
 	/**
 	 * The last size of the selected area
 	 */
-	static lastSize: {
+	private static lastSize: {
 		X: number;
 		Y: number;
 	};
@@ -52,7 +52,7 @@ class ERT {
 	/**
 	 * The last positions of the cursor
 	 */
-	static lastPos: {
+	private static lastPos: {
 		X: number;
 		Y: number;
 	};
@@ -60,7 +60,7 @@ class ERT {
 	/**
 	 * The last error that occurred in the console
 	 */
-	static lastError: {
+	private static lastError: {
 		message: string;
 		source: any;
 		lineno: number;
@@ -82,7 +82,7 @@ class ERT {
 		return img === '';
 	};
 
-	static scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
+	private static scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
 			newImg: HTMLImageElement, callback: () => void) {
 		this.image = canvas.toDataURL();
 		var maxViewportHeight = window.innerHeight - 450;
@@ -95,7 +95,7 @@ class ERT {
 		callback && callback();
 	};
 
-	static cropScreenshot(this: ErrorReportingTool, dataURI: string, cropData: {
+	private static cropScreenshot(this: ErrorReportingTool, dataURI: string, cropData: {
 			width: number;
 			height: number;
 			left: number;
@@ -133,7 +133,7 @@ class ERT {
 		document.body.appendChild(imgTag2);
 	};
 
-	static screenshot(this: ErrorReportingTool, cropData: {
+	private static screenshot(this: ErrorReportingTool, cropData: {
 			width: number;
 			height: number;
 			left: number;
@@ -151,21 +151,21 @@ class ERT {
 		});
 	};
 
-	static px(this: ErrorReportingTool, num: number): string {
+	private static px(this: ErrorReportingTool, num: number): string {
 		return num + 'px';
 	};
 
-	static translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
+	private static translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
 		el.xPos = x;
 		el.style.transform = 'translate(' + x + ',' + (el.yPos || '0px') + ')';
 	};
 
-	static translateY(this: ErrorReportingTool, el: ErrorReportingToolSquare, y: string) {
+	private static translateY(this: ErrorReportingTool, el: ErrorReportingToolSquare, y: string) {
 		el.yPos = y;
 		el.style.transform = 'translate(' + (el.xPos || '0px') + ',' + y + ')';
 	};
 
-	static setSelection(this: ErrorReportingTool, startX: number, startY: number,
+	private static setSelection(this: ErrorReportingTool, startX: number, startY: number,
 			width: number, height: number, posX: number, posY: number) {
 		var rightDiv = this.$.highlightingRightSquare;
 		var leftDiv = this.$.highlightingLeftSquare;
@@ -251,7 +251,7 @@ class ERT {
 		}
 	};
 	
-	static hideScreencapArea(this: ErrorReportingTool) {
+	private static hideScreencapArea(this: ErrorReportingTool) {
 		this.$.highlightingTopSquare.style.height = '100vh';
 		this.$.highlightingTopSquare.style.width = '100vw';
 		this.setSelection(0, 0, 0, 0, 0, 0);
@@ -277,7 +277,7 @@ class ERT {
 		});
 	};
 
-	static selectScreenshotArea(this: ErrorReportingTool) {
+	private static selectScreenshotArea(this: ErrorReportingTool) {
 		this.$.highlightingTopSquare.style.height = '100vh';
 		this.$.highlightingTopSquare.style.width = '100vw';
 		this.setSelection(0, 0, 0, 0, 0, 0);
@@ -297,28 +297,7 @@ class ERT {
 		this.$.errorReportingDialog.open();
 	};
 
-	static convertImageToBlob(this: ErrorReportingTool, dataURI: string) {
-		// convert base64/URLEncoded data component to raw binary data held in a string
-		var byteString;
-		if (dataURI.split(',')[0].indexOf('base64') >= 0) {
-			byteString = atob(dataURI.split(',')[1]);
-		} else {
-			byteString = window.unescape(dataURI.split(',')[1]);
-		}
-
-		// separate out the mime component
-		var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-		// write the bytes of the string to a typed array
-		var ia = new Uint8Array(byteString.length);
-		for (var i = 0; i < byteString.length; i++) {
-			ia[i] = byteString.charCodeAt(i);
-		}
-
-		return new Blob([ia], { type: mimeString });
-	};
-
-	static downloadFiles(this: ErrorReportingTool, callback: () => void) {
+	private static downloadFiles(this: ErrorReportingTool, callback: () => void) {
 		var _this = this;
 		chrome.downloads.download({
 			url: this.image,
@@ -344,7 +323,7 @@ class ERT {
 		});
 	};
 
-	static checkCheckmark(this: ErrorReportingTool) {
+	private static checkCheckmark(this: ErrorReportingTool) {
 		this.$.bugButton.classList.add('checkmark');
 		this.async(() => {
 			this.$.reportingButtonElevation.classList.add('checkmark');
@@ -363,7 +342,7 @@ class ERT {
 		}, 350);
 	};
 
-	static getDownloadPermission(this: ErrorReportingTool, callback: () => void) {
+	private static getDownloadPermission(this: ErrorReportingTool, callback: () => void) {
 		var _this = this;
 
 		//Download the files
@@ -401,7 +380,7 @@ class ERT {
 		});
 	};
 
-	static onError(this: ErrorReportingTool, message: string, source: any, lineno: number, colno: number, error: Error) {
+	private static onError(this: ErrorReportingTool, message: string, source: any, lineno: number, colno: number, error: Error) {
 		this.lastError = {
 			message: message,
 			source: source,

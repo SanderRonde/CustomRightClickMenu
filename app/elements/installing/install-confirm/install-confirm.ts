@@ -18,31 +18,26 @@ class IC {
 	/**
 	 * The synced settings of the app
 	 */
-	static settings: CRM.SettingsStorage;
+	private static settings: CRM.SettingsStorage;
 
 	/**
 	 * The local settings of the app
 	 */
-	static storageLocal: CRM.StorageLocal;
+	private static storageLocal: CRM.StorageLocal;
 
 	/**
 	 * The metatags for the script
  	 */
-	static metaTags: CRM.MetaTags = {};
+	private static metaTags: CRM.MetaTags = {};
 
 	/**
 	 * The metainfo for the script
 	 */
-	static metaInfo: CMMetaInfo;
-
-	/**
-	 * The metatags to be given to the script
-	 */
-	static tags: CRM.MetaTags;
+	private static metaInfo: CMMetaInfo;
 
 	static properties = installConfirmProperties;
 
-	static loadSettings(this: InstallConfirm, cb: () => void) {
+	private static loadSettings(this: InstallConfirm, cb: () => void) {
 		var _this = this;
 
 		function callback(items: CRM.SettingsStorage) {
@@ -135,7 +130,7 @@ class IC {
 		el.classList.toggle('shown');
 	};
 
-	static isManifestPermissions(this: InstallConfirm, permission: CRM.Permission): boolean {
+	private static isManifestPermissions(this: InstallConfirm, permission: CRM.Permission): boolean {
 		return window.app.templates.getPermissions().indexOf(permission) > -1;
 	};
 
@@ -189,7 +184,7 @@ class IC {
 		this.$.scriptInstalled.classList.add('visible');
 	};
 
-	static setMetaTag(this: InstallConfirm, name: keyof IDMap['install-confirm'], values: Array<string|number>) {
+	private static setMetaTag(this: InstallConfirm, name: keyof IDMap['install-confirm'], values: Array<string|number>) {
 		var value;
 		if (values) {
 			value = values[values.length - 1];
@@ -199,7 +194,7 @@ class IC {
 		this.$[name].innerText = value + '';
 	};
 
-	static setMetaInformation(this: InstallConfirm, tags: CRM.MetaTags, metaInfo: CMMetaInfo) {
+	private static setMetaInformation(this: InstallConfirm, tags: CRM.MetaTags, metaInfo: CMMetaInfo) {
 		this.setMetaTag('descriptionValue', tags['description']);
 		this.setMetaTag('authorValue', tags['author']);
 
@@ -211,7 +206,7 @@ class IC {
 		this.metaInfo = metaInfo;
 	};
 
-	static cmLoaded(this: InstallConfirm, cm: CodeMirrorInstance) {
+	private static cmLoaded(this: InstallConfirm, cm: CodeMirrorInstance) {
 		var _this = this;
 		$('<style id="editorZoomStyle">' +
 		'.CodeMirror, .CodeMirror-focused {' +
@@ -236,7 +231,7 @@ class IC {
 		}, 25);
 	};
 
-	static loadEditor(_this: InstallConfirm) {
+	private static loadEditor(_this: InstallConfirm) {
 		!_this.settings.editor && (_this.settings.editor = {
 			useTabs: true,
 			theme: 'dark',

@@ -105,7 +105,7 @@ class CE {
 	/**
 	 * Recalculates all the styles that should be applied
 	 */
-	static recalculateStyles(this: CenterElement) {
+	private static recalculateStyles(this: CenterElement) {
 		if (this.fullscreenoverlay) {
 			this.style.position = 'fixed';
 			this.style.top = this.style.left = '0';

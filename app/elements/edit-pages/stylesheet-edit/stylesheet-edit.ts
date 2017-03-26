@@ -21,7 +21,7 @@ class STE {
 
 	static editorPlaceHolderAnimation: Animation;
 
-	static getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
+	private static getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
 		($('stylesheet-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings = {};
 		this.save(null, settings);
@@ -60,7 +60,7 @@ class STE {
 	/**
 	 * Pops in the ribbons with an animation
 	 */
-	static popInRibbons(this: NodeEditBehaviorStylesheetInstance) {
+	private static popInRibbons(this: NodeEditBehaviorStylesheetInstance) {
 		//Introduce title at the top
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
@@ -128,30 +128,11 @@ class STE {
 		}, 200);
 	};
 
-	/**
-	 * Pops in only the tools ribbon
-	 */
-	static popInToolsRibbon(this: NodeEditBehaviorStylesheetInstance) {
-		window.doc.editorToolsRibbon.style.display = 'block';
-		window.doc.editorToolsRibbon.animate([
-			{
-				marginLeft: '-200px'
-			}, {
-				marginLeft: 0
-			}
-		], {
-			duration: 800,
-			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-		}).onfinish = function (this: Animation) {
-			this.effect.target.style.marginLeft = '0';
-		};
-	};
-
 
 	/**
 	 * Pops out the ribbons with an animation
 	 */
-	static popOutRibbons(this: NodeEditBehaviorStylesheetInstance) {
+	private static popOutRibbons(this: NodeEditBehaviorStylesheetInstance) {
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 			var toolsRibbon = window.app.$.editorToolsRibbonContainer;
 
@@ -486,7 +467,7 @@ class STE {
 	/**
 	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
-	static fillEditorOptions(this: NodeEditBehaviorStylesheetInstance) {
+	private static fillEditorOptions(this: NodeEditBehaviorStylesheetInstance) {
 		var settingsContainer = $('<div id="settingsContainer"></div>').appendTo(this.editorOptions);
 		$('<div id="editorSettingsTxt">Editor Settings</div>').appendTo(settingsContainer);
 
@@ -651,7 +632,7 @@ class STE {
 	/**
 	 * Loads the codeMirror editor
 	 */
-	static loadEditor(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement, content: string = this.item.value.stylesheet,
+	private static loadEditor(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement, content: string = this.item.value.stylesheet,
 			disable: boolean = false) {
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();

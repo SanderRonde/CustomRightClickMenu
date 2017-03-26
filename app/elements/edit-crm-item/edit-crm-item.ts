@@ -47,43 +47,43 @@ class ECI {
 	/**
 	 * Whether the item is a link
 	 */
-	static isLink: boolean = false;
+	private static isLink: boolean = false;
 
 	/**
 	 * Whether the item is a script
 	 */
-	static isScript: boolean = false;
+	private static isScript: boolean = false;
 
 	/**
 	 * Whether the item is a stylesheet
 	 */
-	static isStylesheet: boolean = false;
+	private static isStylesheet: boolean = false;
 
 	/**
 	 * Whether the item is a divider
 	 */
-	static isDivider: boolean = false;
+	private static isDivider: boolean = false;
 
 	static properties = editCrmItemProperties;
 
-	static itemIndex: number;
+	private static itemIndex: number;
 
-	static index: number;
+	private static index: number;
 
 	/**
      * The element to be animated
      */
-	static animationEl: HTMLElement = null;
+	private static animationEl: HTMLElement = null;
 
 	/**
      * The showing animation of the type indicator
      */
-	static typeIndicatorAnimation: Animation = null;
+	private static typeIndicatorAnimation: Animation = null;
 
 	/**
 	 * The time of the last mouseover over the type-switcher
 	 */
-	static lastTypeSwitchMouseover: number = null;
+	private static lastTypeSwitchMouseover: number = null;
 
 	/**
 	 * The column this element is currently in
@@ -114,7 +114,7 @@ class ECI {
 		}
 	};
 
-	static ready(this: EditCrmItem) {
+	private static ready(this: EditCrmItem) {
 		if (this.classList.contains('draggingFiller')) {
 			//It's a dragging copy
 			return;
@@ -172,7 +172,7 @@ class ECI {
 		});
 	};
 
-	static selectThisNode(this: EditCrmItem) {
+	private static selectThisNode(this: EditCrmItem) {
 		var prevState = this.$.checkbox.checked;
 		this.$.checkbox.checked = !prevState;
 		if (document.getElementsByClassName('highlighted').length === 0) {
@@ -203,7 +203,7 @@ class ECI {
 		}
 	};
 
-	static getNextNode(node: CRM.Node): CRM.Node {
+	private static getNextNode(node: CRM.Node): CRM.Node {
 		if (node.children) {
 			return node.children[0];
 		}
@@ -218,7 +218,7 @@ class ECI {
 		return currentNodeSiblings[currentNodeIndex + 1];
 	};
 
-	static getPreviousNode(node: CRM.Node): CRM.Node {
+	private static getPreviousNode(node: CRM.Node): CRM.Node {
 		var path = Array.prototype.slice.apply(node.path);
 		var currentNodeSiblings = window.app.crm.lookup(path, true);
 		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
@@ -234,7 +234,7 @@ class ECI {
 		return possibleParent;
 	};
 
-	static getNodesOrder(this: EditCrmItem, reference: CRM.Node, other: CRM.Node): 'after'|'before'|'same' {
+	private static getNodesOrder(this: EditCrmItem, reference: CRM.Node, other: CRM.Node): 'after'|'before'|'same' {
 		var i;
 		var referencePath = reference.path;
 		var otherPath = other.path;
@@ -273,7 +273,7 @@ class ECI {
 		return 'same';
 	};
 
-	static generateShiftSelectionCallback(this: EditCrmItem, node: CRM.Node, wait: number): () => void {
+	private static generateShiftSelectionCallback(this: EditCrmItem, node: CRM.Node, wait: number): () => void {
 		return function() {
 			window.setTimeout(function() {
 				window.app.editCRM.getCRMElementFromPath(node.path).onSelect(true);
@@ -281,7 +281,7 @@ class ECI {
 		};
 	};
 
-	static selectFromXToThis(this: EditCrmItem) {
+	private static selectFromXToThis(this: EditCrmItem) {
 		var _this = this;
 
 		//Get the first highlighted node
@@ -352,7 +352,7 @@ class ECI {
 		this.isCode = this.isScript || this.isStylesheet;
 	};
 
-	static typeIndicatorMouseOver(this: EditCrmItem) {
+	private static typeIndicatorMouseOver(this: EditCrmItem) {
 		if (!this.shadow) {
 			var time = Date.now();
 			this.lastTypeSwitchMouseover = time;
@@ -377,11 +377,11 @@ class ECI {
 		}
 	};
 
-	static animateOut(this: EditCrmItem) {
+	private static animateOut(this: EditCrmItem) {
 		this.typeIndicatorAnimation && this.typeIndicatorAnimation.reverse();
 	};
 
-	static typeIndicatorMouseLeave(this: EditCrmItem) {
+	private static typeIndicatorMouseLeave(this: EditCrmItem) {
 		var _this = this;
 		this.lastTypeSwitchMouseover = null;
 		if (!this.shadow) {
@@ -399,13 +399,13 @@ class ECI {
 		}
 	};
 
-	static _getOnSelectFunction(_this: EditCrmItem, index: number) {
+	private static _getOnSelectFunction(_this: EditCrmItem, index: number) {
 		return function () {
 			window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRM.Node>)[index].path).onSelect(true);
 		};
 	};
 
-	static onSelect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
+	private static onSelect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 		this.classList.add('highlighted');
 		selectCheckbox && (this.$.checkbox.checked = true);
 		if (this.item.children && !dontSelectChildren) {
@@ -416,13 +416,13 @@ class ECI {
 		}
 	};
 
-	static _getOnDeselectFunction(_this: EditCrmItem, index: number) {
+	private static _getOnDeselectFunction(_this: EditCrmItem, index: number) {
 		return function () {
 			window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRM.Node>)[index].path).onDeselect(true);
 		};
 	};
 
-	static onDeselect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
+	private static onDeselect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 		this.classList.remove('highlighted');
 		selectCheckbox && (this.$.checkbox.checked = false);
 		if (this.item.children && !dontSelectChildren) {

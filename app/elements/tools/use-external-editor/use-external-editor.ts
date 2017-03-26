@@ -69,12 +69,12 @@ class UEE {
 	/**
 	 * The port at which the app is located
 	 */
-	static appPort: chrome.runtime.Port = null;
+	private static appPort: chrome.runtime.Port = null;
 
 	/**
 	 * The connection to the app and its status
 	 */
-	static connection: {
+	private static connection: {
 		status: string;
 		state?: string;
 		connected: boolean;
@@ -90,52 +90,47 @@ class UEE {
 	/**
 	 * The choose-script show animation for the main div
 	 */
-	static dialogMainDivAnimationShow: Animation = null;
+	private static dialogMainDivAnimationShow: Animation = null;
 
 	/**
 	 * The choose-script hide animation for the main div
 	 */
-	static dialogMainDivAnimationHide: Animation = null;
+	private static dialogMainDivAnimationHide: Animation = null;
 
 	/**
 	 * The choose-script show animation for the comparison div
 	 */
-	static dialogComparisonDivAnimationShow: Animation = null;
+	private static dialogComparisonDivAnimationShow: Animation = null;
 
 	/**
 	 * The choose-script hide animation for the comparison div
 	 */
-	static dialogComparisonDivAnimationHide: Animation = null;
+	private static dialogComparisonDivAnimationHide: Animation = null;
 
 	/**
 	 * The animation for expanding the dialog
 	 */
-	static dialogExpansionAnimation: Animation = null;
+	private static dialogExpansionAnimation: Animation = null;
 
 	/**
 	 * The animation for contracting the dialog
 	 */
-	static dialogContractionAniation: Animation = null;
-
-	/**
-	 * Whether the chooseScript animation is showing the comparison dialog
-	 */
-	static chooseScriptShowingComparison: boolean = true;
+	private static dialogContractionAniation: Animation = null;
 
 	/**
 	 * The CodeMirror editor used to merge your code
 	 */
-	static editor: MergeViewCodeMirrorInstance = null;
+	private static editor: MergeViewCodeMirrorInstance = null;
 
 	/**
 	 * The animation that fades in the editor
 	 */
-	static editorFadeInAnimation: Animation = null;
+	private static editorFadeInAnimation: Animation = null;
 
 	/**
 	 * The style properties of the dialog before expanding
 	 */
-	static dialogStyleProperties: ClientRect;
+	private static dialogStyleProperties: ClientRect;
 
 	/**
 	 * The node that is currently being edited
@@ -161,13 +156,13 @@ class UEE {
 	 *
 	 * @param {string} error - What went wrong
 	 */
-	static errorHandler(this: UseExternalEditor, error: string = 'Something went wrong') {
+	private static errorHandler(this: UseExternalEditor, error: string = 'Something went wrong') {
 		const toast = window.doc.externalEditorErrorToast;
 		toast.text = error;
 		toast.show();
 	};
 
-	static postMessage(this: UseExternalEditor, msg: any) {
+	private static postMessage(this: UseExternalEditor, msg: any) {
 		try {
 			this.appPort.postMessage(msg);
 		} catch (e) {
@@ -179,7 +174,7 @@ class UEE {
 	/**
 	 * Updates the local copy of the script to what the external file's value is (external->local)
 	 */
-	static updateFromExternal(this: UseExternalEditor, msg: UpdateFromAppMessage) {
+	private static updateFromExternal(this: UseExternalEditor, msg: UpdateFromAppMessage) {
 		if (this.connection.id === msg.connectionId) {
 			if (window.scriptEdit && window.scriptEdit.active) {
 				window.scriptEdit.editor.setValue(msg.code);
@@ -209,7 +204,7 @@ class UEE {
 		}
 	};
 
-	static createEditingOverlay(this: UseExternalEditor) {
+	private static createEditingOverlay(this: UseExternalEditor) {
 		var _this = this;
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
 		window.doc.externalEditorDialogTrigger.disabled = true;
@@ -372,7 +367,7 @@ class UEE {
 		});
 	};
 
-	static appMessageHandler(this: UseExternalEditor, msg: ConnectedEditorMessage) {
+	private static appMessageHandler(this: UseExternalEditor, msg: ConnectedEditorMessage) {
 		switch (msg.action) {
 			case 'chooseFile':
 				var _this = this;
@@ -405,7 +400,7 @@ class UEE {
 	/**
 	 * Takes actions based on what messages are received from the other extension
 	 */
-	static messageHandler(this: UseExternalEditor, msg: ExternalEditorMessage) {
+	private static messageHandler(this: UseExternalEditor, msg: ExternalEditorMessage) {
 		switch (msg.status) {
 			case 'connected':
 				this.appMessageHandler(msg);
@@ -422,7 +417,7 @@ class UEE {
 	/**
 	 * Tries to establish a connection to the app (if installed)
 	 */
-	static establishConnection(this: UseExternalEditor, retry: boolean = false) {
+	private static establishConnection(this: UseExternalEditor, retry: boolean = false) {
 		var _this = this;
 		if (!this.appPort) {
 			this.appPort = chrome.runtime.connect('hkjjmhkhhlmkflpihbikfpcojeofbjgn');
@@ -517,7 +512,7 @@ class UEE {
 		}
 	};
 
-	static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
+	private static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
 		//Animate the comparison in
 		var dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
 		var dialogStyle = window.doc.externalEditorChooseFile.style;
@@ -650,144 +645,6 @@ class UEE {
 				}
 			};
 		}
-	};
-
-	static findChildWithClass(this: UseExternalEditor, div: HTMLElement, classToFind: string): HTMLElement {
-		for (var i = 0; i < div.children.length; i++) {
-			if (div.children[i].classList.contains(classToFind)) {
-				return div.children[i] as HTMLElement;
-			}
-		}
-		return null;
-	};
-
-	static findChildWithTag(this: UseExternalEditor, div: HTMLElement, tag: string): HTMLElement {
-		for (var i = 0; i < div.children.length; i++) {
-			if (div.children[i].tagName.toLowerCase() === tag) {
-				return div.children[i] as HTMLElement;
-			}
-		}
-		return null;
-	};
-
-	static generateLineIndexTranslationArray(_this: UseExternalEditor, editor: CodeMirrorInstance & {
-			display: HTMLElement & {
-				lineDiv: HTMLElement;
-				wrapper: HTMLElement;
-				sizer: HTMLElement;
-			}
-		}): Array<number> {
-		var result = [];
-
-		var offset = 0;
-		var lineDivs = editor.display.lineDiv.children;
-		var lineWidget, seperator;
-		var lineHeight = _this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
-		for (var i = 0; i < lineDivs.length; i++) {
-			if ((lineWidget = _this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
-				(seperator = _this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
-				offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
-			}
-			result[i] = i + offset;
-		}
-
-		return result;
-	};
-
-	static findReverseLineTranslation(_this: UseExternalEditor, line: number, editor: CodeMirrorInstance & {
-			display: HTMLElement & {
-				lineDiv: HTMLElement;
-				wrapper: HTMLElement;
-				sizer: HTMLElement;
-			}
-		}) {
-		var i;
-		var offset = 0;
-		var lineDivs = editor.display.lineDiv.children;
-		var lineWidget, seperator;
-		var lineHeight = _this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
-		for (i = 0; i < lineDivs.length; i++) {
-			if ((lineWidget = _this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
-				(seperator = _this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
-				offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
-			}
-			if (i + offset >= line) {
-				return i;
-			}
-		}
-		return i;
-	};
-
-	static containEachother(this: UseExternalEditor, line1: string, line2: string): boolean {
-		return !!(line1.indexOf(line2) > -1 ? true : line2.indexOf(line1));
-	};
-
-	static generateIncrementFunction(this: UseExternalEditor, errors: Array<CursorPosition>) {
-		var len = errors.length;
-		return function(index: number) {
-			if (++index === len) {
-				index = 0;
-			}
-			return index;
-		};
-	};
-
-	static generateNextErrorFinder(this: UseExternalEditor, isLeftEditor: boolean, errors: Array<CursorPosition>) {
-		var i;
-		var _this = this;
-		var sideEditor: CodeMirrorInstance & {
-			display: HTMLElement & {
-				lineDiv: HTMLElement;
-				wrapper: HTMLElement;
-				sizer: HTMLElement;
-			}
-		} = null;
-		var mainEditor: CodeMirrorInstance & {
-			display: HTMLElement & {
-				lineDiv: HTMLElement;
-				wrapper: HTMLElement;
-				sizer: HTMLElement;
-			}
-		} = null;
-		var errorIndex = 0;
-		var sideEditorLineTranslationArray: Array<number>;
-		var incrementFunction = _this.generateIncrementFunction(errors);
-		return function () {
-			if (!sideEditor) {
-				mainEditor = window.externalEditor.editor.edit;
-				sideEditor = window.externalEditor.editor[(isLeftEditor ? 'left' : 'right')].orig;
-				sideEditorLineTranslationArray = _this.generateLineIndexTranslationArray(_this, sideEditor);
-			}
-			var error = null;
-
-			//For all errors, check if the main editor contains that line at the line it's supposed to contain it,
-			//if not, try a different error, else just show the toast
-			for (i = errorIndex, errorIndex = incrementFunction(errorIndex) ; i !== errorIndex; errorIndex = incrementFunction(errorIndex)) {
-				var sideEditorLine = sideEditorLineTranslationArray[errors[errorIndex].from.line];
-				var mainEditorLine = _this.findReverseLineTranslation(_this, sideEditorLine, mainEditor);
-				if (_this.containEachother(mainEditor.getLine(mainEditorLine), sideEditor.getLine(errors[errorIndex].from.line))) {
-					error = errors[errorIndex];
-					break;
-				}
-			}
-			errorIndex = incrementFunction(i);
-
-			if (error) {
-				//Scroll cursor to this line
-				$('.errorHighlight').each(function(this: HTMLElement) {
-					this.classList.remove('errorHighlight');
-				});
-				mainEditor.markText(error.from, error.to, {
-					className: 'errorHighlight',
-					clearOnEnter: true,
-					inclusiveLeft: false,
-					inclusiveRight: false
-				});
-			} else {
-				//No errors were found, show the toast
-				window.doc.noErrorsFound.show();
-			}
-		};
 	};
 
 	/**

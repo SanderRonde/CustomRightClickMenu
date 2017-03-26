@@ -75,13 +75,13 @@ type LogConsole = Polymer.El<'log-console', typeof LC & typeof logConsolePropert
 class LC {
 	static is: string = 'log-console';
 
-	static bgPage: Window;
+	private static bgPage: Window;
 
 	static properties: any = logConsoleProperties;
 
-	static _logListener: LogListenerObject;
+	private static _logListener: LogListenerObject;
 
-	static logLines: LogLineContainerInterface;
+	private static logLines: LogLineContainerInterface;
 
 	static observers = [
 		'_updateLog(selectedId, selectedTab, textfilter)'
@@ -125,12 +125,12 @@ class LC {
 		this.$.consoleInput.focus();
 	};
 
-	static _fixTextareaLines(this: LogConsole) {
+	private static _fixTextareaLines(this: LogConsole) {
 		this.$.consoleInput.setAttribute('rows', (this.$.consoleInput.value.split('\n').length || 1) + '');
 		this.$.linesCont.scrollTop = this.$.linesCont.scrollHeight;
 	};
 
-	static _executeCode(this: LogConsole, code: string) {
+	private static _executeCode(this: LogConsole, code: string) {
 		if (this.selectedTab !== 0 && this.selectedId !== 0) {
 			var selectedItems = this._getSelectedItems();
 			chrome.runtime.sendMessage({
@@ -179,7 +179,7 @@ class LC {
 		this.$.linesCont.scrollTop = this.$.linesCont.scrollHeight;
 	};
 
-	static _getSelectedItems(this: LogConsole): {
+	private static _getSelectedItems(this: LogConsole): {
 		id: {
 			id: string|number;
 			title: string;
@@ -203,7 +203,7 @@ class LC {
 		};
 	};
 
-	static _getSelectedValues(this: LogConsole) {
+	private static _getSelectedValues(this: LogConsole) {
 		var selectedItems = this._getSelectedItems();
 		return {
 			id: selectedItems.id.id,
@@ -257,11 +257,11 @@ class LC {
 			.replace(/"/g, '&quot;');
 	};
 
-	static _processLine(this: LogConsole, line: LogListenerLine) {
+	private static _processLine(this: LogConsole, line: LogListenerLine) {
 		this.logLines.add(line.data, line);
 	};
 
-	static _processEvalLine(this: LogConsole, line: LogListenerLine) {
+	private static _processEvalLine(this: LogConsole, line: LogListenerLine) {
 		if (line.val.type === 'error') {
 			line.isError = true;
 		}
@@ -275,7 +275,7 @@ class LC {
 		this.waitingForEval = false;
 	};
 
-	static _init(this: LogConsole, callback: () => void) {
+	private static _init(this: LogConsole, callback: () => void) {
 		var _this = this;
 		chrome.runtime.getBackgroundPage(function(bgPage) {
 			_this.bgPage = bgPage;
@@ -377,7 +377,7 @@ class LC {
 		this.logLines.clear();
 	};
 
-	static _copy(this: LogConsole, value: string) {
+	private static _copy(this: LogConsole, value: string) {
 		this.$.copySource.innerText = value;
 		var snipRange = document.createRange();
 		snipRange.selectNode(this.$.copySource);
@@ -403,7 +403,7 @@ class LC {
 		}) || '');	
 	};
 
-	static _contextCopyPath(this: LogConsole, noCopy: boolean = false): string|boolean {
+	private static _contextCopyPath(this: LogConsole, noCopy: boolean = false): string|boolean {
 		var path = [];
 		var source = this.$.contextMenu.source;
 		var childValue = source.props.value;
@@ -438,7 +438,7 @@ class LC {
 		return path.reverse().join('');
 	};
 
-	static _setPossibleOptions(this: LogConsole, source: ContextMenuSource) {
+	private static _setPossibleOptions(this: LogConsole, source: ContextMenuSource) {
 		var enableCopyAsJSON = false;
 		try {
 			JSON.stringify(source.props.value, function(key, value) {

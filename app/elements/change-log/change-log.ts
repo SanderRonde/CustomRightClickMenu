@@ -37,7 +37,7 @@ class CL {
 	 * Turns the object-based changelog into an array-based changelog 
 	 * for polymer to iterate through
 	 */
-	static makeChangelogArray(changelog: {
+	private static makeChangelogArray(changelog: {
 		[key: string]: Array<string>;
 	}): Array<{
 		version: string;
@@ -61,7 +61,7 @@ class CL {
 	/**
 	 * Turns a version string into 3 seperate version parts
 	 */
-	static splitVersion(versionString: string): Version {
+	private static splitVersion(versionString: string): Version {
 		var split = versionString.split('.');
 		return {
 			baseVersion: parseInt(split[0], 10),
@@ -74,7 +74,7 @@ class CL {
 	 * Compares two versions and returns true if A is lower,
 	 *		false if B is lower and 0 if they are equal
 	 */
-	static compareVersions(versionStringA: string, versionStringB: string): number {
+	private static compareVersions(versionStringA: string, versionStringB: string): number {
 		const aSplit = this.splitVersion(versionStringA);
 		const bSplit = this.splitVersion(versionStringB);
 
@@ -96,7 +96,7 @@ class CL {
 	/**
 	 * The function used in javascript's sort function
 	 */
-	static sortFunction(a: {
+	private static sortFunction(a: {
 		version: string;
 		changes: Array<string>;
 	}, b: {
@@ -109,7 +109,7 @@ class CL {
 	/**
 	 * Sorts the changelog from highest version first to lowest last
 	 */
-	static sortChangelog(changelog: Array<{
+	private static sortChangelog(changelog: Array<{
 		version: string;
 		changes: Array<string>;
 	}>): Array<{

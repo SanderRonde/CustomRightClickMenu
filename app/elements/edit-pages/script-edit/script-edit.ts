@@ -31,7 +31,7 @@ class SCE {
 		(this as NodeEditBehavior).clearTrigger(e);
 	};
 
-	static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
+	private static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
 		var oldValue = !element.checked;
 		var inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
 
@@ -65,7 +65,7 @@ class SCE {
 		}
 	};
 
-	static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
+	private static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
 		const __this = this;
 
 		//Use jquery to also get the pre-change value
@@ -80,15 +80,15 @@ class SCE {
 		});
 	};
 
-	static disableButtons(this: NodeEditBehaviorScriptInstance) {
+	private static disableButtons(this: NodeEditBehaviorScriptInstance) {
 		this.$.dropdownMenu.disable();
 	};
 
-	static enableButtons(this: NodeEditBehaviorScriptInstance) {
+	private static enableButtons(this: NodeEditBehaviorScriptInstance) {
 		this.$.dropdownMenu.enable();
 	};
 
-	static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
+	private static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
 		if (mode !== this.editorMode) {
 			if (mode === 'main') {
 				if (this.editorMode === 'background') {
@@ -162,7 +162,7 @@ class SCE {
 		element.classList.add('active');
 	};
 
-	static getExportData(this: NodeEditBehaviorScriptInstance) {
+	private static getExportData(this: NodeEditBehaviorScriptInstance) {
 		($('script-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
 		var settings = {};
 		this.save(null, settings);
@@ -188,7 +188,7 @@ class SCE {
 		}, this.fullscreen ? 500 : 0);
 	};
 
-	static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
+	private static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
 		return this.editor.metaTags.metaTags;
 	};
 
@@ -359,7 +359,7 @@ class SCE {
 	/**
 	 * Fills the editor-tools-ribbon on the left of the editor with elements
 	 */
-	static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
+	private static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
 		var _this = this;
 		(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
 		(window.app.$.paperGetPageProperties as PaperGetPageProperties).init(function (snippet: string) {
@@ -370,7 +370,7 @@ class SCE {
 	/**
 	 * Pops in the ribbons with an animation
 	 */
-	static popInRibbons(this: NodeEditBehaviorScriptInstance) {
+	private static popInRibbons(this: NodeEditBehaviorScriptInstance) {
 		//Introduce title at the top
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var titleRibbonSize;
@@ -440,28 +440,9 @@ class SCE {
 	};
 
 	/**
-	 * Pops in only the tools ribbon
-	 */
-	static popInToolsRibbon(this: NodeEditBehaviorScriptInstance) {
-		window.doc.editorToolsRibbonContainer.style.display = 'flex';
-		window.doc.editorToolsRibbonContainer.animate([
-			{
-				marginLeft: '-200px'
-			}, {
-				marginLeft: 0
-			}
-		], {
-			duration: 800,
-			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-		}).onfinish = function(this: Animation) {
-			this.effect.target.style.marginLeft = '0';
-		};
-	};
-
-	/**
 	 * Pops out the ribbons with an animation
 	 */
-	static popOutRibbons(this: NodeEditBehaviorScriptInstance) {
+	private static popOutRibbons(this: NodeEditBehaviorScriptInstance) {
 		var scriptTitle = window.app.$.editorCurrentScriptTitle;
 		var toolsRibbon = window.app.$.editorToolsRibbonContainer;
 
@@ -796,7 +777,7 @@ class SCE {
 		}
 	};
 
-	static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement & {
+	private static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement & {
 			lastValue: string;
 		}, binding: {
 			name: string;
@@ -919,7 +900,7 @@ class SCE {
 	/**
  	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
-	static fillEditorOptions(this: NodeEditBehaviorScriptInstance) {
+	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance) {
 		var settingsContainer = $('<div id="settingsContainer"></div>').appendTo(this.editorOptions);
 		$('<div id="editorSettingsTxt">Editor Settings</div>').appendTo(settingsContainer);
 
@@ -1061,7 +1042,7 @@ class SCE {
 	/**
 	 * Initializes the keybindings for the editor
 	 */
-	static initTernKeyBindings(this: NodeEditBehaviorScriptInstance) {
+	private static initTernKeyBindings(this: NodeEditBehaviorScriptInstance) {
 		var keySettings: {
 			[key: string]: (cm: CodeMirrorInstance) => void;
 		} = {};
@@ -1187,7 +1168,7 @@ class SCE {
 	/**
 	 * Loads the codeMirror editor
 	 */
-	static loadEditor(this: NodeEditBehaviorScriptInstance, container: HTMLElement, content: string = this.item.value.script,
+	private static loadEditor(this: NodeEditBehaviorScriptInstance, container: HTMLElement, content: string = this.item.value.script,
 			disable: boolean = false) {
 		var placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();

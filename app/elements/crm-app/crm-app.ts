@@ -198,7 +198,7 @@ class CA {
 	/**
 	 * The last-used unique ID
 	 */
-	static latestId: number = -1;
+	private static latestId: number = -1;
 
 	/**
 	 * The value of the storage.local
@@ -208,18 +208,18 @@ class CA {
 	/**
 	 * A copy of the storage.local to compare when calling upload
 	 */
-	static storageLocalCopy: CRM.StorageLocal;
+	private static storageLocalCopy: CRM.StorageLocal;
 
 	/**
 	 * A copy of the settings to compare when calling upload
 	 */
-	static settingsCopy: CRM.SettingsStorage;
+	private static settingsCopy: CRM.SettingsStorage;
 
 	/**
 	 * The nodes in an object where the key is the ID and the
 	 * value is the node
 	 */
-	static nodesById: {
+	private static nodesById: {
 		[key: number]: CRM.Node
 	} = {};
 
@@ -282,7 +282,7 @@ class CA {
 		return option.type === type;
 	}
 
-	static _generateCodeOptionsArray<T extends CRM.Options|string>(this: CrmApp, settings: T): Array<{
+	private static _generateCodeOptionsArray<T extends CRM.Options|string>(this: CrmApp, settings: T): Array<{
 		key: keyof T;
 		value: T[keyof T]
 	}> {
@@ -297,7 +297,7 @@ class CA {
 		});
 	}
 
-	static _getCodeSettingsFromDialog(this: CrmApp): CRM.Options {
+	private static _getCodeSettingsFromDialog(this: CrmApp): CRM.Options {
 		const obj: CRM.Options = {};
 		Array.prototype.slice.apply(this.querySelectorAll('.codeSettingSetting'))
 			.forEach((element: HTMLElement) => {
@@ -373,7 +373,7 @@ class CA {
 	/**
 	 * Inserts the value into given array
 	 */
-	static insertInto<T>(toAdd: T, target: Array<T>, position: number = null): Array<T> {
+	private static insertInto<T>(toAdd: T, target: Array<T>, position: number = null): Array<T> {
 		if (position) {
 			var temp1, i;
 			var temp2 = toAdd;
@@ -389,7 +389,7 @@ class CA {
 		return target;
 	};
 
-	static compareObj(this: CrmApp, firstObj: {
+	private static compareObj(this: CrmApp, firstObj: {
 							[key: string]: any;
 						}, secondObj: {
 							[key: string]: any;
@@ -470,7 +470,7 @@ class CA {
 		return true;
 	}
 
-	static treeForEach(this: CrmApp, node: CRM.Node, fn: (node: CRM.Node) => any) {
+	private static treeForEach(this: CrmApp, node: CRM.Node, fn: (node: CRM.Node) => any) {
 		fn(node);
 		if (node.children) {
 			for (var i = 0; i < node.children.length; i++) {
@@ -506,11 +506,11 @@ class CA {
 		selection.removeAllRanges();
 	};
 
-	static isVersionUpdateTabX(this: CrmApp, currentTab: number, desiredTab: number) {
+	private static isVersionUpdateTabX(this: CrmApp, currentTab: number, desiredTab: number) {
 		return currentTab === desiredTab;
 	};
 
-	static _toggleBugReportingTool(this: CrmApp) {
+	private static _toggleBugReportingTool(this: CrmApp) {
 		window.errorReportingTool.toggleVisibility();
 	};
 
@@ -704,7 +704,7 @@ class CA {
 		}
 	};
 
-	static findScriptsInSubtree(this: CrmApp, toFind: CRM.Node, container: Array<CRM.Node>) {
+	private static findScriptsInSubtree(this: CrmApp, toFind: CRM.Node, container: Array<CRM.Node>) {
 		if (toFind.type === 'script') {
 			container.push(toFind);
 		} else if (toFind.children) {
@@ -714,7 +714,7 @@ class CA {
 		}
 	};
 
-	static runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
+	private static runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
 		var _this = this;
 		if (dialogs[0]) {
 			var script = dialogs.splice(0, 1)[0];
@@ -771,7 +771,7 @@ class CA {
 		});
 	};
 
-	static addImportedNodes(this: CrmApp, nodesToAdd: Array<CRM.Node>): boolean {
+	private static addImportedNodes(this: CrmApp, nodesToAdd: Array<CRM.Node>): boolean {
 		var _this = this;
 		if (!nodesToAdd[0]) {
 			return false;
@@ -789,7 +789,7 @@ class CA {
 		return true;
 	};
 
-	static crmForEach(this: CrmApp, tree: Array<CRM.Node>, fn: (node: CRM.Node) => void): CRM.Tree {
+	private static crmForEach(this: CrmApp, tree: Array<CRM.Node>, fn: (node: CRM.Node) => void): CRM.Tree {
 		for (let i = 0; i < tree.length; i++) {
 			const node = tree[i];
 			if (node.type === 'menu' && node.children) {
@@ -899,7 +899,7 @@ class CA {
 		this.requestPermissions([], true);
 	};
 
-	static reverseString(this: CrmApp, string: string): string {
+	private static reverseString(this: CrmApp, string: string): string {
 		return string.split('').reverse().join('');
 	};
 
@@ -927,7 +927,7 @@ class CA {
 		return 'color: rgb(' + red + ', ' + green + ', 0);';
 	};
 
-	static switchToIcons(this: CrmApp, index: number) {
+	private static switchToIcons(this: CrmApp, index: number) {
 		var i;
 		var element;
 		var crmTypes = document.querySelectorAll('.crmType');
@@ -948,7 +948,7 @@ class CA {
 		this.fire('crmTypeChanged', {});
 	};
 
-	static iconSwitch(this: CrmApp, e: Polymer.ClickEvent, type: {
+	private static iconSwitch(this: CrmApp, e: Polymer.ClickEvent, type: {
 		x?: any;
 	}|number) {
 		var i;
@@ -1121,7 +1121,7 @@ class CA {
 		});
 	};
 
-	static areValuesDifferent(this: CrmApp, val1: Array<any>|Object, val2: Array<any>|Object): boolean {
+	private static areValuesDifferent(this: CrmApp, val1: Array<any>|Object, val2: Array<any>|Object): boolean {
 		//Array or object
 		var obj1ValIsArray = Array.isArray(val1);
 		var obj2ValIsArray = Array.isArray(val2);
@@ -1168,7 +1168,7 @@ class CA {
 		return false;
 	};
 
-	static getObjDifferences<T, S>(this: CrmApp, obj1: {
+	private static getObjDifferences<T, S>(this: CrmApp, obj1: {
 		[key: string]: T
 		[key: number]: T
 	}, obj2: {
@@ -1232,7 +1232,7 @@ class CA {
 		this.pageDemo.create();
 	};
 
-	static bindListeners(this: CrmApp) {
+	private static bindListeners(this: CrmApp) {
 		var urlInput = window.doc.addLibraryUrlInput;
 		var manualInput = window.doc.addLibraryManualInput;
 		window.doc.addLibraryUrlOption.addEventListener('change', function() {
@@ -1248,7 +1248,7 @@ class CA {
 		});
 	};
 
-	static restoreUnsavedInstances(this: CrmApp, editingObj: {
+	private static restoreUnsavedInstances(this: CrmApp, editingObj: {
 		id: number;
 		mode: string;
 		val: string;
@@ -1485,7 +1485,7 @@ class CA {
 	/**
 	 * Shows the user a dialog and asks them to allow/deny those permissions
 	 */
-	static requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
+	private static requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
 				force: boolean = false) {
 		var i;
 		var index;
@@ -1698,7 +1698,7 @@ class CA {
 		});
 	};
 
-	static orderNodesById(this: CrmApp, tree: CRM.Tree) {
+	private static orderNodesById(this: CrmApp, tree: CRM.Tree) {
 		for (var i = 0; i < tree.length; i++) {
 			var node = tree[i];
 			this.nodesById[node.id] = node;
@@ -1706,7 +1706,7 @@ class CA {
 		}
 	};
 
-	static cutData(this: CrmApp, data: any) {
+	private static cutData(this: CrmApp, data: any) {
 		var obj: {
 			[key: string]: string;
 		} & {
@@ -1726,7 +1726,7 @@ class CA {
 		return obj;
 	};
 
-	static uploadStorageSyncData(data: CRM.SettingsStorage, _this: CrmApp) {
+	private static uploadStorageSyncData(data: CRM.SettingsStorage, _this: CrmApp) {
 		var settingsJson = JSON.stringify(data);
 
 		//Using chrome.storage.sync
@@ -1757,8 +1757,8 @@ class CA {
 		}
 	};
 
-	static legacyScriptReplace = class LegacyScriptReplace {
-		static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
+	private static legacyScriptReplace = class LegacyScriptReplace {
+		private static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
 			switch (expression.type) {
 				case 'Identifier':
 					if (expression.name === 'localStorage') {
@@ -1856,7 +1856,7 @@ class CA {
 			}
 			return false;
 		}
-		static getLineSeperators(lines: Array<string>): Array<{
+		private static getLineSeperators(lines: Array<string>): Array<{
 			start: number;
 			end: number;
 		}> {
@@ -1870,7 +1870,7 @@ class CA {
 			}
 			return lineSeperators;
 		}
-		static replaceLocalStorageCalls(lines: Array<string>): string {
+		private static replaceLocalStorageCalls(lines: Array<string>): string {
 			//Analyze the file
 			var file = new window.TernFile('[doc]');
 			file.text = lines.join('\n');
@@ -1907,19 +1907,6 @@ class CA {
 
 			return persistentData.script;
 		}
-		static removePositionDuplicates(arr: Array<TransferOnErrorError>):
-			Array<TransferOnErrorError> {
-				var jsonArr: Array<string> = [];
-				arr.forEach((item, index) => {
-					jsonArr[index] = JSON.stringify(item);
-				});
-				jsonArr = jsonArr.filter((item, pos) => {
-					return jsonArr.indexOf(item) === pos;
-				});
-				return jsonArr.map((item) => {
-					return JSON.parse(item);
-				});
-			}
 		static convertScriptFromLegacy(script: string): string {
 			//Remove execute locally
 			const lineIndex = script.indexOf('/*execute locally*/');
@@ -1942,7 +1929,7 @@ class CA {
 		}
 	};
 
-	static parseOldCRMNode(this: CrmApp, string: string, openInNewTab: boolean): CRM.Node {
+	private static parseOldCRMNode(this: CrmApp, string: string, openInNewTab: boolean): CRM.Node {
 		var node: CRM.Node = {} as any;
 		var oldNodeSplit = string.split('%123');
 		var name = oldNodeSplit[0];
@@ -2019,7 +2006,7 @@ class CA {
 		return node;
 	};
 
-	static assignParents(this: CrmApp, parent: CRM.Tree, nodes: Array<CRM.Node>,
+	private static assignParents(this: CrmApp, parent: CRM.Tree, nodes: Array<CRM.Node>,
 			index: {
 				index: number;
 			}, amount: number) {
@@ -2053,7 +2040,7 @@ class CA {
 		}
 	}
 
-	static transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
+	private static transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
 		getItem(index: string|number): any;
 	} = localStorage): CRM.Tree {
 		this._backupLocalStorage();
@@ -2074,7 +2061,7 @@ class CA {
 		return crm;
 	};
 
-	static initCheckboxes(this: CrmApp, defaultLocalStorage: CRM.StorageLocal) {
+	private static initCheckboxes(this: CrmApp, defaultLocalStorage: CRM.StorageLocal) {
 		var _this = this;
 		if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
 			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue && 
@@ -2089,7 +2076,7 @@ class CA {
 		}
 	};
 
-	static handleDataTransfer(_this: CrmApp) {
+	private static handleDataTransfer(_this: CrmApp) {
 		localStorage.setItem('transferred', 'true');
 
 		if (!window.CodeMirror.TernServer) {
@@ -2187,7 +2174,7 @@ class CA {
 		}, 2500);
 	};
 
-	static handleFirstTime(_this: CrmApp) {
+	private static handleFirstTime(_this: CrmApp) {
 		//Sync storage
 		var defaultSyncStorage: CRM.SettingsStorage = {
 			editor: {
@@ -2281,11 +2268,11 @@ class CA {
 		localStorage.setItem('transferred', 'true');
 	};
 
-	static upgradeVersion(this: CrmApp, oldVersion: string, newVersion: string) {
+	private static upgradeVersion(this: CrmApp, oldVersion: string, newVersion: string) {
 		//No changes yet
 	};
 
-	static checkFirstTime(this: CrmApp, storageLocal: CRM.StorageLocal) {
+	private static checkFirstTime(this: CrmApp, storageLocal: CRM.StorageLocal) {
 		var _this = this;
 		var currentVersion = chrome.runtime.getManifest().version;
 		if (storageLocal.lastUpdatedAt === currentVersion) {
@@ -2317,7 +2304,7 @@ class CA {
 		}
 	};
 
-	static buildNodePaths(this: CrmApp, tree: CRM.Tree, currentPath: Array<number>) {
+	private static buildNodePaths(this: CrmApp, tree: CRM.Tree, currentPath: Array<number>) {
 		for (var i = 0; i < tree.length; i++) {
 			var childPath = currentPath.concat([i]);
 			const node = tree[i];
@@ -2328,7 +2315,7 @@ class CA {
 		}
 	};
 
-	static animateLoadingBar(this: CrmApp, settings: {
+	private static animateLoadingBar(this: CrmApp, settings: {
 		lastReachedProgress: number;
 		max: number;
 		toReach: number;
@@ -2374,7 +2361,7 @@ class CA {
 		}
 	};
 
-	static setupLoadingBar(this: CrmApp, fn: (toRun: (callback: () => void) => void) => void) {
+	private static setupLoadingBar(this: CrmApp, fn: (toRun: (callback: () => void) => void) => void) {
 		var callback: () => void = null;
 		fn(function(cb) {
 			callback = cb;	
@@ -2449,7 +2436,7 @@ class CA {
 		this.$.scriptUpdatesToast.hide();
 	};
 
-	static getUpdatedScriptString(this: CrmApp, updatedScript: {
+	private static getUpdatedScriptString(this: CrmApp, updatedScript: {
 		name: string;
 		oldVersion: string;
 		newVersion: string;
@@ -2471,7 +2458,7 @@ class CA {
 		return this.templates.getPermissionDescription;
 	};
 
-	static applyAddedPermissions(this: CrmApp) {
+	private static applyAddedPermissions(this: CrmApp) {
 		var _this = this;
 		var panels = Array.prototype.slice.apply(
 			window.doc.addedPermissionsTabContainer
@@ -2534,7 +2521,7 @@ class CA {
 			'1.0';
 	};
 
-	static setupStorages(this: CrmApp, resolve: (callback: () => void) => void) {
+	private static setupStorages(this: CrmApp, resolve: (callback: () => void) => void) {
 		var _this = this;
 		chrome.storage.local.get(function(storageLocal: CRM.StorageLocal & {
 			nodeStorage: any;
@@ -2777,7 +2764,7 @@ class CA {
 		this.upload(true);
 	};
 
-	static getLocalStorageKey(this: CrmApp, key: string): any {
+	private static getLocalStorageKey(this: CrmApp, key: string): any {
 		var data = localStorage.getItem(key);
 		if (data === undefined || data === null) {
 			return false;
@@ -3247,10 +3234,9 @@ class CA {
 	 * Functions related to the on-page example of your current CRM
 	 */
 	static pageDemo = class CRMAppPageDemo {		
-		static stylesheetId: number = 0;
-		static usedStylesheetIds: Array<number> = [];
+		private static usedStylesheetIds: Array<number> = [];
 
-		static handlers = class CRMAppPageDemoHandlers {
+		private static handlers = class CRMAppPageDemoHandlers {
 			/**
 			 * Makes an onclick handler for links
 			 */
@@ -3293,10 +3279,6 @@ class CA {
 						alert(`This would run the stylesheet ${stylesheet}`);
 					};
 				};
-
-				static parent(): typeof window.app.pageDemo.handlers {
-					return window.app.pageDemo.handlers;
-				}
 			};
 
 			/**
@@ -3309,12 +3291,12 @@ class CA {
 				};
 			};
 
-			static parent(): typeof CRMAppPageDemo {
+			private static parent(): typeof CRMAppPageDemo {
 				return window.app.pageDemo;
 			}
 		};
 
-		static node = class CRMAppPageDemoNode {
+		private static node = class CRMAppPageDemoNode {
 			/**
 			 * Adds a link to the CRM
 			 */
@@ -3416,7 +3398,7 @@ class CA {
 				return item;
 			};
 
-			static parent(): typeof CRMAppPageDemo {
+			private static parent(): typeof CRMAppPageDemo {
 				return window.app.pageDemo;
 			}
 		};
@@ -3424,7 +3406,7 @@ class CA {
 		/**
 		 * Returns whether the node is visible or not (1 if it's visible)
 		 */
-		static isNodeVisible(node: CRM.Node, showContentType: number): number {
+		private static isNodeVisible(node: CRM.Node, showContentType: number): number {
 			var i;
 			var length;
 			if (node.children && node.children.length > 0) {
@@ -3451,7 +3433,7 @@ class CA {
 		 *
 		 * @param {Number} crmType - The type of the content the menu will be shown on
 		 */
-		static buildForCrmType(crmType: number): {
+		private static buildForCrmType(crmType: number): {
 			[key: number]: JQContextMenuItem
 		} {
 			var _this = this;
@@ -3495,7 +3477,7 @@ class CA {
 			return types[crmType];
 		};
 
-		static getChildrenAmount(object: Object): number {
+		private static getChildrenAmount(object: Object): number {
 			var children = 0;
 			for (var key in object) {
 				if (object.hasOwnProperty(key)) {
@@ -3505,7 +3487,7 @@ class CA {
 			return children;
 		};
 
-		static bindContextMenu(crmType: number) {
+		private static bindContextMenu(crmType: number) {
 			var items;
 			var _this = this;
 			if (crmType === 0) {
@@ -3528,9 +3510,7 @@ class CA {
 			}
 		};
 
-		static contextMenuItems: Array<number> =  [];
-
-		static removeContextMenus() {
+		private static removeContextMenus() {
 			var el;
 			this.usedStylesheetIds.forEach(function(id) {
 				el = document.getElementById('stylesheet' + id);
@@ -3540,7 +3520,7 @@ class CA {
 			($ as JQueryContextMenu).contextMenu('destroy');
 		};
 
-		static loadContextMenus() {
+		private static loadContextMenus() {
 			var _this = this;
 			var toLoad = 0;
 			this.removeContextMenus();
@@ -3582,7 +3562,7 @@ class CA {
 				}
 		};
 
-		static parent(): CrmApp {
+		private static parent(): CrmApp {
 			return window.app;
 		}
 	};
@@ -3591,7 +3571,7 @@ class CA {
 	 * CRM functions.
 	 */
 	static crm = class CRMAppCRMFunctions {
-		static _getEvalPath(path: Array<number>): string {
+		private static _getEvalPath(path: Array<number>): string {
 			return 'window.app.settings.crm[' + (path.join('].children[')) + ']';
 		};
 
@@ -3617,10 +3597,10 @@ class CA {
 			return (returnArray ? result.children : result);
 		};
 
-		static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void;
-		static _lookupId(id: number, returnArray: false, node: CRM.Node): CRM.Node;
-		static _lookupId(id: number, returnArray: true, node: CRM.Node): Array<CRM.Node>;
-		static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void {
+		private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void;
+		private static _lookupId(id: number, returnArray: false, node: CRM.Node): CRM.Node;
+		private static _lookupId(id: number, returnArray: true, node: CRM.Node): Array<CRM.Node>;
+		private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void {
 			var nodeChildren = node.children;
 			if (nodeChildren) {
 				var el;
@@ -3701,16 +3681,7 @@ class CA {
 			});
 		};
 
-		static remove(index: Array<number>) {
-			this.lookup(index, true).splice(index[index.length - 1], 1);
-			window.app.upload();
-			window.app.editCRM.build({
-				setItems: window.app.editCRM.setMenus,
-				superquick: true
-			});
-		};
-
-		static parent(): CrmApp {
+		private static parent(): CrmApp {
 			return window.app;
 		}
 	};

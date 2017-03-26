@@ -23,11 +23,11 @@ class EH {
 
 	static properties = echoHtmlProperties;
 
-	static stampHtml(this: EchoHtml, html: string) {
+	private static stampHtml(this: EchoHtml, html: string) {
 		this.innerHTML = html;
 	};
 
-	static makeLinksFromHtml(html: string): string {
+	private static makeLinksFromHtml(html: string): string {
 		html = html && html.replace(/(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/g, '<a target="_blank" href="$1" title="">$1</a>');
 		return html;
 	};

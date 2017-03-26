@@ -29,8 +29,8 @@ class PDB {
 	static properties = paperDropdownBehaviorProperties;
 
 	/**
-	* The start time for the current animation
-	*/
+	 * The start time for the current animation
+	 */
 	static _startTime: number = null;
 
 	/**
@@ -49,8 +49,8 @@ class PDB {
 	static _dropdownSelectedCont: HTMLElement = null;
 
 	/**
-	* The listeners for this element
-	*/
+	 * The listeners for this element
+	 */
 	static _listeners: Array<{
 		listener: PaperDropdownListener;
 		id: string;
@@ -58,13 +58,13 @@ class PDB {
 	}> = [];
 
 	/**
-	* Whether the menu is expanded
-	*/
+	 * Whether the menu is expanded
+	 */
 	static _expanded: boolean = false;
 
 	/**
-	* Whether the menu should have an indent from the left part of the screen
-	*/
+	 * Whether the menu should have an indent from the left part of the screen
+	 */
 	static indent: boolean = true;
 
 	/**

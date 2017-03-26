@@ -73,67 +73,67 @@ class CEP {
 	/**
 	 * Whether the item is a link
 	 */
-	static isLink: boolean = false;
+	private static isLink: boolean = false;
 
 	/**
 	 * Whether the item is a script
 	 */
-	static isScript: boolean = false;
+	private static isScript: boolean = false;
 
 	/**
 	 * Whether the item is a divider
 	 */
-	static isDivider: boolean = false;
+	private static isDivider: boolean = false;
 
 	/**
 	 * Whether the item is a menu
 	 */
-	static isMenu: boolean = false;
+	private static isMenu: boolean = false;
 
 	/**
 	 * Whether the item is a stylesheet
 	 */
-	static isStylesheet: boolean = false;
+	private static isStylesheet: boolean = false;
 
 	/**
 	 * The link item
 	 */
-	static linkItem: CRM.LinkNode = {} as any;
+	private static linkItem: CRM.LinkNode = {} as any;
 
 	/**
 	 * The script item
 	 */
-	static scriptItem: CRM.ScriptNode = {} as any;
+	private static scriptItem: CRM.ScriptNode = {} as any;
 
 	/**
 	 * The divider item
 	 */
-	static dividerItem: CRM.DividerNode = {} as any;
+	private static dividerItem: CRM.DividerNode = {} as any;
 
 	/**
 	 * The menu item
 	 */
-	static menuItem: CRM.MenuNode = {} as any;
+	private static menuItem: CRM.MenuNode = {} as any;
 
 	/**
 	 * The stylesheet item
 	 */
-	static stylesheetItem: CRM.StylesheetNode = {} as any;
+	private static stylesheetItem: CRM.StylesheetNode = {} as any;
 
 	/**
      * Whether the page is opened
      */
-	static opened: boolean =  false;
+	private static opened: boolean =  false;
 
 	/**
      * The overlay element associated with the current dialog
      */
-	static $overlayEl: JQuery;
+	private static $overlayEl: JQuery;
 
 	/**
 	 * The overlayEl animation
 	 */
-	static overlayAnimation: Animation = null;
+	private static overlayAnimation: Animation = null;
 
 	static properties = crmEditPageProperties;
 
@@ -141,7 +141,7 @@ class CEP {
 		"neon-animation-finish": '_onNeonAnimationFinish'
 	};
 
-	static isLocal(source: {
+	private static isLocal(source: {
 		updateURL?: string;
 		downloadURL?: string;
 		url?: string;
@@ -153,7 +153,7 @@ class CEP {
 		return source === 'local';
 	};
 
-	static nodeInfoExists(nodeInfo: CRM.NodeInfo): boolean {
+	private static nodeInfoExists(nodeInfo: CRM.NodeInfo): boolean {
 		return !!nodeInfo;
 	};
 
@@ -162,7 +162,7 @@ class CEP {
 			(this.isLocal(nodeInfo.source) && !this.hasInstallDate(nodeInfo));
 	};
 
-	static hasInstallDate(nodeInfo: CRM.NodeInfo): boolean {
+	private static hasInstallDate(nodeInfo: CRM.NodeInfo): boolean {
 		return this.nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
 	};
 
@@ -179,12 +179,12 @@ class CEP {
 		}
 	};
 
-	static unassignItems(this: CrmEditPage) {
+	private static unassignItems(this: CrmEditPage) {
 		this.isLink = this.isScript = this.isStylesheet = this.isMenu = this.isDivider = false;
 		this.linkItem = this.scriptItem = this.stylesheetItem = this.menuItem = this.dividerItem = {} as any;
 	};
 
-	static animateIn(this: CrmEditPage) {
+	private static animateIn(this: CrmEditPage) {
 		this.$overlayEl.css('display', 'block');
 		(this.overlayAnimation && this.overlayAnimation.play()) || (this.overlayAnimation = this.$overlayEl[0].animate([
 			{
@@ -214,7 +214,7 @@ class CEP {
 		document.body.parentElement.style.overflow = 'auto';
 	};
 
-	static updateNodeInfo<T>(this: CrmEditPage, obj: T, path: string = 'nodeInfo') {
+	private static updateNodeInfo<T>(this: CrmEditPage, obj: T, path: string = 'nodeInfo') {
 		for (var key in obj) {
 			if (obj.hasOwnProperty(key)) {
 				if (typeof obj[key as keyof T] === 'object') {

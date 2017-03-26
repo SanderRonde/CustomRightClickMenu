@@ -182,7 +182,7 @@ class EC {
 	/**
 	 * The currently used timeout for settings the crm
 	 */
-	static currentTimeout: number = null;
+	private static currentTimeout: number = null;
 
 	/**
 	 * The currently used set menus
@@ -197,17 +197,17 @@ class EC {
 	/**
 	 * A list of all the column elements
 	 */
-	static columns: Array<CRMColumnElement> = [];
+	private static columns: Array<CRMColumnElement> = [];
 
 	/**
 	 * The menus that are set to be shown in the crm
 	 */
-	static setItems: Array<number>;
+	private static setItems: Array<number>;
 
 	/**
 	 * The sortable object
 	 */
-	static sortables: Array<Sortable.Instance> = [];
+	private static sortables: Array<Sortable.Instance> = [];
 
 	static properties = editCrmProperties;
 
@@ -230,7 +230,7 @@ class EC {
 	/**
 	 * Gets the columns in this crm-edit element
 	 */
-	static getColumns(this: EditCrm): Array<CRMColumnElement> {
+	private static getColumns(this: EditCrm): Array<CRMColumnElement> {
 		//Check if the nodes still exist 
 		if (this.columns && document.contains(this.columns[0])) {
 			return this.columns;
@@ -251,7 +251,7 @@ class EC {
 	 *
 	 * @return The last menu on the given list.
 	 */
-	static getLastMenu(this: EditCrm, list: Array<CRM.Node>, hidden: {
+	private static getLastMenu(this: EditCrm, list: Array<CRM.Node>, hidden: {
 		[nodeId: number]: boolean
 	}, exclude: number) {
 		var lastMenu = -1;
@@ -279,7 +279,7 @@ class EC {
 	/**
 	 * Returns whether the node is visible or not (1 if it's visible)
 	 */
-	static isNodeVisible(this: EditCrm, result: {
+	private static isNodeVisible(this: EditCrm, result: {
 		[nodeId: number]: boolean;
 	}, node: CRM.Node, showContentType: number): 0|1 {
 		var length;
@@ -296,7 +296,7 @@ class EC {
 		return 1;
 	};
 
-	static getIndent(this: EditCrm, data: Array<CRM.Node>, lastMenu: number, hiddenNodes: {
+	private static getIndent(this: EditCrm, data: Array<CRM.Node>, lastMenu: number, hiddenNodes: {
 		[nodeId: number]: boolean;
 	}): number {
 		var i;
@@ -318,7 +318,7 @@ class EC {
 	 *
 	 * @return the CRM edit object
 	 */
-	static buildCRMEditObj(this: EditCrm, setMenus: Array<number>, unsetMenus: Array<number>): {
+	private static buildCRMEditObj(this: EditCrm, setMenus: Array<number>, unsetMenus: Array<number>): {
 		crm: CRMBuilder;
 		setMenus: Array<number>;
 	} {
@@ -426,7 +426,7 @@ class EC {
 		};
 	};
 
-	static setColumnContOffset(column: HTMLElement & {
+	private static setColumnContOffset(column: HTMLElement & {
 		offset: number;
 	}, offset: number, force: boolean = false) {
 		if (column.offset === undefined) {
@@ -441,7 +441,7 @@ class EC {
 		column.style.transform = `translateY(${column.offset}px)`;
 	}
 
-	static moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
+	private static moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
 		const topLevelColumns = window.app.editCRM.querySelectorAll('.CRMEditColumnCont');
 		for (let i = startColumn.index + 1; i < topLevelColumns.length; i++) {
 			this.setColumnContOffset(topLevelColumns[i] as HTMLElement & {
@@ -450,7 +450,7 @@ class EC {
 		}
 	}
 
-	static createSorter(this: EditCrm) {
+	private static createSorter(this: EditCrm) {
 		this.sortables = this.sortables.filter((sortable) => {
 			sortable.destroy();
 			return false;
@@ -677,7 +677,7 @@ class EC {
 		}
 	};
 
-	static addItem(this: EditCrm, path: Array<number>) {
+	private static addItem(this: EditCrm, path: Array<number>) {
 		var newItem = window.app.templates.getDefaultLinkNode({
 			id: window.app.generateItemId()
 		});
@@ -691,7 +691,7 @@ class EC {
 		window.app.upload();
 	};
 
-	static getSelected(this: EditCrm): Array<number> {
+	private static getSelected(this: EditCrm): Array<number> {
 		var selected = [];
 		var editCrmItems = document.getElementsByTagName('edit-crm-item');
 		var i;
@@ -725,7 +725,7 @@ class EC {
 		return newNode as CRM.SafeNode;
 	};
 
-	static extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: Array<number>, results: Array<CRM.Node>) {
+	private static extractUniqueChildren(this: EditCrm, node: CRM.Node, toExportIds: Array<number>, results: Array<CRM.Node>) {
 		if (toExportIds.indexOf(node.id) > -1) {
 			results.push(node);
 		} else {
@@ -735,21 +735,21 @@ class EC {
 		}
 	};
 
-	static changeAuthor(this: EditCrm, node: CRM.Node|CRM.SafeNode, authorName: string) {
+	private static changeAuthor(this: EditCrm, node: CRM.Node|CRM.SafeNode, authorName: string) {
 		node.nodeInfo.source.author = authorName;
 		for (var i = 0; node.children && i < node.children.length; i++) {
 			this.changeAuthor(node.children[i], authorName);
 		}
 	};
 
-	static crmExportNameChange(this: EditCrm, node: CRM.Node, author: string): string {
+	private static crmExportNameChange(this: EditCrm, node: CRM.Node, author: string): string {
 		if (author) {
 			node.nodeInfo && node.nodeInfo.source && (node.nodeInfo.source.author = author);
 		}
 		return JSON.stringify(node);
 	};
 
-	static getMetaIndexes(this: EditCrm, script: string): {
+	private static getMetaIndexes(this: EditCrm, script: string): {
 		start: number;
 		end: number;
 	} {
@@ -772,7 +772,7 @@ class EC {
 		};
 	};
 
-	static getMetaLines(this: EditCrm, script: string): Array<string> {
+	private static getMetaLines(this: EditCrm, script: string): Array<string> {
 		var metaIndexes = this.getMetaIndexes(script);
 		if (metaIndexes.start === -1) {
 			return null;
@@ -785,7 +785,7 @@ class EC {
 		return metaLines;
 	};
 
-	static getMetaTags(this: EditCrm, script: string): {
+	private static getMetaTags(this: EditCrm, script: string): {
 		[key: string]: Array<string|number>;
 	} {
 		var metaLines = this.getMetaLines(script);
@@ -804,7 +804,7 @@ class EC {
 		return metaTags;
 	};
 
-	static setMetaTagIfSet<K extends keyof U, U>(this: EditCrm, metaTags: CRM.MetaTags, metaTagKey: string, nodeKey: K, node: U) {
+	private static setMetaTagIfSet<K extends keyof U, U>(this: EditCrm, metaTags: CRM.MetaTags, metaTagKey: string, nodeKey: K, node: U) {
 		if (node && node[nodeKey]) {
 			if (Array.isArray(node[nodeKey])) {
 				metaTags[metaTagKey] = node[nodeKey] as any;
@@ -814,7 +814,7 @@ class EC {
 		}
 	};
 
-	static getUserscriptString(this: EditCrm, node: CRM.ScriptNode|CRM.StylesheetNode, author: string): string {
+	private static getUserscriptString(this: EditCrm, node: CRM.ScriptNode|CRM.StylesheetNode, author: string): string {
 		var i;
 		var code = (node.type === 'script' ? node.value.script : node.value.stylesheet);
 		var codeSplit = code.split('\n');
@@ -892,7 +892,7 @@ ${codeSplit.join('\n')}`;
 		return newScript;
 	};
 
-	static generateDocumentRule(this: EditCrm, node: CRM.StylesheetNode): string {
+	private static generateDocumentRule(this: EditCrm, node: CRM.StylesheetNode): string {
 		var rules = node.triggers.map(function(trigger) {
 			if (trigger.url.indexOf('*') === -1) {
 				return 'url(' + trigger + ')';
@@ -940,7 +940,7 @@ ${codeSplit.join('\n')}`;
 			'}';
 	};
 
-	static getExportString(this: EditCrm, node: CRM.Node, type: string, author: string) {
+	private static getExportString(this: EditCrm, node: CRM.Node, type: string, author: string) {
 		switch (type) {
 			case 'Userscript':
 				return this.getUserscriptString(node as CRM.ScriptNode, author);
@@ -984,7 +984,7 @@ ${codeSplit.join('\n')}`;
 		}, 150);
 	};
 
-	static exportGivenNodes(this: EditCrm, exports: Array<CRM.Node>) {
+	private static exportGivenNodes(this: EditCrm, exports: Array<CRM.Node>) {
 		var _this = this;
 
 		var safeExports: Array<CRM.SafeNode> = [];
@@ -1034,7 +1034,7 @@ ${codeSplit.join('\n')}`;
 		}
 	};
 
-	static exportGivenNodeIDs(this: EditCrm, toExport: Array<number>) {
+	private static exportGivenNodeIDs(this: EditCrm, toExport: Array<number>) {
 		var exports: Array<CRM.Node> = [];
 		for (var i = 0; i < window.app.settings.crm.length; i++) {
 			this.extractUniqueChildren(window.app.settings.crm[i], toExport, exports);
@@ -1048,7 +1048,7 @@ ${codeSplit.join('\n')}`;
 		this.exportGivenNodeIDs(toExport);
 	};
 
-	static cancelSelecting(this: EditCrm) {
+	private static cancelSelecting(this: EditCrm) {
 		var _this = this;
 		var editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
@@ -1129,7 +1129,7 @@ ${codeSplit.join('\n')}`;
 		return null;
 	};
 
-	static _typeChanged(this: EditCrm, quick: boolean = false) {
+	private static _typeChanged(this: EditCrm, quick: boolean = false) {
 		for (var i = 0; i < 6; i++) {
 			window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
 		}
