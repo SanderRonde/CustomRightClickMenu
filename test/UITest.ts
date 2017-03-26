@@ -70,6 +70,7 @@ interface AppChrome extends Chrome {
 
 interface AppWindow extends Window {
 	app: any;
+	logs: Array<any>;
 	lastError: any|void;
 	chrome: AppChrome;
 	dummyContainer: HTMLDivElement;
