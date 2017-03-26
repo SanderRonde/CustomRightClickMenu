@@ -11109,29 +11109,5 @@ if (screen.width == "1440") {
 	$("#text9").css("font-size", "140%");
 }
 
-
-document.getElementById('transferSettings').addEventListener('click', function () {
-	document.getElementById('betaAnnouncementDialog').classList.add('transferring');
-});
-
-document.getElementById('importSettings').addEventListener('click', function() {
-	var data = document.getElementById('importBox').value;
-	importData(function() {
-		document.getElementById('betaAnnouncementDialog').classList.add('completed');
-		window.setTimeout(function() {
-			window.location.reload();
-		}, 1000);
-	}, data);
-})
-
-var isBetaURL = location.href.indexOf('beta') > -1;
-if (!localStorage.getItem('noBetaAnnouncement') || isBetaURL) {
-	window.setTimeout(function() {
-		document.getElementById('betaAnnouncementDialog').open();
-		localStorage.setItem('noBetaAnnouncement', true);
-	}, 1000);
-}
-
-
 //Send a message stating that this script is done loading
 chrome.runtime.sendMessage({ loading: "done" });
