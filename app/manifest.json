@@ -38,7 +38,7 @@
 	],
 
 	"web_accessible_resources": [
-		"js/jquery-2.0.3.min.js",
+		"js/jquery-2.0.3.js",
 		"js/crmapi.js",
 		"html/install.html",
 		"html/logging.html"

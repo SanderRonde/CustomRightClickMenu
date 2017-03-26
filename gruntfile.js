@@ -272,7 +272,7 @@ module.exports = function(grunt) {
 						],
 						dest: 'build/'
 					}, //Elements
-					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.min.js'], dest: 'build/' }, //JS libs
+					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.js'], dest: 'build/' }, //JS libs
 					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
 				]
 			},

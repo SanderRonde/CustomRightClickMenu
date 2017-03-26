@@ -1,6 +1,6 @@
 ﻿/// <reference path="chrome-api-vsdoc.js" />
 /// <reference path="../../app/js/libraries/codemirror/codemirror.js"/>
-/// <reference path="../../app/js/libraries/jquery/jquery-2.0.3.min.js"/>
+/// <reference path="../../app/js/libraries/jquery/jquery-2.0.3.js"/>
 /// <reference path="jquery-2.1.4.min.map"/>
 /// <reference path="../../app/js/libraries/jquery/jquery.contextMenu.js" />
 /// <reference path="../../app/elements/crm-edit-page/crm-edit-page.js" />
