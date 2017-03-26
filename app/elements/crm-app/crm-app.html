@@ -379,6 +379,11 @@
 				<paper-dialog id="codeSettingsDialog" no-cancel-on-outside-click no-cancel-on-esc-key data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<h2 id="codeSettingsTitle"></h2>
 					<div id="codeSettingsOptions">
+						<template is="dom-if" id="codeSettingsNoItems">
+							<div>Looks like there's no options. Go to the options tab in the editor to make them.
+								Also be sure to check whether no errors show up, if they do this won't work.
+							</div>
+						</template>
 						<template is="dom-repeat" id="codeSettingsRepeat" as="codeSetting">
 							<div class="codeSettingSetting" data-key$="[[codeSetting.key]]" data-type$="[[codeSetting.value.type]]">
 								<template is="dom-if" if="{{_isOfType(codeSetting.value, 'number')}}">

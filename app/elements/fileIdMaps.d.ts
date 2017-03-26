@@ -67,6 +67,7 @@ interface IDMap
 		"codeSettingsDialog": CodeSettingsDialog,
 		"codeSettingsTitle": HTMLHeadingElement,
 		"codeSettingsOptions": HTMLDivElement,
+		"codeSettingsNoItems": HTMLDomIfElement,
 		"codeSettingsRepeat": HTMLDomRepeatElement,
 		"tabRepeat": HTMLDomRepeatElement,
 		"restoreChangesDialog": HTMLPaperDialogElement,
@@ -340,6 +341,11 @@ interface IDMap
 		"showOnContentContainer": HTMLDivElement,
 		"showOnContentIconsContainer": HTMLDivElement,
 		"codeEditorCont": HTMLDivElement,
+		"mainEditorTab": HTMLDivElement,
+		"stylesheetOptionsTab": HTMLDivElement,
+		"editorTabInfoCont": HTMLDivElement,
+		"editorTabInfoTxtCont": HTMLPaperMaterialElement,
+		"editorTabInfoTxt": HTMLDivElement,
 		"container": HTMLDivElement,
 		"flexRow": HTMLDivElement,
 		"flexColumn": HTMLDivElement,
@@ -395,7 +401,9 @@ interface IDMap
 		"contentCont": HTMLDivElement
 	},
 	"paper-toggle-option":{
-		"checkbox": HTMLPaperCheckboxElement
+		"checkbox": HTMLPaperCheckboxElement,
+		"disabledContainer": HTMLDivElement,
+		"disabledInfo": HTMLDivElement
 	},
 	"install-confirm":{
 		"scriptInstalled": HTMLDivElement,

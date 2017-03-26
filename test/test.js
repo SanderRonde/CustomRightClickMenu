@@ -482,6 +482,9 @@ describe('Conversion', () => {
 			storage: {
 				local: {
 					set: function () { }
+				},
+				sync: {
+					set: function () { }
 				}
 			}
 		};
@@ -1188,7 +1191,6 @@ describe('CRMAPI', () => {
 			shrinkTitleRibbon: false,
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
-			latestId: 0,
 			key: {},
 			lastUpdatedAt: JSON.parse(String(fs.readFileSync('./app/manifest.json'), {
 								encoding: 'utf8'
@@ -1224,8 +1226,11 @@ describe('CRMAPI', () => {
 		}), 'CRM is changable through runtime messaging');
 	});
 	step('should be able to keep a CRM in persistent storage', () => {
-		assert.deepEqual(storageSync, {
-			section0: JSON.stringify({
+		assert.deepEqual({
+			section0: JSON.parse(storageSync.section0),
+			indexes: storageSync.indexes
+		}, {
+			section0: {
 				"editor": {
 					"keyBindings": {
 						"autocomplete": "Ctrl-Space",
@@ -1461,8 +1466,9 @@ describe('CRMAPI', () => {
 						"index": 0
 					}]
 				}],
-				settingsLastUpdatedAt: JSON.parse(storageSync.section0).settingsLastUpdatedAt
-			}),
+				"latestId": JSON.parse(storageSync.section0).latestId,
+				"settingsLastUpdatedAt": JSON.parse(storageSync.section0).settingsLastUpdatedAt
+			},
 			indexes: ['section0']
 		});
 	});
@@ -3425,6 +3431,9 @@ describe('JSON Parser', () => {
 			storage: {
 				local: {
 					set: function () { }
+				},
+				sync: {
+					set: function() {}
 				}
 			}
 		};

@@ -1,6 +1,6 @@
 (function(window) {
 	var chromeHolder = {
-		chrome: chrome
+		chrome: typeof chrome === 'undefined' ? undefined : chrome
 	}
 
 	var localStorageProxy = { };
@@ -60,7 +60,7 @@
 		var _this = this;
 
 		if (!enableBackwardsCompatibility) {
-			localStorageProxy = localStorage;
+			localStorageProxy = typeof localStorage === 'undefined' ? {} : localStorage;
 		}
 
 		//#region Options
@@ -879,6 +879,14 @@
 		 * Turns the class-index based number back to an element
 		 */
 		function findElementsOnPage() {
+			if (typeof window.document === 'undefined') {
+				contextData = {
+					target: null,
+					toElement: null,
+					srcElement: null
+				};
+				return;
+			}
 			var targetClass = 'crm_element_identifier_' + contextData.target;
 			contextData.target = window.document.querySelector('.' + targetClass);
 			contextData.target && contextData.target.classList.remove(targetClass);

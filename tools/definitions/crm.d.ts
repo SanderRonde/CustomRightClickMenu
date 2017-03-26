@@ -555,10 +555,6 @@ declare namespace CRM {
 		 * Whether to show this node only on the specified urls
 		 */
 		showOnSpecified?: boolean;
-		/**
-		 * The value of this node
-		 */
-		value: LinkVal|ScriptVal|StylesheetVal|Tree|void;
 	}
 
 	/**
@@ -639,7 +635,7 @@ declare namespace CRM {
 		/**
 		 * The options for this script
 		 */
-		options: Options;
+		options: Options|string;
 	}
 
 	/**
@@ -669,7 +665,20 @@ declare namespace CRM {
 		/**
 		 * The options for this stylesheet
 		 */
-		options: Options;
+		options: Options|string;
+		/**
+		 * The converted stylesheet
+		 */
+		convertedStylesheet: {
+			/**
+			 * The options that were used to generate it
+			 */
+			options: string;
+			/**
+			 * The stylesheet
+			 */
+			stylesheet: string;
+		}
 	}
 
 	/**

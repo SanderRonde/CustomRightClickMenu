@@ -262,15 +262,15 @@ interface CRMTemplates {
 			[key: string]: any;
 			[key: number]: any;
 		}, Y extends Partial<T>>(this: CRMTemplates, mainObject: T, additions: Y): T & Y;
-	getDefaultNodeInfo(options?: any): CRM.NodeInfo;
-	getDefaultLinkNode(options?: any): CRM.LinkNode;
-	getDefaultStylesheetValue(options?: any): CRM.StylesheetVal;
-	getDefaultScriptValue(options?: any): CRM.ScriptVal;
-	getDefaultScriptNode(options?: any): CRM.ScriptNode;
-	getDefaultStylesheetNode(options?: any): CRM.StylesheetNode;
-	getDefaultDividerOrMenuNode(options: any, type: any): CRM.DividerNode | CRM.MenuNode;
-	getDefaultDividerNode(options?: any): CRM.DividerNode;
-	getDefaultMenuNode(options?: any): CRM.MenuNode;
+	getDefaultNodeInfo(options?: Partial<CRM.NodeInfo>): CRM.NodeInfo;
+	getDefaultLinkNode(options?: Partial<CRM.LinkNode>): CRM.LinkNode;
+	getDefaultStylesheetValue(options?: Partial<CRM.StylesheetVal>): CRM.StylesheetVal;
+	getDefaultScriptValue(options?: Partial<CRM.ScriptVal>): CRM.ScriptVal;
+	getDefaultScriptNode(options?: CRM.PartialScriptNode): CRM.ScriptNode;
+	getDefaultStylesheetNode(options?: CRM.PartialStylesheetNode): CRM.StylesheetNode;
+	getDefaultDividerOrMenuNode(options: Partial<CRM.DividerNode>|Partial<CRM.MenuNode>, type: 'menu'|'divider'): CRM.DividerNode | CRM.MenuNode;
+	getDefaultDividerNode(options?: Partial<CRM.DividerNode>): CRM.DividerNode;
+	getDefaultMenuNode(options?: Partial<CRM.MenuNode>): CRM.MenuNode;
 }
 
 interface GlobalObject {
@@ -696,7 +696,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 						toggle: false,
 						defaultOn: false,
-						options: {}
+						options: {},
+						convertedStylesheet: null
 					};
 
 					return this.mergeObjects(value, options) as CRM.StylesheetVal;
@@ -714,8 +715,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(value, options) as CRM.ScriptVal;
 				},
-				getDefaultScriptNode(this: CRMTemplates, options: Partial<CRM.ScriptNode> = {}): CRM.ScriptNode {
-					const defaultNode: Partial<CRM.ScriptNode> = {
+				getDefaultScriptNode(this: CRMTemplates, options: CRM.PartialScriptNode = {}): CRM.ScriptNode {
+					const defaultNode: CRM.PartialScriptNode = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'script',
@@ -732,8 +733,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return this.mergeObjects(defaultNode, options) as CRM.ScriptNode;
 				},
-				getDefaultStylesheetNode(this: CRMTemplates, options: Partial<CRM.StylesheetNode> = {}): CRM.StylesheetNode {
-					const defaultNode: Partial<CRM.StylesheetNode> = {
+				getDefaultStylesheetNode(this: CRMTemplates, options: CRM.PartialStylesheetNode = {}): CRM.StylesheetNode {
+					const defaultNode: CRM.PartialStylesheetNode = {
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'stylesheet',
@@ -1171,9 +1172,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static generateItemId(): number {
 			globalObject.globals.latestId = globalObject.globals.latestId || 0;
 			globalObject.globals.latestId++;
-			chrome.storage.sync.set({
-				latestId: globalObject.globals.latestId
-			});
+			if (globalObject.globals.storages.settingsStorage) {
+				Storages.applyChanges({
+					type: 'optionsPage',
+					settingsChanges: [{
+						key: 'latestId',
+						oldValue: globalObject.globals.latestId - 1,
+						newValue: globalObject.globals.latestId
+					}]
+				});
+			}
 			return globalObject.globals.latestId;
 		}
 		static convertFileToDataURI(url: string, callback: (dataURI: string, 
@@ -1854,19 +1862,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			chrome.tabs.onHighlighted.addListener(tabChangeListener);
-			chrome.storage.sync.get((storageLocal) => {
-				globalObject.globals.latestId = storageLocal['latestId'] || 0;
-			});
-			chrome.storage.onChanged.addListener((changes, areaName) => {
-				if (areaName === 'sync' && changes['latestId']) {
-					const highest = changes['latestId']
-										.newValue >
-										changes['latestId'].oldValue ?
-										changes['latestId'].newValue :
-										changes['latestId'].oldValue;
-					globalObject.globals.latestId = highest;
-				}
-			});
 			chrome.webRequest.onBeforeRequest.addListener(
 				(details) => {
 					const split = details.url
@@ -5395,7 +5390,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									'CRM_toggle') ||
 								false),
 							launchMode: launchMode,
-							options: {}
+							options: {},
+							convertedStylesheet: null
 						};
 					} else {
 						node.type = 'script';
@@ -6162,13 +6158,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}).join(', ')});`
 							].join(', '),
 							'try {',
-								'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
+								'function main(menuitemid, parentmenuitemid, mediatype,' +
 								'linkurl, srcurl, pageurl, frameurl, frameid,' + 
 								'selectiontext, editable, waschecked, checked) {',
-									'window.chrome = chrome;',
 									script,
 								'}',
-								`main(${node.isLocal ? 'chrome' : 'void 0'})`,
+								`main()`,
 							'} catch (error) {',
 							indentUnit + 'if (crmAPI.debugOnError) {',
 							indentUnit + indentUnit + 'debugger;',
@@ -6492,7 +6487,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							'});'
 						].join('');
 					} else {
-						const css = node.value.stylesheet.replace(/[ |\n]/g, '');
+						const css = this._Options.getConvertedStylesheet(node).replace(/[ |\n]/g, '');
 						code = [
 							'var CRMSSInsert=document.createElement("style");',
 							`CRMSSInsert.className="styleNodes${className}";`,
@@ -6513,6 +6508,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static createClickHandler(node: CRM.StylesheetNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 					const className = node.id + '' + tab.id;
+					const css = this._Options.getConvertedStylesheet(node).replace(/[ |\n]/g, '');
 					const code = [
 						'(function() {',
 						`if (document.querySelector(".styleNodes${className}")) {`,
@@ -6521,8 +6517,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						'var CRMSSInsert=document.createElement("style");',
 						`CRMSSInsert.classList.add("styleNodes${className}");`,
 						'CRMSSInsert.type="text/css";',
-						`CRMSSInsert.appendChild(document.createTextNode(${JSON.stringify(node
-							.value.stylesheet)}));`,
+						`CRMSSInsert.appendChild(document.createTextNode(${JSON.stringify(css)}));`,
 						'document.head.appendChild(CRMSSInsert);',
 						'}());'
 					].join('');
@@ -6530,6 +6525,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						code: code,
 						allFrames: true
 					});
+					return node.value.stylesheet;
 				};
 			}
 			static Installing = class Installing {
@@ -6642,7 +6638,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								isLocal: false,
 								name: stylesheetData.name,
 								nodeInfo: {
-									version: 1,
+									version: '1',
 									source: {
 										updateURL: stylesheetData.updateUrl,
 										url: stylesheetData.url,
@@ -6664,7 +6660,254 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					});
 				}
 			};
+			private static _Options = class Options {
+				private static _splitComments(stylesheet: string): Array<{
+					isComment: boolean;
+					line: string;
+				}> {
+					const lines: Array<{
+						isComment: boolean;
+						line: string;
+					}> = [{
+						isComment: false,
+						line: ''
+					}];
+					let inComment: boolean = false;
+					let lineIndex = 0;
+					for (let i = 0; i < stylesheet.length; i++) {
+						if (stylesheet[i] === '/' && stylesheet[i + 1] === '*') {
+							inComment = true;
+							lineIndex++;
+							i += 1;
+							lines[lineIndex] = {
+								isComment: true,
+								line: ''
+							}
+							continue;
+						} else if (stylesheet[i] === '*' && stylesheet[i + 1] === '/') {
+							inComment = false;
+							lineIndex++;
+							i += 1;
+							lines[lineIndex] = {
+								isComment: false,
+								line: ''
+							}
+							continue;
+						} else {
+							lines[lineIndex].line += stylesheet[i];
+						}
+					}
+					return lines;
+				}
+				private static _evalOperator(left: any, operator: string, right: any): boolean {
+					switch (operator) {
+						case '<=':
+							return left <= right;
+						case '>=':
+							return left >= right;
+						case '<':
+							return left < right;
+						case '>':
+							return left > right;
+						case '!==':
+							return left !== right;
+						case '!=':
+							return left != right;
+						case '===':
+							return left === right;
+						case '==':
+							return left == right;
+					}
+					return false;
+				}
+				private static _getOptionValue(option: CRM.OptionsValue): any {
+					switch (option.type) {
+						case 'array':
+							return option.items;
+						case 'boolean':
+						case 'number':
+						case 'string':
+							return option.value;
+						case 'choice':
+							return option.values[option.selected];
+					}
+				}
+				private static _numRegex = /^(-)?(\d)+(\.(\d)+)?$/;
+				private static _strRegex = /^("(.*)"|'(.*)'|`(.*)`)$/;
+				private static _valueRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*$/;
+				private static _boolExprRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*(<=|>=|<|>|!==|!=|===|==)(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+|\w(\w|\d)*)(\n|\r|\s)*$/;
+				private static _getStringExprValue(expr: string, options: CRM.Options): any {
+					if (expr === 'true') {
+						return true;
+					}
+					if (expr === 'false') {
+						return false;
+					}
+					if (this._numRegex.exec(expr)) {
+						return parseFloat(expr);
+					}
+					if (this._strRegex.exec(expr)) {
+						return expr.slice(1, -1);
+					}
+					//It must be a variable
+					if (options[expr]) {
+						return this._getOptionValue(options[expr]);
+					}
+				}
+				private static _evaluateBoolExpr(expr: string, options: CRM.Options): boolean {
+					if (expr.indexOf('||') > -1) {
+						return this._evaluateBoolExpr(expr.slice(0, expr.indexOf('||')), options) ||
+							this._evaluateBoolExpr(expr.slice(expr.indexOf('||') + 2), options);
+					}
+					if (expr.indexOf('&&') > -1) {
+						return this._evaluateBoolExpr(expr.slice(0, expr.indexOf('&&')), options) &&
+							this._evaluateBoolExpr(expr.slice(expr.indexOf('&&') + 2), options);
+					}
+					const regexEval = this._boolExprRegex.exec(expr);
+					if (regexEval) {
+						const leftExpr = regexEval[2];
+						const operator = regexEval[12];
+						const rightExpr = regexEval[14];
+						return this._evalOperator(
+							this._getStringExprValue(leftExpr, options), 
+							operator, 
+							this._getStringExprValue(rightExpr, options)
+						);
+					} 
+					const valueRegexEval = this._valueRegex.exec(expr);
+					if (valueRegexEval) {
+						return !!this._getStringExprValue(valueRegexEval[2], options);
+					}
+					return false;
+				}
+				private static _evaluateIfStatement(line: string, options: CRM.Options): boolean {
+					const statement = this._ifRegex.exec(line)[2];
+					return this._evaluateBoolExpr(statement, options);
+				}
+				private static _replaceVariableInstances(line: string, options: CRM.Options): string {
+					const parts: Array<{
+						isVariable: boolean;
+						content: string;
+					}> = [{
+						isVariable: false,
+						content: ''
+					}];
+					let inVar: boolean = false;
+					for (let i = 0; i < line.length; i++) {
+						if (line[i] === '{' && line[i + 1] === '{') {
+							if (!inVar) {
+								inVar = true;
+								parts.push({
+									isVariable: true,
+									content: ''
+								});
+							} else {
+								parts[parts.length - 1].content += '{{';
+							}
+							i += 1;
+							continue;
+						} else if (line[i] === '}' && line[i + 1] === '}') {
+							if (inVar) {
+								inVar = false;
+								parts.push({
+									isVariable: false,
+									content: ''
+								});
+							} else {
+								parts[parts.length - 1].content += '}}';
+							}
+							i += 1;
+							continue;
+						} else {
+							parts[parts.length - 1].content += line[i];
+						}
+					}
 
+					return parts.map((part) => {
+						if (!part.isVariable) {
+							return part.content;
+						}
+						return options[part.content] && this._getOptionValue(options[part.content]);
+					}).join('');
+				}
+				private static _getLastIf(ifs: Array<{
+					skip: boolean;
+					isElse: boolean;
+					ignore: boolean;
+				}>): {
+					skip: boolean;
+					isElse: boolean;
+					ignore: boolean;
+				} {
+					if (ifs.length > 0) {
+						return ifs[ifs.length - 1];
+					}
+					return {
+						skip: false,
+						isElse: false,
+						ignore: false
+					}
+				}
+				private static _ifRegex = /^(\n|\r|\s)*if (.+) then(\n|\r|\s)*$/;
+				private static _elseRegex = /^(\n|\r|\s)*else(\n|\r|\s)*$/;
+				private static _endifRegex = /^(\n|\r|\s)*endif(\n|\r|\s)*$/;
+				private static _variableRegex = /^(\n|\r|\s)*(\w|-)+:(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*)((\n|\r|\s)*,(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*))*$/;
+				private static _convertStylesheet(stylesheet: string, options: CRM.Options): string {
+					const splitComments = this._splitComments(stylesheet);
+					const lines: Array<string> = [];
+
+					const ifs: Array<{
+						skip: boolean;
+						isElse: boolean;
+						ignore: boolean;
+					}> = [];
+					for (let i = 0; i < splitComments.length; i++) {
+						if (this._ifRegex.exec(splitComments[i].line)) {
+							ifs.push({
+								skip: this._getLastIf(ifs).skip || !this._evaluateIfStatement(splitComments[i].line, options),
+								isElse: false,
+								ignore: this._getLastIf(ifs).skip
+							});
+						} else if (this._elseRegex.exec(splitComments[i].line)) {
+							//Double else, don't flip anymore
+							if (!this._getLastIf(ifs).isElse && !this._getLastIf(ifs).ignore) {
+								this._getLastIf(ifs).skip = !this._getLastIf(ifs).skip;
+							}
+							this._getLastIf(ifs).isElse = true;
+						} else if (this._endifRegex.exec(splitComments[i].line)) {
+							ifs.pop();
+						} else if (!this._getLastIf(ifs).skip) {
+							//Don't skip this
+							if (!splitComments[i].isComment) {
+								//No comment, don't have to evaluate anything
+								lines.push(splitComments[i].line);
+							} else {
+								if (this._variableRegex.exec(splitComments[i].line)) {
+									lines.push(this._replaceVariableInstances(
+										splitComments[i].line, options
+									));
+								} else {
+									//Regular comment, just add it
+									lines.push(splitComments[i].line);
+								}
+							}
+						}
+					}
+					return lines.join('');
+				}
+				static getConvertedStylesheet(node: CRM.StylesheetNode): string {
+					if (node.value.convertedStylesheet && 
+						node.value.convertedStylesheet.options === JSON.stringify(node.value.options)) {
+						return node.value.convertedStylesheet.stylesheet;
+					}
+					node.value.convertedStylesheet = {
+						options: JSON.stringify(node.value.options),
+						stylesheet: this._convertStylesheet(node.value.stylesheet, typeof node.value.options === 'string' ?
+							{} : node.value.options)
+					};
+					return node.value.convertedStylesheet.stylesheet;
+				}
+			}
 		};
 		static NodeCreation = class NodeCreation {
 			private static _getStylesheetReplacementTabs(node: CRM.Node): Array<{
@@ -7579,7 +7822,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							node = (globalObject.globals.constants.templates.getDefaultMenuNode({
 								name: name,
 								id: Helpers.generateItemId(),
-								children: nodeData
+								children: (nodeData as any) as Array<CRM.Node>
 							}) as any) as TransferOldNode;
 							break;
 						case 'script':
@@ -7678,7 +7921,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			//Sync storage
 			static _getDefaultSyncStorage(): CRM.SettingsStorage {
-				return {
+				const settings: CRM.SettingsStorage = {
 					editor: {
 						keyBindings: {
 							autocomplete: 'Ctrl-Space',
@@ -7702,6 +7945,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					settingsLastUpdatedAt: new Date().getTime(),
 					latestId: 0
 				};
+				settings.latestId = globalObject.globals.latestId || 0;
+				return settings;
 			}
 
 			static handleFirstRun(crm?: Array<CRM.Node>): {
@@ -7906,6 +8151,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											CRM.buildPageCRM();
 											MessageHandling.signalNewCRM();
 											break;
+										} else if (changes[i].key === 'latestId') {
+											globalObject.globals.latestId = changes[i].newValue;
 										}
 									}
 									chrome.storage.local.set({
@@ -8032,8 +8279,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						const resultFn = result as ((resolve: (result: any) => void) => void);
 						resultFn((data) => {
 							this.setStorages(data.storageLocalCopy, data.settingsStorage,
-								data
-								.chromeStorageLocal, callback);
+								data.chromeStorageLocal, callback);
 						});
 					} else {
 						const storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
@@ -8102,7 +8348,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		private static _applyChangeForStorageType(storageObj: {
 			[key: string]: any;
 			[key: number]: any;
-		}, changes: Array<StorageChange>) {
+		}, changes: Array<StorageChange>) {	
 			for (let i = 0; i < changes.length; i++) {
 				storageObj[changes[i].key] = changes[i].newValue;
 			}
@@ -8193,6 +8439,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	(() => {
 		Storages.loadStorages(() => {
 			try {
+				globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
 				GlobalDeclarations.refreshPermissions();
 				GlobalDeclarations.setHandlerFunction();
 				chrome.runtime.onConnect.addListener((port) => {
@@ -8270,7 +8517,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				this.worker = new Worker('/js/sandbox.js');
 
 				const handler = window.createHandlerFunction({
-					postMessage: this._postMessage
+					postMessage: this._postMessage.bind(this)
 				});
 
 				this.worker.addEventListener('message', (e) => {

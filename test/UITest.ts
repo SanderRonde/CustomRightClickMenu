@@ -72,7 +72,6 @@ interface AppWindow extends Window {
 	app: any;
 	lastError: any|void;
 	chrome: AppChrome;
-	logs: Array<any>;
 	dummyContainer: HTMLDivElement;
 	polymerElementsLoaded: boolean;
 	scriptEdit: {
@@ -85,6 +84,8 @@ interface AppWindow extends Window {
 			getValue(): string;
 		}
 	}
+
+	_log: Array<any>;
 }
 
 declare const require: any;
@@ -269,7 +270,7 @@ const templates = {
 	getDefaultStylesheetValue(options: any): CRM.StylesheetVal {
 		const value = {
 			stylesheet: [].join('\n'),
-			launchMode: CRMLaunchModes.ALWAYS_RUN,
+			launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 			options: {},
 		} as CRM.StylesheetVal;
 
@@ -277,7 +278,7 @@ const templates = {
 	},
 	getDefaultScriptValue(options: any): CRM.ScriptVal {
 		const value: CRM.ScriptVal = {
-			launchMode: CRMLaunchModes.ALWAYS_RUN,
+			launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 			backgroundLibraries: [],
 			libraries: [],
 			script: [].join('\n'),
@@ -306,8 +307,8 @@ const templates = {
 
 		return templates.mergeObjects(defaultNode, options);
 	},
-	getDefaultStylesheetNode(options: any): CRM.StylesheetNode {
-		const defaultNode: CRM.StylesheetNode = {
+	getDefaultStylesheetNode(options: CRM.PartialStylesheetNode): CRM.StylesheetNode {
+		const defaultNode: Partial<CRM.StylesheetNode> = {
 			name: 'name',
 			onContentTypes: [true, true, true, false, false, false],
 			type: 'stylesheet',
@@ -320,9 +321,9 @@ const templates = {
 				}
 			],
 			value: templates.getDefaultStylesheetValue(options.value)
-		} as CRM.StylesheetNode;
+		} as Partial<CRM.StylesheetNode>;
 
-		return templates.mergeObjects(defaultNode, options);
+		return templates.mergeObjects(defaultNode, options) as CRM.StylesheetNode;
 	},
 	getDefaultDividerOrMenuNode(options: any, type: 'divider' | 'menu'):
 	CRM.DividerNode | CRM.MenuNode {
@@ -1093,7 +1094,9 @@ function assertContextMenuEquality(contextMenu: ContextMenu, CRMNodes: CRM.Tree)
 // function getLog(driver: webdriver.WebDriver): webdriver.promise.Promise<string> {
 // 	return new webdriver.promise.Promise<string>((resolve) => {
 // 		driver.executeScript(inlineFn(() => {
-// 			return JSON.stringify(window.app._log);
+// 			const log = JSON.stringify(window.app._log);
+// 			window.app._log = [];
+// 			return log;
 // 		})).then((str: string) => {
 // 			console.log(str);
 // 			resolve(str);
@@ -1121,6 +1124,7 @@ function enterEditorFullscreen(_this: MochaFn, driver: webdriver.WebDriver, type
 		});
 	});
 }
+
 
 describe('Options Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
@@ -4625,6 +4629,174 @@ describe('On-Page CRM', function(this: MochaFn) {
 					launchMode: CRMLaunchModes.DISABLED,
 					stylesheet: '#stylesheetTestDummy { width: 50px; height :50px; }'
 				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					stylesheet: `
+					/*if false then*/
+					a
+					/*endif*/
+					/*if true then*/
+					b
+					/*endif*/
+					/*if 1 < 0 then*/
+					c
+					/*endif*/
+					/*if -1 < 0 then*/
+					d
+					/*endif*/
+					/*if 'a' === 'b' then*/
+					e
+					/*endif*/
+					/*if true && true then*/
+					f
+					/*endif*/
+					/*if false || false then*/
+					g
+					/*endif*/
+					`
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					options: {
+						a: {
+							type: 'number',
+							value: 5
+						},
+						b: {
+							type: 'string',
+							value: 'str'
+						},
+						c: {
+							type: 'boolean',
+							value: true
+						},
+						d: {
+							type: 'choice',
+							values: [1,2,3,4],
+							selected: 2
+						},
+						e: {
+							type: 'choice',
+							values: ['a', 'b', 'c', 'd'],
+							selected: 2
+						}
+					},
+					stylesheet: `
+					/*if a === 5 then*/
+					a
+					/*endif*/
+					/*if a === 3 then*/
+					b
+					/*endif*/
+					/*if b === 'str' then*/
+					c
+					/*endif*/
+					/*if c then*/
+					d
+					/*endif*/
+					/*if d === 3 then*/
+					e
+					/*endif*/
+					/*if e === 'c' then*/
+					f
+					/*endif*/
+					`
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					stylesheet: `
+					/*if true then*/
+					a
+					/*else*/
+					b
+					/*endif*/
+					/*if false then*/
+					c
+					/*else*/
+					d
+					/*endif*/
+					`
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					stylesheet: `
+					/*if true then*/
+						/*if true then*/
+							/*if true then*/
+								/*if false then*/
+									/*if true then*/
+									a
+									/*endif*/
+									b
+								/*endif*/
+								c
+							/*endif*/
+							d
+						/*endif*/
+						e
+					/*endif*/
+					`
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					stylesheet: `
+					/*if true then*/
+						/*if true then*/
+							/*if false then*/
+								a
+							/*else*/
+								/*if true then*/
+									b
+								/*else*/
+									c
+								/*endif*/
+								d
+							/*endif*/						
+						/*else*/
+							e
+						/*endif*/	
+						f
+					/*else*/
+						/*if true then*/
+							g
+						/*else*/
+							h
+						/*endif*/
+					/*endif*/
+					`
+				}
+			}),
+			templates.getDefaultStylesheetNode({
+				name: getRandomString(25),
+				id: getRandomId(),
+				value: {
+					options: {
+						margin: {
+							type: 'number',
+							value: 50
+						}
+					},
+					stylesheet: `
+					body {
+						/*margin-top: {{margin}}px;*/
+					}
+					`
+				}
 			})
 		];
 
@@ -4635,7 +4807,64 @@ describe('On-Page CRM', function(this: MochaFn) {
 			RUN_ON_CLICKING = 3,
 			RUN_ON_SPECIFIED = 4,
 			SHOW_ON_SPECIFIED = 5,
-			DISABLED = 6
+			DISABLED = 6,
+			IF_NO_VARS = 7,
+			IF_VARS = 8,
+			IF_ELSE = 9,
+			IF_NESTED = 10,
+			IF_ELSE_NESTED = 11,
+			OPTIONS_BLOCKS = 12
+		}
+
+		function runStylesheet(index: StylesheetOnPageTests, expectedReg: RegExp, done: () => void) {
+			const fakeTabId = getRandomId();
+			getContextMenu(driver).then((contextMenu) => {
+				driver
+					.executeScript(inlineFn(() => {
+						window.chrome._clearExecutedScripts();
+						return window.chrome._currentContextMenu[0]
+							.children[REPLACE.index - 3]
+							.currentProperties.onclick(
+								REPLACE.page, REPLACE.tab
+							);
+					}, {
+						index: index,
+						page: JSON.stringify({
+							menuItemId: contextMenu[0].id,
+							editable: false,
+							pageUrl: 'www.google.com'
+						}),
+						tab: JSON.stringify({
+							id: fakeTabId,
+							index: 1,
+							windowId: getRandomId(),
+							highlighted: false,
+							active: true,
+							pinned: false,
+							selected: false,
+							url: 'http://www.google.com',
+							title: 'Google',
+							incognito: false
+						})
+					})).then((e) => {
+						return driver
+							.executeScript(inlineFn(() => {
+								return JSON.stringify(window.chrome._executedScripts);
+							}));
+					}).then((str: string) => {
+						const executedScripts = JSON.parse(str) as ExecutedScripts;
+						assert.lengthOf(executedScripts, 1, 'one stylesheet was activated');
+						assert.strictEqual(executedScripts[0].id, fakeTabId,
+							'stylesheet was executed on the right tab');
+						assert.isTrue(!!expectedReg.exec(executedScripts[0].code), 'executed code is the same as expected code');
+						done();
+					});
+			});
+		}
+
+		function genContainsRegex(...contains: Array<string>): RegExp {
+			const whitespace = '(\\\\t|\\\\s|\\\\n)*';
+			return new RegExp(`.*\\("${whitespace + contains.join(whitespace) + whitespace}"\\).*`);
 		}
 
 		it('should not throw when setting up the CRM', function(this: MochaFn, done) {
@@ -4880,7 +5109,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 						assert.strictEqual(executedScripts[0].id, fakeTabId,
 							'script was executed on the right tab');
 						assert.include(executedScripts[0].code,
-							CRMNodes[StylesheetOnPageTests.RUN_ON_CLICKING].value.stylesheet,
+							CRMNodes[StylesheetOnPageTests.RUN_ON_CLICKING].value.stylesheet.replace(/(\t|\s|\n)/g, ''),
 							'executed code is the same as set code');
 						done();
 					});
@@ -4904,6 +5133,26 @@ describe('On-Page CRM', function(this: MochaFn) {
 					assert.strictEqual(dimensions.height, 50, 'dummy element is 50px high');
 					done();
 				});
+		});
+		it('should work with an if-then statement with no variables', function(this: MochaFn, done) {
+			runStylesheet(StylesheetOnPageTests.IF_NO_VARS, genContainsRegex('b', 'd', 'f'), done);
+		});
+		it('should work with an if-then statement with variables', function(this: MochaFn, done) {
+			runStylesheet(StylesheetOnPageTests.IF_VARS, genContainsRegex('a', 'c', 'd', 'e', 'f'), done);
+		});
+		it('should work with an if-then-else statement', function(this: MochaFn, done) {
+			runStylesheet(StylesheetOnPageTests.IF_ELSE, genContainsRegex('a', 'd'), done);
+		});
+		it('should work with multiple nested if statements', function(this: MochaFn, done) {
+			this.timeout(5000);
+			runStylesheet(StylesheetOnPageTests.IF_NESTED, genContainsRegex('c', 'd', 'e'), done);
+		});
+		it('should work with multiple nested if-else statements', function(this: MochaFn, done) {
+			runStylesheet(StylesheetOnPageTests.IF_ELSE_NESTED, genContainsRegex('b', 'd', 'f'), done);
+		});
+		it('should work with statements in blocks', function(this: MochaFn, done) {
+			runStylesheet(StylesheetOnPageTests.OPTIONS_BLOCKS, 
+				genContainsRegex('body', '{', 'margin-top:', '50px;', '}'), done);
 		});
 		describe('Toggling', function(this: MochaFn) {
 			let dummy1: FoundElement;

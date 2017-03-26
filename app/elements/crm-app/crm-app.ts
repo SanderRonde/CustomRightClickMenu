@@ -173,14 +173,16 @@ interface CodeSettingsDialog extends HTMLPaperDialogElement {
 class CA {
 	static is = 'crm-app';
 
+	static _log: Array<any> = [];
+
 	/**
-		 * Whether to show the item-edit-page
-		 */
+	 * Whether to show the item-edit-page
+	 */
 	static show: boolean = false;
 
 	/**
-		 * What item to show in the item-edit-page
-		 */
+	 * What item to show in the item-edit-page
+	 */
 	static item: CRM.Node = null;
 
 	/**
@@ -280,10 +282,13 @@ class CA {
 		return option.type === type;
 	}
 
-	static _generateCodeOptionsArray<T extends CRM.Options>(this: CrmApp, settings: T): Array<{
+	static _generateCodeOptionsArray<T extends CRM.Options|string>(this: CrmApp, settings: T): Array<{
 		key: keyof T;
 		value: T[keyof T]
 	}> {
+		if (typeof settings === 'string') {
+			return [];
+		}
 		return Object.getOwnPropertyNames(settings).map((key: keyof T) => {
 			return {
 				key: key,
@@ -299,7 +304,7 @@ class CA {
 				let value: CRM.OptionsValue;
 				const key = element.getAttribute('data-key');
 				const type = element.getAttribute('data-type') as CRM.OptionsValue['type'];
-				const currentVal = this.$.codeSettingsDialog.item.value.options[key];
+				const currentVal = (this.$.codeSettingsDialog.item.value.options as CRM.Options)[key];
 				switch (type) {
 					case 'number':
 						value = this.templates.mergeObjects(currentVal, {
@@ -354,6 +359,7 @@ class CA {
 		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
 
 		this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
+		this.$.codeSettingsNoItems.if = this.$.codeSettingsRepeat.items.length === 0;
 		this.async(() => {
 			this.$.codeSettingsDialog.fit();
 			Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
@@ -2849,6 +2855,7 @@ class CA {
 			for (let key in additions) {
 				if (additions.hasOwnProperty(key)) {
 					if (typeof additions[key] === 'object' &&
+						typeof mainObject[key] === 'object' &&
 						mainObject[key] !== undefined &&
 						mainObject[key] !== null) {
 						if (Array.isArray(additions[key])) {
@@ -2932,7 +2939,8 @@ class CA {
 				launchMode: CRMLaunchModes.RUN_ON_CLICKING,
 				toggle: false,
 				defaultOn: false,
-				options: {}
+				options: {},
+				convertedStylesheet: null
 			};
 
 			return this.mergeObjects(value, options) as CRM.StylesheetVal;

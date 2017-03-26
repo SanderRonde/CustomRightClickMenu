@@ -787,6 +787,9 @@ type JSONParseErrors = Array<JSONParseError>;
 		const types: Record<K, string> = {} as Record<K, string>;
 		for (let key in options) {
 			let value = options[key];
+			if (!value) {
+				continue;
+			}
 			switch (value['"type"']) {
 				case '"string"':
 				case '"boolean"':
@@ -918,7 +921,15 @@ type JSONParseErrors = Array<JSONParseError>;
 	}
 	function getValueType(value: any) {
 		if (!Array.isArray(value)) {
-			value = JSON.parse(value);
+			try {
+				value = JSON.parse(value);
+			} catch(e) {
+				if (value[0] === "'" || value[0] === '`') {
+					value = value.slice(1, -1);
+				} else {
+					value = undefined;
+				}
+			}
 		} else {
 			value = value.map((val) => {
 				return JSON.parse(val);
