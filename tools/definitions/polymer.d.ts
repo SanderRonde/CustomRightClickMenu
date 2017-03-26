@@ -59,7 +59,7 @@ declare namespace Polymer {
 
 	export type Element = HTMLElement | HTMLPaperIconButtonElement | HTMLPaperDialogElement | HTMLPaperInputElement |
 		HTMLPaperCheckboxElement | CenterElement | HTMLDomRepeatElement | PaperToggleOption | HTMLPaperToastElement |
-		DefaultLink | EchoHtml | DividerEdit | HTMLPaperRadioGroupElement;
+		DefaultLink | EchoHtml | DividerEdit | HTMLPaperRadioGroupElement | HTMLDomIfElement;
 
 	interface ElementBase {
 		$$(selector: string): HTMLElement;
@@ -84,6 +84,7 @@ declare namespace Polymer {
 		'paper-input-container': HTMLPaperInputContainerElement;
 		'paper-checkbox': HTMLPaperCheckboxElement;
 		'dom-repeat': HTMLDomRepeatElement;
+		'dom-if': HTMLDomIfElement;
 		'paper-menu': HTMLPaperMenuElement;
 		'paper-spinner': HTMLPaperSpinnerElement;
 		'paper-radio-group': HTMLPaperRadioGroupElement;
@@ -152,6 +153,11 @@ interface HTMLPaperCheckboxElement extends HTMLElement {
 interface HTMLDomRepeatElement extends HTMLTemplateElement {
 	items: Array<any>;
 	as: string;
+	render(): void;
+}
+
+interface HTMLDomIfElement extends HTMLTemplateElement {
+	if: boolean;
 	render(): void;
 }
 
