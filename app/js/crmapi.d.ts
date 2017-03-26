@@ -1618,6 +1618,15 @@ declare namespace CRMAPI {
 		$crmAPI(selector: string, context: HTMLElement): Array<void>;
 		$crmAPI(selector: string, context: Document): Array<HTMLElement>;
 		$crmAPI(selector: string, context: Document): Array<void>;
+
+		/**
+		 * Returns the elements matching given selector within given context
+		 *
+		 * @param {string} selector - A css selector string to find elements with
+		 * @param {Object} [context] - The context of the search (the node from which to start, default is document)
+		 * @returns {Element[]} An array of the matching HTML elements
+		 */
+		$: typeof crmAPI.$crmAPI;
 	}
 }
 
@@ -1626,7 +1635,8 @@ declare namespace CRMAPI {
  * 		declare var $: crmAPIQuerySelector
  * you can also use jQuery if you have that included as a library
  */
-type crmAPIQuerySelector = (selector: string, context?: HTMLElement|Document) => Array<HTMLElement>|Array<void>;
+type ElementMaps = HTMLElementTagNameMap & ElementTagNameMap;
+type crmAPIQuerySelector = <T extends keyof ElementMaps>(selector: T, context?: HTMLElement|Element|Document) => Array<ElementMaps[T]>;
 
 declare var crmAPI: CRMAPI.CRMAPIInit;
 

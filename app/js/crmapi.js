@@ -3256,7 +3256,7 @@
 		 * @param {Object} [context] - The context of the search (the node from which to start, default is document)
 		 * @returns {Element[]} An array of the matching HTML elements
 		 */
-		this.$crmAPI = function (selector, context) {
+		this.$crmAPI = this.$ = function (selector, context) {
 			context = context || document;
 			return Array.prototype.slice.apply(context.querySelectorAll(selector));
 		};
