@@ -201,4 +201,12 @@ ModelManifest.xml
 /Custom Right-Click Menu/app/bower_components_test
 /Custom Right-Click Menu/app/bower_components_test_test
 /Custom Right-Click Menu/app/bower_components_uncrisp
+/app/bower_comonents_uncrisp/polymer
+/app/bower_components_fixed
+/app/bower_components_test
+/app/bower_components_test_test
+/app/bower_components_uncrisp
+/app
 *.DotSettings
+/.vscode
+/test
