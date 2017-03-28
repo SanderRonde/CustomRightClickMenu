@@ -8010,7 +8010,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				chrome.storage.local.set({
 					isTransfer: true
 				});
-				chrome.runtime.openOptionsPage();
 
 				return ((resolve) => {
 					if (!window.CodeMirror.TernServer) {
@@ -8419,7 +8418,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		private static _isFirstTime(storageLocal: CRM.StorageLocal): boolean|FirstTimeCallback {
 			const currentVersion = chrome.runtime.getManifest().version;
-			if (storageLocal.lastUpdatedAt === currentVersion) {
+			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt === currentVersion) {
 				return false;
 			} else {
 				if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {
