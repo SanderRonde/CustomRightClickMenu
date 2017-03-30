@@ -1021,8 +1021,10 @@ class CA {
 		this.latestId = this.latestId || 0;	
 		this.latestId++;
 		
-		this.settings.latestId = this.latestId;
-		window.app.upload();
+		if (this.settings) {
+			this.settings.latestId = this.latestId;
+			window.app.upload();
+		}
 
 		return this.latestId;
 	};
@@ -2108,7 +2110,7 @@ class CA {
 				useTabs: true,
 				zoom: '100'
 			},
-			latestId: 0,
+			latestId: this.latestId || 0,
 			crm: _this.transferCRMFromOld(localStorage.getItem('whatpage') === 'true'),
 			settingsLastUpdatedAt: new Date().getTime()
 		};
@@ -2180,6 +2182,7 @@ class CA {
 
 	private static handleFirstTime(_this: CrmApp) {
 		//Sync storage
+		debugger;
 		var defaultSyncStorage: CRM.SettingsStorage = {
 			editor: {
 				keyBindings: {
@@ -2201,7 +2204,7 @@ class CA {
 					id: _this.generateItemId()
 				})
 			],
-			latestId: 0,
+			latestId: this.latestId || 0,
 			settingsLastUpdatedAt: new Date().getTime()
 		};
 
@@ -2837,13 +2840,6 @@ class CA {
 		});
 
 		this.show = false;
-
-		chrome.storage.onChanged.addListener((changes, areaName) => {
-			if (areaName === 'local' && changes['latestId']) {
-				var highest = changes['latestId'].newValue > changes['latestId'].oldValue ? changes['latestId'].newValue : changes['latestId'].oldValue;
-				this.latestId = highest;
-			}
-		});
 	};
 
 	/**

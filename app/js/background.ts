@@ -7967,9 +7967,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						})
 					],
 					settingsLastUpdatedAt: new Date().getTime(),
-					latestId: 0
+					latestId: globalObject.globals.latestId
 				};
-				settings.latestId = globalObject.globals.latestId || 0;
 				return settings;
 			}
 
