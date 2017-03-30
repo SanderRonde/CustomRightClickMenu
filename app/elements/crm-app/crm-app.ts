@@ -2812,11 +2812,14 @@ class CA {
 			}
 		});
 
-		chrome.runtime.onMessage.addListener((message) => {
-			if (message.type === 'idUpdate') {
-				this.latestId = message.latestId;
-			}
-		});
+		if (typeof localStorage === 'undefined') {
+			//Running a test
+			chrome.runtime.onMessage.addListener((message) => {
+				if (message.type === 'idUpdate') {
+					this.latestId = message.latestId;
+				}
+			});
+		}
 
 		var controlPresses = 0;
 		document.body.addEventListener('keydown', (event) => {
