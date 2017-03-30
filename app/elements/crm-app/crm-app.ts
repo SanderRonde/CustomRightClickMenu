@@ -2732,8 +2732,29 @@ class CA {
 	};
 
 	static refreshPage(this: CrmApp) {
-		function onDone(fn: () => void) {
+		function onDone(this: CrmApp, fn: () => void) {
 			fn();
+
+			//Reset checkboxes
+			this.initCheckboxes.apply(this, [window.app.storageLocal]);
+
+			//Reset default links and searchengines
+			Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function(link: DefaultLink) {
+				link.reset();
+			});
+
+			//Reset regedit part
+			window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
+			window.doc.URISchemeFilePath.querySelector('input').value = 'C:\\files\\my_file.exe';
+			window.doc.URISchemeSchemeName.value = 'myscheme';
+			window.doc.URISchemeSchemeName.querySelector('input').value = 'myscheme';
+
+			//Hide all open dialogs
+			Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
+				dialog.opened && dialog.close();
+			});
+
+			this.upload(true);
 		}
 
 		//Reset dialog
@@ -2747,28 +2768,7 @@ class CA {
 		window.app.settings = window.app.storageLocal = null;
 
 		//Reset storages
-		this.setupStorages(onDone);
-
-		//Reset checkboxes
-		this.initCheckboxes.apply(this, [window.app.storageLocal]);
-
-		//Reset default links and searchengines
-		Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function(link: DefaultLink) {
-			link.reset();
-		});
-
-		//Reset regedit part
-		window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-		window.doc.URISchemeFilePath.querySelector('input').value = 'C:\\files\\my_file.exe';
-		window.doc.URISchemeSchemeName.value = 'myscheme';
-		window.doc.URISchemeSchemeName.querySelector('input').value = 'myscheme';
-
-		//Hide all open dialogs
-		Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
-			dialog.opened && dialog.close();
-		});
-
-		this.upload(true);
+		this.setupStorages(onDone.bind(this));
 	};
 
 	private static getLocalStorageKey(this: CrmApp, key: string): any {
