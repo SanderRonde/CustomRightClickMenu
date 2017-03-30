@@ -8136,7 +8136,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										Storages.checkBackgroundPagesForChange(changes);
 										CRM.buildPageCRM();
 										MessageHandling.signalNewCRM();
-										break;
+									} else if (changes[i].key === 'latestId') {
+										globalObject.globals.latestId = changes[i].newValue;
+										chrome.runtime.sendMessage({
+											type: 'idUpdate',
+											latestId: changes[i].newValue
+										});
 									}
 								}
 							}
@@ -8173,9 +8178,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											Storages.checkBackgroundPagesForChange(changes);
 											CRM.buildPageCRM();
 											MessageHandling.signalNewCRM();
-											break;
 										} else if (changes[i].key === 'latestId') {
 											globalObject.globals.latestId = changes[i].newValue;
+											chrome.runtime.sendMessage({
+												type: 'idUpdate',
+												latestId: changes[i].newValue
+											});
 										}
 									}
 									chrome.storage.local.set({

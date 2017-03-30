@@ -1018,12 +1018,12 @@ class CA {
 	 * Generates an ID for a node
 	 */
 	static generateItemId(this: CrmApp) {
-		var _this = this;
-		this.latestId = this.latestId || 0;
+		this.latestId = this.latestId || 0;	
 		this.latestId++;
-		chrome.storage.sync.set({
-			latestId: _this.latestId
-		});
+		
+		this.settings.latestId = this.latestId;
+		window.app.upload();
+
 		return this.latestId;
 	};
 
@@ -2806,6 +2806,12 @@ class CA {
 					chrome.runtime.getManifest().version
 				}`;
 				this.$.messageToast.show();
+			}
+		});
+
+		chrome.runtime.onMessage.addListener((message) => {
+			if (message.type === 'idUpdate') {
+				this.latestId = message.latestId;
 			}
 		});
 
