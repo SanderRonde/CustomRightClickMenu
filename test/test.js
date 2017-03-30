@@ -1064,7 +1064,8 @@ describe('CRMAPI', () => {
 					.replace(/\/\*.+\*\//g, ''))
 			},
 			openOptionsPage: function() { },
-			lastError: null
+			lastError: null,
+			sendMessage: function() {}
 		},
 		contextMenus: {
 			removeAll: function () { },
