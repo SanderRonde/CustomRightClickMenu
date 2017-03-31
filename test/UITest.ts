@@ -1473,8 +1473,7 @@ describe('Options Page', function(this: MochaFn) {
 						return driver.executeScript(inlineFn(() => {
 							return JSON.stringify(window.chrome._lastCall);
 						}));
-					})
-					.then((jsonStr: string) => {
+					}).then((jsonStr: string) => {
 						const lastCall: ChromeLastCall = JSON.parse(jsonStr);
 						assert.isDefined(lastCall, 'a call to the chrome API was made');
 						assert.strictEqual(lastCall.api, 'downloads.download',
@@ -1515,7 +1514,7 @@ describe('Options Page', function(this: MochaFn) {
 			testURIScheme(driver, done, toExecutePath, schemeName);
 		});
 		it('should be able to download when a different file path was entered', function(this: MochaFn, done)  {
-			const toExecutePath = 'somefile.x.y.z';
+			const toExecutePath = 'somefile.a.b.c';
 			const schemeName = defaultSchemeName;
 			findElement(driver, webdriver.By.id('URISchemeFilePath'))
 				.sendKeys(InputKeys.CLEAR_ALL, toExecutePath)
@@ -1527,8 +1526,11 @@ describe('Options Page', function(this: MochaFn) {
 			const toExecutePath = defaultToExecutePath;
 			const schemeName = getRandomString(25);
 			findElement(driver, webdriver.By.id('URISchemeSchemeName'))
-				.sendKeys(InputKeys.CLEAR_ALL, schemeName)
-				.then(() => {
+				.sendKeys(InputKeys.CLEAR_ALL, schemeName).then(() => {
+					return findElement(driver, webdriver.By.id('URISchemeFilePath'))
+				}).then((element) => {
+					return element.sendKeys(InputKeys.CLEAR_ALL, toExecutePath);
+				}).then(() => {
 					testURIScheme(driver, done, toExecutePath, schemeName);
 				});
 		});
@@ -1540,11 +1542,9 @@ describe('Options Page', function(this: MochaFn) {
 					.sendKeys(InputKeys.CLEAR_ALL, toExecutePath)
 					.then(() => {
 						return findElement(driver, webdriver.By.id('URISchemeSchemeName'));
-					})
-					.then((element) => {
+					}).then((element) => {
 						return element.sendKeys(InputKeys.CLEAR_ALL, schemeName);
-					})
-					.then(() => {
+					}).then(() => {
 						testURIScheme(driver, done, toExecutePath, schemeName);
 					});
 			});
