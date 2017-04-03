@@ -475,6 +475,10 @@ module.exports = function(grunt) {
 					dest: 'app/elements/fileIdMaps.d.ts'
 				}]
 			}
+		},
+		exec: {
+			app: 'tsc',
+			tests: 'tsc -p test/tsconfig.json'
 		}
 	});
 
@@ -486,6 +490,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-htmlmin');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-string-replace');
 	grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks('grunt-processhtml');
@@ -505,25 +510,28 @@ module.exports = function(grunt) {
 	grunt.registerTask('cleanBuild', ['clean:build']);
 
 	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
-	grunt.registerTask('defs', ['extractDefs', 'processhtml:updateCRMDefs']);
+	grunt.registerTask('defs', ['compile', 'extractDefs', 'processhtml:updateCRMDefs']);
 
 	//Extracts the HTML element ID to element type maps from HTML files
-	grunt.registerTask('updateTsIdMaps', ['extractIdMaps']);
+	grunt.registerTask('updateTsIdMaps', ['compile', 'extractIdMaps']);
 
 	//Extracts the external editor definitions and places them in build/
-	grunt.registerTask('externalEditorDefs', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
+	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 
 	//Extracts the files needed for the documentationWebsite and places them in build/website
-	grunt.registerTask('documentationWebsite', ['extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:documentationWebsite', 'defsNoClean', 'removePrefix', 'vulcanize']);
+	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:documentationWebsite', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
 	//Moves the documentationWebsite from build/website to /documentation
-	grunt.registerTask('moveDocumentationWebsite', ['copy:moveDocumentationWebsite']);
+	grunt.registerTask('moveDocumentationWebsite', ['compile', 'copy:moveDocumentationWebsite']);
 
 	//Moves the demo website to /demo
-	grunt.registerTask('demoWebsite', ['processhtml:demoWebsite'])
+	grunt.registerTask('demoWebsite', ['compile', 'processhtml:demoWebsite'])
+
+	//Compiles all the typescript
+	grunt.registerTask('compile', ['exec:app', 'exec:tests']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
+	grunt.registerTask('build', ['compile', 'extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
@@ -532,5 +540,5 @@ module.exports = function(grunt) {
 	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
-	grunt.registerTask('test', ['mochaTest', 'testBuild']);
+	grunt.registerTask('test', ['compile', 'mochaTest', 'testBuild']);
 };
