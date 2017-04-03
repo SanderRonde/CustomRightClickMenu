@@ -52,7 +52,7 @@ the live version can be found [here](https://chrome.google.com/webstore/detail/c
 
 ### Installing from repo
 
-Clone the repo, run `npm install`, run `tsc --watch false` and run `grunt build` task, load the extension into chrome from the "build/" folder.
+Clone the repo, run `npm install`, run `tsc` and run `grunt build` task, load the extension into chrome from the "build/" folder.
 
 ## Developing Scripts
 
@@ -64,8 +64,8 @@ There is a typescript definition file available for the CRM API over [here](http
 
 ## Contributing
 
-To install the extension for contributing, simply clone this repo, run `npm install && tsc --watch false`, and load the extension into chrome from the "app/" folder. 
-Then, run the `tsc` command (without the `--watch false` flag) in order to compile any typescript files in the app/ directory. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page.
+To install the extension for contributing, simply clone this repo, run `npm install && tsc`, and load the extension into chrome from the "app/" folder. 
+Then, run the `tsc -w` command in order to compile any typescript files in the app/ directory when they are changed. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page.
 
 The test files have a different typescript config, so when you make changes to those, be sure to `cd test`, and run `tsc` from there. Running tests can be done with the `npm test` command. UI tests can only be done by travis unfortunately so you can't do those locally.
 

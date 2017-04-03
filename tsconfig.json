@@ -14,8 +14,7 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es3",
-        "watch": true
+        "target": "es3"
 	}, 
     "allowJs": true,
     "compileOnSave": true,

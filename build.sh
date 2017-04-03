@@ -6,11 +6,11 @@ http-server -p 1234 . -s &
 npm install -g typescript@latest
 
 echo "Typescript Compiling App" && echo -en "travis_fold:start:ts_app\\r"
-tsc --watch false
+tsc
 echo -en "travis_fold:end:ts_app\\r"
 cd test
 echo "Typescript Compiling Test" && echo -en "travis_fold:start:ts_test\\r"
-tsc --watch false
+tsc
 echo -en "travis_fold:end:ts_test\\r"
 cd ../
 
