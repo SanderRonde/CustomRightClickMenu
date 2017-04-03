@@ -64,7 +64,12 @@ There is a typescript definition file available for the CRM API over [here](http
 
 ## Contributing
 
-To install the extension for contributing, simply clone this repo, run `npm install && tsc --watch false`, and load the extension into chrome from the "app/" folder. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page. Do however keep in mind that developing happens in typescript in a lot of files, so be sure to keep `tsc` running while developing. Building isn't really necessary as long as you don't need to export the files as it basically only compresses and removes unnecessary files.
+To install the extension for contributing, simply clone this repo, run `npm install && tsc --watch false`, and load the extension into chrome from the "app/" folder. 
+Then, run the `tsc` command (without the `--watch false` flag) in order to compile any typescript files in the app/ directory. You should be able to have your changes in the app folder be reflected to live instantly by hitting `ctrl/cmd + r` on the options page.
+
+The test files have a different typescript config, so when you make changes to those, be sure to `cd test`, and run `tsc` from there.
+
+ Building isn't really necessary as long as you don't need to export the files as it basically only compresses and removes unnecessary files.
 
 ## License
 
