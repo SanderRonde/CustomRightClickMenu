@@ -158,7 +158,7 @@ module.exports = function(grunt) {
 						'app/js/libraries/codemirror/codemirrorCodeOptionsJson.js',
 						'app/js/crmAPIDefs.js'
 					]
-			}
+				}
 			},
 			crmMinifiy: {
 				files: [
@@ -178,6 +178,9 @@ module.exports = function(grunt) {
 						dest: 'build/js/'
 					}
 				]
+			},
+			elementsMinify: {
+				files: [ { expand: true, src: ['build/elements/**/*.js'] } ]
 			}
 		},
 		concat: {
@@ -266,6 +269,9 @@ module.exports = function(grunt) {
 						cwd: 'app/',
 						src: [
 							'elements/crm-app/*',
+							'!elements/crm-app/crm-app.ts',
+							'elements/error-reporting-tool/*',
+							'!elements/error-reporting-tool/error-reporting-tool.ts',
 							'elements/installing/*',
 							'bower_components/polymer/*',
 							'bower_components/webcomponentsjs/webcomponents.min.js'
@@ -328,13 +334,21 @@ module.exports = function(grunt) {
 			}
 		},
 		cssmin: {
-			options: {
-				shorthandCompacting: false
-			},
-			targets: {
+			build: {
+				options: {
+					shorthandCompacting: false
+				},
 				files: [
 					{ expand: true, cwd: 'app/css/', src: ['*', '!jquery.contextMenu.css'], dest: 'build/css/', ext: '.css' },
 					{ expand: true, cwd: 'app/css/', src: ['jquery.contextMenu.css'], dest: 'build/css/', ext: '.contextMenu.css' }
+				]
+			},
+			elements: {
+				options: {
+					shorthandCompacting: false
+				},
+				files: [
+					{ expand: true, src: ['build/elements/**/*.css'], filter: 'isFile' }
 				]
 			}
 		},
@@ -347,7 +361,8 @@ module.exports = function(grunt) {
 		},
 		clean: {
 			build: ['build/'],
-			unzipped: ['build/**/*', '!build/*.zip']
+			unzipped: ['build/**/*', '!build/*.zip'],
+			tsFiles: ['build/elements/**/*.ts']
 		},
 		'string-replace': {
 			manifestReplace: {
@@ -531,7 +546,12 @@ module.exports = function(grunt) {
 	grunt.registerTask('compile', ['exec:app', 'exec:tests']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['compile', 'extractDefs', 'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'concat:jqueryConcat', 'uglify', 'htmlmin', 'cssmin', 'usebanner', 'zip']);
+	grunt.registerTask('build', ['cleanBuild', 'compile', 'extractDefs', 'copy:build',
+		'copyImportedElements:elements', 'copyImportedElements:installing',
+		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
+		'concat:jqueryConcat', 'uglify', 'htmlmin:build', 'cssmin:build',
+	'cssmin:elements', 'clean:tsFiles', 'usebanner', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
