@@ -18,6 +18,10 @@ echo "Build tests" && echo -en "travis_fold:start:build_tests\\r"
 grunt testBuild
 echo -en "travis_fold:end:build_tests\\r"
 
+echo "Building for tests" && echo -en "travis_fold:start:build\\r"
+grunt build
+echo -en "travis_fold:end:build\\r"
+
 echo "Unit tests" && echo -en "travis_fold:start:unit_tests\\r"
 mocha test/test.js
 echo -en "travis_fold:end:unit_tests\\r"
