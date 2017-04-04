@@ -140,21 +140,18 @@
 			}
 			/*#endregion*/
 		</style>
-		<link async rel="stylesheet" href="../../app/css/codemirror.css" />
-		<script src="../../app/bower_components/webcomponentsjs/webcomponents.js"></script>
-		<link rel="import" href="../../app/bower_components/polymer/polymer.html" />
-		<link async rel="import" href="../../app/elements/crm-app/crm-app.html" />
-		<link async rel="import" href="../../app/elements/error-reporting-tool/error-reporting-tool.html" />
+		<link async rel="stylesheet" href="../../build/css/codemirror.css" />
+		<script src="../../build/bower_components/webcomponentsjs/webcomponents.js"></script>
+		<link rel="import" href="../../build/bower_components/polymer/polymer.html" />
+		<link async rel="import" href="../../build/elements/crm-app/crm-app.html" />
+		<link async rel="import" href="../../build/elements/error-reporting-tool/error-reporting-tool.html" />
 	</head>
 	<body>
 		<script src="chrome-api-dummy.js"></script>
-		<script src="../../app/js/libraries/jquery/jquery-2.0.3.js"></script>
-		<script src="../../app/js//libraries/diff_match_patch.js"></script> 
-		<script src="../../app/js//libraries/codemirror/codemirror.js"></script>
-		<script src="../../app/js//libraries/codemirror/codeMirrorAddons.js"></script>
-		<script src="../../app/js//libraries/jsonfn.js"></script>
-		<script src="../../app/js//libraries/md5.js"></script>
-		<script src="../../app/js/background.js"></script>
+		<script src="../../build/js/libraries/codemirror/codeMirrorFile.min.js"></script>
+		<script src="../../build/js/libraries/jsonfn.js"></script>
+		<script src="../../build/js/libraries/md5.js"></script>
+		<script src="../../build/js/background.js"></script>
 		<div id="splashScreen">
 			<div id="splashScreenHorizontalCenterer">
 				<div id="splashScreenVerticalCenterer">
@@ -170,14 +167,9 @@
 			</div>
 		</div>
 		<error-reporting-tool class="elementLoading"></error-reporting-tool>
-		<script src="../../app/js/libraries/jquery/jquery.contextMenu.js"></script>
+		<script src="../../build/js/libraries/jquery/jqueryFiles.min.js"></script>
 		<crm-app class="elementLoading"></crm-app>
-		<script src="../../app/js/libraries/jquery/jquery-ui.min.js"></script>
-		<script src="../../app/js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
-		<script src="../../app/js/libraries/jquery/jquery.bez.js"></script>
-		<script defer src="../../app/js/userscriptMetadataCodemirror.js" async></script>
-		<script defer src="../../app/js/libraries/codemirror/codemirrorJs.js" async></script>
-		<script defer src="../../app/js/crmAPIDefs.js" async></script>
-		<script src="../../app/js/calcPolyfill.js" defer async></script>
+		<script defer src="../../build/js/crmAPIDefs.js" async></script>
+		<script src="../../build/js/calcPolyfill.js" defer async></script>
 	</body>
 </html>

@@ -490,7 +490,7 @@ describe('Conversion', () => {
 		};
 		step('should be able to read crm-app.js', () => {
 			assert.doesNotThrow(run(() => {
-				crmAppCode = fs.readFileSync('./app/elements/crm-app/crm-app.js', {
+				crmAppCode = fs.readFileSync('./build/elements/crm-app/crm-app.js', {
 					encoding: 'utf8'
 				});
 			}), 'File crm-app.js is readable');
@@ -1058,7 +1058,7 @@ describe('CRMAPI', () => {
 			},
 			getManifest: function() {
 				return JSON.parse(String(fs
-					.readFileSync('./app/manifest.json'), {
+					.readFileSync('./build/manifest.json'), {
 						encoding: 'utf8'
 					})
 					.replace(/\/\*.+\*\//g, ''))
@@ -1178,7 +1178,7 @@ describe('CRMAPI', () => {
 			 }
 		};
 		assert.doesNotThrow(run(() => {
-			backgroundCode = fs.readFileSync('./app/js/background.js', {
+			backgroundCode = fs.readFileSync('./build/js/background.js', {
 				encoding: 'utf8'
 			});
 		}), 'File background.js is readable');
@@ -1201,7 +1201,7 @@ describe('CRMAPI', () => {
 			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
 			globalExcludes: [''],
 			key: {},
-			lastUpdatedAt: JSON.parse(String(fs.readFileSync('./app/manifest.json'), {
+			lastUpdatedAt: JSON.parse(String(fs.readFileSync('./build/manifest.json'), {
 								encoding: 'utf8'
 							}).replace(/\/\*.+\*\//g, '')).version,
 			notFirstTime: true,
@@ -1484,7 +1484,7 @@ describe('CRMAPI', () => {
 	let crmAPICode;
 	step('should be able to read crmapi.js', () => {
 		assert.doesNotThrow(run(() => {
-			crmAPICode = fs.readFileSync('./app/js/crmapi.js', {
+			crmAPICode = fs.readFileSync('./build/js/crmapi.js', {
 				encoding: 'utf8'
 			});
 		}), 'File crmapi.js is readable');
@@ -3448,7 +3448,7 @@ describe('JSON Parser', () => {
 		};
 		step('should be able to read crm-app.js', () => {
 			assert.doesNotThrow(run(() => {
-				crmAppCode = fs.readFileSync('./app/elements/crm-app/crm-app.js', {
+				crmAppCode = fs.readFileSync('./build/elements/crm-app/crm-app.js', {
 					encoding: 'utf8'
 				});
 			}), 'File crm-app.js is readable');
@@ -3466,7 +3466,7 @@ describe('JSON Parser', () => {
 		step('should be able to read jsonParser.js', () => {
 			assert.doesNotThrow(run(() => {
 				jsonParserCode = fs.readFileSync(
-					'./app/elements/edit-pages/code-edit-pages/jsonParser.js', {
+					'./build/elements/edit-pages/code-edit-pages/jsonParser.js', {
 						encoding: 'utf8'
 					});
 			}), 'File jsonParser.js is readable')

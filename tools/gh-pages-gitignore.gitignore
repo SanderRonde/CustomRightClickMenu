@@ -203,7 +203,6 @@ ModelManifest.xml
 /app/bower_components_uncrisp
 /app/web.*.*
 /DebugSettings.template.xml
-/build
 *.DotSettings
 /Custom Right-Click Menu.VC.db
 /Custom Right-Click Menu.VC.VC.opendb
