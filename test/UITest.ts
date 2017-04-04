@@ -160,7 +160,7 @@ switch (__filename.split('-').pop().split('.')[0]) {
 		break;
 }
 
-const timeModifier = 1.5;
+const timeModifier = 1.2;
 
 before('Driver connect', function(this: MochaFn, done: any) {
 	this.timeout(600000 * timeModifier);
