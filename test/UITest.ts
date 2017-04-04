@@ -147,7 +147,7 @@ switch (__filename.split('-').pop().split('.')[0]) {
 	default: 
 		capabilities = {
 			'browserName' : 'Chrome',
-			//'browser_version': '26.0',
+			'browser_version': '26.0',
 			'os' : 'Windows',
 			'os_version' : '8',
 			'resolution' : '1920x1080',
