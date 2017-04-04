@@ -160,8 +160,10 @@ switch (__filename.split('-').pop().split('.')[0]) {
 		break;
 }
 
+const timeModifier = 1.5;
+
 before('Driver connect', function(this: MochaFn, done: any) {
-	this.timeout(600000);
+	this.timeout(600000 * timeModifier);
 	const result = new webdriver.Builder()
 		.usingServer('http://hub-cloud.browserstack.com/wd/hub')
 		.withCapabilities(capabilities)
@@ -481,7 +483,7 @@ function resetSettings(_this: MochaFn, driver: webdriver.WebDriver,
 function resetSettings(_this: MochaFn, driver: webdriver.WebDriver): webdriver.promise.Promise<void>; 
 function resetSettings(_this: MochaFn, driver: webdriver.WebDriver,
 	done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
-		_this.timeout(30000);
+		_this.timeout(30000 * timeModifier);
 		const promise = new webdriver.promise.Promise<void>((resolve) => {
 			driver.executeScript(inlineFn(() => {
 				try {
@@ -517,7 +519,7 @@ function reloadPage(_this: MochaFn, driver: webdriver.WebDriver,
 function reloadPage(_this: MochaFn, driver: webdriver.WebDriver): webdriver.promise.Promise<void>; 
 function reloadPage(_this: MochaFn, driver: webdriver.WebDriver,
 	done?: (...args: Array<any>) => void): webdriver.promise.Promise<any>|void {
-		_this.timeout(60000);
+		_this.timeout(60000 * timeModifier);
 		const promise = new webdriver.promise.Promise<void>((resolve) => {
 			wait(driver, 500).then(() => {
 				driver.executeScript(inlineFn(() => {
@@ -1129,7 +1131,7 @@ function enterEditorFullscreen(_this: MochaFn, driver: webdriver.WebDriver, type
 
 describe('Options Page', function(this: MochaFn) {
 	describe('Loading', function(this: MochaFn) {
-		this.timeout(60000);
+		this.timeout(60000 * timeModifier);
 		this.slow(60000);
 
 		it('should happen without errors', function(this: MochaFn, done)  {
@@ -1144,7 +1146,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	});
 	describe('CheckboxOptions', function(this: MochaFn) {
-		this.timeout(5000);
+		this.timeout(5000 * timeModifier);
 		this.slow(4000);
 		const checkboxDefaults = {
 			showOptions: true,
@@ -1214,7 +1216,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	});
 	describe('Commonly used links', function(this: MochaFn) {
-		this.timeout(15000);
+		this.timeout(15000 * timeModifier);
 		this.slow(10000);
 		let searchEngineLink = '';
 		let defaultLinkName = '';
@@ -1320,7 +1322,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	});
 	describe('SearchEngines', function(this: MochaFn) {
-		this.timeout(150000);
+		this.timeout(150000 * timeModifier);
 		this.slow(10000);
 		let searchEngineLink = '';
 		let searchEngineName = '';
@@ -1462,7 +1464,7 @@ describe('Options Page', function(this: MochaFn) {
 			return resetSettings(this, driver);
 		});
 		this.slow(5000);
-		this.timeout(7500);
+		this.timeout(7500 * timeModifier);
 
 		function testURIScheme(driver: webdriver.WebDriver,
 			done: () => void, toExecutePath: string, schemeName: string) {
@@ -1553,7 +1555,7 @@ describe('Options Page', function(this: MochaFn) {
 	function testNameInput(type: CRM.NodeType) {
 		const defaultName = 'name';
 		describe('Name Input', function(this: MochaFn) {
-			this.timeout(10000);
+			this.timeout(10000 * timeModifier);
 			this.slow(10000);
 
 			it('should not change when not saved', function(this: MochaFn, done) {
@@ -1633,7 +1635,7 @@ describe('Options Page', function(this: MochaFn) {
 
 	function testVisibilityTriggers(type: CRM.NodeType) {
 		describe('Triggers', function(this: MochaFn) {
-			this.timeout(15000);
+			this.timeout(15000 * timeModifier);
 			this.slow(12000);
 
 			it('should not change when not saved', function(this: MochaFn, done)  {
@@ -1766,7 +1768,7 @@ describe('Options Page', function(this: MochaFn) {
 
 	function testContentTypes(type: CRM.NodeType) {
 		describe('Content Types', function(this: MochaFn) {
-			this.timeout(30000);
+			this.timeout(30000 * timeModifier);
 			this.slow(15000);
 			const defaultContentTypes = [true, true, true, false, false, false];
 
@@ -1937,7 +1939,7 @@ describe('Options Page', function(this: MochaFn) {
 
 	function testClickTriggers(type: CRM.NodeType) {
 		describe('Click Triggers', function(this: MochaFn) {
-			this.timeout(30000);
+			this.timeout(30000 * timeModifier);
 			this.slow(25000);
 			[0, 1, 2, 3, 4].forEach((triggerOptionIndex) => {
 				describe(`Trigger option ${triggerOptionIndex}`, function(this: MochaFn) {
@@ -2170,7 +2172,7 @@ describe('Options Page', function(this: MochaFn) {
 	function testEditorSettings(type: CRM.NodeType) {
 		describe('Theme', function(this: MochaFn) {
 			this.slow(8000);
-			this.timeout(10000);
+			this.timeout(10000 * timeModifier);
 			it('is changable', function(this: MochaFn, done) {
 				resetSettings(this, driver).then(() => {
 					return openDialog(driver, type);
@@ -2210,7 +2212,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 		describe('Zoom', function(this: MochaFn) {
 			this.slow(30000);
-			this.timeout(40000);
+			this.timeout(40000 * timeModifier);
 
 			const newZoom = '135';
 			it('is changable', function(this: MochaFn, done) {
@@ -2267,7 +2269,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 		describe('UseTabs', function(this: MochaFn) {
 			this.slow(10000);
-			this.timeout(12000);
+			this.timeout(12000 * timeModifier);
 
 			it('is changable', function(this: MochaFn, done) {
 				resetSettings(this, driver).then(() => {
@@ -2309,7 +2311,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 		describe('Tab Size', function(this: MochaFn) {
 			this.slow(15000);
-			this.timeout(20000);
+			this.timeout(20000 * timeModifier);
 			this.retries(3);
 			const newTabSize = '8';
 			it('is changable and preserved on page reload', function(this: MochaFn, done) {
@@ -2362,7 +2364,7 @@ describe('Options Page', function(this: MochaFn) {
 		before('Reset settings', function(this: MochaFn) {
 			return resetSettings(this, driver);
 		});
-		this.timeout(60000);
+		this.timeout(60000 * timeModifier);
 
 		describe('Type Switching', function(this: MochaFn) {
 
@@ -2395,7 +2397,7 @@ describe('Options Page', function(this: MochaFn) {
 					done();
 				});
 			}
-			this.timeout(10000);
+			this.timeout(10000 * timeModifier);
 			this.slow(5000);
 			
 			it('should be able to switch to a script', function(this: MochaFn, done)  {
@@ -2454,7 +2456,7 @@ describe('Options Page', function(this: MochaFn) {
 		describe('Link Dialog', function(this: MochaFn) {
 			const type: CRM.NodeType = 'link';
 
-			this.timeout(30000);
+			this.timeout(30000 * timeModifier);
 
 			before('Reset settings', function(this: MochaFn) {
 				return resetSettings(this, driver);
@@ -2466,7 +2468,7 @@ describe('Options Page', function(this: MochaFn) {
 
 			describe('Links', function(this: MochaFn) {
 				this.slow(20000);
-				this.timeout(25000);
+				this.timeout(25000 * timeModifier);
 
 				after('Reset settings', function(this: MochaFn) {
 					return resetSettings(this, driver);
@@ -2710,7 +2712,7 @@ describe('Options Page', function(this: MochaFn) {
 		describe('Divider Dialog', function(this: MochaFn) {
 			const type: CRM.NodeType = 'divider';
 
-			this.timeout(60000);
+			this.timeout(60000 * timeModifier);
 			before('Reset settings', function(this: MochaFn) {
 				return resetSettings(this, driver);
 			});
@@ -2722,7 +2724,7 @@ describe('Options Page', function(this: MochaFn) {
 		describe('Menu Dialog', function(this: MochaFn) {
 			const type: CRM.NodeType = 'menu';
 
-			this.timeout(60000);
+			this.timeout(60000 * timeModifier);
 			before('Reset settings', function(this: MochaFn) {
 				return resetSettings(this, driver);
 			});
@@ -2743,7 +2745,7 @@ describe('Options Page', function(this: MochaFn) {
 			testClickTriggers(type);
 
 			describe('Toggling', function(this: MochaFn) {
-				this.timeout(15000);
+				this.timeout(15000 * timeModifier);
 				this.slow(7500);
 				it('should be possible to toggle on', (done) => {
 					resetSettings(this, driver).then(() => {
@@ -2819,7 +2821,7 @@ describe('Options Page', function(this: MochaFn) {
 			});
 			describe('Default State', function(this: MochaFn) {
 				this.slow(7500);
-				this.timeout(10000);
+				this.timeout(10000 * timeModifier);
 				it('should be togglable to true', (done) => {
 					resetSettings(this, driver).then(() => {
 						return openDialog(driver, type);
@@ -2940,7 +2942,7 @@ describe('Options Page', function(this: MochaFn) {
 				});
 				describe('Fullscreen Tools', function(this: MochaFn) {
 					this.slow(70000);
-					this.timeout(100000);
+					this.timeout(100000 * timeModifier);
 					describe('Libraries', function(this: MochaFn) {
 						afterEach('Close dialog', (done) => {
 							driver.executeScript(inlineFn(() => {
@@ -3692,7 +3694,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	});
 	describe('Errors', function(this: MochaFn) {
-		this.timeout(60000);
+		this.timeout(60000 * timeModifier);
 		this.slow(100);
 
 		it('should not have been thrown', (done) => {
@@ -3722,7 +3724,7 @@ describe('Options Page', function(this: MochaFn) {
 describe('On-Page CRM', function(this: MochaFn) {
 	describe('Redraws on new CRM', function(this: MochaFn) {
 		this.slow(250);
-		this.timeout(1500);
+		this.timeout(1500 * timeModifier);
 
 		const CRM1 = [
 			templates.getDefaultLinkNode({
@@ -3756,7 +3758,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 
 		it('should not throw when setting up the CRM', function(this: MochaFn, done) {
 			this.slow(4000);
-			this.timeout(5000);
+			this.timeout(5000 * timeModifier);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
@@ -3772,7 +3774,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			}, 'setting up the CRM does not throw');
 		});
 		it('should be using the first CRM', function(this: MochaFn, done) {
-			this.timeout(60000);
+			this.timeout(60000 * timeModifier);
 			getContextMenu(driver).then((contextMenu) => {
 				assertContextMenuEquality(contextMenu, CRM1);
 				done();
@@ -3801,7 +3803,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 	});
 	describe('Links', function(this: MochaFn) {
 		this.slow(150);
-		this.timeout(1500);
+		this.timeout(1500 * timeModifier);
 		const CRMNodes = [
 			templates.getDefaultLinkNode({
 				name: getRandomString(25),
@@ -3880,7 +3882,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 
 		it('should not throw when setting up the CRM', function(this: MochaFn, done) {
 			this.slow(4000);
-			this.timeout(5000);
+			this.timeout(5000 * timeModifier);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
@@ -3936,7 +3938,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should open the correct links when clicked for the default link', function(this: MochaFn, done) {
-			this.timeout(2000);
+			this.timeout(2000 * timeModifier);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {
@@ -4000,7 +4002,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 		});
 		it('should open the correct links when clicked for multiple links', (done) => {
-			this.timeout(2000);
+			this.timeout(2000 * timeModifier);
 			const tabId = ~~(Math.random() * 100);
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {
@@ -4145,7 +4147,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		];
 
 		it('should not throw when setting up the CRM', function(this: MochaFn, done) {
-			this.timeout(5000);
+			this.timeout(5000 * timeModifier);
 			this.slow(4000);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
@@ -4164,7 +4166,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 		it('should have the correct structure', function(this: MochaFn, done) {
 			this.slow(400);
-			this.timeout(1400);
+			this.timeout(1400 * timeModifier);
 			getContextMenu(driver).then((contextMenu) => {
 				driver
 					.executeScript(inlineFn(() => {
@@ -4179,7 +4181,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 	});
 	describe('Scripts', function(this: MochaFn) {
 		this.slow(900);
-		this.timeout(2000);
+		this.timeout(2000 * timeModifier);
 
 		const CRMNodes = [
 			templates.getDefaultScriptNode({
@@ -4260,7 +4262,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		}
 
 		it('should not throw when setting up the CRM', function(this: MochaFn, done) {
-			this.timeout(5000);
+			this.timeout(5000 * timeModifier);
 			this.slow(4000);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
@@ -4556,7 +4558,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 	});
 	describe('Stylesheets', function(this: MochaFn) {
 		this.slow(900);
-		this.timeout(2000);
+		this.timeout(2000 * timeModifier);
 
 		const CRMNodes = [
 			templates.getDefaultStylesheetNode({
@@ -4869,7 +4871,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		}
 
 		it('should not throw when setting up the CRM', function(this: MochaFn, done) {
-			this.timeout(5000);
+			this.timeout(5000 * timeModifier);
 			this.slow(4000);
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
@@ -5145,7 +5147,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			runStylesheet(StylesheetOnPageTests.IF_ELSE, genContainsRegex('a', 'd'), done);
 		});
 		it('should work with multiple nested if statements', function(this: MochaFn, done) {
-			this.timeout(5000);
+			this.timeout(5000 * timeModifier);
 			runStylesheet(StylesheetOnPageTests.IF_NESTED, genContainsRegex('c', 'd', 'e'), done);
 		});
 		it('should work with multiple nested if-else statements', function(this: MochaFn, done) {
@@ -5188,7 +5190,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			describe('Default off', function(this: MochaFn) {
 				const tabId = getRandomId();
 				this.slow(600);
-				this.timeout(1600);
+				this.timeout(1600 * timeModifier);
 				it('should be off by default', (done) => {
 					wait(driver, 150).then(() => {
 						dummy1.getSize().then((dimensions) => {
@@ -5277,7 +5279,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			});
 			describe('Default on', function(this: MochaFn) {
 				this.slow(300);
-				this.timeout(1500);
+				this.timeout(1500 * timeModifier);
 				it('should be on by default', (done) => {
 					dummy2.getSize().then((dimensions) => {
 						assert.strictEqual(dimensions.width, 50,
@@ -5289,7 +5291,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		});
 	});
 	describe('Errors', function(this: MochaFn) {
-		this.timeout(60000);
+		this.timeout(60000 * timeModifier);
 		this.slow(100);
 
 		it('should not have been thrown', (done) => {
