@@ -1,4 +1,31 @@
-document.body.addEventListener('CRMLoaded', function() {
+window.CRMLoaded = window.CRMLoaded || {
+	listener: null,
+	register: function(fn) {
+		window.CRMLoaded.listener = fn;
+	}
+}
+window.CRMLoaded.register(function() {
+	//Because of a chrome bug that causes it to freeze
+	// when handling at least this regex string
+	// /((.+,(\s+))*(.+)+){(((\s+)(.*)(\s+))+)}/
+	// the regex engine cannot be applied, so this
+	// will have to do 
+	function findStylesheetBlocks(text) {
+		var rules = [];
+
+		var textSplit = text.split('}');
+		textSplit.slice(0, -1).forEach(function(block) {
+			var bracketIndex = block.indexOf('{');
+			var selector = block.slice(0, bracketIndex).trim();
+			var ruleText = block.slice(bracketIndex + 1).trim();
+			rules.push({
+				elements: selector,
+				ruleText: ruleText
+			});
+		});
+		return rules;
+	}
+
 	function makeNum(str) {
 		if (typeof str === 'number') {
 			return str;
@@ -93,17 +120,14 @@ document.body.addEventListener('CRMLoaded', function() {
 							key.slice(dashIndex + 2); 
 					}
 
+					calc.elements = document.querySelectorAll(calc.elements);
+
 					if (!calc.elements) {
 						return null;
 					}
 
 					var elements = Array.prototype.slice.call(calc.elements);
 
-					var calcString = calc.calculation
-						.replace('vw', ' * ' + window.innerWidth / 100)
-						.replace('vh', ' * ' + window.innerHeight / 100)
-						.replace('em', ' * 16')
-						.replace('px', '');
 					if (calc.calculation.indexOf('vh') > -1 || calc.calculation.indexOf('vw') > -1) {
 						toUpdate.push({
 							calculation: calcString,
@@ -111,6 +135,11 @@ document.body.addEventListener('CRMLoaded', function() {
 							key: key
 						});
 					}
+					var calcString = calc.calculation
+						.replace('vw', ' * ' + window.innerWidth / 100)
+						.replace('vh', ' * ' + window.innerHeight / 100)
+						.replace('em', ' * 16')
+						.replace('px', '');
 					var result = calculate(calcString);
 
 					elements.forEach(function(el) {
@@ -120,7 +149,11 @@ document.body.addEventListener('CRMLoaded', function() {
 
 				window.onresize = function() {
 					toUpdate.forEach(function(calcToUpdate) {
-						var result = calculate(calcToUpdate.calculation);
+						var result = calculate(calcToUpdate.calculation
+							.replace('vw', ' * ' + window.innerWidth / 100)
+							.replace('vh', ' * ' + window.innerHeight / 100)
+							.replace('em', ' * 16')
+							.replace('px', ''));
 						calcToUpdate.elements.forEach(function(element) {
 							element.style[calcToUpdate.key] = result + 'px';
 						});
@@ -170,6 +203,7 @@ document.body.addEventListener('CRMLoaded', function() {
 							elements: stylesheetBlock.elements
 						};
 					}
+					return null;
 				}).filter(function(block) {
 					return block !== null;
 				});
@@ -184,18 +218,7 @@ document.body.addEventListener('CRMLoaded', function() {
 						return null;
 					}
 
-					var sheetMatch = stylesheetContent.match(/((.+,(\s+))*(.+)+){(((\s+)(.*)(\s+))+)}/g);
-					if (sheetMatch) {
-						sheetMatch.forEach(function(matchedString) {
-							var match = matchedString.match(cssBlockRegex);
-							try {
-								stylesheetBlocks.push({
-									elements: document.querySelectorAll(match[1]),
-									ruleText: match[5]
-								});
-							} catch(e) { }
-						});
-					}
+					stylesheetBlocks = stylesheetBlocks.concat(findStylesheetBlocks(stylesheetContent));
 				});
 				return stylesheetBlocks;
 			}(function(linkElements) {
