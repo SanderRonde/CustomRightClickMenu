@@ -7711,7 +7711,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						var file = new window.TernFile('[doc]');
 						file.text = lines.join('\n');
 						var srv = new window.CodeMirror.TernServer({
-							defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs]
+							defs: [window.ecma5, window.ecma6, window.browserDefs]
 						});
 						window.tern.withContext(srv.cx, () => {
 							file.ast = window.tern.parse(file.text, srv.passes, {
