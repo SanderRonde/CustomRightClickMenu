@@ -175,7 +175,6 @@ interface Window {
 	CodeMirror: CodeMirror;
 	ecma5: any;
 	ecma6: any;
-	jqueryDefs: any;
 	browserDefs: any;
 	tern: Tern.Tern;
 }

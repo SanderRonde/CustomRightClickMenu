@@ -687,7 +687,7 @@ class STE {
 			this.editor = null;
 		}
 		window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
-			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+			defs: [window.ecma5, window.ecma6, window.browserDefs, window.crmAPIDefs]
 		});
 		window.externalEditor.init();
 		if (window.app.storageLocal.recoverUnsavedData) {

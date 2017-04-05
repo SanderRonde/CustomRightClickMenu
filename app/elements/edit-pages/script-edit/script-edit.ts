@@ -1216,7 +1216,7 @@ class SCE {
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
 		this.addDialogToMetaTagUpdateListeners();
 		window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
-			defs: [window.ecma5, window.ecma6, window.jqueryDefs, window.browserDefs, window.crmAPIDefs]
+			defs: [window.ecma5, window.ecma6, window.browserDefs, window.crmAPIDefs]
 		});
 		document.body.classList.remove('editingStylesheet');
 		document.body.classList.add('editingScript');

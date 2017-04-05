@@ -166,6 +166,5 @@ interface Window {
 	tern: Tern.Tern;
 	ecma5: JSDefinitions;
 	ecma6: JSDefinitions;
-	jqueryDefs: JSDefinitions;
 	browserDefs: JSDefinitions;
 }
