@@ -160,6 +160,24 @@ module.exports = function(grunt) {
 					]
 				}
 			},
+			codeMirrorMinifyBeautiful: {
+				options: {
+					beautify: true,
+					sourceMap: true
+				},
+				files: {
+					'build/js/libraries/codemirror/codeMirrorFile.min.js': [
+						'app/js/libraries/codemirror/codemirror.js',
+						'app/js/libraries//diff_match_patch.js',
+						'app/js/libraries/sortable.js',
+						'app/js/libraries/codemirror/codeMirrorAddons.js',
+						'app/js/userscriptMetadataCodemirror.js',
+						'app/js/libraries/codemirror/codemirrorJs.js',
+						'app/js/libraries/codemirror/codemirrorCodeOptionsJson.js',
+						'app/js/crmAPIDefs.js'
+					]
+				}
+			},
 			crmMinifiy: {
 				files: [
 					{
@@ -179,7 +197,33 @@ module.exports = function(grunt) {
 					}
 				]
 			},
+			crmMinifiyBeautiful: {
+				options: {
+					beautify: true,
+					sourceMap: true
+				},
+				files: [
+					{
+						expand: true,
+						cwd: 'app/js',
+						src: [
+							'background.js',
+							'crmapi.js', 
+							'crmAPIDefs.js',
+							'crmAPIDocs.js', 
+							'contentscript.js',
+							'sandbox.js', 
+							'installStylesheet.js',
+							'calcPolyfill.js'
+						],
+						dest: 'build/js/'
+					}
+				]
+			},
 			elementsMinify: {
+				options: {
+					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/'
+				},
 				files: [ { expand: true, src: ['build/elements/**/*.js'] } ]
 			}
 		},
@@ -265,24 +309,25 @@ module.exports = function(grunt) {
 						],
 						dest: 'build/' //Images
 					},
-					{
-						expand: true,
-						cwd: 'app/',
-						src: [
-							'elements/crm-app/*',
-							'!elements/crm-app/crm-app.ts',
-							'elements/error-reporting-tool/*',
-							'!elements/error-reporting-tool/error-reporting-tool.ts',
-							'elements/installing/*',
-							'bower_components/polymer/*',
-							'bower_components/webcomponentsjs/webcomponents.min.js'
-						],
-						dest: 'build/'
-					}, //Elements
 					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.js'], dest: 'build/' }, //JS libs
 					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
 				]
 			},
+			elements: {
+				expand: true,
+				cwd: 'app/',
+				src: [
+					'elements/crm-app/crm-app.js',
+					'elements/crm-app/crm-app.css',
+					'!elements/crm-app/crm-app.ts',
+					'elements/error-reporting-tool/*',
+					'!elements/error-reporting-tool/error-reporting-tool.ts',
+					'elements/installing/*',
+					'bower_components/polymer/*',
+					'bower_components/webcomponentsjs/webcomponents.min.js'
+				],
+				dest: 'build/'
+			}, //Elements
 			documentationWebsite: {
 				files: [
 					{
@@ -515,7 +560,8 @@ module.exports = function(grunt) {
 
 	//Alias only tasks, not meant for running
 	grunt.registerTask('extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs']);
-	grunt.registerTask('extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
+	grunt.registerTask('extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite',
+		'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 	grunt.registerTask('defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
 
 
@@ -532,10 +578,14 @@ module.exports = function(grunt) {
 	grunt.registerTask('updateTsIdMaps', ['compile', 'extractIdMaps']);
 
 	//Extracts the external editor definitions and places them in build/
-	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
+	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite',
+		'extractCrmDefs:updateJSONDocsWebsite']);
 
 	//Extracts the files needed for the documentationWebsite and places them in build/website
-	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite', 'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite', 'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter', 'copy:documentationWebsite', 'defsNoClean', 'removePrefix', 'vulcanize']);
+	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite',
+		'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
+		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
+		'copy:documentationWebsite', 'defsNoClean', 'removePrefix', 'vulcanize']);
 
 	//Moves the documentationWebsite from build/website to /documentation
 	grunt.registerTask('moveDocumentationWebsite', ['compile', 'copy:moveDocumentationWebsite']);
@@ -546,19 +596,31 @@ module.exports = function(grunt) {
 	//Compiles all the typescript
 	grunt.registerTask('compile', ['exec:app', 'exec:tests']);
 
+	//Builds the extension but tries to keep the code readable and unminified
+	// (and preserves debugger statements etc)
+	grunt.registerTask('buildForDebugging', ['cleanBuild', 'compile', 'extractDefs',
+		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
+		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
+		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
+		'uglify:crmMinifiyBeautiful', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
+		'clean:tsFiles', 'usebanner', 'zip']);
+
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['cleanBuild', 'compile', 'extractDefs', 'copy:build',
 		'copyImportedElements:elements', 'copyImportedElements:installing',
 		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
-		'concat:jqueryConcat', 'uglify', 'htmlmin:build', 'cssmin:build',
-	'cssmin:elements', 'clean:tsFiles', 'usebanner', 'zip']);
+		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinify',
+		'uglify:crmMinifiy', 'uglify:elementsMinify', 'htmlmin:build', 'cssmin:build',
+		'cssmin:elements', 'clean:tsFiles', 'usebanner', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
 
 	//Tests whether the extension can be built properly without errors
-	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs', 'cleanBuild', 'documentationWebsite', 'cleanBuild']);
+	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs',
+		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['compile', 'mochaTest', 'testBuild']);
