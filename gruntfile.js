@@ -252,6 +252,7 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'build/' }, //Fonts
 					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html'], dest: 'build/' }, //HTML files
 					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'build/' }, //Default libraries
+					{ expand: true, cwd: 'app/', src: ['bower_components/web-animations-js/*'], dest: 'build/' }, //Webanimations
 					{
 						expand: true,
 						cwd: 'app/',
