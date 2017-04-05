@@ -10,7 +10,6 @@
   },
   "description": "Customize your right-click menu",
   "devDependencies": {
-    "@types/node": "^7.0.0",
     "async": "^0.9.0",
     "babel-cli": "^6.14.0",
     "babel-preset-react": "^6.11.1",
