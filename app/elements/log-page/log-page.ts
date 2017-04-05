@@ -24,10 +24,13 @@ class LP {
 		window.logPage = this;
 
 		window.setTimeout(function() {
-			var event = document.createEvent("HTMLEvents");
-			event.initEvent("CRMLoaded", true, true);
-			(event as any).eventName = "CRMLoaded";
-			document.body.dispatchEvent(event);
+			window.CRMLoaded = window.CRMLoaded || {
+				listener: null,
+				register(fn) {
+					fn();
+				}
+			}
+			window.CRMLoaded.listener && window.CRMLoaded.listener();
 		}, 2500);
 	}
 }

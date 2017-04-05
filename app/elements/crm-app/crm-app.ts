@@ -2182,7 +2182,6 @@ class CA {
 
 	private static handleFirstTime(_this: CrmApp) {
 		//Sync storage
-		debugger;
 		var defaultSyncStorage: CRM.SettingsStorage = {
 			editor: {
 				keyBindings: {
@@ -2395,30 +2394,36 @@ class CA {
 			var progress = Math.round((registeredElements / importsAmount) * 100) / 100;
 			_this.animateLoadingBar(loadingBarSettings, progress);
 			if (registeredElements === importsAmount) {
-				callback && callback();
-				//All elements have been loaded, unhide them all
-				window.setTimeout(function() {
-					document.documentElement.classList.remove('elementsLoading');
-
-					//Clear the annoying CSS mime type messages and the /deep/ warning
-					if (!window.lastError && location.hash.indexOf('noClear') === -1) {
-						console.clear();
-					}
-
+				//Wait until the element is actually registered to the DOM
+				window.setTimeout(() => {
+					callback && callback();
+					//All elements have been loaded, unhide them all
 					window.setTimeout(function() {
-						//Wait for the fade to pass
-						window.polymerElementsLoaded = true;
-						document.getElementById('splashScreen').style.display = 'none';
-					}, 500);
+						document.documentElement.classList.remove('elementsLoading');
 
-					console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
-						'font-size:120%;font-weight:bold;');
-				}, 200);
+						//Clear the annoying CSS mime type messages and the /deep/ warning
+						if (!window.lastError && location.hash.indexOf('noClear') === -1) {
+							console.clear();
+						}
 
-				var event = document.createEvent("HTMLEvents");
-				event.initEvent("CRMLoaded", true, true);
-				(event as any).eventName = "CRMLoaded";
-				document.body.dispatchEvent(event);
+						window.setTimeout(function() {
+							//Wait for the fade to pass
+							window.polymerElementsLoaded = true;
+							document.getElementById('splashScreen').style.display = 'none';
+						}, 500);
+
+						console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+							'font-size:120%;font-weight:bold;');
+					}, 200);
+
+					window.CRMLoaded = window.CRMLoaded || {
+						listener: null,
+						register(fn) {
+							fn();
+						}
+					}
+					window.CRMLoaded.listener && window.CRMLoaded.listener();
+				}, 25);
 			}
 		};
 		Polymer.telemetry.registrations = registrationArray;

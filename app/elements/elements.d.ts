@@ -74,6 +74,10 @@ interface Window {
 	crmAPIDefs?: any;
 	lastError?: Error;
 	polymerElementsLoaded?: boolean;
+	CRMLoaded?: {
+		listener: () => void;
+		register(fn: () => void): void;
+	}
 	requestIdleCallback(callback: (deadline: {
 		timeRemaining(): number;
 	}) => void): number;
