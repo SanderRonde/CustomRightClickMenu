@@ -209,7 +209,7 @@ window.chrome = {
 				messageSender, respond);
 		},
 		onInstalled: {
-			addListener: () => {}
+			addListener: function() {}
 		}
 	},
 	tabs: {
