@@ -130,7 +130,7 @@ window.CRMLoaded.register(function() {
 
 					if (calc.calculation.indexOf('vh') > -1 || calc.calculation.indexOf('vw') > -1) {
 						toUpdate.push({
-							calculation: calcString,
+							calculation: calc.calculation,
 							elements: elements,
 							key: key
 						});
