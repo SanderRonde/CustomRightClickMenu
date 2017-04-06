@@ -1017,14 +1017,10 @@ class SCE {
 			input.setAttribute('value', value);
 
 			const keyBindingCloneTemplate = document.importNode(keyBindingClone, true) as HTMLElement;
-			settingsContainer.appendChild(keyBindingCloneTemplate);
+			settingsContainer.insertBefore(keyBindingCloneTemplate, settingsContainer.querySelector('#afterEditorSettingsSpacing'));
 			settingsContainer.querySelector('paper-input')
 				.addEventListener('keydown', this.createKeyBindingListener(input, this.keyBindings[i]));
 		}
-
-		settingsContainer.appendChild(document.createElement('br'));
-		settingsContainer.appendChild(document.createElement('br'));
-		settingsContainer.appendChild(document.createElement('br'));
 	};
 
 	/**
@@ -1112,9 +1108,6 @@ class SCE {
 		
 		this.settingsShadow = clone.querySelector('#settingsShadow') as HTMLElement;
 		this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
-		Array.prototype.slice.apply(this.editorOptions.children).forEach((child: HTMLElement) => {
-			child.remove();
-		});
 		this.fillEditorOptions(this.editorOptions);
 
 		this.fullscreenEl = clone.querySelector('#editorFullScreen') as HTMLElement;
