@@ -486,11 +486,11 @@ class STE {
 		(clone.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
 			.setAttribute('value', window.app.settings.editor.tabSize);
 
-		const checkbox = clone.querySelector('#editorTabsOrSpacesCheckbox');
+		const cloneCheckbox = clone.querySelector('#editorTabsOrSpacesCheckbox');
 		if (window.app.settings.editor.useTabs) {
-			checkbox.setAttribute('checked', 'checked');
+			cloneCheckbox.setAttribute('checked', 'checked');
 		} else {
-			checkbox.removeAttribute('checked');
+			cloneCheckbox.removeAttribute('checked');
 		}
 
 		const cloneTemplate = document.importNode(clone, true) as HTMLElement;
@@ -528,7 +528,7 @@ class STE {
 		});
 		this._updateZoomEl = updateZoomEl;
 
-		checkbox.addEventListener('click', () => {
+		importedElement.querySelector('#editorTabsOrSpacesCheckbox').addEventListener('click', () => {
 			window.app.settings.editor.useTabs = !window.app.settings.editor.useTabs;
 			window.app.upload();
 		});
