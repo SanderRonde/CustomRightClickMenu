@@ -49,6 +49,8 @@ function getTagType(name) {
 			return 'HTMLImageElement';
 		case 'b':
 			return 'HTMLElement';
+		case undefined:
+			return 'HTMLTemplateElement';
 		default: 
 			return `HTML${name.split('-').map((word) => {
 				return word[0].toUpperCase() + word.slice(1);
@@ -115,6 +117,7 @@ module.exports = function(grunt) {
 
 								resolveFile();
 							} catch(e) {
+								console.log(e);
 								rejectFile(file);
 							}
 						});
