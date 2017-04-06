@@ -222,7 +222,7 @@ module.exports = function(grunt) {
 			},
 			elementsMinify: {
 				options: {
-					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/'
+					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/\n'
 				},
 				files: [ { expand: true, src: ['build/elements/**/*.js'] } ]
 			}
