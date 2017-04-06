@@ -550,14 +550,40 @@ function reloadPage(_this: MochaFn, driver: webdriver.WebDriver,
 		}
 	}
 
+function waitForCRM(driver: webdriver.WebDriver, timeRemaining: number): webdriver.promise.Promise<void> {
+	return new webdriver.promise.Promise<void>((resolve, reject) => {
+		if (timeRemaining <= 0) {
+			reject(null);
+			return;
+		}
+
+		driver.executeScript(inlineFn(() => {
+			const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
+			return !!crmItem;
+		})).then((result) => {
+			if (result) {
+				resolve(null);
+			} else {
+				setTimeout(() => {
+					waitForCRM(driver, timeRemaining - 250).then(resolve, reject);
+				}, 250);
+			}
+		})
+	});
+}
+
 function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, done: () => void) {
-	driver.executeScript(inlineFn(() => {
-		const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
-		crmItem.querySelector('type-switcher').changeType('REPLACE.type');
-		return true;
-	}, {
-		type: type
-	})).then(() => {
+	waitForCRM(driver, 4000).then(() => {
+		return driver.executeScript(inlineFn(() => {
+			const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
+			crmItem.querySelector('type-switcher').changeType('REPLACE.type');	
+		}, {
+			type: type
+		}));
+	}, () => {
+		//Timeout, element not found
+		throw new Error('edit-crm-item element could not be found');
+	}).then(() => {
 		return wait(driver, 100);
 	}).then(() => {
 		return driver.executeScript(inlineFn(() => {
@@ -3720,6 +3746,7 @@ describe('Options Page', function(this: MochaFn) {
 		});
 	});
 });
+
 
 describe('On-Page CRM', function(this: MochaFn) {
 	describe('Redraws on new CRM', function(this: MochaFn) {
