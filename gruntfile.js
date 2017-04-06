@@ -575,7 +575,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('defs', ['compile', 'extractDefs', 'processhtml:updateCRMDefs']);
 
 	//Extracts the HTML element ID to element type maps from HTML files
-	grunt.registerTask('updateTsIdMaps', ['compile', 'extractIdMaps']);
+	grunt.registerTask('updateTsIdMaps', ['extractIdMaps']);
 
 	//Extracts the external editor definitions and places them in build/
 	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite',
