@@ -59,7 +59,7 @@ declare namespace Polymer {
 
 	export type Element = HTMLElement | HTMLPaperIconButtonElement | HTMLPaperDialogElement | HTMLPaperInputElement |
 		HTMLPaperCheckboxElement | CenterElement | HTMLDomRepeatElement | PaperToggleOption | HTMLPaperToastElement |
-		DefaultLink | EchoHtml | DividerEdit | HTMLPaperRadioGroupElement | HTMLDomIfElement;
+		DefaultLink | EchoHtml | DividerEdit | HTMLPaperRadioGroupElement | HTMLDomIfElement | HTMLPaperRipplElement;
 
 	interface ElementBase {
 		$$(selector: string): HTMLElement;
@@ -106,6 +106,7 @@ declare namespace Polymer {
 		'type-switcher': HTMLTypeSwitcherElement;
 		'paper-dropdown-menu': HTMLPaperDropdownMenuElement;
 		'paper-array-input': HTMLPaperArrayInputElement;
+		'paper-ripple': HTMLPaperRipplElement;
 	};
 
 }
@@ -220,6 +221,7 @@ type HTMLUseExternalEditorElement = UseExternalEditor;
 type HTMLTypeSwitcherElement = TypeSwitcher;
 type HTMLPaperDropdownMenuElement = PaperDropdownMenu;
 type HTMLPaperArrayInputElement = PaperArrayInput;
+type HTMLPaperRipplElement = HTMLElement;
 
 type ElementTagNameMaps = Polymer.ElementTagNameMap & 
 	HTMLElementTagNameMap & ElementTagNameMap;
