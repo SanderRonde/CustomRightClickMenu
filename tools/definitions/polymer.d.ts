@@ -140,6 +140,7 @@ interface HTMLPaperToastElement extends HTMLElement {
 interface HTMLPaperInputElement extends HTMLInputElement {
 	invalid: boolean;
 	errorMessage: string;
+	label: string;
 }
 
 interface HTMLPaperInputContainerElement extends HTMLElement {
