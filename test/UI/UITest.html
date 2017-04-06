@@ -2,12 +2,12 @@
 <html lang="en" class="elementsLoading">
 	<head>
 		<title>
-			CRM Demo
+			Test
 		</title>
 		<!-- build:[href] ./../test/UI/ -->
-		<base href="./" />
+		<base href="./../../build/" />
 		<!-- /build -->
-		<link rel="shortcut icon" href="favicon.ico"/>
+		<link rel="shortcut icon" href="../../test/UI/favicon.ico"/>
 		<style>
 			html {
 				overflow: hidden;
@@ -29,35 +29,35 @@
 				font-family: 'Roboto';
 				font-style: normal;
 				font-weight: 400;
-				src: url(../../build/fonts/Roboto-Regular.ttf);
+				src: url(fonts/Roboto-Regular.ttf);
 			}
 
 			@font-face {
 				font-family: 'Roboto';
 				font-style: normal;
 				font-weight: 500;
-				src: url(../../build/fonts/Roboto-Medium.ttf);
+				src: url(fonts/Roboto-Medium.ttf);
 			}
 
 			@font-face {
 				font-family: 'Roboto';
 				font-style: normal;
 				font-weight: 700;
-				src: url(../../build/fonts/Roboto-Bold.ttf);
+				src: url(fonts/Roboto-Bold.ttf);
 			}
 
 			@font-face {
 				font-family: 'Inconsolata';
 				font-style: normal;
 				font-weight: 400;
-				src: url(../../build/fonts/Inconsolata-Regular.ttf);
+				src: url(fonts/Inconsolata-Regular.ttf);
 			}
 
 			@font-face {
 				font-family: 'Inconsolata';
 				font-style: normal;
 				font-weight: 700;
-				src: url(../../build/fonts/Inconsolata-Bold.ttf);
+				src: url(fonts/Inconsolata-Bold.ttf);
 			}
 
 			body {
@@ -140,19 +140,19 @@
 			}
 			/*#endregion*/
 		</style>
-		<link async rel="stylesheet" href="../../build/css/codemirror.css" />
-		<script src="../../build/bower_components/webcomponentsjs/webcomponents.min.js"></script>
-		<link rel="import" href="../../build/bower_components/polymer/polymer.html" />
-		<link async rel="import" href="../../build/elements/crm-app/crm-app.html" />
-		<link async rel="import" href="../../build/elements/error-reporting-tool/error-reporting-tool.html" />
+		<link async rel="stylesheet" href="css/codemirror.css" />
+		<script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+		<link rel="import" href="bower_components/polymer/polymer.html" />
+		<link async rel="import" href="elements/crm-app/crm-app.html" />
+		<link async rel="import" href="elements/error-reporting-tool/error-reporting-tool.html" />
 	</head>
 	<body>
-		<script src="chrome-api-dummy.js"></script>
-		<script src="../../build/js/libraries/jquery/jqueryFiles.min.js"></script>
-		<script src="../../build/js/libraries/codemirror/codeMirrorFile.min.js"></script>
-		<script src="../../build/js/libraries/jsonfn.js"></script>
-		<script src="../../build/js/libraries/md5.js"></script>
-		<script src="../../build/js/background.js"></script>
+		<script src="../test/UI/chrome-api-dummy.js"></script>
+		<script src="js/libraries/jquery/jqueryFiles.min.js"></script>
+		<script src="js/libraries/codemirror/codeMirrorFile.min.js"></script>
+		<script src="js/libraries/jsonfn.js"></script>
+		<script src="js/libraries/md5.js"></script>
+		<script src="js/background.js"></script>
 		<div id="splashScreen">
 			<div id="splashScreenHorizontalCenterer">
 				<div id="splashScreenVerticalCenterer">
@@ -248,7 +248,6 @@
 				</div>
 			</paper-material>
 		</template>
-		<script defer src="../../build/js/crmAPIDefs.js" async></script>
-		<script src="../../build/js/calcPolyfill.js" defer async></script>
+		<script src="js/calcPolyfill.js" defer async></script>
 	</body>
 </html>
