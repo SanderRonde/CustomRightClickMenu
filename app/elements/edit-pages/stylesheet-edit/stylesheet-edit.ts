@@ -656,7 +656,7 @@ class STE {
 		}));
 		this.fillEditorOptions();
 		this.fullscreenEl = this.buttonsContainer.appendChild(window.app.createElement('div', {
-			id: 'editorFullscreen'
+			id: 'editorFullScreen'
 		}, [
 			window.app.createElement('svg', {
 				props: {
