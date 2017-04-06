@@ -8432,7 +8432,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return false;
 				}
 				//Determine if it's a transfer from CRM version 1.*
-				if (!window.localStorage.getItem('transferToVersion2') && window.localStorage.getItem('numberofrows') !== undefined) {
+				if (!window.localStorage.getItem('transferToVersion2') && 
+					window.localStorage.getItem('numberofrows') !== undefined && 
+					window.localStorage.getItem('numberofrows') !== null) {
 					return this.SetupHandling.handleTransfer();
 				} else {
 					var firstRunResult = this.SetupHandling.handleFirstRun();
