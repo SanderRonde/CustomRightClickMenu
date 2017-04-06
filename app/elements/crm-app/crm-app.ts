@@ -2328,7 +2328,7 @@ class CA {
 			}
 			try {
 				//Determine if it's a transfer from CRM version 1.*
-				if (!localStorage.getItem('transferToVersion2') &&
+				if (localStorage.getItem('transferToVersion2') &&
 						window.localStorage.getItem('numberofrows') !== null &&
 						window.localStorage.getItem('numberofrows') !== undefined) {
 					_this.handleDataTransfer(_this);
