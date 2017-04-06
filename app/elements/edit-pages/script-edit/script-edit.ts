@@ -924,9 +924,9 @@ class SCE {
 		//The white theme option
 		theme.querySelector('#editorThemeSettingChoicesCont').appendChild(window.app.createElement('div', {
 			id: 'editorThemeSettingWhite',
-			classes: [`editorThemeSetting${(window.app.settings.editor.theme === 'white' ? ' currentTheme' : '')}`]
-		}));
-		theme.addEventListener('click', () => {
+			classes: ['editorThemeSetting'].concat((window.app.settings.editor.theme === 'white' ? 
+				['currentTheme'] : []))
+		})).addEventListener('click', () => {
 			var themes = theme.parentElement.children;
 			themes[0].classList.add('currentTheme');
 			themes[1].classList.remove('currentTheme');
@@ -937,9 +937,9 @@ class SCE {
 		//The dark theme option
 		theme.querySelector('#editorThemeSettingChoicesCont').appendChild(window.app.createElement('div', {
 			id: 'editorThemeSettingDark',
-			classes: [`editorThemeSetting${(window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '')}`]
-		}));
-		theme.addEventListener('click', () => {
+			classes: ['editorThemeSetting'].concat((window.app.settings.editor.theme === 'dark' ? 
+				['currentTheme'] : []))
+		})).addEventListener('click', () => {
 			var themes = theme.parentElement.children;
 			themes[0].classList.add('currentTheme');
 			themes[1].classList.remove('currentTheme');
