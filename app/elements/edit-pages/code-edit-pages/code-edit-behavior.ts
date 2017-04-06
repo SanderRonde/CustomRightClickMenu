@@ -175,7 +175,6 @@ class CEB {
 	 */
 	static toggleFullScreen(this: CodeEditBehavior) {
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
-		this.fullscreen = !this.fullscreen;
 	};
 
 		/**
@@ -183,7 +182,6 @@ class CEB {
 	 */
 	static toggleOptions(this: CodeEditBehavior) {
 		(this.optionsShown ? this.hideOptions() : this.showOptions());
-		this.optionsShown = !this.optionsShown;
 	};
 
 	/**
