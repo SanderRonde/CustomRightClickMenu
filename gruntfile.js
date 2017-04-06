@@ -623,5 +623,5 @@ module.exports = function(grunt) {
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
-	grunt.registerTask('test', ['compile', 'mochaTest', 'testBuild']);
+	grunt.registerTask('test', ['testBuild', 'exec:test', 'compile', 'mochaTest']);
 };
