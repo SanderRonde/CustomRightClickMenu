@@ -89,12 +89,12 @@ class CEB {
 	/**
 	 * The element that contains the editor's options
 	 */
-	static editorOptions: JQuery = null;
+	static editorOptions: HTMLElement = null;
 
 	/**
 	 * The settings shadow element which is the circle on options
 	 */
-	static settingsShadow: JQuery = null;
+	static settingsShadow: HTMLElement = null;
 
 	/**
 	 * The editor's settings before going to the settings page

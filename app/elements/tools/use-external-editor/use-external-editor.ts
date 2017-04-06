@@ -209,86 +209,191 @@ class UEE {
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
 		window.doc.externalEditorDialogTrigger.disabled = true;
 		window.doc.externalEditorDialogTrigger.classList.add('disabled');
-		var $toolsCont = $('<div id="externalEditingTools"></div>');
-		$('<div id="externalEditingToolsTitle">Using external editor</div>').appendTo($toolsCont);
-		var $cont = $('<div id="externalEditingToolsButtonsCont"></div>').appendTo($toolsCont);
+		var toolsCont = window.app.createElement('div', {
+			id: 'externalEditingTools'
+		});
+		toolsCont.appendChild(window.app.createElement('div', {
+			id: 'externalEditingToolsTitle'
+		}, ['Using external editor']));
+		var cont = toolsCont.appendChild(window.app.createElement('div', {
+			id: 'externalEditingToolsButtonsCont'
+		}));
 
-		$('<div id="externalEditingToolsDisconnect">' +
-				'<paper-material elevation="1">' +
-				'<paper-ripple></paper-ripple>' +
-				'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
-				'<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>' +
-				'<path d="M0 0h24v24H0z" fill="none"/>' +
-				'</svg>' +
-				'</paper-material>' +
-				'<div class="externalEditingToolText">' +
-				'Stop' +
-				'</div>' +
-				'</div>')
-			.click(function() {
-				_this.cancelOpenFiles.apply(_this, []);
-			})
-			.appendTo($cont);
-		$('<div id="externalEditingToolsShowLocation">' +
-				'<paper-material elevation="1">' +
-				'<paper-ripple></paper-ripple>' +
-				'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
-				'<path d="M0 0h24v24H0z" fill="none"/>' +
-				'<path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/>' +
-				'</svg>' +
-				'</paper-material>' +
-				'<div class="externalEditingToolText">' +
-				'Location' +
-				'</div>' +
-				'</div>')
-			.click(function() {
-				//Show location toast
-				var location = _this.connection.filePath;
-				location = location.replace(/\\/g, '/');
-				window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
-				const externalEditorLocationToast = window.doc.externalEditorLocationToast;
-				externalEditorLocationToast.text = 'File is located at: ' + location;
-				externalEditorLocationToast.show();
-			})
-			.appendTo($cont);
-		$('<div id="externalEditingToolsCreateNewFile">' +
-			'<paper-material elevation="1">' +
-			'<paper-ripple></paper-ripple>' +
-			'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
-			'<path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/>' +
-			'<path d="M0 0h24v24H0z" fill="none"/>' +
-			'</svg>' +
-			'</paper-material>' +
-			'<div class="externalEditingToolText">' +
-			'Move' +
-			'</div>' +
-			'</div>').click(function() {
+		cont.appendChild(window.app.createElement('div', {
+			id: 'externalEditingToolsDisconnect'
+		}, [
+			window.app.createElement('paper-material', {
+				props: {
+					elevation: '1'
+				}
+			}, [
+				window.app.createElement('paper-ripple', {}),
+				window.app.createElement('svg', {
+					props: {
+						xmlns: 'http://www.w3.org/2000/svg',
+						height: '70',
+						width: '70',
+						viewBox: '0 0 24 24'
+					}
+				}, [
+					window.app.createElement('path', {
+						props: {
+							d: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17' + 
+								'.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'
+						}
+					}),
+					window.app.createElement('path', {
+						props: {
+							d: 'M0 0h24v24H0z',
+							fill: 'none'
+						}
+					})
+				]),
+				window.app.createElement('div', {
+					classes: ['externalEditingToolText']
+				}, ['Stop'])
+			])
+		])).addEventListener('click', () => {
+			_this.cancelOpenFiles.apply(_this, []);
+		});
+
+		cont.appendChild(window.app.createElement('div', {
+			id: 'externalEditingToolsShowLocation'
+		}, [
+			window.app.createElement('paper-material', {
+				props: {
+					elevation: '1'
+				}
+			}, [
+				window.app.createElement('paper-ripple', {}),
+				window.app.createElement('svg', {
+					props: {
+						height: '70',
+						viewBox: '0 0 24 24',
+						width: '70',
+						xmlns: 'http://www.w3.org/2000/svg'
+					}
+				}, [
+					window.app.createElement('path', {
+						props: {
+							d: 'M0 0h24v24H0z',
+							fill: 'none'
+						}
+					}),
+					window.app.createElement('path', {
+						props: {
+							d: 'M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 ' + 
+								'18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0' + 
+								'-1.1-.9-2-2-2zm0 12H4V8h16v10z'
+						}
+					})
+				])
+			]),
+			window.app.createElement('div', {
+				classes: ['externalEditingToolText']
+			}, ['Location'])
+		])).addEventListener('click', () => {
+			//Show location toast
+			var location = _this.connection.filePath;
+			location = location.replace(/\\/g, '/');
+			window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
+			const externalEditorLocationToast = window.doc.externalEditorLocationToast;
+			externalEditorLocationToast.text = 'File is located at: ' + location;
+			externalEditorLocationToast.show();
+		});
+
+		window.app.createElement('div', {
+			id: 'externalEditingToolsCreateNewFile'
+		}, [
+			window.app.createElement('paper-material', {
+				props: {
+					elevation: '1'
+				}
+			}, [
+				window.app.createElement('paper-ripple', {}),
+				window.app.createElement('svg', {
+					props: {
+						height: '70',
+						width: '70',
+						xmlns: 'http://www.w3.org/2000/svg',
+						viewBox: '0 0 24 24'
+					}
+				}, [
+					window.app.createElement('path', {
+						props: {
+							d: 'M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1' + 
+								'.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6' +
+								'-6H6zm7 7V3.5L18.5 9H13z'
+						}
+					}),
+					window.app.createElement('path', {
+						props: {
+							d: 'M0 0h24v24H0z',
+							fill: 'none'
+						}
+					})
+				])
+			]),
+			window.app.createElement('div', {
+				classes: ['externalEditingToolText']
+			}, ['Move'])
+		]).addEventListener('click', () => {
 			_this.postMessage({
 				status: 'connected',
 				action: 'createNewFile',
 				isCss: (!!window.scriptEdit),
 				name: _this.editingCRMItem.name
 			});
-		}).appendTo($cont);
-		$('<div id="externalEditingToolsUpdate">' +
-			'<paper-material elevation="1">' +
-			'<paper-ripple></paper-ripple>' +
-			'<svg height="70" viewBox="0 0 24 24" width="70" xmlns="http://www.w3.org/2000/svg">' +
-			'<path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/><path d="M0 0h24v24H0z" fill="none"/>' +
-			'</svg>' +
-			'</paper-material>' +
-			'<div class="externalEditingToolText">' +
-			'Refresh' +
-			'</div>' +
-			'</div>').click(function() {
+		});
+
+		cont.appendChild(window.app.createElement('div', {
+			id: 'externalEditingToolsUpdate'
+		}, [
+			window.app.createElement('paper-material', {
+				props: {
+					elevation: '1'
+				}
+			}, [
+				window.app.createElement('paper-ripple', {}),
+				window.app.createElement('svg', {
+					props: {
+						height: '70',
+						width: '70',
+						xmlns: 'http://www.w3.org/2000/svg',
+						viewBox: '0 0 24 24'
+					}
+				}, [
+					window.app.createElement('path', {
+						props: {
+							d: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58' +
+								'-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.0' + 
+								'8c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6' +
+								' 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'
+						}
+					}),
+					window.app.createElement('path', {
+						props: {
+							d: 'M0 0h24v24H0z',
+							fill: 'none'
+						}
+					})
+				])
+			]),
+			window.app.createElement('div', {
+				classes: ['externalEditingToolText']
+			}, ['Refresh'])
+		])).addEventListener('click', () => {
 			_this.postMessage({
 				status: 'connected',
 				action: 'refreshFromApp'
 			});
-		}).appendTo($cont);
+		});
 
-
-		$toolsCont.appendTo(
+		$((window.scriptEdit && window.scriptEdit.active ?
+			window.scriptEdit.editor.display.wrapper :
+			window.stylesheetEdit.editor.display.wrapper))
+				.find('.CodeMirror-scroll')
+		toolsCont.appendTo(
 			$((window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
 				.find('.CodeMirror-scroll'))[0]
 				.animate([

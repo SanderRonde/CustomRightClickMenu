@@ -208,11 +208,13 @@ class IC {
 
 	private static cmLoaded(this: InstallConfirm, cm: CodeMirrorInstance) {
 		var _this = this;
-		$('<style id="editorZoomStyle">' +
-		'.CodeMirror, .CodeMirror-focused {' +
-		'font-size: ' + (1.25 * ~~window.installConfirm.settings.editor.zoom) + '%!important;' +
-		'}' +
-		'</style>').appendTo('head');
+		const styleEl = document.head.appendChild(window.app.createElement('style', {
+			id: 'editorZoomStyle'
+		}, [
+			`.CodeMirror, .CodeMirror-focused {
+				font-size: ${1.25 * ~~window.installConfirm.settings.editor.zoom}'%!important;
+			}`
+		]));
 		cm.refresh();
 		window.cm = cm;
 		$(cm.display.wrapper).keypress(function (e) {

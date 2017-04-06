@@ -655,12 +655,12 @@ class SCE {
 		}
 		var negHalfRadius = -circleRadius;
 		circleRadius = circleRadius * 2;
-		this.settingsShadow[0].parentElement.style.width = editorWidth + '';
-		this.settingsShadow[0].parentElement.style.height = editorHeight + '';
+		this.settingsShadow.parentElement.style.width = editorWidth + '';
+		this.settingsShadow.parentElement.style.height = editorHeight + '';
 		this.fullscreenEl.style.display = 'none';
 		var settingsInitialMarginLeft = -500;
 		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
-		this.settingsShadow.css({
+		$(this.settingsShadow).css({
 			width: '50px',
 			height: '50px',
 			borderRadius: '50%',
@@ -675,8 +675,8 @@ class SCE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
+				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
 				if (_this.fullscreen) {
@@ -699,7 +699,7 @@ class SCE {
 		var _this = this;
 		var settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
-		this.settingsShadow.animate({
+		$(this.settingsShadow).animate({
 			width: 0,
 			height: 0,
 			marginTop: 0,
@@ -708,8 +708,8 @@ class SCE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				_this.editorOptions[0].style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions[0].style.marginTop = -animation.tweens[2].now + 'px';
+				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
 				var zoom = window.app.settings.editor.zoom;
@@ -901,118 +901,177 @@ class SCE {
  	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
 	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance) {
-		var settingsContainer = $('<div id="settingsContainer"></div>').appendTo(this.editorOptions);
-		$('<div id="editorSettingsTxt">Editor Settings</div>').appendTo(settingsContainer);
+		var settingsContainer = this.editorOptions.appendChild(window.app.createElement('div', {
+			id: 'settingsContainer'
+		}));
+		settingsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorSettingsTxt'
+		}));
 
 		//The settings for the theme
-		var theme = $('<div id="editorThemeSettingCont">' +
-			'<div id="editorThemeSettingTxt">' +
-			'Theme: ' +
-			'</div>' +
-			'<div id="editorThemeSettingChoicesCont">' +
-			'</div>' +
-			'</div>' +
-			'<br>').appendTo(settingsContainer);
+		const theme = settingsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorThemeSettingCont'
+		}, [
+			window.app.createElement('div', {
+				id: 'editorThemeSettingTxt'
+			}, ['Theme:']),
+			window.app.createElement('div', {
+				id: 'editorThemeSettingChoicesCont'
+			})
+		]));
+		settingsContainer.appendChild(document.createElement('br'));
 
 		//The white theme option
-		$('<div id="editorThemeSettingWhite" class="editorThemeSetting' + (window.app.settings.editor.theme === 'white' ? ' currentTheme' : '') + '"></div>')
-			.click(function(this: HTMLElement) {
-				var themes = this.parentElement.children;
-				themes[0].classList.add('currentTheme');
-				themes[1].classList.remove('currentTheme');
-				window.app.settings.editor.theme = 'white';
-				window.app.upload();
-			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
+		theme.querySelector('#editorThemeSettingChoicesCont').appendChild(window.app.createElement('div', {
+			id: 'editorThemeSettingWhite',
+			classes: [`editorThemeSetting${(window.app.settings.editor.theme === 'white' ? ' currentTheme' : '')}`]
+		}));
+		theme.addEventListener('click', () => {
+			var themes = theme.parentElement.children;
+			themes[0].classList.add('currentTheme');
+			themes[1].classList.remove('currentTheme');
+			window.app.settings.editor.theme = 'white';
+			window.app.upload();
+		});
 
 		//The dark theme option
-		$('<div id="editorThemeSettingDark" class="editorThemeSetting' + (window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '') + '"></div>')
-			.click(function(this: HTMLElement) {
-				var themes = this.parentElement.children;
-				themes[0].classList.remove('currentTheme');
-				themes[1].classList.add('currentTheme');
-				window.app.settings.editor.theme = 'dark';
-				window.app.upload();
-			}).appendTo(theme.find('#editorThemeSettingChoicesCont'));
+		theme.querySelector('#editorThemeSettingChoicesCont').appendChild(window.app.createElement('div', {
+			id: 'editorThemeSettingDark',
+			classes: [`editorThemeSetting${(window.app.settings.editor.theme === 'dark' ? ' currentTheme' : '')}`]
+		}));
+		theme.addEventListener('click', () => {
+			var themes = theme.parentElement.children;
+			themes[0].classList.add('currentTheme');
+			themes[1].classList.remove('currentTheme');
+			window.app.settings.editor.theme = 'dark';
+			window.app.upload();
+		});
 
 		//The font size
-		var fontSize = $('<div id="editorThemeFontSize">' +
-			'Editor zoom percentage:' +
-			'</div>').appendTo(settingsContainer);
+		var fontSize = settingsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorThemeFontSize'
+		}, ['Editor zoom percentage:']));
 
-		var zoomEl = $('<paper-input type="number" id="editorThemeFontSizeInput" no-label-float value="' + window.app.settings.editor.zoom + '"><div suffix>%</div></paper-input>');
-		zoomEl.appendTo(fontSize);
+		const zoomEl = fontSize.appendChild(window.app.createElement('paper-input', {
+			id: 'editorThemeFontSizeInput',
+			props: {
+				type: 'number',
+				'no-label-float': 'no-label-float',
+				'value': window.app.settings.editor.zoom
+			}
+		}, [
+			window.app.createElement('div', {
+				props: {
+					suffix: 'suffix'
+				}
+			}, ['%'])
+		]));
 		function updateZoomEl() {
 			setTimeout(function() {
-				window.app.settings.editor.zoom = zoomEl[0].querySelector('input').value;
+				window.app.settings.editor.zoom = zoomEl.querySelector('input').value;
 				window.app.upload();
 			}, 0);
 		};
-		zoomEl.on('change', function() {
+		zoomEl.addEventListener('change', function() {
 			updateZoomEl();
 		});
 		this._updateZoomEl = updateZoomEl;
 
 		//The option to use tabs or spaces
-		var tabsOrSpaces = $('<div id="editorTabsOrSpacesSettingCont">' +
-			'<div id="editorTabsOrSpacesCheckbox">' +
-			'</div>' +
-			'<div id="editorTabsOrSpacesTxt">' +
-			'Use tabs instead of spaces' +
-			'</div>' +
-			'</div>' +
-			'<br>').appendTo(settingsContainer);
+		var tabsOrSpaces = settingsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorTabsOrSpacesSettingCont'
+		}, [
+			window.app.createElement('div', {
+				id: 'editorTabsOrSpacesCheckbox'
+			}),
+			window.app.createElement('div', {
+				id: 'editorTabsOrSpacesTxt'
+			}, ['Use tabs instead of spaces'])
+		]));
+		settingsContainer.appendChild(document.createElement('br'));
 
 		//The main checkbox for the tabs or spaces option
-		$('<paper-checkbox ' + (window.app.settings.editor.useTabs ? 'checked' : '') + '></paper-checkbox>').click(function() {
+		const tabsOrSpacesProps = window.app.settings.editor.useTabs ? {
+			checked: 'checked'
+		} : {};
+		tabsOrSpaces.querySelector('#editorTabsOrSpacesCheckbox').appendChild(window.app.createElement('paper-checkbox', {
+			props: tabsOrSpacesProps
+		})).addEventListener('click', () => {
 			window.app.settings.editor.useTabs = !window.app.settings.editor.useTabs;
 			window.app.upload();
-		}).appendTo(tabsOrSpaces.find('#editorTabsOrSpacesCheckbox'));
+		});
 
 		//The option for the size of tabs
-		var tabSize = $('<div id="editorTabSizeSettingCont">' +
-			'<div id="editorTabSizeInput">' +
-			'<paper-input-container>' +
-			'<label>Indent size</label>' +
-			'<input min="1" is="iron-input" type="number" value="' + window.app.settings.editor.tabSize + '"/>' +
-			'</paper-input-container>' +
-			'</div>' +
-			'</div>' +
-			'<br>').appendTo(settingsContainer);
+		const tabSize = settingsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorTabSizeSettingCont'
+		}, [
+			window.app.createElement('div', {
+				id: 'editorTabSizeInput'
+			}, [
+				window.app.createElement('paper-input-container', {}, [
+					window.app.createElement('label', {}, [
+						'Indent size'
+					]),
+					window.app.createElement('input', {
+						props: {
+							min: '1',
+							is: 'iron-input',
+							type: 'number',
+							value: window.app.settings.editor.tabSize
+						}
+					})
+				])
+			])
+		]));
+		settingsContainer.appendChild(document.createElement('br'));
 
 		function updateTabSizeEl() {
 			setTimeout(function() {
-				window.app.settings.editor.tabSize = (tabSize.find('input')[0] as HTMLPaperInputElement).value;
+				window.app.settings.editor.tabSize = (tabSize.querySelector('input') as HTMLPaperInputElement).value;
 				window.app.upload();
 			}, 0);
 		}
 
 		//The main input for the size of tabs option
-		tabSize.find('input').change(function() {
+		tabSize.querySelector('input').addEventListener('change', () => {
 			updateTabSizeEl();
 		});	
 		this._updateTabSizeEl = updateTabSizeEl;
 
 		//The edit jsLint settings option
-		var jsLintGlobals = $('<div id="editorJSLintGlobals"></div>').appendTo(settingsContainer);
+		var jsLintGlobals = settingsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorJSLintGlobals'
+		}));
 
-		var jsLintGlobalsCont = $('<div id="editorJSLintGlobalsFlexCont"></div>').appendTo(jsLintGlobals);
+		var jsLintGlobalsCont = jsLintGlobals.appendChild(window.app.createElement('div', {
+			id: 'editorJSLintGlobalsFlexCont'
+		}));
 
-		$('<paper-input label="Comma seperated list of JSLint globals" id="editorJSLintGlobalsInput" value="' + window.app.jsLintGlobals.join(',') + '">')
-			.keypress(function(this: HTMLPaperInputElement) {
-				var _this = this;
-				setTimeout(function() {
-					var val = _this.value;
-					var globals = val.split(',');
-					chrome.storage.local.set({
-						jsLintGlobals: globals
-					});
-					window.app.jsLintGlobals = globals;
-				}, 0);
-			}).appendTo(jsLintGlobalsCont);
+		const paperInput = window.app.createElement('paper-input', {
+			id: 'editorJSLintGlobalsInput',
+			props: {
+				label: 'Comma seperated list of JSLint globals" id',
+				value: window.app.jsLintGlobals.join(',')
+			}
+		});
+		jsLintGlobalsCont.appendChild(paperInput);
+		paperInput.addEventListener('keypress', function(this: HTMLPaperInputElement) {
+			var _this = this;
+			setTimeout(function() {
+				var val = _this.value;
+				var globals = val.split(',');
+				chrome.storage.local.set({
+					jsLintGlobals: globals
+				});
+				window.app.jsLintGlobals = globals;
+			}, 0);
+		});
 
-		$('<div id="editorSettingsTxt">Key Bindings</div>').appendTo(settingsContainer);
+		settingsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorSettingsTxt'
+		}, ['Key Bindings']));
 
-		var $cont, $input, $keyInput, keyInput, value;
+		var cont, input, keyInput, value;
 		window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
 			autocomplete: this.keyBindings[0].defaultKey,
 			showType: this.keyBindings[0].defaultKey,
@@ -1024,18 +1083,27 @@ class SCE {
 		};
 		for (var i = 0; i < this.keyBindings.length; i++) {
 			value = window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey] || this.keyBindings[i].defaultKey;
-			$cont = $('<div class="keyBindingSetting"></div>');
-			$input = $('<div class="keyBindingSettingInput"></div>');
-			$keyInput = $('<paper-input label="' + this.keyBindings[i].name + '" class="keyBindingSettingKeyInput" value="' + value + '"></paper-input>');
-			keyInput = $keyInput[0] as HTMLPaperInputElement & {
+			cont = window.app.createElement('div', {
+				id: 'keyBindingSetting'
+			});
+			input = window.app.createElement('div', {
+				id: 'keyBindingSettingInput'
+			});
+			keyInput = window.app.createElement('paper-input', {
+				classes: ['keyBindingSettingKeyInput'],
+				props: {
+					label: this.keyBindings[i].name,
+					value: value
+				}
+			}) as HTMLPaperInputElement & {
 				lastValue: string;
 			};
 			keyInput.lastValue = value;
 			keyInput.addEventListener('keydown', this.createKeyBindingListener(keyInput, this.keyBindings[i]));
-			$keyInput.appendTo($input);
-			$input.appendTo($cont);
-			$('<br>').appendTo($cont);
-			$cont.appendTo(settingsContainer);
+			input.appendChild(keyInput);
+			cont.appendChild(input);
+			cont.appendChild(document.createElement('br'));
+			settingsContainer.appendChild(cont);
 		}
 	};
 
@@ -1117,28 +1185,90 @@ class SCE {
 		editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
 		editor.display.wrapper.classList.add('script-edit-codeMirror');
 		editor.display.wrapper.classList.add('small');
-		var $buttonShadow = $('<paper-material id="buttonShadow" elevation="1"></paper-material>').insertBefore($(editor.display.sizer).children().first());
-		this.buttonsContainer = $('<div id="buttonsContainer"></div>').appendTo($buttonShadow)[0];
-		var bubbleCont = $('<div id="bubbleCont"></div>').insertBefore($buttonShadow);
+		const buttonShadow = editor.display.sizer.insertBefore(window.app.createElement('paper-material', {
+			id: 'buttonShadow',
+			props: {
+				elevation: '1'
+			}
+		}), editor.display.sizer.children[0]) as HTMLElement;
+		
+		this.buttonsContainer = buttonShadow.appendChild(window.app.createElement('div', {
+			id: 'buttonsContainer'
+		}));
+		var bubbleCont = editor.display.sizer.insertBefore(window.app.createElement('div', {
+			id: 'bubbleCont'
+		}), buttonShadow);
 		//The bubble on settings open
-		var $shadow = this.settingsShadow = $('<paper-material elevation="5" id="settingsShadow"></paper-material>').appendTo(bubbleCont);
-		var $editorOptionsContainer = $('<div id="editorOptionsContainer"></div>').appendTo($shadow);
-		this.editorOptions = $('<paper-material id="editorOptions" elevation="5"></paper-material>').appendTo($editorOptionsContainer);
+		var shadow = this.settingsShadow = bubbleCont.appendChild(window.app.createElement('paper-material', {
+			id: 'settingsShadow',
+			props: {
+				elevation: '5'
+			}
+		}));
+		var editorOptionsContainer = shadow.appendChild(window.app.createElement('div', {
+			id: 'editorOptionsContainer'
+		}));
+		this.editorOptions = editorOptionsContainer.appendChild(window.app.createElement('paper-material', {
+			id: 'editorOptions',
+			props: {
+				elevation: '5'
+			}
+		}));
 		this.fillEditorOptions();
-		this.fullscreenEl = $('<div id="editorFullScreen"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg></div>').appendTo(this.buttonsContainer).click(function() {
+		this.fullscreenEl = this.buttonsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorFullscreen'
+		}, [
+			window.app.createElement('svg', {
+				props: {
+					xmlns: 'http://www.w3.org/2000/svg',
+					width: '30',
+					height: '30',
+					viewBox: '0 0 48 48'
+				}
+			}, [
+				window.app.createElement('path', {
+					props: {
+						d: 'M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z'
+					}
+				})
+			])
+		]));
+		this.fullscreenEl.addEventListener('click', () => {
 			_this.toggleFullScreen.apply(_this);
-		})[0];
-		this.settingsEl = $('<div id="editorSettings"><svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 48 48"><path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg></div>').appendTo(this.buttonsContainer).click(function() {
+		});
+		this.settingsEl = this.buttonsContainer.appendChild(window.app.createElement('div', {
+			id: 'editorSettings'
+		}, [
+			window.app.createElement('svg', {
+				props: {
+					xmlns: 'http://www.w3.org/2000/svg',
+					width: '25',
+					height: '25',
+					viewBox: '0 0 48 48'
+				}
+			}, [
+				window.app.createElement('path', {
+					props: {
+						d: 'M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-' + 
+							'.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0' + 
+							'-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43' + 
+							'.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97' + 
+							'l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z'
+					}
+				})
+			])
+		]));
+		this.settingsEl.addEventListener('click', () => {
 			_this.toggleOptions.apply(_this);
-		})[0];
+		});
 		if (editor.getOption('readOnly') === 'nocursor') {
 			editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
 		}
 		if (this.fullscreen) {
 			editor.display.wrapper.style.height = 'auto';
 			this.$.editorPlaceholder.style.display = 'none';
-			$buttonShadow[0].style.right = '-1px';
-			$buttonShadow[0].style.position = 'absolute';
+			buttonShadow.style.right = '-1px';
+			buttonShadow.style.position = 'absolute';
 			this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		} else {
 			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';

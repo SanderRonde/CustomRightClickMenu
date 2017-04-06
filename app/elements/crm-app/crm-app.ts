@@ -239,6 +239,36 @@ class CA {
 	static ternServer: Tern.ServerInstance;
 
 	static properties = properties;
+
+	static createElement(tagName: keyof ElementTagNameMaps, options: {
+		id?: string;
+		classes?: Array<string>;
+		props?: {
+			[key: string]: string;
+		}
+	}, children: Array<Polymer.Element|string> = []): Polymer.Element {
+		const el = document.createElement(tagName);
+		if (options.id) {
+			el.id = options.id;
+		}
+		if (options.classes) {
+			el.classList.add.apply(el.classList, options.classes);
+		}
+		if (options.props) {
+			for (let key in options.props) {
+				el.setAttribute(key, options.props[key]);
+			}
+		}
+		for (let i = 0; i < children.length; i++) {
+			const child = children[i];
+			if (typeof child === 'string') {
+				el.innerText = child;
+			} else {
+				el.appendChild(child);
+			}
+		}
+		return el;
+	}
 	
 	static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<Polymer.Element>, tagName: T): ElementTagNameMaps[T] {
 		let index = 0;
@@ -937,11 +967,13 @@ class CA {
 				element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 				element.classList.add('toggled');
 
+				const child = document.createElement('div');
 				if (index === 5) {
-					$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(element);
+					child.classList.add('crmTypeShadowMagicElementRight');
 				} else {
-					$('<div class="crmTypeShadowMagicElement"></div>').appendTo(element);
+					child.classList.add('crmTypeShadowMagicElement');
 				}
+				element.appendChild(child);
 			}
 		}
 		this.crmType = index;
@@ -962,11 +994,13 @@ class CA {
 					crmEl.style.backgroundColor = 'rgb(243,243,243)';
 					crmEl.classList.add('toggled');
 
+					const child = document.createElement('div');
 					if (i === 5) {
-						$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(crmEl);
+						child.classList.add('crmTypeShadowMagicElementRight');
 					} else {
-						$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
+						child.classList.add('crmTypeShadowMagicElement');
 					}
+					crmEl.appendChild(child);
 
 					selectedType = i;
 				} else {
@@ -988,11 +1022,13 @@ class CA {
 					crmEl.style.backgroundColor = 'rgb(243,243,243)';
 					crmEl.classList.add('toggled');
 
+					const child = document.createElement('div');
 					if (i === 5) {
-						$('<div class="crmTypeShadowMagicElementRight"></div>').appendTo(crmEl);
+						child.classList.add('crmTypeShadowMagicElementRight');
 					} else {
-						$('<div class="crmTypeShadowMagicElement"></div>').appendTo(crmEl);
+						child.classList.add('crmTypeShadowMagicElement');
 					}
+					crmEl.appendChild(child);
 
 					selectedType = i;
 				} else {
@@ -1456,11 +1492,13 @@ class CA {
 	static updateEditorZoom(this: CrmApp) {
 		var prevStyle = document.getElementById('editorZoomStyle');
 		prevStyle && prevStyle.remove();
-		$('<style id="editorZoomStyle">' +
-			'.CodeMirror, .CodeMirror-focused {' +
-			'font-size: ' + (1.25 * ~~window.app.settings.editor.zoom) + '%!important;' +
-			'}' +
-			'</style>').appendTo('head');
+		const styleEl = document.createElement('style');
+		styleEl.id = 'editorZoomStyle';
+		styleEl.innerText = `.CodeMirror, .CodeMirror-focused {
+			font-size: ${1.25 * ~~window.app.settings.editor.zoom}%!important;
+		}`;
+		document.head.appendChild(styleEl);
+
 		$('.CodeMirror').each(function(this: HTMLElement & {
 			CodeMirror: CodeMirrorInstance;
 		}) {
