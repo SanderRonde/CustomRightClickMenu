@@ -127,20 +127,7 @@ module.exports = function(grunt) {
 					src: ['**/*.html'],
 					dest: 'build/elements'
 				}]
-			},
-			demoWebsite: {
-				options: {
-					strip: true,
-					data: {}
-				},
-				files: [
-					{
-						src: ['test/UI/UITest.html'],
-						dest: 'demo/index.html',
-						expand: false
-					}
-				]
-			},
+			}
 		},
 		uglify: {
 			options: {
@@ -354,6 +341,15 @@ module.exports = function(grunt) {
 					cwd: 'build/website',
 					src: ['**/*.*', '!build/website/'],
 					dest: './documentation/'
+				}]
+			},
+			demoWebsite: {
+				files: [{
+					expand: false,
+					src: [
+						'app/html/demo.html'
+					],
+					dest: 'demo/index.html'
 				}]
 			},
 			gitignore: {
@@ -591,7 +587,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('moveDocumentationWebsite', ['compile', 'copy:moveDocumentationWebsite']);
 
 	//Moves the demo website to /demo
-	grunt.registerTask('demoWebsite', ['compile', 'processhtml:demoWebsite'])
+	grunt.registerTask('demoWebsite', ['compile', 'copy:demoWebsite'])
 
 	//Compiles all the typescript
 	grunt.registerTask('compile', ['exec:app', 'exec:tests']);
