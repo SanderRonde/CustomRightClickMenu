@@ -208,7 +208,7 @@ class IC {
 
 	private static cmLoaded(this: InstallConfirm, cm: CodeMirrorInstance) {
 		var _this = this;
-		const styleEl = document.head.appendChild(window.app.createElement('style', {
+		document.head.appendChild(window.app.createElement('style', {
 			id: 'editorZoomStyle'
 		}, [
 			`.CodeMirror, .CodeMirror-focused {

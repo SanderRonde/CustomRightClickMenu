@@ -392,25 +392,25 @@ class UEE {
 		$((window.scriptEdit && window.scriptEdit.active ?
 			window.scriptEdit.editor.display.wrapper :
 			window.stylesheetEdit.editor.display.wrapper))
-				.find('.CodeMirror-scroll')
-		toolsCont.appendTo(
-			$((window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
-				.find('.CodeMirror-scroll'))[0]
-				.animate([
-					{
-						bottom: '-152px',
-						right: '-350px'
-					}, {
-						bottom: 0,
-						right: 0
-					}
-				], {
-					duration: 300,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-				}).onfinish = function(this: Animation) {
-					this.effect.target.style.bottom = '0';
-					this.effect.target.style.right = '0';
-				};
+				.find('.CodeMirror-scroll')[0].appendChild(toolsCont);
+				
+		$((window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
+			.find('.CodeMirror-scroll')[0]
+			.animate([
+				{
+					bottom: '-152px',
+					right: '-350px'
+				}, {
+					bottom: 0,
+					right: 0
+				}
+			], {
+				duration: 300,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function(this: Animation) {
+				this.effect.target.style.bottom = '0';
+				this.effect.target.style.right = '0';
+			};
 	};
 
 	static setupExternalEditing(this: UseExternalEditor) {
