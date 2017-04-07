@@ -2421,7 +2421,7 @@ class CA {
 			max: importsAmount
 		};
 
-		const registeredElements = Polymer.telemetry.registrations.length;
+		let registeredElements = Polymer.telemetry.registrations.length;
 		const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
 		registrationArray.push = function (element: HTMLElement) {
 			Array.prototype.push.call(registrationArray, element);
@@ -2863,7 +2863,7 @@ class CA {
 			});
 		}
 
-		const controlPresses = 0;
+		let controlPresses = 0;
 		document.body.addEventListener('keydown', (event) => {
 			if (event.key === 'Control') {
 				controlPresses++;
