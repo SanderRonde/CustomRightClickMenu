@@ -1556,31 +1556,32 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 
 							const instancesArr = [];
-							for (let instance in globalObject.globals.crmValues.nodeInstances[message
-								.id]) {
-								if (globalObject.globals.crmValues.nodeInstances[message.id]
-										.hasOwnProperty(instance) &&
-									globalObject.globals.crmValues.nodeInstances[message.id][instance]) {
+							for (let instance in globalObject.globals.crmValues.nodeInstances[message.id]) {
+								if (globalObject.globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) &&
+									globalObject.globals.crmValues.nodeInstances[message.id][instance] && 
+									(instance as any) as number !== message.tabId) {
 
-									try {
-										globalObject.globals.crmValues.tabData[instance].nodes[message.id].port
-											.postMessage({
-												change: {
-													type: 'added',
-													value: message.tabId
-												},
-												messageType: 'instancesUpdate'
-											});
-										instancesArr.push(instance);
-									} catch (e) {
-										delete globalObject.globals.crmValues.nodeInstances[message
-											.id][instance];
+
+										try {
+											instancesArr.push(instance);
+											window.setTimeout(() => {
+												globalObject.globals.crmValues.tabData[instance].nodes[message.id].port
+													.postMessage({
+														change: {
+															type: 'added',
+															value: message.tabId
+														},
+														messageType: 'instancesUpdate'
+													});
+											}, 20);
+										} catch (e) {
+											delete globalObject.globals.crmValues.nodeInstances[message
+												.id][instance];
+										}
 									}
-								}
 							}
 
-							globalObject.globals.crmValues.nodeInstances[message.id][message
-								.tabId] = {
+							globalObject.globals.crmValues.nodeInstances[message.id][message.tabId] = {
 								hasHandler: false
 							};
 

@@ -5,11 +5,15 @@
 
 	var localStorageProxy = { };
 
-	Object.defineProperty(window, 'localStorageProxy', {
-		get: function() {
-			return localStorageProxy;
-		}
-	})
+	try {
+		Object.defineProperty(window, 'localStorageProxy', {
+			get: function() {
+				return localStorageProxy;
+			}
+		});
+	} catch(e) {
+		
+	}
 
 	Object.defineProperty(localStorageProxy, 'getItem', {
 		get: function() {
