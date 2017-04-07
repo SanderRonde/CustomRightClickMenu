@@ -1561,22 +1561,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									globalObject.globals.crmValues.nodeInstances[message.id][instance] && 
 									(instance as any) as number !== message.tabId) {
 
-
 										try {
 											instancesArr.push(instance);
-											window.setTimeout(() => {
-												globalObject.globals.crmValues.tabData[instance].nodes[message.id].port
-													.postMessage({
-														change: {
-															type: 'added',
-															value: message.tabId
-														},
-														messageType: 'instancesUpdate'
-													});
-											}, 20);
+											globalObject.globals.crmValues.tabData[instance].nodes[message.id].port
+												.postMessage({
+													change: {
+														type: 'added',
+														value: message.tabId
+													},
+													messageType: 'instancesUpdate'
+												});
 										} catch (e) {
-											delete globalObject.globals.crmValues.nodeInstances[message
-												.id][instance];
+											delete globalObject.globals.crmValues.nodeInstances[message.id][instance];
 										}
 									}
 							}
