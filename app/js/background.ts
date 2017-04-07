@@ -253,7 +253,7 @@ interface MatchPattern {
 	host: string;
 	path: string;
 	invalid?: boolean;
-};
+}
 
 interface CRMTemplates {
 	mergeArrays<T extends Array<T>|Array<U>, U>(this: CRMTemplates, mainArray: T, additionArray: T): T;
@@ -451,7 +451,7 @@ class Promiselike<T> {
 			this._rejectListeners.forEach((rejectListener) => {
 				rejectListener(rejectReason);
 			});
-		});;
+		});
 	}
 
 	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promiselike<T> {
@@ -479,19 +479,13 @@ class Promiselike<T> {
 		return new Promiselike((resolve, reject) => {
 			const promises: Array<{
 				done: boolean;
-				result: any;
+				result?: any;
 				promise: Promiselike<any>
 			}> = Array.prototype.slice.apply(values).map((promise: Promiselike<any>) => {
-				const obj: {
-					done: boolean;
-					result: any;
-					promise: Promiselike<any>
-				} = {
+				return {
 					done: false,
-					result: undefined,
 					promise: promise
 				};
-				return obj;
 			});
 			promises.forEach((obj) => {
 				obj.promise.then((result) => {
@@ -809,9 +803,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				_specialStringRegex: /^__(fn|regexp|date)\$((.|\n)+)\$\1__$/,
 				_fnCommRegex: /^\(((\w+((\s*),?(\s*)))*)\)\{((.|\n|\r)+)\}$/,
 				_parseNonObject(this: SpecialJSON, data: string): string|number|Function|RegExp|Date|boolean {
-					var dataParsed = JSON.parse(data);
+					const dataParsed = JSON.parse(data);
 					if (typeof dataParsed === 'string') {
-						let matchedData;
+						let matchedData: RegExpExecArray;
 						if ((matchedData = this._specialStringRegex.exec(dataParsed))) {
 							const dataContent = matchedData[2];
 							switch (matchedData[1]) {
@@ -891,7 +885,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (!(this._isObject(element) || Array.isArray(element))) {
 								return this._stringifyNonObject(element);
 							} else {
-								let index;
+								let index: number;
 								if ((index = refData.originalValues.indexOf(element)) === -1) {
 									index = refData.refs.length;
 
@@ -944,13 +938,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (!(this._isObject(element) || Array.isArray(element))) {
 								return this._stringifyNonObject(element);
 							} else {
-								let index;
+								let index: number;
 								if ((index = originalValues.indexOf(element)) === -1) {
 									index = refs.length;
 
 									//Filler
 									refs.push(null);
-									var newData = this._toJSON((copyTarget as any)[key], element, [key], {
+									const newData = this._toJSON((copyTarget as any)[key], element, [key], {
 										refs: refs,
 										paths: paths,
 										originalValues: originalValues
@@ -973,7 +967,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				_refRegex: /^__\$(\d+)\$__$/,
 				_replaceRefs(this: SpecialJSON, data: ArrOrObj, refs: ParsingRefs): ArrOrObj {
 					this._iterate(data, data, (element: string) => {
-						let match;
+						let match: RegExpExecArray;
 						if ((match = this._refRegex.exec(element))) {
 							const refNumber = match[1];
 							const ref = refs[~~refNumber];
@@ -1089,7 +1083,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			},
 			parse: (str: string, date2Obj?: boolean): any => {
-				var iso8061 = date2Obj ?
+				const iso8061 = date2Obj ?
 					/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/ :
 					false;
 				return JSON.parse(str, (key: string, value: any) => {
@@ -1186,12 +1180,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static convertFileToDataURI(url: string, callback: (dataURI: string, 
 				dataString: string) => void,
 			onError?: () => void) {
-			var xhr = new window.XMLHttpRequest();
+			const xhr = new window.XMLHttpRequest();
 			xhr.responseType = 'blob';
 			xhr.onload = () => {
-				var readerResults: [string, string] = [null, null];
+				const readerResults: [string, string] = [null, null];
 
-				var blobReader = new FileReader();
+				const blobReader = new FileReader();
 				blobReader.onloadend = () => {
 					readerResults[0] = blobReader.result;
 					if (readerResults[1]) {
@@ -1200,7 +1194,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				};
 				blobReader.readAsDataURL(xhr.response);
 
-				var textReader = new FileReader();
+				const textReader = new FileReader();
 				textReader.onloadend = () => {
 					readerResults[1] = textReader.result;
 					if (readerResults[0]) {
@@ -1240,7 +1234,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				const length = target.length + 1;
 				let temp1: T|U = target[position];
 				let temp2: T|U = toPush;
-				for (var i = position; i < length; i++) {
+				for (let i = position; i < length; i++) {
 					target[i] = temp2;
 					temp2 = temp1;
 					temp1 = target[i + 1];
@@ -1310,7 +1304,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static initGlobalFunctions() {
 			window.getID = (name: string) => {
 				name = name.toLocaleLowerCase();
-				const matches = [];
+				const matches: Array<{
+					id: number;
+					node: CRM.ScriptNode;
+				}> = [];
 				for (let id in globalObject.globals.crm.crmById) {
 					if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
 						const node = globalObject.globals.crm.crmById[id];
@@ -1319,7 +1316,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							typeof nodeName === 'string' &&
 							name === nodeName.toLocaleLowerCase()) {
 							matches.push({
-								id: id,
+								id: (id as any) as number,
 								node: node
 							});
 						}
@@ -1332,7 +1329,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					console.log('One match was found, the id is ', matches[0].id,
 						' and the script is ', matches[0].node);
 				} else {
-					console.log('Found multipe matches, here they are:');
+					console.log('Found multiple matches, here they are:');
 					matches.forEach((match) => {
 						console.log('Id is', match.id, ', script is', match.node);
 					});
@@ -1373,7 +1370,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return messages;
 				}
 
-			var filterRegex = new RegExp(filter);
+			const filterRegex = new RegExp(filter);
 				return messages.filter((message: LogListenerLine) => {
 					for (let i = 0; i < message.data.length; i++) {
 						if (typeof message.data[i] !== 'function' &&
@@ -1436,7 +1433,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			window._listenLog = (listener: LogListener,
 				callback: (filterObj: LogListenerObject) => void):
 			Array<LogListenerLine> => {
-				var filterObj: LogListenerObject = {
+				const filterObj: LogListenerObject = {
 					id: 'all',
 					tab: 'all',
 					text: '',
@@ -1540,8 +1537,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			window.createHandlerFunction = (port) => {
 				return (message: HandshakeMessage) => {
-					var tabNodeData = globalObject.globals.crmValues.tabData[message.tabId]
-						.nodes[message.id];
+					const tabNodeData = globalObject.globals.crmValues.tabData[message.tabId]
+                        .nodes[message.id];
 					if (!tabNodeData.port) {
 						if (Helpers.compareArray(tabNodeData.secretKey, message.key)) {
 							delete tabNodeData.secretKey;
@@ -1758,17 +1755,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					//Show/remove nodes based on current URL
-					var toHide = [];
-					var toEnable = [];
+					const toHide: Array<{
+						node: CRM.Node;
+						id: number;
+					}> = [];
+					const toEnable: Array<{
+						node: CRM.Node;
+						id: number;
+					}> = [];
 
-					var changes: {
+					const changes: {
 						[nodeId: number]: {
 							node: CRM.Node;
 							type: 'hide' | 'show';
 						}
 					} = {};
-					var shownNodes: Array<ContextMenuItemTreeItem> = [];
-					var hiddenNodes: Array<ContextMenuItemTreeItem> = [];
+					const shownNodes: Array<ContextMenuItemTreeItem> = [];
+					const hiddenNodes: Array<ContextMenuItemTreeItem> = [];
 					getNodeStatusses(globalObject.globals.crmValues.contextMenuItemTree,
 						hiddenNodes, shownNodes);
 
@@ -1808,7 +1811,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					//Re-check if the toEnable nodes might be disabled after all
-					var length = toEnable.length;
+					let length = toEnable.length;
 					for (let i = 0; i < length; i++) {
 						hideOn = globalObject.globals.crmValues.hideNodesOnPagesData[toEnable[i]
 							.node.id];
@@ -1951,7 +1954,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			return null;
 		}
-	};
+	}
 
 	class Logging {
 		static LogExecution = class LogExecution {
@@ -2031,14 +2034,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				var idArr: Array<number> = [];
+				let idArr: Array<number> = [];
 				for (let id in ids) {
 					if (ids.hasOwnProperty(id)) {
 						idArr.push((id as any) as number);
 					}
 				}
 
-				var tabArr: Array<any> = [];
+				let tabArr: Array<any> = [];
 				for (let tabId in tabIds) {
 					if (tabIds.hasOwnProperty(tabId)) {
 						tabArr.push((tabId as any) as number);
@@ -2229,7 +2232,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			callbackIndex?: number;
 			timestamp?: string;
 		}) {
-			var srcObj: {
+			const srcObj: {
 				id: number,
 				tabId: number,
 				tab: chrome.tabs.Tab,
@@ -2238,13 +2241,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode,
 				nodeName: string;
 			} = {} as any;
-			var args = [
+			let args = [
 				'Log[src:',
 				srcObj,
 				']: '
 			];
 
-			var logValue: LogListenerLine = {
+			const logValue: LogListenerLine = {
 				id: message.id,
 				tabId: message.tabId,
 				logId: message.logId,
@@ -2321,8 +2324,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					path: Array<number>;
 				});
 				const pathToSearch = msg['path'];
-				var lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
-					.safeTree, false);
+				const lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
+                    .safeTree, false);
 				if (lookedUp === true) {
 					return false;
 				} else if (lookedUp === false) {
@@ -2548,8 +2551,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						optional: true
 					}
 				], () => {
-					var id = Helpers.generateItemId();
-					var node = _this.message.options;
+					const id = Helpers.generateItemId();
+					let node = _this.message.options;
 					node = CRM.makeSafe(node);
 					node.id = id;
 					node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
@@ -2558,7 +2561,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						node.local = true;
 					}
 
-					var newNode: CRM.Node;
+					let newNode: CRM.Node;
 					switch (_this.message.options.type) {
 						case 'script':
 							newNode = globalObject.globals.constants.templates
@@ -2611,9 +2614,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				], (optionals) => {
 					_this.getNodeFromId(_this.message.nodeId, true).run((node: CRM.Node) => {
-						var newNode = JSON.parse(JSON.stringify(node));
-						var id = Helpers.generateItemId();
-						newNode.id = id;
+						let newNode = JSON.parse(JSON.stringify(node));
+						newNode.id = Helpers.generateItemId();
 						if (_this.getNodeFromId(_this.message.id, false, true).local === true &&
 							node.isLocal === true) {
 							newNode.isLocal = true;
@@ -2645,8 +2647,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					});
 
 					//Remove original from CRM
-					var parentChildren = _this.lookup(node.path, globalObject.globals.crm
-						.crmTree, true);
+					const parentChildren = _this.lookup(node.path, globalObject.globals.crm
+                        .crmTree, true);
 					//parentChildren.splice(node.path[node.path.length - 1], 1);
 
 					if ((node = _this.moveNode(node, msg['position'], {
@@ -2662,8 +2664,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static deleteNode(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
 				_this.getNodeFromId(_this.message.nodeId).run((node) => {
-					var parentChildren = _this.lookup(node.path, globalObject.globals.crm
-						.crmTree, true) as Array<CRM.Node>;
+					const parentChildren = _this.lookup(node.path, globalObject.globals.crm
+                        .crmTree, true) as Array<CRM.Node>;
 					parentChildren.splice(node.path[node.path.length - 1], 1);
 					if (globalObject.globals.crmValues.contextMenuIds[node
 							.id] !==
@@ -2713,7 +2715,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
 								return false;
 							} else {
-								var oldType = node.type.toLowerCase();
+								const oldType = node.type.toLowerCase();
 								node.type = _this.message.options.type;
 
 								if (oldType === 'menu') {
@@ -2771,11 +2773,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						const triggers = msg['triggers'];
 						node['showOnSpecified'] = true;
 						CRM.updateCrm();
-						var matchPatterns = [];
+						const matchPatterns: Array<string> = [];
 						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
 						if ((node.type === 'script' || node.type === 'stylesheet') &&
 							node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
-							for (var i = 0; i < triggers.length; i++) {
+							for (let i = 0; i < triggers.length; i++) {
 								const pattern = URLParsing.validatePatternUrl(triggers[i].url);
 								if (!pattern) {
 									_this.respondSuccess('Triggers don\'t match URL scheme');
@@ -2785,7 +2787,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						} else {
 							const isShowOnSpecified = ((node.type === 'script' || node.type === 'stylesheet') &&
 								node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED);
-							for (var i = 0; i < triggers.length; i++) {
+							for (let i = 0; i < triggers.length; i++) {
 								if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
 									_this.respondError('Triggers don\'t match URL scheme');
 									return;
@@ -2917,8 +2919,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							contentTypes: Array<string>;
 						};
 
-						var i;
-						for (i = 0; i < msg['contentTypes'].length; i++) {
+						for (let i = 0; i < msg['contentTypes'].length; i++) {
 							if (typeof msg['contentTypes'][i] !== 'string') {
 								_this
 									.respondError('Not all values in array contentTypes are of type string');
@@ -2926,15 +2927,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						var matches = 0;
-						var hasContentType: boolean;
-						var contentTypes: [
+						let matches = 0;
+						let hasContentType: boolean;
+						let contentTypes: [
 							boolean, boolean, boolean, boolean, boolean, boolean
-						] = [] as any;
-						var contentTypeStrings: Array<string> = [
+							] = [] as any;
+						const contentTypeStrings: Array<string> = [
 							'page', 'link', 'selection', 'image', 'video', 'audio'
 						];
-						for (i = 0; i < msg['contentTypes'].length; i++) {
+						for (let i = 0; i < msg['contentTypes'].length; i++) {
 							hasContentType = msg['contentTypes'].indexOf(contentTypeStrings[i]) >
 								-1;
 							if (hasContentType) {
@@ -3006,7 +3007,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								node['linkVal'] = node['linkVal'] || [];
 							}
 							node.value = [];
-							for (var i = 0; i < items.length; i++) {
+							for (let i = 0; i < items.length; i++) {
 								items[i].newTab = !!items[i].newTab;
 								if (node.type === 'link') {
 									node.value.push(items[i]);
@@ -3073,7 +3074,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (node.type !== 'link') {
 								node['linkVal'] = node['linkVal'] || [];
 							}
-							for (var i = 0; i < items.length; i++) {
+							for (let i = 0; i < items.length; i++) {
 								items[i].newTab = !!items[i].newTab;
 								if (node.type === 'link') {
 									node.value.push(items[i]);
@@ -3124,7 +3125,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								amount: number;
 							};
 
-							var spliced;
+							let spliced;
 							if (node.type === 'link') {
 								spliced = node.value.splice(msg['start'], msg['amount']);
 								CRM.updateCrm();
@@ -3204,13 +3205,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						code?: string;
 					};
 					
-					var newLibrary;
+					let newLibrary;
 					if (optionals['url']) {
 						if (msg['url'].indexOf('.js') ===
 							msg['url'].length - 3) {
 							//Use URL
-							var done = false;
-							var xhr = new window.XMLHttpRequest();
+							let done = false;
+							const xhr = new window.XMLHttpRequest();
 							xhr.open('GET', msg['url'], true);
 							xhr.onreadystatechange = () => {
 								if (xhr.readyState === 4 && xhr.status === 200) {
@@ -3280,9 +3281,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						function doesLibraryExist(lib: {
 							name: string;
 						}): string|boolean {
-							for (var i = 0;
-								i < globalObject.globals.storages.storageLocal.libraries.length;
-								i++) {
+							for (let i = 0;
+								 i < globalObject.globals.storages.storageLocal.libraries.length;
+								 i++) {
 								if (globalObject.globals.storages.storageLocal.libraries[i].name
 									.toLowerCase() ===
 									lib.name.toLowerCase()) {
@@ -3293,7 +3294,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						function isAlreadyUsed(script: CRM.ScriptNode, lib: CRM.Library): boolean {
-							for (var i = 0; i < script.value.libraries.length; i++) {
+							for (let i = 0; i < script.value.libraries.length; i++) {
 								if (script.value.libraries[i].name === (lib.name || null) && 
 									script.value.libraries[i].url === (lib.url || null)) {
 									return true;
@@ -3308,8 +3309,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 						const libraries = msg['libraries'];
 						if (Array.isArray(libraries)) { //Array
-							for (var i = 0; i < libraries.length; i++) {
-								var originalName = libraries[i].name;
+							for (let i = 0; i < libraries.length; i++) {
+								const originalName = libraries[i].name;
 								if (!(libraries[i].name = doesLibraryExist(libraries[i]) as string)) {
 									_this.respondError('Library ' + originalName + ' is not registered');
 									return false;
@@ -3319,7 +3320,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 							}
 						} else { //Object
-							var name = libraries.name;
+							const name = libraries.name;
 							if (!(libraries.name = doesLibraryExist(libraries) as string)) {
 								_this.respondError('Library ' + name + ' is not registered');
 								return false;
@@ -3352,7 +3353,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							amount: number;
 						};
 
-						var spliced;
+						let spliced;
 						if (node.type === 'script') {
 							spliced = Helpers.safe(node).value.libraries.splice(msg['start'], msg['amount']);
 							CRM.updateCrm();
@@ -3391,9 +3392,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						function doesLibraryExist(lib: {
 							name: string;
 						}): string|boolean {
-							for (var i = 0;
-								i < globalObject.globals.storages.storageLocal.libraries.length;
-								i++) {
+							for (let i = 0;
+								 i < globalObject.globals.storages.storageLocal.libraries.length;
+								 i++) {
 								if (globalObject.globals.storages.storageLocal.libraries[i].name
 									.toLowerCase() ===
 									lib.name.toLowerCase()) {
@@ -3404,7 +3405,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						function isAlreadyUsed(script: CRM.ScriptNode, lib: CRM.Library) {
-							for (var i = 0; i < script.value.libraries.length; i++) {
+							for (let i = 0; i < script.value.libraries.length; i++) {
 								if (script.value.libraries[i].name === (lib.name || null) && 
 									script.value.libraries[i].url === (lib.url || null)) {
 									return true;
@@ -3419,8 +3420,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 						const libraries = msg['libraries'];
 						if (Array.isArray(libraries)) { //Array
-							for (var i = 0; i < libraries.length; i++) {
-								var originalName = libraries[i].name;
+							for (let i = 0; i < libraries.length; i++) {
+								const originalName = libraries[i].name;
 								if (!(libraries[i].name = doesLibraryExist(libraries[i]) as string)) {
 									_this.respondError('Library ' + originalName + ' is not registered');
 									return false;
@@ -3430,7 +3431,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 							}
 						} else { //Object
-							var name = libraries.name;
+							const name = libraries.name;
 							if (!(libraries.name = doesLibraryExist(libraries) as string)) {
 								_this.respondError('Library ' + name + ' is not registered');
 								return false;
@@ -3463,7 +3464,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					};
 
 					_this.getNodeFromId(_this.message.nodeId).run((node) => {
-						var spliced;
+						let spliced;
 						if (node.type === 'script') {
 							spliced = Helpers.safe(node).value.backgroundLibraries.splice(msg['start'], msg['amount']);
 							CRM.updateCrm([_this.message.nodeId]);
@@ -3639,8 +3640,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return false;
 						}
 
-						var i;
-						for (i = 0; i < msg['childrenIds'].length; i++) {
+						for (let i = 0; i < msg['childrenIds'].length; i++) {
 							if (typeof msg['childrenIds'][i] !== 'number') {
 								_this
 									.respondError('Not all values in array childrenIds are of type number');
@@ -3648,10 +3648,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						var oldLength = node.children.length;
+						const oldLength = node.children.length;
 
-						for (i = 0; i < msg['childrenIds'].length; i++) {
-							var toMove = _this.getNodeFromId(msg['childrenIds'][i], false,
+						for (let i = 0; i < msg['childrenIds'].length; i++) {
+							const toMove = _this.getNodeFromId(msg['childrenIds'][i], false,
 								true);
 							_this.moveNode(toMove, {
 								relation: 'lastChild',
@@ -3689,8 +3689,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							_this.respondError('Node is not of type menu');
 						}
 
-						var i;
-						for (i = 0; i < msg['childrenIds'].length; i++) {
+						for (let i = 0; i < msg['childrenIds'].length; i++) {
 							if (typeof msg['childrenIds'][i] !== 'number') {
 								_this
 									.respondError('Not all values in array childrenIds are of type number');
@@ -3698,8 +3697,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						for (i = 0; i < msg['childrenIds'].length; i++) {
-							var toMove = _this.getNodeFromId(msg['childrenIds'][i], false,
+						for (let i = 0; i < msg['childrenIds'].length; i++) {
+							const toMove = _this.getNodeFromId(msg['childrenIds'][i], false,
 								true);
 							_this.moveNode(toMove, {
 								relation: 'lastChild',
@@ -3740,7 +3739,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return false;
 						}
 
-						var spliced = node.children.splice(
+						const spliced = node.children.splice(
 							msg['start'], msg['amount']);
 
 						CRM.updateCrm();
@@ -3752,14 +3751,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			});
 		}
-	};
+	}
 
 	class APIMessaging {
 		static CRMMessage = class CRMMessage {
 			static respond(message: CRMAPIMessage<'crm'|'chrome', any>,
 				type: 'success'|'error'|'chromeError', data: any|string, stackTrace?:
 				string) {
-				var msg: CRMAPIResponse<any> = {
+				const msg: CRMAPIResponse<any> = {
 					type: type,
 					callbackId: message.onFinish,
 					messageType: 'callback'
@@ -3789,7 +3788,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static throwError(message: ChromeAPIMessage, error: string, stackTrace?: string) {
 				console.warn('Error:', error);
 				if (stackTrace) {
-					var stacktraceSplit = stackTrace.split('\n');
+					const stacktraceSplit = stackTrace.split('\n');
 					stacktraceSplit.forEach((line) => {
 						console.warn(line);
 					});
@@ -3808,14 +3807,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			};
 		}
 		static sendThroughComm(message: ChromeAPIMessage) {
-			var instancesObj = globalObject.globals.crmValues.nodeInstances[message.id];
-			var instancesArr: Array<{
+			const instancesObj = globalObject.globals.crmValues.nodeInstances[message.id];
+			const instancesArr: Array<{
 				id: number;
 				instance: {
 					hasHandler: boolean;
 				}
 			}> = [];
-			for (var tabInstance in instancesObj) {
+			for (let tabInstance in instancesObj) {
 				if (instancesObj.hasOwnProperty(tabInstance)) {
 					instancesArr.push({
 						id: (tabInstance as any) as number,
@@ -3824,10 +3823,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 
-			var args: Array<{
-				type: string;	
+			let args: Array<{
+				type: string;
 			}> = [];
-			var fns = [];
+			const fns = [];
 			for (let i = 0; i < message.args.length; i++) {
 				if (message.args[i].type === 'fn') {
 					fns.push(message.args[i]);
@@ -3852,7 +3851,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					});
 			}
 		}
-	};
+	}
 
 	interface CRMFunctionMessage extends CRMAPIMessage<'crm', {
 		action: string;
@@ -3899,8 +3898,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				this.respondError('Supplied path is not of type array');
 				return true;
 			}
-			var length = path.length - 1;
-			for (var i = 0; i < length; i++) {
+			const length = path.length - 1;
+			for (let i = 0; i < length; i++) {
 				const next = data[path[i]];
 				if (data && next && next.children) {
 					data = next.children;
@@ -3964,15 +3963,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|
 			'after';
 		}, removeOld: any|boolean = false): boolean|CRM.Node {
-			var crmFunction = this;
+			const crmFunction = this;
 
 			//Capture old CRM tree
-			var oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm
-				.crmTree));
+			const oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm
+                .crmTree));
 
 			//Put the node in the tree
-			var relativeNode: Array<CRM.Node>|CRM.Node;
-			var parentChildren;
+			let relativeNode: Array<CRM.Node> | CRM.Node;
+			let parentChildren: Array<CRM.Node>;
 			position = position || {};
 
 			if (!this.checkType(position, 'object', 'position')) {
@@ -3996,7 +3995,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			relativeNode = relativeNode || globalObject.globals.crm.crmTree;
 
-			var isRoot = relativeNode === globalObject.globals.crm.crmTree;
+			const isRoot = relativeNode === globalObject.globals.crm.crmTree;
 
 			switch (position.relation) {
 				case 'before':
@@ -4119,9 +4118,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		getNodeFromId(id: number, makeSafe: boolean = false,
 			synchronous: boolean = false):
 		GetNodeFromIdCallback<CRM.Node|CRM.SafeNode>|CRM.Node|CRM.SafeNode|boolean|any {
-			var node = (makeSafe ?
-				            globalObject.globals.crm.crmByIdSafe :
-				            globalObject.globals.crm.crmById)[id];
+			const node = (makeSafe ?
+				globalObject.globals.crm.crmByIdSafe :
+				globalObject.globals.crm.crmById)[id];
 			if (node) {
 				if (synchronous) {
 					return node;
@@ -4157,20 +4156,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}>, callback: (optionals?: {
 			[key: string]: any;
 		}) => void) {
-			var typesMatch: boolean;
-			var toCheckName: string;
-			var matchingType: boolean | string;
-			var toCheckTypes: string[];
-			var toCheckValue: any;
-			var toCheckIsArray: boolean;
-			var optionals: {
+			let typesMatch: boolean;
+			let toCheckName: string;
+			let matchingType: boolean | string;
+			let toCheckTypes: string[];
+			let toCheckValue: any;
+			let toCheckIsArray: boolean;
+			const optionals: {
 				[key: string]: any;
 				[key: number]: any;
 			} = {};
-			var toCheckChildrenName: string;
-			var toCheckChildrenType: string;
-			var toCheckChildrenValue;
-			var toCheckChildrenTypes: string[];
+			let toCheckChildrenName: string;
+			let toCheckChildrenType: string;
+			let toCheckChildrenValue: any;
+			let toCheckChildrenTypes: string[];
 			for (let i = 0; i < toCheck.length; i++) {
 				toCheckName = toCheck[i].val;
 				if (toCheck[i].dependency) {
@@ -4184,7 +4183,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (toCheckValue === undefined || toCheckValue === null) {
 					if (toCheck[i].optional) {
 						optionals[toCheckName] = false;
-						continue;
 					} else {
 						this.respondError(`Value for ${toCheckName} is not set`);
 						return false;
@@ -4332,7 +4330,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	class ChromeHandler {
 		static handle(message: ChromeAPIMessage) {
 			const node = globalObject.globals.crm.crmById[message.id];
-			if (!/[a-z|A-Z|0-9]*/.test(message.api)) {
+			if (!/[a-zA-Z0-9]*/.test(message.api)) {
 				APIMessaging.ChromeMessage.throwError(message, `Passed API "${message
 					.api}" is not alphanumeric.`);
 				return false;
@@ -4345,12 +4343,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				APIMessaging.sendThroughComm(message);
 				return false;
 			}
-			var apiPermission = message
-				.requestType ||
+			const apiPermission = message
+                    .requestType ||
 				message.api.split('.')[0] as CRM.Permission;
 			if (!node.isLocal) {
-				var apiFound;
-				var chromeFound = (node.permissions.indexOf('chrome') !== -1);
+				let apiFound: boolean;
+				let chromeFound = (node.permissions.indexOf('chrome') !== -1);
 				apiFound = (node.permissions.indexOf(apiPermission) !== -1);
 				if (!chromeFound && !apiFound) {
 					APIMessaging.ChromeMessage.throwError(message,
@@ -4382,7 +4380,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					`Permissions ${apiPermission
 					} not available to the extension, visit options page`);
 				chrome.storage.local.get('requestPermissions', (storageData) => {
-					var perms = storageData['requestPermissions'] || [apiPermission];
+					const perms = storageData['requestPermissions'] || [apiPermission];
 					chrome.storage.local.set({
 						requestPermissions: perms
 					});
@@ -4390,10 +4388,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return false;
 			}
 
-			var i;
-			var params = [];
-			var returnFunctions = [];
-			for (i = 0; i < message.args.length; i++) {
+			const params: Array<any> = [];
+			const returnFunctions: Array<(result: any) => void> = [];
+			for (let i = 0; i < message.args.length; i++) {
 				switch (message.args[i].type) {
 					case 'arg':
 						params.push(Helpers.jsonFn.parse(message.args[i].val));
@@ -4403,15 +4400,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						break;
 					case 'return':
 						returnFunctions.push(APIMessaging.createReturn(message, message.args[i]
-							.val));
+                            .val));
 						break;
 				}
 			}
 
-			var result;
 			try {
-				result = sandboxes.sandboxChrome(message.api, params);
-				for (i = 0; i < returnFunctions.length; i++) {
+				const result = sandboxes.sandboxChrome(message.api, params);
+				for (let i = 0; i < returnFunctions.length; i++) {
 					returnFunctions[i](result);
 				}
 			} catch (e) {
@@ -4422,13 +4418,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 
 		private static _checkForRuntimeMessages(message: ChromeAPIMessage) {
-			var api = message.api.split('.').slice(1).join('.');
+			const api = message.api.split('.').slice(1).join('.');
 			if (message.api.split('.')[0] !== 'runtime') {
 				return false;
 			}
-			var args = [];
-			var fns: Array<() => void> = [];
-			var returns = [];
+			const args: Array<any> = [];
+			const fns: Array<() => void> = [];
+			const returns: Array<any> = [];
 			switch (api) {
 				case 'getBackgroundPage':
 					console
@@ -4557,7 +4553,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						'First argument should be a function');
 				}
 
-				var allowedTargets = [
+				const allowedTargets = [
 					'onStartup',
 					'onInstalled',
 					'onSuspend',
@@ -4565,10 +4561,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					'onUpdateAvailable',
 					'onRestartRequired'
 				];
-				var listenerTarget = api.split('.')[0];
+				const listenerTarget = api.split('.')[0];
 				if (allowedTargets.indexOf(listenerTarget) > -1) {
 					(chrome.runtime as any)[listenerTarget].addListener((...listenerArgs: Array<any>) => {
-						var params = Array.prototype.slice.apply(listenerArgs);
+						const params = Array.prototype.slice.apply(listenerArgs);
 						APIMessaging.CRMMessage.respond(message, 'success', {
 							callbackId: message.args[0].val,
 							params: params
@@ -4727,7 +4723,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			const hashString = url.split('#')[1];
 			const hashStrings = hashString.split(/[,|;]/g);
 			hashStrings.forEach((hash) => {
-				var split = hash.split('=');
+				const split = hash.split('=');
 				hashes.push({
 					algorithm: split[0],
 					hash: split[1]
@@ -4739,7 +4735,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			algorithm: string;
 			hash: string;
 		}>, data: string) {
-			var lastMatchingHash: {
+			let lastMatchingHash: {
 				algorithm: string;
 				hash: string;
 			} = null;
@@ -4784,7 +4780,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return false;
 		}
 		private static _registerResource(name: string, url: string, scriptId: number) {
-			var registerHashes = this._getHashes(url);
+			const registerHashes = this._getHashes(url);
 			if (window.navigator.onLine) {
 				this._getUrlData(scriptId, url, (dataURI, dataString) => {
 					const resources = globalObject.globals.storages.resources;
@@ -4862,7 +4858,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}>;
 			scriptId: number;
 		}) {
-			var resources = globalObject.globals.storages.resources;
+			const resources = globalObject.globals.storages.resources;
 			Helpers.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
 				if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
 					resources[key.scriptId][key.name].dataURI !== dataURI) {
@@ -5220,7 +5216,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							};
 							Logging.Listeners.updateTabAndIdLists();
 							if (!this._urlIsGlobalExcluded(tab.url)) {
-								const toExecute = [];
+								const toExecute: Array<{
+									node: CRM.Node;
+									tab: chrome.tabs.Tab;
+								}> = [];
 								for (let nodeId in globalObject.globals.toExecuteNodes.onUrl) {
 									if (globalObject.globals.toExecuteNodes.onUrl
 										.hasOwnProperty(nodeId) &&
@@ -5342,7 +5341,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				private static _createUserscriptTriggers(metaTags: {
 					[key: string]: any;
 				}): CRM.Triggers {
-					var triggers: CRM.Triggers = [];
+					let triggers: CRM.Triggers = [];
 					const includes: Array<string> = metaTags['includes'];
 					if (includes) {
 						triggers = triggers.concat(includes.map(include => ({
@@ -5397,7 +5396,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						node = node as CRM.ScriptNode;
 
 						//Libraries
-						var libs: Array<{
+						const libs: Array<{
 							url: string;
 							name: string;
 						}> = [];
@@ -5547,8 +5546,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						path?: Array<number>,
 						oldNodeId?: number,
 				} {
-					var node: Partial<CRM.ScriptNode|CRM.StylesheetNode> = {};
-					var hasOldNode = false;
+					let node: Partial<CRM.ScriptNode | CRM.StylesheetNode> = {};
+					let hasOldNode = false;
 					if (oldNodeId !== undefined && oldNodeId !== null) {
 						hasOldNode = true;
 						node.id = oldNodeId;
@@ -5561,13 +5560,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					])[0];
 					node.triggers = this._createUserscriptTriggers(metaTags);
 					this._createUserscriptTypeData(metaTags, code, node);
-					var updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
+					const updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 							'updateURL') ||
 						CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'downloadURL') ||
 						downloadURL;
 
 					//Requested permissions
-					var permissions = [];
+					let permissions = [];
 					if (metaTags['grant']) {
 						permissions = metaTags['grant'];
 						permissions = permissions.splice(permissions.indexOf('none'), 1);
@@ -5622,7 +5621,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					//Resources
 					if (metaTags['resource']) {
 						//Register resources
-						var resources: Array<string> = metaTags['resource'];
+						const resources: Array<string> = metaTags['resource'];
 						resources.forEach(resource => {
 							const resourceSplit = resource.split(/(\s*)/);
 							const [resourceName, resourceUrl] = resourceSplit;
@@ -5644,7 +5643,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							permissions: Array<string>;
 						}) => {
 							const requestPermissionsAllowed = allowed.permissions || [];
-							var requestPermissions: Array<string> = keys['requestPermissions'] || [];
+							let requestPermissions: Array<string> = keys['requestPermissions'] || [];
 							requestPermissions = requestPermissions.concat(node.permissions
 								.filter(nodePermission => (requestPermissionsAllowed
 									.indexOf(nodePermission) === -1)));
@@ -5668,7 +5667,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					if (hasOldNode) {
-						var path = globalObject.globals.crm.crmById[oldNodeId].path;
+						const path = globalObject.globals.crm.crmById[oldNodeId].path;
 						return {
 							node: node as CRM.ScriptNode|CRM.StylesheetNode,
 							path: path,
@@ -5685,25 +5684,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				static updateScripts(callback?: (data: any) => void) {
 					const checking = [];
-					var updatedScripts: Array<{
+					const updatedScripts: Array<{
 						oldNodeId: number;
 						node: CRM.Node;
 						path: Array<number>;
 					}> = [];
-					var oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
-						.settingsStorage.crm));
+					const oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
+                        .settingsStorage.crm));
 
-					var _this = this;
+					const _this = this;
 					function onDone() {
-						var updatedData = updatedScripts.map((updatedScript) => {
-							var oldNode = globalObject.globals.crm.crmById[updatedScript
-								.oldNodeId];
+						const updatedData = updatedScripts.map((updatedScript) => {
+							const oldNode = globalObject.globals.crm.crmById[updatedScript
+                                .oldNodeId];
 							return {
 								name: updatedScript.node.name,
 								id: updatedScript.node.id,
 								oldVersion: (oldNode && oldNode.nodeInfo && oldNode.nodeInfo.version
-									) ||
-									undefined,
+								) ||
+								undefined,
 								newVersion: updatedScript.node.nodeInfo.version
 							};
 						});
@@ -5778,7 +5777,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								.split('.user.js')[0]}/${node.nodeInfo.version}`,
 								(dataURI, dataString) => {
 									try {
-										var resultParsed = JSON.parse(dataString);
+										const resultParsed = JSON.parse(dataString);
 										if (resultParsed.updated) {
 											if (!Helpers.compareArray(node.nodeInfo.permissions, resultParsed
 													.metaTags
@@ -5787,7 +5786,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 													resultParsed.metaTags.grant[0] === 'none')) {
 												//New permissions were added, notify user
 												chrome.storage.local.get('addedPermissions', (data) => {
-													var addedPermissions = data['addedPermissions'] || [];
+													const addedPermissions = data['addedPermissions'] || [];
 													addedPermissions.push({
 														node: node.id,
 														permissions: resultParsed.metaTags.grant
@@ -5834,8 +5833,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									Helpers.convertFileToDataURI(downloadURL, (dataURI, dataString) => {
 										//Get the meta tags
 										try {
-											var metaTags = CRM.Script.MetaTags
-												.getMetaTags(dataString);
+											const metaTags = CRM.Script.MetaTags
+                                                .getMetaTags(dataString);
 											if (Helpers.isNewer(metaTags['version'][0], node.nodeInfo
 												.version)) {
 												if (!Helpers.compareArray(node.nodeInfo.permissions,
@@ -5846,7 +5845,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 														metaTags['grant'][0] === 'none')) {
 													//New permissions were added, notify user
 													chrome.storage.local.get('addedPermissions', (data) => {
-														var addedPermissions = data['addedPermissions'] || [];
+														const addedPermissions = data['addedPermissions'] || [];
 														addedPermissions.push({
 															node: node.id,
 															permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
@@ -5923,8 +5922,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const metaEnd = metaIndexes.end;
 					const startPlusOne = metaStart + 1;
 					const lines = script.split('\n');
-					const metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
-					return metaLines;
+					return lines.splice(startPlusOne, (metaEnd - startPlusOne));
 				}
 				static getMetaTags(script: string): {
 					[key: string]: any
@@ -6016,7 +6014,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						return;
 					}
 
-					var isRestart = false;
+					let isRestart = false;
 					if (globalObject.globals.background.byId[node.id]) {
 						isRestart = true;
 						
@@ -6028,11 +6026,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					const result = this._loadBackgroundPageLibs(node);
-					var code = result.code;
+					let code = result.code;
 					const libraries = result.libraries;
 
-					var key: Array<number> = [];
-					var err = false;
+					let key: Array<number> = [];
+					let err = false;
 					try {
 						key = Helpers.createSecretKey();
 					} catch (e) {
@@ -6053,15 +6051,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						};
 						Logging.Listeners.updateTabAndIdLists();
 
-						var metaData = CRM.Script.MetaTags.getMetaTags(node.value
-							.script);
-						var metaString = CRM.Script.MetaTags.getMetaLines(node.value
-								.script) ||
+						const metaData = CRM.Script.MetaTags.getMetaTags(node.value
+                            .script);
+						const metaString = CRM.Script.MetaTags.getMetaLines(node.value
+                                .script) ||
 							undefined;
-						var runAt = metaData['run-at'] || 'document_end';
-						var excludes = [];
-						var includes = [];
-						for (var i = 0; i < node.triggers.length; i++) {
+						const runAt = metaData['run-at'] || 'document_end';
+						const excludes = [];
+						const includes = [];
+						for (let i = 0; i < node.triggers.length; i++) {
 							if (node.triggers[i].not) {
 								excludes.push(node.triggers[i].url);
 							} else {
@@ -6069,7 +6067,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						var indentUnit: string;
+						let indentUnit: string;
 						if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 							indentUnit = '	';
 						} else {
@@ -6078,13 +6076,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								2).join('');
 						}
 
-						var script = node.value.backgroundScript.split('\n').map((line) => {
+						const script = node.value.backgroundScript.split('\n').map((line) => {
 							return indentUnit + line;
 						}).join('\n');
 
-						var metaVal = CRM.Script._generateMetaAccessFunction(metaData);
+						const metaVal = CRM.Script._generateMetaAccessFunction(metaData);
 
-						var greaseMonkeyData = {
+						const greaseMonkeyData = {
 							info: {
 								script: {
 									author: metaVal('author') || '',
@@ -6138,7 +6136,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						globalObject.globals.storages.nodeStorage[node
 							.id] = globalObject.globals.storages.nodeStorage[node.id] || {};
 
-						var nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
+						const nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
 
 						const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
 								node.isLocal;
@@ -6224,8 +6222,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			};
 			static createHandler(node: CRM.ScriptNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
-					var key: Array<number> = [];
-					var err = false;
+					let key: Array<number> = [];
+					let err = false;
 					try {
 						key = Helpers.createSecretKey();
 					} catch (e) {
@@ -6336,7 +6334,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 							const nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
 
-							var indentUnit: string;
+							let indentUnit: string;
 							if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 								indentUnit = '	';
 							} else {
@@ -6356,32 +6354,32 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 							const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
 								node.isLocal;
-							var code = [
+							const code = [
 								[
 									`var crmAPI = new CrmAPIInit(${
-									[
-										CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
-										contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
-										enableBackwardsCompatibility
-									]
-									.map((param) => {
-										return JSON.stringify(param);
-									}).join(', ')});`
+										[
+											CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
+											contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
+											enableBackwardsCompatibility
+										]
+                                            .map((param) => {
+												return JSON.stringify(param);
+											}).join(', ')});`
 								].join(', '),
 								'try {',
-									'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
-									'linkurl, srcurl, pageurl, frameurl, frameid,' + 
-									'selectiontext, editable, waschecked, checked) {',
-										'window.chrome = chrome;',
-										script,
-									'}',
-									`main.apply(this, [${node.isLocal ? 'chrome' : 'void 0'}].concat(${
-										JSON.stringify([
-											info.menuItemId, info.parentMenuItemId, info.mediaType,
-											info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
-											(info as any).frameId, info.selectionText,
-											info.editable, info.wasChecked, info.checked
-										])
+								'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
+								'linkurl, srcurl, pageurl, frameurl, frameid,' +
+								'selectiontext, editable, waschecked, checked) {',
+								'window.chrome = chrome;',
+								script,
+								'}',
+								`main.apply(this, [${node.isLocal ? 'chrome' : 'void 0'}].concat(${
+									JSON.stringify([
+										info.menuItemId, info.parentMenuItemId, info.mediaType,
+										info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
+										(info as any).frameId, info.selectionText,
+										info.editable, info.wasChecked, info.checked
+									])
 									}))`,
 								'} catch (error) {',
 								indentUnit + 'if (crmAPI.debugOnError) {',
@@ -6391,9 +6389,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								'}'
 							].join('\n');
 
-							var scripts = [];
+							const scripts = [];
 							for (i = 0; i < node.value.libraries.length; i++) {
-								var lib: {
+								let lib: {
 									name: string;
 									url?: string;
 									code?: string;
@@ -6402,7 +6400,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								};
 								const globalLibs = globalObject.globals.storages.storageLocal.libraries;
 								if (globalLibs) {
-									for (var j = 0; j < globalLibs.length; j++) {
+									for (let j = 0; j < globalLibs.length; j++) {
 										if (globalLibs[j].name === node.value.libraries[i].name) {
 											lib = globalLibs[j];
 											break;
@@ -6454,7 +6452,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static createHandler(node: CRM.LinkNode): ClickHandler {
 				return (clickData: chrome.contextMenus.OnClickData,
 					tabInfo: chrome.tabs.Tab) => {
-					var finalUrl: string;
+					let finalUrl: string;
 					for (let i = 0; i < node.value.length; i++) {
 						if (node.value[i].newTab) {
 							chrome.tabs.create({
@@ -6559,14 +6557,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						};
 					}
 
-					var triggers: Array<string> = [];
+					const triggers: Array<string> = [];
 					data.domains.forEach((domainRule) => {
 						triggers.push(`*://${domainRule}/*`);
 					});
 					data.regexps.forEach((regexpRule) => {
-						var match =
+						const match =
 							/((http|https|file|ftp):\/\/)?(www\.)?((\w+)\.)*((\w+)?|(\w+)?(\/(.*)))?/g
-								.exec(regexpRule);
+                                .exec(regexpRule);
 						triggers.push([
 							(match[2] ?
 									(match[2].indexOf('*') > -1 ?
@@ -6617,7 +6615,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					code: string;
 					author: string
 				}) {
-					var stylesheetData: {
+					const stylesheetData: {
 						sections: Array<{
 							domains: Array<string>;
 							regexps: Array<string>;
@@ -6631,9 +6629,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					} = JSON.parse(data.code);
 
 					stylesheetData.sections.forEach((section) => {
-						var sectionData = this._extractStylesheetData(section);
-						var node = globalObject.globals.constants.templates
-							.getDefaultStylesheetNode({
+						const sectionData = this._extractStylesheetData(section);
+						const node = globalObject.globals.constants.templates
+                            .getDefaultStylesheetNode({
 								isLocal: false,
 								name: stylesheetData.name,
 								nodeInfo: {
@@ -6654,7 +6652,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								id: Helpers.generateItemId()
 							});
 
-						var crmFn = new CRMFunction(null, 'null');
+						const crmFn = new CRMFunction(null, 'null');
 						crmFn.moveNode(node, {}, null);
 					});
 				}
@@ -6681,8 +6679,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							lines[lineIndex] = {
 								isComment: true,
 								line: ''
-							}
-							continue;
+							};
 						} else if (stylesheet[i] === '*' && stylesheet[i + 1] === '/') {
 							inComment = false;
 							lineIndex++;
@@ -6690,8 +6687,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							lines[lineIndex] = {
 								isComment: false,
 								line: ''
-							}
-							continue;
+							};
 						} else {
 							lines[lineIndex].line += stylesheet[i];
 						}
@@ -6804,7 +6800,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								parts[parts.length - 1].content += '{{';
 							}
 							i += 1;
-							continue;
 						} else if (line[i] === '}' && line[i + 1] === '}') {
 							if (inVar) {
 								inVar = false;
@@ -6816,7 +6811,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								parts[parts.length - 1].content += '}}';
 							}
 							i += 1;
-							continue;
 						} else {
 							parts[parts.length - 1].content += line[i];
 						}
@@ -6961,8 +6955,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
 						rightClickItemOptions.documentUrlPatterns = [];
 						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
-						for (var i = 0; i < node.triggers.length; i++) {
-							var prepared = URLParsing.prepareTrigger(node.triggers[i].url);
+						for (let i = 0; i < node.triggers.length; i++) {
+							const prepared = URLParsing.prepareTrigger(node.triggers[i].url);
 							if (prepared) {
 								if (node.triggers[i].not) {
 									globalObject.globals.crmValues.hideNodesOnPagesData[node.id]
@@ -7004,11 +6998,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						break;
 				}
 
-				var id = chrome.contextMenus.create(rightClickItemOptions, () => {
+				let id = chrome.contextMenus.create(rightClickItemOptions, () => {
 					if (chrome.runtime.lastError) {
 						if (rightClickItemOptions.documentUrlPatterns) {
 							console
-								.log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
+                                .log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
 							delete rightClickItemOptions.documentUrlPatterns;
 							id = chrome.contextMenus.create(rightClickItemOptions, () => {
 								id = chrome.contextMenus.create({
@@ -7016,11 +7010,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									onclick: CRM._createOptionsPageHandler()
 								});
 								console.log('Another error occured with your context menu!', chrome
-									.runtime.lastError);
+                                    .runtime.lastError);
 							});
 						} else {
 							console.log('An error occured with your context menu!', chrome.runtime
-								.lastError);
+                                .lastError);
 						}
 					}
 				});
@@ -7250,7 +7244,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			arr: Array<CRM.Node>;
 		}) {
 			for (let i = 0; i < crm.length; i++) {
-				var node = crm[i];
+				const node = crm[i];
 				state.arr.push(node);
 				if (node.type === 'menu' && node.children) {
 					this._walkCRM(node.children, state);
@@ -7524,11 +7518,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			if (host1[0] === '*') {
 				const host1Split = host1.slice(2);
 				const index = host2.indexOf(host1Split);
-				if (index === host2.length - host1Split.length) {
-					return true;
-				} else {
-					return false;
-				}
+				return index === host2.length - host1Split.length;
 			}
 
 			return (host1 === host2);
@@ -7609,7 +7599,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							case 'VariableDeclaration':
 								for (let i = 0; i < expression.declarations.length; i++) {
 									//Check if it's an actual chrome assignment
-									var declaration = expression.declarations[i];
+									const declaration = expression.declarations[i];
 									if (declaration.init) {
 										if (this.findLocalStorageExpression(declaration.init, data)) {
 											return true;
@@ -7708,9 +7698,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					static replaceLocalStorageCalls(lines: Array<string>): string {
 						//Analyze the file
-						var file = new window.TernFile('[doc]');
+						const file = new window.TernFile('[doc]');
 						file.text = lines.join('\n');
-						var srv = new window.CodeMirror.TernServer({
+						const srv = new window.CodeMirror.TernServer({
 							defs: [window.ecma5, window.ecma6, window.browserDefs]
 						});
 						window.tern.withContext(srv.cx, () => {
@@ -7745,7 +7735,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					static removePositionDuplicates(arr: Array<TransferOnErrorError>):
 						Array<TransferOnErrorError> {
-							var jsonArr: Array<string> = [];
+							let jsonArr: Array<string> = [];
 							arr.forEach((item, index) => {
 								jsonArr[index] = JSON.stringify(item);
 							});
@@ -7866,7 +7856,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								});
 								scriptLaunchMode = '2';
 							}
-							var id = Helpers.generateItemId();
+							const id = Helpers.generateItemId();
 							node = globalObject.globals.constants.templates.getDefaultScriptNode({
 								name: name,
 								id: id,
@@ -7944,7 +7934,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			//Sync storage
 			static _getDefaultSyncStorage(): CRM.SettingsStorage {
-				const settings: CRM.SettingsStorage = {
+				return {
 					editor: {
 						keyBindings: {
 							autocomplete: 'Ctrl-Space',
@@ -7968,7 +7958,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					settingsLastUpdatedAt: new Date().getTime(),
 					latestId: globalObject.globals.latestId
 				};
-				return settings;
 			}
 
 			static handleFirstRun(crm?: Array<CRM.Node>): {
@@ -8282,8 +8271,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			indexes: Array<number>;
 			[key: number]: string;
 		} {
-			var obj = {} as any;
-			var indexes: Array<string> = [];
+			const obj = {} as any;
+			const indexes: Array<string> = [];
 			const splitJson = data.match(/[\s\S]{1,5000}/g);
 			splitJson.forEach((section: String) => {
 				const arrLength = indexes.length;
@@ -8347,8 +8336,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									settingsJsonArray.push(chromeStorageSync[index]);
 								});
 								const jsonString = settingsJsonArray.join('');
-								const settings = JSON.parse(jsonString);
-								settingsStorage = settings;
+								settingsStorage = JSON.parse(jsonString);
 							} else {
 								delete storageLocalCopy.settings;
 								settingsStorage = chromeStorageLocal['settings'];
@@ -8437,7 +8425,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					window.localStorage.getItem('numberofrows') !== null) {
 					return this.SetupHandling.handleTransfer();
 				} else {
-					var firstRunResult = this.SetupHandling.handleFirstRun();
+					const firstRunResult = this.SetupHandling.handleFirstRun();
 					return (resolve) => {
 						resolve(firstRunResult);
 					};
@@ -8465,7 +8453,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			}
 		}
-	};
+	}
 
 	(() => {
 		Storages.loadStorages(() => {
@@ -8512,15 +8500,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 
 		sandboxes.sandboxChrome = (api: string, args: Array<any>) => {
-			var context = {};
-			var fn = window.chrome;
+			let context = {};
+			let fn = window.chrome;
 			const apiSplit = api.split('.');
 			for (let i = 0; i < apiSplit.length; i++) {
 				context = fn;
 				fn = (fn as any)[apiSplit[i]];
 			}
-			const result = sandboxChromeFunction(null, null, null, (fn as any) as Function, context, args);
-			return result;
+			return sandboxChromeFunction(null, null, null, (fn as any) as Function, context, args);
 		};
 
 		return sandboxes as {
@@ -8552,7 +8539,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 
 				this.worker.addEventListener('message', (e) => {
-					var data = e.data;
+					const data = e.data;
 					switch (data.type) {
 						case 'handshake':
 						case 'crmapi':
