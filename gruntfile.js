@@ -589,6 +589,17 @@ module.exports = function(grunt) {
 	grunt.registerTask('compile', ['exec:tsCompileApp', 'exec:tsCompileTests']);
 
 	//Builds the extension but tries to keep the code readable and unminified
+	// (and preserves debugger statements etc), skips the compile step
+	// for if you're running a typescript compiler on watch mode
+	grunt.registerTask('buildForDebuggingNoCompile', ['cleanBuild', 'extractDefs',
+		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
+		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
+		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
+		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
+		'clean:tsFiles', 'usebanner', 'zip']);
+
+	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
 	grunt.registerTask('buildForDebugging', ['cleanBuild', 'compile', 'extractDefs',
 		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
