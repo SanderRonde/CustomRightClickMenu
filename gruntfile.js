@@ -184,29 +184,6 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			crmMinifiyBeautiful: {
-				options: {
-					beautify: true,
-					sourceMap: true
-				},
-				files: [
-					{
-						expand: true,
-						cwd: 'app/js',
-						src: [
-							'background.js',
-							'crmapi.js', 
-							'crmAPIDefs.js',
-							'crmAPIDocs.js', 
-							'contentscript.js',
-							'sandbox.js', 
-							'installStylesheet.js',
-							'calcPolyfill.js'
-						],
-						dest: 'build/js/'
-					}
-				]
-			},
 			elementsMinify: {
 				options: {
 					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/\n'
@@ -361,6 +338,25 @@ module.exports = function(grunt) {
 					],
 					dest: './.gitignore'
 				}]
+			},
+			jsFiles: {
+				files: [
+					{
+						expand: true,
+						cwd: 'app/js',
+						src: [
+							'background.js',
+							'crmapi.js', 
+							'crmAPIDefs.js',
+							'crmAPIDocs.js', 
+							'contentscript.js',
+							'sandbox.js', 
+							'installStylesheet.js',
+							'calcPolyfill.js'
+						],
+						dest: 'build/js/'
+					}
+				]
 			}
 		},
 		htmlmin: {
@@ -599,7 +595,7 @@ module.exports = function(grunt) {
 		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
-		'uglify:crmMinifiyBeautiful', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
+		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
 		'clean:tsFiles', 'usebanner', 'zip']);
 
 	//Builds the extension and places the zip and all other files in build/
@@ -619,5 +615,5 @@ module.exports = function(grunt) {
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
-	grunt.registerTask('test', ['testBuild', 'exec:test', 'compile', 'mochaTest']);
+	grunt.registerTask('test', ['testBuild', 'build', 'exec:test', 'compile', 'mochaTest']);
 };
