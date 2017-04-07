@@ -79,8 +79,8 @@ window.logElements = (() => {
 			}
 		}
 		render() {
-			var type = typeof this.props.value;
-			var value;
+			const type = typeof this.props.value;
+			let value;
 			if (this.props.value === null || this.props.value === undefined) {
 				value = this.props.value + '';
 			} else {
@@ -93,7 +93,7 @@ window.logElements = (() => {
 		}
 	};
 
-	var fnRegex = /^(.+)\{((.|\s|\n|\r)+)\}$/;
+	const fnRegex = /^(.+)\{((.|\s|\n|\r)+)\}$/;
 
 	class FunctionElement extends LogElement {
 		refs: {
@@ -113,13 +113,13 @@ window.logElements = (() => {
 			this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
 		}
 		render() {
-			var fn = this.props.value.toString();
-			var fnMatch = fnRegex.exec(fn);
-			var functionPrefix = fnMatch[1];
-			var functionText = fnMatch[2];
-			var functionKeywordIndex = functionPrefix.indexOf('function') || 0;
+			const fn = this.props.value.toString();
+			const fnMatch = fnRegex.exec(fn);
+			const functionPrefix = fnMatch[1];
+			const functionText = fnMatch[2];
+			const functionKeywordIndex = functionPrefix.indexOf('function') || 0;
 
-			var expandClick = this.expand.bind(this);
+			const expandClick = this.expand.bind(this);
 
 			return (
 				<div ref="cont" className="functionElementCont">
@@ -177,7 +177,7 @@ window.logElements = (() => {
 				};
 			});
 		} else {
-			var props = Object.getOwnPropertyNames(item).map(function(key) {
+			const props = Object.getOwnPropertyNames(item).map(function (key) {
 				if (key === '__proto__' && item[key] === null) {
 					return null;
 				} else if (key !== '__parent') {
@@ -187,7 +187,7 @@ window.logElements = (() => {
 					};
 				}
 				return null;
-			}).filter(function(pair) {
+			}).filter(function (pair) {
 				return pair !== null;
 			});
 
@@ -223,10 +223,10 @@ window.logElements = (() => {
 			if (!this.props.expanded && !this.props.renderedExpanded) {
 				this.props.renderedExpanded = true;
 
-				var _this = this;
-				var expandedElements: Array<JSX.Element> = [];
-				var pairs = getKeyValuePairs(this.props.value, true);
-				var lastElementIndex = pairs.length - 1;
+				const _this = this;
+				const expandedElements: Array<JSX.Element> = [];
+				const pairs = getKeyValuePairs(this.props.value, true);
+				const lastElementIndex = pairs.length - 1;
 				pairs.forEach(function(item, i) {
 					expandedElements.push(
 						<div className="expandedObjectElement">
@@ -253,21 +253,21 @@ window.logElements = (() => {
 			this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
 		}
 		render() {
-			var dataType = Array.isArray(this.props.value) ? 'arr' : 'object';
-			var expandClick = this.expand.bind(this);
-			var dataPairs = getKeyValuePairs(this.props.value);
-			var lastElIndex = dataPairs.length - 1;
-			var isExpandable = dataType === 'object' || 
-				dataPairs.length >= 10 || 
-				dataPairs.filter(function(pair) {
+			const dataType = Array.isArray(this.props.value) ? 'arr' : 'object';
+			const expandClick = this.expand.bind(this);
+			const dataPairs = getKeyValuePairs(this.props.value);
+			const lastElIndex = dataPairs.length - 1;
+			const isExpandable = dataType === 'object' ||
+				dataPairs.length >= 10 ||
+				dataPairs.filter(function (pair) {
 					return typeof pair.value === 'object';
 				}).length > 0;
-			var overflows = (dataType === 'object' && dataPairs.length > 3) || 
+			const overflows = (dataType === 'object' && dataPairs.length > 3) ||
 				(dataType === 'arr' && dataPairs.length > 10);
-			var nonOverflowItems: Array<{
-				index: string|number;
+			const nonOverflowItems: Array<{
+				index: string | number;
 				value: any;
-			}|{
+			} | {
 				overflow: boolean;
 			}> = dataPairs.slice(0, (
 				this.props.isProto ? 0 :
@@ -291,12 +291,12 @@ window.logElements = (() => {
 						<div className="objectElementPreviewCont">
 							<span>{dataType === 'arr' ? '[' : '{'}</span>
 							{nonOverflowItems.map(function(item, i) {
-								var index = (item as {
-									index: string|number;
+								const index = (item as {
+									index: string | number;
 									value: any;
 								}).index;
-								var data = (item as {
-									index: string|number;
+								let data = (item as {
+									index: string | number;
 									value: any;
 								}).value;
 								if (typeof data === 'object') {
@@ -461,7 +461,7 @@ window.logElements = (() => {
 				lines: []
 			};
 
-			for (var i = 0; i < this.state.lines.length; i++) {
+			for (let i = 0; i < this.state.lines.length; i++) {
 				children.push(<LogLine value={this.state.lines[i].data} line={this.state.lines[i].line}/>);
 			}
 

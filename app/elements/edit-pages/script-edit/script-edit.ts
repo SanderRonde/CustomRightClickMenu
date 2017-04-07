@@ -32,10 +32,10 @@ class SCE {
 	};
 
 	private static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
-		var oldValue = !element.checked;
-		var inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
+		const oldValue = !element.checked;
+		const inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
 
-		var line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
+		const line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
 		this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
 	};
 
@@ -46,14 +46,14 @@ class SCE {
 	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
 		const element = window.app.findElementWithTagname(e.path, 'paper-checkbox');
 
-		var elements = $('script-edit .showOnContentItemCheckbox');
-		var elementType = element.classList[1].split('Type')[0];
-		var state = !(element as HTMLPaperCheckboxElement).checked;
+		const elements = $('script-edit .showOnContentItemCheckbox');
+		const elementType = element.classList[1].split('Type')[0];
+		let state = !(element as HTMLPaperCheckboxElement).checked;
 
-		var states = [];
-		var oldStates = [];
-		var types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
-		for (var i = 0; i < elements.length; i++) {
+		const states = [];
+		const oldStates = [];
+		const types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+		for (let i = 0; i < elements.length; i++) {
 			const checkbox = elements[i] as HTMLPaperCheckboxElement;
 			if (types[i] === elementType) {
 				states[i] = state;
@@ -70,8 +70,8 @@ class SCE {
 
 		//Use jquery to also get the pre-change value
 		$(this.$.nameInput).on('keydown', () => {
-			var el = this.$.nameInput;
-			var oldVal = el.value || '';
+			const el = this.$.nameInput;
+			let oldVal = el.value || '';
 			Array.isArray(oldVal) && (oldVal = oldVal[0]);
 		});
 
@@ -164,7 +164,7 @@ class SCE {
 
 	private static getExportData(this: NodeEditBehaviorScriptInstance) {
 		($('script-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
-		var settings = {};
+		const settings = {};
 		this.save(null, settings);
 		return settings as CRM.ScriptNode;
 	};
@@ -202,8 +202,8 @@ class SCE {
 
 	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|CRM.ScriptNode,
 			callback: () => void) {
-		var nodeItem: CRM.ScriptNode;
-		var settingsStorage: Partial<CRM.ScriptNode>;
+		let nodeItem: CRM.ScriptNode;
+		let settingsStorage: Partial<CRM.ScriptNode>;
 		if (!item || item.type === 'tap') {
 			//It's an event, ignore it
 			nodeItem = this.item;
@@ -217,41 +217,41 @@ class SCE {
 			if (!nodeItem.permissions) {
 				nodeItem.permissions = [];
 			}
-			var scriptPermissions = nodeItem.permissions;
-			var permissions = window.app.templates.getScriptPermissions();
+			const scriptPermissions = nodeItem.permissions;
+			const permissions = window.app.templates.getScriptPermissions();
 			extensionWideEnabledPermissions = extensionWideEnabledPermissions.permissions;
 
-			var askedPermissions = (nodeItem.nodeInfo &&
+			const askedPermissions = (nodeItem.nodeInfo &&
 				nodeItem.nodeInfo.permissions) || [];
 
-			var requiredActive: Array<{
+			const requiredActive: Array<{
 				name: string;
 				toggled: boolean;
 				required: boolean;
 				description: string;
 			}> = [];
-			var requiredInactive: Array<{
+			const requiredInactive: Array<{
 				name: string;
 				toggled: boolean;
 				required: boolean;
 				description: string;
 			}> = [];
-			var nonRequiredActive: Array<{
+			const nonRequiredActive: Array<{
 				name: string;
 				toggled: boolean;
 				required: boolean;
 				description: string;
 			}> = [];
-			var nonRequiredNonActive: Array<{
+			const nonRequiredNonActive: Array<{
 				name: string;
 				toggled: boolean;
 				required: boolean;
 				description: string;
 			}> = [];
 
-			var isAsked;
-			var isActive;
-			var permissionObj;
+			let isAsked;
+			let isActive;
+			let permissionObj;
 			permissions.forEach(function(permission) {
 				isAsked = askedPermissions.indexOf(permission) > -1;
 				isActive = scriptPermissions.indexOf(permission as CRM.Permission) > -1;
@@ -274,13 +274,13 @@ class SCE {
 				}
 			});
 
-			var permissionList = nonRequiredActive;
+			const permissionList = nonRequiredActive;
 			permissionList.push.apply(permissionList, requiredActive);
 			permissionList.push.apply(permissionList, requiredInactive);
 			permissionList.push.apply(permissionList, nonRequiredNonActive);
 
 			function cb() {
-				var el, svg;
+				let el, svg;
 				$('.requestPermissionsShowBot').off('click').on('click', function(this: HTMLElement) {
 					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
 						animation: Animation;
@@ -304,11 +304,11 @@ class SCE {
 					}
 				});
 
-				var permission: CRM.Permission;
+				let permission: CRM.Permission;
 				$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
 					permission = this.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
-					var slider = this;
-					var oldPermissions;
+					const slider = this;
+					let oldPermissions;
 					if (this.checked) {
 						if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
 							chrome.permissions.request({
@@ -320,7 +320,7 @@ class SCE {
 								} else {
 									//Accepted, remove from to-request permissions if it's there
 									chrome.storage.local.get(function(e: CRM.StorageLocal) {
-										var permissionsToRequest = e.requestPermissions;
+										const permissionsToRequest = e.requestPermissions;
 										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 										chrome.storage.local.set({
 											requestPermissions: permissionsToRequest
@@ -360,7 +360,7 @@ class SCE {
 	 * Fills the editor-tools-ribbon on the left of the editor with elements
 	 */
 	private static initToolsRibbon(this: NodeEditBehaviorScriptInstance) {
-		var _this = this;
+		const _this = this;
 		(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
 		(window.app.$.paperGetPageProperties as PaperGetPageProperties).init(function (snippet: string) {
 			_this.insertSnippet(_this, snippet);
@@ -372,8 +372,8 @@ class SCE {
 	 */
 	private static popInRibbons(this: NodeEditBehaviorScriptInstance) {
 		//Introduce title at the top
-		var scriptTitle = window.app.$.editorCurrentScriptTitle;
-		var titleRibbonSize;
+		const scriptTitle = window.app.$.editorCurrentScriptTitle;
+		let titleRibbonSize;
 		if (window.app.storageLocal.shrinkTitleRibbon) {
 			window.doc.editorTitleRibbon.style.fontSize = '40%';
 			scriptTitle.style.padding = '0';
@@ -383,10 +383,10 @@ class SCE {
 		}
 		scriptTitle.style.display = 'flex';
 		scriptTitle.style.marginTop = titleRibbonSize;
-		var scriptTitleAnimation: [{
-			[key: string]: string|number;
-		},{
-			[key: string]: string|number;
+		const scriptTitleAnimation: [{
+			[key: string]: string | number;
+		}, {
+			[key: string]: string | number;
 		}] = [
 			{
 				marginTop: titleRibbonSize
@@ -394,7 +394,7 @@ class SCE {
 				marginTop: 0
 			}
 		];
-		var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
+		const margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
 		scriptTitle.style.marginLeft = '-200px';
 		scriptTitleAnimation[0]['marginLeft'] = '-200px';
 		scriptTitleAnimation[1]['marginLeft'] = 0;
@@ -443,16 +443,16 @@ class SCE {
 	 * Pops out the ribbons with an animation
 	 */
 	private static popOutRibbons(this: NodeEditBehaviorScriptInstance) {
-		var scriptTitle = window.app.$.editorCurrentScriptTitle;
-		var toolsRibbon = window.app.$.editorToolsRibbonContainer;
+		const scriptTitle = window.app.$.editorCurrentScriptTitle;
+		const toolsRibbon = window.app.$.editorToolsRibbonContainer;
 
-		var toolsVisible = !window.app.storageLocal.hideToolsRibbon && 
+		const toolsVisible = !window.app.storageLocal.hideToolsRibbon &&
 			toolsRibbon &&
-			toolsRibbon.classList.contains('visible'); 
+			toolsRibbon.classList.contains('visible');
 
-		var titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
+		const titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
 
-		var titleAnimation = [{
+		const titleAnimation = [{
 			marginTop: 0,
 			marginLeft: 0
 		}, {
@@ -520,9 +520,9 @@ class SCE {
 		}
 		this.fullscreen = true;
 
-		var rect = this.editor.display.wrapper.getBoundingClientRect();
-		var editorCont = window.doc.fullscreenEditor;
-		var editorContStyle = editorCont.style;
+		const rect = this.editor.display.wrapper.getBoundingClientRect();
+		const editorCont = window.doc.fullscreenEditor;
+		const editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
 		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
 		editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
@@ -531,17 +531,17 @@ class SCE {
 			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
 		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.fullscreenEl.style.display = 'none';
-		var $editorWrapper = $(this.editor.display.wrapper);
-		var buttonShadow = $editorWrapper.find('#buttonShadow')[0];
+		const $editorWrapper = $(this.editor.display.wrapper);
+		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
 		buttonShadow.style.position = 'absolute';
 		buttonShadow.style.right = '-1px';
 		this.editor.display.wrapper.classList.add('fullscreen');
 		this.editor.display.wrapper.classList.remove('small');
 
 		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
-		var $horizontalCenterer = $('#horizontalCenterer');
-		var viewportWidth = $horizontalCenterer.width() + 20;
-		var viewPortHeight = $horizontalCenterer.height();
+		const $horizontalCenterer = $('#horizontalCenterer');
+		const viewportWidth = $horizontalCenterer.width() + 20;
+		const viewPortHeight = $horizontalCenterer.height();
 
 		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
 			if (window.app.storageLocal.hideToolsRibbon) {
@@ -604,15 +604,15 @@ class SCE {
 		}
 		this.fullscreen = false;
 
-		var _this = this;
+		const _this = this;
 		this.popOutRibbons();
-		var $wrapper = $(_this.editor.display.wrapper);
-		var $buttonShadow = $wrapper.find('#buttonShadow');
+		const $wrapper = $(_this.editor.display.wrapper);
+		const $buttonShadow = $wrapper.find('#buttonShadow');
 		$buttonShadow[0].style.position = 'absolute';
 		setTimeout(function() {
 			_this.editor.display.wrapper.classList.remove('fullscreen');
 			_this.editor.display.wrapper.classList.add('small');
-			var editorCont = window.doc.fullscreenEditor;
+			const editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			$(editorCont).animate({
 				width: _this.preFullscreenEditorDimensions.width,
@@ -641,12 +641,12 @@ class SCE {
 	 * Shows the options for the editor
 	 */
 	static showOptions(this: NodeEditBehaviorScriptInstance) {
-		var _this = this;
+		const _this = this;
 		this.optionsShown = true;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		var editorWidth = $('.script-edit-codeMirror').width();
-		var editorHeight = $('.script-edit-codeMirror').height();
-		var circleRadius;
+		const editorWidth = $('.script-edit-codeMirror').width();
+		const editorHeight = $('.script-edit-codeMirror').height();
+		let circleRadius;
 
 		//Add a bit just in case
 		if (this.fullscreen) {
@@ -654,12 +654,12 @@ class SCE {
 		} else {
 			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 200;
 		}
-		var negHalfRadius = -circleRadius;
+		const negHalfRadius = -circleRadius;
 		circleRadius = circleRadius * 2;
 		this.settingsShadow.parentElement.style.width = editorWidth + '';
 		this.settingsShadow.parentElement.style.height = editorHeight + '';
 		this.fullscreenEl.style.display = 'none';
-		var settingsInitialMarginLeft = -500;
+		const settingsInitialMarginLeft = -500;
 		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
 		$(this.settingsShadow).css({
 			width: '50px',
@@ -681,11 +681,11 @@ class SCE {
 			},
 			complete: () => {
 				if (_this.fullscreen) {
-					var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+					const settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
 					settingsCont.style.overflow = 'scroll';
 					settingsCont.style.overflowX = 'hidden';
 					settingsCont.style.height = 'calc(100vh - 66px)';
-					var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
 					bubbleCont.style.position = 'fixed';
 					bubbleCont.style.zIndex = '50';
 				}
@@ -697,9 +697,9 @@ class SCE {
 	 * Hides the options for the editor
 	 */
 	static hideOptions(this: NodeEditBehaviorScriptInstance) {
-		var _this = this;
+		const _this = this;
 		this.optionsShown = false;
-		var settingsInitialMarginLeft = -500;
+		const settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
 		$(this.settingsShadow).animate({
 			width: 0,
@@ -714,8 +714,8 @@ class SCE {
 				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
-				var zoom = window.app.settings.editor.zoom;
-				var prevZoom = _this.unchangedEditorSettings.zoom;
+				const zoom = window.app.settings.editor.zoom;
+				const prevZoom = _this.unchangedEditorSettings.zoom;
 				_this.unchangedEditorSettings.zoom = zoom;
 				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
 					_this.reloadEditor();
@@ -725,10 +725,10 @@ class SCE {
 				}
 
 				if (_this.fullscreen) {
-					var settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+					const settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
 					settingsCont.style.height = '345px';
 					settingsCont.style.overflowX = 'hidden';
-					var bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
 					bubbleCont.style.position = 'absolute';
 					bubbleCont.style.zIndex = 'auto';
 				}
@@ -760,7 +760,7 @@ class SCE {
 		}
 		this.editor = null;
 
-		var value;
+		let value;
 		if (this.editorMode === 'main') {
 			value = this.newSettings.value.script;
 		} else if (this.editorMode === 'background') {
@@ -793,7 +793,7 @@ class SCE {
 			if (event.keyCode < 16 || event.keyCode > 18) {
 				//Make sure at least one modifier is being pressed
 				if (event.altKey || event.shiftKey || event.ctrlKey) {
-					var values = [];
+					const values = [];
 					if (event.ctrlKey) {
 						values.push('Ctrl');
 					}
@@ -805,7 +805,7 @@ class SCE {
 					}
 
 					values.push(String.fromCharCode(event.keyCode));
-					var value = element.value = values.join('-');
+					const value = element.value = values.join('-');
 					element.lastValue = value;
 					window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
 						autocomplete: this.keyBindings[0].defaultKey,
@@ -816,17 +816,17 @@ class SCE {
 						rename: this.keyBindings[4].defaultKey,
 						selectName: this.keyBindings[5].defaultKey,
 					};
-					var prevValue = window.app.settings.editor.keyBindings[binding.storageKey];
+					const prevValue = window.app.settings.editor.keyBindings[binding.storageKey];
 					if (prevValue) {
 						//Remove previous one
-						var prevKeyMap: {
+						const prevKeyMap: {
 							[key: string]: (cm: CodeMirrorInstance) => void;
 						} = {};
 						prevKeyMap[prevValue] = binding.fn;
 						window.scriptEdit.editor.removeKeyMap(prevKeyMap);
 					}
 
-					var keyMap: {
+					const keyMap: {
 						[key: string]: (cm: CodeMirrorInstance) => void;
 					} = {};
 					keyMap[value] = binding.fn;
@@ -932,7 +932,7 @@ class SCE {
 
 		//White theme
 		importedElement.querySelector('#editorThemeSettingWhite').addEventListener('click', () => {
-			var themes = importedElement.querySelectorAll('.editorThemeSetting');
+			const themes = importedElement.querySelectorAll('.editorThemeSetting');
 			themes[0].classList.add('currentTheme');
 			themes[1].classList.remove('currentTheme');
 			window.app.settings.editor.theme = 'white';
@@ -941,7 +941,7 @@ class SCE {
 
 		//The dark theme option
 		importedElement.querySelector('#editorThemeSettingDark').addEventListener('click', () => {
-			var themes = importedElement.querySelectorAll('.editorThemeSetting');
+			const themes = importedElement.querySelectorAll('.editorThemeSetting');
 			themes[0].classList.remove('currentTheme');
 			themes[1].classList.add('currentTheme');
 			window.app.settings.editor.theme = 'dark';
@@ -984,10 +984,10 @@ class SCE {
 
 		importedElement.querySelector('#editorJSLintGlobalsInput')
 			.addEventListener('keypress', function(this: HTMLPaperInputElement) {
-				var _this = this;
+				const _this = this;
 				setTimeout(function() {
-					var val = _this.value;
-					var globals = val.split(',');
+					const val = _this.value;
+					const globals = val.split(',');
 					chrome.storage.local.set({
 						jsLintGlobals: globals
 					});
@@ -1005,7 +1005,7 @@ class SCE {
 			selectName: this.keyBindings[5].defaultKey,
 		};
 		const settingsContainer = importedElement.querySelector('#settingsContainer');
-		for (var i = 0; i < this.keyBindings.length; i++) {
+		for (let i = 0; i < this.keyBindings.length; i++) {
 			const keyBindingClone = (document.querySelector('#keyBindingTemplate') as HTMLTemplateElement).content;
 			
 			const input = keyBindingClone.querySelector('paper-input') as HTMLPaperInputElement & {
@@ -1027,10 +1027,10 @@ class SCE {
 	 * Initializes the keybindings for the editor
 	 */
 	private static initTernKeyBindings(this: NodeEditBehaviorScriptInstance) {
-		var keySettings: {
+		const keySettings: {
 			[key: string]: (cm: CodeMirrorInstance) => void;
 		} = {};
-		for (var i = 0; i < this.keyBindings.length; i++) {
+		for (let i = 0; i < this.keyBindings.length; i++) {
 			keySettings[window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey]] = this.keyBindings[i].fn;
 		}
 		this.editor.setOption('extraKeys', keySettings);
@@ -1043,7 +1043,7 @@ class SCE {
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirrorInstance) {
-		var _this = this;
+		const _this = this;
 		this.editor = editor;
 		editor.refresh();
 		editor.on('metaTagChanged', function(changes: {
@@ -1160,7 +1160,7 @@ class SCE {
 	 */
 	private static loadEditor(this: NodeEditBehaviorScriptInstance, container: HTMLElement, content: string = this.item.value.script,
 			disable: boolean = false) {
-		var placeHolder = $(this.$.editorPlaceholder);
+		const placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {
@@ -1197,7 +1197,7 @@ class SCE {
 	};
 
 	static init(this: NodeEditBehaviorScriptInstance) {
-		var _this = this;
+		const _this = this;
 		this._init();
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
@@ -1226,7 +1226,7 @@ class SCE {
 			this.savingInterval = window.setInterval(function() {
 				if (_this.active && _this.editor) {
 					//Save
-					var val = _this.editor.getValue();
+					const val = _this.editor.getValue();
 					chrome.storage.local.set({
 						editing: {
 							val: val,

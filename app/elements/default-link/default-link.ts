@@ -29,10 +29,10 @@ class DL {
 	static properties = defaultLinkProperties;
 
 	static onClick(this: DefaultLink) {
-		var link = this.href;
-		var name = $(this.$.input).val();
-		var script = 
-`var query;
+		const link = this.href;
+		const name = $(this.$.input).val();
+		const script =
+			`var query;
 var url = "${link}";
 if (crmAPI.getSelection()) {
 	query = crmAPI.getSelection();
@@ -43,7 +43,7 @@ if (query) {
 	window.open(url.replace(/%s/g,query), \'_blank\');
 }`;
 
-		var newItem;
+		let newItem;
 		if (this.searchEngine !== undefined) {
 			newItem = window.app.templates.getDefaultScriptNode({
 				name: name,

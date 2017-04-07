@@ -79,7 +79,7 @@ class TS {
 	};
 
 	static closeTypeSwitchContainer(this: TypeSwitcher, quick: boolean = false, callback?: () => void) {
-		var _this = this;
+		const _this = this;
 		$(this.parentNode.parentNode).stop().animate({
 			height: 50
 		}, {
@@ -125,7 +125,7 @@ class TS {
 				shadow: boolean;
 			}).shadow = true;
 		});
-		var next = $(column).next()[0];
+		const next = $(column).next()[0];
 		if (next) {
 			this.async(function(this: TypeSwitcher) {
 				this.shadowColumns(next, reverse);
@@ -138,7 +138,7 @@ class TS {
 		switch (type) {
 			case 'link':
 				if (Array.isArray(data)) {
-					var objects = true;
+					const objects = true;
 					data.forEach(function(linkItem) {
 						if (typeof linkItem !== 'object' || Array.isArray(linkItem)) {
 							objects = false;
@@ -162,8 +162,8 @@ class TS {
 	static changeType(this: TypeSwitcher, e: Polymer.ClickEvent) {
 		window.app.editCRM.cancelAdding();
 		
-		var _this = this;
-		var type: CRM.NodeType;
+		const _this = this;
+		let type: CRM.NodeType;
 
 		if (typeof e === 'string') {
 			type = e;
@@ -174,9 +174,9 @@ class TS {
 				type = e.path[0].children[0].innerHTML as CRM.NodeType;
 			}
 		}
-		var editCrmEl = this.parentElement.parentElement.parentElement as EditCrmItem;
-		var item = editCrmEl.item;
-		var prevType = item.type;
+		const editCrmEl = this.parentElement.parentElement.parentElement as EditCrmItem;
+		const item = editCrmEl.item;
+		const prevType = item.type;
 
 		if (prevType === 'menu') {
 			item.menuVal = item.children;
@@ -193,7 +193,7 @@ class TS {
 				this.matchesTypeScheme(type, item[type + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')] as any)) {
 			item.value = item[type + 'Val' as ('menuVal'|'linkVal'|'scriptVal'|'stylesheetVal')];
 		} else {
-			var triggers;
+			let triggers;
 			switch (item.type) {
 				case 'link':
 					item.triggers = item.triggers || [{
@@ -242,8 +242,8 @@ class TS {
 		editCrmEl.calculateType();
 		this.ready();
 
-		var i;
-		var typeChoices = $(this).find('.typeSwitchChoice').toArray();
+		let i;
+		const typeChoices = $(this).find('.typeSwitchChoice').toArray();
 		for (i = 0; i < this.remainingTypes.length; i++) {
 			typeChoices[i].setAttribute('type', this.remainingTypes[i]);
 		}
@@ -270,17 +270,17 @@ class TS {
 
 		if (prevType === 'menu') {
 			//Turn children into "shadow items"
-			var column = this.parentElement.parentElement.parentElement.parentElement as HTMLElement & {
-				index: number;	
+			const column = this.parentElement.parentElement.parentElement.parentElement as HTMLElement & {
+				index: number;
 			};
-			var columnCont = column.parentElement.parentElement;
+			let columnCont = column.parentElement.parentElement;
 			columnCont = $(columnCont).next()[0];
 
 			this.shadowColumns(columnCont, false);
 
 			window.app.shadowStart = column.index + 1;
 
-			var paperToast = $('#changedToMenuToast');
+			const paperToast = $('#changedToMenuToast');
 
 			//Show a paper-toast
 			paperToast.on('click', function() {

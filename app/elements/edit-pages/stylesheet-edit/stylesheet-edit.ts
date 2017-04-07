@@ -23,7 +23,7 @@ class STE {
 
 	private static getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
 		($('stylesheet-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
-		var settings = {};
+		const settings = {};
 		this.save(null, settings);
 		return settings as CRM.StylesheetNode;
 	};
@@ -62,8 +62,8 @@ class STE {
 	 */
 	private static popInRibbons(this: NodeEditBehaviorStylesheetInstance) {
 		//Introduce title at the top
-		var scriptTitle = window.app.$.editorCurrentScriptTitle;
-		var titleRibbonSize;
+		const scriptTitle = window.app.$.editorCurrentScriptTitle;
+		let titleRibbonSize;
 		if (window.app.storageLocal.shrinkTitleRibbon) {
 			window.doc.editorTitleRibbon.style.fontSize = '40%';
 			scriptTitle.style.padding = '0';
@@ -73,10 +73,10 @@ class STE {
 		}
 		scriptTitle.style.display = 'flex';
 		scriptTitle.style.marginTop = titleRibbonSize;
-		var scriptTitleAnimation: [{
-			[key: string]: string|number;
-		},{
-			[key: string]: string|number;
+		const scriptTitleAnimation: [{
+			[key: string]: string | number;
+		}, {
+			[key: string]: string | number;
 		}] = [
 			{
 				marginTop: titleRibbonSize
@@ -84,7 +84,7 @@ class STE {
 				marginTop: 0
 			}
 		];
-		var margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
+		const margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
 		scriptTitle.style.marginLeft = '-200px';
 		scriptTitleAnimation[0]['marginLeft'] = '-200px';
 		scriptTitleAnimation[1]['marginLeft'] = 0;
@@ -133,16 +133,16 @@ class STE {
 	 * Pops out the ribbons with an animation
 	 */
 	private static popOutRibbons(this: NodeEditBehaviorStylesheetInstance) {
-		var scriptTitle = window.app.$.editorCurrentScriptTitle;
-			var toolsRibbon = window.app.$.editorToolsRibbonContainer;
+		const scriptTitle = window.app.$.editorCurrentScriptTitle;
+			const toolsRibbon = window.app.$.editorToolsRibbonContainer;
 
-			var toolsVisible = !window.app.storageLocal.hideToolsRibbon && 
+			const toolsVisible = !window.app.storageLocal.hideToolsRibbon &&
 				toolsRibbon &&
-				toolsRibbon.classList.contains('visible'); 
+				toolsRibbon.classList.contains('visible');
 
-			var titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
+			const titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
 
-			var titleAnimation = [{
+			const titleAnimation = [{
 				marginTop: 0,
 				marginLeft: 0
 			}, {
@@ -210,25 +210,25 @@ class STE {
 		}
 		this.fullscreen = true;
 
-		var rect = this.editor.display.wrapper.getBoundingClientRect();
-		var editorCont = window.doc.fullscreenEditor;
-		var editorContStyle = editorCont.style;
+		const rect = this.editor.display.wrapper.getBoundingClientRect();
+		const editorCont = window.doc.fullscreenEditor;
+		const editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
 		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
 		editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
 		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
 		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.fullscreenEl.style.display = 'none';
-		var $editorWrapper = $(this.editor.display.wrapper);
-		var buttonShadow = $editorWrapper.find('#buttonShadow')[0];
+		const $editorWrapper = $(this.editor.display.wrapper);
+		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
 		buttonShadow.style.position = 'absolute';
 		buttonShadow.style.right = '-1px';
 		this.editor.display.wrapper.classList.add('fullscreen');
 
 		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
-		var $horizontalCenterer = $('#horizontalCenterer');
-		var viewportWidth = $horizontalCenterer.width() + 20;
-		var viewPortHeight = $horizontalCenterer.height();
+		const $horizontalCenterer = $('#horizontalCenterer');
+		const viewportWidth = $horizontalCenterer.width() + 20;
+		const viewPortHeight = $horizontalCenterer.height();
 
 		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
 			if (window.app.storageLocal.hideToolsRibbon) {
@@ -298,14 +298,14 @@ class STE {
 		}
 		this.fullscreen = false;
 
-		var _this = this;
+		const _this = this;
 		this.popOutRibbons();
-		var $wrapper = $(_this.editor.display.wrapper);
-		var $buttonShadow = $wrapper.find('#buttonShadow');
+		const $wrapper = $(_this.editor.display.wrapper);
+		const $buttonShadow = $wrapper.find('#buttonShadow');
 		$buttonShadow[0].style.position = 'absolute';
 		setTimeout(function () {
 			_this.editor.display.wrapper.classList.remove('fullscreen');
-			var editorCont = window.doc.fullscreenEditor;
+			const editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			$(editorCont).animate({
 				width: _this.preFullscreenEditorDimensions.width,
@@ -334,12 +334,12 @@ class STE {
 	 * Shows the options for the editor
 	 */
 	static showOptions(this: NodeEditBehaviorStylesheetInstance) {
-		var _this = this;
+		const _this = this;
 		this.optionsShown = true;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		var editorWidth = $('.stylesheet-edit-codeMirror').width();
-		var editorHeight = $('.stylesheet-edit-codeMirror').height();
-		var circleRadius;
+		const editorWidth = $('.stylesheet-edit-codeMirror').width();
+		const editorHeight = $('.stylesheet-edit-codeMirror').height();
+		let circleRadius;
 
 		//Add a bit just in case
 		if (this.fullscreen) {
@@ -347,12 +347,12 @@ class STE {
 		} else {
 			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 100;
 		}
-		var negHalfRadius = -circleRadius;
+		const negHalfRadius = -circleRadius;
 		circleRadius = circleRadius * 2;
 		this.settingsShadow.parentElement.style.width = editorWidth + '';
 		this.settingsShadow.parentElement.style.height = editorHeight + '';
 		this.fullscreenEl.style.display = 'none';
-		var settingsInitialMarginLeft = -500;
+		const settingsInitialMarginLeft = -500;
 		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
 
 		$(this.settingsShadow).css({
@@ -375,11 +375,11 @@ class STE {
 			},
 			complete: () => {
 				if (_this.fullscreen) {
-					var settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
+					const settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
 					settingsCont.style.overflow = 'scroll';
 					settingsCont.style.overflowX = 'hidden';
 					settingsCont.style.height = 'calc(100vh - 66px)';
-					var bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
 					bubbleCont.style.position = 'fixed';
 					bubbleCont.style.zIndex = '50';
 				}
@@ -391,9 +391,9 @@ class STE {
 	 * Hides the options for the editor
 	 */
 	static hideOptions(this: NodeEditBehaviorStylesheetInstance) {
-		var _this = this;
+		const _this = this;
 		this.optionsShown = false;
-		var settingsInitialMarginLeft = -500;
+		const settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
 		$(this.settingsShadow).animate({
 			width: 0,
@@ -408,8 +408,8 @@ class STE {
 				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
-				var zoom = window.app.settings.editor.zoom;
-				var prevZoom = _this.unchangedEditorSettings.zoom;
+				const zoom = window.app.settings.editor.zoom;
+				const prevZoom = _this.unchangedEditorSettings.zoom;
 				_this.unchangedEditorSettings.zoom = zoom;
 				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
 					_this.reloadEditor();
@@ -419,10 +419,10 @@ class STE {
 				}
 
 				if (_this.fullscreen) {
-					var settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
+					const settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
 					settingsCont.style.height = '376px';
 					settingsCont.style.overflowX = 'hidden';
-					var bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
 					bubbleCont.style.position = 'absolute';
 					bubbleCont.style.zIndex = 'auto';
 				}
@@ -441,8 +441,8 @@ class STE {
 			this.$.editorPlaceholder.style.position = 'absolute';
 
 			const stylesheetLines = [];
-			var lines = this.editor.doc.lineCount();
-			for (var i = 0; i < lines; i++) {
+			const lines = this.editor.doc.lineCount();
+			for (let i = 0; i < lines; i++) {
 				stylesheetLines.push(this.editor.doc.getLine(i));
 			}
 			if (this.editorMode === 'main') {
@@ -499,7 +499,7 @@ class STE {
 
 		//White theme
 		importedElement.querySelector('#editorThemeSettingWhite').addEventListener('click', () => {
-			var themes = importedElement.querySelectorAll('.editorThemeSetting');
+			const themes = importedElement.querySelectorAll('.editorThemeSetting');
 			themes[0].classList.add('currentTheme');
 			themes[1].classList.remove('currentTheme');
 			window.app.settings.editor.theme = 'white';
@@ -508,7 +508,7 @@ class STE {
 
 		//The dark theme option
 		importedElement.querySelector('#editorThemeSettingDark').addEventListener('click', () => {
-			var themes = importedElement.querySelectorAll('.editorThemeSetting');
+			const themes = importedElement.querySelectorAll('.editorThemeSetting');
 			themes[0].classList.remove('currentTheme');
 			themes[1].classList.add('currentTheme');
 			window.app.settings.editor.theme = 'dark';
@@ -559,7 +559,7 @@ class STE {
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
 	static cmLoaded(this: NodeEditBehaviorStylesheetInstance, editor: CodeMirrorInstance) {
-		var _this = this;
+		const _this = this;
 		this.editor = editor;
 		editor.refresh();
 		editor.display.wrapper.classList.remove('script-edit-codeMirror');
@@ -637,7 +637,7 @@ class STE {
 	 */
 	private static loadEditor(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement, content: string = this.item.value.stylesheet,
 			disable: boolean = false) {
-		var placeHolder = $(this.$.editorPlaceholder);
+		const placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {
@@ -674,7 +674,7 @@ class STE {
 	};
 
 	static init(this: NodeEditBehaviorStylesheetInstance) {
-		var _this = this;
+		const _this = this;
 		this._init();
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
@@ -704,7 +704,7 @@ class STE {
 			this.savingInterval = window.setInterval(function() {
 				if (_this.active && _this.editor) {
 					//Save
-					var val;
+					let val;
 					try {
 						val = _this.editor.getValue();
 						chrome.storage.local.set({

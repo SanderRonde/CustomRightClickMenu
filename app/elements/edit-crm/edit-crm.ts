@@ -254,8 +254,8 @@ class EC {
 	private static getLastMenu(this: EditCrm, list: Array<CRM.Node>, hidden: {
 		[nodeId: number]: boolean
 	}, exclude: number) {
-		var lastMenu = -1;
-		var lastFilledMenu = -1;
+		const lastMenu = -1;
+		const lastFilledMenu = -1;
 		//Find last menu to auto-expand
 		if (list) {
 			list.forEach(function(item, index) {
@@ -282,10 +282,10 @@ class EC {
 	private static isNodeVisible(this: EditCrm, result: {
 		[nodeId: number]: boolean;
 	}, node: CRM.Node, showContentType: number): 0|1 {
-		var length;
+		let length;
 		if (node.children && node.children.length > 0) {
 			length = node.children.length;
-			for (var i = 0; i < length; i++) {
+			for (let i = 0; i < length; i++) {
 				this.isNodeVisible(result, node.children[i], showContentType);
 			}
 		}
@@ -299,9 +299,9 @@ class EC {
 	private static getIndent(this: EditCrm, data: Array<CRM.Node>, lastMenu: number, hiddenNodes: {
 		[nodeId: number]: boolean;
 	}): number {
-		var i;
-		var length = data.length - 1;
-		var visibleIndent = lastMenu;
+		let i;
+		const length = data.length - 1;
+		let visibleIndent = lastMenu;
 		for (i = 0; i < length; i++) {
 			if (hiddenNodes[data[i].id]) {
 				visibleIndent--;
@@ -322,26 +322,26 @@ class EC {
 		crm: CRMBuilder;
 		setMenus: Array<number>;
 	} {
-		var column: CRMBuilderColumn;
-		var indent: number;
+		let column: CRMBuilderColumn;
+		let indent: number;
 		const path: Array<number> = [];
-		var columnCopy: Array<CRM.Node & {
+		let columnCopy: Array<CRM.Node & {
 			expanded: boolean;
 			name: string;
 			shadow: boolean;
-			index: number;	
+			index: number;
 			isPossibleAddLocation?: boolean;
 		}>;
-		var columnNum: number = 0;
-		var lastMenu: number = -2;
-		var indentTop: number = 0;
+		let columnNum: number = 0;
+		let lastMenu: number = -2;
+		let indentTop: number = 0;
 		const crmEditObj: CRMBuilder = [];
 		const newSetMenus: Array<number> = [];
-		var list: Array<CRM.Node & Partial<{
+		let list: Array<CRM.Node & Partial<{
 			expanded: boolean;
 			name: string;
 			shadow: boolean;
-			index: number;	
+			index: number;
 		}>> = window.app.settings.crm;
 		const setMenusLength: number = setMenus.length;
 		const showContentTypes: number = window.app.crmType;
@@ -592,14 +592,14 @@ class EC {
 		quick = quick || false;
 		superquick = superquick || false;
 
-		var obj = this.buildCRMEditObj(setItems, unsetItems);
+		const obj = this.buildCRMEditObj(setItems, unsetItems);
 		this.setMenus = obj.setMenus;
 		const crmBuilder = obj.crm;
 
 		//Get the highest column's height and apply it to the element to prevent
 		//the page from going and shrinking quickly
-		var hight;
-		var highest = 0;
+		let hight;
+		const highest = 0;
 		crmBuilder.forEach(function (column) {
 			hight = column.indent.length + column.list.length;
 			hight > highest && (highest = hight);
@@ -678,11 +678,11 @@ class EC {
 	};
 
 	private static addItem(this: EditCrm, path: Array<number>) {
-		var newItem = window.app.templates.getDefaultLinkNode({
+		const newItem = window.app.templates.getDefaultLinkNode({
 			id: window.app.generateItemId()
 		});
 
-		var container = window.app.crm.lookup(path, true);
+		const container = window.app.crm.lookup(path, true);
 		container.push(newItem);
 		window.app.editCRM.build({
 			setItems: window.app.editCRM.setMenus,
@@ -692,9 +692,9 @@ class EC {
 	};
 
 	private static getSelected(this: EditCrm): Array<number> {
-		var selected = [];
-		var editCrmItems = document.getElementsByTagName('edit-crm-item');
-		var i;
+		const selected = [];
+		const editCrmItems = document.getElementsByTagName('edit-crm-item');
+		let i;
 		for (i = 0; i < editCrmItems.length; i++) {
 			if (editCrmItems[i].classList.contains('highlighted')) {
 				selected.push(editCrmItems[i].item.id);
@@ -704,7 +704,7 @@ class EC {
 	};
 
 	static makeNodeSafe(this: EditCrm, node: CRM.Node): CRM.SafeNode {
-		var newNode: Partial<CRM.SafeNode> = {};
+		const newNode: Partial<CRM.SafeNode> = {};
 		node.type && (newNode.type = node.type);
 		node.name && (newNode.name = node.name);
 		node.value && (newNode.value = node.value);
@@ -712,7 +712,7 @@ class EC {
 		node.menuVal && (newNode.menuVal = node.menuVal);
 		if (node.children) {
 			newNode.children = [];
-			for (var i = 0; i < node.children.length; i++) {
+			for (let i = 0; i < node.children.length; i++) {
 				newNode.children[i] = this.makeNodeSafe(node.children[i]);
 			}
 		}
@@ -729,7 +729,7 @@ class EC {
 		if (toExportIds.indexOf(node.id) > -1) {
 			results.push(node);
 		} else {
-			for (var i = 0; node.children && i < node.children.length; i++) {
+			for (let i = 0; node.children && i < node.children.length; i++) {
 				this.extractUniqueChildren(node.children[i], toExportIds, results);
 			}
 		}
@@ -737,7 +737,7 @@ class EC {
 
 	private static changeAuthor(this: EditCrm, node: CRM.Node|CRM.SafeNode, authorName: string) {
 		node.nodeInfo.source.author = authorName;
-		for (var i = 0; node.children && i < node.children.length; i++) {
+		for (let i = 0; node.children && i < node.children.length; i++) {
 			this.changeAuthor(node.children[i], authorName);
 		}
 	};
@@ -753,10 +753,10 @@ class EC {
 		start: number;
 		end: number;
 	} {
-		var metaStart = -1;
-		var metaEnd = -1;
-		var lines = script.split('\n');
-		for (var i = 0; i < lines.length; i++) {
+		let metaStart = -1;
+		let metaEnd = -1;
+		const lines = script.split('\n');
+		for (let i = 0; i < lines.length; i++) {
 			if (metaStart !== -1) {
 				if (lines[i].indexOf('==/UserScript==') > -1) {
 					metaEnd = i;
@@ -773,27 +773,27 @@ class EC {
 	};
 
 	private static getMetaLines(this: EditCrm, script: string): Array<string> {
-		var metaIndexes = this.getMetaIndexes(script);
+		const metaIndexes = this.getMetaIndexes(script);
 		if (metaIndexes.start === -1) {
 			return null;
 		}
-		var metaStart = metaIndexes.start;
-		var metaEnd = metaIndexes.end;
-		var startPlusOne = metaStart + 1;
-		var lines = script.split('\n');
-		var metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
+		const metaStart = metaIndexes.start;
+		const metaEnd = metaIndexes.end;
+		const startPlusOne = metaStart + 1;
+		const lines = script.split('\n');
+		const metaLines = lines.splice(startPlusOne, (metaEnd - startPlusOne));
 		return metaLines;
 	};
 
 	private static getMetaTags(this: EditCrm, script: string): {
 		[key: string]: Array<string|number>;
 	} {
-		var metaLines = this.getMetaLines(script);
+		const metaLines = this.getMetaLines(script);
 
-		var metaTags: CRM.MetaTags = {};
-		var regex = new RegExp(/@(\w+)(\s+)(.+)/);
-		var regexMatches;
-		for (var i = 0; i < metaLines.length; i++) {
+		const metaTags: CRM.MetaTags = {};
+		const regex = new RegExp(/@(\w+)(\s+)(.+)/);
+		let regexMatches;
+		for (let i = 0; i < metaLines.length; i++) {
 			regexMatches = metaLines[i].match(regex);
 			if (regexMatches) {
 				metaTags[regexMatches[1]] = metaTags[regexMatches[1]] || [];
@@ -815,12 +815,12 @@ class EC {
 	};
 
 	private static getUserscriptString(this: EditCrm, node: CRM.ScriptNode|CRM.StylesheetNode, author: string): string {
-		var i;
-		var code = (node.type === 'script' ? node.value.script : node.value.stylesheet);
-		var codeSplit = code.split('\n');
-		var metaIndexes = this.getMetaIndexes(code);
-		var metaTags: {
-			[key: string]: Array<string|number>;
+		let i;
+		const code = (node.type === 'script' ? node.value.script : node.value.stylesheet);
+		let codeSplit = code.split('\n');
+		const metaIndexes = this.getMetaIndexes(code);
+		let metaTags: {
+			[key: string]: Array<string | number>;
 		} = {};
 		if (metaIndexes.start !== -1) {
 			//Remove metaLines
@@ -840,8 +840,8 @@ class EC {
 		metaTags['CRM_contentTypes'] = [JSON.stringify(node.onContentTypes)];
 		this.setMetaTagIfSet(metaTags, 'grant', 'permissions', node);
 
-		var matches = [];
-		var excludes = [];
+		const matches = [];
+		const excludes = [];
 		for (i = 0; i < node.triggers.length; i++) {
 			if (node.triggers[i].not) {
 				excludes.push(node.triggers[i].url);
@@ -870,12 +870,12 @@ class EC {
 			this.setMetaTagIfSet(metaTags, 'CRM_defaultOn', 'defaultOn', node.value);
 
 			//Convert stylesheet to GM API stylesheet insertion
-			var stylesheetCode = codeSplit.join('\n');
+			const stylesheetCode = codeSplit.join('\n');
 			codeSplit = [`GM_addStyle('${stylesheetCode.replace(/\n/g, '\\n\' + \n\'')}');`];
 		}
 
-		var metaLines = [];
-		for (var metaKey in metaTags) {
+		const metaLines = [];
+		for (let metaKey in metaTags) {
 			if (metaTags.hasOwnProperty(metaKey)) {
 				for (i = 0; i < metaTags[metaKey].length; i++) {
 					metaLines.push('// @' + metaKey + '	' + metaTags[metaKey][i]);
@@ -893,28 +893,28 @@ ${codeSplit.join('\n')}`;
 	};
 
 	private static generateDocumentRule(this: EditCrm, node: CRM.StylesheetNode): string {
-		var rules = node.triggers.map(function(trigger) {
+		const rules = node.triggers.map(function (trigger) {
 			if (trigger.url.indexOf('*') === -1) {
 				return 'url(' + trigger + ')';
 			} else {
-				var schemeAndDomainPath = trigger.url.split('://');
-				var scheme = schemeAndDomainPath[0];
-				var domainPath = schemeAndDomainPath.slice(1).join('://');
-				var domainAndPath = domainPath.split('/');
-				var domain = domainAndPath[0];
-				var path = domainAndPath.slice(1).join('/');
+				const schemeAndDomainPath = trigger.url.split('://');
+				const scheme = schemeAndDomainPath[0];
+				const domainPath = schemeAndDomainPath.slice(1).join('://');
+				const domainAndPath = domainPath.split('/');
+				const domain = domainAndPath[0];
+				const path = domainAndPath.slice(1).join('/');
 
-				var schemeWildCard = scheme.indexOf('*') > -1;
-				var domainWildcard = domain.indexOf('*') > -1;
-				var pathWildcard = path.indexOf('*') > -1;
+				let schemeWildCard = scheme.indexOf('*') > -1;
+				let domainWildcard = domain.indexOf('*') > -1;
+				let pathWildcard = path.indexOf('*') > -1;
 
 				if (~~schemeWildCard + ~~domainWildcard + ~~pathWildcard > 1 ||
 					domainWildcard || schemeWildCard) {
 					//Use regex
 					return 'regexp("' +
 						trigger.url
-							.replace(/\*/, '.*')
-							.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") +
+                            .replace(/\*/, '.*')
+                            .replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&") +
 						'")';
 				} else {
 					return 'url-prefix(' + scheme + '://' + domain + ')';
@@ -922,10 +922,10 @@ ${codeSplit.join('\n')}`;
 			}
 		});
 
-		var match;
-		var indentation: string;
-		var lines = node.value.stylesheet.split('\n');
-		for (var i = 0; i < lines.length; i++) {
+		let match;
+		let indentation: string;
+		const lines = node.value.stylesheet.split('\n');
+		for (let i = 0; i < lines.length; i++) {
 			if ((match = /(\s+)(\w+)/.exec(lines[i]))) {
 				indentation = match[1];
 				break;
@@ -959,20 +959,20 @@ ${codeSplit.join('\n')}`;
 	};
 
 	static exportSingleNode(this: EditCrm, exportNode: CRM.Node, exportType: string) {
-		var __this = this;
+		const __this = this;
 
-		var textArea = $('#exportJSONData')[0] as HTMLTextAreaElement;
+		const textArea = $('#exportJSONData')[0] as HTMLTextAreaElement;
 
 		textArea.value = this.getExportString(exportNode, exportType, null);
 		($('#exportAuthorName')[0] as HTMLTextAreaElement).value = 
 			(exportNode.nodeInfo && exportNode.nodeInfo.source && exportNode.nodeInfo.source.author) || 'anonymous';
 		$('#exportAuthorName').on('keydown', function (this: HTMLPaperInputElement) {
 			window.setTimeout(() => {
-				var author = this.value;
+				const author = this.value;
 				chrome.storage.local.set({
 					authorName: author
 				});
-				var data;
+				let data;
 				data = __this.getExportString(exportNode, exportType, author);
 				textArea.value = data;
 			}, 0);
@@ -985,30 +985,30 @@ ${codeSplit.join('\n')}`;
 	};
 
 	private static exportGivenNodes(this: EditCrm, exports: Array<CRM.Node>) {
-		var _this = this;
+		const _this = this;
 
-		var safeExports: Array<CRM.SafeNode> = [];
-		for (var i = 0; i < exports.length; i++) {
+		const safeExports: Array<CRM.SafeNode> = [];
+		for (let i = 0; i < exports.length; i++) {
 			safeExports[i] = this.makeNodeSafe(exports[i]);
 		}
-		var data = {
+		const data = {
 			crm: safeExports
 		};
 
-		var textarea = $('#exportJSONData')[0] as HTMLTextAreaElement;
+		const textarea = $('#exportJSONData')[0] as HTMLTextAreaElement;
 
 		function authorNameChange(event: {
 			target: {
 				value: string
 			}
 		}) {
-			var author = (event.target as {
+			const author = (event.target as {
 				value: string;
 			}).value;
 			chrome.storage.local.set({
 				authorName: author
 			});
-			for (var j = 0; j < safeExports.length; j++) {
+			for (let j = 0; j < safeExports.length; j++) {
 				_this.changeAuthor(safeExports[j], author);
 			}
 			const dataJson = JSON.stringify({
@@ -1035,8 +1035,8 @@ ${codeSplit.join('\n')}`;
 	};
 
 	private static exportGivenNodeIDs(this: EditCrm, toExport: Array<number>) {
-		var exports: Array<CRM.Node> = [];
-		for (var i = 0; i < window.app.settings.crm.length; i++) {
+		const exports: Array<CRM.Node> = [];
+		for (let i = 0; i < window.app.settings.crm.length; i++) {
 			this.extractUniqueChildren(window.app.settings.crm[i], toExport, exports);
 		}
 
@@ -1044,15 +1044,15 @@ ${codeSplit.join('\n')}`;
 	};
 
 	static exportSelected(this: EditCrm) {
-		var toExport = this.getSelected();
+		const toExport = this.getSelected();
 		this.exportGivenNodeIDs(toExport);
 	};
 
 	private static cancelSelecting(this: EditCrm) {
-		var _this = this;
-		var editCrmItems = document.getElementsByTagName('edit-crm-item');
+		const _this = this;
+		const editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
-		for (var i = 0; i < editCrmItems.length; i++) {
+		for (let i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.remove('selecting');
 			editCrmItems[i].classList.remove('highlighted');
 		}
@@ -1062,10 +1062,10 @@ ${codeSplit.join('\n')}`;
 	};
 
 	static removeSelected(this: EditCrm) {
-		var j;
-		var arr;
-		var toRemove = this.getSelected();
-		for (var i = 0; i < toRemove.length; i++) {
+		let j;
+		let arr;
+		const toRemove = this.getSelected();
+		for (let i = 0; i < toRemove.length; i++) {
 			arr = window.app.crm.lookupId(toRemove[i], true);
 			if (!arr) {
 				continue;
@@ -1085,10 +1085,10 @@ ${codeSplit.join('\n')}`;
 	};
 
 	static selectItems(this: EditCrm) {
-		var _this = this;
-		var editCrmItems = document.getElementsByTagName('edit-crm-item');
+		const _this = this;
+		const editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
-		for (var i = 0; i < editCrmItems.length; i++) {
+		for (let i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.add('selecting');
 		}
 		setTimeout(function() {
@@ -1097,7 +1097,7 @@ ${codeSplit.join('\n')}`;
 	};
 
 	static getCRMElementFromPath(this: EditCrm, path: Array<number>, showPath: boolean = false): EditCrmItem {
-		var i;
+		let i;
 		for (i = 0; i < path.length - 1; i++) {
 			if (this.setMenus[i] !== path[i]) {
 				if (showPath) {
@@ -1112,8 +1112,8 @@ ${codeSplit.join('\n')}`;
 			}
 		}
 
-		var cols = this.$.mainCont.children;
-		var row = cols[path.length + 1].children;
+		const cols = this.$.mainCont.children;
+		let row = cols[path.length + 1].children;
 		for (i = 0; i < row.length; i++) {
 			if (row[i].tagName === 'PAPER-MATERIAL') {
 				row = row[i].children[0].children;
@@ -1130,7 +1130,7 @@ ${codeSplit.join('\n')}`;
 	};
 
 	private static _typeChanged(this: EditCrm, quick: boolean = false) {
-		for (var i = 0; i < 6; i++) {
+		for (let i = 0; i < 6; i++) {
 			window.app.editCRM.classList[(i === window.app.crmType ? 'add' : 'remove')](window.app.pageDemo.getCrmTypeFromNumber(i));
 		}
 		window.runOrAddAsCallback(window.app.editCRM.build, window.app.editCRM, [{

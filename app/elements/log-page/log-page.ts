@@ -29,7 +29,7 @@ class LP {
 				register(fn) {
 					fn();
 				}
-			}
+			};
 			window.CRMLoaded.listener && window.CRMLoaded.listener();
 		}, 2500);
 	}

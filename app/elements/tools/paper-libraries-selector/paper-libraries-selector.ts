@@ -73,7 +73,7 @@ class PLS {
 	static properties = paperLibrariesSelectorProperties;
 
 	static ready(this: PaperLibrariesSelector) {
-		var _this = this;
+		const _this = this;
 		window.paperLibrariesSelector = this;
 		chrome.storage.local.get('libraries', function (keys: CRM.StorageLocal) {
 			if (keys.libraries) {
@@ -93,13 +93,13 @@ class PLS {
 	};
 	
 	static init(this: PaperLibrariesSelector) {
-		var _this = this;
+		const _this = this;
 		if (this._expanded) {
 			this.close();
 		}
 
-		var anonymous: Array<LibrarySelectorLibrary> = [];
-		var selectedObj: {
+		const anonymous: Array<LibrarySelectorLibrary> = [];
+		const selectedObj: {
 			[key: string]: boolean;
 		} = {};
 		this.usedlibraries.forEach(function (item) {
@@ -109,8 +109,8 @@ class PLS {
 				selectedObj[item.name.toLowerCase()] = true;
 			}
 		});
-		var libraries: Array<LibrarySelectorLibrary> = [];
-		var selected: Array<number> = [];
+		let libraries: Array<LibrarySelectorLibrary> = [];
+		const selected: Array<number> = [];
 		_this.installedLibraries.forEach(function(item) {
 			const itemCopy: LibrarySelectorLibrary = {} as any;
 			itemCopy.name = item.name;
@@ -129,7 +129,7 @@ class PLS {
 			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
 		});
 
-		var anonymousLibraries: Array<LibrarySelectorLibrary> = [];
+		const anonymousLibraries: Array<LibrarySelectorLibrary> = [];
 		anonymous.forEach(function(item) {
 			const itemCopy: LibrarySelectorLibrary = {
 				isLibrary: true,
@@ -220,7 +220,7 @@ class PLS {
 				isLibrary: 'true'
 			});
 
-			var dropdownContainer = $(_this).find('.content');
+			const dropdownContainer = $(_this).find('.content');
 			dropdownContainer.animate({
 				height: dropdownContainer[0].scrollHeight
 			}, {
@@ -258,7 +258,7 @@ class PLS {
 	};
 
 	static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
-		var _this = this;
+		const _this = this;
 		if (e.target.classList.contains('addLibrary')) {
 			//Add new library dialog
 			window.doc.addedLibraryName.querySelector('input').value = '';
@@ -276,9 +276,9 @@ class PLS {
 			$(window.doc.addLibraryDialog)
 				.find('#addLibraryButton')
 				.on('click', function(this: HTMLElement) {
-					var name = window.doc.addedLibraryName.querySelector('input').value;
-					var taken = false;
-					for (var i = 0; i < _this.installedLibraries.length; i++) {
+					const name = window.doc.addedLibraryName.querySelector('input').value;
+					let taken = false;
+					for (let i = 0; i < _this.installedLibraries.length; i++) {
 						if (_this.installedLibraries[i].name === name) {
 							taken = true;
 						}
@@ -286,8 +286,8 @@ class PLS {
 					if (name !== '' && !taken) {
 						this.removeAttribute('invalid');
 						if (window.doc.addLibraryRadios.selected === 'url') {
-							var libraryInput = window.doc.addLibraryUrlInput;
-							var url = libraryInput.querySelector('input').value;
+							const libraryInput = window.doc.addLibraryUrlInput;
+							let url = libraryInput.querySelector('input').value;
 							if (url[0] === '/' && url[1] === '/') {
 								url = 'http:' + url;
 							}
@@ -312,7 +312,7 @@ class PLS {
 					}
 				});
 		} else if (e.target.classList.contains('anonymous')) {
-			var url = e.target.getAttribute('data-url');
+			const url = e.target.getAttribute('data-url');
 			if (_this.mode === 'main') {
 				window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor,
 					'require', url);
@@ -329,10 +329,10 @@ class PLS {
 			});
 		} else if (_this.mode === 'main') {
 			//Checking or un-checking something
-			var lib = (e.target as HTMLElement & {
+			const lib = (e.target as HTMLElement & {
 				dataLib: LibrarySelectorLibrary;
 			}).dataLib;
-			var changeType: 'addMetaTags'|'removeMetaTags' = 
+			const changeType: 'addMetaTags' | 'removeMetaTags' =
 				(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
 			if (lib.url) {
 				window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib.url);

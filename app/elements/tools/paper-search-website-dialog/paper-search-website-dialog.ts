@@ -129,7 +129,7 @@ class PSWD {
 	 * Hides all windows except the given one
 	 */
 	static hideAllWindows(this: PaperSearchWebsiteDialog, except: string) {
-		var _this = this;
+		const _this = this;
 		this.windows.forEach(function(item) {
 			item !== except && (_this.$[item].style.display = 'none');
 		});
@@ -139,7 +139,7 @@ class PSWD {
 	 * Go back to the previous window
 	 */
 	static goBackWindow(this: PaperSearchWebsiteDialog) {
-		var newWindow = this.windows[this.windowPath[this.windowPath.length - 2]];
+		const newWindow = this.windows[this.windowPath[this.windowPath.length - 2]];
 		this.windowPath.pop();
 		this.hideAllWindows(newWindow);
 		this.$[newWindow].style.display = 'block';
@@ -173,8 +173,8 @@ class PSWD {
 	 * Loads given window if the promise is fulfilled, if the promise returns an error it switches to the previous window
 	 */
 	static loadWindow(this: PaperSearchWebsiteDialog, window: PaperSearchWebsiteDialogWindow, promiser: Promiser) {
-		var _this = this;
-		var spinner = $(this).find('paper-spinner')[0] as HTMLPaperSpinnerElement;
+		const _this = this;
+		const spinner = $(this).find('paper-spinner')[0] as HTMLPaperSpinnerElement;
 		spinner.active = true;
 		this.hideAllWindows('loadingWindow');
 		this.$.loadingWindow.style.display = 'block';
@@ -194,7 +194,7 @@ class PSWD {
 	 * Inserts the chosen code and closes the dialog
 	 */
 	static insertCode(this: PaperSearchWebsiteDialog) {
-		var _this = this;
+		const _this = this;
 		const code = 
 `var search = crmAPI.getSelection() || prompt('Please enter a search query');
 var url = '${this.chosenUrl}';
@@ -222,12 +222,12 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	 * Processes all the search engines text from the "edit search engines" page and returns all possible search engines
 	 */
 	static processSearchEngines(this: PaperSearchWebsiteDialog) {
-		var _this = this;
+		const _this = this;
 		return function(resolve: (value?: any) => void, reject: (value?: any) => void) {
-			var data = _this.$.manualInputListChoiceInput.querySelector('textarea').value;
+			const data = _this.$.manualInputListChoiceInput.querySelector('textarea').value;
 
 			try {
-				var structuredSearchEngines = JSON.parse(data);
+				const structuredSearchEngines = JSON.parse(data);
 				$('.SEImportError').remove();
 				if (structuredSearchEngines.length !== 0) {
 					_this.disableManualButton = true;
@@ -295,7 +295,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	 */
 	static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: Polymer.ClickEvent) {
 		($(this.$.listInputSearchList).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement).checked = false;
-		var node = e.target;
+		let node = e.target;
 		while (node.tagName !== 'PAPER-RADIO-BUTTON') {
 			node = node.parentElement;
 		}
@@ -364,7 +364,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	 * Waits a bit before fitting the element
 	 */
 	static fixFit(this: PaperSearchWebsiteDialog) {
-		var paperInputContainer = $(this.$.manualInputListChoiceInput).find('paper-input-container')[0];
+		const paperInputContainer = $(this.$.manualInputListChoiceInput).find('paper-input-container')[0];
 		paperInputContainer.style.height = '200px';
 		this.fit();
 		paperInputContainer.style.height = 'auto';

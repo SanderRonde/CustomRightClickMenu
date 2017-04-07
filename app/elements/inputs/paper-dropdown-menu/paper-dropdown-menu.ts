@@ -58,14 +58,14 @@ class PDM {
 	 * Fires when the selected item changes
 	 */
 	static _dropdownSelectChange(_this: PaperDropdownMenu) {
-		var paperItems = $(_this).find('paper-item');
-		var newState = _this._paperMenu.selected;
+		const paperItems = $(_this).find('paper-item');
+		const newState = _this._paperMenu.selected;
 		_this.$.dropdownSelected.innerHTML = (paperItems[newState].children[1] && 
 			paperItems[newState].children[1].innerHTML) || 'EXPORT AS';
 	};
 
 	static init(this: PaperDropdownMenu) {
-		var paperItems = $(this).find('paper-item');
+		const paperItems = $(this).find('paper-item');
 		this.$.dropdownSelected.innerHTML = $(paperItems[this.selected as number]).children('.menuOptionName').html();
 		this.refreshListeners();
 	};

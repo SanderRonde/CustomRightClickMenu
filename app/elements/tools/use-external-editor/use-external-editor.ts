@@ -205,17 +205,17 @@ class UEE {
 	};
 
 	private static createEditingOverlay(this: UseExternalEditor) {
-		var _this = this;
+		const _this = this;
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
 		window.doc.externalEditorDialogTrigger.disabled = true;
 		window.doc.externalEditorDialogTrigger.classList.add('disabled');
-		var toolsCont = window.app.createElement('div', {
+		const toolsCont = window.app.createElement('div', {
 			id: 'externalEditingTools'
 		});
 		toolsCont.appendChild(window.app.createElement('div', {
 			id: 'externalEditingToolsTitle'
 		}, ['Using external editor']));
-		var cont = toolsCont.appendChild(window.app.createElement('div', {
+		const cont = toolsCont.appendChild(window.app.createElement('div', {
 			id: 'externalEditingToolsButtonsCont'
 		}));
 
@@ -294,7 +294,7 @@ class UEE {
 			}, ['Location'])
 		])).addEventListener('click', () => {
 			//Show location toast
-			var location = _this.connection.filePath;
+			let location = _this.connection.filePath;
 			location = location.replace(/\\/g, '/');
 			window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
 			const externalEditorLocationToast = window.doc.externalEditorLocationToast;
@@ -415,10 +415,10 @@ class UEE {
 
 	static setupExternalEditing(this: UseExternalEditor) {
 		//Send a message to the app to create the item with its current script and name
-		var _this = this;
+		const _this = this;
 		if (this.connection.connected) {
-			var item = this.editingCRMItem;
-			var tempListener = function(msg: SetupExistingFileMessage|SetupNewFileMessage) {
+			const item = this.editingCRMItem;
+			const tempListener = function (msg: SetupExistingFileMessage | SetupNewFileMessage) {
 				if (msg.status === 'connected' && (msg.action === 'setupScript' || msg.action === 'setupStylesheet') && msg.connectionId === _this.connection.id) {
 					if (msg.existed === false) {
 						item.file = {
@@ -462,7 +462,7 @@ class UEE {
 	 * Sets up the external messages sent to go this element's handler
 	 */
 	static setupMessageHandler(this: UseExternalEditor) {
-		var _this = this;
+		const _this = this;
 		chrome.runtime.onConnectExternal.addListener(function(port) {
 			if (port.sender.id === 'obnfehdnkjmbijebdllfcnccllcfceli') {
 				port.onMessage.addListener(function(msg) {
@@ -475,7 +475,7 @@ class UEE {
 	private static appMessageHandler(this: UseExternalEditor, msg: ConnectedEditorMessage) {
 		switch (msg.action) {
 			case 'chooseFile':
-				var _this = this;
+				const _this = this;
 				const chooseFileDialog = window.doc.externalEditorChooseFile;
 				chooseFileDialog.init(msg.local, msg.external, function(result) {
 					if (result !== false) {
@@ -523,7 +523,7 @@ class UEE {
 	 * Tries to establish a connection to the app (if installed)
 	 */
 	private static establishConnection(this: UseExternalEditor, retry: boolean = false) {
-		var _this = this;
+		const _this = this;
 		if (!this.appPort) {
 			this.appPort = chrome.runtime.connect('hkjjmhkhhlmkflpihbikfpcojeofbjgn');
 			this.connection.status = 'connecting';
@@ -572,7 +572,7 @@ class UEE {
 	};
 
 	static cmLoaded(this: UseExternalEditor) {
-		var placeHolderRect = window.doc.chooseFileMergerPlaceholder.getBoundingClientRect();
+		const placeHolderRect = window.doc.chooseFileMergerPlaceholder.getBoundingClientRect();
 		window.doc.chooseFileMergerPlaceholder.style.width = placeHolderRect.width + 'px';
 		window.doc.chooseFileMergerPlaceholder.style.height = placeHolderRect.height + 'px';
 		window.doc.chooseFileMergerPlaceholder.style.position = 'absolute';
@@ -619,8 +619,8 @@ class UEE {
 
 	private static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
 		//Animate the comparison in
-		var dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
-		var dialogStyle = window.doc.externalEditorChooseFile.style;
+		const dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
+		const dialogStyle = window.doc.externalEditorChooseFile.style;
 
 		_this.dialogStyleProperties = dialogRect;
 
@@ -756,7 +756,7 @@ class UEE {
 	 * Makes the dialog clear itself after it closes
 	 */
 	static ready(this: UseExternalEditor) {
-		var _this = this;
+		const _this = this;
 		window.externalEditor = this;
 		this.establishConnection();
 		this.init();
@@ -771,15 +771,15 @@ class UEE {
 		};
 		const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
 		chooseFileDialog.init = function (local: string, file: string, callback: (result: string|false) => void) {
-			var i;
-			var leftErrorButton = window.doc.updateMergeLeftNextError;
+			let i;
+			const leftErrorButton = window.doc.updateMergeLeftNextError;
 			leftErrorButton.listeners = leftErrorButton.listeners || [];
 			for (i = 0; i < leftErrorButton.listeners.length; i++) {
 				leftErrorButton.removeEventListener('click', leftErrorButton.listeners[i]);
 			}
 			leftErrorButton.listeners = [];
 
-			var rightErrorButton = window.doc.updateMergeRightNextError;
+			const rightErrorButton = window.doc.updateMergeRightNextError;
 			rightErrorButton.listeners = rightErrorButton.listeners || [];
 			for (i = 0; i < rightErrorButton.listeners.length; i++) {
 				rightErrorButton.removeEventListener('click', rightErrorButton.listeners[i]);

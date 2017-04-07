@@ -84,8 +84,8 @@ class PDB {
 	 */
 	static _addListener(this: PaperDropdownInstance, listener: PaperDropdownListener,
 			id: string, thisArg: any) {
-		var found = false;
-		for (var i = 0; i < this._listeners.length; i++) {
+		let found = false;
+		for (let i = 0; i < this._listeners.length; i++) {
 			if (this._listeners[i].listener === listener && this._listeners[i].id === id) {
 				found = true;
 			}
@@ -103,7 +103,7 @@ class PDB {
 	 * Fires all added listeners, triggers when a new value is selected
 	 */
 	static _fireListeners(this: PaperDropdownInstance) {
-		var prevState = this.selected;
+		const prevState = this.selected;
 		this.selected = this._paperMenu.selected;
 		this._listeners.forEach((listener) => {
 			if (listener.id === this.id) {
@@ -116,7 +116,7 @@ class PDB {
 	};
 
 	static refreshListeners(this: PaperDropdownInstance) {
-		var _this = this;
+		const _this = this;
 		$(this).find('paper-item').off('click').on('click', function () {
 			setTimeout(function () {
 				_this._fireListeners();
@@ -128,7 +128,7 @@ class PDB {
 	};
 
 	static ready(this: PaperDropdownMenu) {
-		var _this = this;
+		const _this = this;
 		this.refreshListeners();
 		this._paperDropdownEl = this;
 		this._paperMenu = $(this).find('paper-menu')[0] as HTMLPaperMenuElement;
@@ -154,8 +154,8 @@ class PDB {
 			_this._startTime = timestamp;
 		}
 		if (timestamp - 100 < _this._startTime) {
-			var scale = ((timestamp - _this._startTime) / 100);
-			var doubleScale = scale * 2;
+			const scale = ((timestamp - _this._startTime) / 100);
+			let doubleScale = scale * 2;
 			_this._paperMenu.style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
 				' 0 ' + scale + 'px ' + (5 * scale) + 'px 0 rgba(0,0,0,0.12),' +
 				' 0 ' + (scale * 3) + 'px ' + scale + 'px ' + -doubleScale + 'px rgba(0,0,0,0.2)';
@@ -183,8 +183,8 @@ class PDB {
 			_this._startTime = timestamp;
 		}
 		if (timestamp - 100 < _this._startTime) {
-			var scale = 1 - (((timestamp - _this._startTime) / 100));
-			var doubleScale = scale * 2;
+			const scale = 1 - (((timestamp - _this._startTime) / 100));
+			let doubleScale = scale * 2;
 			_this._paperMenu.style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
 				' 0 ' + scale + 'px ' + (5 * scale) + 'px 0 rgba(0,0,0,0.12),' +
 				' 0 ' + (scale * 3) + 'px ' + scale + 'px ' + -doubleScale + 'px rgba(0,0,0,0.2)';
@@ -213,7 +213,7 @@ class PDB {
 			this.onopen();
 		}
 
-		var _this = this;
+		const _this = this;
 		if (!this._expanded) {
 			this._expanded = true;
 			if (!this.raised) {
@@ -222,9 +222,9 @@ class PDB {
 				});
 			}
 			setTimeout(function() {
-				var content = $(_this._paperMenu).find('.content');
+				const content = $(_this._paperMenu).find('.content');
 				content.css('display', 'block');
-				var animation: {
+				const animation: {
 					[key: string]: any
 				} = {
 					height: content[0].scrollHeight
@@ -247,10 +247,10 @@ class PDB {
 	 * Close the dropdown menu
 	 */
 	static close(this: PaperDropdownInstance) {
-		var _this = this;
+		const _this = this;
 		if (this._expanded) {
 			this._expanded = false;
-			var animation: {
+			const animation: {
 				[key: string]: any;
 			} = {
 				height: 0

@@ -122,9 +122,9 @@ class NEB {
 	};
 
 	static getTriggers(this: NodeEditBehavior, resultStorage: Partial<CRM.Node>) {
-		var inputs = $(this).find('.executionTrigger').find('paper-input');
-		var triggers = [];
-		for (var i = 0; i < inputs.length; i++) {
+		const inputs = $(this).find('.executionTrigger').find('paper-input');
+		const triggers = [];
+		for (let i = 0; i < inputs.length; i++) {
 			triggers[i] = {
 				url: inputs[i].querySelector('input').value,
 				not: (inputs[i].parentElement.children[0] as HTMLPaperCheckboxElement).checked
@@ -146,13 +146,13 @@ class NEB {
 	};
 
 	static save(this: NodeEditBehavior, event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
-		var usesDefaultStorage = false;
+		let usesDefaultStorage = false;
 		if (resultStorage === null || typeof (resultStorage as MouseEvent).x === 'number') {
 			resultStorage = this.item;
 			usesDefaultStorage = true;
 		}
 
-		var newSettings = this.newSettings;
+		const newSettings = this.newSettings;
 		if (this.saveChanges) {
 			//Also made the compiler angry
 			(this.saveChanges as any)(newSettings);
@@ -166,7 +166,7 @@ class NEB {
 		this.getTriggers(newSettings);
 		window.crmEditPage.animateOut();
 
-		var itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
+		const itemInEditPage = window.app.editCRM.getCRMElementFromPath(this.item.path, false);
 		newSettings.name = this.$.nameInput.value;
 		itemInEditPage.itemName = newSettings.name;
 
@@ -198,7 +198,7 @@ class NEB {
 	};
 
 	static assignContentTypeSelectedValues(this: NodeEditBehavior) {
-		var i;
+		let i;
 		const arr = [
 			'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
 			'imageContentSelected', 'videoContentSelected', 'audioContentSelected'
@@ -211,8 +211,8 @@ class NEB {
 	static checkToggledIconAmount(this: NodeEditBehavior, e: {
 		path: Array<HTMLElement>;
 	}) {
-		var i;
-		var toggledAmount = 0;
+		let i;
+		let toggledAmount = 0;
 		const arr = [
 			'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
 			'imageContentSelected', 'videoContentSelected', 'audioContentSelected'
@@ -242,7 +242,7 @@ class NEB {
 			return;
 		}
 		const element = window.app.findElementWithClassName(e.path, 'showOnContentItemCont');
-		var checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
+		const checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
 		checkbox.checked = !checkbox.checked;
 		if (!checkbox.checked) {
 			this.checkToggledIconAmount({
@@ -262,7 +262,7 @@ class NEB {
 	 * Clears the trigger that is currently clicked on
 	 */
 	static clearTrigger(this: NodeEditBehavior, event: Polymer.ClickEvent) {
-		var target = event.target;
+		let target = event.target;
 		if (target.tagName === 'PAPER-ICON-BUTTON') {
 			target = target.children[0] as Polymer.Element;
 		}
@@ -312,22 +312,22 @@ class NEB {
 	 * Is triggered when the option in the dropdown menu changes animates in what's needed
 	 */
 	static selectorStateChange(this: NodeEditBehavior, prevState: number, state: number) {
-		var _this = this;
-		var newStates = {
+		const _this = this;
+		const newStates = {
 			showContentTypeChooser: (state === 0 || state === 3),
 			showTriggers: (state > 1 && state !== 4),
 			showInsteadOfExecute: (state === 3)
 		};
-		var oldStates = {
+		const oldStates = {
 			showContentTypeChooser: (prevState === 0 || prevState === 3),
 			showTriggers: (prevState > 1 && prevState !== 4),
 			showInsteadOfExecute: (prevState === 3)
 		};
 
-		var triggersElement = (this.$ as any)['executionTriggersContainer'] as HTMLDivElement;
-		var $triggersElement = $(triggersElement);
-		var contentTypeChooserElement = this.$.showOnContentContainer;
-		var $contentTypeChooserElement = $(contentTypeChooserElement);
+		const triggersElement = (this.$ as any)['executionTriggersContainer'] as HTMLDivElement;
+		const $triggersElement = $(triggersElement);
+		const contentTypeChooserElement = this.$.showOnContentContainer;
+		const $contentTypeChooserElement = $(contentTypeChooserElement);
 
 		function animateTriggers(callback?: () => void) {
 			triggersElement.style.height = 'auto';
@@ -447,7 +447,7 @@ class NEB {
 	};
 
 	static _init(this: NodeEditBehavior) {
-		var _this = this;
+		const _this = this;
 		this.newSettings = JSON.parse(JSON.stringify(this.item));
 		window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
 		this.assignContentTypeSelectedValues();

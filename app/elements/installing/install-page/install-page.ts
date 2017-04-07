@@ -53,7 +53,7 @@ class IP {
 
 	static getUserscriptUrl(this: InstallPage): string {
 		this.userscriptUrlCalculated = true;
-		var urlArr: Array<string> = location.href.split('#');
+		const urlArr: Array<string> = location.href.split('#');
 		urlArr.splice(0, 1);
 		return urlArr.join('#');
 	};
@@ -68,7 +68,7 @@ class IP {
 	};
 
 	static fetchUserscript(this: InstallPage, url: string) {
-		var _this = this;
+		const _this = this;
 		$.ajax({
 			url: url + '?noInstall',
 			dataType: 'text'

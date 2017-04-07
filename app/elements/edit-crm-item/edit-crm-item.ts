@@ -102,8 +102,8 @@ class ECI {
 	static update(this: EditCrmItem) {
 		if (!this.classList.contains('id' + this.item.id)) {
 			//Remove old ID and call ready
-			var classes = this.classList;
-			for (var i = 0; i < classes.length; i++) {
+			const classes = this.classList;
+			for (let i = 0; i < classes.length; i++) {
 				if (classes[i].indexOf('id') > -1) {
 					this.classList.remove(classes[i]);
 					break;
@@ -120,7 +120,7 @@ class ECI {
 			return;
 		}
 
-		var _this = this;
+		const _this = this;
 		this.classList.add('id' + this.item.id);
 		if (this.classList[0] !== 'wait') {
 			this.itemIndex = this.index;
@@ -147,7 +147,7 @@ class ECI {
 				_this.typeIndicatorMouseLeave.apply(_this, []);
 			});
 		} else {
-			var hoveringTypeSwitcher = false;
+			const hoveringTypeSwitcher = false;
 			this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
 				e.preventDefault();
 				e.stopPropagation();
@@ -173,7 +173,7 @@ class ECI {
 	};
 
 	private static selectThisNode(this: EditCrmItem) {
-		var prevState = this.$.checkbox.checked;
+		let prevState = this.$.checkbox.checked;
 		this.$.checkbox.checked = !prevState;
 		if (document.getElementsByClassName('highlighted').length === 0) {
 			this.classList.add('firstHighlighted');
@@ -184,7 +184,7 @@ class ECI {
 	static openEditPage(this: EditCrmItem) {
 		if (!this.shadow && !window.app.item) {
 			if (!this.classList.contains('selecting')) {
-				var item = this.item;
+				const item = this.item;
 				window.app.item = item;
 				if (item.type === 'script') {
 					window.app.stylesheetItem = {} as any;
@@ -208,9 +208,9 @@ class ECI {
 			return node.children[0];
 		}
 
-		var path = Array.prototype.slice.apply(node.path);
-		var currentNodeSiblings = window.app.crm.lookup(path, true);
-		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
+		const path = Array.prototype.slice.apply(node.path);
+		let currentNodeSiblings = window.app.crm.lookup(path, true);
+		let currentNodeIndex = path.splice(path.length - 1, 1)[0];
 		while (currentNodeSiblings.length - 1 <= currentNodeIndex) {
 			currentNodeSiblings = window.app.crm.lookup(path, true);
 			currentNodeIndex = path.splice(path.length - 1, 1)[0];
@@ -219,15 +219,15 @@ class ECI {
 	};
 
 	private static getPreviousNode(node: CRM.Node): CRM.Node {
-		var path = Array.prototype.slice.apply(node.path);
-		var currentNodeSiblings = window.app.crm.lookup(path, true);
-		var currentNodeIndex = path.splice(path.length - 1, 1)[0];
+		const path = Array.prototype.slice.apply(node.path);
+		const currentNodeSiblings = window.app.crm.lookup(path, true);
+		const currentNodeIndex = path.splice(path.length - 1, 1)[0];
 		if (currentNodeIndex === 0) {
 			//return parent
-			var parent = window.app.crm.lookup(path) as CRM.Node;
+			const parent = window.app.crm.lookup(path) as CRM.Node;
 			return parent;
 		}
-		var possibleParent = currentNodeSiblings[currentNodeIndex - 1];
+		const possibleParent = currentNodeSiblings[currentNodeIndex - 1];
 		if (possibleParent.children) {
 			return possibleParent.children[possibleParent.children.length - 1];
 		}
@@ -235,13 +235,13 @@ class ECI {
 	};
 
 	private static getNodesOrder(this: EditCrmItem, reference: CRM.Node, other: CRM.Node): 'after'|'before'|'same' {
-		var i;
-		var referencePath = reference.path;
-		var otherPath = other.path;
+		let i;
+		const referencePath = reference.path;
+		const otherPath = other.path;
 		
 		//Check if they're the same
 		if (referencePath.length === otherPath.length) {
-			var same = true;
+			let same = true;
 			for (i = 0; i < referencePath.length; i++) {
 				if (referencePath[i] !== otherPath[i]) {
 					same = false;
@@ -253,7 +253,7 @@ class ECI {
 			}
 		}
 
-		var biggestArray = (referencePath.length > otherPath.length ? referencePath.length : otherPath.length);
+		const biggestArray = (referencePath.length > otherPath.length ? referencePath.length : otherPath.length);
 		for (i = 0; i < biggestArray; i++) {
 			if (otherPath[i] !== undefined && referencePath[i] !== undefined) {
 				if (otherPath[i] > referencePath[i]) {
@@ -282,11 +282,11 @@ class ECI {
 	};
 
 	private static selectFromXToThis(this: EditCrmItem) {
-		var _this = this;
+		const _this = this;
 
 		//Get the first highlighted node
-		var firstHighlightedNode = document.getElementsByClassName('firstHighlighted')[0] as EditCrmItem;
-		var firstHighlightedItem = firstHighlightedNode.item;
+		const firstHighlightedNode = document.getElementsByClassName('firstHighlighted')[0] as EditCrmItem;
+		const firstHighlightedItem = firstHighlightedNode.item;
 
 		//Deselect everything else
 		$('.highlighted').each(function(this: HTMLElement) {
@@ -294,7 +294,7 @@ class ECI {
 		});
 
 		//Find out if the clicked on node is before, at, or after the first highlighted node
-		var relation = this.getNodesOrder(firstHighlightedItem, this.item);
+		const relation = this.getNodesOrder(firstHighlightedItem, this.item);
 		if (relation === 'same') {
 			this.classList.add('highlighted');
 			this.$.checkbox.checked = true;
@@ -305,9 +305,9 @@ class ECI {
 			firstHighlightedNode.$.checkbox.checked = true;
 			window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
 
-			var wait = 0;
-			var nodeWalker = (relation === 'after' ? this.getNextNode : this.getPreviousNode);
-			var node = nodeWalker(firstHighlightedItem);
+			let wait = 0;
+			const nodeWalker = (relation === 'after' ? this.getNextNode : this.getPreviousNode);
+			let node = nodeWalker(firstHighlightedItem);
 			while (node.id !== this.item.id) {
 				this.generateShiftSelectionCallback(node, wait)();
 				wait += 35;
@@ -354,7 +354,7 @@ class ECI {
 
 	private static typeIndicatorMouseOver(this: EditCrmItem) {
 		if (!this.shadow) {
-			var time = Date.now();
+			const time = Date.now();
 			this.lastTypeSwitchMouseover = time;
 			this.async(() => {
 				if (this.lastTypeSwitchMouseover === time) {
@@ -382,10 +382,10 @@ class ECI {
 	};
 
 	private static typeIndicatorMouseLeave(this: EditCrmItem) {
-		var _this = this;
+		const _this = this;
 		this.lastTypeSwitchMouseover = null;
 		if (!this.shadow) {
-			var typeSwitcher = this.$.typeSwitcher;
+			const typeSwitcher = this.$.typeSwitcher;
 			if (typeSwitcher.toggledOpen) {
 				typeSwitcher.closeTypeSwitchContainer(true, function() {
 					typeSwitcher.toggledOpen = false;
@@ -409,7 +409,7 @@ class ECI {
 		this.classList.add('highlighted');
 		selectCheckbox && (this.$.checkbox.checked = true);
 		if (this.item.children && !dontSelectChildren) {
-			for (var i = 0; i < this.item.children.length; i++) {
+			for (let i = 0; i < this.item.children.length; i++) {
 				setTimeout(this._getOnSelectFunction(this, i), (i * 35));
 				window.app.editCRM.selectedElements.push(this.item.children[i].id);
 			}
@@ -426,8 +426,8 @@ class ECI {
 		this.classList.remove('highlighted');
 		selectCheckbox && (this.$.checkbox.checked = false);
 		if (this.item.children && !dontSelectChildren) {
-			var selectedPaths = window.app.editCRM.selectedElements;
-			for (var i = 0; i < this.item.children.length; i++) {
+			const selectedPaths = window.app.editCRM.selectedElements;
+			for (let i = 0; i < this.item.children.length; i++) {
 				setTimeout(this._getOnDeselectFunction(this, i), (i * 35));
 				selectedPaths.splice(selectedPaths.indexOf(this.item.children[i].id), 1);
 			}
@@ -435,7 +435,7 @@ class ECI {
 	};
 
 	static onToggle(this: EditCrmItem) {
-		var _this = this;
+		const _this = this;
 		setTimeout(function () {
 			if (_this.$.checkbox.checked) {
 				_this.onSelect();

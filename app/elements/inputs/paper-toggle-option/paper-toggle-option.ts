@@ -48,7 +48,7 @@ class PTO {
 	};
 
 	static onClick(this: PaperToggleOption) {
-		var id = this.getAttribute('id');
+		const id = this.getAttribute('id');
 		this.toggled = !this.toggled;
 		window.app.setLocal(id, this.toggled);
 	}

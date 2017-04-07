@@ -378,8 +378,7 @@ class CA {
 	}
 
 	static confirmCodeSettings(this: CrmApp) {
-		const options = this._getCodeSettingsFromDialog();
-		this.$.codeSettingsDialog.item.value.options = options;
+		this.$.codeSettingsDialog.item.value.options = this._getCodeSettingsFromDialog();
 
 		this.upload();
 	}
@@ -405,8 +404,8 @@ class CA {
 	 */
 	private static insertInto<T>(toAdd: T, target: Array<T>, position: number = null): Array<T> {
 		if (position) {
-			var temp1, i;
-			var temp2 = toAdd;
+			let temp1, i;
+			let temp2 = toAdd;
 			for (i = position; i < target.length; i++) {
 				temp1 = target[i];
 				target[i] = temp2;
@@ -425,16 +424,14 @@ class CA {
 							[key: string]: any;
 						}): boolean {
 		if (!secondObj) {
-			if (!firstObj) {
-				return true;
-			}
-			return false;
+			return !firstObj;
+
 		}
 		if (!firstObj) {
 			return false;
 		}
 
-		for (var key in firstObj) {
+		for (let key in firstObj) {
 			if (firstObj.hasOwnProperty(key)) {
 				if (typeof firstObj[key] === 'object') {
 					if (typeof secondObj[key] !== 'object') {
@@ -469,11 +466,11 @@ class CA {
 		} else if (!firstArray || !secondArray) {
 			return false;
 		}
-		var firstLength = firstArray.length;
+		const firstLength = firstArray.length;
 		if (firstLength !== secondArray.length) {
 			return false;
 		}
-		var i;
+		let i;
 		for (i = 0; i < firstLength; i++) {
 			if (typeof firstArray[i] === 'object') {
 				if (typeof secondArray[i] !== 'object') {
@@ -503,7 +500,7 @@ class CA {
 	private static treeForEach(this: CrmApp, node: CRM.Node, fn: (node: CRM.Node) => any) {
 		fn(node);
 		if (node.children) {
-			for (var i = 0; i < node.children.length; i++) {
+			for (let i = 0; i < node.children.length; i++) {
 				this.treeForEach(node.children[i], fn);
 			}
 		}
@@ -514,9 +511,9 @@ class CA {
 	};
 
 	static copyExporedToClipboard(this: CrmApp) {
-		var snipRange = document.createRange();
+		const snipRange = document.createRange();
 		snipRange.selectNode(this.$.exportJSONData);
-		var selection = window.getSelection();
+		const selection = window.getSelection();
 		selection.removeAllRanges();
 		selection.addRange(snipRange);
 
@@ -549,14 +546,14 @@ class CA {
 	};
 
 	static _generateRegexFile(this: CrmApp) {
-		var filePath = this.$.URISchemeFilePath.querySelector('input').value.replace(/\\/g, '\\\\');
-		var schemeName = this.$.URISchemeSchemeName.querySelector('input').value;
+		const filePath = this.$.URISchemeFilePath.querySelector('input').value.replace(/\\/g, '\\\\');
+		const schemeName = this.$.URISchemeSchemeName.querySelector('input').value;
 
-		var regFile = [
+		const regFile = [
 			'Windows Registry Editor Version 5.00',
 			'',
 			'[HKEY_CLASSES_ROOT\\' + schemeName + ']',
-			'@="URL:' + schemeName +' Protocol"',
+			'@="URL:' + schemeName + ' Protocol"',
 			'"URL Protocol"=""',
 			'',
 			'[HKEY_CLASSES_ROOT\\' + schemeName + '\\shell]',
@@ -591,26 +588,26 @@ class CA {
 		if (this.versionUpdateTab === 4) {
 			this.$.versionUpdateDialog.close();
 		} else {
-			var nextTabIndex = this.versionUpdateTab + 1;
+			const nextTabIndex = this.versionUpdateTab + 1;
 			const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as Array<HTMLElement>;
-			var selector = tabs[nextTabIndex];
+			const selector = tabs[nextTabIndex];
 			selector.style.height = 'auto';
 
-			var i;
+			let i;
 			for (i = 0; i < tabs.length; i++) {
 				tabs[i].style.display = 'none';
 			}
-			var newHeight = $(selector).innerHeight();
+			const newHeight = $(selector).innerHeight();
 			for (i = 0; i < tabs.length; i++) {
 				tabs[i].style.display = 'block';
 			}
 			selector.style.height = '0';
 
-			var _this = this;
-			var newHeightPx = newHeight + 'px';
-			var tabCont = this.$.versionUpdateTabSlider;
+			const _this = this;
+			const newHeightPx = newHeight + 'px';
+			const tabCont = this.$.versionUpdateTabSlider;
 
-			var currentHeight = tabCont.getBoundingClientRect().height;
+			const currentHeight = tabCont.getBoundingClientRect().height;
 			if (newHeight > currentHeight) {
 				tabCont.animate([
 					{
@@ -649,26 +646,26 @@ class CA {
 
 	static goPrevVersionUpdateTab(this: CrmApp) {
 		if (this.versionUpdateTab !== 0) {
-			var prevTabIndex = this.versionUpdateTab - 1;
+			const prevTabIndex = this.versionUpdateTab - 1;
 			const tabs = (document.getElementsByClassName('versionUpdateTab') as any) as Array<HTMLElement>;
-			var selector = tabs[prevTabIndex];
+			const selector = tabs[prevTabIndex];
 			selector.style.height = 'auto';
 
-			var i;
+			let i;
 			for (i = 0; i < tabs.length; i++) {
 				tabs[i].style.display = 'none';
 			}
-			var newHeight = $(selector).innerHeight();
+			const newHeight = $(selector).innerHeight();
 			for (i = 0; i < tabs.length; i++) {
 				tabs[i].style.display = 'block';
 			}
 			selector.style.height = '0';
 
-			var _this = this;
-			var newHeightPx = newHeight + 'px';
-			var tabCont = this.$.versionUpdateTabSlider;
+			const _this = this;
+			const newHeightPx = newHeight + 'px';
+			const tabCont = this.$.versionUpdateTabSlider;
 
-			var currentHeight = tabCont.getBoundingClientRect().height;
+			const currentHeight = tabCont.getBoundingClientRect().height;
 			if (newHeight > currentHeight) {
 				tabCont.animate([
 					{
@@ -738,16 +735,16 @@ class CA {
 		if (toFind.type === 'script') {
 			container.push(toFind);
 		} else if (toFind.children) {
-			for (var i = 0; i < toFind.children.length; i++) {
+			for (let i = 0; i < toFind.children.length; i++) {
 				this.findScriptsInSubtree(toFind.children[i], container);
 			}
 		}
 	};
 
 	private static runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
-		var _this = this;
+		const _this = this;
 		if (dialogs[0]) {
-			var script = dialogs.splice(0, 1)[0];
+			const script = dialogs.splice(0, 1)[0];
 			window.scriptEdit.openPermissionsDialog(script, function() {
 				_this.runDialogsForImportedScripts(nodesToAdd, dialogs);
 			});
@@ -759,9 +756,9 @@ class CA {
 	static removeGlobalExclude(this: CrmApp, e: Polymer.ClickEvent) {
 		const node = this.findElementWithTagname(e.path, 'paper-icon-button');
 
-		var excludeIndex = null;
-		var allExcludes = document.getElementsByClassName('globalExcludeContainer');
-		for (var i = 0; i < allExcludes.length; i++) {
+		let excludeIndex = null;
+		const allExcludes = document.getElementsByClassName('globalExcludeContainer');
+		for (let i = 0; i < allExcludes.length; i++) {
 			if (allExcludes[i] === node.parentNode) {
 				excludeIndex = i;
 				break;
@@ -781,9 +778,9 @@ class CA {
 	static globalExcludeChange(this: CrmApp, e: Polymer.ClickEvent) {
 		const input = this.findElementWithTagname(e.path, 'paper-input');
 
-		var excludeIndex = null;
-		var allExcludes = document.getElementsByClassName('globalExcludeContainer');
-		for (var i = 0; i < allExcludes.length; i++) {
+		let excludeIndex = null;
+		const allExcludes = document.getElementsByClassName('globalExcludeContainer');
+		for (let i = 0; i < allExcludes.length; i++) {
 			if (allExcludes[i] === input.parentNode) {
 				excludeIndex = i;
 				break;
@@ -793,7 +790,7 @@ class CA {
 			return;
 		}
 
-		var value = input.value;
+		const value = input.value;
 		this.globalExcludes[excludeIndex] = value;
 		this.set('globalExcludes', this.globalExcludes);
 		chrome.storage.local.set({
@@ -802,11 +799,11 @@ class CA {
 	};
 
 	private static addImportedNodes(this: CrmApp, nodesToAdd: Array<CRM.Node>): boolean {
-		var _this = this;
+		const _this = this;
 		if (!nodesToAdd[0]) {
 			return false;
 		}
-		var toAdd = nodesToAdd.splice(0, 1)[0];
+		const toAdd = nodesToAdd.splice(0, 1)[0];
 		this.treeForEach(toAdd, function(node) {
 			node.id = _this.generateItemId();
 			node.nodeInfo.source = 'import';
@@ -832,7 +829,7 @@ class CA {
 	};
 
 	static importData(this: CrmApp) {
-		var dataString = this.$.importSettingsInput.value;
+		const dataString = this.$.importSettingsInput.value;
 		if (!this.$.oldCRMImport.checked) {
 			let data: {
 				crm?: CRM.Tree;
@@ -877,7 +874,7 @@ class CA {
 				if (settingsArr[0] === 'all') {
 					this.storageLocal.showOptions = settingsArr[2];
 
-					var rows = settingsArr.slice(6);
+					const rows = settingsArr.slice(6);
 					class LocalStorageWrapper {
 						getItem(index: 'numberofrows'|number): string {
 							if (index === 'numberofrows') {
@@ -887,7 +884,7 @@ class CA {
 						}
 					}
 
-					var crm = this.transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
+					const crm = this.transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
 					this.settings.crm = crm;
 					this.editCRM.build({
 						superquick: true
@@ -905,7 +902,7 @@ class CA {
 	};
 
 	static exportData(this: CrmApp) {
-		var _this = this;
+		const _this = this;
 		const toExport: {
 			crm?: CRM.SafeTree;
 			local?: CRM.StorageLocal;
@@ -913,7 +910,7 @@ class CA {
 		} = {} as any;
 		if (this.$.exportCRM.checked) {
 			toExport.crm = JSON.parse(JSON.stringify(_this.settings.crm));
-			for (var i = 0; i < toExport.crm.length; i++) {
+			for (let i = 0; i < toExport.crm.length; i++) {
 				toExport.crm[i] = this.editCRM.makeNodeSafe(toExport.crm[i] as CRM.Node);
 			}
 		}
@@ -934,13 +931,13 @@ class CA {
 	};
 
 	static placeCommas(this: CrmApp, number: number): string {
-		var split = this.reverseString(number.toString()).match(/[0-9]{1,3}/g);
+		const split = this.reverseString(number.toString()).match(/[0-9]{1,3}/g);
 		return this.reverseString(split.join(','));
 	};
 
 	static getSettingsJsonLengthColor(this: CrmApp): string {
-		var red;
-		var green;
+		let red;
+		let green;
 		if (this.settingsJsonLength <= 51200) {
 			//Green to yellow, increase red
 			green = 255;
@@ -958,9 +955,9 @@ class CA {
 	};
 
 	private static switchToIcons(this: CrmApp, index: number) {
-		var i;
-		var element;
-		var crmTypes = document.querySelectorAll('.crmType');
+		let i;
+		let element;
+		const crmTypes = document.querySelectorAll('.crmType');
 		for (i = 0; i < 6; i++) {
 			if (index === i) {
 				element = crmTypes[i] as HTMLElement;
@@ -983,9 +980,9 @@ class CA {
 	private static iconSwitch(this: CrmApp, e: Polymer.ClickEvent, type: {
 		x?: any;
 	}|number) {
-		var i;
-		var crmEl;
-		var selectedType = this.crmType;
+		let i;
+		let crmEl;
+		let selectedType = this.crmType;
 		if (typeof type === 'number') {
 			for (i = 0; i < 6; i++) {
 				crmEl = document.querySelectorAll('.crmType').item(i) as HTMLElement;
@@ -1014,7 +1011,7 @@ class CA {
 			}
 		} else {
 			const element = this.findElementWithClassName(e.path, 'crmType');
-			var crmTypes = document.querySelectorAll('.crmType');
+			const crmTypes = document.querySelectorAll('.crmType');
 			for (i = 0; i < 6; i++) {
 				crmEl = crmTypes.item(i) as HTMLElement;
 				if (crmEl === element) {
@@ -1082,8 +1079,8 @@ class CA {
 	};
 
 	static toggleShrinkTitleRibbon(this: CrmApp) {
-		var viewportHeight = window.innerHeight;
-		var $settingsCont = $('#settingsContainer');
+		const viewportHeight = window.innerHeight;
+		const $settingsCont = $('#settingsContainer');
 		if (window.app.storageLocal.shrinkTitleRibbon) {
 			$(window.doc.editorTitleRibbon).animate({
 				fontSize: '100%'
@@ -1161,10 +1158,10 @@ class CA {
 
 	private static areValuesDifferent(this: CrmApp, val1: Array<any>|Object, val2: Array<any>|Object): boolean {
 		//Array or object
-		var obj1ValIsArray = Array.isArray(val1);
-		var obj2ValIsArray = Array.isArray(val2);
-		var obj1ValIsObjOrArray = typeof val1 === 'object';
-		var obj2ValIsObjOrArray = typeof val2 === 'object';
+		const obj1ValIsArray = Array.isArray(val1);
+		let obj2ValIsArray = Array.isArray(val2);
+		const obj1ValIsObjOrArray = typeof val1 === 'object';
+		let obj2ValIsObjOrArray = typeof val2 === 'object';
 
 		if (obj1ValIsObjOrArray) {
 			//Array or object
@@ -1217,7 +1214,7 @@ class CA {
 		newValue: T;
 		key: any;
 	}>): boolean {
-		for (var key in obj1) {
+		for (let key in obj1) {
 			if (obj1.hasOwnProperty(key)) {
 				if (this.areValuesDifferent(obj1[key], obj2[key])) {
 					changes.push({
@@ -1237,23 +1234,23 @@ class CA {
 	static upload(this: CrmApp, force: boolean = false) {
 		//Send changes to background-page, background-page uploads everything
 		//Compare storageLocal objects
-		var localChanges: Array<{
+		const localChanges: Array<{
 			oldValue: any;
 			newValue: any;
 			key: any;
 		}> = [];
-		var storageLocal = this.storageLocal;
-		var storageLocalCopy = force ? {} : this.storageLocalCopy;
+		const storageLocal = this.storageLocal;
+		const storageLocalCopy = force ? {} : this.storageLocalCopy;
 
-		var settingsChanges: Array<{
+		const settingsChanges: Array<{
 			oldValue: any;
 			newValue: any;
 			key: any;
 		}> = [];
-		var settings = this.settings;
-		var settingsCopy = force ? {} : this.settingsCopy;
-		var hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
-		var haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
+		const settings = this.settings;
+		const settingsCopy = force ? {} : this.settingsCopy;
+		const hasLocalChanged = this.getObjDifferences(storageLocal, storageLocalCopy, localChanges);
+		const haveSettingsChanged = this.getObjDifferences(settings, settingsCopy, settingsChanges);
 
 		if (hasLocalChanged || haveSettingsChanged) {
 			//Changes occured
@@ -1271,8 +1268,8 @@ class CA {
 	};
 
 	private static bindListeners(this: CrmApp) {
-		var urlInput = window.doc.addLibraryUrlInput;
-		var manualInput = window.doc.addLibraryManualInput;
+		const urlInput = window.doc.addLibraryUrlInput;
+		const manualInput = window.doc.addLibraryManualInput;
 		window.doc.addLibraryUrlOption.addEventListener('change', function() {
 			manualInput.style.display = 'none';
 			urlInput.style.display = 'block';
@@ -1292,7 +1289,7 @@ class CA {
 		val: string;
 		crmType: number;
 	}, errs: number = 0) {
-		var _this = this;
+		const _this = this;
 		errs = errs + 1 || 0;
 		if (errs < 5) {
 			if (!window.CodeMirror) {
@@ -1302,9 +1299,9 @@ class CA {
 			}
 			else {
 			const crmItem = _this.nodesById[editingObj.id] as CRM.ScriptNode|CRM.StylesheetNode;
-			var code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
-						crmItem.value.script : crmItem.value.backgroundScript) :
-						(crmItem.value.stylesheet));
+			const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
+				crmItem.value.script : crmItem.value.backgroundScript) :
+				(crmItem.value.stylesheet));
 				_this.iconSwitch(null, editingObj.crmType);
 				$('.keepChangesButton').on('click', function() {
 					if (crmItem.type === 'script') {
@@ -1342,7 +1339,7 @@ class CA {
 				});
 				window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 				window.doc.restoreChangesOldCodeCont.innerHTML = '';
-				var oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
+				const oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
 					lineNumbers: true,
 					value: code,
 					scrollbarStyle: 'simple',
@@ -1352,7 +1349,7 @@ class CA {
 					indentUnit: window.app.settings.editor.tabSize,
 					indentWithTabs: window.app.settings.editor.useTabs
 				});
-				var unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
+				const unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
 					lineNumbers: true,
 					value: editingObj.val,
 					scrollbarStyle: 'simple',
@@ -1377,7 +1374,7 @@ class CA {
 					unsavedEditor.refresh();
 				});
 
-				var stopHighlighting = function(element: HTMLElement) {
+				const stopHighlighting = function (element: HTMLElement) {
 					$(element).find('.item')[0].animate([
 						{
 							opacity: 1
@@ -1387,7 +1384,7 @@ class CA {
 					], {
 						duration: 250,
 						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					}).onfinish = function(this: Animation) {
+					}).onfinish = function (this: Animation) {
 						this.effect.target.style.opacity = '0.6';
 						window.doc.restoreChangesDialog.open();
 						$('.pageCont').animate({
@@ -1398,21 +1395,21 @@ class CA {
 						});
 						$('edit-crm-item').find('.item').animate({
 							opacity: 1
-						}, 200, function() {
+						}, 200, function () {
 							document.body.style.pointerEvents = 'all';
 						});
 					};
 				};
 
-				var path = _this.nodesById[editingObj.id].path;
-				var highlightItem = function() {
+				const path = _this.nodesById[editingObj.id].path;
+				const highlightItem = function () {
 					document.body.style.pointerEvents = 'none';
-					var columnConts = $('#mainCont').children('div');
-					var $columnCont = $(columnConts[(path.length - 1) + 2]);
-					var $paperMaterial = $($columnCont.children('paper-material')[0]);
-					var $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
-					var editCRMItems = $($crmEditColumn).children('edit-crm-item');
-					var crmElement = editCRMItems[path[path.length - 1]];
+					const columnConts = $('#mainCont').children('div');
+					const $columnCont = $(columnConts[(path.length - 1) + 2]);
+					const $paperMaterial = $($columnCont.children('paper-material')[0]);
+					const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
+					const editCRMItems = $($crmEditColumn).children('edit-crm-item');
+					const crmElement = editCRMItems[path[path.length - 1]];
 					//Just in case the item doesn't exist (anymore)
 					if ($(crmElement).find('.item')[0]) {
 						$(crmElement).find('.item')[0].animate([
@@ -1424,10 +1421,10 @@ class CA {
 						], {
 							duration: 250,
 							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						}).onfinish = function(this: Animation) {
+						}).onfinish = function (this: Animation) {
 							this.effect.target.style.opacity = '1';
 						};
-						setTimeout(function() {
+						setTimeout(function () {
 							stopHighlighting(crmElement);
 						}, 2000);
 					} else {
@@ -1440,7 +1437,7 @@ class CA {
 						});
 						$('edit-crm-item').find('.item').animate({
 							opacity: 1
-						}, 200, function() {
+						}, 200, function () {
 							document.body.style.pointerEvents = 'all';
 						});
 					}
@@ -1461,8 +1458,8 @@ class CA {
 							//Always visible
 							highlightItem();
 						} else {
-							var visible = true;
-							for (var i = 1; i < path.length; i++) {
+							let visible = true;
+							for (let i = 1; i < path.length; i++) {
 								if (window.app.editCRM.crm[i].indent.length !== path[i - 1]) {
 									visible = false;
 									break;
@@ -1470,7 +1467,7 @@ class CA {
 							}
 							if (!visible) {
 								//Make it visible
-								var popped = JSON.parse(JSON.stringify(path.length));
+								const popped = JSON.parse(JSON.stringify(path.length));
 								popped.pop();
 								window.app.editCRM.build(popped);
 								setTimeout(highlightItem, 700);
@@ -1490,7 +1487,7 @@ class CA {
 	};
 
 	static updateEditorZoom(this: CrmApp) {
-		var prevStyle = document.getElementById('editorZoomStyle');
+		const prevStyle = document.getElementById('editorZoomStyle');
 		prevStyle && prevStyle.remove();
 		const styleEl = document.createElement('style');
 		styleEl.id = 'editorZoomStyle';
@@ -1504,9 +1501,9 @@ class CA {
 		}) {
 			this.CodeMirror.refresh();
 		});
-		var editor = ((window.scriptEdit && window.scriptEdit.active) ? 
+		let editor = ((window.scriptEdit && window.scriptEdit.active) ?
 			window.scriptEdit.editor :
-			((window.stylesheetEdit && window.stylesheetEdit.active) ? 
+			((window.stylesheetEdit && window.stylesheetEdit.active) ?
 				window.stylesheetEdit.editor :
 				null));
 		if (!editor) {
@@ -1527,10 +1524,10 @@ class CA {
 	 */
 	private static requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
 				force: boolean = false) {
-		var i;
-		var index;
-		var _this = this;
-		var allPermissions = this.templates.getPermissions();
+		let i;
+		let index;
+		const _this = this;
+		const allPermissions = this.templates.getPermissions();
 		for (i = 0; i < toRequest.length; i++) {
 			index = allPermissions.indexOf(toRequest[i]);
 			if (index === -1) {
@@ -1547,7 +1544,7 @@ class CA {
 
 		if (toRequest.length > 0 || force) {
 			chrome.permissions.getAll(function(allowed) {
-				var requested: Array<{
+				const requested: Array<{
 					name: string;
 					description: string;
 					toggled: boolean;
@@ -1560,7 +1557,7 @@ class CA {
 					});
 				}
 
-				var other: Array<{
+				const other: Array<{
 					name: string;
 					description: string;
 					toggled: boolean;
@@ -1572,15 +1569,15 @@ class CA {
 						toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1)
 					});
 				}
-				var requestPermissionsOther = $('#requestPermissionsOther')[0];
+				const requestPermissionsOther = $('#requestPermissionsOther')[0];
 
-				var overlay: HTMLPaperDialogElement;
+				let overlay: HTMLPaperDialogElement;
 
 				function handler() {
-					var el: HTMLElement & {
+					let el: HTMLElement & {
 						animation?: {
 							reverse(): void;
-						}	
+						}
 					}, svg;
 					overlay.style.maxHeight = 'initial!important';
 					overlay.style.top = 'initial!important';
@@ -1606,8 +1603,8 @@ class CA {
 						}
 					});
 					$('#requestPermissionsShowOther').off('click').on('click', function(this: HTMLElement) {
-						var showHideSvg = this;
-						var otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
+						const showHideSvg = this;
+						const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
 						if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
 							$(otherPermissions).animate({
 								height: otherPermissions.scrollHeight + 'px'
@@ -1625,10 +1622,10 @@ class CA {
 						}
 					});
 
-					var permission: string;
+					let permission: string;
 					$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
 						permission = this.previousElementSibling.previousElementSibling.textContent;
-						var slider = this;
+						const slider = this;
 						if (this.checked) {
 							try {
 								chrome.permissions.request({
@@ -1640,7 +1637,7 @@ class CA {
 									} else {
 										//Accepted, remove from to-request permissions
 										chrome.storage.local.get(function(e: CRM.StorageLocal) {
-											var permissionsToRequest = e.requestPermissions;
+											const permissionsToRequest = e.requestPermissions;
 											permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 											chrome.storage.local.set({
 												requestPermissions: permissionsToRequest
@@ -1651,7 +1648,7 @@ class CA {
 							} catch (e) {
 								//Accepted, remove from to-request permissions
 								chrome.storage.local.get(function(e: CRM.StorageLocal) {
-									var permissionsToRequest = e.requestPermissions;
+									const permissionsToRequest = e.requestPermissions;
 									permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 									chrome.storage.local.set({
 										requestPermissions: permissionsToRequest
@@ -1686,7 +1683,7 @@ class CA {
 					});
 				}
 
-				var interval = window.setInterval(function() {
+				const interval = window.setInterval(function () {
 					try {
 						const centerer = window.doc.requestPermissionsCenterer as CenterElement;
 						overlay = centerer.$.content.children[0] as HTMLPaperDialogElement;
@@ -1695,10 +1692,10 @@ class CA {
 							($('#requestedPermissionsTemplate')[0] as HTMLDomRepeatElement).items = requested;
 							($('#requestedPermissionsOtherTemplate')[0] as HTMLDomRepeatElement).items = other;
 							overlay.addEventListener('iron-overlay-opened', handler);
-							setTimeout(function() {
-								var requestedPermissionsCont = $('#requestedPermissionsCont')[0];
-								var requestedPermissionsAcceptAll = $('#requestPermissionsAcceptAll')[0];
-								var requestedPermissionsType = $('.requestPermissionsType')[0];
+							setTimeout(function () {
+								const requestedPermissionsCont = $('#requestedPermissionsCont')[0];
+								const requestedPermissionsAcceptAll = $('#requestPermissionsAcceptAll')[0];
+								const requestedPermissionsType = $('.requestPermissionsType')[0];
 								if (requested.length === 0) {
 									requestedPermissionsCont.style.display = 'none';
 									requestPermissionsOther.style.height = (31 * other.length) + 'px';
@@ -1722,11 +1719,11 @@ class CA {
 	};
 
 	static setLocal<T>(this: CrmApp, key: string, value: T) {
-		var obj: {
+		const obj: {
 			[key: string]: any;
 		} = {};
 		obj[key] = value;
-		var _this = this;
+		const _this = this;
 		chrome.storage.local.set(obj);
 		chrome.storage.local.get(function (storageLocal: CRM.StorageLocal) {
 			_this.storageLocal = storageLocal;
@@ -1739,23 +1736,23 @@ class CA {
 	};
 
 	private static orderNodesById(this: CrmApp, tree: CRM.Tree) {
-		for (var i = 0; i < tree.length; i++) {
-			var node = tree[i];
+		for (let i = 0; i < tree.length; i++) {
+			const node = tree[i];
 			this.nodesById[node.id] = node;
 			node.children && this.orderNodesById(node.children);
 		}
 	};
 
 	private static cutData(this: CrmApp, data: any) {
-		var obj: {
+		const obj: {
 			[key: string]: string;
 		} & {
 			indexes: Array<string>;
 		} = {} as any;
-		var arrLength;
-		var sectionKey;
-		var indexes: Array<string> = [];
-		var splitJson = data.match(/[\s\S]{1,5000}/g);
+		let arrLength;
+		let sectionKey;
+		const indexes: Array<string> = [];
+		const splitJson = data.match(/[\s\S]{1,5000}/g);
 		splitJson.forEach(function(section: string) {
 			arrLength = indexes.length;
 			sectionKey = 'section' + arrLength;
@@ -1767,7 +1764,7 @@ class CA {
 	};
 
 	private static uploadStorageSyncData(data: CRM.SettingsStorage, _this: CrmApp) {
-		var settingsJson = JSON.stringify(data);
+		const settingsJson = JSON.stringify(data);
 
 		//Using chrome.storage.sync
 		if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
@@ -1778,7 +1775,7 @@ class CA {
 			});
 		} else {
 			//Cut up all data into smaller JSON
-			var obj = _this.cutData(settingsJson);
+			const obj = _this.cutData(settingsJson);
 			chrome.storage.sync.set(obj, function() {
 				if (chrome.runtime.lastError) {
 					//Switch to local storage
@@ -1813,7 +1810,7 @@ class CA {
 				case 'VariableDeclaration':
 					for (let i = 0; i < expression.declarations.length; i++) {
 						//Check if it's an actual chrome assignment
-						var declaration = expression.declarations[i];
+						const declaration = expression.declarations[i];
 						if (declaration.init) {
 							if (this.findLocalStorageExpression(declaration.init, data)) {
 								return true;
@@ -1912,9 +1909,9 @@ class CA {
 		}
 		private static replaceLocalStorageCalls(lines: Array<string>): string {
 			//Analyze the file
-			var file = new window.TernFile('[doc]');
+			const file = new window.TernFile('[doc]');
 			file.text = lines.join('\n');
-			var srv = new window.CodeMirror.TernServer({
+			const srv = new window.CodeMirror.TernServer({
 				defs: [window.ecma5, window.ecma6, window.browserDefs]
 			});
 			window.tern.withContext(srv.cx, () => {
@@ -1970,17 +1967,17 @@ class CA {
 	};
 
 	private static parseOldCRMNode(this: CrmApp, string: string, openInNewTab: boolean): CRM.Node {
-		var node: CRM.Node = {} as any;
-		var oldNodeSplit = string.split('%123');
-		var name = oldNodeSplit[0];
-		var type = oldNodeSplit[1].toLowerCase();
+		let node: CRM.Node = {} as any;
+		const oldNodeSplit = string.split('%123');
+		const name = oldNodeSplit[0];
+		const type = oldNodeSplit[1].toLowerCase();
 
-		var nodeData = oldNodeSplit[2];
+		const nodeData = oldNodeSplit[2];
 
 		switch (type) {
 			//Stylesheets don't exist yet so don't implement those
 			case 'link':
-				var split;
+				let split;
 				if (nodeData.indexOf(', ') > -1) {
 					split = nodeData.split(', ');
 				} else {
@@ -2011,11 +2008,11 @@ class CA {
 				});
 				break;
 			case 'script':
-				var scriptSplit = nodeData.split('%124');
-				var scriptLaunchMode = scriptSplit[0];
-				var scriptData = scriptSplit[1];
-				var triggers;
-				var launchModeString = scriptLaunchMode + '';
+				const scriptSplit = nodeData.split('%124');
+				let scriptLaunchMode = scriptSplit[0];
+				const scriptData = scriptSplit[1];
+				let triggers;
+				const launchModeString = scriptLaunchMode + '';
 				if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
 					triggers = launchModeString.split('1,')[1].split(',');
 					triggers = triggers.map(function(item) {
@@ -2028,7 +2025,7 @@ class CA {
 					});
 					scriptLaunchMode = '2';
 				}
-				var id = this.generateItemId();
+				const id = this.generateItemId();
 				node = this.templates.getDefaultScriptNode({
 					name: name,
 					id: id,
@@ -2053,7 +2050,7 @@ class CA {
 		for (; amount !== 0 && nodes[index.index]; index.index++, amount--) {
 			const currentNode = nodes[index.index];
 			if (currentNode.type === 'menu') {
-				var childrenAmount = ~~currentNode.children;
+				const childrenAmount = ~~currentNode.children;
 				currentNode.children = [];
 				index.index++;
 				this.assignParents(currentNode.children, nodes, index, childrenAmount);
@@ -2089,16 +2086,16 @@ class CA {
 	} = localStorage): CRM.Tree {
 		this._backupLocalStorage();
 
-		var i;
-		var amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
+		let i;
+		const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
-		var nodes = [];
+		const nodes = [];
 		for (i = 1; i < amount; i++) {
 			nodes.push(this.parseOldCRMNode(storageSource.getItem(i), openInNewTab));
 		}
 
 		//Structure nodes with children etc
-		var crm: CRM.Tree = [];
+		const crm: CRM.Tree = [];
 		this.assignParents(crm, nodes, {
 			index: 0
 		}, nodes.length);
@@ -2106,7 +2103,7 @@ class CA {
 	};
 
 	private static initCheckboxes(this: CrmApp, defaultLocalStorage: CRM.StorageLocal) {
-		var _this = this;
+		const _this = this;
 		if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
 			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue && 
 			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
@@ -2158,11 +2155,11 @@ class CA {
 		//Save sync storage
 		_this.uploadStorageSyncData(defaultSyncStorage, _this);
 		_this.settings = defaultSyncStorage;
-		var settingsJsonString = JSON.stringify(defaultSyncStorage);
+		const settingsJsonString = JSON.stringify(defaultSyncStorage);
 		_this.settingsCopy = JSON.parse(settingsJsonString);
 
-		var syncHash = window.md5(settingsJsonString);
-		var defaultLocalStorage: CRM.StorageLocal = {
+		const syncHash = window.md5(settingsJsonString);
+		const defaultLocalStorage: CRM.StorageLocal = {
 			requestPermissions: [],
 			editing: null,
 			selectedCrmType: 0,
@@ -2175,7 +2172,7 @@ class CA {
 			showOptions: (localStorage.getItem('optionson') !== 'false'),
 			recoverUnsavedData: false,
 			CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-				.split('.')[0] > 34,
+                .split('.')[0] > 34,
 			editCRMInRM: false,
 			hideToolsRibbon: false,
 			shrinkTitleRibbon: false,
@@ -2205,7 +2202,7 @@ class CA {
 		_this.settingsJsonLength = settingsJsonString.length;
 
 		//Storage-sync functions
-		for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+		for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 			_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 		}
 		_this.updateEditorZoom();
@@ -2220,7 +2217,7 @@ class CA {
 
 	private static handleFirstTime(_this: CrmApp) {
 		//Sync storage
-		var defaultSyncStorage: CRM.SettingsStorage = {
+		const defaultSyncStorage: CRM.SettingsStorage = {
 			editor: {
 				keyBindings: {
 					autocomplete: 'Ctrl-Space',
@@ -2248,11 +2245,11 @@ class CA {
 		//Save sync storage
 		_this.uploadStorageSyncData(defaultSyncStorage, _this);
 		_this.settings = defaultSyncStorage;
-		var settingsJsonString = JSON.stringify(defaultSyncStorage);
+		const settingsJsonString = JSON.stringify(defaultSyncStorage);
 		_this.settingsCopy = JSON.parse(settingsJsonString);
 
-		var syncHash = window.md5(settingsJsonString);
-		var defaultLocalStorage: CRM.StorageLocal = {
+		const syncHash = window.md5(settingsJsonString);
+		const defaultLocalStorage: CRM.StorageLocal = {
 			requestPermissions: [],
 			editing: null,
 			selectedCrmType: 0,
@@ -2265,7 +2262,7 @@ class CA {
 			showOptions: (localStorage.getItem('optionson') !== 'false'),
 			recoverUnsavedData: false,
 			CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-				.split('.')[0] > 34,
+                .split('.')[0] > 34,
 			editCRMInRM: false,
 			hideToolsRibbon: false,
 			shrinkTitleRibbon: false,
@@ -2297,7 +2294,7 @@ class CA {
 		_this.settingsJsonLength = settingsJsonString.length;
 
 		//Storage-sync functions
-		for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+		for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 			_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
 		}
 		_this.updateEditorZoom();
@@ -2317,8 +2314,8 @@ class CA {
 	};
 
 	private static checkFirstTime(this: CrmApp, storageLocal: CRM.StorageLocal) {
-		var _this = this;
-		var currentVersion = chrome.runtime.getManifest().version;
+		const _this = this;
+		const currentVersion = chrome.runtime.getManifest().version;
 		if (storageLocal.lastUpdatedAt === currentVersion) {
 			return true;
 		} else {
@@ -2351,8 +2348,8 @@ class CA {
 	};
 
 	private static buildNodePaths(this: CrmApp, tree: CRM.Tree, currentPath: Array<number>) {
-		for (var i = 0; i < tree.length; i++) {
-			var childPath = currentPath.concat([i]);
+		for (let i = 0; i < tree.length; i++) {
+			const childPath = currentPath.concat([i]);
 			const node = tree[i];
 			node.path = childPath;
 			if (node.children) {
@@ -2369,9 +2366,9 @@ class CA {
 		isAnimating: boolean;
 		shouldAnimate: boolean;	
 	}, progress: number) {
-		var _this = this;
-		var scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
-		var scaleAfter = 'scaleX(' + progress + ')';
+		const _this = this;
+		const scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
+		const scaleAfter = 'scaleX(' + progress + ')';
 		if (settings.max === settings.lastReachedProgress ||
 			settings.toReach > 1) {
 				settings.progressBar.style.transform = 'scaleX(1)';
@@ -2413,9 +2410,9 @@ class CA {
 			callback = cb;	
 		});
 
-		var _this = this;
-		var importsAmount = 62;
-		var loadingBarSettings = {
+		const _this = this;
+		const importsAmount = 62;
+		const loadingBarSettings = {
 			lastReachedProgress: 0,
 			progressBar: document.getElementById('splashScreenProgressBarLoader'),
 			toReach: 0,
@@ -2424,12 +2421,12 @@ class CA {
 			max: importsAmount
 		};
 
-		var registeredElements = Polymer.telemetry.registrations.length;
-		var registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
+		const registeredElements = Polymer.telemetry.registrations.length;
+		const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
 		registrationArray.push = function (element: HTMLElement) {
 			Array.prototype.push.call(registrationArray, element);
 			registeredElements++;
-			var progress = Math.round((registeredElements / importsAmount) * 100) / 100;
+			const progress = Math.round((registeredElements / importsAmount) * 100) / 100;
 			_this.animateLoadingBar(loadingBarSettings, progress);
 			if (registeredElements === importsAmount) {
 				//Wait until the element is actually registered to the DOM
@@ -2472,7 +2469,7 @@ class CA {
 	};
 
 	static nextUpdatedScript(this: CrmApp) {
-		var index = this.$.scriptUpdatesToast.index;
+		let index = this.$.scriptUpdatesToast.index;
 		this.$.scriptUpdatesToast.text = this.getUpdatedScriptString(
 			this.$.scriptUpdatesToast.scripts[++index]);
 		this.$.scriptUpdatesToast.index = index;
@@ -2511,19 +2508,19 @@ class CA {
 	};
 
 	private static applyAddedPermissions(this: CrmApp) {
-		var _this = this;
-		var panels = Array.prototype.slice.apply(
+		const _this = this;
+		const panels = Array.prototype.slice.apply(
 			window.doc.addedPermissionsTabContainer
-				.querySelectorAll('.nodeAddedPermissionsCont'));
+                .querySelectorAll('.nodeAddedPermissionsCont'));
 		panels.forEach(function(panel: HTMLElement) {
-			var node = _this.nodesById[(panel.getAttribute('data-id') as any)as number] as CRM.ScriptNode;
-			var permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
-				.map(function(checkbox: HTMLPaperCheckboxElement) {
+			const node = _this.nodesById[(panel.getAttribute('data-id') as any)as number] as CRM.ScriptNode;
+			const permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
+                .map(function (checkbox: HTMLPaperCheckboxElement) {
 					if (checkbox.checked) {
 						return checkbox.getAttribute('data-permission');
 					}
 					return null;
-				}).filter(function(permission: string) {
+				}).filter(function (permission: string) {
 					return !!permission;
 				});
 			if (!Array.isArray(node.permissions)) {
@@ -2539,7 +2536,7 @@ class CA {
 	};
 
 	static addedPermissionNext(this: CrmApp) {
-		var cont = window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer;
+		const cont = window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer;
 		if (cont.tab === cont.maxTabs - 1) {
 			window.doc.addedPermissionsDialog.close();
 			this.applyAddedPermissions();
@@ -2558,7 +2555,7 @@ class CA {
 	};
 
 	static addedPermissionPrev(this: CrmApp) {
-		var cont = window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer;
+		const cont = window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer;
 		cont.style.marginLeft = (--cont.tab * -800) + 'px';
 
 		window.doc.addedPermissionPrevButton.style.display = (cont.tab === 0 ? 'none' : 'block');
@@ -2574,7 +2571,7 @@ class CA {
 	};
 
 	private static setupStorages(this: CrmApp, resolve: (callback: () => void) => void) {
-		var _this = this;
+		const _this = this;
 		chrome.storage.local.get(function(storageLocal: CRM.StorageLocal & {
 			nodeStorage: any;
 			settings?: CRM.SettingsStorage;
@@ -2584,7 +2581,7 @@ class CA {
 					function callback(items: CRM.SettingsStorage) {
 						_this.settings = items;
 						_this.settingsCopy = JSON.parse(JSON.stringify(items));
-						for (var i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+						for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 							_this.onSettingsReadyCallbacks[i].callback.apply(
 								_this.onSettingsReadyCallbacks[i].thisElement,
 								_this.onSettingsReadyCallbacks[i].params);
@@ -2620,7 +2617,7 @@ class CA {
 						setTimeout(function() {
 							//Check out if the code is actually different
 							const node = _this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
-							var nodeCurrentCode = (node.type === 'script' ? node.value.script :
+							const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 								node.value.stylesheet);
 							if (nodeCurrentCode.trim() !== editing.val.trim()) {
 								_this.restoreUnsavedInstances(editing);
@@ -2699,13 +2696,13 @@ class CA {
 						storageLocal.updatedScripts = [];
 					}
 					if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
-						var versionData = storageLocal.settingsVersionData;
+						const versionData = storageLocal.settingsVersionData;
 						versionData.wasUpdated = false;
 						chrome.storage.local.set({
 							settingsVersionData: versionData	
 						});
 
-						var toast = window.doc.updatedSettingsToast;
+						const toast = window.doc.updatedSettingsToast;
 						toast.text = 'Settings were updated to those on ' + new Date(
 							versionData.latest.date
 						).toLocaleDateString();
@@ -2728,20 +2725,20 @@ class CA {
 						} & {
 							indexes: Array<string>;
 						}) {
-							var indexes = storageSync.indexes;
+							let indexes = storageSync.indexes;
 							if (!indexes) {
 								chrome.storage.local.set({
 									useStorageSync: false
 								});
 								callback(storageLocal.settings);
 							} else {
-								var settingsJsonArray: Array<string> = [];
+								const settingsJsonArray: Array<string> = [];
 								indexes.forEach(function(index) {
 									settingsJsonArray.push(storageSync[index]);
 								});
-								var jsonString = settingsJsonArray.join('');
+								const jsonString = settingsJsonArray.join('');
 								_this.settingsJsonLength = jsonString.length;
-								var settings = JSON.parse(jsonString);
+								const settings = JSON.parse(jsonString);
 								callback(settings);
 							}
 						});
@@ -2757,14 +2754,14 @@ class CA {
 							} & {
 								indexes: Array<string>;
 							}) {
-								var indexes = storageSync.indexes;
-								var settingsJsonArray: Array<string> = [];
+								const indexes = storageSync.indexes;
+								const settingsJsonArray: Array<string> = [];
 								indexes.forEach(function(index) {
 									settingsJsonArray.push(storageSync[index]);
 								});
-								var jsonString = settingsJsonArray.join('');
+								const jsonString = settingsJsonArray.join('');
 								_this.settingsJsonLength = jsonString.length;
-								var settings = JSON.parse(jsonString);
+								const settings = JSON.parse(jsonString);
 								callback(settings);
 							});
 						} else {
@@ -2817,7 +2814,7 @@ class CA {
 	};
 
 	private static getLocalStorageKey(this: CrmApp, key: string): any {
-		var data = localStorage.getItem(key);
+		const data = localStorage.getItem(key);
 		if (data === undefined || data === null) {
 			return false;
 		}
@@ -2825,7 +2822,7 @@ class CA {
 	};
 
 	static exportToLegacy(this: CrmApp) {
-		var data = ["all", this.getLocalStorageKey('firsttime'),
+		let data = ["all", this.getLocalStorageKey('firsttime'),
 			this.getLocalStorageKey('options'),
 			this.getLocalStorageKey('firsttime'),
 			this.getLocalStorageKey('firsttime'),
@@ -2835,8 +2832,8 @@ class CA {
 			localStorage.getItem('whatpage'),
 			localStorage.getItem('numberofrows')].join('%146%');
 		
-		var rows = localStorage.getItem('numberofrows') || 0;
-		for (var i = 1; i <= rows; i++) {
+		const rows = localStorage.getItem('numberofrows') || 0;
+		for (let i = 1; i <= rows; i++) {
 			data += "%146%" + localStorage.getItem(i + '');
 		}
 
@@ -2866,7 +2863,7 @@ class CA {
 			});
 		}
 
-		var controlPresses = 0;
+		const controlPresses = 0;
 		document.body.addEventListener('keydown', (event) => {
 			if (event.key === 'Control') {
 				controlPresses++;
@@ -3296,7 +3293,7 @@ class CA {
 			 */
 			static link(data: Array<CRM.LinkNodeLink>): () => void {
 				return function() {
-					for (var i = 0; i < data.length; i++) {
+					for (let i = 0; i < data.length; i++) {
 						window.open(data[i].url, '_blank');
 					}
 				};
@@ -3319,7 +3316,7 @@ class CA {
 				 * Makes an onclick handler for stylesheets
 				 */
 				static toggle(data: string, checked: boolean): () => void {
-					var state = checked;
+					const state = checked;
 
 					return function() {
 						alert(`This would toggle the stylesheet ${data} ${(state ? 'on' : 'off')}`);
@@ -3339,7 +3336,7 @@ class CA {
 			 * Makes an onclick handler to edit the node on clicking it
 			 */
 			static edit(node: CRM.Node): () => void {
-				var _this = this;
+				const _this = this;
 				return function() {
 					_this.parent().parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
 				};
@@ -3412,11 +3409,11 @@ class CA {
 			static menu(toAdd: CRM.MenuNode, crmType: number, index: {
 				num: number;
 			}): JQContextMenuItem {
-				var _this = this;
+				const _this = this;
 				const item: JQContextMenuObj = {
 					name: toAdd.name
 				} as any;
-				var childItems: {
+				const childItems: {
 					[key: number]: JQContextMenuItem
 				} = {};
 				if (_this.parent().parent().storageLocal.editCRMInRM) {
@@ -3461,11 +3458,11 @@ class CA {
 		 * Returns whether the node is visible or not (1 if it's visible)
 		 */
 		private static isNodeVisible(node: CRM.Node, showContentType: number): number {
-			var i;
-			var length;
+			let i;
+			let length;
 			if (node.children && node.children.length > 0) {
 				length = node.children.length;
-				var visible = 0;
+				let visible = 0;
 				for (i = 0; i < length; i++) {
 					visible += this.isNodeVisible(node.children[i], showContentType);
 				}
@@ -3490,14 +3487,14 @@ class CA {
 		private static buildForCrmType(crmType: number): {
 			[key: number]: JQContextMenuItem
 		} {
-			var _this = this;
-			var index = {
+			const _this = this;
+			const index = {
 				num: 0
 			};
-			var childItems: {
+			const childItems: {
 				[key: number]: JQContextMenuItem
 			} = {};
-			var crm = window.app.settings.crm;
+			const crm = window.app.settings.crm;
 			crm.forEach(function(node: CRM.Node) {
 				if (_this.isNodeVisible(node, crmType)) {
 					if (_this.parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
@@ -3527,13 +3524,13 @@ class CA {
 		};
 
 		static getCrmTypeFromNumber(crmType: number): string {
-			var types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
+			const types = ['page', 'link', 'selection', 'image', 'video', 'audio'];
 			return types[crmType];
 		};
 
 		private static getChildrenAmount(object: Object): number {
-			var children = 0;
-			for (var key in object) {
+			let children = 0;
+			for (let key in object) {
 				if (object.hasOwnProperty(key)) {
 					children++;
 				}
@@ -3542,8 +3539,8 @@ class CA {
 		};
 
 		private static bindContextMenu(crmType: number) {
-			var items;
-			var _this = this;
+			let items;
+			const _this = this;
 			if (crmType === 0) {
 				items = _this.buildForCrmType(0);
 				if (_this.getChildrenAmount(items) > 0) {
@@ -3553,7 +3550,7 @@ class CA {
 					} as any);
 				}
 			} else {
-				var contentType = _this.getCrmTypeFromNumber(crmType);
+				const contentType = _this.getCrmTypeFromNumber(crmType);
 				items = _this.buildForCrmType(crmType);
 				if (_this.getChildrenAmount(items) > 0) {
 					($ as JQueryContextMenu).contextMenu({
@@ -3565,7 +3562,7 @@ class CA {
 		};
 
 		private static removeContextMenus() {
-			var el;
+			let el;
 			this.usedStylesheetIds.forEach(function(id) {
 				el = document.getElementById('stylesheet' + id);
 				el && el.remove();
@@ -3575,10 +3572,10 @@ class CA {
 		};
 
 		private static loadContextMenus() {
-			var _this = this;
-			var toLoad = 0;
+			const _this = this;
+			let toLoad = 0;
 			this.removeContextMenus();
-			var callbackId;
+			let callbackId;
 
 			function loadContextMenus(deadline: {
 				timeRemaining(): number;
@@ -3634,7 +3631,7 @@ class CA {
 		static lookup(path: Array<number>, returnArray: true): Array<CRM.Node>;
 		static lookup(path: Array<number>): CRM.Node;
 		static lookup(path: Array<number>, returnArray: boolean = false): CRM.Node|Array<CRM.Node> {
-			var pathCopy = JSON.parse(JSON.stringify(path));
+			const pathCopy = JSON.parse(JSON.stringify(path));
 			if (returnArray) {
 				pathCopy.splice(pathCopy.length - 1, 1);
 			}
@@ -3646,8 +3643,8 @@ class CA {
 				return (returnArray ? window.app.settings.crm : window.app.settings.crm[path[0]]);
 			}
 
-			var evalPath = this._getEvalPath(pathCopy);
-			var result = eval(evalPath);
+			const evalPath = this._getEvalPath(pathCopy);
+			const result = eval(evalPath);
 			return (returnArray ? result.children : result);
 		};
 
@@ -3655,10 +3652,10 @@ class CA {
 		private static _lookupId(id: number, returnArray: false, node: CRM.Node): CRM.Node;
 		private static _lookupId(id: number, returnArray: true, node: CRM.Node): Array<CRM.Node>;
 		private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void {
-			var nodeChildren = node.children;
+			const nodeChildren = node.children;
 			if (nodeChildren) {
-				var el;
-				for (var i = 0; i < nodeChildren.length; i++) {
+				let el;
+				for (let i = 0; i < nodeChildren.length; i++) {
 					if (nodeChildren[i].id === id) {
 						return (returnArray ? nodeChildren : node);
 					}
@@ -3679,8 +3676,8 @@ class CA {
 				return window.app.nodesById[id];
 			}
 
-			var el;
-			for (var i = 0; i < window.app.settings.crm.length; i++) {
+			let el;
+			for (let i = 0; i < window.app.settings.crm.length; i++) {
 				if (window.app.settings.crm[i].id === id) {
 					return window.app.settings.crm;
 				}
@@ -3714,12 +3711,12 @@ class CA {
 		 * Moves a value in the CRM from one place to another
 		 */
 		static move(toMove: Array<number>, target: Array<number>, sameColumn: boolean) {
-			var toMoveContainer = this.lookup(toMove, true);
-			var toMoveIndex = toMove[toMove.length - 1];
-			var toMoveItem = toMoveContainer[toMoveIndex];
+			const toMoveContainer = this.lookup(toMove, true);
+			let toMoveIndex = toMove[toMove.length - 1];
+			const toMoveItem = toMoveContainer[toMoveIndex];
 
-			var newTarget = this.lookup(target, true);
-			var targetIndex = target[target.length - 1];
+			const newTarget = this.lookup(target, true);
+			const targetIndex = target[target.length - 1];
 
 			if (sameColumn && toMoveIndex > targetIndex) {
 				this.parent().insertInto(toMoveItem, newTarget, targetIndex);

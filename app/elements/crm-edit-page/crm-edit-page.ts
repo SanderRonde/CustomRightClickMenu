@@ -215,7 +215,7 @@ class CEP {
 	};
 
 	private static updateNodeInfo<T>(this: CrmEditPage, obj: T, path: string = 'nodeInfo') {
-		for (var key in obj) {
+		for (let key in obj) {
 			if (obj.hasOwnProperty(key)) {
 				if (typeof obj[key as keyof T] === 'object') {
 					this.updateNodeInfo(obj[key as keyof T], path + '.' + key);
@@ -231,8 +231,8 @@ class CEP {
 
 	static getInstallDateTextFormat(this: CrmEditPage) {
 		if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo) {
-			var format = (new Date('1-13-2016').toLocaleDateString() === '1-13-2016' ? 'eu' : 'na');
-			var date;
+			const format = (new Date('1-13-2016').toLocaleDateString() === '1-13-2016' ? 'eu' : 'na');
+			let date;
 			if (format === 'eu') {
 				date = this.nodeInfo.installDate.split('-');
 				date = date[1] + '-' + date[0] + '-' + date[2];
@@ -255,8 +255,8 @@ class CEP {
 	};
 	
 	static init(this: CrmEditPage) {
-		var _this = this;
-		var valueStorer: {
+		const _this = this;
+		const valueStorer: {
 			isScript: boolean;
 			isLink: boolean;
 			isMenu: boolean;

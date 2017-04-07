@@ -85,7 +85,7 @@ class ERT {
 	private static scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
 			newImg: HTMLImageElement, callback: () => void) {
 		this.image = canvas.toDataURL();
-		var maxViewportHeight = window.innerHeight - 450;
+		let maxViewportHeight = window.innerHeight - 450;
 		if (maxViewportHeight > 750) {
 			maxViewportHeight = 750;
 		}
@@ -101,10 +101,10 @@ class ERT {
 			left: number;
 			top: number;
 		}, callback: () => void) {
-		var _this = this;
-		var img = new Image();
+		const _this = this;
+		const img = new Image();
 		const canvas = _this.$.cropCanvas;
-		var context = canvas.getContext('2d');
+		const context = canvas.getContext('2d');
 		img.onload = function () {
 			//Crop the image
 			context.clearRect(0, 0, canvas.width, canvas.height);
@@ -115,20 +115,20 @@ class ERT {
 			context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
 
 			//Scale the image to fit the canvas
-			var base64 = canvas.toDataURL();
-			var newImg = new Image();
+			const base64 = canvas.toDataURL();
+			const newImg = new Image();
 			newImg.onload = function() {
 				_this.scaleScreenshot(canvas, newImg, callback);
 			};
 			newImg.src = base64;
 
-			var imgTag = document.createElement('img');
+			const imgTag = document.createElement('img');
 			imgTag.src = base64;
 			document.body.appendChild(imgTag);
 		};
 		img.src = dataURI;
 
-		var imgTag2 = document.createElement('img');
+		const imgTag2 = document.createElement('img');
 		imgTag2.src = dataURI;
 		document.body.appendChild(imgTag2);
 	};
@@ -139,7 +139,7 @@ class ERT {
 			left: number;
 			top: number;
 		}, callback: () => void) {
-		var _this = this;
+		const _this = this;
 		//Make sure the overlay is gone for a while
 		this.$.overlay.style.display = 'none';
 		chrome.tabs.captureVisibleTab({
@@ -167,18 +167,18 @@ class ERT {
 
 	private static setSelection(this: ErrorReportingTool, startX: number, startY: number,
 			width: number, height: number, posX: number, posY: number) {
-		var rightDiv = this.$.highlightingRightSquare;
-		var leftDiv = this.$.highlightingLeftSquare;
+		const rightDiv = this.$.highlightingRightSquare;
+		const leftDiv = this.$.highlightingLeftSquare;
 		if (this.lastPos.X !== posX) {
 			if (width < 0) {
-				var left = startX + width;
+				const left = startX + width;
 
 				leftDiv.style.width = left + 'px';
 				rightDiv.style.width = 'calc(100vw - (' + this.px(startX) + '))';
 
 				this.translateX(rightDiv, this.px(left - width));
 			} else {
-				var marginLeftPx = (startX + width) + 'px';
+				const marginLeftPx = (startX + width) + 'px';
 
 				leftDiv.style.width = this.px(startX);
 				rightDiv.style.width = 'calc(100vw - (' + marginLeftPx + '))';
@@ -188,11 +188,11 @@ class ERT {
 		}
 
 		if (this.lastPos.Y !== posY) {
-			var topDiv = this.$.highlightingTopSquare;
-			var botDiv = this.$.highlightingBotSquare;
+			const topDiv = this.$.highlightingTopSquare;
+			const botDiv = this.$.highlightingBotSquare;
 			if (height < 0) {
-				var top = (startY + height);
-				var topPx = top + 'px';
+				const top = (startY + height);
+				const topPx = top + 'px';
 
 				topDiv.style.height = topPx;
 				this.translateY(botDiv, this.px(startY));
@@ -202,8 +202,8 @@ class ERT {
 				this.translateY(leftDiv, topPx);
 				this.translateY(rightDiv, topPx);
 			} else {
-				var heightPx = height + 'px';
-				var marginTopPx = (startY + height) + 'px';
+				const heightPx = height + 'px';
+				const marginTopPx = (startY + height) + 'px';
 
 				topDiv.style.height = this.px(startY);
 				leftDiv.style.height = rightDiv.style.height = heightPx;
@@ -221,7 +221,7 @@ class ERT {
 			case 'start':
 				this.$.highlightButtons.classList.add('hidden');
 
-				var startYPx = e.detail.y + 'px';
+				const startYPx = e.detail.y + 'px';
 				this.lastSize.X = this.lastSize.Y = 0;
 				this.dragStart.X = this.lastPos.X = e.detail.x;
 				this.dragStart.Y = this.lastPos.Y = e.detail.y;
@@ -239,8 +239,8 @@ class ERT {
 				break;
 			case 'track':
 				if (e.detail.x !== this.lastPos.X || e.detail.y !== this.lastPos.Y) {
-					var width = (e.detail.x - this.dragStart.X);
-					var height = (e.detail.y - this.dragStart.Y);
+					const width = (e.detail.x - this.dragStart.X);
+					const height = (e.detail.y - this.dragStart.Y);
 					this.setSelection(this.dragStart.X, this.dragStart.Y, width, height, e.detail.x, e.detail.y);
 					this.lastSize.X = width;
 					this.lastSize.Y = height;
@@ -265,7 +265,7 @@ class ERT {
 	};
 
 	static finishScreencap(this: ErrorReportingTool) {
-		var _this = this;
+		const _this = this;
 		this.hideScreencapArea();
 		this.screenshot({
 			top: this.dragStart.Y,
@@ -286,7 +286,7 @@ class ERT {
 	};
 
 	static addCapture(this: ErrorReportingTool) {
-		var _this = this;
+		const _this = this;
 		_this.$.errorReportingDialog.close();
 		this.selectScreenshotArea();
 	};
@@ -298,7 +298,7 @@ class ERT {
 	};
 
 	private static downloadFiles(this: ErrorReportingTool, callback: () => void) {
-		var _this = this;
+		const _this = this;
 		chrome.downloads.download({
 			url: this.image,
 			filename: 'screencap.png'
@@ -306,7 +306,7 @@ class ERT {
 			if (_this.reportType === 'bug') {
 				chrome.storage.local.get(function(localKeys) {
 					chrome.storage.local.get(function(syncKeys) {
-						var dataCont = {
+						const dataCont = {
 							local: localKeys,
 							sync: syncKeys,
 							lastError: _this.lastError
@@ -343,7 +343,7 @@ class ERT {
 	};
 
 	private static getDownloadPermission(this: ErrorReportingTool, callback: () => void) {
-		var _this = this;
+		const _this = this;
 
 		//Download the files
 		chrome.permissions.request({
@@ -356,7 +356,7 @@ class ERT {
 				window.errorReportingTool.$.errorReportingDialog.close();
 
 				//Do a nice checkmark animation on the report button
-				var listener = function() {
+				const listener = function () {
 					_this.checkCheckmark();
 					window.removeEventListener('focus', listener);
 				};
@@ -368,13 +368,13 @@ class ERT {
 	};
 
 	static submitErrorReport(this: ErrorReportingTool) {
-		var _this = this;
+		const _this = this;
 
 		this.getDownloadPermission(function () {
 			_this.downloadFiles(function() {
 				//Take the user to the github page
-				var messageBody = 'WRITE MESSAGE HERE\n';
-				var title = (_this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
+				const messageBody = 'WRITE MESSAGE HERE\n';
+				const title = (_this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
 				window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
 			});
 		});

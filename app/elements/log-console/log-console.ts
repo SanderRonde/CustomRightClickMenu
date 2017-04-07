@@ -98,9 +98,9 @@ class LC {
 	};
 
 	static _takeToTab(this: LogConsole, event: Polymer.ClickEvent) {
-		var _this = this;
-		var target = event.target;
-		var tabId = (target.children[0] as HTMLElement).innerText;
+		const _this = this;
+		const target = event.target;
+		let tabId = (target.children[0] as HTMLElement).innerText;
 		
 		chrome.tabs.get(~~tabId, function(tab) {
 			if (chrome.runtime.lastError) {
@@ -132,7 +132,7 @@ class LC {
 
 	private static _executeCode(this: LogConsole, code: string) {
 		if (this.selectedTab !== 0 && this.selectedId !== 0) {
-			var selectedItems = this._getSelectedItems();
+			const selectedItems = this._getSelectedItems();
 			chrome.runtime.sendMessage({
 				type: 'executeCRMCode',
 				data: {
@@ -189,11 +189,11 @@ class LC {
 			title: string;
 		};
 	} {
-		var tabVal = (this.tabs && this.tabs[~~this.selectedTab - 1]) || {
-			id: 'all',
-			title: 'all'
-		};
-		var idVal = this.selectedId === 0 ? {
+		const tabVal = (this.tabs && this.tabs[~~this.selectedTab - 1]) || {
+				id: 'all',
+				title: 'all'
+			};
+		const idVal = this.selectedId === 0 ? {
 			id: 'all',
 			title: 'all'
 		} : this.ids[~~this.selectedId - 1];
@@ -204,7 +204,7 @@ class LC {
 	};
 
 	private static _getSelectedValues(this: LogConsole) {
-		var selectedItems = this._getSelectedItems();
+		const selectedItems = this._getSelectedItems();
 		return {
 			id: selectedItems.id.id,
 			tab: selectedItems.tab.id
@@ -212,15 +212,15 @@ class LC {
 	};
 
 	static _updateLog(this: LogConsole, selectedId: number, selectedTab: number, textfilter: string) {
-		var selected = this._getSelectedValues();
-		var lines: Array<LogListenerLine> = (this._logListener && this._logListener.update(
-			selected.id, 
-			selected.tab,
-			textfilter
-		)) || [];
+		const selected = this._getSelectedValues();
+		const lines: Array<LogListenerLine> = (this._logListener && this._logListener.update(
+				selected.id,
+				selected.tab,
+				textfilter
+			)) || [];
 		
 		if (this.logLines) {
-			var _this = this;
+			const _this = this;
 			this.logLines.clear();
 			lines.forEach(function(line) {
 				_this.logLines.add(line.data, line);
@@ -235,7 +235,7 @@ class LC {
 	};
 
 	static _getIdTabs(this: LogConsole, selectedId: string|number, tabs: Array<TabData>): Array<TabData> {
-		var _this = this;
+		const _this = this;
 		if (~~selectedId === 0) {
 			return tabs;
 		}
@@ -266,7 +266,7 @@ class LC {
 			line.isError = true;
 		}
 
-		var lastEval = this.logLines.popEval();			
+		const lastEval = this.logLines.popEval();
 		this.logLines.add([{
 			code: lastEval.data[0].code,
 			result: line.val.result,
@@ -276,7 +276,7 @@ class LC {
 	};
 
 	private static _init(this: LogConsole, callback: () => void) {
-		var _this = this;
+		const _this = this;
 		chrome.runtime.getBackgroundPage(function(bgPage) {
 			_this.bgPage = bgPage;
 
@@ -302,7 +302,7 @@ class LC {
 		});
 
 		this.async(function() {
-			var menus = Array.prototype.slice.apply(document.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
+			const menus = Array.prototype.slice.apply(document.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
 			menus.forEach(function(menu) {
 				menu.onopen = function() {
 					(menu.querySelector('template') as HTMLDomRepeatElement).render();
@@ -328,8 +328,8 @@ class LC {
 	};
 
 	static _contextStoreAsLocal(this: LogConsole) {
-		var source = this.$.contextMenu.source;
-		var sourceVal = source.props.value;
+		let source = this.$.contextMenu.source;
+		let sourceVal = source.props.value;
 
 		//Get the LogLine
 		while (source.props.parent) {
@@ -337,12 +337,12 @@ class LC {
 			source = source.props.parent;
 		}
 
-		var sourceLine = source;
+		const sourceLine = source;
 
 		//Get the index of this element in the logLine
-		var index = (sourceLine.props.value as Array<LogLineData>).indexOf(sourceVal as LogLineData);
+		const index = (sourceLine.props.value as Array<LogLineData>).indexOf(sourceVal as LogLineData);
 
-		var logLine = sourceLine.props.line;
+		const logLine = sourceLine.props.line;
 	
 		//Send a message to the background page
 		chrome.runtime.sendMessage({
@@ -361,7 +361,7 @@ class LC {
 	};
 
 	static _contextLogValue(this: LogConsole) {
-		var source = this.$.contextMenu.source;
+		const source = this.$.contextMenu.source;
 		this.logLines.add([source.props.value as LogLineData], {
 			id: 'local',
 			tabId: 'local',
@@ -379,9 +379,9 @@ class LC {
 
 	private static _copy(this: LogConsole, value: string) {
 		this.$.copySource.innerText = value;
-		var snipRange = document.createRange();
+		const snipRange = document.createRange();
 		snipRange.selectNode(this.$.copySource);
-		var selection = window.getSelection();
+		const selection = window.getSelection();
 		selection.removeAllRanges();
 		selection.addRange(snipRange);
 		try {
@@ -394,7 +394,7 @@ class LC {
 	};
 
 	static _contextCopyAsJSON(this: LogConsole) {
-		var value = this.$.contextMenu.source.props.value;
+		const value = this.$.contextMenu.source.props.value;
 		this._copy(JSON.stringify(value, function(key, value) {
 			if (key === '__parent' || key === '__proto__') {
 				return undefined;
@@ -404,17 +404,17 @@ class LC {
 	};
 
 	private static _contextCopyPath(this: LogConsole, noCopy: boolean = false): string|boolean {
-		var path = [];
-		var source = this.$.contextMenu.source;
-		var childValue = source.props.value;
+		const path = [];
+		let source = this.$.contextMenu.source;
+		let childValue = source.props.value;
 		while (source.props.parent && !source.props.parent.isLine()) {
 			source = source.props.parent;
 			if (Array.isArray(source.props.value)) {
 				path.push('[' + source.props.value.indexOf(childValue as LogLineData) + ']');
 			} else {
-				var keys = Object.getOwnPropertyNames(source.props.value).concat(['__proto__']);
-				var foundValue = false;
-				for (var i = 0; i < keys.length; i++) {
+				const keys = Object.getOwnPropertyNames(source.props.value).concat(['__proto__']);
+				let foundValue = false;
+				for (let i = 0; i < keys.length; i++) {
 					if ((source.props.value as any)[keys[i]] === childValue) {
 						if (/[a-z|A-Z]/.exec(keys[i].charAt(0))) {
 							path.push('.' + keys[i]);
@@ -439,7 +439,7 @@ class LC {
 	};
 
 	private static _setPossibleOptions(this: LogConsole, source: ContextMenuSource) {
-		var enableCopyAsJSON = false;
+		let enableCopyAsJSON = false;
 		try {
 			JSON.stringify(source.props.value, function(key, value) {
 				if (key === '__parent' || key === '__proto__') {
@@ -450,16 +450,16 @@ class LC {
 			enableCopyAsJSON = true;
 		} catch(e) { console.log(e); }
 
-		var logLine = source;
+		let logLine = source;
 		do { logLine = logLine.props.parent; } while (logLine.props.parent);
-		var enableCreateLocalVar = !!logLine.props.line.logId;
+		const enableCreateLocalVar = !!logLine.props.line.logId;
 
 		this.$.copyAsJSON.classList[enableCopyAsJSON ? 'remove' : 'add']('disabled');
 		this.$.storeAsLocal.classList[enableCreateLocalVar ? 'remove': 'add']('disabled');
 	};
 
 	static initContextMenu(this: LogConsole, source: ContextMenuSource, event: MouseEvent) {
-		var contextMenu = this.$.contextMenu;
+		const contextMenu = this.$.contextMenu;
 		contextMenu.style.left = event.clientX + 'px';
 		contextMenu.style.top = event.clientY + 'px';
 		contextMenu.source = source;

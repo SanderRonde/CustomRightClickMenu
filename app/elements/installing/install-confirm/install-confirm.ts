@@ -38,7 +38,7 @@ class IC {
 	static properties = installConfirmProperties;
 
 	private static loadSettings(this: InstallConfirm, cb: () => void) {
-		var _this = this;
+		const _this = this;
 
 		function callback(items: CRM.SettingsStorage) {
 			_this.settings = items;
@@ -55,19 +55,19 @@ class IC {
 				} & {
 					indexes: Array<string>;
 				}) {
-					var indexes = storageSync.indexes;
+					let indexes = storageSync.indexes;
 					if (!indexes) {
 						chrome.storage.local.set({
 							useStorageSync: false
 						});
 						callback(storageLocal.settings);
 					} else {
-						var settingsJsonArray: Array<string> = [];
+						const settingsJsonArray: Array<string> = [];
 						indexes.forEach(function(index) {
 							settingsJsonArray.push(storageSync[index]);
 						});
-						var jsonString = settingsJsonArray.join('');
-						var settings = JSON.parse(jsonString);
+						const jsonString = settingsJsonArray.join('');
+						const settings = JSON.parse(jsonString);
 						callback(settings);
 					}
 				});
@@ -82,13 +82,13 @@ class IC {
 					} & {
 						indexes: Array<string>;
 					}) {
-						var indexes = storageSync.indexes;
-						var settingsJsonArray: Array<string> = [];
+						const indexes = storageSync.indexes;
+						const settingsJsonArray: Array<string> = [];
 						indexes.forEach(function(index) {
 							settingsJsonArray.push(storageSync[index]);
 						});
-						var jsonString = settingsJsonArray.join('');
-						var settings = JSON.parse(jsonString);
+						const jsonString = settingsJsonArray.join('');
+						const settings = JSON.parse(jsonString);
 						callback(settings);
 					});
 				} else {
@@ -108,7 +108,7 @@ class IC {
 	};
 
 	static showPermissionDescription(this: InstallConfirm, e: Polymer.ClickEvent) {
-		var el = e.target;
+		let el = e.target;
 		if (el.tagName.toLowerCase() === 'div') {
 			el = el.children[0] as HTMLElement;
 		}
@@ -116,8 +116,8 @@ class IC {
 			el = el.parentElement;
 		}
 
-		var children = el.parentElement.parentElement.parentElement.children;
-		var description = children[children.length - 1];
+		const children = el.parentElement.parentElement.parentElement.children;
+		const description = children[children.length - 1];
 		if (el.classList.contains('shown')) {
 			$(description).stop().animate({
 				height: 0
@@ -135,17 +135,17 @@ class IC {
 	};
 
 	static checkPermission(this: InstallConfirm, e: Polymer.ClickEvent) {
-		var el = e.target;
+		let el = e.target;
 		while (el.tagName.toLowerCase() !== 'paper-checkbox') {
 			el = el.parentElement;
 		}
 
 		const checkbox = el as HTMLPaperCheckboxElement;
 		if (checkbox.checked) {
-			var permission = checkbox.getAttribute('permission');
+			const permission = checkbox.getAttribute('permission');
 			if (this.isManifestPermissions(permission as CRM.Permission)) {
 				chrome.permissions.getAll(function(permissions) {
-					var allowed = permissions.permissions;
+					const allowed = permissions.permissions;
 					if (allowed.indexOf(permission) === -1) {
 						try {
 							chrome.permissions.request(permission, function(granted) {
@@ -167,7 +167,7 @@ class IC {
 	};
 
 	static completeInstall(this: InstallConfirm) {
-		var allowedPermissions: Array<CRM.Permission> = [];
+		const allowedPermissions: Array<CRM.Permission> = [];
 		$('.infoPermissionCheckbox').each(function(this: HTMLPaperCheckboxElement) {
 			this.checked && allowedPermissions.push(this.getAttribute('permission') as CRM.Permission);
 		});
@@ -185,7 +185,7 @@ class IC {
 	};
 
 	private static setMetaTag(this: InstallConfirm, name: keyof IDMap['install-confirm'], values: Array<string|number>) {
-		var value;
+		let value;
 		if (values) {
 			value = values[values.length - 1];
 		} else {
@@ -207,7 +207,7 @@ class IC {
 	};
 
 	private static cmLoaded(this: InstallConfirm, cm: CodeMirrorInstance) {
-		var _this = this;
+		const _this = this;
 		document.head.appendChild(window.app.createElement('style', {
 			id: 'editorZoomStyle'
 		}, [
@@ -222,7 +222,7 @@ class IC {
 		});
 
 		//Show info about the script, if available
-		var interval = window.setInterval(function () {
+		const interval = window.setInterval(function () {
 			if (cm.getMetaTags) {
 				window.clearInterval(interval);
 				cm.getMetaTags(cm);
@@ -267,12 +267,12 @@ class IC {
 	};
 
 	static ready(this: InstallConfirm) {
-		var _this = this;
+		const _this = this;
 		this.loadSettings(function() {
 			if (window.CodeMirror) {
 				_this.loadEditor(_this);
 			} else {
-				var editorCaller = function() {
+				const editorCaller = function () {
 					_this.loadEditor(_this);
 				};
 				if (window.codeMirrorToLoad) {

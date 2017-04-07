@@ -43,11 +43,11 @@ class CL {
 		version: string;
 		changes: Array<string>;	
 	}> {
-		var arrayChangelog: Array<{
+		const arrayChangelog: Array<{
 			version: string;
 			changes: Array<string>;	
 		}> = [];
-		for (var versionEntry in changelog) {
+		for (let versionEntry in changelog) {
 			if (changelog.hasOwnProperty(versionEntry)) {
 				arrayChangelog.push({
 					version: versionEntry,
@@ -62,7 +62,7 @@ class CL {
 	 * Turns a version string into 3 seperate version parts
 	 */
 	private static splitVersion(versionString: string): Version {
-		var split = versionString.split('.');
+		const split = versionString.split('.');
 		return {
 			baseVersion: parseInt(split[0], 10),
 			majorVersion: parseInt(split[1], 10),

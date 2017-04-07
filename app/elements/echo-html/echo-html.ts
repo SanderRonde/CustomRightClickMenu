@@ -33,7 +33,7 @@ class EH {
 	};
 
 	static htmlChanged(this: EchoHtml) {
-		var html = this.html;
+		let html = this.html;
 		if (this.makelink) {
 			html = this.makeLinksFromHtml(html);
 		}
