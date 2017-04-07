@@ -917,7 +917,7 @@ class SCE {
 		}
 
 		(clone.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
-			.setAttribute('value', window.app.settings.editor.tabSize);
+			.setAttribute('value', window.app.settings.editor.tabSize + '');
 
 		const cloneCheckbox = clone.querySelector('#editorTabsOrSpacesCheckbox');
 		if (window.app.settings.editor.useTabs) {
@@ -969,7 +969,7 @@ class SCE {
 		function updateTabSizeEl() {
 			setTimeout(function() {
 				window.app.settings.editor.tabSize = 
-					(importedElement.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
+					~~(importedElement.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
 						.value;
 				window.app.upload();
 			}, 0);
@@ -1167,7 +1167,7 @@ class SCE {
 			useTabs: true,
 			theme: 'dark',
 			zoom: '100',
-			tabSize: '4',
+			tabSize: 4,
 			keyBindings: {
 				autocomplete: this.keyBindings[0].defaultKey,
 				showType: this.keyBindings[0].defaultKey,

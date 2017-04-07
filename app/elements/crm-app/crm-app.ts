@@ -2140,7 +2140,7 @@ class CA {
 					jumpBack: 'Ctrl-,',
 					selectName: 'Ctrl-.'
 				},
-				tabSize: '4',
+				tabSize: 4,
 				theme: 'dark',
 				useTabs: true,
 				zoom: '100'
@@ -2228,7 +2228,7 @@ class CA {
 					jumpBack: 'Ctrl-,',
 					selectName: 'Ctrl-.'
 				},
-				tabSize: '4',
+				tabSize: 4,
 				theme: 'dark',
 				useTabs: true,
 				zoom: '100'

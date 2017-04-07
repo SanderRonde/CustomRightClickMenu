@@ -115,7 +115,7 @@ interface CodeMirrorOptions {
 	readOnly?: boolean|string;
 	foldGutter?: boolean;
 	theme?: 'default'|'dark';
-	indentUnit?: string;
+	indentUnit?: number;
 	indentWithTabs?: boolean;
 	gutters?: Array<string>;
 	lint?: Function;

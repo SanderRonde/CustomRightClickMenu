@@ -1267,6 +1267,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			delete globalObject.globals.crmValues.tabData[tabId];
 		}
+		static leftPad(char: string, amount: number): string {
+			let res = '';
+			for (let i = 0; i < amount; i++) {
+				res += char;
+			}
+			return res;
+		}
 
 		private static _compareObj(firstObj: {
 			[key: string]: any;
@@ -6071,9 +6078,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 							indentUnit = '	';
 						} else {
-							indentUnit = new Array(globalObject.globals.storages.settingsStorage
-								.editor.tabSize ||
-								2).join('');
+							indentUnit = Helpers.leftPad(' ', globalObject.globals.storages.settingsStorage
+								.editor.tabSize || 2);
 						}
 
 						const script = node.value.backgroundScript.split('\n').map((line) => {
@@ -6338,9 +6344,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
 								indentUnit = '	';
 							} else {
-								indentUnit = new Array([
-									globalObject.globals.storages.settingsStorage.editor.tabSize || 2
-								]).join(' ');
+								indentUnit = Helpers.leftPad(' ', globalObject.globals.storages.settingsStorage
+									.editor.tabSize || 2);
 							}
 
 							const script = node.value.script.split('\n').map((line) => {
@@ -7945,7 +7950,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							jumpBack: 'Alt-,',
 							selectName: 'Ctrl-.'
 						},
-						tabSize: '4',
+						tabSize: 4,
 						theme: 'dark',
 						useTabs: true,
 						zoom: '100'

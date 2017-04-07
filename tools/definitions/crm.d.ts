@@ -1044,7 +1044,7 @@ declare namespace CRM {
 		/**
 		 * The size of tabs
 		 */
-		tabSize: string;
+		tabSize: number;
 		/**
 		 * The theme to use for the editor
 		 */

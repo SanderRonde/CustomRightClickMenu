@@ -1250,7 +1250,7 @@ describe('CRMAPI', () => {
 						"jumpBack": "Alt-,",
 						"selectName": "Ctrl-."
 					},
-					"tabSize": "4",
+					"tabSize": 4,
 					"theme": "dark",
 					"useTabs": true,
 					"zoom": "100"
