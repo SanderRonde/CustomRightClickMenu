@@ -11,8 +11,10 @@ const logConsoleProperties: {
 		id: string|number;
 		title: string;
 	}>;
+	tabIndexes: Array<number>;
 	selectedId: number;
 	selectedTab: number;
+	selectedTabIndex: number;
 	tabs: Array<TabData>;
 	textfilter: string;
 	waitingForEval: boolean;
@@ -28,6 +30,11 @@ const logConsoleProperties: {
 		value: [],
 		notify: true
 	},
+	tabIndexes: {
+		type: Array,
+		value: [],
+		notify: true
+	},
 	selectedId: {
 		type: Number,
 		notify: true,
@@ -35,6 +42,11 @@ const logConsoleProperties: {
 	},
 	selectedTab: {
 		type: Number, 
+		notify: true,
+		value: 0
+	},
+	selectedTabIndex: {
+		type: Number,
 		notify: true,
 		value: 0
 	},
@@ -138,6 +150,7 @@ class LC {
 				data: {
 					code: code,
 					id: selectedItems.id.id,
+					tabIndex: selectedItems.tabIndex,
 					tab: selectedItems.tab.id,
 					logListener: this._logListener
 				}
@@ -149,6 +162,7 @@ class LC {
 				isEval: true,
 				nodeTitle: selectedItems.id.title,
 				tabTitle: selectedItems.tab.title,
+				tabIndex: selectedItems.tabIndex,
 				id: selectedItems.id.id,
 				tabId: selectedItems.tab.id,
 				lineNumber: '<eval>:0',
@@ -188,6 +202,7 @@ class LC {
 			id: string|number;
 			title: string;
 		};
+		tabIndex: number;
 	} {
 		const tabVal = (this.tabs && this.tabs[~~this.selectedTab - 1]) || {
 				id: 'all',
@@ -199,7 +214,8 @@ class LC {
 		} : this.ids[~~this.selectedId - 1];
 		return {
 			tab: tabVal,
-			id: idVal
+			id: idVal,
+			tabIndex: this.selectedTabIndex
 		};
 	};
 
@@ -207,7 +223,8 @@ class LC {
 		const selectedItems = this._getSelectedItems();
 		return {
 			id: selectedItems.id.id,
-			tab: selectedItems.tab.id
+			tab: selectedItems.tab.id,
+			tabIndex: selectedItems.tabIndex
 		};
 	};
 
@@ -216,6 +233,7 @@ class LC {
 		const lines: Array<LogListenerLine> = (this._logListener && this._logListener.update(
 				selected.id,
 				selected.tab,
+				selected.tabIndex,
 				textfilter
 			)) || [];
 		
@@ -240,7 +258,7 @@ class LC {
 			return tabs;
 		}
 		if (this.bgPage) {
-			this.bgPage._getIdCurrentTabs(~~this.ids[~~selectedId - 1], this.tabs, function(newTabs) {
+			this.bgPage._getIdCurrentTabs(~~this.ids[~~selectedId - 1].id, this.tabs, function(newTabs) {
 				_this.set('tabs', newTabs);
 			});
 			return tabs;
@@ -248,6 +266,20 @@ class LC {
 			return [];
 		}
 	};
+
+	static _getTabIndexes(this: LogConsole, selectedId: string|number, selectedTab: number): Array<number> {
+		if (~~selectedId === 0) {
+			return [];
+		}
+		if (this.bgPage) {
+			this.bgPage._getCurrentTabIndex(~~this.ids[~~selectedId - 1].id, this.tabs[this.selectedTab], (newTabIndexes: Array<number>) => {
+				this.set('tabIndexes', newTabIndexes);
+			});
+			return this.tabIndexes;
+		} else {
+			return [];
+		}
+	}
 
 	static _escapeHTML(this: LogConsole, string: string): string {
 		return string
@@ -355,6 +387,7 @@ class LC {
 				},
 				id: logLine.id,
 				tab: logLine.tabId,
+				tabIndex: logLine.tabIndex,
 				logListener: this._logListener
 			}
 		});
@@ -365,6 +398,7 @@ class LC {
 		this.logLines.add([source.props.value as LogLineData], {
 			id: 'local',
 			tabId: 'local',
+			tabIndex: 0,
 			nodeTitle: 'logger page',
 			tabTitle: 'logger page',
 			value: [source.props.value as LogLineData],

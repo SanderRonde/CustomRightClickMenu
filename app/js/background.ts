@@ -103,6 +103,7 @@ interface StorageChange {
 interface CRMAPIMessage<T, TD> {
 	id: number;
 	tabId: number;
+	tabIndex: number;
 	type: T;
 	data: TD;
 	onFinish: any;
@@ -160,6 +161,7 @@ interface Window {
 	backgroundPageLog: (id: number, sourceData: [string, number], ...params: Array<any>) => void;
 	filter: (nodeId: any, tabId: any) => void;
 	_getIdCurrentTabs: (id: number, currentTabs: Array<TabData>, callback: (tabs: Array<TabData>) => void) => void;
+	_getCurrentTabIndex: (id: number, currentTab: TabData, callback: (newTabIndexes: Array<number>) => void) => void;
 	_listenIds: (listener: (newIds: Array<{
 		id: number;
 		title: string;
@@ -197,7 +199,7 @@ interface CRMSandboxWorker extends Worker {
 	script: string;
 }
 
-type SendCallbackMessage = (tabId: number, id: number, data: {
+type SendCallbackMessage = (tabId: number, tabIndex: number, id: number, data: {
 	err: boolean,
 	errorMessage?: string;
 	args?: Array<any>;
@@ -213,6 +215,7 @@ interface LogLineData {
 interface LogListenerLine {
 	id: number|string;
 	tabId: number|string;
+	tabIndex: number;
 	nodeTitle?: string;
 	tabTitle?: string;
 	data?: Array<LogLineData>;
@@ -243,7 +246,7 @@ interface LogListenerObject {
 	listener: LogListener;
 	id: number|string;
 	tab: number|string;
-	update: (id: string|number, tab: string|number, textFilter: string) => Array<LogListenerLine>;
+	update: (id: string|number, tab: string|number, tabIndex: number, textFilter: string) => Array<LogListenerLine>;
 	text: string;
 	index: number;
 }
@@ -334,13 +337,13 @@ interface GlobalObject {
 			tabData: {
 				[tabId: number]: {
 					nodes: {
-						[nodeId: number]: {
+						[nodeId: number]: Array<{
 							secretKey: Array<number>;
 							port?: chrome.runtime.Port|{
 								postMessage(message: Object): void;
 							};
 							usesLocalStorage: boolean;
-						};
+						}>;
 					};
 					libraries: {
 						[library: string]: boolean;
@@ -353,9 +356,9 @@ interface GlobalObject {
 			};
 			nodeInstances: {
 				[nodeId: number]: {
-					[instanceId: number]: {
+					[instanceId: number]: Array<{
 						hasHandler: boolean;
-					};
+					}>;
 				};
 			};
 			contextMenuInfoById: {
@@ -390,6 +393,7 @@ interface GlobalObject {
 			[notificationId: string]: {
 				id: number;
 				tabId: number;
+				tabIndex: number;
 				notificationId: number;
 				onDone: number;
 				onClick: number;
@@ -525,7 +529,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 ((extensionId: string, globalObject: GlobalObject, sandboxes: {
 	sandboxChrome: (api: string, args: Array<any>) => any;
 	sandbox: (id: number, script: string, libraries: Array<string>,
-		secretKey: Array<number>, getInstances: () => Array<string>,
+		secretKey: Array<number>, getInstances: () => Array<{
+			id: string;
+			tabIndex: number;
+		}>,
 	callback: (worker: any) => void) => void;
 }) => {
 	globalObject.globals = {
@@ -570,7 +577,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			onUrl: {},
 			always: []
 		},
-		sendCallbackMessage: (tabId: number, id: number, data: {
+		sendCallbackMessage: (tabId: number, tabIndex: number, id: number, data: {
 			err: boolean;
 			errorMessage?: string;
 			args?: Array<any>;
@@ -584,14 +591,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			};
 
 			try {
-				globalObject.globals.crmValues.tabData[tabId].nodes[id].port
+				globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port
 					.postMessage(message);
 			} catch (e) {
 				if (e.message === 'Converting circular structure to JSON') {
 					message.data =
 						'Converting circular structure to JSON, getting a response from this API will not work';
 					message.type = 'error';
-					globalObject.globals.crmValues.tabData[tabId].nodes[id].port
+					globalObject.globals.crmValues.tabData[tabId].nodes[id][tabIndex].port
 						.postMessage(message);
 				} else {
 					throw e;
@@ -1274,6 +1281,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 			return res;
 		}
+		static getLastItem<T>(arr: Array<T>): T {
+			return arr[arr.length - 1];
+		}
 
 		private static _compareObj(firstObj: {
 			[key: string]: any;
@@ -1531,6 +1541,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				checkJobs(jobs, currentTabs, callback);
 			};
+			window._getCurrentTabIndex = (id: number, currentTab: TabData, listener: (newTabIndexes: Array<number>) => void) => {
+				if (currentTab.id === 'background') {
+					listener([0]);
+				} else {
+					listener(globalObject
+						.globals
+						.crmValues
+						.tabData[currentTab.id as number]
+						.nodes[id].map((element, index) => {
+							return index;
+						}));
+				}
+			}
 		}
 		static refreshPermissions() {
 			chrome.permissions.getAll((available) => {
@@ -1544,42 +1567,56 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			window.createHandlerFunction = (port) => {
 				return (message: HandshakeMessage) => {
-					const tabNodeData = globalObject.globals.crmValues.tabData[message.tabId]
-                        .nodes[message.id];
+					const crmValues = globalObject.globals.crmValues;
+					const tabData = crmValues.tabData;
+					const nodeInstances = crmValues.nodeInstances;
+					const tabNodeData = Helpers.getLastItem(
+						tabData[message.tabId].nodes[message.id]
+					);
 					if (!tabNodeData.port) {
 						if (Helpers.compareArray(tabNodeData.secretKey, message.key)) {
 							delete tabNodeData.secretKey;
 							tabNodeData.port = port;
 
-							if (!globalObject.globals.crmValues.nodeInstances[message.id]) {
-								globalObject.globals.crmValues.nodeInstances[message.id] = {};
+							if (!nodeInstances[message.id]) {
+								nodeInstances[message.id] = {};
 							}
 
-							const instancesArr = [];
-							for (let instance in globalObject.globals.crmValues.nodeInstances[message.id]) {
-								if (globalObject.globals.crmValues.nodeInstances[message.id].hasOwnProperty(instance) &&
-									globalObject.globals.crmValues.nodeInstances[message.id][instance] && 
-									(instance as any) as number !== message.tabId) {
+							const instancesArr: Array<{
+								id: string;
+								tabIndex: number;
+							}> = [];
+							for (let instance in nodeInstances[message.id]) {
+								if (nodeInstances[message.id].hasOwnProperty(instance) &&
+									nodeInstances[message.id][instance] && 
+									~~instance !== message.tabId) {
 
 										try {
-											instancesArr.push(instance);
-											globalObject.globals.crmValues.tabData[instance].nodes[message.id].port
-												.postMessage({
+											tabData[instance].nodes[message.id].forEach((tabInstance, index) => {
+												instancesArr.push({
+													id: instance,
+													tabIndex: index
+												});
+												tabInstance.port.postMessage({
 													change: {
 														type: 'added',
-														value: message.tabId
+														value: message.tabId,
+														tabIndex: index
 													},
 													messageType: 'instancesUpdate'
 												});
+											});
 										} catch (e) {
-											delete globalObject.globals.crmValues.nodeInstances[message.id][instance];
+											delete nodeInstances[message.id][instance];
 										}
 									}
 							}
 
-							globalObject.globals.crmValues.nodeInstances[message.id][message.tabId] = {
+							nodeInstances[message.id][message.tabId] =
+								nodeInstances[message.id][message.tabId] || [];
+							nodeInstances[message.id][message.tabId].push({
 								hasHandler: false
-							};
+							});
 
 							port.postMessage({
 								data: 'connected',
@@ -1905,15 +1942,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				for (let i = 0; i < deleted.length; i++) {
 					if ((deleted[i] as any).node && (deleted[i] as any).node.id !== undefined) {
-						globalObject.globals.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id]
-							.port
-							.postMessage({
+						globalObject.globals.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id].forEach((tabInstance) => {
+							tabInstance.port.postMessage({
 								change: {
 									type: 'removed',
 									value: tabId
 								},
 								messageType: 'instancesUpdate'
 							});
+						});
 					}
 				}
 
@@ -1925,8 +1962,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const notification = globalObject.globals
 						.notificationListeners[notificationId];
 					if (notification && notification.onClick !== undefined) {
-						globalObject.globals.sendCallbackMessage(notification.tabId, notification.id,
-							{
+						globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,
+							notification.id, {
 								err: false,
 								args: [notificationId],
 								callbackId: notification.onClick
@@ -1937,9 +1974,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const notification = globalObject.globals
 						.notificationListeners[notificationId];
 					if (notification && notification.onDone !== undefined) {
-						globalObject.globals.sendCallbackMessage(notification.tabId, notification
-							.id,
-							{
+						globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex, 
+							notification.id, {
 								err: false,
 								args: [notificationId, byUser],
 								callbackId: notification.onClick
@@ -1967,6 +2003,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static executeCRMCode(message: {
 				code: any,
 				id: number,
+				tabIndex: number;
 				tab: number,
 				logListener: LogListenerObject;
 			}, type: 'executeCRMCode'|'getCRMHints'|'createLocalLogVariable') {
@@ -1974,7 +2011,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (!globalObject.globals.crmValues.tabData[message.tab]) {
 					return;
 				}
-				globalObject.globals.crmValues.tabData[message.tab].nodes[message.id].port
+				globalObject.globals.crmValues.tabData[message.tab].nodes[message.id][message.tabIndex].port
 					.postMessage({
 						messageType: type,
 						code: message.code,
@@ -1990,6 +2027,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				globalObject.globals.listeners.log[message.data.callbackIndex].listener({
 					id: message.id,
 					tabId: message.tabId,
+					tabIndex: message.tabIndex,
 					type: 'hints',
 					suggestions: message.data.hints
 				});
@@ -2145,6 +2183,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			id: number;
 			lineNumber: string;
 			tabId: number;
+			tabIndex: number;
 			logId: number;
 			callbackIndex?: number;
 			timestamp?: string;
@@ -2168,6 +2207,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						globalObject.globals.listeners.log[message.callbackIndex].listener({
 							id: message.id,
 							tabId: message.tabId,
+							tabIndex: message.tabIndex,
 							nodeTitle: globalObject.globals.crm.crmById[message.id].name,
 							tabTitle: tab.title,
 							type: 'evalResult',
@@ -2187,6 +2227,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						type: message.type,
 						id: message.id,
 						data: message.data,
+						tabIndex: message.tabIndex,
 						lineNumber: message.lineNumber,
 						tabId: message.tabId,
 						logId: message.logId,
@@ -2231,18 +2272,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			id: number;
 			data: string;
 			lineNumber: string;
+			tabIndex: number;
 			tabId: number;
 			logId: number;
 			callbackIndex?: number;
 			timestamp?: string;
 		}) {
 			const srcObj: {
-				id: number,
-				tabId: number,
-				tab: chrome.tabs.Tab,
-				url: string,
-				tabTitle: string,
-				node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode,
+				id: number;
+				tabId: number;
+				tabIndex: number;
+				tab: chrome.tabs.Tab;
+				url: string;
+				tabTitle: string;
+				node: CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode;
 				nodeName: string;
 			} = {} as any;
 			let args = [
@@ -2255,6 +2298,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				id: message.id,
 				tabId: message.tabId,
 				logId: message.logId,
+				tabIndex: message.tabIndex,
 				lineNumber: message.lineNumber || '?',
 				timestamp: new Date().toLocaleString()
 			} as any;
@@ -2270,6 +2314,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				srcObj.tabId = message.tabId;
 				srcObj.tab = tab;
 				srcObj.url = tab.url;
+				srcObj.tabIndex = message.tabIndex;
 				srcObj.tabTitle = tab.title;
 				srcObj.node = globalObject.globals.crm.crmById[message.id];
 				srcObj.nodeName = srcObj.node.name;
@@ -3775,9 +3820,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								} :
 								data);
 				try {
-					globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id]
-						.port
-						.postMessage(msg);
+					globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id][message.tabIndex]
+						.port.postMessage(msg);
 				} catch (e) {
 					if (e.message === 'Converting circular structure to JSON') {
 						APIMessaging.CRMMessage.respond(message, 'error',
@@ -3814,15 +3858,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			const instancesObj = globalObject.globals.crmValues.nodeInstances[message.id];
 			const instancesArr: Array<{
 				id: number;
+				tabIndex: number;
 				instance: {
 					hasHandler: boolean;
 				}
 			}> = [];
 			for (let tabInstance in instancesObj) {
 				if (instancesObj.hasOwnProperty(tabInstance)) {
-					instancesArr.push({
-						id: (tabInstance as any) as number,
-						instance: instancesObj[tabInstance]
+					instancesObj[tabInstance].forEach((tabIndexInstance, index) => {
+						instancesArr.push({
+							id: (tabInstance as any) as number,
+							tabIndex: index,
+							instance: instancesObj[tabInstance][index]
+						});
 					});
 				}
 			}
@@ -3847,8 +3895,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			for (let i = 0; i < instancesArr.length; i++) {
-				globalObject.globals.crmValues.tabData[instancesArr[i].id].nodes[message
-						.id]
+				globalObject.globals.crmValues.tabData[instancesArr[i].id].nodes[message.id][instancesArr[i].tabIndex]
 					.port.postMessage({
 						messageType: 'instanceMessage',
 						message: args[0]
@@ -4899,6 +4946,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static respond(message: {
 				onFinish: any;
 				id: number;
+				tabIndex: number;
 				tabId: number;
 			}, status: string, data?: any) {
 				const msg = {
@@ -4908,9 +4956,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					data: data
 				};
 				try {
-					globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id]
-						.port
-						.postMessage(msg);
+					globalObject.globals.crmValues.tabData[message.tabId].nodes[message.id][message.tabIndex]
+						.port.postMessage(msg);
 				} catch (e) {
 					if (e.message === 'Converting circular structure to JSON') {
 						this.respond(message, 'error',
@@ -4924,12 +4971,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				id: number;
 				type: string;
 				tabId: number;
+				tabIndex: number;
 				onFinish: {
 					maxCalls: number;
 					fn: number;
 				};
 				data: {
 					id: number;
+					tabIndex: number;
+					toTabIndex: number;
 					toInstanceId: number;
 					message: any;
 					tabId: number;
@@ -4940,8 +4990,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId] &&
 					tabData[data.toInstanceId] &&
 					tabData[data.toInstanceId].nodes[data.id]) {
-					if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId].hasHandler) {
-						tabData[data.toInstanceId].nodes[data.id].port.postMessage({
+					if (globalObject.globals.crmValues.nodeInstances[data.id][data.toInstanceId][data.toTabIndex].hasHandler) {
+						tabData[data.toInstanceId].nodes[data.id][data.toTabIndex].port.postMessage({
 							messageType: 'instanceMessage',
 							message: data.message
 						});
@@ -4957,7 +5007,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static changeStatus(message: CRMAPIMessage<string, {
 				hasHandler: boolean;
 			}>) {
-				globalObject.globals.crmValues.nodeInstances[message.id][message.tabId]
+				globalObject.globals.crmValues.nodeInstances[message.id][message.tabId][message.tabIndex]
 					.hasHandler = message.data.hasHandler;
 			}
 		};
@@ -4965,6 +5015,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static send(message: {
 				id: number;
 				tabId: number;
+				tabIndex: number;
 				response: number;
 				message: any;
 			}) {
@@ -4986,6 +5037,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			static listen(message: CRMAPIMessage<string, {
 				notificationId: number;
 				onClick: number;
+				tabIndex: number;
 				onDone: number;
 				id: number;
 				tabId: number;
@@ -4994,6 +5046,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				globalObject.globals.notificationListeners[data.notificationId] = {
 					id: data.id,
 					tabId: data.tabId,
+					tabIndex: data.tabIndex,
 					notificationId: data.notificationId,
 					onDone: data.onDone,
 					onClick: data.onClick
@@ -5040,6 +5093,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				case 'respondToBackgroundMessage':
 					this.Instances.respond({
 						onFinish: message.data.response,
+						tabIndex: message.data.tabIndex,
 						id: message.data.id,
 						tabId: message.data.tabId
 					}, 'success', message.data.message);
@@ -5092,17 +5146,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			const tabData = globalObject.globals.crmValues.tabData;
 			for (let tabId in tabData) {
 				for (let nodeId in tabData[tabId].nodes) {
-					if (tabData[tabId].nodes[nodeId].usesLocalStorage &&
-						globalObject.globals.crm.crmById[nodeId].isLocal) {
-						try {
-							tabData[tabId].nodes[nodeId].port.postMessage({
-								messageType: 'localStorageProxy',
-								message: storage
-							});
-						} catch(e) {
-							//Looks like it's closed
+					tabData[tabId].nodes[nodeId].forEach((tabInstance) => {
+						if (tabInstance.usesLocalStorage &&
+							globalObject.globals.crm.crmById[nodeId].isLocal) {
+							try {
+								tabInstance.port.postMessage({
+									messageType: 'localStorageProxy',
+									message: storage
+								});
+							} catch(e) {
+								//Looks like it's closed
+							}
 						}
-					}
+					});
 				}
 			}
 		}
@@ -6042,14 +6098,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						err = e;
 					}
 					if (!err) {
-						globalObject.globals.crmValues.tabData[0] = globalObject.globals
-							.crmValues
-							.tabData[0] ||
-							{
+						globalObject.globals.crmValues.tabData[0] = 
+							globalObject.globals.crmValues.tabData[0] || {
 								libraries: {},
 								nodes: {}
 							};
-						globalObject.globals.crmValues.tabData[0].nodes[node.id] = {
+						globalObject.globals.crmValues.tabData[0].nodes[node.id] = 
+							globalObject.globals.crmValues.tabData[0].nodes[node.id] || [];
+						globalObject.globals.crmValues.tabData[0].nodes[node.id][0] = {
 							secretKey: key,
 							usesLocalStorage: node.value.backgroundScript.indexOf('localStorageProxy') > -1
 						};
@@ -6058,8 +6114,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						const metaData = CRM.Script.MetaTags.getMetaTags(node.value
                             .script);
 						const metaString = CRM.Script.MetaTags.getMetaLines(node.value
-                                .script) ||
-							undefined;
+                                .script) || undefined;
 						const runAt = metaData['run-at'] || 'document_end';
 						const excludes = [];
 						const includes = [];
@@ -6151,11 +6206,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									CRM.makeSafe(node), node.id, { id: 0 }, {}, key,
 									nodeStorage,
 									greaseMonkeyData, true, (node.value && node.value.options) || {},
-									enableBackwardsCompatibility
+									enableBackwardsCompatibility, 0
 								]
 								.map((param) => {
 									return JSON.stringify(param);
-								}).join(', ')});`
+								}).join(', ')});
+								self.CrmAPIInit = null;`
 							].join(', '),
 							'try {',
 								'function main(menuitemid, parentmenuitemid, mediatype,' +
@@ -6172,37 +6228,43 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							'}'
 						];
 
-						sandboxes.sandbox(node.id, code.join('\n'), libraries, key,
-							() => {
-								const instancesArr = [];
-								const nodeInstances = globalObject.globals.crmValues
-									.nodeInstances[node.id];
-								for (let instance in nodeInstances) {
-									if (nodeInstances.hasOwnProperty(instance) &&
-										nodeInstances[instance]) {
+						sandboxes.sandbox(node.id, code.join('\n'), libraries, key, () => {
+							const instancesArr: Array<{
+								id: string;
+								tabIndex: number;
+							}> = [];
+							const nodeInstances = globalObject.globals.crmValues
+								.nodeInstances[node.id];
+							for (let instance in nodeInstances) {
+								if (nodeInstances.hasOwnProperty(instance) &&
+									nodeInstances[instance]) {
 
-										try {
-											globalObject.globals.crmValues.tabData[instance]
-												.nodes[node.id]
-												.port.postMessage({
+									try {
+										globalObject.globals.crmValues.tabData[instance]
+											.nodes[node.id].forEach((tabIndexInstance, index) => {
+												tabIndexInstance.port.postMessage({
 													messageType: 'dummy'
 												});
-											instancesArr.push(instance);
-										} catch (e) {
-											delete nodeInstances[instance];
-										}
+												instancesArr.push({
+													id: instance,
+													tabIndex: index
+												});
+											});
+									} catch (e) {
+										delete nodeInstances[instance];
 									}
 								}
-								return instancesArr;
-							},
-							(worker: CRMSandboxWorker) => {
-								globalObject.globals.background.workers.push(worker);
-								globalObject.globals.background.byId[node.id] = worker;
-								if (isRestart) {
-									Logging.log(node.id, '*', `Background page [${node.id}]: `,
-										'Restarted background page...');
-								}
-							});
+							}
+							return instancesArr;
+						},
+						(worker: CRMSandboxWorker) => {
+							globalObject.globals.background.workers.push(worker);
+							globalObject.globals.background.byId[node.id] = worker;
+							if (isRestart) {
+								Logging.log(node.id, '*', `Background page [${node.id}]: `,
+									'Restarted background page...');
+							}
+						});
 					} else {
 						console.log('An error occurred while setting up the script for node ',
 							node
@@ -6249,16 +6311,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 						}), new Promiselike<[any, GreaseMonkeyData, string, string, number, string]>((resolve) => {
 							let i: number;
-							globalObject.globals.crmValues.tabData[tab.id] = globalObject.globals
-								.crmValues.tabData[tab.id] ||
-								{
+							globalObject.globals.crmValues.tabData[tab.id] = 
+								globalObject.globals.crmValues.tabData[tab.id] || {
 									libraries: {},
 									nodes: {}
 								};
-							globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = {
+							globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = 
+								globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] || [];
+							globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].push({
 								secretKey: key,
 								usesLocalStorage: node.value.script.indexOf('localStorageProxy') > -1
-							};
+							});
+
+							const tabIndex = globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].length - 1;
 							Logging.Listeners.updateTabAndIdLists();
 
 							const metaData: {
@@ -6349,10 +6414,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								return indentUnit + line;
 							}).join('\n');
 
-							resolve([nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt]);							
+							resolve([nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt, tabIndex]);							
 						})]).then(([contextData, 
-							[nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt]]: [ContextData, 
-							[any, GreaseMonkeyData, string, string, number, string]]) => {
+							[nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt, tabIndex]]: [ContextData, 
+							[any, GreaseMonkeyData, string, string, number, string, number]]) => {
 
 							const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
 								node.isLocal;
@@ -6362,11 +6427,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										[
 											CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
 											contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
-											enableBackwardsCompatibility
+											enableBackwardsCompatibility, tabIndex
 										]
                                             .map((param) => {
 												return JSON.stringify(param);
-											}).join(', ')});`
+											}).join(', ')});
+									window.CrmAPIInit = null;`
 								].join(', '),
 								'try {',
 								'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
@@ -8388,9 +8454,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (~~tab !== tabId) {
 						const nodes = tabData[tab].nodes;
 						if (nodes[id]) {
-							nodes[id].port.postMessage({
-								changes: changes,
-								messageType: 'storageUpdate'
+							nodes[id].forEach((tabIndexInstance) => {
+								tabIndexInstance.port.postMessage({
+									changes: changes,
+									messageType: 'storageUpdate'
+								});
 							});
 						}
 					}
@@ -8493,7 +8561,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	typeof module !== 'undefined' || window.isDev ? window : {},
 	((sandboxes: {
 		sandbox: (id: number, script: string, libraries: Array<string>,
-			secretKey: Array<number>, getInstances: () => Array<string>,
+			secretKey: Array<number>, getInstances: () => Array<{
+				id: string;
+				tabIndex: number;
+			}>,
 			callback: (worker: any) => void) => void;
 		sandboxChrome?: any;
 	}) => {
@@ -8514,14 +8585,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 		return sandboxes as {
 			sandbox: (id: number, script: string, libraries: Array<string>,
-				secretKey: Array<number>,
+				secretKey: Array<number>, getInstances: () => Array<{
+					id: string;
+					tabIndex: number;
+				}>,
 				callback: (worker: any) => void) => void;
 			sandboxChrome: (api: string, args: Array<any>) => any;
 		};
 	})((() => {
 		const sandboxes: {
 			sandbox: (id: number, script: string, libraries: Array<string>,
-				secretKey: Array<number>, getInstances: () => Array<string>,
+				secretKey: Array<number>, getInstances: () => Array<{
+					id: string;
+					tabIndex: number;
+				}>,
 				callback: (worker: SandboxWorker) => void) => void;
 			sandboxChrome?: any;
 		} = {} as any;
@@ -8532,7 +8609,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			_verified: boolean = false;
 
 			constructor(public id: number, public script: string, libraries: Array<string>,
-				public secretKey: Array<number>, getInstances: () => Array<string>) {
+				public secretKey: Array<number>, getInstances: () => Array<{
+					id: string;
+					tabIndex: number;
+				}>) {
 
 				this.worker = new Worker('/js/sandbox.js');
 
@@ -8609,7 +8689,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 
 		sandboxes.sandbox = (id: number, script: string, libraries: Array<string>,
-			secretKey: Array<number>, getInstances: () => Array<string>, 
+			secretKey: Array<number>, getInstances: () => Array<{
+				id: string;
+				tabIndex: number;
+			}>, 
 			callback: (worker: SandboxWorker) => void) => {
 			callback(new SandboxWorker(id, script, libraries, secretKey, getInstances));
 		};

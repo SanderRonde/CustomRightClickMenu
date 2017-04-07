@@ -53,6 +53,26 @@
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
+							<div id="tabIndexFilter" class="dropdownFilter centerVertical">
+								<paper-dropdown-menu id="tabIndexDropdown" label="TabIndex" init overflowing indent="false" selected="0">
+									<paper-menu selected="0">
+										<paper-item>
+											<div class="menuSelectedCheckmark">
+												<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+											</div>
+											<span class="menuOptionName">ALL</span>
+										</paper-item>
+										<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab)}}" as="tabIndex">
+											<paper-item>
+												<div class="menuSelectedCheckmark">
+													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+												</div>
+												<span title$="[[tabIndex]]" class="menuOptionName">[[tabIndex]]</span>
+											</paper-item>
+										</template>
+									</paper-menu>
+								</paper-dropdown-menu>
+							</div>
 							<div id="textFilterCont">
 								<paper-input label="filter" id="textFilter" no-label-float="true" value="{{textfilter}}" on-change="_textFilterChange"></paper-input>
 							</div>

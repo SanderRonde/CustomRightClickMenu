@@ -59,10 +59,10 @@
 	 * @param {Boolean} isBackground - If true, this page is functioning as a background page
 	 * @param {Object} options - The options the user has entered for this script/stylesheet
 	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
+	 * @param {number} tabIndex - The index of this script (with this id) running on this tab
 	 */
-	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options, enableBackwardsCompatibility) {
+	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options, enableBackwardsCompatibility, tabIndex) {
 		var _this = this;
-
 		if (!enableBackwardsCompatibility) {
 			localStorageProxy = typeof localStorage === 'undefined' ? {} : localStorage;
 		}
@@ -120,6 +120,7 @@
 		this.options = function(defaults) {
 			return mergeObjects(defaults || {}, options);
 		}
+
 		//#endregion
 
 		//#region JSONfn
@@ -395,6 +396,11 @@
 				return tabData.id;
 			}
 		});
+		Object.defineProperty(this, 'currentTabIndex', {
+			get: function() {
+				return tabIndex;
+			}
+		});
 		Object.defineProperty(this, 'permissions', {
 			get: function () {
 				return JSON.parse(JSON.stringify(node.permissions));
@@ -621,10 +627,12 @@
 				id: id,
 				type: 'logCrmAPIValue',
 				tabId: _this.tabId,
+				tabIndex: tabIndex,
 				data: {
 					type: 'evalResult',
 					value: val,
 					id: id,
+					tabIndex: tabIndex,
 					callbackIndex: message.logCallbackIndex,
 					lineNumber: '<eval>:0',
 					timestamp: timestamp,
@@ -719,9 +727,11 @@
 				id: id,
 				type: 'displayHints',
 				tabId: _this.tabId,
+				tabIndex: tabIndex,
 				data: {
 					hints: suggestions,
 					id: id,
+					tabIndex: tabIndex,
 					callbackIndex: message.logCallbackIndex,
 					tabId: _this.tabId
 				}
@@ -782,8 +792,9 @@
 				var instanceArr = message.instances;
 				for (var i = 0; i < instanceArr.length; i++) {
 					instances.add({
-						id: instanceArr[i],
-						sendMessage: generateSendInstanceMessageFunction(instanceArr[i])
+						id: instanceArr[i].id,
+						tabIndex: instanceArr[i].tabIndex,
+						sendMessage: generateSendInstanceMessageFunction(instanceArr[i].id, instanceArr[i].tabIndex)
 					});
 				}
 				handshakeFunction();
@@ -996,7 +1007,8 @@
 				case 'added':
 					instances.add({
 						id: change.value,
-						sendMessage: generateSendInstanceMessageFunction(change.value)
+						tabIndex: change.tabIndex,
+						sendMessage: generateSendInstanceMessageFunction(change.value, change.tabIndex)
 					});
 					break;
 			}
@@ -1106,8 +1118,10 @@
 					localStorageProxy[key] = value;
 					sendMessage({
 						id: id,
+						tabIndex: tabIndex,
 						type: 'applyLocalStorage',
 						data: {
+							tabIndex: tabIndex,
 							key: key,
 							value: value
 						},
@@ -1127,10 +1141,12 @@
 			return function (data) {
 				sendMessage({
 					id: id,
+					tabIndex: tabIndex,
 					type: 'respondToBackgroundMessage',
 					data: {
 						message: data,
 						id: message.id,
+						tabIndex: tabIndex,
 						tabId: message.tabId,
 						response: message.respond
 					},
@@ -1146,13 +1162,13 @@
 			});
 		}
 
-		function generateSendInstanceMessageFunction(instanceId) {
+		function generateSendInstanceMessageFunction(instanceId, tabIndex) {
 			return function (message, callback) {
-				sendInstanceMessage(instanceId, message, callback);
+				sendInstanceMessage(instanceId, tabIndex, message, callback);
 			};
 		}
 
-		function sendInstanceMessage(instanceId, message, callback) {
+		function sendInstanceMessage(instanceId, tabIndex, message, callback) {
 			function onFinish(type, data) {
 				if (!callback || typeof callback !== 'function') {
 					return;
@@ -1176,11 +1192,14 @@
 				type: 'sendInstanceMessage',
 				data: {
 					toInstanceId: instanceId,
+					toTabIndex: tabIndex,
+					tabIndex: tabIndex,
 					message: message,
 					id: id,
 					tabId: _this.tabId
 				},
 				tabId: _this.tabId,
+				tabIndex: tabIndex,
 				onFinish: {
 					maxCalls: 1,
 					fn: onFinish
@@ -1192,7 +1211,9 @@
 			sendMessage({
 				id: id,
 				type: 'changeInstanceHandlerStatus',
+				tabIndex: tabIndex,
 				data: {
+					tabIndex: tabIndex,
 					hasHandler: hasHandler
 				},
 				tabId: _this.tabId
@@ -1218,6 +1239,9 @@
 		 * Sends a message to given instance
 		 *
 		 * @param {instance} instance - The instance to send the message to
+		 * @param {number} tabIndex - The index in which it ran on the tab.
+		 * 		When a script is ran multiple times on the same tab,
+		 * 		it gets added to the tabIndex array (so it starts at 0)
 		 * @param {Object} message - The message to send
 		 * @param {function} callback - A callback that tells you the result,
 		 *		gets passed one argument (object) that contains the two boolean
@@ -1226,12 +1250,11 @@
 		 *		the message key of that object will be filled with the reason
 		 *		it failed ("instance no longer exists" or "no listener exists")
 		 */
-		this.comm.sendMessage = function (instance, message, callback) {
+		this.comm.sendMessage = function (instance, tabIndex, message, callback) {
 			var instanceObj;
 			if (typeof instance === "number") {
 				instanceObj = instances.get(instance);
-			}
-			else {
+			} else {
 				instanceObj = instance;
 			}
 			isFn(instanceObj.sendMessage) && instanceObj.sendMessage(message, callback);
@@ -1283,10 +1306,12 @@
 						message: message,
 						id: id,
 						tabId: _this.tabId,
+						tabIndex: tabIndex,
 						response: createCallbackFunction(response, new Error(), {
 							maxCalls: 1
 						})
 					},
+					tabIndex: tabIndex,
 					tabId: _this.tabId
 				});
 			}
@@ -1363,8 +1388,10 @@
 						}
 					],
 					id: id,
+					tabIndex: tabIndex,
 					tabId: _this.tabId
 				},
+				tabIndex: tabIndex,
 				tabId: _this.tabId
 			});
 			notifyChanges(keyPath, oldValue, newValue, false);
@@ -1647,6 +1674,7 @@
 			var message = params || {};
 			message.type = 'crm';
 			message.id = id;
+			message.tabIndex = tabIndex;
 			message.action = action;
 			message.crmPath = node.path;
 			message.onFinish = {
@@ -2715,6 +2743,7 @@
 			var message = {
 				type: 'chrome',
 				id: id,
+				tabIndex: tabIndex,
 				api: requestThis.request.api,
 				args: requestThis.request.chromeAPIArguments,
 				tabId: tabData.id,
@@ -3161,10 +3190,12 @@
 				data: {
 					notificationId: notificationId,
 					onClick: onclick,
+					tabIndex: tabIndex,
 					onDone: ondone,
 					id: id,
 					tabId: _this.tabId
 				},
+				tabIndex: tabIndex,
 				tabId: _this.tabId
 			});
 		}
@@ -3291,11 +3322,13 @@
 				id: id,
 				type: 'logCrmAPIValue',
 				tabId: _this.tabId,
+				tabIndex: tabIndex,
 				data: {
 					type: 'log',
 					data: JSON.stringify(result.data),
 					id: id,
 					logId: result.logId,
+					tabIndex: tabIndex,
 					lineNumber: lineNumber,
 					tabId: _this.tabId
 				}

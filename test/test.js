@@ -1584,9 +1584,9 @@ describe('CRMAPI', () => {
 		let secretKey = createSecretKey();
 		step('CrmAPIInit class can be created', () => {
 			assert.doesNotThrow(run(() => {
-				window.globals.crmValues.tabData[0].nodes[node.id] = {
+				window.globals.crmValues.tabData[0].nodes[node.id] = [{
 					secretKey: secretKey
-				};
+				}];
 				window.globals.availablePermissions = ['sessions'];
 				window.globals.crm.crmById[2] = node;
 				let indentUnit = '	'; //Tab
@@ -1595,7 +1595,7 @@ describe('CRMAPI', () => {
 				let code =
 					'window.crmAPI = new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, nodeStorage,
-							{}, greaseMonkeyData, false, {}, true]
+							{}, greaseMonkeyData, false, {}, true, 0]
 						.map(function(param) {
 							return JSON.stringify(param);
 						}).join(', ') +
@@ -1711,15 +1711,18 @@ describe('CRMAPI', () => {
 					window.globals.crmValues.tabData[tabId] = {
 						nodes: { }
 					};
-					window.globals.crmValues.tabData[tabId].nodes[node.id] = {
+					window.globals.crmValues.tabData[tabId].nodes[node.id] = 
+						window.globals.crmValues.tabData[tabId].nodes[node.id] || [];
+					window.globals.crmValues.tabData[tabId].nodes[node.id].push({
 						secretKey: secretKey
-					};
+					});
 					let indentUnit = '	'; //Tab
 
 					//Actual code
 					let code = 'window.crmAPIs.push(new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, {
-							testKey: createSecretKey() }, greaseMonkeyData, false]
+							testKey: createSecretKey() }, {}, greaseMonkeyData, false, {}, false, 
+							window.globals.crmValues.tabData[tabId].nodes[node.id].length - 1]
 						.map(function(param) {
 							return JSON.stringify(param);
 						}).join(', ') +
@@ -1772,7 +1775,7 @@ describe('CRMAPI', () => {
 			//Send a message from the main CRM API used for testingRunning 
 			let instances = crmAPI.comm.getInstances();
 			for (let i = 0; i < instances.length; i++) {
-				crmAPI.comm.sendMessage(instances[i], {
+				crmAPI.comm.sendMessage(instances[i], 0, {
 					key: expectedMessageValue
 				});
 			}

@@ -353,10 +353,13 @@ window.logElements = (() => {
 		}
 	}
 
-	class LogLine extends React.Component<any, any> {
+	class LogLine extends React.Component<{
+		value: Array<LogLineData>;
+		line: LogListenerLine;	
+	}, {}> {
 		constructor(props: {
-			line: LogLineData;
-			value: Array<any>;
+			value: Array<LogLineData>;
+			line: LogListenerLine;	
 		}) {
 			super(props);
 		}
@@ -397,20 +400,22 @@ window.logElements = (() => {
 						</div>
 					</div>
 					<div className="lineSource">
-						<span className="lineSourceIdCont" title={this.props.line.nodeTitle}>[id-<span className="lineSourceId">{this.props.line.id}</span>]</span><span className="lineSourceTabCont" onClick={takeToTab} tabIndex={1} title={this.props.line.tabTitle}>[tab-<span className="lineSourceTab">{this.props.line.tabId}</span>]</span><span className="lineSourceLineCont">@<span className="lineSourceLineNumber">{this.props.line.lineNumber.trim()}</span></span>
+						<span className="lineSourceIdCont" title={this.props.line.nodeTitle}>[id-<span className="lineSourceId">{this.props.line.id}</span>]</span><span className="lineSourceTabCont" onClick={takeToTab} tabIndex={1} title={this.props.line.tabTitle}>[tab-<span className="lineSourceTab">{this.props.line.tabId}</span>][{this.props.line.tabIndex}]</span><span className="lineSourceLineCont">@<span className="lineSourceLineNumber">{this.props.line.lineNumber.trim()}</span></span>
 					</div>
 				</div>
 			);
 		}
 	}
 
-	class LogLineContainer extends React.Component<any, any> implements LogLineContainerInterface {
-		state: {
-			lines: Array<{
-				data: Array<LogLineData>;
-				line: LogListenerLine;
-			}>;
-		};;
+	class LogLineContainer extends React.Component<{
+		items: Array<any>,
+		logConsole: LogConsole;
+	}, {
+		lines: Array<{
+			data: Array<LogLineData>;
+			line: LogListenerLine;
+		}>
+	}> implements LogLineContainerInterface {
 		constructor(props: {}) {
 			super(props);
 		}
@@ -453,7 +458,7 @@ window.logElements = (() => {
 			});
 
 			this.props.logConsole.set('lines', this.state.lines.length);
-	}
+		}
 		render() {
 			const children = [];
 

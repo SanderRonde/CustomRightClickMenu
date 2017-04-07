@@ -390,6 +390,7 @@ declare namespace CRMAPI {
 
 	interface Instance {
 		id: number;
+		tabIndex: number;
 		sendMessage: (message: any, callback: any) => void
 	}
 
@@ -509,6 +510,13 @@ declare namespace CRMAPI {
 		id: number;
 
 		/**
+		 * The tabIndex of this instance
+		 * 
+		 * @type number
+		 */
+		currentTabIndex: number;
+
+		/**
 		 * Data about the click on the page
 		 */
 		contextData: ContextData;
@@ -539,17 +547,21 @@ declare namespace CRMAPI {
 			getInstances(): Array<Instance>,
 			/**
 			 * Sends a message to given instance
+			 *
 			 * @param {instance} instance - The instance to send the message to
+			 * @param {number} tabIndex - The index in which it ran on the tab.
+			 * 		When a script is ran multiple times on the same tab,
+			 * 		it gets added to the tabIndex array (so it starts at 0)
 			 * @param {Object} message - The message to send
 			 * @param {function} callback - A callback that tells you the result,
 			 *		gets passed one argument (object) that contains the two boolean
-			*		values "error" and "success" indicating whether the message
-			*		succeeded. If it did not succeed and an error occurred,
-			*		the message key of that object will be filled with the reason
-			*		it failed ("instance no longer exists" or "no listener exists")
-			*/
-			sendMessage(instance: number, message: any, callback: Function): void,
-			sendMessage(instance: Instance, message: any, callback: Function): void,
+			 *		values "error" and "success" indicating whether the message
+			 *		succeeded. If it did not succeed and an error occurred,
+			 *		the message key of that object will be filled with the reason
+			 *		it failed ("instance no longer exists" or "no listener exists")
+			 */
+			sendMessage(instance: number, tabIndex: number, message: any, callback: Function): void,
+			sendMessage(instance: Instance, tabIndex: number, message: any, callback: Function): void,
 			/**
 			 * Adds a listener for any comm-messages sent from other instances of
 			 * this script
