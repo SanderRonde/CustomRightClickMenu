@@ -254,8 +254,8 @@ class EC {
 	private static getLastMenu(this: EditCrm, list: Array<CRM.Node>, hidden: {
 		[nodeId: number]: boolean
 	}, exclude: number) {
-		const lastMenu = -1;
-		const lastFilledMenu = -1;
+		let lastMenu = -1;
+		let lastFilledMenu = -1;
 		//Find last menu to auto-expand
 		if (list) {
 			list.forEach(function(item, index) {
@@ -599,7 +599,7 @@ class EC {
 		//Get the highest column's height and apply it to the element to prevent
 		//the page from going and shrinking quickly
 		let hight;
-		const highest = 0;
+		let highest = 0;
 		crmBuilder.forEach(function (column) {
 			hight = column.indent.length + column.list.length;
 			hight > highest && (highest = hight);

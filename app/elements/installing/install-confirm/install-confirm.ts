@@ -238,7 +238,7 @@ class IC {
 			useTabs: true,
 			theme: 'dark',
 			zoom: '100',
-			tabSize: '4',
+			tabSize: 4,
 			keyBindings: {
 				autocomplete: window.scriptEdit.keyBindings[0].defaultKey,
 				showType: window.scriptEdit.keyBindings[0].defaultKey,

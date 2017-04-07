@@ -138,7 +138,7 @@ class TS {
 		switch (type) {
 			case 'link':
 				if (Array.isArray(data)) {
-					const objects = true;
+					let objects = true;
 					data.forEach(function(linkItem) {
 						if (typeof linkItem !== 'object' || Array.isArray(linkItem)) {
 							objects = false;
@@ -248,6 +248,8 @@ class TS {
 			typeChoices[i].setAttribute('type', this.remainingTypes[i]);
 		}
 
+		const paperToast = $('#changedToMenuToast');
+
 		function reverseMenuTypeChoice(columnCont: HTMLElement) {
 			paperToast.hide();
 			item.children = item.menuVal;
@@ -279,8 +281,6 @@ class TS {
 			this.shadowColumns(columnCont, false);
 
 			window.app.shadowStart = column.index + 1;
-
-			const paperToast = $('#changedToMenuToast');
 
 			//Show a paper-toast
 			paperToast.on('click', function() {

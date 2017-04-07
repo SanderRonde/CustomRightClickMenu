@@ -147,13 +147,13 @@ class ECI {
 				_this.typeIndicatorMouseLeave.apply(_this, []);
 			});
 		} else {
-			const hoveringTypeSwitcher = false;
+			let hoveringTypeSwitcher = false;
 			this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
 				e.preventDefault();
 				e.stopPropagation();
 				if (!hoveringTypeSwitcher) {
 					hoveringTypeSwitcher = true;
-					_this.typeIndicatorMouseOver.apply(_this, []);
+				_this.typeIndicatorMouseOver.apply(_this, []);
 				}
 			});
 			document.body.addEventListener('mouseover', function() {
