@@ -534,8 +534,8 @@ module.exports = function(grunt) {
 			}
 		},
 		exec: {
-			app: 'tsc',
-			tests: 'tsc -p test/tsconfig.json'
+			tsCompileApp: 'tsc',
+			tsCompileTests: 'tsc -p test/tsconfig.json'
 		}
 	});
 
@@ -590,7 +590,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('demoWebsite', ['compile', 'copy:demoWebsite'])
 
 	//Compiles all the typescript
-	grunt.registerTask('compile', ['exec:app', 'exec:tests']);
+	grunt.registerTask('compile', ['exec:tsCompileApp', 'exec:tsCompileTests']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
