@@ -2170,6 +2170,7 @@ class CA {
 			lastUpdatedAt: chrome.runtime.getManifest().version,
 			authorName: 'anonymous',
 			showOptions: (localStorage.getItem('optionson') !== 'false'),
+			catchErrors: true,
 			recoverUnsavedData: false,
 			CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
                 .split('.')[0] > 34,
@@ -2263,6 +2264,7 @@ class CA {
 			recoverUnsavedData: false,
 			CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
                 .split('.')[0] > 34,
+			catchErrors: true,
 			editCRMInRM: false,
 			hideToolsRibbon: false,
 			shrinkTitleRibbon: false,

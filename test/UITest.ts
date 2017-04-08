@@ -1175,6 +1175,7 @@ describe('Options Page', function(this: MochaFn) {
 		this.timeout(5000 * timeModifier);
 		this.slow(4000);
 		const checkboxDefaults = {
+			catchErrors: true,
 			showOptions: true,
 			recoverUnsavedData: false,
 			CRMOnPage: true,

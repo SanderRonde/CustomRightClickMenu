@@ -6200,6 +6200,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								node.isLocal;
 
 						libraries.push('/js/crmapi.js');
+						const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 						code = [
 							code.join('\n'), [
 								`var crmAPI = new CrmAPIInit(${[
@@ -6213,19 +6214,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}).join(', ')});
 								self.CrmAPIInit = null;`
 							].join(', '),
-							'try {',
+							`${catchErrs ? 'try {' : ''}`,
 								'function main(menuitemid, parentmenuitemid, mediatype,' +
 								'linkurl, srcurl, pageurl, frameurl, frameid,' + 
 								'selectiontext, editable, waschecked, checked) {',
 									script,
 								'}',
 								`main()`,
-							'} catch (error) {',
-							indentUnit + 'if (crmAPI.debugOnError) {',
-							indentUnit + indentUnit + 'debugger;',
-							indentUnit + '}',
-							indentUnit + 'throw error;',
-							'}'
+							`${catchErrs ? [
+								`catch (error) {`,
+								`${indentUnit}if (crmAPI.debugOnError) {`,
+								`${indentUnit}${indentUnit}debugger;`,
+								`${indentUnit}}`,
+								`${indentUnit}throw error;`,
+								`}`
+							].join('\n') : ''}`
 						];
 
 						sandboxes.sandbox(node.id, code.join('\n'), libraries, key, () => {
@@ -6421,6 +6424,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 							const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
 								node.isLocal;
+							const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 							const code = [
 								[
 									`var crmAPI = new CrmAPIInit(${
@@ -6434,7 +6438,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											}).join(', ')});
 									window.CrmAPIInit = null;`
 								].join(', '),
-								'try {',
+								`${catchErrs ? 'try {' : ''}`,
 								'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
 								'linkurl, srcurl, pageurl, frameurl, frameid,' +
 								'selectiontext, editable, waschecked, checked) {',
@@ -6449,12 +6453,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										info.editable, info.wasChecked, info.checked
 									])
 									}))`,
-								'} catch (error) {',
-								indentUnit + 'if (crmAPI.debugOnError) {',
-								indentUnit + indentUnit + 'debugger;',
-								indentUnit + '}',
-								indentUnit + 'throw error;',
-								'}'
+								`${catchErrs ? [
+									`catch (error) {`,
+									`${indentUnit}if (crmAPI.debugOnError) {`,
+									`${indentUnit}${indentUnit}debugger;`,
+									`${indentUnit}}`,
+									`${indentUnit}throw error;`,
+									`}`
+								].join('\n') : ''}`
 							].join('\n');
 
 							const scripts = [];
@@ -7983,6 +7989,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					recoverUnsavedData: false,
 					CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
 						.split('.')[0] > 34,
+					catchErrors: true,
 					editCRMInRM: false,
 					hideToolsRibbon: false,
 					shrinkTitleRibbon: false,

@@ -1176,6 +1176,10 @@ declare namespace CRM {
 		 */
 		showOptions: boolean;
 		/**
+		 * Whether to catch errors and log them, if off, lets them be thrown
+		 */
+		catchErrors: boolean;
+		/**
 		 * Whether to use storage sync (uses local storage if false)
 		 */
 		useStorageSync: boolean;

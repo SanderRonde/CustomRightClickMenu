@@ -1204,6 +1204,7 @@ describe('CRMAPI', () => {
 			lastUpdatedAt: JSON.parse(String(fs.readFileSync('./build/manifest.json'), {
 								encoding: 'utf8'
 							}).replace(/\/\*.+\*\//g, '')).version,
+			catchErrors: true,
 			notFirstTime: true,
 			authorName: 'anonymous',
 			showOptions: true,
