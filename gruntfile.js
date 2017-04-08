@@ -189,6 +189,12 @@ module.exports = function(grunt) {
 					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/\n'
 				},
 				files: [ { expand: true, src: ['build/elements/**/*.js'] } ]
+			},
+			bower_components: {
+				files: [{
+					expand: true,
+					src: ['build/bower_components/**/*.js']
+				}]
 			}
 		},
 		concat: {
@@ -597,7 +603,7 @@ module.exports = function(grunt) {
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
 		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
-		'clean:tsFiles', 'usebanner', 'zip']);
+		'clean:tsFiles', 'uglify:bower_components', 'usebanner', 'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
@@ -607,7 +613,7 @@ module.exports = function(grunt) {
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
 		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
-		'clean:tsFiles', 'usebanner', 'zip']);
+		'clean:tsFiles', 'uglify:bower_components', 'usebanner', 'zip']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['cleanBuild', 'compile', 'extractDefs', 'copy:build',
@@ -616,7 +622,7 @@ module.exports = function(grunt) {
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinify',
 		'uglify:crmMinifiy', 'uglify:elementsMinify', 'htmlmin:build', 'cssmin:build',
-		'cssmin:elements', 'clean:tsFiles', 'usebanner', 'zip']);
+		'cssmin:elements', 'uglify:bower_components', 'clean:tsFiles', 'usebanner', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
