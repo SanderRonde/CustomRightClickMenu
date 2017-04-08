@@ -238,6 +238,6 @@ window.CRMLoaded.register(function() {
 				});
 			}(document.querySelectorAll('style, link[rel="stylesheet"]')))))))
 		}
-		dummy.remove();
+		el.remove();
 	})();
 });
