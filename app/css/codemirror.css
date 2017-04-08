@@ -356,6 +356,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .CodeMirror div.CodeMirror-cursor {
   position: absolute;
   border-right: none;
+  color: transparent;
   width: 0;
 }
 
