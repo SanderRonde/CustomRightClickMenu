@@ -1,5 +1,7 @@
 /// <reference path="../../elements.d.ts" />
 
+const EXTERNAL_EDITOR_APP_ID = 'hkjjmhkhhlmkflpihbikfpcojeofbjgn';
+
 type UseExternalEditor = Polymer.El<'use-external-editor', typeof UEE>;
 
 type ListeningHTMLElement = HTMLElement & {
@@ -525,7 +527,7 @@ class UEE {
 	private static establishConnection(this: UseExternalEditor, retry: boolean = false) {
 		const _this = this;
 		if (!this.appPort) {
-			this.appPort = chrome.runtime.connect('hkjjmhkhhlmkflpihbikfpcojeofbjgn');
+			this.appPort = chrome.runtime.connect(EXTERNAL_EDITOR_APP_ID);
 			this.connection.status = 'connecting';
 			this.connection.stage = 0;
 			this.connection.fileConnected = false;
