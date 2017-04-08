@@ -1,78 +1,352 @@
-declare namespace CRMAPI {
-	interface ContextData {
-		clientX: number;
-		clientY: number;
-		offsetX: number;
-		offsetY: number;
-		pageX: number;
-		pageY: number;
-		screenX: number;
-		screenY: number;
-		which: number;
-		x: number;
-		y: number;
-		srcElement: HTMLElement|void;
-		target: HTMLElement|void;
-		toElement: HTMLElement|void;
-	}
+/**
+ * The launch modes for scripts and stylesheets
+ */
+declare const enum CRMLaunchModes {
+	/**
+	 * Runs when clicking the node
+	 */
+	RUN_ON_CLICKING = 0,
+	/**
+	 * Runs whenever the page has loaded
+	 */
+	ALWAYS_RUN = 1,
+	/**
+	 * Runs only on specified websites
+	 */
+	RUN_ON_SPECIFIED = 2,
+	/**
+	 * Is visible only on specified websites
+	 */
+	SHOW_ON_SPECIFIED = 3,
+	/**
+	 * Does not show up in the right-click menu and doesn't run
+	 */
+	DISABLED = 4
+}
 
-	interface ArrayConstructor {
-		from: (any: any) => Array<any>;
-	}
-
-	type MetaTags = { [key: string]: Array<string|number> };
-
-	interface UserscriptNode {
-		script: string;
-	}
-
-	type ChromePermission = 'alarms' | 'background' | 'bookmarks' | 'browsingData' | 'clipboardRead' | 'clipboardWrite' |
-						'contentSettings' | 'cookies' | 'contentSettings' | 'declarativeContent' | 'desktopCapture' |
-						'downloads' | 'history' | 'identity' | 'idle' | 'management' | 'notifications' | 'pageCapture' |
-						'power' | 'privacy' | 'printerProvider' | 'sessions' | 'system.cpu' | 'system.memory' |
-						'system.storage' | 'topSites' | 'tabCapture' | 'tts' | 'webNavigation' | 'webRequest' |
-						'webRequestBlocking'
-
+/**
+ * Definitions for the CRM extension
+ */
+declare namespace CRM {
+	
+	/**
+	 * Permissions related to the CRM API
+	 */
 	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
 
-	type GMPermission = 'GM_info' | 'GM_deleteValue' | 'GM_getValue' | 'GM_listValues' | 'GM_setValue' |
-						'GM_getResourceText' | 'GM_getResourceURL' | 'GM_addStyle' | 'GM_log' | 'GM_openInTab' |
-						'GM_registerMenuCommand' | 'GM_setClipboard' | 'GM_xmlhttpRequest' | 'unsafeWindow';
+	/**
+	 * An extendable object
+	 */
+	interface Extendable<T> { 
+		[key: string]: any;
+		[key: number]: any;
+	}
 
-	type Permission = ChromePermission | CRMPermission | GMPermission;
+	/**
+	 * The chrome permission descriptions
+	 */
+	interface ChromePermissionDescriptions {
+		alarms: string;
+		background: string;
+		bookmarks: string;
+		browsingData: string;
+		clipboardRead: string;
+		clipboardWrite: string;
+		cookies: string;
+		contentSettings: string;
+		declarativeContent: string;
+		desktopCapture: string;
+		downloads: string;
+		history: string;
+		identity: string;
+		idle: string;
+		management: string;
+		notifications: string;
+		pageCapture: string;
+		power: string;
+		privacy: string;
+		printerProvider: string;
+		sessions: string;
+		"system.cpu": string;
+		"system.memory": string;
+		"system.storage": string;
+		topSites: string;
+		tabCapture: string;
+		tts: string;
+		webNavigation: string;
+		webRequest: string;
+		webRequestBlocking: string;
+	}
 
-	interface CRMNodeInfo {
-		installDate?: Date;
-		isRoot?: boolean; //False
-		permissions: Array<CRMPermission>;
-		source: {
+	/**
+	 * The CRM permissions descriptions
+	 */
+	interface CRMPermissionDescriptions {
+		crmGet: string;
+		crmWrite: string;
+		chrome: string;
+	}
+
+	/**
+	 * The GreaseMonkey permissions descriptions
+	 */
+	interface GMPermissioNDescriptions {
+		GM_addStyle: string;
+		GM_deleteValue: string;
+		GM_listValues: string;
+		GM_addValueChangeListener: string;
+		GM_removeValueChangeListener: string;
+		GM_setValue: string;
+		GM_getValue: string;
+		GM_log: string;
+		GM_getResourceText: string;
+		GM_getResourceURL: string;
+		GM_registerMenuCommand: string;
+		GM_unregisterMenuCommand: string;
+		GM_openInTab: string;
+		GM_xmlhttpRequest: string;
+		GM_download: string;
+		GM_getTab: string;
+		GM_saveTab: string;
+		GM_getTabs: string;
+		GM_notification: string;
+		GM_setClipboard: string;
+		GM_info: string;
+		unsafeWindow: string;
+	}
+
+	/**
+	 * The permission descriptions
+	 */
+	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissioNDescriptions;
+
+	/**
+	 * The chrome permissions
+	 */
+	type ChromePermission = keyof ChromePermissionDescriptions;
+
+	/**
+	 * Any permissions for nodes
+	 */
+	type Permission = CRMPermission|keyof PermissionDescriptions;
+
+	/**
+	 * Info related to a node's installation
+	 */
+	interface NodeInfo {
+		/**
+		 * The date a node was installed
+		 */
+		installDate?: string;
+		/**
+		 * Whether the node is the root of a subtree when it was installed
+		 */
+		isRoot?: boolean;
+		/**
+		 * All permissions asked for by this node
+		 */
+		permissions: Array<Permission>;
+		/**
+		 * Info related to the source of a node's installation
+		 */
+		source?: {
+			/**
+			 * The URL from which to update the node
+			 */
+			updateURL?: string;
+			/**
+			 * The URL from which the node was downloaded
+			 */
+			downloadURL?: string;
+			/**
+			 * The homepage of the node
+			 */
 			url?: string;
+			/**
+			 * The name of the author of the node
+			 */
 			author?: string;
-		}
+		};
+		/**
+		 * The version of the node
+		 */
+		version?: string;
+		/**
+		 * The last time this node was updated
+		 */
+		lastUpdatedAt?: string;
+	}
+
+	/**
+	 * An option allowing the input of a number
+	 */
+	interface OptionNumber {
+		/**
+		 * The type of the option
+		 */
+		type: 'number';
+		/**
+		 * The minimum value of the number
+		 */
+		minimum?: number;
+		/**
+		 * The maximum value of the number
+		 */
+		maximum?: number;
+		/**
+		 * The description of this option
+		 */
+		descr?: string;
+		/**
+		 * The value of this option
+		 */
+		value: null|number;
+	}
+
+	/**
+	 * An option allowing the input of a string
+	 */
+	interface OptionString {
+		/**
+		 * The type of the option
+		 */
+		type: 'string';
+		/**
+		 * The maximum length of the string
+		 */
+		maxLength?: number;
+		/**
+		 * A regex string the value has to match
+		 */
+		format?: string;
+		/**
+		 * The description of this option
+		 */
+		descr?: string;
+		/**
+		 * The value of this option
+		 */
+		value: null|string;
+	}
+
+	/**
+	 * An option allowing the choice between a number of values
+	 */
+	interface OptionChoice {
+		/**
+		 * The type of the option
+		 */
+		type: 'choice';
+		/**
+		 * The description of this option
+		 */
+		descr?: string;
+		/**
+		 * The index of the currently selected value
+		 */
+		selected: number;
+		/**
+		 * The values of which to choose
+		 */
+		values: Array<string|number>;
+	}
+
+	/**
+	 * An option allowing you to choose between true and false
+	 */
+	interface OptionCheckbox {
+		/**
+		 * The type of the option
+		 */
+		type: 'boolean';
+		/**
+		 * The description of this option
+		 */
+		descr?: string;
+		/**
+		 * The value of this option
+		 */
+		value: null|boolean;
+	}
+
+	/**
+	 * The base of an option for inputting arrays
+	 */
+	interface OptionArrayBase {
+		/**
+		 * The type of the option
+		 */
+		type: 'array';
+		/**
+		 * The maximum number of values
+		 */
+		maxItems?: number;
+		/**
+		 * The description of this option
+		 */
+		descr?: string;
+	}
+	/**
+	 * An option for inputing arrays of strings
+	 */
+	interface OptionArrayString extends OptionArrayBase {
+		/**
+		 * The type of items the array is made of
+		 */
+		items: 'string';
+		/**
+		 * The array's value
+		 */
+		value: null|Array<string>;
+	}
+	/**
+	 * An option for inputting arrays of numbers
+	 */
+	interface OptionArrayNumber extends OptionArrayBase {
+		/**
+		 * The type of items the array is made of
+		 */
+		items: 'number';
+		/**
+		 * The array's value
+		 */
+		value: null|Array<number>;
+	}
+	/**
+	 * An option for inputting arrays of numbers or strings
+	 */
+	type OptionArray = OptionArrayString|OptionArrayNumber;
+
+	/**
+	 * Removes any in key K from T
+	 */
+	type Remove<T, K extends keyof T> = T & {
+		[P in K]?: void;
+	}
+
+	/**
+	 * An option type
+	 */
+	type OptionsValue = OptionCheckbox|OptionString|OptionChoice|
+		OptionArray|OptionNumber;
+
+	/**
+	 * The options object of a script or stylesheet
+	 */
+	type Options = {
+		[key: string]: OptionsValue;
+		[key: number]: OptionsValue;
 	}
 
 	/**
 	 * True means show on given type. ['page','link','selection','image','video','audio']
 	 */
-	type CRMContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
-	enum CRMContentType {
-		page = 0,
-		link = 1,
-		selection = 2,
-		image = 3,
-		video = 4,
-		audio = 5
-	}
+	type ContentTypes = [boolean, boolean, boolean, boolean, boolean, boolean];
 
-	const enum CRMLaunchModes {
-		RUN_ON_CLICKING = 0,
-		ALWAYS_RUN = 1,
-		RUN_ON_SPECIFIED = 2,
-		SHOW_ON_SPECIFIED = 3,
-		DISABLED = 4
-	}
-
-	interface CRMTrigger {
+	/**
+	 * A trigger on which to show or not show a node
+	 */
+	interface Trigger {
 		/**
 		 * 	The URL of the site on which to run,
 		 * 	if launchMode is 2 aka run on specified pages can be any of these
@@ -83,273 +357,1237 @@ declare namespace CRMAPI {
 		url: string;
 		/**
 		 * If true, does NOT run on given site
-		 *
-		 * @type {boolean}
 		 */
 		not: boolean;
 	}
 
-	type CRMTriggers = Array<CRMTrigger>;
+	/**
+	 * The triggers for a node on which to or to not show a node
+	 */
+	type Triggers = Array<Trigger>;
 
-	type CRMLibrary = {
+	/**
+	 * A library for a script node
+	 */
+	type Library = {
+		/**
+		 * The name of the library
+		 */
 		name: string;
+		/**
+		 * The url of the library
+		 */
+		url: null;
 	}|{
+		/**
+		 * The name of the library
+		 */
+		name: null;
+		/**
+		 * The url of the library
+		 */
 		url: string;
-	}| {
+	}|{
+		/**
+		 * The name of the library
+		 */
 		name: string;
+		/**
+		 * The url of the library
+		 */
 		url: string;
 	}
 
-	interface ScriptVal {
+	/**
+	 * The metatags for a script node
+	 */
+	type MetaTags = { [key: string]: Array<string|number> };
+
+	/**
+	 * The type of a node
+	 */
+	type NodeType = 'script'|'link'|'divider'|'menu'|'stylesheet';
+
+	/**
+	 * A safe CRM node
+	 */
+	interface MadeSafeNode {
 		/**
-		 * A number from 0 to 3,
-		 * 0 = run on clicking
-		 * 1 = always run
-		 * 2 = run on specified pages
-		 * 3 = only show on specified pages
-		 * 4 = disabled
-		 *
-		 * @type {number}
+		 * The unique ID for the node
 		 */
-		launchMode: CRMLaunchModes;
-		script: string;
-		backgroundScript: string;
-		metaTags: MetaTags;
-		libraries: Array<CRMLibrary>;
-		backgroundLibraries: Array<CRMLibrary>;
+		id: number;
+		/**
+		 * The path to this node
+		 */
+		path: Array<number>;
+		/**
+		 * The type of this node
+		 */
+		type: NodeType;
+		/**
+		 * The name of this node
+		 */
+		name: string;
+		/**
+		 * The children of this node (if a menu)
+		 */
+		children: SafeTree|void;
+		/**
+		 * The value of this link node before it was switched
+		 */
+		linkVal: LinkVal|void;
+		/**
+		 * The value of this menu node before it was switched
+		 */
+		menuVal: Tree|void;
+		/**
+		 * The value of this script node before it was switched
+		 */
+		scriptVal: ScriptVal|void;
+		/**
+		 * The value of this stylesheet node before it was switched
+		 */
+		stylesheetVal: StylesheetVal|void;
+		/**
+		 * Info related to the node's installation
+		 */
+		nodeInfo: NodeInfo;
+		/**
+		 * The triggers for this node, on which to show or not show it
+		 */
+		triggers: Triggers;
+		/**
+		 * The content types on which to show this node
+		 */
+		onContentTypes: ContentTypes;
+		/**
+		 * Whether to show this node only on the specified urls
+		 */
+		showOnSpecified?: boolean;
+		/**
+		 * The value of this node
+		 */
+		value: LinkVal|ScriptVal|StylesheetVal|Tree|void;
 	}
 
-	interface StylesheetVal {
+	/**
+	 * The keys of a safe node
+	 */
+	type SafeKeys = keyof MadeSafeNode;
+
+	/**
+	 * Turns T into a safe node
+	 */
+	type MakeNodeSafe<T extends MadeSafeNode> = Pick<T, SafeKeys>;
+
+	/**
+	 * The base node on which other nodes are based (no value)
+	 */
+	interface BaseNodeNoVal {
 		/**
-		 * A number from 0 to 3,
-		 * 0 = run on clicking
-		 * 1 = always run
-		 * 2 = run on specified pages
-		 * 3 = only show on specified pages
-		 * 4 = disabled
-		 *
-		 * @type {number}
+		 * The storage for this node
 		 */
-		launchMode: CRMLaunchModes;
-		stylesheet: string;
-		/**
-		 * Whether the stylesheet is always on or toggleable by clicking (true = toggleable)
-		 *
-		 * @type {boolean}
-		 */
-		toggle: boolean;
-		/**
-		 * Whether the stylesheet is on by default or off, only used if toggle is true
-		 *
-		 * @type {boolean}
-		 */
-		defaultOn: boolean;
-	}
-
-	interface LinkNodeLink {
-		url: string;
-		newTab: boolean;
-	}
-
-	type LinkVal = Array<LinkNodeLink>
-
-	type NodeType = string;
-
-	interface CRMBaseNode {
-		storage: {
+		storage?: {
 			[key: string]: any;
 			[key: number]: any;
 		};
+		/**
+		 * The index of this node in its parent
+		 */
 		index?: number;
+		/**
+		 * Whether the node is local (meaning it's made by the user of this extension)
+		 */
 		isLocal: boolean;
-		permissions: Array<CRMPermission>;
-		children: CRMTree|SafeCRM|void;
+		/**
+		 * The permissions that are currently allowed for this node
+		 */
+		permissions: Array<Permission>;
+		/**
+		 * The children of this node (if a menu)
+		 */
+		children: Tree|SafeTree|void;
+		/**
+		 * The unique ID of this node
+		 */
 		id: number;
+		/**
+		 * The path to this node
+		 */
 		path: Array<number>;
-		name: string;
+		/**
+		 * The type of this node
+		 */
 		type: NodeType;
-		nodeInfo: CRMNodeInfo;
-		showOnSpecified?: boolean;
-		onContentTypes: CRMContentTypes;
-		triggers: CRMTriggers;
-		value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
+		/**
+		 * The name of this node
+		 */
+		name: string;
+		/**
+		 * The value of this link node before it was switched
+		 */
 		linkVal: LinkVal|void;
-		menuVal: CRMTree|void;
+		/**
+		 * The value of this menu node before it was switched
+		 */
+		menuVal: Tree|void;
+		/**
+		 * The value of this script node before it was switched
+		 */
 		scriptVal: ScriptVal|void;
+		/**
+		 * The value of this stylesheet node before it was switched
+		 */
 		stylesheetVal: StylesheetVal|void;
+		/**
+		 * Info related to the node's installation
+		 */
+		nodeInfo: NodeInfo;
+		/**
+		 * The triggers for this node, on which to show or not show it
+		 */
+		triggers: Triggers;
+		/**
+		 * The content types on which to show this node
+		 */
+		onContentTypes: ContentTypes;
+		/**
+		 * Whether to show this node only on the specified urls
+		 */
+		showOnSpecified?: boolean;
 	}
 
-	interface PassiveCRMNode extends CRMBaseNode {
+	/**
+	 * The base node on which other nodes are based
+	 */
+	interface BaseNode extends BaseNodeNoVal {
+		/**
+		 * The value of this node
+		 */
+		value: LinkVal|ScriptVal|StylesheetVal|Tree|void;
+	}
+
+	/**
+	 * A base node with children that is not safe
+	 */
+	interface NonSafeBaseNodeBase extends BaseNode {
+		/**
+		 * The children of this node (if it's a menu)
+		 */
+		children: Tree|void;
+	}
+
+	/**
+	 * A base node with children that is safe
+	 */
+	interface SafeBaseNodeBase extends BaseNode {
+		/**
+		 * The children of this node (if it's a menu)
+		 */
+		children: SafeTree|void;
+	}
+
+	/**
+	 * A safe base node
+	 */
+	type SafeCRMBaseNode = MakeNodeSafe<SafeBaseNodeBase>;
+
+	/**
+	 * The value of a script node
+	 */
+	interface ScriptVal {
+		/**
+		 * When to launch this node
+		 */
+		launchMode: CRMLaunchModes;
+		/**
+		 * The script to run
+		 */
+		script: string;
+		/**
+		 * The backgroundscript of this node
+		 */
+		backgroundScript: string;
+		/**
+		 * The metaTags for this node
+		 */
+		metaTags: MetaTags;
+		/**
+		 * The libraries to run with this node
+		 */
+		libraries: Array<Library>;
+		/**
+		 * The libraries to run with this node's backgroundscript
+		 */
+		backgroundLibraries: Array<Library>;
+		/**
+		 * Whether to show an update notice for this node
+		 */
+		updateNotice?: boolean;
+		/**
+		 * The script before conversion from legacy
+		 */
+		oldScript?: string;
+		/**
+		 * Whether the metaTags are hidden in the editor
+		 */
+		metaTagsHidden?: boolean;
+		/**
+		 * The options for this script
+		 */
+		options: Options|string;
+	}
+
+	/**
+	 * The value of a stylesheet node
+	 */
+	interface StylesheetVal {
+		/**
+		 * When to run this stylesheet
+		 */
+		launchMode: CRMLaunchModes;
+		/**
+		 * The stylesheet to run
+		 */
+		stylesheet: string;
+		/**
+		 * Whether this stylesheet is togglable
+		 */
+		toggle: boolean;
+		/**
+		 * Whether this stylesheet is toggled on by default
+		 */
+		defaultOn: boolean;
+		/**
+		 * Whether the metaTags are hidden in the editor
+		 */
+		metaTagsHidden?: boolean;
+		/**
+		 * The options for this stylesheet
+		 */
+		options: Options|string;
+		/**
+		 * The converted stylesheet
+		 */
+		convertedStylesheet: {
+			/**
+			 * The options that were used to generate it
+			 */
+			options: string;
+			/**
+			 * The stylesheet
+			 */
+			stylesheet: string;
+		}
+	}
+
+	/**
+	 * A link for a linkNode
+	 */
+	interface LinkNodeLink {
+		/**
+		 * The URL of the link
+		 */
+		url: string;
+		/**
+		 * Whether to open the URL in a new tab (current tab if false)
+		 */
+		newTab: boolean;
+	}
+
+	/**
+	 * The value of a link node
+	 */
+	type LinkVal = Array<LinkNodeLink>
+
+	/**
+	 * A passive CRM node
+	 */
+	interface PassiveNode extends BaseNode {
+		/**
+		 * Whether to show the node only on the specified urls
+		 */
 		showOnSpecified: boolean;
-		children: CRMTree|SafeCRM|void;
+		/**
+		 * The children of this node (if it's a menu)
+		 */
+		children: Tree|SafeTree|void;
 	}
 
-	interface NonSafeBaseNodeBase extends CRMBaseNode {
-		children: CRMTree|void;
-	}
-
-	interface SafeBaseNodeBase extends CRMBaseNode {
-		children: SafeCRM|void;
-	}
-
+	/**
+	 * A script node
+	 */
 	interface ScriptNode extends NonSafeBaseNodeBase {
+		/**
+		 * The type of the node
+		 */
 		type: 'script';
+		/**
+		 * The children of this node (none)
+		 */
 		children: void;
+		/**
+		 * The value of this script node
+		 */
 		value: ScriptVal;
-		menuVal: CRMTree|void;
+		/**
+		 * The value of the node when it was still a menu node
+		 */
+		menuVal: Tree|void;
+		/**
+		 * The value of the node when it still was a link node
+		 */
 		linkVal: LinkVal|void;
+		/**
+		 * The value of the node when it still was a stylesheet
+		 */
 		stylesheetVal: StylesheetVal|void;
+		/**
+		 * The value of this node when it was a script (none, as it is one now)
+		 */
 		scriptVal: void;
 	}
 
+	/**
+	 * A script node with only optional keys
+	 */
+	type PartialScriptNode = Partial<BaseNodeNoVal> & {
+		/**
+		 * The type of this node
+		 */
+		type?: 'script';
+		/**
+		 * The value of this node
+		 */
+		value?: Partial<ScriptVal>;
+		/**
+		 * The value of the node when it was still a menu node
+		 */
+		menuVal?: Tree|void;
+		/**
+		 * The value of the node when it still was a link node
+		 */
+		linkVal?: LinkVal|void;
+		/**
+		 * The value of the node when it still was a stylesheet
+		 */
+		stylesheetVal?: StylesheetVal|void;
+		/**
+		 * The value of this node when it was a script (none, as it is one now)
+		 */
+		scriptVal?: void;
+	}
+
+	/**
+	 * A stylesheet node
+	 */
 	interface StylesheetNode extends NonSafeBaseNodeBase {
+		/**
+		 * The type of this node
+		 */
 		type: 'stylesheet';
+		/**
+		 * The children of this node (none as it's no menu)
+		 */
 		children: void;
+		/**
+		 * The value of this node
+		 */
 		value: StylesheetVal;
-		menuVal: CRMTree|void;
+		/**
+		 * The value of the node when it was still a menu node
+		 */
+		menuVal: Tree|void;
+		/**
+		 * The value of the node when it still was a link node
+		 */
 		linkVal: LinkVal|void;
+		/**
+		 * The value of this node when it was a script
+		 */
 		scriptVal: ScriptVal|void;
+		/**
+		 * The value of this node when it was a stylesheet (none as it is one now)
+		 */
 		stylesheetVal: void;
 	}
 
-	interface LinkNode extends PassiveCRMNode {
+	/**
+	 * A stylesheet node with only optional keys
+	 */
+	type PartialStylesheetNode = Partial<BaseNodeNoVal> & {
+		/**
+		 * The type of this node
+		 */
+		type?: 'stylesheet';
+		/**
+		 * The value of this node
+		 */
+		value?: Partial<StylesheetVal>;
+		/**
+		 * The value of the node when it was still a menu node
+		 */
+		menuVal?: Tree|void;
+		/**
+		 * The value of the node when it still was a link node
+		 */
+		linkVal?: LinkVal|void;
+		/**
+		 * The value of this node when it was a stylesheet (none as it is one now)
+		 */
+		stylesheetVal?: void;
+		/**
+		 * The value of this node when it was a script
+		 */
+		scriptVal?: ScriptVal|void;
+	}
+
+	/**
+	 * A link node
+	 */
+	interface LinkNode extends PassiveNode {
+		/**
+		 * The type of this node
+		 */
 		type: 'link';
+		/**
+		 * The children of this node (none as it's no menu)
+		 */
 		children: void;
+		/**
+		 * The value of this node
+		 */
 		value: LinkVal;
-		menuVal: CRMTree|void;
+		/**
+		 * The value of this node when it was still a menu node
+		 */
+		menuVal: Tree|void;
+		/**
+		 * The value of this node when it was a script
+		 */
 		scriptVal: ScriptVal|void;
+		/**
+		 * The value of this node when it was still a stylesheet
+		 */
 		stylesheetVal: StylesheetVal|void;
+		/**
+		 * The value of this node when it was still a link (none as it is one now)
+		 */
 		linkVal: void;
 	}
 
-	interface MenuNodeBase extends PassiveCRMNode {
+	/**
+	 * The base of a menu node
+	 */
+	interface MenuNodeBase extends PassiveNode {
+		/**
+		 * The type of this node
+		 */
 		type: 'menu'
-		children: SafeCRM|CRMTree;
+		/**
+		 * The children of this node
+		 */
+		children: SafeTree|Tree;
+		/**
+		 * The value of this node when it was still a link
+		 */
 		linkVal: LinkVal|void;
+		/**
+		 * The value of this node when it was a script
+		 */
 		scriptVal: ScriptVal|void;
+		/**
+		 * The value of this node when it was stylesheet
+		 */
 		stylesheetVal: StylesheetVal|void;
+		/**
+		 * The value of this node when it was still a menu node (none as it is one now)
+		 */
 		menuVal: void;
 	}
 
+	/**
+	 * A safe menu node
+	 */
 	interface SafeMenuNodeBase extends MenuNodeBase {
-		children: SafeCRM;
+		/**
+		 * The node's children (safe)
+		 */
+		children: SafeTree;
 	}
 
+	/**
+	 * A non-safe menu node
+	 */
 	interface MenuNode extends MenuNodeBase {
-		children: CRMTree;
+		/**
+		 * The node's children (non-safe)
+		 */
+		children: Tree;
 	}
 
-	interface DividerNode extends PassiveCRMNode {
+	/**
+	 * A divider node
+	 */
+	interface DividerNode extends PassiveNode {
+		/**
+		 * The type of this node
+		 */
 		type: 'divider';
+		/**
+		 * The children of this node (none)
+		 */
 		children: void;
-		menuVal: CRMTree|void;
+		/**
+		 * The value of this node when it was still a menu node
+		 */
+		menuVal: Tree|void;
+		/**
+		 * The value of this node when it was still a link
+		 */
 		linkVal: LinkVal|void;
+		/**
+		 * The value of this node when it was a script
+		 */
 		scriptVal: ScriptVal|void;
+		/**
+		 * The value of this node when it was still a stylesheet
+		 */
 		stylesheetVal: StylesheetVal|void;
 	}
 
-	interface MadeSafeNode {
-		id: number;
-		path: Array<number>;
-		type: NodeType;
-		name: string;
-		children: SafeCRM|void;
-		linkVal: LinkVal|void;
-		menuVal: CRMTree|void;
-		scriptVal: ScriptVal|void;
-		stylesheetVal: StylesheetVal|void;
-		nodeInfo: CRMNodeInfo;
-		triggers: CRMTriggers;
-		onContentTypes: CRMContentTypes;
-		showOnSpecified?: boolean;
-		value: LinkVal|ScriptVal|StylesheetVal|CRMTree|void;
-	}
-
-
-	type SafeKeys = keyof MadeSafeNode;
-
-	type SafeNode<T extends MadeSafeNode> = Pick<T, SafeKeys>;
-
+	/**
+	 * A node that can be made safe
+	 */
 	type SafeMakableNodes = DividerNode | LinkNode | StylesheetNode | ScriptNode;
-	type CRMNode = SafeMakableNodes | MenuNode;
-	type CRMTree = Array<CRMNode>;
+	/**
+	 * A CRM node
+	 */
+	type Node = SafeMakableNodes | MenuNode;
+	/**
+	 * A tree of CRM nodes
+	 */
+	type Tree = Array<Node>;
 
-	type SafeScriptNode = SafeNode<ScriptNode>;
-	type SafeStylesheetNode = SafeNode<StylesheetNode>;
-	type SafeLinkNode = SafeNode<LinkNode>;
-	type SafeMenuNode = SafeNode<SafeMenuNodeBase>;
-	type SafeDividerNode = SafeNode<DividerNode>;
+	/**
+	 * A safe script node
+	 */
+	type SafeScriptNode = MakeNodeSafe<ScriptNode>;
+	/**
+	 * A safe stylesheet node
+	 */
+	type SafeStylesheetNode = MakeNodeSafe<StylesheetNode>;
+	/**
+	 * A safe link node
+	 */
+	type SafeLinkNode = MakeNodeSafe<LinkNode>;
+	/**
+	 * A safe menu node
+	 */
+	type SafeMenuNode = MakeNodeSafe<SafeMenuNodeBase>;
+	/**
+	 * A safe divider node
+	 */
+	type SafeDividerNode = MakeNodeSafe<DividerNode>;
 
-	type SafeCRMNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
-	type SafeCRM = Array<SafeCRMNode>;
+	/**
+	 * A safe node
+	 */
+	type SafeNode = SafeDividerNode | SafeMenuNode | SafeLinkNode | SafeStylesheetNode | SafeScriptNode;
+	/**
+	 * A CRM tree consisting of safe nodes
+	 */
+	type SafeTree = Array<SafeNode>;
 
+	/**
+	 * Keybindings for the editor
+	 */
+	interface KeyBindings {
+		/**
+		 * A keybinding to complete this value
+		 */
+		autocomplete: string;
+		/**
+		 * A keybinding to show the type of this value
+		 */
+		showType: string;
+		/**
+		 * A keybinding to show the docs for this value
+		 */
+		showDocs: string;
+		/**
+		 * A keybinding to go to the definition of a value
+		 */
+		goToDef: string;
+		/**
+		 * A keybinding to jump back
+		 */
+		jumpBack: string;
+		/**
+		 * A keybinding to rename this value
+		 */
+		rename: string;
+		/**
+		 * A keybinding to select all instances of this value
+		 */
+		selectName: string;
+	}
+
+	/**
+	 * The settings for the editor
+	 */
+	interface EditorSettings {
+		/**
+		 * Whether to use tabs (spaces if false)
+		 */
+		useTabs: boolean;
+		/**
+		 * The size of tabs
+		 */
+		tabSize: number;
+		/**
+		 * The theme to use for the editor
+		 */
+		theme: string;
+		/**
+		 * The zoom on the editor (in percentage)
+		 */
+		zoom: string;
+		/**
+		 * The keybindings for the editor
+		 */
+		keyBindings: KeyBindings;
+	}
+
+	/**
+	 * The settings that are synced
+	 */
+	interface SettingsStorage {
+		/**
+		 * Settings for the editor
+		 */
+		editor: EditorSettings;
+		/**
+		 * The last time the settings were updated
+		 */
+		settingsLastUpdatedAt: number;
+		/**
+		 * The CRM tree
+		 */
+		crm: Array<DividerNode | MenuNode | LinkNode | StylesheetNode | ScriptNode>;
+		/**
+		 * The last ID to be generated
+		 */
+		latestId: number;
+	}
+
+	/**
+	 * Local Storage (not synced)
+	 */
+	interface StorageLocal {
+		/**
+		 * Any installed libraries
+		 */
+		libraries: Array<{
+			/**
+			 * The name of the library
+			 */
+			name?: string;
+			/**
+			 * The URL of the library
+			 */
+			url?: string;
+			/**
+			 * The code of the library
+			 */
+			code: string;
+		}>;
+		/**
+		 * The permissions to be requested
+		 */
+		requestPermissions: Array<string>;
+		/**
+		 * The node that was being edited before an unexpected quit
+		 */
+		editing: {
+			/**
+			 * The value of the script or stylesheet
+			 */
+			val: string;
+			/**
+			 * The ID of the node that was being edited
+			 */
+			id: number;
+			/**
+			 * The mode the editor was in
+			 */
+			mode: string;
+			/**
+			 * The CRM type that was on when it was being edited
+			 */
+			crmType: number;
+		} | void;
+		/**
+		 * The current CRM type
+		 */
+		selectedCrmType: number;
+		/**
+		 * Global variables for jslint
+		 */
+		jsLintGlobals: Array<string>;
+		/**
+		 * Urls on which to never run any scripts
+		 */
+		globalExcludes: Array<string>;
+		/**
+		 * Whether this is not the first time the extension was launched
+		 */
+		notFirstTime: boolean;
+		/**
+		 * The last time at which the settings were updated
+		 */
+		lastUpdatedAt: string;
+		/**
+		 * The author name of the user of this extension
+		 */
+		authorName: string;
+		/**
+		 * Whether to recover unsaved data when a script/stylesheet is quit unexpectedly
+		 */
+		recoverUnsavedData: boolean;
+		/**
+		 * Whether to show a preview of the CRM on the options page
+		 */
+		CRMOnPage: boolean;
+		/**
+		 * Whether to open the edit pages when clicked in the page preview
+		 */
+		editCRMInRM: boolean;
+		/**
+		 * Whether to hide the tools ribbon in fullscreen mode
+		 */
+		hideToolsRibbon: boolean;
+		/**
+		 * Whether to shrink the title ribbon in fullscreen mode
+		 */
+		shrinkTitleRibbon: boolean;
+		/**
+		 * Whether to show the options link in the right-click menu
+		 */
+		showOptions: boolean;
+		/**
+		 * Whether to use storage sync (uses local storage if false)
+		 */
+		useStorageSync: boolean;
+		/**
+		 * The version of the settings
+		 */
+		settingsVersionData: {
+			/**
+			 * Data about the current data's version
+			 */
+			current: {
+				/**
+				 * The hash of the current data
+				 */
+				hash: string;
+				/**
+				 * The date the current data was last updated
+				 */
+				date: number;
+			};
+			/**
+			 * Data about the latest data's version
+			 */
+			latest: {
+				/**
+				 * The hash of the latest data
+				 */
+				hash: string;
+				/**
+				 * The data the latest data was last updated
+				 */
+				date: number;
+			}
+			/**
+			 * Whether the data has been updated yet
+			 */
+			wasUpdated: boolean;
+		};
+
+		/**
+		 * Permissions that were added
+		 */
+		addedPermissions?: Array<{
+			/**
+			 * The ID of the node
+			 */
+			node: number;
+			/**
+			 * The permissions that were added
+			 */
+			permissions: Array<string>;
+		}>;
+		/**
+		 * The scripts that were updated
+		 */
+		updatedScripts?: Array<{
+			/**
+			 * The name of the script
+			 */
+			name: string;
+			/**
+			 * The old version
+			 */
+			oldVersion: string;
+			/**
+			 * The new version
+			 */
+			newVersion: string;
+		}>;
+		/**
+		 * Whether this is a transfer
+		 */
+		isTransfer?: boolean;
+	}
+}
+
+declare namespace CRMAPI {
+	/**
+	 * Data about the click on the page
+	 */
+	interface ContextData {
+		/**
+		 * The X-position of the click relative to the viewport
+		 */
+		clientX: number;
+		/**
+		 * The Y-position of the click relative to the viewport
+		 */
+		clientY: number;
+		/**
+		 * The Y-position of the click relative to the viewport
+		 */
+		offsetX: number;
+		/**
+		 * The Y-position of the click relative to the viewport
+		 */
+		offsetY: number;
+		/**
+		 * The X-position of the click relative to the (embedded) page topleft point
+		 * with scrolling added
+		 */
+		pageX: number;
+		/**
+		 * The Y-position of the click relative to the (embedded) page
+		 * with scrolling added
+		 */
+		pageY: number;
+		/**
+		 * The X-position of the click relative to the screen(s) of the user
+		 */
+		screenX: number;
+		/**
+		 * The Y-position of the click relative to the screen(s) of the user
+		 */
+		screenY: number;
+		/**
+		 * The mouse-button used to trigger the menu
+		 */
+		which: number;
+		/**
+		 * The X-position of the click
+		 */
+		x: number;
+		/**
+		 * The Y-position of the click
+		 */
+		y: number;
+		/**
+		 * The element that was clicked
+		 */
+		srcElement: HTMLElement|void;
+		/**
+		 * The element that was clicked
+		 */
+		target: HTMLElement|void;
+		/**
+		 * The element that was clicked
+		 */
+		toElement: HTMLElement|void;
+	}
+
+	/**
+	 * Tab muted state and the reason for the last state change.
+	 */
 	interface MutedInfo {
+		/**
+		 * Whether the tab is prevented from playing sound
+		 * (but hasn't necessarily recently produced sound).
+		 * Equivalent to whether the muted audio indicator is showing.
+		 */
 		muted: boolean;
+		/**
+		 * The reason the tab was muted or unmuted.
+		 * Not set if the tab's mute state has never been changed.
+		 */
 		reason?: string;
+		/**
+		 * The ID of the extension that changed the muted state. 
+		 * Not set if an extension was not the reason the muted state last changed.
+		 */
 		extensionId?: string;
 	}
 
+	/**
+	 * Data about the tab itself
+	 */
 	interface TabData { // https://developer.chrome.com/extensions/tabs#type-Tab
+		/**
+		 * The ID of the tab
+		 */
 		id?: number;
+		/**
+		 * The index of this tab within its window
+		 */
 		index: number;
+		/**
+		 * The ID of the window the tab is contained within
+		 */
 		windowId: number;
+		/**
+		 * The ID of the tab that opened this tab, if any. 
+		 * This property is only present if the opener tab still exists.
+		 */
 		openerTabId?: number;
+		/**
+		 * Whether the tab is selected (deprecated since chrome 33)
+		 */
+		selected?: boolean;
+		/**
+		 * Whether the tab is hilighted
+		 */
 		highlighted: boolean;
+		/**
+		 * Whether the tab is active in its window
+		 */
 		active: boolean;
+		/**
+		 * Whether the tab is pinned
+		 */
 		pinned: boolean;
+		/**
+		 * Whether the tab has produced sound in the last few seconds (since chrome 45)
+		 */
 		audible?: boolean;
+		/**
+		 * Whether the tab is discarded. A discarded tab is one whose content has been 
+		 * unloaded from memory, but is still visible in the tab strip. Its content
+		 * gets reloaded the next time it's activated. (since chrome 54)
+		 */
+		discarded?: boolean;
+		/**
+		 * Whether the tab can be discarded automatically by the browser when resources
+		 * are low. (since chrome 54)
+		 */
+		autoDiscardable?: boolean;
+		/**
+		 * Tab muted state and the reason for the last state change. (since chrome 46)
+		 */
 		mutedInfo?: MutedInfo;
+		/**
+		 * The URL the tab
+		 */
 		url?: string;
+		/**
+		 * The title of the tab
+		 */
 		title?: string;
+		/**
+		 * The URL fo the tab's favicon
+		 */
 		faviconUrl?: string;
-		status: string;
+		/**
+		 * The status of the tab (loading or complete)
+		 */
+		status: 'loading'|'complete';
+		/**
+		 * Whether the tab is an incognito window
+		 */
 		incognito: boolean;
+		/**
+		 * The width of the tab in pixels (since chrome 31)
+		 */
 		width?: number;
+		/**
+		 * The height of the tab in pixels (since chrome 31)
+		 */
 		height?: number;
+		/**
+		 * The session ID used to uniquely identify a Tab obtained from the sessions API.
+		 * (since chrome 31)
+		 */
 		sessionId?: number;
 	}
 
+	/**
+	 * Data about the click inside the context-menu
+	 */
 	interface ClickData { // https://developer.chrome.com/extensions/contextMenus#event-onClicked
+		/**
+		 * The ID of the menu item that was clicked. (since chrome 35)
+		 */
 		menuItemId: string|number;
+		/**
+		 * The parent ID, if any, for the item clicked.
+		 * (since chrome 35)
+		 */
 		parentMenuItemId?: string|number;
-		mediaType?: string;
+		/**
+		 * The media type the right-click menu was summoned on.
+		 * (since chrome 35)
+		 */
+		mediaType?: 'image'|'video'|'audio';
+		/** 
+		 * If the element is a link, the URL it points to.
+		 * (since chrome 35)
+		 */
 		linkUrl?: string;
+		/**
+		 * The src attribute, if the clicked-on element has one.
+		 * (since chrome 35)
+		 */
 		srcUrl?: string;
+		/**
+		 * The URL fo the page where the item was clicked.
+		 * (since chrome 35)
+		 */
 		pageUrl?: string;
+		/**
+		 * The URL of the frame where the context menu was clicked.
+		 * (since chrome 35)
+		 */
 		frameUrl?: string;
+		/**
+		 * The selected text (if any). (since chrome 35)
+		 */
 		selectionText?: string;
+		/**
+		 * Whether the element is editable (text input, textarea etc).
+		 * (since chrome 35)
+		 */
 		editable: boolean;
+		/**
+		 * Whether a radiobutton or checkbox was checked,
+		 * before it was clicked on. (since chrome 35)
+		 */
 		wasChecked?: boolean;
+		/**
+		 * Whether a radiobutton or checkbox was checked,
+		 * after it was clicked on. (since chrome 35)
+		 */
 		checked?: boolean;
 	}
 
-	type NodeStorage = { [key: string]: any|NodeStorage }
+	/**
+	 * The storage for this node, an object
+	 */
+	type NodeStorage = Object;
 
+	/**
+	 * A resource for a script
+	 */
 	interface Resource {
+		/**
+		 * A dataURI representing the data
+		 */
 		dataURI: string;
+		/**
+		 * A string of the data itself
+		 */
 		dataString: string;
+		/**
+		 * The URL the data was downloaded from
+		 */
 		url: string;
+		/**
+		 * The URL used to load the data
+		 */
 		crmUrl: string;
 	}
 
+	/**
+	 * Resources for scripts
+	 */
 	type Resources = { [name: string]: Resource }
 
+	/**
+	 * GreaseMonkey data
+	 */
 	interface GreaseMonkeyDataInfo {
+		/**
+		 * Data about the script
+		 */
 		script: {
+			/**
+			 * The author of the script
+			 */
 			author?: string;
+			/**
+			 * The copyright of the script
+			 */
 			copyright?: string;
+			/**
+			 * A description of the script
+			 */
 			description?: string;
+			/**
+			 * URLs not to run this script on
+			 */
 			excludes?: Array<string>;
+			/**
+			 * A homepage for this script
+			 */
 			homepage?: string;
+			/**
+			 * An icon used for this script
+			 */
 			icon?: string;
+			/**
+			 * A 64x64 icon used for this script
+			 */
 			icon64?: string;
+			/**
+			 * URLs on which to run this script (can use globs)
+			 */
 			includes?: Array<string>;
+			/**
+			 * The last time this script was updated
+			 */
 			lastUpdated: number; //Never updated
+			/**
+			 * URLs on which this script is ran
+			 */
 			matches?: Array<string>;
+			/**
+			 * Whether the user is incognito
+			 */
 			isIncognito: boolean;
+			/**
+			 * The downloadMode (???)
+			 */
 			downloadMode: string;
+			/**
+			 * The name of the script
+			 */
 			name: string;
+			/**
+			 * The namespace the script is running in (url)
+			 */
 			namespace?: string;
+			/**
+			 * Options for greasemonkey
+			 */
 			options: {
 				awareOfChrome: boolean;
 				compat_arrayleft: boolean;
@@ -368,81 +1606,245 @@ declare namespace CRMAPI {
 					use_includes: Array<string>;
 				}
 			},
+			/**
+			 * The position of this script (???)
+			 */
 			position: number;
+			/**
+			 * The resources loaded for this script
+			 */
 			resources: Array<Resource>;
+			/**
+			 * When to run this script in the page-load cycle
+			 */
 			"run-at": string;
 			system: boolean;
 			unwrap: boolean;
+			/**
+			 * The version number of this script
+			 */
 			version?: number;
 		},
+		/**
+		 * The metastring for this script
+		 */
 		scriptMetaStr: string;
+		/**
+		 * The source of this script
+		 */
 		scriptSource: string;
+		/**
+		 * The URL from which this script can be updated
+		 */
 		scriptUpdateURL?: string;
+		/**
+		 * Whether this script gets updated
+		 */
 		scriptWillUpdate: boolean;
 		scriptHandler: string;
+		/**
+		 * The version number of this script
+		 */
 		version: string;
 	}
 
+	/**
+	 * Data about greasemonkey
+	 */
 	interface GreaseMonkeyData {
-		info: GreaseMonkeyDataInfo,
-		resources: Resources
+		/**
+		 * The info about the script
+		 */
+		info: GreaseMonkeyDataInfo;
+		/**
+		 * The resources used by this script
+		 */
+		resources: Resources;
 	}
 
+	/**
+	 * An instance of a script running on a tab
+	 */
 	interface Instance {
+		/**
+		 * The ID of the tab
+		 */
 		id: number;
+		/**
+		 * The index of this script in the array of
+		 * scripts with this ID running on a tab
+		 */
 		tabIndex: number;
+		/**
+		 * A function used to send a message to this instance
+		 */
 		sendMessage: (message: any, callback: any) => void
 	}
 
+	/**
+	 * A relation between a node to any other node
+	 */
 	interface Relation {
+		/**
+		 * The ID of the node that it's relative to
+		 */
 		node: number;
+		/**
+		 * The relation between them
+		 */
 		relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|'after';
 	}
 
+	/**
+	 * A partial chrome request
+	 */
 	interface ChromeRequestReturn extends Function {
-		(): ChromeRequestReturn;
-		args: (...params: Array<any>) => ChromeRequestReturn,
-		a: (...params: Array<any>) => ChromeRequestReturn,
-		return: (handler: (value: any) => void) => ChromeRequestReturn,
-		r: (handler: (value: any) => void) => ChromeRequestReturn,
-		persistent: (...functions: Array<Function>) => ChromeRequestReturn,
-		p: (...functions: Array<Function>) => ChromeRequestReturn,
-		send: () => ChromeRequestReturn,
-		s: () => ChromeRequestReturn,
+		/**
+		 * A regular call with given arguments (functions can only be called once
+		 * unless you use .persistent)
+		 */
+		(...params: Array<any>): ChromeRequestReturn;
+		/**
+		 * A regular call with given arguments (functions can only be called once
+		 * unless you use .persistent)
+		 */
+		args: (...params: Array<any>) => ChromeRequestReturn;
+		/**
+		 * A regular call with given arguments (functions can only be called once
+		 * unless you use .persistent)
+		 */
+		a: (...params: Array<any>) => ChromeRequestReturn;
+		/**
+		 * A function to call when a value is returned by the call
+		 */
+		return: (handler: (value: any) => void) => ChromeRequestReturn;
+		/**
+		 * A function to call when a value is returned by the call
+		 */
+		r: (handler: (value: any) => void) => ChromeRequestReturn;
+		/**
+		 * A persistent callback (that can be called multiple times)
+		 */
+		persistent: (...functions: Array<Function>) => ChromeRequestReturn;
+		/**
+		 * A persistent callback (that can be called multiple times)
+		 */
+		p: (...functions: Array<Function>) => ChromeRequestReturn;
+		/**
+		 * Sends the function and runs it
+		 */
+		send: () => ChromeRequestReturn;
+		/**
+		 * Sends the function and runs it
+		 */
+		s: () => ChromeRequestReturn;
+		/**
+		 * Info about the request itself
+		 */
 		request: {
+			/**
+			 * The API it's using
+			 */
 			api: string,
+			/**
+			 * Arguments passed to the request
+			 */
 			chromeAPIArguments: Array<{
-				type: string;
+				/**
+				 * The type of argument
+				 */
+				type: 'fn'|'arg'|'return';
+				/**
+				 * The value of the argument
+				 */
 				val: any;
 			}>,
-			type?: string
+			/**
+			 * The type of this chrome request (if a special one
+			 * that can not be made by the user themselves)
+			 */
+			type?: 'GM_download'|'GM_notification';
 		};
+		/**
+		 * A function to run when an error occurs on running given chrome request
+		 */
 		onError?: Function
 	}
 
+	/**
+	 * Settings for a GM_download call
+	 */
 	interface DownloadSettings {
+		/**
+		 * The URL to download
+		 */
 		url?: string;
+		/**
+		 * The name of the downloaded files
+		 */
 		name?: string;
+		/**
+		 * Headers for the XHR
+		 */
 		headers?: { [headerKey: string]: string };
+		/**
+		 * A function to call when downloaded
+		 */
 		onload?: () => void;
+		/**
+		 * A function to call on error
+		 */
 		onerror?: (e: any) => void;
 	}
 
+	/**
+	 * Settings for a GM_notification call
+	 */
 	interface NotificationOptions {
+		/**
+		 * The text on the notification
+		 */
 		text?: string;
+		/**
+		 * The URL of the image to use
+		 */
 		imageUrl?: string;
+		/**
+		 * The title of the notification
+		 */
 		title?: string;
+		/**
+		 * A function to run when the notification is clicked
+		 */
 		onclick?: (e: Event) => void;
+		/**
+		 * Whether the notification should be clickable
+		 */
 		isClickable?: boolean;
+		/**
+		 * A function to run when the notification disappears
+		 */
 		ondone?: () => void;
 	}
 
+	/**
+	 * A callback that gets called immediately (as a polyfill)
+	 */
 	type InstantCB = (callback: () => void) => void;
 
+	/**
+	 * A function with no args or return value (as a polyfill)
+	 */
 	type EmptyFn = () => void;
 
+	/**
+	 * THe handler of a message that is sent to the crm-api
+	 */
 	type MessageHandler = (message: any) => void;
 
+	/**
+	 * A listener for a storage change
+	 */
 	type StorageListener = (key: string, oldValue: any, newValue: any, remote: boolean) => void;
 
 	/**
@@ -468,22 +1870,22 @@ declare namespace CRMAPI {
 		/**
 		 * When true, shows stacktraces on error in the console of the page
 		 *		the script runs on, true by default.
-		*/
+		 */
 		stackTraces: boolean;
 
 		/**
 		 * If true, throws an error when one of your crmAPI calls is incorrect
 		 *		(such as a type mismatch or any other fail). True by default.
-		*/
+		 */
 		errors: boolean;
 
 		/**
 		 * If true, when an error occurs anywhere in the script, opens the
 		 *		chrome debugger by calling the debugger command. This will
-		*		only work if you have the devtools (f12) open on the page
-		*		the error occurs on. This allows you to check any values
-		*		of variables to help you diagnose the issue.
-		*/
+		 *		only work if you have the devtools (f12) open on the page
+		 *		the error occurs on. This allows you to check any values
+		 *		of variables to help you diagnose the issue.
+		 */
 		debugOnerror: boolean;
 
 		/**
@@ -495,7 +1897,6 @@ declare namespace CRMAPI {
 		/**
 		 * Returns the options for this script/stylesheet. Any missing values are 
 		 *		filled in with the corresponding field in the 'defaults' param
-		 * 
 		 */
 		options<T extends Object, O extends Object>(defaults?: T): T & O;
 
@@ -511,8 +1912,6 @@ declare namespace CRMAPI {
 
 		/**
 		 * The tabIndex of this instance
-		 * 
-		 * @type number
 		 */
 		currentTabIndex: number;
 
@@ -524,7 +1923,7 @@ declare namespace CRMAPI {
 		/**
 		 * All permissions that are allowed on this script
 		 */
-		permissions: Array<CRMPermission>;
+		permissions: Array<CRM.Permission>;
 
 		/**
 		 * If set, calls this function when an error occurs
@@ -704,7 +2103,7 @@ declare namespace CRMAPI {
 		 *
 		 * @returns {Object} - The node that is being executed right now
 		 */
-		getNode(): CRMNode;
+		getNode(): CRM.Node;
 
 		/**
 		 * The crm API, used to make changes to the crm, some API calls may require permissions crmGet and crmWrite
@@ -718,7 +2117,7 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @param {function} callback - A function that is called when done with the data as an argument
 			 */
-			getTree(callback: (data: Array<SafeCRMNode>) => void): void,
+			getTree(callback: (data: Array<CRM.SafeNode>) => void): void,
 
 			/**
 			 * Gets the CRM's tree from either the root or from the node with ID nodeId
@@ -727,7 +2126,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The ID of the subtree's root node
 			 * @param {function} callback - A function that is called when done with the data as an argument
 			 */
-			getSubTree(nodeId: number, callback: (data: Array<SafeCRMNode>) => void): void,
+			getSubTree(nodeId: number, callback: (data: Array<CRM.SafeNode>) => void): void,
 
 			/**
 			 * Gets the node with ID nodeId
@@ -735,7 +2134,7 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @param {CrmAPIInit~crmCallback} callback - A function that is called when done
 			 */
-			getNode(nodeId: number, callback: (node: SafeCRMNode) => void): void,
+			getNode(nodeId: number, callback: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets a node's ID from a path to the node
@@ -758,7 +2157,7 @@ declare namespace CRMAPI {
 			 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 			 * @param {CrmAPIInit~crmCallback} callback - A callback with the resulting nodes in an array
 			 */
-			queryCrm(query: { name?: string, type?: NodeType, inSubTree?: number}, callback: (results: Array<SafeCRMNode>) => void): void,
+			queryCrm(query: { name?: string, type?: CRM.NodeType, inSubTree?: number}, callback: (results: Array<CRM.SafeNode>) => void): void,
 
 			/**
 			 * Gets the parent of the node with ID nodeId
@@ -767,7 +2166,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The node of which to get the parent
 			 * @param {CrmAPIInit~crmCallback} callback - A callback with the parent of the given node as an argument
 			 */
-			getParentNode(nodeId: number, callback: (node: SafeCRMNode) => void): void,
+			getParentNode(nodeId: number, callback: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the children of the node with ID nodeId
@@ -776,7 +2175,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The id of the node whose children to get
 			 * @param {function} callback - A callback with an array of CrmAPIInit~crmNode nodes as the parameter
 			 */
-			getChildren(nodeId: number, callback: (result: Array<SafeCRMNode>) => void): void,
+			getChildren(nodeId: number, callback: (result: Array<CRM.SafeNode>) => void): void,
 
 			/**
 			 * Gets the type of node with ID nodeId
@@ -785,7 +2184,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The id of the node whose type to get
 			 * @param {function} callback - A callback with the type of the node as the parameter (link, script, menu or divider)
 			 */
-			getNodeType(nodeId: number, callback: (type: NodeType) => void): void,
+			getNodeType(nodeId: number, callback: (type: CRM.NodeType) => void): void,
 
 			/**
 			 * Gets the value of node with ID nodeId
@@ -794,7 +2193,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The id of the node whose value to get
 			 * @param {function} callback - A callback with parameter CrmAPIInit~linkVal, CrmAPIInit~scriptVal, CrmAPIInit~stylesheetVal or an empty object depending on type
 			 */
-			getNodeValue(nodeId: number, callback: (value: LinkVal|ScriptVal|StylesheetVal|null) => void): void,
+			getNodeValue(nodeId: number, callback: (value: CRM.LinkVal|CRM.ScriptVal|CRM.StylesheetVal|null) => void): void,
 
 			/**
 			 * Creates a node with the given options
@@ -853,9 +2252,9 @@ declare namespace CRMAPI {
 			* @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
 			* @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 			*/
-			createNode:(options: Partial<SafeCRMNode> & {
-							position?: Relation;
-						}, callback: (node: SafeCRMNode) => void) => void,
+			createNode:(options: Partial<CRM.SafeNode> & {
+				position?: Relation;
+			}, callback: (node: CRM.SafeNode) => void) => void,
 
 			/**
 			 * Copies given node,
@@ -880,9 +2279,9 @@ declare namespace CRMAPI {
 			* @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
 			*/
 			copyNode:(nodeId: number, options: {
-										name?: string;
-										position?: Relation
-									}, callback: (node: SafeCRMNode) => void) => void,
+				name?: string;
+				position?: Relation
+			}, callback: (node: CRM.SafeNode) => void) => void,
 
 			/**
 			 * Moves given node to position specified in "position"
@@ -901,7 +2300,7 @@ declare namespace CRMAPI {
 			*		after: after the given node
 			* @param {CrmAPIInit~crmCallback} callback - A function that gets called with the new node as an argument
 			*/
-			moveNode(nodeId: number, position: Relation, callback: (node: SafeCRMNode) => void): void,
+			moveNode(nodeId: number, position: Relation, callback: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Deletes given node
@@ -925,7 +2324,7 @@ declare namespace CRMAPI {
 			 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, contains the new node as an argument
 			 */
-			editNode(nodeId: number, options: { name?: string, type?: NodeType }, callback: (node: SafeCRMNode) => void): void,
+			editNode(nodeId: number, options: { name?: string, type?: CRM.NodeType }, callback: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the triggers for given node
@@ -934,7 +2333,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The node of which to get the triggers
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the triggers as an argument
 			 */
-			getTriggers(nodeId: number, callback: (triggers: Array<CRMTrigger>) => void): void,
+			getTriggers(nodeId: number, callback: (triggers: Array<CRM.Trigger>) => void): void,
 
 			/**
 			 * Sets the triggers for given node
@@ -951,7 +2350,7 @@ declare namespace CRMAPI {
 			 * @param {boolean} triggers.not - If true does NOT show the node on that URL
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 			 */
-			setTriggers(nodeId: number, triggers: Array<CRMTrigger>, callback: (node: SafeCRMNode) => void): void,
+			setTriggers(nodeId: number, triggers: Array<CRM.Trigger>, callback: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the content types for given node
@@ -961,7 +2360,7 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The node of which to get the content types
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
 			 */
-			getContentTypes(nodeId: number, callback: (contentTypes: CRMContentTypes) => void): void,
+			getContentTypes(nodeId: number, callback: (contentTypes: CRM.ContentTypes) => void): void,
 
 			/**
 			 * Sets the content type at index "index" to given value "value"
@@ -974,7 +2373,7 @@ declare namespace CRMAPI {
 			* @param {boolean} value - The new value at index "index"
 			* @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the new array as an argument
 			*/
-			setContentType(nodeId: number, index: CRMContentType, value: boolean, callback: (contentTypes: CRMContentTypes) => void): void,
+			setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback: (contentTypes: CRM.ContentTypes) => void): void,
 
 			/**
 			 * Sets the content types to given contentTypes array
@@ -988,7 +2387,7 @@ declare namespace CRMAPI {
 			*		page, link, selection, image, video, audio
 			* @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 			*/
-			setContentTypes(nodeId: number, contentTypes: CRMContentTypes, callback: (node: SafeCRMNode) => void): void,
+			setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
@@ -1009,7 +2408,7 @@ declare namespace CRMAPI {
 			 * @param {boolean} useTriggers - Whether the triggers should be used or not
 			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
 			 */
-			setTriggerUsage(nodeId: number, useTriggers: boolean, callback: (node: SafeCRMNode) => void): void
+			setTriggerUsage(nodeId: number, useTriggers: boolean, callback: (node: CRM.SafeNode) => void): void
 
 			/**
 			 * Sets the launch mode of node with ID nodeId to "launchMode"
@@ -1025,7 +2424,7 @@ declare namespace CRMAPI {
 			 * 		4 = disabled
 			 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
 			 */
-			setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback: (node: SafeCRMNode) => void): void,
+			setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the launchMode of the node with ID nodeId
@@ -1049,7 +2448,7 @@ declare namespace CRMAPI {
 				 * @param {string} stylesheet - The code to change to
 				 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
 				 */
-				setStylesheet(nodeId: number, stylesheet: string, callback: (node: SafeCRMNode) => void): void
+				setStylesheet(nodeId: number, stylesheet: string, callback: (node: CRM.SafeNode) => void): void
 
 				/**
 				 * Gets the value of the stylesheet
@@ -1074,7 +2473,7 @@ declare namespace CRMAPI {
 				 *		newTab: Whether the link should open in a new tab or the current tab
 				*		url: The URL of the link
 				*/
-				getLinks(nodeId: number, callback: (result: Array<LinkNodeLink>) => void): void,
+				getLinks(nodeId: number, callback: (result: Array<CRM.LinkNodeLink>) => void): void,
 
 				/**
 				 * Pushes given items into the array of URLs of node with ID nodeId
@@ -1087,10 +2486,10 @@ declare namespace CRMAPI {
 				 * @param {string} [items.url] - The URL to open on clicking the link
 				 * @param {functon} callback - A function that gets called when done with the new array as an argument
 				 */
-				push(nodeId: number, items: LinkNodeLink,
-												callback: (arr: Array<LinkNodeLink>) => void): void,
-				push(nodeId: number, items: Array<LinkNodeLink>,
-												callback: (arr: Array<LinkNodeLink>) => void): void
+				push(nodeId: number, items: CRM.LinkNodeLink,
+					callback: (arr: Array<CRM.LinkNodeLink>) => void): void,
+				push(nodeId: number, items: Array<CRM.LinkNodeLink>,
+					callback: (arr: Array<CRM.LinkNodeLink>) => void): void
 
 				/**
 				 * Splices the array of URLs of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -1104,7 +2503,7 @@ declare namespace CRMAPI {
 				 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 */
 				splice(nodeId: number, start: number, amount: number,
-												callback: (spliced: Array<LinkNodeLink>, newArr: Array<LinkNodeLink>) => void): void
+					callback: (spliced: Array<CRM.LinkNodeLink>, newArr: Array<CRM.LinkNodeLink>) => void): void
 			},
 
 			script: {
@@ -1117,7 +2516,7 @@ declare namespace CRMAPI {
 				 * @param {string} value - The code to change to
 				 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
 				 */
-				setScript(nodeId: number, script: string, callback: (node: SafeCRMNode) => void): void,
+				setScript(nodeId: number, script: string, callback: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Gets the value of the script
@@ -1137,7 +2536,7 @@ declare namespace CRMAPI {
 				 * @param {string} value - The code to change to
 				 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
 				 */
-				setBackgroundScript(nodeId: number, script: string, callback: (node: SafeCRMNode) => void): void,
+				setBackgroundScript(nodeId: number, script: string, callback: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Gets the value of the backgroundScript
@@ -1160,8 +2559,8 @@ declare namespace CRMAPI {
 					 * @param {string} libraries.name - The name of the library
 					 * @param {function} callback - A callback with the new array as an argument
 					 */
-					push(nodeId: number, libraries: CRMLibrary, callback: (libs: Array<CRMLibrary>) => void): void,
-					push(nodeId: number, libraries: Array<CRMLibrary>, callback: (libs: Array<CRMLibrary>) => void): void,
+					push(nodeId: number, libraries: CRM.Library, callback: (libs: Array<CRM.Library>) => void): void,
+					push(nodeId: number, libraries: Array<CRM.Library>, callback: (libs: Array<CRM.Library>) => void): void,
 
 					/**
 					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -1175,7 +2574,7 @@ declare namespace CRMAPI {
 					 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(nodeId: number, start: number, amount: number,
-																	callback: (spliced: Array<CRMLibrary>, newArr: Array<CRMLibrary>) => void): void
+						callback: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
 				},
 
 				/**
@@ -1193,8 +2592,8 @@ declare namespace CRMAPI {
 					 * @param {string} libraries.name - The name of the library
 					 * @param {function} callback - A callback with the new array as an argument
 					 */
-					push(nodeId: number, libraries: CRMLibrary, callback: (libs: Array<CRMLibrary>) => void): void,
-					push(nodeId: number, libraries: Array<CRMLibrary>, callback: (libs: Array<CRMLibrary>) => void): void,
+					push(nodeId: number, libraries: CRM.Library, callback: (libs: Array<CRM.Library>) => void): void,
+					push(nodeId: number, libraries: Array<CRM.Library>, callback: (libs: Array<CRM.Library>) => void): void,
 
 					/**
 					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -1208,7 +2607,7 @@ declare namespace CRMAPI {
 					 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(nodeId: number, start: number, amount: number,
-																	callback: (spliced: Array<CRMLibrary>, newArr: Array<CRMLibrary>) => void): void
+							callback: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
 				}
 			},
 
@@ -1223,7 +2622,7 @@ declare namespace CRMAPI {
 				 * @param {number} nodeId - The id of the node of which to get the children
 				 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
 				 */
-				getChildren(nodeId: number, callback: (nodes: Array<SafeCRMNode>) => void): void,
+				getChildren(nodeId: number, callback: (nodes: Array<CRM.SafeNode>) => void): void,
 
 				/**
 				 * Sets the children of node with ID nodeId to the nodes with IDs childrenIds
@@ -1235,7 +2634,7 @@ declare namespace CRMAPI {
 				 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 				 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
 				 */
-				setChildren(nodeId: number, childrenIds: Array<number>, callback: (node: SafeCRMNode) => void): void,
+				setChildren(nodeId: number, childrenIds: Array<number>, callback: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
@@ -1247,7 +2646,7 @@ declare namespace CRMAPI {
 				 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
 				 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
 				 */
-				push(nodeId: number, childrenIds: Array<number>, callback: (node: SafeCRMNode) => void): void,
+				push(nodeId: number, childrenIds: Array<number>, callback: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Splices the children of the node with ID nodeId, starting at "start" and splicing "amount" items,
@@ -1262,7 +2661,7 @@ declare namespace CRMAPI {
 				 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 */
 				splice(nodeId: number, start: number, amount: number,
-												callback: (spliced: Array<SafeCRMNode>, newArr: Array<SafeCRMNode>) => void): void,
+					callback: (spliced: Array<CRM.SafeNode>, newArr: Array<CRM.SafeNode>) => void): void,
 			},
 
 			/**
@@ -1280,7 +2679,7 @@ declare namespace CRMAPI {
 				 * @param {function} callback - A callback with the library object as an argument
 				 */
 				register(name: string, options: {url: string, code: string},
-													callback: (lib: CRMLibrary) => void): void,
+					callback: (lib: CRM.Library) => void): void,
 			}
 		}
 
