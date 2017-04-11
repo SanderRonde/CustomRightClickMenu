@@ -7690,7 +7690,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	class Storages {
 		static SetupHandling = class SetupHandling {
 			static TransferFromOld = class TransferFromOld {
-				private static legacyScriptReplace = class LegacyScriptReplace {
+				static legacyScriptReplace = class LegacyScriptReplace {
 					private static localStorageReplace = class LogalStorageReplace {
 						private static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
 							switch (expression.type) {
@@ -8415,7 +8415,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return script;
 						}
 					}
-					private static generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler {
+					static generateScriptUpgradeErrorHandler(id: number): UpgradeErrorHandler {
 						return function(oldScriptErrors, newScriptErrors, parseError) {
 							chrome.storage.local.get(function (keys: CRM.StorageLocal) {
 								if (!keys.upgradeErrors) {
@@ -9118,8 +9118,36 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
+		private static _crmForEach(crm: CRM.Tree, fn: (node: CRM.Node) => void) {
+			for (let i = 0; i < crm.length; i++) {
+				const node =crm[i];
+				fn(node);
+				if (node.type === 'menu' && node.children) {
+					this._crmForEach(node.children, fn);
+				}
+			}
+		}
 		private static _upgradeVersion(oldVersion: string, newVersion: string) {
-			//No changes yet
+			if (oldVersion === '2.0.3') {
+				this._crmForEach(window.app.settings.crm, (node) => {
+					if (node.type === 'script') {
+						node.value.oldScript = node.value.script;
+						node.value.script = this.SetupHandling.TransferFromOld
+							.legacyScriptReplace
+							.chromeCallsReplace
+							.replace(node.value.script, this.SetupHandling.TransferFromOld
+								.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
+					}
+					if (node.isLocal) {
+							node.nodeInfo.installDate = new Date().toLocaleDateString();
+							node.nodeInfo.lastUpdatedAt = Date.now();
+							node.nodeInfo.version = '1.0';
+							node.nodeInfo.isRoot = false;
+							node.nodeInfo.source = 'local';
+					}
+				});
+				window.app.upload();
+			}
 		}
 		private static _isFirstTime(storageLocal: CRM.StorageLocal): boolean|FirstTimeCallback {
 			const currentVersion = chrome.runtime.getManifest().version;
