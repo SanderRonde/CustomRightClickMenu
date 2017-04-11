@@ -3116,6 +3116,7 @@ class CA {
 		static getPermissions(): Array<CRM.Permission> {
 			return [
 				'alarms',
+				'activeTab',
 				'background',
 				'bookmarks',
 				'browsingData',
@@ -3124,6 +3125,7 @@ class CA {
 				'contentSettings',
 				'cookies',
 				'contentSettings',
+				'contextMenus',
 				'declarativeContent',
 				'desktopCapture',
 				'downloads',
@@ -3140,6 +3142,7 @@ class CA {
 				'system.memory',
 				'system.storage',
 				'topSites',
+				'tabs',
 				'tabCapture',
 				'tts',
 				'webNavigation',
@@ -3154,6 +3157,7 @@ class CA {
 		static getScriptPermissions(): Array<CRM.Permission> {
 			return [
 				'alarms',
+				'activeTab',
 				'background',
 				'bookmarks',
 				'browsingData',
@@ -3162,6 +3166,7 @@ class CA {
 				'contentSettings',
 				'cookies',
 				'contentSettings',
+				'contextMenus',
 				'declarativeContent',
 				'desktopCapture',
 				'downloads',
@@ -3169,7 +3174,6 @@ class CA {
 				'identity',
 				'idle',
 				'management',
-				'notifications',
 				'pageCapture',
 				'power',
 				'privacy',
@@ -3179,6 +3183,7 @@ class CA {
 				'system.memory',
 				'system.storage',
 				'topSites',
+				'tabs',
 				'tabCapture',
 				'tts',
 				'webNavigation',
@@ -3214,6 +3219,7 @@ class CA {
 		static getPermissionDescription(permission: CRM.Permission): string {
 			const descriptions = {
 				alarms: 'Makes it possible to create, view and remove alarms.',
+				activeTab: 'Gives temporary access to the tab on which browserActions or contextmenu items are clicked',
 				background: 'Runs the extension in the background even while chrome is closed. (https://developer.chrome.com/extensions/alarms)',
 				bookmarks: 'Makes it possible to create, edit, remove and view all your bookmarks.',
 				browsingData: 'Makes it possible to remove any saved data on your browser at specified time allowing the user to delete any history, saved passwords, cookies, cache and basically anything that is not saved in incognito mode but is in regular mode. This is editable so it is possible to delete ONLY your history and not the rest for example. (https://developer.chrome.com/extensions/bookmarks)',
@@ -3221,6 +3227,7 @@ class CA {
 				clipboardWrite: 'Allows writing data to the users\' clipboard',
 				cookies: 'Allows for the setting, getting and listenting for changes of cookies on any website. (https://developer.chrome.com/extensions/cookies)',
 				contentSettings: 'Allows changing or reading your browser settings to allow or deny things like javascript, plugins, popups, notifications or other things you can choose to accept or deny on a per-site basis. (https://developer.chrome.com/extensions/contentSettings)',
+				contextMenus: 'Allows for the changing of the chrome contextmenu',
 				declarativeContent: 'Allows for the running of scripts on pages based on their url and CSS contents. (https://developer.chrome.com/extensions/declarativeContent)',
 				desktopCapture: 'Makes it possible to capture your screen, current tab or chrome window (https://developer.chrome.com/extensions/desktopCapture)',
 				downloads: 'Allows for the creating, pausing, searching and removing of downloads and listening for any downloads happenng. (https://developer.chrome.com/extensions/downloads)',
@@ -3239,6 +3246,7 @@ class CA {
 				"system.storage": 'Allows a script to get info about the amount of storage on your computer and be notified when external storage is attached or detached. (https://developer.chrome.com/extensions/system_storage)',
 				topSites: 'Allows a script to your top sites, which are the sites on your new tab screen. (https://developer.chrome.com/extensions/topSites)',
 				tabCapture: 'Allows the capturing of the CURRENT tab and only the tab. (https://developer.chrome.com/extensions/tabCapture)',
+				tabs: 'Allows for the opening, closing and getting of tabs',
 				tts: 'Allows a script to use chrome\'s text so speach engine. (https://developer.chrome.com/extensions/tts)',
 				webNavigation: 'Allows a script info about newly created pages and allows it to get info about what website visit at that time.' +
 					' (https://developer.chrome.com/extensions/webNavigation)',

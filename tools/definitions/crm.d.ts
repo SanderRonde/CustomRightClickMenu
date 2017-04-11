@@ -47,6 +47,7 @@ declare namespace CRM {
 	 */
 	interface ChromePermissionDescriptions {
 		alarms: string;
+		activeTab: string;
 		background: string;
 		bookmarks: string;
 		browsingData: string;
@@ -54,6 +55,7 @@ declare namespace CRM {
 		clipboardWrite: string;
 		cookies: string;
 		contentSettings: string;
+		contextMenus: string;
 		declarativeContent: string;
 		desktopCapture: string;
 		downloads: string;
@@ -72,6 +74,7 @@ declare namespace CRM {
 		"system.storage": string;
 		topSites: string;
 		tabCapture: string;
+		tabs: string;
 		tts: string;
 		webNavigation: string;
 		webRequest: string;

@@ -412,7 +412,7 @@ interface GlobalObject {
 			validSchemes: Array<string>;
 			templates: CRMTemplates;
 			specialJSON: SpecialJSON;
-			permissions: Array<string>;
+			permissions: Array<CRM.Permission>;
 			contexts: Array<string>;
 		};
 		listeners: {
@@ -1022,6 +1022,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			contexts: ['page', 'link', 'selection', 'image', 'video', 'audio'],
 			permissions: [
 				'alarms',
+				'activeTab',
 				'background',
 				'bookmarks',
 				'browsingData',
@@ -1030,6 +1031,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				'contentSettings',
 				'cookies',
 				'contentSettings',
+				'contextMenus',
 				'declarativeContent',
 				'desktopCapture',
 				'downloads',
@@ -1046,6 +1048,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				'system.cpu',
 				'system.memory',
 				'system.storage',
+				'tabs',
 				'topSites',
 				'tabCapture',
 				'tts',
