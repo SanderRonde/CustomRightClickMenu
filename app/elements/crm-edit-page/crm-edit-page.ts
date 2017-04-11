@@ -312,6 +312,11 @@ class CEP {
 		this.$overlayEl = $('.overlayCont');
 		window.crmEditPage = this;
 		this.isLink = this.isMenu = this.isScript = this.isDivider = false;
+
+		this.$.nodeInfoVersion.addEventListener('input', () => {
+			this.item.nodeInfo.version = this.$.nodeInfoVersion.innerText.length > 0 ?
+				this.$.nodeInfoVersion.innerText : '1.0';
+		});
 	};
 	
 	static init(this: CrmEditPage) {
