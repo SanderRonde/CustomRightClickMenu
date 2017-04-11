@@ -108,3 +108,7 @@ menu-edit, divider-edit, link-edit {
 	white-space: nowrap;
 	margin-bottom: -4px;
 }
+
+#nodeInfoByYou {
+	text-decoration: underline;
+}

@@ -141,7 +141,7 @@ class CEP {
 		"neon-animation-finish": '_onNeonAnimationFinish'
 	};
 
-	private static isLocal(source: {
+	private static isLocal(this: CrmEditPage, source: {
 		updateURL?: string;
 		downloadURL?: string;
 		url?: string;
@@ -150,14 +150,14 @@ class CEP {
 		if (!source) {
 			return true;
 		}
-		return source === 'local';
+		return source === 'local' || this.item.isLocal;
 	};
 
 	private static nodeInfoExists(nodeInfo: CRM.NodeInfo): boolean {
 		return !!nodeInfo;
 	};
 
-	static hideNodeInfo(nodeInfo: CRM.NodeInfo): boolean {
+	static hideNodeInfo(this: CrmEditPage, nodeInfo: CRM.NodeInfo): boolean {
 		return !this.nodeInfoExists(nodeInfo) ||
 			(this.isLocal(nodeInfo.source) && !this.hasInstallDate(nodeInfo));
 	};

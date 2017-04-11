@@ -29,17 +29,23 @@
 						<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
 						<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
 					</paper-material>
-					<div id="nodeInfo" hidden$="[[hideNodeInfo(nodeInfo)]]">
-						<div id="nodeInfoData" hidden$="[[isLocal(nodeInfo.source)]]">
+					<div id="nodeInfo">
+						<div id="nodeInfoData">
 							<span id="nodeInfoName">
-								<b title$="[[item.name]]" id="nodeInfoNameCont">[[item.name]]</b> <b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>
+								<b title$="[[item.name]]" id="nodeInfoNameCont">[[item.name]]</b> 
+								<b hidden$="[[!nodeInfo.version]]">V<span>[[nodeInfo.version]]</span></b>
 							</span>
-							<span id="nodeInfoAuthor">
-								Created by <b title$="[[nodeInfo.source.author]]" id="nodeInfoAuthorCont">[[nodeInfo.source.author]]</b></span>,
-								installed from <span id="nodeInfoFrom">
-								<b>
-									<a id="nodeInfoUrl" title$="[[nodeInfo.source.url]]" target="_blank" href$="[[nodeInfo.source.url]]">(url)</a>
-								</b>
+							<span hidden$="[[isLocal(nodeInfo.source)]]">
+								<span id="nodeInfoAuthor">
+									Created by <b title$="[[nodeInfo.source.author]]" id="nodeInfoAuthorCont">[[nodeInfo.source.author]]</b></span>,
+									installed from <span id="nodeInfoFrom">
+									<b>
+										<a id="nodeInfoUrl" title$="[[nodeInfo.source.url]]" target="_blank" href$="[[nodeInfo.source.url]]">(url)</a>
+									</b>
+								</span>
+							</span>
+							<span hidden$="[[!isLocal(nodeInfo.source)]]">
+								Created by <b id="nodeInfoByYou" title="This means it has access to all permissions without having to enable them">You</b>
 							</span>
 						</div>
 						<div id="nodeInfoSource" hidden$="[[!hasInstallDate(nodeInfo)]]">
