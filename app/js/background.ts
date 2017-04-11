@@ -9129,7 +9129,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		private static _upgradeVersion(oldVersion: string, newVersion: string) {
 			if (oldVersion === '2.0.3') {
-				this._crmForEach(window.app.settings.crm, (node) => {
+				this._crmForEach(globalObject.globals.crm.crmTree, (node) => {
 					if (node.type === 'script') {
 						node.value.oldScript = node.value.script;
 						node.value.script = this.SetupHandling.TransferFromOld
@@ -9146,7 +9146,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							node.nodeInfo.source = 'local';
 					}
 				});
-				window.app.upload();
+				CRM.updateCrm();
 			}
 		}
 		private static _isFirstTime(storageLocal: CRM.StorageLocal): boolean|FirstTimeCallback {
