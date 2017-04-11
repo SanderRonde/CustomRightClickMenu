@@ -190,12 +190,6 @@ interface CodeSettingsDialog extends HTMLPaperDialogElement {
 	item?: CRM.ScriptNode|CRM.StylesheetNode;
 }
 
-const enum SCRIPT_CONVERSION_TYPE {
-	CHROME = 0,
-	LOCAL_STORAGE =1,
-	BOTH = 2
-}
-
 class CA {
 	static is = 'crm-app';
 
