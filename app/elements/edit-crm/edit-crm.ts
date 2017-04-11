@@ -736,15 +736,18 @@ class EC {
 	};
 
 	private static changeAuthor(this: EditCrm, node: CRM.Node|CRM.SafeNode, authorName: string) {
-		node.nodeInfo.source.author = authorName;
-		for (let i = 0; node.children && i < node.children.length; i++) {
-			this.changeAuthor(node.children[i], authorName);
+		if (node.nodeInfo.source !== 'local') {
+			node.nodeInfo.source.author = authorName;
+			for (let i = 0; node.children && i < node.children.length; i++) {
+				this.changeAuthor(node.children[i], authorName);
+			}
 		}
 	};
 
 	private static crmExportNameChange(this: EditCrm, node: CRM.Node, author: string): string {
 		if (author) {
-			node.nodeInfo && node.nodeInfo.source && (node.nodeInfo.source.author = author);
+			node.nodeInfo && node.nodeInfo.source && node.nodeInfo.source !== 'local' &&
+				(node.nodeInfo.source.author = author);
 		}
 		return JSON.stringify(node);
 	};
@@ -835,7 +838,9 @@ class EC {
 			 authorArr = [author];
 		}
 		metaTags['author'] = authorArr;
-		this.setMetaTagIfSet(metaTags, 'downloadURL', 'url', node.nodeInfo.source);
+		if (node.nodeInfo.source !== 'local') {
+			this.setMetaTagIfSet(metaTags, 'downloadURL', 'url', node.nodeInfo.source);
+		}
 		this.setMetaTagIfSet(metaTags, 'version', 'version', node.nodeInfo);
 		metaTags['CRM_contentTypes'] = [JSON.stringify(node.onContentTypes)];
 		this.setMetaTagIfSet(metaTags, 'grant', 'permissions', node);
@@ -965,7 +970,10 @@ ${codeSplit.join('\n')}`;
 
 		textArea.value = this.getExportString(exportNode, exportType, null);
 		($('#exportAuthorName')[0] as HTMLTextAreaElement).value = 
-			(exportNode.nodeInfo && exportNode.nodeInfo.source && exportNode.nodeInfo.source.author) || 'anonymous';
+			(exportNode.nodeInfo && exportNode.nodeInfo.source && 
+				exportNode.nodeInfo.source &&
+				exportNode.nodeInfo.source !== 'local' &&
+				exportNode.nodeInfo.source.author) || 'anonymous';
 		$('#exportAuthorName').on('keydown', function (this: HTMLPaperInputElement) {
 			window.setTimeout(() => {
 				const author = this.value;
