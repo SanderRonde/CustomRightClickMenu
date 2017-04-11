@@ -3629,10 +3629,11 @@ class CA {
 		static getDefaultNodeInfo(options: Partial<CRM.NodeInfo> = {}): CRM.NodeInfo {
 			const defaultNodeInfo: Partial<CRM.NodeInfo> = {
 				permissions: [],
-				source: {
-					author: (this.parent() && this.parent().storageLocal &&
-						this.parent().storageLocal.authorName) || 'anonymous'
-					}
+				installDate: new Date().toLocaleDateString(),
+				lastUpdatedAt: Date.now(),
+				version: '1.0',
+				isRoot: false,
+				source: 'local'
 			};
 
 			return this.mergeObjects(defaultNodeInfo, options) as CRM.NodeInfo;

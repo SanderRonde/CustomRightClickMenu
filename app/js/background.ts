@@ -656,12 +656,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					return mainObject as T & Y;
 				},
 				getDefaultNodeInfo(this: CRMTemplates, options: Partial<CRM.NodeInfo> = {}): CRM.NodeInfo {
-					const defaultNodeInfo: CRM.NodeInfo = {
+					const defaultNodeInfo: Partial<CRM.NodeInfo> = {
 						permissions: [],
-						source: { 
-							author: (globalObject.globals.storages.storageLocal && 
-								globalObject.globals.storages.storageLocal.authorName) || 'anonymous'
-						},
+						installDate: new Date().toLocaleDateString(),
+						lastUpdatedAt: Date.now(),
+						version: '1.0',
+						isRoot: false,
+						source: 'local'
 					};
 
 					return this.mergeObjects(defaultNodeInfo, options) as CRM.NodeInfo;
@@ -679,7 +680,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								not: false
 							}
 						],
-						isLocal: true,
+						isLocal: false,
 						value: [
 							{
 								newTab: true,
@@ -720,7 +721,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						name: 'name',
 						onContentTypes: [true, true, true, false, false, false],
 						type: 'script',
-						isLocal: true,
+						isLocal: false,
 						nodeInfo: this.getDefaultNodeInfo(options.nodeInfo),
 						triggers: [
 							{
@@ -2609,8 +2610,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					node.id = id;
 					node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
 						.nodeInfo;
-					if (_this.getNodeFromId(_this.message.id, false, true).local) {
-						node.local = true;
+					if (_this.getNodeFromId(_this.message.id, false, true).isLocal) {
+						node.isLocal = true;
 					}
 
 					let newNode: CRM.Node;
@@ -5385,8 +5386,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							break;
 					}
 
-					node.nodeInfo.source.downloadURL = downloadURL;
-					node.permissions = allowedPermissions;
+					(node.nodeInfo.source as CRM.NodeInfoSource).downloadURL = downloadURL;
+					node.nodeInfo.lastUpdatedAt = Date.now();
+					node.permissions = allowedPermissions
+					node.isLocal = false;
 
 					if (hasOldNode) {
 						const path = globalObject.globals.crm.crmById[oldNodeId].path;
@@ -5647,11 +5650,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'namespace') ||
 								downloadURL,
 							author: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'author') ||
-								null
+								'Anonymous'
 						},
 						isRoot: true,
 						permissions: permissions,
-						lastUpdatedAt: new Date().toLocaleDateString(),
+						lastUpdatedAt: Date.now(),
 						installDate: new Date().toLocaleDateString()
 					};
 
@@ -5806,6 +5809,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							const isRoot = node.nodeInfo && node.nodeInfo.isRoot;
 							const downloadURL = node.nodeInfo &&
 								node.nodeInfo.source &&
+								typeof node.nodeInfo.source !== 'string' &&
 								(node.nodeInfo.source.url ||
 									node.nodeInfo.source.updateURL ||
 									node.nodeInfo.source.downloadURL);
@@ -8521,20 +8525,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										newTab: openInNewTab,
 										url: nodeData
 									}
-								]
+								],
+								isLocal: true
 							});
 							break;
 						case 'divider':
 							node = globalObject.globals.constants.templates.getDefaultDividerNode({
 								name: name,
-								id: Helpers.generateItemId()
+								id: Helpers.generateItemId(),
+								isLocal: true
 							});
 							break;
 						case 'menu':
 							node = (globalObject.globals.constants.templates.getDefaultMenuNode({
 								name: name,
 								id: Helpers.generateItemId(),
-								children: (nodeData as any) as Array<CRM.Node>
+								children: (nodeData as any) as Array<CRM.Node>,
+								isLocal: true
 							}) as any) as TransferOldNode;
 							break;
 						case 'script':
@@ -8565,7 +8572,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									oldScript: scriptData,
 									script: Storages.SetupHandling.TransferFromOld.legacyScriptReplace
 										.convertScriptFromLegacy(scriptData, id)
-								}
+								},
+								isLocal: true
 							});
 							if (triggers) {
 								node.triggers = triggers;
@@ -8652,7 +8660,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					},
 					crm: [
 						globalObject.globals.constants.templates.getDefaultLinkNode({
-							id: Helpers.generateItemId()
+							id: Helpers.generateItemId(),
+							isLocal: true
 						})
 					],
 					settingsLastUpdatedAt: new Date().getTime(),

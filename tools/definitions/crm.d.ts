@@ -134,6 +134,28 @@ declare namespace CRM {
 	type Permission = CRMPermission|keyof PermissionDescriptions;
 
 	/**
+	 * Info related to the source of a node's installation
+	 */
+	interface NodeInfoSource {
+		/**
+		 * The URL from which to update the node
+		 */
+		updateURL?: string;
+		/**
+		 * The URL from which the node was downloaded
+		 */
+		downloadURL?: string;
+		/**
+		 * The homepage of the node
+		 */
+		url?: string;
+		/**
+		 * The name of the author of the node
+		 */
+		author?: string;
+	}
+
+	/**
 	 * Info related to a node's installation
 	 */
 	interface NodeInfo {
@@ -152,24 +174,7 @@ declare namespace CRM {
 		/**
 		 * Info related to the source of a node's installation
 		 */
-		source?: {
-			/**
-			 * The URL from which to update the node
-			 */
-			updateURL?: string;
-			/**
-			 * The URL from which the node was downloaded
-			 */
-			downloadURL?: string;
-			/**
-			 * The homepage of the node
-			 */
-			url?: string;
-			/**
-			 * The name of the author of the node
-			 */
-			author?: string;
-		};
+		source?: NodeInfoSource|'local';
 		/**
 		 * The version of the node
 		 */
@@ -177,7 +182,7 @@ declare namespace CRM {
 		/**
 		 * The last time this node was updated
 		 */
-		lastUpdatedAt?: string;
+		lastUpdatedAt?: number;
 	}
 
 	/**
