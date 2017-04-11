@@ -711,6 +711,9 @@ describe('Conversion', () => {
 				});
 			}), 'File background.js is readable');
 		});
+		var location = {
+			href: 'test.com'
+		}
 		step('background.js should be runnable', () => {
 			assert.doesNotThrow(run(() => {
 				eval(backgroundCode);
