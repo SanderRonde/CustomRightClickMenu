@@ -13,6 +13,12 @@
 			'Added compatability with UserStylesheets',
 			'Added the ability to connect a script/stylesheet to a local editor',
 			'Now uses the better CodeMirror editor'
+		],
+		'2.0.4': [
+			'Scripts that use the Chrome API are now transferred over to using the crmAPI.chrome API',
+			'More clearly reflects a script created by you and what that means (all permissions)',
+			'Keeps track of info of local nodes as well now',
+			'Allows the editing of the version number'
 		]
 	};
 }());
