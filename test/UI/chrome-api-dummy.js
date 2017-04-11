@@ -302,23 +302,25 @@ var Worker = window.Worker = function() {
 	};
 };
 
-var dummyContainer = window.dummyContainer = document.createElement('div');
-dummyContainer.id = 'dummyContainer';
-dummyContainer.style.width = '100vw';
-dummyContainer.style.position = 'fixed';
-dummyContainer.style.top = 0;
-dummyContainer.style.zIndex = 999999999;
-dummyContainer.style.display = 'flex';
-dummyContainer.style.flexDirection = 'row';
-dummyContainer.style.justifyContent = 'space-between';
-document.body.appendChild(dummyContainer);
+window.onload = function() {
+	var dummyContainer = window.dummyContainer = document.createElement('div');
+	dummyContainer.id = 'dummyContainer';
+	dummyContainer.style.width = '100vw';
+	dummyContainer.style.position = 'fixed';
+	dummyContainer.style.top = 0;
+	dummyContainer.style.zIndex = 999999999;
+	dummyContainer.style.display = 'flex';
+	dummyContainer.style.flexDirection = 'row';
+	dummyContainer.style.justifyContent = 'space-between';
+	document.body.appendChild(dummyContainer);
 
-function addStyleString(str) {
-	var node = document.createElement('style');
-	node.innerHTML = str;
-	document.head.appendChild(node);
+	function addStyleString(str) {
+		var node = document.createElement('style');
+		node.innerHTML = str;
+		document.head.appendChild(node);
+	}
+
+	addStyleString('#dummyContainer > * {\n' + 
+	'	background-color: blue;\n' +
+	'}');
 }
-
-addStyleString('#dummyContainer > * {\n' + 
-'	background-color: blue;\n' +
-'}');
