@@ -9142,8 +9142,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				after: []
 			}
 
-			debugger;
-			console.log(globalObject.globals.crm.crmTree);
 			if (oldVersion === '2.0.3') {
 				fns.after.push(() => {
 					this._crmForEach(globalObject.globals.crm.crmTree, (node) => {
