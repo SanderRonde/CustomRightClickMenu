@@ -1152,7 +1152,7 @@ declare namespace CRM {
 		 */
 		notFirstTime: boolean;
 		/**
-		 * The last time at which the settings were updated
+		 * The last version number at which the extension was updated
 		 */
 		lastUpdatedAt: string;
 		/**
