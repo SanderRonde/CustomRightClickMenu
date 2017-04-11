@@ -2730,10 +2730,10 @@ describe('CRMAPI', () => {
 					not: false
 				}];
 				expected.nodeInfo = {
+					isRoot: false,
+					version: '1.0',
 					permissions: ['none'],
-					source: {
-						author: 'anonymous'
-					}
+					source: 'local'
 				};
 				expected.isLocal = true;
 				expected.path = [6];
@@ -2741,6 +2741,9 @@ describe('CRMAPI', () => {
 				delete expected.isLocal;
 
 				crmAPI.crm.createNode(nodeSettings, (node) => {
+					expected.nodeInfo.installDate = node.nodeInfo.installDate;
+					expected.nodeInfo.lastUpdatedAt = node.nodeInfo.lastUpdatedAt;
+
 					assert.isDefined(node, 'created node is defined');
 					assert.isObject(node, 'created node is an object');
 					assert.deepEqual(node, expected, 'created node matches expected node');
