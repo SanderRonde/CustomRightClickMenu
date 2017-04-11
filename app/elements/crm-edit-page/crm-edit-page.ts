@@ -229,6 +229,66 @@ class CEP {
 		this.notifyPath('item.name', value);
 	};
 
+	static showUpgradeNotice(hideUpdateMessage: boolean, node: CRM.Node): boolean {
+		return !hideUpdateMessage && (node && node.type === 'script' && node.value && node.value.updateNotice);
+	};
+
+	static getScriptUpdateStatus(node: CRM.Node): string {
+		if (node) {
+			if (window.app.storageLocal.upgradeErrors) {
+				if (window.app.storageLocal.upgradeErrors[node.id]) {
+					return 'Some errors have occurred in updating this script. Please resolve them by clicking the link and replace any chrome ' +
+						'calls on error lines with their CRM API equivalent.';
+				}
+			}
+			return 'No errors have been detected in updating this script but this is no guarantee it will work, be sure to test it at least once.';
+		}
+		return '';
+	};
+
+	static hideUpdateMergeDialog(this: CrmEditPage) {
+		var _this = this;
+		if (this.showUpgradeNotice(this.hideUpdateMessage, this.item)) {
+			var height = this.$.scriptUpdateNotice.getBoundingClientRect().height;
+			var marginBot = '-' + height + 'px';
+			this.$.scriptUpdateNotice.animate([
+				{
+					marginBottom: '0px'
+				}, {
+					marginBottom: marginBot
+				}
+			], {
+				duration: 350,
+				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			}).onfinish = function() {
+				_this.$.scriptUpdateNotice.style.marginBottom = marginBot;
+				_this.hideUpdateMessage = true;
+			};
+		}
+		window.scriptEdit.newSettings.value.updateNotice = false;
+	};
+
+	static showScriptUpdateDiff(this: CrmEditPage) {
+		var _this = this;
+		var oldScript = (this.item as CRM.ScriptNode).value.oldScript;
+		var newScript = (this.item as CRM.ScriptNode).value.script;
+		const chooseDialog = window.doc.externalEditorChooseFile;
+		chooseDialog.init(oldScript, newScript, function(chosenScript: string) {
+			if (window.app.storageLocal.upgradeErrors) {
+				delete window.app.storageLocal.upgradeErrors[_this.item.id];
+			}
+			window.scriptEdit.editor.setValue(chosenScript);
+			setTimeout(function() {
+				_this.hideUpdateMergeDialog();
+			}, 250);
+			chrome.storage.local.set({
+				upgradeErrors: window.app.storageLocal.upgradeErrors || {}
+			});
+		}, true, window.app.storageLocal.upgradeErrors && window.app.storageLocal.upgradeErrors[this.item.id]);
+		window.externalEditor.showMergeDialog(window.externalEditor, oldScript, newScript);
+		chooseDialog.open();
+	};
+
 	static getInstallDateTextFormat(this: CrmEditPage) {
 		if (window.Intl && typeof window.Intl === 'object' && this.nodeInfo) {
 			const format = (new Date('1-13-2016').toLocaleDateString() === '1-13-2016' ? 'eu' : 'na');

@@ -21,8 +21,12 @@ declare namespace Tern {
 
 	interface MemberExpression extends BaseExpression {
 		type: 'MemberExpression';
+		arguments?: Array<any>;
 		object: Identifier;
-		property: Identifier;
+		property: Identifier|{
+			name: string;
+			raw: string;
+		};
 	}
 
 	interface CallExpression extends BaseExpression {
@@ -34,6 +38,8 @@ declare namespace Tern {
 		}
 		object?: CallExpression;
 	}
+
+	type FunctionCallExpression = MemberExpression|CallExpression;
 
 	interface AssignmentExpression extends BaseExpression {
 		type: 'AssignmentExpression';

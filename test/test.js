@@ -1,8 +1,8 @@
 'use strict';
-const mochaSteps = require('mocha-steps');
-const assert = require('chai').assert;
-const request = require('request');
-const fs = require('fs'); 
+var mochaSteps = require('mocha-steps');
+var assert = require('chai').assert;
+var request = require('request');
+var fs = require('fs'); 
 
 function isDefaultKey(key) {
 	return !(key !== 'getItem' && key !== 'setItem' && key !== 'length' && key !== 'clear' && key !== 'removeItem');
@@ -167,7 +167,7 @@ function createCopyFunction(obj, target) {
 }
 
 function makeNodeSafe(node) {
-	const newNode = {};
+	var newNode = {};
 	if (node.children) {
 		newNode.children = [];
 		for (let i = 0; i < node.children.length; i++) {
@@ -175,7 +175,7 @@ function makeNodeSafe(node) {
 		}
 	}
 
-	const copy = createCopyFunction(node, newNode);
+	var copy = createCopyFunction(node, newNode);
 
 	copy(['id','path', 'type', 'name', 'value', 'linkVal',
 			'menuVal', 'scriptVal', 'stylesheetVal', 'nodeInfo',
@@ -193,8 +193,8 @@ function makeTreeSafe(tree) {
 	return safe;
 }
 
-const safeNodes = [];
-const testCRMTree = [{
+var safeNodes = [];
+var testCRMTree = [{
 		"name": "menu",
 		"onContentTypes": [true, true, true, true, true, true],
 		"type": "menu",
@@ -415,9 +415,9 @@ const testCRMTree = [{
 		}]
 	}];
 
-const testCRMTreeBase = JSON.parse(JSON.stringify(testCRMTree));
+var testCRMTreeBase = JSON.parse(JSON.stringify(testCRMTree));
 
-const safeTestCRMTree = makeTreeSafe(testCRMTree); 
+var safeTestCRMTree = makeTreeSafe(testCRMTree); 
 
 function resetTree() {
 	bgPageOnMessageListener({
@@ -447,10 +447,10 @@ var window = {
 };
 
 // Simulate user-agent chrome on windows for codemirror
-const navigator = {
+var navigator = {
 	userAgent: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 };
-const document = {
+var document = {
 	documentMode: true,
 	createElement: function () {
 		return {
@@ -475,10 +475,10 @@ describe('Conversion', () => {
 	describe('is testable', function() {
 		this.slow(1000);
 		var elements = {};
-		const Polymer = (element) => {
+		var Polymer = (element) => {
 			elements[element.is] = element;
 		};
-		const chrome = {
+		var chrome = {
 			storage: {
 				local: {
 					set: function () { }
@@ -593,7 +593,7 @@ describe('Conversion', () => {
 			assert.isArray(result, 'Resulting CRM is an array');
 			assert.lengthOf(result, 0, 'Resulting CRM is empty');
 		});
-		const singleLinkBaseCase = [{
+		var singleLinkBaseCase = [{
 			name: 'linkname',
 			type: 'link',
 			value: [{
@@ -879,7 +879,7 @@ describe('Conversion', () => {
 		before((done) => {
 			crmAppDone.then(done);
 		});
-		const singleScriptBaseCase = {
+		var singleScriptBaseCase = {
 			type: 'script',
 			name: 'script',
 			value: {
@@ -888,29 +888,38 @@ describe('Conversion', () => {
 			}
 		};
 
-		function testScript(script, expected) {
-			expected = expected || script;
+		var SCRIPT_CONVERSION_TYPE = {
+			CHROME: 0,
+			LOCAL_STORAGE: 1,
+			BOTH: 2
+		}
+
+		function testScript(script, expected, testType) {
+			if (typeof expected === 'number') {
+				testType = expected;
+				expected = script;
+			}
 			let result;
 			assert.doesNotThrow(run(() => {
 				result = crmApp.transferCRMFromOld(true,
-				  createCrmLocalStorage(
+				createCrmLocalStorage(
 					[mergeObjects(singleScriptBaseCase, {
 						value: {
 							script: script
 						}
-					})])
-				);
+					})]), testType);
 			}), 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.property(result[0], 'value', 'Script has property value');
 			assert.property(result[0].value, 'script', "Script's value property has a script property");
 			assert.strictEqual(result[0].value.script, expected);
 		}
-		it('should be able to convert a oneline no-localStorage-calls script', () => {
-			testScript('console.log("hi");');
-		});
-		it('should be able to convert a multiline script with indentation with no localStorage-calls', () => {
-			testScript(`
+		describe('localStorage', function() {
+			it('should be able to convert a oneline no-localStorage-calls script', () => {
+				testScript('console.log("hi");', SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a multiline script with indentation with no localStorage-calls', () => {
+				testScript(`
 console.log('hi')
 var x
 if (true) {
@@ -918,60 +927,311 @@ if (true) {
 } else {
 	x = 5
 }
-console.log(x);`);
-		});
-		it('should not convert a script when it doesn\'t have execute locally', () => {
-			var msg = `var x = localStorage;`;
-			testScript(msg, msg);
-		});
-		it('should be able to convert a script with a simple reference to localStorage', () => {
-			testScript(
+console.log(x);`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should not convert a script when it doesn\'t have execute locally', () => {
+				var msg = `var x = localStorage;`;
+				testScript(msg, msg, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with a simple reference to localStorage', () => {
+				testScript(
 `/*execute locally*/
 var x = localStorage;`, 
-`var x = localStorageProxy;`);
-		});
-		it('should be able to convert a script with a simple reference to window.localStorage', () => {
-			testScript(
+`var x = localStorageProxy;`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with a simple reference to window.localStorage', () => {
+				testScript(
 `/*execute locally*/
 var x = window.localStorage;`,
-`var x = window.localStorageProxy;`);
-		});
-		it('should be able to convert a script with a call to getItem', () => {
-			testScript(
+`var x = window.localStorageProxy;`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with a call to getItem', () => {
+				testScript(
 `/*execute locally*/
 var x = localStorage.getItem('a');`, 
-`var x = localStorageProxy.getItem('a');`);
-		});
-		it('should be able to convert a script with a call to setItem', () => {
-testScript(`/*execute locally*/
+`var x = localStorageProxy.getItem('a');`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with a call to setItem', () => {
+	testScript(`/*execute locally*/
 var x = localStorage.getItem('a', 'b');`, 
-`var x = localStorageProxy.getItem('a', 'b');`);
-		});
-		it('should be able to convert a script with a call to clear', () => {
-testScript(
+`var x = localStorageProxy.getItem('a', 'b');`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with a call to clear', () => {
+	testScript(
 `/*execute locally*/
 var x = localStorage.clear();`, 
-`var x = localStorageProxy.clear();`);
-		});
-		it('should be able to convert a script with a proxied call to a getItem', () => {
-testScript(
+`var x = localStorageProxy.clear();`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with a proxied call to a getItem', () => {
+	testScript(
 `/*execute locally*/
 var x = localStorage;
 var y = x.getItem('b');`, 
 `var x = localStorageProxy;
-var y = x.getItem('b');`);
-		});
-		it('should be able to convert a script with nested chrome calls', () => {
-testScript(
+var y = x.getItem('b');`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with nested chrome calls', () => {
+	testScript(
 `/*execute locally*/
 var x = localStorage.setItem(localStorage.getItem('a'), localStorage.getItem('b'));`,
-`var x = localStorageProxy.setItem(localStorageProxy.getItem('a'), localStorageProxy.getItem('b'));`);
-		});
-		it('should be able to convert a script with a dot-access', () => {
-testScript(
+`var x = localStorageProxy.setItem(localStorageProxy.getItem('a'), localStorageProxy.getItem('b'));`,
+	SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+			it('should be able to convert a script with a dot-access', () => {
+	testScript(
 `/*execute locally*/
 var x = localStorage.a;`, 
-`var x = localStorageProxy.a;`);
+`var x = localStorageProxy.a;`, SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE);
+			});
+		});
+		describe('chrome', function() {
+			it('should be able to convert a oneline no-chrome-calls script', () => {
+				testScript('console.log("hi");', SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it('should be able to convert a multiline script with indentation with no chrome-calls', () => {
+				testScript(`
+console.log('hi')
+var x
+if (true) {
+	x = (true ? 1 : 2)
+} else {
+	x = 5
+}
+console.log(x);`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it('should be able to convert a single-line script with a callback chrome-call', () => {
+				testScript(`
+chrome.runtime.getPlatformInfo(function(platformInfo) {
+	console.log(platformInfo);
+});`, `
+window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+	console.log(platformInfo);
+}).send();`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it('should be able to convert nested chrome-calls', () => {
+				testScript(`
+chrome.runtime.getPlatformInfo(function(platformInfo) {
+	console.log(platformInfo);
+	chrome.runtime.getPlatformInfo(function(platformInfo) {
+		console.log(platformInfo);
+		chrome.runtime.getBackgroundPage(function(bgPage) {
+			console.log(bgPage);
+		});
+	});
+});`, `
+window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+	console.log(platformInfo);
+	window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+		console.log(platformInfo);
+		window.crmAPI.chrome('runtime.getBackgroundPage')(function(bgPage) {
+			console.log(bgPage);
+		}).send();
+	}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it('should be able to convert chrome functions returning to a variable', () => {
+				testScript(`
+var url = chrome.runtime.getURL();
+console.log(url);`, `
+window.crmAPI.chrome('runtime.getURL').return(function(url) {
+	console.log(url);
+}).send();`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it('should be able to convert multiple chrome functions returning to variables', () => {
+				testScript(`
+var url = chrome.runtime.getURL();
+var manifest = chrome.runtime.getManifest();
+var url2 = chrome.runtime.getURL('/options.html');`, `
+window.crmAPI.chrome('runtime.getURL').return(function(url) {
+	window.crmAPI.chrome('runtime.getManifest').return(function(manifest) {
+		window.crmAPI.chrome('runtime.getURL')('/options.html').return(function(url2) {
+		}).send();
+	}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it('should be able to convert mixed chrome function calls', () => {
+				testScript(`
+var url = chrome.runtime.getURL();
+var manifest = chrome.runtime.getManifest();
+var somethingURL = chrome.runtime.getURL(manifest.something);
+chrome.runtime.getPlatformInfo(function(platformInfo) {
+	var platformURL = chrome.runtime.getURL(platformInfo.os);
+});`, `
+window.crmAPI.chrome('runtime.getURL').return(function(url) {
+	window.crmAPI.chrome('runtime.getManifest').return(function(manifest) {
+		window.crmAPI.chrome('runtime.getURL')(manifest.something).return(function(somethingURL) {
+			window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+				window.crmAPI.chrome('runtime.getURL')(platformInfo.os).return(function(platformURL) {
+				}).send();
+			}).send();
+		}).send();
+	}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it('should be able to convert chrome calls in if statements', () => {
+				testScript(`
+if (true) {
+	var url = chrome.runtime.getURL('something');
+	console.log(url);
+} else {
+	var url2 = chrome.runtime.getURL('somethingelse');
+	console.log(url2);
+}`, `
+if (true) {
+	window.crmAPI.chrome('runtime.getURL')('something').return(function(url) {
+		console.log(url);
+	}).send();
+} else {
+	window.crmAPI.chrome('runtime.getURL')('somethingelse').return(function(url2) {
+		console.log(url2);
+	}).send();
+}`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+			it("should be able to convert chrome calls that aren't formatted nicely", () => {
+				testScript(`
+var x = chrome.runtime.getURL('something');x = x + 'foo';chrome.runtime.getBackgroundPage(function(bgPage){console.log(x + bgPage);});`, `
+window.crmAPI.chrome('runtime.getURL')('something').return(function(x) {x = x + 'foo';window.crmAPI.chrome('runtime.getBackgroundPage')(function(bgPage){console.log(x + bgPage);}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.CHROME);
+			});
+		});
+		describe('both', function() {
+			it('should be able to convert a oneline normal script', () => {
+				var scr = 'console.log("hi");';
+				testScript(scr, scr, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it('should be able to convert a multiline script with indentation with no chrome-calls', () => {
+				testScript(`
+/*execute locally*/
+console.log('hi')
+var x
+if (true) {
+	x = (true ? localStorage.getItem('1') : localStorage.getItem('2'))
+} else {
+	x = 5
+}
+console.log(x);`, `
+console.log('hi')
+var x
+if (true) {
+	x = (true ? localStorageProxy.getItem('1') : localStorageProxy.getItem('2'))
+} else {
+	x = 5
+}
+console.log(x);`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it('should be able to convert a single-line script with a callback chrome-call', () => {
+				testScript(`
+/*execute locally*/
+chrome.runtime.getPlatformInfo(function(platformInfo) {
+	console.log(platformInfo, localStorage.getItem('x'));
+});`, `
+window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+	console.log(platformInfo, localStorageProxy.getItem('x'));
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it('should be able to convert nested chrome-calls', () => {
+				testScript(`
+/*execute locally*/
+chrome.runtime.getPlatformInfo(function(platformInfo) {
+	console.log(platformInfo);
+	localStorage.clear();
+	chrome.runtime.getPlatformInfo(function(platformInfo) {
+		console.log(platformInfo);
+		localStorage.setItem('x', platformInfo);
+		chrome.runtime.getBackgroundPage(function(bgPage) {
+			localStorage.clear();
+			console.log(bgPage);
+		});
+	});
+});`, `
+window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+	console.log(platformInfo);
+	localStorageProxy.clear();
+	window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+		console.log(platformInfo);
+		localStorageProxy.setItem('x', platformInfo);
+		window.crmAPI.chrome('runtime.getBackgroundPage')(function(bgPage) {
+			localStorageProxy.clear();
+			console.log(bgPage);
+		}).send();
+	}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it('should be able to convert chrome functions returning to a variable', () => {
+				testScript(`
+/*execute locally*/
+var url = chrome.runtime.getURL();
+localStorage.setItem('a', url);`, `
+window.crmAPI.chrome('runtime.getURL').return(function(url) {
+	localStorageProxy.setItem('a', url);
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it('should be able to convert multiple chrome functions returning to variables', () => {
+				testScript(`
+/*execute locally*/
+var url = chrome.runtime.getURL();
+var manifest = chrome.runtime.getManifest();
+var url2 = chrome.runtime.getURL('/options.html');
+localStorage.setItem('a', url);`, `
+window.crmAPI.chrome('runtime.getURL').return(function(url) {
+	window.crmAPI.chrome('runtime.getManifest').return(function(manifest) {
+		window.crmAPI.chrome('runtime.getURL')('/options.html').return(function(url2) {
+			localStorageProxy.setItem('a', url);
+		}).send();
+	}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it('should be able to convert mixed chrome function calls', () => {
+				testScript(`
+/*execute locally*/
+var url = chrome.runtime.getURL();
+var manifest = chrome.runtime.getManifest();
+localStorage.setItem('a', 'b');
+var somethingURL = chrome.runtime.getURL(manifest.something);
+chrome.runtime.getPlatformInfo(function(platformInfo) {
+	var platformURL = chrome.runtime.getURL(platformInfo.os);
+	localStorage.clear();
+});`, `
+window.crmAPI.chrome('runtime.getURL').return(function(url) {
+	window.crmAPI.chrome('runtime.getManifest').return(function(manifest) {
+		localStorageProxy.setItem('a', 'b');
+		window.crmAPI.chrome('runtime.getURL')(manifest.something).return(function(somethingURL) {
+			window.crmAPI.chrome('runtime.getPlatformInfo')(function(platformInfo) {
+				window.crmAPI.chrome('runtime.getURL')(platformInfo.os).return(function(platformURL) {
+					localStorageProxy.clear();
+				}).send();
+			}).send();
+		}).send();
+	}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it('should be able to convert chrome calls in if statements', () => {
+				testScript(`
+/*execute locally*/
+if (true) {
+	var url = chrome.runtime.getURL('something');
+	console.log(localStorage.getItem(url));
+} else {
+	var url2 = chrome.runtime.getURL('somethingelse');
+	console.log(localStorage.getItem(url2));
+}`, `
+if (true) {
+	window.crmAPI.chrome('runtime.getURL')('something').return(function(url) {
+		console.log(localStorageProxy.getItem(url));
+	}).send();
+} else {
+	window.crmAPI.chrome('runtime.getURL')('somethingelse').return(function(url2) {
+		console.log(localStorageProxy.getItem(url2));
+	}).send();
+}`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
+			it("should be able to convert chrome calls that aren't formatted nicely", () => {
+				testScript(`
+/*execute locally*/
+var x = chrome.runtime.getURL('something');x = x + localStorage.getItem('foo');chrome.runtime.getBackgroundPage(function(bgPage){console.log(x + bgPage);});`, `
+window.crmAPI.chrome('runtime.getURL')('something').return(function(x) {x = x + localStorageProxy.getItem('foo');window.crmAPI.chrome('runtime.getBackgroundPage')(function(bgPage){console.log(x + bgPage);}).send();
+}).send();`, SCRIPT_CONVERSION_TYPE.BOTH);
+			});
 		});
 	});
 });
@@ -1114,7 +1374,7 @@ describe('CRMAPI', () => {
 					if (typeof key === 'function') {
 						key(storageSync);
 					} else {
-						const result = {};
+						var result = {};
 						result[key] = storageSync[key];
 						cb(result);
 					}
@@ -1133,7 +1393,7 @@ describe('CRMAPI', () => {
 					if (typeof key === 'function') {
 						key(storageLocal);
 					} else {
-						const result = {};
+						var result = {};
 						result[key] = storageLocal[key];
 						cb(result);
 					}
@@ -1880,7 +2140,7 @@ describe('CRMAPI', () => {
 				}
 			}), 'setting storage works');
 
-			const storageTestExpected = {
+			var storageTestExpected = {
 				testKey: nodeStorage.testKey
 			};
 			for (let i = 0; i < storageTestData.length; i++) {
@@ -2363,7 +2623,7 @@ describe('CRMAPI', () => {
 				});
 			});
 			it('should return all nodes matching type', () => {
-				const types = ['link','script','menu','stylesheet','divider'];
+				var types = ['link','script','menu','stylesheet','divider'];
 				types.forEach((type) => {
 					crmAPI.crm.queryCrm({
 						type: type
@@ -2461,7 +2721,7 @@ describe('CRMAPI', () => {
 						illegalStuf: 123
 					}
 				}
-				const expected = JSON.parse(JSON.stringify(nodeSettings));
+				var expected = JSON.parse(JSON.stringify(nodeSettings));
 				expected.id = 7;
 				expected.onContentTypes = [true, true, true, false, false, false];
 				expected.showOnSpecified = false;
@@ -3437,10 +3697,10 @@ describe('JSON Parser', () => {
 	describe('is testable', function() {
 		this.slow(1000);
 		var elements = {};
-		const Polymer = (element) => {
+		var Polymer = (element) => {
 			elements[element.is] = element;
 		};
-		const chrome = {
+		var chrome = {
 			storage: {
 				local: {
 					set: function () { }
@@ -3586,7 +3846,7 @@ describe('JSON Parser', () => {
 		}
 		if (errs !== void 0) {
 			assert.lengthOf(val.errs, errs.length, 'should have thrown the same amount of errors');
-			const expectedErrors = val.errs.map(function(errData) {
+			var expectedErrors = val.errs.map(function(errData) {
 				errData.message = errData.err.message;
 				delete errData.err;
 				return errData;
@@ -3595,7 +3855,7 @@ describe('JSON Parser', () => {
 		}
 	}
 	function strIndexedObject(obj) {
-		const newObj = {};
+		var newObj = {};
 		Object.getOwnPropertyNames(obj).forEach((index) => {
 			newObj[`"${index}"`] = obj[index];
 			if (typeof obj[index] === 'object' && !Array.isArray(obj[index])) {
@@ -3669,7 +3929,7 @@ describe('JSON Parser', () => {
 	}
 	function parseInvalidJSONWithoutCursor(str, expectedObj, errs) {
 		errs = errs.map(function(msg) {
-			const errIndex = str.indexOf('$');
+			var errIndex = str.indexOf('$');
 			assert.notStrictEqual(errIndex, -1, 'Every error should have a location');
 			str = str.slice(0, errIndex) + str.slice(errIndex + 1);
 			return {

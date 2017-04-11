@@ -1256,5 +1256,24 @@ declare namespace CRM {
 		 * Whether this is a transfer
 		 */
 		isTransfer?: boolean;
+		/**
+		 * Any errors that occurred after upgrading scripts
+		 */
+		upgradeErrors?: {
+			[id: number]: {		
+				/**
+				 * The script before conversion
+				 */
+				oldScript: Array<CursorPosition>;		
+				/**
+				 * The script after conversion
+				 */
+				newScript: Array<CursorPosition>;		
+				/**
+				 * Whether it was a general error
+				 */
+				generalError: boolean;		
+			}		
+		};
 	}
 }

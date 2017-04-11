@@ -59,7 +59,13 @@ type ConnectedEditorMessage = ChooseFileMessage|SetupExistingFileMessage|SetupNe
 type ExternalEditorMessage = SetupConnectionMessage|PingMessage|ConnectedEditorMessage;
 
 type ChooseFileDialog = PaperDialogBase & {
-	init(local: string, file: string, callback: (result: string|false) => void): void;
+	init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
+		updateErrors?: {
+			parseError?: boolean;
+			generalError?: boolean;
+			newScript: Array<CursorPosition>;
+			oldScript: Array<CursorPosition>;
+		}): void;
 	local: string;
 	file: string;
 	callback(result: string|false): void;
@@ -619,7 +625,7 @@ class UEE {
 		}
 	};
 
-	private static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
+	static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
 		//Animate the comparison in
 		const dialogRect = window.doc.externalEditorChooseFile.getBoundingClientRect();
 		const dialogStyle = window.doc.externalEditorChooseFile.style;
@@ -754,6 +760,145 @@ class UEE {
 		}
 	};
 
+	static findChildWithClass(this: UseExternalEditor, div: HTMLElement, classToFind: string): HTMLElement {
+		for (var i = 0; i < div.children.length; i++) {
+			if (div.children[i].classList.contains(classToFind)) {
+				return div.children[i] as HTMLElement;
+			}
+		}
+		return null;
+	};
+
+	static findChildWithTag(this: UseExternalEditor, div: HTMLElement, tag: string): HTMLElement {
+		for (var i = 0; i < div.children.length; i++) {
+			if (div.children[i].tagName.toLowerCase() === tag) {
+				return div.children[i] as HTMLElement;
+			}
+		}
+		return null;
+	};
+
+	static findReverseLineTranslation(_this: UseExternalEditor, line: number, editor: CodeMirrorInstance & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		}) {
+		var i;
+		var offset = 0;
+		var lineDivs = editor.display.lineDiv.children;
+		var lineWidget, seperator;
+		var lineHeight = _this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
+		for (i = 0; i < lineDivs.length; i++) {
+			if ((lineWidget = _this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
+				(seperator = _this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
+				offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
+			}
+			if (i + offset >= line) {
+				return i;
+			}
+		}
+		return i;
+	};
+
+	static containEachother(this: UseExternalEditor, line1: string, line2: string): boolean {
+		return !!(line1.indexOf(line2) > -1 ? true : line2.indexOf(line1));
+	};
+
+	static generateIncrementFunction(this: UseExternalEditor, errors: Array<CursorPosition>) {
+		var len = errors.length;
+		return function(index: number) {
+			if (++index === len) {
+				index = 0;
+			}
+			return index;
+		};
+	};
+
+	static generateLineIndexTranslationArray(_this: UseExternalEditor, editor: CodeMirrorInstance & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		}): Array<number> {
+		var result = [];
+
+		var offset = 0;
+		var lineDivs = editor.display.lineDiv.children;
+		var lineWidget, seperator;
+		var lineHeight = _this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
+		for (var i = 0; i < lineDivs.length; i++) {
+			if ((lineWidget = _this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
+				(seperator = _this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
+				offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
+			}
+			result[i] = i + offset;
+		}
+
+		return result;
+	};
+
+
+	static generateNextErrorFinder(this: UseExternalEditor, isLeftEditor: boolean, errors: Array<CursorPosition>) {
+		var i;
+		var _this = this;
+		var sideEditor: CodeMirrorInstance & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		} = null;
+		var mainEditor: CodeMirrorInstance & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			}
+		} = null;
+		var errorIndex = 0;
+		var sideEditorLineTranslationArray: Array<number>;
+		var incrementFunction = _this.generateIncrementFunction(errors);
+		return function () {
+			if (!sideEditor) {
+				mainEditor = window.externalEditor.editor.edit;
+				sideEditor = window.externalEditor.editor[(isLeftEditor ? 'left' : 'right')].orig;
+				sideEditorLineTranslationArray = _this.generateLineIndexTranslationArray(_this, sideEditor);
+			}
+			var error = null;
+
+			//For all errors, check if the main editor contains that line at the line it's supposed to contain it,
+			//if not, try a different error, else just show the toast
+			for (i = errorIndex, errorIndex = incrementFunction(errorIndex) ; i !== errorIndex; errorIndex = incrementFunction(errorIndex)) {
+				var sideEditorLine = sideEditorLineTranslationArray[errors[errorIndex].from.line];
+				var mainEditorLine = _this.findReverseLineTranslation(_this, sideEditorLine, mainEditor);
+				if (_this.containEachother(mainEditor.getLine(mainEditorLine), sideEditor.getLine(errors[errorIndex].from.line))) {
+					error = errors[errorIndex];
+					break;
+				}
+			}
+			errorIndex = incrementFunction(i);
+
+			if (error) {
+				//Scroll cursor to this line
+				$('.errorHighlight').each(function(this: HTMLElement) {
+					this.classList.remove('errorHighlight');
+				});
+				mainEditor.markText(error.from, error.to, {
+					className: 'errorHighlight',
+					clearOnEnter: true,
+					inclusiveLeft: false,
+					inclusiveRight: false
+				});
+			} else {
+				//No errors were found, show the toast
+				window.doc.noErrorsFound.show();
+			}
+		};
+	};
+
 	/**
 	 * Makes the dialog clear itself after it closes
 	 */
@@ -772,23 +917,77 @@ class UEE {
 			}
 		};
 		const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
-		chooseFileDialog.init = function (local: string, file: string, callback: (result: string|false) => void) {
-			let i;
-			const leftErrorButton = window.doc.updateMergeLeftNextError;
+		chooseFileDialog.init = function (local: string, file: string, callback: (result: string|false) => void,
+				isUpdate?: boolean, updateErrors?: {
+					parseError: boolean;
+					newScript: Array<CursorPosition>;
+					oldScript: Array<CursorPosition>;
+				}) {
+			window.doc.chooseFileCurrentTxt.innerText = (isUpdate ? 'Old' : 'CRM Editor');
+			window.doc.chooseFileNewTxt.innerText = (isUpdate ? 'New' : 'File');
+			window.doc.chooseFileTitleTxt.innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
+			window.doc.chooseFileStopMerging.style.display = (isUpdate ? 'none' : 'block');
+			chooseFileDialog.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
+
+			var i;
+			var leftErrorButton = window.doc.updateMergeLeftNextError;
 			leftErrorButton.listeners = leftErrorButton.listeners || [];
 			for (i = 0; i < leftErrorButton.listeners.length; i++) {
 				leftErrorButton.removeEventListener('click', leftErrorButton.listeners[i]);
 			}
 			leftErrorButton.listeners = [];
 
-			const rightErrorButton = window.doc.updateMergeRightNextError;
+			var rightErrorButton = window.doc.updateMergeRightNextError;
 			rightErrorButton.listeners = rightErrorButton.listeners || [];
 			for (i = 0; i < rightErrorButton.listeners.length; i++) {
 				rightErrorButton.removeEventListener('click', rightErrorButton.listeners[i]);
 			}
 			rightErrorButton.listeners = [];
 
-			window.doc.updateMergerCont.style.display = 'none';
+			function markerFn() {
+				setTimeout(function() {
+					//Mark left part
+					var j;
+					for (j = 0; j < updateErrors.oldScript.length; j++) {
+						window.externalEditor.editor.left.orig.markText(updateErrors.oldScript[j].from, updateErrors.oldScript[j].to, {
+							className: 'updateError',
+							inclusiveLeft: false,
+							inclusiveRight: false
+						});
+					}
+
+					//Mark right part
+					for (j = 0; j < updateErrors.newScript.length; j++) {
+						window.externalEditor.editor.right.orig.markText(updateErrors.newScript[j].from, updateErrors.newScript[j].to, {
+							className: 'updateError',
+							inclusiveLeft: false,
+							inclusiveRight: false
+						});
+					}
+					chooseFileDialog.removeEventListener('iron-overlay-opened', markerFn);
+				}, 2000);
+			}
+
+			if (updateErrors) {
+				window.doc.updateMergerCont.style.display = 'block';
+				var errorsNumber = (updateErrors.parseError ? '1' : updateErrors.oldScript.length);
+				window.doc.updateMergerTxt.innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
+				if (!updateErrors.parseError) {
+					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'block';
+					var listenerLeft = _this.generateNextErrorFinder(true, updateErrors.oldScript);
+					var listenerRight = _this.generateNextErrorFinder(false, updateErrors.newScript);
+					leftErrorButton.addEventListener('click', listenerLeft);
+					rightErrorButton.addEventListener('click', listenerRight);
+					leftErrorButton.listeners.push(listenerLeft);
+					rightErrorButton.listeners.push(listenerRight);
+
+					chooseFileDialog.addEventListener('iron-overlay-opened', markerFn);
+				} else {
+					leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'none';
+				}
+			} else {
+				window.doc.updateMergerCont.style.display = 'none';
+			}
 
 			chooseFileDialog.local = local;
 			chooseFileDialog.file = file;
