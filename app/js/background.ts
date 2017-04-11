@@ -9001,10 +9001,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				chrome.storage.local.get((chromeStorageLocal: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
 				}) => {
-					let result: boolean | ((resolve: (result: any) => void) => void);
-					if ((result = this._isFirstTime(chromeStorageLocal))) {
-						const resultFn = result as ((resolve: (result: any) => void) => void);
-						resultFn((data) => {
+					const result = this._isFirstTime(chromeStorageLocal);
+					if (result.type === 'firstTimeCallback') {
+						result.fn((data) => {
 							this.setStorages(data.storageLocalCopy, data.settingsStorage,
 								data.chromeStorageLocal, callback);
 						});
@@ -9057,6 +9056,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						this.setStorages(storageLocalCopy, settingsStorage,
 							chromeStorageLocal,
 							callback);
+
+						if (result.type === 'upgradeVersion') {
+							result.fn();
+						}
 					}
 				});
 			});
@@ -9127,47 +9130,99 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
-		private static _upgradeVersion(oldVersion: string, newVersion: string) {
+		private static _upgradeVersion(oldVersion: string, newVersion: string): {
+			before: Array<() => void>;
+			after: Array<() => void>;
+		} {
+			const fns: {
+				before: Array<() => void>;
+				after: Array<() => void>;
+			} = {
+				before: [],
+				after: []
+			}
+
+			debugger;
+			console.log(globalObject.globals.crm.crmTree);
 			if (oldVersion === '2.0.3') {
-				this._crmForEach(globalObject.globals.crm.crmTree, (node) => {
-					if (node.type === 'script') {
-						node.value.oldScript = node.value.script;
-						node.value.script = this.SetupHandling.TransferFromOld
-							.legacyScriptReplace
-							.chromeCallsReplace
-							.replace(node.value.script, this.SetupHandling.TransferFromOld
-								.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
-					}
-					if (node.isLocal) {
+				fns.after.push(() => {
+					this._crmForEach(globalObject.globals.crm.crmTree, (node) => {
+						if (node.type === 'script') {
+							node.value.oldScript = node.value.script;
+							node.value.script = this.SetupHandling.TransferFromOld
+								.legacyScriptReplace
+								.chromeCallsReplace
+								.replace(node.value.script, this.SetupHandling.TransferFromOld
+									.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
+						}
+						if (node.isLocal) {
 							node.nodeInfo.installDate = new Date().toLocaleDateString();
 							node.nodeInfo.lastUpdatedAt = Date.now();
 							node.nodeInfo.version = '1.0';
 							node.nodeInfo.isRoot = false;
 							node.nodeInfo.source = 'local';
-					}
+
+							if (node.onContentTypes[0] && node.onContentTypes[1] && node.onContentTypes[2] &&
+								!node.onContentTypes[3] && !node.onContentTypes[4] && !node.onContentTypes[5]) {
+									node.onContentTypes = [true, true, true, true, true, true];
+								}
+						}
+					});
+					CRM.updateCrm();
 				});
-				CRM.updateCrm();
 			}
+
+			chrome.storage.local.set({
+				lastUpdatedAt: newVersion
+			});
+
+			return fns;
 		}
-		private static _isFirstTime(storageLocal: CRM.StorageLocal): boolean|FirstTimeCallback {
+		private static _isFirstTime(storageLocal: CRM.StorageLocal): {
+			type: 'firstTimeCallback';
+			fn: FirstTimeCallback;
+		}|{
+			type: 'upgradeVersion';
+			fn: () => void;
+		}|{
+			type: 'noChanges';
+		} {
 			const currentVersion = chrome.runtime.getManifest().version;
 			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt === currentVersion) {
-				return false;
+				return {
+					type: 'noChanges'
+				}
 			} else {
 				if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {
-					this._upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
-					return false;
+					const fns = this._upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
+					fns.before.forEach((fn) => {
+						fn();
+					});
+					return {
+						type: 'upgradeVersion',
+						fn: () => {
+							fns.after.forEach((fn) => {
+								fn();
+							});
+						}
+					}
 				}
 				//Determine if it's a transfer from CRM version 1.*
 				if (!window.localStorage.getItem('transferToVersion2') && 
 					window.localStorage.getItem('numberofrows') !== undefined && 
 					window.localStorage.getItem('numberofrows') !== null) {
-					return this.SetupHandling.handleTransfer();
+					return {
+						type: 'firstTimeCallback',
+						fn: this.SetupHandling.handleTransfer()
+					}
 				} else {
 					const firstRunResult = this.SetupHandling.handleFirstRun();
-					return (resolve) => {
-						resolve(firstRunResult);
-					};
+					return {
+						type: 'firstTimeCallback',
+						fn: (resolve) => {
+							resolve(firstRunResult);
+						}
+					}
 				}
 			}
 		}
