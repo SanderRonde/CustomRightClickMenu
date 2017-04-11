@@ -2976,6 +2976,13 @@ class CA {
 					node.value.script = this.legacyScriptReplace.chromeCallsReplace.replace(node.value.script,
 						this.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
 				}
+				if (node.isLocal) {
+					node.nodeInfo.installDate = new Date().toLocaleDateString();
+					node.nodeInfo.lastUpdatedAt = Date.now();
+					node.nodeInfo.version = '1.0';
+					node.nodeInfo.isRoot = false;
+					node.nodeInfo.source = 'local';
+				}
 			});
 			window.app.upload();
 		}
