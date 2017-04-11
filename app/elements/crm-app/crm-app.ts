@@ -2863,165 +2863,6 @@ class CA {
 		}, 2500);
 	};
 
-	private static handleFirstTime(_this: CrmApp) {
-		//Sync storage
-		const defaultSyncStorage: CRM.SettingsStorage = {
-			editor: {
-				keyBindings: {
-					autocomplete: 'Ctrl-Space',
-					showType: 'Ctrl-I',
-					showDocs: 'Ctrl-O',
-					goToDef: 'Alt-.',
-					rename: 'Ctrl-Q',
-					jumpBack: 'Ctrl-,',
-					selectName: 'Ctrl-.'
-				},
-				tabSize: 4,
-				theme: 'dark',
-				useTabs: true,
-				zoom: '100'
-			},
-			crm: [
-				_this.templates.getDefaultLinkNode({
-					id: _this.generateItemId()
-				})
-			],
-			latestId: this.latestId || 0,
-			settingsLastUpdatedAt: new Date().getTime()
-		};
-
-		//Save sync storage
-		_this.uploadStorageSyncData(defaultSyncStorage, _this);
-		_this.settings = defaultSyncStorage;
-		const settingsJsonString = JSON.stringify(defaultSyncStorage);
-		_this.settingsCopy = JSON.parse(settingsJsonString);
-
-		const syncHash = window.md5(settingsJsonString);
-		const defaultLocalStorage: CRM.StorageLocal = {
-			requestPermissions: [],
-			editing: null,
-			selectedCrmType: 0,
-			jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
-			globalExcludes: [''],
-			useStorageSync: true,
-			notFirstTime: true,
-			lastUpdatedAt: chrome.runtime.getManifest().version,
-			authorName: 'anonymous',
-			showOptions: (localStorage.getItem('optionson') !== 'false'),
-			recoverUnsavedData: false,
-			CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-                .split('.')[0] > 34,
-			catchErrors: true,
-			editCRMInRM: false,
-			hideToolsRibbon: false,
-			shrinkTitleRibbon: false,
-			libraries: [],
-			settingsVersionData: {
-				current: {
-					hash: syncHash,
-					date: new Date().getTime()
-				},
-				latest: {
-					hash: syncHash,
-					date: new Date().getTime()
-				},
-				wasUpdated: false
-			}
-		};
-
-		window.app.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-
-		//Save local storage
-		chrome.storage.local.set(defaultLocalStorage);
-		_this.storageLocal = defaultLocalStorage;
-		_this.storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
-
-		//Go on with page execution
-		//Storage-local functions
-		_this.crmType = 0;
-		_this.switchToIcons(0);
-		_this.settingsJsonLength = settingsJsonString.length;
-
-		//Storage-sync functions
-		for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-			_this.onSettingsReadyCallbacks[i].callback.apply(_this.onSettingsReadyCallbacks[i].thisElement, _this.onSettingsReadyCallbacks[i].params);
-		}
-		_this.updateEditorZoom();
-		_this.orderNodesById(defaultSyncStorage.crm);
-		_this.pageDemo.create();
-		_this.buildNodePaths(_this.settings.crm, []);
-
-		window.setTimeout(function() {
-			_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
-		}, 2500);
-
-		localStorage.setItem('transferToVersion2', 'true');
-	};
-
-	private static _crmForEach(this: CrmApp, crm: CRM.Tree, fn: (node: CRM.Node) => void) {
-		for (let i = 0; i < crm.length; i++) {
-			const node =crm[i];
-			fn(node);
-			if (node.type === 'menu' && node.children) {
-				this._crmForEach(node.children, fn);
-			}
-		}
-	}
-
-	private static upgradeVersion(this: CrmApp, oldVersion: string, newVersion: string) {
-		if (oldVersion === '2.0.3') {
-			this._crmForEach(window.app.settings.crm, (node) => {
-				if (node.type === 'script') {
-					node.value.oldScript = node.value.script;
-					node.value.script = this.legacyScriptReplace.chromeCallsReplace.replace(node.value.script,
-						this.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
-				}
-				if (node.isLocal) {
-					node.nodeInfo.installDate = new Date().toLocaleDateString();
-					node.nodeInfo.lastUpdatedAt = Date.now();
-					node.nodeInfo.version = '1.0';
-					node.nodeInfo.isRoot = false;
-					node.nodeInfo.source = 'local';
-				}
-			});
-			window.app.upload();
-		}
-	};
-
-	private static checkFirstTime(this: CrmApp, storageLocal: CRM.StorageLocal) {
-		const _this = this;
-		const currentVersion = chrome.runtime.getManifest().version;
-		if (storageLocal.lastUpdatedAt === currentVersion) {
-			return true;
-		} else {
-			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {		
-				this.upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
-				return true;
-			}
-			try {
-				//Determine if it's a transfer from CRM version 1.*
-				if (localStorage.getItem('transferToVersion2') &&
-						window.localStorage.getItem('numberofrows') !== null &&
-						window.localStorage.getItem('numberofrows') !== undefined) {
-					_this.handleDataTransfer(_this);
-					_this.async(function() {
-						window.doc.versionUpdateDialog.open();
-					}, 2000);
-				} else {
-					_this.handleFirstTime(_this);
-				}
-			} catch (e) {
-				setTimeout(function() {
-					throw e;
-				}, 2500);
-				//Just clear the loading screen immediately
-				document.documentElement.classList.remove('elementsLoading');
-				return true;
-			}
-			return false;
-		}
-	};
-
 	private static buildNodePaths(this: CrmApp, tree: CRM.Tree, currentPath: Array<number>) {
 		for (let i = 0; i < tree.length; i++) {
 			const childPath = currentPath.concat([i]);
@@ -3246,205 +3087,202 @@ class CA {
 	};
 
 	private static setupStorages(this: CrmApp, resolve: (callback: () => void) => void) {
-		const _this = this;
-		chrome.storage.local.get(function(storageLocal: CRM.StorageLocal & {
+		chrome.storage.local.get((storageLocal: CRM.StorageLocal & {
 			nodeStorage: any;
 			settings?: CRM.SettingsStorage;
-		}) {
-			if (_this.checkFirstTime(storageLocal)) {
-				resolve(function() {
-					function callback(items: CRM.SettingsStorage) {
-						_this.settings = items;
-						_this.settingsCopy = JSON.parse(JSON.stringify(items));
-						for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-							_this.onSettingsReadyCallbacks[i].callback.apply(
-								_this.onSettingsReadyCallbacks[i].thisElement,
-								_this.onSettingsReadyCallbacks[i].params);
-						}
-						_this.updateEditorZoom();
-						_this.orderNodesById(items.crm);
-						_this.pageDemo.create();
-						_this.buildNodePaths(items.crm, []);
-						if (_this.settings.latestId) {
-							_this.latestId = items.latestId;
-						} else {
-							_this.latestId = 0;
-						}
-
-						if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
-							(window.doc.CRMOnPage as PaperToggleOption).setCheckboxDisabledValue(true);
-						}
-						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
-							.CRMOnPage);
+		}) => {
+			resolve(() => {
+				function callback(this: CrmApp, items: CRM.SettingsStorage) {
+					this.settings = items;
+					this.settingsCopy = JSON.parse(JSON.stringify(items));
+					for (let i = 0; i < this.onSettingsReadyCallbacks.length; i++) {
+						this.onSettingsReadyCallbacks[i].callback.apply(
+							this.onSettingsReadyCallbacks[i].thisElement,
+							this.onSettingsReadyCallbacks[i].params);
+					}
+					this.updateEditorZoom();
+					this.orderNodesById(items.crm);
+					this.pageDemo.create();
+					this.buildNodePaths(items.crm, []);
+					if (this.settings.latestId) {
+						this.latestId = items.latestId;
+					} else {
+						this.latestId = 0;
 					}
 
-					Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
-						setting.init(storageLocal);
+					if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
+						(window.doc.CRMOnPage as PaperToggleOption).setCheckboxDisabledValue(true);
+					}
+					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
+						.CRMOnPage);
+				}
+
+				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
+					setting.init(storageLocal);
+				});
+
+				this.bindListeners();
+				delete storageLocal.nodeStorage;
+				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
+					this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
+				}
+				if (storageLocal.editing) {
+					const editing = storageLocal.editing;
+					setTimeout(() => {
+						//Check out if the code is actually different
+						const node = this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
+						const nodeCurrentCode = (node.type === 'script' ? node.value.script :
+							node.value.stylesheet);
+						if (nodeCurrentCode.trim() !== editing.val.trim()) {
+							this.restoreUnsavedInstances(editing);
+						} else {
+							chrome.storage.local.set({
+								editing: null
+							});
+						}
+					}, 2500);
+				}
+				if (storageLocal.selectedCrmType !== undefined) {
+					this.crmType = storageLocal.selectedCrmType;
+					this.switchToIcons(storageLocal.selectedCrmType);
+				} else {
+					chrome.storage.local.set({
+						selectedCrmType: 0
+					});
+					this.crmType = 0;
+					this.switchToIcons(0);
+				}
+				if (storageLocal.jsLintGlobals) {
+					this.jsLintGlobals = storageLocal.jsLintGlobals;
+				} else {
+					this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+					chrome.storage.local.set({
+						jsLintGlobals: this.jsLintGlobals
+					});
+				}
+				if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
+					1) {
+					this.globalExcludes = storageLocal.globalExcludes;
+				} else {
+					this.globalExcludes = [''];
+					chrome.storage.local.set({
+						globalExcludes: this.globalExcludes
+					});
+				}
+				if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
+					window.setTimeout(function() {
+						(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
+						(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
+							storageLocal.addedPermissions.length;
+						window.doc.addedPermissionsTabRepeater.items =
+							storageLocal.addedPermissions;
+
+						if (storageLocal.addedPermissions.length === 1) {
+							(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
+								.style.display = 'none';	
+						} else {
+							(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
+								.style.display = 'none';
+						}
+						window.doc.addedPermissionPrevButton.style.display = 'none';
+						window.doc.addedPermissionsTabRepeater.render();
+						window.doc.addedPermissionsDialog.open();
+						chrome.storage.local.set({
+							addedPermissions: null
+						});
+					}, 2500);
+				}
+				if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
+					this.$.scriptUpdatesToast.text = this.getUpdatedScriptString(
+						storageLocal.updatedScripts[0]);
+					this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+					this.$.scriptUpdatesToast.index = 0;
+					this.$.scriptUpdatesToast.show();
+
+					if (storageLocal.updatedScripts.length > 1) {
+						this.$.nextScriptUpdateButton.style.display = 'inline';
+					} else {
+						this.$.nextScriptUpdateButton.style.display = 'none';
+					}
+					chrome.storage.local.set({
+						updatedScripts: []
+					});
+					storageLocal.updatedScripts = [];
+				}
+				if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
+					const versionData = storageLocal.settingsVersionData;
+					versionData.wasUpdated = false;
+					chrome.storage.local.set({
+						settingsVersionData: versionData	
 					});
 
-					_this.bindListeners();
-					delete storageLocal.nodeStorage;
-					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-						_this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
-					}
-					if (storageLocal.editing) {
-						const editing = storageLocal.editing;
-						setTimeout(function() {
-							//Check out if the code is actually different
-							const node = _this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
-							const nodeCurrentCode = (node.type === 'script' ? node.value.script :
-								node.value.stylesheet);
-							if (nodeCurrentCode.trim() !== editing.val.trim()) {
-								_this.restoreUnsavedInstances(editing);
-							} else {
-								chrome.storage.local.set({
-									editing: null
-								});
-							}
-						}, 2500);
-					}
-					if (storageLocal.selectedCrmType !== undefined) {
-						_this.crmType = storageLocal.selectedCrmType;
-						_this.switchToIcons(storageLocal.selectedCrmType);
-					} else {
-						chrome.storage.local.set({
-							selectedCrmType: 0
-						});
-						_this.crmType = 0;
-						_this.switchToIcons(0);
-					}
-					if (storageLocal.jsLintGlobals) {
-						_this.jsLintGlobals = storageLocal.jsLintGlobals;
-					} else {
-						_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-						chrome.storage.local.set({
-							jsLintGlobals: _this.jsLintGlobals
-						});
-					}
-					if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
-						1) {
-						_this.globalExcludes = storageLocal.globalExcludes;
-					} else {
-						_this.globalExcludes = [''];
-						chrome.storage.local.set({
-							globalExcludes: _this.globalExcludes
-						});
-					}
-					if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
-						window.setTimeout(function() {
-							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
-							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
-								storageLocal.addedPermissions.length;
-							window.doc.addedPermissionsTabRepeater.items =
-								storageLocal.addedPermissions;
+					const toast = window.doc.updatedSettingsToast;
+					toast.text = 'Settings were updated to those on ' + new Date(
+						versionData.latest.date
+					).toLocaleDateString();
+					toast.show();
+				}
 
-							if (storageLocal.addedPermissions.length === 1) {
-								(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
-									.style.display = 'none';	
-							} else {
-								(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
-									.style.display = 'none';
-							}
-							window.doc.addedPermissionPrevButton.style.display = 'none';
-							window.doc.addedPermissionsTabRepeater.render();
-							window.doc.addedPermissionsDialog.open();
+				if (storageLocal.isTransfer) {
+					chrome.storage.local.set({
+						isTransfer: false
+					});
+					window.doc.versionUpdateDialog.open();
+				}
+
+				this.storageLocal = storageLocal;
+				this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+				if (storageLocal.useStorageSync) {
+					//Parse the data before sending it to the callback
+					chrome.storage.sync.get((storageSync: {
+						[key: string]: string
+					} & {
+						indexes: Array<string>;
+					}) => {
+						let indexes = storageSync.indexes;
+						if (!indexes) {
 							chrome.storage.local.set({
-								addedPermissions: null
+								useStorageSync: false
 							});
-						}, 2500);
-					}
-					if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-						_this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(
-							storageLocal.updatedScripts[0]);
-						_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
-						_this.$.scriptUpdatesToast.index = 0;
-						_this.$.scriptUpdatesToast.show();
-
-						if (storageLocal.updatedScripts.length > 1) {
-							_this.$.nextScriptUpdateButton.style.display = 'inline';
+							callback.bind(this)(storageLocal.settings);
 						} else {
-							_this.$.nextScriptUpdateButton.style.display = 'none';
+							const settingsJsonArray: Array<string> = [];
+							indexes.forEach(function(index) {
+								settingsJsonArray.push(storageSync[index]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							this.settingsJsonLength = jsonString.length;
+							const settings = JSON.parse(jsonString);
+							callback.bind(this)(settings);
 						}
+					});
+				} else {
+					//Send the "settings" object on the storage.local to the callback
+					this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
+					if (!storageLocal.settings) {
 						chrome.storage.local.set({
-							updatedScripts: []
+							useStorageSync: true
 						});
-						storageLocal.updatedScripts = [];
-					}
-					if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
-						const versionData = storageLocal.settingsVersionData;
-						versionData.wasUpdated = false;
-						chrome.storage.local.set({
-							settingsVersionData: versionData	
-						});
-
-						const toast = window.doc.updatedSettingsToast;
-						toast.text = 'Settings were updated to those on ' + new Date(
-							versionData.latest.date
-						).toLocaleDateString();
-						toast.show();
-					}
-
-					if (storageLocal.isTransfer) {
-						chrome.storage.local.set({
-							isTransfer: false
-						});
-						window.doc.versionUpdateDialog.open();
-					}
-
-					_this.storageLocal = storageLocal;
-					_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
-					if (storageLocal.useStorageSync) {
-						//Parse the data before sending it to the callback
-						chrome.storage.sync.get(function(storageSync: {
+						chrome.storage.sync.get((storageSync: {
 							[key: string]: string
 						} & {
 							indexes: Array<string>;
-						}) {
-							let indexes = storageSync.indexes;
-							if (!indexes) {
-								chrome.storage.local.set({
-									useStorageSync: false
-								});
-								callback(storageLocal.settings);
-							} else {
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function(index) {
-									settingsJsonArray.push(storageSync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								_this.settingsJsonLength = jsonString.length;
-								const settings = JSON.parse(jsonString);
-								callback(settings);
-							}
+						}) => {
+							const indexes = storageSync.indexes;
+							const settingsJsonArray: Array<string> = [];
+							indexes.forEach(function(index) {
+								settingsJsonArray.push(storageSync[index]);
+							});
+							const jsonString = settingsJsonArray.join('');
+							this.settingsJsonLength = jsonString.length;
+							const settings = JSON.parse(jsonString);
+							callback.bind(this)(settings);
 						});
 					} else {
-						//Send the "settings" object on the storage.local to the callback
-						_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
-						if (!storageLocal.settings) {
-							chrome.storage.local.set({
-								useStorageSync: true
-							});
-							chrome.storage.sync.get(function(storageSync: {
-								[key: string]: string
-							} & {
-								indexes: Array<string>;
-							}) {
-								const indexes = storageSync.indexes;
-								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function(index) {
-									settingsJsonArray.push(storageSync[index]);
-								});
-								const jsonString = settingsJsonArray.join('');
-								_this.settingsJsonLength = jsonString.length;
-								const settings = JSON.parse(jsonString);
-								callback(settings);
-							});
-						} else {
-							callback(storageLocal.settings);
-						}
+						callback.bind(this)(storageLocal.settings);
 					}
-				});
-			}
+				}
+			});
 		});
 	};
 
