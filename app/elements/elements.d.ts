@@ -128,6 +128,9 @@ interface Window {
 		keyLines: KeyLines;
 	}
 	useOptionsCompletions: boolean;
+	Storages: {
+		loadStorages(callback: () => void): void;
+	}
 
 	app: CrmApp;
 	logPage: LogPage;

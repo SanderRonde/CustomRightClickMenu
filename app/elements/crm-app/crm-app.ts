@@ -2855,7 +2855,17 @@ class CA {
 		window.setTimeout(function() {
 			_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
 		}, 2500);
-	};
+	}
+
+	private static _crmForEach(this: CrmApp, crm: CRM.Tree, fn: (node: CRM.Node) => void) {
+		for (let i = 0; i < crm.length; i++) {
+			const node =crm[i];
+			fn(node);
+			if (node.type === 'menu' && node.children) {
+				this._crmForEach(node.children, fn);
+			}
+		}
+	}
 
 	private static buildNodePaths(this: CrmApp, tree: CRM.Tree, currentPath: Array<number>) {
 		for (let i = 0; i < tree.length; i++) {
@@ -3081,27 +3091,28 @@ class CA {
 	};
 
 	private static setupStorages(this: CrmApp, resolve: (callback: () => void) => void) {
+		const _this = this;
 		chrome.storage.local.get((storageLocal: CRM.StorageLocal & {
 			nodeStorage: any;
 			settings?: CRM.SettingsStorage;
 		}) => {
-			resolve(() => {
-				function callback(this: CrmApp, items: CRM.SettingsStorage) {
-					this.settings = items;
-					this.settingsCopy = JSON.parse(JSON.stringify(items));
-					for (let i = 0; i < this.onSettingsReadyCallbacks.length; i++) {
-						this.onSettingsReadyCallbacks[i].callback.apply(
-							this.onSettingsReadyCallbacks[i].thisElement,
-							this.onSettingsReadyCallbacks[i].params);
+			resolve(function() {
+				function callback(items: CRM.SettingsStorage) {
+					_this.settings = items;
+					_this.settingsCopy = JSON.parse(JSON.stringify(items));
+					for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+						_this.onSettingsReadyCallbacks[i].callback.apply(
+							_this.onSettingsReadyCallbacks[i].thisElement,
+							_this.onSettingsReadyCallbacks[i].params);
 					}
-					this.updateEditorZoom();
-					this.orderNodesById(items.crm);
-					this.pageDemo.create();
-					this.buildNodePaths(items.crm, []);
-					if (this.settings.latestId) {
-						this.latestId = items.latestId;
+					_this.updateEditorZoom();
+					_this.orderNodesById(items.crm);
+					_this.pageDemo.create();
+					_this.buildNodePaths(items.crm, []);
+					if (_this.settings.latestId) {
+						_this.latestId = items.latestId;
 					} else {
-						this.latestId = 0;
+						_this.latestId = 0;
 					}
 
 					if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
@@ -3115,20 +3126,20 @@ class CA {
 					setting.init(storageLocal);
 				});
 
-				this.bindListeners();
+				_this.bindListeners();
 				delete storageLocal.nodeStorage;
 				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-					this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
+					_this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
 				}
 				if (storageLocal.editing) {
 					const editing = storageLocal.editing;
-					setTimeout(() => {
+					setTimeout(function() {
 						//Check out if the code is actually different
-						const node = this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
+						const node = _this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
 						const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 							node.value.stylesheet);
 						if (nodeCurrentCode.trim() !== editing.val.trim()) {
-							this.restoreUnsavedInstances(editing);
+							_this.restoreUnsavedInstances(editing);
 						} else {
 							chrome.storage.local.set({
 								editing: null
@@ -3137,30 +3148,30 @@ class CA {
 					}, 2500);
 				}
 				if (storageLocal.selectedCrmType !== undefined) {
-					this.crmType = storageLocal.selectedCrmType;
-					this.switchToIcons(storageLocal.selectedCrmType);
+					_this.crmType = storageLocal.selectedCrmType;
+					_this.switchToIcons(storageLocal.selectedCrmType);
 				} else {
 					chrome.storage.local.set({
 						selectedCrmType: 0
 					});
-					this.crmType = 0;
-					this.switchToIcons(0);
+					_this.crmType = 0;
+					_this.switchToIcons(0);
 				}
 				if (storageLocal.jsLintGlobals) {
-					this.jsLintGlobals = storageLocal.jsLintGlobals;
+					_this.jsLintGlobals = storageLocal.jsLintGlobals;
 				} else {
-					this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+					_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
 					chrome.storage.local.set({
-						jsLintGlobals: this.jsLintGlobals
+						jsLintGlobals: _this.jsLintGlobals
 					});
 				}
 				if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
 					1) {
-					this.globalExcludes = storageLocal.globalExcludes;
+					_this.globalExcludes = storageLocal.globalExcludes;
 				} else {
-					this.globalExcludes = [''];
+					_this.globalExcludes = [''];
 					chrome.storage.local.set({
-						globalExcludes: this.globalExcludes
+						globalExcludes: _this.globalExcludes
 					});
 				}
 				if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
@@ -3187,16 +3198,16 @@ class CA {
 					}, 2500);
 				}
 				if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-					this.$.scriptUpdatesToast.text = this.getUpdatedScriptString(
+					_this.$.scriptUpdatesToast.text = _this.getUpdatedScriptString(
 						storageLocal.updatedScripts[0]);
-					this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
-					this.$.scriptUpdatesToast.index = 0;
-					this.$.scriptUpdatesToast.show();
+					_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+					_this.$.scriptUpdatesToast.index = 0;
+					_this.$.scriptUpdatesToast.show();
 
 					if (storageLocal.updatedScripts.length > 1) {
-						this.$.nextScriptUpdateButton.style.display = 'inline';
+						_this.$.nextScriptUpdateButton.style.display = 'inline';
 					} else {
-						this.$.nextScriptUpdateButton.style.display = 'none';
+						_this.$.nextScriptUpdateButton.style.display = 'none';
 					}
 					chrome.storage.local.set({
 						updatedScripts: []
@@ -3224,56 +3235,56 @@ class CA {
 					window.doc.versionUpdateDialog.open();
 				}
 
-				this.storageLocal = storageLocal;
-				this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+				_this.storageLocal = storageLocal;
+				_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 				if (storageLocal.useStorageSync) {
 					//Parse the data before sending it to the callback
-					chrome.storage.sync.get((storageSync: {
+					chrome.storage.sync.get(function(storageSync: {
 						[key: string]: string
 					} & {
 						indexes: Array<string>;
-					}) => {
+					}) {
 						let indexes = storageSync.indexes;
 						if (!indexes) {
 							chrome.storage.local.set({
 								useStorageSync: false
 							});
-							callback.bind(this)(storageLocal.settings);
+							callback(storageLocal.settings);
 						} else {
 							const settingsJsonArray: Array<string> = [];
 							indexes.forEach(function(index) {
 								settingsJsonArray.push(storageSync[index]);
 							});
 							const jsonString = settingsJsonArray.join('');
-							this.settingsJsonLength = jsonString.length;
+							_this.settingsJsonLength = jsonString.length;
 							const settings = JSON.parse(jsonString);
-							callback.bind(this)(settings);
+							callback(settings);
 						}
 					});
 				} else {
 					//Send the "settings" object on the storage.local to the callback
-					this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
+					_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
 					if (!storageLocal.settings) {
 						chrome.storage.local.set({
 							useStorageSync: true
 						});
-						chrome.storage.sync.get((storageSync: {
+						chrome.storage.sync.get(function(storageSync: {
 							[key: string]: string
 						} & {
 							indexes: Array<string>;
-						}) => {
+						}) {
 							const indexes = storageSync.indexes;
 							const settingsJsonArray: Array<string> = [];
 							indexes.forEach(function(index) {
 								settingsJsonArray.push(storageSync[index]);
 							});
 							const jsonString = settingsJsonArray.join('');
-							this.settingsJsonLength = jsonString.length;
+							_this.settingsJsonLength = jsonString.length;
 							const settings = JSON.parse(jsonString);
-							callback.bind(this)(settings);
+							callback(settings);
 						});
 					} else {
-						callback.bind(this)(storageLocal.settings);
+						callback(storageLocal.settings);
 					}
 				}
 			});
@@ -3317,7 +3328,11 @@ class CA {
 		window.app.settings = window.app.storageLocal = null;
 
 		//Reset storages
-		this.setupStorages(onDone.bind(this));
+		
+		//On a demo or test page right now, use background page to init settings
+		window.Storages.loadStorages(() => {
+			this.setupStorages(onDone.bind(this));
+		});
 	};
 
 	private static getLocalStorageKey(this: CrmApp, key: string): any {

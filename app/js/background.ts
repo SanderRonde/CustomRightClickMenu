@@ -436,7 +436,8 @@ interface GlobalObject {
 		transferCRMFromOld(openInNewTab: boolean, storageSource: {
 			getItem(index: string|number): any;
 		}, method: SCRIPT_CONVERSION_TYPE): CRM.Tree;
-	}
+	};
+	Storages?: any;
 }
 
 interface Extensions<T> extends CRM.Extendable<T> { }
@@ -9285,6 +9286,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				GlobalDeclarations.initGlobalFunctions();
 
+				if (location.href.indexOf('test') > -1) {
+					globalObject.Storages = Storages;
+				}
 				if (typeof module !== 'undefined') {
 					globalObject.TransferFromOld = 
 						Storages.SetupHandling.TransferFromOld;
