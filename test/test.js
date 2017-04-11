@@ -706,7 +706,7 @@ describe('Conversion', () => {
 				}
 			};
 			assert.doesNotThrow(run(() => {
-				backgroundCode = fs.readFileSync('./app/js/background.js', {
+				backgroundCode = fs.readFileSync('./build/js/background.js', {
 					encoding: 'utf8'
 				});
 			}), 'File background.js is readable');
