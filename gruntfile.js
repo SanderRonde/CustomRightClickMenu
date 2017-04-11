@@ -603,7 +603,7 @@ module.exports = function(grunt) {
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
 		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
-		'clean:tsFiles', 'uglify:bower_components', 'usebanner', 'zip']);
+		'clean:tsFiles', 'usebanner', 'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
