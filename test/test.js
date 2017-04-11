@@ -110,9 +110,9 @@ function createCrmLocalStorage(nodes, newTab) {
 	return obj;
 }
 
-var crmAppResolve;
-var crmAppDone = new Promise((resolve) => {
-	crmAppResolve = resolve;
+var backgroundPageWindowResolve;
+var backgroundPageWindowDone = new Promise((resolve) => {
+	backgroundPageWindowResolve = resolve;
 });
 
 function mergeObjects(obj1, obj2) {
@@ -437,12 +437,24 @@ function resetTree() {
 /**
  * HACKING
  */
-var window = {
+var window;
+var backgroundPageWindow = window = {
 	JSON: JSON,
 	setTimeout: setTimeout,
 	setInterval: setInterval,
-	md5: function(input) {
+	md5: function() {
 		return 'md5-hash';
+	},
+	document: {
+		querySelector: function() {
+			return {
+				classList: {
+					remove: function() {
+						
+					}
+				}
+			}
+		}
 	}
 };
 
@@ -469,75 +481,177 @@ var document = {
 		};
 	}
 };
-var crmAppCode;
-var crmApp;
-describe('Conversion', () => {
-	describe('is testable', function() {
-		this.slow(1000);
-		var elements = {};
-		var Polymer = (element) => {
-			elements[element.is] = element;
-		};
-		var chrome = {
-			storage: {
-				local: {
-					set: function () { }
+var storageLocal = {};
+var storageSync = {};
+var bgPageConnectListener;
+var idChangeListener;
+
+var bgPagePortMessageListeners = [];
+var crmAPIPortMessageListeners = [];
+var chrome = {
+	app: {
+		getDetails: function() {
+			return {
+				version: 2.0
+			}
+		}
+	},
+	runtime: {
+		getURL: function () { return 'chrome-extension://something/'; },
+		onConnect: {
+			addListener: function (fn) {
+				bgPageConnectListener = fn;
+			}
+		},
+		onMessage: {
+			addListener: function (fn) {
+				bgPageOnMessageListener = fn;
+			}
+		},
+		connect: function() {
+			var idx = bgPagePortMessageListeners.length;
+			bgPageConnectListener({ //Port for bg page
+				onMessage: {
+					addListener: function(fn) {
+						bgPagePortMessageListeners[idx] = fn;
+					}
 				},
-				sync: {
-					set: function () { }
+				postMessage: function(message) {
+					crmAPIPortMessageListeners[idx](message);
+				}
+			});
+
+			return { //Port for crmAPI
+				onMessage: {
+					addListener: function(fn) {
+						crmAPIPortMessageListeners[idx] = fn;
+					}
+				},
+				postMessage: function (message) {
+					bgPagePortMessageListeners[idx](message);
 				}
 			}
-		};
-		step('should be able to read crm-app.js', () => {
-			assert.doesNotThrow(run(() => {
-				crmAppCode = fs.readFileSync('./build/elements/crm-app/crm-app.js', {
+		},
+		getManifest: function() {
+			return JSON.parse(String(fs
+				.readFileSync('./build/manifest.json'), {
 					encoding: 'utf8'
-				});
-			}), 'File crm-app.js is readable');
-		});
-		step('should be runnable', () => {
-			assert.doesNotThrow(run(() => {
-				eval(crmAppCode);
-			}), 'File crm-app.js is executable');
-			crmAppResolve();
-			crmApp = elements['crm-app'];
-		});
-		step('should be defined', () => {
-			assert.isDefined(crmApp, 'crmApp is defined');
-		});
-		step('should have a transferCRMFromOld property that is a function', () => {
-			assert.isDefined(crmApp.transferCRMFromOld, 'Function is defined');
-			assert.isFunction(crmApp.transferCRMFromOld, 'Function is a function');
-		});
-		step('should have a generateScriptUpgradeErrorHandler property that is a function', () => {
-			assert.isDefined(crmApp.transferCRMFromOld, 'Function is defined');
-			assert.isFunction(crmApp.transferCRMFromOld, 'Function is a function');
-		});
-		step('generateScriptUpgradeErrorHandler should be overwritable', () => {
-			assert.doesNotThrow(run(() => {
-				crmApp.generateScriptUpgradeErrorHandler = () => {
-					return (oldScriptErrs, newScriptErrs, parseErrors, errors) => {
-						if (Array.isArray(errors)) {
-							if (Array.isArray(errors[0])) {
-								throw errors[0][0];
-							}
-							throw errors[0];
-						} else if (errors) {
-							throw errors;
+				})
+				.replace(/\/\*.+\*\//g, ''))
+		},
+		openOptionsPage: function() { },
+		lastError: null,
+		sendMessage: function() {}
+	},
+	contextMenus: {
+		removeAll: function () { },
+		create: function () { },
+		remove: function(id, cb) {
+			cb();
+		},
+		update: function(id, stuff, cb) {
+			cb && cb();
+		}
+	},
+	tabs: {
+		onHighlighted: {
+			addListener: function () { }
+		},
+		onUpdated: {
+			addListener: function () { }
+		},
+		onRemoved: {
+			addListener: function () { }
+		}
+	},
+	webRequest: {
+		onBeforeRequest: {
+			addListener: function () { }
+		}
+	},
+	notifications: {
+		onClosed: {
+			addListener: function () { }
+		},
+		onClicked: {
+			addListener: function () { }
+		}
+	},
+	permissions: {
+		getAll: function () {
+			return {
+				permissions: []
+			};
+		}
+	},
+	storage: {
+		sync: {
+			get: function (key, cb) {
+				if (typeof key === 'function') {
+					key(storageSync);
+				} else {
+					var result = {};
+					result[key] = storageSync[key];
+					cb(result);
+				}
+			},
+			set: function (data, cb) {
+				for (var objKey in data) {
+					if (data.hasOwnProperty(objKey)) {
+						storageSync[objKey] = data[objKey];
+					}
+				}
+				cb && cb(storageSync);
+			}
+		},
+		local: {
+			get: function (key, cb) {
+				if (typeof key === 'function') {
+					key(storageLocal);
+				} else {
+					var result = {};
+					result[key] = storageLocal[key];
+					cb(result);
+				}
+			},
+			set: function (obj, cb) {
+				for (let objKey in obj) {
+					if (obj.hasOwnProperty(objKey)) {
+						if (objKey === 'latestId') {
+							idChangeListener && idChangeListener({
+								latestId: {
+									newValue: obj[objKey]
+								}
+							});
 						}
-						if (oldScriptErrs) {
-							throw oldScriptErrs;
-						}
-						if (newScriptErrs) {
-							throw newScriptErrs;
-						}
-						if (parseErrors) {
-							throw new Error('Error parsing script');
-						}
-					};
-				};
-			}), 'generateScriptUpgradeErrorHandler is overwritable');
-		});
+						storageLocal[objKey] = obj[objKey];
+					}
+				}
+				cb && cb(storageLocal);
+			}
+		},
+		onChanged: {
+			addListener: function (fn) {
+				idChangeListener = fn;
+			}
+		}
+	}
+};
+describe('Conversion', () => {
+
+	var Worker = function() {
+		return  {
+			postMessage: function() {
+
+			},
+			addEventListener: function(){}
+		}
+	}
+	let localStorage = {
+		getItem: function () { return 'yes'; }
+	};
+	describe('is testable', function() {
+		this.slow(1000);
 		let diffMatchPatchCode;
 		step('should be able to read diff_match_patch.js', () => {
 			assert.doesNotThrow(run(() => {
@@ -577,17 +691,79 @@ describe('Conversion', () => {
 				eval(ternCode);
 			}), 'File codeMirrorAddons.js is runnable');
 		});
+		let backgroundCode;
+		step('should be able to read background.js', () => {
+			window.localStorage = {
+				setItem: () => { },
+				getItem: (key) => {
+					if (key === 'transferToVersion2') {
+						return false;
+					}
+					if (key === 'numberofrows') {
+						return 0;
+					}
+					return undefined;	
+				}
+			};
+			assert.doesNotThrow(run(() => {
+				backgroundCode = fs.readFileSync('./app/js/background.js', {
+					encoding: 'utf8'
+				});
+			}), 'File background.js is readable');
+		});
+		step('background.js should be runnable', () => {
+			assert.doesNotThrow(run(() => {
+				eval(backgroundCode);
+				backgroundPageWindowResolve();
+			}), 'File background.js is executable');
+		});
+		step('should be defined', () => {
+			assert.isDefined(backgroundPageWindow, 'backgroundPage is defined');
+		});
+		step('should have a transferCRMFromOld property that is a function', () => {
+			assert.isDefined(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is defined');
+			assert.isFunction(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is a function');
+		});
+		step('should have a generateScriptUpgradeErrorHandler property that is a function', () => {
+			assert.isDefined(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is defined');
+			assert.isFunction(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is a function');
+		});
+		step('generateScriptUpgradeErrorHandler should be overwritable', () => {
+			assert.doesNotThrow(run(() => {
+				backgroundPageWindow.generateScriptUpgradeErrorHandler = () => {
+					return (oldScriptErrs, newScriptErrs, parseErrors, errors) => {
+						if (Array.isArray(errors)) {
+							if (Array.isArray(errors[0])) {
+								throw errors[0][0];
+							}
+							throw errors[0];
+						} else if (errors) {
+							throw errors;
+						}
+						if (oldScriptErrs) {
+							throw oldScriptErrs;
+						}
+						if (newScriptErrs) {
+							throw newScriptErrs;
+						}
+						if (parseErrors) {
+							throw new Error('Error parsing script');
+						}
+					};
+				};
+			}), 'generateScriptUpgradeErrorHandler is overwritable');
+		});
 	});
 	describe('of a CRM', () => {
 		before((done) => {
-			crmAppDone.then(done);
+			backgroundPageWindowDone.then(done);
 		});
 		it('should convert an empty crm', () => {
 			let openInNewTab = false;
 			let oldStorage = createCrmLocalStorage([], false);
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(openInNewTab, oldStorage);
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
 			}), 'Converting does not throw an error');
 			assert.isDefined(result, 'Result is defined');
 			assert.isArray(result, 'Resulting CRM is an array');
@@ -609,7 +785,7 @@ describe('Conversion', () => {
 			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(openInNewTab, oldStorage);
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
 			}), 'Converting does not throw an error');
 			let expectedLinks = singleLinkBaseCase[0].value.map((url) => {
 				return {
@@ -632,7 +808,7 @@ describe('Conversion', () => {
 			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, true);
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(openInNewTab, oldStorage);
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
 			}), 'Converting does not throw an error');
 			let expectedLinks = singleLinkBaseCase[0].value.map((url) => {
 				return {
@@ -654,7 +830,7 @@ describe('Conversion', () => {
 			let testName = 'a b c d e f g';
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
@@ -669,7 +845,7 @@ describe('Conversion', () => {
 			let testName = 'a\nb\nc\nd\ne\nf\ng';
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
@@ -683,7 +859,7 @@ describe('Conversion', () => {
 			let testName = 'a\'b"c\'\'d""e`f`g';
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
@@ -697,7 +873,7 @@ describe('Conversion', () => {
 			let testName = '';
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
 					[mergeObjects(singleLinkBaseCase[0], {
 						name: testName
@@ -710,7 +886,7 @@ describe('Conversion', () => {
 		it('should be able to convert an empty menu', () => {
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
 				  	type: 'menu',
 				  	name: 'test-menu',
@@ -733,7 +909,7 @@ describe('Conversion', () => {
 
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 					createCrmLocalStorage([{
 						type: 'script',
 						name: 'testscript',
@@ -773,7 +949,7 @@ describe('Conversion', () => {
 		it('should be able to convert a menu with some children with various types', () => {
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
 				  	type: 'menu',
 				  	name: 'test-menu',
@@ -805,7 +981,7 @@ describe('Conversion', () => {
 			let result;
 			let nameIndex = 0;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
 				  	type: 'menu',
 				  	name: `test-menu${nameIndex++}`,
@@ -877,7 +1053,7 @@ describe('Conversion', () => {
 	describe('converting scripts', function() {
 		this.slow(1000);
 		before((done) => {
-			crmAppDone.then(done);
+			backgroundPageWindowDone.then(done);
 		});
 		var singleScriptBaseCase = {
 			type: 'script',
@@ -901,7 +1077,7 @@ describe('Conversion', () => {
 			}
 			let result;
 			assert.doesNotThrow(run(() => {
-				result = crmApp.transferCRMFromOld(true,
+				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				createCrmLocalStorage(
 					[mergeObjects(singleScriptBaseCase, {
 						value: {
@@ -1237,217 +1413,6 @@ window.crmAPI.chrome('runtime.getURL')('something').return(function(x) {x = x + 
 });
 var bgPageOnMessageListener;
 describe('CRMAPI', () => {
-	window = {
-		JSON: JSON,
-		setTimeout: setTimeout,
-		setInterval: setInterval,
-		md5: function() {
-			return 'md5-hash';
-		},
-		document: {
-			querySelector: function() {
-				return {
-					classList: {
-						remove: function() {
-							
-						}
-					}
-				}
-			}
-		}
-	};
-	let backgroundCode;
-	var storageSync = {};
-	var storageLocal = {};
-	var bgPageConnectListener;
-	var idChangeListener;
-
-	var bgPagePortMessageListeners = [];
-	var crmAPIPortMessageListeners = [];
-	var Worker = function() {
-		return  {
-			postMessage: function() {
-
-			},
-			addEventListener: function(){}
-		}
-	}
-	var chrome = {
-		app: {
-			getDetails: function() {
-				return {
-					version: 2.0
-				}
-			}
-		},
-		runtime: {
-			getURL: function () { return 'chrome-extension://something/'; },
-			onConnect: {
-				addListener: function (fn) {
-					bgPageConnectListener = fn;
-				}
-			},
-			onMessage: {
-				addListener: function (fn) {
-					bgPageOnMessageListener = fn;
-				}
-			},
-			connect: function() {
-				var idx = bgPagePortMessageListeners.length;
-				bgPageConnectListener({ //Port for bg page
-					onMessage: {
-						addListener: function(fn) {
-							bgPagePortMessageListeners[idx] = fn;
-						}
-					},
-					postMessage: function(message) {
-						crmAPIPortMessageListeners[idx](message);
-					}
-				});
-
-				return { //Port for crmAPI
-					onMessage: {
-						addListener: function(fn) {
-							crmAPIPortMessageListeners[idx] = fn;
-						}
-					},
-					postMessage: function (message) {
-						bgPagePortMessageListeners[idx](message);
-					}
-				}
-			},
-			getManifest: function() {
-				return JSON.parse(String(fs
-					.readFileSync('./build/manifest.json'), {
-						encoding: 'utf8'
-					})
-					.replace(/\/\*.+\*\//g, ''))
-			},
-			openOptionsPage: function() { },
-			lastError: null,
-			sendMessage: function() {}
-		},
-		contextMenus: {
-			removeAll: function () { },
-			create: function () { },
-			remove: function(id, cb) {
-				cb();
-			},
-			update: function(id, stuff, cb) {
-				cb && cb();
-			}
-		},
-		tabs: {
-			onHighlighted: {
-				addListener: function () { }
-			},
-			onUpdated: {
-				addListener: function () { }
-			},
-			onRemoved: {
-				addListener: function () { }
-			}
-		},
-		webRequest: {
-			onBeforeRequest: {
-				addListener: function () { }
-			}
-		},
-		notifications: {
-			onClosed: {
-				addListener: function () { }
-			},
-			onClicked: {
-				addListener: function () { }
-			}
-		},
-		permissions: {
-			getAll: function () {
-				return {
-					permissions: []
-				};
-			}
-		},
-		storage: {
-			sync: {
-				get: function (key, cb) {
-					if (typeof key === 'function') {
-						key(storageSync);
-					} else {
-						var result = {};
-						result[key] = storageSync[key];
-						cb(result);
-					}
-				},
-				set: function (data, cb) {
-					for (var objKey in data) {
-						if (data.hasOwnProperty(objKey)) {
-							storageSync[objKey] = data[objKey];
-						}
-					}
-					cb && cb(storageSync);
-				}
-			},
-			local: {
-				get: function (key, cb) {
-					if (typeof key === 'function') {
-						key(storageLocal);
-					} else {
-						var result = {};
-						result[key] = storageLocal[key];
-						cb(result);
-					}
-				},
-				set: function (obj, cb) {
-					for (let objKey in obj) {
-						if (obj.hasOwnProperty(objKey)) {
-							if (objKey === 'latestId') {
-								idChangeListener && idChangeListener({
-									latestId: {
-										newValue: obj[objKey]
-									}
-								});
-							}
-							storageLocal[objKey] = obj[objKey];
-						}
-					}
-					cb && cb(storageLocal);
-				}
-			},
-			onChanged: {
-				addListener: function (fn) {
-					idChangeListener = fn;
-				}
-			}
-		}
-	};
-	let localStorage = {
-		getItem: function () { return 'yes'; }
-	};
-	step('should be able to read background.js', () => {
-		window.localStorage = {
-			setItem: () => { },
-			getItem: (key) => {
-				if (key === 'transferToVersion2') {
-					return false;
-				}
-				if (key === 'numberofrows') {
-					return 0;
-				}
-				return undefined;	
-			 }
-		};
-		assert.doesNotThrow(run(() => {
-			backgroundCode = fs.readFileSync('./build/js/background.js', {
-				encoding: 'utf8'
-			});
-		}), 'File background.js is readable');
-	});
-	step('background.js should be runnable', () => {
-		assert.doesNotThrow(run(() => {
-			eval(backgroundCode);
-		}), 'File background.js is executable');
-	});
 	step('default settings should be set', () => {
 		assert.deepEqual(storageLocal, {
 			useStorageSync: true,
@@ -3678,8 +3643,6 @@ describe('CRMAPI', () => {
 describe('JSON Parser', () => {
 	var jsonParser;
 	var jsonParserCode;
-	var crmApp;
-	var crmAppCode;
 
 	function resolvePos(file, pos) {
 		var split = file.text.split('\n');
@@ -3713,23 +3676,6 @@ describe('JSON Parser', () => {
 				}
 			}
 		};
-		step('should be able to read crm-app.js', () => {
-			assert.doesNotThrow(run(() => {
-				crmAppCode = fs.readFileSync('./build/elements/crm-app/crm-app.js', {
-					encoding: 'utf8'
-				});
-			}), 'File crm-app.js is readable');
-		});
-		step('crm-app.js should be runnable', () => {
-			assert.doesNotThrow(run(() => {
-				eval(crmAppCode);
-			}), 'File crm-app.js is executable');
-			crmAppResolve();
-			crmApp = elements['crm-app'];
-		});
-		step('crm-app.js should be defined', () => {
-			assert.isDefined(crmApp, 'crmApp is defined');
-		});
 		step('should be able to read jsonParser.js', () => {
 			assert.doesNotThrow(run(() => {
 				jsonParserCode = fs.readFileSync(
@@ -3748,16 +3694,16 @@ describe('JSON Parser', () => {
 				'parseCodeOptions is defined');
 		});
 		step('should have a transferCRMFromOld property that is a function', () => {
-			assert.isDefined(crmApp.transferCRMFromOld, 'Function is defined');
-			assert.isFunction(crmApp.transferCRMFromOld, 'Function is a function');
+			assert.isDefined(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is defined');
+			assert.isFunction(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is a function');
 		});
 		step('should have a generateScriptUpgradeErrorHandler property that is a function', () => {
-			assert.isDefined(crmApp.transferCRMFromOld, 'Function is defined');
-			assert.isFunction(crmApp.transferCRMFromOld, 'Function is a function');
+			assert.isDefined(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is defined');
+			assert.isFunction(backgroundPageWindow.TransferFromOld.transferCRMFromOld, 'Function is a function');
 		});
 		step('generateScriptUpgradeErrorHandler should be overwritable', () => {
 			assert.doesNotThrow(run(() => {
-				crmApp.generateScriptUpgradeErrorHandler = () => {
+				backgroundPageWindow.generateScriptUpgradeErrorHandler = () => {
 					return (oldScriptErrs, newScriptErrs, parseErrors, errors) => {
 						if (Array.isArray(errors)) {
 							if (Array.isArray(errors[0])) {

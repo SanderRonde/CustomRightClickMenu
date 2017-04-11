@@ -275,6 +275,12 @@ interface CRMTemplates {
 	getDefaultMenuNode(options?: Partial<CRM.MenuNode>): CRM.MenuNode;
 }
 
+const enum SCRIPT_CONVERSION_TYPE {
+	CHROME = 0,
+	LOCAL_STORAGE =1,
+	BOTH = 2
+}
+
 interface GlobalObject {
 	globals?: {
 		latestId: number;
@@ -426,6 +432,11 @@ interface GlobalObject {
 			log: Array<LogListenerObject>;
 		};
 	};
+	TransferFromOld?: {
+		transferCRMFromOld(openInNewTab: boolean, storageSource: {
+			getItem(index: string|number): any;
+		}, method: SCRIPT_CONVERSION_TYPE): CRM.Tree;
+	}
 }
 
 interface Extensions<T> extends CRM.Extendable<T> { }
@@ -7630,19 +7641,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 	type FirstTimeCallback = (resolve: (result: any) => void) => void;
 
-	type TransferOldMenuNode = CRM.SafeBaseNodeBase & {
-		children: string;
-		linkVal?: CRM.LinkVal;
-		scriptVal?: CRM.ScriptVal;
-		showOnSpecified: boolean;
-		isLocal: boolean;
-		index: number;
-		stylesheetVal?: CRM.StylesheetVal;
-	};
-
-	type TransferOldNode = TransferOldMenuNode | CRM.ScriptNode | CRM.StylesheetNode |
-		CRM.LinkNode | CRM.DividerNode;
-
 	interface PersistentData {
 		lineSeperators: Array<{
 			start: number;
@@ -7653,7 +7651,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	}
 
 	interface ChromePersistentData {
-		persistent: {
+	persistent: {
 			passes: number;
 			diagnostic: boolean;
 			lineSeperators: Array<{
@@ -8444,7 +8442,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 						};
 					};
-					static convertScriptFromLegacy(script: string, id: number): string {
+					static convertScriptFromLegacy(script: string, id: number, method: SCRIPT_CONVERSION_TYPE): string {
 						//Remove execute locally
 						let usedExecuteLocally = false;
 						const lineIndex = script.indexOf('/*execute locally*/');
@@ -8457,11 +8455,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 
 						try {
-							const localStorageConverted = usedExecuteLocally ?
-								this.localStorageReplace.replaceCalls(script.split('\n')) : script;
-							script = this.chromeCallsReplace.replace(localStorageConverted,
-								this.generateScriptUpgradeErrorHandler(id)
-							);
+							switch (method) {
+								case SCRIPT_CONVERSION_TYPE.CHROME:
+									script = this.chromeCallsReplace.replace(script, 
+										this.generateScriptUpgradeErrorHandler(id));
+									break;
+								case SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE:
+									script = usedExecuteLocally ?
+										this.localStorageReplace.replaceCalls(script.split('\n')) : script;
+									break;
+								case SCRIPT_CONVERSION_TYPE.BOTH:
+									const localStorageConverted = usedExecuteLocally ?
+										this.localStorageReplace.replaceCalls(script.split('\n')) : script;
+									script = this.chromeCallsReplace.replace(localStorageConverted,
+										this.generateScriptUpgradeErrorHandler(id)
+									);
+									break;
+							}
 						} catch (e) {
 							return script;
 						}
@@ -8493,40 +8503,49 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				}
 
-				static transferCRMFromOld(openInNewTab: boolean): Array<CRM.Node> {
+				static transferCRMFromOld(openInNewTab: boolean, storageSource: {
+						getItem(index: string|number): any;
+					} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): CRM.Tree {
 					this._backupLocalStorage();
 
-					const amount = parseInt(window.localStorage.getItem('numberofrows'), 10) + 1;
+					const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
 
-					const nodes: Array<TransferOldNode> = [];
+					const nodes: CRM.Tree = [];
 					for (let i = 1; i < amount; i++) {
-						nodes.push(this._parseOldCRMNode(window.localStorage.getItem(String(i)),
-							openInNewTab));
+						nodes.push(this._parseOldCRMNode(storageSource.getItem(String(i)),
+							openInNewTab, method));
 					}
 
 					//Structure nodes with children etc
 					const crm: Array<CRM.Node> = [];
-					this._assignParents(crm, nodes, 0, nodes.length);
+					this._assignParents(crm, nodes, {
+						index: 0
+					}, nodes.length);
 					return crm;
 				}
 
 				private static _parseOldCRMNode(string: string,
-					openInNewTab: boolean): TransferOldNode {
-					let node: TransferOldNode = {} as any;
+						openInNewTab: boolean, method: SCRIPT_CONVERSION_TYPE): CRM.Node {
+					let node: CRM.Node;
 					const [name, type, nodeData] = string.split('%123');
 					switch (type.toLowerCase()) {
 						//Stylesheets don't exist yet so don't implement those
 						case 'link':
+						let split;
+							if (nodeData.indexOf(', ') > -1) {
+								split = nodeData.split(', ');
+							} else {
+								split = nodeData.split(',');
+							}
 							node = globalObject.globals.constants.templates.getDefaultLinkNode({
 								name: name,
 								id: Helpers.generateItemId(),
-								value: [
-									{
+								value: split.map(function(url) {
+									return {
 										newTab: openInNewTab,
-										url: nodeData
-									}
-								],
-								isLocal: true
+										url: url
+									};
+								})
 							});
 							break;
 						case 'divider':
@@ -8537,27 +8556,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 							break;
 						case 'menu':
-							node = (globalObject.globals.constants.templates.getDefaultMenuNode({
+							node = globalObject.globals.constants.templates.getDefaultMenuNode({
 								name: name,
 								id: Helpers.generateItemId(),
-								children: (nodeData as any) as Array<CRM.Node>,
+								children: (nodeData as any) as CRM.Tree,
 								isLocal: true
-							}) as any) as TransferOldNode;
+							});
 							break;
 						case 'script':
 							let [scriptLaunchMode, scriptData] = nodeData.split('%124');
-							let triggers: Array<{
-								not: boolean;
-								url: string;
-							}>;
+							let triggers;
 							const launchModeString = scriptLaunchMode + '';
 							if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
-								triggers = launchModeString.split('1,')[1].split(',').map((item) => {
+								triggers = launchModeString.split('1,')[1].split(',');
+								triggers = triggers.map(function(item) {
 									return {
 										not: false,
 										url: item.trim()
 									};
-								}).filter((item) => {
+								}).filter(function(item) {
 									return item.url !== '';
 								});
 								scriptLaunchMode = '2';
@@ -8571,8 +8588,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									updateNotice: true,
 									oldScript: scriptData,
 									script: Storages.SetupHandling.TransferFromOld.legacyScriptReplace
-										.convertScriptFromLegacy(scriptData, id)
-								},
+										.convertScriptFromLegacy(scriptData, id, method)
+								} as CRM.ScriptVal,
 								isLocal: true
 							});
 							if (triggers) {
@@ -8583,23 +8600,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					return node;
 				}
-				private static _assignParents(parent: Array<CRM.Node>,
-					nodes: Array<TransferOldNode>, startIndex: number, endIndex: number) {
-					for (let i = startIndex; i < endIndex; i++) {
-						const currentIndex = i;
-						if (nodes[i].type === 'menu') {
-							const menuNode = nodes[i] as TransferOldMenuNode;
-
-							const start = i + 1;
-							//The amount of children it has
-							i += parseInt(menuNode.children, 10);
-							const end = i + 1;
-
-							const children = [] as any;
-							this._assignParents(children, nodes, start, end);
+				private static _assignParents(parent: CRM.Tree,
+					nodes: Array<CRM.Node>, index: {
+						index: number;
+					}, amount: number) {
+					for (; amount !== 0 && nodes[index.index]; index.index++, amount--) {
+						const currentNode = nodes[index.index];
+						if (currentNode.type === 'menu') {
+							const childrenAmount = ~~currentNode.children;
+							currentNode.children = [];
+							index.index++;
+							this._assignParents(currentNode.children, nodes, index, childrenAmount);
+							index.index--;
 						}
-
-						parent.push(nodes[currentIndex] as CRM.Node);
+						parent.push(currentNode);
 					}
 				}
 			};
@@ -9270,6 +9284,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}, 6 * 60 * 60 * 1000);
 
 				GlobalDeclarations.initGlobalFunctions();
+
+				if (typeof module !== 'undefined') {
+					globalObject.TransferFromOld = 
+						Storages.SetupHandling.TransferFromOld;
+				}
 			} catch (e) {
 				console.log(e);
 				throw e;
