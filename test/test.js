@@ -2473,7 +2473,7 @@ describe('CRMAPI', () => {
 					assert.strictEqual(library.name, 'someLibrary', 'name matches expected');
 					done();
 				});
-			}).timeout(5000).slow(5000);
+			}).timeout(10000).slow(5000).retries(3);
 			it('should register a library by its code', (done) => {
 				crmAPI.libraries.register('someOtherLibrary', {
 					code: 'some code'
