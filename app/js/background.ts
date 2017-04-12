@@ -5074,6 +5074,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			messageSender?: chrome.runtime.MessageSender,
 			respond?: (message: any) => void) {
 			switch (message.type) {
+				case 'test':
+					respond('Response');
+					break;
 				case 'executeCRMCode':
 				case 'getCRMHints':
 				case 'createLocalLogVariable':

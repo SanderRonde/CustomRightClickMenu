@@ -158,6 +158,13 @@ interface CodeMirrorInstance {
 	setOption(option: string, value: any): void;
 	getOption(option: string): any;
 	on(event: string, callback: Function): void;
+	on(event: 'changes', callback: (cm: CodeMirrorInstance, changes: Array<{
+		from: CodeMirrorPos;
+		to: CodeMirrorPos;
+		removed: Array<string>;
+		text: Array<string>;
+		origin: string;
+	}>) => void): void;
 	lineCount(): number;
 	getLine(index: number): string;
 	markText(from: {
@@ -247,6 +254,11 @@ interface LintMessage {
 
 type LintMessages = Array<LintMessage>;
 
+interface CodeMirrorPos {
+	line: number;
+	ch: number;
+}
+
 interface CodeMirror {
 	(container: HTMLElement, options: CodeMirrorOptions): CodeMirrorInstance;
 	MergeView: {
@@ -257,10 +269,7 @@ interface CodeMirror {
 	defineInitHook(callback: (cm: CodeMirrorInstance) => void): void;
 	registerHelper(event: string, mode: string, handler: (text: string, options: CodeMirrorOptions) => any): void;
 	registerHelper(event: 'lint', mode: string, handler: (text: string, options: CodeMirrorOptions) => LintMessages): void;
-	Pos(line: number, index: number): {
-		line: number;
-		ch: number;
-	}
+	Pos(line: number, index: number): CodeMirrorPos;
 
 	Doc: CodeMirrorDoc
 	lint: {

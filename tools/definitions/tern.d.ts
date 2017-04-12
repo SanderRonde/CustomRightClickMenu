@@ -120,7 +120,7 @@ declare namespace Tern {
 		LogicalExpression | ReturnStatement | BinaryExpression | ObjectExpression |
 		Literal | Identifier | MemberExpression;
 
-	interface ParsedFile {
+	export interface ParsedFile {
 		body: Array<Expression>;
 	}
 
@@ -131,6 +131,18 @@ declare namespace Tern {
 	}
 
 	type Context = any;
+
+	interface ServerServer {
+		cx: Context;
+		defs: Array<Object>;
+		fileMap: {
+			[fileName: string]: File;
+		};
+		files: Array<File>;
+		request(doc: {
+				
+		}, func: (result: any) => void): void;
+	}
 
 	interface Server {
 		new(options: {
@@ -150,6 +162,7 @@ declare namespace Tern {
 		updateArgHints(cm: CodeMirrorInstance): void;
 		
 		cx: Context;
+		server: ServerServer
 		passes: number;
 		ecmaVersion: string;
 	}

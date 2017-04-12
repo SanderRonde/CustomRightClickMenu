@@ -1025,3 +1025,15 @@ paper-toggle-option #checkboxLabel {
 #codeSettingsDialog {
 	overflow-y: scroll;
 }
+
+.chromeCallsDeprecated {
+	color: #E91E63!important;
+	text-decoration: underline;
+}
+
+#docsLink {
+right: 7px;
+	position: absolute;
+	top: 8px;
+	font-size: 150%;
+}

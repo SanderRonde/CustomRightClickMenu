@@ -1814,17 +1814,14 @@ class CA {
 		}
 	};
 
-	private static legacyScriptReplace = class LegacyScriptReplace {
-		private static localStorageReplace = class LogalStorageReplace {
-			private static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
+	static legacyScriptReplace = class LegacyScriptReplace {
+		static localStorageReplace = class LogalStorageReplace {
+			static findExpression(expression: Tern.Expression, data: PersistentData,
+					strToFind: string, onFind: (data: PersistentData, expression: Tern.Expression) => void): boolean {
 				switch (expression.type) {
 					case 'Identifier':
-						if (expression.name === 'localStorage') {
-							data.script = 
-								data.script.slice(0, expression.start) + 
-								'localStorageProxy' + 
-								data.script.slice(expression.end);
-							data.lines = data.script.split('\n');
+						if (expression.name === strToFind) {
+							onFind(data, expression);
 							return true;
 						}
 						break;
@@ -1833,80 +1830,80 @@ class CA {
 							//Check if it's an actual chrome assignment
 							const declaration = expression.declarations[i];
 							if (declaration.init) {
-								if (this.findLocalStorageExpression(declaration.init, data)) {
+								if (this.findExpression(declaration.init, data, strToFind, onFind)) {
 									return true;
 								}
 							}
 						}
 						break;
 					case 'MemberExpression':
-						if (this.findLocalStorageExpression(expression.object, data)) {
+						if (this.findExpression(expression.object, data, strToFind, onFind)) {
 							return true;
 						}
-						return this.findLocalStorageExpression(expression.property as Tern.Identifier, data);
+						return this.findExpression(expression.property as Tern.Identifier, data, strToFind, onFind);
 					case 'CallExpression':
 						if (expression.arguments && expression.arguments.length > 0) {
 							for (let i = 0; i < expression.arguments.length; i++) {
-								if (this.findLocalStorageExpression(expression.arguments[i], data)) {
+								if (this.findExpression(expression.arguments[i], data, strToFind, onFind)) {
 									return true;
 								}
 							}
 						}
 						if (expression.callee) {
-							return this.findLocalStorageExpression(expression.callee, data);
+							return this.findExpression(expression.callee, data, strToFind, onFind);
 						}
 						break;
 					case 'AssignmentExpression':
-						return this.findLocalStorageExpression(expression.right, data);
+						return this.findExpression(expression.right, data, strToFind, onFind);
 					case 'FunctionExpression':
 					case 'FunctionDeclaration':
 						for (let i = 0; i < expression.body.body.length; i++) {
-							if (this.findLocalStorageExpression(expression.body.body[i], data)) {
+							if (this.findExpression(expression.body.body[i], data, strToFind, onFind)) {
 								return true;
 							}
 						}
 						break;
 					case 'ExpressionStatement':
-						return this.findLocalStorageExpression(expression.expression, data);
+						return this.findExpression(expression.expression, data, strToFind, onFind);
 					case 'SequenceExpression':
 						for (let i = 0; i < expression.expressions.length; i++) {
-							if (this.findLocalStorageExpression(expression.expressions[i], data)) {
+							if (this.findExpression(expression.expressions[i], data, strToFind, onFind)) {
 								return true;
 							}
 						}
 						break;
 					case 'UnaryExpression':
 					case 'ConditionalExpression':
-						if (this.findLocalStorageExpression(expression.consequent, data)) {
+						if (this.findExpression(expression.consequent, data, strToFind, onFind)) {
 							return true;
 						}
-						return this.findLocalStorageExpression(expression.alternate, data);
+						return this.findExpression(expression.alternate, data, strToFind, onFind);
 					case 'IfStatement':;
-						if (this.findLocalStorageExpression(expression.consequent, data)) {
+						if (this.findExpression(expression.consequent, data, strToFind, onFind)) {
 							return true;
 						}
 						if (expression.alternate) {
-							return this.findLocalStorageExpression(expression.alternate, data);
+							return this.findExpression(expression.alternate, data, strToFind, onFind);
 						}
 						break;
 					case 'LogicalExpression':
 					case 'BinaryExpression':
-						if (this.findLocalStorageExpression(expression.left, data)) {
+						if (this.findExpression(expression.left, data, strToFind, onFind)) {
 							return true;
 						}
-						return this.findLocalStorageExpression(expression.right, data);
+						return this.findExpression(expression.right, data, strToFind, onFind);
 					case 'BlockStatement':
 						for (let i = 0; i < expression.body.length; i++) {
-							if (this.findLocalStorageExpression(expression.body[i], data)) {
+							if (this.findExpression(expression.body[i], data, strToFind, onFind)) {
 								return true;
 							}
 						}
 						break;
 					case 'ReturnStatement':
-						return this.findLocalStorageExpression(expression.argument, data);
+						return this.findExpression(expression.argument, data, strToFind, onFind);
 					case 'ObjectExpressions':
 						for (let i = 0; i < expression.properties.length; i++) {
-							if (this.findLocalStorageExpression(expression.properties[i].value, data)) {
+							if (this.findExpression(expression.properties[i].value, data, strToFind, onFind)) {
 								return true;
 							}
 						}
@@ -1914,7 +1911,7 @@ class CA {
 				}
 				return false;
 			}
-			private static getLineSeperators(lines: Array<string>): Array<{
+			static getLineSeperators(lines: Array<string>): Array<{
 				start: number;
 				end: number;
 			}> {
@@ -1957,7 +1954,13 @@ class CA {
 
 				for (let i = 0; i < scriptExpressions.length; i++) {
 					const expression = scriptExpressions[i];
-					if (this.findLocalStorageExpression(expression, persistentData)) {
+					if (this.findExpression(expression, persistentData, 'localStorage', (data, expression) => {
+						data.script = 
+							data.script.slice(0, expression.start) + 
+							'localStorageProxy' + 
+							data.script.slice(expression.end);
+						data.lines = data.script.split('\n');
+					})) {
 						//Margins may have changed, redo tern stuff
 						return this.replaceCalls(persistentData.lines);
 					}

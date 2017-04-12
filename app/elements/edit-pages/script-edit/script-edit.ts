@@ -21,6 +21,10 @@ class SCE {
 
 	static properties = scriptEditProperties;
 
+	static openDocs() {
+		window.open(chrome.runtime.getURL('/html/crmAPIDocs.html'), '_blank');
+	}
+
 	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
 		if (this.querySelectorAll('.executionTrigger').length === 1) {
 			window.doc.messageToast.text = 'You need to have at least one trigger';
@@ -1039,14 +1043,121 @@ class SCE {
 		});
 	};
 
+	private static _posToIndex(this: NodeEditBehaviorScriptInstance, pos: CodeMirrorPos, lines: Array<string>): number {
+		let chars = 0;
+		for (let i = 0; i < lines.length; i++) {
+			if (i < pos.line) {
+				chars += lines[i].length;
+			} else {
+				chars += pos.ch;
+				return chars;
+			}
+			chars++;
+		}
+		return chars;
+	}
+
+	private static _indexToPos(this: NodeEditBehaviorScriptInstance, index: number, lines: Array<string>): {
+		line: number;
+		ch: number;
+	} {
+		let chars = 0;
+		for (let i = 0; i < lines.length; i++) {
+			chars += lines[i].length;
+			if (chars >= index) {
+				return {
+					line: i,
+					ch: index - (chars - lines[i].length)
+				}
+			}
+			chars++;
+		}
+		return {
+			line: 0,
+			ch: index
+		}
+	}
+
+	private static _posInRange(this: NodeEditBehaviorScriptInstance, val: {
+		start: number;
+		end: number;
+		lines: Array<string>;
+	}, lower: CodeMirrorPos, upper: CodeMirrorPos): boolean {
+		const lowerIndex = this._posToIndex(lower, val.lines);
+		const upperIndex = this._posToIndex(upper, val.lines);
+
+		return (val.end >= lowerIndex && val.end <= upperIndex) ||
+			(val.start >= lowerIndex && val.start <= upperIndex) ||
+			(val.start <= lowerIndex && val.end >= upperIndex)
+	}
+
+	static findChromeBaseExpression(this: NodeEditBehaviorScriptInstance, from: CodeMirrorPos, to: CodeMirrorPos) {
+		const code = this.editor.getValue();
+		const file = {
+			name: '[doc]',
+			text: code,
+			type: 'full'
+		};
+		const lines = code.split('\n');
+		const lastLine = lines.pop();
+		window.app.ternServer.server.request({
+			query: {
+				docs: true,
+				end: window.CodeMirror.Pos(lines.length - 1, lastLine.length - 1),
+				file: '[doc]',
+				lineCharPositions: true,
+				type: 'type',
+				types: true,
+				urls: true
+			},
+			files: [file]
+		}, (e) => {
+			let passedStart: boolean = false;
+			const file = window.app.ternServer.server.files[0];
+			const persistentData: PersistentData = {
+				lineSeperators: window.app.legacyScriptReplace.localStorageReplace.getLineSeperators(lines),
+				script: file.text,
+				lines: lines
+			}
+			for (let i = 0; i < file.ast.body.length; i++) {
+				const inRange = this._posInRange({
+					lines: lines,
+					start: file.ast.body[i].start,
+					end: file.ast.body[i].end
+				}, from, to);
+				if (!passedStart && inRange) {
+					passedStart = true;
+				} else if (passedStart && !inRange) {
+					return;
+				}
+				if (inRange) {
+					window.app.legacyScriptReplace.localStorageReplace.findExpression(file.ast.body[i],
+						persistentData, 'chrome', (data, expression) => {
+							this.editor.doc.markText(this._indexToPos(expression.start, lines),
+								this._indexToPos(expression.end, lines), {
+									className: 'chromeCallsDeprecated',
+									inclusiveLeft: false,
+									inclusiveRight: false,
+									atomic: false,
+									clearOnEnter: false,
+									clearWhenEmpty: true,
+									readOnly: false,
+									title: 'Direct chrome calls are deprecated, please use the CRM API for chrome calls (documentation can be' + 
+										' found at the "docs" button)'
+								});
+						});
+				}
+			}
+		});
+	}
+
 	/**
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirrorInstance) {
-		const _this = this;
 		this.editor = editor;
 		editor.refresh();
-		editor.on('metaTagChanged', function(changes: {
+		editor.on('metaTagChanged', (changes: {
 			changed?: Array<{
 				key: string;
 				value: string | number;
@@ -1064,21 +1175,24 @@ class SCE {
 			}>;
 		}, metaTags: {
 			[key: string]: string|number;
-		}) {
-			if (_this.editorMode === 'main') {
-				_this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
+		}) => {
+			if (this.editorMode === 'main') {
+				this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
 			}
 		});
 		this.$.mainEditorTab.classList.add('active');
 		this.$.backgroundEditorTab.classList.remove('active');
-		editor.on('metaDisplayStatusChanged', function(info: {
+		editor.on('metaDisplayStatusChanged', (info: {
 			status: string
-		}) {
-			_this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
+		}) => {
+			this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
 		});
 		editor.performLint();
-		editor.on('changes', () => {
+		editor.on('changes', (cm, changes) => {
 			editor.performLint();
+			changes.forEach((change) => {
+				this.findChromeBaseExpression(change.from, change.to);
+			});
 		});
 		if (this.newSettings.value.metaTagsHidden) {
 			editor.doc.markText({
@@ -1112,12 +1226,12 @@ class SCE {
 
 		this.fullscreenEl = clone.querySelector('#editorFullScreen') as HTMLElement;
 		this.fullscreenEl.addEventListener('click', () => {
-			_this.toggleFullScreen.apply(_this);
+			this.toggleFullScreen.apply(this);
 		});
 
 		this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
 		this.settingsEl.addEventListener('click', () => {
-			_this.toggleOptions.apply(_this);
+			this.toggleOptions.apply(this);
 		});
 		if (editor.getOption('readOnly') === 'nocursor') {
 			editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
