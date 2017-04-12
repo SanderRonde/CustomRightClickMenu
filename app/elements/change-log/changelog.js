@@ -22,6 +22,10 @@
 		],
 		'2.0.5': [
 			'Fixed a bug that caused scripts to not run when the catch errors option was on'
+		],
+		'2.0.6': [
+			'Added a docs button on script-edit page',
+			'Shows a warning when using the deprecated direct chrome API (use crmAPI.chrome instead)'
 		]
 	};
 }());
