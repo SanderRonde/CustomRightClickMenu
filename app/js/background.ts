@@ -6241,7 +6241,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								'}',
 								`main()`,
 							`${catchErrs ? [
-								`catch (error) {`,
+								`} catch (error) {`,
 								`${indentUnit}if (crmAPI.debugOnError) {`,
 								`${indentUnit}${indentUnit}debugger;`,
 								`${indentUnit}}`,
@@ -6473,7 +6473,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									])
 									}))`,
 								`${catchErrs ? [
-									`catch (error) {`,
+									`} catch (error) {`,
 									`${indentUnit}if (crmAPI.debugOnError) {`,
 									`${indentUnit}${indentUnit}debugger;`,
 									`${indentUnit}}`,
