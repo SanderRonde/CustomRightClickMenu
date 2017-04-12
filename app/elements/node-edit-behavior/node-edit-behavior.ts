@@ -147,10 +147,11 @@ class NEB {
 
 	static save(this: NodeEditBehavior, event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
 		let usesDefaultStorage = false;
-		if (resultStorage === null || typeof (resultStorage as MouseEvent).x === 'number') {
-			resultStorage = this.item;
-			usesDefaultStorage = true;
-		}
+		if (resultStorage === null || resultStorage === undefined ||
+			typeof (resultStorage as MouseEvent).x === 'number') {
+				resultStorage = this.item;
+				usesDefaultStorage = true;
+			}
 
 		const newSettings = this.newSettings;
 		if (this.saveChanges) {
