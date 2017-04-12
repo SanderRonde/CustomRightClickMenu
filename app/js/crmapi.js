@@ -2605,7 +2605,7 @@
 			if (_this.warnOnChromeFunctionNotSent) {
 				window.setTimeout(function() {
 					if (!request._sent) {
-						console.log('Looks like you didn\'t send your chrome function,' + 
+						console.warn('Looks like you didn\'t send your chrome function,' + 
 							' set crmAPI.warnOnChromeFunctionNotSent to false to disable this message');
 					}
 				}, 5000);
