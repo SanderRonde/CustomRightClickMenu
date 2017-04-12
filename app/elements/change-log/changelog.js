@@ -19,6 +19,9 @@
 			'More clearly reflects a script created by you and what that means (all permissions)',
 			'Keeps track of info of local nodes as well now',
 			'Allows the editing of the version number'
+		],
+		'2.0.5': [
+			'Fixed a bug that caused scripts to not run when the catch errors option was on'
 		]
 	};
 }());
