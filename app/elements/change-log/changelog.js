@@ -25,7 +25,8 @@
 		],
 		'2.0.6': [
 			'Added a docs button on script-edit page',
-			'Shows a warning when using the deprecated direct chrome API (use crmAPI.chrome instead)'
+			'Shows a warning when using the deprecated direct chrome API (use crmAPI.chrome instead)',
+			'Fixed a bug that occurred on saving',
 		]
 	};
 }());
