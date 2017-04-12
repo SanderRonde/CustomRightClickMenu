@@ -60,7 +60,7 @@ interface CodeMirrorDocInstance {
 		css?: String;
 		title?: string;
 		shared?: boolean;
-	}): void;
+	}): CodeMirrorTextMarker;
 	lineCount(): number;
 	getLine(index: number): string;
 }
@@ -331,4 +331,22 @@ interface CursorPosition extends LinePosition {
 		line: number;
 		index: number;
 	}
+}
+
+interface CodeMirrorTextMarker {
+	atomic: boolean;
+	className: string;
+	clearOnEnter: boolean;
+	clearWhenEmpty: boolean;
+	doc: CodeMirrorDocInstance;
+	explicitlyCleared: boolean;
+	id: number;
+	inclusiveLeft: boolean;
+	inclusiveRight: boolean;
+	lines: Array<string>;
+	readonly: boolean;
+	title: string;
+	type: string;
+
+	clear(): void;
 }

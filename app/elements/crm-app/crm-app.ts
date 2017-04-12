@@ -138,6 +138,8 @@ interface PersistentData {
 	}>;
 	script: string;
 	lines: Array<string>;
+	siblingExpr?: Tern.Expression;
+	isObj?: boolean;
 }
 
 interface ChromePersistentData {
@@ -1837,9 +1839,12 @@ class CA {
 						}
 						break;
 					case 'MemberExpression':
+						data.isObj = true;
 						if (this.findExpression(expression.object, data, strToFind, onFind)) {
 							return true;
 						}
+						data.siblingExpr = expression.object;
+						data.isObj = false;
 						return this.findExpression(expression.property as Tern.Identifier, data, strToFind, onFind);
 					case 'CallExpression':
 						if (expression.arguments && expression.arguments.length > 0) {

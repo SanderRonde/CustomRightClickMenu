@@ -21,6 +21,8 @@ class SCE {
 
 	static properties = scriptEditProperties;
 
+	private static markers: Array<CodeMirrorTextMarker> = [];
+
 	static openDocs() {
 		window.open(chrome.runtime.getURL('/html/crmAPIDocs.html'), '_blank');
 	}
@@ -1112,6 +1114,8 @@ class SCE {
 			},
 			files: [file]
 		}, (e) => {
+			this.markers.forEach(marker => marker.clear());
+
 			let passedStart: boolean = false;
 			const file = window.app.ternServer.server.files[0];
 			const persistentData: PersistentData = {
@@ -1133,18 +1137,22 @@ class SCE {
 				if (inRange) {
 					window.app.legacyScriptReplace.localStorageReplace.findExpression(file.ast.body[i],
 						persistentData, 'chrome', (data, expression) => {
-							this.editor.doc.markText(this._indexToPos(expression.start, lines),
-								this._indexToPos(expression.end, lines), {
-									className: 'chromeCallsDeprecated',
-									inclusiveLeft: false,
-									inclusiveRight: false,
-									atomic: false,
-									clearOnEnter: false,
-									clearWhenEmpty: true,
-									readOnly: false,
-									title: 'Direct chrome calls are deprecated, please use the CRM API for chrome calls (documentation can be' + 
-										' found at the "docs" button)'
-								});
+							//If the sibling is not window, ignore
+							if (data.isObj || data.siblingExpr.type === 'Identifier' && 
+								data.siblingExpr.name === 'window') {
+									this.markers.push(this.editor.doc.markText(this._indexToPos(expression.start, lines),
+										this._indexToPos(expression.end, lines), {
+											className: 'chromeCallsDeprecated',
+											inclusiveLeft: false,
+											inclusiveRight: false,
+											atomic: false,
+											clearOnEnter: false,
+											clearWhenEmpty: true,
+											readOnly: false,
+											title: 'Direct chrome calls are deprecated, please use the CRM API for chrome calls (documentation can be' + 
+												' found at the "docs" button)'
+										}));
+								}
 						});
 				}
 			}
