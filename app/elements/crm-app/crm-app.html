@@ -79,7 +79,7 @@
 						</paper-toggle-option>
 						<paper-toggle-option id="useStorageSync">
 							Sync your storage across all chrome instances signed in to this account using chrome storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using
-							<span style$="{{getSettingsJsonLengthColor(settingsJsonLength)}}">{{placeCommas(settingsJsonLength)}}</span>/102,400 bytes
+							<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
 						</paper-toggle-option>
 						<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
 					</div>
