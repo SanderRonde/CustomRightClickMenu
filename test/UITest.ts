@@ -5346,7 +5346,11 @@ describe('On-Page CRM', function(this: MochaFn) {
 	});
 });
 
-after('quit driver', () => {
-	console.log('quitting');
-	driver.quit();
+after('quit driver', function(this: MochaFn, done) {
+	this.timeout(10000);
+	return new webdriver.promise.Promise<void>((resolve) => {
+		driver.quit().then(() => {
+			resolve(null);
+		});
+	});
 });
