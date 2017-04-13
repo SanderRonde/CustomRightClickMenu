@@ -2898,9 +2898,22 @@ class CA {
 		const scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
 		const scaleAfter = 'scaleX(' + progress + ')';
 		if (settings.max === settings.lastReachedProgress ||
-			settings.toReach > 1) {
-				settings.progressBar.style.transform = 'scaleX(1)';
-				settings.progressBar.style.WebkitTransform = 'scaleX(1)';
+			settings.toReach >= 1) {
+				settings.progressBar.animate([{
+					transform: scaleBefore,
+					WebkitTransform: scaleBefore
+				}, {
+					transform: scaleAfter,
+					WebkitTransform: scaleAfter
+				}], {
+					duration: 200,
+					easing: 'linear'
+				}).onfinish = function() {
+					settings.lastReachedProgress = progress;
+					settings.isAnimating = false;
+					settings.progressBar.style.transform = scaleAfter;
+					settings.progressBar.style.WebkitTransform = scaleAfter;
+				};
 				return;
 			}
 		if ((settings.progressBar.animate as any).isJqueryFill) {
@@ -2924,8 +2937,8 @@ class CA {
 				}).onfinish = function() {
 					settings.lastReachedProgress = progress;
 					settings.isAnimating = false;
-					settings.progressBar.style.transform = progress + '';
-					settings.progressBar.style.WebkitTransform = progress + '';
+					settings.progressBar.style.transform = scaleAfter;
+					settings.progressBar.style.WebkitTransform = scaleAfter;
 					_this.animateLoadingBar(settings, settings.toReach);
 				};
 			}
