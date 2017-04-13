@@ -32,22 +32,24 @@ declare namespace Polymer {
 		[P in keyof HTMLElement]: HTMLElement[P]
 	}
 
-	interface PMouseEvent {
+	interface CustomEventBase {
 		path: Array<Element>;
 		detail: {
 			sourceEvent: MouseEvent;
 		};
 		target: Element;
-		type: 'tap'|'drag';
+		type: string;
 		stopPropagation(): void;
 		preventDefault(): void;
 	}
 
-	export interface ClickEvent extends PMouseEvent {
+	type CustomEvent = DragEvent|ClickEvent;
+
+	export interface ClickEvent extends CustomEventBase {
 		type: 'tap';
 	}
 
-	export interface DragEvent extends PMouseEvent {
+	export interface DragEvent extends CustomEventBase {
 		detail: {
 			state: 'start'|'end'|'track';
 			sourceEvent: MouseEvent;
@@ -55,6 +57,11 @@ declare namespace Polymer {
 			y: number;
 		}
 		type: 'drag';
+	}
+
+	export interface EventMap {
+		'drag': DragEvent;
+		'tap': ClickEvent;
 	}
 
 	export type Element = HTMLElement | HTMLPaperIconButtonElement | HTMLPaperDialogElement | HTMLPaperInputElement |
@@ -69,6 +76,9 @@ declare namespace Polymer {
 		set(property: string, value: any): void;
 		fire(eventName: string, data: any): void;
 		notifyPath(path: string, value: any): void;
+
+		_logf<T extends any>(...args: Array<T>): Array<string & T>;
+		_warn: typeof console.warn;
 	}
 
 	export type El<N extends keyof IDMap, T extends InitializerProperties> = 

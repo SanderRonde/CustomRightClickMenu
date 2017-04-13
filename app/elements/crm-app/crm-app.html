@@ -8,7 +8,7 @@
 			<div id="fullscreenEditor">
 				<div id="editorCurrentScriptTitle">
 					<div id="showHideToolsRibbonCont">
-						<svg id="showHideToolsRibbonButton" on-tap="toggleToolsRibbon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+						<svg id="showHideToolsRibbonButton" on-tap="domListener" data-on-tap="toggleToolsRibbon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
 					</div>
 					<div id="editorTitleRibbon">
 						<span hidden$="[[!scriptItem]]">[[scriptItem.name]]</span>
@@ -21,13 +21,13 @@
 				<div id="fullscreenEditorHorizontal">
 					<div id="editorToolsRibbonContainer">
 						<div id="editorToolsRibbon">
-							<div on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
+							<div on-tap="domListener" data-on-tap="launchExternalEditorDialog" class="ribbonTool" id="externalEditorDialogTrigger">Use External Editor</div>
 							<paper-libraries-selector id="paperLibrariesSelector" class="ribbonTool jsTool" usedlibraries="[[scriptItem.value.libraries]]"></paper-libraries-selector>
 							<paper-get-page-properties id="paperGetPageProperties" class="ribbonTool jsTool"></paper-get-page-properties>
-							<div on-tap="launchSearchWebsiteTool" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
-							<div on-tap="runJsLint" class="ribbonTool jsTool" id="runJsLintButton">Run JSLint</div>
-							<div on-tap="runCssLint" class="ribbonTool cssTool" id="runCssLintButton">Run CSSLint</div>
-							<div on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
+							<div on-tap="domListener" data-on-tap="launchSearchWebsiteTool" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
+							<div on-tap="domListener" data-on-tap="runJsLint" class="ribbonTool jsTool" id="runJsLintButton">Run JSLint</div>
+							<div on-tap="domListener" data-on-tap="runCssLint" class="ribbonTool cssTool" id="runCssLintButton">Run CSSLint</div>
+							<div on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
 								Info
 								<svg height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none" />
@@ -43,7 +43,7 @@
 		<div class="overlayCont"></div>
 		<div class="pageCont">
 			<paper-toolbar>
-				<div flex title class="title">[[getPageTitle()]]</div>
+				<div flex title class="title">[[_getPageTitle()]]</div>
 			</paper-toolbar>
 			<div class="container">
 				<br />
@@ -81,7 +81,7 @@
 							Sync your storage across all chrome instances signed in to this account using chrome storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using
 							<span style$="{{getSettingsJsonLengthColor(settingsJsonLength)}}">{{placeCommas(settingsJsonLength)}}</span>/102,400 bytes
 						</paper-toggle-option>
-						<paper-button on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
+						<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
 					</div>
 				</div>
 				<br /><br />
@@ -91,7 +91,7 @@
 							Editing the CRM
 						</div>
 						<div id="crmTypeSelector">
-							<div class="crmType pageType" on-tap="iconSwitch">
+							<div class="crmType pageType" on-tap="domListener" data-on-tap="iconSwitch">
 								<paper-ripple></paper-ripple>
 								<div class="crmTypeIcon">
 									<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
@@ -102,7 +102,7 @@
 									Page
 								</div>
 							</div>
-							<div class="crmType linkType" on-tap="iconSwitch">
+							<div class="crmType linkType" on-tap="domListener" data-on-tap="iconSwitch">
 								<paper-ripple></paper-ripple>
 								<div class="crmTypeIcon">
 									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -114,7 +114,7 @@
 									Link
 								</div>
 							</div>
-							<div class="crmType selectionType" on-tap="iconSwitch">
+							<div class="crmType selectionType" on-tap="domListener" data-on-tap="iconSwitch">
 								<paper-ripple></paper-ripple>
 								<div class="crmTypeIcon">
 									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -126,7 +126,7 @@
 									Selection
 								</div>
 							</div>
-							<div class="crmType imageType" on-tap="iconSwitch">
+							<div class="crmType imageType" on-tap="domListener" data-on-tap="iconSwitch">
 								<paper-ripple></paper-ripple>
 								<div class="crmTypeIcon">
 									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -138,7 +138,7 @@
 									Image
 								</div>
 							</div>
-							<div class="crmType videoType" on-tap="iconSwitch">
+							<div class="crmType videoType" on-tap="domListener" data-on-tap="iconSwitch">
 								<paper-ripple></paper-ripple>
 								<div class="crmTypeIcon">
 									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -150,7 +150,7 @@
 									Video
 								</div>
 							</div>
-							<div class="crmType audioType" on-tap="iconSwitch">
+							<div class="crmType audioType" on-tap="domListener" data-on-tap="iconSwitch">
 								<paper-ripple></paper-ripple>
 								<div class="crmTypeIcon">
 									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
@@ -225,7 +225,7 @@
 					<div class="URISchemeGenerator">
 						<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
 						<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="This is not a valid scheme" label="URI scheme name" value="myscheme"></paper-input>
-						<paper-button raised class="blue" on-tap="_generateRegexFile">GENERATE</paper-button>
+						<paper-button raised class="blue" on-tap="domListener" data-on-tap="_generateRegexFile">GENERATE</paper-button>
 					</div>
 				</div>
 				<br /><br />
@@ -239,11 +239,11 @@
 					<div class="globalExcludesItems">
 						<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
 							<div class="globalExcludeContainer">
-								<paper-input on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
-								<paper-icon-button hidden$="[[isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+								<paper-input on-tap="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
+								<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
 							</div>
 						</template>
-						<paper-button raised class="blue" on-tap="addGlobalExcludeField">ADD</paper-button>
+						<paper-button raised class="blue" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
 					</div>
 				</div>
 				<br /><br />
@@ -261,7 +261,7 @@
 					<paper-checkbox checked id="overWriteImport">Overwrite</paper-checkbox>
 					<paper-checkbox id="oldCRMImport">CRM 1.0</paper-checkbox>
 					<br />
-					<paper-button class="blue" raised id="importButton" on-tap="importData">Import</paper-button>
+					<paper-button class="blue" raised id="importButton" on-tap="domListener" data-on-tap="importData">Import</paper-button>
 				</div>
 				<br /><br />
 				<div class="exportSettingsCont">
@@ -277,7 +277,7 @@
 					<paper-checkbox checked id="exportCRM">Export your Custom Right-Click Menu</paper-checkbox>
 					<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
 					<br/>
-					<paper-button class="blue" raised id="exportButton" on-tap="exportData">Export</paper-button>
+					<paper-button class="blue" raised id="exportButton" on-tap="domListener" data-on-tap="exportData">Export</paper-button>
 				</div>
 				<br/><br/>
 				<div class="loggingButtonCont">
@@ -290,7 +290,7 @@
 						only your logs. <br />
 						To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
 					</div>
-					<paper-button class="blue" raised on-tap="_openLogging">Logging</paper-button>
+					<paper-button class="blue" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
 				</div>
 				<br/><br/>
 				<div class="privacyPolicyCont">
@@ -315,7 +315,7 @@
 						on top of every other dialog so you can always use it. To toggle it on/off use
 						the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
 					</div>
-					<paper-button raised class="blue" on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
+					<paper-button raised class="blue" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
 				</div>
 				<br /><br />
 				<div class="contactCont">
@@ -347,7 +347,7 @@
 						<br><br>
 						<textarea rows="10" id="exportToLegacyOutput" class="textarea"></textarea>
 						<br>
-						<paper-button class="blue" raised id="legacyExportButton" on-tap="exportToLegacy">Export</paper-button>
+						<paper-button class="blue" raised id="legacyExportButton" on-tap="domListener" data-on-tap="exportToLegacy">Export</paper-button>
 					</div>
 				</div>
 				<div class="trailingBrs">
@@ -357,11 +357,11 @@
 			<div id="dialogs">
 				<!--Toasts-->
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
-					<span class="toastLink" on-tap="hideGenericToast" role="button">DISMISS</span>
+					<span class="toastLink" on-tap="domListener" data-on-tap="hideGenericToast" role="button">DISMISS</span>
 				</paper-toast>
 				<paper-toast data-element-type="ScriptUpdatesToast" id="scriptUpdatesToast" text="Please ignore this" duration="10000">
-					<span id="nextScriptUpdateButton" class="toastLink" on-tap="nextUpdatedScript" role="button">NEXT</span>
-					<span class="toastLink" on-tap="hideScriptUpdatesToast" role="button">DISMISS</span>
+					<span id="nextScriptUpdateButton" class="toastLink" on-tap="domListener" data-on-tap="nextUpdatedScript" role="button">NEXT</span>
+					<span class="toastLink" on-tap="domListener" data-on-tap="hideScriptUpdatesToast" role="button">DISMISS</span>
 				</paper-toast>
 				<paper-toast id="contentTypeToast" text="You need to select at least one content type to show this node on, otherwise it will never be shown. To hide it change the triggers." duration="5000"></paper-toast>
 				<paper-toast id="changedToMenuToast" text="You just changed a menu to a different type, all children will disappear untill it's changed back (dragging possible untill page reload)" duration="10000">
@@ -445,7 +445,7 @@
 						</template>
 					</div>
 					<div class="buttons">
-						<paper-button dialog-confirm on-tap="confirmCodeSettings">Save</paper-button>
+						<paper-button dialog-confirm on-tap="domListener" data-on-tap="confirmCodeSettings">Save</paper-button>
 						<paper-button dialog-dismiss>Cancel</paper-button>
 					</div>
 				</paper-dialog>
@@ -586,7 +586,7 @@
 						</div>
 						<div id="exportInputLine">
 							<paper-input always-float-label id="exportAuthorName" label="author's name" placeholder="anonymous"></paper-input>
-							<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="copyExporedToClipboard"></paper-icon-button>
+							<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExporedToClipboard"></paper-icon-button>
 						</div>
 						<textarea class="paperTextArea" id="exportJSONData" rows="20"></textarea>
 						<div class="buttons">
@@ -777,10 +777,10 @@
 							</div>
 						</div>
 						<div class="buttons">
-							<paper-button notshown$="[[isVersionUpdateTabX(versionUpdateTab, 0)]]" id="versionUpdatePrevTab" on-tap="goPrevVersionUpdateTab">previous</paper-button>
-							<paper-button id="versionUpdateNextTab" on-tap="goNextVersionUpdateTab">
-								<span hidden$="[[!isVersionUpdateTabX(versionUpdateTab, 4)]]">close</span>
-								<span hidden$="[[isVersionUpdateTabX(versionUpdateTab, 4)]]">next</span>
+							<paper-button notshown$="[[_isVersionUpdateTabX(versionUpdateTab, 0)]]" id="versionUpdatePrevTab" on-tap="domListener" data-on-tap="goPrevVersionUpdateTab">previous</paper-button>
+							<paper-button id="versionUpdateNextTab" on-tap="domListener" data-on-tap="goNextVersionUpdateTab">
+								<span hidden$="[[!_isVersionUpdateTabX(versionUpdateTab, 4)]]">close</span>
+								<span hidden$="[[_isVersionUpdateTabX(versionUpdateTab, 4)]]">next</span>
 							</paper-button>
 						</div>
 					</paper-dialog>
@@ -793,9 +793,9 @@
 								<div class="nodeAddedPermissionsCont" data-id$="[[nodeAddedPermission.node]]">
 									<h2 class="nodeAddedHeader">
 										The script 
-										<span>[[getNodeName(nodeAddedPermission.node)]]</span>
+										<span>[[_getNodeName(nodeAddedPermission.node)]]</span>
 										has been updated to version 
-										<span>[[getNodeVersion(nodeAddedPermission.node)]]</span>
+										<span>[[_getNodeVersion(nodeAddedPermission.node)]]</span>
 										and some new permissions have been requested. 
 									</h2>
 									<div class="nodeAddedPermissions">
@@ -809,7 +809,7 @@
 														</paper-checkbox>
 													</div>
 												</div>
-												<div class="nodeAddedPermissionDescription">[[getPermissionDescription(permission)]]</div>
+												<div class="nodeAddedPermissionDescription">[[_getPermissionDescription(permission)]]</div>
 											</div>
 										</template>
 									</div>
@@ -819,8 +819,8 @@
 						<div class="buttons">
 							<paper-button
 								id="addedPermissionPrevButton"
-								on-tap="addedPermissionPrev">previous</paper-button>
-							<paper-button id="addedPermissionNextButton" on-tap="addedPermissionNext">
+								on-tap="domListener" data-on-tap="addedPermissionPrev">previous</paper-button>
+							<paper-button id="addedPermissionNextButton" on-tap="domListener" data-on-tap="addedPermissionNext">
 								<span class="close">apply</span>
 								<span class="next">next</span>
 							</paper-button>
