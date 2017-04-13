@@ -27,6 +27,10 @@
 			'Added a docs button on script-edit page',
 			'Shows a warning when using the deprecated direct chrome API (use crmAPI.chrome instead)',
 			'Fixed a bug that occurred on saving',
+		],
+		'2.0.7': [
+			'Fixed json parser bug that sometimes occurred on loading page',
+			'Code cleanup and dead code removal'
 		]
 	};
 }());
