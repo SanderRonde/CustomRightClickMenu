@@ -418,45 +418,6 @@ class CA {
 		return string.split('').reverse().join('');
 	};
 
-	private static switchToIcons(this: CrmApp, index: number) {
-		let i;
-		let element;
-		const crmTypes = document.querySelectorAll('.crmType');
-		for (i = 0; i < 6; i++) {
-			if (index === i) {
-				element = crmTypes[i] as HTMLElement;
-				element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
-				element.classList.add('toggled');
-
-				const child = document.createElement('div');
-				if (index === 5) {
-					child.classList.add('crmTypeShadowMagicElementRight');
-				} else {
-					child.classList.add('crmTypeShadowMagicElement');
-				}
-				element.appendChild(child);
-			}
-		}
-		this.crmType = index;
-		this.fire('crmTypeChanged', {});
-	};
-
-		static initCodeOptions(this: CrmApp, node: CRM.ScriptNode|CRM.StylesheetNode) {
-		this.$.codeSettingsDialog.item = node;
-		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
-
-		this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
-		this.$.codeSettingsNoItems.if = this.$.codeSettingsRepeat.items.length === 0;
-		this.async(() => {
-			this.$.codeSettingsDialog.fit();
-			Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
-				.forEach((el: PaperDropdownMenu) => {
-					el.init();
-				});
-			this.$.codeSettingsDialog.open();
-		}, 100);
-	}
-
 	/**
 	 * Shows the user a dialog and asks them to allow/deny those permissions
 	 */
@@ -656,715 +617,27 @@ class CA {
 		}
 	};
 
-	private static orderNodesById(this: CrmApp, tree: CRM.Tree) {
-		for (let i = 0; i < tree.length; i++) {
-			const node = tree[i];
-			this.nodesById[node.id] = node;
-			node.children && this.orderNodesById(node.children);
-		}
-	};
-
-	private static parseOldCRMNode(this: CrmApp, string: string, openInNewTab: boolean,
-									method: SCRIPT_CONVERSION_TYPE): CRM.Node {
-		let node: CRM.Node = {} as any;
-		const oldNodeSplit = string.split('%123');
-		const name = oldNodeSplit[0];
-		const type = oldNodeSplit[1].toLowerCase();
-
-		const nodeData = oldNodeSplit[2];
-
-		switch (type) {
-			//Stylesheets don't exist yet so don't implement those
-			case 'link':
-				let split;
-				if (nodeData.indexOf(', ') > -1) {
-					split = nodeData.split(', ');
-				} else {
-					split = nodeData.split(',');
-				}
-				node = this.templates.getDefaultLinkNode({
-					name: name,
-					id: this.generateItemId(),
-					value: split.map(function(url) {
-						return {
-							newTab: openInNewTab,
-							url: url
-						};
-					})
-				});
-				break;
-			case 'divider':
-				node = this.templates.getDefaultDividerNode({
-					name: name,
-					id: this.generateItemId()
-				});
-				break;
-			case 'menu':
-				node = this.templates.getDefaultMenuNode({
-					name: name,
-					id: this.generateItemId(),
-					children: nodeData as any
-				});
-				break;
-			case 'script':
-				const scriptSplit = nodeData.split('%124');
-				let scriptLaunchMode = scriptSplit[0];
-				const scriptData = scriptSplit[1];
-				let triggers;
-				const launchModeString = scriptLaunchMode + '';
-				if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
-					triggers = launchModeString.split('1,')[1].split(',');
-					triggers = triggers.map(function(item) {
-						return {
-							not: false,
-							url: item.trim()
-						};
-					}).filter(function(item) {
-						return item.url !== '';
-					});
-					scriptLaunchMode = '2';
-				}
-				const id = this.generateItemId();
-				node = this.templates.getDefaultScriptNode({
-					name: name,
-					id: id,
-					triggers: triggers || [],
-					value: {
-						launchMode: parseInt(scriptLaunchMode, 10),
-						updateNotice: true,
-						oldScript: scriptData,
-						script: this.legacyScriptReplace.convertScriptFromLegacy(scriptData, id, method)
-					} as CRM.ScriptVal
-				});
-				break;
-		}
-
-		return node;
-	};
-
-	private static assignParents(this: CrmApp, parent: CRM.Tree, nodes: Array<CRM.Node>,
-			index: {
-				index: number;
-			}, amount: number) {
-		for (; amount !== 0 && nodes[index.index]; index.index++, amount--) {
-			const currentNode = nodes[index.index];
-			if (currentNode.type === 'menu') {
-				const childrenAmount = ~~currentNode.children;
-				currentNode.children = [];
-				index.index++;
-				this.assignParents(currentNode.children, nodes, index, childrenAmount);
-				index.index--;
-			}
-			parent.push(currentNode);
-		}
-	};
-
-	private static backupLocalStorage() {
-		if (typeof localStorage === 'undefined' || 
-			(typeof window.indexedDB === 'undefined' && typeof (window as any).webkitIndexedDB === 'undefined')) {
-			return;
-		}
-		const data = JSON.stringify(localStorage);
-		const idb: IDBFactory = window.indexedDB || (window as any).webkitIndexedDB;
-		const req = idb.open('localStorageBackup', 1);
-		req.onerror = () => { console.log('Error backing up localStorage data'); };
-		req.onupgradeneeded = (event) => {
-			const db: IDBDatabase = (event.target as any).result;
-			const objectStore = db.createObjectStore('data', {
-				keyPath: 'id'
-			});
-			objectStore.add({
-				id: 0,
-				data: data
-			});
-		}
-	}
-
 	private static transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
 		getItem(index: string|number): any;
 	} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): CRM.Tree {
-		this.backupLocalStorage();
-
-		let i;
-		const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
-
-		const nodes = [];
-		for (i = 1; i < amount; i++) {
-			nodes.push(this.parseOldCRMNode(storageSource.getItem(i), openInNewTab, method));
-		}
-
-		//Structure nodes with children etc
-		const crm: CRM.Tree = [];
-		this.assignParents(crm, nodes, {
-			index: 0
-		}, nodes.length);
-		return crm;
+		return this.transferFromOld.transferCRMFromOld(openInNewTab, storageSource, method);
 	};
 
-	private static initCheckboxes(this: CrmApp, defaultLocalStorage: CRM.StorageLocal) {
-		const _this = this;
-		if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
-			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue && 
-			(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
-			Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
-				setting.init && setting.init(defaultLocalStorage);
-			});
-		} else {
-			window.setTimeout(function() {
-				_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
-			}, 1000);
-		}
-	};
+	static initCodeOptions(this: CrmApp, node: CRM.ScriptNode|CRM.StylesheetNode) {
+		this.$.codeSettingsDialog.item = node;
+		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
 
-	private static buildNodePaths(this: CrmApp, tree: CRM.Tree, currentPath: Array<number>) {
-		for (let i = 0; i < tree.length; i++) {
-			const childPath = currentPath.concat([i]);
-			const node = tree[i];
-			node.path = childPath;
-			if (node.children) {
-				this.buildNodePaths(node.children, childPath);
-			}
-		}
-	};
-
-	private static animateLoadingBar(this: CrmApp, settings: {
-		lastReachedProgress: number;
-		max: number;
-		toReach: number;
-		progressBar: HTMLElement;
-		isAnimating: boolean;
-		shouldAnimate: boolean;	
-	}, progress: number) {
-		const _this = this;
-		const scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
-		const scaleAfter = 'scaleX(' + progress + ')';
-		if (settings.max === settings.lastReachedProgress ||
-			settings.toReach >= 1) {
-				settings.progressBar.animate([{
-					transform: scaleBefore,
-					WebkitTransform: scaleBefore
-				}, {
-					transform: scaleAfter,
-					WebkitTransform: scaleAfter
-				}], {
-					duration: 200,
-					easing: 'linear'
-				}).onfinish = function() {
-					settings.lastReachedProgress = progress;
-					settings.isAnimating = false;
-					settings.progressBar.style.transform = scaleAfter;
-					settings.progressBar.style.WebkitTransform = scaleAfter;
-				};
-				return;
-			}
-		if ((settings.progressBar.animate as any).isJqueryFill) {
-			settings.progressBar.style.transform = scaleAfter;
-			settings.progressBar.style.WebkitTransform = scaleAfter;
-		} else {
-			if (settings.isAnimating) {
-				settings.toReach = progress;
-				settings.shouldAnimate = true;
-			} else {
-				settings.isAnimating = true;
-				settings.progressBar.animate([{
-					transform: scaleBefore,
-					WebkitTransform: scaleBefore
-				}, {
-					transform: scaleAfter,
-					WebkitTransform: scaleAfter
-				}], {
-					duration: 200,
-					easing: 'linear'
-				}).onfinish = function() {
-					settings.lastReachedProgress = progress;
-					settings.isAnimating = false;
-					settings.progressBar.style.transform = scaleAfter;
-					settings.progressBar.style.WebkitTransform = scaleAfter;
-					_this.animateLoadingBar(settings, settings.toReach);
-				};
-			}
-		}
-	};
-
-	private static setupLoadingBar(this: CrmApp, fn: (toRun: (callback: () => void) => void) => void) {
-		var callback: () => void = null;
-		fn(function(cb) {
-			callback = cb;	
-		});
-
-		const _this = this;
-		const importsAmount = 62;
-		const loadingBarSettings = {
-			lastReachedProgress: 0,
-			progressBar: document.getElementById('splashScreenProgressBarLoader'),
-			toReach: 0,
-			isAnimating: false,
-			shouldAnimate: false,
-			max: importsAmount
-		};
-
-		let registeredElements = Polymer.telemetry.registrations.length;
-		const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
-		registrationArray.push = function (element: HTMLElement) {
-			Array.prototype.push.call(registrationArray, element);
-			registeredElements++;
-			const progress = Math.round((registeredElements / importsAmount) * 100) / 100;
-			_this.animateLoadingBar(loadingBarSettings, progress);
-			if (registeredElements === importsAmount) {
-				//Wait until the element is actually registered to the DOM
-				window.setTimeout(() => {
-					callback && callback();
-					//All elements have been loaded, unhide them all
-					window.setTimeout(function() {
-						document.documentElement.classList.remove('elementsLoading');
-
-						//Clear the annoying CSS mime type messages and the /deep/ warning
-						if (!window.lastError && location.hash.indexOf('noClear') === -1) {
-							console.clear();
-						}
-
-						window.setTimeout(function() {
-							//Wait for the fade to pass
-							window.polymerElementsLoaded = true;
-							document.getElementById('splashScreen').style.display = 'none';
-						}, 500);
-
-						console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
-							'font-size:120%;font-weight:bold;');
-					}, 200);
-
-					window.CRMLoaded = window.CRMLoaded || {
-						listener: null,
-						register(fn) {
-							fn();
-						}
-					}
-					window.CRMLoaded.listener && window.CRMLoaded.listener();
-				}, 25);
-			}
-		};
-		Polymer.telemetry.registrations = registrationArray;
-	};
-
-	private static setupStorages(this: CrmApp, resolve: (callback: () => void) => void) {
-		const _this = this;
-		chrome.storage.local.get((storageLocal: CRM.StorageLocal & {
-			nodeStorage: any;
-			settings?: CRM.SettingsStorage;
-		}) => {
-			resolve(function() {
-				function callback(items: CRM.SettingsStorage) {
-					_this.settings = items;
-					_this.settingsCopy = JSON.parse(JSON.stringify(items));
-					for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-						_this.onSettingsReadyCallbacks[i].callback.apply(
-							_this.onSettingsReadyCallbacks[i].thisElement,
-							_this.onSettingsReadyCallbacks[i].params);
-					}
-					_this.updateEditorZoom();
-					_this.orderNodesById(items.crm);
-					_this.pageDemo.create();
-					_this.buildNodePaths(items.crm, []);
-					if (_this.settings.latestId) {
-						_this.latestId = items.latestId;
-					} else {
-						_this.latestId = 0;
-					}
-
-					if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
-						(window.doc.CRMOnPage as PaperToggleOption).setCheckboxDisabledValue(true);
-					}
-					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
-						.CRMOnPage);
-				}
-
-				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
-					setting.init(storageLocal);
+		this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
+		this.$.codeSettingsNoItems.if = this.$.codeSettingsRepeat.items.length === 0;
+		this.async(() => {
+			this.$.codeSettingsDialog.fit();
+			Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
+				.forEach((el: PaperDropdownMenu) => {
+					el.init();
 				});
-
-				_this.bindListeners();
-				delete storageLocal.nodeStorage;
-				if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-					_this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
-				}
-				if (storageLocal.editing) {
-					const editing = storageLocal.editing;
-					setTimeout(function() {
-						//Check out if the code is actually different
-						const node = _this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
-						const nodeCurrentCode = (node.type === 'script' ? node.value.script :
-							node.value.stylesheet);
-						if (nodeCurrentCode.trim() !== editing.val.trim()) {
-							_this.restoreUnsavedInstances(editing);
-						} else {
-							chrome.storage.local.set({
-								editing: null
-							});
-						}
-					}, 2500);
-				}
-				if (storageLocal.selectedCrmType !== undefined) {
-					_this.crmType = storageLocal.selectedCrmType;
-					_this.switchToIcons(storageLocal.selectedCrmType);
-				} else {
-					chrome.storage.local.set({
-						selectedCrmType: 0
-					});
-					_this.crmType = 0;
-					_this.switchToIcons(0);
-				}
-				if (storageLocal.jsLintGlobals) {
-					_this.jsLintGlobals = storageLocal.jsLintGlobals;
-				} else {
-					_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
-					chrome.storage.local.set({
-						jsLintGlobals: _this.jsLintGlobals
-					});
-				}
-				if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
-					1) {
-					_this.globalExcludes = storageLocal.globalExcludes;
-				} else {
-					_this.globalExcludes = [''];
-					chrome.storage.local.set({
-						globalExcludes: _this.globalExcludes
-					});
-				}
-				if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
-					window.setTimeout(function() {
-						(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
-						(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
-							storageLocal.addedPermissions.length;
-						window.doc.addedPermissionsTabRepeater.items =
-							storageLocal.addedPermissions;
-
-						if (storageLocal.addedPermissions.length === 1) {
-							(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
-								.style.display = 'none';	
-						} else {
-							(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
-								.style.display = 'none';
-						}
-						window.doc.addedPermissionPrevButton.style.display = 'none';
-						window.doc.addedPermissionsTabRepeater.render();
-						window.doc.addedPermissionsDialog.open();
-						chrome.storage.local.set({
-							addedPermissions: null
-						});
-					}, 2500);
-				}
-				if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-					_this.$.scriptUpdatesToast.text = _this._getUpdatedScriptString(
-						storageLocal.updatedScripts[0]);
-					_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
-					_this.$.scriptUpdatesToast.index = 0;
-					_this.$.scriptUpdatesToast.show();
-
-					if (storageLocal.updatedScripts.length > 1) {
-						_this.$.nextScriptUpdateButton.style.display = 'inline';
-					} else {
-						_this.$.nextScriptUpdateButton.style.display = 'none';
-					}
-					chrome.storage.local.set({
-						updatedScripts: []
-					});
-					storageLocal.updatedScripts = [];
-				}
-				if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
-					const versionData = storageLocal.settingsVersionData;
-					versionData.wasUpdated = false;
-					chrome.storage.local.set({
-						settingsVersionData: versionData	
-					});
-
-					const toast = window.doc.updatedSettingsToast;
-					toast.text = 'Settings were updated to those on ' + new Date(
-						versionData.latest.date
-					).toLocaleDateString();
-					toast.show();
-				}
-
-				if (storageLocal.isTransfer) {
-					chrome.storage.local.set({
-						isTransfer: false
-					});
-					window.doc.versionUpdateDialog.open();
-				}
-
-				_this.storageLocal = storageLocal;
-				_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
-				if (storageLocal.useStorageSync) {
-					//Parse the data before sending it to the callback
-					chrome.storage.sync.get(function(storageSync: {
-						[key: string]: string
-					} & {
-						indexes: Array<string>;
-					}) {
-						let indexes = storageSync.indexes;
-						if (!indexes) {
-							chrome.storage.local.set({
-								useStorageSync: false
-							});
-							callback(storageLocal.settings);
-						} else {
-							const settingsJsonArray: Array<string> = [];
-							indexes.forEach(function(index) {
-								settingsJsonArray.push(storageSync[index]);
-							});
-							const jsonString = settingsJsonArray.join('');
-							_this.settingsJsonLength = jsonString.length;
-							const settings = JSON.parse(jsonString);
-							callback(settings);
-						}
-					});
-				} else {
-					//Send the "settings" object on the storage.local to the callback
-					_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
-					if (!storageLocal.settings) {
-						chrome.storage.local.set({
-							useStorageSync: true
-						});
-						chrome.storage.sync.get(function(storageSync: {
-							[key: string]: string
-						} & {
-							indexes: Array<string>;
-						}) {
-							const indexes = storageSync.indexes;
-							const settingsJsonArray: Array<string> = [];
-							indexes.forEach(function(index) {
-								settingsJsonArray.push(storageSync[index]);
-							});
-							const jsonString = settingsJsonArray.join('');
-							_this.settingsJsonLength = jsonString.length;
-							const settings = JSON.parse(jsonString);
-							callback(settings);
-						});
-					} else {
-						callback(storageLocal.settings);
-					}
-				}
-			});
-		});
-	};
-
-		private static bindListeners(this: CrmApp) {
-		const urlInput = window.doc.addLibraryUrlInput;
-		const manualInput = window.doc.addLibraryManualInput;
-		window.doc.addLibraryUrlOption.addEventListener('change', function() {
-			manualInput.style.display = 'none';
-			urlInput.style.display = 'block';
-		});
-		window.doc.addLibraryManualOption.addEventListener('change', function() {
-			urlInput.style.display = 'none';
-			manualInput.style.display = 'block';
-		});
-		$('#addLibraryDialog').on('iron-overlay-closed', function(this: HTMLElement) {
-			$(this).find('#addLibraryButton, #addLibraryConfirmAddition, #addLibraryDenyConfirmation').off('click');
-		});
-	};
-
-	private static restoreUnsavedInstances(this: CrmApp, editingObj: {
-		id: number;
-		mode: string;
-		val: string;
-		crmType: number;
-	}, errs: number = 0) {
-		const _this = this;
-		errs = errs + 1 || 0;
-		if (errs < 5) {
-			if (!window.CodeMirror) {
-				setTimeout(function() {
-					_this.restoreUnsavedInstances(editingObj, errs);
-				}, 500);
-			}
-			else {
-			const crmItem = _this.nodesById[editingObj.id] as CRM.ScriptNode|CRM.StylesheetNode;
-			const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
-				crmItem.value.script : crmItem.value.backgroundScript) :
-				(crmItem.value.stylesheet));
-				_this.listeners.iconSwitch(null, editingObj.crmType);
-				$('.keepChangesButton').on('click', function() {
-					if (crmItem.type === 'script') {
-						crmItem.value[(editingObj.mode === 'main' ?
-							'script' :
-							'backgroundScript')] = editingObj.val;
-					} else {
-						crmItem.value.stylesheet = editingObj.val;
-					}
-					window.app.upload();
-					chrome.storage.local.set({
-						editing: null
-					});
-					window.setTimeout(function() {
-						//Remove the CodeMirror instances for performance
-						window.doc.restoreChangesOldCodeCont.innerHTML = '';
-						window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
-					}, 500);
-				});
-				$('.restoreChangesBack').on('click', function() {
-					window.doc.restoreChangesOldCode.style.display = 'none';
-					window.doc.restoreChangesUnsavedCode.style.display = 'none';
-					window.doc.restoreChangesMain.style.display = 'block';
-					window.doc.restoreChangesDialog.fit();
-				});
-				$('.discardButton').on('click', function() {
-					chrome.storage.local.set({
-						editing: null
-					});
-					window.setTimeout(function () {
-						//Remove the CodeMirror instances for performance
-						window.doc.restoreChangesOldCodeCont.innerHTML = '';
-						window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
-					}, 500);
-				});
-				window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
-				window.doc.restoreChangesOldCodeCont.innerHTML = '';
-				const oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
-					lineNumbers: true,
-					value: code,
-					scrollbarStyle: 'simple',
-					lineWrapping: true,
-					readOnly: 'nocursor',
-					theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-					indentUnit: window.app.settings.editor.tabSize,
-					indentWithTabs: window.app.settings.editor.useTabs
-				});
-				const unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
-					lineNumbers: true,
-					value: editingObj.val,
-					scrollbarStyle: 'simple',
-					lineWrapping: true,
-					readOnly: 'nocursor',
-					theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-					indentUnit: window.app.settings.editor.tabSize,
-					indentWithTabs: window.app.settings.editor.useTabs
-				});
-				window.doc.restoreChangesShowOld.addEventListener('click', function() {
-					window.doc.restoreChangesMain.style.display = 'none';
-					window.doc.restoreChangesUnsavedCode.style.display = 'none';
-					window.doc.restoreChangesOldCode.style.display = 'flex';
-					window.doc.restoreChangesDialog.fit();
-					oldEditor.refresh();
-				});
-				window.doc.restoreChangesShowUnsaved.addEventListener('click', function() {
-					window.doc.restoreChangesMain.style.display = 'none';
-					window.doc.restoreChangesOldCode.style.display = 'none';
-					window.doc.restoreChangesUnsavedCode.style.display = 'flex';
-					window.doc.restoreChangesDialog.fit();
-					unsavedEditor.refresh();
-				});
-
-				const stopHighlighting = function (element: HTMLElement) {
-					$(element).find('.item')[0].animate([
-						{
-							opacity: 1
-						}, {
-							opacity: 0.6
-						}
-					], {
-						duration: 250,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					}).onfinish = function (this: Animation) {
-						this.effect.target.style.opacity = '0.6';
-						window.doc.restoreChangesDialog.open();
-						$('.pageCont').animate({
-							backgroundColor: 'white'
-						}, 200);
-						$('.crmType').each(function (this: HTMLElement) {
-							this.classList.remove('dim');
-						});
-						$('edit-crm-item').find('.item').animate({
-							opacity: 1
-						}, 200, function () {
-							document.body.style.pointerEvents = 'all';
-						});
-					};
-				};
-
-				const path = _this.nodesById[editingObj.id].path;
-				const highlightItem = function () {
-					document.body.style.pointerEvents = 'none';
-					const columnConts = $('#mainCont').children('div');
-					const $columnCont = $(columnConts[(path.length - 1) + 2]);
-					const $paperMaterial = $($columnCont.children('paper-material')[0]);
-					const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
-					const editCRMItems = $($crmEditColumn).children('edit-crm-item');
-					const crmElement = editCRMItems[path[path.length - 1]];
-					//Just in case the item doesn't exist (anymore)
-					if ($(crmElement).find('.item')[0]) {
-						$(crmElement).find('.item')[0].animate([
-							{
-								opacity: 0.6
-							}, {
-								opacity: 1
-							}
-						], {
-							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						}).onfinish = function (this: Animation) {
-							this.effect.target.style.opacity = '1';
-						};
-						setTimeout(function () {
-							stopHighlighting(crmElement);
-						}, 2000);
-					} else {
-						window.doc.restoreChangesDialog.open();
-						$('.pageCont').animate({
-							backgroundColor: 'white'
-						}, 200);
-						$('.crmType').each(function (this: HTMLElement) {
-							this.classList.remove('dim');
-						});
-						$('edit-crm-item').find('.item').animate({
-							opacity: 1
-						}, 200, function () {
-							document.body.style.pointerEvents = 'all';
-						});
-					}
-				};
-
-				window.doc.highlightChangedScript.addEventListener('click', function() {
-					//Find the element first
-					//Check if the element is already visible
-					window.doc.restoreChangesDialog.close();
-					$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
-					$('edit-crm-item').find('.item').css('opacity', 0.6);
-					$('.crmType').each(function (this: HTMLElement) {
-						this.classList.add('dim');
-					});
-
-					setTimeout(function () {
-						if (path.length === 1) {
-							//Always visible
-							highlightItem();
-						} else {
-							let visible = true;
-							for (let i = 1; i < path.length; i++) {
-								if (window.app.editCRM.crm[i].indent.length !== path[i - 1]) {
-									visible = false;
-									break;
-								}
-							}
-							if (!visible) {
-								//Make it visible
-								const popped = JSON.parse(JSON.stringify(path.length));
-								popped.pop();
-								window.app.editCRM.build(popped);
-								setTimeout(highlightItem, 700);
-							} else {
-								highlightItem();
-							}
-						}
-					}, 500);
-				});
-				try {
-					window.doc.restoreChangesDialog.open();
-				} catch (e) {
-					_this.restoreUnsavedInstances(editingObj, errs + 1);
-				}
-			}
-		}
-	};
+			this.$.codeSettingsDialog.open();
+		}, 100);
+	}
 
 	static tryEditorLoaded(this: CrmApp, cm: CodeMirrorInstance) {
 		cm.display.wrapper.classList.add('try-editor-codemirror');
@@ -1518,7 +791,7 @@ class CA {
 			fn();
 
 			//Reset checkboxes
-			this.initCheckboxes.apply(this, [window.app.storageLocal]);
+			this.setup.initCheckboxes.apply(this, [window.app.storageLocal]);
 
 			//Reset default links and searchengines
 			Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function(link: DefaultLink) {
@@ -1553,7 +826,7 @@ class CA {
 		
 		//On a demo or test page right now, use background page to init settings
 		window.Storages.loadStorages(() => {
-			this.setupStorages(onDone.bind(this));
+			this.setup.setupStorages(onDone.bind(this));
 		});
 	};
 
@@ -1597,17 +870,768 @@ class CA {
 			}
 		});
 
-		this.setupLoadingBar((resolve) => {
-			this.setupStorages.apply(this, [resolve]);
+		this.setup.setupLoadingBar((resolve) => {
+			this.setup.setupStorages.apply(this, [resolve]);
 		});
 
 		this.show = false;
 	};
 
 	/**
+	 * Functions related to transferring from version 1.0
+	 */
+	private static transferFromOld = class CRMAppTransferFromOld {
+		private static backupLocalStorage() {
+			if (typeof localStorage === 'undefined' || 
+				(typeof window.indexedDB === 'undefined' && typeof (window as any).webkitIndexedDB === 'undefined')) {
+				return;
+			}
+			const data = JSON.stringify(localStorage);
+			const idb: IDBFactory = window.indexedDB || (window as any).webkitIndexedDB;
+			const req = idb.open('localStorageBackup', 1);
+			req.onerror = () => { console.log('Error backing up localStorage data'); };
+			req.onupgradeneeded = (event) => {
+				const db: IDBDatabase = (event.target as any).result;
+				const objectStore = db.createObjectStore('data', {
+					keyPath: 'id'
+				});
+				objectStore.add({
+					id: 0,
+					data: data
+				});
+			}
+		}
+		
+		private static parseOldCRMNode(string: string, openInNewTab: boolean,
+										method: SCRIPT_CONVERSION_TYPE): CRM.Node {
+			let node: CRM.Node = {} as any;
+			const oldNodeSplit = string.split('%123');
+			const name = oldNodeSplit[0];
+			const type = oldNodeSplit[1].toLowerCase();
+
+			const nodeData = oldNodeSplit[2];
+
+			switch (type) {
+				//Stylesheets don't exist yet so don't implement those
+				case 'link':
+					let split;
+					if (nodeData.indexOf(', ') > -1) {
+						split = nodeData.split(', ');
+					} else {
+						split = nodeData.split(',');
+					}
+					node = this.parent().templates.getDefaultLinkNode({
+						name: name,
+						id: this.parent().generateItemId(),
+						value: split.map(function(url) {
+							return {
+								newTab: openInNewTab,
+								url: url
+							};
+						})
+					});
+					break;
+				case 'divider':
+					node = this.parent().templates.getDefaultDividerNode({
+						name: name,
+						id: this.parent().generateItemId()
+					});
+					break;
+				case 'menu':
+					node = this.parent().templates.getDefaultMenuNode({
+						name: name,
+						id: this.parent().generateItemId(),
+						children: nodeData as any
+					});
+					break;
+				case 'script':
+					const scriptSplit = nodeData.split('%124');
+					let scriptLaunchMode = scriptSplit[0];
+					const scriptData = scriptSplit[1];
+					let triggers;
+					const launchModeString = scriptLaunchMode + '';
+					if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
+						triggers = launchModeString.split('1,')[1].split(',');
+						triggers = triggers.map(function(item) {
+							return {
+								not: false,
+								url: item.trim()
+							};
+						}).filter(function(item) {
+							return item.url !== '';
+						});
+						scriptLaunchMode = '2';
+					}
+					const id = this.parent().generateItemId();
+					node = this.parent().templates.getDefaultScriptNode({
+						name: name,
+						id: id,
+						triggers: triggers || [],
+						value: {
+							launchMode: parseInt(scriptLaunchMode, 10),
+							updateNotice: true,
+							oldScript: scriptData,
+							script: this.parent().legacyScriptReplace.convertScriptFromLegacy(scriptData, id, method)
+						} as CRM.ScriptVal
+					});
+					break;
+			}
+
+			return node;
+		};
+
+		private static assignParents(parent: CRM.Tree, nodes: Array<CRM.Node>,
+				index: {
+					index: number;
+				}, amount: number) {
+			for (; amount !== 0 && nodes[index.index]; index.index++, amount--) {
+				const currentNode = nodes[index.index];
+				if (currentNode.type === 'menu') {
+					const childrenAmount = ~~currentNode.children;
+					currentNode.children = [];
+					index.index++;
+					this.assignParents(currentNode.children, nodes, index, childrenAmount);
+					index.index--;
+				}
+				parent.push(currentNode);
+			}
+		};
+
+		static transferCRMFromOld(openInNewTab: boolean, storageSource: {
+			getItem(index: string|number): any;
+		}, method: SCRIPT_CONVERSION_TYPE): CRM.Tree {
+			this.backupLocalStorage();
+
+			let i;
+			const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
+
+			const nodes = [];
+			for (i = 1; i < amount; i++) {
+				nodes.push(this.parseOldCRMNode(storageSource.getItem(i), openInNewTab, method));
+			}
+
+			//Structure nodes with children etc
+			const crm: CRM.Tree = [];
+			this.assignParents(crm, nodes, {
+				index: 0
+			}, nodes.length);
+			return crm;
+		};
+
+		static parent() {
+			return window.app;
+		}
+	}
+
+	/**
+	 * Functions related to setting up the page on launch
+	 */
+	private static setup = class CRMAppSetup {
+		private static restoreUnsavedInstances(editingObj: {
+			id: number;
+			mode: string;
+			val: string;
+			crmType: number;
+		}, errs: number = 0) {
+			const _this = this;
+			errs = errs + 1 || 0;
+			if (errs < 5) {
+				if (!window.CodeMirror) {
+					setTimeout(function() {
+						_this.restoreUnsavedInstances(editingObj, errs);
+					}, 500);
+				}
+				else {
+				const crmItem = _this.parent().nodesById[editingObj.id] as CRM.ScriptNode|CRM.StylesheetNode;
+				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
+					crmItem.value.script : crmItem.value.backgroundScript) :
+					(crmItem.value.stylesheet));
+					_this.parent().listeners.iconSwitch(null, editingObj.crmType);
+					$('.keepChangesButton').on('click', function() {
+						if (crmItem.type === 'script') {
+							crmItem.value[(editingObj.mode === 'main' ?
+								'script' :
+								'backgroundScript')] = editingObj.val;
+						} else {
+							crmItem.value.stylesheet = editingObj.val;
+						}
+						window.app.upload();
+						chrome.storage.local.set({
+							editing: null
+						});
+						window.setTimeout(function() {
+							//Remove the CodeMirror instances for performance
+							window.doc.restoreChangesOldCodeCont.innerHTML = '';
+							window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+						}, 500);
+					});
+					$('.restoreChangesBack').on('click', function() {
+						window.doc.restoreChangesOldCode.style.display = 'none';
+						window.doc.restoreChangesUnsavedCode.style.display = 'none';
+						window.doc.restoreChangesMain.style.display = 'block';
+						window.doc.restoreChangesDialog.fit();
+					});
+					$('.discardButton').on('click', function() {
+						chrome.storage.local.set({
+							editing: null
+						});
+						window.setTimeout(function () {
+							//Remove the CodeMirror instances for performance
+							window.doc.restoreChangesOldCodeCont.innerHTML = '';
+							window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+						}, 500);
+					});
+					window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+					window.doc.restoreChangesOldCodeCont.innerHTML = '';
+					const oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
+						lineNumbers: true,
+						value: code,
+						scrollbarStyle: 'simple',
+						lineWrapping: true,
+						readOnly: 'nocursor',
+						theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+						indentUnit: window.app.settings.editor.tabSize,
+						indentWithTabs: window.app.settings.editor.useTabs
+					});
+					const unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
+						lineNumbers: true,
+						value: editingObj.val,
+						scrollbarStyle: 'simple',
+						lineWrapping: true,
+						readOnly: 'nocursor',
+						theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+						indentUnit: window.app.settings.editor.tabSize,
+						indentWithTabs: window.app.settings.editor.useTabs
+					});
+					window.doc.restoreChangesShowOld.addEventListener('click', function() {
+						window.doc.restoreChangesMain.style.display = 'none';
+						window.doc.restoreChangesUnsavedCode.style.display = 'none';
+						window.doc.restoreChangesOldCode.style.display = 'flex';
+						window.doc.restoreChangesDialog.fit();
+						oldEditor.refresh();
+					});
+					window.doc.restoreChangesShowUnsaved.addEventListener('click', function() {
+						window.doc.restoreChangesMain.style.display = 'none';
+						window.doc.restoreChangesOldCode.style.display = 'none';
+						window.doc.restoreChangesUnsavedCode.style.display = 'flex';
+						window.doc.restoreChangesDialog.fit();
+						unsavedEditor.refresh();
+					});
+
+					const stopHighlighting = function (element: HTMLElement) {
+						$(element).find('.item')[0].animate([
+							{
+								opacity: 1
+							}, {
+								opacity: 0.6
+							}
+						], {
+							duration: 250,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function (this: Animation) {
+							this.effect.target.style.opacity = '0.6';
+							window.doc.restoreChangesDialog.open();
+							$('.pageCont').animate({
+								backgroundColor: 'white'
+							}, 200);
+							$('.crmType').each(function (this: HTMLElement) {
+								this.classList.remove('dim');
+							});
+							$('edit-crm-item').find('.item').animate({
+								opacity: 1
+							}, 200, function () {
+								document.body.style.pointerEvents = 'all';
+							});
+						};
+					};
+
+					const path = _this.parent().nodesById[editingObj.id].path;
+					const highlightItem = function () {
+						document.body.style.pointerEvents = 'none';
+						const columnConts = $('#mainCont').children('div');
+						const $columnCont = $(columnConts[(path.length - 1) + 2]);
+						const $paperMaterial = $($columnCont.children('paper-material')[0]);
+						const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
+						const editCRMItems = $($crmEditColumn).children('edit-crm-item');
+						const crmElement = editCRMItems[path[path.length - 1]];
+						//Just in case the item doesn't exist (anymore)
+						if ($(crmElement).find('.item')[0]) {
+							$(crmElement).find('.item')[0].animate([
+								{
+									opacity: 0.6
+								}, {
+									opacity: 1
+								}
+							], {
+								duration: 250,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							}).onfinish = function (this: Animation) {
+								this.effect.target.style.opacity = '1';
+							};
+							setTimeout(function () {
+								stopHighlighting(crmElement);
+							}, 2000);
+						} else {
+							window.doc.restoreChangesDialog.open();
+							$('.pageCont').animate({
+								backgroundColor: 'white'
+							}, 200);
+							$('.crmType').each(function (this: HTMLElement) {
+								this.classList.remove('dim');
+							});
+							$('edit-crm-item').find('.item').animate({
+								opacity: 1
+							}, 200, function () {
+								document.body.style.pointerEvents = 'all';
+							});
+						}
+					};
+
+					window.doc.highlightChangedScript.addEventListener('click', function() {
+						//Find the element first
+						//Check if the element is already visible
+						window.doc.restoreChangesDialog.close();
+						$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
+						$('edit-crm-item').find('.item').css('opacity', 0.6);
+						$('.crmType').each(function (this: HTMLElement) {
+							this.classList.add('dim');
+						});
+
+						setTimeout(function () {
+							if (path.length === 1) {
+								//Always visible
+								highlightItem();
+							} else {
+								let visible = true;
+								for (let i = 1; i < path.length; i++) {
+									if (window.app.editCRM.crm[i].indent.length !== path[i - 1]) {
+										visible = false;
+										break;
+									}
+								}
+								if (!visible) {
+									//Make it visible
+									const popped = JSON.parse(JSON.stringify(path.length));
+									popped.pop();
+									window.app.editCRM.build(popped);
+									setTimeout(highlightItem, 700);
+								} else {
+									highlightItem();
+								}
+							}
+						}, 500);
+					});
+					try {
+						window.doc.restoreChangesDialog.open();
+					} catch (e) {
+						_this.restoreUnsavedInstances(editingObj, errs + 1);
+					}
+				}
+			}
+		};
+
+		private static bindListeners() {
+			const urlInput = window.doc.addLibraryUrlInput;
+			const manualInput = window.doc.addLibraryManualInput;
+			window.doc.addLibraryUrlOption.addEventListener('change', function() {
+				manualInput.style.display = 'none';
+				urlInput.style.display = 'block';
+			});
+			window.doc.addLibraryManualOption.addEventListener('change', function() {
+				urlInput.style.display = 'none';
+				manualInput.style.display = 'block';
+			});
+			$('#addLibraryDialog').on('iron-overlay-closed', function(this: HTMLElement) {
+				$(this).find('#addLibraryButton, #addLibraryConfirmAddition, #addLibraryDenyConfirmation').off('click');
+			});
+		};
+
+		static setupStorages(resolve: (callback: () => void) => void) {
+			const _this = this.parent();
+			chrome.storage.local.get((storageLocal: CRM.StorageLocal & {
+				nodeStorage: any;
+				settings?: CRM.SettingsStorage;
+			}) => {
+				resolve(function() {
+					function callback(items: CRM.SettingsStorage) {
+						_this.settings = items;
+						_this.settingsCopy = JSON.parse(JSON.stringify(items));
+						for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
+							_this.onSettingsReadyCallbacks[i].callback.apply(
+								_this.onSettingsReadyCallbacks[i].thisElement,
+								_this.onSettingsReadyCallbacks[i].params);
+						}
+						_this.updateEditorZoom();
+						_this.setup.orderNodesById(items.crm);
+						_this.pageDemo.create();
+						_this.setup.buildNodePaths(items.crm, []);
+						if (_this.settings.latestId) {
+							_this.latestId = items.latestId;
+						} else {
+							_this.latestId = 0;
+						}
+
+						if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
+							(window.doc.CRMOnPage as PaperToggleOption).setCheckboxDisabledValue(true);
+						}
+						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal
+							.CRMOnPage);
+					}
+
+					Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
+						setting.init(storageLocal);
+					});
+
+					_this.setup.bindListeners();
+					delete storageLocal.nodeStorage;
+					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
+						_this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
+					}
+					if (storageLocal.editing) {
+						const editing = storageLocal.editing;
+						setTimeout(function() {
+							//Check out if the code is actually different
+							const node = _this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
+							const nodeCurrentCode = (node.type === 'script' ? node.value.script :
+								node.value.stylesheet);
+							if (nodeCurrentCode.trim() !== editing.val.trim()) {
+								_this.setup.restoreUnsavedInstances(editing);
+							} else {
+								chrome.storage.local.set({
+									editing: null
+								});
+							}
+						}, 2500);
+					}
+					if (storageLocal.selectedCrmType !== undefined) {
+						_this.crmType = storageLocal.selectedCrmType;
+						_this.setup.switchToIcons(storageLocal.selectedCrmType);
+					} else {
+						chrome.storage.local.set({
+							selectedCrmType: 0
+						});
+						_this.crmType = 0;
+						_this.setup.switchToIcons(0);
+					}
+					if (storageLocal.jsLintGlobals) {
+						_this.jsLintGlobals = storageLocal.jsLintGlobals;
+					} else {
+						_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+						chrome.storage.local.set({
+							jsLintGlobals: _this.jsLintGlobals
+						});
+					}
+					if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
+						1) {
+						_this.globalExcludes = storageLocal.globalExcludes;
+					} else {
+						_this.globalExcludes = [''];
+						chrome.storage.local.set({
+							globalExcludes: _this.globalExcludes
+						});
+					}
+					if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
+						window.setTimeout(function() {
+							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
+							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
+								storageLocal.addedPermissions.length;
+							window.doc.addedPermissionsTabRepeater.items =
+								storageLocal.addedPermissions;
+
+							if (storageLocal.addedPermissions.length === 1) {
+								(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
+									.style.display = 'none';	
+							} else {
+								(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
+									.style.display = 'none';
+							}
+							window.doc.addedPermissionPrevButton.style.display = 'none';
+							window.doc.addedPermissionsTabRepeater.render();
+							window.doc.addedPermissionsDialog.open();
+							chrome.storage.local.set({
+								addedPermissions: null
+							});
+						}, 2500);
+					}
+					if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
+						_this.$.scriptUpdatesToast.text = _this._getUpdatedScriptString(
+							storageLocal.updatedScripts[0]);
+						_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+						_this.$.scriptUpdatesToast.index = 0;
+						_this.$.scriptUpdatesToast.show();
+
+						if (storageLocal.updatedScripts.length > 1) {
+							_this.$.nextScriptUpdateButton.style.display = 'inline';
+						} else {
+							_this.$.nextScriptUpdateButton.style.display = 'none';
+						}
+						chrome.storage.local.set({
+							updatedScripts: []
+						});
+						storageLocal.updatedScripts = [];
+					}
+					if (storageLocal.settingsVersionData && storageLocal.settingsVersionData.wasUpdated) {
+						const versionData = storageLocal.settingsVersionData;
+						versionData.wasUpdated = false;
+						chrome.storage.local.set({
+							settingsVersionData: versionData	
+						});
+
+						const toast = window.doc.updatedSettingsToast;
+						toast.text = 'Settings were updated to those on ' + new Date(
+							versionData.latest.date
+						).toLocaleDateString();
+						toast.show();
+					}
+
+					if (storageLocal.isTransfer) {
+						chrome.storage.local.set({
+							isTransfer: false
+						});
+						window.doc.versionUpdateDialog.open();
+					}
+
+					_this.storageLocal = storageLocal;
+					_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+					if (storageLocal.useStorageSync) {
+						//Parse the data before sending it to the callback
+						chrome.storage.sync.get(function(storageSync: {
+							[key: string]: string
+						} & {
+							indexes: Array<string>;
+						}) {
+							let indexes = storageSync.indexes;
+							if (!indexes) {
+								chrome.storage.local.set({
+									useStorageSync: false
+								});
+								callback(storageLocal.settings);
+							} else {
+								const settingsJsonArray: Array<string> = [];
+								indexes.forEach(function(index) {
+									settingsJsonArray.push(storageSync[index]);
+								});
+								const jsonString = settingsJsonArray.join('');
+								_this.settingsJsonLength = jsonString.length;
+								const settings = JSON.parse(jsonString);
+								callback(settings);
+							}
+						});
+					} else {
+						//Send the "settings" object on the storage.local to the callback
+						_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
+						if (!storageLocal.settings) {
+							chrome.storage.local.set({
+								useStorageSync: true
+							});
+							chrome.storage.sync.get(function(storageSync: {
+								[key: string]: string
+							} & {
+								indexes: Array<string>;
+							}) {
+								const indexes = storageSync.indexes;
+								const settingsJsonArray: Array<string> = [];
+								indexes.forEach(function(index) {
+									settingsJsonArray.push(storageSync[index]);
+								});
+								const jsonString = settingsJsonArray.join('');
+								_this.settingsJsonLength = jsonString.length;
+								const settings = JSON.parse(jsonString);
+								callback(settings);
+							});
+						} else {
+							callback(storageLocal.settings);
+						}
+					}
+				});
+			});
+		};
+
+		private static animateLoadingBar(settings: {
+			lastReachedProgress: number;
+			max: number;
+			toReach: number;
+			progressBar: HTMLElement;
+			isAnimating: boolean;
+			shouldAnimate: boolean;	
+		}, progress: number) {
+			const _this = this;
+			const scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
+			const scaleAfter = 'scaleX(' + progress + ')';
+			if (settings.max === settings.lastReachedProgress ||
+				settings.toReach >= 1) {
+					settings.progressBar.animate([{
+						transform: scaleBefore,
+						WebkitTransform: scaleBefore
+					}, {
+						transform: scaleAfter,
+						WebkitTransform: scaleAfter
+					}], {
+						duration: 200,
+						easing: 'linear'
+					}).onfinish = function() {
+						settings.lastReachedProgress = progress;
+						settings.isAnimating = false;
+						settings.progressBar.style.transform = scaleAfter;
+						settings.progressBar.style.WebkitTransform = scaleAfter;
+					};
+					return;
+				}
+			if ((settings.progressBar.animate as any).isJqueryFill) {
+				settings.progressBar.style.transform = scaleAfter;
+				settings.progressBar.style.WebkitTransform = scaleAfter;
+			} else {
+				if (settings.isAnimating) {
+					settings.toReach = progress;
+					settings.shouldAnimate = true;
+				} else {
+					settings.isAnimating = true;
+					settings.progressBar.animate([{
+						transform: scaleBefore,
+						WebkitTransform: scaleBefore
+					}, {
+						transform: scaleAfter,
+						WebkitTransform: scaleAfter
+					}], {
+						duration: 200,
+						easing: 'linear'
+					}).onfinish = function() {
+						settings.lastReachedProgress = progress;
+						settings.isAnimating = false;
+						settings.progressBar.style.transform = scaleAfter;
+						settings.progressBar.style.WebkitTransform = scaleAfter;
+						_this.animateLoadingBar(settings, settings.toReach);
+					};
+				}
+			}
+		};
+
+		static setupLoadingBar(fn: (toRun: (callback: () => void) => void) => void) {
+			var callback: () => void = null;
+			fn(function(cb) {
+				callback = cb;	
+			});
+
+			const _this = this;
+			const importsAmount = 62;
+			const loadingBarSettings = {
+				lastReachedProgress: 0,
+				progressBar: document.getElementById('splashScreenProgressBarLoader'),
+				toReach: 0,
+				isAnimating: false,
+				shouldAnimate: false,
+				max: importsAmount
+			};
+
+			let registeredElements = Polymer.telemetry.registrations.length;
+			const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
+			registrationArray.push = function (element: HTMLElement) {
+				Array.prototype.push.call(registrationArray, element);
+				registeredElements++;
+				const progress = Math.round((registeredElements / importsAmount) * 100) / 100;
+				_this.animateLoadingBar(loadingBarSettings, progress);
+				if (registeredElements === importsAmount) {
+					//Wait until the element is actually registered to the DOM
+					window.setTimeout(() => {
+						callback && callback();
+						//All elements have been loaded, unhide them all
+						window.setTimeout(function() {
+							document.documentElement.classList.remove('elementsLoading');
+
+							//Clear the annoying CSS mime type messages and the /deep/ warning
+							if (!window.lastError && location.hash.indexOf('noClear') === -1) {
+								console.clear();
+							}
+
+							window.setTimeout(function() {
+								//Wait for the fade to pass
+								window.polymerElementsLoaded = true;
+								document.getElementById('splashScreen').style.display = 'none';
+							}, 500);
+
+							console.log('%cHey there, if you\'re interested in how this extension works check out the github repository over at https://github.com/SanderRonde/CustomRightClickMenu',
+								'font-size:120%;font-weight:bold;');
+						}, 200);
+
+						window.CRMLoaded = window.CRMLoaded || {
+							listener: null,
+							register(fn) {
+								fn();
+							}
+						}
+						window.CRMLoaded.listener && window.CRMLoaded.listener();
+					}, 25);
+				}
+			};
+			Polymer.telemetry.registrations = registrationArray;
+		};
+
+		static initCheckboxes(defaultLocalStorage: CRM.StorageLocal) {
+			const _this = this;
+			if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
+				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue && 
+				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
+				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
+					setting.init && setting.init(defaultLocalStorage);
+				});
+			} else {
+				window.setTimeout(function() {
+					_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
+				}, 1000);
+			}
+		};
+
+		static buildNodePaths(tree: CRM.Tree, currentPath: Array<number>) {
+			for (let i = 0; i < tree.length; i++) {
+				const childPath = currentPath.concat([i]);
+				const node = tree[i];
+				node.path = childPath;
+				if (node.children) {
+					this.buildNodePaths(node.children, childPath);
+				}
+			}
+		};
+
+		static orderNodesById(tree: CRM.Tree) {
+			for (let i = 0; i < tree.length; i++) {
+				const node = tree[i];
+				this.parent().nodesById[node.id] = node;
+				node.children && this.orderNodesById(node.children);
+			}
+		};
+
+		static switchToIcons(index: number) {
+			let i;
+			let element;
+			const crmTypes = document.querySelectorAll('.crmType');
+			for (i = 0; i < 6; i++) {
+				if (index === i) {
+					element = crmTypes[i] as HTMLElement;
+					element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
+					element.classList.add('toggled');
+
+					const child = document.createElement('div');
+					if (index === 5) {
+						child.classList.add('crmTypeShadowMagicElementRight');
+					} else {
+						child.classList.add('crmTypeShadowMagicElement');
+					}
+					element.appendChild(child);
+				}
+			}
+			this.parent().crmType = index;
+			this.parent().fire('crmTypeChanged', {});
+		};
+
+		static parent() {
+			return window.app;
+		}
+	}
+
+	/**
 	 * Functions related to uploading the data to the backgroundpage
 	 */
-	private static uploading = class CrmAppUploading {
+	private static uploading = class CRMAppUploading {
 		private static areValuesDifferent(val1: Array<any>|Object, val2: Array<any>|Object): boolean {
 			//Array or object
 			const obj1ValIsArray = Array.isArray(val1);
