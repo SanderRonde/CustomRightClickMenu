@@ -1968,12 +1968,12 @@ declare namespace CRMAPI {
 			 * @returns {number} An id that can be used to remove the listener
 			 */
 			addListener(listener: MessageHandler): number,
-			/*
-			* Removes a listener currently added by using comm.addListener
-			*
-			* @param {listener|number} listener - The listener to remove or the number returned
-			* 		by adding it.
-			*/
+			/**
+			 * Removes a listener currently added by using comm.addListener
+			 *
+			 * @param {listener|number} listener - The listener to remove or the number returned
+			 * 		by adding it.
+			 */
 			removeListener(listener: number): void,
 			removeListener(listener: MessageHandler): void,
 			/**
