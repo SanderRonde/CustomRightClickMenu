@@ -444,7 +444,7 @@ var backgroundPageWindow = window = {
 	setInterval: setInterval,
 	clearInterval: clearInterval,
 	md5: function() {
-		return 'md5-hash';
+		return generateRandomString();
 	},
 	app: {
 		util: {
