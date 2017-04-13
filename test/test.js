@@ -446,6 +446,22 @@ var backgroundPageWindow = window = {
 	md5: function() {
 		return 'md5-hash';
 	},
+	app: {
+		util: {
+			waitFor: function(rootObj, key, fn) {
+				if (rootObj[key]) {
+					fn(rootObj[key]);
+				}
+
+				var interval = setInterval(() => {
+					if (rootObj[key]) {
+						clearInterval(interval);
+						fn(rootObj[key]);
+					}	
+				}, 10);
+			}
+		}
+	},
 	document: {
 		querySelector: function() {
 			return {
@@ -3647,6 +3663,8 @@ describe('CRMAPI', () => {
 describe('JSON Parser', () => {
 	var jsonParser;
 	var jsonParserCode;
+	var crmApp;
+	var crmAppCode;
 
 	function resolvePos(file, pos) {
 		var split = file.text.split('\n');
