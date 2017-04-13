@@ -871,7 +871,7 @@ class CA {
 		});
 
 		this.setup.setupLoadingBar((resolve) => {
-			this.setup.setupStorages.apply(this, [resolve]);
+			this.setup.setupStorages.apply(this.setup, [resolve]);
 		});
 
 		this.show = false;
