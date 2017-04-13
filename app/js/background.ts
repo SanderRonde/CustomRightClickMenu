@@ -5285,7 +5285,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				static executeScriptsForTab(tabId: number, respond: (message: any) => void) {
 					chrome.tabs.get(tabId, (tab) => {
-						if (tab.url.indexOf('chrome') !== 0) {
+						if (window.chrome.runtime.lastError) {
+							return;
+						}
+						if (tab.url && tab.url.indexOf('chrome') !== 0) {
 							globalObject.globals.crmValues.tabData[tab.id] = {
 								libraries: {},
 								nodes: {}
