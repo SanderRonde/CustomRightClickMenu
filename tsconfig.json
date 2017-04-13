@@ -9,7 +9,7 @@
         "noImplicitThis": true,
         "removeComments": true,
         "preserveConstEnums": false,
-        "listFiles": true,
+        "listFiles": false,
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
