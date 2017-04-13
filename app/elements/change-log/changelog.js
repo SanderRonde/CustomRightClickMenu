@@ -30,7 +30,8 @@
 		],
 		'2.0.7': [
 			'Fixed json parser bug that sometimes occurred on loading page',
-			'Code cleanup and dead code removal'
+			'Code cleanup and dead code removal',
+			'Node instances are now all shown'
 		]
 	};
 }());
