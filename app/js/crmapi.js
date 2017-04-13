@@ -592,6 +592,8 @@
 			}
 		}
 
+		var instancesReady = false;
+		var instancesReadyListeners = [];
 		var instances = new CallbackStorage();
 
 		function executeCode(message) {		
@@ -796,6 +798,15 @@
 						sendMessage: generateSendInstanceMessageFunction(instanceArr[i].id, instanceArr[i].tabIndex)
 					});
 				}
+
+				var instancesArr = [];
+				instances.forEach(function(instance) {
+					instancesArr.push(instance);
+				});
+				instancesReady = true;
+				instancesReadyListeners.forEach(function(listener) {
+					listener(instancesArr);
+				});
 				handshakeFunction();
 			} else {
 				switch (message.messageType) {
@@ -1224,14 +1235,18 @@
 		 * to the .comm.sendMessage function to send a message to them, you can also
 		 * call instance.sendMessage on them
 		 *
-		 * @returns {instance[]} - An array of all instances
+		 * @param {function} callback - A function to call with the instances
 		 */
-		this.comm.getInstances = function () {
-			var instancesArr = [];
-			instances.forEach(function(instance) {
-				instancesArr.push(instance);
-			});
-			return instancesArr;
+		this.comm.getInstances = function (callback) {
+			if (instancesReady) {
+				var instancesArr = [];
+				instances.forEach(function(instance) {
+					instancesArr.push(instance);
+				});
+				callback(instancesArr);
+			} else {
+				instancesReadyListeners.push(callback);
+			}
 		};
 
 		/**

@@ -1940,9 +1940,9 @@ declare namespace CRMAPI {
 			 * to the .comm.sendMessage function to send a message to them, you can also
 			 * call instance.sendMessage on them
 			 *
-			 * @returns {instance[]} - An array of all instances
+			 * @param {function} callback - A function to call with the instances
 			 */
-			getInstances(): Array<Instance>,
+			getInstances(callback: (instances: Array<Instance>) => void): void,
 			/**
 			 * Sends a message to given instance
 			 *
