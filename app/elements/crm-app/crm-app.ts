@@ -262,6 +262,19 @@ class CA {
 
 	static properties = properties;
 
+	static waitFor<T, U extends keyof T>(this: CrmApp, rootObj: T, key: U, fn: (value: T[U]) => void) {
+		if (rootObj[key]) {
+			fn(rootObj[key]);
+		}
+
+		const interval = window.setInterval(() => {
+			if (rootObj[key]) {
+				window.clearInterval(interval);
+				fn(rootObj[key]);
+			}	
+		}, 10);
+	}
+
 	static createElement(tagName: keyof ElementTagNameMaps, options: {
 		id?: string;
 		classes?: Array<string>;

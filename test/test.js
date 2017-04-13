@@ -442,6 +442,7 @@ var backgroundPageWindow = window = {
 	JSON: JSON,
 	setTimeout: setTimeout,
 	setInterval: setInterval,
+	clearInterval: clearInterval,
 	md5: function() {
 		return 'md5-hash';
 	},

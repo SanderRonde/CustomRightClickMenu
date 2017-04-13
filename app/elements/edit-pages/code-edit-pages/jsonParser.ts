@@ -1346,52 +1346,54 @@ ${
 ${message}`;
 	}
 
-	window.CodeMirror.lint.optionsJSON = (text: string, _: any, cm: CodeMirrorInstance): LintMessages => {
-		if (!window.useOptionsCompletions) {
-			return cm.getOption('mode') === 'javascript' ?
-				window.CodeMirror.lint.javascript(text, _, cm) :
-				window.CodeMirror.lint.css(text, _, cm);
-		}
-		
-		let { options, errs, keyLines } = window.parseCodeOptions({
-			text: text
-		}, emptyCursor, ternFns);
-		const warnings = getObjectValidationErrors(text, options, keyLines);
-		const messages = errs.map((err) => {
-			return {
-				severity: 'error',
-				index: err.index,
-				chars: err.chars,
-				err: err.err
-			};
-		}).concat(warnings.map((err) => {
-			return {
-				severity: 'warning',
-				index: err.index,
-				chars: err.chars,
-				err: err.err
-			};
-		})) as Array<{
-			severity: 'error'|'warning';
-			index: number;
-			chars: number;
-			err: Error;
-		}>;
+	window.app.waitFor(window, 'CodeMirror', (cm) => {
+		window.CodeMirror.lint.optionsJSON = (text: string, _: any, cm: CodeMirrorInstance): LintMessages => {
+			if (!window.useOptionsCompletions) {
+				return cm.getOption('mode') === 'javascript' ?
+					window.CodeMirror.lint.javascript(text, _, cm) :
+					window.CodeMirror.lint.css(text, _, cm);
+			}
+			
+			let { options, errs, keyLines } = window.parseCodeOptions({
+				text: text
+			}, emptyCursor, ternFns);
+			const warnings = getObjectValidationErrors(text, options, keyLines);
+			const messages = errs.map((err) => {
+				return {
+					severity: 'error',
+					index: err.index,
+					chars: err.chars,
+					err: err.err
+				};
+			}).concat(warnings.map((err) => {
+				return {
+					severity: 'warning',
+					index: err.index,
+					chars: err.chars,
+					err: err.err
+				};
+			})) as Array<{
+				severity: 'error'|'warning';
+				index: number;
+				chars: number;
+				err: Error;
+			}>;
 
-		let output: LintMessages = [];
-		const splitLines = text.split('\n');
-		for (let i = 0; i < messages.length; i++) {
-			const from = strIndexToPos(splitLines, messages[i].index);
-			const to = strIndexToPos(splitLines, messages[i].index + messages[i].chars);
-			output.push({
-				from: from,
-				to: to,
-				severity: messages[i].severity,
-				message: createPointerMessage(text, messages[i].index, from, messages[i].chars, messages[i].err.message)
-			});
-		}
-		return output;
-	};
+			let output: LintMessages = [];
+			const splitLines = text.split('\n');
+			for (let i = 0; i < messages.length; i++) {
+				const from = strIndexToPos(splitLines, messages[i].index);
+				const to = strIndexToPos(splitLines, messages[i].index + messages[i].chars);
+				output.push({
+					from: from,
+					to: to,
+					severity: messages[i].severity,
+					message: createPointerMessage(text, messages[i].index, from, messages[i].chars, messages[i].err.message)
+				});
+			}
+			return output;
+		};
+	});
 
 	window.completionsOptions = (query: {
 		start: {
