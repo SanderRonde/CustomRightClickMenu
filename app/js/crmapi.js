@@ -1257,7 +1257,7 @@
 		 * 		When a script is ran multiple times on the same tab,
 		 * 		it gets added to the tabIndex array (so it starts at 0)
 		 * @param {Object} message - The message to send
-		 * @param {function} callback - A callback that tells you the result,
+		 * @param {function} [callback] - A callback that tells you the result,
 		 *		gets passed one argument (object) that contains the two boolean
 		 *		values "error" and "success" indicating whether the message
 		 *		succeeded. If it did not succeed and an error occurred,
@@ -1661,11 +1661,12 @@
 		 * @param {function} callback - The function to run when done
 		 * @param {Object} params - Any options or parameters
 		 */
-		function sendCrmMessage(action, callback, params) {
-			if (!callback) {
-				throw new Error('CrmAPIError: No callback was supplied');
-			}
+		function sendOptionalCallbackCrmMessage(action, callback, params) {
 			function onFinish(status, messageOrParams, stackTrace) {
+				if (!callback) {
+					return;
+				}
+
 				if (status === 'error') {
 					_this.onError && _this.onError(messageOrParams);
 					if (_this.stackTraces) {
@@ -1697,6 +1698,20 @@
 			};
 			message.tabId = _this.tabId;
 			sendMessage(message);
+		}
+
+		/**
+		 * Sends a message to the background script with given parameters
+		 *
+		 * @param {string} action - What the action is
+		 * @param {function} callback - The function to run when done
+		 * @param {Object} params - Any options or parameters
+		 */
+		function sendCrmMessage(action, callback, params) {
+			if (!callback) {
+				throw new Error('CrmAPIError: No callback was supplied');
+			}
+			sendOptionalCallbackCrmMessage(action, callback, params);
 		}
 
 		/**
@@ -1968,10 +1983,10 @@
 		 * @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 		 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
 		 * @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
-		 * @param {CrmCallback} callback - A callback given the new node as an argument
+		 * @param {CrmCallback} [callback] - A callback given the new node as an argument
 		 */
 		this.crm.createNode = function (options, callback) {
-			sendCrmMessage('createNode', callback, {
+			sendOptionalCallbackCrmMessage('createNode', callback, {
 				options: options
 			});
 		};
@@ -1996,13 +2011,13 @@
 		 *		lastSibling: last of the subtree that given node is in
 		 *		before: before given node
 		 *		after: after the given node
-		 * @param {CrmCallback} callback - A callback given the new node as an argument
+		 * @param {CrmCallback} [callback] - A callback given the new node as an argument
 		 */
 		this.crm.copyNode = function (nodeId, options, callback) {
 			options = options || {};
 			//To prevent the user's stuff from being disturbed if they re-use the object
 			var optionsCopy = JSON.parse(JSON.stringify(options));
-			sendCrmMessage('copyNode', callback, {
+			sendOptionalCallbackCrmMessage('copyNode', callback, {
 				nodeId: nodeId,
 				options: optionsCopy
 			});
@@ -2023,7 +2038,7 @@
 		 *		lastSibling: last of the subtree that given node is in
 		 *		before: before given node
 		 *		after: after the given node
-		 * @param {CrmCallback} callback - A function that gets called with the new node as an argument
+		 * @param {CrmCallback} [callback] - A function that gets called with the new node as an argument
 		 */
 		this.crm.moveNode = function (nodeId, position, callback) {
 			//To prevent the user's stuff from being disturbed if they re-use the object
@@ -2034,7 +2049,7 @@
 			else {
 				positionCopy = {};
 			}
-			sendCrmMessage('moveNode', callback, {
+			sendOptionalCallbackCrmMessage('moveNode', callback, {
 				nodeId: nodeId,
 				position: positionCopy
 			});
@@ -2046,10 +2061,10 @@
 		 * @permission crmGet
 		 * @permission crmWrite
 		 * @param {number} nodeId - The id of the node to delete
-		 * @param {function} callback - A function to run when done
+		 * @param {function} [callback] - A function to run when done
 		 */
 		this.crm.deleteNode = function (nodeId, callback) {
-			sendCrmMessage('deleteNode', callback, {
+			sendOptionalCallbackCrmMessage('deleteNode', callback, {
 				nodeId: nodeId
 			});
 		};
@@ -2063,13 +2078,13 @@
 		 * @param {Object} options - An object containing the settings for what to edit
 		 * @param {string} [options.name] - Changes the name to given string
 		 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
-		 * @param {CrmCallback} callback - A function to run when done, contains the new node as an argument
+		 * @param {CrmCallback} [callback] - A function to run when done, contains the new node as an argument
 		 */
 		this.crm.editNode = function (nodeId, options, callback) {
 			options = options || {};
 			//To prevent the user's stuff from being disturbed if they re-use the object
 			var optionsCopy = JSON.parse(JSON.stringify(options));
-			sendCrmMessage('editNode', callback, {
+			sendOptionalCallbackCrmMessage('editNode', callback, {
 				options: optionsCopy,
 				nodeId: nodeId
 			});
@@ -2101,10 +2116,10 @@
 		 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
 		 * 		https://developer.chrome.com/extensions/match_patterns
 		 * @param {boolean} triggers.not - If true does NOT show the node on that URL
-		 * @param {CrmCallback} callback - A function to run when done, with the node as an argument
+		 * @param {CrmCallback} [callback] - A function to run when done, with the node as an argument
 		 */
 		this.crm.setTriggers = function (nodeId, triggers, callback) {
-			sendCrmMessage('setTriggers', callback, {
+			sendOptionalCallbackCrmMessage('setTriggers', callback, {
 				nodeId: nodeId,
 				triggers: triggers
 			});
@@ -2131,10 +2146,10 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to set the triggers
 		 * @param {boolean} useTriggers - Whether the triggers should be used or not
-		 * @param {CrmCallback} callback - A function to run when done, with the node as an argument
+		 * @param {CrmCallback} [callback] - A function to run when done, with the node as an argument
 		 */
 		this.crm.setTriggerUsage = function (nodeId, useTriggers, callback) {
-			sendCrmMessage('setTriggerUsage', callback, {
+			sendOptionalCallbackCrmMessage('setTriggerUsage', callback, {
 				nodeId: nodeId,
 				useTriggers: useTriggers
 			});
@@ -2163,10 +2178,10 @@
 		 * @param {number} index - The index of the array to set, 0-5, ordered this way:
 		 *		page, link, selection, image, video, audio
 		 * @param {boolean} value - The new value at index "index"
-		 * @param {CrmCallback} callback - A function to run when done, with the new array as an argument
+		 * @param {CrmCallback} [callback] - A function to run when done, with the new array as an argument
 		 */
 		this.crm.setContentType = function (nodeId, index, value, callback) {
-			sendCrmMessage('setContentType', callback, {
+			sendOptionalCallbackCrmMessage('setContentType', callback, {
 				index: index,
 				value: value,
 				nodeId: nodeId
@@ -2183,10 +2198,10 @@
 		 *		on that content type. Requires at least one type to be active, otherwise all are activated.
 		 *		The options are:
 		 *		page, link, selection, image, video, audio
-		 * @param {CrmCallback} callback - A function to run when done, with the node as an argument
+		 * @param {CrmCallback} [callback] - A function to run when done, with the node as an argument
 		 */
 		this.crm.setContentTypes = function (nodeId, contentTypes, callback) {
-			sendCrmMessage('setContentTypes', callback, {
+			sendOptionalCallbackCrmMessage('setContentTypes', callback, {
 				contentTypes: contentTypes,
 				nodeId: nodeId
 			});
@@ -2205,10 +2220,10 @@
 		 *		2 = run on specified pages
 		 *		3 = only show on specified pages
 		 * 		4 = disabled
-		 * @param {CrmCallback} callback - A function that is ran when done with the new node as an argument
+		 * @param {CrmCallback} [callback] - A function that is ran when done with the new node as an argument
 		 */
 		this.crm.setLaunchMode = function (nodeId, launchMode, callback) {
-			sendCrmMessage('setLaunchMode', callback, {
+			sendOptionalCallbackCrmMessage('setLaunchMode', callback, {
 				nodeId: nodeId,
 				launchMode: launchMode
 			});
@@ -2241,10 +2256,10 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to change the stylesheet
 		 * @param {string} stylesheet - The code to change to
-		 * @param {CrmCallback} callback - A function with the node as an argument
+		 * @param {CrmCallback} [callback] - A function with the node as an argument
 		 */
 		this.crm.stylesheet.setStylesheet = function (nodeId, stylesheet, callback) {
-			sendCrmMessage('setStylesheetValue', callback, {
+			sendOptionalCallbackCrmMessage('setStylesheetValue', callback, {
 				nodeId: nodeId,
 				stylesheet: stylesheet
 			});
@@ -2301,10 +2316,10 @@
 		 * @param {Object[]|Object} items - The items to push
 		 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 		 * @param {string} [items.url] - The URL to open on clicking the link
-		 * @param {functon} callback - A function that gets called when done with the new array as an argument
+		 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 		 */
 		this.crm.link.setLinks = function (nodeId, items, callback) {
-			sendCrmMessage('linkSetLinks', callback, {
+			sendOptionalCallbackCrmMessage('linkSetLinks', callback, {
 				nodeId: nodeId,
 				items: items
 			});
@@ -2319,10 +2334,10 @@
 		 * @param {Object[]|Object} items - An array of items or just one item to push
 		 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 		 * @param {string} [items.url] - The URL to open on clicking the link
-		 * @param {functon} callback - A function that gets called when done with the new array as an argument
+		 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 		 */
 		this.crm.link.push = function (nodeId, items, callback) {
-			sendCrmMessage('linkPush', callback, {
+			sendOptionalCallbackCrmMessage('linkPush', callback, {
 				items: items,
 				nodeId: nodeId
 			});
@@ -2337,10 +2352,10 @@
 		 * @param {number} nodeId - The node to splice
 		 * @param {nunber} start - The index of the array at which to start splicing
 		 * @param {nunber} amount - The amount of items to splice
-		 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+		 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 		 */
 		this.crm.link.splice = function (nodeId, start, amount, callback) {
-			sendCrmMessage('linkSplice', callback, {
+			sendOptionalCallbackCrmMessage('linkSplice', callback, {
 				nodeId: nodeId,
 				start: start,
 				amount: amount
@@ -2361,10 +2376,10 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to change the script
 		 * @param {string} value - The code to change to
-		 * @param {CrmCallback} callback - A function with the node as an argument
+		 * @param {CrmCallback} [callback] - A function with the node as an argument
 		 */
 		this.crm.script.setScript = function (nodeId, script, callback) {
-			sendCrmMessage('setScriptValue', callback, {
+			sendOptionalCallbackCrmMessage('setScriptValue', callback, {
 				nodeId: nodeId,
 				script: script
 			});
@@ -2390,10 +2405,10 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The node of which to change the script
 		 * @param {string} value - The code to change to
-		 * @param {CrmCallback} callback - A function with the node as an argument
+		 * @param {CrmCallback} [callback] - A function with the node as an argument
 		 */
 		this.crm.script.setBackgroundScript = function (nodeId, script, callback) {
-			sendCrmMessage('setBackgroundScriptValue', callback, {
+			sendOptionalCallbackCrmMessage('setBackgroundScriptValue', callback, {
 				nodeId: nodeId,
 				script: script
 			});
@@ -2428,10 +2443,10 @@
 		 * @param {number} nodeId - The node to edit
 		 * @param {Object[]|Object} libraries - One library or an array of libraries to push
 		 * @param {string} libraries.name - The name of the library
-		 * @param {function} callback - A callback with the new array as an argument
+		 * @param {function} [callback] - A callback with the new array as an argument
 		 */
 		this.crm.script.libraries.push = function (nodeId, libraries, callback) {
-			sendCrmMessage('scriptLibraryPush', callback, {
+			sendOptionalCallbackCrmMessage('scriptLibraryPush', callback, {
 				nodeId: nodeId,
 				libraries: libraries
 			});
@@ -2446,10 +2461,10 @@
 		 * @param {number} nodeId - The node to splice
 		 * @param {nunber} start - The index of the array at which to start splicing
 		 * @param {nunber} amount - The amount of items to splice
-		 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+		 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 		 */
 		this.crm.script.libraries.splice = function (nodeId, start, amount, callback) {
-			sendCrmMessage('scriptLibrarySplice', callback, {
+			sendOptionalCallbackCrmMessage('scriptLibrarySplice', callback, {
 				nodeId: nodeId,
 				start: start,
 				amount: amount
@@ -2472,10 +2487,10 @@
 		 * @param {number} nodeId - The node to edit
 		 * @param {Object[]|Object} libraries - One library or an array of libraries to push
 		 * @param {string} libraries.name - The name of the library
-		 * @param {function} callback - A callback with the new array as an argument
+		 * @param {function} [callback] - A callback with the new array as an argument
 		 */
 		this.crm.script.backgroundLibraries.push = function (nodeId, libraries, callback) {
-			sendCrmMessage('scriptBackgroundLibraryPush', callback, {
+			sendOptionalCallbackCrmMessage('scriptBackgroundLibraryPush', callback, {
 				nodeId: nodeId,
 				libraries: libraries
 			});
@@ -2490,10 +2505,10 @@
 		 * @param {number} nodeId - The node to splice
 		 * @param {nunber} start - The index of the array at which to start splicing
 		 * @param {nunber} amount - The amount of items to splice
-		 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+		 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 		 */
 		this.crm.script.backgroundLibraries.splice = function (nodeId, start, amount, callback) {
-			sendCrmMessage('scriptBackgroundLibrarySplice', callback, {
+			sendOptionalCallbackCrmMessage('scriptBackgroundLibrarySplice', callback, {
 				nodeId: nodeId,
 				start: start,
 				amount: amount
@@ -2529,10 +2544,10 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The id of the node of which to set the children
 		 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-		 * @param {CrmCallback} callback - A callback with the node as an argument
+		 * @param {CrmCallback} [callback] - A callback with the node as an argument
 		 */
 		this.crm.menu.setChildren = function (nodeId, childrenIds, callback) {
-			sendCrmMessage('setMenuChildren', callback, {
+			sendOptionalCallbackCrmMessage('setMenuChildren', callback, {
 				nodeId: nodeId,
 				childrenIds: childrenIds
 			});
@@ -2546,10 +2561,10 @@
 		 * @permission crmWrite
 		 * @param {number} nodeId - The id of the node of which to push the children
 		 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-		 * @param {CrmCallback} callback - A callback with the node as an argument
+		 * @param {CrmCallback} [callback] - A callback with the node as an argument
 		 */
 		this.crm.menu.push = function (nodeId, childrenIds, callback) {
-			sendCrmMessage('pushMenuChildren', callback, {
+			sendOptionalCallbackCrmMessage('pushMenuChildren', callback, {
 				nodeId: nodeId,
 				childrenIds: childrenIds
 			});
@@ -2565,10 +2580,10 @@
 		 * @param {number} nodeId - The id of the node of which to splice the children
 		 * @param {number} start - The index at which to start
 		 * @param {number} amount - The amount to splice
-		 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+		 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 		 */
 		this.crm.menu.splice = function (nodeId, start, amount, callback) {
-			sendCrmMessage('spliceMenuChildren', callback, {
+			sendOptionalCallbackCrmMessage('spliceMenuChildren', callback, {
 				nodeId: nodeId,
 				start: start,
 				amount: amount
@@ -2590,10 +2605,10 @@
 		 * @param {Object} options - The options related to the library
 		 * @param {string} [options.url] - The url to fetch the code from, must end in .js
 		 * @param {string} [options.code] - The code to use
-		 * @param {function} callback - A callback with the library object as an argument
+		 * @param {function} [callback] - A callback with the library object as an argument
 		 */
 		this.libraries.register = function (name, options, callback) {
-			sendCrmMessage('registerLibrary', callback, {
+			sendOptionalCallbackCrmMessage('registerLibrary', callback, {
 				name: name,
 				url: options.url,
 				code: options.code
@@ -2954,7 +2969,7 @@
 		 * @param {String} url - The url to open
 		 */
 		this.GM.GM_openInTab = function (url) {
-			window.open(url);
+			window.open(url, '_blank');
 		};
 
 		/**

@@ -1678,7 +1678,7 @@ declare namespace CRMAPI {
 		/**
 		 * A function used to send a message to this instance
 		 */
-		sendMessage: (message: any, callback: any) => void
+		sendMessage: (message: any, callback?: () => void) => void
 	}
 
 	/**
@@ -1951,15 +1951,15 @@ declare namespace CRMAPI {
 			 * 		When a script is ran multiple times on the same tab,
 			 * 		it gets added to the tabIndex array (so it starts at 0)
 			 * @param {Object} message - The message to send
-			 * @param {function} callback - A callback that tells you the result,
+			 * @param {function} [callback] - A callback that tells you the result,
 			 *		gets passed one argument (object) that contains the two boolean
 			 *		values "error" and "success" indicating whether the message
 			 *		succeeded. If it did not succeed and an error occurred,
 			 *		the message key of that object will be filled with the reason
 			 *		it failed ("instance no longer exists" or "no listener exists")
 			 */
-			sendMessage(instance: number, tabIndex: number, message: any, callback: Function): void,
-			sendMessage(instance: Instance, tabIndex: number, message: any, callback: Function): void,
+			sendMessage(instance: number, tabIndex: number, message: any, callback?: Function): void,
+			sendMessage(instance: Instance, tabIndex: number, message: any, callback?: Function): void,
 			/**
 			 * Adds a listener for any comm-messages sent from other instances of
 			 * this script
@@ -2249,11 +2249,11 @@ declare namespace CRMAPI {
 			* @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
 			* @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
 			* @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
-			* @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
+			* @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
 			*/
 			createNode:(options: Partial<CRM.SafeNode> & {
 				position?: Relation;
-			}, callback: (node: CRM.SafeNode) => void) => void,
+			}, callback?: (node: CRM.SafeNode) => void) => void,
 
 			/**
 			 * Copies given node,
@@ -2275,12 +2275,12 @@ declare namespace CRMAPI {
 			*		lastSibling: last of the subtree that given node is in
 			*		before: before given node
 			*		after: after the given node
-			* @param {CrmAPIInit~crmCallback} callback - A callback given the new node as an argument
+			* @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
 			*/
 			copyNode:(nodeId: number, options: {
 				name?: string;
 				position?: Relation
-			}, callback: (node: CRM.SafeNode) => void) => void,
+			}, callback?: (node: CRM.SafeNode) => void) => void,
 
 			/**
 			 * Moves given node to position specified in "position"
@@ -2297,9 +2297,9 @@ declare namespace CRMAPI {
 			*		lastSibling: last of the subtree that given node is in
 			*		before: before given node
 			*		after: after the given node
-			* @param {CrmAPIInit~crmCallback} callback - A function that gets called with the new node as an argument
+			* @param {CrmAPIInit~crmCallback} [callback] - A function that gets called with the new node as an argument
 			*/
-			moveNode(nodeId: number, position: Relation, callback: (node: CRM.SafeNode) => void): void,
+			moveNode(nodeId: number, position: Relation, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Deletes given node
@@ -2307,10 +2307,10 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @permission crmWrite
 			 * @param {number} nodeId - The id of the node to delete
-			 * @param {function} callback - A function to run when done
+			 * @param {function} [callback] - A function to run when done
 			 */
-			deleteNode(nodeId: number, callback: (result: string) => void): void,
-			deleteNode(nodeId: number, callback: (result: boolean) => void): void,
+			deleteNode(nodeId: number, callback?: (result: string) => void): void,
+			deleteNode(nodeId: number, callback?: (result: boolean) => void): void,
 
 			/**
 			 * Edits given settings of the node
@@ -2321,9 +2321,9 @@ declare namespace CRMAPI {
 			 * @param {Object} options - An object containing the settings for what to edit
 			 * @param {string} [options.name] - Changes the name to given string
 			 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
-			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, contains the new node as an argument
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, contains the new node as an argument
 			 */
-			editNode(nodeId: number, options: { name?: string, type?: CRM.NodeType }, callback: (node: CRM.SafeNode) => void): void,
+			editNode(nodeId: number, options: { name?: string, type?: CRM.NodeType }, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the triggers for given node
@@ -2347,9 +2347,9 @@ declare namespace CRMAPI {
 			 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
 			 * 		https://developer.chrome.com/extensions/match_patterns
 			 * @param {boolean} triggers.not - If true does NOT show the node on that URL
-			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the node as an argument
 			 */
-			setTriggers(nodeId: number, triggers: Array<CRM.Trigger>, callback: (node: CRM.SafeNode) => void): void,
+			setTriggers(nodeId: number, triggers: Array<CRM.Trigger>, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the content types for given node
@@ -2357,9 +2357,9 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @permission crmWrite
 			 * @param {number} nodeId - The node of which to get the content types
-			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the content types array as an argument
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the content types array as an argument
 			 */
-			getContentTypes(nodeId: number, callback: (contentTypes: CRM.ContentTypes) => void): void,
+			getContentTypes(nodeId: number, callback?: (contentTypes: CRM.ContentTypes) => void): void,
 
 			/**
 			 * Sets the content type at index "index" to given value "value"
@@ -2370,9 +2370,9 @@ declare namespace CRMAPI {
 			 * @param {number} index - The index of the array to set, 0-5, ordered this way:
 			 *		page, link, selection, image, video, audio
 			* @param {boolean} value - The new value at index "index"
-			* @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the new array as an argument
+			* @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the new array as an argument
 			*/
-			setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback: (contentTypes: CRM.ContentTypes) => void): void,
+			setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): void,
 
 			/**
 			 * Sets the content types to given contentTypes array
@@ -2384,9 +2384,9 @@ declare namespace CRMAPI {
 			 *		on that content type. Requires at least one type to be active, otherwise all are activated.
 			*		The options are:
 			*		page, link, selection, image, video, audio
-			* @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+			* @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the node as an argument
 			*/
-			setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback: (node: CRM.SafeNode) => void): void,
+			setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the trigger' usage for given node (true - it's being used, or false), only works on
@@ -2405,9 +2405,9 @@ declare namespace CRMAPI {
 			 * @permission crmWrite
 			 * @param {number} nodeId - The node of which to get the triggers
 			 * @param {boolean} useTriggers - Whether the triggers should be used or not
-			 * @param {CrmAPIInit~crmCallback} callback - A function to run when done, with the node as an argument
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the node as an argument
 			 */
-			setTriggerUsage(nodeId: number, useTriggers: boolean, callback: (node: CRM.SafeNode) => void): void
+			setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: CRM.SafeNode) => void): void
 
 			/**
 			 * Sets the launch mode of node with ID nodeId to "launchMode"
@@ -2421,9 +2421,9 @@ declare namespace CRMAPI {
 			 *		2 = run on specified pages
 			 *		3 = only show on specified pages
 			 * 		4 = disabled
-			 * @param {CrmAPIInit~crmCallback} callback - A function that is ran when done with the new node as an argument
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function that is ran when done with the new node as an argument
 			 */
-			setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback: (node: CRM.SafeNode) => void): void,
+			setLaunchMode(nodeId: number, launchMode: CRMLaunchModes, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Gets the launchMode of the node with ID nodeId
@@ -2445,9 +2445,9 @@ declare namespace CRMAPI {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to change the stylesheet
 				 * @param {string} stylesheet - The code to change to
-				 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+				 * @param {CrmAPIInit~crmCallback} [callback] - A function with the node as an argument
 				 */
-				setStylesheet(nodeId: number, stylesheet: string, callback: (node: CRM.SafeNode) => void): void
+				setStylesheet(nodeId: number, stylesheet: string, callback?: (node: CRM.SafeNode) => void): void
 
 				/**
 				 * Gets the value of the stylesheet
@@ -2475,6 +2475,22 @@ declare namespace CRMAPI {
 				getLinks(nodeId: number, callback: (result: Array<CRM.LinkNodeLink>) => void): void,
 
 				/**
+				 * Gets the links of the node with ID nodeId
+				 *
+				 * @permission crmGet
+				 * @permission crmWrite
+				 * @param {number} nodeId - The id of the node to get the links from
+				 * @param {Object[]|Object} items - The items to push
+				 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
+				 * @param {string} [items.url] - The URL to open on clicking the link
+				 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+				 */
+				setLinks(nodeId: number, items: CRM.LinkNodeLink, 
+					callback?: (arr: Array<CRM.LinkNodeLink>) => void): void;
+				setLinks(nodeId: number, items: Array<CRM.LinkNodeLink>, 
+					callback?: (arr: Array<CRM.LinkNodeLink>) => void): void;
+
+				/**
 				 * Pushes given items into the array of URLs of node with ID nodeId
 				 *
 				 * @permission crmGet
@@ -2483,12 +2499,12 @@ declare namespace CRMAPI {
 				 * @param {Object[]|Object} items - An array of items or just one item to push
 				 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 				 * @param {string} [items.url] - The URL to open on clicking the link
-				 * @param {functon} callback - A function that gets called when done with the new array as an argument
+				 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 				 */
 				push(nodeId: number, items: CRM.LinkNodeLink,
-					callback: (arr: Array<CRM.LinkNodeLink>) => void): void,
+					callback?: (arr: Array<CRM.LinkNodeLink>) => void): void,
 				push(nodeId: number, items: Array<CRM.LinkNodeLink>,
-					callback: (arr: Array<CRM.LinkNodeLink>) => void): void
+					callback?: (arr: Array<CRM.LinkNodeLink>) => void): void
 
 				/**
 				 * Splices the array of URLs of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -2499,7 +2515,7 @@ declare namespace CRMAPI {
 				 * @param {number} nodeId - The node to splice
 				 * @param {nunber} start - The index of the array at which to start splicing
 				 * @param {nunber} amount - The amount of items to splice
-				 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+				 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 */
 				splice(nodeId: number, start: number, amount: number,
 					callback: (spliced: Array<CRM.LinkNodeLink>, newArr: Array<CRM.LinkNodeLink>) => void): void
@@ -2513,9 +2529,9 @@ declare namespace CRMAPI {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to change the script
 				 * @param {string} value - The code to change to
-				 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+				 * @param {CrmAPIInit~crmCallback} [callback] - A function with the node as an argument
 				 */
-				setScript(nodeId: number, script: string, callback: (node: CRM.SafeNode) => void): void,
+				setScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Gets the value of the script
@@ -2533,9 +2549,9 @@ declare namespace CRMAPI {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to change the script
 				 * @param {string} value - The code to change to
-				 * @param {CrmAPIInit~crmCallback} callback - A function with the node as an argument
+				 * @param {CrmAPIInit~crmCallback} [callback] - A function with the node as an argument
 				 */
-				setBackgroundScript(nodeId: number, script: string, callback: (node: CRM.SafeNode) => void): void,
+				setBackgroundScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Gets the value of the backgroundScript
@@ -2556,10 +2572,10 @@ declare namespace CRMAPI {
 					 * @param {number} nodeId - The node to edit
 					 * @param {Object[]|Object} libraries - One library or an array of libraries to push
 					 * @param {string} libraries.name - The name of the library
-					 * @param {function} callback - A callback with the new array as an argument
+					 * @param {function} [callback] - A callback with the new array as an argument
 					 */
-					push(nodeId: number, libraries: CRM.Library, callback: (libs: Array<CRM.Library>) => void): void,
-					push(nodeId: number, libraries: Array<CRM.Library>, callback: (libs: Array<CRM.Library>) => void): void,
+					push(nodeId: number, libraries: CRM.Library, callback?: (libs: Array<CRM.Library>) => void): void,
+					push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
 
 					/**
 					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -2570,10 +2586,10 @@ declare namespace CRMAPI {
 					 * @param {number} nodeId - The node to splice
 					 * @param {nunber} start - The index of the array at which to start splicing
 					 * @param {nunber} amount - The amount of items to splice
-					 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(nodeId: number, start: number, amount: number,
-						callback: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
+						callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
 				},
 
 				/**
@@ -2589,10 +2605,10 @@ declare namespace CRMAPI {
 					 * @param {number} nodeId - The node to edit
 					 * @param {Object[]|Object} libraries - One library or an array of libraries to push
 					 * @param {string} libraries.name - The name of the library
-					 * @param {function} callback - A callback with the new array as an argument
+					 * @param {function} [callback] - A callback with the new array as an argument
 					 */
-					push(nodeId: number, libraries: CRM.Library, callback: (libs: Array<CRM.Library>) => void): void,
-					push(nodeId: number, libraries: Array<CRM.Library>, callback: (libs: Array<CRM.Library>) => void): void,
+					push(nodeId: number, libraries: CRM.Library, callback?: (libs: Array<CRM.Library>) => void): void,
+					push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
 
 					/**
 					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
@@ -2603,10 +2619,10 @@ declare namespace CRMAPI {
 					 * @param {number} nodeId - The node to splice
 					 * @param {nunber} start - The index of the array at which to start splicing
 					 * @param {nunber} amount - The amount of items to splice
-					 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+					 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 					 */
 					splice(nodeId: number, start: number, amount: number,
-							callback: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
+							callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void
 				}
 			},
 
@@ -2631,9 +2647,9 @@ declare namespace CRMAPI {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The id of the node of which to set the children
 				 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-				 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
+				 * @param {CrmAPIInit~crmCallback} [callback] - A callback with the node as an argument
 				 */
-				setChildren(nodeId: number, childrenIds: Array<number>, callback: (node: CRM.SafeNode) => void): void,
+				setChildren(nodeId: number, childrenIds: Array<number>, callback?: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Pushes the nodes with IDs childrenIds to the node with ID nodeId
@@ -2643,9 +2659,9 @@ declare namespace CRMAPI {
 				 * @permission crmWrite
 				 * @param {number} nodeId - The id of the node of which to push the children
 				 * @param {number[]} childrenIds - Each number in the array represents a node that will be a new child
-				 * @param {CrmAPIInit~crmCallback} callback - A callback with the node as an argument
+				 * @param {CrmAPIInit~crmCallback} [callback] - A callback with the node as an argument
 				 */
-				push(nodeId: number, childrenIds: Array<number>, callback: (node: CRM.SafeNode) => void): void,
+				push(nodeId: number, childrenIds: Array<number>, callback?: (node: CRM.SafeNode) => void): void,
 
 				/**
 				 * Splices the children of the node with ID nodeId, starting at "start" and splicing "amount" items,
@@ -2657,10 +2673,10 @@ declare namespace CRMAPI {
 				 * @param {number} nodeId - The id of the node of which to splice the children
 				 * @param {number} start - The index at which to start
 				 * @param {number} amount - The amount to splice
-				 * @param {function} callback - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
+				 * @param {function} [callback] - A function that gets called with the spliced items as the first parameter and the new array as the second parameter
 				 */
 				splice(nodeId: number, start: number, amount: number,
-					callback: (spliced: Array<CRM.SafeNode>, newArr: Array<CRM.SafeNode>) => void): void,
+					callback?: (spliced: Array<CRM.SafeNode>, newArr: Array<CRM.SafeNode>) => void): void,
 			},
 
 			/**
@@ -2675,10 +2691,10 @@ declare namespace CRMAPI {
 				 * @param {Object} options - The options related to the library
 				 * @param {string} [options.url] - The url to fetch the code from, must end in .js
 				 * @param {string} [options.code] - The code to use
-				 * @param {function} callback - A callback with the library object as an argument
+				 * @param {function} [callback] - A callback with the library object as an argument
 				 */
 				register(name: string, options: {url: string, code: string},
-					callback: (lib: CRM.Library) => void): void,
+					callback?: (lib: CRM.Library) => void): void,
 			}
 		}
 
@@ -2989,13 +3005,20 @@ declare namespace CRMAPI {
 			 * Shows a HTML5 Desktop notification and/or highlight the current tab.
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
-			 * @param {string|Object} text - The message of the notification
-			 * @param {string} title - The title of the notification
-			 * @param {string} image - A url to the image to use for the notification
-			 * @param {function} onclick - A function to run on clicking the notification
+			 * @param {string|Object} textOrOptions - The message of the notification
+			 * @param {string} [textOrOptions.text] - The message of the notification
+			 * @param {string} [textOrOptions.imageUrl] - The URL of the image to use
+			 * @param {string} [textOrOptions.title] - The title of the notification
+			 * @param {function} [textOrOptions.onclick] - A function to call on clicking
+			 * @param {boolean} [textOrOptions.isClickable] - Whether the notification is clickable
+			 * @param {function} [textOrOptions.ondone] - A function to call when the notification
+			 * 		disappears or is closed by the user.
+			 * @param {string} [title] - The title of the notification
+			 * @param {string} [image] - A url to the image to use for the notification
+			 * @param {function} [onclick] - A function to run on clicking the notification
 			 */
-			GM_notification(text: NotificationOptions): void,
-			GM_notification(text: string, title: string, image: string, onclick: Function): void,
+			GM_notification(textOrOptions: NotificationOptions): void,
+			GM_notification(textOrOptions: string, title?: string, image?: string, onclick?: Function): void,
 
 			//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
 			//	and january 24th 2016 waiting for any update
