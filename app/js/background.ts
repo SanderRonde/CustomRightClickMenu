@@ -1599,7 +1599,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 
 							const instancesArr: Array<{
-								id: string;
+								id: number;
 								tabIndex: number;
 							}> = [];
 							for (let instance in nodeInstances[message.id]) {
@@ -1612,13 +1612,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 													return;
 												}
 												instancesArr.push({
-													id: instance,
+													id: ~~instance,
 													tabIndex: index
 												});
 												tabInstance.port.postMessage({
 													change: {
 														type: 'added',
-														value: message.tabId,
+														value: ~~message.tabId,
 														tabIndex: index
 													},
 													messageType: 'instancesUpdate'
