@@ -1604,11 +1604,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}> = [];
 							for (let instance in nodeInstances[message.id]) {
 								if (nodeInstances[message.id].hasOwnProperty(instance) &&
-									nodeInstances[message.id][instance] && 
-									~~instance !== message.tabId) {
+									nodeInstances[message.id][instance]) {
 
 										try {
-											tabData[instance].nodes[message.id].forEach((tabInstance, index) => {
+											tabData[instance].nodes[message.id].forEach((tabInstance, index, arr) => {
+												if (index === arr.length - 1) {
+													return;
+												}
 												instancesArr.push({
 													id: instance,
 													tabIndex: index
