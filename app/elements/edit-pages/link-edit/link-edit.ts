@@ -40,7 +40,7 @@ class LE {
 
 	static checkboxStateChange(this: NodeEditBehaviorLinkInstance, e: Polymer.ClickEvent) {
 		//Get this checkbox
-		const checkbox = window.app.findElementWithTagname(e.path, 'paper-checkbox');
+		const checkbox = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
 		$(this.$.linksContainer).find('paper-checkbox').each(function (this: HTMLPaperCheckboxElement) {
 			if (this !== checkbox) {
 				this.removeAttribute('checked');
@@ -56,7 +56,7 @@ class LE {
 	};
 
 	static toggleCheckbox(e: Polymer.ClickEvent) {
-		$(window.app.findElementWithClassName(e.path, 'linkChangeCont'))
+		$(window.app.util.findElementWithClassName(e.path, 'linkChangeCont'))
 			.children('paper-checkbox').click();
 	}
 }

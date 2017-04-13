@@ -731,7 +731,7 @@ class STE {
 	}
 
 	static changeTabEvent(this: NodeEditBehaviorStylesheetInstance, e: Polymer.ClickEvent) {
-		const element = window.app.findElementWithClassName(e.path, 'editorTab');
+		const element = window.app.util.findElementWithClassName(e.path, 'editorTab');
 
 		const isMain = element.classList.contains('mainEditorTab');
 		if (isMain && this.editorMode !== 'main') {

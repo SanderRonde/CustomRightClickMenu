@@ -165,7 +165,7 @@ class PSWD {
 	 * Switches to the window specified in the button's attributes
 	 */
 	static switchWindow(this: PaperSearchWebsiteDialog, event: Polymer.ClickEvent) {
-		const el = window.app.findElementWithTagname(event.path, 'paper-button');
+		const el = window.app.util.findElementWithTagname(event.path, 'paper-button');
 		this.switchToWindow(el.getAttribute('window') as PaperSearchWebsiteDialogWindow);
 	};
 

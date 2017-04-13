@@ -1346,7 +1346,7 @@ ${
 ${message}`;
 	}
 
-	window.app.waitFor(window, 'CodeMirror', (cm) => {
+	window.app.util.waitFor(window, 'CodeMirror', (cm) => {
 		window.CodeMirror.lint.optionsJSON = (text: string, _: any, cm: CodeMirrorInstance): LintMessages => {
 			if (!window.useOptionsCompletions) {
 				return cm.getOption('mode') === 'javascript' ?

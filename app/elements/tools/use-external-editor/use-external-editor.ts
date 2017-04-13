@@ -217,26 +217,26 @@ class UEE {
 		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
 		window.doc.externalEditorDialogTrigger.disabled = true;
 		window.doc.externalEditorDialogTrigger.classList.add('disabled');
-		const toolsCont = window.app.createElement('div', {
+		const toolsCont = window.app.util.createElement('div', {
 			id: 'externalEditingTools'
 		});
-		toolsCont.appendChild(window.app.createElement('div', {
+		toolsCont.appendChild(window.app.util.createElement('div', {
 			id: 'externalEditingToolsTitle'
 		}, ['Using external editor']));
-		const cont = toolsCont.appendChild(window.app.createElement('div', {
+		const cont = toolsCont.appendChild(window.app.util.createElement('div', {
 			id: 'externalEditingToolsButtonsCont'
 		}));
 
-		cont.appendChild(window.app.createElement('div', {
+		cont.appendChild(window.app.util.createElement('div', {
 			id: 'externalEditingToolsDisconnect'
 		}, [
-			window.app.createElement('paper-material', {
+			window.app.util.createElement('paper-material', {
 				props: {
 					elevation: '1'
 				}
 			}, [
-				window.app.createElement('paper-ripple', {}),
-				window.app.createElement('svg', {
+				window.app.util.createElement('paper-ripple', {}),
+				window.app.util.createElement('svg', {
 					props: {
 						xmlns: 'http://www.w3.org/2000/svg',
 						height: '70',
@@ -244,20 +244,20 @@ class UEE {
 						viewBox: '0 0 24 24'
 					}
 				}, [
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17' + 
 								'.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'
 						}
 					}),
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M0 0h24v24H0z',
 							fill: 'none'
 						}
 					})
 				]),
-				window.app.createElement('div', {
+				window.app.util.createElement('div', {
 					classes: ['externalEditingToolText']
 				}, ['Stop'])
 			])
@@ -265,16 +265,16 @@ class UEE {
 			_this.cancelOpenFiles.apply(_this, []);
 		});
 
-		cont.appendChild(window.app.createElement('div', {
+		cont.appendChild(window.app.util.createElement('div', {
 			id: 'externalEditingToolsShowLocation'
 		}, [
-			window.app.createElement('paper-material', {
+			window.app.util.createElement('paper-material', {
 				props: {
 					elevation: '1'
 				}
 			}, [
-				window.app.createElement('paper-ripple', {}),
-				window.app.createElement('svg', {
+				window.app.util.createElement('paper-ripple', {}),
+				window.app.util.createElement('svg', {
 					props: {
 						height: '70',
 						viewBox: '0 0 24 24',
@@ -282,13 +282,13 @@ class UEE {
 						xmlns: 'http://www.w3.org/2000/svg'
 					}
 				}, [
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M0 0h24v24H0z',
 							fill: 'none'
 						}
 					}),
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 ' + 
 								'18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0' + 
@@ -297,7 +297,7 @@ class UEE {
 					})
 				])
 			]),
-			window.app.createElement('div', {
+			window.app.util.createElement('div', {
 				classes: ['externalEditingToolText']
 			}, ['Location'])
 		])).addEventListener('click', () => {
@@ -310,16 +310,16 @@ class UEE {
 			externalEditorLocationToast.show();
 		});
 
-		window.app.createElement('div', {
+		window.app.util.createElement('div', {
 			id: 'externalEditingToolsCreateNewFile'
 		}, [
-			window.app.createElement('paper-material', {
+			window.app.util.createElement('paper-material', {
 				props: {
 					elevation: '1'
 				}
 			}, [
-				window.app.createElement('paper-ripple', {}),
-				window.app.createElement('svg', {
+				window.app.util.createElement('paper-ripple', {}),
+				window.app.util.createElement('svg', {
 					props: {
 						height: '70',
 						width: '70',
@@ -327,14 +327,14 @@ class UEE {
 						viewBox: '0 0 24 24'
 					}
 				}, [
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1' + 
 								'.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6' +
 								'-6H6zm7 7V3.5L18.5 9H13z'
 						}
 					}),
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M0 0h24v24H0z',
 							fill: 'none'
@@ -342,7 +342,7 @@ class UEE {
 					})
 				])
 			]),
-			window.app.createElement('div', {
+			window.app.util.createElement('div', {
 				classes: ['externalEditingToolText']
 			}, ['Move'])
 		]).addEventListener('click', () => {
@@ -354,16 +354,16 @@ class UEE {
 			});
 		});
 
-		cont.appendChild(window.app.createElement('div', {
+		cont.appendChild(window.app.util.createElement('div', {
 			id: 'externalEditingToolsUpdate'
 		}, [
-			window.app.createElement('paper-material', {
+			window.app.util.createElement('paper-material', {
 				props: {
 					elevation: '1'
 				}
 			}, [
-				window.app.createElement('paper-ripple', {}),
-				window.app.createElement('svg', {
+				window.app.util.createElement('paper-ripple', {}),
+				window.app.util.createElement('svg', {
 					props: {
 						height: '70',
 						width: '70',
@@ -371,7 +371,7 @@ class UEE {
 						viewBox: '0 0 24 24'
 					}
 				}, [
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58' +
 								'-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.0' + 
@@ -379,7 +379,7 @@ class UEE {
 								' 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'
 						}
 					}),
-					window.app.createElement('path', {
+					window.app.util.createElement('path', {
 						props: {
 							d: 'M0 0h24v24H0z',
 							fill: 'none'
@@ -387,7 +387,7 @@ class UEE {
 					})
 				])
 			]),
-			window.app.createElement('div', {
+			window.app.util.createElement('div', {
 				classes: ['externalEditingToolText']
 			}, ['Refresh'])
 		])).addEventListener('click', () => {

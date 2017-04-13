@@ -227,7 +227,7 @@ class NEB {
 			}
 		}
 		if (!toggledAmount) {
-			const element = window.app.findElementWithTagname(e.path, 'paper-checkbox');
+			const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
 			element.checked = true;
 			this[
 				element.parentElement.classList[1].split('Type')[0] + 'ContentSelected' as
@@ -242,7 +242,7 @@ class NEB {
 		if (this.mode && this.mode === 'background') {
 			return;
 		}
-		const element = window.app.findElementWithClassName(e.path, 'showOnContentItemCont');
+		const element = window.app.util.findElementWithClassName(e.path, 'showOnContentItemCont');
 		const checkbox = $(element).find('paper-checkbox')[0] as HTMLPaperCheckboxElement;
 		checkbox.checked = !checkbox.checked;
 		if (!checkbox.checked) {

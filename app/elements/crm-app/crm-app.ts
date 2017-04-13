@@ -262,75 +262,6 @@ class CA {
 
 	static properties = properties;
 
-	static waitFor<T, U extends keyof T>(this: CrmApp, rootObj: T, key: U, fn: (value: T[U]) => void) {
-		if (rootObj[key]) {
-			fn(rootObj[key]);
-		}
-
-		const interval = window.setInterval(() => {
-			if (rootObj[key]) {
-				window.clearInterval(interval);
-				fn(rootObj[key]);
-			}	
-		}, 10);
-	}
-
-	static createElement(tagName: keyof ElementTagNameMaps, options: {
-		id?: string;
-		classes?: Array<string>;
-		props?: {
-			[key: string]: string;
-		}
-	}, children: Array<Polymer.Element|string> = []): Polymer.Element {
-		const el = document.createElement(tagName);
-		if (options.id) {
-			el.id = options.id;
-		}
-		if (options.classes) {
-			el.classList.add.apply(el.classList, options.classes);
-		}
-		if (options.props) {
-			for (let key in options.props) {
-				el.setAttribute(key, options.props[key]);
-			}
-		}
-		for (let i = 0; i < children.length; i++) {
-			const child = children[i];
-			if (typeof child === 'string') {
-				el.innerText = child;
-			} else {
-				el.appendChild(child);
-			}
-		}
-		return el;
-	}
-	
-	static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<Polymer.Element>, tagName: T): ElementTagNameMaps[T] {
-		let index = 0;
-		let node = path[0];
-		while (node.tagName.toLowerCase() !== tagName) {
-			node = path[++index];
-			
-			if (index > path.length) {
-				return null;
-			}
-		}
-		return node;
-	}
-
-	static findElementWithClassName(path: Array<Polymer.Element>, className: string): Polymer.Element {
-		let index = 0;
-		let node = path[0];
-		while (!node.classList.contains(className)) {
-			node = path[++index];
-			
-			if (index > path.length) {
-				return null;
-			}
-		}
-		return node;
-	}
-
 	static getPageTitle(): string {
 		return location.href.indexOf('demo') > -1 ? 
 			'Demo, actual right-click menu does NOT work in demo' :
@@ -432,113 +363,6 @@ class CA {
 				});
 			this.$.codeSettingsDialog.open();
 		}, 100);
-	}
-
-	/**
-	 * Inserts the value into given array
-	 */
-	private static insertInto<T>(toAdd: T, target: Array<T>, position: number = null): Array<T> {
-		if (position) {
-			let temp1, i;
-			let temp2 = toAdd;
-			for (i = position; i < target.length; i++) {
-				temp1 = target[i];
-				target[i] = temp2;
-				temp2 = temp1;
-			}
-			target[i] = temp2;
-		} else {
-			target.push(toAdd);
-		}
-		return target;
-	};
-
-	private static compareObj(this: CrmApp, firstObj: {
-							[key: string]: any;
-						}, secondObj: {
-							[key: string]: any;
-						}): boolean {
-		if (!secondObj) {
-			return !firstObj;
-
-		}
-		if (!firstObj) {
-			return false;
-		}
-
-		for (let key in firstObj) {
-			if (firstObj.hasOwnProperty(key)) {
-				if (typeof firstObj[key] === 'object') {
-					if (typeof secondObj[key] !== 'object') {
-						return false;
-					}
-					if (Array.isArray(firstObj[key])) {
-						if (!Array.isArray(secondObj[key])) {
-							return false;
-						}
-						// ReSharper disable once FunctionsUsedBeforeDeclared
-						if (!this.compareArray(firstObj[key], secondObj[key])) {
-							return false;
-						}
-					} else if (Array.isArray(secondObj[key])) {
-						return false;
-					} else {
-						if (!this.compareObj(firstObj[key], secondObj[key])) {
-							return false;
-						}
-					}
-				} else if (firstObj[key] !== secondObj[key]) {
-					return false;
-				}
-			}
-		}
-		return true;
-	};
-
-	static compareArray(this: CrmApp, firstArray: Array<any>, secondArray: Array<any>): boolean {
-		if (!firstArray !== !secondArray) {
-			return false;
-		} else if (!firstArray || !secondArray) {
-			return false;
-		}
-		const firstLength = firstArray.length;
-		if (firstLength !== secondArray.length) {
-			return false;
-		}
-		let i;
-		for (i = 0; i < firstLength; i++) {
-			if (typeof firstArray[i] === 'object') {
-				if (typeof secondArray[i] !== 'object') {
-					return false;
-				}
-				if (Array.isArray(firstArray[i])) {
-					if (!Array.isArray(secondArray[i])) {
-						return false;
-					}
-					if (!this.compareArray(firstArray[i], secondArray[i])) {
-						return false;
-					}
-				} else if (Array.isArray(secondArray[i])) {
-					return false;
-				} else {
-					if (!this.compareObj(firstArray[i], secondArray[i])) {
-						return false;
-					}
-				}
-			} else if (firstArray[i] !== secondArray[i]) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static treeForEach(this: CrmApp, node: CRM.Node, fn: (node: CRM.Node) => any) {
-		fn(node);
-		if (node.children) {
-			for (let i = 0; i < node.children.length; i++) {
-				this.treeForEach(node.children[i], fn);
-			}
-		}
 	}
 
 	static isOnlyGlobalExclude(this: CrmApp): boolean {
@@ -789,7 +613,7 @@ class CA {
 	};
 
 	static removeGlobalExclude(this: CrmApp, e: Polymer.ClickEvent) {
-		const node = this.findElementWithTagname(e.path, 'paper-icon-button');
+		const node = this.util.findElementWithTagname(e.path, 'paper-icon-button');
 
 		let excludeIndex = null;
 		const allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -811,7 +635,7 @@ class CA {
 	};
 
 	static globalExcludeChange(this: CrmApp, e: Polymer.ClickEvent) {
-		const input = this.findElementWithTagname(e.path, 'paper-input');
+		const input = this.util.findElementWithTagname(e.path, 'paper-input');
 
 		let excludeIndex = null;
 		const allExcludes = document.getElementsByClassName('globalExcludeContainer');
@@ -839,7 +663,7 @@ class CA {
 			return false;
 		}
 		const toAdd = nodesToAdd.splice(0, 1)[0];
-		this.treeForEach(toAdd, function(node) {
+		this.util.treeForEach(toAdd, function(node) {
 			node.id = _this.generateItemId();
 			node.nodeInfo.source = 'import';
 		});
@@ -849,18 +673,6 @@ class CA {
 		this.findScriptsInSubtree(toAdd, scripts);
 		this.runDialogsForImportedScripts(nodesToAdd, scripts);
 		return true;
-	};
-
-	private static crmForEach(this: CrmApp, tree: Array<CRM.Node>, fn: (node: CRM.Node) => void): CRM.Tree {
-		for (let i = 0; i < tree.length; i++) {
-			const node = tree[i];
-			if (node.type === 'menu' && node.children) {
-				this.crmForEach(node.children, fn);
-			}
-
-			fn(node);
-		}
-		return tree;
 	};
 
 	static importData(this: CrmApp) {
@@ -892,7 +704,7 @@ class CA {
 			}
 			if (data.crm) {
 				if (overWriteImport.checked) {
-					this.settings.crm = this.crmForEach(data.crm, (node) => {
+					this.settings.crm = this.util.crmForEach(data.crm, (node) => {
 						node.id = this.generateItemId();
 					});
 				} else {
@@ -1045,7 +857,7 @@ class CA {
 				}
 			}
 		} else {
-			const element = this.findElementWithClassName(e.path, 'crmType');
+			const element = this.util.findElementWithClassName(e.path, 'crmType');
 			const crmTypes = document.querySelectorAll('.crmType');
 			for (i = 0; i < 6; i++) {
 				crmEl = crmTypes.item(i) as HTMLElement;
@@ -1212,7 +1024,7 @@ class CA {
 						return true;
 					} else {
 						//Both are arrays, compare them
-						if (!this.compareArray(val1 as Array<any>, val2 as Array<any>)) {
+						if (!this.util.compareArray(val1 as Array<any>, val2 as Array<any>)) {
 							//Changes have been found, also say the container arrays have changed
 							return true;
 						}
@@ -1224,7 +1036,7 @@ class CA {
 						return true;
 					} else {
 						//2 is also not an array, they are both objects
-						if (!this.compareObj(val1, val2)) {
+						if (!this.util.compareObj(val1, val2)) {
 							//Changes have been found, also say the container arrays have changed
 							return true;
 						}
@@ -4259,11 +4071,11 @@ class CA {
 		 */
 		static add<T extends CRM.Node>(value: T, position: string = 'last') {
 			if (position === 'first') {
-				this.parent().settings.crm = this.parent().insertInto(value, this.parent().settings.crm, 0);
+				this.parent().settings.crm = this.parent().util.insertInto(value, this.parent().settings.crm, 0);
 			} else if (position === 'last' || position === undefined) {
 				this.parent().settings.crm[this.parent().settings.crm.length] = value;
 			} else {
-				this.parent().settings.crm = this.parent().insertInto(value, this.parent().settings.crm);
+				this.parent().settings.crm = this.parent().util.insertInto(value, this.parent().settings.crm);
 			}
 			window.app.upload();
 			window.app.editCRM.build({
@@ -4284,10 +4096,10 @@ class CA {
 			const targetIndex = target[target.length - 1];
 
 			if (sameColumn && toMoveIndex > targetIndex) {
-				this.parent().insertInto(toMoveItem, newTarget, targetIndex);
+				this.parent().util.insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice((~~toMoveIndex) + 1, 1);
 			} else {
-				this.parent().insertInto(toMoveItem, newTarget, targetIndex);
+				this.parent().util.insertInto(toMoveItem, newTarget, targetIndex);
 				toMoveContainer.splice(toMoveIndex, 1);
 			}
 			window.app.upload();
@@ -4301,6 +4113,203 @@ class CA {
 			return window.app;
 		}
 	};
+
+	/**
+	 * Various util functions
+	 */
+	static util = class CRMAppUtil {
+		static waitFor<T, U extends keyof T>(rootObj: T, key: U, fn: (value: T[U]) => void) {
+			if (rootObj[key]) {
+				fn(rootObj[key]);
+			}
+
+			const interval = window.setInterval(() => {
+				if (rootObj[key]) {
+					window.clearInterval(interval);
+					fn(rootObj[key]);
+				}	
+			}, 10);
+		}
+
+		static createElement(tagName: keyof ElementTagNameMaps, options: {
+			id?: string;
+			classes?: Array<string>;
+			props?: {
+				[key: string]: string;
+			}
+		}, children: Array<Polymer.Element|string> = []): Polymer.Element {
+			const el = document.createElement(tagName);
+			if (options.id) {
+				el.id = options.id;
+			}
+			if (options.classes) {
+				el.classList.add.apply(el.classList, options.classes);
+			}
+			if (options.props) {
+				for (let key in options.props) {
+					el.setAttribute(key, options.props[key]);
+				}
+			}
+			for (let i = 0; i < children.length; i++) {
+				const child = children[i];
+				if (typeof child === 'string') {
+					el.innerText = child;
+				} else {
+					el.appendChild(child);
+				}
+			}
+			return el;
+		}
+		
+		static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<Polymer.Element>, tagName: T): ElementTagNameMaps[T] {
+			let index = 0;
+			let node = path[0];
+			while (node.tagName.toLowerCase() !== tagName) {
+				node = path[++index];
+				
+				if (index > path.length) {
+					return null;
+				}
+			}
+			return node;
+		}
+
+		static findElementWithClassName(path: Array<Polymer.Element>, className: string): Polymer.Element {
+			let index = 0;
+			let node = path[0];
+			while (!node.classList.contains(className)) {
+				node = path[++index];
+				
+				if (index > path.length) {
+					return null;
+				}
+			}
+			return node;
+		}
+
+		/**
+		 * Inserts the value into given array
+		 */
+		static insertInto<T>(toAdd: T, target: Array<T>, position: number = null): Array<T> {
+			if (position) {
+				let temp1, i;
+				let temp2 = toAdd;
+				for (i = position; i < target.length; i++) {
+					temp1 = target[i];
+					target[i] = temp2;
+					temp2 = temp1;
+				}
+				target[i] = temp2;
+			} else {
+				target.push(toAdd);
+			}
+			return target;
+		};
+
+		static compareObj(firstObj: {
+								[key: string]: any;
+							}, secondObj: {
+								[key: string]: any;
+							}): boolean {
+			if (!secondObj) {
+				return !firstObj;
+
+			}
+			if (!firstObj) {
+				return false;
+			}
+
+			for (let key in firstObj) {
+				if (firstObj.hasOwnProperty(key)) {
+					if (typeof firstObj[key] === 'object') {
+						if (typeof secondObj[key] !== 'object') {
+							return false;
+						}
+						if (Array.isArray(firstObj[key])) {
+							if (!Array.isArray(secondObj[key])) {
+								return false;
+							}
+							// ReSharper disable once FunctionsUsedBeforeDeclared
+							if (!this.compareArray(firstObj[key], secondObj[key])) {
+								return false;
+							}
+						} else if (Array.isArray(secondObj[key])) {
+							return false;
+						} else {
+							if (!this.compareObj(firstObj[key], secondObj[key])) {
+								return false;
+							}
+						}
+					} else if (firstObj[key] !== secondObj[key]) {
+						return false;
+					}
+				}
+			}
+			return true;
+		};
+
+		static compareArray(firstArray: Array<any>, secondArray: Array<any>): boolean {
+			if (!firstArray !== !secondArray) {
+				return false;
+			} else if (!firstArray || !secondArray) {
+				return false;
+			}
+			const firstLength = firstArray.length;
+			if (firstLength !== secondArray.length) {
+				return false;
+			}
+			let i;
+			for (i = 0; i < firstLength; i++) {
+				if (typeof firstArray[i] === 'object') {
+					if (typeof secondArray[i] !== 'object') {
+						return false;
+					}
+					if (Array.isArray(firstArray[i])) {
+						if (!Array.isArray(secondArray[i])) {
+							return false;
+						}
+						if (!this.compareArray(firstArray[i], secondArray[i])) {
+							return false;
+						}
+					} else if (Array.isArray(secondArray[i])) {
+						return false;
+					} else {
+						if (!this.compareObj(firstArray[i], secondArray[i])) {
+							return false;
+						}
+					}
+				} else if (firstArray[i] !== secondArray[i]) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		static treeForEach(node: CRM.Node, fn: (node: CRM.Node) => any) {
+			fn(node);
+			if (node.children) {
+				for (let i = 0; i < node.children.length; i++) {
+					this.treeForEach(node.children[i], fn);
+				}
+			}
+		}
+
+		static crmForEach(tree: Array<CRM.Node>, fn: (node: CRM.Node) => void): CRM.Tree {
+			for (let i = 0; i < tree.length; i++) {
+				const node = tree[i];
+				if (node.type === 'menu' && node.children) {
+					this.crmForEach(node.children, fn);
+				}
+
+				fn(node);
+			}
+			return tree;
+		};
+
+		static parent(): CrmApp {
+			return window.app;
+		}
+	}
 };
 
 Polymer(CA);

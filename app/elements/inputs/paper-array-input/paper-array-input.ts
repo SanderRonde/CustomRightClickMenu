@@ -77,7 +77,7 @@ class PAI {
 	static clearLine(this: PaperArrayInput, e: Polymer.ClickEvent) {
 		this.async(() => {
 			this.saveSettings();
-			const iconButton = window.app.findElementWithTagname(e.path, 'paper-icon-button');
+			const iconButton = window.app.util.findElementWithTagname(e.path, 'paper-icon-button');
 			this.splice('values', Array.prototype.slice.apply(this.querySelectorAll('.arrayInputLine'))
 				.indexOf(iconButton.parentElement.parentElement), 1);
 		}, 50);

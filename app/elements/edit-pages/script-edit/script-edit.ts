@@ -50,7 +50,7 @@ class SCE {
 	};
 
 	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
-		const element = window.app.findElementWithTagname(e.path, 'paper-checkbox');
+		const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
 
 		const elements = $('script-edit .showOnContentItemCheckbox');
 		const elementType = element.classList[1].split('Type')[0];
@@ -122,7 +122,7 @@ class SCE {
 	};
 
 	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
-		const element = window.app.findElementWithClassName(e.path, 'editorTab');
+		const element = window.app.util.findElementWithClassName(e.path, 'editorTab');
 
 		const isMain = element.classList.contains('mainEditorTab');
 		const isBackground = element.classList.contains('backgroundEditorTab');

@@ -647,7 +647,7 @@ class EC {
 	};
 
 	static addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
-		const node = window.app.findElementWithClassName(e.path, 'addingItemPlaceholder');
+		const node = window.app.util.findElementWithClassName(e.path, 'addingItemPlaceholder');
 
 		this.addItem(JSON.parse(node.getAttribute('data-path')));
 		this.isAdding = false;
@@ -1130,7 +1130,7 @@ ${codeSplit.join('\n')}`;
 		}
 
 		for (i = 0; i < row.length; i++) {
-			if (window.app.compareArray((row[i] as EditCrmItem).item.path, path)) {
+			if (window.app.util.compareArray((row[i] as EditCrmItem).item.path, path)) {
 				return (row[i] as EditCrmItem);
 			}
 		}
