@@ -6267,6 +6267,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									enableBackwardsCompatibility, 0
 								]
 								.map((param) => {
+									if (param === void 0) {
+										return JSON.stringify(null);
+									}
 									return JSON.stringify(param);
 								}).join(', ')});`
 							].join(', '),
@@ -6494,8 +6497,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											enableBackwardsCompatibility, tabIndex
 										]
                                             .map((param) => {
+												if (param === void 0) {
+													return JSON.stringify(null);
+												}
 												return JSON.stringify(param);
-											}).join(', ')});`,
+											}).join(', ')});` +
 									'window.CrmAPIInit = null;'
 								].join(', '),
 								globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),
@@ -7230,12 +7236,32 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		}
 		static updateCRMValues() {
+			const crmBefore = JSON.stringify(globalObject.globals.storages.settingsStorage.crm);
+			Storages.crmForEach(globalObject.globals.storages
+				.settingsStorage.crm, (node) => {
+					if (!node.id) {
+						node.id = Helpers.generateItemId();
+					}
+				});
+
+			const match = crmBefore === JSON.stringify(globalObject.globals.storages.settingsStorage.crm);
+			
 			globalObject.globals.crm.crmTree = globalObject.globals.storages
 				.settingsStorage.crm;
 			globalObject.globals.crm.safeTree = this._buildSafeTree(globalObject.globals
 				.storages.settingsStorage.crm);
 			this._buildNodePaths(globalObject.globals.crm.crmTree, []);
 			this._buildByIdObjects();
+
+			if (!match) {
+				Storages.uploadChanges('settings', [
+					{
+						key: 'crm',
+						newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)),
+						oldValue: {}
+					}
+				]);
+			}
 		}
 		static makeSafe(node: CRM.Node): CRM.SafeNode {
 			let newNode: CRM.SafeNode = {} as any;
@@ -9177,12 +9203,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
-		private static _crmForEach(crm: CRM.Tree, fn: (node: CRM.Node) => void) {
+		static crmForEach(crm: CRM.Tree, fn: (node: CRM.Node) => void) {
 			for (let i = 0; i < crm.length; i++) {
 				const node =crm[i];
 				fn(node);
 				if (node.type === 'menu' && node.children) {
-					this._crmForEach(node.children, fn);
+					this.crmForEach(node.children, fn);
 				}
 			}
 		}
@@ -9200,7 +9226,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			if (oldVersion === '2.0.3') {
 				fns.after.push(() => {
-					this._crmForEach(globalObject.globals.crm.crmTree, (node) => {
+					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
 						if (node.type === 'script') {
 							node.value.oldScript = node.value.script;
 							node.value.script = this.SetupHandling.TransferFromOld
