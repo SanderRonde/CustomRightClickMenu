@@ -273,6 +273,7 @@ interface CRMTemplates {
 	getDefaultDividerOrMenuNode(options: Partial<CRM.DividerNode>|Partial<CRM.MenuNode>, type: 'menu'|'divider'): CRM.DividerNode | CRM.MenuNode;
 	getDefaultDividerNode(options?: Partial<CRM.DividerNode>): CRM.DividerNode;
 	getDefaultMenuNode(options?: Partial<CRM.MenuNode>): CRM.MenuNode;
+	globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string): string;
 }
 
 const enum SCRIPT_CONVERSION_TYPE {
@@ -785,6 +786,35 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				},
 				getDefaultMenuNode(this: CRMTemplates, options: Partial<CRM.MenuNode> = {}): CRM.MenuNode {
 					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
+				},
+				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string): string {
+					return `var ${wrapperName} = {};` +
+						`for (var prop in ${name}) {` +  
+						'(function(prop) {' +
+							`if (typeof(${name}[prop]) === 'function')  {` +
+							`${wrapperName}[prop] = function() { return ${name}[prop].apply(${name}, arguments); }` +
+							'}' +
+							'else {' +
+							`Object.defineProperty(${wrapperName}, prop, {` +
+								"'get': function() {" +
+								`if (${name}[prop] === ${name}) {` +
+									`return ${wrapperName};` +
+								'}' +
+								"else if (prop === 'crmAPI') {" +
+									'return crmAPI' +
+								'}' +
+								"else if (prop === 'crome') {" +
+									`return ${chromeVal}` +
+								'}' +
+								'else {' +
+									`return ${name}[prop];` +
+								'}' +
+								'},' +
+								`'set': function(value) { ${wrapperName}[prop] = value; }` +
+							'});' +
+							'}' +
+						'})(prop);' +
+						'}';
 				}
 			},
 			specialJSON: {
@@ -6222,29 +6252,32 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
 								node.isLocal;
-
+							
 						libraries.push('/js/crmapi.js');
 						const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
+
+						const safeNode = CRM.makeSafe(node) as any;
+						safeNode.permissions = node.permissions;
 						code = [
 							code.join('\n'), [
 								`var crmAPI = new CrmAPIInit(${[
-									CRM.makeSafe(node), node.id, { id: 0 }, {}, key,
+									safeNode, node.id, { id: 0 }, {}, key,
 									nodeStorage,
 									greaseMonkeyData, true, (node.value && node.value.options) || {},
 									enableBackwardsCompatibility, 0
 								]
 								.map((param) => {
 									return JSON.stringify(param);
-								}).join(', ')});
-								self.CrmAPIInit = null;`
+								}).join(', ')});`
 							].join(', '),
+							globalObject.globals.constants.templates.globalObjectWrapperCode('self', 'selfWrapper', void 0),
 							`${catchErrs ? 'try {' : ''}`,
-								'function main(menuitemid, parentmenuitemid, mediatype,' +
-								'linkurl, srcurl, pageurl, frameurl, frameid,' + 
-								'selectiontext, editable, waschecked, checked) {',
+								'function main(crmAPI, self, menuitemid, parentmenuitemid, mediatype,' +
+								`${indentUnit}linkurl, srcurl, pageurl, frameurl, frameid,` + 
+								`${indentUnit}selectiontext, editable, waschecked, checked) {`,
 									script,
 								'}',
-								`main()`,
+								`main(crmAPI, selfWrapper);`,
 							`${catchErrs ? [
 								`} catch (error) {`,
 								`${indentUnit}if (crmAPI.debugOnError) {`,
@@ -6449,27 +6482,30 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
 								node.isLocal;
 							const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
+
+							const safeNode = CRM.makeSafe(node);
+							(safeNode as any).permissions = node.permissions;
 							const code = [
 								[
 									`var crmAPI = new CrmAPIInit(${
 										[
-											CRM.makeSafe(node), node.id, tab, info, key, nodeStorage,
+											safeNode, node.id, tab, info, key, nodeStorage,
 											contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
 											enableBackwardsCompatibility, tabIndex
 										]
                                             .map((param) => {
 												return JSON.stringify(param);
-											}).join(', ')});
-									window.CrmAPIInit = null;`
+											}).join(', ')});`,
+									'window.CrmAPIInit = null;'
 								].join(', '),
+								globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),
 								`${catchErrs ? 'try {' : ''}`,
-								'function main(chrome, menuitemid, parentmenuitemid, mediatype,' +
+								'function main(crmAPI, window, chrome, menuitemid, parentmenuitemid, mediatype,' +
 								'linkurl, srcurl, pageurl, frameurl, frameid,' +
 								'selectiontext, editable, waschecked, checked) {',
-								'window.chrome = chrome;',
 								script,
 								'}',
-								`main.apply(this, [${node.isLocal ? 'chrome' : 'void 0'}].concat(${
+								`main.apply(this, [crmAPI, windowWrapper, ${node.isLocal ? 'chrome' : 'void 0'}].concat(${
 									JSON.stringify([
 										info.menuItemId, info.parentMenuItemId, info.mediaType,
 										info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
