@@ -46,6 +46,7 @@ if (query) {
 		let newItem;
 		if (this.searchEngine !== undefined) {
 			newItem = window.app.templates.getDefaultScriptNode({
+				id: window.app.generateItemId(),
 				name: name,
 				value: {
 					script: script
@@ -53,6 +54,7 @@ if (query) {
 			});
 		} else {
 			newItem = window.app.templates.getDefaultLinkNode({
+				id: window.app.generateItemId(),
 				name: name,
 				value: [
 					{
