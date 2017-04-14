@@ -3203,7 +3203,7 @@
 		 * @see {@link https://tampermonkey.net/documentation.php#unsafeWindow}
 		 * @type Window
 		 */
-		this.GM.unsafeWindow = window;
+		this.GM.unsafeWindow = typeof window === 'undefined' ? self : window;
 
 		/**
 		 * Adds a listener for the notification with ID notificationId
