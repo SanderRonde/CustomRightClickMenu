@@ -2108,22 +2108,24 @@ describe('CRMAPI', () => {
 			for (var i = 0; i < storageTestData.length; i++) {
 				listenerActivations[i] = 0;
 			}
+			function createStorageOnChangeListener(index) {
+				var fn = function(key, oldVal, newVal) {
+					if (key !== storageTestData[index].key) {
+						throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
+					}
+					if (!isClearing) {
+						if (newVal !== storageTestData[index].value) {
+							throw new Error(`Storage values do not match, ${newVal} does not match expected value ${storageTestData[index].value}`);
+						}
+					}
+					listenerActivations[index]++;
+				}
+				listeners.push(fn);
+				crmAPI.storage.onChange.addListener(fn, storageTestData[index].key);
+			}
 			assert.doesNotThrow(run(() => {
 				for (let i = 0; i < storageTestData.length; i++) {
-					var index = listeners.length;
-					var fn = function(key, oldVal, newVal) {
-						if (key !== storageTestData[index].key) {
-							throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
-						}
-						if (!isClearing) {
-							if (newVal !== storageTestData[index].value) {
-								throw new Error(`Storage values do not match, ${newVal} does not match expected value ${storageTestData[index].value}`);
-							}
-						}
-						listenerActivations[index]++;
-					}
-					listeners.push(fn);
-					crmAPI.storage.onChange.addListener(fn, storageTestData[index].key);
+					createStorageOnChangeListener(i);
 				}
 			}), 'setting up listening for storage works');
 			assert.doesNotThrow(run(() => {
