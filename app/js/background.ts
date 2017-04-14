@@ -1638,7 +1638,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 										try {
 											tabData[instance].nodes[message.id].forEach((tabInstance, index, arr) => {
-												if (index === arr.length - 1) {
+												if (~~instance === message.tabId && index === arr.length - 1) {
 													return;
 												}
 												instancesArr.push({
