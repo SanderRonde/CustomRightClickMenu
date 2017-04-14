@@ -170,7 +170,7 @@ function makeNodeSafe(node) {
 	var newNode = {};
 	if (node.children) {
 		newNode.children = [];
-		for (let i = 0; i < node.children.length; i++) {
+		for (var i = 0; i < node.children.length; i++) {
 			newNode.children[i] = makeNodeSafe(node.children[i]);
 		}
 	}
@@ -187,7 +187,7 @@ function makeNodeSafe(node) {
 
 function makeTreeSafe(tree) {
 	var safe = [];
-	for (let i = 0; i < tree.length; i++) {
+	for (var i = 0; i < tree.length; i++) {
 		safe.push(makeNodeSafe(tree[i]));
 	}
 	return safe;
@@ -632,7 +632,7 @@ var chrome = {
 				}
 			},
 			set: function (obj, cb) {
-				for (let objKey in obj) {
+				for (var objKey in obj) {
 					if (obj.hasOwnProperty(objKey)) {
 						if (objKey === 'latestId') {
 							idChangeListener && idChangeListener({
@@ -664,12 +664,12 @@ describe('Conversion', () => {
 			addEventListener: function(){}
 		}
 	}
-	let localStorage = {
+	var localStorage = {
 		getItem: function () { return 'yes'; }
 	};
 	describe('is testable', function() {
 		this.slow(1000);
-		let diffMatchPatchCode;
+		var diffMatchPatchCode;
 		step('should be able to read diff_match_patch.js', () => {
 			assert.doesNotThrow(run(() => {
 				diffMatchPatchCode = fs.readFileSync('./app/js/libraries/diff_match_patch.js', {
@@ -682,7 +682,7 @@ describe('Conversion', () => {
 				eval(diffMatchPatchCode);
 			}), 'File diff_match_patch.js is runnable');
 		});
-		let codemirrorJsCode;
+		var codemirrorJsCode;
 		step('should be able to read codemirror.js', () => {
 			assert.doesNotThrow(run(() => {
 				codemirrorJsCode = fs.readFileSync('./app/js/libraries/codemirror/codemirror.js', {
@@ -695,7 +695,7 @@ describe('Conversion', () => {
 				eval(codemirrorJsCode);
 			}), 'File codemirror.js is runnable');
 		});
-		let ternCode;
+		var ternCode;
 		step('should be able to read codeMirrorAddons.js', () => {
 			assert.doesNotThrow(run(() => {
 				ternCode = fs.readFileSync('./app/js/libraries/codemirror/codeMirrorAddons.js', {
@@ -708,7 +708,7 @@ describe('Conversion', () => {
 				eval(ternCode);
 			}), 'File codeMirrorAddons.js is runnable');
 		});
-		let backgroundCode;
+		var backgroundCode;
 		step('should be able to read background.js', () => {
 			window.localStorage = {
 				setItem: () => { },
@@ -779,9 +779,9 @@ describe('Conversion', () => {
 			backgroundPageWindowDone.then(done);
 		});
 		it('should convert an empty crm', () => {
-			let openInNewTab = false;
-			let oldStorage = createCrmLocalStorage([], false);
-			let result;
+			var openInNewTab = false;
+			var oldStorage = createCrmLocalStorage([], false);
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
 			}), 'Converting does not throw an error');
@@ -801,13 +801,13 @@ describe('Conversion', () => {
 			}]
 		}];
 		it('should convert a CRM with one link with openInNewTab false', () => {
-			let openInNewTab = false;
-			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
-			let result;
+			var openInNewTab = false;
+			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, false);
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
 			}), 'Converting does not throw an error');
-			let expectedLinks = singleLinkBaseCase[0].value.map((url) => {
+			var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
 				return {
 					url: url.url,
 					newTab: openInNewTab
@@ -824,13 +824,13 @@ describe('Conversion', () => {
 			assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
 		});
 		it('should convert a CRM with one link with openInNewTab true', () => {
-			let openInNewTab = true;
-			let oldStorage = createCrmLocalStorage(singleLinkBaseCase, true);
-			let result;
+			var openInNewTab = true;
+			var oldStorage = createCrmLocalStorage(singleLinkBaseCase, true);
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(openInNewTab, oldStorage);
 			}), 'Converting does not throw an error');
-			let expectedLinks = singleLinkBaseCase[0].value.map((url) => {
+			var expectedLinks = singleLinkBaseCase[0].value.map((url) => {
 				return {
 					url: url.url,
 					newTab: openInNewTab
@@ -847,8 +847,8 @@ describe('Conversion', () => {
 			assert.deepEqual(result[0].value, expectedLinks, "Link's value array should match the expected values");
 		});
 		it('should be able to handle spaces in the name', () => {
-			let testName = 'a b c d e f g';
-			let result;
+			var testName = 'a b c d e f g';
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
@@ -862,8 +862,8 @@ describe('Conversion', () => {
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle newlines in the name', () => {
-			let testName = 'a\nb\nc\nd\ne\nf\ng';
-			let result;
+			var testName = 'a\nb\nc\nd\ne\nf\ng';
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
@@ -876,8 +876,8 @@ describe('Conversion', () => {
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle quotes in the name', () => {
-			let testName = 'a\'b"c\'\'d""e`f`g';
-			let result;
+			var testName = 'a\'b"c\'\'d""e`f`g';
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
@@ -890,8 +890,8 @@ describe('Conversion', () => {
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to handle an empty name', () => {
-			let testName = '';
-			let result;
+			var testName = '';
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage(
@@ -904,7 +904,7 @@ describe('Conversion', () => {
 			assert.strictEqual(result[0].name, testName, 'Names should match');
 		});
 		it('should be able to convert an empty menu', () => {
-			let result;
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
@@ -927,7 +927,7 @@ describe('Conversion', () => {
 		it('should be able to convert a script with triggers', function() {
 			this.slow(300);
 
-			let result;
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 					createCrmLocalStorage([{
@@ -967,7 +967,7 @@ describe('Conversion', () => {
 			}], 'Triggers match expected');
 		});
 		it('should be able to convert a menu with some children with various types', () => {
-			let result;
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
@@ -998,8 +998,8 @@ describe('Conversion', () => {
 			assert.strictEqual(result[0].children[3].type, 'link', 'Fourth child is a divider');
 		});
 		it('should be able to convert a menu which contains menus itself', () => {
-			let result;
-			let nameIndex = 0;
+			var result;
+			var nameIndex = 0;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				  createCrmLocalStorage([{
@@ -1095,7 +1095,7 @@ describe('Conversion', () => {
 				testType = expected;
 				expected = script;
 			}
-			let result;
+			var result;
 			assert.doesNotThrow(run(() => {
 				result = backgroundPageWindow.TransferFromOld.transferCRMFromOld(true,
 				createCrmLocalStorage(
@@ -1727,7 +1727,7 @@ describe('CRMAPI', () => {
 			indexes: ['section0']
 		});
 	});
-	let crmAPICode;
+	var crmAPICode;
 	step('should be able to read crmapi.js', () => {
 		assert.doesNotThrow(run(() => {
 			crmAPICode = fs.readFileSync('./build/js/crmapi.js', {
@@ -1735,19 +1735,19 @@ describe('CRMAPI', () => {
 			});
 		}), 'File crmapi.js is readable');
 	});
-	let crmAPIResult;
+	var crmAPIResult;
 	step('crmapi.js should be runnable', () => {
 		assert.doesNotThrow(run(() => {
 			crmAPIResult = eval(crmAPICode);
 		}), 'File crmapi.js is executable');
 	});
 	var crmAPI;
-	let nodeStorage;
+	var nodeStorage;
 	var usedKeys = {};
 	window.crmAPIs = [];
 	(() => {
 		//Simulation data
-		let node = {
+		var node = {
 			"name": "script",
 			"onContentTypes": [true, true, true, false, false, false],
 			"type": "script",
@@ -1806,9 +1806,9 @@ describe('CRMAPI', () => {
 				"not": true
 			}]
 		};
-		let createSecretKey = function() {
-			let key = [];
-			let i;
+		var createSecretKey = function() {
+			var key = [];
+			var i;
 			for (i = 0; i < 25; i++) {
 				key[i] = Math.round(Math.random() * 100);
 			}
@@ -1819,15 +1819,15 @@ describe('CRMAPI', () => {
 				return createSecretKey();
 			}
 		}
-		let tabData = {id: 0, testKey: createSecretKey()};
-		let clickData = {selection: 'some text', testKey: createSecretKey()};
+		var tabData = {id: 0, testKey: createSecretKey()};
+		var clickData = {selection: 'some text', testKey: createSecretKey()};
 		nodeStorage = {testKey: createSecretKey()};
-		let greaseMonkeyData = {
+		var greaseMonkeyData = {
 			info: {
 				testKey: createSecretKey()
 			}
 		};
-		let secretKey = createSecretKey();
+		var secretKey = createSecretKey();
 		step('CrmAPIInit class can be created', () => {
 			assert.doesNotThrow(run(() => {
 				window.globals.crmValues.tabData[0].nodes[node.id] = [{
@@ -1835,10 +1835,10 @@ describe('CRMAPI', () => {
 				}];
 				window.globals.availablePermissions = ['sessions'];
 				window.globals.crm.crmById[2] = node;
-				let indentUnit = '	'; //Tab
+				var indentUnit = '	'; //Tab
 
 				//Actual code
-				let code =
+				var code =
 					'window.crmAPI = new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, nodeStorage,
 							{}, greaseMonkeyData, false, {}, true, 0]
@@ -1873,7 +1873,7 @@ describe('CRMAPI', () => {
 		});
 		step('should be able to set up other instances', () => {
 			function setupInstance(tabId) {
-				let node = {
+				var node = {
 					"name": "script",
 					"onContentTypes": [true, true, true, false, false, false],
 					"type": "script",
@@ -1932,9 +1932,9 @@ describe('CRMAPI', () => {
 						"not": true
 					}]
 				};
-				let createSecretKey = function() {
-					let key = [];
-					let i;
+				var createSecretKey = function() {
+					var key = [];
+					var i;
 					for (i = 0; i < 25; i++) {
 						key[i] = Math.round(Math.random() * 100);
 					}
@@ -1945,14 +1945,14 @@ describe('CRMAPI', () => {
 						return createSecretKey();
 					}
 				}
-				let tabData = {id: tabId, testKey: createSecretKey()};
-				let clickData = {selection: 'some text', testKey: createSecretKey()};
-				let greaseMonkeyData = {
+				var tabData = {id: tabId, testKey: createSecretKey()};
+				var clickData = {selection: 'some text', testKey: createSecretKey()};
+				var greaseMonkeyData = {
 					info: {
 						testKey: createSecretKey()
 					}
 				};
-				let secretKey = createSecretKey();
+				var secretKey = createSecretKey();
 				assert.doesNotThrow(run(() => {
 					window.globals.crmValues.tabData[tabId] = {
 						nodes: { }
@@ -1962,10 +1962,10 @@ describe('CRMAPI', () => {
 					window.globals.crmValues.tabData[tabId].nodes[node.id].push({
 						secretKey: secretKey
 					});
-					let indentUnit = '	'; //Tab
+					var indentUnit = '	'; //Tab
 
 					//Actual code
-					let code = 'window.crmAPIs.push(new window.CrmAPIInit(' +
+					var code = 'window.crmAPIs.push(new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, {
 							testKey: createSecretKey() }, {}, greaseMonkeyData, false, {}, false, 
 							window.globals.crmValues.tabData[tabId].nodes[node.id].length - 1]
@@ -1976,9 +1976,11 @@ describe('CRMAPI', () => {
 					eval(code);
 				}), 'CrmAPIInit class can be initialized');
 			}
-			for (let i = 0; i < 5; i++) {
-				let num;
-				while (tabIds.indexOf((num = (Math.floor(Math.random() * 500)) + 1)) > -1) {}
+			for (var i = 0; i < 5; i++) {
+				var num;
+				while (tabIds.indexOf((num = (Math.floor(Math.random() * 500)) + 1)) > -1) {
+
+				}
 				tabIds.push(num);
 			}
 
@@ -1986,65 +1988,76 @@ describe('CRMAPI', () => {
 				setupInstance(tabId);
 			});
 		});
-		step('getInstances()', () => {
-			assert.isArray(crmAPI.comm.getInstances(), 'comm.getInstances in an array');
-			let instances = crmAPI.comm.getInstances();
-			instances.forEach((instance) => {
-				assert.isNumber(instance.id, 'instance ID is a number');
-				assert.include(tabIds, instance.id, 'instance ID matches expected');
+		step('getInstances()', (done) => {
+			crmAPI.comm.getInstances(function(instances) {
+				assert.isArray(instances, 'comm.getInstances in an array');
+				instances.forEach((instance) => {
+					assert.isNumber(instance.id, 'instance ID is a number');
+					assert.include(tabIds, instance.id, 'instance ID matches expected');
+				});
+				done();
 			});
 		});
-		let listeners = [];
-		let listenerRemovals = [];
-		let listenersCalled = [];
+
+		var listeners = [];
+		var listenerRemovals = [];
+		var listenersCalled = [];
 		var expectedMessageValue = generateRandomString();
+		function setupListener(i) {
+			var idx = i;
+			var fn = function(message) {
+				if (expectedMessageValue !== message.key) {
+					throw new Error(`Received value ${message.key} did not match ${expectedMessageValue}`);
+				}
+				listenersCalled[idx]++;
+			}
+			listenersCalled[idx] = 0;
+			listeners.push(fn);
+			assert.doesNotThrow(run(() => {
+				var num = window.crmAPIs[idx].comm.addListener(fn);
+				listenerRemovals.push(num);
+			}), 'adding listeners does not throw');
+		}
+
 		step('addListener() setup', () => {
 			assert.isAtLeast(window.crmAPIs.length, 1, 'at least one API was registered');
-			for (let i = 0; i < window.crmAPIs.length; i++) {
-				let idx = listeners.length;
-				let fn = function(message) {
-					if (expectedMessageValue !== message.key) {
-						throw new Error(`Received value ${message.key} did not match ${expectedMessageValue}`);
-					}
-					listenersCalled[idx]++;
-				}
-				listenersCalled[i] = 0;
-				listeners.push(fn);
-				assert.doesNotThrow(run(() => {
-					var num = window.crmAPIs[i].comm.addListener(fn);
-					listenerRemovals.push(num);
-				}), 'adding listeners does not throw');
+			for (var i = 0; i < window.crmAPIs.length; i++) {
+				setupListener(i);
 			}
 		});
 
-		step('sendMessage()', () => {
+		step('sendMessage()', (done) => {
 			//Send a message from the main CRM API used for testingRunning 
-			let instances = crmAPI.comm.getInstances();
-			for (let i = 0; i < instances.length; i++) {
-				crmAPI.comm.sendMessage(instances[i], 0, {
-					key: expectedMessageValue
-				});
-			}
+			crmAPI.comm.getInstances(function(instances) {
+				for (var i = 0; i < instances.length; i++) {
+					crmAPI.comm.sendMessage(instances[i], 0, {
+						key: expectedMessageValue
+					});
+				}
+				done();
+			});
 		});
 
-		step('getInstances[].sendMessage()', () => {
-			let instances = crmAPI.comm.getInstances();
-			for (let i = 0; i < instances.length; i++) {
-				instances[i].sendMessage({
-					key: expectedMessageValue
-				});
-			}
+		step('getInstances[].sendMessage()', (done) => {
+			crmAPI.comm.getInstances(function(instances) {
+				for (var i = 0; i < instances.length; i++) {
+					instances[i].sendMessage({
+						key: expectedMessageValue
+					});
+				}
+				done();
+			});
 		});
 
 		step('addListener()', () => {
-			for (let i = 0; i < listenersCalled.length; i++) {
+			for (var i = 0; i < listenersCalled.length; i++) {
 				assert.strictEqual(listenersCalled[i], 2, 'instances got called twice');
 			}
 		});
 
-		step('removeListener()', () => {
+		step('removeListener()', (done) => {
 			assert.doesNotThrow(run(() => {
-				for (let i = 0 ; i < listeners.length; i++) {
+				for (var i = 0 ; i < listeners.length; i++) {
 					if (Math.floor(Math.random() * 2) === 0) {
 						window.crmAPIs[i].comm.removeListener(listeners[i]);
 					} else {
@@ -2054,16 +2067,18 @@ describe('CRMAPI', () => {
 			}), 'calling removeListener works');
 
 			//Send another message to test
-			let instances = crmAPI.comm.getInstances();
-			for (let i = 0; i < instances.length; i++) {
-				instances[i].sendMessage({
-					key: expectedMessageValue
-				});
-			}
+			crmAPI.comm.getInstances(function(instances) {
+				for (var i = 0; i < instances.length; i++) {
+					instances[i].sendMessage({
+						key: expectedMessageValue
+					});
+				}
 
-			for (let i = 0; i < listenersCalled.length; i++) {
-				assert.strictEqual(listenersCalled[i], 2, 'instances got called while removed');
-			}
+				for (var i = 0; i < listenersCalled.length; i++) {
+					assert.strictEqual(listenersCalled[i], 2, 'instances got called while removed');
+				}
+				done();
+			});
 		});
 	});
 	describe('storage', function() {
@@ -2071,32 +2086,32 @@ describe('CRMAPI', () => {
 		step('API exists', () => {
 			assert.isObject(crmAPI.storage, 'storage API is an object');
 		});
-		let usedStrings = {};
+		var usedStrings = {};
 		function generateUniqueRandomString() {
-			let str;
+			var str;
 			while (usedStrings[(str = generateRandomString())]) {}
 			usedStrings[str] = true;
 			return str;
 		}
-		let storageTestData = [];
-		for (let i = 0; i < 50; i++) {
+		var storageTestData = [];
+		for (var i = 0; i < 50; i++) {
 			storageTestData.push({
 				key: generateUniqueRandomString(),
 				value: generateUniqueRandomString()
 			});
 		}
 		step('API works', () => {
-			let isClearing = false;
+			var isClearing = false;
 
-			let listeners = [];
-			let listenerActivations = [];
-			for (let i = 0; i < storageTestData.length; i++) {
+			var listeners = [];
+			var listenerActivations = [];
+			for (var i = 0; i < storageTestData.length; i++) {
 				listenerActivations[i] = 0;
 			}
 			assert.doesNotThrow(run(() => {
 				for (let i = 0; i < storageTestData.length; i++) {
-					let index = listeners.length;
-					let fn = function(key, oldVal, newVal) {
+					var index = listeners.length;
+					var fn = function(key, oldVal, newVal) {
 						if (key !== storageTestData[index].key) {
 							throw new Error(`Storage keys do not match, ${key} does not match expected ${storageTestData[index].key}`);
 						}
@@ -2129,12 +2144,12 @@ describe('CRMAPI', () => {
 				testKey: nodeStorage.testKey
 			};
 			for (let i = 0; i < storageTestData.length; i++) {
-				let key = storageTestData[i].key;
+				var key = storageTestData[i].key;
 				if (key.indexOf('.') > -1) {
-					let storageCont = storageTestExpected;
-					let path = key.split('.');
-					let length = path.length - 1;
-					for (let j = 0; j < length; j++) {
+					var storageCont = storageTestExpected;
+					var path = key.split('.');
+					var length = path.length - 1;
+					for (var j = 0; j < length; j++) {
 						if (storageCont[path[j]] === undefined) {
 							storageCont[path[j]] = {};
 						}
@@ -2154,7 +2169,7 @@ describe('CRMAPI', () => {
 
 			//Fetch the data using get
 			for (let i = 0; i < storageTestData.length; i++) {
-				let val = crmAPI.storage.get(storageTestData[i].key);
+				var val = crmAPI.storage.get(storageTestData[i].key);
 				assert.strictEqual(val, storageTestData[i].value, 
 					`getting value at index ${i}: ${val} is equal to expected value ${storageTestData[i].value}`);
 			}
@@ -2162,7 +2177,7 @@ describe('CRMAPI', () => {
 			isClearing = true;
 
 			//Remove all data at the lowest level
-			for (let i = 0; i < storageTestData.length; i++) {
+			for (var i = 0; i < storageTestData.length; i++) {
 				assert.doesNotThrow(run(() => {
 					crmAPI.storage.remove(storageTestData[i].key);
 				}), 'calling crmAPI.storage.remove does not throw');
@@ -2171,7 +2186,7 @@ describe('CRMAPI', () => {
 
 			//Reset it
 			for (let i = 0; i < storageTestData.length; i++) {
-				let key = storageTestData[i].key;
+				var key = storageTestData[i].key;
 				if (key.indexOf('.') > -1) {
 					key = key.split('.');
 				} else {
@@ -2260,8 +2275,8 @@ describe('CRMAPI', () => {
 			}
 		}
 		it('works with return values and non-object parameters', (done) => {
-			let val1 = Math.floor(Math.random() * 50);
-			let val2 = Math.floor(Math.random() * 50);
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
 			assert.doesNotThrow(run(() => {
 				crmAPI.chrome('sessions.testReturnSimple')(val1, val2).return((value) => {
 					assert.strictEqual(value, val1 + val2, 'returned value matches expected value');
@@ -2270,10 +2285,10 @@ describe('CRMAPI', () => {
 			}), 'calling chrome function does not throw');
 		});
 		it('works with return values and object-paremters', (done) => {
-			let val1 = {
+			var val1 = {
 				value: Math.floor(Math.random() * 50)
 			};
-			let val2 = [Math.floor(Math.random() * 50)];
+			var val2 = [Math.floor(Math.random() * 50)];
 			assert.doesNotThrow(run(() => {
 				crmAPI.chrome('sessions.testReturnObject')(val1, val2).return((value) => {
 					assert.deepEqual(value, {
@@ -2290,8 +2305,8 @@ describe('CRMAPI', () => {
 			}), 'calling chrome function does not throw');
 		});
 		it('works with callback values and non-object parameters', (done) => {
-			let val1 = Math.floor(Math.random() * 50);
-			let val2 = Math.floor(Math.random() * 50);
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
 			assert.doesNotThrow(run(() => {
 				crmAPI.chrome('sessions.testCallbackSimple')(val1, val2, (value) => {
 					assert.strictEqual(value, val1 + val2, 'returned value matches expected value');
@@ -2300,10 +2315,10 @@ describe('CRMAPI', () => {
 			}), 'calling chrome function does not throw');
 		});
 		it('works with callback values and object parameters', (done) => {
-			let val1 = {
+			var val1 = {
 				value: Math.floor(Math.random() * 50)
 			};
-			let val2 = [Math.floor(Math.random() * 50)];
+			var val2 = [Math.floor(Math.random() * 50)];
 			assert.doesNotThrow(run(() => {
 				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
 					assert.deepEqual(value, {
@@ -2320,9 +2335,9 @@ describe('CRMAPI', () => {
 			}), 'calling chrome function does not throw');
 		});
 		it('works with combined functions and simple parameters', (done) => {
-			let val1 = Math.floor(Math.random() * 50);
-			let val2 = Math.floor(Math.random() * 50);
-			let promises = [];
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
+			var promises = [];
 			
 			promises.push(new Promise((resolveCallback) => {
 				promises.push(new Promise((resolveReturn) => {
@@ -2344,11 +2359,11 @@ describe('CRMAPI', () => {
 			});
 		});
 		it('works with combined functions and object parameters', (done) => {
-			let val1 = {
+			var val1 = {
 				value: Math.floor(Math.random() * 50)
 			};
-			let val2 = [Math.floor(Math.random() * 50)];
-			let promises = [];
+			var val2 = [Math.floor(Math.random() * 50)];
+			var promises = [];
 
 			promises.push(new Promise((resolveCallback) => {
 				promises.push(new Promise((resolveReturn) => {
@@ -2387,10 +2402,10 @@ describe('CRMAPI', () => {
 			});
 		});
 		it('works with persistent callbacks and simple parameters', (done) => {
-			let val1 = Math.floor(Math.random() * 50);
-			let val2 = Math.floor(Math.random() * 50);
+			var val1 = Math.floor(Math.random() * 50);
+			var val2 = Math.floor(Math.random() * 50);
 
-			let called = 0;
+			var called = 0;
 			assert.doesNotThrow(run(() => {
 				crmAPI.chrome('sessions.testPersistentSimple')(val1, val2).persistent((value) => {
 					switch (called) {
@@ -2410,12 +2425,12 @@ describe('CRMAPI', () => {
 			}), 'calling chrome function does not throw');
 		});
 		it('works with persistent callbacks and object parameters', (done) => {
-			let val1 = {
+			var val1 = {
 				value: Math.floor(Math.random() * 50)
 			};
-			let val2 = [Math.floor(Math.random() * 50)];
+			var val2 = [Math.floor(Math.random() * 50)];
 
-			let called = 0;
+			var called = 0;
 			assert.doesNotThrow(run(() => {
 				crmAPI.chrome('sessions.testCallbackObject')(val1, val2, (value) => {
 					switch (called) {
@@ -2591,9 +2606,9 @@ describe('CRMAPI', () => {
 					}, (results) => {
 						assert.isDefined(results, 'results are defined');
 						assert.isArray(results, 'results are in an array');
-						let found = false;
-						for (let i = 0; i < results.length; i++) {
-							let errorred = false;
+						var found = false;
+						for (var i = 0; i < results.length; i++) {
+							var errorred = false;
 							try {
 								assert.deepEqual(results[i], safeNode);
 							} catch(e) {
@@ -2628,7 +2643,7 @@ describe('CRMAPI', () => {
 					assert.isDefined(results, 'results are defined');
 					assert.isArray(results, 'results are in an array');
 
-					let expected = [];
+					var expected = [];
 
 					function flattenCrm(obj) {
 						expected.push(obj);
@@ -2695,7 +2710,7 @@ describe('CRMAPI', () => {
 		describe('createNode()', () => {
 			it('should correctly return the to-create node', () => {
 				window.globals.latestId = 6;
-				let nodeSettings = {
+				var nodeSettings = {
 					name: 'testName',
 					type: 'link',
 					value: [{
@@ -2735,7 +2750,7 @@ describe('CRMAPI', () => {
 				});
 			});
 			it('should correctly place the node and store it', () => {
-				let nodeSettings = {
+				var nodeSettings = {
 					name: 'testName',
 					type: 'link',
 					value: [{
@@ -2754,7 +2769,7 @@ describe('CRMAPI', () => {
 		});
 		describe('copyNode()', () => {
 			it('should match the copied node', () => {
-				let expected = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+				var expected = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
 				expected.id = 9;
 				expected.path = [8];
 				expected.nodeInfo = {
@@ -2782,7 +2797,7 @@ describe('CRMAPI', () => {
 					expectedIndex = [expectedIndex];
 				}
 
-				let expectedTreeSize = safeTestCRMTree.length;
+				var expectedTreeSize = safeTestCRMTree.length;
 				if (expectedIndex.length > 1) {
 					expectedTreeSize--;
 				}
@@ -2974,8 +2989,8 @@ describe('CRMAPI', () => {
 			beforeEach(resetTree);
 
 			it('should remove passed node when it\'s a valid node id (root)', (done) => {
-				let promises = [];
-				for (let i = 0; i < safeTestCRMTree.length; i++) {
+				var promises = [];
+				for (var i = 0; i < safeTestCRMTree.length; i++) {
 					promises.push(new Promise((resolve, reject) => {
 						try {
 							//Don't remove the current script
@@ -2992,15 +3007,15 @@ describe('CRMAPI', () => {
 				Promise.all(promises).then(() => {
 					try {
 						assert.lengthOf(window.globals.crm.crmTree, 1, 'crmTree is almost empty');
-						let crmByIdEntries = 0;
-						for (let id in window.globals.crm.crmById) {
+						var crmByIdEntries = 0;
+						for (var id in window.globals.crm.crmById) {
 							crmByIdEntries++;
 						}
 						assert.strictEqual(crmByIdEntries, 1, 'crmById is almost empty');
 						assert.isDefined(window.globals.crm.crmById[2], 'current node is still defined');
 						assert.isObject(window.globals.crm.crmById[2], 'current node is object');
 
-						let comparisonCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+						var comparisonCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
 						comparisonCopy.path = [0];
 						assert.deepEqual(window.globals.crm.crmByIdSafe[2], comparisonCopy, 
 								'remaining node matches expected');
@@ -3046,7 +3061,7 @@ describe('CRMAPI', () => {
 				}, (newNode) => {
 					assert.isDefined(newNode, 'new node is defined');
 
-					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+					var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
 					localCopy.name = 'someNewName';
 					assert.deepEqual(newNode, localCopy, 'node matches old node');
 					done();
@@ -3058,7 +3073,7 @@ describe('CRMAPI', () => {
 				}, (newNode) => {
 					assert.isDefined(newNode, 'new node is defined');
 
-					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+					var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
 					localCopy.type = 'link';
 					localCopy.menuVal = [];
 					localCopy.value = [{
@@ -3075,7 +3090,7 @@ describe('CRMAPI', () => {
 				}, (newNode) => {
 					assert.isDefined(newNode, 'new node is defined');
 
-					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[3]));
+					var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[3]));
 					localCopy.type = 'menu';
 					localCopy.stylesheetVal = {
 						"stylesheet": "/* ==UserScript==\n// @name\tstylesheet\n// @CRM_contentTypes\t[true, true, true, false, false, false]\n// @CRM_launchMode\t3\n// @CRM_stylesheet\ttrue\n// @grant\tnone\n// @match\t*://*.example.com/*\n// ==/UserScript== */\nbody {\n\tbackground-color: red;\n}",
@@ -3118,7 +3133,7 @@ describe('CRMAPI', () => {
 				}, (newNode) => {
 					assert.isDefined(newNode, 'new node is defined');
 
-					let localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
+					var localCopy = JSON.parse(JSON.stringify(safeTestCRMTree[0]));
 					localCopy.type = 'link';
 					localCopy.name = 'someNewName';
 					localCopy.menuVal = [];
@@ -3151,7 +3166,7 @@ describe('CRMAPI', () => {
 			before(resetTree);
 
 			it('should correctly get the triggers for all nodes', () => {
-				for (let id in window.globals.crm.crmByIdSafe) {
+				for (var id in window.globals.crm.crmByIdSafe) {
 					crmAPI.crm.getTriggers(window.globals.crm.crmByIdSafe[id].id, (triggers) => {
 						assert.deepEqual(triggers, window.globals.crm.crmByIdSafe[id].triggers,
 							'triggers match expected');
@@ -3168,14 +3183,14 @@ describe('CRMAPI', () => {
 			before(resetTree);
 
 			it('should set the triggers to passed triggers (empty)', () => {
-				let triggers = [];
+				var triggers = [];
 				crmAPI.crm.setTriggers(safeTestCRMTree[1].id, triggers, (newNode) => {
 					assert.deepEqual(newNode.triggers, triggers, 'triggers match expected');
 					assert.isTrue(newNode.showOnSpecified, 'triggers are turned on');
 				});
 			});
 			it('should set the triggers to passed triggers (non-empty)', () => {
-				let triggers = [{
+				var triggers = [{
 					url: '<all_urls>',
 					not: true
 				}];
@@ -3185,7 +3200,7 @@ describe('CRMAPI', () => {
 				});
 			});
 			it('should set the triggers and showOnSpecified to true', () => {
-				let triggers = [{
+				var triggers = [{
 					url: 'http://somesite.com',
 					not: true
 				}];
@@ -3195,10 +3210,10 @@ describe('CRMAPI', () => {
 				});
 			});
 			it('should work on all valid urls', () => {
-				let triggerUrls = ['<all_urls>', 'http://google.com', '*://*/*', '*://google.com/*',
+				var triggerUrls = ['<all_urls>', 'http://google.com', '*://*/*', '*://google.com/*',
 					'http://*/*', 'https://*/*', 'file://*', 'ftp://*'];
 				triggerUrls.forEach((url) => {
-					let trigger = [{
+					var trigger = [{
 						url: url,
 						not: false
 					}];
@@ -3209,7 +3224,7 @@ describe('CRMAPI', () => {
 				});
 			}).slow(150);
 			it('should throw an error when given an invalid url', () => {
-				let triggers = [{
+				var triggers = [{
 					url: 'somesite.com',
 					not: true
 				}];
@@ -3460,8 +3475,8 @@ describe('CRMAPI', () => {
 				beforeEach(resetTree);
 				it('should correctly splice at index 0 and amount 1', () => {
 					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 1, (spliced) => {
-						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-						let splicedExpected = linkCopy.splice(0, 1);
+						var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						var splicedExpected = linkCopy.splice(0, 1);
 
 						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
 							'new value matches expected');
@@ -3470,8 +3485,8 @@ describe('CRMAPI', () => {
 				});
 				it('should correctly splice at index not-0 and amount 1', () => {
 					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 2, 1, (spliced) => {
-						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-						let splicedExpected = linkCopy.splice(2, 1);
+						var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						var splicedExpected = linkCopy.splice(2, 1);
 
 						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
 							'new value matches expected');
@@ -3480,8 +3495,8 @@ describe('CRMAPI', () => {
 				});
 				it('should correctly splice at index 0 and amount 2', () => {
 					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 0, 2, (spliced) => {
-						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-						let splicedExpected = linkCopy.splice(0, 2);
+						var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						var splicedExpected = linkCopy.splice(0, 2);
 
 						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
 							'new value matches expected');
@@ -3490,8 +3505,8 @@ describe('CRMAPI', () => {
 				});
 				it('should correctly splice at index non-0 and amount 2', () => {
 					crmAPI.crm.link.splice(safeTestCRMTree[5].children[0].id, 1, 2, (spliced) => {
-						let linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
-						let splicedExpected = linkCopy.splice(1, 2);
+						var linkCopy = JSON.parse(JSON.stringify(safeTestCRMTree[5].children[0].value));
+						var splicedExpected = linkCopy.splice(1, 2);
 
 						assert.deepEqual(window.globals.crm.crmTree[5].children[0].value, linkCopy, 
 							'new value matches expected');
@@ -3594,11 +3609,11 @@ describe('CRMAPI', () => {
 						safeTestCRMTree[1].id,
 						safeTestCRMTree[2].id
 					], (newNode) => {
-						let firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
+						var firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
 						firstNodeCopy.path = newNode.children[0].path;
 						assert.deepEqual(newNode.children[0], firstNodeCopy, 'first node was moved correctly');
 
-						let secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+						var secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
 						secondNodeCopy.path = newNode.children[1].path;
 						assert.deepEqual(newNode.children[1], secondNodeCopy, 'second node was moved correctly');
 
@@ -3624,11 +3639,11 @@ describe('CRMAPI', () => {
 						safeTestCRMTree[1].id,
 						safeTestCRMTree[2].id
 					], (newNode) => {
-						let firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
+						var firstNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[1]));
 						firstNodeCopy.path = newNode.children[1].path;
 						assert.deepEqual(newNode.children[1], firstNodeCopy, 'first node was moved correctly');
 
-						let secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
+						var secondNodeCopy = JSON.parse(JSON.stringify(safeTestCRMTree[2]));
 						secondNodeCopy.path = newNode.children[2].path;
 						assert.deepEqual(newNode.children[2], secondNodeCopy, 'second node was moved correctly');
 
@@ -3748,7 +3763,7 @@ describe('JSON Parser', () => {
 				};
 			}), 'generateScriptUpgradeErrorHandler is overwritable');
 		});
-		let diffMatchPatchCode;
+		var diffMatchPatchCode;
 		step('should be able to read diff_match_patch.js', () => {
 			assert.doesNotThrow(run(() => {
 				diffMatchPatchCode = fs.readFileSync('./app/js/libraries/diff_match_patch.js', {
@@ -3761,7 +3776,7 @@ describe('JSON Parser', () => {
 				eval(diffMatchPatchCode);
 			}), 'File diff_match_patch.js is runnable');
 		});
-		let codemirrorJsCode;
+		var codemirrorJsCode;
 		step('should be able to read codemirror.js', () => {
 			assert.doesNotThrow(run(() => {
 				codemirrorJsCode = fs.readFileSync('./app/js/libraries/codemirror/codemirror.js', {
@@ -3774,7 +3789,7 @@ describe('JSON Parser', () => {
 				eval(codemirrorJsCode);
 			}), 'File codemirror.js is runnable');
 		});
-		let ternCode;
+		var ternCode;
 		step('should be able to read codeMirrorAddons.js', () => {
 			assert.doesNotThrow(run(() => {
 				ternCode = fs.readFileSync('./app/js/libraries/codemirror/codeMirrorAddons.js', {
