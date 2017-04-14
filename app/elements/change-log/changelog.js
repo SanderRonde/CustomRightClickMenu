@@ -33,6 +33,10 @@
 			'Code cleanup and dead code removal',
 			'Node instances are now all shown',
 			'Fixed some bugs related to scripts not running in their own context'
+		],
+		'2.0.8': [
+			'Fixed some nodes missing IDs after creation',
+			'Fixed error that occurred on backgroundpage when running any script'
 		]
 	};
 }());
