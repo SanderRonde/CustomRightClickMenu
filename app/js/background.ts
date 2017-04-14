@@ -7239,7 +7239,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			const crmBefore = JSON.stringify(globalObject.globals.storages.settingsStorage.crm);
 			Storages.crmForEach(globalObject.globals.storages
 				.settingsStorage.crm, (node) => {
-					if (!node.id) {
+					if (!node.id && node.id !== 0) {
 						node.id = Helpers.generateItemId();
 					}
 				});
