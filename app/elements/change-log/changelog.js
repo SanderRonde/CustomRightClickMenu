@@ -37,6 +37,9 @@
 		'2.0.8': [
 			'Fixed some nodes missing IDs after creation',
 			'Fixed error that occurred on backgroundpage when running any script'
+		],
+		'2.0.9': [
+			'Fixed bug with buttons no longer working'
 		]
 	};
 }());
