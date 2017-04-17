@@ -265,7 +265,15 @@ class CA {
 	static domListener(this: CrmApp, event: Polymer.CustomEvent) {
 		const propKey = `data-on-${event.type}`;
 		const listeners = this.listeners;
-		const fnName = event.target.getAttribute(propKey) as keyof typeof listeners;
+
+		let fnName: keyof typeof listeners;
+		let pathIndex = 0;
+		let currentElement = event.path[pathIndex];
+		while (!(fnName = currentElement.getAttribute(propKey) as keyof typeof listeners) && pathIndex < event.path.length) {
+			pathIndex++;
+			currentElement = event.path[pathIndex];
+		}
+
 		if (fnName) {
 			if (fnName !== 'prototype' && fnName !== 'parent' && listeners[fnName]) {
 				const listener = this.listeners[fnName];
