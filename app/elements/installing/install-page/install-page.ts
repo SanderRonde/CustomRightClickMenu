@@ -40,8 +40,6 @@ const installPageProperties: {
 	}
 } as any;
 
-type InstallPage = Polymer.El<'install-page', typeof IP & typeof installPageProperties>;
-
 class IP {
 	static is: string = 'install-page';
 
@@ -86,5 +84,7 @@ class IP {
 		window.installPage = this;
 	}
 }
+
+type InstallPage = Polymer.El<'install-page', typeof IP & typeof installPageProperties>;
 
 Polymer(IP);

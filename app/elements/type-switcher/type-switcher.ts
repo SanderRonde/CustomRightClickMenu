@@ -1,7 +1,5 @@
 ﻿/// <reference path="../elements.d.ts" />
 
-type TypeSwitcher = Polymer.El<'type-switcher', typeof TS>;
-
 class TS {
 	static is: string = 'type-switcher';
 
@@ -298,5 +296,7 @@ class TS {
 		window.app.upload();
 	}
 }
+
+type TypeSwitcher = Polymer.El<'type-switcher', typeof TS>;
 
 Polymer(TS);

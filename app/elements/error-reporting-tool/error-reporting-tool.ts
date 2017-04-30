@@ -28,8 +28,6 @@ interface ErrorReportingToolSquare extends HTMLElement {
 	yPos: string;
 }
 
-type ErrorReportingTool = Polymer.El<'error-reporting-tool', typeof ERT & typeof errorReportingTool>;
-
 class ERT {
 	static is: any = 'error-reporting-tool';
 
@@ -395,5 +393,7 @@ class ERT {
 		window.onerror = this.onError;
 	}
 }
+
+type ErrorReportingTool = Polymer.El<'error-reporting-tool', typeof ERT & typeof errorReportingTool>;
 
 Polymer(ERT);

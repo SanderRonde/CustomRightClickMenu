@@ -63,10 +63,6 @@ interface LibrarySelectorLibrary {
 	selected?: 'true'|'false';
 }
 
-type PaperLibrariesSelectorBase = Polymer.El<'paper-libraries-selector',
-	typeof PLS & typeof paperLibrariesSelectorProperties
->;
-
 class PLS {
 	static is: string = 'paper-libraries-selector';
 
@@ -364,5 +360,9 @@ class PLS {
 
 	static behaviors = [Polymer.PaperDropdownBehavior];
 }
+
+type PaperLibrariesSelectorBase = Polymer.El<'paper-libraries-selector',
+	typeof PLS & typeof paperLibrariesSelectorProperties
+>;
 
 Polymer(PLS);

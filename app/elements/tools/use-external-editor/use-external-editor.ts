@@ -2,8 +2,6 @@
 
 const EXTERNAL_EDITOR_APP_ID = 'hkjjmhkhhlmkflpihbikfpcojeofbjgn';
 
-type UseExternalEditor = Polymer.El<'use-external-editor', typeof UEE>;
-
 type ListeningHTMLElement = HTMLElement & {
 	listeners: Array<() => void>
 };
@@ -1103,5 +1101,7 @@ class UEE {
 		});
 	}
 }
+
+type UseExternalEditor = Polymer.El<'use-external-editor', typeof UEE>;
 
 Polymer(UEE);

@@ -21,10 +21,6 @@ const paperDropdownBehaviorProperties: {
 
 type PaperDropdownListener = (prevState: number, newState: number) => void;
 
-type PaperDropdownBehaviorBase = Polymer.El<'behavior',
-	typeof PDB & typeof paperDropdownBehaviorProperties
->;
-
 class PDB {
 	static properties = paperDropdownBehaviorProperties;
 
@@ -307,5 +303,9 @@ class PDB {
 		this.$.dropdownSelected.style.color = 'rgb(38, 153, 244)';
 	}
 }
+
+type PaperDropdownBehaviorBase = Polymer.El<'behavior',
+	typeof PDB & typeof paperDropdownBehaviorProperties
+>;
 
 Polymer.PaperDropdownBehavior = PDB as PaperDropdownBehaviorBase;

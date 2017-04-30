@@ -82,8 +82,6 @@ interface ContextMenuElement extends HTMLElement {
 	source: ContextMenuSource;
 }
 
-type LogConsole = Polymer.El<'log-console', typeof LC & typeof logConsoleProperties>;
-
 class LC {
 	static is: string = 'log-console';
 
@@ -530,5 +528,7 @@ class LC {
 		}, 1000);
 	}
 }
+
+type LogConsole = Polymer.El<'log-console', typeof LC & typeof logConsoleProperties>;
 
 Polymer(LC);

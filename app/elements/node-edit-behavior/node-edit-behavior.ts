@@ -62,8 +62,6 @@ const nodeEditBehaviorProperties: NodeEditBehaviorProperties = {
 	}
 } as any;
 
-type NodeEditBehaviorBase = typeof NEB & typeof nodeEditBehaviorProperties;
-
 type NodeEditBehaviorInstanceBase = NodeEditBehaviorBase & {
 	cancelChanges?(): void;
 	saveChanges?(settings: CRM.Node): void;
@@ -457,5 +455,7 @@ class NEB {
 		}, 350);
 	}
 }
+
+type NodeEditBehaviorBase = typeof NEB & typeof nodeEditBehaviorProperties;
 
 Polymer.NodeEditBehavior = NEB as NodeEditBehaviorBase;

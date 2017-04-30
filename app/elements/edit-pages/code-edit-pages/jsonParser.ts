@@ -810,6 +810,13 @@ type JSONParseErrors = Array<JSONParseError>;
 		return types;
 	}
 
+	const enum Types {
+		Any,
+		AnyArr,
+		StrArr,
+		NumArr,
+		StrNumArr
+	}
 	const typeKeyMaps = {
 		'"number"': {
 			'"type"': 'number',
@@ -912,13 +919,6 @@ type JSONParseErrors = Array<JSONParseError>;
 		return typeKeyMaps[`"${type}"` as keyof typeof typeKeyMaps].hasOwnProperty(key);
 	}
 
-	const enum Types {
-		Any,
-		AnyArr,
-		StrArr,
-		NumArr,
-		StrNumArr
-	}
 	function getValueType(value: any) {
 		if (!Array.isArray(value)) {
 			try {

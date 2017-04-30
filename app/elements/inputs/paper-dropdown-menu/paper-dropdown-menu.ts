@@ -31,10 +31,6 @@ const paperDropdownMenuProperties: {
 
 type PaperDropdownMenuProperties = typeof paperDropdownMenuProperties;
 
-type PaperDropdownMenuBase = Polymer.El<'paper-dropdown-menu',
-	typeof PDM & typeof paperDropdownBehaviorProperties
->;
-
 class PDM {
 	static is: string = 'paper-dropdown-menu';
 
@@ -76,5 +72,9 @@ class PDM {
 		}
 	}
 }
+
+type PaperDropdownMenuBase = Polymer.El<'paper-dropdown-menu',
+	typeof PDM & typeof paperDropdownBehaviorProperties
+>;
 
 Polymer(PDM);

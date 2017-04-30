@@ -1,5 +1,3 @@
-type CodeEditBehaviorBase = typeof CEB;
-
 type CodeEditBehaviorIntanceBase = CodeEditBehaviorBase;
 
 type CodeEditBehaviorScriptInstance = CodeEditBehaviorIntanceBase & 
@@ -230,5 +228,7 @@ class CEB {
 		this.getCmInstance().performLint();
 	}
 }
+
+type CodeEditBehaviorBase = typeof CEB;
 
 Polymer.CodeEditBehavior = CEB as CodeEditBehavior;

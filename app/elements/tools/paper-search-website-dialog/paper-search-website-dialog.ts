@@ -70,10 +70,6 @@ const paperSearchWebsiteDialogProperties: {
 	}
 } as any;
 
-type PaperSearchWebsiteDialog = Polymer.El<'paper-search-website-dialog',
-	typeof PSWD & typeof paperSearchWebsiteDialogProperties
->;
-
 type PaperSearchWebsiteDialogWindow = 'initialWindow'|
 		'chooseDefaultSearchWindow'|
 		'manuallyInputSearchWebsiteWindow'|
@@ -388,5 +384,9 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		this.$.paperSearchWebsiteDialog.fit();
 	}
 }
+
+type PaperSearchWebsiteDialog = Polymer.El<'paper-search-website-dialog',
+	typeof PSWD & typeof paperSearchWebsiteDialogProperties
+>;
 
 Polymer(PSWD);

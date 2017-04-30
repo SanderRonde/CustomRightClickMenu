@@ -10,8 +10,6 @@ const stylesheetEditProperties: {
 	}
 } as any;
 
-type StylesheetEdit = Polymer.El<'stylesheet-edit', typeof STE & typeof stylesheetEditProperties>;;
-
 class STE {
 	static is: any = 'stylesheet-edit';
 
@@ -757,5 +755,7 @@ class STE {
 		element.classList.add('active');
 	}
 }
+
+type StylesheetEdit = Polymer.El<'stylesheet-edit', typeof STE & typeof stylesheetEditProperties>;;
 
 Polymer(STE);

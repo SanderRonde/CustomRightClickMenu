@@ -12,8 +12,6 @@ const scriptEditProperties: {
 
 type ChangeType = 'removed'|'added'|'changed';
 
-type ScriptEdit = Polymer.El<'script-edit', typeof SCE & typeof scriptEditProperties>;
-
 class SCE {
 	static is: string = 'script-edit';
 
@@ -1373,5 +1371,7 @@ class SCE {
 		}, 750);
 	}
 }
+
+type ScriptEdit = Polymer.El<'script-edit', typeof SCE & typeof scriptEditProperties>;
 
 Polymer(SCE);

@@ -174,10 +174,6 @@ type TransferOnErrorError = {
 type TransferOnError = (position: TransferOnErrorError,
 	passes: number) => void;
 
-type CrmApp = Polymer.El<'crm-app', typeof CA & typeof properties & {
-	editCRM: EditCrm;
-}>;
-
 type ScriptUpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
 	newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
 
@@ -4229,5 +4225,9 @@ class CA {
 		}
 	}
 };
+
+type CrmApp = Polymer.El<'crm-app', typeof CA & typeof properties & {
+	editCRM: EditCrm;
+}>;
 
 Polymer(CA);

@@ -27,8 +27,6 @@ const paperToggleOptionProperties: {
 	}
 } as any;
 
-type PaperToggleOption = Polymer.El<'paper-toggle-option', typeof PTO & typeof paperToggleOptionProperties>;
-
 class PTO {
 	static is: string = 'paper-toggle-option';
 
@@ -53,5 +51,7 @@ class PTO {
 		window.app.setLocal(id, this.toggled);
 	}
 }
+
+type PaperToggleOption = Polymer.El<'paper-toggle-option', typeof PTO & typeof paperToggleOptionProperties>;
 
 Polymer(PTO);

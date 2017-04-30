@@ -1,8 +1,5 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
-type PaperGetPagePropertiesBase = Polymer.El<
-	'paper-get-page-properties', typeof PGPP>;
-
 class PGPP {
 	static is: string = 'paper-get-page-properties';
 
@@ -99,5 +96,8 @@ class PGPP {
 
 	static behaviors = [Polymer.PaperDropdownBehavior];
 }
+
+type PaperGetPagePropertiesBase = Polymer.El<
+	'paper-get-page-properties', typeof PGPP>;
 
 Polymer(PGPP);

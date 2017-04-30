@@ -14,10 +14,6 @@ const defaultLinkProperties: {
 	}
 } as any;
 
-type DefaultLink = Polymer.El<'default-link',
-	typeof DL & typeof defaultLinkProperties
->;
-
 class DL {
 	static is: string = 'default-link';
 
@@ -71,5 +67,9 @@ if (query) {
 		this.querySelector('input').value = this.defaultName;
 	}
 }
+
+type DefaultLink = Polymer.El<'default-link',
+	typeof DL & typeof defaultLinkProperties
+>;
 
 Polymer(DL);

@@ -30,9 +30,6 @@ const paperArrayInputProperties: {
 	}
 } as any;
 
-type PaperArrayInput = Polymer.El<'paper-array-input',
-	typeof PAI & typeof paperArrayInputProperties>;
-
 class PAI {
 	static is: string = 'paper-array-input';
 
@@ -90,5 +87,8 @@ class PAI {
 		}
 	}
 }
+
+type PaperArrayInput = Polymer.El<'paper-array-input',
+	typeof PAI & typeof paperArrayInputProperties>;
 
 Polymer(PAI);

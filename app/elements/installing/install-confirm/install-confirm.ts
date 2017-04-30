@@ -10,8 +10,6 @@ const installConfirmProperties: {
 	}
 } as any;
 
-type InstallConfirm = Polymer.El<'install-confirm', typeof IC & typeof installConfirmProperties>;
-
 class IC {
 	static is: string = 'install-confirm';
 
@@ -387,5 +385,7 @@ class IC {
 		window.installConfirm = this;
 	}
 }
+
+type InstallConfirm = Polymer.El<'install-confirm', typeof IC & typeof installConfirmProperties>;
 
 Polymer(IC);

@@ -26,8 +26,6 @@ interface Version {
 	minorVersion: number;
 }
 
-type ChangeLog = Polymer.El<'change-log', typeof CL & typeof changeLogProperties>;
-
 class CL {
 	static is: string = 'change-log';
 
@@ -124,5 +122,7 @@ class CL {
 		this.changelog = this.sortChangelog(this.makeChangelogArray((window as any).changelogLog));
 	}
 };
+
+type ChangeLog = Polymer.El<'change-log', typeof CL & typeof changeLogProperties>;
 
 Polymer(CL);

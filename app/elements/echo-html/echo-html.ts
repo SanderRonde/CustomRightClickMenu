@@ -15,9 +15,6 @@ const echoHtmlProperties: {
 	}
 } as any;
 
-type EchoHtml = Polymer.El<'echo-html',
-	typeof EH & typeof echoHtmlProperties>;
-
 class EH {
 	static is: string = 'echo-html';
 
@@ -44,5 +41,8 @@ class EH {
 		this.htmlChanged();
 	}
 }
+
+type EchoHtml = Polymer.El<'echo-html',
+	typeof EH & typeof echoHtmlProperties>;
 
 Polymer(EH);

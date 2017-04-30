@@ -49,8 +49,6 @@ const editCrmProperties: {
 	}
 } as any;
 
-type EditCrm = Polymer.El<'edit-crm', typeof EC & typeof editCrmProperties>;
-
 interface CRMColumn {
 	list: Array<CRM.Node & {
 		expanded: boolean;
@@ -1146,5 +1144,7 @@ ${codeSplit.join('\n')}`;
 		}]);
 	}
 }
+
+type EditCrm = Polymer.El<'edit-crm', typeof EC & typeof editCrmProperties>;
 
 Polymer(EC);

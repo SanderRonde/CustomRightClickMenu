@@ -95,8 +95,6 @@ const centerElementProperties: {
 	}
 } as any;
 
-type CenterElement = Polymer.El<'center-element', typeof CE & typeof centerElementProperties>;
-
 class CE {
 	static is: string = 'center-element';
 
@@ -136,5 +134,7 @@ class CE {
 		this.recalculateStyles();
 	};
 }
+
+type CenterElement = Polymer.El<'center-element', typeof CE & typeof centerElementProperties>;
 
 Polymer(CE);

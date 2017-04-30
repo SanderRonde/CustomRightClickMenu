@@ -61,10 +61,6 @@ const crmEditPageProperties: {
 	}
 } as any;
 
-type CrmEditPage = Polymer.El<'crm-edit-page',
-	typeof CEP & typeof crmEditPageProperties & typeof Polymer.NeonAnimationRunnerBehavior
->;
-
 class CEP {
 	static is: string = 'crm-edit-page';
 
@@ -368,5 +364,9 @@ class CEP {
 		}, 300);
 	}
 }
+
+type CrmEditPage = Polymer.El<'crm-edit-page',
+	typeof CEP & typeof crmEditPageProperties & typeof Polymer.NeonAnimationRunnerBehavior
+>;
 
 Polymer(CEP);

@@ -34,8 +34,6 @@ const editCrmItemProperties: {
 	}
 } as any;
 
-type EditCrmItem = Polymer.El<'edit-crm-item', 
-	typeof ECI & typeof editCrmItemProperties>;
 class ECI {
 	static is: string = 'edit-crm-item';
 
@@ -445,5 +443,8 @@ class ECI {
 		}, 0);
 	}
 }
+
+type EditCrmItem = Polymer.El<'edit-crm-item', 
+	typeof ECI & typeof editCrmItemProperties>;
 
 Polymer(ECI);
