@@ -52,7 +52,7 @@ the live version can be found [here](https://chrome.google.com/webstore/detail/c
 
 ### Installing from repo
 
-Clone the repo, run `npm install`, run `tsc` and run `grunt build` task, load the extension into chrome from the "build/" folder.
+Clone the repo, run `npm install && npm install typescript@latest -g`, run `tsc` and run `grunt build` task, load the extension into chrome from the "build/" folder.
 
 ## Developing Scripts
 
