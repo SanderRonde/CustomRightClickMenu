@@ -930,7 +930,7 @@ class SCE {
 			cloneCheckbox.removeAttribute('checked');
 		}
 
-		const cloneTemplate = document.importNode(clone, true) as HTMLElement;
+		const cloneTemplate = document.importNode(clone, true);
 		container.appendChild(cloneTemplate);
 		const importedElement = container;
 
@@ -1020,7 +1020,7 @@ class SCE {
 			input.setAttribute('label', this.keyBindings[i].name);
 			input.setAttribute('value', value);
 
-			const keyBindingCloneTemplate = document.importNode(keyBindingClone, true) as HTMLElement;
+			const keyBindingCloneTemplate = document.importNode(keyBindingClone, true);
 			settingsContainer.insertBefore(keyBindingCloneTemplate, settingsContainer.querySelector('#afterEditorSettingsSpacing'));
 			settingsContainer.querySelector('paper-input')
 				.addEventListener('keydown', this.createKeyBindingListener(input, this.keyBindings[i]));

@@ -491,7 +491,7 @@ class STE {
 			cloneCheckbox.removeAttribute('checked');
 		}
 
-		const cloneTemplate = document.importNode(clone, true) as HTMLElement;
+		const cloneTemplate = document.importNode(clone, true);
 		container.appendChild(cloneTemplate);
 		const importedElement = container;
 
