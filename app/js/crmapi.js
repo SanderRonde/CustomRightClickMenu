@@ -1,5 +1,5 @@
 (function(window) {
-	var chromeHolder = {
+	var _chrome = {
 		chrome: typeof chrome === 'undefined' ? undefined : chrome
 	}
 
@@ -557,7 +557,7 @@
 		};
 		var port;
 		if (!isBackground) {
-			port = chromeHolder.chrome.runtime.connect({
+			port = _chrome.chrome.runtime.connect({
 				name: JSON.stringify(secretKey)
 			});
 		}
@@ -3266,7 +3266,7 @@
 				};
 			}
 			details.type = 'basic';
-			details.iconUrl = details.iconUrl || chromeHolder.chrome.runtime.getURL('icon-large.png');
+			details.iconUrl = details.iconUrl || _chrome.chrome.runtime.getURL('icon-large.png');
 			onclick = details.onclick && createCallbackFunction(details.onclick, new Error(), {
 				maxCalls: 1
 			});
