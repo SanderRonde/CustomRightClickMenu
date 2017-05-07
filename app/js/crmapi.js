@@ -3266,7 +3266,7 @@
 				};
 			}
 			details.type = 'basic';
-			details.iconUrl = details.iconUrl || chromeHolder.chrome.runtime.getURl('icon-large.png');
+			details.iconUrl = details.iconUrl || chromeHolder.chrome.runtime.getURL('icon-large.png');
 			onclick = details.onclick && createCallbackFunction(details.onclick, new Error(), {
 				maxCalls: 1
 			});
