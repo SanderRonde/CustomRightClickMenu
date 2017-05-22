@@ -4,6 +4,7 @@ Create your own entry in the right-click menu. Add custom scripts, links, sub-me
 do anything you want all from your right-click menu. Featuring full GreaseMonkey compatibility for userscripts and Stylish compatibility for userstyles.
 
 [![Join the chat at https://gitter.im/SanderRonde/CustomRightClickMenu](https://badges.gitter.im/SanderRonde/CustomRightClickMenu.svg)](https://gitter.im/SanderRonde/CustomRightClickMenu?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![codebeat badge](https://codebeat.co/badges/cd1e0a65-f0f2-4e53-bf3a-4a0d89d2b501)](https://codebeat.co/projects/github-com-sanderronde-customrightclickmenu-master)
 [![Build Status](https://travis-ci.org/SanderRonde/CustomRightClickMenu.svg?branch=master)](https://travis-ci.org/SanderRonde/CustomRightClickMenu)
 [![Tested with BrowserStack](http://i.imgur.com/3Mi2Fja.png)](https://www.browserstack.com/)
 
