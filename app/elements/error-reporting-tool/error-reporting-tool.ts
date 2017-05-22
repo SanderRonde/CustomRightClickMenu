@@ -28,6 +28,10 @@ interface ErrorReportingToolSquare extends HTMLElement {
 	yPos: string;
 }
 
+interface ThennableLike {
+	then: (cb: () => void|ThennableLike) => void
+}
+
 class ERT {
 	static is: any = 'error-reporting-tool';
 
@@ -163,56 +167,90 @@ class ERT {
 		el.style.transform = 'translate(' + (el.xPos || '0px') + ',' + y + ')';
 	};
 
-	private static setSelection(this: ErrorReportingTool, startX: number, startY: number,
-			width: number, height: number, posX: number, posY: number) {
-		const rightDiv = this.$.highlightingRightSquare;
-		const leftDiv = this.$.highlightingLeftSquare;
+	private static getDivs(this: ErrorReportingTool, direction: 'x'|'y'): [ErrorReportingToolSquare, ErrorReportingToolSquare];
+	private static getDivs(this: ErrorReportingTool, direction: 'xy'): 
+		[ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare];
+	private static getDivs(this: ErrorReportingTool, direction: 'x'|'y'|'xy'): [ErrorReportingToolSquare, ErrorReportingToolSquare]|
+		[ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare] {
+		const x: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [this.$.highlightingLeftSquare, this.$.highlightingRightSquare];
+		const y: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [this.$.highlightingTopSquare, this.$.highlightingBotSquare];
+		switch (direction) {
+			case 'x':
+				return x;
+			case 'y':
+				return y;
+			case 'xy':
+				return x.concat(y) as [ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare];
+		}
+	}
+
+	private static setDivsXValues(this: ErrorReportingTool, left: string, marginLeftPx: string, rightDivTranslate: string) {
+		const [ leftDiv, rightDiv ] = this.getDivs('x');
+		leftDiv.style.width = left;
+		rightDiv.style.width = 'calc(100vw - (' + marginLeftPx + '))';
+		this.translateX(rightDiv, rightDivTranslate);
+	}
+
+	private static setSelectionX(this: ErrorReportingTool, startX: number, width: number, posX: number) {
 		if (this.lastPos.X !== posX) {
 			if (width < 0) {
 				const left = startX + width;
-
-				leftDiv.style.width = left + 'px';
-				rightDiv.style.width = 'calc(100vw - (' + this.px(startX) + '))';
-
-				this.translateX(rightDiv, this.px(left - width));
+				this.setDivsXValues(this.px(left), this.px(startX), this.px(left - width));
 			} else {
-				const marginLeftPx = (startX + width) + 'px';
-
-				leftDiv.style.width = this.px(startX);
-				rightDiv.style.width = 'calc(100vw - (' + marginLeftPx + '))';
-
-				this.translateX(rightDiv, marginLeftPx);
+				const marginLeftPx = this.px(startX + width);
+				this.setDivsXValues(this.px(startX), marginLeftPx, marginLeftPx);
 			}
 		}
+	}
 
+	private static setDivsYValues(this: ErrorReportingTool, {
+		topHeight,
+		botTranslate,
+		heights, 
+		botHeight, 
+		divsOffsetY
+	}: {
+		topHeight: string;
+		botTranslate: string;
+		heights: string;
+		botHeight: string;
+		divsOffsetY: string;
+	}) {
+			const [ leftDiv, rightDiv, topDiv, botDiv ] = this.getDivs('xy');
+
+			topDiv.style.height = topHeight;
+			leftDiv.style.height = rightDiv.style.height = heights + 'px';
+			botDiv.style.height = 'calc(100vh - (' + botHeight + '))';
+
+			this.translateY(botDiv, botTranslate);
+			this.translateY(leftDiv, divsOffsetY);
+			this.translateY(rightDiv, divsOffsetY);
+		}
+
+	private static setSelectionY(this: ErrorReportingTool, startY: number, height: number, posY: number) {
 		if (this.lastPos.Y !== posY) {
-			const topDiv = this.$.highlightingTopSquare;
-			const botDiv = this.$.highlightingBotSquare;
 			if (height < 0) {
-				const top = (startY + height);
-				const topPx = top + 'px';
-
-				topDiv.style.height = topPx;
-				this.translateY(botDiv, this.px(startY));
-				leftDiv.style.height = rightDiv.style.height = -height + 'px';
-				botDiv.style.height = 'calc(100vh - (' + this.px(startY) + '))';
-
-				this.translateY(leftDiv, topPx);
-				this.translateY(rightDiv, topPx);
+				const top = this.px(startY + height);
+				this.setDivsYValues({
+					topHeight: top,
+					botTranslate: this.px(startY), 
+					heights: this.px(-height), 
+					botHeight: this.px(startY), 
+					divsOffsetY: top
+				});
 			} else {
-				const heightPx = height + 'px';
 				const marginTopPx = (startY + height) + 'px';
 
-				topDiv.style.height = this.px(startY);
-				leftDiv.style.height = rightDiv.style.height = heightPx;
-				botDiv.style.height = 'calc(100vh - (' + marginTopPx + ' ))';
-
-				this.translateY(botDiv, marginTopPx);
-				this.translateY(leftDiv, this.px(startY));
-				this.translateY(rightDiv, this.px(startY));
+				this.setDivsYValues({
+					topHeight: this.px(startY),
+					botTranslate: marginTopPx,
+					heights: this.px(height), 
+					botHeight: marginTopPx, 
+					divsOffsetY: this.px(startY)
+				});
 			}
 		}
-	};
+	}
 
 	static handleSelection(this: ErrorReportingTool, e: Polymer.DragEvent) {
 		switch (e.detail.state) {
@@ -239,7 +277,8 @@ class ERT {
 				if (e.detail.x !== this.lastPos.X || e.detail.y !== this.lastPos.Y) {
 					const width = (e.detail.x - this.dragStart.X);
 					const height = (e.detail.y - this.dragStart.Y);
-					this.setSelection(this.dragStart.X, this.dragStart.Y, width, height, e.detail.x, e.detail.y);
+					this.setSelectionX(this.dragStart.X, width, e.detail.x);
+					this.setSelectionY(this.dragStart.Y, height, e.detail.y);
 					this.lastSize.X = width;
 					this.lastSize.Y = height;
 					this.lastPos.X = e.detail.x;
@@ -248,23 +287,28 @@ class ERT {
 				break;
 		}
 	};
-	
-	private static hideScreencapArea(this: ErrorReportingTool) {
+
+	private static resetSelection(this: ErrorReportingTool) {
+		this.setSelectionX(0, 0, 0);
+		this.setSelectionY(0, 0, 0);
+	}
+
+	private static toggleScreenCapArea(this: ErrorReportingTool, visible: boolean) {
 		this.$.highlightingTopSquare.style.height = '100vh';
 		this.$.highlightingTopSquare.style.width = '100vw';
-		this.setSelection(0, 0, 0, 0, 0, 0);
-		this.$.overlay.classList.remove('toggled');
-		this.$.overlay.style.pointerEvents = 'none';
-	};
+		this.resetSelection();
+		this.$.overlay.classList[visible ? 'add' : 'remove']('toggled');
+		this.$.overlay.style.pointerEvents = visible ? 'initial' : 'none';
+	}
 
 	static cancelScreencap(this: ErrorReportingTool) {
-		this.hideScreencapArea();
+		this.toggleScreenCapArea(false);
 		this.$.errorReportingDialog.open();
 	};
 
 	static finishScreencap(this: ErrorReportingTool) {
 		const _this = this;
-		this.hideScreencapArea();
+		this.toggleScreenCapArea(false);
 		this.screenshot({
 			top: this.dragStart.Y,
 			left: this.dragStart.X,
@@ -275,18 +319,10 @@ class ERT {
 		});
 	};
 
-	private static selectScreenshotArea(this: ErrorReportingTool) {
-		this.$.highlightingTopSquare.style.height = '100vh';
-		this.$.highlightingTopSquare.style.width = '100vw';
-		this.setSelection(0, 0, 0, 0, 0, 0);
-		this.$.overlay.classList.add('toggled');
-		this.$.overlay.style.pointerEvents = 'initial';
-	};
-
 	static addCapture(this: ErrorReportingTool) {
 		const _this = this;
 		_this.$.errorReportingDialog.close();
-		this.selectScreenshotArea();
+		this.toggleScreenCapArea(true);
 	};
 
 	static reportBug(this: ErrorReportingTool) {
@@ -295,6 +331,14 @@ class ERT {
 		this.$.errorReportingDialog.open();
 	};
 
+	private static getStorages(callback: (local: CRM.StorageLocal, sync: CRM.SettingsStorage) => void) {
+		chrome.storage.local.get((local) => {
+			chrome.storage.sync.get((sync) => {
+				callback(local as any, sync as any);
+			});
+		});
+	}
+
 	private static downloadFiles(this: ErrorReportingTool, callback: () => void) {
 		const _this = this;
 		chrome.downloads.download({
@@ -302,24 +346,31 @@ class ERT {
 			filename: 'screencap.png'
 		}, function() {
 			if (_this.reportType === 'bug') {
-				chrome.storage.local.get(function(localKeys) {
-					chrome.storage.local.get(function(syncKeys) {
-						const dataCont = {
-							local: localKeys,
-							sync: syncKeys,
-							lastError: _this.lastError
-						};
-						chrome.downloads.download({
-							url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
-							filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
-						}, callback);
-					});
+				_this.getStorages((localKeys, syncKeys) => {
+					const dataCont = {
+						local: localKeys,
+						sync: syncKeys,
+						lastError: _this.lastError
+					};
+					chrome.downloads.download({
+						url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
+						filename: 'settings.txt' //Downloads as text because github doesn't allow JSON uploads
+					}, callback);
 				});
 			} else {
 				callback();
 			}
 		});
 	};
+
+	private static hideCheckmark(this: ErrorReportingTool) {
+		this.$.bugCheckmarkCont.classList.remove('checkmark');
+		this.async(() => {
+			this.$.reportingButtonElevation.classList.remove('checkmark');
+			this.$.bugButton.classList.remove('checkmark');
+			this.$.bugCheckmark.classList.remove('checked');
+		}, 350);
+	}
 
 	private static checkCheckmark(this: ErrorReportingTool) {
 		this.$.bugButton.classList.add('checkmark');
@@ -328,14 +379,7 @@ class ERT {
 			this.$.bugCheckmarkCont.classList.add('checkmark');
 			this.async(() => {
 				this.$.bugCheckmark.classList.add('checked');
-				this.async(() => {
-					this.$.bugCheckmarkCont.classList.remove('checkmark');
-					this.async(() => {
-						this.$.reportingButtonElevation.classList.remove('checkmark');
-						this.$.bugButton.classList.remove('checkmark');
-						this.$.bugCheckmark.classList.remove('checked');
-					}, 350);
-				},5000);
+				this.async(this.hideCheckmark, 5000);
 			}, 350);
 		}, 350);
 	};
