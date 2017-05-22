@@ -6528,12 +6528,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
 								const editorSettings = globalObject.globals.storages.settingsStorage.editor
+								this.genTabData(tab.id, key, node.id, node.value.script)
 
 								globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 								const tabIndex = globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].length - 1;
 								Logging.Listeners.updateTabAndIdLists();
-
-								this.genTabData(tab.id, key, node.id, node.value.script)
 
 								const metaData: {
 									[key: string]: any;
