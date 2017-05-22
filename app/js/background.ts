@@ -5295,7 +5295,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				private static _executeNode(node: CRM.Node, tab: chrome.tabs.Tab) {
 					if (node.type === 'script') {
-						CRM.Script.createHandler(node as CRM.ScriptNode)({
+						CRM.Script.Handler.createHandler(node as CRM.ScriptNode)({
 							pageUrl: tab.url,
 							menuItemId: 0,
 							editable: false
@@ -6119,6 +6119,59 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						code: code
 					};
 				}
+				private static _genCode(code: Array<string>, {
+					key,
+					node,
+					script,
+					safeNode,
+					indentUnit,
+					nodeStorage,
+					greaseMonkeyData
+				}: {
+					key: Array<number>;
+					node: CRM.ScriptNode;
+					script: string;
+					safeNode: CRM.SafeNode;
+					indentUnit: string;
+					nodeStorage: any;
+					greaseMonkeyData: GreaseMonkeyData;
+				}): string {
+					const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
+									node.isLocal;
+					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
+					return [
+						code.join('\n'), [
+							`var crmAPI = new CrmAPIInit(${[
+								safeNode, node.id, { id: 0 }, {}, key,
+								nodeStorage,
+								greaseMonkeyData, true, (node.value && node.value.options) || {},
+								enableBackwardsCompatibility, 0
+							]
+							.map((param) => {
+								if (param === void 0) {
+									return JSON.stringify(null);
+								}
+								return JSON.stringify(param);
+							}).join(', ')});`
+						].join(', '),
+						globalObject.globals.constants.templates.globalObjectWrapperCode('self', 'selfWrapper', void 0),
+						`${catchErrs ? 'try {' : ''}`,
+							'function main(crmAPI, self, menuitemid, parentmenuitemid, mediatype,' +
+							`${indentUnit}linkurl, srcurl, pageurl, frameurl, frameid,` + 
+							`${indentUnit}selectiontext, editable, waschecked, checked) {`,
+								script,
+							'}',
+							`main(crmAPI, selfWrapper);`,
+						`${catchErrs ? [
+							`} catch (error) {`,
+							`${indentUnit}if (crmAPI.debugOnError) {`,
+							`${indentUnit}${indentUnit}debugger;`,
+							`${indentUnit}}`,
+							`${indentUnit}throw error;`,
+							`}`
+						].join('\n') : ''}`
+					].join('\n')
+				}
 
 				static createBackgroundPage(node: CRM.ScriptNode) {
 					if (!node ||
@@ -6140,7 +6193,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					const result = this._loadBackgroundPageLibs(node);
-					let code = result.code;
+					const backgroundPageCode = result.code;
 					const libraries = result.libraries;
 
 					let key: Array<number> = [];
@@ -6152,146 +6205,42 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						err = e;
 					}
 					if (!err) {
-						globalObject.globals.crmValues.tabData[0] = 
-							globalObject.globals.crmValues.tabData[0] || {
-								libraries: {},
-								nodes: {}
-							};
-						globalObject.globals.crmValues.tabData[0].nodes[node.id] = 
-							globalObject.globals.crmValues.tabData[0].nodes[node.id] || [];
-						globalObject.globals.crmValues.tabData[0].nodes[node.id][0] = {
-							secretKey: key,
-							usesLocalStorage: node.value.backgroundScript.indexOf('localStorageProxy') > -1
-						};
+						const globalNodeStorage = globalObject.globals.storages.nodeStorage;
+						const nodeStorage = globalNodeStorage[node.id];
+						const editorSettings = globalObject.globals.storages.settingsStorage.editor
+
+						globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
+						
+						Script.Handler.genTabData(0, key, node.id, node.value.backgroundScript);
 						Logging.Listeners.updateTabAndIdLists();
 
-						const metaData = CRM.Script.MetaTags.getMetaTags(node.value
-                            .script);
-						const metaString = CRM.Script.MetaTags.getMetaLines(node.value
-                                .script) || undefined;
-						const runAt = metaData['run-at'] || 'document_end';
-						const excludes = [];
-						const includes = [];
-						for (let i = 0; i < node.triggers.length; i++) {
-							if (node.triggers[i].not) {
-								excludes.push(node.triggers[i].url);
-							} else {
-								includes.push(node.triggers[i].url);
-							}
-						}
+						const metaData = CRM.Script.MetaTags.getMetaTags(node.value.script);
+						const { excludes, includes } = Script.Handler.getInExcludes(node);
 
-						let indentUnit: string;
-						if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
-							indentUnit = '	';
-						} else {
-							indentUnit = Helpers.leftPad(' ', globalObject.globals.storages.settingsStorage
-								.editor.tabSize || 2);
-						}
+						const indentUnit = editorSettings.useTabs ?
+									'	' : Helpers.leftPad(' ', editorSettings.tabSize || 2)
 
 						const script = node.value.backgroundScript.split('\n').map((line) => {
 							return indentUnit + line;
 						}).join('\n');
 
-						const metaVal = CRM.Script._generateMetaAccessFunction(metaData);
-
-						const greaseMonkeyData = {
-							info: {
-								script: {
-									author: metaVal('author') || '',
-									copyright: metaVal('copyright'),
-									description: metaVal('description'),
-									excludes: metaData['excludes'],
-									homepage: metaVal('homepage'),
-									icon: metaVal('icon'),
-									icon64: metaVal('icon64'),
-									includes: metaData['includes'],
-									lastUpdated: 0, //Never updated
-									matches: metaData['matches'],
-									isIncognito: false,
-									downloadMode: 'browser',
-									name: node.name,
-									namespace: metaVal('namespace'),
-									options: {
-										awareOfChrome: true,
-										compat_arrayleft: false,
-										compat_foreach: false,
-										compat_forvarin: false,
-										compat_metadata: false,
-										compat_prototypes: false,
-										compat_uW_gmonkey: false,
-										noframes: metaVal('noframes'),
-										override: {
-											excludes: true,
-											includes: true,
-											orig_excludes: metaData['excludes'],
-											orig_includes: metaData['includes'],
-											use_excludes: excludes,
-											use_includes: includes
-										}
-									},
-									position: 1, // what does this mean?
-									resources: CRM.Script._getResourcesArrayForScript(node.id),
-									"run-at": runAt,
-									system: false,
-									unwrap: true,
-									version: metaVal('version')
-								},
-								scriptMetaStr: metaString,
-								scriptSource: script,
-								scriptUpdateURL: metaVal('updateURL'),
-								scriptWillUpdate: true,
-								scriptHandler: 'Custom Right-Click Menu',
-								version: chrome.runtime.getManifest().version
-							},
-							resources: {}
-						};
-						globalObject.globals.storages.nodeStorage[node
-							.id] = globalObject.globals.storages.nodeStorage[node.id] || {};
-
-						const nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
-
-						const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
-								node.isLocal;
-							
-						libraries.push('/js/crmapi.js');
-						const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
+						const greaseMonkeyData = Script.Handler.generateGreaseMonkeyData(metaData, node, includes, excludes, {
+							incognito: false
+						});
 
 						const safeNode = CRM.makeSafe(node) as any;
 						safeNode.permissions = node.permissions;
-						code = [
-							code.join('\n'), [
-								`var crmAPI = new CrmAPIInit(${[
-									safeNode, node.id, { id: 0 }, {}, key,
-									nodeStorage,
-									greaseMonkeyData, true, (node.value && node.value.options) || {},
-									enableBackwardsCompatibility, 0
-								]
-								.map((param) => {
-									if (param === void 0) {
-										return JSON.stringify(null);
-									}
-									return JSON.stringify(param);
-								}).join(', ')});`
-							].join(', '),
-							globalObject.globals.constants.templates.globalObjectWrapperCode('self', 'selfWrapper', void 0),
-							`${catchErrs ? 'try {' : ''}`,
-								'function main(crmAPI, self, menuitemid, parentmenuitemid, mediatype,' +
-								`${indentUnit}linkurl, srcurl, pageurl, frameurl, frameid,` + 
-								`${indentUnit}selectiontext, editable, waschecked, checked) {`,
-									script,
-								'}',
-								`main(crmAPI, selfWrapper);`,
-							`${catchErrs ? [
-								`} catch (error) {`,
-								`${indentUnit}if (crmAPI.debugOnError) {`,
-								`${indentUnit}${indentUnit}debugger;`,
-								`${indentUnit}}`,
-								`${indentUnit}throw error;`,
-								`}`
-							].join('\n') : ''}`
-						];
+						const code = this._genCode(backgroundPageCode, {
+							key,
+							node,
+							script,
+							safeNode,
+							indentUnit,
+							nodeStorage,
+							greaseMonkeyData
+						})
 
-						sandboxes.sandbox(node.id, code.join('\n'), libraries, key, () => {
+						sandboxes.sandbox(node.id, code, libraries, key, () => {
 							const instancesArr: Array<{
 								id: string;
 								tabIndex: number;
@@ -6348,237 +6297,279 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 			};
-			static createHandler(node: CRM.ScriptNode): ClickHandler {
-				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
-					let key: Array<number> = [];
-					let err = false;
-					try {
-						key = Helpers.createSecretKey();
-					} catch (e) {
-						//There somehow was a stack overflow
-						err = e;
-					}
-					if (err) {
-						chrome.tabs.executeScript(tab.id, {
-							code:
-								'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
-						}, () => {
-							chrome.runtime.reload();
-						});
-					} else {
-						Promiselike.all([new Promiselike<ContextData>((resolve) => {
-							chrome.tabs.sendMessage(tab.id, {
-								type: 'getLastClickInfo'
-							}, (response: ContextData) => {
-								resolve(response);
-							});
-						}), new Promiselike<[any, GreaseMonkeyData, string, string, number, string]>((resolve) => {
-							let i: number;
-							globalObject.globals.crmValues.tabData[tab.id] = 
-								globalObject.globals.crmValues.tabData[tab.id] || {
-									libraries: {},
-									nodes: {}
-								};
-							globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] = 
-								globalObject.globals.crmValues.tabData[tab.id].nodes[node.id] || [];
-							globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].push({
-								secretKey: key,
-								usesLocalStorage: node.value.script.indexOf('localStorageProxy') > -1
-							});
+			static Handler = class Handler {
+				private static _genCode({
+					tab,
+					key,
+					info,
+					node,
+					safeNode,
+				}: {
+					tab: chrome.tabs.Tab;
+					key: Array<number>;
+					info: chrome.contextMenus.OnClickData;
+					node: CRM.ScriptNode;
+					safeNode: CRM.SafeNode;
+				}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [ContextData, 
+								[any, GreaseMonkeyData, string, string, string, number]]): string {
 
-							const tabIndex = globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].length - 1;
-							Logging.Listeners.updateTabAndIdLists();
-
-							const metaData: {
-								[key: string]: any;
-							} = CRM.Script.MetaTags.getMetaTags(node.value.script);
-							const metaString = (CRM.Script.MetaTags.getMetaLines(node.value
-								.script) || []).join('\n');
-							const runAt: string = metaData['run-at'] || 'document_end';
-							const excludes: Array<string> = [];
-							const includes: Array<string> = [];
-							if (node.triggers) {
-								for (i = 0; i < node.triggers.length; i++) {
-									if (node.triggers[i].not) {
-										excludes.push(node.triggers[i].url);
-									} else {
-										includes.push(node.triggers[i].url);
-									}
-								}
-							}
-
-							const metaVal = CRM.Script._generateMetaAccessFunction(metaData);
-
-							const greaseMonkeyData: GreaseMonkeyData = {
-								info: {
-									script: {
-										author: metaVal('author') || '',
-										copyright: metaVal('copyright'),
-										description: metaVal('description'),
-										excludes: metaData['excludes'],
-										homepage: metaVal('homepage'),
-										icon: metaVal('icon'),
-										icon64: metaVal('icon64'),
-										includes: metaData['includes'],
-										lastUpdated: 0, //Never updated
-										matches: metaData['matches'],
-										isIncognito: tab.incognito,
-										downloadMode: 'browser',
-										name: node.name,
-										namespace: metaVal('namespace'),
-										options: {
-											awareOfChrome: true,
-											compat_arrayleft: false,
-											compat_foreach: false,
-											compat_forvarin: false,
-											compat_metadata: false,
-											compat_prototypes: false,
-											compat_uW_gmonkey: false,
-											noframes: metaVal('noframes'),
-											override: {
-												excludes: true,
-												includes: true,
-												orig_excludes: metaData['excludes'],
-												orig_includes: metaData['includes'],
-												use_excludes: excludes,
-												use_includes: includes
-											}
-										},
-										position: 1, // what does this mean?
-										resources: CRM.Script._getResourcesArrayForScript(node.id),
-										"run-at": runAt,
-										system: false,
-										unwrap: true,
-										version: metaVal('version')
-									},
-									scriptMetaStr: metaString,
-									scriptSource: node.value.script,
-									scriptUpdateURL: metaVal('updateURL'),
-									scriptWillUpdate: true,
-									scriptHandler: 'Custom Right-Click Menu',
-									version: chrome.runtime.getManifest().version
-								},
-								resources: globalObject.globals.storages.resources[node.id] || {}
-							};
-							globalObject.globals.storages.nodeStorage[node
-								.id] = globalObject.globals.storages.nodeStorage[node.id] || {};
-
-							const nodeStorage = globalObject.globals.storages.nodeStorage[node.id];
-
-							let indentUnit: string;
-							if (globalObject.globals.storages.settingsStorage.editor.useTabs) {
-								indentUnit = '	';
-							} else {
-								indentUnit = Helpers.leftPad(' ', globalObject.globals.storages.settingsStorage
-									.editor.tabSize || 2);
-							}
-
-							const script = node.value.script.split('\n').map((line) => {
-								return indentUnit + line;
-							}).join('\n');
-
-							resolve([nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt, tabIndex]);							
-						})]).then(([contextData, 
-							[nodeStorage, greaseMonkeyData, script, indentUnit, i, runAt, tabIndex]]: [ContextData, 
-							[any, GreaseMonkeyData, string, string, number, string, number]]) => {
-
-							const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
-								node.isLocal;
-							const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
-
-							const safeNode = CRM.makeSafe(node);
-							(safeNode as any).permissions = node.permissions;
-							const code = [
+					const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
+									node.isLocal;
+					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
+					return [
+						[
+							`var crmAPI = new CrmAPIInit(${
 								[
-									`var crmAPI = new CrmAPIInit(${
-										[
-											safeNode, node.id, tab, info, key, nodeStorage,
-											contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
-											enableBackwardsCompatibility, tabIndex
-										]
-                                            .map((param) => {
-												if (param === void 0) {
-													return JSON.stringify(null);
-												}
-												return JSON.stringify(param);
-											}).join(', ')});` +
-									'window.CrmAPIInit = null;'
-								].join(', '),
-								globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),
-								`${catchErrs ? 'try {' : ''}`,
-								'function main(crmAPI, window, chrome, menuitemid, parentmenuitemid, mediatype,' +
-								'linkurl, srcurl, pageurl, frameurl, frameid,' +
-								'selectiontext, editable, waschecked, checked) {',
-								script,
-								'}',
-								`main.apply(this, [crmAPI, windowWrapper, ${node.isLocal ? 'chrome' : 'void 0'}].concat(${
-									JSON.stringify([
-										info.menuItemId, info.parentMenuItemId, info.mediaType,
-										info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
-										(info as any).frameId, info.selectionText,
-										info.editable, info.wasChecked, info.checked
-									])
-									}))`,
-								`${catchErrs ? [
-									`} catch (error) {`,
-									`${indentUnit}if (crmAPI.debugOnError) {`,
-									`${indentUnit}${indentUnit}debugger;`,
-									`${indentUnit}}`,
-									`${indentUnit}throw error;`,
-									`}`
-								].join('\n') : ''}`
-							].join('\n');
-
-							const scripts = [];
-							for (i = 0; i < node.value.libraries.length; i++) {
-								let lib: {
-									name: string;
-									url?: string;
-									code?: string;
-								} | {
-									code: string;
-								};
-								const globalLibs = globalObject.globals.storages.storageLocal.libraries;
-								if (globalLibs) {
-									for (let j = 0; j < globalLibs.length; j++) {
-										if (globalLibs[j].name === node.value.libraries[i].name) {
-											lib = globalLibs[j];
-											break;
-										} else {
-											//Resource hasn't been registered with its name, try if it's an anonymous one
-											if (node.value.libraries[i].name === null) {
-												//Check if the value has been registered as a resource
-												if (globalObject.globals.storages.urlDataPairs[
-													node.value.libraries[i].url]) {
-													lib = {
-														code: globalObject.globals.storages.urlDataPairs[
-															node.value.libraries[i].url].dataString
-													};
-												}
-											}
+									safeNode, node.id, tab, info, key, nodeStorage,
+									contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
+									enableBackwardsCompatibility, tabIndex
+								]
+									.map((param) => {
+										if (param === void 0) {
+											return JSON.stringify(null);
+										}
+										return JSON.stringify(param);
+									}).join(', ')});` +
+							'window.CrmAPIInit = null;'
+						].join(', '),
+						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),
+						`${catchErrs ? 'try {' : ''}`,
+						'function main(crmAPI, window, chrome, menuitemid, parentmenuitemid, mediatype,' +
+						'linkurl, srcurl, pageurl, frameurl, frameid,' +
+						'selectiontext, editable, waschecked, checked) {',
+						script,
+						'}',
+						`main.apply(this, [crmAPI, windowWrapper, ${node.isLocal ? 'chrome' : 'void 0'}].concat(${
+							JSON.stringify([
+								info.menuItemId, info.parentMenuItemId, info.mediaType,
+								info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,
+								(info as any).frameId, info.selectionText,
+								info.editable, info.wasChecked, info.checked
+							])
+							}))`,
+						`${catchErrs ? [
+							`} catch (error) {`,
+							`${indentUnit}if (crmAPI.debugOnError) {`,
+							`${indentUnit}${indentUnit}debugger;`,
+							`${indentUnit}}`,
+							`${indentUnit}throw error;`,
+							`}`
+						].join('\n') : ''}`
+					].join('\n');
+				}
+				private static _getScriptsToRun(code: string, runAt: string, node: CRM.ScriptNode): Array<{
+					code?: string;
+					file?: string;
+					runAt: string;
+				}> {
+					const scripts = [];
+					for (let i = 0; i < node.value.libraries.length; i++) {
+						let lib: {
+							name: string;
+							url?: string;
+							code?: string;
+						} | {
+							code: string;
+						};
+						const globalLibs = globalObject.globals.storages.storageLocal.libraries;
+						if (globalLibs) {
+							for (let j = 0; j < globalLibs.length; j++) {
+								if (globalLibs[j].name === node.value.libraries[i].name) {
+									lib = globalLibs[j];
+									break;
+								} else {
+									//Resource hasn't been registered with its name, try if it's an anonymous one
+									if (node.value.libraries[i].name === null) {
+										//Check if the value has been registered as a resource
+										if (globalObject.globals.storages.urlDataPairs[
+											node.value.libraries[i].url]) {
+											lib = {
+												code: globalObject.globals.storages.urlDataPairs[
+													node.value.libraries[i].url].dataString
+											};
 										}
 									}
 								}
-								if (lib) {
-									scripts.push({
-										code: lib.code,
-										runAt: runAt
-									});
-								}
 							}
+						}
+						if (lib) {
 							scripts.push({
-								file: '/js/crmapi.js',
+								code: lib.code,
 								runAt: runAt
 							});
-							scripts.push({
-								code: code,
-								runAt: runAt
-							});
-
-							this._executeScripts(tab.id, scripts);
-						});
+						}
 					}
-				};
+					scripts.push({
+						file: '/js/crmapi.js',
+						runAt: runAt
+					});
+					scripts.push({
+						code: code,
+						runAt: runAt
+					});
+					return scripts;
+				}
+
+				static generateGreaseMonkeyData(metaData: {
+					[key: string]: any;
+				}, node: CRM.ScriptNode, includes: Array<string>, excludes: Array<string>, tab: {
+					incognito: boolean
+				}) {
+					const metaString = (CRM.Script.MetaTags.getMetaLines(node.value
+									.script) || []).join('\n');
+					const metaVal = CRM.Script._generateMetaAccessFunction(metaData);
+					return {
+						info: {
+							script: {
+								author: metaVal('author') || '',
+								copyright: metaVal('copyright'),
+								description: metaVal('description'),
+								excludes: metaData['excludes'],
+								homepage: metaVal('homepage'),
+								icon: metaVal('icon'),
+								icon64: metaVal('icon64'),
+								includes: metaData['includes'],
+								lastUpdated: 0, //Never updated
+								matches: metaData['matches'],
+								isIncognito: tab.incognito,
+								downloadMode: 'browser',
+								name: node.name,
+								namespace: metaVal('namespace'),
+								options: {
+									awareOfChrome: true,
+									compat_arrayleft: false,
+									compat_foreach: false,
+									compat_forvarin: false,
+									compat_metadata: false,
+									compat_prototypes: false,
+									compat_uW_gmonkey: false,
+									noframes: metaVal('noframes'),
+									override: {
+										excludes: true,
+										includes: true,
+										orig_excludes: metaData['excludes'],
+										orig_includes: metaData['includes'],
+										use_excludes: excludes,
+										use_includes: includes
+									}
+								},
+								position: 1, // what does this mean?
+								resources: CRM.Script._getResourcesArrayForScript(node.id),
+								"run-at": metaData['run-at'] || 'document_end',
+								system: false,
+								unwrap: true,
+								version: metaVal('version')
+							},
+							scriptMetaStr: metaString,
+							scriptSource: node.value.script,
+							scriptUpdateURL: metaVal('updateURL'),
+							scriptWillUpdate: true,
+							scriptHandler: 'Custom Right-Click Menu',
+							version: chrome.runtime.getManifest().version
+						},
+						resources: globalObject.globals.storages.resources[node.id] || {}
+					};
+				}
+				static getInExcludes(node: CRM.ScriptNode): { excludes: Array<string>, includes: Array<string> } {
+					const excludes: Array<string> = [];
+					const includes: Array<string> = [];
+					if (node.triggers) {
+						for (let i = 0; i < node.triggers.length; i++) {
+							if (node.triggers[i].not) {
+								excludes.push(node.triggers[i].url);
+							} else {
+								includes.push(node.triggers[i].url);
+							}
+						}
+					}
+					return {
+						excludes,
+						includes
+					}
+				}
+				static genTabData(tabId: number, key: Array<number>, nodeId: number, script: string) {
+					globalObject.globals.crmValues.tabData[tabId] = 
+						globalObject.globals.crmValues.tabData[tabId] || {
+							libraries: {},
+							nodes: {}
+						};
+					globalObject.globals.crmValues.tabData[tabId].nodes[nodeId] = 
+						globalObject.globals.crmValues.tabData[tabId].nodes[nodeId] || [];
+					globalObject.globals.crmValues.tabData[tabId].nodes[nodeId].push({
+						secretKey: key,
+						usesLocalStorage: script.indexOf('localStorageProxy') > -1
+					});
+				}
+				static createHandler(node: CRM.ScriptNode): ClickHandler {
+					return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
+						let key: Array<number> = [];
+						let err = false;
+						try {
+							key = Helpers.createSecretKey();
+						} catch (e) {
+							//There somehow was a stack overflow
+							err = e;
+						}
+						if (err) {
+							chrome.tabs.executeScript(tab.id, {
+								code:
+									'alert("Something went wrong very badly, please go to your Custom Right-Click Menu options page and remove any sketchy scripts.")'
+							}, () => {
+								chrome.runtime.reload();
+							});
+						} else {
+							Promiselike.all([new Promiselike<ContextData>((resolve) => {
+								chrome.tabs.sendMessage(tab.id, {
+									type: 'getLastClickInfo'
+								}, (response: ContextData) => {
+									resolve(response);
+								});
+							}), new Promiselike<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
+								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
+								const nodeStorage = globalNodeStorage[node.id];
+								const editorSettings = globalObject.globals.storages.settingsStorage.editor
+
+								globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
+								const tabIndex = globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].length - 1;
+								Logging.Listeners.updateTabAndIdLists();
+
+								this.genTabData(tab.id, key, node.id, node.value.script)
+
+								const metaData: {
+									[key: string]: any;
+								} = CRM.Script.MetaTags.getMetaTags(node.value.script);
+								const runAt: string = metaData['run-at'] || 'document_end';
+								const { excludes, includes } = this.getInExcludes(node)
+
+								const greaseMonkeyData = this.generateGreaseMonkeyData(metaData, node, includes, excludes, tab)
+
+								const indentUnit = editorSettings.useTabs ?
+									'	' : Helpers.leftPad(' ', editorSettings.tabSize || 2)
+
+								const script = node.value.script.split('\n').map((line) => {
+									return indentUnit + line;
+								}).join('\n');
+
+								resolve([nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]);							
+							})]).then((args: [ContextData, 
+								[any, GreaseMonkeyData, string, string, string, number]]) => {
+								const safeNode = CRM.makeSafe(node);
+								(safeNode as any).permissions = node.permissions;
+								const code = this._genCode({
+									node,
+									safeNode,
+									tab,
+									info,
+									key
+								}, args)
+
+								const scripts = this._getScriptsToRun(code, args[1][3], node);
+
+								Script._executeScripts(tab.id, scripts);
+							});
+						}
+					};
+				}
 			}
 		};
 		static Link = class Link {
@@ -7120,7 +7111,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						rightClickItemOptions.onclick = CRM.Link.createHandler(node);
 						break;
 					case 'script':
-						rightClickItemOptions.onclick = CRM.Script.createHandler(node);
+						rightClickItemOptions.onclick = CRM.Script.Handler.createHandler(node);
 						break;
 					case 'stylesheet':
 						if (node.value.toggle) {
