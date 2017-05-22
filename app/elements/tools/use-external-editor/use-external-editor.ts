@@ -210,213 +210,254 @@ class UEE {
 		}
 	};
 
-	private static createEditingOverlay(this: UseExternalEditor) {
-		const _this = this;
-		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
-		window.doc.externalEditorDialogTrigger.disabled = true;
-		window.doc.externalEditorDialogTrigger.classList.add('disabled');
-		const toolsCont = window.app.util.createElement('div', {
-			id: 'externalEditingTools'
-		});
-		toolsCont.appendChild(window.app.util.createElement('div', {
-			id: 'externalEditingToolsTitle'
-		}, ['Using external editor']));
-		const cont = toolsCont.appendChild(window.app.util.createElement('div', {
-			id: 'externalEditingToolsButtonsCont'
-		}));
+	private static EditingOverlay =  class EditingOverlay {
+		private static createToolsCont(): HTMLElement {
+			const toolsCont = window.app.util.createElement('div', {
+				id: 'externalEditingTools'
+			});
+			toolsCont.appendChild(window.app.util.createElement('div', {
+				id: 'externalEditingToolsTitle'
+			}, ['Using external editor']));
+			return toolsCont;
+		}
 
-		cont.appendChild(window.app.util.createElement('div', {
-			id: 'externalEditingToolsDisconnect'
-		}, [
-			window.app.util.createElement('paper-material', {
-				props: {
-					elevation: '1'
-				}
+		private static createDisconnect(): HTMLElement {
+			const el = window.app.util.createElement('div', {
+				id: 'externalEditingToolsDisconnect'
 			}, [
-				window.app.util.createElement('paper-ripple', {}),
-				window.app.util.createElement('svg', {
+				window.app.util.createElement('paper-material', {
 					props: {
-						xmlns: 'http://www.w3.org/2000/svg',
-						height: '70',
-						width: '70',
-						viewBox: '0 0 24 24'
+						elevation: '1'
 					}
 				}, [
-					window.app.util.createElement('path', {
+					window.app.util.createElement('paper-ripple', {}),
+					window.app.util.createElement('svg', {
 						props: {
-							d: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17' + 
-								'.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'
+							xmlns: 'http://www.w3.org/2000/svg',
+							height: '70',
+							width: '70',
+							viewBox: '0 0 24 24'
 						}
-					}),
-					window.app.util.createElement('path', {
+					}, [
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17' + 
+									'.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'
+							}
+						}),
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M0 0h24v24H0z',
+								fill: 'none'
+							}
+						})
+					]),
+					window.app.util.createElement('div', {
+						classes: ['externalEditingToolText']
+					}, ['Stop'])
+				])
+			]);
+			el.addEventListener('click', () => {
+				this.parent().cancelOpenFiles.apply(this, []);
+			});
+			return el;
+		}
+
+		private static createShowLocation() {
+			const el = window.app.util.createElement('div', {
+				id: 'externalEditingToolsShowLocation'
+			}, [
+				window.app.util.createElement('paper-material', {
+					props: {
+						elevation: '1'
+					}
+				}, [
+					window.app.util.createElement('paper-ripple', {}),
+					window.app.util.createElement('svg', {
 						props: {
-							d: 'M0 0h24v24H0z',
-							fill: 'none'
+							height: '70',
+							viewBox: '0 0 24 24',
+							width: '70',
+							xmlns: 'http://www.w3.org/2000/svg'
 						}
-					})
+					}, [
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M0 0h24v24H0z',
+								fill: 'none'
+							}
+						}),
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 ' + 
+									'18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0' + 
+									'-1.1-.9-2-2-2zm0 12H4V8h16v10z'
+							}
+						})
+					])
 				]),
 				window.app.util.createElement('div', {
 					classes: ['externalEditingToolText']
-				}, ['Stop'])
-			])
-		])).addEventListener('click', () => {
-			_this.cancelOpenFiles.apply(_this, []);
-		});
-
-		cont.appendChild(window.app.util.createElement('div', {
-			id: 'externalEditingToolsShowLocation'
-		}, [
-			window.app.util.createElement('paper-material', {
-				props: {
-					elevation: '1'
-				}
-			}, [
-				window.app.util.createElement('paper-ripple', {}),
-				window.app.util.createElement('svg', {
-					props: {
-						height: '70',
-						viewBox: '0 0 24 24',
-						width: '70',
-						xmlns: 'http://www.w3.org/2000/svg'
-					}
-				}, [
-					window.app.util.createElement('path', {
-						props: {
-							d: 'M0 0h24v24H0z',
-							fill: 'none'
-						}
-					}),
-					window.app.util.createElement('path', {
-						props: {
-							d: 'M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 ' + 
-								'18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0' + 
-								'-1.1-.9-2-2-2zm0 12H4V8h16v10z'
-						}
-					})
-				])
-			]),
-			window.app.util.createElement('div', {
-				classes: ['externalEditingToolText']
-			}, ['Location'])
-		])).addEventListener('click', () => {
-			//Show location toast
-			let location = _this.connection.filePath;
-			location = location.replace(/\\/g, '/');
-			window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
-			const externalEditorLocationToast = window.doc.externalEditorLocationToast;
-			externalEditorLocationToast.text = 'File is located at: ' + location;
-			externalEditorLocationToast.show();
-		});
-
-		window.app.util.createElement('div', {
-			id: 'externalEditingToolsCreateNewFile'
-		}, [
-			window.app.util.createElement('paper-material', {
-				props: {
-					elevation: '1'
-				}
-			}, [
-				window.app.util.createElement('paper-ripple', {}),
-				window.app.util.createElement('svg', {
-					props: {
-						height: '70',
-						width: '70',
-						xmlns: 'http://www.w3.org/2000/svg',
-						viewBox: '0 0 24 24'
-					}
-				}, [
-					window.app.util.createElement('path', {
-						props: {
-							d: 'M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1' + 
-								'.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6' +
-								'-6H6zm7 7V3.5L18.5 9H13z'
-						}
-					}),
-					window.app.util.createElement('path', {
-						props: {
-							d: 'M0 0h24v24H0z',
-							fill: 'none'
-						}
-					})
-				])
-			]),
-			window.app.util.createElement('div', {
-				classes: ['externalEditingToolText']
-			}, ['Move'])
-		]).addEventListener('click', () => {
-			_this.postMessage({
-				status: 'connected',
-				action: 'createNewFile',
-				isCss: (!!window.scriptEdit),
-				name: _this.editingCRMItem.name
+				}, ['Location'])
+			]);
+			el.addEventListener('click', () => {
+				//Show location toast
+				let location = this.parent().connection.filePath;
+				location = location.replace(/\\/g, '/');
+				window.doc.externalEditoOpenLocationInBrowser.setAttribute('href', 'file:///' + location);
+				const externalEditorLocationToast = window.doc.externalEditorLocationToast;
+				externalEditorLocationToast.text = 'File is located at: ' + location;
+				externalEditorLocationToast.show();
 			});
-		});
+			return el;
+		}
 
-		cont.appendChild(window.app.util.createElement('div', {
-			id: 'externalEditingToolsUpdate'
-		}, [
-			window.app.util.createElement('paper-material', {
-				props: {
-					elevation: '1'
-				}
+		private static createNewFile() {
+			window.app.util.createElement('div', {
+				id: 'externalEditingToolsCreateNewFile'
 			}, [
-				window.app.util.createElement('paper-ripple', {}),
-				window.app.util.createElement('svg', {
+				window.app.util.createElement('paper-material', {
 					props: {
-						height: '70',
-						width: '70',
-						xmlns: 'http://www.w3.org/2000/svg',
-						viewBox: '0 0 24 24'
+						elevation: '1'
 					}
 				}, [
-					window.app.util.createElement('path', {
+					window.app.util.createElement('paper-ripple', {}),
+					window.app.util.createElement('svg', {
 						props: {
-							d: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58' +
-								'-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.0' + 
-								'8c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6' +
-								' 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'
+							height: '70',
+							width: '70',
+							xmlns: 'http://www.w3.org/2000/svg',
+							viewBox: '0 0 24 24'
 						}
-					}),
-					window.app.util.createElement('path', {
-						props: {
-							d: 'M0 0h24v24H0z',
-							fill: 'none'
-						}
-					})
-				])
-			]),
-			window.app.util.createElement('div', {
-				classes: ['externalEditingToolText']
-			}, ['Refresh'])
-		])).addEventListener('click', () => {
-			_this.postMessage({
-				status: 'connected',
-				action: 'refreshFromApp'
+					}, [
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1' + 
+									'.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6' +
+									'-6H6zm7 7V3.5L18.5 9H13z'
+							}
+						}),
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M0 0h24v24H0z',
+								fill: 'none'
+							}
+						})
+					])
+				]),
+				window.app.util.createElement('div', {
+					classes: ['externalEditingToolText']
+				}, ['Move'])
+			]).addEventListener('click', () => {
+				this.parent().postMessage({
+					status: 'connected',
+					action: 'createNewFile',
+					isCss: (!!window.scriptEdit),
+					name: this.parent().editingCRMItem.name
+				});
 			});
-		});
+		}
 
-		$((window.scriptEdit && window.scriptEdit.active ?
+		private static createUpdate() {
+			const el = window.app.util.createElement('div', {
+				id: 'externalEditingToolsUpdate'
+			}, [
+				window.app.util.createElement('paper-material', {
+					props: {
+						elevation: '1'
+					}
+				}, [
+					window.app.util.createElement('paper-ripple', {}),
+					window.app.util.createElement('svg', {
+						props: {
+							height: '70',
+							width: '70',
+							xmlns: 'http://www.w3.org/2000/svg',
+							viewBox: '0 0 24 24'
+						}
+					}, [
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58' +
+									'-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.0' + 
+									'8c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6' +
+									' 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'
+							}
+						}),
+						window.app.util.createElement('path', {
+							props: {
+								d: 'M0 0h24v24H0z',
+								fill: 'none'
+							}
+						})
+					])
+				]),
+				window.app.util.createElement('div', {
+					classes: ['externalEditingToolText']
+				}, ['Refresh'])
+			]);
+			el.addEventListener('click', () => {
+				this.parent().postMessage({
+					status: 'connected',
+					action: 'refreshFromApp'
+				});
+			});
+			return el;
+		}
+
+		private static createCont(toolsCont: HTMLElement) {
+			const cont = toolsCont.appendChild(window.app.util.createElement('div', {
+				id: 'externalEditingToolsButtonsCont'
+			}));
+			cont.appendChild(this.createDisconnect())
+			cont.appendChild(this.createShowLocation());
+			this.createNewFile();
+			cont.appendChild(this.createUpdate());
+		}
+
+		private static appendWrapper(toolsCont: HTMLElement) {
+			$((window.scriptEdit && window.scriptEdit.active ?
 			window.scriptEdit.editor.display.wrapper :
 			window.stylesheetEdit.editor.display.wrapper))
 				.find('.CodeMirror-scroll')[0].appendChild(toolsCont);
+		}
+
+		static generateOverlay() {
+			const toolsCont = this.createToolsCont();
+			this.createCont(toolsCont)
+			this.appendWrapper(toolsCont);
+		}
+
+		static parent() {
+			return window.externalEditor;
+		}
+	}
+
+	private static createEditingOverlay(this: UseExternalEditor) {
+		window.doc.externalEditorDialogTrigger.style.color = 'rgb(175, 175, 175)';
+		window.doc.externalEditorDialogTrigger.disabled = true;
+		window.doc.externalEditorDialogTrigger.classList.add('disabled');
+
+		this.EditingOverlay.generateOverlay()
 				
-		$((window.scriptEdit && window.scriptEdit.active ? window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
-			.find('.CodeMirror-scroll')[0]
-			.animate([
-				{
-					bottom: '-152px',
-					right: '-350px'
-				}, {
-					bottom: 0,
-					right: 0
-				}
-			], {
-				duration: 300,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			}).onfinish = function(this: Animation) {
-				this.effect.target.style.bottom = '0';
-				this.effect.target.style.right = '0';
-			};
+		$((window.scriptEdit && window.scriptEdit.active ?
+			window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
+				.find('.CodeMirror-scroll')[0]
+				.animate([
+					{
+						bottom: '-152px',
+						right: '-350px'
+					}, {
+						bottom: 0,
+						right: 0
+					}
+				], {
+					duration: 300,
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				}).onfinish = function(this: Animation) {
+					this.effect.target.style.bottom = '0';
+					this.effect.target.style.right = '0';
+				};
 	};
 
 	static setupExternalEditing(this: UseExternalEditor) {
@@ -623,89 +664,96 @@ class UEE {
 		}
 	};
 
-	static onDialogMainDivAnimationHideEnd(_this: UseExternalEditor, dialogRect: ClientRect, dialogStyle: CSSStyleDeclaration,
+	static applyProps<T extends {
+		[key: string]: string|number;
+	}>(source: T, target: any, props: Array<keyof T>) {
+		for (let i = 0; i < props.length; i++) {
+			target[props[i]] = source[props[i]] + '';
+		}
+	}
+
+	static doCSSAnimation(element: HTMLElement, before: {
+		[key: string]: string|number;
+	}, after: {
+		[key: string]: string|number;
+	}, duration: number, callback?: () => void): Animation {
+		const animation = element.animate([before, after], {
+			duration,
+			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+		});
+		animation.onfinish = () => {
+			this.applyProps(after, element.style, Object.getOwnPropertyNames(after));
+			callback && callback();	
+		};
+		return animation;
+	}
+
+	static initEditor(_this: UseExternalEditor, oldScript: string, newScript: string) {
+		_this.editor = new window.CodeMirror.MergeView(window.doc.chooseFilemergerContainer, {
+			lineNumbers: true,
+			scrollbarStyle: 'simple',
+			lineWrapping: true,
+			mode: 'javascript',
+			foldGutter: true,
+			theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+			indentUnit: window.app.settings.editor.tabSize,
+			indentWithTabs: window.app.settings.editor.useTabs,
+			value: oldScript,
+			origLeft: oldScript,
+			origRight: newScript,
+			connect: 'align',
+			messageExternal: true
+		});
+	}
+
+	static onDialogMainDivAnimationHideEnd(__this: UseExternalEditor, dialogRect: ClientRect, dialogStyle: CSSStyleDeclaration,
 		oldScript: string, newScript: string) {
 			window.doc.chooseFileMainDialog.style.display = 'none';
 			window.doc.chooseFileMainDialog.style.marginTop = '0';
 			window.doc.chooseFileMainDialog.style.opacity = '1';
 
-			if (_this.dialogExpansionAnimation) {
-				_this.dialogExpansionAnimation.play();
+			if (__this.dialogExpansionAnimation) {
+				__this.dialogExpansionAnimation.play();
 			} else {
-				_this.dialogExpansionAnimation = window.doc.externalEditorChooseFile.animate([
-					{
-						width: dialogRect.width,
-						height: dialogRect.height,
-						marginTop: '24px',
-						marginLeft: '40px',
-						marginBottom: '24px',
-						marginRight: '40px',
-						top: (dialogStyle.top || '0px'),
-						left: (dialogStyle.left || '0px')
-					}, {
-						width: '100vw',
-						height: '100vh',
-						marginTop: '0px',
-						marginLeft: '0px',
-						marginBottom: '0px',
-						marginRight: '0px',
-						top: '0px',
-						left: '0px'
-					}
-				], {
-					duration: 400,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-				});
-				_this.dialogExpansionAnimation.onfinish = function() {
-					dialogStyle.width = '100vw';
-					dialogStyle.height = '100vh';
-					dialogStyle.top = '0';
-					dialogStyle.left = '0';
-					dialogStyle.margin = '0';
-
+				__this.dialogExpansionAnimation = __this.doCSSAnimation(window.doc.externalEditorChooseFile, {
+					width: dialogRect.width,
+					height: dialogRect.height,
+					marginTop: '24px',
+					marginLeft: '40px',
+					marginBottom: '24px',
+					marginRight: '40px',
+					top: (dialogStyle.top || '0px'),
+					left: (dialogStyle.left || '0px')
+				}, {
+					width: '100vw',
+					height: '100vh',
+					marginTop: '0px',
+					marginLeft: '0px',
+					marginBottom: '0px',
+					marginRight: '0px',
+					top: '0px',
+					left: '0px'
+				}, 400, () => {
 					window.doc.chooseFileMerger.style.display = 'flex';
-					if (_this.dialogComparisonDivAnimationShow) {
-						_this.dialogComparisonDivAnimationShow.play();
+					if (__this.dialogComparisonDivAnimationShow) {
+						__this.dialogComparisonDivAnimationShow.play();
 					} else {
-						_this.dialogComparisonDivAnimationShow = window.doc.chooseFileMerger.animate([
-							{
-								marginTop: '70px',
-								opacity: 0
-							}, {
-								marginTop: '0px',
-								opacity: 1
-							}
-						], {
-							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						});
-						_this.dialogComparisonDivAnimationShow.onfinish = function() {
-							window.doc.chooseFileMerger.style.marginTop = '0';
-							window.doc.chooseFileMerger.style.opacity = '1';
-
-							if (!_this.editor) {
+						__this.dialogComparisonDivAnimationShow = __this.doCSSAnimation(window.doc.chooseFileMerger, {
+							marginTop: '70px',
+							opacity: 0
+						}, {
+							marginTop: '0px',
+							opacity: 1
+						}, 250, () => {
+							if (!__this.editor) {
 								setTimeout(function () {
-									_this.editor = new window.CodeMirror.MergeView(window.doc.chooseFilemergerContainer, {
-										lineNumbers: true,
-										scrollbarStyle: 'simple',
-										lineWrapping: true,
-										mode: 'javascript',
-										foldGutter: true,
-										theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-										indentUnit: window.app.settings.editor.tabSize,
-										indentWithTabs: window.app.settings.editor.useTabs,
-										value: oldScript,
-										origLeft: oldScript,
-										origRight: newScript,
-										connect: 'align',
-										messageExternal: true
-									});
+									__this.initEditor(__this, oldScript, newScript);
 								}, 150);
 							}
-						};
+						});
 					}
-				};
-			}
+				});
+			};
 		}
 
 	static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
@@ -881,6 +929,100 @@ class UEE {
 		};
 	};
 
+	private static clearElementListeners(element: ListeningHTMLElement) {
+		var element = window.doc.updateMergeLeftNextError;
+		element.listeners = element.listeners || [];
+		for (let i = 0; i < element.listeners.length; i++) {
+			element.removeEventListener('click', element.listeners[i]);
+		}
+		element.listeners = [];
+	}
+
+	private static markErrors(errors: Array<CursorPosition>, editor: {
+		orig: CodeMirrorInstance & {
+			display: HTMLElement & {
+				lineDiv: HTMLElement;
+				wrapper: HTMLElement;
+				sizer: HTMLElement;
+			};
+		};
+	}) {
+		for (let i = 0; i < errors.length; i++) {
+			editor.orig.markText(errors[i].from, errors[i].to, {
+				className: 'updateError',
+				inclusiveLeft: false,
+				inclusiveRight: false
+			});
+		}
+	}
+
+	private static resetStyles(target: CSSStyleDeclaration, source: ClientRect) {
+		target.width = source.width + 'px';
+		target.height = source.height + 'px';
+		target.top = source.top + 'px';
+		target.left = source.left + 'px';
+	}
+
+	private static initFileDialogText(isUpdate: boolean, chooseFileDialog: ChooseFileDialog) {
+		window.doc.chooseFileCurrentTxt.innerText = (isUpdate ? 'Old' : 'CRM Editor');
+		window.doc.chooseFileNewTxt.innerText = (isUpdate ? 'New' : 'File');
+		window.doc.chooseFileTitleTxt.innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
+		window.doc.chooseFileStopMerging.style.display = (isUpdate ? 'none' : 'block');
+		chooseFileDialog.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
+	}
+
+	private static markerFn(_this: UseExternalEditor, data: {
+		updateErrors: {
+			parseError: boolean;
+			newScript: CursorPosition[];
+			oldScript: CursorPosition[];
+		};
+		chooseFileDialog: ChooseFileDialog;
+	}) {
+		const {
+			updateErrors,
+			chooseFileDialog
+		} = data;
+		setTimeout(function() {
+			//Mark left part
+			_this.markErrors(updateErrors.oldScript, window.externalEditor.editor.left)
+			_this.markErrors(updateErrors.oldScript, window.externalEditor.editor.right)
+			chooseFileDialog.removeEventListener('iron-overlay-opened', () => {
+				_this.markerFn(_this, data);
+			});
+		}, 2000);
+	}
+
+	private static handleUpdateErrors(_this: UseExternalEditor, updateErrors: {
+		parseError: boolean;
+		newScript: CursorPosition[];
+		oldScript: CursorPosition[];
+	},
+	[leftErrorButton, rightErrorButton, chooseFileDialog]:
+	[ListeningHTMLElement, ListeningHTMLElement, ChooseFileDialog]) {
+		window.doc.updateMergerCont.style.display = 'block';
+		var errorsNumber = (updateErrors.parseError ? '1' : updateErrors.oldScript.length);
+		window.doc.updateMergerTxt.innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
+		if (!updateErrors.parseError) {
+			leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'block';
+			var listenerLeft = _this.generateNextErrorFinder(true, updateErrors.oldScript);
+			var listenerRight = _this.generateNextErrorFinder(false, updateErrors.newScript);
+			leftErrorButton.addEventListener('click', listenerLeft);
+			rightErrorButton.addEventListener('click', listenerRight);
+			leftErrorButton.listeners.push(listenerLeft);
+			rightErrorButton.listeners.push(listenerRight);
+
+			chooseFileDialog.addEventListener('iron-overlay-opened', () => {
+				_this.markerFn(_this, {
+					updateErrors,
+					chooseFileDialog
+				});
+			});
+		} else {
+			leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'none';
+		}
+	}
+
 	private static chooseFileDialog(this: UseExternalEditor, chooseFileDialog: ChooseFileDialog): (local: string, file: string, callback: (result: string|false) => void,
 		isUpdate?: boolean, updateErrors?: {
 			parseError: boolean;
@@ -889,68 +1031,15 @@ class UEE {
 		}) => void {
 			const _this = this
 			return (local, file, callback, isUpdate, updateErrors) => {
-				window.doc.chooseFileCurrentTxt.innerText = (isUpdate ? 'Old' : 'CRM Editor');
-				window.doc.chooseFileNewTxt.innerText = (isUpdate ? 'New' : 'File');
-				window.doc.chooseFileTitleTxt.innerText = (isUpdate ? 'Change the script to how you want it' : 'Merge the file to how you want it');
-				window.doc.chooseFileStopMerging.style.display = (isUpdate ? 'none' : 'block');
-				chooseFileDialog.classList[(isUpdate ? 'add' : 'remove')]('updateMerge');
+				_this.initFileDialogText(isUpdate, chooseFileDialog);
 
-				var i;
-				var leftErrorButton = window.doc.updateMergeLeftNextError;
-				leftErrorButton.listeners = leftErrorButton.listeners || [];
-				for (i = 0; i < leftErrorButton.listeners.length; i++) {
-					leftErrorButton.removeEventListener('click', leftErrorButton.listeners[i]);
-				}
-				leftErrorButton.listeners = [];
-
-				var rightErrorButton = window.doc.updateMergeRightNextError;
-				rightErrorButton.listeners = rightErrorButton.listeners || [];
-				for (i = 0; i < rightErrorButton.listeners.length; i++) {
-					rightErrorButton.removeEventListener('click', rightErrorButton.listeners[i]);
-				}
-				rightErrorButton.listeners = [];
-
-				function markerFn() {
-					setTimeout(function() {
-						//Mark left part
-						var j;
-						for (j = 0; j < updateErrors.oldScript.length; j++) {
-							window.externalEditor.editor.left.orig.markText(updateErrors.oldScript[j].from, updateErrors.oldScript[j].to, {
-								className: 'updateError',
-								inclusiveLeft: false,
-								inclusiveRight: false
-							});
-						}
-
-						//Mark right part
-						for (j = 0; j < updateErrors.newScript.length; j++) {
-							window.externalEditor.editor.right.orig.markText(updateErrors.newScript[j].from, updateErrors.newScript[j].to, {
-								className: 'updateError',
-								inclusiveLeft: false,
-								inclusiveRight: false
-							});
-						}
-						chooseFileDialog.removeEventListener('iron-overlay-opened', markerFn);
-					}, 2000);
-				}
+				const leftErrorButton = window.doc.updateMergeLeftNextError
+				const rightErrorButton = window.doc.updateMergeRightNextError
+				_this.clearElementListeners(leftErrorButton)
+				_this.clearElementListeners(rightErrorButton)
 
 				if (updateErrors) {
-					window.doc.updateMergerCont.style.display = 'block';
-					var errorsNumber = (updateErrors.parseError ? '1' : updateErrors.oldScript.length);
-					window.doc.updateMergerTxt.innerText = 'A total of ' + errorsNumber + ' errors have occurred in updating this script.';
-					if (!updateErrors.parseError) {
-						leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'block';
-						var listenerLeft = _this.generateNextErrorFinder(true, updateErrors.oldScript);
-						var listenerRight = _this.generateNextErrorFinder(false, updateErrors.newScript);
-						leftErrorButton.addEventListener('click', listenerLeft);
-						rightErrorButton.addEventListener('click', listenerRight);
-						leftErrorButton.listeners.push(listenerLeft);
-						rightErrorButton.listeners.push(listenerRight);
-
-						chooseFileDialog.addEventListener('iron-overlay-opened', markerFn);
-					} else {
-						leftErrorButton.style.display = rightErrorButton.style.display = window.doc.updateMergePlaceholderBr.style.display = 'none';
-					}
+					_this.handleUpdateErrors(_this, updateErrors, [leftErrorButton, rightErrorButton, chooseFileDialog])
 				} else {
 					window.doc.updateMergerCont.style.display = 'none';
 				}
@@ -966,10 +1055,7 @@ class UEE {
 				window.doc.chooseFileMerger.style.display = 'none';
 
 				if (_this.dialogStyleProperties) {
-					chooseFileDialog.style.width = _this.dialogStyleProperties.width + 'px';
-					chooseFileDialog.style.height = _this.dialogStyleProperties.height + 'px';
-					chooseFileDialog.style.top = _this.dialogStyleProperties.top + 'px';
-					chooseFileDialog.style.left = _this.dialogStyleProperties.left + 'px';
+					_this.resetStyles(chooseFileDialog.style, _this.dialogStyleProperties)
 				}
 			}
 		}
@@ -997,30 +1083,19 @@ class UEE {
 				if (_this.dialogContractionAniation) {
 					_this.dialogContractionAniation.play();
 				} else {
-					_this.dialogContractionAniation = chooseFileDialog.animate([
-						{
-							width: '100vw',
-							height: '100vh',
-							top: 0,
-							left: 0,
-							margin: 0
-						}, {
-							width: _this.dialogStyleProperties.width + 'px',
-							height: _this.dialogStyleProperties.height + 'px',
-							top: _this.dialogStyleProperties.top + 'px',
-							left: _this.dialogStyleProperties.left + 'px',
-							margin: '40px 24px'
-						}
-					], {
-						duration: 250,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					});
-					_this.dialogContractionAniation.onfinish = function() {
-						chooseFileDialog.style.width = _this.dialogStyleProperties.width + 'px';
-						chooseFileDialog.style.height = _this.dialogStyleProperties.height + 'px';
-						chooseFileDialog.style.top = _this.dialogStyleProperties.top + 'px';
-						chooseFileDialog.style.left = _this.dialogStyleProperties.left + 'px';
-
+					_this.dialogContractionAniation = _this.doCSSAnimation(chooseFileDialog, {
+						width: '100vw',
+						height: '100vh',
+						top: 0,
+						left: 0,
+						margin: 0
+					}, {
+						width: _this.dialogStyleProperties.width + 'px',
+						height: _this.dialogStyleProperties.height + 'px',
+						top: _this.dialogStyleProperties.top + 'px',
+						left: _this.dialogStyleProperties.left + 'px',
+						margin: '40px 24px'
+					}, 250, () => {
 						document.body.style.overflow = 'auto';
 						window.doc.chooseFileMainDialog.style.position = 'static';
 
@@ -1028,24 +1103,15 @@ class UEE {
 						if (_this.dialogMainDivAnimationShow) {
 							_this.dialogMainDivAnimationShow.play();
 						} else {
-							_this.dialogMainDivAnimationShow = window.doc.chooseFileMainDialog.animate([
-								{
-									marginTop: '100px',
-									opacity: 0
-								}, {
-									marginTop: '20px',
-									opacity: 1
-								}
-							], {
-								duration: 250,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-							});
-							_this.dialogMainDivAnimationShow.onfinish = function() {
-								window.doc.chooseFileMainDialog.style.marginTop = '20px';
-								window.doc.chooseFileMainDialog.style.opacity = '1';
-							};
+							_this.dialogMainDivAnimationShow = _this.doCSSAnimation(window.doc.chooseFileMainDialog, {
+								marginTop: '100px',
+								opacity: 0
+							}, {
+								marginTop: '20px',
+								opacity: 1
+							}, 250);
 						}
-					};
+					});
 				}
 			};
 		}
