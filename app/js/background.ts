@@ -7065,10 +7065,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 				return replaceOnTabs;
 			}
-			private static _addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
-				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
-					id: number;
-				}) {
+			private static _pushToGlobalToExecute(node: CRM.Node, launchMode: CRMLaunchModes) {
 				//On by default
 				if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 					if (launchMode === CRMLaunchModes.ALWAYS_RUN ||
@@ -7079,64 +7076,71 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
 					}
 				}
-
-
-				if ((node['showOnSpecified'] && (node.type === 'link' || node.type === 'divider' ||
-					node.type === 'menu')) ||
-					launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
-						rightClickItemOptions.documentUrlPatterns = [];
-						globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
-						for (let i = 0; i < node.triggers.length; i++) {
-							const prepared = URLParsing.prepareTrigger(node.triggers[i].url);
-							if (prepared) {
-								if (node.triggers[i].not) {
-									globalObject.globals.crmValues.hideNodesOnPagesData[node.id]
-										.push({
-											not: false,
-											url: prepared
-										});
-								} else {
-									rightClickItemOptions.documentUrlPatterns.push(prepared);
+			}
+			private static _handleHideOnPages(node: CRM.Node, launchMode: CRMLaunchModes,
+				rightClickItemOptions: chrome.contextMenus.CreateProperties) {
+					if ((node['showOnSpecified'] && (node.type === 'link' || node.type === 'divider' ||
+						node.type === 'menu')) ||
+						launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
+							rightClickItemOptions.documentUrlPatterns = [];
+							globalObject.globals.crmValues.hideNodesOnPagesData[node.id] = [];
+							for (let i = 0; i < node.triggers.length; i++) {
+								const prepared = URLParsing.prepareTrigger(node.triggers[i].url);
+								if (prepared) {
+									if (node.triggers[i].not) {
+										globalObject.globals.crmValues.hideNodesOnPagesData[node.id]
+											.push({
+												not: false,
+												url: prepared
+											});
+									} else {
+										rightClickItemOptions.documentUrlPatterns.push(prepared);
+									}
 								}
 							}
 						}
-					}
-
-				//It requires a click handler
-				switch (node.type) {
-					case 'divider':
-						rightClickItemOptions.type = 'separator';
-						break;
-					case 'link':
-						rightClickItemOptions.onclick = CRM.Link.createHandler(node);
-						break;
-					case 'script':
-						rightClickItemOptions.onclick = CRM.Script.Handler.createHandler(node);
-						break;
-					case 'stylesheet':
-						if (node.value.toggle) {
-							rightClickItemOptions.type = 'checkbox';
-							rightClickItemOptions.onclick = CRM.Stylesheet
-								.createToggleHandler(node);
-							rightClickItemOptions.checked = node.value.defaultOn;
-						} else {
-							rightClickItemOptions.onclick = CRM.Stylesheet
-								.createClickHandler(node);
-						}
-						globalObject.globals.crmValues.stylesheetNodeStatusses[node.id] = {
-							defaultValue: node.value.defaultOn
-						};
-						break;
 				}
-
-				let id = chrome.contextMenus.create(rightClickItemOptions, () => {
+			private static _generateClickHandler(node: CRM.Node, 
+				rightClickItemOptions: chrome.contextMenus.CreateProperties) {
+					//It requires a click handler
+					switch (node.type) {
+						case 'divider':
+							rightClickItemOptions.type = 'separator';
+							break;
+						case 'link':
+							rightClickItemOptions.onclick = CRM.Link.createHandler(node);
+							break;
+						case 'script':
+							rightClickItemOptions.onclick = CRM.Script.Handler.createHandler(node);
+							break;
+						case 'stylesheet':
+							if (node.value.toggle) {
+								rightClickItemOptions.type = 'checkbox';
+								rightClickItemOptions.onclick = CRM.Stylesheet
+									.createToggleHandler(node);
+								rightClickItemOptions.checked = node.value.defaultOn;
+							} else {
+								rightClickItemOptions.onclick = CRM.Stylesheet
+									.createClickHandler(node);
+							}
+							globalObject.globals.crmValues.stylesheetNodeStatusses[node.id] = {
+								defaultValue: node.value.defaultOn
+							};
+							break;
+					}
+				}
+			private static _generateContextMenuItem(rightClickItemOptions: chrome.contextMenus.CreateProperties,
+				idHolder: {
+					id: number;
+				}) {
+				idHolder.id = chrome.contextMenus.create(rightClickItemOptions, () => {
 					if (chrome.runtime.lastError) {
 						if (rightClickItemOptions.documentUrlPatterns) {
 							console
                                 .log('An error occurred with your context menu, attempting again with no url matching.', chrome.runtime.lastError);
 							delete rightClickItemOptions.documentUrlPatterns;
-							id = chrome.contextMenus.create(rightClickItemOptions, () => {
-								id = chrome.contextMenus.create({
+							idHolder.id = chrome.contextMenus.create(rightClickItemOptions, () => {
+								idHolder.id = chrome.contextMenus.create({
 									title: 'ERROR',
 									onclick: CRM._createOptionsPageHandler()
 								});
@@ -7149,14 +7153,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 				});
+			}
+			private static _addRightClickItemClick(node: CRM.Node, launchMode: CRMLaunchModes,
+				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
+					id: number;
+				}) {
+				//On by default
+				this._pushToGlobalToExecute(node, launchMode)
+				this._handleHideOnPages(node, launchMode, rightClickItemOptions);
+				this._generateClickHandler(node, rightClickItemOptions);
+				this._generateContextMenuItem(rightClickItemOptions, idHolder)
 
-				globalObject.globals.crmValues.contextMenuInfoById[id] = {
+				globalObject.globals.crmValues.contextMenuInfoById[idHolder.id] = {
 					settings: rightClickItemOptions,
 					path: node.path,
 					enabled: false
 				};
-
-				idHolder.id = id;
 			}
 			private static _setLaunchModeData(node: CRM.Node,
 				rightClickItemOptions: chrome.contextMenus.CreateProperties, idHolder: {
