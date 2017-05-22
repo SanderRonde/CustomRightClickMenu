@@ -87,13 +87,12 @@ class PLS {
 			}
 		});
 	};
-	
-	static init(this: PaperLibrariesSelector) {
-		const _this = this;
-		if (this._expanded) {
-			this.close();
-		}
 
+	static sortByName(first: LibrarySelectorLibrary, second: LibrarySelectorLibrary): number {
+		return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
+	}
+
+	static categorizeLibraries(this: PaperLibrariesSelector) {
 		const anonymous: Array<LibrarySelectorLibrary> = [];
 		const selectedObj: {
 			[key: string]: boolean;
@@ -105,9 +104,18 @@ class PLS {
 				selectedObj[item.name.toLowerCase()] = true;
 			}
 		});
+
+		return {
+			anonymous,
+			selectedObj
+		}
+	}
+
+	private static getLibraries(this: PaperLibrariesSelector, selectedObj: {
+		[key: string]: boolean;
+	}) {
 		let libraries: Array<LibrarySelectorLibrary> = [];
-		const selected: Array<number> = [];
-		_this.installedLibraries.forEach(function(item) {
+		this.installedLibraries.forEach(function(item) {
 			const itemCopy: LibrarySelectorLibrary = {} as any;
 			itemCopy.name = item.name;
 			itemCopy.isLibrary = true;
@@ -121,10 +129,31 @@ class PLS {
 			}
 			libraries.push(itemCopy);
 		});
-		libraries.sort(function(first, second) {
-			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
-		});
+		libraries.sort(this.sortByName);
+		return libraries;
+	}
 
+	private static setSelectedLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>) {
+		const selected: Array<number> = [];
+		libraries.forEach(function(item, index) {
+			if (item.selected === 'true') {
+				selected.push(index);
+			}
+		});
+		this.selected = selected;
+	}
+	
+	static init(this: PaperLibrariesSelector) {
+		const _this = this;
+		if (this._expanded) {
+			this.close();
+		}
+		const {
+			anonymous,
+			selectedObj
+		} = this.categorizeLibraries();
+		let libraries = this.getLibraries(selectedObj)
+		this.setSelectedLibraries(libraries);
 		const anonymousLibraries: Array<LibrarySelectorLibrary> = [];
 		anonymous.forEach(function(item) {
 			const itemCopy: LibrarySelectorLibrary = {
@@ -135,18 +164,10 @@ class PLS {
 			};
 			anonymousLibraries.push(itemCopy);
 		});
-		anonymousLibraries.sort(function (first, second) {
-			return first.name[0].toLowerCase().charCodeAt(0) - second.name[0].toLowerCase().charCodeAt(0);
-		});
+		anonymousLibraries.sort(this.sortByName);
 
 		libraries = libraries.concat(anonymousLibraries);
 
-		libraries.forEach(function(item, index) {
-			if (item.selected === 'true') {
-				selected.push(index);
-			}
-		});
-		_this.selected = selected;
 		libraries.push({
 			name: 'Add your own',
 			classes: 'library addLibrary',
@@ -156,24 +177,26 @@ class PLS {
 		_this.libraries = libraries;
 	};
 
+	private static resetAfterAddDesision() {
+		window.doc.addLibraryConfirmAddition.removeEventListener('click');
+		window.doc.addLibraryDenyConfirmation.removeEventListener('click');
+		window.doc.addLibraryUrlInput.removeAttribute('invalid');
+	}
+
 	static confirmLibraryFile(_this: PaperLibrariesSelector, name: string, code: string, url: string) {
 		window.doc.addLibraryProcessContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {
 			window.doc.addLibraryConfirmationInput.value = code;
-			window.doc.addLibraryConfirmAddition.addEventListener('click', function () {
+			window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
 				window.doc.addLibraryConfirmationInput.value = '';
 				_this.addLibraryFile(_this, name, code, url);
-				window.doc.addLibraryConfirmAddition.removeEventListener('click');
-				window.doc.addLibraryDenyConfirmation.removeEventListener('click');
-				window.doc.addLibraryUrlInput.removeAttribute('invalid');
+				_this.resetAfterAddDesision();
 			});
-			window.doc.addLibraryDenyConfirmation.addEventListener('click', function() {
+			window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
 				window.doc.addLibraryConfirmationContainer.style.display = 'none';
 				window.doc.addLibraryProcessContainer.style.display = 'block';
-				window.doc.addLibraryConfirmAddition.removeEventListener('click');
-				window.doc.addLibraryDenyConfirmation.removeEventListener('click');
-				window.doc.addLibraryUrlInput.removeAttribute('invalid');
+				_this.resetAfterAddDesision();
 				window.doc.addLibraryConfirmationInput.value = '';
 			});
 			window.doc.addLibraryLoadingDialog.style.display = 'none';
@@ -181,20 +204,36 @@ class PLS {
 		}, 250);
 	};
 
+	private static addLibraryToState(_this: PaperLibrariesSelector, name: string, code: string, url: string) {
+		_this.installedLibraries.push({
+			name: name,
+			code: code,
+			url: url
+		});
+		_this.usedlibraries.push({
+			name: name,
+			url: url
+		});
+	}
+	
+	private static hideElements<T extends keyof typeof window.doc>(...els: Array<T>) {
+		for (let i = 0; i < els.length; i++) {
+			window.doc[els[i]].style.display = 'none';
+		}
+	}
+
+	private static showElements<T extends keyof typeof window.doc>(...els: Array<T>) {
+		for (let i = 0; i < els.length; i++) {
+			window.doc[els[i]].style.display = 'block';
+		}
+	}
+
 	static addLibraryFile(_this: PaperLibrariesSelector, name: string, code: string, url: string = null) {
 		window.doc.addLibraryConfirmationContainer.style.display = 'none';
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 
 		setTimeout(function() {
-			_this.installedLibraries.push({
-				name: name,
-				code: code,
-				url: url
-			});
-			_this.usedlibraries.push({
-				name: name,
-				url: url
-			});
+			_this.addLibraryToState(_this, name, code, url);
 			chrome.storage.local.set({
 				libraries: _this.installedLibraries
 			});
@@ -224,23 +263,21 @@ class PLS {
 				easing: 'easeInCubic'
 			});
 
-			window.doc.addLibraryLoadingDialog.style.display = 'none';
-			window.doc.addLibraryConfirmationContainer.style.display = 'none';
-			window.doc.addLibraryProcessContainer.style.display = 'none';
-			window.doc.addLibraryDialogSucces.style.display = 'block';
-			window.doc.addLibraryDialogSuccesCheckmark.style.display = 'none';
+			_this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
+				'addLibraryProcessContainer', 'addLibraryDialogSuccesCheckmark')
+			_this.showElements('addLibraryDialogSucces');
 			$(window.doc.addLibraryDialogSucces).animate({
 				backgroundColor: 'rgb(38,153,244)'
 			}, {
 				duration: 300,
 				easing: 'easeOutCubic',
 				complete: function () {
-					window.doc.addLibraryDialogSuccesCheckmark.style.display = 'block';
+					_this.showElements('addLibraryDialogSuccesCheckmark');
 					window.doc.addLibraryDialogSuccesCheckmark.classList.add('animateIn');
 					setTimeout(function() {
 						window.doc.addLibraryDialog.toggle();
-						window.doc.addLibraryDialogSucces.style.display = 'none';
-						window.doc.addLibraryLoadingDialog.style.display = 'block';
+						_this.hideElements('addLibraryDialogSucces');
+						_this.showElements('addLibraryLoadingDialog');
 					}, 2500);
 				}
 			});
@@ -253,102 +290,113 @@ class PLS {
 		}, 250);
 	};
 
+	private static addNewLibrary(this: PaperLibrariesSelector) {
+		//Add new library dialog
+		window.doc.addedLibraryName.querySelector('input').value = '';
+		window.doc.addLibraryUrlInput.querySelector('input').value = '';
+		window.doc.addLibraryManualInput.querySelector('textarea').value = '';
+
+		this.showElements('addLibraryProcessContainer');
+		this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
+			'addLibraryDialogSucces');
+
+		window.doc.addedLibraryName.invalid = false;
+
+		window.doc.addLibraryDialog.open();
+		$(window.doc.addLibraryDialog)
+			.find('#addLibraryButton')
+			.on('click', () => {
+				const name = window.doc.addedLibraryName.querySelector('input').value;
+				let taken = false;
+				for (let i = 0; i < this.installedLibraries.length; i++) {
+					if (this.installedLibraries[i].name === name) {
+						taken = true;
+					}
+				}
+				if (name !== '' && !taken) {
+					this.removeAttribute('invalid');
+					if (window.doc.addLibraryRadios.selected === 'url') {
+						const libraryInput = window.doc.addLibraryUrlInput;
+						let url = libraryInput.querySelector('input').value;
+						if (url[0] === '/' && url[1] === '/') {
+							url = 'http:' + url;
+						}
+						$.ajax({
+							url: url,
+							dataType: 'html'
+						}).done((data) => {
+							this.confirmLibraryFile(this, name, data, url);
+						}).fail(function() {
+							libraryInput.setAttribute('invalid', 'true');
+						});
+					} else {
+						this.addLibraryFile(this, name, window.doc.addLibraryManualInput.querySelector('textarea').value);
+					}
+				} else {
+					if (taken) {
+						window.doc.addedLibraryName.errorMessage = 'That name is already taken';
+					} else {
+						window.doc.addedLibraryName.errorMessage = 'Please enter a name';
+					}
+					window.doc.addedLibraryName.invalid = true;
+				}
+			});
+	}
+
+	private static addAnonymousLibrary(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+		const url = e.target.getAttribute('data-url');
+		if (this.mode === 'main') {
+			window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor,
+				'require', url);
+		}
+
+		chrome.runtime.sendMessage({
+			type: 'anonymousLibrary',
+			data: {
+				type: 'remove',
+				name: url,
+				url: url,
+				scriptId: window.app.scriptItem.id
+			}
+		});
+	}
+
+	private static handleCheckmarkClick(e: Polymer.ClickEvent) {
+		//Checking or un-checking something
+		const lib = (e.target as HTMLElement & {
+			dataLib: LibrarySelectorLibrary;
+		}).dataLib;
+		const changeType: 'addMetaTags' | 'removeMetaTags' =
+			(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
+		if (lib.url) {
+			window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib.url);
+		}
+		if (changeType === 'addMetaTags') {
+			window.scriptEdit.newSettings.value.libraries.push({
+				name: lib.name || null,
+				url: lib.url
+			});
+		} else {
+			let index = -1;
+			for (let i = 0; i < window.scriptEdit.newSettings.value.libraries.length; i++) {
+				if (window.scriptEdit.newSettings.value.libraries[i].url === lib.url && 
+					window.scriptEdit.newSettings.value.libraries[i].name === lib.name) {
+					index = i;
+					break;
+				}
+			}
+			window.scriptEdit.newSettings.value.libraries.splice(index, 1);
+		}
+	}
+
 	static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
 		const _this = this;
 		if (e.target.classList.contains('addLibrary')) {
-			//Add new library dialog
-			window.doc.addedLibraryName.querySelector('input').value = '';
-			window.doc.addLibraryUrlInput.querySelector('input').value = '';
-			window.doc.addLibraryManualInput.querySelector('textarea').value = '';
-
-			window.doc.addLibraryProcessContainer.style.display = 'block';
-			window.doc.addLibraryLoadingDialog.style.display = 'none';
-			window.doc.addLibraryConfirmationContainer.style.display = 'none';
-			window.doc.addLibraryDialogSucces.style.display = 'none';
-
-			window.doc.addedLibraryName.invalid = false;
-
-			window.doc.addLibraryDialog.open();
-			$(window.doc.addLibraryDialog)
-				.find('#addLibraryButton')
-				.on('click', function(this: HTMLElement) {
-					const name = window.doc.addedLibraryName.querySelector('input').value;
-					let taken = false;
-					for (let i = 0; i < _this.installedLibraries.length; i++) {
-						if (_this.installedLibraries[i].name === name) {
-							taken = true;
-						}
-					}
-					if (name !== '' && !taken) {
-						this.removeAttribute('invalid');
-						if (window.doc.addLibraryRadios.selected === 'url') {
-							const libraryInput = window.doc.addLibraryUrlInput;
-							let url = libraryInput.querySelector('input').value;
-							if (url[0] === '/' && url[1] === '/') {
-								url = 'http:' + url;
-							}
-							$.ajax({
-								url: url,
-								dataType: 'html'
-							}).done(function(data) {
-								_this.confirmLibraryFile(_this, name, data, url);
-							}).fail(function() {
-								libraryInput.setAttribute('invalid', 'true');
-							});
-						} else {
-							_this.addLibraryFile(_this, name, window.doc.addLibraryManualInput.querySelector('textarea').value);
-						}
-					} else {
-						if (taken) {
-							window.doc.addedLibraryName.errorMessage = 'That name is already taken';
-						} else {
-							window.doc.addedLibraryName.errorMessage = 'Please enter a name';
-						}
-						window.doc.addedLibraryName.invalid = true;
-					}
-				});
+			this.addNewLibrary();
 		} else if (e.target.classList.contains('anonymous')) {
-			const url = e.target.getAttribute('data-url');
-			if (_this.mode === 'main') {
-				window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor,
-					'require', url);
-			}
-
-			chrome.runtime.sendMessage({
-				type: 'anonymousLibrary',
-				data: {
-					type: 'remove',
-					name: url,
-					url: url,
-					scriptId: window.app.scriptItem.id
-				}
-			});
+			this.addAnonymousLibrary(e);
 		} else if (_this.mode === 'main') {
-			//Checking or un-checking something
-			const lib = (e.target as HTMLElement & {
-				dataLib: LibrarySelectorLibrary;
-			}).dataLib;
-			const changeType: 'addMetaTags' | 'removeMetaTags' =
-				(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
-			if (lib.url) {
-				window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib.url);
-			}
-			if (changeType === 'addMetaTags') {
-				window.scriptEdit.newSettings.value.libraries.push({
-					name: lib.name || null,
-					url: lib.url
-				});
-			} else {
-				let index = -1;
-				for (let i = 0; i < window.scriptEdit.newSettings.value.libraries.length; i++) {
-					if (window.scriptEdit.newSettings.value.libraries[i].url === lib.url && 
-						window.scriptEdit.newSettings.value.libraries[i].name === lib.name) {
-						index = i;
-						break;
-					}
-				}
-				window.scriptEdit.newSettings.value.libraries.splice(index, 1);
-			}
+			this.handleCheckmarkClick(e);
 		}
 	};
 
