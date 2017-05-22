@@ -8910,20 +8910,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									.runtime
 									.lastError);
 							} else {
-								for (let i = 0; i < changes.length; i++) {
-									if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
-										CRM.updateCRMValues();
-										Storages.checkBackgroundPagesForChange(changes);
-										CRM.buildPageCRM();
-										MessageHandling.signalNewCRM();
-									} else if (changes[i].key === 'latestId') {
-										globalObject.globals.latestId = changes[i].newValue;
-										chrome.runtime.sendMessage({
-											type: 'idUpdate',
-											latestId: changes[i].newValue
-										});
-									}
-								}
+								this._changeCRMValuesIfSettingsChanged(changes);
 							}
 						});
 						chrome.storage.sync.set({
@@ -8952,20 +8939,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										this.uploadChanges('settings', changes);
 									});
 								} else {
-									for (let i = 0; i < changes.length; i++) {
-										if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
-											CRM.updateCRMValues();
-											Storages.checkBackgroundPagesForChange(changes);
-											CRM.buildPageCRM();
-											MessageHandling.signalNewCRM();
-										} else if (changes[i].key === 'latestId') {
-											globalObject.globals.latestId = changes[i].newValue;
-											chrome.runtime.sendMessage({
-												type: 'idUpdate',
-												latestId: changes[i].newValue
-											});
-										}
-									}
+									this._changeCRMValuesIfSettingsChanged(changes);
 									chrome.storage.local.set({
 										settings: null
 									});
@@ -9149,6 +9123,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			});
 		}
 
+		private static _changeCRMValuesIfSettingsChanged(changes: Array<StorageChange>) {
+			for (let i = 0; i < changes.length; i++) {
+				if (changes[i].key === 'crm' || changes[i].key === 'showOptions') {
+					CRM.updateCRMValues();
+					Storages.checkBackgroundPagesForChange(changes);
+					CRM.buildPageCRM();
+					MessageHandling.signalNewCRM();
+				} else if (changes[i].key === 'latestId') {
+					globalObject.globals.latestId = changes[i].newValue;
+					chrome.runtime.sendMessage({
+						type: 'idUpdate',
+						latestId: changes[i].newValue
+					});
+				}
+			}
+		}
 		private static _setIfNotSet<T>(obj: any, key: string, defaultValue: T): T {
 			if (obj[key]) {
 				return obj[key];

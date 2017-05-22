@@ -624,10 +624,8 @@ class UEE {
 		window.doc.chooseFileMergerPlaceholder.style.height = placeHolderRect.height + 'px';
 		window.doc.chooseFileMergerPlaceholder.style.position = 'absolute';
 		window.doc.chooseFileMergerPlaceholder.style.display = 'flex';
-		if (this.editorFadeInAnimation) {
-			this.editorFadeInAnimation.play();
-		} else {
-			this.editorFadeInAnimation = window.doc.chooseFileMergerPlaceholder.animate([
+		this.playIfExists(this.editorFadeInAnimation) ||
+			(this.editorFadeInAnimation = window.doc.chooseFileMergerPlaceholder.animate([
 				{
 					opacity: 1
 				}, {
@@ -636,7 +634,7 @@ class UEE {
 			], {
 				duration: 350,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			});
+			}));
 			this.editorFadeInAnimation.onfinish = function() {
 				window.doc.chooseFileMergerPlaceholder.style.display = 'none';
 				window.doc.chooseFileMergerPlaceholder.style.position = 'initial';
@@ -661,7 +659,6 @@ class UEE {
 					window.externalEditor.editor.right.orig.refresh();
 				};
 			};
-		}
 	};
 
 	static applyProps<T extends {
@@ -672,11 +669,11 @@ class UEE {
 		}
 	}
 
-	static doCSSAnimation(element: HTMLElement, before: {
+	static doCSSAnimation(element: HTMLElement, [before, after] : [{
 		[key: string]: string|number;
-	}, after: {
+	}, {
 		[key: string]: string|number;
-	}, duration: number, callback?: () => void): Animation {
+	}], duration: number, callback?: () => void): Animation {
 		const animation = element.animate([before, after], {
 			duration,
 			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
@@ -706,16 +703,22 @@ class UEE {
 		});
 	}
 
+	private static playIfExists(animation: Animation|void): boolean {
+		if (animation) {
+			animation.play();
+			return true;
+		}
+		return false;
+	}
+
 	static onDialogMainDivAnimationHideEnd(__this: UseExternalEditor, dialogRect: ClientRect, dialogStyle: CSSStyleDeclaration,
 		oldScript: string, newScript: string) {
 			window.doc.chooseFileMainDialog.style.display = 'none';
 			window.doc.chooseFileMainDialog.style.marginTop = '0';
 			window.doc.chooseFileMainDialog.style.opacity = '1';
 
-			if (__this.dialogExpansionAnimation) {
-				__this.dialogExpansionAnimation.play();
-			} else {
-				__this.dialogExpansionAnimation = __this.doCSSAnimation(window.doc.externalEditorChooseFile, {
+			this.playIfExists(__this.dialogExpansionAnimation) ||
+				(__this.dialogExpansionAnimation = __this.doCSSAnimation(window.doc.externalEditorChooseFile, [{
 					width: dialogRect.width,
 					height: dialogRect.height,
 					marginTop: '24px',
@@ -733,27 +736,23 @@ class UEE {
 					marginRight: '0px',
 					top: '0px',
 					left: '0px'
-				}, 400, () => {
+				}], 400, () => {
 					window.doc.chooseFileMerger.style.display = 'flex';
-					if (__this.dialogComparisonDivAnimationShow) {
-						__this.dialogComparisonDivAnimationShow.play();
-					} else {
-						__this.dialogComparisonDivAnimationShow = __this.doCSSAnimation(window.doc.chooseFileMerger, {
+					this.playIfExists(__this.dialogComparisonDivAnimationShow) || 
+						(__this.dialogComparisonDivAnimationShow = __this.doCSSAnimation(window.doc.chooseFileMerger, [{
 							marginTop: '70px',
 							opacity: 0
 						}, {
 							marginTop: '0px',
 							opacity: 1
-						}, 250, () => {
+						}], 250, () => {
 							if (!__this.editor) {
 								setTimeout(function () {
 									__this.initEditor(__this, oldScript, newScript);
 								}, 150);
 							}
-						});
-					}
-				});
-			};
+						}));
+				}));
 		}
 
 	static showMergeDialog(_this: UseExternalEditor, oldScript: string, newScript: string) {
@@ -769,10 +768,8 @@ class UEE {
 		document.body.style.overflow = 'hidden';
 		window.doc.chooseFileMainDialog.style.position = 'absolute';
 
-		if (_this.dialogMainDivAnimationHide) {
-			_this.dialogMainDivAnimationHide.play();
-		} else {
-			_this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
+		_this.playIfExists(_this.dialogMainDivAnimationHide) || 
+			(_this.dialogMainDivAnimationHide = window.doc.chooseFileMainDialog.animate([
 				{
 					marginTop: '20px',
 					opacity: 1
@@ -783,11 +780,10 @@ class UEE {
 			], {
 				duration: 240,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			});
-			_this.dialogMainDivAnimationHide.onfinish = function() {
-				_this.onDialogMainDivAnimationHideEnd(_this, dialogRect, dialogStyle, oldScript, newScript)
-			};
-		}
+			}));
+		_this.dialogMainDivAnimationHide.onfinish = function() {
+			_this.onDialogMainDivAnimationHideEnd(_this, dialogRect, dialogStyle, oldScript, newScript)
+		};
 	};
 
 	static findChildWithClass(this: UseExternalEditor, div: HTMLElement, classToFind: string): HTMLElement {
@@ -1062,10 +1058,8 @@ class UEE {
 
 	private static stopMerging(this: UseExternalEditor, chooseFileDialog: ChooseFileDialog) {
 		const _this = this
-		if (_this.dialogComparisonDivAnimationHide) {
-			_this.dialogComparisonDivAnimationHide.play();
-		} else {
-			_this.dialogComparisonDivAnimationHide = window.doc.chooseFileMerger.animate([
+		_this.playIfExists(_this.dialogComparisonDivAnimationHide) ||
+			(_this.dialogComparisonDivAnimationHide = window.doc.chooseFileMerger.animate([
 				{
 					marginTop: '0px',
 					opacity: 1
@@ -1076,45 +1070,38 @@ class UEE {
 			], {
 				duration: 250,
 				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-			});
-			_this.dialogComparisonDivAnimationHide.onfinish = function() {
-				window.doc.chooseFileMerger.style.display = 'none';
+			}));
+		_this.dialogComparisonDivAnimationHide.onfinish = function() {
+			window.doc.chooseFileMerger.style.display = 'none';
 
-				if (_this.dialogContractionAniation) {
-					_this.dialogContractionAniation.play();
-				} else {
-					_this.dialogContractionAniation = _this.doCSSAnimation(chooseFileDialog, {
-						width: '100vw',
-						height: '100vh',
-						top: 0,
-						left: 0,
-						margin: 0
-					}, {
-						width: _this.dialogStyleProperties.width + 'px',
-						height: _this.dialogStyleProperties.height + 'px',
-						top: _this.dialogStyleProperties.top + 'px',
-						left: _this.dialogStyleProperties.left + 'px',
-						margin: '40px 24px'
-					}, 250, () => {
-						document.body.style.overflow = 'auto';
-						window.doc.chooseFileMainDialog.style.position = 'static';
+			_this.playIfExists(_this.dialogContractionAniation) || 
+				(_this.dialogContractionAniation = _this.doCSSAnimation(chooseFileDialog, [{
+					width: '100vw',
+					height: '100vh',
+					top: 0,
+					left: 0,
+					margin: 0
+				}, {
+					width: _this.dialogStyleProperties.width + 'px',
+					height: _this.dialogStyleProperties.height + 'px',
+					top: _this.dialogStyleProperties.top + 'px',
+					left: _this.dialogStyleProperties.left + 'px',
+					margin: '40px 24px'
+				}], 250, () => {
+					document.body.style.overflow = 'auto';
+					window.doc.chooseFileMainDialog.style.position = 'static';
 
-						window.doc.chooseFileMainDialog.style.display = 'block';
-						if (_this.dialogMainDivAnimationShow) {
-							_this.dialogMainDivAnimationShow.play();
-						} else {
-							_this.dialogMainDivAnimationShow = _this.doCSSAnimation(window.doc.chooseFileMainDialog, {
-								marginTop: '100px',
-								opacity: 0
-							}, {
-								marginTop: '20px',
-								opacity: 1
-							}, 250);
-						}
-					});
-				}
-			};
-		}
+					window.doc.chooseFileMainDialog.style.display = 'block';
+					_this.playIfExists(_this.dialogMainDivAnimationShow) || (
+						_this.dialogMainDivAnimationShow = _this.doCSSAnimation(window.doc.chooseFileMainDialog, [{
+							marginTop: '100px',
+							opacity: 0
+						}, {
+							marginTop: '20px',
+							opacity: 1
+						}], 250));
+				}));
+		};
 	}
 
 	/**
