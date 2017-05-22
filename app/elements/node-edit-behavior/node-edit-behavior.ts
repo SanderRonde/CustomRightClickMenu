@@ -307,11 +307,84 @@ class NEB {
 		}
 	};
 
+	static animateTriggers(this: NodeEditBehavior, newStates: {
+		showContentTypeChooser: boolean;
+		showTriggers: boolean;
+		showInsteadOfExecute: boolean;
+	}, triggersElement: HTMLElement, callback?: () => void) {
+		triggersElement.style.height = 'auto';
+		if (newStates.showTriggers) {
+			triggersElement.style.display = 'block';
+			triggersElement.style.marginLeft = '-110%';
+			triggersElement.style.height = '0';
+			$(triggersElement).animate({
+				height: triggersElement.scrollHeight
+			}, 300, function (this: HTMLElement) {
+				$(this).animate({
+					marginLeft: 0
+				}, 200, function(this: HTMLElement) {
+					this.style.height = 'auto';
+					callback && callback();
+				});
+			});
+		} else {
+			triggersElement.style.marginLeft = '0';
+			triggersElement.style.height = triggersElement.scrollHeight + '';
+			$(triggersElement).animate({
+				marginLeft: '-110%'
+			}, 200, function (this: HTMLElement) {
+				$(this).animate({
+					height: 0
+				}, 300, function () {
+					triggersElement.style.display = 'none';
+					callback && callback();
+				});
+			});
+		}
+		this.showTriggers = newStates.showTriggers;
+	}
+
+	static animateContentTypeChooser(this: NodeEditBehavior, newStates: {
+		showContentTypeChooser: boolean;
+		showTriggers: boolean;
+		showInsteadOfExecute: boolean;
+	}, contentTypeChooserElement: HTMLElement, callback?: () => void) {
+		contentTypeChooserElement.style.height = 'auto';
+		if (newStates.showContentTypeChooser) {
+			contentTypeChooserElement.style.height = '0';
+			contentTypeChooserElement.style.display = 'block';
+			contentTypeChooserElement.style.marginLeft = '-110%';
+			$(contentTypeChooserElement).animate({
+				height: contentTypeChooserElement.scrollHeight
+			}, 300, function (this: HTMLElement) {
+				$(this).animate({
+					marginLeft: 0
+				}, 200, function (this: HTMLElement) {
+					this.style.height = 'auto';
+					callback && callback();
+				});
+			});
+		} else {
+			contentTypeChooserElement.style.marginLeft = '0';
+			contentTypeChooserElement.style.height = contentTypeChooserElement.scrollHeight + '';
+			$(contentTypeChooserElement).animate({
+				marginLeft: '-110%'
+			}, 200, function (this: HTMLElement) {
+				$(this).animate({
+					height: 0
+				}, 300, function () {
+					contentTypeChooserElement.style.display = 'none';
+					callback && callback();
+				});
+			});
+		}
+		this.showContentTypeChooser = newStates.showContentTypeChooser;
+	}
+
 	/**
 	 * Is triggered when the option in the dropdown menu changes animates in what's needed
 	 */
 	static selectorStateChange(this: NodeEditBehavior, prevState: number, state: number) {
-		const _this = this;
 		const newStates = {
 			showContentTypeChooser: (state === 0 || state === 3),
 			showTriggers: (state > 1 && state !== 4),
@@ -324,92 +397,27 @@ class NEB {
 		};
 
 		const triggersElement = (this.$ as any)['executionTriggersContainer'] as HTMLDivElement;
-		const $triggersElement = $(triggersElement);
-		const contentTypeChooserElement = this.$.showOnContentContainer;
-		const $contentTypeChooserElement = $(contentTypeChooserElement);
-
-		function animateTriggers(callback?: () => void) {
-			triggersElement.style.height = 'auto';
-			if (newStates.showTriggers) {
-				triggersElement.style.display = 'block';
-				triggersElement.style.marginLeft = '-110%';
-				triggersElement.style.height = '0';
-				$triggersElement.animate({
-					height: $triggersElement[0].scrollHeight
-				}, 300, function (this: HTMLElement) {
-					$(this).animate({
-						marginLeft: 0
-					}, 200, function(this: HTMLElement) {
-						this.style.height = 'auto';
-						callback && callback();
-					});
-				});
-			} else {
-				triggersElement.style.marginLeft = '0';
-				triggersElement.style.height = $triggersElement[0].scrollHeight + '';
-				$triggersElement.animate({
-					marginLeft: '-110%'
-				}, 200, function (this: HTMLElement) {
-					$(this).animate({
-						height: 0
-					}, 300, function () {
-						triggersElement.style.display = 'none';
-						callback && callback();
-					});
-				});
-			}
-			_this.showTriggers = newStates.showTriggers;
-		}
-
-		function animateContentTypeChooser(callback?: () => void) {
-			contentTypeChooserElement.style.height = 'auto';
-			if (newStates.showContentTypeChooser) {
-				contentTypeChooserElement.style.height = '0';
-				contentTypeChooserElement.style.display = 'block';
-				contentTypeChooserElement.style.marginLeft = '-110%';
-				$contentTypeChooserElement.animate({
-					height: $contentTypeChooserElement[0].scrollHeight
-				}, 300, function (this: HTMLElement) {
-					$(this).animate({
-						marginLeft: 0
-					}, 200, function (this: HTMLElement) {
-						this.style.height = 'auto';
-						callback && callback();
-					});
-				});
-			} else {
-				contentTypeChooserElement.style.marginLeft = '0';
-				contentTypeChooserElement.style.height = $contentTypeChooserElement[0].scrollHeight + '';
-				$contentTypeChooserElement.animate({
-					marginLeft: '-110%'
-				}, 200, function (this: HTMLElement) {
-					$(this).animate({
-						height: 0
-					}, 300, function () {
-						contentTypeChooserElement.style.display = 'none';
-						callback && callback();
-					});
-				});
-			}
-			_this.showContentTypeChooser = newStates.showContentTypeChooser;
-		}
 
 		if (oldStates.showTriggers && !newStates.showTriggers) {
 			if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
-				animateTriggers(animateContentTypeChooser);
+				this.animateTriggers(newStates, triggersElement, () => {
+					this.animateContentTypeChooser(newStates, triggersElement)
+				});
 			} else {
-				animateTriggers();
+				this.animateTriggers(newStates, triggersElement);
 			}
 		}
 		else if (!oldStates.showTriggers && newStates.showTriggers) {
 			if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
-				animateContentTypeChooser(animateTriggers);
+				this.animateContentTypeChooser(newStates, triggersElement, () => {
+					this.animateTriggers(newStates, triggersElement);
+				});
 			} else {
-				animateTriggers();
+				this.animateTriggers(newStates, triggersElement);
 			}
 		}
 		else if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
-			animateContentTypeChooser();
+			this.animateContentTypeChooser(newStates, triggersElement);
 		}
 
 		if (newStates.showInsteadOfExecute !== oldStates.showInsteadOfExecute) {

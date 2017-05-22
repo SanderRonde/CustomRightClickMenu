@@ -119,34 +119,29 @@ class SCE {
 		}
 	};
 
+	static switchBetweenScripts(this: NodeEditBehaviorScriptInstance, element: Polymer.Element) {
+		element.classList.remove('optionsEditorTab');
+		if (this.editorMode === 'options') {
+			try {
+				this.newSettings.value.options = JSON.parse(this.editor.getValue());
+			} catch(e) {
+				this.newSettings.value.options = this.editor.getValue();
+			}
+		}
+		this.hideCodeOptions();
+		this.initTernKeyBindings();
+	}
+
 	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
 		const element = window.app.util.findElementWithClassName(e.path, 'editorTab');
 
 		const isMain = element.classList.contains('mainEditorTab');
 		const isBackground = element.classList.contains('backgroundEditorTab');
 		if (isMain && this.editorMode !== 'main') {
-			element.classList.remove('optionsEditorTab');
-			if (this.editorMode === 'options') {
-				try {
-					this.newSettings.value.options = JSON.parse(this.editor.getValue());
-				} catch(e) {
-					this.newSettings.value.options = this.editor.getValue();
-				}
-			}
-			this.hideCodeOptions();
-			this.initTernKeyBindings();
+			this.switchBetweenScripts(element);
 			this.changeTab('main');
 		} else if (!isMain && isBackground && this.editorMode !== 'background') {
-			element.classList.remove('optionsEditorTab');
-			if (this.editorMode === 'options') {
-				try {
-					this.newSettings.value.options = JSON.parse(this.editor.getValue());
-				} catch(e) {
-					this.newSettings.value.options = this.editor.getValue();
-				}
-			}
-			this.hideCodeOptions();
-			this.initTernKeyBindings();
+			this.switchBetweenScripts(element);
 			this.changeTab('background');
 		} else if (!isBackground && this.editorMode !== 'options') {
 			element.classList.add('optionsEditorTab');
@@ -204,6 +199,75 @@ class SCE {
 		this.active = false;
 	};
 
+	private static onPermissionsDialogOpen(extensionWideEnabledPermissions: chrome.permissions.Permissions,
+	settingsStorage: Partial<CRM.ScriptNode>) {
+		let el, svg;
+		$('.requestPermissionsShowBot').off('click').on('click', function(this: HTMLElement) {
+			el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
+				animation: Animation;
+			};
+			svg = $(this).find('.requestPermissionsSvg')[0];
+			svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+			if (el.animation) {
+				el.animation.reverse();
+			} else {
+				el.animation = el.animate([
+					{
+						height: 0
+					}, {
+						height: el.scrollHeight + 'px'
+					}
+				], {
+					duration: 250,
+					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+					fill: 'both'
+				});
+			}
+		});
+
+		let permission: CRM.Permission;
+		$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
+			permission = this.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
+			const slider = this;
+			let oldPermissions;
+			if (this.checked) {
+				if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
+					chrome.permissions.request({
+						permissions: [permission]
+					}, function(accepted) {
+						if (!accepted) {
+							//The user didn't accept, don't pretend it's active when it's not, turn it off
+							slider.checked = false;
+						} else {
+							//Accepted, remove from to-request permissions if it's there
+							chrome.storage.local.get(function(e: CRM.StorageLocal) {
+								const permissionsToRequest = e.requestPermissions;
+								permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
+								chrome.storage.local.set({
+									requestPermissions: permissionsToRequest
+								});
+							});
+
+							//Add to script's permissions
+							settingsStorage.permissions = settingsStorage.permissions || [];
+							oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
+							settingsStorage.permissions.push(permission);
+						}
+					});
+				} else {
+					//Add to script's permissions
+					settingsStorage.permissions = settingsStorage.permissions || [];
+					oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
+					settingsStorage.permissions.push(permission);
+				}
+			} else {
+				//Remove from script's permissions
+				oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
+				settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
+			}
+		});
+	}
+
 	static openPermissionsDialog(this: NodeEditBehaviorScriptInstance, item: Polymer.ClickEvent|CRM.ScriptNode,
 			callback: () => void) {
 		let nodeItem: CRM.ScriptNode;
@@ -217,7 +281,7 @@ class SCE {
 			settingsStorage = item;
 		}
 		//Prepare all permissions
-		chrome.permissions.getAll(function(extensionWideEnabledPermissions) {
+		chrome.permissions.getAll((extensionWideEnabledPermissions) => {
 			if (!nodeItem.permissions) {
 				nodeItem.permissions = [];
 			}
@@ -283,78 +347,12 @@ class SCE {
 			permissionList.push.apply(permissionList, requiredInactive);
 			permissionList.push.apply(permissionList, nonRequiredNonActive);
 
-			function cb() {
-				let el, svg;
-				$('.requestPermissionsShowBot').off('click').on('click', function(this: HTMLElement) {
-					el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
-						animation: Animation;
-					};
-					svg = $(this).find('.requestPermissionsSvg')[0];
-					svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-					if (el.animation) {
-						el.animation.reverse();
-					} else {
-						el.animation = el.animate([
-							{
-								height: 0
-							}, {
-								height: el.scrollHeight + 'px'
-							}
-						], {
-							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-							fill: 'both'
-						});
-					}
-				});
-
-				let permission: CRM.Permission;
-				$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
-					permission = this.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
-					const slider = this;
-					let oldPermissions;
-					if (this.checked) {
-						if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
-							chrome.permissions.request({
-								permissions: [permission]
-							}, function(accepted) {
-								if (!accepted) {
-									//The user didn't accept, don't pretend it's active when it's not, turn it off
-									slider.checked = false;
-								} else {
-									//Accepted, remove from to-request permissions if it's there
-									chrome.storage.local.get(function(e: CRM.StorageLocal) {
-										const permissionsToRequest = e.requestPermissions;
-										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-										chrome.storage.local.set({
-											requestPermissions: permissionsToRequest
-										});
-									});
-
-									//Add to script's permissions
-									settingsStorage.permissions = settingsStorage.permissions || [];
-									oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
-									settingsStorage.permissions.push(permission);
-								}
-							});
-						} else {
-							//Add to script's permissions
-							settingsStorage.permissions = settingsStorage.permissions || [];
-							oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
-							settingsStorage.permissions.push(permission);
-						}
-					} else {
-						//Remove from script's permissions
-						oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
-						settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
-					}
-				});
-			}
-
 			($('#scriptPermissionsTemplate')[0] as HTMLDomRepeatElement).items = permissionList;
 			$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + nodeItem.name;
 			const scriptPermissionDialog = $('#scriptPermissionDialog')[0] as HTMLPaperDialogElement;
-			scriptPermissionDialog.addEventListener('iron-overlay-opened', cb);
+			scriptPermissionDialog.addEventListener('iron-overlay-opened', () => {
+				this.onPermissionsDialogOpen(extensionWideEnabledPermissions, settingsStorage);
+			});
 			scriptPermissionDialog.addEventListener('iron-overlay-closed', callback);
 			scriptPermissionDialog.open();
 		});
