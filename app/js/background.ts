@@ -2387,7 +2387,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getSubTree(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				const nodeId = _this.message.nodeId;
+				const nodeId = _this.message.id;
 				if (typeof nodeId === 'number') {
 					const node = globalObject.globals.crm.crmByIdSafe[nodeId];
 					if (node) {
@@ -2402,7 +2402,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getNode(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				const nodeId = _this.message.nodeId;
+				const nodeId = _this.message.id;
 				if (typeof nodeId === 'number') {
 					const node = globalObject.globals.crm.crmByIdSafe[nodeId];
 					if (node) {
@@ -2512,7 +2512,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getParentNode(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					const pathToSearch = JSON.parse(JSON.stringify(node.path));
 					pathToSearch.pop();
 					if (pathToSearch.length === 0) {
@@ -2527,14 +2527,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getNodeType(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+				_this.getNodeFromId(_this.message.id, true).run((node) => {
 					_this.respondSuccess(node.type);
 				});
 			});
 		}
 		static getNodeValue(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+				_this.getNodeFromId(_this.message.id, true).run((node) => {
 					_this.respondSuccess(node.value);
 				});
 			});
@@ -2710,7 +2710,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						optional: true
 					}
 				], (optionals) => {
-					_this.getNodeFromId(_this.message.nodeId, true).run((node: CRM.Node) => {
+					_this.getNodeFromId(_this.message.id, true).run((node: CRM.Node) => {
 						let newNode = JSON.parse(JSON.stringify(node));
 						newNode.id = Helpers.generateItemId();
 						if (_this.getNodeFromId(_this.message.id, false, true).local === true &&
@@ -2738,7 +2738,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static moveNode(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					const msg = (_this.message as CRMFunctionMessage & {
 						position: number;
 					});
@@ -2760,7 +2760,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static deleteNode(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					const parentChildren = _this.lookup(node.path, globalObject.globals.crm
                         .crmTree, true) as Array<CRM.Node>;
 					parentChildren.splice(node.path[node.path.length - 1], 1);
@@ -2769,11 +2769,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						undefined) {
 						chrome.contextMenus.remove(globalObject.globals.crmValues
 							.contextMenuIds[node.id], () => {
-								CRM.updateCrm([_this.message.nodeId]);
+								CRM.updateCrm([_this.message.id]);
 								_this.respondSuccess(true);
 							});
 					} else {
-						CRM.updateCrm([_this.message.nodeId]);
+						CRM.updateCrm([_this.message.id]);
 						_this.respondSuccess(true);
 					}
 				});
@@ -2795,7 +2795,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						optional: true
 					}
 				], (optionals) => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							options: {
 								type: string;
@@ -2841,7 +2841,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getTriggers(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					_this.respondSuccess(node.triggers);
 				});
 			});
@@ -2860,7 +2860,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						]
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							triggers: Array<{
 								url: string;
@@ -2919,7 +2919,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getTriggerUsage(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					if (node.type === 'menu' ||
 						node.type === 'link' ||
 						node.type === 'divider') {
@@ -2943,7 +2943,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						useTriggers: boolean;
 					};
 
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						if (node.type === 'menu' ||
 							node.type === 'link' ||
 							node.type === 'divider') {
@@ -2966,7 +2966,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getContentTypes(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					_this.respondSuccess(node.onContentTypes);
 				});
 			});
@@ -2989,7 +2989,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						value: boolean;
 					};
 
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						node.onContentTypes[msg['index']] = msg['value'];
 						CRM.updateCrm();
 						chrome.contextMenus.update(globalObject.globals.crmValues
@@ -3011,7 +3011,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						type: 'array'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							contentTypes: Array<string>;
 						};
@@ -3059,7 +3059,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static linkGetLinks(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					if (node.type === 'link') {
 						_this.respondSuccess(node.value);
 					} else {
@@ -3087,7 +3087,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						]
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							items: Array<{
 								newTab: boolean;
@@ -3155,7 +3155,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						]
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							items: Array<{
 								newTab: boolean;
@@ -3207,7 +3207,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static linkSplice(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					_this.typeCheck([
 							{
 								val: 'start',
@@ -3250,7 +3250,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						max: 4
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							launchMode: CRMLaunchModes;
 						};
@@ -3270,7 +3270,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getLaunchMode(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId).run((node) => {
+				_this.getNodeFromId(_this.message.id).run((node) => {
 					if (node.type === 'script' || node.type === 'stylesheet') {
 						_this.respondSuccess(node.value.launchMode);
 					} else {
@@ -3374,7 +3374,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const msg = _this.message as CRMFunctionMessage & {
 						libraries: Array<CRM.Library>|CRM.Library;
 					};
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						function doesLibraryExist(lib: {
 							name: string;
 						}): string|boolean {
@@ -3444,7 +3444,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						type: 'number'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							start: number;
 							amount: number;
@@ -3481,7 +3481,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						optional: true
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							libraries: Array<CRM.Library>|CRM.Library
 						};
@@ -3560,11 +3560,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						amount: number;
 					};
 
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						let spliced;
 						if (node.type === 'script') {
 							spliced = Helpers.safe(node).value.backgroundLibraries.splice(msg['start'], msg['amount']);
-							CRM.updateCrm([_this.message.nodeId]);
+							CRM.updateCrm([_this.message.id]);
 							_this.respondSuccess(spliced, Helpers.safe(node).value
 								.backgroundLibraries);
 						} else {
@@ -3573,7 +3573,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							node.scriptVal.backgroundLibraries = node.scriptVal.backgroundLibraries || [];
 							spliced = node.scriptVal.backgroundLibraries.splice(msg['start'],
 								 msg['amount']);
-							CRM.updateCrm([_this.message.nodeId]);
+							CRM.updateCrm([_this.message.id]);
 							_this.respondSuccess(spliced, node.scriptVal.backgroundLibraries);
 						}
 						return true;
@@ -3592,7 +3592,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const msg = _this.message as CRMFunctionMessage & {
 						script: string;
 					};
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						if (node.type === 'script') {
 							node.value.script = msg['script'];
 						} else {
@@ -3609,7 +3609,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getScriptValue(__this: CRMFunction) {
 			__this.checkPermissions(['crmGet'], () => {
-				__this.getNodeFromId(__this.message.nodeId, true).run((node) => {
+				__this.getNodeFromId(__this.message.id, true).run((node) => {
 					if (node.type === 'script') {
 						__this.respondSuccess(node.value.script);
 					} else {
@@ -3631,7 +3631,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						type: 'string'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							stylesheet: string;
 						};
@@ -3651,7 +3651,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getStylesheetValue(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+				_this.getNodeFromId(_this.message.id, true).run((node) => {
 					if (node.type === 'stylesheet') {
 						_this.respondSuccess(node.value.stylesheet);
 					} else {
@@ -3676,7 +3676,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const msg = _this.message as CRMFunctionMessage & {
 						script: string;
 					};
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						if (node.type === 'script') {
 							node.value.backgroundScript = msg['script'];
 						} else {
@@ -3684,7 +3684,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								globalObject.globals.constants.templates.getDefaultScriptValue();
 							node.scriptVal.backgroundScript = msg['script'];
 						}
-						CRM.updateCrm([_this.message.nodeId]);
+						CRM.updateCrm([_this.message.id]);
 						_this.respondSuccess(Helpers.safe(node));
 						return true;
 					});
@@ -3693,7 +3693,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getBackgroundScriptValue(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+				_this.getNodeFromId(_this.message.id, true).run((node) => {
 					if (node.type === 'script') {
 						_this.respondSuccess(node.value.backgroundScript);
 					} else {
@@ -3709,7 +3709,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static getMenuChildren(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+				_this.getNodeFromId(_this.message.id, true).run((node) => {
 					if (node.type === 'menu') {
 						_this.respondSuccess(node.children);
 					} else {
@@ -3727,7 +3727,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						type: 'array'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					_this.getNodeFromId(_this.message.id, true).run((node) => {
 						const msg = _this.message as CRMFunctionMessage & {
 							childrenIds: Array<number>;
 						};
@@ -3752,7 +3752,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								true);
 							_this.moveNode(toMove, {
 								relation: 'lastChild',
-								node: _this.message.nodeId
+								node: _this.message.id
 							}, {
 								children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
 									true),
@@ -3781,7 +3781,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						childrenIds: Array<number>;
 					};
 
-					_this.getNodeFromId(_this.message.nodeId, true).run((node) => {
+					_this.getNodeFromId(_this.message.id, true).run((node) => {
 						if (node.type !== 'menu') {
 							_this.respondError('Node is not of type menu');
 						}
@@ -3799,7 +3799,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								true);
 							_this.moveNode(toMove, {
 								relation: 'lastChild',
-								node: _this.message.nodeId
+								node: _this.message.id
 							}, {
 								children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
 									true),
@@ -3830,7 +3830,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						amount: number;
 					};
 
-					_this.getNodeFromId(_this.message.nodeId).run((node) => {
+					_this.getNodeFromId(_this.message.id).run((node) => {
 						if (node.type !== 'menu') {
 							_this.respondError('Node is not of type menu');
 							return false;
@@ -3957,7 +3957,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		crmPath: Array<number>;
 		[key: string]: any;
 	}> {
-		nodeId?: number;
 		options?: any;
 		action: string;
 	}
