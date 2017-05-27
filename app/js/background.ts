@@ -3074,7 +3074,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				_this.typeCheck([
 					{
 						val: 'items',
-						type: 'object|array',
+						type: ['object', 'array'],
 						forChildren: [
 							{
 								val: 'newTab',
@@ -3142,7 +3142,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				_this.typeCheck([
 					{
 						val: 'items',
-						type: 'object|array',
+						type: ['object', 'array'],
 						forChildren: [
 							{
 								val: 'newTab',
@@ -3358,7 +3358,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				_this.typeCheck([
 					{
 						val: 'libraries',
-						type: 'object|array',
+						type: ['object', 'array'],
 						forChildren: [
 							{
 								val: 'name',
@@ -3468,7 +3468,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				_this.typeCheck([
 					{
 						val: 'libraries',
-						type: 'object|array',
+						type: ['object', 'array'],
 						forChildren: [
 							{
 								val: 'name',
@@ -3970,7 +3970,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		run: (callback: (node: T) => void) => void;
 	};
 
-	type TypeCheckTypes = 'string'|'function'|'number'|'object'|'array';
+	type TypeCheckTypes = 'string'|'function'|'number'|'object'|'array'|'boolean';
+
+	interface TypeCheckConfig {
+		val: string;
+		type: TypeCheckTypes|Array<TypeCheckTypes>;
+		optional?: boolean;
+		forChildren?: Array<{
+			val: string;
+			type: TypeCheckTypes|Array<TypeCheckTypes>;
+			optional?: boolean;
+		}>;
+		dependency?: string;
+		min?: number;
+		max?: number;
+	}
 
 	class CRMFunction {
 		constructor(public message: CRMFunctionMessage, public action: string) {
@@ -4240,132 +4254,163 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		};
 
-		typeCheck(toCheck: Array<{
+		private static _getDotValue<T extends {
+			[key: string]: T|U
+		}, U>(source: T, index: string): U {
+			const indexes = index.split('.');
+			let currentValue: T|U = source;
+			for (let i = 0; i < indexes.length; i++) {
+				if (indexes[i] in currentValue) {
+					currentValue = (currentValue as T)[indexes[i]];
+				} else {
+					return undefined;
+				}
+			}
+			return currentValue as U;
+		}
+
+		private dependencyMet(data: TypeCheckConfig, optionals: {
+			[key: string]: any;
+			[key: number]: any;
+		}): boolean {
+			if (data.dependency && !optionals[data.dependency]) {
+				optionals[data.val] = false;
+				return false;
+			}
+			return true;
+		}
+
+		private _isDefined(data: TypeCheckConfig, value: any, optionals: {
+			[key: string]: any;
+			[key: number]: any;
+		}): boolean {
+			//Check if it's defined
+			if (value === undefined || value === null) {
+				if (data.optional) {
+					optionals[data.val] = false;
+				} else {
+					this.respondError(`Value for ${data.val} is not set`);
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private _typesMatch(data: TypeCheckConfig, value: any): string {
+			const types = Array.isArray(data.type) ? data.type : [data.type];
+			let matchedType = null;
+			for (let i = 0; i < types.length; i++) {
+				const type = types[i];
+				if (type === 'array') {
+					if (typeof value === 'object' && Array.isArray(value)) {
+						return matchedType;
+					}
+				}
+				if (typeof value === type) {
+					return matchedType;
+				}
+			}
+			this.respondError(`Value for ${data.val} is not of type ${types.join(' or ')}`);
+			return null;
+		}
+
+		private _checkNumberConstraints(data: TypeCheckConfig, value: number): boolean {
+			if (data.min !== undefined) {
+				if (data.min > value) {
+					this.respondError(`Value for ${data.val} is smaller than ${data.min}`);
+					return false;
+				}
+			}
+			if (data.max !== undefined) {
+				if (data.max < value) {
+					this.respondError(`Value for ${data.val} is bigger than ${data.max}`);
+					return false;
+				}
+			}
+			return true;
+		}
+
+		private _checkArrayChildType(data: TypeCheckConfig, value: any, forChild: {
 			val: string;
-			type: string;
+			type: TypeCheckTypes|Array<TypeCheckTypes>;
 			optional?: boolean;
-			forChildren?: Array<{
-				val: string;
-				type: string;
-				optional?: boolean;
-			}>;
-			dependency?: string;
-			min?: number;
-			max?: number;
-		}>, callback: (optionals?: {
+		}): boolean {
+			const types = Array.isArray(forChild.type) ? forChild.type : [forChild.type]
+			for (let i = 0; i < types.length; i++) {
+				const type = types[i];
+				if (type === 'array') {
+					if (Array.isArray(value)) {
+						return true;
+					}
+				} else if (typeof value === type) {
+					return true;
+				}
+			}
+			this.respondError(`For not all values in the array ${data.val} is the property ${
+				forChild.val} of type ${types.join(' or ')}`);
+			return false;
+		}
+
+		private _checkArrayChildrenConstraints<T extends {
+			[key: string]: any;
+		}>(data: TypeCheckConfig, value: Array<T>): boolean {
+			for (let i = 0; i < value.length; i++) {
+				for (let j = 0; j < data.forChildren.length; j++) {
+					const forChild = data.forChildren[j];
+					const childValue = value[i][forChild.val];
+					
+					//Check if it's defined
+					if (childValue === undefined || childValue === null) {
+						if (!forChild.optional) {
+							this.respondError(`For not all values in the array ${data.val} is the property ${forChild.val} defined`);
+							return false;
+						}
+					} else if (!this._checkArrayChildType(data, childValue, forChild)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}		
+
+		private _checkConstraints(data: TypeCheckConfig, value: any, optionals: {
+			[key: string]: any;
+			[key: number]: any;
+		}): boolean {
+			if (typeof value === 'number') {
+				return this._checkNumberConstraints(data, value);
+			}
+			if (Array.isArray(value) && data.forChildren) {
+				return this._checkArrayChildrenConstraints(data, value);
+			}
+			return true;
+		}
+
+		typeCheck(toCheck: Array<TypeCheckConfig>, callback: (optionals?: {
 			[key: string]: any;
 		}) => void) {
-			let typesMatch: boolean;
-			let toCheckName: string;
-			let matchingType: boolean | string;
-			let toCheckTypes: string[];
-			let toCheckValue: any;
-			let toCheckIsArray: boolean;
 			const optionals: {
 				[key: string]: any;
 				[key: number]: any;
 			} = {};
-			let toCheckChildrenName: string;
-			let toCheckChildrenType: string;
-			let toCheckChildrenValue: any;
-			let toCheckChildrenTypes: string[];
 			for (let i = 0; i < toCheck.length; i++) {
-				toCheckName = toCheck[i].val;
-				if (toCheck[i].dependency) {
-					if (!optionals[toCheck[i].dependency]) {
-						optionals[toCheckName] = false;
-						continue;
+				const data = toCheck[i];
+
+				//Skip if dependency not met
+				if (!this.dependencyMet(data, optionals)) {
+					continue;
+				}
+
+				const value = CRMFunction._getDotValue(this.message.data, data.val);
+				//Check if it's defined
+				if (this._isDefined(data, value, optionals)) {
+					const matchedType = this._typesMatch(data, value);
+					if (matchedType) {
+						optionals[data.val] = true;
+						this._checkConstraints(data, value, optionals);
 					}
 				}
-				toCheckTypes = toCheck[i].type.split('|');
-				toCheckValue = eval(`this.message.${toCheckName};`);
-				if (toCheckValue === undefined || toCheckValue === null) {
-					if (toCheck[i].optional) {
-						optionals[toCheckName] = false;
-					} else {
-						this.respondError(`Value for ${toCheckName} is not set`);
-						return false;
-					}
-				} else {
-					toCheckIsArray = Array.isArray(toCheckValue);
-					typesMatch = false;
-					matchingType = false;
-					for (let j = 0; j < toCheckTypes.length; j++) {
-						if (toCheckTypes[j] === 'array') {
-							if (typeof toCheckValue === 'object' && Array.isArray(toCheckValue)) {
-								matchingType = toCheckTypes[j];
-								typesMatch = true;
-								break;
-							}
-						} else if (typeof toCheckValue === toCheckTypes[j]) {
-							matchingType = toCheckTypes[j];
-							typesMatch = true;
-							break;
-						}
-					}
-					if (!typesMatch) {
-						this.respondError(`Value for ${toCheckName} is not of type ${toCheckTypes
-							.join(' or ')}`);
-						return false;
-					}
-					optionals[toCheckName] = true;
-					if (toCheck[i].min !== undefined && typeof toCheckValue === 'number') {
-						if (toCheck[i].min > toCheckValue) {
-							this.respondError(`Value for ${toCheckName} is smaller than ${toCheck[i]
-								.min}`);
-							return false;
-						}
-					}
-					if (toCheck[i].max !== undefined && typeof toCheckValue === 'number') {
-						if (toCheck[i].max < toCheckValue) {
-							this.respondError(`Value for ${toCheckName} is bigger than ${toCheck[i]
-								.max}`);
-							return false;
-						}
-					}
-					if (toCheckIsArray &&
-						toCheckTypes.indexOf('array') &&
-						toCheck[i].forChildren) {
-						for (let j = 0; j < toCheckValue.length; j++) {
-							for (let k = 0; k < toCheck[i].forChildren.length; k++) {
-								toCheckChildrenName = toCheck[i].forChildren[k].val;
-								toCheckChildrenValue = toCheckValue[j][toCheckChildrenName];
-								if (toCheckChildrenValue === undefined || toCheckChildrenValue === null
-								) {
-									if (!toCheck[i].forChildren[k].optional) {
-										this
-											.respondError(`For not all values in the array ${toCheckName
-												} is the property ${toCheckChildrenName} defined`);
-										return false;
-									}
-								} else {
-									toCheckChildrenType = toCheck[i].forChildren[k].type;
-									toCheckChildrenTypes = toCheckChildrenType.split('|');
-									typesMatch = false;
-									for (let l = 0; l < toCheckChildrenTypes.length; l++) {
-										if (toCheckChildrenTypes[l] === 'array') {
-											if (typeof toCheckChildrenValue === 'object' &&
-												Array.isArray(toCheckChildrenValue) !== undefined) {
-												typesMatch = true;
-												break;
-											}
-										} else if (typeof toCheckChildrenValue === toCheckChildrenTypes[l]) {
-											typesMatch = true;
-											break;
-										}
-									}
-									if (!typesMatch) {
-										this
-											.respondError(`For not all values in the array ${toCheckName
-												} is the property ${toCheckChildrenName} of type ${
-												toCheckChildrenTypes.join(' or ')}`);
-										return false;
-									}
-								}
-							}
-						}
-					}
-				}
+				return false;
 			}
 			callback(optionals);
 			return true;

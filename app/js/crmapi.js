@@ -1686,17 +1686,19 @@
 					callback.apply(_this, messageOrParams);
 				}
 			}
-			var message = params || {};
-			message.type = 'crm';
-			message.id = id;
-			message.tabIndex = tabIndex;
-			message.action = action;
-			message.crmPath = node.path;
-			message.onFinish = {
-				maxCalls: 1,
-				fn: onFinish
+			var message = {
+				type: 'crm',
+				id: id,
+				tabIndex: tabIndex,
+				action: action,
+				crmPath: node.path,
+				data: params,
+				onFinish: {
+					maxCalls: 1,
+					fn: onFinish
+				},
+				tabId: _this.tabId
 			};
-			message.tabId = _this.tabId;
 			sendMessage(message);
 		}
 
