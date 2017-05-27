@@ -4473,56 +4473,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 	class ChromeHandler {
 		static handle(message: ChromeAPIMessage) {
-			const node = globalObject.globals.crm.crmById[message.id];
-			if (!/[a-zA-Z0-9]*/.test(message.api)) {
-				APIMessaging.ChromeMessage.throwError(message, `Passed API "${message
-					.api}" is not alphanumeric.`);
-				return false;
-			} else if (this._checkForRuntimeMessages(message)) {
-				return false;
-			} else if (message.api === 'runtime.sendMessage') {
-				console
-					.warn('The chrome.runtime.sendMessage API is not meant to be used, use ' +
-						'crmAPI.comm instead');
-				APIMessaging.sendThroughComm(message);
+			if (!this._handleSpecialCalls(message)) {
 				return false;
 			}
 			const apiPermission = message
                     .requestType ||
 				message.api.split('.')[0] as CRM.Permission;
-			if (!node.isLocal) {
-				let apiFound: boolean;
-				let chromeFound = (node.permissions.indexOf('chrome') !== -1);
-				apiFound = (node.permissions.indexOf(apiPermission) !== -1);
-				if (!chromeFound && !apiFound) {
-					APIMessaging.ChromeMessage.throwError(message,
-						`Both permissions chrome and ${apiPermission
-						} not available to this script`);
-					return false;
-				} else if (!chromeFound) {
-					APIMessaging.ChromeMessage.throwError(message,
-						'Permission chrome not available to this script');
-					return false;
-				} else if (!apiFound) {
-					APIMessaging.ChromeMessage.throwError(message,
-						`Permission ${apiPermission} not avilable to this script`);
-					return false;
-				}
-			}
-			if (globalObject.globals.constants.permissions
-				.indexOf(apiPermission) ===
-				-1) {
-				APIMessaging.ChromeMessage.throwError(message,
-					`Permissions ${apiPermission
-					} is not available for use or does not exist.`);
+			if (!this._hasPermission(message, apiPermission)) {
 				return false;
 			}
-			if (globalObject.globals.availablePermissions
-				.indexOf(apiPermission) ===
-				-1) {
+			if (globalObject.globals.constants.permissions.indexOf(apiPermission) === -1) {
 				APIMessaging.ChromeMessage.throwError(message,
-					`Permissions ${apiPermission
-					} not available to the extension, visit options page`);
+					`Permissions ${apiPermission} is not available for use or does not exist.`);
+				return false;
+			}
+			if (globalObject.globals.availablePermissions.indexOf(apiPermission) === -1) {
+				APIMessaging.ChromeMessage.throwError(message,
+					`Permissions ${apiPermission} not available to the extension, visit options page`);
 				chrome.storage.local.get('requestPermissions', (storageData) => {
 					const perms = storageData['requestPermissions'] || [apiPermission];
 					chrome.storage.local.set({
@@ -4543,8 +4510,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						params.push(this._createChromeFnCallbackHandler(message, message.args[i].val));
 						break;
 					case 'return':
-						returnFunctions.push(APIMessaging.createReturn(message, message.args[i]
-                            .val));
+						returnFunctions.push(APIMessaging.createReturn(message, message.args[i].val));
 						break;
 				}
 			}
@@ -4561,136 +4527,166 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return true;
 		}
 
-		private static _checkForRuntimeMessages(message: ChromeAPIMessage) {
-			const api = message.api.split('.').slice(1).join('.');
-			if (message.api.split('.')[0] !== 'runtime') {
+		private static _hasPermission(message: ChromeAPIMessage, apiPermission: CRM.Permission) {
+			const node = globalObject.globals.crm.crmById[message.id];
+			if (!node.isLocal) {
+				let apiFound: boolean;
+				let chromeFound = (node.permissions.indexOf('chrome') !== -1);
+				apiFound = (node.permissions.indexOf(apiPermission) !== -1);
+				if (!chromeFound && !apiFound) {
+					APIMessaging.ChromeMessage.throwError(message,
+						`Both permissions chrome and ${apiPermission
+						} not available to this script`);
+					return false;
+				} else if (!chromeFound) {
+					APIMessaging.ChromeMessage.throwError(message,
+						'Permission chrome not available to this script');
+					return false;
+				} else if (!apiFound) {
+					APIMessaging.ChromeMessage.throwError(message,
+						`Permission ${apiPermission} not avilable to this script`);
+					return false;
+				}
+			}
+			return true;
+		}
+		private static _handleSpecialCalls(message: ChromeAPIMessage) {
+			if (!/[a-zA-Z0-9]*/.test(message.api)) {
+				APIMessaging.ChromeMessage.throwError(message, `Passed API "${message
+					.api}" is not alphanumeric.`);
+				return false;
+			} else if (this._checkForRuntimeMessages(message)) {
+				return false;
+			} else if (message.api === 'runtime.sendMessage') {
+				console
+					.warn('The chrome.runtime.sendMessage API is not meant to be used, use ' +
+						'crmAPI.comm instead');
+				APIMessaging.sendThroughComm(message);
 				return false;
 			}
-			const args: Array<any> = [];
-			const fns: Array<() => void> = [];
-			const returns: Array<any> = [];
-			switch (api) {
-				case 'getBackgroundPage':
-					console
-						.warn('The chrome.runtime.getBackgroundPage API should not be used');
-					if (!message.args[0] || message.args[0].type !== 'fn') {
-						APIMessaging.ChromeMessage.throwError(message,
-							'First argument of getBackgroundPage should be a function');
-						return true;
-					}
-					APIMessaging.CRMMessage.respond(message, 'success', {
-						callbackId: message.args[0].val,
-						params: [{}]
-					});
+			return true;
+		}
+		private static ChromeAPIs = class ChromeAPIs {
+			private static _checkFirstRuntimeArg(message: ChromeAPIMessage, expectedType: string, name: string) {
+				if (!message.args[0] || message.args[0].type !== expectedType) {
+					APIMessaging.ChromeMessage.throwError(message, expectedType === 'fn' ?
+						`First argument of ${name} should be a function` : 
+						`${name} should have a function to retunr to`);
 					return true;
-				case 'openOptionsPage':
-					if (message.args[0] && message.args[0].type !== 'fn') {
-						APIMessaging.ChromeMessage.throwError(message,
-							'First argument of openOptionsPage should be a function');
-						return true;
-					}
-					chrome.runtime.openOptionsPage(() => {
-						if (message.args[0]) {
-							APIMessaging.CRMMessage.respond(message, 'success', {
-								callbackId: message.args[0].val,
-								params: []
-							});
-						}
-					});
-					return true;
-				case 'getManifest':
-					if (!message.args[0] || message.args[0].type !== 'return') {
-						APIMessaging.ChromeMessage.throwError(message,
-							'getManifest should have a function to return to');
-						return true;
-					}
-					APIMessaging.createReturn(message, message.args[0].val)(chrome.runtime
-						.getManifest());
-					return true;
-				case 'getURL':
-					for (let i = 0; i < message.args.length; i++) {
-						if (message.args[i].type === 'return') {
-							returns.push(message.args[i].val);
-						} else if (message.args[i].type === 'arg') {
-							args.push(message.args[i].val);
-						} else {
-							APIMessaging.ChromeMessage.throwError(message,
-								'getURL should not have a function as an argument');
-							return true;
-						}
-					}
-					if (returns.length === 0 || args.length === 0) {
-						APIMessaging.ChromeMessage.throwError(message,
-							'getURL should be a return function with at least one argument');
-					}
-					APIMessaging.createReturn(message, returns[0])(chrome.runtime
-						.getURL(args[0]));
-					return true;
-				case 'connect':
-				case 'connectNative':
-				case 'setUninstallURL':
-				case 'sendNativeMessage':
-				case 'requestUpdateCheck':
-					APIMessaging.ChromeMessage.throwError(message,
-						'This API should not be accessed');
-					return true;
-				case 'reload':
-					chrome.runtime.reload();
-					return true;
-				case 'restart':
-					chrome.runtime.restart();
-					return true;
-				case 'restartAfterDelay':
-					for (let i = 0; i < message.args.length; i++) {
-						if (message.args[i].type === 'fn') {
-							fns.push(message.args[i].val);
-						} else if (message.args[i].type === 'arg') {
-							args.push(message.args[i].val);
-						} else {
-							APIMessaging.ChromeMessage.throwError(message,
-								'restartAfterDelay should not have a return as an argument');
-							return true;
-						}
-					}
-					chrome.runtime.restartAfterDelay(args[0], () => {
-						APIMessaging.CRMMessage.respond(message, 'success', {
-							callbackId: fns[0],
-							params: []
-						});
-					});
-					return true;
-				case 'getPlatformInfo':
-					if (message.args[0] && message.args[0].type !== 'fn') {
-						APIMessaging.ChromeMessage.throwError(message,
-							'First argument of getPlatformInfo should be a function');
-						return true;
-					}
-					chrome.runtime.getPlatformInfo((platformInfo) => {
-						if (message.args[0]) {
-							APIMessaging.CRMMessage.respond(message, 'success', {
-								callbackId: message.args[0].val,
-								params: [platformInfo]
-							});
-						}
-					});
-					return true;
-				case 'getPackageDirectoryEntry':
-					if (message.args[0] && message.args[0].type !== 'fn') {
-						APIMessaging.ChromeMessage.throwError(message,
-							'First argument of getPackageDirectoryEntry should be a function');
-						return true;
-					}
-					chrome.runtime.getPackageDirectoryEntry((directoryInfo) => {
-						if (message.args[0]) {
-							APIMessaging.CRMMessage.respond(message, 'success', {
-								callbackId: message.args[0].val,
-								params: [directoryInfo]
-							});
-						}
-					});
-					return true;
+				}
+				return false;
 			}
-
+			private static _respondSuccess(message: ChromeAPIMessage, params: Array<any>) {
+				APIMessaging.CRMMessage.respond(message, 'success', {
+					callbackId: message.args[0].val,
+					params: params
+				});
+			}
+			static getBackgroundPage(message: ChromeAPIMessage, api: string) {
+				console.warn('The chrome.runtime.getBackgroundPage API should not be used');
+				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
+					return true;
+				}
+				this._respondSuccess(message, [{}]);
+				return true;
+			}
+			static openOptionsPage(message: ChromeAPIMessage, api: string) {
+				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
+					return true;
+				}
+				chrome.runtime.openOptionsPage(() => {
+					message.args[0] && this._respondSuccess(message, []);
+				});
+				return true;
+			}
+			static getManifest(message: ChromeAPIMessage, api: string) {
+				if (this._checkFirstRuntimeArg(message, 'return', api)) {
+					return true;
+				}
+				APIMessaging.createReturn(message, message.args[0].val)(
+					chrome.runtime.getManifest());
+				return true;
+			 }
+			static getURL(message: ChromeAPIMessage, api: string) { 
+				const returns: Array<any> = [];
+				const args: Array<any> = [];
+				for (let i = 0; i < message.args.length; i++) {
+					if (message.args[i].type === 'return') {
+						returns.push(message.args[i].val);
+					} else if (message.args[i].type === 'arg') {
+						args.push(message.args[i].val);
+					} else {
+						APIMessaging.ChromeMessage.throwError(message,
+							'getURL should not have a function as an argument');
+						return true;
+					}
+				}
+				if (returns.length === 0 || args.length === 0) {
+					APIMessaging.ChromeMessage.throwError(message,
+						'getURL should be a return function with at least one argument');
+				}
+				APIMessaging.createReturn(message, returns[0])(chrome.runtime
+					.getURL(args[0]));
+				return true;
+			}
+			static unaccessibleAPI(message: ChromeAPIMessage) {
+				APIMessaging.ChromeMessage.throwError(message,
+					'This API should not be accessed');
+				return true;
+			}
+			static reload(message: ChromeAPIMessage, api: string) {
+				chrome.runtime.reload();
+				return true;
+			 }
+			static restart(message: ChromeAPIMessage, api: string) {
+				chrome.runtime.restart();
+				return true;
+			 }
+			static restartAfterDelay(message: ChromeAPIMessage, api: string) { 
+				const fns: Array<() => void> = [];
+				const args: Array<any> = [];
+				for (let i = 0; i < message.args.length; i++) {
+					if (message.args[i].type === 'fn') {
+						fns.push(message.args[i].val);
+					} else if (message.args[i].type === 'arg') {
+						args.push(message.args[i].val);
+					} else {
+						APIMessaging.ChromeMessage.throwError(message,
+							'restartAfterDelay should not have a return as an argument');
+						return true;
+					}
+				}
+				chrome.runtime.restartAfterDelay(args[0], () => {
+					APIMessaging.CRMMessage.respond(message, 'success', {
+						callbackId: fns[0],
+						params: []
+					});
+				});
+				return true;
+			}
+			static getPlatformInfo(message: ChromeAPIMessage, api: string) {
+				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
+					return true;
+				}
+				chrome.runtime.getPlatformInfo((platformInfo) => {
+					message.args[0] && this._respondSuccess(message, [platformInfo]);
+				});
+				return true;
+			 }
+			static getPackageDirectoryEntry(message: ChromeAPIMessage, api: string) {
+				if (this._checkFirstRuntimeArg(message, 'fn', api)) {
+					return true;
+				}
+				chrome.runtime.getPackageDirectoryEntry((directoryInfo) => {
+					message.args[0] && this._respondSuccess(message, [directoryInfo]);
+				});
+				return true;
+			 }
+			static parent() {
+				return ChromeHandler;
+			}
+		}
+		private static _handlePossibleChromeEvent(message: ChromeAPIMessage, api: string) {
 			if (api.split('.').length > 1) {
 				if (!message.args[0] || message.args[0].type !== 'fn') {
 					APIMessaging.ChromeMessage.throwError(message,
@@ -4727,6 +4723,39 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 			return false;
+		}
+		private static _checkForRuntimeMessages(message: ChromeAPIMessage) {
+			const api = message.api.split('.').slice(1).join('.');
+			if (message.api.split('.')[0] !== 'runtime') {
+				return false;
+			}
+			switch (api) {
+				case 'getBackgroundPage':
+					return this.ChromeAPIs.getBackgroundPage(message, api);
+				case 'openOptionsPage':
+					return this.ChromeAPIs.openOptionsPage(message, api);
+				case 'getManifest':
+					return this.ChromeAPIs.getManifest(message, api);
+				case 'getURL':
+					return this.ChromeAPIs.getURL(message, api);
+				case 'connect':
+				case 'connectNative':
+				case 'setUninstallURL':
+				case 'sendNativeMessage':
+				case 'requestUpdateCheck':
+					return this.ChromeAPIs.unaccessibleAPI(message);
+				case 'reload':
+					return this.ChromeAPIs.reload(message, api);
+				case 'restart':
+					return this.ChromeAPIs.restart(message, api);
+				case 'restartAfterDelay':
+					return this.ChromeAPIs.restartAfterDelay(message, api);
+				case 'getPlatformInfo':
+					return this.ChromeAPIs.getPlatformInfo(message, api);
+				case 'getPackageDirectoryEntry':
+					return this.ChromeAPIs.getPackageDirectoryEntry(message, api);
+			}
+			return this._handlePossibleChromeEvent(message, api);
 		}
 		private static _createChromeFnCallbackHandler(message: ChromeAPIMessage,
 			callbackIndex: number) {
