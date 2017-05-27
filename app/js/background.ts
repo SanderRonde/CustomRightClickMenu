@@ -4071,6 +4071,101 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return true;
 		}
 
+		private static MoveNode = class MoveNode {
+			static before(isRoot: boolean, node: CRM.Node, removeOld: any|boolean, relativeNode: any,
+				_this: CRMFunction) {
+					if (isRoot) {
+						Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+						if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
+						) {
+							removeOld.index++;
+						}
+					} else {
+						const parentChildren = _this.lookup(relativeNode.path, globalObject.globals.crm
+							.crmTree, true) as Array<CRM.Node>;
+						Helpers.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
+						if (removeOld && parentChildren === removeOld.children) {
+							removeOld.index++;
+						}
+					}
+				}
+			static firstSibling(isRoot: boolean, node: CRM.Node, removeOld: any|boolean, relativeNode: any, 
+				_this: CRMFunction) {
+					if (isRoot) {
+						Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+						if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
+						) {
+							removeOld.index++;
+						}
+					} else {
+						const parentChildren = _this.lookup((relativeNode as any).path, globalObject.globals.crm
+							.crmTree, true) as Array<CRM.Node>;
+						Helpers.pushIntoArray(node, 0, parentChildren);
+						if (removeOld && parentChildren === removeOld.children) {
+							removeOld.index++;
+						}
+					}
+				}
+			static after(isRoot: boolean, node: CRM.Node, relativeNode: any, _this: CRMFunction) {
+				if (isRoot) {
+					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
+						globalObject
+						.globals.crm.crmTree);
+				} else {
+					const parentChildren = _this.lookup((relativeNode as any).path, globalObject.globals.crm
+						.crmTree, true) as Array<CRM.Node>;
+					if ((relativeNode as any).path.length > 0) {
+						Helpers.pushIntoArray(node, (relativeNode as any)
+							.path[(relativeNode as any).path.length - 1] +
+							1, parentChildren);
+					}
+				}
+			}
+			static lastSibling(isRoot: boolean, node: CRM.Node, relativeNode: any, _this: CRMFunction) {
+				if (isRoot) {
+					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
+						globalObject
+						.globals.crm.crmTree);
+				} else {
+					const parentChildren = _this.lookup((relativeNode as any).path, globalObject.globals.crm
+						.crmTree, true) as Array<CRM.Node>;
+					Helpers.pushIntoArray(node, parentChildren.length, parentChildren);
+				}
+			}
+			static firstChild(isRoot: boolean, node: CRM.Node, removeOld: any|boolean, relativeNode: any, 
+				_this: CRMFunction) {
+					if (isRoot) {
+						Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+						if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
+						) {
+							removeOld.index++;
+						}
+					} else if ((relativeNode as CRM.Node).type === 'menu') {
+						Helpers.pushIntoArray(node, 0, (relativeNode as CRM.MenuNode).children);
+						if (removeOld && (relativeNode as CRM.MenuNode).children === removeOld.children) {
+							removeOld.index++;
+						}
+					} else {
+						_this.respondError('Supplied node is not of type "menu"');
+						return false;
+					}
+					return true;
+				}
+			static lastChild(isRoot: boolean, node: CRM.Node, relativeNode: any, _this: CRMFunction) {
+				if (isRoot) {
+					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
+						globalObject
+						.globals.crm.crmTree);
+				} else if ((relativeNode as CRM.MenuNode).type === 'menu') {
+					Helpers.pushIntoArray(node, (relativeNode as CRM.MenuNode).children.length,
+						(relativeNode as CRM.MenuNode).children);
+				} else {
+					_this.respondError('Supplied node is not of type "menu"');
+					return false;
+				}
+				return true;
+			}
+		}
 		moveNode(node: CRM.Node, position: {
 			node?: number;
 			relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|
@@ -4079,23 +4174,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			const crmFunction = this;
 
 			//Capture old CRM tree
-			const oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm
-                .crmTree));
+			const oldCrmTree = JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree));
 
 			//Put the node in the tree
 			let relativeNode: Array<CRM.Node> | CRM.Node;
-			let parentChildren: Array<CRM.Node>;
 			position = position || {};
 
 			if (!this.checkType(position, 'object', 'position')) {
 				return false;
 			}
 
-			if (!this.checkType(position.node, 'number', 'node', TypecheckOptional
-				.OPTIONAL, null, false,
-				() => {
-					if (!(relativeNode = crmFunction.getNodeFromId(position.node, false,
-						true))) {
+			if (!this.checkType(position.node, 'number', 'node', TypecheckOptional.OPTIONAL, null, false, () => {
+					if (!(relativeNode = crmFunction.getNodeFromId(position.node, false, true))) {
 						return;
 					}
 				})) {
@@ -4112,93 +4202,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			switch (position.relation) {
 				case 'before':
-					if (isRoot) {
-						Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
-						if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
-						) {
-							removeOld.index++;
-						}
-					} else {
-						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRM.Node>;
-						Helpers.pushIntoArray(node, (relativeNode as any)
-							.path[(relativeNode as any).path.length - 1],
-							parentChildren);
-						if (removeOld && parentChildren === removeOld.children) {
-							removeOld.index++;
-						}
-					}
+					CRMFunction.MoveNode.before(isRoot, node, removeOld, relativeNode, this);
 					break;
 				case 'firstSibling':
-					if (isRoot) {
-						Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
-						if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
-						) {
-							removeOld.index++;
-						}
-					} else {
-						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRM.Node>;
-						Helpers.pushIntoArray(node, 0, parentChildren);
-						if (removeOld && parentChildren === removeOld.children) {
-							removeOld.index++;
-						}
-					}
+					CRMFunction.MoveNode.firstSibling(isRoot, node, removeOld, relativeNode, this);
 					break;
 				case 'after':
-					if (isRoot) {
-						Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
-							globalObject
-							.globals.crm.crmTree);
-					} else {
-						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRM.Node>;
-						if ((relativeNode as any).path.length > 0) {
-							Helpers.pushIntoArray(node, (relativeNode as any)
-								.path[(relativeNode as any).path.length - 1] +
-								1, parentChildren);
-						}
-					}
+					CRMFunction.MoveNode.after(isRoot, node, relativeNode, this);
 					break;
 				case 'lastSibling':
-					if (isRoot) {
-						Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
-							globalObject
-							.globals.crm.crmTree);
-					} else {
-						parentChildren = this.lookup((relativeNode as any).path, globalObject.globals.crm
-							.crmTree, true) as Array<CRM.Node>;
-						Helpers.pushIntoArray(node, parentChildren.length, parentChildren);
-					}
+					CRMFunction.MoveNode.lastSibling(isRoot, node, relativeNode, this);
 					break;
 				case 'firstChild':
-					if (isRoot) {
-						Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
-						if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
-						) {
-							removeOld.index++;
-						}
-					} else if ((relativeNode as CRM.Node).type === 'menu') {
-						Helpers.pushIntoArray(node, 0, (relativeNode as CRM.MenuNode).children);
-						if (removeOld && (relativeNode as CRM.MenuNode).children === removeOld.children) {
-							removeOld.index++;
-						}
-					} else {
-						this.respondError('Supplied node is not of type "menu"');
+					if (!CRMFunction.MoveNode.firstChild(isRoot, node, removeOld, relativeNode, this)) {
 						return false;
 					}
 					break;
 				default:
 				case 'lastChild':
-					if (isRoot) {
-						Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
-							globalObject
-							.globals.crm.crmTree);
-					} else if ((relativeNode as CRM.MenuNode).type === 'menu') {
-						Helpers.pushIntoArray(node, (relativeNode as CRM.MenuNode).children.length,
-							(relativeNode as CRM.MenuNode).children);
-					} else {
-						this.respondError('Supplied node is not of type "menu"');
+					if (!CRMFunction.MoveNode.lastChild(isRoot, node, relativeNode, this)) {
 						return false;
 					}
 					break;
