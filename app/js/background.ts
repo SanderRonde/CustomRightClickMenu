@@ -4799,6 +4799,22 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	}
 
 	class Resources {
+		static handle(message: {
+			type: string;
+			name: string;
+			url: string;
+			scriptId: number;
+		}, name: string) {
+			switch (message.type) {
+				case 'register':
+					Resources._registerResource(name, message.url, message.scriptId);
+					break;
+				case 'remove':
+					Resources._removeResource(name, message.scriptId);
+					break;
+			}
+		}
+
 		static Resource = class Resource {
 			static handle(message: {
 				type: string;
@@ -4806,14 +4822,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				url: string;
 				scriptId: number;
 			}) {
-				switch (message.type) {
-					case 'register':
-						Resources._registerResource(message.name, message.url, message.scriptId);
-						break;
-					case 'remove':
-						Resources._removeResource(message.name, message.scriptId);
-						break;
-				}
+				Resources.handle(message, message.name);
 			}
 		};
 		static Anonymous = class Anonymous {
@@ -4823,14 +4832,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				url: string;
 				scriptId: number;
 			}) {
-				switch (message.type) {
-					case 'register':
-						Resources._registerResource(message.url, message.url, message.scriptId);
-						break;
-					case 'remove':
-						Resources._removeResource(message.url, message.scriptId);
-						break;
-				}
+				Resources.handle(message, message.url);
 			}
 		};
 
@@ -4854,32 +4856,29 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			for (let id in globalObject.globals.crm.crmById) {
 				let node: CRM.Node;
 				if (globalObject.globals.crm.crmById.hasOwnProperty(id) &&
-					(node = globalObject.globals.crm.crmById[id])) {
-					if (node.type === 'script') {
-						if (node.value.script) {
-							const resourceObj: {
-								[url: string]: boolean;
-							} = {};
-							const metaTags = CRM.Script.MetaTags.getMetaTags((globalObject.globals
-								.crm.crmById[id] as CRM.ScriptNode).value.script);
-							const resources = metaTags['resource'];
-							const libs = node.value.libraries;
-							for (let i = 0; i < libs.length; i++) {
-								if (libs[i] === null) {
-									resourceObj[libs[i].url] = true;
-								}
+					(node = globalObject.globals.crm.crmById[id]) && 
+					node.type === 'script' && node.value.script) {
+						const resourceObj: {
+							[url: string]: boolean;
+						} = {};
+						const metaTags = CRM.Script.MetaTags.getMetaTags((globalObject.globals
+							.crm.crmById[id] as CRM.ScriptNode).value.script);
+						const resources = metaTags['resource'];
+						const libs = node.value.libraries;
+						for (let i = 0; i < libs.length; i++) {
+							if (libs[i] === null) {
+								resourceObj[libs[i].url] = true;
 							}
-							for (let i = 0; i < resources; i++) {
-								resourceObj[resources[i]] = true;
-							}
-							for (let i = 0; i < resourceNames.length; i++) {
-								if (!resourceObj[resourceNames[i]]) {
-									this._removeResource(resourceNames[i], ~~id);
-								}
+						}
+						for (let i = 0; i < resources; i++) {
+							resourceObj[resources[i]] = true;
+						}
+						for (let i = 0; i < resourceNames.length; i++) {
+							if (!resourceObj[resourceNames[i]]) {
+								this._removeResource(resourceNames[i], ~~id);
 							}
 						}
 					}
-				}
 			}
 		}
 		static updateResourceValues() {
@@ -4934,6 +4933,25 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			});
 			return hashes;
 		}
+		private static _doAlgorithm(name: string, data: any, lastMatchingHash: {
+			algorithm: string;
+			hash: string;
+		}) {
+			window.crypto.subtle.digest(name, data).then((hash) => {
+				return String.fromCharCode.apply(null, hash) === lastMatchingHash.hash;
+			});
+		}
+		private static _algorithmNameToFnName(name: string): string {
+			let numIndex = 0;
+			for (let i = 0; i < name.length; i++) {
+				if (name.charCodeAt(i) >= 48 && name.charCodeAt(i) <= 57) {
+					numIndex = i;
+					break;
+				}
+			}
+
+			return name.slice(0, numIndex).toUpperCase() + '-' + name.slice(numIndex);
+		}
 		private static _matchesHashes(hashes: Array<{
 			algorithm: string;
 			hash: string;
@@ -4964,19 +4982,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				case 'md5':
 					return window.md5(data) === lastMatchingHash.hash;
 				case 'sha1':
-					window.crypto.subtle.digest('SHA-1', arrayBuffer).then((hash) => {
-						return String.fromCharCode.apply(null, hash) === lastMatchingHash.hash;
-					});
-					break;
 				case 'sha384':
-					window.crypto.subtle.digest('SHA-384', arrayBuffer).then((hash) => {
-						return String.fromCharCode.apply(null, hash) === lastMatchingHash.hash;
-					});
-					break;
 				case 'sha512':
-					window.crypto.subtle.digest('SHA-512', arrayBuffer).then((hash) => {
-						return String.fromCharCode.apply(null, hash) === lastMatchingHash.hash;
-					});
+					this._doAlgorithm(this._algorithmNameToFnName(lastMatchingHash.algorithm),
+						arrayBuffer, lastMatchingHash);
 					break;
 
 			}
