@@ -40,6 +40,12 @@
 		],
 		'2.0.9': [
 			'Fixed bug with buttons no longer working'
+		],
+		'2.0.10': [
+			'Fixed a bug in the crmAPI.GM.GM_notification function'
+		],
+		'2.0.11': [
+			'Fixed the Â character appearing in the editors'
 		]
 	};
 }());
