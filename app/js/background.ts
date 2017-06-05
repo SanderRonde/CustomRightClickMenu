@@ -6663,7 +6663,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									key
 								}, args)
 
-								const scripts = this._getScriptsToRun(code, args[1][3], node);
+								const scripts = this._getScriptsToRun(code, args[1][4], node);
 
 								Script._executeScripts(tab.id, scripts);
 							});
