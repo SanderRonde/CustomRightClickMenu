@@ -2647,7 +2647,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					let node = _this.message.data.options;
 					node = CRM.makeSafe(node);
 					node.id = id;
-					console.log(_this.message.id, _this.message);
 					node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
 						.nodeInfo;
 					if (_this.getNodeFromId(_this.message.id, false, true).isLocal) {
@@ -2774,9 +2773,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			});
 		}
 		static editNode(_this: CRMFunction) {
-			console.log(_this.message);
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				console.log('Permissions are alright');
 				_this.typeCheck([
 					{
 						val: 'options',
@@ -2791,8 +2788,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						optional: true
 					}
 				], (optionals) => {
-					console.log(_this.message);
-					console.log('in');
 					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
 						const msg = _this.message.data as CRMFunctionDataBase & {
 							options: {
@@ -4319,10 +4314,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 		private _typesMatch(data: TypeCheckConfig, value: any): string {
 			const types = Array.isArray(data.type) ? data.type : [data.type];
-			console.log(types);
 			for (let i = 0; i < types.length; i++) {
 				const type = types[i];
-				console.log(type, value, typeof value);
 				if (type === 'array') {
 					if (typeof value === 'object' && Array.isArray(value)) {
 						return type;
@@ -4381,7 +4374,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const forChild = data.forChildren[j];
 					const childValue = value[i][forChild.val];
 					
-					console.log(forChild, childValue);
 					//Check if it's defined
 					if (childValue === undefined || childValue === null) {
 						if (!forChild.optional) {
@@ -4425,13 +4417,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				const value = CRMFunction._getDotValue(this.message.data, data.val);
-				console.log(value);
 				//Check if it's defined
 				const isDefined = this._isDefined(data, value, optionals);
 				if (isDefined === true) {
-					console.log('It\'s defined');
 					const matchedType = this._typesMatch(data, value);
-					console.log('Types match value is', matchedType);
 					if (matchedType) {
 						optionals[data.val] = true;
 						this._checkConstraints(data, value, optionals);
@@ -6392,8 +6381,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						});
 					} else {
 						console.log('An error occurred while setting up the script for node ',
-							node
-							.id, err);
+							node.id, err);
 						throw err;
 					}
 				}
@@ -7256,12 +7244,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									title: 'ERROR',
 									onclick: CRM._createOptionsPageHandler()
 								});
-								console.log('Another error occured with your context menu!', chrome
-                                    .runtime.lastError);
+								console.log('Another error occured with your context menu!', 
+									chrome.runtime.lastError);
 							});
 						} else {
-							console.log('An error occured with your context menu!', chrome.runtime
-                                .lastError);
+							console.log('An error occured with your context menu!', 
+								chrome.runtime.lastError);
 						}
 					}
 				});
@@ -8937,8 +8925,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					chrome.storage.sync.set(obj, () => {
 						if (chrome.runtime.lastError) {
 							//Switch to local storage
-							console.log('Error on uploading to chrome.storage.sync ', chrome.runtime
-								.lastError);
+							console.log('Error on uploading to chrome.storage.sync ', 
+								chrome.runtime.lastError);
 							chrome.storage.local.set({
 								useStorageSync: false
 							}, () => {
@@ -9019,9 +9007,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							settings: globalObject.globals.storages.settingsStorage
 						}, () => {
 							if (chrome.runtime.lastError) {
-								console.log('Error on uploading to chrome.storage.local ', chrome
-									.runtime
-									.lastError);
+								console.log('Error on uploading to chrome.storage.local ', 
+									chrome.runtime.lastError);
 							} else {
 								this._changeCRMValuesIfSettingsChanged(changes);
 							}
@@ -9043,9 +9030,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							chrome.storage.sync.set(obj, () => {
 								if (chrome.runtime.lastError) {
 									//Switch to local storage
-									console.log('Error on uploading to chrome.storage.sync ', chrome
-										.runtime
-										.lastError);
+									console.log('Error on uploading to chrome.storage.sync ', 
+										chrome.runtime.lastError);
 									chrome.storage.local.set({
 										useStorageSync: false
 									}, () => {
