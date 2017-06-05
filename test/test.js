@@ -654,6 +654,28 @@ var chrome = {
 		}
 	}
 };
+describe('Meta', () => {
+	var changelogCode;
+	step('should be able to read changelog.js', () => {
+		assert.doesNotThrow(run(() => {
+			changelogCode = fs.readFileSync('./build/elements/change-log/changelog.js', {
+				encoding: 'utf8'
+			});
+		}), 'File changelog.js is readable');
+	});
+	step('should be able to execute changelog.js', () => {
+		assert.doesNotThrow(run(() => {
+			eval(changelogCode);
+		}), 'File changelog.js is runnable');
+	});
+	step('changelog should be defined', () => {
+		assert.isDefined(window.changelogLog, 'window.changelogLog is defined');
+	});
+	step('current manifest version should have a changelog entry', () => {
+		assert.isDefined(window.changelogLog[chrome.runtime.getManifest().version],
+			'Current manifest version has a changelog entry');
+	});
+});
 describe('Conversion', () => {
 
 	var Worker = function() {
