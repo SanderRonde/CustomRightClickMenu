@@ -225,7 +225,8 @@ window.chrome = {
 		},
 		executeScript: function(tabId, scriptSettings, callback) {
 			//Only add code-scripts, not libraries
-			if (scriptSettings.runAt !== 'document_start' && 
+			if (scriptSettings.runAt &&
+				scriptSettings.runAt !== 'document_start' && 
 				scriptSettings.runAt !== 'document_end' && 
 				scriptSettings.runAt !== 'document_idle') {
 					throw new Error('Invalid value for argument 2. Property \'runAt\':' +
