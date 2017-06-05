@@ -131,7 +131,8 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				screwIE8: true
+				screwIE8: true,
+				ascii_only: true
 			},
 			codeMirrorMinify: {
 				files: {
@@ -150,7 +151,8 @@ module.exports = function(grunt) {
 			codeMirrorMinifyBeautiful: {
 				options: {
 					beautify: true,
-					sourceMap: true
+					sourceMap: true,
+					ascii_only: true
 				},
 				files: {
 					'build/js/libraries/codemirror/codeMirrorFile.min.js': [
