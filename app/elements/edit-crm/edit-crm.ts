@@ -700,26 +700,27 @@ class EC {
 		}
 		return selected;
 	};
+	
+	private static ifDefSet(this: EditCrm, node: CRM.Node, target: Partial<CRM.SafeNode>, ...props: Array<keyof CRM.SafeNode>) { 
+			for (let i = 0; i < props.length; i++) {
+				const property = props[i];
+				if (node[property] !== void 0) {
+					target[property] = node[property];
+				}
+			}
+		}
 
 	static makeNodeSafe(this: EditCrm, node: CRM.Node): CRM.SafeNode {
 		const newNode: Partial<CRM.SafeNode> = {};
-		node.type && (newNode.type = node.type);
-		node.name && (newNode.name = node.name);
-		node.value && (newNode.value = node.value);
-		node.linkVal && (newNode.linkVal = node.linkVal);
-		node.menuVal && (newNode.menuVal = node.menuVal);
+		this.ifDefSet(node, newNode, 'type', 'name', 'value',
+			'linkVal', 'menuVal', 'nodeInfo', 'triggers', 'scriptVal',
+			'stylesheetVal', 'onContentTypes', 'showOnSpecified');
 		if (node.children) {
 			newNode.children = [];
 			for (let i = 0; i < node.children.length; i++) {
 				newNode.children[i] = this.makeNodeSafe(node.children[i]);
 			}
 		}
-		node.nodeInfo && (newNode.nodeInfo = node.nodeInfo);
-		node.triggers && (newNode.triggers = node.triggers);
-		node.scriptVal && (newNode.scriptVal = node.scriptVal);
-		node.stylesheetVal && (newNode.stylesheetVal = node.stylesheetVal);
-		node.onContentTypes && (newNode.onContentTypes = node.onContentTypes);
-		node.showOnSpecified && (newNode.showOnSpecified = node.showOnSpecified);
 		return newNode as CRM.SafeNode;
 	};
 
