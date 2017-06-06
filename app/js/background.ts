@@ -1601,10 +1601,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 		}
+		private static permissionsChanged(available: chrome.permissions.Permissions) {
+			globalObject.globals.availablePermissions = available.permissions;
+		}
 		static refreshPermissions() {
-			chrome.permissions.getAll((available) => {
-				globalObject.globals.availablePermissions = available.permissions;
-			});
+			chrome.permissions.onRemoved.addListener(this.permissionsChanged);
+			chrome.permissions.onAdded.addListener(this.permissionsChanged);
+			chrome.permissions.getAll(this.permissionsChanged);
 		}
 		static setHandlerFunction() {
 			interface HandshakeMessage extends CRMAPIMessage<string, any> {

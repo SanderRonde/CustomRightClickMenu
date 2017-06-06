@@ -46,7 +46,8 @@
 		],
 		'2.0.11': [
 			'Fixed the Â character appearing in the editors',
-			'Added an indicator for when the exporting field is slow'
+			'Added an indicator for when the exporting field is slow',
+			'Added/removed permissions are updated instantly'
 		]
 	};
 }());
