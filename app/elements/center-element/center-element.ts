@@ -8,6 +8,7 @@ const centerElementProperties: {
 	hide: boolean;
 	requestedPermissions: Array<string>;
 	otherPermissions: Array<string>;
+	nostyle: boolean;
 } = {
 	/**
 	 * The width of the element
@@ -92,6 +93,18 @@ const centerElementProperties: {
 		type: Array,
 		value: [],
 		notify: true
+	},
+	/**
+	 * Prevent the element from styling itself
+	 * 
+	 * @attribute nostyle
+	 * @type Boolean
+	 * @default false
+	 */
+	nostyle: {
+		type: Boolean,
+		value: false,
+		notify: true
 	}
 } as any;
 
@@ -100,10 +113,15 @@ class CE {
 
 	static properties = centerElementProperties;
 
+	private static isReady: boolean = false;
+
 	/**
 	 * Recalculates all the styles that should be applied
 	 */
 	private static recalculateStyles(this: CenterElement) {
+		if (this.nostyle || !this.isReady) {
+			return;
+		}
 		if (this.fullscreenoverlay) {
 			this.style.position = 'fixed';
 			this.style.top = this.style.left = '0';
@@ -131,6 +149,7 @@ class CE {
 	};
 
 	static ready(this: CenterElement) {
+		this.isReady = true;
 		this.recalculateStyles();
 	};
 }
