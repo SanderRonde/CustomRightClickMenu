@@ -2919,7 +2919,6 @@ class CA {
 		};
 
 		static copyExportToClipboard() {
-			console.log('yo');
 			this.copyFromElement(this.parent().$.exportSettingsOutput,
 				this.parent().$.exportCopyButton);
 		}
