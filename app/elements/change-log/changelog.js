@@ -45,7 +45,8 @@
 			'Fixed a bug in the crmAPI.GM.GM_notification function'
 		],
 		'2.0.11': [
-			'Fixed the Â character appearing in the editors'
+			'Fixed the Â character appearing in the editors',
+			'Added an indicator for when the exporting field is slow'
 		]
 	};
 }());
