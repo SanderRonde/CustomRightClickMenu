@@ -272,10 +272,19 @@
 						Here you can export your settings and/or CRM. To export select CRM nodes hit the "select" button below the editor above and hit export. Paste the generated data into a different instance's "import" field to import the data.
 					</div>
 					<div class="exportSettings">
-						<textarea rows="10" id="exportSettingsOutput" class="textarea"></textarea>
+						<center-element id="exportSettingsSpinner" nostyle hide>
+							<div class="exportSettingsSpinnerHorizontalCenterer">
+								<paper-spinner active></paper-spinner>
+							</div>
+							<div>
+								Waiting for textfield... This may take some time
+							</div>
+						</center-element>
+						<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 					</div>
 					<paper-checkbox checked id="exportCRM">Export your Custom Right-Click Menu</paper-checkbox>
 					<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
+					<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
 					<br/>
 					<paper-button class="blue" raised id="exportButton" on-tap="domListener" data-on-tap="exportData">Export</paper-button>
 				</div>
@@ -586,7 +595,7 @@
 						</div>
 						<div id="exportInputLine">
 							<paper-input always-float-label id="exportAuthorName" label="author's name" placeholder="anonymous"></paper-input>
-							<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExporedToClipboard"></paper-icon-button>
+							<paper-icon-button id="dialogCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportDialogToClipboard"></paper-icon-button>
 						</div>
 						<textarea class="paperTextArea" id="exportJSONData" rows="20"></textarea>
 						<div class="buttons">

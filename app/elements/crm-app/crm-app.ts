@@ -2851,7 +2851,13 @@ class CA {
 				toExport.nonLocal = JSON.parse(JSON.stringify(this.parent().settings));
 				delete toExport.nonLocal.crm;
 			}
-			this.parent().$.exportSettingsOutput.value = JSON.stringify(toExport);
+			window.doc.exportSettingsSpinner.hide = false;
+			window.setTimeout(() => {
+				this.parent().$.exportSettingsOutput.value = JSON.stringify(toExport);
+				window.requestAnimationFrame(() => {
+					window.doc.exportSettingsSpinner.hide = true;
+				});
+			}, 100);
 		};
 
 
@@ -2884,15 +2890,14 @@ class CA {
 		static hideScriptUpdatesToast() {
 			this.parent().$.scriptUpdatesToast.hide();
 		};
-		
-		static copyExporedToClipboard() {
+
+		private static copyFromElement(target: HTMLTextAreaElement, button: HTMLPaperIconButtonElement) {
 			const snipRange = document.createRange();
-			snipRange.selectNode(this.parent().$.exportJSONData);
+			snipRange.selectNode(target);
 			const selection = window.getSelection();
 			selection.removeAllRanges();
 			selection.addRange(snipRange);
 
-			const button = this.parent().$.exportCopyButton;
 			try {
 				document.execCommand('copy');
 				button.icon = 'done';
@@ -2906,7 +2911,18 @@ class CA {
 				button.icon = 'content-copy';
 			}, 1000);
 			selection.removeAllRanges();
+		}
+		
+		static copyExportDialogToClipboard() {
+			this.copyFromElement(this.parent().$.exportJSONData,
+				this.parent().$.dialogCopyButton);
 		};
+
+		static copyExportToClipboard() {
+			console.log('yo');
+			this.copyFromElement(this.parent().$.exportSettingsOutput,
+				this.parent().$.exportCopyButton);
+		}
 
 		static goNextVersionUpdateTab() {
 			if (this.parent().versionUpdateTab === 4) {

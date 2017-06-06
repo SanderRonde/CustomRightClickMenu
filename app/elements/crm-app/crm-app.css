@@ -962,8 +962,8 @@ html {
 	min-width: 1000px;
 }
 
-#exportCopyButton {
-	padding-top: 17px;
+#dialogCopyButton {
+	margin-top: 17px;
 }
 
 #exportInputLine {
@@ -1032,8 +1032,27 @@ paper-toggle-option #checkboxLabel {
 }
 
 #docsLink {
-right: 7px;
+	right: 7px;
 	position: absolute;
 	top: 8px;
 	font-size: 150%;
+}
+
+#exportSettingsSpinner {
+	position: absolute;
+	width: 1000px;
+	height: 166px;
+}
+
+.exportSettingsSpinnerHorizontalCenterer {
+	-webkit-justify-content: center;
+	justify-content: center;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+}
+
+#exportCopyButton {
+	float: right;
 }
