@@ -46,7 +46,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
   grunt changeGitIgnore
 
   git config user.name "Travis CI"
-  git config user.email "awsdfgvhbjn@gmail.com"
+  git config user.email "builds@travis-ci.org"
   git config --global push.default simple
 
   git remote set-branches --add origin gh-pages
