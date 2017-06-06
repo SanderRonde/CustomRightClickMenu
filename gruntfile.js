@@ -102,7 +102,9 @@ module.exports = function(grunt) {
 					'build/elements/crm-app/crm-app.html': [
 						'build/elements/crm-app/crm-app.html'],
 					'build/html/options.html': ['build/html/options.html'],
-
+					'build/elements/installing/install-confirm/install-confirm.html': [
+						'app/elements/installing/install-confirm/install-confirm.html'
+					]
 				}
 			},
 			documentationWebsite: {
@@ -132,7 +134,8 @@ module.exports = function(grunt) {
 		uglify: {
 			options: {
 				screwIE8: true,
-				ascii_only: true
+				ascii_only: true,
+				ASCIIOnly: true
 			},
 			codeMirrorMinify: {
 				files: {
@@ -152,7 +155,8 @@ module.exports = function(grunt) {
 				options: {
 					beautify: true,
 					sourceMap: true,
-					ascii_only: true
+					ascii_only: true,
+					ASCIIOnly: true
 				},
 				files: {
 					'build/js/libraries/codemirror/codeMirrorFile.min.js': [
@@ -365,6 +369,24 @@ module.exports = function(grunt) {
 						dest: 'build/js/'
 					}
 				]
+			},
+			installing: {
+				files: [{
+					expand: true,
+					cwd: 'app/elements/installing',
+					src: [
+						'install-confirm/install-confirm.html',
+						'install-confirm/install-confirm.css',
+						'install-confirm/install-confirm.js',
+						'install-error/install-error.html',
+						'install-error/install-error.css',
+						'install-error/install-error.js',
+						'install-page/install-page.html',
+						'install-page/install-page.css',
+						'install-page/install-page.js',
+					],
+					dest: 'build/elements/installing'
+				}]
 			}
 		},
 		htmlmin: {
@@ -601,7 +623,7 @@ module.exports = function(grunt) {
 	// for if you're running a typescript compiler on watch mode
 	grunt.registerTask('buildForDebuggingNoCompile', ['cleanBuild', 'extractDefs',
 		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
-		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
 		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
@@ -611,7 +633,7 @@ module.exports = function(grunt) {
 	// (and preserves debugger statements etc)
 	grunt.registerTask('buildForDebugging', ['cleanBuild', 'compile', 'extractDefs',
 		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
-		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
 		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
@@ -619,7 +641,7 @@ module.exports = function(grunt) {
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['cleanBuild', 'compile', 'extractDefs', 'copy:build',
-		'copyImportedElements:elements', 'copyImportedElements:installing',
+		'copyImportedElements:elements', 'copyImportedElements:installing', 'copy:installing',
 		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinify',
