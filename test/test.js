@@ -599,7 +599,17 @@ var chrome = {
 			return {
 				permissions: []
 			};
-		}
+		},
+		onAdded: {
+			addListener: function() {
+
+			}
+		},
+		onRemoved: {
+			addListener: function() {
+
+			}
+		},
 	},
 	storage: {
 		sync: {
