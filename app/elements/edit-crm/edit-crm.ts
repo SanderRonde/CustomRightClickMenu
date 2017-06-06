@@ -702,13 +702,13 @@ class EC {
 	};
 	
 	private static ifDefSet(this: EditCrm, node: CRM.Node, target: Partial<CRM.SafeNode>, ...props: Array<keyof CRM.SafeNode>) { 
-			for (let i = 0; i < props.length; i++) {
-				const property = props[i];
-				if (node[property] !== void 0) {
-					target[property] = node[property];
-				}
+		for (let i = 0; i < props.length; i++) {
+			const property = props[i];
+			if (node[property] !== void 0) {
+				target[property] = node[property];
 			}
 		}
+	}
 
 	static makeNodeSafe(this: EditCrm, node: CRM.Node): CRM.SafeNode {
 		const newNode: Partial<CRM.SafeNode> = {};
