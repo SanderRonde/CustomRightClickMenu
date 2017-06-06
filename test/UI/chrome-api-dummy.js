@@ -278,6 +278,16 @@ window.chrome = {
 				]
 			});
 		},
+		onAdded: {
+			addListener: function() {
+
+			}
+		},
+		onRemoved: {
+			addListener: function() {
+
+			}
+		},
 		contains: function(permissionsObject, callback) {
 			callback(true);
 		},
