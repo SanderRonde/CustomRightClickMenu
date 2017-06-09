@@ -275,7 +275,7 @@ class IC {
 			data: {
 				metaTags: this.metaTags,
 				script: this.script,
-				downloadURL: window.installPage.userscriptUrl,
+				downloadURL: window.installPage.getInstallSource(),
 				allowedPermissions: allowedPermissions 
 			}
 		});

@@ -49,11 +49,43 @@ class IP {
 		return !fetchFailed && !fetchCompleted;
 	};
 
+	static getInstallSource(): string {
+		const searchParams = this.getSearchParams(location.href);
+		return searchParams['s'];
+	}
+
+	private static getSearchParams(url: string): {
+		[key: string]: string;
+	} {
+		//Split at the first ?
+		const queryString = url.split('?').slice(1).join('?');
+
+		const searchParamsArr = queryString.split('&').map((keyVal: string) => {
+			const split = keyVal.split('=');
+			return {
+				key: split[0],
+				val: decodeURIComponent(split[1])
+			}
+		});
+
+		const searchParams: {
+			[key: string]: string
+		} = {};
+
+		for (let i = 0; i < searchParamsArr.length; i++) {
+			searchParams[searchParamsArr[i].key] = searchParamsArr[i].val;
+		}
+
+		return searchParams;
+	}
+
 	static getUserscriptUrl(this: InstallPage): string {
 		this.userscriptUrlCalculated = true;
-		const urlArr: Array<string> = location.href.split('#');
-		urlArr.splice(0, 1);
-		return urlArr.join('#');
+
+		//Polyfill URL().searchParams for chrome 26
+		const searchParams = this.getSearchParams(location.href);
+
+		return searchParams['i'];
 	};
 
 	static displayFetchedUserscript(this: InstallPage, script: string) {
