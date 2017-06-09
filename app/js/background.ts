@@ -4863,7 +4863,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						const resources = metaTags['resource'];
 						const libs = node.value.libraries;
 						for (let i = 0; i < libs.length; i++) {
-							if (libs[i] === null) {
+							if (!libs[i].name) {
 								resourceObj[libs[i].url] = true;
 							}
 						}
