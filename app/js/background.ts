@@ -1332,6 +1332,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static getLastItem<T>(arr: Array<T>): T {
 			return arr[arr.length - 1];
 		}
+		static endsWith(haystack: string, needle: string): boolean {
+			return haystack.split('').reverse().join('').indexOf(needle.split('').reverse().join('')) === 0;
+		}
 
 		private static _compareObj(firstObj: {
 			[key: string]: any;
@@ -5922,9 +5925,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							const downloadURL = node.nodeInfo &&
 								node.nodeInfo.source &&
 								typeof node.nodeInfo.source !== 'string' &&
-								(node.nodeInfo.source.url ||
+								(node.nodeInfo.source.downloadURL ||
 									node.nodeInfo.source.updateURL ||
-									node.nodeInfo.source.downloadURL);
+									node.nodeInfo.source.url);
 							if (downloadURL && isRoot) {
 								const checkingId: number = checking.length;
 								checking[checkingId] = true;
@@ -5949,7 +5952,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (this._getURL(downloadURL).hostname === undefined &&
 						(node.type === 'script' ||
 							node.type === 'stylesheet' ||
-							node.type === 'menu')) { //TODO when website launches
+							node.type === 'menu')) { 
 						try {
 							Helpers.convertFileToDataURI(
 								`example.com/isUpdated/${downloadURL.split('/').pop()
@@ -6007,7 +6010,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					} else {
 						if (node.type === 'script' || node.type === 'stylesheet') {
 							//Do a request to get that script from its download URL
-							if (downloadURL) {
+							if (downloadURL && Helpers.endsWith(downloadURL, '.user.js')) {
 								try {
 									Helpers.convertFileToDataURI(downloadURL, (dataURI, dataString) => {
 										//Get the meta tags
@@ -6028,9 +6031,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 														addedPermissions.push({
 															node: node.id,
 															permissions: metaTags['grant'].filter((newPermission: CRM.Permission) => {
-																return node.nodeInfo.permissions
-																	.indexOf(newPermission) ===
-																	-1;
+																return node.nodeInfo.permissions.indexOf(newPermission) === -1;
 															})
 														});
 														chrome.storage.local.set({
@@ -6041,10 +6042,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 												}
 
 												updatedScripts.push(this.installUserscript(metaTags,
-													dataString,
-													downloadURL,
-													node.permissions,
-													node.id));
+													dataString, downloadURL, node.permissions, node.id));
 											}
 
 											checking[checkingId] = false;
@@ -7684,7 +7682,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				const matchPattern = matchPatterns[i].url;
 
 				if (matchPattern.indexOf('/') === 0 &&
-					matchPattern.split('').reverse().join('').indexOf('/') === 0) {
+					Helpers.endsWith(matchPattern, '/')) {
 					//It's regular expression
 					if (new RegExp(matchPattern.slice(1, matchPattern.length - 1))
 						.test(url)) {
