@@ -1,6 +1,5 @@
 ﻿(function() {
 	function hacksecuteScript(script) {
-		console.log('Hacksecuting', script);
 		var tag = document.createElement('script');
 		tag.innerHTML = script;
 		document.documentElement.appendChild(tag);
@@ -29,7 +28,7 @@
 		fetchFile(url, function(code) {
 			hacksecuteScript(code);
 			callback();
-		})
+		});
 	}
 
 	function executeScript(scripts, index) {
