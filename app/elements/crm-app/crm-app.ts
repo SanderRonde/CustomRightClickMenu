@@ -12,13 +12,13 @@ interface JQContextMenuObj {
 	};
 }
 
-type JQContextMenuItem = JQContextMenuObj|string;
+type JQContextMenuItem = JQContextMenuObj | string;
 
 interface JQueryContextMenu extends JQueryStatic {
 	contextMenu(settings: {
 		selector: string;
 		items: Array<JQContextMenuItem>;
-	}|'destroy'): void;
+	} | 'destroy'): void;
 	bez(curve: Array<number>): string;
 }
 
@@ -31,11 +31,11 @@ type ScriptUpdatesToast = HTMLPaperToastElement & {
 	scripts: Array<{
 		name: string;
 		oldVersion: string;
-		newVersion: string;	
+		newVersion: string;
 	}>;
 };
 
-window.runOrAddAsCallback = function(toRun: Function, thisElement: HTMLElement, params: Array<any>): void {
+window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement, params: Array<any>): void {
 	if (window.app.settings) {
 		toRun.apply(thisElement, params);
 	} else {
@@ -44,11 +44,11 @@ window.runOrAddAsCallback = function(toRun: Function, thisElement: HTMLElement, 
 };
 
 if (!document.createElement('div').animate) {
-	HTMLElement.prototype.animate = function(this: HTMLElement, properties, options): Animation {
+	HTMLElement.prototype.animate = function (this: HTMLElement, properties, options): Animation {
 		if (!properties[1]) {
 			return {
-				play: function() {},
-				reverse: function() {},
+				play: function () { },
+				reverse: function () { },
 				effect: {
 					target: this
 				}
@@ -56,19 +56,19 @@ if (!document.createElement('div').animate) {
 		}
 
 		const element = this;
-		let direction: 'forwards'|'backwards' = 'forwards';
+		let direction: 'forwards' | 'backwards' = 'forwards';
 		const returnVal: Animation = {
 			play() {
 				$(element).animate(properties[~~(direction === 'forwards')],
-					(options && options.duration) || 500, function() {
-					if (returnVal.onfinish) {
-						returnVal.onfinish.apply({
-							effect: {
-								target: element
-							}
-						});
-					}
-				});
+					(options && options.duration) || 500, function () {
+						if (returnVal.onfinish) {
+							returnVal.onfinish.apply({
+								effect: {
+									target: element
+								}
+							});
+						}
+					});
 			},
 			reverse(this: Animation) {
 				direction = 'backwards';
@@ -78,7 +78,7 @@ if (!document.createElement('div').animate) {
 				target: this
 			}
 		};
-		$(this).animate(properties[1], options.duration, function() {
+		$(this).animate(properties[1], options.duration, function () {
 			if (returnVal.onfinish) {
 				returnVal.onfinish.apply({
 					effect: {
@@ -185,7 +185,7 @@ interface AddedPermissionsTabContainer extends HTMLElement {
 }
 
 interface CodeSettingsDialog extends HTMLPaperDialogElement {
-	item?: CRM.ScriptNode|CRM.StylesheetNode;
+	item?: CRM.ScriptNode | CRM.StylesheetNode;
 }
 
 class CA {
@@ -273,11 +273,11 @@ class CA {
 		if (fnName) {
 			if (fnName !== 'prototype' && fnName !== 'parent' && listeners[fnName]) {
 				const listener = this.listeners[fnName];
-				(listener as (this: typeof listener, 
+				(listener as (this: typeof listener,
 					event: Polymer.CustomEvent,
 					eDetail: Polymer.CustomEvent['detail']) => void).bind(listeners)(event, event.detail);
 			} else {
-				this._warn(this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));	
+				this._warn(this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
 			}
 		} else {
 			this._warn(this._logf(`_createEventHandler`, `property ${propKey} not defined`));
@@ -285,12 +285,12 @@ class CA {
 	}
 
 	static _getPageTitle(): string {
-		return location.href.indexOf('demo') > -1 ? 
+		return location.href.indexOf('demo') > -1 ?
 			'Demo, actual right-click menu does NOT work in demo' :
 			'Custom Right-Click Menu';
 	}
 
-	static _getString(str: string|null): string {
+	static _getString(str: string | null): string {
 		return str || '';
 	}
 
@@ -300,7 +300,7 @@ class CA {
 		return option.type === type;
 	}
 
-	private static _generateCodeOptionsArray<T extends CRM.Options|string>(this: CrmApp, settings: T): Array<{
+	private static _generateCodeOptionsArray<T extends CRM.Options | string>(this: CrmApp, settings: T): Array<{
 		key: keyof T;
 		value: T[keyof T]
 	}> {
@@ -314,7 +314,7 @@ class CA {
 			};
 		});
 	}
-	
+
 	static _isOnlyGlobalExclude(this: CrmApp): boolean {
 		return this.globalExcludes.length === 1;
 	};
@@ -353,7 +353,7 @@ class CA {
 		return (window.app.nodesById[nodeId].nodeInfo && window.app.nodesById[nodeId].nodeInfo.version) ||
 			'1.0';
 	};
-	
+
 	static _placeCommas(this: CrmApp, number: number): string {
 		const split = this.reverseString(number.toString()).match(/[0-9]{1,3}/g);
 		return this.reverseString(split.join(','));
@@ -392,7 +392,7 @@ class CA {
 		const _this = this;
 		if (dialogs[0]) {
 			const script = dialogs.splice(0, 1)[0];
-			window.scriptEdit.openPermissionsDialog(script, function() {
+			window.scriptEdit.openPermissionsDialog(script, function () {
 				_this.runDialogsForImportedScripts(nodesToAdd, dialogs);
 			});
 		} else {
@@ -406,7 +406,7 @@ class CA {
 			return false;
 		}
 		const toAdd = nodesToAdd.splice(0, 1)[0];
-		this.util.treeForEach(toAdd, function(node) {
+		this.util.treeForEach(toAdd, function (node) {
 			node.id = _this.generateItemId();
 			node.nodeInfo.source = 'import';
 		});
@@ -426,7 +426,7 @@ class CA {
 	 * Shows the user a dialog and asks them to allow/deny those permissions
 	 */
 	private static requestPermissions(this: CrmApp, toRequest: Array<CRM.Permission>,
-				force: boolean = false) {
+		force: boolean = false) {
 		let i;
 		let index;
 		const _this = this;
@@ -446,7 +446,7 @@ class CA {
 		});
 
 		if (toRequest.length > 0 || force) {
-			chrome.permissions.getAll(function(allowed) {
+			chrome.permissions.getAll(function (allowed) {
 				const requested: Array<{
 					name: string;
 					description: string;
@@ -485,7 +485,7 @@ class CA {
 					overlay.style.maxHeight = 'initial!important';
 					overlay.style.top = 'initial!important';
 					overlay.removeEventListener('iron-overlay-opened', handler);
-					$('.requestPermissionsShowBot').off('click').on('click', function(this: HTMLElement) {
+					$('.requestPermissionsShowBot').off('click').on('click', function (this: HTMLElement) {
 						el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 						svg = $(this).find('.requestPermissionsSvg')[0];
 						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
@@ -499,26 +499,26 @@ class CA {
 									height: el.scrollHeight + 'px'
 								}
 							], {
-								duration: 250,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-								fill: 'both'
-							});
+									duration: 250,
+									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+									fill: 'both'
+								});
 						}
 					});
-					$('#requestPermissionsShowOther').off('click').on('click', function(this: HTMLElement) {
+					$('#requestPermissionsShowOther').off('click').on('click', function (this: HTMLElement) {
 						const showHideSvg = this;
 						const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
 						if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
 							$(otherPermissions).animate({
 								height: otherPermissions.scrollHeight + 'px'
-							}, 350, function() {
+							}, 350, function () {
 								(showHideSvg.children[0] as HTMLElement).style.display = 'none';
 								(showHideSvg.children[1] as HTMLElement).style.display = 'block';
 							});
 						} else {
 							$(otherPermissions).animate({
 								height: 0
-							}, 350, function() {
+							}, 350, function () {
 								(showHideSvg.children[0] as HTMLElement).style.display = 'block';
 								(showHideSvg.children[1] as HTMLElement).style.display = 'none';
 							});
@@ -526,20 +526,20 @@ class CA {
 					});
 
 					let permission: string;
-					$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
+					$('.requestPermissionButton').off('click').on('click', function (this: HTMLPaperCheckboxElement) {
 						permission = this.previousElementSibling.previousElementSibling.textContent;
 						const slider = this;
 						if (this.checked) {
 							try {
 								chrome.permissions.request({
 									permissions: [permission]
-								}, function(accepted) {
+								}, function (accepted) {
 									if (!accepted) {
 										//The user didn't accept, don't pretend it's active when it's not, turn it off
 										slider.checked = false;
 									} else {
 										//Accepted, remove from to-request permissions
-										chrome.storage.local.get(function(e: CRM.StorageLocal) {
+										chrome.storage.local.get(function (e: CRM.StorageLocal) {
 											const permissionsToRequest = e.requestPermissions;
 											permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 											chrome.storage.local.set({
@@ -550,7 +550,7 @@ class CA {
 								});
 							} catch (e) {
 								//Accepted, remove from to-request permissions
-								chrome.storage.local.get(function(e: CRM.StorageLocal) {
+								chrome.storage.local.get(function (e: CRM.StorageLocal) {
 									const permissionsToRequest = e.requestPermissions;
 									permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
 									chrome.storage.local.set({
@@ -561,7 +561,7 @@ class CA {
 						} else {
 							chrome.permissions.remove({
 								permissions: [permission]
-							}, function(removed) {
+							}, function (removed) {
 								if (!removed) {
 									//It didn't get removed
 									slider.checked = true;
@@ -570,15 +570,15 @@ class CA {
 						}
 					});
 
-					$('#requestPermissionsAcceptAll').off('click').on('click', function() {
+					$('#requestPermissionsAcceptAll').off('click').on('click', function () {
 						chrome.permissions.request({
 							permissions: toRequest
-						}, function(accepted) {
+						}, function (accepted) {
 							if (accepted) {
 								chrome.storage.local.set({
 									requestPermissions: []
 								});
-								$('.requestPermissionButton.required').each(function(this: HTMLPaperCheckboxElement) {
+								$('.requestPermissionButton.required').each(function (this: HTMLPaperCheckboxElement) {
 									this.checked = true;
 								});
 							}
@@ -622,12 +622,12 @@ class CA {
 	};
 
 	private static transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
-		getItem(index: string|number): any;
+		getItem(index: string | number): any;
 	} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): CRM.Tree {
 		return this.transferFromOld.transferCRMFromOld(openInNewTab, storageSource, method);
 	};
 
-	static initCodeOptions(this: CrmApp, node: CRM.ScriptNode|CRM.StylesheetNode) {
+	static initCodeOptions(this: CrmApp, node: CRM.ScriptNode | CRM.StylesheetNode) {
 		this.$.codeSettingsDialog.item = node;
 		this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
 
@@ -676,9 +676,9 @@ class CA {
 	 * Generates an ID for a node
 	 */
 	static generateItemId(this: CrmApp) {
-		this.latestId = this.latestId || 0;	
+		this.latestId = this.latestId || 0;
 		this.latestId++;
-		
+
 		if (this.settings) {
 			this.settings.latestId = this.latestId;
 			window.app.upload();
@@ -700,7 +700,7 @@ class CA {
 			}, 250);
 			$settingsCont.animate({
 				height: viewportHeight - 50
-			}, 250, function() {
+			}, 250, function () {
 				$settingsCont[0].style.height = 'calc(100vh - 66px)';
 			});
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
@@ -714,7 +714,7 @@ class CA {
 			}, 250);
 			$settingsCont.animate({
 				height: viewportHeight - 18
-			}, 250, function() {
+			}, 250, function () {
 				$settingsCont[0].style.height = 'calc(100vh - 29px)';
 			});
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
@@ -750,7 +750,7 @@ class CA {
 		}`;
 		document.head.appendChild(styleEl);
 
-		$('.CodeMirror').each(function(this: HTMLElement & {
+		$('.CodeMirror').each(function (this: HTMLElement & {
 			CodeMirror: CodeMirrorInstance;
 		}) {
 			this.CodeMirror.refresh();
@@ -784,7 +784,7 @@ class CA {
 			_this.storageLocal = storageLocal;
 			if (key === 'CRMOnPage') {
 				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
-				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
+					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 			}
 			_this.upload();
 		});
@@ -798,7 +798,7 @@ class CA {
 			this.setup.initCheckboxes.apply(this, [window.app.storageLocal]);
 
 			//Reset default links and searchengines
-			Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function(link: DefaultLink) {
+			Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
 				link.reset();
 			});
 
@@ -819,7 +819,7 @@ class CA {
 		//Reset dialog
 		if (window.app.item) {
 			const dialog = window[window.app.item.type + 'Edit' as
-				'scriptEdit'|'stylesheetEdit'|'linkEdit'|'dividerEdit'|'menuEdit'];
+				'scriptEdit' | 'stylesheetEdit' | 'linkEdit' | 'dividerEdit' | 'menuEdit'];
 			dialog && dialog.cancel();
 		}
 		window.app.item = null;
@@ -827,7 +827,7 @@ class CA {
 		window.app.settings = window.app.storageLocal = null;
 
 		//Reset storages
-		
+
 		//On a demo or test page right now, use background page to init settings
 		window.Storages.loadStorages(() => {
 			this.setup.setupStorages(onDone.bind(this));
@@ -843,7 +843,7 @@ class CA {
 				//Show a little message
 				this.$.messageToast.text = `Extension has been updated to version ${
 					chrome.runtime.getManifest().version
-				}`;
+					}`;
 				this.$.messageToast.show();
 			}
 		});
@@ -886,7 +886,7 @@ class CA {
 	 */
 	private static transferFromOld = class CRMAppTransferFromOld {
 		private static backupLocalStorage() {
-			if (typeof localStorage === 'undefined' || 
+			if (typeof localStorage === 'undefined' ||
 				(typeof window.indexedDB === 'undefined' && typeof (window as any).webkitIndexedDB === 'undefined')) {
 				return;
 			}
@@ -905,9 +905,9 @@ class CA {
 				});
 			}
 		}
-		
+
 		private static parseOldCRMNode(string: string, openInNewTab: boolean,
-										method: SCRIPT_CONVERSION_TYPE): CRM.Node {
+			method: SCRIPT_CONVERSION_TYPE): CRM.Node {
 			let node: CRM.Node = {} as any;
 			const oldNodeSplit = string.split('%123');
 			const name = oldNodeSplit[0];
@@ -927,7 +927,7 @@ class CA {
 					node = this.parent().templates.getDefaultLinkNode({
 						name: name,
 						id: this.parent().generateItemId(),
-						value: split.map(function(url) {
+						value: split.map(function (url) {
 							return {
 								newTab: openInNewTab,
 								url: url
@@ -956,12 +956,12 @@ class CA {
 					const launchModeString = scriptLaunchMode + '';
 					if (launchModeString + '' !== '0' && launchModeString + '' !== '2') {
 						triggers = launchModeString.split('1,')[1].split(',');
-						triggers = triggers.map(function(item) {
+						triggers = triggers.map(function (item) {
 							return {
 								not: false,
 								url: item.trim()
 							};
-						}).filter(function(item) {
+						}).filter(function (item) {
 							return item.url !== '';
 						});
 						scriptLaunchMode = '2';
@@ -985,10 +985,10 @@ class CA {
 		};
 
 		private static assignParents(parent: CRM.Tree, nodes: Array<CRM.Node>,
-				index: {
-					index: number;
-				}, amount: number) {
-			for (; amount !== 0 && nodes[index.index]; index.index++, amount--) {
+			index: {
+				index: number;
+			}, amount: number) {
+			for (; amount !== 0 && nodes[index.index]; index.index++ , amount--) {
 				const currentNode = nodes[index.index];
 				if (currentNode.type === 'menu') {
 					const childrenAmount = ~~currentNode.children;
@@ -1002,7 +1002,7 @@ class CA {
 		};
 
 		static transferCRMFromOld(openInNewTab: boolean, storageSource: {
-			getItem(index: string|number): any;
+			getItem(index: string | number): any;
 		}, method: SCRIPT_CONVERSION_TYPE): CRM.Tree {
 			this.backupLocalStorage();
 
@@ -1041,17 +1041,17 @@ class CA {
 			errs = errs + 1 || 0;
 			if (errs < 5) {
 				if (!window.CodeMirror) {
-					setTimeout(function() {
+					setTimeout(function () {
 						_this.restoreUnsavedInstances(editingObj, errs);
 					}, 500);
 				}
 				else {
-				const crmItem = _this.parent().nodesById[editingObj.id] as CRM.ScriptNode|CRM.StylesheetNode;
-				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
-					crmItem.value.script : crmItem.value.backgroundScript) :
-					(crmItem.value.stylesheet));
+					const crmItem = _this.parent().nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
+					const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
+						crmItem.value.script : crmItem.value.backgroundScript) :
+						(crmItem.value.stylesheet));
 					_this.parent().listeners.iconSwitch(null, editingObj.crmType);
-					$('.keepChangesButton').on('click', function() {
+					$('.keepChangesButton').on('click', function () {
 						if (crmItem.type === 'script') {
 							crmItem.value[(editingObj.mode === 'main' ?
 								'script' :
@@ -1063,19 +1063,19 @@ class CA {
 						chrome.storage.local.set({
 							editing: null
 						});
-						window.setTimeout(function() {
+						window.setTimeout(function () {
 							//Remove the CodeMirror instances for performance
 							window.doc.restoreChangesOldCodeCont.innerHTML = '';
 							window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 						}, 500);
 					});
-					$('.restoreChangesBack').on('click', function() {
+					$('.restoreChangesBack').on('click', function () {
 						window.doc.restoreChangesOldCode.style.display = 'none';
 						window.doc.restoreChangesUnsavedCode.style.display = 'none';
 						window.doc.restoreChangesMain.style.display = 'block';
 						window.doc.restoreChangesDialog.fit();
 					});
-					$('.discardButton').on('click', function() {
+					$('.discardButton').on('click', function () {
 						chrome.storage.local.set({
 							editing: null
 						});
@@ -1107,14 +1107,14 @@ class CA {
 						indentUnit: window.app.settings.editor.tabSize,
 						indentWithTabs: window.app.settings.editor.useTabs
 					});
-					window.doc.restoreChangesShowOld.addEventListener('click', function() {
+					window.doc.restoreChangesShowOld.addEventListener('click', function () {
 						window.doc.restoreChangesMain.style.display = 'none';
 						window.doc.restoreChangesUnsavedCode.style.display = 'none';
 						window.doc.restoreChangesOldCode.style.display = 'flex';
 						window.doc.restoreChangesDialog.fit();
 						oldEditor.refresh();
 					});
-					window.doc.restoreChangesShowUnsaved.addEventListener('click', function() {
+					window.doc.restoreChangesShowUnsaved.addEventListener('click', function () {
 						window.doc.restoreChangesMain.style.display = 'none';
 						window.doc.restoreChangesOldCode.style.display = 'none';
 						window.doc.restoreChangesUnsavedCode.style.display = 'flex';
@@ -1130,23 +1130,23 @@ class CA {
 								opacity: 0.6
 							}
 						], {
-							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						}).onfinish = function (this: Animation) {
-							this.effect.target.style.opacity = '0.6';
-							window.doc.restoreChangesDialog.open();
-							$('.pageCont').animate({
-								backgroundColor: 'white'
-							}, 200);
-							$('.crmType').each(function (this: HTMLElement) {
-								this.classList.remove('dim');
-							});
-							$('edit-crm-item').find('.item').animate({
-								opacity: 1
-							}, 200, function () {
-								document.body.style.pointerEvents = 'all';
-							});
-						};
+								duration: 250,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							}).onfinish = function (this: Animation) {
+								this.effect.target.style.opacity = '0.6';
+								window.doc.restoreChangesDialog.open();
+								$('.pageCont').animate({
+									backgroundColor: 'white'
+								}, 200);
+								$('.crmType').each(function (this: HTMLElement) {
+									this.classList.remove('dim');
+								});
+								$('edit-crm-item').find('.item').animate({
+									opacity: 1
+								}, 200, function () {
+									document.body.style.pointerEvents = 'all';
+								});
+							};
 					};
 
 					const path = _this.parent().nodesById[editingObj.id].path;
@@ -1167,11 +1167,11 @@ class CA {
 									opacity: 1
 								}
 							], {
-								duration: 250,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-							}).onfinish = function (this: Animation) {
-								this.effect.target.style.opacity = '1';
-							};
+									duration: 250,
+									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+								}).onfinish = function (this: Animation) {
+									this.effect.target.style.opacity = '1';
+								};
 							setTimeout(function () {
 								stopHighlighting(crmElement);
 							}, 2000);
@@ -1191,7 +1191,7 @@ class CA {
 						}
 					};
 
-					window.doc.highlightChangedScript.addEventListener('click', function() {
+					window.doc.highlightChangedScript.addEventListener('click', function () {
 						//Find the element first
 						//Check if the element is already visible
 						window.doc.restoreChangesDialog.close();
@@ -1237,15 +1237,15 @@ class CA {
 		private static bindListeners() {
 			const urlInput = window.doc.addLibraryUrlInput;
 			const manualInput = window.doc.addLibraryManualInput;
-			window.doc.addLibraryUrlOption.addEventListener('change', function() {
+			window.doc.addLibraryUrlOption.addEventListener('change', function () {
 				manualInput.style.display = 'none';
 				urlInput.style.display = 'block';
 			});
-			window.doc.addLibraryManualOption.addEventListener('change', function() {
+			window.doc.addLibraryManualOption.addEventListener('change', function () {
 				urlInput.style.display = 'none';
 				manualInput.style.display = 'block';
 			});
-			$('#addLibraryDialog').on('iron-overlay-closed', function(this: HTMLElement) {
+			$('#addLibraryDialog').on('iron-overlay-closed', function (this: HTMLElement) {
 				$(this).find('#addLibraryButton, #addLibraryConfirmAddition, #addLibraryDenyConfirmation').off('click');
 			});
 		};
@@ -1256,7 +1256,7 @@ class CA {
 				nodeStorage: any;
 				settings?: CRM.SettingsStorage;
 			}) => {
-				resolve(function() {
+				resolve(function () {
 					function callback(items: CRM.SettingsStorage) {
 						_this.settings = items;
 						_this.settingsCopy = JSON.parse(JSON.stringify(items));
@@ -1282,7 +1282,7 @@ class CA {
 							.CRMOnPage);
 					}
 
-					Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
+					Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
 						setting.init(storageLocal);
 					});
 
@@ -1293,9 +1293,9 @@ class CA {
 					}
 					if (storageLocal.editing) {
 						const editing = storageLocal.editing;
-						setTimeout(function() {
+						setTimeout(function () {
 							//Check out if the code is actually different
-							const node = _this.nodesById[editing.id] as CRM.ScriptNode|CRM.StylesheetNode;
+							const node = _this.nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
 							const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 								node.value.stylesheet);
 							if (nodeCurrentCode.trim() !== editing.val.trim()) {
@@ -1335,7 +1335,7 @@ class CA {
 						});
 					}
 					if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
-						window.setTimeout(function() {
+						window.setTimeout(function () {
 							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).tab = 0;
 							(window.doc.addedPermissionsTabContainer as AddedPermissionsTabContainer).maxTabs =
 								storageLocal.addedPermissions.length;
@@ -1344,7 +1344,7 @@ class CA {
 
 							if (storageLocal.addedPermissions.length === 1) {
 								(window.doc.addedPermissionNextButton.querySelector('.next') as HTMLElement)
-									.style.display = 'none';	
+									.style.display = 'none';
 							} else {
 								(window.doc.addedPermissionNextButton.querySelector('.close') as HTMLElement)
 									.style.display = 'none';
@@ -1378,7 +1378,7 @@ class CA {
 						const versionData = storageLocal.settingsVersionData;
 						versionData.wasUpdated = false;
 						chrome.storage.local.set({
-							settingsVersionData: versionData	
+							settingsVersionData: versionData
 						});
 
 						const toast = window.doc.updatedSettingsToast;
@@ -1399,11 +1399,11 @@ class CA {
 					_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 					if (storageLocal.useStorageSync) {
 						//Parse the data before sending it to the callback
-						chrome.storage.sync.get(function(storageSync: {
+						chrome.storage.sync.get(function (storageSync: {
 							[key: string]: string
 						} & {
-							indexes: Array<string>;
-						}) {
+								indexes: Array<string>;
+							}) {
 							let indexes = storageSync.indexes;
 							if (!indexes) {
 								chrome.storage.local.set({
@@ -1412,7 +1412,7 @@ class CA {
 								callback(storageLocal.settings);
 							} else {
 								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function(index) {
+								indexes.forEach(function (index) {
 									settingsJsonArray.push(storageSync[index]);
 								});
 								const jsonString = settingsJsonArray.join('');
@@ -1428,14 +1428,14 @@ class CA {
 							chrome.storage.local.set({
 								useStorageSync: true
 							});
-							chrome.storage.sync.get(function(storageSync: {
+							chrome.storage.sync.get(function (storageSync: {
 								[key: string]: string
 							} & {
-								indexes: Array<string>;
-							}) {
+									indexes: Array<string>;
+								}) {
 								const indexes = storageSync.indexes;
 								const settingsJsonArray: Array<string> = [];
-								indexes.forEach(function(index) {
+								indexes.forEach(function (index) {
 									settingsJsonArray.push(storageSync[index]);
 								});
 								const jsonString = settingsJsonArray.join('');
@@ -1457,30 +1457,30 @@ class CA {
 			toReach: number;
 			progressBar: HTMLElement;
 			isAnimating: boolean;
-			shouldAnimate: boolean;	
+			shouldAnimate: boolean;
 		}, progress: number) {
 			const _this = this;
 			const scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
 			const scaleAfter = 'scaleX(' + progress + ')';
 			if (settings.max === settings.lastReachedProgress ||
 				settings.toReach >= 1) {
-					settings.progressBar.animate([{
-						transform: scaleBefore,
-						WebkitTransform: scaleBefore
-					}, {
-						transform: scaleAfter,
-						WebkitTransform: scaleAfter
-					}], {
+				settings.progressBar.animate([{
+					transform: scaleBefore,
+					WebkitTransform: scaleBefore
+				}, {
+					transform: scaleAfter,
+					WebkitTransform: scaleAfter
+				}], {
 						duration: 200,
 						easing: 'linear'
-					}).onfinish = function() {
+					}).onfinish = function () {
 						settings.lastReachedProgress = progress;
 						settings.isAnimating = false;
 						settings.progressBar.style.transform = scaleAfter;
 						settings.progressBar.style.WebkitTransform = scaleAfter;
 					};
-					return;
-				}
+				return;
+			}
 			if ((settings.progressBar.animate as any).isJqueryFill) {
 				settings.progressBar.style.transform = scaleAfter;
 				settings.progressBar.style.WebkitTransform = scaleAfter;
@@ -1497,23 +1497,23 @@ class CA {
 						transform: scaleAfter,
 						WebkitTransform: scaleAfter
 					}], {
-						duration: 200,
-						easing: 'linear'
-					}).onfinish = function() {
-						settings.lastReachedProgress = progress;
-						settings.isAnimating = false;
-						settings.progressBar.style.transform = scaleAfter;
-						settings.progressBar.style.WebkitTransform = scaleAfter;
-						_this.animateLoadingBar(settings, settings.toReach);
-					};
+							duration: 200,
+							easing: 'linear'
+						}).onfinish = function () {
+							settings.lastReachedProgress = progress;
+							settings.isAnimating = false;
+							settings.progressBar.style.transform = scaleAfter;
+							settings.progressBar.style.WebkitTransform = scaleAfter;
+							_this.animateLoadingBar(settings, settings.toReach);
+						};
 				}
 			}
 		};
 
 		static setupLoadingBar(fn: (toRun: (callback: () => void) => void) => void) {
 			var callback: () => void = null;
-			fn(function(cb) {
-				callback = cb;	
+			fn(function (cb) {
+				callback = cb;
 			});
 
 			const _this = this;
@@ -1539,7 +1539,7 @@ class CA {
 					window.setTimeout(() => {
 						callback && callback();
 						//All elements have been loaded, unhide them all
-						window.setTimeout(function() {
+						window.setTimeout(function () {
 							document.documentElement.classList.remove('elementsLoading');
 
 							//Clear the annoying CSS mime type messages and the /deep/ warning
@@ -1547,7 +1547,7 @@ class CA {
 								console.clear();
 							}
 
-							window.setTimeout(function() {
+							window.setTimeout(function () {
 								//Wait for the fade to pass
 								window.polymerElementsLoaded = true;
 								document.getElementById('splashScreen').style.display = 'none';
@@ -1573,13 +1573,13 @@ class CA {
 		static initCheckboxes(defaultLocalStorage: CRM.StorageLocal) {
 			const _this = this;
 			if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
-				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue && 
-				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
-				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function(setting: PaperToggleOption) {
+				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
+					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
+				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
 					setting.init && setting.init(defaultLocalStorage);
 				});
 			} else {
-				window.setTimeout(function() {
+				window.setTimeout(function () {
 					_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
 				}, 1000);
 			}
@@ -1636,7 +1636,7 @@ class CA {
 	 * Functions related to uploading the data to the backgroundpage
 	 */
 	private static uploading = class CRMAppUploading {
-		private static areValuesDifferent(val1: Array<any>|Object, val2: Array<any>|Object): boolean {
+		private static areValuesDifferent(val1: Array<any> | Object, val2: Array<any> | Object): boolean {
 			//Array or object
 			const obj1ValIsArray = Array.isArray(val1);
 			let obj2ValIsArray = Array.isArray(val2);
@@ -1755,7 +1755,7 @@ class CA {
 	static legacyScriptReplace = class LegacyScriptReplace {
 		static localStorageReplace = class LogalStorageReplace {
 			static findExpression(expression: Tern.Expression, data: PersistentData,
-					strToFind: string, onFind: (data: PersistentData, expression: Tern.Expression) => void): boolean {
+				strToFind: string, onFind: (data: PersistentData, expression: Tern.Expression) => void): boolean {
 				switch (expression.type) {
 					case 'Identifier':
 						if (expression.name === strToFind) {
@@ -1819,7 +1819,7 @@ class CA {
 							return true;
 						}
 						return this.findExpression(expression.alternate, data, strToFind, onFind);
-					case 'IfStatement':;
+					case 'IfStatement': ;
 						if (this.findExpression(expression.consequent, data, strToFind, onFind)) {
 							return true;
 						}
@@ -1896,9 +1896,9 @@ class CA {
 				for (let i = 0; i < scriptExpressions.length; i++) {
 					const expression = scriptExpressions[i];
 					if (this.findExpression(expression, persistentData, 'localStorage', (data, expression) => {
-						data.script = 
-							data.script.slice(0, expression.start) + 
-							'localStorageProxy' + 
+						data.script =
+							data.script.slice(0, expression.start) +
+							'localStorageProxy' +
 							data.script.slice(expression.end);
 						data.lines = data.script.split('\n');
 					})) {
@@ -1921,15 +1921,15 @@ class CA {
 				start: number;
 				end: number;
 			}>, start: number, end: number): {
-				from: {
-					index: number;
-					line: number;
-				};
-				to: {
-					index: number;
-					line: number;
-				}
-			} {
+					from: {
+						index: number;
+						line: number;
+					};
+					to: {
+						index: number;
+						line: number;
+					}
+				} {
 				const line: {
 					from: {
 						index: number,
@@ -2037,7 +2037,7 @@ class CA {
 					var argsLines = chromeAPI.args.split('\n');
 					newLine += argsLines[0];
 					for (i = 1; i < argsLines.length; i++) {
-						lines[callLine.from.line + i] = argsLines[i]; 
+						lines[callLine.from.line + i] = argsLines[i];
 					}
 				}
 
@@ -2069,61 +2069,61 @@ class CA {
 					}
 
 					var indent;
-						if (usesTabs) {
-							indent = '	';
-						} else {
-							indent = [];
-							indent[spacesAmount] = ' ';
-							indent = indent.join(' ');
-						}
-						
-						//Only do this for the current scope
-						var scopeLength = null;
-						var idx = null;
-						for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
-							if (data.parentExpressions[i].type === 'BlockStatement' || 
-									(data.parentExpressions[i].type === 'FunctionExpression' && 
-										(data.parentExpressions[i].body as Tern.BlockStatement).type === 'BlockStatement')) {
-								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
-								idx = 0;
+					if (usesTabs) {
+						indent = '	';
+					} else {
+						indent = [];
+						indent[spacesAmount] = ' ';
+						indent = indent.join(' ');
+					}
 
-								//Get the lowest possible scopeLength as to stay on the last line of the scope
-								while (scopeLength > 0) {
-									scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
-								}
-								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
+					//Only do this for the current scope
+					var scopeLength = null;
+					var idx = null;
+					for (i = data.parentExpressions.length - 1; scopeLength === null && i !== 0; i--) {
+						if (data.parentExpressions[i].type === 'BlockStatement' ||
+							(data.parentExpressions[i].type === 'FunctionExpression' &&
+								(data.parentExpressions[i].body as Tern.BlockStatement).type === 'BlockStatement')) {
+							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line, data.parentExpressions[i].end);
+							idx = 0;
+
+							//Get the lowest possible scopeLength as to stay on the last line of the scope
+							while (scopeLength > 0) {
+								scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (++idx), data.parentExpressions[i].end);
 							}
+							scopeLength = this.getLineIndexFromTotalIndex(data.persistent.lines, callLine.from.line + (idx - 1), data.parentExpressions[i].end);
 						}
-						if (idx === null) {
-							idx = (lines.length - callLine.from.line) + 1;
-						} 
+					}
+					if (idx === null) {
+						idx = (lines.length - callLine.from.line) + 1;
+					}
 
-						var indents = 0;
-						var newLineData = lines[callLine.from.line];
-						while (newLineData.indexOf(indent) === 0) {
-							newLineData = newLineData.replace(indent, '');
-							indents++;
-						}
+					var indents = 0;
+					var newLineData = lines[callLine.from.line];
+					while (newLineData.indexOf(indent) === 0) {
+						newLineData = newLineData.replace(indent, '');
+						indents++;
+					}
 
-						//Push in one extra line at the end of the expression
-						var prevLine;
-						var indentArr= [];
-						indentArr[indents] = '';
-						var prevLine2 = indentArr.join(indent) + '}).send();';
-						var max = data.persistent.lines.length + 1;
-						for (i = callLine.from.line; i < callLine.from.line + (idx - 1); i++) {
-							lines[i] = indent + lines[i];
-						}
+					//Push in one extra line at the end of the expression
+					var prevLine;
+					var indentArr = [];
+					indentArr[indents] = '';
+					var prevLine2 = indentArr.join(indent) + '}).send();';
+					var max = data.persistent.lines.length + 1;
+					for (i = callLine.from.line; i < callLine.from.line + (idx - 1); i++) {
+						lines[i] = indent + lines[i];
+					}
 
-						//If it's going to add a new line, indent the last line as well
-						// if (idx === (lines.length - callLines.from.line) + 1) {
-						// 	lines[i] = indent + lines[i];
-						// }
-						for (i = callLine.from.line + (idx - 1); i < max; i++) {
-							prevLine = lines[i];
-							lines[i] = prevLine2; 
-							prevLine2 = prevLine;
-						}
+					//If it's going to add a new line, indent the last line as well
+					// if (idx === (lines.length - callLines.from.line) + 1) {
+					// 	lines[i] = indent + lines[i];
+					// }
+					for (i = callLine.from.line + (idx - 1); i < max; i++) {
+						prevLine = lines[i];
+						lines[i] = prevLine2;
+						prevLine2 = prevLine;
+					}
 
 				} else {
 					lines[callLine.from.line + (i - 1)] = lines[callLine.from.line + (i - 1)] + '.send();';
@@ -2405,11 +2405,11 @@ class CA {
 					passes: number,
 					diagnostic?: boolean;
 				} = {
-					lines: lines,
-					lineSeperators: lineSeperators,
-					script: script,
-					passes: passes
-				};
+						lines: lines,
+						lineSeperators: lineSeperators,
+						script: script,
+						passes: passes
+					};
 
 				let expression;
 				if (passes === 0) {
@@ -2418,8 +2418,8 @@ class CA {
 					for (let i = 0; i < scriptExpressions.length; i++) {
 						expression = scriptExpressions[i];
 						this.findChromeExpression(expression, {
-								persistent: persistentData 
-							} as ChromePersistentData, onError);
+							persistent: persistentData
+						} as ChromePersistentData, onError);
 					}
 					persistentData.diagnostic = false;
 				}
@@ -2427,8 +2427,8 @@ class CA {
 				for (let i = 0; i < scriptExpressions.length; i++) {
 					expression = scriptExpressions[i];
 					if (this.findChromeExpression(expression, {
-							persistent: persistentData 
-						} as ChromePersistentData, onError)) {
+						persistent: persistentData
+					} as ChromePersistentData, onError)) {
 						script = this.replaceChromeCalls(persistentData.lines.join('\n')
 							.split('\n'), passes + 1, onError);
 						break;
@@ -2439,17 +2439,17 @@ class CA {
 			}
 			private static removePositionDuplicates(arr: Array<TransferOnErrorError>):
 				Array<TransferOnErrorError> {
-					var jsonArr: Array<string> = [];
-					arr.forEach((item, index) => {
-						jsonArr[index] = JSON.stringify(item);
-					});
-					jsonArr = jsonArr.filter((item, pos) => {
-						return jsonArr.indexOf(item) === pos;
-					});
-					return jsonArr.map((item) => {
-						return JSON.parse(item);
-					});
-				}
+				var jsonArr: Array<string> = [];
+				arr.forEach((item, index) => {
+					jsonArr[index] = JSON.stringify(item);
+				});
+				jsonArr = jsonArr.filter((item, pos) => {
+					return jsonArr.indexOf(item) === pos;
+				});
+				return jsonArr.map((item) => {
+					return JSON.parse(item);
+				});
+			}
 			static replace(script: string, onError: (
 				oldScriptErrors: Array<TransferOnErrorError>,
 				newScriptErrors: Array<TransferOnErrorError>,
@@ -2466,7 +2466,7 @@ class CA {
 
 				const errors: Array<Array<TransferOnErrorError>> = [];
 				try {
-					script = this.replaceChromeCalls(script.split('\n'), 0, 
+					script = this.replaceChromeCalls(script.split('\n'), 0,
 						this.generateOnError(errors));
 				} catch (e) {
 					onError(null, null, true);
@@ -2476,7 +2476,7 @@ class CA {
 				const firstPassErrors = errors[0];
 				const finalPassErrors = errors[errors.length - 1];
 				if (finalPassErrors) {
-					onError(this.removePositionDuplicates(firstPassErrors), 
+					onError(this.removePositionDuplicates(firstPassErrors),
 						this.removePositionDuplicates(finalPassErrors));
 				}
 
@@ -2484,7 +2484,7 @@ class CA {
 			}
 		}
 		static generateScriptUpgradeErrorHandler(id: number): ScriptUpgradeErrorHandler {
-			return function(oldScriptErrors, newScriptErrors, parseError) {
+			return function (oldScriptErrors, newScriptErrors, parseError) {
 				chrome.storage.local.get(function (keys: CRM.StorageLocal) {
 					if (!keys.upgradeErrors) {
 						var val: {
@@ -2527,7 +2527,7 @@ class CA {
 			try {
 				switch (method) {
 					case SCRIPT_CONVERSION_TYPE.CHROME:
-						script = this.chromeCallsReplace.replace(script, 
+						script = this.chromeCallsReplace.replace(script,
 							this.generateScriptUpgradeErrorHandler(id));
 						break;
 					case SCRIPT_CONVERSION_TYPE.LOCAL_STORAGE:
@@ -2587,7 +2587,7 @@ class CA {
 				disabled: boolean;
 			}).disabled) {
 				window.externalEditor.init();
-				window.externalEditor.editingCRMItem = 
+				window.externalEditor.editingCRMItem =
 					((window.scriptEdit && window.scriptEdit.active) ?
 						window.scriptEdit.item : window.stylesheetEdit.item) as any;
 				window.externalEditor.setupExternalEditing();
@@ -2612,7 +2612,7 @@ class CA {
 
 		static iconSwitch(e: Polymer.ClickEvent, type: {
 			x?: any;
-		}|number) {
+		} | number) {
 			let i;
 			let crmEl;
 			let selectedType = this.parent().crmType;
@@ -2700,7 +2700,7 @@ class CA {
 			].join('\n');
 			chrome.permissions.contains({
 				permissions: ['downloads']
-			}, function(hasPermission) {
+			}, function (hasPermission) {
 				if (hasPermission) {
 					chrome.downloads.download({
 						url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
@@ -2709,7 +2709,7 @@ class CA {
 				} else {
 					chrome.permissions.request({
 						permissions: ['downloads']
-					}, function() {
+					}, function () {
 						chrome.downloads.download({
 							url: 'data:text/plain;charset=utf-8;base64,' + window.btoa(regFile),
 							filename: schemeName + '.reg'
@@ -2742,7 +2742,7 @@ class CA {
 			});
 		};
 
-		
+
 		static removeGlobalExclude(e: Polymer.ClickEvent) {
 			const node = this.parent().util.findElementWithTagname(e.path, 'paper-icon-button');
 
@@ -2769,7 +2769,7 @@ class CA {
 					local?: CRM.StorageLocal;
 					nonLocal?: CRM.SettingsStorage;
 					storageLocal?: CRM.StorageLocal;
-				} ;
+				};
 				try {
 					data = JSON.parse(dataString) as {
 						local?: CRM.StorageLocal;
@@ -2809,7 +2809,7 @@ class CA {
 
 						const rows = settingsArr.slice(6);
 						class LocalStorageWrapper {
-							getItem(index: 'numberofrows'|number): string {
+							getItem(index: 'numberofrows' | number): string {
 								if (index === 'numberofrows') {
 									return '' + (rows.length - 1);
 								}
@@ -2826,11 +2826,11 @@ class CA {
 					} else {
 						alert('This method of importing no longer works, please export all your settings instead');
 					}
-				} catch(e) {
+				} catch (e) {
 					console.log(e);
 					this.parent().$.importSettingsError.style.display = 'block';
 					return;
-				} 
+				}
 			}
 		};
 
@@ -2865,7 +2865,7 @@ class CA {
 			this.parent().push('globalExcludes', '');
 		};
 
-		
+
 		static _openLogging() {
 			window.open(chrome.runtime.getURL('html/logging.html'), '_blank');
 		};
@@ -2907,12 +2907,12 @@ class CA {
 				button.icon = 'error';
 			}
 			// Return to the copy button after a second.
-			this.parent().async(function() {
+			this.parent().async(function () {
 				button.icon = 'content-copy';
 			}, 1000);
 			selection.removeAllRanges();
 		}
-		
+
 		static copyExportDialogToClipboard() {
 			this.copyFromElement(this.parent().$.exportJSONData,
 				this.parent().$.dialogCopyButton);
@@ -2955,17 +2955,17 @@ class CA {
 							height: newHeightPx
 						}
 					], {
-						duration: 500,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					}).onfinish = function() {
-						tabCont.style.height = newHeightPx;
-						selector.style.height = 'auto';
-						_this.parent().versionUpdateTab = nextTabIndex;
-					};
+							duration: 500,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function () {
+							tabCont.style.height = newHeightPx;
+							selector.style.height = 'auto';
+							_this.parent().versionUpdateTab = nextTabIndex;
+						};
 				} else {
 					selector.style.height = 'auto';
 					_this.parent().versionUpdateTab = nextTabIndex;
-					setTimeout(function() {
+					setTimeout(function () {
 						tabCont.animate([
 							{
 								height: currentHeight + 'px'
@@ -2973,11 +2973,11 @@ class CA {
 								height: newHeightPx
 							}
 						], {
-							duration: 500,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						}).onfinish = function() {
-							tabCont.style.height = newHeightPx;
-						};
+								duration: 500,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							}).onfinish = function () {
+								tabCont.style.height = newHeightPx;
+							};
 					}, 500);
 				}
 			}
@@ -3013,13 +3013,13 @@ class CA {
 							height: newHeightPx
 						}
 					], {
-						duration: 500,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-					}).onfinish = function () {
-						tabCont.style.height = newHeightPx;
-						selector.style.height = 'auto';
-						_this.parent().versionUpdateTab = prevTabIndex;
-					};
+							duration: 500,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function () {
+							tabCont.style.height = newHeightPx;
+							selector.style.height = 'auto';
+							_this.parent().versionUpdateTab = prevTabIndex;
+						};
 				} else {
 					selector.style.height = 'auto';
 					_this.parent().versionUpdateTab = prevTabIndex;
@@ -3031,11 +3031,11 @@ class CA {
 								height: newHeightPx
 							}
 						], {
-							duration: 500,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-						}).onfinish = function () {
-							tabCont.style.height = newHeightPx;
-						};
+								duration: 500,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							}).onfinish = function () {
+								tabCont.style.height = newHeightPx;
+							};
 					}, 500);
 				}
 			}
@@ -3046,8 +3046,8 @@ class CA {
 			const panels = Array.prototype.slice.apply(
 				window.doc.addedPermissionsTabContainer
 					.querySelectorAll('.nodeAddedPermissionsCont'));
-			panels.forEach(function(panel: HTMLElement) {
-				const node = _this.parent().nodesById[(panel.getAttribute('data-id') as any)as number] as CRM.ScriptNode;
+			panels.forEach(function (panel: HTMLElement) {
+				const node = _this.parent().nodesById[(panel.getAttribute('data-id') as any) as number] as CRM.ScriptNode;
 				const permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
 					.map(function (checkbox: HTMLPaperCheckboxElement) {
 						if (checkbox.checked) {
@@ -3060,7 +3060,7 @@ class CA {
 				if (!Array.isArray(node.permissions)) {
 					node.permissions = [];
 				}
-				permissions.forEach(function(addedPermission: CRM.Permission) {
+				permissions.forEach(function (addedPermission: CRM.Permission) {
 					if (node.permissions.indexOf(addedPermission) === -1) {
 						node.permissions.push(addedPermission);
 					}
@@ -3144,7 +3144,7 @@ class CA {
 				});
 			return obj;
 		}
-		
+
 		static confirmCodeSettings() {
 			this.parent().$.codeSettingsDialog.item.value.options = this._getCodeSettingsFromDialog();
 
@@ -3170,7 +3170,7 @@ class CA {
 				localStorage.getItem('waitforsearch'),
 				localStorage.getItem('whatpage'),
 				localStorage.getItem('numberofrows')].join('%146%');
-			
+
 			const rows = localStorage.getItem('numberofrows') || 0;
 			for (let i = 1; i <= rows; i++) {
 				data += "%146%" + localStorage.getItem(i + '');
@@ -3191,9 +3191,9 @@ class CA {
 		/**
 		 * Merges two arrays
 		 */
-		static mergeArrays<T extends Array<T>|Array<U>, U>(mainArray: T, additionArray: T): T {
+		static mergeArrays<T extends Array<T> | Array<U>, U>(mainArray: T, additionArray: T): T {
 			for (let i = 0; i < additionArray.length; i++) {
-				if (mainArray[i] && typeof additionArray[i] === 'object' && 
+				if (mainArray[i] && typeof additionArray[i] === 'object' &&
 					mainArray[i] !== undefined && mainArray[i] !== null) {
 					if (Array.isArray(additionArray[i])) {
 						mainArray[i] = this.mergeArrays<T, U>(mainArray[i] as T,
@@ -3375,11 +3375,11 @@ class CA {
 		 * Gets the default divider or menu node object with given options applied
 		 */
 		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider' | 'menu'):
-		CRM.DividerNode | CRM.MenuNode;
+			CRM.DividerNode | CRM.MenuNode;
 		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'divider'): CRM.DividerNode;
 		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode>, type: 'menu'): CRM.MenuNode;
 		static getDefaultDividerOrMenuNode(options: Partial<CRM.PassiveNode> = {}, type: 'divider' | 'menu'):
-		CRM.DividerNode | CRM.MenuNode {
+			CRM.DividerNode | CRM.MenuNode {
 			const defaultNode: Partial<CRM.PassiveNode> = {
 				name: 'name',
 				type: type,
@@ -3389,7 +3389,7 @@ class CA {
 				value: null
 			};
 
-			return this.mergeObjects(defaultNode, options) as CRM.DividerNode|CRM.MenuNode;
+			return this.mergeObjects(defaultNode, options) as CRM.DividerNode | CRM.MenuNode;
 		};
 
 		/**
@@ -3545,7 +3545,7 @@ class CA {
 				tabs: 'Allows for the opening, closing and getting of tabs',
 				tts: 'Allows a script to use chrome\'s text so speach engine. (https://developer.chrome.com/extensions/tts)',
 				webNavigation: 'Allows a script info about newly created pages and allows it to get info about what website visit at that time.' +
-					' (https://developer.chrome.com/extensions/webNavigation)',
+				' (https://developer.chrome.com/extensions/webNavigation)',
 				webRequest: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. (https://developer.chrome.com/extensions/webRequest)',
 				webRequestBlocking: 'Allows a script info about newly created pages and allows it to get info about what website you are visiting, what resources are downloaded on the side, and can basically track the entire process of opening a new website. This also allows the script to block certain requests for example for blocking ads or bad sites. (https://developer.chrome.com/extensions/webRequest)',
 
@@ -3590,7 +3590,7 @@ class CA {
 	/**
 	 * Functions related to the on-page example of your current CRM
 	 */
-	static pageDemo = class CRMAppPageDemo {		
+	static pageDemo = class CRMAppPageDemo {
 		private static usedStylesheetIds: Array<number> = [];
 
 		private static handlers = class CRMAppPageDemoHandlers {
@@ -3598,7 +3598,7 @@ class CA {
 			 * Makes an onclick handler for links
 			 */
 			static link(data: Array<CRM.LinkNodeLink>): () => void {
-				return function() {
+				return function () {
 					for (let i = 0; i < data.length; i++) {
 						window.open(data[i].url, '_blank');
 					}
@@ -3609,7 +3609,7 @@ class CA {
 			 * Makes an onclick handler for scripts
 			 */
 			static script(script: string): () => void {
-				return function() {
+				return function () {
 					alert(`This would run the script ${script}`);
 				};
 			};
@@ -3624,7 +3624,7 @@ class CA {
 				static toggle(data: string, checked: boolean): () => void {
 					const state = checked;
 
-					return function() {
+					return function () {
 						alert(`This would toggle the stylesheet ${data} ${(state ? 'on' : 'off')}`);
 					};
 				};
@@ -3632,7 +3632,7 @@ class CA {
 				 * Makes an onclick handler for stylesheets
 				 */
 				static normal(stylesheet: string): () => void {
-					return function() {
+					return function () {
 						alert(`This would run the stylesheet ${stylesheet}`);
 					};
 				};
@@ -3643,7 +3643,7 @@ class CA {
 			 */
 			static edit(node: CRM.Node): () => void {
 				const _this = this;
-				return function() {
+				return function () {
 					_this.parent().parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
 				};
 			};
@@ -3725,7 +3725,7 @@ class CA {
 				if (_this.parent().parent().storageLocal.editCRMInRM) {
 					item.callback = this.parent().handlers.edit(toAdd);
 				}
-				toAdd.children.forEach(function(node) {
+				toAdd.children.forEach(function (node) {
 					if (_this.parent().isNodeVisible(node, crmType)) {
 
 						if (_this.parent().parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
@@ -3801,7 +3801,7 @@ class CA {
 				[key: number]: JQContextMenuItem
 			} = {};
 			const crm = window.app.settings.crm;
-			crm.forEach(function(node: CRM.Node) {
+			crm.forEach(function (node: CRM.Node) {
 				if (_this.isNodeVisible(node, crmType)) {
 					if (_this.parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
 						childItems[index.num++] = _this.node.editable(node);
@@ -3869,7 +3869,7 @@ class CA {
 
 		private static removeContextMenus() {
 			let el;
-			this.usedStylesheetIds.forEach(function(id) {
+			this.usedStylesheetIds.forEach(function (id) {
 				el = document.getElementById('stylesheet' + id);
 				el && el.remove();
 			});
@@ -3910,13 +3910,13 @@ class CA {
 				window.setTimeout(this.create.bind(this), 500);
 				return;
 			}
-			
-			if (this.parent().storageLocal.CRMOnPage && 
+
+			if (this.parent().storageLocal.CRMOnPage &&
 				~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] > 34) {
-					this.loadContextMenus();
-				} else {
-					this.removeContextMenus();
-				}
+				this.loadContextMenus();
+			} else {
+				this.removeContextMenus();
+			}
 		};
 
 		private static parent(): CrmApp {
@@ -3932,11 +3932,11 @@ class CA {
 			return 'window.app.settings.crm[' + (path.join('].children[')) + ']';
 		};
 
-		static lookup(path: Array<number>, returnArray?: boolean): CRM.Node|Array<CRM.Node>;
+		static lookup(path: Array<number>, returnArray?: boolean): CRM.Node | Array<CRM.Node>;
 		static lookup(path: Array<number>, returnArray: false): CRM.Node;
 		static lookup(path: Array<number>, returnArray: true): Array<CRM.Node>;
 		static lookup(path: Array<number>): CRM.Node;
-		static lookup(path: Array<number>, returnArray: boolean = false): CRM.Node|Array<CRM.Node> {
+		static lookup(path: Array<number>, returnArray: boolean = false): CRM.Node | Array<CRM.Node> {
 			const pathCopy = JSON.parse(JSON.stringify(path));
 			if (returnArray) {
 				pathCopy.splice(pathCopy.length - 1, 1);
@@ -3954,10 +3954,10 @@ class CA {
 			return (returnArray ? result.children : result);
 		};
 
-		private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void;
+		private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node> | CRM.Node | void;
 		private static _lookupId(id: number, returnArray: false, node: CRM.Node): CRM.Node;
 		private static _lookupId(id: number, returnArray: true, node: CRM.Node): Array<CRM.Node>;
-		private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node>|CRM.Node|void {
+		private static _lookupId(id: number, returnArray: boolean, node: CRM.Node): Array<CRM.Node> | CRM.Node | void {
 			const nodeChildren = node.children;
 			if (nodeChildren) {
 				let el;
@@ -3974,10 +3974,10 @@ class CA {
 			return null;
 		};
 
-		static lookupId(id: number, returnArray: boolean): Array<CRM.Node>|CRM.Node;
+		static lookupId(id: number, returnArray: boolean): Array<CRM.Node> | CRM.Node;
 		static lookupId(id: number, returnArray: true): Array<CRM.Node>;
 		static lookupId(id: number, returnArray: false): CRM.Node;
-		static lookupId(id: number, returnArray: boolean): Array<CRM.Node>|CRM.Node {
+		static lookupId(id: number, returnArray: boolean): Array<CRM.Node> | CRM.Node {
 			if (!returnArray) {
 				return window.app.nodesById[id];
 			}
@@ -4056,7 +4056,7 @@ class CA {
 				if (rootObj[key]) {
 					window.clearInterval(interval);
 					fn(rootObj[key]);
-				}	
+				}
 			}, 10);
 		}
 
@@ -4066,7 +4066,7 @@ class CA {
 			props?: {
 				[key: string]: string;
 			}
-		}, children: Array<Polymer.Element|string> = []): Polymer.Element {
+		}, children: Array<Polymer.Element | string> = []): Polymer.Element {
 			const el = document.createElement(tagName);
 			if (options.id) {
 				el.id = options.id;
@@ -4089,13 +4089,13 @@ class CA {
 			}
 			return el;
 		}
-		
+
 		static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<Polymer.Element>, tagName: T): ElementTagNameMaps[T] {
 			let index = 0;
 			let node = path[0];
 			while (node.tagName.toLowerCase() !== tagName) {
 				node = path[++index];
-				
+
 				if (index > path.length) {
 					return null;
 				}
@@ -4108,7 +4108,7 @@ class CA {
 			let node = path[0];
 			while (!node.classList.contains(className)) {
 				node = path[++index];
-				
+
 				if (index > path.length) {
 					return null;
 				}
@@ -4136,10 +4136,10 @@ class CA {
 		};
 
 		static compareObj(firstObj: {
-								[key: string]: any;
-							}, secondObj: {
-								[key: string]: any;
-							}): boolean {
+			[key: string]: any;
+		}, secondObj: {
+			[key: string]: any;
+		}): boolean {
 			if (!secondObj) {
 				return !firstObj;
 
