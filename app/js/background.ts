@@ -5015,10 +5015,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 			const resourceKeys = globalObject.globals.storages.resourceKeys;
 			for (let i = 0; i < resourceKeys.length; i++) {
-				if (resourceKeys[i]
-					.name ===
-					name &&
-					resourceKeys[i].scriptId === scriptId) {
+				if (resourceKeys[i].name === name && resourceKeys[i].scriptId === scriptId) {
 					return;
 				}
 			}
@@ -5609,7 +5606,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					node = node as CRM.ScriptNode;
 
 					//Libraries
-					const libs: Array<{
+					let libs: Array<{
 						url: string;
 						name: string;
 					}> = [];
@@ -5623,24 +5620,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 					metaTags['CRM_libraries'] = libs;
 
-					const anonymousLibs = metaTags['require'] || [];
-					if (metaTags['require']) {
-						for (let i = 0; i < anonymousLibs.length; i++) {
-							let skip = false;
-							for (let j = 0; j < libs.length; j++) {
-								if (libs[j].url === anonymousLibs[i]) {
-									skip = true;
-									break;
-								}
+					const requires: Array<string> = metaTags['require'] || [];
+					const anonymousLibs: Array<CRM.Library> = [];
+					for (let i = 0; i < requires.length; i++) {
+						let skip = false;
+						for (let j = 0; j < libs.length; j++) {
+							if (libs[j].url === requires[i]) {
+								skip = true;
+								break;
 							}
-							if (skip) {
-								continue;
-							}
-							anonymousLibs[i] = {
-								url: anonymousLibs[i],
-								name: null
-							};
 						}
+						if (skip) {
+							continue;
+						}
+						anonymousLibs.push({
+							url: requires[i],
+							name: null
+						});
 					}
 
 					(anonymousLibs as Array<{
@@ -5655,9 +5651,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						});
 					});
 
-					for (let i = 0; i < anonymousLibs.length; i++) {
-						libs.push(anonymousLibs[i].url);
-					}
+					libs = libs.concat(anonymousLibs);
 
 					let launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 							'CRM_launchMode') ||
@@ -6560,7 +6554,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								homepage: metaVal('homepage'),
 								icon: metaVal('icon'),
 								icon64: metaVal('icon64'),
-								includes: metaData['includes'],
+								includes: metaData['includes'].concat(metaData['include']),
 								lastUpdated: 0, //Never updated
 								matches: metaData['matches'],
 								isIncognito: tab.incognito,
@@ -6580,7 +6574,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										excludes: true,
 										includes: true,
 										orig_excludes: metaData['excludes'],
-										orig_includes: metaData['includes'],
+										orig_includes: metaData['includes'].concat(metaData['include']),
 										use_excludes: excludes,
 										use_includes: includes
 									}
