@@ -3572,7 +3572,7 @@ class CA {
 				GM_download: 'Allows the downloading of data to the hard disk',
 				GM_getTab: 'Allows the reading of an object that\'s persistent while the tab is open - not implemented',
 				GM_saveTab: 'Allows the saving of the tab object to reopen after a page unload - not implemented',
-				GM_getTabs: 'Allows the readin gof all tab object - not implemented',
+				GM_getTabs: 'Allows the reading of all tab object - not implemented',
 				GM_notification: 'Allows sending desktop notifications',
 				GM_setClipboard: 'Allows copying data to the clipboard - not implemented',
 				GM_info: 'Allows the reading of some script info',
