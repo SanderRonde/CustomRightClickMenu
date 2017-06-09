@@ -5576,7 +5576,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					[key: string]: any;
 				}): CRM.Triggers {
 					let triggers: CRM.Triggers = [];
-					const includes: Array<string> = metaTags['includes'];
+					const includes: Array<string> = metaTags['includes'].concat(metaTags['include']);
 					if (includes) {
 						triggers = triggers.concat(includes.map(include => ({
 							url: include,
@@ -5597,98 +5597,109 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							not: false
 						})).filter(exclude => (!!exclude.url)));
 					}
+
+					//Filter out duplicates
 					triggers = triggers.filter((trigger, index) => (triggers.indexOf(trigger) === index));
 					return triggers;
+				}
+				private static _createUserscriptScriptData(metaTags: {
+					[key: string]: any;
+				}, code: string, node: Partial<CRM.Node>) {
+					node.type = 'script';
+					node = node as CRM.ScriptNode;
+
+					//Libraries
+					const libs: Array<{
+						url: string;
+						name: string;
+					}> = [];
+					if (metaTags['CRM_libraries']) {
+						(metaTags['CRM_libraries'] as Array<string>).forEach(item => {
+							try {
+								libs.push(JSON.parse(item));
+							} catch (e) {
+							}
+						});
+					}
+					metaTags['CRM_libraries'] = libs;
+
+					const anonymousLibs = metaTags['require'] || [];
+					if (metaTags['require']) {
+						for (let i = 0; i < anonymousLibs.length; i++) {
+							let skip = false;
+							for (let j = 0; j < libs.length; j++) {
+								if (libs[j].url === anonymousLibs[i]) {
+									skip = true;
+									break;
+								}
+							}
+							if (skip) {
+								continue;
+							}
+							anonymousLibs[i] = {
+								url: anonymousLibs[i],
+								name: null
+							};
+						}
+					}
+
+					(anonymousLibs as Array<{
+						url: string;
+						name: null;
+					}>).forEach(anonymousLib => {
+						Resources.Anonymous.handle({
+							type: 'register',
+							name: anonymousLib.url,
+							url: anonymousLib.url,
+							scriptId: node.id
+						});
+					});
+
+					for (let i = 0; i < anonymousLibs.length; i++) {
+						libs.push(anonymousLibs[i].url);
+					}
+
+					let launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
+							'CRM_launchMode') ||
+						0;
+					launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
+					node.value = globalObject.globals.constants.templates.getDefaultScriptValue({
+						script: code,
+						launchMode: launchMode,
+						libraries: libs
+					});
+				}
+				private static _createUserscriptStylesheetData(metaTags: {
+					[key: string]: any;
+				}, code: string, node: Partial<CRM.Node>) {
+					node = node as CRM.StylesheetNode;
+					node.type = 'stylesheet';
+					let launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
+							'CRM_launchMode') ||
+						CRMLaunchModes.RUN_ON_SPECIFIED;
+					launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
+					node.value = {
+						stylesheet: code,
+						defaultOn: (metaTags['CRM_defaultOn'] =
+							CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_defaultOn') ||
+							false),
+						toggle: (metaTags['CRM_toggle'] = CRM.Script.MetaTags
+							.getlastMetaTagValue(metaTags,
+								'CRM_toggle') ||
+							false),
+						launchMode: launchMode,
+						options: {},
+						convertedStylesheet: null
+					};
 				}
 				private static _createUserscriptTypeData(metaTags: {
 					[key: string]: any;
 				}, code: string, node: Partial<CRM.Node>) {
-					let launchMode: CRMLaunchModes|string;
 					if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
 						'CRM_stylesheet')) {
-						node = node as CRM.StylesheetNode;
-						node.type = 'stylesheet';
-						launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-								'CRM_launchMode') ||
-							CRMLaunchModes.RUN_ON_SPECIFIED;
-						launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
-						node.value = {
-							stylesheet: code,
-							defaultOn: (metaTags['CRM_defaultOn'] =
-								CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_defaultOn') ||
-								false),
-							toggle: (metaTags['CRM_toggle'] = CRM.Script.MetaTags
-								.getlastMetaTagValue(metaTags,
-									'CRM_toggle') ||
-								false),
-							launchMode: launchMode,
-							options: {},
-							convertedStylesheet: null
-						};
+						this._createUserscriptStylesheetData(metaTags, code, node);
 					} else {
-						node.type = 'script';
-						node = node as CRM.ScriptNode;
-
-						//Libraries
-						const libs: Array<{
-							url: string;
-							name: string;
-						}> = [];
-						if (metaTags['CRM_libraries']) {
-							(metaTags['CRM_libraries'] as Array<string>).forEach(item => {
-								try {
-									libs.push(JSON.parse(item));
-								} catch (e) {
-								}
-							});
-						}
-						metaTags['CRM_libraries'] = libs;
-
-						const anonymousLibs = metaTags['require'] || [];
-						if (metaTags['require']) {
-							for (let i = 0; i < anonymousLibs.length; i++) {
-								let skip = false;
-								for (let j = 0; j < libs.length; j++) {
-									if (libs[j].url === anonymousLibs[i]) {
-										skip = true;
-										break;
-									}
-								}
-								if (skip) {
-									continue;
-								}
-								anonymousLibs[i] = {
-									url: anonymousLibs[i],
-									name: null
-								};
-							}
-						}
-
-						(anonymousLibs as Array<{
-							url: string;
-							name: null;
-						}>).forEach(anonymousLib => {
-							Resources.Anonymous.handle({
-								type: 'register',
-								name: anonymousLib.url,
-								url: anonymousLib.url,
-								scriptId: node.id
-							});
-						});
-
-						for (let i = 0; i < anonymousLibs.length; i++) {
-							libs.push(anonymousLibs[i].url);
-						}
-
-						launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-								'CRM_launchMode') ||
-							0;
-						launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
-						node.value = globalObject.globals.constants.templates.getDefaultScriptValue({
-							script: code,
-							launchMode: launchMode,
-							libraries: libs
-						});
+						this._createUserscriptScriptData(metaTags, code, node);
 					}
 				}
 				private static _applyMetaTags(code: string, metaTags: {
@@ -5780,6 +5791,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						path?: Array<number>,
 						oldNodeId?: number,
 				} {
+					debugger;
 					let node: Partial<CRM.ScriptNode | CRM.StylesheetNode> = {};
 					let hasOldNode = false;
 					if (oldNodeId !== undefined && oldNodeId !== null) {
