@@ -634,6 +634,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					for (let i = 0; i < additionArray.length; i++) {
 						if (mainArray[i] &&
 							typeof additionArray[i] === 'object' &&
+							typeof mainArray[i] === 'object' &&
 							mainArray[i] !== undefined &&
 							mainArray[i] !== null) {
 							if (Array.isArray(additionArray[i])) {
@@ -654,6 +655,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					for (let key in additions) {
 						if (additions.hasOwnProperty(key)) {
 							if (typeof additions[key] === 'object' &&
+								typeof mainObject[key] === 'object' &&
 								mainObject[key] !== undefined &&
 								mainObject[key] !== null) {
 								if (Array.isArray(additions[key])) {
@@ -4915,6 +4917,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				hash: string;
 			}> = [];
 			const hashString = url.split('#')[1];
+			if (!hashString) {
+				return [];
+			}
+
 			const hashStrings = hashString.split(/[,|;]/g);
 			hashStrings.forEach((hash) => {
 				const split = hash.split('=');
@@ -4948,6 +4954,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			algorithm: string;
 			hash: string;
 		}>, data: string) {
+			if (hashes.length === 0) {
+				return true;
+			}
+
 			let lastMatchingHash: {
 				algorithm: string;
 				hash: string;
@@ -5030,6 +5040,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					break;
 				}
 			}
+			if (!globalObject.globals.storages.resources[scriptId] || 
+				!globalObject.globals.storages.resources[scriptId][name] ||
+				!globalObject.globals.storages.resources[scriptId][name].sourceUrl) {
+					//It's already been removed, skip
+					return;
+				}
 			const urlDataLink = globalObject.globals.storages.urlDataPairs[
 				globalObject.globals.storages.resources[scriptId][name].sourceUrl
 			];
