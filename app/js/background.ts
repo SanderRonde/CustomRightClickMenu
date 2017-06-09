@@ -5696,55 +5696,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						this._createUserscriptScriptData(metaTags, code, node);
 					}
 				}
-				private static _applyMetaTags(code: string, metaTags: {
-					[key: string]: any;
-				}, node: Partial<CRM.ScriptNode|CRM.StylesheetNode>) {
-					const metaTagsArr: Array<string> = [];
-
-					let metaValue;
-					const tags = metaTags;
-					for (let metaKey in tags) {
-						if (tags.hasOwnProperty(metaKey)) {
-							metaValue = tags[metaKey];
-							let value: string;
-							if (metaKey === 'CRM_contentTypes') {
-								value = JSON.stringify(metaValue);
-								metaTagsArr.push(`// @${metaKey}	${value}`);
-							} else {
-								for (let i = 0; i < metaValue.length; i++) {
-									value = metaValue[i];
-									metaTagsArr.push(`// @${metaKey}	${value}`);
-								}
-							}
-						}
-					}
-
-
-					const scriptSplit = (node.type === 'script' ?
-												node.value.script :
-												node.value.stylesheet).split('\n');
-
-					let finalMetaTags: Array<string>;
-					let beforeMetaTags: Array<string>;
-
-					const metaIndexes = CRM.Script.MetaTags.getMetaIndexes(code);
-
-					if (metaIndexes && metaIndexes.start !== undefined) {
-						beforeMetaTags = scriptSplit.splice(0, metaIndexes.start + 1);
-						scriptSplit.splice(metaIndexes.start,
-							(metaIndexes.end - metaIndexes.start) - 1);
-					} else {
-						beforeMetaTags = [];
-					}
-					const afterMetaTags: Array<string> = scriptSplit;
-
-					finalMetaTags = beforeMetaTags;
-					finalMetaTags = finalMetaTags.concat(metaTagsArr);
-					finalMetaTags = finalMetaTags.concat(afterMetaTags);
-
-					(node.value as any)[node.type] = finalMetaTags.join('\n');
-				}
-
 				static install(message: {
 					script: string;
 					downloadURL: string;
@@ -5795,13 +5746,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						node.id = Helpers.generateItemId();
 					}
 
-					node.name = (metaTags['name'] = [
-						CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name'
-					])[0];
+					node.name = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name';
 					node.triggers = this._createUserscriptTriggers(metaTags);
 					this._createUserscriptTypeData(metaTags, code, node);
-					const updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-							'updateURL') ||
+					const updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'updateURL') ||
 						CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'downloadURL') ||
 						downloadURL;
 
@@ -5810,18 +5758,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (metaTags['grant']) {
 						permissions = metaTags['grant'];
 						permissions = permissions.splice(permissions.indexOf('none'), 1);
-						metaTags['grant'] = permissions;
 					}
 
 					//NodeInfo
 					node.nodeInfo = {
-						version: CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-								'version') ||
-							null,
+						version: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'version') || null,
 						source: {
 							updateURL: updateUrl || downloadURL,
-							url: updateUrl ||
-								CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'namespace') ||
+							url: updateUrl || CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'namespace') ||
 								downloadURL,
 							author: CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'author') ||
 								'Anonymous'
@@ -5853,8 +5797,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (!node.onContentTypes) {
 						node.onContentTypes = [true, true, true, true, true, true];
 					}
-					metaTags['CRM_contentTypes'] = node.onContentTypes;
-
 					//Allowed permissions
 					node.permissions = allowedPermissions || [];
 
@@ -5873,10 +5815,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 						});
 					}
-
-					//Uploading
-
-					this._applyMetaTags(code, metaTags, node);
 
 					chrome.storage.local.get('requestPermissions', keys => {
 						chrome.permissions.getAll((allowed: {
