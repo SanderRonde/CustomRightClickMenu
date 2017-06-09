@@ -774,10 +774,9 @@ class CA {
 	};
 
 	static setLocal<T>(this: CrmApp, key: string, value: T) {
-		const obj: {
-			[key: string]: any;
-		} = {};
-		obj[key] = value;
+		const obj = {
+			[key]: value
+		};
 		const _this = this;
 		chrome.storage.local.set(obj);
 		chrome.storage.local.get(function (storageLocal: CRM.StorageLocal) {
