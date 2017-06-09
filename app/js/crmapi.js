@@ -904,7 +904,8 @@
 		 * Turns the class-index based number back to an element
 		 */
 		function findElementsOnPage() {
-			if (typeof window.document === 'undefined') {
+			//It's ran without a click
+			if (typeof window.document === 'undefined' || !contextData) {
 				contextData = {
 					target: null,
 					toElement: null,

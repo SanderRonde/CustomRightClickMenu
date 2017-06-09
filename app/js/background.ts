@@ -5334,7 +5334,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 	}
 
 	type ClickHandler = (clickData: chrome.contextMenus.OnClickData,
-		tabInfo: chrome.tabs.Tab) => void;
+		tabInfo: chrome.tabs.Tab, isAutoActivate?: boolean) => void;
 
 	class CRM {
 		static Script = class Script {
@@ -5420,7 +5420,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							pageUrl: tab.url,
 							menuItemId: 0,
 							editable: false
-						}, tab);
+						}, tab, true);
 					} else if (node.type === 'stylesheet') {
 						CRM.Stylesheet.createClickHandler(node)({
 							pageUrl: tab.url,
@@ -5453,12 +5453,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									tab: chrome.tabs.Tab;
 								}> = [];
 								for (let nodeId in globalObject.globals.toExecuteNodes.onUrl) {
-									if (globalObject.globals.toExecuteNodes.onUrl
-										.hasOwnProperty(nodeId) &&
+									if (globalObject.globals.toExecuteNodes.onUrl.hasOwnProperty(nodeId) &&
 										globalObject.globals.toExecuteNodes.onUrl[nodeId]) {
 										if (URLParsing.matchesUrlSchemes(globalObject.globals
-											.toExecuteNodes.onUrl[nodeId],
-											tab.url)) {
+											.toExecuteNodes.onUrl[nodeId], tab.url)) {
 											toExecute.push({
 												node: globalObject.globals.crm.crmById[nodeId],
 												tab: tab
@@ -5467,9 +5465,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									}
 								}
 
-								for (let i = 0;
-									i < globalObject.globals.toExecuteNodes.always.length;
-									i++) {
+								for (let i = 0; i < globalObject.globals.toExecuteNodes.always.length; i++) {
 									this._executeNode(globalObject.globals.toExecuteNodes.always[i], tab);
 								}
 								for (let i = 0; i < toExecute.length; i++) {
@@ -5572,11 +5568,28 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						};
 					}
 				}
+				private static _deduceLaunchmode(metaTags: {
+					[key: string]: any;
+				}, triggers: CRM.Triggers): number {
+					//if it's explicitly set in a metatag, use that value
+					if (CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_LaunchMode')) {
+						return CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'CRM_LaunchMode');
+					}
+
+					if (triggers.length === 0) {
+						//No triggers, probably only run on clicking
+						return CRMLaunchModes.RUN_ON_CLICKING;
+					}
+					return CRMLaunchModes.RUN_ON_SPECIFIED;
+				}
 				private static _createUserscriptTriggers(metaTags: {
 					[key: string]: any;
-				}): CRM.Triggers {
+				}): {
+					triggers: CRM.Triggers,
+					launchMode: CRMLaunchModes
+				} {
 					let triggers: CRM.Triggers = [];
-					const includes: Array<string> = metaTags['includes'].concat(metaTags['include']);
+					const includes: Array<string> = (metaTags['includes'] || []).concat(metaTags['include']);
 					if (includes) {
 						triggers = triggers.concat(includes.map(include => ({
 							url: include,
@@ -5600,7 +5613,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					//Filter out duplicates
 					triggers = triggers.filter((trigger, index) => (triggers.indexOf(trigger) === index));
-					return triggers;
+					return {
+						triggers,
+						launchMode: this._deduceLaunchmode(metaTags, triggers)
+					}
 				}
 				private static _createUserscriptScriptData(metaTags: {
 					[key: string]: any;
@@ -5656,13 +5672,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 					libs = libs.concat(anonymousLibs);
 
-					let launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-							'CRM_launchMode') ||
-						0;
-					launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
 					node.value = globalObject.globals.constants.templates.getDefaultScriptValue({
 						script: code,
-						launchMode: launchMode,
 						libraries: libs
 					});
 				}
@@ -5671,10 +5682,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}, code: string, node: Partial<CRM.Node>) {
 					node = node as CRM.StylesheetNode;
 					node.type = 'stylesheet';
-					let launchMode = CRM.Script.MetaTags.getlastMetaTagValue(metaTags,
-							'CRM_launchMode') ||
-						CRMLaunchModes.RUN_ON_SPECIFIED;
-					launchMode = metaTags['CRM_launchMode'] = ~~launchMode;
 					node.value = {
 						stylesheet: code,
 						defaultOn: (metaTags['CRM_defaultOn'] =
@@ -5684,7 +5691,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							.getlastMetaTagValue(metaTags,
 								'CRM_toggle') ||
 							false),
-						launchMode: launchMode,
+						launchMode: CRMLaunchModes.ALWAYS_RUN,
 						options: {},
 						convertedStylesheet: null
 					};
@@ -5709,11 +5716,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}) {
 					const oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
 						.settingsStorage.crm));
-					const newScript = CRM.Script.Updating.installUserscript(message
-						.metaTags,
-						message.script,
-						message.downloadURL,
-						message.allowedPermissions);
+					const newScript = CRM.Script.Updating.installUserscript(message.metaTags, message.script,
+						message.downloadURL, message.allowedPermissions);
 
 					if (newScript.path) { //Has old node
 						const nodePath = newScript.path as Array<number>;
@@ -5739,7 +5743,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						path?: Array<number>,
 						oldNodeId?: number,
 				} {
-					debugger;
 					let node: Partial<CRM.ScriptNode | CRM.StylesheetNode> = {};
 					let hasOldNode = false;
 					if (oldNodeId !== undefined && oldNodeId !== null) {
@@ -5750,8 +5753,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 
 					node.name = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name';
-					node.triggers = this._createUserscriptTriggers(metaTags);
 					this._createUserscriptTypeData(metaTags, code, node);
+					const { launchMode, triggers } = this._createUserscriptTriggers(metaTags);
+					node.triggers = triggers;
+					node.value.launchMode = launchMode;
 					const updateUrl = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'updateURL') ||
 						CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'downloadURL') ||
 						downloadURL;
@@ -5826,8 +5831,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							const requestPermissionsAllowed = allowed.permissions || [];
 							let requestPermissions: Array<string> = keys['requestPermissions'] || [];
 							requestPermissions = requestPermissions.concat(node.permissions
-								.filter(nodePermission => (requestPermissionsAllowed
-									.indexOf(nodePermission) === -1)));
+								.filter(nodePermission => (requestPermissionsAllowed.indexOf(nodePermission) === -1)));
 							requestPermissions = requestPermissions.filter((nodePermission, index) => (requestPermissions.indexOf(nodePermission) === index));
 							chrome.storage.local.set({
 								requestPermissions: requestPermissions
@@ -6424,6 +6428,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					file?: string;
 					runAt: string;
 				}> {
+					debugger;
 					const scripts = [];
 					for (let i = 0; i < node.value.libraries.length; i++) {
 						let lib: {
@@ -6439,18 +6444,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								if (globalLibs[j].name === node.value.libraries[i].name) {
 									lib = globalLibs[j];
 									break;
-								} else {
-									//Resource hasn't been registered with its name, try if it's an anonymous one
-									if (node.value.libraries[i].name === null) {
-										//Check if the value has been registered as a resource
-										if (globalObject.globals.storages.urlDataPairs[
-											node.value.libraries[i].url]) {
-											lib = {
-												code: globalObject.globals.storages.urlDataPairs[
-													node.value.libraries[i].url].dataString
-											};
-										}
-									}
+								}
+							}
+						}
+						if (!lib) {
+							//Resource hasn't been registered with its name, try if it's an anonymous one
+							if (!node.value.libraries[i].name) {
+								//Check if the value has been registered as a resource
+								if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
+									lib = {
+										code: globalObject.globals.storages.urlDataPairs[
+											node.value.libraries[i].url].dataString
+									};
 								}
 							}
 						}
@@ -6490,7 +6495,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								homepage: metaVal('homepage'),
 								icon: metaVal('icon'),
 								icon64: metaVal('icon64'),
-								includes: metaData['includes'].concat(metaData['include']),
+								includes: (metaData['includes'] || []).concat(metaData['include']),
 								lastUpdated: 0, //Never updated
 								matches: metaData['matches'],
 								isIncognito: tab.incognito,
@@ -6510,7 +6515,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										excludes: true,
 										includes: true,
 										orig_excludes: metaData['excludes'],
-										orig_includes: metaData['includes'].concat(metaData['include']),
+										orig_includes: (metaData['includes'] || []).concat(metaData['include']),
 										use_excludes: excludes,
 										use_includes: includes
 									}
@@ -6563,7 +6568,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					});
 				}
 				static createHandler(node: CRM.ScriptNode): ClickHandler {
-					return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
+					return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab, isAutoActivate: boolean = false) => {
 						let key: Array<number> = [];
 						let err = false;
 						try {
@@ -6581,11 +6586,16 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 						} else {
 							Promiselike.all([new Promiselike<ContextData>((resolve) => {
-								chrome.tabs.sendMessage(tab.id, {
-									type: 'getLastClickInfo'
-								}, (response: ContextData) => {
-									resolve(response);
-								});
+								//If it was triggered by clicking, ask contentscript about some data
+								if (isAutoActivate) {
+									resolve(null);
+								} else {
+									chrome.tabs.sendMessage(tab.id, {
+										type: 'getLastClickInfo'
+									}, (response: ContextData) => {
+										resolve(response);
+									});
+								}
 							}), new Promiselike<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
@@ -7356,7 +7366,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				contexts: ['all']
 			});
 			globalObject.globals.toExecuteNodes = {
-				onUrl: [],
+				onUrl: {},
 				always: []
 			};
 			for (let i = 0; i < length; i++) {
