@@ -60,8 +60,9 @@
 	 * @param {Object} options - The options the user has entered for this script/stylesheet
 	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
 	 * @param {number} tabIndex - The index of this script (with this id) running on this tab
+	 * @param {string} extensionId - The id of the extension
 	 */
-	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options, enableBackwardsCompatibility, tabIndex) {
+	function CrmAPIInit(node, id, tabData, clickData, secretKey, nodeStorage, contextData, greasemonkeyData, isBackground, options, enableBackwardsCompatibility, tabIndex, extensionId) {
 		var _this = this;
 		if (!enableBackwardsCompatibility) {
 			localStorageProxy = typeof localStorage === 'undefined' ? {} : localStorage;
@@ -557,7 +558,7 @@
 		};
 		var port;
 		if (!isBackground) {
-			port = _chrome.chrome.runtime.connect({
+			port = _chrome.chrome.runtime.connect(extensionId, {
 				name: JSON.stringify(secretKey)
 			});
 		}

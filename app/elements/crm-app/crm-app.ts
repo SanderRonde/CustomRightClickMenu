@@ -3576,7 +3576,7 @@ class CA {
 				GM_notification: 'Allows sending desktop notifications',
 				GM_setClipboard: 'Allows copying data to the clipboard - not implemented',
 				GM_info: 'Allows the reading of some script info',
-				unsafeWindow: 'Allows the running on an unsafe window object - not implemented'
+				unsafeWindow: 'Allows the running on an unsafe window object'
 			};
 
 			return descriptions[permission];

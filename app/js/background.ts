@@ -539,7 +539,7 @@ class Promiselike<T> {
 
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
-((extensionId: string, globalObject: GlobalObject, sandboxes: {
+((globalObject: GlobalObject, sandboxes: {
 	sandboxChrome: (api: string, args: Array<any>) => any;
 	sandbox: (id: number, script: string, libraries: Array<string>,
 		secretKey: Array<number>, getInstances: () => Array<{
@@ -1964,14 +1964,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			chrome.webRequest.onBeforeRequest.addListener(
 				(details) => {
 					const split = details.url
-						.split(`chrome-extension://${extensionId}/resource/`)[1].split('/');
+						.split(`chrome-extension://${chrome.runtime.id}/resource/`)[1].split('/');
 					const name = split[0];
 					const scriptId = ~~split[1];
 					return {
 						redirectUrl: this.getResourceData(name, scriptId)
 					};
 				}, {
-					urls: [`chrome-extension://${extensionId}/resource/*`]
+					urls: [`chrome-extension://${chrome.runtime.id}/resource/*`]
 				}, ['blocking']);
 			chrome.tabs.onRemoved.addListener((tabId) => {
 				//Delete all data for this tabId
@@ -4892,9 +4892,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			dataString: string) => void) {
 			//First check if the data has already been fetched
 			if (globalObject.globals.storages.urlDataPairs[url]) {
-				if (globalObject.globals.storages.urlDataPairs[url].refs
-					.indexOf(scriptId) ===
-					-1) {
+				if (globalObject.globals.storages.urlDataPairs[url].refs.indexOf(scriptId) === -1) {
 					globalObject.globals.storages.urlDataPairs[url].refs.push(scriptId);
 				}
 				callback(globalObject.globals.storages.urlDataPairs[url].dataURI,
@@ -5007,7 +5005,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						sourceUrl: url,
 						dataURI: dataURI,
 						matchesHashes: this._matchesHashes(registerHashes, dataString),
-						crmUrl: `chrome-extension://${extensionId}/resource/${scriptId}/${name}`
+						crmUrl: `chrome-extension://${chrome.runtime.id}/resource/${scriptId}/${name}`
 					};
 					chrome.storage.local.set({
 						resources: resources,
@@ -5392,8 +5390,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				code?: string;
 				file?: string;	
 				runAt: string;
-			}>) {
-				this._executeScript(tabId, scripts, 0)();
+			}>, usesUnsafeWindow: boolean) {
+				if (usesUnsafeWindow) {
+					//Send it to the content script and run it there
+					chrome.tabs.sendMessage(tabId, {
+						type: 'runScript',
+						data: {
+							scripts: scripts
+						}
+					});	
+				} else {
+					this._executeScript(tabId, scripts, 0)();
+				}
 			}
 
 			static Running = class Running {
@@ -6160,12 +6168,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									//Resource hasn't been registered with its name, try if it's an anonymous one
 									if (node.value.libraries[i].name === null) {
 										//Check if the value has been registered as a resource
-										if (globalObject.globals.storages.urlDataPairs[node.value
-											.libraries[i].url]) {
+										if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
 											lib = {
-												code: globalObject.globals.storages.urlDataPairs[node.value
-														.libraries[i].url]
-													.dataString
+												code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
 											};
 										}
 									}
@@ -6212,7 +6217,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								safeNode, node.id, { id: 0 }, {}, key,
 								nodeStorage,
 								greaseMonkeyData, true, (node.value && node.value.options) || {},
-								enableBackwardsCompatibility, 0
+								enableBackwardsCompatibility, 0, chrome.runtime.id
 							]
 							.map((param) => {
 								if (param === void 0) {
@@ -6388,7 +6393,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								[
 									safeNode, node.id, tab, info, key, nodeStorage,
 									contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
-									enableBackwardsCompatibility, tabIndex
+									enableBackwardsCompatibility, tabIndex, chrome.runtime.id
 								]
 									.map((param) => {
 										if (param === void 0) {
@@ -6423,12 +6428,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						].join('\n') : ''}`
 					].join('\n');
 				}
-				private static _getScriptsToRun(code: string, runAt: string, node: CRM.ScriptNode): Array<{
+				private static _getScriptsToRun(code: string, runAt: string, node: CRM.ScriptNode, usesUnsafeWindow: boolean): Array<{
 					code?: string;
 					file?: string;
 					runAt: string;
 				}> {
-					debugger;
 					const scripts = [];
 					for (let i = 0; i < node.value.libraries.length; i++) {
 						let lib: {
@@ -6453,8 +6457,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								//Check if the value has been registered as a resource
 								if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
 									lib = {
-										code: globalObject.globals.storages.urlDataPairs[
-											node.value.libraries[i].url].dataString
+										code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
 									};
 								}
 							}
@@ -6466,10 +6469,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							});
 						}
 					}
-					scripts.push({
-						file: '/js/crmapi.js',
-						runAt: runAt
-					});
+					if (!usesUnsafeWindow) {
+						//Let the content script determine whether to run this
+						scripts.push({
+							file: '/js/crmapi.js',
+							runAt: runAt
+						});
+					}
 					scripts.push({
 						code: code,
 						runAt: runAt
@@ -6634,9 +6640,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									key
 								}, args)
 
-								const scripts = this._getScriptsToRun(code, args[1][4], node);
-
-								Script._executeScripts(tab.id, scripts);
+								const usesUnsafeWindow = node.value.script.indexOf('unsafeWindow') > -1;
+								const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
+								Script._executeScripts(tab.id, scripts, usesUnsafeWindow);
 							});
 						}
 					};
@@ -9429,8 +9435,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		});
 	})();
 })(
-	chrome.runtime.getURL('').split('://')[1]
-	.split('/')[0],
 	//Gets the extension's URL through a blocking instead of a callback function
 	typeof module !== 'undefined' || window.isDev ? window : {},
 	((sandboxes: {

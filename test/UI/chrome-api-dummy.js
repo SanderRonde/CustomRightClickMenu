@@ -184,6 +184,7 @@ window.chrome = {
 		getURL: function(arg) {
 			return 'chrome-extension://' + extensionId + '/' + arg;
 		},
+		id: extensionId,
 		reload: function() {},
 		restart: function() {},
 		restartAfterDelay: function(callback) { callback(); },
