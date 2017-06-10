@@ -371,7 +371,7 @@ function checkIfListContainsElement<T extends HTMLElement|Element>(element: T): 
 function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: any} = {},
 	...insertedFunctions: Array<Function>): string {
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
-			return (${fn.toString()})(arguments)`;
+			try { return (${fn.toString()})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
 		Object.getOwnPropertyNames(args).forEach((key) => {
 			if (typeof args[key] === 'string' && args[key].split('\n').length > 1) {
 				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 

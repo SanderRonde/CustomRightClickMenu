@@ -685,7 +685,7 @@ window.chrome = {
 
 			typeCheck({
 				tabId: tabId,
-				scriptSettings: scriptSettings,
+				details: scriptSettings,
 				callback: callback
 			}, [{
 				val: 'tabId',
@@ -697,11 +697,11 @@ window.chrome = {
 			}, {
 				val: 'details.code',
 				type: 'string',
-				optional: details && details.file !== void 0
+				optional: scriptSettings && scriptSettings.file !== void 0
 			}, {
 				val: 'details.file',
 				type: 'string',
-				optional: details && details.code !== void 0
+				optional: scriptSettings && scriptSettings.code !== void 0
 			}, {
 				val: 'details.allFrames',
 				type: 'boolean',
@@ -858,8 +858,8 @@ window.chrome = {
 		},
 		sendMessage: function(tabId, message, options, responseCallback) {
 			if (typeof options === 'function') {
-				options = responseCallback;
-				responseCallback = void 0;
+				responseCallback = options;
+				options = void 0;
 			}
 
 			typeCheck({
@@ -1012,8 +1012,17 @@ var Worker = window.Worker = function() {
 		postMessage: function(data) {
 			activatedBackgroundPages.push(data.id);
 		},
-		addEventListener: function(callback) {
-			checkOnlyCallback(callback, false);
+		addEventListener: function(event, callback) {
+			typeCheck({
+				event: event,
+				callback: callback
+			}, [{
+				val: 'event',
+				type: 'string'
+			}, {
+				val: 'callback',
+				type: 'function'
+			}]);
 		}
 	};
 };
