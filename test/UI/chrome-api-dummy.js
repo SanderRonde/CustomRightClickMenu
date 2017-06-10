@@ -876,6 +876,26 @@ window.chrome = {
 		getAll: function(listener) {
 			checkOnlyCallback(listener, false);
 			listener([]);
+		},
+		onInstalled: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}
+		},
+		onEnabled: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}
+		},
+		onUninstalled: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}
+		},
+		onDisabled: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}
 		}
 	},
 	permissions: {
