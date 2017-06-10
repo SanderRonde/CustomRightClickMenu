@@ -586,6 +586,11 @@ var chrome = {
 			addListener: function () { }
 		}
 	},
+	management: {
+		getAll: function(listener) {
+			listener([]);
+		}
+	},
 	notifications: {
 		onClosed: {
 			addListener: function () { }
