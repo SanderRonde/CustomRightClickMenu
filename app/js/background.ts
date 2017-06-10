@@ -6687,7 +6687,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									tab,
 									info,
 									key
-								}, args)
+								}, args);
 
 								const usesUnsafeWindow = node.value.script.indexOf('unsafeWindow') > -1;
 								const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
