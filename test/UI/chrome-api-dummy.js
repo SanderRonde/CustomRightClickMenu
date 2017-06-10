@@ -872,6 +872,12 @@ window.chrome = {
 			responseCallback({});
 		}
 	},
+	management: {
+		getAll: function(listener) {
+			checkOnlyCallback(listener, false);
+			listener([]);
+		}
+	},
 	permissions: {
 		getAll: function(callback) {
 			checkOnlyCallback(callback, false);
