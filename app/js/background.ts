@@ -316,6 +316,10 @@ interface GlobalObject {
 						matchesHashes: boolean;
 						dataURI: string;
 						crmUrl: string;
+						hashes: Array<{
+							algorithm: string;
+							hash: string;
+						}>
 					};
 				};
 			};
@@ -4923,8 +4927,8 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				i < globalObject.globals.storages.resourceKeys.length;
 				i++
 			) {
-				setTimeout(this._generateUpdateCallback(globalObject.globals.storages
-					.resourceKeys[i]), (i * 1000));
+				console.log('Updating resources...');
+				setTimeout(this._generateUpdateCallback(globalObject.globals.storages.resourceKeys[i]), (i * 1000));
 			}
 		}
 
@@ -5044,6 +5048,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						name: name,
 						sourceUrl: url,
 						dataURI: dataURI,
+						hashes: registerHashes,
 						matchesHashes: this._matchesHashes(registerHashes, dataString),
 						crmUrl: `chrome-extension://${chrome.runtime.id}/resource/${scriptId}/${name}`
 					};
@@ -5120,17 +5125,19 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			Helpers.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
 				if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
 					resources[key.scriptId][key.name].dataURI !== dataURI) {
-					//Data URIs do not match, just update the url ref
-					globalObject.globals.storages.urlDataPairs[key.sourceUrl]
-						.dataURI = dataURI;
-					globalObject.globals.storages.urlDataPairs[key.sourceUrl]
-						.dataString = dataString;
+						//Check if the hashes still match, if they don't, reject it
+						const resourceData = resources[key.scriptId][key.name];
+						if (this._matchesHashes(resourceData.hashes, dataString)) {
+							//Data URIs do not match, just update the url ref
+							globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
+							globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
 
-					chrome.storage.local.set({
-						resources: resources,
-						urlDataPairs: globalObject.globals.storages.urlDataPairs
-					});
-				}
+							chrome.storage.local.set({
+								resources: resources,
+								urlDataPairs: globalObject.globals.storages.urlDataPairs
+							});
+						}
+					}
 			});
 		}
 		private static _generateUpdateCallback(resourceKey: {
@@ -5970,6 +5977,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 
+					console.log('Looking for updated scripts...');
 					for (let id in globalObject.globals.crm.crmById) {
 						if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
 							const node = globalObject.globals.crm.crmById[id];
