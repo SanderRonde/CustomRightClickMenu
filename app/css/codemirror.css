@@ -27,7 +27,6 @@
   background-color: #f7f7f7;
   white-space: nowrap;
 }
-.CodeMirror-linenumbers {}
 .CodeMirror-linenumber {
   padding: 0 3px 0 5px;
   min-width: 20px;
@@ -61,13 +60,7 @@
   width: auto;
   border: 0;
   -webkit-animation: blink 1.06s steps(1) infinite;
-  -moz-animation: blink 1.06s steps(1) infinite;
   animation: blink 1.06s steps(1) infinite;
-}
-@-moz-keyframes blink {
-  0% { background: #7e7; }
-  50% { background: none; }
-  100% { background: #7e7; }
 }
 @-webkit-keyframes blink {
   0% { background: #7e7; }
@@ -81,8 +74,6 @@
 }
 
 /* Can style cursor different in overwrite (non-insert) mode */
-div.CodeMirror-overwrite div.CodeMirror-cursor {}
-
 .cm-tab { display: inline-block; text-decoration: inherit; }
 
 .CodeMirror-ruler {
@@ -184,7 +175,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .cm-s-dark .cm-property {
 	color: rgb(142, 220, 255);
 }
-.cm-s-dark .cm-operator {}
 .cm-s-dark .cm-variable-2 {color: #FFF;}
 .cm-s-dark .cm-variable-3 {color: #FFF;}
 .cm-s-dark .cm-comment {color: rgb(87, 166,84);}
@@ -285,7 +275,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 }
 .CodeMirror-gutter-wrapper {
   -webkit-user-select: none;
-  -moz-user-select: none;
   user-select: none;
 }
 
@@ -328,8 +317,6 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
   overflow: auto;
 }
 
-.CodeMirror-widget {}
-
 .CodeMirror-code {
   outline: none;
 }
@@ -340,7 +327,7 @@ div.CodeMirror span.CodeMirror-nonmatchingbracket {color: #f22;}
 .CodeMirror-gutter,
 .CodeMirror-gutters,
 .CodeMirror-linenumber {
-  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
   box-sizing: content-box;
 }
 
@@ -436,7 +423,7 @@ span.CodeMirror-selectedtext { background: none; }
   background: gold;
   border-top: 1px solid orange;
   border-bottom: 1px solid orange;
-  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   box-sizing: border-box;
   opacity: .5;
 }
@@ -546,7 +533,7 @@ li.CodeMirror-hint-active {
 .CodeMirror-simplescroll-horizontal div, .CodeMirror-simplescroll-vertical div {
   position: absolute;
   background: #5A5A5A;
-  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   box-sizing: border-box;
   border: 1px solid #5A5A5A;
   border-radius: 2px;
@@ -627,7 +614,7 @@ li.CodeMirror-hint-active {
   line-height: 16px;
   text-align: center;
   color: white;
-  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
 .CodeMirror-Tern-completion-unknown:before {
@@ -729,7 +716,7 @@ li.CodeMirror-hint-active {
   z-index: 2;
   display: inline-block;
   height: 100%;
-  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   box-sizing: border-box;
   overflow: hidden;
   border-left: 1px solid #ddd;

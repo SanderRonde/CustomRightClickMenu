@@ -9,6 +9,7 @@ paper-toolbar {
 #container {
 	display: -webkit-flex;
 	display: flex;
+	-ms-flex-direction: row;
 	-webkit-flex-direction: row;
 	flex-direction: row;
 	-webkit-justify-content: flex-start;
@@ -18,7 +19,9 @@ paper-toolbar {
 #drawer {
 	width: 250px;
 	-webkit-transform: translateX(-250px);
+	-moz-transform: translateX(-250px);
 	-ms-transform: translateX(-250px);
+	-o-transform: translateX(-250px);
 	transform: translateX(-250px);
 	transition: transform ease-in-out 0.3s;
 	z-index:10;
@@ -29,7 +32,9 @@ paper-toolbar {
 
 	#sideDrawer.toggled #drawer {
 		-webkit-transform: translateX(0);
+		-moz-transform: translateX(0);
 		-ms-transform: translateX(0);
+		-o-transform: translateX(0);
 		transform: translateX(0);
 	}
 
@@ -214,6 +219,7 @@ a:focus::before {
 		-webkit-justify-content: center;
 		justify-content: center;
 		-webkit-flex-direction: row;
+		-ms-flex-direction: row;
 		flex-direction: row;
 		width: 100%;
 		font-size: 350%;
@@ -224,6 +230,10 @@ a:focus::before {
 	padding: 10px;
 	font-size: 160%;
 	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
 	cursor: pointer;
 }
 

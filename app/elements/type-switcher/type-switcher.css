@@ -46,7 +46,7 @@
 	transform: rotate(180deg);
 	width: 15px;
 	height: 24px;
-	display: inline-block;
+	display: block;
 	background-size: contain;
 	float: right;
 	margin-right: 7px;

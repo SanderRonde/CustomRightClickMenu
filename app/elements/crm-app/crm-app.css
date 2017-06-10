@@ -119,10 +119,12 @@ paper-ripple {
 	-webkit-justify-content: space-between;
 	justify-content: space-between;
 	-webkit-user-select:none;
+	user-select: none;
 }
 
 .editorCurrentScriptTitle span {
 	-webkit-user-select:initial;
+	user-select: initial;
 }
 
 #fullscreenEditorHorizontal {
@@ -672,6 +674,7 @@ body.editingScript .cssTool {
 .crmType {
 	display: inline-block;
 	-webkit-user-select:none;
+	user-select: none;
 	margin-left:-5px;
 	cursor:pointer;
 	position: relative;
@@ -844,6 +847,7 @@ edit-crm-item:focus .CRMItemTitle {
 
 #editorToolsRibbon {
 	-webkit-user-select: none;
+	user-select: none;
 }
 
 .CodeMirror-merge .CodeMirror {
@@ -855,6 +859,7 @@ edit-crm-item:focus .CRMItemTitle {
 	font-weight:bold;
 	cursor:pointer;
 	-webkit-user-select: none;
+	user-select: none;
 }
 
 #updateMergeRightNextError:hover, #updateMergeLeftNextError:hover {

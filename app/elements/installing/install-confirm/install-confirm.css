@@ -92,6 +92,7 @@ html {
 .infoPermission {
 	display: inline-block;
 	-webkit-user-select:initial;
+	user-select: initial;
 }
 
 paper-checkbox #checkbox.checked.paper-checkbox {
@@ -101,6 +102,7 @@ paper-checkbox #checkbox.checked.paper-checkbox {
 
 .infoPermissionToggleContainer {
 	-webkit-user-select: none;
+	user-select: none;
 }
 
 .infoPermissionExtraText {

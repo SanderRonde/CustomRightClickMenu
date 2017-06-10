@@ -20,4 +20,5 @@
 	font-weight: bold;
 	color:white;
 	-webkit-user-select: none;
+	user-select: none;
 }
