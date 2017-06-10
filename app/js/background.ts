@@ -2951,13 +2951,18 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						if (matchPatterns.length === 0) {
 							matchPatterns[0] = '<all_urls>';
 						}
-						chrome.contextMenus.update(globalObject.globals.crmValues
-							.contextMenuIds[node.id], {
-								documentUrlPatterns: matchPatterns
-							}, () => {
-								CRM.updateCrm();
-								_this.respondSuccess(Helpers.safe(node));
-							});
+						if (globalObject.globals.crmValues.contextMenuIds[node.id]) {
+							chrome.contextMenus.update(globalObject.globals.crmValues
+								.contextMenuIds[node.id], {
+									documentUrlPatterns: matchPatterns
+								}, () => {
+									CRM.updateCrm();
+									_this.respondSuccess(Helpers.safe(node));
+								});
+						} else {
+							CRM.updateCrm();
+							_this.respondSuccess(Helpers.safe(node));
+						}
 					});
 				});
 			});
@@ -2970,8 +2975,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						node.type === 'divider') {
 						_this.respondSuccess(node['showOnSpecified']);
 					} else {
-						_this
-							.respondError('Node is not of right type, can only be menu, link or divider');
+						_this.respondError('Node is not of right type, can only be menu, link or divider');
 					}
 				});
 			});
@@ -2994,16 +2998,20 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							node.type === 'divider') {
 							node['showOnSpecified'] = msg['useTriggers'];
 							CRM.updateCrm();
-							chrome.contextMenus.update(globalObject.globals.crmValues
-								.contextMenuIds[node.id], {
-									documentUrlPatterns: ['<all_urls>']
-								}, () => {
-									CRM.updateCrm();
-									_this.respondSuccess(Helpers.safe(node));
-								});
+							if (globalObject.globals.crmValues.contextMenuIds[node.id]) {
+								chrome.contextMenus.update(globalObject.globals.crmValues
+									.contextMenuIds[node.id], {
+										documentUrlPatterns: ['<all_urls>']
+									}, () => {
+										CRM.updateCrm();
+										_this.respondSuccess(Helpers.safe(node));
+									});
+							} else {
+								CRM.updateCrm();
+								_this.respondSuccess(Helpers.safe(node));
+							}
 						} else {
-							_this
-								.respondError('Node is not of right type, can only be menu, link or divider');
+							_this.respondError('Node is not of right type, can only be menu, link or divider');
 						}
 					});
 				});
@@ -3426,11 +3434,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							for (let i = 0;
 								i < globalObject.globals.storages.storageLocal.libraries.length;
 								i++) {
-								if (globalObject.globals.storages.storageLocal.libraries[i].name
-									.toLowerCase() ===
+								if (globalObject.globals.storages.storageLocal.libraries[i].name.toLowerCase() ===
 									lib.name.toLowerCase()) {
-									return globalObject.globals.storages.storageLocal.libraries[i].name;
-								}
+										return globalObject.globals.storages.storageLocal.libraries[i].name;
+									}
 							}
 							return false;
 						}
@@ -3537,11 +3544,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							for (let i = 0;
 								i < globalObject.globals.storages.storageLocal.libraries.length;
 								i++) {
-								if (globalObject.globals.storages.storageLocal.libraries[i].name
-									.toLowerCase() ===
+								if (globalObject.globals.storages.storageLocal.libraries[i].name.toLowerCase() ===
 									lib.name.toLowerCase()) {
-									return globalObject.globals.storages.storageLocal.libraries[i].name;
-								}
+										return globalObject.globals.storages.storageLocal.libraries[i].name;
+									}
 							}
 							return false;
 						}
