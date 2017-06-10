@@ -108,14 +108,18 @@
 		}
 	});
 
-	var installURL = chrome.runtime.getURL('html/install.html');
-	document.body.addEventListener('mousedown', function(e) {
-		var target = e.target;
-		if (target && target.href && target.href.indexOf(installURL) === -1 && target.href.match(/.+user\.js$/)) {
-			var installPageURL = installURL + '?i=' + encodeURIComponent(target.href) + '&s=' +
-				encodeURIComponent(location.href);
-			target.href = installPageURL;
-			target.target = '_blank';
+	chrome.storage.local.get('useAsUserscriptInstaller', function(result) {
+		if (result.useAsUserscriptInstaller) {
+			var installURL = chrome.runtime.getURL('html/install.html');
+			document.body.addEventListener('mousedown', function(e) {
+				var target = e.target;
+				if (target && target.href && target.href.indexOf(installURL) === -1 && target.href.match(/.+user\.js$/)) {
+					var installPageURL = installURL + '?i=' + encodeURIComponent(target.href) + '&s=' +
+						encodeURIComponent(location.href);
+					target.href = installPageURL;
+					target.target = '_blank';
+				}
+			});
 		}
 	});
 

@@ -421,6 +421,7 @@ interface GlobalObject {
 			specialJSON: SpecialJSON;
 			permissions: Array<CRM.Permission>;
 			contexts: Array<string>;
+			tamperMonkeyExtensions: Array<string>;
 		};
 		listeners: {
 			idVals: Array<number>;
@@ -1100,6 +1101,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				'webNavigation',
 				'webRequest',
 				'webRequestBlocking'
+			],
+			tamperMonkeyExtensions: [
+				'gcalenpjmijncebpfijmoaglllgpjagf',
+				'dhdgffkkebhmkfjojejmpbldmpobfkfo'
 			]
 		},
 		listeners: {
@@ -1334,6 +1339,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static endsWith(haystack: string, needle: string): boolean {
 			return haystack.split('').reverse().join('').indexOf(needle.split('').reverse().join('')) === 0;
+		}
+		static isTamperMonkeyEnabled(callback: (result: boolean) => void) {
+			chrome.management.getAll((installedExtensions) => {
+				const TMExtensions = installedExtensions.filter((extension) => {
+					return globalObject.globals.constants.tamperMonkeyExtensions.indexOf(extension.id) > -1 &&
+						extension.enabled;
+				});
+				callback(TMExtensions.length > 0);
+			});
 		}
 
 		private static _compareObj(firstObj: {
@@ -1960,6 +1974,96 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			}
 
+			function listenTabsRemoved() {
+				chrome.tabs.onRemoved.addListener((tabId) => {
+					//Delete all data for this tabId
+					for (let node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
+						if (globalObject.globals.crmValues.stylesheetNodeStatusses
+							.hasOwnProperty(node) &&
+							globalObject.globals.crmValues.stylesheetNodeStatusses[node]) {
+							globalObject.globals.crmValues
+								.stylesheetNodeStatusses[node][tabId] = undefined;
+						}
+					}
+
+					//Delete this instance if it exists
+					const deleted: Array<number> = [];
+					for (let node in globalObject.globals.crmValues.nodeInstances) {
+						if (globalObject.globals.crmValues.nodeInstances.hasOwnProperty(node) &&
+							globalObject.globals.crmValues.nodeInstances[node]) {
+							if (globalObject.globals.crmValues.nodeInstances[node][tabId]) {
+								deleted.push((node as any) as number);
+								globalObject.globals.crmValues.nodeInstances[node][tabId] = undefined;
+							}
+						}
+					}
+
+					for (let i = 0; i < deleted.length; i++) {
+						if ((deleted[i] as any).node && (deleted[i] as any).node.id !== undefined) {
+							globalObject.globals.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id].forEach((tabInstance) => {
+								tabInstance.port.postMessage({
+									change: {
+										type: 'removed',
+										value: tabId
+									},
+									messageType: 'instancesUpdate'
+								});
+							});
+						}
+					}
+
+					delete globalObject.globals.crmValues.tabData[tabId];
+					Logging.Listeners.updateTabAndIdLists();
+				});
+			}
+
+			function listenNotifications() {
+				if (chrome.notifications) {
+					chrome.notifications.onClicked.addListener((notificationId: string) => {
+						const notification = globalObject.globals
+							.notificationListeners[notificationId];
+						if (notification && notification.onClick !== undefined) {
+							globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,
+								notification.id, {
+									err: false,
+									args: [notificationId],
+									callbackId: notification.onClick
+								});
+						}
+					});
+					chrome.notifications.onClosed.addListener((notificationId, byUser) => {
+						const notification = globalObject.globals
+							.notificationListeners[notificationId];
+						if (notification && notification.onDone !== undefined) {
+							globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,
+								notification.id, {
+									err: false,
+									args: [notificationId, byUser],
+									callbackId: notification.onClick
+								});
+						}
+						delete globalObject.globals.notificationListeners[notificationId];
+					});
+				}
+			}
+
+			function updateTamperMonkeyInstallState() {
+				Helpers.isTamperMonkeyEnabled((isEnabled) => {
+					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
+					chrome.storage.local.set({
+						useAsUserscriptInstaller: !isEnabled
+					});
+				});
+			}
+
+			function listenTamperMonkeyInstallState() {
+				updateTamperMonkeyInstallState();
+				chrome.management.onInstalled.addListener(updateTamperMonkeyInstallState);
+				chrome.management.onEnabled.addListener(updateTamperMonkeyInstallState);
+				chrome.management.onUninstalled.addListener(updateTamperMonkeyInstallState);
+				chrome.management.onDisabled.addListener(updateTamperMonkeyInstallState);
+			}
+
 			chrome.tabs.onHighlighted.addListener(tabChangeListener);
 			chrome.webRequest.onBeforeRequest.addListener(
 				(details) => {
@@ -1973,73 +2077,9 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}, {
 					urls: [`chrome-extension://${chrome.runtime.id}/resource/*`]
 				}, ['blocking']);
-			chrome.tabs.onRemoved.addListener((tabId) => {
-				//Delete all data for this tabId
-				for (let node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
-					if (globalObject.globals.crmValues.stylesheetNodeStatusses
-						.hasOwnProperty(node) &&
-						globalObject.globals.crmValues.stylesheetNodeStatusses[node]) {
-						globalObject.globals.crmValues
-							.stylesheetNodeStatusses[node][tabId] = undefined;
-					}
-				}
-
-				//Delete this instance if it exists
-				const deleted: Array<number> = [];
-				for (let node in globalObject.globals.crmValues.nodeInstances) {
-					if (globalObject.globals.crmValues.nodeInstances.hasOwnProperty(node) &&
-						globalObject.globals.crmValues.nodeInstances[node]) {
-						if (globalObject.globals.crmValues.nodeInstances[node][tabId]) {
-							deleted.push((node as any) as number);
-							globalObject.globals.crmValues.nodeInstances[node][tabId] = undefined;
-						}
-					}
-				}
-
-				for (let i = 0; i < deleted.length; i++) {
-					if ((deleted[i] as any).node && (deleted[i] as any).node.id !== undefined) {
-						globalObject.globals.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id].forEach((tabInstance) => {
-							tabInstance.port.postMessage({
-								change: {
-									type: 'removed',
-									value: tabId
-								},
-								messageType: 'instancesUpdate'
-							});
-						});
-					}
-				}
-
-				delete globalObject.globals.crmValues.tabData[tabId];
-				Logging.Listeners.updateTabAndIdLists();
-			});
-			if (chrome.notifications) {
-				chrome.notifications.onClicked.addListener((notificationId: string) => {
-					const notification = globalObject.globals
-						.notificationListeners[notificationId];
-					if (notification && notification.onClick !== undefined) {
-						globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,
-							notification.id, {
-								err: false,
-								args: [notificationId],
-								callbackId: notification.onClick
-							});
-					}
-				});
-				chrome.notifications.onClosed.addListener((notificationId, byUser) => {
-					const notification = globalObject.globals
-						.notificationListeners[notificationId];
-					if (notification && notification.onDone !== undefined) {
-						globalObject.globals.sendCallbackMessage(notification.tabId, notification.tabIndex,
-							notification.id, {
-								err: false,
-								args: [notificationId, byUser],
-								callbackId: notification.onClick
-							});
-					}
-					delete globalObject.globals.notificationListeners[notificationId];
-				});
-			}
+			listenTabsRemoved();
+			listenNotifications();
+			listenTamperMonkeyInstallState();
 		}
 
 		static getResourceData(name: string, scriptId: number) {
@@ -6059,8 +6099,6 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 												onDone();
 											}
 										} catch (err) {
-											console.log(err);
-
 											console.log('Tried to update script ', node.id, ' ', node.name,
 												' but could not reach download URL');
 										}
@@ -8764,40 +8802,44 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			};
 
 			//Local storage
-			static _getDefaultStorages(): [CRM.StorageLocal, CRM.SettingsStorage] {
+			static _getDefaultStorages(callback: (result: [CRM.StorageLocal, CRM.SettingsStorage]) => void) {
 				const syncStorage = this._getDefaultSyncStorage();
 				const syncHash = window.md5(JSON.stringify(syncStorage));
-				return [{
-					requestPermissions: [],
-					editing: null,
-					selectedCrmType: 0,
-					jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
-					globalExcludes: [''],
-					useStorageSync: true,
-					notFirstTime: true,
-					lastUpdatedAt: chrome.runtime.getManifest().version,
-					authorName: 'anonymous',
-					showOptions: true,
-					recoverUnsavedData: false,
-					CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
-						.split('.')[0] > 34,
-					catchErrors: true,
-					editCRMInRM: false,
-					hideToolsRibbon: false,
-					shrinkTitleRibbon: false,
-					libraries: [],
-					settingsVersionData: {
-						current: {
-							hash: syncHash,
-							date: new Date().getTime()
-						},
-						latest: {
-							hash: syncHash,
-							date: new Date().getTime()
-						},
-						wasUpdated: false
-					}
-				}, syncStorage];
+
+				Helpers.isTamperMonkeyEnabled((useAsUserscriptManager) => {
+					callback([{
+						requestPermissions: [],
+						editing: null,
+						selectedCrmType: 0,
+						jsLintGlobals: ['window', '$', 'jQuery', 'crmAPI'],
+						globalExcludes: [''],
+						useStorageSync: true,
+						notFirstTime: true,
+						lastUpdatedAt: chrome.runtime.getManifest().version,
+						authorName: 'anonymous',
+						showOptions: true,
+						recoverUnsavedData: false,
+						CRMOnPage: ~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1]
+							.split('.')[0] > 34,
+						catchErrors: true,
+						editCRMInRM: false,
+						useAsUserscriptInstaller: useAsUserscriptManager,
+						hideToolsRibbon: false,
+						shrinkTitleRibbon: false,
+						libraries: [],
+						settingsVersionData: {
+							current: {
+								hash: syncHash,
+								date: new Date().getTime()
+							},
+							latest: {
+								hash: syncHash,
+								date: new Date().getTime()
+							},
+							wasUpdated: false
+						}
+					}, syncStorage]);
+				});
 			}
 			//Sync storage
 			static _getDefaultSyncStorage(): CRM.SettingsStorage {
@@ -8829,31 +8871,68 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 
 			static handleFirstRun(crm?: Array<CRM.Node>): {
-				settingsStorage: CRM.SettingsStorage;
-				storageLocalCopy: CRM.StorageLocal;
-				chromeStorageLocal: CRM.StorageLocal;
+				done: boolean;
+				onDone?: (result: {
+					settingsStorage: CRM.SettingsStorage;
+					storageLocalCopy: CRM.StorageLocal;
+					chromeStorageLocal: CRM.StorageLocal;
+				}) => void;
+				value?: {
+					settingsStorage: CRM.SettingsStorage;
+					storageLocalCopy: CRM.StorageLocal;
+					chromeStorageLocal: CRM.StorageLocal;
+				}
 			} {
 				window.localStorage.setItem('transferToVersion2', 'true');
 
-				const [defaultLocalStorage, defaultSyncStorage] = this._getDefaultStorages();
-
-				//Save local storage
-				chrome.storage.local.set(defaultLocalStorage);
-
-				//Save sync storage
-				this._uploadStorageSyncData(defaultSyncStorage);
-
-				if (crm) {
-					defaultSyncStorage.crm = crm;
+				const returnObj: {
+					done: boolean;
+					onDone?: (result: {
+						settingsStorage: CRM.SettingsStorage;
+						storageLocalCopy: CRM.StorageLocal;
+						chromeStorageLocal: CRM.StorageLocal;
+					}) => void;
+					value?: {
+						settingsStorage: CRM.SettingsStorage;
+						storageLocalCopy: CRM.StorageLocal;
+						chromeStorageLocal: CRM.StorageLocal;
+					}
+				} = {
+					done: false,
+					onDone: null
 				}
 
-				const storageLocal = defaultLocalStorage;
-				const storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
-				return {
-					settingsStorage: defaultSyncStorage,
-					storageLocalCopy: storageLocalCopy,
-					chromeStorageLocal: storageLocal
-				};
+				this._getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
+
+					//Save local storage
+					chrome.storage.local.set(defaultLocalStorage);
+
+					//Save sync storage
+					this._uploadStorageSyncData(defaultSyncStorage);
+
+					if (crm) {
+						defaultSyncStorage.crm = crm;
+					}
+
+					const storageLocal = defaultLocalStorage;
+					const storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
+
+					const result = {
+						settingsStorage: defaultSyncStorage,
+						storageLocalCopy: storageLocalCopy,
+						chromeStorageLocal: storageLocal
+					};
+
+					returnObj.value = result;
+					if (returnObj.onDone) {
+						returnObj.onDone(result);
+						returnObj.done = true;
+					} else {
+						returnObj.done = true;
+					}
+				});
+
+				return returnObj;
 			}
 			static handleTransfer(): (resolve: (data: {
 				settingsStorage: CRM.SettingsStorage;
@@ -8878,7 +8957,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						const result = this.handleFirstRun(
 							this.TransferFromOld.transferCRMFromOld(window.localStorage.getItem('whatpage') === 'true'));
 
-						resolve(result);
+						if (result.done) {
+							resolve(result.value);
+						} else {
+							result.onDone = resolve;
+						}
 					}
 				});
 			}
@@ -9316,6 +9399,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					CRM.updateCrm();
 				});
 			}
+			if (newVersion === '2.0.11') {
+				Helpers.isTamperMonkeyEnabled((isEnabled) => {
+					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
+					chrome.storage.local.set({
+						useAsUserscriptInstaller: !isEnabled
+					});
+				});
+			}
 
 			chrome.storage.local.set({
 				lastUpdatedAt: newVersion
@@ -9361,11 +9452,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						fn: this.SetupHandling.handleTransfer()
 					}
 				} else {
-					const firstRunResult = this.SetupHandling.handleFirstRun();
+					const firstRunPromise = this.SetupHandling.handleFirstRun();
 					return {
 						type: 'firstTimeCallback',
 						fn: (resolve) => {
-							resolve(firstRunResult);
+							if (firstRunPromise.done) {
+								resolve(firstRunPromise.value);
+							} else {
+								firstRunPromise.onDone = resolve;
+							}
 						}
 					}
 				}

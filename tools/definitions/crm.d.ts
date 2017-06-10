@@ -1164,6 +1164,10 @@ declare namespace CRM {
 		 */
 		recoverUnsavedData: boolean;
 		/**
+		 * Whether to use this extension to install your userscripts
+		 */
+		useAsUserscriptInstaller: boolean;
+		/**
 		 * Whether to show a preview of the CRM on the options page
 		 */
 		CRMOnPage: boolean;
