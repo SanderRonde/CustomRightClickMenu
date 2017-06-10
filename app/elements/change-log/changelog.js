@@ -49,7 +49,8 @@
 			'Added an indicator for when the exporting field is slow',
 			'Added/removed permissions are updated instantly',
 			'Fixed userscript installation page',
-			'Fixed unsafewindow permission'
+			'Fixed unsafewindow permission',
+			'No longer enables userscript installation if TamperMonkey is already installed'
 		]
 	};
 }());
