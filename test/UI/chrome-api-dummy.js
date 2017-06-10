@@ -99,7 +99,6 @@ function _isDefined(data, value, optionals) {
 			return 'continue';
 		} else {
 			throw new Error("Value for " + data.val + " is not set");
-			return false;
 		}
 	}
 	return true;
@@ -122,19 +121,16 @@ function _typesMatch(data, value) {
 		}
 	}
 	throw new Error("Value for " + data.val + " is not of type " + types.join(' or '));
-	return null;
 };
 function _checkNumberConstraints(data, value) {
 	if (data.min !== undefined) {
 		if (data.min > value) {
 			throw new Error("Value for " + data.val + " is smaller than " + data.min);
-			return false;
 		}
 	}
 	if (data.max !== undefined) {
 		if (data.max < value) {
 			throw new Error("Value for " + data.val + " is bigger than " + data.max);
-			return false;
 		}
 	}
 	return true;
@@ -153,7 +149,6 @@ function _checkArrayChildType(data, value, forChild) {
 		}
 	}
 	throw new Error("For not all values in the array " + data.val + " is the property " + forChild.val + " of type " + types.join(' or '));
-	return false;
 };
 function _checkArrayChildrenConstraints(data, value) {
 	for (var i = 0; i < value.length; i++) {
@@ -163,7 +158,6 @@ function _checkArrayChildrenConstraints(data, value) {
 			if (childValue === undefined || childValue === null) {
 				if (!forChild.optional) {
 					throw new Error("For not all values in the array " + data.val + " is the property " + forChild.val + " defined");
-					return false;
 				}
 			}
 			else if (!_checkArrayChildType(data, childValue, forChild)) {
