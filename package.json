@@ -1,63 +1,63 @@
 {
-  "author": {
-    "name": "Sander Ronde",
-    "email": "awsdfgvhbjn@gmail.com",
-    "url": "https://github.com/SanderRonde"
-  },
-  "bugs": {
-    "url": "https://github.com/SanderRonde/CustomRightClickMenu/issues",
-    "email": "awsdfgvhbjn@gmail.com"
-  },
-  "description": "Customize your right-click menu",
-  "devDependencies": {
-    "async": "^0.9.0",
-    "babel-cli": "^6.14.0",
-    "babel-preset-react": "^6.11.1",
-    "btoa": "^1.1.2",
-    "chai": "^3.5.0",
-    "debug": "^2.3.2",
-    "diff": "^3.0.1",
-    "fs": "0.0.1-security",
-    "glob": "^7.1.1",
-    "grunt": "^0.4.5",
-    "grunt-banner": "^0.4.0",
-    "grunt-contrib-clean": "^1.0.0",
-    "grunt-contrib-concat": "^1.0.0",
-    "grunt-contrib-copy": "^0.8.0",
-    "grunt-contrib-cssmin": "^0.12.3",
-    "grunt-contrib-htmlmin": "^0.4.0",
-    "grunt-contrib-uglify": "^1.0.1",
-    "grunt-exec": "^2.0.0",
-    "grunt-mocha-test": "^0.12.7",
-    "grunt-processhtml": "^0.3.8",
-    "grunt-string-replace": "^1.2.1",
-    "grunt-vulcanize": "^1.0.0",
-    "grunt-zip": "^0.16.2",
-    "htmlparser2": "^3.9.2",
-    "http-server": "^0.9.0",
-    "json3": "^3.3.2",
-    "mocha": "^2.5.3",
-    "mocha-steps": "^1.0.0",
-    "path": "^0.12.7",
-    "readline": "^1.3.0",
-    "request": "^2.79.0",
-    "selenium-webdriver": "^3.0.0-beta-3",
-    "supports-color": "^3.1.2",
-    "tty": "^1.0.1",
-    "typescript": "^2.3.0",
-    "util": "^0.10.3"
-  },
-  "license": "MIT",
-  "name": "custom-right-click-menu",
-  "readme": "../README.md",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
-  },
-  "scripts": {
-    "test": "grunt test",
-    "build": "grunt build"
-  },
-  "version": "2.0.11",
-  "dependencies": {}
+    "author": {
+        "name": "Sander Ronde",
+        "email": "awsdfgvhbjn@gmail.com",
+        "url": "https://github.com/SanderRonde"
+    },
+    "bugs": {
+        "url": "https://github.com/SanderRonde/CustomRightClickMenu/issues",
+        "email": "awsdfgvhbjn@gmail.com"
+    },
+    "description": "Customize your right-click menu",
+    "devDependencies": {
+        "async": "^0.9.0",
+        "babel-cli": "^6.14.0",
+        "babel-preset-react": "^6.11.1",
+        "btoa": "^1.1.2",
+        "chai": "^3.5.0",
+        "debug": "^2.3.2",
+        "diff": "^3.0.1",
+        "fs": "0.0.1-security",
+        "glob": "^7.1.1",
+        "grunt": "^0.4.5",
+        "grunt-banner": "^0.4.0",
+        "grunt-contrib-clean": "^1.0.0",
+        "grunt-contrib-concat": "^1.0.0",
+        "grunt-contrib-copy": "^0.8.0",
+        "grunt-contrib-cssmin": "^0.12.3",
+        "grunt-contrib-htmlmin": "^0.4.0",
+        "grunt-contrib-uglify": "^1.0.1",
+        "grunt-exec": "^2.0.0",
+        "grunt-mocha-test": "^0.12.7",
+        "grunt-processhtml": "^0.3.8",
+        "grunt-string-replace": "^1.2.1",
+        "grunt-vulcanize": "^1.0.0",
+        "grunt-zip": "^0.16.2",
+        "htmlparser2": "^3.9.2",
+        "http-server": "^0.9.0",
+        "json3": "^3.3.2",
+        "mocha": "^2.5.3",
+        "mocha-steps": "^1.0.0",
+        "path": "^0.12.7",
+        "readline": "^1.3.0",
+        "request": "^2.79.0",
+        "selenium-webdriver": "^3.0.0-beta-3",
+        "supports-color": "^3.1.2",
+        "tty": "^1.0.1",
+        "typescript": "^2.3.2",
+        "util": "^0.10.3"
+    },
+    "license": "MIT",
+    "name": "custom-right-click-menu",
+    "readme": "../README.md",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SanderRonde/CustomRightClickMenu.git"
+    },
+    "scripts": {
+        "test": "grunt test",
+        "build": "grunt build"
+    },
+    "version": "2.0.11",
+    "dependencies": {}
 }
