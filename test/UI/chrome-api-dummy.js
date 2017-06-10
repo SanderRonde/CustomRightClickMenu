@@ -72,6 +72,20 @@ function findItemWithId(arr, id, fn) {
 
 
 //Type checking
+function getOriginalFunctionName(err) {
+	var fns = err.stack.split('\n').slice(1);
+	for (var i = 0; i < fns.length; i++) {
+		if (fns[i].indexOf('typeCheck') > -1) {
+			var offset = 1;
+			if (fns[i + 1].indexOf('checkOnlyCallback') > -1) {
+				offset = 2;
+			}
+			return ' - at' + fns[i + offset].split('at')[1];
+		}
+	}
+	return '';
+}
+
 function _getDotValue(source, index) {
 	var indexes = index.split('.');
 	var currentValue = source;
@@ -98,7 +112,7 @@ function _isDefined(data, value, optionals) {
 			optionals[data.val] = false;
 			return 'continue';
 		} else {
-			throw new Error("Value for " + data.val + " is not set");
+			throw new Error("Value for " + data.val + " is not set" + getOriginalFunctionName(new Error()));
 		}
 	}
 	return true;
@@ -120,17 +134,20 @@ function _typesMatch(data, value) {
 			return type;
 		}
 	}
-	throw new Error("Value for " + data.val + " is not of type " + types.join(' or '));
+	throw new Error("Value for " + data.val + " is not of type " + types.join(' or ') +
+	 	getOriginalFunctionName(new Error()));
 };
 function _checkNumberConstraints(data, value) {
 	if (data.min !== undefined) {
 		if (data.min > value) {
-			throw new Error("Value for " + data.val + " is smaller than " + data.min);
+			throw new Error("Value for " + data.val + " is smaller than " + data.min +
+				getOriginalFunctionName(new Error()));
 		}
 	}
 	if (data.max !== undefined) {
 		if (data.max < value) {
-			throw new Error("Value for " + data.val + " is bigger than " + data.max);
+			throw new Error("Value for " + data.val + " is bigger than " + data.max + 
+				getOriginalFunctionName(new Error()));
 		}
 	}
 	return true;
@@ -148,7 +165,9 @@ function _checkArrayChildType(data, value, forChild) {
 			return true;
 		}
 	}
-	throw new Error("For not all values in the array " + data.val + " is the property " + forChild.val + " of type " + types.join(' or '));
+	throw new Error("For not all values in the array " + data.val + 
+		" is the property " + forChild.val + " of type " + types.join(' or ') +
+		getOriginalFunctionName(new Error()));
 };
 function _checkArrayChildrenConstraints(data, value) {
 	for (var i = 0; i < value.length; i++) {
@@ -157,7 +176,9 @@ function _checkArrayChildrenConstraints(data, value) {
 			var childValue = value[i][forChild.val];
 			if (childValue === undefined || childValue === null) {
 				if (!forChild.optional) {
-					throw new Error("For not all values in the array " + data.val + " is the property " + forChild.val + " defined");
+					throw new Error("For not all values in the array " + data.val +
+						" is the property " + forChild.val + " defined" + 
+						getOriginalFunctionName(new Error()));
 				}
 			}
 			else if (!_checkArrayChildType(data, childValue, forChild)) {
@@ -213,6 +234,7 @@ function checkOnlyCallback(callback, optional) {
 var contexts = ['all', 'page', 'frame', 'selection', 'link',
 	'editable', 'image', 'video', 'audio', 'launcher',
 	'browser_action', 'page_action'];
+
 window.chrome = {
 	_lastCall: null,
 	_currentContextMenu: currentContextMenu,
