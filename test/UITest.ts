@@ -4,6 +4,7 @@
 /// <reference path="../tools/definitions/crm.d.ts" />
 /// <reference path="../app/js/background.ts" />
 /// <reference path="../tools/definitions/codemirror.d.ts" />
+/// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
 
 interface AnyObj {
 	[key: string]: any;
@@ -69,22 +70,11 @@ interface AppChrome extends Chrome {
 }
 
 interface AppWindow extends Window {
-	app: any;
 	logs: Array<any>;
 	lastError: any|void;
 	chrome: AppChrome;
 	dummyContainer: HTMLDivElement;
 	polymerElementsLoaded: boolean;
-	scriptEdit: {
-		editor: {
-			getValue(): string;
-		}
-	};
-	stylesheetEdit: {
-		editor: {
-			getValue(): string;
-		}
-	}
 
 	_log: Array<any>;
 }
@@ -97,7 +87,6 @@ declare const before: (name: string, fn: (done: () => void) => void) => void;
 declare const after: (name: string, fn: (done?: () => void) => void) => void;
 declare const afterEach: (name: string, fn: (done?: () => void) => void) => void;
 declare const window: AppWindow;
-declare const REPLACE: any;
 declare const process: any;
 
 interface MochaFn {
@@ -368,16 +357,27 @@ function checkIfListContainsElement<T extends HTMLElement|Element>(element: T): 
 	throw new Error('Could not find element');
 }
 
-function inlineFn(fn: (...args: Array<any>) => any|void, args: {[key: string]: any} = {},
+function quote<T extends string>(str: T): T {
+	return `'${str}'` as T;
+}
+
+function inlineFn<T extends {
+	[key: string]: any;
+}>(fn: (REPLACE: T) => any|void, args?: T,
 	...insertedFunctions: Array<Function>): string {
+		args = args || {} as T;
 		let str = `${insertedFunctions.map(inserted => inserted.toString()).join('\n')}
 			try { return (${fn.toString()})(arguments) } catch(err) { throw new Error(err.name + '-' + err.stack); }`;
 		Object.getOwnPropertyNames(args).forEach((key) => {
-			if (typeof args[key] === 'string' && args[key].split('\n').length > 1) {
+			let arg = args[key];
+			if (typeof arg === 'object' || typeof arg === 'function') {
+				arg = JSON.stringify(arg);
+			}
+
+			if (typeof arg === 'string' && arg.split('\n').length > 1) {
 				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), 
-					`' + ${JSON.stringify(args[key].split('\n'))}.join('\\n') + '`);
+					`' + ${JSON.stringify(arg.split('\n'))}.join('\\n') + '`);
 			} else {
-				const arg = args[key];
 				str = str.replace(new RegExp(`REPLACE\.${key}`, 'g'), arg !== undefined &&
 					arg !== null && typeof arg === 'string' ?
 						arg.replace(/\\\"/g, `\\\\\"`) : arg);
@@ -558,7 +558,7 @@ function waitForCRM(driver: webdriver.WebDriver, timeRemaining: number): webdriv
 		}
 
 		driver.executeScript(inlineFn(() => {
-			const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
+			const crmItem = document.getElementsByTagName('edit-crm-item').item(0);
 			return !!crmItem;
 		})).then((result) => {
 			if (result) {
@@ -575,8 +575,8 @@ function waitForCRM(driver: webdriver.WebDriver, timeRemaining: number): webdriv
 function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, done: () => void) {
 	waitForCRM(driver, 4000).then(() => {
 		return driver.executeScript(inlineFn(() => {
-			const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
-			crmItem.querySelector('type-switcher').changeType('REPLACE.type');	
+			const crmItem = document.getElementsByTagName('edit-crm-item').item(0);
+			crmItem.querySelector('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
 		}, {
 			type: type
 		}));
@@ -587,7 +587,7 @@ function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, do
 		return wait(driver, 100);
 	}).then(() => {
 		return driver.executeScript(inlineFn(() => {
-			(document.getElementsByTagName('edit-crm-item').item(0) as any).openEditPage();
+			(document.getElementsByTagName('edit-crm-item').item(0)).openEditPage();
 		}));
 	}).then(() => {
 		return wait(driver, 500);
@@ -600,7 +600,7 @@ function openDialog(driver: webdriver.WebDriver, type: CRM.NodeType) {
 	return new webdriver.promise.Promise((resolve) => {
 		if (type === 'link') {
 			driver.executeScript(inlineFn(() => {
-				(document.getElementsByTagName('edit-crm-item').item(0) as any).openEditPage();
+				(document.getElementsByTagName('edit-crm-item').item(0)).openEditPage();
 			})).then(() => {
 				wait(driver, 1000).then(resolve);
 			});
@@ -855,7 +855,7 @@ class FoundElement implements FoundElement {
 					selectorList.push([currentElement.selector, currentElement.index]);
 				}
 				return new webdriver.promise.Promise((sentKeysResolve) => {
-					this.driver.executeScript(inlineFn(() => {
+					this.driver.executeScript(inlineFn((REPLACE) => {
 						const el = findElementOnPage('REPLACE.selector') as HTMLInputElement;
 						const keyPresses = REPLACE.keypresses as Array<string|InputKeys>;
 						let currentValue = el.value || '';
@@ -875,7 +875,7 @@ class FoundElement implements FoundElement {
 						el.value = currentValue;
 					}, {
 						selector: JSON.stringify(selectorList.reverse()),
-						keypresses: JSON.stringify(keys)
+						keypresses: keys
 					}, findElementOnPage)).then(() => {
 						sentKeysResolve(undefined);
 					});
@@ -895,7 +895,7 @@ class FoundElement implements FoundElement {
 		return new webdriver.promise.Promise<any>((resolve) => {
 			this.driver.executeScript(inlineFn(() => {
 				const el = findElementOnPage('REPLACE.selector');
-				const val = (el as any)['REPLACE.prop'];
+				const val = el['REPLACE.prop' as keyof HTMLElement];
 				return JSON.stringify(val);
 			}, {
 				selector: JSON.stringify(selectorList.reverse()),
@@ -905,7 +905,7 @@ class FoundElement implements FoundElement {
 			});
 		});
 	}
-	getAttribute(attr: string): webdriver.promise.Promise<string> {
+	getAttribute(attr: keyof HTMLElement): webdriver.promise.Promise<string> {
 		const selectorList = [[this.selector, this.index]];
 		let currentElement: FoundElement = this;
 		while (currentElement.parent) {
@@ -913,14 +913,14 @@ class FoundElement implements FoundElement {
 			selectorList.push([currentElement.selector, currentElement.index]);
 		}
 		return new webdriver.promise.Promise<string>((resolve) => {
-			this.driver.executeScript(inlineFn(() => {
+			this.driver.executeScript(inlineFn((REPLACE) => {
 				const el = findElementOnPage('REPLACE.selector');
-				const attr = el.getAttribute('REPLACE.attr');
+				const attr = el.getAttribute(REPLACE.attr);
 				return attr === undefined || attr === null ?
-					(el as any)['REPLACE.attr'] : attr;
+					el[REPLACE.attr] : attr;
 			}, {
-				selector: JSON.stringify(selectorList.reverse()),
-				attr: attr
+				selector: selectorList.reverse(),
+				attr: quote(attr)
 			}, findElementOnPage)).then((value: string) => {
 				resolve(value);
 			});
@@ -1069,10 +1069,10 @@ function subtractStrings(biggest: string, smallest: string): string {
 
 function getEditorValue(driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<string> {
 	return new webdriver.promise.Promise<string>((resolve) => {
-		driver.executeScript(inlineFn(() => {
-			return window[('REPLACE.editor' as any) as 'scriptEdit'|'stylesheetEdit'].editor.getValue();
+		driver.executeScript(inlineFn((REPLACE) => {
+			return window[(REPLACE.editor) as 'scriptEdit'|'stylesheetEdit'].editor.getValue();
 		}, {
-			editor: type === 'script' ? 'scriptEdit' : 'stylesheetEdit'
+			editor: quote(type === 'script' ? 'scriptEdit' : 'stylesheetEdit'),
 		})).then((value: string) => {
 			resolve(value);
 		});
@@ -1192,9 +1192,9 @@ describe('Options Page', function(this: MochaFn) {
 						.then((element) => {
 							return element.click();
 						}).then(() => {
-							return driver.executeScript(inlineFn(() => {
+							return driver.executeScript(inlineFn((REPLACE) => {
 								return JSON.stringify({
-									match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
+									match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
 									checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
 								});
 							}, {
@@ -1217,9 +1217,9 @@ describe('Options Page', function(this: MochaFn) {
 			it(`${checkboxId} should be saved`, function(this: MochaFn, done) {
 				reloadPage(this, driver).then(() => {
 					return driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							return JSON.stringify({
-								match: window.app.storageLocal['REPLACE.checkboxId'] === REPLACE.expected,
+								match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
 								checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
 							});
 						}, {
@@ -1320,7 +1320,7 @@ describe('Options Page', function(this: MochaFn) {
 															'value url is the same as expected');
 														assert.isTrue(element.value[0].newTab, 'newTab is true');
 
-														var element2 = crm[crm.length - 1];
+														const element2 = crm[crm.length - 1];
 														assert.isDefined(element2, 'element is defined');
 														assert.strictEqual(element2.name, 'SomeName', 
 															'name is the same as expected');
@@ -2268,9 +2268,9 @@ describe('Options Page', function(this: MochaFn) {
 											newZoom);
 								}).then(() => {
 									return driver.executeScript(inlineFn(() => {
-										((window.app as any).item.type === 'stylesheet' ?
-											(window as any).stylesheetEdit : 
-											(window as any).scriptEdit)._updateZoomEl();
+										window.app.item.type === 'stylesheet' ?
+											window.stylesheetEdit : 
+											window.scriptEdit._updateZoomEl();
 									}));
 								}).then(() => {
 									return wait(driver, 10000, dialog);
@@ -2363,9 +2363,9 @@ describe('Options Page', function(this: MochaFn) {
 									InputKeys.BACK_SPACE, newTabSize)
 								.then(() => {
 									return driver.executeScript(inlineFn(() => {
-										((window.app as any).item.type === 'stylesheet' ?
-											(window as any).stylesheetEdit : 
-											(window as any).scriptEdit)._updateTabSizeEl();
+										window.app.item.type === 'stylesheet' ?
+											window.stylesheetEdit : 
+											window.scriptEdit._updateTabSizeEl();
 									}));
 								});
 						});
@@ -2397,13 +2397,13 @@ describe('Options Page', function(this: MochaFn) {
 
 			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
 				driver.executeScript(inlineFn(() => {
-					const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
+					const crmItem = document.getElementsByTagName('edit-crm-item').item(0);
 					crmItem.typeIndicatorMouseOver();
 				})).then(() => {
 					return wait(driver, 300);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
+						const crmItem = document.getElementsByTagName('edit-crm-item').item(0);
 						const typeSwitcher = crmItem.querySelector('type-switcher');
 						typeSwitcher.openTypeSwitchContainer();
 					}));;
@@ -2411,11 +2411,11 @@ describe('Options Page', function(this: MochaFn) {
 					return wait(driver, 300);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						const crmItem = document.getElementsByTagName('edit-crm-item').item(0) as any;
+						const crmItem = document.getElementsByTagName('edit-crm-item').item(0);
 						const typeSwitcher = crmItem.querySelector('type-switcher');
-						typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]')
+						(typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
 							.click();
-						return window.app.settings.crm[0].type === 'REPLACE.type';
+						return window.app.settings.crm[0].type === 'REPLACE.type' as CRM.NodeType;
 					}, {
 						type: type
 					}));
@@ -2973,7 +2973,7 @@ describe('Options Page', function(this: MochaFn) {
 					describe('Libraries', function(this: MochaFn) {
 						afterEach('Close dialog', (done) => {
 							driver.executeScript(inlineFn(() => {
-								(document.getElementById('addLibraryDialog') as any).close();
+								window.doc.addLibraryDialog.close();
 							})).then(() => {
 								done();
 							});
@@ -3073,7 +3073,7 @@ describe('Options Page', function(this: MochaFn) {
 							}).then((jqCode) => {
 								getContextMenu(driver).then((contextMenu) => {
 									driver
-										.executeScript(inlineFn(() => {
+										.executeScript(inlineFn((REPLACE) => {
 											window.chrome._clearExecutedScripts();
 											return window.chrome._currentContextMenu[0]
 												.children[0]
@@ -3081,12 +3081,12 @@ describe('Options Page', function(this: MochaFn) {
 													REPLACE.page, REPLACE.tab
 												);
 										}, {
-											page: JSON.stringify({
+											page: {
 												menuItemId: contextMenu[0].id,
 												editable: false,
 												pageUrl: 'www.google.com'
-											}),
-											tab: JSON.stringify({
+											},
+											tab: {
 												id: tabId,
 												index: 1,
 												windowId: getRandomId(),
@@ -3097,7 +3097,7 @@ describe('Options Page', function(this: MochaFn) {
 												url: 'http://www.google.com',
 												title: 'Google',
 												incognito: false
-											})
+											}
 										})).then(() => {
 											return driver
 												.executeScript(inlineFn(() => {
@@ -3266,7 +3266,7 @@ describe('Options Page', function(this: MochaFn) {
 							}).then(() => {
 								getContextMenu(driver).then((contextMenu) => {
 									driver
-										.executeScript(inlineFn(() => {
+										.executeScript(inlineFn((REPLACE) => {
 											window.chrome._clearExecutedScripts();
 											return window.chrome._currentContextMenu[0]
 												.children[0]
@@ -3274,12 +3274,12 @@ describe('Options Page', function(this: MochaFn) {
 													REPLACE.page, REPLACE.tab
 												);
 										}, {
-											page: JSON.stringify({
+											page: {
 												menuItemId: contextMenu[0].id,
 												editable: false,
 												pageUrl: 'www.google.com'
-											}),
-											tab: JSON.stringify({
+											},
+											tab: {
 												id: tabId,
 												index: 1,
 												windowId: getRandomId(),
@@ -3290,7 +3290,7 @@ describe('Options Page', function(this: MochaFn) {
 												url: 'http://www.google.com',
 												title: 'Google',
 												incognito: false
-											})
+											}
 										})).then(() => {
 											return driver
 												.executeScript(inlineFn(() => {
@@ -3428,8 +3428,8 @@ describe('Options Page', function(this: MochaFn) {
 					describe('Search Website', function(this: MochaFn) {
 						afterEach('Close dialog', (done) => {
 							driver.executeScript(inlineFn(() => {
-								(document.getElementById('paperSearchWebsiteDialog') as any).opened &&
-								(document.getElementById('paperSearchWebsiteDialog') as any).hide();
+								window.doc.paperSearchWebsiteDialog.opened() &&
+								window.doc.paperSearchWebsiteDialog.hide();
 							})).then(() => {
 								done();
 							});
@@ -3790,11 +3790,11 @@ describe('On-Page CRM', function(this: MochaFn) {
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							window.app.settings.crm = REPLACE.crm;
 							window.app.upload();
 						}, {
-							crm: JSON.stringify(CRM1)
+							crm: CRM1
 						})).then(() => {
 							done();
 						});
@@ -3811,12 +3811,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should be able to switch to a new CRM', function(this: MochaFn, done) {
 			assert.doesNotThrow(() => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						window.app.settings.crm = REPLACE.crm;
 						window.app.upload();
 						return true;
 					}, {
-						crm: JSON.stringify(CRM2)
+						crm: CRM2
 					})).then(() => {
 						done();
 					});
@@ -3914,12 +3914,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							window.app.settings.crm = REPLACE.crm;
 							window.app.upload();
 							return true;
 						}, {
-							crm: JSON.stringify(CRMNodes)
+							crm: CRMNodes
 						})).then(() => {
 							done();
 						});
@@ -3971,19 +3971,19 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						window.chrome._currentContextMenu[0].children[LinkOnPageTest.DEFAULT_LINKS]
 							.currentProperties.onclick(
 								REPLACE.page, REPLACE.tab
 							);
 						return true;
 					}, {
-						page: JSON.stringify({
+						page: {
 							menuItemId: contextMenu[LinkOnPageTest.DEFAULT_LINKS].id,
 							editable: false,
 							pageUrl: 'www.google.com'
-						}),
-						tab: JSON.stringify({
+						},
+						tab: {
 							id: tabId,
 							index: 1,
 							windowId: windowId,
@@ -3994,7 +3994,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							url: 'http://www.google.com',
 							title: 'Google',
 							incognito: false
-						})
+						}
 					})).then(() => {
 						return driver
 							.executeScript(inlineFn(() => {
@@ -4035,7 +4035,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const windowId = ~~(Math.random() * 100);
 			getContextMenu(driver).then((contextMenu) => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						//Clear it without removing object-array-magic-address-linking
 						while (window.chrome._activeTabs.length > 0) {
 							window.chrome._activeTabs.pop();
@@ -4045,12 +4045,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
-						page: JSON.stringify({
+						page: {
 							menuItemId: contextMenu[LinkOnPageTest.PRESET_LINKS].id,
 							editable: false,
 							pageUrl: 'www.google.com'
-						}),
-						tab: JSON.stringify({
+						},
+						tab: {
 							id: tabId,
 							index: 1,
 							windowId: windowId,
@@ -4061,7 +4061,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							url: 'http://www.google.com',
 							title: 'Google',
 							incognito: false
-						})
+						}
 					})).then((result) => {
 						return driver
 							.executeScript(inlineFn(() => {
@@ -4180,12 +4180,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							window.app.settings.crm = REPLACE.crm;
 							window.app.upload();
 							return true;
 						}, {
-							crm: JSON.stringify(CRMNodes)
+							crm: CRMNodes
 						})).then(() => {
 							done();
 						});
@@ -4295,12 +4295,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							window.app.settings.crm = REPLACE.crm;
 							window.app.upload();
 							return true;
 						}, {
-							crm: JSON.stringify(CRMNodes)
+							crm: CRMNodes
 						})).then(() => {
 							done();
 						});
@@ -4310,7 +4310,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should always run when launchMode is set to ALWAYS_RUN', (done) => {
 			const fakeTabId = getRandomId();
 			driver
-				.executeScript(inlineFn(() => {
+				.executeScript(inlineFn((REPLACE) => {
 					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
@@ -4344,7 +4344,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const fakeTabId = getRandomId();
 			getContextMenu(driver).then((contextMenu) => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						window.chrome._clearExecutedScripts();
 						return window.chrome._currentContextMenu[0]
 							.children[ScriptOnPageTests.RUN_ON_CLICKING]
@@ -4352,12 +4352,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
-						page: JSON.stringify({
+						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com'
-						}),
-						tab: JSON.stringify({
+						},
+						tab: {
 							id: fakeTabId,
 							index: 1,
 							windowId: getRandomId(),
@@ -4368,7 +4368,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							url: 'http://www.google.com',
 							title: 'Google',
 							incognito: false
-						})
+						}
 					})).then(() => {
 						return driver
 							.executeScript(inlineFn(() => {
@@ -4386,7 +4386,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', (done) => {
 			const fakeTabId = getRandomId();
 			driver
-				.executeScript(inlineFn(() => {
+				.executeScript(inlineFn((REPLACE) => {
 					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
@@ -4420,7 +4420,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', (done) => {
 			const fakeTabId = getRandomId();
 			driver
-				.executeScript(inlineFn(() => {
+				.executeScript(inlineFn((REPLACE) => {
 					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
@@ -4441,7 +4441,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
 					return driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							window.chrome._clearExecutedScripts();
 							return window.chrome._currentContextMenu[0]
 								.children[1]
@@ -4449,12 +4449,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 								REPLACE.page, REPLACE.tab
 							);
 						}, {
-							page: JSON.stringify({
+							page: {
 								menuItemId: contextMenu[0].id,
 								editable: false,
 								pageUrl: 'www.google.com'
-							}),
-							tab: JSON.stringify({
+							},
+							tab: {
 								id: fakeTabId,
 								index: 1,
 								windowId: getRandomId(),
@@ -4465,7 +4465,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								url: 'http://www.google.com',
 								title: 'Google',
 								incognito: false
-							})
+							}
 						}));
 				}).then(() => {
 					return driver
@@ -4487,19 +4487,19 @@ describe('On-Page CRM', function(this: MochaFn) {
 
 				assert.doesNotThrow(() => {
 					driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							return window.chrome._currentContextMenu[0]
 								.children[2]
 								.currentProperties.onclick(
 									REPLACE.page, REPLACE.tab
 								);
 						}, {
-							page: JSON.stringify({
+							page: {
 								menuItemId: contextMenu[0].id,
 								editable: false,
 								pageUrl: 'www.google.com'
-							}),
-							tab: JSON.stringify({
+							},
+							tab: {
 								id: fakeTabId,
 								index: 1,
 								windowId: getRandomId(),
@@ -4510,7 +4510,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								url: 'http://www.google.com',
 								title: 'Google',
 								incognito: false
-							})
+							}
 						})).then(() => {
 							return driver
 								.executeScript(inlineFn(() => {
@@ -4541,7 +4541,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const fakeTabId = getRandomId();
 			getContextMenu(driver).then((contextMenu) => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						window.chrome._clearExecutedScripts();
 						return window.chrome._currentContextMenu[0]
 							.children[ScriptOnPageTests.RUN_ON_CLICKING]
@@ -4549,12 +4549,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
-						page: JSON.stringify({
+						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com'
-						}),
-						tab: JSON.stringify({
+						},
+						tab: {
 							id: fakeTabId,
 							index: 1,
 							windowId: getRandomId(),
@@ -4565,7 +4565,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							url: 'http://www.google.com',
 							title: 'Google',
 							incognito: false
-						})
+						}
 					})).then(() => {
 						return driver
 							.executeScript(inlineFn(() => {
@@ -4851,7 +4851,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const fakeTabId = getRandomId();
 			getContextMenu(driver).then((contextMenu) => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						window.chrome._clearExecutedScripts();
 						return window.chrome._currentContextMenu[0]
 							.children[REPLACE.index - 3]
@@ -4860,12 +4860,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 							);
 					}, {
 						index: index,
-						page: JSON.stringify({
+						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com'
-						}),
-						tab: JSON.stringify({
+						},
+						tab: {
 							id: fakeTabId,
 							index: 1,
 							windowId: getRandomId(),
@@ -4876,7 +4876,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							url: 'http://www.google.com',
 							title: 'Google',
 							incognito: false
-						})
+						}
 					})).then((e) => {
 						return driver
 							.executeScript(inlineFn(() => {
@@ -4904,12 +4904,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 			assert.doesNotThrow(() => {
 				resetSettings(this, driver).then(() => {
 					driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							window.app.settings.crm = REPLACE.crm;
 							window.app.upload();
 							return true;
 						}, {
-							crm: JSON.stringify(CRMNodes)
+							crm: CRMNodes
 						})).then(() => {
 							done();
 						});
@@ -4919,7 +4919,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should always run when launchMode is set to ALWAYS_RUN', (done) => {
 			const fakeTabId = getRandomId();
 			driver
-				.executeScript(inlineFn(() => {
+				.executeScript(inlineFn((REPLACE) => {
 					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
@@ -4955,7 +4955,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const fakeTabId = getRandomId();
 			getContextMenu(driver).then((contextMenu) => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						window.chrome._clearExecutedScripts();
 						return window.chrome._currentContextMenu[0]
 							.children[2]
@@ -4963,12 +4963,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
-						page: JSON.stringify({
+						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com'
-						}),
-						tab: JSON.stringify({
+						},
+						tab: {
 							id: fakeTabId,
 							index: 1,
 							windowId: getRandomId(),
@@ -4979,7 +4979,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							url: 'http://www.google.com',
 							title: 'Google',
 							incognito: false
-						})
+						}
 					})).then(() => {
 						return driver
 							.executeScript(inlineFn(() => {
@@ -4997,7 +4997,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should run on specified URL when launchMode is set to RUN_ON_SPECIFIED', (done) => {
 			const fakeTabId = getRandomId();
 			driver
-				.executeScript(inlineFn(() => {
+				.executeScript(inlineFn((REPLACE) => {
 					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
@@ -5031,7 +5031,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 		it('should show on specified URL when launchMode is set to SHOW_ON_SPECIFIED', function(this: MochaFn, done) {
 			const fakeTabId = getRandomId();
 			driver
-				.executeScript(inlineFn(() => {
+				.executeScript(inlineFn((REPLACE) => {
 					window.chrome._clearExecutedScripts();
 					window.chrome._fakeTabs[REPLACE.fakeTabId] = {
 						id: REPLACE.fakeTabId,
@@ -5052,7 +5052,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 					assert.isAbove(contextMenu.length, 2, 'contextmenu contains at least two items');
 
 					return driver
-						.executeScript(inlineFn(() => {
+						.executeScript(inlineFn((REPLACE) => {
 							window.chrome._clearExecutedScripts();
 							return window.chrome._currentContextMenu[0]
 								.children[3]
@@ -5060,12 +5060,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 								REPLACE.page, REPLACE.tab
 							);
 						}, {
-							page: JSON.stringify({
+							page: {
 								menuItemId: contextMenu[0].id,
 								editable: false,
 								pageUrl: 'www.google.com'
-							}),
-							tab: JSON.stringify({
+							},
+							tab: {
 								id: fakeTabId,
 								index: 1,
 								windowId: getRandomId(),
@@ -5076,7 +5076,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								url: 'http://www.google.com',
 								title: 'Google',
 								incognito: false
-							})
+							}
 						}));
 				}).then(() => {
 					return driver
@@ -5104,7 +5104,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 			const fakeTabId = getRandomId();
 			getContextMenu(driver).then((contextMenu) => {
 				driver
-					.executeScript(inlineFn(() => {
+					.executeScript(inlineFn((REPLACE) => {
 						window.chrome._clearExecutedScripts();
 						return window.chrome._currentContextMenu[0]
 							.children[2]
@@ -5112,12 +5112,12 @@ describe('On-Page CRM', function(this: MochaFn) {
 								REPLACE.page, REPLACE.tab
 							);
 					}, {
-						page: JSON.stringify({
+						page: {
 							menuItemId: contextMenu[0].id,
 							editable: false,
 							pageUrl: 'www.google.com'
-						}),
-						tab: JSON.stringify({
+						},
+						tab: {
 							id: fakeTabId,
 							index: 1,
 							windowId: getRandomId(),
@@ -5128,7 +5128,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 							url: 'http://www.google.com',
 							title: 'Google',
 							incognito: false
-						})
+						}
 					})).then(() => {
 						return driver
 							.executeScript(inlineFn(() => {
@@ -5230,20 +5230,20 @@ describe('On-Page CRM', function(this: MochaFn) {
 				});
 				it('should be on when clicked', (done) => {
 					getContextMenu(driver).then((contextMenu) => {
-						driver.executeScript(inlineFn(() => {
+						driver.executeScript(inlineFn((REPLACE) => {
 							return window.chrome._currentContextMenu[0]
 								.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
 								.currentProperties.onclick(
 									REPLACE.page, REPLACE.tab
 								);
 						}, {
-							page: JSON.stringify({
+							page: {
 								menuItemId: contextMenu[0].id,
 								editable: false,
 								pageUrl: 'www.google.com',
 								wasChecked: false
-							}),
-							tab: JSON.stringify({
+							},
+							tab: {
 								id: tabId,
 								index: 1,
 								windowId: getRandomId(),
@@ -5254,7 +5254,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								url: 'http://www.google.com',
 								title: 'Google',
 								incognito: false
-							})
+							}
 						}));
 					}).then(() => {
 						return wait(driver, 100);
@@ -5268,20 +5268,20 @@ describe('On-Page CRM', function(this: MochaFn) {
 				});
 				it('should be off when clicked again', (done) => {
 					getContextMenu(driver).then((contextMenu) => {
-						driver.executeScript(inlineFn(() => {
+						driver.executeScript(inlineFn((REPLACE) => {
 							return window.chrome._currentContextMenu[0]
 								.children[StylesheetOnPageTests.TOGGLE_DEFAULT_OFF]
 								.currentProperties.onclick(
 									REPLACE.page, REPLACE.tab
 								);
 						}, {
-							page: JSON.stringify({
+							page: {
 								menuItemId: contextMenu[0].id,
 								editable: false,
 								pageUrl: 'www.google.com',
 								wasChecked: true
-							}),
-							tab: JSON.stringify({
+							},
+							tab: {
 								id: tabId,
 								index: 1,
 								windowId: getRandomId(),
@@ -5292,7 +5292,7 @@ describe('On-Page CRM', function(this: MochaFn) {
 								url: 'http://www.google.com',
 								title: 'Google',
 								incognito: false
-							})
+							}
 						}));
 					}).then(() => {
 						return wait(driver, 100);
