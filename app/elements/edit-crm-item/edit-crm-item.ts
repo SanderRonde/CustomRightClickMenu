@@ -350,7 +350,7 @@ class ECI {
 		this.isCode = this.isScript || this.isStylesheet;
 	};
 
-	private static typeIndicatorMouseOver(this: EditCrmItem) {
+	static typeIndicatorMouseOver(this: EditCrmItem) {
 		if (!this.shadow) {
 			const time = Date.now();
 			this.lastTypeSwitchMouseover = time;
