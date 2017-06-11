@@ -2268,9 +2268,9 @@ describe('Options Page', function(this: MochaFn) {
 											newZoom);
 								}).then(() => {
 									return driver.executeScript(inlineFn(() => {
-										window.app.item.type === 'stylesheet' ?
+										(window.app.item.type === 'stylesheet' ?
 											window.stylesheetEdit : 
-											window.scriptEdit._updateZoomEl();
+											window.scriptEdit)._updateZoomEl();
 									}));
 								}).then(() => {
 									return wait(driver, 10000, dialog);
@@ -2363,9 +2363,9 @@ describe('Options Page', function(this: MochaFn) {
 									InputKeys.BACK_SPACE, newTabSize)
 								.then(() => {
 									return driver.executeScript(inlineFn(() => {
-										window.app.item.type === 'stylesheet' ?
+										(window.app.item.type === 'stylesheet' ?
 											window.stylesheetEdit : 
-											window.scriptEdit._updateTabSizeEl();
+											window.scriptEdit)._updateTabSizeEl();
 									}));
 								});
 						});
