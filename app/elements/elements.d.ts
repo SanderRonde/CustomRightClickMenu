@@ -24,6 +24,7 @@
 /// <reference path="./log-page/log-page.ts" />
 /// <reference path="./node-edit-behavior/node-edit-behavior.ts" />
 /// <reference path="./inputs/paper-dropdown-behavior/paper-dropdown-behavior.ts" />
+/// <reference path="./inputs/paper-dropdown-menu/paper-dropdown-menu.ts" />
 /// <reference path="./inputs/paper-toggle-option/paper-toggle-option.ts" />
 /// <reference path="./inputs/paper-array-input/paper-array-input.ts" />
 /// <reference path="./tools/paper-get-page-properties/paper-get-page-properties.ts" />
