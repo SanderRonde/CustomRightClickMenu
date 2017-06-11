@@ -157,7 +157,7 @@ class TS {
 		return false;
 	};
 
-	static changeType(this: TypeSwitcher, e: Polymer.ClickEvent) {
+	static changeType(this: TypeSwitcher, e: Polymer.ClickEvent|CRM.NodeType) {
 		window.app.editCRM.cancelAdding();
 		
 		const _this = this;
