@@ -335,6 +335,10 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 		this.fit();
 	};
 
+	static opened(this: PaperSearchWebsiteDialog) {
+		return this.$.paperSearchWebsiteDialog.opened;
+	}
+
 	/**
 	 * Toggles the dialog
 	 */
