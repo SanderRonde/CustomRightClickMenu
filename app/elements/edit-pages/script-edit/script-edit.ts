@@ -1192,12 +1192,28 @@ class SCE {
 			this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
 		});
 		editor.performLint();
+		let newChanges: Array<{
+			from: CodeMirrorPos;
+			to: CodeMirrorPos;
+			removed: string[];
+			text: string[];
+			origin: string;
+		}> = [];
 		editor.on('changes', (cm, changes) => {
-			editor.performLint();
-			changes.forEach((change) => {
-				this.findChromeBaseExpression(change.from, change.to);
-			});
+			newChanges = newChanges.concat(changes);
 		});
+		const interval = window.setInterval(() => {
+			if (!this.active) {
+				window.clearInterval(interval);
+			} else {
+				if (newChanges.length > 0) {
+					editor.performLint();
+					newChanges.forEach((change) => {
+						this.findChromeBaseExpression(change.from, change.to);
+					});
+				}
+			}
+		}, 2000);
 		if (this.newSettings.value.metaTagsHidden) {
 			editor.doc.markText({
 				line: editor.metaTags.metaStart.line,

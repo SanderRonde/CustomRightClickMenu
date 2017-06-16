@@ -563,9 +563,25 @@ class STE {
 		editor.display.wrapper.classList.remove('script-edit-codeMirror');
 		editor.display.wrapper.classList.add('stylesheet-edit-codeMirror');
 		editor.performLint();
-		editor.on('changes', () => {
-			editor.performLint();
+		let newChanges: Array<{
+			from: CodeMirrorPos;
+			to: CodeMirrorPos;
+			removed: string[];
+			text: string[];
+			origin: string;
+		}> = [];
+		editor.on('changes', (cm, changes) => {
+			newChanges = newChanges.concat(changes);
 		});
+		const interval = window.setInterval(() => {
+			if (!_this.active) {
+				window.clearInterval(interval);
+			} else {
+				if (newChanges.length > 0) {
+					editor.performLint();
+				}
+			}
+		}, 2000);
 		const keys: {
 			[key: string]: (cm: CodeMirrorInstance) => void;
 		} = {};
