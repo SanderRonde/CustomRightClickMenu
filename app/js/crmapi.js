@@ -68,7 +68,6 @@
 			localStorageProxy = typeof localStorage === 'undefined' ? {} : localStorage;
 		}
 
-		//#region Options
 		/**
 		 * When true, shows stacktraces on error in the console of the page
 		 *		the script runs on, true by default.
@@ -121,9 +120,6 @@
 			return mergeObjects(defaults || {}, options);
 		}
 
-		//#endregion
-
-		//#region JSONfn
 		/**
 		 * JSONfn - javascript (both node.js and browser) plugin to stringify,
 		 *          parse and clone objects with Functions, Regexp and Date.
@@ -173,7 +169,6 @@
 				});
 			}
 		};
-		//#endregion
 
 		var specialJSON = {
 			_regexFlagNames: ['global', 'multiline', 'sticky', 'unicode', 'ignoreCase'],
@@ -390,7 +385,7 @@
 			}
 		};
 
-		//#region Properties of this Object
+
 		Object.defineProperty(this, 'tabId', {
 			get: function () {
 				return tabData.id;
@@ -416,9 +411,8 @@
 				return contextData;
 			}
 		});
-		//#endregion
 
-		//#region Communication
+
 		function CallbackStorage() {
 			var _this = this;
 			this._items = {};
@@ -855,9 +849,7 @@
 			port = self.handshake(id, secretKey, messageHandler);
 		}
 
-		//#endregion
 
-		//#region Helper functions
 		var emptyFn = function () {
 			var params = [];
 			for (var _i = 0; _i < arguments.length; _i++) {
@@ -995,9 +987,7 @@
 			return fn && typeof fn === 'function';
 		}
 
-		//#endregion
 
-		//#region Instance Communication
 		/**
 		 * The communications API used to communicate with other scripts and other instances
 		 *
@@ -1347,9 +1337,8 @@
 				self.log('The function listenAsBackgroundPage is not available in non-background script');
 			}
 		};
-		//#endregion
 
-		//#region Storage
+
 		var storage = nodeStorage;
 
 		/**
@@ -1592,9 +1581,8 @@
 				});
 			}
 		};
-		//#endregion
 
-		//#region PageAPI
+
 		/**
 		 * General CRM API functions
 		 *
@@ -1647,7 +1635,7 @@
 			return node;
 		};
 
-		//#endregion
+
 
 		/**
 		 * The crm API, used to make changes to the crm, some API calls may require permissions crmGet and crmWrite
@@ -2619,7 +2607,6 @@
 			});
 		};
 
-		//#region Chrome APIs
 		/**
 		 * Uses given arguments as arguments for the API in order specified. If the argument is
 		 * not a function, it is simply passed along, if it is, it's converted to a
@@ -2629,7 +2616,6 @@
 		 * mind that there is no connection between your function and the chrome API, the chrome API only
 		 * sees a placeholder function with which it can do nothing so don't use this as say a forEach handler.
 		 */
-		// ReSharper disable once InconsistentNaming
 		function genChromeRequest(api, type) {
 			var request = {
 				api: api,
@@ -2846,9 +2832,7 @@
 		function chromeSpecialRequest(api, type) {
 			return genChromeRequest(api, type);
 		}
-		//#endregion
 
-		//#region GreaseMonkey Compatibility Functions
 
 		/**
 		 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
@@ -3305,9 +3289,6 @@
 			}
 		}
 
-		//#endregion
-
-		//#region jQuery Emulation
 		/**
 		 * Gets the current text selection
 		 *
@@ -3369,7 +3350,6 @@
 		};
 
 		window.log = window.log || this.log;
-		//#endregion
 
 		return this;
 	}
