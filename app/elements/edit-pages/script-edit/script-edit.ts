@@ -1192,12 +1192,40 @@ class SCE {
 			this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
 		});
 		editor.performLint();
+		let newChanges: Array<{
+			from: CodeMirrorPos;
+			to: CodeMirrorPos;
+			removed: string[];
+			text: string[];
+			origin: string;
+			time: number;
+		}> = [];
 		editor.on('changes', (cm, changes) => {
-			editor.performLint();
-			changes.forEach((change) => {
-				this.findChromeBaseExpression(change.from, change.to);
-			});
+			newChanges = newChanges.concat(changes.map((change) => {
+				return {
+					from: change.from,
+					to: change.to,
+					removed: change.removed,
+					text: change.text,
+					origin: change.origin,
+					time: Date.now()
+				}
+			}));
 		});
+		const interval = window.setInterval(() => {
+			if (!this.active) {
+				window.clearInterval(interval);
+			} else {
+				//Make sure no typing happened in the last second
+				if (newChanges.length > 0 && Date.now() - newChanges.slice(-1)[0].time > 1000) {
+					editor.performLint();
+					newChanges.forEach((change) => {
+						this.findChromeBaseExpression(change.from, change.to);
+					});
+					newChanges = [];
+				}
+			}
+		}, 1000);
 		if (this.newSettings.value.metaTagsHidden) {
 			editor.doc.markText({
 				line: editor.metaTags.metaStart.line,

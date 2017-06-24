@@ -1755,6 +1755,9 @@ class CA {
 		static localStorageReplace = class LogalStorageReplace {
 			static findExpression(expression: Tern.Expression, data: PersistentData,
 				strToFind: string, onFind: (data: PersistentData, expression: Tern.Expression) => void): boolean {
+				if (!expression) {
+					return false;
+				}
 				switch (expression.type) {
 					case 'Identifier':
 						if (expression.name === strToFind) {
