@@ -2267,7 +2267,7 @@ describe('CRMAPI', () => {
 				var code =
 					'window.crmAPI = new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, nodeStorage,
-							{}, greaseMonkeyData, false, {}, true, 0]
+							{}, greaseMonkeyData, false, {}, true, 0, 'abcdefg']
 						.map(function(param) {
 							return JSON.stringify(param);
 						}).join(', ') +
@@ -2394,7 +2394,7 @@ describe('CRMAPI', () => {
 					var code = 'window.crmAPIs.push(new window.CrmAPIInit(' +
 						[node, node.id, tabData, clickData, secretKey, {
 							testKey: createSecretKey() }, {}, greaseMonkeyData, false, {}, false, 
-							window.globals.crmValues.tabData[tabId].nodes[node.id].length - 1]
+							window.globals.crmValues.tabData[tabId].nodes[node.id].length - 1, 'abcdefg']
 						.map(function(param) {
 							return JSON.stringify(param);
 						}).join(', ') +
