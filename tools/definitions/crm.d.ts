@@ -489,16 +489,21 @@ declare namespace CRM {
 	type MakeNodeSafe<T extends MadeSafeNode> = Pick<T, SafeKeys>;
 
 	/**
+	 * The storage used by nodes
+	 */
+	interface NodeStorage {
+		[key: string]: any;
+		[key: number]: any;
+	}
+
+	/**
 	 * The base node on which other nodes are based (no value)
 	 */
 	interface BaseNodeNoVal {
 		/**
 		 * The storage for this node
 		 */
-		storage?: {
-			[key: string]: any;
-			[key: number]: any;
-		};
+		storage?: NodeStorage;
 		/**
 		 * The index of this node in its parent
 		 */
