@@ -9,7 +9,7 @@ interface TabData {
 	title: string;
 }
 
-interface ContextData {
+interface EncodedContextData {
 	clientX: number;
 	clientY: number;
 	offsetX: number;
@@ -27,10 +27,16 @@ interface ContextData {
 }
 
 interface Resource {
-	dataURI: string;
-	name?: string;
+	name: string;
 	sourceUrl: string;
+	matchesHashes: boolean;
+	dataURI: string;
+	dataString: string;
 	crmUrl: string;
+	hashes: {
+		algorithm: string;
+		hash: string;
+	}[];
 }
 
 type Resources = { [name: string]: Resource };
@@ -315,6 +321,7 @@ interface GlobalObject {
 						sourceUrl: string;
 						matchesHashes: boolean;
 						dataURI: string;
+						dataString: string;
 						crmUrl: string;
 						hashes: Array<{
 							algorithm: string;
@@ -3914,6 +3921,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				msg.data = (type === 'error' || type === 'chromeError' ?
 					{
 						error: data,
+						message: data,
 						stackTrace: stackTrace,
 						lineNumber: message.lineNumber
 					} :
@@ -5054,6 +5062,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						name: name,
 						sourceUrl: url,
 						dataURI: dataURI,
+						dataString: dataString,
 						hashes: registerHashes,
 						matchesHashes: this._matchesHashes(registerHashes, dataString),
 						crmUrl: `chrome-extension://${chrome.runtime.id}/resource/${scriptId}/${name}`
@@ -5404,7 +5413,12 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				sourceUrl: string;
 				matchesHashes: boolean;
 				dataURI: string;
+				dataString: string;
 				crmUrl: string;
+				hashes: {
+					algorithm: string;
+					hash: string;
+				}[];
 			}> {
 				const resourcesArray = [];
 				const scriptResources = globalObject.globals.storages.resources[scriptId];
@@ -6430,7 +6444,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						info: chrome.contextMenus.OnClickData;
 						node: CRM.ScriptNode;
 						safeNode: CRM.SafeNode;
-					}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [ContextData,
+					}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,
 						[any, GreaseMonkeyData, string, string, string, number]]): string {
 
 					const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
@@ -6536,7 +6550,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					[key: string]: any;
 				}, node: CRM.ScriptNode, includes: Array<string>, excludes: Array<string>, tab: {
 					incognito: boolean
-				}) {
+				}): GreaseMonkeyData {
 					const metaString = (CRM.Script.MetaTags.getMetaLines(node.value
 						.script) || []).join('\n');
 					const metaVal = CRM.Script._generateMetaAccessFunction(metaData);
@@ -6640,14 +6654,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								chrome.runtime.reload();
 							});
 						} else {
-							Promiselike.all([new Promiselike<ContextData>((resolve) => {
+							Promiselike.all([new Promiselike<EncodedContextData>((resolve) => {
 								//If it was triggered by clicking, ask contentscript about some data
 								if (isAutoActivate) {
 									resolve(null);
 								} else {
 									chrome.tabs.sendMessage(tab.id, {
 										type: 'getLastClickInfo'
-									}, (response: ContextData) => {
+									}, (response: EncodedContextData) => {
 										resolve(response);
 									});
 								}
@@ -6677,7 +6691,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}).join('\n');
 
 								resolve([nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
-							})]).then((args: [ContextData,
+							})]).then((args: [EncodedContextData,
 								[any, GreaseMonkeyData, string, string, string, number]]) => {
 								const safeNode = CRM.makeSafe(node);
 								(safeNode as any).permissions = node.permissions;
@@ -9165,7 +9179,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					globalObject.globals.storages.nodeStorage[data
 						.id] = globalObject.globals.storages.nodeStorage[data.id] || {};
 					this._applyChangeForStorageType(globalObject.globals.storages.nodeStorage[data
-						.id], data.nodeStorageChanges);
+						.id], data.nodeStorageChanges, true);
 					this._notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
 					break;
 			}
@@ -9321,9 +9335,21 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		private static _applyChangeForStorageType(storageObj: {
 			[key: string]: any;
 			[key: number]: any;
-		}, changes: Array<StorageChange>) {
+		}, changes: Array<StorageChange>, usesDots: boolean = false) {
 			for (let i = 0; i < changes.length; i++) {
-				storageObj[changes[i].key] = changes[i].newValue;
+				if (usesDots) {
+					const indexes = changes[i].key.split('.');
+					let currentValue = storageObj;
+					for (let i = 0; i < indexes.length - 1; i++) {
+						if (!(indexes[i] in currentValue)) {
+							currentValue[indexes[i]] = {};
+						}
+						currentValue = currentValue[indexes[i]];
+					}
+					currentValue[indexes[i]] = changes[i].newValue;
+				} else {
+					storageObj[changes[i].key] = changes[i].newValue;
+				}
 			}
 		}
 		private static _notifyNodeStorageChanges(id: number, tabId: number,
