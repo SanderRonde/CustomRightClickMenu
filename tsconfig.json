@@ -14,7 +14,8 @@
         "noFallthroughCasesInSwitch": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "target": "es3"
+        "target": "es3",
+        "experimentalDecorators": true
 	}, 
     "allowJs": true,
     "compileOnSave": true,
