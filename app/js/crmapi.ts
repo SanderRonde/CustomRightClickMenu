@@ -2072,12 +2072,15 @@
 			 * 		an object. This object will be written on top of the storage object
 			 * @param {any} [value] - The value to set it to, optional if keyPath is an object
 			 */
-			set(this: CrmAPIInit, keyPath: string|Array<string>|Array<number>, value: any): void {
+			set(this: CrmAPIInit, keyPath: string|Array<string>|Array<number>|{
+				[key: string]: any;
+				[key: number]: any;
+			}, value: any): void {
 				if (CrmAPIInit._helpers.checkType(keyPath, 'string', true)) {
 					var keyPathStr = keyPath;
 					if (typeof keyPathStr === 'string') {
 						if (keyPathStr.indexOf('.') === -1) {
-							this._localStorageChange(keyPath, this._nodeStorage[keyPathStr], value);
+							this._localStorageChange(keyPath as string, this._nodeStorage[keyPathStr], value);
 							this._nodeStorage[keyPathStr] = value;
 							this._storagePrevious = this._nodeStorage;
 							return undefined;
@@ -2214,7 +2217,7 @@
 		 *
 		 * @returns {string} - The current selection
 		 */
-		getSelection() {
+		getSelection(): string {
 			return (this._clickData.selectionText || window.getSelection() && window.getSelection().toString()) || '';
 		};
 
@@ -2231,7 +2234,7 @@
 		 *
 		 * @returns {Object} - An object containing any info about the page, some data may be undefined if it doesn't apply
 		 */
-		getClickInfo() {
+		getClickInfo(): chrome.contextMenus.OnClickData {
 			return this._clickData;
 		};
 
@@ -2240,7 +2243,7 @@
 		 *
 		 * @returns {Object} - An object of type tab (https://developer.chrome.com/extensions/tabs#type-Tab)
 		 */
-		getTabInfo() {
+		getTabInfo(): chrome.tabs.Tab {
 			return this._tabData;
 		};
 
@@ -2249,7 +2252,7 @@
 		 *
 		 * @returns {Object} - The node that is being executed right now
 		 */
-		getNode() {
+		getNode(): CRM.Node {
 			return this._node;
 		};
 

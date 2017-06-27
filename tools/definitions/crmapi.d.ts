@@ -1843,6 +1843,18 @@ declare namespace CRMAPI {
 	type MessageHandler = (message: any) => void;
 
 	/**
+	 * The callback function for an instance call
+	 */
+	type InstanceCallback = (data: {
+		error: true;
+		success: false;
+		message: any;
+	}|{
+		error: false;
+		success: true;
+	}) => void;
+
+	/**
 	 * A listener for a storage change
 	 */
 	type StorageListener = (key: string, oldValue: any, newValue: any, remote: boolean) => void;
@@ -1958,8 +1970,8 @@ declare namespace CRMAPI {
 			 *		the message key of that object will be filled with the reason
 			 *		it failed ("instance no longer exists" or "no listener exists")
 			 */
-			sendMessage(instance: number, tabIndex: number, message: any, callback?: Function): void,
-			sendMessage(instance: Instance, tabIndex: number, message: any, callback?: Function): void,
+			sendMessage(instance: number, tabIndex: number, message: any, callback?: InstanceCallback): void,
+			sendMessage(instance: Instance, tabIndex: number, message: any, callback?: InstanceCallback): void,
 			/**
 			 * Adds a listener for any comm-messages sent from other instances of
 			 * this script
@@ -1967,7 +1979,7 @@ declare namespace CRMAPI {
 			 * @param {function} listener - The listener that gets called with the message
 			 * @returns {number} An id that can be used to remove the listener
 			 */
-			addListener(listener: MessageHandler): number,
+			addListener(listener: InstanceCallback): number,
 			/**
 			 * Removes a listener currently added by using comm.addListener
 			 *
@@ -1975,7 +1987,7 @@ declare namespace CRMAPI {
 			 * 		by adding it.
 			 */
 			removeListener(listener: number): void,
-			removeListener(listener: MessageHandler): void,
+			removeListener(listener: InstanceCallback): void,
 			/**
 			 * Sends a message to the background page for this script
 			 *
@@ -2693,8 +2705,16 @@ declare namespace CRMAPI {
 				 * @param {string} [options.code] - The code to use
 				 * @param {function} [callback] - A callback with the library object as an argument
 				 */
-				register(name: string, options: {url: string, code: string},
-					callback?: (lib: CRM.Library) => void): void,
+				register(name: string, options: {
+					code: string;
+					url?: string
+				}|{
+					url: string;
+					code?: string
+				}|{
+					code: string;
+					url: string
+				}, callback?: (lib: CRM.Library) => void): void,
 			}
 		}
 
