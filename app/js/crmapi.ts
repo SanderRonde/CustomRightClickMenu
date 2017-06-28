@@ -599,10 +599,40 @@
 			return CrmAPIInit._helpers.mergeObjects(defaults || {}, this._options) as T & CRM.Options;
 		}
 
+
+		/**
+		 * The tab ID for the tab this script was executed on (0 if backgroundpage)
+		 * 
+		 * @type {number}
+		 */
 		tabId: number;
+		
+		/**
+		 * The tab index for this tab relative to its parent window
+		 * 
+		 * @type {number}
+		 */
 		currentTabIndex: number;
+
+		/**
+		 * The permissions that are allowed for this script
+		 * 
+		 * @type {string[]}
+		 */
 		permissions: Array<CRM.Permission>;
+
+		/**
+		 * The id of this script
+		 * 
+		 * @type {number}
+		 */
 		id: number;
+
+		/**
+		 * The context data for the click on the page (if any)
+		 * 
+		 * @type {Object}
+		 */
 		contextData: RestoredContextData;
 
 		@makePrivate 
