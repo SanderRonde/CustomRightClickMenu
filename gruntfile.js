@@ -17,7 +17,7 @@ module.exports = function(grunt) {
 				},
 				files: [
 					{
-						src: ['app/js/crmapi.js'],
+						src: ['app/js/crmapi.ts'],
 						dest: 'app/js/crmAPIDefs.js',
 						expand: false
 					}
@@ -29,7 +29,7 @@ module.exports = function(grunt) {
 				},
 				files: [
 					{
-						src: ['app/js/crmapi.js'],
+						src: ['app/js/crmapi.ts'],
 						dest: 'app/html/crmAPIDocs.html',
 						expand: false
 					}
@@ -42,7 +42,7 @@ module.exports = function(grunt) {
 				},
 				files: [
 					{
-						src: ['app/js/crmapi.js'],
+						src: ['app/js/crmapi.ts'],
 						dest: 'build/crmAPIDefs.js',
 						expand: false
 					}
@@ -55,7 +55,7 @@ module.exports = function(grunt) {
 				},
 				files: [
 					{
-						src: ['app/js/crmapi.js'],
+						src: ['app/js/crmapi.ts'],
 						dest: 'app/html/crmAPIDocs.html',
 						expand: false
 					}
@@ -68,7 +68,7 @@ module.exports = function(grunt) {
 				},
 				files: [
 					{
-						src: ['app/js/crmapi.js'],
+						src: ['app/js/crmapi.ts'],
 						dest: 'build/crmAPIDefs.json',
 						expand: false
 					}
