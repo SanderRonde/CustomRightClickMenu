@@ -2952,12 +2952,12 @@
 				 */
 				splice(this: CrmAPIInit, nodeId: number, start: number, amount: number, 
 					callback: (spliced: Array<CRM.LinkNodeLink>, newArr: Array<CRM.LinkNodeLink>) => void): void {
-						this._sendOptionalCallbackCrmMessage('linkSplice', callback, {
-							nodeId: nodeId,
-							start: start,
-							amount: amount
-						});
-					},
+					this._sendOptionalCallbackCrmMessage('linkSplice', callback, {
+						nodeId: nodeId,
+						start: start,
+						amount: amount
+					});
+				}
 			},
 			/**
 			 * All functions related specifically to the script type
@@ -3055,12 +3055,12 @@
 					 */
 					splice(this: CrmAPIInit, nodeId: number, start: number, amount: number, 
 						callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void {
-							this._sendOptionalCallbackCrmMessage('scriptLibrarySplice', callback, {
-								nodeId: nodeId,
-								start: start,
-								amount: amount
-							});
-						}
+						this._sendOptionalCallbackCrmMessage('scriptLibrarySplice', callback, {
+							nodeId: nodeId,
+							start: start,
+							amount: amount
+						});
+					}
 				},
 				/**
 				 * All functions related specifically to the background script's libraries
@@ -3098,12 +3098,12 @@
 					 */
 					splice(this: CrmAPIInit, nodeId: number, start: number, amount: number, 
 						callback?: (spliced: Array<CRM.Library>, newArr: Array<CRM.Library>) => void): void {
-							this._sendOptionalCallbackCrmMessage('scriptBackgroundLibrarySplice', callback, {
-								nodeId: nodeId,
-								start: start,
-								amount: amount
-							});
-						}
+						this._sendOptionalCallbackCrmMessage('scriptBackgroundLibrarySplice', callback, {
+							nodeId: nodeId,
+							start: start,
+							amount: amount
+						});
+					}
 				}
 			},
 			/**
@@ -3174,12 +3174,12 @@
 				 */
 				splice(this: CrmAPIInit, nodeId: number, start: number, amount: number, 
 					callback?: (spliced: Array<CRM.SafeNode>, newArr: Array<CRM.SafeNode>) => void): void {
-						this._sendOptionalCallbackCrmMessage('spliceMenuChildren', callback, {
-							nodeId: nodeId,
-							start: start,
-							amount: amount
-						});
-					}
+					this._sendOptionalCallbackCrmMessage('spliceMenuChildren', callback, {
+						nodeId: nodeId,
+						start: start,
+						amount: amount
+					});
+				}
 			}
 		};
 
@@ -3957,6 +3957,15 @@
 			 * @type Window
 			 */
 			unsafeWindow: typeof window === 'undefined' ? self : window,
+			//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
+			//	and january 24th 2016 waiting for any update
+			/**
+			 * THIS FUNCTION DOES NOT WORK AND IS DEPRECATED
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_installScript}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
+			GM_installScript: CrmAPIInit._helpers.emptyFn,
 			/**
 			 * Shows a HTML5 Desktop notification and/or highlight the current tab.
 			 *
@@ -4018,16 +4027,7 @@
 					console.warn(errorMessage);
 				};
 				request.send();
-			},
-			//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
-			//	and january 24th 2016 waiting for any update
-			/**
-			 * THIS FUNCTION DOES NOT WORK AND IS DEPRECATED
-			 *
-			 * @see {@link https://tampermonkey.net/documentation.php#GM_installScript}
-			 * @param {any} ignoredArguments - An argument that is ignored
-			 */
-			GM_installScript: CrmAPIInit._helpers.emptyFn
+			}
 		};
 
 		/**
