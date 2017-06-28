@@ -352,7 +352,6 @@ var extractDefs = class ExtractDefs {
 	 * @param {string} descr - The description of the comment block
 	 */
 	parseDefineCommentBlock(cont, defs, detailedDefs, descr) {
-		console.log(defs);
 		var val = {};
 		if (!this.isTernExtraction) {
 			if (!detailedDefs[defs.name]) {
@@ -370,7 +369,6 @@ var extractDefs = class ExtractDefs {
 					descr: defs.props[i].propDescr
 				});
 			}
-			console.log('being toxic', defs.props[i].name.indexOf('.'))
 			val[defs.props[i].name] = propType;
 		}
 		defs.proto && (val['!proto'] = defs.proto);
@@ -556,14 +554,10 @@ var extractDefs = class ExtractDefs {
 	extractDefs() {
 		var [ indentation, i ] = ExtractDefs.getIndentation(this.lines);
 		var currentIndentation = indentation;
-		console.log('used indentation is', indentation, '\\t');
 
 		var searchingCommentEnd = false;
 		var parents = [];
 		for (; i < this.lines.length; i++) {
-			if (i === 2436) {
-				debugger;
-			}
 			const indentationRegexes = ExtractDefs.genIndentationRegexes(currentIndentation);
 			const propRegexMatch = this.lines[i].match(indentationRegexes.propRegex);
 			if (propRegexMatch && this.lines[i].indexOf(propRegexMatch[0]) === 0) {
