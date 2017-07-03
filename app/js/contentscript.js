@@ -79,13 +79,17 @@
 					}
 				}
 
-				lastContextmenuCall.srcElement.classList.add('crm_element_identifier_' + ++contextElementId);
-				responseObj.srcElement = contextElementId;
-				lastContextmenuCall.target.classList.add('crm_element_identifier_' + ++contextElementId);
-				responseObj.target = contextElementId;
-				lastContextmenuCall.toElement.classList.add('crm_element_identifier_' + ++contextElementId);
-				responseObj.toElement = contextElementId;
-				respond(responseObj);
+				if (lastContextmenuCall === null) {
+					respond(null);
+				} else {
+					lastContextmenuCall.srcElement.classList.add('crm_element_identifier_' + ++contextElementId);
+					responseObj.srcElement = contextElementId;
+					lastContextmenuCall.target.classList.add('crm_element_identifier_' + ++contextElementId);
+					responseObj.target = contextElementId;
+					lastContextmenuCall.toElement.classList.add('crm_element_identifier_' + ++contextElementId);
+					responseObj.toElement = contextElementId;
+					respond(responseObj);
+				}
 				break;
 			case 'runScript':
 				if (!crmAPIExecuted) {
