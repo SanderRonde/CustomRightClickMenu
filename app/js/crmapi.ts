@@ -4275,7 +4275,7 @@
 					details.name = name;
 				}
 				else {
-					details = detailsOrUrl;
+					details = detailsOrUrl as DownloadSettings;
 				}
 				const options = {
 					url: details.url,

@@ -142,7 +142,7 @@ class CEP {
 		downloadURL?: string;
 		url?: string;
 		author?: string;
-	}): boolean {
+	}|string): source is string {
 		if (!source) {
 			return true;
 		}

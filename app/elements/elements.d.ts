@@ -163,6 +163,11 @@ interface LogLineContainerInterface {
 	};
 	clear(): void;
 	render(): JSX.Element;
+
+	props: {
+		items: Array<any>;
+		logConsole: LogConsole;
+	}
 }
 
 //Animation

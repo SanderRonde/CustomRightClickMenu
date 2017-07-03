@@ -474,7 +474,7 @@ window.logElements = (() => {
 				<div className="logLines">
 					{children}
 				</div>
-			);;
+			);
 		}
 	}
 

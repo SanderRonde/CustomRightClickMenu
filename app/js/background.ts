@@ -2889,16 +2889,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
 				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
 					//Remove original from CRM
-					const parentChildren = _this.lookup(node.path, globalObject.globals.crm
-						.crmTree, true);
+					const parentChildren = _this.lookup(node.path, globalObject.globals.crm.crmTree, true);
 					//parentChildren.splice(node.path[node.path.length - 1], 1);
 
 					if ((node = _this.moveNode(node, _this.message.data.position as {
-						position: number;
+						node: number;
 					}, {
-							children: parentChildren,
-							index: node.path[node.path.length - 1]
-						}) as CRM.Node)) {
+						children: parentChildren,
+						index: node.path[node.path.length - 1]
+					}) as CRM.Node)) {
 						CRM.updateCrm();
 						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
 					}
@@ -2908,8 +2907,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		static deleteNode(_this: CRMFunction) {
 			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
 				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-					const parentChildren = _this.lookup(node.path, globalObject.globals.crm
-						.crmTree, true) as Array<CRM.Node>;
+					const parentChildren = _this.lookup(node.path, globalObject.globals.crm.crmTree, true) as Array<CRM.Node>;
 					parentChildren.splice(node.path[node.path.length - 1], 1);
 					if (globalObject.globals.crmValues.contextMenuIds[node
 						.id] !==

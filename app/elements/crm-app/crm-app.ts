@@ -408,7 +408,7 @@ class CA {
 		const toAdd = nodesToAdd.splice(0, 1)[0];
 		this.util.treeForEach(toAdd, function (node) {
 			node.id = _this.generateItemId();
-			node.nodeInfo.source = 'import';
+			node.nodeInfo.source = 'local';
 		});
 
 		this.crm.add(toAdd);

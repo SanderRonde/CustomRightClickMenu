@@ -506,7 +506,7 @@ class LC {
 		window.logConsole = this;
 
 		this.logLines = (ReactDOM.render(
-			React.createElement(
+			(React.createElement as any)(
 				(window.logElements.logLines as any) as string, {
 					items: [],
 					logConsole: this

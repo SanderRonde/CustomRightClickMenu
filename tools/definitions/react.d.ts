@@ -182,6 +182,14 @@ declare namespace React {
         refs: {
             [key: string]: ReactInstance
         };
+
+        componentWillMount?(): void;
+        componentDidMount?(): void;
+        componentWillReceiveProps?(nextProps: P, nextContext: any): void;
+        shouldComponentUpdate?(nextProps: P, nextState: S, nextContext: any): boolean;
+        componentWillUpdate?(nextProps: P, nextState: S, nextContext: any): void;
+        componentDidUpdate?(prevProps: P, prevState: S, prevContext: any): void;
+        componentWillUnmount?(): void;
     }
 
     class PureComponent<P, S> extends Component<P, S> { }

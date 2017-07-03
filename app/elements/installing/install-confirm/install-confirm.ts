@@ -248,7 +248,9 @@ class IC {
 					const allowed = permissions.permissions;
 					if (allowed.indexOf(permission) === -1) {
 						try {
-							chrome.permissions.request(permission, function(granted) {
+							chrome.permissions.request({
+								permissions: [permission]
+							}, function(granted) {
 								if (!granted) {
 									checkbox.checked = false;
 								}

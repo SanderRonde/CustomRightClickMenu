@@ -170,7 +170,9 @@ class NEB {
 		itemInEditPage.itemName = newSettings.name;
 
 		if (!newSettings.onContentTypes[window.app.crmType]) {
-			window.app.editCRM.build(window.app.editCRM.setMenus);
+			window.app.editCRM.build({
+				setItems: window.app.editCRM.setMenus
+			});
 		}
 
 		if (newSettings.value && newSettings.type !== 'link') {
@@ -179,7 +181,9 @@ class NEB {
 				(newSettings as CRM.ScriptNode|CRM.StylesheetNode).onContentTypes = [true, true, true, true, true, true];
 			} else {
 				if (!newSettings.onContentTypes[window.app.crmType]) {
-					window.app.editCRM.build(window.app.editCRM.setMenus);
+					window.app.editCRM.build({
+						setItems: window.app.editCRM.setMenus
+					});
 				}
 			}
 		}

@@ -5,12 +5,7 @@ declare namespace Polymer {
 	interface InitializerProperties {
 		is?: string;
 		properties?: {
-			[key: string]: {
-				type?: any;
-				notify?: boolean;
-				value?: any;
-				observer?: string;
-			}
+			[key: string]: any;
 		}
 	}
 
@@ -171,10 +166,6 @@ interface HTMLDomRepeatElement extends HTMLTemplateElement {
 interface HTMLDomIfElement extends HTMLTemplateElement {
 	if: boolean;
 	render(): void;
-}
-
-interface ElementListTagNameMap {
-	'edit-crm-item': NodeListOf<EditCrmItem>;
 }
 
 interface HTMLPaperMenuElement extends HTMLElement {

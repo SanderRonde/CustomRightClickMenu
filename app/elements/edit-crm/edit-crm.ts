@@ -617,7 +617,7 @@ class EC {
 			this.currentTimeout = null;
 			setTimeout(() => {
 				this.crmLoading = false;
-				const els = document.getElementsByTagName('edit-crm-item');
+				const els = document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>;
 				for (let i = 0; i < els.length; i++) {
 					els[i].update && els[i].update();
 				}
@@ -691,7 +691,7 @@ class EC {
 
 	private static getSelected(this: EditCrm): Array<number> {
 		const selected = [];
-		const editCrmItems = document.getElementsByTagName('edit-crm-item');
+		const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>;
 		let i;
 		for (i = 0; i < editCrmItems.length; i++) {
 			if (editCrmItems[i].classList.contains('highlighted')) {
