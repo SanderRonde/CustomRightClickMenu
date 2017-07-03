@@ -247,6 +247,17 @@ window.chrome = {
 			executedScripts.splice(0, 1);
 		}
 	},
+	commands: {
+		onCommand: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}
+		},
+		getAll: function(callback) {
+			checkOnlyCallback(callback, false);
+			callback([]);
+		}
+	},
 	contextMenus: {
 		create: function(data, callback) {
 			var id = ~~(Math.random() * 1000000) + 1
