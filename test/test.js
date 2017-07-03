@@ -439,6 +439,12 @@ function resetTree() {
  */
 var window;
 var backgroundPageWindow = window = {
+	console: {
+		log: console.log,
+		group: console.log,
+		groupEnd: function() {},
+		groupCollapsed: console.log
+	},
 	JSON: JSON,
 	setTimeout: setTimeout,
 	setInterval: setInterval,
@@ -743,8 +749,8 @@ var chrome = {
 			}
 		},
 		getManifest: function() {
-			return JSON.parse(String(fs
-				.readFileSync('./build/manifest.json'), {
+			return JSON.parse(fs
+				.readFileSync('./build/manifest.json', {
 					encoding: 'utf8'
 				})
 				.replace(/\/\*.+\*\//g, ''))
@@ -924,6 +930,17 @@ var chrome = {
 			checkOnlyCallback(callback, true);
 		}
 	},
+	commands: {
+		onCommand: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}
+		},
+		getAll: function(callback) {
+			checkOnlyCallback(callback, false);
+			callback([]);
+		}
+	},
 	tabs: {
 		onHighlighted: {
 			addListener: function (listener) {
@@ -939,6 +956,83 @@ var chrome = {
 			addListener: function (listener) {
 				checkOnlyCallback(listener, false);
 			 }
+		},
+		query: function(options, callback) {
+			typeCheck({
+				options: options,
+				callback: callback
+			}, [{
+				val: 'options',
+				type: 'object'
+			}, {
+				val: 'options.tabId',
+				type: ['number', 'array'],
+				optional: true
+			}, {
+				val: 'options.status',
+				type: 'enum',
+				enum: ['loading', 'complete'],
+				optional: true
+			}, {
+				val: 'options.lastFocusedWindow',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.windowId',
+				type: 'number',
+				optional: true
+			}, {
+				val: 'options.windowType',
+				type: 'enum',
+				enum: ['normal', 'popup', 'panel', 'app', 'devtools'],
+				optional: true
+			}, {
+				val: 'options.active',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.index',
+				type: 'number',
+				optional: true
+			}, {
+				val: 'options.title',
+				type: 'string',
+				optional: true
+			}, {
+				val: 'options.url',
+				type: ['string', 'array'],
+				optional: true
+			}, {
+				val: 'options.currentWindow',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.highlighted',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.pinned',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.audible',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.muted',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.tabId',
+				type: ['number', 'array'],
+				optional: true
+			}, {
+				val: 'callback',
+				type: 'function',
+				optional: true
+			}]);
+
+			callback([]);
 		}
 	},
 	webRequest: {

@@ -886,6 +886,99 @@ window.chrome = {
 			}]);
 
 			responseCallback({});
+		},
+		query: function(options, callback) {
+			typeCheck({
+				options: options,
+				callback: callback
+			}, [{
+				val: 'options',
+				type: 'object'
+			}, {
+				val: 'options.tabId',
+				type: ['number', 'array'],
+				optional: true
+			}, {
+				val: 'options.status',
+				type: 'enum',
+				enum: ['loading', 'complete'],
+				optional: true
+			}, {
+				val: 'options.lastFocusedWindow',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.windowId',
+				type: 'number',
+				optional: true
+			}, {
+				val: 'options.windowType',
+				type: 'enum',
+				enum: ['normal', 'popup', 'panel', 'app', 'devtools'],
+				optional: true
+			}, {
+				val: 'options.active',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.index',
+				type: 'number',
+				optional: true
+			}, {
+				val: 'options.title',
+				type: 'string',
+				optional: true
+			}, {
+				val: 'options.url',
+				type: ['string', 'array'],
+				optional: true
+			}, {
+				val: 'options.currentWindow',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.highlighted',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.pinned',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.audible',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.muted',
+				type: 'boolean',
+				optional: true
+			}, {
+				val: 'options.tabId',
+				type: ['number', 'array'],
+				optional: true
+			}, {
+				val: 'callback',
+				type: 'function',
+				optional: true
+			}]);
+
+			callback(Object.getOwnPropertyNames(fakeTabs).map(function(fakeTabId) {
+				return fakeTabs[fakeTabId];
+			}).filter(function(tab) {
+				if (options.tabId !== undefined) {
+					if (typeof options.tabId === 'number') {
+						options.tabId = [options.tabId];
+					}
+
+					if (options.tabId.indexOf(tab.id) === -1) {
+						return false;
+					}
+				}
+				if (options.url !== undefined && tab.url !== options.url) {
+					return false;
+				}
+				return true;
+			}));
 		}
 	},
 	management: {
