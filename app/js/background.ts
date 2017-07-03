@@ -2113,6 +2113,37 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					.storages.resources[scriptId][name].sourceUrl].dataURI;
 			}
 			return null;
+		}
+
+		static restoreOpenTabs() {
+			console.log('Restoring currently open tabs');
+			return new Promiselike<void>((resolve) => {
+				chrome.tabs.query({}, (tabs) => {
+					if (tabs.length === 0) {
+						resolve(null);
+					} else {
+						Promiselike.all(tabs.map((tab) => {
+							return new Promiselike<void>((resolveInner) => {
+								if (tab.url.indexOf('chrome://') === -1 && 
+									tab.url.indexOf('file://') === -1) {
+										chrome.tabs.executeScript(tab.id, {
+											file: 'js/contentscript.js'
+										}, () => {
+											if (chrome.runtime.lastError) {
+												resolveInner(null);
+											}
+											resolveInner(null);
+										});
+									} else {
+										resolveInner(null);
+									}
+							});
+						})).then(() => {
+							resolve(null);
+						});
+					}
+				});
+			});
 		}		
 	}
 
@@ -5657,7 +5688,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				runAt: string;
 			}>, i: number) {
 				if (chrome.runtime.lastError) {
-					console.log(chrome.runtime.lastError);
+					console.log('Couldn\'t execute on tab', chrome.runtime.lastError);
 					return () => { };
 				}
 				return () => {
@@ -9760,26 +9791,28 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 				chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
 				CRM.buildPageCRM();
-				CRM.Script.Background.createBackgroundPages();
-				GlobalDeclarations.init();
+				GlobalDeclarations.restoreOpenTabs().then(() => {
+					CRM.Script.Background.createBackgroundPages();
+					GlobalDeclarations.init();
 
-				//Checks if all values are still correct
-				Resources.checkIfResourcesAreUsed();
-				Resources.updateResourceValues();
-				CRM.Script.Updating.updateScripts();
-				window.setInterval(() => {
+					//Checks if all values are still correct
+					Resources.checkIfResourcesAreUsed();
+					Resources.updateResourceValues();
 					CRM.Script.Updating.updateScripts();
-				}, 6 * 60 * 60 * 1000);
+					window.setInterval(() => {
+						CRM.Script.Updating.updateScripts();
+					}, 6 * 60 * 60 * 1000);
 
-				GlobalDeclarations.initGlobalFunctions();
+					GlobalDeclarations.initGlobalFunctions();
 
-				if (location.href.indexOf('test') > -1) {
-					globalObject.Storages = Storages;
-				}
-				if (typeof module !== 'undefined') {
-					globalObject.TransferFromOld =
-						Storages.SetupHandling.TransferFromOld;
-				}
+					if (location.href.indexOf('test') > -1) {
+						globalObject.Storages = Storages;
+					}
+					if (typeof module !== 'undefined') {
+						globalObject.TransferFromOld =
+							Storages.SetupHandling.TransferFromOld;
+					}
+				});
 			} catch (e) {
 				console.log(e);
 				throw e;
