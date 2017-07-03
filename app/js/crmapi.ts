@@ -330,7 +330,7 @@
 
 		const thisArgs: Array<Object> = [];
 
-		return class extends CrmAPIInit {
+		return class extends target {
 			constructor(node: CRM.Node, id: number, tabData: chrome.tabs.Tab,
 				clickData: chrome.contextMenus.OnClickData, secretKey: Array<number>,
 				nodeStorage: CRM.NodeStorage, contextData: EncodedContextData,
