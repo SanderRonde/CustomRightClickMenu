@@ -9877,11 +9877,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				' You can also visit the logging page for even better logging over at ',
 				chrome.runtime.getURL('html/logging.html'));
 		}
-		//TODO: collapsed
-		console.group('Initialization');
-		console.group('Loading storage data');
+		window.console.group('Initialization');
+		window.console.group('Loading storage data');
 		Storages.loadStorages(() => {
-			console.groupEnd();
+			window.console.groupEnd();
 			try {
 				globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
 				console.log('Registering permission listeners');
@@ -9894,17 +9893,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
 				console.log('Building Custom Right-Click Menu');
 				CRM.buildPageCRM();
-				console.groupCollapsed('Restoring previous open tabs');
+				window.console.groupCollapsed('Restoring previous open tabs');
 				GlobalDeclarations.restoreOpenTabs().then(() => {
-					console.groupEnd();
-					console.groupCollapsed('Creating backgroundpages');
+					window.console.groupEnd();
+					window.console.groupCollapsed('Creating backgroundpages');
 					CRM.Script.Background.createBackgroundPages();
-					console.groupEnd();
+					window.console.groupEnd();
 					console.log('Registering global handlers');
 					GlobalDeclarations.init();
 
 					//Checks if all values are still correct
-					console.group('Checking Resources');
+					window.console.group('Checking Resources');
 					console.log('Checking if resources are used');
 					Resources.checkIfResourcesAreUsed();
 					console.log('Updating resources');
@@ -9914,7 +9913,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					window.setInterval(() => {
 						CRM.Script.Updating.updateScripts();
 					}, 6 * 60 * 60 * 1000);
-					console.groupEnd();
+					window.console.groupEnd();
 
 					console.log('Registering console user interface');
 					GlobalDeclarations.initGlobalFunctions();
@@ -9926,7 +9925,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						globalObject.TransferFromOld =
 							Storages.SetupHandling.TransferFromOld;
 					}
-					console.groupEnd();
+					window.console.groupEnd();
 					console.log('');
 				});
 			} catch (e) {
