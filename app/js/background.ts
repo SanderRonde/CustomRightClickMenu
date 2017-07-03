@@ -5689,7 +5689,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				runAt: string;
 			}>, i: number) {
 				if (chrome.runtime.lastError) {
-					console.log('Couldn\'t execute on tab', chrome.runtime.lastError);
+					if (chrome.runtime.lastError.message.indexOf('Could not establish connection') === -1 &&
+						chrome.runtime.lastError.message.indexOf('closed') === -1) {
+							console.log('Couldn\'t execute on tab', chrome.runtime.lastError);
+						}
 					return () => { };
 				}
 				return () => {
