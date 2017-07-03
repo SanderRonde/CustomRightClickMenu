@@ -587,7 +587,7 @@ function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, do
 		return wait(driver, 100);
 	}).then(() => {
 		return driver.executeScript(inlineFn(() => {
-			(document.getElementsByTagName('edit-crm-item').item(0)).openEditPage();
+			((document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
 		}));
 	}).then(() => {
 		return wait(driver, 500);
@@ -600,7 +600,7 @@ function openDialog(driver: webdriver.WebDriver, type: CRM.NodeType) {
 	return new webdriver.promise.Promise((resolve) => {
 		if (type === 'link') {
 			driver.executeScript(inlineFn(() => {
-				(document.getElementsByTagName('edit-crm-item').item(0)).openEditPage();
+				((document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
 			})).then(() => {
 				wait(driver, 1000).then(resolve);
 			});
@@ -657,9 +657,9 @@ class FoundElementPromise {
 			opt_errback?: (error: any) => any): webdriver.promise.Promise<R> {
 		if (opt_callback) {
 			if (opt_errback) {
-				return this.promise.then(opt_callback, opt_errback);
+				return (this.promise.then as any)(opt_callback, opt_errback);
 			}
-			return this.promise.then(opt_callback);
+			return (this.promise.then as any)(opt_callback);
 		}
 		return this.promise.then();
 	}
@@ -2397,7 +2397,7 @@ describe('Options Page', function(this: MochaFn) {
 
 			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
 				driver.executeScript(inlineFn(() => {
-					const crmItem = document.getElementsByTagName('edit-crm-item').item(0);
+					const crmItem = (document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>).item(0);
 					crmItem.typeIndicatorMouseOver();
 				})).then(() => {
 					return wait(driver, 300);
