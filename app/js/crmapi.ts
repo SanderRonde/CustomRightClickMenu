@@ -830,9 +830,9 @@
 					if (status === 'error') {
 						__this.onError && __this.onError(messageOrParams);
 						if (__this.stackTraces) {
-							setTimeout(function () {
+							setTimeout(() => {
 								console.log('stack trace: ');
-								stackTrace.forEach(function (line) {
+								stackTrace.forEach((line) => {
 									console.log(line);
 								});
 							}, 5);
@@ -983,21 +983,21 @@
 				code: string;
 				logCallbackIndex: number;
 			}>): Array<string> {
-				const strSections = this.__privates._getCodeSections(message.code);
-				if (!strSections.end) {
+				const { lead, words, end } = this.__privates._getCodeSections(message.code);
+				if (!end) {
 					return null;
 				}
 
-				if (!(strSections.lead in window)) {
+				if (!(lead in window)) {
 					return null;
 				}
-				let target = (window as any)[strSections.lead];
+				let target = (window as any)[lead];
 				if (target) {
-					for (let i = 0; i < strSections.words.length; i++) {
-						if (!(strSections.words[i] in target)) {
+					for (let i = 0; i < words.length; i++) {
+						if (!(words[i] in target)) {
 							return null;
 						}
-						target = target[strSections.words[i]];
+						target = target[words[i]];
 					}
 
 					//Now for the actual hinting
@@ -1011,9 +1011,9 @@
 
 					const properties = this.__privates._getObjectProperties(target);
 					for (let i = 0; i < properties.length; i++) {
-						if (properties[i] === strSections.end.currentWord) {
+						if (properties[i] === end.currentWord) {
 							hints.full.push(properties[i]);
-						} else if (properties[i].indexOf(strSections.end.currentWord) === 0) {
+						} else if (properties[i].indexOf(end.currentWord) === 0) {
 							hints.partial.push(properties[i]);
 						}
 					}
@@ -1108,7 +1108,7 @@
 						//Data was changed
 						switch (newData[1]) {
 							case 'Link':
-								const newLinks = newData[2].split(',').map(function(link) {
+								const newLinks = newData[2].split(',').map((link) => {
 									return {
 										url: link,
 										newTab: true
@@ -1181,7 +1181,7 @@
 
 							switch (newData[1]) {
 								case 'Link':
-									createOptions.linkData = newData[2].split(',').map(function(link) {
+									createOptions.linkData = newData[2].split(',').map((link) => {
 										return {
 											url: link,
 											newTab: true
@@ -1296,7 +1296,7 @@
 			}>) {
 				const log = this.__privates._sentLogs[message.code.logId];
 				const bracketPathArr = ('[' + message.code.index + ']' +
-					message.code.path.replace(/\.(\w+)/g, function(fullString, match) {
+					message.code.path.replace(/\.(\w+)/g, (fullString, match) => {
 						return '["' + match + '"]';
 					})).split('][');
 				
@@ -1305,7 +1305,7 @@
 					0, bracketPathArr[bracketPathArr.length - 1].length - 1
 				);
 
-				const bracketPath = JSON.stringify(bracketPathArr.map(function(pathValue) {
+				const bracketPath = JSON.stringify(bracketPathArr.map((pathValue) => {
 					return JSON.parse(pathValue);
 				}));
 
@@ -1519,7 +1519,7 @@
 				} else {
 					keyPathString = keyPath;
 				}
-				this.__privates._storageListeners.forEach(function(listener) {
+				this.__privates._storageListeners.forEach((listener) => {
 					if (listener.key.indexOf(keyPathString) > -1) {
 						CrmAPIInit._helpers.isFn(listener.callback) && listener.callback(listener.key, oldValue, newValue, remote || false);
 					}
@@ -1574,9 +1574,9 @@
 					if (status === 'error') {
 						this.onError && this.onError(messageOrParams);
 						if (this.stackTraces) {
-							setTimeout(function () {
+							setTimeout(() => {
 								console.log('stack trace: ');
-								stackTrace.forEach(function (line) {
+								stackTrace.forEach((line) => {
 									console.log(line);
 								});
 							}, 5);
@@ -1695,7 +1695,7 @@
 					};
 					this.request = request;
 					if (__this.warnOnChromeFunctionNotSent) {
-						window.setTimeout(function() {
+						window.setTimeout(() => {
 							if (!request._sent) {
 								console.warn('Looks like you didn\'t send your chrome function,' + 
 									' set crmAPI.warnOnChromeFunctionNotSent to false to disable this message');
@@ -1821,10 +1821,10 @@
 					}, stackTrace: Array<string>) {
 						if (messageOrParams.stackTrace) {
 							console.warn('Remote stack trace:');
-							messageOrParams.stackTrace.split('\n').forEach(function(line) { console.warn(line); });
+							messageOrParams.stackTrace.split('\n').forEach((line) => { console.warn(line); });
 						}
 						console.warn((messageOrParams.stackTrace ? 'Local s': 'S') + 'tack trace:');
-						stackTrace.forEach(function(line) { console.warn(line); });
+						stackTrace.forEach((line) => { console.warn(line); });
 					}
 
 					const onFinishFn = (status: 'success'|'error'|'chromeError', messageOrParams: {
@@ -1850,7 +1850,7 @@
 								this.__this.onError(errMessage);
 							}
 							if (this.__this.stackTraces) {
-								window.setTimeout(function() {
+								window.setTimeout(() => {
 									showStackTrace(errMessage, stackTrace);	
 								}, 5);
 							}
@@ -1927,7 +1927,7 @@
 				if (!aOpts[('on' + aEventName) as keyof typeof aOpts]) {
 					return;
 				}
-				aReq.addEventListener(aEventName, function (aEvent) {
+				aReq.addEventListener(aEventName, (aEvent) => {
 					const responseState: {
 						responseText: string;
 						responseXML: Document;
@@ -4294,7 +4294,7 @@
 						CrmAPIInit._helpers.isFn(details.onload) && details.onload();
 					}
 				});
-				request.request.onError = function (errorMessage) {
+				request.request.onError = (errorMessage) => {
 					CrmAPIInit._helpers.isFn(details.onerror) && details.onerror({
 						error: 'not_permitted',
 						details: errorMessage.error
@@ -4396,7 +4396,7 @@
 				const request = this.__privates._chromeSpecialRequest('notifications.create', 'GM_notification').args(details).args((notificationId: number) => {
 					this.__privates._addNotificationListener(notificationId, onclickRef, ondoneRef);
 				});
-				request.request.onError = function (errorMessage) {
+				request.request.onError = (errorMessage) => {
 					console.warn(errorMessage);
 				};
 				request.send();
@@ -4432,7 +4432,7 @@
 				.join('at')
 				.replace(/anonymous/, 'script');
 
-			const result = this.__privates._saveLogValues(args);
+			const { data, logId } = this.__privates._saveLogValues(args);
 
 			this.__privates._sendMessage({
 				id: this.__privates._id,
@@ -4441,9 +4441,9 @@
 				tabIndex: this.__privates._tabIndex,
 				data: {
 					type: 'log',
-					data: JSON.stringify(result.data),
+					data: JSON.stringify(data),
 					id: this.__privates._id,
-					logId: result.logId,
+					logId: logId,
 					tabIndex: this.__privates._tabIndex,
 					lineNumber: lineNumber,
 					tabId: this.__privates._tabData.id
