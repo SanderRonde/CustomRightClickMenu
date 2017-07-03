@@ -263,7 +263,7 @@
 
 	function removePrivateValues<T>(target: T, privateKeys: Array<keyof T>) {
 		for (let i = 0; i < privateKeys.length; i++) {
-			delete (target as any)[privateKeys[i]];
+			(target as any)[privateKeys[i]] = undefined;
 		}
 	}
 
@@ -2343,6 +2343,7 @@
 				crmPath: this._node.path,
 				data: params,
 				onFinish: {
+					persistent: persistent,
 					maxCalls: 1,
 					fn: onFinish
 				},
