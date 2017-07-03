@@ -6673,11 +6673,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 						globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 
-						Script.Handler.genTabData(0, key, node.id, node.value.backgroundScript);
+						CRM.Script.Handler.genTabData(0, key, node.id, node.value.backgroundScript);
 						Logging.Listeners.updateTabAndIdLists();
 
 						const metaData = CRM.Script.MetaTags.getMetaTags(node.value.script);
-						const { excludes, includes } = Script.Handler.getInExcludes(node);
+						const { excludes, includes } = CRM.Script.Handler.getInExcludes(node);
 
 						const indentUnit = editorSettings.useTabs ?
 							'	' : Helpers.leftPad(' ', editorSettings.tabSize || 2)
@@ -6686,7 +6686,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							return indentUnit + line;
 						}).join('\n');
 
-						const greaseMonkeyData = Script.Handler.generateGreaseMonkeyData(metaData, node, includes, excludes, {
+						const greaseMonkeyData = CRM.Script.Handler.generateGreaseMonkeyData(metaData, node, includes, excludes, {
 							incognito: false
 						});
 
