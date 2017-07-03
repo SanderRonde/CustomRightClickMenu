@@ -426,6 +426,12 @@ interface GlobalObject {
 				onClick: number;
 			};
 		};
+		shortcutListeners: {
+			[shortcut: string]: Array<{
+				shortcut: string;
+				callback(): void;
+			}>;
+		};
 		scriptInstallListeners: {
 			[tabId: number]: {
 				id: number;
@@ -644,6 +650,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			}
 		},
 		notificationListeners: {},
+		shortcutListeners: {},
 		scriptInstallListeners: {},
 		logging: {
 			filter: {
@@ -2088,6 +2095,46 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				chrome.management.onDisabled.addListener(updateTamperMonkeyInstallState);
 			}
 
+			function updateKeyCommands() {
+				return new Promiselike<Array<chrome.commands.Command>>((resolve) => {
+					chrome.commands.getAll((commands) => {
+						resolve(commands);
+					});
+				});
+			}
+
+			function permute<T>(arr: Array<T>, prefix: Array<T> = []): Array<Array<T>> {
+				if (arr.length === 0) {
+					return [prefix];
+				}
+				return arr.map((x, index) => {
+					const newRest = [...arr.slice(0, index), ...arr.slice(index + 1)];
+					const newPrefix = [...prefix, x];
+
+					const result = permute(newRest, newPrefix);
+					return result;
+				}).reduce((flattened, arr) => [...flattened, ...arr], []);
+			}
+
+			function listenKeyCommands() {
+				chrome.commands.onCommand.addListener((command) => {
+					updateKeyCommands().then((commands) => {
+						commands.forEach((registerCommand) => {
+							if (registerCommand.name === command) {
+								const keys = registerCommand.shortcut.toLowerCase();
+								const permutations = permute(keys.split('+'));
+								permutations.forEach((permutation) => {
+									const permutationKey = permutation.join('+');
+									globalObject.globals.shortcutListeners[permutationKey].forEach((listener) => {
+											listener.callback();
+										});
+								});
+							}
+						});
+					});
+				});
+			}
+
 			chrome.tabs.onHighlighted.addListener(tabChangeListener);
 			chrome.webRequest.onBeforeRequest.addListener(
 				(details) => {
@@ -2104,6 +2151,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			listenTabsRemoved();
 			listenNotifications();
 			listenTamperMonkeyInstallState();
+			listenKeyCommands();
 		}
 
 		static getResourceData(name: string, scriptId: number) {
@@ -4149,6 +4197,31 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					this._runScript(__this, __this.message.id, msg.options);
 				});
 			})
+		}
+		static addKeyboardListener(_this: CRMFunction) {
+			_this.typeCheck([{
+				val: 'key',
+				type: 'string'
+			}], (optionals) => {
+				const msg = _this.message.data as CRMFunctionDataBase & {
+					key: string;
+				};
+				const shortcuts = globalObject.globals.shortcutListeners;
+				const key = msg.key.toLowerCase();
+				shortcuts[key] = shortcuts[key] || [];
+				const listenerObject = {
+					shortcut: key,
+					callback: () => {
+						try {
+							_this.respondSuccess();
+						} catch(e) {
+							//Port/tab was closed
+							shortcuts[key].splice(shortcuts[key].indexOf(listenerObject), 1);
+						}
+					}
+				};
+				shortcuts[key].push(listenerObject);
+			});
 		}
 	}
 

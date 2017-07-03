@@ -187,17 +187,6 @@
 		ondone?: () => void;
 	}
 
-	interface KeyboardListenerOptions {
-		/**
-		 * The key to listen for
-		 */
-		key: string;
-		/**
-		 * Whether the shortcut has to be global (null or undefined means it doesn't matter)
-		 */
-		global?: boolean;
-	}
-
 	var localStorageProxy: {
 		[key: string]: any;
 		[key: number]: any;
@@ -3309,21 +3298,19 @@
 				this._sendOptionalCallbackCrmMessage('runSelf', null, {
 					options: options
 				});
-		},
+			},
 			/**
 			 * Adds a listener for a keyboard event
 			 * 
-			 * @param {Object} options - The options for what event to listen for
-			 * @param {string} options.key - The keyboard shortcut to listen for
-			 * @param {boolean} [options.global] - Whether the shortcut isglobal
+			 * @param {string} key - The keyboard shortcut to listen for
 			 * @param {function} callback - The function to call when a keyboard event occurs
 			 */
-			addKeyboardListener(this: CrmAPIInit, options: KeyboardListenerOptions, callback: () => void): void {
+			addKeyboardListener(this: CrmAPIInit, key: string, callback: () => void): void {
 				if (!this._ensureBackground()) {
 					return;
 				}
 				this._sendOptionalCallbackCrmMessage('addKeyboardListener', callback, {
-					options: options
+					key: key
 				}, true);
 			}
 		}

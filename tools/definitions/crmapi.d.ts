@@ -2746,7 +2746,7 @@ declare namespace CRMAPI {
 			 * @param {boolean} [options.muted] - Whether the tabs are muted
 			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
 			 */
-			runScript(this: CrmAPIInit, id: number, options: chrome.tabs.QueryInfo & {
+			runScript(id: number, options: chrome.tabs.QueryInfo & {
 				tabId?: MaybeArray<number>;
 			}): void;
 			/**
@@ -2770,9 +2770,16 @@ declare namespace CRMAPI {
 			 * @param {boolean} [options.muted] - Whether the tabs are muted
 			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
 			 */
-			runSelf(this: CrmAPIInit, options: chrome.tabs.QueryInfo & {
+			runSelf(options: chrome.tabs.QueryInfo & {
 				tabId?: MaybeArray<number>;
 			}): void;
+			/**
+			 * Adds a listener for a keyboard event
+			 * 
+			 * @param {string} key - The keyboard shortcut to listen for
+			 * @param {function} callback - The function to call when a keyboard event occurs
+			 */
+			addKeyboardListener(key: string, callback: () => void): void;
 		}
 
 		/**

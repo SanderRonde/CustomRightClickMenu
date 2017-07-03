@@ -77,6 +77,49 @@
 		"webRequestBlocking"
 	],
 
+	"commands": {
+		"crm_command_01": {
+			"description": "CRM Keyboard Shortcut number 1",
+			"global": true
+		},
+		"crm_command_02": {
+			"description": "CRM Keyboard Shortcut number 2",
+			"global": true
+		},
+		"crm_command_03": {
+			"description": "CRM Keyboard Shortcut number 3",
+			"global": true
+		},
+		"crm_command_04": {
+			"description": "CRM Keyboard Shortcut number 4",
+			"global": true
+		},
+		"crm_command_05": {
+			"description": "CRM Keyboard Shortcut number 5",
+			"global": true
+		},
+		"crm_command_06": {
+			"description": "CRM Keyboard Shortcut number 6",
+			"global": true
+		},
+		"crm_command_07": {
+			"description": "CRM Keyboard Shortcut number 7",
+			"global": true
+		},
+		"crm_command_08": {
+			"description": "CRM Keyboard Shortcut number 8",
+			"global": true
+		},
+		"crm_command_09": {
+			"description": "CRM Keyboard Shortcut number 9",
+			"global": true
+		},
+		"crm_command_10": {
+			"description": "CRM Keyboard Shortcut number 10",
+			"global": true
+		}
+	},
+
 	"incognito": "spanning",
 
 	"icons": {
