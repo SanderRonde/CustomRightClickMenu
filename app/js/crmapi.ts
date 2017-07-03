@@ -274,7 +274,7 @@
 
 	function removePrivateValues<T>(target: T, privateKeys: Array<keyof T>) {
 		for (let i = 0; i < privateKeys.length; i++) {
-			(target as any)[privateKeys[i]] = undefined;
+			delete (target as any)[privateKeys[i]];
 		}
 	}
 
