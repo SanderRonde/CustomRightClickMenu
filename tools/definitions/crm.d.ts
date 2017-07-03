@@ -87,6 +87,7 @@ declare namespace CRM {
 	interface CRMPermissionDescriptions {
 		crmGet: string;
 		crmWrite: string;
+		crmRun: string;
 		chrome: string;
 	}
 

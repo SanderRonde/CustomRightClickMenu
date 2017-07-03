@@ -137,6 +137,15 @@ interface ChromeAPIMessage extends CRMAPIMessage<'chrome', void> {
 	requestType: CRM.Permission;
 }
 
+interface BackgroundAPIMessage extends CRMAPIMessage<'background', {
+	[key: string]: any;
+	[key: number]: any;
+}> {
+	action: string;
+}
+
+type MaybeArray<T> = T | Array<T>;
+
 interface ContextMenuSettings extends chrome.contextMenus.CreateProperties {
 	generatedId?: number;
 }
@@ -516,24 +525,28 @@ class Promiselike<T> {
 					promise: promise
 				};
 			});
-			promises.forEach((obj) => {
-				obj.promise.then((result) => {
-					obj.done = true;
-					obj.result = result;
-					if (rejected) {
-						return;
-					}
-					if (promises.filter((listPromise) => {
-						return !listPromise.done;
-					}).length === 0) {
-						resolve(promises.map((listPromise) => {
-							return listPromise.result;
-						}));
-					}
-				}, (reason) => {
-					reject(reason);
+			if (promises.length === 0) {
+				resolve([]);
+			} else {
+				promises.forEach((obj) => {
+					obj.promise.then((result) => {
+						obj.done = true;
+						obj.result = result;
+						if (rejected) {
+							return;
+						}
+						if (promises.filter((listPromise) => {
+							return !listPromise.done;
+						}).length === 0) {
+							resolve(promises.map((listPromise) => {
+								return listPromise.result;
+							}));
+						}
+					}, (reason) => {
+						reject(reason);
+					});
 				});
-			});
+			}
 		});
 	}
 	static race(values: Array<Promiselike<any>>) {
@@ -2100,7 +2113,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					.storages.resources[scriptId][name].sourceUrl].dataURI;
 			}
 			return null;
-		}
+		}		
 	}
 
 	class Logging {
@@ -3906,11 +3919,209 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				});
 			});
 		}
+		private static _runScript(__this: CRMFunction, id: number, options: chrome.tabs.QueryInfo & {
+			tabId?: MaybeArray<number>;
+		}) {
+			if (typeof options.tabId === 'number') {
+				options.tabId = [options.tabId];
+			}
+			//Get results from tab query
+			chrome.tabs.query(options, (result) => {
+				Promiselike.all((options.tabId as Array<number> || []).map((tabId) => {
+					return new Promiselike<chrome.tabs.Tab>((resolve) => {
+						chrome.tabs.get(tabId, (tab) => {
+							resolve(tab);
+						});
+					});
+				})).then((tabs: Array<chrome.tabs.Tab>) => {
+					//Remove duplicates
+					tabs = tabs.concat(result);
+					tabs = tabs.filter((tab, index) => {
+						return tabs.indexOf(tab) === index;
+					});
+
+					const node = __this.getNodeFromId(id, false, true);
+
+					tabs.forEach((tab) => {
+						CRM.Script.Handler.createHandler(node)({
+							pageUrl: tab.url,
+							menuItemId: 0,
+							editable: false
+						}, tab, false);
+					});
+				});
+			});
+		}
+		static runScript(__this: CRMFunction) {
+			__this.checkPermissions(['crmRun'], () => {
+				__this.typeCheck([{
+					val: 'id',
+					type: 'number'
+				}, {
+					val: 'options',
+					type: 'object'
+				}, {
+					val: 'options.tabId',
+					type: ['number', 'array'],
+					optional: true
+				}, {
+					val: 'options.status',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'options.lastFocusedWindow',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.windowId',
+					type: 'number',
+					optional: true
+				}, {
+					val: 'options.windowType',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'options.active',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.index',
+					type: 'number',
+					optional: true
+				}, {
+					val: 'options.title',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'options.url',
+					type: ['string', 'array'],
+					optional: true
+				}, {
+					val: 'options.currentWindow',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.highlighted',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.pinned',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.audible',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.muted',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.tabId',
+					type: ['number', 'array'],
+					optional: true
+				}], () => {
+					const msg = __this.message.data as CRMFunctionDataBase & {
+						id: number;
+						options: chrome.tabs.QueryInfo & {
+							tabId?: MaybeArray<number>;
+						}
+					};
+
+					if (typeof msg.options.tabId === 'number') {
+						msg.options.tabId = [msg.options.tabId];
+					}
+
+					this._runScript(__this, msg.id, msg.options);
+				});
+			})
+		}
+		static runSelf(__this: CRMFunction) {
+			__this.checkPermissions(['crmRun'], () => {
+				__this.typeCheck([{
+					val: 'options',
+					type: 'object'
+				}, {
+					val: 'options.tabId',
+					type: ['number', 'array'],
+					optional: true
+				}, {
+					val: 'options.status',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'options.lastFocusedWindow',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.windowId',
+					type: 'number',
+					optional: true
+				}, {
+					val: 'options.windowType',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'options.active',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.index',
+					type: 'number',
+					optional: true
+				}, {
+					val: 'options.title',
+					type: 'string',
+					optional: true
+				}, {
+					val: 'options.url',
+					type: ['string', 'array'],
+					optional: true
+				}, {
+					val: 'options.currentWindow',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.highlighted',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.pinned',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.audible',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.muted',
+					type: 'boolean',
+					optional: true
+				}, {
+					val: 'options.tabId',
+					type: ['number', 'array'],
+					optional: true
+				}], () => {
+					const msg = __this.message.data as CRMFunctionDataBase & {
+						options: {
+							tabId?: Array<number>|number;
+							url?: string;
+						}
+					};
+
+					if (typeof msg.options.tabId === 'number') {
+						msg.options.tabId = [msg.options.tabId];
+					}
+
+					this._runScript(__this, __this.message.id, msg.options);
+				});
+			})
+		}
 	}
 
 	class APIMessaging {
 		static CRMMessage = class CRMMessage {
-			static respond(message: CRMAPIMessage<'crm' | 'chrome', any>,
+			static respond(message: CRMAPIMessage<'crm' | 'chrome'|'background', any>,
 				type: 'success' | 'error' | 'chromeError', data: any | string, stackTrace?:
 					string) {
 				const msg: CRMAPIResponse<any> = {
@@ -4465,6 +4676,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				return this._checkArrayChildrenConstraints(data, value);
 			}
 			return true;
+		}
+
+		isBackgroundPage() {
+			const isBackground = this.message.tabId === 0;
+			if (!isBackground) {
+				this.respondError('Call source is not a backgroundpage');
+			}
+			return isBackground;
 		}
 
 		typeCheck(toCheck: Array<TypeCheckConfig>, callback: (optionals?: {
@@ -5356,7 +5575,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					break;
 			}
 		}
-		static handleCrmAPIMessage(message: CRMFunctionMessage | ChromeAPIMessage) {
+		static handleCrmAPIMessage(message: CRMFunctionMessage|ChromeAPIMessage|BackgroundAPIMessage) {
 			switch (message.type) {
 				case 'crm':
 					new CRMFunction(message, message.action);
@@ -6296,6 +6515,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						`${indentUnit}selectiontext, editable, waschecked, checked) {`,
 						script,
 						'}',
+						`window.crmAPI = self.crmAPI = crmAPI`,
 						`main(crmAPI, selfWrapper);`,
 						`${catchErrs ? [
 							`} catch (error) {`,

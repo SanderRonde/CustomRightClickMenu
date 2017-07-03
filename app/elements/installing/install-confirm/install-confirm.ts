@@ -137,7 +137,8 @@ class IC {
 			//Script-specific descriptions
 			crmGet: 'Allows the reading of your Custom Right-Click Menu, including names, contents of all nodes, what they do and some metadata for the nodes',
 			crmWrite: 'Allows the writing of data and nodes to your Custom Right-Click Menu. This includes <b>creating</b>, <b>copying</b> and <b>deleting</b> nodes. Be very careful with this permission as it can be used to just copy nodes until your CRM is full and delete any nodes you had. It also allows changing current values in the CRM such as names, actual scripts in script-nodes etc.',
-			chrome: 'Allows the use of chrome API\'s. Without this permission only the \'crmGet\' and \'crmWrite\' permissions will work.',
+			crmRun: 'Allows the running of arbitrary scripts from the background-page',
+			chrome: 'Allows the use of chrome API\'s.',
 
 			//Tampermonkey APIs
 			GM_addStyle: 'Allows the adding of certain styles to the document through this API',

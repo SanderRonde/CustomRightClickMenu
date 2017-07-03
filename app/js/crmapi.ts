@@ -187,6 +187,17 @@
 		ondone?: () => void;
 	}
 
+	interface KeyboardListenerOptions {
+		/**
+		 * The key to listen for
+		 */
+		key: string;
+		/**
+		 * Whether the shortcut has to be global (null or undefined means it doesn't matter)
+		 */
+		global?: boolean;
+	}
+
 	var localStorageProxy: {
 		[key: string]: any;
 		[key: number]: any;
@@ -505,6 +516,7 @@
 				this.currentTabIndex = tabIndex;
 				this.permissions = JSON.parse(JSON.stringify(node.permissions || []));
 				this.id = id;				
+				this.isBackground = isBackground;
 			}
 
 		@makePrivate
@@ -634,6 +646,13 @@
 		 * @type {Object}
 		 */
 		contextData: RestoredContextData;
+
+		/**
+		 * Whether this script is running on the backgroundpage
+		 * 
+		 * @type {boolean}
+		 */
+		isBackground: boolean;
 
 		@makePrivate 
 		private static _helpers = class Helpers {
@@ -2297,7 +2316,7 @@
 		private _sendOptionalCallbackCrmMessage(action: string, callback: (...args: Array<any>) => void, params: {
 			[key: string]: any;
 			[key: number]: any;
-		}) {
+		}, persistent: boolean = false) {
 			const onFinish = (status: 'error'|'chromeError'|'success', messageOrParams: {
 				error: string;
 				message: string;
@@ -3212,6 +3231,102 @@
 				}
 			}
 		};
+
+		@makePrivate
+		private _ensureBackground(): boolean {
+			if (!this._isBackground) {
+				throw new Error('Attempting to use background-page function from non-background page');
+			}
+			return true;
+		}
+
+		/**
+		 * Background-page specific APIs
+		 * 
+		 * @type Object
+		 */
+		background = {
+			/**
+			 * Runs given script on given tab(s)
+			 * 
+			 * @permission crmRun
+			 * @param {number} id - The id of the script to run
+			 * @param {Object} options - The options for the tab to run it on
+			 * @param {string} [options.status] - Whether the tabs have completed loading.
+		 	 * 		One of: "loading", or "complete"
+			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
+			 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
+			 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
+			 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+			 * @param {number} [options.index] - The position of the tabs within their windows
+			 * @param {string} [options.title] - The title of the page
+			 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
+			 * @param {boolean} [options.currentWindow] - Whether the tabs are in the current window
+			 * @param {boolean} [options.highlighted] - Whether the tabs are highlighted
+			 * @param {boolean} [options.pinned] - Whether the tabs are pinned
+			 * @param {boolean} [options.audible] - Whether the tabs are audible
+			 * @param {boolean} [options.muted] - Whether the tabs are muted
+			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
+			 */
+			runScript(this: CrmAPIInit, id: number, options: chrome.tabs.QueryInfo & {
+				tabId?: MaybeArray<number>;
+			}): void {
+				if (!this._ensureBackground()) {
+					return;
+				}
+				this._sendOptionalCallbackCrmMessage('runScript', null, {
+					id: id,
+					options: options
+				}, true);
+			},
+			/**
+			 * Runs this script on given tab(s)
+			 * 
+			 * @permission crmRun
+			 * @param {Object} options - The options for the tab to run it on
+			 * @param {string} [options.status] - Whether the tabs have completed loading.
+		 	 * 		One of: "loading", or "complete"
+			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
+			 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
+			 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
+			 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+			 * @param {number} [options.index] - The position of the tabs within their windows
+			 * @param {string} [options.title] - The title of the page
+			 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
+			 * @param {boolean} [options.currentWindow] - Whether the tabs are in the current window
+			 * @param {boolean} [options.highlighted] - Whether the tabs are highlighted
+			 * @param {boolean} [options.pinned] - Whether the tabs are pinned
+			 * @param {boolean} [options.audible] - Whether the tabs are audible
+			 * @param {boolean} [options.muted] - Whether the tabs are muted
+			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
+			 */
+			runSelf(this: CrmAPIInit, options: chrome.tabs.QueryInfo & {
+				tabId?: MaybeArray<number>;
+			}): void {
+				if (!this._ensureBackground()) {
+					return;
+				}
+				this._sendOptionalCallbackCrmMessage('runSelf', null, {
+					options: options
+				});
+		},
+			/**
+			 * Adds a listener for a keyboard event
+			 * 
+			 * @param {Object} options - The options for what event to listen for
+			 * @param {string} options.key - The keyboard shortcut to listen for
+			 * @param {boolean} [options.global] - Whether the shortcut isglobal
+			 * @param {function} callback - The function to call when a keyboard event occurs
+			 */
+			addKeyboardListener(this: CrmAPIInit, options: KeyboardListenerOptions, callback: () => void): void {
+				if (!this._ensureBackground()) {
+					return;
+				}
+				this._sendOptionalCallbackCrmMessage('addKeyboardListener', callback, {
+					options: options
+				}, true);
+			}
+		}
 
 		/**
 		 * The libraries API used to register libraries

@@ -2719,6 +2719,63 @@ declare namespace CRMAPI {
 		}
 
 		/**
+		 * Background-page specific APIs
+		 * 
+		 * @type Object
+		 */
+		background: {
+			/**
+			 * Runs given script on given tab(s)
+			 * 
+			 * @permission crmRun
+			 * @param {number} id - The id of the script to run
+			 * @param {Object} options - The options for the tab to run it on
+			 * @param {string} [options.status] - Whether the tabs have completed loading.
+		 	 * 		One of: "loading", or "complete"
+			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
+			 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
+			 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
+			 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+			 * @param {number} [options.index] - The position of the tabs within their windows
+			 * @param {string} [options.title] - The title of the page
+			 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
+			 * @param {boolean} [options.currentWindow] - Whether the tabs are in the current window
+			 * @param {boolean} [options.highlighted] - Whether the tabs are highlighted
+			 * @param {boolean} [options.pinned] - Whether the tabs are pinned
+			 * @param {boolean} [options.audible] - Whether the tabs are audible
+			 * @param {boolean} [options.muted] - Whether the tabs are muted
+			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
+			 */
+			runScript(this: CrmAPIInit, id: number, options: chrome.tabs.QueryInfo & {
+				tabId?: MaybeArray<number>;
+			}): void;
+			/**
+			 * Runs this script on given tab(s)
+			 * 
+			 * @permission crmRun
+			 * @param {Object} options - The options for the tab to run it on
+			 * @param {string} [options.status] - Whether the tabs have completed loading.
+		 	 * 		One of: "loading", or "complete"
+			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
+			 * @param {number} [options.windowId] - The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window
+			 * @param {string} [options.windowType] - The type of window the tabs are in (normal, popup, panel, app or devtools)
+			 * @param {boolean} [options.active] - Whether the tabs are active in their windwos
+			 * @param {number} [options.index] - The position of the tabs within their windows
+			 * @param {string} [options.title] - The title of the page
+			 * @param {string|string[]} [options.url] - The URL of the page, can use chrome match patterns
+			 * @param {boolean} [options.currentWindow] - Whether the tabs are in the current window
+			 * @param {boolean} [options.highlighted] - Whether the tabs are highlighted
+			 * @param {boolean} [options.pinned] - Whether the tabs are pinned
+			 * @param {boolean} [options.audible] - Whether the tabs are audible
+			 * @param {boolean} [options.muted] - Whether the tabs are muted
+			 * @param {number|number[]} [options.tabId] - The IDs of the tabs
+			 */
+			runSelf(this: CrmAPIInit, options: chrome.tabs.QueryInfo & {
+				tabId?: MaybeArray<number>;
+			}): void;
+		}
+
+		/**
 		 * Calls the chrome API given in the "API" parameter. Due to some issues with the chrome message passing
 		 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
 		 *		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
