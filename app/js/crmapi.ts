@@ -1,7 +1,7 @@
 /// <reference path="background.ts" />
 
 (function(window: Window) {
-	var _chrome = {
+	const _chrome = {
 		chrome: typeof chrome === 'undefined' ? undefined : chrome
 	}
 
@@ -187,7 +187,7 @@
 		ondone?: () => void;
 	}
 
-	var localStorageProxy: {
+	let localStorageProxy: {
 		[key: string]: any;
 		[key: number]: any;
 	} = { };
@@ -210,7 +210,7 @@
 		}
 	});
 
-	var localStorageProxyData = {
+	const localStorageProxyData = {
 		onSet: function(key: string, value: string) {
 
 		}
@@ -716,15 +716,15 @@
 					return;
 				}
 
-				var targetClass = 'crm_element_identifier_' + this.__privates._contextData.target;
+				const targetClass = 'crm_element_identifier_' + this.__privates._contextData.target;
 				this.__privates._contextData.target = window.document.querySelector('.' + targetClass) as HTMLElement;
 				this.__privates._contextData.target && this.__privates._contextData.target.classList.remove(targetClass);
 
-				var toElementClass = 'crm_element_identifier_' + this.__privates._contextData.toElement;
+				const toElementClass = 'crm_element_identifier_' + this.__privates._contextData.toElement;
 				this.__privates._contextData.toElement = window.document.querySelector('.' + toElementClass) as HTMLElement;
 				this.__privates._contextData.toElement && this.__privates._contextData.toElement.classList.remove(toElementClass);
 
-				var srcElementClass = 'crm_element_identifier_' + this.__privates._contextData.srcElement;
+				const srcElementClass = 'crm_element_identifier_' + this.__privates._contextData.srcElement;
 				this.__privates._contextData.srcElement = window.document.querySelector('.' + srcElementClass) as HTMLElement;
 				this.__privates._contextData.srcElement && this.__privates._contextData.srcElement.classList.remove(srcElementClass);
 
@@ -785,11 +785,11 @@
 				maxCalls?: number;
 			}): number {
 				options = options || {};
-				var persistent = options.persistent;
-				var maxCalls = options.maxCalls || 1;
+				const persistent = options.persistent;
+				const maxCalls = options.maxCalls || 1;
 
 				error = error || new Error();
-				var index = this.__privates._callInfo.add({
+				const index = this.__privates._callInfo.add({
 					callback: callback,
 					stackTrace: this.stackTraces && this.__privates._getStackTrace(error),
 					persistent: persistent,
@@ -866,7 +866,7 @@
 			},
 
 			_callbackHandler(this: CrmAPIInit, message: CallbackMessage) {
-				var call = this.__privates._callInfo.get(message.callbackId);
+				const call = this.__privates._callInfo.get(message.callbackId);
 				if (call) {
 					call.callback(message.type, message.data, call.stackTrace);
 					if (!call.persistent) {
@@ -883,16 +883,16 @@
 				code: string;
 				logCallbackIndex: number;
 			}>) {		
-				var timestamp = new Date().toLocaleString();
+				const timestamp = new Date().toLocaleString();
 
-				var err = (new Error()).stack.split('\n')[1];
+				let err = (new Error()).stack.split('\n')[1];
 				if (err.indexOf('eval') > -1) {
 					err = (new Error()).stack.split('\n')[2];
 				}
 					
-				var val;
+				let val;
 				try {
-					var global = (this.__privates._isBackground ? self : window);
+					const global = (this.__privates._isBackground ? self : window);
 					val = {
 						type: 'success',
 						result: JSON.stringify(CrmAPIInit._helpers.specialJSON.toJSON.apply(CrmAPIInit._helpers.specialJSON, [(
@@ -929,9 +929,9 @@
 			},
 
 			_getObjectProperties(this: CrmAPIInit, target: any): Array<string>{
-				var prototypeKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(target));
-				var targetKeys = [];
-				for (var key in target) {
+				const prototypeKeys = Object.getOwnPropertyNames(Object.getPrototypeOf(target));
+				const targetKeys = [];
+				for (const key in target) {
 					targetKeys.push(key);
 				}
 
@@ -949,19 +949,19 @@
 					currentWord: string;
 				}|null;
 			} {
-				var leadingWord = this.__privates._leadingWordRegex.exec(code)[1];
+				const leadingWord = this.__privates._leadingWordRegex.exec(code)[1];
 				code = code.slice(leadingWord.length);
 
-				var subsections = [];
-				var subsection;
+				const subsections = [];
+				let subsection;
 				while ((subsection = this.__privates._sectionRegex.exec(code))) {
-					var word = subsection[4] || subsection[5];
+					const word = subsection[4] || subsection[5];
 					subsections.push(word);
 					code = code.slice(word.length);
 				}
 
-				var endRegex = this.__privates._endRegex.exec(code);
-				var end: {
+				const endRegex = this.__privates._endRegex.exec(code);
+				let end: {
 					type: 'brackets'|'dotnotation';
 					currentWord: string;
 				} = null;
@@ -983,7 +983,7 @@
 				code: string;
 				logCallbackIndex: number;
 			}>): Array<string> {
-				var strSections = this.__privates._getCodeSections(message.code);
+				const strSections = this.__privates._getCodeSections(message.code);
 				if (!strSections.end) {
 					return null;
 				}
@@ -991,10 +991,9 @@
 				if (!(strSections.lead in window)) {
 					return null;
 				}
-				var target = (window as any)[strSections.lead];
+				let target = (window as any)[strSections.lead];
 				if (target) {
-					var i;
-					for (i = 0; i < strSections.words.length; i++) {
+					for (let i = 0; i < strSections.words.length; i++) {
 						if (!(strSections.words[i] in target)) {
 							return null;
 						}
@@ -1002,7 +1001,7 @@
 					}
 
 					//Now for the actual hinting
-					var hints: {
+					const hints: {
 						full: Array<string>;
 						partial: Array<string>;
 					} = {
@@ -1010,8 +1009,8 @@
 						partial: []
 					};
 
-					var properties = this.__privates._getObjectProperties(target);
-					for (i = 0; i < properties.length; i++) {
+					const properties = this.__privates._getObjectProperties(target);
+					for (let i = 0; i < properties.length; i++) {
 						if (properties[i] === strSections.end.currentWord) {
 							hints.full.push(properties[i]);
 						} else if (properties[i].indexOf(strSections.end.currentWord) === 0) {
@@ -1029,8 +1028,7 @@
 				code: any;
 				logCallbackIndex: number;
 			}>) {
-				var suggestions = this.__privates._getSuggestions(message);
-				suggestions = suggestions || [];
+				const suggestions = this.__privates._getSuggestions(message) || [];
 
 				this.__privates._sendMessage({
 					id: this.__privates._id,
@@ -1052,11 +1050,10 @@
 				newValue: any;
 				key: string;
 			}>) {
-				for (var i = 0; i < changes.length; i++) {
+				for (let i = 0; i < changes.length; i++) {
 					const keyPath = changes[i].key.split('.');
 					this.__privates._notifyChanges(keyPath, changes[i].oldValue, changes[i].newValue, true);
-					var data = CrmAPIInit._helpers.lookup(keyPath, this.__privates._nodeStorage, true);
-					data = data || {};
+					const data = CrmAPIInit._helpers.lookup(keyPath, this.__privates._nodeStorage, true) || {};
 					(data as any)[keyPath[keyPath.length - 1]] = changes[i].newValue;
 					this.__privates._storagePrevious = this.__privates._nodeStorage;
 				}
@@ -1111,7 +1108,7 @@
 						//Data was changed
 						switch (newData[1]) {
 							case 'Link':
-								var newLinks = newData[2].split(',').map(function(link) {
+								const newLinks = newData[2].split(',').map(function(link) {
 									return {
 										url: link,
 										newTab: true
@@ -1120,7 +1117,7 @@
 								(this.crm.link as any).setLinks(indexes[index], newLinks);
 								break;
 							case 'Script':
-								var newScriptData = newData[2].split('%124');
+								const newScriptData = newData[2].split('%124');
 								(this.crm.script as any).setScript(indexes[index], newScriptData[1], () => {
 									(this.crm as any).setLaunchMode(indexes[index], ~~newScriptData[0] as CRMLaunchModes);
 								});
@@ -1141,9 +1138,9 @@
 					}
 				};
 			}>) {
-				var indexes = message.message.indexIds;
+				const indexes = message.message.indexIds;
 
-				for (var key in message.message) {
+				for (const key in message.message) {
 					if (key !== 'indexIds') {
 						try {
 							Object.defineProperty(localStorageProxy, key, {
@@ -1163,19 +1160,19 @@
 				localStorageProxyData.onSet = (key, value) => {
 
 					if (!isNaN(parseInt(key, 10))) {
-						var index = parseInt(key, 10);
+						const index = parseInt(key, 10);
 
 						//It's an index key
-						var oldValue = localStorageProxy[key] as string;
-						var newValue = value;
+						const oldValue = localStorageProxy[key] as string;
+						const newValue = value;
 						localStorageProxy[key] = value;
 
-						var oldData = oldValue.split('%123');
-						var newData = newValue.split('%123');
+						const oldData = oldValue.split('%123');
+						const newData = newValue.split('%123');
 
 						if (index >= message.message.numberofrows) {
 							//Create new node
-							var createOptions = {
+							const createOptions = {
 								name: newData[0],
 								type: newData[1].toLowerCase()
 							} as Partial<CreateCRMConfig> & {
@@ -1192,7 +1189,7 @@
 									});
 									break;
 								case 'Script':
-									var newScriptData = newData[2].split('%124');
+									const newScriptData = newData[2].split('%124');
 									createOptions.scriptData = {
 										launchMode: ~~newScriptData[0],
 										script: newScriptData[1]
@@ -1202,7 +1199,7 @@
 
 							(this.crm as any).createNode(createOptions);
 						} else {
-							var changeData = {} as Partial<CreateCRMConfig>;
+							const changeData = {} as Partial<CreateCRMConfig>;
 							if (oldData[0] !== newData[0]) {
 								//Name was changed
 								changeData.name = newData[0];
@@ -1278,9 +1275,9 @@
 				logObj: SpecialJSONObject;
 				originalValues: Array<any>;
 			}, index: number) {
-				var global = (this.__privates._isBackground ? self : window);
+				const global = (this.__privates._isBackground ? self : window);
 
-				var i;
+				let i;
 				for (i = 1; 'temp' + i in global; i++) { }
 
 				(global as any)[('temp' + i)] = log.originalValues[index];
@@ -1297,8 +1294,8 @@
 				};
 				logCallbackIndex: number;
 			}>) {
-				var log = this.__privates._sentLogs[message.code.logId];
-				var bracketPathArr = ('[' + message.code.index + ']' +
+				const log = this.__privates._sentLogs[message.code.logId];
+				const bracketPathArr = ('[' + message.code.index + ']' +
 					message.code.path.replace(/\.(\w+)/g, function(fullString, match) {
 						return '["' + match + '"]';
 					})).split('][');
@@ -1312,9 +1309,9 @@
 					return JSON.parse(pathValue);
 				}));
 
-				for (var i = 0; i < log.logObj.paths.length; i++) {
+				for (let i = 0; i < log.logObj.paths.length; i++) {
 					if (bracketPath === JSON.stringify(log.logObj.paths[i])) {
-						var createdVariableName = this.__privates._createVariable(log, i);
+						const createdVariableName = this.__privates._createVariable(log, i);
 						this.log('Created local variable ' + createdVariableName);
 						return;
 					}
@@ -1332,7 +1329,7 @@
 							tabIndex: number;
 						}>;
 					}>).instances;
-					for (var i = 0; i < instanceArr.length; i++) {
+					for (let i = 0; i < instanceArr.length; i++) {
 						this.__privates._instances.add({
 							id: instanceArr[i].id,
 							tabIndex: instanceArr[i].tabIndex,
@@ -1415,7 +1412,7 @@
 				data: string;
 				logId: number;
 			} {
-				var { json, originalValues } = CrmAPIInit._helpers.specialJSON.toJSON.apply(
+				const { json, originalValues } = CrmAPIInit._helpers.specialJSON.toJSON.apply(
 					CrmAPIInit._helpers.specialJSON, [arr, true]);
 
 				this.__privates._sentLogs.push({
@@ -1593,7 +1590,7 @@
 						callback.apply(this, messageOrParams);
 					}
 				}
-				var message = {
+				const message = {
 					type: 'crm',
 					id: this.__privates._id,
 					tabIndex: this.__privates._tabIndex,
@@ -1731,8 +1728,8 @@
 					return this;
 				}
 				args(...args: Array<any>): ChromeRequestInterface {
-					for (var i = 0; i < args.length; i++) {
-						var arg = arguments[i];
+					for (let i = 0; i < args.length; i++) {
+						const arg = arguments[i];
 						if (typeof arg === 'function') {
 							this.request.chromeAPIArguments.push({
 								type: 'fn',
@@ -1782,7 +1779,7 @@
 				 * 	contrary to chrome.tabs.get where only one callback will occur.
 				 */
 				persistent(...fns: Array<any>): ChromeRequestInterface {
-					for (var i = 0; i < fns.length; i++) {
+					for (let i = 0; i < fns.length; i++) {
 						this.request.chromeAPIArguments.push({
 							type: 'fn',
 							isPersistent: true,
@@ -1800,10 +1797,10 @@
 				 * Executes the request
 				 */
 				send() {
-					var requestThis = this;
+					const requestThis = this;
 					this.request._sent = true;
-					var maxCalls = 0;
-					var isPersistent = false;
+					let maxCalls = 0;
+					let isPersistent = false;
 					this.request.chromeAPIArguments.forEach((arg) => {
 						if (arg.type === 'fn' || arg.type === 'return') {
 							maxCalls++;
@@ -1874,13 +1871,13 @@
 						}
 					}
 
-					var onFinish = {
+					const onFinish = {
 						maxCalls: maxCalls,
 						persistent: isPersistent,
 						fn: onFinishFn
 					};
 
-					var message = {
+					const message = {
 						type: 'chrome',
 						id: this.__this.__privates._id,
 						tabIndex: this.__this.__privates._tabIndex,
@@ -1931,7 +1928,7 @@
 					return;
 				}
 				aReq.addEventListener(aEventName, function (aEvent) {
-					var responseState: {
+					const responseState: {
 						responseText: string;
 						responseXML: Document;
 						readyState: number;
@@ -1998,7 +1995,7 @@
 
 			_setGlobalFunctions(this: CrmAPIInit) {
 				const GM = this.GM;
-				for (var gmKey in GM) {
+				for (const gmKey in GM) {
 					if (GM.hasOwnProperty(gmKey)) {
 						const GMProperty = GM[gmKey as keyof typeof GM];
 						(window as any)[gmKey] = typeof GMProperty === 'function' ?
@@ -2201,7 +2198,7 @@
 					});
 				},
 				parse: function (str: string, date2Obj?: boolean): any {
-					var iso8061 = date2Obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d *)?)Z$/ : false;
+					const iso8061 = date2Obj ? /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d *)?)Z$/ : false;
 					return JSON.parse(str, function (key, value) {
 						if (typeof value !== 'string') {
 							return value;
@@ -2210,7 +2207,7 @@
 							return value;
 						}
 
-						var prefix = value.substring(0, 8);
+						const prefix = value.substring(0, 8);
 
 						if (iso8061 && value.match(iso8061 as any)) {
 							return new Date(value);
@@ -2546,7 +2543,7 @@
 			 * @returns {boolean} - Whether the type matches
 			 */
 			static checkType(value: any, type: ModifiedSymbolTypes|Array<ModifiedSymbolTypes>, nameOrMode: string|true): boolean {
-				var typeArray: Array<ModifiedSymbolTypes>;
+				let typeArray: Array<ModifiedSymbolTypes>;
 				if (!Array.isArray(type)) {
 					typeArray = [type];
 				}
@@ -2578,10 +2575,10 @@
 			}, U>(path: Array<string|number>, data: T, hold: boolean = false) {
 				this.checkType(path, 'array', 'path');
 				this.checkType(data, 'object', 'data');
-				var length = path.length;
+				let length = path.length;
 				hold && length--;
-				var dataChild: T|U = data;
-				for (var i = 0; i < length; i++) {
+				let dataChild: T|U = data;
+				for (let i = 0; i < length; i++) {
 					if (!(dataChild as T)[path[i]] && (i + 1) !== length) {
 						(dataChild as T)[path[i]] = {} as T|U;
 					}
@@ -2601,7 +2598,7 @@
 				return fn && typeof fn === 'function';
 			}
 			static mergeArrays<T extends Array<T> | Array<U>, U>(mainArray: T, additionArray: T): T {
-				for (var i = 0; i < additionArray.length; i++) {
+				for (let i = 0; i < additionArray.length; i++) {
 					if (mainArray[i] && typeof additionArray[i] === 'object' && 
 						mainArray[i] !== undefined && mainArray[i] !== null) {
 						if (Array.isArray(additionArray[i])) {
@@ -2620,7 +2617,7 @@
 				[key: string]: any;
 				[key: number]: any;
 			}, Y extends Partial<T>>(mainObject: T, additions: Y): T & Y {
-				for (var key in additions) {
+				for (const key in additions) {
 					if (additions.hasOwnProperty(key)) {
 						if (typeof additions[key] === 'object' &&
 							mainObject[key] !== undefined &&
@@ -2658,7 +2655,7 @@
 			 */
 			getInstances(this: CrmAPIInit, callback: (instances: Array<Instance>) => void) {
 				if (this.__privates._instancesReady) {
-					var instancesArr: Array<Instance> = [];
+					const instancesArr: Array<Instance> = [];
 					this.__privates._instances.forEach((instance) => {
 						instancesArr.push(instance);
 					});
@@ -2683,7 +2680,7 @@
 			 *		it failed ("instance no longer exists" or "no listener exists")
 			 */
 			sendMessage(this: CrmAPIInit, instance: Instance, tabIndex: number, message: any, callback?: InstanceCallback): void {
-				var instanceObj;
+				let instanceObj;
 				if (typeof instance === "number") {
 					instanceObj = this.__privates._instances.get(instance);
 				} else {
@@ -2699,8 +2696,8 @@
 			 * @returns {number} An id that can be used to remove the listener
 			 */
 			addListener(this: CrmAPIInit, listener: InstanceCallback) {
-				var prevLength = this.__privates._commListeners.length;
-				var idx = this.__privates._commListeners.add(listener);
+				const prevLength = this.__privates._commListeners.length;
+				const idx = this.__privates._commListeners.add(listener);
 				if (prevLength === 0) {
 					this.__privates._updateCommHandlerStatus(true);
 				}
@@ -2781,7 +2778,7 @@
 					return this.__privates._nodeStorage;
 				}
 				if (CrmAPIInit._helpers.checkType(keyPath, 'string', true)) {
-					var keyPathString = keyPath;
+					const keyPathString = keyPath;
 					if (typeof keyPathString === 'string') {
 						if (keyPathString.indexOf('.') === -1) {
 							return this.__privates._nodeStorage[keyPathString];
@@ -2810,7 +2807,7 @@
 				[key: number]: any;
 			}, value: any): void {
 				if (CrmAPIInit._helpers.checkType(keyPath, 'string', true)) {
-					var keyPathStr = keyPath;
+					const keyPathStr = keyPath;
 					if (typeof keyPathStr === 'string') {
 						if (keyPathStr.indexOf('.') === -1) {
 							this.__privates._localStorageChange(keyPath as string, this.__privates._nodeStorage[keyPathStr], value);
@@ -2824,13 +2821,13 @@
 					}
 				}
 				if (CrmAPIInit._helpers.checkType(keyPath, 'array', true)) {
-					var keyPathArr = keyPath;
+					const keyPathArr = keyPath;
 					if (Array.isArray(keyPathArr)) {
 
 						//Lookup and in the meantime create object containers if new
-						var dataCont = this.__privates._nodeStorage;
-						var length = keyPathArr.length - 1;
-						for (var i = 0; i < length; i++) {
+						let dataCont = this.__privates._nodeStorage;
+						const length = keyPathArr.length - 1;
+						for (let i = 0; i < length; i++) {
 							if (dataCont[keyPathArr[i]] === undefined) {
 								dataCont[keyPathArr[i]] = {};
 							}
@@ -2844,9 +2841,9 @@
 					}
 				}
 				CrmAPIInit._helpers.checkType(keyPath, ['object'], 'keyPath');
-				var keyPathObj = keyPath;
+				const keyPathObj = keyPath;
 				if (typeof keyPathObj === 'object') {
-					for (var key in keyPathObj) {
+					for (const key in keyPathObj) {
 						if (keyPathObj.hasOwnProperty(key)) {
 							this.__privates._localStorageChange(key, this.__privates._nodeStorage[key], keyPathObj[key]);
 							this.__privates._nodeStorage[key] = keyPathObj[key];
@@ -2865,7 +2862,7 @@
 			 */
 			remove(this: CrmAPIInit, keyPath: string|Array<string>|Array<number>): void {
 				if (CrmAPIInit._helpers.checkType(keyPath, 'string', true)) {
-					var keyPathStr = keyPath;
+					const keyPathStr = keyPath;
 					if (typeof keyPathStr === 'string') {
 						if (keyPathStr.indexOf('.') === -1) {
 							this.__privates._notifyChanges(keyPathStr, this.__privates._nodeStorage[keyPathStr], undefined);
@@ -2879,9 +2876,9 @@
 					}
 				}
 				if (CrmAPIInit._helpers.checkType(keyPath, 'array', true)) {
-					var keyPathArr = keyPath;
+					const keyPathArr = keyPath;
 					if (Array.isArray(keyPathArr)) {
-						var data = CrmAPIInit._helpers.lookup(keyPathArr, this.__privates._nodeStorage, true);
+						const data = CrmAPIInit._helpers.lookup(keyPathArr, this.__privates._nodeStorage, true);
 						this.__privates._notifyChanges(keyPathArr.join('.'), (data as any)[keyPathArr[keyPathArr.length - 1]], undefined);
 						delete (data as any)[keyPathArr[keyPathArr.length - 1]];
 						this.__privates._storagePrevious = this.__privates._nodeStorage;
@@ -2923,12 +2920,10 @@
 				 * @param {string} [key] - The key to check
 				 */
 				removeListener(this: CrmAPIInit, listener: StorageChangeListener|number, key: string) {
-					var indexes;
 					if (typeof listener === 'number') {
 						this.__privates._storageListeners.remove(listener);
 					}
 					else {
-						indexes = [];
 						this.__privates._storageListeners.forEach((storageListener, index) => {
 							if (storageListener.callback === listener) {
 								if (key !== undefined) {
@@ -3292,7 +3287,7 @@
 				position?: Relation;
 			} = {}, callback?: CRMNodeCallback): void {
 				//To prevent the user's stuff from being disturbed if they re-use the object
-				var optionsCopy = JSON.parse(JSON.stringify(options));
+				const optionsCopy = JSON.parse(JSON.stringify(options));
 				this.__privates._sendOptionalCallbackCrmMessage.call(this, 'copyNode', callback, {
 					nodeId: nodeId,
 					options: optionsCopy
@@ -3317,7 +3312,7 @@
 			 */
 			moveNode(this: CrmAPIInit, nodeId: number, position: Relation, callback?: CRMNodeCallback): void {
 				//To prevent the user's stuff from being disturbed if they re-use the object
-				var positionCopy;
+				let positionCopy;
 				if (position) {
 					positionCopy = JSON.parse(JSON.stringify(position));
 				}
@@ -3359,7 +3354,7 @@
 			}, callback: CRMNodeCallback): void {
 				options = options || {};
 				//To prevent the user's stuff from being disturbed if they re-use the object
-				var optionsCopy = JSON.parse(JSON.stringify(options));
+				const optionsCopy = JSON.parse(JSON.stringify(options));
 				this.__privates._sendOptionalCallbackCrmMessage.call(this, 'editNode', callback, {
 					options: optionsCopy,
 					nodeId: nodeId
@@ -4048,7 +4043,7 @@
 			 *		if defaultValue is also undefined, returns undefined
 			 */
 			GM_getValue: <T, U>(name: string, defaultValue?: T): T | U => {
-				var result = (this.storage as any).get(name);
+				const result = (this.storage as any).get(name);
 				return (result !== undefined ? result : defaultValue);
 			},
 			/**
@@ -4077,8 +4072,8 @@
 			 * @returns {String[]} All keys of the storage
 			 */
 			GM_listValues(this: CrmAPIInit, ): Array<string> {
-				var keys = [];
-				for (var key in this.__privates._nodeStorage) {
+				const keys = [];
+				for (const key in this.__privates._nodeStorage) {
 					if (this.__privates._nodeStorage.hasOwnProperty(key)) {
 						keys.push(key);
 					}
@@ -4113,7 +4108,7 @@
 			 * @param {String} css - The CSS to put on the page
 			 */
 			GM_addStyle(this: CrmAPIInit, css: string): void {
-				var style = document.createElement('style');
+				const style = document.createElement('style');
 				style.appendChild(document.createTextNode(css));
 				document.head.appendChild(style);
 			},
@@ -4207,7 +4202,7 @@
 			}): void => {
 				//There is no point in enforcing the @connect metaTag since
 				//you can construct you own XHR without the API anyway
-				var req = new XMLHttpRequest();
+				const req = new XMLHttpRequest();
 				this.__privates._setupRequestEvent(options, req, 'abort');
 				this.__privates._setupRequestEvent(options, req, 'error');
 				this.__privates._setupRequestEvent(options, req, 'load');
@@ -4218,13 +4213,13 @@
 					req.overrideMimeType(options.overrideMimeType);
 				}
 				if (options.headers) {
-					for (var prop in options.headers) {
+					for (const prop in options.headers) {
 						if (Object.prototype.hasOwnProperty.call(options.headers, prop)) {
 							req.setRequestHeader(prop, options.headers[prop]);
 						}
 					}
 				}
-				var body = options.data ? options.data : null;
+				const body = options.data ? options.data : null;
 				return req.send(body);
 			},
 			/**
@@ -4273,8 +4268,8 @@
 			 * @param {string} [name] - The name of the file after download
 			 */
 			GM_download(this: CrmAPIInit, detailsOrUrl: DownloadSettings|string, name?: string): void {
-				var details: DownloadSettings = {};
-				var detailsOrUrlString = detailsOrUrl;
+				let details: DownloadSettings = {};
+				const detailsOrUrlString = detailsOrUrl;
 				if (typeof detailsOrUrlString === 'string') {
 					details.url = detailsOrUrlString;
 					details.name = name;
@@ -4282,14 +4277,14 @@
 				else {
 					details = detailsOrUrl;
 				}
-				var options = {
+				const options = {
 					url: details.url,
 					fileName: details.name,
 					saveAs: name,
 					headers: details.headers
 				};
-				var request = this.__privates._chromeSpecialRequest('downloads.download', 'GM_download').args(options).args((result: any) => {
-					var downloadId = result.APIArgs[0];
+				const request = this.__privates._chromeSpecialRequest('downloads.download', 'GM_download').args(options).args((result: any) => {
+					const downloadId = result.APIArgs[0];
 					if (downloadId === undefined) {
 						CrmAPIInit._helpers.isFn(details.onerror) && details.onerror({
 							error: 'not_succeeded',
@@ -4361,7 +4356,7 @@
 			 * @param {function} [onclick] - A function to run on clicking the notification
 			 */
 			GM_notification(this: CrmAPIInit, textOrOptions: NotificationOptions|string, title?: string, image?: string, onclick?: () => void): void {
-				var details: {
+				let details: {
 					message: string;
 					title: string;
 					iconUrl: string;
@@ -4393,12 +4388,12 @@
 				const onclickRef = details.onclick && this.__privates._createCallbackFunction(details.onclick, new Error(), {
 					maxCalls: 1
 				});
-				var ondoneRef = details.ondone && this.__privates._createCallbackFunction(details.ondone, new Error(), {
+				const ondoneRef = details.ondone && this.__privates._createCallbackFunction(details.ondone, new Error(), {
 					maxCalls: 1
 				});
 				delete details.onclick;
 				delete details.ondone;
-				var request = this.__privates._chromeSpecialRequest('notifications.create', 'GM_notification').args(details).args((notificationId: number) => {
+				const request = this.__privates._chromeSpecialRequest('notifications.create', 'GM_notification').args(details).args((notificationId: number) => {
 					this.__privates._addNotificationListener(notificationId, onclickRef, ondoneRef);
 				});
 				request.request.onError = function (errorMessage) {
@@ -4427,17 +4422,17 @@
 		 * 		in the form of crmAPI.log(a,b,c,d);
 		 */
 		log(...args: Array<any>): void {
-			var err = (new Error()).stack.split('\n')[2];
+			let err = (new Error()).stack.split('\n')[2];
 			if (err.indexOf('eval') > -1) {
 				err = (new Error()).stack.split('\n')[3];
 			}
-			var errSplit = err.split('at');
-			var lineNumber = errSplit
+			const errSplit = err.split('at');
+			const lineNumber = errSplit
 				.slice(1, errSplit.length)
 				.join('at')
 				.replace(/anonymous/, 'script');
 
-			var result = this.__privates._saveLogValues(args);
+			const result = this.__privates._saveLogValues(args);
 
 			this.__privates._sendMessage({
 				id: this.__privates._id,
