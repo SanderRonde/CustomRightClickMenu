@@ -2125,9 +2125,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								const permutations = permute(keys.split('+'));
 								permutations.forEach((permutation) => {
 									const permutationKey = permutation.join('+');
-									globalObject.globals.shortcutListeners[permutationKey].forEach((listener) => {
-											listener.callback();
-										});
+									globalObject.globals.shortcutListeners[permutationKey] && 
+										globalObject.globals.shortcutListeners[permutationKey].forEach((listener) => {
+												listener.callback();
+											});
 								});
 							}
 						});
@@ -6605,7 +6606,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						code.join('\n'), [
 							`var crmAPI = new CrmAPIInit(${[
 								safeNode, node.id, { id: 0 }, {}, key,
-								nodeStorage,
+								nodeStorage, null,
 								greaseMonkeyData, true, (node.value && node.value.options) || {},
 								enableBackwardsCompatibility, 0, chrome.runtime.id
 							]
