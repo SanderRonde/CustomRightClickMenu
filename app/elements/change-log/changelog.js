@@ -51,6 +51,11 @@
 			'Fixed userscript installation page',
 			'Fixed unsafewindow permission',
 			'No longer enables userscript installation if TamperMonkey is already installed'
+		],
+		'2.0.12': [
+			'Added background.runScript, background.runSelf and background.addKeyboardListener functions to crmAPI',
+			'Rewrote crmAPI file and fixed some of its bugs',
+			'Cleaned up and structured logs on background file console'
 		]
 	};
 }());
