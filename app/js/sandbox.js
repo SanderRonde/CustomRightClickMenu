@@ -1,4 +1,6 @@
-﻿(function () {
+﻿importScripts('crmapi.js');
+
+(function () {
 	function log(args, lineNo) {
 		self.postMessage({
 			type: 'log',
@@ -101,10 +103,10 @@
 			if (!loadedLibraries) {
 				return;
 			}
-			console.log('Loaded libraries, launching script');
 			(function(script, log) {
 				try {
 					eval(['(function(window) {', script, '}(typeof window === \'undefined\' ? self : window));'].join(''));
+					log('Succesfully launched sript');
 				} catch (error) {
 					self.logNoStack([
 						error.name,
@@ -114,8 +116,8 @@
 						error.message, 
 						'.\nStack:', 
 						error.stack);
+					log('Script boot failed');
 				}
-				log('Succesfully launched sript');
 			}(data.script, self.log));
 			break;
 		case 'verifiy':
