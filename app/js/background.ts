@@ -194,6 +194,9 @@ interface Window {
 	ecma6: any;
 	browserDefs: any;
 	tern: Tern.Tern;
+
+	log: typeof console.log;
+	testLog?: typeof console.log;
 }
 
 interface ContextMenuItemTreeItem {
@@ -569,6 +572,15 @@ class Promiselike<T> {
 }
 
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
+
+if (typeof module === 'undefined') {
+	console.log('Not undef');
+	window.log = console.log;
+} else {
+	console.log('is undef');
+	window.log = () => {};
+	window.testLog = console.log;
+}
 
 ((globalObject: GlobalObject, sandboxes: {
 	sandboxChrome: (api: string, args: Array<any>) => any;
@@ -1343,7 +1355,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static checkForChromeErrors(log: boolean) {
 			if (chrome.runtime.lastError && log) {
-				console.log('chrome runtime error', chrome.runtime.lastError);
+				window.log('chrome runtime error', chrome.runtime.lastError);
 			}
 		}
 		static removeTab(tabId: number) {
@@ -1437,14 +1449,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 
 				if (matches.length === 0) {
-					console.log('Unfortunately no matches were found, please try again');
+					window.log('Unfortunately no matches were found, please try again');
 				} else if (matches.length === 1) {
-					console.log('One match was found, the id is ', matches[0].id,
+					window.log('One match was found, the id is ', matches[0].id,
 						' and the script is ', matches[0].node);
 				} else {
-					console.log('Found multiple matches, here they are:');
+					window.log('Found multiple matches, here they are:');
 					matches.forEach((match) => {
-						console.log('Id is', match.id, ', script is', match.node);
+						window.log('Id is', match.id, ', script is', match.node);
 					});
 				}
 			};
@@ -1892,7 +1904,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				const currentTabId = changeInfo.tabIds[changeInfo.tabIds.length - 1];
 				chrome.tabs.get(currentTabId, (tab) => {
 					if (chrome.runtime.lastError) {
-						console.log(chrome.runtime.lastError.message);
+						window.log(chrome.runtime.lastError.message);
 						return;
 					}
 
@@ -1989,7 +2001,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 				function checkForRuntimeErrors() {
 					if (chrome.runtime.lastError) {
-						console.log(chrome.runtime.lastError);
+						window.log(chrome.runtime.lastError);
 					}
 				}
 
@@ -2178,14 +2190,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											file: 'js/contentscript.js'
 										}, () => {
 											if (chrome.runtime.lastError) {
-												console.log('Failed to restore tab with id', tab.id);
+												window.log('Failed to restore tab with id', tab.id);
 												resolveInner(null);
 											}
-											console.log('Restored tab with id', tab.id);
+											window.log('Restored tab with id', tab.id);
 											resolveInner(null);
 										});
 									} else {
-										console.log('Ignoring tab with id', tab.id, '(chrome or file url)');
+										window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
 										resolveInner(null);
 									}
 							});
@@ -2336,14 +2348,14 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					if (globalObject.globals.logging.filter.tabId !== null) {
 						if (tabId === '*' ||
 							tabId === globalObject.globals.logging.filter.tabId) {
-							console.log.apply(console, args);
+							window.log.apply(console, args);
 						}
 					} else {
-						console.log.apply(console, args);
+						window.log.apply(console, args);
 					}
 				}
 			} else {
-				console.log.apply(console, args);
+				window.log.apply(console, args);
 			}
 		}
 		static backgroundPageLog(this: Window | Logging, id: number, sourceData: [string, number], ...args: Array<any>) {
@@ -5763,7 +5775,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (chrome.runtime.lastError) {
 					if (chrome.runtime.lastError.message.indexOf('Could not establish connection') === -1 &&
 						chrome.runtime.lastError.message.indexOf('closed') === -1) {
-							console.log('Couldn\'t execute on tab', chrome.runtime.lastError);
+							window.log('Couldn\'t execute on tab', chrome.runtime.lastError);
 						}
 					return () => { };
 				}
@@ -6323,7 +6335,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						}
 					}
 
-					console.log('Looking for updated scripts...');
+					window.log('Looking for updated scripts...');
 					for (let id in globalObject.globals.crm.crmById) {
 						if (globalObject.globals.crm.crmById.hasOwnProperty(id)) {
 							const node = globalObject.globals.crm.crmById[id];
@@ -6399,7 +6411,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 											onDone();
 										}
 									} catch (err) {
-										console.log('Tried to update script ', node.id, ' ', node.name,
+										window.log('Tried to update script ', node.id, ' ', node.name,
 											' but could not reach download URL');
 									}
 								}, () => {
@@ -6409,7 +6421,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									}
 								});
 						} catch (e) {
-							console.log('Tried to update script ', node.id, ' ', node.name,
+							window.log('Tried to update script ', node.id, ' ', node.name,
 								' but could not reach download URL');
 						}
 					} else {
@@ -6453,7 +6465,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 												onDone();
 											}
 										} catch (err) {
-											console.log('Tried to update script ', node.id, ' ', node.name,
+											window.log('Tried to update script ', node.id, ' ', node.name,
 												' but could not reach download URL');
 										}
 									}, () => {
@@ -6463,7 +6475,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 										}
 									});
 								} catch (e) {
-									console.log('Tried to update script ', node.id, ' ', node.name,
+									window.log('Tried to update script ', node.id, ' ', node.name,
 										' but could not reach download URL');
 								}
 							}
@@ -6740,7 +6752,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								}
 							});
 					} else {
-						console.log('An error occurred while setting up the script for node ',
+						window.log('An error occurred while setting up the script for node ',
 							node.id, err);
 						throw err;
 					}
@@ -6751,7 +6763,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 						if (globalObject.globals.crm.crmById.hasOwnProperty(nodeId)) {
 							const node = globalObject.globals.crm.crmById[nodeId];
 							if (node.type === 'script') {
-								console.log('Creating backgroundpage for node', node.id);
+								window.log('Creating backgroundpage for node', node.id);
 								this.createBackgroundPage(node);
 							}
 						}
@@ -7612,11 +7624,11 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 									title: 'ERROR',
 									onclick: CRM._createOptionsPageHandler()
 								});
-								console.log('Another error occured with your context menu!',
+								window.log('Another error occured with your context menu!',
 									chrome.runtime.lastError);
 							});
 						} else {
-							console.log('An error occured with your context menu!',
+							window.log('An error occured with your context menu!',
 								chrome.runtime.lastError);
 						}
 					}
@@ -9029,7 +9041,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					const data = JSON.stringify(localStorage);
 					const idb: IDBFactory = window.indexedDB || (window as any).webkitIndexedDB;
 					const req = idb.open('localStorageBackup', 1);
-					req.onerror = () => { console.log('Error backing up localStorage data'); };
+					req.onerror = () => { window.log('Error backing up localStorage data'); };
 					req.onupgradeneeded = (event) => {
 						const db: IDBDatabase = (event.target as any).result;
 						const objectStore = db.createObjectStore('data', {
@@ -9338,7 +9350,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					chrome.storage.sync.set(obj, () => {
 						if (chrome.runtime.lastError) {
 							//Switch to local storage
-							console.log('Error on uploading to chrome.storage.sync ',
+							window.log('Error on uploading to chrome.storage.sync ',
 								chrome.runtime.lastError);
 							chrome.storage.local.set({
 								useStorageSync: false
@@ -9420,7 +9432,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							settings: globalObject.globals.storages.settingsStorage
 						}, () => {
 							if (chrome.runtime.lastError) {
-								console.log('Error on uploading to chrome.storage.local ',
+								window.log('Error on uploading to chrome.storage.local ',
 									chrome.runtime.lastError);
 							} else {
 								this._changeCRMValuesIfSettingsChanged(changes);
@@ -9443,7 +9455,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							chrome.storage.sync.set(obj, () => {
 								if (chrome.runtime.lastError) {
 									//Switch to local storage
-									console.log('Error on uploading to chrome.storage.sync ',
+									window.log('Error on uploading to chrome.storage.sync ',
 										chrome.runtime.lastError);
 									chrome.storage.local.set({
 										useStorageSync: false
@@ -9514,7 +9526,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 		}
 		static setStorages(storageLocalCopy: CRM.StorageLocal, settingsStorage: CRM.SettingsStorage,
 			chromeStorageLocal: CRM.StorageLocal, callback?: () => void) {
-			console.log('Setting global data stores');
+			window.log('Setting global data stores');
 			globalObject.globals.storages.storageLocal = storageLocalCopy;
 			globalObject.globals.storages.settingsStorage = settingsStorage;
 
@@ -9541,7 +9553,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					}
 				});
 
-			console.log('Building CRM representations');
+			window.log('Building CRM representations');
 			CRM.updateCRMValues();
 
 			if (callback) {
@@ -9565,17 +9577,17 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			return obj;
 		}
 		static loadStorages(callback: () => void) {
-			console.log('Loading sync storage data');
+			window.log('Loading sync storage data');
 			chrome.storage.sync.get((chromeStorageSync: {
 				[key: string]: string
 			} & {
 					indexes: Array<string>;
 				}) => {
-				console.log('Loading local storage data');
+				window.log('Loading local storage data');
 				chrome.storage.local.get((chromeStorageLocal: CRM.StorageLocal & {
 					settings?: CRM.SettingsStorage;
 				}) => {
-					console.log('Checking if this is the first run');
+					window.log('Checking if this is the first run');
 					const result = this._isFirstTime(chromeStorageLocal);
 					if (result.type === 'firstTimeCallback') {
 						result.fn((data) => {
@@ -9583,7 +9595,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 								data.chromeStorageLocal, callback);
 						});
 					} else {
-						console.log('Parsing data encoding');
+						window.log('Parsing data encoding');
 						const storageLocalCopy = JSON.parse(JSON.stringify(chromeStorageLocal));
 						delete storageLocalCopy.resources;
 						delete storageLocalCopy.nodeStorage;
@@ -9627,7 +9639,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							}
 						}
 
-						console.log('Checking for data updates')
+						window.log('Checking for data updates')
 						this._checkForStorageSyncUpdates(settingsStorage, chromeStorageLocal);
 
 						this.setStorages(storageLocalCopy, settingsStorage,
@@ -9805,7 +9817,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				}
 			} else {
 				if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {
-					console.log('Upgrading minor version from', storageLocal.lastUpdatedAt, 'to', currentVersion);
+					window.log('Upgrading minor version from', storageLocal.lastUpdatedAt, 'to', currentVersion);
 					const fns = this._upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 					fns.before.forEach((fn) => {
 						fn();
@@ -9823,13 +9835,13 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 				if (!window.localStorage.getItem('transferToVersion2') &&
 					window.localStorage.getItem('numberofrows') !== undefined &&
 					window.localStorage.getItem('numberofrows') !== null) {
-					console.log('Upgrading from version 1.0 to version 2.0');
+					window.log('Upgrading from version 1.0 to version 2.0');
 					return {
 						type: 'firstTimeCallback',
 						fn: this.SetupHandling.handleTransfer()
 					}
 				} else {
-					console.log('Initializing for first run');
+					window.log('Initializing for first run');
 					const firstRunPromise = this.SetupHandling.handleFirstRun();
 					return {
 						type: 'firstTimeCallback',
@@ -9869,7 +9881,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 	(() => {
 		if (typeof module === 'undefined') {
-			console.log('If you\'re here to check out your background script,' +
+			window.log('If you\'re here to check out your background script,' +
 				' get its ID (you can type getID("name") to find the ID),' +
 				' and type filter(id, [optional tabId]) to show only those messages.' +
 				' You can also visit the logging page for even better logging over at ',
@@ -9881,15 +9893,15 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 			window.console.groupEnd();
 			try {
 				globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
-				console.log('Registering permission listeners');
+				window.log('Registering permission listeners');
 				GlobalDeclarations.refreshPermissions();
-				console.log('Setting CRMAPI message handler');
+				window.log('Setting CRMAPI message handler');
 				GlobalDeclarations.setHandlerFunction();
 				chrome.runtime.onConnect.addListener((port) => {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
-				console.log('Building Custom Right-Click Menu');
+				window.log('Building Custom Right-Click Menu');
 				CRM.buildPageCRM();
 				window.console.groupCollapsed('Restoring previous open tabs');
 				GlobalDeclarations.restoreOpenTabs().then(() => {
@@ -9897,23 +9909,23 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 					window.console.groupCollapsed('Creating backgroundpages');
 					CRM.Script.Background.createBackgroundPages();
 					window.console.groupEnd();
-					console.log('Registering global handlers');
+					window.log('Registering global handlers');
 					GlobalDeclarations.init();
 
 					//Checks if all values are still correct
 					window.console.group('Checking Resources');
-					console.log('Checking if resources are used');
+					window.log('Checking if resources are used');
 					Resources.checkIfResourcesAreUsed();
-					console.log('Updating resources');
+					window.log('Updating resources');
 					Resources.updateResourceValues();
-					console.log('Updating scripts');
+					window.log('Updating scripts');
 					CRM.Script.Updating.updateScripts();
 					window.setInterval(() => {
 						CRM.Script.Updating.updateScripts();
 					}, 6 * 60 * 60 * 1000);
 					window.console.groupEnd();
 
-					console.log('Registering console user interface');
+					window.log('Registering console user interface');
 					GlobalDeclarations.initGlobalFunctions();
 
 					if (location.href.indexOf('test') > -1) {
@@ -9924,10 +9936,10 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 							Storages.SetupHandling.TransferFromOld;
 					}
 					window.console.groupEnd();
-					console.log('');
+					window.log('');
 				});
 			} catch (e) {
-				console.log(e);
+				window.log(e);
 				throw e;
 			}
 		});

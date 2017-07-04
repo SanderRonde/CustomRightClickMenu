@@ -444,9 +444,9 @@ var backgroundPageWindow = window = {
 	},
 	console: {
 		log: console.log,
-		group: console.log,
+		group: function() {},
 		groupEnd: function() {},
-		groupCollapsed: console.log
+		groupCollapsed: function() {}
 	},
 	JSON: JSON,
 	setTimeout: setTimeout,
