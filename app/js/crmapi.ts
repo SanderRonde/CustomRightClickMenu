@@ -305,9 +305,6 @@
 					thisArgs.push(target);
 				}
 			}
-			if (key === '__privates__' || key === '_chromeRequest') {
-				continue;
-			}
 			const value = target[key] as any;
 
 			if (value === windowVar || !value) {
@@ -318,7 +315,11 @@
 					target[key] = getFunctionThisMap(value, thisMap);
 					break;
 				case 'object':
-					mapObjThisArgs(value, thisMap, thisArgs);
+					if (value instanceof HTMLElement) {
+						target[key] = value;
+					} else {
+						mapObjThisArgs(value, thisMap, thisArgs);
+					}
 					break;
 			}
 		}
@@ -366,6 +367,7 @@
 	/**
 	 * A class for constructing the CRM API
 	 *
+	 * 
 	 * @class
 	 * @param {Object} node - The item currently being edited
 	 * @param {number} id - The id of the current item
@@ -413,7 +415,7 @@
 				}	
 			};
 
-			_findElementsOnPage(): void;
+			_findElementsOnPage(contextData: EncodedContextData): void;
 			_setupStorages(): void;
 			_callInfo: CallbackStorageInterface<{
 				callback(...args: Array<any>): void;
@@ -705,10 +707,10 @@
 			/**
 			 * Turns the class-index based number back to an element
 			 */
-			_findElementsOnPage(this: CrmAPIInit) {
+			_findElementsOnPage(this: CrmAPIInit, contextData: EncodedContextData) {
 				//It's ran without a click
-				if (typeof window.document === 'undefined' || !this.__privates._contextData) {
-					this.__privates._contextData = {
+				if (typeof window.document === 'undefined' || !contextData) {
+					this.contextData = {
 						target: null,
 						toElement: null,
 						srcElement: null
@@ -716,23 +718,18 @@
 					return;
 				}
 
-				const targetClass = 'crm_element_identifier_' + this.__privates._contextData.target;
-				this.__privates._contextData.target = window.document.querySelector('.' + targetClass) as HTMLElement;
-				this.__privates._contextData.target && this.__privates._contextData.target.classList.remove(targetClass);
-
-				const toElementClass = 'crm_element_identifier_' + this.__privates._contextData.toElement;
-				this.__privates._contextData.toElement = window.document.querySelector('.' + toElementClass) as HTMLElement;
-				this.__privates._contextData.toElement && this.__privates._contextData.toElement.classList.remove(toElementClass);
-
-				const srcElementClass = 'crm_element_identifier_' + this.__privates._contextData.srcElement;
-				this.__privates._contextData.srcElement = window.document.querySelector('.' + srcElementClass) as HTMLElement;
-				this.__privates._contextData.srcElement && this.__privates._contextData.srcElement.classList.remove(srcElementClass);
+				const targetClass = 'crm_element_identifier_' + contextData.target;
+				const toElementClass = 'crm_element_identifier_' + contextData.toElement;
+				const srcElementClass = 'crm_element_identifier_' + contextData.srcElement;
 
 				this.contextData = {
-					target: this.__privates._contextData.target,
-					toElement: this.__privates._contextData.toElement,
-					srcElement: this.__privates._contextData.srcElement
-				};
+					target: window.document.querySelector('.' + targetClass) as HTMLElement,
+					toElement: window.document.querySelector('.' + toElementClass) as HTMLElement,
+					srcElement: window.document.querySelector('.' + srcElementClass) as HTMLElement
+				}
+				this.contextData.target && this.contextData.target.classList.remove(targetClass);
+				this.contextData.toElement && this.contextData.toElement.classList.remove(toElementClass);
+				this.contextData.srcElement && this.contextData.srcElement.classList.remove(srcElementClass);
 			},
 
 			_setupStorages(this: CrmAPIInit) {
@@ -1836,7 +1833,6 @@
 						callbackId: number;
 						params: Array<any>;
 					}, stackTrace: Array<string>) => {
-						console.log('Result');
 						if (status === 'error' || status === 'chromeError') {
 							const errMessage = messageOrParams as {
 								error: string;
@@ -1888,8 +1884,6 @@
 						onFinish: onFinish
 					};
 					this.__this.__privates._sendMessage(message);
-
-					console.log('Sending message from chrome', message);
 
 					return this.returnedVal;
 				}
@@ -2054,6 +2048,8 @@
 				this.permissions = JSON.parse(JSON.stringify(node.permissions || []));
 				this.id = id;				
 				this.isBackground = isBackground;
+
+				this.__privates._findElementsOnPage.bind(this)(contextData);
 			}
 
 		_init(node: CRM.Node, id: number, tabData: chrome.tabs.Tab,
@@ -2067,7 +2063,6 @@
 				}
 				this.__privates._setupStorages();
 				this.__privates._setGlobalFunctions();
-				this.__privates._findElementsOnPage();
 				this.__privates._connect();
 			}
 
