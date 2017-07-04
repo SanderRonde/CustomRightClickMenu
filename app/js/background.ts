@@ -574,10 +574,10 @@ class Promiselike<T> {
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 if (typeof module === 'undefined') {
-	window.log = console.log;
+	window.log = console.log.bind(console);
 } else {
 	window.log = () => {};
-	window.testLog = console.log;
+	window.testLog = console.log.bind(console);
 }
 
 ((globalObject: GlobalObject, sandboxes: {
