@@ -287,7 +287,7 @@
 	function getFunctionThisMap(original: Function, 
 		thisMap: DataMap<Object, Object>): (this: any, ...args: Array<any>) => any|void {
 			const newFn = function(this: any, ...args: Array<any>): any|void {
-				return original.apply(thisMap.get(this), args);
+				return original.apply(thisMap.get(this) || this, args);
 			};
 			return newFn;
 		}
@@ -305,9 +305,10 @@
 					thisArgs.push(target);
 				}
 			}
+
 			const value = target[key] as any;
 
-			if (value === windowVar || !value) {
+			if (value === windowVar || !value || key === '_chromeRequest') {
 				continue;
 			}
 			switch (typeof value) {
@@ -315,7 +316,8 @@
 					target[key] = getFunctionThisMap(value, thisMap);
 					break;
 				case 'object':
-					if (value instanceof HTMLElement) {
+					const htmlEl = (window as any).HTMLElement as any;
+					if (value instanceof htmlEl) {
 						target[key] = value;
 					} else {
 						mapObjThisArgs(value, thisMap, thisArgs);

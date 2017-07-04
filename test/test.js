@@ -439,6 +439,9 @@ function resetTree() {
  */
 var window;
 var backgroundPageWindow = window = {
+	HTMLElement: function HTMLElement() {
+		return {};
+	},
 	console: {
 		log: console.log,
 		group: console.log,
