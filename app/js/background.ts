@@ -574,10 +574,8 @@ class Promiselike<T> {
 window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 
 if (typeof module === 'undefined') {
-	console.log('Not undef');
 	window.log = console.log;
 } else {
-	console.log('is undef');
 	window.log = () => {};
 	window.testLog = console.log;
 }
