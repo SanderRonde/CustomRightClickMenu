@@ -984,8 +984,8 @@ class SCE {
 		this._updateTabSizeEl = updateTabSizeEl;
 
 		importedElement.querySelector('#editorJSLintGlobalsInput')
-			.addEventListener('keypress', function(this: HTMLPaperInputElement) {
-				const _this = this;
+			.addEventListener('keypress', function() {
+				const _this = importedElement.querySelector('#editorJSLintGlobalsInput') as HTMLPaperInputElement;
 				setTimeout(function() {
 					const val = _this.value;
 					const globals = val.split(',');
