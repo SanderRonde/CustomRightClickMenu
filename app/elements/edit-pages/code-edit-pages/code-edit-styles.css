@@ -142,6 +142,11 @@ input {
 	display: flex;
 	margin-top:-2px;
 	margin-right:-1px;
+	opacity: 0.3;
+}
+
+#buttonsContainer:hover {
+	opacity: 1.0;
 }
 
 #editorPlaceholder paper-spinner {
