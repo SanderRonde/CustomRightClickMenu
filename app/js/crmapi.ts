@@ -4176,7 +4176,7 @@
 			 * @param {function} [options.ontimeout] - A callback on that event
 			 * @returns {XMLHttpRequest} The XHR
 			 */
-			GM_xmlhttpRequest: (options: {
+			GM_xmlhttpRequest(this: CrmAPIInit, options: {
 				method?: string,
 				url?: string,
 				headers?: { [headerKey: string]: string },
@@ -4196,7 +4196,7 @@
 				onprogress?: (e: Event) => void,
 				onloadstart?: (e: Event) => void,
 				ontimeout?: (e: Event) => void
-			}): void => {
+			}): void {
 				//There is no point in enforcing the @connect metaTag since
 				//you can construct you own XHR without the API anyway
 				const req = new XMLHttpRequest();
