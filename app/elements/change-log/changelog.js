@@ -56,6 +56,9 @@
 			'Added background.runScript, background.runSelf and background.addKeyboardListener functions to crmAPI',
 			'Rewrote crmAPI file and fixed some of its bugs',
 			'Cleaned up and structured logs on background file console'
+		],
+		'2.0.13': [
+			'Fixed GM_xmlhttpRequest error (thanks to bumaociyuan)'
 		]
 	};
 }());
