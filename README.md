@@ -25,7 +25,7 @@ as userstyles.
 
 ### Custom Javascript
 
-Run your own javscript scripts on the current page or simply use ones that someone else wrote by sharing them. You can also write
+Run your own javascript scripts on the current page or simply use ones that someone else wrote by sharing them. You can also write
 the javascript in the extension itself or use your own editor with the external editor app ([source](https://github.com/SanderRonde/CRM-External-Editor-App), [app](https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn)).
 Apart from using standard javascript you can also access the Custom Right-Click Menu's own APIs allowing you to extend the menu
 through your own code which simplifies creating self-contained scripts or sub-menus of course featuring a permissions system for any
