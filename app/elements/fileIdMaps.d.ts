@@ -15,6 +15,8 @@ interface IDMap
 		"showHideToolsRibbonCont": HTMLDivElement,
 		"showHideToolsRibbonButton": SVGElement,
 		"editorTitleRibbon": HTMLDivElement,
+		"ribbonScriptName": HTMLSpanElement,
+		"ribbonStylesheetName": HTMLSpanElement,
 		"shrinkTitleRibbonButtonCont": HTMLDivElement,
 		"shrinkTitleRibbonButton": SVGElement,
 		"fullscreenEditorHorizontal": HTMLDivElement,

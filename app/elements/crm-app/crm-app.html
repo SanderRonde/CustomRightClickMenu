@@ -11,8 +11,8 @@
 						<svg id="showHideToolsRibbonButton" on-tap="domListener" data-on-tap="toggleToolsRibbon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
 					</div>
 					<div id="editorTitleRibbon">
-						<span hidden$="[[!scriptItem]]">[[scriptItem.name]]</span>
-						<span hidden$="[[!stylesheetItem]]">[[stylesheetItem.name]]</span>
+						<span id="ribbonScriptName" hidden$="[[!scriptItem]]"></span>
+						<span id="ribbonStylesheetName" hidden$="[[!stylesheetItem]]"></span>
 					</div>
 					<div id="shrinkTitleRibbonButtonCont">
 						<svg id="shrinkTitleRibbonButton" on-tap="toggleShrinkTitleRibbon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
