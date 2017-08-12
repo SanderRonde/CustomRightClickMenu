@@ -71,14 +71,6 @@ class SCE {
 
 	private static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
 		const __this = this;
-
-		//Use jquery to also get the pre-change value
-		$(this.$.nameInput).on('keydown', () => {
-			const el = this.$.nameInput;
-			let oldVal = el.value || '';
-			Array.isArray(oldVal) && (oldVal = oldVal[0]);
-		});
-
 		$('.executionTriggerNot').on('change', function(this: HTMLElement) {
 			__this.triggerCheckboxChange.apply(__this, [this]);
 		});
