@@ -97,3 +97,11 @@ paper-libraries-selector .library.anonymous {
 	#libraryInfoTxt.expandLeft {
 		margin-left: -263px;
 	}
+
+.removeLibrary {
+	position: absolute;
+	margin-left: 163px;
+	margin-top: -10px;
+	cursor: pointer;
+	z-index: 100;
+}
