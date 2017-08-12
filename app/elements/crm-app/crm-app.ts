@@ -704,6 +704,8 @@ class CA {
 				$settingsCont[0].style.height = 'calc(100vh - 66px)';
 			});
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+
+			window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 		} else {
 			$(window.doc.editorTitleRibbon).animate({
 				fontSize: '40%'
@@ -718,6 +720,8 @@ class CA {
 				$settingsCont[0].style.height = 'calc(100vh - 29px)';
 			});
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+
+			window.doc.showHideToolsRibbonButton.classList.add('hidden');
 		}
 		window.app.storageLocal.shrinkTitleRibbon = !window.app.storageLocal.shrinkTitleRibbon;
 		chrome.storage.local.set({
@@ -2565,12 +2569,10 @@ class CA {
 				$(window.doc.editorToolsRibbonContainer).animate({
 					marginLeft: 0
 				}, 250);
-				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
 			} else {
 				$(window.doc.editorToolsRibbonContainer).animate({
 					marginLeft: '-200px'
 				}, 250);
-				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
 			}
 			window.app.storageLocal.hideToolsRibbon = !window.app.storageLocal.hideToolsRibbon;
 			window.app.upload();

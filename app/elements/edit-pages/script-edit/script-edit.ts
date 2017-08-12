@@ -538,16 +538,16 @@ class SCE {
 
 		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
 			if (window.app.storageLocal.hideToolsRibbon) {
-				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+				window.doc.showHideToolsRibbonButton.classList.add('hidden');
 			} else {
-				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
+				window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 			}
 		} else {
 			chrome.storage.local.set({
 				hideToolsRibbon: false
 			});
 			window.app.storageLocal.hideToolsRibbon = false;
-			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+			window.doc.showHideToolsRibbonButton.classList.add('hidden');
 		}
 		if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
 			if (window.app.storageLocal.shrinkTitleRibbon) {

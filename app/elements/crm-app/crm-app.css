@@ -648,16 +648,6 @@ body.editingScript .cssTool {
 	overflow: hidden;
 }
 
-#showHideToolsRibbonButton {
-	float: right;
-	cursor: pointer;
-	opacity:0.7;
-}
-
-	#showHideToolsRibbonButton:hover {
-		opacity: 1;
-	}
-
 #shrinkTitleRibbonButtonCont, #showHideToolsRibbonCont {
 	display: -webkit-flex;
 	display: flex;
@@ -1060,4 +1050,30 @@ paper-toggle-option #checkboxLabel {
 
 #exportCopyButton {
 	float: right;
+}
+
+#showHideToolsRibbonButton {
+	width: 25px;
+	height: 25px;
+}
+
+#showHideToolsRibbonButton iron-icon {
+	margin-top: -25px;
+}
+
+#showHideToolsRibbonButton.hidden {
+	width: 15px;
+	height: 15px;
+}
+
+#showHideToolsRibbonButton.hidden iron-icon {
+	margin-top: -33px;
+}
+
+#ribbonScriptName, #ribbonStylesheetName {
+	vertical-align: middle;
+	display: flex;
+	height: 100%;
+	flex-direction: column;
+	justify-content: center;
 }
