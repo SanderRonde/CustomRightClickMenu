@@ -857,7 +857,7 @@ class CA {
 		}
 
 		let controlPresses = 0;
-		document.body.addEventListener('keydown', (event) => {
+		document.body.addEventListener('keyup', (event) => {
 			if (event.key === 'Control') {
 				controlPresses++;
 				window.setTimeout(() => {
