@@ -13,6 +13,8 @@ A demo can be found over [here](https://sanderronde.github.io/CustomRightClickMe
 full functionality as it has no access to your actual browser APIs, but it does give a good view of the interface, a little bit of
 a context menu demo on-page and access to settings.
 
+![example](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/store_images/screenshot1.png)
+
 ## About
 
 ### Custom CSS
@@ -61,6 +63,10 @@ You can develop scripts both inside the extension and outside of it. By using th
 The CRM API allows you to edit the current state of the context menu right from a running script. This allows you to do things like create an "add website to menu" button, removing or adding subsections in a menu or even communicating with other running scripts. By also using a background script (which runs at all times and uses the same permissions/API), you can do pretty much everything a chrome extension could. The CRM API also features full compatibility with the [GreaseMonkey API](https://wiki.greasespot.net/Greasemonkey_Manual:API), so you can use all userscripts.
 
 There is a typescript definition file available for the CRM API over [here](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/tools/definitions/crmapi.d.ts) and you can find both an in-extension and [online](sanderronde.github.io/CustomRightClickMenu/documentation) version of the documentation. The in-extension version can be found by going to /html/crmAPIDocs.html or by hitting the "go to definition" key in the CodeMirror editor.
+
+Entering fullscreen mode brings up a hamburger menu on the left (see the image below) that allows access to the tools ribbon, containing features like using the external editor, adding (your own) libraries, easy search script generation or JSLint.
+
+![fullscreen editor](https://github.com/SanderRonde/CustomRightClickMenu/blob/master/store_images/screenshot3.png)
 
 ## Contributing
 
