@@ -705,7 +705,7 @@ class CA {
 			});
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 
-			window.doc.showHideToolsRibbonButton.classList.remove('hidden');
+			window.doc.showHideToolsRibbonButton.classList.add('hidden');
 		} else {
 			$(window.doc.editorTitleRibbon).animate({
 				fontSize: '40%'
@@ -721,7 +721,7 @@ class CA {
 			});
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
 
-			window.doc.showHideToolsRibbonButton.classList.add('hidden');
+			window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 		}
 		window.app.storageLocal.shrinkTitleRibbon = !window.app.storageLocal.shrinkTitleRibbon;
 		chrome.storage.local.set({
