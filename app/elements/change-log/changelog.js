@@ -61,7 +61,8 @@
 			'Fixed GM_xmlhttpRequest error (thanks to bumaociyuan for the report)'
 		],
 		'2.0.14': [
-			'Added a remove button for libraries (thanks to robinchew for the suggestion)'
+			'Added a remove button for libraries (thanks to robinchew for the suggestion)',
+			'Fixed some bugs related to background-pages'
 		]
 	};
 }());
