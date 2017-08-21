@@ -4015,9 +4015,13 @@ if (typeof module === 'undefined') {
 			if (typeof options.tabId === 'number') {
 				options.tabId = [options.tabId];
 			}
+
+			const tabIds: Array<number> = options.tabId;
+			delete options.tabId;
+
 			//Get results from tab query
 			chrome.tabs.query(options, (result) => {
-				Promiselike.all((options.tabId as Array<number> || []).map((tabId) => {
+				Promiselike.all((tabIds|| []).map((tabId) => {
 					return new Promiselike<chrome.tabs.Tab>((resolve) => {
 						chrome.tabs.get(tabId, (tab) => {
 							resolve(tab);
