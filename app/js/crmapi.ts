@@ -317,7 +317,7 @@
 					break;
 				case 'object':
 					const htmlEl = (window as any).HTMLElement as any;
-					if (value instanceof htmlEl) {
+					if (htmlEl && value instanceof htmlEl) {
 						target[key] = value;
 					} else {
 						mapObjThisArgs(value, thisMap, thisArgs);
