@@ -71,14 +71,6 @@ class SCE {
 
 	private static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
 		const __this = this;
-
-		//Use jquery to also get the pre-change value
-		$(this.$.nameInput).on('keydown', () => {
-			const el = this.$.nameInput;
-			let oldVal = el.value || '';
-			Array.isArray(oldVal) && (oldVal = oldVal[0]);
-		});
-
 		$('.executionTriggerNot').on('change', function(this: HTMLElement) {
 			__this.triggerCheckboxChange.apply(__this, [this]);
 		});
@@ -546,16 +538,16 @@ class SCE {
 
 		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
 			if (window.app.storageLocal.hideToolsRibbon) {
-				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+				window.doc.showHideToolsRibbonButton.classList.add('hidden');
 			} else {
-				window.doc.showHideToolsRibbonButton.style.transform = 'rotate(180deg)';
+				window.doc.showHideToolsRibbonButton.classList.remove('hidden');
 			}
 		} else {
 			chrome.storage.local.set({
 				hideToolsRibbon: false
 			});
 			window.app.storageLocal.hideToolsRibbon = false;
-			window.doc.showHideToolsRibbonButton.style.transform = 'rotate(0deg)';
+			window.doc.showHideToolsRibbonButton.classList.add('hidden');
 		}
 		if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
 			if (window.app.storageLocal.shrinkTitleRibbon) {

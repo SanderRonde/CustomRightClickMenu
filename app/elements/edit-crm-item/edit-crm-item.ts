@@ -185,15 +185,16 @@ class ECI {
 				const item = this.item;
 				window.app.item = item;
 				if (item.type === 'script') {
-					window.app.stylesheetItem = {} as any;
+					window.app.stylesheetItem = null;
 					window.app.scriptItem = item;
 				} else if (item.type === 'stylesheet') {
-					window.app.scriptItem = {} as any;
+					window.app.scriptItem = null;
 					window.app.stylesheetItem = item;
 				} else {
-					window.app.stylesheetItem = {} as any;
-					window.app.scriptItem = {} as any;
+					window.app.stylesheetItem = null;
+					window.app.scriptItem = null;
 				}
+
 				window.crmEditPage.init();
 			} else {
 				this.selectThisNode();

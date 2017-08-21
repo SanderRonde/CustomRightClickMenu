@@ -5225,51 +5225,6 @@ if (typeof module === 'undefined') {
 			}
 		};
 
-		static checkIfResourcesAreUsed() {
-			const resourceNames = [];
-			for (let resourceForScript in globalObject.globals.storages.resources) {
-				if (globalObject.globals.storages.resources
-					.hasOwnProperty(resourceForScript) &&
-					globalObject.globals.storages.resources[resourceForScript]) {
-					let scriptResources = globalObject.globals.storages
-						.resources[resourceForScript];
-					for (let resourceName in scriptResources) {
-						if (scriptResources.hasOwnProperty(resourceName) &&
-							scriptResources[resourceName]) {
-							resourceNames.push(scriptResources[resourceName].name);
-						}
-					}
-				}
-			}
-
-			for (let id in globalObject.globals.crm.crmById) {
-				let node: CRM.Node;
-				if (globalObject.globals.crm.crmById.hasOwnProperty(id) &&
-					(node = globalObject.globals.crm.crmById[id]) &&
-					node.type === 'script' && node.value.script) {
-					const resourceObj: {
-						[url: string]: boolean;
-					} = {};
-					const metaTags = CRM.Script.MetaTags.getMetaTags((globalObject.globals
-						.crm.crmById[id] as CRM.ScriptNode).value.script);
-					const resources = metaTags['resource'];
-					const libs = node.value.libraries;
-					for (let i = 0; i < libs.length; i++) {
-						if (!libs[i].name) {
-							resourceObj[libs[i].url] = true;
-						}
-					}
-					for (let i = 0; i < resources; i++) {
-						resourceObj[resources[i]] = true;
-					}
-					for (let i = 0; i < resourceNames.length; i++) {
-						if (!resourceObj[resourceNames[i]]) {
-							this._removeResource(resourceNames[i], ~~id);
-						}
-					}
-				}
-			}
-		}
 		static updateResourceValues() {
 			for (let i = 0;
 				i < globalObject.globals.storages.resourceKeys.length;
@@ -9912,8 +9867,6 @@ if (typeof module === 'undefined') {
 
 					//Checks if all values are still correct
 					window.console.group('Checking Resources');
-					window.log('Checking if resources are used');
-					Resources.checkIfResourcesAreUsed();
 					window.log('Updating resources');
 					Resources.updateResourceValues();
 					window.log('Updating scripts');

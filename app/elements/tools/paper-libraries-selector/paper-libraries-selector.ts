@@ -283,8 +283,7 @@ class PLS {
 			});
 
 			const contentEl = _this.$$('paper-menu').querySelector('.content') as HTMLElement;
-			contentEl.style.height += 
-				(~~contentEl.style.height.split('px')[0] + 48) + 'px';
+			contentEl.style.height = (~~contentEl.style.height.split('px')[0] + 48) + 'px';
 
 			_this.init();
 		}, 250);
@@ -343,24 +342,6 @@ class PLS {
 			});
 	}
 
-	private static addAnonymousLibrary(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
-		const url = e.target.getAttribute('data-url');
-		if (this.mode === 'main') {
-			window.scriptEdit.editor.removeMetaTags(window.scriptEdit.editor,
-				'require', url);
-		}
-
-		chrome.runtime.sendMessage({
-			type: 'anonymousLibrary',
-			data: {
-				type: 'remove',
-				name: url,
-				url: url,
-				scriptId: window.app.scriptItem.id
-			}
-		});
-	}
-
 	private static handleCheckmarkClick(e: Polymer.ClickEvent) {
 		//Checking or un-checking something
 		const lib = (e.target as HTMLElement & {
@@ -390,15 +371,49 @@ class PLS {
 	}
 
 	static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+		console.log(e.target);
 		const _this = this;
+		if (e.target.tagName.toLowerCase() === 'path' ||
+			e.target.tagName.toLowerCase() === 'svg' ||
+			e.target.classList.contains('removeLibrary')) {
+				return;
+			}
 		if (e.target.classList.contains('addLibrary')) {
 			this.addNewLibrary();
-		} else if (e.target.classList.contains('anonymous')) {
-			this.addAnonymousLibrary(e);
 		} else if (_this.mode === 'main') {
 			this.handleCheckmarkClick(e);
 		}
 	};
+
+	static _remove(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+		type LibraryElement = HTMLElement & {
+			dataLib: LibrarySelectorLibrary
+		}
+		let parentNode: LibraryElement = null;
+		if (e.target.tagName.toLowerCase() === 'path') {
+			parentNode = e.target.parentElement.parentElement.parentElement as LibraryElement;
+		} else if (e.target.tagName.toLowerCase() === 'svg') {
+			parentNode = e.target.parentElement.parentElement as LibraryElement;
+		} else {
+			parentNode = e.target.parentElement as LibraryElement;
+		}
+		const library = parentNode.dataLib;
+		chrome.runtime.sendMessage({
+			type: 'resource',
+			data: {
+				type: 'remove',
+				name: library.name,
+				url: library.url,
+				scriptId: window.app.scriptItem.id
+			}
+		});
+
+		//Remove it from view as well
+		this.splice('libraries', this.libraries.indexOf(library), 1);
+
+		const contentEl = this.$$('paper-menu').querySelector('.content') as HTMLElement;
+		contentEl.style.height = (~~contentEl.style.height.split('px')[0] - 48) + 'px';
+	}
 
 	static updateLibraries(this: PaperLibrariesSelector, libraries: Array<LibrarySelectorLibrary>, mode: 'main'|'background' = 'main') {
 		this.set('usedlibraries', libraries);

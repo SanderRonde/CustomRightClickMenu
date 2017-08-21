@@ -198,6 +198,15 @@ class NEB {
 	static inputKeyPress(this: NodeEditBehavior, e: KeyboardEvent) {
 		e.keyCode === 27 && this.cancel();
 		e.keyCode === 13 && this.save();
+
+		window.setTimeout(() => {
+			const value = this.$.nameInput.value;
+			if (this.item.type === 'script') {
+				window.app.$.ribbonScriptName.innerText = value;
+			} else if (this.item.type === 'stylesheet') {
+				window.app.$.ribbonStylesheetName.innerText = value;
+			}
+		}, 0);
 	};
 
 	static assignContentTypeSelectedValues(this: NodeEditBehavior) {
@@ -458,12 +467,18 @@ class NEB {
 	};
 
 	static _init(this: NodeEditBehavior) {
-		const _this = this;
 		this.newSettings = JSON.parse(JSON.stringify(this.item));
 		window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
 		this.assignContentTypeSelectedValues();
-		setTimeout(function () {
-			_this.$.nameInput.focus();
+		setTimeout(() => {
+			this.$.nameInput.focus();
+
+			const value = this.$.nameInput.value;
+			if (this.item.type === 'script') {
+				window.app.$.ribbonScriptName.innerText = value;
+			} else if (this.item.type === 'stylesheet') {
+				window.app.$.ribbonStylesheetName.innerText = value;
+			}
 		}, 350);
 	}
 }
