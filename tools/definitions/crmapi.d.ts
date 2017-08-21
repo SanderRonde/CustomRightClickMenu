@@ -1,3 +1,5 @@
+type MaybeArray<T> = T|Array<T>;
+
 /**
  * The launch modes for scripts and stylesheets
  */
