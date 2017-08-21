@@ -4025,7 +4025,7 @@ if (typeof module === 'undefined') {
 					});
 				})).then((tabs: Array<chrome.tabs.Tab>) => {
 					//Remove duplicates
-					tabs = tabs.concat(result);
+					result && (tabs = tabs.concat(result));
 					tabs = tabs.filter((tab, index) => {
 						return tabs.indexOf(tab) === index;
 					});
@@ -4037,7 +4037,7 @@ if (typeof module === 'undefined') {
 							pageUrl: tab.url,
 							menuItemId: 0,
 							editable: false
-						}, tab, false);
+						}, tab, true);
 					});
 				});
 			});
