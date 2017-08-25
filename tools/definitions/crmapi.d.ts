@@ -2732,6 +2732,7 @@ declare namespace CRMAPI {
 			 * @permission crmRun
 			 * @param {number} id - The id of the script to run
 			 * @param {Object} options - The options for the tab to run it on
+			 * @param {boolean} [options.all] - Whether to execute on all tabs
 			 * @param {string} [options.status] - Whether the tabs have completed loading.
 		 	 * 		One of: "loading", or "complete"
 			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
@@ -2750,12 +2751,14 @@ declare namespace CRMAPI {
 			 */
 			runScript(id: number, options: chrome.tabs.QueryInfo & {
 				tabId?: MaybeArray<number>;
+				all?: boolean;
 			}): void;
 			/**
 			 * Runs this script on given tab(s)
 			 * 
 			 * @permission crmRun
 			 * @param {Object} options - The options for the tab to run it on
+			 * @param {boolean} [options.all] - Whether to execute on all tabs
 			 * @param {string} [options.status] - Whether the tabs have completed loading.
 		 	 * 		One of: "loading", or "complete"
 			 * @param {boolean} [options.lastFocusedWindow] - Whether the tabs are in the last focused window.
@@ -2774,6 +2777,7 @@ declare namespace CRMAPI {
 			 */
 			runSelf(options: chrome.tabs.QueryInfo & {
 				tabId?: MaybeArray<number>;
+				all?: boolean;
 			}): void;
 			/**
 			 * Adds a listener for a keyboard event

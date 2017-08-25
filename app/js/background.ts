@@ -4009,10 +4009,17 @@ if (typeof module === 'undefined') {
 				});
 			});
 		}
-		private static _queryTabs(options: chrome.tabs.QueryInfo, callback: (tabs: Array<chrome.tabs.Tab>) => void) {
+		private static _queryTabs(options: chrome.tabs.QueryInfo & {
+			all?: boolean;
+		}, callback: (tabs: Array<chrome.tabs.Tab>) => void) {
 			if (Object.getOwnPropertyNames(options).length === 0) {
 				callback([]);
+			} else if (options.all) {
+				chrome.tabs.query({}, callback);
 			} else {
+				if (options.all === false) {
+					delete options.all;
+				}
 				chrome.tabs.query(options, callback);
 			}
 		}
@@ -4074,6 +4081,10 @@ if (typeof module === 'undefined') {
 				}, {
 					val: 'options',
 					type: 'object'
+				}, {
+					val: 'options.all',
+					type: 'boolean',
+					optional: true
 				}, {
 					val: 'options.tabId',
 					type: ['number', 'array'],
@@ -4155,6 +4166,10 @@ if (typeof module === 'undefined') {
 				__this.typeCheck([{
 					val: 'options',
 					type: 'object'
+				}, {
+					val: 'options.all',
+					type: 'boolean',
+					optional: true
 				}, {
 					val: 'options.tabId',
 					type: ['number', 'array'],
