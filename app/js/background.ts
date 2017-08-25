@@ -4009,6 +4009,28 @@ if (typeof module === 'undefined') {
 				});
 			});
 		}
+		private static _queryTabs(options: chrome.tabs.QueryInfo, callback: (tabs: Array<chrome.tabs.Tab>) => void) {
+			if (Object.getOwnPropertyNames(options).length === 0) {
+				callback([]);
+			} else {
+				chrome.tabs.query(options, callback);
+			}
+		}
+		private static _removeDuplicateTabs(tabs: Array<chrome.tabs.Tab>): Array<chrome.tabs.Tab> {
+			const nonDuplicates: Array<chrome.tabs.Tab> = [];
+			const ids: Array<number> = [];
+			for (let i = 0; i < tabs.length; i++) {
+				const id = tabs[i].id;
+				if (ids.indexOf(id) > -1) {
+					continue;
+				}
+
+				nonDuplicates.push(tabs[i]);
+				ids.push(id);
+			}
+
+			return nonDuplicates;
+		}
 		private static _runScript(__this: CRMFunction, id: number, options: chrome.tabs.QueryInfo & {
 			tabId?: MaybeArray<number>;
 		}) {
@@ -4020,7 +4042,7 @@ if (typeof module === 'undefined') {
 			delete options.tabId;
 
 			//Get results from tab query
-			chrome.tabs.query(options, (result) => {
+			this._queryTabs(options, (result) => {
 				Promiselike.all((tabIds|| []).map((tabId) => {
 					return new Promiselike<chrome.tabs.Tab>((resolve) => {
 						chrome.tabs.get(tabId, (tab) => {
@@ -4030,9 +4052,7 @@ if (typeof module === 'undefined') {
 				})).then((tabs: Array<chrome.tabs.Tab>) => {
 					//Remove duplicates
 					result && (tabs = tabs.concat(result));
-					tabs = tabs.filter((tab, index) => {
-						return tabs.indexOf(tab) === index;
-					});
+					tabs = this._removeDuplicateTabs(tabs);
 
 					const node = __this.getNodeFromId(id, false, true);
 
@@ -5729,14 +5749,14 @@ if (typeof module === 'undefined') {
 				file?: string;
 				runAt: string;
 			}>, i: number) {
-				if (chrome.runtime.lastError) {
-					if (chrome.runtime.lastError.message.indexOf('Could not establish connection') === -1 &&
-						chrome.runtime.lastError.message.indexOf('closed') === -1) {
-							window.log('Couldn\'t execute on tab', chrome.runtime.lastError);
-						}
-					return () => { };
-				}
 				return () => {
+					if (chrome.runtime.lastError) {
+						if (chrome.runtime.lastError.message.indexOf('Could not establish connection') === -1 &&
+							chrome.runtime.lastError.message.indexOf('closed') === -1) {
+								window.log('Couldn\'t execute on tab with id', tabId, chrome.runtime.lastError);
+							}
+						return;
+					}
 					if (scripts.length > i) {
 						try {
 							chrome.tabs.executeScript(tabId, scripts[i], this._executeScript(tabId,
@@ -6749,7 +6769,7 @@ if (typeof module === 'undefined') {
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					return [
 						[
-							`var crmAPI = new CrmAPIInit(${
+							`console.log('exec');var crmAPI = new CrmAPIInit(${
 							[
 								safeNode, node.id, tab, info, key, nodeStorage,
 								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
