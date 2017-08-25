@@ -5351,8 +5351,9 @@ after('quit driver', function(this: MochaFn) {
 	return new webdriver.promise.Promise<void>((resolve) => {
 		//Resolve after 20 seconds regardless of quitting result
 		setTimeout(() => {
+			console.log('Resolving automatically');
 			resolve(null);
-		}, 19000);
+		}, 15000);
 
 		driver.quit().then(() => {
 			resolve(null);
