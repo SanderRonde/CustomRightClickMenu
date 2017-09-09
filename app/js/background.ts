@@ -4706,7 +4706,7 @@ if (typeof module === 'undefined') {
 			const indexes = index.split('.');
 			let currentValue: T | U = source;
 			for (let i = 0; i < indexes.length; i++) {
-				if (indexes[i] in currentValue) {
+				if (indexes[i] in (currentValue as any)) {
 					currentValue = (currentValue as T)[indexes[i]];
 				} else {
 					return undefined;

@@ -1707,18 +1707,19 @@
 						}
 					});
 
-					const returnVal: ChromeRequestInterface = (...args: Array<any>) => {
+					const returnVal: ChromeRequestInterface = CrmAPIInit._helpers.mergeObjects((...args: Array<any>) => {
 						return this.a.bind(this)(...args);
-					};
-					returnVal.a = this.a.bind(this),
-					returnVal.args = this.args.bind(this),
-					returnVal.r =this.r.bind(this),
-					returnVal.return = this.return.bind(this),
-					returnVal.p =this.p.bind(this),
-					returnVal.persistent = this.persistent.bind(this),
-					returnVal.send = this.send.bind(this),
-					returnVal.s = this.s.bind(this),
-					returnVal.request = this.request
+					}, {
+						a: this.a.bind(this),
+						args: this.args.bind(this),
+						r: this.r.bind(this),
+						return: this.return.bind(this),
+						p: this.p.bind(this),
+						persistent: this.persistent.bind(this),
+						send: this.send.bind(this),
+						s: this.s.bind(this),
+						request: this.request
+					});
 					this.returnedVal = returnVal;
 
 					return this.returnedVal as any;
@@ -2613,12 +2614,11 @@
 			static mergeObjects<T extends {
 				[key: string]: any;
 				[key: number]: any;
-			}, Y extends Partial<T>>(mainObject: T, additions: Y): T & Y {
+			}, Y extends Partial<T> & Object>(mainObject: T, additions: Y): T & Y {
 				for (const key in additions) {
 					if (additions.hasOwnProperty(key)) {
 						if (typeof additions[key] === 'object' &&
-							mainObject[key] !== undefined &&
-							mainObject[key] !== null) {
+							key in mainObject) {
 							if (Array.isArray(additions[key])) {
 								mainObject[key] = this.mergeArrays(mainObject[key], additions[key]);
 							} else {
