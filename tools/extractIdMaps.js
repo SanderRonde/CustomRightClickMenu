@@ -82,7 +82,8 @@ module.exports = function(grunt) {
 					})
 
 					if (srcFile.length === 0) {
-						return nextSeries();
+						resolve();
+						return;
 					}
 
 					let fileMapKey = 'unset';
