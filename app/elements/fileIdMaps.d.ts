@@ -13,7 +13,7 @@ interface IDMap
 		"fullscreenEditor": HTMLDivElement,
 		"editorCurrentScriptTitle": HTMLDivElement,
 		"showHideToolsRibbonCont": HTMLDivElement,
-		"showHideToolsRibbonButton": SVGElement,
+		"showHideToolsRibbonButton": HTMLPaperIconButtonElement,
 		"editorTitleRibbon": HTMLDivElement,
 		"ribbonScriptName": HTMLSpanElement,
 		"ribbonStylesheetName": HTMLSpanElement,
