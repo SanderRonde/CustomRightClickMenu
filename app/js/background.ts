@@ -6784,7 +6784,7 @@ if (typeof module === 'undefined') {
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					return [
 						[
-							`console.log('exec');var crmAPI = new CrmAPIInit(${
+							`var crmAPI = new CrmAPIInit(${
 							[
 								safeNode, node.id, tab, info, key, nodeStorage,
 								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},
