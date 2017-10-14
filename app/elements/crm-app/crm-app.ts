@@ -785,7 +785,7 @@ class CA {
 		chrome.storage.local.set(obj);
 		chrome.storage.local.get(function (storageLocal: CRM.StorageLocal) {
 			_this.storageLocal = storageLocal;
-			if (key === 'CRMOnPage') {
+			if (key === 'CRMonPage') {
 				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
 					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 			}
@@ -3814,19 +3814,19 @@ class CA {
 					} else {
 						switch (node.type) {
 							case 'link':
-								childItems[index.num] = _this.node.link(node);
+								childItems[index.num++] = _this.node.link(node);
 								break;
 							case 'script':
-								childItems[index.num] = _this.node.script(node);
+								childItems[index.num++] = _this.node.script(node);
 								break;
 							case 'stylesheet':
-								childItems[index.num] = _this.node.stylesheet(node);
+								childItems[index.num++] = _this.node.stylesheet(node);
 								break;
 							case 'divider':
-								childItems[index.num] = _this.node.divider();
+								childItems[index.num++] = _this.node.divider();
 								break;
 							case 'menu':
-								childItems[index.num] = _this.node.menu(node, crmType, index);
+								childItems[index.num++] = _this.node.menu(node, crmType, index);
 								break;
 						}
 					}
