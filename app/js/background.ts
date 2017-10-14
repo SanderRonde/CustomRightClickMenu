@@ -100,11 +100,21 @@ const enum TypecheckOptional {
 	REQUIRED = 0
 }
 
-interface StorageChange {
-	oldValue: any;
-	newValue: any;
-	key: string;
+type StorageKey = keyof CRM.StorageLocal | keyof CRM.SettingsStorage;
+
+type StorageLocalChange<K extends keyof CRM.StorageLocal = keyof CRM.StorageLocal> = {
+	key: K;
+	oldValue: CRM.StorageLocal[K];
+	newValue: CRM.StorageLocal[K];
 }
+
+type StorageSyncChange<K extends keyof CRM.SettingsStorage = keyof CRM.SettingsStorage> = {
+	key: K;
+	oldValue: CRM.SettingsStorage[K];
+	newValue: CRM.SettingsStorage[K];
+}
+
+type StorageChange = StorageLocalChange|StorageSyncChange;
 
 interface CRMAPIMessage<T, TD> {
 	id: number;
@@ -7695,13 +7705,11 @@ if (typeof module === 'undefined') {
 		};
 
 		static updateCrm(toUpdate?: Array<number>) {
-			Storages.uploadChanges('settings', [
-				{
-					key: 'crm',
-					newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)),
-					oldValue: {}
-				}
-			]);
+			Storages.uploadChanges('settings', [{
+				key: 'crm',
+				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)) as any,
+				oldValue: {} as any
+			}]);
 			CRM.updateCRMValues();
 			CRM.buildPageCRM();
 			MessageHandling.signalNewCRM();
@@ -7729,13 +7737,11 @@ if (typeof module === 'undefined') {
 			this._buildByIdObjects();
 
 			if (!match) {
-				Storages.uploadChanges('settings', [
-					{
-						key: 'crm',
-						newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)),
-						oldValue: {}
-					}
-				]);
+				Storages.uploadChanges('settings', [{
+					key: 'crm',
+					newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)) as any,
+					oldValue: {} as any
+				}]);
 			}
 		}
 		static makeSafe(node: CRM.Node): CRM.SafeNode {
@@ -9454,7 +9460,8 @@ if (typeof module === 'undefined') {
 					chrome.storage.local.set(globalObject.globals.storages.storageLocal);
 					for (let i = 0; i < changes.length; i++) {
 						if (changes[i].key === 'useStorageSync') {
-							this.uploadChanges('settings', [], changes[i].newValue);
+							const change = changes[i] as StorageLocalChange<'useStorageSync'>;
+							this.uploadChanges('settings', [], change.newValue);
 						}
 					}
 					break;
@@ -9653,14 +9660,16 @@ if (typeof module === 'undefined') {
 					CRM.buildPageCRM();
 					MessageHandling.signalNewCRM();
 				} else if (changes[i].key === 'latestId') {
-					globalObject.globals.latestId = changes[i].newValue;
+					const change = changes[i] as StorageSyncChange<'latestId'>;
+					globalObject.globals.latestId = change.newValue;
 					chrome.runtime.sendMessage({
 						type: 'idUpdate',
-						latestId: changes[i].newValue
+						latestId: change.newValue
 					});
 				} else if (changes[i].key === 'rootName') {
+					const rootNameChange = changes[i] as StorageSyncChange<'rootName'>;
 					chrome.contextMenus.update(globalObject.globals.crmValues.rootId, {
-						title: changes[i].newValue
+						title: rootNameChange.newValue
 					});
 				}
 			}
