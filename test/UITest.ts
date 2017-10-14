@@ -546,7 +546,7 @@ function waitForCRM(driver: webdriver.WebDriver, timeRemaining: number): webdriv
 		}
 
 		driver.executeScript(inlineFn(() => {
-			const crmItem = document.getElementsByTagName('edit-crm-item:not([root-node])').item(0);
+			const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
 			return !!crmItem;
 		})).then((result) => {
 			if (result) {
@@ -563,7 +563,7 @@ function waitForCRM(driver: webdriver.WebDriver, timeRemaining: number): webdriv
 function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, done: () => void) {
 	waitForCRM(driver, 4000).then(() => {
 		return driver.executeScript(inlineFn(() => {
-			const crmItem = document.getElementsByTagName('edit-crm-item:not([root-node])').item(0);
+			const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
 			crmItem.querySelector('type-switcher').changeType('REPLACE.type' as CRM.NodeType);	
 		}, {
 			type: type
@@ -575,7 +575,7 @@ function switchToTypeAndOpen(driver: webdriver.WebDriver, type: CRM.NodeType, do
 		return wait(driver, 100);
 	}).then(() => {
 		return driver.executeScript(inlineFn(() => {
-			((document.getElementsByTagName('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
+			((document.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
 		}));
 	}).then(() => {
 		return wait(driver, 500);
@@ -588,7 +588,7 @@ function openDialog(driver: webdriver.WebDriver, type: CRM.NodeType) {
 	return new webdriver.promise.Promise((resolve) => {
 		if (type === 'link') {
 			driver.executeScript(inlineFn(() => {
-				((document.getElementsByTagName('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
+				((document.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0)).openEditPage();
 			})).then(() => {
 				wait(driver, 1000).then(resolve);
 			});
@@ -2385,13 +2385,13 @@ describe('Options Page', function() {
 
 			function testTypeSwitch(driver: webdriver.WebDriver, type: string, done: () => void) {
 				driver.executeScript(inlineFn(() => {
-					const crmItem = (document.getElementsByTagName('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
+					const crmItem = (document.querySelectorAll('edit-crm-item:not([root-node])') as NodeListOf<EditCrmItem>).item(0);
 					crmItem.typeIndicatorMouseOver();
 				})).then(() => {
 					return wait(driver, 300);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						const crmItem = document.getElementsByTagName('edit-crm-item:not([root-node])').item(0);
+						const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
 						const typeSwitcher = crmItem.querySelector('type-switcher');
 						typeSwitcher.openTypeSwitchContainer();
 					}));;
@@ -2399,7 +2399,7 @@ describe('Options Page', function() {
 					return wait(driver, 300);
 				}).then(() => {
 					return driver.executeScript(inlineFn(() => {
-						const crmItem = document.getElementsByTagName('edit-crm-item:not([root-node])').item(0);
+						const crmItem = document.querySelectorAll('edit-crm-item:not([root-node])').item(0);
 						const typeSwitcher = crmItem.querySelector('type-switcher');
 						(typeSwitcher.querySelector('.typeSwitchChoice[type="REPLACE.type"]') as HTMLElement)
 							.click();
