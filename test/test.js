@@ -2245,7 +2245,8 @@ describe('CRMAPI', () => {
 					}]
 				}],
 				"latestId": JSON.parse(storageSync.section0).latestId,
-				"settingsLastUpdatedAt": JSON.parse(storageSync.section0).settingsLastUpdatedAt
+				"settingsLastUpdatedAt": JSON.parse(storageSync.section0).settingsLastUpdatedAt,
+				"rootName": "Custom Menu"
 			},
 			indexes: ['section0']
 		});
