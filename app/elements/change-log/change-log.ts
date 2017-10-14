@@ -31,6 +31,62 @@ class CL {
 
 	static properties = changeLogProperties;
 
+	private static makeLink(name: string, url: string): string {
+		return `<a target="_blank" href="${url}" title="${name}">${name}</a>`;
+	}
+
+	private static stringSplice(str: string, startIndex: number, endIndex: number, 
+		newContents: string): string {
+			return str.slice(0, startIndex) + newContents + str.slice(endIndex);
+		}
+
+	private static convertLinks(change: string): string {
+		const state: {
+			startIndex: number,
+			inBlock: boolean;
+			inBrackets: boolean;
+			blockContents: string|void;
+		} = {
+			startIndex: -1,
+			inBlock: false,
+			inBrackets: false,
+			blockContents: null
+		}
+
+		let buf = '';
+		for (let i = 0; i < change.length; i++) {
+			const char = change[i];
+			if (char === '[') {
+				state.startIndex = i;
+				state.inBlock = true;
+				buf = '';
+				continue;
+			} else if (char === ']') {
+				state.inBlock = false;
+				state.blockContents = buf;
+				buf = '';
+			} else if (char === '(') {
+				buf = '';
+				state.inBrackets = true;
+				continue;
+			} else if (char === ')') {
+				state.inBrackets = false;
+				if (state.blockContents) {
+					return this.convertLinks(this.stringSplice(change, state.startIndex,
+						i, this.makeLink(state.blockContents, buf)));
+				}
+			} else if (state.inBlock || state.inBrackets) {
+				buf += char;
+			} else {
+				state.blockContents = null;
+				state.inBlock = false;
+				state.inBrackets = false;
+			}
+		}
+
+		return change;
+	}
+
 	/**
 	 * Turns the object-based changelog into an array-based changelog 
 	 * for polymer to iterate through
@@ -41,6 +97,7 @@ class CL {
 		version: string;
 		changes: Array<string>;	
 	}> {
+		debugger;
 		const arrayChangelog: Array<{
 			version: string;
 			changes: Array<string>;	
@@ -49,7 +106,7 @@ class CL {
 			if (changelog.hasOwnProperty(versionEntry)) {
 				arrayChangelog.push({
 					version: versionEntry,
-					changes: changelog[versionEntry]
+					changes: changelog[versionEntry].map(change => this.convertLinks(change))
 				});
 			}
 		}

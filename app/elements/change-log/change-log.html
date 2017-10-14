@@ -13,7 +13,7 @@
 					<ul class="changelogChanges">
 						<template is="dom-repeat" items="{{changelogItem.changes}}" as="change">
 							<li>
-								<div class="changelogChange">{{change}}</div>
+								<echo-html html$="{{change}}" class="changelogChange"></echo-html>
 							</li>
 						</template>
 					</ul>
