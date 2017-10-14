@@ -63,6 +63,9 @@
 		'2.0.14': [
 			'Added a remove button for libraries (thanks to robinchew for the suggestion)',
 			'Fixed some bugs related to background-pages'
+		],
+		'2.0.15': [
+			'It\'s now possible to change the root menu name (thanks to anonymous user)'
 		]
 	};
 }());
