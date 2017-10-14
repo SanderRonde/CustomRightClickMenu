@@ -825,6 +825,10 @@ edit-crm-item:focus .CRMItemTitle {
 	font-weight: bold;
 }
 
+edit-crm-item:focus .CRMItemTitle[isroot] {
+	font-weight: normal;
+}
+
 .globalExcludeContainer {
 	display: -webkit-flex;
 	display: flex;

@@ -217,6 +217,7 @@ type HTMLPaperGetPagePropertiesElement = PaperGetPageProperties;
 type HTMLCrmEditPageElement = CrmEditPage;
 type HTMLPaperToggleOptionElement = PaperToggleOption;
 type HTMLEditCrmElement = EditCrm;
+type HTMLEditCrmItemElement = EditCrmItem;
 type HTMLCenterElementElement = CenterElement;
 type HTMLPaperSearchWebsiteDialogElement = PaperSearchWebsiteDialog;
 type HTMLUseExternalEditorElement = UseExternalEditor;

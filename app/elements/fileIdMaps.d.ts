@@ -202,11 +202,16 @@ interface IDMap
 	"edit-crm-item":{
 		"itemCont": HTMLDivElement,
 		"typeSwitcher": HTMLTypeSwitcherElement,
+		"rootNodeTypeColor": HTMLDivElement,
 		"draggerOrCheckbox": HTMLDivElement,
 		"checkboxCont": HTMLDivElement,
-		"checkbox": HTMLPaperCheckboxElement
+		"checkbox": HTMLPaperCheckboxElement,
+		"rootNameTitle": HTMLInputElement
 	},
 	"edit-crm":{
+		"editCrmShadingCont": HTMLDivElement,
+		"rootCRMItem": HTMLEditCrmItemElement,
+		"rootNodePadding": HTMLDivElement,
 		"mainCont": HTMLDivElement,
 		"emptyCrmNotice": HTMLDivElement,
 		"crmLoadingPage": HTMLDivElement,

@@ -576,7 +576,7 @@ window.isDev = chrome.runtime.getManifest().short_name.indexOf('dev') > -1;
 if (typeof module === 'undefined') {
 	window.log = console.log.bind(console);
 } else {
-	window.log = () => {};
+	window.log = () => { };
 	window.testLog = console.log.bind(console);
 }
 
@@ -2135,10 +2135,10 @@ if (typeof module === 'undefined') {
 								const permutations = permute(keys.split('+'));
 								permutations.forEach((permutation) => {
 									const permutationKey = permutation.join('+');
-									globalObject.globals.shortcutListeners[permutationKey] && 
+									globalObject.globals.shortcutListeners[permutationKey] &&
 										globalObject.globals.shortcutListeners[permutationKey].forEach((listener) => {
-												listener.callback();
-											});
+											listener.callback();
+										});
 								});
 							}
 						});
@@ -2182,22 +2182,22 @@ if (typeof module === 'undefined') {
 					} else {
 						Promiselike.all(tabs.map((tab) => {
 							return new Promiselike<void>((resolveInner) => {
-								if (tab.url.indexOf('chrome://') === -1 && 
+								if (tab.url.indexOf('chrome://') === -1 &&
 									tab.url.indexOf('file://') === -1) {
-										chrome.tabs.executeScript(tab.id, {
-											file: 'js/contentscript.js'
-										}, () => {
-											if (chrome.runtime.lastError) {
-												window.log('Failed to restore tab with id', tab.id);
-												resolveInner(null);
-											}
-											window.log('Restored tab with id', tab.id);
+									chrome.tabs.executeScript(tab.id, {
+										file: 'js/contentscript.js'
+									}, () => {
+										if (chrome.runtime.lastError) {
+											window.log('Failed to restore tab with id', tab.id);
 											resolveInner(null);
-										});
-									} else {
-										window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
+										}
+										window.log('Restored tab with id', tab.id);
 										resolveInner(null);
-									}
+									});
+								} else {
+									window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
+									resolveInner(null);
+								}
 							});
 						})).then(() => {
 							resolve(null);
@@ -2205,7 +2205,7 @@ if (typeof module === 'undefined') {
 					}
 				});
 			});
-		}		
+		}
 	}
 
 	class Logging {
@@ -2905,9 +2905,9 @@ if (typeof module === 'undefined') {
 					if ((node = _this.moveNode(node, _this.message.data.position as {
 						node: number;
 					}, {
-						children: parentChildren,
-						index: node.path[node.path.length - 1]
-					}) as CRM.Node)) {
+							children: parentChildren,
+							index: node.path[node.path.length - 1]
+						}) as CRM.Node)) {
 						CRM.updateCrm();
 						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
 					}
@@ -3546,8 +3546,8 @@ if (typeof module === 'undefined') {
 								i++) {
 								if (globalObject.globals.storages.storageLocal.libraries[i].name.toLowerCase() ===
 									lib.name.toLowerCase()) {
-										return globalObject.globals.storages.storageLocal.libraries[i].name;
-									}
+									return globalObject.globals.storages.storageLocal.libraries[i].name;
+								}
 							}
 							return false;
 						}
@@ -3656,8 +3656,8 @@ if (typeof module === 'undefined') {
 								i++) {
 								if (globalObject.globals.storages.storageLocal.libraries[i].name.toLowerCase() ===
 									lib.name.toLowerCase()) {
-										return globalObject.globals.storages.storageLocal.libraries[i].name;
-									}
+									return globalObject.globals.storages.storageLocal.libraries[i].name;
+								}
 							}
 							return false;
 						}
@@ -4050,7 +4050,7 @@ if (typeof module === 'undefined') {
 
 			//Get results from tab query
 			this._queryTabs(options, (result) => {
-				Promiselike.all((tabIds|| []).map((tabId) => {
+				Promiselike.all((tabIds || []).map((tabId) => {
 					return new Promiselike<chrome.tabs.Tab>((resolve) => {
 						chrome.tabs.get(tabId, (tab) => {
 							resolve(tab);
@@ -4233,7 +4233,7 @@ if (typeof module === 'undefined') {
 				}], () => {
 					const msg = __this.message.data as CRMFunctionDataBase & {
 						options: {
-							tabId?: Array<number>|number;
+							tabId?: Array<number> | number;
 							url?: string;
 						}
 					};
@@ -4262,7 +4262,7 @@ if (typeof module === 'undefined') {
 					callback: () => {
 						try {
 							_this.respondSuccess();
-						} catch(e) {
+						} catch (e) {
 							//Port/tab was closed
 							shortcuts[key].splice(shortcuts[key].indexOf(listenerObject), 1);
 						}
@@ -4275,7 +4275,7 @@ if (typeof module === 'undefined') {
 
 	class APIMessaging {
 		static CRMMessage = class CRMMessage {
-			static respond(message: CRMAPIMessage<'crm' | 'chrome'|'background', any>,
+			static respond(message: CRMAPIMessage<'crm' | 'chrome' | 'background', any>,
 				type: 'success' | 'error' | 'chromeError', data: any | string, stackTrace?:
 					string) {
 				const msg: CRMAPIResponse<any> = {
@@ -5467,19 +5467,19 @@ if (typeof module === 'undefined') {
 			Helpers.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
 				if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
 					resources[key.scriptId][key.name].dataURI !== dataURI) {
-						//Check if the hashes still match, if they don't, reject it
-						const resourceData = resources[key.scriptId][key.name];
-						if (this._matchesHashes(resourceData.hashes, dataString)) {
-							//Data URIs do not match, just update the url ref
-							globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
-							globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
+					//Check if the hashes still match, if they don't, reject it
+					const resourceData = resources[key.scriptId][key.name];
+					if (this._matchesHashes(resourceData.hashes, dataString)) {
+						//Data URIs do not match, just update the url ref
+						globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataURI = dataURI;
+						globalObject.globals.storages.urlDataPairs[key.sourceUrl].dataString = dataString;
 
-							chrome.storage.local.set({
-								resources: resources,
-								urlDataPairs: globalObject.globals.storages.urlDataPairs
-							});
-						}
+						chrome.storage.local.set({
+							resources: resources,
+							urlDataPairs: globalObject.globals.storages.urlDataPairs
+						});
 					}
+				}
 			});
 		}
 		private static _generateUpdateCallback(resourceKey: {
@@ -5683,7 +5683,7 @@ if (typeof module === 'undefined') {
 					break;
 			}
 		}
-		static handleCrmAPIMessage(message: CRMFunctionMessage|ChromeAPIMessage|BackgroundAPIMessage) {
+		static handleCrmAPIMessage(message: CRMFunctionMessage | ChromeAPIMessage | BackgroundAPIMessage) {
 			switch (message.type) {
 				case 'crm':
 					new CRMFunction(message, message.action);
@@ -5768,8 +5768,8 @@ if (typeof module === 'undefined') {
 					if (chrome.runtime.lastError) {
 						if (chrome.runtime.lastError.message.indexOf('Could not establish connection') === -1 &&
 							chrome.runtime.lastError.message.indexOf('closed') === -1) {
-								window.log('Couldn\'t execute on tab with id', tabId, chrome.runtime.lastError);
-							}
+							window.log('Couldn\'t execute on tab with id', tabId, chrome.runtime.lastError);
+						}
 						return;
 					}
 					if (scripts.length > i) {
@@ -7763,7 +7763,7 @@ if (typeof module === 'undefined') {
 			globalObject.globals.crmValues.stylesheetNodeStatusses = {};
 			chrome.contextMenus.removeAll();
 			globalObject.globals.crmValues.rootId = chrome.contextMenus.create({
-				title: 'Custom Menu',
+				title: globalObject.globals.storages.settingsStorage.rootName || 'Custom Menu',
 				contexts: ['all']
 			});
 			globalObject.globals.toExecuteNodes = {
@@ -9226,7 +9226,8 @@ if (typeof module === 'undefined') {
 						})
 					],
 					settingsLastUpdatedAt: new Date().getTime(),
-					latestId: globalObject.globals.latestId
+					latestId: globalObject.globals.latestId,
+					rootName: 'Custom Menu'
 				};
 			}
 
@@ -9258,9 +9259,9 @@ if (typeof module === 'undefined') {
 						chromeStorageLocal: CRM.StorageLocal;
 					}
 				} = {
-					done: false,
-					onDone: null
-				}
+						done: false,
+						onDone: null
+					}
 
 				this._getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
 
@@ -9386,6 +9387,65 @@ if (typeof module === 'undefined') {
 				}
 			}
 		}
+		private static uploadSync(changes: StorageChange[]) {
+            const settingsJson = JSON.stringify(globalObject.globals.storages.settingsStorage);
+            chrome.storage.local.set({
+                settingsVersionData: {
+                    current: {
+                        hash: window.md5(settingsJson),
+                        date: new Date().getTime()
+                    },
+                    latest: globalObject.globals.storages.storageLocal.settingsVersionData.latest,
+                    wasUpdated: globalObject.globals.storages.storageLocal.settingsVersionData.wasUpdated
+                }
+            });
+            if (!globalObject.globals.storages.storageLocal.useStorageSync) {
+                chrome.storage.local.set({
+                    settings: globalObject.globals.storages.settingsStorage
+                }, () => {
+                    if (chrome.runtime.lastError) {
+                        window.log('Error on uploading to chrome.storage.local ', chrome.runtime.lastError);
+                    }
+                    else {
+                        this._changeCRMValuesIfSettingsChanged(changes);
+                    }
+                });
+                chrome.storage.sync.set({
+                    indexes: null
+                });
+            }
+            else {
+                //Using chrome.storage.sync
+                if (settingsJson.length >= 101400) {
+                    chrome.storage.local.set({
+                        useStorageSync: false
+                    }, () => {
+                        this.uploadChanges('settings', changes);
+                    });
+                }
+                else {
+                    //Cut up all data into smaller JSON
+                    const obj = this.cutData(settingsJson);
+                    chrome.storage.sync.set(obj, () => {
+                        if (chrome.runtime.lastError) {
+                            //Switch to local storage
+                            window.log('Error on uploading to chrome.storage.sync ', chrome.runtime.lastError);
+                            chrome.storage.local.set({
+                                useStorageSync: false
+                            }, () => {
+                                this.uploadChanges('settings', changes);
+                            });
+                        }
+                        else {
+                            this._changeCRMValuesIfSettingsChanged(changes);
+                            chrome.storage.local.set({
+                                settings: null
+                            });
+                        }
+                    });
+                }
+            }
+        }
 		static uploadChanges(type: 'local' | 'settings' | 'libraries', changes:
 			Array<StorageChange>,
 			useStorageSync: boolean = null) {
@@ -9399,70 +9459,12 @@ if (typeof module === 'undefined') {
 					}
 					break;
 				case 'settings':
-					if (type === 'settings') {
-						globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime();
-					}
+					globalObject.globals.storages.settingsStorage.settingsLastUpdatedAt = new Date().getTime();
 					if (useStorageSync !== null) {
-						globalObject.globals.storages.storageLocal
-							.useStorageSync = useStorageSync;
+						globalObject.globals.storages.storageLocal.useStorageSync = useStorageSync;
 					}
 
-					const settingsJson = JSON.stringify(globalObject.globals.storages
-						.settingsStorage);
-					chrome.storage.local.set({
-						settingsVersionData: {
-							current: {
-								hash: window.md5(settingsJson),
-								date: new Date().getTime()
-							},
-							latest: globalObject.globals.storages.storageLocal.settingsVersionData.latest,
-							wasUpdated: globalObject.globals.storages.storageLocal.settingsVersionData.wasUpdated
-						}
-					});
-					if (!globalObject.globals.storages.storageLocal.useStorageSync) {
-						chrome.storage.local.set({
-							settings: globalObject.globals.storages.settingsStorage
-						}, () => {
-							if (chrome.runtime.lastError) {
-								window.log('Error on uploading to chrome.storage.local ',
-									chrome.runtime.lastError);
-							} else {
-								this._changeCRMValuesIfSettingsChanged(changes);
-							}
-						});
-						chrome.storage.sync.set({
-							indexes: null
-						});
-					} else {
-						//Using chrome.storage.sync
-						if (settingsJson.length >= 101400) { //Keep a margin of 1K for the index
-							chrome.storage.local.set({
-								useStorageSync: false
-							}, () => {
-								this.uploadChanges('settings', changes);
-							});
-						} else {
-							//Cut up all data into smaller JSON
-							const obj = this.cutData(settingsJson);
-							chrome.storage.sync.set(obj, () => {
-								if (chrome.runtime.lastError) {
-									//Switch to local storage
-									window.log('Error on uploading to chrome.storage.sync ',
-										chrome.runtime.lastError);
-									chrome.storage.local.set({
-										useStorageSync: false
-									}, () => {
-										this.uploadChanges('settings', changes);
-									});
-								} else {
-									this._changeCRMValuesIfSettingsChanged(changes);
-									chrome.storage.local.set({
-										settings: null
-									});
-								}
-							});
-						}
-					}
+                    Storages.uploadSync(changes);
 					break;
 				case 'libraries':
 					chrome.storage.local.set({
@@ -9471,6 +9473,7 @@ if (typeof module === 'undefined') {
 					break;
 			}
 		}
+
 		static applyChanges(data: {
 			type: 'optionsPage' | 'libraries' | 'nodeStorage';
 			localChanges?: Array<StorageChange>;
@@ -9488,8 +9491,7 @@ if (typeof module === 'undefined') {
 				case 'optionsPage':
 					if (data.localChanges) {
 						this._applyChangeForStorageType(globalObject.globals.storages.storageLocal,
-							data
-								.localChanges);
+							data.localChanges);
 						this.uploadChanges('local', data.localChanges);
 					}
 					if (data.settingsChanges) {
@@ -9499,19 +9501,17 @@ if (typeof module === 'undefined') {
 					}
 					break;
 				case 'libraries':
-					this._applyChangeForStorageType(globalObject.globals.storages.storageLocal, [
-						{
-							key: 'libraries',
-							newValue: data.libraries,
-							oldValue: globalObject.globals.storages.storageLocal.libraries
-						}
-					]);
+					this._applyChangeForStorageType(globalObject.globals.storages.storageLocal, [{
+						key: 'libraries',
+						newValue: data.libraries,
+						oldValue: globalObject.globals.storages.storageLocal.libraries
+					}]);
 					break;
 				case 'nodeStorage':
-					globalObject.globals.storages.nodeStorage[data
-						.id] = globalObject.globals.storages.nodeStorage[data.id] || {};
-					this._applyChangeForStorageType(globalObject.globals.storages.nodeStorage[data
-						.id], data.nodeStorageChanges, true);
+					globalObject.globals.storages.nodeStorage[data.id] =
+						globalObject.globals.storages.nodeStorage[data.id] || {};
+					this._applyChangeForStorageType(globalObject.globals.storages.nodeStorage[data.id],
+						data.nodeStorageChanges, true);
 					this._notifyNodeStorageChanges(data.id, data.tabId, data.nodeStorageChanges);
 					break;
 			}
@@ -9635,8 +9635,7 @@ if (typeof module === 'undefined') {
 						this._checkForStorageSyncUpdates(settingsStorage, chromeStorageLocal);
 
 						this.setStorages(storageLocalCopy, settingsStorage,
-							chromeStorageLocal,
-							callback);
+							chromeStorageLocal, callback);
 
 						if (result.type === 'upgradeVersion') {
 							result.fn();
@@ -9658,6 +9657,10 @@ if (typeof module === 'undefined') {
 					chrome.runtime.sendMessage({
 						type: 'idUpdate',
 						latestId: changes[i].newValue
+					});
+				} else if (changes[i].key === 'rootName') {
+					chrome.contextMenus.update(globalObject.globals.crmValues.rootId, {
+						title: changes[i].newValue
 					});
 				}
 			}
@@ -9740,19 +9743,22 @@ if (typeof module === 'undefined') {
 			}
 		}
 		private static _upgradeVersion(oldVersion: string, newVersion: string): {
-			before: Array<() => void>;
-			after: Array<() => void>;
+			beforeSyncLoad: Array<() => void>;
+			afterSyncLoad: Array<(sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>>;
+			afterSync: Array<() => void>;
 		} {
 			const fns: {
-				before: Array<() => void>;
-				after: Array<() => void>;
+				beforeSyncLoad: Array<() => void>;
+				afterSyncLoad: Array<(sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>>;
+				afterSync: Array<() => void>;
 			} = {
-					before: [],
-					after: []
-				}
+				beforeSyncLoad: [],
+				afterSyncLoad: [],
+				afterSync: []
+			}
 
 			if (oldVersion === '2.0.3') {
-				fns.after.push(() => {
+				fns.afterSync.push(() => {
 					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
 						if (node.type === 'script') {
 							node.value.oldScript = node.value.script;
@@ -9786,6 +9792,19 @@ if (typeof module === 'undefined') {
 					});
 				});
 			}
+			if (newVersion === '2.0.15') {
+				fns.afterSyncLoad.push((sync) => {
+					sync.rootName = 'Custom Menu';
+					return sync;
+				});
+				fns.afterSync.push(() => {
+					Storages.uploadChanges('settings', [{
+						key: 'rootName',
+						oldValue: undefined,
+						newValue: 'Custom Menu'
+					}]);
+				});
+			}
 
 			chrome.storage.local.set({
 				lastUpdatedAt: newVersion
@@ -9797,11 +9816,11 @@ if (typeof module === 'undefined') {
 			type: 'firstTimeCallback';
 			fn: FirstTimeCallback;
 		} | {
-				type: 'upgradeVersion';
-				fn: () => void;
-			} | {
-				type: 'noChanges';
-			} {
+			type: 'upgradeVersion';
+			fn: () => void;
+		} | {
+			type: 'noChanges';
+		} {				
 			const currentVersion = chrome.runtime.getManifest().version;
 			if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt === currentVersion) {
 				return {
@@ -9811,13 +9830,13 @@ if (typeof module === 'undefined') {
 				if (localStorage.getItem('transferToVersion2') && storageLocal.lastUpdatedAt) {
 					window.log('Upgrading minor version from', storageLocal.lastUpdatedAt, 'to', currentVersion);
 					const fns = this._upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
-					fns.before.forEach((fn) => {
+					fns.beforeSyncLoad.forEach((fn) => {
 						fn();
 					});
 					return {
 						type: 'upgradeVersion',
 						fn: () => {
-							fns.after.forEach((fn) => {
+							fns.afterSync.forEach((fn) => {
 								fn();
 							});
 						}
@@ -10077,4 +10096,4 @@ if (typeof module === 'undefined') {
 
 		return sandboxes;
 	})())
-);
+	);

@@ -1093,6 +1093,10 @@ declare namespace CRM {
 		 * The last ID to be generated
 		 */
 		latestId: number;
+		/**
+		 * The name of the root node
+		 */
+		rootName: string;
 	}
 
 	/**

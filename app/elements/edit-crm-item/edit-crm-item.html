@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE HTML>
-<dom-module id="edit-crm-item" attributes="item shadow expanded">
+<dom-module id="edit-crm-item" attributes="item shadow expanded rootNode">
 	<template>
 		<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html"/>
 		<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html" />
@@ -10,22 +10,34 @@
 		<!-- /build -->
 		<div id="itemCont">
 			<div class="item">
-				<type-switcher title="Click to change type" id="typeSwitcher" type="{{type}}"></type-switcher>
-				<div id="draggerOrCheckbox" title="Click and hold to drag node around">
-					<div class="dragger">
-						<div class="draggerImg">
-							<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 32 48" height="30" width="20">
-								<path d="M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z"/>
-							</svg>
+				<template is="dom-if" if="{{!rootNode}}">
+					<type-switcher title="Click to change type" id="typeSwitcher" type="{{type}}"></type-switcher>
+				</template>
+				<template is="dom-if" if="{{rootNode}}">
+					<div id="rootNodeTypeColor"></div>
+				</template>
+				<template is="dom-if" if="{{!rootNode}}">
+					<div id="draggerOrCheckbox" title="Click and hold to drag node around">
+						<div class="dragger">
+							<div class="draggerImg">
+								<svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 32 48" height="30" width="20">
+									<path d="M4 31v4h40v-4H4zm0-10v4h40v-4H4zm0-10v4h40v-4H4z"/>
+								</svg>
+							</div>
+						</div>
+						<div id="checkboxCont">
+							<paper-checkbox on-tap="onToggle" id="checkbox"></paper-checkbox>
 						</div>
 					</div>
-					<div id="checkboxCont">
-						<paper-checkbox on-tap="onToggle" id="checkbox"></paper-checkbox>
-					</div>
-				</div>
-				<div class="CRMItemTitle" title="Click to edit" ismenu$="{{isMenu}}" iscode$="{{isCode}}" on-tap="checkClickType">
-					<span>{{itemName}}</span>
-					<paper-ripple></paper-ripple>
+				</template>
+				<div class="CRMItemTitle" title$="{{getTitle(rootNode)}}" isroot$="{{rootNode}}" ismenu$="{{isMenu}}" iscode$="{{isCode}}" on-tap="checkClickType">
+					<template is="dom-if" if="{{rootNode}}">
+						<input id="rootNameTitle" on-change="rootNameChange" value$="{{itemName}}">
+					</template>
+					<template is="dom-if" if="{{!rootNode}}">
+						<span>{{itemName}}</span>
+						<paper-ripple></paper-ripple>
+					</template>
 				</div>
 				<template is="dom-if" if="{{isMenu}}">
 					<div title$="[[getMenuExpandMessage(item)]]" on-click="openMenu" class="menuArrowCont">

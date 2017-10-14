@@ -53,6 +53,10 @@ edit-crm-item.draggingFiller .item {
 		width: 133px;
 	}
 
+	.CRMItemTitle[isroot] {
+		width: 188px;
+	}
+
 .codeSettingsButton {
 	position: relative;
 	right: 0;
@@ -166,4 +170,17 @@ edit-crm-item.pulse .item {
 paper-checkbox {
 	margin-left: 9px;
     margin-right: 3px;
+}
+
+#rootNodeTypeColor {
+	width: 7px;
+	background-color: #545454;
+}
+
+.CRMItemTitle input {
+	font-size: 27px;
+	width: 100%;
+	border: none;
+	background-color: transparent;
+	outline: none;
 }

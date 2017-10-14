@@ -7,6 +7,7 @@ const editCrmItemProperties: {
 	itemName: string;
 	isMenu: boolean;
 	isCode: boolean;
+	rootNode: boolean;
 } = {
 	item: {
 		type: Object,
@@ -29,6 +30,10 @@ const editCrmItemProperties: {
 		notify: true
 	},
 	isCode: {
+		type: Boolean,
+		notify: true
+	},
+	rootNode: {
 		type: Boolean,
 		notify: true
 	}
@@ -112,10 +117,43 @@ class ECI {
 		}
 	};
 
+	static updateName(this: EditCrmItem, name: string) {
+		if (name === undefined) {
+			name = window.app.settings.rootName = 'Custom Menu';
+			window.app.upload();
+		}
+		this.set('itemName', name);
+		this.item.name = name;
+	}
+
+	static rootNameChange(this: EditCrmItem) {
+		const value = (this.querySelector('#rootNameTitle') as HTMLInputElement).value;
+		window.app.settings.rootName = value;
+		window.app.upload();
+	}
+
+	private static initRootNode(this: EditCrmItem) {
+		this.item = window.app.templates.getDefaultDividerNode({
+			name: 'Custom Menu',
+			id: -1,
+			index: -1,
+			path: [-1],
+			onContentTypes: [true, true, true, true, true, true]
+		});
+	}
+
 	private static ready(this: EditCrmItem) {
 		if (this.classList.contains('draggingFiller')) {
 			//It's a dragging copy
 			return;
+		}
+
+		if (this.rootNode) {
+			//Skip initialization, only name is changable
+			this.initRootNode();
+			return;
+		} else {
+			this.rootNode = false;
 		}
 
 		const _this = this;
@@ -137,29 +175,31 @@ class ECI {
 				}
 			}
 		}
-		if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
-			this.$.typeSwitcher.addEventListener('mouseenter', function() {
-				_this.typeIndicatorMouseOver.apply(_this, []);
-			});
-			this.$.typeSwitcher.addEventListener('mouseleave', function() {
-				_this.typeIndicatorMouseLeave.apply(_this, []);
-			});
-		} else {
-			let hoveringTypeSwitcher = false;
-			this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
-				e.preventDefault();
-				e.stopPropagation();
-				if (!hoveringTypeSwitcher) {
-					hoveringTypeSwitcher = true;
-				_this.typeIndicatorMouseOver.apply(_this, []);
-				}
-			});
-			document.body.addEventListener('mouseover', function() {
-				if (hoveringTypeSwitcher) {
-					hoveringTypeSwitcher = false;
+		if (this.$.typeSwitcher) {
+			if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
+				this.$.typeSwitcher.addEventListener('mouseenter', function() {
+					_this.typeIndicatorMouseOver.apply(_this, []);
+				});
+				this.$.typeSwitcher.addEventListener('mouseleave', function() {
 					_this.typeIndicatorMouseLeave.apply(_this, []);
-				}
-			});
+				});
+			} else {
+				let hoveringTypeSwitcher = false;
+				this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
+					e.preventDefault();
+					e.stopPropagation();
+					if (!hoveringTypeSwitcher) {
+						hoveringTypeSwitcher = true;
+					_this.typeIndicatorMouseOver.apply(_this, []);
+					}
+				});
+				document.body.addEventListener('mouseover', function() {
+					if (hoveringTypeSwitcher) {
+						hoveringTypeSwitcher = false;
+						_this.typeIndicatorMouseLeave.apply(_this, []);
+					}
+				});
+			}
 		}
 	};
 
@@ -180,7 +220,7 @@ class ECI {
 	};
 
 	static openEditPage(this: EditCrmItem) {
-		if (!this.shadow && !window.app.item) {
+		if (!this.shadow && !window.app.item && !this.rootNode) {
 			if (!this.classList.contains('selecting')) {
 				const item = this.item;
 				window.app.item = item;
@@ -201,6 +241,14 @@ class ECI {
 			}
 		}
 	};
+
+	static getTitle(this: EditCrmItem): string {
+		if (this.rootNode) {
+			return 'Click to edit root node name';
+		} else {
+			return 'Click to edit node';
+		}
+	}
 
 	private static getNextNode(node: CRM.Node): CRM.Node {
 		if (node.children) {
@@ -323,7 +371,9 @@ class ECI {
 	};
 
 	static checkClickType(this: EditCrmItem, e: Polymer.ClickEvent) {
-		if (e.detail.sourceEvent.ctrlKey) {
+		if (this.rootNode) {
+			return;
+		} else if (e.detail.sourceEvent.ctrlKey) {
 			window.app.editCRM.cancelAdding();
 			window.app.editCRM.selectItems();
 			this.selectThisNode();
