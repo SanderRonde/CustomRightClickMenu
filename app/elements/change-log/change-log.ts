@@ -97,7 +97,6 @@ class CL {
 		version: string;
 		changes: Array<string>;	
 	}> {
-		debugger;
 		const arrayChangelog: Array<{
 			version: string;
 			changes: Array<string>;	
