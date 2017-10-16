@@ -1262,8 +1262,8 @@ class CA {
 				resolve(function () {
 					function callback(items: CRM.SettingsStorage) {
 						_this.settings = items;
-						window.app.editCRM.$.rootCRMItem.updateName(items.rootName);
 						_this.settingsCopy = JSON.parse(JSON.stringify(items));
+						window.app.editCRM.$.rootCRMItem.updateName(items.rootName);
 						for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
 							_this.onSettingsReadyCallbacks[i].callback.apply(
 								_this.onSettingsReadyCallbacks[i].thisElement,
