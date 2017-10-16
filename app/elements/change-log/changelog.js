@@ -66,6 +66,9 @@
 		],
 		'2.0.15': [
 			'It\'s now possible to change the root menu name (thanks to anonymous user)'
+		],
+		'2.0.16': [
+			'Fixed possible bug that can break the CRM on the options page from appearing since the last update'
 		]
 	};
 }());
