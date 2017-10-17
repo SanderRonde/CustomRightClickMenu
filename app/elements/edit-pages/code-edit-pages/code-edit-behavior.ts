@@ -1,16 +1,19 @@
-type CodeEditBehaviorIntanceBase = CodeEditBehaviorBase;
+type CodeEditBehaviorBase = typeof CEB;
 
-type CodeEditBehaviorScriptInstance = CodeEditBehaviorIntanceBase & 
-	ScriptEdit & {
-		isScript: true;
-	};
+type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
+	NodeEditBehavior<CodeEditBehaviorBase & T>;
 
-type CodeEditBehaviorStylesheetInstance = CodeEditBehaviorIntanceBase & 
-	StylesheetEdit & {
-		isScript: false;
-	};
+type CodeEditBehaviorScriptInstanceAdditions = ScriptEdit & {
+	isScript: true;
+};
+type CodeEditBehaviorScriptInstance = CodeEditBehavior<CodeEditBehaviorScriptInstanceAdditions>;
 
-type CodeEditBehavior = NodeEditBehaviorScriptInstance|
+type CodeEditBehaviorStylesheetInstanceAdditions = StylesheetEdit & {
+	isScript: false;
+};
+type CodeEditBehaviorStylesheetInstance = CodeEditBehavior<CodeEditBehaviorStylesheetInstanceAdditions>;
+
+type CodeEditBehaviorInstance = NodeEditBehaviorScriptInstance|
 	NodeEditBehaviorStylesheetInstance;
 
 class CEB {
@@ -122,7 +125,7 @@ class CEB {
 
 	static otherDoc: CodeMirrorDocInstance = null;
 
-	static finishEditing(this: CodeEditBehavior) {
+	static finishEditing(this: CodeEditBehaviorInstance) {
 		if (window.app.storageLocal.recoverUnsavedData) {
 			chrome.storage.local.set({
 				editing: null
@@ -140,7 +143,7 @@ class CEB {
 		/**
 	 * Inserts given snippet of code into the editor
 	 */
-	static insertSnippet(_this: CodeEditBehavior, snippet: string, noReplace: boolean = false) {
+	static insertSnippet(_this: CodeEditBehaviorInstance, snippet: string, noReplace: boolean = false) {
 		this.editor.doc.replaceSelection(noReplace ?
 												snippet :
 												snippet.replace('%s', this.editor.doc
@@ -152,7 +155,7 @@ class CEB {
 	/**
 	 * Pops out only the tools ribbon
 	 */
-	static popOutToolsRibbon(this: CodeEditBehavior) {
+	static popOutToolsRibbon(this: CodeEditBehaviorInstance) {
 		window.doc.editorToolsRibbonContainer.animate([
 			{
 				marginLeft: 0
@@ -171,14 +174,14 @@ class CEB {
 		/**
 	 * Toggles fullscreen mode for the editor
 	 */
-	static toggleFullScreen(this: CodeEditBehavior) {
+	static toggleFullScreen(this: CodeEditBehaviorInstance) {
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
 	};
 
 		/**
 	 * Toggles the editor's options
 	 */
-	static toggleOptions(this: CodeEditBehavior) {
+	static toggleOptions(this: CodeEditBehaviorInstance) {
 		(this.optionsShown ? this.hideOptions() : this.showOptions());
 	};
 
@@ -186,7 +189,7 @@ class CEB {
 	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the
 	 * icons' positions
 	 */
-	static scrollbarsUpdate(this: CodeEditBehavior, vertical: boolean) {
+	static scrollbarsUpdate(this: CodeEditBehaviorInstance, vertical: boolean) {
 		if (vertical !== this.verticalVisible) {
 			if (vertical) {
 				this.buttonsContainer.style.right = '29px';
@@ -197,14 +200,14 @@ class CEB {
 		}
 	};
 
-	static getCmInstance(this: CodeEditBehavior): CodeMirrorInstance {
+	static getCmInstance(this: CodeEditBehaviorInstance): CodeMirrorInstance {
 		if (this.item.type === 'script') {
 			return window.scriptEdit.editor;
 		}
 		return window.stylesheetEdit.editor;
 	}
 
-	static showCodeOptions(this: CodeEditBehavior) {
+	static showCodeOptions(this: CodeEditBehaviorInstance) {
 		window.useOptionsCompletions = true;
 		if (!this.otherDoc) {
 			const doc = new window.CodeMirror.Doc(typeof this.item.value.options === 'string' ?
@@ -219,7 +222,7 @@ class CEB {
 		this.getCmInstance().performLint();
 	}
 
-	static hideCodeOptions(this: CodeEditBehavior) {
+	static hideCodeOptions(this: CodeEditBehaviorInstance) {
 		if (!window.useOptionsCompletions) {
 			return;
 		}
@@ -229,6 +232,4 @@ class CEB {
 	}
 }
 
-type CodeEditBehaviorBase = typeof CEB;
-
-Polymer.CodeEditBehavior = CEB as CodeEditBehavior;
+Polymer.CodeEditBehavior = CEB;

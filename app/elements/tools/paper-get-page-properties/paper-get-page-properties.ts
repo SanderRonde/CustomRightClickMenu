@@ -99,6 +99,7 @@ class PGPP {
 
 type PaperGetPagePropertiesBase = Polymer.El<
 	'paper-get-page-properties', typeof PGPP>;
+type PaperGetPageProperties = PaperDropdownBehavior<PaperGetPagePropertiesBase>;
 
 if (window.objectify) {
 	Polymer(window.objectify(PGPP));

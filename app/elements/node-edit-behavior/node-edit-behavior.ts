@@ -73,32 +73,30 @@ type NodeEditBehaviorInstanceBase = NodeEditBehaviorBase & {
 	showContentTypeChooser?: boolean;
 };
 
-type NodeEditBehaviorScriptInstance = NodeEditBehaviorInstanceBase & 
-	CodeEditBehaviorScriptInstance & {
-		newSettings: Partial<CRM.ScriptNode>
-	};
-type NodeEditBehaviorStylesheetInstance = NodeEditBehaviorInstanceBase &
-	CodeEditBehaviorStylesheetInstance & {
-		newSettings: Partial<CRM.StylesheetNode>;
-	};
-type NodeEditBehaviorLinkInstance = NodeEditBehaviorInstanceBase & LinkEdit & {
+type NodeEditBehaviorScriptInstance = NodeEditBehavior<CodeEditBehaviorScriptInstance & {
+	newSettings: Partial<CRM.ScriptNode>
+}>;
+type NodeEditBehaviorStylesheetInstance = NodeEditBehavior<CodeEditBehaviorStylesheetInstance & {
+	newSettings: Partial<CRM.StylesheetNode>;
+}>;
+type NodeEditBehaviorLinkInstance = NodeEditBehavior<LinkEdit & {
 	newSettings: Partial<CRM.LinkNode>;
-};
-type NodeEditBehaviorMenuInstance = NodeEditBehaviorInstanceBase & MenuEdit & {
+}>;
+type NodeEditBehaviorMenuInstance = NodeEditBehavior<MenuEdit & {
 	newSettings: Partial<CRM.MenuNode>;
-};
-type NodeEditBehaviorDividerInstance = NodeEditBehaviorInstanceBase & DividerEdit & {
+}>;
+type NodeEditBehaviorDividerInstance = NodeEditBehavior<DividerEdit & {
 	newSettings: Partial<CRM.DividerNode>;
-};
+}>;
 
-type NodeEditBehavior = NodeEditBehaviorScriptInstance|
+type NodeEditBehaviorInstance = NodeEditBehaviorScriptInstance|
 	NodeEditBehaviorStylesheetInstance|NodeEditBehaviorLinkInstance|
 	NodeEditBehaviorMenuInstance|NodeEditBehaviorDividerInstance;
 
 class NEB {
 	static properties = nodeEditBehaviorProperties;
 
-	static getContentTypeLaunchers(this: NodeEditBehavior, resultStorage: Partial<CRM.Node>) {
+	static getContentTypeLaunchers(this: NodeEditBehaviorInstance, resultStorage: Partial<CRM.Node>) {
 		const arr: [
 			keyof typeof nodeEditBehaviorProperties,
 			keyof typeof nodeEditBehaviorProperties,
@@ -119,7 +117,7 @@ class NEB {
 		}) as CRM.ContentTypes;
 	};
 
-	static getTriggers(this: NodeEditBehavior, resultStorage: Partial<CRM.Node>) {
+	static getTriggers(this: NodeEditBehaviorInstance, resultStorage: Partial<CRM.Node>) {
 		const inputs = $(this).find('.executionTrigger').find('paper-input');
 		const triggers = [];
 		for (let i = 0; i < inputs.length; i++) {
@@ -131,19 +129,19 @@ class NEB {
 		resultStorage.triggers = triggers;
 	};
 
-	static cancel(this: NodeEditBehavior) {
+	static cancel(this: NodeEditBehaviorInstance) {
 		Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
 			toolTip.remove();
 		});
 
-		if (this.cancelChanges) {
+		if ((<NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance>this).cancelChanges) {
 			//This made the compiler angry
-			(this.cancelChanges as any)();
+			((<NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance>this).cancelChanges as any)();
 		}
 		window.crmEditPage.animateOut();
 	};
 
-	static save(this: NodeEditBehavior, event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
+	static save(this: NodeEditBehaviorInstance, event?: Polymer.ClickEvent, resultStorage?: Partial<CRM.Node>|MouseEvent) {
 		let usesDefaultStorage = false;
 		if (resultStorage === null || resultStorage === undefined ||
 			typeof (resultStorage as MouseEvent).x === 'number') {
@@ -152,9 +150,9 @@ class NEB {
 			}
 
 		const newSettings = this.newSettings;
-		if (this.saveChanges) {
+		if ((<NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance>this).saveChanges) {
 			//Also made the compiler angry
-			(this.saveChanges as any)(newSettings);
+			((<NodeEditBehaviorScriptInstance|NodeEditBehaviorStylesheetInstance>this).saveChanges as any)(newSettings);
 		}
 
 		Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
@@ -195,7 +193,7 @@ class NEB {
 		}
 	};
 
-	static inputKeyPress(this: NodeEditBehavior, e: KeyboardEvent) {
+	static inputKeyPress(this: NodeEditBehaviorInstance, e: KeyboardEvent) {
 		e.keyCode === 27 && this.cancel();
 		e.keyCode === 13 && this.save();
 
@@ -209,7 +207,7 @@ class NEB {
 		}, 0);
 	};
 
-	static assignContentTypeSelectedValues(this: NodeEditBehavior) {
+	static assignContentTypeSelectedValues(this: NodeEditBehaviorInstance) {
 		let i;
 		const arr = [
 			'pageContentSelected', 'linkContentSelected', 'selectionContentSelected',
@@ -220,7 +218,7 @@ class NEB {
 		}
 	};
 
-	static checkToggledIconAmount(this: NodeEditBehavior, e: {
+	static checkToggledIconAmount(this: NodeEditBehaviorInstance, e: {
 		path: Array<HTMLElement>;
 	}) {
 		let i;
@@ -249,8 +247,8 @@ class NEB {
 		return false;
 	};
 
-	static toggleIcon(this: NodeEditBehavior, e: Polymer.ClickEvent) {
-		if (this.mode && this.mode === 'background') {
+	static toggleIcon(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
+		if (this.editorMode && this.editorMode === 'background') {
 			return;
 		}
 		const element = window.app.util.findElementWithClassName(e.path, 'showOnContentItemCont');
@@ -273,7 +271,7 @@ class NEB {
 	/**
 	 * Clears the trigger that is currently clicked on
 	 */
-	static clearTrigger(this: NodeEditBehavior, event: Polymer.ClickEvent) {
+	static clearTrigger(this: NodeEditBehaviorInstance, event: Polymer.ClickEvent) {
 		let target = event.target;
 		if (target.tagName === 'PAPER-ICON-BUTTON') {
 			target = target.children[0] as Polymer.Element;
@@ -287,7 +285,7 @@ class NEB {
 	/**
 	 * Adds a trigger to the list of triggers for the node
 	 */
-	static addTrigger(this: NodeEditBehavior) {
+	static addTrigger(this: NodeEditBehaviorInstance) {
 		this.push('newSettings.triggers', {
 			not: false,
 			url: '*://example.com/*'
@@ -320,7 +318,7 @@ class NEB {
 		}
 	};
 
-	static animateTriggers(this: NodeEditBehavior, newStates: {
+	static animateTriggers(this: CodeEditBehavior, newStates: {
 		showContentTypeChooser: boolean;
 		showTriggers: boolean;
 		showInsteadOfExecute: boolean;
@@ -357,7 +355,7 @@ class NEB {
 		this.showTriggers = newStates.showTriggers;
 	}
 
-	static animateContentTypeChooser(this: NodeEditBehavior, newStates: {
+	static animateContentTypeChooser(this: CodeEditBehavior<{}>, newStates: {
 		showContentTypeChooser: boolean;
 		showTriggers: boolean;
 		showInsteadOfExecute: boolean;
@@ -397,7 +395,7 @@ class NEB {
 	/**
 	 * Is triggered when the option in the dropdown menu changes animates in what's needed
 	 */
-	static selectorStateChange(this: NodeEditBehavior, prevState: number, state: number) {
+	static selectorStateChange(this: CodeEditBehavior, prevState: number, state: number) {
 		const newStates = {
 			showContentTypeChooser: (state === 0 || state === 3),
 			showTriggers: (state > 1 && state !== 4),
@@ -466,7 +464,7 @@ class NEB {
 		}
 	};
 
-	static _init(this: NodeEditBehavior) {
+	static _init(this: NodeEditBehaviorInstance) {
 		this.newSettings = JSON.parse(JSON.stringify(this.item));
 		window.crmEditPage.nodeInfo = this.newSettings.nodeInfo;
 		this.assignContentTypeSelectedValues();
@@ -484,5 +482,6 @@ class NEB {
 }
 
 type NodeEditBehaviorBase = typeof NEB & typeof nodeEditBehaviorProperties;
+type NodeEditBehavior<T> = T & NodeEditBehaviorBase;
 
 Polymer.NodeEditBehavior = NEB as NodeEditBehaviorBase;

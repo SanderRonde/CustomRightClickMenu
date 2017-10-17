@@ -32,7 +32,7 @@ class SCE {
 			return;
 		}
 
-		(this as NodeEditBehavior).clearTrigger(e);
+		(this as NodeEditBehaviorInstance).clearTrigger(e);
 	};
 
 	private static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
@@ -47,7 +47,9 @@ class SCE {
 		this.addTrigger();
 	};
 
-	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
+	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: {
+		path: Array<Polymer.Element>
+	}) {
 		const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
 
 		const elements = $('script-edit .showOnContentItemCheckbox');

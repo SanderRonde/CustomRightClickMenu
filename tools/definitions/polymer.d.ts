@@ -15,7 +15,7 @@ declare namespace Polymer {
 			registrations: Array<HTMLElement>;
 		}
 
-		CodeEditBehavior: CodeEditBehavior;
+		CodeEditBehavior: CodeEditBehaviorBase;
 		NodeEditBehavior: NodeEditBehaviorBase;
 		PaperDropdownBehavior: PaperDropdownBehaviorBase;
 		NeonAnimationRunnerBehavior: {

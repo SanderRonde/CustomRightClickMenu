@@ -307,5 +307,9 @@ class PDB {
 type PaperDropdownBehaviorBase = Polymer.El<'behavior',
 	typeof PDB & typeof paperDropdownBehaviorProperties
 >;
+type PaperDropdownBehavior<T> = T & PaperDropdownBehaviorBase;
+type PaperDropdownInstance = PaperDropdownBehavior<
+	PaperLibrariesSelectorBase|PaperDropdownMenuBase|PaperGetPagePropertiesBase
+>;
 
 Polymer.PaperDropdownBehavior = PDB as PaperDropdownBehaviorBase;

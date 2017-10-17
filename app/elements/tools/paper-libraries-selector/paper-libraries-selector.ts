@@ -427,6 +427,7 @@ class PLS {
 type PaperLibrariesSelectorBase = Polymer.El<'paper-libraries-selector',
 	typeof PLS & typeof paperLibrariesSelectorProperties
 >;
+type PaperLibrariesSelector = PaperDropdownBehavior<PaperLibrariesSelectorBase>;
 
 if (window.objectify) {
 	Polymer(window.objectify(PLS));

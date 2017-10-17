@@ -74,8 +74,9 @@ class PDM {
 }
 
 type PaperDropdownMenuBase = Polymer.El<'paper-dropdown-menu',
-	typeof PDM & typeof paperDropdownBehaviorProperties
+	typeof PDM & typeof paperDropdownMenuProperties
 >;
+type PaperDropdownMenu = PaperDropdownBehavior<PaperDropdownMenuBase>;
 
 if (window.objectify) {
 	Polymer(window.objectify(PDM));
