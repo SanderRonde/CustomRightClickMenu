@@ -1,12 +1,12 @@
-﻿<dom-module id="log-console">
+﻿<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html" />
+<link rel="import" href="../../bower_components/paper-material/paper-material.html" />
+<link rel="import" href="../../bower_components/paper-input/paper-input.html" />
+<link rel="import" href="../../bower_components/paper-menu/paper-menu.html"/>
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html" />
+<link rel="import" href="../../elements/inputs/paper-dropdown-menu/paper-dropdown-menu.html" />
+<link rel="import" href="../../elements/echo-html/echo-html.html" />
+<dom-module id="log-console">
 	<template>
-		<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html" />
-		<link rel="import" href="../../bower_components/paper-material/paper-material.html" />
-		<link rel="import" href="../../bower_components/paper-input/paper-input.html" />
-		<link rel="import" href="../../bower_components/paper-menu/paper-menu.html"/>
-		<link rel="import" href="../../bower_components/paper-toast/paper-toast.html" />
-		<link rel="import" href="../../elements/inputs/paper-dropdown-menu/paper-dropdown-menu.html" />
-		<link rel="import" href="../../elements/echo-html/echo-html.html" />
 		<link rel="stylesheet" href="log-console.css" />
 		<paper-material id="consoleCont" elevation="5">
 			<div id="console">
@@ -14,7 +14,7 @@
 					<div id="consoleInfo">
 						<div id="filterCont">
 							<div id="idFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu id="idDropdown" label="ID" init overflowing indent="false" selected="0">
+								<paper-dropdown-menu slot="menu" id="idDropdown" label="ID" init overflowing indent="false" selected="0">
 									<paper-menu selected="0">
 										<paper-item>
 											<div class="menuSelectedCheckmark">
@@ -34,7 +34,7 @@
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu id="tabDropdown" label="Tab" init overflowing indent="false" selected="0">
+								<paper-dropdown-menu slot="menu" id="tabDropdown" label="Tab" init overflowing indent="false" selected="0">
 									<paper-menu selected="0">
 										<paper-item>
 											<div class="menuSelectedCheckmark">
@@ -54,7 +54,7 @@
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabIndexFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu id="tabIndexDropdown" label="TabIndex" init overflowing indent="false" selected="0">
+								<paper-dropdown-menu slot="menu" id="tabIndexDropdown" label="TabIndex" init overflowing indent="false" selected="0">
 									<paper-menu selected="0">
 										<paper-item>
 											<div class="menuSelectedCheckmark">

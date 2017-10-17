@@ -63,6 +63,8 @@ interface CMCompletionFns {
 }
 
 interface Window {
+	objectify<T>(fn: T): T;
+	onExists<T extends keyof Window>(key: T, callback: (val: Window[T]) => void): void;
 	codeMirrorToLoad?: {
 		toLoad: Array<(cm: CodeMirror) => void>;
 		final?(): void;
@@ -195,9 +197,3 @@ interface CSSStyleDeclaration {
 	willChange: string;
 	WebkitTransform: string;
 }
-
-type PaperDropdownMenu = (PaperDropdownMenuBase & PaperDropdownBehaviorBase) & PaperDropdownMenuProperties;
-type PaperGetPageProperties = PaperGetPagePropertiesBase & PaperDropdownBehaviorBase;
-type PaperLibrariesSelector = PaperLibrariesSelectorBase & PaperDropdownBehaviorBase;
-
-type PaperDropdownInstance = PaperDropdownMenu|PaperGetPageProperties|PaperLibrariesSelector

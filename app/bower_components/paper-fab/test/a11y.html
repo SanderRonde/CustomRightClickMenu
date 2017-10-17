@@ -16,10 +16,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
-  <script src="../../test-fixture/test-fixture-mocha.js"></script>
 
-  <link rel="import" href="../../core-icons/core-icons.html">
-  <link rel="import" href="../../test-fixture/test-fixture.html">
+  <link rel="import" href="../../iron-icons/iron-icons.html">
   <link rel="import" href="../paper-fab.html">
 
 </head>
@@ -56,8 +54,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       f2.removeAttribute('disabled');
       assert.strictEqual(f2.getAttribute('aria-disabled'), 'false');
     });
-
-    test('aria-label is set');
 
     test('user-defined aria-label is preserved', function() {
       assert.strictEqual(f3.getAttribute('aria-label'), 'custom');

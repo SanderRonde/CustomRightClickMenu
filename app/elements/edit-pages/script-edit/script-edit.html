@@ -32,7 +32,7 @@
 						</div>
 						<br/>
 						<paper-dropdown-menu indent="false" id="dropdownMenu" selected="[[item.value.launchMode]]">
-							<paper-menu selected="{{newSettings.value.launchMode}}">
+							<paper-menu slot="menu" selected="{{newSettings.value.launchMode}}">
 								<paper-item id="executeOnClickOption" class="scriptLaunchOption">
 									<div class="menuSelectedCheckmark">
 										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
@@ -234,7 +234,7 @@
 			</div>
 			<div id="buttonsCont">
 				<div id="buttons">
-					<paper-dropdown-menu overflowing indent="false" id="exportMenu" selected="0">
+					<paper-dropdown-menu slot="menu" overflowing indent="false" id="exportMenu" selected="0">
 						<paper-menu selected="0">
 							<paper-item hidden>
 								<span class="menuOptionName">EXPORT AS</span>

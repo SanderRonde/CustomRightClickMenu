@@ -637,11 +637,13 @@ class EC {
 	};
 
 	static ready(this: EditCrm) {
-		window.app.editCRM = this;
-		window.app.addEventListener('crmTypeChanged', () => {
-			this._typeChanged();
+		window.onExists('app', () => {
+			window.app.editCRM = this;
+			window.app.addEventListener('crmTypeChanged', () => {
+				this._typeChanged();
+			});
+			this._typeChanged(true);
 		});
-		this._typeChanged(true);
 	};
 
 	static addToPosition(this: EditCrm, e: Polymer.ClickEvent) {
@@ -1148,4 +1150,10 @@ ${codeSplit.join('\n')}`;
 
 type EditCrm = Polymer.El<'edit-crm', typeof EC & typeof editCrmProperties>;
 
-Polymer(EC);
+if (window.objectify) {
+	Polymer(window.objectify(EC));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(EC));
+	});
+}

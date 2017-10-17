@@ -10,16 +10,19 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-styles/color.html">
-<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="paper-spinner-behavior.html">
+<link rel="import" href="paper-spinner-styles.html">
 
 <!--
-Element providing material design circular spinner.
+Material design: [Progress & activity](https://www.google.com/design/spec/components/progress-activity.html)
+
+Element providing a multiple color material design circular spinner.
 
     <paper-spinner active></paper-spinner>
 
 The default spinner cycles between four layers of colors; by default they are
-blue, red, yellow and green. It can be customized so that it uses one color only
-by setting all the layer colors to the same value.
+blue, red, yellow and green. It can be customized to cycle between four different
+colors. Use <paper-spinner-lite> for single color spinners.
 
 ### Accessibility
 
@@ -40,6 +43,7 @@ Custom property | Description | Default
 `--paper-spinner-layer-2-color` | Color of the second spinner rotation | `--google-red-500`
 `--paper-spinner-layer-3-color` | Color of the third spinner rotation | `--google-yellow-500`
 `--paper-spinner-layer-4-color` | Color of the fourth spinner rotation | `--google-green-500`
+`--paper-spinner-stroke-width` | The width of the spinner stroke | 3px
 
 @group Paper Elements
 @element paper-spinner
@@ -48,55 +52,43 @@ Custom property | Description | Default
 -->
 
 <dom-module id="paper-spinner">
+  <template strip-whitespace>
+    <style include="paper-spinner-styles"></style>
 
-  <link rel="import" type="css" href="paper-spinner.css">
-
-  <template>
-
-    <div id="spinnerContainer" class-name="[[_spinnerContainerClassName]]">
+    <div
+        id="spinnerContainer"
+        class-name="[[__computeContainerClasses(active, __coolingDown)]]"
+        on-animationend="__reset"
+        on-webkit-animation-end="__reset">
       <div class="spinner-layer layer-1">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
 
       <div class="spinner-layer layer-2">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
 
       <div class="spinner-layer layer-3">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
 
       <div class="spinner-layer layer-4">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div><div class="gap-patch">
-          <div class="circle"></div>
-        </div><div class="circle-clipper right">
-          <div class="circle"></div>
-        </div>
+        <div class="circle-clipper left"></div>
+        <div class="circle-clipper right"></div>
       </div>
     </div>
-
   </template>
 
-	<script src="paper-spinner.js"></script>
+  <script>
+    Polymer({
+      is: 'paper-spinner',
 
+      behaviors: [
+        Polymer.PaperSpinnerBehavior
+      ]
+    });
+  </script>
 </dom-module>

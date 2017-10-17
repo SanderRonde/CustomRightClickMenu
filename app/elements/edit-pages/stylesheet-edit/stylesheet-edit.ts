@@ -468,7 +468,7 @@ class STE {
 	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
 	private static fillEditorOptions(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement) {
-		const clone = (document.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
+		const clone = (window.app.shadowRoot.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
 
 		if (window.app.settings.editor.theme === 'white') {
 			clone.querySelector('#editorThemeSettingWhite').classList.add('currentTheme');
@@ -585,7 +585,7 @@ class STE {
 		}
 		this.editor.setOption('extraKeys', keys);
 
-		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
+		const cloneTemplate = document.importNode((window.app.shadowRoot.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
 		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
 		const clone = editor.display.sizer;
 
@@ -759,7 +759,7 @@ class STE {
 			this.editorMode = 'options';
 		}
 
-		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+		Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.editorTab')).forEach(
 			function(tab: HTMLElement) {
 				tab.classList.remove('active');
 			});
@@ -769,4 +769,10 @@ class STE {
 
 type StylesheetEdit = Polymer.El<'stylesheet-edit', typeof STE & typeof stylesheetEditProperties>;;
 
-Polymer(STE);
+if (window.objectify) {
+	Polymer(window.objectify(STE));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(STE));
+	});
+}

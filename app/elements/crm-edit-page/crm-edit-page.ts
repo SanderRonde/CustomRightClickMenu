@@ -24,12 +24,12 @@ const crmEditPageProperties: {
 			return {
 				'entry': {
 					name: 'scale-up-animation',
-					node: this.$.overlayCont,
+					node: this.querySelector('#overlayCont'),
 					duration: 300
 				},
 				'exit': {
 					name: 'scale-down-animation',
-					node: this.$.overlayCont,
+					node: this.querySelector('#overlayCont'),
 					duration: 300
 				}
 			};
@@ -369,4 +369,10 @@ type CrmEditPage = Polymer.El<'crm-edit-page',
 	typeof CEP & typeof crmEditPageProperties & typeof Polymer.NeonAnimationRunnerBehavior
 >;
 
-Polymer(CEP);
+if (window.objectify) {
+	Polymer(window.objectify(CEP));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(CEP));
+	});
+}

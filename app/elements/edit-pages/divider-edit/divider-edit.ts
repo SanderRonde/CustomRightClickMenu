@@ -29,4 +29,10 @@ class DE {
 
 type DividerEdit = Polymer.El<'divider-edit', typeof DE & typeof dividerEditProperties>;
 
-Polymer(DE);
+if (window.objectify) {
+	Polymer(window.objectify(DE));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(DE));
+	});
+}

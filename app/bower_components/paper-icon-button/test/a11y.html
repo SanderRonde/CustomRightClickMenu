@@ -16,10 +16,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
-  <script src="../../test-fixture/test-fixture-mocha.js"></script>
 
   <link rel="import" href="../../iron-icons/iron-icons.html">
-  <link rel="import" href="../../test-fixture/test-fixture.html">
   <link rel="import" href="../paper-icon-button.html">
 
 </head>
@@ -30,6 +28,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <paper-icon-button id="iconButton1" icon="add"></paper-icon-button>
       <paper-icon-button id="iconButton2" icon="add" disabled></paper-icon-button>
       <paper-icon-button id="iconButton3" icon="add" aria-label="custom"></paper-icon-button>
+      <paper-icon-button id="iconButton4" icon="add" alt="alt text"></paper-icon-button>
+      <paper-icon-button id="iconButton5" icon="add" aria-label="custom" alt="alt text" ></paper-icon-button>
     </template>
   </test-fixture>
 
@@ -38,6 +38,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     var b1;
     var b2;
     var b3;
+    var b4;
+    var b5;
 
     setup(function() {
       var iconButtons = fixture('A11yIconButtons');
@@ -45,6 +47,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       b1 = iconButtons[0];
       b2 = iconButtons[1];
       b3 = iconButtons[2];
+      b4 = iconButtons[3];
+      b5 = iconButtons[4];
     });
 
     test('aria role is a button', function() {
@@ -61,6 +65,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       assert.strictEqual(b3.getAttribute('aria-label'), 'custom');
       b3.icon = 'arrow-forward';
       assert.strictEqual(b3.getAttribute('aria-label'), 'custom');
+    });
+
+    test('alt attribute is used for the aria-label', function() {
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt text');
+      b4.icon = 'arrow-forward';
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt text');
+    });
+
+    test('aria-label wins over alt attribute', function() {
+      assert.strictEqual(b5.getAttribute('aria-label'), 'custom');
+      b5.icon = 'arrow-forward';
+      b5.alt = 'other alt'
+      assert.strictEqual(b5.getAttribute('aria-label'), 'custom');
+    });
+
+    test('alt attribute can be updated', function() {
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt text');
+      b4.alt = 'alt again';
+      assert.strictEqual(b4.getAttribute('aria-label'), 'alt again');
     });
 
   </script>

@@ -1,5 +1,6 @@
 <!doctype html>
 <!--
+@license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -17,6 +18,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
   <script src="../../web-component-tester/browser.js"></script>
+  <link rel="import" href="../../iron-test-helpers/iron-test-helpers.html">
 
   <link rel="import" href="../iron-selector.html">
 
@@ -29,77 +31,100 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 </head>
 <body>
 
-  <template is="dom-bind">
-    <iron-selector id="selector" selected="1">
-      <template id="t" is="dom-repeat">
-        <div id$="[[item.name]]">{{item.name}}</div>
-      </template>
-    </iron-selector>
-  </template>
+  <test-fixture id="scope-polymer2">
+    <template>
+      <div>
+        <dom-bind>
+          <template>
+            <iron-selector selected="1">
+              <dom-repeat>
+                <template>
+                  <div id$="[[item.name]]">{{item.name}}</div>
+                </template>
+              </dom-repeat>
+            </iron-selector>
+          </template>
+        </dom-bind>
+      </div>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="scope-polymer1">
+    <template>
+      <div>
+        <template is="dom-bind">
+          <iron-selector selected="1">
+            <template is="dom-repeat">
+              <div id$="[[item.name]]">{{item.name}}</div>
+            </template>
+          </iron-selector>
+        </template>
+      </div>
+    </template>
+  </test-fixture>
 
   <script>
 
     suite('dom-repeat', function() {
 
-      var scope, s, t;
+      var scope;
+      var selector;
+      var domRepeat;
 
       setup(function() {
-        scope = document.querySelector('template[is="dom-bind"]');
-        s = scope.$.selector;
-        t = scope.$.t;
-        t.items = [{name:'item0'}, {name: 'item1'}, {name: 'item2'}, {name: 'item3'}];
+        if (Polymer.Element) {
+          scope = fixture('scope-polymer2');
+          selector = scope.querySelector('iron-selector');
+          domRepeat = scope.querySelector('dom-repeat');
+        } else {
+          scope = fixture('scope-polymer1');
+          selector = scope.querySelector('iron-selector');
+          domRepeat = scope.querySelector('template[is=dom-repeat]');
+        }
+        domRepeat.items = [{name:'item0'}, {name: 'item1'}, {name: 'item2'}, {name: 'item3'}];
+        domRepeat.render();
+        // See the note in `forceSynchronousItemUpdate`.
+        selector.forceSynchronousItemUpdate();
       });
 
-      teardown(function() {
-        t.items = [];
+      test('supports repeated items', function() {
+        // check items
+        assert.equal(selector.items.length, 4);
+        // check selected
+        assert.equal(selector.selected, 1);
+        // check selected item
+        var item = selector.selectedItem;
+        assert.equal(selector.items[1], item);
+        // check selected class
+        assert.isTrue(item.classList.contains('iron-selected'));
       });
 
-      test('supports repeated items', function(done) {
-        setTimeout(function() {
-          // check items
-          assert.equal(s.items.length, 4);
-          // check selected
-          assert.equal(s.selected, 1);
-          // check selected item
-          var item = s.selectedItem;
-          assert.equal(s.items[1], item);
-          // check selected class
-          assert.isTrue(item.classList.contains('iron-selected'));
-          done();
-        });
+      test('update items', function() {
+        // check items
+        assert.equal(selector.items.length, 4);
+        // check selected
+        assert.equal(selector.selected, 1);
+        // update items
+        domRepeat.items = [{name:'foo'}, {name: 'bar'}];
+        domRepeat.render();
+        // See the note in `forceSynchronousItemUpdate`.
+        selector.forceSynchronousItemUpdate();
+        // check items
+        assert.equal(selector.items.length, 2);
+        // check selected (should still honor the selected)
+        assert.equal(selector.selected, 1);
+        // check selected class
+        assert.isTrue(selector.querySelector('#bar').classList.contains('iron-selected'));
       });
 
-      test('update items', function(done) {
-        setTimeout(function() {
-          // check items
-          assert.equal(s.items.length, 4);
-          // check selected
-          assert.equal(s.selected, 1);
-          // update items
-          t.items = [{name:'foo'}, {name: 'bar'}];
-          setTimeout(function() {
-            // check items
-            assert.equal(s.items.length, 2);
-            // check selected (should still honor the selected)
-            assert.equal(s.selected, 1);
-            // check selected class
-            assert.isTrue(s.querySelector('#bar').classList.contains('iron-selected'));
-            done();
-          });
-        });
-      });
-
-      test('set selected to something else', function(done) {
-        setTimeout(function() {
-          // set selected to something else
-          s.selected = 3;
-          // check selected item
-          var item = s.selectedItem;
-          assert.equal(s.items[3], item);
-          // check selected class
-          assert.isTrue(item.classList.contains('iron-selected'));
-          done();
-        });
+      test('set selected to something else', function() {
+        // set selected to something else
+        selector.selected = 3;
+        // check selected item
+        var item = selector.selectedItem;
+        assert.equal(selector.items[3], item);
+        // check selected class
+        assert.isTrue(item.classList.contains('iron-selected'));
       });
 
     });

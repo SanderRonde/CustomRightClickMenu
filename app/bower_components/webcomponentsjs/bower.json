@@ -1,14 +1,24 @@
 {
   "name": "webcomponentsjs",
+  "description": "Web components polyfill",
   "main": "webcomponents.js",
-  "version": "0.7.2",
   "homepage": "http://webcomponents.org",
   "authors": [
     "The Polymer Authors"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/webcomponents/webcomponentsjs.git"
+  },
   "keywords": [
-    "webcomponents"
+    "webcomponents",
+    "web-components",
+    "polyfill",
+    "shim"
   ],
-  "license": "BSD",
-  "ignore": []
+  "license": "BSD-3-Clause",
+  "ignore": [],
+  "devDependencies": {
+    "web-component-tester": "^v6.0.0"
+  }
 }

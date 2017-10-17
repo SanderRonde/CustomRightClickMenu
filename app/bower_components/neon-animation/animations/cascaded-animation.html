@@ -10,7 +10,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../neon-animation-behavior.html">
-<link rel="import" href="../web-animations.html">
 
 <!--
 `<cascaded-animation>` applies an animation on an array of elements with a delay between each.
@@ -22,7 +21,7 @@ Configuration:
   name: 'cascaded-animation',
   animation: <animation-name>,
   nodes: <array-of-nodes>,
-  nodedelay: <node-delay-in-ms>,
+  nodeDelay: <node-delay-in-ms>,
   timing: <animation-timing>
 }
 ```
@@ -38,24 +37,16 @@ Configuration:
       Polymer.NeonAnimationBehavior
     ],
 
-    properties: {
-
-      _animationMeta: {
-        type: Object,
-        value: function() {
-          return new Polymer.IronMeta({type: 'animation'});
-        }
-      }
-
-    },
-
+    /**
+     * @param {{
+     *   animation: string,
+     *   nodes: !Array<!Element>,
+     *   nodeDelay: (number|undefined),
+     *   timing: (Object|undefined)
+     *  }} config
+     */
     configure: function(config) {
-      var animationConstructor = this._animationMeta.byKey(config.animation);
-      if (!animationConstructor) {
-        console.warn(this.is + ':', 'constructor for', config.animation, 'not found!');
-        return;
-      }
-
+      this._animations = [];
       var nodes = config.nodes;
       var effects = [];
       var nodeDelay = config.nodeDelay || 50;
@@ -64,19 +55,38 @@ Configuration:
       config.timing.delay = config.timing.delay || 0;
 
       var oldDelay = config.timing.delay;
+      var abortedConfigure;
       for (var node, index = 0; node = nodes[index]; index++) {
         config.timing.delay += nodeDelay;
         config.node = node;
 
-        var animation = new animationConstructor();
-        var effect = animation.configure(config);
+        var animation = document.createElement(config.animation);
+        if (animation.isNeonAnimation) {
+          var effect = animation.configure(config);
 
-        effects.push(effect);
+          this._animations.push(animation);
+          effects.push(effect);
+        } else {
+          console.warn(this.is + ':', config.animation, 'not found!');
+          abortedConfigure = true;
+          break;
+        }
       }
       config.timing.delay = oldDelay;
+      config.node = null;
+      // if a bad animation was configured, abort config.
+      if (abortedConfigure) {
+        return;
+      }
 
       this._effect = new GroupEffect(effects);
       return this._effect;
+    },
+
+    complete: function() {
+      for (var animation, index = 0; animation = this._animations[index]; index++) {
+        animation.complete(animation.config);
+      }
     }
 
   });

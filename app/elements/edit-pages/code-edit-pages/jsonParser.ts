@@ -1346,7 +1346,7 @@ ${
 ${message}`;
 	}
 
-	window.app.util.waitFor(window, 'CodeMirror', (cm) => {
+	const onExistsCallback = (cm: CodeMirror) => {
 		window.CodeMirror.lint.optionsJSON = (text: string, _: any, cm: CodeMirrorInstance): LintMessages => {
 			if (!window.useOptionsCompletions) {
 				return cm.getOption('mode') === 'javascript' ?
@@ -1393,7 +1393,14 @@ ${message}`;
 			}
 			return output;
 		};
-	});
+	}
+	if (window.onExists) {
+		window.onExists('CodeMirror', onExistsCallback);
+	} else {
+		window.addEventListener('ObjectifyReady', () => {
+			window.onExists('CodeMirror', onExistsCallback);
+		});
+	}
 
 	window.completionsOptions = (query: {
 		start: {

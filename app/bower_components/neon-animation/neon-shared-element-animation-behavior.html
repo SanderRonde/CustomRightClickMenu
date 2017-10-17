@@ -15,9 +15,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   /**
    * Use `Polymer.NeonSharedElementAnimationBehavior` to implement shared element animations.
-   * @polymerBehavior
+   * @polymerBehavior Polymer.NeonSharedElementAnimationBehavior
    */
-  Polymer.NeonSharedElementAnimationBehavior = [Polymer.NeonAnimationBehavior, {
+  Polymer.NeonSharedElementAnimationBehaviorImpl = {
 
     properties: {
 
@@ -46,7 +46,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return null;
       };
 
-      var from = fromPage.sharedElements[config.id]
+      var from = fromPage.sharedElements[config.id];
       var to = toPage.sharedElements[config.id];
 
       if (!from || !to) {
@@ -61,6 +61,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       return this.sharedElements;
     }
 
-  }];
+  };
+
+  /** @polymerBehavior Polymer.NeonSharedElementAnimationBehavior */
+  Polymer.NeonSharedElementAnimationBehavior = [
+    Polymer.NeonAnimationBehavior,
+    Polymer.NeonSharedElementAnimationBehaviorImpl
+  ];
 
 </script>

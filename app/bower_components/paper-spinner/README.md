@@ -1,45 +1,49 @@
-paper-spinner
-=============
+[![Build status](https://travis-ci.org/PolymerElements/paper-spinner.svg?branch=master)](https://travis-ci.org/PolymerElements/paper-spinner)
 
-Element providing material design circular spinner.
+## &lt;paper-spinner&gt;
 
-##### Example
+Material design: [Progress & activity](https://www.google.com/design/spec/components/progress-activity.html)
 
-```html
-<paper-spinner active></paper-spinner>
+Element providing a multiple color material design circular spinner.
+
+<!---
 ```
-
-The default spinner cycles between four layers of colors; by default they are
-blue, red, yellow and green. It can be customized so that it uses one color only
-by setting all the layer colors to the same value.
-
-##### Example
-
-```html
-<style is="custom-style">
-  paper-spinner .rainbow {
-    --paper-spinner-layer-1-color: yellow;
-    --paper-spinner-layer-2-color: red;
-    --paper-spinner-layer-3-color: blue;
-    --paper-spinner-layer-4-color: green;
-  }
-
-  paper-spinner .red {
-    --paper-spinner-layer-1-color: red;
-    --paper-spinner-layer-2-color: red;
-    --paper-spinner-layer-3-color: red;
-    --paper-spinner-layer-4-color: red;
-  }
-</style>
+<custom-element-demo>
+  <template>
+    <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="paper-spinner.html">
+    <link rel="import" href="paper-spinner-lite.html">
+    <style is="custom-style">
+      paper-spinner, paper-spinner-lite {
+        margin: 8px 8px 8px 0;
+      }
+      paper-spinner-lite.orange {
+        --paper-spinner-color: var(--google-yellow-500);
+      }
+      paper-spinner-lite.green {
+        --paper-spinner-color: var(--google-green-500);
+      }
+      paper-spinner-lite.thin {
+        --paper-spinner-stroke-width: 1px;
+      }
+      paper-spinner-lite.thick {
+        --paper-spinner-stroke-width: 6px;
+      }
+      #container {
+        display: flex;
+      }
+    </style>
+    <div id="container">    
+      <next-code-block></next-code-block>
+    </div>
+  </template>
+</custom-element-demo>
 ```
-
-Alt attribute should be set to provide adequate context for accessibility. If not provided,
-it defaults to 'loading'.
-Empty alt can be provided to mark the element as decorative if alternative content is provided
-in another form (e.g. a text block following the spinner).
-
-##### Example
-
+-->
 ```html
-<paper-spinner alt="Loading contacts list" active></paper-spinner>
+<paper-spinner active>...</paper-spinner>
+<paper-spinner-lite active class="orange"></paper-spinner-lite>
+<paper-spinner-lite active class="green"></paper-spinner-lite>
+<paper-spinner-lite active class="thin"></paper-spinner-lite>
+<paper-spinner-lite active class="thick"></paper-spinner-lite>
 ```

@@ -1,6 +1,28 @@
 /// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/tern.d.ts" />
 
+(() => {
+	window.objectify = <T>(fn: T): T => {
+		const obj: Partial<T> = {};
+		Object.getOwnPropertyNames(fn).forEach((key: keyof T) => {
+			obj[key] = fn[key];
+		});
+		return obj as T;
+	}
+
+	window.onExists = <T extends keyof Window>(key: T, callback: (val: Window[T]) => void) => {
+		const interval = window.setInterval(() => {
+			if (key in window) {
+				window.clearInterval(interval);
+				callback(window[key]);
+			}
+		}, 50);
+	}
+
+	const event = new Event('ObjectifyReady');
+	window.dispatchEvent(event);
+})();
+
 interface JQContextMenuObj {
 	name: string;
 	callback(): void;
@@ -92,7 +114,7 @@ if (!document.createElement('div').animate) {
 	(HTMLElement.prototype.animate as any).isJqueryFill = true;
 }
 
-const properties: {
+const crmAppProperties: {
 	settings: CRM.SettingsStorage;
 	onSettingsReadyCallbacks: Array<{
 		callback: Function;
@@ -256,7 +278,7 @@ class CA {
 	 */
 	static ternServer: Tern.ServerInstance;
 
-	static properties = properties;
+	static properties = crmAppProperties;
 
 	static domListener(this: CrmApp, event: Polymer.CustomEvent) {
 		const propKey = `data-on-${event.type}`;
@@ -636,7 +658,7 @@ class CA {
 		this.async(() => {
 			this.$.codeSettingsDialog.fit();
 			Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
-				.forEach((el: PaperDropdownMenu) => {
+				.forEach((el: HTMLPaperDropdownMenuElement) => {
 					el.init();
 				});
 			this.$.codeSettingsDialog.open();
@@ -801,7 +823,7 @@ class CA {
 			this.setup.initCheckboxes.apply(this, [window.app.storageLocal]);
 
 			//Reset default links and searchengines
-			Array.prototype.slice.apply(document.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
+			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('default-link')).forEach(function (link: DefaultLink) {
 				link.reset();
 			});
 
@@ -812,7 +834,7 @@ class CA {
 			window.doc.URISchemeSchemeName.querySelector('input').value = 'myscheme';
 
 			//Hide all open dialogs
-			Array.prototype.slice.apply(document.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
+			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
 				dialog.opened && dialog.close();
 			});
 
@@ -1286,7 +1308,7 @@ class CA {
 							.CRMOnPage);
 					}
 
-					Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+					Array.prototype.slice.apply(_this.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
 						setting.init(storageLocal);
 					});
 
@@ -1313,13 +1335,13 @@ class CA {
 					}
 					if (storageLocal.selectedCrmType !== undefined) {
 						_this.crmType = storageLocal.selectedCrmType;
-						_this.setup.switchToIcons(storageLocal.selectedCrmType);
+						//_this.setup.switchToIcons(storageLocal.selectedCrmType);
 					} else {
 						chrome.storage.local.set({
 							selectedCrmType: 0
 						});
 						_this.crmType = 0;
-						_this.setup.switchToIcons(0);
+						//_this.setup.switchToIcons(0);
 					}
 					if (storageLocal.jsLintGlobals) {
 						_this.jsLintGlobals = storageLocal.jsLintGlobals;
@@ -1521,7 +1543,7 @@ class CA {
 			});
 
 			const _this = this;
-			const importsAmount = 62;
+			const importsAmount = 43;
 			const loadingBarSettings = {
 				lastReachedProgress: 0,
 				progressBar: document.getElementById('splashScreenProgressBarLoader'),
@@ -1579,7 +1601,7 @@ class CA {
 			if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
 				(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
 					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
-				Array.prototype.slice.apply(document.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+				Array.prototype.slice.apply(_this.parent().shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
 					setting.init && setting.init(defaultLocalStorage);
 				});
 			} else {
@@ -1611,7 +1633,7 @@ class CA {
 		static switchToIcons(index: number) {
 			let i;
 			let element;
-			const crmTypes = document.querySelectorAll('.crmType');
+			const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 			for (i = 0; i < 6; i++) {
 				if (index === i) {
 					element = crmTypes[i] as HTMLElement;
@@ -2623,7 +2645,7 @@ class CA {
 			let selectedType = this.parent().crmType;
 			if (typeof type === 'number') {
 				for (i = 0; i < 6; i++) {
-					crmEl = document.querySelectorAll('.crmType').item(i) as HTMLElement;
+					crmEl = this.parent().shadowRoot.querySelectorAll('.crmType').item(i) as HTMLElement;
 					if (i === type) {
 						crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						crmEl.style.backgroundColor = 'rgb(243,243,243)';
@@ -2649,7 +2671,7 @@ class CA {
 				}
 			} else {
 				const element = this.parent().util.findElementWithClassName(e.path, 'crmType');
-				const crmTypes = document.querySelectorAll('.crmType');
+				const crmTypes = this.parent().shadowRoot.querySelectorAll('.crmType');
 				for (i = 0; i < 6; i++) {
 					crmEl = crmTypes.item(i) as HTMLElement;
 					if (crmEl === element) {
@@ -3102,7 +3124,7 @@ class CA {
 
 		private static _getCodeSettingsFromDialog(): CRM.Options {
 			const obj: CRM.Options = {};
-			Array.prototype.slice.apply(this.parent().querySelectorAll('.codeSettingSetting'))
+			Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('.codeSettingSetting'))
 				.forEach((element: HTMLElement) => {
 					let value: CRM.OptionsValue;
 					const key = element.getAttribute('data-key');
@@ -4054,19 +4076,6 @@ class CA {
 	 * Various util functions
 	 */
 	static util = class CRMAppUtil {
-		static waitFor<T, U extends keyof T>(rootObj: T, key: U, fn: (value: T[U]) => void) {
-			if (rootObj[key]) {
-				fn(rootObj[key]);
-			}
-
-			const interval = window.setInterval(() => {
-				if (rootObj[key]) {
-					window.clearInterval(interval);
-					fn(rootObj[key]);
-				}
-			}, 10);
-		}
-
 		static createElement(tagName: keyof ElementTagNameMaps, options: {
 			id?: string;
 			classes?: Array<string>;
@@ -4248,8 +4257,14 @@ class CA {
 	}
 };
 
-type CrmApp = Polymer.El<'crm-app', typeof CA & typeof properties & {
+type CrmApp = Polymer.El<'crm-app', typeof CA & typeof crmAppProperties & {
 	editCRM: EditCrm;
 }>;
 
-Polymer(CA);
+if (window.objectify) {
+	Polymer(window.objectify(CA));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(CA));
+	});
+}

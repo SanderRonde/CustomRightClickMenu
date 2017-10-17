@@ -18,46 +18,82 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <title>iron-input demo</title>
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
 
+  <!-- Order of imports matters. The validator needs to be imported before the
+    iron-input needs it. -->
+  <link rel="import" href="cats-only.html">
   <link rel="import" href="../iron-input.html">
 
-  <link rel="stylesheet" href="../../paper-styles/demo.css">
-
+  <custom-style>
+    <style is="custom-style" include="demo-pages-shared-styles"></style>
+  </custom-style>
 </head>
 <body>
+  <div class="vertical-section-container centered">
+    <h4>Basic inputs</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <iron-input><input placeholder="type=date" type="date"></iron-input>
+        <iron-input><input placeholder="type=number" type="number"></iron-input>
+        <iron-input><input placeholder="disabled" disabled></iron-input>
+      </template>
+    </demo-snippet>
 
-  <template is="dom-bind">
+    <h4>Updating the iron-input's value</h4>
+    <demo-snippet>
+      <template>
+        <dom-bind>
+          <template>
+            <iron-input bind-value="{{bindValue}}" id="input1"><input value="{{value::input}}"></iron-input>
+            <p>bind to the iron-input's <code>bind-value</code>: {{bindValue}}</p>
+            <p>bind to the distributed input's <code>value::input</code>: {{value}}</p>
+            <button onclick="input1.bindValue='pineapple'">Set bindValue to 'pineapple'</button>
+          </template>
+        </dom-bind>
+      </template>
+    </demo-snippet>
 
-    <section>
+    <h4>Preventing invalid characters: only allow <code>!@#0123456789</code></h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <iron-input allowed-pattern="[!@#0-9]">
+          <input>
+        </iron-input>
+      </template>
+    </demo-snippet>
 
-      <p>
-        <input is="iron-input" bind-value="{{bindValue}}" value="{{value::input}}">
-        <br>
-        bind to <code>bind-value</code>: <span>[[bindValue]]</span>
-        <br>
-        bind to <code>value::input</code>: <span>{{value}}</span>
-      </p>
+    <h4>Auto-validation and preventing invalid characters</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <style>
+          iron-input[invalid] > input {
+            border: 1px solid red;
+            background-color: #FFCDD2;
+          }
+        </style>
+        <iron-input allowed-pattern="[0-9]" auto-validate>
+          <input pattern="\d{3}" placeholder="exactly 3 digits are valid">
+        </iron-input>
+      </template>
+    </demo-snippet>
 
-      <p on-click="setValue">
-        set bind-value to: <input> <button value="bindValue">set</button>
-        <br>
-        set value to: <input> <button value="value">set</button>
-      </p>
-
-    </section>
-
-  </template>
-
-  <script>
-
-    var scope = document.querySelector('template[is=dom-bind]');
-
-    scope.setValue = function(event) {
-      if (!(event.target instanceof HTMLButtonElement)) {
-        return;
-      }
-      document.querySelector('input[is=iron-input]')[event.target.value] = event.target.previousElementSibling.value;
-    }
-  </script>
-
+    <h4>Validation with a custom validator</h4>
+    <demo-snippet class="centered-demo">
+      <template>
+        <style>
+          iron-input[invalid] > input {
+            border: 1px solid red;
+            background-color: #FFCDD2;
+          }
+        </style>
+        <cats-only></cats-only>
+        <iron-input auto-validate validator="cats-only">
+          <input placeholder="only 'cat' is valid">
+        </iron-input>
+      </template>
+    </demo-snippet>
+  </div>
 </body>
+</html>

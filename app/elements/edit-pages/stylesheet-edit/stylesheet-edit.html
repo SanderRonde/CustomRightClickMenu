@@ -48,7 +48,7 @@
 						Trigger(s)
 					</div>
 					<br/>
-					<paper-dropdown-menu indent="false" id="dropdownMenu" selected="[[item.value.launchMode]]">
+					<paper-dropdown-menu slot="menu" indent="false" id="dropdownMenu" selected="[[item.value.launchMode]]">
 						<paper-menu selected="{{newSettings.value.launchMode}}">
 							<paper-item id="executeOnClickOption" class="stylesheetLaunchOption">
 								<div class="menuSelectedCheckmark">
@@ -259,7 +259,7 @@
 		</div>
 		<div id="buttonCont">
 			<div id="buttons">
-				<paper-dropdown-menu overflowing indent="false" id="exportMenu" selected="0">
+				<paper-dropdown-menu slot="menu" overflowing indent="false" id="exportMenu" selected="0">
 					<paper-menu selected="0">
 						<paper-item hidden>
 							<span class="menuOptionName">EXPORT AS</span>

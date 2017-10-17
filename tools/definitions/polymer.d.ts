@@ -112,6 +112,7 @@ declare namespace Polymer {
 		'paper-dropdown-menu': HTMLPaperDropdownMenuElement;
 		'paper-array-input': HTMLPaperArrayInputElement;
 		'paper-ripple': HTMLPaperRipplElement;
+		'slot': HTMLSlotElement;
 	};
 
 }

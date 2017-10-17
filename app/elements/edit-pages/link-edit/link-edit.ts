@@ -61,4 +61,10 @@ class LE {
 	}
 }
 
-Polymer(LE);
+if (window.objectify) {
+	Polymer(window.objectify(LE));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(LE));
+	});
+}

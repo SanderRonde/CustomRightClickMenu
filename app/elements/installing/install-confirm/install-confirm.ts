@@ -391,4 +391,10 @@ class IC {
 
 type InstallConfirm = Polymer.El<'install-confirm', typeof IC & typeof installConfirmProperties>;
 
-Polymer(IC);
+if (window.objectify) {
+	Polymer(window.objectify(IC));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(IC));
+	});
+}

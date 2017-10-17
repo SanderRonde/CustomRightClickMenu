@@ -6,7 +6,7 @@
 	<link rel="stylesheet" href="paper-toggle-option.css">
 	<template>
 		<paper-checkbox id="checkbox" checked$="{{toggled}}" on-tap="onClick">
-			<content></content>
+			<slot></slot>
 		</paper-checkbox>
 		<template is="dom-if" if="[[_showMessage(disabled, showmessage)]]">
 			<div id="disabledContainer">

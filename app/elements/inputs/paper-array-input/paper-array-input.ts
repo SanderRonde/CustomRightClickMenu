@@ -91,4 +91,10 @@ class PAI {
 type PaperArrayInput = Polymer.El<'paper-array-input',
 	typeof PAI & typeof paperArrayInputProperties>;
 
-Polymer(PAI);
+if (window.objectify) {
+	Polymer(window.objectify(PAI));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(PAI));
+	});
+}

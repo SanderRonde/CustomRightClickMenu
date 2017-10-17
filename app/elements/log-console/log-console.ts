@@ -332,7 +332,7 @@ class LC {
 		});
 
 		this.async(function() {
-			const menus = Array.prototype.slice.apply(document.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
+			const menus = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
 			menus.forEach(function(menu) {
 				menu.onopen = function() {
 					(menu.querySelector('template') as HTMLDomRepeatElement).render();
@@ -531,4 +531,10 @@ class LC {
 
 type LogConsole = Polymer.El<'log-console', typeof LC & typeof logConsoleProperties>;
 
-Polymer(LC);
+if (window.objectify) {
+	Polymer(window.objectify(LC));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(LC));
+	});
+}

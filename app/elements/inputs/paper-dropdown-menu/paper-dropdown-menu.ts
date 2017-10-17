@@ -77,4 +77,10 @@ type PaperDropdownMenuBase = Polymer.El<'paper-dropdown-menu',
 	typeof PDM & typeof paperDropdownBehaviorProperties
 >;
 
-Polymer(PDM);
+if (window.objectify) {
+	Polymer(window.objectify(PDM));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(PDM));
+	});
+}

@@ -102,8 +102,8 @@ class SCE {
 				this.editor.setValue(this.newSettings.value.backgroundScript || '');
 			}
 
-			const element = document.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
-			Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+			const element = window.app.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
+			Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.editorTab')).forEach(
 			function(tab: HTMLElement) {
 				tab.classList.remove('active');
 			});
@@ -146,7 +146,7 @@ class SCE {
 			this.editorMode = 'options';
 		}
 
-		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+		Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.editorTab')).forEach(
 			function(tab: HTMLElement) {
 				tab.classList.remove('active');
 			});
@@ -896,7 +896,7 @@ class SCE {
  	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
 	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance, container: HTMLElement) {
-		const clone = (document.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
+		const clone = (window.app.shadowRoot.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
 
 		if (window.app.settings.editor.theme === 'white') {
 			clone.querySelector('#editorThemeSettingWhite').classList.add('currentTheme');
@@ -999,7 +999,7 @@ class SCE {
 		};
 		const settingsContainer = importedElement.querySelector('#settingsContainer');
 		for (let i = 0; i < this.keyBindings.length; i++) {
-			const keyBindingClone = (document.querySelector('#keyBindingTemplate') as HTMLTemplateElement).content;
+			const keyBindingClone = (window.app.shadowRoot.querySelector('#keyBindingTemplate') as HTMLTemplateElement).content;
 			
 			const input = keyBindingClone.querySelector('paper-input') as HTMLPaperInputElement & {
 				lastValue: string;
@@ -1239,7 +1239,7 @@ class SCE {
 		editor.display.wrapper.classList.add('script-edit-codeMirror');
 		editor.display.wrapper.classList.add('small');
 
-		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
+		const cloneTemplate = document.importNode((window.app.shadowRoot.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
 		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
 		const clone = editor.display.sizer;
 		
@@ -1391,4 +1391,10 @@ class SCE {
 
 type ScriptEdit = Polymer.El<'script-edit', typeof SCE & typeof scriptEditProperties>;
 
-Polymer(SCE);
+if (window.objectify) {
+	Polymer(window.objectify(SCE));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(SCE));
+	});
+}

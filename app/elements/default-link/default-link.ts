@@ -72,4 +72,10 @@ type DefaultLink = Polymer.El<'default-link',
 	typeof DL & typeof defaultLinkProperties
 >;
 
-Polymer(DL);
+if (window.objectify) {
+	Polymer(window.objectify(DL));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(DL));
+	});
+}

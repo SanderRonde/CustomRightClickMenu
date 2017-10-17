@@ -130,11 +130,11 @@ class CEB {
 		}
 		window.useOptionsCompletions = false;
 		this.hideCodeOptions();
-		Array.prototype.slice.apply(document.querySelectorAll('.editorTab')).forEach(
+		Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.editorTab')).forEach(
 			function(tab: HTMLElement) {
 				tab.classList.remove('active');
 			});
-		document.querySelector('.mainEditorTab').classList.add('active');
+		window.app.shadowRoot.querySelector('.mainEditorTab').classList.add('active');
 	};
 
 		/**

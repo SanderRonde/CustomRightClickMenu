@@ -132,7 +132,7 @@ class NEB {
 	};
 
 	static cancel(this: NodeEditBehavior) {
-		Array.prototype.slice.apply(document.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
+		Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
 			toolTip.remove();
 		});
 
@@ -157,7 +157,7 @@ class NEB {
 			(this.saveChanges as any)(newSettings);
 		}
 
-		Array.prototype.slice.apply(document.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
+		Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('CodeMirror-Tern-tooltip')).forEach((toolTip: HTMLElement) => {
 			toolTip.remove();
 		});
 

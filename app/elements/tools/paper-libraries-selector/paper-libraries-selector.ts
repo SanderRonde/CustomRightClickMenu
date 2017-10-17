@@ -428,4 +428,10 @@ type PaperLibrariesSelectorBase = Polymer.El<'paper-libraries-selector',
 	typeof PLS & typeof paperLibrariesSelectorProperties
 >;
 
-Polymer(PLS);
+if (window.objectify) {
+	Polymer(window.objectify(PLS));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(PLS));
+	});
+}

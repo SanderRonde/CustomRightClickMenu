@@ -45,4 +45,10 @@ class EH {
 type EchoHtml = Polymer.El<'echo-html',
 	typeof EH & typeof echoHtmlProperties>;
 
-Polymer(EH);
+if (window.objectify) {
+	Polymer(window.objectify(EH));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(EH));
+	});
+}

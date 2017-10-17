@@ -100,4 +100,10 @@ class PGPP {
 type PaperGetPagePropertiesBase = Polymer.El<
 	'paper-get-page-properties', typeof PGPP>;
 
-Polymer(PGPP);
+if (window.objectify) {
+	Polymer(window.objectify(PGPP));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(PGPP));
+	});
+}

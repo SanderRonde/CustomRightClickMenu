@@ -181,4 +181,10 @@ class CL {
 
 type ChangeLog = Polymer.El<'change-log', typeof CL & typeof changeLogProperties>;
 
-Polymer(CL);
+if (window.objectify) {
+	Polymer(window.objectify(CL));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(CL));
+	});
+}

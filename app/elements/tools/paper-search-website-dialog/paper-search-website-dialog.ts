@@ -393,4 +393,10 @@ type PaperSearchWebsiteDialog = Polymer.El<'paper-search-website-dialog',
 	typeof PSWD & typeof paperSearchWebsiteDialogProperties
 >;
 
-Polymer(PSWD);
+if (window.objectify) {
+	Polymer(window.objectify(PSWD));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(PSWD));
+	});
+}

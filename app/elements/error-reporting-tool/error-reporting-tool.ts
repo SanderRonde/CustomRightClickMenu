@@ -8,11 +8,19 @@ const errorReportingTool: {
 	/**
 	 * The type of the report
 	 */
-	reportType: 'bug',
+	reportType: {
+		type: String,
+		value: 'bug',
+		notify: true
+	},
 	/**
 	 * The screencap's dataURI
 	 */
-	image: '',
+	image: {
+		type: String,
+		value: '',
+		notify: true
+	},
 	/**
 	 * Whether this overlay needs to be hidden
 	 */
@@ -440,4 +448,10 @@ class ERT {
 
 type ErrorReportingTool = Polymer.El<'error-reporting-tool', typeof ERT & typeof errorReportingTool>;
 
-Polymer(ERT);
+if (window.objectify) {
+	Polymer(window.objectify(ERT));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(ERT));
+	});
+}

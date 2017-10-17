@@ -7,233 +7,172 @@ The complete set of contributors may be found at http://polymer.github.io/CONTRI
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
-<!-- TODO(nevir): Should we upgrade Polymer/font-roboto to the final font? -->
 
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../font-roboto/roboto.html">
 
-<style is="custom-style">
+<!--
+Typographic styles are provided matching the Material Design standard styles:
+http://www.google.com/design/spec/style/typography.html#typography-standard-styles
 
-  :root {
+Note that these are English/Latin centric styles. You may need to further adjust
+line heights and weights for CJK typesetting. See the notes in the Material
+Design typography section.
+-->
+<custom-style>
+  <style is="custom-style">
+    html {
 
-    /* Shared Styles */
+      /* Shared Styles */
+      --paper-font-common-base: {
+        font-family: 'Roboto', 'Noto', sans-serif;
+        -webkit-font-smoothing: antialiased;
+      };
 
-    /*
-    Unfortunately, we can't make use of these yet - sibling properties aren't
-    evaluated. See https://github.com/Polymer/polymer/issues/1399
+      --paper-font-common-code: {
+        font-family: 'Roboto Mono', 'Consolas', 'Menlo', monospace;
+        -webkit-font-smoothing: antialiased;
+      };
 
-    --paper-font-common-base: {
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-    };
+      --paper-font-common-expensive-kerning: {
+        text-rendering: optimizeLegibility;
+      };
 
-    --paper-font-common-code: {
-      font-family: 'Inconsolata', 'Consolas', 'Source Code Pro', 'Monaco', 'Menlo', monospace;
-      -webkit-font-smoothing: antialiased;
-    };
+      --paper-font-common-nowrap: {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      };
 
-    --paper-font-common-expensive-kerning: {
-      text-rendering: optimizeLegibility;
-    };
+      /* Material Font Styles */
 
-    --paper-font-common-nowrap: {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    };
-    */
+      --paper-font-display4: {
+        @apply --paper-font-common-base;
+        @apply --paper-font-common-nowrap;
 
-    /* Material Font Styles */
+        font-size: 112px;
+        font-weight: 300;
+        letter-spacing: -.044em;
+        line-height: 120px;
+      };
 
-    --paper-font-display4: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
-      /* @apply(--paper-font-common-nowrap); */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      --paper-font-display3: {
+        @apply --paper-font-common-base;
+        @apply --paper-font-common-nowrap;
 
-      font-size: 112px;
-      font-weight: 300;
-      letter-spacing: -.044em;
-      line-height: 120px;
-    };
+        font-size: 56px;
+        font-weight: 400;
+        letter-spacing: -.026em;
+        line-height: 60px;
+      };
 
-    --paper-font-display3: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
-      /* @apply(--paper-font-common-nowrap); */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      --paper-font-display2: {
+        @apply --paper-font-common-base;
 
-      font-size: 56px;
-      font-weight: 400;
-      letter-spacing: -.026em;
-      line-height: 60px;
-    };
+        font-size: 45px;
+        font-weight: 400;
+        letter-spacing: -.018em;
+        line-height: 48px;
+      };
 
-    --paper-font-display2: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
+      --paper-font-display1: {
+        @apply --paper-font-common-base;
 
-      font-size: 45px;
-      font-weight: 400;
-      letter-spacing: -.018em;
-      line-height: 48px;
-    };
+        font-size: 34px;
+        font-weight: 400;
+        letter-spacing: -.01em;
+        line-height: 40px;
+      };
 
-    --paper-font-display1: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
+      --paper-font-headline: {
+        @apply --paper-font-common-base;
 
-      font-size: 34px;
-      font-weight: 400;
-      letter-spacing: -.01em;
-      line-height: 40px;
-    };
+        font-size: 24px;
+        font-weight: 400;
+        letter-spacing: -.012em;
+        line-height: 32px;
+      };
 
-    --paper-font-headline: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
+      --paper-font-title: {
+        @apply --paper-font-common-base;
+        @apply --paper-font-common-nowrap;
 
-      font-size: 24px;
-      font-weight: 400;
-      letter-spacing: -.012em;
-      line-height: 32px;
-    };
+        font-size: 20px;
+        font-weight: 500;
+        line-height: 28px;
+      };
 
-    --paper-font-title: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
-      /* @apply(--paper-font-common-nowrap); */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      --paper-font-subhead: {
+        @apply --paper-font-common-base;
 
-      font-size: 20px;
-      font-weight: 500;
-      line-height: 28px;
-    };
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 24px;
+      };
 
-    --paper-font-subhead: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
+      --paper-font-body2: {
+        @apply --paper-font-common-base;
 
-      font-size: 16px;
-      font-weight: 400;
-      line-height: 24px;
-    };
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 24px;
+      };
 
-    --paper-font-body2: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
+      --paper-font-body1: {
+        @apply --paper-font-common-base;
 
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 24px;
-    };
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 20px;
+      };
 
-    --paper-font-body1: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
+      --paper-font-caption: {
+        @apply --paper-font-common-base;
+        @apply --paper-font-common-nowrap;
 
-      font-size: 14px;
-      font-weight: 400;
-      line-height: 20px;
-    };
+        font-size: 12px;
+        font-weight: 400;
+        letter-spacing: 0.011em;
+        line-height: 20px;
+      };
 
-    --paper-font-caption: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-nowrap); */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      --paper-font-menu: {
+        @apply --paper-font-common-base;
+        @apply --paper-font-common-nowrap;
 
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.011em;
-      line-height: 20px;
-    };
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 24px;
+      };
 
-    --paper-font-menu: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
-      /* @apply(--paper-font-common-nowrap); */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      --paper-font-button: {
+        @apply --paper-font-common-base;
+        @apply --paper-font-common-nowrap;
 
-      font-size: 13px;
-      font-weight: 500;
-      line-height: 24px;
-    };
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.018em;
+        line-height: 24px;
+        text-transform: uppercase;
+      };
 
-    --paper-font-button: {
-      /* @apply(--paper-font-common-base) */
-      font-family: 'Roboto', 'Noto', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      /* @apply(--paper-font-common-expensive-kerning); */
-      text-rendering: optimizeLegibility;
-      /* @apply(--paper-font-common-nowrap); */
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      --paper-font-code2: {
+        @apply --paper-font-common-code;
 
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: 0.018em;
-      line-height: 24px;
-      text-transform: uppercase;
-    };
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 20px;
+      };
 
-    --paper-font-code2: {
-      /* @apply(--paper-font-common-code); */
-      font-family: 'Inconsolata', 'Consolas', 'Source Code Pro', 'Monaco', 'Menlo', monospace;
-      -webkit-font-smoothing: antialiased;
+      --paper-font-code1: {
+        @apply --paper-font-common-code;
 
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 20px;
-    };
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+      };
 
-    --paper-font-code1: {
-      /* @apply(--paper-font-common-code); */
-      font-family: 'Inconsolata', 'Consolas', 'Source Code Pro', 'Monaco', 'Menlo', monospace;
-      -webkit-font-smoothing: antialiased;
+    }
 
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 20px;
-    };
-
-  }
-
-</style>
+  </style>
+</custom-style>

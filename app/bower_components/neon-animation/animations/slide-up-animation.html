@@ -10,7 +10,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../neon-animation-behavior.html">
-<link rel="import" href="../web-animations.html">
 
 <!--
 `<slide-up-animation>` animates the transform of an element from `translateY(0)` to
@@ -40,16 +39,16 @@ Configuration:
     configure: function(config) {
       var node = config.node;
 
+      this._effect = new KeyframeEffect(node, [
+        {'transform': 'translate(0)'},
+        {'transform': 'translateY(-100%)'}
+      ], this.timingFromConfig(config));
+
       if (config.transformOrigin) {
         this.setPrefixedProperty(node, 'transformOrigin', config.transformOrigin);
       } else {
         this.setPrefixedProperty(node, 'transformOrigin', '50% 0');
       }
-
-      this._effect = new KeyframeEffect(node, [
-        {'transform': 'translate(0)'},
-        {'transform': 'translateY(-100%)'}
-      ], this.timingFromConfig(config));
 
       return this._effect;
     }

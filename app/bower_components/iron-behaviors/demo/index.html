@@ -1,5 +1,6 @@
 <!doctype html>
 <!--
+@license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -17,33 +18,31 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <title>simple-button</title>
 
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-
+  <link href="../../paper-styles/demo-pages.html" rel="import">
   <link href="simple-button.html" rel="import">
 
   <style>
 
-    body {
-      font-family: sans-serif;
-      padding: 24px;
-      margin: 0;
+    .vertical-section {
+      text-align: center;
     }
 
   </style>
 
 </head>
-<body>
+<body unresolved>
+  <div class="vertical-section vertical-section-container centered">
+    <h3>Normal</h3>
 
-  <h3>Normal</h3>
+    <simple-button tabindex="0">Hello World</simple-button>
 
-  <simple-button tabindex="0">Hello World</simple-button>
+    <h3>Toggles</h3>
 
-  <h3>Toggles</h3>
+    <simple-button toggles tabindex="0">Hello World</simple-button>
 
-  <simple-button toggles tabindex="0">Hello World</simple-button>
+    <h3>Disabled</h3>
 
-  <h3>Disabled</h3>
-
-  <simple-button disabled tabindex="0">Hello World</simple-button>
-
+    <simple-button disabled tabindex="0">Hello World</simple-button>
+  </div>
 </body>
 </html>

@@ -1,5 +1,31 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+(() => {
+	window.objectify = <T>(fn: T): T => {
+		const obj: Partial<T> = {};
+		Object.getOwnPropertyNames(fn).forEach((key: keyof T) => {
+			obj[key] = fn[key];
+		});
+		return obj as T;
+	}
+
+	window.onExists = <T extends keyof Window>(key: T, callback: (val: Window[T]) => void) => {
+		if (window[key]) {
+			callback(window[key]);
+			return;
+		}
+		const interval = window.setInterval(() => {
+			if (key in window) {
+				window.clearInterval(interval);
+				callback(window[key]);
+			}
+		}, 50);
+	}
+
+	const event = new Event('ObjectifyReady');
+	window.dispatchEvent(event);
+})();
+
 const installPageProperties: {
 	fetchFailed: boolean;
 	fetchCompleted: boolean;
@@ -119,4 +145,10 @@ class IP {
 
 type InstallPage = Polymer.El<'install-page', typeof IP & typeof installPageProperties>;
 
-Polymer(IP);
+if (window.objectify) {
+	Polymer(window.objectify(IP));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(IP));
+	});
+}

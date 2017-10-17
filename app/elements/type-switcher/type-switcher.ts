@@ -299,4 +299,10 @@ class TS {
 
 type TypeSwitcher = Polymer.El<'type-switcher', typeof TS>;
 
-Polymer(TS);
+if (window.objectify) {
+	Polymer(window.objectify(TS));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(TS));
+	});
+}

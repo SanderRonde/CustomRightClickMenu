@@ -1,0 +1,36 @@
+{
+	"entrypoint": "html/base.html",
+	"fragments": [
+		"html/options.html",
+		"html/background.html"
+	],
+	"root": "app/",
+	"extraDependencies": [
+		"css/**/*",
+		"fonts/**/*",
+		"images/**/*",
+		"js/**/*.*",
+		"icon-large.png",
+		"icon-small.png",
+		"icon-supersmall.png",
+		"LICENSE.txt",
+		"manifest.json"
+	],
+	"builds": [{
+		"name": "dev",
+		"bundle": true,
+		"js": {
+			"minify": false,
+			"compile": true
+		},
+		"css": {
+			"minify": false
+		},
+		"html": {
+			"minify": false
+		}
+	}],
+	"lint": {
+		"rules": ["polymer-2"]
+	}
+}

@@ -9,6 +9,7 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 <html>
+
 <head>
   <title>paper-toast</title>
 
@@ -19,38 +20,77 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
   <link rel="import" href="../paper-toast.html">
-  <link rel="import" href="../../paper-button/paper-button.html" >
+  <link rel="import" href="../../paper-button/paper-button.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+  <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
 
-  <style>
-    html, body {
-      height: 100%;
-    }
-
-    body {
-      overflow: hidden;
-      margin: 0;
-      font-family: RobotoDraft, 'Helvetica Neue', Helvetica, Arial;
-      -webkit-tap-highlight-color: rgba(0,0,0,0);
-      -webkit-touch-callout: none;
-    }
-
-    paper-button {
-      margin: 20px;
-    }
-  </style>
+  <custom-style><style is="custom-style" include="demo-pages-shared-styles"></style></custom-style>
 
 </head>
-<body>
 
-  <paper-button raised onclick="document.querySelector('#toast1').show()">Discard Draft</paper-button>
+<body unresolved class="centered">
+  <h3>Toast auto-closes after 3 seconds. Only one toast per time will be visible</h3>
+  <demo-snippet class="centered-demo">
+    <template>
+      <paper-button raised onclick="toast0.open()">Default toast</paper-button>
+      <paper-toast id="toast0" text="This toast auto-closes after 3 seconds"></paper-toast>
+    </template>
+  </demo-snippet>
 
-  <paper-button raised onclick="document.querySelector('#toast2').show()">Get Messages</paper-button>
+  <h3>Toast does not auto-close when <code>duration</code> is negative, <code>0</code>, or <code>Infinity</code></h3>
+  <demo-snippet class="centered-demo">
+    <template>
+      <style>
+        .yellow-button {
+          text-transform: none;
+          color: #eeff41;
+        }
+      </style>
 
-  <paper-toast id="toast1" text="Your draft has been discarded."></paper-toast>
+      <paper-button raised onclick="toast1.open()">Persistent toast</paper-button>
 
-  <paper-toast id="toast2" text="Connection timed out. Showing limited messages.">
-    <span role="button" tabindex="0" style="color: #eeff41;margin: 10px" onclick="console.log('RETRY')">Retry</span>
-  </paper-toast>
+      <paper-toast id="toast1" duration="0" text="This toast will stay opened until you close it, or open another toast.">
+        <paper-button onclick="toast1.toggle()" class="yellow-button">Close now!</paper-button>
+      </paper-toast>
+    </template>
+  </demo-snippet>
 
+  <h3>Toast can be styled</h3>
+  <demo-snippet class="centered-demo">
+    <template>
+      <custom-style><style is="custom-style">
+        #toast2 {
+          --paper-toast-background-color: red;
+          --paper-toast-color: white;
+        }
+      </style></custom-style>
+
+      <paper-button raised onclick="toast2.open()">Styled toast</paper-button>
+
+      <paper-toast id="toast2" class="fit-bottom" text="This toast is red and fits bottom!"></paper-toast>
+    </template>
+  </demo-snippet>
+
+  <h3>Toast can fit into any element</h3>
+  <demo-snippet class="centered-demo">
+    <template>
+      <style>
+        #container {
+          padding: 100px;
+          border: 1px solid gray;
+        }
+      </style>
+      <div id="container">
+        <paper-button raised onclick="toast3.open()">Open toast</paper-button>
+      </div>
+      <paper-toast id="toast3" class="fit-bottom" text="This toast fits into the container."></paper-toast>
+
+      <script>
+        toast3.fitInto = container;
+      </script>
+
+    </template>
+  </demo-snippet>
 </body>
+
 </html>

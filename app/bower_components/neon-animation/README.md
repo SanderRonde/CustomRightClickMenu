@@ -1,3 +1,8 @@
+## Changes in 2.0
+* ⚠️ This Element is now deprecated ⚠️
+  * Please use the web animations api or CSS animations
+* Web animations polyfill is now a dev dependency
+
 # neon-animation
 
 `neon-animation` is a suite of elements and behaviors to implement pluggable animated transitions for Polymer Elements using [Web Animations](https://w3c.github.io/web-animations/).
@@ -81,7 +86,7 @@ Polymer({
             node: this
           },
           'exit': {
-            // provided by neon-animation-animations/fade-out-animation.html
+            // provided by neon-animation/animations/fade-out-animation.html
             name: 'fade-out-animation',
             node: this
           }
@@ -101,7 +106,7 @@ Polymer({
   hide: function() {
     this.opened = false;
     // run fade-out-animation
-    this.playAnimation('fade-out-animation');
+    this.playAnimation('exit');
   },
   _onNeonAnimationFinish: function() {
     if (!this.opened) {
@@ -272,12 +277,14 @@ The new page will slide in from the right, and the old page slide away to the le
 
 Single element animations:
 
- * `fade-in-animation` Animates opacity from `0` to `1`.
- * `fade-out-animation` Animates opacity from `1` to `0`.
- * `scale-down-animation` Animates transform from `scale(1)` to `scale(0)`.
- * `scale-up-animation` Animates transform from `scale(0)` to `scale(1)`.
- * `slide-down-animation` Animates transform from `translateY(-100%)` to `none`.
- * `slide-up-animation` Animates transform from `none` to `translateY(-100%)`.
+ * `fade-in-animation` Animates opacity from `0` to `1`;
+ * `fade-out-animation` Animates opacity from `1` to `0`;
+ * `scale-down-animation` Animates transform from `scale(1)` to `scale(0)`;
+ * `scale-up-animation` Animates transform from `scale(0)` to `scale(1)`;
+ * `slide-down-animation` Animates transform from `none` to `translateY(100%)`;
+ * `slide-up-animation` Animates transform from `none` to `translateY(-100%)`;
+ * `slide-from-top-animation` Animates transform from `translateY(-100%)` to `none`;
+ * `slide-from-bottom-animation` Animates transform from `translateY(100%)` to `none`;
  * `slide-left-animation` Animates transform from `none` to `translateX(-100%)`;
  * `slide-right-animation` Animates transform from `none` to `translateX(100%)`;
  * `slide-from-left-animation` Animates transform from `translateX(-100%)` to `none`;

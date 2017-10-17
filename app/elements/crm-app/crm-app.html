@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
+<link rel="import" href="../../elements/elements.html" />
 <dom-module id="crm-app">
 	<template>
-		<link rel="import" href="../../elements/elements.html" />
 		<link rel="stylesheet" href="../../css/jquery.contextMenu.css"/>
 		<link rel="stylesheet" href="crm-app.css" />
 		<div class="popupCont">
@@ -43,7 +43,7 @@
 		<div class="overlayCont"></div>
 		<div class="pageCont">
 			<paper-toolbar>
-				<div flex title class="title">[[_getPageTitle()]]</div>
+				<div slot="top" class="title">[[_getPageTitle()]]</div>
 			</paper-toolbar>
 			<div class="container">
 				<br />
@@ -435,7 +435,7 @@
 											label="[[codeSetting.key]]" indent="true" 
 											fancylabel raised subtext="[[codeSetting.key]]"
 											selected="{{codeSetting.value.selected}}">
-										<paper-menu selected="{{codeSetting.value.selected}}">
+										<paper-menu slot="menu" selected="{{codeSetting.value.selected}}">
 											<template id="tabRepeat" is="dom-repeat" items="[[codeSetting.value.values]]" as="codeSettingOption">
 												<paper-item>
 													<div class="menuSelectedCheckmark">

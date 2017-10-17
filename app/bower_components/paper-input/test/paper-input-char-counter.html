@@ -1,5 +1,6 @@
 <!doctype html>
 <!--
+@license
 Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
 The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
@@ -19,11 +20,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
 
   <script src="../../web-component-tester/browser.js"></script>
-  <script src="../../test-fixture/test-fixture-mocha.js"></script>
-
   <script src="../../iron-test-helpers/test-helpers.js"></script>
 
-  <link rel="import" href="../../test-fixture/test-fixture.html">
   <link rel="import" href="../../iron-input/iron-input.html">
   <link rel="import" href="../paper-input-container.html">
   <link rel="import" href="../paper-input-char-counter.html">
@@ -36,8 +34,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template>
       <paper-input-container>
         <label id="l">label</label>
-        <input id="i" value="foobar">
-        <paper-input-char-counter id="c"></paper-input-char-counter>
+        <input id="i" value="foobar" slot="input">
+        <paper-input-char-counter id="c" slot="add-on"></paper-input-char-counter>
       </paper-input-container>
     </template>
   </test-fixture>
@@ -46,8 +44,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <template>
       <paper-input-container>
         <label id="l">label</label>
-        <input id="i" value="foobar" maxlength="10">
-        <paper-input-char-counter id="c"></paper-input-char-counter>
+        <input id="i" value="foobar" maxlength="10" slot="input">
+        <paper-input-char-counter id="c" slot="add-on"></paper-input-char-counter>
       </paper-input-container>
     </template>
   </test-fixture>
@@ -75,33 +73,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         assert.equal(counter._charCounterStr, input.value.length, 'character counter shows input value length');
       });
 
-      test('character counter shows the value length with maxlength', function() {
+      test('character counter shows the value length with maxlength', function(done) {
         var container = fixture('counter-with-max');
-        var input = Polymer.dom(container).querySelector('#i');
-        var counter = Polymer.dom(container).querySelector('#c');
-        assert.equal(counter._charCounterStr, input.value.length + '/' + input.maxLength, 'character counter shows input value length and maxLength');
+
+        // Need to wait a tick to stamp the char-counter.
+        Polymer.Base.async(function() {
+          var input = Polymer.dom(container).querySelector('#i');
+          var counter = Polymer.dom(container).querySelector('#c');
+          assert.equal(counter._charCounterStr, input.value.length + '/' + input.maxLength, 'character counter shows input value length and maxLength');
+          done();
+        }, 1);
       });
 
-      test('character counter shows the value length with maxlength', function() {
+      test('character counter shows the value length with maxlength', function(done) {
         var input = fixture('textarea-with-max');
-        forceXIfStamp(input);
 
-        var counter = Polymer.dom(input.root).querySelector('paper-input-char-counter');
-        assert.ok(counter, 'paper-input-char-counter exists');
-
-        assert.equal(counter._charCounterStr, input.value.length + '/' + input.inputElement.textarea.getAttribute('maxlength'), 'character counter shows input value length and maxLength');
+        // Need to wait a tick to stamp the char-counter.
+        Polymer.Base.async(function() {
+          var counter = Polymer.dom(input.root).querySelector('paper-input-char-counter');
+          assert.ok(counter, 'paper-input-char-counter exists');
+          assert.equal(counter._charCounterStr, input.value.length + '/' + input.inputElement.textarea.getAttribute('maxlength'), 'character counter shows input value length and maxLength');
+          done();
+        }, 1);
       });
 
-      test('character counter counts new lines in textareas correctly', function() {
+      test('character counter counts new lines in textareas correctly', function(done) {
         var input = fixture('textarea');
         input.value = 'foo\nbar';
-        forceXIfStamp(input);
 
-        var counter = Polymer.dom(input.root).querySelector('paper-input-char-counter')
-        assert.ok(counter, 'paper-input-char-counter exists');
-
-        // A new line counts as two characters.
-        assert.equal(counter._charCounterStr, input.value.length + 1, 'character counter shows the value length');
+        // Need to wait a tick to stamp the char-counter.
+        Polymer.Base.async(function() {
+          var counter = Polymer.dom(input.root).querySelector('paper-input-char-counter')
+          assert.ok(counter, 'paper-input-char-counter exists');
+          assert.equal(counter._charCounterStr, input.value.length, 'character counter shows the value length');
+          done();
+        }, 1);
       });
 
     });

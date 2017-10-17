@@ -29,4 +29,10 @@ class ME {
 
 type MenuEdit = Polymer.El<'menu-edit', typeof ME & typeof dividerEditProperties>;
 
-Polymer(ME);
+if (window.objectify) {
+	Polymer(window.objectify(ME));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(ME));
+	});
+}

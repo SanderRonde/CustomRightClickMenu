@@ -10,22 +10,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../iron-menu-behavior.html">
+<link rel="import" href="../../paper-styles/color.html">
 
 <dom-module id="simple-menu">
-
-  <style>
-
-    .content ::content > .iron-selected {
-      color: red;
-    }
-
-  </style>
-
   <template>
+    <style>
+      :host > ::slotted(*) {
+        display: block;
+      }
 
-    <div class="content">
-      <content></content>
-    </div>
+      :host > ::slotted(.iron-selected) {
+        color: white;
+        background-color: var(--google-blue-500);
+      }
+    </style>
+
+    <slot></slot>
 
   </template>
 

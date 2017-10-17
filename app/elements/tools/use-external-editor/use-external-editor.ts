@@ -1108,47 +1108,55 @@ class UEE {
 	 * Makes the dialog clear itself after it closes
 	 */
 	static ready(this: UseExternalEditor) {
-		const _this = this;
-		window.externalEditor = this;
-		this.establishConnection();
-		this.init();
-		window.onfocus = function() {
-			if (_this.connection.fileConnected) {
-				//File is connected, ask for an update
-				_this.postMessage({
-					status: 'connected',
-					action: 'refreshFromApp'
-				});
-			}
-		};
-		const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
-		chooseFileDialog.init = this.chooseFileDialog(chooseFileDialog)
-		window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
-			_this.establishConnection(true);
-			window.doc.externalEditorErrorToast.hide();
-		});
-		window.doc.chooseFileChooseFirst.addEventListener('click', function() {
-			if (window.doc.chooseFileRadioGroup.selected === 'local') {
-				chooseFileDialog.callback(chooseFileDialog.local);
-			} else {
-				chooseFileDialog.callback(chooseFileDialog.file);
-			}
-		});
-		window.doc.chooseFileChooseMerge.addEventListener('click', function() {
-			chooseFileDialog.callback(_this.editor.edit.getValue());
-		});
-		$('.closeChooseFileDialog').click(function() {
-			chooseFileDialog.callback(false);
-		});
-		window.doc.chooseFileMerge.addEventListener('click', function() {
-			_this.showMergeDialog(_this, chooseFileDialog.local, chooseFileDialog.file);
-		});
-		window.doc.chooseFileStopMerging.addEventListener('click', function() {
-			_this.stopMerging(chooseFileDialog)
+		window.onExists('app', () => {
+			const __this = this;
+			window.externalEditor = this;
+			this.establishConnection();
+			this.init();
+			window.onfocus = function() {
+				if (__this.connection.fileConnected) {
+					//File is connected, ask for an update
+					__this.postMessage({
+						status: 'connected',
+						action: 'refreshFromApp'
+					});
+				}
+			};
+			const chooseFileDialog = window.doc.externalEditorChooseFile as ChooseFileDialog;
+			chooseFileDialog.init = this.chooseFileDialog(chooseFileDialog)
+			window.doc.externalEditorTryAgainButton.addEventListener('click', function() {
+				__this.establishConnection(true);
+				window.doc.externalEditorErrorToast.hide();
+			});
+			window.doc.chooseFileChooseFirst.addEventListener('click', function() {
+				if (window.doc.chooseFileRadioGroup.selected === 'local') {
+					chooseFileDialog.callback(chooseFileDialog.local);
+				} else {
+					chooseFileDialog.callback(chooseFileDialog.file);
+				}
+			});
+			window.doc.chooseFileChooseMerge.addEventListener('click', function() {
+				chooseFileDialog.callback(__this.editor.edit.getValue());
+			});
+			$('.closeChooseFileDialog').click(function() {
+				chooseFileDialog.callback(false);
+			});
+			window.doc.chooseFileMerge.addEventListener('click', function() {
+				__this.showMergeDialog(__this, chooseFileDialog.local, chooseFileDialog.file);
+			});
+			window.doc.chooseFileStopMerging.addEventListener('click', function() {
+				__this.stopMerging(chooseFileDialog)
+			});
 		});
 	}
 }
 
 type UseExternalEditor = Polymer.El<'use-external-editor', typeof UEE>;
 
-Polymer(UEE);
+if (window.objectify) {
+	Polymer(window.objectify(UEE));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(UEE));
+	});
+}

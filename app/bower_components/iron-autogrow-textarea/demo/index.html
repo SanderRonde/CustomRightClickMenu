@@ -18,66 +18,82 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <title>iron-autogrow-textarea demo</title>
 
     <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../iron-autogrow-textarea.html">
 
-    <link rel="stylesheet" href="../../paper-styles/demo.css">
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        iron-autogrow-textarea {
+          display: block;
+          width: 200px;
+          margin: 5px 0;
+        }
 
+        textarea {
+          width: 200px;
+        }
+
+        demo-snippet {
+          --demo-snippet-demo: {
+            @apply --layout-vertical;
+            @apply --layout-center-center;
+          }
+        }
+      </style>
+    </custom-style>
   </head>
+  <body unresolved>
+    <div class="vertical-section-container centered">
+      <h3>An iron-autogrow-textarea grows automatically as more text is entered</h3>
+      <demo-snippet>
+        <template>
+          <iron-autogrow-textarea></iron-autogrow-textarea>
+        </template>
+      </demo-snippet>
 
-  <style>
-    textarea {
-      width: 400px;
-    }
-  </style>
+      <h3>The maximum height can be controlled either through the <i>max-rows</i>
+      property, or through a fixed max height</h3>
+      <demo-snippet>
+        <template>
+          <iron-autogrow-textarea max-rows="4" placeholder="scrolls after 4 rows"></iron-autogrow-textarea>
+          <iron-autogrow-textarea style="max-height: 50px;" placeholder="scrolls after 50px"></iron-autogrow-textarea>
+        </template>
+      </demo-snippet>
 
-  <body>
-    <template is="dom-bind">
-      <section>
-        <div>Updating the value imperatively</div>
-        <iron-autogrow-textarea bind-value="{{bindValue}}" id="a1"></iron-autogrow-textarea>
-        <br><br>
+      <h3>The initial height can also be controlled using the <i>rows</i> property,
+      or through a fixed height</h3>
+      <demo-snippet>
+        <template>
+          <iron-autogrow-textarea rows="4" placeholder="start with 4 rows"></iron-autogrow-textarea>
+          <iron-autogrow-textarea style="height: 50px;"></iron-autogrow-textarea>
+        </template>
+      </demo-snippet>
 
-        <code>bind-value</code>: <span>[[bindValue]]</span>
+      <h3>Example of updating the value imperatively</h3>
+      <demo-snippet>
+        <template>
+          <dom-bind>
+            <template is="dom-bind">
+              <div class="vertical-section">
+                <iron-autogrow-textarea value="{{value}}" id="a1"></iron-autogrow-textarea>
+                <p>bind to the iron-autogrow-textarea's <code>value</code>: {{value}}</p>
 
-        <p on-click="setValue">
-          set <code>bind-value</code> to: <br>
-          <textarea></textarea>
-          <button value="bindValue">set</button>
-          <br><br>
+                <br>
+                <p>Imperatively updating <code>ironAutogrowTextarea.value</code> will also update the
+                <code>textarea.value</code></p>
+                <button onclick="a1.value='pineapple'">Set value to 'pineapple'</button>
 
-          set <code>textarea.value</code> to: <br>
-          <textarea></textarea>
-          <button value="value">set</button>
-        </p>
-      </section>
-    </template>
-
-    <section>
-      <div>Scrolls after 4 rows</div>
-      <iron-autogrow-textarea max-rows="4"></iron-autogrow-textarea>
-    </section>
-
-    <section>
-      <div>Initial height of 4 rows</div>
-      <iron-autogrow-textarea rows="4"></iron-autogrow-textarea>
-    </section>
-
-    <script>
-      var scope = document.querySelector('template[is=dom-bind]');
-
-      scope.setValue = function(event) {
-        if (!(event.target instanceof HTMLButtonElement)) {
-          return;
-        }
-        var inputValue = event.target.previousElementSibling.value;
-        if (event.target.value == "bindValue") {
-          document.querySelector('iron-autogrow-textarea').bindValue = inputValue;
-        } else {
-          document.querySelector('iron-autogrow-textarea').textarea.value = inputValue;
-        }
-
-      }
-    </script>
-
+                <br>
+                <p>Imperatively updating <code>ironAutogrowTextarea.textarea.value</code> will update
+                the display, but not update the internal <code>value</code></p>
+                <button onclick="a1.textarea.value='watermelon'">Set textarea.value to 'watermelon'</button>
+              </div>
+            </template>
+          </dom-bind>
+        </template>
+      </demo-snippet>
+    </div>
   </body>
 </html>

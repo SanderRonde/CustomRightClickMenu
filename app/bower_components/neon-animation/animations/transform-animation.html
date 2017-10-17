@@ -10,16 +10,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../../polymer/polymer.html">
 <link rel="import" href="../neon-animation-behavior.html">
-<link rel="import" href="../web-animations.html">
 
 <!--
-`<slide-down-animation>` animates a custom transform on an element. Use this to animate multiple
+`<transform-animation>` animates a custom transform on an element. Use this to animate multiple
 transform properties, or to apply a custom transform value.
 
 Configuration:
 ```
 {
-  name: 'slide-down-animation',
+  name: 'transform-animation',
   node: <node>,
   transformOrigin: <transform-origin>,
   transformFrom: <transform-from-string>,
@@ -39,19 +38,28 @@ Configuration:
       Polymer.NeonAnimationBehavior
     ],
 
+    /**
+     * @param {{
+     *   node: !Element,
+     *   transformOrigin: (string|undefined),
+     *   transformFrom: (string|undefined),
+     *   transformTo: (string|undefined),
+     *   timing: (Object|undefined)
+     * }} config
+     */
     configure: function(config) {
       var node = config.node;
       var transformFrom = config.transformFrom || 'none';
       var transformTo = config.transformTo || 'none';
 
-      if (config.transformOrigin) {
-        this.setPrefixedProperty(node, 'transformOrigin', config.transformOrigin);
-      }
-
       this._effect = new KeyframeEffect(node, [
         {'transform': transformFrom},
         {'transform': transformTo}
       ], this.timingFromConfig(config));
+
+      if (config.transformOrigin) {
+        this.setPrefixedProperty(node, 'transformOrigin', config.transformOrigin);
+      }
 
       return this._effect;
     }

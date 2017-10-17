@@ -6,17 +6,18 @@ The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
 The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
 Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
---><html><head><link rel="import" href="../polymer/polymer.html">
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
-<link rel="import" href="../iron-flex-layout/classes/iron-flex-layout.html">
-<link rel="import" href="../paper-styles/default-theme.html">
-<link rel="import" href="../paper-styles/color.html">
-<link rel="import" href="../paper-material/paper-material.html">
-<link rel="import" href="../paper-ripple/paper-ripple.html">
 <link rel="import" href="../paper-behaviors/paper-button-behavior.html">
+<link rel="import" href="../paper-styles/element-styles/paper-material-styles.html">
+<link rel="import" href="../paper-styles/color.html">
+<link rel="import" href="../paper-styles/default-theme.html">
 
 <!--
-Material Design: <a href="http://www.google.com/design/spec/components/buttons.html">Button</a>
+Material design: [Floating Action Button](https://www.google.com/design/spec/components/buttons-floating-action-button.html)
 
 `paper-fab` is a floating action button. It contains an image placed in the center and
 comes in two sizes: regular size and a smaller size by applying the attribute `mini`. When
@@ -40,68 +41,167 @@ The following custom properties and mixins are available for styling:
 
 Custom property | Description | Default
 ----------------|-------------|----------
-`--paper-fab-background` | The background color of the button | `--paper-indigo-500`
+`--paper-fab-background` | The background color of the button | `--accent-color`
+`--paper-fab-keyboard-focus-background` | The background color of the button when focused | `--paper-pink-900`
 `--paper-fab-disabled-background` | The background color of the button when it's disabled | `--paper-grey-300`
 `--paper-fab-disabled-text` | The text color of the button when it's disabled | `--paper-grey-500`
 `--paper-fab` | Mixin applied to the button | `{}`
 `--paper-fab-mini` | Mixin applied to a mini button | `{}`
 `--paper-fab-disabled` | Mixin applied to a disabled button | `{}`
+`--paper-fab-iron-icon` | Mixin applied to the iron-icon within the button | `{}`
+`--paper-fab-label` | Mixin applied to the label within the button | `{}`
 
 @group Paper Elements
 @demo demo/index.html
-
 -->
 
-</head><body><dom-module id="paper-fab">
-  <style>
+<dom-module id="paper-fab">
+  <template strip-whitespace>
+    <style include="paper-material-styles">
+      :host {
+        @apply --layout-vertical;
+        @apply --layout-center-center;
 
-    :host {
-      display: inline-block;
-      position: relative;
-      outline: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      -webkit-user-select: none;
-      user-select: none;
-      cursor: pointer;
+        background: var(--paper-fab-background, var(--accent-color));
+        border-radius: 50%;
+        box-sizing: border-box;
+        color: var(--text-primary-color);
+        cursor: pointer;
+        height: 56px;
+        min-width: 0;
+        outline: none;
+        padding: 16px;
+        position: relative;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+        width: 56px;
+        z-index: 0;
 
-      box-sizing: border-box;
-      min-width: 0;
-      width: 56px;
-      height: 56px;
-      background: var(--paper-fab-background, --paper-indigo-500);
-      color: var(--text-primary-color);
-      border-radius: 50%;
-      padding: 16px;
+        /* NOTE: Both values are needed, since some phones require the value `transparent`. */
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+        -webkit-tap-highlight-color: transparent;
 
-      z-index: 0;
+        @apply --paper-fab;
+      }
 
-      @apply(--paper-fab);
-    }
+      [hidden] {
+        display: none !important;
+      }
 
-    :host([mini]) {
-      width: 40px;
-      height: 40px;
-      padding: 8px;
+      :host([mini]) {
+        width: 40px;
+        height: 40px;
+        padding: 8px;
 
-      @apply(--paper-fab-mini);
-    }
+        @apply --paper-fab-mini;
+      }
 
-    :host([disabled]) {
-      color: var(--paper-fab-disabled-text, --paper-grey-500);
-      background: var(--paper-fab-disabled-background, --paper-grey-300);
-      @apply(--paper-fab-disabled);
-    }
+      :host([disabled]) {
+        color: var(--paper-fab-disabled-text, var(--paper-grey-500));
+        background: var(--paper-fab-disabled-background, var(--paper-grey-300));
 
-    paper-material {
-      border-radius: inherit;
-    }
-  </style>
-  <template>
-    <paper-ripple></paper-ripple>
-    <paper-material class="content fit flex layout vertical center-center" elevation="[[elevation]]" animated="">
-      <iron-icon id="icon" src="[[src]]" icon="[[icon]]"></iron-icon>
-    </paper-material>
+        @apply --paper-fab-disabled;
+      }
+
+      iron-icon {
+        @apply --paper-fab-iron-icon;
+      }
+
+      span {
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+
+        @apply --paper-fab-label;
+      }
+
+      :host(.keyboard-focus) {
+        background: var(--paper-fab-keyboard-focus-background, var(--paper-pink-900));
+      }
+
+      :host([elevation="1"]) {
+        @apply --paper-material-elevation-1;
+      }
+
+      :host([elevation="2"]) {
+        @apply --paper-material-elevation-2;
+      }
+
+      :host([elevation="3"]) {
+        @apply --paper-material-elevation-3;
+      }
+
+      :host([elevation="4"]) {
+        @apply --paper-material-elevation-4;
+      }
+
+      :host([elevation="5"]) {
+        @apply --paper-material-elevation-5;
+      }
+    </style>
+
+    <iron-icon id="icon" hidden$="{{!_computeIsIconFab(icon, src)}}" src="[[src]]" icon="[[icon]]"></iron-icon>
+    <span hidden$="{{_computeIsIconFab(icon, src)}}">{{label}}</span>
   </template>
+
+  <script>
+    Polymer({
+      is: 'paper-fab',
+
+      behaviors: [
+        Polymer.PaperButtonBehavior
+      ],
+
+      properties: {
+        /**
+         * The URL of an image for the icon. If the src property is specified,
+         * the icon property should not be.
+         */
+        src: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * Specifies the icon name or index in the set of icons available in
+         * the icon's icon set. If the icon property is specified,
+         * the src property should not be.
+         */
+        icon: {
+          type: String,
+          value: ''
+        },
+
+        /**
+         * Set this to true to style this is a "mini" FAB.
+         */
+        mini: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        /**
+         * The label displayed in the badge. The label is centered, and ideally
+         * should have very few characters.
+         */
+        label: {
+          type: String,
+          observer: '_labelChanged'
+        }
+      },
+
+      _labelChanged: function() {
+        this.setAttribute('aria-label', this.label);
+      },
+
+      _computeIsIconFab: function(icon, src) {
+        return (icon.length > 0) || (src.length > 0);
+      }
+    });
+  </script>
 </dom-module>
-<script src="paper-fab.js"></script></body></html>

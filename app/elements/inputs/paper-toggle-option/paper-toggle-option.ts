@@ -54,4 +54,10 @@ class PTO {
 
 type PaperToggleOption = Polymer.El<'paper-toggle-option', typeof PTO & typeof paperToggleOptionProperties>;
 
-Polymer(PTO);
+if (window.objectify) {
+	Polymer(window.objectify(PTO));
+} else {
+	window.addEventListener('ObjectifyReady', () => {
+		Polymer(window.objectify(PTO));
+	});
+}

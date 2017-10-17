@@ -20,7 +20,7 @@
     "debug": "^2.3.2",
     "diff": "^3.0.1",
     "fs": "0.0.1-security",
-    "glob": "^7.1.1",
+    "glob": "^7.1.2",
     "grunt": "^0.4.5",
     "grunt-banner": "^0.4.0",
     "grunt-contrib-clean": "^1.0.0",
@@ -61,5 +61,8 @@
     "build": "grunt build"
   },
   "version": "2.0.16",
-  "dependencies": {}
+  "dependencies": {
+    "argparse": "^1.0.9",
+    "crisper": "^2.1.1"
+  }
 }

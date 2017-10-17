@@ -6,15 +6,11 @@
     The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
     Code distributed by Google as part of the polymer project is also
     subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-<!doctype html>
-<html>
-  <head>
+--><!DOCTYPE html><html><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
     <title>Tests</title>
 
-    <script src="../../webcomponentsjs/webcomponents.js"></script>
     <script src="../../web-component-tester/browser.js"></script>
   </head>
 
@@ -22,8 +18,10 @@
     <script>
       // Load and run all tests (.html, .js) as one suite:
       WCT.loadSuites([
-        'basic-test.html',
+        'basic-test.html?wc-shadydom=true&wc-ce=true', //shady
+        'basic-test.html?dom=shadow' //shadow
       ]);
     </script>
-  </body>
-</html>
+
+
+</body></html>

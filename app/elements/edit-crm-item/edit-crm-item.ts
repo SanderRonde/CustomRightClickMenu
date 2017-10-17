@@ -148,59 +148,61 @@ class ECI {
 			return;
 		}
 
-		if (this.rootNode) {
-			//Skip initialization, only name is changable
-			this.initRootNode();
-			return;
-		} else {
-			this.rootNode = false;
-		}
+		const __this = this;		
+		window.onExists('app', () => {
+			if (this.rootNode) {
+				//Skip initialization, only name is changable
+				this.initRootNode();
+				return;
+			} else {
+				this.rootNode = false;
+			}
 
-		const _this = this;
-		this.classList.add('id' + this.item.id);
-		if (this.classList[0] !== 'wait') {
-			this.itemIndex = this.index;
-			this.item = this.item;
-			this.itemName = this.item.name;
-			this.calculateType();
-			this.itemIndex = this.index;
-			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
+			this.classList.add('id' + this.item.id);
+			if (this.classList[0] !== 'wait') {
+				this.itemIndex = this.index;
+				this.item = this.item;
+				this.itemName = this.item.name;
+				this.calculateType();
+				this.itemIndex = this.index;
+				this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 
-			if (window.app.editCRM.isSelecting) {
-				this.classList.add('selecting');
-				if (window.app.editCRM.selectedElements.indexOf(this.item.id) > -1) {
-					this.onSelect(true, true);
-				} else {
-					this.onDeselect(true, true);
+				if (window.app.editCRM.isSelecting) {
+					this.classList.add('selecting');
+					if (window.app.editCRM.selectedElements.indexOf(this.item.id) > -1) {
+						this.onSelect(true, true);
+					} else {
+						this.onDeselect(true, true);
+					}
 				}
 			}
-		}
-		if (this.$.typeSwitcher) {
-			if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
-				this.$.typeSwitcher.addEventListener('mouseenter', function() {
-					_this.typeIndicatorMouseOver.apply(_this, []);
-				});
-				this.$.typeSwitcher.addEventListener('mouseleave', function() {
-					_this.typeIndicatorMouseLeave.apply(_this, []);
-				});
-			} else {
-				let hoveringTypeSwitcher = false;
-				this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
-					e.preventDefault();
-					e.stopPropagation();
-					if (!hoveringTypeSwitcher) {
-						hoveringTypeSwitcher = true;
-					_this.typeIndicatorMouseOver.apply(_this, []);
-					}
-				});
-				document.body.addEventListener('mouseover', function() {
-					if (hoveringTypeSwitcher) {
-						hoveringTypeSwitcher = false;
-						_this.typeIndicatorMouseLeave.apply(_this, []);
-					}
-				});
+			if (this.$.typeSwitcher) {
+				if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
+					this.$.typeSwitcher.addEventListener('mouseenter', function() {
+						__this.typeIndicatorMouseOver.apply(__this, []);
+					});
+					this.$.typeSwitcher.addEventListener('mouseleave', function() {
+						__this.typeIndicatorMouseLeave.apply(__this, []);
+					});
+				} else {
+					let hoveringTypeSwitcher = false;
+					this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
+						e.preventDefault();
+						e.stopPropagation();
+						if (!hoveringTypeSwitcher) {
+							hoveringTypeSwitcher = true;
+						__this.typeIndicatorMouseOver.apply(__this, []);
+						}
+					});
+					document.body.addEventListener('mouseover', function() {
+						if (hoveringTypeSwitcher) {
+							hoveringTypeSwitcher = false;
+							__this.typeIndicatorMouseLeave.apply(__this, []);
+						}
+					});
+				}
 			}
-		}
+		});
 	};
 
 	static openMenu(this: EditCrmItem) {
@@ -498,4 +500,10 @@ class ECI {
 type EditCrmItem = Polymer.El<'edit-crm-item', 
 	typeof ECI & typeof editCrmItemProperties>;
 
-Polymer(ECI);
+	if (window.objectify) {
+		Polymer(window.objectify(ECI));
+	} else {
+		window.addEventListener('ObjectifyReady', () => {
+			Polymer(window.objectify(ECI));
+		});
+	}
