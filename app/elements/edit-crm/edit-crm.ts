@@ -967,17 +967,17 @@ ${codeSplit.join('\n')}`;
 	static exportSingleNode(this: EditCrm, exportNode: CRM.Node, exportType: string) {
 		const __this = this;
 
-		const textArea = $('#exportJSONData')[0] as HTMLTextAreaElement;
+		const textArea = window.doc.exportJSONData;
 
 		textArea.value = this.getExportString(exportNode, exportType, null);
-		($('#exportAuthorName')[0] as HTMLTextAreaElement).value = 
+		window.doc.exportAuthorName.value = 
 			(exportNode.nodeInfo && exportNode.nodeInfo.source && 
 				exportNode.nodeInfo.source &&
 				exportNode.nodeInfo.source !== 'local' &&
 				exportNode.nodeInfo.source.author) || 'anonymous';
-		$('#exportAuthorName').on('keydown', function (this: HTMLPaperInputElement) {
+		window.doc.exportAuthorName.addEventListener('keydown', () => {
 			window.setTimeout(() => {
-				const author = this.value;
+				const author = window.doc.exportAuthorName.value;
 				chrome.storage.local.set({
 					authorName: author
 				});
@@ -986,8 +986,8 @@ ${codeSplit.join('\n')}`;
 				textArea.value = data;
 			}, 0);
 		});
-		($('#exportDialog')[0] as HTMLPaperDialogElement).open();
-		setTimeout(function() {
+		window.doc.exportDialog.open();
+		setTimeout(() => {
 			textArea.focus();
 			textArea.select();
 		}, 150);
@@ -1004,7 +1004,7 @@ ${codeSplit.join('\n')}`;
 			crm: safeExports
 		};
 
-		const textarea = $('#exportJSONData')[0] as HTMLTextAreaElement;
+		const textarea = window.doc.exportJSONData;
 
 		function authorNameChange(event: {
 			target: {
