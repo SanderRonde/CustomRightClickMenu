@@ -148,55 +148,8 @@ class CE {
 		}
 	};
 
-	static show(this: CenterElement) {
-		console.log('Showing');
-		this.hide = false;
-	}
-
-	static close(this: CenterElement) {
-		console.log('closing');
-		this.hide = true;
-	}
-
-	static overrideHideShow(this: CenterElement) {
-		const child = this.shadowRoot
-			.querySelector('slot')
-			.assignedNodes({
-				flatten: true
-			})
-			.filter(n => n.nodeType === Node.ELEMENT_NODE)[0];
-
-		if ('show' in child && 'close' in child) {
-			const showable = child as HTMLElement & {
-				show(): void;
-				close(): void;
-				opened?: boolean;
-			}
-			const originalShow = showable.show;
-			const originalClose = showable.close;
-
-			showable.show = () => {
-				this.show();
-				originalShow();
-			}
-			showable.close = () => {
-				this.close();
-				originalClose();
-			}
-
-			if ('opened' in showable) {
-				if (showable.opened) {
-					this.show();
-				} else {
-					this.close();
-				}
-			}
-		}
-	}
-
 	static ready(this: CenterElement) {
 		this.isReady = true;
-		this.overrideHideShow();
 		this.recalculateStyles();
 	};
 }
