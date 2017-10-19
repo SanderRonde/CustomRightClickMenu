@@ -562,7 +562,7 @@ module.exports = function(grunt) {
 		exec: {
 			tsCompileApp: 'tsc',
 			tsCompileTests: 'tsc -p test/tsconfig.json',
-			polymerBuild: 'polymer build'
+			polymerBuildDev: 'polymer build dev'
 		},
 		crisp: {
 			optionsPage: {
@@ -679,5 +679,5 @@ module.exports = function(grunt) {
 
 	grunt.registerTask('crispify', ['crisp:optionsPage', 'crisp:background', 'crisp:shared']);
 
-	grunt.registerTask('polymer-build', ['exec:polymerBuild', 'crispify']);
+	grunt.registerTask('polymer-build-dev', ['exec:polymerBuildDev', 'crispify']);
 };
