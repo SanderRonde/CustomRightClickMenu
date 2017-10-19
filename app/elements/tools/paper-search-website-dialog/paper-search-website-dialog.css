@@ -1,4 +1,4 @@
-﻿#chooseDefaultSearchWindow, #manuallyInputSearchWebsiteWindow, #processedListWindow, #howToOpenWindow, #confirmationWindow, #successWindow, #loadingWindow {
+#chooseDefaultSearchWindow, #manuallyInputSearchWebsiteWindow, #processedListWindow, #howToOpenWindow, #confirmationWindow, #successWindow, #loadingWindow {
 	display: none;
 	max-width: 650px;
 }

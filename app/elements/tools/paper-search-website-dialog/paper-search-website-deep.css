@@ -1,4 +1,4 @@
-﻿.textAndInputContainer paper-input-container[disabled], #listInputSearchList paper-input-container[disabled]{
+.textAndInputContainer paper-input-container[disabled], #listInputSearchList paper-input-container[disabled]{
 	opacity: 1;
 }
 
