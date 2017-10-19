@@ -561,7 +561,25 @@ module.exports = function(grunt) {
 		},
 		exec: {
 			tsCompileApp: 'tsc',
-			tsCompileTests: 'tsc -p test/tsconfig.json'
+			tsCompileTests: 'tsc -p test/tsconfig.json',
+			polymerBuild: 'polymer build'
+		},
+		crisp: {
+			optionsPage: {
+				files: [{
+					src: './build/dev/app/html/options.html'
+				}]
+			},
+			background: {
+				files: [{
+					src: './build/dev/app/html/background.html'
+				}]
+			},
+			shared: {
+				files: [{
+					src: './build/dev/app/shared_bundle_1.html'
+				}]
+			}
 		}
 	});
 
@@ -657,4 +675,9 @@ module.exports = function(grunt) {
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['testBuild', 'build', 'exec:test', 'compile', 'mochaTest']);
+
+
+	grunt.registerTask('crispify', ['crisp:optionsPage', 'crisp:background', 'crisp:shared']);
+
+	grunt.registerTask('polymer-build', ['exec:polymerBuild', 'crispify']);
 };
