@@ -8,6 +8,7 @@ const editCrmItemProperties: {
 	isMenu: boolean;
 	isCode: boolean;
 	rootNode: boolean;
+	isSelecting: boolean;
 } = {
 	item: {
 		type: Object,
@@ -36,6 +37,11 @@ const editCrmItemProperties: {
 	rootNode: {
 		type: Boolean,
 		notify: true
+	},
+	isSelecting: {
+		type: Boolean,
+		notify: true,
+		value: false
 	}
 } as any;
 

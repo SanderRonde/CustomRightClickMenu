@@ -1057,11 +1057,13 @@ ${codeSplit.join('\n')}`;
 
 	private static cancelSelecting(this: EditCrm) {
 		const _this = this;
-		const editCrmItems = document.getElementsByTagName('edit-crm-item');
+		const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<HTMLEditCrmItemElement>;
 		//Select items
 		for (let i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.remove('selecting');
 			editCrmItems[i].classList.remove('highlighted');
+			editCrmItems[i].isSelecting = false;
+			(editCrmItems[i].querySelector('checkbox') as HTMLPaperCheckboxElement).checked = false;
 		}
 		setTimeout(function() {
 			_this.isSelecting = false;
@@ -1093,10 +1095,11 @@ ${codeSplit.join('\n')}`;
 
 	static selectItems(this: EditCrm) {
 		const _this = this;
-		const editCrmItems = document.getElementsByTagName('edit-crm-item');
+		const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<HTMLEditCrmItemElement>;
 		//Select items
 		for (let i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.add('selecting');
+			editCrmItems[i].isSelecting = true;
 		}
 		setTimeout(function() {
 			_this.isSelecting = true;
