@@ -691,7 +691,7 @@ class EC {
 
 	private static getSelected(this: EditCrm): Array<number> {
 		const selected = [];
-		const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<EditCrmItem>;
+		const editCrmItems = document.getElementsByTagName('edit-crm-item');
 		let i;
 		for (i = 0; i < editCrmItems.length; i++) {
 			if (editCrmItems[i].classList.contains('highlighted')) {
@@ -1057,13 +1057,13 @@ ${codeSplit.join('\n')}`;
 
 	private static cancelSelecting(this: EditCrm) {
 		const _this = this;
-		const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<HTMLEditCrmItemElement>;
+		const editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
 		for (let i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.remove('selecting');
 			editCrmItems[i].classList.remove('highlighted');
 			editCrmItems[i].isSelecting = false;
-			(editCrmItems[i].querySelector('checkbox') as HTMLPaperCheckboxElement).checked = false;
+			(editCrmItems[i].querySelector('#checkbox') as HTMLPaperCheckboxElement).checked = false;
 		}
 		setTimeout(function() {
 			_this.isSelecting = false;
@@ -1095,7 +1095,7 @@ ${codeSplit.join('\n')}`;
 
 	static selectItems(this: EditCrm) {
 		const _this = this;
-		const editCrmItems = document.getElementsByTagName('edit-crm-item') as NodeListOf<HTMLEditCrmItemElement>;
+		const editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
 		for (let i = 0; i < editCrmItems.length; i++) {
 			editCrmItems[i].classList.add('selecting');

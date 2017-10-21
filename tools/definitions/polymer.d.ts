@@ -112,6 +112,7 @@ declare namespace Polymer {
 		'paper-dropdown-menu': HTMLPaperDropdownMenuElement;
 		'paper-array-input': HTMLPaperArrayInputElement;
 		'paper-ripple': HTMLPaperRipplElement;
+		'edit-crm-item': HTMLEditCrmItemElement;
 	};
 
 }
@@ -232,4 +233,8 @@ type ElementTagNameMaps = Polymer.ElementTagNameMap &
 interface NodeSelector {
 	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
 	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+}
+
+interface Document {
+	getElementsByTagName<K extends keyof ElementTagNameMaps>(name: K): NodeListOf<ElementTagNameMaps[K]>;
 }
