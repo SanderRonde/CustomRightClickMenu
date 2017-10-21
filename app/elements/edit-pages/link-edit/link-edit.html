@@ -78,6 +78,9 @@
 									<paper-input class="linkInput" on-keydown="inputKeyPress" value="[[link.url]]"></paper-input>
 									<paper-checkbox on-tap="checkboxStateChange" checked$="[[!link.newTab]]" class="linkNewTabToggle"></paper-checkbox> &nbsp;
 									<div on-tap="toggleCheckbox" class="checkboxText">Open in current tab</div>
+									<template is="dom-if" if="{{!isFirstItem(index)}}">
+										<paper-icon-button class="executionTriggerClear" on-tap="clearLink" icon="clear"></paper-icon-button>
+									</template>
 								</div>
 							</template>
 						</div>

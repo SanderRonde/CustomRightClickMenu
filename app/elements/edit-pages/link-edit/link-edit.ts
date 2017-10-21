@@ -59,6 +59,10 @@ class LE {
 		$(window.app.util.findElementWithClassName(e.path, 'linkChangeCont'))
 			.children('paper-checkbox').click();
 	}
+
+	static isFirstItem(index: number) {
+		return index === 0;
+	}
 }
 
 Polymer(LE);
