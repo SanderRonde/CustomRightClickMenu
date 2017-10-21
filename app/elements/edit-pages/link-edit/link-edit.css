@@ -127,6 +127,7 @@ paper-input {
 
 .executionTriggerNot {
 	color: #f44336;
+	margin-top: 20px;
 }
 
 	.executionTriggerNot #checkboxLabel {
