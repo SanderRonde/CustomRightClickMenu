@@ -69,6 +69,11 @@
 		],
 		'2.0.16': [
 			'Fixed possible bug that can break the CRM on the options page from appearing since the last update'
+		],
+		'2.0.17': [
+			'Nodes are selectable again',
+			'Link nodes can be removed properly',
+			'%s in link nodes gets replaced with the currently selected text'
 		]
 	};
 }());
