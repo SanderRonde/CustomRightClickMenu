@@ -211,8 +211,9 @@ class ECI {
 	};
 
 	private static selectThisNode(this: EditCrmItem) {
-		let prevState = this.$.checkbox.checked;
-		this.$.checkbox.checked = !prevState;
+		const checkbox = this.querySelector('#checkbox') as HTMLPaperCheckboxElement;
+		let prevState = checkbox.checked;
+		checkbox.checked = !prevState;
 		if (document.getElementsByClassName('highlighted').length === 0) {
 			this.classList.add('firstHighlighted');
 		}
@@ -342,14 +343,15 @@ class ECI {
 
 		//Find out if the clicked on node is before, at, or after the first highlighted node
 		const relation = this.getNodesOrder(firstHighlightedItem, this.item);
+		const checkbox = this.querySelector('#checkbox') as HTMLPaperCheckboxElement
 		if (relation === 'same') {
 			this.classList.add('highlighted');
-			this.$.checkbox.checked = true;
+			checkbox.checked = true;
 			window.app.editCRM.selectedElements = [this.item.id];
 		}
 		else {
 			firstHighlightedNode.classList.add('highlighted');
-			firstHighlightedNode.$.checkbox.checked = true;
+			(firstHighlightedNode.querySelector('#checkbox') as HTMLPaperCheckboxElement).checked = true;
 			window.app.editCRM.selectedElements = [firstHighlightedNode.item.id];
 
 			let wait = 0;
@@ -364,7 +366,7 @@ class ECI {
 			//Finally select this node
 			window.setTimeout(function() {
 				_this.classList.add('highlighted');
-				_this.$.checkbox.checked = true;
+				checkbox.checked = true;
 				window.app.editCRM.selectedElements.push(_this.item.id);
 			}, wait);
 		}
@@ -456,7 +458,8 @@ class ECI {
 
 	private static onSelect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 		this.classList.add('highlighted');
-		selectCheckbox && (this.$.checkbox.checked = true);
+		const checkbox = this.querySelector('#checkbox') as HTMLPaperCheckboxElement
+		selectCheckbox && (checkbox.checked = true);
 		if (this.item.children && !dontSelectChildren) {
 			for (let i = 0; i < this.item.children.length; i++) {
 				setTimeout(this._getOnSelectFunction(this, i), (i * 35));
@@ -473,7 +476,8 @@ class ECI {
 
 	private static onDeselect(this: EditCrmItem, selectCheckbox: boolean = false, dontSelectChildren: boolean = false) {
 		this.classList.remove('highlighted');
-		selectCheckbox && (this.$.checkbox.checked = false);
+		const checkbox = this.querySelector('#checkbox') as HTMLPaperCheckboxElement
+		selectCheckbox && (checkbox.checked = false);
 		if (this.item.children && !dontSelectChildren) {
 			const selectedPaths = window.app.editCRM.selectedElements;
 			for (let i = 0; i < this.item.children.length; i++) {
@@ -485,8 +489,9 @@ class ECI {
 
 	static onToggle(this: EditCrmItem) {
 		const _this = this;
+		const checkbox = this.querySelector('#checkbox') as HTMLPaperCheckboxElement
 		setTimeout(function () {
-			if (_this.$.checkbox.checked) {
+			if (checkbox.checked) {
 				_this.onSelect();
 			} else {
 				_this.onDeselect();
