@@ -146,3 +146,9 @@ paper-input {
 		background-color: #f44336!important;
 		border-color: #f44336!important;
 	}
+
+#linksHeader {
+	display: -webkit-flex;
+	display: flex;
+	justify-content: space-between;
+}

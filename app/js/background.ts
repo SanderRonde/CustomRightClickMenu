@@ -7062,6 +7062,10 @@ if (typeof module === 'undefined') {
 				return url;
 			}
 
+			private static _replaceQueryParams(url: string, clickData: chrome.contextMenus.OnClickData): string {
+				return url.replace(/%s/g, (clickData && clickData.selectionText) || '');
+			}
+
 			static createHandler(node: CRM.LinkNode): ClickHandler {
 				return (clickData: chrome.contextMenus.OnClickData,
 					tabInfo: chrome.tabs.Tab) => {
@@ -7070,7 +7074,7 @@ if (typeof module === 'undefined') {
 						if (node.value[i].newTab) {
 							chrome.tabs.create({
 								windowId: tabInfo.windowId,
-								url: this._sanitizeUrl(node.value[i].url),
+								url: this._sanitizeUrl(this._replaceQueryParams(node.value[i].url, clickData)),
 								openerTabId: tabInfo.id
 							});
 						} else {
@@ -7079,7 +7083,7 @@ if (typeof module === 'undefined') {
 					}
 					if (finalUrl) {
 						chrome.tabs.update(tabInfo.id, {
-							url: this._sanitizeUrl(finalUrl)
+							url: this._sanitizeUrl(this._replaceQueryParams(finalUrl, clickData))
 						});
 					}
 				};
