@@ -112,14 +112,17 @@ class PDB {
 	};
 
 	static refreshListeners(this: PaperDropdownInstance) {
-		const _this = this;
-		$(this).find('paper-item').off('click').on('click', function () {
-			setTimeout(function () {
-				_this._fireListeners();
-				if ((_this as any)._dropdownSelectChange) {
-					(_this as any)._dropdownSelectChange(_this);
-				}
-			}, 50);
+		const paperItems = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-item'));
+		paperItems.forEach((paperItem: HTMLPaperItemElement) => {
+			paperItem.removeEventListener('click');
+			paperItem.addEventListener('click', () => {
+				setTimeout(() => {
+					this._fireListeners();
+					if ((this as any)._dropdownSelectChange) {
+						(this as any)._dropdownSelectChange(this);
+					}
+				}, 50);
+			});
 		});
 	};
 
@@ -127,11 +130,11 @@ class PDB {
 		const _this = this;
 		this.refreshListeners();
 		this._paperDropdownEl = this;
-		this._paperMenu = $(this).find('paper-menu')[0] as HTMLPaperMenuElement;
-		setTimeout(function () {
-			$(_this.$.dropdownSelectedCont).insertBefore($(_this).find('.content'));
+		this._paperMenu = this.$$('paper-menu');
+		setTimeout(() => {
+			_this.insertBefore(_this.$.dropdownSelectedCont, _this.$$('.content'));
 		}, 200);
-		this._dropdownSelectedCont = $(this).find('#dropdownSelectedCont')[0];
+		this._dropdownSelectedCont = this.$$('#dropdownSelectedCont');
 		if (this.getAttribute('indent') === 'false') {
 			this.indent = false;
 		}
@@ -218,17 +221,17 @@ class PDB {
 				});
 			}
 			setTimeout(function() {
-				const content = $(_this._paperMenu).find('.content');
-				content.css('display', 'block');
+				const content = _this._paperMenu.querySelector('.content');
+				content.style.display = 'block';
 				const animation: {
 					[key: string]: any
 				} = {
-					height: content[0].scrollHeight
+					height: content.scrollHeight
 				};
 				if (_this.overflowing !== undefined) {
-					animation['marginBottom'] = -(content[0].scrollHeight + 14);
+					animation['marginBottom'] = -(content.scrollHeight + 14);
 				}
-				content.stop().animate(animation, {
+				$(content).stop().animate(animation, {
 					easing: 'easeOutCubic',
 					duration: 300,
 					complete() {
@@ -254,7 +257,7 @@ class PDB {
 			if (this.overflowing !== undefined) {
 				animation['marginBottom'] = -15;
 			}
-			$(this).find('paper-menu').find('.content').stop().animate(animation, {
+			$(this.$$('paper-menu .content')).stop().animate(animation, {
 				easing: 'easeInCubic',
 				duration: 300,
 				complete(this: HTMLElement) {
@@ -283,7 +286,7 @@ class PDB {
 	 * @returns {Array} The currently selected item(s) in array form
 	 */
 	static getSelected(this: PaperDropdownInstance): Array<number> {
-		if ($(this).find('.iron-selected.addLibrary')[0]) {
+		if (this.$$('.iron-selected.addLibrary')) {
 			(this.selected as Array<number>).pop();
 		}
 		if (typeof this.selected === 'number') {

@@ -100,7 +100,10 @@ class ERT {
 			maxViewportHeight = 750;
 		}
 		if ((750 / newImg.width) * newImg.height > maxViewportHeight) {
-			$('.captureCont').css('width', ((maxViewportHeight / newImg.height) * newImg.width));
+			const captureConts = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.captureCont'));
+			captureConts.forEach((captureCont: HTMLElement) => {
+				captureCont.style.width = ((maxViewportHeight / newImg.height) * newImg.width) + 'px';
+			});
 		}
 		callback && callback();
 	};

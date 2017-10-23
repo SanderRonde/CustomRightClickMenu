@@ -71,8 +71,8 @@ class TS {
 	};
 
 	static colorTypeChoices(this: TypeSwitcher) {
-		$(this).find('.typeSwitchChoice').each(function(this: HTMLElement) {
-			$(this).attr('type', $(this).children()[0].innerHTML);
+		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.typeSwitchChoice')).forEach((choice: HTMLElement) => {
+			$(choice).attr('type', $(choice).children()[0].innerHTML);
 		});
 	};
 
@@ -116,7 +116,7 @@ class TS {
 	};
 	
 	static shadowColumns(this: TypeSwitcher, column: HTMLElement, reverse: boolean) {
-		$(column).find('#itemCont').animate({
+		$(column.querySelector('#itemCont')).animate({
 			'opacity': (reverse ? 1 : 0.5)
 		}).each(function (this: HTMLElement) {
 			(this.parentElement as HTMLElement & {
@@ -242,12 +242,12 @@ class TS {
 		this.ready();
 
 		let i;
-		const typeChoices = $(this).find('.typeSwitchChoice').toArray();
+		const typeChoices = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.typeSwitchChoice'));
 		for (i = 0; i < this.remainingTypes.length; i++) {
 			typeChoices[i].setAttribute('type', this.remainingTypes[i]);
 		}
 
-		const paperToast = $('#changedToMenuToast');
+		const paperToast = window.app.$.changedToMenuToast;
 
 		function reverseMenuTypeChoice(columnCont: HTMLElement) {
 			paperToast.hide();
@@ -282,14 +282,13 @@ class TS {
 			window.app.shadowStart = column.index + 1;
 
 			//Show a paper-toast
-			paperToast.on('click', function() {
+			const listener = function() {
 				reverseMenuTypeChoice(columnCont);
-			});
-			(paperToast[0] as HTMLPaperToastElement).show();
+			}
+			paperToast.addEventListener('click', listener);
+			paperToast.show();
 			setTimeout(function() {
-				paperToast.off('click', function() {
-					reverseMenuTypeChoice(columnCont);
-				});
+				paperToast.removeEventListener('click', listener);
 			}, 10000);
 		}
 

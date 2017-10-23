@@ -270,8 +270,9 @@ class IC {
 
 	static completeInstall(this: InstallConfirm) {
 		const allowedPermissions: Array<CRM.Permission> = [];
-		$('.infoPermissionCheckbox').each(function(this: HTMLPaperCheckboxElement) {
-			this.checked && allowedPermissions.push(this.getAttribute('permission') as CRM.Permission);
+		const checkboxes = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.infoPermissionCheckbox'));
+		checkboxes.forEach((checkbox: HTMLPaperCheckboxElement) => {
+			checkbox.checked && allowedPermissions.push(checkbox.getAttribute('permission') as CRM.Permission);
 		});
 		chrome.runtime.sendMessage({
 			type: 'installUserScript',
@@ -317,7 +318,7 @@ class IC {
 		}`;
 		cm.refresh();
 		window.cm = cm;
-		$(cm.display.wrapper).keypress(function (e) {
+		cm.display.wrapper.addEventListener('keypress', (e) => {
 			e.which === 8 && e.preventDefault();
 		});
 

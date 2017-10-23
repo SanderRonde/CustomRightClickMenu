@@ -674,6 +674,18 @@
 											</div>
 										</div>
 									</template>
+									<div class="requestPermissionsPermission">
+										<div class="requestPermissionsPermissionTopCont">
+											<span class="requestPermissionName">[[requestedPermission.name]]</span>
+											<div class="requestPermissionsShowBot">
+												<svg class="requestPermissionsSvg" xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
+											</div>
+											<paper-toggle-button class="requestPermissionButton required" checked="[[requestedPermission.toggled]]" ischecked$="[[requestedPermission.toggled]]"></paper-toggle-button>
+										</div>
+										<div class="requestPermissionsPermissionBotCont">
+											<span class="requestPermissionsDescription">[[requestedPermission.description]]</span>
+										</div>
+									</div>
 								</div>
 								<div id="requestPermissionsLineCont">
 									<div id="requestPermissionsSplitter"></div>

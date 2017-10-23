@@ -416,10 +416,10 @@ class UEE {
 		}
 
 		private static appendWrapper(toolsCont: HTMLElement) {
-			$((window.scriptEdit && window.scriptEdit.active ?
-			window.scriptEdit.editor.display.wrapper :
-			window.stylesheetEdit.editor.display.wrapper))
-				.find('.CodeMirror-scroll')[0].appendChild(toolsCont);
+			(window.scriptEdit && window.scriptEdit.active ?
+				window.scriptEdit.editor.display.wrapper :
+				window.stylesheetEdit.editor.display.wrapper)
+					.querySelector('.CodeMirror-scroll').appendChild(toolsCont);
 		}
 
 		static generateOverlay() {
@@ -438,11 +438,11 @@ class UEE {
 		window.doc.externalEditorDialogTrigger.disabled = true;
 		window.doc.externalEditorDialogTrigger.classList.add('disabled');
 
-		this.EditingOverlay.generateOverlay()
+		this.EditingOverlay.generateOverlay();
 				
-		$((window.scriptEdit && window.scriptEdit.active ?
-			window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper))
-				.find('.CodeMirror-scroll')[0]
+		(window.scriptEdit && window.scriptEdit.active ?
+			window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper)
+				.querySelector('.CodeMirror-scroll')
 				.animate([
 					{
 						bottom: '-152px',
@@ -909,8 +909,9 @@ class UEE {
 
 			if (error) {
 				//Scroll cursor to this line
-				$('.errorHighlight').each(function(this: HTMLElement) {
-					this.classList.remove('errorHighlight');
+				const errorHighlights = Array.prototype.slice.apply(_this.shadowRoot.querySelectorAll('.errorHighlight'));
+				errorHighlights.forEach((errorHighlight: HTMLElement) => {
+					errorHighlight.classList.remove('errorHighlight');
 				});
 				mainEditor.markText(error.from, error.to, {
 					className: 'errorHighlight',
@@ -1138,8 +1139,11 @@ class UEE {
 			window.doc.chooseFileChooseMerge.addEventListener('click', function() {
 				chooseFileDialog.callback(__this.editor.edit.getValue());
 			});
-			$('.closeChooseFileDialog').click(function() {
-				chooseFileDialog.callback(false);
+			const closeButtons = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.closeChooseFileDialog'));
+			closeButtons.forEach((closeButton: HTMLElement) => {
+				closeButton.addEventListener('click', () => {
+					chooseFileDialog.callback(false);
+				});
 			});
 			window.doc.chooseFileMerge.addEventListener('click', function() {
 				__this.showMergeDialog(__this, chooseFileDialog.local, chooseFileDialog.file);

@@ -338,8 +338,8 @@ class ECI {
 		const firstHighlightedItem = firstHighlightedNode.item;
 
 		//Deselect everything else
-		$('.highlighted').each(function(this: HTMLElement) {
-			this.classList.remove('highlighted');
+		Array.prototype.slice.apply(window.app.editCRM.$$('.highlighted')).forEach((element: HTMLEditCrmElement) => {
+			element.classList.remove('highlighted');
 		});
 
 		//Find out if the clicked on node is before, at, or after the first highlighted node

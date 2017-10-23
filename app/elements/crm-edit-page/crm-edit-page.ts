@@ -302,10 +302,10 @@ class CEP {
 	};
 
 	static ready(this: CrmEditPage) {
-		$('.popupCont').click(function(e) {
+		$(this.$$('.popupCont')).click(function(e) {
 			e.stopPropagation();
 		});
-		this.$overlayEl = $('.overlayCont');
+		this.$overlayEl = $(this.$$('.overlayCont'));
 		window.crmEditPage = this;
 		this.isLink = this.isMenu = this.isScript = this.isDivider = false;
 

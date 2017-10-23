@@ -66,7 +66,8 @@ declare namespace Polymer {
 	export type EventPath = Array<Element|DocumentFragment>;
 
 	interface ElementBase {
-		$$(selector: string): HTMLElement;
+		$$<K extends keyof ElementTagNameMaps>(selector: K): ElementTagNameMaps[K] | null;
+		$$(selector: string): HTMLElement | null;
 		async(callback: () => void, time: number): void;
 		splice<T>(property: string, index: number, toRemove: number, replaceWith?: T): Array<T>;
 		push<T>(property: string, item: any): number;
@@ -234,5 +235,7 @@ type ElementTagNameMaps = Polymer.ElementTagNameMap &
 
 interface NodeSelector {
 	querySelector<K extends keyof ElementTagNameMaps>(selectors: K): ElementTagNameMaps[K] | null;
+	querySelector(selectors: string): HTMLElement | null;
 	querySelectorAll<K extends keyof Polymer.ElementTagNameMap>(selectors: K): NodeListOf<Polymer.ElementTagNameMap[K]> | null;
+	querySelectorAll(selectors: string): NodeListOf<HTMLElement>;
 }

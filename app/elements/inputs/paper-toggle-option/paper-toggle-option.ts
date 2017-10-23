@@ -42,7 +42,7 @@ class PTO {
 	}
 
 	static init(this: PaperToggleOption, storage: CRM.StorageLocal) {
-		this.toggled = storage[$(this).attr('id') as keyof CRM.StorageLocal] as boolean;
+		this.toggled = storage[this.getAttribute('id') as keyof CRM.StorageLocal] as boolean;
 	};
 
 	static onClick(this: PaperToggleOption) {

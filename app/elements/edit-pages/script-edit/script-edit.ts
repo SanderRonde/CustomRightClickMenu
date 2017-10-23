@@ -52,7 +52,7 @@ class SCE {
 	}) {
 		const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
 
-		const elements = $('script-edit .showOnContentItemCheckbox');
+		const elements = this.shadowRoot.querySelectorAll('.showOnContentItemCheckbox');
 		const elementType = element.classList[1].split('Type')[0];
 		let state = !(element as HTMLPaperCheckboxElement).checked;
 
@@ -73,7 +73,7 @@ class SCE {
 
 	private static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
 		const __this = this;
-		$('.executionTriggerNot').on('change', function(this: HTMLElement) {
+		this.$$('.executionTriggerNot').addEventListener('change', () => {
 			__this.triggerCheckboxChange.apply(__this, [this]);
 		});
 	};
@@ -156,7 +156,7 @@ class SCE {
 	};
 
 	private static getExportData(this: NodeEditBehaviorScriptInstance) {
-		($('script-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
+		(this.$$('#exportMenu paper-menu') as HTMLPaperMenuElement).selected = 0;
 		const settings = {};
 		this.save(null, settings);
 		return settings as CRM.ScriptNode;
@@ -196,69 +196,77 @@ class SCE {
 	private static onPermissionsDialogOpen(extensionWideEnabledPermissions: Array<string>,
 		settingsStorage: Partial<CRM.ScriptNode>) {
 			let el, svg;
-			$('.requestPermissionsShowBot').off('click').on('click', function(this: HTMLElement) {
-				el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
-					animation: Animation;
-				};
-				svg = $(this).find('.requestPermissionsSvg')[0];
-				svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
-				if (el.animation) {
-					el.animation.reverse();
-				} else {
-					el.animation = el.animate([
-						{
-							height: 0
-						}, {
-							height: el.scrollHeight + 'px'
-						}
-					], {
-						duration: 250,
-						easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-						fill: 'both'
-					});
-				}
+			const showBotEls = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionsShowBot'));
+			showBotEls.forEach((showBotEl: HTMLElement) => {
+				showBotEl.removeEventListener('click');
+				showBotEl.addEventListener('click', () => {
+					el = $(showBotEl).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
+						animation: Animation;
+					};
+					svg = $(showBotEl).find('.requestPermissionsSvg')[0];
+					svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
+					if (el.animation) {
+						el.animation.reverse();
+					} else {
+						el.animation = el.animate([
+							{
+								height: 0
+							}, {
+								height: el.scrollHeight + 'px'
+							}
+						], {
+							duration: 250,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+							fill: 'both'
+						});
+					}
+				});
 			});
 
 			let permission: CRM.Permission;
-			$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
-				permission = this.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
-				const slider = this;
-				let oldPermissions;
-				if (this.checked) {
-					if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
-						chrome.permissions.request({
-							permissions: [permission]
-						}, function(accepted) {
-							if (!accepted) {
-								//The user didn't accept, don't pretend it's active when it's not, turn it off
-								slider.checked = false;
-							} else {
-								//Accepted, remove from to-request permissions if it's there
-								chrome.storage.local.get(function(e: CRM.StorageLocal) {
-									const permissionsToRequest = e.requestPermissions;
-									permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
-									chrome.storage.local.set({
-										requestPermissions: permissionsToRequest
+			const requestPermissionButtonElements = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionButton'));
+			requestPermissionButtonElements.forEach((requestPermissionButton: HTMLPaperToggleButtonElement) => {
+				requestPermissionButton.removeEventListener('click');
+				requestPermissionButton.addEventListener('click', () => {
+					permission = requestPermissionButton.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
+					const slider = requestPermissionButton;
+					let oldPermissions;
+					if (requestPermissionButton.checked) {
+						if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
+							chrome.permissions.request({
+								permissions: [permission]
+							}, function(accepted) {
+								if (!accepted) {
+									//The user didn't accept, don't pretend it's active when it's not, turn it off
+									slider.checked = false;
+								} else {
+									//Accepted, remove from to-request permissions if it's there
+									chrome.storage.local.get(function(e: CRM.StorageLocal) {
+										const permissionsToRequest = e.requestPermissions;
+										permissionsToRequest.splice(permissionsToRequest.indexOf(permission), 1);
+										chrome.storage.local.set({
+											requestPermissions: permissionsToRequest
+										});
 									});
-								});
 
-								//Add to script's permissions
-								settingsStorage.permissions = settingsStorage.permissions || [];
-								oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
-								settingsStorage.permissions.push(permission);
-							}
-						});
+									//Add to script's permissions
+									settingsStorage.permissions = settingsStorage.permissions || [];
+									oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
+									settingsStorage.permissions.push(permission);
+								}
+							});
+						} else {
+							//Add to script's permissions
+							settingsStorage.permissions = settingsStorage.permissions || [];
+							oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
+							settingsStorage.permissions.push(permission);
+						}
 					} else {
-						//Add to script's permissions
-						settingsStorage.permissions = settingsStorage.permissions || [];
+						//Remove from script's permissions
 						oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
-						settingsStorage.permissions.push(permission);
+						settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
 					}
-				} else {
-					//Remove from script's permissions
-					oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
-					settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
-				}
+				});
 			});
 		}
 
@@ -340,9 +348,9 @@ class SCE {
 			permissionList.push.apply(permissionList, requiredInactive);
 			permissionList.push.apply(permissionList, nonRequiredNonActive);
 
-			($('#scriptPermissionsTemplate')[0] as HTMLDomRepeatElement).items = permissionList;
-			$('.requestPermissionsScriptName')[0].innerHTML = 'Managing permisions for script "' + nodeItem.name;
-			const scriptPermissionDialog = $('#scriptPermissionDialog')[0] as HTMLPaperDialogElement;
+			window.app.$.scriptPermissionsTemplate.items = permissionList;
+			window.app.shadowRoot.querySelector('.requestPermissionsScriptName').innerHTML = 'Managing permisions for script "' + nodeItem.name;
+			const scriptPermissionDialog = window.app.$.scriptPermissionDialog;
 			scriptPermissionDialog.addEventListener('iron-overlay-opened', () => {
 				this.onPermissionsDialogOpen(permissions, settingsStorage);
 			});
@@ -534,9 +542,10 @@ class SCE {
 		this.editor.display.wrapper.classList.remove('small');
 
 		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
-		const $horizontalCenterer = $('#horizontalCenterer');
-		const viewportWidth = $horizontalCenterer.width() + 20;
-		const viewPortHeight = $horizontalCenterer.height();
+		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
+		const bcr = horizontalCenterer.getBoundingClientRect();
+		const viewportWidth = bcr.width+ 20;
+		const viewPortHeight = bcr.height;
 
 		if (window.app.storageLocal.hideToolsRibbon !== undefined) {
 			if (window.app.storageLocal.hideToolsRibbon) {
@@ -636,11 +645,10 @@ class SCE {
 	 * Shows the options for the editor
 	 */
 	static showOptions(this: NodeEditBehaviorScriptInstance) {
-		const _this = this;
 		this.optionsShown = true;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		const editorWidth = $('.script-edit-codeMirror').width();
-		const editorHeight = $('.script-edit-codeMirror').height();
+		const editorWidth = this.editor.display.wrapper.getBoundingClientRect().width;
+		const editorHeight = this.editor.display.wrapper.getBoundingClientRect().height;
 		let circleRadius;
 
 		//Add a bit just in case
@@ -655,7 +663,7 @@ class SCE {
 		this.settingsShadow.parentElement.style.height = editorHeight + '';
 		this.fullscreenEl.style.display = 'none';
 		const settingsInitialMarginLeft = -500;
-		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
+		(this.$$('#editorThemeFontSizeInput') as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
 		$(this.settingsShadow).css({
 			width: '50px',
 			height: '50px',
@@ -671,16 +679,16 @@ class SCE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
+				this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
-				if (_this.fullscreen) {
-					const settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+				if (this.fullscreen) {
+					const settingsCont = this.editor.display.wrapper.querySelector('#settingsContainer');
 					settingsCont.style.overflow = 'scroll';
 					settingsCont.style.overflowX = 'hidden';
 					settingsCont.style.height = 'calc(100vh - 66px)';
-					const bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = this.editor.display.wrapper.querySelector('#bubbleCont');
 					bubbleCont.style.position = 'fixed';
 					bubbleCont.style.zIndex = '50';
 				}
@@ -692,7 +700,6 @@ class SCE {
 	 * Hides the options for the editor
 	 */
 	static hideOptions(this: NodeEditBehaviorScriptInstance) {
-		const _this = this;
 		this.optionsShown = false;
 		const settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
@@ -705,25 +712,25 @@ class SCE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
+				this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
 				const zoom = window.app.settings.editor.zoom;
-				const prevZoom = _this.unchangedEditorSettings.zoom;
-				_this.unchangedEditorSettings.zoom = zoom;
-				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
-					_this.reloadEditor();
+				const prevZoom = this.unchangedEditorSettings.zoom;
+				this.unchangedEditorSettings.zoom = zoom;
+				if (JSON.stringify(this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
+					this.reloadEditor();
 				}
 				if (zoom !== prevZoom) {
 					window.app.updateEditorZoom();
 				}
 
-				if (_this.fullscreen) {
-					const settingsCont = $('.script-edit-codeMirror #settingsContainer')[0];
+				if (this.fullscreen) {
+					const settingsCont = this.editor.display.wrapper.querySelector('#settingsContainer');
 					settingsCont.style.height = '345px';
 					settingsCont.style.overflowX = 'hidden';
-					const bubbleCont = $('.script-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = this.editor.display.wrapper.querySelector('#bubbleCont');
 					bubbleCont.style.position = 'absolute';
 					bubbleCont.style.zIndex = 'auto';
 				}
@@ -736,7 +743,7 @@ class SCE {
 	 */
 	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
 		if (this.editor) {
-			$(this.editor.display.wrapper).remove();
+			this.editor.display.wrapper.remove();
 			this.$.editorPlaceholder.style.display = 'flex';
 			this.$.editorPlaceholder.style.opacity = '1';
 			this.$.editorPlaceholder.style.position = 'absolute';

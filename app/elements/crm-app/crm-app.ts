@@ -494,7 +494,7 @@ class CA {
 						toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1)
 					});
 				}
-				const requestPermissionsOther = $('#requestPermissionsOther')[0];
+				const requestPermissionsOther = _this.$$('#requestPermissionsOther');
 
 				let overlay: HTMLPaperDialogElement;
 
@@ -507,7 +507,7 @@ class CA {
 					overlay.style.maxHeight = 'initial!important';
 					overlay.style.top = 'initial!important';
 					overlay.removeEventListener('iron-overlay-opened', handler);
-					$('.requestPermissionsShowBot').off('click').on('click', function (this: HTMLElement) {
+					$(_this.$$('.requestPermissionsShowBot')).off('click').on('click', function (this: HTMLElement) {
 						el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 						svg = $(this).find('.requestPermissionsSvg')[0];
 						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
@@ -521,13 +521,13 @@ class CA {
 									height: el.scrollHeight + 'px'
 								}
 							], {
-									duration: 250,
-									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
-									fill: 'both'
-								});
+								duration: 250,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+								fill: 'both'
+							});
 						}
 					});
-					$('#requestPermissionsShowOther').off('click').on('click', function (this: HTMLElement) {
+					$(_this.$$('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
 						const showHideSvg = this;
 						const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
 						if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
@@ -548,7 +548,7 @@ class CA {
 					});
 
 					let permission: string;
-					$('.requestPermissionButton').off('click').on('click', function (this: HTMLPaperCheckboxElement) {
+					$(_this.$$('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
 						permission = this.previousElementSibling.previousElementSibling.textContent;
 						const slider = this;
 						if (this.checked) {
@@ -592,7 +592,7 @@ class CA {
 						}
 					});
 
-					$('#requestPermissionsAcceptAll').off('click').on('click', function () {
+					$(_this.$$('#requestPermissionsAcceptAll')).off('click').on('click', function () {
 						chrome.permissions.request({
 							permissions: toRequest
 						}, function (accepted) {
@@ -614,8 +614,8 @@ class CA {
 						overlay = centerer.$.content.children[0] as HTMLPaperDialogElement;
 						if (overlay.open) {
 							window.clearInterval(interval);
-							($('#requestedPermissionsTemplate')[0] as HTMLDomRepeatElement).items = requested;
-							($('#requestedPermissionsOtherTemplate')[0] as HTMLDomRepeatElement).items = other;
+							(_this.$$('#requestedPermissionsTemplate') as HTMLDomRepeatElement).items = requested;
+							(_this.$$('#requestedPermissionsOtherTemplate') as HTMLDomRepeatElement).items = other;
 							overlay.addEventListener('iron-overlay-opened', handler);
 							setTimeout(function () {
 								const requestedPermissionsCont = $('#requestedPermissionsCont')[0];
@@ -711,7 +711,7 @@ class CA {
 
 	static toggleShrinkTitleRibbon(this: CrmApp) {
 		const viewportHeight = window.innerHeight;
-		const $settingsCont = $('#settingsContainer');
+		const $settingsCont = $(this.$$('#settingsContainer'));
 		if (window.app.storageLocal.shrinkTitleRibbon) {
 			$(window.doc.editorTitleRibbon).animate({
 				fontSize: '100%'
@@ -776,10 +776,10 @@ class CA {
 		}`;
 		document.head.appendChild(styleEl);
 
-		$('.CodeMirror').each(function (this: HTMLElement & {
+		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.CodeMirror')).forEach((cm: HTMLElement & {
 			CodeMirror: CodeMirrorInstance;
-		}) {
-			this.CodeMirror.refresh();
+		}) => {
+			cm.CodeMirror.refresh();
 		});
 		let editor = ((window.scriptEdit && window.scriptEdit.active) ?
 			window.scriptEdit.editor :
@@ -1076,7 +1076,7 @@ class CA {
 						crmItem.value.script : crmItem.value.backgroundScript) :
 						(crmItem.value.stylesheet));
 					_this.parent().listeners.iconSwitch(null, editingObj.crmType);
-					$('.keepChangesButton').on('click', function () {
+					_this.parent().$$('.keepChangesButton').addEventListener('click', function () {
 						if (crmItem.type === 'script') {
 							crmItem.value[(editingObj.mode === 'main' ?
 								'script' :
@@ -1094,13 +1094,13 @@ class CA {
 							window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
 						}, 500);
 					});
-					$('.restoreChangesBack').on('click', function () {
+					_this.parent().$$('.restoreChangesBack').addEventListener('click', function () {
 						window.doc.restoreChangesOldCode.style.display = 'none';
 						window.doc.restoreChangesUnsavedCode.style.display = 'none';
 						window.doc.restoreChangesMain.style.display = 'block';
 						window.doc.restoreChangesDialog.fit();
 					});
-					$('.discardButton').on('click', function () {
+					_this.parent().$$('.discardButton').addEventListener('click', function () {
 						chrome.storage.local.set({
 							editing: null
 						});
@@ -1155,52 +1155,10 @@ class CA {
 								opacity: 0.6
 							}
 						], {
-								duration: 250,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-							}).onfinish = function (this: Animation) {
-								this.effect.target.style.opacity = '0.6';
-								window.doc.restoreChangesDialog.open();
-								$('.pageCont').animate({
-									backgroundColor: 'white'
-								}, 200);
-								$('.crmType').each(function (this: HTMLElement) {
-									this.classList.remove('dim');
-								});
-								$('edit-crm-item').find('.item').animate({
-									opacity: 1
-								}, 200, function () {
-									document.body.style.pointerEvents = 'all';
-								});
-							};
-					};
-
-					const path = _this.parent().nodesById[editingObj.id].path;
-					const highlightItem = function () {
-						document.body.style.pointerEvents = 'none';
-						const columnConts = $('#mainCont').children('div');
-						const $columnCont = $(columnConts[(path.length - 1) + 2]);
-						const $paperMaterial = $($columnCont.children('paper-material')[0]);
-						const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
-						const editCRMItems = $($crmEditColumn).children('edit-crm-item');
-						const crmElement = editCRMItems[path[path.length - 1]];
-						//Just in case the item doesn't exist (anymore)
-						if ($(crmElement).find('.item')[0]) {
-							$(crmElement).find('.item')[0].animate([
-								{
-									opacity: 0.6
-								}, {
-									opacity: 1
-								}
-							], {
-									duration: 250,
-									easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-								}).onfinish = function (this: Animation) {
-									this.effect.target.style.opacity = '1';
-								};
-							setTimeout(function () {
-								stopHighlighting(crmElement);
-							}, 2000);
-						} else {
+							duration: 250,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function (this: Animation) {
+							this.effect.target.style.opacity = '0.6';
 							window.doc.restoreChangesDialog.open();
 							$('.pageCont').animate({
 								backgroundColor: 'white'
@@ -1213,6 +1171,46 @@ class CA {
 							}, 200, function () {
 								document.body.style.pointerEvents = 'all';
 							});
+						};
+					};
+
+					const path = _this.parent().nodesById[editingObj.id].path;
+					const highlightItem = function () {
+						document.body.style.pointerEvents = 'none';
+						const columnConts = _this.parent().shadowRoot.querySelectorAll('#mainCont > div');
+						const $columnCont = $(columnConts[(path.length - 1) + 2]);
+						const $paperMaterial = $($columnCont.children('paper-material')[0]);
+						const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
+						const editCRMItems = $($crmEditColumn).children('edit-crm-item');
+						const crmElement = editCRMItems[path[path.length - 1]];
+						//Just in case the item doesn't exist (anymore)
+						if (crmElement.querySelector('.item')) {
+							crmElement.querySelector('.item').animate([{
+								opacity: 0.6
+							}, {
+								opacity: 1
+							}], {
+								duration: 250,
+								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							}).onfinish = function (this: Animation) {
+								this.effect.target.style.opacity = '1';
+							};
+							setTimeout(function () {
+								stopHighlighting(crmElement);
+							}, 2000);
+						} else {
+							window.doc.restoreChangesDialog.open();
+							$(_this.parent().$$('.pageCont')).animate({
+								backgroundColor: 'white'
+							}, 200);
+							$(_this.parent().$$('.crmType')).each(function (this: HTMLElement) {
+								this.classList.remove('dim');
+							});
+							$(_this.parent().$$('edit-crm-item .item')).animate({
+								opacity: 1
+							}, 200, function () {
+								document.body.style.pointerEvents = 'all';
+							});
 						}
 					};
 
@@ -1220,10 +1218,10 @@ class CA {
 						//Find the element first
 						//Check if the element is already visible
 						window.doc.restoreChangesDialog.close();
-						$('.pageCont')[0].style.backgroundColor = 'rgba(0,0,0,0.4)';
-						$('edit-crm-item').find('.item').css('opacity', 0.6);
-						$('.crmType').each(function (this: HTMLElement) {
-							this.classList.add('dim');
+						_this.parent().$$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
+						_this.parent().$$('edit-crm-item .item').style.opacity = '0.6';
+						Array.prototype.slice.apply(_this.parent().$$('.crmType')).forEach((crmType: HTMLElement) => {
+							crmType.classList.add('dim');
 						});
 
 						setTimeout(function () {
@@ -3003,11 +3001,11 @@ class CA {
 								height: newHeightPx
 							}
 						], {
-								duration: 500,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
-							}).onfinish = function () {
-								tabCont.style.height = newHeightPx;
-							};
+							duration: 500,
+							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+						}).onfinish = function () {
+							tabCont.style.height = newHeightPx;
+						};
 					}, 500);
 				}
 			}

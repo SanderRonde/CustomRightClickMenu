@@ -1026,9 +1026,11 @@ ${codeSplit.join('\n')}`;
 			textarea.value = dataJson;
 		}
 
-		$('#exportAuthorName').on('change' as any, authorNameChange);
+		window.app.$.exportAuthorName.addEventListener('change', (event) => {
+			authorNameChange(event as any);
+		});
 		textarea.value = JSON.stringify(data);
-		($('#exportDialog')[0] as HTMLPaperDialogElement).open();
+		window.app.$.exportDialog.open();
 		setTimeout(function() {
 			textarea.focus();
 			textarea.select();

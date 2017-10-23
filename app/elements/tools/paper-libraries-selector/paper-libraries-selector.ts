@@ -255,7 +255,7 @@ class PLS {
 				isLibrary: 'true'
 			});
 
-			const dropdownContainer = $(_this).find('.content');
+			const dropdownContainer = $(_this.$$('.content'));
 			dropdownContainer.animate({
 				height: dropdownContainer[0].scrollHeight
 			}, {
@@ -282,7 +282,7 @@ class PLS {
 				}
 			});
 
-			const contentEl = _this.$$('paper-menu').querySelector('.content') as HTMLElement;
+			const contentEl = _this.$$('paper-menu .content') as HTMLElement;
 			contentEl.style.height = (~~contentEl.style.height.split('px')[0] + 48) + 'px';
 
 			_this.init();
@@ -411,7 +411,7 @@ class PLS {
 		//Remove it from view as well
 		this.splice('libraries', this.libraries.indexOf(library), 1);
 
-		const contentEl = this.$$('paper-menu').querySelector('.content') as HTMLElement;
+		const contentEl = this.$$('paper-menu .content') as HTMLElement;
 		contentEl.style.height = (~~contentEl.style.height.split('px')[0] - 48) + 'px';
 	}
 

@@ -20,7 +20,7 @@ class STE {
 	static editorPlaceHolderAnimation: Animation;
 
 	private static getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
-		($('stylesheet-edit #exportMenu paper-menu')[0] as HTMLPaperMenuElement).selected = 0;
+		(this.$$('#exportMenu paper-menu') as HTMLPaperMenuElement).selected = 0;
 		const settings = {};
 		this.save(null, settings);
 		return settings as CRM.StylesheetNode;
@@ -217,13 +217,13 @@ class STE {
 		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
 		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.fullscreenEl.style.display = 'none';
-		const $editorWrapper = $(this.editor.display.wrapper);
-		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
+		const editorWrapper = this.editor.display.wrapper;
+		const buttonShadow = this.editor.display.wrapper.querySelector('#buttonShadow');
 		buttonShadow.style.position = 'absolute';
 		buttonShadow.style.right = '-1px';
 		this.editor.display.wrapper.classList.add('fullscreen');
 
-		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
+		window.doc.fullscreenEditorHorizontal.appendChild(editorWrapper);
 		const $horizontalCenterer = $('#horizontalCenterer');
 		const viewportWidth = $horizontalCenterer.width() + 20;
 		const viewPortHeight = $horizontalCenterer.height();
@@ -255,7 +255,7 @@ class STE {
 			window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 		}
 
-		$editorWrapper[0].style.height = 'auto';
+		editorWrapper.style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
 		editorCont.style.display = 'flex';
 
@@ -332,11 +332,11 @@ class STE {
 	 * Shows the options for the editor
 	 */
 	static showOptions(this: NodeEditBehaviorStylesheetInstance) {
-		const _this = this;
 		this.optionsShown = true;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		const editorWidth = $('.stylesheet-edit-codeMirror').width();
-		const editorHeight = $('.stylesheet-edit-codeMirror').height();
+		const bcr = this.editor.display.wrapper.getBoundingClientRect();
+		const editorWidth = bcr.width;
+		const editorHeight = bcr.height;
 		let circleRadius;
 
 		//Add a bit just in case
@@ -351,7 +351,7 @@ class STE {
 		this.settingsShadow.parentElement.style.height = editorHeight + '';
 		this.fullscreenEl.style.display = 'none';
 		const settingsInitialMarginLeft = -500;
-		($('#editorThemeFontSizeInput')[0] as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
+		(this.$$('#editorThemeFontSizeInput') as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
 
 		$(this.settingsShadow).css({
 			width: '50px',
@@ -368,16 +368,16 @@ class STE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
+				this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
-				if (_this.fullscreen) {
-					const settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
+				if (this.fullscreen) {
+					const settingsCont = this.editor.display.wrapper.querySelector('#settingsContainer');
 					settingsCont.style.overflow = 'scroll';
 					settingsCont.style.overflowX = 'hidden';
 					settingsCont.style.height = 'calc(100vh - 66px)';
-					const bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = this.editor.display.wrapper.querySelector('#bubbleCont');
 					bubbleCont.style.position = 'fixed';
 					bubbleCont.style.zIndex = '50';
 				}
@@ -389,7 +389,6 @@ class STE {
 	 * Hides the options for the editor
 	 */
 	static hideOptions(this: NodeEditBehaviorStylesheetInstance) {
-		const _this = this;
 		this.optionsShown = false;
 		const settingsInitialMarginLeft = -500;
 		this.fullscreenEl.style.display = 'block';
@@ -402,25 +401,25 @@ class STE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				_this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				_this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
+				this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
 				const zoom = window.app.settings.editor.zoom;
-				const prevZoom = _this.unchangedEditorSettings.zoom;
-				_this.unchangedEditorSettings.zoom = zoom;
-				if (JSON.stringify(_this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
-					_this.reloadEditor();
+				const prevZoom = this.unchangedEditorSettings.zoom;
+				this.unchangedEditorSettings.zoom = zoom;
+				if (JSON.stringify(this.unchangedEditorSettings) !== JSON.stringify(window.app.settings.editor)) {
+					this.reloadEditor();
 				}
 				if (zoom !== prevZoom) {
 					window.app.updateEditorZoom();
 				}
 
-				if (_this.fullscreen) {
-					const settingsCont = $('.stylesheet-edit-codeMirror #settingsContainer')[0];
+				if (this.fullscreen) {
+					const settingsCont = this.editor.display.wrapper.querySelector('#settingsContainer');
 					settingsCont.style.height = '376px';
 					settingsCont.style.overflowX = 'hidden';
-					const bubbleCont = $('.stylesheet-edit-codeMirror #bubbleCont')[0];
+					const bubbleCont = this.editor.display.wrapper.querySelector('#bubbleCont');
 					bubbleCont.style.position = 'absolute';
 					bubbleCont.style.zIndex = 'auto';
 				}

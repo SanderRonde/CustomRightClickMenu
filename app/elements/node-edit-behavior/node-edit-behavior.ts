@@ -118,7 +118,7 @@ class NEB {
 	};
 
 	static getTriggers(this: NodeEditBehaviorInstance, resultStorage: Partial<CRM.Node>) {
-		const inputs = $(this).find('.executionTrigger').find('paper-input');
+		const inputs = this.shadowRoot.querySelectorAll('.executionTrigger paper-input');
 		const triggers = [];
 		for (let i = 0; i < inputs.length; i++) {
 			triggers[i] = {

@@ -170,7 +170,7 @@ class PSWD {
 	 */
 	static loadWindow(this: PaperSearchWebsiteDialog, window: PaperSearchWebsiteDialogWindow, promiser: Promiser) {
 		const _this = this;
-		const spinner = $(this).find('paper-spinner')[0] as HTMLPaperSpinnerElement;
+		const spinner = this.$$('paper-spinner');
 		spinner.active = true;
 		this.hideAllWindows('loadingWindow');
 		this.$.loadingWindow.style.display = 'block';
@@ -224,7 +224,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 
 			try {
 				const structuredSearchEngines = JSON.parse(data);
-				$('.SEImportError').remove();
+				_this.$$('.SEImportError').remove();
 				if (structuredSearchEngines.length !== 0) {
 					_this.disableManualButton = true;
 					_this.searchList = structuredSearchEngines;
@@ -290,7 +290,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	 * Cancels all radio buttons and checks the one you just clicked
 	 */
 	static cancelAllRadiobuttons(this: PaperSearchWebsiteDialog, e: Polymer.ClickEvent) {
-		($(this.$.listInputSearchList).find('paper-radio-button[checked]')[0] as HTMLPaperRadioButtonElement).checked = false;
+		(this.$.listInputSearchList.querySelector('paper-radio-button[checked]') as HTMLPaperRadioButtonElement).checked = false;
 		let node = e.target;
 		while (node.tagName !== 'PAPER-RADIO-BUTTON') {
 			node = node.parentElement;
@@ -364,7 +364,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	 * Waits a bit before fitting the element
 	 */
 	static fixFit(this: PaperSearchWebsiteDialog) {
-		const paperInputContainer = $(this.$.manualInputListChoiceInput).find('paper-input-container')[0];
+		const paperInputContainer = this.$.manualInputListChoiceInput.querySelector('paper-input-container');
 		paperInputContainer.style.height = '200px';
 		this.fit();
 		paperInputContainer.style.height = 'auto';
