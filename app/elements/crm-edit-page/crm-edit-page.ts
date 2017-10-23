@@ -357,8 +357,7 @@ class CEP {
 			_this.isMenu = valueStorer.isMenu;
 			_this.isDivider = valueStorer.isDivider;
 			_this.isStylesheet = valueStorer.isStylesheet;
-			const page = ($(_this)
-				.find('#editPageCont > :not([hidden])')[0] as EditPage);
+			const page = _this.shadowRoot.querySelector('#editPageCont > :not([hidden])') as EditPage;
 			page.init.apply(page);
 			_this.animateIn();
 		}, 300);
