@@ -3,8 +3,10 @@
 </head>
 <body>
 <dom-module id="paper-toggle-option" attributes="toggled disabled showmessage">
-	<link rel="stylesheet" href="paper-toggle-option.css">
 	<template>
+		<!-- build:css inline default-link.css -->
+		<link rel="stylesheet" href="paper-toggle-option.css">
+		<!-- /build -->
 		<paper-checkbox id="checkbox" checked$="{{toggled}}" on-tap="onClick">
 			<slot></slot>
 		</paper-checkbox>

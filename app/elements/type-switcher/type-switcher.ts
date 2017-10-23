@@ -166,10 +166,11 @@ class TS {
 		if (typeof e === 'string') {
 			type = e;
 		} else {
-			if (e.path[0].tagName === 'SPAN') {
-				type = e.path[0].innerHTML as CRM.NodeType;
+			const path = e.path as Array<Polymer.Element>;
+			if (path[0].tagName === 'SPAN') {
+				type = path[0].innerHTML as CRM.NodeType;
 			} else {
-				type = e.path[0].children[0].innerHTML as CRM.NodeType;
+				type = path[0].children[0].innerHTML as CRM.NodeType;
 			}
 		}
 		const editCrmEl = this.parentElement.parentElement.parentElement as EditCrmItem;

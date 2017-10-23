@@ -3,7 +3,9 @@
 <dom-module id="crm-app">
 	<template>
 		<link rel="stylesheet" href="../../css/jquery.contextMenu.css"/>
+		<!-- build:css inline crm-app.css -->
 		<link rel="stylesheet" href="crm-app.css" />
+		<!-- /build -->
 		<div class="popupCont">
 			<div id="fullscreenEditor">
 				<div id="editorCurrentScriptTitle">
@@ -273,11 +275,13 @@
 					</div>
 					<div class="exportSettings">
 						<center-element id="exportSettingsSpinner" nostyle hide>
-							<div class="exportSettingsSpinnerHorizontalCenterer">
-								<paper-spinner active></paper-spinner>
-							</div>
 							<div>
-								Waiting for textfield... This may take some time
+								<div class="exportSettingsSpinnerHorizontalCenterer">
+									<paper-spinner active></paper-spinner>
+								</div>
+								<div>
+									Waiting for textfield... This may take some time
+								</div>
 							</div>
 						</center-element>
 						<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>

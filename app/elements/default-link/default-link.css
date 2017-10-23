@@ -52,6 +52,11 @@ paper-button {
 	width: 215px;
 }
 
-.defaultLinkLinkCont[searchengine] {
+:host[searchengine] .defaultLinkLinkCont {
 	width: 320px;
+}
+
+paper-button.blue {
+    background-color: #3F51B5;
+    color: white;
 }

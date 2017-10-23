@@ -167,11 +167,6 @@ edit-crm-item.pulse .item {
 	background-color: #91ff9f;
 }
 
-paper-checkbox {
-	margin-left: 9px;
-    margin-right: 3px;
-}
-
 #rootNodeTypeColor {
 	width: 7px;
 	background-color: #545454;

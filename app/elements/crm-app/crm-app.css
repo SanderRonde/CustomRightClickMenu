@@ -58,8 +58,8 @@ paper-shadow {
 
 .title {
 	text-align: center;
-	font-size:300%!important;
-	height:35px;
+	font-size: 300%!important;
+	height: 40px;
 }
 
 paper-checkbox #ink[checked] {
@@ -704,11 +704,11 @@ body.editingScript .cssTool {
 }
 
 .crmTypeShadowMagicElement {
-	background: url('../../images/shadowImg.png');
+	background: url('/images/shadowImg.png');
 }
 
 .crmTypeShadowMagicElementRight {
-	background: url('../../images/shadowImgRight.png');
+	background: url('/images/shadowImgRight.png');
 }
 
 .crmTypeShadowMagicElement, .crmTypeShadowMagicElementRight {
@@ -748,7 +748,7 @@ body.editingScript .cssTool {
 }
 
 paper-button.blue {
-    background: #3F51B5;
+    background-color: #3F51B5;
     color: white;
 }
 
@@ -858,11 +858,6 @@ edit-crm-item:focus .CRMItemTitle[isroot] {
 
 #updateMergeRightNextError:hover, #updateMergeLeftNextError:hover {
 	text-decoration:underline;
-}
-
-html {
-	overflow-y: visible;
-	overflow-x: hidden;
 }
 
 #versionUpdateDialog {
@@ -1080,4 +1075,8 @@ paper-toggle-option #checkboxLabel {
 	height: 100%;
 	flex-direction: column;
 	justify-content: center;
+}
+
+paper-checkbox {
+	margin-left: 9px;
 }

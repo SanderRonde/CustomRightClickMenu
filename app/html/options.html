@@ -4,12 +4,12 @@
 	<title>Options</title>
 	<style type="text/css">
 		/*#region Fonts*/
-		 @font-face {
-			 font-family: 'Roboto';
-			 font-style: normal;
-			 font-weight: 400;
-			 src: url(../fonts/Roboto-Regular.ttf);
-		 }
+		@font-face {
+			font-family: 'Roboto';
+			font-style: normal;
+			font-weight: 400;
+			src: url(../fonts/Roboto-Regular.ttf);
+		}
 
 		@font-face {
 			font-family: 'Roboto';
@@ -118,6 +118,11 @@
 			height: 4px;
 		}
 		/*#endregion*/
+
+		html {
+			overflow-y: visible;
+			overflow-x: hidden;
+		}
 	</style>
 	<link async rel="stylesheet" href="../css/codemirror.css" />
 	<link rel="import" href="base.html"/>
@@ -144,7 +149,6 @@
 	</div>
 	<error-reporting-tool class="elementLoading"></error-reporting-tool>
 	<crm-app class="elementLoading"></crm-app>
-	<paper-input value="test"></paper-input>
 	<template id="editorOptionsTemplate">
 		<div id="settingsContainer">
 			<div class="editorSettingsTxt">

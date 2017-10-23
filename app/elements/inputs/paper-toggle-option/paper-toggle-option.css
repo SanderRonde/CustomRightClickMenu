@@ -1,4 +1,4 @@
-paper-toggle-option {
+:host {
 	display: block;
 	margin-top:8px;
 	margin-bottom:8px;
@@ -55,14 +55,6 @@ paper-toggle-option {
 	display: block;
 }
 
-.infoSvg {
-	height: 20px;
-    width: 13px;
-    margin-bottom: -5px;
-}
-
-.triangleInfoSvg {
-	fill: transparent;
-	stroke: black;
-	stroke-width: 5px;
+#checkbox {
+	margin-left: 9px;
 }

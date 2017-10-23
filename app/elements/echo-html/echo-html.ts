@@ -21,7 +21,7 @@ class EH {
 	static properties = echoHtmlProperties;
 
 	private static stampHtml(this: EchoHtml, html: string) {
-		this.innerHTML = html;
+		this.shadowRoot.innerHTML = html;
 	};
 
 	private static makeLinksFromHtml(html: string): string {

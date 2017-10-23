@@ -287,7 +287,7 @@ class CA {
 		let fnName: keyof typeof listeners;
 		let pathIndex = 0;
 		let currentElement = event.path[pathIndex];
-		while (!(fnName = currentElement.getAttribute(propKey) as keyof typeof listeners) && pathIndex < event.path.length) {
+		while (!('getAttribute' in currentElement) || !(fnName = (currentElement as Polymer.Element).getAttribute(propKey) as keyof typeof listeners) && pathIndex < event.path.length) {
 			pathIndex++;
 			currentElement = event.path[pathIndex];
 		}
@@ -1335,13 +1335,13 @@ class CA {
 					}
 					if (storageLocal.selectedCrmType !== undefined) {
 						_this.crmType = storageLocal.selectedCrmType;
-						//_this.setup.switchToIcons(storageLocal.selectedCrmType);
+						_this.setup.switchToIcons(storageLocal.selectedCrmType);
 					} else {
 						chrome.storage.local.set({
 							selectedCrmType: 0
 						});
 						_this.crmType = 0;
-						//_this.setup.switchToIcons(0);
+						_this.setup.switchToIcons(0);
 					}
 					if (storageLocal.jsLintGlobals) {
 						_this.jsLintGlobals = storageLocal.jsLintGlobals;
@@ -1637,6 +1637,7 @@ class CA {
 			for (i = 0; i < 6; i++) {
 				if (index === i) {
 					element = crmTypes[i] as HTMLElement;
+					console.log('Switching to icon', element);
 					element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 					element.classList.add('toggled');
 
@@ -2647,6 +2648,7 @@ class CA {
 				for (i = 0; i < 6; i++) {
 					crmEl = this.parent().shadowRoot.querySelectorAll('.crmType').item(i) as HTMLElement;
 					if (i === type) {
+						console.log('Switching to icon', crmEl);
 						crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						crmEl.style.backgroundColor = 'rgb(243,243,243)';
 						crmEl.classList.add('toggled');
@@ -2675,6 +2677,7 @@ class CA {
 				for (i = 0; i < 6; i++) {
 					crmEl = crmTypes.item(i) as HTMLElement;
 					if (crmEl === element) {
+						console.log('Switching to icon', element);
 						crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						crmEl.style.backgroundColor = 'rgb(243,243,243)';
 						crmEl.classList.add('toggled');
@@ -4106,30 +4109,30 @@ class CA {
 			return el;
 		}
 
-		static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Array<Polymer.Element>, tagName: T): ElementTagNameMaps[T] {
+		static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Polymer.EventPath, tagName: T): ElementTagNameMaps[T] {
 			let index = 0;
 			let node = path[0];
-			while (node.tagName.toLowerCase() !== tagName) {
+			while (!('tagName' in node) || (node as Polymer.Element).tagName.toLowerCase() !== tagName) {
 				node = path[++index];
 
 				if (index > path.length) {
 					return null;
 				}
 			}
-			return node;
+			return node as Polymer.Element;
 		}
 
-		static findElementWithClassName(path: Array<Polymer.Element>, className: string): Polymer.Element {
+		static findElementWithClassName(path: Polymer.EventPath, className: string): Polymer.Element {
 			let index = 0;
 			let node = path[0];
-			while (!node.classList.contains(className)) {
+			while (!('classList' in node) || !(node as Polymer.Element).classList.contains(className)) {
 				node = path[++index];
 
 				if (index > path.length) {
 					return null;
 				}
 			}
-			return node;
+			return node as Polymer.Element;
 		}
 
 		/**
