@@ -28,7 +28,7 @@ declare namespace Polymer {
 	}
 
 	interface CustomEventBase {
-		path: Array<Element>;
+		path: EventPath;
 		detail: {
 			sourceEvent: MouseEvent;
 		};
@@ -62,6 +62,8 @@ declare namespace Polymer {
 	export type Element = HTMLElement | HTMLPaperIconButtonElement | HTMLPaperDialogElement | HTMLPaperInputElement |
 		HTMLPaperCheckboxElement | CenterElement | HTMLDomRepeatElement | PaperToggleOption | HTMLPaperToastElement |
 		DefaultLink | EchoHtml | DividerEdit | HTMLPaperRadioGroupElement | HTMLDomIfElement | HTMLPaperRipplElement;
+
+	export type EventPath = Array<Element|DocumentFragment>;
 
 	interface ElementBase {
 		$$(selector: string): HTMLElement;

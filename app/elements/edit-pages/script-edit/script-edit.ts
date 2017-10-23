@@ -48,7 +48,7 @@ class SCE {
 	};
 
 	static contentCheckboxChanged(this: NodeEditBehaviorScriptInstance, e: {
-		path: Array<Polymer.Element>
+		path: Polymer.EventPath
 	}) {
 		const element = window.app.util.findElementWithTagname(e.path, 'paper-checkbox');
 
