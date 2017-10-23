@@ -7,6 +7,7 @@
 			<!-- build:css inline paper-libraries-selector.css -->
 			<link rel="stylesheet" href="paper-libraries-selector.css" />
 			<!-- /build -->
+			<style is="custom-style" include="paper-material-styles"></style>
 			<div id="libraryInfoCont">
 				<svg class="inactive" fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 					<path d="M0 0h24v24H0z" fill="none"/>
@@ -16,11 +17,11 @@
 					<path d="M0 0h24v24H0z" fill="none"/>
 					<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 				</svg>
-				<paper-material id="libraryInfoTxtCont" elevation="3">
+				<div class="paper-material" id="libraryInfoTxtCont" elevation="3">
 					<div id="libraryInfoTxt">
 						Try to refrain from using unnecessary libaries, libraries load on every single page and load seperately for all scripts. This can easily take 100ms for libraries like jQuery. For a jQuery alternative consider using crmAPI.$ or simply $ (without loading jQuery) which features the selector function only.
 					</div>
-				</paper-material>
+				</div>
 			</div>
 			<div on-tap="_toggleDropdown" id="dropdownSelectedCont">
 				<div id="dropdownSelected">Libraries</div>

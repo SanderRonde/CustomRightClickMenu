@@ -4,6 +4,7 @@
 		<!-- build:css inline crm-edit-page.css -->
 		<link rel="stylesheet" href="crm-edit-page.css" />
 		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
 		<div id="horizontalCenterer">
 			<div id="verticalCenterer">
 				<div id="overlayCont">
@@ -22,13 +23,13 @@
 							<paper-icon-button on-tap="hideUpdateMergeDialog" id="scriptUpdateHideDialogButton" icon="clear"></paper-icon-button>
 						</div>
 					</div>
-					<paper-material elevation="5" id="editPageCont">
+					<div class="paper-material" elevation="5" id="editPageCont">
 						<link-edit hidden$="[[!isLink]]" item="{{linkItem}}"></link-edit>
 						<script-edit hidden$="[[!isScript]]" item="{{scriptItem}}"></script-edit>
 						<stylesheet-edit hidden$="[[!isStylesheet]]" item="{{stylesheetItem}}"></stylesheet-edit>
 						<divider-edit hidden$="[[!isDivider]]" item="{{dividerItem}}"></divider-edit>
 						<menu-edit hidden$="[[!isMenu]]" item="{{menuItem}}"></menu-edit>
-					</paper-material>
+					</div>
 					<div id="nodeInfo">
 						<div id="nodeInfoData">
 							<span id="nodeInfoName">

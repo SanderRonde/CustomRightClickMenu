@@ -3,9 +3,12 @@
 </head>
 <body>
 <dom-module id="paper-array-input" attributes="values max title type subtext">
-	<link rel="stylesheet" href="paper-array-input.css">
 	<template>
-		<paper-material elevation="3" id="arrayInput">
+		<!-- build:css inline paper-array-input.css -->
+		<link rel="stylesheet" href="paper-array-input.css">
+		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
+		<div class="paper-material" elevation="3" id="arrayInput">
 			<template is="dom-if" if="[[_stringIsSet(title)]]">
 				<div id="arrayInputTitleContainer">
 					<div id="arrayInputTitle">
@@ -44,7 +47,7 @@
 					<paper-button on-tap="addLine" raised>add</paper-button>
 				</div>
 			</div>
-		</paper-material>
+		</div>
 	</template>
 </dom-module>
 <script src="paper-array-input.js"></script>

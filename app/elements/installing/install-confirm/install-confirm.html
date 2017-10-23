@@ -2,17 +2,20 @@
 <link rel="import" href="../../../bower_components/paper-checkbox/paper-checkbox.html"/>
 <dom-module id="install-confirm" attributes="script">
 	<template>
+		<!-- build:css inline install-confirm.css -->
 		<link rel="stylesheet" href="install-confirm.css"/>
+		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
 		<div id="scriptInstalled">
 			<center-element width="100vw" height="calc(100vh - 64px)">
-				<paper-material elevation="2" id="scriptInstalledBackground">
+				<div class="paper-material" elevation="2" id="scriptInstalledBackground">
 					<div id="scriptInstalledCenterCont">
 						<div id="scriptInstalledCheckmarkCont">
 							<div id="scriptInstalledCheckmark"></div>
 						</div>
 						<div id="scriptInstalledText">Installed!</div>
 					</div>
-				</paper-material>
+				</div>
 			</center-element>
 		</div>
 		<div id="scriptInfo">

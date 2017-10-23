@@ -7,10 +7,13 @@
 <link rel="import" href="../../elements/echo-html/echo-html.html" />
 <dom-module id="log-console">
 	<template>
+		<!-- build:css inline log-console.css -->
 		<link rel="stylesheet" href="log-console.css" />
-		<paper-material id="consoleCont" elevation="5">
+		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
+		<div class="paper-material" id="consoleCont" elevation="5">
 			<div id="console">
-				<paper-material elevation="2">
+				<div class="paper-material" elevation="2">
 					<div id="consoleInfo">
 						<div id="filterCont">
 							<div id="idFilter" class="dropdownFilter centerVertical">
@@ -91,14 +94,14 @@
 										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 									</svg>
 								</div>
-								<paper-material id="consoleInfoTxtCont" elevation="3">
+								<div class="paper-material" id="consoleInfoTxtCont" elevation="3">
 									<div id="consoleInfoTxt" class="expandLeft">
 										This page serves as a sort of devTools for specific instances of scripts on tabs.
 										You can choose to view logs for all instances, specific nodes, specific tabs, or a combination
 										of both. You can access a specific instance's variables and get/set them just as you would
 										in the chrome dev tools, to do this simply select an ID and a tab ID. 
 									</div>
-								</paper-material>
+								</div>
 							</div>
 							<div class="centerVertical">
 								<div id="totalLines">
@@ -107,7 +110,7 @@
 							</div>
 						</div>
 					</div>
-				</paper-material>
+				</div>
 				<div id="linesCont">
 					<div id="lines"></div>
 					<div id="inputFieldCont">
@@ -125,7 +128,7 @@
 				</div>
 			</div>
 			<div id="consoleFiller" on-tap="_focusInput"></div>
-		</paper-material>
+		</div>
 		<div id="contextMenu" data-element-type="ContextMenuElement">
 			<div on-tap="_contextStoreAsLocal" id="storeAsLocal" class="contextMenuElement">
 				Store as local variable

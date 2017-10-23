@@ -27,3 +27,7 @@
 #content {
 	pointer-events: all;
 }
+
+#centerVertical[hidden] {
+	display: none!important;
+}

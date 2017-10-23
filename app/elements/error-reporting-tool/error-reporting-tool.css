@@ -133,9 +133,9 @@
 	transform: rotate(45deg);
 	position: absolute;
 	top: 36px;
-    left: 24px;
-    width: 0;
-    height: 0;
+	left: 24px;
+	width: 0;
+	height: 0;
 	border-style: solid;
 	border-top: none;
 	border-left: none;
@@ -143,31 +143,31 @@
 	border-bottom-width: 0;
 	border-color: white;
 	margin-top: 8px;
-    margin-left: 4px;
+	margin-left: 4px;
 }
 
 #bugCheckmark.checked {
-  animation: error-checkmark-expand 140ms ease-out forwards;
+	animation: error-checkmark-expand 140ms ease-out forwards;
 }
 
 
 @keyframes error-checkmark-expand {
-  0% {
-    top: 36px;
-    left: 24px;
-    width: 0;
-    height: 0;
-	border-right-width: 6px;
-	border-bottom-width: 6px;
-  }
-  100% {
-    top: -4px;
-    left: 16px;
-    width: 20px;
-    height: 40px;
-	border-right-width: 6px;
-	border-bottom-width: 6px;
-  }
+	0% {
+		top: 36px;
+		left: 24px;
+		width: 0;
+		height: 0;
+		border-right-width: 6px;
+		border-bottom-width: 6px;
+	}
+	100% {
+		top: -4px;
+		left: 16px;
+		width: 20px;
+		height: 40px;
+		border-right-width: 6px;
+		border-bottom-width: 6px;
+	}
 }
 
 #bugCheckmarkCont {

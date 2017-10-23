@@ -10,6 +10,7 @@
 	<!-- build:css inline stylesheet-edit.css -->
 	<link rel="stylesheet" href="stylesheet-edit.css" />
 	<!-- /build -->
+	<style is="custom-style" include="paper-material-styles"></style>
 	<div id="codeEditCont">
 		<div id="settingsCont">
 			<div id="settings">
@@ -36,11 +37,11 @@
 							<path d="M0 0h24v24H0z" fill="none"/>
 							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 						</svg>
-						<paper-material id="codeInfoTxtCont" elevation="3">
+						<div class="paper-material" id="codeInfoTxtCont" elevation="3">
 							<div id="codeInfoTxt">
 								Non-togglable CSS is not in the right-click menu but always active instead.
 							</div>
-						</paper-material>
+						</div>
 					</div>
 				</div>
 				<div id="triggersCont">
@@ -96,7 +97,7 @@
 										<path d="M0 0h24v24H0z" fill="none"/>
 										<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 									</svg>
-									<paper-material id="triggersInfoTxtCont" elevation="3">
+									<div class="paper-material" id="triggersInfoTxtCont" elevation="3">
 										<div id="triggersInfoTxt">
 											For trigger mode "execute when visiting sides" urls need to match the following pattern
 											<a href="https://wiki.greasespot.net/Include_and_exclude_rules" target="_blank">this page</a>,
@@ -104,7 +105,7 @@
 											<a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">this page</a>.
 											Regular URLs without wildcards (*) will always work.
 										</div>
-									</paper-material>
+									</div>
 								</div>
 							</div>
 							<br/>
@@ -220,7 +221,7 @@
 							<path d="M0 0h24v24H0z" fill="none" />
 							<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
 						</svg>
-						<paper-material id="editorTabInfoTxtCont" elevation="3">
+						<div class="paper-material" id="editorTabInfoTxtCont" elevation="3">
 							<div id="editorTabInfoTxt">
 								Options can be accessed as follows:<br>
 								<ul>
@@ -239,7 +240,7 @@
 									</li>
 								</ul>
 							</div>
-						</paper-material>
+						</div>
 					</div>
 				</div>
 				<div id="container">

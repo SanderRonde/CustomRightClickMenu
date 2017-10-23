@@ -9,6 +9,7 @@
 		<!-- build:css inline script-edit.css -->
 		<link rel="stylesheet" href="script-edit.css" />
 		<!-- /build -->
+		<style is="custom-style" include="paper-material-styles"></style>
 		<div id="codeEditCont">
 			<div id="settingsCont">
 				<div id="settings">
@@ -79,7 +80,7 @@
 											<path d="M0 0h24v24H0z" fill="none"/>
 											<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
 										</svg>
-										<paper-material id="triggersInfoTxtCont" elevation="3">
+										<div class="paper-material" id="triggersInfoTxtCont" elevation="3">
 											<div id="triggersInfoTxt">
 												For trigger mode "execute when visiting sides" urls need to match the following pattern
 												<a href="https://wiki.greasespot.net/Include_and_exclude_rules" target="_blank">this page</a>,
@@ -87,7 +88,7 @@
 												<a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">this page</a>.
 												Regular URLs without wildcards (*) will always work.
 											</div>
-										</paper-material>
+										</div>
 									</div>
 								</div>
 								<br/>
@@ -207,11 +208,11 @@
 								<path d="M0 0h24v24H0z" fill="none" />
 								<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
 							</svg>
-							<paper-material id="codeInfoTxtCont" elevation="3">
+							<div class="paper-material" id="codeInfoTxtCont" elevation="3">
 								<div id="codeInfoTxt">
 									The background page will always be running. It's possible to communicate with it using the <a href="/html/crmAPIDocs.html#comm" target="_blank">crmAPI.comm API</a>. The scripts only share their permissions.
 								</div>
-							</paper-material>
+							</div>
 						</div>
 						<div id="docsLink">
 							<paper-button on-tap="openDocs" class="blue">DOCS</paper-button>
