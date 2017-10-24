@@ -88,7 +88,7 @@ interface Window {
 	unescape(str: string): string;
 	md5: (input: any) => string;
 
-	doc: IDMap['crm-app'];
+	doc: ModuleMap['crm-app'];
 	logElements?: {
 		logLines: any;
 	};

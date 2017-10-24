@@ -287,7 +287,7 @@ class IC {
 		this.$.scriptInstalled.classList.add('visible');
 	};
 
-	private static setMetaTag(this: InstallConfirm, name: keyof IDMap['install-confirm'], values: Array<string|number>) {
+	private static setMetaTag(this: InstallConfirm, name: keyof ModuleMap['install-confirm'], values: Array<string|number>) {
 		let value;
 		if (values) {
 			value = values[values.length - 1];

@@ -546,15 +546,14 @@ module.exports = function(grunt) {
 				src: ['test/test.js', 'test/UITest.js']
 			}
 		},
-		extractIdMaps: {
+		htmlTypings: {
 			app: {
 				options: {
 
 				},
 				files: [{
-					expand: true,
-					cwd: 'app/elements',
-					src: ['**/*.html', '!elements.html'],
+					expand: false,
+					src: ['app/elements/**/*.html', '!app/elements/elements.html'],
 					dest: 'app/elements/fileIdMaps.d.ts'
 				}]
 			}
@@ -597,6 +596,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-processhtml');
 	grunt.loadNpmTasks('grunt-vulcanize');
 	grunt.loadNpmTasks('grunt-zip');
+	grunt.loadNpmTasks('html-typings');
 
 	//Alias only tasks, not meant for running
 	grunt.registerTask('extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs']);
@@ -615,7 +615,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('defs', ['compile', 'extractDefs', 'processhtml:updateCRMDefs']);
 
 	//Extracts the HTML element ID to element type maps from HTML files
-	grunt.registerTask('updateTsIdMaps', ['extractIdMaps']);
+	grunt.registerTask('updateTsIdMaps', ['htmlTypings:app']);
 
 	//Extracts the external editor definitions and places them in build/
 	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite',
