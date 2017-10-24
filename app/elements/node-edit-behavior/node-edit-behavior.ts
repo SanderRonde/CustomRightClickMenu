@@ -481,7 +481,7 @@ class NEB {
 	}
 }
 
-type NodeEditBehaviorBase = typeof NEB & typeof nodeEditBehaviorProperties;
+type NodeEditBehaviorBase = Polymer.El<'node-edit-behavior', typeof NEB & typeof nodeEditBehaviorProperties>;
 type NodeEditBehavior<T> = T & NodeEditBehaviorBase;
 
 Polymer.NodeEditBehavior = NEB as NodeEditBehaviorBase;

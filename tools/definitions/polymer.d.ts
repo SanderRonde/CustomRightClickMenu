@@ -79,9 +79,25 @@ declare namespace Polymer {
 		_warn: typeof console.warn;
 	}
 
-	export type El<N extends keyof IDMap, T extends InitializerProperties> = 
+	interface BehaviorMap {
+		'node-edit-behavior': ModuleMap[
+			'divider-edit'|'link-edit'|'menu-edit'| 'script-edit'|'stylesheet-edit'
+		];
+		'paper-dropdown-behavior': ModuleMap[
+			'paper-dropdown-menu'|'paper-get-page-properties'|
+			'paper-libraries-selector'
+		];
+		'code-edit-behavior': ModuleMap[
+			'script-edit'|'stylesheet-edit'
+		]
+
+	}
+
+	type PolymerMap = ModuleMap & BehaviorMap;
+
+	export type El<N extends keyof PolymerMap, T extends InitializerProperties> = 
 		HTMLElementCopy & T & ElementBase & {
-			$: IDMap[N]	
+			$: PolymerMap[N]	
 		};
 
 	export type ElementTagNameMap = {
@@ -229,6 +245,7 @@ type HTMLTypeSwitcherElement = TypeSwitcher;
 type HTMLPaperDropdownMenuElement = PaperDropdownMenu;
 type HTMLPaperArrayInputElement = PaperArrayInput;
 type HTMLPaperRipplElement = HTMLElement;
+type HTMLEchoHtmlElement = EchoHtml;
 
 type ElementTagNameMaps = Polymer.ElementTagNameMap & 
 	HTMLElementTagNameMap & ElementTagNameMap;

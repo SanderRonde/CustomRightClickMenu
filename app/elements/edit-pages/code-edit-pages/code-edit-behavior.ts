@@ -1,8 +1,3 @@
-type CodeEditBehaviorBase = typeof CEB;
-
-type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
-	NodeEditBehavior<CodeEditBehaviorBase & T>;
-
 type CodeEditBehaviorScriptInstanceAdditions = ScriptEdit & {
 	isScript: true;
 };
@@ -16,7 +11,9 @@ type CodeEditBehaviorStylesheetInstance = CodeEditBehavior<CodeEditBehaviorStyle
 type CodeEditBehaviorInstance = NodeEditBehaviorScriptInstance|
 	NodeEditBehaviorStylesheetInstance;
 
-class CEB {
+class CEB {	
+	static properties = {};
+
 	/**
 	 * An interval to save any work not discarder or saved (say if your browser/pc crashes)
 	 */
@@ -232,4 +229,9 @@ class CEB {
 	}
 }
 
-Polymer.CodeEditBehavior = CEB;
+type CodeEditBehaviorBase = Polymer.El<'code-edit-behavior', typeof CEB>;
+
+type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
+	NodeEditBehavior<CodeEditBehaviorBase & T>;
+
+Polymer.CodeEditBehavior = CEB as CodeEditBehaviorBase;
