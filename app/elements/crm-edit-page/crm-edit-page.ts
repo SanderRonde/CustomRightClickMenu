@@ -24,12 +24,12 @@ const crmEditPageProperties: {
 			return {
 				'entry': {
 					name: 'scale-up-animation',
-					node: this.querySelector('#overlayCont'),
+					node: this.shadowRoot.querySelector('#overlayCont'),
 					duration: 300
 				},
 				'exit': {
 					name: 'scale-down-animation',
-					node: this.querySelector('#overlayCont'),
+					node: this.shadowRoot.querySelector('#overlayCont'),
 					duration: 300
 				}
 			};
@@ -305,7 +305,7 @@ class CEP {
 		$(this.$$('.popupCont')).click(function(e) {
 			e.stopPropagation();
 		});
-		this.$overlayEl = $(this.$$('.overlayCont'));
+		this.$overlayEl = $(this.$.overlayCont);
 		window.crmEditPage = this;
 		this.isLink = this.isMenu = this.isScript = this.isDivider = false;
 

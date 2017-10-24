@@ -287,7 +287,7 @@ class CA {
 		let fnName: keyof typeof listeners;
 		let pathIndex = 0;
 		let currentElement = event.path[pathIndex];
-		while (!('getAttribute' in currentElement) || !(fnName = (currentElement as Polymer.Element).getAttribute(propKey) as keyof typeof listeners) && pathIndex < event.path.length) {
+		while (!('getAttribute' in currentElement) || !(fnName = (currentElement as Polymer.PolymerElement).getAttribute(propKey) as keyof typeof listeners) && pathIndex < event.path.length) {
 			pathIndex++;
 			currentElement = event.path[pathIndex];
 		}
@@ -4083,7 +4083,7 @@ class CA {
 			props?: {
 				[key: string]: string;
 			}
-		}, children: Array<Polymer.Element | string> = []): Polymer.Element {
+		}, children: Array<Polymer.PolymerElement | string> = []): Polymer.PolymerElement {
 			const el = document.createElement(tagName);
 			if (options.id) {
 				el.id = options.id;
@@ -4110,27 +4110,27 @@ class CA {
 		static findElementWithTagname<T extends keyof ElementTagNameMaps>(path: Polymer.EventPath, tagName: T): ElementTagNameMaps[T] {
 			let index = 0;
 			let node = path[0];
-			while (!('tagName' in node) || (node as Polymer.Element).tagName.toLowerCase() !== tagName) {
+			while (!('tagName' in node) || (node as Polymer.PolymerElement).tagName.toLowerCase() !== tagName) {
 				node = path[++index];
 
 				if (index > path.length) {
 					return null;
 				}
 			}
-			return node as Polymer.Element;
+			return node as ElementTagNameMaps[T]
 		}
 
-		static findElementWithClassName(path: Polymer.EventPath, className: string): Polymer.Element {
+		static findElementWithClassName(path: Polymer.EventPath, className: string): Polymer.PolymerElement {
 			let index = 0;
 			let node = path[0];
-			while (!('classList' in node) || !(node as Polymer.Element).classList.contains(className)) {
+			while (!('classList' in node) || !(node as Polymer.PolymerElement).classList.contains(className)) {
 				node = path[++index];
 
 				if (index > path.length) {
 					return null;
 				}
 			}
-			return node as Polymer.Element;
+			return node as Polymer.PolymerElement;
 		}
 
 		/**

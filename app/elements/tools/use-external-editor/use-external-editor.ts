@@ -218,7 +218,7 @@ class UEE {
 			toolsCont.appendChild(window.app.util.createElement('div', {
 				id: 'externalEditingToolsTitle'
 			}, ['Using external editor']));
-			return toolsCont;
+			return toolsCont as HTMLElement;
 		}
 
 		private static createDisconnect(): HTMLElement {
@@ -260,7 +260,7 @@ class UEE {
 			el.addEventListener('click', () => {
 				this.parent().cancelOpenFiles.apply(this, []);
 			});
-			return el;
+			return el as HTMLElement;
 		}
 
 		private static createShowLocation() {

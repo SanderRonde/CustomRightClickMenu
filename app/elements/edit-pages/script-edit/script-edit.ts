@@ -26,7 +26,7 @@ class SCE {
 	}
 
 	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
-		if (this.querySelectorAll('.executionTrigger').length === 1) {
+		if (this.shadowRoot.querySelectorAll('.executionTrigger').length === 1) {
 			window.doc.messageToast.text = 'You need to have at least one trigger';
 			window.doc.messageToast.show();
 			return;
@@ -113,7 +113,7 @@ class SCE {
 		}
 	};
 
-	static switchBetweenScripts(this: NodeEditBehaviorScriptInstance, element: Polymer.Element) {
+	static switchBetweenScripts(this: NodeEditBehaviorScriptInstance, element: Polymer.PolymerElement) {
 		element.classList.remove('optionsEditorTab');
 		if (this.editorMode === 'options') {
 			try {
@@ -1347,7 +1347,7 @@ class SCE {
 		this._init();
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
-		this.$.exportMenu.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
+		this.$.exportMenu.shadowRoot.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
 		this.addDialogToMetaTagUpdateListeners();

@@ -263,7 +263,7 @@ class ERT {
 		}
 	}
 
-	static handleSelection(this: ErrorReportingTool, e: Polymer.DragEvent) {
+	static handleSelection(this: ErrorReportingTool, e: Polymer.PolymerDragEvent) {
 		switch (e.detail.state) {
 			case 'start':
 				this.$.highlightButtons.classList.add('hidden');

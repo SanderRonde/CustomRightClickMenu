@@ -440,7 +440,7 @@ class EC {
 	}
 
 	private static moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
-		const topLevelColumns = window.app.editCRM.querySelectorAll('.CRMEditColumnCont');
+		const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont');
 		for (let i = startColumn.index + 1; i < topLevelColumns.length; i++) {
 			this.setColumnContOffset(topLevelColumns[i] as HTMLElement & {
 				offset: number;
@@ -477,7 +477,7 @@ class EC {
 
 						//Disabe expanded status
 						node.expanded = false;
-						node.querySelector('.menuArrow').removeAttribute('expanded');
+						node.shadowRoot.querySelector('.menuArrow').removeAttribute('expanded');
 
 						//Hide columns to the right
 						for (let i = columnIndex + 1; i < allColumns.length; i++) {

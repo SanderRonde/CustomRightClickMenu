@@ -274,7 +274,7 @@ class NEB {
 	static clearTrigger(this: NodeEditBehaviorInstance, event: Polymer.ClickEvent) {
 		let target = event.target;
 		if (target.tagName === 'PAPER-ICON-BUTTON') {
-			target = target.children[0] as Polymer.Element;
+			target = target.children[0] as Polymer.PolymerElement;
 		}
 		// $(target.parentNode.parentNode).remove();
 		this.splice('newSettings.triggers',

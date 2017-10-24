@@ -166,14 +166,14 @@ class TS {
 		if (typeof e === 'string') {
 			type = e;
 		} else {
-			const path = e.path as Array<Polymer.Element>;
+			const path = e.path as Array<Polymer.PolymerElement>;
 			if (path[0].tagName === 'SPAN') {
 				type = path[0].innerHTML as CRM.NodeType;
 			} else {
 				type = path[0].children[0].innerHTML as CRM.NodeType;
 			}
 		}
-		const editCrmEl = this.parentElement.parentElement.parentElement as EditCrmItem;
+		const editCrmEl: EditCrmItem = this.parentElement.parentElement.parentElement as any;
 		const item = editCrmEl.item;
 		const prevType = item.type;
 
