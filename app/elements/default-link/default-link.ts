@@ -64,7 +64,7 @@ if (query) {
 	};
 
 	static reset(this: DefaultLink) {
-		this.querySelector('input').value = this.defaultName;
+		this.$.input.value = this.defaultName;
 	}
 }
 
