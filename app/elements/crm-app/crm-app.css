@@ -801,11 +801,6 @@ textarea#exportJSONData:focus {
 	width: 1028px;
 }
 
-#crmButtonsContainer {
-	display: -webkit-flex;
-	display: flex;
-}
-
 .importSettingsCont paper-checkbox, .exportSettingsCont paper-checkbox {
 	margin-top: 10px;
 	margin-bottom: 10px;

@@ -163,3 +163,8 @@ paper-material[is-empty] {
 *[hidden] {
 	display: none!important;
 }
+
+#crmButtonsContainer {
+	display: -webkit-flex;
+	display: flex;
+}
