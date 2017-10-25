@@ -172,19 +172,20 @@ class CEP {
 		}, {
 			transform: 'scale(1)'
 		}], {
-			duration: 300
+			duration: 300,
+			fill: 'forwards'
 		});
 	};
 	
 	static animateOut(this: CrmEditPage) {
 		this.overlayAnimation.reverse();
 		this.$.overlayCont.animate([{
-			transform: 'scale(0)'
-		}, {
 			transform: 'scale(1)'
+		}, {
+			transform: 'scale(0)'
 		}], {
 			duration: 300,
-			fill: 'backwards'
+			fill: 'forwards'
 		});
 		this.opened = false;
 		document.body.parentElement.style.overflow = 'auto';
