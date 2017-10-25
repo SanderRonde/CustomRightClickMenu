@@ -266,6 +266,7 @@ declare namespace Polymer {
 
 	interface ElementBase {
 		$$<K extends keyof ElementTagNameMaps>(selector: K): ElementTagNameMaps[K] | null;
+		$$<S extends keyof SelectorMap>(selector: S): SelectorMap[S] | null;
 		$$(selector: string): HTMLElement | null;
 		async(callback: () => void, time: number): void;
 		splice<T>(property: string, index: number, toRemove: number, replaceWith?: T): Array<T>;
