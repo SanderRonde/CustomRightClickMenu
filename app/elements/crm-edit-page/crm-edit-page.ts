@@ -1,40 +1,10 @@
 ﻿/// <reference path="../elements.d.ts" />
 
 const crmEditPageProperties: {
-	animationConfig: {
-		value(): {
-			entry: {
-				name: string;
-				node: HTMLElement;
-				duration: number;
-			},
-			exit: {
-				name: string;
-				node: HTMLElement;
-				duration: number;
-			}
-		}
-	};
 	item: CRM.Node;
 	nodeInfo: CRM.NodeInfo;
 	hideUpdateMessage: boolean;
 } = {
-	animationConfig: {
-		value: function(this: CrmEditPage) {
-			return {
-				'entry': {
-					name: 'scale-up-animation',
-					node: this.shadowRoot.querySelector('#overlayCont'),
-					duration: 300
-				},
-				'exit': {
-					name: 'scale-down-animation',
-					node: this.shadowRoot.querySelector('#overlayCont'),
-					duration: 300
-				}
-			};
-		}
-	},
 	/**
 	 * The item to edit
 	 */
@@ -63,8 +33,6 @@ const crmEditPageProperties: {
 
 class CEP {
 	static is: string = 'crm-edit-page';
-
-	static behaviors = [Polymer.NeonAnimationRunnerBehavior];
 
 	/**
 	 * Whether the item is a link
@@ -122,9 +90,9 @@ class CEP {
 	private static opened: boolean =  false;
 
 	/**
-     * The overlay element associated with the current dialog
+     * The backdrop element associated with the current dialog
      */
-	private static $overlayEl: JQuery;
+	private static backdropEl: HTMLElement;
 
 	/**
 	 * The overlayEl animation
@@ -164,7 +132,7 @@ class CEP {
 
 	static _onNeonAnimationFinish(this: CrmEditPage) {
 		if (!this.opened) {
-			this.$overlayEl[0].style.display = 'none';
+			this.backdropEl.style.display = 'none';
 			this.$.overlayCont.style.display = 'none';
 			document.body.style.overflow = 'auto';
 			document.body.style.marginRight = '0';
@@ -181,8 +149,8 @@ class CEP {
 	};
 
 	private static animateIn(this: CrmEditPage) {
-		this.$overlayEl.css('display', 'block');
-		(this.overlayAnimation && this.overlayAnimation.play()) || (this.overlayAnimation = this.$overlayEl[0].animate([
+		this.backdropEl.style.display = 'block';
+		(this.overlayAnimation && this.overlayAnimation.play()) || (this.overlayAnimation = this.backdropEl.animate([
 			{
 				opacity: 0
 			}, {
@@ -199,13 +167,25 @@ class CEP {
 		window.app.show = true;
 		this.opened = true;
 		this.$.overlayCont.style.display = 'block';
-		this.playAnimation('entry');
+		this.$.overlayCont.animate([{
+			transform: 'scale(0)'
+		}, {
+			transform: 'scale(1)'
+		}], {
+			duration: 300
+		});
 	};
 	
 	static animateOut(this: CrmEditPage) {
 		this.overlayAnimation.reverse();
-		this.$overlayEl.off('click');
-		this.playAnimation('exit');
+		this.$.overlayCont.animate([{
+			transform: 'scale(0)'
+		}, {
+			transform: 'scale(1)'
+		}], {
+			duration: 300,
+			fill: 'backwards'
+		});
 		this.opened = false;
 		document.body.parentElement.style.overflow = 'auto';
 	};
@@ -305,7 +285,7 @@ class CEP {
 		$(this.$$('.popupCont')).click(function(e) {
 			e.stopPropagation();
 		});
-		this.$overlayEl = $(this.$.overlayCont);
+		this.backdropEl = window.app.$$('.backdropCont');
 		window.crmEditPage = this;
 		this.isLink = this.isMenu = this.isScript = this.isDivider = false;
 
@@ -365,7 +345,7 @@ class CEP {
 }
 
 type CrmEditPage = Polymer.El<'crm-edit-page',
-	typeof CEP & typeof crmEditPageProperties & typeof Polymer.NeonAnimationRunnerBehavior
+	typeof CEP & typeof crmEditPageProperties
 >;
 
 if (window.objectify) {

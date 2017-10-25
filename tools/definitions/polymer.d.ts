@@ -18,9 +18,6 @@ declare namespace Polymer {
 		CodeEditBehavior: CodeEditBehaviorBase;
 		NodeEditBehavior: NodeEditBehaviorBase;
 		PaperDropdownBehavior: PaperDropdownBehaviorBase;
-		NeonAnimationRunnerBehavior: {
-			playAnimation(animation: string): void;	
-		};
 	}
 
 	export type RootElement = Node & GlobalEventHandlers & ElementTraversal & ChildNode & ParentNode & {
