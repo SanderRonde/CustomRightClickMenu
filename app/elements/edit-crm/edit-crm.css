@@ -159,3 +159,7 @@ paper-material[is-empty] {
 	height: 1px;
 	background-color: #b9b9b9;
 }
+
+*[hidden] {
+	display: none!important;
+}

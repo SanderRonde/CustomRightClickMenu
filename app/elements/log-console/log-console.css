@@ -433,3 +433,7 @@
 .evalElementStatus paper-spinner .circle {
 	border-width: 2px;
 }
+
+#inputFieldPrefix[hidden] {
+	display: none!important;
+}

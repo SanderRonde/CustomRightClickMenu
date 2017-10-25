@@ -196,3 +196,7 @@
 #reportingButtonElevation.checkmark #bugButton {
 	display: none;
 }
+
+.imgContainer[hidden] {
+	display: none!important;
+}

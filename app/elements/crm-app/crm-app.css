@@ -80,7 +80,7 @@ paper-ripple {
 	z-index:10;
 }
 
-.overlayCont {
+.backdropCont {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -1075,6 +1075,14 @@ paper-toggle-option #checkboxLabel {
 	height: 100%;
 	flex-direction: column;
 	justify-content: center;
+}
+
+#ribbonScriptName[hidden], #ribbonStylesheetName[hidden] {
+	display: none!important;
+}
+
+crm-edit-page[hidden] {
+	display: none!important;
 }
 
 paper-checkbox {

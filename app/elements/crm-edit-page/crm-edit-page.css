@@ -112,3 +112,7 @@ menu-edit, divider-edit, link-edit {
 #nodeInfoByYou {
 	text-decoration: underline;
 }
+
+*[hidden] {
+	display: none!important;
+}
