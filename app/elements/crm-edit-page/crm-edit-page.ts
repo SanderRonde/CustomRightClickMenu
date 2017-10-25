@@ -285,13 +285,15 @@ class CEP {
 		$(this.$$('.popupCont')).click(function(e) {
 			e.stopPropagation();
 		});
-		this.backdropEl = window.app.$$('.backdropCont');
-		window.crmEditPage = this;
-		this.isLink = this.isMenu = this.isScript = this.isDivider = false;
+		window.onExists('app', () => {
+			this.backdropEl = window.app.$$('.backdropCont');
+			window.crmEditPage = this;
+			this.isLink = this.isMenu = this.isScript = this.isDivider = false;
 
-		this.$.nodeInfoVersion.addEventListener('input', () => {
-			this.item.nodeInfo.version = this.$.nodeInfoVersion.innerText.length > 0 ?
-				this.$.nodeInfoVersion.innerText : '1.0';
+			this.$.nodeInfoVersion.addEventListener('input', () => {
+				this.item.nodeInfo.version = this.$.nodeInfoVersion.innerText.length > 0 ?
+					this.$.nodeInfoVersion.innerText : '1.0';
+			});
 		});
 	};
 	
