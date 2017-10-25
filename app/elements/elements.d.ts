@@ -183,7 +183,7 @@ interface Animation {
 }
 
 interface HTMLElement {
-	animate(properties: Array<{
+	animate(this: HTMLElement, properties: Array<{
 		[key: string]: any;
 	}>, options: {
 		duration?: number;

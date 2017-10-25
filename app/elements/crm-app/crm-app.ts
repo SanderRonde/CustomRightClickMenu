@@ -66,7 +66,13 @@ window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement,
 };
 
 if (!document.createElement('div').animate) {
-	HTMLElement.prototype.animate = function (this: HTMLElement, properties, options): Animation {
+	HTMLElement.prototype.animate = function (this: HTMLElement, properties:  Array<{
+		[key: string]: any;
+	}>, options: {
+		duration?: number;
+		easing?: string;
+		fill?: 'forwards'|'backwards'|'both';
+	}): Animation {
 		if (!properties[1]) {
 			return {
 				play: function () { },
@@ -918,7 +924,7 @@ class CA {
 			const data = JSON.stringify(localStorage);
 			const idb: IDBFactory = window.indexedDB || (window as any).webkitIndexedDB;
 			const req = idb.open('localStorageBackup', 1);
-			req.onerror = () => { console.log('Error backing up localStorage data'); };
+			req.onerror = () => { console.log('Error backing up localStorage data'); };			
 			req.onupgradeneeded = (event) => {
 				const db: IDBDatabase = (event.target as any).result;
 				const objectStore = db.createObjectStore('data', {
@@ -1635,7 +1641,6 @@ class CA {
 			for (i = 0; i < 6; i++) {
 				if (index === i) {
 					element = crmTypes[i] as HTMLElement;
-					console.log('Switching to icon', element);
 					element.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 					element.classList.add('toggled');
 
@@ -2646,7 +2651,6 @@ class CA {
 				for (i = 0; i < 6; i++) {
 					crmEl = this.parent().shadowRoot.querySelectorAll('.crmType').item(i) as HTMLElement;
 					if (i === type) {
-						console.log('Switching to icon', crmEl);
 						crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						crmEl.style.backgroundColor = 'rgb(243,243,243)';
 						crmEl.classList.add('toggled');
@@ -2675,7 +2679,6 @@ class CA {
 				for (i = 0; i < 6; i++) {
 					crmEl = crmTypes.item(i) as HTMLElement;
 					if (crmEl === element) {
-						console.log('Switching to icon', element);
 						crmEl.style.boxShadow = 'inset 0 5px 10px rgba(0,0,0,0.4)';
 						crmEl.style.backgroundColor = 'rgb(243,243,243)';
 						crmEl.classList.add('toggled');
@@ -2806,7 +2809,6 @@ class CA {
 					};
 					this.parent().$.importSettingsError.style.display = 'none';
 				} catch (e) {
-					console.log(e);
 					this.parent().$.importSettingsError.style.display = 'block';
 					return;
 				}
@@ -2855,7 +2857,6 @@ class CA {
 						alert('This method of importing no longer works, please export all your settings instead');
 					}
 				} catch (e) {
-					console.log(e);
 					this.parent().$.importSettingsError.style.display = 'block';
 					return;
 				}
