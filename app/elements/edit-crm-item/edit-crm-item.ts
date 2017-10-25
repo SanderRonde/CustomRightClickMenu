@@ -93,6 +93,16 @@ class ECI {
 	 */
 	static currentColumn: CRMColumnElement;
 
+	/**
+	 * Whether the element's attached callback has been called before
+	 */
+	private static hasBeenAttached: boolean = false;
+
+	/**
+	 * Whether the user is currently hovering over the type switcher
+	 */
+	private static hoveringTypeSwitcher: boolean = false;
+
 	static _openCodeSettings(this: EditCrmItem) {
 		window.app.initCodeOptions(this.item as CRM.ScriptNode|CRM.StylesheetNode);
 	}
@@ -113,7 +123,7 @@ class ECI {
 				}
 			}
 
-			this.ready();
+			this.attached(true);
 		}
 	};
 
@@ -142,13 +152,33 @@ class ECI {
 		});
 	}
 
-	private static ready(this: EditCrmItem) {
+	static onMouseOver(this: EditCrmItem, e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!this.hoveringTypeSwitcher) {
+			this.hoveringTypeSwitcher = true;
+			this.typeIndicatorMouseOver();
+		}
+	}
+
+	static attached(this: EditCrmItem, force: boolean = false) {
+		if (this.hasBeenAttached && !force) {
+			return;
+		}
+		this.hasBeenAttached = true;
+
 		if (this.classList.contains('draggingFiller')) {
 			//It's a dragging copy
 			return;
 		}
 
-		const __this = this;		
+		document.body.addEventListener('mouseover', () => {
+			if (this.hoveringTypeSwitcher) {
+				this.hoveringTypeSwitcher = false;
+				this.typeIndicatorMouseLeave();
+			}
+		});
+
 		window.onExists('app', () => {
 			if (this.rootNode) {
 				//Skip initialization, only name is changable
@@ -165,7 +195,7 @@ class ECI {
 				this.itemName = this.item.name;
 				this.calculateType();
 				this.itemIndex = this.index;
-				this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
+				this.$$('#typeSwitcher') && this.$$('#typeSwitcher').ready && this.$.typeSwitcher.ready();
 
 				if (window.app.editCRM.isSelecting) {
 					this.classList.add('selecting');
@@ -176,34 +206,8 @@ class ECI {
 					}
 				}
 			}
-			if (this.$.typeSwitcher) {
-				if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
-					this.$.typeSwitcher.addEventListener('mouseenter', function() {
-						__this.typeIndicatorMouseOver.apply(__this, []);
-					});
-					this.$.typeSwitcher.addEventListener('mouseleave', function() {
-						__this.typeIndicatorMouseLeave.apply(__this, []);
-					});
-				} else {
-					let hoveringTypeSwitcher = false;
-					this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
-						e.preventDefault();
-						e.stopPropagation();
-						if (!hoveringTypeSwitcher) {
-							hoveringTypeSwitcher = true;
-						__this.typeIndicatorMouseOver.apply(__this, []);
-						}
-					});
-					document.body.addEventListener('mouseover', function() {
-						if (hoveringTypeSwitcher) {
-							hoveringTypeSwitcher = false;
-							__this.typeIndicatorMouseLeave.apply(__this, []);
-						}
-					});
-				}
-			}
 		});
-	};
+	}
 
 	static openMenu(this: EditCrmItem) {
 		window.app.editCRM.build({
