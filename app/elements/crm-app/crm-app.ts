@@ -11,6 +11,10 @@
 	}
 
 	window.onExists = <T extends keyof Window>(key: T, callback: (val: Window[T]) => void) => {
+		if (key in window) {
+			callback(window[key]);
+			return;
+		}
 		const interval = window.setInterval(() => {
 			if (key in window) {
 				window.clearInterval(interval);
