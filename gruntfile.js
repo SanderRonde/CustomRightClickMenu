@@ -591,6 +591,20 @@ module.exports = function(grunt) {
 					src: './build/dev/app/shared_bundle_1.html'
 				}]
 			}
+		},
+		watch: {
+			tsApp: {
+				files: ['app/**/*.ts'],
+				tasks: ['ts:app']
+			},
+			tsTest: {
+				files: ['test/**/*.ts'],
+				tasks: ['ts:test']
+			},
+			htmlTypings: {
+				files: ['app/**/*.html'],
+				tasks: ['updateTsIdMaps']
+			}
 		}
 	});
 
@@ -602,6 +616,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-htmlmin');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-string-replace');
 	grunt.loadNpmTasks('grunt-ts');
@@ -663,6 +678,9 @@ module.exports = function(grunt) {
 
 	//Compiles all the typescript
 	grunt.registerTask('compile', ['ts:app', 'ts:test']);
+
+	//Watches all files for compilation
+	grunt.registerTask('watchCompile', ['updateTsIdMaps', 'compile', 'watch']);
 
 
 
