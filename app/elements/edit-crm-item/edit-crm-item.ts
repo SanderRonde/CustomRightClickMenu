@@ -195,7 +195,7 @@ class ECI {
 				this.itemName = this.item.name;
 				this.calculateType();
 				this.itemIndex = this.index;
-				this.$$('#typeSwitcher') && this.$$('#typeSwitcher').ready && this.$.typeSwitcher.ready();
+				this.$$('#typeSwitcher') && this.$$('#typeSwitcher').ready && this.$$('#typeSwitcher').ready();
 
 				if (window.app.editCRM.isSelecting) {
 					this.classList.add('selecting');
@@ -440,7 +440,7 @@ class ECI {
 		const _this = this;
 		this.lastTypeSwitchMouseover = null;
 		if (!this.shadow) {
-			const typeSwitcher = this.$.typeSwitcher;
+			const typeSwitcher = this.$$('#typeSwitcher');
 			if (typeSwitcher.toggledOpen) {
 				typeSwitcher.closeTypeSwitchContainer(true, function() {
 					typeSwitcher.toggledOpen = false;
