@@ -598,43 +598,62 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-zip');
 	grunt.loadNpmTasks('html-typings');
 
-	//Alias only tasks, not meant for running
+	/* Alias only tasks, not meant for running */
 	grunt.registerTask('_extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs']);
 	grunt.registerTask('_extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite',
 		'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 	grunt.registerTask('_defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
 
 
-	//Moves the gitignore for the gh-pages branch to the root
-	grunt.registerTask('changeGitIgnore', ['copy:gitignore']);
+
+	/* Convenience tasks */
 
 	//Cleans the build dir
 	grunt.registerTask('cleanBuild', ['clean:build']);
 
+
+
+	/* Defs related tasks */
+
 	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
 	grunt.registerTask('defs', ['compile', '_extractDefs', 'processhtml:updateCRMDefs']);
 
-	//Extracts the HTML element ID to element type maps from HTML files
-	grunt.registerTask('updateTsIdMaps', ['htmlTypings:app']);
-
 	//Extracts the external editor definitions and places them in build/
 	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite',
-		'extractCrmDefs:updateJSONDocsWebsite']);
+	'extractCrmDefs:updateJSONDocsWebsite']);
+
+
+
+	/* Website related tasks */
 
 	//Extracts the files needed for the documentationWebsite and places them in build/website
 	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite',
-		'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
-		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
-		'copy:documentationWebsite', '_defsNoClean', 'removePrefix', 'vulcanize']);
-
+	'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
+	'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
+	'copy:documentationWebsite', '_defsNoClean', 'removePrefix', 'vulcanize']);
+	
 	//Moves the documentationWebsite from build/website to /documentation
 	grunt.registerTask('moveDocumentationWebsite', ['compile', 'copy:moveDocumentationWebsite']);
+
+	//Moves the gitignore for the gh-pages branch to the root
+	grunt.registerTask('changeGitIgnore', ['copy:gitignore']);
 
 	//Moves the demo website to /demo
 	grunt.registerTask('demoWebsite', ['compile', 'copy:demoWebsite'])
 
+
+
+	/* Compilation related tasks */
+
+	//Extracts the HTML element ID to element type maps from HTML files
+	grunt.registerTask('updateTsIdMaps', ['htmlTypings:app']);
+
 	//Compiles all the typescript
 	grunt.registerTask('compile', ['exec:tsCompileApp', 'exec:tsCompileTests']);
+
+
+
+	/* Building the app */
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
@@ -676,8 +695,9 @@ module.exports = function(grunt) {
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
 	grunt.registerTask('test', ['testBuild', 'build', 'exec:test', 'compile', 'mochaTest']);
 
-
+	//Crisps all HTML files for CSP compliance
 	grunt.registerTask('crispify', ['crisp:optionsPage', 'crisp:background', 'crisp:shared']);
 
+	//Builds the polymer app
 	grunt.registerTask('polymer-build-dev', ['exec:polymerBuildDev', 'crispify']);
 };
