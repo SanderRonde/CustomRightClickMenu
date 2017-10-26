@@ -599,10 +599,10 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('html-typings');
 
 	//Alias only tasks, not meant for running
-	grunt.registerTask('extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs']);
-	grunt.registerTask('extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite',
+	grunt.registerTask('_extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs']);
+	grunt.registerTask('_extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite',
 		'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
-	grunt.registerTask('defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
+	grunt.registerTask('_defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
 
 
 	//Moves the gitignore for the gh-pages branch to the root
@@ -612,7 +612,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('cleanBuild', ['clean:build']);
 
 	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
-	grunt.registerTask('defs', ['compile', 'extractDefs', 'processhtml:updateCRMDefs']);
+	grunt.registerTask('defs', ['compile', '_extractDefs', 'processhtml:updateCRMDefs']);
 
 	//Extracts the HTML element ID to element type maps from HTML files
 	grunt.registerTask('updateTsIdMaps', ['htmlTypings:app']);
@@ -625,7 +625,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite',
 		'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
-		'copy:documentationWebsite', 'defsNoClean', 'removePrefix', 'vulcanize']);
+		'copy:documentationWebsite', '_defsNoClean', 'removePrefix', 'vulcanize']);
 
 	//Moves the documentationWebsite from build/website to /documentation
 	grunt.registerTask('moveDocumentationWebsite', ['compile', 'copy:moveDocumentationWebsite']);
@@ -639,7 +639,7 @@ module.exports = function(grunt) {
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
 	// for if you're running a typescript compiler on watch mode
-	grunt.registerTask('buildForDebuggingNoCompile', ['cleanBuild', 'extractDefs',
+	grunt.registerTask('buildForDebuggingNoCompile', ['cleanBuild', '_extractDefs',
 		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
 		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
@@ -649,7 +649,7 @@ module.exports = function(grunt) {
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
-	grunt.registerTask('buildForDebugging', ['cleanBuild', 'compile', 'extractDefs',
+	grunt.registerTask('buildForDebugging', ['cleanBuild', 'compile', '_extractDefs',
 		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
 		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
@@ -658,7 +658,7 @@ module.exports = function(grunt) {
 		'clean:tsFiles', 'uglify:bower_components', 'usebanner', 'zip']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['cleanBuild', 'compile', 'extractDefs', 'copy:build',
+	grunt.registerTask('build', ['cleanBuild', 'compile', '_extractDefs', 'copy:build',
 		'copyImportedElements:elements', 'copyImportedElements:installing', 'copy:installing',
 		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
@@ -670,7 +670,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
 
 	//Tests whether the extension can be built properly without errors
-	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', 'extractDefs',
+	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', '_extractDefs',
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
