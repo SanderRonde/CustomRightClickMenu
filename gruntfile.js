@@ -558,9 +558,21 @@ module.exports = function(grunt) {
 				}]
 			}
 		},
+		ts: {
+			app: {
+				tsconfig: {
+					tsconfig: './tsconfig.json',
+					passThrough: true
+				}
+			},
+			test: {
+				tsconfig: {
+					tsconfig: './test/tsconfig.json',
+					passThrough: true
+				}
+			}
+		},
 		exec: {
-			tsCompileApp: 'tsc',
-			tsCompileTests: 'tsc -p test/tsconfig.json',
 			polymerBuildDev: 'polymer build dev'
 		},
 		crisp: {
@@ -592,6 +604,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-string-replace');
+	grunt.loadNpmTasks('grunt-ts');
 	grunt.loadNpmTasks('grunt-mocha-test');
 	grunt.loadNpmTasks('grunt-processhtml');
 	grunt.loadNpmTasks('grunt-vulcanize');
@@ -649,7 +662,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('updateTsIdMaps', ['htmlTypings:app']);
 
 	//Compiles all the typescript
-	grunt.registerTask('compile', ['exec:tsCompileApp', 'exec:tsCompileTests']);
+	grunt.registerTask('compile', ['ts:app', 'ts:test']);
 
 
 
