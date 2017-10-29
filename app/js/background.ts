@@ -5791,7 +5791,40 @@ if (typeof module === 'undefined') {
 				}
 				return resourcesArray;
 			}
-			private static _executeScript(tabId: number, scripts: Array<{
+			private static _ensureRunAt(id: number, script: {
+				code?: string;
+				file?: string;
+				runAt: string;
+			}): {
+				code?: string;
+				file?: string;
+				runAt: 'document_start'|'document_end'|'document_idle';
+			} {
+				const newScript: {
+					code?: string;
+					file?: string;
+					runAt: 'document_start'|'document_end'|'document_idle';
+				} = {
+					code: script.code,
+					file: script.file,
+					runAt: 'document_idle'
+				};
+
+				const runAt = script.runAt;
+
+				if (runAt === 'document_start' ||
+					runAt === 'document_end' ||
+					runAt === 'document_idle') {
+						newScript.runAt = runAt;
+					} else {
+						window.log('Script widht id', id, 
+						'runAt value was changed to default, ', runAt, 
+						'is not a valid value (use document_start, document_end or document_idle)');
+					}
+
+				return newScript;
+			}
+			private static _executeScript(nodeId: number, tabId: number, scripts: Array<{
 				code?: string;
 				file?: string;
 				runAt: string;
@@ -5806,7 +5839,7 @@ if (typeof module === 'undefined') {
 					}
 					if (scripts.length > i) {
 						try {
-							chrome.tabs.executeScript(tabId, scripts[i], this._executeScript(tabId,
+							chrome.tabs.executeScript(tabId, this._ensureRunAt(nodeId, scripts[i]), this._executeScript(nodeId, tabId,
 								scripts, i + 1));
 						} catch (e) {
 							//The tab was closed during execution
@@ -5815,7 +5848,7 @@ if (typeof module === 'undefined') {
 				};
 			}
 
-			private static _executeScripts(tabId: number, scripts: Array<{
+			private static _executeScripts(nodeId: number, tabId: number, scripts: Array<{
 				code?: string;
 				file?: string;
 				runAt: string;
@@ -5829,7 +5862,7 @@ if (typeof module === 'undefined') {
 						}
 					});
 				} else {
-					this._executeScript(tabId, scripts, 0)();
+					this._executeScript(nodeId, tabId, scripts, 0)();
 				}
 			}
 
@@ -7069,7 +7102,7 @@ if (typeof module === 'undefined') {
 
 								const usesUnsafeWindow = node.value.script.indexOf('unsafeWindow') > -1;
 								const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
-								Script._executeScripts(tab.id, scripts, usesUnsafeWindow);
+								Script._executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 							});
 						}
 					};
