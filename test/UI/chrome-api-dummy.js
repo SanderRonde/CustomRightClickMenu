@@ -1046,6 +1046,11 @@ window.chrome = {
 				checkOnlyCallback(listener, false);
 			}
 		},
+		onUpdated: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}	
+		},
 		contains: function(permissionsObject, callback) {
 			typeCheck({
 				permissionsObject: permissionsObject,
