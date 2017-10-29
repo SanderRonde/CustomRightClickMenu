@@ -43,7 +43,7 @@ module.exports = function(grunt) {
 				files: [
 					{
 						src: ['app/js/crmapi.ts'],
-						dest: 'build/crmAPIDefs.js',
+						dest: 'buildBeforePolymer/crmAPIDefs.js',
 						expand: false
 					}
 				]
@@ -69,7 +69,7 @@ module.exports = function(grunt) {
 				files: [
 					{
 						src: ['app/js/crmapi.ts'],
-						dest: 'build/crmAPIDefs.json',
+						dest: 'buildBeforePolymer/crmAPIDefs.json',
 						expand: false
 					}
 				]
@@ -97,12 +97,12 @@ module.exports = function(grunt) {
 					}
 				},
 				files: {
-					'build/html/background.html': ['app/html/background.html'],
-					'build/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html'],
-					'build/elements/crm-app/crm-app.html': [
-						'build/elements/crm-app/crm-app.html'],
-					'build/html/options.html': ['build/html/options.html'],
-					'build/elements/installing/install-confirm/install-confirm.html': [
+					'buildBeforePolymer/html/background.html': ['app/html/background.html'],
+					'buildBeforePolymer/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html'],
+					'buildBeforePolymer/elements/crm-app/crm-app.html': [
+						'buildBeforePolymer/elements/crm-app/crm-app.html'],
+					'buildBeforePolymer/html/options.html': ['buildBeforePolymer/html/options.html'],
+					'buildBeforePolymer/elements/installing/install-confirm/install-confirm.html': [
 						'app/elements/installing/install-confirm/install-confirm.html'
 					]
 				}
@@ -116,7 +116,7 @@ module.exports = function(grunt) {
 					}
 				},
 				files: {
-					'build/website/index.html': ['app/html/crmAPIDocsUI.html']
+					'buildBeforePolymer/website/index.html': ['app/html/crmAPIDocsUI.html']
 				}
 			},
 			optimizeElementsCSS: {
@@ -127,7 +127,7 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'app/elements',
 					src: ['**/*.html'],
-					dest: 'build/elements'
+					dest: 'buildBeforePolymer/elements'
 				}]
 			}
 		},
@@ -139,7 +139,7 @@ module.exports = function(grunt) {
 			},
 			codeMirrorMinify: {
 				files: {
-					'build/js/libraries/codemirror/codeMirrorFile.min.js': [
+					'buildBeforePolymer/js/libraries/codemirror/codeMirrorFile.min.js': [
 						'app/js/libraries/codemirror/codemirror.js',
 						'app/js/libraries//diff_match_patch.js',
 						'app/js/libraries/sortable.js',
@@ -159,7 +159,7 @@ module.exports = function(grunt) {
 					ASCIIOnly: true
 				},
 				files: {
-					'build/js/libraries/codemirror/codeMirrorFile.min.js': [
+					'buildBeforePolymer/js/libraries/codemirror/codeMirrorFile.min.js': [
 						'app/js/libraries/codemirror/codemirror.js',
 						'app/js/libraries//diff_match_patch.js',
 						'app/js/libraries/sortable.js',
@@ -186,7 +186,7 @@ module.exports = function(grunt) {
 							'installStylesheet.js',
 							'calcPolyfill.js'
 						],
-						dest: 'build/js/'
+						dest: 'buildBeforePolymer/js/'
 					}
 				]
 			},
@@ -194,12 +194,12 @@ module.exports = function(grunt) {
 				options: {
 					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/\n'
 				},
-				files: [ { expand: true, src: ['build/elements/**/*.js'] } ]
+				files: [ { expand: true, src: ['buildBeforePolymer/elements/**/*.js'] } ]
 			},
 			bower_components: {
 				files: [{
 					expand: true,
-					src: ['build/bower_components/**/*.js']
+					src: ['buildBeforePolymer/bower_components/**/*.js']
 				}]
 			}
 		},
@@ -211,7 +211,7 @@ module.exports = function(grunt) {
 				src: ['app/js/libraries/jquery/jquery-2.0.3.js', 'app/js/libraries/jquery/jquery-ui.min.js',
 					 'app/js/libraries/jquery/jquery.requestAnimationFrame.min.js', 'app/js/libraries/jquery/jquery.contextMenu.js',
 					 'app/js/libraries/jquery/jquery.bez.js'],
-				dest: 'build/js/libraries/jquery/jqueryFiles.min.js'
+				dest: 'buildBeforePolymer/js/libraries/jquery/jqueryFiles.min.js'
 			}
 		},
 		usebanner: {
@@ -269,10 +269,11 @@ module.exports = function(grunt) {
 		copy: {
 			build: {
 				files: [
-					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'build/' }, //Fonts
-					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html'], dest: 'build/' }, //HTML files
-					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'build/' }, //Default libraries
-					{ expand: true, cwd: 'app/', src: ['bower_components/web-animations-js/*'], dest: 'build/' }, //Webanimations
+					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'buildBeforePolymer/' }, //Fonts
+					{ expand: true, cwd: 'app/', src: ['css/*'], dest: 'buildBeforePolymer/' }, //CSS
+					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html'], dest: 'buildBeforePolymer/' }, //HTML files
+					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'buildBeforePolymer/' }, //Default libraries
+					{ expand: true, cwd: 'app/', src: ['bower_components/web-animations-js/*'], dest: 'buildBeforePolymer/' }, //Webanimations
 					{
 						expand: true,
 						cwd: 'app/',
@@ -283,10 +284,10 @@ module.exports = function(grunt) {
 							'images/stylesheet.gif',
 							'images/whitearrow.png'
 						],
-						dest: 'build/' //Images
+						dest: 'buildBeforePolymer/' //Images
 					},
-					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.js'], dest: 'build/' }, //JS libs
-					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'build/' } //Misc files
+					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.js'], dest: 'buildBeforePolymer/' }, //JS libs
+					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'buildBeforePolymer/' } //Misc files
 				]
 			},
 			elements: {
@@ -302,7 +303,7 @@ module.exports = function(grunt) {
 					'bower_components/polymer/*',
 					'bower_components/webcomponentsjs/webcomponents.min.js'
 				],
-				dest: 'build/'
+				dest: 'buildBeforePolymer/'
 			}, //Elements
 			documentationWebsite: {
 				files: [
@@ -320,15 +321,15 @@ module.exports = function(grunt) {
 							'icon-supersmall.png',
 							'html/webmanifest.json'
 						],
-						dest: 'build/website/'
+						dest: 'buildBeforePolymer/website/'
 					}
 				]
 			},
 			moveDocumentationWebsite: {
 				files: [{
 					expand: true,
-					cwd: 'build/website',
-					src: ['**/*.*', '!build/website/'],
+					cwd: 'buildBeforePolymer/website',
+					src: ['**/*.*', '!buildBeforePolymer/website/'],
 					dest: './documentation/'
 				}]
 			},
@@ -366,7 +367,7 @@ module.exports = function(grunt) {
 							'installStylesheet.js',
 							'calcPolyfill.js'
 						],
-						dest: 'build/js/'
+						dest: 'buildBeforePolymer/js/'
 					}
 				]
 			},
@@ -385,8 +386,13 @@ module.exports = function(grunt) {
 						'install-page/install-page.css',
 						'install-page/install-page.js',
 					],
-					dest: 'build/elements/installing'
+					dest: 'buildBeforePolymer/elements/installing'
 				}]
+			},
+			html: {
+				files: [
+					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
+				]
 			}
 		},
 		htmlmin: {
@@ -397,7 +403,7 @@ module.exports = function(grunt) {
 					minifyCSS: true
 				},
 				files: [
-					{ expand: true, src: ['build/html/*'], filter: 'isFile' }
+					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
 				]
 			}
 		},
@@ -407,8 +413,8 @@ module.exports = function(grunt) {
 					shorthandCompacting: false
 				},
 				files: [
-					{ expand: true, cwd: 'app/css/', src: ['*', '!jquery.contextMenu.css'], dest: 'build/css/', ext: '.css' },
-					{ expand: true, cwd: 'app/css/', src: ['jquery.contextMenu.css'], dest: 'build/css/', ext: '.contextMenu.css' }
+					{ expand: true, cwd: 'app/css/', src: ['*', '!jquery.contextMenu.css'], dest: 'buildBeforePolymer/css/', ext: '.css' },
+					{ expand: true, cwd: 'app/css/', src: ['jquery.contextMenu.css'], dest: 'buildBeforePolymer/css/', ext: '.contextMenu.css' }
 				]
 			},
 			elements: {
@@ -416,7 +422,7 @@ module.exports = function(grunt) {
 					shorthandCompacting: false
 				},
 				files: [
-					{ expand: true, src: ['build/elements/**/*.css'], filter: 'isFile' }
+					{ expand: true, src: ['buildBeforePolymer/elements/**/*.css'], filter: 'isFile' }
 				]
 			}
 		},
@@ -429,7 +435,8 @@ module.exports = function(grunt) {
 		},
 		clean: {
 			build: ['build/'],
-			unzipped: ['build/**/*', '!build/*.zip'],
+			buildBeforePolymer: ['buildBeforePolymer/'],
+			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
 			tsFiles: ['build/elements/**/*.ts']
 		},
 		'string-replace': {
@@ -445,7 +452,7 @@ module.exports = function(grunt) {
 					]
 				},
 				files: {
-					'build/manifest.json': 'app/manifest.json'
+					'buildBeforePolymer/manifest.json': 'app/manifest.json'
 				}
 			},
 			removeCharacter: {
@@ -460,9 +467,9 @@ module.exports = function(grunt) {
 				},
 				files: [{
 					expand: true,
-					cwd: 'build/elements',
+					cwd: 'buildBeforePolymer/elements',
 					src: ['**/*.html'],
-					dest: 'build/elements'
+					dest: 'buildBeforePolymer/elements'
 				}]
 			}
 		},
@@ -480,7 +487,7 @@ module.exports = function(grunt) {
 					rootFolder: 'app/'
 				},
 				files: [
-					{ expand: true, cwd: 'app/elements/', src: 'elements.html', dest: 'build/' }
+					{ expand: true, cwd: 'app/elements/', src: 'elements.html', dest: 'buildBeforePolymer/' }
 				]
 			},
 			installing: {
@@ -496,7 +503,7 @@ module.exports = function(grunt) {
 					rootFolder: 'app/'
 				},
 				files: [
-					{ expand: true, cwd: 'app/elements/installing/', src: 'install-imports.html', dest: 'build/' }
+					{ expand: true, cwd: 'app/elements/installing/', src: 'install-imports.html', dest: 'buildBeforePolymer/' }
 				]
 			},
 			documentationWebsite: {
@@ -512,7 +519,7 @@ module.exports = function(grunt) {
 					rootFolder: 'app/html/'
 				},
 				files: [
-					{ expand: true, cwd: 'app/html/', src: 'crmAPIDocsElements.html', dest: 'build/website/' }
+					{ expand: true, cwd: 'app/html/', src: 'crmAPIDocsElements.html', dest: 'buildBeforePolymer/website/' }
 				]
 			}
 		},
@@ -521,20 +528,20 @@ module.exports = function(grunt) {
 				prefix: '../'
 			},
 			files: [
-				{ expand: true, cwd: 'build/website/', src: ['index.html', 'crmAPIDocsElements.html'] }
+				{ expand: true, cwd: 'buildBeforePolymer/website/', src: ['index.html', 'crmAPIDocsElements.html'] }
 			]
 		},
 		vulcanize: {
 			documentationWebsite: {
 				options: {
-					abspath: 'build/website/',
+					abspath: 'buildBeforePolymer/website/',
 					inlineScripts: true,
 					inlineCss: true,
 					stripComments: true,
 					targetUrl: 'crmAPIDocsElements.html'
 				},
 				files: {
-					'build/website/crmAPIDocsElements.html': 'crmAPIDocsElements.html'
+					'buildBeforePolymer/website/crmAPIDocsElements.html': 'crmAPIDocsElements.html'
 				}
 			}
 		},
@@ -572,23 +579,20 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		exec: {
-			polymerBuildDev: 'polymer build dev'
-		},
 		crisp: {
 			optionsPage: {
 				files: [{
-					src: './build/dev/app/html/options.html'
+					src: './buildBeforePolymer/dev/app/html/options.html'
 				}]
 			},
 			background: {
 				files: [{
-					src: './build/dev/app/html/background.html'
+					src: './buildBeforePolymer/dev/app/html/background.html'
 				}]
 			},
 			shared: {
 				files: [{
-					src: './build/dev/app/shared_bundle_1.html'
+					src: './buildBeforePolymer/dev/app/shared_bundle_1.html'
 				}]
 			}
 		},
@@ -604,6 +608,75 @@ module.exports = function(grunt) {
 			htmlTypings: {
 				files: ['app/**/*.html'],
 				tasks: ['updateTsIdMaps']
+			}
+		},
+		polymerBuild: {
+			dev: {
+				options: {
+					project: {
+						entrypoint: "html/base.html",
+						fragments: [
+							"html/options.html",
+							"html/background.html"
+						],
+						root: "buildBeforePolymer/",
+						extraDependencies: [
+							"css/**/*",
+							"fonts/**/*",
+							"images/**/*",
+							"js/**/*.*",
+							"icon-large.png",
+							"icon-small.png",
+							"icon-supersmall.png",
+							"LICENSE.txt",
+							"manifest.json"
+						],
+					},
+					optimization: {
+						bundle: true,
+						js: {
+							compile: true
+						}
+					},
+					dest: './build/'
+				}
+			},
+			prod: {
+				options: {
+					project: {
+						entrypoint: "html/base.html",
+						fragments: [
+							"html/options.html",
+							"html/background.html"
+						],
+						root: "buildBeforePolymer/",
+						extraDependencies: [
+							"css/**/*",
+							"fonts/**/*",
+							"images/**/*",
+							"js/**/*.*",
+							"icon-large.png",
+							"icon-small.png",
+							"icon-supersmall.png",
+							"LICENSE.txt",
+							"manifest.json"
+						],
+					},
+					optimization: {
+						bundle: true,
+						js: {
+							compile: true,
+							minify: true
+						},
+						css: {
+							minify: true
+						},
+						html: {
+							minify: true
+						}
+					},
+					dest: './build/'
+				}
 			}
 		}
 	});
@@ -677,7 +750,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('updateTsIdMaps', ['htmlTypings:app']);
 
 	//Compiles all the typescript
-	grunt.registerTask('compile', ['ts:app', 'ts:test']);
+	grunt.registerTask('compile', ['updateTsIdMaps', 'ts:app', 'ts:test']);
 
 	//Watches all files for compilation
 	grunt.registerTask('watchCompile', ['updateTsIdMaps', 'compile', 'watch']);
@@ -694,8 +767,8 @@ module.exports = function(grunt) {
 		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
-		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
-		'clean:tsFiles', 'usebanner', 'zip']);
+		'copy:jsFiles', 'copy:html', 'polymerBuild:dev',
+		'clean:tsFiles', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
@@ -704,8 +777,8 @@ module.exports = function(grunt) {
 		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
-		'copy:jsFiles', 'htmlmin:build', 'cssmin:build', 'cssmin:elements', 
-		'clean:tsFiles', 'uglify:bower_components', 'usebanner', 'zip']);
+		'copy:jsFiles', 'copy:html', 'polymerBuild:dev',
+		'clean:tsFiles', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['cleanBuild', 'compile', '_extractDefs', 'copy:build',
@@ -713,8 +786,8 @@ module.exports = function(grunt) {
 		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
 		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinify',
-		'uglify:crmMinifiy', 'uglify:elementsMinify', 'htmlmin:build', 'cssmin:build',
-		'cssmin:elements', 'uglify:bower_components', 'clean:tsFiles', 'usebanner', 'zip']);
+		'uglify:crmMinifiy', 'uglify:elementsMinify', 'clean:tsFiles',
+		'copy:html', 'polymerBuild:prod', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
@@ -728,7 +801,4 @@ module.exports = function(grunt) {
 
 	//Crisps all HTML files for CSP compliance
 	grunt.registerTask('crispify', ['crisp:optionsPage', 'crisp:background', 'crisp:shared']);
-
-	//Builds the polymer app
-	grunt.registerTask('polymer-build-dev', ['exec:polymerBuildDev', 'crispify']);
 };

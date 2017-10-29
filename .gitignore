@@ -232,3 +232,4 @@ test/UITest.js
 .tscache
 
 app/elements/fileIdMaps.d.ts
+buildBeforePolymer/
