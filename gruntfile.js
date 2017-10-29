@@ -648,7 +648,7 @@ module.exports = function(grunt) {
 
 	//Extracts the external editor definitions and places them in build/
 	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite',
-	'extractCrmDefs:updateJSONDocsWebsite']);
+		'extractCrmDefs:updateJSONDocsWebsite']);
 
 
 
@@ -656,9 +656,9 @@ module.exports = function(grunt) {
 
 	//Extracts the files needed for the documentationWebsite and places them in build/website
 	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite',
-	'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
-	'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
-	'copy:documentationWebsite', '_defsNoClean', 'removePrefix', 'vulcanize']);
+		'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
+		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
+		'copy:documentationWebsite', '_defsNoClean', 'removePrefix', 'vulcanize']);
 	
 	//Moves the documentationWebsite from build/website to /documentation
 	grunt.registerTask('moveDocumentationWebsite', ['compile', 'copy:moveDocumentationWebsite']);
