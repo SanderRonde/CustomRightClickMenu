@@ -2191,6 +2191,7 @@ if (typeof module === 'undefined') {
 						resolve(null);
 					} else {
 						Promiselike.all(tabs.map((tab) => {
+							let resolved: boolean = false;
 							return new Promiselike<void>((resolveInner) => {
 								if (tab.url.indexOf('chrome://') === -1 &&
 									tab.url.indexOf('file://') === -1) {
@@ -2199,13 +2200,22 @@ if (typeof module === 'undefined') {
 									}, () => {
 										if (chrome.runtime.lastError) {
 											window.log('Failed to restore tab with id', tab.id);
+											resolved = true;
 											resolveInner(null);
 										}
 										window.log('Restored tab with id', tab.id);
+										resolved = true;
 										resolveInner(null);
 									});
+									window.setTimeout(() => {
+										if (!resolved) {
+											window.log('Skipping restoration of tab with id', tab.id, 'because the user is debugging it');
+											resolveInner(null);
+										}
+									}, 2500);
 								} else {
 									window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
+									resolved = true;
 									resolveInner(null);
 								}
 							});
