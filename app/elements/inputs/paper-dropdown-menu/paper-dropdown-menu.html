@@ -1,7 +1,7 @@
 ﻿<link rel="import" href="../paper-dropdown-behavior/paper-dropdown-behavior.html"/>
 <dom-module id="paper-dropdown-menu" attributes="selected indent overflowing label fancylabel raised subtext">
 	<template>
-		<!-- build:css inline paper-dropdown-menu.css -->
+		<!-- build:css inline -->
 		<link rel="stylesheet" href="paper-dropdown-menu.css" />
 		<!-- /build -->
 		<template is="dom-if" if="[[_hasFancyLabel(fancylabel)]]"> 
@@ -27,4 +27,6 @@
 		</div>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="paper-dropdown-menu.js"></script>
+<!-- /build -->

@@ -1,7 +1,7 @@
 ﻿<!DOCTYPE HTML>
 <dom-module id="type-switcher" attributes="type">
 	<template>
-		<!-- build:css inline type-switcher.css -->
+		<!-- build:css -->
 		<link rel="stylesheet" href="type-switcher.css" />
 		<!-- /build -->
 		<div on-tap="toggleTypeSwitch" link$="{{isLink}}" script$="{{isScript}}" divider$="{{isDivider}}" menu$="{{isMenu}}" stylesheet$="{{isStylesheet}}" class="TSContainer">
@@ -19,4 +19,6 @@
 		</div>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="type-switcher.js"></script>
+<!-- /build -->

@@ -2,12 +2,11 @@
 <head>
 </head>
 <body>
+	<link rel="import" href="../../node-edit-behavior/node-edit-behavior.html" />
 	<dom-module id="divider-edit" attributes="item">
 		<template>
-			<!-- build:css inline ../../node-edit-behavior/node-edit-behavior.css -->
+			<!-- build:css inline -->
 			<link rel="stylesheet" href="../../node-edit-behavior/node-edit-behavior.css" />
-			<!-- /build -->
-			<!-- build:css inline divider-edit.css -->
 			<link rel="stylesheet" href="divider-edit.css" />
 			<!-- /build -->
 			<style is="custom-style" include="paper-material-styles"></style>
@@ -144,6 +143,8 @@
 			</div>
 		</template>
 	</dom-module>
+	<!-- build:js inline -->
 	<script src="divider-edit.js"></script>
+	<!-- /build -->
 </body>
 </html>

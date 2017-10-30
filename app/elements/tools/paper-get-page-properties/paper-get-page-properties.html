@@ -2,9 +2,12 @@
 <head>
 </head>
 <body>
+<link rel="import" href="../paper-dropdown-behavior/paper-dropdown-behavior.html"/>
 <dom-module id="paper-get-page-properties">
-	<link rel="stylesheet" href="paper-get-page-properties.css"/>
 	<template>
+		<!-- build:css inline -->
+		<link rel="stylesheet" href="paper-get-page-properties.css"/>
+		<!-- /build -->
 		<div on-tap="_toggleDropdown" id="dropdownSelectedCont">
 			<div id="dropdownSelected">Get page property</div>
 			<svg id="dropdownArrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
@@ -18,6 +21,8 @@
 		</paper-menu>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="paper-get-page-properties.js"></script>
+<!-- /build -->
 </body>
 </html>

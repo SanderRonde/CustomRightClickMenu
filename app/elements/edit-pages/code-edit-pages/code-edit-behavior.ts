@@ -234,4 +234,4 @@ type CodeEditBehaviorBase = Polymer.El<'code-edit-behavior', typeof CEB>;
 type CodeEditBehavior<T = CodeEditBehaviorScriptInstanceAdditions|CodeEditBehaviorStylesheetInstanceAdditions> = 
 	NodeEditBehavior<CodeEditBehaviorBase & T>;
 
-Polymer.CodeEditBehavior = CEB as CodeEditBehaviorBase;
+Polymer.CodeEditBehavior = Polymer.CodeEditBehavior || CEB as CodeEditBehaviorBase;

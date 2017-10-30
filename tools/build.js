@@ -14,8 +14,6 @@ const babelPresetEs5 = require('babel-plugin-transform-es5-property-mutators');
 const es2015Preset = babelPreset2015.buildPreset({}, {
 	modules: false
 });
-const es3Preset = presetEs3.plugins;
-const es5Preset = [babelPresetEs5];
 const htmlMinifier = require('html-minifier');
 const cssSlam = require('css-slam');
 const dest = require('vinyl-fs').dest;
@@ -34,7 +32,9 @@ class GenericOptimizeTransform extends stream.Transform {
 		super({objectMode: true});
 		this.optimizer = optimizer;
 		this.optimizerName = optimizerName;
-		this.optimizerOptions = optimizerOptions || {};
+		this.optimizerOptions = Object.assign(optimizerOptions || {}, {
+			compact: true	
+		});
 	}
 	
 	_transform(file, _encoding, callback) {
@@ -65,8 +65,8 @@ class JSBabelTransform extends GenericOptimizeTransform {
 class JSDefaultCompileTransform extends JSBabelTransform {
 	constructor() {
 		super({
-			presets: [es3Preset, es5Preset, es2015Preset],
-			plugins: [externalHelpers],
+			presets: [presetEs3, es2015Preset],
+			plugins: [externalHelpers, babelPresetEs5],
 		});
 	}
 }

@@ -4,7 +4,7 @@
 <body>
 <dom-module id="center-element" attributes="width height fullscreenoverlay fullscreen hide requested-permissions other-permissions nostyle">
 	<template>
-		<!-- build:css inline center-element.css -->
+		<!-- build:css inline -->
 		<link rel="stylesheet" href="center-element.css"/>
 		<!-- /build -->
 		<div hidden$="[[hide]]" id="centerVertical">
@@ -16,6 +16,8 @@
 		</div>
 	</template>
 </dom-module>
+<!-- build:js inline -->
 <script src="center-element.js"></script>
+<!-- /build -->
 </body>
 </html>
