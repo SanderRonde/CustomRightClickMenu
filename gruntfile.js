@@ -119,7 +119,7 @@ module.exports = function(grunt) {
 					'buildBeforePolymer/website/index.html': ['app/html/crmAPIDocsUI.html']
 				}
 			},
-			optimizeElementsCSS: {
+			inlineElementImports: {
 				options: {
 					strip: true
 				},
@@ -203,17 +203,6 @@ module.exports = function(grunt) {
 				}]
 			}
 		},
-		concat: {
-			options: {
-				seperator: ';\n'
-			},
-			jqueryConcat: {
-				src: ['app/js/libraries/jquery/jquery-2.0.3.js', 'app/js/libraries/jquery/jquery-ui.min.js',
-					 'app/js/libraries/jquery/jquery.requestAnimationFrame.min.js', 'app/js/libraries/jquery/jquery.contextMenu.js',
-					 'app/js/libraries/jquery/jquery.bez.js'],
-				dest: 'buildBeforePolymer/js/libraries/jquery/jqueryFiles.min.js'
-			}
-		},
 		usebanner: {
 			codeMirrorBanner: {
 				options: {
@@ -244,26 +233,6 @@ module.exports = function(grunt) {
 				files: {
 					src: ['build/js/background.js', 'build/js/crmapi.js', 'build/js/crmAPIDefs.js', 'build/js/crmAPIDocs.js']
 				}
-			},
-			cssBanners: {
-				options: {
-					position: 'top',
-					banner: '/*\n * Original can be found at https://github.com/SanderRonde/CustomRightClickMenu \n * This code may only be used under the MIT style license found in the LICENSE.txt file \n**/',
-					linebreak: true
-				},
-				files: {
-					src: ['build/css/*', '!build/css/jquery.contextMenu.css']
-				}
-			},
-			jqueryContextMenuBanner: {
-				options: {
-					position: 'top',
-					banner: '\n' + jqueryContextMenuLicense,
-					linebreak: true
-				},
-				files: {
-					src: ['build/css/jquery.contextMenu.css']
-				}
 			}
 		},
 		copy: {
@@ -271,9 +240,9 @@ module.exports = function(grunt) {
 				files: [
 					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'buildBeforePolymer/' }, //Fonts
 					{ expand: true, cwd: 'app/', src: ['css/*'], dest: 'buildBeforePolymer/' }, //CSS
-					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html'], dest: 'buildBeforePolymer/' }, //HTML files
+					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html'], dest: 'buildBeforePolymer/' }, //HTML files
 					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'buildBeforePolymer/' }, //Default libraries
-					{ expand: true, cwd: 'app/', src: ['bower_components/web-animations-js/*'], dest: 'buildBeforePolymer/' }, //Webanimations
+					{ expand: true, cwd: 'app/', src: ['bower_components/**/*'], dest: 'buildBeforePolymer/' }, //Webanimations
 					{
 						expand: true,
 						cwd: 'app/',
@@ -287,7 +256,7 @@ module.exports = function(grunt) {
 						dest: 'buildBeforePolymer/' //Images
 					},
 					{ expand: true, cwd: 'app/', src: ['js/libraries/jsonfn.js', 'js/libraries/md5.js', 'js/libraries/jquery/jquery-2.0.3.js'], dest: 'buildBeforePolymer/' }, //JS libs
-					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json'], dest: 'buildBeforePolymer/' } //Misc files
+					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json', 'elements/change-log/changelog.js'], dest: 'buildBeforePolymer/' } //Misc files
 				]
 			},
 			elements: {
@@ -404,25 +373,6 @@ module.exports = function(grunt) {
 				},
 				files: [
 					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
-				]
-			}
-		},
-		cssmin: {
-			build: {
-				options: {
-					shorthandCompacting: false
-				},
-				files: [
-					{ expand: true, cwd: 'app/css/', src: ['*', '!jquery.contextMenu.css'], dest: 'buildBeforePolymer/css/', ext: '.css' },
-					{ expand: true, cwd: 'app/css/', src: ['jquery.contextMenu.css'], dest: 'buildBeforePolymer/css/', ext: '.contextMenu.css' }
-				]
-			},
-			elements: {
-				options: {
-					shorthandCompacting: false
-				},
-				files: [
-					{ expand: true, src: ['buildBeforePolymer/elements/**/*.css'], filter: 'isFile' }
 				]
 			}
 		},
@@ -621,7 +571,6 @@ module.exports = function(grunt) {
 						],
 						root: "buildBeforePolymer/",
 						extraDependencies: [
-							"css/**/*",
 							"fonts/**/*",
 							"images/**/*",
 							"js/**/*.*",
@@ -651,7 +600,6 @@ module.exports = function(grunt) {
 						],
 						root: "buildBeforePolymer/",
 						extraDependencies: [
-							"css/**/*",
 							"fonts/**/*",
 							"images/**/*",
 							"js/**/*.*",
@@ -684,7 +632,6 @@ module.exports = function(grunt) {
 	grunt.loadTasks('tools');
 	grunt.loadNpmTasks('grunt-banner');
 	grunt.loadNpmTasks('grunt-contrib-clean');
-	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-cssmin');
 	grunt.loadNpmTasks('grunt-contrib-htmlmin');
@@ -730,7 +677,7 @@ module.exports = function(grunt) {
 	//Extracts the files needed for the documentationWebsite and places them in build/website
 	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite',
 		'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
-		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
+		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
 		'copy:documentationWebsite', '_defsNoClean', 'removePrefix', 'vulcanize']);
 	
 	//Moves the documentationWebsite from build/website to /documentation
@@ -759,35 +706,29 @@ module.exports = function(grunt) {
 
 	/* Building the app */
 
+	//Runs all of the build steps before polymerBuild is invoked
+	grunt.registerTask('_buildPrePolymer', ['cleanBuild', '_extractDefs',
+		'copy:build', 'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
+		'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
+		'copy:jsFiles', 'copy:html']);
+
+	//Runs all of the build steps after polymerBuild is invoked
+	grunt.registerTask('_buildPostPolymer', ['usebanner', 'clean:buildBeforePolymer', 'zip']);
+
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
 	// for if you're running a typescript compiler on watch mode
-	grunt.registerTask('buildForDebuggingNoCompile', ['cleanBuild', '_extractDefs',
-		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
-		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
-		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
-		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
-		'copy:jsFiles', 'copy:html', 'polymerBuild:dev',
-		'clean:tsFiles', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
+	grunt.registerTask('buildForDebuggingNoCompile', ['_buildPrePolymer', 
+		'polymerBuild:dev', '_buildPostPolymer']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
-	grunt.registerTask('buildForDebugging', ['cleanBuild', 'compile', '_extractDefs',
-		'copy:build', 'copyImportedElements:elements', 'copyImportedElements:installing',
-		'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
-		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
-		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
-		'copy:jsFiles', 'copy:html', 'polymerBuild:dev',
-		'clean:tsFiles', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
+	grunt.registerTask('buildForDebugging', ['compile', 'buildForDebuggingNoCompile']);
 
 	//Builds the extension and places the zip and all other files in build/
-	grunt.registerTask('build', ['cleanBuild', 'compile', '_extractDefs', 'copy:build',
-		'copyImportedElements:elements', 'copyImportedElements:installing', 'copy:installing',
-		'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
-		'processhtml:optimizeElementsCSS', 'string-replace:removeCharacter',
-		'concat:jqueryConcat', 'copy:elements', 'uglify:codeMirrorMinify',
-		'uglify:crmMinifiy', 'uglify:elementsMinify', 'clean:tsFiles',
-		'copy:html', 'polymerBuild:prod', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
+	grunt.registerTask('build', ['compile', '_buildPrePolymer',
+		'polymerBuild:prod', '_buildPostPolymer']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
