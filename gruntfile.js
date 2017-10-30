@@ -532,17 +532,17 @@ module.exports = function(grunt) {
 		crisp: {
 			optionsPage: {
 				files: [{
-					src: './buildBeforePolymer/dev/app/html/options.html'
+					src: './buildBeforePolymer/app/html/options.html'
 				}]
 			},
 			background: {
 				files: [{
-					src: './buildBeforePolymer/dev/app/html/background.html'
+					src: './buildBeforePolymer/app/html/background.html'
 				}]
 			},
 			shared: {
 				files: [{
-					src: './buildBeforePolymer/dev/app/shared_bundle_1.html'
+					src: './buildBeforePolymer/app/shared_bundle_1.html'
 				}]
 			}
 		},
@@ -714,7 +714,7 @@ module.exports = function(grunt) {
 		'copy:jsFiles', 'copy:html']);
 
 	//Runs all of the build steps after polymerBuild is invoked
-	grunt.registerTask('_buildPostPolymer', ['usebanner', 'clean:buildBeforePolymer', 'zip']);
+	grunt.registerTask('_buildPostPolymer', ['crispify', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
