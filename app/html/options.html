@@ -126,7 +126,7 @@
 	</style>
 	<link async rel="stylesheet" href="../css/codemirror.css" />
 	<link rel="import" href="base.html"/>
-	<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+	<script src="../bower_components/webcomponentsjs/webcomponents-es5-loader.js"></script>
 	<link rel="import" href="../bower_components/polymer/polymer.html" />
 	<link rel="import" href="../bower_components/paper-input/paper-input.html" />
 	<link async rel="import" href="../elements/crm-app/crm-app.html" />
@@ -228,21 +228,19 @@
 			</div>
 		</paper-material>
 	</template>
-	<!-- build:js ../js/libraries/jquery/jqueryFiles.min.js -->
+	<!-- build:js inline -->
 	<script src="../js/libraries/jquery/jquery-2.0.3.js"></script>
 	<script src="../js/libraries/jquery/jquery-ui.min.js"></script>
 	<script src="../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
 	<script src="../js/libraries/jquery/jquery.contextMenu.js"></script>
 	<script src="../js/libraries/jquery/jquery.bez.js"></script>
-	<!-- /build -->
-	<!-- build:js ../js/libraries/codemirror/codeMirrorFile.min.js -->
 	<script defer src="../js/libraries/codemirror/codemirror.js"></script>
 	<script defer src="../js/libraries/diff_match_patch.js"></script>
 	<script defer src="../js/libraries/codemirror/codeMirrorAddons.js" async></script>
 	<script defer src="../js/userscriptMetadataCodemirror.js" async></script>
 	<script defer src="../js/libraries/codemirror/codemirrorJs.js" async></script>
 	<script defer src="../js/crmAPIDefs.js" async></script>
-	<!-- /build -->
 	<script src="../js/calcPolyfill.js" defer async></script>
+	<!-- /build -->
 </body>
 </html>
