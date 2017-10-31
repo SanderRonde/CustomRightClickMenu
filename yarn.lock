@@ -1439,7 +1439,7 @@ crisper@^1.0.3:
     dom5 "^1.0.1"
     nopt "^3.0.1"
 
-crisper@^2.1.1:
+crisper@^2.0.1, crisper@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/crisper/-/crisper-2.1.1.tgz#4cc7321c3e90f3c5cbdc3503217f118fd7d5c51c"
   dependencies:
@@ -2171,6 +2171,13 @@ grunt-contrib-watch@^1.0.0:
     gaze "^1.0.0"
     lodash "^3.10.1"
     tiny-lr "^0.2.1"
+
+grunt-crisper@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/grunt-crisper/-/grunt-crisper-1.0.1.tgz#e7c091dcaff10deb0091e3035ca7e54008991fe7"
+  dependencies:
+    crisper "^2.0.1"
+    object-assign "^4.0.1"
 
 grunt-exec@^2.0.0:
   version "2.0.0"

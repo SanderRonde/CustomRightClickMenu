@@ -486,18 +486,29 @@ module.exports = function(grunt) {
 				}
 			}
 		},
-		crisp: {
+		crisper: {
 			optionsPage: {
+				options: {
+					scriptInhead: false
+				},
 				files: [{
-					src: './build/buildBeforePolymer/html/options.html'
+					src: './build/buildBeforePolymer/html/options.html',
+					dest: './build/buildBeforePolymer/html/options.html'
 				}]
 			},
 			background: {
+				options: {
+					scriptInhead: false
+				},
 				files: [{
-					src: './build/buildBeforePolymer/html/background.html'
+					src: './build/buildBeforePolymer/html/background.html',
+					dest: './build/buildBeforePolymer/html/options.html'
 				}]
 			},
 			bowerComponents: {
+				options: {
+					scriptInhead: false
+				},
 				files: [{
 					expand: true,
 					cwd: 'app/bower_components',
@@ -595,6 +606,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-htmlmin');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
 	grunt.loadNpmTasks('grunt-contrib-watch');
+	grunt.loadNpmTasks('grunt-crisper');
 	grunt.loadNpmTasks('grunt-exec');
 	grunt.loadNpmTasks('grunt-string-replace');
 	grunt.loadNpmTasks('grunt-ts');
