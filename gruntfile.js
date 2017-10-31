@@ -137,40 +137,6 @@ module.exports = function(grunt) {
 				ascii_only: true,
 				ASCIIOnly: true
 			},
-			codeMirrorMinify: {
-				files: {
-					'buildBeforePolymer/js/libraries/codemirror/codeMirrorFile.min.js': [
-						'app/js/libraries/codemirror/codemirror.js',
-						'app/js/libraries//diff_match_patch.js',
-						'app/js/libraries/sortable.js',
-						'app/js/libraries/codemirror/codeMirrorAddons.js',
-						'app/js/userscriptMetadataCodemirror.js',
-						'app/js/libraries/codemirror/codemirrorJs.js',
-						'app/js/libraries/codemirror/codemirrorCodeOptionsJson.js',
-						'app/js/crmAPIDefs.js'
-					]
-				}
-			},
-			codeMirrorMinifyBeautiful: {
-				options: {
-					beautify: true,
-					sourceMap: true,
-					ascii_only: true,
-					ASCIIOnly: true
-				},
-				files: {
-					'buildBeforePolymer/js/libraries/codemirror/codeMirrorFile.min.js': [
-						'app/js/libraries/codemirror/codemirror.js',
-						'app/js/libraries//diff_match_patch.js',
-						'app/js/libraries/sortable.js',
-						'app/js/libraries/codemirror/codeMirrorAddons.js',
-						'app/js/userscriptMetadataCodemirror.js',
-						'app/js/libraries/codemirror/codemirrorJs.js',
-						'app/js/libraries/codemirror/codemirrorCodeOptionsJson.js',
-						'app/js/crmAPIDefs.js'
-					]
-				}
-			},
 			crmMinifiy: {
 				files: [
 					{
@@ -204,16 +170,6 @@ module.exports = function(grunt) {
 			}
 		},
 		usebanner: {
-			codeMirrorBanner: {
-				options: {
-					position: 'top',
-					banner: codeMirrorFilesLicenses,
-					linebreak: true
-				},
-				files: {
-					src: ['build/js/libraries/codemirror/codeMirrorFiles.min.js']
-				}
-			},
 			htmlBanners: {
 				options: {
 					position: 'top',
@@ -240,6 +196,7 @@ module.exports = function(grunt) {
 				files: [
 					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'buildBeforePolymer/' }, //Fonts
 					{ expand: true, cwd: 'app/', src: ['css/*'], dest: 'buildBeforePolymer/' }, //CSS
+					{ expand: true, cwd: 'app/', src: ['js/**/*'], dest: 'buildBeforePolymer/' }, //JS
 					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html'], dest: 'buildBeforePolymer/' }, //HTML files
 					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'buildBeforePolymer/' }, //Default libraries
 					{ expand: true, cwd: 'app/', src: ['bower_components/**/*'], dest: 'buildBeforePolymer/' }, //Webanimations
@@ -532,17 +489,20 @@ module.exports = function(grunt) {
 		crisp: {
 			optionsPage: {
 				files: [{
-					src: './buildBeforePolymer/app/html/options.html'
+					src: './build/buildBeforePolymer/html/options.html'
 				}]
 			},
 			background: {
 				files: [{
-					src: './buildBeforePolymer/app/html/background.html'
+					src: './build/buildBeforePolymer/html/background.html'
 				}]
 			},
-			shared: {
+			bowerComponents: {
 				files: [{
-					src: './buildBeforePolymer/app/shared_bundle_1.html'
+					expand: true,
+					cwd: 'app/bower_components',
+					src: ['**/*'],
+					dest: 'app/bower_components_crisp/'
 				}]
 			}
 		},
@@ -564,8 +524,7 @@ module.exports = function(grunt) {
 			dev: {
 				options: {
 					project: {
-						entrypoint: "html/base.html",
-						fragments: [
+						entrypoint: [
 							"html/options.html",
 							"html/background.html"
 						],
@@ -593,8 +552,7 @@ module.exports = function(grunt) {
 			prod: {
 				options: {
 					project: {
-						entrypoint: "html/base.html",
-						fragments: [
+						entrypoint: [
 							"html/options.html",
 							"html/background.html"
 						],
@@ -710,8 +668,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('_buildPrePolymer', ['cleanBuild', '_extractDefs',
 		'copy:build', 'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
-		'copy:elements', 'uglify:codeMirrorMinifyBeautiful', 
-		'copy:jsFiles', 'copy:html']);
+		'copy:elements', 'copy:jsFiles', 'copy:html']);
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['crispify', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
@@ -741,5 +698,5 @@ module.exports = function(grunt) {
 	grunt.registerTask('test', ['testBuild', 'build', 'exec:test', 'compile', 'mochaTest']);
 
 	//Crisps all HTML files for CSP compliance
-	grunt.registerTask('crispify', ['crisp:optionsPage', 'crisp:background', 'crisp:shared']);
+	grunt.registerTask('crispify', ['crisp:optionsPage', 'crisp:background']);
 };
