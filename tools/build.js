@@ -66,7 +66,7 @@ class JSDefaultCompileTransform extends JSBabelTransform {
 	constructor() {
 		super({
 			presets: [presetEs3, es2015Preset],
-			plugins: [externalHelpers, babelPresetEs5],
+			plugins: [babelPresetEs5, externalHelpers],
 		});
 	}
 }
@@ -158,31 +158,51 @@ module.exports = function(grunt) {
 
 		var options = this.options({});
 		const PolymerProject = polymerBuild.PolymerProject;
-		const project = new PolymerProject(options.project);
+		const entrypoints = Array.isArray(options.project.entrypoint) ?
+			options.project.entrypoint : [options.project.entrypoint];
 
-		const sourcesStream = forkStream(project.sources());
-		const depsStream = forkStream(project.dependencies());
-		const splitter = new HtmlSplitter();
+		const projectConfigBase = Object.assign(options.project);
+		delete projectConfigBase.entrypoint;
+		Promise.all(entrypoints.map((entryPoint) => {
+			return new Promise((resolve, reject) => {
+				const project = new PolymerProject(Object.assign(projectConfigBase, {
+					entrypoint: entryPoint
+				}));
 
-		let buildStream = pipeStreams([
-			mergeStream(sourcesStream, depsStream),
-			splitter.split(),
-			getOptimizeStreams(options.optimization),
-			splitter.rejoin()
-		]);
+				const sourcesStream = forkStream(project.sources());
+				const depsStream = forkStream(project.dependencies());
+				const splitter = new HtmlSplitter();
 
-		if (options.optimization.bundle) {
-			buildStream = buildStream.pipe(project.bundler({
-				rewriteUrlsInTemplates: false
-			}));
-		}
+				let buildStream = pipeStreams([
+					mergeStream(sourcesStream, depsStream),
+					splitter.split(),
+					getOptimizeStreams(options.optimization),
+					splitter.rejoin()
+				]);
 
-		buildStream = buildStream.pipe(dest(options.dest));
-		buildStream.on('end', () => {
+				buildStream = buildStream.pipe(project.addBabelHelpersInEntrypoint())
+					.pipe(project.addCustomElementsEs5Adapter());
+
+				if (options.optimization.bundle) {
+					buildStream = buildStream.pipe(project.bundler({
+						rewriteUrlsInTemplates: false
+					}));
+				}
+
+				buildStream = buildStream.pipe(dest(options.dest));
+				buildStream.on('end', () => {
+					resolve();
+					grunt.log.ok('Done with entrypoint', entryPoint);
+				});
+				buildStream.on('error', (err) => {
+					grunt.log.error(err);
+					reject();
+				});
+			});
+		})).then(() => {
+			grunt.log.ok('Done building polymer project');
 			done();
-		});
-		buildStream.on('error', (err) => {
-			grunt.log.error(err);
+		}).catch(() => {
 			done(false);
 		});
 	});
