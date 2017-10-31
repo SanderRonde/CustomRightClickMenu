@@ -319,14 +319,6 @@ module.exports = function(grunt) {
 				files: [
 					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
 				]
-			},
-			bowerComponents: {
-				files: [{
-					expand: true,
-					cwd: 'app/bower_components_crisp/',
-					src: ['**/*'],
-					dest: 'app/bower_components/'
-				}]
 			}
 		},
 		htmlmin: {
@@ -353,7 +345,6 @@ module.exports = function(grunt) {
 			buildBeforePolymer: ['buildBeforePolymer/'],
 			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
 			tsFiles: ['build/elements/**/*.ts'],
-			bowerComponents: ['app/bower_components/**/*']
 		},
 		'string-replace': {
 			manifestReplace: {
@@ -498,6 +489,7 @@ module.exports = function(grunt) {
 		crisper: {
 			optionsPage: {
 				options: {
+					cleanup: false,
 					scriptInhead: false
 				},
 				files: [{
@@ -507,22 +499,24 @@ module.exports = function(grunt) {
 			},
 			background: {
 				options: {
+					cleanup: false,
 					scriptInhead: false
 				},
 				files: [{
 					src: './build/buildBeforePolymer/html/background.html',
-					dest: './build/buildBeforePolymer/html/options.html'
+					dest: './build/buildBeforePolymer/html/background.html'
 				}]
 			},
 			bowerComponents: {
 				options: {
+					cleanup: false,
 					scriptInhead: false
 				},
 				files: [{
 					expand: true,
 					cwd: 'app/bower_components',
 					src: ['**/*.html'],
-					dest: 'app/bower_components_crisp'
+					dest: 'app/bower_components'
 				}]
 			}
 		},
@@ -636,8 +630,7 @@ module.exports = function(grunt) {
 	/* Development only tasks */
 	
 	//Prepares the app for hot reload development by crisping all bower components
-	grunt.registerTask('prepareForHotReload', ['crisper:bowerComponents', 'clean:bowerComponents',
-		'copy:bowerComponents']);
+	grunt.registerTask('prepareForHotReload', ['crisper:bowerComponents']);
 
 
 
@@ -727,5 +720,5 @@ module.exports = function(grunt) {
 	grunt.registerTask('test', ['testBuild', 'build', 'exec:test', 'compile', 'mochaTest']);
 
 	//Crisps all HTML files for CSP compliance
-	grunt.registerTask('crispify', ['crisp:optionsPage', 'crisp:background']);
+	grunt.registerTask('crispify', ['crisper:optionsPage', 'crisper:background']);
 };
