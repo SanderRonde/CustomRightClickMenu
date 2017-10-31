@@ -3,14 +3,24 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
-function crispFile(file) {
+/**
+ * Crisps given file
+ * 
+ * @param sourceFile {string} - The source file
+ * @param [dest] {string} - The output location
+ * 
+ * @returns {Promise} A promise that resolves with an exit code
+ */
+function crispFile(sourceFile, dest) {
+	dest = dest || sourceFile;
 	return new Promise((resolve, reject) => {
-		file = path.join(process.cwd(), file);
-		const htmlFile = file;
-		const jsFile = file.replace('.html', '.js');
+		sourceFile = path.join(process.cwd(), sourceFile);
+		dest = path.join(process.cwd(), dest);
+		const outputHtmlFile = dest;
+		const outputJsFile = dest.replace('.html', '.js');
 
 		const proc = spawn('C:\\Users\\sande\\AppData\\Roaming\\npm\\crisper.cmd', [
-			'-s', htmlFile, '-h', htmlFile, '-j', jsFile, '--script-in-head=false'
+			'-s', sourceFile, '-h', outputHtmlFile, '-j', outputJsFile, '--script-in-head=false'
 		]);
 
 		proc.stdout.on('data', (data) => {
@@ -25,6 +35,12 @@ function crispFile(file) {
 	});
 }
 
+/**
+ * Gets the children of given folder and its children etc.
+ * 
+ * @param folder {string} - The folder whose children to find
+ * @param files {string[]} - An array containing all children
+ */
 function getChildrenRecursively(folder, files) {
 	fs.readdirSync(folder).forEach((dirChild) => {
 		const joined = path.join(folder, dirChild);
@@ -64,7 +80,7 @@ if (require.main === module) {
 			Promise.all(this.files.map((file) => {
 				return Promise.all(file.src.map((srcFile) => {
 					return new Promise((resolve) => {
-						crispFile(srcFile).then(() => {
+						crispFile(srcFile, srcFile.dest).then(() => {
 							grunt.log.ok('Crisped ', srcFile);
 							crisped++;
 							resolve();
