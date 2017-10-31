@@ -319,6 +319,14 @@ module.exports = function(grunt) {
 				files: [
 					{ expand: true, src: ['buildBeforePolymer/html/*'], filter: 'isFile' }
 				]
+			},
+			bowerComponents: {
+				files: [{
+					expand: true,
+					cwd: 'app/bower_components_crisp/',
+					src: ['**/*'],
+					dest: 'app/bower_components/'
+				}]
 			}
 		},
 		htmlmin: {
@@ -344,7 +352,8 @@ module.exports = function(grunt) {
 			build: ['build/'],
 			buildBeforePolymer: ['buildBeforePolymer/'],
 			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
-			tsFiles: ['build/elements/**/*.ts']
+			tsFiles: ['build/elements/**/*.ts'],
+			bowerComponents: ['app/bower_components/**/*']
 		},
 		'string-replace': {
 			manifestReplace: {
@@ -513,7 +522,7 @@ module.exports = function(grunt) {
 					expand: true,
 					cwd: 'app/bower_components',
 					src: ['**/*.html'],
-					dest: 'app/bower_components'
+					dest: 'app/bower_components_crisp'
 				}]
 			}
 		},
@@ -627,7 +636,8 @@ module.exports = function(grunt) {
 	/* Development only tasks */
 	
 	//Prepares the app for hot reload development by crisping all bower components
-	grunt.registerTask('prepareForHotReload', ['crisper:bowerComponents']);
+	grunt.registerTask('prepareForHotReload', ['crisper:bowerComponents', 'clean:bowerComponents',
+		'copy:bowerComponents']);
 
 
 
