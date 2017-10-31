@@ -233,3 +233,5 @@ test/UITest.js
 
 app/elements/fileIdMaps.d.ts
 buildBeforePolymer/
+
+app/bower_components
