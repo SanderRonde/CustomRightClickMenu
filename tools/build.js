@@ -21,20 +21,21 @@ const dest = require('vinyl-fs').dest;
 
 function pipeStreams(streams) {
 	return Array.prototype.concat.apply([], streams)
+		.filter(val => val !== null)
 		.reduce((a, b) => {
 			return a.pipe(b);
 		});
 }
 
-function genLabeler(containerName) {
+function genLabeler(grunt, containerName) {
 	return (stream, streamName) => {
-		return labelStream(stream, streamName, containerName);
+		return labelStream(stream, streamName, grunt, containerName);
 	};
 }
 
-function labelStream(stream, name, containerName) {
-	stream.on('end', () => {
-		console.log('Stream ', name, 'done', 'in container', containerName);
+function labelStream(stream, name, grunt, containerName) {
+	stream.on && stream.on('end', () => {
+		grunt.log.writeln('Stream', name, 'done', 'in entrypoint', containerName);
 	});
 	return stream;
 }
@@ -182,7 +183,7 @@ module.exports = function(grunt) {
 					entrypoint: entryPoint
 				}));
 
-				const labeler = genLabeler(entryPoint);
+				const labeler = genLabeler(grunt, entryPoint);
 
 				const sourcesStream = labeler(forkStream(project.sources()), 'sources');
 				const depsStream = labeler(forkStream(project.dependencies()), 'deps');
@@ -192,32 +193,28 @@ module.exports = function(grunt) {
 					labeler(mergeStream(sourcesStream, depsStream), 'merger'),
 					labeler(splitter.split(), 'splitter'),
 					labeler(getOptimizeStreams(options.optimization), 'optimizer'),
-					labeler(splitter.rejoin(), 'rejoiner')
+					labeler(splitter.rejoin(), 'rejoiner'),
+					labeler(project.addBabelHelpersInEntrypoint(), 'babelHelpers'),
+					labeler(project.addCustomElementsEs5Adapter(), 'customElementsAdapter'),
+					options.optimization.bundle ? labeler(project.bundler({
+						rewriteUrlsInTemplates: false
+					}), 'bundler') : null,
+					labeler(dest(options.dest), 'dest')
 				]);
 
-				buildStream = buildStream.pipe(labeler(project.addBabelHelpersInEntrypoint(), 'babelHelpers'))
-					.pipe(labeler(project.addCustomElementsEs5Adapter(), 'customElementsAdapter'));
-
-				if (options.optimization.bundle) {
-					buildStream = labeler(project.bundler({
-						rewriteUrlsInTemplates: false
-					}), 'bundler');
-				}
-
-				buildStream = labeler(dest(options.dest), 'dest');
 				buildStream.on('end', () => {
 					grunt.log.ok('Done with entrypoint', entryPoint);
 					resolve();
 				});
 				buildStream.on('error', (err) => {
-					grunt.log.error(err);
 					reject();
 				});
 			});
 		})).then(() => {
 			grunt.log.ok('Done building polymer project');
 			done();
-		}).catch(() => {
+		}).catch((err) => {
+			grunt.log.error(err);
 			done(false);
 		});
 	});
