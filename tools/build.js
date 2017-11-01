@@ -26,6 +26,19 @@ function pipeStreams(streams) {
 		});
 }
 
+function genLabeler(containerName) {
+	return (stream, streamName) => {
+		return labelStream(stream, streamName, containerName);
+	};
+}
+
+function labelStream(stream, name, containerName) {
+	stream.on('end', () => {
+		console.log('Stream ', name, 'done', 'in container', containerName);
+	});
+	return stream;
+}
+
 class GenericOptimizeTransform extends stream.Transform {
 	
 	constructor(optimizerName, optimizer, optimizerOptions) {
@@ -169,30 +182,32 @@ module.exports = function(grunt) {
 					entrypoint: entryPoint
 				}));
 
-				const sourcesStream = forkStream(project.sources());
-				const depsStream = forkStream(project.dependencies());
+				const labeler = genLabeler(entryPoint);
+
+				const sourcesStream = labeler(forkStream(project.sources()), 'sources');
+				const depsStream = labeler(forkStream(project.dependencies()), 'deps');
 				const splitter = new HtmlSplitter();
 
 				let buildStream = pipeStreams([
-					mergeStream(sourcesStream, depsStream),
-					splitter.split(),
-					getOptimizeStreams(options.optimization),
-					splitter.rejoin()
+					labeler(mergeStream(sourcesStream, depsStream), 'merger'),
+					labeler(splitter.split(), 'splitter'),
+					labeler(getOptimizeStreams(options.optimization), 'optimizer'),
+					labeler(splitter.rejoin(), 'rejoiner')
 				]);
 
-				buildStream = buildStream.pipe(project.addBabelHelpersInEntrypoint())
-					.pipe(project.addCustomElementsEs5Adapter());
+				buildStream = buildStream.pipe(labeler(project.addBabelHelpersInEntrypoint(), 'babelHelpers'))
+					.pipe(labeler(project.addCustomElementsEs5Adapter(), 'customElementsAdapter'));
 
 				if (options.optimization.bundle) {
-					buildStream = buildStream.pipe(project.bundler({
+					buildStream = labeler(project.bundler({
 						rewriteUrlsInTemplates: false
-					}));
+					}), 'bundler');
 				}
 
-				buildStream = buildStream.pipe(dest(options.dest));
+				buildStream = labeler(dest(options.dest), 'dest');
 				buildStream.on('end', () => {
-					resolve();
 					grunt.log.ok('Done with entrypoint', entryPoint);
+					resolve();
 				});
 				buildStream.on('error', (err) => {
 					grunt.log.error(err);
