@@ -235,3 +235,5 @@ app/elements/fileIdMaps.d.ts
 buildBeforePolymer/
 
 app/bower_components
+
+*.tmp.txt
