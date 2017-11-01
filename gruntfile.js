@@ -539,11 +539,11 @@ module.exports = function(grunt) {
 				options: {
 					project: {
 						entrypoint: [
-							"html/options.html",
-							"html/background.html"
+							"html/options.html"
 						],
 						root: "buildBeforePolymer/",
 						extraDependencies: [
+							"html/background.html",
 							"fonts/**/*",
 							"images/**/*",
 							"js/**/*.*",
@@ -567,11 +567,11 @@ module.exports = function(grunt) {
 				options: {
 					project: {
 						entrypoint: [
-							"html/options.html",
-							"html/background.html"
+							"html/options.html"
 						],
 						root: "buildBeforePolymer/",
 						extraDependencies: [
+							"html/background.html",
 							"fonts/**/*",
 							"images/**/*",
 							"js/**/*.*",
