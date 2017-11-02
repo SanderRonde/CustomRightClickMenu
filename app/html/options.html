@@ -1,246 +1,246 @@
 <!DOCTYPE html>
 <html lang="en" class="elementsLoading">
-<head>
-	<title>Options</title>
-	<style type="text/css">
-		/*#region Fonts*/
-		@font-face {
-			font-family: 'Roboto';
-			font-style: normal;
-			font-weight: 400;
-			src: url(../fonts/Roboto-Regular.ttf);
-		}
+	<head>
+		<title>Options</title>
+		<style type="text/css">
+			/*#region Fonts*/
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 400;
+				src: url(../fonts/Roboto-Regular.ttf);
+			}
 
-		@font-face {
-			font-family: 'Roboto';
-			font-style: normal;
-			font-weight: 500;
-			src: url(../fonts/Roboto-Medium.ttf);
-		}
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 500;
+				src: url(../fonts/Roboto-Medium.ttf);
+			}
 
-		@font-face {
-			font-family: 'Roboto';
-			font-style: normal;
-			font-weight: 700;
-			src: url(../fonts/Roboto-Bold.ttf);
-		}
+			@font-face {
+				font-family: 'Roboto';
+				font-style: normal;
+				font-weight: 700;
+				src: url(../fonts/Roboto-Bold.ttf);
+			}
 
-		@font-face {
-			font-family: 'Inconsolata';
-			font-style: normal;
-			font-weight: 400;
-			src: url(../fonts/Inconsolata-Regular.ttf);
-		}
+			@font-face {
+				font-family: 'Inconsolata';
+				font-style: normal;
+				font-weight: 400;
+				src: url(../fonts/Inconsolata-Regular.ttf);
+			}
 
-		@font-face {
-			font-family: 'Inconsolata';
-			font-style: normal;
-			font-weight: 700;
-			src: url(../fonts/Inconsolata-Bold.ttf);
-		}
+			@font-face {
+				font-family: 'Inconsolata';
+				font-style: normal;
+				font-weight: 700;
+				src: url(../fonts/Inconsolata-Bold.ttf);
+			}
 
-		body {
-			font-size: 75%;
-			font-family: 'Roboto', "segoe UI", tahoma, sans serif;
-		}
-		/*#endregion*/
+			body {
+				font-size: 75%;
+				font-family: 'Roboto', "segoe UI", tahoma, sans serif;
+			}
+			/*#endregion*/
 
-		/*#region Splash screen*/
-		#splashScreen {
-			top: 0;
-			bottom: 0;
-			right: 0;
-			left: 0;
-			background-color: #FF5722;
-			position: fixed;
-			z-index: 999999999999999;
-			color: white;
-			opacity: 0;
-			transition: opacity 500ms ease-in-out;
-			pointer-events: none;
-			overflow: hidden;
-		}
+			/*#region Splash screen*/
+			#splashScreen {
+				top: 0;
+				bottom: 0;
+				right: 0;
+				left: 0;
+				background-color: #FF5722;
+				position: fixed;
+				z-index: 999999999999999;
+				color: white;
+				opacity: 0;
+				transition: opacity 500ms ease-in-out;
+				pointer-events: none;
+				overflow: hidden;
+			}
 
-		#splashScreenVerticalCenterer, #splashScreenHorizontalCenterer {
-			display: -webkit-flex;
-			display: flex;
-			-webkit-justify-content: center;
-			justify-content: center;
-			height: 100vh;
-		}
+			#splashScreenVerticalCenterer, #splashScreenHorizontalCenterer {
+				display: -webkit-flex;
+				display: flex;
+				-webkit-justify-content: center;
+				justify-content: center;
+				height: 100vh;
+			}
 
-		#splashScreenVerticalCenterer {
-			-webkit-flex-direction: column;
-			flex-direction: column;
-		}
+			#splashScreenVerticalCenterer {
+				-webkit-flex-direction: column;
+				flex-direction: column;
+			}
 
-		#splashScreenHorizontalCenterer {
-			-webkit-flex-direction: row;
-			flex-direction: row;
-		}
+			#splashScreenHorizontalCenterer {
+				-webkit-flex-direction: row;
+				flex-direction: row;
+			}
 
-		#splashScreenTitle {
-			font-size: 800%;
-			font-size: calc(100vw / 20);
-		}
+			#splashScreenTitle {
+				font-size: 800%;
+				font-size: calc(100vw / 20);
+			}
 
-		#splashScreenLoaderCenterer {
-			display: -webkit-flex;
-			display: flex;
-			-webkit-flex-direction: row;
-			flex-direction: row;
-			-webkit-justify-content: center;
-			justify-content: center;
-		}
+			#splashScreenLoaderCenterer {
+				display: -webkit-flex;
+				display: flex;
+				-webkit-flex-direction: row;
+				flex-direction: row;
+				-webkit-justify-content: center;
+				justify-content: center;
+			}
 
-		.elementsLoading #splashScreen {
-			opacity: 1;
-			pointer-events: initial;
-		}
+			.elementsLoading #splashScreen {
+				opacity: 1;
+				pointer-events: initial;
+			}
 
-		#splashScreenProgressBarCont {
-			width: 50vw;
-			height: 4px;
-			background-color: rgb(224, 224, 224);
-			margin-top: 20px;
-			position: relative;
-		}
+			#splashScreenProgressBarCont {
+				width: 50vw;
+				height: 4px;
+				background-color: rgb(224, 224, 224);
+				margin-top: 20px;
+				position: relative;
+			}
 
-		#splashScreenProgressBarLoader {
-			will-change: transform;
-			-webkit-transform-origin: left center;
-			transform-origin: left center;
-			position: absolute;
-			-webkit-transform: scaleX(0);
-			transform: scaleX(0);
-			background-color: rgb(38, 153, 244);
-			width: 50vw;
-			height: 4px;
-		}
-		/*#endregion*/
+			#splashScreenProgressBarLoader {
+				will-change: transform;
+				-webkit-transform-origin: left center;
+				transform-origin: left center;
+				position: absolute;
+				-webkit-transform: scaleX(0);
+				transform: scaleX(0);
+				background-color: rgb(38, 153, 244);
+				width: 50vw;
+				height: 4px;
+			}
+			/*#endregion*/
 
-		html {
-			overflow-y: visible;
-			overflow-x: hidden;
-		}
-	</style>
-	<link async rel="stylesheet" href="../css/codemirror.css" />
-	<script src="../bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></script>
-	<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-	<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
-	<link rel="import" href="../bower_components/paper-input/paper-input.html" />
-	<link async rel="import" href="../elements/crm-app/crm-app.html" />
-	<link async rel="import" href="../elements/error-reporting-tool/error-reporting-tool.html" />
-</head>
-<body style="margin: 0;">
-	<div id="splashScreen">
-		<div id="splashScreenHorizontalCenterer">
-			<div id="splashScreenVerticalCenterer">
-				<div id="splashScreenTitle">
-					Custom Right-Click Menu
-				</div>
-				<div id="splashScreenLoaderCenterer">
-					<div id="splashScreenProgressBarCont">
-						<div id="splashScreenProgressBarLoader"></div>
+			html {
+				overflow-y: visible;
+				overflow-x: hidden;
+			}
+		</style>
+		<link async rel="stylesheet" href="../css/codemirror.css" />
+		<script src="../bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></script>
+		<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+		<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
+		<link rel="import" href="../bower_components/paper-input/paper-input.html" />
+		<link async rel="import" href="../elements/crm-app/crm-app.html" />
+		<link async rel="import" href="../elements/error-reporting-tool/error-reporting-tool.html" />
+	</head>
+	<body style="margin: 0;">
+		<div id="splashScreen">
+			<div id="splashScreenHorizontalCenterer">
+				<div id="splashScreenVerticalCenterer">
+					<div id="splashScreenTitle">
+						Custom Right-Click Menu
+					</div>
+					<div id="splashScreenLoaderCenterer">
+						<div id="splashScreenProgressBarCont">
+							<div id="splashScreenProgressBarLoader"></div>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-	<error-reporting-tool class="elementLoading"></error-reporting-tool>
-	<crm-app class="elementLoading"></crm-app>
-	<template id="editorOptionsTemplate">
-		<div id="settingsContainer">
-			<div class="editorSettingsTxt">
-				Editor Settings
-			</div>
-			<div id="editorThemeSettingCont">
-				<div id="editorThemeSettingTxt">Theme:</div>
-				<div id="editorThemeSettingChoicesCont">
-					<div id="editorThemeSettingWhite" class="editorThemeSetting"></div>
-					<div id="editorThemeSettingDark" class="editorThemeSetting"></div>
+		<error-reporting-tool class="elementLoading"></error-reporting-tool>
+		<crm-app class="elementLoading"></crm-app>
+		<template id="editorOptionsTemplate">
+			<div id="settingsContainer">
+				<div class="editorSettingsTxt">
+					Editor Settings
 				</div>
-			</div>
-			<br />
-			<div id="editorThemeFontSize">
-				<paper-input id="editorThemeFontSizeInput" type="number" label="font size %">
-					<div suffix>%</div>
-				</paper-input>
-			</div>
-			<br />
-			<div id="editorTabsOrSpacesSettingCont">
-				<div id="editorTabsOrSpacesCheckbox">
-					<paper-checkbox></paper-checkbox>
+				<div id="editorThemeSettingCont">
+					<div id="editorThemeSettingTxt">Theme:</div>
+					<div id="editorThemeSettingChoicesCont">
+						<div id="editorThemeSettingWhite" class="editorThemeSetting"></div>
+						<div id="editorThemeSettingDark" class="editorThemeSetting"></div>
+					</div>
 				</div>
-				<div id="editorTabsOrSpacesTxt">Use tabs instead of spaces</div>
-			</div>
-			<br />
-			<div id="editorTabSizeSettingCont">
-				<div id="editorTabSizeInput">
-					<paper-input-container>
-						<label>Indent size</label>
-						<input min="1" is="iron-input" type="number"/>
-					</paper-input-container>
+				<br />
+				<div id="editorThemeFontSize">
+					<paper-input id="editorThemeFontSizeInput" type="number" label="font size %">
+						<div suffix>%</div>
+					</paper-input>
 				</div>
-			</div>
-			<br />
-			<div id="editorJSLintGlobals">
-				<div id="editorJSLintGlobalsFlexCont">
-					<paper-input id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
+				<br />
+				<div id="editorTabsOrSpacesSettingCont">
+					<div id="editorTabsOrSpacesCheckbox">
+						<paper-checkbox></paper-checkbox>
+					</div>
+					<div id="editorTabsOrSpacesTxt">Use tabs instead of spaces</div>
 				</div>
+				<br />
+				<div id="editorTabSizeSettingCont">
+					<div id="editorTabSizeInput">
+						<paper-input-container>
+							<label>Indent size</label>
+							<input min="1" is="iron-input" type="number"/>
+						</paper-input-container>
+					</div>
+				</div>
+				<br />
+				<div id="editorJSLintGlobals">
+					<div id="editorJSLintGlobalsFlexCont">
+						<paper-input id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
+					</div>
+				</div>
+				<br />
+				<br />
+				<div id="keyBindingsText" class="editorSettingsTxt">Key Bindings</div>
+				<br id="afterEditorSettingsSpacing" /><br /><br />
 			</div>
-			<br />
-			<br />
-			<div id="keyBindingsText" class="editorSettingsTxt">Key Bindings</div>
-			<br id="afterEditorSettingsSpacing" /><br /><br />
-		</div>
-	</template>
-	<template id="keyBindingTemplate">
-		<div class="keyBinding">
-			<div>
-				<paper-input class="keyBindingSettingKeyInput"></paper-input>
+		</template>
+		<template id="keyBindingTemplate">
+			<div class="keyBinding">
+				<div>
+					<paper-input class="keyBindingSettingKeyInput"></paper-input>
+				</div>
+				<br />
 			</div>
-			<br />
-		</div>
-	</template>
-	<template id="scriptEditorTemplate">
-		<div id="bubbleCont">
-			<paper-material id="settingsShadow" elevation="5">
-				<div id="editorOptionsContainer">
-					<paper-material id="editorOptions" elevation="5">
+		</template>
+		<template id="scriptEditorTemplate">
+			<div id="bubbleCont">
+				<paper-material id="settingsShadow" elevation="5">
+					<div id="editorOptionsContainer">
+						<paper-material id="editorOptions" elevation="5">
 
-					</paper-material>
+						</paper-material>
+					</div>
+				</paper-material>
+			</div>
+			<paper-material id="buttonShadow" elevation="1">
+				<div id="buttonsContainer">
+					<div id="editorFullScreen">
+						<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+							<path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/>
+						</svg>
+					</div>
+					<div id="editorSettings">
+						<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48">
+							<path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+						</svg>
+					</div>
 				</div>
 			</paper-material>
-		</div>
-		<paper-material id="buttonShadow" elevation="1">
-			<div id="buttonsContainer">
-				<div id="editorFullScreen">
-					<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-						<path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/>
-					</svg>
-				</div>
-				<div id="editorSettings">
-					<svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewbox="0 0 48 48">
-						<path d="M38.86 25.95c.08-.64.14-1.29.14-1.95s-.06-1.31-.14-1.95l4.23-3.31c.38-.3.49-.84.24-1.28l-4-6.93c-.25-.43-.77-.61-1.22-.43l-4.98 2.01c-1.03-.79-2.16-1.46-3.38-1.97L29 4.84c-.09-.47-.5-.84-1-.84h-8c-.5 0-.91.37-.99.84l-.75 5.3c-1.22.51-2.35 1.17-3.38 1.97L9.9 10.1c-.45-.17-.97 0-1.22.43l-4 6.93c-.25.43-.14.97.24 1.28l4.22 3.31C9.06 22.69 9 23.34 9 24s.06 1.31.14 1.95l-4.22 3.31c-.38.3-.49.84-.24 1.28l4 6.93c.25.43.77.61 1.22.43l4.98-2.01c1.03.79 2.16 1.46 3.38 1.97l.75 5.3c.08.47.49.84.99.84h8c.5 0 .91-.37.99-.84l.75-5.3c1.22-.51 2.35-1.17 3.38-1.97l4.98 2.01c.45.17.97 0 1.22-.43l4-6.93c.25-.43.14-.97-.24-1.28l-4.22-3.31zM24 31c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
-					</svg>
-				</div>
-			</div>
-		</paper-material>
-	</template>
-	<!-- build:js inline -->
-	<script src="../js/libraries/jquery/jquery-2.0.3.js"></script>
-	<script src="../js/libraries/jquery/jquery-ui.min.js"></script>
-	<script src="../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
-	<script src="../js/libraries/jquery/jquery.contextMenu.js"></script>
-	<script src="../js/libraries/jquery/jquery.bez.js"></script>
-	<script defer src="../js/libraries/codemirror/codemirror.js"></script>
-	<script defer src="../js/libraries/diff_match_patch.js"></script>
-	<script defer src="../js/libraries/codemirror/codeMirrorAddons.js" async></script>
-	<script defer src="../js/userscriptMetadataCodemirror.js" async></script>
-	<script defer src="../js/libraries/codemirror/codemirrorJs.js" async></script>
-	<script defer src="../js/crmAPIDefs.js" async></script>
-	<script src="../js/calcPolyfill.js" defer async></script>
-	<!-- /build -->
-</body>
+		</template>
+		<!-- build:js inline -->
+		<script src="../js/libraries/jquery/jquery-2.0.3.js"></script>
+		<script src="../js/libraries/jquery/jquery-ui.min.js"></script>
+		<script src="../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+		<script src="../js/libraries/jquery/jquery.contextMenu.js"></script>
+		<script src="../js/libraries/jquery/jquery.bez.js"></script>
+		<script defer src="../js/libraries/codemirror/codemirror.js"></script>
+		<script defer src="../js/libraries/diff_match_patch.js"></script>
+		<script defer src="../js/libraries/codemirror/codeMirrorAddons.js" async></script>
+		<script defer src="../js/userscriptMetadataCodemirror.js" async></script>
+		<script defer src="../js/libraries/codemirror/codemirrorJs.js" async></script>
+		<script defer src="../js/crmAPIDefs.js" async></script>
+		<script src="../js/calcPolyfill.js" defer async></script>
+		<!-- /build -->
+	</body>
 </html>
