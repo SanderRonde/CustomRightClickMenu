@@ -513,18 +513,6 @@ module.exports = function(grunt) {
 					src: './build/buildBeforePolymer/html/background.html',
 					dest: './build/buildBeforePolymer/html/background.html'
 				}]
-			},
-			bowerComponents: {
-				options: {
-					cleanup: false,
-					scriptInhead: false
-				},
-				files: [{
-					expand: true,
-					cwd: 'app/bower_components',
-					src: ['**/*.html'],
-					dest: 'app/bower_components'
-				}]
 			}
 		},
 		watch: {
@@ -637,13 +625,6 @@ module.exports = function(grunt) {
 	grunt.registerTask('_extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite',
 		'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
 	grunt.registerTask('_defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
-
-
-
-	/* Development only tasks */
-	
-	//Prepares the app for hot reload development by crisping all bower components
-	grunt.registerTask('prepareForHotReload', ['crisper:bowerComponents']);
 
 
 
