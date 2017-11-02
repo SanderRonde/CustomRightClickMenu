@@ -130,7 +130,7 @@ class CEP {
 		return this.nodeInfoExists(nodeInfo) && !!nodeInfo.installDate;
 	};
 
-	static _onNeonAnimationFinish(this: CrmEditPage) {
+	private static onAnimationDone(this: CrmEditPage) {
 		if (!this.opened) {
 			this.backdropEl.style.display = 'none';
 			this.$.overlayCont.style.display = 'none';
@@ -186,7 +186,9 @@ class CEP {
 		}], {
 			duration: 300,
 			fill: 'forwards'
-		});
+		}).onfinish = () => {
+			this.onAnimationDone();
+		}
 		this.opened = false;
 		document.body.parentElement.style.overflow = 'auto';
 	};
