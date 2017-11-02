@@ -9954,7 +9954,7 @@ if (typeof module === 'undefined') {
 							Storages.SetupHandling.TransferFromOld;
 					}
 					window.console.groupEnd();
-					window.log('');
+					window.log('Done!');
 				});
 			} catch (e) {
 				window.log(e);
