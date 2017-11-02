@@ -148,8 +148,9 @@ paper-ripple {
 	flex-direction: column;
 }
 
-paper-toolbar {
-	background: rgb(255, 87, 34)!important;
+app-header {
+	background-color: rgb(255, 87, 34)!important;
+	color: white;
 }
 
 #addLibraryManualInput {

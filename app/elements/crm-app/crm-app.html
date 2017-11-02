@@ -6,6 +6,13 @@
 		<link rel="stylesheet" href="../../css/jquery.contextMenu.css"/>
 		<link rel="stylesheet" href="crm-app.css" />
 		<!-- /build -->
+		<style>
+			.title {
+				@apply --layout;
+				@apply --layout-flex-auto;
+				@apply --layout-center-center;
+			}
+		</style>
 		<div class="popupCont">
 			<div id="fullscreenEditor">
 				<div id="editorCurrentScriptTitle">
@@ -44,329 +51,333 @@
 		</div>
 		<div class="backdropCont"></div>
 		<div class="pageCont">
-			<paper-toolbar>
-				<div slot="top" class="title">[[_getPageTitle()]]</div>
-			</paper-toolbar>
-			<div class="container">
-				<br />
-				<div class="titleCont">
-					<div class="bigTxt">
-						Custom Right-Click Menu
-					</div>
-					<div class="mainDescr">
-						Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website, create your own script to run or change the style of a website. You can also order this menu by wrapping it in subsections or by dividing them in sections. You can right-click anywhere on this page to view the custom right-click menu. Right-clicking on one of the content type buttons below (page, link, selection etc) shows the right-click menu for that content type. On other pages the whole menu will be wrapped in a "Custom Menu" subsection.
-					</div>
-				</div>
-				<br />
-				<br />
-				<div class="optionsCont">
-					<div class="bigTxt">
-						Options
-					</div>
-					<div class="options">
-						<paper-toggle-option id="catchErrors">
-							Catch errors in scripts and log them. If off, allows for easier debugging using chrome's "pause on exceptions", if on, allows for custom handling.
-						</paper-toggle-option>
-						<paper-toggle-option id="showOptions">
-							Show options link in right-click menu
-						</paper-toggle-option>
-						<paper-toggle-option id="recoverUnsavedData">
-							Prompt you with an option to recover your unsaved script after you close a script/stylesheet without hitting the "save" or "exit" button.
-						</paper-toggle-option>
-						<paper-toggle-option id="CRMOnPage" showmessage>
-							Use your custom right-click menu on this page as a preview instead of chrome's regular one.
-						</paper-toggle-option>
-						<paper-toggle-option id="editCRMInRM">
-							Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page
-						</paper-toggle-option>
-						<paper-toggle-option id="useStorageSync">
-							Sync your storage across all chrome instances signed in to this account using chrome storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using
-							<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
-						</paper-toggle-option>
-						<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
-					</div>
-				</div>
-				<br /><br />
-				<div class="customRightClickMenuConfig">
-					<div id="crmEditPageTopTextContainer">
+			<app-header-layout>
+				<app-header slot="header" reveals effects="waterfall">
+					<app-toolbar>
+						<div main-title class="title">[[_getPageTitle()]]</div>
+					</app-toolbar>
+				</app-header>
+				<div class="container">
+					<br />
+					<div class="titleCont">
 						<div class="bigTxt">
-							Editing the CRM
+							Custom Right-Click Menu
 						</div>
-						<div id="crmTypeSelector">
-							<div class="crmType pageType" on-tap="domListener" data-on-tap="iconSwitch">
-								<paper-ripple></paper-ripple>
-								<div class="crmTypeIcon">
-									<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
-										<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
-									</svg>
-								</div>
-								<div class="crmTypeTxt">
-									Page
-								</div>
-							</div>
-							<div class="crmType linkType" on-tap="domListener" data-on-tap="iconSwitch">
-								<paper-ripple></paper-ripple>
-								<div class="crmTypeIcon">
-									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0z" fill="none" />
-										<path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
-									</svg>
-								</div>
-								<div class="crmTypeTxt">
-									Link
-								</div>
-							</div>
-							<div class="crmType selectionType" on-tap="domListener" data-on-tap="iconSwitch">
-								<paper-ripple></paper-ripple>
-								<div class="crmTypeIcon">
-									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0z" fill="none" />
-										<path d="M3 5h2V3c-1.1 0-2 .9-2 2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2c0-1.1-.9-2-2-2zM5 21v-2H3c0 1.1.9 2 2 2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8c1.1 0 2-.9 2-2h-2v2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2zM7 17h10V7H7v10zm2-8h6v6H9V9z" />
-									</svg>
-								</div>
-								<div class="crmTypeTxt">
-									Selection
-								</div>
-							</div>
-							<div class="crmType imageType" on-tap="domListener" data-on-tap="iconSwitch">
-								<paper-ripple></paper-ripple>
-								<div class="crmTypeIcon">
-									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0z" fill="none" />
-										<path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
-									</svg>
-								</div>
-								<div class="crmTypeTxt">
-									Image
-								</div>
-							</div>
-							<div class="crmType videoType" on-tap="domListener" data-on-tap="iconSwitch">
-								<paper-ripple></paper-ripple>
-								<div class="crmTypeIcon">
-									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0z" fill="none" />
-										<path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
-									</svg>
-								</div>
-								<div class="crmTypeTxt">
-									Video
-								</div>
-							</div>
-							<div class="crmType audioType" on-tap="domListener" data-on-tap="iconSwitch">
-								<paper-ripple></paper-ripple>
-								<div class="crmTypeIcon">
-									<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
-										<path d="M0 0h24v24H0z" fill="none" />
-										<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
-									</svg>
-								</div>
-								<div class="crmTypeTxt">
-									Audio
-								</div>
-							</div>
+						<div class="mainDescr">
+							Welcome to Custom Right-Click Menu. This extension lets you customize a section in your right-click menu. You can either create a link to a website, create your own script to run or change the style of a website. You can also order this menu by wrapping it in subsections or by dividing them in sections. You can right-click anywhere on this page to view the custom right-click menu. Right-clicking on one of the content type buttons below (page, link, selection etc) shows the right-click menu for that content type. On other pages the whole menu will be wrapped in a "Custom Menu" subsection.
 						</div>
 					</div>
-					<div class="customRightClickMenuEdit">
-						<edit-crm id="editCrm"></edit-crm>
-					</div>
-				</div>
-				<br /><br />
-				<div class="defaultCRMLinks">
-					<div class="bigTxt">
-						Commonly Used Links
-					</div>
-					<div class="defaultsDescr">
-						Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
-					</div>
 					<br />
-					<div class="defaultLinks">
-						<default-link href="http://www.google.com" default-name="Google"></default-link>
-						<default-link href="http://www.facebook.com" default-name="Facebook"></default-link>
-						<default-link href="http://www.twitter.com" default-name="Twitter"></default-link>
-						<default-link href="http://www.youtube.com" default-name="Youtube"></default-link>
-						<default-link href="http://www.yahoo.com" default-name="Yahoo"></default-link>
-						<default-link href="http://www.wikipedia.org" default-name="Wikipedia"></default-link>
-						<default-link href="http://www.amazon.com" default-name="Amazon"></default-link>
-						<default-link href="http://www.ebay.com" default-name="Ebay"></default-link>
-						<default-link href="http://www.reddit.com" default-name="Reddit"></default-link>
+					<br />
+					<div class="optionsCont">
+						<div class="bigTxt">
+							Options
+						</div>
+						<div class="options">
+							<paper-toggle-option id="catchErrors">
+								Catch errors in scripts and log them. If off, allows for easier debugging using chrome's "pause on exceptions", if on, allows for custom handling.
+							</paper-toggle-option>
+							<paper-toggle-option id="showOptions">
+								Show options link in right-click menu
+							</paper-toggle-option>
+							<paper-toggle-option id="recoverUnsavedData">
+								Prompt you with an option to recover your unsaved script after you close a script/stylesheet without hitting the "save" or "exit" button.
+							</paper-toggle-option>
+							<paper-toggle-option id="CRMOnPage" showmessage>
+								Use your custom right-click menu on this page as a preview instead of chrome's regular one.
+							</paper-toggle-option>
+							<paper-toggle-option id="editCRMInRM">
+								Edit the custom right-click Menu by clicking on the respective elements when right-clicking on this page
+							</paper-toggle-option>
+							<paper-toggle-option id="useStorageSync">
+								Sync your storage across all chrome instances signed in to this account using chrome storage sync. Turning this on will limit your total CRM size (including scripts, excluding libraries) to a total of 102,400 bytes. Currently using
+								<span style$="{{_getSettingsJsonLengthColor(settingsJsonLength)}}">{{_placeCommas(settingsJsonLength)}}</span>/102,400 bytes
+							</paper-toggle-option>
+							<paper-button on-tap="domListener" data-on-tap="showManagePermissions" raised class="blue">Manage Permissions</paper-button>
+						</div>
 					</div>
-				</div>
-				<br /><br />
-				<div class="defaultCRMSearchEngines">
-					<div class="bigTxt">
-						Commonly Used Search Engines
-					</div>
-					<div class="defaultsDescr">
-						These are some commonly used search-engines. Click "ADD" to add the search-engine to your CRM. You can then drag the script anywhere you want it to be. You can also change the name you want it to have below or do it when it's already in your CRM.
-					</div>
-					<div class="defaultSearchEngines">
-						<default-link search-engine href="https://www.google.com/search?q=%s" default-name="Google"></default-link>
-						<default-link search-engine href="https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s" default-name="Wikipedia"></default-link>
-						<default-link search-engine href="https://www.youtube.com/results?search_query=%s" default-name="Youtube"></default-link>
-					</div>
-				</div>
-				<br /><br />
-				<div class="URIScheme">
-					<div class="bigTxt">
-						Launching programs instead of links
-					</div>
-					<div class="URISchemeDescr">
-						You may want to launch programs on your computer as well, instead of only using links.
-						This is possible, but requires a bit of extra effort because of chrome's security restrictions.
-						Directly linking to files on your computer to open them is not possible (at least not for executable programs),
-						this is why you'll need to set up a custom (local only) URI that launches the program you want to launch.
-						If you want to read up about it some more check out <a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" target="_blank">this</a> page.
-						To make this possible you'll need to add a key/value pair in your registry. After doing this, instead of http:// use yourscheme:// as a link.<br>
-						If you are on a mac you can use
-						<a href="https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX" target="_blank">this</a>
-						method. If you are on a windows computer you can do this yourself if you
-						want to (follow <a href="https://support.microsoft.com/nl-nl/kb/310516" target="_blank">these</a> instructions),
-						or you can generate a file you can download that will write the key/value pair for you by hitting the button below.
-						The second method is a lot easier and faster but it's understandable if you don't trust this extension in which case you can do it manually.
-					</div>
-					<div class="URISchemeGenerator">
-						<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
-						<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="This is not a valid scheme" label="URI scheme name" value="myscheme"></paper-input>
-						<paper-button raised class="blue" on-tap="domListener" data-on-tap="_generateRegexFile">GENERATE</paper-button>
-					</div>
-				</div>
-				<br /><br />
-				<div class="globalExcludes">
-					<div class="bigTxt">
-						Global Excludes
-					</div>
-					<div class="globalExcludesDescr">
-						There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
-					</div>
-					<div class="globalExcludesItems">
-						<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
-							<div class="globalExcludeContainer">
-								<paper-input on-tap="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
-								<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+					<br /><br />
+					<div class="customRightClickMenuConfig">
+						<div id="crmEditPageTopTextContainer">
+							<div class="bigTxt">
+								Editing the CRM
 							</div>
-						</template>
-						<paper-button raised class="blue" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
-					</div>
-				</div>
-				<br /><br />
-				<div class="importSettingsCont">
-					<div class="bigTxt">
-						Importing your settings
-					</div>
-					<div class="importDescr">
-						Here you can import your settings or CRM nodes from somewhere else. Simply copy the code into the box below and hit "import". Checking "overwrite" will overwrite your current settings and/or CRM with the settings you imported.
-					</div>
-					<div class="importSettings">
-						<textarea rows="10" id="importSettingsInput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
-						<span id="importSettingsError">Something went wrong processing the data, please check the data</span>
-					</div>
-					<paper-checkbox checked id="overWriteImport">Overwrite</paper-checkbox>
-					<paper-checkbox id="oldCRMImport">CRM 1.0</paper-checkbox>
-					<br />
-					<paper-button class="blue" raised id="importButton" on-tap="domListener" data-on-tap="importData">Import</paper-button>
-				</div>
-				<br /><br />
-				<div class="exportSettingsCont">
-					<div class="bigTxt">
-						Exporting your settings
-					</div>
-					<div class="exportDescr">
-						Here you can export your settings and/or CRM. To export select CRM nodes hit the "select" button below the editor above and hit export. Paste the generated data into a different instance's "import" field to import the data.
-					</div>
-					<div class="exportSettings">
-						<center-element id="exportSettingsSpinner" nostyle hide>
-							<div>
-								<div class="exportSettingsSpinnerHorizontalCenterer">
-									<paper-spinner active></paper-spinner>
+							<div id="crmTypeSelector">
+								<div class="crmType pageType" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="80" height="80" viewbox="0 0 24 24">
+											<path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Page
+									</div>
 								</div>
+								<div class="crmType linkType" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Link
+									</div>
+								</div>
+								<div class="crmType selectionType" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M3 5h2V3c-1.1 0-2 .9-2 2zm0 8h2v-2H3v2zm4 8h2v-2H7v2zM3 9h2V7H3v2zm10-6h-2v2h2V3zm6 0v2h2c0-1.1-.9-2-2-2zM5 21v-2H3c0 1.1.9 2 2 2zm-2-4h2v-2H3v2zM9 3H7v2h2V3zm2 18h2v-2h-2v2zm8-8h2v-2h-2v2zm0 8c1.1 0 2-.9 2-2h-2v2zm0-12h2V7h-2v2zm0 8h2v-2h-2v2zm-4 4h2v-2h-2v2zm0-16h2V3h-2v2zM7 17h10V7H7v10zm2-8h6v6H9V9z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Selection
+									</div>
+								</div>
+								<div class="crmType imageType" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Image
+									</div>
+								</div>
+								<div class="crmType videoType" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Video
+									</div>
+								</div>
+								<div class="crmType audioType" on-tap="domListener" data-on-tap="iconSwitch">
+									<paper-ripple></paper-ripple>
+									<div class="crmTypeIcon">
+										<svg height="80" viewbox="0 0 24 24" width="80" xmlns="http://www.w3.org/2000/svg">
+											<path d="M0 0h24v24H0z" fill="none" />
+											<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z" />
+										</svg>
+									</div>
+									<div class="crmTypeTxt">
+										Audio
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="customRightClickMenuEdit">
+							<edit-crm id="editCrm"></edit-crm>
+						</div>
+					</div>
+					<br /><br />
+					<div class="defaultCRMLinks">
+						<div class="bigTxt">
+							Commonly Used Links
+						</div>
+						<div class="defaultsDescr">
+							Here are some commonly used links to get you started. Click the "ADD" button to add the link to your custom right-click menu. It will be added at the end of the list but you can always change the order later if you want.
+						</div>
+						<br />
+						<div class="defaultLinks">
+							<default-link href="http://www.google.com" default-name="Google"></default-link>
+							<default-link href="http://www.facebook.com" default-name="Facebook"></default-link>
+							<default-link href="http://www.twitter.com" default-name="Twitter"></default-link>
+							<default-link href="http://www.youtube.com" default-name="Youtube"></default-link>
+							<default-link href="http://www.yahoo.com" default-name="Yahoo"></default-link>
+							<default-link href="http://www.wikipedia.org" default-name="Wikipedia"></default-link>
+							<default-link href="http://www.amazon.com" default-name="Amazon"></default-link>
+							<default-link href="http://www.ebay.com" default-name="Ebay"></default-link>
+							<default-link href="http://www.reddit.com" default-name="Reddit"></default-link>
+						</div>
+					</div>
+					<br /><br />
+					<div class="defaultCRMSearchEngines">
+						<div class="bigTxt">
+							Commonly Used Search Engines
+						</div>
+						<div class="defaultsDescr">
+							These are some commonly used search-engines. Click "ADD" to add the search-engine to your CRM. You can then drag the script anywhere you want it to be. You can also change the name you want it to have below or do it when it's already in your CRM.
+						</div>
+						<div class="defaultSearchEngines">
+							<default-link search-engine href="https://www.google.com/search?q=%s" default-name="Google"></default-link>
+							<default-link search-engine href="https://en.wikipedia.org/w/index.php?title=Special:Search&search=%s" default-name="Wikipedia"></default-link>
+							<default-link search-engine href="https://www.youtube.com/results?search_query=%s" default-name="Youtube"></default-link>
+						</div>
+					</div>
+					<br /><br />
+					<div class="URIScheme">
+						<div class="bigTxt">
+							Launching programs instead of links
+						</div>
+						<div class="URISchemeDescr">
+							You may want to launch programs on your computer as well, instead of only using links.
+							This is possible, but requires a bit of extra effort because of chrome's security restrictions.
+							Directly linking to files on your computer to open them is not possible (at least not for executable programs),
+							this is why you'll need to set up a custom (local only) URI that launches the program you want to launch.
+							If you want to read up about it some more check out <a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" target="_blank">this</a> page.
+							To make this possible you'll need to add a key/value pair in your registry. After doing this, instead of http:// use yourscheme:// as a link.<br>
+							If you are on a mac you can use
+							<a href="https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX" target="_blank">this</a>
+							method. If you are on a windows computer you can do this yourself if you
+							want to (follow <a href="https://support.microsoft.com/nl-nl/kb/310516" target="_blank">these</a> instructions),
+							or you can generate a file you can download that will write the key/value pair for you by hitting the button below.
+							The second method is a lot easier and faster but it's understandable if you don't trust this extension in which case you can do it manually.
+						</div>
+						<div class="URISchemeGenerator">
+							<paper-input id="URISchemeFilePath" label="File path including name" value="C:\files\my_file.exe"></paper-input>
+							<paper-input id="URISchemeSchemeName" pattern="(\w|\d|_|\.|-)*" auto-validate="true" error-message="This is not a valid scheme" label="URI scheme name" value="myscheme"></paper-input>
+							<paper-button raised class="blue" on-tap="domListener" data-on-tap="_generateRegexFile">GENERATE</paper-button>
+						</div>
+					</div>
+					<br /><br />
+					<div class="globalExcludes">
+						<div class="bigTxt">
+							Global Excludes
+						</div>
+						<div class="globalExcludesDescr">
+							There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
+						</div>
+						<div class="globalExcludesItems">
+							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
+								<div class="globalExcludeContainer">
+									<paper-input on-tap="domListener" data-on-change="globalExcludeChange" pattern="(file:///.*|(\*|http|https|file|ftp)://(\*\.[^/]+|\*|([^/\*]+.[^/\*]+))(/(.*))?|(<all_urls>))" auto-validate="true" label="URL match pattern to exclude" error-message="This is not a valid URL pattern!" class="globalExcludeInput" value="[[globalExclude]]"></paper-input>
+									<paper-icon-button hidden$="[[_isOnlyGlobalExclude(globalExcludes)]]" icon="clear" on-tap="domListener" data-on-tap="removeGlobalExclude" class="globalExcludeRemove" data-url$="[[globalExclude]]"></paper-icon-button>
+								</div>
+							</template>
+							<paper-button raised class="blue" on-tap="domListener" data-on-tap="addGlobalExcludeField">ADD</paper-button>
+						</div>
+					</div>
+					<br /><br />
+					<div class="importSettingsCont">
+						<div class="bigTxt">
+							Importing your settings
+						</div>
+						<div class="importDescr">
+							Here you can import your settings or CRM nodes from somewhere else. Simply copy the code into the box below and hit "import". Checking "overwrite" will overwrite your current settings and/or CRM with the settings you imported.
+						</div>
+						<div class="importSettings">
+							<textarea rows="10" id="importSettingsInput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
+							<span id="importSettingsError">Something went wrong processing the data, please check the data</span>
+						</div>
+						<paper-checkbox checked id="overWriteImport">Overwrite</paper-checkbox>
+						<paper-checkbox id="oldCRMImport">CRM 1.0</paper-checkbox>
+						<br />
+						<paper-button class="blue" raised id="importButton" on-tap="domListener" data-on-tap="importData">Import</paper-button>
+					</div>
+					<br /><br />
+					<div class="exportSettingsCont">
+						<div class="bigTxt">
+							Exporting your settings
+						</div>
+						<div class="exportDescr">
+							Here you can export your settings and/or CRM. To export select CRM nodes hit the "select" button below the editor above and hit export. Paste the generated data into a different instance's "import" field to import the data.
+						</div>
+						<div class="exportSettings">
+							<center-element id="exportSettingsSpinner" nostyle hide>
 								<div>
-									Waiting for textfield... This may take some time
+									<div class="exportSettingsSpinnerHorizontalCenterer">
+										<paper-spinner active></paper-spinner>
+									</div>
+									<div>
+										Waiting for textfield... This may take some time
+									</div>
 								</div>
-							</div>
-						</center-element>
-						<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
+							</center-element>
+							<textarea rows="10" id="exportSettingsOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
+						</div>
+						<paper-checkbox checked id="exportCRM">Export your Custom Right-Click Menu</paper-checkbox>
+						<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
+						<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
+						<br/>
+						<paper-button class="blue" raised id="exportButton" on-tap="domListener" data-on-tap="exportData">Export</paper-button>
 					</div>
-					<paper-checkbox checked id="exportCRM">Export your Custom Right-Click Menu</paper-checkbox>
-					<paper-checkbox checked id="exportSettings">Export your Settings</paper-checkbox>
-					<paper-icon-button id="exportCopyButton" icon="content-copy" title="copy to clipboard" on-tap="domListener" data-on-tap="copyExportToClipboard"></paper-icon-button>
-					<br/>
-					<paper-button class="blue" raised id="exportButton" on-tap="domListener" data-on-tap="exportData">Export</paper-button>
-				</div>
-				<br/><br/>
-				<div class="loggingButtonCont">
-					<div class="bigTxt">
-						Checking your scripts' logs
+					<br/><br/>
+					<div class="loggingButtonCont">
+						<div class="bigTxt">
+							Checking your scripts' logs
+						</div>
+						<div class="loggingDescr">
+							Clicking on this button will take you to a page where you can monitor your scripts' logs
+							from one central place. Think of it as a chrome dev tools for all your scripts and with
+							only your logs. <br />
+							To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
+						</div>
+						<paper-button class="blue" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
 					</div>
-					<div class="loggingDescr">
-						Clicking on this button will take you to a page where you can monitor your scripts' logs
-						from one central place. Think of it as a chrome dev tools for all your scripts and with
-						only your logs. <br />
-						To make your logs show up there, use <code class="codeSynthax">crmAPI.log</code> in your code.
+					<br/><br/>
+					<div class="privacyPolicyCont">
+						<div class="bigTxt">
+							Privacy Policy
+						</div>
+						<div class="privacyPolicyDescr">
+							This extension does not store personally identifiable information. It also doesn't store your data on any servers except google's.
+							This extension uses google's <a href="https://developer.chrome.com/extensions/storage" target="_blank">chrome.storage.sync</a> to sync your
+							data across devices. This data only consists of your custom right-click menu and its settings. To turn off this feature, disable the
+							"use storage sync" checkbox at the top of this page.
+						</div>
 					</div>
-					<paper-button class="blue" raised on-tap="domListener" data-on-tap="_openLogging">Logging</paper-button>
-				</div>
-				<br/><br/>
-				<div class="privacyPolicyCont">
-					<div class="bigTxt">
-						Privacy Policy
+					<br /><br />
+					<div class="bugReportingCont">
+						<div class="bigTxt">
+							Bugs
+						</div>
+						<div class="bugReportingDescr">
+							If you would like to report any bugs, you can do so by using the bug reporting tool.
+							This is a screen overlay that will be visible when you toggle it. It is overlayed
+							on top of every other dialog so you can always use it. To toggle it on/off use
+							the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
+						</div>
+						<paper-button raised class="blue" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
 					</div>
-					<div class="privacyPolicyDescr">
-						This extension does not store personally identifiable information. It also doesn't store your data on any servers except google's.
-						This extension uses google's <a href="https://developer.chrome.com/extensions/storage" target="_blank">chrome.storage.sync</a> to sync your
-						data across devices. This data only consists of your custom right-click menu and its settings. To turn off this feature, disable the
-						"use storage sync" checkbox at the top of this page.
+					<br /><br />
+					<div class="contactCont">
+						<div class="bigTxt">
+							Contact
+						</div>
+						<div class="contactDescr">
+							If you have found any bugs, thought of any suggestions or have any other reason to contact me you can do so at <a href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To find out more about me, check out <a href="https://careers.stackoverflow.com/sanderronde" target="_blank">this page</a>. You can also check out the github repository over <a href="https://github.com/SanderRonde/CustomRightClickMenu" target="_blank">here</a> if you want to report an issue, do a pull request, or just want to check out the code. You can also find the code for the external editor app over <a href="https://github.com/SanderRonde/CRM-External-Editor-App" target="_blank">here</a>.
+						</div>
 					</div>
-				</div>
-				<br /><br />
-				<div class="bugReportingCont">
-					<div class="bigTxt">
-						Bugs
+					<br /><br />
+					<div class="changelogCont">
+						<div class="bigTxt">
+							Changelog
+						</div>
+						<change-log></change-log>
 					</div>
-					<div class="bugReportingDescr">
-						If you would like to report any bugs, you can do so by using the bug reporting tool.
-						This is a screen overlay that will be visible when you toggle it. It is overlayed
-						on top of every other dialog so you can always use it. To toggle it on/off use
-						the button below or hit <code class="codeSynthax">ctrl</code> 3 times in a row quickly.
-					</div>
-					<paper-button raised class="blue" on-tap="domListener" data-on-tap="_toggleBugReportingTool">TOGGLE</paper-button>
-				</div>
-				<br /><br />
-				<div class="contactCont">
-					<div class="bigTxt">
-						Contact
-					</div>
-					<div class="contactDescr">
-						If you have found any bugs, thought of any suggestions or have any other reason to contact me you can do so at <a href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To find out more about me, check out <a href="https://careers.stackoverflow.com/sanderronde" target="_blank">this page</a>. You can also check out the github repository over <a href="https://github.com/SanderRonde/CustomRightClickMenu" target="_blank">here</a> if you want to report an issue, do a pull request, or just want to check out the code. You can also find the code for the external editor app over <a href="https://github.com/SanderRonde/CRM-External-Editor-App" target="_blank">here</a>.
-					</div>
-				</div>
-				<br /><br />
-				<div class="changelogCont">
-					<div class="bigTxt">
-						Changelog
-					</div>
-					<change-log></change-log>
-				</div>
-				<br /><br />
-				<div class="goBackToLegacyCont">
-					<div class="bigTxt" name="legacy">
-						I want to go back to the old version
-					</div>
-					<br>
-					<div class="goBackToLegacyDescr">
-						Maybe you don't like this version of the extension and would like to go back.
-						Fortunately this is possible. Simply click the export button below, copy the
-						resulting settings and paste them into the import box of the 
-						<a href="https://chrome.google.com/webstore/detail/bdoncblefnjcmbdfnidnhcjglnpbngbb" target="_blank">legacy extension</a>.
-						<br><br>
-						<textarea rows="10" id="exportToLegacyOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
+					<br /><br />
+					<div class="goBackToLegacyCont">
+						<div class="bigTxt" name="legacy">
+							I want to go back to the old version
+						</div>
 						<br>
-						<paper-button class="blue" raised id="legacyExportButton" on-tap="domListener" data-on-tap="exportToLegacy">Export</paper-button>
+						<div class="goBackToLegacyDescr">
+							Maybe you don't like this version of the extension and would like to go back.
+							Fortunately this is possible. Simply click the export button below, copy the
+							resulting settings and paste them into the import box of the 
+							<a href="https://chrome.google.com/webstore/detail/bdoncblefnjcmbdfnidnhcjglnpbngbb" target="_blank">legacy extension</a>.
+							<br><br>
+							<textarea rows="10" id="exportToLegacyOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
+							<br>
+							<paper-button class="blue" raised id="legacyExportButton" on-tap="domListener" data-on-tap="exportToLegacy">Export</paper-button>
+						</div>
+					</div>
+					<div class="trailingBrs">
+						<br /><br /><br /><br /><br />
 					</div>
 				</div>
-				<div class="trailingBrs">
-					<br /><br /><br /><br /><br />
-				</div>
-			</div>
+			</app-header-layout>
 			<div id="dialogs">
 				<!--Toasts-->
 				<paper-toast id="messageToast" text="Please ignore this" duration="5000">
