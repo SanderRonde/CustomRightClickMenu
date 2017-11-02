@@ -10,7 +10,7 @@
 		<div id="itemCont">
 			<div class="item">
 				<template is="dom-if" if="{{!rootNode}}">
-					<type-switcher on-mouseover="onMouseOver" title="Click to change type" id="typeSwitcher" type="{{type}}"></type-switcher>
+					<type-switcher on-mousemove="onMouseOver" title="Click to change type" id="typeSwitcher" type="{{type}}"></type-switcher>
 				</template>
 				<template is="dom-if" if="{{rootNode}}">
 					<div id="rootNodeTypeColor"></div>

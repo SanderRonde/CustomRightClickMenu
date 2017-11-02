@@ -172,7 +172,7 @@ class ECI {
 			return;
 		}
 
-		document.body.addEventListener('mouseover', () => {
+		document.body.addEventListener('mousemove', () => {
 			if (this.hoveringTypeSwitcher) {
 				this.hoveringTypeSwitcher = false;
 				this.typeIndicatorMouseLeave();
