@@ -75,7 +75,7 @@ window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement,
 		[key: string]: any;
 	}>, options: {
 		duration?: number;
-		easing?: string;
+		easing?: string|'bez';
 		fill?: 'forwards'|'backwards'|'both';
 	}): Animation {
 		if (!properties[1]) {
@@ -130,7 +130,7 @@ window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement,
 		[key: string]: any;
 	}>, options: {
 		duration?: number;
-		easing?: string;
+		easing?: string|'bez';
 		fill?: 'forwards'|'backwards'|'both';
 	}): Animation {
 		if (options.easing === 'bez') {
