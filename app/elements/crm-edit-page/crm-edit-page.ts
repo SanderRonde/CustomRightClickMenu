@@ -172,6 +172,7 @@ class CEP {
 		}, {
 			transform: 'scale(1)'
 		}], {
+			easing: 'bez',
 			duration: 300,
 			fill: 'forwards'
 		});
@@ -179,14 +180,17 @@ class CEP {
 	
 	static animateOut(this: CrmEditPage) {
 		this.overlayAnimation.reverse();
-		this.$.overlayCont.animate([{
-			transform: 'scale(1)'
-		}, {
+		const animation = this.$.overlayCont.animate([{
 			transform: 'scale(0)'
+		}, {
+			transform: 'scale(1)'
 		}], {
+			easing: 'bez',
 			duration: 300,
 			fill: 'forwards'
-		}).onfinish = () => {
+		});
+		animation.reverse();
+		animation.onfinish = () => {
 			this.onAnimationDone();
 		}
 		this.opened = false;
