@@ -195,7 +195,6 @@ module.exports = function(grunt) {
 					labeler(getOptimizeStreams(options.optimization), 'optimizer'),
 					labeler(splitter.rejoin(), 'rejoiner'),
 					labeler(project.addBabelHelpersInEntrypoint(), 'babelHelpers'),
-					labeler(project.addCustomElementsEs5Adapter(), 'customElementsAdapter'),
 					options.optimization.bundle ? labeler(project.bundler({
 						rewriteUrlsInTemplates: false
 					}), 'bundler') : null,
