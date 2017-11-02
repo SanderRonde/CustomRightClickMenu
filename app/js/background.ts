@@ -9953,10 +9953,18 @@ if (typeof module === 'undefined') {
 						globalObject.TransferFromOld =
 							Storages.SetupHandling.TransferFromOld;
 					}
-					window.console.groupEnd();
+					
+					for (let i = 0; i < 5; i++) {
+						window.console.groupEnd();
+					}
+
 					window.log('Done!');
 				});
 			} catch (e) {
+				for (let i = 0; i < 10; i++) {
+					window.console.groupEnd();
+				}
+
 				window.log(e);
 				throw e;
 			}
