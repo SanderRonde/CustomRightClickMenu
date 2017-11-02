@@ -17,6 +17,7 @@ const es2015Preset = babelPreset2015.buildPreset({}, {
 const htmlMinifier = require('html-minifier');
 const cssSlam = require('css-slam');
 const dest = require('vinyl-fs').dest;
+const path = require('path');
 
 
 function pipeStreams(streams) {
@@ -194,7 +195,10 @@ module.exports = function(grunt) {
 					labeler(splitter.split(), 'splitter'),
 					labeler(getOptimizeStreams(options.optimization), 'optimizer'),
 					labeler(splitter.rejoin(), 'rejoiner'),
-					labeler(project.addBabelHelpersInEntrypoint(), 'babelHelpers'),
+					labeler(project.addBabelHelpersInEntrypoint(), 'babelHelpersOptions'),
+					pipeStreams((options.project.nonPolymerEntrypoints || []).map((point) => {
+						return labeler(project.addBabelHelpersInEntrypoint(path.join(project.config.root, point)), 'babel helpers');
+					})) || null,
 					options.optimization.bundle ? labeler(project.bundler({
 						rewriteUrlsInTemplates: false
 					}), 'bundler') : null,

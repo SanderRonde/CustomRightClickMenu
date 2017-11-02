@@ -560,6 +560,9 @@ module.exports = function(grunt) {
 							"LICENSE.txt",
 							"manifest.json"
 						],
+						nonPolymerEntrypoints: [
+							"html/background.html"
+						]
 					},
 					optimization: {
 						bundle: true,
@@ -588,6 +591,9 @@ module.exports = function(grunt) {
 							"LICENSE.txt",
 							"manifest.json"
 						],
+						nonPolymerEntrypoints: [
+							"html/background.html"
+						]
 					},
 					optimization: {
 						bundle: true,
