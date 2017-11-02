@@ -69,8 +69,9 @@ window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement,
 	}
 };
 
-if (!document.createElement('div').animate) {
-	HTMLElement.prototype.animate = function (this: HTMLElement, properties:  Array<{
+(() => {
+	const animateExists = !!document.createElement('div').animate;
+	const animatePolyFill = function (this: HTMLElement, properties:  Array<{
 		[key: string]: any;
 	}>, options: {
 		duration?: number;
@@ -121,8 +122,27 @@ if (!document.createElement('div').animate) {
 		});
 		return returnVal;
 	};
-	(HTMLElement.prototype.animate as any).isJqueryFill = true;
-}
+
+	const animateImpl = animateExists ? 
+		HTMLElement.prototype.animate : animatePolyFill;
+
+	HTMLElement.prototype.animate = function(this: HTMLElement, properties:  Array<{
+		[key: string]: any;
+	}>, options: {
+		duration?: number;
+		easing?: string;
+		fill?: 'forwards'|'backwards'|'both';
+	}): Animation {
+		if (options.easing === 'bez') {
+			options.easing = 'cubic-bezier(0.215, 0.610, 0.355, 1.000)';
+		}
+		return animateImpl.apply(this, [properties, options]);
+	}
+
+	if (!animateExists) {
+		(HTMLElement.prototype.animate as any).isJqueryFill = true;
+	}
+})();
 
 const crmAppProperties: {
 	settings: CRM.SettingsStorage;
@@ -532,7 +552,7 @@ class CA {
 								}
 							], {
 								duration: 250,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)',
+								easing: 'bez',
 								fill: 'both'
 							});
 						}
@@ -1166,7 +1186,7 @@ class CA {
 							}
 						], {
 							duration: 250,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							easing: 'bez'
 						}).onfinish = function (this: Animation) {
 							this.effect.target.style.opacity = '0.6';
 							window.doc.restoreChangesDialog.open();
@@ -1201,7 +1221,7 @@ class CA {
 								opacity: 1
 							}], {
 								duration: 250,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+								easing: 'bez'
 							}).onfinish = function (this: Animation) {
 								this.effect.target.style.opacity = '1';
 							};
@@ -2989,7 +3009,7 @@ class CA {
 						}
 					], {
 							duration: 500,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							easing: 'bez'
 						}).onfinish = function () {
 							tabCont.style.height = newHeightPx;
 							selector.style.height = 'auto';
@@ -3007,7 +3027,7 @@ class CA {
 							}
 						], {
 							duration: 500,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							easing: 'bez'
 						}).onfinish = function () {
 							tabCont.style.height = newHeightPx;
 						};
@@ -3047,7 +3067,7 @@ class CA {
 						}
 					], {
 							duration: 500,
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							easing: 'bez'
 						}).onfinish = function () {
 							tabCont.style.height = newHeightPx;
 							selector.style.height = 'auto';
@@ -3065,7 +3085,7 @@ class CA {
 							}
 						], {
 								duration: 500,
-								easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+								easing: 'bez'
 							}).onfinish = function () {
 								tabCont.style.height = newHeightPx;
 							};

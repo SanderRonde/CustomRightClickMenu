@@ -161,7 +161,7 @@ class CEB {
 			}
 		], {
 			duration: 800,
-			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			easing: 'bez'
 		}).onfinish = function (this: Animation) {
 			this.effect.target.style.marginLeft = '-200px';
 			this.effect.target.classList.remove('visible');

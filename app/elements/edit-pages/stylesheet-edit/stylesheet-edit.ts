@@ -97,7 +97,7 @@ class STE {
 				}
 			], {
 				duration: 500,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				easing: 'bez'
 			}).onfinish = function() {
 				window.doc.editorToolsRibbonContainer.style.marginLeft = margin;
 				window.doc.editorToolsRibbonContainer.classList.add('visible');
@@ -116,7 +116,7 @@ class STE {
 			});
 			scriptTitle.animate(scriptTitleAnimation, {
 				duration: 500,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				easing: 'bez'
 			}).onfinish = function () {
 				scriptTitle.style.marginTop = '0';
 				if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {
@@ -152,7 +152,7 @@ class STE {
 			if (toolsVisible) {
 				scriptTitle.animate(titleAnimation, {
 					duration: 800,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					easing: 'bez'
 				}).onfinish = function() {
 					scriptTitle.style.marginTop = titleAnimation[1].marginTop + '';
 					scriptTitle.style.marginLeft = titleAnimation[1].marginLeft + '';
@@ -165,7 +165,7 @@ class STE {
 					}
 				], {
 					duration: 800,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					easing: 'bez'
 				}).onfinish = function() {
 					scriptTitle.style.display = 'none';
 					toolsRibbon.style.display = 'none';
@@ -190,7 +190,7 @@ class STE {
 					}
 				], {
 					duration: 800,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					easing: 'bez'
 				}).onfinish = function() {
 					scriptTitle.style.display = 'none';
 					toolsRibbon.style.display = 'none';
@@ -631,7 +631,7 @@ class STE {
 					}
 				], {
 					duration: 300,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					easing: 'bez'
 				});
 				this.editorPlaceHolderAnimation.onfinish = function (this: Animation) {
 					this.effect.target.style.display = 'none';

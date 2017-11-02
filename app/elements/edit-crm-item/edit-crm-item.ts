@@ -424,7 +424,7 @@ class ECI {
 						], {
 							duration: 300,
 							fill: 'both',
-							easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+							easing: 'bez'
 						}
 					));
 				}

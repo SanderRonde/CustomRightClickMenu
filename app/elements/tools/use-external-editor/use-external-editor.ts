@@ -453,7 +453,7 @@ class UEE {
 					}
 				], {
 					duration: 300,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					easing: 'bez'
 				}).onfinish = function(this: Animation) {
 					this.effect.target.style.bottom = '0';
 					this.effect.target.style.right = '0';
@@ -633,7 +633,7 @@ class UEE {
 				}
 			], {
 				duration: 350,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				easing: 'bez'
 			}));
 			this.editorFadeInAnimation.onfinish = function() {
 				window.doc.chooseFileMergerPlaceholder.style.display = 'none';
@@ -651,7 +651,7 @@ class UEE {
 					}
 				], {
 					duration: 350,
-					easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+					easing: 'bez'
 				}).onfinish = function() {
 					window.doc.chooseFilemergerContainer.style.opacity = '1';
 					window.externalEditor.editor.edit.refresh();
@@ -676,7 +676,7 @@ class UEE {
 	}], duration: number, callback?: () => void): Animation {
 		const animation = element.animate([before, after], {
 			duration,
-			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			easing: 'bez'
 		});
 		animation.onfinish = () => {
 			this.applyProps(after, element.style, Object.getOwnPropertyNames(after));
@@ -779,7 +779,7 @@ class UEE {
 				}
 			], {
 				duration: 240,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				easing: 'bez'
 			}));
 		_this.dialogMainDivAnimationHide.onfinish = function() {
 			_this.onDialogMainDivAnimationHideEnd(_this, dialogRect, dialogStyle, oldScript, newScript)
@@ -1070,7 +1070,7 @@ class UEE {
 				}
 			], {
 				duration: 250,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				easing: 'bez'
 			}));
 		_this.dialogComparisonDivAnimationHide.onfinish = function() {
 			window.doc.chooseFileMerger.style.display = 'none';

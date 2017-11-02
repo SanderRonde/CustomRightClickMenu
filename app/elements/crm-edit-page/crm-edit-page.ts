@@ -159,7 +159,7 @@ class CEP {
 		], {
 			duration: 300,
 			fill: 'both',
-			easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+			easing: 'bez'
 		}));
 			
 		document.body.style.overflow = 'hidden';
@@ -238,7 +238,7 @@ class CEP {
 				}
 			], {
 				duration: 350,
-				easing: 'cubic-bezier(0.215, 0.610, 0.355, 1.000)'
+				easing: 'bez'
 			}).onfinish = function() {
 				_this.$.scriptUpdateNotice.style.marginBottom = marginBot;
 				_this.hideUpdateMessage = true;
