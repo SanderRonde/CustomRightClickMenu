@@ -177,7 +177,7 @@ module.exports = function(grunt) {
 					linebreak: true
 				},
 				files: {
-					src: ['build/html/*', 'build/elements/elements.html']
+					src: ['build/html/**.html', 'build/elements/elements.html']
 				}
 			},
 			jsBanners: {
@@ -187,7 +187,7 @@ module.exports = function(grunt) {
 					linebreak: true
 				},
 				files: {
-					src: ['build/js/background.js', 'build/js/crmapi.js', 'build/js/crmAPIDefs.js', 'build/js/crmAPIDocs.js']
+					src: ['build/html/**.js', 'build/js/background.js', 'build/js/crmapi.js', 'build/js/crmAPIDefs.js', 'build/js/crmAPIDocs.js']
 				}
 			}
 		},
