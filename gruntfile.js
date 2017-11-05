@@ -360,7 +360,7 @@ module.exports = function(grunt) {
 			buildBeforePolymer: ['buildBeforePolymer/'],
 			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
 			tsFiles: ['build/elements/**/*.ts'],
-			removeBuildBeforePolymer: 'build/buildBeforePolymer/**/*'
+			removeBuildBeforePolymer: ['build/buildBeforePolymer/']
 		},
 		'string-replace': {
 			manifestReplace: {
