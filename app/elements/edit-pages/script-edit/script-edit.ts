@@ -72,9 +72,10 @@ class SCE {
 	};
 
 	private static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
-		const __this = this;
-		this.$$('.executionTriggerNot').addEventListener('change', () => {
-			__this.triggerCheckboxChange.apply(__this, [this]);
+		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.executionTriggerNot')).forEach((trigger: HTMLElement) => {
+			trigger.addEventListener('change', () => {
+				this.triggerCheckboxChange.apply(this, [this]);
+			});
 		});
 	};
 
