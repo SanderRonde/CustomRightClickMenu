@@ -707,7 +707,7 @@ module.exports = function(grunt) {
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
-	grunt.registerTask('buildForDebugging', ['compile', 'buildForDebuggingNoCompile']);
+	grunt.registerTask('buildDebug', ['compile', 'buildForDebuggingNoCompile']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['compile', '_buildPrePolymer',
