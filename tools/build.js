@@ -186,6 +186,7 @@ module.exports = function(grunt) {
 
 				const labeler = genLabeler(grunt, entryPoint);
 
+				grunt.log.writeln('Reading sources...');
 				const sourcesStream = labeler(forkStream(project.sources()), 'sources');
 				const depsStream = labeler(forkStream(project.dependencies()), 'deps');
 				const splitter = new HtmlSplitter();
