@@ -49,6 +49,10 @@ class TS {
 	static colored: boolean = false;
 
 	static ready(this: TypeSwitcher) {
+		this.onReady();
+	}
+
+	static onReady(this: TypeSwitcher) {
 		if ((this.isScript = this.type === 'script')) {
 			this.isLink = this.isMenu = this.isDivider = this.isStylesheet = false;
 			this.remainingTypes = ['link', 'divider', 'menu', 'stylesheet'];
@@ -84,8 +88,11 @@ class TS {
 			easing: 'easeInCubic',
 			duration: (quick ? 80 : 300),
 			complete() {
-				_this.$.typeSwitchChoicesContainer.style.display = 'none';
-				_this.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
+				// Weird bug happens so querySelector is more reliable https://i.imgur.com/u7HUKVQ.png
+				const choicesContainer = _this.shadowRoot.querySelector('#typeSwitchChoicesContainer');
+				const arrow = _this.shadowRoot.querySelector('#typeSwitchArrow');
+				choicesContainer.style.display = 'none';
+				arrow.style.transform = 'rotate(180deg)';
 				callback && callback();
 			}
 		});
@@ -96,8 +103,10 @@ class TS {
 			this.colorTypeChoices();
 			this.colored = true;
 		}
-		this.$.typeSwitchChoicesContainer.style.display = 'block';
-		this.$.typeSwitchArrow.style.transform = 'rotate(90deg)';
+		const choicesContainer = this.shadowRoot.querySelector('#typeSwitchChoicesContainer');
+		const arrow = this.shadowRoot.querySelector('#typeSwitchArrow');
+		choicesContainer.style.display = 'block';
+		arrow.style.transform = 'rotate(90deg)';
 		$(this.parentNode.parentNode).stop().animate({
 			height: 250
 		}, {
@@ -159,6 +168,7 @@ class TS {
 
 	static changeType(this: TypeSwitcher, e: Polymer.ClickEvent|CRM.NodeType) {
 		window.app.editCRM.cancelAdding();
+		debugger;
 		
 		const _this = this;
 		let type: CRM.NodeType;
@@ -244,7 +254,7 @@ class TS {
 		//Update color
 		editCrmEl.type = item.type;
 		editCrmEl.calculateType();
-		this.ready();
+		this.onReady();
 
 		let i;
 		const typeChoices = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.typeSwitchChoice'));
@@ -263,7 +273,7 @@ class TS {
 				
 			editCrmEl.type = prevType;
 			editCrmEl.calculateType();
-			_this.ready();
+			_this.onReady();
 			for (i = 0; i < _this.remainingTypes.length; i++) {
 				typeChoices[i].setAttribute('type', _this.remainingTypes[i]);
 			}
