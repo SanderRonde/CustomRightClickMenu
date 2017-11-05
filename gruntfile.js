@@ -324,7 +324,7 @@ module.exports = function(grunt) {
 				files: [{ 
 					expand: true, 
 					src: ['buildBeforePolymer/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'], 
-					dest: 'build/buildBeforePolymer/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'
+					dest: 'build/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'
 				}]
 			},
 			moveUpDirectory: {
@@ -509,8 +509,8 @@ module.exports = function(grunt) {
 					scriptInhead: false
 				},
 				files: [{
-					src: './build/buildBeforePolymer/html/options.html',
-					dest: './build/buildBeforePolymer/html/options.html'
+					src: './build/html/options.html',
+					dest: './build/html/options.html'
 				}]
 			},
 			background: {
@@ -519,8 +519,8 @@ module.exports = function(grunt) {
 					scriptInhead: false
 				},
 				files: [{
-					src: './build/buildBeforePolymer/html/background.html',
-					dest: './build/buildBeforePolymer/html/background.html'
+					src: './build/html/background.html',
+					dest: './build/html/background.html'
 				}]
 			}
 		},
@@ -608,6 +608,14 @@ module.exports = function(grunt) {
 					dest: './build/'
 				}
 			}
+		},
+		jsbeautifier: {
+			beautifyBuilt: {
+				src: ["build/**/*.css", "build/**/*.html", "build/**/*.js"],
+				options: {
+
+				}
+			}
 		}
 	});
 
@@ -621,6 +629,7 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-watch');
 	grunt.loadNpmTasks('grunt-crisper');
 	grunt.loadNpmTasks('grunt-exec');
+	grunt.loadNpmTasks('grunt-jsbeautifier');
 	grunt.loadNpmTasks('grunt-string-replace');
 	grunt.loadNpmTasks('grunt-ts');
 	grunt.loadNpmTasks('grunt-mocha-test');
@@ -696,14 +705,15 @@ module.exports = function(grunt) {
 		'copy:elements', 'copy:jsFiles', 'copy:html']);
 
 	//Runs all of the build steps after polymerBuild is invoked
-	grunt.registerTask('_buildPostPolymer', ['crispify', 'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer', 
-		'copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'zip']);
+	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
+		'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
 	// for if you're running a typescript compiler on watch mode
 	grunt.registerTask('buildForDebuggingNoCompile', ['_buildPrePolymer', 
-		'polymerBuild:dev', '_buildPostPolymer']);
+		'polymerBuild:dev', '_buildPostPolymer', 'jsbeautifier:beautifyBuilt',
+		'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
@@ -711,7 +721,7 @@ module.exports = function(grunt) {
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['compile', '_buildPrePolymer',
-		'polymerBuild:prod', '_buildPostPolymer']);
+		'polymerBuild:prod', '_buildPostPolymer', 'zip']);
 
 	//Builds the extension and places only the zip in build/
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
