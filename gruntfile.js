@@ -326,6 +326,14 @@ module.exports = function(grunt) {
 					src: ['buildBeforePolymer/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'], 
 					dest: 'build/buildBeforePolymer/bower_components/webcomponentsjs/custom-elements-es5-adapter.js'
 				}]
+			},
+			moveUpDirectory: {
+				files: [{
+					expand: true,
+					cwd: 'build/buildBeforePolymer',
+					src: ['**/*'],
+					dest: 'build/'
+				}]
 			}
 		},
 		htmlmin: {
@@ -352,6 +360,7 @@ module.exports = function(grunt) {
 			buildBeforePolymer: ['buildBeforePolymer/'],
 			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
 			tsFiles: ['build/elements/**/*.ts'],
+			removeBuildBeforePolymer: 'build/buildBeforePolymer/**/*'
 		},
 		'string-replace': {
 			manifestReplace: {
@@ -687,7 +696,8 @@ module.exports = function(grunt) {
 		'copy:elements', 'copy:jsFiles', 'copy:html']);
 
 	//Runs all of the build steps after polymerBuild is invoked
-	grunt.registerTask('_buildPostPolymer', ['crispify', 'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer', 'zip']);
+	grunt.registerTask('_buildPostPolymer', ['crispify', 'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer', 
+		'copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
