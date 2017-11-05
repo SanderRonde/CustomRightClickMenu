@@ -906,7 +906,7 @@ class SCE {
  	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
 	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance, container: HTMLElement) {
-		const clone = (window.app.shadowRoot.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
+		const clone = (document.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
 
 		if (window.app.settings.editor.theme === 'white') {
 			clone.querySelector('#editorThemeSettingWhite').classList.add('currentTheme');
@@ -1009,7 +1009,7 @@ class SCE {
 		};
 		const settingsContainer = importedElement.querySelector('#settingsContainer');
 		for (let i = 0; i < this.keyBindings.length; i++) {
-			const keyBindingClone = (window.app.shadowRoot.querySelector('#keyBindingTemplate') as HTMLTemplateElement).content;
+			const keyBindingClone = (document.querySelector('#keyBindingTemplate') as HTMLTemplateElement).content;
 			
 			const input = keyBindingClone.querySelector('paper-input') as HTMLPaperInputElement & {
 				lastValue: string;
@@ -1249,7 +1249,7 @@ class SCE {
 		editor.display.wrapper.classList.add('script-edit-codeMirror');
 		editor.display.wrapper.classList.add('small');
 
-		const cloneTemplate = document.importNode((window.app.shadowRoot.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
+		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
 		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
 		const clone = editor.display.sizer;
 		

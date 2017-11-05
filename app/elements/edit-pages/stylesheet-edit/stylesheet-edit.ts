@@ -467,7 +467,7 @@ class STE {
 	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
 	private static fillEditorOptions(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement) {
-		const clone = (window.app.shadowRoot.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
+		const clone = (document.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
 
 		if (window.app.settings.editor.theme === 'white') {
 			clone.querySelector('#editorThemeSettingWhite').classList.add('currentTheme');
@@ -584,7 +584,7 @@ class STE {
 		}
 		this.editor.setOption('extraKeys', keys);
 
-		const cloneTemplate = document.importNode((window.app.shadowRoot.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
+		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
 		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
 		const clone = editor.display.sizer;
 
