@@ -163,8 +163,8 @@ class CEB {
 			duration: 800,
 			easing: 'bez'
 		}).onfinish = function (this: Animation) {
-			this.effect.target.style.marginLeft = '-200px';
-			this.effect.target.classList.remove('visible');
+			window.doc.editorToolsRibbonContainer.style.marginLeft = '-200px';
+			window.doc.editorToolsRibbonContainer.classList.remove('visible');
 		};
 	};
 

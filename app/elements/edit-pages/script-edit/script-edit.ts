@@ -1294,8 +1294,9 @@ class SCE {
 					duration: 300,
 					easing: 'bez'
 				});
+				const __this = this;
 				this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
-					this.effect.target.style.display = 'none';
+					__this.$.editorPlaceholder.style.display = 'none';
 				};
 			}
 		}

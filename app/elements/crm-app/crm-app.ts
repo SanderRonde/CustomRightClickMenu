@@ -1178,7 +1178,8 @@ class CA {
 					});
 
 					const stopHighlighting = function (element: HTMLElement) {
-						$(element).find('.item')[0].animate([
+						const item = $(element).find('.item')[0];
+						item.animate([
 							{
 								opacity: 1
 							}, {
@@ -1188,7 +1189,7 @@ class CA {
 							duration: 250,
 							easing: 'bez'
 						}).onfinish = function (this: Animation) {
-							this.effect.target.style.opacity = '0.6';
+							item.style.opacity = '0.6';
 							window.doc.restoreChangesDialog.open();
 							$('.pageCont').animate({
 								backgroundColor: 'white'
@@ -1223,7 +1224,7 @@ class CA {
 								duration: 250,
 								easing: 'bez'
 							}).onfinish = function (this: Animation) {
-								this.effect.target.style.opacity = '1';
+								crmElement.querySelector('.item').style.opacity = '1';
 							};
 							setTimeout(function () {
 								stopHighlighting(crmElement);
