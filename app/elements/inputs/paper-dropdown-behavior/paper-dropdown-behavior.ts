@@ -3,6 +3,7 @@
 const paperDropdownBehaviorProperties: {
 	selected: number|Array<number>;
 	raised: boolean;
+	overflowing: boolean;
 } = {
 	/**
 	 * The selected item
@@ -14,6 +15,10 @@ const paperDropdownBehaviorProperties: {
 		reflectToAttribute: true
 	},
 	raised: {
+		type: Boolean,
+		value: false
+	},
+	overflowing: {
 		type: Boolean,
 		value: false
 	}
@@ -72,8 +77,6 @@ class PDB {
 	 * A function that is called whenever the dialog opens
 	 */
 	static onopen: () => void;
-
-	static overflowing: boolean;
 
 	/**
 	 * Adds a listener that fires when a new value is selected
@@ -134,7 +137,6 @@ class PDB {
 	}
 
 	static attached(this: PaperDropdownMenu) {
-		console.log('It\'s ready');
 		const __this = this;
 		this.refreshListeners();
 		this._paperDropdownEl = this;
@@ -150,7 +152,13 @@ class PDB {
 		this._expanded = true;
 
 		const interval = window.setInterval(() => {
-			if (this._getMenu()) {
+			if (this.getMenu() && this.getMenu().$.content.assignedNodes()[0]) {
+				const content = this.getMenu().$.content.assignedNodes()[0] as HTMLElement;
+				if (this.overflowing) {
+					content.style.position = 'absolute';
+				}
+				content.style.backgroundColor = 'white';
+				
 				window.clearInterval(interval);
 				this.close();
 			}
@@ -240,7 +248,7 @@ class PDB {
 				} = {
 					height: content.scrollHeight
 				};
-				if (_this.overflowing !== undefined) {
+				if (_this.overflowing) {
 					animation['marginBottom'] = -(content.scrollHeight + 14);
 				}
 				$(content).stop().animate(animation, {
