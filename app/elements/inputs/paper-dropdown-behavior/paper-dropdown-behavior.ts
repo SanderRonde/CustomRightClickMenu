@@ -79,6 +79,11 @@ class PDB {
 	static onopen: () => void;
 
 	/**
+	 * The listeners on clicking the items
+	 */
+	static _elementListeners: Array<() => void> = [];
+
+	/**
 	 * Adds a listener that fires when a new value is selected
 	 */
 	static _addListener(this: PaperDropdownInstance, listener: PaperDropdownListener,
@@ -114,18 +119,46 @@ class PDB {
 		}
 	};
 
+	static _getMenuContent(this: PaperDropdownInstance) {
+		return this.getMenu().$.content.assignedNodes()[0] as HTMLElement;
+	}
+
+	static _doHighlight(this: PaperDropdownInstance) {
+		const content = this._getMenuContent();
+		const paperItems = Array.prototype.slice.apply(content.querySelectorAll('paper-item'));
+		paperItems.forEach((paperItem: HTMLPaperItemElement, index: number) => {
+			const checkMark = paperItem.$$('slot').assignedNodes().filter((node) => {
+				return node.nodeType !== node.TEXT_NODE;
+			})[0] as HTMLElement;
+			if (index === this.selected) {
+				checkMark.style.opacity = '1';
+			} else {
+				checkMark.style.opacity = '0';
+			}
+		});
+	}
+
 	static refreshListeners(this: PaperDropdownInstance) {
-		const paperItems = Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-item'));
-		paperItems.forEach((paperItem: HTMLPaperItemElement) => {
-			paperItem.removeEventListener('click');
-			paperItem.addEventListener('click', () => {
+		const content = this._getMenuContent();
+		const paperItems = Array.prototype.slice.apply(content.querySelectorAll('paper-item'));
+		const oldListeners = this._elementListeners;
+		this._elementListeners = [];
+		paperItems.forEach((paperItem: HTMLPaperItemElement, index: number) => {
+			oldListeners.forEach((listener) => {
+				paperItem.removeEventListener('click', listener);
+			});
+			const fn = () => {
+				this.selected = index;
 				setTimeout(() => {
+					this._doHighlight();
 					this._fireListeners();
 					if ((this as any)._dropdownSelectChange) {
 						(this as any)._dropdownSelectChange(this);
 					}
 				}, 50);
-			});
+			}
+			this._elementListeners.push(fn);
+			paperItem.addEventListener('click', fn);
 		});
 	};
 
@@ -138,7 +171,6 @@ class PDB {
 
 	static attached(this: PaperDropdownMenu) {
 		const __this = this;
-		this.refreshListeners();
 		this._paperDropdownEl = this;
 		this._dropdownSelectedCont = this.$.dropdownSelectedCont;
 		if (this.getAttribute('indent') === 'false') {
@@ -152,8 +184,8 @@ class PDB {
 		this._expanded = true;
 
 		const interval = window.setInterval(() => {
-			if (this.getMenu() && this.getMenu().$.content.assignedNodes()[0]) {
-				const content = this.getMenu().$.content.assignedNodes()[0] as HTMLElement;
+			if (this.getMenu() && this._getMenuContent()) {
+				const content = this._getMenuContent();
 				if (this.overflowing) {
 					content.style.position = 'absolute';
 				}
@@ -161,6 +193,7 @@ class PDB {
 				
 				window.clearInterval(interval);
 				this.close();
+				this.refreshListeners();
 			}
 		}, 250);
 	};
@@ -175,7 +208,7 @@ class PDB {
 		if (timestamp - 100 < _this._startTime) {
 			const scale = ((timestamp - _this._startTime) / 100);
 			let doubleScale = scale * 2;
-			(_this.getMenu().$.content.assignedNodes()[0] as HTMLElement).style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
+			_this._getMenuContent().style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
 				' 0 ' + scale + 'px ' + (5 * scale) + 'px 0 rgba(0,0,0,0.12),' +
 				' 0 ' + (scale * 3) + 'px ' + scale + 'px ' + -doubleScale + 'px rgba(0,0,0,0.2)';
 			if (!_this.indent) {
@@ -190,7 +223,7 @@ class PDB {
 				_this._dropdownSelectedCont.style.marginLeft = '15px';
 			}
 			_this._startTime = null;
-			(_this.getMenu().$.content.assignedNodes()[0] as HTMLElement).style.boxShadow = '0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2)';
+			_this._getMenuContent().style.boxShadow = '0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2)';
 		}
 	};
 
@@ -241,7 +274,7 @@ class PDB {
 				});
 			}
 			setTimeout(function() {
-				const content = _this.getMenu().$.content.assignedNodes()[0] as HTMLElement;
+				const content = _this._getMenuContent();
 				content.style.display = 'block';
 				const animation: {
 					[key: string]: any
@@ -277,7 +310,7 @@ class PDB {
 			if (this.overflowing !== undefined) {
 				animation['marginBottom'] = -15;
 			}
-			$(this.getMenu().$.content.assignedNodes()[0]).stop().animate(animation, {
+			$(this._getMenuContent()).stop().animate(animation, {
 				easing: 'easeInCubic',
 				duration: 300,
 				complete(this: HTMLElement) {

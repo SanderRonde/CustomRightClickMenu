@@ -19,12 +19,10 @@
 				<br/>
 				<div id="toggleButtonsCont">
 					<div class="toggleButtonOption">
-						<paper-toggle-button id="isTogglableButton" checked="{{newSettings.value.toggle}}"></paper-toggle-button>
-						<span class="codeButtonTxt">Is Togglable</span>
+						<paper-toggle-button id="isTogglableButton" checked="{{newSettings.value.toggle}}">Is Togglable</paper-toggle-button>
 					</div>
 					<div class="toggleButtonOption">
-						<paper-toggle-button id="isDefaultOnButton" disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}"></paper-toggle-button>
-						<span class="codeButtonTxt">On by default</span>
+						<paper-toggle-button id="isDefaultOnButton" disabled$="[[!newSettings.value.toggle]]" checked="{{newSettings.value.defaultOn}}">On by default</paper-toggle-button>
 					</div>
 					<div id="codeInfoCont">
 						<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
