@@ -168,7 +168,6 @@ class TS {
 
 	static changeType(this: TypeSwitcher, e: Polymer.ClickEvent|CRM.NodeType) {
 		window.app.editCRM.cancelAdding();
-		debugger;
 		
 		const _this = this;
 		let type: CRM.NodeType;
