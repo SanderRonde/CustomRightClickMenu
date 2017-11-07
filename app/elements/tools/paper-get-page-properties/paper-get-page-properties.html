@@ -9,12 +9,14 @@
 			<div id="dropdownSelected">Get page property</div>
 			<svg id="dropdownArrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z" /></svg>
 		</div>
-		<paper-menu multi role="menu">
-			<template is="dom-repeat" items="{{options}}" as="option">
-				<paper-item on-tap="_click" id$="[[option.id]]" tabindex="-1">
-					<span class="propertyName">[[option.name]]</span>
-				</paper-item>
-			</template>
+		<paper-menu id="menu" multi role="menu">
+			<slot class="content">
+				<template is="dom-repeat" items="{{options}}" as="option">
+					<paper-item on-tap="_click" id$="[[option.id]]" tabindex="-1">
+						<span class="propertyName">[[option.name]]</span>
+					</paper-item>
+				</template>
+			</slot>
 		</paper-menu>
 	</template>
 </dom-module>

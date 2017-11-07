@@ -94,6 +94,10 @@ class PGPP {
 		];
 	};
 
+	static _getMenu(this: PaperGetPageProperties): HTMLPaperMenuElement {
+		return this.$.menu;
+	}
+
 	static behaviors = [Polymer.PaperDropdownBehavior];
 }
 

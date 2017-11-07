@@ -220,7 +220,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	static processSearchEngines(this: PaperSearchWebsiteDialog) {
 		const _this = this;
 		return function(resolve: (value?: any) => void, reject: (value?: any) => void) {
-			const data = _this.$.manualInputListChoiceInput.querySelector('textarea').value;
+			const data = _this.$.manualInputListChoiceInput.$$('textarea').value;
 
 			try {
 				const structuredSearchEngines = JSON.parse(data);
@@ -246,7 +246,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	static processManualInput(this: PaperSearchWebsiteDialog) {
 		if (this.selectedIsUrl) {
 			this.chosenUrl = this.$.manualInputURLInput
-				.querySelector('input')
+				.$$('input')
 				.value
 				.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
 			this.switchToWindow('confirmationWindow');
@@ -364,7 +364,7 @@ ${this.$.howToOpenLink.selected === 'currentTab' ?
 	 * Waits a bit before fitting the element
 	 */
 	static fixFit(this: PaperSearchWebsiteDialog) {
-		const paperInputContainer = this.$.manualInputListChoiceInput.querySelector('paper-input-container');
+		const paperInputContainer = this.$.manualInputListChoiceInput.$$('paper-input-container');
 		paperInputContainer.style.height = '200px';
 		this.fit();
 		paperInputContainer.style.height = 'auto';

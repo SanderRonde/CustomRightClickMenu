@@ -27,6 +27,7 @@
 /// <reference path="./inputs/paper-dropdown-menu/paper-dropdown-menu.ts" />
 /// <reference path="./inputs/paper-toggle-option/paper-toggle-option.ts" />
 /// <reference path="./inputs/paper-array-input/paper-array-input.ts" />
+/// <reference path="./inputs/paper-menu/paper-menu.ts" />
 /// <reference path="./tools/paper-get-page-properties/paper-get-page-properties.ts" />
 /// <reference path="./tools/paper-libraries-selector/paper-libraries-selector.ts" />
 /// <reference path="./tools/paper-search-website-dialog/paper-search-website-dialog.ts" />
@@ -191,6 +192,7 @@ interface HTMLElement {
 		fill?: 'forwards'|'backwards'|'both';
 	}): Animation;
 	disabled: boolean;
+	getRootNode(): Polymer.PolymerElement;
 }
 
 interface CSSStyleDeclaration {

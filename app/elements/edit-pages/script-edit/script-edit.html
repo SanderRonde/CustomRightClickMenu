@@ -33,46 +33,48 @@
 						<br/>
 						<paper-dropdown-menu indent="false" id="dropdownMenu" selected="[[item.value.launchMode]]">
 							<paper-menu slot="menu" selected="{{newSettings.value.launchMode}}">
-								<paper-item id="executeOnClickOption" class="scriptLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-											<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
-										</svg>
-									</div>
-									<span class="menuOptionName">Execute on clicking</span>
-								</paper-item>
-								<paper-item id="executeAlwaysOption" class="scriptLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-											<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
-										</svg>
-									</div>
-									<span class="menuOptionName">Always execute</span>
-								</paper-item>
-								<paper-item id="execyteOnSpecified" class="scriptLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-											<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
-										</svg>
-									</div>
-									<span class="menuOptionName">Execute when visiting specified sites</span>
-								</paper-item>
-								<paper-item id="showOnSpecifiedSites" class="scriptLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-											<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
-										</svg>
-									</div>
-									<span class="menuOptionName">Show only on specified sites</span>
-								</paper-item>
-								<paper-item id="nodeDisabled" class="scriptLaunchOption">
-									<div class="menuSelectedCheckmark">
-										<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
-											<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
-										</svg>
-									</div>
-									<span class="menuOptionName">Disabled</span>
-								</paper-item>
+								<div slot="content">
+									<paper-item id="executeOnClickOption" class="scriptLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+												<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+											</svg>
+										</div>
+										<span class="menuOptionName">Execute on clicking</span>
+									</paper-item>
+									<paper-item id="executeAlwaysOption" class="scriptLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+												<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+											</svg>
+										</div>
+										<span class="menuOptionName">Always execute</span>
+									</paper-item>
+									<paper-item id="execyteOnSpecified" class="scriptLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+												<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+											</svg>
+										</div>
+										<span class="menuOptionName">Execute when visiting specified sites</span>
+									</paper-item>
+									<paper-item id="showOnSpecifiedSites" class="scriptLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+												<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+											</svg>
+										</div>
+										<span class="menuOptionName">Show only on specified sites</span>
+									</paper-item>
+									<paper-item id="nodeDisabled" class="scriptLaunchOption">
+										<div class="menuSelectedCheckmark">
+											<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48">
+												<path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z" />
+											</svg>
+										</div>
+										<span class="menuOptionName">Disabled</span>
+									</paper-item>
+								</div>
 							</paper-menu>
 						</paper-dropdown-menu>
 						<br/>
@@ -253,12 +255,14 @@
 			<div id="buttonsCont">
 				<div id="buttons">
 					<paper-dropdown-menu slot="menu" overflowing indent="false" id="exportMenu" selected="0">
-						<paper-menu selected="0">
-							<paper-item hidden>
-								<span class="menuOptionName">EXPORT AS</span>
-							</paper-item>
-							<paper-item on-tap="exportScriptAsCRM">CRM Node</paper-item>
-							<paper-item on-tap="exportScriptAsUserscript">Userscript</paper-item>
+						<paper-menu slot="menu" selected="0">
+							<div slot="content">
+								<paper-item hidden>
+									<span class="menuOptionName">EXPORT AS</span>
+								</paper-item>
+								<paper-item on-tap="exportScriptAsCRM">CRM Node</paper-item>
+								<paper-item on-tap="exportScriptAsUserscript">Userscript</paper-item>
+							</div>
 						</paper-menu>
 					</paper-dropdown-menu>
 					<paper-button id="cancelButton" on-tap="cancel">Cancel</paper-button>

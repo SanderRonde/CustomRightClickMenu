@@ -50,23 +50,25 @@ class PDM {
 		return !!this.fancylabel;
 	}
 
-	/**
-	 * Fires when the selected item changes
-	 */
-	static _dropdownSelectChange(_this: PaperDropdownMenu) {
-		const paperItems = _this.shadowRoot.querySelectorAll('paper-item');
-		const newState = _this._paperMenu.selected;
-		_this.$.dropdownSelected.innerHTML = (paperItems[newState].children[1] && 
-			paperItems[newState].children[1].innerHTML) || 'EXPORT AS';
-	};
+	static _getSelectedValue(this: PaperDropdownMenu) {
+		const menu = (this.$.menuSlot.assignedNodes()[0] as HTMLElement);
+		if (!menu) {
+			return 'EXPORT AS';
+		}
+		const paperItems = menu.querySelectorAll('paper-item');
+		return (paperItems[this.selected].children[1] && 
+			paperItems[this.selected].children[1].innerHTML) || 'EXPORT AS';
+	}
 
 	static init(this: PaperDropdownMenu) {
-		const paperItems = this.shadowRoot.querySelectorAll('paper-item');
-		this.$.dropdownSelected.innerHTML = $(paperItems[this.selected as number]).children('.menuOptionName').html();
 		this.refreshListeners();
 	};
 
-	static ready(this: PaperDropdownMenu) {
+	static _getMenu(this: PaperDropdownMenu): HTMLPaperMenuElement {
+		return this.$.menuSlot.assignedNodes()[0] as any;
+	}
+
+	static attached(this: PaperDropdownMenu) {
 		if (this.getAttribute('init') !== null) {
 			this.init();
 		}

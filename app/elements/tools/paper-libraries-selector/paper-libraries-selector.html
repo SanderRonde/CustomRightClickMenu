@@ -26,29 +26,31 @@
 			<svg id="dropdownArrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 		</div>
 		<paper-menu id="dropdown" selected-values="{{selected}}" multi role="menu">
-			<template is="dom-repeat" items="{{libraries}}" as="library">
-				<paper-item data-lib="[[library]]" data-url$="[[library.url]]" on-tap="_click" tabindex="-1" addlibrary$="[[!library.isLibrary]]" aria-selected$="[[library.selected]]" class$="[[library.classes]]">
-					<template is="dom-if" if="[[library.isLibrary]]">
-						<div class="menuSelectedCheckmark">
-							<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-						</div>
-					</template>
-					<template is="dom-if" if="[[!library.isLibrary]]">
-						<div class="addLibraryPlusImg">
-							<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z"/></svg>
-						</div>
-					</template>
-					<template is="dom-if" if="[[library.isLibrary]]">
-						<div class="removeLibrary">
-							<svg on-tap="_remove" height="15" viewbox="0 0 24 24" width="15" xmlns="http://www.w3.org/2000/svg">
-								<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-								<path d="M0 0h24v24H0z" fill="none"/>
-							</svg>
-						</div>
-					</template>
-					<span data-descr$="[[library.name]]" class="menuOptionName">[[library.name]]</span>
-				</paper-item>
-			</template>
+			<slot class="content">
+				<template is="dom-repeat" items="{{libraries}}" as="library">
+					<paper-item data-lib="[[library]]" data-url$="[[library.url]]" on-tap="_click" tabindex="-1" addlibrary$="[[!library.isLibrary]]" aria-selected$="[[library.selected]]" class$="[[library.classes]]">
+						<template is="dom-if" if="[[library.isLibrary]]">
+							<div class="menuSelectedCheckmark">
+								<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+							</div>
+						</template>
+						<template is="dom-if" if="[[!library.isLibrary]]">
+							<div class="addLibraryPlusImg">
+								<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewbox="0 0 48 48"><path d="M38 26H26v12h-4V26H10v-4h12V10h4v12h12v4z"/></svg>
+							</div>
+						</template>
+						<template is="dom-if" if="[[library.isLibrary]]">
+							<div class="removeLibrary">
+								<svg on-tap="_remove" height="15" viewbox="0 0 24 24" width="15" xmlns="http://www.w3.org/2000/svg">
+									<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+									<path d="M0 0h24v24H0z" fill="none"/>
+								</svg>
+							</div>
+						</template>
+						<span data-descr$="[[library.name]]" class="menuOptionName">[[library.name]]</span>
+					</paper-item>
+				</template>
+			</slot>
 		</paper-menu>
 	</template>
 </dom-module>

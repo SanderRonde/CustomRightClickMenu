@@ -859,9 +859,9 @@ class CA {
 
 			//Reset regedit part
 			window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-			window.doc.URISchemeFilePath.querySelector('input').value = 'C:\\files\\my_file.exe';
+			window.doc.URISchemeFilePath.shadowRoot.querySelector('input').value = 'C:\\files\\my_file.exe';
 			window.doc.URISchemeSchemeName.value = 'myscheme';
-			window.doc.URISchemeSchemeName.querySelector('input').value = 'myscheme';
+			window.doc.URISchemeSchemeName.shadowRoot.querySelector('input').value = 'myscheme';
 
 			//Hide all open dialogs
 			Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
@@ -1572,7 +1572,7 @@ class CA {
 			});
 
 			const _this = this;
-			const importsAmount = 43;
+			const importsAmount = 42;
 			const loadingBarSettings = {
 				lastReachedProgress: 0,
 				progressBar: document.getElementById('splashScreenProgressBarLoader'),
@@ -1583,13 +1583,19 @@ class CA {
 			};
 
 			let registeredElements = Polymer.telemetry.registrations.length;
+			let loaded: boolean = false;
 			const registrationArray = Array.prototype.slice.apply(Polymer.telemetry.registrations);
 			registrationArray.push = function (element: HTMLElement) {
 				Array.prototype.push.call(registrationArray, element);
 				registeredElements++;
 				const progress = Math.round((registeredElements / importsAmount) * 100) / 100;
 				_this.animateLoadingBar(loadingBarSettings, progress);
-				if (registeredElements === importsAmount) {
+				if (registeredElements > importsAmount) {
+					if (loaded) {
+						return;
+					}
+					loaded = true;
+					console.log('Done registering');
 					//Wait until the element is actually registered to the DOM
 					window.setTimeout(() => {
 						callback && callback();
@@ -2737,8 +2743,8 @@ class CA {
 		};
 
 		static _generateRegexFile() {
-			const filePath = this.parent().$.URISchemeFilePath.querySelector('input').value.replace(/\\/g, '\\\\');
-			const schemeName = this.parent().$.URISchemeSchemeName.querySelector('input').value;
+			const filePath = this.parent().$.URISchemeFilePath.$$('input').value.replace(/\\/g, '\\\\');
+			const schemeName = this.parent().$.URISchemeSchemeName.$$('input').value;
 
 			const regFile = [
 				'Windows Registry Editor Version 5.00',

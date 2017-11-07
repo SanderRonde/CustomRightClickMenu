@@ -183,12 +183,7 @@ class TS {
 				type = path[0].children[0].innerHTML as CRM.NodeType;
 			}
 		}
-		const localRoot = this.parentNode.parentNode.parentNode as HTMLElement & {
-			getRootNode(): {
-				host: HTMLElement;
-			}
-		}
-		const editCrmEl = localRoot.getRootNode().host as EditCrmItem;
+		const editCrmEl = this.getRootNode() as EditCrmItem;
 		const item = editCrmEl.item;
 		const prevType = item.type;
 

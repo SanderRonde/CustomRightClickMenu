@@ -2,7 +2,7 @@
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html" />
 <link rel="import" href="../../bower_components/paper-material/paper-material.html" />
 <link rel="import" href="../../bower_components/paper-input/paper-input.html" />
-<link rel="import" href="../../bower_components/paper-menu/paper-menu.html"/>
+<link rel="import" href="../../elements/inputs/paper-menu/paper-menu.html"/>
 <link rel="import" href="../../bower_components/paper-toast/paper-toast.html" />
 <link rel="import" href="../../elements/inputs/paper-dropdown-menu/paper-dropdown-menu.html" />
 <link rel="import" href="../../elements/echo-html/echo-html.html" />
@@ -18,62 +18,68 @@
 					<div id="consoleInfo">
 						<div id="filterCont">
 							<div id="idFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu slot="menu" id="idDropdown" label="ID" init overflowing indent="false" selected="0">
-									<paper-menu selected="0">
-										<paper-item>
-											<div class="menuSelectedCheckmark">
-												<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-											</div>
-											<span class="menuOptionName">ALL</span>
-										</paper-item>
-										<template id="idRepeat" is="dom-repeat" items="{{ids}}" as="id">
+								<paper-dropdown-menu id="idDropdown" label="ID" init overflowing indent="false" selected="0">
+									<paper-menu slot="menu" selected="0">
+										<slot class="content">
 											<paper-item>
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
 												</div>
-												<span title$="[[id.title]]" class="menuOptionName">[[id.id]]</span>
+												<span class="menuOptionName">ALL</span>
 											</paper-item>
-										</template>
+											<template id="idRepeat" is="dom-repeat" items="{{ids}}" as="id">
+												<paper-item>
+													<div class="menuSelectedCheckmark">
+														<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+													</div>
+													<span title$="[[id.title]]" class="menuOptionName">[[id.id]]</span>
+												</paper-item>
+											</template>
+										</slot>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu slot="menu" id="tabDropdown" label="Tab" init overflowing indent="false" selected="0">
-									<paper-menu selected="0">
-										<paper-item>
-											<div class="menuSelectedCheckmark">
-												<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-											</div>
-											<span class="menuOptionName">ALL</span>
-										</paper-item>
-										<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, tabs)}}" as="tab">
+								<paper-dropdown-menu id="tabDropdown" label="Tab" init overflowing indent="false" selected="0">
+									<paper-menu slot="menu" selected="0">
+										<slot class="content">
 											<paper-item>
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
 												</div>
-												<span title$="[[tab.title]]" class="menuOptionName">[[tab.id]]</span>
+												<span class="menuOptionName">ALL</span>
 											</paper-item>
-										</template>
+											<template id="tabRepeat" is="dom-repeat" items="{{_getIdTabs(selectedId, tabs)}}" as="tab">
+												<paper-item>
+													<div class="menuSelectedCheckmark">
+														<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+													</div>
+													<span title$="[[tab.title]]" class="menuOptionName">[[tab.id]]</span>
+												</paper-item>
+											</template>
+										</slot>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>
 							<div id="tabIndexFilter" class="dropdownFilter centerVertical">
-								<paper-dropdown-menu slot="menu" id="tabIndexDropdown" label="TabIndex" init overflowing indent="false" selected="0">
-									<paper-menu selected="0">
-										<paper-item>
-											<div class="menuSelectedCheckmark">
-												<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
-											</div>
-											<span class="menuOptionName">ALL</span>
-										</paper-item>
-										<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab)}}" as="tabIndex">
+								<paper-dropdown-menu id="tabIndexDropdown" label="TabIndex" init overflowing indent="false" selected="0">
+									<paper-menu slot="menu" selected="0">
+										<slot class="content">
 											<paper-item>
 												<div class="menuSelectedCheckmark">
 													<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
 												</div>
-												<span title$="[[tabIndex]]" class="menuOptionName">[[tabIndex]]</span>
+												<span class="menuOptionName">ALL</span>
 											</paper-item>
-										</template>
+											<template id="tabIndexRepeat" is="dom-repeat" items="{{_getTabIndexes(selectedId, selectedTab)}}" as="tabIndex">
+												<paper-item>
+													<div class="menuSelectedCheckmark">
+														<svg fill="#2699f4" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewbox="0 0 48 48"><path d="M18 32.34L9.66 24l-2.83 2.83L18 38l24-24-2.83-2.83z"/></svg>
+													</div>
+													<span title$="[[tabIndex]]" class="menuOptionName">[[tabIndex]]</span>
+												</paper-item>
+											</template>
+										</slot>
 									</paper-menu>
 								</paper-dropdown-menu>
 							</div>

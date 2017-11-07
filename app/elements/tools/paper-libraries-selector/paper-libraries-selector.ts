@@ -291,9 +291,9 @@ class PLS {
 
 	private static addNewLibrary(this: PaperLibrariesSelector) {
 		//Add new library dialog
-		window.doc.addedLibraryName.querySelector('input').value = '';
-		window.doc.addLibraryUrlInput.querySelector('input').value = '';
-		window.doc.addLibraryManualInput.querySelector('textarea').value = '';
+		window.doc.addedLibraryName.$$('input').value = '';
+		window.doc.addLibraryUrlInput.$$('input').value = '';
+		window.doc.addLibraryManualInput.$$('textarea').value = '';
 
 		this.showElements('addLibraryProcessContainer');
 		this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
@@ -305,7 +305,7 @@ class PLS {
 		$(window.doc.addLibraryDialog)
 			.find('#addLibraryButton')
 			.on('click', () => {
-				const name = window.doc.addedLibraryName.querySelector('input').value;
+				const name = window.doc.addedLibraryName.$$('input').value;
 				let taken = false;
 				for (let i = 0; i < this.installedLibraries.length; i++) {
 					if (this.installedLibraries[i].name === name) {
@@ -316,7 +316,7 @@ class PLS {
 					this.removeAttribute('invalid');
 					if (window.doc.addLibraryRadios.selected === 'url') {
 						const libraryInput = window.doc.addLibraryUrlInput;
-						let url = libraryInput.querySelector('input').value;
+						let url = libraryInput.$$('input').value;
 						if (url[0] === '/' && url[1] === '/') {
 							url = 'http:' + url;
 						}
@@ -329,7 +329,7 @@ class PLS {
 							libraryInput.setAttribute('invalid', 'true');
 						});
 					} else {
-						this.addLibraryFile(this, name, window.doc.addLibraryManualInput.querySelector('textarea').value);
+						this.addLibraryFile(this, name, window.doc.addLibraryManualInput.$$('textarea').value);
 					}
 				} else {
 					if (taken) {
@@ -411,7 +411,7 @@ class PLS {
 		//Remove it from view as well
 		this.splice('libraries', this.libraries.indexOf(library), 1);
 
-		const contentEl = this.$$('paper-menu .content') as HTMLElement;
+		const contentEl = this.$.dropdown;
 		contentEl.style.height = (~~contentEl.style.height.split('px')[0] - 48) + 'px';
 	}
 
@@ -420,6 +420,10 @@ class PLS {
 		this.mode = mode;
 		this.init();
 	};
+
+	static _getMenu(this: PaperLibrariesSelector) {
+		return this.$.dropdown;
+	}
 
 	static behaviors = [Polymer.PaperDropdownBehavior];
 }

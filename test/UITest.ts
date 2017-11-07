@@ -1182,7 +1182,7 @@ describe('Options Page', function() {
 							return driver.executeScript(inlineFn((REPLACE) => {
 								return JSON.stringify({
 									match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
-									checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
+									checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
 								});
 							}, {
 								checkboxId: checkboxId,
@@ -1207,7 +1207,7 @@ describe('Options Page', function() {
 						.executeScript(inlineFn((REPLACE) => {
 							return JSON.stringify({
 								match: window.app.storageLocal['REPLACE.checkboxId' as keyof CRM.StorageLocal] === REPLACE.expected,
-								checked: (document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox') as HTMLInputElement).checked
+								checked: document.getElementById('REPLACE.checkboxId').querySelector('paper-checkbox').checked
 							});
 						}, {
 							checkboxId: checkboxId,

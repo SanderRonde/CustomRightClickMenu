@@ -1349,7 +1349,7 @@ class SCE {
 		this._init();
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
-		(this.$.exportMenu as HTMLElement).querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';
+		this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
 		this.addDialogToMetaTagUpdateListeners();

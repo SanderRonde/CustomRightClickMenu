@@ -18,6 +18,9 @@ declare namespace Polymer {
 		CodeEditBehavior: CodeEditBehaviorBase;
 		NodeEditBehavior: NodeEditBehaviorBase;
 		PaperDropdownBehavior: PaperDropdownBehaviorBase;
+		IronMenuBehavior: {
+			selected: number;
+		};
 	}
 
 	export type RootElement = Node & GlobalEventHandlers & ElementTraversal & ChildNode & ParentNode & {
@@ -224,7 +227,8 @@ declare namespace Polymer {
 			fill?: 'forwards'|'backwards'|'both';
 		}): Animation;
 		disabled: boolean;
-	}
+		getRootNode(): Polymer.PolymerElement;
+	} & ElementBase;
 
 	interface CustomEventBase {
 		path: EventPath;
@@ -296,7 +300,7 @@ declare namespace Polymer {
 	type PolymerMap = ModuleMap & BehaviorMap;
 
 	export type El<N extends keyof PolymerMap, T extends InitializerProperties> = 
-		RootElement & T & ElementBase & {
+		RootElement & T & {
 			$: PolymerMap[N]	
 		};
 
@@ -339,11 +343,11 @@ declare namespace Polymer {
 declare const Polymer: Polymer.Polymer;
 
 //Polymer elements
-interface HTMLPaperIconButtonElement extends HTMLElement {
+interface HTMLPaperIconButtonElement extends Polymer.RootElement {
 	icon: string;
 }
 
-interface PaperDialogBase extends HTMLElement {
+interface PaperDialogBase extends Polymer.RootElement {
 	opened: boolean;
 	toggle(): void;
 	close(): void;
@@ -355,76 +359,76 @@ interface HTMLPaperDialogElement extends PaperDialogBase {
 	init(): void;
 }
 
-interface HTMLPaperToastElement extends HTMLElement {
+interface HTMLPaperToastElement extends Polymer.RootElement {
 	hide(): void;
 	show(): void;
 	text: string;
 	duration: number;
 }
 
-interface HTMLPaperInputElement extends HTMLInputElement {
+interface HTMLPaperInputElement extends Polymer.RootElement {
 	invalid: boolean;
 	errorMessage: string;
 	label: string;
+	value: string;
 }
 
-interface HTMLPaperInputContainerElement extends HTMLElement {
+interface HTMLPaperInputContainerElement extends Polymer.RootElement {
 	
 }
 
-interface HTMLPaperCheckboxElement extends HTMLElement {
+interface HTMLPaperCheckboxElement extends Polymer.RootElement {
 	checked: boolean;
 	disabled: boolean;
 }
 
-interface HTMLDomRepeatElement extends HTMLTemplateElement {
+interface HTMLDomRepeatElement extends Polymer.RootElement {
 	items: Array<any>;
 	as: string;
 	render(): void;
 }
 
-interface HTMLDomIfElement extends HTMLTemplateElement {
+interface HTMLDomIfElement extends Polymer.RootElement {
 	if: boolean;
 	render(): void;
 }
 
-interface HTMLPaperMenuElement extends HTMLElement {
-	selected: number;
-}
+type HTMLPaperMenuElement = PaperMenu;
 
-interface HTMLPaperSpinnerElement extends HTMLElement {
+interface HTMLPaperSpinnerElement extends Polymer.RootElement {
 	active: boolean;
 }
 
-interface HTMLPaperRadioGroupElement extends HTMLElement {
+interface HTMLPaperRadioGroupElement extends Polymer.RootElement {
 	selected: string;
 }
 
-interface HTMLPaperRadioButtonElement extends HTMLElement {
+interface HTMLPaperRadioButtonElement extends Polymer.RootElement {
 	checked: boolean;
 }
 
-interface HTMLPaperMaterialElement extends HTMLElement {
+interface HTMLPaperMaterialElement extends Polymer.RootElement {
 	elevation: string;
 }
 
-interface HTMLPaperButtonElement extends HTMLElement {
+interface HTMLPaperButtonElement extends Polymer.RootElement {
 	
 }
 
-interface HTMLPaperTextareaElement extends HTMLTextAreaElement {
+interface HTMLPaperTextareaElement extends Polymer.RootElement {
 	invalid: boolean;
+	value: string;
 }
 
-interface HTMLPaperItemElement extends HTMLElement {
+interface HTMLPaperItemElement extends Polymer.RootElement {
 
 }
 
-interface HTMLPaperToggleButtonElement extends HTMLElement {
+interface HTMLPaperToggleButtonElement extends Polymer.RootElement {
 	checked: boolean;
 }
 
-interface HTMLPaperToolbarElement extends HTMLElement {
+interface HTMLPaperToolbarElement extends Polymer.RootElement {
 
 }
 
