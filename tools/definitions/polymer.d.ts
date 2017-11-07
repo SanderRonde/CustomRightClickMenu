@@ -227,7 +227,7 @@ declare namespace Polymer {
 			fill?: 'forwards'|'backwards'|'both';
 		}): Animation;
 		disabled: boolean;
-		getRootNode(): Polymer.PolymerElement;
+		getRootNode(): ShadowRoot;
 	} & ElementBase;
 
 	interface CustomEventBase {
