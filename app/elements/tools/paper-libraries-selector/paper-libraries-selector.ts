@@ -371,7 +371,6 @@ class PLS {
 	}
 
 	static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
-		console.log(e.target);
 		const _this = this;
 		if (e.target.tagName.toLowerCase() === 'path' ||
 			e.target.tagName.toLowerCase() === 'svg' ||

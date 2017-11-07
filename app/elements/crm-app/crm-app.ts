@@ -1595,7 +1595,6 @@ class CA {
 						return;
 					}
 					loaded = true;
-					console.log('Done registering');
 					//Wait until the element is actually registered to the DOM
 					window.setTimeout(() => {
 						callback && callback();
