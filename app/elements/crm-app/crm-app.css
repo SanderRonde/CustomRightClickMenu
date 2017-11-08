@@ -589,6 +589,8 @@ body.editingScript .cssTool {
 .requestPermissionButton, .requestPermissionsShowBot {
 	float: right;
 	margin-top: 5px;
+	width: 36px;
+	height: 14px;
 }
 
 .requestPermissionsShowBot {
