@@ -56,7 +56,8 @@ class PDM {
 			return 'EXPORT AS';
 		}
 		const paperItems = menu.querySelectorAll('paper-item');
-		return (paperItems[this.selected].children[1] && 
+		return (paperItems[this.selected] &&
+			paperItems[this.selected].children[1] && 
 			paperItems[this.selected].children[1].innerHTML) || 'EXPORT AS';
 	}
 
