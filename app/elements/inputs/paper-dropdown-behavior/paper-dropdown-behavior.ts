@@ -108,7 +108,6 @@ class PDB {
 	 */
 	static _fireListeners(this: PaperDropdownInstance) {
 		const prevState = this.selected;
-		this.selected = this.getMenu().selected;
 		this._listeners.forEach((listener) => {
 			if (listener.id === this.id) {
 				listener.listener.apply(listener.thisArg, [prevState, this.getMenu().selected]);
@@ -148,13 +147,14 @@ class PDB {
 				paperItem.removeEventListener('click', listener);
 			});
 			const fn = () => {
-				this.selected = index;
+				this.set('selected', index);
 				setTimeout(() => {
 					this._doHighlight();
 					this._fireListeners();
 					if ((this as any)._dropdownSelectChange) {
 						(this as any)._dropdownSelectChange(this);
 					}
+					this.close();
 				}, 50);
 			}
 			this._elementListeners.push(fn);
@@ -194,6 +194,7 @@ class PDB {
 				window.clearInterval(interval);
 				this.close();
 				this.refreshListeners();
+				this._doHighlight();
 			}
 		}, 250);
 	};
