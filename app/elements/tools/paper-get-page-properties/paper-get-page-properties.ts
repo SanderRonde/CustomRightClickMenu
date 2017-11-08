@@ -1,5 +1,15 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
+const paperGetPagePropertiesProperties: {
+	selected: Array<number>;
+} = {
+	selected: {
+		type: Array,
+		refleftToAttribute: true,
+		notify: true
+	}
+} as any;
+
 class PGPP {
 	static is: string = 'paper-get-page-properties';
 
@@ -61,7 +71,8 @@ class PGPP {
 		this.close();
 	};
 
-	static ready() {
+	static ready(this: PaperGetPageProperties) {
+		this.selected = [];
 		this.options = [
 			{
 				name: 'Selection',
@@ -102,7 +113,7 @@ class PGPP {
 }
 
 type PaperGetPagePropertiesBase = Polymer.El<
-	'paper-get-page-properties', typeof PGPP>;
+	'paper-get-page-properties', typeof PGPP & typeof paperGetPagePropertiesProperties>;
 type PaperGetPageProperties = PaperDropdownBehavior<PaperGetPagePropertiesBase>;
 
 if (window.objectify) {

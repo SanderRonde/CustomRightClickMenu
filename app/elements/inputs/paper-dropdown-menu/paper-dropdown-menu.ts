@@ -62,6 +62,7 @@ class PDM {
 
 	static init(this: PaperDropdownMenu) {
 		this.refreshListeners();
+		this.doHighlight();
 	};
 
 	static _getMenu(this: PaperDropdownMenu): HTMLPaperMenuElement {

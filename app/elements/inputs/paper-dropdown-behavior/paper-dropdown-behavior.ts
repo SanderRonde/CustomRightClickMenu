@@ -1,19 +1,9 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
 const paperDropdownBehaviorProperties: {
-	selected: number|Array<number>;
 	raised: boolean;
 	overflowing: boolean;
 } = {
-	/**
-	 * The selected item
-	 */
-	selected: {
-		type: Number,
-		value: 0,
-		notify: true,
-		reflectToAttribute: true
-	},
 	raised: {
 		type: Boolean,
 		value: false
@@ -106,15 +96,15 @@ class PDB {
 	/**
 	 * Fires all added listeners, triggers when a new value is selected
 	 */
-	static _fireListeners(this: PaperDropdownInstance) {
-		const prevState = this.selected;
+	static _fireListeners(this: PaperDropdownInstance, oldState: number|Array<number>) {
+		const newState = this.selected;
 		this._listeners.forEach((listener) => {
 			if (listener.id === this.id) {
-				listener.listener.apply(listener.thisArg, [prevState, this.getMenu().selected]);
+				listener.listener.apply(listener.thisArg, [oldState, newState]);
 			}
 		});
 		if (this.onchange) {
-			(this.onchange as any)(prevState, this.getMenu().selected);
+			(this.onchange as any)(oldState, newState);
 		}
 	};
 
@@ -122,14 +112,19 @@ class PDB {
 		return this.getMenu().$.content.assignedNodes()[0] as HTMLElement;
 	}
 
-	static _doHighlight(this: PaperDropdownInstance) {
+	static doHighlight(this: PaperDropdownInstance) {
 		const content = this._getMenuContent();
 		const paperItems = Array.prototype.slice.apply(content.querySelectorAll('paper-item'));
 		paperItems.forEach((paperItem: HTMLPaperItemElement, index: number) => {
 			const checkMark = paperItem.$$('slot').assignedNodes().filter((node) => {
 				return node.nodeType !== node.TEXT_NODE;
 			})[0] as HTMLElement;
-			if (index === this.selected) {
+			if (!checkMark) {
+				return;
+			}
+			const selectedArr = Array.isArray(this.selected) ? 
+				this.selected : [this.selected];
+			if (selectedArr.indexOf(index) > -1) {
 				checkMark.style.opacity = '1';
 			} else {
 				checkMark.style.opacity = '0';
@@ -147,10 +142,11 @@ class PDB {
 				paperItem.removeEventListener('click', listener);
 			});
 			const fn = () => {
+				const oldSelected = this.selected;
 				this.set('selected', index);
 				setTimeout(() => {
-					this._doHighlight();
-					this._fireListeners();
+					this.doHighlight();
+					this._fireListeners(oldSelected);
 					if ((this as any)._dropdownSelectChange) {
 						(this as any)._dropdownSelectChange(this);
 					}
@@ -194,7 +190,16 @@ class PDB {
 				window.clearInterval(interval);
 				this.close();
 				this.refreshListeners();
-				this._doHighlight();
+
+				const innerInterval = window.setInterval(() => {
+					if (this._getMenuContent().querySelectorAll('paper-item')[0] && 
+						this._getMenuContent().querySelectorAll('paper-item')[0].$$('slot').assignedNodes().filter((node) => {
+							return node.nodeType !== node.TEXT_NODE
+						}).length > 0) {
+							this.doHighlight();
+							window.clearInterval(innerInterval);
+						}
+				}, 250);
 			}
 		}, 250);
 	};
@@ -367,7 +372,10 @@ type PaperDropdownBehaviorBase = Polymer.El<'paper-dropdown-behavior',
 type PaperDropdownBehavior<T> = T & PaperDropdownBehaviorBase;
 type PaperDropdownInstance = PaperDropdownBehavior<
 	PaperLibrariesSelectorBase|PaperDropdownMenuBase|
-	PaperGetPagePropertiesBase|PaperDropdownMenu
+	PaperGetPagePropertiesBase
 >;
+
+const x: PaperDropdownBehavior<PaperGetPagePropertiesBase> = '' as any;
+x.selected
 
 Polymer.PaperDropdownBehavior = PDB as PaperDropdownBehaviorBase;

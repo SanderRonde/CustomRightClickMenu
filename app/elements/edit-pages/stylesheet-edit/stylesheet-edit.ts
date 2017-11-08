@@ -20,9 +20,9 @@ class STE {
 	static editorPlaceHolderAnimation: Animation;
 
 	private static getExportData(this: NodeEditBehaviorStylesheetInstance): CRM.StylesheetNode {
-		(this.$$('#exportMenu paper-menu') as HTMLPaperMenuElement).selected = 0;
 		const settings = {};
 		this.save(null, settings);
+		this.$.dropdownMenu.selected = 0;
 		return settings as CRM.StylesheetNode;
 	};
 

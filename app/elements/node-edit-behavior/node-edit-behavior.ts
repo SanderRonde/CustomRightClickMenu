@@ -407,7 +407,7 @@ class NEB {
 			showInsteadOfExecute: (prevState === 3)
 		};
 
-		const triggersElement = (this.$ as any)['executionTriggersContainer'] as HTMLDivElement;
+		const triggersElement = this.$.executionTriggersContainer;
 
 		if (oldStates.showTriggers && !newStates.showTriggers) {
 			if (oldStates.showContentTypeChooser !== newStates.showContentTypeChooser) {
