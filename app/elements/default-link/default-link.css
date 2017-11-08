@@ -52,7 +52,7 @@ paper-button {
 	width: 215px;
 }
 
-:host[search-engine] .defaultLinkLinkCont {
+.defaultLinkLinkCont[searchengine] {
 	width: 320px;
 }
 

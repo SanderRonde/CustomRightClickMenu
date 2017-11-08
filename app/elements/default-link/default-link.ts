@@ -3,7 +3,13 @@
 const defaultLinkProperties: {
 	href: string;
 	defaultName: string;
+	searchEngine: boolean;
 } = {
+	searchEngine: {
+		type: Boolean,
+		notify: true,
+		value: false
+	},
 	href: {
 		type: String,
 		notify: true
@@ -16,11 +22,6 @@ const defaultLinkProperties: {
 
 class DL {
 	static is: string = 'default-link';
-
-	/**
-	 * Whether the link is a search-engine
-	 */
-	static searchEngine: boolean = false;
 
 	static properties = defaultLinkProperties;
 
