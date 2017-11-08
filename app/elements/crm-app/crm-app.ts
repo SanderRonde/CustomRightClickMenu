@@ -641,16 +641,22 @@ class CA {
 				const interval = window.setInterval(function () {
 					try {
 						const centerer = window.doc.requestPermissionsCenterer as CenterElement;
-						overlay = centerer.$.content.children[0] as HTMLPaperDialogElement;
+						const slot = centerer.$.content.children[0] as HTMLSlotElement;
+						overlay = slot.assignedNodes().filter((node) => {
+							return node.nodeType !== node.TEXT_NODE;
+						})[0] as HTMLPaperDialogElement;
 						if (overlay.open) {
 							window.clearInterval(interval);
-							(_this.$$('#requestedPermissionsTemplate') as HTMLDomRepeatElement).items = requested;
-							(_this.$$('#requestedPermissionsOtherTemplate') as HTMLDomRepeatElement).items = other;
+							const innerOverlay = overlay.$$('slot').assignedNodes().filter((node) => {
+								return node.nodeType !== node.TEXT_NODE;
+							})[0] as HTMLElement;
+							(innerOverlay.querySelector('#requestedPermissionsTemplate') as HTMLDomRepeatElement).items = requested;
+							(innerOverlay.querySelector('#requestedPermissionsOtherTemplate') as HTMLDomRepeatElement).items = other;
 							overlay.addEventListener('iron-overlay-opened', handler);
 							setTimeout(function () {
-								const requestedPermissionsCont = $('#requestedPermissionsCont')[0];
-								const requestedPermissionsAcceptAll = $('#requestPermissionsAcceptAll')[0];
-								const requestedPermissionsType = $('.requestPermissionsType')[0];
+								const requestedPermissionsCont = innerOverlay.querySelector('#requestedPermissionsCont');
+								const requestedPermissionsAcceptAll = innerOverlay.querySelector('#requestPermissionsAcceptAll');
+								const requestedPermissionsType = innerOverlay.querySelector('.requestPermissionsType');
 								if (requested.length === 0) {
 									requestedPermissionsCont.style.display = 'none';
 									requestPermissionsOther.style.height = (31 * other.length) + 'px';
@@ -1197,7 +1203,7 @@ class CA {
 							$('.crmType').each(function (this: HTMLElement) {
 								this.classList.remove('dim');
 							});
-							$('edit-crm-item').find('.item').animate({
+							$(window.app.editCRM.$$('edit-crm-item .item')).animate({
 								opacity: 1
 							}, 200, function () {
 								document.body.style.pointerEvents = 'all';
@@ -1237,7 +1243,7 @@ class CA {
 							$(_this.parent().$$('.crmType')).each(function (this: HTMLElement) {
 								this.classList.remove('dim');
 							});
-							$(_this.parent().$$('edit-crm-item .item')).animate({
+							$(window.app.editCRM.$$('edit-crm-item .item')).animate({
 								opacity: 1
 							}, 200, function () {
 								document.body.style.pointerEvents = 'all';
