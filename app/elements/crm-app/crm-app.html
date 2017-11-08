@@ -403,7 +403,7 @@
 				<paper-toast id="acceptDownloadToast" text="Please accept the permission request to report a bug or suggest a feature" duration="3500"></paper-toast>
 				<paper-toast id="updatedSettingsToast" text="Settings were updated to those on xx-xx-xxxx" duration="5000"></paper-toast>
 				<!--Dialogs-->
-				<paper-dialog id="codeSettingsDialog" no-cancel-on-outside-click no-cancel-on-esc-key data-element-type="CodeSettingsDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog id="codeSettingsDialog" no-cancel-on-outside-click no-cancel-on-esc-key data-element-type="CodeSettingsDialog" with-backdrop>
 					<h2 id="codeSettingsTitle"></h2>
 					<div id="codeSettingsOptions">
 						<template is="dom-if" id="codeSettingsNoItems">
@@ -475,7 +475,7 @@
 						<paper-button dialog-dismiss>Cancel</paper-button>
 					</div>
 				</paper-dialog>
-				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog id="restoreChangesDialog" with-backdrop no-cancel-on-outside-click no-cancel-on-esc-key>
 					<div id="restoreChangesMain">
 						<h2>It's been detected that you closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
 						<br />
@@ -510,7 +510,7 @@
 						</div>
 					</div>
 				</paper-dialog>
-				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop>
 					<div id="chooseFileMainDialog">
 						<h2>Choose the file you want to keep</h2>
 						<paper-radio-group selected="local" id="chooseFileRadioGroup">
@@ -555,7 +555,7 @@
 						</div>
 					</div>
 				</paper-dialog>
-				<paper-dialog no-cancel-on-esc-key="true" with-backdrop id="addLibraryDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog no-cancel-on-esc-key="true" with-backdrop id="addLibraryDialog">
 					<div id="addLibraryLoadingDialog">
 						<div id="addLibraryLoadingDialogCenterer">
 							<paper-spinner active></paper-spinner>
@@ -588,7 +588,7 @@
 						<div id="addLibraryDialogSuccesText">Added!</div>
 					</div>
 				</paper-dialog>
-				<paper-dialog with-backdrop id="cssEditorInfoDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+				<paper-dialog with-backdrop id="cssEditorInfoDialog">
 					<h2>CSS Editor Info</h2>
 					<br />
 					- Use <pre class="inlineCodePre">@url 'http://example.com';</pre> to run certain CSS only on specified url for any code following this statement.
@@ -605,7 +605,7 @@
 					</div>
 				</paper-dialog>
 				<center-element fullscreenoverlay id="exportCenterer">
-					<paper-dialog with-backdrop id="exportDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<paper-dialog with-backdrop id="exportDialog">
 						<h2>Exporting selected nodes</h2>
 						<div>
 							You can copy the data below and paste it in a different instance's "import" section to import those nodes. Enter an author's name below to export the nodes under that name. You can also leave it to "anonymous" to stay anonymous.
@@ -621,7 +621,7 @@
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="scriptPermissionsCenterer">
-					<paper-dialog with-backdrop id="scriptPermissionDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<paper-dialog with-backdrop id="scriptPermissionDialog">
 						<br>
 						<h2 class="requestPermissionsScriptName">
 							Managing permisions for script "[[name]]"
@@ -658,7 +658,7 @@
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="requestPermissionsCenterer">
-					<paper-dialog with-backdrop id="requestPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<paper-dialog with-backdrop id="requestPermissionsDialog">
 						<div>
 							<h2 id="requestPermissionsHeader">Allow permissions</h2>
 							<div id="requestPermissionsTxt">
@@ -739,7 +739,7 @@
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="versionUpdateCenterer">
-					<paper-dialog data-element-type="VersionUpdateDialog" with-backdrop id="versionUpdateDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<paper-dialog data-element-type="VersionUpdateDialog" with-backdrop id="versionUpdateDialog">
 						<br />
 						<div id="versionUpdateTabContainer" tab$="[[versionUpdateTab]]">
 							<div id="versionUpdateTabSlider">
@@ -826,7 +826,7 @@
 					</paper-dialog>
 				</center-element>
 				<center-element fullscreenoverlay id="addedPermissionsCenterer">
-					<paper-dialog with-backdrop id="addedPermissionsDialog" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
+					<paper-dialog with-backdrop id="addedPermissionsDialog">
 						<br>
 						<div id="addedPermissionsTabContainer" data-element-type="AddedPermissionsTabContainer">
 							<template id="addedPermissionsTabRepeater" is="dom-repeat" as="nodeAddedPermission">
