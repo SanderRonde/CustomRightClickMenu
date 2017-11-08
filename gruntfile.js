@@ -711,13 +711,13 @@ module.exports = function(grunt) {
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
 	// for if you're running a typescript compiler on watch mode
-	grunt.registerTask('buildDebugNoCompile', ['_buildPrePolymer', 
+	grunt.registerTask('buildDevNoCompile', ['_buildPrePolymer', 
 		'polymerBuild:dev', '_buildPostPolymer', 'jsbeautifier:beautifyBuilt',
 		'zip']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc)
-	grunt.registerTask('buildDebug', ['compile', 'buildDebugNoCompile']);
+	grunt.registerTask('buildDev', ['compile', 'buildDevNoCompile']);
 
 	//Builds the extension and places the zip and all other files in build/
 	grunt.registerTask('build', ['compile', '_buildPrePolymer',
