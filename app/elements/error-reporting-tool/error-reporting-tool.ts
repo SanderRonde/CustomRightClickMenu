@@ -46,7 +46,7 @@ class ERT {
 	/**
 	 * The startposition of the selected area
 	 */
-	private static dragStart: {
+	private static _dragStart: {
 		X: number;
 		Y: number;
 	};
@@ -54,7 +54,7 @@ class ERT {
 	/**
 	 * The last size of the selected area
 	 */
-	private static lastSize: {
+	private static _lastSize: {
 		X: number;
 		Y: number;
 	};
@@ -62,7 +62,7 @@ class ERT {
 	/**
 	 * The last positions of the cursor
 	 */
-	private static lastPos: {
+	private static _lastPos: {
 		X: number;
 		Y: number;
 	};
@@ -70,7 +70,7 @@ class ERT {
 	/**
 	 * The last error that occurred in the console
 	 */
-	private static lastError: {
+	private static _lastError: {
 		message: string;
 		source: any;
 		lineno: number;
@@ -92,7 +92,7 @@ class ERT {
 		return img === '';
 	};
 
-	private static scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
+	private static _scaleScreenshot(this: ErrorReportingTool, canvas: HTMLCanvasElement,
 			newImg: HTMLImageElement, callback: () => void) {
 		this.image = canvas.toDataURL();
 		let maxViewportHeight = window.innerHeight - 450;
@@ -108,7 +108,7 @@ class ERT {
 		callback && callback();
 	};
 
-	private static cropScreenshot(this: ErrorReportingTool, dataURI: string, cropData: {
+	private static _cropScreenshot(this: ErrorReportingTool, dataURI: string, cropData: {
 			width: number;
 			height: number;
 			left: number;
@@ -131,7 +131,7 @@ class ERT {
 			const base64 = canvas.toDataURL();
 			const newImg = new Image();
 			newImg.onload = function() {
-				_this.scaleScreenshot(canvas, newImg, callback);
+				_this._scaleScreenshot(canvas, newImg, callback);
 			};
 			newImg.src = base64;
 
@@ -146,12 +146,12 @@ class ERT {
 		document.body.appendChild(imgTag2);
 	};
 
-	private static screenshot(this: ErrorReportingTool, cropData: {
-			width: number;
-			height: number;
-			left: number;
-			top: number;
-		}, callback: () => void) {
+	private static _screenshot(this: ErrorReportingTool, cropData: {
+		width: number;
+		height: number;
+		left: number;
+		top: number;
+	}, callback: () => void) {
 		const _this = this;
 		//Make sure the overlay is gone for a while
 		this.$.overlay.style.display = 'none';
@@ -160,28 +160,34 @@ class ERT {
 		}, function (dataURI) {
 			//Turn it on again
 			_this.$.overlay.style.display = 'block';
-			_this.cropScreenshot(dataURI, cropData, callback);
+			_this._cropScreenshot(dataURI, cropData, callback);
 		});
 	};
 
-	private static px(this: ErrorReportingTool, num: number): string {
+	private static _px(this: ErrorReportingTool, num: number): string {
 		return num + 'px';
 	};
 
-	private static translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
+	private static _translateX(this: ErrorReportingTool, el: ErrorReportingToolSquare, x: string) {
 		el.xPos = x;
 		el.style.transform = 'translate(' + x + ',' + (el.yPos || '0px') + ')';
 	};
 
-	private static translateY(this: ErrorReportingTool, el: ErrorReportingToolSquare, y: string) {
+	private static _translateY(this: ErrorReportingTool, el: ErrorReportingToolSquare, y: string) {
 		el.yPos = y;
 		el.style.transform = 'translate(' + (el.xPos || '0px') + ',' + y + ')';
 	};
 
-	private static getDivs(this: ErrorReportingTool, direction: 'x'|'y'): [ErrorReportingToolSquare, ErrorReportingToolSquare];
-	private static getDivs(this: ErrorReportingTool, direction: 'xy'): 
+	private static _unLink<T extends {
+		[key: string]: any;
+	}>(this: ErrorReportingTool, obj: T): T {
+		return JSON.parse(JSON.stringify(obj));
+	}
+
+	private static _getDivs(this: ErrorReportingTool, direction: 'x'|'y'): [ErrorReportingToolSquare, ErrorReportingToolSquare];
+	private static _getDivs(this: ErrorReportingTool, direction: 'xy'): 
 		[ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare];
-	private static getDivs(this: ErrorReportingTool, direction: 'x'|'y'|'xy'): [ErrorReportingToolSquare, ErrorReportingToolSquare]|
+	private static _getDivs(this: ErrorReportingTool, direction: 'x'|'y'|'xy'): [ErrorReportingToolSquare, ErrorReportingToolSquare]|
 		[ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare, ErrorReportingToolSquare] {
 		const x: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [this.$.highlightingLeftSquare, this.$.highlightingRightSquare];
 		const y: [ErrorReportingToolSquare, ErrorReportingToolSquare] = [this.$.highlightingTopSquare, this.$.highlightingBotSquare];
@@ -195,72 +201,86 @@ class ERT {
 		}
 	}
 
-	private static setDivsXValues(this: ErrorReportingTool, left: string, marginLeftPx: string, rightDivTranslate: string) {
-		const [ leftDiv, rightDiv ] = this.getDivs('x');
-		leftDiv.style.width = left;
-		rightDiv.style.width = 'calc(100vw - (' + marginLeftPx + '))';
-		this.translateX(rightDiv, rightDivTranslate);
-	}
+	private static _setDivsXValues(this: ErrorReportingTool, left: string, marginLeftPx: string, 
+		rightDivTranslate: string, [topHeight, botHeight]: [number, number]) {
+			const [ leftDiv, rightDiv ] = this._getDivs('x');
+			leftDiv.style.width = left;
+			rightDiv.style.width = `calc(100vw - ${marginLeftPx})`;
 
-	private static setSelectionX(this: ErrorReportingTool, startX: number, width: number, posX: number) {
-		if (this.lastPos.X !== posX) {
-			if (width < 0) {
-				const left = startX + width;
-				this.setDivsXValues(this.px(left), this.px(startX), this.px(left - width));
-			} else {
-				const marginLeftPx = this.px(startX + width);
-				this.setDivsXValues(this.px(startX), marginLeftPx, marginLeftPx);
-			}
+			leftDiv.style.height = rightDiv.style.height = this._px(window.innerHeight - topHeight - (window.innerHeight - botHeight));
+			this._translateX(rightDiv, rightDivTranslate);
+		}
+
+	private static _setSelectionX(this: ErrorReportingTool, startX: number, width: number, xHeights: [number, number]) {
+		const left = startX + width;
+		if (width < 0) {
+			this._setDivsXValues(this._px(left), this._px(startX), this._px(left - width), xHeights);
+		} else {
+			this._setDivsXValues(this._px(startX), this._px(left), this._px(left), xHeights);
 		}
 	}
 
-	private static setDivsYValues(this: ErrorReportingTool, {
+	private static _setDivsYValues(this: ErrorReportingTool, {
 		topHeight,
-		botTranslate,
 		heights, 
-		botHeight, 
-		divsOffsetY
+		botHeight
 	}: {
 		topHeight: string;
-		botTranslate: string;
 		heights: string;
-		botHeight: string;
-		divsOffsetY: string;
+		botHeight: number;
 	}) {
-			const [ leftDiv, rightDiv, topDiv, botDiv ] = this.getDivs('xy');
+		const [ leftDiv, rightDiv, topDiv, botDiv ] = this._getDivs('xy');
 
-			topDiv.style.height = topHeight;
-			leftDiv.style.height = rightDiv.style.height = heights + 'px';
-			botDiv.style.height = 'calc(100vh - (' + botHeight + '))';
+		topDiv.style.height = topHeight;
+		leftDiv.style.height = rightDiv.style.height = heights + 'px';
+		botDiv.style.height = this._px(window.innerHeight - botHeight);
 
-			this.translateY(botDiv, botTranslate);
-			this.translateY(leftDiv, divsOffsetY);
-			this.translateY(rightDiv, divsOffsetY);
+		this._translateY(botDiv, this._px(botHeight));
+		this._translateY(leftDiv, topHeight);
+		this._translateY(rightDiv, topHeight);
+	}
+
+	private static _setSelectionY(this: ErrorReportingTool, startY: number, height: number, startPlusHeightPx: number) {
+		if (height < 0) {
+			this._setDivsYValues({
+				topHeight: this._px(startPlusHeightPx),
+				heights: this._px(-height), 
+				botHeight: startY
+			});
+		} else {
+			this._setDivsYValues({
+				topHeight: this._px(startY),
+				heights: this._px(height), 
+				botHeight: startPlusHeightPx
+			});
 		}
+	}
 
-	private static setSelectionY(this: ErrorReportingTool, startY: number, height: number, posY: number) {
-		if (this.lastPos.Y !== posY) {
-			if (height < 0) {
-				const top = this.px(startY + height);
-				this.setDivsYValues({
-					topHeight: top,
-					botTranslate: this.px(startY), 
-					heights: this.px(-height), 
-					botHeight: this.px(startY), 
-					divsOffsetY: top
-				});
-			} else {
-				const marginTopPx = (startY + height) + 'px';
+	private static _changed(this: ErrorReportingTool, width: number, height: number) {
+		return this._lastSize.X !== width || this._lastSize.Y !== height;
+	}
 
-				this.setDivsYValues({
-					topHeight: this.px(startY),
-					botTranslate: marginTopPx,
-					heights: this.px(height), 
-					botHeight: marginTopPx, 
-					divsOffsetY: this.px(startY)
-				});
-			}
+	private static _setSelection(this: ErrorReportingTool, { 
+		startX, 
+		width
+	 }: {
+		 startX: number;
+		 width: number;
+	 }, {
+		 startY,
+		 height
+	 }: {
+		 startY: number;
+		 height: number;
+	 }) {
+		if (!this._changed(width, height)) {
+			return;
 		}
+		console.log(startY, height, startY);
+		const topHeight = height < 0 ? startY + height : startY;
+		const botHeight = height < 0 ? startY : startY + height;
+		this._setSelectionX(startX, width, [topHeight, botHeight]);
+		this._setSelectionY(startY, height, startY + height);
 	}
 
 	static handleSelection(this: ErrorReportingTool, e: Polymer.PolymerDragEvent) {
@@ -269,71 +289,86 @@ class ERT {
 				this.$.highlightButtons.classList.add('hidden');
 
 				const startYPx = e.detail.y + 'px';
-				this.lastSize.X = this.lastSize.Y = 0;
-				this.dragStart.X = this.lastPos.X = e.detail.x;
-				this.dragStart.Y = this.lastPos.Y = e.detail.y;
+				this._lastSize.X = this._lastSize.Y = 0;
+				this._dragStart = this._unLink(this._lastPos = {
+					X: e.detail.x,
+					Y: e.detail.y
+				});
 
 				this.$.highlightingTopSquare.style.width = '100vw';
 				this.$.highlightingTopSquare.style.height = startYPx;
 				this.$.highlightingLeftSquare.style.width = startYPx;
 
-				this.translateY(this.$.highlightingBotSquare, startYPx);
-				this.translateY(this.$.highlightingLeftSquare, startYPx);
-				this.translateY(this.$.highlightingRightSquare, startYPx);
+				this._translateY(this.$.highlightingBotSquare, startYPx);
+				this._translateY(this.$.highlightingLeftSquare, startYPx);
+				this._translateY(this.$.highlightingRightSquare, startYPx);
 				break;
 			case 'end':
 				this.$.highlightButtons.classList.remove('hidden');
 				break;
 			case 'track':
-				if (e.detail.x !== this.lastPos.X || e.detail.y !== this.lastPos.Y) {
-					const width = (e.detail.x - this.dragStart.X);
-					const height = (e.detail.y - this.dragStart.Y);
-					this.setSelectionX(this.dragStart.X, width, e.detail.x);
-					this.setSelectionY(this.dragStart.Y, height, e.detail.y);
-					this.lastSize.X = width;
-					this.lastSize.Y = height;
-					this.lastPos.X = e.detail.x;
-					this.lastPos.Y = e.detail.y;
+				if (e.detail.x !== this._lastPos.X || e.detail.y !== this._lastPos.Y) {
+					const width = e.detail.dx;
+					const height = e.detail.dy;
+					const startX = e.detail.x - width;
+					const startY = e.detail.y - height;
+					this._setSelection({ startX, width }, { startY, height });
+					this._lastSize = {
+						X: width,
+						Y: height
+					};
+					this._lastPos = {
+						X: e.detail.x,
+						Y: e.detail.y
+					}
 				}
 				break;
 		}
 	};
 
-	private static resetSelection(this: ErrorReportingTool) {
-		this.setSelectionX(0, 0, 0);
-		this.setSelectionY(0, 0, 0);
+	private static _resetSelection(this: ErrorReportingTool) {
+		this._setSelectionX(0, 0, [0, 0]);
+		this._setSelectionY(0, 0, 0);
 	}
 
-	private static toggleScreenCapArea(this: ErrorReportingTool, visible: boolean) {
+	private static _toggleScreenCapArea(this: ErrorReportingTool, visible: boolean) {
 		this.$.highlightingTopSquare.style.height = '100vh';
 		this.$.highlightingTopSquare.style.width = '100vw';
-		this.resetSelection();
+		this._resetSelection();
 		this.$.overlay.classList[visible ? 'add' : 'remove']('toggled');
 		this.$.overlay.style.pointerEvents = visible ? 'initial' : 'none';
 	}
 
 	static cancelScreencap(this: ErrorReportingTool) {
-		this.toggleScreenCapArea(false);
+		this._toggleScreenCapArea(false);
 		this.$.errorReportingDialog.open();
 	};
 
 	static finishScreencap(this: ErrorReportingTool) {
 		const _this = this;
-		this.toggleScreenCapArea(false);
-		this.screenshot({
-			top: this.dragStart.Y,
-			left: this.dragStart.X,
-			height: this.lastSize.Y,
-			width: this.lastSize.X
+		this._toggleScreenCapArea(false);
+		this._screenshot({
+			top: this._dragStart.Y,
+			left: this._dragStart.X,
+			height: this._lastSize.Y,
+			width: this._lastSize.X
 		}, function() {
 			_this.$.errorReportingDialog.open();
 		});
 	};
 
+	private static _resetVars(this: ErrorReportingTool) {
+		this._dragStart = this._unLink(this._lastSize = this._unLink(this._lastPos = {
+			X: 0,
+			Y: 0
+		}));
+	}
+
 	static addCapture(this: ErrorReportingTool) {
 		const _this = this;
 		_this.$.errorReportingDialog.close();
-		this.toggleScreenCapArea(true);
+		this._resetVars();
+		this._toggleScreenCapArea(true);
 	};
 
 	static reportBug(this: ErrorReportingTool) {
@@ -342,7 +377,7 @@ class ERT {
 		this.$.errorReportingDialog.open();
 	};
 
-	private static getStorages(callback: (local: CRM.StorageLocal, sync: CRM.SettingsStorage) => void) {
+	private static _getStorages(callback: (local: CRM.StorageLocal, sync: CRM.SettingsStorage) => void) {
 		chrome.storage.local.get((local) => {
 			chrome.storage.sync.get((sync) => {
 				callback(local as any, sync as any);
@@ -350,18 +385,18 @@ class ERT {
 		});
 	}
 
-	private static downloadFiles(this: ErrorReportingTool, callback: () => void) {
+	private static _downloadFiles(this: ErrorReportingTool, callback: () => void) {
 		const _this = this;
 		chrome.downloads.download({
 			url: this.image,
 			filename: 'screencap.png'
 		}, function() {
 			if (_this.reportType === 'bug') {
-				_this.getStorages((localKeys, syncKeys) => {
+				_this._getStorages((localKeys, syncKeys) => {
 					const dataCont = {
 						local: localKeys,
 						sync: syncKeys,
-						lastError: _this.lastError
+						lastError: _this._lastError
 					};
 					chrome.downloads.download({
 						url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
@@ -374,7 +409,7 @@ class ERT {
 		});
 	};
 
-	private static hideCheckmark(this: ErrorReportingTool) {
+	private static _hideCheckmark(this: ErrorReportingTool) {
 		this.$.bugCheckmarkCont.classList.remove('checkmark');
 		this.async(() => {
 			this.$.reportingButtonElevation.classList.remove('checkmark');
@@ -383,19 +418,19 @@ class ERT {
 		}, 350);
 	}
 
-	private static checkCheckmark(this: ErrorReportingTool) {
+	private static _checkCheckmark(this: ErrorReportingTool) {
 		this.$.bugButton.classList.add('checkmark');
 		this.async(() => {
 			this.$.reportingButtonElevation.classList.add('checkmark');
 			this.$.bugCheckmarkCont.classList.add('checkmark');
 			this.async(() => {
 				this.$.bugCheckmark.classList.add('checked');
-				this.async(this.hideCheckmark, 5000);
+				this.async(this._hideCheckmark, 5000);
 			}, 350);
 		}, 350);
 	};
 
-	private static getDownloadPermission(this: ErrorReportingTool, callback: () => void) {
+	private static _getDownloadPermission(this: ErrorReportingTool, callback: () => void) {
 		const _this = this;
 
 		//Download the files
@@ -410,7 +445,7 @@ class ERT {
 
 				//Do a nice checkmark animation on the report button
 				const listener = function () {
-					_this.checkCheckmark();
+					_this._checkCheckmark();
 					window.removeEventListener('focus', listener);
 				};
 				window.addEventListener('focus', listener);
@@ -423,8 +458,8 @@ class ERT {
 	static submitErrorReport(this: ErrorReportingTool) {
 		const _this = this;
 
-		this.getDownloadPermission(function () {
-			_this.downloadFiles(function() {
+		this._getDownloadPermission(function () {
+			_this._downloadFiles(function() {
 				//Take the user to the github page
 				const messageBody = 'WRITE MESSAGE HERE\n';
 				const title = (_this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
@@ -433,8 +468,8 @@ class ERT {
 		});
 	};
 
-	private static onError(this: ErrorReportingTool, message: string, source: any, lineno: number, colno: number, error: Error) {
-		this.lastError = {
+	private static _onError(this: ErrorReportingTool, message: string, source: any, lineno: number, colno: number, error: Error) {
+		this._lastError = {
 			message: message,
 			source: source,
 			lineno: lineno,
@@ -445,7 +480,7 @@ class ERT {
 
 	static ready(this: ErrorReportingTool) {
 		window.errorReportingTool = this;
-		window.onerror = this.onError;
+		window.onerror = this._onError;
 	}
 }
 
