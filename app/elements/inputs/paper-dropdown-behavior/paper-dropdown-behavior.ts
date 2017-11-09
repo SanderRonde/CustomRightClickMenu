@@ -116,9 +116,7 @@ class PDB {
 		const content = this._getMenuContent();
 		const paperItems = Array.prototype.slice.apply(content.querySelectorAll('paper-item'));
 		paperItems.forEach((paperItem: HTMLPaperItemElement, index: number) => {
-			const checkMark = paperItem.$$('slot').assignedNodes().filter((node) => {
-				return node.nodeType !== node.TEXT_NODE;
-			})[0] as HTMLElement;
+			const checkMark = window.app.util.querySlot(paperItem)[0] as HTMLElement;
 			if (!checkMark) {
 				return;
 			}
@@ -193,9 +191,7 @@ class PDB {
 
 				const innerInterval = window.setInterval(() => {
 					if (this._getMenuContent().querySelectorAll('paper-item')[0] && 
-						this._getMenuContent().querySelectorAll('paper-item')[0].$$('slot').assignedNodes().filter((node) => {
-							return node.nodeType !== node.TEXT_NODE
-						}).length > 0) {
+						window.app.util.querySlot(this._getMenuContent().querySelectorAll('paper-item')[0]).length > 0) {
 							this.doHighlight();
 							window.clearInterval(innerInterval);
 						}
