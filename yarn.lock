@@ -166,6 +166,10 @@
   version "1.0.6"
   resolved "https://codeload.github.com/webcomponents/shadycss/tar.gz/85d1b59214bc773b0a64393be03c7a85cd0eb354"
 
+"@bower_components/web-animations-js@web-animations/web-animations-js#^2.3.0":
+  version "2.3.1"
+  resolved "https://codeload.github.com/web-animations/web-animations-js/tar.gz/a2dddad1c210c8abe5bc1c5a5e126e9946d44252"
+
 "@bower_components/webcomponentsjs@Polymer/webcomponentsjs#^v1.0.0":
   version "1.0.17"
   resolved "https://codeload.github.com/Polymer/webcomponentsjs/tar.gz/97d3d6d960cbc59012d88cc54af430518a934af6"

@@ -51,6 +51,7 @@
     "@bower_components/paper-toggle-button": "PolymerElements/paper-toggle-button#^2.0.0",
     "@bower_components/polymer": "Polymer/polymer#2.0.0",
     "@bower_components/shadycss": "webcomponents/shadycss#^v1.0.0",
+    "@bower_components/web-animations-js": "web-animations/web-animations-js#^2.3.0",
     "@bower_components/webcomponentsjs": "Polymer/webcomponentsjs#^v1.0.0",
     "@types/chai": "^4.0.4",
     "@types/mocha": "^2.2.43",
