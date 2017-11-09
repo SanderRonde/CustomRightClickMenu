@@ -46,6 +46,14 @@
   version "0.0.0"
   resolved "https://codeload.github.com/PolymerElements/iron-icon/tar.gz/bfdf82f7c8eb4c205cb2d4af6996ffc98f41b1c1"
 
+"@bower_components/iron-icons@PolymerElements/iron-icons#1 - 2":
+  version "0.0.0"
+  resolved "https://codeload.github.com/PolymerElements/iron-icons/tar.gz/8d999f711c42366c7f81247eddbd11882b473533"
+
+"@bower_components/iron-iconset-svg@PolymerElements/iron-iconset-svg#1 - 2":
+  version "0.0.0"
+  resolved "https://codeload.github.com/PolymerElements/iron-iconset-svg/tar.gz/791acf9d965c7b539b57589769d085a0518e2235"
+
 "@bower_components/iron-input@PolymerElements/iron-input#1 - 2":
   version "0.0.0"
   resolved "https://codeload.github.com/PolymerElements/iron-input/tar.gz/354343f4bdad87de7049f6c8242941f2457a6b8c"
