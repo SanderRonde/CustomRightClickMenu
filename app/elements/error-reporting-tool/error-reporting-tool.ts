@@ -276,7 +276,6 @@ class ERT {
 		if (!this._changed(width, height)) {
 			return;
 		}
-		console.log(startY, height, startY);
 		const topHeight = height < 0 ? startY + height : startY;
 		const botHeight = height < 0 ? startY : startY + height;
 		this._setSelectionX(startX, width, [topHeight, botHeight]);
