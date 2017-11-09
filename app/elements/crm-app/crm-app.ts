@@ -329,10 +329,10 @@ class CA {
 					event: Polymer.CustomEvent,
 					eDetail: Polymer.CustomEvent['detail']) => void).bind(listeners)(event, event.detail);
 			} else {
-				this._warn(this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
+				console.warn.apply(console, this._logf(`_createEventHandler`, `listener method ${fnName} not defined`));
 			}
 		} else {
-			this._warn(this._logf(`_createEventHandler`, `property ${propKey} not defined`));
+			console.warn.apply(console, this._logf(`_createEventHandler`, `property ${propKey} not defined`));
 		}
 	}
 
@@ -537,7 +537,7 @@ class CA {
 					overlay.style.maxHeight = 'initial!important';
 					overlay.style.top = 'initial!important';
 					overlay.removeEventListener('iron-overlay-opened', handler);
-					$(_this.$$('.requestPermissionsShowBot')).off('click').on('click', function (this: HTMLElement) {
+					$(window.app.util.querySlot(overlay, '.requestPermissionsShowBot')).off('click').on('click', function (this: HTMLElement) {
 						el = $(this).parent().parent().children('.requestPermissionsPermissionBotCont')[0];
 						svg = $(this).find('.requestPermissionsSvg')[0];
 						svg.style.transform = (svg.style.transform === 'rotate(90deg)' || svg.style.transform === '' ? 'rotate(270deg)' : 'rotate(90deg)');
@@ -641,15 +641,10 @@ class CA {
 				const interval = window.setInterval(function () {
 					try {
 						const centerer = window.doc.requestPermissionsCenterer as CenterElement;
-						const slot = centerer.$.content.children[0] as HTMLSlotElement;
-						overlay = slot.assignedNodes().filter((node) => {
-							return node.nodeType !== node.TEXT_NODE;
-						})[0] as HTMLPaperDialogElement;
+						overlay = window.app.util.querySlot(centerer)[0] as HTMLPaperDialogElement
 						if (overlay.open) {
 							window.clearInterval(interval);
-							const innerOverlay = overlay.$$('slot').assignedNodes().filter((node) => {
-								return node.nodeType !== node.TEXT_NODE;
-							})[0] as HTMLElement;
+							const innerOverlay = window.app.util.querySlot(overlay)[0] as HTMLElement;
 							(innerOverlay.querySelector('#requestedPermissionsTemplate') as HTMLDomRepeatElement).items = requested;
 							(innerOverlay.querySelector('#requestedPermissionsOtherTemplate') as HTMLDomRepeatElement).items = other;
 							overlay.addEventListener('iron-overlay-opened', handler);
@@ -4288,6 +4283,39 @@ class CA {
 			}
 			return tree;
 		};
+
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector?: string, slotSelector?: string): Array<HTMLElement|Polymer.PolymerElement> | null
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector?: K, slotSelector?: string): Array<Polymer.ElementTagNameMap[K]> | null
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector?: string, slotSelector?: string): Array<HTMLElement> | null
+		static querySlot<K extends keyof Polymer.ElementTagNameMap>(parent: HTMLElement|Polymer.RootElement, 
+			selector: K|string = null, slotSelector: string = 'slot'): Array<Polymer.ElementTagNameMap[K]|HTMLElement> | null {
+				const selectFn = '$$' in parent ? (parent as any).$$ : parent.querySelector;
+				const slotChildren = (selectFn.bind(parent)(slotSelector) as HTMLSlotElement).assignedNodes().filter((node) => {
+					return node.nodeType !== node.TEXT_NODE;
+				}) as Array<HTMLElement>;
+				if (!selector) {
+					return slotChildren;
+				}
+				const result = (slotChildren.map((node: HTMLElement) => {
+					return node.querySelectorAll(selector)
+				}).reduce((prev, current) => {
+					let arr: Array<HTMLElement|Polymer.ElementTagNameMap[K]> = [];
+					if (prev) {
+						arr = arr.concat(Array.prototype.slice.apply(prev));
+					}
+					if (current) {
+						arr = arr.concat(Array.prototype.slice.apply(current));
+					}
+					return arr as any;
+				}) as any) as Array<Polymer.ElementTagNameMap[K]|HTMLElement>;
+				if (!Array.isArray(result)) {
+					return Array.prototype.slice.apply(result);
+				}
+				return result;
+			}
 
 		static parent(): CrmApp {
 			return window.app;
