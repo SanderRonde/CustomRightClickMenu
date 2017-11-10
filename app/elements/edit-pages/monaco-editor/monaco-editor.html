@@ -3,8 +3,18 @@
 	<template>
 		<!-- build:css inline -->
 		<link rel="stylesheet" href="src/min/vs/editor/editor.main.css"/>
+		<link rel="stylesheet" href="monaco-editor.css"/>
 		<!-- /build -->
-		<div id="container"></div>
+		<div id="spacer">
+			<div id="placeholder">
+				<center-element>
+					<paper-spinner id="spinner"></paper-spinner>
+				</center-element>
+			</div>
+			<div id="container">
+				<div id="editorElement"></div>
+			</div>
+		</div>
 	</template>
 </dom-module>
 <!-- build:js inline -->

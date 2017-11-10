@@ -13,7 +13,35 @@ class MOE {
 	 */
 	static editor: monaco.editor.IStandaloneCodeEditor;
 
-	static setupRequire() {
+	private static _fixThemeScope(this: MonacoEditor) {
+		window.app.monacoStyleElement = window.app.monacoStyleElement || 
+			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
+		
+		if (this.shadowRoot.children[0] !== window.app.monacoStyleElement) {
+			this.shadowRoot.insertBefore(window.app.monacoStyleElement, this.shadowRoot.children[0]);
+		}
+	}
+
+	static create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
+		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+			return new Promise((resolve) => {
+				this._showSpinner();
+				const listener = monaco.editor.onDidCreateEditor((editor) => {
+					listener.dispose();
+					this._fixThemeScope();
+					resolve(this);
+					this._hideSpinner();
+				});
+				this.editor = monaco.editor.create(this.$.editorElement, options, override);
+			});
+		}
+
+	static destroy(this: MonacoEditor) {
+		this.editor.dispose();
+		this._showSpinner();
+	}
+
+	static _setupRequire() {
 		this._monacoReady = new window.Promise<void>(async (resolve) => {
 			await window.onExists('require');
 			window.require.config({
@@ -27,33 +55,25 @@ class MOE {
 		});
 	}
 
-	private static _fixThemeScope(this: MonacoEditor) {
-		window.app.monacoStyleElement = window.app.monacoStyleElement || 
-			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
-		
-		if (this.shadowRoot.children[0] !== window.app.monacoStyleElement) {
-			this.shadowRoot.insertBefore(window.app.monacoStyleElement, this.shadowRoot.children[0]);
-		}
+	static _showSpinner(this: MonacoEditor) {
+		this.$.placeholder.style.display = 'block';
+		this.$.spinner.active = true;
+		this.$.placeholder.classList.remove('hidden')
 	}
 
-	static create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
-		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-			return new Promise((resolve) => {
-				const listener = monaco.editor.onDidCreateEditor((editor) => {
-					listener.dispose();
-					this._fixThemeScope();
-					resolve(this);
-				});
-				this.editor = monaco.editor.create(this.$.container, options, override);
-			});
-		}
-
-	static destroy(this: MonacoEditor) {
-		this.editor.dispose();
+	static async _hideSpinner(this: MonacoEditor) {
+		this.$.spinner.active = false;
+		this.$.placeholder.classList.add('hidden');
+		await new window.Promise((resolve) => {
+			window.setTimeout(() => {
+				resolve(null);
+			}, 1000);
+		});
+		this.$.placeholder.style.display = 'none';
 	}
 
 	static ready(this: MonacoEditor) {
-		this.setupRequire();
+		this._setupRequire();
 	}
 }
 
