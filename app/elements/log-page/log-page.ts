@@ -9,7 +9,7 @@
 		return obj as T;
 	}
 
-	class Promiselike<T> {
+	window.Promiselike = class Promiselike<T> {
 		_listeners: Array<(result: T) => void> = [];
 		_rejectListeners: Array<(reason: any) => void> = [];
 		_status: 'pending' | 'rejected' | 'fulfilled' = 'pending';
