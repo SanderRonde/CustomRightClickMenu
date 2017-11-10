@@ -1301,7 +1301,7 @@ class SCE {
 				};
 			}
 		}
-		this.initTernKeyBindings();
+		//this.initTernKeyBindings();
 	};
 
 	/**
