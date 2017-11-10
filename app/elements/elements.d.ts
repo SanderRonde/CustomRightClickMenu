@@ -3,6 +3,7 @@
 /// <reference path="../../tools/definitions/polymer.d.ts"/>
 /// <reference path="../../tools/definitions/jquery.d.ts"/>
 /// <reference path="./center-element/center-element.ts" />
+/// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
 /// <reference path="./change-log/change-log.ts" />
 /// <reference path="./crm-app/crm-app.ts" />
 /// <reference path="./crm-edit-page/crm-edit-page.ts" />
@@ -16,6 +17,7 @@
 /// <reference path="./edit-pages/script-edit/script-edit.ts" />
 /// <reference path="./edit-pages/stylesheet-edit/stylesheet-edit.ts" />
 /// <reference path="./edit-pages/code-edit-pages/code-edit-behavior.ts" />
+/// <reference path="./edit-pages/code-edit-pages/monaco-commands.ts" />
 /// <reference path="./error-reporting-tool/error-reporting-tool.ts" />
 /// <reference path="./installing/install-confirm/install-confirm.ts" />
 /// <reference path="./installing/install-error/install-error.ts" />
@@ -34,6 +36,7 @@
 /// <reference path="./tools/use-external-editor/use-external-editor.ts" />
 /// <reference path="./type-switcher/type-switcher.ts" />
 /// <reference path="./edit-pages/code-edit-pages/jsonParser.ts" />
+
 
 interface Completion {
 	doc: string;
@@ -66,6 +69,16 @@ interface CMCompletionFns {
 interface Window {
 	objectify<T>(fn: T): T;
 	onExists<T extends keyof Window>(key: T, callback: (val: Window[T]) => void): void;
+	monaco: typeof monaco;
+	require: {
+		(paths: Array<string>, callback: () => void): void;
+		config(config: {
+			paths: {
+				[key: string]: string;
+			}
+		}): void;
+	}
+	monacoCommands: MonacoCommands;
 	codeMirrorToLoad?: {
 		toLoad: Array<(cm: CodeMirror) => void>;
 		final?(): void;

@@ -334,6 +334,42 @@ module.exports = function(grunt) {
 					src: ['**/*'],
 					dest: 'build/'
 				}]
+			},
+			monacoPre: {
+				files: [{
+					expand: true,
+					cwd: 'node_modules/monaco-editor/min',
+					src: [
+						'**/**',
+						'!basic-languages/src/**',
+						'basic-languages/src/css.js'
+					],
+					dest: 'buildBeforePolymer/monaco-editor/min/'
+				}]
+			},
+			monacoPost: {
+				files: [{
+					expand: true,
+					cwd: 'node_modules/monaco-editor/min',
+					src: [
+						'**/**',
+						'!basic-languages/src/**',
+						'basic-languages/src/css.js'
+					],
+					dest: 'build/monaco-editor/min/'
+				}]
+			},
+			monacoTemp: {
+				files: [{
+					expand: true,
+					cwd: 'node_modules/monaco-editor/min',
+					src: [
+						'**/**',
+						'!basic-languages/src/**',
+						'basic-languages/src/css.js'
+					],
+					dest: 'app/monaco-editor/min/'
+				}]
 			}
 		},
 		htmlmin: {
@@ -360,7 +396,8 @@ module.exports = function(grunt) {
 			buildBeforePolymer: ['buildBeforePolymer/'],
 			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
 			tsFiles: ['build/elements/**/*.ts'],
-			removeBuildBeforePolymer: ['build/buildBeforePolymer/']
+			removeBuildBeforePolymer: ['build/buildBeforePolymer/'],
+			tempMonaco: ['app/monaco-editor/']
 		},
 		'string-replace': {
 			manifestReplace: {
@@ -545,6 +582,7 @@ module.exports = function(grunt) {
 						entrypoint: [
 							"html/options.html"
 						],
+						sources: ['elements/**'],
 						root: "buildBeforePolymer/",
 						extraDependencies: [
 							"html/background.html",
@@ -700,13 +738,14 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps before polymerBuild is invoked
 	grunt.registerTask('_buildPrePolymer', ['cleanBuild', '_extractDefs',
-		'copy:build', 'copy:installing', 'string-replace', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'copy:build', 'copy:installing', 'string-replace', 'copy:monacoPre', 
+		'copy:monacoTemp', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
-		'copy:elements', 'copy:jsFiles', 'copy:html']);
+		'copy:elements', 'copy:jsFiles', 'copy:html', 'clean:tempMonaco']);
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
-		'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer']);
+		'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step

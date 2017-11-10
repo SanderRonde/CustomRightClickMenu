@@ -260,7 +260,7 @@ class PLS {
 				height: dropdownContainer[0].scrollHeight
 			}, {
 				duration: 250,
-				easing: 'easeInCubic'
+				easing: 'swing'
 			});
 
 			_this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',

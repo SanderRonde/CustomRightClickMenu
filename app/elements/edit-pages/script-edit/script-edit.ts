@@ -1159,117 +1159,118 @@ class SCE {
 	/**
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
-	static cmLoaded(this: NodeEditBehaviorScriptInstance, editor: CodeMirrorInstance) {
-		this.editor = editor;
-		editor.refresh();
-		editor.on('metaTagChanged', (changes: {
-			changed?: Array<{
-				key: string;
-				value: string | number;
-				oldValue: string | number;
-			}>;
-			removed?: Array<{
-				key: string;
-				value: string | number;
-				oldValue?: string | number;
-			}>;
-			added?: Array<{
-				key: string;
-				value: string | number;
-				oldValue?: string | number;
-			}>;
-		}, metaTags: {
-			[key: string]: string|number;
-		}) => {
-			if (this.editorMode === 'main') {
-				this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
-			}
-		});
+	static cmLoaded(this: NodeEditBehaviorScriptInstance) {
+		console.log('loaded');
+		const editor = this.editor;
+		// editor.refresh();
+		// editor.on('metaTagChanged', (changes: {
+		// 	changed?: Array<{
+		// 		key: string;
+		// 		value: string | number;
+		// 		oldValue: string | number;
+		// 	}>;
+		// 	removed?: Array<{
+		// 		key: string;
+		// 		value: string | number;
+		// 		oldValue?: string | number;
+		// 	}>;
+		// 	added?: Array<{
+		// 		key: string;
+		// 		value: string | number;
+		// 		oldValue?: string | number;
+		// 	}>;
+		// }, metaTags: {
+		// 	[key: string]: string|number;
+		// }) => {
+		// 	if (this.editorMode === 'main') {
+		// 		this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
+		// 	}
+		// });
 		this.$.mainEditorTab.classList.add('active');
 		this.$.backgroundEditorTab.classList.remove('active');
-		editor.on('metaDisplayStatusChanged', (info: {
-			status: string
-		}) => {
-			this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
-		});
-		editor.performLint();
-		let newChanges: Array<{
-			from: CodeMirrorPos;
-			to: CodeMirrorPos;
-			removed: string[];
-			text: string[];
-			origin: string;
-			time: number;
-		}> = [];
-		editor.on('changes', (cm, changes) => {
-			newChanges = newChanges.concat(changes.map((change) => {
-				return {
-					from: change.from,
-					to: change.to,
-					removed: change.removed,
-					text: change.text,
-					origin: change.origin,
-					time: Date.now()
-				}
-			}));
-		});
-		const interval = window.setInterval(() => {
-			if (!this.active) {
-				window.clearInterval(interval);
-			} else {
-				//Make sure no typing happened in the last second
-				if (newChanges.length > 0 && Date.now() - newChanges.slice(-1)[0].time > 1000) {
-					editor.performLint();
-					newChanges.forEach((change) => {
-						this.findChromeBaseExpression(change.from, change.to);
-					});
-					newChanges = [];
-				}
-			}
-		}, 1000);
-		if (this.newSettings.value.metaTagsHidden) {
-			editor.doc.markText({
-				line: editor.metaTags.metaStart.line,
-				ch: editor.metaTags.metaStart.ch - 2
-			}, {
-				line: editor.metaTags.metaStart.line,
-				ch: editor.metaTags.metaStart.ch + 27
-			}, {
-				className: 'metaTagHiddenText',
-				inclusiveLeft: false,
-				inclusiveRight: false,
-				atomic: true,
-				readOnly: true,
-				addToHistory: true
-			});
-			editor.metaTags.metaTags = this.newSettings.value.metaTags;
-		}
+		// editor.on('metaDisplayStatusChanged', (info: {
+		// 	status: string
+		// }) => {
+		// 	this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
+		// });
+		// editor.performLint();
+		// let newChanges: Array<{
+		// 	from: CodeMirrorPos;
+		// 	to: CodeMirrorPos;
+		// 	removed: string[];
+		// 	text: string[];
+		// 	origin: string;
+		// 	time: number;
+		// }> = [];
+		// editor.on('changes', (cm, changes) => {
+		// 	newChanges = newChanges.concat(changes.map((change) => {
+		// 		return {
+		// 			from: change.from,
+		// 			to: change.to,
+		// 			removed: change.removed,
+		// 			text: change.text,
+		// 			origin: change.origin,
+		// 			time: Date.now()
+		// 		}
+		// 	}));
+		// });
+		// const interval = window.setInterval(() => {
+		// 	if (!this.active) {
+		// 		window.clearInterval(interval);
+		// 	} else {
+		// 		//Make sure no typing happened in the last second
+		// 		if (newChanges.length > 0 && Date.now() - newChanges.slice(-1)[0].time > 1000) {
+		// 			editor.performLint();
+		// 			newChanges.forEach((change) => {
+		// 				this.findChromeBaseExpression(change.from, change.to);
+		// 			});
+		// 			newChanges = [];
+		// 		}
+		// 	}
+		// }, 1000);
+		// if (this.newSettings.value.metaTagsHidden) {
+		// 	editor.doc.markText({
+		// 		line: editor.metaTags.metaStart.line,
+		// 		ch: editor.metaTags.metaStart.ch - 2
+		// 	}, {
+		// 		line: editor.metaTags.metaStart.line,
+		// 		ch: editor.metaTags.metaStart.ch + 27
+		// 	}, {
+		// 		className: 'metaTagHiddenText',
+		// 		inclusiveLeft: false,
+		// 		inclusiveRight: false,
+		// 		atomic: true,
+		// 		readOnly: true,
+		// 		addToHistory: true
+		// 	});
+		// 	editor.metaTags.metaTags = this.newSettings.value.metaTags;
+		// }
 
-		editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
-		editor.display.wrapper.classList.add('script-edit-codeMirror');
-		editor.display.wrapper.classList.add('small');
+		// editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
+		// editor.display.wrapper.classList.add('script-edit-codeMirror');
+		// editor.display.wrapper.classList.add('small');
 
-		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
-		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
-		const clone = editor.display.sizer;
+		// const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
+		// editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
+		// const clone = editor.display.sizer;
 		
-		this.settingsShadow = clone.querySelector('#settingsShadow') as HTMLElement;
-		this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
-		this.fillEditorOptions(this.editorOptions);
+		// this.settingsShadow = clone.querySelector('#settingsShadow') as HTMLElement;
+		// this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
+		// this.fillEditorOptions(this.editorOptions);
 
-		this.fullscreenEl = clone.querySelector('#editorFullScreen') as HTMLElement;
-		this.fullscreenEl.addEventListener('click', () => {
-			this.toggleFullScreen.apply(this);
-		});
+		// this.fullscreenEl = clone.querySelector('#editorFullScreen') as HTMLElement;
+		// this.fullscreenEl.addEventListener('click', () => {
+		// 	this.toggleFullScreen.apply(this);
+		// });
 
-		this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
-		this.settingsEl.addEventListener('click', () => {
-			this.toggleOptions.apply(this);
-		});
-		if (editor.getOption('readOnly') === 'nocursor') {
-			editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
-		}
-		const buttonShadow = editor.display.sizer.querySelector('#buttonShadow') as HTMLElement;
+		// this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
+		// this.settingsEl.addEventListener('click', () => {
+		// 	this.toggleOptions.apply(this);
+		// });
+		// if (editor.getOption('readOnly') === 'nocursor') {
+		// 	editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
+		// }
+		// const buttonShadow = editor.display.sizer.querySelector('#buttonShadow') as HTMLElement;
 
 		if (this.fullscreen) {
 			editor.display.wrapper.style.height = 'auto';
@@ -1326,22 +1327,26 @@ class SCE {
 				selectName: this.keyBindings[5].defaultKey,
 			}
 		});
-		this.editor = window.CodeMirror(container, {
-			lineNumbers: true,
+		this.editor = window.app.util.createEditor({
+			callback: this.cmLoaded,
+			scope: this
+		}, container, {
 			value: content,
-			scrollbarStyle: 'simple',
-			lineWrapping: true,
-			mode: 'javascript',
-			foldGutter: true,
-			readOnly: (disable ? 'nocursor' : false),
-			theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-			indentUnit: window.app.settings.editor.tabSize,
-			indentWithTabs: window.app.settings.editor.useTabs,
-			messageScriptEdit: true,
-			gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
-			lint: window.CodeMirror.lint.optionsJSON,
-			undoDepth: 500
+			language: 'javascript',
+			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
+			wordWrap: 'on'
 		});
+		// this.editor = window.CodeMirror(container, {
+		// 	value: content,
+		// 	lineWrapping: true,
+		// 	mode: 'javascript',
+		// 	foldGutter: true,
+		// 	readOnly: (disable ? 'nocursor' : false),
+		// 	theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
+		// 	gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
+		// 	lint: window.CodeMirror.lint.optionsJSON,
+		// 	undoDepth: 500
+		// });
 	};
 
 	static init(this: NodeEditBehaviorScriptInstance) {
@@ -1353,9 +1358,9 @@ class SCE {
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
 		this.addDialogToMetaTagUpdateListeners();
-		window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
-			defs: [window.ecma5, window.ecma6, window.browserDefs, window.crmAPIDefs]
-		});
+		// window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
+		// 	defs: [window.ecma5, window.ecma6, window.browserDefs, window.crmAPIDefs]
+		// });
 		document.body.classList.remove('editingStylesheet');
 		document.body.classList.add('editingScript');
 		window.scriptEdit = this;

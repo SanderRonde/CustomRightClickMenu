@@ -313,7 +313,7 @@ class PDB {
 				animation['marginBottom'] = -15;
 			}
 			$(this._getMenuContent()).stop().animate(animation, {
-				easing: 'easeInCubic',
+				easing: 'swing',
 				duration: 300,
 				complete(this: HTMLElement) {
 					this.style.display = 'none';

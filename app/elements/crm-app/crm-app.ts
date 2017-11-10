@@ -306,7 +306,21 @@ class CA {
 	/**
 	 * The tern server used for key bindings
 	 */
-	static ternServer: Tern.ServerInstance;
+	//static ternServer: Tern.ServerInstance;
+
+	/**
+	 * Any editors that have just been created that haven't completed
+	 * loading yet, and their associated handlers
+	 */
+	static loadingEditors: Array<{
+		callback: () => void;
+		scope: Polymer.RootElement;
+	}> = [];
+
+	/**
+	 * The monaco theme style element
+	 */
+	static monacoStyleElement: HTMLStyleElement = null;
 
 	static properties = crmAppProperties;
 
@@ -890,9 +904,39 @@ class CA {
 		});
 	};
 
+	private static _fixThemeScope(scope: Polymer.RootElement) {
+		this.monacoStyleElement = this.monacoStyleElement || 
+			document.getElementsByClassName('.monaco-colors')[0] as HTMLStyleElement;
+		
+		if (scope.shadowRoot.children[0] !== this.monacoStyleElement) {
+			scope.shadowRoot.insertBefore(this.monacoStyleElement, scope.shadowRoot.children[0]);
+		}
+	}
+
+	private static _setMonacoListener() {
+		window.monaco.editor.onDidCreateEditor(() => {
+			this.loadingEditors = this.loadingEditors.filter((loadingEditor) => {
+				const { callback, scope } = loadingEditor;
+				this._fixThemeScope(scope);
+				callback();
+				return null;
+			});
+		});
+	}
+
 	static ready(this: CrmApp) {
 		window.app = this;
 		window.doc = window.app.$;
+		window.onExists('require', () => {
+			window.require.config({
+				paths: {
+					'vs': '../monaco-editor/min/vs'
+				}
+			});
+			window.require(['vs/editor/editor.main'], () => {
+				this._setMonacoListener();
+			});
+		});
 
 		chrome.runtime.onInstalled.addListener((details) => {
 			if (details.reason === 'update') {
@@ -4315,6 +4359,16 @@ class CA {
 					return Array.prototype.slice.apply(result);
 				}
 				return result;
+			}
+
+		static createEditor(data: { 
+			callback: () => void;
+			scope: Polymer.RootElement;
+		}, container: HTMLElement,
+			options?: monaco.editor.IEditorConstructionOptions, 
+			override?: monaco.editor.IEditorOverrideServices): monaco.editor.IStandaloneCodeEditor {
+				this.parent().loadingEditors.push(data);
+				return window.monaco.editor.create(container, options, override);
 			}
 
 		static parent(): CrmApp {

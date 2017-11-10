@@ -27,7 +27,7 @@ class CEB {
 	/**
 	 * The editor
 	 */
-	static editor: CodeMirrorInstance = null;
+	static editor: monaco.editor.IStandaloneCodeEditor = null;
 
 	/**
 	 * Whether the vertical scrollbar is already shown
@@ -137,15 +137,15 @@ class CEB {
 		this.$$('.mainEditorTab').classList.add('active');
 	};
 
-		/**
+	/**
 	 * Inserts given snippet of code into the editor
 	 */
-	static insertSnippet(_this: CodeEditBehaviorInstance, snippet: string, noReplace: boolean = false) {
-		this.editor.doc.replaceSelection(noReplace ?
-												snippet :
-												snippet.replace('%s', this.editor.doc
-													.getSelection())
-		);
+	static insertSnippet(__this: CodeEditBehaviorInstance, snippet: string, noReplace: boolean = false) {
+		const commands = __this.editor.getSelections().map((selection) => {
+			const content = noReplace ? snippet : snippet.replace(/%s/g, selection.toString());
+			return window.monacoCommands.createReplaceCommand(selection.cloneRange(), content);
+		});
+		__this.editor.executeCommands('snippet', commands);
 	};
 
 	

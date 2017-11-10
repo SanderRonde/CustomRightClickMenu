@@ -85,7 +85,7 @@ class TS {
 		$(this.parentNode.parentNode).stop().animate({
 			height: 50
 		}, {
-			easing: 'easeInCubic',
+			easing: 'swing',
 			duration: (quick ? 80 : 300),
 			complete() {
 				// Weird bug happens so querySelector is more reliable https://i.imgur.com/u7HUKVQ.png
