@@ -452,6 +452,7 @@ type HTMLPaperDropdownMenuElement = PaperDropdownMenu;
 type HTMLPaperArrayInputElement = PaperArrayInput;
 type HTMLPaperRipplElement = HTMLElement;
 type HTMLEchoHtmlElement = EchoHtml;
+type HTMLMonacoEditorElement = MonacoEditor;
 
 type ElementTagNameMaps = Polymer.ElementTagNameMap & 
 	HTMLElementTagNameMap & ElementTagNameMap;
