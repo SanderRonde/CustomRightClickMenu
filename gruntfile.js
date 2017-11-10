@@ -649,10 +649,8 @@ module.exports = function(grunt) {
 		},
 		jsbeautifier: {
 			beautifyBuilt: {
-				src: ["build/**/*.css", "build/**/*.html", "build/**/*.js"],
-				options: {
-
-				}
+				src: ["build/**/*.js"],
+				options: { }
 			}
 		}
 	});
