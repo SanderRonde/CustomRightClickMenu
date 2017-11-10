@@ -1,5 +1,15 @@
 :host {
 	position: relative;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+}
+
+#spacer {
+	display: -webkit-flex;
+	display: flex;
+	flex-grow: 1000;
 }
 
 #placeholder {
