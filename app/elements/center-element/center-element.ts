@@ -3,7 +3,7 @@
 const centerElementProperties: {
 	width: string;
 	height: string;
-	fullscreen: boolean;
+	fill: boolean;
 	fullscreenoverlay: boolean;
 	hide: boolean;
 	requestedPermissions: Array<string>;
@@ -35,13 +35,13 @@ const centerElementProperties: {
 		observer: 'recalculateStyles'
 	},
 	/**
-	 * Whether the center-element should be fullscreen
+	 * Whether the center-element should fill its parent
 	 *
-	 * @attribute fullscreen
+	 * @attribute fill
 	 * @type Boolean
 	 * @default false
 	 */
-	fullscreen: {
+	fill: {
 		type: Boolean,
 		value: false,
 		observer: 'recalculateStyles'
@@ -133,7 +133,7 @@ class CE {
 			this.style.position = 'static';
 			this.style.top = this.style.left = 'auto';
 			this.style.zIndex = 'auto';
-			if (this.fullscreen) {
+			if (this.fill) {
 				this.style.width = '100%';
 				this.style.height = '100%';
 			}
