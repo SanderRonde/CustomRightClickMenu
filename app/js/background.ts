@@ -9176,14 +9176,12 @@ if (typeof module === 'undefined') {
 							});
 						}, 200);
 					} else {
-						const result = this.handleFirstRun(
+						const prom = this.handleFirstRun(
 							this.TransferFromOld.transferCRMFromOld(window.localStorage.getItem('whatpage') === 'true'));
 
-						if (result.done) {
-							resolve(result.value);
-						} else {
-							result.onDone = resolve;
-						}
+						prom.then((result) => {
+							resolve(result);
+						});
 					}
 				});
 			}
