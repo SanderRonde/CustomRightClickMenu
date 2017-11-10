@@ -260,7 +260,7 @@ class CEP {
 			if (window.app.storageLocal.upgradeErrors) {
 				delete window.app.storageLocal.upgradeErrors[_this.item.id];
 			}
-			window.scriptEdit.editor.setValue(chosenScript);
+			window.scriptEdit.editorManager.setValue(chosenScript);
 			setTimeout(function() {
 				_this.hideUpdateMergeDialog();
 			}, 250);

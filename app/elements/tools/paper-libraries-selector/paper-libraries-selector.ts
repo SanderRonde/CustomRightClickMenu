@@ -238,7 +238,7 @@ class PLS {
 				libraries: _this.installedLibraries
 			});
 			if (_this.mode === 'main' && url !== null) {
-				window.scriptEdit.editor.addMetaTags(window.scriptEdit.editor,
+				window.scriptEdit.editorManager.addMetaTags(window.scriptEdit.editorManager,
 					'require', url);
 			}
 			chrome.runtime.sendMessage({
@@ -350,7 +350,7 @@ class PLS {
 		const changeType: 'addMetaTags' | 'removeMetaTags' =
 			(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
 		if (lib.url) {
-			window.scriptEdit.editor[changeType](window.scriptEdit.editor, 'require', lib.url);
+			window.scriptEdit.editorManager[changeType](window.scriptEdit.editorManager, 'require', lib.url);
 		}
 		if (changeType === 'addMetaTags') {
 			window.scriptEdit.newSettings.value.libraries.push({

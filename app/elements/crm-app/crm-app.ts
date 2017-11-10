@@ -917,9 +917,9 @@ class CA {
 			cm.CodeMirror.refresh();
 		});
 		let editor = ((window.scriptEdit && window.scriptEdit.active) ?
-			window.scriptEdit.editor :
+			window.scriptEdit.editorManager :
 			((window.stylesheetEdit && window.stylesheetEdit.active) ?
-				window.stylesheetEdit.editor :
+				window.stylesheetEdit.editorManager :
 				null));
 		if (!editor) {
 			return;
@@ -2751,11 +2751,11 @@ class CA {
 		};
 
 		static runJsLint() {
-			window.scriptEdit.editor.performLint();
+			window.scriptEdit.editorManager.performLint();
 		};
 
 		static runCssLint() {
-			window.stylesheetEdit.editor.performLint();
+			window.stylesheetEdit.editorManager.performLint();
 		};
 
 		static showCssTips() {

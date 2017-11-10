@@ -183,10 +183,10 @@ class UEE {
 	private static updateFromExternal(this: UseExternalEditor, msg: UpdateFromAppMessage) {
 		if (this.connection.id === msg.connectionId) {
 			if (window.scriptEdit && window.scriptEdit.active) {
-				window.scriptEdit.editor.setValue(msg.code);
+				window.scriptEdit.editorManager.setValue(msg.code);
 			} else {
 				window.stylesheetEdit.newSettings.value.stylesheet = msg.code;
-				window.stylesheetEdit.editor.setValue(msg.code);
+				window.stylesheetEdit.editorManager.setValue(msg.code);
 			}
 		}
 	};
@@ -417,8 +417,8 @@ class UEE {
 
 		private static appendWrapper(toolsCont: HTMLElement) {
 			(window.scriptEdit && window.scriptEdit.active ?
-				window.scriptEdit.editor.display.wrapper :
-				window.stylesheetEdit.editor.display.wrapper)
+				window.scriptEdit.editorManager.display.wrapper :
+				window.stylesheetEdit.editorManager.display.wrapper)
 					.querySelector('.CodeMirror-scroll').appendChild(toolsCont);
 		}
 
@@ -441,7 +441,7 @@ class UEE {
 		this.EditingOverlay.generateOverlay();
 				
 		const scroll = (window.scriptEdit && window.scriptEdit.active ?
-			window.scriptEdit.editor.display.wrapper : window.stylesheetEdit.editor.display.wrapper)
+			window.scriptEdit.editorManager.display.wrapper : window.stylesheetEdit.editorManager.display.wrapper)
 				.querySelector('.CodeMirror-scroll');
 
 		scroll.animate([
@@ -528,10 +528,10 @@ class UEE {
 				chooseFileDialog.init(msg.local, msg.external, function(result) {
 					if (result !== false) {
 						if (window.scriptEdit && window.scriptEdit.active) {
-							window.scriptEdit.editor.setValue(result);
+							window.scriptEdit.editorManager.setValue(result);
 						} else {
 							window.stylesheetEdit.newSettings.value.stylesheet = result;
-							window.stylesheetEdit.editor.setValue(result);
+							window.stylesheetEdit.editorManager.setValue(result);
 						}
 						_this.appPort.postMessage({
 							status: 'connected',

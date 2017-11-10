@@ -39,8 +39,8 @@ class SCE {
 		const oldValue = !element.checked;
 		const inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
 
-		const line = this.editor.removeMetaTags(this.editor, oldValue ? 'exclude' : 'match', inputValue);
-		this.editor.addMetaTags(this.editor, oldValue ? 'match' : 'exclude', inputValue, line);
+		const line = this.editorManager.removeMetaTags(this.editorManager, oldValue ? 'exclude' : 'match', inputValue);
+		this.editorManager.addMetaTags(this.editorManager, oldValue ? 'match' : 'exclude', inputValue, line);
 	};
 
 	static addTriggerAndAddListeners(this: NodeEditBehaviorScriptInstance) {
@@ -91,18 +91,18 @@ class SCE {
 		if (mode !== this.editorMode) {
 			if (mode === 'main') {
 				if (this.editorMode === 'background') {
-					this.newSettings.value.backgroundScript = this.editor.getValue();
+					this.newSettings.value.backgroundScript = this.editorManager.getValue();
 				}
 				this.editorMode = 'main';
 				this.enableButtons();
-				this.editor.setValue(this.newSettings.value.script);
+				this.editorManager.setValue(this.newSettings.value.script);
 			} else if (mode === 'background') {
 				if (this.editorMode === 'main') {
-					this.newSettings.value.script = this.editor.getValue();
+					this.newSettings.value.script = this.editorManager.getValue();
 				}
 				this.editorMode = 'background';
 				this.disableButtons();
-				this.editor.setValue(this.newSettings.value.backgroundScript || '');
+				this.editorManager.setValue(this.newSettings.value.backgroundScript || '');
 			}
 
 			const element = window.app.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
@@ -118,9 +118,9 @@ class SCE {
 		element.classList.remove('optionsEditorTab');
 		if (this.editorMode === 'options') {
 			try {
-				this.newSettings.value.options = JSON.parse(this.editor.getValue());
+				this.newSettings.value.options = JSON.parse(this.editorManager.getValue());
 			} catch(e) {
-				this.newSettings.value.options = this.editor.getValue();
+				this.newSettings.value.options = this.editorManager.getValue();
 			}
 		}
 		this.hideCodeOptions();
@@ -141,9 +141,9 @@ class SCE {
 		} else if (!isBackground && this.editorMode !== 'options') {
 			element.classList.add('optionsEditorTab');
 			if (this.editorMode === 'main') {
-				this.newSettings.value.script = this.editor.getValue();
+				this.newSettings.value.script = this.editorManager.getValue();
 			} else if (this.editorMode === 'background') {
-				this.newSettings.value.backgroundScript = this.editor.getValue();
+				this.newSettings.value.backgroundScript = this.editorManager.getValue();
 			}
 			this.showCodeOptions();
 			this.editorMode = 'options';
@@ -183,7 +183,7 @@ class SCE {
 	};
 
 	private static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
-		return this.editor.metaTags.metaTags;
+		return this.editorManager.metaTags.metaTags;
 	};
 
 	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
@@ -524,7 +524,7 @@ class SCE {
 		}
 		this.fullscreen = true;
 
-		const rect = this.editor.display.wrapper.getBoundingClientRect();
+		const rect = this.editorManager.display.wrapper.getBoundingClientRect();
 		const editorCont = window.doc.fullscreenEditor;
 		const editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
@@ -535,12 +535,12 @@ class SCE {
 			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
 		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.fullscreenEl.style.display = 'none';
-		const $editorWrapper = $(this.editor.display.wrapper);
+		const $editorWrapper = $(this.editorManager.display.wrapper);
 		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
 		buttonShadow.style.position = 'absolute';
 		buttonShadow.style.right = '-1px';
-		this.editor.display.wrapper.classList.add('fullscreen');
-		this.editor.display.wrapper.classList.remove('small');
+		this.editorManager.display.wrapper.classList.add('fullscreen');
+		this.editorManager.display.wrapper.classList.remove('small');
 
 		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
 		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
@@ -590,7 +590,7 @@ class SCE {
 			duration: 500,
 			easing: 'easeOutCubic',
 			complete: () =>  {
-				this.editor.refresh();
+				this.editorManager.refresh();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
@@ -611,12 +611,12 @@ class SCE {
 
 		const _this = this;
 		this.popOutRibbons();
-		const $wrapper = $(_this.editor.display.wrapper);
+		const $wrapper = $(_this.editorManager.display.wrapper);
 		const $buttonShadow = $wrapper.find('#buttonShadow');
 		$buttonShadow[0].style.position = 'absolute';
 		setTimeout(function() {
-			_this.editor.display.wrapper.classList.remove('fullscreen');
-			_this.editor.display.wrapper.classList.add('small');
+			_this.editorManager.display.wrapper.classList.remove('fullscreen');
+			_this.editorManager.display.wrapper.classList.add('small');
 			const editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			$(editorCont).animate({
@@ -632,7 +632,7 @@ class SCE {
 					editorCont.style.marginTop = '0';
 					editorCont.style.width = '0';
 					editorCont.style.height = '0';
-					$(_this.editor.display.wrapper).appendTo(_this.$.editorCont).css({
+					$(_this.editorManager.display.wrapper).appendTo(_this.$.editorCont).css({
 						height: _this.preFullscreenEditorDimensions.height,
 						marginTop: 0,
 						marginLeft: 0
@@ -648,8 +648,8 @@ class SCE {
 	static showOptions(this: NodeEditBehaviorScriptInstance) {
 		this.optionsShown = true;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		const editorWidth = this.editor.display.wrapper.getBoundingClientRect().width;
-		const editorHeight = this.editor.display.wrapper.getBoundingClientRect().height;
+		const editorWidth = this.editorManager.display.wrapper.getBoundingClientRect().width;
+		const editorHeight = this.editorManager.display.wrapper.getBoundingClientRect().height;
 		let circleRadius;
 
 		//Add a bit just in case
@@ -685,11 +685,11 @@ class SCE {
 			},
 			complete: () => {
 				if (this.fullscreen) {
-					const settingsCont = this.editor.display.wrapper.querySelector('#settingsContainer');
+					const settingsCont = this.editorManager.display.wrapper.querySelector('#settingsContainer');
 					settingsCont.style.overflow = 'scroll';
 					settingsCont.style.overflowX = 'hidden';
 					settingsCont.style.height = 'calc(100vh - 66px)';
-					const bubbleCont = this.editor.display.wrapper.querySelector('#bubbleCont');
+					const bubbleCont = this.editorManager.display.wrapper.querySelector('#bubbleCont');
 					bubbleCont.style.position = 'fixed';
 					bubbleCont.style.zIndex = '50';
 				}
@@ -728,10 +728,10 @@ class SCE {
 				}
 
 				if (this.fullscreen) {
-					const settingsCont = this.editor.display.wrapper.querySelector('#settingsContainer');
+					const settingsCont = this.editorManager.display.wrapper.querySelector('#settingsContainer');
 					settingsCont.style.height = '345px';
 					settingsCont.style.overflowX = 'hidden';
-					const bubbleCont = this.editor.display.wrapper.querySelector('#bubbleCont');
+					const bubbleCont = this.editorManager.display.wrapper.querySelector('#bubbleCont');
 					bubbleCont.style.position = 'absolute';
 					bubbleCont.style.zIndex = 'auto';
 				}
@@ -743,25 +743,25 @@ class SCE {
 	 * Reloads the editor completely (to apply new settings)
 	 */
 	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
-		if (this.editor) {
-			this.editor.display.wrapper.remove();
+		if (this.editorManager) {
+			this.editorManager.display.wrapper.remove();
 			this.$.editorPlaceholder.style.display = 'flex';
 			this.$.editorPlaceholder.style.opacity = '1';
 			this.$.editorPlaceholder.style.position = 'absolute';
 
 			if (this.editorMode === 'main') {
-				this.newSettings.value.script = this.editor.doc.getValue();
+				this.newSettings.value.script = this.editorManager.doc.getValue();
 			} else if (this.editorMode === 'background') {
-				this.newSettings.value.backgroundScript = this.editor.doc.getValue();
+				this.newSettings.value.backgroundScript = this.editorManager.doc.getValue();
 			} else {
 				try {
-					this.newSettings.value.options = JSON.parse(this.editor.doc.getValue());
+					this.newSettings.value.options = JSON.parse(this.editorManager.doc.getValue());
 				} catch(e) {
-					this.newSettings.value.options = this.editor.doc.getValue();
+					this.newSettings.value.options = this.editorManager.doc.getValue();
 				}
 			}
 		}
-		this.editor = null;
+		this.editorManager = null;
 
 		let value;
 		if (this.editorMode === 'main') {
@@ -826,14 +826,14 @@ class SCE {
 							[key: string]: (cm: CodeMirrorInstance) => void;
 						} = {};
 						prevKeyMap[prevValue] = binding.fn;
-						window.scriptEdit.editor.removeKeyMap(prevKeyMap);
+						window.scriptEdit.editorManager.removeKeyMap(prevKeyMap);
 					}
 
 					const keyMap: {
 						[key: string]: (cm: CodeMirrorInstance) => void;
 					} = {};
 					keyMap[value] = binding.fn;
-					window.scriptEdit.editor.addKeyMap(keyMap);
+					window.scriptEdit.editorManager.addKeyMap(keyMap);
 
 					window.app.settings.editor.keyBindings[binding.storageKey] = value;
 				}
@@ -1036,8 +1036,8 @@ class SCE {
 		for (let i = 0; i < this.keyBindings.length; i++) {
 			keySettings[window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey]] = this.keyBindings[i].fn;
 		}
-		this.editor.setOption('extraKeys', keySettings);
-		this.editor.on('cursorActivity', function(cm: CodeMirrorInstance) {
+		this.editorManager.setOption('extraKeys', keySettings);
+		this.editorManager.on('cursorActivity', function(cm: CodeMirrorInstance) {
 			window.app.ternServer.updateArgHints(cm);
 		});
 	};
@@ -1091,7 +1091,7 @@ class SCE {
 	}
 
 	static findChromeBaseExpression(this: NodeEditBehaviorScriptInstance, from: CodeMirrorPos, to: CodeMirrorPos) {
-		const code = this.editor.getValue();
+		const code = this.editorManager.editor.getValue();
 		const file = {
 			name: '[doc]',
 			text: code,
@@ -1137,7 +1137,7 @@ class SCE {
 							//If the sibling is not window, ignore
 							if (data.isObj || data.siblingExpr.type === 'Identifier' && 
 								data.siblingExpr.name === 'window') {
-									this.markers.push(this.editor.doc.markText(this._indexToPos(expression.start, lines),
+									this.markers.push(this.editorManager.doc.markText(this._indexToPos(expression.start, lines),
 										this._indexToPos(expression.end, lines), {
 											className: 'chromeCallsDeprecated',
 											inclusiveLeft: false,
@@ -1161,7 +1161,7 @@ class SCE {
 	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance) {
 		console.log('loaded');
-		const editor = this.editor;
+		//const editor = this.editorManager;
 		// editor.refresh();
 		// editor.on('metaTagChanged', (changes: {
 		// 	changed?: Array<{
@@ -1272,44 +1272,44 @@ class SCE {
 		// }
 		// const buttonShadow = editor.display.sizer.querySelector('#buttonShadow') as HTMLElement;
 
-		if (this.fullscreen) {
-			editor.display.wrapper.style.height = 'auto';
-			this.$.editorPlaceholder.style.display = 'none';
-			buttonShadow.style.right = '-1px';
-			buttonShadow.style.position = 'absolute';
-			this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-		} else {
-			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
-			this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
-			this.$.editorPlaceholder.style.position = 'absolute';
-			if (this.editorPlaceHolderAnimation) {
-				this.editorPlaceHolderAnimation.play();
-			} else {
-				this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
-					{
-						opacity: 1
-					}, {
-						opacity: 0
-					}
-				], {
-					duration: 300,
-					easing: 'bez'
-				});
-				const __this = this;
-				this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
-					__this.$.editorPlaceholder.style.display = 'none';
-				};
-			}
-		}
+		// if (this.fullscreen) {
+		// 	editor.display.wrapper.style.height = 'auto';
+		// 	this.$.editorPlaceholder.style.display = 'none';
+		// 	buttonShadow.style.right = '-1px';
+		// 	buttonShadow.style.position = 'absolute';
+		// 	this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
+		// } else {
+		// 	this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
+		// 	this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
+		// 	this.$.editorPlaceholder.style.position = 'absolute';
+		// 	if (this.editorPlaceHolderAnimation) {
+		// 		this.editorPlaceHolderAnimation.play();
+		// 	} else {
+		// 		this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
+		// 			{
+		// 				opacity: 1
+		// 			}, {
+		// 				opacity: 0
+		// 			}
+		// 		], {
+		// 			duration: 300,
+		// 			easing: 'bez'
+		// 		});
+		// 		const __this = this;
+		// 		this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
+		// 			__this.$.editorPlaceholder.style.display = 'none';
+		// 		};
+		// 	}
+		// }
 		//this.initTernKeyBindings();
 	};
 
 	/**
 	 * Loads the codeMirror editor
 	 */
-	private static loadEditor(this: NodeEditBehaviorScriptInstance, container: HTMLElement, content: string = this.item.value.script,
+	private static async loadEditor(this: NodeEditBehaviorScriptInstance, content: string = this.item.value.script,
 			disable: boolean = false) {
-		const placeHolder = $(this.$.editorPlaceholder);
+		const placeHolder = $(this.$.editor);
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {
@@ -1327,15 +1327,13 @@ class SCE {
 				selectName: this.keyBindings[5].defaultKey,
 			}
 		});
-		this.editor = window.app.util.createEditor({
-			callback: this.cmLoaded,
-			scope: this
-		}, container, {
+		this.editorManager = await this.$.editor.create({
 			value: content,
 			language: 'javascript',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
 			wordWrap: 'on'
 		});
+		this.cmLoaded();
 		// this.editor = window.CodeMirror(container, {
 		// 	value: content,
 		// 	lineWrapping: true,
@@ -1364,8 +1362,6 @@ class SCE {
 		document.body.classList.remove('editingStylesheet');
 		document.body.classList.add('editingScript');
 		window.scriptEdit = this;
-		this.$.editorPlaceholder.style.display = 'flex';
-		this.$.editorPlaceholder.style.opacity = '1';
 		window.externalEditor.init();
 		if (window.app.storageLocal.recoverUnsavedData) {
 			chrome.storage.local.set({
@@ -1377,9 +1373,9 @@ class SCE {
 				}
 			});
 			this.savingInterval = window.setInterval(function() {
-				if (_this.active && _this.editor) {
+				if (_this.active && _this.editorManager) {
 					//Save
-					const val = _this.editor.getValue();
+					const val = _this.editorManager.editor.getValue();
 					chrome.storage.local.set({
 						editing: {
 							val: val,
@@ -1400,7 +1396,7 @@ class SCE {
 		}
 		this.active = true;
 		setTimeout(function() {
-			_this.loadEditor(_this.$.editorCont);
+			_this.loadEditor();
 		}, 750);
 	}
 }

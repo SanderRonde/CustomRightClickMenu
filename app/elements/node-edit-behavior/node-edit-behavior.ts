@@ -458,9 +458,9 @@ class NEB {
 			this.$.showOnContentContainer.style.height = '0';
 		}
 		this.$.dropdownMenu._addListener(this.selectorStateChange, 'dropdownMenu', this);
-		if (this.editor) {
-			this.editor.display.wrapper.remove();
-			this.editor = null;
+		if (this.editorManager) {
+			this.editorManager.display.wrapper.remove();
+			this.editorManager = null;
 		}
 	};
 

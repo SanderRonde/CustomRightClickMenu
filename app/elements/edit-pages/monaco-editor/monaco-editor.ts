@@ -24,15 +24,16 @@ class MOE {
 
 	static create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-			return new Promise((resolve) => {
+			return new Promise(async (resolve) => {
+				await this._monacoReady;
 				this._showSpinner();
-				const listener = monaco.editor.onDidCreateEditor((editor) => {
+				const listener = window.monaco.editor.onDidCreateEditor((editor) => {
 					listener.dispose();
 					this._fixThemeScope();
 					resolve(this);
 					this._hideSpinner();
 				});
-				this.editor = monaco.editor.create(this.$.editorElement, options, override);
+				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
 			});
 		}
 
@@ -50,7 +51,7 @@ class MOE {
 				}
 			});
 			window.require(['vs/editor/editor.main'], () => {
-				resolve(null);	
+				resolve(null);
 			});
 		});
 	}
