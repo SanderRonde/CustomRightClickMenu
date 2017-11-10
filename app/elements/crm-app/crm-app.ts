@@ -918,7 +918,7 @@ class CA {
 			this.loadingEditors = this.loadingEditors.filter((loadingEditor) => {
 				const { callback, scope } = loadingEditor;
 				this._fixThemeScope(scope);
-				callback();
+				callback.bind(scope)();
 				return null;
 			});
 		});
