@@ -637,7 +637,7 @@ class EC {
 	};
 
 	static ready(this: EditCrm) {
-		window.onExists('app', () => {
+		window.onExists('app').then(() => {
 			window.app.editCRM = this;
 			window.app.addEventListener('crmTypeChanged', () => {
 				this._typeChanged();

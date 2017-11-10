@@ -1110,7 +1110,7 @@ class UEE {
 	 * Makes the dialog clear itself after it closes
 	 */
 	static ready(this: UseExternalEditor) {
-		window.onExists('app', () => {
+		window.onExists('app').then(() => {
 			const __this = this;
 			window.externalEditor = this;
 			this.establishConnection();

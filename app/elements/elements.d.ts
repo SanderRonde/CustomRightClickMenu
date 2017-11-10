@@ -69,7 +69,7 @@ interface CMCompletionFns {
 
 interface Window {
 	objectify<T>(fn: T): T;
-	onExists<T extends keyof Window>(key: T, callback: (val: Window[T]) => void): void;
+	onExists<T extends keyof Window>(key: T): Promiselike<Window[T]>;
 	monaco: typeof monaco;
 	require: {
 		(paths: Array<string>, callback: () => void): void;

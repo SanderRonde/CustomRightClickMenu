@@ -179,7 +179,7 @@ class ECI {
 			}
 		});
 
-		window.onExists('app', () => {
+		window.onExists('app').then(() => {
 			if (this.rootNode) {
 				//Skip initialization, only name is changable
 				this.initRootNode();

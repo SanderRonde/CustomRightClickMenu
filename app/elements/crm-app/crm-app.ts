@@ -1027,7 +1027,7 @@ class CA {
 	static ready(this: CrmApp) {
 		window.app = this;
 		window.doc = window.app.$;
-		window.onExists('require', () => {
+		window.onExists('require').then(() => {
 			window.require.config({
 				paths: {
 					'vs': '../monaco-editor/min/vs'

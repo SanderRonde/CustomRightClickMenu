@@ -1395,10 +1395,10 @@ ${message}`;
 		};
 	}
 	if (window.onExists) {
-		window.onExists('CodeMirror', onExistsCallback);
+		window.onExists('CodeMirror').then(onExistsCallback);
 	} else {
 		window.addEventListener('ObjectifyReady', () => {
-			window.onExists('CodeMirror', onExistsCallback);
+			window.onExists('CodeMirror').then(onExistsCallback);
 		});
 	}
 

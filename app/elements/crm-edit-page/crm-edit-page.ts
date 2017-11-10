@@ -292,7 +292,7 @@ class CEP {
 		$(this.$$('.popupCont')).click(function(e) {
 			e.stopPropagation();
 		});
-		window.onExists('app', () => {
+		window.onExists('app').then(() => {
 			this.backdropEl = window.app.$$('.backdropCont');
 			window.crmEditPage = this;
 			this.isLink = this.isMenu = this.isScript = this.isDivider = false;
