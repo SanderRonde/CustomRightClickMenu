@@ -344,7 +344,7 @@ module.exports = function(grunt) {
 						'!basic-languages/src/**',
 						'basic-languages/src/css.js'
 					],
-					dest: 'buildBeforePolymer/monaco-editor/min/'
+					dest: 'buildBeforePolymer/elements/edit-pages/monaco-editor/src/min/'
 				}]
 			},
 			monacoPost: {
@@ -356,7 +356,7 @@ module.exports = function(grunt) {
 						'!basic-languages/src/**',
 						'basic-languages/src/css.js'
 					],
-					dest: 'build/monaco-editor/min/'
+					dest: 'build/elements/edit-pages/monaco-editor/src/min/'
 				}]
 			},
 			monacoTemp: {
@@ -368,7 +368,7 @@ module.exports = function(grunt) {
 						'!basic-languages/src/**',
 						'basic-languages/src/css.js'
 					],
-					dest: 'app/monaco-editor/min/'
+					dest: 'app/elements/edit-pages/monaco-editor/src/min/'
 				}]
 			}
 		},
@@ -397,7 +397,7 @@ module.exports = function(grunt) {
 			unzipped: ['buildBeforePolymer/**/*', '!buildBeforePolymer/*.zip'],
 			tsFiles: ['build/elements/**/*.ts'],
 			removeBuildBeforePolymer: ['build/buildBeforePolymer/'],
-			tempMonaco: ['app/monaco-editor/']
+			tempMonaco: ['app/elements/edit-pages/monaco-editor/src/min/']
 		},
 		'string-replace': {
 			manifestReplace: {
