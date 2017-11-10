@@ -79,6 +79,7 @@ interface Window {
 			}
 		}): void;
 	}
+	Promiselike: typeof Promiselike;
 	monacoCommands: MonacoCommands;
 	codeMirrorToLoad?: {
 		toLoad: Array<(cm: CodeMirror) => void>;
