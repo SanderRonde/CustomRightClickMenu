@@ -69,7 +69,7 @@ interface CMCompletionFns {
 
 interface Window {
 	objectify<T>(fn: T): T;
-	onExists<T extends keyof Window>(key: T): Promiselike<Window[T]>;
+	onExists<T extends keyof Window>(key: T): Promise<Window[T]>;
 	monaco: typeof monaco;
 	require: {
 		(paths: Array<string>, callback: () => void): void;
@@ -79,7 +79,7 @@ interface Window {
 			}
 		}): void;
 	}
-	Promiselike: typeof Promiselike;
+	Promise: typeof Promise;
 	monacoCommands: MonacoCommands;
 	codeMirrorToLoad?: {
 		toLoad: Array<(cm: CodeMirror) => void>;

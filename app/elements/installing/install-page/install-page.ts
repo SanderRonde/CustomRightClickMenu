@@ -9,7 +9,7 @@
 		return obj as T;
 	}
 
-	window.Promiselike = class Promiselike<T> {
+	window.Promise = class Promise<T> {
 		_listeners: Array<(result: T) => void> = [];
 		_rejectListeners: Array<(reason: any) => void> = [];
 		_status: 'pending' | 'rejected' | 'fulfilled' = 'pending';
@@ -37,7 +37,7 @@
 			});
 		}
 	
-		then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promiselike<T> {
+		then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promise<T> {
 			if (this._status === 'fulfilled') {
 				callback(this._result);
 			}
@@ -50,21 +50,21 @@
 			}
 			return this;
 		}
-		catch(onrejected: (reason: any) => void): Promiselike<T> {
+		catch(onrejected: (reason: any) => void): Promise<T> {
 			this._rejectListeners.push(onrejected);
 			if (this._status === 'rejected') {
 				onrejected(this._rejectReason);
 			}
 			return this;
 		}
-		static all(values: Array<Promiselike<any>>) {
+		static all<T>(values: Array<Promise<T>>): Promise<Array<T>> {
 			let rejected: boolean = false;
-			return new Promiselike((resolve, reject) => {
+			return new Promise<Array<T>>((resolve, reject) => {
 				const promises: Array<{
 					done: boolean;
 					result?: any;
-					promise: Promiselike<any>
-				}> = Array.prototype.slice.apply(values).map((promise: Promiselike<any>) => {
+					promise: Promise<any>
+				}> = Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
 					return {
 						done: false,
 						promise: promise
@@ -94,9 +94,9 @@
 				}
 			});
 		}
-		static race(values: Array<Promiselike<any>>) {
-			return new Promiselike((resolve, reject) => {
-				Array.prototype.slice.apply(values).map((promise: Promiselike<any>) => {
+		static race<T>(values: Array<Promise<T>>): Promise<T> {
+			return new Promise((resolve, reject) => {
+				Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
 					promise.then((result) => {
 						resolve(result);
 					}, (reason) => {
@@ -107,8 +107,8 @@
 		}
 	}
 
-	window.onExists = <T extends keyof Window>(key: T): Promiselike<Window[T]> => {
-		return new Promiselike<Window[T]>((resolve) => {
+	window.onExists = <T extends keyof Window>(key: T): Promise<Window[T]> => {
+		return new Promise<Window[T]>((resolve) => {
 			if (key in window) {
 				resolve(window[key]);
 				return;

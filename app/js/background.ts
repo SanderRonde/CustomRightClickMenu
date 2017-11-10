@@ -483,7 +483,7 @@ interface GlobalObject {
 
 interface Extensions<T> extends CRM.Extendable<T> { }
 
-class Promiselike<T> {
+class Promise<T> {
 	_listeners: Array<(result: T) => void> = [];
 	_rejectListeners: Array<(reason: any) => void> = [];
 	_status: 'pending' | 'rejected' | 'fulfilled' = 'pending';
@@ -511,7 +511,7 @@ class Promiselike<T> {
 		});
 	}
 
-	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promiselike<T> {
+	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promise<T> {
 		if (this._status === 'fulfilled') {
 			callback(this._result);
 		}
@@ -524,21 +524,21 @@ class Promiselike<T> {
 		}
 		return this;
 	}
-	catch(onrejected: (reason: any) => void): Promiselike<T> {
+	catch(onrejected: (reason: any) => void): Promise<T> {
 		this._rejectListeners.push(onrejected);
 		if (this._status === 'rejected') {
 			onrejected(this._rejectReason);
 		}
 		return this;
 	}
-	static all(values: Array<Promiselike<any>>) {
+	static all<T>(values: Array<Promise<T>>): Promise<Array<T>> {
 		let rejected: boolean = false;
-		return new Promiselike((resolve, reject) => {
+		return new Promise<Array<T>>((resolve, reject) => {
 			const promises: Array<{
 				done: boolean;
 				result?: any;
-				promise: Promiselike<any>
-			}> = Array.prototype.slice.apply(values).map((promise: Promiselike<any>) => {
+				promise: Promise<any>
+			}> = Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
 				return {
 					done: false,
 					promise: promise
@@ -568,9 +568,9 @@ class Promiselike<T> {
 			}
 		});
 	}
-	static race(values: Array<Promiselike<any>>) {
-		return new Promiselike((resolve, reject) => {
-			Array.prototype.slice.apply(values).map((promise: Promiselike<any>) => {
+	static race<T>(values: Array<Promise<T>>): Promise<T> {
+		return new Promise((resolve, reject) => {
+			Array.prototype.slice.apply(values).map((promise: Promise<any>) => {
 				promise.then((result) => {
 					resolve(result);
 				}, (reason) => {
@@ -2127,7 +2127,7 @@ if (typeof module === 'undefined') {
 			}
 
 			function updateKeyCommands() {
-				return new Promiselike<Array<chrome.commands.Command>>((resolve) => {
+				return new Promise<Array<chrome.commands.Command>>((resolve) => {
 					chrome.commands.getAll((commands) => {
 						resolve(commands);
 					});
@@ -2148,21 +2148,20 @@ if (typeof module === 'undefined') {
 			}
 
 			function listenKeyCommands() {
-				chrome.commands.onCommand.addListener((command) => {
-					updateKeyCommands().then((commands) => {
-						commands.forEach((registerCommand) => {
-							if (registerCommand.name === command) {
-								const keys = registerCommand.shortcut.toLowerCase();
-								const permutations = permute(keys.split('+'));
-								permutations.forEach((permutation) => {
-									const permutationKey = permutation.join('+');
-									globalObject.globals.shortcutListeners[permutationKey] &&
-										globalObject.globals.shortcutListeners[permutationKey].forEach((listener) => {
-											listener.callback();
-										});
-								});
-							}
-						});
+				chrome.commands.onCommand.addListener(async (command) => {
+					const commands = await updateKeyCommands();
+					commands.forEach((registerCommand) => {
+						if (registerCommand.name === command) {
+							const keys = registerCommand.shortcut.toLowerCase();
+							const permutations = permute(keys.split('+'));
+							permutations.forEach((permutation) => {
+								const permutationKey = permutation.join('+');
+								globalObject.globals.shortcutListeners[permutationKey] &&
+									globalObject.globals.shortcutListeners[permutationKey].forEach((listener) => {
+										listener.callback();
+									});
+							});
+						}
 					});
 				});
 			}
@@ -2197,13 +2196,13 @@ if (typeof module === 'undefined') {
 		}
 
 		static restoreOpenTabs() {
-			return new Promiselike<void>((resolve) => {
-				chrome.tabs.query({}, (tabs) => {
+			return new Promise<void>((resolve) => {
+				chrome.tabs.query({}, async (tabs) => {
 					if (tabs.length === 0) {
 						resolve(null);
 					} else {
-						Promiselike.all(tabs.map((tab) => {
-							return new Promiselike<void>((resolveInner) => {
+						await Promise.all(tabs.map((tab) => {
+							return new Promise<void>((resolveInner) => {
 								if (tab.url.indexOf('chrome://') === -1 &&
 									tab.url.indexOf('file://') === -1) {
 									chrome.tabs.executeScript(tab.id, {
@@ -2221,9 +2220,8 @@ if (typeof module === 'undefined') {
 									resolveInner(null);
 								}
 							});
-						})).then(() => {
-							resolve(null);
-						});
+						}));
+						resolve(null);
 					}
 				});
 			});
@@ -4071,27 +4069,26 @@ if (typeof module === 'undefined') {
 			delete options.tabId;
 
 			//Get results from tab query
-			this._queryTabs(options, (result) => {
-				Promiselike.all((tabIds || []).map((tabId) => {
-					return new Promiselike<chrome.tabs.Tab>((resolve) => {
+			this._queryTabs(options, async (result) => {
+				let tabs = await Promise.all((tabIds || []).map((tabId) => {
+					return new Promise<chrome.tabs.Tab>((resolve) => {
 						chrome.tabs.get(tabId, (tab) => {
 							resolve(tab);
 						});
 					});
-				})).then((tabs: Array<chrome.tabs.Tab>) => {
-					//Remove duplicates
-					result && (tabs = tabs.concat(result));
-					tabs = this._removeDuplicateTabs(tabs);
+				}));
+				//Remove duplicates
+				result && (tabs = tabs.concat(result));
+				tabs = this._removeDuplicateTabs(tabs);
 
-					const node = __this.getNodeFromId(id, false, true);
+				const node = __this.getNodeFromId(id, false, true);
 
-					tabs.forEach((tab) => {
-						CRM.Script.Handler.createHandler(node)({
-							pageUrl: tab.url,
-							menuItemId: 0,
-							editable: false
-						}, tab, true);
-					});
+				tabs.forEach((tab) => {
+					CRM.Script.Handler.createHandler(node)({
+						pageUrl: tab.url,
+						menuItemId: 0,
+						editable: false
+					}, tab, true);
 				});
 			});
 		}
@@ -7008,7 +7005,7 @@ if (typeof module === 'undefined') {
 								chrome.runtime.reload();
 							});
 						} else {
-							Promiselike.all([new Promiselike<EncodedContextData>((resolve) => {
+							Promise.all<any>([new Promise<EncodedContextData>((resolve) => {
 								//If it was triggered by clicking, ask contentscript about some data
 								if (isAutoActivate) {
 									resolve(null);
@@ -7019,7 +7016,7 @@ if (typeof module === 'undefined') {
 										resolve(response);
 									});
 								}
-							}), new Promiselike<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
+							}), new Promise<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
 								const editorSettings = globalObject.globals.storages.settingsStorage.editor
@@ -7047,19 +7044,7 @@ if (typeof module === 'undefined') {
 								resolve([nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
 							})]).then((args: [EncodedContextData,
 								[any, GreaseMonkeyData, string, string, string, number]]) => {
-								const safeNode = CRM.makeSafe(node);
-								(safeNode as any).permissions = node.permissions;
-								const code = this._genCode({
-									node,
-									safeNode,
-									tab,
-									info,
-									key
-								}, args);
-
-								const usesUnsafeWindow = node.value.script.indexOf('unsafeWindow') > -1;
-								const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
-								Script._executeScripts(tab.id, scripts, usesUnsafeWindow);
+								
 							});
 						}
 					};
@@ -9249,69 +9234,62 @@ if (typeof module === 'undefined') {
 				};
 			}
 
-			static handleFirstRun(crm?: Array<CRM.Node>): {
-				done: boolean;
-				onDone?: (result: {
-					settingsStorage: CRM.SettingsStorage;
-					storageLocalCopy: CRM.StorageLocal;
-					chromeStorageLocal: CRM.StorageLocal;
-				}) => void;
-				value?: {
-					settingsStorage: CRM.SettingsStorage;
-					storageLocalCopy: CRM.StorageLocal;
-					chromeStorageLocal: CRM.StorageLocal;
-				}
-			} {
+			static handleFirstRun(crm?: Array<CRM.Node>): Promise<{
+				settingsStorage: CRM.SettingsStorage;
+				storageLocalCopy: CRM.StorageLocal;
+				chromeStorageLocal: CRM.StorageLocal;
+			}> {
 				window.localStorage.setItem('transferToVersion2', 'true');
 
-				const returnObj: {
-					done: boolean;
-					onDone?: (result: {
-						settingsStorage: CRM.SettingsStorage;
-						storageLocalCopy: CRM.StorageLocal;
-						chromeStorageLocal: CRM.StorageLocal;
-					}) => void;
-					value?: {
-						settingsStorage: CRM.SettingsStorage;
-						storageLocalCopy: CRM.StorageLocal;
-						chromeStorageLocal: CRM.StorageLocal;
-					}
-				} = {
-						done: false,
-						onDone: null
-					}
+				return new Promise<{
+					settingsStorage: CRM.SettingsStorage;
+					storageLocalCopy: CRM.StorageLocal;
+					chromeStorageLocal: CRM.StorageLocal;
+				}>((resolve) => {
+					const returnObj: {
+						done: boolean;
+						onDone?: (result: {
+							settingsStorage: CRM.SettingsStorage;
+							storageLocalCopy: CRM.StorageLocal;
+							chromeStorageLocal: CRM.StorageLocal;
+						}) => void;
+						value?: {
+							settingsStorage: CRM.SettingsStorage;
+							storageLocalCopy: CRM.StorageLocal;
+							chromeStorageLocal: CRM.StorageLocal;
+						}
+					} = {
+							done: false,
+							onDone: null
+						}
 
-				this._getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
+					this._getDefaultStorages(([defaultLocalStorage, defaultSyncStorage]) => {
 
-					//Save local storage
-					chrome.storage.local.set(defaultLocalStorage);
+						//Save local storage
+						chrome.storage.local.set(defaultLocalStorage);
 
-					//Save sync storage
-					this._uploadStorageSyncData(defaultSyncStorage);
+						//Save sync storage
+						this._uploadStorageSyncData(defaultSyncStorage);
 
-					if (crm) {
-						defaultSyncStorage.crm = crm;
-					}
+						if (crm) {
+							defaultSyncStorage.crm = crm;
+						}
 
-					const storageLocal = defaultLocalStorage;
-					const storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
+						const storageLocal = defaultLocalStorage;
+						const storageLocalCopy = JSON.parse(JSON.stringify(defaultLocalStorage));
 
-					const result = {
-						settingsStorage: defaultSyncStorage,
-						storageLocalCopy: storageLocalCopy,
-						chromeStorageLocal: storageLocal
-					};
+						const result = {
+							settingsStorage: defaultSyncStorage,
+							storageLocalCopy: storageLocalCopy,
+							chromeStorageLocal: storageLocal
+						};
 
-					returnObj.value = result;
-					if (returnObj.onDone) {
-						returnObj.onDone(result);
-						returnObj.done = true;
-					} else {
-						returnObj.done = true;
-					}
+						returnObj.value = result;
+						resolve(result);
+					});
+
+					return returnObj;
 				});
-
-				return returnObj;
 			}
 			static handleTransfer(): (resolve: (data: {
 				settingsStorage: CRM.SettingsStorage;
@@ -9878,11 +9856,9 @@ if (typeof module === 'undefined') {
 					return {
 						type: 'firstTimeCallback',
 						fn: (resolve) => {
-							if (firstRunPromise.done) {
-								resolve(firstRunPromise.value);
-							} else {
-								firstRunPromise.onDone = resolve;
-							}
+							firstRunPromise.then((value) => {
+								resolve(value);
+							});
 						}
 					}
 				}
@@ -9921,7 +9897,7 @@ if (typeof module === 'undefined') {
 		}
 		window.console.group('Initialization');
 		window.console.group('Loading storage data');
-		Storages.loadStorages(() => {
+		Storages.loadStorages(async () => {
 			window.console.groupEnd();
 			try {
 				globalObject.globals.latestId = globalObject.globals.storages.settingsStorage.latestId;
@@ -9936,42 +9912,41 @@ if (typeof module === 'undefined') {
 				window.log('Building Custom Right-Click Menu');
 				CRM.buildPageCRM();
 				window.console.groupCollapsed('Restoring previous open tabs');
-				GlobalDeclarations.restoreOpenTabs().then(() => {
-					window.console.groupEnd();
-					window.console.groupCollapsed('Creating backgroundpages');
-					CRM.Script.Background.createBackgroundPages();
-					window.console.groupEnd();
-					window.log('Registering global handlers');
-					GlobalDeclarations.init();
+				await GlobalDeclarations.restoreOpenTabs();
+				window.console.groupEnd();
+				window.console.groupCollapsed('Creating backgroundpages');
+				CRM.Script.Background.createBackgroundPages();
+				window.console.groupEnd();
+				window.log('Registering global handlers');
+				GlobalDeclarations.init();
 
-					//Checks if all values are still correct
-					window.console.group('Checking Resources');
-					window.log('Updating resources');
-					Resources.updateResourceValues();
-					window.log('Updating scripts');
+				//Checks if all values are still correct
+				window.console.group('Checking Resources');
+				window.log('Updating resources');
+				Resources.updateResourceValues();
+				window.log('Updating scripts');
+				CRM.Script.Updating.updateScripts();
+				window.setInterval(() => {
 					CRM.Script.Updating.updateScripts();
-					window.setInterval(() => {
-						CRM.Script.Updating.updateScripts();
-					}, 6 * 60 * 60 * 1000);
+				}, 6 * 60 * 60 * 1000);
+				window.console.groupEnd();
+
+				window.log('Registering console user interface');
+				GlobalDeclarations.initGlobalFunctions();
+
+				if (location.href.indexOf('test') > -1) {
+					globalObject.Storages = Storages;
+				}
+				if (typeof module !== 'undefined') {
+					globalObject.TransferFromOld =
+						Storages.SetupHandling.TransferFromOld;
+				}
+				
+				for (let i = 0; i < 5; i++) {
 					window.console.groupEnd();
+				}
 
-					window.log('Registering console user interface');
-					GlobalDeclarations.initGlobalFunctions();
-
-					if (location.href.indexOf('test') > -1) {
-						globalObject.Storages = Storages;
-					}
-					if (typeof module !== 'undefined') {
-						globalObject.TransferFromOld =
-							Storages.SetupHandling.TransferFromOld;
-					}
-					
-					for (let i = 0; i < 5; i++) {
-						window.console.groupEnd();
-					}
-
-					window.log('Done!');
-				});
+				window.log('Done!');
 			} catch (e) {
 				for (let i = 0; i < 10; i++) {
 					window.console.groupEnd();
