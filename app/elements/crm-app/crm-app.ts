@@ -906,7 +906,7 @@ class CA {
 
 	private static _fixThemeScope(scope: Polymer.RootElement) {
 		this.monacoStyleElement = this.monacoStyleElement || 
-			document.getElementsByClassName('.monaco-colors')[0] as HTMLStyleElement;
+			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
 		
 		if (scope.shadowRoot.children[0] !== this.monacoStyleElement) {
 			scope.shadowRoot.insertBefore(this.monacoStyleElement, scope.shadowRoot.children[0]);
