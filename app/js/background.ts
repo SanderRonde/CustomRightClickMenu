@@ -2025,6 +2025,17 @@ if (typeof module === 'undefined') {
 				}
 			}
 
+			function setupResourceProxy() {
+				chrome.webRequest.onBeforeRequest.addListener((details) => {
+					window.log('Redirecting', details);
+					return {
+						redirectUrl: `chrome-extension://${chrome.runtime.id}/fonts/fonts.css`
+					}
+				}, {
+					urls: ['*://fonts.googleapis.com/', '*://fonts.gstatic.com/']
+				});
+			}
+
 			function listenTabsRemoved() {
 				chrome.tabs.onRemoved.addListener((tabId) => {
 					//Delete all data for this tabId
@@ -2173,6 +2184,7 @@ if (typeof module === 'undefined') {
 			listenNotifications();
 			listenTamperMonkeyInstallState();
 			listenKeyCommands();
+			setupResourceProxy();
 		}
 
 		static getResourceData(name: string, scriptId: number) {
