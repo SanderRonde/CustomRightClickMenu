@@ -1,6 +1,5 @@
 /// <reference path="../elements.d.ts" />
 /// <reference path="../../../tools/definitions/tern.d.ts" />
-/// <reference path="../../js/promise.ts" />
 
 (() => {
 	window.objectify = <T>(fn: T): T => {
