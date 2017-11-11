@@ -39,7 +39,7 @@ class MOE {
 			await window.onExists('require');
 			window.require.config({
 				paths: {
-					'vs': '../monaco-editor/min/vs'
+					'vs': '../elements/edit-pages/monaco-editor/src/min/vs'
 				}
 			});
 			window.require(['vs/editor/editor.main'], () => {
@@ -100,6 +100,17 @@ class MonacoEditorHackManager {
 		}
 	}
 
+	private static _isDomTraversal() {
+		const stack = new Error().stack;
+		const lines = stack.split('\n').slice(1);
+		for (let i = 0; i < Math.min(10, lines.length); i++) {
+			if (lines.indexOf('isInDOM') > -1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private static _overrideBody() {
 		if (this._overridden) {
 			return;
@@ -108,12 +119,11 @@ class MonacoEditorHackManager {
 
 		Object.defineProperty(document, 'body', {
 			get: () => {
-				console.log('Body accessed', 'override is',
-					this._newBodyRef === this._originalBody ? 'disabled' : 'enabled');
-				if (this._newBodyRef !== this._originalBody) {
-					console.trace();
+				if (this._isDomTraversal()) {		
+					return this._newBodyRef;
+				} else {
+					return this._originalBody;
 				}
-				return this._newBodyRef;
 			}
 		})
 	}
