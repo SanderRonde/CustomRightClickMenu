@@ -483,22 +483,21 @@ interface GlobalObject {
 
 interface Extensions<T> extends CRM.Extendable<T> { }
 
-class Promise<T> {
+class Promise<T> implements Promise<T> {
 	_listeners: Array<(result: T) => void> = [];
 	_rejectListeners: Array<(reason: any) => void> = [];
 	_status: 'pending' | 'rejected' | 'fulfilled' = 'pending';
 	_result: T;
 	_rejectReason: any;
-	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void) {
-		initializer((result: T) => {
+	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => Promise<T>)
+	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void)
+	constructor(initializer: (resolve: (result: T) => void, reject: (reason: any) => void) => void|Promise<T>) {
+		const initializerResult = initializer((result: T|Promise<T>) => {
 			if (this._status !== 'pending') {
 				return;
 			}
-			this._status = 'fulfilled';
-			this._result = result;
-			this._listeners.forEach((listener) => {
-				listener(result);
-			});
+
+			this._resolve(result);
 		}, (rejectReason) => {
 			if (this._status !== 'pending') {
 				return;
@@ -509,8 +508,28 @@ class Promise<T> {
 				rejectListener(rejectReason);
 			});
 		});
+		if (initializerResult instanceof Promise || 'then' in (initializerResult as any)) {
+			this._resolve(initializerResult as Promise<T>);
+		}
 	}
-
+	_signalDone(result: T) {
+		this._status = 'fulfilled';
+		this._result = result;
+		this._listeners.forEach((listener) => {
+			listener(result);
+		});
+	}
+	_resolve(result: T|Promise<T>) {
+		if (result instanceof Promise || 'then' in result) {
+			//It's a promise as well, wait for it to finish before
+			// resolving
+			(result as Promise<T>).then((finalValue) => {
+				this._resolve(finalValue);
+			});
+		} else {
+			this._signalDone(result);
+		}
+	}
 	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promise<T> {
 		if (this._status === 'fulfilled') {
 			callback(this._result);
