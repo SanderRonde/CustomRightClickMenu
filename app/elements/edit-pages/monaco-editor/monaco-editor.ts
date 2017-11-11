@@ -13,15 +13,6 @@ class MOE {
 	 */
 	static editor: monaco.editor.IStandaloneCodeEditor;
 
-	private static _fixThemeScope(this: MonacoEditor) {
-		window.app.monacoStyleElement = window.app.monacoStyleElement || 
-			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
-		
-		if (this.shadowRoot.children[0] !== window.app.monacoStyleElement) {
-			this.shadowRoot.insertBefore(window.app.monacoStyleElement, this.shadowRoot.children[0]);
-		}
-	}
-
 	static create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 			return new Promise(async (resolve) => {
@@ -29,10 +20,11 @@ class MOE {
 				this._showSpinner();
 				const listener = window.monaco.editor.onDidCreateEditor((editor) => {
 					listener.dispose();
-					this._fixThemeScope();
+					MonacoEditorHackManager.fixThemeScope(this);
 					resolve(this);
 					this._hideSpinner();
 				});
+				MonacoEditorHackManager.enableBodyHack(this);
 				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
 			});
 		}
@@ -77,6 +69,66 @@ class MOE {
 		this._setupRequire();
 	}
 }
+
+class MonacoEditorHackManager {
+	/**
+	 * The monaco theme style element
+	 */
+	static monacoStyleElement: HTMLStyleElement = null;
+
+	/**
+	 * The original document.body value
+	 */
+	private static _originalBody: HTMLElement = document.body;
+
+	/**
+	 * Whether the body was overriden yet
+	 */
+	private static _overridden: boolean = false;
+
+	/**
+	 * The element returned when document.body is accessed
+	 */
+	private static _newBodyRef: HTMLElement|Polymer.RootElement = null;
+
+	static fixThemeScope(scope: MonacoEditor) {
+		MonacoEditorHackManager.monacoStyleElement = MonacoEditorHackManager.monacoStyleElement || 
+			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
+		
+		if (scope.shadowRoot.children[0] !== MonacoEditorHackManager.monacoStyleElement) {
+			scope.shadowRoot.insertBefore(MonacoEditorHackManager.monacoStyleElement, scope.shadowRoot.children[0]);
+		}
+	}
+
+	private static _overrideBody() {
+		if (this._overridden) {
+			return;
+		}
+		this._overridden = true;
+
+		Object.defineProperty(document, 'body', {
+			get: () => {
+				console.log('Body accessed', 'override is',
+					this._newBodyRef === this._originalBody ? 'disabled' : 'enabled');
+				if (this._newBodyRef !== this._originalBody) {
+					console.trace();
+				}
+				return this._newBodyRef;
+			}
+		})
+	}
+	
+	static disableBodyHack() {
+		this._overrideBody();
+		this._newBodyRef = this._originalBody;
+	}
+
+	static enableBodyHack(ref: Polymer.RootElement) {
+		this._overrideBody();
+		this._newBodyRef = ref;
+	}
+};
+window.MonacoEditorHackManager = MonacoEditorHackManager;
 
 type MonacoEditor = Polymer.El<'monaco-editor', typeof MOE>;
 

@@ -82,6 +82,7 @@ interface Window {
 	}
 	Promise: typeof Promise;
 	monacoCommands: MonacoCommands;
+	MonacoEditorHackManager: typeof MonacoEditorHackManager;
 	codeMirrorToLoad?: {
 		toLoad: Array<(cm: CodeMirror) => void>;
 		final?(): void;
