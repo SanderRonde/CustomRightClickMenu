@@ -1160,7 +1160,6 @@ class SCE {
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance) {
-		console.log('loaded');
 		//const editor = this.editorManager;
 		// editor.refresh();
 		// editor.on('metaTagChanged', (changes: {
