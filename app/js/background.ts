@@ -522,7 +522,9 @@ class Promise<T> implements Promise<T> {
 		});
 	}
 	_resolve(result: T|Promise<T>) {
-		if (result instanceof Promise || 'then' in result) {
+		if (result instanceof Promise || (
+			result !== undefined && result !== null &&
+			'then' in result)) {
 			//It's a promise as well, wait for it to finish before
 			// resolving
 			(result as Promise<T>).then((finalValue) => {
