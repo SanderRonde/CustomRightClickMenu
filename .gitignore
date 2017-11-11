@@ -237,3 +237,5 @@ buildBeforePolymer/
 app/bower_components
 
 *.tmp.txt
+
+app/js/promise.js
