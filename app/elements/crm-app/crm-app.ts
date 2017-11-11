@@ -35,9 +35,11 @@
 					rejectListener(rejectReason);
 				});
 			});
-			if (initializerResult instanceof Promise || 'then' in (initializerResult as any)) {
-				this._resolve(initializerResult as Promise<T>);
-			}
+			if (initializerResult instanceof Promise || (
+				initializerResult !== undefined && initializerResult !== null &&
+				'then' in (initializerResult as any))) {
+					this._resolve(initializerResult as Promise<T>);
+				}
 		}
 		_signalDone(result: T) {
 			this._status = 'fulfilled';
