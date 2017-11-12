@@ -3,7 +3,7 @@
 /// <reference path="../../tools/definitions/crm.d.ts" />
 /// <reference path="../../tools/definitions/tern.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
-/// <reference path="../js/promise.ts" />
+/// <reference path="../js/shared.ts" />
 
 interface TabData {
 	id: number | 'background';
@@ -2052,7 +2052,7 @@ if (typeof module === 'undefined') {
 			}
 
 			function updateKeyCommands() {
-				return new Promise<Array<chrome.commands.Command>>((resolve) => {
+				return new window.Promise<Array<chrome.commands.Command>>((resolve) => {
 					chrome.commands.getAll((commands) => {
 						resolve(commands);
 					});
@@ -2121,13 +2121,13 @@ if (typeof module === 'undefined') {
 		}
 
 		static restoreOpenTabs() {
-			return new Promise<void>((resolve) => {
+			return new window.Promise<void>((resolve) => {
 				chrome.tabs.query({}, async (tabs) => {
 					if (tabs.length === 0) {
 						resolve(null);
 					} else {
-						await Promise.all(tabs.map((tab) => {
-							return new Promise<void>((resolveInner) => {
+						await window.Promise.all(tabs.map((tab) => {
+							return new window.Promise<void>((resolveInner) => {
 								if (tab.url.indexOf('chrome://') === -1 &&
 									tab.url.indexOf('file://') === -1) {
 									chrome.tabs.executeScript(tab.id, {
@@ -3995,8 +3995,8 @@ if (typeof module === 'undefined') {
 
 			//Get results from tab query
 			this._queryTabs(options, async (result) => {
-				let tabs = await Promise.all((tabIds || []).map((tabId) => {
-					return new Promise<chrome.tabs.Tab>((resolve) => {
+				let tabs = await window.Promise.all((tabIds || []).map((tabId) => {
+					return new window.Promise<chrome.tabs.Tab>((resolve) => {
 						chrome.tabs.get(tabId, (tab) => {
 							resolve(tab);
 						});
@@ -6930,7 +6930,7 @@ if (typeof module === 'undefined') {
 								chrome.runtime.reload();
 							});
 						} else {
-							Promise.all<any>([new Promise<EncodedContextData>((resolve) => {
+							window.Promise.all<any>([new window.Promise<EncodedContextData>((resolve) => {
 								//If it was triggered by clicking, ask contentscript about some data
 								if (isAutoActivate) {
 									resolve(null);
@@ -6941,7 +6941,7 @@ if (typeof module === 'undefined') {
 										resolve(response);
 									});
 								}
-							}), new Promise<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
+							}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
 								const editorSettings = globalObject.globals.storages.settingsStorage.editor
@@ -9175,7 +9175,7 @@ if (typeof module === 'undefined') {
 			}> {
 				window.localStorage.setItem('transferToVersion2', 'true');
 
-				return new Promise<{
+				return new window.Promise<{
 					settingsStorage: CRM.SettingsStorage;
 					storageLocalCopy: CRM.StorageLocal;
 					chromeStorageLocal: CRM.StorageLocal;
