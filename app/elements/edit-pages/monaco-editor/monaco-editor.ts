@@ -89,7 +89,7 @@ class MonacoEditorHackManager {
 	/**
 	 * The element returned when document.body is accessed
 	 */
-	private static _newBodyRef: HTMLElement|Polymer.RootElement = null;
+	private static _newBodyRef: HTMLElement|ShadowRoot = null;
 
 	static fixThemeScope(scope: MonacoEditor) {
 		MonacoEditorHackManager.monacoStyleElement = MonacoEditorHackManager.monacoStyleElement || 
@@ -112,7 +112,8 @@ class MonacoEditorHackManager {
 		const stack = window.with(this._increaseStackSize, () => {
 			return new Error().stack;
 		});
-		return stack.indexOf('_createMonacoEditorObject') > -1;
+		return stack.indexOf('_createMonacoEditorObject') > -1 ||
+			stack.indexOf('isInDOM') > -1;
 	}
 
 	private static _overrideBody() {
@@ -139,7 +140,7 @@ class MonacoEditorHackManager {
 
 	static enableBodyHack(ref: Polymer.RootElement) {
 		this._overrideBody();
-		this._newBodyRef = ref;
+		this._newBodyRef = ref.shadowRoot;
 	}
 };
 window.MonacoEditorHackManager = MonacoEditorHackManager;
