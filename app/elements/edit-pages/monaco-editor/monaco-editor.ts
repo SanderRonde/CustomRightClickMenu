@@ -13,7 +13,7 @@ class MOE {
 	 */
 	static editor: monaco.editor.IStandaloneCodeEditor;
 
-	static async create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
+	static async _createMonacoEditorObject(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 			await this._monacoReady;
 			this._showSpinner();
@@ -22,6 +22,11 @@ class MOE {
 			MonacoEditorHackManager.fixThemeScope(this);
 			this._hideSpinner();
 			return this;
+		}
+
+	static async create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
+		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+			return await this._createMonacoEditorObject(options, override);
 		}
 
 	static destroy(this: MonacoEditor) {
@@ -95,11 +100,21 @@ class MonacoEditorHackManager {
 		}
 	}
 
-	private static _isDomTraversal() {
-		const stack = new Error().stack;
+	private static _increaseStackSize(): Withable {
+		const previousLimit = Error.stackTraceLimit;
+		Error.stackTraceLimit = Infinity;
+		return () => {
+			Error.stackTraceLimit = previousLimit;
+		}
+	}
+
+	private static _isMonacoInitCall() {
+		const stack = window.with(this._increaseStackSize, () => {
+			return new Error().stack;
+		});
 		const lines = stack.split('\n').slice(1);
 		for (let i = 0; i < Math.min(10, lines.length); i++) {
-			if (lines.indexOf('isInDOM') > -1) {
+			if (lines.indexOf('_createMonacoEditorObject') > -1) {
 				return true;
 			}
 		}
@@ -114,7 +129,7 @@ class MonacoEditorHackManager {
 
 		Object.defineProperty(document, 'body', {
 			get: () => {
-				if (this._isDomTraversal()) {		
+				if (this._isMonacoInitCall()) {		
 					return this._newBodyRef;
 				} else {
 					return this._originalBody;
