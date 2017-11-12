@@ -112,13 +112,7 @@ class MonacoEditorHackManager {
 		const stack = window.with(this._increaseStackSize, () => {
 			return new Error().stack;
 		});
-		const lines = stack.split('\n').slice(1);
-		for (let i = 0; i < Math.min(10, lines.length); i++) {
-			if (lines.indexOf('_createMonacoEditorObject') > -1) {
-				return true;
-			}
-		}
-		return false;
+		return stack.indexOf('_createMonacoEditorObject') > -1;
 	}
 
 	private static _overrideBody() {
