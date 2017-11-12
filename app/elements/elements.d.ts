@@ -37,7 +37,7 @@
 /// <reference path="./tools/use-external-editor/use-external-editor.ts" />
 /// <reference path="./type-switcher/type-switcher.ts" />
 /// <reference path="./edit-pages/code-edit-pages/jsonParser.ts" />
-/// <reference path="../js/promise.ts" />
+/// <reference path="../js/shared.ts" />
 
 
 interface Completion {
