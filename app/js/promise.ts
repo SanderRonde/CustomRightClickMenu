@@ -28,6 +28,9 @@ class Promise<T> implements Promise<T> {
 		}
 	}
 	_signalDone(result: T) {
+		if (this._status === 'fulfilled') {
+			return;
+		}
 		this._status = 'fulfilled';
 		this._result = result;
 		this._listeners.forEach((listener) => {
@@ -57,20 +60,23 @@ class Promise<T> implements Promise<T> {
 	then(callback: (result: T) => void, onrejected?: (reason: any) => void): Promise<T> {
 		if (this._status === 'fulfilled') {
 			callback(this._result);
+		} else {
+			this._listeners.push(callback);
 		}
-		this._listeners.push(callback);
 		if (onrejected) {
 			if (this._status === 'rejected') {
 				onrejected(this._rejectReason);
+			} else {
+				this._rejectListeners.push(onrejected);
 			}
-			this._rejectListeners.push(onrejected);
 		}
 		return this;
 	}
 	catch(onrejected: (reason: any) => void): Promise<T> {
-		this._rejectListeners.push(onrejected);
 		if (this._status === 'rejected') {
 			onrejected(this._rejectReason);
+		} else {
+			this._rejectListeners.push(onrejected);
 		}
 		return this;
 	}
@@ -124,7 +130,7 @@ class Promise<T> implements Promise<T> {
 	}
 }
 if (typeof module === 'undefined') {
-	window.Promise = Promise;
+	(<any>window).Promise = Promise;
 } else {
 	global.Promise = Promise;
 }
