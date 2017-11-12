@@ -745,33 +745,55 @@ if (typeof module === 'undefined') {
 					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				},
 				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string): string {
-					return `var ${wrapperName} = {};` +
-						`for (var prop in ${name}) {` +
-						'(function(prop) {' +
-						`if (typeof(${name}[prop]) === 'function')  {` +
-						`${wrapperName}[prop] = function() { return ${name}[prop].apply(${name}, arguments); }` +
-						'}' +
-						'else {' +
-						`Object.defineProperty(${wrapperName}, prop, {` +
-						"'get': function() {" +
-						`if (${name}[prop] === ${name}) {` +
-						`return ${wrapperName};` +
-						'}' +
-						"else if (prop === 'crmAPI') {" +
-						'return crmAPI' +
-						'}' +
-						"else if (prop === 'crome') {" +
-						`return ${chromeVal}` +
-						'}' +
-						'else {' +
-						`return ${name}[prop];` +
-						'}' +
-						'},' +
-						`'set': function(value) { ${wrapperName}[prop] = value; }` +
-						'});' +
-						'}' +
-						'})(prop);' +
-						'}';
+					return ((REPLACE: {
+						wrapperName: any;
+						name: {
+							[key: string]: any;
+						};
+						crmAPI: any;
+						chromeVal: string;
+					}, REPLACEWrapperName: {
+						[key: string]: any;
+					}) => {
+						var REPLACEWrapperName = (() => {
+							var tempWrapper: {
+								[key: string]: any;
+							} = {};
+							const original = REPLACE.name;
+							for (var prop in original) {
+								//Makes sure prop is local
+								(function(prop) {
+									if (typeof original[prop] === 'function') {
+										tempWrapper[prop] = function() {
+											return original[prop].apply(original, arguments);
+										}
+									} else {
+										Object.defineProperty(tempWrapper, prop, {
+											get: function() {
+												if (original === original) {
+													return tempWrapper;
+												} else if (prop === 'crmAPI') {
+													return REPLACE.crmAPI;
+												} else if (prop === 'chrome') {
+													return REPLACE.chromeVal;
+												} else {
+													return original[prop];
+												}
+											},
+											set: function(value) {
+												tempWrapper[prop] = value;
+											}
+										});
+									}
+								})(prop);
+							}
+							return tempWrapper;
+						})();
+					}).toString()	
+						.replace(/REPLACE.name/g, name)
+						.replace(/REPLACE.chromeVal/g, chromeVal)
+						.replace(/REPLACE.crmAPI/g, 'crmAPI')
+						.replace(/REPLACEWrapperName = /g, wrapperName);
 				}
 			},
 			specialJSON: {
