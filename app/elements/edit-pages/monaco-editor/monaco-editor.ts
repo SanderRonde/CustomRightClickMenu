@@ -13,20 +13,15 @@ class MOE {
 	 */
 	static editor: monaco.editor.IStandaloneCodeEditor;
 
-	static create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
+	static async create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-			return new Promise(async (resolve) => {
-				await this._monacoReady;
-				this._showSpinner();
-				const listener = window.monaco.editor.onDidCreateEditor((editor) => {
-					listener.dispose();
-					MonacoEditorHackManager.fixThemeScope(this);
-					resolve(this);
-					this._hideSpinner();
-				});
-				MonacoEditorHackManager.enableBodyHack(this);
-				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
-			});
+			await this._monacoReady;
+			this._showSpinner();
+			MonacoEditorHackManager.enableBodyHack(this);
+			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
+			MonacoEditorHackManager.fixThemeScope(this);
+			this._hideSpinner();
+			return this;
 		}
 
 	static destroy(this: MonacoEditor) {
