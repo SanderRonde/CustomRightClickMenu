@@ -14,6 +14,10 @@ interface JQContextMenuObj {
 
 type JQContextMenuItem = JQContextMenuObj | string;
 
+interface Withable {
+	after(): void;
+}
+
 interface JQueryContextMenu extends JQueryStatic {
 	contextMenu(settings: {
 		selector: string;
@@ -4284,6 +4288,13 @@ class CA {
 				}
 				return result;
 			}
+
+		static with<T>(initializer: () => Withable, fn: () => T): T {
+			const toRun = initializer();
+			const res = fn();
+			toRun.after();
+			return res;
+		}
 
 		static parent(): CrmApp {
 			return window.app;
