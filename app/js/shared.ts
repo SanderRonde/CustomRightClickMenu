@@ -130,6 +130,10 @@ class Promise<T> implements Promise<T> {
 	}
 }
 
+interface Withable {
+	(): void;
+}
+
 (() => {
 	window.Promise = Promise;
 
@@ -154,6 +158,13 @@ class Promise<T> implements Promise<T> {
 			obj[key] = fn[key];
 		});
 		return obj as T;
+	}
+	
+	window.with = <T>(initializer: () => Withable, fn: () => T): T => {
+		const toRun = initializer();
+		const res = fn();
+		toRun();
+		return res;
 	}
 
 	const event = new Event('ObjectifyReady');

@@ -81,6 +81,7 @@ interface Window {
 		}): void;
 	}
 	Promise: typeof Promise;
+	with<T>(initializer: () => Withable, fn: () => T): T;
 	monacoCommands: MonacoCommands;
 	MonacoEditorHackManager: typeof MonacoEditorHackManager;
 	codeMirrorToLoad?: {
