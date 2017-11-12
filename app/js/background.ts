@@ -5681,7 +5681,7 @@ if (typeof module === 'undefined') {
 				}
 				return resourcesArray;
 			}
-			private static _executeScript(tabId: number, scripts: Array<{
+			private static _executeScript(nodeId: number, tabId: number, scripts: Array<{
 				code?: string;
 				file?: string;
 				runAt: string;
@@ -5690,19 +5690,37 @@ if (typeof module === 'undefined') {
 					if (chrome.runtime.lastError) {
 						if (chrome.runtime.lastError.message.indexOf('Could not establish connection') === -1 &&
 							chrome.runtime.lastError.message.indexOf('closed') === -1) {
-							window.log('Couldn\'t execute on tab with id', tabId, chrome.runtime.lastError);
+							window.log('Couldn\'t execute on tab with id', tabId, 'for node', nodeId, chrome.runtime.lastError);
 						}
 						return;
 					}
 					if (scripts.length > i) {
 						try {
-							chrome.tabs.executeScript(tabId, scripts[i], this._executeScript(tabId,
+							chrome.tabs.executeScript(tabId, scripts[i], this._executeScript(nodeId, tabId,
 								scripts, i + 1));
 						} catch (e) {
 							//The tab was closed during execution
 						}
 					}
 				};
+			}
+
+			private static _executeScripts(nodeId: number, tabId: number, scripts: Array<{		
+				code?: string;		
+				file?: string;		
+				runAt: string;		
+			}>, usesUnsafeWindow: boolean) {		
+				if (usesUnsafeWindow) {		
+					//Send it to the content script and run it there		
+					chrome.tabs.sendMessage(tabId, {		
+						type: 'runScript',		
+						data: {		
+							scripts: scripts		
+						}		
+					});		
+				} else {		
+					this._executeScript(nodeId, tabId, scripts, 0)();		
+				}		
 			}
 
 			static Running = class Running {
@@ -6668,6 +6686,120 @@ if (typeof module === 'undefined') {
 
 			};
 			static Handler = class Handler {
+				private static _genCode({		
+					tab,		
+					key,		
+					info,		
+					node,		
+					safeNode,		
+				}: {		
+					tab: chrome.tabs.Tab;		
+					key: Array<number>;		
+					info: chrome.contextMenus.OnClickData;		
+					node: CRM.ScriptNode;		
+					safeNode: CRM.SafeNode;		
+				}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
+					[any, GreaseMonkeyData, string, string, string, number]]): string {		
+	
+					const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&		
+						node.isLocal;		
+					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
+					return [		
+						[		
+							`var crmAPI = new CrmAPIInit(${		
+							[		
+								safeNode, node.id, tab, info, key, nodeStorage,		
+								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
+								enableBackwardsCompatibility, tabIndex, chrome.runtime.id		
+							]		
+								.map((param) => {		
+									if (param === void 0) {		
+										return JSON.stringify(null);		
+									}		
+									return JSON.stringify(param);		
+								}).join(', ')});` +		
+							'window.CrmAPIInit = null;'		
+						].join(', '),		
+						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),		
+						`${catchErrs ? 'try {' : ''}`,		
+						'function main(crmAPI, window, chrome, menuitemid, parentmenuitemid, mediatype,' +		
+						'linkurl, srcurl, pageurl, frameurl, frameid,' +		
+						'selectiontext, editable, waschecked, checked) {',		
+						script,		
+						'}',		
+						`main.apply(this, [crmAPI, windowWrapper, ${node.isLocal ? 'chrome' : 'void 0'}].concat(${		
+						JSON.stringify([		
+							info.menuItemId, info.parentMenuItemId, info.mediaType,		
+							info.linkUrl, info.srcUrl, info.pageUrl, info.frameUrl,		
+							(info as any).frameId, info.selectionText,		
+							info.editable, info.wasChecked, info.checked		
+						])		
+						}))`,		
+						`${catchErrs ? [		
+							`} catch (error) {`,		
+							`${indentUnit}if (crmAPI.debugOnError) {`,		
+							`${indentUnit}${indentUnit}debugger;`,		
+							`${indentUnit}}`,		
+							`${indentUnit}throw error;`,		
+							`}`		
+						].join('\n') : ''}`		
+					].join('\n');		
+				}		
+				private static _getScriptsToRun(code: string, runAt: string, node: CRM.ScriptNode, usesUnsafeWindow: boolean): Array<{		
+					code?: string;		
+					file?: string;		
+					runAt: string;		
+				}> {		
+					const scripts = [];		
+					for (let i = 0; i < node.value.libraries.length; i++) {		
+						let lib: {		
+							name: string;		
+							url?: string;		
+							code?: string;		
+						} | {		
+								code: string;		
+							};		
+						const globalLibs = globalObject.globals.storages.storageLocal.libraries;		
+						if (globalLibs) {		
+							for (let j = 0; j < globalLibs.length; j++) {		
+								if (globalLibs[j].name === node.value.libraries[i].name) {		
+									lib = globalLibs[j];		
+									break;		
+								}		
+							}		
+						}		
+						if (!lib) {		
+							//Resource hasn't been registered with its name, try if it's an anonymous one		
+							if (!node.value.libraries[i].name) {		
+								//Check if the value has been registered as a resource		
+								if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {		
+									lib = {		
+										code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString		
+									};		
+								}		
+							}		
+						}		
+						if (lib) {		
+							scripts.push({		
+								code: lib.code,		
+								runAt: runAt		
+							});		
+						}		
+					}		
+					if (!usesUnsafeWindow) {		
+						//Let the content script determine whether to run this		
+						scripts.push({		
+							file: '/js/crmapi.js',		
+						runAt: runAt		
+						});		
+					}		
+					scripts.push({		
+						code: code,		
+						runAt: runAt		
+					});		
+					return scripts;		
+				}
+
 				static generateGreaseMonkeyData(metaData: {
 					[key: string]: any;
 				}, node: CRM.ScriptNode, includes: Array<string>, excludes: Array<string>, tab: {
@@ -6815,8 +6947,20 @@ if (typeof module === 'undefined') {
 								resolve([nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]);
 							})]).then((args: [EncodedContextData,
 								[any, GreaseMonkeyData, string, string, string, number]]) => {
-								
-							});
+									const safeNode = CRM.makeSafe(node);
+									(safeNode as any).permissions = node.permissions;
+									const code = this._genCode({
+										node,
+										safeNode,
+										tab,
+										info,
+										key
+									}, args);
+
+									const usesUnsafeWindow = node.value.script.indexOf('unsafeWindow') > -1;
+									const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
+									Script._executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
+								});
 						}
 					};
 				}
