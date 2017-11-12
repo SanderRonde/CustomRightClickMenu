@@ -23,11 +23,9 @@ class Promise<T> implements Promise<T> {
 				rejectListener(rejectReason);
 			});
 		});
-		if (initializerResult instanceof Promise || (
-			initializerResult !== undefined && initializerResult !== null &&
-			'then' in (initializerResult as any))) {
-				this._resolve(initializerResult as Promise<T>);
-			}
+		if (this._isThennable(initializerResult)) {
+			this._resolve(initializerResult as Promise<T>);
+		}
 	}
 	_signalDone(result: T) {
 		this._status = 'fulfilled';
@@ -36,10 +34,17 @@ class Promise<T> implements Promise<T> {
 			listener(result);
 		});
 	}
+	_isThennable(value: Promise<T>|T|void): value is Promise<T> {
+		if (value instanceof Promise) {
+			return true;
+		}
+		if (typeof value === 'object' && value && 'then' in value) {
+			return true;
+		}
+		return false;
+	}
 	_resolve(result: T|Promise<T>) {
-		if (result instanceof Promise || (
-			result !== undefined && result !== null &&
-			'then' in result)) {
+		if (this._isThennable(result)) {
 			//It's a promise as well, wait for it to finish before
 			// resolving
 			(result as Promise<T>).then((finalValue) => {
