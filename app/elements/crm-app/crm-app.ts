@@ -4285,16 +4285,6 @@ class CA {
 				return result;
 			}
 
-		static createEditor(data: { 
-			callback: () => void;
-			scope: Polymer.RootElement;
-		}, container: HTMLElement,
-			options?: monaco.editor.IEditorConstructionOptions, 
-			override?: monaco.editor.IEditorOverrideServices): monaco.editor.IStandaloneCodeEditor {
-				this.parent().loadingEditors.push(data);
-				return window.monaco.editor.create(container, options, override);
-			}
-
 		static parent(): CrmApp {
 			return window.app;
 		}
