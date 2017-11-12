@@ -99,7 +99,8 @@ class MonacoEditorHackManager {
 			return new Error().stack;
 		});
 		return stack.indexOf('_createMonacoEditorObject') > -1 ||
-			stack.indexOf('isInDOM') > -1;
+			stack.indexOf('isInDOM') > -1 ||
+			stack.indexOf('mouseTargetIsWidget') > -1;
 	}
 
 	private static _overrideBody() {
@@ -125,6 +126,7 @@ class MonacoEditorHackManager {
 	}
 
 	static enableBodyHack(ref: Polymer.RootElement) {
+		this.disableBodyHack();
 		this._overrideBody();
 		this._newBodyRef = ref.shadowRoot;
 	}
