@@ -129,8 +129,33 @@ class Promise<T> implements Promise<T> {
 		});
 	}
 }
-if (typeof module === 'undefined') {
-	(<any>window).Promise = Promise;
-} else {
-	global.Promise = Promise;
-}
+
+(() => {
+	window.Promise = Promise;
+
+	window.onExists = <T extends keyof Window>(key: T): Promise<Window[T]> => {
+		return new Promise<Window[T]>((resolve) => {
+			if (key in window) {
+				resolve(window[key]);
+				return;
+			}
+			const interval = window.setInterval(() => {
+				if (key in window) {
+					window.clearInterval(interval);
+					resolve(window[key]);
+				}
+			}, 50);
+		});
+	}
+
+	window.objectify = <T>(fn: T): T => {
+		const obj: Partial<T> = {};
+		Object.getOwnPropertyNames(fn).forEach((key: keyof T) => {
+			obj[key] = fn[key];
+		});
+		return obj as T;
+	}
+
+	const event = new Event('ObjectifyReady');
+	window.dispatchEvent(event);
+})();

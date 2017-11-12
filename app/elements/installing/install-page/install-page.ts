@@ -1,33 +1,5 @@
 ﻿/// <reference path="../../elements.d.ts" />
 
-(() => {
-	window.objectify = <T>(fn: T): T => {
-		const obj: Partial<T> = {};
-		Object.getOwnPropertyNames(fn).forEach((key: keyof T) => {
-			obj[key] = fn[key];
-		});
-		return obj as T;
-	}
-
-	window.onExists = <T extends keyof Window>(key: T): Promise<Window[T]> => {
-		return new Promise<Window[T]>((resolve) => {
-			if (key in window) {
-				resolve(window[key]);
-				return;
-			}
-			const interval = window.setInterval(() => {
-				if (key in window) {
-					window.clearInterval(interval);
-					resolve(window[key]);
-				}
-			}, 50);
-		});
-	}
-
-	const event = new Event('ObjectifyReady');
-	window.dispatchEvent(event);
-})();
-
 const installPageProperties: {
 	fetchFailed: boolean;
 	fetchCompleted: boolean;
