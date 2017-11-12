@@ -4,18 +4,13 @@ class MOE {
 	static is: string = 'monaco-editor';
 
 	/**
-	 * A promise keeping track of the status of the editor
-	 */
-	static _monacoReady: Promise<void>;
-
-	/**
 	 * The editor associated with this element
 	 */
 	static editor: monaco.editor.IStandaloneCodeEditor;
 
 	static async _createMonacoEditorObject(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-			await this._monacoReady;
+			await MonacoEditorHackManager.monacoReady;
 			this._showSpinner();
 			MonacoEditorHackManager.enableBodyHack(this);
 			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
@@ -32,20 +27,6 @@ class MOE {
 	static destroy(this: MonacoEditor) {
 		this.editor.dispose();
 		this._showSpinner();
-	}
-
-	static _setupRequire() {
-		this._monacoReady = new window.Promise<void>(async (resolve) => {
-			await window.onExists('require');
-			window.require.config({
-				paths: {
-					'vs': '../elements/edit-pages/monaco-editor/src/min/vs'
-				}
-			});
-			window.require(['vs/editor/editor.main'], () => {
-				resolve(null);
-			});
-		});
 	}
 
 	static _showSpinner(this: MonacoEditor) {
@@ -66,11 +47,16 @@ class MOE {
 	}
 
 	static ready(this: MonacoEditor) {
-		this._setupRequire();
+		MonacoEditorHackManager.setup();
 	}
 }
 
 class MonacoEditorHackManager {
+	/**
+	 * A promise keeping track of the status of the editor
+	 */
+	static monacoReady: Promise<void> = null;
+
 	/**
 	 * The monaco theme style element
 	 */
@@ -141,6 +127,27 @@ class MonacoEditorHackManager {
 	static enableBodyHack(ref: Polymer.RootElement) {
 		this._overrideBody();
 		this._newBodyRef = ref.shadowRoot;
+	}
+
+	private static _setupRequire() {
+		if (this.monacoReady !== null) {
+			return;
+		}
+		this.monacoReady = new window.Promise<void>(async (resolve) => {
+			await window.onExists('require');
+			window.require.config({
+				paths: {
+					'vs': '../elements/edit-pages/monaco-editor/src/min/vs'
+				}
+			});
+			window.require(['vs/editor/editor.main'], () => {
+				resolve(null);
+			});
+		});
+	}
+
+	static setup() {
+		this._setupRequire();
 	}
 };
 window.MonacoEditorHackManager = MonacoEditorHackManager;
