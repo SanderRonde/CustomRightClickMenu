@@ -763,7 +763,7 @@ if (typeof module === 'undefined') {
 							for (var prop in original) {
 								//Makes sure prop is local
 								(function(prop) {
-									if (typeof original[prop] === 'function') {
+									if (prop !== 'webkitStorageInfo' && typeof original[prop] === 'function') {
 										tempWrapper[prop] = function() {
 											return original[prop].apply(original, arguments);
 										}
