@@ -15,7 +15,7 @@ interface JQContextMenuObj {
 type JQContextMenuItem = JQContextMenuObj | string;
 
 interface Withable {
-	after(): void;
+	(): void;
 }
 
 interface JQueryContextMenu extends JQueryStatic {
