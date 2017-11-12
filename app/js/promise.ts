@@ -123,3 +123,8 @@ class Promise<T> implements Promise<T> {
 		});
 	}
 }
+if (typeof module === 'undefined') {
+	global.Promise = Promise;
+} else {
+	window.Promise = Promise;
+}
