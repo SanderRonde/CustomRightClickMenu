@@ -440,6 +440,9 @@ module.exports = function(grunt) {
 					}, {
 						pattern: /document\.caretRangeFromPoint([^\w])/g,
 						replacement: 'MonacoEditorHackManager.caretRangeFromPoint$1'
+					}, {
+						pattern: /this\.target = e\.target/g,
+						replacement: 'this.target = e.path ? e.path[0] : e.target'
 					}]
 				},
 				files: [{
