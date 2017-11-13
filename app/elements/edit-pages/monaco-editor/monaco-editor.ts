@@ -20,7 +20,7 @@ class MOE {
 			this._showSpinner();
 			MonacoEditorHackManager.setScope(this);
 			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
-			MonacoEditorHackManager.fixThemeScope(this);
+			MonacoEditorHackManager.StyleHack.fixThemeScope(this);
 			this._hideSpinner();
 			return this;
 		}
@@ -67,18 +67,13 @@ class MonacoEditorHackManager {
 	 * A promise keeping track of the status of the editor
 	 */
 	static monacoReady: Promise<void> = null;
-
-	/**
-	 * The monaco theme style element
-	 */
-	static monacoStyleElement: HTMLStyleElement = null;
 	
 	/**
 	 * The scope that the current editor is active in
 	 */
 	static currentScope: Polymer.RootElement = null;
 
-	static CharWidth = class CharWidth {
+	static Caret = class MonacoEditorCaret {
 		/**
 		 * A cache containing the width of chars
 		 */
@@ -103,10 +98,8 @@ class MonacoEditorHackManager {
 			this._charCache[cacheKey] = width;
 			return width;
 		}
-	}
-	
-	static Caret = class MonacoEditorCaret {
-		private static _caretRangeFromPoint(this: ShadowRoot, x: number, y: number) {
+
+		static caretRangeFromPoint(this: ShadowRoot, x: number, y: number) {
 			// Get the element under the point
 			let el = this.elementFromPoint(x, y) as HTMLElement;
 
@@ -138,7 +131,7 @@ class MonacoEditorHackManager {
 				// belongs to the character.
 				for (var i = 0; i < text.length + 1; i++) {
 					// The step is half the width of the character
-					step = MonacoEditorHackManager.CharWidth.getCharWidth(text.charAt(i), font) / 2;
+					step = MonacoEditorHackManager.Caret.getCharWidth(text.charAt(i), font) / 2;
 					// Move to the center of the character
 					pixelCursor += step;
 					// If the x of the point is smaller that the position of the cursor, the point is over that character
@@ -158,37 +151,26 @@ class MonacoEditorHackManager {
 
 			return range;
 		};
+	}
 
-		static polyFill(scope: Polymer.RootElement) {
-			const currentScope = scope.shadowRoot;
-			Object.defineProperty(scope.shadowRoot, 'caretRangeFromPoint', {
-				get: () => {
-					return this._caretRangeFromPoint.bind(currentScope);
-				}
-			});
+	static StyleHack = class MonacoEditorStyleHack {
+		/**
+		 * The monaco theme style element
+		 */
+		static monacoStyleElement: HTMLStyleElement = null;
+
+		static fixThemeScope(scope: MonacoEditor) {
+			this.monacoStyleElement = this.monacoStyleElement || 
+				document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
+			
+			if (scope.shadowRoot.children[0] !== this.monacoStyleElement) {
+				scope.shadowRoot.insertBefore(this.monacoStyleElement, scope.shadowRoot.children[0]);
+			}
 		}
-	}
-
-	static fixThemeScope(scope: MonacoEditor) {
-		MonacoEditorHackManager.monacoStyleElement = MonacoEditorHackManager.monacoStyleElement || 
-			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
-		
-		if (scope.shadowRoot.children[0] !== MonacoEditorHackManager.monacoStyleElement) {
-			scope.shadowRoot.insertBefore(MonacoEditorHackManager.monacoStyleElement, scope.shadowRoot.children[0]);
-		}
-	}
-
-	static getLocalBodyShadowRoot() {
-		return this.currentScope.shadowRoot;
-	}
-
-	static getLocalDocumentShadowRoot() {
-		return this.currentScope.shadowRoot;
 	}
 
 	static setScope(scope: Polymer.RootElement) {
 		this.currentScope = scope;
-		this.Caret.polyFill(scope);
 	}
 
 	private static _setupRequire() {
@@ -205,12 +187,28 @@ class MonacoEditorHackManager {
 		});
 	}
 
+	private static _defineProperties() {
+		Object.defineProperties(this, {
+			getLocalBodyShadowRoot: {
+				get: () => {
+					return this.currentScope.shadowRoot;
+				}
+			},
+			caretRangeFromPoint: {
+				get: () => {
+					return this.Caret.caretRangeFromPoint.bind(this.currentScope.shadowRoot);
+				}
+			}
+		});
+	}
+
 	static setup() {
 		if (this._setup) {
 			return;
 		}
 		this._setup = true;
 		this._setupRequire();
+		this._defineProperties();
 	}
 };
 window.MonacoEditorHackManager = MonacoEditorHackManager;
