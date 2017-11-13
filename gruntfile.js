@@ -436,7 +436,7 @@ module.exports = function(grunt) {
 				options: {
 					replacements: [{
 						pattern: /document\.body([^\w])/g,
-						replacement: 'MonacoEditorHackManager.getLocalBodyShadowRoot1'
+						replacement: 'MonacoEditorHackManager.getLocalBodyShadowRoot$1'
 					}, {
 						pattern: /document\.caretRangeFromPoint([^\w])/g,
 						replacement: 'MonacoEditorHackManager.caretRangeFromPoint$1'
