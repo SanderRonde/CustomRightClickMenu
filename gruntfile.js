@@ -435,13 +435,13 @@ module.exports = function(grunt) {
 			patchMonaco: {
 				options: {
 					replacements: [{
-						pattern: /document\.body([^\w])/g,
-						replacement: 'MonacoEditorHackManager.getLocalBodyShadowRoot$1'
+						pattern: /document\.body/g,
+						replacement: 'MonacoEditorHackManager.getLocalBodyShadowRoot'
 					}, {
-						pattern: /document\.caretRangeFromPoint([^\w])/g,
-						replacement: 'MonacoEditorHackManager.caretRangeFromPoint$1'
+						pattern: /document\.caretRangeFromPoint/g,
+						replacement: 'MonacoEditorHackManager.caretRangeFromPoint'
 					}, {
-						pattern: /this\.target = e\.target/g,
+						pattern: /this.target(\s)?=(\s)?e.target/g,
 						replacement: 'this.target = e.path ? e.path[0] : e.target'
 					}]
 				},
