@@ -1106,7 +1106,7 @@ if (typeof module === 'undefined') {
 		 *
 		 * Licensed under the MIT license ( http://www.opensource.org/licenses/mit-license.php )
 		 */
-		static jsonFn = {
+		static readonly jsonFn = {
 			stringify: (obj: any): string => {
 				return JSON.stringify(obj, (_: string, value: any) => {
 					if (value instanceof Function || typeof value === 'function') {
@@ -2154,8 +2154,8 @@ if (typeof module === 'undefined') {
 	}
 
 	class Logging {
-		static LogExecution = class LogExecution {
-			static parent = Logging;
+		static readonly LogExecution = class LogExecution {
+			static readonly parent = Logging;
 
 			static executeCRMCode(message: {
 				code: any,
@@ -2191,7 +2191,7 @@ if (typeof module === 'undefined') {
 			}
 		};
 		static Listeners = class Listeners {
-			static parent = Logging;
+			static readonly parent = Logging;
 
 			static updateTabAndIdLists(force?: boolean): {
 				ids: Array<{
@@ -4218,7 +4218,7 @@ if (typeof module === 'undefined') {
 	}
 
 	class APIMessaging {
-		static CRMMessage = class CRMMessage {
+		static readonly CRMMessage = class CRMMessage {
 			static respond(message: CRMAPIMessage<'crm' | 'chrome' | 'background', any>,
 				type: 'success' | 'error' | 'chromeError', data: any | string, stackTrace?:
 					string) {
@@ -4248,7 +4248,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 		};
-		static ChromeMessage = class ChromeMessage {
+		static readonly ChromeMessage = class ChromeMessage {
 			static throwError(message: ChromeAPIMessage, error: string, stackTrace?: string) {
 				console.warn('Error:', error);
 				if (stackTrace) {
@@ -4439,7 +4439,7 @@ if (typeof module === 'undefined') {
 			return true;
 		}
 
-		private static MoveNode = class MoveNode {
+		private static readonly MoveNode = class MoveNode {
 			static before(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
 				_this: CRMFunction) {
 				if (isRoot) {
@@ -4968,7 +4968,7 @@ if (typeof module === 'undefined') {
 			}
 			return true;
 		}
-		private static ChromeAPIs = class ChromeAPIs {
+		private static readonly ChromeAPIs = class ChromeAPIs {
 			private static _checkFirstRuntimeArg(message: ChromeAPIMessage, expectedType: string, name: string) {
 				if (!message.args[0] || message.args[0].type !== expectedType) {
 					APIMessaging.ChromeMessage.throwError(message, expectedType === 'fn' ?
@@ -5187,7 +5187,7 @@ if (typeof module === 'undefined') {
 			}
 		}
 
-		static Resource = class Resource {
+		static readonly Resource = class Resource {
 			static handle(message: {
 				type: string;
 				name: string;
@@ -5197,7 +5197,7 @@ if (typeof module === 'undefined') {
 				Resources.handle(message, message.name);
 			}
 		};
-		static Anonymous = class Anonymous {
+		static readonly Anonymous = class Anonymous {
 			static handle(message: {
 				type: string;
 				name: string;
@@ -5442,7 +5442,7 @@ if (typeof module === 'undefined') {
 	}
 
 	class MessageHandling {
-		static Instances = class Instances {
+		static readonly Instances = class Instances {
 			static respond(message: {
 				onFinish: any;
 				id: number;
@@ -5511,7 +5511,7 @@ if (typeof module === 'undefined') {
 					.hasHandler = message.data.hasHandler;
 			}
 		};
-		static BackgroundPageMessage = class BackgroundPageMessage {
+		static readonly BackgroundPageMessage = class BackgroundPageMessage {
 			static send(message: {
 				id: number;
 				tabId: number;
@@ -5533,7 +5533,7 @@ if (typeof module === 'undefined') {
 				});
 			}
 		};
-		static NotificationListener = class NotificationListener {
+		static readonly NotificationListener = class NotificationListener {
 			static listen(message: CRMAPIMessage<string, {
 				notificationId: number;
 				onClick: number;
@@ -5668,7 +5668,7 @@ if (typeof module === 'undefined') {
 		tabInfo: chrome.tabs.Tab, isAutoActivate?: boolean) => void;
 
 	class CRM {
-		static Script = class Script {
+		static readonly Script = class Script {
 			private static _generateMetaAccessFunction(metaData: {
 				[key: string]: any;
 			}): (key: string) => any {
@@ -5745,7 +5745,7 @@ if (typeof module === 'undefined') {
 				}		
 			}
 
-			static Running = class Running {
+			static readonly Running = class Running {
 				private static _urlIsGlobalExcluded(url: string): boolean {
 					if (globalObject.globals.storages.globalExcludes.indexOf('<all_urls>') >
 						-1) {
@@ -5829,7 +5829,7 @@ if (typeof module === 'undefined') {
 				}
 
 			};
-			static Updating = class Updating {
+			static readonly Updating = class Updating {
 				private static _removeOldNode(id: number) {
 					const children = globalObject.globals.crm.crmById[id].children;
 					if (children) {
@@ -6419,7 +6419,7 @@ if (typeof module === 'undefined') {
 					}
 				}
 			};
-			static MetaTags = class MetaTags {
+			static readonly MetaTags = class MetaTags {
 				static getMetaIndexes(script: string): {
 					start: number;
 					end: number;
@@ -6475,7 +6475,7 @@ if (typeof module === 'undefined') {
 					return metaTags[key] && metaTags[key][metaTags[key].length - 1];
 				}
 			};
-			static Background = class Background {
+			static readonly Background = class Background {
 				private static _loadBackgroundPageLibs(node: CRM.ScriptNode): {
 					libraries: Array<string>;
 					code: Array<string>;
@@ -6707,7 +6707,7 @@ if (typeof module === 'undefined') {
 				}
 
 			};
-			static Handler = class Handler {
+			static readonly Handler = class Handler {
 				private static _genCode({		
 					tab,		
 					key,		
@@ -6988,7 +6988,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 		};
-		static Link = class Link {
+		static readonly Link = class Link {
 			private static _sanitizeUrl(url: string): string {
 				if (url.indexOf('://') === -1) {
 					url = `http://${url}`;
@@ -7019,7 +7019,7 @@ if (typeof module === 'undefined') {
 				};
 			}
 		};
-		static Stylesheet = class Stylesheet {
+		static readonly Stylesheet = class Stylesheet {
 			static createToggleHandler(node: CRM.StylesheetNode): ClickHandler {
 				return (info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) => {
 					let code: string;
@@ -7072,7 +7072,7 @@ if (typeof module === 'undefined') {
 					return node.value.stylesheet;
 				};
 			}
-			static Installing = class Installing {
+			static readonly Installing = class Installing {
 				private static _triggerify(url: string): string {
 					const match =
 						/((http|https|file|ftp):\/\/)?(www\.)?((\w+)\.)*((\w+)?|(\w+)?(\/(.*)))?/g
@@ -7204,7 +7204,7 @@ if (typeof module === 'undefined') {
 					});
 				}
 			};
-			private static _Options = class Options {
+			private static readonly _Options = class Options {
 				private static _splitComments(stylesheet: string): Array<{
 					isComment: boolean;
 					line: string;
@@ -7271,10 +7271,10 @@ if (typeof module === 'undefined') {
 							return option.values[option.selected];
 					}
 				}
-				private static _numRegex = /^(-)?(\d)+(\.(\d)+)?$/;
-				private static _strRegex = /^("(.*)"|'(.*)'|`(.*)`)$/;
-				private static _valueRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*$/;
-				private static _boolExprRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*(<=|>=|<|>|!==|!=|===|==)(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+|\w(\w|\d)*)(\n|\r|\s)*$/;
+				private static readonly _numRegex = /^(-)?(\d)+(\.(\d)+)?$/;
+				private static readonly _strRegex = /^("(.*)"|'(.*)'|`(.*)`)$/;
+				private static readonly _valueRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*$/;
+				private static readonly _boolExprRegex = /^(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+(\.(\d)+)?|\w(\w|\d)*)(\n|\r|\s)*(<=|>=|<|>|!==|!=|===|==)(\n|\r|\s)*("(.*)"|'(.*)'|`(.*)`|(-)?(\d)+|\w(\w|\d)*)(\n|\r|\s)*$/;
 				private static _getStringExprValue(expr: string, options: CRM.Options): any {
 					if (expr === 'true') {
 						return true;
@@ -7385,10 +7385,10 @@ if (typeof module === 'undefined') {
 						ignore: false
 					}
 				}
-				private static _ifRegex = /^(\n|\r|\s)*if (.+) then(\n|\r|\s)*$/;
-				private static _elseRegex = /^(\n|\r|\s)*else(\n|\r|\s)*$/;
-				private static _endifRegex = /^(\n|\r|\s)*endif(\n|\r|\s)*$/;
-				private static _variableRegex = /^(\n|\r|\s)*(\w|-)+:(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*)((\n|\r|\s)*,(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*))*$/;
+				private static readonly _ifRegex = /^(\n|\r|\s)*if (.+) then(\n|\r|\s)*$/;
+				private static readonly _elseRegex = /^(\n|\r|\s)*else(\n|\r|\s)*$/;
+				private static readonly _endifRegex = /^(\n|\r|\s)*endif(\n|\r|\s)*$/;
+				private static readonly _variableRegex = /^(\n|\r|\s)*(\w|-)+:(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*)((\n|\r|\s)*,(\n|\r|\s)*(.*)\{\{\w(\w|\d)*\}\}(.*))*$/;
 				private static _convertStylesheet(stylesheet: string, options: CRM.Options): string {
 					const splitComments = this._splitComments(stylesheet);
 					const lines: Array<string> = [];
@@ -7446,7 +7446,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 		};
-		static NodeCreation = class NodeCreation {
+		static readonly NodeCreation = class NodeCreation {
 			private static _getStylesheetReplacementTabs(node: CRM.Node): Array<{
 				id: number;
 			}> {
@@ -8166,10 +8166,10 @@ if (typeof module === 'undefined') {
 		passes: number) => void;
 
 	class Storages {
-		static SetupHandling = class SetupHandling {
-			static TransferFromOld = class TransferFromOld {
-				static legacyScriptReplace = class LegacyScriptReplace {
-					private static localStorageReplace = class LogalStorageReplace {
+		static readonly SetupHandling = class SetupHandling {
+			static readonly TransferFromOld = class TransferFromOld {
+				static readonly legacyScriptReplace = class LegacyScriptReplace {
+					private static readonly localStorageReplace = class LogalStorageReplace {
 						private static findLocalStorageExpression(expression: Tern.Expression, data: PersistentData): boolean {
 							switch (expression.type) {
 								case 'Identifier':
@@ -8320,7 +8320,7 @@ if (typeof module === 'undefined') {
 							return persistentData.script;
 						}
 					}
-					static chromeCallsReplace = class ChromeCallsReplace {
+					static readonly chromeCallsReplace = class ChromeCallsReplace {
 						private static isProperty(toCheck: string, prop: string): boolean {
 							if (toCheck === prop) {
 								return true;
