@@ -1,5 +1,11 @@
 /// <reference path="../../elements.d.ts" />
 
+declare const ShadowRoot: typeof HTMLElement & {
+	prototype: {
+		caretRangeFromPoint(x: number, y: number): any;
+	}
+}
+
 class MOE {
 	static is: string = 'monaco-editor';
 
@@ -53,6 +59,11 @@ class MOE {
 
 class MonacoEditorHackManager {
 	/**
+	 * Whether this was set up already
+	 */
+	private static _setup: boolean = false;
+
+	/**
 	 * A promise keeping track of the status of the editor
 	 */
 	static monacoReady: Promise<void> = null;
@@ -66,6 +77,97 @@ class MonacoEditorHackManager {
 	 * The scope that the current editor is active in
 	 */
 	static currentScope: Polymer.RootElement = null;
+
+	static CharWidth = class CharWidth {
+		/**
+		 * A cache containing the width of chars
+		 */
+		private static _charCache: {
+			[key: string]: number;
+		} = {}
+
+		/**
+		 * A canvas used for calculating char width
+		 */
+		private static _charCanvas: HTMLCanvasElement = document.createElement('canvas')
+
+		static getCharWidth(char: string, font: string) {
+			const cacheKey = char + font;
+			if (this._charCache[cacheKey]) {
+				return this._charCache[cacheKey];
+			}
+			var context = this._charCanvas.getContext("2d");
+			context.font = font;
+			var metrics = context.measureText(char);
+			var width = metrics.width;
+			this._charCache[cacheKey] = width;
+			return width;
+		}
+	}
+	
+	static Caret = class MonacoEditorCaret {
+		private static _caretRangeFromPoint(this: ShadowRoot, x: number, y: number) {
+			// Get the element under the point
+			let el = this.elementFromPoint(x, y) as HTMLElement;
+
+			// Get the last child of the element until its firstChild is a text node
+			// This assumes that the pointer is on the right of the line, out of the tokens
+			// and that we want to get the offset of the last token of the line
+			while (el.firstChild.nodeType !== el.firstChild.TEXT_NODE) {
+				el = el.lastChild as HTMLElement;
+			}
+
+			// Grab its rect
+			var rect = el.getBoundingClientRect();
+			// And its font
+			var font = window.getComputedStyle(el, null).getPropertyValue('font');
+
+			// And also its txt content
+			var text = el.innerText;
+
+			// Poisition the pixel cursor at the left of the element
+			var pixelCursor = rect.left;
+			var offset = 0;
+			var step;
+
+			// If the point is on the right of the box put the cursor after the last character
+			if (x > rect.left + rect.width) {
+				offset = text.length;
+			} else {
+				// Goes through all the characters of the innerText, and checks if the x of the point
+				// belongs to the character.
+				for (var i = 0; i < text.length + 1; i++) {
+					// The step is half the width of the character
+					step = MonacoEditorHackManager.CharWidth.getCharWidth(text.charAt(i), font) / 2;
+					// Move to the center of the character
+					pixelCursor += step;
+					// If the x of the point is smaller that the position of the cursor, the point is over that character
+					if (x < pixelCursor) {
+						offset = i;
+						break;
+					}
+					// Move between the current character and the next
+					pixelCursor += step;
+				}
+			}
+
+			// Creates a range with the text node of the element and set the offset found
+			var range = document.createRange();
+			range.setStart(el.firstChild, offset);
+			range.setEnd(el.firstChild, offset);
+
+			return range;
+		};
+
+		static polyFill(scope: Polymer.RootElement) {
+			const currentScope = scope.shadowRoot;
+			Object.defineProperty(scope.shadowRoot, 'caretRangeFromPoint', {
+				get: () => {
+					return this._caretRangeFromPoint.bind(currentScope);
+				}
+			});
+		}
+	}
 
 	static fixThemeScope(scope: MonacoEditor) {
 		MonacoEditorHackManager.monacoStyleElement = MonacoEditorHackManager.monacoStyleElement || 
@@ -86,12 +188,10 @@ class MonacoEditorHackManager {
 
 	static setScope(scope: Polymer.RootElement) {
 		this.currentScope = scope;
+		this.Caret.polyFill(scope);
 	}
 
 	private static _setupRequire() {
-		if (this.monacoReady !== null) {
-			return;
-		}
 		this.monacoReady = new window.Promise<void>(async (resolve) => {
 			await window.onExists('require');
 			window.require.config({
@@ -106,6 +206,10 @@ class MonacoEditorHackManager {
 	}
 
 	static setup() {
+		if (this._setup) {
+			return;
+		}
+		this._setup = true;
 		this._setupRequire();
 	}
 };
