@@ -13,6 +13,7 @@ class MOE {
 			await MonacoEditorHackManager.monacoReady;
 			this._showSpinner();
 			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
+			MonacoEditorHackManager.setScope(this);
 			MonacoEditorHackManager.fixThemeScope(this);
 			this._hideSpinner();
 			return this;
@@ -60,9 +61,13 @@ class MonacoEditorHackManager {
 	 * The monaco theme style element
 	 */
 	static monacoStyleElement: HTMLStyleElement = null;
+	
+	/**
+	 * The scope that the current editor is active in
+	 */
+	static currentScope: Polymer.RootElement = null;
 
 	static fixThemeScope(scope: MonacoEditor) {
-		return;
 		MonacoEditorHackManager.monacoStyleElement = MonacoEditorHackManager.monacoStyleElement || 
 			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
 		
@@ -71,14 +76,16 @@ class MonacoEditorHackManager {
 		}
 	}
 
-	static getLocalBodyShadowRoot(...args: Array<any>) {
-		console.log('body', args);
-		return document.body;
+	static getLocalBodyShadowRoot() {
+		return this.currentScope.shadowRoot;
 	}
 
-	static getLocalDocumentShadowRoot(...args: Array<any>) {
-		console.log('doc', args);
-		return document;
+	static getLocalDocumentShadowRoot() {
+		return this.currentScope.shadowRoot;
+	}
+
+	static setScope(scope: Polymer.RootElement) {
+		this.currentScope = scope;
 	}
 
 	private static _setupRequire() {
