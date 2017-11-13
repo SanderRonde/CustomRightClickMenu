@@ -12,7 +12,6 @@ class MOE {
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 			await MonacoEditorHackManager.monacoReady;
 			this._showSpinner();
-			MonacoEditorHackManager.enableBodyHack(this);
 			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
 			MonacoEditorHackManager.fixThemeScope(this);
 			this._hideSpinner();
@@ -62,22 +61,8 @@ class MonacoEditorHackManager {
 	 */
 	static monacoStyleElement: HTMLStyleElement = null;
 
-	/**
-	 * The original document.body value
-	 */
-	private static _originalBody: HTMLElement = document.body;
-
-	/**
-	 * Whether the body was overriden yet
-	 */
-	private static _overridden: boolean = false;
-
-	/**
-	 * The element returned when document.body is accessed
-	 */
-	private static _newBodyRef: HTMLElement|ShadowRoot = null;
-
 	static fixThemeScope(scope: MonacoEditor) {
+		return;
 		MonacoEditorHackManager.monacoStyleElement = MonacoEditorHackManager.monacoStyleElement || 
 			document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
 		
@@ -86,49 +71,14 @@ class MonacoEditorHackManager {
 		}
 	}
 
-	private static _increaseStackSize(): Withable {
-		const previousLimit = Error.stackTraceLimit;
-		Error.stackTraceLimit = Infinity;
-		return () => {
-			Error.stackTraceLimit = previousLimit;
-		}
+	static getLocalBodyShadowRoot(...args: Array<any>) {
+		console.log('body', args);
+		return document.body;
 	}
 
-	private static _isMonacoInitCall() {
-		const stack = window.with(this._increaseStackSize, () => {
-			return new Error().stack;
-		});
-		return stack.indexOf('_createMonacoEditorObject') > -1 ||
-			stack.indexOf('isInDOM') > -1 ||
-			stack.indexOf('mouseTargetIsWidget') > -1;
-	}
-
-	private static _overrideBody() {
-		if (this._overridden) {
-			return;
-		}
-		this._overridden = true;
-
-		Object.defineProperty(document, 'body', {
-			get: () => {
-				if (this._isMonacoInitCall()) {		
-					return this._newBodyRef;
-				} else {
-					return this._originalBody;
-				}
-			}
-		})
-	}
-	
-	static disableBodyHack() {
-		this._overrideBody();
-		this._newBodyRef = this._originalBody;
-	}
-
-	static enableBodyHack(ref: Polymer.RootElement) {
-		this.disableBodyHack();
-		this._overrideBody();
-		this._newBodyRef = ref.shadowRoot;
+	static getLocalDocumentShadowRoot(...args: Array<any>) {
+		console.log('doc', args);
+		return document;
 	}
 
 	private static _setupRequire() {

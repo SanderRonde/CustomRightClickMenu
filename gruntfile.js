@@ -431,6 +431,27 @@ module.exports = function(grunt) {
 					src: ['**/*.html'],
 					dest: 'buildBeforePolymer/elements'
 				}]
+			},
+			patchMonaco: {
+				options: {
+					replacements: [{
+						pattern: /document\.body[^\w]/g,
+						replacement: function() {
+							return 'MonacoEditorHackManager.getLocalBodyShadowRoot(this)'
+						}
+					}, {
+						pattern: /document[^\w]/g,
+						replacement: function() {
+							return 'MonacoEditorHackManager.getLocalDocumentShadowRoot(this)'
+						}
+					}]
+				},
+				files: [{
+					expand: true,
+					cwd: 'build/elements/edit-pages/monaco-editor/',
+					src: ['**/*.js'],
+					dest: 'build/elements/edit-pages/monaco-editor/'
+				}]
 			}
 		},
 		copyImportedElements: {
@@ -743,7 +764,8 @@ module.exports = function(grunt) {
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
-		'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost']);
+		'copy:es5Adapter', 'usebanner', 'clean:buildBeforePolymer', 'copy:monacoPost',
+		'string-replace:patchMonaco']);
 
 	//Builds the extension but tries to keep the code readable and unminified
 	// (and preserves debugger statements etc), skips the compile step
