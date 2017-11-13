@@ -12,8 +12,8 @@ class MOE {
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 			await MonacoEditorHackManager.monacoReady;
 			this._showSpinner();
-			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
 			MonacoEditorHackManager.setScope(this);
+			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
 			MonacoEditorHackManager.fixThemeScope(this);
 			this._hideSpinner();
 			return this;
