@@ -14,7 +14,7 @@ class MOE {
 	 */
 	static editor: monaco.editor.IStandaloneCodeEditor;
 
-	static async _createMonacoEditorObject(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
+	static async create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
 		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 			await MonacoEditorHackManager.monacoReady;
 			this._showSpinner();
@@ -23,11 +23,6 @@ class MOE {
 			MonacoEditorHackManager.StyleHack.fixThemeScope(this);
 			this._hideSpinner();
 			return this;
-		}
-
-	static async create(this: MonacoEditor, options?: monaco.editor.IEditorConstructionOptions,
-		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-			return await this._createMonacoEditorObject(options, override);
 		}
 
 	static destroy(this: MonacoEditor) {
