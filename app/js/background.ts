@@ -9223,7 +9223,7 @@ if (typeof module === 'undefined') {
 					return returnObj;
 				});
 			}
-			static handleTransfer(): Promise<{
+			static async handleTransfer(): Promise<{
 				settingsStorage: CRM.SettingsStorage;
 				storageLocalCopy: CRM.StorageLocal;
 				chromeStorageLocal: CRM.StorageLocal;
@@ -9234,25 +9234,79 @@ if (typeof module === 'undefined') {
 					isTransfer: true
 				});
 
-				return new Promise((resolve) => {
-					if (!window.CodeMirror.TernServer) {
-						//Wait until TernServer is loaded
-						window.setTimeout(() => {
-							this.handleTransfer()((data) => {
-								resolve(data);
-							});
-						}, 200);
-					} else {
-						const prom = this.handleFirstRun(
-							this.TransferFromOld.transferCRMFromOld(window.localStorage.getItem('whatpage') === 'true'));
+				if (!window.CodeMirror.TernServer) {
+					//Wait until TernServer is loaded
+					await new Promise((resolveTernLoader) => {
+						this._loadTernFiles().then(() => {
+							resolveTernLoader(null);
+						}, (err) => {
+							window.log('Failed to load tern files');
+						})
+					});
+				}
+			
+				return this.handleFirstRun(
+					this.TransferFromOld.transferCRMFromOld(window.localStorage.getItem('whatpage') === 'true'));
+			}
 
-						prom.then((result) => {
-							resolve(result);
-						});
+			private static _chainPromise<T>(promiseInitializers: Array<() =>Promise<T>>, index: number = 0): Promise<T> {
+				return new Promise<T>((resolve, reject) => {
+					promiseInitializers[index]().then((value) => {
+						if (index + 1 >= promiseInitializers.length) {
+							resolve(value);
+						} else {
+							this._chainPromise(promiseInitializers, index + 1).then((value) => {
+								resolve(value);
+							}, (err) => {
+								reject(err);
+							});
+						}
+					}, (err) => {
+						reject(err);	
+					});
+				});
+			}
+			private static _loadFile(path: string): Promise<string> {
+				return new Promise<string>((resolve, reject) => {
+					const xhr = new window.XMLHttpRequest();
+					xhr.open('GET', chrome.runtime.getURL(path));
+					xhr.onreadystatechange = () => {
+						if (xhr.readyState === XMLHttpRequest.DONE) {
+							if (xhr.status === 200) {
+								resolve(xhr.responseText);
+							} else {
+								reject(null);
+							}
+						}
 					}
 				});
 			}
-
+			private static async _execFile(path: string): Promise<void> {
+				const fileContent = await this._loadFile(path);
+				eval(fileContent);
+			}
+			private static _loadTernFiles(): Promise<void> {
+				return new Promise((resolve, reject) => {
+					const files: Array<string> = [
+						'/js/libraries/tern/walk.js',
+						'/js/libraries/tern/signal.js',
+						'/js/libraries/tern/acorn.js',
+						'/js/libraries/tern/tern.js',
+						'/js/libraries/tern/def.js',
+						'/js/libraries/tern/comment.js',
+						'/js/libraries/tern/infer.js'
+					];
+					this._chainPromise(files.map((file) => {
+						return () => {
+							return this._execFile(file)
+						}
+					})).then(() => {
+						resolve(null);
+					}, (err) => {
+						reject(err);
+					});
+				});
+			}
 			private static _uploadStorageSyncData(data: CRM.SettingsStorage) {
 				const settingsJson = JSON.stringify(data);
 

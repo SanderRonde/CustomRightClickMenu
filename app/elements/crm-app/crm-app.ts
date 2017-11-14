@@ -652,10 +652,10 @@ class CA {
 		}
 	};
 
-	private static transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
+	private static async transferCRMFromOld(this: CrmApp, openInNewTab: boolean, storageSource: {
 		getItem(index: string | number): any;
-	} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): CRM.Tree {
-		return this.transferFromOld.transferCRMFromOld(openInNewTab, storageSource, method);
+	} = localStorage, method: SCRIPT_CONVERSION_TYPE = SCRIPT_CONVERSION_TYPE.BOTH): Promise<CRM.Tree> {
+		return await this.transferFromOld.transferCRMFromOld(openInNewTab, storageSource, method);
 	};
 
 	static initCodeOptions(this: CrmApp, node: CRM.ScriptNode | CRM.StylesheetNode) {
@@ -1026,10 +1026,70 @@ class CA {
 			}
 		};
 
-		static transferCRMFromOld(openInNewTab: boolean, storageSource: {
+		private static _chainPromise<T>(promiseInitializers: Array<() =>Promise<T>>, index: number = 0): Promise<T> {
+			return new Promise<T>((resolve, reject) => {
+				promiseInitializers[index]().then((value) => {
+					if (index + 1 >= promiseInitializers.length) {
+						resolve(value);
+					} else {
+						this._chainPromise(promiseInitializers, index + 1).then((value) => {
+							resolve(value);
+						}, (err) => {
+							reject(err);
+						});
+					}
+				}, (err) => {
+					reject(err);	
+				});
+			});
+		}
+		private static _loadFile(path: string): Promise<string> {
+			return new Promise<string>((resolve, reject) => {
+				const xhr = new window.XMLHttpRequest();
+				xhr.open('GET', chrome.runtime.getURL(path));
+				xhr.onreadystatechange = () => {
+					if (xhr.readyState === XMLHttpRequest.DONE) {
+						if (xhr.status === 200) {
+							resolve(xhr.responseText);
+						} else {
+							reject(null);
+						}
+					}
+				}
+			});
+		}
+		private static async _execFile(path: string): Promise<void> {
+			const fileContent = await this._loadFile(path);
+			eval(fileContent);
+		}
+		private static loadTernFiles(): Promise<void> {
+			return new Promise((resolve, reject) => {
+				const files: Array<string> = [
+					'/js/libraries/tern/walk.js',
+					'/js/libraries/tern/signal.js',
+					'/js/libraries/tern/acorn.js',
+					'/js/libraries/tern/tern.js',
+					'/js/libraries/tern/def.js',
+					'/js/libraries/tern/comment.js',
+					'/js/libraries/tern/infer.js'
+				];
+				this._chainPromise(files.map((file) => {
+					return () => {
+						return this._execFile(file)
+					}
+				})).then(() => {
+					resolve(null);
+				}, (err) => {
+					reject(err);
+				});
+			});
+		}
+
+		static async transferCRMFromOld(openInNewTab: boolean, storageSource: {
 			getItem(index: string | number): any;
-		}, method: SCRIPT_CONVERSION_TYPE): CRM.Tree {
+		}, method: SCRIPT_CONVERSION_TYPE): Promise<CRM.Tree> {
 			this.backupLocalStorage();
+			await this.loadTernFiles();
 
 			let i;
 			const amount = parseInt(storageSource.getItem('numberofrows'), 10) + 1;
@@ -2786,7 +2846,7 @@ class CA {
 			this.parent().splice('globalExcludes', excludeIndex, 1);
 		};
 
-		static importData() {
+		static async importData() {
 			const dataString = this.parent().$.importSettingsInput.value;
 			if (!this.parent().$.oldCRMImport.checked) {
 				let data: {
@@ -2841,7 +2901,7 @@ class CA {
 							}
 						}
 
-						const crm = this.parent().transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
+						const crm = await this.parent().transferCRMFromOld(settingsArr[4], new LocalStorageWrapper());
 						this.parent().settings.crm = crm;
 						this.parent().editCRM.build({
 							superquick: true
