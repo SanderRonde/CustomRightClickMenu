@@ -451,6 +451,26 @@ module.exports = function(grunt) {
 					src: ['**/*.js'],
 					dest: 'build/elements/edit-pages/monaco-editor/'
 				}]
+			},
+			patchDevMonaco: {
+				options: {
+					replacements: [{
+						pattern: /document\.body/g,
+						replacement: 'MonacoEditorHackManager.getLocalBodyShadowRoot'
+					}, {
+						pattern: /document\.caretRangeFromPoint/g,
+						replacement: 'MonacoEditorHackManager.caretRangeFromPoint'
+					}, {
+						pattern: /this.target(\s)?=(\s)?e.target/g,
+						replacement: 'this.target = e.path ? e.path[0] : e.target'
+					}]
+				},
+				files: [{
+					expand: true,
+					cwd: 'app/elements/edit-pages/monaco-editor/',
+					src: ['**/*.js'],
+					dest: 'app/elements/edit-pages/monaco-editor/'
+				}]
 			}
 		},
 		copyImportedElements: {
@@ -720,7 +740,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('cleanBuild', ['clean:build']);
 
 	grunt.registerTask('prepareForHotReload', ['crisper:components',
-		'copy:monacoTemp']);
+		'copy:monacoTemp', 'string-replace:patchDevMonaco']);
 
 
 
