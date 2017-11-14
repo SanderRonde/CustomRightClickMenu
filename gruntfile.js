@@ -704,6 +704,9 @@ module.exports = function(grunt) {
 				src: ["build/**/*.js"],
 				options: { }
 			}
+		},
+		exec: {
+			yarn: 'yarn install --force'
 		}
 	});
 
@@ -739,8 +742,13 @@ module.exports = function(grunt) {
 	//Cleans the build dir
 	grunt.registerTask('cleanBuild', ['clean:build']);
 
+	//Prepares the extension for hot reloading, developing
+	// through the app/ directory instead and not having to build
 	grunt.registerTask('prepareForHotReload', ['crisper:components',
 		'copy:monacoTemp', 'string-replace:patchDevMonaco']);
+
+	//Disables hot reloading, required for proper build
+	grunt.registerTask('disableHotReload', ['exec:yarn']);
 
 
 
@@ -824,7 +832,7 @@ module.exports = function(grunt) {
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
-	grunt.registerTask('test', ['testBuild', 'build', 'exec:test', 'compile', 'mochaTest']);
+	grunt.registerTask('test', ['testBuild', 'build', 'compile', 'mochaTest']);
 
 	//Crisps all HTML files for CSP compliance
 	grunt.registerTask('crispify', ['crisper:optionsPage', 'crisper:background']);
