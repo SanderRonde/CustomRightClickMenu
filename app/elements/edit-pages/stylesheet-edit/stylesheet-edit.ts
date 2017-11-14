@@ -644,7 +644,7 @@ class STE {
 	/**
 	 * Loads the codeMirror editor
 	 */
-	private static loadEditor(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement, content: string = this.item.value.stylesheet,
+	private static async loadEditor(this: NodeEditBehaviorStylesheetInstance, container: HTMLElement, content: string = this.item.value.stylesheet,
 			disable: boolean = false) {
 		const placeHolder = $(this.$.editorPlaceholder);
 		this.editorHeight = placeHolder.height();
@@ -664,22 +664,13 @@ class STE {
 				selectName: window.scriptEdit.keyBindings[5].defaultKey,
 			}
 		});
-		this.editorManager = window.CodeMirror(container, {
-			lineNumbers: true,
-			mode: 'css',
-			value: content || this.item.value.stylesheet,
-			scrollbarStyle: 'simple',
-			lineWrapping: true,
-			foldGutter: true,
-			readOnly: (disable ? 'nocursor' : false),
-			theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-			indentUnit: window.app.settings.editor.tabSize,
-			indentWithTabs: window.app.settings.editor.useTabs,
-			messageStylesheetEdit: true,
-			extraKeys: { 'Ctrl-Space': 'autocomplete' },
-			gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
-			lint: window.CodeMirror.lint.optionsJSON
+		this.editorManager = await this.$.editor.create('stylesheet', {
+			value: content,
+			language: 'javascript',
+			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
+			wordWrap: 'on'
 		});
+		this.cmLoaded();
 	};
 
 	static init(this: NodeEditBehaviorStylesheetInstance) {

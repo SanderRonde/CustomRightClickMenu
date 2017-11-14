@@ -1322,7 +1322,7 @@ class SCE {
 				selectName: this.keyBindings[5].defaultKey,
 			}
 		});
-		this.editorManager = await this.$.editor.create({
+		this.editorManager = await this.$.editor.create('script', {
 			value: content,
 			language: 'javascript',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
