@@ -555,34 +555,34 @@ class STE {
 	/**
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
-	static cmLoaded(this: NodeEditBehaviorStylesheetInstance, editor: CodeMirrorInstance) {
-		const _this = this;
-		this.editorManager = editor;
-		editor.refresh();
-		editor.display.wrapper.classList.remove('script-edit-codeMirror');
-		editor.display.wrapper.classList.add('stylesheet-edit-codeMirror');
-		editor.performLint();
-		let lastChange: number = null;
-		editor.on('changes', (cm, changes) => {
-			lastChange = Date.now();
-		});
-		const interval = window.setInterval(() => {
-			if (!_this.active) {
-				window.clearInterval(interval);
-			} else {
-				if (lastChange && Date.now() - lastChange > 1000) {
-					editor.performLint();
-					lastChange = null;
-				}
-			}
-		}, 2000);
-		const keys: {
-			[key: string]: (cm: CodeMirrorInstance) => void;
-		} = {};
-		keys[window.app.settings.editor.keyBindings.autocomplete] = (cm: CodeMirrorInstance) => {
-			window.app.ternServer.complete(cm);
-		}
-		this.editorManager.setOption('extraKeys', keys);
+	static cmLoaded(this: NodeEditBehaviorStylesheetInstance) {
+		// const _this = this;
+		// this.editorManager = editor;
+		// editor.refresh();
+		// editor.display.wrapper.classList.remove('script-edit-codeMirror');
+		// editor.display.wrapper.classList.add('stylesheet-edit-codeMirror');
+		// editor.performLint();
+		// let lastChange: number = null;
+		// editor.on('changes', (cm, changes) => {
+		// 	lastChange = Date.now();
+		// });
+		// const interval = window.setInterval(() => {
+		// 	if (!_this.active) {
+		// 		window.clearInterval(interval);
+		// 	} else {
+		// 		if (lastChange && Date.now() - lastChange > 1000) {
+		// 			editor.performLint();
+		// 			lastChange = null;
+		// 		}
+		// 	}
+		// }, 2000);
+		// const keys: {
+		// 	[key: string]: (cm: CodeMirrorInstance) => void;
+		// } = {};
+		// keys[window.app.settings.editor.keyBindings.autocomplete] = (cm: CodeMirrorInstance) => {
+		// 	window.app.ternServer.complete(cm);
+		// }
+		// this.editorManager.setOption('extraKeys', keys);
 
 		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
 		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
@@ -595,12 +595,12 @@ class STE {
 
 		this.fullscreenEl = clone.querySelector('#editorFullScreen') as HTMLElement;
 		this.fullscreenEl.addEventListener('click', () => {
-			_this.toggleFullScreen.apply(_this);
+			this.toggleFullScreen.apply(this);
 		});
 
 		this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
 		this.settingsEl.addEventListener('click', () => {
-			_this.toggleOptions.apply(_this);
+			this.toggleOptions.apply(this);
 		});
 
 		if (editor.getOption('readOnly') === 'nocursor') {
