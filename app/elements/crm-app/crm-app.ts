@@ -280,7 +280,7 @@ class CA {
 	/**
 	 * The tern server used for key bindings
 	 */
-	//static ternServer: Tern.ServerInstance;
+	static ternServer: Tern.ServerInstance;
 
 	/**
 	 * The monaco theme style element
