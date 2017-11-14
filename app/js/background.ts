@@ -8119,8 +8119,6 @@ if (typeof module === 'undefined') {
 		}
 	}
 
-	type FirstTimeCallback = (resolve: (result: any) => void) => void;
-
 	interface PersistentData {
 		lineSeperators: Array<{
 			start: number;
@@ -9225,18 +9223,18 @@ if (typeof module === 'undefined') {
 					return returnObj;
 				});
 			}
-			static handleTransfer(): (resolve: (data: {
+			static handleTransfer(): Promise<{
 				settingsStorage: CRM.SettingsStorage;
 				storageLocalCopy: CRM.StorageLocal;
 				chromeStorageLocal: CRM.StorageLocal;
-			}) => void) => void {
+			}> {
 				window.localStorage.setItem('transferToVersion2', 'true');
 
 				chrome.storage.local.set({
 					isTransfer: true
 				});
 
-				return ((resolve) => {
+				return new Promise((resolve) => {
 					if (!window.CodeMirror.TernServer) {
 						//Wait until TernServer is loaded
 						window.setTimeout(() => {
@@ -9511,7 +9509,7 @@ if (typeof module === 'undefined') {
 					window.log('Checking if this is the first run');
 					const result = this._isFirstTime(chromeStorageLocal);
 					if (result.type === 'firstTimeCallback') {
-						result.fn((data) => {
+						result.fn.then((data) => {
 							this.setStorages(data.storageLocalCopy, data.settingsStorage,
 								data.chromeStorageLocal, callback);
 						});
@@ -9745,7 +9743,7 @@ if (typeof module === 'undefined') {
 		}
 		private static _isFirstTime(storageLocal: CRM.StorageLocal): {
 			type: 'firstTimeCallback';
-			fn: FirstTimeCallback;
+			fn: Promise<any>;
 		} | {
 			type: 'upgradeVersion';
 			fn: () => void;
@@ -9784,14 +9782,9 @@ if (typeof module === 'undefined') {
 					}
 				} else {
 					window.log('Initializing for first run');
-					const firstRunPromise = this.SetupHandling.handleFirstRun();
 					return {
 						type: 'firstTimeCallback',
-						fn: (resolve) => {
-							firstRunPromise.then((value) => {
-								resolve(value);
-							});
-						}
+						fn: this.SetupHandling.handleFirstRun()
 					}
 				}
 			}
