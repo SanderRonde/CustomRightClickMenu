@@ -34,3 +34,19 @@ script-edit #settingsContainer {
 #triggerOverflowContainer {
 	overflow: hidden;
 }
+
+paper-button.blue {
+    background-color: #3F51B5;
+    color: white;
+}
+
+.editorTitle {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-justify-content: space-between;
+	justify-content: space-between;
+}
+
+#docsLink {
+	font-size: 130%;
+}
