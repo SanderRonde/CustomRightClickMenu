@@ -563,7 +563,7 @@ module.exports = function(grunt) {
 			optionsPage: {
 				options: {
 					cleanup: false,
-					scriptInhead: false
+					scriptInHead: false
 				},
 				files: [{
 					src: './build/html/options.html',
@@ -573,11 +573,23 @@ module.exports = function(grunt) {
 			background: {
 				options: {
 					cleanup: false,
-					scriptInhead: false
+					scriptInHead: false
 				},
 				files: [{
 					src: './build/html/background.html',
 					dest: './build/html/background.html'
+				}]
+			},
+			components: {
+				options: {
+					cleanup: false,
+					scriptInHead: false
+				},
+				files: [{
+					expand: true,
+					cwd: './app/bower_components/',
+					src: '**/*.html',
+					dest: './app/bower_components/'
 				}]
 			}
 		},
@@ -706,6 +718,8 @@ module.exports = function(grunt) {
 
 	//Cleans the build dir
 	grunt.registerTask('cleanBuild', ['clean:build']);
+
+	grunt.registerTask('prepareForHotReload', ['crisper:components']);
 
 
 
