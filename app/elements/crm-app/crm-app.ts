@@ -785,17 +785,12 @@ class CA {
 		}`;
 		document.head.appendChild(styleEl);
 
-		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.CodeMirror')).forEach((cm: HTMLElement & {
-			CodeMirror: CodeMirrorInstance;
-		}) => {
-			cm.CodeMirror.refresh();
-		});
-		let editor = ((window.scriptEdit && window.scriptEdit.active) ?
+		let editorManger = ((window.scriptEdit && window.scriptEdit.active) ?
 			window.scriptEdit.editorManager :
 			((window.stylesheetEdit && window.stylesheetEdit.active) ?
 				window.stylesheetEdit.editorManager :
 				null));
-		if (!editor) {
+		if (!editorManger) {
 			return;
 		}
 		window.colorFunction && window.colorFunction.func({
@@ -803,9 +798,9 @@ class CA {
 				line: 0
 			},
 			to: {
-				line: editor.lineCount()
+				line: editorManger.lineCount()
 			}
-		}, editor);
+		}, editorManger);
 	};
 
 	static setLocal<T>(this: CrmApp, key: string, value: T) {
@@ -3911,7 +3906,6 @@ class CA {
 			const _this = this;
 			let toLoad = 0;
 			this.removeContextMenus();
-			let callbackId;
 
 			function loadContextMenus(deadline: {
 				timeRemaining(): number;
@@ -3924,7 +3918,7 @@ class CA {
 			}
 
 			if ('requestIdleCallback' in window) {
-				callbackId = window.requestIdleCallback(loadContextMenus);
+				window.requestIdleCallback(loadContextMenus);
 			} else {
 				while (toLoad < 6) {
 					_this.bindContextMenu(toLoad++);
