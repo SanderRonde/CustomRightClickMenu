@@ -719,7 +719,8 @@ module.exports = function(grunt) {
 	//Cleans the build dir
 	grunt.registerTask('cleanBuild', ['clean:build']);
 
-	grunt.registerTask('prepareForHotReload', ['crisper:components']);
+	grunt.registerTask('prepareForHotReload', ['crisper:components',
+		'copy:monacoTemp']);
 
 
 
