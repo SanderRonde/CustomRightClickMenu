@@ -91,18 +91,18 @@ class SCE {
 		if (mode !== this.editorMode) {
 			if (mode === 'main') {
 				if (this.editorMode === 'background') {
-					this.newSettings.value.backgroundScript = this.editorManager.getValue();
+					this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 				}
 				this.editorMode = 'main';
 				this.enableButtons();
-				this.editorManager.setValue(this.newSettings.value.script);
+				this.editorManager.editor.setValue(this.newSettings.value.script);
 			} else if (mode === 'background') {
 				if (this.editorMode === 'main') {
-					this.newSettings.value.script = this.editorManager.getValue();
+					this.newSettings.value.script = this.editorManager.editor.getValue();
 				}
 				this.editorMode = 'background';
 				this.disableButtons();
-				this.editorManager.setValue(this.newSettings.value.backgroundScript || '');
+				this.editorManager.editor.setValue(this.newSettings.value.backgroundScript || '');
 			}
 
 			const element = window.app.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
@@ -118,9 +118,9 @@ class SCE {
 		element.classList.remove('optionsEditorTab');
 		if (this.editorMode === 'options') {
 			try {
-				this.newSettings.value.options = JSON.parse(this.editorManager.getValue());
+				this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
 			} catch(e) {
-				this.newSettings.value.options = this.editorManager.getValue();
+				this.newSettings.value.options = this.editorManager.editor.getValue();
 			}
 		}
 		this.hideCodeOptions();
@@ -141,9 +141,9 @@ class SCE {
 		} else if (!isBackground && this.editorMode !== 'options') {
 			element.classList.add('optionsEditorTab');
 			if (this.editorMode === 'main') {
-				this.newSettings.value.script = this.editorManager.getValue();
+				this.newSettings.value.script = this.editorManager.editor.getValue();
 			} else if (this.editorMode === 'background') {
-				this.newSettings.value.backgroundScript = this.editorManager.getValue();
+				this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 			}
 			this.showCodeOptions();
 			this.editorMode = 'options';
@@ -524,7 +524,7 @@ class SCE {
 		}
 		this.fullscreen = true;
 
-		const rect = this.editorManager.display.wrapper.getBoundingClientRect();
+		const rect = this.editorManager.editor.getDomNode().getBoundingClientRect();
 		const editorCont = window.doc.fullscreenEditor;
 		const editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
@@ -535,12 +535,12 @@ class SCE {
 			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
 		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.fullscreenEl.style.display = 'none';
-		const $editorWrapper = $(this.editorManager.display.wrapper);
+		const $editorWrapper = $(this.editorManager.editor.getDomNode());
 		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
 		buttonShadow.style.position = 'absolute';
 		buttonShadow.style.right = '-1px';
-		this.editorManager.display.wrapper.classList.add('fullscreen');
-		this.editorManager.display.wrapper.classList.remove('small');
+		this.editorManager.editor.getDomNode().classList.add('fullscreen');
+		this.editorManager.editor.getDomNode().classList.remove('small');
 
 		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
 		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
@@ -590,7 +590,7 @@ class SCE {
 			duration: 500,
 			easing: 'easeOutCubic',
 			complete: () =>  {
-				this.editorManager.refresh();
+				this.editorManager.editor.layout();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
 				buttonShadow.style.position = 'fixed';
@@ -611,12 +611,12 @@ class SCE {
 
 		const _this = this;
 		this.popOutRibbons();
-		const $wrapper = $(_this.editorManager.display.wrapper);
+		const $wrapper = $(_this.editorManager.editor.getDomNode());
 		const $buttonShadow = $wrapper.find('#buttonShadow');
 		$buttonShadow[0].style.position = 'absolute';
 		setTimeout(function() {
-			_this.editorManager.display.wrapper.classList.remove('fullscreen');
-			_this.editorManager.display.wrapper.classList.add('small');
+			_this.editorManager.editor.getDomNode().classList.remove('fullscreen');
+			_this.editorManager.editor.getDomNode().classList.add('small');
 			const editorCont = window.doc.fullscreenEditor;
 			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			$(editorCont).animate({
@@ -632,7 +632,7 @@ class SCE {
 					editorCont.style.marginTop = '0';
 					editorCont.style.width = '0';
 					editorCont.style.height = '0';
-					$(_this.editorManager.display.wrapper).appendTo(_this.$.editorCont).css({
+					$(_this.editorManager.editor.getDomNode()).appendTo(_this.$.editorCont).css({
 						height: _this.preFullscreenEditorDimensions.height,
 						marginTop: 0,
 						marginLeft: 0
@@ -648,8 +648,8 @@ class SCE {
 	static showOptions(this: NodeEditBehaviorScriptInstance) {
 		this.optionsShown = true;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		const editorWidth = this.editorManager.display.wrapper.getBoundingClientRect().width;
-		const editorHeight = this.editorManager.display.wrapper.getBoundingClientRect().height;
+		const editorWidth = this.editorManager.editor.getDomNode().getBoundingClientRect().width;
+		const editorHeight = this.editorManager.editor.getDomNode().getBoundingClientRect().height;
 		let circleRadius;
 
 		//Add a bit just in case
@@ -685,11 +685,11 @@ class SCE {
 			},
 			complete: () => {
 				if (this.fullscreen) {
-					const settingsCont = this.editorManager.display.wrapper.querySelector('#settingsContainer');
+					const settingsCont = this.editorManager.editor.getDomNode().querySelector('#settingsContainer');
 					settingsCont.style.overflow = 'scroll';
 					settingsCont.style.overflowX = 'hidden';
 					settingsCont.style.height = 'calc(100vh - 66px)';
-					const bubbleCont = this.editorManager.display.wrapper.querySelector('#bubbleCont');
+					const bubbleCont = this.editorManager.editor.getDomNode().querySelector('#bubbleCont');
 					bubbleCont.style.position = 'fixed';
 					bubbleCont.style.zIndex = '50';
 				}
@@ -728,10 +728,10 @@ class SCE {
 				}
 
 				if (this.fullscreen) {
-					const settingsCont = this.editorManager.display.wrapper.querySelector('#settingsContainer');
+					const settingsCont = this.editorManager.editor.getDomNode().querySelector('#settingsContainer');
 					settingsCont.style.height = '345px';
 					settingsCont.style.overflowX = 'hidden';
-					const bubbleCont = this.editorManager.display.wrapper.querySelector('#bubbleCont');
+					const bubbleCont = this.editorManager.editor.getDomNode().querySelector('#bubbleCont');
 					bubbleCont.style.position = 'absolute';
 					bubbleCont.style.zIndex = 'auto';
 				}
@@ -744,20 +744,20 @@ class SCE {
 	 */
 	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
 		if (this.editorManager) {
-			this.editorManager.display.wrapper.remove();
+			this.editorManager.editor.getDomNode().remove();
 			this.$.editorPlaceholder.style.display = 'flex';
 			this.$.editorPlaceholder.style.opacity = '1';
 			this.$.editorPlaceholder.style.position = 'absolute';
 
 			if (this.editorMode === 'main') {
-				this.newSettings.value.script = this.editorManager.doc.getValue();
+				this.newSettings.value.script = this.editorManager.editor.getValue();
 			} else if (this.editorMode === 'background') {
-				this.newSettings.value.backgroundScript = this.editorManager.doc.getValue();
+				this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 			} else {
 				try {
-					this.newSettings.value.options = JSON.parse(this.editorManager.doc.getValue());
+					this.newSettings.value.options = JSON.parse(this.editorManager.editor.getValue());
 				} catch(e) {
-					this.newSettings.value.options = this.editorManager.doc.getValue();
+					this.newSettings.value.options = this.editorManager.editor.getValue();
 				}
 			}
 		}
@@ -1355,9 +1355,6 @@ class SCE {
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
 		this.addDialogToMetaTagUpdateListeners();
-		// window.app.ternServer = window.app.ternServer || new window.CodeMirror.TernServer({
-		// 	defs: [window.ecma5, window.ecma6, window.browserDefs, window.crmAPIDefs]
-		// });
 		document.body.classList.remove('editingStylesheet');
 		document.body.classList.add('editingScript');
 		window.scriptEdit = this;
