@@ -460,7 +460,6 @@ input {
 .editorTabsCont {
 	display: -webkit-flex;
 	display: flex;
-	margin-left: 57px;
 }
 
 .editorTab {
