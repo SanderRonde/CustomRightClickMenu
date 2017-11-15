@@ -703,6 +703,10 @@ module.exports = function(grunt) {
 			beautifyBuilt: {
 				src: ["build/**/*.js"],
 				options: { }
+			},
+			beautifyMonaco: {
+				src: ["app/elements/edit-pages/monaco-editor/src/**.*.js"],
+				options: {}
 			}
 		},
 		exec: {
@@ -745,7 +749,7 @@ module.exports = function(grunt) {
 	//Prepares the extension for hot reloading, developing
 	// through the app/ directory instead and not having to build
 	grunt.registerTask('prepareForHotReload', ['crisper:components',
-		'copy:monacoTemp', 'string-replace:patchDevMonaco']);
+		'copy:monacoTemp', 'string-replace:patchDevMonaco', 'jsbeautifier:beautifyMonaco']);
 
 	//Disables hot reloading, required for proper build
 	grunt.registerTask('disableHotReload', ['exec:yarn']);
