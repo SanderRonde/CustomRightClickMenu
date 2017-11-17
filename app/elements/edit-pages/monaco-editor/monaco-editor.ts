@@ -1,4 +1,8 @@
-/// <reference path="../../elements.d.ts" />import { decode } from "punycode";import { underline } from "chalk";import { underline } from "chalk";
+/// <reference path="../../elements.d.ts" />import { decode } from "punycode";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";
+
+
+
+
 
 
 
@@ -479,6 +483,16 @@ namespace MonacoEditorElement {
 		 */
 		private _underlineDisabled: boolean = false;
 
+		/**
+		 * The currently used stylesheet rules, in order to compare to possible changes
+		 */
+		private _currentStylesheetRules: string = '';		
+
+		/**
+		 * All lines currently containing colors
+		 */
+		private _styleLines: Array<number> = [];
+
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
 			super(editor);
 
@@ -492,7 +506,12 @@ namespace MonacoEditorElement {
 						lines.push(change.range.endLineNumber);
 					}
 
+					
 					for (let line of lines) {
+						if (this._styleLines.indexOf(line) > -1) {
+							return true;
+						}
+
 						const lineContent = this._editor.getModel().getLineContent(line);
 						const cssRuleParts = this._getCssRuleParts(lineContent);
 						for (let cssRulePart of cssRuleParts) {
@@ -504,6 +523,7 @@ namespace MonacoEditorElement {
 				}
 				return false;
 			});
+			this._highlightColors();
 			this._addDecorationListener(() => {
 				return this._highlightColors();
 			});
@@ -668,31 +688,48 @@ namespace MonacoEditorElement {
 
 		private _highlightColors() {
 			const colors = this._getColors();
+			this._styleLines = colors.map(color => color.pos.startLineNumber);
 			return colors.map((color) => {
 				return {
 					range: color.pos,
 					options: {
 						stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-						beforeContentClassName: `userScriptColorUnderline color${color}`
+						beforeContentClassName: `userScriptColorUnderline color${color.color}`
 					}
 				}
 			});
 		}
 
 		private _markUnderlines() {
-			const underlinables = this._editor.getDomNode().querySelectorAll('userScriptColorUnderline');
+			const newRules: Array<[string, string]> = [];
+			let newRulesString = '';
+
+			const underlinables = this._editor.getDomNode().querySelectorAll('.userScriptColorUnderline');
 			Array.prototype.slice.apply(underlinables).forEach((underlineable: HTMLElement) => {
-				let color: string = null;
 				for (let i = 0; i < underlineable.classList.length; i++) {
 					if (underlineable.classList.item(i).indexOf('color') === 0) {
-						color = underlineable.classList.item(i).slice(5);
+						let color = underlineable.classList.item(i).slice(5);
+						let className = underlineable.classList.item(i);
+						newRules.push([`.${className}::before`, `background-color: ${color}`])
+						newRulesString += `${className}${color}`;
 					}
 				}
-				if (!color) {
-					return;
-				}
+			});
 
-				underlineable.style.backgroundColor = color;
+			if (newRulesString === this._currentStylesheetRules) {
+				return;
+			}
+			const stylesheet = (window.app.item.type === 'script' ?
+				window.scriptEdit : window.stylesheetEdit)
+					.$.editor._getStylesheet();
+			const sheet = stylesheet.sheet as CSSStyleSheet;
+			while (sheet.rules.length !== 0) {
+				sheet.deleteRule(0);
+			}
+
+			this._currentStylesheetRules = newRulesString;
+			newRules.forEach(([selector, value]: [string, string]) => {
+				sheet.addRule(selector, value);
 			});
 		}
 
@@ -709,7 +746,15 @@ namespace MonacoEditorElement {
 		 */
 		static editor: monaco.editor.IStandaloneCodeEditor;
 
+		/**
+		 * A handler for any type-specific mods
+		 */
 		static _typeHandler: MonacoEditorWatcher;
+
+		/**
+		 * The stylesheet used by the CSS editor
+		 */
+		private static _stylesheet: HTMLStyleElement;
 
 		private static _getSettings(editorType: 'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
 			if (editorType === 'script') {
@@ -760,6 +805,15 @@ namespace MonacoEditorElement {
 				}, 1000);
 			});
 			this.$.placeholder.style.display = 'none';
+		}
+
+		static _getStylesheet(this: MonacoEditor) {
+			if (this._stylesheet) {
+				return this._stylesheet;
+			}
+			const el = document.createElement('style');
+			this.shadowRoot.appendChild(el);
+			return (this._stylesheet = el);
 		}
 
 		static ready(this: MonacoEditor) {
