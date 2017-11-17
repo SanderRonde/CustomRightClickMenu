@@ -1,4 +1,6 @@
-/// <reference path="../../elements.d.ts" />import { decode } from "punycode";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";
+/// <reference path="../../elements.d.ts" />import { decode } from "punycode";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";import { decode } from "punycode";
+
+
 
 
 
@@ -69,6 +71,8 @@ namespace MonacoEditorElement {
 		 */
 		private _contentChangeListeners: Array<(event: monaco.editor.IModelContentChangedEvent) => void> = [];
 
+		private _onLoadListeners: Array<() => void> = [];
+
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
 			this._editor = editor;
 
@@ -78,6 +82,17 @@ namespace MonacoEditorElement {
 			this._monacoListeners.push(editor.onDidChangeModel((e) => {
 				this._onModelChange(editor.getModel());
 			}));
+
+			window.setTimeout(() => {
+				this._onLoadListeners.forEach((listener) => {
+					listener();
+				});
+				this._onLoadListeners = [];
+			}, 5000);
+		}
+
+		protected _onLoad(listener: () => void) {
+			this._onLoadListeners.push(listener);
 		}
 
 		protected static _genDisposable<T>(fn: () => T, onDispose: (args: T) => void) {
@@ -159,7 +174,9 @@ namespace MonacoEditorElement {
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
 			super(editor);
 
-			this._doModelUpdate();
+			this._onLoad(() => {
+				this._doModelUpdate();
+			})
 
 			this._addModelUpdateListener((event) => {
 				this._metaBlockChanged = true;
@@ -520,7 +537,7 @@ namespace MonacoEditorElement {
 				}
 				return false;
 			});
-			this._highlightColors();
+
 			this._addDecorationListener(() => {
 				return this._highlightColors();
 			});
