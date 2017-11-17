@@ -402,7 +402,7 @@ namespace MonacoEditorElement {
 					const monacoLineNumber = i + 1;
 					if (key) {
 						newDecorations.push({
-							range: new monaco.Range(monacoLineNumber, keyStartIndex + 1, monacoLineNumber, keyEnd + 1),
+							range: new monaco.Range(monacoLineNumber, keyStartIndex, monacoLineNumber, keyEnd + 1),
 							options: {
 								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
 								inlineClassName: 'userScriptKeyHighlight',
