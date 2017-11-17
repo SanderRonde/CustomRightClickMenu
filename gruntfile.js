@@ -709,7 +709,7 @@ module.exports = function(grunt) {
 				options: { }
 			},
 			beautifyMonaco: {
-				src: ["app/elements/edit-pages/monaco-editor/src/**.*.js"],
+				src: ["app/elements/edit-pages/monaco-editor/src/**/*.*.js"],
 				options: {}
 			}
 		},
