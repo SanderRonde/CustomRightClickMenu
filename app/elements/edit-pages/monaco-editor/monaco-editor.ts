@@ -195,7 +195,7 @@ namespace MonacoEditorElement {
 				if (this._metaDataHighlightDisabled) {
 					return [];
 				}
-				return [this._userScriptCollapseChange()].filter(val => val !== null);
+				return [this._userScriptGutterHighlightChange()].filter(val => val !== null);
 			});
 			this._addDecorationListener(() => {
 				if (this._metaDataHighlightDisabled) {
@@ -342,7 +342,10 @@ namespace MonacoEditorElement {
 				));
 		}
 
-		private _userScriptCollapseChange(): monaco.editor.IModelDeltaDecoration {
+		private _userScriptGutterHighlightChange(): monaco.editor.IModelDeltaDecoration {
+			if (!this._getMetaOutlines()) {
+				return null
+			}
 			const { start, end } = this.getMetaBlock();
 			return {
 				range: new monaco.Range(start.lineNumber, start.column,
