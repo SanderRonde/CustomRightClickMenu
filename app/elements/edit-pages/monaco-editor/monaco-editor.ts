@@ -113,10 +113,8 @@ namespace MonacoEditorElement {
 		private _onModelChange(model: monaco.editor.IModel) {
 			this.destroy();
 
-			console.log('Ayo model changed');
 			this._model = model;
 			this._monacoListeners.push(this._editor.onDidChangeModelContent((e) => {
-				console.log('Content changed');
 				this._onModelContentChange(e);
 			}));
 		}
