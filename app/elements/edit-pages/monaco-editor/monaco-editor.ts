@@ -331,15 +331,15 @@ namespace MonacoEditorElement {
 		}
 
 		private _isInMetaRange(range: monaco.IRange) {
-			return this._metaBlock && ((
-				range.startLineNumber <= this._metaBlock.start.lineNumber &&
-				range.endColumn >= this._metaBlock.start.lineNumber) || (
-					range.startLineNumber < this._metaBlock.start.lineNumber &&
-					range.endLineNumber > this._metaBlock.end.lineNumber
-				) || (
-					range.startLineNumber >= this._metaBlock.start.lineNumber &&
-					range.startLineNumber <= this._metaBlock.end.lineNumber
-				));
+			if (!this._metaBlock) {
+				return false;
+			}
+			return monaco.Range.areIntersectingOrTouching({
+				startColumn: this._metaBlock.start.column,
+				startLineNumber: this._metaBlock.start.lineNumber,
+				endColumn: this._metaBlock.end.column,
+				endLineNumber: this._metaBlock.end.lineNumber
+			}, range);
 		}
 
 		private _userScriptGutterHighlightChange(): monaco.editor.IModelDeltaDecoration {
