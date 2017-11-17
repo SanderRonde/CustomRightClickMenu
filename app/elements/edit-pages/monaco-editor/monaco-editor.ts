@@ -364,6 +364,10 @@ namespace MonacoEditorElement {
 				lineEnding: '\n'
 			});
 
+			if (!this.getMetaBlock()) {
+				return null;
+			}
+
 			const regex = new RegExp(/@(\w+)(\s+)(.+)?/g);
 			const lines = content.split('\n');
 
@@ -377,9 +381,10 @@ namespace MonacoEditorElement {
 
 					const keyStartIndex = key ? line.indexOf(key) : 0;
 					const keyEnd = key ? (keyStartIndex + key.length) : 0;
+					const monacoLineNumber = i + 1;
 					if (key) {
 						newDecorations.push({
-							range: new monaco.Range(i + 1, keyStartIndex + 1, i + 1, keyEnd + 1),
+							range: new monaco.Range(monacoLineNumber, keyStartIndex + 1, monacoLineNumber, keyEnd + 1),
 							options: {
 								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
 								inlineClassName: 'userScriptKeyHighlight',
@@ -390,8 +395,9 @@ namespace MonacoEditorElement {
 					}
 					if (value) {
 						const valueStartIndex = line.slice(keyEnd).indexOf(value) + keyEnd;
+						const valueStartOffset = valueStartIndex + 1;
 						newDecorations.push({
-							range: new monaco.Range(i + 1, valueStartIndex + 1, i + 1, valueStartIndex + value.length + 1),
+							range: new monaco.Range(monacoLineNumber, valueStartOffset, monacoLineNumber, valueStartOffset + value.length),
 							options: {
 								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
 								inlineClassName: 'userScriptValueHighlight',
@@ -481,8 +487,19 @@ namespace MonacoEditorElement {
 					return true;
 				}
 				for (let change of event.changes) {
-					if (this._findColor(0, change.text)) {
-						return true;
+					const lines = [change.range.startLineNumber];
+					if (change.range.endLineNumber !== change.range.startLineNumber) {
+						lines.push(change.range.endLineNumber);
+					}
+
+					for (let line of lines) {
+						const lineContent = this._editor.getModel().getLineContent(line);
+						const cssRuleParts = this._getCssRuleParts(lineContent);
+						for (let cssRulePart of cssRuleParts) {
+							if (this._findColor(0, cssRulePart.text)) {
+								return true;
+							}
+						}
 					}
 				}
 				return false;
@@ -517,6 +534,28 @@ namespace MonacoEditorElement {
 				}
 			}));
 		}
+
+		private _getCssRuleParts(str: string) {
+			let match: RegExpExecArray = null;
+			const ruleParts: Array<{
+				text: string;
+				start: number;
+			}> = [];
+			while ((match = MonacoEditorStylesheetMods._cssRuleRegex.exec(str))) {
+				const startIndex = str.indexOf(match[0]);
+				const endIndex = startIndex + match[0].length;
+				ruleParts.push({
+					text: match[0],
+					start: startIndex
+				});
+				str = str.slice(0, startIndex) +
+					this._stringRepeat('-', match[0].length) +
+					str.slice(endIndex);
+			}
+			return ruleParts;
+		}
+
+		private static readonly _cssRuleRegex = /:(\s*)?(.*)(\s*);/;
 
 		private static readonly _cssColorNames = [
 			'AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 
@@ -554,7 +593,7 @@ namespace MonacoEditorElement {
 
 		private static readonly _rgbaRegex = /rgb\((\d{1,3}),(\s*)?(\d{1,3}),(\s*)?(\d{1,3})\),(\s*)?(\d{1,3})\)/;
 
-		private _findColor(lineNumber: number, str: string): {
+		private _findColor(lineNumber: number, str: string, offset: number = 0): {
 			pos: monaco.Range;
 			color: string;
 		}|null {
@@ -562,7 +601,7 @@ namespace MonacoEditorElement {
 				let index: number = -1;
 				if ((index = str.toLowerCase().indexOf(color)) > -1) {
 					return {
-						pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + color.length + 1),
+						pos: new monaco.Range(lineNumber + 1, index + offset + 1, lineNumber + 1, index + offset + color.length + 1),
 						color: color
 					}
 				}
@@ -571,21 +610,21 @@ namespace MonacoEditorElement {
 			if ((match = MonacoEditorStylesheetMods._hexRegex.exec(str))) {
 				const index = str.indexOf(match[1]);
 				return {
-					pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + match[1].length + 1),
+					pos: new monaco.Range(lineNumber + 1, index + offset + 1, lineNumber + 1, index + offset + match[1].length + 1),
 					color: match[1]
 				}
 			}
 			if ((match = MonacoEditorStylesheetMods._rgbRegex.exec(str))) {
 				const index = str.indexOf(match[0]);
 				return {
-					pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + match[0].length + 1),
+					pos: new monaco.Range(lineNumber + 1, index + offset + 1, lineNumber + 1, index + offset + match[0].length + 1),
 					color: match[0]
 				}
 			}
 			if ((match = MonacoEditorStylesheetMods._rgbaRegex.exec(str))) {
 				const index = str.indexOf(match[0]);
 				return {
-					pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + match[0].length + 1),
+					pos: new monaco.Range(lineNumber + 1, index + offset + 1, lineNumber + 1, index + offset + match[0].length + 1),
 					color: match[0]
 				}
 			}
@@ -617,11 +656,14 @@ namespace MonacoEditorElement {
 					pos: monaco.Range;
 					color: string;
 				} = null;
-				while ((result = this._findColor(i, line))) {
-					colors.push(result);
-					line = line.slice(0, result.pos.startColumn) + 
-						this._stringRepeat('-', result.color.length) +
-						line.slice(result.pos.endColumn);
+				const cssRuleParts = this._getCssRuleParts(line);
+				for (let cssRulePart of cssRuleParts) {
+					while ((result = this._findColor(i, cssRulePart.text, cssRulePart.start))) {
+						colors.push(result);
+						line = line.slice(0, result.pos.startColumn) + 
+							this._stringRepeat('-', result.color.length) +
+							line.slice(result.pos.endColumn);
+					}
 				}
 			}
 			return colors;
