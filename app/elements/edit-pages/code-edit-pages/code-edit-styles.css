@@ -434,3 +434,7 @@ input {
 		background-color: rgb(190,190,190);
 		box-shadow: none;
 	}
+
+.userScriptGutterHighlight {
+	background: lightblue;
+}

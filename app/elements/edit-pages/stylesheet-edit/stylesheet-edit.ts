@@ -668,7 +668,8 @@ class STE {
 			value: content,
 			language: 'javascript',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
-			wordWrap: 'on'
+			wordWrap: 'on',
+			folding: true
 		});
 		this.cmLoaded();
 	};

@@ -1071,6 +1071,14 @@ declare namespace CRM {
 		 * The keybindings for the editor
 		 */
 		keyBindings: KeyBindings;
+		/**
+		 * Whether to disable the underlining of css colors
+		 */
+		cssUnderlineDisabled: boolean;
+		/**
+		 * Whether to disable the highlight of userscript metadata at the top of the file
+		 */
+		disabledMetaDataHighlight: boolean;
 	}
 
 	/**

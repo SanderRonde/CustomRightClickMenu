@@ -1,4 +1,10 @@
-/// <reference path="../../elements.d.ts" />
+/// <reference path="../../elements.d.ts" />import { decode } from "punycode";import { underline } from "chalk";import { underline } from "chalk";
+
+
+
+
+
+
 
 declare const ShadowRoot: typeof HTMLElement & {
 	prototype: {
@@ -6,217 +12,880 @@ declare const ShadowRoot: typeof HTMLElement & {
 	}
 }
 
-class MOE {
-	static is: string = 'monaco-editor';
+namespace MonacoEditorElement {
+	const metaDataDescriptions = {
+		name: 'The name of this script',
+		namespace: 'The namespace of the script',
+		version: 'The script version. This is used for the update check.',
+		author: 'The scripts author',
+		description: 'A short description.',
+		homepage: 'The author\'s homepage',
+		homepageURL: 'The author\'s homepage',
+		website : 'The author\'s homepage',
+		source: 'The author\'s homepage',
+		icon: 'The script\'s icon in low res',
+		iconURL : 'The script\'s icon in low res',
+		defaulticon: 'The script\'s icon in low res',
+		icon64: 'This scripts icon in 64x64 pixels.',
+		icon64URL: 'This scripts icon in 64x64 pixels.',
+		updateURL: 'An update URL for the userscript',
+		downloadURL: 'Defines the URL where the script will be downloaded from when an update was detected',
+		supportURL: 'Defines the URL where the user can report issues and get personal support',
+		include: 'The pages on which the script should run',
+		match: 'The pages on which the script should run',
+		exclude: 'Exclude URLs even if they are included by **@include** or **@match**',
+		require: 'Points to a javascript file that is loaded and executed before the script itself',
+		resource: 'Preloads resources that can be accessed by `GM_getResourceURL` and `GM_getResourceText` by the script',
+		connect: 'Domains which are allowed to be retrieved by `GM_xmlhttpRequest`',
+		'run-at': 'The moment the script is injected (document-start, document-body, document-end, document-idle or document-menu)',
+		grant: 'Whitelists given `GM_*` functions',
+		noframes: 'Makes the script run on the main page but not in iframes'
+	};
 
-	/**
-	 * The editor associated with this element
-	 */
-	static editor: monaco.editor.IStandaloneCodeEditor;
+	abstract class MonacoEditorWatcher {
+		/**
+		 * Any listeners that need to be disposed of eventually
+		 */
+		protected _monacoListeners: Array<{
+			dispose(): void;
+		}> = [];
 
-	private static _type: 'script'|'stylesheet'|'none' = 'none';
+		/**
+		 * The editor that is currently being used
+		 */
+		protected _editor: monaco.editor.IStandaloneCodeEditor;
 
-	static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions,
-		override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-			await MonacoEditorHackManager.monacoReady;
-			this._showSpinner();
-			MonacoEditorHackManager.setScope(this);
-			this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
-			MonacoEditorHackManager.StyleHack.fixThemeScope(this);
-			this._hideSpinner();
-			this._type = editorType;
-			return this;
+		/**
+		 * The model that is currently being used in the editor
+		 */
+		protected _model: monaco.editor.IModel;
+
+		/**
+		 * Any listeners that get triggered when the model's content changes
+		 */
+		private _contentChangeListeners: Array<(event: monaco.editor.IModelContentChangedEvent) => void> = [];
+
+		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
+			this._editor = editor;
+
+			console.log('model is', editor.getModel())
+			if (editor.getModel()) {
+				console.log('Adding listener');
+				this._onModelChange(editor.getModel());
+			}
+			this._monacoListeners.push(editor.onDidChangeModel((e) => {
+				console.log('Model changed');
+				this._onModelChange(editor.getModel());
+			}));
 		}
 
-	static destroy(this: MonacoEditor) {
-		this.editor.dispose();
-		this._showSpinner();
+		protected static _genDisposable<T>(fn: () => T, onDispose: (args: T) => void) {
+			const res = fn();
+			return {
+				dispose: () => {
+					onDispose(res)
+				}
+			}
+		}
+
+		_onModelContentChange(changeEvent: monaco.editor.IModelContentChangedEvent) {
+			this._contentChangeListeners.forEach((listener) => {
+				listener(changeEvent);
+			});
+		}
+
+		private _onModelChange(model: monaco.editor.IModel) {
+			this.destroy();
+
+			console.log('Ayo model changed');
+			this._model = model;
+			this._monacoListeners.push(this._editor.onDidChangeModelContent((e) => {
+				console.log('Content changed');
+				this._onModelContentChange(e);
+			}));
+		}
+		
+		protected _addModelUpdateListener(listener: (event: monaco.editor.IModelContentChangedEvent) => void) {
+			this._contentChangeListeners.push(listener);
+		}
+
+		destroy() {
+			this._monacoListeners = this._monacoListeners.filter((listener) => {
+				listener.dispose();
+			});
+		}
 	}
 
-	static _showSpinner(this: MonacoEditor) {
-		this.$.placeholder.style.display = 'block';
-		this.$.spinner.active = true;
-		this.$.placeholder.classList.remove('hidden')
+	interface MetaBlock {
+		start: monaco.Position;
+		content: CRM.MetaTags;
+		end: monaco.Position;
 	}
 
-	static async _hideSpinner(this: MonacoEditor) {
-		this.$.spinner.active = false;
-		this.$.placeholder.classList.add('hidden');
-		await new window.Promise((resolve) => {
-			window.setTimeout(() => {
-				resolve(null);
-			}, 1000);
-		});
-		this.$.placeholder.style.display = 'none';
-	}
+	abstract class MonacoEditorMetaBlockMods extends MonacoEditorWatcher {
+		/**
+		 * Whether the meta block could have changed since the last call
+		 */
+		private _metaBlockChanged: boolean = true;
 
-	static ready(this: MonacoEditor) {
-		MonacoEditorHackManager.setup();
-	}
-}
+		/**
+		 * The start, end and contents of the meta block
+		 */
+		private _metaBlock: MetaBlock|null;
 
-class MonacoEditorHackManager {
-	/**
-	 * Whether this was set up already
-	 */
-	private static _setup: boolean = false;
+		/**
+		 * The decorations currently being used
+		 */
+		private _decorations: Array<string> = [];
 
-	/**
-	 * A promise keeping track of the status of the editor
-	 */
-	static monacoReady: Promise<void> = null;
+		/**
+		 * An array containing functions that can indicate whether 
+		 * the decorations need to be updated. If any of them return
+		 * true, the answer is yes
+		 */
+		private _shouldUpdateDecorationsListeners: Array<(event: monaco.editor.IModelContentChangedEvent) => boolean> = [];
+
+		/**
+		 * An array containing functions that get called when redrawing the decorations
+		 */
+		private _decorationListeners: Array<() => Array<monaco.editor.IModelDeltaDecoration>> = [];
+
+		/**
+		 * Whether to disable the highlight of userscript metadata at the top of the file
+		 */
+		private _metaDataHighlightDisabled: boolean = false;
 	
-	/**
-	 * The scope that the current editor is active in
-	 */
-	static currentScope: Polymer.RootElement = null;
+		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
+			super(editor);
 
-	static Caret = class MonacoEditorCaret {
-		/**
-		 * A cache containing the width of chars
-		 */
-		private static _charCache: {
-			[key: string]: number;
-		} = {}
+			this._doModelUpdate();
 
-		/**
-		 * A canvas used for calculating char width
-		 */
-		private static _charCanvas: HTMLCanvasElement = document.createElement('canvas')
+			this._addModelUpdateListener((event) => {
+				this._metaBlockChanged = true;
+				
+				if (this._shouldUpdateDecorations(event)) {
+					this._doModelUpdate();
+				}
+			});
 
-		static getCharWidth(char: string, font: string) {
-			const cacheKey = char + font;
-			if (this._charCache[cacheKey]) {
-				return this._charCache[cacheKey];
-			}
-			var context = this._charCanvas.getContext("2d");
-			context.font = font;
-			var metrics = context.measureText(char);
-			var width = metrics.width;
-			this._charCache[cacheKey] = width;
-			return width;
-		}
+			this._addShouldUpdateDecorationsListener((changeEvent) => {
+				if (this._metaDataHighlightDisabled) {
+					return false;
+				}
 
-		static caretRangeFromPoint(this: ShadowRoot, x: number, y: number) {
-			// Get the element under the point
-			let el = this.elementFromPoint(x, y) as HTMLElement;
-
-			// Get the last child of the element until its firstChild is a text node
-			// This assumes that the pointer is on the right of the line, out of the tokens
-			// and that we want to get the offset of the last token of the line
-			while (el.firstChild.nodeType !== el.firstChild.TEXT_NODE) {
-				el = el.lastChild as HTMLElement;
-			}
-
-			// Grab its rect
-			var rect = el.getBoundingClientRect();
-			// And its font
-			var font = window.getComputedStyle(el, null).getPropertyValue('font');
-
-			// And also its txt content
-			var text = el.innerText;
-
-			// Poisition the pixel cursor at the left of the element
-			var pixelCursor = rect.left;
-			var offset = 0;
-			var step;
-
-			// If the point is on the right of the box put the cursor after the last character
-			if (x > rect.left + rect.width) {
-				offset = text.length;
-			} else {
-				// Goes through all the characters of the innerText, and checks if the x of the point
-				// belongs to the character.
-				for (var i = 0; i < text.length + 1; i++) {
-					// The step is half the width of the character
-					step = MonacoEditorHackManager.Caret.getCharWidth(text.charAt(i), font) / 2;
-					// Move to the center of the character
-					pixelCursor += step;
-					// If the x of the point is smaller that the position of the cursor, the point is over that character
-					if (x < pixelCursor) {
-						offset = i;
-						break;
+				let force: boolean = false;
+				if (!this._metaBlock) {
+					if (this.getMetaBlock()) {
+						force = true;
+					} else {
+						return false;
 					}
-					// Move between the current character and the next
-					pixelCursor += step;
+				}
+	
+				if (!force && (!changeEvent || !changeEvent.isRedoing) && (!changeEvent || changeEvent.changes.filter((change) => {
+					return this._isInMetaRange(change.range);
+				}).length === 0)) {
+					return false;
+				}
+	
+				return true;
+			});
+
+			this._addDecorationListener(() => {
+				if (this._metaDataHighlightDisabled) {
+					return [];
+				}
+				return [this._userScriptCollapseChange()].filter(val => val !== null);
+			});
+			this._addDecorationListener(() => {
+				if (this._metaDataHighlightDisabled) {
+					return [];
+				}
+				return this._userScriptHighlightChange();
+			});
+			this._metaDataHighlightDisabled = window.app.settings.editor.disabledMetaDataHighlight;
+			this._monacoListeners.push(this._editor.addAction({
+				id: 'disable-metadata-highlight',
+				label: 'Disable Metadata Highlight',
+				run: () => {
+					this._metaDataHighlightDisabled = true;
+				}
+			}));
+			this._monacoListeners.push(this._editor.addAction({
+				id: 'enable-metadata-highlight',
+				label: 'Enable Metadata Highlight',
+				run: () => {
+					this._metaDataHighlightDisabled = false;
+				}
+			}));
+		}
+
+		protected _addDecorationListener(listener: () => Array<monaco.editor.IModelDeltaDecoration>) {
+			this._decorationListeners.push(listener);
+		}
+
+		protected _addShouldUpdateDecorationsListener(listener: (event: monaco.editor.IModelContentChangedEvent) => boolean) {
+			this._shouldUpdateDecorationsListeners.push(listener);
+		}
+
+		private readonly _userScriptStart = '==UserScript==';
+
+		private readonly _userScriptEnd = '==/UserScript==';
+
+		private _getMetaOutlines(): {
+			start: monaco.Position;
+			end: monaco.Position;
+		} {
+			const editorContent = this._editor.getValue({
+				preserveBOM: false,
+				lineEnding: '\n'
+			});
+			if (editorContent.indexOf(this._userScriptStart) !== -1 ||
+				editorContent.indexOf(this._userScriptEnd) !== -1) {
+					return (this._metaBlock = null);
+				}
+
+			const lines = editorContent.split('\n');
+			const state: {
+				start: monaco.Position;
+				end: monaco.Position;
+			} = {
+				start: null,
+				end: null
+			}
+			for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+				let line = lines[lineIndex];
+
+				let char;
+				if ((char = line.indexOf(this._userScriptStart)) !== -1) {
+					if (!state.start) {
+						state.start = new monaco.Position(lineIndex + 1, char);
+					}
+				}
+				if ((char = line.indexOf(this._userScriptEnd)) !== -1) {
+					if (!state.end) {
+						state.end = new monaco.Position(lineIndex + 1, char + this._userScriptEnd.length);
+					}
+					break;
 				}
 			}
 
-			// Creates a range with the text node of the element and set the offset found
-			var range = document.createRange();
-			range.setStart(el.firstChild, offset);
-			range.setEnd(el.firstChild, offset);
+			if (!state.start || !state.end) {
+				return (this._metaBlock = null);
+			}
+			return state;
+		}
 
-			return range;
-		};
-	}
+		private _getMetaContent(outlines: {
+			start: monaco.Position;
+			end: monaco.Position;
+		}): CRM.MetaTags {
+			const content = this._editor.getValue({
+				preserveBOM: false,
+				lineEnding: '\n'
+			});
 
-	static StyleHack = class MonacoEditorStyleHack {
-		/**
-		 * The monaco theme style element
-		 */
-		static monacoStyleElement: HTMLStyleElement = null;
+			const tags: CRM.MetaTags = {};
+			const regex = new RegExp(/@(\w+)(\s+)(.+)?/g);
+			for (let line in content.split('\n')) {
+				const matches = line.match(regex);
+				if (matches) {
+					const key = matches[1];
+					const value = matches[3];
+					if (key in tags) {
+						tags[key].push(value);
+					} else {
+						tags[key] = [value];
+					}
+				}
+			}
 
-		static fixThemeScope(scope: MonacoEditor) {
-			this.monacoStyleElement = this.monacoStyleElement || 
-				document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
+			return tags;
+		}
+
+		public getMetaBlock(): MetaBlock {
+			if (!this._metaBlockChanged) {
+				return this._metaBlock;
+			}
+
+			const outlines = this._getMetaOutlines();
+			if (!outlines) {
+				return null;
+			}
+			const metaContent = this._getMetaContent(outlines);
+			return (this._metaBlock = {
+				start: outlines.start,
+				content: metaContent,
+				end: outlines.end
+			});
+		}
+
+		private _getKeyDescription(metaKey: string) {
+			if (metaKey in metaDataDescriptions) {
+				return `Metadata key \`${metaKey}\`:\n${metaDataDescriptions[metaKey as keyof typeof metaDataDescriptions]}`;
+			}
+			return `Metadata key \`${metaKey}\`, unknown key`;
+		}
+
+		private _isInMetaRange(range: monaco.IRange) {
+			return this._metaBlock && ((
+				range.startLineNumber <= this._metaBlock.start.lineNumber &&
+				range.endColumn >= this._metaBlock.start.lineNumber) || (
+					range.startLineNumber < this._metaBlock.start.lineNumber &&
+					range.endLineNumber > this._metaBlock.end.lineNumber
+				) || (
+					range.startLineNumber >= this._metaBlock.start.lineNumber &&
+					range.startLineNumber <= this._metaBlock.end.lineNumber
+				));
+		}
+
+		private _userScriptCollapseChange(): monaco.editor.IModelDeltaDecoration {
+			const { start, end } = this.getMetaBlock();
+			return {
+				range: new monaco.Range(start.lineNumber, start.column,
+					end.lineNumber, end.column),
+				options: {
+					isWholeLine: true,
+					linesDecorationsClassName: 'userScriptGutterHighlight',
+					stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+				}
+			}
+		}
+
+		private _userScriptHighlightChange() {
+			const content = this._editor.getValue({
+				preserveBOM: false,
+				lineEnding: '\n'
+			});
+
+			const regex = new RegExp(/@(\w+)(\s+)(.+)?/g);
+			const lines = content.split('\n');
+
+			const newDecorations: Array<monaco.editor.IModelDeltaDecoration> = [];
+			for (let i = 0; i < lines.length; i++) {
+				const line = lines[i];
+				const match = line.match(regex);
+				if (match) {
+					const key = match[1];
+					const value = match[3];
+
+					const keyStartIndex = line.indexOf(key);
+					const valueStartIndex = value.indexOf(value);
+					const indices = {
+						key: new monaco.Range(i + 1, keyStartIndex, i + 1, keyStartIndex + key.length),
+						value: new monaco.Range(i + 1, valueStartIndex, i + 1, valueStartIndex + value.length)
+					}
+					newDecorations.push({
+						range: indices.key,
+						options: {
+							stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+							className: 'userScriptKeyHighlight',
+							hoverMessage: this._getKeyDescription(key),
+							isWholeLine: false
+						}
+					});
+					newDecorations.push({
+						range: indices.value,
+						options: {
+							stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+							className: 'userScriptValueHighlight',
+							hoverMessage: `Value \`${value}\` for key \`${key}\``,
+							isWholeLine: false
+						}
+					});
+				}
+			}
+
+			return newDecorations;
+		}
+
+		private _doDecorationUpdate(decorations: Array<monaco.editor.IModelDeltaDecoration>) {
+			this._decorations = this._editor.deltaDecorations(this._decorations, decorations);
+		}
+
+		private _shouldUpdateDecorations(changeEvent: monaco.editor.IModelContentChangedEvent): boolean {
+			const results = this._shouldUpdateDecorationsListeners.map((listener) => {
+				return listener(changeEvent);
+			});
+			if (results.length > 1) {
+				return results.reduce((left, right) => {
+					return left || right;
+				});
+			} else if (results.length === 1) {
+				return results[0];
+			} else {
+				return false;
+			}
+		}
+
+		private _formatDecorations(decorations: Array<Array<monaco.editor.IModelDeltaDecoration>>) {
+			if (decorations.length === 0) {
+				return [];
+			} else if (decorations.length === 1) {
+				return decorations[0];
+			} else {
+				return decorations.reduce((prev, current) => {
+					return prev.concat(current);
+				});
+			}
+		}
+
+		private _doModelUpdate() {
+			const decorations = this._decorationListeners.map((listener) => {
+				return listener();
+			}).filter(decorationArr => decorationArr !== null);
 			
-			if (scope.shadowRoot.children[0] !== this.monacoStyleElement) {
-				scope.shadowRoot.insertBefore(this.monacoStyleElement, scope.shadowRoot.children[0]);
+			this._doDecorationUpdate(this._formatDecorations(decorations));
+		}
+
+		_onModelContentChange(changeEvent: monaco.editor.IModelContentChangedEvent) {
+			this._metaBlockChanged = true;
+
+			if (this._shouldUpdateDecorations(changeEvent)) {
+				this._doModelUpdate();
 			}
 		}
 	}
 
-	static setScope(scope: Polymer.RootElement) {
-		this.currentScope = scope;
+	class MonacoEditorScriptMods extends MonacoEditorMetaBlockMods {
+		metaBlockChanged: boolean = true;
+
+		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
+			super(editor);
+		}
+
+		static getSettings(): monaco.editor.IEditorOptions {
+			return { }
+		}
 	}
 
-	private static _setupRequire() {
-		this.monacoReady = new window.Promise<void>(async (resolve) => {
-			await window.onExists('require');
-			window.require.config({
-				paths: {
-					'vs': '../elements/edit-pages/monaco-editor/src/min/vs'
-				}
-			});
-			window.require(['vs/editor/editor.main'], () => {
-				resolve(null);
-			});
-		});
-	}
+	class MonacoEditorStylesheetMods extends MonacoEditorMetaBlockMods {
 
-	private static _defineProperties() {
-		Object.defineProperties(this, {
-			getLocalBodyShadowRoot: {
-				get: () => {
-					return this.currentScope.shadowRoot;
+		/**
+		 * Whether the highlighting is enabled
+		 */
+		private _underlineDisabled: boolean = false;
+
+		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
+			super(editor);
+
+			this._addShouldUpdateDecorationsListener((event) => {
+				if (event.isFlush) {
+					return true;
 				}
-			},
-			caretRangeFromPoint: {
-				get: () => {
-					return this.Caret.caretRangeFromPoint.bind(this.currentScope.shadowRoot);
+				for (let change of event.changes) {
+					if (this._findColor(0, change.text)) {
+						return true;
+					}
+				}
+				return false;
+			});
+			this._addDecorationListener(() => {
+				return this._highlightColors();
+			});
+
+			this._monacoListeners.push(MonacoEditorWatcher._genDisposable(() => {
+				return window.setInterval(() => {
+					if (!this._underlineDisabled) {
+						this._markUnderlines();
+					}
+				}, 50);
+			}, (timer: number) => {
+				window.clearInterval(timer);
+			}));
+
+			this._underlineDisabled = window.app.settings.editor.cssUnderlineDisabled;
+			this._monacoListeners.push(this._editor.addAction({
+				id: 'disable-css-underline',
+				label: 'Disable CSS underline',
+				run: () => {
+					this._underlineDisabled = true;
+				}
+			}));
+			this._monacoListeners.push(this._editor.addAction({
+				id: 'enable-css-underline',
+				label: 'Enable CSS Underline',
+				run: () => {
+					this._underlineDisabled = false;
+				}
+			}));
+		}
+
+		private static readonly _cssColorNames = [
+			'AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 
+			'Black', 'BlanchedAlmond', 'Blue', 'BlueViolet', 'Brown', 'BurlyWood',
+			'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk',
+			'Crimson', 'Cyan', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray',
+			'DarkGrey', 'DarkGreen', 'DarkKhaki', 'DarkMagenta', 'DarkOliveGreen', 
+			'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 
+			'DarkSlateBlue', 'DarkSlateGray', 'DarkSlateGrey', 'DarkTurquoise', 
+			'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DimGrey', 'DodgerBlue', 
+			'FireBrick', 'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 
+			'GhostWhite', 'Gold', 'GoldenRod', 'Gray', 'Grey', 'Green', 'GreenYellow', 
+			'HoneyDew', 'HotPink', 'IndianRed ', 'Indigo ', 'Ivory', 'Khaki', 'Lavender',
+			'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral', 
+			'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGrey', 'LightGreen', 
+			'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 
+			'LightSlateGrey', 'LightSteelBlue', 'LightYellow', 'Lime', 'LimeGreen', 
+			'Linen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 
+			'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 
+			'MediumSpringGreen', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 
+			'MintCream', 'MistyRose', 'Moccasin', 'NavajoWhite', 'Navy', 'OldLace', 
+			'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleGoldenRod', 
+			'PaleGreen', 'PaleTurquoise', 'PaleVioletRed', 'PapayaWhip', 'PeachPuff', 
+			'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple', 'RebeccaPurple', 'Red', 
+			'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 
+			'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue', 'SlateGray', 
+			'SlateGrey', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 
+			'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 
+			'YellowGreen'
+		].map(str => str.toLowerCase());
+
+		private static readonly _hexRegex = /#((([a-f]|[A-F]){8})|(([a-f]|[A-F]){6})|(([a-f]|[A-F]){3}))[^a-f|A-F]/;
+
+		private static readonly _rgbRegex = /rgb\((\d{1,3}),(\s*)?(\d{1,3}),(\s*)?(\d{1,3})\)/;
+
+		private static readonly _rgbaRegex = /rgb\((\d{1,3}),(\s*)?(\d{1,3}),(\s*)?(\d{1,3})\),(\s*)?(\d{1,3})\)/;
+
+		private _findColor(lineNumber: number, str: string): {
+			pos: monaco.Range;
+			color: string;
+		}|null {
+			for (let color of MonacoEditorStylesheetMods._cssColorNames) {
+				let index: number = -1;
+				if ((index = str.toLowerCase().indexOf(color)) > -1) {
+					return {
+						pos: new monaco.Range(lineNumber, index, lineNumber, index + color.length),
+						color: color
+					}
 				}
 			}
-		});
-	}
-
-	static setup() {
-		if (this._setup) {
-			return;
+			let match: RegExpMatchArray = null;
+			if ((match = str.match(MonacoEditorStylesheetMods._hexRegex))) {
+				const index = str.indexOf(match[1]);
+				return {
+					pos: new monaco.Range(lineNumber, index, lineNumber, index + match[1].length),
+					color: match[1]
+				}
+			}
+			if ((match = str.match(MonacoEditorStylesheetMods._rgbRegex))) {
+				const index = str.indexOf(match[0]);
+				return {
+					pos: new monaco.Range(lineNumber, index, lineNumber, index + match[0].length),
+					color: match[0]
+				}
+			}
+			if ((match = str.match(MonacoEditorStylesheetMods._rgbaRegex))) {
+				const index = str.indexOf(match[0]);
+				return {
+					pos: new monaco.Range(lineNumber, index, lineNumber, index + match[0].length),
+					color: match[0]
+				}
+			}
+			return null;
 		}
-		this._setup = true;
-		this._setupRequire();
-		this._defineProperties();
+
+		private _stringRepeat(str: string, amount: number) {
+			let result: string = '';
+			for (let i = 0; i < amount; i++) {
+				result = result + str;
+			}
+			return result;
+		}
+
+		private _getColors() {
+			const content = this._editor.getValue({
+				preserveBOM: false,
+				lineEnding: '\n'
+			});
+			const lines = content.split('\n');
+			const colors: Array<{
+				pos: monaco.Range;
+				color: string;
+			}> = [];
+			for (let i = 0; i < lines.length; i++) {
+				let line = lines[i];
+
+				let result: {
+					pos: monaco.Range;
+					color: string;
+				} = null;
+				while ((result = this._findColor(i, line))) {
+					colors.push(result);
+					line = line.slice(0, result.pos.startColumn) + 
+						this._stringRepeat('-', result.color.length) +
+						line.slice(result.pos.endColumn);
+				}
+			}
+			return colors;
+		}
+
+		private _highlightColors() {
+			const colors = this._getColors();
+			return colors.map((color) => {
+				return {
+					range: color.pos,
+					options: {
+						stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+						beforeContentClassName: `userScriptColorUnderline color${color}`
+					}
+				}
+			});
+		}
+
+		private _markUnderlines() {
+			const underlinables = this._editor.getDomNode().querySelectorAll('userScriptColorUnderline');
+			Array.prototype.slice.apply(underlinables).forEach((underlineable: HTMLElement) => {
+				let color: string = null;
+				for (let i = 0; i < underlineable.classList.length; i++) {
+					if (underlineable.classList.item(i).indexOf('color') === 0) {
+						color = underlineable.classList.item(i).slice(5);
+					}
+				}
+				if (!color) {
+					return;
+				}
+
+				underlineable.style.backgroundColor = color;
+			});
+		}
+
+		static getSettings(): monaco.editor.IEditorOptions {
+			return {};
+		}
 	}
-};
-window.MonacoEditorHackManager = MonacoEditorHackManager;
 
-type MonacoEditor = Polymer.El<'monaco-editor', typeof MOE>;
+	class MOE {
+		static is: string = 'monaco-editor';
 
-if (window.objectify) {
-	Polymer(window.objectify(MOE));
-} else {
-	window.addEventListener('ObjectifyReady', () => {
+		/**
+		 * The editor associated with this element
+		 */
+		static editor: monaco.editor.IStandaloneCodeEditor;
+
+		static _typeHandler: MonacoEditorWatcher;
+
+		private static _getSettings(editorType: 'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
+			if (editorType === 'script') {
+				return MonacoEditorScriptMods.getSettings();
+			} else if (editorType === 'stylesheet') {
+				return MonacoEditorStylesheetMods.getSettings();
+			} else {
+				return {};
+			}
+		}
+
+		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions,
+			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+				await MonacoEditorHackManager.monacoReady;
+				this._showSpinner();
+				MonacoEditorHackManager.setScope(this);
+				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
+				MonacoEditorHackManager.StyleHack.fixThemeScope(this);
+				this._hideSpinner();
+
+				this.editor.updateOptions(this._getSettings(editorType));
+				if (editorType === 'script') {
+					this._typeHandler = new MonacoEditorScriptMods(this.editor);
+				} else if (editorType === 'stylesheet') {
+					this._typeHandler = new MonacoEditorStylesheetMods(this.editor);
+				}
+				return this;
+			}
+
+		static destroy(this: MonacoEditor) {
+			this.editor.dispose();
+			this._typeHandler.destroy();
+			this._showSpinner();
+		}
+
+		static _showSpinner(this: MonacoEditor) {
+			this.$.placeholder.style.display = 'block';
+			this.$.spinner.active = true;
+			this.$.placeholder.classList.remove('hidden')
+		}
+
+		static async _hideSpinner(this: MonacoEditor) {
+			this.$.spinner.active = false;
+			this.$.placeholder.classList.add('hidden');
+			await new window.Promise((resolve) => {
+				window.setTimeout(() => {
+					resolve(null);
+				}, 1000);
+			});
+			this.$.placeholder.style.display = 'none';
+		}
+
+		static ready(this: MonacoEditor) {
+			MonacoEditorHackManager.setup();
+		}
+	}
+
+	class MonacoEditorHackManager {
+		/**
+		 * Whether this was set up already
+		 */
+		private static _setup: boolean = false;
+
+		/**
+		 * A promise keeping track of the status of the editor
+		 */
+		static monacoReady: Promise<void> = null;
+		
+		/**
+		 * The scope that the current editor is active in
+		 */
+		static currentScope: Polymer.RootElement = null;
+
+		static Caret = class MonacoEditorCaret {
+			/**
+			 * A cache containing the width of chars
+			 */
+			private static _charCache: {
+				[key: string]: number;
+			} = {}
+
+			/**
+			 * A canvas used for calculating char width
+			 */
+			private static _charCanvas: HTMLCanvasElement = document.createElement('canvas')
+
+			static getCharWidth(char: string, font: string) {
+				const cacheKey = char + font;
+				if (this._charCache[cacheKey]) {
+					return this._charCache[cacheKey];
+				}
+				var context = this._charCanvas.getContext("2d");
+				context.font = font;
+				var metrics = context.measureText(char);
+				var width = metrics.width;
+				this._charCache[cacheKey] = width;
+				return width;
+			}
+
+			static caretRangeFromPoint(this: ShadowRoot, x: number, y: number) {
+				// Get the element under the point
+				let el = this.elementFromPoint(x, y) as HTMLElement;
+
+				// Get the last child of the element until its firstChild is a text node
+				// This assumes that the pointer is on the right of the line, out of the tokens
+				// and that we want to get the offset of the last token of the line
+				while (el.firstChild.nodeType !== el.firstChild.TEXT_NODE) {
+					el = el.lastChild as HTMLElement;
+				}
+
+				// Grab its rect
+				var rect = el.getBoundingClientRect();
+				// And its font
+				var font = window.getComputedStyle(el, null).getPropertyValue('font');
+
+				// And also its txt content
+				var text = el.innerText;
+
+				// Poisition the pixel cursor at the left of the element
+				var pixelCursor = rect.left;
+				var offset = 0;
+				var step;
+
+				// If the point is on the right of the box put the cursor after the last character
+				if (x > rect.left + rect.width) {
+					offset = text.length;
+				} else {
+					// Goes through all the characters of the innerText, and checks if the x of the point
+					// belongs to the character.
+					for (var i = 0; i < text.length + 1; i++) {
+						// The step is half the width of the character
+						step = MonacoEditorHackManager.Caret.getCharWidth(text.charAt(i), font) / 2;
+						// Move to the center of the character
+						pixelCursor += step;
+						// If the x of the point is smaller that the position of the cursor, the point is over that character
+						if (x < pixelCursor) {
+							offset = i;
+							break;
+						}
+						// Move between the current character and the next
+						pixelCursor += step;
+					}
+				}
+
+				// Creates a range with the text node of the element and set the offset found
+				var range = document.createRange();
+				range.setStart(el.firstChild, offset);
+				range.setEnd(el.firstChild, offset);
+
+				return range;
+			};
+		}
+
+		static StyleHack = class MonacoEditorStyleHack {
+			/**
+			 * The monaco theme style element
+			 */
+			static monacoStyleElement: HTMLStyleElement = null;
+
+			static fixThemeScope(scope: MonacoEditor) {
+				this.monacoStyleElement = this.monacoStyleElement || 
+					document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
+				
+				if (scope.shadowRoot.children[0] !== this.monacoStyleElement) {
+					scope.shadowRoot.insertBefore(this.monacoStyleElement, scope.shadowRoot.children[0]);
+				}
+			}
+		}
+
+		static setScope(scope: Polymer.RootElement) {
+			this.currentScope = scope;
+		}
+
+		private static _setupRequire() {
+			this.monacoReady = new window.Promise<void>(async (resolve) => {
+				await window.onExists('require');
+				window.require.config({
+					paths: {
+						'vs': '../elements/edit-pages/monaco-editor/src/min/vs'
+					}
+				});
+				window.require(['vs/editor/editor.main'], () => {
+					resolve(null);
+				});
+			});
+		}
+
+		private static _defineProperties() {
+			Object.defineProperties(this, {
+				getLocalBodyShadowRoot: {
+					get: () => {
+						return this.currentScope.shadowRoot;
+					}
+				},
+				caretRangeFromPoint: {
+					get: () => {
+						return this.Caret.caretRangeFromPoint.bind(this.currentScope.shadowRoot);
+					}
+				}
+			});
+		}
+
+		static setup() {
+			if (this._setup) {
+				return;
+			}
+			this._setup = true;
+			this._setupRequire();
+			this._defineProperties();
+		}
+	};
+	window.MonacoEditorHackManager = MonacoEditorHackManager;
+
+	export type MonacoEditor = Polymer.El<'monaco-editor', typeof MOE>;
+
+	if (window.objectify) {
 		Polymer(window.objectify(MOE));
-	});
+	} else {
+		window.addEventListener('ObjectifyReady', () => {
+			Polymer(window.objectify(MOE));
+		});
+	}
 }
+
+type MonacoEditor = MonacoEditorElement.MonacoEditor;
