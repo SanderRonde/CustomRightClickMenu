@@ -292,6 +292,8 @@ namespace MonacoEditorElement {
 			return state;
 		}
 
+		private static readonly _metaPropRegex = /@(\w+)(\s+)(.+)?/g;
+
 		private _getMetaContent(outlines: {
 			start: monaco.Position;
 			end: monaco.Position;
@@ -302,7 +304,7 @@ namespace MonacoEditorElement {
 			});
 
 			const tags: CRM.MetaTags = {};
-			const regex = new RegExp(/@(\w+)(\s+)(.+)?/g);
+			const regex = MonacoEditorMetaBlockMods._metaPropRegex;
 			for (let line in content.split('\n')) {
 				const matches = regex.exec(line);
 				if (matches) {
@@ -384,7 +386,7 @@ namespace MonacoEditorElement {
 				return null;
 			}
 
-			const regex = new RegExp(/@(\w+)(\s+)(.+)?/g);
+			const regex = MonacoEditorMetaBlockMods._metaPropRegex;
 			const lines = content.split('\n');
 
 			const newDecorations: Array<monaco.editor.IModelDeltaDecoration> = [];
