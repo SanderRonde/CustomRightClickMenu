@@ -617,7 +617,9 @@ namespace MonacoEditorElement {
 			'SlateGrey', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 
 			'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 
 			'YellowGreen'
-		].map(str => str.toLowerCase());
+		].map(str => str.toLowerCase()).sort((a, b) => {
+			return b.length - a.length
+		});
 
 		private static readonly _hexRegex = /#((([a-f]|[A-F]){8})|(([a-f]|[A-F]){6})|(([a-f]|[A-F]){3}))[^a-f|A-F]/;
 
