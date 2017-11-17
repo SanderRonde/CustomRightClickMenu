@@ -32,3 +32,17 @@
 #placeholder.hidden {
 	opacity: 0;
 }
+
+.userScriptKeyHighlight {
+	color: #569cd6!important;
+}
+
+.userScriptValueHighlight {
+	color: rgb(149, 243, 255)!important;
+}
+
+.userScriptGutterHighlight {
+	background: #52ffd742;
+	width: 5px!important;
+	left: 3px;
+}

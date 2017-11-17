@@ -228,9 +228,9 @@ namespace MonacoEditorElement {
 			this._shouldUpdateDecorationsListeners.push(listener);
 		}
 
-		private readonly _userScriptStart = '==UserScript==';
+		private static readonly _userScriptStart = '==UserScript==';
 
-		private readonly _userScriptEnd = '==/UserScript==';
+		private static readonly _userScriptEnd = '==/UserScript==';
 
 		private _getMetaOutlines(): {
 			start: monaco.Position;
@@ -240,8 +240,8 @@ namespace MonacoEditorElement {
 				preserveBOM: false,
 				lineEnding: '\n'
 			});
-			if (editorContent.indexOf(this._userScriptStart) !== -1 ||
-				editorContent.indexOf(this._userScriptEnd) !== -1) {
+			if (editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptStart) === -1 ||
+				editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptEnd) === -1) {
 					return (this._metaBlock = null);
 				}
 
@@ -257,14 +257,14 @@ namespace MonacoEditorElement {
 				let line = lines[lineIndex];
 
 				let char;
-				if ((char = line.indexOf(this._userScriptStart)) !== -1) {
+				if ((char = line.indexOf(MonacoEditorMetaBlockMods._userScriptStart)) !== -1) {
 					if (!state.start) {
 						state.start = new monaco.Position(lineIndex + 1, char);
 					}
 				}
-				if ((char = line.indexOf(this._userScriptEnd)) !== -1) {
+				if ((char = line.indexOf(MonacoEditorMetaBlockMods._userScriptEnd)) !== -1) {
 					if (!state.end) {
-						state.end = new monaco.Position(lineIndex + 1, char + this._userScriptEnd.length);
+						state.end = new monaco.Position(lineIndex + 1, char + MonacoEditorMetaBlockMods._userScriptEnd.length);
 					}
 					break;
 				}
@@ -288,10 +288,13 @@ namespace MonacoEditorElement {
 			const tags: CRM.MetaTags = {};
 			const regex = new RegExp(/@(\w+)(\s+)(.+)?/g);
 			for (let line in content.split('\n')) {
-				const matches = line.match(regex);
+				const matches = regex.exec(line);
 				if (matches) {
 					const key = matches[1];
 					const value = matches[3];
+					if (!key || !value) {
+						continue;
+					}
 					if (key in tags) {
 						tags[key].push(value);
 					} else {
@@ -364,35 +367,36 @@ namespace MonacoEditorElement {
 			const newDecorations: Array<monaco.editor.IModelDeltaDecoration> = [];
 			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
-				const match = line.match(regex);
+				const match = regex.exec(line);
 				if (match) {
 					const key = match[1];
 					const value = match[3];
 
-					const keyStartIndex = line.indexOf(key);
-					const valueStartIndex = value.indexOf(value);
-					const indices = {
-						key: new monaco.Range(i + 1, keyStartIndex, i + 1, keyStartIndex + key.length),
-						value: new monaco.Range(i + 1, valueStartIndex, i + 1, valueStartIndex + value.length)
+					const keyStartIndex = key ? line.indexOf(key) : 0;
+					const keyEnd = key ? (keyStartIndex + key.length) : 0;
+					if (key) {
+						newDecorations.push({
+							range: new monaco.Range(i + 1, keyStartIndex + 1, i + 1, keyEnd + 1),
+							options: {
+								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+								inlineClassName: 'userScriptKeyHighlight',
+								hoverMessage: this._getKeyDescription(key),
+								isWholeLine: false
+							}
+						});
 					}
-					newDecorations.push({
-						range: indices.key,
-						options: {
-							stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-							className: 'userScriptKeyHighlight',
-							hoverMessage: this._getKeyDescription(key),
-							isWholeLine: false
-						}
-					});
-					newDecorations.push({
-						range: indices.value,
-						options: {
-							stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-							className: 'userScriptValueHighlight',
-							hoverMessage: `Value \`${value}\` for key \`${key}\``,
-							isWholeLine: false
-						}
-					});
+					if (value) {
+						const valueStartIndex = line.slice(keyEnd).indexOf(value) + keyEnd;
+						newDecorations.push({
+							range: new monaco.Range(i + 1, valueStartIndex + 1, i + 1, valueStartIndex + value.length + 1),
+							options: {
+								stickiness: monaco.editor.TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+								inlineClassName: 'userScriptValueHighlight',
+								hoverMessage: `Value \`${value}\` for key \`${key}\``,
+								isWholeLine: false
+							}
+						});
+					}
 				}
 			}
 
@@ -555,30 +559,30 @@ namespace MonacoEditorElement {
 				let index: number = -1;
 				if ((index = str.toLowerCase().indexOf(color)) > -1) {
 					return {
-						pos: new monaco.Range(lineNumber, index, lineNumber, index + color.length),
+						pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + color.length + 1),
 						color: color
 					}
 				}
 			}
 			let match: RegExpMatchArray = null;
-			if ((match = str.match(MonacoEditorStylesheetMods._hexRegex))) {
+			if ((match = MonacoEditorStylesheetMods._hexRegex.exec(str))) {
 				const index = str.indexOf(match[1]);
 				return {
-					pos: new monaco.Range(lineNumber, index, lineNumber, index + match[1].length),
+					pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + match[1].length + 1),
 					color: match[1]
 				}
 			}
-			if ((match = str.match(MonacoEditorStylesheetMods._rgbRegex))) {
+			if ((match = MonacoEditorStylesheetMods._rgbRegex.exec(str))) {
 				const index = str.indexOf(match[0]);
 				return {
-					pos: new monaco.Range(lineNumber, index, lineNumber, index + match[0].length),
+					pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + match[0].length + 1),
 					color: match[0]
 				}
 			}
-			if ((match = str.match(MonacoEditorStylesheetMods._rgbaRegex))) {
+			if ((match = MonacoEditorStylesheetMods._rgbaRegex.exec(str))) {
 				const index = str.indexOf(match[0]);
 				return {
-					pos: new monaco.Range(lineNumber, index, lineNumber, index + match[0].length),
+					pos: new monaco.Range(lineNumber + 1, index + 1, lineNumber + 1, index + match[0].length + 1),
 					color: match[0]
 				}
 			}
