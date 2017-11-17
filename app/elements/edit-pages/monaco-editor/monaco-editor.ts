@@ -658,11 +658,8 @@ namespace MonacoEditorElement {
 				} = null;
 				const cssRuleParts = this._getCssRuleParts(line);
 				for (let cssRulePart of cssRuleParts) {
-					while ((result = this._findColor(i, cssRulePart.text, cssRulePart.start))) {
+					if (result = this._findColor(i, cssRulePart.text, cssRulePart.start)) {
 						colors.push(result);
-						line = line.slice(0, result.pos.startColumn) + 
-							this._stringRepeat('-', result.color.length) +
-							line.slice(result.pos.endColumn);
 					}
 				}
 			}
