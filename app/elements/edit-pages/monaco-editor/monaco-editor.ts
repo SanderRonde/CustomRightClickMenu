@@ -72,13 +72,10 @@ namespace MonacoEditorElement {
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
 			this._editor = editor;
 
-			console.log('model is', editor.getModel())
 			if (editor.getModel()) {
-				console.log('Adding listener');
 				this._onModelChange(editor.getModel());
 			}
 			this._monacoListeners.push(editor.onDidChangeModel((e) => {
-				console.log('Model changed');
 				this._onModelChange(editor.getModel());
 			}));
 		}
