@@ -154,69 +154,12 @@
 		</div>
 		<error-reporting-tool class="elementLoading"></error-reporting-tool>
 		<crm-app class="elementLoading"></crm-app>
-		<template id="editorOptionsTemplate">
-			<div id="settingsContainer">
-				<div class="editorSettingsTxt">
-					Editor Settings
-				</div>
-				<div id="editorThemeSettingCont">
-					<div id="editorThemeSettingTxt">Theme:</div>
-					<div id="editorThemeSettingChoicesCont">
-						<div id="editorThemeSettingWhite" class="editorThemeSetting"></div>
-						<div id="editorThemeSettingDark" class="editorThemeSetting"></div>
-					</div>
-				</div>
-				<br />
-				<div id="editorThemeFontSize">
-					<paper-input id="editorThemeFontSizeInput" type="number" label="font size %">
-						<div suffix>%</div>
-					</paper-input>
-				</div>
-				<br />
-				<div id="editorTabsOrSpacesSettingCont">
-					<div id="editorTabsOrSpacesCheckbox">
-						<paper-checkbox></paper-checkbox>
-					</div>
-					<div id="editorTabsOrSpacesTxt">Use tabs instead of spaces</div>
-				</div>
-				<br />
-				<div id="editorTabSizeSettingCont">
-					<div id="editorTabSizeInput">
-						<paper-input-container>
-							<label>Indent size</label>
-							<input min="1" is="iron-input" type="number"/>
-						</paper-input-container>
-					</div>
-				</div>
-				<br />
-				<div id="editorJSLintGlobals">
-					<div id="editorJSLintGlobalsFlexCont">
-						<paper-input id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
-					</div>
-				</div>
-				<br />
-				<br />
-				<div id="keyBindingsText" class="editorSettingsTxt">Key Bindings</div>
-				<br id="afterEditorSettingsSpacing" /><br /><br />
-			</div>
-		</template>
 		<template id="keyBindingTemplate">
 			<div class="keyBinding">
 				<div>
 					<paper-input class="keyBindingSettingKeyInput"></paper-input>
 				</div>
 				<br />
-			</div>
-		</template>
-		<template id="scriptEditorTemplate">
-			<div id="bubbleCont">
-				<paper-material id="settingsShadow" elevation="5">
-					<div id="editorOptionsContainer">
-						<paper-material id="editorOptions" elevation="5">
-
-						</paper-material>
-					</div>
-				</paper-material>
 			</div>
 		</template>
 		<!-- build:js inline -->
