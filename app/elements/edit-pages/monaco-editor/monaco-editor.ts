@@ -981,7 +981,7 @@ namespace MonacoEditorElement {
 				insertText: '==/UserScript==',
 				detail: 'UserScript end tag',
 				documentation: 'The end tag for a UserScript metadata block'
-			}];
+			}] as Array<monaco.languages.CompletionItem>;
 			const keyCompletions = {
 				isIncomplete: true,
 				items: Object.getOwnPropertyNames(metaDataDescriptions).map((key: keyof typeof metaDataDescriptions) => {
@@ -994,7 +994,7 @@ namespace MonacoEditorElement {
 						documentation: description
 					}
 				})
-			};
+			} as monaco.languages.CompletionList;
 			Object.defineProperties(this, {
 				getLocalBodyShadowRoot: {
 					get: () => {
