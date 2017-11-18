@@ -229,7 +229,6 @@ namespace MonacoEditorElement {
 		}
 		
 		private _defineMetaOnModel() {
-			console.log('defininig');
 			Object.defineProperty(this._editor.getModel(), '_metaBlock', {
 				get: () => {
 					return this.getMetaBlock();
