@@ -971,13 +971,13 @@ namespace MonacoEditorElement {
 		private static _defineProperties() {
 			const tagCompletions = [{
 				label: '==UserScript==',
-				kind: monaco.languages.CompletionItemKind.Text,
+				kind: monaco.languages.CompletionItemKind.Property,
 				insertText: '==UserScript==',
 				detail: 'UserScript start tag',
 				documentation: 'The start tag for a UserScript metadata block'
 			}, {
 				label: '==/UserScript==',
-				kind: monaco.languages.CompletionItemKind.Text,
+				kind: monaco.languages.CompletionItemKind.Property,
 				insertText: '==/UserScript==',
 				detail: 'UserScript end tag',
 				documentation: 'The end tag for a UserScript metadata block'
@@ -988,7 +988,7 @@ namespace MonacoEditorElement {
 					const description = metaDataDescriptions[key];
 					return {
 						label: `@${key}`,
-						kind: monaco.languages.CompletionItemKind.Text,
+						kind: monaco.languages.CompletionItemKind.Property,
 						insertText: `@${key}`,
 						detail: 'Metadata key',
 						documentation: description
