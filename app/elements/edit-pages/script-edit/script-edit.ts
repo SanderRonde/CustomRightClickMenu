@@ -529,8 +529,8 @@ class SCE {
 		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
 		window.paperLibrariesSelector.updateLibraries((this.editorMode === 'main' ?
 			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
-		this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-		//this.fullscreenEl.style.display = 'none';
+		this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
+		//this.$.editorFullScreen.style.display = 'none';
 		const $editorWrapper = $(this.editorManager.editor.getDomNode());
 		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
 		buttonShadow.style.position = 'absolute';
@@ -614,7 +614,7 @@ class SCE {
 			_this.editorManager.editor.getDomNode().classList.remove('fullscreen');
 			_this.editorManager.editor.getDomNode().classList.add('small');
 			const editorCont = window.doc.fullscreenEditor;
-			_this.fullscreenEl.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
+			_this.$.editorFullScreen.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			$(editorCont).animate({
 				width: _this.preFullscreenEditorDimensions.width,
 				height: _this.preFullscreenEditorDimensions.height,
@@ -656,12 +656,14 @@ class SCE {
 		}
 		const negHalfRadius = -circleRadius;
 		circleRadius = circleRadius * 2;
-		this.settingsShadow.parentElement.style.width = editorWidth + '';
-		this.settingsShadow.parentElement.style.height = editorHeight + '';
-		this.fullscreenEl.style.display = 'none';
+		this.$.bubbleCont.parentElement.style.width = `${editorWidth}px`;
+		this.$.bubbleCont.parentElement.style.height = `${editorHeight}px`;
+		this.$.editorOptionsContainer.style.width = `${editorWidth}px`;
+		this.$.editorOptionsContainer.style.height = `${editorHeight}px`;
+		this.$.editorFullScreen.style.display = 'none';
 		const settingsInitialMarginLeft = -500;
 		(this.$$('#editorThemeFontSizeInput') as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
-		$(this.settingsShadow).css({
+		$(this.$.settingsShadow).css({
 			width: '50px',
 			height: '50px',
 			borderRadius: '50%',
@@ -676,18 +678,16 @@ class SCE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
+				this.$.editorOptionsContainer.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				this.$.editorOptionsContainer.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
 				if (this.fullscreen) {
-					const settingsCont = this.editorManager.editor.getDomNode().querySelector('#settingsContainer');
-					settingsCont.style.overflow = 'scroll';
-					settingsCont.style.overflowX = 'hidden';
-					settingsCont.style.height = 'calc(100vh - 66px)';
-					const bubbleCont = this.editorManager.editor.getDomNode().querySelector('#bubbleCont');
-					bubbleCont.style.position = 'fixed';
-					bubbleCont.style.zIndex = '50';
+					this.$.settingsContainer.style.overflow = 'scroll';
+					this.$.settingsContainer.style.overflowX = 'hidden';
+					this.$.settingsContainer.style.height = 'calc(100vh - 66px)';
+					this.$.bubbleCont.style.position = 'fixed';
+					this.$.bubbleCont.style.zIndex = '50';
 				}
 			}
 		});
@@ -699,8 +699,8 @@ class SCE {
 	static hideOptions(this: NodeEditBehaviorScriptInstance) {
 		this.optionsShown = false;
 		const settingsInitialMarginLeft = -500;
-		this.fullscreenEl.style.display = 'block';
-		$(this.settingsShadow).animate({
+		this.$.editorFullScreen.style.display = 'block';
+		$(this.$.settingsShadow).animate({
 			width: 0,
 			height: 0,
 			marginTop: 0,
@@ -709,8 +709,8 @@ class SCE {
 			duration: 500,
 			easing: 'linear',
 			progress: (animation: any) => {
-				this.editorOptions.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
-				this.editorOptions.style.marginTop = -animation.tweens[2].now + 'px';
+				this.$.editorOptionsContainer.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
+				this.$.editorOptionsContainer.style.marginTop = -animation.tweens[2].now + 'px';
 			},
 			complete: () => {
 				const zoom = window.app.settings.editor.zoom;
@@ -724,12 +724,10 @@ class SCE {
 				}
 
 				if (this.fullscreen) {
-					const settingsCont = this.editorManager.editor.getDomNode().querySelector('#settingsContainer');
-					settingsCont.style.height = '345px';
-					settingsCont.style.overflowX = 'hidden';
-					const bubbleCont = this.editorManager.editor.getDomNode().querySelector('#bubbleCont');
-					bubbleCont.style.position = 'absolute';
-					bubbleCont.style.zIndex = 'auto';
+					this.$.settingsContainer.style.height = '345px';
+					this.$.settingsContainer.style.overflowX = 'hidden';
+					this.$.bubbleCont.style.position = 'absolute';
+					this.$.bubbleCont.style.zIndex = 'auto';
 				}
 			}
 		});
@@ -740,11 +738,6 @@ class SCE {
 	 */
 	static reloadEditor(this: NodeEditBehaviorScriptInstance, disable: boolean = false) {
 		if (this.editorManager) {
-			this.editorManager.editor.getDomNode().remove();
-			this.$.editorPlaceholder.style.display = 'flex';
-			this.$.editorPlaceholder.style.opacity = '1';
-			this.$.editorPlaceholder.style.position = 'absolute';
-
 			if (this.editorMode === 'main') {
 				this.newSettings.value.script = this.editorManager.editor.getValue();
 			} else if (this.editorMode === 'background') {
@@ -756,8 +749,8 @@ class SCE {
 					this.newSettings.value.options = this.editorManager.editor.getValue();
 				}
 			}
+			this.editorManager.destroy();
 		}
-		this.editorManager = null;
 
 		let value;
 		if (this.editorMode === 'main') {
@@ -1253,8 +1246,8 @@ class SCE {
 		// this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
 		// this.fillEditorOptions(this.editorOptions);
 
-		// this.fullscreenEl = clone.querySelector('#editorFullScreen') as HTMLElement;
-		// this.fullscreenEl.addEventListener('click', () => {
+		// this.$.editorFullScreen = clone.querySelector('#editorFullScreen') as HTMLElement;
+		// this.$.editorFullScreen.addEventListener('click', () => {
 		// 	this.toggleFullScreen.apply(this);
 		// });
 
@@ -1272,7 +1265,7 @@ class SCE {
 		// 	this.$.editorPlaceholder.style.display = 'none';
 		// 	buttonShadow.style.right = '-1px';
 		// 	buttonShadow.style.position = 'absolute';
-		// 	this.fullscreenEl.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
+		// 	this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		// } else {
 		// 	this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
 		// 	this.$.editorPlaceholder.style.width = this.editorWidth + 'px';

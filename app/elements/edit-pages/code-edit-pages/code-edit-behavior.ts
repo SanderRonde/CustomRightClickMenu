@@ -45,11 +45,6 @@ class CEB {
 	static settingsEl: HTMLElement = null;
 
 	/**
-	 * The fullscreen element on the bottom-right of the editor
-	 */
-	static fullscreenEl: HTMLElement = null;
-
-	/**
 	 * The container of the fullscreen and settings buttons
 	 */
 	static buttonsContainer: HTMLElement = null;
@@ -83,16 +78,6 @@ class CEB {
 	 * Whether the editor is in fullscreen mode
 	 */
 	static fullscreen: boolean = false;
-
-	/**
-	 * The element that contains the editor's options
-	 */
-	static editorOptions: HTMLElement = null;
-
-	/**
-	 * The settings shadow element which is the circle on options
-	 */
-	static settingsShadow: HTMLElement = null;
 
 	/**
 	 * The editor's settings before going to the settings page
@@ -168,14 +153,14 @@ class CEB {
 		};
 	};
 
-		/**
+	/**
 	 * Toggles fullscreen mode for the editor
 	 */
 	static toggleFullScreen(this: CodeEditBehaviorInstance) {
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
 	};
 
-		/**
+	/**
 	 * Toggles the editor's options
 	 */
 	static toggleOptions(this: CodeEditBehaviorInstance) {

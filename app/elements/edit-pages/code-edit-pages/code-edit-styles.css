@@ -251,7 +251,6 @@ input {
 #bubbleCont {
 	width: 508px !important;
 	height: 100%!important;
-	position: absolute;
 	overflow: hidden;
 	right: 0;
 	pointer-events: none;
@@ -437,4 +436,19 @@ input {
 
 .userScriptGutterHighlight {
 	background: lightblue;
+}
+
+#settingsAnimationPositioner {
+	position: absolute;
+}
+
+#editorOptionsContainer {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	pointer-events: all;
+	background-color: white;
+}
+
+.paper-material {
+	display: inline;
 }
