@@ -1021,48 +1021,44 @@ namespace MonacoEditorElement {
 
 		private static readonly _metaKeyRegex = /@(\w*)/;
 
-		private static _onComplete(model: monaco.editor.IReadOnlyModel,
-			position: monaco.Position): Array<monaco.languages.CompletionItem>|monaco.languages.CompletionList {
-				const lineRange = new monaco.Range(position.lineNumber, 0, position.lineNumber, position.column);
-				const currentLineText = model.getValueInRange(lineRange);
-
-				if (currentLineText.indexOf('==U') !== -1 || currentLineText.indexOf('==/') !== -1) {
-					//Chances are they're typing ==UserScript== or ==/UserScript==
+		private static _setupCustomCompletion() {
+			const metaTagProvider: monaco.languages.CompletionItemProvider = {
+				provideCompletionItems: (model, position) => {
 					return (this as any)._metaTagCompletions as Array<monaco.languages.CompletionItem>;
 				}
-
-				const metaBlock = (model as any)._metaBlock as MetaBlock;
-				if (!metaBlock || new monaco.Range(metaBlock.start.lineNumber, metaBlock.start.column,
-					metaBlock.end.lineNumber, metaBlock.end.column).containsPosition(position)) {
-						let keyParts = currentLineText.split('@');
-						let length = keyParts[0].length;
-						keyParts = keyParts.slice(1);
-						for (let keyPart of keyParts) {
-							const partialStr = `@${keyPart}`;
-							let match: RegExpExecArray = null;
-							if ((match = this._metaKeyRegex.exec(partialStr))) {
-								const matchIndex = length + partialStr.indexOf(match[0]) + 1;
-								const matchRange = new monaco.Range(position.lineNumber, matchIndex, 
-									position.lineNumber, matchIndex + match[0].length);
-								if (matchRange.containsPosition(position)) {
-									return (this as any)._metaKeyCompletions as monaco.languages.CompletionList;
-								}
-							}
-							length += partialStr.length;
-						}
-					}
-
-				return [];
 			}
-
-		private static _setupCustomCompletion() {
-			const provider: monaco.languages.CompletionItemProvider = {
+			const metaKeyProvider: monaco.languages.CompletionItemProvider = {
 				provideCompletionItems: (model, position) => {
-					return this._onComplete(model, position);
+					const lineRange = new monaco.Range(position.lineNumber, 0, position.lineNumber, position.column);
+					const currentLineText = model.getValueInRange(lineRange);
+					const metaBlock = (model as any)._metaBlock as MetaBlock;
+					if (!metaBlock || new monaco.Range(metaBlock.start.lineNumber, metaBlock.start.column,
+						metaBlock.end.lineNumber, metaBlock.end.column).containsPosition(position)) {
+							let keyParts = currentLineText.split('@');
+							let length = keyParts[0].length;
+							keyParts = keyParts.slice(1);
+							for (let keyPart of keyParts) {
+								const partialStr = `@${keyPart}`;
+								let match: RegExpExecArray = null;
+								if ((match = this._metaKeyRegex.exec(partialStr))) {
+									const matchIndex = length + partialStr.indexOf(match[0]) + 1;
+									const matchRange = new monaco.Range(position.lineNumber, matchIndex, 
+										position.lineNumber, matchIndex + match[0].length);
+									if (matchRange.containsPosition(position)) {
+										return (this as any)._metaKeyCompletions as monaco.languages.CompletionList;
+									}
+								}
+								length += partialStr.length;
+							}
+						}
+	
+					return [];
 				}
 			}
-			monaco.languages.registerCompletionItemProvider('javascript', provider);
-			monaco.languages.registerCompletionItemProvider('css', provider);
+			monaco.languages.registerCompletionItemProvider('javascript', metaTagProvider);
+			monaco.languages.registerCompletionItemProvider('css', metaTagProvider);
+			monaco.languages.registerCompletionItemProvider('javascript', metaKeyProvider);
+			monaco.languages.registerCompletionItemProvider('css', metaKeyProvider);
 		}
 
 		static setup() {
