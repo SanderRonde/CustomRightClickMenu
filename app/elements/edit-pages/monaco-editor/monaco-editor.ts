@@ -1,16 +1,4 @@
-/// <reference path="../../elements.d.ts" />import { decode } from "punycode";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";import { underline } from "chalk";import { decode } from "punycode";
-
-
-
-
-
-
-
-
-
-
-
-
+/// <reference path="../../elements.d.ts" />
 
 declare const ShadowRoot: typeof HTMLElement & {
 	prototype: {
@@ -234,6 +222,19 @@ namespace MonacoEditorElement {
 					this._metaDataHighlightDisabled = false;
 				}
 			}));
+			this._defineMetaOnModel();
+			this._monacoListeners.push(this._editor.onDidChangeModel(() => {
+				this._defineMetaOnModel();
+			}));
+		}
+		
+		private _defineMetaOnModel() {
+			console.log('defininig');
+			Object.defineProperty(this._editor.getModel(), '_metaBlock', {
+				get: () => {
+					return this.getMetaBlock();
+				}
+			});
 		}
 
 		protected _addDecorationListener(listener: () => Array<monaco.editor.IModelDeltaDecoration>) {
@@ -469,7 +470,7 @@ namespace MonacoEditorElement {
 			this._doDecorationUpdate(this._formatDecorations(decorations));
 		}
 
-		_onModelContentChange(changeEvent: monaco.editor.IModelContentChangedEvent) {
+		public _onModelContentChange(changeEvent: monaco.editor.IModelContentChangedEvent) {
 			this._metaBlockChanged = true;
 
 			if (this._shouldUpdateDecorations(changeEvent)) {
@@ -784,11 +785,11 @@ namespace MonacoEditorElement {
 
 		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions,
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-				await MonacoEditorHackManager.monacoReady;
+				await MonacoEditorHookManager.monacoReady;
 				this._showSpinner();
-				MonacoEditorHackManager.setScope(this);
+				MonacoEditorHookManager.setScope(this);
 				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
-				MonacoEditorHackManager.StyleHack.fixThemeScope(this);
+				MonacoEditorHookManager.StyleHack.fixThemeScope(this);
 				this._hideSpinner();
 
 				this.editor.updateOptions(this._getSettings(editorType));
@@ -833,11 +834,11 @@ namespace MonacoEditorElement {
 		}
 
 		static ready(this: MonacoEditor) {
-			MonacoEditorHackManager.setup();
+			MonacoEditorHookManager.setup();
 		}
 	}
 
-	class MonacoEditorHackManager {
+	class MonacoEditorHookManager {
 		/**
 		 * Whether this was set up already
 		 */
@@ -911,7 +912,7 @@ namespace MonacoEditorElement {
 					// belongs to the character.
 					for (var i = 0; i < text.length + 1; i++) {
 						// The step is half the width of the character
-						step = MonacoEditorHackManager.Caret.getCharWidth(text.charAt(i), font) / 2;
+						step = MonacoEditorHookManager.Caret.getCharWidth(text.charAt(i), font) / 2;
 						// Move to the center of the character
 						pixelCursor += step;
 						// If the x of the point is smaller that the position of the cursor, the point is over that character
@@ -968,6 +969,32 @@ namespace MonacoEditorElement {
 		}
 
 		private static _defineProperties() {
+			const tagCompletions = [{
+				label: '==UserScript==',
+				kind: monaco.languages.CompletionItemKind.Text,
+				insertText: '==UserScript==',
+				detail: 'UserScript start tag',
+				documentation: 'The start tag for a UserScript metadata block'
+			}, {
+				label: '==/UserScript==',
+				kind: monaco.languages.CompletionItemKind.Text,
+				insertText: '==/UserScript==',
+				detail: 'UserScript end tag',
+				documentation: 'The end tag for a UserScript metadata block'
+			}];
+			const keyCompletions = {
+				isIncomplete: true,
+				items: Object.getOwnPropertyNames(metaDataDescriptions).map((key: keyof typeof metaDataDescriptions) => {
+					const description = metaDataDescriptions[key];
+					return {
+						label: `@${key}`,
+						kind: monaco.languages.CompletionItemKind.Text,
+						insertText: `@${key}`,
+						detail: 'Metadata key',
+						documentation: description
+					}
+				})
+			};
 			Object.defineProperties(this, {
 				getLocalBodyShadowRoot: {
 					get: () => {
@@ -978,8 +1005,64 @@ namespace MonacoEditorElement {
 					get: () => {
 						return this.Caret.caretRangeFromPoint.bind(this.currentScope.shadowRoot);
 					}
+				},
+				_metaTagCompletions: {
+					get: () => {
+						return tagCompletions;
+					}
+				},
+				_metaKeyCompletions: {
+					get: () => {
+						return keyCompletions;
+					}
 				}
 			});
+		}
+
+		private static readonly _metaKeyRegex = /@(\w*)/;
+
+		private static _onComplete(model: monaco.editor.IReadOnlyModel,
+			position: monaco.Position): Array<monaco.languages.CompletionItem>|monaco.languages.CompletionList {
+				const lineRange = new monaco.Range(position.lineNumber, 0, position.lineNumber, position.column);
+				const currentLineText = model.getValueInRange(lineRange);
+
+				if (currentLineText.indexOf('==U') !== -1 || currentLineText.indexOf('==/') !== -1) {
+					//Chances are they're typing ==UserScript== or ==/UserScript==
+					return (this as any)._metaTagCompletions as Array<monaco.languages.CompletionItem>;
+				}
+
+				const metaBlock = (model as any)._metaBlock as MetaBlock;
+				if (!metaBlock || new monaco.Range(metaBlock.start.lineNumber, metaBlock.start.column,
+					metaBlock.end.lineNumber, metaBlock.end.column).containsPosition(position)) {
+						let keyParts = currentLineText.split('@');
+						let length = keyParts[0].length;
+						keyParts = keyParts.slice(1);
+						for (let keyPart of keyParts) {
+							const partialStr = `@${keyPart}`;
+							let match: RegExpExecArray = null;
+							if ((match = this._metaKeyRegex.exec(partialStr))) {
+								const matchIndex = length + partialStr.indexOf(match[0]) + 1;
+								const matchRange = new monaco.Range(position.lineNumber, matchIndex, 
+									position.lineNumber, matchIndex + match[0].length);
+								if (matchRange.containsPosition(position)) {
+									return (this as any)._metaKeyCompletions as monaco.languages.CompletionList;
+								}
+							}
+							length += partialStr.length;
+						}
+					}
+
+				return [];
+			}
+
+		private static _setupCustomCompletion() {
+			const provider: monaco.languages.CompletionItemProvider = {
+				provideCompletionItems: (model, position) => {
+					return this._onComplete(model, position);
+				}
+			}
+			monaco.languages.registerCompletionItemProvider('javascript', provider);
+			monaco.languages.registerCompletionItemProvider('css', provider);
 		}
 
 		static setup() {
@@ -988,10 +1071,13 @@ namespace MonacoEditorElement {
 			}
 			this._setup = true;
 			this._setupRequire();
-			this._defineProperties();
+			window.onExists('monaco').then(() => {
+				this._defineProperties();
+				this._setupCustomCompletion();
+			});
 		}
 	};
-	window.MonacoEditorHackManager = MonacoEditorHackManager;
+	window.MonacoEditorHackManager = MonacoEditorHookManager;
 
 	export type MonacoEditor = Polymer.El<'monaco-editor', typeof MOE>;
 
