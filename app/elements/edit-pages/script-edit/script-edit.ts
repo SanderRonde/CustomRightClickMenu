@@ -940,265 +940,137 @@ class SCE {
 		}
 	};
 
-	private static _posToIndex(this: NodeEditBehaviorScriptInstance, pos: CodeMirrorPos, lines: Array<string>): number {
-		let chars = 0;
-		for (let i = 0; i < lines.length; i++) {
-			if (i < pos.line) {
-				chars += lines[i].length;
-			} else {
-				chars += pos.ch;
-				return chars;
-			}
-			chars++;
-		}
-		return chars;
-	}
-
-	private static _indexToPos(this: NodeEditBehaviorScriptInstance, index: number, lines: Array<string>): {
-		line: number;
-		ch: number;
-	} {
-		let chars = 0;
-		for (let i = 0; i < lines.length; i++) {
-			chars += lines[i].length;
-			if (chars >= index) {
-				return {
-					line: i,
-					ch: index - (chars - lines[i].length)
-				}
-			}
-			chars++;
-		}
-		return {
-			line: 0,
-			ch: index
-		}
-	}
-
-	private static _posInRange(this: NodeEditBehaviorScriptInstance, val: {
-		start: number;
-		end: number;
-		lines: Array<string>;
-	}, lower: CodeMirrorPos, upper: CodeMirrorPos): boolean {
-		const lowerIndex = this._posToIndex(lower, val.lines);
-		const upperIndex = this._posToIndex(upper, val.lines);
-
-		return (val.end >= lowerIndex && val.end <= upperIndex) ||
-			(val.start >= lowerIndex && val.start <= upperIndex) ||
-			(val.start <= lowerIndex && val.end >= upperIndex)
-	}
-
-	static findChromeBaseExpression(this: NodeEditBehaviorScriptInstance, from: CodeMirrorPos, to: CodeMirrorPos) {
-		const code = this.editorManager.editor.getValue();
-		const file = {
-			name: '[doc]',
-			text: code,
-			type: 'full'
-		};
-		const lines = code.split('\n');
-		const lastLine = lines.pop();
-		window.app.ternServer.server.request({
-			query: {
-				docs: true,
-				end: window.CodeMirror.Pos(lines.length - 1, lastLine.length - 1),
-				file: '[doc]',
-				lineCharPositions: true,
-				type: 'type',
-				types: true,
-				urls: true
-			},
-			files: [file]
-		}, (e) => {
-			this.markers.forEach(marker => marker.clear());
-
-			let passedStart: boolean = false;
-			const file = window.app.ternServer.server.files[0];
-			const persistentData: PersistentData = {
-				lineSeperators: window.app.legacyScriptReplace.localStorageReplace.getLineSeperators(lines),
-				script: file.text,
-				lines: lines
-			}
-			for (let i = 0; i < file.ast.body.length; i++) {
-				const inRange = this._posInRange({
-					lines: lines,
-					start: file.ast.body[i].start,
-					end: file.ast.body[i].end
-				}, from, to);
-				if (!passedStart && inRange) {
-					passedStart = true;
-				} else if (passedStart && !inRange) {
-					return;
-				}
-				if (inRange) {
-					window.app.legacyScriptReplace.localStorageReplace.findExpression(file.ast.body[i],
-						persistentData, 'chrome', (data, expression) => {
-							//If the sibling is not window, ignore
-							if (data.isObj || data.siblingExpr.type === 'Identifier' && 
-								data.siblingExpr.name === 'window') {
-									this.markers.push(this.editorManager.doc.markText(this._indexToPos(expression.start, lines),
-										this._indexToPos(expression.end, lines), {
-											className: 'chromeCallsDeprecated',
-											inclusiveLeft: false,
-											inclusiveRight: false,
-											atomic: false,
-											clearOnEnter: false,
-											clearWhenEmpty: true,
-											readOnly: false,
-											title: 'Direct chrome calls are deprecated, please use the CRM API for chrome calls (documentation can be' + 
-												' found at the "docs" button)'
-										}));
-								}
-						});
-				}
-			}
-		});
-	}
-
 	/**
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance) {
-		//const editor = this.editorManager;
-		// editor.refresh();
-		// editor.on('metaTagChanged', (changes: {
-		// 	changed?: Array<{
-		// 		key: string;
-		// 		value: string | number;
-		// 		oldValue: string | number;
-		// 	}>;
-		// 	removed?: Array<{
-		// 		key: string;
-		// 		value: string | number;
-		// 		oldValue?: string | number;
-		// 	}>;
-		// 	added?: Array<{
-		// 		key: string;
-		// 		value: string | number;
-		// 		oldValue?: string | number;
-		// 	}>;
-		// }, metaTags: {
-		// 	[key: string]: string|number;
-		// }) => {
-		// 	if (this.editorMode === 'main') {
-		// 		this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
-		// 	}
-		// });
+		const editor = this.editorManager;
+		editor.refresh();
+		editor.on('metaTagChanged', (changes: {
+			changed?: Array<{
+				key: string;
+				value: string | number;
+				oldValue: string | number;
+			}>;
+			removed?: Array<{
+				key: string;
+				value: string | number;
+				oldValue?: string | number;
+			}>;
+			added?: Array<{
+				key: string;
+				value: string | number;
+				oldValue?: string | number;
+			}>;
+		}, metaTags: {
+			[key: string]: string|number;
+		}) => {
+			if (this.editorMode === 'main') {
+				this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
+			}
+		});
 		this.$.mainEditorTab.classList.add('active');
 		this.$.backgroundEditorTab.classList.remove('active');
-		// editor.on('metaDisplayStatusChanged', (info: {
-		// 	status: string
-		// }) => {
-		// 	this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
-		// });
-		// editor.performLint();
-		// let newChanges: Array<{
-		// 	from: CodeMirrorPos;
-		// 	to: CodeMirrorPos;
-		// 	removed: string[];
-		// 	text: string[];
-		// 	origin: string;
-		// 	time: number;
-		// }> = [];
-		// editor.on('changes', (cm, changes) => {
-		// 	newChanges = newChanges.concat(changes.map((change) => {
-		// 		return {
-		// 			from: change.from,
-		// 			to: change.to,
-		// 			removed: change.removed,
-		// 			text: change.text,
-		// 			origin: change.origin,
-		// 			time: Date.now()
-		// 		}
-		// 	}));
-		// });
-		// const interval = window.setInterval(() => {
-		// 	if (!this.active) {
-		// 		window.clearInterval(interval);
-		// 	} else {
-		// 		//Make sure no typing happened in the last second
-		// 		if (newChanges.length > 0 && Date.now() - newChanges.slice(-1)[0].time > 1000) {
-		// 			editor.performLint();
-		// 			newChanges.forEach((change) => {
-		// 				this.findChromeBaseExpression(change.from, change.to);
-		// 			});
-		// 			newChanges = [];
-		// 		}
-		// 	}
-		// }, 1000);
-		// if (this.newSettings.value.metaTagsHidden) {
-		// 	editor.doc.markText({
-		// 		line: editor.metaTags.metaStart.line,
-		// 		ch: editor.metaTags.metaStart.ch - 2
-		// 	}, {
-		// 		line: editor.metaTags.metaStart.line,
-		// 		ch: editor.metaTags.metaStart.ch + 27
-		// 	}, {
-		// 		className: 'metaTagHiddenText',
-		// 		inclusiveLeft: false,
-		// 		inclusiveRight: false,
-		// 		atomic: true,
-		// 		readOnly: true,
-		// 		addToHistory: true
-		// 	});
-		// 	editor.metaTags.metaTags = this.newSettings.value.metaTags;
-		// }
+		editor.on('metaDisplayStatusChanged', (info: {
+			status: string
+		}) => {
+			this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
+		});
+		editor.performLint();
+		let newChanges: Array<{
+			from: CodeMirrorPos;
+			to: CodeMirrorPos;
+			removed: string[];
+			text: string[];
+			origin: string;
+			time: number;
+		}> = [];
+		editor.on('changes', (cm, changes) => {
+			newChanges = newChanges.concat(changes.map((change) => {
+				return {
+					from: change.from,
+					to: change.to,
+					removed: change.removed,
+					text: change.text,
+					origin: change.origin,
+					time: Date.now()
+				}
+			}));
+		});
+		if (this.newSettings.value.metaTagsHidden) {
+			editor.doc.markText({
+				line: editor.metaTags.metaStart.line,
+				ch: editor.metaTags.metaStart.ch - 2
+			}, {
+				line: editor.metaTags.metaStart.line,
+				ch: editor.metaTags.metaStart.ch + 27
+			}, {
+				className: 'metaTagHiddenText',
+				inclusiveLeft: false,
+				inclusiveRight: false,
+				atomic: true,
+				readOnly: true,
+				addToHistory: true
+			});
+			editor.metaTags.metaTags = this.newSettings.value.metaTags;
+		}
 
-		// editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
-		// editor.display.wrapper.classList.add('script-edit-codeMirror');
-		// editor.display.wrapper.classList.add('small');
+		editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
+		editor.display.wrapper.classList.add('script-edit-codeMirror');
+		editor.display.wrapper.classList.add('small');
 
-		// const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
-		// editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
-		// const clone = editor.display.sizer;
+		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
+		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
+		const clone = editor.display.sizer;
 		
-		// this.settingsShadow = clone.querySelector('#settingsShadow') as HTMLElement;
-		// this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
-		// this.fillEditorOptions(this.editorOptions);
+		this.settingsShadow = clone.querySelector('#settingsShadow') as HTMLElement;
+		this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
+		this.fillEditorOptions(this.editorOptions);
 
-		// this.$.editorFullScreen = clone.querySelector('#editorFullScreen') as HTMLElement;
-		// this.$.editorFullScreen.addEventListener('click', () => {
-		// 	this.toggleFullScreen.apply(this);
-		// });
+		this.$.editorFullScreen = clone.querySelector('#editorFullScreen') as HTMLElement;
+		this.$.editorFullScreen.addEventListener('click', () => {
+			this.toggleFullScreen.apply(this);
+		});
 
-		// this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
-		// this.settingsEl.addEventListener('click', () => {
-		// 	this.toggleOptions.apply(this);
-		// });
-		// if (editor.getOption('readOnly') === 'nocursor') {
-		// 	editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
-		// }
-		// const buttonShadow = editor.display.sizer.querySelector('#buttonShadow') as HTMLElement;
+		this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
+		this.settingsEl.addEventListener('click', () => {
+			this.toggleOptions.apply(this);
+		});
+		if (editor.getOption('readOnly') === 'nocursor') {
+			editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
+		}
+		const buttonShadow = editor.display.sizer.querySelector('#buttonShadow') as HTMLElement;
 
-		// if (this.fullscreen) {
-		// 	editor.display.wrapper.style.height = 'auto';
-		// 	this.$.editorPlaceholder.style.display = 'none';
-		// 	buttonShadow.style.right = '-1px';
-		// 	buttonShadow.style.position = 'absolute';
-		// 	this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-		// } else {
-		// 	this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
-		// 	this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
-		// 	this.$.editorPlaceholder.style.position = 'absolute';
-		// 	if (this.editorPlaceHolderAnimation) {
-		// 		this.editorPlaceHolderAnimation.play();
-		// 	} else {
-		// 		this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
-		// 			{
-		// 				opacity: 1
-		// 			}, {
-		// 				opacity: 0
-		// 			}
-		// 		], {
-		// 			duration: 300,
-		// 			easing: 'bez'
-		// 		});
-		// 		const __this = this;
-		// 		this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
-		// 			__this.$.editorPlaceholder.style.display = 'none';
-		// 		};
-		// 	}
-		// }
-		//this.initTernKeyBindings();
+		if (this.fullscreen) {
+			editor.display.wrapper.style.height = 'auto';
+			this.$.editorPlaceholder.style.display = 'none';
+			buttonShadow.style.right = '-1px';
+			buttonShadow.style.position = 'absolute';
+			this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
+		} else {
+			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
+			this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
+			this.$.editorPlaceholder.style.position = 'absolute';
+			if (this.editorPlaceHolderAnimation) {
+				this.editorPlaceHolderAnimation.play();
+			} else {
+				this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
+					{
+						opacity: 1
+					}, {
+						opacity: 0
+					}
+				], {
+					duration: 300,
+					easing: 'bez'
+				});
+				const __this = this;
+				this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
+					__this.$.editorPlaceholder.style.display = 'none';
+				};
+			}
+		}
+		this.initTernKeyBindings();
 	};
 
 	/**
