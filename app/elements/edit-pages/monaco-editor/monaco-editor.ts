@@ -162,7 +162,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	interface MetaBlock {
+	export interface MetaBlock {
 		start: monaco.Position;
 		content: CRM.MetaTags;
 		end: monaco.Position;
@@ -560,14 +560,6 @@ namespace MonacoEditorElement {
 			
 			this._doDecorationUpdate(this._formatDecorations(decorations));
 		}
-
-		public _onModelContentChange(changeEvent: monaco.editor.IModelContentChangedEvent) {
-			this._hasMetaBlockChanged = true;
-
-			if (this._shouldUpdateDecorations(changeEvent)) {
-				this._doModelUpdate();
-			}
-		}
 	}
 
 	class MonacoEditorScriptMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
@@ -857,7 +849,7 @@ namespace MonacoEditorElement {
 		/**
 		 * A handler for any type-specific mods
 		 */
-		static _typeHandler: MonacoEditorStylesheetMods|MonacoEditorScriptMods;
+		static typeHandler: MonacoEditorStylesheetMods|MonacoEditorScriptMods;
 
 		/**
 		 * The stylesheet used by the CSS editor
@@ -885,17 +877,17 @@ namespace MonacoEditorElement {
 
 				this.editor.updateOptions(this._getSettings(editorType));
 				if (editorType === 'script') {
-					this._typeHandler = new MonacoEditorScriptMods(this.editor);
+					this.typeHandler = new MonacoEditorScriptMods(this.editor);
 				} else if (editorType === 'stylesheet') {
-					this._typeHandler = new MonacoEditorStylesheetMods(this.editor);
+					this.typeHandler = new MonacoEditorStylesheetMods(this.editor);
 				}
 				return this;
 			}
 
 		static destroy(this: MonacoEditor) {
 			this.editor.dispose();
-			this._typeHandler.destroy();
-			this._typeHandler = null;
+			this.typeHandler.destroy();
+			this.typeHandler = null;
 			this._showSpinner();
 		}
 

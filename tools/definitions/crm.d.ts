@@ -643,10 +643,6 @@ declare namespace CRM {
 		 */
 		oldScript?: string;
 		/**
-		 * Whether the metaTags are hidden in the editor
-		 */
-		metaTagsHidden?: boolean;
-		/**
 		 * The options for this script
 		 */
 		options: Options|string;

@@ -944,133 +944,23 @@ class SCE {
 	 * Triggered when the codeMirror editor has been loaded, fills it with the options and fullscreen element
 	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance) {
-		const editor = this.editorManager;
-		editor.refresh();
-		editor.on('metaTagChanged', (changes: {
-			changed?: Array<{
-				key: string;
-				value: string | number;
-				oldValue: string | number;
-			}>;
-			removed?: Array<{
-				key: string;
-				value: string | number;
-				oldValue?: string | number;
-			}>;
-			added?: Array<{
-				key: string;
-				value: string | number;
-				oldValue?: string | number;
-			}>;
-		}, metaTags: {
-			[key: string]: string|number;
-		}) => {
+		const editorManager = this.editorManager;
+		editorManager.typeHandler.listen('metaChange', (oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
 			if (this.editorMode === 'main') {
-				this.newSettings.value.metaTags = JSON.parse(JSON.stringify(metaTags));
+				this.newSettings.value.metaTags = JSON.parse(JSON.stringify(newMetaTags));
 			}
 		});
 		this.$.mainEditorTab.classList.add('active');
 		this.$.backgroundEditorTab.classList.remove('active');
-		editor.on('metaDisplayStatusChanged', (info: {
-			status: string
-		}) => {
-			this.newSettings.value.metaTagsHidden = (info.status === 'hidden');
-		});
-		editor.performLint();
-		let newChanges: Array<{
-			from: CodeMirrorPos;
-			to: CodeMirrorPos;
-			removed: string[];
-			text: string[];
-			origin: string;
-			time: number;
-		}> = [];
-		editor.on('changes', (cm, changes) => {
-			newChanges = newChanges.concat(changes.map((change) => {
-				return {
-					from: change.from,
-					to: change.to,
-					removed: change.removed,
-					text: change.text,
-					origin: change.origin,
-					time: Date.now()
-				}
-			}));
-		});
-		if (this.newSettings.value.metaTagsHidden) {
-			editor.doc.markText({
-				line: editor.metaTags.metaStart.line,
-				ch: editor.metaTags.metaStart.ch - 2
-			}, {
-				line: editor.metaTags.metaStart.line,
-				ch: editor.metaTags.metaStart.ch + 27
-			}, {
-				className: 'metaTagHiddenText',
-				inclusiveLeft: false,
-				inclusiveRight: false,
-				atomic: true,
-				readOnly: true,
-				addToHistory: true
-			});
-			editor.metaTags.metaTags = this.newSettings.value.metaTags;
-		}
 
-		editor.display.wrapper.classList.remove('stylesheet-edit-codeMirror');
-		editor.display.wrapper.classList.add('script-edit-codeMirror');
-		editor.display.wrapper.classList.add('small');
-
-		const cloneTemplate = document.importNode((document.querySelector('#scriptEditorTemplate') as HTMLTemplateElement).content, true);
-		editor.display.sizer.insertBefore(cloneTemplate, editor.display.sizer.children[0]);
-		const clone = editor.display.sizer;
-		
-		this.settingsShadow = clone.querySelector('#settingsShadow') as HTMLElement;
-		this.editorOptions = clone.querySelector('#editorOptions') as HTMLElement;
-		this.fillEditorOptions(this.editorOptions);
-
-		this.$.editorFullScreen = clone.querySelector('#editorFullScreen') as HTMLElement;
-		this.$.editorFullScreen.addEventListener('click', () => {
-			this.toggleFullScreen.apply(this);
-		});
-
-		this.settingsEl = clone.querySelector('#editorSettings') as HTMLElement;
-		this.settingsEl.addEventListener('click', () => {
-			this.toggleOptions.apply(this);
-		});
-		if (editor.getOption('readOnly') === 'nocursor') {
-			editor.display.wrapper.style.backgroundColor = 'rgb(158, 158, 158)';
-		}
-		const buttonShadow = editor.display.sizer.querySelector('#buttonShadow') as HTMLElement;
+		editorManager.editor.getDomNode().classList.remove('stylesheet-edit-codeMirror');
+		editorManager.editor.getDomNode().classList.add('script-edit-codeMirror');
+		editorManager.editor.getDomNode().classList.add('small');
 
 		if (this.fullscreen) {
-			editor.display.wrapper.style.height = 'auto';
-			this.$.editorPlaceholder.style.display = 'none';
-			buttonShadow.style.right = '-1px';
-			buttonShadow.style.position = 'absolute';
 			this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-		} else {
-			this.$.editorPlaceholder.style.height = this.editorHeight + 'px';
-			this.$.editorPlaceholder.style.width = this.editorWidth + 'px';
-			this.$.editorPlaceholder.style.position = 'absolute';
-			if (this.editorPlaceHolderAnimation) {
-				this.editorPlaceHolderAnimation.play();
-			} else {
-				this.editorPlaceHolderAnimation = this.$.editorPlaceholder.animate([
-					{
-						opacity: 1
-					}, {
-						opacity: 0
-					}
-				], {
-					duration: 300,
-					easing: 'bez'
-				});
-				const __this = this;
-				this.editorPlaceHolderAnimation.onfinish = function(this: Animation) {
-					__this.$.editorPlaceholder.style.display = 'none';
-				};
-			}
 		}
-		this.initTernKeyBindings();
+		this.initKeyBindings();
 	};
 
 	/**
