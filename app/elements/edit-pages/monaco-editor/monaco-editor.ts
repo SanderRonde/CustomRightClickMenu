@@ -128,7 +128,7 @@ namespace MonacoEditorElement {
 		/**
 		 * Whether the meta block could have changed since the last call
 		 */
-		private _metaBlockChanged: boolean = true;
+		private _hasMetaBlockChanged: boolean = true;
 
 		/**
 		 * The start, end and contents of the meta block
@@ -155,7 +155,7 @@ namespace MonacoEditorElement {
 		/**
 		 * Whether to disable the highlight of userscript metadata at the top of the file
 		 */
-		private _metaDataHighlightDisabled: boolean = false;
+		private _isMetaDataHighlightDisabled: boolean = false;
 	
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
 			super(editor);
@@ -165,7 +165,7 @@ namespace MonacoEditorElement {
 			})
 
 			this._addModelUpdateListener((event) => {
-				this._metaBlockChanged = true;
+				this._hasMetaBlockChanged = true;
 				
 				if (this._shouldUpdateDecorations(event)) {
 					this._doModelUpdate();
@@ -173,7 +173,7 @@ namespace MonacoEditorElement {
 			});
 
 			this._addShouldUpdateDecorationsListener((changeEvent) => {
-				if (this._metaDataHighlightDisabled) {
+				if (this._isMetaDataHighlightDisabled) {
 					return false;
 				}
 
@@ -196,30 +196,30 @@ namespace MonacoEditorElement {
 			});
 
 			this._addDecorationListener(() => {
-				if (this._metaDataHighlightDisabled) {
+				if (this._isMetaDataHighlightDisabled) {
 					return [];
 				}
 				return [this._userScriptGutterHighlightChange()].filter(val => val !== null);
 			});
 			this._addDecorationListener(() => {
-				if (this._metaDataHighlightDisabled) {
+				if (this._isMetaDataHighlightDisabled) {
 					return [];
 				}
 				return this._userScriptHighlightChange();
 			});
-			this._metaDataHighlightDisabled = window.app.settings.editor.disabledMetaDataHighlight;
+			this._isMetaDataHighlightDisabled = window.app.settings.editor.disabledMetaDataHighlight;
 			this._monacoListeners.push(this._editor.addAction({
 				id: 'disable-metadata-highlight',
 				label: 'Disable Metadata Highlight',
 				run: () => {
-					this._metaDataHighlightDisabled = true;
+					this._isMetaDataHighlightDisabled = true;
 				}
 			}));
 			this._monacoListeners.push(this._editor.addAction({
 				id: 'enable-metadata-highlight',
 				label: 'Enable Metadata Highlight',
 				run: () => {
-					this._metaDataHighlightDisabled = false;
+					this._isMetaDataHighlightDisabled = false;
 				}
 			}));
 			this._defineMetaOnModel();
@@ -325,7 +325,7 @@ namespace MonacoEditorElement {
 		}
 
 		public getMetaBlock(): MetaBlock {
-			if (!this._metaBlockChanged) {
+			if (!this._hasMetaBlockChanged) {
 				return this._metaBlock;
 			}
 
@@ -470,7 +470,7 @@ namespace MonacoEditorElement {
 		}
 
 		public _onModelContentChange(changeEvent: monaco.editor.IModelContentChangedEvent) {
-			this._metaBlockChanged = true;
+			this._hasMetaBlockChanged = true;
 
 			if (this._shouldUpdateDecorations(changeEvent)) {
 				this._doModelUpdate();
@@ -765,7 +765,7 @@ namespace MonacoEditorElement {
 		/**
 		 * A handler for any type-specific mods
 		 */
-		static _typeHandler: MonacoEditorWatcher;
+		static _typeHandler: MonacoEditorStylesheetMods|MonacoEditorScriptMods;
 
 		/**
 		 * The stylesheet used by the CSS editor
