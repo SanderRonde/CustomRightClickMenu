@@ -1,5 +1,7 @@
 /// <reference path="../../app/elements/elements.d.ts" />
-/// <reference path="../../app/elements/fileIdMaps.d.ts" />
+/// <reference path="../../app/elements/fileIdMaps.d.ts" />import { KeyboardEvent } from "react";
+
+
 
 declare namespace Polymer {
 	interface InitializerProperties {
@@ -241,10 +243,17 @@ declare namespace Polymer {
 		preventDefault(): void;
 	}
 
-	type CustomEvent = PolymerDragEvent|ClickEvent;
+	type CustomEvent = PolymerDragEvent|ClickEvent|PolymerKeyDownEvent;
 
 	export interface ClickEvent extends CustomEventBase {
 		type: 'tap';
+	}
+
+	export interface PolymerKeyDownEvent extends CustomEventBase {
+		type: 'keydown';
+		srcElement: PolymerElement;
+		key: string;
+		code: string;
 	}
 
 	export interface PolymerDragEvent extends CustomEventBase {

@@ -1018,33 +1018,13 @@ declare namespace CRM {
 	 */
 	interface KeyBindings {
 		/**
-		 * A keybinding to complete this value
-		 */
-		autocomplete: string;
-		/**
-		 * A keybinding to show the type of this value
-		 */
-		showType: string;
-		/**
-		 * A keybinding to show the docs for this value
-		 */
-		showDocs: string;
-		/**
 		 * A keybinding to go to the definition of a value
 		 */
 		goToDef: string;
 		/**
-		 * A keybinding to jump back
-		 */
-		jumpBack: string;
-		/**
 		 * A keybinding to rename this value
 		 */
 		rename: string;
-		/**
-		 * A keybinding to select all instances of this value
-		 */
-		selectName: string;
 	}
 
 	/**
@@ -1052,17 +1032,9 @@ declare namespace CRM {
 	 */
 	interface EditorSettings {
 		/**
-		 * Whether to use tabs (spaces if false)
-		 */
-		useTabs: boolean;
-		/**
-		 * The size of tabs
-		 */
-		tabSize: number;
-		/**
 		 * The theme to use for the editor
 		 */
-		theme: string;
+		theme: 'white'|'dark';
 		/**
 		 * The zoom on the editor (in percentage)
 		 */

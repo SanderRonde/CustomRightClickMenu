@@ -25,6 +25,12 @@ class SCE {
 		window.open(chrome.runtime.getURL('/html/crmAPIDocs.html'), '_blank');
 	}
 
+	static onKeyBindingKeyDown(this: NodeEditBehaviorScriptInstance, e: Polymer.PolymerKeyDownEvent) {
+		const input = window.app.util.findElementWithTagname(e.path, 'paper-input');
+		const index = ~~input.getAttribute('data-index');
+		this.createKeyBindingListener(input, this.keyBindings[index]);
+	}
+
 	static clearTriggerAndNotifyMetaTags(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
 		if (this.shadowRoot.querySelectorAll('.executionTrigger').length === 1) {
 			window.doc.messageToast.text = 'You need to have at least one trigger';
@@ -124,7 +130,7 @@ class SCE {
 			}
 		}
 		this.hideCodeOptions();
-		this.initTernKeyBindings();
+		this.initKeyBindings();
 	}
 
 	static changeTabEvent(this: NodeEditBehaviorScriptInstance, e: Polymer.ClickEvent) {
@@ -663,6 +669,7 @@ class SCE {
 		this.$.editorFullScreen.style.display = 'none';
 		const settingsInitialMarginLeft = -500;
 		(this.$$('#editorThemeFontSizeInput') as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
+		this.fillEditorOptions();
 		$(this.$.settingsShadow).css({
 			width: '50px',
 			height: '50px',
@@ -771,14 +778,12 @@ class SCE {
 		}
 	};
 
-	private static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement & {
-			lastValue: string;
-		}, binding: {
-			name: string;
-			defaultKey: string;
-			storageKey: keyof CRM.KeyBindings;
-			fn(cm: CodeMirrorInstance): void;
-		}) {
+	private static createKeyBindingListener(this: NodeEditBehaviorScriptInstance, element: HTMLPaperInputElement, keyBinding: {
+		name: string;
+		defaultKey: string;
+		monacoKey: string;
+		storageKey: keyof CRM.KeyBindings;
+	}) {
 		return (event: KeyboardEvent) => {
 			event.preventDefault();
 			//Make sure it's not just one modifier key being pressed and nothing else
@@ -798,37 +803,18 @@ class SCE {
 
 					values.push(String.fromCharCode(event.keyCode));
 					const value = element.value = values.join('-');
-					element.lastValue = value;
+					element.setAttribute('data-prev-value', value);
 					window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
-						autocomplete: this.keyBindings[0].defaultKey,
-						showType: this.keyBindings[0].defaultKey,
-						showDocs: this.keyBindings[1].defaultKey,
-						goToDef: this.keyBindings[2].defaultKey,
-						jumpBack: this.keyBindings[3].defaultKey,
-						rename: this.keyBindings[4].defaultKey,
-						selectName: this.keyBindings[5].defaultKey,
+						goToDef: this.keyBindings[0].defaultKey,
+						rename: this.keyBindings[1].defaultKey
 					};
-					const prevValue = window.app.settings.editor.keyBindings[binding.storageKey];
-					if (prevValue) {
-						//Remove previous one
-						const prevKeyMap: {
-							[key: string]: (cm: CodeMirrorInstance) => void;
-						} = {};
-						prevKeyMap[prevValue] = binding.fn;
-						window.scriptEdit.editorManager.removeKeyMap(prevKeyMap);
-					}
 
-					const keyMap: {
-						[key: string]: (cm: CodeMirrorInstance) => void;
-					} = {};
-					keyMap[value] = binding.fn;
-					window.scriptEdit.editorManager.addKeyMap(keyMap);
-
-					window.app.settings.editor.keyBindings[binding.storageKey] = value;
+					window.app.settings.editor.keyBindings[keyBinding.storageKey] = value;
+					this.initKeyBinding(keyBinding);
 				}
 			}
 
-			element.value = element.lastValue || '';
+			element.value = element.getAttribute('data-prev-value') || '';
 			return;
 		};
 	};
@@ -836,199 +822,122 @@ class SCE {
 	static keyBindings: Array<{
 		name: string;
 		defaultKey: string;
+		monacoKey: string;
 		storageKey: keyof CRM.KeyBindings;
-		fn(cm: CodeMirrorInstance): void;
-	}> = [
-		{
-			name: 'AutoComplete',
-			defaultKey: 'Ctrl-Space',
-			storageKey: 'autocomplete',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.complete(cm);
-			}
+	}> = [{
+			name: 'Go To Type Definition',
+			defaultKey: 'Ctrl-F12',
+			monacoKey: 'editor.action.goToTypeDefinition',
+			storageKey: 'goToDef'
 		}, {
-			name: 'Show Type',
-			defaultKey: 'Ctrl-I',
-			storageKey: 'showType',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.showType(cm);
-			}
-		}, {
-			name: 'Show Docs',
-			defaultKey: 'Ctrl-O',
-			storageKey: 'showDocs',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.showDocs(cm);
-			}
-		}, {
-			name: 'Go To Definition',
-			defaultKey: 'Alt-.',
-			storageKey: 'goToDef',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.jumpToDef(cm);
-			}
-		}, {
-			name: 'Jump Back',
-			defaultKey: 'Alt-,',
-			storageKey: 'jumpBack',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.jumpBack(cm);
-			}
-		}, {
-			name: 'Rename',
-			defaultKey: 'Ctrl-Q',
-			storageKey: 'rename',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.rename(cm);
-			}
-		}, {
-			name: 'Select Name',
-			defaultKey: 'Ctrl-.',
-			storageKey: 'selectName',
-			fn(cm: CodeMirrorInstance) {
-				window.app.ternServer.selectName(cm);
-			}
+			name: 'Rename Symbol',
+			defaultKey: 'Ctrl-F2',
+			monacoKey: 'editor.action.rename',
+			storageKey: 'rename'
 		}
 	];
+
+	static setThemeWhite(this: NodeEditBehaviorScriptInstance) {
+		this.$.editorThemeSettingWhite.classList.add('currentTheme');
+		this.$.editorThemeSettingDark.classList.remove('currentTheme');
+		window.app.settings.editor.theme = 'white';
+		window.app.upload();
+	}
+
+	static setThemeDark(this: NodeEditBehaviorScriptInstance) {
+		this.$.editorThemeSettingWhite.classList.remove('currentTheme');
+		this.$.editorThemeSettingDark.classList.add('currentTheme');
+		window.app.settings.editor.theme = 'dark';
+		window.app.upload();
+	}
+
+	static fontSizeChange(this: NodeEditBehaviorScriptInstance) {
+		window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.value + '';
+		window.app.upload();
+	}
+
+	static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
+		this.async(() => {
+			const globals = this.$.editorJSLintGlobalsInput.value.split(',').map(global => global.trim());
+			chrome.storage.local.set({
+				jsLintGlobals: globals
+			});
+			window.app.jsLintGlobals = globals;
+		}, 0);
+	}
 
 	/**
  	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
-	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance, container: HTMLElement) {
-		const clone = (document.querySelector('#editorOptionsTemplate') as HTMLTemplateElement).content;
+	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance) {
+		this.$.keyBindingsTemplate.render();
 
 		if (window.app.settings.editor.theme === 'white') {
-			clone.querySelector('#editorThemeSettingWhite').classList.add('currentTheme');
+			this.$.editorThemeSettingWhite.classList.add('currentTheme');
 		} else {
-			clone.querySelector('#editorThemeSettingWhite').classList.remove('currentTheme');
+			this.$.editorThemeSettingWhite.classList.remove('currentTheme');
 		}
 		if (window.app.settings.editor.theme === 'dark') {
-			clone.querySelector('#editorThemeSettingDark').classList.add('currentTheme');
+			this.$.editorThemeSettingDark.classList.add('currentTheme');
 		} else {
-			clone.querySelector('#editorThemeSettingDark').classList.remove('currentTheme');
+			this.$.editorThemeSettingDark.classList.remove('currentTheme');
 		}
 
-		(clone.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
-			.setAttribute('value', window.app.settings.editor.tabSize + '');
-
-		const cloneCheckbox = clone.querySelector('#editorTabsOrSpacesCheckbox');
-		if (window.app.settings.editor.useTabs) {
-			cloneCheckbox.setAttribute('checked', 'checked');
-		} else {
-			cloneCheckbox.removeAttribute('checked');
-		}
-
-		const cloneTemplate = document.importNode(clone, true);
-		container.appendChild(cloneTemplate);
-		const importedElement = container;
-
-		//White theme
-		importedElement.querySelector('#editorThemeSettingWhite').addEventListener('click', () => {
-			const themes = importedElement.querySelectorAll('.editorThemeSetting');
-			themes[0].classList.add('currentTheme');
-			themes[1].classList.remove('currentTheme');
-			window.app.settings.editor.theme = 'white';
-			window.app.upload();
-		});
-
-		//The dark theme option
-		importedElement.querySelector('#editorThemeSettingDark').addEventListener('click', () => {
-			const themes = importedElement.querySelectorAll('.editorThemeSetting');
-			themes[0].classList.remove('currentTheme');
-			themes[1].classList.add('currentTheme');
-			window.app.settings.editor.theme = 'dark';
-			window.app.upload();
-		});
-
-
-		const zoomEl = importedElement.querySelector('#editorThemeFontSizeInput');
-		function updateZoomEl() {
-			setTimeout(function() {
-				window.app.settings.editor.zoom = zoomEl.querySelector('input').value;
-				window.app.upload();
-			}, 0);
-		};
-		zoomEl.addEventListener('change', function() {
-			updateZoomEl();
-		});
-		this._updateZoomEl = updateZoomEl;
-
-		importedElement.querySelector('#editorTabsOrSpacesCheckbox').addEventListener('click', () => {
-			window.app.settings.editor.useTabs = !window.app.settings.editor.useTabs;
-			window.app.upload();
-		});
-
-		function updateTabSizeEl() {
-			setTimeout(function() {
-				window.app.settings.editor.tabSize = 
-					~~(importedElement.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
-						.value;
-				window.app.upload();
-			}, 0);
-		}
-
-		//The main input for the size of tabs option
-		(importedElement.querySelector('#editorTabSizeInput paper-input-container input') as HTMLInputElement)
-			.addEventListener('change', () => {
-				updateTabSizeEl();
-			});	
-		this._updateTabSizeEl = updateTabSizeEl;
-
-		importedElement.querySelector('#editorJSLintGlobalsInput')
-			.addEventListener('keypress', function() {
-				const _this = importedElement.querySelector('#editorJSLintGlobalsInput') as HTMLPaperInputElement;
-				setTimeout(function() {
-					const val = _this.value;
-					const globals = val.split(',');
-					chrome.storage.local.set({
-						jsLintGlobals: globals
-					});
-					window.app.jsLintGlobals = globals;
-				}, 0);
-			});
+		this.$.editorThemeFontSizeInput.value = window.app.settings.editor.zoom || '100';
 
 		window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
-			autocomplete: this.keyBindings[0].defaultKey,
-			showType: this.keyBindings[0].defaultKey,
-			showDocs: this.keyBindings[1].defaultKey,
-			goToDef: this.keyBindings[2].defaultKey,
-			jumpBack: this.keyBindings[3].defaultKey,
-			rename: this.keyBindings[4].defaultKey,
-			selectName: this.keyBindings[5].defaultKey,
+			goToDef: this.keyBindings[0].defaultKey,
+			rename: this.keyBindings[1].defaultKey
 		};
-		const settingsContainer = importedElement.querySelector('#settingsContainer');
-		for (let i = 0; i < this.keyBindings.length; i++) {
-			const keyBindingClone = (document.querySelector('#keyBindingTemplate') as HTMLTemplateElement).content;
-			
-			const input = keyBindingClone.querySelector('paper-input') as HTMLPaperInputElement & {
-				lastValue: string;
-			};
-			const value = window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey] ||
-				this.keyBindings[i].defaultKey;
-			input.setAttribute('label', this.keyBindings[i].name);
-			input.setAttribute('value', value);
 
-			const keyBindingCloneTemplate = document.importNode(keyBindingClone, true);
-			settingsContainer.insertBefore(keyBindingCloneTemplate, settingsContainer.querySelector('#afterEditorSettingsSpacing'));
-			settingsContainer.querySelector('paper-input')
-				.addEventListener('keydown', this.createKeyBindingListener(input, this.keyBindings[i]));
-		}
+		Array.prototype.slice.apply(this.$.keyBindingsTemplate.querySelectorAll('paper-input')).forEach((input: HTMLPaperInputElement) => {
+			input.setAttribute('data-prev-value', input.value);
+		});
 	};
+
+	private static translateKeyCombination(this: NodeEditBehaviorScriptInstance, keys: string): Array<number> {
+		const monacoKeys: Array<number> = [];
+		for (const key of keys.split('-')) {
+			if (key === 'Ctrl') {
+				monacoKeys.push(monaco.KeyMod.CtrlCmd);
+			} else if (key === 'Alt') {
+				monacoKeys.push(monaco.KeyMod.Alt);
+			} else if (key === 'Shift') {
+				monacoKeys.push(monaco.KeyMod.Shift);
+			} else {
+				if (monaco.KeyCode[`KEY_${key.toUpperCase()}` as any]) {
+					monacoKeys.push(monaco.KeyCode[`KEY_${key.toUpperCase()}` as any] as any);
+				}
+			}
+		}
+		return monacoKeys;
+	}
+
+	private static initKeyBinding(this: NodeEditBehaviorScriptInstance, keyBinding: {
+		name: string;
+		defaultKey: string;
+		monacoKey: string;
+		storageKey: "goToDef" | "rename";
+	}, key: string = keyBinding.defaultKey) {
+		const oldAction = this.editorManager.editor.getAction(keyBinding.monacoKey);
+		this.editorManager.editor.addAction({
+			id: keyBinding.monacoKey,
+			label: keyBinding.name,
+			run: () => {
+				oldAction.run();
+			},
+			keybindings: this.translateKeyCombination(key),
+			precondition: (oldAction as any)._precondition
+		});
+	}
 
 	/**
 	 * Initializes the keybindings for the editor
 	 */
-	private static initTernKeyBindings(this: NodeEditBehaviorScriptInstance) {
-		const keySettings: {
-			[key: string]: (cm: CodeMirrorInstance) => void;
-		} = {};
-		for (let i = 0; i < this.keyBindings.length; i++) {
-			keySettings[window.app.settings.editor.keyBindings[this.keyBindings[i].storageKey]] = this.keyBindings[i].fn;
+	private static initKeyBindings(this: NodeEditBehaviorScriptInstance) {
+		for (const keyBinding of this.keyBindings) {
+			this.initKeyBinding(keyBinding);
 		}
-		this.editorManager.setOption('extraKeys', keySettings);
-		this.editorManager.on('cursorActivity', function(cm: CodeMirrorInstance) {
-			window.app.ternServer.updateArgHints(cm);
-		});
 	};
 
 	private static _posToIndex(this: NodeEditBehaviorScriptInstance, pos: CodeMirrorPos, lines: Array<string>): number {
@@ -1301,18 +1210,11 @@ class SCE {
 		this.editorHeight = placeHolder.height();
 		this.editorWidth = placeHolder.width();
 		!window.app.settings.editor && (window.app.settings.editor = {
-			useTabs: true,
 			theme: 'dark',
 			zoom: '100',
-			tabSize: 4,
 			keyBindings: {
-				autocomplete: this.keyBindings[0].defaultKey,
-				showType: this.keyBindings[0].defaultKey,
-				showDocs: this.keyBindings[1].defaultKey,
 				goToDef: this.keyBindings[2].defaultKey,
-				jumpBack: this.keyBindings[3].defaultKey,
-				rename: this.keyBindings[4].defaultKey,
-				selectName: this.keyBindings[5].defaultKey,
+				rename: this.keyBindings[4].defaultKey
 			}
 		});
 		this.editorManager = await this.$.editor.create('script', {
@@ -1320,6 +1222,7 @@ class SCE {
 			language: 'javascript',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
 			wordWrap: 'on',
+			fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
 			folding: true
 		});
 		this.cmLoaded();

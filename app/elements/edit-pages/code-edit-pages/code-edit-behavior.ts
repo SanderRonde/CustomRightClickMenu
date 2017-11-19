@@ -99,10 +99,6 @@ class CEB {
 	 */
 	static editorMode: 'main'|'background'|'options' = 'main';
 
-	static _updateZoomEl: () => void;
-
-	static _updateTabSizeEl: () => void;
-
 	static editorPlaceHolderAnimation: Animation;
 
 	static otherDoc: CodeMirrorDocInstance = null;
@@ -166,6 +162,19 @@ class CEB {
 	static toggleOptions(this: CodeEditBehaviorInstance) {
 		(this.optionsShown ? this.hideOptions() : this.showOptions());
 	};
+
+	/**
+	 * Returns the value of a key binding
+	 */
+	static getKeyBindingValue(this: CodeEditBehaviorInstance, keyBinding: {
+		name: string;
+		defaultKey: string;
+		storageKey: "goToDef" | "rename";
+		fn(cm: CodeMirrorInstance): void;
+	}) {
+		return (window.app.settings && window.app.settings.editor.keyBindings[keyBinding.storageKey] ||
+			keyBinding.defaultKey) || '';
+	}
 
 	/**
 	 * Triggered when the scrollbars get updated (hidden or showed) and adapts the
