@@ -168,7 +168,7 @@ namespace MonacoEditorElement {
 		end: monaco.Position;
 	}
 
-	abstract class MonacoEditorMetaBlockMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorEventHandler<PubL, PriL|'decorate'|'shouldDecorate'> {
+	abstract class MonacoEditorMetaBlockMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorEventHandler<PubL|'metaChange', PriL|'decorate'|'shouldDecorate'> {
 		/**
 		 * Whether the meta block could have changed since the last call
 		 */
@@ -356,21 +356,84 @@ namespace MonacoEditorElement {
 			return tags;
 		}
 
+		private _isDifferent(prev: MetaBlock, current: MetaBlock): boolean {
+			if (!prev || !current) {
+				return true;
+			}
+			if (!prev.start.equals(current.start) || !prev.end.equals(current.end)) {
+				return false;
+			}
+
+			const keys: Array<string> = [];
+			for (let key in prev) {
+				if (!(key in current)) {
+					return false;
+				}
+				keys.push(key);
+			}
+			for (let key in current) {
+				if (!(key in prev)) {
+					return false;
+				}
+				if (keys.indexOf(key) === -1) {
+					keys.push(key);
+				}
+			}
+
+			for (let key of keys) {
+				const prevVal = prev.content[key as keyof typeof prev];
+				const currentVal = current.content[key as keyof typeof current];
+				const prevIsArray = Array.isArray(prevVal);
+				const currentIsArray = Array.isArray(currentVal);
+				if (prevIsArray !== currentIsArray) {
+					return false;
+				}
+				if (prevIsArray) {
+					for (let value of prevVal as Array<any>) {
+						if (currentVal.indexOf(value) === -1) {
+							return false;
+						}
+					}
+					for (let value of currentVal as Array<any>) {
+						if (prevVal.indexOf(value) === -1) {
+							return false;
+						}
+					}
+				} else if (prevVal !== currentVal) {
+					return false;
+				}
+			}
+			return true;
+		}
+
 		public getMetaBlock(): MetaBlock {
 			if (!this._hasMetaBlockChanged) {
 				return this._metaBlock;
 			}
 
+			let prevBlock = this._metaBlock;
 			const outlines = this._getMetaOutlines();
 			if (!outlines) {
 				return null;
 			}
 			const metaContent = this._getMetaContent(outlines);
-			return (this._metaBlock = {
+			const metaBlock = this._metaBlock = {
 				start: outlines.start,
 				content: metaContent,
 				end: outlines.end
-			});
+			};
+
+			if (this._isDifferent(prevBlock, metaBlock)) {
+				if (!prevBlock) {
+					prevBlock = {
+						start: new monaco.Position(0, 0),
+						content: {},
+						end: new monaco.Position(0, 0)
+					}
+				}
+				this._firePublic('metaChange', [prevBlock, metaBlock]);
+			}
+			return metaBlock;
 		}
 
 		private _getKeyDescription(metaKey: string) {
