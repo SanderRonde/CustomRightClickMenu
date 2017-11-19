@@ -36,11 +36,76 @@ namespace MonacoEditorElement {
 		noframes: 'Makes the script run on the main page but not in iframes'
 	};
 
-	abstract class MonacoEditorWatcher {
+	abstract class MonacoEventEmitter<PubL extends string, PriL extends string> {
+		private _privateListenerMap: {
+			[key in PriL]: Array<(...params: Array<any>) => any>;
+		} = {} as any;
+
+		private _publicListenerMap: {
+			[key in PubL]: Array<(...params: Array<any>) => any>;
+		} = {} as any;
+
+		private _insertOnce<T extends (...args: Array<any>) => any>(arr: Array<T>, value: T) {
+			const self = (((...args: Array<any>) => {
+				arr.slice(arr.indexOf(self, 1));
+				return value(...args);
+			}) as any);
+			arr.push(self);
+		}
+
+		private _assertKeyExists<E extends keyof T, T extends {
+			[key: string]: any;
+		}>(key: E, value: T) {
+			if (!(key in value)) {
+				value[key] = [];
+			}
+		}
+
+		protected _listen<E extends PriL>(event: E, listener: (...args: Array<any>) => any, once: boolean = false) {
+			this._assertKeyExists(event, this._privateListenerMap);
+			if (once) {
+				this._insertOnce(this._privateListenerMap[event], listener);
+			} else {
+				this._privateListenerMap[event].push(listener);
+			}
+		}
+
+		public listen<E extends PubL>(event: E, listener: (...args: Array<any>) => any, once: boolean = false) {
+			this._assertKeyExists(event, this._publicListenerMap);
+			if (once) {
+				this._insertOnce(this._publicListenerMap[event], listener);
+			} else {
+				this._publicListenerMap[event].push(listener);
+			}
+		}
+
+		protected _clearListeners<E extends PubL|PriL>(event: E) {
+			if (event in this._publicListenerMap) {
+				delete this._publicListenerMap[event as PubL];
+			}
+			if (event in this._privateListenerMap) {
+				delete this._privateListenerMap[event as PriL];
+			}
+		}
+
+		protected _firePrivate<R, E extends PriL = PriL>(event: E, params: Array<any>): Array<R> {
+			return !(event in this._privateListenerMap) ? [] : this._privateListenerMap[event].map((listener) => {
+				return listener(...params);
+			});
+		}
+
+		protected _firePublic<R, E extends PubL>(event: E, params: Array<any>): Array<R> {
+			return !(event in this._publicListenerMap) ? [] : this._publicListenerMap[event].map((listener) => {
+				return listener(...params);
+			});
+		}
+	}
+
+	abstract class MonacoEditorEventHandler<PubL extends string = '_', PriL extends string = '_'> extends MonacoEventEmitter<PubL, PriL|'onLoad'|'onModelChange'|'modelUpdate'> {
 		/**
 		 * Any listeners that need to be disposed of eventually
 		 */
-		protected _monacoListeners: Array<{
+		protected _disposables: Array<{
 			dispose(): void;
 		}> = [];
 
@@ -54,33 +119,21 @@ namespace MonacoEditorElement {
 		 */
 		protected _model: monaco.editor.IModel;
 
-		/**
-		 * Any listeners that get triggered when the model's content changes
-		 */
-		private _contentChangeListeners: Array<(event: monaco.editor.IModelContentChangedEvent) => void> = [];
-
-		private _onLoadListeners: Array<() => void> = [];
-
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
+			super();
 			this._editor = editor;
 
 			if (editor.getModel()) {
 				this._onModelChange(editor.getModel());
 			}
-			this._monacoListeners.push(editor.onDidChangeModel((e) => {
+			this._disposables.push(editor.onDidChangeModel((e) => {
 				this._onModelChange(editor.getModel());
 			}));
 
 			window.setTimeout(() => {
-				this._onLoadListeners.forEach((listener) => {
-					listener();
-				});
-				this._onLoadListeners = [];
+				this._firePrivate('onLoad', []);
+				this._clearListeners('onLoad');
 			}, 5000);
-		}
-
-		protected _onLoad(listener: () => void) {
-			this._onLoadListeners.push(listener);
 		}
 
 		protected static _genDisposable<T>(fn: () => T, onDispose: (args: T) => void) {
@@ -92,27 +145,18 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		_onModelContentChange(changeEvent: monaco.editor.IModelContentChangedEvent) {
-			this._contentChangeListeners.forEach((listener) => {
-				listener(changeEvent);
-			});
-		}
-
 		private _onModelChange(model: monaco.editor.IModel) {
 			this.destroy();
 
 			this._model = model;
-			this._monacoListeners.push(this._editor.onDidChangeModelContent((e) => {
-				this._onModelContentChange(e);
+			this._disposables.push(this._editor.onDidChangeModelContent((e) => {
+				this._firePrivate('onModelChange', [e]);
 			}));
-		}
-		
-		protected _addModelUpdateListener(listener: (event: monaco.editor.IModelContentChangedEvent) => void) {
-			this._contentChangeListeners.push(listener);
+			this._firePrivate('modelUpdate', []);
 		}
 
 		destroy() {
-			this._monacoListeners = this._monacoListeners.filter((listener) => {
+			this._disposables = this._disposables.filter((listener) => {
 				listener.dispose();
 			});
 		}
@@ -124,7 +168,7 @@ namespace MonacoEditorElement {
 		end: monaco.Position;
 	}
 
-	abstract class MonacoEditorMetaBlockMods extends MonacoEditorWatcher {
+	abstract class MonacoEditorMetaBlockMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorEventHandler<PubL, PriL|'decorate'|'shouldDecorate'> {
 		/**
 		 * Whether the meta block could have changed since the last call
 		 */
@@ -141,18 +185,6 @@ namespace MonacoEditorElement {
 		private _decorations: Array<string> = [];
 
 		/**
-		 * An array containing functions that can indicate whether 
-		 * the decorations need to be updated. If any of them return
-		 * true, the answer is yes
-		 */
-		private _shouldUpdateDecorationsListeners: Array<(event: monaco.editor.IModelContentChangedEvent) => boolean> = [];
-
-		/**
-		 * An array containing functions that get called when redrawing the decorations
-		 */
-		private _decorationListeners: Array<() => Array<monaco.editor.IModelDeltaDecoration>> = [];
-
-		/**
 		 * Whether to disable the highlight of userscript metadata at the top of the file
 		 */
 		private _isMetaDataHighlightDisabled: boolean = false;
@@ -160,19 +192,20 @@ namespace MonacoEditorElement {
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
 			super(editor);
 
-			this._onLoad(() => {
-				this._doModelUpdate();
-			})
+			this._attachListeners();
+		}
 
-			this._addModelUpdateListener((event) => {
-				this._hasMetaBlockChanged = true;
-				
-				if (this._shouldUpdateDecorations(event)) {
-					this._doModelUpdate();
-				}
+		private _attachListeners() {
+			this._listen('onLoad', () => {
+				this._doModelUpdate();
 			});
 
-			this._addShouldUpdateDecorationsListener((changeEvent) => {
+			this._listen('modelUpdate', () => {
+				this._hasMetaBlockChanged = true;
+				this._doModelUpdate();
+			});
+
+			this._listen('shouldDecorate', (changeEvent: monaco.editor.IModelContentChangedEvent) => {
 				if (this._isMetaDataHighlightDisabled) {
 					return false;
 				}
@@ -195,27 +228,27 @@ namespace MonacoEditorElement {
 				return true;
 			});
 
-			this._addDecorationListener(() => {
+			this._listen('decorate', () => {
 				if (this._isMetaDataHighlightDisabled) {
 					return [];
 				}
 				return [this._userScriptGutterHighlightChange()].filter(val => val !== null);
 			});
-			this._addDecorationListener(() => {
+			this._listen('decorate', () => {
 				if (this._isMetaDataHighlightDisabled) {
 					return [];
 				}
 				return this._userScriptHighlightChange();
 			});
 			this._isMetaDataHighlightDisabled = window.app.settings.editor.disabledMetaDataHighlight;
-			this._monacoListeners.push(this._editor.addAction({
+			this._disposables.push(this._editor.addAction({
 				id: 'disable-metadata-highlight',
 				label: 'Disable Metadata Highlight',
 				run: () => {
 					this._isMetaDataHighlightDisabled = true;
 				}
 			}));
-			this._monacoListeners.push(this._editor.addAction({
+			this._disposables.push(this._editor.addAction({
 				id: 'enable-metadata-highlight',
 				label: 'Enable Metadata Highlight',
 				run: () => {
@@ -223,9 +256,16 @@ namespace MonacoEditorElement {
 				}
 			}));
 			this._defineMetaOnModel();
-			this._monacoListeners.push(this._editor.onDidChangeModel(() => {
+			this._disposables.push(this._editor.onDidChangeModel(() => {
 				this._defineMetaOnModel();
 			}));
+			this._listen('onModelChange', (changeEvent: monaco.editor.IModelContentChangedEvent) => {
+				this._hasMetaBlockChanged = true;
+				
+				if (this._shouldUpdateDecorations(changeEvent)) {
+					this._doModelUpdate();
+				}
+			});
 		}
 		
 		private _defineMetaOnModel() {
@@ -234,14 +274,6 @@ namespace MonacoEditorElement {
 					return this.getMetaBlock();
 				}
 			});
-		}
-
-		protected _addDecorationListener(listener: () => Array<monaco.editor.IModelDeltaDecoration>) {
-			this._decorationListeners.push(listener);
-		}
-
-		protected _addShouldUpdateDecorationsListener(listener: (event: monaco.editor.IModelContentChangedEvent) => boolean) {
-			this._shouldUpdateDecorationsListeners.push(listener);
 		}
 
 		private static readonly _userScriptStart = '==UserScript==';
@@ -435,9 +467,7 @@ namespace MonacoEditorElement {
 		}
 
 		private _shouldUpdateDecorations(changeEvent: monaco.editor.IModelContentChangedEvent): boolean {
-			const results = this._shouldUpdateDecorationsListeners.map((listener) => {
-				return listener(changeEvent);
-			});
+			const results = this._firePrivate<boolean>('shouldDecorate', [changeEvent]);
 			if (results.length > 1) {
 				return results.reduce((left, right) => {
 					return left || right;
@@ -462,9 +492,8 @@ namespace MonacoEditorElement {
 		}
 
 		private _doModelUpdate() {
-			const decorations = this._decorationListeners.map((listener) => {
-				return listener();
-			}).filter(decorationArr => decorationArr !== null);
+			const decorations = this._firePrivate<Array<monaco.editor.IModelDeltaDecoration>>('decorate', [])
+				.filter(decorationArr => decorationArr !== null);
 			
 			this._doDecorationUpdate(this._formatDecorations(decorations));
 		}
@@ -478,7 +507,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	class MonacoEditorScriptMods extends MonacoEditorMetaBlockMods {
+	class MonacoEditorScriptMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
 		metaBlockChanged: boolean = true;
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
@@ -490,7 +519,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	class MonacoEditorStylesheetMods extends MonacoEditorMetaBlockMods {
+	class MonacoEditorStylesheetMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
 
 		/**
 		 * Whether the highlighting is enabled
@@ -510,7 +539,7 @@ namespace MonacoEditorElement {
 		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
 			super(editor);
 
-			this._addShouldUpdateDecorationsListener((event) => {
+			this._listen('shouldDecorate', (event: monaco.editor.IModelContentChangedEvent) => {
 				if (event.isFlush) {
 					return true;
 				}
@@ -538,11 +567,11 @@ namespace MonacoEditorElement {
 				return false;
 			});
 
-			this._addDecorationListener(() => {
+			this._listen('decorate', () => {
 				return this._highlightColors();
 			});
 
-			this._monacoListeners.push(MonacoEditorWatcher._genDisposable(() => {
+			this._disposables.push(MonacoEditorEventHandler._genDisposable(() => {
 				return window.setInterval(() => {
 					if (!this._underlineDisabled) {
 						this._markUnderlines();
@@ -553,14 +582,14 @@ namespace MonacoEditorElement {
 			}));
 
 			this._underlineDisabled = window.app.settings.editor.cssUnderlineDisabled;
-			this._monacoListeners.push(this._editor.addAction({
+			this._disposables.push(this._editor.addAction({
 				id: 'disable-css-underline',
 				label: 'Disable CSS underline',
 				run: () => {
 					this._underlineDisabled = true;
 				}
 			}));
-			this._monacoListeners.push(this._editor.addAction({
+			this._disposables.push(this._editor.addAction({
 				id: 'enable-css-underline',
 				label: 'Enable CSS Underline',
 				run: () => {
@@ -803,6 +832,7 @@ namespace MonacoEditorElement {
 		static destroy(this: MonacoEditor) {
 			this.editor.dispose();
 			this._typeHandler.destroy();
+			this._typeHandler = null;
 			this._showSpinner();
 		}
 
