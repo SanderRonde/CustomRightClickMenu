@@ -6617,7 +6617,6 @@ if (typeof module === 'undefined') {
 					if (!err) {
 						const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 						const nodeStorage = globalNodeStorage[node.id];
-						const editorSettings = globalObject.globals.storages.settingsStorage.editor
 
 						globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 
@@ -6627,8 +6626,7 @@ if (typeof module === 'undefined') {
 						const metaData = CRM.Script.MetaTags.getMetaTags(node.value.script);
 						const { excludes, includes } = CRM.Script.Handler.getInExcludes(node);
 
-						const indentUnit = editorSettings.useTabs ?
-							'	' : Helpers.leftPad(' ', editorSettings.tabSize || 2)
+						const indentUnit = '	';
 
 						const script = node.value.backgroundScript.split('\n').map((line) => {
 							return indentUnit + line;
@@ -6944,7 +6942,6 @@ if (typeof module === 'undefined') {
 							}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
-								const editorSettings = globalObject.globals.storages.settingsStorage.editor
 								this.genTabData(tab.id, key, node.id, node.value.script)
 
 								globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
@@ -6959,8 +6956,7 @@ if (typeof module === 'undefined') {
 
 								const greaseMonkeyData = this.generateGreaseMonkeyData(metaData, node, includes, excludes, tab)
 
-								const indentUnit = editorSettings.useTabs ?
-									'	' : Helpers.leftPad(' ', editorSettings.tabSize || 2)
+								const indentUnit = '	';
 
 								const script = node.value.script.split('\n').map((line) => {
 									return indentUnit + line;
@@ -9141,17 +9137,12 @@ if (typeof module === 'undefined') {
 				return {
 					editor: {
 						keyBindings: {
-							autocomplete: 'Ctrl-Space',
-							showType: 'Ctrl-I',
-							showDocs: 'Ctrl-O',
 							goToDef: 'Alt-.',
-							rename: 'Ctrl-Q',
-							jumpBack: 'Alt-,',
-							selectName: 'Ctrl-.'
+							rename: 'Ctrl-Q'
 						},
-						tabSize: 4,
+						cssUnderlineDisabled: false,
+						disabledMetaDataHighlight: false,
 						theme: 'dark',
-						useTabs: true,
 						zoom: '100'
 					},
 					crm: [
