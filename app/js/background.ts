@@ -745,7 +745,7 @@ if (typeof module === 'undefined') {
 					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				},
 				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string): string {
-					return ((REPLACE: {
+					return `(${((REPLACE: {
 						wrapperName: any;
 						name: {
 							[key: string]: any;
@@ -793,7 +793,7 @@ if (typeof module === 'undefined') {
 						.replace(/REPLACE.name/g, name)
 						.replace(/REPLACE.chromeVal/g, chromeVal)
 						.replace(/REPLACE.crmAPI/g, 'crmAPI')
-						.replace(/REPLACEWrapperName = /g, wrapperName + '=');
+						.replace(/REPLACEWrapperName = /g, wrapperName + '=')})()`;
 				}
 			},
 			specialJSON: {
