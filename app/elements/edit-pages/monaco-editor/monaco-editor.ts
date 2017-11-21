@@ -869,7 +869,6 @@ namespace MonacoEditorElement {
 		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions,
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				await MonacoEditorHookManager.monacoReady;
-				this._showSpinner();
 				MonacoEditorHookManager.setScope(this);
 				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
 				MonacoEditorHookManager.StyleHack.fixThemeScope(this);
@@ -918,6 +917,7 @@ namespace MonacoEditorElement {
 		}
 
 		static ready(this: MonacoEditor) {
+			this._showSpinner();
 			MonacoEditorHookManager.setup();
 		}
 	}
