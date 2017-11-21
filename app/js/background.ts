@@ -745,7 +745,7 @@ if (typeof module === 'undefined') {
 					return this.getDefaultDividerOrMenuNode(options, 'menu') as CRM.MenuNode;
 				},
 				globalObjectWrapperCode(name: string, wrapperName: string, chromeVal: string): string {
-					return `(${((REPLACE: {
+					return `var ${wrapperName} = (${((REPLACE: {
 						wrapperName: any;
 						name: {
 							[key: string]: any;
@@ -789,6 +789,7 @@ if (typeof module === 'undefined') {
 							}
 							return tempWrapper;
 						})();
+						return REPLACEWrapperName;
 					}).toString()	
 						.replace(/REPLACE.name/g, name)
 						.replace(/REPLACE.chromeVal/g, chromeVal)
