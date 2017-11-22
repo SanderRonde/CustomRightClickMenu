@@ -221,7 +221,6 @@ class SCE {
 			$('.requestPermissionButton').off('click').on('click', function(this: HTMLPaperCheckboxElement) {
 				permission = this.previousElementSibling.previousElementSibling.textContent as CRM.Permission;
 				const slider = this;
-				let oldPermissions;
 				if (this.checked) {
 					if (Array.prototype.slice.apply(extensionWideEnabledPermissions).indexOf(permission) === -1) {
 						chrome.permissions.request({

@@ -68,6 +68,10 @@ class PLS {
 
 	static properties = paperLibrariesSelectorProperties;
 
+	private static confirmListener: () => void = null;
+
+	private static denyListener: () => void = null;
+
 	static ready(this: PaperLibrariesSelector) {
 		const _this = this;
 		window.paperLibrariesSelector = this;
@@ -178,8 +182,8 @@ class PLS {
 	};
 
 	private static resetAfterAddDesision() {
-		window.doc.addLibraryConfirmAddition.removeEventListener('click');
-		window.doc.addLibraryDenyConfirmation.removeEventListener('click');
+		window.doc.addLibraryConfirmAddition.removeEventListener('click', this.confirmListener);
+		window.doc.addLibraryDenyConfirmation.removeEventListener('click', this.denyListener);	
 		window.doc.addLibraryUrlInput.removeAttribute('invalid');
 	}
 
@@ -188,17 +192,19 @@ class PLS {
 		window.doc.addLibraryLoadingDialog.style.display = 'flex';
 		setTimeout(function() {
 			window.doc.addLibraryConfirmationInput.value = code;
-			window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
+			_this.confirmListener = () => {
 				window.doc.addLibraryConfirmationInput.value = '';
 				_this.addLibraryFile(_this, name, code, url);
 				_this.resetAfterAddDesision();
-			});
-			window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
+			}
+			_this.denyListener = () => {
 				window.doc.addLibraryConfirmationContainer.style.display = 'none';
 				window.doc.addLibraryProcessContainer.style.display = 'block';
 				_this.resetAfterAddDesision();
 				window.doc.addLibraryConfirmationInput.value = '';
-			});
+			}
+			window.doc.addLibraryConfirmAddition.addEventListener('click', _this.confirmListener);
+			window.doc.addLibraryDenyConfirmation.addEventListener('click', _this.denyListener);
 			window.doc.addLibraryLoadingDialog.style.display = 'none';
 			window.doc.addLibraryConfirmationContainer.style.display = 'block';
 		}, 250);

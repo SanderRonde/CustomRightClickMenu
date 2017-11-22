@@ -7341,11 +7341,9 @@ if (typeof module === 'undefined') {
 						isComment: false,
 						line: ''
 					}];
-					let inComment: boolean = false;
 					let lineIndex = 0;
 					for (let i = 0; i < stylesheet.length; i++) {
 						if (stylesheet[i] === '/' && stylesheet[i + 1] === '*') {
-							inComment = true;
 							lineIndex++;
 							i += 1;
 							lines[lineIndex] = {
@@ -7353,7 +7351,6 @@ if (typeof module === 'undefined') {
 								line: ''
 							};
 						} else if (stylesheet[i] === '*' && stylesheet[i + 1] === '/') {
-							inComment = false;
 							lineIndex++;
 							i += 1;
 							lines[lineIndex] = {

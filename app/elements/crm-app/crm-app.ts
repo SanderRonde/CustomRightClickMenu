@@ -3888,7 +3888,6 @@ class CA {
 			const _this = this;
 			let toLoad = 0;
 			this.removeContextMenus();
-			let callbackId;
 
 			function loadContextMenus(deadline: {
 				timeRemaining(): number;
@@ -3901,7 +3900,7 @@ class CA {
 			}
 
 			if ('requestIdleCallback' in window) {
-				callbackId = window.requestIdleCallback(loadContextMenus);
+				window.requestIdleCallback(loadContextMenus);
 			} else {
 				while (toLoad < 6) {
 					_this.bindContextMenu(toLoad++);

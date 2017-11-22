@@ -69,7 +69,7 @@ class CEP {
 	/**
 	 * Whether the item is a link
 	 */
-	private static isLink: boolean = false;
+	static isLink: boolean = false;
 
 	/**
 	 * Whether the item is a script
@@ -208,17 +208,6 @@ class CEP {
 		this.playAnimation('exit');
 		this.opened = false;
 		document.body.parentElement.style.overflow = 'auto';
-	};
-
-	private static updateNodeInfo<T>(this: CrmEditPage, obj: T, path: string = 'nodeInfo') {
-		for (let key in obj) {
-			if (obj.hasOwnProperty(key)) {
-				if (typeof obj[key as keyof T] === 'object') {
-					this.updateNodeInfo(obj[key as keyof T], path + '.' + key);
-				}
-				this.notifyPath(path + '.' + key, obj[key as keyof T]);
-			}
-		}
 	};
 
 	static updateName(this: CrmEditPage, value: any) {

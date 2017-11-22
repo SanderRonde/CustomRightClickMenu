@@ -35,7 +35,7 @@ window.logElements = (() => {
 			super(props);
 		}
 		showContextMenu(e: MouseEvent) {
-			window.logConsole.initContextMenu(this, e);
+			window.logConsole.initContextMenu(this as any, e);
 			e.preventDefault();
 			e.stopPropagation();
 			return false;

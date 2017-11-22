@@ -19,19 +19,9 @@ class IC {
 	private static settings: CRM.SettingsStorage;
 
 	/**
-	 * The local settings of the app
-	 */
-	private static storageLocal: CRM.StorageLocal;
-
-	/**
 	 * The metatags for the script
  	 */
 	private static metaTags: CRM.MetaTags = {};
-
-	/**
-	 * The metainfo for the script
-	 */
-	private static metaInfo: CMMetaInfo;
 
 	static properties = installConfirmProperties;
 
@@ -93,7 +83,6 @@ class IC {
 					callback(storageLocal.settings);
 				}
 			}
-			_this.storageLocal = storageLocal;
 		});
 	};
 

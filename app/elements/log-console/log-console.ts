@@ -364,7 +364,6 @@ class LC {
 		//Get the LogLine
 		while (source.props.parent) {
 			sourceVal = source.props.value;
-			source = source.props.parent;
 		}
 
 		const sourceLine = source;
@@ -440,7 +439,6 @@ class LC {
 		let source = this.$.contextMenu.source;
 		let childValue = source.props.value;
 		while (source.props.parent && !source.props.parent.isLine()) {
-			source = source.props.parent;
 			if (Array.isArray(source.props.value)) {
 				path.push('[' + source.props.value.indexOf(childValue as LogLineData) + ']');
 			} else {
@@ -482,7 +480,7 @@ class LC {
 			enableCopyAsJSON = true;
 		} catch(e) { console.log(e); }
 
-		let logLine = source;
+		let logLine: any = source;
 		do { logLine = logLine.props.parent; } while (logLine.props.parent);
 		const enableCreateLocalVar = !!logLine.props.line.logId;
 

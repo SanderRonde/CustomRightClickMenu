@@ -75,8 +75,6 @@ class ECI {
 
 	static properties = editCrmItemProperties;
 
-	private static itemIndex: number;
-
 	private static index: number;
 
 	/**
@@ -178,11 +176,9 @@ class ECI {
 
 		this.classList.add('id' + this.item.id);
 		if (this.classList[0] !== 'wait') {
-			this.itemIndex = this.index;
 			this.item = this.item;
 			this.itemName = this.item.name;
 			this.calculateType();
-			this.itemIndex = this.index;
 			this.$.typeSwitcher && this.$.typeSwitcher.ready && this.$.typeSwitcher.ready();
 
 			if (window.app.editCRM.isSelecting) {
