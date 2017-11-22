@@ -527,24 +527,24 @@ class SCE {
 		this.fullscreen = true;
 
 		const rect = this.editorManager.editor.getDomNode().getBoundingClientRect();
-		const editorCont = window.doc.fullscreenEditor;
+		const editorCont = this.editorManager.editor.getDomNode();
 		const editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
 		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
 		editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
 		editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
+		editorContStyle.position = 'absolute';
 		window.paperLibrariesSelector.updateLibraries((this.editorMode === 'main' ?
 			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
 		this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 		//this.$.editorFullScreen.style.display = 'none';
-		const $editorWrapper = $(this.editorManager.editor.getDomNode());
-		const buttonShadow = $editorWrapper.find('#buttonShadow')[0];
-		buttonShadow.style.position = 'absolute';
-		buttonShadow.style.right = '-1px';
+		const editorWrapper = this.editorManager.editor.getDomNode();
+		// const buttonShadow = editorWrapper.find('#buttonShadow')[0];
+		// buttonShadow.style.position = 'absolute';
+		// buttonShadow.style.right = '-1px';
 		this.editorManager.editor.getDomNode().classList.add('fullscreen');
 		this.editorManager.editor.getDomNode().classList.remove('small');
 
-		$editorWrapper.appendTo(window.doc.fullscreenEditorHorizontal);
 		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
 		const bcr = horizontalCenterer.getBoundingClientRect();
 		const viewportWidth = bcr.width+ 20;
@@ -578,10 +578,13 @@ class SCE {
 		}
 
 
-		$editorWrapper[0].style.height = 'auto';
+		editorWrapper.style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
 
 		editorCont.style.display = 'flex';
+
+		this.editorManager.editor.layout();
+
 		//Animate to corners
 		$(editorCont).animate({
 			width: viewportWidth,
@@ -591,11 +594,13 @@ class SCE {
 		}, {
 			duration: 500,
 			easing: 'easeOutCubic',
+			step: () => {
+				this.editorManager.editor.layout();
+			},
 			complete: () =>  {
 				this.editorManager.editor.layout();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
-				buttonShadow.style.position = 'fixed';
 				window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
 				this.popInRibbons();
 			}
@@ -979,7 +984,7 @@ class SCE {
 				rename: this.keyBindings[4].defaultKey
 			}
 		});
-		this.editorManager = await this.$.editor.create('script', {
+		this.editorManager = await this.$.editor.create('script', this, {
 			value: content,
 			language: 'javascript',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',

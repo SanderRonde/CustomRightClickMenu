@@ -157,6 +157,13 @@ class CEB {
 	};
 
 	/**
+	 * Whether this instance is fullscreen
+	 */
+	static isFullscreen(this: CodeEditBehaviorInstance) {
+		return this.fullscreen;
+	}
+
+	/**
 	 * Toggles the editor's options
 	 */
 	static toggleOptions(this: CodeEditBehaviorInstance) {

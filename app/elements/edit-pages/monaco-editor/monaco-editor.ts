@@ -856,6 +856,11 @@ namespace MonacoEditorElement {
 		 */
 		private static _stylesheet: HTMLStyleElement;
 
+		/**
+		 * The associated ScriptEdit or StylesheetEdit element
+		 */
+		static _editElement: CodeEditBehaviorInstance = null;
+
 		private static _getSettings(editorType: 'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
 			if (editorType === 'script') {
 				return MonacoEditorScriptMods.getSettings();
@@ -866,8 +871,10 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions,
+		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', editElement: CodeEditBehaviorInstance,
+			options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+				this._editElement = editElement;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
 				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
@@ -936,7 +943,7 @@ namespace MonacoEditorElement {
 		/**
 		 * The scope that the current editor is active in
 		 */
-		static currentScope: Polymer.RootElement = null;
+		static currentScope: MonacoEditor = null;
 
 		static Caret = class MonacoEditorCaret {
 			/**
@@ -1034,7 +1041,7 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		static setScope(scope: Polymer.RootElement) {
+		static setScope(scope: MonacoEditor) {
 			this.currentScope = scope;
 		}
 
@@ -1050,6 +1057,10 @@ namespace MonacoEditorElement {
 					resolve(null);
 				});
 			});
+		}
+
+		private static _getShadowRoot() {
+			return this.currentScope.shadowRoot;
 		}
 
 		private static _defineProperties() {
@@ -1082,12 +1093,12 @@ namespace MonacoEditorElement {
 			Object.defineProperties(this, {
 				getLocalBodyShadowRoot: {
 					get: () => {
-						return this.currentScope.shadowRoot;
+						return this._getShadowRoot();
 					}
 				},
 				caretRangeFromPoint: {
 					get: () => {
-						return this.Caret.caretRangeFromPoint.bind(this.currentScope.shadowRoot);
+						return this.Caret.caretRangeFromPoint.bind(this._getShadowRoot());
 					}
 				},
 				_metaTagCompletions: {
