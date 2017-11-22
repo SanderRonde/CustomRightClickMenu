@@ -99,6 +99,20 @@ class ECI {
 	 */
 	static currentColumn: CRMColumnElement;
 
+	/**
+	 * Whether the user is currently hovering over the type switcher
+	 */
+	private static hoveringTypeSwitcher: boolean = false;
+
+	static onMouseOver(this: EditCrmItem, e: MouseEvent) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (!this.hoveringTypeSwitcher) {
+			this.hoveringTypeSwitcher = true;
+			this.typeIndicatorMouseOver();
+		}
+	}
+
 	static _openCodeSettings(this: EditCrmItem) {
 		window.app.initCodeOptions(this.item as CRM.ScriptNode|CRM.StylesheetNode);
 	}
@@ -162,7 +176,6 @@ class ECI {
 			this.rootNode = false;
 		}
 
-		const _this = this;
 		this.classList.add('id' + this.item.id);
 		if (this.classList[0] !== 'wait') {
 			this.itemIndex = this.index;
@@ -181,32 +194,12 @@ class ECI {
 				}
 			}
 		}
-		if (this.$.typeSwitcher) {
-			if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] >= 30) {
-				this.$.typeSwitcher.addEventListener('mouseenter', function() {
-					_this.typeIndicatorMouseOver.apply(_this, []);
-				});
-				this.$.typeSwitcher.addEventListener('mouseleave', function() {
-					_this.typeIndicatorMouseLeave.apply(_this, []);
-				});
-			} else {
-				let hoveringTypeSwitcher = false;
-				this.$.typeSwitcher.addEventListener('mouseover', function(e: MouseEvent) {
-					e.preventDefault();
-					e.stopPropagation();
-					if (!hoveringTypeSwitcher) {
-						hoveringTypeSwitcher = true;
-					_this.typeIndicatorMouseOver.apply(_this, []);
-					}
-				});
-				document.body.addEventListener('mouseover', function() {
-					if (hoveringTypeSwitcher) {
-						hoveringTypeSwitcher = false;
-						_this.typeIndicatorMouseLeave.apply(_this, []);
-					}
-				});
+		document.body.addEventListener('mousemove', () => {
+			if (this.hoveringTypeSwitcher) {
+				this.hoveringTypeSwitcher = false;
+				this.typeIndicatorMouseLeave.apply(this, []);
 			}
-		}
+		});
 	};
 
 	static openMenu(this: EditCrmItem) {
@@ -442,7 +435,7 @@ class ECI {
 		const _this = this;
 		this.lastTypeSwitchMouseover = null;
 		if (!this.shadow) {
-			const typeSwitcher = this.$.typeSwitcher;
+			const typeSwitcher = this.$$('type-switcher') as HTMLTypeSwitcherElement;
 			if (typeSwitcher.toggledOpen) {
 				typeSwitcher.closeTypeSwitchContainer(true, function() {
 					typeSwitcher.toggledOpen = false;

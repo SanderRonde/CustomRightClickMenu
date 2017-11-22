@@ -24,30 +24,32 @@
 						<paper-spinner active></paper-spinner>
 					</center-element>
 				</div>
-				<template is="dom-repeat" items="[[crm]]" as="column" observe="indent list" restamp="true">
-					<div class="CRMEditColumnCont" hidden$="[[crmLoading]]">
-						<template is="dom-repeat" items="{{column.indent}}" restamp="true">
-							<div class="indentFiller"></div>
-						</template>
-						<paper-material elevation="5" is-empty$="{{_isColumnEmpty(column)}}">
-							<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
-								<template is="dom-repeat" items="{{column.list}}" as="row" observe="*" restamp="true">
-									<edit-crm-item expanded="{{row.expanded}}" role="button" tabindex="0" aria-label$="{{_getAriaLabel(row)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
-								</template>
-								<template is="dom-if" if="[[isAdding]]">
-									<div on-tap="addToPosition" class="addingItemPlaceholder" data-path$="{{column.menuPath}}">
-										<paper-ripple></paper-ripple>
-										<center-element class="addingItemText">
-											<div>
-												Add Here
-											</div>
-										</center-element>
-									</div>
-								</template>
-							</div>
-						</paper-material>
-					</div>
-				</template>
+				<div id="CRMEditColumnsContainer">
+					<template is="dom-repeat" items="[[crm]]" as="column" observe="indent list" restamp="true">
+						<div class="CRMEditColumnCont" hidden$="[[crmLoading]]">
+							<template is="dom-repeat" items="{{column.indent}}" restamp="true">
+								<div class="indentFiller"></div>
+							</template>
+							<paper-material elevation="5" is-empty$="{{_isColumnEmpty(column)}}">
+								<div class="CRMEditColumn" index="{{column.index}}" items="{{column.list}}">
+									<template is="dom-repeat" items="{{column.list}}" as="row" observe="*" restamp="true">
+										<edit-crm-item expanded="{{row.expanded}}" role="button" tabindex="0" aria-label$="{{_getAriaLabel(row)}}" title="{{row.name}}" shadow$="{{column.shadow}}" shadow="{{column.shadow}}" index="{{row.index}}" item="{{row}}"></edit-crm-item>
+									</template>
+									<template is="dom-if" if="[[isAdding]]">
+										<div on-tap="addToPosition" class="addingItemPlaceholder" data-path$="{{column.menuPath}}">
+											<paper-ripple></paper-ripple>
+											<center-element class="addingItemText">
+												<div>
+													Add Here
+												</div>
+											</center-element>
+										</div>
+									</template>
+								</div>
+							</paper-material>
+						</div>
+					</template>
+				</div>
 			</div>
 		</div>
 		<div id="crmButtonsContainer">
