@@ -75,7 +75,7 @@ class ECI {
 
 	static properties = editCrmItemProperties;
 
-	private static index: number;
+	static index: number;
 
 	/**
      * The element to be animated

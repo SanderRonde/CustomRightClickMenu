@@ -241,19 +241,16 @@ class SCE {
 
 								//Add to script's permissions
 								settingsStorage.permissions = settingsStorage.permissions || [];
-								oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 								settingsStorage.permissions.push(permission);
 							}
 						});
 					} else {
 						//Add to script's permissions
 						settingsStorage.permissions = settingsStorage.permissions || [];
-						oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 						settingsStorage.permissions.push(permission);
 					}
 				} else {
 					//Remove from script's permissions
-					oldPermissions = JSON.parse(JSON.stringify(settingsStorage.permissions));
 					settingsStorage.permissions.splice(settingsStorage.permissions.indexOf(permission), 1);
 				}
 			});
