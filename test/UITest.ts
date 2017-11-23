@@ -2360,13 +2360,13 @@ describe('Options Page', function() {
 				}).then(() => {
 					return getSyncSettings(driver);
 				}).then((settings) => {
-					assert.strictEqual(settings.editor.tabSize, ~~newTabSize,
+					assert.strictEqual(settings.editor.tabSize, newTabSize,
 						'tab size has changed to the correct number');
 					
 					reloadPage(this, driver).then(() => {
 						return getSyncSettings(driver);
 					}).then((settings) => {
-						assert.strictEqual(settings.editor.tabSize, ~~newTabSize,
+						assert.strictEqual(settings.editor.tabSize, newTabSize,
 							'tab size has changed to the correct number');
 						done();
 					});
@@ -2657,7 +2657,7 @@ describe('Options Page', function() {
 					reloadPage(this, driver).then(() => {
 						return getCRM(driver);
 					}).then((crm) => {
-						assert.lengthOf(crm[0].value, 4, 'node has 4 links now');
+						assert.lengthOf(crm[0].value as Array<CRM.LinkNodeLink>, 4, 'node has 4 links now');
 
 						//Only one newTab can be false at a time
 						const newLinks = Array.apply(null, Array(4))
