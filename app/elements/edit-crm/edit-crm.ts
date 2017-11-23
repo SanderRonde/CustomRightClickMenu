@@ -455,7 +455,6 @@ class EC {
 		});
 		this.getColumns().forEach((column, columnIndex, allColumns) => {
 			let draggedNode: EditCrmItem = null;
-			let lastRelated: EditCrmItem = null;
 			let moves: number = 0;
 			let movedUp: boolean = false;
 
@@ -469,7 +468,6 @@ class EC {
 				onChoose: (event) => {
 					const node = event.item;
 					draggedNode = node;
-					lastRelated = node;
 
 					//Collapse menu if it's a menu type node
 					if (node.item.type === 'menu' && node.expanded) {
@@ -554,7 +552,6 @@ class EC {
 						}
 
 						draggedNode.currentColumn = event.to;
-						lastRelated = event.related;
 						moves++;
 					}, 10);
 				}
