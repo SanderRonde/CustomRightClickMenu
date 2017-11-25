@@ -1119,8 +1119,8 @@ ${codeSplit.join('\n')}`;
 			}
 		}
 
-		const cols = this.$.mainCont.children;
-		let row = cols[path.length + 1].children;
+		const cols = this.$.CRMEditColumnsContainer.children;
+		let row = cols[path.length - 1].children;
 		for (i = 0; i < row.length; i++) {
 			if (row[i].tagName === 'PAPER-MATERIAL') {
 				row = row[i].children[0].children;
