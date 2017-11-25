@@ -2360,13 +2360,13 @@ describe('Options Page', function() {
 				}).then(() => {
 					return getSyncSettings(driver);
 				}).then((settings) => {
-					assert.strictEqual(settings.editor.tabSize, newTabSize,
+					assert.strictEqual(~~settings.editor.tabSize, ~~newTabSize,
 						'tab size has changed to the correct number');
 					
 					reloadPage(this, driver).then(() => {
 						return getSyncSettings(driver);
 					}).then((settings) => {
-						assert.strictEqual(settings.editor.tabSize, newTabSize,
+						assert.strictEqual(~~settings.editor.tabSize, ~~newTabSize,
 							'tab size has changed to the correct number');
 						done();
 					});
