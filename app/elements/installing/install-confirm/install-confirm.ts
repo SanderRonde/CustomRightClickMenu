@@ -19,19 +19,9 @@ class IC {
 	private static settings: CRM.SettingsStorage;
 
 	/**
-	 * The local settings of the app
-	 */
-	private static storageLocal: CRM.StorageLocal;
-
-	/**
 	 * The metatags for the script
  	 */
 	private static metaTags: CRM.MetaTags = {};
-
-	/**
-	 * The metainfo for the script
-	 */
-	private static metaInfo: CMMetaInfo;
 
 	static properties = installConfirmProperties;
 
@@ -93,7 +83,6 @@ class IC {
 					callback(storageLocal.settings);
 				}
 			}
-			_this.storageLocal = storageLocal;
 		});
 	};
 
@@ -297,7 +286,7 @@ class IC {
 		this.$[name].innerText = value + '';
 	};
 
-	private static setMetaInformation(this: InstallConfirm, tags: CRM.MetaTags, metaInfo: CMMetaInfo) {
+	private static setMetaInformation(this: InstallConfirm, tags: CRM.MetaTags) {
 		this.setMetaTag('descriptionValue', tags['description']);
 		this.setMetaTag('authorValue', tags['author']);
 
@@ -306,7 +295,6 @@ class IC {
 		this.$.sourceValue.innerText = window.installPage.userscriptUrl;
 		this.$.permissionValue.items = tags['grant'] || ['none'];
 		this.metaTags = tags;
-		this.metaInfo = metaInfo;
 	};
 
 	private static cmLoaded(this: InstallConfirm, cm: CodeMirrorInstance) {
@@ -328,7 +316,7 @@ class IC {
 				window.clearInterval(interval);
 				cm.getMetaTags(cm);
 				if (cm.metaTags && cm.metaTags.metaTags) {
-					_this.setMetaInformation.apply(_this, [cm.metaTags.metaTags, cm.metaTags]);
+					_this.setMetaInformation.apply(_this, [cm.metaTags.metaTags);
 				}
 			}
 		}, 25);

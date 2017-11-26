@@ -759,6 +759,11 @@ window.chrome = {
 				checkOnlyCallback(callback, false);
 			}
 		},
+		onUpdated: {
+			addListener: function(listener) {
+				checkOnlyCallback(listener, false);
+			}	
+		},
 		create: function(data, callback) {
 			typeCheck({
 				data: data,

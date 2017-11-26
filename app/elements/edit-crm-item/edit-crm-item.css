@@ -4,7 +4,7 @@
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
-	width: 200px;
+	width: 300px;
 	height: 50px;
 	font-size: 150%;
 	line-height: 50px;
@@ -31,7 +31,7 @@ edit-crm-item.draggingFiller .item {
 	text-transform: uppercase;
 	text-align: center;
 	color: white;
-	width: 200px;
+	width: 300px;
 }
 
 .CRMItemTitle {
@@ -42,19 +42,19 @@ edit-crm-item.draggingFiller .item {
 	text-overflow: ellipsis;
 	position:relative;
 	padding-left:5px;
-	width:165px;
+	width: 265px;
 }
 
 	.CRMItemTitle[ismenu] {
-		width: 145px;
+		width: 245px;
 	}
 
 	.CRMItemTitle[iscode] {
-		width: 133px;
+		width: 233px;
 	}
 
 	.CRMItemTitle[isroot] {
-		width: 188px;
+		width: 288px;
 	}
 
 .codeSettingsButton {

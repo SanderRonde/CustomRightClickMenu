@@ -427,6 +427,7 @@ interface GlobalObject {
 			onUrl: {
 				[nodeId: number]: Array<CRM.Trigger>;
 			};
+			documentStart: Array<CRM.ScriptNode>;
 			always: Array<CRM.DividerNode | CRM.MenuNode | CRM.LinkNode | CRM.StylesheetNode | CRM.ScriptNode>;
 		};
 		sendCallbackMessage: SendCallbackMessage;
@@ -542,7 +543,8 @@ if (typeof module === 'undefined') {
 		},
 		toExecuteNodes: {
 			onUrl: {},
-			always: []
+			always: [],
+			documentStart: []
 		},
 		sendCallbackMessage: (tabId: number, tabIndex: number, id: number, data: {
 			err: boolean;
@@ -1962,47 +1964,56 @@ if (typeof module === 'undefined') {
 				});
 			}
 
-			function listenTabsRemoved() {
-				chrome.tabs.onRemoved.addListener((tabId) => {
-					//Delete all data for this tabId
-					for (let node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
-						if (globalObject.globals.crmValues.stylesheetNodeStatusses
-							.hasOwnProperty(node) &&
-							globalObject.globals.crmValues.stylesheetNodeStatusses[node]) {
-							globalObject.globals.crmValues
-								.stylesheetNodeStatusses[node][tabId] = undefined;
-						}
+			function onTabUpdated(id: number, details: chrome.tabs.Tab) {
+				if (!details.url || details.url.indexOf('chrome://') === -1 ||
+					details.url.indexOf('file://') === -1) {
+						return;
 					}
-
-					//Delete this instance if it exists
-					const deleted: Array<number> = [];
-					for (let node in globalObject.globals.crmValues.nodeInstances) {
-						if (globalObject.globals.crmValues.nodeInstances.hasOwnProperty(node) &&
-							globalObject.globals.crmValues.nodeInstances[node]) {
-							if (globalObject.globals.crmValues.nodeInstances[node][tabId]) {
-								deleted.push((node as any) as number);
-								globalObject.globals.crmValues.nodeInstances[node][tabId] = undefined;
-							}
-						}
-					}
-
-					for (let i = 0; i < deleted.length; i++) {
-						if ((deleted[i] as any).node && (deleted[i] as any).node.id !== undefined) {
-							globalObject.globals.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id].forEach((tabInstance) => {
-								tabInstance.port.postMessage({
-									change: {
-										type: 'removed',
-										value: tabId
-									},
-									messageType: 'instancesUpdate'
-								});
-							});
-						}
-					}
-
-					delete globalObject.globals.crmValues.tabData[tabId];
-					Logging.Listeners.updateTabAndIdLists();
+				
+				globalObject.globals.toExecuteNodes.documentStart.forEach((node) => {
+					CRM.Script.Running.executeNode(node, details);
 				});
+			}
+
+			function onTabsRemoved(tabId: number) {
+				//Delete all data for this tabId
+				for (let node in globalObject.globals.crmValues.stylesheetNodeStatusses) {
+					if (globalObject.globals.crmValues.stylesheetNodeStatusses
+						.hasOwnProperty(node) &&
+						globalObject.globals.crmValues.stylesheetNodeStatusses[node]) {
+						globalObject.globals.crmValues
+							.stylesheetNodeStatusses[node][tabId] = undefined;
+					}
+				}
+
+				//Delete this instance if it exists
+				const deleted: Array<number> = [];
+				for (let node in globalObject.globals.crmValues.nodeInstances) {
+					if (globalObject.globals.crmValues.nodeInstances.hasOwnProperty(node) &&
+						globalObject.globals.crmValues.nodeInstances[node]) {
+						if (globalObject.globals.crmValues.nodeInstances[node][tabId]) {
+							deleted.push((node as any) as number);
+							globalObject.globals.crmValues.nodeInstances[node][tabId] = undefined;
+						}
+					}
+				}
+
+				for (let i = 0; i < deleted.length; i++) {
+					if ((deleted[i] as any).node && (deleted[i] as any).node.id !== undefined) {
+						globalObject.globals.crmValues.tabData[tabId].nodes[(deleted[i] as any).node.id].forEach((tabInstance) => {
+							tabInstance.port.postMessage({
+								change: {
+									type: 'removed',
+									value: tabId
+								},
+								messageType: 'instancesUpdate'
+							});
+						});
+					}
+				}
+
+				delete globalObject.globals.crmValues.tabData[tabId];
+				Logging.Listeners.updateTabAndIdLists();
 			}
 
 			function listenNotifications() {
@@ -2092,6 +2103,8 @@ if (typeof module === 'undefined') {
 				});
 			}
 
+			chrome.tabs.onUpdated.addListener(onTabUpdated);
+			chrome.tabs.onRemoved.addListener(onTabsRemoved);
 			chrome.tabs.onHighlighted.addListener(tabChangeListener);
 			chrome.webRequest.onBeforeRequest.addListener(
 				(details) => {
@@ -2105,7 +2118,6 @@ if (typeof module === 'undefined') {
 				}, {
 					urls: [`chrome-extension://${chrome.runtime.id}/resource/*`]
 				}, ['blocking']);
-			listenTabsRemoved();
 			listenNotifications();
 			listenTamperMonkeyInstallState();
 			listenKeyCommands();
@@ -2128,24 +2140,31 @@ if (typeof module === 'undefined') {
 						resolve(null);
 					} else {
 						await window.Promise.all(tabs.map((tab) => {
-							return new window.Promise<void>((resolveInner) => {
-								if (tab.url.indexOf('chrome://') === -1 &&
-									tab.url.indexOf('file://') === -1) {
-									chrome.tabs.executeScript(tab.id, {
-										file: 'js/contentscript.js'
-									}, () => {
-										if (chrome.runtime.lastError) {
-											window.log('Failed to restore tab with id', tab.id);
+							return Promise.race([
+								new window.Promise<void>((resolveInner) => {
+									if (tab.url.indexOf('chrome://') === -1 &&
+										tab.url.indexOf('file://') === -1) {
+										chrome.tabs.executeScript(tab.id, {
+											file: 'js/contentscript.js'
+										}, () => {
+											if (chrome.runtime.lastError) {
+												window.log('Failed to restore tab with id', tab.id);
+												resolveInner(null);
+											}
+											window.log('Restored tab with id', tab.id);
 											resolveInner(null);
-										}
-										window.log('Restored tab with id', tab.id);
+										});
+									} else {
+										window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
 										resolveInner(null);
-									});
-								} else {
-									window.log('Ignoring tab with id', tab.id, '(chrome or file url)');
-									resolveInner(null);
-								}
-							});
+									}
+								}),
+								new window.Promise<void>((resolveInner) => {
+									window.setTimeout(() => {
+										resolveInner(null);
+									}, 2500);
+								})
+							]);
 						}));
 						resolve(null);
 					}
@@ -5704,6 +5723,39 @@ if (typeof module === 'undefined') {
 				}
 				return resourcesArray;
 			}
+			private static _ensureRunAt(id: number, script: {
+				code?: string;
+				file?: string;
+				runAt: string;
+			}): {
+				code?: string;
+				file?: string;
+				runAt: 'document_start'|'document_end'|'document_idle';
+			} {
+				const newScript: {
+					code?: string;
+					file?: string;
+					runAt: 'document_start'|'document_end'|'document_idle';
+				} = {
+					code: script.code,
+					file: script.file,
+					runAt: 'document_idle'
+				};
+
+				const runAt = script.runAt;
+
+				if (runAt === 'document_start' ||
+					runAt === 'document_end' ||
+					runAt === 'document_idle') {
+						newScript.runAt = runAt;
+					} else {
+						window.log('Script widht id', id, 
+						'runAt value was changed to default, ', runAt, 
+						'is not a valid value (use document_start, document_end or document_idle)');
+					}
+
+				return newScript;
+			}
 			private static _executeScript(nodeId: number, tabId: number, scripts: Array<{
 				code?: string;
 				file?: string;
@@ -5719,7 +5771,7 @@ if (typeof module === 'undefined') {
 					}
 					if (scripts.length > i) {
 						try {
-							chrome.tabs.executeScript(tabId, scripts[i], this._executeScript(nodeId, tabId,
+							chrome.tabs.executeScript(tabId, this._ensureRunAt(nodeId, scripts[i]), this._executeScript(nodeId, tabId,
 								scripts, i + 1));
 						} catch (e) {
 							//The tab was closed during execution
@@ -5764,7 +5816,7 @@ if (typeof module === 'undefined') {
 					}
 					return false;
 				}
-				private static _executeNode(node: CRM.Node, tab: chrome.tabs.Tab) {
+				static executeNode(node: CRM.Node, tab: chrome.tabs.Tab) {
 					if (node.type === 'script') {
 						CRM.Script.Handler.createHandler(node as CRM.ScriptNode)({
 							pageUrl: tab.url,
@@ -5816,10 +5868,10 @@ if (typeof module === 'undefined') {
 								}
 
 								for (let i = 0; i < globalObject.globals.toExecuteNodes.always.length; i++) {
-									this._executeNode(globalObject.globals.toExecuteNodes.always[i], tab);
+									this.executeNode(globalObject.globals.toExecuteNodes.always[i], tab);
 								}
 								for (let i = 0; i < toExecute.length; i++) {
-									this._executeNode(toExecute[i].node, toExecute[i].tab);
+									this.executeNode(toExecute[i].node, toExecute[i].tab);
 								}
 								respond({
 									matched: toExecute.length > 0
@@ -6866,7 +6918,7 @@ if (typeof module === 'undefined') {
 								},
 								position: 1, // what does this mean?
 								resources: CRM.Script._getResourcesArrayForScript(node.id),
-								"run-at": metaData['run-at'] || 'document_end',
+								"run-at": metaData['run-at'] || metaData['run_at'] || 'document_end',
 								system: false,
 								unwrap: true,
 								version: metaVal('version')
@@ -6952,7 +7004,7 @@ if (typeof module === 'undefined') {
 								const metaData: {
 									[key: string]: any;
 								} = CRM.Script.MetaTags.getMetaTags(node.value.script);
-								const runAt: string = metaData['run-at'] || 'document_end';
+								const runAt: string = metaData['run-at'] || metaData['run_at'] || 'document_end';
 								const { excludes, includes } = this.getInExcludes(node)
 
 								const greaseMonkeyData = this.generateGreaseMonkeyData(metaData, node, includes, excludes, tab)
@@ -7480,11 +7532,11 @@ if (typeof module === 'undefined') {
 				if (node.type === 'stylesheet' && node.value.toggle && node.value.defaultOn) {
 					if (launchMode === CRMLaunchModes.ALWAYS_RUN ||
 						launchMode === CRMLaunchModes.RUN_ON_CLICKING) {
-						globalObject.globals.toExecuteNodes.always.push(node);
-					} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
-						launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
-						globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
-					}
+							globalObject.globals.toExecuteNodes.always.push(node);
+						} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED ||
+							launchMode === CRMLaunchModes.SHOW_ON_SPECIFIED) {
+							globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
+						}
 				}
 			}
 			private static _handleHideOnPages(node: CRM.Node, launchMode: CRMLaunchModes,
@@ -7587,7 +7639,16 @@ if (typeof module === 'undefined') {
 				const launchMode = ((node.type === 'script' || node.type === 'stylesheet') &&
 					node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
 				if (launchMode === CRMLaunchModes.ALWAYS_RUN) {
-					globalObject.globals.toExecuteNodes.always.push(node);
+					if (node.type === 'script') {
+						const meta = CRM.Script.MetaTags.getMetaTags(node.value.script);
+						if (meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start') {
+							globalObject.globals.toExecuteNodes.documentStart.push(node);
+						} else {
+							globalObject.globals.toExecuteNodes.always.push(node);
+						}
+					} else {
+						globalObject.globals.toExecuteNodes.always.push(node);
+					}
 				} else if (launchMode === CRMLaunchModes.RUN_ON_SPECIFIED) {
 					globalObject.globals.toExecuteNodes.onUrl[node.id] = node.triggers;
 				} else if (launchMode !== CRMLaunchModes.DISABLED) {
@@ -7702,7 +7763,8 @@ if (typeof module === 'undefined') {
 			});
 			globalObject.globals.toExecuteNodes = {
 				onUrl: {},
-				always: []
+				always: [],
+				documentStart: []
 			};
 			for (let i = 0; i < length; i++) {
 				const result = this._buildPageCRMTree(globalObject.globals.crm.crmTree[i],

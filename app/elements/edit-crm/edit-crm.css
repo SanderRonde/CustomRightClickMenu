@@ -6,7 +6,7 @@
 
 .indentFiller {
 	height: 50px;
-	width:200px;
+	width: 300px;
 }
 
 @keyframes animateLeft {
@@ -21,7 +21,7 @@
 }
 
 .CRMEditColumnCont {
-	width: 200px;
+	width: 300px;
 	/*I am not going to question how this works but it does*/
 	display:table;
 	animation: animateLeft 250ms ease-in, transform 50ms ease-in-out;;
@@ -59,7 +59,7 @@
 
 .crmItemFiller {
 	height: 50px;
-	width: 200px;
+	width: 300px;
 }
 
 #emptyCrmNotice {
@@ -169,4 +169,8 @@ paper-material[is-empty] {
 	display: flex;
 	-webkit-justify-content: space-between;
 	justify-content: space-between;
+}
+
+#CRMEditColumnsContainer {
+	display: flex;
 }
