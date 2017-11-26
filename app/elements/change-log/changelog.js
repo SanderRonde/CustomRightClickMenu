@@ -74,6 +74,11 @@
 			'Nodes are selectable again',
 			'Link nodes can be removed properly',
 			'%s in link nodes gets replaced with the currently selected text'
+		],
+		'2.0.18': [
+			'Fixed dragging',
+			'Types can be changed again',
+			'Widened nodes'
 		]
 	};
 }());
