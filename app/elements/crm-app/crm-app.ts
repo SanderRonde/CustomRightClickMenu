@@ -2647,15 +2647,24 @@ namespace CRMAppElement {
 			};
 
 			static toggleToolsRibbon() {
-				if (window.app.storageLocal.hideToolsRibbon) {
-					$(window.doc.editorToolsRibbonContainer).animate({
-						marginLeft: 0
-					}, 250);
-				} else {
-					$(window.doc.editorToolsRibbonContainer).animate({
-						marginLeft: '-200px'
-					}, 250);
-				}
+				const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
+				const bcr = horizontalCenterer.getBoundingClientRect();
+				const viewportWidth = bcr.width + 20;
+
+				$(window.doc.editorToolsRibbonContainer).animate({
+					marginLeft: window.app.storageLocal.hideToolsRibbon ? '0' : 
+						'-200px'
+				}, {
+					duration: 250,
+					easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+					step: (now: number) => {
+						window.doc.fullscreenEditorEditor.style.width = 
+							`${viewportWidth - 200 - now}px`;
+						window.doc.fullscreenEditorEditor.style.marginLeft = 
+							`${now + 200}px`;
+						(window.scriptEdit || window.scriptEdit).getCmInstance().editor.layout();
+					}
+				});
 				window.app.storageLocal.hideToolsRibbon = !window.app.storageLocal.hideToolsRibbon;
 				window.app.upload();
 			};
