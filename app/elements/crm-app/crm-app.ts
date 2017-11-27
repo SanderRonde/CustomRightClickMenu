@@ -3272,6 +3272,18 @@ namespace CRMAppElement {
 				window.doc.exportToLegacyOutput.value = data;
 			};
 
+			static exitFullscreen() {
+				const dialog = this.parent().item.type === 'script' ?
+					window.scriptEdit : window.stylesheetEdit;
+				dialog.exitFullScreen();
+			}
+
+			static toggleFullscreenOptions() {
+				const dialog = this.parent().item.type === 'script' ?
+					window.scriptEdit : window.stylesheetEdit;
+				dialog.toggleOptions();
+			}
+
 			static parent() {
 				return window.app;
 			}
