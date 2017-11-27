@@ -103,6 +103,8 @@ paper-ripple {
 	z-index:100;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	width: 100vw;
+	display: none;
 }
 
 #editorCurrentScriptTitle {
@@ -146,6 +148,7 @@ paper-ripple {
 	display: flex;
 	-webkit-flex-direction: column;
 	flex-direction: column;
+	position: absolute;
 }
 
 app-header {

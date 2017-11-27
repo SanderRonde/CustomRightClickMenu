@@ -400,29 +400,35 @@ class SCE {
 				marginTop: 0
 			}
 		];
-		const margin = (window.app.storageLocal.hideToolsRibbon ? '-200px' : '0');
 		scriptTitle.style.marginLeft = '-200px';
-		scriptTitleAnimation[0]['marginLeft'] = '-200px';
-		scriptTitleAnimation[1]['marginLeft'] = 0;
+
+		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
+		const bcr = horizontalCenterer.getBoundingClientRect();
+		const viewportWidth = bcr.width + 20;
 
 		this.initToolsRibbon();
-		setTimeout(function() {
+		setTimeout(() => {
 			window.doc.editorToolsRibbonContainer.style.display = 'flex';
-			window.doc.editorToolsRibbonContainer.animate([
-				{
-					marginLeft: '-200px'
+			if (!window.app.storageLocal.hideToolsRibbon) {
+				$(window.doc.editorToolsRibbonContainer).animate({
+					marginLeft: '0'
 				}, {
-					marginLeft: margin
-				}
-			], {
-				duration: 500,
-				easing: 'bez'
-			}).onfinish = function() {
-				window.doc.editorToolsRibbonContainer.style.marginLeft = margin;
+					duration: 500,
+					easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+					step: (now: number) => {
+						console.log('step', now);						
+						window.doc.fullscreenEditorEditor.style.width = 
+							`${viewportWidth - 200 - now}px`;
+						window.doc.fullscreenEditorEditor.style.marginLeft = 
+							`${now + 200}px`;
+						this.fullscreenEditorManager.editor.layout();
+					}
+				});
+			} else {
 				window.doc.editorToolsRibbonContainer.classList.add('visible');
-			};
+			}
 		}, 200);
-		setTimeout(function() {
+		setTimeout(() => {
 			window.doc.dummy.style.height = '0';
 			$(window.doc.dummy).animate({
 				height: '50px'
@@ -430,7 +436,9 @@ class SCE {
 				duration: 500,
 				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 				step: (now: number) => {
-					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
+					window.doc.fullscreenEditorEditor.style.height = `calc(100vh - ${now}px)`;
+					window.doc.fullscreenEditorHorizontal.style.height = `calc(100vh - ${now}px)`;
+					this.fullscreenEditorManager.editor.layout();
 				}
 			});
 			scriptTitle.animate(scriptTitleAnimation, {
@@ -525,9 +533,10 @@ class SCE {
 			return;
 		}
 		this.fullscreen = true;
+		window.doc.fullscreenEditor.style.display = 'block';
 
 		const rect = this.editorManager.editor.getDomNode().getBoundingClientRect();
-		const editorCont = this.editorManager.editor.getDomNode();
+		const editorCont = window.doc.fullscreenEditorEditor;
 		const editorContStyle = editorCont.style;
 		editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
 		editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
@@ -537,13 +546,8 @@ class SCE {
 		window.paperLibrariesSelector.updateLibraries((this.editorMode === 'main' ?
 			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
 		this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
-		//this.$.editorFullScreen.style.display = 'none';
-		const editorWrapper = this.editorManager.editor.getDomNode();
-		// const buttonShadow = editorWrapper.find('#buttonShadow')[0];
-		// buttonShadow.style.position = 'absolute';
-		// buttonShadow.style.right = '-1px';
-		this.editorManager.editor.getDomNode().classList.add('fullscreen');
-		this.editorManager.editor.getDomNode().classList.remove('small');
+
+		this.fullscreenEditorManager = editorCont.createFrom(this.editorManager);
 
 		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
 		const bcr = horizontalCenterer.getBoundingClientRect();
@@ -578,12 +582,11 @@ class SCE {
 		}
 
 
-		editorWrapper.style.height = 'auto';
 		document.documentElement.style.overflow = 'hidden';
 
 		editorCont.style.display = 'flex';
 
-		this.editorManager.editor.layout();
+		this.fullscreenEditorManager.editor.layout();
 
 		//Animate to corners
 		$(editorCont).animate({
@@ -595,10 +598,10 @@ class SCE {
 			duration: 500,
 			easing: 'easeOutCubic',
 			step: () => {
-				this.editorManager.editor.layout();
+				this.fullscreenEditorManager.editor.layout();
 			},
 			complete: () =>  {
-				this.editorManager.editor.layout();
+				this.fullscreenEditorManager.editor.layout();
 				this.style.width = '100vw';
 				this.style.height = '100vh';
 				window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
@@ -615,6 +618,8 @@ class SCE {
 			return;
 		}
 		this.fullscreen = false;
+
+		window.doc.fullscreenEditor.style.display = 'none';
 
 		const _this = this;
 		this.popOutRibbons();
@@ -982,13 +987,15 @@ class SCE {
 			keyBindings: {
 				goToDef: this.keyBindings[2].defaultKey,
 				rename: this.keyBindings[4].defaultKey
-			}
+			},
+			cssUnderlineDisabled: false,
+			disabledMetaDataHighlight: false
 		});
 		this.editorManager = await this.$.editor.create('script', this, {
 			value: content,
 			language: 'javascript',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
-			wordWrap: 'on',
+			wordWrap: 'off',
 			fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
 			folding: true
 		});

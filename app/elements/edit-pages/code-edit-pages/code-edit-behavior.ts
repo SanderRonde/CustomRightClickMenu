@@ -30,6 +30,11 @@ class CEB {
 	static editorManager: MonacoEditor = null;
 
 	/**
+	 * The editor manager for the fullscreen editor
+	 */
+	static fullscreenEditorManager: MonacoEditor = null;
+
+	/**
 	 * Whether the vertical scrollbar is already shown
 	 */
 	static verticalVisible: boolean = false;
@@ -117,7 +122,7 @@ class CEB {
 			});
 		this.$$('.mainEditorTab').classList.add('active');
 	};
-
+	
 	/**
 	 * Inserts given snippet of code into the editor
 	 */
@@ -198,9 +203,15 @@ class CEB {
 		}
 	};
 
-	static getCmInstance(this: CodeEditBehaviorInstance): CodeMirrorInstance {
+	static getCmInstance(this: CodeEditBehaviorInstance): MonacoEditor {
 		if (this.item.type === 'script') {
+			if (window.scriptEdit.fullscreenEditorManager) {
+				return window.scriptEdit.fullscreenEditorManager;
+			}
 			return window.scriptEdit.editorManager;
+		}
+		if (window.stylesheetEdit.fullscreenEditorManager) {
+			return window.stylesheetEdit.fullscreenEditorManager;
 		}
 		return window.stylesheetEdit.editorManager;
 	}

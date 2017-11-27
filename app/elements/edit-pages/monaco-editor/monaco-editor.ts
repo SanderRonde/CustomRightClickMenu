@@ -269,6 +269,9 @@ namespace MonacoEditorElement {
 		}
 		
 		private _defineMetaOnModel() {
+			if ('_metaBlock' in this._editor.getModel()) {
+				return;
+			}
 			Object.defineProperty(this._editor.getModel(), '_metaBlock', {
 				get: () => {
 					return this.getMetaBlock();
@@ -874,6 +877,11 @@ namespace MonacoEditorElement {
 		static editElement: CodeEditBehaviorInstance = null;
 
 		/**
+		 * The options used on this editor
+		 */
+		static options: monaco.editor.IEditorConstructionOptions = null;
+
+		/**
 		 * The type of the editor
 		 */
 		static editorType: 'script'|'stylesheet'|'none' = null;
@@ -891,6 +899,7 @@ namespace MonacoEditorElement {
 		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', editElement: CodeEditBehaviorInstance,
 			options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+				this.options = options;
 				this.editElement = editElement;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
@@ -909,12 +918,11 @@ namespace MonacoEditorElement {
 				return this;
 			}
 
-		static async createFrom(this: MonacoEditor, from: MonacoEditor) {
+		static createFrom(this: MonacoEditor, from: MonacoEditor) {
 			this.editElement = from.editElement;
-			await MonacoEditorHookManager.monacoReady;
-			this.editor = window.monaco.editor.create(this.$.editorElement, {
+			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
 				model: from.editor.getModel()
-			});
+			}, this.options));
 			MonacoEditorHookManager.StyleHack.copyThemeScope(this);
 			MonacoEditorHookManager.setScope(this);
 			MonacoEditorHookManager.registerScope(this, this.editor);
