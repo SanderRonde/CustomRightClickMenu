@@ -81,7 +81,7 @@ paper-spinner {
 	height: 50px;
 }
 
-paper-material[is-empty] {
+.paper-material[is-empty] {
 	display: none;
 }
 
