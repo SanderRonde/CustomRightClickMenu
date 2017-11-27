@@ -662,6 +662,7 @@ body.editingScript .cssTool {
 	flex-direction: column;
 	-webkit-justify-content: flex-end;
 	justify-content: flex-end;
+	margin-left: 212px;
 }
 
 #shrinkTitleRibbonButton {
@@ -1054,21 +1055,7 @@ paper-toggle-option #checkboxLabel {
 }
 
 #showHideToolsRibbonButton {
-	width: 25px;
-	height: 25px;
-}
-
-#showHideToolsRibbonButton iron-icon {
-	margin-top: -25px;
-}
-
-#showHideToolsRibbonButton.hidden {
-	width: 15px;
-	height: 15px;
-}
-
-#showHideToolsRibbonButton.hidden iron-icon {
-	margin-top: -33px;
+	padding: 0 8px!important;
 }
 
 #ribbonScriptName, #ribbonStylesheetName {
