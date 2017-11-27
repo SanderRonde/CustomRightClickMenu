@@ -544,7 +544,6 @@ class SCE {
 		editorContStyle.position = 'absolute';
 		window.paperLibrariesSelector.updateLibraries((this.editorMode === 'main' ?
 			this.newSettings.value.libraries : this.newSettings.value.backgroundLibraries || [])), this.editorMode;
-		this.$.editorFullScreen.children[0].innerHTML = '<path d="M10 32h6v6h4V28H10v4zm6-16h-6v4h10V10h-4v6zm12 22h4v-6h6v-4H28v10zm4-22v-6h-4v10h10v-4h-6z"/>';
 
 		this.fullscreenEditorManager = editorCont.createFrom(this.editorManager);
 

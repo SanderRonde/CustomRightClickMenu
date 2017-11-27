@@ -662,7 +662,6 @@ body.editingScript .cssTool {
 	flex-direction: column;
 	-webkit-justify-content: flex-end;
 	justify-content: flex-end;
-	margin-left: 212px;
 }
 
 #shrinkTitleRibbonButton {
@@ -1089,4 +1088,29 @@ paper-checkbox {
 	position: relative;
 	padding: 8px 8px 8px 24px;
 	margin: 0;
+}
+
+#fullscreenEditorButtons, #titleRibbonEnd {
+	display: -webkit-flex;
+	display: flex;
+}
+
+#fullscreenEditorButtons {
+	margin-right: 20px;
+	height: 39px;
+	padding: 0 5px;
+}
+
+#fullscreenEditorButtons > div {
+	padding: 0 6px;
+	cursor: pointer;
+	background-color: white;
+}
+
+#fullscreenEditorButtons > div:hover {
+	background-color: #dbdbdb;
+}
+
+#fullscreenEditorSettings {
+	margin-top: -2px;
 }
