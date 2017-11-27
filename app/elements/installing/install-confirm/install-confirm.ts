@@ -316,7 +316,7 @@ class IC {
 				window.clearInterval(interval);
 				cm.getMetaTags(cm);
 				if (cm.metaTags && cm.metaTags.metaTags) {
-					_this.setMetaInformation.apply(_this, [cm.metaTags.metaTags);
+					_this.setMetaInformation.apply(_this, [cm.metaTags.metaTags]);
 				}
 			}
 		}, 25);
