@@ -416,7 +416,6 @@ class SCE {
 					duration: 500,
 					easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 					step: (now: number) => {
-						console.log('step', now);						
 						window.doc.fullscreenEditorEditor.style.width = 
 							`${viewportWidth - 200 - now}px`;
 						window.doc.fullscreenEditorEditor.style.marginLeft = 
