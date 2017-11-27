@@ -838,8 +838,20 @@ namespace MonacoEditorElement {
 		}
 	}
 
+	const monacoEditorProperties: {
+		noSpinner: boolean;
+	} = {
+		noSpinner: {
+			type: Boolean,
+			notify: true,
+			value: false
+		}
+	} as any;
+
 	class MOE {
 		static is: string = 'monaco-editor';
+
+		static properties = monacoEditorProperties;
 
 		/**
 		 * The editor associated with this element
@@ -859,7 +871,12 @@ namespace MonacoEditorElement {
 		/**
 		 * The associated ScriptEdit or StylesheetEdit element
 		 */
-		static _editElement: CodeEditBehaviorInstance = null;
+		static editElement: CodeEditBehaviorInstance = null;
+
+		/**
+		 * The type of the editor
+		 */
+		static editorType: 'script'|'stylesheet'|'none' = null;
 
 		private static _getSettings(editorType: 'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
 			if (editorType === 'script') {
@@ -874,13 +891,15 @@ namespace MonacoEditorElement {
 		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', editElement: CodeEditBehaviorInstance,
 			options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-				this._editElement = editElement;
+				this.editElement = editElement;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
 				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
-				MonacoEditorHookManager.StyleHack.fixThemeScope(this);
+				MonacoEditorHookManager.registerScope(this, this.editor);
+				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
 				this._hideSpinner();
 
+				this.editorType = editorType;
 				this.editor.updateOptions(this._getSettings(editorType));
 				if (editorType === 'script') {
 					this.typeHandler = new MonacoEditorScriptMods(this.editor);
@@ -889,6 +908,26 @@ namespace MonacoEditorElement {
 				}
 				return this;
 			}
+
+		static async createFrom(this: MonacoEditor, from: MonacoEditor) {
+			this.editElement = from.editElement;
+			await MonacoEditorHookManager.monacoReady;
+			this.editor = window.monaco.editor.create(this.$.editorElement, {
+				model: from.editor.getModel()
+			});
+			MonacoEditorHookManager.StyleHack.copyThemeScope(this);
+			MonacoEditorHookManager.setScope(this);
+			MonacoEditorHookManager.registerScope(this, this.editor);
+			this._hideSpinner();
+
+			this.editor.updateOptions(this._getSettings(from.editorType));
+			if (from.editorType === 'script') {
+				this.typeHandler = new MonacoEditorScriptMods(this.editor);
+			} else if (from.editorType === 'stylesheet') {
+				this.typeHandler = new MonacoEditorStylesheetMods(this.editor);
+			}
+			return this;
+		}
 
 		static destroy(this: MonacoEditor) {
 			this.editor.dispose();
@@ -899,12 +938,12 @@ namespace MonacoEditorElement {
 
 		static _showSpinner(this: MonacoEditor) {
 			this.$.placeholder.style.display = 'block';
-			this.$.spinner.active = true;
+			this.$.spinner && (this.$.spinner.active = true);
 			this.$.placeholder.classList.remove('hidden')
 		}
 
 		static async _hideSpinner(this: MonacoEditor) {
-			this.$.spinner.active = false;
+			this.$.spinner && (this.$.spinner.active = false);
 			this.$.placeholder.classList.add('hidden');
 			await new window.Promise((resolve) => {
 				window.setTimeout(() => {
@@ -944,6 +983,11 @@ namespace MonacoEditorElement {
 		 * The scope that the current editor is active in
 		 */
 		static currentScope: MonacoEditor = null;
+
+		/**
+		 * Any registered scopes
+		 */
+		private static _scopes: Array<[MonacoEditor, monaco.editor.IStandaloneCodeEditor]> = [];
 
 		static Caret = class MonacoEditorCaret {
 			/**
@@ -1031,18 +1075,28 @@ namespace MonacoEditorElement {
 			 */
 			static monacoStyleElement: HTMLStyleElement = null;
 
-			static fixThemeScope(scope: MonacoEditor) {
+			static copyThemeScope(scope: MonacoEditor) {
 				this.monacoStyleElement = this.monacoStyleElement || 
 					document.getElementsByClassName('monaco-colors')[0] as HTMLStyleElement;
 				
 				if (scope.shadowRoot.children[0] !== this.monacoStyleElement) {
-					scope.shadowRoot.insertBefore(this.monacoStyleElement, scope.shadowRoot.children[0]);
+					const clone = this.monacoStyleElement.cloneNode(true);
+					scope.shadowRoot.insertBefore(clone, scope.shadowRoot.children[0]);
 				}
 			}
 		}
 
 		static setScope(scope: MonacoEditor) {
 			this.currentScope = scope;
+			window.setTimeout(() => {
+				scope.editor.getDomNode().addEventListener('mouseover', () => {
+					this.currentScope = scope;
+				});
+			}, 5000);
+		}
+
+		static registerScope(scope: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor) {
+			this._scopes.push([scope, editor])
 		}
 
 		private static _setupRequire() {
@@ -1098,7 +1152,17 @@ namespace MonacoEditorElement {
 				},
 				caretRangeFromPoint: {
 					get: () => {
-						return this.Caret.caretRangeFromPoint.bind(this._getShadowRoot());
+						return (context: {
+							model: monaco.editor.IStandaloneCodeEditor;
+							viewDomNode: HTMLElement;
+						}) => {
+							for (const [ scope, editor ] of this._scopes) {
+								if (context.viewDomNode === editor.getDomNode()) {
+									return this.Caret.caretRangeFromPoint.bind(scope.shadowRoot);
+								}
+							}
+							return document.caretRangeFromPoint.bind(document);
+						}
 					}
 				},
 				_metaTagCompletions: {

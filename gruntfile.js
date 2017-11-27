@@ -435,11 +435,14 @@ module.exports = function(grunt) {
 			patchMonaco: {
 				options: {
 					replacements: [{
+						pattern: /node = node\.parentNode/g,
+						replacement: 'node = node.parentNode || node.host'
+					}, {
 						pattern: /document\.body/g,
 						replacement: 'MonacoEditorHackManager.getLocalBodyShadowRoot'
 					}, {
 						pattern: /document\.caretRangeFromPoint/g,
-						replacement: 'MonacoEditorHackManager.caretRangeFromPoint'
+						replacement: 'MonacoEditorHackManager.caretRangeFromPoint(arguments[0])'
 					}, {
 						pattern: /this.target(\s)?=(\s)?e.target/g,
 						replacement: 'this.target = e.path ? e.path[0] : e.target'
@@ -455,11 +458,14 @@ module.exports = function(grunt) {
 			patchDevMonaco: {
 				options: {
 					replacements: [{
+						pattern: /node = node\.parentNode/g,
+						replacement: 'node = node.parentNode || node.host'
+					}, {
 						pattern: /document\.body/g,
 						replacement: 'MonacoEditorHackManager.getLocalBodyShadowRoot'
 					}, {
 						pattern: /document\.caretRangeFromPoint/g,
-						replacement: 'MonacoEditorHackManager.caretRangeFromPoint'
+						replacement: 'MonacoEditorHackManager.caretRangeFromPoint(arguments[0])'
 					}, {
 						pattern: /this.target(\s)?=(\s)?e.target/g,
 						replacement: 'this.target = e.path ? e.path[0] : e.target'
