@@ -459,9 +459,8 @@ class SCE {
 		const scriptTitle = window.app.$.editorCurrentScriptTitle;
 		const toolsRibbon = window.app.$.editorToolsRibbonContainer;
 
-		const toolsVisible = !window.app.storageLocal.hideToolsRibbon &&
-			toolsRibbon &&
-			toolsRibbon.classList.contains('visible');
+		const toolsVisible = !!(!window.app.storageLocal.hideToolsRibbon &&
+			toolsRibbon);
 
 		const titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
 
@@ -473,6 +472,9 @@ class SCE {
 			marginLeft: (toolsVisible ? '-200px' : 0)
 		}];
 
+		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
+		const bcr = horizontalCenterer.getBoundingClientRect();
+		const viewportWidth = bcr.width + 20;
 
 		if (toolsVisible) {
 			scriptTitle.animate(titleAnimation, {
@@ -482,20 +484,24 @@ class SCE {
 				scriptTitle.style.marginTop = titleAnimation[1].marginTop + '';
 				scriptTitle.style.marginLeft = titleAnimation[1].marginLeft + '';
 			};
-			toolsRibbon.animate([
-				{
-					marginLeft: 0
-				}, {
-					marginLeft: '-200px'
-				}
-			], {
+			$(toolsRibbon).animate({
+				marginLeft: '-200px'
+			}, {
 				duration: 800,
-				easing: 'bez'
-			}).onfinish = function() {
-				scriptTitle.style.display = 'none';
-				toolsRibbon.style.display = 'none';
-				toolsRibbon.style.marginLeft = '-200px';
-			};
+				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+				step: (now: number) => {
+					window.doc.fullscreenEditorEditor.style.width = 
+						`${viewportWidth - 200 - now}px`;
+					window.doc.fullscreenEditorEditor.style.marginLeft = 
+						`${now + 200}px`;
+					this.fullscreenEditorManager.editor.layout();
+				},
+				complete() {
+					scriptTitle.style.display = 'none';
+					toolsRibbon.style.display = 'none';
+					toolsRibbon.style.marginLeft = '-200px';	
+				}
+			});
 		} else {
 			window.doc.dummy.style.height = (titleExpanded ? '50px' : '18px');
 			$(window.doc.dummy).animate({
@@ -504,7 +510,10 @@ class SCE {
 				duration: 800,
 				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 				step: (now: number) => {
-					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
+					window.doc.fullscreenEditorEditor.style.width = 
+						`${viewportWidth - 200 - now}px`;
+					window.doc.fullscreenEditorEditor.style.marginLeft = 
+						`${now + 200}px`;
 				}
 			});
 			scriptTitle.animate([
@@ -617,23 +626,15 @@ class SCE {
 		}
 		this.fullscreen = false;
 
-		window.doc.fullscreenEditor.style.display = 'none';
-
-		const _this = this;
 		this.popOutRibbons();
-		const $wrapper = $(_this.editorManager.editor.getDomNode());
-		const $buttonShadow = $wrapper.find('#buttonShadow');
-		$buttonShadow[0].style.position = 'absolute';
-		setTimeout(function() {
-			_this.editorManager.editor.getDomNode().classList.remove('fullscreen');
-			_this.editorManager.editor.getDomNode().classList.add('small');
-			const editorCont = window.doc.fullscreenEditor;
-			_this.$.editorFullScreen.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
+		setTimeout(() => {
+			const editorCont = window.doc.fullscreenEditorEditor;
+			this.$.editorFullScreen.children[0].innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M14 28h-4v10h10v-4h-6v-6zm-4-8h4v-6h6v-4H10v10zm24 14h-6v4h10V28h-4v6zm-6-24v4h6v6h4V10H28z"/></svg>';
 			$(editorCont).animate({
-				width: _this.preFullscreenEditorDimensions.width,
-				height: _this.preFullscreenEditorDimensions.height,
-				marginTop: _this.preFullscreenEditorDimensions.marginTop,
-				marginLeft: _this.preFullscreenEditorDimensions.marginLeft
+				width: this.preFullscreenEditorDimensions.width,
+				height: this.preFullscreenEditorDimensions.height,
+				marginTop: this.preFullscreenEditorDimensions.marginTop,
+				marginLeft: this.preFullscreenEditorDimensions.marginLeft
 			}, {
 				duration: 500,
 				easing: 'easeOutCubic',
@@ -642,11 +643,8 @@ class SCE {
 					editorCont.style.marginTop = '0';
 					editorCont.style.width = '0';
 					editorCont.style.height = '0';
-					$(_this.editorManager.editor.getDomNode()).appendTo(_this.$.editorCont).css({
-						height: _this.preFullscreenEditorDimensions.height,
-						marginTop: 0,
-						marginLeft: 0
-					});
+					this.fullscreenEditorManager.destroy();
+					window.doc.fullscreenEditor.style.display = 'none';					
 				}
 			});
 		}, 800);

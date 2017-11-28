@@ -1097,10 +1097,11 @@ namespace MonacoEditorElement {
 		static setScope(scope: MonacoEditor) {
 			this.currentScope = scope;
 			window.setTimeout(() => {
+				scope.editor.getDomNode() && 
 				scope.editor.getDomNode().addEventListener('mouseover', () => {
 					this.currentScope = scope;
 				});
-			}, 5000);
+			}, 500);
 		}
 
 		static registerScope(scope: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor) {
