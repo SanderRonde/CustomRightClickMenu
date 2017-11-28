@@ -159,7 +159,6 @@ class CEB {
 	 */
 	static toggleFullScreen(this: CodeEditBehaviorInstance) {
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
-		
 	};
 
 	/**
