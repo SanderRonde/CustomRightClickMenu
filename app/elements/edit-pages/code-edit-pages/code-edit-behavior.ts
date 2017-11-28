@@ -158,9 +158,8 @@ class CEB {
 	 * Toggles fullscreen mode for the editor
 	 */
 	static toggleFullScreen(this: CodeEditBehaviorInstance) {
-		console.log('Toggling fullscreen');
-		console.trace();
 		(this.fullscreen ? this.exitFullScreen() : this.enterFullScreen());
+		
 	};
 
 	/**
