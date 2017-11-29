@@ -9779,6 +9779,36 @@ if (typeof module === 'undefined') {
 				}
 			}
 		}
+		private static _getVersionObject(version: string): {
+			major: number;
+			minor: number;
+			patch: number;
+		} {
+			let [major, minor, patch]: Array<string|number> = version.split('.');
+			major = ~~major;
+			minor = ~~minor;
+			patch = ~~patch;
+			return {
+				major, minor, patch
+			}
+		}
+		private static _isVersionInRange(min: string, max: string, target: string): boolean {
+			const maxObj = this._getVersionObject(max);
+			const minObj = this._getVersionObject(min);
+			const targetObj = this._getVersionObject(target);
+			
+			if (targetObj.major > maxObj.major || targetObj.major < minObj.major) {
+				return false;
+			}
+			if (targetObj.minor > maxObj.minor || targetObj.minor < minObj.minor) {
+				return false;
+			}
+			if (targetObj.patch > maxObj.patch || targetObj.patch <= minObj.patch) {
+				return false;
+			}
+
+			return true;
+		}
 		private static _upgradeVersion(oldVersion: string, newVersion: string): {
 			beforeSyncLoad: Array<() => void>;
 			afterSyncLoad: Array<(sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>>;
@@ -9794,7 +9824,7 @@ if (typeof module === 'undefined') {
 				afterSync: []
 			}
 
-			if (oldVersion === '2.0.3') {
+			if (this._isVersionInRange(oldVersion, newVersion, '2.0.4')) {
 				fns.afterSync.push(() => {
 					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
 						if (node.type === 'script') {
@@ -9821,7 +9851,7 @@ if (typeof module === 'undefined') {
 					CRM.updateCrm();
 				});
 			}
-			if (newVersion === '2.0.11') {
+			if (this._isVersionInRange(oldVersion, newVersion, '2.0.11')) {
 				Helpers.isTamperMonkeyEnabled((isEnabled) => {
 					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
 					chrome.storage.local.set({
@@ -9829,7 +9859,7 @@ if (typeof module === 'undefined') {
 					});
 				});
 			}
-			if (newVersion === '2.0.15') {
+			if (this._isVersionInRange(oldVersion, newVersion, '2.0.15')) {
 				fns.afterSyncLoad.push((sync) => {
 					sync.rootName = 'Custom Menu';
 					return sync;
