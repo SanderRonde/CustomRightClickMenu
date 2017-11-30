@@ -108,6 +108,35 @@ class CEB {
 
 	static otherDoc: CodeMirrorDocInstance = null;
 
+	static setThemeWhite(this: NodeEditBehaviorScriptInstance) {
+		this.$.editorThemeSettingWhite.classList.add('currentTheme');
+		this.$.editorThemeSettingDark.classList.remove('currentTheme');
+		window.app.settings.editor.theme = 'white';
+		window.app.upload();
+	}
+
+	static setThemeDark(this: NodeEditBehaviorScriptInstance) {
+		this.$.editorThemeSettingWhite.classList.remove('currentTheme');
+		this.$.editorThemeSettingDark.classList.add('currentTheme');
+		window.app.settings.editor.theme = 'dark';
+		window.app.upload();
+	}
+
+	static fontSizeChange(this: NodeEditBehaviorScriptInstance) {
+		window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.value + '';
+		window.app.upload();
+	}
+
+	static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
+		this.async(() => {
+			const globals = this.$.editorJSLintGlobalsInput.value.split(',').map(global => global.trim());
+			chrome.storage.local.set({
+				jsLintGlobals: globals
+			});
+			window.app.jsLintGlobals = globals;
+		}, 0);
+	}
+
 	static finishEditing(this: CodeEditBehaviorInstance) {
 		if (window.app.storageLocal.recoverUnsavedData) {
 			chrome.storage.local.set({

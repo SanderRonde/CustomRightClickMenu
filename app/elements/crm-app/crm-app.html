@@ -68,20 +68,20 @@
 								<div id="editorThemeSettingCont">
 									<div id="editorThemeSettingTxt">Theme:</div>
 									<div id="editorThemeSettingChoicesCont">
-										<div id="editorThemeSettingWhite" on-tap="setThemeWhite" class="editorThemeSetting"></div>
-										<div id="editorThemeSettingDark" on-tap="setThemeDark" class="editorThemeSetting"></div>
+										<div id="editorThemeSettingWhite" on-tap="domListener" data-on-tap="setThemeWhite" class="editorThemeSetting"></div>
+										<div id="editorThemeSettingDark" on-tap="domListener" data-on-tap="setThemeDark" class="editorThemeSetting"></div>
 									</div>
 								</div>
 								<br />
 								<div id="editorThemeFontSize">
-									<paper-input on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" label="font size %">
+									<paper-input on-tap="domListener" data-on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" label="font size %">
 										<div suffix>%</div>
 									</paper-input>
 								</div>
 								<br />
 								<div id="editorJSLintGlobals">
 									<div id="editorJSLintGlobalsFlexCont">
-										<paper-input on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
+										<paper-input on-tap="domListener" data-on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
 									</div>
 								</div>
 								<br />
@@ -91,7 +91,7 @@
 									<template id="keyBindingsTemplate" is="dom-repeat" as="keyBinding">
 										<div class="keyBinding">
 											<div>
-												<paper-input data-index="{{itemIndex}}" on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput"></paper-input>
+												<paper-input data-index="{{itemIndex}}"  on-tap="domListener" data-on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput"></paper-input>
 											</div>
 											<br />
 										</div>

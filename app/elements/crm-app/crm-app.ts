@@ -101,6 +101,128 @@ namespace CRMAppElement {
 		const animateImpl = animateExists ? 
 			HTMLElement.prototype.animate : animatePolyFill;
 
+		interface UsedAnimation {
+			element: HTMLElement;
+			state: 'completed'|'initial';
+			properties: Array<{
+				[key: string]: string;
+			}>;
+			animation: Animation;
+		}
+
+		const usedAnimations: Array<[HTMLElement, UsedAnimation]> = [];
+
+		function getObjSize(obj: {
+			[key: string]: any;
+		}): number {
+			let size: number = 0;
+			for (let key in obj) {
+				if (obj.hasOwnProperty(key)) {
+					size += 1;
+				}
+			}
+			return size;
+		}
+
+		function areObjectsEqual(first: {
+			[key: string]: any;
+		}, second: {
+			[key: string]: any;
+		}): boolean {
+			if (getObjSize(first) !== getObjSize(second)) {
+				return false;
+			}
+
+			for (let key in first) {
+				if (first.hasOwnProperty(key)) {
+					if (first[key] !== second[key]) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+		function areConfigsEqual(first: Array<{
+			[key: string]: any;
+		}>, second: Array<{
+			[key: string]: any;
+		}>): {
+			equal: boolean;
+			reverse: boolean;
+		} {
+			if (first.length !== second.length) {
+				return {
+					equal: false,
+					reverse: false
+				}
+			}
+			if (first.length !== 2) {
+				return {
+					equal: false,
+					reverse: false
+				}
+			}
+			if (areObjectsEqual(first[0], second[0]) && areObjectsEqual(first[1], second[1])) {
+				return {
+					equal: true,
+					reverse: false
+				}
+			}
+			if (areObjectsEqual(first[0], second[1]) && areObjectsEqual(first[1], second[0])) {
+				return {
+					equal: true,
+					reverse: true
+				}
+			}
+			return {
+				equal: true,
+				reverse: false
+			}
+		}
+
+		function attemptReUse(element: HTMLElement, properties:  Array<{
+			[key: string]: any;
+		}>, options: {
+			duration?: number;
+			easing?: string|'bez';
+			fill?: 'forwards'|'backwards'|'both';
+		}) {
+			for (let [animationElement, animation] of usedAnimations) {
+				if (animationElement === element) {
+					const {equal, reverse} = areConfigsEqual(animation.properties, properties);
+					if (!equal) {
+						break;
+					}
+
+					if (reverse === (animation.state === 'completed')) {
+						if (animation.state === 'initial') {
+							animation.animation.play();
+						} else {
+							animation.animation.reverse();
+						}
+						return animation.animation;
+					}
+				}
+			}
+			return null;
+		}
+
+		function doAnimation(element: HTMLElement, properties:  Array<{
+			[key: string]: any;
+		}>, options: {
+			duration?: number;
+			easing?: string|'bez';
+			fill?: 'forwards'|'backwards'|'both';
+		}) {
+			const animation = animateImpl.apply(element, [properties, options]);
+			usedAnimations.push([element, {
+				animation, element, properties,
+				state: 'completed'
+			}]);
+			return animation;
+		}
+
 		HTMLElement.prototype.animate = function(this: HTMLElement, properties:  Array<{
 			[key: string]: any;
 		}>, options: {
@@ -111,7 +233,7 @@ namespace CRMAppElement {
 			if (options.easing === 'bez') {
 				options.easing = 'cubic-bezier(0.215, 0.610, 0.355, 1.000)';
 			}
-			return animateImpl.apply(this, [properties, options]);
+			return attemptReUse(this, properties, options) || doAnimation(this, properties, options);
 		}
 
 		if (!animateExists) {
@@ -3278,10 +3400,34 @@ namespace CRMAppElement {
 				dialog.exitFullScreen();
 			}
 
-			static toggleFullscreenOptions() {
-				const dialog = this.parent().item.type === 'script' ?
+			private static _getDialog() {
+				return this.parent().item.type === 'script' ?
 					window.scriptEdit : window.stylesheetEdit;
+			}
+
+			static toggleFullscreenOptions() {
+				const dialog = this._getDialog();
 				dialog.toggleOptions();
+			}
+
+			static setThemeWhite() {
+				this._getDialog().setThemeWhite();
+			}
+
+			static setThemeDark() {
+				this._getDialog().setThemeDark();
+			}
+
+			static fontSizeChange() {
+				this._getDialog().fontSizeChange();
+			}
+
+			static jsLintGlobalsChange() {
+				this._getDialog().jsLintGlobalsChange();
+			}
+
+			static onKeyBindingKeyDown() {
+				this._getDialog().onKeyBindingKeyDown();
 			}
 
 			static parent() {
