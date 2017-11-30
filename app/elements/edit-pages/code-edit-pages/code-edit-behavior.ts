@@ -203,7 +203,7 @@ class CEB {
 		}
 	};
 
-	static getCmInstance(this: CodeEditBehaviorInstance): MonacoEditor {
+	static getEditorInstance(this: CodeEditBehaviorInstance): MonacoEditor {
 		if (this.item.type === 'script') {
 			if (window.scriptEdit.fullscreenEditorManager) {
 				return window.scriptEdit.fullscreenEditorManager;
@@ -224,11 +224,11 @@ class CEB {
 				name: 'javascript',
 				json: true
 			});
-			this.otherDoc = this.getCmInstance().swapDoc(doc);
+			this.otherDoc = this.getEditorInstance().swapDoc(doc);
 		} else {
-			this.otherDoc = this.getCmInstance().swapDoc(this.otherDoc);
+			this.otherDoc = this.getEditorInstance().swapDoc(this.otherDoc);
 		}
-		this.getCmInstance().performLint();
+		this.getEditorInstance().performLint();
 	}
 
 	static hideCodeOptions(this: CodeEditBehaviorInstance) {
@@ -236,8 +236,8 @@ class CEB {
 			return;
 		}
 		window.useOptionsCompletions = false;
-		this.otherDoc = this.getCmInstance().swapDoc(this.otherDoc);
-		this.getCmInstance().performLint();
+		this.otherDoc = this.getEditorInstance().swapDoc(this.otherDoc);
+		this.getEditorInstance().performLint();
 	}
 }
 

@@ -650,32 +650,69 @@ class SCE {
 		}, 800);
 	};
 
+	private static _getOptionsConfig(this: NodeEditBehaviorScriptInstance, isFullscreen: boolean) {
+		const editorWidth = this.getEditorInstance().editor.getDomNode().getBoundingClientRect().width;
+		const editorHeight = this.getEditorInstance().editor.getDomNode().getBoundingClientRect().height;
+		if (isFullscreen) {
+			window.app.$.fullscreenEditorToggle.style.display = 'none';
+			window.app.$.fullscreenSettingsContainer.style.display = 'block';
+			return  {
+				editorWidth, editorHeight,
+				circleRadius: Math.sqrt((250000) + (editorHeight * editorHeight)) + 100,
+				container: window.app,
+				settingsInitialMarginLeft: 0
+			}
+		} else {
+			this.$.editorFullScreen.style.display = 'none';
+			return {
+				editorWidth, editorHeight,
+				circleRadius: Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 200,
+				container: this,
+				settingsInitialMarginLeft: -500
+			}
+		}
+	}
+
+	private static _showFullscreenOptions(this: NodeEditBehaviorScriptInstance) {
+		window.app.$.fullscreenEditorToggle.style.display = 'none';		
+		window.app.$.fullscreenSettingsContainer.animate([{
+			transform: 'translateX(500px)'
+		}, {
+			transform: 'translateX(0)'
+		}], {
+			duration: 500,
+			easing: 'ease-in',
+			fill: 'both'
+		});
+	}
+
 	/**
 	 * Shows the options for the editor
 	 */
 	static showOptions(this: NodeEditBehaviorScriptInstance) {
 		this.optionsShown = true;
 		this.unchangedEditorSettings = $.extend(true, {}, window.app.settings.editor);
-		const editorWidth = this.editorManager.editor.getDomNode().getBoundingClientRect().width;
-		const editorHeight = this.editorManager.editor.getDomNode().getBoundingClientRect().height;
-		let circleRadius;
 
-		//Add a bit just in case
 		if (this.fullscreen) {
-			circleRadius = Math.sqrt((250000) + (editorHeight * editorHeight)) + 100;
-		} else {
-			circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 200;
+			this.fillEditorOptions(window.app);
+			this._showFullscreenOptions();
+			return;
 		}
+
+		const editorWidth = this.getEditorInstance().editor.getDomNode().getBoundingClientRect().width;
+		const editorHeight = this.getEditorInstance().editor.getDomNode().getBoundingClientRect().height;
+
+		const circleRadius = Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 200;
+		const settingsInitialMarginLeft = -500
+		
 		const negHalfRadius = -circleRadius;
-		circleRadius = circleRadius * 2;
+		const squaredCircleRadius = circleRadius * 2;
 		this.$.bubbleCont.parentElement.style.width = `${editorWidth}px`;
 		this.$.bubbleCont.parentElement.style.height = `${editorHeight}px`;
 		this.$.editorOptionsContainer.style.width = `${editorWidth}px`;
 		this.$.editorOptionsContainer.style.height = `${editorHeight}px`;
-		this.$.editorFullScreen.style.display = 'none';
-		const settingsInitialMarginLeft = -500;
 		(this.$$('#editorThemeFontSizeInput') as HTMLPaperInputElement).value = window.app.settings.editor.zoom;
-		this.fillEditorOptions();
+		this.fillEditorOptions(this);
 		$(this.$.settingsShadow).css({
 			width: '50px',
 			height: '50px',
@@ -683,8 +720,8 @@ class SCE {
 			marginTop: '-25px',
 			marginRight: '-25px'
 		}).animate({
-			width: circleRadius,
-			height: circleRadius,
+			width: squaredCircleRadius,
+			height: squaredCircleRadius,
 			marginTop: negHalfRadius,
 			marginRight: negHalfRadius
 		}, {
@@ -693,24 +730,34 @@ class SCE {
 			progress: (animation: any) => {
 				this.$.editorOptionsContainer.style.marginLeft = (settingsInitialMarginLeft - animation.tweens[3].now) + 'px';
 				this.$.editorOptionsContainer.style.marginTop = -animation.tweens[2].now + 'px';
-			},
-			complete: () => {
-				if (this.fullscreen) {
-					this.$.settingsContainer.style.overflow = 'scroll';
-					this.$.settingsContainer.style.overflowX = 'hidden';
-					this.$.settingsContainer.style.height = 'calc(100vh - 66px)';
-					this.$.bubbleCont.style.position = 'fixed';
-					this.$.bubbleCont.style.zIndex = '50';
-				}
 			}
 		});
 	};
+
+	private static _hideFullscreenOptions(this: NodeEditBehaviorScriptInstance) {
+		window.app.$.fullscreenSettingsContainer.animate([{
+			transform: 'translateX(0)'
+		}, {
+			transform: 'translateX(500px)'
+		}], {
+			duration: 500,
+			easing: 'ease-in',
+			fill: 'both'
+		}).onfinish = () => {
+			window.app.$.fullscreenEditorToggle.style.display = 'block';		
+		}
+	}
 
 	/**
 	 * Hides the options for the editor
 	 */
 	static hideOptions(this: NodeEditBehaviorScriptInstance) {
 		this.optionsShown = false;
+
+		if (this.fullscreen) {
+			this._hideFullscreenOptions();
+		}
+
 		const settingsInitialMarginLeft = -500;
 		this.$.editorFullScreen.style.display = 'block';
 		$(this.$.settingsShadow).animate({
@@ -875,28 +922,29 @@ class SCE {
 	/**
  	 * Fills the this.editorOptions element with the elements it should contain (the options for the editor)
 	 */
-	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance) {
-		this.$.keyBindingsTemplate.render();
+	private static fillEditorOptions(this: NodeEditBehaviorScriptInstance, container: CrmApp|NodeEditBehaviorScriptInstance) {
+		container.$.keyBindingsTemplate.items = this.keyBindings;
+		container.$.keyBindingsTemplate.render();
 
 		if (window.app.settings.editor.theme === 'white') {
-			this.$.editorThemeSettingWhite.classList.add('currentTheme');
+			container.$.editorThemeSettingWhite.classList.add('currentTheme');
 		} else {
-			this.$.editorThemeSettingWhite.classList.remove('currentTheme');
+			container.$.editorThemeSettingWhite.classList.remove('currentTheme');
 		}
 		if (window.app.settings.editor.theme === 'dark') {
-			this.$.editorThemeSettingDark.classList.add('currentTheme');
+			container.$.editorThemeSettingDark.classList.add('currentTheme');
 		} else {
-			this.$.editorThemeSettingDark.classList.remove('currentTheme');
+			container.$.editorThemeSettingDark.classList.remove('currentTheme');
 		}
 
-		this.$.editorThemeFontSizeInput.value = window.app.settings.editor.zoom || '100';
+		container.$.editorThemeFontSizeInput.value = window.app.settings.editor.zoom || '100';
 
 		window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
 			goToDef: this.keyBindings[0].defaultKey,
 			rename: this.keyBindings[1].defaultKey
 		};
 
-		Array.prototype.slice.apply(this.$.keyBindingsTemplate.querySelectorAll('paper-input')).forEach((input: HTMLPaperInputElement) => {
+		Array.prototype.slice.apply(container.$.keyBindingsTemplate.querySelectorAll('paper-input')).forEach((input: HTMLPaperInputElement) => {
 			input.setAttribute('data-prev-value', input.value);
 		});
 	};

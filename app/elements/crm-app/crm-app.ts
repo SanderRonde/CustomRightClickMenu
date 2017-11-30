@@ -2662,7 +2662,7 @@ namespace CRMAppElement {
 							`${viewportWidth - 200 - now}px`;
 						window.doc.fullscreenEditorEditor.style.marginLeft = 
 							`${now + 200}px`;
-						(window.scriptEdit || window.scriptEdit).getCmInstance().editor.layout();
+						(window.scriptEdit || window.scriptEdit).getEditorInstance().editor.layout();
 					}
 				});
 				window.app.storageLocal.hideToolsRibbon = !window.app.storageLocal.hideToolsRibbon;

@@ -1114,3 +1114,66 @@ paper-checkbox {
 #fullscreenEditorSettings {
 	margin-top: -2px;
 }
+
+.paper-material {
+	display: inline;
+}
+
+#editorThemeSettingTxt, #editorThemeSettingChoicesCont, .editorThemeSetting, #editorTabsOrSpacesTxt, #editorTabsOrSpacesCheckbox, #editorUseLineNumbersCheckbox, #editorUseLineNumbersTxt {
+	display: inline-block;
+}
+
+.editorThemeSetting {
+	border: 2px solid rgb(128,128,128);
+	width: 16px;
+	height: 16px;
+	margin-left: 5px;
+	margin-bottom: -3px;
+	cursor: pointer;
+}
+
+	.editorThemeSetting.currentTheme {
+		border: 2px solid rgb(255,165,0);
+	}
+
+#editorThemeSettingWhite {
+	background-color: white;
+}
+
+#editorThemeSettingDark {
+	background-color: rgb(30,30,30);
+}
+
+.editorSettingsTxt {
+	font-size: 250%;
+	font-weight: 500;
+	padding-bottom: 10px;
+}
+
+#editorTabsOrSpacesTxt, #editorUseLineNumbersTxt {
+	margin-left: 10px;
+}
+
+#editorTabSizeInput {
+	width: 250px;
+}
+
+#editorOptions {
+	z-index: 30;
+	background-color: rgb(255, 255, 255);
+	font-family: 'Roboto';
+	padding: 10px;
+	font-size:15px;
+	width: 500px;
+	height: 100vh;
+}
+
+#fullscreenSettingsContainer {
+	right: 0;
+	transform: translateX(500px);
+	position: absolute;
+	z-index: 500;
+	transition: transform 300ms ease-in;
+	width: 500px;
+	height: 100vh;
+}
