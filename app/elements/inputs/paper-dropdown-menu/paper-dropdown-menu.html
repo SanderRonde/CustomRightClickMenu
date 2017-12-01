@@ -1,8 +1,9 @@
 ﻿<!DOCTYPE HTML>
 <link rel="import" href="../paper-dropdown-behavior/paper-dropdown-behavior.html"/>
-<dom-module id="paper-dropdown-menu" attributes="selected indent overflowing label fancylabel raised subtext">
+<dom-module id="paper-dropdown-menu" attributes="selected indent overflowing label fancylabel raised subtext unselectable fallback">
 	<template>
 		<!-- build:css inline -->
+		<link rel="stylesheet" href="../../../elements/inputs/paper-dropdown-behavior/paper-dropdown-behavior.css" />
 		<link rel="stylesheet" href="../../../elements/inputs/paper-dropdown-menu/paper-dropdown-menu.css" />
 		<!-- /build -->
 		<template is="dom-if" if="[[_hasFancyLabel(fancylabel)]]"> 

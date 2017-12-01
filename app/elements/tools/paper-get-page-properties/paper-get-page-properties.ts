@@ -68,7 +68,6 @@ class PGPP {
 	
 	static init(this: PaperGetPageProperties, listener: (data: string) => void) {
 		this.listener = listener;
-		this.close();
 	};
 
 	static ready(this: PaperGetPageProperties) {
@@ -108,13 +107,10 @@ class PGPP {
 	static _getMenu(this: PaperGetPageProperties): HTMLPaperMenuElement {
 		return this.$.menu;
 	}
-
-	static behaviors = [Polymer.PaperDropdownBehavior];
 }
 
-type PaperGetPagePropertiesBase = Polymer.El<
-	'paper-get-page-properties', typeof PGPP & typeof paperGetPagePropertiesProperties>;
-type PaperGetPageProperties = PaperDropdownBehavior<PaperGetPagePropertiesBase>;
+type PaperGetPageProperties = Polymer.El<
+'paper-get-page-properties', typeof PGPP & typeof paperGetPagePropertiesProperties>;
 
 if (window.objectify) {
 	Polymer(window.objectify(PGPP));

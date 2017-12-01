@@ -3,6 +3,7 @@
 <dom-module id="paper-libraries-selector" attributes="usedlibraries scriptid">
 	<template>
 		<!-- build:css inline -->
+		<link rel="stylesheet" href="../../../elements/inputs/paper-dropdown-behavior/paper-dropdown-behavior.css" />
 		<link rel="stylesheet" href="../../../elements/tools/paper-libraries-selector/paper-libraries-selector.css" />
 		<!-- /build -->
 		<style is="custom-style" include="paper-material-styles"></style>
@@ -26,7 +27,7 @@
 			<svg id="dropdownArrow" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewbox="0 0 48 48"><path d="M16 10v28l22-14z"/></svg>
 		</div>
 		<paper-menu id="dropdown" selected-values="{{selected}}" multi role="menu">
-			<slot class="content">
+			<div slot="content">
 				<template is="dom-repeat" items="{{libraries}}" as="library">
 					<paper-item data-lib="[[library]]" data-url$="[[library.url]]" on-tap="_click" tabindex="-1" addlibrary$="[[!library.isLibrary]]" aria-selected$="[[library.selected]]" class$="[[library.classes]]">
 						<template is="dom-if" if="[[library.isLibrary]]">
@@ -50,7 +51,7 @@
 						<span data-descr$="[[library.name]]" class="menuOptionName">[[library.name]]</span>
 					</paper-item>
 				</template>
-			</slot>
+			</div>
 		</paper-menu>
 	</template>
 </dom-module>

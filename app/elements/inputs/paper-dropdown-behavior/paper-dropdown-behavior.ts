@@ -3,12 +3,17 @@
 const paperDropdownBehaviorProperties: {
 	raised: boolean;
 	overflowing: boolean;
+	unselectable: boolean;
 } = {
 	raised: {
 		type: Boolean,
 		value: false
 	},
 	overflowing: {
+		type: Boolean,
+		value: false
+	},
+	unselectable: {
 		type: Boolean,
 		value: false
 	}
@@ -141,9 +146,14 @@ class PDB {
 			});
 			const fn = () => {
 				const oldSelected = this.selected;
-				this.set('selected', index);
+
+				if (!this.unselectable) {
+					this.set('selected', index);
+				}
 				setTimeout(() => {
-					this.doHighlight();
+					if (!this.unselectable) {
+						this.doHighlight();
+					}
 					this._fireListeners(oldSelected);
 					if ((this as any)._dropdownSelectChange) {
 						(this as any)._dropdownSelectChange(this);
@@ -309,7 +319,7 @@ class PDB {
 			} = {
 				height: 0
 			};
-			if (this.overflowing !== undefined) {
+			if (this.overflowing) {
 				animation['marginBottom'] = -15;
 			}
 			$(this._getMenuContent()).stop().animate(animation, {

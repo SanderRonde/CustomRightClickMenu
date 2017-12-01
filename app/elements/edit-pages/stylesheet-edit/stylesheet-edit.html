@@ -319,12 +319,9 @@
 		</div>
 		<div id="buttonCont">
 			<div id="buttons">
-				<paper-dropdown-menu overflowing indent="false" id="exportMenu" selected="0">
+				<paper-dropdown-menu overflowing indent="false" id="exportMenu" selected="0" fallback="EXPORT AS">
 					<paper-menu slot="menu" selected="0">
 						<div slot="content">
-							<paper-item hidden>
-								<span class="menuOptionName">EXPORT AS</span>
-							</paper-item>
 							<paper-item on-tap="exportStylesheetAsCRM">CRM Node</paper-item>
 							<paper-item on-tap="exportStylesheetAsUserscript">Userscript</paper-item>
 							<paper-item on-tap="exportStylesheetAsUserstyle">Userstyle</paper-item>

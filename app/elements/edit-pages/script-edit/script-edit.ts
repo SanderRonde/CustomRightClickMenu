@@ -19,8 +19,6 @@ class SCE {
 
 	static properties = scriptEditProperties;
 
-	private static markers: Array<CodeMirrorTextMarker> = [];
-
 	static openDocs() {
 		window.open(chrome.runtime.getURL('/html/crmAPIDocs.html'), '_blank');
 	}
@@ -39,14 +37,6 @@ class SCE {
 		}
 
 		(this as NodeEditBehaviorInstance).clearTrigger(e);
-	};
-
-	private static triggerCheckboxChange(this: NodeEditBehaviorScriptInstance, element: HTMLPaperCheckboxElement) {
-		const oldValue = !element.checked;
-		const inputValue = ($(element).parent().children('.triggerInput')[0] as HTMLPaperInputElement).value;
-
-		const line = this.editorManager.removeMetaTags(this.editorManager, oldValue ? 'exclude' : 'match', inputValue);
-		this.editorManager.addMetaTags(this.editorManager, oldValue ? 'match' : 'exclude', inputValue, line);
 	};
 
 	static addTriggerAndAddListeners(this: NodeEditBehaviorScriptInstance) {
@@ -75,14 +65,6 @@ class SCE {
 				oldStates[i] = checkbox.checked;
 			}
 		}
-	};
-
-	private static addDialogToMetaTagUpdateListeners(this: NodeEditBehaviorScriptInstance) {
-		Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('.executionTriggerNot')).forEach((trigger: HTMLElement) => {
-			trigger.addEventListener('change', () => {
-				this.triggerCheckboxChange.apply(this, [this]);
-			});
-		});
 	};
 
 	private static disableButtons(this: NodeEditBehaviorScriptInstance) {
@@ -189,7 +171,7 @@ class SCE {
 	};
 
 	private static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
-		return this.editorManager.metaTags.metaTags;
+		return this.editorManager.typeHandler.getMetaBlock().content;
 	};
 
 	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
@@ -650,29 +632,6 @@ class SCE {
 		}, 800);
 	};
 
-	private static _getOptionsConfig(this: NodeEditBehaviorScriptInstance, isFullscreen: boolean) {
-		const editorWidth = this.getEditorInstance().editor.getDomNode().getBoundingClientRect().width;
-		const editorHeight = this.getEditorInstance().editor.getDomNode().getBoundingClientRect().height;
-		if (isFullscreen) {
-			window.app.$.fullscreenEditorToggle.style.display = 'none';
-			window.app.$.fullscreenSettingsContainer.style.display = 'block';
-			return  {
-				editorWidth, editorHeight,
-				circleRadius: Math.sqrt((250000) + (editorHeight * editorHeight)) + 100,
-				container: window.app,
-				settingsInitialMarginLeft: 0
-			}
-		} else {
-			this.$.editorFullScreen.style.display = 'none';
-			return {
-				editorWidth, editorHeight,
-				circleRadius: Math.sqrt((editorWidth * editorWidth) + (editorHeight * editorHeight)) + 200,
-				container: this,
-				settingsInitialMarginLeft: -500
-			}
-		}
-	}
-
 	private static _showFullscreenOptions(this: NodeEditBehaviorScriptInstance) {
 		window.app.$.fullscreenEditorToggle.style.display = 'none';		
 		window.app.$.fullscreenSettingsContainer.animate([{
@@ -1036,7 +995,6 @@ class SCE {
 		this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
 		this.initDropdown();
 		this.selectorStateChange(0, this.newSettings.value.launchMode);
-		this.addDialogToMetaTagUpdateListeners();
 		document.body.classList.remove('editingStylesheet');
 		document.body.classList.add('editingScript');
 		window.scriptEdit = this;

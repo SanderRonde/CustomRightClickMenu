@@ -5,6 +5,7 @@ const paperDropdownMenuProperties: {
 	label: string;
 	fancylabel: boolean;
 	subtext: string;
+	fallback: string;
 } = {
 	/**
 	 * The currently selected item
@@ -24,6 +25,10 @@ const paperDropdownMenuProperties: {
 		value: false
 	},
 	subtext: {
+		type: String,
+		value: ''
+	},
+	fallback: {
 		type: String,
 		value: ''
 	}
@@ -51,14 +56,14 @@ class PDM {
 	}
 
 	static _getSelectedValue(this: PaperDropdownMenu) {
-		const menu = (this.$.menuSlot.assignedNodes()[0] as HTMLElement);
+		const menu = this.$.menuSlot.assignedNodes()[0] as HTMLElement;
 		if (!menu) {
-			return 'EXPORT AS';
+			return this.fallback;
 		}
 		const paperItems = menu.querySelectorAll('paper-item');
 		return (paperItems[this.selected] &&
 			paperItems[this.selected].children[1] && 
-			paperItems[this.selected].children[1].innerHTML) || 'EXPORT AS';
+			paperItems[this.selected].children[1].innerHTML) || this.fallback;
 	}
 
 	static init(this: PaperDropdownMenu) {
