@@ -408,7 +408,7 @@ class ECI {
 					this.animationEl = this.animationEl || (this.$$('type-switcher') as TypeSwitcher).$$('.TSContainer');
 					(this.typeIndicatorAnimation && this.typeIndicatorAnimation.play()) || (this.typeIndicatorAnimation = this.animationEl.animate([
 							{
-								marginLeft: '-193px'
+								marginLeft: '-293px'
 							}, {
 								marginLeft: 0
 							}
