@@ -105,3 +105,8 @@ paper-libraries-selector .library.anonymous {
 	cursor: pointer;
 	z-index: 100;
 }
+
+#topBorder {
+	border-top: 1px solid rgb(239, 239, 239);
+	padding-top: 8px;
+}
