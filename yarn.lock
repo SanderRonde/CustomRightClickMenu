@@ -2759,9 +2759,9 @@ html-minifier@^3.5.6:
     relateurl "0.2.x"
     uglify-js "3.1.x"
 
-html-typings@^1.0.8:
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/html-typings/-/html-typings-1.0.8.tgz#66b8e758aa6262494284e630220c2b44d0ce4791"
+html-typings@^1.0.10:
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/html-typings/-/html-typings-1.0.10.tgz#2e47481b407c667cd7e5a99514efab9f0b2661df"
   dependencies:
     argparse "^1.0.9"
     gaze "^1.1.2"
