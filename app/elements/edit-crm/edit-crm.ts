@@ -1061,6 +1061,9 @@ ${codeSplit.join('\n')}`;
 		const editCrmItems = document.getElementsByTagName('edit-crm-item');
 		//Select items
 		for (let i = 0; i < editCrmItems.length; i++) {
+			if (editCrmItems[i].rootNode) {
+				continue;
+			}
 			editCrmItems[i].classList.remove('selecting');
 			editCrmItems[i].classList.remove('highlighted');
 		}
