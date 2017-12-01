@@ -779,7 +779,7 @@ class SCE {
 			this.editorManager.destroy();
 		}
 
-		let value;
+		let value: string;
 		if (this.editorMode === 'main') {
 			value = this.newSettings.value.script;
 		} else if (this.editorMode === 'background') {
@@ -792,9 +792,11 @@ class SCE {
 			}
 		}
 		if (this.fullscreen) {
-			this.loadEditor(window.doc.fullscreenEditorHorizontal, value, disable);
+			this.fullscreenEditorManager.reset();
+			this.fullscreenEditorManager.editor.setValue(value);
 		} else {
-			this.loadEditor(this.$.editorCont, value, disable);
+			this.editorManager.reset();
+			this.editorManager.editor.setValue(value);
 		}
 	};
 

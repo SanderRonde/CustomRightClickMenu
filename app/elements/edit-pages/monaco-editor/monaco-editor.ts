@@ -886,6 +886,17 @@ namespace MonacoEditorElement {
 		 */
 		static editorType: 'script'|'stylesheet'|'none' = null;
 
+		private static _createInfo: {
+			method: 'create';
+			editorType: 'script'|'stylesheet'|'none';
+			options: monaco.editor.IEditorConstructionOptions;
+			override: monaco.editor.IEditorOverrideServices;
+			editElement: CodeEditBehaviorInstance;
+		}|{
+			method: 'from';
+			from: MonacoEditor;
+		} = null;
+
 		private static _getSettings(editorType: 'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
 			if (editorType === 'script') {
 				return MonacoEditorScriptMods.getSettings();
@@ -899,6 +910,14 @@ namespace MonacoEditorElement {
 		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', editElement: CodeEditBehaviorInstance,
 			options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+				this._createInfo = {
+					method: 'create',
+					editorType,
+					editElement,
+					options,
+					override
+				}
+
 				this.options = options;
 				this.editElement = editElement;
 				await MonacoEditorHookManager.monacoReady;
@@ -919,6 +938,11 @@ namespace MonacoEditorElement {
 			}
 
 		static createFrom(this: MonacoEditor, from: MonacoEditor) {
+			this._createInfo = {
+				method: 'from',
+				from
+			}
+
 			this.editElement = from.editElement;
 			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
 				model: from.editor.getModel()
@@ -935,6 +959,18 @@ namespace MonacoEditorElement {
 				this.typeHandler = new MonacoEditorStylesheetMods(this.editor);
 			}
 			return this;
+		}
+
+		static async reset(this: MonacoEditor) {
+			this.destroy();
+			
+			const createInfo = this._createInfo;
+			if (createInfo.method === 'create') {
+				return await this.create(createInfo.editorType, createInfo.editElement,
+					createInfo.options, createInfo.override);
+			} else {
+				return this.createFrom(createInfo.from);
+			}
 		}
 
 		static destroy(this: MonacoEditor) {
