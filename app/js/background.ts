@@ -200,7 +200,6 @@ interface Window {
 	getID: (name: string) => void;
 	md5: (data: any) => string;
 	TernFile: Tern.File;
-	CodeMirror: CodeMirror;
 	ecma5: any;
 	ecma6: any;
 	browserDefs: any;
