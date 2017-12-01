@@ -19,6 +19,8 @@ class SCE {
 
 	static properties = scriptEditProperties;
 
+	private static _permissionDialogListeners: Array<() => void> = [];
+
 	static openDocs() {
 		window.open(chrome.runtime.getURL('/html/crmAPIDocs.html'), '_blank');
 	}
@@ -186,9 +188,12 @@ class SCE {
 		settingsStorage: Partial<CRM.ScriptNode>) {
 			let el, svg;
 			const showBotEls = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionsShowBot'));
+			const newListeners: Array<() => void> = [];
 			showBotEls.forEach((showBotEl: HTMLElement) => {
-				showBotEl.removeEventListener('click');
-				showBotEl.addEventListener('click', () => {
+				this._permissionDialogListeners.forEach((listener) => {
+					showBotEl.removeEventListener('click', listener);
+				});
+				const listener = () => {
 					el = $(showBotEl).parent().parent().children('.requestPermissionsPermissionBotCont')[0] as HTMLElement & {
 						animation: Animation;
 					};
@@ -209,8 +214,11 @@ class SCE {
 							fill: 'both'
 						});
 					}
-				});
+				};
+				newListeners.push(listener);
+				showBotEl.addEventListener('click', listener);
 			});
+			this._permissionDialogListeners = newListeners;
 
 			let permission: CRM.Permission;
 			const requestPermissionButtonElements = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.requestPermissionButton'));
