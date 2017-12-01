@@ -109,7 +109,7 @@ class STE {
 				height: '50px'
 			}, {
 				duration: 500,
-				easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+				easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 				step: (now: number) => {
 					window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
 				}
@@ -177,7 +177,7 @@ class STE {
 					height: 0
 				}, {
 					duration: 800,
-					easing: ($ as JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+					easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 					step: (now: number) => {
 						window.doc.fullscreenEditorHorizontal.style.height = 'calc(100vh - ' + now + 'px)';
 					}
