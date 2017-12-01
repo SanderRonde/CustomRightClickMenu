@@ -1,5 +1,5 @@
 /// <reference path="../../app/elements/elements.d.ts" />
-/// <reference path="../../app/elements/fileIdMaps.d.ts" />import { KeyboardEvent } from "react";
+/// <reference path="../../app/elements/fileIdMaps.d.ts" />
 
 
 
@@ -462,6 +462,42 @@ type HTMLPaperArrayInputElement = PaperArrayInput;
 type HTMLPaperRipplElement = HTMLElement;
 type HTMLEchoHtmlElement = EchoHtml;
 type HTMLMonacoEditorElement = MonacoEditor;
+type HTMLChangeLogElement = ChangeLog;
+type HTMLCrmAppElement = CrmApp;
+type HTMLDefaultLinkElement = DefaultLink;
+type HTMLDividerEditElement = NodeEditBehaviorDividerInstance;
+type HTMLErrorReportingToolElement = ErrorReportingTool;
+type HTMLInstallConfirmElement = InstallConfirm;
+type HTMLInstallErrorElement = Polymer.El<'install-error', {}>;
+type HTMLInstallPageElement = InstallPage;
+type HTMLLinkEditElement = NodeEditBehaviorLinkInstance;
+type HTMLLogConsoleElement = LogConsole;
+type HTMLLogPageElement = LogPage;
+type HTMLMenuEditElement = NodeEditBehaviorMenuInstance;
+type HTMLScriptEditElement = CodeEditBehaviorScriptInstance;
+type HTMLStylesheetEditElement = CodeEditBehaviorStylesheetInstance;
+
+interface AddedPermissionsTabContainer extends HTMLElement {
+	tab: number;
+	maxTabs: number;
+}
+
+interface CodeSettingsDialog extends HTMLPaperDialogElement {
+	item?: CRM.ScriptNode | CRM.StylesheetNode;
+}
+
+type ScriptUpdatesToast = HTMLPaperToastElement & {
+	index: number;
+	scripts: Array<{
+		name: string;
+		oldVersion: string;
+		newVersion: string;
+	}>;
+};
+
+type VersionUpdateDialog = HTMLPaperDialogElement & {
+	editor: CodeMirrorInstance;
+};
 
 type ElementTagNameMaps = Polymer.ElementTagNameMap & 
 	HTMLElementTagNameMap & ElementTagNameMap;

@@ -23,19 +23,6 @@ namespace CRMAppElement {
 		bez(curve: Array<number>): string;
 	}
 
-	type VersionUpdateDialog = HTMLPaperDialogElement & {
-		editor: CodeMirrorInstance;
-	};
-
-	type ScriptUpdatesToast = HTMLPaperToastElement & {
-		index: number;
-		scripts: Array<{
-			name: string;
-			oldVersion: string;
-			newVersion: string;
-		}>;
-	};
-
 	window.runOrAddAsCallback = function (toRun: Function, thisElement: HTMLElement, params: Array<any>): void {
 		if (window.app.settings) {
 			toRun.apply(thisElement, params);
@@ -327,15 +314,6 @@ namespace CRMAppElement {
 		newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
 
 	interface Extensions<T> extends CRM.Extendable<T> { }
-
-	interface AddedPermissionsTabContainer extends HTMLElement {
-		tab: number;
-		maxTabs: number;
-	}
-
-	interface CodeSettingsDialog extends HTMLPaperDialogElement {
-		item?: CRM.ScriptNode | CRM.StylesheetNode;
-	}
 
 	class CA {
 		static is = 'crm-app';
