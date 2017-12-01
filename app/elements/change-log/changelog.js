@@ -79,6 +79,10 @@
 			'Fixed dragging',
 			'Types can be changed again',
 			'Widened nodes'
+		],
+		'2.0.19': [
+			'Fixed cancelling selection',
+			'Fixed type switching animation'
 		]
 	};
 }());
