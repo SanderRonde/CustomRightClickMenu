@@ -83,7 +83,7 @@ interface Window {
 	Promise: typeof Promise;
 	with<T>(initializer: () => Withable, fn: () => T): T;
 	monacoCommands: MonacoCommands;
-	MonacoEditorHackManager: typeof MonacoEditorHackManager;
+	MonacoEditorHookManager: typeof MonacoEditorElement.MonacoEditorHookManager;
 	codeMirrorToLoad?: {
 		toLoad: Array<(cm: CodeMirror) => void>;
 		final?(): void;

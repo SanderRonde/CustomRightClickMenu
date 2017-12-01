@@ -1012,7 +1012,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	class MonacoEditorHookManager {
+	export class MonacoEditorHookManager {
 		/**
 		 * Whether this was set up already
 		 */
@@ -1277,7 +1277,7 @@ namespace MonacoEditorElement {
 			});
 		}
 	};
-	window.MonacoEditorHackManager = MonacoEditorHookManager;
+	window.MonacoEditorHookManager = MonacoEditorHookManager;
 
 	export type MonacoEditor = Polymer.El<'monaco-editor', typeof MOE>;
 
