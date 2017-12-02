@@ -69,8 +69,6 @@ interface CMCompletionFns {
 }
 
 interface Window {
-	objectify<T>(fn: T): T;
-	onExists<T extends keyof Window>(key: T): Promise<Window[T]>;
 	monaco: typeof monaco;
 	require: {
 		(paths: Array<string>, callback: () => void): void;
@@ -80,8 +78,6 @@ interface Window {
 			}
 		}): void;
 	}
-	Promise: typeof Promise;
-	with<T>(initializer: () => Withable, fn: () => T): T;
 	monacoCommands: MonacoCommands;
 	MonacoEditorHookManager: typeof MonacoEditorElement.MonacoEditorHookManager;
 	codeMirrorToLoad?: {

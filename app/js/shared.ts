@@ -134,6 +134,13 @@ interface Withable {
 	(): void;
 }
 
+interface Window {
+	Promise: typeof Promise;
+	onExists<T extends keyof Window>(key: T): Promise<Window[T]>;
+	objectify<T>(fn: T): T;
+	with<T>(initializer: () => Withable, fn: () => T): T;
+}
+
 (() => {
 	window.Promise = Promise;
 
