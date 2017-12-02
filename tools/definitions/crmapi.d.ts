@@ -154,7 +154,7 @@ declare namespace CRM {
 	/**
 	 * The GreaseMonkey permissions descriptions
 	 */
-	interface GMPermissioNDescriptions {
+	interface GMPermissionDescriptions {
 		GM_addStyle: string;
 		GM_deleteValue: string;
 		GM_listValues: string;
@@ -182,7 +182,7 @@ declare namespace CRM {
 	/**
 	 * The permission descriptions
 	 */
-	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissioNDescriptions;
+	type PermissionDescriptions = ChromePermissionDescriptions & CRMPermissionDescriptions & GMPermissionDescriptions;
 
 	/**
 	 * The chrome permissions
@@ -193,6 +193,28 @@ declare namespace CRM {
 	 * Any permissions for nodes
 	 */
 	type Permission = CRMPermission|keyof PermissionDescriptions;
+
+	/**
+	 * Info related to the source of a node's installation
+	 */
+	interface NodeInfoSource {
+		/**
+		 * The URL from which to update the node
+		 */
+		updateURL?: string;
+		/**
+		 * The URL from which the node was downloaded
+		 */
+		downloadURL?: string;
+		/**
+		 * The homepage of the node
+		 */
+		url?: string;
+		/**
+		 * The name of the author of the node
+		 */
+		author?: string;
+	}
 
 	/**
 	 * Info related to a node's installation
@@ -213,24 +235,7 @@ declare namespace CRM {
 		/**
 		 * Info related to the source of a node's installation
 		 */
-		source?: {
-			/**
-			 * The URL from which to update the node
-			 */
-			updateURL?: string;
-			/**
-			 * The URL from which the node was downloaded
-			 */
-			downloadURL?: string;
-			/**
-			 * The homepage of the node
-			 */
-			url?: string;
-			/**
-			 * The name of the author of the node
-			 */
-			author?: string;
-		};
+		source?: NodeInfoSource;
 		/**
 		 * The version of the node
 		 */
@@ -551,10 +556,7 @@ declare namespace CRM {
 		/**
 		 * The storage for this node
 		 */
-		storage?: {
-			[key: string]: any;
-			[key: number]: any;
-		};
+		storage?: CRMAPI.NodeStorage;
 		/**
 		 * The index of this node in its parent
 		 */
@@ -703,6 +705,20 @@ declare namespace CRM {
 	}
 
 	/**
+	 * A converted stylesheet
+	 */
+	interface ConvertedStylesheet {
+		/**
+		 * The options that were used to generate it
+		 */
+		options: string;
+		/**
+		 * The stylesheet
+		 */
+		stylesheet: string;
+	}
+
+	/**
 	 * The value of a stylesheet node
 	 */
 	interface StylesheetVal {
@@ -733,16 +749,7 @@ declare namespace CRM {
 		/**
 		 * The converted stylesheet
 		 */
-		convertedStylesheet: {
-			/**
-			 * The options that were used to generate it
-			 */
-			options: string;
-			/**
-			 * The stylesheet
-			 */
-			stylesheet: string;
-		}
+		convertedStylesheet: ConvertedStylesheet;
 	}
 
 	/**
@@ -1146,6 +1153,60 @@ declare namespace CRM {
 	}
 
 	/**
+	 * A node that was being edited before an unexpected quit
+	 */
+	interface EditedNode {
+		/**
+		 * The value of the script or stylesheet
+		 */
+		val: string;
+		/**
+		 * The ID of the node that was being edited
+		 */
+		id: number;
+		/**
+		 * The mode the editor was in
+		 */
+		mode: string;
+		/**
+		 * The CRM type that was on when it was being edited
+		 */
+		crmType: number;
+	}
+
+	/**
+	 * Data about the version of settings
+	 */
+	interface VersionData {
+		/**
+		 * The hash of the current data
+		 */
+		hash: string;
+		/**
+		 * The date the current data was last updated
+		 */
+		date: number;
+	}
+
+	/**
+	 * The version of the settings
+	 */
+	interface SettingsVersionData {
+		/**
+		 * Data about the current data's version
+		 */
+		current: VersionData;
+		/**
+		 * Data about the latest data's version
+		 */
+		latest: VersionData;
+		/**
+		 * Whether the data has been updated yet
+		 */
+		wasUpdated: boolean;
+	}
+
+	/**
 	 * Local Storage (not synced)
 	 */
 	interface StorageLocal {
@@ -1173,24 +1234,7 @@ declare namespace CRM {
 		/**
 		 * The node that was being edited before an unexpected quit
 		 */
-		editing: {
-			/**
-			 * The value of the script or stylesheet
-			 */
-			val: string;
-			/**
-			 * The ID of the node that was being edited
-			 */
-			id: number;
-			/**
-			 * The mode the editor was in
-			 */
-			mode: string;
-			/**
-			 * The CRM type that was on when it was being edited
-			 */
-			crmType: number;
-		} | void;
+		editing: EditedNode | void;
 		/**
 		 * The current CRM type
 		 */
@@ -1246,39 +1290,7 @@ declare namespace CRM {
 		/**
 		 * The version of the settings
 		 */
-		settingsVersionData: {
-			/**
-			 * Data about the current data's version
-			 */
-			current: {
-				/**
-				 * The hash of the current data
-				 */
-				hash: string;
-				/**
-				 * The date the current data was last updated
-				 */
-				date: number;
-			};
-			/**
-			 * Data about the latest data's version
-			 */
-			latest: {
-				/**
-				 * The hash of the latest data
-				 */
-				hash: string;
-				/**
-				 * The data the latest data was last updated
-				 */
-				date: number;
-			}
-			/**
-			 * Whether the data has been updated yet
-			 */
-			wasUpdated: boolean;
-		};
-
+		settingsVersionData: SettingsVersionData;
 		/**
 		 * Permissions that were added
 		 */
@@ -1583,7 +1595,113 @@ declare namespace CRM {
 		 * Resources for scripts
 		 */
 		type Resources = { [name: string]: Resource }
+
+		/**
+		 * Data about greasemonkey's options
+		 */
+		interface GreaseMonkeyOptions {
+			awareOfChrome: boolean;
+			compat_arrayleft: boolean;
+			compat_foreach: boolean;
+			compat_forvarin: boolean;
+			compat_metadata: boolean;
+			compat_prototypes: boolean;
+			compat_uW_gmonkey: boolean;
+			noframes?: string;
+			override: {
+				excludes: boolean;
+				includes: boolean;
+				orig_excludes?: Array<string>;
+				orig_includes?: Array<string>;
+				use_excludes: Array<string>;
+				use_includes: Array<string>;
+			}
+		}
 	
+		/**
+		 * Data about a script in greasemonkey's script data
+		 */
+		interface GreaseMonkeyScriptData {
+			/**
+			 * The author of the script
+			 */
+			author?: string;
+			/**
+			 * The copyright of the script
+			 */
+			copyright?: string;
+			/**
+			 * A description of the script
+			 */
+			description?: string;
+			/**
+			 * URLs not to run this script on
+			 */
+			excludes?: Array<string>;
+			/**
+			 * A homepage for this script
+			 */
+			homepage?: string;
+			/**
+			 * An icon used for this script
+			 */
+			icon?: string;
+			/**
+			 * A 64x64 icon used for this script
+			 */
+			icon64?: string;
+			/**
+			 * URLs on which to run this script (can use globs)
+			 */
+			includes?: Array<string>;
+			/**
+			 * The last time this script was updated
+			 */
+			lastUpdated: number; //Never updated
+			/**
+			 * URLs on which this script is ran
+			 */
+			matches?: Array<string>;
+			/**
+			 * Whether the user is incognito
+			 */
+			isIncognito: boolean;
+			/**
+			 * The downloadMode (???)
+			 */
+			downloadMode: string;
+			/**
+			 * The name of the script
+			 */
+			name: string;
+			/**
+			 * The namespace the script is running in (url)
+			 */
+			namespace?: string;
+			/**
+			 * Options for greasemonkey
+			 */
+			options: GreaseMonkeyOptions;
+			/**
+			 * The position of this script (???)
+			 */
+			position: number;
+			/**
+			 * The resources loaded for this script
+			 */
+			resources: Array<Resource>;
+			/**
+			 * When to run this script in the page-load cycle
+			 */
+			"run-at": string;
+			system: boolean;
+			unwrap: boolean;
+			/**
+			 * The version number of this script
+			 */
+			version?: number;
+		}
+
 		/**
 		 * GreaseMonkey data
 		 */
@@ -1591,103 +1709,7 @@ declare namespace CRM {
 			/**
 			 * Data about the script
 			 */
-			script: {
-				/**
-				 * The author of the script
-				 */
-				author?: string;
-				/**
-				 * The copyright of the script
-				 */
-				copyright?: string;
-				/**
-				 * A description of the script
-				 */
-				description?: string;
-				/**
-				 * URLs not to run this script on
-				 */
-				excludes?: Array<string>;
-				/**
-				 * A homepage for this script
-				 */
-				homepage?: string;
-				/**
-				 * An icon used for this script
-				 */
-				icon?: string;
-				/**
-				 * A 64x64 icon used for this script
-				 */
-				icon64?: string;
-				/**
-				 * URLs on which to run this script (can use globs)
-				 */
-				includes?: Array<string>;
-				/**
-				 * The last time this script was updated
-				 */
-				lastUpdated: number; //Never updated
-				/**
-				 * URLs on which this script is ran
-				 */
-				matches?: Array<string>;
-				/**
-				 * Whether the user is incognito
-				 */
-				isIncognito: boolean;
-				/**
-				 * The downloadMode (???)
-				 */
-				downloadMode: string;
-				/**
-				 * The name of the script
-				 */
-				name: string;
-				/**
-				 * The namespace the script is running in (url)
-				 */
-				namespace?: string;
-				/**
-				 * Options for greasemonkey
-				 */
-				options: {
-					awareOfChrome: boolean;
-					compat_arrayleft: boolean;
-					compat_foreach: boolean;
-					compat_forvarin: boolean;
-					compat_metadata: boolean;
-					compat_prototypes: boolean;
-					compat_uW_gmonkey: boolean;
-					noframes?: string;
-					override: {
-						excludes: boolean;
-						includes: boolean;
-						orig_excludes?: Array<string>;
-						orig_includes?: Array<string>;
-						use_excludes: Array<string>;
-						use_includes: Array<string>;
-					}
-				},
-				/**
-				 * The position of this script (???)
-				 */
-				position: number;
-				/**
-				 * The resources loaded for this script
-				 */
-				resources: Array<Resource>;
-				/**
-				 * When to run this script in the page-load cycle
-				 */
-				"run-at": string;
-				system: boolean;
-				unwrap: boolean;
-				/**
-				 * The version number of this script
-				 */
-				version?: number;
-			},
+			script: GreaseMonkeyScriptData;
 			/**
 			 * The metastring for this script
 			 */
@@ -1757,6 +1779,34 @@ declare namespace CRM {
 			 */
 			relation?: 'firstChild'|'firstSibling'|'lastChild'|'lastSibling'|'before'|'after';
 		}
+
+		/**
+		 * Data about a chrome request
+		 */
+		interface ChromeRequest {
+			/**
+			 * The API it's using
+			 */
+			api: string,
+			/**
+			 * Arguments passed to the request
+			 */
+			chromeAPIArguments: Array<{
+				/**
+				 * The type of argument
+				 */
+				type: 'fn'|'arg'|'return';
+				/**
+				 * The value of the argument
+				 */
+				val: any;
+			}>,
+			/**
+			 * The type of this chrome request (if a special one
+			 * that can not be made by the user themselves)
+			 */
+			type?: 'GM_download'|'GM_notification';
+		}
 	
 		/**
 		 * A partial chrome request
@@ -1804,34 +1854,18 @@ declare namespace CRM {
 			/**
 			 * Info about the request itself
 			 */
-			request: {
-				/**
-				 * The API it's using
-				 */
-				api: string,
-				/**
-				 * Arguments passed to the request
-				 */
-				chromeAPIArguments: Array<{
-					/**
-					 * The type of argument
-					 */
-					type: 'fn'|'arg'|'return';
-					/**
-					 * The value of the argument
-					 */
-					val: any;
-				}>,
-				/**
-				 * The type of this chrome request (if a special one
-				 * that can not be made by the user themselves)
-				 */
-				type?: 'GM_download'|'GM_notification';
-			};
+			request: ChromeRequest;
 			/**
 			 * A function to run when an error occurs on running given chrome request
 			 */
 			onError?: Function
+		}
+
+		/**
+		 * Headers for a GM_download call
+		 */
+		interface GMHeaders { 
+			[headerKey: string]: string 
 		}
 	
 		/**
@@ -1849,7 +1883,7 @@ declare namespace CRM {
 			/**
 			 * Headers for the XHR
 			 */
-			headers?: { [headerKey: string]: string };
+			headers?: GMHeaders;
 			/**
 			 * A function to call when downloaded
 			 */
@@ -1901,27 +1935,63 @@ declare namespace CRM {
 		type EmptyFn = () => void;
 	
 		/**
-		 * THe handler of a message that is sent to the crm-api
+		 * The handler of a message that is sent to the crm-api
 		 */
 		type MessageHandler = (message: any) => void;
+
+		/**
+		 * A successful response to an instance call
+		 */
+		type UnsuccessfulInstanceCallback = {
+			error: true;
+			success: false;
+			message: any;
+		}
+
+		/**
+		 * An unsuccessful response to an instance call
+		 */
+		type SuccessfulInstanceCallback = {
+			error: false;
+			success: true;
+		}
 	
 		/**
 		 * The callback function for an instance call
 		 */
-		type InstanceCallback = (data: {
-			error: true;
-			success: false;
-			message: any;
-		}|{
-			error: false;
-			success: true;
-		}) => void;
+		type InstanceCallback = (data: UnsuccessfulInstanceCallback|SuccessfulInstanceCallback) => void;
 	
 		/**
 		 * A listener for a storage change
 		 */
 		type StorageListener = (key: string, oldValue: any, newValue: any, remote: boolean) => void;
-	
+
+		/**
+		 * A keypath to a storage location
+		 */
+		interface KeyPath {
+			[key: string]: any;
+			[key: number]: any;
+		}
+
+		/**
+		 * A query for a CRM item
+		 */
+		interface CRMQuery { 
+			/**
+			 * The name of the item
+			 */
+			name?: string;
+			/**
+			 * The type of the item
+			 */
+			type?: CRM.NodeType;
+			/**
+			 * The ID of the node whose subtree to search in (none for root)
+			 */
+			inSubTree?: number
+		}
+
 		/**
 		 * A class for constructing the CRM API
 		 *
@@ -2086,10 +2156,8 @@ declare namespace CRM {
 				 * @param {any} [value] - The value to set it to, optional if keyPath is an object
 				*/
 				set(keyPath: string, value: any): void,
-				set(keyPath: Array<string>, value: any): void,
-				set(keyPath: Array<number>, value: any): void,
-				set(keyPath: { [key: string]: any }): void,
-				set(keyPath: { [key: number]: any }): void,
+				set(keyPath: Array<string|number>, value: any): void,
+				set(keyPath: KeyPath): void,
 				/**
 				 * Deletes the data at given key given value
 				 *
@@ -2223,7 +2291,7 @@ declare namespace CRM {
 				 * @param {number} [query.inSubTree] - The subtree in which this item is located (the number given is the id of the root item)
 				 * @param {CrmAPIInit~crmCallback} callback - A callback with the resulting nodes in an array
 				 */
-				queryCrm(query: { name?: string, type?: CRM.NodeType, inSubTree?: number}, callback: (results: Array<CRM.SafeNode>) => void): void,
+				queryCrm(query: CRMQuery, callback: (results: Array<CRM.SafeNode>) => void): void,
 	
 				/**
 				 * Gets the parent of the node with ID nodeId
@@ -2345,7 +2413,13 @@ declare namespace CRM {
 				 * @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
 				 */
 				copyNode(nodeId: number, options: {
+					/**
+					 * The name of the new node (defaults to "name")
+					 */
 					name?: string;
+					/**
+					 * The position to copy it to
+					 */
 					position?: Relation
 				}, callback?: (node: CRM.SafeNode) => void): void,
 	
@@ -2390,7 +2464,16 @@ declare namespace CRM {
 				 * @param {string} [options.type] - The type to switch to (link, script, stylesheet, divider or menu)
 				 * @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, contains the new node as an argument
 				 */
-				editNode(nodeId: number, options: { name?: string, type?: CRM.NodeType }, callback?: (node: CRM.SafeNode) => void): void,
+				editNode(nodeId: number, options: { 
+					/**
+					 * The new name of the node
+					 */
+					name?: string, 
+					/**
+					 * The new type of the node
+					 */
+					type?: CRM.NodeType 
+				}, callback?: (node: CRM.SafeNode) => void): void,
 	
 				/**
 				 * Gets the triggers for given node
@@ -2755,20 +2838,20 @@ declare namespace CRM {
 					 *
 					 * @permission crmWrite
 					 * @param {string} name - The name to give the library
-					 * @param {Object} options - The options related to the library
+					 * @param {Object} options - The options related to the library (fill at least one)
 					 * @param {string} [options.url] - The url to fetch the code from, must end in .js
 					 * @param {string} [options.code] - The code to use
 					 * @param {function} [callback] - A callback with the library object as an argument
 					 */
 					register(name: string, options: {
-						code: string;
+						/**
+						 * The code to use
+						 */
+						code?: string;
+						/**
+						 * THe URL to fetch the code from
+						 */
 						url?: string
-					}|{
-						url: string;
-						code?: string
-					}|{
-						code: string;
-						url: string
 					}, callback?: (lib: CRM.Library) => void): void,
 				}
 			}
@@ -3043,7 +3126,7 @@ declare namespace CRM {
 				 * @param {boolean} [options.binary] - Whether the data should be sent in binary mode
 				 * @param {number} [options.timeout] - The time to wait in ms
 				 * @param {Object} [options.context] - A property which will be applied to the response object
-				 * @param {string} [options.responseType] - The type of resposne, arraybuffer, blob or json
+				 * @param {string} [options.responseType] - The type of response, arraybuffer, blob or json
 				 * @param {string} [options.overrideMimeType] - The MIME type to use
 				  * @param {boolean} [options.anonymous] - If true, sends no cookies along with the request
 				 * @param {boolean} [options.fetch] - Use a fetch instead of an xhr
@@ -3058,26 +3141,83 @@ declare namespace CRM {
 				 * @returns {XMLHttpRequest} The XHR
 				 */
 				GM_xmlhttpRequest(options: {
-										method?: string,
-										url?: string,
-										headers?: { [headerKey: string]: string },
-										data?: any,
-										binary?: boolean,
-										timeout?: number,
-										context?: any,
-										responseType?: string,
-										overrideMimeType?: string,
-										anonymous?: boolean,
-										fetch?: boolean,
-										username?: string,
-										password?: string,
-										onload?: (e: Event) => void,
-										onerror?: (e: Event) => void,
-										onreadystatechange?: (e: Event) => void,
-										onprogress?: (e: Event) => void,
-										onloadstart?: (e: Event) => void,
-										ontimeout?: (e: Event) => void
-									}): XMLHttpRequest
+					/**
+					 * The method to use (GET, HEAD or POST)
+					 */
+					method?: string,
+					/**
+					 * The url to request
+					 */
+					url?: string,
+					/**
+					 * The headers for the request
+					 */
+					headers?: { [headerKey: string]: string },
+					/**
+					 * The data to send along
+					 */
+					data?: any,
+					/**
+					 * Whether the data should be sent in binary mode
+					 */
+					binary?: boolean,
+					/**
+					 * The time to wait in ms
+					 */
+					timeout?: number,
+					/**
+					 * A property which will be applied to the response object
+					 */
+					context?: any,
+					/**
+					 * The type of response, arraybuffer, blob or json
+					 */
+					responseType?: string,
+					/**
+					 * The MIME type to use
+					 */
+					overrideMimeType?: string,
+					/**
+					 * If true, sends no cookies along with the request
+					 */
+					anonymous?: boolean,
+					/**
+					 * Use a fetch instead of an xhr
+					 */
+					fetch?: boolean,
+					/**
+					 * A username for authentication
+					 */
+					username?: string,
+					/**
+					 * A password for authentication
+					 */
+					password?: string,
+					/**
+					 * A callback on that event
+					 */
+					onload?: (e: Event) => void,
+					/**
+					 * A callback on that event
+					 */
+					onerror?: (e: Event) => void,
+					/**
+					 * A callback on that event
+					 */
+					onreadystatechange?: (e: Event) => void,
+					/**
+					 * A callback on that event
+					 */
+					onprogress?: (e: Event) => void,
+					/**
+					 * A callback on that event
+					 */
+					onloadstart?: (e: Event) => void,
+					/**
+					 * A callback on that event
+					 */
+					ontimeout?: (e: Event) => void
+				}): XMLHttpRequest
 	
 				/**
 				 * Adds a change listener to the storage and returns the listener ID.
