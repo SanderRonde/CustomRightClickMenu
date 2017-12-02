@@ -6602,7 +6602,7 @@ if (typeof module === 'undefined') {
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					return [
 						code.join('\n'), [
-							`var crmAPI = new CrmAPIInit(${[
+							`var crmAPI = new CrmAPIInstance(${[
 								safeNode, node.id, { id: 0 }, {}, key,
 								nodeStorage, null,
 								greaseMonkeyData, true, (node.value && node.value.options) || {},
@@ -6778,7 +6778,7 @@ if (typeof module === 'undefined') {
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
 					return [		
 						[		
-							`var crmAPI = new CrmAPIInit(${		
+							`var crmAPI = new CrmAPIInstance(${		
 							[		
 								safeNode, node.id, tab, info, key, nodeStorage,		
 								contextData, greaseMonkeyData, false, (node.value && node.value.options) || {},		
@@ -6790,7 +6790,7 @@ if (typeof module === 'undefined') {
 									}		
 									return JSON.stringify(param);		
 								}).join(', ')});` +		
-							'window.CrmAPIInit = null;'		
+							'window.CrmAPIInstance = null;'		
 						].join(', '),		
 						globalObject.globals.constants.templates.globalObjectWrapperCode('window', 'windowWrapper', node.isLocal ? 'chrome' : 'void 0'),		
 						`${catchErrs ? 'try {' : ''}`,		
