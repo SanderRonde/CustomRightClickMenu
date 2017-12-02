@@ -31,49 +31,59 @@ declare const enum CRMLaunchModes {
  */
 interface QueryInfo {
 	/**
-	 * Optional. Whether the tabs have completed loading.
+	 * Whether the tabs have completed loading.
 	 * One of: "loading", or "complete"
 	 */
 	status?: string;
 	/**
-	 * Optional. Whether the tabs are in the last focused window.
+	 * Whether the tabs are in the last focused window.
 	 * @since Chrome 19.
 	 */
 	lastFocusedWindow?: boolean;
-	/** Optional. The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window. */
+	/** 
+	 * The ID of the parent window, or windows.WINDOW_ID_CURRENT for the current window. 
+	 */
 	windowId?: number;
 	/**
-	 * Optional. The type of window the tabs are in.
+	 * The type of window the tabs are in.
 	 * One of: "normal", "popup", "panel", "app", or "devtools"
 	 */
-	windowType?: string;
-	/** Optional. Whether the tabs are active in their windows. */
+	windowType?: 'normal'|'popup'|'panel'|'app'|'devtools';
+	/** Whether the tabs are active in their windows. */
 	active?: boolean;
 	/**
-	 * Optional. The position of the tabs within their windows.
+	 * The position of the tabs within their windows.
 	 * @since Chrome 18.
 	 */
 	index?: number;
-	/** Optional. Match page titles against a pattern. */
+	/** 
+	 * Match page titles against a pattern. 
+	 */
 	title?: string;
-	/** Optional. Match tabs against one or more URL patterns. Note that fragment identifiers are not matched. */
+	/** 
+	 * Match tabs against one or more URL patterns. Note that fragment identifiers are not matched. 
+	 */
 	url?: string | string[];
 	/**
-	 * Optional. Whether the tabs are in the current window.
+	 * Whether the tabs are in the current window.
 	 * @since Chrome 19.
 	 */
 	currentWindow?: boolean;
-	/** Optional. Whether the tabs are highlighted. */
+	/** 
+	 * Whether the tabs are highlighted. 
+	 */
 	highlighted?: boolean;
-	/** Optional. Whether the tabs are pinned. */
+	/** 
+	 * Whether the tabs are pinned. 
+	 */
 	pinned?: boolean;
 	/**
-	 * Optional. Whether the tabs are audible.
+	 * Whether the tabs are audible.
 	 * @since Chrome 45.
 	 */
 	audible?: boolean;
 	/**
-	 * Optional. Whether the tabs are muted.
+	 * Whether the tabs are muted.
 	 * @since Chrome 45.
 	 */
 	muted?: boolean;
