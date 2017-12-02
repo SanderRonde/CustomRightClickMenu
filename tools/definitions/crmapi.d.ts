@@ -2055,7 +2055,7 @@ declare namespace CRMAPI {
 			 *
 			 * @param {Function} callback - The function to call on message.
 			 *		Contains the message and the respond params respectively.
-			*		Calling the respond param with data sends a message back.
+			 *		Calling the respond param with data sends a message back.
 			*/
 			listenAsBackgroundPage(callback: MessageHandler): void
 		};
@@ -2069,9 +2069,9 @@ declare namespace CRMAPI {
 			 *
 			 * @param {string|array} [keyPath] - The path at which to look, can be either
 			 *		a string with dots seperating the path, an array with each entry holding
-			*		one section of the path, or just a plain string without dots as the key,
-			*		can also hold nothing to return the entire storage
-			* @returns {any} - The data you are looking for
+			 *		one section of the path, or just a plain string without dots as the key,
+			 *		can also hold nothing to return the entire storage
+			 * @returns {any} - The data you are looking for
 			*/
 			get(keyPath: string): any,
 			get(keyPath: Array<string>): any,
@@ -2081,9 +2081,9 @@ declare namespace CRMAPI {
 			 *
 			 * @param {string|array|Object} keyPath - The path at which to look, can be either
 			 *		a string with dots seperating the path, an array with each entry holding
-			*		one section of the path, a plain string without dots as the key or
-			* 		an object. This object will be written on top of the storage object
-			* @param {any} [value] - The value to set it to, optional if keyPath is an object
+			 *		one section of the path, a plain string without dots as the key or
+			 * 		an object. This object will be written on top of the storage object
+			 * @param {any} [value] - The value to set it to, optional if keyPath is an object
 			*/
 			set(keyPath: string, value: any): void,
 			set(keyPath: Array<string>, value: any): void,
@@ -2095,7 +2095,7 @@ declare namespace CRMAPI {
 			 *
 			 * @param {string|array} keyPath - The path at which to look, can be either
 			 *		a string with dots seperating the path, an array with each entry holding
-			*		one section of the path, or just a plain string without dots as the key
+			 *		one section of the path, or just a plain string without dots as the key
 			*/
 			remove(keyPath: string): void,
 			remove(keyPath: Array<string>): void,
@@ -2109,21 +2109,21 @@ declare namespace CRMAPI {
 				 *
 				 * @param {function} listener - The function to run, gets called
 				 *		gets called with the first argument being the key, the second being
-				*		the old value, the third being the new value and the fourth
-				*		a boolean indicating if the change was on a remote tab
-				* @param {string} [key] - The key to listen for, if it's nested seperate it by dots
-				* 		like a.b.c
-				* @returns {number} A number that can be used to remove the listener
-				*/
+				 *		the old value, the third being the new value and the fourth
+				 *		a boolean indicating if the change was on a remote tab
+				 * @param {string} [key] - The key to listen for, if it's nested seperate it by dots
+				 * 		like a.b.c
+				 * @returns {number} A number that can be used to remove the listener
+				 */
 				addListener(listener: StorageListener, key: string): number,
 				/**
 				 * Removes ALL listeners with given listener (function) as the listener,
 				 *	if key is given also checks that they have that key
-				*
-				* @param {function|number} listener - The listener to remove or the number to
-				* 		to remove it.
-				* @param {string} [key] - The key to check
-				*/
+				 *
+				 * @param {function|number} listener - The listener to remove or the number to
+				 * 		to remove it.
+				 * @param {string} [key] - The key to check
+				 */
 				removeListener(listener: number, key: string): void,
 				removeListener(listener: StorageListener, key: string): void,
 			}
@@ -2152,8 +2152,8 @@ declare namespace CRMAPI {
 		/**
 		 * Returns any data about the click on the page, check (https://developer.chrome.com/extensions/contextMenus#method-create)
 		 *		for more info of what can be returned.
-		*
-		* @returns {Object} - An object containing any info about the page, some data may be undefined if it doesn't apply
+		 *
+		 * @returns {Object} - An object containing any info about the page, some data may be undefined if it doesn't apply
 		*/
 		getClickInfo(): ClickData;
 
@@ -2208,8 +2208,8 @@ declare namespace CRMAPI {
 			 * @permission crmGet
 			 * @param {number[]} path - An array of numbers representing the path, each number
 			 *		represents the n-th child of the current node, so [1,2] represents the 2nd item(0,>1<,2)'s third child (0,1,>2<,3)
-			* @param {function} callback - The function that is called with the ID as an argument
-			*/
+			 * @param {function} callback - The function that is called with the ID as an argument
+			 */
 			getNodeIdFromPath(path: Array<number>, callback: (id: number) => void): void,
 
 			/**
@@ -2271,53 +2271,53 @@ declare namespace CRMAPI {
 			 * @param {number} [options.position.node] - The other node's id, if not given, "relates" to the root
 			 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
 			 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
-			*		firstSibling: first of the subtree that given node is in
-			*		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
-			*		lastSibling: last of the subtree that given node is in
-			*		before: before given node
-			*		after: after the given node
-			* @param {string} [options.name] - The name of the object, not required, defaults to "name"
-			* @param {string} [options.type] - The type of the node (link, script, divider or menu), not required, defaults to link
-			* @param {boolean} [options.usesTriggers] - Whether the node uses triggers to launch or if it just always launches (only applies to
-			*		link, menu and divider)
-			* @param {Object[]} [options.triggers] - An array of objects telling the node to show on given triggers. (only applies to link,
-			*		 menu and divider)
-			* @param {string} [options.triggers.url ] - The URL of the site on which to run,
-			* 		if launchMode is 2 aka run on specified pages can be any of these
-			* 		https://wiki.greasespot.net/Include_and_exclude_rules
-			* 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
-			* 		https://developer.chrome.com/extensions/match_patterns
-			* @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
-			*		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
-			*		newTab boolean being whether or not it opens in a new tab.
-			* @param {string} [options.linkData.url] - The url to open when clicking the link, this value is required.
-			* @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
-			* @param {Object} [options.scriptData] - The data of the script, required if type is script
-			* @param {string} [options.scriptData.script] - The actual script, will be empty string if none given, required
-			* @param {Number} [options.scriptData.launchMode] - The time at which this script launches, not required, defaults to 0,
-			*		0 = run on clicking
-			*		1 = always run
-			*		2 = run on specified pages
-			*		3 = only show on specified pages
-			* 		4 = disabled
-			* @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
-			*		registered throws an error, so do that first, value not required
-			* @param {string} [options.scriptData.libraries.name] - The name of the library
-			* @param {Object[]} [options.scriptData.backgroundLibraries] - The libraries for the backgroundpage to include, if the library is not yet
-			*		registered throws an error, so do that first, value not required
-			* @param {string} [options.scriptData.backgroundLibraries.name] - The name of the library
-			* @param {Object} [options.stylesheetData] - The data of the stylesheet, required if type is stylesheet
-			* @param {Number} [options.stylesheetData.launchMode] - The time at which this stylesheet launches, not required, defaults to 0,
-			*		0 = run on clicking
-			*		1 = always run
-			*		2 = run on specified pages
-			*		3 = only show on specified pages
-			* 		4 = disabled
-			* @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
-			* @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
-			* @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
-			* @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
-			*/
+			 *		firstSibling: first of the subtree that given node is in
+			 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+			 *		lastSibling: last of the subtree that given node is in
+			 *		before: before given node
+			 *		after: after the given node
+			 * @param {string} [options.name] - The name of the object, not required, defaults to "name"
+			 * @param {string} [options.type] - The type of the node (link, script, divider or menu), not required, defaults to link
+			 * @param {boolean} [options.usesTriggers] - Whether the node uses triggers to launch or if it just always launches (only applies to
+			 *		link, menu and divider)
+			 * @param {Object[]} [options.triggers] - An array of objects telling the node to show on given triggers. (only applies to link,
+			 *		 menu and divider)
+			 * @param {string} [options.triggers.url ] - The URL of the site on which to run,
+			 * 		if launchMode is 2 aka run on specified pages can be any of these
+			 * 		https://wiki.greasespot.net/Include_and_exclude_rules
+			 * 		otherwise the url should match this pattern, even when launchMode does not exist on the node (links etc) 
+			 * 		https://developer.chrome.com/extensions/match_patterns
+			 * @param {Object[]} [options.linkData] - The links to which the node of type "link" should... link (defaults to example.com in a new tab),
+			 *		consists of an array of objects each containg a URL property and a newTab property, the url being the link they open and the
+			 *		newTab boolean being whether or not it opens in a new tab.
+			 * @param {string} [options.linkData.url] - The url to open when clicking the link, this value is required.
+			 * @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
+			 * @param {Object} [options.scriptData] - The data of the script, required if type is script
+			 * @param {string} [options.scriptData.script] - The actual script, will be empty string if none given, required
+			 * @param {Number} [options.scriptData.launchMode] - The time at which this script launches, not required, defaults to 0,
+			 *		0 = run on clicking
+			 *		1 = always run
+			 *		2 = run on specified pages
+			 *		3 = only show on specified pages
+			 * 		4 = disabled
+			 * @param {Object[]} [options.scriptData.libraries] - The libraries for the script to include, if the library is not yet
+			 *		registered throws an error, so do that first, value not required
+			 * @param {string} [options.scriptData.libraries.name] - The name of the library
+			 * @param {Object[]} [options.scriptData.backgroundLibraries] - The libraries for the backgroundpage to include, if the library is not yet
+			 *		registered throws an error, so do that first, value not required
+			 * @param {string} [options.scriptData.backgroundLibraries.name] - The name of the library
+			 * @param {Object} [options.stylesheetData] - The data of the stylesheet, required if type is stylesheet
+			 * @param {Number} [options.stylesheetData.launchMode] - The time at which this stylesheet launches, not required, defaults to 0,
+			 *		0 = run on clicking
+			 *		1 = always run
+			 *		2 = run on specified pages
+			 *		3 = only show on specified pages
+			 *  		4 = disabled
+			 *  @param {string} [options.stylesheetData.stylesheet] - The stylesheet that is ran itself
+			 * @param {boolean} [options.stylesheetData.toggle] - Whether the stylesheet is always on or toggleable by clicking (true = toggleable), not required, defaults to true
+			 *  @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
+			 *  @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
+			 */
 			createNode(options: Partial<CRM.SafeNode> & {
 				position?: Relation;
 			}, callback?: (node: CRM.SafeNode) => void): void,
@@ -2326,24 +2326,24 @@ declare namespace CRMAPI {
 			 * Copies given node,
 			 * WARNNG: following properties are not copied:
 			 *		file, storage, id, permissions, nodeInfo
-			*		Full permissions rights only if both the to be cloned and the script executing this have full rights
-			*
-			* @permission crmGet
-			* @permission crmWrite
-			* @param {number} nodeId - The id of the node to copy
-			* @param {Object} options - An object containing all the options for the node
-			* @param {string} [options.name] - The new name of the object (same as the old one if none given)
-			* @param {Object} [options.position] - An object containing info about where to place the item, defaults to last if not given
-			* @param {number} [options.position.node] - The other node's id, if not given, "relates" to the root
-			* @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
-			*		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
-			*		firstSibling: first of the subtree that given node is in
-			*		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
-			*		lastSibling: last of the subtree that given node is in
-			*		before: before given node
-			*		after: after the given node
-			* @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
-			*/
+			 *		Full permissions rights only if both the to be cloned and the script executing this have full rights
+			 *
+			 * @permission crmGet
+			 * @permission crmWrite
+			 * @param {number} nodeId - The id of the node to copy
+			 * @param {Object} options - An object containing all the options for the node
+			 * @param {string} [options.name] - The new name of the object (same as the old one if none given)
+			 * @param {Object} [options.position] - An object containing info about where to place the item, defaults to last if not given
+			 * @param {number} [options.position.node] - The other node's id, if not given, "relates" to the root
+			 * @param {string} [options.position.relation] - The position relative to the other node, possibilities are:
+			 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
+			 *		firstSibling: first of the subtree that given node is in
+			 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+			 *		lastSibling: last of the subtree that given node is in
+			 *		before: before given node
+			 *		after: after the given node
+			 * @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
+			 */
 			copyNode(nodeId: number, options: {
 				name?: string;
 				position?: Relation
@@ -2359,13 +2359,13 @@ declare namespace CRMAPI {
 			 * @param {number} [position.node] - The other node, if not given, "relates" to the root
 			 * @param {string} [position.relation] - The position relative to the other node, possibilities are:
 			 *		firstChild: becomes the first child of given node, throws an error if given node is not of type menu
-			*		firstSibling: first of the subtree that given node is in
-			*		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
-			*		lastSibling: last of the subtree that given node is in
-			*		before: before given node
-			*		after: after the given node
-			* @param {CrmAPIInit~crmCallback} [callback] - A function that gets called with the new node as an argument
-			*/
+			 *		firstSibling: first of the subtree that given node is in
+			 *		lastChild: becomes the last child of given node, throws an error if given ndoe is not of type menu
+			 *		lastSibling: last of the subtree that given node is in
+			 *		before: before given node
+			 *		after: after the given node
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function that gets called with the new node as an argument
+			 */
 			moveNode(nodeId: number, position: Relation, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
@@ -2436,9 +2436,9 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The node whose content types to set
 			 * @param {number} index - The index of the array to set, 0-5, ordered this way:
 			 *		page, link, selection, image, video, audio
-			* @param {boolean} value - The new value at index `index`
-			* @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the new array as an argument
-			*/
+			 * @param {boolean} value - The new value at index `index`
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the new array as an argument
+			 */
 			setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): void,
 
 			/**
@@ -2449,10 +2449,10 @@ declare namespace CRMAPI {
 			 * @param {number} nodeId - The node whose content types to set
 			 * @param {string[]} contentTypes - An array of strings, if a string is present it means that it is displayed
 			 *		on that content type. Requires at least one type to be active, otherwise all are activated.
-			*		The options are:
-			*		page, link, selection, image, video, audio
-			* @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the node as an argument
-			*/
+			 *		The options are:
+			 *		page, link, selection, image, video, audio
+			 * @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the node as an argument
+			 */
 			setContentTypes(nodeId: number, contentTypes: CRM.ContentTypes, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
@@ -2537,8 +2537,8 @@ declare namespace CRMAPI {
 				 * @param {number} nodeId - The id of the node to get the links from
 				 * @param {function} callback - A callback with an array of objects as parameters, all containg two keys:
 				 *		newTab: Whether the link should open in a new tab or the current tab
-				*		url: The URL of the link
-				*/
+				 *		url: The URL of the link
+				 */
 				getLinks(nodeId: number, callback: (result: Array<CRM.LinkNodeLink>) => void): void,
 
 				/**
@@ -2909,28 +2909,28 @@ declare namespace CRMAPI {
 		/**
 		 * The GM API that fills in any APIs that GreaseMonkey uses and points them to their
 		 *		CRM counterparts
-		* 		Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
-		* 		and here http://tampermonkey.net/documentation.php
-		*/
+		 * 		Documentation can be found here http://wiki.greasespot.net/Greasemonkey_Manual:API
+		 * 		and here http://tampermonkey.net/documentation.php
+		 */
 		GM: {
 			/*
-			* Returns any info about the script
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_info}
-			* @returns {Object} - Data about the script
-			*/
+			 * Returns any info about the script
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_info}
+			 * @returns {Object} - Data about the script
+			 */
 			GM_info(): GreaseMonkeyDataInfo,
 
 			/**
 			 * This method retrieves a value that was set with GM_setValue. See GM_setValue
 			 *		for details on the storage of these values.
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
-			* @param {String} name - The property name to get
-			* @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
-			* @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
-			*		when defaultValue is also undefined, returns undefined
-			*/
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
+			 * @param {String} name - The property name to get
+			 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
+			 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
+			 *		when defaultValue is also undefined, returns undefined
+			 */
 			GM_getValue<T>(name: string, defaultValue: T): T,
 			GM_getValue<T>(name: string, defaultValue: T): void,
 			GM_getValue<T>(name: string, defaultValue: T): any,
@@ -3023,40 +3023,40 @@ declare namespace CRMAPI {
 			GM_unregisterMenuCommand: EmptyFn;
 
 			/*
-			* This is only here to prevent errors from occuring when calling any of these functions,
-			* this function does nothing
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
-			* @param {any} ignoredArguments - An argument that is ignored
-			*/
+			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * this function does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_setClipboard}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
 			GM_setClipboard: EmptyFn;
 
 			/*
-			* Sends an xmlhttpRequest with given parameters
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_xmlhttpRequest}
-			* @param {Object} options - The options
-			* @param {string} [options.method] - The method to use (GET, HEAD or POST)
-			* @param {string} [options.url] - The url to request
-			* @param {Object} [options.headers] - The headers for the request
-			* @param {Object} [options.data] - The data to send along
-			* @param {boolean} [options.binary] - Whether the data should be sent in binary mode
-			* @param {number} [options.timeout] - The time to wait in ms
-			* @param {Object} [options.context] - A property which will be applied to the response object
-			* @param {string} [options.responseType] - The type of resposne, arraybuffer, blob or json
-			* @param {string} [options.overrideMimeType] - The MIME type to use
-			* @param {boolean} [options.anonymous] - If true, sends no cookies along with the request
-			* @param {boolean} [options.fetch] - Use a fetch instead of an xhr
-			* @param {string} [options.username] - A username for authentication
-			* @param {string} [options.password] - A password for authentication
-			* @param {function} [options.onload] - A callback on that event
-			* @param {function} [options.onerror] - A callback on that event
-			* @param {function} [options.onreadystatechange] - A callback on that event
-			* @param {function} [options.onprogress] - A callback on that event
-			* @param {function} [options.onloadstart] - A callback on that event
-			* @param {function} [options.ontimeout] - A callback on that event
-			* @returns {XMLHttpRequest} The XHR
-			*/
+			 * Sends an xmlhttpRequest with given parameters
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_xmlhttpRequest}
+			 * @param {Object} options - The options
+			 * @param {string} [options.method] - The method to use (GET, HEAD or POST)
+			 * @param {string} [options.url] - The url to request
+			 * @param {Object} [options.headers] - The headers for the request
+ 			 * @param {Object} [options.data] - The data to send along
+			 * @param {boolean} [options.binary] - Whether the data should be sent in binary mode
+			 * @param {number} [options.timeout] - The time to wait in ms
+			 * @param {Object} [options.context] - A property which will be applied to the response object
+			 * @param {string} [options.responseType] - The type of resposne, arraybuffer, blob or json
+			 * @param {string} [options.overrideMimeType] - The MIME type to use
+ 			 * @param {boolean} [options.anonymous] - If true, sends no cookies along with the request
+			 * @param {boolean} [options.fetch] - Use a fetch instead of an xhr
+			 * @param {string} [options.username] - A username for authentication
+			 * @param {string} [options.password] - A password for authentication
+			 * @param {function} [options.onload] - A callback on that event
+			 * @param {function} [options.onerror] - A callback on that event
+			 * @param {function} [options.onreadystatechange] - A callback on that event
+			 * @param {function} [options.onprogress] - A callback on that event
+			 * @param {function} [options.onloadstart] - A callback on that event
+			 * @param {function} [options.ontimeout] - A callback on that event
+			 * @returns {XMLHttpRequest} The XHR
+			 */
 			GM_xmlhttpRequest(options: {
 									method?: string,
 									url?: string,
@@ -3082,19 +3082,19 @@ declare namespace CRMAPI {
 			/**
 			 * Adds a change listener to the storage and returns the listener ID.
 			 *		'name' is the name of the observed variable. The 'remote' argument
-			*		of the callback function shows whether this value was modified
-			*		from the instance of another tab (true) or within this script
-			*		instance (false). Therefore this functionality can be used by
-			*		scripts of different browser tabs to communicate with each other.
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_addValueChangeListener}
-			* @param {string} name - The name of the observed variable
-			* @param {function} callback - A callback in which the first argument is
-			*		the name of the observed, variable, the second one is the old value,
-			*		the third one is the new value and the fourth one is a boolean that
-			*		indicates whether the change was from a remote tab
-			* @returns {number} - The id of the listener, used for removing it
-			*/
+			 *		of the callback function shows whether this value was modified
+			 *		from the instance of another tab (true) or within this script
+			 *		instance (false). Therefore this functionality can be used by
+			 *		scripts of different browser tabs to communicate with each other.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_addValueChangeListener}
+			 * @param {string} name - The name of the observed variable
+			 * @param {function} callback - A callback in which the first argument is
+			 *		the name of the observed, variable, the second one is the old value,
+			 *		the third one is the new value and the fourth one is a boolean that
+			 *		indicates whether the change was from a remote tab
+			 * @returns {number} - The id of the listener, used for removing it
+			 */
 			GM_addValueChangeListener(name: string, callback: StorageListener): number,
 
 			/**
@@ -3116,34 +3116,34 @@ declare namespace CRMAPI {
 			 * @param {function} [detailsOrUrl.onload] - Called when the request loads
 			 * @param {function} [detailsOrUrl.onerror] - Called on error, gets called with an object
 			 *		containing an error attribute that specifies the reason for the error
-			*		and a details attribute that gives a more detailed description of the error
-			* @param {string} name - The name of the file after download
-			*/
+			 *		and a details attribute that gives a more detailed description of the error
+			 * @param {string} name - The name of the file after download
+			 */
 			GM_download(detailsOrUrl: DownloadSettings): void,
 			GM_download(detailsOrUrl: string, name: string): void,
 
 			/*
-			* Please use the comms API instead of this one
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_getTab}
-			* @param {function} callback - A callback that is immediately called
-			*/
+			 * Please use the comms API instead of this one
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getTab}
+			 * @param {function} callback - A callback that is immediately called
+			 */
 			GM_getTab: InstantCB,
 
 			/*
-			* Please use the comms API instead of this one
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_getTabs}
-			* @param {function} callback - A callback that is immediately called
-			*/
+			 * Please use the comms API instead of this one
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_getTabs}
+			 * @param {function} callback - A callback that is immediately called
+			 */
 			GM_getTabs: InstantCB,
 
 			/*
-			* Please use the comms API instead of this one, this one does nothing
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
-			* @param {any} ignoredArguments - An argument that is ignored
-			*/
+			 * Please use the comms API instead of this one, this one does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
 			GM_saveTab: EmptyFn;
 
 			/**
