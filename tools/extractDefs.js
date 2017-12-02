@@ -154,7 +154,7 @@ var extractDefs = class ExtractDefs {
 	/**
 	 * Handles converting a typedef or callback line in a comment block
 	 * 
-	 * @param {Object} stte - The state of the conversion
+	 * @param {Object} state - The state of the conversion
 	 * @param {string} line - The line to convert
 	 * @param {Object} defs - The definitions found this far
 	 */
