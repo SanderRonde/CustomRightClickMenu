@@ -85,12 +85,14 @@
     "grunt-contrib-htmlmin": "^0.4.0",
     "grunt-contrib-uglify": "^1.0.1",
     "grunt-contrib-watch": "^1.0.0",
+    "grunt-crisper": "^1.0.1",    
     "grunt-exec": "^2.0.0",
     "grunt-jsbeautifier": "^0.2.13",
     "grunt-mocha-test": "^0.12.7",
     "grunt-processhtml": "^0.3.8",
     "grunt-string-replace": "^1.2.1",
     "grunt-ts": "^6.0.0-beta.16",
+    "grunt-typedoc": "^0.2.4",
     "grunt-vulcanize": "^1.0.0",
     "grunt-zip": "^0.16.2",
     "gulp-if": "^2.0.2",
@@ -128,6 +130,5 @@
   },
   "version": "2.0.16",
   "dependencies": {
-    "grunt-crisper": "^1.0.1"
   }
 }

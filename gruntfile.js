@@ -231,26 +231,6 @@ module.exports = function(grunt) {
 				],
 				dest: 'buildBeforePolymer/'
 			}, //Elements
-			documentationWebsite: {
-				files: [
-					{
-						expand: true,
-						cwd: 'app/',
-						src: [
-							'bower_components/webcomponentsjs/webcomponents.min.js',
-							'bower_components/polymer/*.*',
-							'fonts/*.*',
-							'css/crmAPIDocs.css',
-							'js/crmAPIDocs.js',
-							'icon-large.png',
-							'icon-small.png',
-							'icon-supersmall.png',
-							'html/webmanifest.json'
-						],
-						dest: 'buildBeforePolymer/website/'
-					}
-				]
-			},
 			moveDocumentationWebsite: {
 				files: [{
 					expand: true,
@@ -720,7 +700,10 @@ module.exports = function(grunt) {
 			}
 		},
 		exec: {
-			yarn: 'yarn install --force'
+			yarn: 'yarn install --force',
+			typedoc: 'typedoc --mode file --out documentation/ --includeDeclarations ' +
+				'--entryPoint CRM --theme docs/theme --name "CRM API" ' +
+				'--readme none tools/definitions/crmapi.d.ts'
 		}
 	});
 
@@ -780,14 +763,8 @@ module.exports = function(grunt) {
 	/* Website related tasks */
 
 	//Extracts the files needed for the documentationWebsite and places them in build/website
-	grunt.registerTask('documentationWebsite', ['compile', 'extractCrmDefs:updateHTMLDocsWebsite',
-		'processhtml:documentationWebsite', 'copyImportedElements:documentationWebsite',
-		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
-		'copy:documentationWebsite', '_defsNoClean', 'removePrefix', 'vulcanize']);
+	grunt.registerTask('documentationWebsite', ['exec:typedoc']);
 	
-	//Moves the documentationWebsite from build/website to /documentation
-	grunt.registerTask('moveDocumentationWebsite', ['compile', 'copy:moveDocumentationWebsite']);
-
 	//Moves the gitignore for the gh-pages branch to the root
 	grunt.registerTask('changeGitIgnore', ['copy:gitignore']);
 

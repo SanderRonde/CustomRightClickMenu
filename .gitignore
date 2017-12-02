@@ -242,3 +242,6 @@ app/js/promise.js
 
 app/elements/edit-pages/monaco-editor/src/
 app/js/shared.js
+
+docs/website/
+documentation/
