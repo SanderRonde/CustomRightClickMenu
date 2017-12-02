@@ -87,7 +87,7 @@ declare namespace CRM {
 	/**
 	 * Permissions related to the CRM API
 	 */
-	type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
+	export type CRMPermission = 'crmGet' | 'crmWrite' | 'chrome';
 
 	/**
 	 * An extendable object
@@ -1934,6 +1934,12 @@ declare namespace CRMAPI {
 	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
 	 */
 	export class CRMAPIInit {
+		constructor(node: CRM.SafeNode, id: number, tabData: TabData, 
+			clickData: ClickData, secretKey: Array<number>,
+			nodeStorage: NodeStorage, contextData: ContextData,
+			greasemonkeyData: GreaseMonkeyData, isBackground: boolean,
+			options: CRM.Options, enableBackwardsCompatibility: boolean);
+
 		/**
 		 * When true, shows stacktraces on error in the console of the page
 		 *		the script runs on, true by default.
