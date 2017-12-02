@@ -192,6 +192,9 @@ declare namespace Tern {
 type JSDefinitions = any;
 
 interface Window {
+	CodeMirror: {
+		TernServer: Tern.Server;
+	}
 	TernFile: Tern.File;
 	tern: Tern.Tern;
 	ecma5: JSDefinitions;

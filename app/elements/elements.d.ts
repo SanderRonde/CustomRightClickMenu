@@ -80,11 +80,6 @@ interface Window {
 	}
 	monacoCommands: MonacoCommands;
 	MonacoEditorHookManager: typeof MonacoEditorElement.MonacoEditorHookManager;
-	codeMirrorToLoad?: {
-		toLoad: Array<(cm: CodeMirror) => void>;
-		final?(): void;
-	};
-	CodeMirror: CodeMirror;
 	colorFunction: {
 		func(pos: LinePosition, cm: CodeMirrorInstance): void;
 		cm: CodeMirrorInstance;
