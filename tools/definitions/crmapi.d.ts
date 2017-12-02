@@ -2130,7 +2130,7 @@ declare namespace CRMAPI {
 		}
 
 
-		/*
+		/**
 		* General CRM API functions
 		*/
 		general: CRMAPIInit;
@@ -2526,7 +2526,7 @@ declare namespace CRMAPI {
 				getStylesheet(nodeId: number, callback: (stylesheet: string) => void): void	
 			},
 
-			/*
+			/**
 			* All functions related specifically to the link type
 			*/
 			link: {
@@ -2913,7 +2913,7 @@ declare namespace CRMAPI {
 		 * 		and here http://tampermonkey.net/documentation.php
 		 */
 		GM: {
-			/*
+			/**
 			 * Returns any info about the script
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_info}
@@ -3004,7 +3004,7 @@ declare namespace CRMAPI {
 			 */
 			GM_openInTab(url: string): void,
 
-			/*
+			/**
 			 * This is only here to prevent errors from occuring when calling any of these functions,
 			 * this function does nothing
 			 *
@@ -3013,7 +3013,7 @@ declare namespace CRMAPI {
 			 */
 			GM_registerMenuCommand: EmptyFn,
 
-			/*
+			/**
 			 * This is only here to prevent errors from occuring when calling any of these functions,
 			 * this function does nothing
 			 *
@@ -3022,7 +3022,7 @@ declare namespace CRMAPI {
 			 */
 			GM_unregisterMenuCommand: EmptyFn;
 
-			/*
+			/**
 			 * This is only here to prevent errors from occuring when calling any of these functions,
 			 * this function does nothing
 			 *
@@ -3031,7 +3031,7 @@ declare namespace CRMAPI {
 			 */
 			GM_setClipboard: EmptyFn;
 
-			/*
+			/**
 			 * Sends an xmlhttpRequest with given parameters
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_xmlhttpRequest}
@@ -3122,7 +3122,7 @@ declare namespace CRMAPI {
 			GM_download(detailsOrUrl: DownloadSettings): void,
 			GM_download(detailsOrUrl: string, name: string): void,
 
-			/*
+			/**
 			 * Please use the comms API instead of this one
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_getTab}
@@ -3130,7 +3130,7 @@ declare namespace CRMAPI {
 			 */
 			GM_getTab: InstantCB,
 
-			/*
+			/**
 			 * Please use the comms API instead of this one
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_getTabs}
@@ -3138,7 +3138,7 @@ declare namespace CRMAPI {
 			 */
 			GM_getTabs: InstantCB,
 
-			/*
+			/**
 			 * Please use the comms API instead of this one, this one does nothing
 			 *
 			 * @see {@link https://tampermonkey.net/documentation.php#GM_saveTab}
