@@ -2083,7 +2083,7 @@ declare namespace CRM {
 				/**
 				 * Sends a message to given instance
 				 *
-				 * @param {instance} instance - The instance to send the message to
+				 * @param {number} instance - The ID of the instance to send it to
 				 * @param {number} tabIndex - The index in which it ran on the tab.
 				 * 		When a script is ran multiple times on the same tab,
 				 * 		it gets added to the tabIndex array (so it starts at 0)
@@ -2096,6 +2096,21 @@ declare namespace CRM {
 				 *		it failed ("instance no longer exists" or "no listener exists")
 				 */
 				sendMessage(instance: number, tabIndex: number, message: any, callback?: InstanceCallback): void,
+				/**
+				 * Sends a message to given instance
+				 *
+				 * @param {Instance} instance - The instance to send the message to
+				 * @param {number} tabIndex - The index in which it ran on the tab.
+				 * 		When a script is ran multiple times on the same tab,
+				 * 		it gets added to the tabIndex array (so it starts at 0)
+				 * @param {Object} message - The message to send
+				 * @param {function} [callback] - A callback that tells you the result,
+				 *		gets passed one argument (object) that contains the two boolean
+				 *		values `error` and `success` indicating whether the message
+				 *		succeeded. If it did not succeed and an error occurred,
+				 *		the message key of that object will be filled with the reason
+				 *		it failed ("instance no longer exists" or "no listener exists")
+				 */
 				sendMessage(instance: Instance, tabIndex: number, message: any, callback?: InstanceCallback): void,
 				/**
 				 * Adds a listener for any comm-messages sent from other instances of
@@ -2108,10 +2123,14 @@ declare namespace CRM {
 				/**
 				 * Removes a listener currently added by using comm.addListener
 				 *
-				 * @param {listener|number} listener - The listener to remove or the number returned
-				 * 		by adding it.
+				 * @param {number} listener - The index of the listener (given by addListener)
 				 */
 				removeListener(listener: number): void,
+				/**
+				 * Removes a listener currently added by using comm.addListener
+				 *
+				 * @param {InstanceCallback} listener - The listener to remove
+				 */
 				removeListener(listener: InstanceCallback): void,
 				/**
 				 * Sends a message to the background page for this script
@@ -2137,37 +2156,39 @@ declare namespace CRM {
 				/**
 				 * Gets the value at given key, if no key is given returns the entire storage object
 				 *
-				 * @param {string|array} [keyPath] - The path at which to look, can be either
-				 *		a string with dots seperating the path, an array with each entry holding
-				 *		one section of the path, or just a plain string without dots as the key,
-				 *		can also hold nothing to return the entire storage
-				 * @returns {any} - The data you are looking for
-				*/
+				 * @param {string} keyPath - The path at which to look, a string separated with dots
+				 */
 				get(keyPath: string): any,
-				get(keyPath: Array<string>): any,
-				get(keyPath: Array<number>): any,
 				/**
-				 * Sets the data at given key to given value
+				 * Gets the value at given key, if no key is given returns the entire storage object
 				 *
-				 * @param {string|array|Object} keyPath - The path at which to look, can be either
-				 *		a string with dots seperating the path, an array with each entry holding
-				 *		one section of the path, a plain string without dots as the key or
-				 * 		an object. This object will be written on top of the storage object
-				 * @param {any} [value] - The value to set it to, optional if keyPath is an object
-				*/
-				set(keyPath: string, value: any): void,
-				set(keyPath: Array<string|number>, value: any): void,
-				set(keyPath: KeyPath): void,
+				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
+				 */
+				get(keyPath: Array<string|number>): any,
+				/**
+				 * Sets the data at given key given value
+				 *
+				 * @param {string} keyPath - The path at which to look, a string separated with dots
+				 */
+				set(keyPath: string): void,
+				/**
+				 * Sets the data at given key given value
+				 *
+				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
+				 */
+				set(keyPath: Array<string|number>): void,
 				/**
 				 * Deletes the data at given key given value
 				 *
-				 * @param {string|array} keyPath - The path at which to look, can be either
-				 *		a string with dots seperating the path, an array with each entry holding
-				 *		one section of the path, or just a plain string without dots as the key
-				*/
+				 * @param {string} keyPath - The path at which to look, a string separated with dots
+				 */
 				remove(keyPath: string): void,
-				remove(keyPath: Array<string>): void,
-				remove(keyPath: Array<number>): void,
+				/**
+				 * Deletes the data at given key given value
+				 *
+				 * @param {array} keyPath - The path at which to look, an array of strings and numbers representing keys
+				 */
+				remove(keyPath: Array<string|number>): void,
 				/**
 				 * Functions related to the onChange event of the storage API
 				 */
@@ -2188,11 +2209,17 @@ declare namespace CRM {
 					 * Removes ALL listeners with given listener (function) as the listener,
 					 *	if key is given also checks that they have that key
 					 *
-					 * @param {function|number} listener - The listener to remove or the number to
-					 * 		to remove it.
+					 * @param {number} listener - The number of the listener to remove (given by addListener)
 					 * @param {string} [key] - The key to check
 					 */
 					removeListener(listener: number, key: string): void,
+					/**
+					 * Removes ALL listeners with given listener (function) as the listener,
+					 *	if key is given also checks that they have that key
+					 *
+					 * @param {function} listener - The listener to remove
+					 * @param {string} [key] - The key to check
+					 */
 					removeListener(listener: StorageListener, key: string): void,
 				}
 			}
@@ -2450,8 +2477,8 @@ declare namespace CRM {
 				 * @param {number} nodeId - The id of the node to delete
 				 * @param {function} [callback] - A function to run when done
 				 */
-				deleteNode(nodeId: number, callback?: (result: string) => void): void,
-				deleteNode(nodeId: number, callback?: (result: boolean) => void): void,
+				deleteNode(nodeId: number, callback?: (errorMessage: string) => void): void,
+				deleteNode(nodeId: number, callback?: (successStatus: boolean) => void): void,
 	
 				/**
 				 * Edits given settings of the node
@@ -2630,13 +2657,24 @@ declare namespace CRM {
 					 * @permission crmGet
 					 * @permission crmWrite
 					 * @param {number} nodeId - The id of the node to get the links from
-					 * @param {Object[]|Object} items - The items to push
+					 * @param {Object} item - The item to push
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 					 */
-					setLinks(nodeId: number, items: CRM.LinkNodeLink, 
+					setLinks(nodeId: number, item: CRM.LinkNodeLink, 
 						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void;
+					/**
+					 * Gets the links of the node with ID nodeId
+					 *
+					 * @permission crmGet
+					 * @permission crmWrite
+					 * @param {number} nodeId - The id of the node to get the links from
+					 * @param {Object[]} items - The items to push
+					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
+					 * @param {string} [items.url] - The URL to open on clicking the link
+					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+					 */
 					setLinks(nodeId: number, items: Array<CRM.LinkNodeLink>, 
 						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void;
 	
@@ -2646,13 +2684,24 @@ declare namespace CRM {
 					 * @permission crmGet
 					 * @permission crmWrite
 					 * @param {number} nodeId - The node to push the items to
-					 * @param {Object[]|Object} items - An array of items or just one item to push
+					 * @param {Object} items - One item to push
 					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
 					 * @param {string} [items.url] - The URL to open on clicking the link
 					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
 					 */
 					push(nodeId: number, items: CRM.LinkNodeLink,
 						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void,
+					/**
+					 * Pushes given items into the array of URLs of node with ID nodeId
+					 *
+					 * @permission crmGet
+					 * @permission crmWrite
+					 * @param {number} nodeId - The node to push the items to
+					 * @param {Object[]} items - An array of items to push
+					 * @param {boolean} [items.newTab] - Whether the link should open in a new tab, defaults to true
+					 * @param {string} [items.url] - The URL to open on clicking the link
+					 * @param {functon} [callback] - A function that gets called when done with the new array as an argument
+					 */
 					push(nodeId: number, items: Array<CRM.LinkNodeLink>,
 						callback?: (arr: Array<CRM.LinkNodeLink>) => void): void
 	
@@ -2720,11 +2769,22 @@ declare namespace CRM {
 						 * @permission crmGet
 						 * @permission crmWrite
 						 * @param {number} nodeId - The node to edit
-						 * @param {Object[]|Object} libraries - One library or an array of libraries to push
+						 * @param {Object} libraries - One library to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback with the new array as an argument
 						 */
 						push(nodeId: number, libraries: CRM.Library, callback?: (libs: Array<CRM.Library>) => void): void,
+						/**
+						 * Pushes given libraries to the node with ID nodeId's libraries array,
+						 * make sure to register them first or an error is thrown, only works on script nodes
+						 *
+						 * @permission crmGet
+						 * @permission crmWrite
+						 * @param {number} nodeId - The node to edit
+						 * @param {Object[]} libraries - An array of libraries to push
+						 * @param {string} libraries.name - The name of the library
+						 * @param {function} [callback] - A callback with the new array as an argument
+						 */
 						push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
 	
 						/**
@@ -2753,11 +2813,22 @@ declare namespace CRM {
 						 * @permission crmGet
 						 * @permission crmWrite
 						 * @param {number} nodeId - The node to edit
-						 * @param {Object[]|Object} libraries - One library or an array of libraries to push
+						 * @param {Object} libraries - One library to push
 						 * @param {string} libraries.name - The name of the library
 						 * @param {function} [callback] - A callback with the new array as an argument
 						 */
 						push(nodeId: number, libraries: CRM.Library, callback?: (libs: Array<CRM.Library>) => void): void,
+						/**
+						 * Pushes given libraries to the node with ID nodeId's libraries array,
+						 * make sure to register them first or an error is thrown, only works on script nodes
+						 *
+						 * @permission crmGet
+						 * @permission crmWrite
+						 * @param {number} nodeId - The node to edit
+						 * @param {Object[]} libraries - An array of libraries to push
+						 * @param {string} libraries.name - The name of the library
+						 * @param {function} [callback] - A callback with the new array as an argument
+						 */
 						push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
 	
 						/**
@@ -3015,7 +3086,27 @@ declare namespace CRM {
 				 *		when defaultValue is also undefined, returns undefined
 				 */
 				GM_getValue<T>(name: string, defaultValue: T): T,
+				/**
+				 * This method retrieves a value that was set with GM_setValue. See GM_setValue
+				 *		for details on the storage of these values.
+				 *
+				 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
+				 * @param {String} name - The property name to get
+				 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
+				 * @returns {void} - Returns the value if the value is defined, if it's undefined, returns defaultValue
+				 *		when defaultValue is also undefined, returns undefined
+				 */
 				GM_getValue<T>(name: string, defaultValue: T): void,
+				/**
+				 * This method retrieves a value that was set with GM_setValue. See GM_setValue
+				 *		for details on the storage of these values.
+				 *
+				 * @see {@link https://tampermonkey.net/documentation.php#GM_getValue}
+				 * @param {String} name - The property name to get
+				 * @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
+				 * @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
+				 *		when defaultValue is also undefined, returns undefined
+				 */
 				GM_getValue<T>(name: string, defaultValue: T): any,
 	
 				/**
@@ -3249,18 +3340,25 @@ declare namespace CRM {
 				 * Downloads the file at given URL
 				 *
 				 * @see {@link https://tampermonkey.net/documentation.php#GM_GM_download}
-				 * @param {string|Object} detailsOrUrl - The URL or a details object containing any data
-				 * @param {string} [detailsOrUrl.url] - The url of the download
-				 * @param {string} [detailsOrUrl.name] - The name of the file after download
-				 * @param {Object} [detailsOrUrl.headers] - The headers for the request
-				 * @param {function} [detailsOrUrl.onload] - Called when the request loads
-				 * @param {function} [detailsOrUrl.onerror] - Called on error, gets called with an object
+				 * @param {string|Object} details - A details object containing any data
+				 * @param {string} [details.url] - The url of the download
+				 * @param {string} [details.name] - The name of the file after download
+				 * @param {Object} [details.headers] - The headers for the request
+				 * @param {function} [details.onload] - Called when the request loads
+				 * @param {function} [details.onerror] - Called on error, gets called with an object
 				 *		containing an error attribute that specifies the reason for the error
 				 *		and a details attribute that gives a more detailed description of the error
 				 * @param {string} name - The name of the file after download
 				 */
-				GM_download(detailsOrUrl: DownloadSettings): void,
-				GM_download(detailsOrUrl: string, name: string): void,
+				GM_download(details: DownloadSettings): void,
+				/**
+				 * Downloads the file at given URL
+				 *
+				 * @see {@link https://tampermonkey.net/documentation.php#GM_GM_download}
+				 * @param {string} url - The URL
+				 * @param {string} name - The name of the file after download
+				 */
+				GM_download(url: string, name: string): void,
 	
 				/**
 				 * Please use the comms API instead of this one
@@ -3298,20 +3396,29 @@ declare namespace CRM {
 				 * Shows a HTML5 Desktop notification and/or highlight the current tab.
 				 *
 				 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
-				 * @param {string|Object} textOrOptions - The message of the notification
-				 * @param {string} [textOrOptions.text] - The message of the notification
-				 * @param {string} [textOrOptions.imageUrl] - The URL of the image to use
-				 * @param {string} [textOrOptions.title] - The title of the notification
-				 * @param {function} [textOrOptions.onclick] - A function to call on clicking
-				 * @param {boolean} [textOrOptions.isClickable] - Whether the notification is clickable
-				 * @param {function} [textOrOptions.ondone] - A function to call when the notification
+				 * @param {string|Object} options - The message of the notification
+				 * @param {string} [options.text] - The message of the notification
+				 * @param {string} [options.imageUrl] - The URL of the image to use
+				 * @param {string} [options.title] - The title of the notification
+				 * @param {function} [options.onclick] - A function to call on clicking
+				 * @param {boolean} [options.isClickable] - Whether the notification is clickable
+				 * @param {function} [options.ondone] - A function to call when the notification
 				 * 		disappears or is closed by the user.
 				 * @param {string} [title] - The title of the notification
 				 * @param {string} [image] - A url to the image to use for the notification
 				 * @param {function} [onclick] - A function to run on clicking the notification
 				 */
-				GM_notification(textOrOptions: NotificationOptions): void,
-				GM_notification(textOrOptions: string, title?: string, image?: string, onclick?: Function): void,
+				GM_notification(options: NotificationOptions): void,
+				/**
+				 * Shows a HTML5 Desktop notification and/or highlight the current tab.
+				 *
+				 * @see {@link https://tampermonkey.net/documentation.php#GM_notification}
+				 * @param {string|Object} text - The message of the notification
+				 * @param {string} [title] - The title of the notification
+				 * @param {string} [image] - A url to the image to use for the notification
+				 * @param {function} [onclick] - A function to run on clicking the notification
+				 */
+				GM_notification(text: string, title?: string, image?: string, onclick?: Function): void,
 	
 				//This seems to be deprecated from the tampermonkey documentation page, removed somewhere between january 1st 2016
 				//	and january 24th 2016 waiting for any update
