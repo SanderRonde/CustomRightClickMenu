@@ -1,3 +1,14 @@
+interface CursorPosition extends LinePosition {
+	from: {
+		line: number;
+		index: number;
+	};
+	to: {
+		line: number;
+		index: number;
+	}
+}
+
 declare namespace Tern {
 	interface BaseExpression {
 		start: number;

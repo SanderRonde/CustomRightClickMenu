@@ -322,17 +322,6 @@ interface LinePosition {
 	};
 }
 
-interface CursorPosition extends LinePosition {
-	from: {
-		line: number;
-		index: number;
-	};
-	to: {
-		line: number;
-		index: number;
-	}
-}
-
 interface CodeMirrorTextMarker {
 	atomic: boolean;
 	className: string;
