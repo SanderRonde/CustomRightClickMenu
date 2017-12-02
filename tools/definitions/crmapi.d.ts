@@ -1933,7 +1933,7 @@ declare namespace CRMAPI {
 	 * @param {Object} options - The options the user has entered for this script/stylesheet
 	 * @param {boolean} enableBackwardsCompatibility - Whether the localStorage object should reflect nodes
 	 */
-	interface CRMAPIInit {
+	export class CRMAPIInit {
 		/**
 		 * When true, shows stacktraces on error in the console of the page
 		 *		the script runs on, true by default.
@@ -1950,7 +1950,7 @@ declare namespace CRMAPI {
 		 * If true, when an error occurs anywhere in the script, opens the
 		 *		chrome debugger by calling the debugger command. This does
 		 *   	not preserve the stack or values. If you want that, use the
-		 * 		"catchErrors" option on the options page.
+		 * 		`catchErrors` option on the options page.
 		 */
 		debugOnerror: boolean;
 
@@ -2020,7 +2020,7 @@ declare namespace CRMAPI {
 			 * @param {Object} message - The message to send
 			 * @param {function} [callback] - A callback that tells you the result,
 			 *		gets passed one argument (object) that contains the two boolean
-			 *		values "error" and "success" indicating whether the message
+			 *		values `error` and `success` indicating whether the message
 			 *		succeeded. If it did not succeed and an error occurred,
 			 *		the message key of that object will be filled with the reason
 			 *		it failed ("instance no longer exists" or "no listener exists")
@@ -2293,7 +2293,7 @@ declare namespace CRMAPI {
 			* @param {string} [options.linkData.url] - The url to open when clicking the link, this value is required.
 			* @param {boolean} [options.linkData.newTab] - Whether or not to open the link in a new tab, not required, defaults to true
 			* @param {Object} [options.scriptData] - The data of the script, required if type is script
-			* @param {string} [options.scriptData.script] - The actual script, will be "" if none given, required
+			* @param {string} [options.scriptData.script] - The actual script, will be empty string if none given, required
 			* @param {Number} [options.scriptData.launchMode] - The time at which this script launches, not required, defaults to 0,
 			*		0 = run on clicking
 			*		1 = always run
@@ -2318,9 +2318,9 @@ declare namespace CRMAPI {
 			* @param {boolean} [options.stylesheetData.defaultOn] - Whether the stylesheet is on by default or off, only used if toggle is true, not required, defaults to true
 			* @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
 			*/
-			createNode:(options: Partial<CRM.SafeNode> & {
+			createNode(options: Partial<CRM.SafeNode> & {
 				position?: Relation;
-			}, callback?: (node: CRM.SafeNode) => void) => void,
+			}, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
 			 * Copies given node,
@@ -2344,13 +2344,13 @@ declare namespace CRMAPI {
 			*		after: after the given node
 			* @param {CrmAPIInit~crmCallback} [callback] - A callback given the new node as an argument
 			*/
-			copyNode:(nodeId: number, options: {
+			copyNode(nodeId: number, options: {
 				name?: string;
 				position?: Relation
-			}, callback?: (node: CRM.SafeNode) => void) => void,
+			}, callback?: (node: CRM.SafeNode) => void): void,
 
 			/**
-			 * Moves given node to position specified in "position"
+			 * Moves given node to position specified in `position`
 			 *
 			 * @permission crmGet
 			 * @permission crmWrite
@@ -2429,14 +2429,14 @@ declare namespace CRMAPI {
 			getContentTypes(nodeId: number, callback?: (contentTypes: CRM.ContentTypes) => void): void,
 
 			/**
-			 * Sets the content type at index "index" to given value "value"
+			 * Sets the content type at index `index` to given value `value`
 			 *
 			 * @permission crmGet
 			 * @permission crmWrite
 			 * @param {number} nodeId - The node whose content types to set
 			 * @param {number} index - The index of the array to set, 0-5, ordered this way:
 			 *		page, link, selection, image, video, audio
-			* @param {boolean} value - The new value at index "index"
+			* @param {boolean} value - The new value at index `index`
 			* @param {CrmAPIInit~crmCallback} [callback] - A function to run when done, with the new array as an argument
 			*/
 			setContentType(nodeId: number, index: CRM.ContentTypes, value: boolean, callback?: (contentTypes: CRM.ContentTypes) => void): void,
@@ -2477,7 +2477,7 @@ declare namespace CRMAPI {
 			setTriggerUsage(nodeId: number, useTriggers: boolean, callback?: (node: CRM.SafeNode) => void): void
 
 			/**
-			 * Sets the launch mode of node with ID nodeId to "launchMode"
+			 * Sets the launch mode of node with ID nodeId to `launchMode`
 			 *
 			 * @permission crmGet
 			 * @permission crmWrite
@@ -2506,7 +2506,7 @@ declare namespace CRMAPI {
 			 */
 			stylesheet: {
 				/**
-				 * Sets the stylesheet of node with ID nodeId to value "stylesheet"
+				 * Sets the stylesheet of node with ID nodeId to value `stylesheet`
 				 *
 				 * @permission crmGet
 				 * @permission crmWrite
@@ -2574,7 +2574,7 @@ declare namespace CRMAPI {
 					callback?: (arr: Array<CRM.LinkNodeLink>) => void): void
 
 				/**
-				 * Splices the array of URLs of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
+				 * Splices the array of URLs of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
 				 * and returns them as an array in the callback function
 				 *
 				 * @permission crmGet
@@ -2590,12 +2590,12 @@ declare namespace CRMAPI {
 
 			script: {
 				/**
-				 * Sets the script of node with ID nodeId to value "script"
+				 * Sets the script of node with ID nodeId to value `script`
 				 *
 				 * @permission crmGet
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to change the script
-				 * @param {string} value - The code to change to
+				 * @param {string} script - The code to change to
 				 * @param {CrmAPIInit~crmCallback} [callback] - A function with the node as an argument
 				 */
 				setScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): void,
@@ -2610,12 +2610,12 @@ declare namespace CRMAPI {
 				getScript(nodeId: number, callback: (script: string) => void): void,
 
 				/**
-				 * Sets the backgroundScript of node with ID nodeId to value "script"
+				 * Sets the backgroundScript of node with ID nodeId to value `script`
 				 *
 				 * @permission crmGet
 				 * @permission crmWrite
 				 * @param {number} nodeId - The node of which to change the script
-				 * @param {string} value - The code to change to
+				 * @param {string} script - The code to change to
 				 * @param {CrmAPIInit~crmCallback} [callback] - A function with the node as an argument
 				 */
 				setBackgroundScript(nodeId: number, script: string, callback?: (node: CRM.SafeNode) => void): void,
@@ -2645,7 +2645,7 @@ declare namespace CRMAPI {
 					push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
 
 					/**
-					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
+					 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
 					 * and returns them as an array in the callback function, only works on script nodes
 					 *
 					 * @permission crmGet
@@ -2678,7 +2678,7 @@ declare namespace CRMAPI {
 					push(nodeId: number, libraries: Array<CRM.Library>, callback?: (libs: Array<CRM.Library>) => void): void,
 
 					/**
-					 * Splices the array of libraries of node with ID nodeId. Start at "start" and splices "amount" items (just like array.splice)
+					 * Splices the array of libraries of node with ID nodeId. Start at `start` and splices `amount` items (just like array.splice)
 					 * and returns them as an array in the callback function, only works on script nodes
 					 *
 					 * @permission crmGet
@@ -2731,7 +2731,7 @@ declare namespace CRMAPI {
 				push(nodeId: number, childrenIds: Array<number>, callback?: (node: CRM.SafeNode) => void): void,
 
 				/**
-				 * Splices the children of the node with ID nodeId, starting at "start" and splicing "amount" items,
+				 * Splices the children of the node with ID nodeId, starting at `start` and splicing `amount` items,
 				 * the removed items will be put in the root of the tree instead
 				 * only works for menu type nodes
 				 *
@@ -2751,7 +2751,7 @@ declare namespace CRMAPI {
 			 */
 			libraries: {
 				/**
-				 * Registers a library with name "name"
+				 * Registers a library with name `name`
 				 *
 				 * @permission crmWrite
 				 * @param {string} name - The name to give the library
@@ -2842,57 +2842,67 @@ declare namespace CRMAPI {
 		}
 
 		/**
-		 * Calls the chrome API given in the "API" parameter. Due to some issues with the chrome message passing
+		 * Calls the chrome API given in the `API` parameter. Due to some issues with the chrome message passing
 		 *		API it is not possible to pass messages and preserve scope. This could be fixed in other ways but
 		 *		unfortunately chrome.tabs.executeScript (what is used to execute scripts on the page) runs in a
 		 *		sandbox and does not allow you to access a lot. As a solution to this there are a few types of
 		 *		functions you can chain-call on the crmAPI.chrome(API) object:
- 		 *			a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
- 		 *				it will be converted to a placeholder function that will be called on return with the
-		 *				arguments chrome passed to it. This means the function is never executed on the background
-		 *				page and is always executed here to preserve scope. The arguments are however passed on as they should.
-		 *				You can call this function by calling .args or by just using the parentheses as below.
-		 * 				Keep in mind that this function will not work after it has been called once, meaning that
-		 * 				if your API calls callbacks multiple times (like chrome.tabs.onCreated) you should use
-		 *  			persistent callbacks (see below).
-		 *			r or return: a function that is called with the value that the chrome API returned. This can
-		 *				be used for APIs that don't use callbacks and instead just return values such as
-		 *				chrome.runtime.getURL().
-		 * 			p or persistent: a function that is a persistent callback that will not be removed when called.
-		 * 				This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
-		 * 				contrary to chrome.tabs.get where only one callback will occur.
-		 *			s or send: executes the request
+		 *
+		 *
+ 		 * a or args or (): uses given arguments as arguments for the API in order specified. When passing a function,
+ 		 *	it will be converted to a placeholder function that will be called on return with the
+		 *	arguments chrome passed to it. This means the function is never executed on the background
+		 *	page and is always executed here to preserve scope. The arguments are however passed on as they should.
+		 *	You can call this function by calling .args or by just using the parentheses as below.
+		 *	Keep in mind that this function will not work after it has been called once, meaning that
+		 *	if your API calls callbacks multiple times (like chrome.tabs.onCreated) you should use
+		 *	persistent callbacks (see below).
+		 *
+		 *
+		 * r or return: a function that is called with the value that the chrome API returned. This can
+		 *	be used for APIs that don't use callbacks and instead just return values such as
+		 *	chrome.runtime.getURL().
+		 *
+		 *
+		 * p or persistent: a function that is a persistent callback that will not be removed when called.
+		 *	This can be used on APIs like chrome.tabs.onCreated where multiple calls can occuring
+		 *	contrary to chrome.tabs.get where only one callback will occur.
+		 *
+		 *
+		 * s or send: executes the request
 		 * Examples:
-		 *		- For a function that uses a callback:
+		 * 
+		 * 
+		 *		// For a function that uses a callback:
 		 * 		crmAPI.chrome('alarms.get')('name', function(alarm) {
 		 *			//Do something with the result here
 		 *		}).send();
-		 *		-
-		 *		- For a function that returns a value:
+		 *		
+		 *		// For a function that returns a value:
 		 *		crmAPI.chrome('runtime.getUrl')(path).return(function(result) {
 		 *			//Do something with the result
 		 *		}).send();
-		 *		-
- 		 *		- For a function that uses neither:
+		 *		
+ 		 *		// For a function that uses neither:
 		 *		crmAPI.chrome('alarms.create')('name', {}).send();
-		 *		-
-		 *		- For a function that uses a persistent callback
+		 *		
+		 *		// For a function that uses a persistent callback
  		 *		crmAPI.chrome('tabs.onCreated.addListener').persistent(function(tab) {
 		 * 			//Do something with the tab 
 		 *		}).send();
-		 *		-
-		 *		- A compacter version:
+		 *		
+		 *		// A compacter version:
 		 *		crmAPI.chrome('runtime.getUrl')(path).r(function(result) {
  		 *			//Do something with the result
 		 *		}).s();
-		 *		-
-		 * Requires permission "chrome" and the permission of the the API, so chrome.bookmarks requires
-		 * permission "bookmarks", chrome.alarms requires "alarms"
+		 *		
+		 * Requires permission `chrome` and the permission of the the API, so chrome.bookmarks requires
+		 * permission `bookmarks`, chrome.alarms requires `alarms`
 		 *
 		 * @permission chrome
 		 * @param {string} api - The API to use
-		 * @returns {Object} - An object on which you can call .args, .fn, .return and .send
-		 * 		(and their first-letter-only versions)
+		 * @returns {Object} - An object on which you can call `.args`, `.fn`, `.return` and 
+		 * `.send` and their first-letter-only versions (`.a`, `.f`, `.r` and `.s`)
 		 */
 		chrome(api: string): ChromeRequestReturn;
 
@@ -2919,7 +2929,7 @@ declare namespace CRMAPI {
 			* @param {String} name - The property name to get
 			* @param {any} [defaultValue] - Any value to be returned, when no value has previously been set
 			* @returns {any} - Returns the value if the value is defined, if it's undefined, returns defaultValue
-			*		if defaultValue is also undefined, returns undefined
+			*		when defaultValue is also undefined, returns undefined
 			*/
 			GM_getValue<T>(name: string, defaultValue: T): T,
 			GM_getValue<T>(name: string, defaultValue: T): void,
@@ -2969,12 +2979,12 @@ declare namespace CRMAPI {
 			GM_getResourceString(name: string): string,
 
 			/**
-			 * This method adds a string of CSS to the document. It creates a new <style> element,
-			 *		 adds the given CSS to it, and inserts it into the <head>.
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_addStyle}
-			* @param {String} css - The CSS to put on the page
-			*/
+			 * This method adds a string of CSS to the document. It creates a new `style` element,
+			 * adds the given CSS to it, and inserts it into the `head`.
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_addStyle}
+			 * @param {String} css - The CSS to put on the page
+			 */
 			GM_addStyle(css: string): void,
 
 			/**
@@ -2988,28 +2998,28 @@ declare namespace CRMAPI {
 			/**
 			 * Open specified URL in a new tab, open_in_background is not available here since that
 			 *		not possible in chrome
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_openInTab}
-			* @param {String} url - The url to open
-			*/
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_openInTab}
+			 * @param {String} url - The url to open
+			 */
 			GM_openInTab(url: string): void,
 
 			/*
-			* This is only here to prevent errors from occuring when calling any of these functions,
-			* this function does nothing
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_registerMenuCommand}
-			* @param {any} ignoredArguments - An argument that is ignored
-			*/
+			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * this function does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_registerMenuCommand}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
 			GM_registerMenuCommand: EmptyFn,
 
 			/*
-			* This is only here to prevent errors from occuring when calling any of these functions,
-			* this function does nothing
-			*
-			* @see {@link https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand}
-			* @param {any} ignoredArguments - An argument that is ignored
-			*/
+			 * This is only here to prevent errors from occuring when calling any of these functions,
+			 * this function does nothing
+			 *
+			 * @see {@link https://tampermonkey.net/documentation.php#GM_unregisterMenuCommand}
+			 * @param {any} ignoredArguments - An argument that is ignored
+			 */
 			GM_unregisterMenuCommand: EmptyFn;
 
 			/*
@@ -3202,7 +3212,12 @@ declare namespace CRMAPI {
 		 * @param {Object} [context] - The context of the search (the node from which to start, default is document)
 		 * @returns {Element[]} An array of the matching HTML elements
 		 */
-		$: typeof crmAPI.$crmAPI;
+		$(selector: string): Array<HTMLElement>;
+		$(selector: string): Array<void>;
+		$(selector: string, context: HTMLElement): Array<HTMLElement>;
+		$(selector: string, context: HTMLElement): Array<void>;
+		$(selector: string, context: Document): Array<HTMLElement>;
+		$(selector: string, context: Document): Array<void>;
 	}
 }
 
@@ -3214,9 +3229,9 @@ declare namespace CRMAPI {
 type ElementMaps = HTMLElementTagNameMap & ElementTagNameMap;
 type crmAPIQuerySelector = <T extends keyof ElementMaps>(selector: T, context?: HTMLElement|Element|Document) => Array<ElementMaps[T]>;
 
-declare var crmAPI: CRMAPI.CRMAPIInit;
+declare var crmAPI: typeof CRMAPI.CRMAPIInit;
 
 interface Window {
-	crmAPI: CRMAPI.CRMAPIInit
+	crmAPI: typeof CRMAPI.CRMAPIInit
 	$?: crmAPIQuerySelector
 }
