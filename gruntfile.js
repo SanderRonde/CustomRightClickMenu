@@ -258,6 +258,14 @@ module.exports = function(grunt) {
 					dest: './.gitignore'
 				}]
 			},
+			favicon: {
+				files: [{
+					expand: false,
+					cwd: './',
+					src: ['test/UI/favicon.ico'],
+					dest: './documentation/favicon.ico'
+				}]
+			},
 			jsFiles: {
 				files: [
 					{
@@ -764,6 +772,9 @@ module.exports = function(grunt) {
 
 	//Extracts the files needed for the documentationWebsite and places them in build/website
 	grunt.registerTask('documentationWebsite', ['exec:typedoc']);
+
+	//Moves the favicon for the website to the directory
+	grunt.registerTask('moveFavicon', ['copy:favicon']);
 	
 	//Moves the gitignore for the gh-pages branch to the root
 	grunt.registerTask('changeGitIgnore', ['copy:gitignore']);

@@ -41,6 +41,7 @@ if [ "$TRAVIS_BRANCH" = "master" ]; then
 
   echo "Pushing to gh-pages" && echo -en "travis_fold:start:gh_pages\\r"
   grunt documentationWebsite
+  grunt moveFavicon
   grunt demoWebsite
   grunt compile
   grunt changeGitIgnore
