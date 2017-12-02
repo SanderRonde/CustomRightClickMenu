@@ -23,18 +23,6 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			updateHTMLDocs: {
-				options: {
-					type: 'html'
-				},
-				files: [
-					{
-						src: ['app/js/crmapi.ts'],
-						dest: 'app/html/crmAPIDocs.html',
-						expand: false
-					}
-				]
-			},
 			updateCRMDefsWebsite: {
 				options: {
 					type: 'tern',
@@ -44,19 +32,6 @@ module.exports = function(grunt) {
 					{
 						src: ['app/js/crmapi.ts'],
 						dest: 'buildBeforePolymer/crmAPIDefs.js',
-						expand: false
-					}
-				]
-			},
-			updateHTMLDocsWebsite: {
-				options: {
-					type: 'html',
-					local: false
-				},
-				files: [
-					{
-						src: ['app/js/crmapi.ts'],
-						dest: 'app/html/crmAPIDocs.html',
 						expand: false
 					}
 				]
@@ -735,10 +710,10 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('html-typings');
 
 	/* Alias only tasks, not meant for running */
-	grunt.registerTask('_extractDefs', ['extractCrmDefs:updateCRMDefs', 'extractCrmDefs:updateHTMLDocs']);
+	grunt.registerTask('_extractDefs', ['extractCrmDefs:updateCRMDefs']);
 	grunt.registerTask('_extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite',
-		'extractCrmDefs:updateHTMLDocsWebsite', 'extractCrmDefs:updateJSONDocsWebsite']);
-	grunt.registerTask('_defsNoClean', ['extractCrmDefs:updateHTMLDocs', 'processhtml:updateCRMDefs']);
+		'extractCrmDefs:updateJSONDocsWebsite']);
+	grunt.registerTask('_defsNoClean', ['processhtml:updateCRMDefs']);
 
 
 
