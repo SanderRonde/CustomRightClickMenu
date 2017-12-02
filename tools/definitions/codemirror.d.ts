@@ -313,15 +313,6 @@ interface MergeViewCodeMirrorInstance extends CodeMirrorInstance {
 	}
 }
 
-interface LinePosition {
-	from: {
-		line: number;
-	};
-	to: {
-		line: number;
-	};
-}
-
 interface CodeMirrorTextMarker {
 	atomic: boolean;
 	className: string;

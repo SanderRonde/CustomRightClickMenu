@@ -1,3 +1,12 @@
+interface LinePosition {
+	from: {
+		line: number;
+	};
+	to: {
+		line: number;
+	};
+}
+
 interface CursorPosition extends LinePosition {
 	from: {
 		line: number;
