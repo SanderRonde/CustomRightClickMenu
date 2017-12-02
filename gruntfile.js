@@ -26,7 +26,6 @@ module.exports = function(grunt) {
 			updateCRMDefsWebsite: {
 				options: {
 					type: 'tern',
-					local: false
 				},
 				files: [
 					{
@@ -39,7 +38,6 @@ module.exports = function(grunt) {
 			updateJSONDocsWebsite: {
 				options: {
 					type: 'json',
-					local: false
 				},
 				files: [
 					{
@@ -51,18 +49,6 @@ module.exports = function(grunt) {
 			}
 		},
 		processhtml: {
-			updateCRMDefs: {
-				options: {
-					strip: true,
-					data: {
-						classes: 'content extension',
-						base: './'
-					}
-				},
-				files: {
-					'app/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html']
-				}
-			},
 			build: {
 				options: {
 					strip: true,
@@ -73,7 +59,6 @@ module.exports = function(grunt) {
 				},
 				files: {
 					'buildBeforePolymer/html/background.html': ['app/html/background.html'],
-					'buildBeforePolymer/html/crmAPIDocs.html': ['app/html/crmAPIDocsUI.html'],
 					'buildBeforePolymer/elements/crm-app/crm-app.html': [
 						'buildBeforePolymer/elements/crm-app/crm-app.html'],
 					'buildBeforePolymer/html/options.html': ['buildBeforePolymer/html/options.html'],
@@ -172,7 +157,7 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/', src: ['fonts/*'], dest: 'buildBeforePolymer/' }, //Fonts
 					{ expand: true, cwd: 'app/', src: ['css/*'], dest: 'buildBeforePolymer/' }, //CSS
 					{ expand: true, cwd: 'app/', src: ['js/**/*'], dest: 'buildBeforePolymer/' }, //JS
-					{ expand: true, cwd: 'app/', src: ['html/crmAPIDocs.html', 'html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html'], dest: 'buildBeforePolymer/' }, //HTML files
+					{ expand: true, cwd: 'app/', src: ['html/install.html', 'html/logging.html', 'html/options.html', 'html/base.html'], dest: 'buildBeforePolymer/' }, //HTML files
 					{ expand: true, cwd: 'app/', src: ['js/defaultLibraries/*'], dest: 'buildBeforePolymer/' }, //Default libraries
 					{ expand: true, cwd: 'app/', src: ['bower_components/**/*'], dest: 'buildBeforePolymer/' }, //Webanimations
 					{
