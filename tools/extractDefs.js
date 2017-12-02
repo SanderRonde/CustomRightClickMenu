@@ -617,7 +617,7 @@ module.exports = function (grunt) {
 			var sourceFile = file.src[0];
 			var isTern = options.type === 'tern' || options.type === 'json';
 			const instance = new extractDefs(grunt.file.read(sourceFile), isTern,
-				(options.local ? '/html/crmAPIDocs.html' : 'https://www.sanderronde.github.io/documentation/'));
+				'https://www.sanderronde.github.io/documentation/');
 			var result = instance.extractDefs();
 
 			result = generators[options.type].generate(result, options);

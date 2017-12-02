@@ -22,7 +22,8 @@ class SCE {
 	private static _permissionDialogListeners: Array<() => void> = [];
 
 	static openDocs() {
-		window.open(chrome.runtime.getURL('/html/crmAPIDocs.html'), '_blank');
+		const docsUrl = 'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.crmapiinstance.html';
+		window.open(docsUrl, '_blank');
 	}
 
 	static onKeyBindingKeyDown(this: NodeEditBehaviorScriptInstance, e: Polymer.PolymerKeyDownEvent) {
