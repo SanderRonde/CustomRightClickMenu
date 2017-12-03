@@ -1178,3 +1178,7 @@ paper-checkbox {
 	width: 500px;
 	height: 100vh;
 }
+
+*[hidden] {
+	display: none!important;
+}

@@ -416,6 +416,10 @@ namespace CRMAppElement {
 			}
 		}
 
+		static _currentItemIsCss(item: CRM.ScriptNode|CRM.StylesheetNode) {
+			return this.item && this.item.type === 'stylesheet';
+		}
+
 		static _getPageTitle(): string {
 			return location.href.indexOf('demo') > -1 ?
 				'Demo, actual right-click menu does NOT work in demo' :

@@ -50,7 +50,7 @@
 							<div on-tap="domListener" data-on-tap="launchSearchWebsiteTool" class="ribbonTool jsTool" id="paperSearchWebsitesToolTrigger">Search Website</div>
 							<div on-tap="domListener" data-on-tap="runJsLint" class="ribbonTool jsTool" id="runJsLintButton">Run JSLint</div>
 							<div on-tap="domListener" data-on-tap="runCssLint" class="ribbonTool cssTool" id="runCssLintButton">Run CSSLint</div>
-							<div on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
+							<div hidden$="{{!_currentItemIsCss(item)}}" on-tap="domListener" data-on-tap="showCssTips" class="ribbonTool cssTool" id="showCssTipsButton">
 								Info
 							</div>
 						</div>
