@@ -193,9 +193,13 @@ interface Animation {
 }
 
 interface HTMLElement {
-	animate(this: HTMLElement, properties: Array<{
-		[key: string]: any;
-	}>, options: {
+	animate<K extends {
+		[key: string]: string;
+	}>(this: HTMLElement, properties: [{
+		[key in keyof K]: string|number;
+	}, {
+		[key in keyof K]: string|number;
+	}], options: {
 		duration?: number;
 		easing?: string;
 		fill?: 'forwards'|'backwards'|'both';
