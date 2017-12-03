@@ -11,6 +11,21 @@ declare namespace Polymer {
 		}
 	}
 
+	interface NeonAnimationConfig {
+		node: Polymer.PolymerElement;
+		name: keyof NeonAnimations;
+	}
+
+	interface NeonAnimationBehaviorBase {
+		complete(): void;
+		isNeonAnimation: true;
+		created(): void;
+		timingFromConfig(): any;
+		setPrefixedProperty(node: Polymer.PolymerElement, property: string, value: string): void;
+	}
+
+	type NeonAnimationBehavior<T> = T & NeonAnimationBehaviorBase;
+
 	export interface Polymer {
 		(proto: InitializerProperties): void;
 		telemetry: {
@@ -20,6 +35,7 @@ declare namespace Polymer {
 		CodeEditBehavior: CodeEditBehaviorBase;
 		NodeEditBehavior: NodeEditBehaviorBase;
 		PaperDropdownBehavior: PaperDropdownBehaviorBase;
+		NeonAnimationBehavior: NeonAnimationBehaviorBase;
 		IronMenuBehavior: {
 			selected: number;
 		};
@@ -310,11 +326,18 @@ declare namespace Polymer {
 		];
 		'code-edit-behavior': ModuleMap[
 			'script-edit'|'stylesheet-edit'
-		]
-
+		];
 	}
 
-	type PolymerMap = ModuleMap & BehaviorMap;
+	interface NeonAnimations {
+		'scale-up-animation': NeonAnimationBehaviorScaleUpAnimation;
+		'scale-down-animation': NeonAnimationBehaviorScaleDownAnimation;
+		'fade-out-animation': NeonAnimationBehaviorFadeOutAnimation;
+	}
+
+	type PolymerMap = ModuleMap & BehaviorMap & {
+		'elementless': {}
+	};
 
 	export type El<N extends keyof PolymerMap, T extends InitializerProperties> = 
 		RootElement & T & {

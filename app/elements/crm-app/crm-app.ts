@@ -417,7 +417,7 @@ namespace CRMAppElement {
 		}
 
 		static _currentItemIsCss(item: CRM.ScriptNode|CRM.StylesheetNode) {
-			return this.item && this.item.type === 'stylesheet';
+			return (this.item && this.item.type === 'stylesheet') || true; //TODO: change
 		}
 
 		static _getPageTitle(): string {
