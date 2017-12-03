@@ -195,6 +195,8 @@ interface Animation {
 interface HTMLElement {
 	animate<K extends {
 		[key: string]: string;
+	} = {
+		[key: string]: string;
 	}>(this: HTMLElement, properties: [{
 		[key in keyof K]: string|number;
 	}, {
