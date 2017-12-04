@@ -143,6 +143,7 @@ class STE {
 		this.$.exportMenu.init();
 		this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
 		this.initDropdown();
+		this.selectorStateChange(0, this.newSettings.value.launchMode);
 		document.body.classList.remove('editingScript');
 		document.body.classList.add('editingStylesheet');
 		window.stylesheetEdit = this;
