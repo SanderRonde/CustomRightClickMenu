@@ -985,17 +985,6 @@ class SCE {
 			folding: true
 		});
 		this.cmLoaded();
-		// this.editor = window.CodeMirror(container, {
-		// 	value: content,
-		// 	lineWrapping: true,
-		// 	mode: 'javascript',
-		// 	foldGutter: true,
-		// 	readOnly: (disable ? 'nocursor' : false),
-		// 	theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-		// 	gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
-		// 	lint: window.CodeMirror.lint.optionsJSON,
-		// 	undoDepth: 500
-		// });
 	};
 
 	static init(this: NodeEditBehaviorScriptInstance) {
