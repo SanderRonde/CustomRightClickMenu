@@ -174,7 +174,7 @@ class SCE {
 	};
 
 	private static getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
-		return this.editorManager.typeHandler.getMetaBlock().content;
+		return this.editorManager.getTypeHandler().getMetaBlock().content;
 	};
 
 	static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
@@ -940,7 +940,7 @@ class SCE {
 	 */
 	static cmLoaded(this: NodeEditBehaviorScriptInstance) {
 		const editorManager = this.editorManager;
-		editorManager.typeHandler.listen('metaChange', (oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
+		editorManager.getTypeHandler().listen('metaChange', (oldMetaTags: MonacoEditorElement.MetaBlock, newMetaTags: MonacoEditorElement.MetaBlock) => {
 			if (this.editorMode === 'main') {
 				this.newSettings.value.metaTags = JSON.parse(JSON.stringify(newMetaTags));
 			}

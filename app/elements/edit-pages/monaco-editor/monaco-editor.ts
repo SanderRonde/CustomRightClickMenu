@@ -1041,6 +1041,10 @@ namespace MonacoEditorElement {
 			this._showSpinner();
 		}
 
+		static getTypeHandler(this: MonacoEditor) {
+			return this._models[this.getCurrentModel()].handler;
+		}
+
 		static _showSpinner(this: MonacoEditor) {
 			this.$.placeholder.style.display = 'block';
 			this.$.spinner && (this.$.spinner.active = true);
