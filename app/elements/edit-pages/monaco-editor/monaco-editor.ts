@@ -1039,6 +1039,12 @@ namespace MonacoEditorElement {
 			return this._createInfo.method === 'diff';
 		}
 
+		static setValue(this: MonacoEditor, value: string) {
+			if (!this.isDiff(this.editor)) {
+				this.editor.setValue(value);
+			}
+		}
+
 		static async reset(this: MonacoEditor) {
 			this.destroy();
 			

@@ -1,10 +1,6 @@
 /// <reference path="../../elements.d.ts" />
 
 namespace ScaleUpAnimationElement {
-	type NeonAnimationBehaviorScaleUpAnimation = Polymer.NeonAnimationBehavior<
-		ScaleUpAnimation
-	>;
-
 	export class SUA {
 		static is: string = 'scale-up-animation';
 
@@ -34,4 +30,7 @@ namespace ScaleUpAnimationElement {
 	}
 }
 
+type NeonAnimationBehaviorScaleUpAnimation = Polymer.NeonAnimationBehavior<
+	ScaleUpAnimation
+>;
 type ScaleUpAnimation = Polymer.El<'elementless', typeof ScaleUpAnimationElement.SUA>;

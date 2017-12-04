@@ -5,6 +5,10 @@ declare const ReactDOM: {
 	render<T>(el: React.ReactElement<T>, container: HTMLElement): any;
 };
 
+interface ContextMenuElement extends HTMLElement {
+	source: LogConsoleElement.ContextMenuSource;
+}
+
 namespace LogConsoleElement {
 	export const logConsoleProperties: {
 		lines: number;
@@ -69,7 +73,7 @@ namespace LogConsoleElement {
 		_this: { }
 	} as any;
 
-	interface ContextMenuSource {
+	export interface ContextMenuSource {
 		props: {
 			value: Array<LogLineData>|LogLineData;
 			parent: React.Component<any, any> & {
@@ -355,7 +359,7 @@ namespace LogConsoleElement {
 		};
 
 		static _contextStoreAsLocal(this: LogConsole) {
-			let source = this.$.contextMenu.source;
+			let source: any = this.$.contextMenu.source;
 			let sourceVal = source.props.value;
 
 			//Get the LogLine
@@ -434,7 +438,7 @@ namespace LogConsoleElement {
 
 		private static _contextCopyPath(this: LogConsole, noCopy: boolean = false): string|boolean {
 			const path = [];
-			let source = this.$.contextMenu.source;
+			let source: any = this.$.contextMenu.source;
 			let childValue = source.props.value;
 			while (source.props.parent && !source.props.parent.isLine()) {
 				source = source.props.parent;

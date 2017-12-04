@@ -150,6 +150,7 @@ namespace UseExternalEditorElement {
 		private static updateFromExternal(this: UseExternalEditor, msg: UpdateFromAppMessage) {
 			if (this.connection.id === msg.connectionId) {
 				if (window.scriptEdit && window.scriptEdit.active) {
+
 					window.scriptEdit.editorManager.setValue(msg.code);
 				} else {
 					window.stylesheetEdit.newSettings.value.stylesheet = msg.code;
@@ -382,17 +383,9 @@ namespace UseExternalEditorElement {
 				cont.appendChild(this.createUpdate());
 			}
 
-			private static appendWrapper(toolsCont: HTMLElement) {
-				(window.scriptEdit && window.scriptEdit.active ?
-					window.scriptEdit.editorManager.display.wrapper :
-					window.stylesheetEdit.editorManager.display.wrapper)
-						.querySelector('.CodeMirror-scroll').appendChild(toolsCont);
-			}
-
 			static generateOverlay() {
 				const toolsCont = this.createToolsCont();
-				this.createCont(toolsCont)
-				this.appendWrapper(toolsCont);
+				this.createCont(toolsCont);
 			}
 
 			static parent() {
@@ -406,26 +399,6 @@ namespace UseExternalEditorElement {
 			window.doc.externalEditorDialogTrigger.classList.add('disabled');
 
 			this.EditingOverlay.generateOverlay();
-					
-			const scroll = (window.scriptEdit && window.scriptEdit.active ?
-				window.scriptEdit.editorManager.display.wrapper : window.stylesheetEdit.editorManager.display.wrapper)
-					.querySelector('.CodeMirror-scroll');
-
-			scroll.animate([
-				{
-					bottom: '-152px',
-					right: '-350px'
-				}, {
-					bottom: 0,
-					right: 0
-				}
-			], {
-				duration: 300,
-				easing: 'bez'
-			}).onfinish = function(this: Animation) {
-				scroll.style.bottom = '0';
-				scroll.style.right = '0';
-			};
 		};
 
 		static setupExternalEditing(this: UseExternalEditor) {
@@ -492,7 +465,7 @@ namespace UseExternalEditorElement {
 				case 'chooseFile':
 					const _this = this;
 					const chooseFileDialog = window.doc.externalEditorChooseFile;
-					chooseFileDialog.init(msg.local, msg.external, function(result: string|boolean) {
+					chooseFileDialog.init(msg.local, msg.external, function(result: string|false) {
 						if (result !== false) {
 							if (window.scriptEdit && window.scriptEdit.active) {
 								window.scriptEdit.editorManager.setValue(result);

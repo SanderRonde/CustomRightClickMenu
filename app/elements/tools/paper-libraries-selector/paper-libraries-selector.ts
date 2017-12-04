@@ -233,10 +233,6 @@ namespace PaperLibrariesSelectorElement {
 				chrome.storage.local.set({
 					libraries: _this.installedLibraries
 				});
-				if (_this.mode === 'main' && url !== null) {
-					window.scriptEdit.editorManager.addMetaTags(window.scriptEdit.editorManager,
-						'require', url);
-				}
 				chrome.runtime.sendMessage({
 					type: 'updateStorage',
 					data: {
@@ -345,9 +341,6 @@ namespace PaperLibrariesSelectorElement {
 			}).dataLib;
 			const changeType: 'addMetaTags' | 'removeMetaTags' =
 				(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
-			if (lib.url) {
-				window.scriptEdit.editorManager[changeType](window.scriptEdit.editorManager, 'require', lib.url);
-			}
 			if (changeType === 'addMetaTags') {
 				window.scriptEdit.newSettings.value.libraries.push({
 					name: lib.name || null,
