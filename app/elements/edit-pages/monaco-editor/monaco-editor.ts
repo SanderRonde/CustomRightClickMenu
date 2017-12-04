@@ -1081,8 +1081,6 @@ namespace MonacoEditorElement {
 			} else if (this._models[this.getCurrentModelId()].editorType === 'stylesheet') {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/csslint.js');
 				this._showLintResults('csslint', this._runCssLint());
-			} else {
-				return;
 			}
 		}
 
