@@ -117,8 +117,6 @@ namespace CodeEditBehaviorNamespace {
 
 		static editorPlaceHolderAnimation: Animation;
 
-		static otherDoc: CodeMirrorDocInstance = null;
-
 		static setThemeWhite(this: NodeEditBehaviorScriptInstance) {
 			this.$.editorThemeSettingWhite.classList.add('currentTheme');
 			this.$.editorThemeSettingDark.classList.remove('currentTheme');
@@ -258,17 +256,10 @@ namespace CodeEditBehaviorNamespace {
 
 		static showCodeOptions(this: CodeEditBehaviorInstance) {
 			window.useOptionsCompletions = true;
-			if (!this.otherDoc) {
-				const doc = new window.CodeMirror.Doc(typeof this.item.value.options === 'string' ?
-					this.item.value.options : JSON.stringify(this.item.value.options, null, '\t'), {
-					name: 'javascript',
-					json: true
-				});
-				this.otherDoc = this.getEditorInstance().swapDoc(doc);
-			} else {
-				this.otherDoc = this.getEditorInstance().swapDoc(this.otherDoc);
-			}
-			this.getEditorInstance().performLint();
+
+			const value = typeof this.item.value.options === 'string' ?
+				this.item.value.options : JSON.stringify(this.item.value.options, null, '\t');
+			this.editorManager.switchToModel('options', value, 'json');
 		}
 
 		static hideCodeOptions(this: CodeEditBehaviorInstance) {
@@ -276,8 +267,6 @@ namespace CodeEditBehaviorNamespace {
 				return;
 			}
 			window.useOptionsCompletions = false;
-			this.otherDoc = this.getEditorInstance().swapDoc(this.otherDoc);
-			this.getEditorInstance().performLint();
 		}
 		
 		static _CEBIinit(this: CodeEditBehaviorInstance) {

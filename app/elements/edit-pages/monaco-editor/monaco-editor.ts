@@ -991,9 +991,12 @@ namespace MonacoEditorElement {
 			}
 
 			const model = monaco.editor.createModel(value, language);
-			const handler = language === 'javascript' ? 
-				new MonacoEditorScriptMods(this.editor, model) :
+			let handler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
+			if (language === 'javascript') {
+				handler = new MonacoEditorScriptMods(this.editor, model);
+			} else if (language === 'css') {
 				new MonacoEditorStylesheetMods(this.editor, model);
+			}
 			this._models[identifier] = {
 				model,
 				handler,
@@ -1005,7 +1008,10 @@ namespace MonacoEditorElement {
 			return identifier in this._models;
 		}
 
-		static switchToModel(this: MonacoEditor, identifier: string) {
+		static switchToModel(this: MonacoEditor, identifier: string, value: string, language: string) {
+			if (!this.hasModel(identifier)) {
+				this.addModel(identifier, value, language);
+			}
 			if (this.getCurrentModel() === identifier) {
 				return;
 			}

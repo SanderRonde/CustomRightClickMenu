@@ -86,14 +86,14 @@ class SCE {
 				}
 				this.editorMode = 'main';
 				this.enableButtons();
-				this.editorManager.editor.setValue(this.newSettings.value.script);
+				this.editorManager.switchToModel('default', this.newSettings.value.script, 'javascript');
 			} else if (mode === 'background') {
 				if (this.editorMode === 'main') {
 					this.newSettings.value.script = this.editorManager.editor.getValue();
 				}
 				this.editorMode = 'background';
 				this.disableButtons();
-				this.editorManager.editor.setValue(this.newSettings.value.backgroundScript || '');
+				this.editorManager.switchToModel('background', this.newSettings.value.backgroundScript || '', 'javascript');
 			}
 
 			const element = window.app.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
