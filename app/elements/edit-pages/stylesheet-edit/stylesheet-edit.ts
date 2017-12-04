@@ -677,6 +677,7 @@ class STE {
 	static init(this: NodeEditBehaviorStylesheetInstance) {
 		const _this = this;
 		this._init();
+		this._CEBIinit();
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
 		this.$.exportMenu.shadowRoot.querySelector('#dropdownSelected').innerHTML = 'EXPORT AS';

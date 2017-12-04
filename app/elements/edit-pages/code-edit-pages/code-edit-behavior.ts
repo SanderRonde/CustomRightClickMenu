@@ -279,6 +279,9 @@ namespace CodeEditBehaviorNamespace {
 			this.otherDoc = this.getEditorInstance().swapDoc(this.otherDoc);
 			this.getEditorInstance().performLint();
 		}
+		
+		static _CEBIinit(this: CodeEditBehaviorInstance) {
+		}
 	}
 }
 

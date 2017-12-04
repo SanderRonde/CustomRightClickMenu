@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+﻿/// <reference path="../../elements.d.ts" />
 
 const scriptEditProperties: {
 	item: CRM.ScriptNode;
@@ -990,6 +990,7 @@ class SCE {
 	static init(this: NodeEditBehaviorScriptInstance) {
 		const _this = this;
 		this._init();
+		this._CEBIinit();
 		this.$.dropdownMenu.init();
 		this.$.exportMenu.init();
 		this.$.exportMenu.$.dropdownSelected.innerText = 'EXPORT AS';
