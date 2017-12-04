@@ -119,11 +119,11 @@ namespace MonacoEditorElement {
 		 */
 		protected _model: monaco.editor.IModel;
 
-		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
+		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
 			super();
 			this._editor = editor;
 
-			this._onCreate(editor.getModel());
+			this._onCreate(model);
 			editor.onDidChangeModel(() => {
 				this._firePrivate('onModelChange', []);
 			});
@@ -186,8 +186,8 @@ namespace MonacoEditorElement {
 		 */
 		private _isMetaDataHighlightDisabled: boolean = false;
 	
-		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
-			super(editor);
+		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
+			super(editor, model);
 
 			this._attachListeners();
 		}
@@ -561,8 +561,8 @@ namespace MonacoEditorElement {
 	class MonacoEditorScriptMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
 		metaBlockChanged: boolean = true;
 
-		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
-			super(editor);
+		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
+			super(editor, model);
 		}
 
 		static getSettings(): monaco.editor.IEditorOptions {
@@ -587,8 +587,8 @@ namespace MonacoEditorElement {
 		 */
 		private _styleLines: Array<number> = [];
 
-		constructor(editor: monaco.editor.IStandaloneCodeEditor) {
-			super(editor);
+		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
+			super(editor, model);
 
 			this._listen('shouldDecorate', (event: monaco.editor.IModelContentChangedEvent) => {
 				if (event.isFlush) {
@@ -854,11 +854,6 @@ namespace MonacoEditorElement {
 		static editor: monaco.editor.IStandaloneCodeEditor;
 
 		/**
-		 * A handler for any type-specific mods
-		 */
-		static typeHandler: MonacoEditorStylesheetMods|MonacoEditorScriptMods;
-
-		/**
 		 * The stylesheet used by the CSS editor
 		 */
 		private static _stylesheet: HTMLStyleElement;
@@ -876,7 +871,13 @@ namespace MonacoEditorElement {
 		/**
 		 * All models currently used in this editor instance
 		 */
-		static models: Array<monaco.editor.IModel> = [];
+		private static _models: {
+			[id: string]: {
+				model: monaco.editor.IModel;
+				handler: MonacoEditorStylesheetMods|MonacoEditorScriptMods
+				state: monaco.editor.ICodeEditorViewState;
+			}
+		} = {};
 
 		/**
 		 * The type of the editor
@@ -926,10 +927,16 @@ namespace MonacoEditorElement {
 
 				this.editorType = editorType;
 				this.editor.updateOptions(this._getSettings(editorType));
+				let typeHandler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
 				if (editorType === 'script') {
-					this.typeHandler = new MonacoEditorScriptMods(this.editor);
+					typeHandler = new MonacoEditorScriptMods(this.editor, this.editor.getModel());
 				} else if (editorType === 'stylesheet') {
-					this.typeHandler = new MonacoEditorStylesheetMods(this.editor);
+					typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
+				}
+				this._models['default'] = {
+					model: this.editor.getModel(),
+					handler: typeHandler,
+					state: null
 				}
 				return this;
 			}
@@ -940,20 +947,28 @@ namespace MonacoEditorElement {
 				from
 			}
 
-			this.editElement = from.editElement;
+			const { editElement, editor, editorType } = from;
+
+			this.editElement = editElement;
 			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
-				model: from.editor.getModel()
+				model: editor.getModel()
 			}, this.options));
 			MonacoEditorHookManager.StyleHack.copyThemeScope(this);
 			MonacoEditorHookManager.setScope(this);
 			MonacoEditorHookManager.registerScope(this, this.editor);
 			this._hideSpinner();
 
-			this.editor.updateOptions(this._getSettings(from.editorType));
-			if (from.editorType === 'script') {
-				this.typeHandler = new MonacoEditorScriptMods(this.editor);
-			} else if (from.editorType === 'stylesheet') {
-				this.typeHandler = new MonacoEditorStylesheetMods(this.editor);
+			this.editor.updateOptions(this._getSettings(editorType));
+			let typeHandler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
+			if (editorType === 'script') {
+				typeHandler = new MonacoEditorScriptMods(this.editor, this.editor.getModel());
+			} else if (editorType === 'stylesheet') {
+				typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
+			}
+			this._models['default'] = {
+				model: this.editor.getModel(),
+				handler: typeHandler,
+				state: null
 			}
 			return this;
 		}
@@ -970,10 +985,59 @@ namespace MonacoEditorElement {
 			}
 		}
 
+		static addModel(this: MonacoEditor, identifier: string, value: string, language: string) {
+			if (this.hasModel(identifier)) {
+				return;
+			}
+
+			const model = monaco.editor.createModel(value, language);
+			const handler = language === 'javascript' ? 
+				new MonacoEditorScriptMods(this.editor, model) :
+				new MonacoEditorStylesheetMods(this.editor, model);
+			this._models[identifier] = {
+				model,
+				handler,
+				state: null
+			}
+		}
+
+		static hasModel(this: MonacoEditor, identifier: string): boolean {
+			return identifier in this._models;
+		}
+
+		static switchToModel(this: MonacoEditor, identifier: string) {
+			if (this.getCurrentModel() === identifier) {
+				return;
+			}
+
+			const currentState = this.editor.saveViewState();
+			const currentModel = this.getCurrentModel();
+			this._models[currentModel].state = currentState;
+
+			const newModel = this._models[identifier];
+			this.editor.setModel(newModel.model);
+			this.editor.restoreViewState(newModel.state);
+			this.editor.focus();
+		}
+
+		static getCurrentModel(this: MonacoEditor) {
+			for (let modelId in this._models) {
+				const { model } = this._models[modelId];
+				if (model === this. editor.getModel()) {
+					return modelId;
+				}
+			}
+			return 'default';
+		}
+
 		static destroy(this: MonacoEditor) {
 			this.editor.dispose();
-			this.typeHandler.destroy();
-			this.typeHandler = null;
+			for (const modelId in this._models) {
+				const model = this._models[modelId];
+				model.handler.destroy();
+				model.handler = null;
+				delete this._models[modelId];
+			}
 			this._showSpinner();
 		}
 
