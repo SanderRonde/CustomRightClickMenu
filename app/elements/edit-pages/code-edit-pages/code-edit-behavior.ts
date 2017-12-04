@@ -281,6 +281,11 @@ namespace CodeEditBehaviorNamespace {
 		}
 		
 		static _CEBIinit(this: CodeEditBehaviorInstance) {
+			window.addEventListener('resize', () => {
+				if (this.fullscreen && this.active) {
+					this.fullscreenEditorManager.editor.layout();
+				}
+			});
 		}
 	}
 }
