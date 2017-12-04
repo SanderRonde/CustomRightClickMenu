@@ -859,11 +859,6 @@ namespace MonacoEditorElement {
 		private static _stylesheet: HTMLStyleElement;
 
 		/**
-		 * The associated ScriptEdit or StylesheetEdit element
-		 */
-		static editElement: CodeEditBehaviorInstance = null;
-
-		/**
 		 * The options used on this editor
 		 */
 		static options: monaco.editor.IEditorConstructionOptions = null;
@@ -889,7 +884,6 @@ namespace MonacoEditorElement {
 			editorType: 'script'|'stylesheet'|'none';
 			options: monaco.editor.IEditorConstructionOptions;
 			override: monaco.editor.IEditorOverrideServices;
-			editElement: CodeEditBehaviorInstance;
 		}|{
 			method: 'from';
 			from: MonacoEditor;
@@ -905,19 +899,16 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', editElement: CodeEditBehaviorInstance,
-			options?: monaco.editor.IEditorConstructionOptions, 
+		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				this._createInfo = {
 					method: 'create',
 					editorType,
-					editElement,
 					options,
 					override
 				}
 
 				this.options = options;
-				this.editElement = editElement;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
 				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
@@ -947,9 +938,8 @@ namespace MonacoEditorElement {
 				from
 			}
 
-			const { editElement, editor, editorType } = from;
+			const { editor, editorType } = from;
 
-			this.editElement = editElement;
 			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
 				model: editor.getModel()
 			}, this.options));
@@ -978,8 +968,8 @@ namespace MonacoEditorElement {
 			
 			const createInfo = this._createInfo;
 			if (createInfo.method === 'create') {
-				return await this.create(createInfo.editorType, createInfo.editElement,
-					createInfo.options, createInfo.override);
+				return await this.create(createInfo.editorType, createInfo.options, 
+					createInfo.override);
 			} else {
 				return this.createFrom(createInfo.from);
 			}

@@ -514,7 +514,7 @@ class SCE {
 			cssUnderlineDisabled: false,
 			disabledMetaDataHighlight: false
 		});
-		this.editorManager = await this.$.editor.create('script', this, {
+		this.editorManager = await this.$.editor.create('script', {
 			value: content,
 			language: 'javascript',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',

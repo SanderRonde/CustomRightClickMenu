@@ -124,7 +124,7 @@ class STE {
 			cssUnderlineDisabled: false,
 			disabledMetaDataHighlight: false
 		});
-		this.editorManager = await this.$.editor.create('stylesheet', this, {
+		this.editorManager = await this.$.editor.create('stylesheet', {
 			value: content,
 			language: 'css',
 			theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
