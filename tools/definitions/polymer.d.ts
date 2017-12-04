@@ -525,7 +525,7 @@ type ScriptUpdatesToast = HTMLPaperToastElement & {
 };
 
 type VersionUpdateDialog = HTMLPaperDialogElement & {
-	editor: CodeMirrorInstance;
+	editorManager: MonacoEditor;
 };
 
 type ElementTagNameMaps = Polymer.ElementTagNameMap & 

@@ -313,8 +313,6 @@ namespace CRMAppElement {
 	type ScriptUpgradeErrorHandler = (oldScriptErrors: Array<CursorPosition>,
 		newScriptErrors: Array<CursorPosition>, parseError: boolean) => void;
 
-	interface Extensions<T> extends CRM.Extendable<T> { }
-
 	class CA {
 		static is = 'crm-app';
 
@@ -784,25 +782,17 @@ namespace CRMAppElement {
 			cm.refresh();
 		};
 
-		static versionUpdateChanged(this: CrmApp) {
+		static async versionUpdateChanged(this: CrmApp) {
 			if (this._isVersionUpdateTabX(this.versionUpdateTab, 1)) {
 				const versionUpdateDialog = this.$.versionUpdateDialog;
-				if (!versionUpdateDialog.editor) {
-					versionUpdateDialog.editor = window.CodeMirror(this.$.tryOutEditor, {
-						lineNumbers: true,
+				if (!versionUpdateDialog.editorManager) {
+					versionUpdateDialog.editorManager = await this.$.tryOutEditor.create('script', {
 						value: '//some javascript code\nvar body = document.getElementById(\'body\');\nbody.style.color = \'red\';\n\n',
-						scrollbarStyle: 'simple',
-						lineWrapping: true,
-						mode: 'javascript',
-						readOnly: false,
-						foldGutter: true,
-						theme: 'dark',
-						indentUnit: window.app.settings.editor.tabSize,
-						indentWithTabs: window.app.settings.editor.useTabs,
-						gutters: ['CodeMirror-lint-markers', 'CodeMirror-foldgutter'],
-						lint: window.CodeMirror.lint.javascript,
-						messageTryEditor: true,
-						undoDepth: 500
+						language: 'javascript',
+						theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
+						wordWrap: 'off',
+						fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
+						folding: true
 					});
 				}
 			}
@@ -898,14 +888,6 @@ namespace CRMAppElement {
 			if (!editorManger) {
 				return;
 			}
-			window.colorFunction && window.colorFunction.func({
-				from: {
-					line: 0
-				},
-				to: {
-					line: editorManger.lineCount()
-				}
-			}, editorManger);
 		};
 
 		static setLocal<T>(this: CrmApp, key: string, value: T) {
