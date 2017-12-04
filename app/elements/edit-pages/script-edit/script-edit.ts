@@ -455,7 +455,13 @@ class SCE {
 
 		const titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
 
-		const titleAnimation = [{
+		const titleAnimation: [{
+			marginTop: number|string;
+			marginLeft: number|string;
+		}, {
+			marginTop: number|string;
+			marginLeft: number|string;
+		}] = [{
 			marginTop: 0,
 			marginLeft: 0
 		}, {
