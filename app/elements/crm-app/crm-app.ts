@@ -2775,12 +2775,8 @@ namespace CRMAppElement {
 				}
 			};
 
-			static runJsLint() {
-				window.scriptEdit.editorManager.performLint();
-			};
-
-			static runCssLint() {
-				window.stylesheetEdit.editorManager.performLint();
+			static runLint() {
+				this._getDialog().getEditorInstance().runLinter();
 			};
 
 			static showCssTips() {
@@ -3359,12 +3355,10 @@ namespace CRMAppElement {
 			};
 
 			static exitFullscreen() {
-				const dialog = this.parent().item.type === 'script' ?
-					window.scriptEdit : window.stylesheetEdit;
-				dialog.exitFullScreen();
+				this._getDialog().exitFullScreen();
 			}
 
-			private static _getDialog() {
+			private static _getDialog(): CodeEditBehaviorInstance {
 				return this.parent().item.type === 'script' ?
 					window.scriptEdit : window.stylesheetEdit;
 			}
@@ -3390,8 +3384,10 @@ namespace CRMAppElement {
 				this._getDialog().jsLintGlobalsChange();
 			}
 
-			static onKeyBindingKeyDown() {
-				this._getDialog().onKeyBindingKeyDown();
+			static onKeyBindingKeyDown(e: Polymer.PolymerKeyDownEvent) {
+				if (this.parent().item.type === 'script') {
+					window.scriptEdit.onKeyBindingKeyDown(e);
+				}
 			}
 
 			static parent() {

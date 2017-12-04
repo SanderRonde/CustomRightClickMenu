@@ -71,7 +71,64 @@ interface CMCompletionFns {
 	}): number;
 }
 
+interface JSLintWarning {
+	name: string;
+	column: number;
+	line: number;
+	code: string;
+	message: string;
+	a: any;
+	b?: any;
+	c?: any;
+	d?: any;
+}
+
+interface JSLintResult {
+	directives: Array<any>;
+	edition: string;
+	exports: {
+		[key: string]: any;
+	};
+	froms: Array<string>;
+	functions: Array<any>;
+	global: any;
+	id: "(JSLint)";
+	json: boolean;
+	lines: Array<string>;
+	module: boolean;
+	ok: boolean;
+	option: {
+		[key: string]: any;
+	};
+	property: any;
+	stop: boolean;
+	tokens: Array<any>;
+	tree: Array<any>;
+	warnings: Array<JSLintWarning>;
+}
+
+interface CSSLintWarning {
+	type: string;
+	line: number;
+	col: number;
+	message: string;
+}
+
+interface LinterWarning {
+	col: number;
+	line: number;
+	message: string;
+}
+
 interface Window {
+	jslint(source: String, option_object: {
+		[key: string]: any;
+	}, globals: Array<string>): JSLintResult;
+	CSSLint: {
+		verify(text: string, ruleset?: Array<any>): {
+			messages: Array<CSSLintWarning>;
+		}
+	}
 	monaco: typeof monaco;
 	require: {
 		(paths: Array<string>, callback: () => void): void;

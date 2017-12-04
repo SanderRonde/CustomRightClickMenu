@@ -871,17 +871,12 @@ namespace MonacoEditorElement {
 				model: monaco.editor.IModel;
 				handler: MonacoEditorStylesheetMods|MonacoEditorScriptMods
 				state: monaco.editor.ICodeEditorViewState;
+				editorType: 'script'|'stylesheet'|'none';
 			}
 		} = {};
 
-		/**
-		 * The type of the editor
-		 */
-		static editorType: 'script'|'stylesheet'|'none' = null;
-
 		private static _createInfo: {
 			method: 'create';
-			editorType: 'script'|'stylesheet'|'none';
 			options: monaco.editor.IEditorConstructionOptions;
 			override: monaco.editor.IEditorOverrideServices;
 		}|{
@@ -903,7 +898,6 @@ namespace MonacoEditorElement {
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				this._createInfo = {
 					method: 'create',
-					editorType,
 					options,
 					override
 				}
@@ -916,7 +910,6 @@ namespace MonacoEditorElement {
 				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
 				this._hideSpinner();
 
-				this.editorType = editorType;
 				this.editor.updateOptions(this._getSettings(editorType));
 				let typeHandler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
 				if (editorType === 'script') {
@@ -927,7 +920,8 @@ namespace MonacoEditorElement {
 				this._models['default'] = {
 					model: this.editor.getModel(),
 					handler: typeHandler,
-					state: null
+					state: null,
+					editorType
 				}
 				return this;
 			}
@@ -938,7 +932,8 @@ namespace MonacoEditorElement {
 				from
 			}
 
-			const { editor, editorType } = from;
+			const { editor } = from;
+			const editorType = from.getCurrentModel().editorType;
 
 			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
 				model: editor.getModel()
@@ -958,7 +953,8 @@ namespace MonacoEditorElement {
 			this._models['default'] = {
 				model: this.editor.getModel(),
 				handler: typeHandler,
-				state: null
+				state: null,
+				editorType
 			}
 			return this;
 		}
@@ -967,8 +963,9 @@ namespace MonacoEditorElement {
 			this.destroy();
 			
 			const createInfo = this._createInfo;
+			const editorType = this.getCurrentModel().editorType;
 			if (createInfo.method === 'create') {
-				return await this.create(createInfo.editorType, createInfo.options, 
+				return await this.create(editorType, createInfo.options, 
 					createInfo.override);
 			} else {
 				return this.createFrom(createInfo.from);
@@ -980,17 +977,22 @@ namespace MonacoEditorElement {
 				return;
 			}
 
+			let editorType: 'script'|'stylesheet'|'none' = 'none';
 			const model = monaco.editor.createModel(value, language);
 			let handler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
 			if (language === 'javascript') {
+				editorType = 'script';
 				handler = new MonacoEditorScriptMods(this.editor, model);
 			} else if (language === 'css') {
+				editorType = 'stylesheet';
 				new MonacoEditorStylesheetMods(this.editor, model);
 			}
+
 			this._models[identifier] = {
 				model,
 				handler,
-				state: null
+				state: null,
+				editorType
 			}
 		}
 
@@ -1002,12 +1004,12 @@ namespace MonacoEditorElement {
 			if (!this.hasModel(identifier)) {
 				this.addModel(identifier, value, language);
 			}
-			if (this.getCurrentModel() === identifier) {
+			if (this.getCurrentModelId() === identifier) {
 				return;
 			}
 
 			const currentState = this.editor.saveViewState();
-			const currentModel = this.getCurrentModel();
+			const currentModel = this.getCurrentModelId();
 			this._models[currentModel].state = currentState;
 
 			const newModel = this._models[identifier];
@@ -1016,7 +1018,7 @@ namespace MonacoEditorElement {
 			this.editor.focus();
 		}
 
-		static getCurrentModel(this: MonacoEditor) {
+		static getCurrentModelId(this: MonacoEditor) {
 			for (let modelId in this._models) {
 				const { model } = this._models[modelId];
 				if (model === this. editor.getModel()) {
@@ -1024,6 +1026,10 @@ namespace MonacoEditorElement {
 				}
 			}
 			return 'default';
+		}
+
+		static getCurrentModel(this: MonacoEditor) {
+			return this._models[this.getCurrentModelId()];
 		}
 
 		static destroy(this: MonacoEditor) {
@@ -1037,8 +1043,51 @@ namespace MonacoEditorElement {
 			this._showSpinner();
 		}
 
+		private static _runJsLint(this: MonacoEditor): Array<LinterWarning> {
+			const code = this.getCurrentModel().model.getValue();
+			const { warnings } = window.jslint(code, {}, window.app.jsLintGlobals);
+			return warnings.map((warning) => ({
+				col: warning.column,
+				line: warning.line,
+				message: warning.message
+			}));
+		}
+
+		private static _runCssLint(this: MonacoEditor): Array<LinterWarning> {
+			const code = this.getCurrentModel().model.getValue();
+			const { messages } = window.CSSLint.verify(code);
+			return messages.map((message) => ({
+				col: message.col,
+				line: message.line,
+				message: message.message
+			}));
+		}
+
+		private static _showLintResults(this: MonacoEditor, name: string, messages: Array<LinterWarning>) {
+			monaco.editor.setModelMarkers(this.getCurrentModel().model, name, messages.map(message => ({
+				startLineNumber: message.line,
+				endLineNumber: message.line,
+				startColumn: message.col,
+				endColumn: message.col,
+				message: message.message,
+				severity: 2
+			})));
+		}
+
+		static async runLinter(this: MonacoEditor) {
+			if (this._models[this.getCurrentModelId()].editorType === 'script') {
+				await MonacoEditorHookManager.Libraries.runFile('js/libraries/jslint.js');
+				this._showLintResults('jslint', this._runJsLint());
+			} else if (this._models[this.getCurrentModelId()].editorType === 'stylesheet') {
+				await MonacoEditorHookManager.Libraries.runFile('js/libraries/csslint.js');
+				this._showLintResults('csslint', this._runCssLint());
+			} else {
+				return;
+			}
+		}
+
 		static getTypeHandler(this: MonacoEditor) {
-			return this._models[this.getCurrentModel()].handler;
+			return this._models[this.getCurrentModelId()].handler;
 		}
 
 		static _showSpinner(this: MonacoEditor) {
@@ -1324,6 +1373,45 @@ namespace MonacoEditorElement {
 			monaco.languages.registerCompletionItemProvider('css', metaTagProvider);
 			monaco.languages.registerCompletionItemProvider('javascript', metaKeyProvider);
 			monaco.languages.registerCompletionItemProvider('css', metaKeyProvider);
+		}
+
+		static Libraries = class MonacoEditorLibraries {
+			private static _loadedFiles: Array<string> = [];
+
+			private static _loadFile(name: string): Promise<string> {
+				return new window.Promise((resolve, reject) => {
+					const xhr = new window.XMLHttpRequest();
+					xhr.open('GET', chrome.runtime.getURL(name));
+					xhr.onreadystatechange = () => {
+						if (xhr.readyState === XMLHttpRequest.DONE) {
+							if (xhr.status === 200) {
+								resolve(xhr.responseText);
+							} else {
+								reject(null);
+							}
+						}
+					}
+				});
+			}
+
+			private static _execFile(name: string): Promise<void> {
+				return new window.Promise((resolve, reject) => {
+					this._loadFile(name).then((content) => {
+						eval(content);
+						resolve(null);
+					}, (err) => {
+						alert('Failed to load lint library');
+						reject(null);
+					});
+				});
+			}
+
+			static async runFile(path: string): Promise<void> {
+				if (this._loadedFiles.indexOf(path) > -1) {
+					return;
+				}
+				return this._execFile(path);
+			}
 		}
 
 		static setup() {

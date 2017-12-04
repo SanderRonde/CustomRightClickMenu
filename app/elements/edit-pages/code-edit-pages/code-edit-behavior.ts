@@ -117,26 +117,26 @@ namespace CodeEditBehaviorNamespace {
 
 		static editorPlaceHolderAnimation: Animation;
 
-		static setThemeWhite(this: NodeEditBehaviorScriptInstance) {
+		static setThemeWhite(this: CodeEditBehaviorInstance) {
 			this.$.editorThemeSettingWhite.classList.add('currentTheme');
 			this.$.editorThemeSettingDark.classList.remove('currentTheme');
 			window.app.settings.editor.theme = 'white';
 			window.app.upload();
 		}
 
-		static setThemeDark(this: NodeEditBehaviorScriptInstance) {
+		static setThemeDark(this: CodeEditBehaviorInstance) {
 			this.$.editorThemeSettingWhite.classList.remove('currentTheme');
 			this.$.editorThemeSettingDark.classList.add('currentTheme');
 			window.app.settings.editor.theme = 'dark';
 			window.app.upload();
 		}
 
-		static fontSizeChange(this: NodeEditBehaviorScriptInstance) {
+		static fontSizeChange(this: CodeEditBehaviorInstance) {
 			window.app.settings.editor.zoom = this.$.editorThemeFontSizeInput.value + '';
 			window.app.upload();
 		}
 
-		static jsLintGlobalsChange(this: NodeEditBehaviorScriptInstance) {
+		static jsLintGlobalsChange(this: CodeEditBehaviorInstance) {
 			this.async(() => {
 				const globals = this.$.editorJSLintGlobalsInput.value.split(',').map(global => global.trim());
 				chrome.storage.local.set({
