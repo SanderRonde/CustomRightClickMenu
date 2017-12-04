@@ -158,6 +158,7 @@ namespace CodeEditBehaviorNamespace {
 				function(tab: HTMLElement) {
 					tab.classList.remove('active');
 				});
+			this.editorManager.destroy();
 			this.$$('.mainEditorTab').classList.add('active');
 		};
 		
@@ -212,7 +213,7 @@ namespace CodeEditBehaviorNamespace {
 		static toggleOptions(this: CodeEditBehaviorInstance) {
 			(this.optionsShown ? this.hideOptions() : this.showOptions());
 		};
-		
+
 		/**
 		 * Fills the editor-tools-ribbon on the left of the editor with elements
 		 */
