@@ -101,7 +101,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	abstract class MonacoEditorEventHandler<PubL extends string = '_', PriL extends string = '_'> extends MonacoEventEmitter<PubL, PriL|'onLoad'|'onModelChange'|'modelUpdate'> {
+	abstract class MonacoEditorEventHandler<PubL extends string = '_', PriL extends string = '_'> extends MonacoEventEmitter<PubL, PriL|'onLoad'|'onModelContentChange'|'onModelChange'> {
 		/**
 		 * Any listeners that need to be disposed of eventually
 		 */
@@ -123,12 +123,10 @@ namespace MonacoEditorElement {
 			super();
 			this._editor = editor;
 
-			if (editor.getModel()) {
-				this._onModelChange(editor.getModel());
-			}
-			this._disposables.push(editor.onDidChangeModel((e) => {
-				this._onModelChange(editor.getModel());
-			}));
+			this._onCreate(editor.getModel());
+			editor.onDidChangeModel(() => {
+				this._firePrivate('onModelChange', []);
+			});
 
 			window.setTimeout(() => {
 				this._firePrivate('onLoad', []);
@@ -145,14 +143,13 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		private _onModelChange(model: monaco.editor.IModel) {
+		private _onCreate(model: monaco.editor.IModel) {
 			this.destroy();
 
 			this._model = model;
-			this._disposables.push(this._editor.onDidChangeModelContent((e) => {
-				this._firePrivate('onModelChange', [e]);
+			this._disposables.push(this._model.onDidChangeContent((e) => {
+				this._firePrivate('onModelContentChange', [e]);
 			}));
-			this._firePrivate('modelUpdate', []);
 		}
 
 		destroy() {
@@ -200,10 +197,14 @@ namespace MonacoEditorElement {
 				this._doModelUpdate();
 			});
 
-			this._listen('modelUpdate', () => {
+			this._listen('onModelContentChange', () => {
 				this._hasMetaBlockChanged = true;
 				this._doModelUpdate();
 			});
+
+			this._listen('onModelChange', () => {
+				this._firePrivate('shouldDecorate', []);
+			})
 
 			this._listen('shouldDecorate', (changeEvent: monaco.editor.IModelContentChangedEvent) => {
 				if (this._isMetaDataHighlightDisabled) {
@@ -256,10 +257,7 @@ namespace MonacoEditorElement {
 				}
 			}));
 			this._defineMetaOnModel();
-			this._disposables.push(this._editor.onDidChangeModel(() => {
-				this._defineMetaOnModel();
-			}));
-			this._listen('onModelChange', (changeEvent: monaco.editor.IModelContentChangedEvent) => {
+			this._listen('onModelContentChange', (changeEvent: monaco.editor.IModelContentChangedEvent) => {
 				this._hasMetaBlockChanged = true;
 				
 				if (this._shouldUpdateDecorations(changeEvent)) {
@@ -269,10 +267,10 @@ namespace MonacoEditorElement {
 		}
 		
 		private _defineMetaOnModel() {
-			if ('_metaBlock' in this._editor.getModel()) {
+			if ('_metaBlock' in this._model) {
 				return;
 			}
-			Object.defineProperty(this._editor.getModel(), '_metaBlock', {
+			Object.defineProperty(this._model, '_metaBlock', {
 				get: () => {
 					return this.getMetaBlock();
 				}
@@ -287,10 +285,7 @@ namespace MonacoEditorElement {
 			start: monaco.Position;
 			end: monaco.Position;
 		} {
-			const editorContent = this._editor.getValue({
-				preserveBOM: false,
-				lineEnding: '\n'
-			});
+			const editorContent = this._model.getValue();
 			if (editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptStart) === -1 ||
 				editorContent.indexOf(MonacoEditorMetaBlockMods._userScriptEnd) === -1) {
 					return (this._metaBlock = null);
@@ -333,10 +328,7 @@ namespace MonacoEditorElement {
 			start: monaco.Position;
 			end: monaco.Position;
 		}): CRM.MetaTags {
-			const content = this._editor.getValue({
-				preserveBOM: false,
-				lineEnding: '\n'
-			});
+			const content = this._model.getValue();
 
 			const tags: CRM.MetaTags = {};
 			const regex = MonacoEditorMetaBlockMods._metaPropRegex;
@@ -475,10 +467,7 @@ namespace MonacoEditorElement {
 		}
 
 		private _userScriptHighlightChange() {
-			const content = this._editor.getValue({
-				preserveBOM: false,
-				lineEnding: '\n'
-			});
+			const content = this._model.getValue();
 
 			if (!this.getMetaBlock()) {
 				return null;
@@ -529,7 +518,11 @@ namespace MonacoEditorElement {
 		}
 
 		private _doDecorationUpdate(decorations: Array<monaco.editor.IModelDeltaDecoration>) {
+			if (this._editor.getModel() === this._model) {
 			this._decorations = this._editor.deltaDecorations(this._decorations, decorations);
+			} else {
+				this._decorations = this._editor.deltaDecorations(this._decorations, []);
+			}
 		}
 
 		private _shouldUpdateDecorations(changeEvent: monaco.editor.IModelContentChangedEvent): boolean {
@@ -613,7 +606,7 @@ namespace MonacoEditorElement {
 							return true;
 						}
 
-						const lineContent = this._editor.getModel().getLineContent(line);
+						const lineContent = this._model.getLineContent(line);
 						const cssRuleParts = this._getCssRuleParts(lineContent);
 						for (let cssRulePart of cssRuleParts) {
 							if (this._findColor(0, cssRulePart.text)) {
@@ -763,10 +756,7 @@ namespace MonacoEditorElement {
 		}
 
 		private _getColors() {
-			const content = this._editor.getValue({
-				preserveBOM: false,
-				lineEnding: '\n'
-			});
+			const content = this._model.getValue();
 			const lines = content.split('\n');
 			const colors: Array<{
 				pos: monaco.Range;
@@ -807,6 +797,7 @@ namespace MonacoEditorElement {
 			const newRules: Array<[string, string]> = [];
 			let newRulesString = '';
 
+			if (this._editor.getModel() === this._model) {
 			const underlinables = this._editor.getDomNode().querySelectorAll('.userScriptColorUnderline');
 			Array.prototype.slice.apply(underlinables).forEach((underlineable: HTMLElement) => {
 				for (let i = 0; i < underlineable.classList.length; i++) {
@@ -834,6 +825,7 @@ namespace MonacoEditorElement {
 			newRules.forEach(([selector, value]: [string, string]) => {
 				sheet.addRule(selector, value);
 			});
+		}
 		}
 
 		static getSettings(): monaco.editor.IEditorOptions {
@@ -880,6 +872,11 @@ namespace MonacoEditorElement {
 		 * The options used on this editor
 		 */
 		static options: monaco.editor.IEditorConstructionOptions = null;
+
+		/**
+		 * All models currently used in this editor instance
+		 */
+		static models: Array<monaco.editor.IModel> = [];
 
 		/**
 		 * The type of the editor
