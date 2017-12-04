@@ -1,4 +1,4 @@
-﻿/// <reference path="../../elements.d.ts" />
+/// <reference path="../../elements.d.ts" />
 
 const scriptEditProperties: {
 	item: CRM.ScriptNode;
@@ -393,10 +393,6 @@ class SCE {
 		];
 		scriptTitle.style.marginLeft = '-200px';
 
-		const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
-		const bcr = horizontalCenterer.getBoundingClientRect();
-		const viewportWidth = bcr.width + 20;
-
 		this.initToolsRibbon();
 		setTimeout(() => {
 			window.doc.editorToolsRibbonContainer.style.display = 'flex';
@@ -407,10 +403,8 @@ class SCE {
 					duration: 500,
 					easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 					step: (now: number) => {
-						window.doc.fullscreenEditorEditor.style.width = 
-							`${viewportWidth - 200 - now}px`;
-						window.doc.fullscreenEditorEditor.style.marginLeft = 
-							`${now + 200}px`;
+						window.doc.fullscreenEditorEditor.style.width = `calc(100vw - 200px - ${now}px)`;
+						window.doc.fullscreenEditorEditor.style.marginLeft = `calc(${now}px + 200px)`;
 						this.fullscreenEditorManager.editor.layout();
 					}
 				});
