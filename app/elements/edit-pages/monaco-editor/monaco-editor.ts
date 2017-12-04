@@ -112,21 +112,23 @@ namespace MonacoEditorElement {
 		/**
 		 * The editor that is currently being used
 		 */
-		protected _editor: monaco.editor.IStandaloneCodeEditor;
+		protected _editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor;
 
 		/**
 		 * The model that is currently being used in the editor
 		 */
 		protected _model: monaco.editor.IModel;
 
-		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
+		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super();
 			this._editor = editor;
 
 			this._onCreate(model);
-			editor.onDidChangeModel(() => {
-				this._firePrivate('onModelChange', []);
-			});
+			if (!this._isDiff(editor)) {
+				editor.onDidChangeModel(() => {
+					this._firePrivate('onModelChange', []);
+				});
+			}
 
 			window.setTimeout(() => {
 				this._firePrivate('onLoad', []);
@@ -141,6 +143,10 @@ namespace MonacoEditorElement {
 					onDispose(res)
 				}
 			}
+		}
+
+		protected _isDiff(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is monaco.editor.IDiffEditor {
+			return !('onDidChangeModel' in this._editor);
 		}
 
 		private _onCreate(model: monaco.editor.IModel) {
@@ -186,7 +192,7 @@ namespace MonacoEditorElement {
 		 */
 		private _isMetaDataHighlightDisabled: boolean = false;
 	
-		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
+		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 
 			this._attachListeners();
@@ -242,20 +248,24 @@ namespace MonacoEditorElement {
 				return this._userScriptHighlightChange();
 			});
 			this._isMetaDataHighlightDisabled = window.app.settings.editor.disabledMetaDataHighlight;
-			this._disposables.push(this._editor.addAction({
-				id: 'disable-metadata-highlight',
-				label: 'Disable Metadata Highlight',
-				run: () => {
-					this._isMetaDataHighlightDisabled = true;
-				}
-			}));
-			this._disposables.push(this._editor.addAction({
-				id: 'enable-metadata-highlight',
-				label: 'Enable Metadata Highlight',
-				run: () => {
-					this._isMetaDataHighlightDisabled = false;
-				}
-			}));
+			if (!this._isDiff(this._editor)) {
+				this._disposables.push(this._editor.addAction({
+					id: 'disable-metadata-highlight',
+					label: 'Disable Metadata Highlight',
+					run: () => {
+						this._isMetaDataHighlightDisabled = true;
+					}
+				}));
+			};
+			if (!this._isDiff(this._editor)) {
+				this._disposables.push(this._editor.addAction({
+					id: 'enable-metadata-highlight',
+					label: 'Enable Metadata Highlight',
+					run: () => {
+						this._isMetaDataHighlightDisabled = false;
+					}
+				}));
+			}
 			this._defineMetaOnModel();
 			this._listen('onModelContentChange', (changeEvent: monaco.editor.IModelContentChangedEvent) => {
 				this._hasMetaBlockChanged = true;
@@ -518,10 +528,12 @@ namespace MonacoEditorElement {
 		}
 
 		private _doDecorationUpdate(decorations: Array<monaco.editor.IModelDeltaDecoration>) {
-			if (this._editor.getModel() === this._model) {
-			this._decorations = this._editor.deltaDecorations(this._decorations, decorations);
-			} else {
-				this._decorations = this._editor.deltaDecorations(this._decorations, []);
+			if (!this._isDiff(this._editor)) {
+				if (this._editor.getModel() === this._model) {
+				this._decorations = this._editor.deltaDecorations(this._decorations, decorations);
+				} else {
+					this._decorations = this._editor.deltaDecorations(this._decorations, []);
+				}
 			}
 		}
 
@@ -561,7 +573,7 @@ namespace MonacoEditorElement {
 	class MonacoEditorScriptMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
 		metaBlockChanged: boolean = true;
 
-		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
+		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 		}
 
@@ -587,7 +599,7 @@ namespace MonacoEditorElement {
 		 */
 		private _styleLines: Array<number> = [];
 
-		constructor(editor: monaco.editor.IStandaloneCodeEditor, model: monaco.editor.IModel) {
+		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 
 			this._listen('shouldDecorate', (event: monaco.editor.IModelContentChangedEvent) => {
@@ -633,20 +645,22 @@ namespace MonacoEditorElement {
 			}));
 
 			this._underlineDisabled = window.app.settings.editor.cssUnderlineDisabled;
-			this._disposables.push(this._editor.addAction({
-				id: 'disable-css-underline',
-				label: 'Disable CSS underline',
-				run: () => {
-					this._underlineDisabled = true;
-				}
-			}));
-			this._disposables.push(this._editor.addAction({
-				id: 'enable-css-underline',
-				label: 'Enable CSS Underline',
-				run: () => {
-					this._underlineDisabled = false;
-				}
-			}));
+			if (!this._isDiff(this._editor)) {
+				this._disposables.push(this._editor.addAction({
+					id: 'disable-css-underline',
+					label: 'Disable CSS underline',
+					run: () => {
+						this._underlineDisabled = true;
+					}
+				}));
+				this._disposables.push(this._editor.addAction({
+					id: 'enable-css-underline',
+					label: 'Enable CSS Underline',
+					run: () => {
+						this._underlineDisabled = false;
+					}
+				}));
+			}
 		}
 
 		private _getCssRuleParts(str: string) {
@@ -851,7 +865,7 @@ namespace MonacoEditorElement {
 		/**
 		 * The editor associated with this element
 		 */
-		static editor: monaco.editor.IStandaloneCodeEditor;
+		static editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor;
 
 		/**
 		 * The stylesheet used by the CSS editor
@@ -868,9 +882,9 @@ namespace MonacoEditorElement {
 		 */
 		private static _models: {
 			[id: string]: {
-				model: monaco.editor.IModel;
-				handler: MonacoEditorStylesheetMods|MonacoEditorScriptMods
-				state: monaco.editor.ICodeEditorViewState;
+				models: Array<monaco.editor.IModel>;
+				handlers: Array<MonacoEditorStylesheetMods|MonacoEditorScriptMods>;
+				state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
 				editorType: 'script'|'stylesheet'|'none';
 			}
 		} = {};
@@ -918,11 +932,63 @@ namespace MonacoEditorElement {
 					typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
 				}
 				this._models['default'] = {
-					model: this.editor.getModel(),
-					handler: typeHandler,
+					models: [this.editor.getModel()],
+					handlers: [typeHandler],
 					state: null,
 					editorType
 				}
+				return this;
+			}
+		
+		static async createDiff(this: MonacoEditor, [oldValue, newValue]: [string, string], language: 'javascript'|'css',
+			editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IDiffEditorOptions,
+			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+				this._createInfo = {
+					method: 'create',
+					options,
+					override
+				}
+
+				this.options = options;
+				await MonacoEditorHookManager.monacoReady;
+				MonacoEditorHookManager.setScope(this);
+				this.editor = window.monaco.editor.createDiffEditor(this.$.editorElement, options, override);
+				MonacoEditorHookManager.registerScope(this, this.editor);
+				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
+				this._hideSpinner();
+
+				const originalModel = monaco.editor.createModel(oldValue, language);
+				const modifiedModel = monaco.editor.createModel(newValue, language);
+
+				this.editor.updateOptions(this._getSettings(editorType));
+				this.editor.setModel({
+					original: originalModel,
+					modified: modifiedModel
+				});
+
+				let typeHandlers: [
+					MonacoEditorScriptMods|MonacoEditorStylesheetMods,
+					MonacoEditorScriptMods|MonacoEditorStylesheetMods
+				] = [null, null];
+				if (editorType === 'script') {
+					typeHandlers = [
+						new MonacoEditorScriptMods(this.editor, originalModel),
+						new MonacoEditorScriptMods(this.editor, modifiedModel)
+					]
+				} else if (editorType === 'stylesheet') {
+					typeHandlers = [
+						new MonacoEditorStylesheetMods(this.editor, originalModel),
+						new MonacoEditorStylesheetMods(this.editor, modifiedModel)
+					]
+				}
+
+				this._models['default'] = {
+					editorType,
+					handlers: typeHandlers,
+					models: [originalModel, modifiedModel],
+					state: null
+				}
+
 				return this;
 			}
 
@@ -951,8 +1017,8 @@ namespace MonacoEditorElement {
 				typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
 			}
 			this._models['default'] = {
-				model: this.editor.getModel(),
-				handler: typeHandler,
+				models: [this.editor.getModel()],
+				handlers: [typeHandler],
 				state: null,
 				editorType
 			}
@@ -989,8 +1055,8 @@ namespace MonacoEditorElement {
 			}
 
 			this._models[identifier] = {
-				model,
-				handler,
+				models: [model],
+				handlers: [handler],
 				state: null,
 				editorType
 			}
@@ -1013,15 +1079,15 @@ namespace MonacoEditorElement {
 			this._models[currentModel].state = currentState;
 
 			const newModel = this._models[identifier];
-			this.editor.setModel(newModel.model);
-			this.editor.restoreViewState(newModel.state);
+			this.editor.setModel(newModel.models[0]);
+			(this.editor.restoreViewState as any)(newModel.state as any);
 			this.editor.focus();
 		}
 
 		static getCurrentModelId(this: MonacoEditor) {
 			for (let modelId in this._models) {
-				const { model } = this._models[modelId];
-				if (model === this. editor.getModel()) {
+				const { models } = this._models[modelId];
+				if (models[0] === this. editor.getModel()) {
 					return modelId;
 				}
 			}
@@ -1036,15 +1102,17 @@ namespace MonacoEditorElement {
 			this.editor.dispose();
 			for (const modelId in this._models) {
 				const model = this._models[modelId];
-				model.handler.destroy();
-				model.handler = null;
+				model.handlers.forEach((handler) => {
+					handler.destroy();
+				});
+				model.handlers = null;
 				delete this._models[modelId];
 			}
 			this._showSpinner();
 		}
 
 		private static _runJsLint(this: MonacoEditor): Array<LinterWarning> {
-			const code = this.getCurrentModel().model.getValue();
+			const code = this.getCurrentModel().models[0].getValue();
 			const { warnings } = window.jslint(code, {}, window.app.jsLintGlobals);
 			return warnings.map((warning) => ({
 				col: warning.column,
@@ -1054,7 +1122,7 @@ namespace MonacoEditorElement {
 		}
 
 		private static _runCssLint(this: MonacoEditor): Array<LinterWarning> {
-			const code = this.getCurrentModel().model.getValue();
+			const code = this.getCurrentModel().models[0].getValue();
 			const { messages } = window.CSSLint.verify(code);
 			return messages.map((message) => ({
 				col: message.col,
@@ -1064,7 +1132,7 @@ namespace MonacoEditorElement {
 		}
 
 		private static _showLintResults(this: MonacoEditor, name: string, messages: Array<LinterWarning>) {
-			monaco.editor.setModelMarkers(this.getCurrentModel().model, name, messages.map(message => ({
+			monaco.editor.setModelMarkers(this.getCurrentModel().models[0], name, messages.map(message => ({
 				startLineNumber: message.line,
 				endLineNumber: message.line,
 				startColumn: message.col,
@@ -1085,7 +1153,7 @@ namespace MonacoEditorElement {
 		}
 
 		static getTypeHandler(this: MonacoEditor) {
-			return this._models[this.getCurrentModelId()].handler;
+			return this._models[this.getCurrentModelId()].handlers;
 		}
 
 		static _showSpinner(this: MonacoEditor) {
@@ -1139,7 +1207,7 @@ namespace MonacoEditorElement {
 		/**
 		 * Any registered scopes
 		 */
-		private static _scopes: Array<[MonacoEditor, monaco.editor.IStandaloneCodeEditor]> = [];
+		private static _scopes: Array<[MonacoEditor, monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor]> = [];
 
 		static Caret = class MonacoEditorCaret {
 			/**
@@ -1248,7 +1316,7 @@ namespace MonacoEditorElement {
 			}, 500);
 		}
 
-		static registerScope(scope: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor) {
+		static registerScope(scope: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor) {
 			this._scopes.push([scope, editor])
 		}
 

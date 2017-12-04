@@ -539,29 +539,22 @@
 						<h2>You closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
 						<br />
 						<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
-						<div id="restoreChangesShowOld" class="restoreChangesOption">What's the old code?</div>
-						<div id="restoreChangesShowUnsaved" class="restoreChangesOption">What's the unsaved code?</div>
 						<div class="buttons">
 							<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
 							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
 						</div>
 					</div>
-					<div id="restoreChangesOldCode">
-						<h2>
-							Old Code
-						</h2>
-						<div id="restoreChangesOldCodeCont"></div>
+					<div id="restoreChangesHeader">
+						<h2>Old Code</h2>
+						<h2>Unsaved code</h2>
+					</div>
+					<monaco-editor id="restoreChangesEditor"></monaco-editor>
+					<div id="restoreChangesButtons">
 						<div class="buttons">
 							<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
 							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
 							<paper-button class="restoreChangesBack">Back</paper-button>
 						</div>
-					</div>
-					<div id="restoreChangesUnsavedCode">
-						<h2>
-							Unsaved Code
-						</h2>
-						<div id="restoreChangeUnsaveddCodeCont"></div>
 						<div class="buttons">
 							<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
 							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>

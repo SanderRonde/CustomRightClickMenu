@@ -1191,19 +1191,6 @@ describe('Conversion', () => {
 	};
 	describe('is testable', function() {
 		this.slow(1000);
-		var diffMatchPatchCode;
-		step('should be able to read diff_match_patch.js', () => {
-			assert.doesNotThrow(run(() => {
-				diffMatchPatchCode = fs.readFileSync('./app/js/libraries/diff_match_patch.js', {
-					encoding: 'utf8'
-				});
-			}), 'File diff_match_patch.js is readable');
-		});
-		step('should be able to run diff_match_patch.js', () => {
-			assert.doesNotThrow(run(() => {
-				eval(diffMatchPatchCode);
-			}), 'File diff_match_patch.js is runnable');
-		});
 		var codemirrorJsCode;
 		step('should be able to read codemirror.js', () => {
 			assert.doesNotThrow(run(() => {
@@ -4288,19 +4275,6 @@ describe('JSON Parser', () => {
 					};
 				};
 			}), 'generateScriptUpgradeErrorHandler is overwritable');
-		});
-		var diffMatchPatchCode;
-		step('should be able to read diff_match_patch.js', () => {
-			assert.doesNotThrow(run(() => {
-				diffMatchPatchCode = fs.readFileSync('./app/js/libraries/diff_match_patch.js', {
-					encoding: 'utf8'
-				});
-			}), 'File diff_match_patch.js is readable');
-		});
-		step('should be able to run diff_match_patch.js', () => {
-			assert.doesNotThrow(run(() => {
-				eval(diffMatchPatchCode);
-			}), 'File diff_match_patch.js is runnable');
 		});
 		var codemirrorJsCode;
 		step('should be able to read codemirror.js', () => {

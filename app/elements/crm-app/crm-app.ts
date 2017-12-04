@@ -1203,7 +1203,7 @@ namespace CRMAppElement {
 		 * Functions related to setting up the page on launch
 		 */
 		private static setup = class CRMAppSetup {
-			private static restoreUnsavedInstances(editingObj: {
+			private static async restoreUnsavedInstances(editingObj: {
 				id: number;
 				mode: string;
 				val: string;
@@ -1237,13 +1237,11 @@ namespace CRMAppElement {
 							});
 							window.setTimeout(function () {
 								//Remove the CodeMirror instances for performance
-								window.doc.restoreChangesOldCodeCont.innerHTML = '';
-								window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+								editor.destroy();
 							}, 500);
 						});
 						_this.parent().$$('.restoreChangesBack').addEventListener('click', function () {
-							window.doc.restoreChangesOldCode.style.display = 'none';
-							window.doc.restoreChangesUnsavedCode.style.display = 'none';
+							editor.destroy();
 							window.doc.restoreChangesMain.style.display = 'block';
 							window.doc.restoreChangesDialog.fit();
 						});
@@ -1253,46 +1251,16 @@ namespace CRMAppElement {
 							});
 							window.setTimeout(function () {
 								//Remove the CodeMirror instances for performance
-								window.doc.restoreChangesOldCodeCont.innerHTML = '';
-								window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
+								editor.destroy();
 							}, 500);
 						});
-						window.doc.restoreChangeUnsaveddCodeCont.innerHTML = '';
-						window.doc.restoreChangesOldCodeCont.innerHTML = '';
-						const oldEditor = window.CodeMirror(window.doc.restoreChangesOldCodeCont, {
-							lineNumbers: true,
-							value: code,
-							scrollbarStyle: 'simple',
-							lineWrapping: true,
-							readOnly: 'nocursor',
-							theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-							indentUnit: window.app.settings.editor.tabSize,
-							indentWithTabs: window.app.settings.editor.useTabs
-						});
-						const unsavedEditor = window.CodeMirror(window.doc.restoreChangeUnsaveddCodeCont, {
-							lineNumbers: true,
-							value: editingObj.val,
-							scrollbarStyle: 'simple',
-							lineWrapping: true,
-							readOnly: 'nocursor',
-							theme: (window.app.settings.editor.theme === 'dark' ? 'dark' : 'default'),
-							indentUnit: window.app.settings.editor.tabSize,
-							indentWithTabs: window.app.settings.editor.useTabs
-						});
-						window.doc.restoreChangesShowOld.addEventListener('click', function () {
-							window.doc.restoreChangesMain.style.display = 'none';
-							window.doc.restoreChangesUnsavedCode.style.display = 'none';
-							window.doc.restoreChangesOldCode.style.display = 'flex';
-							window.doc.restoreChangesDialog.fit();
-							oldEditor.refresh();
-						});
-						window.doc.restoreChangesShowUnsaved.addEventListener('click', function () {
-							window.doc.restoreChangesMain.style.display = 'none';
-							window.doc.restoreChangesOldCode.style.display = 'none';
-							window.doc.restoreChangesUnsavedCode.style.display = 'flex';
-							window.doc.restoreChangesDialog.fit();
-							unsavedEditor.refresh();
-						});
+
+						const editor = await window.doc.restoreChangesEditor.createDiff([code, editingObj.val], 
+							crmItem.type === 'script' ? 'javascript' : 'css', crmItem.type, {
+								wordWrap: 'off',
+								fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
+								folding: true
+							});
 
 						const stopHighlighting = function (element: HTMLElement) {
 							const item = $(element).find('.item')[0];
