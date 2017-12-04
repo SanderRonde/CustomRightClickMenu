@@ -896,6 +896,13 @@ namespace MonacoEditorElement {
 		}|{
 			method: 'from';
 			from: MonacoEditor;
+		}|{
+			method: 'diff';
+			values: [string, string];
+			language: 'css'|'javascript';
+			editorType: 'script'|'stylesheet'|'none';
+			options: monaco.editor.IEditorConstructionOptions;
+			override: monaco.editor.IEditorOverrideServices;
 		} = null;
 
 		private static _getSettings(editorType: 'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
@@ -944,7 +951,10 @@ namespace MonacoEditorElement {
 			editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IDiffEditorOptions,
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				this._createInfo = {
-					method: 'create',
+					method: 'diff',
+					values: [oldValue, newValue],
+					language,
+					editorType,
 					options,
 					override
 				}
@@ -1025,6 +1035,10 @@ namespace MonacoEditorElement {
 			return this;
 		}
 
+		static isDiff(this: MonacoEditor, editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor): editor is monaco.editor.IDiffEditor {
+			return this._createInfo.method === 'diff';
+		}
+
 		static async reset(this: MonacoEditor) {
 			this.destroy();
 			
@@ -1033,6 +1047,9 @@ namespace MonacoEditorElement {
 			if (createInfo.method === 'create') {
 				return await this.create(editorType, createInfo.options, 
 					createInfo.override);
+			} else if (createInfo.method === 'diff') {
+				return await this.createDiff(createInfo.values, createInfo.language,
+					createInfo.editorType, createInfo.options, createInfo.override);
 			} else {
 				return this.createFrom(createInfo.from);
 			}

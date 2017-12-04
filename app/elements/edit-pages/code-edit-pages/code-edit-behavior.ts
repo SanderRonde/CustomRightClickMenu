@@ -8,8 +8,8 @@ type CodeEditBehaviorStylesheetInstanceAdditions = StylesheetEdit & {
 };
 type CodeEditBehaviorStylesheetInstance = CodeEditBehavior<CodeEditBehaviorStylesheetInstanceAdditions>;
 
-type CodeEditBehaviorInstance = CodeEditBehavior<NodeEditBehaviorScriptInstance|
-	NodeEditBehaviorStylesheetInstance>;
+type CodeEditBehaviorInstance = CodeEditBehavior<NodeEditBehaviorScriptInstance>|
+	CodeEditBehavior<NodeEditBehaviorStylesheetInstance>;
 
 namespace CodeEditBehaviorNamespace {
 	type JQContextMenuItem = JQueryContextMenu | string;
@@ -170,7 +170,10 @@ namespace CodeEditBehaviorNamespace {
 				const content = noReplace ? snippet : snippet.replace(/%s/g, selection.toString());
 				return window.monacoCommands.createReplaceCommand(selection.cloneRange(), content);
 			});
-			__this.editorManager.editor.executeCommands('snippet', commands);
+			const editor = __this.editorManager.editor;
+			if (!__this.editorManager.isDiff(editor)) {
+				editor.executeCommands('snippet', commands);
+			}
 		};
 
 		
@@ -619,15 +622,16 @@ namespace CodeEditBehaviorNamespace {
 		static fillEditorOptions(this: CodeEditBehaviorInstance, container: CrmApp|CodeEditBehaviorInstance) {
 			if (this.item.type === 'script') {
 				const __this = this as CodeEditBehaviorScriptInstance;
-				container.$.keyBindingsTemplate.items = __this.keyBindings;
-				container.$.keyBindingsTemplate.render();
+				const scriptContainer = container as CodeEditBehaviorScriptInstance;
+				scriptContainer.$.keyBindingsTemplate.items = __this.keyBindings;
+				scriptContainer.$.keyBindingsTemplate.render();
 
 				window.app.settings.editor.keyBindings = window.app.settings.editor.keyBindings || {
 					goToDef: __this.keyBindings[0].defaultKey,
 					rename: __this.keyBindings[1].defaultKey
 				};
 	
-				Array.prototype.slice.apply(container.$.keyBindingsTemplate.querySelectorAll('paper-input')).forEach((input: HTMLPaperInputElement) => {
+				Array.prototype.slice.apply(scriptContainer.$.keyBindingsTemplate.querySelectorAll('paper-input')).forEach((input: HTMLPaperInputElement) => {
 					input.setAttribute('data-prev-value', input.value);
 				});
 			}
