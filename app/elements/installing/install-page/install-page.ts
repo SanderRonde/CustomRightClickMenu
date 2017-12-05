@@ -99,14 +99,13 @@ namespace InstallPageElement {
 		};
 
 		static fetchUserscript(this: InstallPage, url: string) {
-			const _this = this;
 			$.ajax({
 				url: url + '?noInstall',
 				dataType: 'text'
-			}).done(function(script) {
-				_this.displayFetchedUserscript(script);
-			}).fail(function() {
-				_this.notifyFetchError();
+			}).done((script) => {
+				this.displayFetchedUserscript(script);
+			}).fail(() => {
+				this.notifyFetchError();
 			});
 		};
 

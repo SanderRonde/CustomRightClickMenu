@@ -143,7 +143,6 @@ namespace StylesheetEditElement {
 		};
 
 		static init(this: NodeEditBehaviorStylesheetInstance) {
-			const _this = this;
 			this._init();
 			this._CEBIinit();
 			this.$.dropdownMenu.init();
@@ -163,16 +162,16 @@ namespace StylesheetEditElement {
 						crmType: window.app.crmType
 					}
 				});
-				this.savingInterval = window.setInterval(function() {
-					if (_this.active && _this.editorManager) {
+				this.savingInterval = window.setInterval(() => {
+					if (this.active && this.editorManager) {
 						//Save
 						let val;
 						try {
-							val = _this.editorManager.editor.getValue();
+							val = this.editorManager.editor.getValue();
 							chrome.storage.local.set({
 								editing: {
 									val: val,
-									id: _this.item.id,
+									id: this.item.id,
 									crmType: window.app.crmType
 								}
 							});
@@ -182,13 +181,13 @@ namespace StylesheetEditElement {
 						chrome.storage.local.set({
 							editing: false
 						});
-						window.clearInterval(_this.savingInterval);
+						window.clearInterval(this.savingInterval);
 					}
 				}, 5000);
 			}
 			this.active = true;
-			setTimeout(function () {
-				_this.loadEditor();
+			setTimeout(() => {
+				this.loadEditor();
 			}, 750);
 		}
 

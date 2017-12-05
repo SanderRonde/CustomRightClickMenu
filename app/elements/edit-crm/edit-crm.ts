@@ -963,8 +963,6 @@ namespace EditCrmElement {
 		};
 
 		static exportSingleNode(this: EditCrm, exportNode: CRM.Node, exportType: string) {
-			const __this = this;
-
 			const textArea = window.doc.exportJSONData;
 
 			textArea.value = this.getExportString(exportNode, exportType, null);
@@ -980,7 +978,7 @@ namespace EditCrmElement {
 						authorName: author
 					});
 					let data;
-					data = __this.getExportString(exportNode, exportType, author);
+					data = this.getExportString(exportNode, exportType, author);
 					textArea.value = data;
 				}, 0);
 			});
@@ -992,7 +990,7 @@ namespace EditCrmElement {
 		};
 
 		private static exportGivenNodes(this: EditCrm, exports: Array<CRM.Node>) {
-			const _this = this;
+			const __this = this;
 
 			const safeExports: Array<CRM.SafeNode> = [];
 			for (let i = 0; i < exports.length; i++) {
@@ -1016,7 +1014,7 @@ namespace EditCrmElement {
 					authorName: author
 				});
 				for (let j = 0; j < safeExports.length; j++) {
-					_this.changeAuthor(safeExports[j], author);
+					__this.changeAuthor(safeExports[j], author);
 				}
 				const dataJson = JSON.stringify({
 					crm: safeExports
@@ -1058,7 +1056,6 @@ namespace EditCrmElement {
 		};
 
 		private static cancelSelecting(this: EditCrm) {
-			const _this = this;
 			const editCrmItems = document.getElementsByTagName('edit-crm-item');
 			//Select items
 			for (let i = 0; i < editCrmItems.length; i++) {
@@ -1068,8 +1065,8 @@ namespace EditCrmElement {
 				editCrmItems[i].classList.remove('selecting');
 				editCrmItems[i].classList.remove('highlighted');
 			}
-			setTimeout(function() {
-				_this.isSelecting = false;
+			setTimeout(() => {
+				this.isSelecting = false;
 			}, 150);
 		};
 
@@ -1097,14 +1094,13 @@ namespace EditCrmElement {
 		};
 
 		static selectItems(this: EditCrm) {
-			const _this = this;
 			const editCrmItems = document.getElementsByTagName('edit-crm-item');
 			//Select items
 			for (let i = 0; i < editCrmItems.length; i++) {
 				editCrmItems[i].classList.add('selecting');
 			}
-			setTimeout(function() {
-				_this.isSelecting = true;
+			setTimeout(() => {
+				this.isSelecting = true;
 			}, 150);
 		};
 

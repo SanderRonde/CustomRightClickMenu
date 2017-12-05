@@ -221,10 +221,9 @@ namespace CodeEditBehaviorNamespace {
 		 * Fills the editor-tools-ribbon on the left of the editor with elements
 		 */
 		static initToolsRibbon(this: CodeEditBehaviorInstance) {
-			const _this = this;
 			(window.app.$.paperLibrariesSelector as PaperLibrariesSelector).init();
-			(window.app.$.paperGetPageProperties as PaperGetPageProperties).init(function (snippet: string) {
-				_this.insertSnippet(_this, snippet);
+			(window.app.$.paperGetPageProperties as PaperGetPageProperties).init((snippet: string) => {
+				this.insertSnippet(this, snippet);
 			});
 		};
 

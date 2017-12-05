@@ -65,21 +65,20 @@ namespace PaperLibrariesSelectorElement {
 		static properties = paperLibrariesSelectorProperties;
 
 		static ready(this: PaperLibrariesSelector) {
-			const _this = this;
 			window.paperLibrariesSelector = this;
-			chrome.storage.local.get('libraries', function (keys: CRM.StorageLocal) {
+			chrome.storage.local.get('libraries', (keys: CRM.StorageLocal) => {
 				if (keys.libraries) {
-					_this.installedLibraries = keys.libraries;
+					this.installedLibraries = keys.libraries;
 				} else {
-					_this.installedLibraries = [];
+					this.installedLibraries = [];
 					chrome.storage.local.set({
-						libaries: _this.installedLibraries
+						libaries: this.installedLibraries
 					});
 				}
 			});
-			chrome.storage.onChanged.addListener(function(changes, areaName) {
+			chrome.storage.onChanged.addListener((changes, areaName) => {
 				if (areaName === 'local' && changes['libraries']) {
-					_this.installedLibraries = changes['libraries'].newValue;
+					this.installedLibraries = changes['libraries'].newValue;
 				}
 			});
 		};
@@ -140,7 +139,6 @@ namespace PaperLibrariesSelectorElement {
 		}
 		
 		static init(this: PaperLibrariesSelector) {
-			const _this = this;
 			if (this._expanded) {
 				this.close();
 			}
@@ -170,7 +168,7 @@ namespace PaperLibrariesSelectorElement {
 				selected: 'false',
 				isLibrary: false
 			} as any);
-			_this.libraries = libraries;
+			this.libraries = libraries;
 		};
 
 		private static resetAfterAddDesision() {
@@ -179,20 +177,20 @@ namespace PaperLibrariesSelectorElement {
 			window.doc.addLibraryUrlInput.removeAttribute('invalid');
 		}
 
-		static confirmLibraryFile(_this: PaperLibrariesSelector, name: string, code: string, url: string) {
+		static confirmLibraryFile(this: PaperLibrariesSelector, name: string, code: string, url: string) {
 			window.doc.addLibraryProcessContainer.style.display = 'none';
 			window.doc.addLibraryLoadingDialog.style.display = 'flex';
-			setTimeout(function() {
+			setTimeout(() => {
 				window.doc.addLibraryConfirmationInput.value = code;
 				window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
 					window.doc.addLibraryConfirmationInput.value = '';
-					_this.addLibraryFile(_this, name, code, url);
-					_this.resetAfterAddDesision();
+					this.addLibraryFile(name, code, url);
+					this.resetAfterAddDesision();
 				});
 				window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
 					window.doc.addLibraryConfirmationContainer.style.display = 'none';
 					window.doc.addLibraryProcessContainer.style.display = 'block';
-					_this.resetAfterAddDesision();
+					this.resetAfterAddDesision();
 					window.doc.addLibraryConfirmationInput.value = '';
 				});
 				window.doc.addLibraryLoadingDialog.style.display = 'none';
@@ -200,13 +198,13 @@ namespace PaperLibrariesSelectorElement {
 			}, 250);
 		};
 
-		private static addLibraryToState(_this: PaperLibrariesSelector, name: string, code: string, url: string) {
-			_this.installedLibraries.push({
+		private static addLibraryToState(this: PaperLibrariesSelector, name: string, code: string, url: string) {
+			this.installedLibraries.push({
 				name: name,
 				code: code,
 				url: url
 			});
-			_this.usedlibraries.push({
+			this.usedlibraries.push({
 				name: name,
 				url: url
 			});
@@ -224,30 +222,30 @@ namespace PaperLibrariesSelectorElement {
 			}
 		}
 
-		static addLibraryFile(_this: PaperLibrariesSelector, name: string, code: string, url: string = null) {
+		static addLibraryFile(this: PaperLibrariesSelector, name: string, code: string, url: string = null) {
 			window.doc.addLibraryConfirmationContainer.style.display = 'none';
 			window.doc.addLibraryLoadingDialog.style.display = 'flex';
 
-			setTimeout(function() {
-				_this.addLibraryToState(_this, name, code, url);
+			setTimeout(() => {
+				this.addLibraryToState(name, code, url);
 				chrome.storage.local.set({
-					libraries: _this.installedLibraries
+					libraries: this.installedLibraries
 				});
 				chrome.runtime.sendMessage({
 					type: 'updateStorage',
 					data: {
 						type: 'libraries',
-						libraries: _this.installedLibraries
+						libraries: this.installedLibraries
 					}
 				});
-				_this.splice('libraries', _this.libraries.length - 1, 0, {
+				this.splice('libraries', this.libraries.length - 1, 0, {
 					name: name,
 					classes: 'library iron-selected',
 					selected: 'true',
 					isLibrary: 'true'
 				});
 
-				const dropdownContainer = $(_this.$$('.content'));
+				const dropdownContainer = $(this.$$('.content'));
 				dropdownContainer.animate({
 					height: dropdownContainer[0].scrollHeight
 				}, {
@@ -255,29 +253,29 @@ namespace PaperLibrariesSelectorElement {
 					easing: 'swing'
 				});
 
-				_this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
+				this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
 					'addLibraryProcessContainer', 'addLibraryDialogSuccesCheckmark')
-				_this.showElements('addLibraryDialogSucces');
+				this.showElements('addLibraryDialogSucces');
 				$(window.doc.addLibraryDialogSucces).animate({
 					backgroundColor: 'rgb(38,153,244)'
 				}, {
 					duration: 300,
 					easing: 'easeOutCubic',
-					complete: function () {
-						_this.showElements('addLibraryDialogSuccesCheckmark');
+					complete: () => {
+						this.showElements('addLibraryDialogSuccesCheckmark');
 						window.doc.addLibraryDialogSuccesCheckmark.classList.add('animateIn');
-						setTimeout(function() {
+						setTimeout(() => {
 							window.doc.addLibraryDialog.toggle();
-							_this.hideElements('addLibraryDialogSucces');
-							_this.showElements('addLibraryLoadingDialog');
+							this.hideElements('addLibraryDialogSucces');
+							this.showElements('addLibraryLoadingDialog');
 						}, 2500);
 					}
 				});
 
-				const contentEl = _this.$$('paper-menu .content') as HTMLElement;
+				const contentEl = this.$$('paper-menu .content') as HTMLElement;
 				contentEl.style.height = (~~contentEl.style.height.split('px')[0] + 48) + 'px';
 
-				_this.init();
+				this.init();
 			}, 250);
 		};
 
@@ -316,12 +314,12 @@ namespace PaperLibrariesSelectorElement {
 								url: url,
 								dataType: 'html'
 							}).done((data) => {
-								this.confirmLibraryFile(this, name, data, url);
+								this.confirmLibraryFile(name, data, url);
 							}).fail(function() {
 								libraryInput.setAttribute('invalid', 'true');
 							});
 						} else {
-							this.addLibraryFile(this, name, window.doc.addLibraryManualInput.$$('textarea').value);
+							this.addLibraryFile(name, window.doc.addLibraryManualInput.$$('textarea').value);
 						}
 					} else {
 						if (taken) {
@@ -360,7 +358,6 @@ namespace PaperLibrariesSelectorElement {
 		}
 
 		static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
-			const _this = this;
 			if (e.target.tagName.toLowerCase() === 'path' ||
 				e.target.tagName.toLowerCase() === 'svg' ||
 				e.target.classList.contains('removeLibrary')) {
@@ -368,7 +365,7 @@ namespace PaperLibrariesSelectorElement {
 				}
 			if (e.target.classList.contains('addLibrary')) {
 				this.addNewLibrary();
-			} else if (_this.mode === 'main') {
+			} else if (this.mode === 'main') {
 				this.handleCheckmarkClick(e);
 			}
 		};

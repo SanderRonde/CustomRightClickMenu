@@ -523,11 +523,10 @@ namespace CRMAppElement {
 		};
 
 		private static runDialogsForImportedScripts(this: CrmApp, nodesToAdd: Array<CRM.Node>, dialogs: Array<CRM.ScriptNode>) {
-			const _this = this;
 			if (dialogs[0]) {
 				const script = dialogs.splice(0, 1)[0];
-				window.scriptEdit.openPermissionsDialog(script, function () {
-					_this.runDialogsForImportedScripts(nodesToAdd, dialogs);
+				window.scriptEdit.openPermissionsDialog(script, () => {
+					this.runDialogsForImportedScripts(nodesToAdd, dialogs);
 				});
 			} else {
 				this.addImportedNodes(nodesToAdd);
@@ -562,7 +561,6 @@ namespace CRMAppElement {
 			force: boolean = false) {
 			let i;
 			let index;
-			const _this = this;
 			const allPermissions = this.templates.getPermissions();
 			for (i = 0; i < toRequest.length; i++) {
 				index = allPermissions.indexOf(toRequest[i]);
@@ -579,7 +577,7 @@ namespace CRMAppElement {
 			});
 
 			if (toRequest.length > 0 || force) {
-				chrome.permissions.getAll(function (allowed) {
+				chrome.permissions.getAll((allowed) => {
 					const requested: Array<{
 						name: string;
 						description: string;
@@ -588,7 +586,7 @@ namespace CRMAppElement {
 					for (i = 0; i < toRequest.length; i++) {
 						requested.push({
 							name: toRequest[i],
-							description: _this.templates.getPermissionDescription(toRequest[i]),
+							description: this.templates.getPermissionDescription(toRequest[i]),
 							toggled: false
 						});
 					}
@@ -601,15 +599,15 @@ namespace CRMAppElement {
 					for (i = 0; i < allPermissions.length; i++) {
 						other.push({
 							name: allPermissions[i],
-							description: _this.templates.getPermissionDescription(allPermissions[i]),
+							description: this.templates.getPermissionDescription(allPermissions[i]),
 							toggled: (allowed.permissions.indexOf(allPermissions[i]) > -1)
 						});
 					}
-					const requestPermissionsOther = _this.$$('#requestPermissionsOther');
+					const requestPermissionsOther = this.$$('#requestPermissionsOther');
 
 					let overlay: HTMLPaperDialogElement;
 
-					function handler() {
+					function handler(this: CrmApp) {
 						let el: HTMLElement & {
 							animation?: {
 								reverse(): void;
@@ -638,7 +636,7 @@ namespace CRMAppElement {
 								});
 							}
 						});
-						$(_this.$$('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
+						$(this.$$('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
 							const showHideSvg = this;
 							const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
 							if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
@@ -659,7 +657,7 @@ namespace CRMAppElement {
 						});
 
 						let permission: string;
-						$(_this.$$('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
+						$(this.$$('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
 							permission = this.previousElementSibling.previousElementSibling.textContent;
 							const slider = this;
 							if (this.checked) {
@@ -703,7 +701,7 @@ namespace CRMAppElement {
 							}
 						});
 
-						$(_this.$$('#requestPermissionsAcceptAll')).off('click').on('click', function () {
+						$(this.$$('#requestPermissionsAcceptAll')).off('click').on('click', function () {
 							chrome.permissions.request({
 								permissions: toRequest
 							}, function (accepted) {
@@ -719,7 +717,7 @@ namespace CRMAppElement {
 						});
 					}
 
-					const interval = window.setInterval(function () {
+					const interval = window.setInterval(() => {
 						try {
 							const centerer = window.doc.requestPermissionsCenterer as CenterElement;
 							overlay = window.app.util.querySlot(centerer)[0] as HTMLPaperDialogElement
@@ -728,7 +726,9 @@ namespace CRMAppElement {
 								const innerOverlay = window.app.util.querySlot(overlay)[0] as HTMLElement;
 								(innerOverlay.querySelector('#requestedPermissionsTemplate') as HTMLDomRepeatElement).items = requested;
 								(innerOverlay.querySelector('#requestedPermissionsOtherTemplate') as HTMLDomRepeatElement).items = other;
-								overlay.addEventListener('iron-overlay-opened', handler);
+								overlay.addEventListener('iron-overlay-opened', () => {
+									handler.apply(this);
+								});
 								setTimeout(function () {
 									const requestedPermissionsCont = innerOverlay.querySelector('#requestedPermissionsCont');
 									const requestedPermissionsAcceptAll = innerOverlay.querySelector('#requestPermissionsAcceptAll');
@@ -894,15 +894,14 @@ namespace CRMAppElement {
 			const obj = {
 				[key]: value
 			};
-			const _this = this;
 			chrome.storage.local.set(obj);
-			chrome.storage.local.get(function (storageLocal: CRM.StorageLocal) {
-				_this.storageLocal = storageLocal;
+			chrome.storage.local.get((storageLocal: CRM.StorageLocal) => {
+				this.storageLocal = storageLocal;
 				if (key === 'CRMonPage') {
 					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
 						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(!storageLocal.CRMOnPage);
 				}
-				_this.upload();
+				this.upload();
 			});
 		};
 
@@ -1209,21 +1208,20 @@ namespace CRMAppElement {
 				val: string;
 				crmType: number;
 			}, errs: number = 0) {
-				const _this = this;
 				errs = errs + 1 || 0;
 				if (errs < 5) {
 					if (!window.CodeMirror) {
-						setTimeout(function () {
-							_this.restoreUnsavedInstances(editingObj, errs);
+						setTimeout(() => { 
+							this.restoreUnsavedInstances(editingObj, errs);
 						}, 500);
 					}
 					else {
-						const crmItem = _this.parent().nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
+						const crmItem = this.parent().nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
 						const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
 							crmItem.value.script : crmItem.value.backgroundScript) :
 							(crmItem.value.stylesheet));
-						_this.parent().listeners.iconSwitch(null, editingObj.crmType);
-						_this.parent().$$('.keepChangesButton').addEventListener('click', function () {
+						this.parent().listeners.iconSwitch(null, editingObj.crmType);
+						this.parent().$$('.keepChangesButton').addEventListener('click', function () {
 							if (crmItem.type === 'script') {
 								crmItem.value[(editingObj.mode === 'main' ?
 									'script' :
@@ -1240,12 +1238,12 @@ namespace CRMAppElement {
 								editor.destroy();
 							}, 500);
 						});
-						_this.parent().$$('.restoreChangesBack').addEventListener('click', function () {
+						this.parent().$$('.restoreChangesBack').addEventListener('click', function () {
 							editor.destroy();
 							window.doc.restoreChangesMain.style.display = 'block';
 							window.doc.restoreChangesDialog.fit();
 						});
-						_this.parent().$$('.discardButton').addEventListener('click', function () {
+						this.parent().$$('.discardButton').addEventListener('click', function () {
 							chrome.storage.local.set({
 								editing: null
 							});
@@ -1290,10 +1288,10 @@ namespace CRMAppElement {
 							};
 						};
 
-						const path = _this.parent().nodesById[editingObj.id].path;
-						const highlightItem = function () {
+						const path = this.parent().nodesById[editingObj.id].path;
+						const highlightItem = () => { 
 							document.body.style.pointerEvents = 'none';
-							const columnConts = _this.parent().shadowRoot.querySelectorAll('#mainCont > div');
+							const columnConts = this.parent().shadowRoot.querySelectorAll('#mainCont > div');
 							const $columnCont = $(columnConts[(path.length - 1) + 2]);
 							const $paperMaterial = $($columnCont.children('paper-material')[0]);
 							const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
@@ -1316,10 +1314,10 @@ namespace CRMAppElement {
 								}, 2000);
 							} else {
 								window.doc.restoreChangesDialog.open();
-								$(_this.parent().$$('.pageCont')).animate({
+								$(this.parent().$$('.pageCont')).animate({
 									backgroundColor: 'white'
 								}, 200);
-								$(_this.parent().$$('.crmType')).each(function (this: HTMLElement) {
+								$(this.parent().$$('.crmType')).each(function (this: HTMLElement) {
 									this.classList.remove('dim');
 								});
 								$(window.app.editCRM.$$('edit-crm-item .item')).animate({
@@ -1330,13 +1328,13 @@ namespace CRMAppElement {
 							}
 						};
 
-						window.doc.highlightChangedScript.addEventListener('click', function () {
+						window.doc.highlightChangedScript.addEventListener('click', () => {
 							//Find the element first
 							//Check if the element is already visible
 							window.doc.restoreChangesDialog.close();
-							_this.parent().$$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
-							_this.parent().$$('edit-crm-item .item').style.opacity = '0.6';
-							Array.prototype.slice.apply(_this.parent().$$('.crmType')).forEach((crmType: HTMLElement) => {
+							this.parent().$$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
+							this.parent().$$('edit-crm-item .item').style.opacity = '0.6';
+							Array.prototype.slice.apply(this.parent().$$('.crmType')).forEach((crmType: HTMLElement) => {
 								crmType.classList.add('dim');
 							});
 
@@ -1367,7 +1365,7 @@ namespace CRMAppElement {
 						try {
 							window.doc.restoreChangesDialog.open();
 						} catch (e) {
-							_this.restoreUnsavedInstances(editingObj, errs + 1);
+							this.restoreUnsavedInstances(editingObj, errs + 1);
 						}
 					}
 				}
@@ -1390,28 +1388,28 @@ namespace CRMAppElement {
 			};
 
 			static setupStorages() {
-				const _this = this.parent();
+				const parent = this.parent();
 				chrome.storage.local.get((storageLocal: CRM.StorageLocal & {
 					nodeStorage: any;
 					settings?: CRM.SettingsStorage;
 				}) => {
 					function callback(items: CRM.SettingsStorage) {
-						_this.settings = items;
-						_this.settingsCopy = JSON.parse(JSON.stringify(items));
+						parent.settings = items;
+						parent.settingsCopy = JSON.parse(JSON.stringify(items));
 						window.app.editCRM.$.rootCRMItem.updateName(items.rootName);
-						for (let i = 0; i < _this.onSettingsReadyCallbacks.length; i++) {
-							_this.onSettingsReadyCallbacks[i].callback.apply(
-								_this.onSettingsReadyCallbacks[i].thisElement,
-								_this.onSettingsReadyCallbacks[i].params);
+						for (let i = 0; i < parent.onSettingsReadyCallbacks.length; i++) {
+							parent.onSettingsReadyCallbacks[i].callback.apply(
+								parent.onSettingsReadyCallbacks[i].thisElement,
+								parent.onSettingsReadyCallbacks[i].params);
 						}
-						_this.updateEditorZoom();
-						_this.setup.orderNodesById(items.crm);
-						_this.pageDemo.create();
-						_this.setup.buildNodePaths(items.crm, []);
-						if (_this.settings.latestId) {
-							_this.latestId = items.latestId;
+						parent.updateEditorZoom();
+						parent.setup.orderNodesById(items.crm);
+						parent.pageDemo.create();
+						parent.setup.buildNodePaths(items.crm, []);
+						if (parent.settings.latestId) {
+							parent.latestId = items.latestId;
 						} else {
-							_this.latestId = 0;
+							parent.latestId = 0;
 						}
 
 						if (~~/Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1].split('.')[0] <= 34) {
@@ -1421,24 +1419,24 @@ namespace CRMAppElement {
 							.CRMOnPage);
 					}
 
-					Array.prototype.slice.apply(_this.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+					Array.prototype.slice.apply(parent.shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
 						setting.init(storageLocal);
 					});
 
-					_this.setup.bindListeners();
+					parent.setup.bindListeners();
 					delete storageLocal.nodeStorage;
 					if (storageLocal.requestPermissions && storageLocal.requestPermissions.length > 0) {
-						_this.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
+						parent.requestPermissions(storageLocal.requestPermissions as Array<CRM.Permission>);
 					}
 					if (storageLocal.editing) {
 						const editing = storageLocal.editing;
 						setTimeout(function () {
 							//Check out if the code is actually different
-							const node = _this.nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
+							const node = parent.nodesById[editing.id] as CRM.ScriptNode | CRM.StylesheetNode;
 							const nodeCurrentCode = (node.type === 'script' ? node.value.script :
 								node.value.stylesheet);
 							if (nodeCurrentCode.trim() !== editing.val.trim()) {
-								_this.setup.restoreUnsavedInstances(editing);
+								parent.setup.restoreUnsavedInstances(editing);
 							} else {
 								chrome.storage.local.set({
 									editing: null
@@ -1447,30 +1445,30 @@ namespace CRMAppElement {
 						}, 2500);
 					}
 					if (storageLocal.selectedCrmType !== undefined) {
-						_this.crmType = storageLocal.selectedCrmType;
-						_this.setup.switchToIcons(storageLocal.selectedCrmType);
+						parent.crmType = storageLocal.selectedCrmType;
+						parent.setup.switchToIcons(storageLocal.selectedCrmType);
 					} else {
 						chrome.storage.local.set({
 							selectedCrmType: 0
 						});
-						_this.crmType = 0;
-						_this.setup.switchToIcons(0);
+						parent.crmType = 0;
+						parent.setup.switchToIcons(0);
 					}
 					if (storageLocal.jsLintGlobals) {
-						_this.jsLintGlobals = storageLocal.jsLintGlobals;
+						parent.jsLintGlobals = storageLocal.jsLintGlobals;
 					} else {
-						_this.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
+						parent.jsLintGlobals = ['window', '$', 'jQuery', 'crmapi'];
 						chrome.storage.local.set({
-							jsLintGlobals: _this.jsLintGlobals
+							jsLintGlobals: parent.jsLintGlobals
 						});
 					}
 					if (storageLocal.globalExcludes && storageLocal.globalExcludes.length >
 						1) {
-						_this.globalExcludes = storageLocal.globalExcludes;
+						parent.globalExcludes = storageLocal.globalExcludes;
 					} else {
-						_this.globalExcludes = [''];
+						parent.globalExcludes = [''];
 						chrome.storage.local.set({
-							globalExcludes: _this.globalExcludes
+							globalExcludes: parent.globalExcludes
 						});
 					}
 					if (storageLocal.addedPermissions && storageLocal.addedPermissions.length > 0) {
@@ -1497,16 +1495,16 @@ namespace CRMAppElement {
 						}, 2500);
 					}
 					if (storageLocal.updatedScripts && storageLocal.updatedScripts.length > 0) {
-						_this.$.scriptUpdatesToast.text = _this._getUpdatedScriptString(
+						parent.$.scriptUpdatesToast.text = parent._getUpdatedScriptString(
 							storageLocal.updatedScripts[0]);
-						_this.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
-						_this.$.scriptUpdatesToast.index = 0;
-						_this.$.scriptUpdatesToast.show();
+						parent.$.scriptUpdatesToast.scripts = storageLocal.updatedScripts;
+						parent.$.scriptUpdatesToast.index = 0;
+						parent.$.scriptUpdatesToast.show();
 
 						if (storageLocal.updatedScripts.length > 1) {
-							_this.$.nextScriptUpdateButton.style.display = 'inline';
+							parent.$.nextScriptUpdateButton.style.display = 'inline';
 						} else {
-							_this.$.nextScriptUpdateButton.style.display = 'none';
+							parent.$.nextScriptUpdateButton.style.display = 'none';
 						}
 						chrome.storage.local.set({
 							updatedScripts: []
@@ -1534,8 +1532,8 @@ namespace CRMAppElement {
 						window.doc.versionUpdateDialog.open();
 					}
 
-					_this.storageLocal = storageLocal;
-					_this.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
+					parent.storageLocal = storageLocal;
+					parent.storageLocalCopy = JSON.parse(JSON.stringify(storageLocal));
 					if (storageLocal.useStorageSync) {
 						//Parse the data before sending it to the callback
 						chrome.storage.sync.get(function (storageSync: {
@@ -1555,14 +1553,14 @@ namespace CRMAppElement {
 									settingsJsonArray.push(storageSync[index]);
 								});
 								const jsonString = settingsJsonArray.join('');
-								_this.settingsJsonLength = jsonString.length;
+								parent.settingsJsonLength = jsonString.length;
 								const settings = JSON.parse(jsonString);
 								callback(settings);
 							}
 						});
 					} else {
 						//Send the "settings" object on the storage.local to the callback
-						_this.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
+						parent.settingsJsonLength = JSON.stringify(storageLocal.settings || {}).length;
 						if (!storageLocal.settings) {
 							chrome.storage.local.set({
 								useStorageSync: true
@@ -1578,7 +1576,7 @@ namespace CRMAppElement {
 									settingsJsonArray.push(storageSync[index]);
 								});
 								const jsonString = settingsJsonArray.join('');
-								_this.settingsJsonLength = jsonString.length;
+								parent.settingsJsonLength = jsonString.length;
 								const settings = JSON.parse(jsonString);
 								callback(settings);
 							});
@@ -1597,7 +1595,6 @@ namespace CRMAppElement {
 				isAnimating: boolean;
 				shouldAnimate: boolean;
 			}, progress: number) {
-				const _this = this;
 				const scaleBefore = 'scaleX(' + settings.lastReachedProgress + ')';
 				const scaleAfter = 'scaleX(' + progress + ')';
 				if (settings.max === settings.lastReachedProgress ||
@@ -1609,14 +1606,14 @@ namespace CRMAppElement {
 						transform: scaleAfter,
 						WebkitTransform: scaleAfter
 					}], {
-							duration: 200,
-							easing: 'linear'
-						}).onfinish = function () {
-							settings.lastReachedProgress = progress;
-							settings.isAnimating = false;
-							settings.progressBar.style.transform = scaleAfter;
-							settings.progressBar.style.WebkitTransform = scaleAfter;
-						};
+						duration: 200,
+						easing: 'linear'
+					}).onfinish = function () {
+						settings.lastReachedProgress = progress;
+						settings.isAnimating = false;
+						settings.progressBar.style.transform = scaleAfter;
+						settings.progressBar.style.WebkitTransform = scaleAfter;
+					};
 					return;
 				}
 				if ((settings.progressBar.animate as any).isJqueryFill) {
@@ -1635,15 +1632,15 @@ namespace CRMAppElement {
 							transform: scaleAfter,
 							WebkitTransform: scaleAfter
 						}], {
-								duration: 200,
-								easing: 'linear'
-							}).onfinish = function () {
-								settings.lastReachedProgress = progress;
-								settings.isAnimating = false;
-								settings.progressBar.style.transform = scaleAfter;
-								settings.progressBar.style.WebkitTransform = scaleAfter;
-								_this.animateLoadingBar(settings, settings.toReach);
-							};
+							duration: 200,
+							easing: 'linear'
+						}).onfinish = () => {
+							settings.lastReachedProgress = progress;
+							settings.isAnimating = false;
+							settings.progressBar.style.transform = scaleAfter;
+							settings.progressBar.style.WebkitTransform = scaleAfter;
+							this.animateLoadingBar(settings, settings.toReach);
+						};
 					}
 				}
 			};
@@ -1710,16 +1707,15 @@ namespace CRMAppElement {
 			};
 
 			static initCheckboxes(defaultLocalStorage: CRM.StorageLocal) {
-				const _this = this;
 				if ((window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue) {
 					(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue &&
 						(window.doc.editCRMInRM as PaperToggleOption).setCheckboxDisabledValue(false);
-					Array.prototype.slice.apply(_this.parent().shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
+					Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('paper-toggle-option')).forEach(function (setting: PaperToggleOption) {
 						setting.init && setting.init(defaultLocalStorage);
 					});
 				} else {
-					window.setTimeout(function () {
-						_this.initCheckboxes.apply(_this, [defaultLocalStorage]);
+					window.setTimeout(() => {
+						this.initCheckboxes.apply(this, [defaultLocalStorage]);
 					}, 1000);
 				}
 			};
@@ -3085,7 +3081,6 @@ namespace CRMAppElement {
 					}
 					selector.style.height = '0';
 
-					const _this = this;
 					const newHeightPx = newHeight + 'px';
 					const tabCont = this.parent().$.versionUpdateTabSlider;
 
@@ -3100,14 +3095,14 @@ namespace CRMAppElement {
 						], {
 								duration: 500,
 								easing: 'bez'
-							}).onfinish = function () {
+							}).onfinish = () => {
 								tabCont.style.height = newHeightPx;
 								selector.style.height = 'auto';
-								_this.parent().versionUpdateTab = nextTabIndex;
+								this.parent().versionUpdateTab = nextTabIndex;
 							};
 					} else {
 						selector.style.height = 'auto';
-						_this.parent().versionUpdateTab = nextTabIndex;
+						this.parent().versionUpdateTab = nextTabIndex;
 						setTimeout(function () {
 							tabCont.animate([
 								{
@@ -3143,7 +3138,6 @@ namespace CRMAppElement {
 					}
 					selector.style.height = '0';
 
-					const _this = this;
 					const newHeightPx = newHeight + 'px';
 					const tabCont = this.parent().$.versionUpdateTabSlider;
 
@@ -3158,14 +3152,14 @@ namespace CRMAppElement {
 						], {
 								duration: 500,
 								easing: 'bez'
-							}).onfinish = function () {
+							}).onfinish = () => {
 								tabCont.style.height = newHeightPx;
 								selector.style.height = 'auto';
-								_this.parent().versionUpdateTab = prevTabIndex;
+								this.parent().versionUpdateTab = prevTabIndex;
 							};
 					} else {
 						selector.style.height = 'auto';
-						_this.parent().versionUpdateTab = prevTabIndex;
+						this.parent().versionUpdateTab = prevTabIndex;
 						setTimeout(function () {
 							tabCont.animate([
 								{
@@ -3185,12 +3179,11 @@ namespace CRMAppElement {
 			};
 
 			private static _applyAddedPermissions() {
-				const _this = this;
 				const panels = Array.prototype.slice.apply(
 					window.doc.addedPermissionsTabContainer
 						.querySelectorAll('.nodeAddedPermissionsCont'));
-				panels.forEach(function (panel: HTMLElement) {
-					const node = _this.parent().nodesById[(panel.getAttribute('data-id') as any) as number] as CRM.ScriptNode;
+				panels.forEach((panel: HTMLElement) => { 
+					const node = this.parent().nodesById[(panel.getAttribute('data-id') as any) as number] as CRM.ScriptNode;
 					const permissions = Array.prototype.slice.apply(panel.querySelectorAll('paper-checkbox'))
 						.map(function (checkbox: HTMLPaperCheckboxElement) {
 							if (checkbox.checked) {
@@ -3823,9 +3816,8 @@ namespace CRMAppElement {
 				 * Makes an onclick handler to edit the node on clicking it
 				 */
 				static edit(node: CRM.Node): () => void {
-					const _this = this;
-					return function () {
-						_this.parent().parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
+					return () => {
+						this.parent().parent().editCRM.getCRMElementFromPath(node.path, true).openEditPage();
 					};
 				};
 
@@ -3896,37 +3888,36 @@ namespace CRMAppElement {
 				static menu(toAdd: CRM.MenuNode, crmType: number, index: {
 					num: number;
 				}): JQContextMenuItem {
-					const _this = this;
 					const item: JQContextMenuObj = {
 						name: toAdd.name
 					} as any;
 					const childItems: {
 						[key: number]: JQContextMenuItem
 					} = {};
-					if (_this.parent().parent().storageLocal.editCRMInRM) {
+					if (this.parent().parent().storageLocal.editCRMInRM) {
 						item.callback = this.parent().handlers.edit(toAdd);
 					}
-					toAdd.children.forEach(function (node) {
-						if (_this.parent().isNodeVisible(node, crmType)) {
+					toAdd.children.forEach((node) => {
+						if (this.parent().isNodeVisible(node, crmType)) {
 
-							if (_this.parent().parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
-								childItems[index.num++] = _this.editable(node);
+							if (this.parent().parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
+								childItems[index.num++] = this.editable(node);
 							} else {
 								switch (node.type) {
 									case 'link':
-										childItems[index.num++] = _this.link(node);
+										childItems[index.num++] = this.link(node);
 										break;
 									case 'script':
-										childItems[index.num++] = _this.script(node);
+										childItems[index.num++] = this.script(node);
 										break;
 									case 'stylesheet':
-										childItems[index.num++] = _this.stylesheet(node);
+										childItems[index.num++] = this.stylesheet(node);
 										break;
 									case 'divider':
-										childItems[index.num++] = _this.divider();
+										childItems[index.num++] = this.divider();
 										break;
 									case 'menu':
-										childItems[index.num++] = _this.menu(node, crmType, index);
+										childItems[index.num++] = this.menu(node, crmType, index);
 										break;
 								}
 							}
@@ -3974,7 +3965,6 @@ namespace CRMAppElement {
 			private static buildForCrmType(crmType: number): {
 				[key: number]: JQContextMenuItem
 			} {
-				const _this = this;
 				const index = {
 					num: 0
 				};
@@ -3982,26 +3972,26 @@ namespace CRMAppElement {
 					[key: number]: JQContextMenuItem
 				} = {};
 				const crm = window.app.settings.crm;
-				crm.forEach(function (node: CRM.Node) {
-					if (_this.isNodeVisible(node, crmType)) {
-						if (_this.parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
-							childItems[index.num++] = _this.node.editable(node);
+				crm.forEach((node: CRM.Node) => {
+					if (this.isNodeVisible(node, crmType)) {
+						if (this.parent().storageLocal.editCRMInRM && node.type !== 'divider' && node.type !== 'menu') {
+							childItems[index.num++] = this.node.editable(node);
 						} else {
 							switch (node.type) {
 								case 'link':
-									childItems[index.num++] = _this.node.link(node);
+									childItems[index.num++] = this.node.link(node);
 									break;
 								case 'script':
-									childItems[index.num++] = _this.node.script(node);
+									childItems[index.num++] = this.node.script(node);
 									break;
 								case 'stylesheet':
-									childItems[index.num++] = _this.node.stylesheet(node);
+									childItems[index.num++] = this.node.stylesheet(node);
 									break;
 								case 'divider':
-									childItems[index.num++] = _this.node.divider();
+									childItems[index.num++] = this.node.divider();
 									break;
 								case 'menu':
-									childItems[index.num++] = _this.node.menu(node, crmType, index);
+									childItems[index.num++] = this.node.menu(node, crmType, index);
 									break;
 							}
 						}
@@ -4027,19 +4017,18 @@ namespace CRMAppElement {
 
 			private static bindContextMenu(crmType: number) {
 				let items;
-				const _this = this;
 				if (crmType === 0) {
-					items = _this.buildForCrmType(0);
-					if (_this.getChildrenAmount(items) > 0) {
+					items = this.buildForCrmType(0);
+					if (this.getChildrenAmount(items) > 0) {
 						($ as JQueryContextMenu).contextMenu({
 							selector: '.container, #editCrm.page, .crmType.pageType',
 							items: items
 						} as any);
 					}
 				} else {
-					const contentType = _this.getCrmTypeFromNumber(crmType);
-					items = _this.buildForCrmType(crmType);
-					if (_this.getChildrenAmount(items) > 0) {
+					const contentType = this.getCrmTypeFromNumber(crmType);
+					items = this.buildForCrmType(crmType);
+					if (this.getChildrenAmount(items) > 0) {
 						($ as JQueryContextMenu).contextMenu({
 							selector: '#editCrm.' + contentType + ', .crmType.' + contentType + 'Type',
 							items: items
@@ -4059,7 +4048,7 @@ namespace CRMAppElement {
 			};
 
 			private static loadContextMenus() {
-				const _this = this;
+				const __this = this;
 				let toLoad = 0;
 				this.removeContextMenus();
 
@@ -4067,7 +4056,7 @@ namespace CRMAppElement {
 					timeRemaining(): number;
 				}) {
 					while (toLoad < 6 && deadline.timeRemaining() > 0) {
-						_this.bindContextMenu(toLoad++);
+						__this.bindContextMenu(toLoad++);
 
 						window.requestIdleCallback(loadContextMenus);
 					}
@@ -4077,7 +4066,7 @@ namespace CRMAppElement {
 					window.requestIdleCallback(loadContextMenus);
 				} else {
 					while (toLoad < 6) {
-						_this.bindContextMenu(toLoad++);
+						__this.bindContextMenu(toLoad++);
 					}
 				}
 			};

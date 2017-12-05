@@ -336,8 +336,6 @@ namespace EditCrmItemElement {
 		};
 
 		private static selectFromXToThis(this: EditCrmItem) {
-			const _this = this;
-
 			//Get the first highlighted node
 			const firstHighlightedNode = document.getElementsByClassName('firstHighlighted')[0] as EditCrmItem;
 			const firstHighlightedItem = firstHighlightedNode.item;
@@ -369,10 +367,10 @@ namespace EditCrmItemElement {
 				}
 				
 				//Finally select this node
-				window.setTimeout(function() {
-					_this.classList.add('highlighted');
-					_this.$.checkbox.checked = true;
-					window.app.editCRM.selectedElements.push(_this.item.id);
+				window.setTimeout(() => {
+					this.classList.add('highlighted');
+					this.$.checkbox.checked = true;
+					window.app.editCRM.selectedElements.push(this.item.id);
 				}, wait);
 			}
 		};
@@ -438,16 +436,15 @@ namespace EditCrmItemElement {
 		};
 
 		private static typeIndicatorMouseLeave(this: EditCrmItem) {
-			const _this = this;
 			this.lastTypeSwitchMouseover = null;
 			if (!this.shadow) {
 				const typeSwitcher = this.$$('#typeSwitcher');
 				if (typeSwitcher.toggledOpen) {
-					typeSwitcher.closeTypeSwitchContainer(true, function() {
+					typeSwitcher.closeTypeSwitchContainer(true, () => {
 						typeSwitcher.toggledOpen = false;
 						typeSwitcher.$.typeSwitchChoicesContainer.style.display = 'none';
 						typeSwitcher.$.typeSwitchArrow.style.transform = 'rotate(180deg)';
-						_this.animateOut();
+						this.animateOut();
 					});
 				} else {
 					this.animateOut();
@@ -455,9 +452,9 @@ namespace EditCrmItemElement {
 			}
 		};
 
-		private static _getOnSelectFunction(_this: EditCrmItem, index: number) {
-			return function () {
-				window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRM.Node>)[index].path).onSelect(true);
+		private static _getOnSelectFunction(this: EditCrmItem, index: number) {
+			return () => {
+				window.app.editCRM.getCRMElementFromPath((this.item.children as Array<CRM.Node>)[index].path).onSelect(true);
 			};
 		};
 
@@ -466,15 +463,17 @@ namespace EditCrmItemElement {
 			selectCheckbox && (this.$.checkbox.checked = true);
 			if (this.item.children && !dontSelectChildren) {
 				for (let i = 0; i < this.item.children.length; i++) {
-					setTimeout(this._getOnSelectFunction(this, i), (i * 35));
+					setTimeout(() => {
+						this._getOnSelectFunction(i)
+					}, (i * 35));
 					window.app.editCRM.selectedElements.push(this.item.children[i].id);
 				}
 			}
 		};
 
-		private static _getOnDeselectFunction(_this: EditCrmItem, index: number) {
-			return function () {
-				window.app.editCRM.getCRMElementFromPath((_this.item.children as Array<CRM.Node>)[index].path).onDeselect(true);
+		private static _getOnDeselectFunction(this: EditCrmItem, index: number) {
+			return () => {
+				window.app.editCRM.getCRMElementFromPath((this.item.children as Array<CRM.Node>)[index].path).onDeselect(true);
 			};
 		};
 
@@ -484,19 +483,20 @@ namespace EditCrmItemElement {
 			if (this.item.children && !dontSelectChildren) {
 				const selectedPaths = window.app.editCRM.selectedElements;
 				for (let i = 0; i < this.item.children.length; i++) {
-					setTimeout(this._getOnDeselectFunction(this, i), (i * 35));
+					setTimeout(() => {
+						this._getOnDeselectFunction(i)
+					}, (i * 35));
 					selectedPaths.splice(selectedPaths.indexOf(this.item.children[i].id), 1);
 				}
 			}
 		};
 
 		static onToggle(this: EditCrmItem) {
-			const _this = this;
-			setTimeout(function () {
-				if (_this.$.checkbox.checked) {
-					_this.onSelect();
+			setTimeout(() => {
+				if (this.$.checkbox.checked) {
+					this.onSelect();
 				} else {
-					_this.onDeselect();
+					this.onDeselect();
 				}
 			}, 0);
 		}

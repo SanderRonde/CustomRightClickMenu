@@ -214,59 +214,59 @@ namespace PaperDropdownBehaviorNamespace {
 		/**
 		 * Animates the box-shadow in on clicking the main blue text
 		 */
-		static _animateBoxShadowIn(timestamp: number, _this: PaperDropdownInstance) {
-			if (!_this._startTime) {
-				_this._startTime = timestamp;
+		static _animateBoxShadowIn(timestamp: number, __this: PaperDropdownInstance) {
+			if (!__this._startTime) {
+				__this._startTime = timestamp;
 			}
-			if (timestamp - 100 < _this._startTime) {
-				const scale = ((timestamp - _this._startTime) / 100);
+			if (timestamp - 100 < __this._startTime) {
+				const scale = ((timestamp - __this._startTime) / 100);
 				let doubleScale = scale * 2;
-				_this._getMenuContent().style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
+				__this._getMenuContent().style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
 					' 0 ' + scale + 'px ' + (5 * scale) + 'px 0 rgba(0,0,0,0.12),' +
 					' 0 ' + (scale * 3) + 'px ' + scale + 'px ' + -doubleScale + 'px rgba(0,0,0,0.2)';
-				if (!_this.indent) {
-					_this._dropdownSelectedCont.style.marginLeft = (scale * 15) + 'px';
+				if (!__this.indent) {
+					__this._dropdownSelectedCont.style.marginLeft = (scale * 15) + 'px';
 				}
 				window.requestAnimationFrame(function(time) {
-					_this._animateBoxShadowIn(time, _this);
+					__this._animateBoxShadowIn(time, __this);
 				});
 			}
 			else {
-				if (!_this.indent) {
-					_this._dropdownSelectedCont.style.marginLeft = '15px';
+				if (!__this.indent) {
+					__this._dropdownSelectedCont.style.marginLeft = '15px';
 				}
-				_this._startTime = null;
-				_this._getMenuContent().style.boxShadow = '0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2)';
+				__this._startTime = null;
+				__this._getMenuContent().style.boxShadow = '0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2)';
 			}
 		};
 
 		/**
 		 * Animates the box-shadow out on clicking the main blue text again
 		 */
-		static _animateBoxShadowOut(timestamp: number, _this: PaperDropdownInstance) {
-			if (!_this._startTime) {
-				_this._startTime = timestamp;
+		static _animateBoxShadowOut(timestamp: number, __this: PaperDropdownInstance) {
+			if (!__this._startTime) {
+				__this._startTime = timestamp;
 			}
-			if (timestamp - 100 < _this._startTime) {
-				const scale = 1 - (((timestamp - _this._startTime) / 100));
+			if (timestamp - 100 < __this._startTime) {
+				const scale = 1 - (((timestamp - __this._startTime) / 100));
 				let doubleScale = scale * 2;
-				_this.getMenu().style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
+				__this.getMenu().style.boxShadow = '0 ' + doubleScale + 'px ' + doubleScale + 'px 0 rgba(0,0,0,0.14),' +
 					' 0 ' + scale + 'px ' + (5 * scale) + 'px 0 rgba(0,0,0,0.12),' +
 					' 0 ' + (scale * 3) + 'px ' + scale + 'px ' + -doubleScale + 'px rgba(0,0,0,0.2)';
-				if (!_this.indent) {
-					_this._dropdownSelectedCont.style.marginLeft = (scale * 15) + 'px';
+				if (!__this.indent) {
+					__this._dropdownSelectedCont.style.marginLeft = (scale * 15) + 'px';
 				}
 				window.requestAnimationFrame(function (time) {
-					_this._animateBoxShadowOut(time, _this);
+					__this._animateBoxShadowOut(time, __this);
 				});
 			}
 			else {
-				if (!_this.indent) {
-					_this._dropdownSelectedCont.style.marginLeft = '0';
+				if (!__this.indent) {
+					__this._dropdownSelectedCont.style.marginLeft = '0';
 				}
-				_this._startTime = null;
-				_this.getMenu().style.boxShadow = 'rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0';
-				_this._paperDropdownEl.$.dropdownArrow.style.transform = 'rotate(90deg)';
+				__this._startTime = null;
+				__this.getMenu().style.boxShadow = 'rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0';
+				__this._paperDropdownEl.$.dropdownArrow.style.transform = 'rotate(90deg)';
 			}
 		};
 
@@ -278,30 +278,29 @@ namespace PaperDropdownBehaviorNamespace {
 				this.onopen();
 			}
 
-			const _this = this;
 			if (!this._expanded) {
 				this._expanded = true;
 				if (!this.raised) {
-					window.requestAnimationFrame(function(time) {
-						_this._animateBoxShadowIn(time, _this);
+					window.requestAnimationFrame((time) => {
+						this._animateBoxShadowIn(time, this);
 					});
 				}
-				setTimeout(function() {
-					const content = _this._getMenuContent();
+				setTimeout(() => {
+					const content = this._getMenuContent();
 					content.style.display = 'block';
 					const animation: {
 						[key: string]: any
 					} = {
 						height: content.scrollHeight
 					};
-					if (_this.overflowing) {
+					if (this.overflowing) {
 						animation['marginBottom'] = -(content.scrollHeight + 14);
 					}
 					$(content).stop().animate(animation, {
 						easing: 'easeOutCubic',
 						duration: 300,
-						complete() {
-							_this.$.dropdownArrow.style.transform = 'rotate(270deg)';
+						complete: () => {
+							this.$.dropdownArrow.style.transform = 'rotate(270deg)';
 						}
 					});
 				}, 100);
@@ -312,7 +311,6 @@ namespace PaperDropdownBehaviorNamespace {
 		 * Close the dropdown menu
 		 */
 		static close(this: PaperDropdownInstance) {
-			const _this = this;
 			if (this._expanded) {
 				this._expanded = false;
 				const animation: {
@@ -326,11 +324,11 @@ namespace PaperDropdownBehaviorNamespace {
 				$(this._getMenuContent()).stop().animate(animation, {
 					easing: 'swing',
 					duration: 300,
-					complete(this: HTMLElement) {
+					complete: () => {
 						this.style.display = 'none';
-						if (!_this.raised) {
-							window.requestAnimationFrame(function(time) {
-								_this._animateBoxShadowOut(time, _this);
+						if (!this.raised) {
+							window.requestAnimationFrame((time) => {
+								this._animateBoxShadowOut(time, this);
 							});
 						}
 					}

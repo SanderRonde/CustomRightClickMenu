@@ -535,7 +535,6 @@ namespace ScriptEditElement {
 		};
 
 		static init(this: NodeEditBehaviorScriptInstance) {
-			const _this = this;
 			this._init();
 			this._CEBIinit();
 			this.$.dropdownMenu.init();
@@ -552,19 +551,19 @@ namespace ScriptEditElement {
 					editing: {
 						val: this.item.value.script,
 						id: this.item.id,
-						mode: _this.editorMode,
+						mode: this.editorMode,
 						crmType: window.app.crmType
 					}
 				});
-				this.savingInterval = window.setInterval(function() {
-					if (_this.active && _this.editorManager) {
+				this.savingInterval = window.setInterval(() => {
+					if (this.active && this.editorManager) {
 						//Save
-						const val = _this.editorManager.editor.getValue();
+						const val = this.editorManager.editor.getValue();
 						chrome.storage.local.set({
 							editing: {
 								val: val,
-								id: _this.item.id,
-								mode: _this.editorMode,
+								id: this.item.id,
+								mode: this.editorMode,
 								crmType: window.app.crmType
 							}
 							// ReSharper disable once WrongExpressionStatement
@@ -574,13 +573,13 @@ namespace ScriptEditElement {
 						chrome.storage.local.set({
 							editing: false
 						});
-						window.clearInterval(_this.savingInterval);
+						window.clearInterval(this.savingInterval);
 					}
 				}, 5000);
 			}
 			this.active = true;
-			setTimeout(function() {
-				_this.loadEditor();
+			setTimeout(() => {
+				this.loadEditor();
 			}, 750);
 		}
 	}

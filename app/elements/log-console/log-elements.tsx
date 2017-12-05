@@ -35,7 +35,7 @@ window.logElements = (() => {
 			super(props);
 		}
 		showContextMenu(e: MouseEvent) {
-			window.logConsole.initContextMenu(this, e);
+			window.logConsole.initContextMenu(this as any, e);
 			e.preventDefault();
 			e.stopPropagation();
 			return false;
@@ -223,15 +223,14 @@ window.logElements = (() => {
 			if (!this.props.expanded && !this.props.renderedExpanded) {
 				this.props.renderedExpanded = true;
 
-				const _this = this;
 				const expandedElements: Array<JSX.Element> = [];
 				const pairs = getKeyValuePairs(this.props.value, true);
 				const lastElementIndex = pairs.length - 1;
-				pairs.forEach(function(item, i) {
+				pairs.forEach((item, i) => {
 					expandedElements.push(
 						<div className="expandedObjectElement">
 							<div className="expandedObjectElementIndex">{item.index}:</div>
-							<div className="expandedObjectElementValue">{getTag(item.value, _this, {
+							<div className="expandedObjectElementValue">{getTag(item.value, this, {
 								isProto: item.index === '__proto__'
 							})}</div>
 							{i < lastElementIndex ? <span className="arrayComma">,</span> : null}

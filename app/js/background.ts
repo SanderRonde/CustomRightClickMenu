@@ -2508,61 +2508,61 @@ if (typeof module === 'undefined') {
 	window.backgroundPageLog = Logging.backgroundPageLog;
 
 	class CRMFunctions {
-		static getTree(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.respondSuccess(globalObject.globals.crm.safeTree);
+		static getTree(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.respondSuccess(globalObject.globals.crm.safeTree);
 			});
 		}
-		static getSubTree(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				const nodeId = _this.message.data.nodeId;
+		static getSubTree(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				const nodeId = __this.message.data.nodeId;
 				if (typeof nodeId === 'number') {
 					const node = globalObject.globals.crm.crmByIdSafe[nodeId];
 					if (node) {
-						_this.respondSuccess([node]);
+						__this.respondSuccess([node]);
 					} else {
-						_this.respondError(`There is no node with id ${nodeId}`);
+						__this.respondError(`There is no node with id ${nodeId}`);
 					}
 				} else {
-					_this.respondError('No nodeId supplied');
+					__this.respondError('No nodeId supplied');
 				}
 			});
 		}
-		static getNode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				const nodeId = _this.message.data.nodeId;
+		static getNode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				const nodeId = __this.message.data.nodeId;
 				if (typeof nodeId === 'number') {
 					const node = globalObject.globals.crm.crmByIdSafe[nodeId];
 					if (node) {
-						_this.respondSuccess(node);
+						__this.respondSuccess(node);
 					} else {
-						_this.respondError(`There is no node with id ${nodeId}`);
+						__this.respondError(`There is no node with id ${nodeId}`);
 					}
 				} else {
-					_this.respondError('No nodeId supplied');
+					__this.respondError('No nodeId supplied');
 				}
 			});
 		}
-		static getNodeIdFromPath(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				const pathToSearch = _this.message.data.path;
-				const lookedUp = _this.lookup(pathToSearch, globalObject.globals.crm
+		static getNodeIdFromPath(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				const pathToSearch = __this.message.data.path;
+				const lookedUp = __this.lookup(pathToSearch, globalObject.globals.crm
 					.safeTree, false);
 				if (lookedUp === true) {
 					return false;
 				} else if (lookedUp === false) {
-					_this.respondError('Path does not return a valid value');
+					__this.respondError('Path does not return a valid value');
 					return false;
 				} else {
 					const lookedUpNode = lookedUp as CRM.SafeNode;
-					_this.respondSuccess(lookedUpNode.id);
+					__this.respondSuccess(lookedUpNode.id);
 					return lookedUpNode.id;
 				}
 			});
 		}
-		static queryCrm(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.typeCheck([
+		static queryCrm(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.typeCheck([
 					{
 						val: 'query',
 						type: 'object'
@@ -2580,7 +2580,7 @@ if (typeof module === 'undefined') {
 						optional: true
 					}
 				], (optionals) => {
-					const query = _this.message.data.query as {
+					const query = __this.message.data.query as {
 						type: string;
 						inSubTree: number;
 						name: string;
@@ -2595,7 +2595,7 @@ if (typeof module === 'undefined') {
 
 					let searchScope = null as any;
 					if (optionals['query.inSubTree']) {
-						const searchScopeObj = _this.getNodeFromId(
+						const searchScopeObj = __this.getNodeFromId(
 							query.inSubTree,
 							true, true);
 						let searchScopeObjChildren: Array<CRM.Node> = [];
@@ -2629,42 +2629,42 @@ if (typeof module === 'undefined') {
 						return result !== null;
 					}) as Array<any>;
 
-					_this.respondSuccess(searchScopeArr);
+					__this.respondSuccess(searchScopeArr);
 				});
 			});
 		}
-		static getParentNode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+		static getParentNode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 					const pathToSearch = JSON.parse(JSON.stringify(node.path));
 					pathToSearch.pop();
 					if (pathToSearch.length === 0) {
-						_this.respondSuccess(globalObject.globals.crm.safeTree);
+						__this.respondSuccess(globalObject.globals.crm.safeTree);
 					} else {
-						const lookedUp = _this.lookup<CRM.SafeNode>(pathToSearch, globalObject.globals.crm
+						const lookedUp = __this.lookup<CRM.SafeNode>(pathToSearch, globalObject.globals.crm
 							.safeTree, false);
-						_this.respondSuccess(lookedUp);
+						__this.respondSuccess(lookedUp);
 					}
 				});
 			});
 		}
-		static getNodeType(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId, true).run((node) => {
-					_this.respondSuccess(node.type);
+		static getNodeType(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
+					__this.respondSuccess(node.type);
 				});
 			});
 		}
-		static getNodeValue(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId, true).run((node) => {
-					_this.respondSuccess(node.value);
+		static getNodeValue(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
+					__this.respondSuccess(node.value);
 				});
 			});
 		}
-		static createNode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static createNode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'options',
 						type: 'object'
@@ -2772,17 +2772,17 @@ if (typeof module === 'undefined') {
 					}
 				], () => {
 					const id = Helpers.generateItemId();
-					let node = _this.message.data.options;
+					let node = __this.message.data.options;
 					node = CRM.makeSafe(node);
 					node.id = id;
-					node.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
+					node.nodeInfo = __this.getNodeFromId(__this.message.id, false, true)
 						.nodeInfo;
-					if (_this.getNodeFromId(_this.message.id, false, true).isLocal) {
+					if (__this.getNodeFromId(__this.message.id, false, true).isLocal) {
 						node.isLocal = true;
 					}
 
 					let newNode: CRM.Node;
-					switch (_this.message.data.options.type) {
+					switch (__this.message.data.options.type) {
 						case 'script':
 							newNode = globalObject.globals.constants.templates
 								.getDefaultScriptNode(node);
@@ -2811,19 +2811,19 @@ if (typeof module === 'undefined') {
 							break;
 					}
 
-					if ((newNode = _this.moveNode(newNode, _this.message.data.options.position) as CRM.Node)) {
+					if ((newNode = __this.moveNode(newNode, __this.message.data.options.position) as CRM.Node)) {
 						CRM.updateCrm([newNode.id]);
-						_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
+						__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
 					} else {
-						_this.respondError('Failed to place node');
+						__this.respondError('Failed to place node');
 					}
 					return true;
 				});
 			});
 		}
-		static copyNode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static copyNode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'options',
 						type: 'object'
@@ -2833,24 +2833,24 @@ if (typeof module === 'undefined') {
 						optional: true
 					}
 				], (optionals) => {
-					_this.getNodeFromId(_this.message.data.nodeId, true).run((node: CRM.Node) => {
+					__this.getNodeFromId(__this.message.data.nodeId, true).run((node: CRM.Node) => {
 						let newNode = JSON.parse(JSON.stringify(node));
 						newNode.id = Helpers.generateItemId();
-						if (_this.getNodeFromId(_this.message.id, false, true).local === true &&
+						if (__this.getNodeFromId(__this.message.id, false, true).local === true &&
 							node.isLocal === true) {
 							newNode.isLocal = true;
 						}
-						newNode.nodeInfo = _this.getNodeFromId(_this.message.id, false, true)
+						newNode.nodeInfo = __this.getNodeFromId(__this.message.id, false, true)
 							.nodeInfo;
 						delete newNode.storage;
 						delete newNode.file;
 						if (optionals['options.name']) {
-							newNode.name = _this.message.data.options.name;
+							newNode.name = __this.message.data.options.name;
 						}
-						if ((newNode = _this.moveNode(newNode, _this.message.data.options
+						if ((newNode = __this.moveNode(newNode, __this.message.data.options
 							.position))) {
 							CRM.updateCrm([newNode.id]);
-							_this.respondSuccess(_this.getNodeFromId(newNode.id, true, true));
+							__this.respondSuccess(__this.getNodeFromId(newNode.id, true, true));
 						}
 						return true;
 					});
@@ -2859,48 +2859,48 @@ if (typeof module === 'undefined') {
 			});
 			return true;
 		}
-		static moveNode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+		static moveNode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 					//Remove original from CRM
-					const parentChildren = _this.lookup(node.path, globalObject.globals.crm.crmTree, true);
+					const parentChildren = __this.lookup(node.path, globalObject.globals.crm.crmTree, true);
 					//parentChildren.splice(node.path[node.path.length - 1], 1);
 
-					if ((node = _this.moveNode(node, _this.message.data.position as {
+					if ((node = __this.moveNode(node, __this.message.data.position as {
 						node: number;
 					}, {
 							children: parentChildren,
 							index: node.path[node.path.length - 1]
 						}) as CRM.Node)) {
 						CRM.updateCrm();
-						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
+						__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
 					}
 				});
 			});
 		}
-		static deleteNode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-					const parentChildren = _this.lookup(node.path, globalObject.globals.crm.crmTree, true) as Array<CRM.Node>;
+		static deleteNode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					const parentChildren = __this.lookup(node.path, globalObject.globals.crm.crmTree, true) as Array<CRM.Node>;
 					parentChildren.splice(node.path[node.path.length - 1], 1);
 					if (globalObject.globals.crmValues.contextMenuIds[node
 						.id] !==
 						undefined) {
 						chrome.contextMenus.remove(globalObject.globals.crmValues
 							.contextMenuIds[node.id], () => {
-								CRM.updateCrm([_this.message.data.nodeId]);
-								_this.respondSuccess(true);
+								CRM.updateCrm([__this.message.data.nodeId]);
+								__this.respondSuccess(true);
 							});
 					} else {
-						CRM.updateCrm([_this.message.data.nodeId]);
-						_this.respondSuccess(true);
+						CRM.updateCrm([__this.message.data.nodeId]);
+						__this.respondSuccess(true);
 					}
 				});
 			});
 		}
-		static editNode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static editNode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'options',
 						type: 'object'
@@ -2914,25 +2914,25 @@ if (typeof module === 'undefined') {
 						optional: true
 					}
 				], (optionals) => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							options: {
 								type: string;
 							}
 						};
 
 						if (optionals['options.type']) {
-							if (_this.message.data.options.type !== 'link' &&
-								_this.message.data.options.type !== 'script' &&
-								_this.message.data.options.type !== 'stylesheet' &&
-								_this.message.data.options.type !== 'menu' &&
-								_this.message.data.options.type !== 'divider') {
-								_this
+							if (__this.message.data.options.type !== 'link' &&
+								__this.message.data.options.type !== 'script' &&
+								__this.message.data.options.type !== 'stylesheet' &&
+								__this.message.data.options.type !== 'menu' &&
+								__this.message.data.options.type !== 'divider') {
+								__this
 									.respondError('Given type is not a possible type to switch to, use either script, stylesheet, link, menu or divider');
 								return false;
 							} else {
 								const oldType = node.type.toLowerCase();
-								node.type = _this.message.data.options.type;
+								node.type = __this.message.data.options.type;
 
 								if (oldType === 'menu') {
 									node.menuVal = node.children;
@@ -2949,25 +2949,25 @@ if (typeof module === 'undefined') {
 							}
 						}
 						if (optionals['options.name']) {
-							node.name = _this.message.data.options.name;
+							node.name = __this.message.data.options.name;
 						}
-						CRM.updateCrm([_this.message.id]);
-						_this.respondSuccess(Helpers.safe(node));
+						CRM.updateCrm([__this.message.id]);
+						__this.respondSuccess(Helpers.safe(node));
 						return true;
 					});
 				});
 			});
 		}
-		static getTriggers(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-					_this.respondSuccess(node.triggers);
+		static getTriggers(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					__this.respondSuccess(node.triggers);
 				});
 			});
 		}
-		static setTriggers(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setTriggers(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'triggers',
 						type: 'array',
@@ -2979,8 +2979,8 @@ if (typeof module === 'undefined') {
 						]
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							triggers: Array<{
 								url: string;
 								not: boolean;
@@ -2996,7 +2996,7 @@ if (typeof module === 'undefined') {
 							for (let i = 0; i < triggers.length; i++) {
 								const pattern = URLParsing.validatePatternUrl(triggers[i].url);
 								if (!pattern) {
-									_this.respondSuccess('Triggers don\'t match URL scheme');
+									__this.respondSuccess('Triggers don\'t match URL scheme');
 									return;
 								}
 							}
@@ -3005,7 +3005,7 @@ if (typeof module === 'undefined') {
 								node.value.launchMode === CRMLaunchModes.RUN_ON_SPECIFIED);
 							for (let i = 0; i < triggers.length; i++) {
 								if (!URLParsing.triggerMatchesScheme(triggers[i].url)) {
-									_this.respondError('Triggers don\'t match URL scheme');
+									__this.respondError('Triggers don\'t match URL scheme');
 									return;
 								}
 								triggers[i].url = URLParsing.prepareTrigger(triggers[i].url);
@@ -3031,42 +3031,42 @@ if (typeof module === 'undefined') {
 									documentUrlPatterns: matchPatterns
 								}, () => {
 									CRM.updateCrm();
-									_this.respondSuccess(Helpers.safe(node));
+									__this.respondSuccess(Helpers.safe(node));
 								});
 						} else {
 							CRM.updateCrm();
-							_this.respondSuccess(Helpers.safe(node));
+							__this.respondSuccess(Helpers.safe(node));
 						}
 					});
 				});
 			});
 		}
-		static getTriggerUsage(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+		static getTriggerUsage(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 					if (node.type === 'menu' ||
 						node.type === 'link' ||
 						node.type === 'divider') {
-						_this.respondSuccess(node['showOnSpecified']);
+						__this.respondSuccess(node['showOnSpecified']);
 					} else {
-						_this.respondError('Node is not of right type, can only be menu, link or divider');
+						__this.respondError('Node is not of right type, can only be menu, link or divider');
 					}
 				});
 			});
 		}
-		static setTriggerUsage(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setTriggerUsage(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'useTriggers',
 						type: 'boolean'
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						useTriggers: boolean;
 					};
 
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						if (node.type === 'menu' ||
 							node.type === 'link' ||
 							node.type === 'divider') {
@@ -3078,29 +3078,29 @@ if (typeof module === 'undefined') {
 										documentUrlPatterns: ['<all_urls>']
 									}, () => {
 										CRM.updateCrm();
-										_this.respondSuccess(Helpers.safe(node));
+										__this.respondSuccess(Helpers.safe(node));
 									});
 							} else {
 								CRM.updateCrm();
-								_this.respondSuccess(Helpers.safe(node));
+								__this.respondSuccess(Helpers.safe(node));
 							}
 						} else {
-							_this.respondError('Node is not of right type, can only be menu, link or divider');
+							__this.respondError('Node is not of right type, can only be menu, link or divider');
 						}
 					});
 				});
 			});
 		}
-		static getContentTypes(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-					_this.respondSuccess(node.onContentTypes);
+		static getContentTypes(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					__this.respondSuccess(node.onContentTypes);
 				});
 			});
 		}
-		static setContentType(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setContentType(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'index',
 						type: 'number',
@@ -3111,12 +3111,12 @@ if (typeof module === 'undefined') {
 						type: 'boolean'
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						index: number;
 						value: boolean;
 					};
 
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						node.onContentTypes[msg['index']] = msg['value'];
 						CRM.updateCrm();
 						chrome.contextMenus.update(globalObject.globals.crmValues
@@ -3124,28 +3124,28 @@ if (typeof module === 'undefined') {
 								contexts: CRM.getContexts(node.onContentTypes)
 							}, () => {
 								CRM.updateCrm();
-								_this.respondSuccess(node.onContentTypes);
+								__this.respondSuccess(node.onContentTypes);
 							});
 					});
 				});
 			});
 		}
-		static setContentTypes(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setContentTypes(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'contentTypes',
 						type: 'array'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							contentTypes: Array<string>;
 						};
 
 						for (let i = 0; i < msg['contentTypes'].length; i++) {
 							if (typeof msg['contentTypes'][i] !== 'string') {
-								_this
+								__this
 									.respondError('Not all values in array contentTypes are of type string');
 								return false;
 							}
@@ -3177,28 +3177,28 @@ if (typeof module === 'undefined') {
 								contexts: CRM.getContexts(node.onContentTypes)
 							}, () => {
 								CRM.updateCrm();
-								_this.respondSuccess(Helpers.safe(node));
+								__this.respondSuccess(Helpers.safe(node));
 							});
 						return true;
 					});
 				});
 			});
 		}
-		static linkGetLinks(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+		static linkGetLinks(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 					if (node.type === 'link') {
-						_this.respondSuccess(node.value);
+						__this.respondSuccess(node.value);
 					} else {
-						_this.respondSuccess(node['linkVal']);
+						__this.respondSuccess(node['linkVal']);
 					}
 					return true;
 				});
 			});
 		}
-		static linkSetLinks(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static linkSetLinks(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'items',
 						type: ['object', 'array'],
@@ -3214,8 +3214,8 @@ if (typeof module === 'undefined') {
 						]
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							items: Array<{
 								newTab: boolean;
 								url: string;
@@ -3243,7 +3243,7 @@ if (typeof module === 'undefined') {
 						} else { //Object
 							items.newTab = !!items.newTab;
 							if (!items.url) {
-								_this
+								__this
 									.respondError('For not all values in the array items is the property url defined');
 								return false;
 							}
@@ -3255,18 +3255,18 @@ if (typeof module === 'undefined') {
 						}
 						CRM.updateCrm();
 						if (node.type === 'link') {
-							_this.respondSuccess(Helpers.safe(node).value);
+							__this.respondSuccess(Helpers.safe(node).value);
 						} else {
-							_this.respondSuccess(Helpers.safe(node)['linkVal']);
+							__this.respondSuccess(Helpers.safe(node)['linkVal']);
 						}
 						return true;
 					});
 				});
 			});
 		}
-		static linkPush(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static linkPush(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'items',
 						type: ['object', 'array'],
@@ -3282,8 +3282,8 @@ if (typeof module === 'undefined') {
 						]
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							items: Array<{
 								newTab: boolean;
 								url: string;
@@ -3310,7 +3310,7 @@ if (typeof module === 'undefined') {
 						} else { //Object
 							items.newTab = !!items.newTab;
 							if (!items.url) {
-								_this
+								__this
 									.respondError('For not all values in the array items is the property url defined');
 								return false;
 							}
@@ -3323,19 +3323,19 @@ if (typeof module === 'undefined') {
 						}
 						CRM.updateCrm();
 						if (node.type === 'link') {
-							_this.respondSuccess(Helpers.safe(node).value);
+							__this.respondSuccess(Helpers.safe(node).value);
 						} else {
-							_this.respondSuccess(Helpers.safe(node)['linkVal']);
+							__this.respondSuccess(Helpers.safe(node)['linkVal']);
 						}
 						return true;
 					});
 				});
 			});
 		}
-		static linkSplice(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-					_this.typeCheck([
+		static linkSplice(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+					__this.typeCheck([
 						{
 							val: 'start',
 							type: 'number'
@@ -3344,7 +3344,7 @@ if (typeof module === 'undefined') {
 							type: 'number'
 						}
 					], () => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							start: number;
 							amount: number;
 						};
@@ -3353,13 +3353,13 @@ if (typeof module === 'undefined') {
 						if (node.type === 'link') {
 							spliced = node.value.splice(msg['start'], msg['amount']);
 							CRM.updateCrm();
-							_this.respondSuccess(spliced, Helpers.safe(node).value);
+							__this.respondSuccess(spliced, Helpers.safe(node).value);
 						} else {
 							node.linkVal = node.linkVal || [];
 							spliced = node.linkVal.splice(msg['start'],
 								msg['amount']);
 							CRM.updateCrm();
-							_this.respondSuccess(spliced, Helpers.safe(node)['linkVal']);
+							__this.respondSuccess(spliced, Helpers.safe(node)['linkVal']);
 						}
 					}
 					);
@@ -3367,9 +3367,9 @@ if (typeof module === 'undefined') {
 
 			});
 		}
-		static setLaunchMode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setLaunchMode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'launchMode',
 						type: 'number',
@@ -3377,39 +3377,39 @@ if (typeof module === 'undefined') {
 						max: 4
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							launchMode: CRMLaunchModes;
 						};
 
 						if (node.type === 'script' || node.type === 'stylesheet') {
 							node.value.launchMode = msg['launchMode'];
 						} else {
-							_this.respondError('Node is not of type script or stylesheet');
+							__this.respondError('Node is not of type script or stylesheet');
 							return false;
 						}
 						CRM.updateCrm();
-						_this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Helpers.safe(node));
 						return true;
 					});
 				});
 			});
 		}
-		static getLaunchMode(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+		static getLaunchMode(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 					if (node.type === 'script' || node.type === 'stylesheet') {
-						_this.respondSuccess(node.value.launchMode);
+						__this.respondSuccess(node.value.launchMode);
 					} else {
-						_this.respondError('Node is not of type script or stylesheet');
+						__this.respondError('Node is not of type script or stylesheet');
 					}
 				});
 
 			});
 		}
-		static registerLibrary(_this: CRMFunction) {
-			_this.checkPermissions(['crmWrite'], () => {
-				_this.typeCheck([
+		static registerLibrary(__this: CRMFunction) {
+			__this.checkPermissions(['crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'name',
 						type: 'string'
@@ -3423,7 +3423,7 @@ if (typeof module === 'undefined') {
 						optional: true
 					}
 				], (optionals) => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						url?: string;
 						name: string;
 						code?: string;
@@ -3449,17 +3449,17 @@ if (typeof module === 'undefined') {
 									chrome.storage.local.set({
 										libraries: globalObject.globals.storages.storageLocal.libraries
 									});
-									_this.respondSuccess(newLibrary);
+									__this.respondSuccess(newLibrary);
 								}
 							};
 							setTimeout(() => {
 								if (!done) {
-									_this.respondError('Request timed out');
+									__this.respondError('Request timed out');
 								}
 							}, 5000);
 							xhr.send();
 						} else {
-							_this.respondError('No valid URL given');
+							__this.respondError('No valid URL given');
 							return false;
 						}
 					} else if (optionals['code']) {
@@ -3471,18 +3471,18 @@ if (typeof module === 'undefined') {
 						chrome.storage.local.set({
 							libraries: globalObject.globals.storages.storageLocal.libraries
 						});
-						_this.respondSuccess(newLibrary);
+						__this.respondSuccess(newLibrary);
 					} else {
-						_this.respondError('No URL or code given');
+						__this.respondError('No URL or code given');
 						return false;
 					}
 					return true;
 				});
 			});
 		}
-		static scriptLibraryPush(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static scriptLibraryPush(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'libraries',
 						type: ['object', 'array'],
@@ -3498,10 +3498,10 @@ if (typeof module === 'undefined') {
 						optional: true
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						libraries: Array<CRM.Library> | CRM.Library;
 					};
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						function doesLibraryExist(lib: {
 							name: string;
 						}): string | boolean {
@@ -3527,7 +3527,7 @@ if (typeof module === 'undefined') {
 						}
 
 						if (node.type !== 'script') {
-							_this.respondError('Node is not of type script');
+							__this.respondError('Node is not of type script');
 							return false;
 						}
 						const libraries = msg['libraries'];
@@ -3535,7 +3535,7 @@ if (typeof module === 'undefined') {
 							for (let i = 0; i < libraries.length; i++) {
 								const originalName = libraries[i].name;
 								if (!(libraries[i].name = doesLibraryExist(libraries[i]) as string)) {
-									_this.respondError('Library ' + originalName + ' is not registered');
+									__this.respondError('Library ' + originalName + ' is not registered');
 									return false;
 								}
 								if (!isAlreadyUsed(node, libraries[i])) {
@@ -3545,7 +3545,7 @@ if (typeof module === 'undefined') {
 						} else { //Object
 							const name = libraries.name;
 							if (!(libraries.name = doesLibraryExist(libraries) as string)) {
-								_this.respondError('Library ' + name + ' is not registered');
+								__this.respondError('Library ' + name + ' is not registered');
 								return false;
 							}
 							if (!isAlreadyUsed(node, libraries)) {
@@ -3553,15 +3553,15 @@ if (typeof module === 'undefined') {
 							}
 						}
 						CRM.updateCrm();
-						_this.respondSuccess(Helpers.safe(node).value.libraries);
+						__this.respondSuccess(Helpers.safe(node).value.libraries);
 						return true;
 					});
 				});
 			});
 		}
-		static scriptLibrarySplice(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static scriptLibrarySplice(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'start',
 						type: 'number'
@@ -3570,8 +3570,8 @@ if (typeof module === 'undefined') {
 						type: 'number'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							start: number;
 							amount: number;
 						};
@@ -3580,18 +3580,18 @@ if (typeof module === 'undefined') {
 						if (node.type === 'script') {
 							spliced = Helpers.safe(node).value.libraries.splice(msg['start'], msg['amount']);
 							CRM.updateCrm();
-							_this.respondSuccess(spliced, Helpers.safe(node).value.libraries);
+							__this.respondSuccess(spliced, Helpers.safe(node).value.libraries);
 						} else {
-							_this.respondError('Node is not of type script');
+							__this.respondError('Node is not of type script');
 						}
 						return true;
 					});
 				});
 			});
 		}
-		static scriptBackgroundLibraryPush(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static scriptBackgroundLibraryPush(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'libraries',
 						type: ['object', 'array'],
@@ -3607,8 +3607,8 @@ if (typeof module === 'undefined') {
 						optional: true
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							libraries: Array<CRM.Library> | CRM.Library
 						};
 
@@ -3637,7 +3637,7 @@ if (typeof module === 'undefined') {
 						}
 
 						if (node.type !== 'script') {
-							_this.respondError('Node is not of type script');
+							__this.respondError('Node is not of type script');
 							return false;
 						}
 						const libraries = msg['libraries'];
@@ -3645,7 +3645,7 @@ if (typeof module === 'undefined') {
 							for (let i = 0; i < libraries.length; i++) {
 								const originalName = libraries[i].name;
 								if (!(libraries[i].name = doesLibraryExist(libraries[i]) as string)) {
-									_this.respondError('Library ' + originalName + ' is not registered');
+									__this.respondError('Library ' + originalName + ' is not registered');
 									return false;
 								}
 								if (!isAlreadyUsed(node, libraries[i])) {
@@ -3655,7 +3655,7 @@ if (typeof module === 'undefined') {
 						} else { //Object
 							const name = libraries.name;
 							if (!(libraries.name = doesLibraryExist(libraries) as string)) {
-								_this.respondError('Library ' + name + ' is not registered');
+								__this.respondError('Library ' + name + ' is not registered');
 								return false;
 							}
 							if (!isAlreadyUsed(node, libraries)) {
@@ -3663,15 +3663,15 @@ if (typeof module === 'undefined') {
 							}
 						}
 						CRM.updateCrm();
-						_this.respondSuccess(Helpers.safe(node).value.backgroundLibraries);
+						__this.respondSuccess(Helpers.safe(node).value.backgroundLibraries);
 						return true;
 					});
 				});
 			});
 		}
-		static scriptBackgroundLibrarySplice(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static scriptBackgroundLibrarySplice(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'start',
 						type: 'number'
@@ -3680,17 +3680,17 @@ if (typeof module === 'undefined') {
 						type: 'number'
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						start: number;
 						amount: number;
 					};
 
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						let spliced;
 						if (node.type === 'script') {
 							spliced = Helpers.safe(node).value.backgroundLibraries.splice(msg['start'], msg['amount']);
-							CRM.updateCrm([_this.message.data.nodeId]);
-							_this.respondSuccess(spliced, Helpers.safe(node).value
+							CRM.updateCrm([__this.message.data.nodeId]);
+							__this.respondSuccess(spliced, Helpers.safe(node).value
 								.backgroundLibraries);
 						} else {
 							node.scriptVal = node.scriptVal ||
@@ -3698,26 +3698,26 @@ if (typeof module === 'undefined') {
 							node.scriptVal.backgroundLibraries = node.scriptVal.backgroundLibraries || [];
 							spliced = node.scriptVal.backgroundLibraries.splice(msg['start'],
 								msg['amount']);
-							CRM.updateCrm([_this.message.data.nodeId]);
-							_this.respondSuccess(spliced, node.scriptVal.backgroundLibraries);
+							CRM.updateCrm([__this.message.data.nodeId]);
+							__this.respondSuccess(spliced, node.scriptVal.backgroundLibraries);
 						}
 						return true;
 					});
 				});
 			});
 		}
-		static setScriptValue(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setScriptValue(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'script',
 						type: 'string'
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						script: string;
 					};
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						if (node.type === 'script') {
 							node.value.script = msg['script'];
 						} else {
@@ -3726,7 +3726,7 @@ if (typeof module === 'undefined') {
 							node.scriptVal.script = msg['script'];
 						}
 						CRM.updateCrm();
-						_this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Helpers.safe(node));
 						return true;
 					});
 				});
@@ -3748,16 +3748,16 @@ if (typeof module === 'undefined') {
 
 			});
 		}
-		static setStylesheetValue(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setStylesheetValue(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'stylesheet',
 						type: 'string'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							stylesheet: string;
 						};
 						if (node.type === 'stylesheet') {
@@ -3768,40 +3768,40 @@ if (typeof module === 'undefined') {
 							node.stylesheetVal.stylesheet = msg['stylesheet'];
 						}
 						CRM.updateCrm();
-						_this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Helpers.safe(node));
 						return true;
 					});
 				});
 			});
 		}
-		static getStylesheetValue(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId, true).run((node) => {
+		static getStylesheetValue(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 					if (node.type === 'stylesheet') {
-						_this.respondSuccess(node.value.stylesheet);
+						__this.respondSuccess(node.value.stylesheet);
 					} else {
 						if (node.stylesheetVal) {
-							_this.respondSuccess(node.stylesheetVal.stylesheet);
+							__this.respondSuccess(node.stylesheetVal.stylesheet);
 						} else {
-							_this.respondSuccess(undefined);
+							__this.respondSuccess(undefined);
 						}
 					}
 				});
 
 			});
 		}
-		static setBackgroundScriptValue(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setBackgroundScriptValue(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'script',
 						type: 'string'
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						script: string;
 					};
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						if (node.type === 'script') {
 							node.value.backgroundScript = msg['script'];
 						} else {
@@ -3809,62 +3809,62 @@ if (typeof module === 'undefined') {
 								globalObject.globals.constants.templates.getDefaultScriptValue();
 							node.scriptVal.backgroundScript = msg['script'];
 						}
-						CRM.updateCrm([_this.message.data.nodeId]);
-						_this.respondSuccess(Helpers.safe(node));
+						CRM.updateCrm([__this.message.data.nodeId]);
+						__this.respondSuccess(Helpers.safe(node));
 						return true;
 					});
 				});
 			});
 		}
-		static getBackgroundScriptValue(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId, true).run((node) => {
+		static getBackgroundScriptValue(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 					if (node.type === 'script') {
-						_this.respondSuccess(node.value.backgroundScript);
+						__this.respondSuccess(node.value.backgroundScript);
 					} else {
 						if (node.scriptVal) {
-							_this.respondSuccess(node.scriptVal.backgroundScript);
+							__this.respondSuccess(node.scriptVal.backgroundScript);
 						} else {
-							_this.respondSuccess(undefined);
+							__this.respondSuccess(undefined);
 						}
 					}
 				});
 
 			});
 		}
-		static getMenuChildren(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet'], () => {
-				_this.getNodeFromId(_this.message.data.nodeId, true).run((node) => {
+		static getMenuChildren(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet'], () => {
+				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 					if (node.type === 'menu') {
-						_this.respondSuccess(node.children);
+						__this.respondSuccess(node.children);
 					} else {
-						_this.respondError('Node is not of type menu');
+						__this.respondError('Node is not of type menu');
 					}
 				});
 
 			});
 		}
-		static setMenuChildren(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static setMenuChildren(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'childrenIds',
 						type: 'array'
 					}
 				], () => {
-					_this.getNodeFromId(_this.message.data.nodeId, true).run((node) => {
-						const msg = _this.message.data as CRMFunctionDataBase & {
+					__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
+						const msg = __this.message.data as CRMFunctionDataBase & {
 							childrenIds: Array<number>;
 						};
 
 						if (node.type !== 'menu') {
-							_this.respondError('Node is not of type menu');
+							__this.respondError('Node is not of type menu');
 							return false;
 						}
 
 						for (let i = 0; i < msg['childrenIds'].length; i++) {
 							if (typeof msg['childrenIds'][i] !== 'number') {
-								_this
+								__this
 									.respondError('Not all values in array childrenIds are of type number');
 								return false;
 							}
@@ -3873,75 +3873,75 @@ if (typeof module === 'undefined') {
 						const oldLength = node.children.length;
 
 						for (let i = 0; i < msg['childrenIds'].length; i++) {
-							const toMove = _this.getNodeFromId(msg['childrenIds'][i], false,
+							const toMove = __this.getNodeFromId(msg['childrenIds'][i], false,
 								true);
-							_this.moveNode(toMove, {
+							__this.moveNode(toMove, {
 								relation: 'lastChild',
-								node: _this.message.data.nodeId
+								node: __this.message.data.nodeId
 							}, {
-									children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
+									children: __this.lookup(toMove.path, globalObject.globals.crm.crmTree,
 										true),
 									index: toMove.path[toMove.path.length - 1]
 								});
 						}
 
-						_this.getNodeFromId(node.id, false, true).children.splice(0, oldLength);
+						__this.getNodeFromId(node.id, false, true).children.splice(0, oldLength);
 
 						CRM.updateCrm();
-						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
+						__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
 						return true;
 					});
 				});
 			});
 		}
-		static pushMenuChildren(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static pushMenuChildren(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'childrenIds',
 						type: 'array'
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						childrenIds: Array<number>;
 					};
 
-					_this.getNodeFromId(_this.message.data.nodeId, true).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 						if (node.type !== 'menu') {
-							_this.respondError('Node is not of type menu');
+							__this.respondError('Node is not of type menu');
 						}
 
 						for (let i = 0; i < msg['childrenIds'].length; i++) {
 							if (typeof msg['childrenIds'][i] !== 'number') {
-								_this
+								__this
 									.respondError('Not all values in array childrenIds are of type number');
 								return false;
 							}
 						}
 
 						for (let i = 0; i < msg['childrenIds'].length; i++) {
-							const toMove = _this.getNodeFromId(msg['childrenIds'][i], false,
+							const toMove = __this.getNodeFromId(msg['childrenIds'][i], false,
 								true);
-							_this.moveNode(toMove, {
+							__this.moveNode(toMove, {
 								relation: 'lastChild',
-								node: _this.message.data.nodeId
+								node: __this.message.data.nodeId
 							}, {
-									children: _this.lookup(toMove.path, globalObject.globals.crm.crmTree,
+									children: __this.lookup(toMove.path, globalObject.globals.crm.crmTree,
 										true),
 									index: toMove.path[toMove.path.length - 1]
 								});
 						}
 
 						CRM.updateCrm();
-						_this.respondSuccess(_this.getNodeFromId(node.id, true, true));
+						__this.respondSuccess(__this.getNodeFromId(node.id, true, true));
 						return true;
 					});
 				});
 			});
 		}
-		static spliceMenuChildren(_this: CRMFunction) {
-			_this.checkPermissions(['crmGet', 'crmWrite'], () => {
-				_this.typeCheck([
+		static spliceMenuChildren(__this: CRMFunction) {
+			__this.checkPermissions(['crmGet', 'crmWrite'], () => {
+				__this.typeCheck([
 					{
 						val: 'start',
 						type: 'number'
@@ -3950,14 +3950,14 @@ if (typeof module === 'undefined') {
 						type: 'number'
 					}
 				], () => {
-					const msg = _this.message.data as CRMFunctionDataBase & {
+					const msg = __this.message.data as CRMFunctionDataBase & {
 						start: number;
 						amount: number;
 					};
 
-					_this.getNodeFromId(_this.message.data.nodeId).run((node) => {
+					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						if (node.type !== 'menu') {
-							_this.respondError('Node is not of type menu');
+							__this.respondError('Node is not of type menu');
 							return false;
 						}
 
@@ -3965,9 +3965,9 @@ if (typeof module === 'undefined') {
 							msg['start'], msg['amount']);
 
 						CRM.updateCrm();
-						_this.respondSuccess(spliced.map((splicedNode) => {
+						__this.respondSuccess(spliced.map((splicedNode) => {
 							return CRM.makeSafe(splicedNode);
-						}), _this.getNodeFromId(node.id, true, true).children);
+						}), __this.getNodeFromId(node.id, true, true).children);
 						return true;
 					});
 				});
@@ -4209,12 +4209,12 @@ if (typeof module === 'undefined') {
 				});
 			})
 		}
-		static addKeyboardListener(_this: CRMFunction) {
-			_this.typeCheck([{
+		static addKeyboardListener(__this: CRMFunction) {
+			__this.typeCheck([{
 				val: 'key',
 				type: 'string'
 			}], (optionals) => {
-				const msg = _this.message.data as CRMFunctionDataBase & {
+				const msg = __this.message.data as CRMFunctionDataBase & {
 					key: string;
 				};
 				const shortcuts = globalObject.globals.shortcutListeners;
@@ -4224,7 +4224,7 @@ if (typeof module === 'undefined') {
 					shortcut: key,
 					callback: () => {
 						try {
-							_this.respondSuccess();
+							__this.respondSuccess();
 						} catch (e) {
 							//Port/tab was closed
 							shortcuts[key].splice(shortcuts[key].indexOf(listenerObject), 1);
@@ -4460,7 +4460,7 @@ if (typeof module === 'undefined') {
 
 		private static readonly MoveNode = class MoveNode {
 			static before(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
-				_this: CRMFunction) {
+				__this: CRMFunction) {
 				if (isRoot) {
 					Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
 					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
@@ -4468,7 +4468,7 @@ if (typeof module === 'undefined') {
 						removeOld.index++;
 					}
 				} else {
-					const parentChildren = _this.lookup(relativeNode.path, globalObject.globals.crm
+					const parentChildren = __this.lookup(relativeNode.path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
 					Helpers.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
 					if (removeOld && parentChildren === removeOld.children) {
@@ -4477,7 +4477,7 @@ if (typeof module === 'undefined') {
 				}
 			}
 			static firstSibling(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
-				_this: CRMFunction) {
+				__this: CRMFunction) {
 				if (isRoot) {
 					Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
 					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
@@ -4485,7 +4485,7 @@ if (typeof module === 'undefined') {
 						removeOld.index++;
 					}
 				} else {
-					const parentChildren = _this.lookup((relativeNode as any).path, globalObject.globals.crm
+					const parentChildren = __this.lookup((relativeNode as any).path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
 					Helpers.pushIntoArray(node, 0, parentChildren);
 					if (removeOld && parentChildren === removeOld.children) {
@@ -4493,13 +4493,13 @@ if (typeof module === 'undefined') {
 					}
 				}
 			}
-			static after(isRoot: boolean, node: CRM.Node, relativeNode: any, _this: CRMFunction) {
+			static after(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: CRMFunction) {
 				if (isRoot) {
 					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
 						globalObject
 							.globals.crm.crmTree);
 				} else {
-					const parentChildren = _this.lookup((relativeNode as any).path, globalObject.globals.crm
+					const parentChildren = __this.lookup((relativeNode as any).path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
 					if ((relativeNode as any).path.length > 0) {
 						Helpers.pushIntoArray(node, (relativeNode as any)
@@ -4508,19 +4508,19 @@ if (typeof module === 'undefined') {
 					}
 				}
 			}
-			static lastSibling(isRoot: boolean, node: CRM.Node, relativeNode: any, _this: CRMFunction) {
+			static lastSibling(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: CRMFunction) {
 				if (isRoot) {
 					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
 						globalObject
 							.globals.crm.crmTree);
 				} else {
-					const parentChildren = _this.lookup((relativeNode as any).path, globalObject.globals.crm
+					const parentChildren = __this.lookup((relativeNode as any).path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
 					Helpers.pushIntoArray(node, parentChildren.length, parentChildren);
 				}
 			}
 			static firstChild(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
-				_this: CRMFunction) {
+				__this: CRMFunction) {
 				if (isRoot) {
 					Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
 					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
@@ -4533,12 +4533,12 @@ if (typeof module === 'undefined') {
 						removeOld.index++;
 					}
 				} else {
-					_this.respondError('Supplied node is not of type "menu"');
+					__this.respondError('Supplied node is not of type "menu"');
 					return false;
 				}
 				return true;
 			}
-			static lastChild(isRoot: boolean, node: CRM.Node, relativeNode: any, _this: CRMFunction) {
+			static lastChild(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: CRMFunction) {
 				if (isRoot) {
 					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
 						globalObject
@@ -4547,7 +4547,7 @@ if (typeof module === 'undefined') {
 					Helpers.pushIntoArray(node, (relativeNode as CRM.MenuNode).children.length,
 						(relativeNode as CRM.MenuNode).children);
 				} else {
-					_this.respondError('Supplied node is not of type "menu"');
+					__this.respondError('Supplied node is not of type "menu"');
 					return false;
 				}
 				return true;
@@ -6278,7 +6278,7 @@ if (typeof module === 'undefined') {
 					const oldTree = JSON.parse(JSON.stringify(globalObject.globals.storages
 						.settingsStorage.crm));
 
-					const _this = this;
+					const __this = this;
 					function onDone() {
 						const updatedData = updatedScripts.map((updatedScript) => {
 							const oldNode = globalObject.globals.crm.crmById[updatedScript
@@ -6295,10 +6295,10 @@ if (typeof module === 'undefined') {
 
 						updatedScripts.forEach((updatedScript) => {
 							if (updatedScript.path) { //Has old node
-								_this._removeOldNode(updatedScript.oldNodeId);
-								_this._registerNode(updatedScript.node, updatedScript.path);
+								__this._removeOldNode(updatedScript.oldNodeId);
+								__this._registerNode(updatedScript.node, updatedScript.path);
 							} else {
-								_this._registerNode(updatedScript.node);
+								__this._registerNode(updatedScript.node);
 							}
 						});
 

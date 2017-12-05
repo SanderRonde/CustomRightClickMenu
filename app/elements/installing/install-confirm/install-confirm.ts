@@ -27,11 +27,11 @@ namespace InstallConfirmElement {
 		static properties = installConfirmProperties;
 
 		private static loadSettings(this: InstallConfirm, cb: () => void) {
-			const _this = this;
+			const __this = this;
 
 			function callback(items: CRM.SettingsStorage) {
-				_this.settings = items;
-				cb && cb.apply(_this);
+				__this.settings = items;
+				cb && cb.apply(__this);
 			}
 
 			chrome.storage.local.get(function(storageLocal: CRM.StorageLocal & {
@@ -317,8 +317,8 @@ namespace InstallConfirmElement {
 			}, 25);
 		};
 
-		private static async loadEditor(_this: InstallConfirm) {
-			!_this.settings.editor && (_this.settings.editor = {
+		private static async loadEditor(this: InstallConfirm) {
+			!this.settings.editor && (this.settings.editor = {
 				theme: 'dark',
 				zoom: '100',
 				keyBindings: {
@@ -328,21 +328,20 @@ namespace InstallConfirmElement {
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false
 			});
-			const editor = await _this.$.editorCont.create('script', {
-				value: _this.script,
+			const editor = await this.$.editorCont.create('script', {
+				value: this.script,
 				language: 'javascript',
 				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
 				wordWrap: 'off',
 				fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
 				folding: true
 			});
-			_this.editorLoaded(editor);
+			this.editorLoaded(editor);
 		};
 
 		static ready(this: InstallConfirm) {
-			const _this = this;
-			this.loadSettings(function() {
-				_this.loadEditor(_this);
+			this.loadSettings(() => {
+				this.loadEditor();
 			});
 			window.installConfirm = this;
 		}

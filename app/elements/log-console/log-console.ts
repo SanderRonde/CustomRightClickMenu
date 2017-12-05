@@ -23,7 +23,7 @@ namespace LogConsoleElement {
 		tabs: Array<TabData>;
 		textfilter: string;
 		waitingForEval: boolean;
-		_this: LogConsole;
+		__this: LogConsole;
 	} = {
 		lines: {
 			value: 0,
@@ -70,7 +70,7 @@ namespace LogConsoleElement {
 			value: false,
 			notify: true
 		},
-		_this: { }
+		__this: { }
 	} as any;
 
 	export interface ContextMenuSource {
@@ -109,14 +109,13 @@ namespace LogConsoleElement {
 		};
 
 		static _takeToTab(this: LogConsole, event: Polymer.ClickEvent) {
-			const _this = this;
 			const target = event.target;
 			let tabId = (target.children[0] as HTMLElement).innerText;
 			
-			chrome.tabs.get(~~tabId, function(tab) {
+			chrome.tabs.get(~~tabId, (tab) => {
 				if (chrome.runtime.lastError) {
-					_this.$.genericToast.text = 'Tab has been closed';
-					_this.$.genericToast.show();
+					this.$.genericToast.text = 'Tab has been closed';
+					this.$.genericToast.show();
 					return;
 				}
 
@@ -237,10 +236,9 @@ namespace LogConsoleElement {
 				)) || [];
 			
 			if (this.logLines) {
-				const _this = this;
 				this.logLines.clear();
-				lines.forEach(function(line) {
-					_this.logLines.add(line.data, line);
+				lines.forEach((line) => {
+					this.logLines.add(line.data, line);
 				});
 			}
 
@@ -252,13 +250,12 @@ namespace LogConsoleElement {
 		};
 
 		static _getIdTabs(this: LogConsole, selectedId: string|number, tabs: Array<TabData>): Array<TabData> {
-			const _this = this;
 			if (~~selectedId === 0) {
 				return tabs;
 			}
 			if (this.bgPage) {
-				this.bgPage._getIdCurrentTabs(~~this.ids[~~selectedId - 1].id, this.tabs, function(newTabs) {
-					_this.set('tabs', newTabs);
+				this.bgPage._getIdCurrentTabs(~~this.ids[~~selectedId - 1].id, this.tabs, (newTabs) => {
+					this.set('tabs', newTabs);
 				});
 				return tabs;
 			} else {
@@ -307,49 +304,49 @@ namespace LogConsoleElement {
 		};
 
 		private static _init(this: LogConsole, callback: () => void) {
-			const _this = this;
-			chrome.runtime.getBackgroundPage(function(bgPage) {
-				_this.bgPage = bgPage;
+			chrome.runtime.getBackgroundPage((bgPage) => {
+				this.bgPage = bgPage;
 
-				bgPage._listenIds(function(ids) {
-					_this.set('ids', ids);
+				bgPage._listenIds((ids) => {
+					this.set('ids', ids);
 				});
-				bgPage._listenTabs(function(tabs) {
-					_this.set('tabs', tabs);
+				bgPage._listenTabs((tabs) => {
+					this.set('tabs', tabs);
 				});
-				bgPage._listenLog(function(logLine) {
+				bgPage._listenLog((logLine) => {
 					if (logLine.type && logLine.type === 'evalResult') {
-						_this._processEvalLine(logLine);
+						this._processEvalLine(logLine);
 					} else if (logLine.type && logLine.type === 'hints') {
-						_this._processLine(logLine);
+						this._processLine(logLine);
 					} else {
-						_this._processLine(logLine);
+						this._processLine(logLine);
 					}
-				}, function(logListener) {
-					_this._logListener = logListener;
-				}).forEach(function(logLine) {
-					_this._processLine(logLine);
+				}, (logListener) => {
+					this._logListener = logListener;
+				}).forEach((logLine) => {
+					this._processLine(logLine);
 				});
 			});
 
-			this.async(function() {
+			this.async(() => {
 				const menus = Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('paper-dropdown-menu')) as Array<PaperDropdownInstance>;
-				menus.forEach(function(menu) {
-					menu.onopen = function() {
+				menus.forEach((menu) => {
+					menu.onopen = () => {
 						(menu.querySelector('template') as HTMLDomRepeatElement).render();
-						_this.async(function() {
+						this.async(() => {
 							menu.refreshListeners.apply(menu);
 						}, 100);
 					};
+					const __this = this;
 					(menu as PaperDropdownMenu).onchange= function(oldState: number, newState: number) {
 						menus.forEach(function(menu) {
 							menu.close();
 						});
 
 						if (menu.id === 'idDropdown') {
-							_this.set('selectedId', newState);
+							__this.set('selectedId', newState);
 						} else {
-							_this.set('selectedTab', newState);
+							__this.set('selectedTab', newState);
 						}
 					} as any;
 				});
@@ -503,7 +500,7 @@ namespace LogConsoleElement {
 		};
 
 		static ready(this: LogConsole) {
-			this._this = this;
+			this.__this = this;
 			window.logConsole = this;
 
 			this.logLines = (ReactDOM.render(

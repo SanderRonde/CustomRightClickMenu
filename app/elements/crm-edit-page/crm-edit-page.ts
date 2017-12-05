@@ -220,7 +220,6 @@ namespace CrmEditPageElement {
 		};
 
 		static hideUpdateMergeDialog(this: CrmEditPage) {
-			var _this = this;
 			if (this.showUpgradeNotice(this.hideUpdateMessage, this.item)) {
 				var height = this.$.scriptUpdateNotice.getBoundingClientRect().height;
 				var marginBot = '-' + height + 'px';
@@ -233,29 +232,28 @@ namespace CrmEditPageElement {
 				], {
 					duration: 350,
 					easing: 'bez'
-				}).onfinish = function() {
-					_this.$.scriptUpdateNotice.style.marginBottom = marginBot;
-					_this.hideUpdateMessage = true;
+				}).onfinish = () => {
+					this.$.scriptUpdateNotice.style.marginBottom = marginBot;
+					this.hideUpdateMessage = true;
 				};
 			}
 			window.scriptEdit.newSettings.value.updateNotice = false;
 		};
 
 		static showScriptUpdateDiff(this: CrmEditPage) {
-			var _this = this;
 			var oldScript = (this.item as CRM.ScriptNode).value.oldScript;
 			var newScript = (this.item as CRM.ScriptNode).value.script;
 			const chooseDialog = window.doc.externalEditorChooseFile;
-			chooseDialog.init(oldScript, newScript, function(chosenScript: string) {
+			chooseDialog.init(oldScript, newScript, (chosenScript: string) => {
 				if (window.app.storageLocal.upgradeErrors) {
-					delete window.app.storageLocal.upgradeErrors[_this.item.id];
+					delete window.app.storageLocal.upgradeErrors[this.item.id];
 				}
 				const editor = window.scriptEdit.editorManager.editor;
 				if (!window.scriptEdit.editorManager.isDiff(editor)) {
 					editor.setValue(chosenScript);
 				}
-				setTimeout(function() {
-					_this.hideUpdateMergeDialog();
+				setTimeout(() => {
+					this.hideUpdateMergeDialog();
 				}, 250);
 				chrome.storage.local.set({
 					upgradeErrors: window.app.storageLocal.upgradeErrors || {}
@@ -298,7 +296,6 @@ namespace CrmEditPageElement {
 		};
 		
 		static init(this: CrmEditPage) {
-			const _this = this;
 			const valueStorer: {
 				isScript: boolean;
 				isLink: boolean;
@@ -332,16 +329,16 @@ namespace CrmEditPageElement {
 				this.dividerItem = node as CRM.DividerNode;
 
 			}
-			setTimeout(function() {
+			setTimeout(() => {
 				window.app.show = true;
-				_this.isScript = valueStorer.isScript;
-				_this.isLink = valueStorer.isLink;
-				_this.isMenu = valueStorer.isMenu;
-				_this.isDivider = valueStorer.isDivider;
-				_this.isStylesheet = valueStorer.isStylesheet;
-				const page = _this.shadowRoot.querySelector('#editPageCont > :not([hidden])') as EditPage;
+				this.isScript = valueStorer.isScript;
+				this.isLink = valueStorer.isLink;
+				this.isMenu = valueStorer.isMenu;
+				this.isDivider = valueStorer.isDivider;
+				this.isStylesheet = valueStorer.isStylesheet;
+				const page = this.shadowRoot.querySelector('#editPageCont > :not([hidden])') as EditPage;
 				page.init.apply(page);
-				_this.animateIn();
+				this.animateIn();
 			}, 300);
 		}
 	}

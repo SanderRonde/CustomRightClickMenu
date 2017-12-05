@@ -115,24 +115,23 @@ namespace ErrorReportingToolElement {
 				left: number;
 				top: number;
 			}, callback: () => void) {
-			const _this = this;
 			const img = new Image();
-			const canvas = _this.$.cropCanvas;
+			const canvas = this.$.cropCanvas;
 			const context = canvas.getContext('2d');
-			img.onload = function () {
+			img.onload = () => {
 				//Crop the image
 				context.clearRect(0, 0, canvas.width, canvas.height);
 				canvas.setAttribute('height', cropData.height + '');
 				canvas.setAttribute('width', cropData.width + '');
 				canvas.style.display = 'none';
-				_this.appendChild(canvas);
+				this.appendChild(canvas);
 				context.drawImage(img, cropData.left, cropData.top, cropData.width, cropData.height, 0, 0, cropData.width, cropData.height);
 
 				//Scale the image to fit the canvas
 				const base64 = canvas.toDataURL();
 				const newImg = new Image();
-				newImg.onload = function() {
-					_this._scaleScreenshot(canvas, newImg, callback);
+				newImg.onload = () => {
+					this._scaleScreenshot(canvas, newImg, callback);
 				};
 				newImg.src = base64;
 
@@ -153,15 +152,14 @@ namespace ErrorReportingToolElement {
 			left: number;
 			top: number;
 		}, callback: () => void) {
-			const _this = this;
 			//Make sure the overlay is gone for a while
 			this.$.overlay.style.display = 'none';
 			chrome.tabs.captureVisibleTab({
 				format: 'png'
-			}, function (dataURI) {
+			}, (dataURI) => {
 				//Turn it on again
-				_this.$.overlay.style.display = 'block';
-				_this._cropScreenshot(dataURI, cropData, callback);
+				this.$.overlay.style.display = 'block';
+				this._cropScreenshot(dataURI, cropData, callback);
 			});
 		};
 
@@ -345,15 +343,14 @@ namespace ErrorReportingToolElement {
 		};
 
 		static finishScreencap(this: ErrorReportingTool) {
-			const _this = this;
 			this._toggleScreenCapArea(false);
 			this._screenshot({
 				top: this._dragStart.Y,
 				left: this._dragStart.X,
 				height: this._lastSize.Y,
 				width: this._lastSize.X
-			}, function() {
-				_this.$.errorReportingDialog.open();
+			}, () => {
+				this.$.errorReportingDialog.open();
 			});
 		};
 
@@ -365,8 +362,7 @@ namespace ErrorReportingToolElement {
 		}
 
 		static addCapture(this: ErrorReportingTool) {
-			const _this = this;
-			_this.$.errorReportingDialog.close();
+			this.$.errorReportingDialog.close();
 			this._resetVars();
 			this._toggleScreenCapArea(true);
 		};
@@ -386,17 +382,16 @@ namespace ErrorReportingToolElement {
 		}
 
 		private static _downloadFiles(this: ErrorReportingTool, callback: () => void) {
-			const _this = this;
 			chrome.downloads.download({
 				url: this.image,
 				filename: 'screencap.png'
-			}, function() {
-				if (_this.reportType === 'bug') {
-					_this._getStorages((localKeys, syncKeys) => {
+			}, () => {
+				if (this.reportType === 'bug') {
+					this._getStorages((localKeys, syncKeys) => {
 						const dataCont = {
 							local: localKeys,
 							sync: syncKeys,
-							lastError: _this._lastError
+							lastError: this._lastError
 						};
 						chrome.downloads.download({
 							url: 'data:text/plain;base64,' + window.btoa(JSON.stringify(dataCont)),
@@ -431,21 +426,19 @@ namespace ErrorReportingToolElement {
 		};
 
 		private static _getDownloadPermission(this: ErrorReportingTool, callback: () => void) {
-			const _this = this;
-
 			//Download the files
 			chrome.permissions.request({
 				permissions: [
 					'downloads'
 				]
-			}, function (granted) {
+			}, (granted) => {
 				if (granted) {
 					callback();
 					window.errorReportingTool.$.errorReportingDialog.close();
 
 					//Do a nice checkmark animation on the report button
-					const listener = function () {
-						_this._checkCheckmark();
+					const listener = () => {
+						this._checkCheckmark();
 						window.removeEventListener('focus', listener);
 					};
 					window.addEventListener('focus', listener);
@@ -456,13 +449,11 @@ namespace ErrorReportingToolElement {
 		};
 
 		static submitErrorReport(this: ErrorReportingTool) {
-			const _this = this;
-
-			this._getDownloadPermission(function () {
-				_this._downloadFiles(function() {
+			this._getDownloadPermission(() => {
+				this._downloadFiles(() => {
 					//Take the user to the github page
 					const messageBody = 'WRITE MESSAGE HERE\n';
-					const title = (_this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
+					const title = (this.reportType === 'bug' ? 'Bug: ' : 'Feature: ') + 'TITLE HERE';
 					window.open('https://github.com/SanderRonde/CustomRightClickMenu/issues/new?title=' + title + '&body=' + messageBody, '_blank');
 				});
 			});

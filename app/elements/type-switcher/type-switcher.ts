@@ -82,16 +82,15 @@ namespace TypeSwitcherElement {
 		};
 
 		static closeTypeSwitchContainer(this: TypeSwitcher, quick: boolean = false, callback?: () => void) {
-			const _this = this;
 			$(this.parentNode.parentNode).stop().animate({
 				height: 50
 			}, {
 				easing: 'swing',
 				duration: (quick ? 80 : 300),
-				complete() {
+				complete: () => {
 					// Weird bug happens so querySelector is more reliable https://i.imgur.com/u7HUKVQ.png
-					const choicesContainer = _this.shadowRoot.querySelector('#typeSwitchChoicesContainer');
-					const arrow = _this.shadowRoot.querySelector('#typeSwitchArrow');
+					const choicesContainer = this.shadowRoot.querySelector('#typeSwitchChoicesContainer');
+					const arrow = this.shadowRoot.querySelector('#typeSwitchArrow');
 					choicesContainer.style.display = 'none';
 					arrow.style.transform = 'rotate(180deg)';
 					callback && callback();
@@ -170,7 +169,7 @@ namespace TypeSwitcherElement {
 		static changeType(this: TypeSwitcher, e: Polymer.ClickEvent|CRM.NodeType) {
 			window.app.editCRM.cancelAdding();
 			
-			const _this = this;
+			const __this = this;
 			let type: CRM.NodeType;
 
 			if (typeof e === 'string') {
@@ -268,13 +267,13 @@ namespace TypeSwitcherElement {
 					
 				editCrmEl.type = prevType;
 				editCrmEl.calculateType();
-				_this.onReady();
-				for (i = 0; i < _this.remainingTypes.length; i++) {
-					typeChoices[i].setAttribute('type', _this.remainingTypes[i]);
+				__this.onReady();
+				for (i = 0; i < __this.remainingTypes.length; i++) {
+					typeChoices[i].setAttribute('type', __this.remainingTypes[i]);
 				}
 
 				//Un-shadow items
-				_this.shadowColumns(columnCont, true);
+				__this.shadowColumns(columnCont, true);
 
 				window.app.shadowStart = null;
 			}

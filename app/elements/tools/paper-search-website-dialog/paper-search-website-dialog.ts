@@ -124,9 +124,8 @@ namespace PaperSearchWebsiteDialog {
 		 * Hides all windows except the given one
 		 */
 		static hideAllWindows(this: PaperSearchWebsiteDialog, except: string) {
-			const _this = this;
-			this.windows.forEach(function(item) {
-				item !== except && (_this.$[item].style.display = 'none');
+			this.windows.forEach((item) => {
+				item !== except && (this.$[item].style.display = 'none');
 			});
 		};
 
@@ -168,20 +167,19 @@ namespace PaperSearchWebsiteDialog {
 		 * Loads given window if the promise is fulfilled, if the promise returns an error it switches to the previous window
 		 */
 		static loadWindow(this: PaperSearchWebsiteDialog, window: PaperSearchWebsiteDialogWindow, prom: Promise<string>) {
-			const _this = this;
 			const spinner = this.$$('paper-spinner');
 			spinner.active = true;
 			this.hideAllWindows('loadingWindow');
 			this.$.loadingWindow.style.display = 'block';
 			this.fit();
 			prom.then(() => {
-				_this.$.manualInputListChoiceInput.invalid = false;
-				_this.switchToWindow(window);
+				this.$.manualInputListChoiceInput.invalid = false;
+				this.switchToWindow(window);
 				spinner.active = false;
 			}, () => {
-				_this.$.manualInputListChoiceInput.invalid = true;
+				this.$.manualInputListChoiceInput.invalid = true;
 				spinner.active = false;
-				_this.switchToWindow('manuallyInputSearchWebsiteWindow');
+				this.switchToWindow('manuallyInputSearchWebsiteWindow');
 			});
 		};
 
@@ -189,7 +187,6 @@ namespace PaperSearchWebsiteDialog {
 		 * Inserts the chosen code and closes the dialog
 		 */
 		static insertCode(this: PaperSearchWebsiteDialog) {
-			const _this = this;
 			const code = 
 	`var search = crmAPI.getSelection() || prompt('Please enter a search query');
 	var url = '${this.chosenUrl}';
@@ -199,9 +196,9 @@ namespace PaperSearchWebsiteDialog {
 		`window.open(toOpen, '_blank');`
 	}`;
 			window.scriptEdit.insertSnippet(window.scriptEdit, code, true);
-			setTimeout(function() {
-				_this.hide();
-				_this.switchToWindow('initialWindow');
+			setTimeout(() => {
+				this.hide();
+				this.switchToWindow('initialWindow');
 			}, 2500);
 		};
 
@@ -217,16 +214,15 @@ namespace PaperSearchWebsiteDialog {
 		 * Processes all the search engines text from the "edit search engines" page and returns all possible search engines
 		 */
 		static processSearchEngines(this: PaperSearchWebsiteDialog): Promise<string> {
-			const _this = this;
 			return new Promise((resolve, reject) => {
-				const data = _this.$.manualInputListChoiceInput.$$('textarea').value;
+				const data = this.$.manualInputListChoiceInput.$$('textarea').value;
 
 				try {
 					const structuredSearchEngines = JSON.parse(data);
-					_this.$$('.SEImportError').remove();
+					this.$$('.SEImportError').remove();
 					if (structuredSearchEngines.length !== 0) {
-						_this.disableManualButton = true;
-						_this.searchList = structuredSearchEngines;
+						this.disableManualButton = true;
+						this.searchList = structuredSearchEngines;
 						resolve('success');
 					}
 					else {
