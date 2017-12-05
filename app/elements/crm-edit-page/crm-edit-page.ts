@@ -259,7 +259,7 @@ namespace CrmEditPageElement {
 					upgradeErrors: window.app.storageLocal.upgradeErrors || {}
 				});
 			}, true, window.app.storageLocal.upgradeErrors && window.app.storageLocal.upgradeErrors[this.item.id]);
-			window.externalEditor.showMergeDialog(window.externalEditor, oldScript, newScript);
+			window.externalEditor.showMergeDialog(oldScript, newScript);
 			chooseDialog.open();
 		};
 
