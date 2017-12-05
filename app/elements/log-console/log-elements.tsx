@@ -74,7 +74,7 @@ window.logElements = (() => {
 
 	class StringElement extends LogElement {
 		componentDidMount() {
-			if (!this.props.nolistener) {
+			if (!this.props.noListener) {
 				this.refs.cont.addEventListener('contextmenu', this.showContextMenu.bind(this));
 			}
 		}
@@ -336,7 +336,7 @@ window.logElements = (() => {
 								return (
 									<span className="objectElementValueCont">
 										{dataType === 'object' ? <span className="objectElementKey">{index}:</span> : null}
-										<StringElement nolistener={"true"} value={data}/>
+										<StringElement noListener={"true"} value={data}/>
 										{i < lastElIndex ? <span className="arrayComma">,</span> : null}
 									</span>
 								);;
