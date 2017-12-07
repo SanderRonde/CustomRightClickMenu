@@ -1103,7 +1103,7 @@ if (typeof module === 'undefined') {
 	window.logging = globalObject.globals.logging;
 
 
-	class Helpers {
+	class Util {
 		/**
 		 * JSONfn - javascript (both node.js and browser) plugin to stringify,
 		 *          parse and clone objects with Functions, Regexp and Date.
@@ -1608,7 +1608,7 @@ if (typeof module === 'undefined') {
 								chrome.tabs.get(~~tabId, (tab) => {
 									if (chrome.runtime.lastError) {
 										//Tab does not exist, remove it from tabData
-										Helpers.removeTab(~~tabId);
+										Util.removeTab(~~tabId);
 										return;
 									}
 
@@ -1657,11 +1657,11 @@ if (typeof module === 'undefined') {
 					const crmValues = globalObject.globals.crmValues;
 					const tabData = crmValues.tabData;
 					const nodeInstances = crmValues.nodeInstances;
-					const tabNodeData = Helpers.getLastItem(
+					const tabNodeData = Util.getLastItem(
 						tabData[message.tabId].nodes[message.id]
 					);
 					if (!tabNodeData.port) {
-						if (Helpers.compareArray(tabNodeData.secretKey, message.key)) {
+						if (Util.compareArray(tabNodeData.secretKey, message.key)) {
 							delete tabNodeData.secretKey;
 							tabNodeData.port = port;
 
@@ -1721,7 +1721,7 @@ if (typeof module === 'undefined') {
 		static init() {
 			function removeNode(node: ContextMenuItemTreeItem) {
 				chrome.contextMenus.remove(node.id, () => {
-					Helpers.checkForChromeErrors(false);
+					Util.checkForChromeErrors(false);
 				});
 			}
 
@@ -2087,7 +2087,7 @@ if (typeof module === 'undefined') {
 			}
 
 			function updateTamperMonkeyInstallState() {
-				Helpers.isTamperMonkeyEnabled((isEnabled) => {
+				Util.isTamperMonkeyEnabled((isEnabled) => {
 					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
 					chrome.storage.local.set({
 						useAsUserscriptInstaller: !isEnabled
@@ -2325,13 +2325,13 @@ if (typeof module === 'undefined') {
 					};
 				});
 
-				if (!Helpers.compareArray(idArr, listeners.idVals)) {
+				if (!Util.compareArray(idArr, listeners.idVals)) {
 					listeners.ids.forEach((idListener) => {
 						idListener(idPairs);
 					});
 					listeners.idVals = idArr;
 				}
-				if (!Helpers.compareArray(tabArr, listeners.tabVals)) {
+				if (!Util.compareArray(tabArr, listeners.tabVals)) {
 					listeners.tabs.forEach((tabListener) => {
 						tabListener(tabArr);
 					});
@@ -2647,7 +2647,7 @@ if (typeof module === 'undefined') {
 
 						searchScope = [];
 						searchScopeObjChildren.forEach((child) => {
-							Helpers.flattenCrm(searchScope, child);
+							Util.flattenCrm(searchScope, child);
 						});
 					}
 					searchScope = searchScope as Array<any> | void || crmArray;
@@ -2812,7 +2812,7 @@ if (typeof module === 'undefined') {
 						optional: true
 					}
 				], () => {
-					const id = Helpers.generateItemId();
+					const id = Util.generateItemId();
 					let node = __this.message.data.options;
 					node = CRM.makeSafe(node);
 					node.id = id;
@@ -2876,7 +2876,7 @@ if (typeof module === 'undefined') {
 				], (optionals) => {
 					__this.getNodeFromId(__this.message.data.nodeId, true).run((node: CRM.Node) => {
 						let newNode = JSON.parse(JSON.stringify(node));
-						newNode.id = Helpers.generateItemId();
+						newNode.id = Util.generateItemId();
 						if (__this.getNodeFromId(__this.message.id, false, true).local === true &&
 							node.isLocal === true) {
 							newNode.isLocal = true;
@@ -2993,7 +2993,7 @@ if (typeof module === 'undefined') {
 							node.name = __this.message.data.options.name;
 						}
 						CRM.updateCrm([__this.message.id]);
-						__this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Util.safe(node));
 						return true;
 					});
 				});
@@ -3072,11 +3072,11 @@ if (typeof module === 'undefined') {
 									documentUrlPatterns: matchPatterns
 								}, () => {
 									CRM.updateCrm();
-									__this.respondSuccess(Helpers.safe(node));
+									__this.respondSuccess(Util.safe(node));
 								});
 						} else {
 							CRM.updateCrm();
-							__this.respondSuccess(Helpers.safe(node));
+							__this.respondSuccess(Util.safe(node));
 						}
 					});
 				});
@@ -3119,11 +3119,11 @@ if (typeof module === 'undefined') {
 										documentUrlPatterns: ['<all_urls>']
 									}, () => {
 										CRM.updateCrm();
-										__this.respondSuccess(Helpers.safe(node));
+										__this.respondSuccess(Util.safe(node));
 									});
 							} else {
 								CRM.updateCrm();
-								__this.respondSuccess(Helpers.safe(node));
+								__this.respondSuccess(Util.safe(node));
 							}
 						} else {
 							__this.respondError('Node is not of right type, can only be menu, link or divider');
@@ -3218,7 +3218,7 @@ if (typeof module === 'undefined') {
 								contexts: CRM.getContexts(node.onContentTypes)
 							}, () => {
 								CRM.updateCrm();
-								__this.respondSuccess(Helpers.safe(node));
+								__this.respondSuccess(Util.safe(node));
 							});
 						return true;
 					});
@@ -3296,9 +3296,9 @@ if (typeof module === 'undefined') {
 						}
 						CRM.updateCrm();
 						if (node.type === 'link') {
-							__this.respondSuccess(Helpers.safe(node).value);
+							__this.respondSuccess(Util.safe(node).value);
 						} else {
-							__this.respondSuccess(Helpers.safe(node)['linkVal']);
+							__this.respondSuccess(Util.safe(node)['linkVal']);
 						}
 						return true;
 					});
@@ -3364,9 +3364,9 @@ if (typeof module === 'undefined') {
 						}
 						CRM.updateCrm();
 						if (node.type === 'link') {
-							__this.respondSuccess(Helpers.safe(node).value);
+							__this.respondSuccess(Util.safe(node).value);
 						} else {
-							__this.respondSuccess(Helpers.safe(node)['linkVal']);
+							__this.respondSuccess(Util.safe(node)['linkVal']);
 						}
 						return true;
 					});
@@ -3394,13 +3394,13 @@ if (typeof module === 'undefined') {
 						if (node.type === 'link') {
 							spliced = node.value.splice(msg['start'], msg['amount']);
 							CRM.updateCrm();
-							__this.respondSuccess(spliced, Helpers.safe(node).value);
+							__this.respondSuccess(spliced, Util.safe(node).value);
 						} else {
 							node.linkVal = node.linkVal || [];
 							spliced = node.linkVal.splice(msg['start'],
 								msg['amount']);
 							CRM.updateCrm();
-							__this.respondSuccess(spliced, Helpers.safe(node)['linkVal']);
+							__this.respondSuccess(spliced, Util.safe(node)['linkVal']);
 						}
 					}
 					);
@@ -3430,7 +3430,7 @@ if (typeof module === 'undefined') {
 							return false;
 						}
 						CRM.updateCrm();
-						__this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Util.safe(node));
 						return true;
 					});
 				});
@@ -3594,7 +3594,7 @@ if (typeof module === 'undefined') {
 							}
 						}
 						CRM.updateCrm();
-						__this.respondSuccess(Helpers.safe(node).value.libraries);
+						__this.respondSuccess(Util.safe(node).value.libraries);
 						return true;
 					});
 				});
@@ -3619,9 +3619,9 @@ if (typeof module === 'undefined') {
 
 						let spliced;
 						if (node.type === 'script') {
-							spliced = Helpers.safe(node).value.libraries.splice(msg['start'], msg['amount']);
+							spliced = Util.safe(node).value.libraries.splice(msg['start'], msg['amount']);
 							CRM.updateCrm();
-							__this.respondSuccess(spliced, Helpers.safe(node).value.libraries);
+							__this.respondSuccess(spliced, Util.safe(node).value.libraries);
 						} else {
 							__this.respondError('Node is not of type script');
 						}
@@ -3704,7 +3704,7 @@ if (typeof module === 'undefined') {
 							}
 						}
 						CRM.updateCrm();
-						__this.respondSuccess(Helpers.safe(node).value.backgroundLibraries);
+						__this.respondSuccess(Util.safe(node).value.backgroundLibraries);
 						return true;
 					});
 				});
@@ -3729,9 +3729,9 @@ if (typeof module === 'undefined') {
 					__this.getNodeFromId(__this.message.data.nodeId).run((node) => {
 						let spliced;
 						if (node.type === 'script') {
-							spliced = Helpers.safe(node).value.backgroundLibraries.splice(msg['start'], msg['amount']);
+							spliced = Util.safe(node).value.backgroundLibraries.splice(msg['start'], msg['amount']);
 							CRM.updateCrm([__this.message.data.nodeId]);
-							__this.respondSuccess(spliced, Helpers.safe(node).value
+							__this.respondSuccess(spliced, Util.safe(node).value
 								.backgroundLibraries);
 						} else {
 							node.scriptVal = node.scriptVal ||
@@ -3767,7 +3767,7 @@ if (typeof module === 'undefined') {
 							node.scriptVal.script = msg['script'];
 						}
 						CRM.updateCrm();
-						__this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Util.safe(node));
 						return true;
 					});
 				});
@@ -3809,7 +3809,7 @@ if (typeof module === 'undefined') {
 							node.stylesheetVal.stylesheet = msg['stylesheet'];
 						}
 						CRM.updateCrm();
-						__this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Util.safe(node));
 						return true;
 					});
 				});
@@ -3851,7 +3851,7 @@ if (typeof module === 'undefined') {
 							node.scriptVal.backgroundScript = msg['script'];
 						}
 						CRM.updateCrm([__this.message.data.nodeId]);
-						__this.respondSuccess(Helpers.safe(node));
+						__this.respondSuccess(Util.safe(node));
 						return true;
 					});
 				});
@@ -3861,7 +3861,7 @@ if (typeof module === 'undefined') {
 			__this.checkPermissions(['crmGet'], () => {
 				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 					if (node.type === 'script') {
-						__this.respondSuccess(Helpers.getScriptNodeScript(node, 'background'));
+						__this.respondSuccess(Util.getScriptNodeScript(node, 'background'));
 					} else {
 						if (node.scriptVal) {
 							__this.respondSuccess(node.scriptVal.backgroundScript);
@@ -4503,7 +4503,7 @@ if (typeof module === 'undefined') {
 			static before(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
 				__this: CRMFunction) {
 				if (isRoot) {
-					Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+					Util.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
 					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
 					) {
 						removeOld.index++;
@@ -4511,7 +4511,7 @@ if (typeof module === 'undefined') {
 				} else {
 					const parentChildren = __this.lookup(relativeNode.path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
-					Helpers.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
+					Util.pushIntoArray(node, relativeNode.path[relativeNode.path.length - 1], parentChildren);
 					if (removeOld && parentChildren === removeOld.children) {
 						removeOld.index++;
 					}
@@ -4520,7 +4520,7 @@ if (typeof module === 'undefined') {
 			static firstSibling(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
 				__this: CRMFunction) {
 				if (isRoot) {
-					Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+					Util.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
 					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
 					) {
 						removeOld.index++;
@@ -4528,7 +4528,7 @@ if (typeof module === 'undefined') {
 				} else {
 					const parentChildren = __this.lookup((relativeNode as any).path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
-					Helpers.pushIntoArray(node, 0, parentChildren);
+					Util.pushIntoArray(node, 0, parentChildren);
 					if (removeOld && parentChildren === removeOld.children) {
 						removeOld.index++;
 					}
@@ -4536,14 +4536,14 @@ if (typeof module === 'undefined') {
 			}
 			static after(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: CRMFunction) {
 				if (isRoot) {
-					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
+					Util.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
 						globalObject
 							.globals.crm.crmTree);
 				} else {
 					const parentChildren = __this.lookup((relativeNode as any).path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
 					if ((relativeNode as any).path.length > 0) {
-						Helpers.pushIntoArray(node, (relativeNode as any)
+						Util.pushIntoArray(node, (relativeNode as any)
 							.path[(relativeNode as any).path.length - 1] +
 							1, parentChildren);
 					}
@@ -4551,25 +4551,25 @@ if (typeof module === 'undefined') {
 			}
 			static lastSibling(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: CRMFunction) {
 				if (isRoot) {
-					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
+					Util.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
 						globalObject
 							.globals.crm.crmTree);
 				} else {
 					const parentChildren = __this.lookup((relativeNode as any).path, globalObject.globals.crm
 						.crmTree, true) as Array<CRM.Node>;
-					Helpers.pushIntoArray(node, parentChildren.length, parentChildren);
+					Util.pushIntoArray(node, parentChildren.length, parentChildren);
 				}
 			}
 			static firstChild(isRoot: boolean, node: CRM.Node, removeOld: any | boolean, relativeNode: any,
 				__this: CRMFunction) {
 				if (isRoot) {
-					Helpers.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
+					Util.pushIntoArray(node, 0, globalObject.globals.crm.crmTree);
 					if (removeOld && globalObject.globals.crm.crmTree === removeOld.children
 					) {
 						removeOld.index++;
 					}
 				} else if ((relativeNode as CRM.Node).type === 'menu') {
-					Helpers.pushIntoArray(node, 0, (relativeNode as CRM.MenuNode).children);
+					Util.pushIntoArray(node, 0, (relativeNode as CRM.MenuNode).children);
 					if (removeOld && (relativeNode as CRM.MenuNode).children === removeOld.children) {
 						removeOld.index++;
 					}
@@ -4581,11 +4581,11 @@ if (typeof module === 'undefined') {
 			}
 			static lastChild(isRoot: boolean, node: CRM.Node, relativeNode: any, __this: CRMFunction) {
 				if (isRoot) {
-					Helpers.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
+					Util.pushIntoArray(node, globalObject.globals.crm.crmTree.length,
 						globalObject
 							.globals.crm.crmTree);
 				} else if ((relativeNode as CRM.MenuNode).type === 'menu') {
-					Helpers.pushIntoArray(node, (relativeNode as CRM.MenuNode).children.length,
+					Util.pushIntoArray(node, (relativeNode as CRM.MenuNode).children.length,
 						(relativeNode as CRM.MenuNode).children);
 				} else {
 					__this.respondError('Supplied node is not of type "menu"');
@@ -4895,7 +4895,7 @@ if (typeof module === 'undefined') {
 				}
 			} else {
 				let notPermitted: Array<CRM.Permission> = [];
-				if (!node.permissions || Helpers.compareArray(node.permissions, [])) {
+				if (!node.permissions || Util.compareArray(node.permissions, [])) {
 					if (toCheck.length > 0) {
 						permitted = false;
 						notPermitted = toCheck;
@@ -4966,7 +4966,7 @@ if (typeof module === 'undefined') {
 			for (let i = 0; i < message.args.length; i++) {
 				switch (message.args[i].type) {
 					case 'arg':
-						params.push(Helpers.jsonFn.parse(message.args[i].val));
+						params.push(Util.jsonFn.parse(message.args[i].val));
 						break;
 					case 'fn':
 						params.push(this._createChromeFnCallbackHandler(message, message.args[i].val));
@@ -5287,7 +5287,7 @@ if (typeof module === 'undefined') {
 				callback(globalObject.globals.storages.urlDataPairs[url].dataURI,
 					globalObject.globals.storages.urlDataPairs[url].dataString);
 			} else {
-				Helpers.convertFileToDataURI(url, (dataURI, dataString) => {
+				Util.convertFileToDataURI(url, (dataURI, dataString) => {
 					//Write the data away to the url-data-pairs object
 					globalObject.globals.storages.urlDataPairs[url] = {
 						dataURI: dataURI,
@@ -5468,7 +5468,7 @@ if (typeof module === 'undefined') {
 			scriptId: number;
 		}) {
 			const resources = globalObject.globals.storages.resources;
-			Helpers.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
+			Util.convertFileToDataURI(key.sourceUrl, (dataURI, dataString) => {
 				if (!(resources[key.scriptId] && resources[key.scriptId][key.name]) ||
 					resources[key.scriptId][key.name].dataURI !== dataURI) {
 					//Check if the hashes still match, if they don't, reject it
@@ -5942,7 +5942,7 @@ if (typeof module === 'undefined') {
 					const contextMenuId = globalObject.globals.crmValues.contextMenuIds[id];
 					if (contextMenuId !== undefined && contextMenuId !== null) {
 						chrome.contextMenus.remove(contextMenuId, () => {
-							Helpers.checkForChromeErrors(false);
+							Util.checkForChromeErrors(false);
 						});
 					}
 				}
@@ -6191,7 +6191,7 @@ if (typeof module === 'undefined') {
 						hasOldNode = true;
 						node.id = oldNodeId;
 					} else {
-						node.id = Helpers.generateItemId();
+						node.id = Util.generateItemId();
 					}
 
 					node.name = CRM.Script.MetaTags.getlastMetaTagValue(metaTags, 'name') || 'name';
@@ -6401,14 +6401,14 @@ if (typeof module === 'undefined') {
 							node.type === 'stylesheet' ||
 							node.type === 'menu')) {
 						try {
-							Helpers.convertFileToDataURI(
+							Util.convertFileToDataURI(
 								`example.com/isUpdated/${downloadURL.split('/').pop()
 									.split('.user.js')[0]}/${node.nodeInfo.version}`,
 								(dataURI, dataString) => {
 									try {
 										const resultParsed = JSON.parse(dataString);
 										if (resultParsed.updated) {
-											if (!Helpers.compareArray(node.nodeInfo.permissions, resultParsed
+											if (!Util.compareArray(node.nodeInfo.permissions, resultParsed
 												.metaTags
 												.grant) &&
 												!(resultParsed.metaTags.grant.length === 0 &&
@@ -6456,16 +6456,16 @@ if (typeof module === 'undefined') {
 					} else {
 						if (node.type === 'script' || node.type === 'stylesheet') {
 							//Do a request to get that script from its download URL
-							if (downloadURL && Helpers.endsWith(downloadURL, '.user.js')) {
+							if (downloadURL && Util.endsWith(downloadURL, '.user.js')) {
 								try {
-									Helpers.convertFileToDataURI(downloadURL, (dataURI, dataString) => {
+									Util.convertFileToDataURI(downloadURL, (dataURI, dataString) => {
 										//Get the meta tags
 										try {
 											const metaTags = CRM.Script.MetaTags
 												.getMetaTags(dataString);
-											if (Helpers.isNewer(metaTags['version'][0], node.nodeInfo
+											if (Util.isNewer(metaTags['version'][0], node.nodeInfo
 												.version)) {
-												if (!Helpers.compareArray(node.nodeInfo.permissions,
+												if (!Util.compareArray(node.nodeInfo.permissions,
 													metaTags['grant']) &&
 													!(metaTags['grant'].length === 0 &&
 														metaTags['grant'][0] === 'none')) {
@@ -6638,7 +6638,7 @@ if (typeof module === 'undefined') {
 						nodeStorage: any;
 						greaseMonkeyData: GreaseMonkeyData;
 					}): string {
-					const enableBackwardsCompatibility = Helpers.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&
+					const enableBackwardsCompatibility = Util.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&
 						node.isLocal;
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					return [
@@ -6679,8 +6679,8 @@ if (typeof module === 'undefined') {
 				static createBackgroundPage(node: CRM.ScriptNode) {
 					if (!node ||
 						node.type !== 'script' ||
-						!Helpers.getScriptNodeScript(node, 'background') ||
-						Helpers.getScriptNodeScript(node, 'background') === '') {
+						!Util.getScriptNodeScript(node, 'background') ||
+						Util.getScriptNodeScript(node, 'background') === '') {
 						return;
 					}
 
@@ -6702,7 +6702,7 @@ if (typeof module === 'undefined') {
 					let key: Array<number> = [];
 					let err = false;
 					try {
-						key = Helpers.createSecretKey();
+						key = Util.createSecretKey();
 					} catch (e) {
 						//There somehow was a stack overflow
 						err = e;
@@ -6713,15 +6713,15 @@ if (typeof module === 'undefined') {
 
 						globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 
-						CRM.Script.Handler.genTabData(0, key, node.id, Helpers.getScriptNodeScript(node, 'background'));
+						CRM.Script.Handler.genTabData(0, key, node.id, Util.getScriptNodeScript(node, 'background'));
 						Logging.Listeners.updateTabAndIdLists();
 
-						const metaData = CRM.Script.MetaTags.getMetaTags(Helpers.getScriptNodeScript(node));
+						const metaData = CRM.Script.MetaTags.getMetaTags(Util.getScriptNodeScript(node));
 						const { excludes, includes } = CRM.Script.Handler.getInExcludes(node);
 
 						const indentUnit = '	';
 
-						const script = Helpers.getScriptNodeScript(node, 'background').split('\n').map((line) => {
+						const script = Util.getScriptNodeScript(node, 'background').split('\n').map((line) => {
 							return indentUnit + line;
 						}).join('\n');
 
@@ -6814,7 +6814,7 @@ if (typeof module === 'undefined') {
 				}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
 					[any, GreaseMonkeyData, string, string, string, number]]): string {		
 	
-					const enableBackwardsCompatibility = Helpers.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&		
+					const enableBackwardsCompatibility = Util.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&		
 						node.isLocal;		
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
 					return [		
@@ -6964,7 +6964,7 @@ if (typeof module === 'undefined') {
 								version: metaVal('version')
 							},
 							scriptMetaStr: metaString,
-							scriptSource: Helpers.getScriptNodeScript(node),
+							scriptSource: Util.getScriptNodeScript(node),
 							scriptUpdateURL: metaVal('updateURL'),
 							scriptWillUpdate: true,
 							scriptHandler: 'Custom Right-Click Menu',
@@ -7008,7 +7008,7 @@ if (typeof module === 'undefined') {
 						let key: Array<number> = [];
 						let err = false;
 						try {
-							key = Helpers.createSecretKey();
+							key = Util.createSecretKey();
 						} catch (e) {
 							//There somehow was a stack overflow
 							err = e;
@@ -7035,7 +7035,7 @@ if (typeof module === 'undefined') {
 							}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
-								this.genTabData(tab.id, key, node.id, Helpers.getScriptNodeScript(node))
+								this.genTabData(tab.id, key, node.id, Util.getScriptNodeScript(node))
 
 								globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 								const tabIndex = globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].length - 1;
@@ -7043,7 +7043,7 @@ if (typeof module === 'undefined') {
 
 								const metaData: {
 									[key: string]: any;
-								} = CRM.Script.MetaTags.getMetaTags(Helpers.getScriptNodeScript(node));
+								} = CRM.Script.MetaTags.getMetaTags(Util.getScriptNodeScript(node));
 								const runAt: string = metaData['run-at'] || metaData['run_at'] || 'document_end';
 								const { excludes, includes } = this.getInExcludes(node)
 
@@ -7051,7 +7051,7 @@ if (typeof module === 'undefined') {
 
 								const indentUnit = '	';
 
-								const script = Helpers.getScriptNodeScript(node).split('\n').map((line) => {
+								const script = Util.getScriptNodeScript(node).split('\n').map((line) => {
 									return indentUnit + line;
 								}).join('\n');
 
@@ -7068,7 +7068,7 @@ if (typeof module === 'undefined') {
 										key
 									}, args);
 
-									const usesUnsafeWindow = Helpers.getScriptNodeScript(node).indexOf('unsafeWindow') > -1;
+									const usesUnsafeWindow = Util.getScriptNodeScript(node).indexOf('unsafeWindow') > -1;
 									const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
 									Script._executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 								});
@@ -7285,7 +7285,7 @@ if (typeof module === 'undefined') {
 									launchMode: sectionData.launchMode,
 									stylesheet: sectionData.code
 								},
-								id: Helpers.generateItemId()
+								id: Util.generateItemId()
 							});
 
 						const crmFn = new CRMFunction(null, 'null');
@@ -7680,7 +7680,7 @@ if (typeof module === 'undefined') {
 					node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
 				if (launchMode === CRMLaunchModes.ALWAYS_RUN) {
 					if (node.type === 'script') {
-						const meta = CRM.Script.MetaTags.getMetaTags(Helpers.getScriptNodeScript(node));
+						const meta = CRM.Script.MetaTags.getMetaTags(Util.getScriptNodeScript(node));
 						if (meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start') {
 							globalObject.globals.toExecuteNodes.documentStart.push(node);
 						} else {
@@ -7739,7 +7739,7 @@ if (typeof module === 'undefined') {
 			static async compileNode(node: CRM.ScriptNode) {
 				if (node.value.ts && node.value.ts.enabled) {
 					node.value.ts.script = await this._compileChangedScript(node.value.script, node.value.ts.script);
-					node.value.ts.backgroundScript = await this._compileChangedScript(Helpers.getScriptNodeScript(node, 'background'),
+					node.value.ts.backgroundScript = await this._compileChangedScript(Util.getScriptNodeScript(node, 'background'),
 						node.value.ts.backgroundScript);
 				}
 			}
@@ -7770,7 +7770,7 @@ if (typeof module === 'undefined') {
 				}
 			private static async _compileScript(script: string): Promise<string> {
 				return new window.Promise<string>(async (resolve) => {
-					await Helpers.execFile('js/libraries/typescript.js');
+					await Util.execFile('js/libraries/typescript.js');
 					const sourceFile = window.ts.createSourceFile('file.ts', script, window.ts.ScriptTarget.ES3);
 					window.ts.createProgram([sourceFile], {
 						module: window.ts.ModuleKind.None,
@@ -7815,7 +7815,7 @@ if (typeof module === 'undefined') {
 			Storages.crmForEach(globalObject.globals.storages
 				.settingsStorage.crm, (node) => {
 					if (!node.id && node.id !== 0) {
-						node.id = Helpers.generateItemId();
+						node.id = Util.generateItemId();
 					}
 				});
 
@@ -7960,7 +7960,7 @@ if (typeof module === 'undefined') {
 						'Script',
 						[
 							node.value.launchMode,
-							Helpers.getScriptNodeScript(node)
+							Util.getScriptNodeScript(node)
 						].join('%124')
 					].join('%123');
 				case 'stylesheet':
@@ -8192,7 +8192,7 @@ if (typeof module === 'undefined') {
 				const matchPattern = matchPatterns[i].url;
 
 				if (matchPattern.indexOf('/') === 0 &&
-					Helpers.endsWith(matchPattern, '/')) {
+					Util.endsWith(matchPattern, '/')) {
 					//It's regular expression
 					if (new RegExp(matchPattern.slice(1, matchPattern.length - 1))
 						.test(url)) {
@@ -9179,7 +9179,7 @@ if (typeof module === 'undefined') {
 							}
 							node = globalObject.globals.constants.templates.getDefaultLinkNode({
 								name: name,
-								id: Helpers.generateItemId(),
+								id: Util.generateItemId(),
 								value: split.map(function (url) {
 									return {
 										newTab: openInNewTab,
@@ -9191,14 +9191,14 @@ if (typeof module === 'undefined') {
 						case 'divider':
 							node = globalObject.globals.constants.templates.getDefaultDividerNode({
 								name: name,
-								id: Helpers.generateItemId(),
+								id: Util.generateItemId(),
 								isLocal: true
 							});
 							break;
 						case 'menu':
 							node = globalObject.globals.constants.templates.getDefaultMenuNode({
 								name: name,
-								id: Helpers.generateItemId(),
+								id: Util.generateItemId(),
 								children: (nodeData as any) as CRM.Tree,
 								isLocal: true
 							});
@@ -9219,7 +9219,7 @@ if (typeof module === 'undefined') {
 								});
 								scriptLaunchMode = '2';
 							}
-							const id = Helpers.generateItemId();
+							const id = Util.generateItemId();
 							node = globalObject.globals.constants.templates.getDefaultScriptNode({
 								name: name,
 								id: id,
@@ -9263,7 +9263,7 @@ if (typeof module === 'undefined') {
 				const syncStorage = this._getDefaultSyncStorage();
 				const syncHash = window.md5(JSON.stringify(syncStorage));
 
-				Helpers.isTamperMonkeyEnabled((useAsUserscriptManager) => {
+				Util.isTamperMonkeyEnabled((useAsUserscriptManager) => {
 					callback([{
 						requestPermissions: [],
 						editing: null,
@@ -9313,7 +9313,7 @@ if (typeof module === 'undefined') {
 					},
 					crm: [
 						globalObject.globals.constants.templates.getDefaultLinkNode({
-							id: Helpers.generateItemId(),
+							id: Util.generateItemId(),
 							isLocal: true
 						})
 					],
@@ -9436,7 +9436,7 @@ if (typeof module === 'undefined') {
 					];
 					this._chainPromise(files.map((file) => {
 						return () => {
-							return Helpers.execFile(file)
+							return Util.execFile(file)
 						}
 					})).then(() => {
 						resolve(null);
@@ -9497,7 +9497,7 @@ if (typeof module === 'undefined') {
 					for (let id in ordered) {
 						if (ordered.hasOwnProperty(id)) {
 							const node = globalObject.globals.crm.crmById[id];
-							if (node.type === 'script' && (node && Helpers.getScriptNodeScript(node, 'background') !== ordered[id])) {
+							if (node.type === 'script' && (node && Util.getScriptNodeScript(node, 'background') !== ordered[id])) {
 								CRM.Script.Background.createBackgroundPage(node as CRM.ScriptNode);
 							}
 						}
@@ -9848,7 +9848,7 @@ if (typeof module === 'undefined') {
 			for (let i = 0; i < tree.length; i++) {
 				const child = tree[i];
 				if (child.type === 'script') {
-					obj[child.id] = Helpers.getScriptNodeScript(child, 'background');
+					obj[child.id] = Util.getScriptNodeScript(child, 'background');
 				} else if (child.type === 'menu' && child.children) {
 					this._orderBackgroundPagesById(child.children, obj);
 				}
@@ -9912,11 +9912,11 @@ if (typeof module === 'undefined') {
 				fns.afterSync.push(() => {
 					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
 						if (node.type === 'script') {
-							node.value.oldScript = Helpers.getScriptNodeScript(node);
+							node.value.oldScript = Util.getScriptNodeScript(node);
 							node.value.script = this.SetupHandling.TransferFromOld
 								.legacyScriptReplace
 								.chromeCallsReplace
-								.replace(Helpers.getScriptNodeScript(node), this.SetupHandling.TransferFromOld
+								.replace(Util.getScriptNodeScript(node), this.SetupHandling.TransferFromOld
 									.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
 						}
 						if (node.isLocal) {
@@ -9936,7 +9936,7 @@ if (typeof module === 'undefined') {
 				});
 			}
 			if (this._isVersionInRange(oldVersion, newVersion, '2.0.11')) {
-				Helpers.isTamperMonkeyEnabled((isEnabled) => {
+				Util.isTamperMonkeyEnabled((isEnabled) => {
 					globalObject.globals.storages.storageLocal.useAsUserscriptInstaller = !isEnabled;
 					chrome.storage.local.set({
 						useAsUserscriptInstaller: !isEnabled
