@@ -1333,10 +1333,15 @@ if (typeof module === 'undefined') {
 			});
 		}
 		static async execFile(path: string): Promise<void> {
+			if (this._requiredFiles.indexOf(path) > -1) {
+				return;
+			}
 			const fileContent = await this._loadFile(path);
 			eval(fileContent);
+			this._requiredFiles.push(path);
 		}
 
+		private static _requiredFiles: Array<string> = [];
 		private static _loadFile(path: string): Promise<string> {
 			return new Promise<string>((resolve, reject) => {
 				const xhr = new window.XMLHttpRequest();
