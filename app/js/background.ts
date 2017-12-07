@@ -9916,7 +9916,7 @@ if (typeof module === 'undefined') {
 							node.value.script = this.SetupHandling.TransferFromOld
 								.legacyScriptReplace
 								.chromeCallsReplace
-								.replace(Helpers.getScriptValue(node), this.SetupHandling.TransferFromOld
+								.replace(Helpers.getScriptNodeScript(node), this.SetupHandling.TransferFromOld
 									.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
 						}
 						if (node.isLocal) {
