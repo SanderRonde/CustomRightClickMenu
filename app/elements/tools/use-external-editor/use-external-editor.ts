@@ -1,5 +1,18 @@
 /// <reference path="../../elements.d.ts" />
 
+type ChooseFileDialog = PaperDialogBase & {
+	init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
+		updateErrors?: {
+			parseError?: boolean;
+			generalError?: boolean;
+			newScript: Array<CursorPosition>;
+			oldScript: Array<CursorPosition>;
+		}): void;
+	local: string;
+	file: string;
+	callback(result: string|false): void;
+};
+
 namespace UseExternalEditorElement {
 	const EXTERNAL_EDITOR_APP_ID = 'hkjjmhkhhlmkflpihbikfpcojeofbjgn';
 
@@ -52,19 +65,6 @@ namespace UseExternalEditorElement {
 		UpdateFromAppMessage;
 
 	type ExternalEditorMessage = SetupConnectionMessage|PingMessage|ConnectedEditorMessage;
-
-	type ChooseFileDialog = PaperDialogBase & {
-		init(local: string, file: string, callback: (result: string|false) => void, isUpdate?: boolean,
-			updateErrors?: {
-				parseError?: boolean;
-				generalError?: boolean;
-				newScript: Array<CursorPosition>;
-				oldScript: Array<CursorPosition>;
-			}): void;
-		local: string;
-		file: string;
-		callback(result: string|false): void;
-	};
 
 	export class UEE {
 		static is: string = 'use-external-editor';

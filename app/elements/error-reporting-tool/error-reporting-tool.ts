@@ -1,5 +1,10 @@
 ﻿/// <reference path="../elements.d.ts" />
 
+interface ErrorReportingToolSquare extends HTMLElement {
+	xPos: string;
+	yPos: string;
+}
+
 namespace ErrorReportingToolElement {
 	export const errorReportingTool: {
 		reportType: string;
@@ -31,11 +36,6 @@ namespace ErrorReportingToolElement {
 			notify: true
 		}
 	} as any;
-
-	interface ErrorReportingToolSquare extends HTMLElement {
-		xPos: string;
-		yPos: string;
-	}
 
 	interface ThennableLike {
 		then: (cb: () => void|ThennableLike) => void
