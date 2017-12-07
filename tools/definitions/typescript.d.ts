@@ -2337,7 +2337,7 @@ declare namespace ts {
         External = 5,
         JSON = 6,
     }
-    enum ScriptTarget {
+    const enum ScriptTarget {
         ES3 = 0,
         ES5 = 1,
         ES2015 = 2,
@@ -3736,7 +3736,7 @@ interface Typescript {
      * @param oldProgram - Reuses an old program structure.
      * @returns A 'Program' object.
      */
-    createProgram(rootNames: ReadonlyArray<string>, options: ts.CompilerOptions, host?: ts.CompilerHost, oldProgram?: ts.Program): ts.Program;
+    createProgram(rootNames: ReadonlyArray<string|ts.SourceFile>, options: ts.CompilerOptions, host?: ts.CompilerHost, oldProgram?: ts.Program): ts.Program;
 }
 interface Typescript {
     parseCommandLine(commandLine: ReadonlyArray<string>, readFile?: (path: string) => string | undefined): ts.ParsedCommandLine;
