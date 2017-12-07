@@ -682,7 +682,10 @@ if (typeof module === 'undefined') {
 						script: [].join('\n'),
 						backgroundScript: '',
 						metaTags: {},
-						options: {}
+						options: {},
+						ts: {
+							enabled: false
+						}
 					};
 
 					return this.mergeObjects(value, options) as CRM.ScriptVal;
