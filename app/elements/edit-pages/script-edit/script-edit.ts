@@ -41,7 +41,9 @@ namespace ScriptEditElement {
 				this.newSettings.value.ts.enabled = shouldBeEnabled;
 			} else {
 				this.newSettings.value.ts = {
-					enabled: shouldBeEnabled
+					enabled: shouldBeEnabled,
+					backgroundScript: {},
+					script: {}
 				};
 			}
 			this.getEditorInstance().setTypescript(shouldBeEnabled);
