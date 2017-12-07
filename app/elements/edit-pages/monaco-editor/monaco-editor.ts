@@ -101,7 +101,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	abstract class MonacoEditorEventHandler<PubL extends string = '_', PriL extends string = '_'> extends MonacoEventEmitter<PubL, PriL|'onLoad'|'onModelContentChange'|'onModelChange'> {
+	abstract class MonacoEditorEventHandler<PubL extends string = '_', PriL extends string = '_'> extends MonacoEventEmitter<PubL, PriL|'onLoad'|'onModelContentChange'> {
 		/**
 		 * Any listeners that need to be disposed of eventually
 		 */
@@ -124,16 +124,14 @@ namespace MonacoEditorElement {
 			this._editor = editor;
 
 			this._onCreate(model);
-			if (!this._isDiff(editor)) {
-				editor.onDidChangeModel(() => {
-					this._firePrivate('onModelChange', []);
-				});
-			}
 
 			window.setTimeout(() => {
+				if (this._model.isDisposed()) {
+					return;
+				}
 				this._firePrivate('onLoad', []);
 				this._clearListeners('onLoad');
-			}, 5000);
+			}, 2500);
 		}
 
 		protected static _genDisposable<T>(fn: () => T, onDispose: (args: T) => void) {
@@ -207,10 +205,6 @@ namespace MonacoEditorElement {
 				this._hasMetaBlockChanged = true;
 				this._doModelUpdate();
 			});
-
-			this._listen('onModelChange', () => {
-				this._firePrivate('shouldDecorate', []);
-			})
 
 			this._listen('shouldDecorate', (changeEvent: monaco.editor.IModelContentChangedEvent) => {
 				if (this._isMetaDataHighlightDisabled) {
@@ -462,7 +456,7 @@ namespace MonacoEditorElement {
 
 		private _userScriptGutterHighlightChange(): monaco.editor.IModelDeltaDecoration {
 			if (!this._getMetaOutlines()) {
-				return null
+				return null;
 			}
 			const { start, end } = this.getMetaBlock();
 			return {
@@ -878,6 +872,11 @@ namespace MonacoEditorElement {
 		static options: monaco.editor.IEditorConstructionOptions = null;
 
 		/**
+		 * Whether this is a typescript instance
+		 */
+		private static _isTypescript: boolean;
+
+		/**
 		 * All models currently used in this editor instance
 		 */
 		private static _models: {
@@ -885,7 +884,7 @@ namespace MonacoEditorElement {
 				models: Array<monaco.editor.IModel>;
 				handlers: Array<MonacoEditorStylesheetMods|MonacoEditorScriptMods>;
 				state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
-				editorType: 'script'|'stylesheet'|'none';
+				editorType: 'typescript'|'script'|'stylesheet'|'none';
 			}
 		} = {};
 
@@ -899,14 +898,14 @@ namespace MonacoEditorElement {
 		}|{
 			method: 'diff';
 			values: [string, string];
-			language: 'css'|'javascript';
-			editorType: 'script'|'stylesheet'|'none';
+			language: 'css'|'javascript'|'typescript';
+			editorType: 'typescript'|'script'|'stylesheet'|'none';
 			options: monaco.editor.IEditorConstructionOptions;
 			override: monaco.editor.IEditorOverrideServices;
 		} = null;
 
-		private static _getSettings(editorType: 'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
-			if (editorType === 'script') {
+		private static _getSettings(editorType: 'typescript'|'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
+			if (editorType === 'script' || editorType === 'typescript') {
 				return MonacoEditorScriptMods.getSettings();
 			} else if (editorType === 'stylesheet') {
 				return MonacoEditorStylesheetMods.getSettings();
@@ -915,7 +914,7 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		static async create(this: MonacoEditor, editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions, 
+		static async create(this: MonacoEditor, editorType: 'typescript'|'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				this._createInfo = {
 					method: 'create',
@@ -923,6 +922,7 @@ namespace MonacoEditorElement {
 					override
 				}
 
+				this._isTypescript = editorType === 'typescript';
 				this.options = options;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
@@ -933,7 +933,7 @@ namespace MonacoEditorElement {
 
 				this.editor.updateOptions(this._getSettings(editorType));
 				let typeHandler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
-				if (editorType === 'script') {
+				if (editorType === 'script' || editorType === 'typescript') {
 					typeHandler = new MonacoEditorScriptMods(this.editor, this.editor.getModel());
 				} else if (editorType === 'stylesheet') {
 					typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
@@ -947,8 +947,8 @@ namespace MonacoEditorElement {
 				return this;
 			}
 		
-		static async createDiff(this: MonacoEditor, [oldValue, newValue]: [string, string], language: 'javascript'|'css',
-			editorType: 'script'|'stylesheet'|'none', options?: monaco.editor.IDiffEditorOptions,
+		static async createDiff(this: MonacoEditor, [oldValue, newValue]: [string, string], language: 'typescript'|'javascript'|'css',
+			editorType: 'typescript'|'script'|'stylesheet'|'none', options?: monaco.editor.IDiffEditorOptions,
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
 				this._createInfo = {
 					method: 'diff',
@@ -959,6 +959,7 @@ namespace MonacoEditorElement {
 					override
 				}
 
+				this._isTypescript = editorType === 'typescript';
 				this.options = options;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
@@ -980,7 +981,7 @@ namespace MonacoEditorElement {
 					MonacoEditorScriptMods|MonacoEditorStylesheetMods,
 					MonacoEditorScriptMods|MonacoEditorStylesheetMods
 				] = [null, null];
-				if (editorType === 'script') {
+				if (editorType === 'script' || editorType === 'typescript') {
 					typeHandlers = [
 						new MonacoEditorScriptMods(this.editor, originalModel),
 						new MonacoEditorScriptMods(this.editor, modifiedModel)
@@ -1011,6 +1012,7 @@ namespace MonacoEditorElement {
 			const { editor } = from;
 			const editorType = from.getCurrentModel().editorType;
 
+			this._isTypescript = editorType === 'typescript';
 			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
 				model: editor.getModel()
 			}, this.options));
@@ -1021,7 +1023,7 @@ namespace MonacoEditorElement {
 
 			this.editor.updateOptions(this._getSettings(editorType));
 			let typeHandler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
-			if (editorType === 'script') {
+			if (editorType === 'script' || editorType === 'typescript') {
 				typeHandler = new MonacoEditorScriptMods(this.editor, this.editor.getModel());
 			} else if (editorType === 'stylesheet') {
 				typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
@@ -1059,6 +1061,53 @@ namespace MonacoEditorElement {
 			} else {
 				return this.createFrom(createInfo.from);
 			}
+		}
+
+		static setTypescript(this: MonacoEditor, enabled: boolean) {
+			if (this._isTypescript === enabled) {
+				return;
+			}
+
+			const currentModelId = this.getCurrentModelId();
+			const currentModel = this.getCurrentModel();
+			const editor = this.editor;
+			const lang = enabled ? 'typescript' : 'javascript';
+			const oldModels = currentModel.models;
+			currentModel.handlers.forEach((handler) => {
+				handler.destroy();
+			});
+
+			const newModels = oldModels.map((oldModel) => {
+				return monaco.editor.createModel(oldModel.getValue(), lang);
+			});
+			if (this.isDiff(editor)) {
+				editor.setModel({
+					original: newModels[0],
+					modified: newModels[1]
+				});
+			} else {
+				editor.setModel(newModels[0]);
+			}
+
+			oldModels.forEach((oldModel) => oldModel.dispose());
+
+			currentModel.handlers = newModels.map((newModel) => {
+				if (currentModel.editorType === 'script' || currentModel.editorType === 'typescript') {
+					return new MonacoEditorScriptMods(this.editor, newModel);
+				} else if (currentModel.editorType === 'stylesheet') {
+					return new MonacoEditorStylesheetMods(this.editor, newModel);
+				}
+				return null;
+			});
+			currentModel.models = newModels;	
+
+			for (let modelId in this._models) {
+				if (modelId !== currentModelId) {
+					delete this._models[modelId];
+				}
+			}
+
+			this._isTypescript = enabled;
 		}
 
 		static addModel(this: MonacoEditor, identifier: string, value: string, language: string) {

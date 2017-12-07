@@ -20,7 +20,34 @@ namespace ScriptEditElement {
 
 		private static _permissionDialogListeners: Array<() => void> = [];
 
-		static openDocs() {
+		static isTsEnabled(this: NodeEditBehaviorScriptInstance) {
+			return this.item.value && this.item.value.ts && this.item.value.ts.enabled;
+		}
+
+		private static _toggleTypescriptButton(this: NodeEditBehaviorScriptInstance) {
+			const isEnabled = !!this.$.editorTypescript.getAttribute('active');
+			if (isEnabled) {
+				this.$.editorTypescript.removeAttribute('active');
+			} else {
+				this.$.editorTypescript.setAttribute('active', 'active');
+			}
+		}
+
+		static toggleTypescript(this: NodeEditBehaviorScriptInstance) {
+			const shouldBeEnabled = !this.$.editorTypescript.getAttribute('active');
+			this._toggleTypescriptButton();
+			
+			if (this.newSettings.value.ts) {
+				this.newSettings.value.ts.enabled = shouldBeEnabled;
+			} else {
+				this.newSettings.value.ts = {
+					enabled: shouldBeEnabled
+				};
+			}
+			this.getEditorInstance().setTypescript(shouldBeEnabled);
+		}
+
+		static openDocs(this: NodeEditBehaviorScriptInstance) {
 			const docsUrl = 'http://sanderronde.github.io/CustomRightClickMenu/documentation/classes/crm.crmapi.crmapiinstance.html';
 			window.open(docsUrl, '_blank');
 		}
@@ -523,9 +550,11 @@ namespace ScriptEditElement {
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false
 			});
-			this.editorManager = await this.$.editor.create('script', {
+
+			const isTs = this.item.value.ts && this.item.value.ts.enabled;
+			this.editorManager = await this.$.editor.create(isTs ? 'typescript' : 'script', {
 				value: content,
-				language: 'javascript',
+				language: isTs ? 'typescript' : 'javascript',
 				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
 				wordWrap: 'off',
 				fontSize: (~~window.app.settings.editor.zoom / 100) * 14,

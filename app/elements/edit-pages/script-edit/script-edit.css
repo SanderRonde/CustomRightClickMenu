@@ -50,3 +50,12 @@ paper-button.blue {
 #docsLink {
 	font-size: 130%;
 }
+
+#editorTypescript {
+	width: 27px;
+	height: 28px;
+	font-size: 180%;
+	text-align: right;
+	vertical-align: bottom;
+	padding: 4px;
+}

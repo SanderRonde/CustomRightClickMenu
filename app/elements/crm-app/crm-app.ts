@@ -1253,8 +1253,10 @@ namespace CRMAppElement {
 							}, 500);
 						});
 
+						const isTs = crmItem.type === 'script' &&
+							crmItem.value.ts && crmItem.value.ts.enabled;
 						const editor = await window.doc.restoreChangesEditor.createDiff([code, editingObj.val], 
-							crmItem.type === 'script' ? 'javascript' : 'css', crmItem.type, {
+							crmItem.type === 'script' ? (isTs ? 'typescript' : 'javascript') : 'css', crmItem.type, {
 								wordWrap: 'off',
 								fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
 								folding: true
@@ -3493,7 +3495,10 @@ namespace CRMAppElement {
 					script: [].join('\n'),
 					backgroundScript: '',
 					metaTags: {},
-					options: {}
+					options: {},
+					ts: {
+						enabled: false
+					}
 				};
 
 				return this.mergeObjects(value, options) as CRM.ScriptVal;

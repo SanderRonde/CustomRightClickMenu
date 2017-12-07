@@ -152,13 +152,17 @@ input {
 	padding: 1px;
 }
 
-#editorFullScreen, #editorSettings {
+#editorFullScreen, #editorSettings, #editorTypescript {
 	cursor: pointer;
 	background-color: white;
 }
 
-	#editorFullScreen:hover, #editorSettings:hover {
-		background-color: rgb(230,230,230);
+#editorTypescript[active] {
+	background-color: rgb(200, 200, 200);
+}
+
+	#editorFullScreen:hover, #editorSettings:hover, #editorTypescript:hover {
+		background-color: rgb(230, 230, 230);
 	}
 
 .editorTopOption {
