@@ -1,4 +1,4 @@
-﻿/// <reference path="../../elements.d.ts" />
+/// <reference path="../../elements.d.ts" />
 
 namespace ScriptEditElement {
 	export const scriptEditProperties: {
@@ -597,7 +597,6 @@ namespace ScriptEditElement {
 								mode: this.editorMode,
 								crmType: window.app.crmType
 							}
-							// ReSharper disable once WrongExpressionStatement
 						}, function() { chrome.runtime.lastError; });
 					} else {
 						//Stop this interval
