@@ -3497,7 +3497,9 @@ namespace CRMAppElement {
 					metaTags: {},
 					options: {},
 					ts: {
-						enabled: false
+						enabled: false,
+						backgroundScript: {},
+						script: {}
 					}
 				};
 
