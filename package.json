@@ -85,7 +85,7 @@
     "grunt-contrib-htmlmin": "^0.4.0",
     "grunt-contrib-uglify": "^1.0.1",
     "grunt-contrib-watch": "^1.0.0",
-    "grunt-crisper": "^1.0.1",    
+    "grunt-crisper": "^1.0.1",
     "grunt-exec": "^2.0.0",
     "grunt-jsbeautifier": "^0.2.13",
     "grunt-mocha-test": "^0.12.7",
@@ -112,7 +112,7 @@
     "selenium-webdriver": "^3.0.0-beta-3",
     "supports-color": "^3.1.2",
     "tty": "^1.0.1",
-    "typescript": "2.6.1",
+    "typescript": "^2.6.2",
     "util": "^0.10.3",
     "vinyl-fs": "^2.4.4"
   },
@@ -129,6 +129,5 @@
     "postinstall": "node -e \"try { require('fs').symlinkSync(require('path').resolve('node_modules/@bower_components'), 'app/bower_components', 'junction') } catch (e) { }\""
   },
   "version": "2.0.16",
-  "dependencies": {
-  }
+  "dependencies": {}
 }
