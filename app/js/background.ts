@@ -3,6 +3,7 @@
 /// <reference path="../../tools/definitions/crm.d.ts" />
 /// <reference path="../../tools/definitions/tern.d.ts" />
 /// <reference path="../../node_modules/@types/node/index.d.ts" />
+/// <reference path="../../tools/definitions/typescript.d.ts" />
 /// <reference path="../js/shared.ts" />
 
 interface TabData {
@@ -199,6 +200,7 @@ interface Window {
 	TextEncoder: any;
 	getID: (name: string) => void;
 	md5: (data: any) => string;
+	ts: Typescript & typeof ts;
 	TernFile: Tern.File;
 	ecma5: any;
 	ecma6: any;
@@ -1338,7 +1340,17 @@ if (typeof module === 'undefined') {
 			}
 			const fileContent = await this._loadFile(path);
 			eval(fileContent);
-			this._requiredFiles.push(path);
+			this._requiredFiles.push
+		}
+		static getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
+			if (script.value.ts.enabled) {
+				return type === 'background' ?
+					script.value.ts.backgroundScript.compiled :
+					script.value.ts.script.compiled;
+			}
+			return type === 'background' ?
+				script.value.backgroundScript :
+				script.value.script;
 		}
 
 		private static _requiredFiles: Array<string> = [];
@@ -3849,7 +3861,7 @@ if (typeof module === 'undefined') {
 			__this.checkPermissions(['crmGet'], () => {
 				__this.getNodeFromId(__this.message.data.nodeId, true).run((node) => {
 					if (node.type === 'script') {
-						__this.respondSuccess(node.value.backgroundScript);
+						__this.respondSuccess(Helpers.getScriptNodeScript(node, 'background'));
 					} else {
 						if (node.scriptVal) {
 							__this.respondSuccess(node.scriptVal.backgroundScript);
@@ -6626,7 +6638,7 @@ if (typeof module === 'undefined') {
 						nodeStorage: any;
 						greaseMonkeyData: GreaseMonkeyData;
 					}): string {
-					const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&
+					const enableBackwardsCompatibility = Helpers.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&
 						node.isLocal;
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;
 					return [
@@ -6667,8 +6679,8 @@ if (typeof module === 'undefined') {
 				static createBackgroundPage(node: CRM.ScriptNode) {
 					if (!node ||
 						node.type !== 'script' ||
-						!node.value.backgroundScript ||
-						node.value.backgroundScript === '') {
+						!Helpers.getScriptNodeScript(node, 'background') ||
+						Helpers.getScriptNodeScript(node, 'background') === '') {
 						return;
 					}
 
@@ -6701,15 +6713,15 @@ if (typeof module === 'undefined') {
 
 						globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 
-						CRM.Script.Handler.genTabData(0, key, node.id, node.value.backgroundScript);
+						CRM.Script.Handler.genTabData(0, key, node.id, Helpers.getScriptNodeScript(node, 'background'));
 						Logging.Listeners.updateTabAndIdLists();
 
-						const metaData = CRM.Script.MetaTags.getMetaTags(node.value.script);
+						const metaData = CRM.Script.MetaTags.getMetaTags(Helpers.getScriptNodeScript(node));
 						const { excludes, includes } = CRM.Script.Handler.getInExcludes(node);
 
 						const indentUnit = '	';
 
-						const script = node.value.backgroundScript.split('\n').map((line) => {
+						const script = Helpers.getScriptNodeScript(node, 'background').split('\n').map((line) => {
 							return indentUnit + line;
 						}).join('\n');
 
@@ -6802,7 +6814,7 @@ if (typeof module === 'undefined') {
 				}, [contextData, [nodeStorage, greaseMonkeyData, script, indentUnit, runAt, tabIndex]]: [EncodedContextData,		
 					[any, GreaseMonkeyData, string, string, string, number]]): string {		
 	
-					const enableBackwardsCompatibility = node.value.script.indexOf('/*execute locally*/') > -1 &&		
+					const enableBackwardsCompatibility = Helpers.getScriptNodeScript(node).indexOf('/*execute locally*/') > -1 &&		
 						node.isLocal;		
 					const catchErrs = globalObject.globals.storages.storageLocal.catchErrors;		
 					return [		
@@ -6952,7 +6964,7 @@ if (typeof module === 'undefined') {
 								version: metaVal('version')
 							},
 							scriptMetaStr: metaString,
-							scriptSource: node.value.script,
+							scriptSource: Helpers.getScriptNodeScript(node),
 							scriptUpdateURL: metaVal('updateURL'),
 							scriptWillUpdate: true,
 							scriptHandler: 'Custom Right-Click Menu',
@@ -7023,7 +7035,7 @@ if (typeof module === 'undefined') {
 							}), new window.Promise<[any, GreaseMonkeyData, string, string, string, number]>((resolve) => {
 								const globalNodeStorage = globalObject.globals.storages.nodeStorage;
 								const nodeStorage = globalNodeStorage[node.id];
-								this.genTabData(tab.id, key, node.id, node.value.script)
+								this.genTabData(tab.id, key, node.id, Helpers.getScriptNodeScript(node))
 
 								globalNodeStorage[node.id] = globalNodeStorage[node.id] || {};
 								const tabIndex = globalObject.globals.crmValues.tabData[tab.id].nodes[node.id].length - 1;
@@ -7031,7 +7043,7 @@ if (typeof module === 'undefined') {
 
 								const metaData: {
 									[key: string]: any;
-								} = CRM.Script.MetaTags.getMetaTags(node.value.script);
+								} = CRM.Script.MetaTags.getMetaTags(Helpers.getScriptNodeScript(node));
 								const runAt: string = metaData['run-at'] || metaData['run_at'] || 'document_end';
 								const { excludes, includes } = this.getInExcludes(node)
 
@@ -7039,7 +7051,7 @@ if (typeof module === 'undefined') {
 
 								const indentUnit = '	';
 
-								const script = node.value.script.split('\n').map((line) => {
+								const script = Helpers.getScriptNodeScript(node).split('\n').map((line) => {
 									return indentUnit + line;
 								}).join('\n');
 
@@ -7056,7 +7068,7 @@ if (typeof module === 'undefined') {
 										key
 									}, args);
 
-									const usesUnsafeWindow = node.value.script.indexOf('unsafeWindow') > -1;
+									const usesUnsafeWindow = Helpers.getScriptNodeScript(node).indexOf('unsafeWindow') > -1;
 									const scripts = this._getScriptsToRun(code, args[1][4], node, usesUnsafeWindow);
 									Script._executeScripts(node.id, tab.id, scripts, usesUnsafeWindow);
 								});
@@ -7668,7 +7680,7 @@ if (typeof module === 'undefined') {
 					node.value.launchMode) || CRMLaunchModes.RUN_ON_CLICKING;
 				if (launchMode === CRMLaunchModes.ALWAYS_RUN) {
 					if (node.type === 'script') {
-						const meta = CRM.Script.MetaTags.getMetaTags(node.value.script);
+						const meta = CRM.Script.MetaTags.getMetaTags(Helpers.getScriptNodeScript(node));
 						if (meta['run-at'] === 'document_start' || meta['run_at'] === 'document_start') {
 							globalObject.globals.toExecuteNodes.documentStart.push(node);
 						} else {
@@ -7720,6 +7732,68 @@ if (typeof module === 'undefined') {
 				return id;
 			}
 		};
+		static readonly TS = class TS {
+			static async compileAll() {
+				await this._compileTree(globalObject.globals.crm.crmTree);
+			}
+			static async compileNode(node: CRM.ScriptNode) {
+				if (node.value.ts && node.value.ts.enabled) {
+					node.value.ts.script = await this._compileChangedScript(node.value.script, node.value.ts.script);
+					node.value.ts.backgroundScript = await this._compileChangedScript(Helpers.getScriptNodeScript(node, 'background'),
+						node.value.ts.backgroundScript);
+				}
+			}
+
+			private static async _compileTree(tree: CRM.Tree) {
+				const length = tree.length;
+				for (let i= 0; i < length; i++) {
+					const node = tree[i];
+
+					if (node.type === 'script') {
+						await this.compileNode(node);
+					} else if (node.type === 'menu') {
+						await this._compileTree(node.children);
+					}
+				}
+			}
+			private static async _compileChangedScript(script: string, 
+				compilationData: CRM.TypescriptCompilationData): Promise<CRM.TypescriptCompilationData> {
+					const { sourceHash } = compilationData;
+					const scriptHash = window.md5(script);
+					if (scriptHash !== sourceHash) {
+						return {
+							compiled: await this._compileScript(script),
+							sourceHash: scriptHash
+						}
+					}
+					return compilationData;
+				}
+			private static async _compileScript(script: string): Promise<string> {
+				return new window.Promise<string>(async (resolve) => {
+					await Helpers.execFile('js/libraries/typescript.js');
+					const sourceFile = window.ts.createSourceFile('file.ts', script, window.ts.ScriptTarget.ES3);
+					window.ts.createProgram([sourceFile], {
+						module: window.ts.ModuleKind.None,
+						target: window.ts.ScriptTarget.ES3,
+						noLib: true,
+						noResolve: true,
+						suppressOutputPathCheck: true
+					}, {
+						getSourceFile: function (fileName) { return fileName.indexOf("module") === 0 ? sourceFile : undefined; },
+						writeFile: function (_name, text) { resolve(text); },
+						getDefaultLibFileName: function () { return "lib.d.ts"; },
+						useCaseSensitiveFileNames: function () { return false; },
+						getCanonicalFileName: function (fileName) { return fileName; },
+						getCurrentDirectory: function () { return ""; },
+						getNewLine: function () { return "\r\n"; },
+						fileExists: function (fileName) { return fileName === 'file.ts'; },
+						readFile: function () { return ""; },
+						directoryExists: function () { return true; },
+						getDirectories: function () { return []; }
+					})
+				});
+			}
+		}
 
 		static updateCrm(toUpdate?: Array<number>) {
 			Storages.uploadChanges('settings', [{
@@ -7727,6 +7801,7 @@ if (typeof module === 'undefined') {
 				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)) as any,
 				oldValue: {} as any
 			}]);
+			CRM.TS.compileAll();
 			CRM.updateCRMValues();
 			CRM.buildPageCRM();
 			MessageHandling.signalNewCRM();
@@ -7885,7 +7960,7 @@ if (typeof module === 'undefined') {
 						'Script',
 						[
 							node.value.launchMode,
-							node.value.script
+							Helpers.getScriptNodeScript(node)
 						].join('%124')
 					].join('%123');
 				case 'stylesheet':
@@ -9348,25 +9423,6 @@ if (typeof module === 'undefined') {
 					});
 				});
 			}
-			private static _loadFile(path: string): Promise<string> {
-				return new Promise<string>((resolve, reject) => {
-					const xhr = new window.XMLHttpRequest();
-					xhr.open('GET', chrome.runtime.getURL(path));
-					xhr.onreadystatechange = () => {
-						if (xhr.readyState === XMLHttpRequest.DONE) {
-							if (xhr.status === 200) {
-								resolve(xhr.responseText);
-							} else {
-								reject(null);
-							}
-						}
-					}
-				});
-			}
-			private static async _execFile(path: string): Promise<void> {
-				const fileContent = await this._loadFile(path);
-				eval(fileContent);
-			}
 			private static _loadTernFiles(): Promise<void> {
 				return new Promise((resolve, reject) => {
 					const files: Array<string> = [
@@ -9441,7 +9497,7 @@ if (typeof module === 'undefined') {
 					for (let id in ordered) {
 						if (ordered.hasOwnProperty(id)) {
 							const node = globalObject.globals.crm.crmById[id];
-							if (node.type === 'script' && (!node || node.value.script !== ordered[id])) {
+							if (node.type === 'script' && (node && Helpers.getScriptNodeScript(node, 'background') !== ordered[id])) {
 								CRM.Script.Background.createBackgroundPage(node as CRM.ScriptNode);
 							}
 						}
@@ -9792,7 +9848,7 @@ if (typeof module === 'undefined') {
 			for (let i = 0; i < tree.length; i++) {
 				const child = tree[i];
 				if (child.type === 'script') {
-					obj[child.id] = child.value.backgroundScript;
+					obj[child.id] = Helpers.getScriptNodeScript(child, 'background');
 				} else if (child.type === 'menu' && child.children) {
 					this._orderBackgroundPagesById(child.children, obj);
 				}
@@ -9856,11 +9912,11 @@ if (typeof module === 'undefined') {
 				fns.afterSync.push(() => {
 					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
 						if (node.type === 'script') {
-							node.value.oldScript = node.value.script;
+							node.value.oldScript = Helpers.getScriptNodeScript(node);
 							node.value.script = this.SetupHandling.TransferFromOld
 								.legacyScriptReplace
 								.chromeCallsReplace
-								.replace(node.value.script, this.SetupHandling.TransferFromOld
+								.replace(Helpers.getScriptValue(node), this.SetupHandling.TransferFromOld
 									.legacyScriptReplace.generateScriptUpgradeErrorHandler(node.id));
 						}
 						if (node.isLocal) {
@@ -9899,6 +9955,20 @@ if (typeof module === 'undefined') {
 						newValue: 'Custom Menu'
 					}]);
 				});
+			}
+			if (this._isVersionInRange(oldVersion, newVersion, '2.1.0')) {
+				fns.afterSync.push(() => {
+					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
+						if (node.type === 'script') {
+							node.value.ts = {
+								enabled: false,
+								backgroundScript: {},
+								script: {}
+							}
+						}
+					});
+					CRM.updateCrm();
+				})
 			}
 
 			chrome.storage.local.set({
@@ -10000,6 +10070,8 @@ if (typeof module === 'undefined') {
 					port.onMessage.addListener(window.createHandlerFunction(port));
 				});
 				chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
+				window.log('Compiling typescript');
+				await CRM.TS.compileAll();
 				window.log('Building Custom Right-Click Menu');
 				CRM.buildPageCRM();
 				window.console.groupCollapsed('Restoring previous open tabs');
