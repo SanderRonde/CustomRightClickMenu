@@ -318,6 +318,26 @@ module.exports = function(grunt) {
 					],
 					dest: 'app/elements/edit-pages/monaco-editor/src/min/'
 				}]
+			},
+			tsEmbedDev: {
+				files: [{
+					expand: true,
+					cwd: 'node_modules/typescript/lib',
+					src: [
+						'typescript.js'
+					],
+					dest: 'app/js/libraries/'
+				}]
+			},
+			tsEmbedBuild: {
+				files: [{
+					expand: true,
+					cwd: 'node_modules/typescript/lib',
+					src: [
+						'typescript.js'
+					],
+					dest: 'buildBeforePolymer/js/libraries/'
+				}]
 			}
 		},
 		htmlmin: {
@@ -714,7 +734,8 @@ module.exports = function(grunt) {
 	//Prepares the extension for hot reloading, developing
 	// through the app/ directory instead and not having to build
 	grunt.registerTask('prepareForHotReload', ['crisper:components',
-		'copy:monacoTemp', 'string-replace:patchDevMonaco', 'jsbeautifier:beautifyMonaco']);
+		'copy:monacoTemp', 'string-replace:patchDevMonaco', 'jsbeautifier:beautifyMonaco',
+		'copy:tsEmbedDev']);
 
 	//Disables hot reloading, required for proper build
 	grunt.registerTask('disableHotReload', ['exec:yarn']);
@@ -768,7 +789,8 @@ module.exports = function(grunt) {
 		'copy:build', 'copy:installing', 'string-replace', 'copy:monacoPre', 
 		'copy:monacoTemp', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
-		'copy:elements', 'copy:jsFiles', 'copy:html', 'clean:tempMonaco']);
+		'copy:elements', 'copy:tsEmbed', 'copy:jsFiles', 'copy:html', 
+		'copy:tsEmbedBuild','clean:tempMonaco']);
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
