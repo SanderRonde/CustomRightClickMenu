@@ -1330,7 +1330,26 @@ if (typeof module === 'undefined') {
 				callback(TMExtensions.length > 0);
 			});
 		}
+		static async execFile(path: string): Promise<void> {
+			const fileContent = await this._loadFile(path);
+			eval(fileContent);
+		}
 
+		private static _loadFile(path: string): Promise<string> {
+			return new Promise<string>((resolve, reject) => {
+				const xhr = new window.XMLHttpRequest();
+				xhr.open('GET', chrome.runtime.getURL(path));
+				xhr.onreadystatechange = () => {
+					if (xhr.readyState === XMLHttpRequest.DONE) {
+						if (xhr.status === 200) {
+							resolve(xhr.responseText);
+						} else {
+							reject(null);
+						}
+					}
+				}
+			});
+		}
 		private static _compareObj(firstObj: {
 			[key: string]: any;
 			[key: number]: any;
@@ -9354,7 +9373,7 @@ if (typeof module === 'undefined') {
 					];
 					this._chainPromise(files.map((file) => {
 						return () => {
-							return this._execFile(file)
+							return Helpers.execFile(file)
 						}
 					})).then(() => {
 						resolve(null);
