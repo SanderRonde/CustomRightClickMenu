@@ -659,13 +659,9 @@ declare namespace CRM {
 	type SafeCRMBaseNode = MakeNodeSafe<SafeBaseNodeBase>;
 
 	/**
-	 * Data about the usage of typescript for a given script
+	 * Data about a compiled typescript script
 	 */
-	interface TypescriptData {
-		/**
-		 * Whether typescript is enabled for this script
-		 */
-		enabled: boolean;
+	interface TypescriptCompilationData {
 		/**
 		 * The compiled typescript string
 		 */
@@ -674,6 +670,24 @@ declare namespace CRM {
 		 * The hash of the source code for the latest compilation
 		 */
 		sourceHash?: string;
+	}
+
+	/**
+	 * Data about the usage of typescript for a given script
+	 */
+	interface TypescriptData {
+		/**
+		 * Whether typescript is enabled for this node
+		 */
+		enabled: boolean;
+		/**
+		 * Compilation data about the script
+		 */
+		script: TypescriptCompilationData;
+		/**
+		 * Compilation data about the background script
+		 */
+		backgroundScript: TypescriptCompilationData;
 	}
 
 	/**

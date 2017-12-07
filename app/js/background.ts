@@ -684,7 +684,9 @@ if (typeof module === 'undefined') {
 						metaTags: {},
 						options: {},
 						ts: {
-							enabled: false
+							enabled: false,
+							backgroundScript: {},
+							script: {}
 						}
 					};
 
