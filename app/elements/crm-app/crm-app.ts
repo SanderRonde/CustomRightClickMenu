@@ -1300,10 +1300,13 @@ namespace CRMAppElement {
 						$(this.parent().$$('.pageCont')).animate({
 							backgroundColor: 'white'
 						}, 200);
-						$(this.parent().$$('.crmType')).each(function (this: HTMLElement) {
-							this.classList.remove('dim');
+						Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('.crmType')).forEach((crmType: HTMLElement) => {
+							crmType.classList.remove('dim');
 						});
-						$(window.app.editCRM.$$('edit-crm-item .item')).animate({
+						const crmeditItemItems = Array.prototype.slice.apply(this.parent().editCRM.shadowRoot.querySelectorAll('edit-crm-item')).map((element: HTMLEditCrmItemElement) => {
+							return element.$$('.item');
+						})
+						$(crmeditItemItems).animate({
 							opacity: 1
 						}, 200, function () {
 							document.body.style.pointerEvents = 'all';
@@ -1316,8 +1319,11 @@ namespace CRMAppElement {
 					//Check if the element is already visible
 					window.doc.restoreChangesDialog.close();
 					this.parent().$$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
-					this.parent().$$('edit-crm-item .item').style.opacity = '0.6';
-					Array.prototype.slice.apply(this.parent().$$('.crmType')).forEach((crmType: HTMLElement) => {
+					Array.prototype.slice.apply(this.parent().editCRM.shadowRoot.querySelectorAll('edit-crm-item')).forEach((element: HTMLEditCrmItemElement) => {
+						const item = element.$$('.item');
+						item.style.opacity = '0.6';
+					});
+					Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('.crmType')).forEach((crmType: HTMLElement) => {
 						crmType.classList.add('dim');
 					});
 
