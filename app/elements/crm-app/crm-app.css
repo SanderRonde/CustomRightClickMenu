@@ -1182,3 +1182,7 @@ paper-checkbox {
 *[hidden] {
 	display: none!important;
 }
+
+#restoreChangesEditor {
+	height: calc(100vh - 500px);
+}
