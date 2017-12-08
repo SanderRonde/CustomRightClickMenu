@@ -26,6 +26,7 @@
 }
 
 #editorElement {
+	display: flex;
 	flex-grow: 100;
 }
 
@@ -62,4 +63,9 @@
 
 .vs .userScriptColorUnderline::before {
 	border: 2px solid black;
+}
+
+#editorElement > * {
+	flex-grow: 100;
+	height: auto!important;
 }
