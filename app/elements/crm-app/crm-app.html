@@ -536,30 +536,19 @@
 				</paper-dialog>
 				<paper-dialog id="restoreChangesDialog" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
 					<div id="restoreChangesMain">
-						<h2>You closed an editing instance without saving or discarding it, are you sure you wanted to do this?</h2>
-						<br />
+						<h2>Recovering unsaved code</h2>
+						<span>You closed an editing instance without saving or discarding it, are you sure you wanted to do this?</span>
 						<div id="highlightChangedScript" class="restoreChangesOption">What node?</div>
-						<div class="buttons">
-							<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-						</div>
 					</div>
 					<div id="restoreChangesHeader">
 						<h2>Old Code</h2>
 						<h2>Unsaved code</h2>
 					</div>
 					<monaco-editor id="restoreChangesEditor"></monaco-editor>
-					<div id="restoreChangesButtons">
-						<div class="buttons">
-							<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-							<paper-button class="restoreChangesBack">Back</paper-button>
-						</div>
-						<div class="buttons">
-							<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
-							<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-							<paper-button class="restoreChangesBack">Back</paper-button>
-						</div>
+					<div class="buttons">
+						<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
+						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
+						<paper-button class="restoreChangesBack">Back</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">
