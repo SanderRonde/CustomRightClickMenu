@@ -546,9 +546,8 @@
 					</div>
 					<monaco-editor id="restoreChangesEditor"></monaco-editor>
 					<div class="buttons">
-						<paper-button class="keepChangesButton" dialog-confirm>Keep Old</paper-button>
-						<paper-button class="discardButton" dialog-dismiss>Discard</paper-button>
-						<paper-button class="restoreChangesBack">Back</paper-button>
+						<paper-button id="keepChangesButton" dialog-confirm>Keep Old</paper-button>
+						<paper-button id="discardButton" dialog-dismiss>Discard</paper-button>
 					</div>
 				</paper-dialog>
 				<paper-dialog data-element-type="ChooseFileDialog" no-cancel-on-esc-key="true" no-cancel-on-outside-click="true" id="externalEditorChooseFile" with-backdrop entry-animation="scale-up-animation" exit-animation="fade-out-animation">

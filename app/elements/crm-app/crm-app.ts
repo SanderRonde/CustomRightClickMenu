@@ -1214,11 +1214,10 @@ namespace CRMAppElement {
 					crmItem.value.script : crmItem.value.backgroundScript) :
 					(crmItem.value.stylesheet));
 				this.parent().listeners.iconSwitch(null, editingObj.crmType);
-				this.parent().$$('.keepChangesButton').addEventListener('click', function () {
+				this.parent().$.keepChangesButton.addEventListener('click', () => {
 					if (crmItem.type === 'script') {
 						crmItem.value[(editingObj.mode === 'main' ?
-							'script' :
-							'backgroundScript')] = editingObj.val;
+							'script' : 'backgroundScript')] = editingObj.val;
 					} else {
 						crmItem.value.stylesheet = editingObj.val;
 					}
@@ -1231,12 +1230,7 @@ namespace CRMAppElement {
 						editor.destroy();
 					}, 500);
 				});
-				this.parent().$$('.restoreChangesBack').addEventListener('click', function () {
-					editor.destroy();
-					window.doc.restoreChangesMain.style.display = 'block';
-					window.doc.restoreChangesDialog.fit();
-				});
-				this.parent().$$('.discardButton').addEventListener('click', function () {
+				this.parent().$.discardButton.addEventListener('click', () => {
 					chrome.storage.local.set({
 						editing: null
 					});
