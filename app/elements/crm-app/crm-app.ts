@@ -636,7 +636,7 @@ namespace CRMAppElement {
 								});
 							}
 						});
-						$(this.$$('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
+						$(this.shadowRoot.querySelectorAll('#requestPermissionsShowOther')).off('click').on('click', function (this: HTMLElement) {
 							const showHideSvg = this;
 							const otherPermissions = $(this).parent().parent().parent().children('#requestPermissionsOther')[0];
 							if (!otherPermissions.style.height || otherPermissions.style.height === '0px') {
@@ -657,7 +657,7 @@ namespace CRMAppElement {
 						});
 
 						let permission: string;
-						$(this.$$('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
+						$(this.shadowRoot.querySelectorAll('.requestPermissionButton')).off('click').on('click', function (this: HTMLPaperCheckboxElement) {
 							permission = this.previousElementSibling.previousElementSibling.textContent;
 							const slider = this;
 							if (this.checked) {
@@ -701,7 +701,7 @@ namespace CRMAppElement {
 							}
 						});
 
-						$(this.$$('#requestPermissionsAcceptAll')).off('click').on('click', function () {
+						$(this.shadowRoot.querySelectorAll('#requestPermissionsAcceptAll')).off('click').on('click', function () {
 							chrome.permissions.request({
 								permissions: toRequest
 							}, function (accepted) {
@@ -1263,7 +1263,9 @@ namespace CRMAppElement {
 						$('.crmType').each(function (this: HTMLElement) {
 							this.classList.remove('dim');
 						});
-						$(window.app.editCRM.$$('edit-crm-item .item')).animate({
+						$(window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item').map((el: HTMLEditCrmItemElement) => {
+							return el.querySelector('.item');
+						})).animate({
 							opacity: 1
 						}, 200, function () {
 							document.body.style.pointerEvents = 'all';
@@ -1297,7 +1299,7 @@ namespace CRMAppElement {
 						}, 2000);
 					} else {
 						window.doc.restoreChangesDialog.open();
-						$(this.parent().$$('.pageCont')).animate({
+						$(this.parent().shadowRoot.querySelectorAll('.pageCont')).animate({
 							backgroundColor: 'white'
 						}, 200);
 						Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('.crmType')).forEach((crmType: HTMLElement) => {

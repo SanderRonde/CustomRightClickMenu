@@ -240,9 +240,7 @@ namespace PaperSearchWebsiteDialog {
 		 */
 		static processManualInput(this: PaperSearchWebsiteDialog) {
 			if (this.selectedIsUrl) {
-				this.chosenUrl = this.$.manualInputURLInput
-					.$$('input')
-					.value
+				this.chosenUrl = this.$.manualInputURLInput.$$('input').value
 					.replace(/custom( )?[rR]ight( )?(-)?[cC]lick( )?[mM]enu/g, '%s');
 				this.switchToWindow('confirmationWindow');
 			} else {

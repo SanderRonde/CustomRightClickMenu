@@ -350,7 +350,7 @@ namespace PaperDropdownBehaviorNamespace {
 		 * @returns {Array} The currently selected item(s) in array form
 		 */
 		static getSelected(this: PaperDropdownInstance): Array<number> {
-			if (this.$$('.iron-selected.addLibrary')) {
+			if (this.shadowRoot.querySelectorAll('.iron-selected.addLibrary')) {
 				(this.selected as Array<number>).pop();
 			}
 			if (typeof this.selected === 'number') {

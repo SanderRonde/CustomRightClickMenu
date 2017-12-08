@@ -341,7 +341,7 @@ namespace EditCrmItemElement {
 			const firstHighlightedItem = firstHighlightedNode.item;
 
 			//Deselect everything else
-			Array.prototype.slice.apply(window.app.editCRM.$$('.highlighted')).forEach((element: HTMLEditCrmElement) => {
+			Array.prototype.slice.apply(window.app.editCRM.shadowRoot.querySelectorAll('.highlighted')).forEach((element: HTMLEditCrmElement) => {
 				element.classList.remove('highlighted');
 			});
 

@@ -245,7 +245,7 @@ namespace PaperLibrariesSelectorElement {
 					isLibrary: 'true'
 				});
 
-				const dropdownContainer = $(this.$$('.content'));
+				const dropdownContainer = $(this.shadowRoot.querySelectorAll('.content'));
 				dropdownContainer.animate({
 					height: dropdownContainer[0].scrollHeight
 				}, {
@@ -272,7 +272,7 @@ namespace PaperLibrariesSelectorElement {
 					}
 				});
 
-				const contentEl = this.$$('paper-menu .content') as HTMLElement;
+				const contentEl = this.$$('paper-menu').$$('.content') as HTMLElement;
 				contentEl.style.height = (~~contentEl.style.height.split('px')[0] + 48) + 'px';
 
 				this.init();
