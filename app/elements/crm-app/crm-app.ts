@@ -1207,170 +1207,160 @@ namespace CRMAppElement {
 				mode: string;
 				val: string;
 				crmType: number;
-			}, errs: number = 0) {
-				errs = errs + 1 || 0;
-				if (errs < 5) {
-					if (!window.CodeMirror) {
-						setTimeout(() => { 
-							this.restoreUnsavedInstances(editingObj, errs);
-						}, 500);
+			}) {
+				console.log('Doing', editingObj);
+				const crmItem = this.parent().nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
+				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
+					crmItem.value.script : crmItem.value.backgroundScript) :
+					(crmItem.value.stylesheet));
+				this.parent().listeners.iconSwitch(null, editingObj.crmType);
+				this.parent().$$('.keepChangesButton').addEventListener('click', function () {
+					if (crmItem.type === 'script') {
+						crmItem.value[(editingObj.mode === 'main' ?
+							'script' :
+							'backgroundScript')] = editingObj.val;
+					} else {
+						crmItem.value.stylesheet = editingObj.val;
 					}
-					else {
-						const crmItem = this.parent().nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
-						const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
-							crmItem.value.script : crmItem.value.backgroundScript) :
-							(crmItem.value.stylesheet));
-						this.parent().listeners.iconSwitch(null, editingObj.crmType);
-						this.parent().$$('.keepChangesButton').addEventListener('click', function () {
-							if (crmItem.type === 'script') {
-								crmItem.value[(editingObj.mode === 'main' ?
-									'script' :
-									'backgroundScript')] = editingObj.val;
-							} else {
-								crmItem.value.stylesheet = editingObj.val;
-							}
-							window.app.upload();
-							chrome.storage.local.set({
-								editing: null
-							});
-							window.setTimeout(function () {
-								//Remove the CodeMirror instances for performance
-								editor.destroy();
-							}, 500);
-						});
-						this.parent().$$('.restoreChangesBack').addEventListener('click', function () {
-							editor.destroy();
-							window.doc.restoreChangesMain.style.display = 'block';
-							window.doc.restoreChangesDialog.fit();
-						});
-						this.parent().$$('.discardButton').addEventListener('click', function () {
-							chrome.storage.local.set({
-								editing: null
-							});
-							window.setTimeout(function () {
-								//Remove the CodeMirror instances for performance
-								editor.destroy();
-							}, 500);
-						});
+					window.app.upload();
+					chrome.storage.local.set({
+						editing: null
+					});
+					window.setTimeout(function () {
+						//Remove the CodeMirror instances for performance
+						editor.destroy();
+					}, 500);
+				});
+				this.parent().$$('.restoreChangesBack').addEventListener('click', function () {
+					editor.destroy();
+					window.doc.restoreChangesMain.style.display = 'block';
+					window.doc.restoreChangesDialog.fit();
+				});
+				this.parent().$$('.discardButton').addEventListener('click', function () {
+					chrome.storage.local.set({
+						editing: null
+					});
+					window.setTimeout(function () {
+						//Remove the CodeMirror instances for performance
+						editor.destroy();
+					}, 500);
+				});
 
-						const isTs = crmItem.type === 'script' &&
-							crmItem.value.ts && crmItem.value.ts.enabled;
-						const editor = await window.doc.restoreChangesEditor.createDiff([code, editingObj.val], 
-							crmItem.type === 'script' ? (isTs ? 'typescript' : 'javascript') : 'css', crmItem.type, {
-								wordWrap: 'off',
-								fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
-								folding: true
-							});
+				const isTs = crmItem.type === 'script' &&
+					crmItem.value.ts && crmItem.value.ts.enabled;
 
-						const stopHighlighting = function (element: HTMLElement) {
-							const item = $(element).find('.item')[0];
-							item.animate([
-								{
-									opacity: 1
-								}, {
-									opacity: 0.6
-								}
-							], {
-								duration: 250,
-								easing: 'bez'
-							}).onfinish = function (this: Animation) {
-								item.style.opacity = '0.6';
-								window.doc.restoreChangesDialog.open();
-								$('.pageCont').animate({
-									backgroundColor: 'white'
-								}, 200);
-								$('.crmType').each(function (this: HTMLElement) {
-									this.classList.remove('dim');
-								});
-								$(window.app.editCRM.$$('edit-crm-item .item')).animate({
-									opacity: 1
-								}, 200, function () {
-									document.body.style.pointerEvents = 'all';
-								});
-							};
-						};
-
-						const path = this.parent().nodesById[editingObj.id].path;
-						const highlightItem = () => { 
-							document.body.style.pointerEvents = 'none';
-							const columnConts = this.parent().shadowRoot.querySelectorAll('#mainCont > div');
-							const $columnCont = $(columnConts[(path.length - 1) + 2]);
-							const $paperMaterial = $($columnCont.children('paper-material')[0]);
-							const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
-							const editCRMItems = $($crmEditColumn).children('edit-crm-item');
-							const crmElement = editCRMItems[path[path.length - 1]];
-							//Just in case the item doesn't exist (anymore)
-							if (crmElement.querySelector('.item')) {
-								crmElement.querySelector('.item').animate([{
-									opacity: 0.6
-								}, {
-									opacity: 1
-								}], {
-									duration: 250,
-									easing: 'bez'
-								}).onfinish = function (this: Animation) {
-									crmElement.querySelector('.item').style.opacity = '1';
-								};
-								setTimeout(function () {
-									stopHighlighting(crmElement);
-								}, 2000);
-							} else {
-								window.doc.restoreChangesDialog.open();
-								$(this.parent().$$('.pageCont')).animate({
-									backgroundColor: 'white'
-								}, 200);
-								$(this.parent().$$('.crmType')).each(function (this: HTMLElement) {
-									this.classList.remove('dim');
-								});
-								$(window.app.editCRM.$$('edit-crm-item .item')).animate({
-									opacity: 1
-								}, 200, function () {
-									document.body.style.pointerEvents = 'all';
-								});
-							}
-						};
-
-						window.doc.highlightChangedScript.addEventListener('click', () => {
-							//Find the element first
-							//Check if the element is already visible
-							window.doc.restoreChangesDialog.close();
-							this.parent().$$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
-							this.parent().$$('edit-crm-item .item').style.opacity = '0.6';
-							Array.prototype.slice.apply(this.parent().$$('.crmType')).forEach((crmType: HTMLElement) => {
-								crmType.classList.add('dim');
-							});
-
-							setTimeout(function () {
-								if (path.length === 1) {
-									//Always visible
-									highlightItem();
-								} else {
-									let visible = true;
-									for (let i = 1; i < path.length; i++) {
-										if (window.app.editCRM.crm[i].indent.length !== path[i - 1]) {
-											visible = false;
-											break;
-										}
-									}
-									if (!visible) {
-										//Make it visible
-										const popped = JSON.parse(JSON.stringify(path.length));
-										popped.pop();
-										window.app.editCRM.build(popped);
-										setTimeout(highlightItem, 700);
-									} else {
-										highlightItem();
-									}
-								}
-							}, 500);
-						});
-						try {
-							window.doc.restoreChangesDialog.open();
-						} catch (e) {
-							this.restoreUnsavedInstances(editingObj, errs + 1);
+				const stopHighlighting = function (element: HTMLElement) {
+					const item = $(element).find('.item')[0];
+					item.animate([
+						{
+							opacity: 1
+						}, {
+							opacity: 0.6
 						}
+					], {
+						duration: 250,
+						easing: 'bez'
+					}).onfinish = function (this: Animation) {
+						item.style.opacity = '0.6';
+						window.doc.restoreChangesDialog.open();
+						$('.pageCont').animate({
+							backgroundColor: 'white'
+						}, 200);
+						$('.crmType').each(function (this: HTMLElement) {
+							this.classList.remove('dim');
+						});
+						$(window.app.editCRM.$$('edit-crm-item .item')).animate({
+							opacity: 1
+						}, 200, function () {
+							document.body.style.pointerEvents = 'all';
+						});
+					};
+				};
+
+				const path = this.parent().nodesById[editingObj.id].path;
+				const highlightItem = () => { 
+					document.body.style.pointerEvents = 'none';
+					const columnConts = this.parent().shadowRoot.querySelectorAll('#mainCont > div');
+					const $columnCont = $(columnConts[(path.length - 1) + 2]);
+					const $paperMaterial = $($columnCont.children('paper-material')[0]);
+					const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
+					const editCRMItems = $($crmEditColumn).children('edit-crm-item');
+					const crmElement = editCRMItems[path[path.length - 1]];
+					//Just in case the item doesn't exist (anymore)
+					if (crmElement.querySelector('.item')) {
+						crmElement.querySelector('.item').animate([{
+							opacity: 0.6
+						}, {
+							opacity: 1
+						}], {
+							duration: 250,
+							easing: 'bez'
+						}).onfinish = function (this: Animation) {
+							crmElement.querySelector('.item').style.opacity = '1';
+						};
+						setTimeout(function () {
+							stopHighlighting(crmElement);
+						}, 2000);
+					} else {
+						window.doc.restoreChangesDialog.open();
+						$(this.parent().$$('.pageCont')).animate({
+							backgroundColor: 'white'
+						}, 200);
+						$(this.parent().$$('.crmType')).each(function (this: HTMLElement) {
+							this.classList.remove('dim');
+						});
+						$(window.app.editCRM.$$('edit-crm-item .item')).animate({
+							opacity: 1
+						}, 200, function () {
+							document.body.style.pointerEvents = 'all';
+						});
 					}
-				}
+				};
+
+				window.doc.highlightChangedScript.addEventListener('click', () => {
+					//Find the element first
+					//Check if the element is already visible
+					window.doc.restoreChangesDialog.close();
+					this.parent().$$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
+					this.parent().$$('edit-crm-item .item').style.opacity = '0.6';
+					Array.prototype.slice.apply(this.parent().$$('.crmType')).forEach((crmType: HTMLElement) => {
+						crmType.classList.add('dim');
+					});
+
+					setTimeout(function () {
+						if (path.length === 1) {
+							//Always visible
+							highlightItem();
+						} else {
+							let visible = true;
+							for (let i = 1; i < path.length; i++) {
+								if (window.app.editCRM.crm[i].indent.length !== path[i - 1]) {
+									visible = false;
+									break;
+								}
+							}
+							if (!visible) {
+								//Make it visible
+								const popped = JSON.parse(JSON.stringify(path.length));
+								popped.pop();
+								window.app.editCRM.build(popped);
+								setTimeout(highlightItem, 700);
+							} else {
+								highlightItem();
+							}
+						}
+					}, 500);
+				});
+				window.doc.restoreChangesDialog.open();
+				let editor: any = null;
+				window.setTimeout(async () => {
+					editor = await window.doc.restoreChangesEditor.createDiff([code, editingObj.val], 
+						crmItem.type === 'script' ? (isTs ? 'typescript' : 'javascript') : 'css', crmItem.type, {
+							wordWrap: 'off',
+							fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
+							folding: true
+						});
+				}, 1000);
 			};
 
 			private static bindListeners() {
