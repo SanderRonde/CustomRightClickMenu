@@ -1343,7 +1343,7 @@ if (typeof module === 'undefined') {
 			this._requiredFiles.push
 		}
 		static getScriptNodeScript(script: CRM.ScriptNode|CRM.SafeScriptNode, type: 'background'|'script' = 'script'): string {
-			if (script.value.ts.enabled) {
+			if (script.value.ts && script.value.ts.enabled) {
 				return type === 'background' ?
 					script.value.ts.backgroundScript.compiled :
 					script.value.ts.script.compiled;
