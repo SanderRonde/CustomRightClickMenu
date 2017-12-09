@@ -80,20 +80,25 @@ namespace ScriptEditElement {
 
 		private static changeTab(this: NodeEditBehaviorScriptInstance, mode: 'main'|'background') {
 			if (mode !== this.editorMode) {
+				const isTs = this.item.value.ts && this.item.value.ts.enabled;
 				if (mode === 'main') {
 					if (this.editorMode === 'background') {
 						this.newSettings.value.backgroundScript = this.editorManager.editor.getValue();
 					}
 					this.editorMode = 'main';
 					this.enableButtons();
-					this.editorManager.switchToModel('default', this.newSettings.value.script, 'javascript');
+					this.editorManager.switchToModel('default', this.newSettings.value.script, 
+						isTs ? this.editorManager.EditorMode.TS_META : 
+							this.editorManager.EditorMode.JS_META);
 				} else if (mode === 'background') {
 					if (this.editorMode === 'main') {
 						this.newSettings.value.script = this.editorManager.editor.getValue();
 					}
 					this.editorMode = 'background';
 					this.disableButtons();
-					this.editorManager.switchToModel('background', this.newSettings.value.backgroundScript || '', 'javascript');
+					this.editorManager.switchToModel('background', this.newSettings.value.backgroundScript || '', 
+						isTs ? this.editorManager.EditorMode.TS_META : 
+							this.editorManager.EditorMode.JS_META);
 				}
 
 				const element = window.app.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
@@ -554,7 +559,9 @@ namespace ScriptEditElement {
 			});
 
 			const isTs = this.item.value.ts && this.item.value.ts.enabled;
-			this.editorManager = await this.$.editor.create(isTs ? 'typescript' : 'script', {
+			const type = isTs ? this.editorManager.EditorMode.TS_META : 
+				this.editorManager.EditorMode.JS_META;
+			this.editorManager = await this.$.editor.create(type, {
 				value: content,
 				language: isTs ? 'typescript' : 'javascript',
 				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',

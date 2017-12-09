@@ -163,26 +163,6 @@ interface Window {
 		logLines: any;
 	};
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
-	completionsOptions(query: {
-		start: {
-			line: number;
-			ch: number;
-		};
-		end: {
-			line: number;
-			ch: number;
-		}
-	}, file: Tern.File, fns: CMCompletionFns): Completions;
-	completionsOptions(query: {
-		start: {
-			line: number;
-			ch: number;
-		};
-		end: {
-			line: number;
-			ch: number;
-		}
-	}, file: Tern.File, fns: CMCompletionFns): Completions;
 	parseCodeOptions(file: {
 		text: string;
 	}, query: {

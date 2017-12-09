@@ -762,11 +762,13 @@ namespace CRMAppElement {
 		};
 
 		static initCodeOptions(this: CrmApp, node: CRM.ScriptNode | CRM.StylesheetNode) {
+			debugger;
 			this.$.codeSettingsDialog.item = node;
-			this.$.codeSettingsTitle.innerText = `Changing the options for ${node.name}`;
+			this.$.codeSettingsNodeName.innerText = node.name;
 
 			this.$.codeSettingsRepeat.items = this._generateCodeOptionsArray(node.value.options);
 			this.$.codeSettingsNoItems.if = this.$.codeSettingsRepeat.items.length === 0;
+			this.$.codeSettingsRepeat.render();
 			this.async(() => {
 				this.$.codeSettingsDialog.fit();
 				Array.prototype.slice.apply(this.$.codeSettingsDialog.querySelectorAll('paper-dropdown-menu'))
@@ -786,7 +788,7 @@ namespace CRMAppElement {
 			if (this._isVersionUpdateTabX(this.versionUpdateTab, 1)) {
 				const versionUpdateDialog = this.$.versionUpdateDialog;
 				if (!versionUpdateDialog.editorManager) {
-					versionUpdateDialog.editorManager = await this.$.tryOutEditor.create('script', {
+					versionUpdateDialog.editorManager = await this.$.tryOutEditor.create(this.$.tryOutEditor.EditorMode.JS, {
 						value: '//some javascript code\nvar body = document.getElementById(\'body\');\nbody.style.color = \'red\';\n\n',
 						language: 'javascript',
 						theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',
@@ -1362,8 +1364,11 @@ namespace CRMAppElement {
 				window.doc.restoreChangesDialog.open();
 				let editor: any = null;
 				window.setTimeout(async () => {
-					editor = await window.doc.restoreChangesEditor.createDiff([code, editingObj.val], 
-						crmItem.type === 'script' ? (isTs ? 'typescript' : 'javascript') : 'css', crmItem.type, {
+					const me = window.doc.restoreChangesEditor;
+					const type = crmItem.type === 'script' ? 
+						(isTs ? me.EditorMode.TS_META : me.EditorMode.JS_META) :
+						me.EditorMode.CSS_META;
+					editor = await window.doc.restoreChangesEditor.createDiff([code, editingObj.val], type, {
 							wordWrap: 'off',
 							fontSize: (~~window.app.settings.editor.zoom / 100) * 14,
 							folding: true

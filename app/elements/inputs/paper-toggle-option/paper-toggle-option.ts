@@ -47,6 +47,7 @@ namespace PaperToggleOptionElement {
 		};
 
 		static onClick(this: PaperToggleOption) {
+			console.log('Clicc');
 			const id = this.getAttribute('id');
 			this.toggled = !this.toggled;
 			window.app.setLocal(id, this.toggled);

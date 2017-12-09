@@ -131,7 +131,7 @@ namespace StylesheetEditElement {
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false
 			});
-			this.editorManager = await this.$.editor.create('stylesheet', {
+			this.editorManager = await this.$.editor.create(this.$.editor.EditorMode.CSS_META, {
 				value: content,
 				language: 'css',
 				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',

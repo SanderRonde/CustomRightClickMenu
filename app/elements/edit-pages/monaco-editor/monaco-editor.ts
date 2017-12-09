@@ -35,8 +35,27 @@ namespace MonacoEditorElement {
 		grant: 'Whitelists given `GM_*` functions',
 		noframes: 'Makes the script run on the main page but not in iframes'
 	};
+	
+	abstract class MonacoTypeHandler {
+		/**
+		 * The editor that is currently being used
+		 */
+		protected _editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor;
+		
+		/**
+		 * The model that is currently being used in the editor
+		 */
+		protected _model: monaco.editor.IModel;
 
-	abstract class MonacoEventEmitter<PubL extends string, PriL extends string> {
+		public abstract destroy(): void;
+
+		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
+			this._editor = editor;
+			this._model = model;
+		}
+	}
+
+	abstract class MonacoEventEmitter<PubL extends string, PriL extends string> extends MonacoTypeHandler {
 		private _privateListenerMap: {
 			[key in PriL]: Array<(...params: Array<any>) => any>;
 		} = {} as any;
@@ -120,8 +139,7 @@ namespace MonacoEditorElement {
 		protected _model: monaco.editor.IModel;
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
-			super();
-			this._editor = editor;
+			super(editor, model);
 
 			this._onCreate(model);
 
@@ -149,8 +167,6 @@ namespace MonacoEditorElement {
 
 		private _onCreate(model: monaco.editor.IModel) {
 			this.destroy();
-
-			this._model = model;
 			this._disposables.push(this._model.onDidChangeContent((e) => {
 				this._firePrivate('onModelContentChange', [e]);
 			}));
@@ -189,7 +205,7 @@ namespace MonacoEditorElement {
 		 * Whether to disable the highlight of userscript metadata at the top of the file
 		 */
 		private _isMetaDataHighlightDisabled: boolean = false;
-	
+
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 
@@ -564,7 +580,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	class MonacoEditorScriptMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
+	class MonacoEditorScriptMetaMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
 		metaBlockChanged: boolean = true;
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
@@ -576,7 +592,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	class MonacoEditorStylesheetMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
+	class MonacoEditorCSSMetaMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
 
 		/**
 		 * Whether the highlighting is enabled
@@ -663,7 +679,7 @@ namespace MonacoEditorElement {
 				text: string;
 				start: number;
 			}> = [];
-			while ((match = MonacoEditorStylesheetMods._cssRuleRegex.exec(str))) {
+			while ((match = MonacoEditorCSSMetaMods._cssRuleRegex.exec(str))) {
 				const startIndex = str.indexOf(match[0]);
 				const endIndex = startIndex + match[0].length;
 				ruleParts.push({
@@ -721,7 +737,7 @@ namespace MonacoEditorElement {
 			pos: monaco.Range;
 			color: string;
 		}|null {
-			for (let color of MonacoEditorStylesheetMods._cssColorNames) {
+			for (let color of MonacoEditorCSSMetaMods._cssColorNames) {
 				let index: number = -1;
 				if ((index = str.toLowerCase().indexOf(color)) > -1) {
 					return {
@@ -731,21 +747,21 @@ namespace MonacoEditorElement {
 				}
 			}
 			let match: RegExpMatchArray = null;
-			if ((match = MonacoEditorStylesheetMods._hexRegex.exec(str))) {
+			if ((match = MonacoEditorCSSMetaMods._hexRegex.exec(str))) {
 				const index = str.indexOf(match[1]);
 				return {
 					pos: new monaco.Range(lineNumber + 1, index + offset + 1, lineNumber + 1, index + offset + match[1].length + 1),
 					color: match[1]
 				}
 			}
-			if ((match = MonacoEditorStylesheetMods._rgbRegex.exec(str))) {
+			if ((match = MonacoEditorCSSMetaMods._rgbRegex.exec(str))) {
 				const index = str.indexOf(match[0]);
 				return {
 					pos: new monaco.Range(lineNumber + 1, index + offset + 1, lineNumber + 1, index + offset + match[0].length + 1),
 					color: match[0]
 				}
 			}
-			if ((match = MonacoEditorStylesheetMods._rgbaRegex.exec(str))) {
+			if ((match = MonacoEditorCSSMetaMods._rgbaRegex.exec(str))) {
 				const index = str.indexOf(match[0]);
 				return {
 					pos: new monaco.Range(lineNumber + 1, index + offset + 1, lineNumber + 1, index + offset + match[0].length + 1),
@@ -851,8 +867,22 @@ namespace MonacoEditorElement {
 		}
 	} as any;
 
+	enum EditorMode {
+		CSS,
+		JS,
+		TS,
+		JSON,
+		JS_META,
+		TS_META,
+		CSS_META,
+		JSON_OPTIONS,
+		PLAIN_TEXT
+	}
+
 	class MOE {
 		static is: string = 'monaco-editor';
+
+		static EditorMode: typeof EditorMode = EditorMode;	
 
 		static properties = monacoEditorProperties;
 
@@ -882,9 +912,9 @@ namespace MonacoEditorElement {
 		private static _models: {
 			[id: string]: {
 				models: Array<monaco.editor.IModel>;
-				handlers: Array<MonacoEditorStylesheetMods|MonacoEditorScriptMods>;
+				handlers: Array<MonacoTypeHandler>;
 				state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
-				editorType: 'typescript'|'script'|'stylesheet'|'none';
+				editorType: EditorMode;
 			}
 		} = {};
 
@@ -898,31 +928,105 @@ namespace MonacoEditorElement {
 		}|{
 			method: 'diff';
 			values: [string, string];
-			language: 'css'|'javascript'|'typescript';
-			editorType: 'typescript'|'script'|'stylesheet'|'none';
+			language: 'css'|'javascript'|'typescript'|'json'|'text/plain';
+			editorType: EditorMode;
 			options: monaco.editor.IEditorConstructionOptions;
 			override: monaco.editor.IEditorOverrideServices;
 		} = null;
 
-		private static _getSettings(editorType: 'typescript'|'script'|'stylesheet'|'none'): monaco.editor.IEditorOptions {
-			if (editorType === 'script' || editorType === 'typescript') {
-				return MonacoEditorScriptMods.getSettings();
-			} else if (editorType === 'stylesheet') {
-				return MonacoEditorStylesheetMods.getSettings();
-			} else {
-				return {};
+		private static _typeIsCss(editorType: EditorMode) {
+			switch (editorType) {
+				case EditorMode.CSS:
+				case EditorMode.CSS_META:
+					return true;
+				default:
+					return false;
 			}
 		}
 
-		static async create(this: MonacoEditor, editorType: 'typescript'|'script'|'stylesheet'|'none', options?: monaco.editor.IEditorConstructionOptions, 
+		private static _typeIsTS(editorType: EditorMode) {
+			switch (editorType) {
+				case EditorMode.TS:
+				case EditorMode.TS_META:
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		private static _typeIsJS(editorType: EditorMode) {
+			switch (editorType) {
+				case EditorMode.JS:
+				case EditorMode.JS_META:
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		private static _typeIsJSON(editorType: EditorMode) {
+			switch (editorType) {
+				case EditorMode.JSON:
+				case EditorMode.JSON_OPTIONS:
+					return true;
+				default:
+					return false;
+			}
+		}
+
+		private static _getSettings(editorType: EditorMode): monaco.editor.IEditorOptions {
+			switch (editorType) {
+				case EditorMode.CSS_META:
+					return MonacoEditorCSSMetaMods.getSettings();
+				case EditorMode.TS_META:
+					return MonacoEditorScriptMetaMods.getSettings();
+				default:
+					return {};
+			}
+		}
+
+		private static _getTypeHandler(editorType: EditorMode, 
+			editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor,
+			model: monaco.editor.IModel): MonacoTypeHandler {
+				switch (editorType) {
+					case EditorMode.CSS_META:
+						return new MonacoEditorCSSMetaMods(editor, model);
+					case EditorMode.JS_META:
+					case EditorMode.TS_META:
+						return new MonacoEditorScriptMetaMods(editor, model);
+					case EditorMode.JSON_OPTIONS:
+						return {} as any;
+					default:
+						return null;
+				}
+			}
+
+		private static _getLanguage(editorType: EditorMode) {
+			if (this._typeIsCss(editorType)) {
+				return 'css';
+			}
+			if (this._typeIsJS(editorType)) {
+				return 'javascript';
+			}
+			if (this._typeIsTS(editorType)) {
+				return 'typescript';
+			}
+			if (this._typeIsJSON(editorType)) {
+				return 'json';
+			}
+			return 'text/plain';
+		}
+
+		static async create(this: MonacoEditor, editorType: EditorMode, options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+				options.language = this._getLanguage(editorType);
 				this._createInfo = {
 					method: 'create',
 					options,
 					override
 				}
 
-				this._isTypescript = editorType === 'typescript';
+				this._isTypescript = this._typeIsTS(editorType);
 				this.options = options;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
@@ -932,12 +1036,7 @@ namespace MonacoEditorElement {
 				this._hideSpinner();
 
 				this.editor.updateOptions(this._getSettings(editorType));
-				let typeHandler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
-				if (editorType === 'script' || editorType === 'typescript') {
-					typeHandler = new MonacoEditorScriptMods(this.editor, this.editor.getModel());
-				} else if (editorType === 'stylesheet') {
-					typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
-				}
+				const typeHandler = this._getTypeHandler(editorType, this.editor, this.editor.getModel());
 				this._models['default'] = {
 					models: [this.editor.getModel()],
 					handlers: [typeHandler],
@@ -947,9 +1046,10 @@ namespace MonacoEditorElement {
 				return this;
 			}
 		
-		static async createDiff(this: MonacoEditor, [oldValue, newValue]: [string, string], language: 'typescript'|'javascript'|'css',
-			editorType: 'typescript'|'script'|'stylesheet'|'none', options?: monaco.editor.IDiffEditorOptions,
+		static async createDiff(this: MonacoEditor, [oldValue, newValue]: [string, string],
+			editorType: EditorMode, options?: monaco.editor.IDiffEditorOptions,
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
+				const language = this._getLanguage(editorType);
 				this._createInfo = {
 					method: 'diff',
 					values: [oldValue, newValue],
@@ -959,7 +1059,7 @@ namespace MonacoEditorElement {
 					override
 				}
 
-				this._isTypescript = editorType === 'typescript';
+				this._isTypescript = this._typeIsTS(editorType);
 				this.options = options;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
@@ -978,20 +1078,12 @@ namespace MonacoEditorElement {
 				});
 
 				let typeHandlers: [
-					MonacoEditorScriptMods|MonacoEditorStylesheetMods,
-					MonacoEditorScriptMods|MonacoEditorStylesheetMods
-				] = [null, null];
-				if (editorType === 'script' || editorType === 'typescript') {
-					typeHandlers = [
-						new MonacoEditorScriptMods(this.editor, originalModel),
-						new MonacoEditorScriptMods(this.editor, modifiedModel)
-					]
-				} else if (editorType === 'stylesheet') {
-					typeHandlers = [
-						new MonacoEditorStylesheetMods(this.editor, originalModel),
-						new MonacoEditorStylesheetMods(this.editor, modifiedModel)
-					]
-				}
+					MonacoTypeHandler,
+					MonacoTypeHandler
+				] = [
+					this._getTypeHandler(editorType, this.editor, originalModel),
+					this._getTypeHandler(editorType, this.editor, modifiedModel)
+				];
 
 				this._models['default'] = {
 					editorType,
@@ -1012,7 +1104,7 @@ namespace MonacoEditorElement {
 			const { editor } = from;
 			const editorType = from.getCurrentModel().editorType;
 
-			this._isTypescript = editorType === 'typescript';
+			this._isTypescript = this._typeIsTS(editorType);
 			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
 				model: editor.getModel()
 			}, this.options));
@@ -1022,12 +1114,7 @@ namespace MonacoEditorElement {
 			this._hideSpinner();
 
 			this.editor.updateOptions(this._getSettings(editorType));
-			let typeHandler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
-			if (editorType === 'script' || editorType === 'typescript') {
-				typeHandler = new MonacoEditorScriptMods(this.editor, this.editor.getModel());
-			} else if (editorType === 'stylesheet') {
-				typeHandler = new MonacoEditorStylesheetMods(this.editor, this.editor.getModel());
-			}
+			let typeHandler = this._getTypeHandler(editorType, this.editor, this.editor.getModel());
 			this._models['default'] = {
 				models: [this.editor.getModel()],
 				handlers: [typeHandler],
@@ -1056,7 +1143,7 @@ namespace MonacoEditorElement {
 				return await this.create(editorType, createInfo.options, 
 					createInfo.override);
 			} else if (createInfo.method === 'diff') {
-				return await this.createDiff(createInfo.values, createInfo.language,
+				return await this.createDiff(createInfo.values,
 					createInfo.editorType, createInfo.options, createInfo.override);
 			} else {
 				return this.createFrom(createInfo.from);
@@ -1092,12 +1179,7 @@ namespace MonacoEditorElement {
 			oldModels.forEach((oldModel) => oldModel.dispose());
 
 			currentModel.handlers = newModels.map((newModel) => {
-				if (currentModel.editorType === 'script' || currentModel.editorType === 'typescript') {
-					return new MonacoEditorScriptMods(this.editor, newModel);
-				} else if (currentModel.editorType === 'stylesheet') {
-					return new MonacoEditorStylesheetMods(this.editor, newModel);
-				}
-				return null;
+				return this._getTypeHandler(currentModel.editorType, this.editor, newModel);
 			});
 			currentModel.models = newModels;	
 
@@ -1110,21 +1192,13 @@ namespace MonacoEditorElement {
 			this._isTypescript = enabled;
 		}
 
-		static addModel(this: MonacoEditor, identifier: string, value: string, language: string) {
+		static addModel(this: MonacoEditor, identifier: string, value: string, editorType: EditorMode) {
 			if (this.hasModel(identifier)) {
 				return;
 			}
 
-			let editorType: 'script'|'stylesheet'|'none' = 'none';
-			const model = monaco.editor.createModel(value, language);
-			let handler: MonacoEditorScriptMods|MonacoEditorStylesheetMods = null;
-			if (language === 'javascript') {
-				editorType = 'script';
-				handler = new MonacoEditorScriptMods(this.editor, model);
-			} else if (language === 'css') {
-				editorType = 'stylesheet';
-				new MonacoEditorStylesheetMods(this.editor, model);
-			}
+			const model = monaco.editor.createModel(value, this._getLanguage(editorType));
+			let handler = this._getTypeHandler(editorType, this.editor, model);
 
 			this._models[identifier] = {
 				models: [model],
@@ -1138,9 +1212,9 @@ namespace MonacoEditorElement {
 			return identifier in this._models;
 		}
 
-		static switchToModel(this: MonacoEditor, identifier: string, value: string, language: string) {
+		static switchToModel(this: MonacoEditor, identifier: string, value: string, editorType: EditorMode) {
 			if (!this.hasModel(identifier)) {
-				this.addModel(identifier, value, language);
+				this.addModel(identifier, value, editorType);
 			}
 			if (this.getCurrentModelId() === identifier) {
 				return;
@@ -1215,10 +1289,13 @@ namespace MonacoEditorElement {
 		}
 
 		static async runLinter(this: MonacoEditor) {
-			if (this._models[this.getCurrentModelId()].editorType === 'script') {
+			const type = this._models[this.getCurrentModelId()].editorType;
+			if (this._typeIsJS(type)) {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/jslint.js');
 				this._showLintResults('jslint', this._runJsLint());
-			} else if (this._models[this.getCurrentModelId()].editorType === 'stylesheet') {
+			} else if (this._typeIsTS(type)) {
+				alert('No linting possible in typescript mode');
+			} else if (this._typeIsCss(type)) {
 				await MonacoEditorHookManager.Libraries.runFile('js/libraries/csslint.js');
 				this._showLintResults('csslint', this._runCssLint());
 			}
@@ -1566,7 +1643,9 @@ namespace MonacoEditorElement {
 	};
 	window.MonacoEditorHookManager = MonacoEditorHookManager;
 
-	export type MonacoEditor = Polymer.El<'monaco-editor', typeof MOE>;
+	export type MonacoEditor = Polymer.El<'monaco-editor', typeof MOE & {
+		EditorMode: typeof EditorMode
+	}>;
 
 	if (window.objectify) {
 		Polymer(window.objectify(MOE));
