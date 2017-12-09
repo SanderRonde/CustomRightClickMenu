@@ -1243,8 +1243,8 @@ namespace CRMAppElement {
 				const isTs = crmItem.type === 'script' &&
 					crmItem.value.ts && crmItem.value.ts.enabled;
 
-				const stopHighlighting = function (element: HTMLElement) {
-					const item = $(element).find('.item')[0];
+				const stopHighlighting = (element: HTMLEditCrmItemElement) => {
+					const item = element.$$('.item');
 					item.animate([
 						{
 							opacity: 1
@@ -1254,37 +1254,44 @@ namespace CRMAppElement {
 					], {
 						duration: 250,
 						easing: 'bez'
-					}).onfinish = function (this: Animation) {
+					}).onfinish = () => {
 						item.style.opacity = '0.6';
-						window.doc.restoreChangesDialog.open();
-						$('.pageCont').animate({
+						$(this.parent().$$('.pageCont')).animate({
 							backgroundColor: 'white'
 						}, 200);
-						$('.crmType').each(function (this: HTMLElement) {
-							this.classList.remove('dim');
+						Array.prototype.slice.apply(this.parent().shadowRoot.querySelectorAll('.crmType')).forEach((crmType: HTMLElement) => {
+							crmType.classList.add('dim');
 						});
-						$(window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item').map((el: HTMLEditCrmItemElement) => {
-							return el.querySelector('.item');
-						})).animate({
-							opacity: 1
-						}, 200, function () {
-							document.body.style.pointerEvents = 'all';
+						const editCrmItems: Array<HTMLEditCrmItemElement> = Array.prototype.slice.apply(window.app.editCRM.shadowRoot.querySelectorAll('edit-crm-item'));
+						editCrmItems.forEach((el) => {
+							el.$$('.item').animate([{
+								opacity: '0'
+							}, {
+								opacity: '1'
+							}], {
+								duration: 200
+							}).onfinish = () => {
+								document.body.style.pointerEvents = 'all';
+							}
 						});
+						window.setTimeout(() => {
+							window.doc.restoreChangesDialog.style.display = 'block';
+						}, 200);
 					};
 				};
 
 				const path = this.parent().nodesById[editingObj.id].path;
 				const highlightItem = () => { 
 					document.body.style.pointerEvents = 'none';
-					const columnConts = this.parent().shadowRoot.querySelectorAll('#mainCont > div');
-					const $columnCont = $(columnConts[(path.length - 1) + 2]);
-					const $paperMaterial = $($columnCont.children('paper-material')[0]);
-					const $crmEditColumn = $paperMaterial.children('.CRMEditColumn')[0];
-					const editCRMItems = $($crmEditColumn).children('edit-crm-item');
+					const columnConts = this.parent().editCRM.$.CRMEditColumnsContainer.children;
+					const columnCont = columnConts[(path.length - 1)];
+					const paperMaterial = columnCont.querySelector('.paper-material');
+					const crmEditColumn = paperMaterial.querySelector('.CRMEditColumn');
+					const editCRMItems = crmEditColumn.querySelectorAll('edit-crm-item');
 					const crmElement = editCRMItems[path[path.length - 1]];
 					//Just in case the item doesn't exist (anymore)
-					if (crmElement.querySelector('.item')) {
-						crmElement.querySelector('.item').animate([{
+					if (crmElement.$$('.item')) {
+						crmElement.$$('.item').animate([{
 							opacity: 0.6
 						}, {
 							opacity: 1
@@ -1292,13 +1299,13 @@ namespace CRMAppElement {
 							duration: 250,
 							easing: 'bez'
 						}).onfinish = function (this: Animation) {
-							crmElement.querySelector('.item').style.opacity = '1';
+							crmElement.$$('.item').style.opacity = '1';
 						};
 						setTimeout(function () {
 							stopHighlighting(crmElement);
 						}, 2000);
 					} else {
-						window.doc.restoreChangesDialog.open();
+						window.doc.restoreChangesDialog.style.display = 'block';
 						$(this.parent().shadowRoot.querySelectorAll('.pageCont')).animate({
 							backgroundColor: 'white'
 						}, 200);
@@ -1319,7 +1326,7 @@ namespace CRMAppElement {
 				window.doc.highlightChangedScript.addEventListener('click', () => {
 					//Find the element first
 					//Check if the element is already visible
-					window.doc.restoreChangesDialog.close();
+					window.doc.restoreChangesDialog.style.display = 'none';
 					this.parent().$$('.pageCont').style.backgroundColor = 'rgba(0,0,0,0.4)';
 					Array.prototype.slice.apply(this.parent().editCRM.shadowRoot.querySelectorAll('edit-crm-item')).forEach((element: HTMLEditCrmItemElement) => {
 						const item = element.$$('.item');
