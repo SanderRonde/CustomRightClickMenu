@@ -443,7 +443,7 @@ namespace EditCrmElement {
 		private static moveFollowingColumns(startColumn: CRMColumnElement, offset: number) {
 			const topLevelColumns = window.app.editCRM.shadowRoot.querySelectorAll('.CRMEditColumnCont');
 			for (let i = startColumn.index + 1; i < topLevelColumns.length; i++) {
-				this.setColumnContOffset(topLevelColumns[i] as HTMLElement & {
+				this.setColumnContOffset(topLevelColumns[i] as HTMLDivElement & {
 					offset: number;
 				}, offset);
 			}
