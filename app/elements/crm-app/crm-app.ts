@@ -1208,7 +1208,6 @@ namespace CRMAppElement {
 				val: string;
 				crmType: number;
 			}) {
-				console.log('Doing', editingObj);
 				const crmItem = this.parent().nodesById[editingObj.id] as CRM.ScriptNode | CRM.StylesheetNode;
 				const code = (crmItem.type === 'script' ? (editingObj.mode === 'main' ?
 					crmItem.value.script : crmItem.value.backgroundScript) :
