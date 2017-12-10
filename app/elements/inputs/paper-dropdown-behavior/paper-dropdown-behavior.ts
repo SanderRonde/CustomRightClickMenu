@@ -1,4 +1,4 @@
-﻿/// <reference path="../../elements.d.ts" />
+/// <reference path="../../elements.d.ts" />
 
 namespace PaperDropdownBehaviorNamespace {
 	export const paperDropdownBehaviorProperties: {
@@ -325,7 +325,7 @@ namespace PaperDropdownBehaviorNamespace {
 					easing: 'swing',
 					duration: 300,
 					complete: () => {
-						this.style.display = 'none';
+						this._getMenuContent().style.display = 'none';
 						if (!this.raised) {
 							window.requestAnimationFrame((time) => {
 								this._animateBoxShadowOut(time, this);
