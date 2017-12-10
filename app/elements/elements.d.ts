@@ -1,5 +1,4 @@
 /// <reference path="../../tools/definitions/chrome.d.ts"/>
-/// <reference path="../../tools/definitions/codemirror.d.ts"/>
 /// <reference path="../../tools/definitions/polymer.d.ts"/>
 /// <reference path="../../tools/definitions/jquery.d.ts"/>
 /// <reference path="./center-element/center-element.ts" />
@@ -140,10 +139,6 @@ interface Window {
 	}
 	monacoCommands: MonacoCommands;
 	MonacoEditorHookManager: typeof MonacoEditorElement.MonacoEditorHookManager;
-	colorFunction: {
-		func(pos: LinePosition, cm: CodeMirrorInstance): void;
-		cm: CodeMirrorInstance;
-	}
 	crmAPIDefs?: any;
 	lastError?: Error;
 	polymerElementsLoaded?: boolean;
@@ -188,7 +183,6 @@ interface Window {
 	app: CrmApp;
 	logPage: LogPage;
 	changeLog: ChangeLog;
-	cm: CodeMirrorInstance;
 	logConsole: LogConsole;
 	crmEditPage: CrmEditPage;
 	installPage: InstallPage;
@@ -197,7 +191,7 @@ interface Window {
 	errorReportingTool: ErrorReportingTool;
 	linkEdit: NodeEditBehaviorLinkInstance;
 	menuEdit: NodeEditBehaviorMenuInstance;
-	scriptEdit: NodeEditBehaviorScriptInstance;
+	scriptEdit: NodeEditBehaviorScriptInstantce;
 	dividerEdit: NodeEditBehaviorDividerInstance;
 	paperLibrariesSelector: PaperLibrariesSelector;
 	stylesheetEdit: NodeEditBehaviorStylesheetInstance;
