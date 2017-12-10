@@ -2007,10 +2007,10 @@ namespace MonacoEditorElement {
 			}
 			this._setup = true;
 			this._setupRequire();
-			this._setupCRMDefs();
-			MonacoEditorJSONOptionsMods.enableSchema();
 			window.onExists('monaco').then(() => {
+				MonacoEditorJSONOptionsMods.enableSchema();
 				this._defineProperties();
+				this._setupCRMDefs();
 			});
 		}
 	};
