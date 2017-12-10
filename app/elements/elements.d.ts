@@ -157,23 +157,6 @@ interface Window {
 		logLines: any;
 	};
 	runOrAddAsCallback(toRun: Function, thisElement: HTMLElement, params: Array<any>): void;
-	parseCodeOptions(file: {
-		text: string;
-	}, query: {
-		start: {
-			line: number;
-			ch: number;
-		};
-		end: {
-			line: number;
-			ch: number;
-		};
-	}, fns: CMCompletionFns): {
-		options: JSONOptions;
-		cursor: CursorState;
-		errs: JSONParseErrors;
-		keyLines: KeyLines;
-	}
 	useOptionsCompletions: boolean;
 	Storages: {
 		loadStorages(callback: () => void): void;
