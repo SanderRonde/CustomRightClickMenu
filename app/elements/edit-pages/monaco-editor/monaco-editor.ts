@@ -1588,7 +1588,9 @@ namespace MonacoEditorElement {
 
 			const currentState = this.editor.saveViewState();
 			const currentModel = this.getCurrentModelId();
-			this._models[currentModel].state = currentState;
+			if (currentModel in this._models) {
+				this._models[currentModel].state = currentState;
+			}
 
 			const newModel = this._models[identifier];
 			this.editor.setModel(newModel.models[0]);
@@ -1603,7 +1605,7 @@ namespace MonacoEditorElement {
 					return modelId;
 				}
 			}
-			return 'default';
+			return null;
 		}
 
 		static getCurrentModel(this: MonacoEditor) {
