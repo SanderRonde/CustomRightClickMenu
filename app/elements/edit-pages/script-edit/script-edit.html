@@ -324,6 +324,9 @@
 							<monaco-editor id="editor"></monaco-editor>
 						</div>
 						<div id="librariesTabContent">
+							<br>
+							<paper-checkbox id="paperLibrariesShowbackground" on-tap="toggleBackgroundLibs">Show backgroundscript libraries</paper-checkbox>
+							<br>
 							<paper-libraries-selector id="paperLibrariesSelector" usedlibraries="[[item.value.libraries]]" noroot></paper-libraries-selector>
 						</div>
 					</div>

@@ -24,6 +24,19 @@ namespace ScriptEditElement {
 			return this.item.value && this.item.value.ts && this.item.value.ts.enabled;
 		}
 
+		static toggleBackgroundLibs(this: NodeEditBehaviorScriptInstance) {
+			this.async(() => {
+				const backgroundEnabled = this.$.paperLibrariesShowbackground.checked;
+				if (backgroundEnabled) {
+					this.$.paperLibrariesSelector.updateLibraries(this.item.value.backgroundLibraries,
+						'background');
+				} else {
+					this.$.paperLibrariesSelector.updateLibraries(this.item.value.libraries,
+						'main');
+				}
+			}, 0);
+		}
+
 		static getKeyBindingValue(binding: {
 			name: string;
 			defaultKey: string;
