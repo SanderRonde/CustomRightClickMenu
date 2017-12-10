@@ -366,6 +366,17 @@ namespace PaperLibrariesSelectorElement {
 				}
 				libsArr.splice(index, 1);
 			}
+			const mainModel = window.scriptEdit.editorManager.getModel('default');
+			const backgroundModel = window.scriptEdit.editorManager.getModel('background');
+			const TSLibsMod = window.scriptEdit.editorManager.CustomEditorModes.TS_LIBRARIES_META;
+			type TSLibsMod = MonacoEditorElement.MonacoEditorTSLibrariesMetaMods;
+			if (typeof mainModel.editorType === 'object' && mainModel.editorType.mode === TSLibsMod) {
+				(mainModel.handlers[0] as TSLibsMod).updateLibraries();
+			}
+			if (backgroundModel && typeof backgroundModel.editorType === 'object' && 
+				backgroundModel.editorType.mode === TSLibsMod) {
+					(backgroundModel.handlers[0] as TSLibsMod).updateLibraries();
+				}
 		}
 
 		static _click(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
