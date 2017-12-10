@@ -414,6 +414,17 @@ namespace CRMAppElement {
 			}
 		}
 
+		static getKeyBindingValue(binding: {
+			name: string;
+			defaultKey: string;
+			monacoKey: string;
+			storageKey: keyof CRM.KeyBindings;
+		}) {
+			return (window.app.settings && 
+				window.app.settings.editor.keyBindings[binding.storageKey]) ||
+					binding.defaultKey;
+		}
+
 		static _currentItemIsCss(item: CRM.ScriptNode|CRM.StylesheetNode) {
 			return (this.item && this.item.type === 'stylesheet');
 		}

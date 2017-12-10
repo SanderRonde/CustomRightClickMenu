@@ -24,6 +24,17 @@ namespace ScriptEditElement {
 			return this.item.value && this.item.value.ts && this.item.value.ts.enabled;
 		}
 
+		static getKeyBindingValue(binding: {
+			name: string;
+			defaultKey: string;
+			monacoKey: string;
+			storageKey: keyof CRM.KeyBindings;
+		}) {
+			return (window.app.settings && 
+				window.app.settings.editor.keyBindings[binding.storageKey]) ||
+					binding.defaultKey;
+		}
+
 		private static _toggleTypescriptButton(this: NodeEditBehaviorScriptInstance) {
 			const isEnabled = !!this.$.editorTypescript.getAttribute('active');
 			if (isEnabled) {
