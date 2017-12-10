@@ -2712,6 +2712,7 @@ namespace CRMAppElement {
 
 			static toggleTypescript() {
 				window.scriptEdit.toggleTypescript();
+				window.app.$.editorTypescript.classList.toggle('active');
 			}
 
 			static toggleToolsRibbon() {
