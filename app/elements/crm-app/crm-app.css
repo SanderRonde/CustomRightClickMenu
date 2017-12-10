@@ -1203,3 +1203,16 @@ paper-checkbox {
 .bold {
 	font-weight: bold;
 }
+
+#editorTypescript {
+	font-size: 70%;
+	margin-top: 3px;
+}
+
+#editorTypescript.active {
+	background-color: rgb(200, 200, 200);
+}
+
+#editorTypescript:hover {
+	background-color: rgb(230, 230, 230);
+}

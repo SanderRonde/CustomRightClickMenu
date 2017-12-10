@@ -2710,6 +2710,10 @@ namespace CRMAppElement {
 				window.errorReportingTool.toggleVisibility();
 			};
 
+			static toggleTypescript() {
+				window.scriptEdit.toggleTypescript();
+			}
+
 			static toggleToolsRibbon() {
 				const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
 				const bcr = horizontalCenterer.getBoundingClientRect();

@@ -445,6 +445,11 @@ namespace CodeEditBehaviorNamespace {
 					const __this = this as CodeEditBehavior<NodeEditBehaviorScriptInstance>;
 					window.app.$.paperLibrariesSelector.updateLibraries((__this.editorMode === 'main' ?
 					__this.newSettings.value.libraries : __this.newSettings.value.backgroundLibraries || [])), this.editorMode;
+					if (__this.newSettings.value.ts && __this.newSettings.value.ts.enabled) {
+						window.app.$.editorTypescript.classList.add('active');
+					} else {
+						window.app.$.editorTypescript.classList.remove('active');
+					}
 				}
 
 				this.fullscreenEditorManager = editorCont.createFrom(this.editorManager);
