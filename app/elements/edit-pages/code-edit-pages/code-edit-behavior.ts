@@ -663,19 +663,6 @@ namespace CodeEditBehaviorNamespace {
 		}
 
 		/**
-		 * Returns the value of a key binding
-		 */
-		static getKeyBindingValue(this: CodeEditBehaviorInstance, keyBinding: {
-			name: string;
-			defaultKey: string;
-			storageKey: "goToDef" | "rename";
-			fn(cm: CodeMirrorInstance): void;
-		}) {
-			return (window.app.settings && window.app.settings.editor.keyBindings[keyBinding.storageKey] ||
-				keyBinding.defaultKey) || '';
-		}
-
-		/**
 		 * Triggered when the scrollbars get updated (hidden or showed) and adapts the
 		 * icons' positions
 		 */
