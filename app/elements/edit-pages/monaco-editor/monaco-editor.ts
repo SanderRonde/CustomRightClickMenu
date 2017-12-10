@@ -1402,7 +1402,7 @@ namespace MonacoEditorElement {
 
 
 				this.editor.updateOptions(this._getSettings(editorType));
-				const typeHandler = this._getTypeHandler(editorType, this.editor, this.editor.getModel());
+				const typeHandler = this._getTypeHandler(editorType, this.editor, model);
 				this._models['default'] = {
 					models: [this.editor.getModel()],
 					handlers: [typeHandler],
