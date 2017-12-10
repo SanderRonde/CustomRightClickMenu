@@ -559,8 +559,8 @@ namespace ScriptEditElement {
 			});
 
 			const isTs = this.item.value.ts && this.item.value.ts.enabled;
-			const type = isTs ? this.editorManager.EditorMode.TS_META : 
-				this.editorManager.EditorMode.JS_META;
+			const type = isTs ? this.$.editor.EditorMode.TS_META : 
+			this.$.editor.EditorMode.JS_META;
 			this.editorManager = await this.$.editor.create(type, {
 				value: content,
 				language: isTs ? 'typescript' : 'javascript',
