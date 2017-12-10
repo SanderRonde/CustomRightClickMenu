@@ -3937,22 +3937,27 @@
 			 * @param {Object} options - The options related to the library
 			 * @param {string} [options.url] - The url to fetch the code from, must end in .js
 			 * @param {string} [options.code] - The code to use
+			 * @param {boolean} [options.ts] - Whether the library uses the typescript language
 			 * @param {function} [callback] - A callback with the library object as an argument
 			 */
 			register(this: CrmAPIInstance, name: string, options: {
 				code: string;
 				url?: string
+				ts?: boolean;
 			}|{
 				url: string;
 				code?: string
+				ts?: boolean;
 			}|{
 				code: string;
 				url: string
+				ts?: boolean;
 			}, callback?: (lib: CRM.Library) => void): void {
 				this.__privates._sendOptionalCallbackCrmMessage.call(this, 'registerLibrary', callback, {
 					name: name,
 					url: options.url,
-					code: options.code
+					code: options.code,
+					ts: options.ts
 				});
 			}
 		};

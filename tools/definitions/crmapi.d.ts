@@ -2948,6 +2948,7 @@ declare namespace CRM {
 					 * @param {Object} options - The options related to the library (fill at least one)
 					 * @param {string} [options.url] - The url to fetch the code from, must end in .js
 					 * @param {string} [options.code] - The code to use
+					 * @param {boolean} [options.ts] - Whether the library uses the typescript language
 					 * @param {function} [callback] - A callback with the library object as an argument
 					 */
 					register(name: string, options: {
@@ -2956,9 +2957,13 @@ declare namespace CRM {
 						 */
 						code?: string;
 						/**
-						 * THe URL to fetch the code from
+						 * The URL to fetch the code from
 						 */
 						url?: string
+						/**
+						 * Whether the library uses the typescript language
+						 */
+						ts?: boolean;
 					}, callback?: (lib: CRM.Library) => void): void,
 				}
 			}

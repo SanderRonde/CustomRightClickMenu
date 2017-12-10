@@ -1112,26 +1112,44 @@ declare namespace CRM {
 	}
 
 	/**
+	 * A library added to this extension
+	 */
+	interface InstalledLibrary {
+		/**
+		 * The name of the library
+		 */
+		name?: string;
+		/**
+		 * The URL of the library
+		 */
+		url?: string;
+		/**
+		 * The code of the library
+		 */
+		code: string;
+		/**
+		 * Data about typescript usage in this library
+		 */
+		ts: {
+			/**
+			 * Whether typescript is enabled
+			 */
+			enabled: boolean;
+			/**
+			 * The code related to the library
+			 */
+			code: TypescriptCompilationData;
+		}
+	}
+
+	/**
 	 * Local Storage (not synced)
 	 */
 	interface StorageLocal {
 		/**
 		 * Any installed libraries
 		 */
-		libraries: Array<{
-			/**
-			 * The name of the library
-			 */
-			name?: string;
-			/**
-			 * The URL of the library
-			 */
-			url?: string;
-			/**
-			 * The code of the library
-			 */
-			code: string;
-		}>;
+		libraries: Array<InstalledLibrary>;
 		/**
 		 * The permissions to be requested
 		 */

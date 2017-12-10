@@ -5,11 +5,7 @@ namespace PaperLibrariesSelectorElement {
 		usedlibraries: Array<CRM.Library>;
 		libraries: Array<LibrarySelectorLibrary>;
 		selected: Array<number>;
-		installedLibraries: Array<{
-			name?: string;
-			url?: string;
-			code: string;
-		}>;
+		installedLibraries: Array<CRM.InstalledLibrary>;
 		mode: 'main'|'background';
 		noroot: boolean;
 	} = {
@@ -185,36 +181,41 @@ namespace PaperLibrariesSelectorElement {
 			window.doc.addLibraryUrlInput.removeAttribute('invalid');
 		}
 
-		static confirmLibraryFile(this: PaperLibrariesSelector, name: string, code: string, url: string) {
-			window.doc.addLibraryProcessContainer.style.display = 'none';
-			window.doc.addLibraryLoadingDialog.style.display = 'flex';
-			setTimeout(() => {
-				window.doc.addLibraryConfirmationInput.value = code;
-				window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
-					window.doc.addLibraryConfirmationInput.value = '';
-					this.addLibraryFile(name, code, url);
-					this.resetAfterAddDesision();
-				});
-				window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
-					window.doc.addLibraryConfirmationContainer.style.display = 'none';
-					window.doc.addLibraryProcessContainer.style.display = 'block';
-					this.resetAfterAddDesision();
-					window.doc.addLibraryConfirmationInput.value = '';
-				});
-				window.doc.addLibraryLoadingDialog.style.display = 'none';
-				window.doc.addLibraryConfirmationContainer.style.display = 'block';
-			}, 250);
-		};
+		static confirmLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean,
+			code: string, url: string) {
+				window.doc.addLibraryProcessContainer.style.display = 'none';
+				window.doc.addLibraryLoadingDialog.style.display = 'flex';
+				setTimeout(() => {
+					window.doc.addLibraryConfirmationInput.value = code;
+					window.doc.addLibraryConfirmAddition.addEventListener('click', () => {
+						window.doc.addLibraryConfirmationInput.value = '';
+						this.addLibraryFile(name, isTypescript, code, url);
+						this.resetAfterAddDesision();
+					});
+					window.doc.addLibraryDenyConfirmation.addEventListener('click', () => {
+						window.doc.addLibraryConfirmationContainer.style.display = 'none';
+						window.doc.addLibraryProcessContainer.style.display = 'block';
+						this.resetAfterAddDesision();
+						window.doc.addLibraryConfirmationInput.value = '';
+					});
+					window.doc.addLibraryLoadingDialog.style.display = 'none';
+					window.doc.addLibraryConfirmationContainer.style.display = 'block';
+				}, 250);
+			};
 
-		private static addLibraryToState(this: PaperLibrariesSelector, name: string, code: string, url: string) {
+		private static addLibraryToState(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string) {
 			this.installedLibraries.push({
-				name: name,
-				code: code,
-				url: url
+				name,
+				code,
+				url,
+				ts: {
+					enabled: isTypescript,
+					code: {}
+				}
 			});
 			this.usedlibraries.push({
-				name: name,
-				url: url
+				name,
+				url
 			});
 		}
 		
@@ -230,12 +231,12 @@ namespace PaperLibrariesSelectorElement {
 			}
 		}
 
-		static addLibraryFile(this: PaperLibrariesSelector, name: string, code: string, url: string = null) {
+		static addLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string = null) {
 			window.doc.addLibraryConfirmationContainer.style.display = 'none';
 			window.doc.addLibraryLoadingDialog.style.display = 'flex';
 
 			setTimeout(() => {
-				this.addLibraryToState(name, code, url);
+				this.addLibraryToState(name, isTypescript, code, url);
 				chrome.storage.local.set({
 					libraries: this.installedLibraries
 				});
@@ -292,6 +293,7 @@ namespace PaperLibrariesSelectorElement {
 			window.doc.addedLibraryName.$$('input').value = '';
 			window.doc.addLibraryUrlInput.$$('input').value = '';
 			window.doc.addLibraryManualInput.$$('textarea').value = '';
+			window.doc.addLibraryIsTS.checked = false;
 
 			this.showElements('addLibraryProcessContainer');
 			this.hideElements('addLibraryLoadingDialog', 'addLibraryConfirmationContainer',
@@ -322,12 +324,13 @@ namespace PaperLibrariesSelectorElement {
 								url: url,
 								dataType: 'html'
 							}).done((data) => {
-								this.confirmLibraryFile(name, data, url);
+								this.confirmLibraryFile(name, window.doc.addLibraryIsTS.checked, data, url);
 							}).fail(function() {
 								libraryInput.setAttribute('invalid', 'true');
 							});
 						} else {
-							this.addLibraryFile(name, window.doc.addLibraryManualInput.$$('textarea').value);
+							this.addLibraryFile(name, window.doc.addLibraryIsTS.checked,
+									window.doc.addLibraryManualInput.$$('textarea').value);
 						}
 					} else {
 						if (taken) {

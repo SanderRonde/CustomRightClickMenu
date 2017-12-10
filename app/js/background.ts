@@ -3462,15 +3462,19 @@ if (typeof module === 'undefined') {
 						val: 'code',
 						type: 'string',
 						optional: true
+					}, {
+						val: 'ts',
+						type: 'boolean',
+						optional: true
 					}
-				], (optionals) => {
+				], async (optionals) => {
 					const msg = __this.message.data as CRMFunctionDataBase & {
 						url?: string;
 						name: string;
 						code?: string;
 					};
 
-					let newLibrary;
+					let newLibrary: CRM.InstalledLibrary;
 					if (optionals['url']) {
 						if (msg['url'].indexOf('.js') ===
 							msg['url'].length - 3) {
@@ -3478,15 +3482,20 @@ if (typeof module === 'undefined') {
 							let done = false;
 							const xhr = new window.XMLHttpRequest();
 							xhr.open('GET', msg['url'], true);
-							xhr.onreadystatechange = () => {
+							xhr.onreadystatechange = async () => {
 								if (xhr.readyState === 4 && xhr.status === 200) {
 									done = true;
 									newLibrary = {
 										name: msg['name'],
 										code: xhr.responseText,
-										url: msg['url']
+										url: msg['url'],
+										ts: {
+											enabled: !!msg['ts'],
+											code: {}
+										}
 									};
-									globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
+									const compiled = await CRM.TS.compileLibrary(newLibrary);
+									globalObject.globals.storages.storageLocal.libraries.push(compiled);
 									chrome.storage.local.set({
 										libraries: globalObject.globals.storages.storageLocal.libraries
 									});
@@ -3506,9 +3515,14 @@ if (typeof module === 'undefined') {
 					} else if (optionals['code']) {
 						newLibrary = {
 							name: msg['name'],
-							code: msg['code']
+							code: msg['code'],
+							ts: {
+								enabled: !!msg['ts'],
+								code: {}
+							}
 						};
-						globalObject.globals.storages.storageLocal.libraries.push(newLibrary);
+						const compiled = await CRM.TS.compileLibrary(newLibrary);
+						globalObject.globals.storages.storageLocal.libraries.push(compiled);
 						chrome.storage.local.set({
 							libraries: globalObject.globals.storages.storageLocal.libraries
 						});
@@ -3546,9 +3560,7 @@ if (typeof module === 'undefined') {
 						function doesLibraryExist(lib: {
 							name: string;
 						}): string | boolean {
-							for (let i = 0;
-								i < globalObject.globals.storages.storageLocal.libraries.length;
-								i++) {
+							for (let i = 0; i < globalObject.globals.storages.storageLocal.libraries.length; i++) {
 								if (globalObject.globals.storages.storageLocal.libraries[i].name.toLowerCase() ===
 									lib.name.toLowerCase()) {
 									return globalObject.globals.storages.storageLocal.libraries[i].name;
@@ -6575,6 +6587,8 @@ if (typeof module === 'undefined') {
 				} {
 					const libraries = [];
 					const code = [];
+					const globalLibraries = globalObject.globals.storages.storageLocal.libraries;
+					const urlDataPairs = globalObject.globals.storages.urlDataPairs;
 					for (let i = 0; i < node.value.libraries.length; i++) {
 						let lib: {
 							name: string;
@@ -6582,25 +6596,28 @@ if (typeof module === 'undefined') {
 							code?: string;
 							location?: string;
 						} | {
-								code: string;
-								location?: string;
-							};
-						if (globalObject.globals.storages.storageLocal.libraries) {
-							for (let j = 0;
-								j < globalObject.globals.storages.storageLocal.libraries.length;
-								j++) {
-								if (globalObject.globals.storages.storageLocal.libraries[j].name ===
-									node.value
-										.libraries[i].name) {
-									lib = globalObject.globals.storages.storageLocal.libraries[j];
+							code: string;
+							location?: string;
+						};
+						if (globalLibraries) {
+							for (let j = 0; j < globalLibraries.length; j++) {
+								if (globalLibraries[j].name === node.value.libraries[i].name) {
+									const currentLib = globalLibraries[j];
+									if (currentLib.ts && currentLib.ts.enabled) {
+										lib = {
+											code: currentLib.ts.code.compiled
+										}
+									} else {
+										lib = currentLib;
+									}
 									break;
 								} else {
 									//Resource hasn't been registered with its name, try if it's an anonymous one
 									if (node.value.libraries[i].name === null) {
 										//Check if the value has been registered as a resource
-										if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {
+										if (urlDataPairs[node.value.libraries[i].url]) {
 											lib = {
-												code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString
+												code: urlDataPairs[node.value.libraries[i].url].dataString
 											};
 										}
 									}
@@ -6864,30 +6881,38 @@ if (typeof module === 'undefined') {
 					runAt: string;		
 				}> {		
 					const scripts = [];		
+					const globalLibraries = globalObject.globals.storages.storageLocal.libraries;
+					const urlDataPairs = globalObject.globals.storages.urlDataPairs;
 					for (let i = 0; i < node.value.libraries.length; i++) {		
 						let lib: {		
 							name: string;		
 							url?: string;		
 							code?: string;		
 						} | {		
-								code: string;		
-							};		
-						const globalLibs = globalObject.globals.storages.storageLocal.libraries;		
-						if (globalLibs) {		
-							for (let j = 0; j < globalLibs.length; j++) {		
-								if (globalLibs[j].name === node.value.libraries[i].name) {		
-									lib = globalLibs[j];		
-									break;		
-								}		
-							}		
-						}		
+							code: string;		
+						};		
+						if (globalLibraries) {		
+							for (let j = 0; j < globalLibraries.length; j++) {		
+								if (globalLibraries[j].name === node.value.libraries[i].name) {		
+									const currentLib = globalLibraries[j];
+									if (currentLib.ts && currentLib.ts.enabled) {
+										lib = {
+											code: currentLib.ts.code.compiled
+										}
+									} else {
+										lib = currentLib;
+									}
+									break;
+								}
+							}	
+						}	
 						if (!lib) {		
 							//Resource hasn't been registered with its name, try if it's an anonymous one		
 							if (!node.value.libraries[i].name) {		
 								//Check if the value has been registered as a resource		
-								if (globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url]) {		
+								if (urlDataPairs[node.value.libraries[i].url]) {		
 									lib = {		
-										code: globalObject.globals.storages.urlDataPairs[node.value.libraries[i].url].dataString		
+										code: urlDataPairs[node.value.libraries[i].url].dataString		
 									};		
 								}		
 							}		
@@ -7733,15 +7758,27 @@ if (typeof module === 'undefined') {
 			}
 		};
 		static readonly TS = class TS {
-			static async compileAll() {
+			static async compileAllInTree() {
 				await this._compileTree(globalObject.globals.crm.crmTree);
 			}
 			static async compileNode(node: CRM.ScriptNode) {
 				if (node.value.ts && node.value.ts.enabled) {
 					node.value.ts.script = await this._compileChangedScript(node.value.script, node.value.ts.script);
 					node.value.ts.backgroundScript = await this._compileChangedScript(Util.getScriptNodeScript(node, 'background'),
-						node.value.ts.backgroundScript);
+					node.value.ts.backgroundScript);
 				}
+			}
+			static async compileLibrary(library: CRM.InstalledLibrary): Promise<CRM.InstalledLibrary> {
+				if (library.ts && library.ts.enabled) {
+					library.ts.code = await this._compileChangedScript(library.code, library.ts.code);
+				}
+				return library;
+			}
+			static async compileAllLibraries(libraries: Array<CRM.InstalledLibrary>): Promise<Array<CRM.InstalledLibrary>> {
+				for (const library of libraries) {
+					await this.compileLibrary(library);
+				}				
+				return libraries;
 			}
 
 			private static async _compileTree(tree: CRM.Tree) {
@@ -7801,7 +7838,7 @@ if (typeof module === 'undefined') {
 				newValue: JSON.parse(JSON.stringify(globalObject.globals.crm.crmTree)) as any,
 				oldValue: {} as any
 			}]);
-			CRM.TS.compileAll();
+			CRM.TS.compileAllInTree();
 			CRM.updateCRMValues();
 			CRM.buildPageCRM();
 			MessageHandling.signalNewCRM();
@@ -9593,15 +9630,11 @@ if (typeof module === 'undefined') {
 			}
 		}
 
-		static applyChanges(data: {
+		static async applyChanges(data: {
 			type: 'optionsPage' | 'libraries' | 'nodeStorage';
 			localChanges?: Array<StorageChange>;
 			settingsChanges?: Array<StorageChange>;
-			libraries?: Array<{
-				name: string;
-				code: string;
-				url: string;
-			}>;
+			libraries?: Array<CRM.InstalledLibrary>;
 			nodeStorageChanges?: Array<StorageChange>;
 			id?: number;
 			tabId?: number;
@@ -9620,9 +9653,10 @@ if (typeof module === 'undefined') {
 					}
 					break;
 				case 'libraries':
+					const compiled = await CRM.TS.compileAllLibraries(data.libraries);
 					this._applyChangeForStorageType(globalObject.globals.storages.storageLocal, [{
 						key: 'libraries',
-						newValue: data.libraries,
+						newValue: compiled,
 						oldValue: globalObject.globals.storages.storageLocal.libraries
 					}]);
 					break;
@@ -9894,12 +9928,12 @@ if (typeof module === 'undefined') {
 			return true;
 		}
 		private static _upgradeVersion(oldVersion: string, newVersion: string): {
-			beforeSyncLoad: Array<() => void>;
+			beforeSyncLoad: Array<(local: Partial<CRM.StorageLocal>) => void>;
 			afterSyncLoad: Array<(sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>>;
 			afterSync: Array<() => void>;
 		} {
 			const fns: {
-				beforeSyncLoad: Array<() => void>;
+				beforeSyncLoad: Array<(local: Partial<CRM.StorageLocal>) => Partial<CRM.StorageLocal>>;
 				afterSyncLoad: Array<(sync: Partial<CRM.SettingsStorage>) => Partial<CRM.SettingsStorage>>;
 				afterSync: Array<() => void>;
 			} = {
@@ -9957,6 +9991,16 @@ if (typeof module === 'undefined') {
 				});
 			}
 			if (this._isVersionInRange(oldVersion, newVersion, '2.1.0')) {
+				fns.beforeSyncLoad.push((local) => {
+					const libs = local.libraries;
+					for (const lib of libs) {
+						lib.ts = {
+							enabled: false,
+							code: {}
+						}
+					}
+					return local;
+				});
 				fns.afterSync.push(() => {
 					this.crmForEach(globalObject.globals.crm.crmTree, (node) => {
 						if (node.type === 'script') {
@@ -9996,7 +10040,7 @@ if (typeof module === 'undefined') {
 					window.log('Upgrading minor version from', storageLocal.lastUpdatedAt, 'to', currentVersion);
 					const fns = this._upgradeVersion(storageLocal.lastUpdatedAt, currentVersion);
 					fns.beforeSyncLoad.forEach((fn) => {
-						fn();
+						fn(storageLocal);
 					});
 					return {
 						type: 'upgradeVersion',
@@ -10071,7 +10115,7 @@ if (typeof module === 'undefined') {
 				});
 				chrome.runtime.onMessage.addListener(MessageHandling.handleRuntimeMessage);
 				window.log('Compiling typescript');
-				await CRM.TS.compileAll();
+				await CRM.TS.compileAllInTree();
 				window.log('Building Custom Right-Click Menu');
 				CRM.buildPageCRM();
 				window.console.groupCollapsed('Restoring previous open tabs');
