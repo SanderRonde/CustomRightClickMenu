@@ -1381,7 +1381,7 @@ namespace MonacoEditorElement {
 
 		static async create(this: MonacoEditor, editorType: EditorMode, options?: monaco.editor.IEditorConstructionOptions, 
 			override?: monaco.editor.IEditorOverrideServices): Promise<MonacoEditor> {
-				options.language = this._getLanguage(editorType);
+				const language = this._getLanguage(editorType);
 				this._createInfo = {
 					method: 'create',
 					options,
@@ -1392,10 +1392,14 @@ namespace MonacoEditorElement {
 				this.options = options;
 				await MonacoEditorHookManager.monacoReady;
 				MonacoEditorHookManager.setScope(this);
-				this.editor = window.monaco.editor.create(this.$.editorElement, options, override);
+				const model = monaco.editor.createModel(options.value, language);
+				this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
+					model: model
+				}, options), override);
 				MonacoEditorHookManager.registerScope(this, this.editor);
 				MonacoEditorHookManager.StyleHack.copyThemeScope(this);
 				this._hideSpinner();
+
 
 				this.editor.updateOptions(this._getSettings(editorType));
 				const typeHandler = this._getTypeHandler(editorType, this.editor, this.editor.getModel());
