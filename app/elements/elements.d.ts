@@ -190,7 +190,7 @@ interface Window {
 	errorReportingTool: ErrorReportingTool;
 	linkEdit: NodeEditBehaviorLinkInstance;
 	menuEdit: NodeEditBehaviorMenuInstance;
-	scriptEdit: NodeEditBehaviorScriptInstantce;
+	scriptEdit: NodeEditBehaviorScriptInstance;
 	dividerEdit: NodeEditBehaviorDividerInstance;
 	paperLibrariesSelector: PaperLibrariesSelector;
 	stylesheetEdit: NodeEditBehaviorStylesheetInstance;
