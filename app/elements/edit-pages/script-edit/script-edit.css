@@ -73,3 +73,8 @@ paper-button.blue {
 #codeTabContentContainer.showLibs #container {
 	display: none;
 }
+
+#paperLibrariesShowbackground {
+	margin-left: 20px;
+	margin-bottom: 12px;
+}
