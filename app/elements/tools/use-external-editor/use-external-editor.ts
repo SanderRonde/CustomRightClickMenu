@@ -666,30 +666,6 @@ namespace UseExternalEditorElement {
 			return null;
 		};
 
-		static findReverseLineTranslation(this: UseExternalEditor, line: number, editor: CodeMirrorInstance & {
-				display: HTMLElement & {
-					lineDiv: HTMLElement;
-					wrapper: HTMLElement;
-					sizer: HTMLElement;
-				}
-			}) {
-			var i;
-			var offset = 0;
-			var lineDivs = editor.display.lineDiv.children;
-			var lineWidget, seperator;
-			var lineHeight = this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
-			for (i = 0; i < lineDivs.length; i++) {
-				if ((lineWidget = this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
-					(seperator = this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
-					offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
-				}
-				if (i + offset >= line) {
-					return i;
-				}
-			}
-			return i;
-		};
-
 		static containEachother(this: UseExternalEditor, line1: string, line2: string): boolean {
 			return !!(line1.indexOf(line2) > -1 ? true : line2.indexOf(line1));
 		};
@@ -702,30 +678,6 @@ namespace UseExternalEditorElement {
 				}
 				return index;
 			};
-		};
-
-		static generateLineIndexTranslationArray(this: UseExternalEditor, editor: CodeMirrorInstance & {
-				display: HTMLElement & {
-					lineDiv: HTMLElement;
-					wrapper: HTMLElement;
-					sizer: HTMLElement;
-				}
-			}): Array<number> {
-			var result = [];
-
-			var offset = 0;
-			var lineDivs = editor.display.lineDiv.children;
-			var lineWidget, seperator;
-			var lineHeight = this.findChildWithTag(lineDivs[0] as HTMLElement, 'pre').getBoundingClientRect().height;
-			for (var i = 0; i < lineDivs.length; i++) {
-				if ((lineWidget = this.findChildWithClass(lineDivs[i] as HTMLElement, 'CodeMirror-linewidget')) &&
-					(seperator = this.findChildWithClass(lineWidget, 'CodeMirror-merge-spacer'))) {
-					offset += Math.round(parseInt(seperator.style.height.split('px')[0], 10) / lineHeight);
-				}
-				result[i] = i + offset;
-			}
-
-			return result;
 		};
 
 		private static resetStyles(target: CSSStyleDeclaration, source: ClientRect) {
