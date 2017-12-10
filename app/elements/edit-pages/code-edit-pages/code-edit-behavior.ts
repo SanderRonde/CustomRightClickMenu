@@ -688,12 +688,12 @@ namespace CodeEditBehaviorNamespace {
 
 		static getEditorInstance(this: CodeEditBehaviorInstance): MonacoEditor {
 			if (this.item.type === 'script') {
-				if (window.scriptEdit.fullscreenEditorManager) {
+				if (window.scriptEdit.fullscreen) {
 					return window.scriptEdit.fullscreenEditorManager;
 				}
 				return window.scriptEdit.editorManager;
 			}
-			if (window.stylesheetEdit.fullscreenEditorManager) {
+			if (window.stylesheetEdit.fullscreen) {
 				return window.stylesheetEdit.fullscreenEditorManager;
 			}
 			return window.stylesheetEdit.editorManager;
