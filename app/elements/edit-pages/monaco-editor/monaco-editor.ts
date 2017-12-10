@@ -1941,15 +1941,18 @@ namespace MonacoEditorElement {
 		}
 
 		static Libraries = class MonacoEditorLibraries {
-			private static _loadedFiles: Array<string> = [];
+			private static _loadedFiles: {
+				[lib: string]: string;
+			} = {};
 
 			private static _loadFile(name: string): Promise<string> {
 				return new window.Promise((resolve, reject) => {
-					const xhr = new window.XMLHttpRequest();
+					const xhr: XMLHttpRequest = new window.XMLHttpRequest();
 					xhr.open('GET', chrome.runtime.getURL(name));
 					xhr.onreadystatechange = () => {
 						if (xhr.readyState === XMLHttpRequest.DONE) {
 							if (xhr.status === 200) {
+								this._loadedFiles[name] = xhr.responseText;
 								resolve(xhr.responseText);
 							} else {
 								reject(null);
@@ -1971,12 +1974,31 @@ namespace MonacoEditorElement {
 				});
 			}
 
+			static async readFile(path: string): Promise<string> {
+				if (path in this._loadedFiles) {
+					return this._loadedFiles[path];
+				}
+				return await this._loadFile(path);
+			}
+
 			static async runFile(path: string): Promise<void> {
-				if (this._loadedFiles.indexOf(path) > -1) {
+				if (path in this._loadedFiles) {
 					return;
 				}
 				return this._execFile(path);
 			}
+		}
+
+		private static async _loadCRMAPI() {
+			return await this.Libraries.readFile('js/crmapi.d.ts');
+		}
+
+		private static async _setupCRMDefs() {
+			const fileContent = await this._loadCRMAPI();
+			monaco.languages.typescript.javascriptDefaults.addExtraLib(fileContent,
+				'crmapi.d.ts');
+			monaco.languages.typescript.typescriptDefaults.addExtraLib(fileContent,
+				'crmapi.d.ts');
 		}
 
 		static setup() {
@@ -1985,6 +2007,7 @@ namespace MonacoEditorElement {
 			}
 			this._setup = true;
 			this._setupRequire();
+			this._setupCRMDefs();
 			MonacoEditorJSONOptionsMods.enableSchema();
 			window.onExists('monaco').then(() => {
 				this._defineProperties();

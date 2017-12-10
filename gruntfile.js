@@ -338,6 +338,26 @@ module.exports = function(grunt) {
 					],
 					dest: 'buildBeforePolymer/js/libraries/'
 				}]
+			},
+			crmapiLibDev: {
+				files: [{
+					expand: true,
+					cwd: 'tools/defintions/',
+					src: [
+						'crmapi.d.ts'
+					],
+					dest: 'app/js/libraries/'
+				}]
+			},
+			crmapiLibBuild: {
+				files: [{
+					expand: true,
+					cwd: 'tools/defintions/',
+					src: [
+						'crmapi.d.ts'
+					],
+					dest: 'buildBeforePolymer/js/libraries/'
+				}]
 			}
 		},
 		htmlmin: {
@@ -735,7 +755,7 @@ module.exports = function(grunt) {
 	// through the app/ directory instead and not having to build
 	grunt.registerTask('prepareForHotReload', ['crisper:components',
 		'copy:monacoTemp', 'string-replace:patchDevMonaco', 'jsbeautifier:beautifyMonaco',
-		'copy:tsEmbedDev']);
+		'copy:tsEmbedDev', 'copy:crmapiLibDev']);
 
 	//Disables hot reloading, required for proper build
 	grunt.registerTask('disableHotReload', ['exec:yarn']);
@@ -790,7 +810,7 @@ module.exports = function(grunt) {
 		'copy:monacoTemp', 'processhtml:build', 'processhtml:updateCRMDefs', 
 		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
 		'copy:elements', 'copy:tsEmbed', 'copy:jsFiles', 'copy:html', 
-		'copy:tsEmbedBuild','clean:tempMonaco']);
+		'copy:tsEmbedBuild', 'copy:crmapiLibBuild', 'clean:tempMonaco']);
 
 	//Runs all of the build steps after polymerBuild is invoked
 	grunt.registerTask('_buildPostPolymer', ['copy:moveUpDirectory', 'clean:removeBuildBeforePolymer', 'crispify', 
