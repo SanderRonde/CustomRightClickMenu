@@ -224,6 +224,10 @@
 								<div class="editorTabTxt">Options</div>
 								<paper-ripple></paper-ripple>
 							</div>
+							<div id="scriptLibrariesTab" class="editorTab librariesTab" on-tap="changeTabEvent">
+								<div class="editorTabTxt">Libraries</div>
+								<paper-ripple></paper-ripple>
+							</div>
 							<div id="codeInfoCont">
 								<svg class="inactive" fill="#000000" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 									<path d="M0 0h24v24H0z" fill="none" />
@@ -263,51 +267,53 @@
 							</div>
 						</div>
 					</div>
-					<div id="container">
-						<div id="settingsAnimationPositioner">
-							<div id="settingsAnimationContainer">
-								<div id="bubbleCont">
-									<div id="settingsShadow">
-										<div id="editorOptionsContainer">
-											<div id="editorOptions">
-												<div id="settingsContainer" class="paper-material">
-													<div id="settingsPadding">
-														<div class="editorSettingsTxt">
-															Editor Settings
-														</div>
-														<div id="editorThemeSettingCont">
-															<div id="editorThemeSettingTxt">Theme:</div>
-															<div id="editorThemeSettingChoicesCont">
-																<div id="editorThemeSettingWhite" on-tap="setThemeWhite" class="editorThemeSetting"></div>
-																<div id="editorThemeSettingDark" on-tap="setThemeDark" class="editorThemeSetting"></div>
+					<div id="codeTabContentContainer">
+						<div id="container">
+							<div id="settingsAnimationPositioner">
+								<div id="settingsAnimationContainer">
+									<div id="bubbleCont">
+										<div id="settingsShadow">
+											<div id="editorOptionsContainer">
+												<div id="editorOptions">
+													<div id="settingsContainer" class="paper-material">
+														<div id="settingsPadding">
+															<div class="editorSettingsTxt">
+																Editor Settings
 															</div>
-														</div>
-														<br />
-														<div id="editorThemeFontSize">
-															<paper-input on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" label="font size %">
-																<div suffix>%</div>
-															</paper-input>
-														</div>
-														<br />
-														<div id="editorJSLintGlobals">
-															<div id="editorJSLintGlobalsFlexCont">
-																<paper-input on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
-															</div>
-														</div>
-														<br />
-														<br />
-														<div id="keyBindingsText" class="editorSettingsTxt">Key Bindings</div>
-														<div id="keyBindingsContainer">
-															<template id="keyBindingsTemplate" is="dom-repeat" items="{{keyBindings}}" as="keyBinding">
-																<div class="keyBinding">
-																	<div>
-																		<paper-input data-index="{{itemIndex}}" on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput"></paper-input>
-																	</div>
-																	<br />
+															<div id="editorThemeSettingCont">
+																<div id="editorThemeSettingTxt">Theme:</div>
+																<div id="editorThemeSettingChoicesCont">
+																	<div id="editorThemeSettingWhite" on-tap="setThemeWhite" class="editorThemeSetting"></div>
+																	<div id="editorThemeSettingDark" on-tap="setThemeDark" class="editorThemeSetting"></div>
 																</div>
-															</template>
+															</div>
+															<br />
+															<div id="editorThemeFontSize">
+																<paper-input on-change="fontSizeChange" id="editorThemeFontSizeInput" type="number" label="font size %">
+																	<div suffix>%</div>
+																</paper-input>
+															</div>
+															<br />
+															<div id="editorJSLintGlobals">
+																<div id="editorJSLintGlobalsFlexCont">
+																	<paper-input on-keypress="jsLintGlobalsChange" id="editorJSLintGlobalsInput" label="Comma seperated list of JSLint globals"></paper-input>
+																</div>
+															</div>
+															<br />
+															<br />
+															<div id="keyBindingsText" class="editorSettingsTxt">Key Bindings</div>
+															<div id="keyBindingsContainer">
+																<template id="keyBindingsTemplate" is="dom-repeat" items="{{keyBindings}}" as="keyBinding">
+																	<div class="keyBinding">
+																		<div>
+																			<paper-input data-index="{{itemIndex}}" on-keydown="onKeyBindingKeyDown" label="{{keyBinding.name}}" value="{{getKeyBindingValue(keyBinding)}}" class="keyBindingSettingKeyInput"></paper-input>
+																		</div>
+																		<br />
+																	</div>
+																</template>
+															</div>
+															<br id="afterEditorSettingsSpacing" /><br /><br />
 														</div>
-														<br id="afterEditorSettingsSpacing" /><br /><br />
 													</div>
 												</div>
 											</div>
@@ -315,8 +321,11 @@
 									</div>
 								</div>
 							</div>
+							<monaco-editor id="editor"></monaco-editor>
 						</div>
-						<monaco-editor id="editor"></monaco-editor>
+						<div id="librariesTabContent">
+							<paper-libraries-selector id="paperLibrariesSelector" usedlibraries="[[item.value.libraries]]" noroot></paper-libraries-selector>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -1,4 +1,4 @@
-/// <reference path="../../elements.d.ts" />
+﻿/// <reference path="../../elements.d.ts" />
 
 namespace PaperDropdownBehaviorNamespace {
 	export const paperDropdownBehaviorProperties: {
@@ -266,7 +266,8 @@ namespace PaperDropdownBehaviorNamespace {
 				}
 				__this._startTime = null;
 				__this.getMenu().style.boxShadow = 'rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0, rgba(0, 0, 0, 0) 0 0 0 0';
-				__this._paperDropdownEl.$.dropdownArrow.style.transform = 'rotate(90deg)';
+				__this._paperDropdownEl.$.dropdownArrow && 
+					(__this._paperDropdownEl.$.dropdownArrow.style.transform = 'rotate(90deg)');
 			}
 		};
 
@@ -300,7 +301,8 @@ namespace PaperDropdownBehaviorNamespace {
 						easing: 'easeOutCubic',
 						duration: 300,
 						complete: () => {
-							this.$.dropdownArrow.style.transform = 'rotate(270deg)';
+							this.$.dropdownArrow && 
+								(this.$.dropdownArrow.style.transform = 'rotate(270deg)');
 						}
 					});
 				}, 100);

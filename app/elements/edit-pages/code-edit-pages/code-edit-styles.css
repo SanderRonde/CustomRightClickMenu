@@ -53,7 +53,9 @@ input {
 	flex-grow: 5;
 }
 
-#container, #flexRow, #flexColumn, #editorCont, .CodeMirror, .CodeMirror-scroll, #editorPlaceholder {
+#codeTabContentContainer, #container, #flexRow,
+#flexColumn, #editorCont, #editorPlaceholder, 
+#librariesTabContent {
 	-webkit-flex-grow: 100;
 	flex-grow: 100;
 	display: -webkit-flex;

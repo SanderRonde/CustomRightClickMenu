@@ -113,7 +113,7 @@ namespace CodeEditBehaviorNamespace {
 		/**
 		 * The mode the editor is in (main or background)
 		 */
-		static editorMode: 'main'|'background'|'options' = 'main';
+		static editorMode: 'main'|'background'|'options'|'libraries' = 'main';
 
 		static editorPlaceHolderAnimation: Animation;
 
@@ -441,7 +441,7 @@ namespace CodeEditBehaviorNamespace {
 
 			if (this.item.type === 'script') {
 				const __this = this as CodeEditBehavior<NodeEditBehaviorScriptInstance>;
-				window.paperLibrariesSelector.updateLibraries((__this.editorMode === 'main' ?
+				window.app.$.paperLibrariesSelector.updateLibraries((__this.editorMode === 'main' ?
 				__this.newSettings.value.libraries : __this.newSettings.value.backgroundLibraries || [])), this.editorMode;
 			}
 

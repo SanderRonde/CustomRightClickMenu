@@ -175,7 +175,6 @@ interface Window {
 	menuEdit: NodeEditBehaviorMenuInstance;
 	scriptEdit: NodeEditBehaviorScriptInstance;
 	dividerEdit: NodeEditBehaviorDividerInstance;
-	paperLibrariesSelector: PaperLibrariesSelector;
 	stylesheetEdit: NodeEditBehaviorStylesheetInstance;
 }
 

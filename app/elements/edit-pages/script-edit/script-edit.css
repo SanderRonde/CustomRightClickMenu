@@ -59,3 +59,17 @@ paper-button.blue {
 	vertical-align: bottom;
 	padding: 4px;
 }
+
+#librariesTabContent {
+	display: none;
+	max-height: 330px;
+	overflow-y: scroll;
+}
+
+#codeTabContentContainer.showLibs #librariesTabContent {
+	display: block;
+}
+
+#codeTabContentContainer.showLibs #container {
+	display: none;
+}

@@ -11,7 +11,7 @@ namespace PaperLibrariesSelectorElement {
 			code: string;
 		}>;
 		mode: 'main'|'background';
-
+		noroot: boolean;
 	} = {
 		/**
 		 * The libraries currently in use by the script
@@ -40,13 +40,19 @@ namespace PaperLibrariesSelectorElement {
 		installedLibraries: {
 			type: Array
 		},
-		
 		/**
 		 * The type of script that's currenly being edited (main or background)
 		 */
 		mode: {
 			type: String,
 			value: 'main'
+		},
+		/**
+		 * Don't have the "libraries" root item
+		 */
+		noroot: {
+			type: Boolean,
+			value: false
 		}
 	} as any;
 
@@ -65,7 +71,6 @@ namespace PaperLibrariesSelectorElement {
 		static properties = paperLibrariesSelectorProperties;
 
 		static ready(this: PaperLibrariesSelector) {
-			window.paperLibrariesSelector = this;
 			chrome.storage.local.get('libraries', (keys: CRM.StorageLocal) => {
 				if (keys.libraries) {
 					this.installedLibraries = keys.libraries;
@@ -139,8 +144,11 @@ namespace PaperLibrariesSelectorElement {
 		}
 		
 		static init(this: PaperLibrariesSelector) {
-			if (this._expanded) {
+			if (!this.noroot && this._expanded) {
 				this.close();
+			}
+			if (this.noroot) {
+				this.open();
 			}
 			const {
 				anonymous,

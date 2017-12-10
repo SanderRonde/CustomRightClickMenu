@@ -112,11 +112,11 @@ namespace ScriptEditElement {
 							this.editorManager.EditorMode.JS_META);
 				}
 
-				const element = window.app.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
-				Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.editorTab')).forEach(
-				function(tab: HTMLElement) {
-					tab.classList.remove('active');
-				});
+				const element = window.scriptEdit.shadowRoot.querySelector(mode === 'main' ? '.mainEditorTab' : '.backgroundEditorTab');
+				Array.prototype.slice.apply(window.scriptEdit.shadowRoot.querySelectorAll('.editorTab')).forEach(
+					function(tab: HTMLElement) {
+						tab.classList.remove('active');
+					});
 				element.classList.add('active');
 			}
 		};
@@ -139,14 +139,19 @@ namespace ScriptEditElement {
 
 			const isMain = element.classList.contains('mainEditorTab');
 			const isBackground = element.classList.contains('backgroundEditorTab');
+			const isLibraries = element.classList.contains('librariesTab');
+			const isOptions = element.classList.contains('optionsTab');
+
+			if (!isLibraries) {
+				this.$.codeTabContentContainer.classList.remove('showLibs');
+			}
 			if (isMain && this.editorMode !== 'main') {
 				this.switchBetweenScripts(element);
 				this.changeTab('main');
-			} else if (!isMain && isBackground && this.editorMode !== 'background') {
+			} else if (isBackground && this.editorMode !== 'background') {
 				this.switchBetweenScripts(element);
 				this.changeTab('background');
-			} else if (!isBackground && this.editorMode !== 'options') {
-				element.classList.add('optionsEditorTab');
+			} else if (isOptions && this.editorMode !== 'options') {
 				if (this.editorMode === 'main') {
 					this.newSettings.value.script = this.editorManager.editor.getValue();
 				} else if (this.editorMode === 'background') {
@@ -154,9 +159,13 @@ namespace ScriptEditElement {
 				}
 				this.showCodeOptions();
 				this.editorMode = 'options';
+			} else if (isLibraries && this.editorMode !== 'libraries') {
+				this.$.codeTabContentContainer.classList.add('showLibs');
+				this.$.paperLibrariesSelector.updateLibraries(this.newSettings.value.libraries);
+				this.editorMode = 'libraries';
 			}
 
-			Array.prototype.slice.apply(window.app.shadowRoot.querySelectorAll('.editorTab')).forEach(
+			Array.prototype.slice.apply(window.scriptEdit.shadowRoot.querySelectorAll('.editorTab')).forEach(
 				function(tab: HTMLElement) {
 					tab.classList.remove('active');
 				});
