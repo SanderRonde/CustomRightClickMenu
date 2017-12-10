@@ -423,88 +423,92 @@ namespace CodeEditBehaviorNamespace {
 		/**
 		 * Enters fullscreen mode for the editor
 		 */
-		static enterFullScreen(this: CodeEditBehaviorInstance) {
-			if (this.fullscreen) {
-				return;
-			}
-			this.fullscreen = true;
-			window.doc.fullscreenEditor.style.display = 'block';
-
-			const rect = this.editorManager.editor.getDomNode().getBoundingClientRect();
-			const editorCont = window.doc.fullscreenEditorEditor;
-			const editorContStyle = editorCont.style;
-			editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
-			editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
-			editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
-			editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
-			editorContStyle.position = 'absolute';
-
-			if (this.item.type === 'script') {
-				const __this = this as CodeEditBehavior<NodeEditBehaviorScriptInstance>;
-				window.app.$.paperLibrariesSelector.updateLibraries((__this.editorMode === 'main' ?
-				__this.newSettings.value.libraries : __this.newSettings.value.backgroundLibraries || [])), this.editorMode;
-			}
-
-			this.fullscreenEditorManager = editorCont.createFrom(this.editorManager);
-
-			const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
-			const bcr = horizontalCenterer.getBoundingClientRect();
-			const viewportWidth = bcr.width+ 20;
-			const viewPortHeight = bcr.height;
-
-			if (window.app.storageLocal.hideToolsRibbon !== undefined) {
-				if (window.app.storageLocal.hideToolsRibbon) {
-					window.doc.showHideToolsRibbonButton.classList.add('hidden');
-				} else {
-					window.doc.showHideToolsRibbonButton.classList.remove('hidden');
+		static enterFullScreen(this: CodeEditBehaviorInstance): Promise<void> {
+			return new Promise((resolve) => {
+				if (this.fullscreen) {
+					resolve(null);
+					return;
 				}
-			} else {
-				chrome.storage.local.set({
-					hideToolsRibbon: false
-				});
-				window.app.storageLocal.hideToolsRibbon = false;
-				window.doc.showHideToolsRibbonButton.classList.add('hidden');
-			}
-			if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
-				if (window.app.storageLocal.shrinkTitleRibbon) {
-					window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+				this.fullscreen = true;
+				window.doc.fullscreenEditor.style.display = 'block';
+
+				const rect = this.editorManager.editor.getDomNode().getBoundingClientRect();
+				const editorCont = window.doc.fullscreenEditorEditor;
+				const editorContStyle = editorCont.style;
+				editorContStyle.marginLeft = this.preFullscreenEditorDimensions.marginLeft = rect.left + 'px';
+				editorContStyle.marginTop = this.preFullscreenEditorDimensions.marginTop = rect.top + 'px';
+				editorContStyle.height = this.preFullscreenEditorDimensions.height = rect.height + 'px';
+				editorContStyle.width = this.preFullscreenEditorDimensions.width = rect.width + 'px';
+				editorContStyle.position = 'absolute';
+
+				if (this.item.type === 'script') {
+					const __this = this as CodeEditBehavior<NodeEditBehaviorScriptInstance>;
+					window.app.$.paperLibrariesSelector.updateLibraries((__this.editorMode === 'main' ?
+					__this.newSettings.value.libraries : __this.newSettings.value.backgroundLibraries || [])), this.editorMode;
+				}
+
+				this.fullscreenEditorManager = editorCont.createFrom(this.editorManager);
+
+				const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
+				const bcr = horizontalCenterer.getBoundingClientRect();
+				const viewportWidth = bcr.width+ 20;
+				const viewPortHeight = bcr.height;
+
+				if (window.app.storageLocal.hideToolsRibbon !== undefined) {
+					if (window.app.storageLocal.hideToolsRibbon) {
+						window.doc.showHideToolsRibbonButton.classList.add('hidden');
+					} else {
+						window.doc.showHideToolsRibbonButton.classList.remove('hidden');
+					}
 				} else {
+					chrome.storage.local.set({
+						hideToolsRibbon: false
+					});
+					window.app.storageLocal.hideToolsRibbon = false;
+					window.doc.showHideToolsRibbonButton.classList.add('hidden');
+				}
+				if (window.app.storageLocal.shrinkTitleRibbon !== undefined) {
+					if (window.app.storageLocal.shrinkTitleRibbon) {
+						window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(90deg)';
+					} else {
+						window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
+					}
+				} else {
+					chrome.storage.local.set({
+						shrinkTitleRibbon: false
+					});
+					window.app.storageLocal.shrinkTitleRibbon = false;
 					window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
 				}
-			} else {
-				chrome.storage.local.set({
-					shrinkTitleRibbon: false
+
+
+				document.documentElement.style.overflow = 'hidden';
+
+				editorCont.style.display = 'flex';
+
+				this.fullscreenEditorManager.editor.layout();
+
+				//Animate to corners
+				$(editorCont).animate({
+					width: viewportWidth,
+					height: viewPortHeight,
+					marginTop: 0,
+					marginLeft: 0
+				}, {
+					duration: 500,
+					easing: 'easeOutCubic',
+					step: () => {
+						this.fullscreenEditorManager.editor.layout();
+					},
+					complete: () =>  {
+						this.fullscreenEditorManager.editor.layout();
+						this.style.width = '100vw';
+						this.style.height = '100vh';
+						window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
+						this.popInRibbons();
+						resolve(null);
+					}
 				});
-				window.app.storageLocal.shrinkTitleRibbon = false;
-				window.doc.shrinkTitleRibbonButton.style.transform = 'rotate(270deg)';
-			}
-
-
-			document.documentElement.style.overflow = 'hidden';
-
-			editorCont.style.display = 'flex';
-
-			this.fullscreenEditorManager.editor.layout();
-
-			//Animate to corners
-			$(editorCont).animate({
-				width: viewportWidth,
-				height: viewPortHeight,
-				marginTop: 0,
-				marginLeft: 0
-			}, {
-				duration: 500,
-				easing: 'easeOutCubic',
-				step: () => {
-					this.fullscreenEditorManager.editor.layout();
-				},
-				complete: () =>  {
-					this.fullscreenEditorManager.editor.layout();
-					this.style.width = '100vw';
-					this.style.height = '100vh';
-					window.app.$.fullscreenEditorHorizontal.style.height = '100vh';
-					this.popInRibbons();
-				}
 			});
 		};
 

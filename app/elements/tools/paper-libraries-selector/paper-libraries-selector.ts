@@ -66,6 +66,12 @@ namespace PaperLibrariesSelectorElement {
 
 		static properties = paperLibrariesSelectorProperties;
 
+		private static _editingInstance: {
+			name: string;
+			wasFullscreen: boolean;
+			library: LibrarySelectorLibrary;
+		} = null;
+
 		static ready(this: PaperLibrariesSelector) {
 			chrome.storage.local.get('libraries', (keys: CRM.StorageLocal) => {
 				if (keys.libraries) {
@@ -231,22 +237,26 @@ namespace PaperLibrariesSelectorElement {
 			}
 		}
 
+		private static _setLibraries(this: PaperLibrariesSelector, libraries: Array<CRM.InstalledLibrary>) {
+			chrome.storage.local.set({
+				libraries: libraries
+			});
+			chrome.runtime.sendMessage({
+				type: 'updateStorage',
+				data: {
+					type: 'libraries',
+					libraries: libraries
+				}
+			});
+		}
+
 		static addLibraryFile(this: PaperLibrariesSelector, name: string, isTypescript: boolean, code: string, url: string = null) {
 			window.doc.addLibraryConfirmationContainer.style.display = 'none';
 			window.doc.addLibraryLoadingDialog.style.display = 'flex';
 
 			setTimeout(() => {
 				this.addLibraryToState(name, isTypescript, code, url);
-				chrome.storage.local.set({
-					libraries: this.installedLibraries
-				});
-				chrome.runtime.sendMessage({
-					type: 'updateStorage',
-					data: {
-						type: 'libraries',
-						libraries: this.installedLibraries
-					}
-				});
+				this._setLibraries(this.installedLibraries);
 				this.splice('libraries', this.libraries.length - 1, 0, {
 					name: name,
 					classes: 'library iron-selected',
@@ -394,6 +404,127 @@ namespace PaperLibrariesSelectorElement {
 				this.handleCheckmarkClick(e);
 			}
 		};
+
+		private static _getInstalledLibrary(this: PaperLibrariesSelector, library: LibrarySelectorLibrary): Promise<CRM.InstalledLibrary> {
+			return new Promise<CRM.InstalledLibrary>((resolve) => {
+				chrome.storage.local.get((e: CRM.StorageLocal) => {
+					const libs = e.libraries;
+					for (const lib of libs) {
+						if (lib.name === library.name) {
+							resolve(lib);
+						}
+					}
+					resolve(null);
+				});
+			});
+		}
+
+		private static _revertToNormalEditor(this: PaperLibrariesSelector) {
+			window.app.$.ribbonScriptName.innerText = this._editingInstance.name;
+			window.app.$.fullscreenEditorToggle.style.display = 'block';
+
+			if (!this._editingInstance.wasFullscreen) {
+				window.scriptEdit.exitFullScreen();
+			}
+		}
+
+		private static _discardLibEditChanges(this: PaperLibrariesSelector) {
+			this._revertToNormalEditor();
+		}
+
+		private static async _saveLibEditChanges(this: PaperLibrariesSelector) {
+			const newVal = window.scriptEdit.fullscreenEditorManager.editor.getValue();
+			const lib = this._editingInstance.library;
+			
+			chrome.storage.local.get((e: CRM.StorageLocal) => {
+				const installedLibs = e.libraries;
+				for (const installedLib of installedLibs) {
+					if (installedLib.name === lib.name) {
+						installedLib.code = newVal;
+					}
+				}
+				this._setLibraries(installedLibs);
+			});
+			this._revertToNormalEditor();
+		}
+
+		private static _genOverlayWidget(this: PaperLibrariesSelector) {
+			const container = document.createElement('div');
+			container.style.backgroundColor = 'white';
+			container.style.padding = '10px';
+			container.style.display = 'flex';
+			const cancelButton = document.createElement('paper-button');
+			cancelButton.innerText = 'Cancel';
+			const saveButton = document.createElement('paper-button');
+			saveButton.innerText = 'Save';
+			saveButton.style.marginLeft = '15px';
+
+			cancelButton.addEventListener('click', () => {
+				this._discardLibEditChanges();
+			});
+			saveButton.addEventListener('click', () => {
+				this._saveLibEditChanges();
+			});
+
+			container.appendChild(cancelButton);
+			container.appendChild(saveButton);
+
+			const editor = window.scriptEdit.fullscreenEditorManager.editor;
+			if (!window.scriptEdit.fullscreenEditorManager.isDiff(editor)) {
+				editor.addOverlayWidget({
+					getId() {
+						return 'library.exit.buttons'
+					},
+					getDomNode() {
+						return container;
+					},
+					getPosition() {
+						return {
+							preference: monaco.editor.OverlayWidgetPositionPreference.BOTTOM_RIGHT_CORNER
+						}
+					}
+				});
+			}
+		}
+
+		private static async _openLibraryEditor(this: PaperLibrariesSelector, library: LibrarySelectorLibrary) {
+			const wasFullscreen = window.scriptEdit.fullscreen;
+			const name = window.app.$.ribbonScriptName.innerText;
+			this._editingInstance = {
+				wasFullscreen,
+				name,
+				library
+			}
+
+			window.app.$.ribbonScriptName.innerText = 'Editing library ' + library.name;
+
+			await window.scriptEdit.enterFullScreen();
+			const installedLibrary = await this._getInstalledLibrary(library);
+			const isTs = installedLibrary.ts && installedLibrary.ts.enabled;
+			window.scriptEdit.fullscreenEditorManager.switchToModel('libraryEdit', 
+				installedLibrary.code, isTs ?
+					window.scriptEdit.fullscreenEditorManager.EditorMode.TS :
+					window.scriptEdit.fullscreenEditorManager.EditorMode.JS);
+			
+			window.app.$.fullscreenEditorToggle.style.display = 'none';
+			this._genOverlayWidget();
+		}
+
+		static _edit(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
+			type LibraryElement = HTMLElement & {
+				dataLib: LibrarySelectorLibrary
+			}
+			let parentNode: LibraryElement = null;
+			if (e.target.tagName.toLowerCase() === 'path') {
+				parentNode = e.target.parentElement.parentElement.parentElement as LibraryElement;
+			} else if (e.target.tagName.toLowerCase() === 'svg') {
+				parentNode = e.target.parentElement.parentElement as LibraryElement;
+			} else {
+				parentNode = e.target.parentElement as LibraryElement;
+			}
+			const library = parentNode.dataLib;
+			this._openLibraryEditor(library);
+		}
 
 		static _remove(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
 			type LibraryElement = HTMLElement & {
