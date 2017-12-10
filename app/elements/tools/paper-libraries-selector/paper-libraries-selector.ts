@@ -340,28 +340,31 @@ namespace PaperLibrariesSelectorElement {
 				});
 		}
 
-		private static handleCheckmarkClick(e: Polymer.ClickEvent) {
+		private static handleCheckmarkClick(this: PaperLibrariesSelector, e: Polymer.ClickEvent) {
 			//Checking or un-checking something
 			const lib = (e.target as HTMLElement & {
 				dataLib: LibrarySelectorLibrary;
 			}).dataLib;
 			const changeType: 'addMetaTags' | 'removeMetaTags' =
 				(e.target.classList.contains('iron-selected') ? 'removeMetaTags' : 'addMetaTags');
+			const libsArr = this.mode === 'main' ?
+				window.scriptEdit.newSettings.value.libraries :
+				window.scriptEdit.newSettings.value.backgroundLibraries;
 			if (changeType === 'addMetaTags') {
-				window.scriptEdit.newSettings.value.libraries.push({
+				libsArr.push({
 					name: lib.name || null,
 					url: lib.url
 				});
 			} else {
 				let index = -1;
-				for (let i = 0; i < window.scriptEdit.newSettings.value.libraries.length; i++) {
-					if (window.scriptEdit.newSettings.value.libraries[i].url === lib.url && 
-						window.scriptEdit.newSettings.value.libraries[i].name === lib.name) {
+				for (let i = 0; i < libsArr.length; i++) {
+					if (libsArr[i].url === lib.url && 
+						libsArr[i].name === lib.name) {
 						index = i;
 						break;
 					}
 				}
-				window.scriptEdit.newSettings.value.libraries.splice(index, 1);
+				libsArr.splice(index, 1);
 			}
 		}
 
