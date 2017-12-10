@@ -1199,3 +1199,7 @@ paper-checkbox {
 #restoreChangesDialog #restoreChangesHeader h2 {
 	margin: 0;
 }
+
+.bold {
+	font-weight: bold;
+}
