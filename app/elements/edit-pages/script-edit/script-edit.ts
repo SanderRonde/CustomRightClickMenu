@@ -514,7 +514,14 @@ namespace ScriptEditElement {
 		}, key: string = keyBinding.defaultKey) {
 			const editor = this.editorManager.editor;
 			if (!this.editorManager.isDiff(editor)) {
-				const oldAction = editor.getAction(keyBinding.monacoKey);
+				const oldAction = editor.getAction(keyBinding.monacoKey) as monaco.editor.IEditorAction & {
+					_precondition: {
+						expr: Array<{
+							key: string;
+							defaultValue: boolean;
+						}>;
+					}
+				}
 				editor.addAction({
 					id: keyBinding.monacoKey,
 					label: keyBinding.name,
@@ -522,7 +529,9 @@ namespace ScriptEditElement {
 						oldAction.run();
 					},
 					keybindings: this.translateKeyCombination(key),
-					precondition: (oldAction as any)._precondition
+					precondition: oldAction._precondition.expr.map((condition) => {
+						return condition.key;
+					}).join('&&')
 				});
 			}
 		}
