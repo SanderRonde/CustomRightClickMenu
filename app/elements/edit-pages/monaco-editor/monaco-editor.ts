@@ -206,6 +206,65 @@ namespace MonacoEditorElement {
 		 */
 		private _isMetaDataHighlightDisabled: boolean = false;
 
+		protected static readonly _metaTagProvider: monaco.languages.CompletionItemProvider = {
+			provideCompletionItems: (model, position) => {
+				return [{
+					label: '==UserScript==',
+					kind: monaco.languages.CompletionItemKind.Property,
+					insertText: '==UserScript==',
+					detail: 'UserScript start tag',
+					documentation: 'The start tag for a UserScript metadata block'
+				}, {
+					label: '==/UserScript==',
+					kind: monaco.languages.CompletionItemKind.Property,
+					insertText: '==/UserScript==',
+					detail: 'UserScript end tag',
+					documentation: 'The end tag for a UserScript metadata block'
+				}];
+			}
+		}
+		
+		protected static readonly _metaKeyProvider: monaco.languages.CompletionItemProvider = {
+			provideCompletionItems: (model, position) => {
+				const lineRange = new monaco.Range(position.lineNumber, 0, position.lineNumber, position.column);
+				const currentLineText = model.getValueInRange(lineRange);
+				const metaBlock = (model as any)._metaBlock as MetaBlock;
+				if (!metaBlock || new monaco.Range(metaBlock.start.lineNumber, metaBlock.start.column,
+					metaBlock.end.lineNumber, metaBlock.end.column).containsPosition(position)) {
+						let keyParts = currentLineText.split('@');
+						let length = keyParts[0].length;
+						keyParts = keyParts.slice(1);
+						for (let keyPart of keyParts) {
+							const partialStr = `@${keyPart}`;
+							let match: RegExpExecArray = null;
+							if ((match = /@(\w*)/.exec(partialStr))) {
+								const matchIndex = length + partialStr.indexOf(match[0]) + 1;
+								const matchRange = new monaco.Range(position.lineNumber, matchIndex, 
+									position.lineNumber, matchIndex + match[0].length);
+								if (matchRange.containsPosition(position)) {
+									return {
+										isIncomplete: true,
+										items: Object.getOwnPropertyNames(metaDataDescriptions).map((key: keyof typeof metaDataDescriptions) => {
+											const description = metaDataDescriptions[key];
+											return {
+												label: `@${key}`,
+												kind: monaco.languages.CompletionItemKind.Property,
+												insertText: `@${key}`,
+												detail: 'Metadata key',
+												documentation: description
+											}
+										})
+									}
+								}
+							}
+							length += partialStr.length;
+						}
+					}
+
+				return [];
+			}
+		}
+
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
 
@@ -585,6 +644,21 @@ namespace MonacoEditorElement {
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
+
+			MonacoEditorHookManager.Completion.register('javascript',
+				MonacoEditorMetaBlockMods._metaTagProvider);
+			MonacoEditorHookManager.Completion.register('javascript',
+				MonacoEditorMetaBlockMods._metaKeyProvider);
+			MonacoEditorHookManager.Completion.register('typescript',
+				MonacoEditorMetaBlockMods._metaTagProvider);
+			MonacoEditorHookManager.Completion.register('typescript',
+				MonacoEditorMetaBlockMods._metaKeyProvider);
+
+			this._disposables.push({
+				dispose: () => {
+					MonacoEditorHookManager.Completion.clearAll();
+				}
+			});
 		}
 
 		static getSettings(): monaco.editor.IEditorOptions {
@@ -611,6 +685,17 @@ namespace MonacoEditorElement {
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
 			super(editor, model);
+
+			MonacoEditorHookManager.Completion.register('css',
+				MonacoEditorMetaBlockMods._metaTagProvider);
+			MonacoEditorHookManager.Completion.register('css',
+				MonacoEditorMetaBlockMods._metaKeyProvider);
+
+			this._disposables.push({
+				dispose: () => {
+					MonacoEditorHookManager.Completion.clearAll();
+				}
+			});
 
 			this._listen('shouldDecorate', (event: monaco.editor.IModelContentChangedEvent) => {
 				if (event.isFlush) {
@@ -822,38 +907,319 @@ namespace MonacoEditorElement {
 			let newRulesString = '';
 
 			if (this._editor.getModel() === this._model) {
-			const underlinables = this._editor.getDomNode().querySelectorAll('.userScriptColorUnderline');
-			Array.prototype.slice.apply(underlinables).forEach((underlineable: HTMLElement) => {
-				for (let i = 0; i < underlineable.classList.length; i++) {
-					if (underlineable.classList.item(i).indexOf('color') === 0) {
-						let color = underlineable.classList.item(i).slice(5);
-						let className = underlineable.classList.item(i);
-						newRules.push([`.${className}::before`, `background-color: ${color}`])
-						newRulesString += `${className}${color}`;
+				const underlinables = this._editor.getDomNode().querySelectorAll('.userScriptColorUnderline');
+				Array.prototype.slice.apply(underlinables).forEach((underlineable: HTMLElement) => {
+					for (let i = 0; i < underlineable.classList.length; i++) {
+						if (underlineable.classList.item(i).indexOf('color') === 0) {
+							let color = underlineable.classList.item(i).slice(5);
+							let className = underlineable.classList.item(i);
+							newRules.push([`.${className}::before`, `background-color: ${color}`])
+							newRulesString += `${className}${color}`;
+						}
 					}
+				});
+
+				if (newRulesString === this._currentStylesheetRules) {
+					return;
 				}
-			});
+				const stylesheet = (window.app.item.type === 'script' ?
+					window.scriptEdit : window.stylesheetEdit)
+						.$.editor._getStylesheet();
+				const sheet = stylesheet.sheet as CSSStyleSheet;
+				while (sheet.rules.length !== 0) {
+					sheet.deleteRule(0);
+				}
 
-			if (newRulesString === this._currentStylesheetRules) {
-				return;
+				this._currentStylesheetRules = newRulesString;
+				newRules.forEach(([selector, value]: [string, string]) => {
+					sheet.addRule(selector, value);
+				});
 			}
-			const stylesheet = (window.app.item.type === 'script' ?
-				window.scriptEdit : window.stylesheetEdit)
-					.$.editor._getStylesheet();
-			const sheet = stylesheet.sheet as CSSStyleSheet;
-			while (sheet.rules.length !== 0) {
-				sheet.deleteRule(0);
-			}
-
-			this._currentStylesheetRules = newRulesString;
-			newRules.forEach(([selector, value]: [string, string]) => {
-				sheet.addRule(selector, value);
-			});
-		}
 		}
 
 		static getSettings(): monaco.editor.IEditorOptions {
 			return {};
+		}
+	}
+
+	interface JSONSchemaMeta {
+		title?: string;
+		description?: string;
+		anyOf?: Array<JSONSchema>;
+		allOf?: Array<JSONSchema>;
+		oneOf?: Array<JSONSchema>;
+		not?: JSONSchema;
+	}
+	
+	interface JSONSchemaEnum extends JSONSchemaMeta {
+		enum: Array<string|number|boolean>;
+	}
+
+	interface JSONSchemaString extends JSONSchemaMeta {
+		default?: string;
+		enum?: Array<string>;
+		type: 'string';
+		minLength?: number;
+		maxLength?: number;
+		pattern?: string;
+		format?: string;
+	}
+
+	interface JSONSchemaNumber extends JSONSchemaMeta {
+		default?: number;
+		enum?: Array<number>;
+		type: 'number'|'integer';
+		multipleOf?: number;
+		minimum?: number;
+		maximum?: number;
+		exclusiveMinimum?: boolean;
+		exclusiveMaximum?: boolean;
+	}
+
+	interface JSONSchemaBoolean extends JSONSchemaMeta {
+		default?: boolean;
+		enum?: Array<boolean>;
+		type: 'boolean';
+	}
+
+	interface JSONSchemaArray extends JSONSchemaMeta {
+		type: 'array';
+		items: JSONSchema|Array<JSONSchema>;
+		additionalItems?: false|JSONSchema;
+		minItems?: number;
+		maxItems?: number;
+		uniqueItems?: boolean;
+	}
+
+	interface JSONSchemaObjectBase extends JSONSchemaMeta {
+		properties?: {
+			[key: string]: JSONSchema;
+		}
+		additionalProperties?: false|JSONSchema;
+		required?: Array<string>;
+		minProperties?: number;
+		maxProperties?: number;
+		dependencies?: {
+			[key: string]: Array<string>|JSONSchemaObjectBase;
+		};
+		patternProperties?: {
+			[pattern: string]: JSONSchema;
+		}
+	}
+
+	interface JSONSchemaObject extends JSONSchemaObjectBase {
+		type: 'object';
+	}
+
+	interface JSONSchemaNull extends JSONSchemaMeta {
+		type: 'null';
+	}
+
+	interface JSONSchemaMultiType extends JSONSchemaMeta {
+		type: Array<'number'|'string'|'boolean'|'object'|'array'|'null'>;
+	}
+
+	type JSONSchemaTypedef = JSONSchemaString|JSONSchemaNumber|JSONSchemaBoolean|
+		JSONSchemaArray|JSONSchemaObject|JSONSchemaNull|JSONSchemaMultiType;
+
+	/**
+	 * Rough JSON schema typing
+	 */
+	type JSONSchema = JSONSchemaTypedef|JSONSchemaEnum;
+
+	class MonacoEditorJSONOptionsMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorEventHandler<PubL, PriL> {
+		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
+			super(editor, model);
+
+			const value = model.getValue();
+			let parsed: CRM.Options;
+			try {
+				parsed = JSON.parse(value);
+				if (!('$schema' in parsed)) {
+					model.setValue(this._addSchemaKey(parsed));
+				}
+			} catch {
+				//Ignore
+			}
+
+			MonacoEditorJSONOptionsMods.enableSchema();
+			this._disposables.push({
+				dispose() {
+					MonacoEditorJSONOptionsMods.disableSchema();
+				}
+			});
+		}
+
+		private _addSchemaKey(parsed: CRM.Options): string {
+			let str = '{\n\t"$schema": "crm-settings.json",\n';
+			//Ensure order stays the same
+			for (let key in parsed) {
+				str += `\t"${key}": ${JSON.stringify(parsed[key])},\n`
+			}
+			str = str.slice(0, -1);
+			str += '}';
+			return str;
+		}
+
+		static disableSchema() {
+			monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+				allowComments: false
+			});
+		}
+
+		static enableSchema() {
+			const schema: JSONSchema = {
+				type: 'object',
+				properties: {
+					'$schema': {
+						type: 'string',
+						enum: ['crm-settings.json']
+					}
+				},
+				additionalProperties: {
+					title: 'The name of the option',
+					type: 'object',
+					oneOf: [{
+						type: 'object',
+						properties: {
+							type: {
+								title: 'A number type option',
+								type: 'string',
+								enum: ['number']
+							},
+							minimum: {
+								title: 'The minimum value of the number',
+								type: 'number'
+							},
+							maximum: {
+								title: 'The maximum value of the number',
+								type: 'number'
+							},
+							descr: {
+								title: 'A description for this option',
+								type: 'string'
+							},
+							value: {
+								title: 'The value of this option (set to null for unset)',
+								description: 'The value of this option, changing it here will have the' + 
+									' same effect as changing it in the options dialog',
+								type: ['number', 'null']
+							}
+						}
+					}, {
+						type: 'object',
+						properties: {
+							type: {
+								title: 'A string type option',
+								type: 'string',
+								enum: ['string']
+							},
+							maxLength: {
+								title: 'The maximum length of the string',
+								type: 'number'
+							},
+							format: {
+								title: 'A regex format that the string has to follow',
+								type: 'string'
+							},
+							descr: {
+								title: 'A description for this option',
+								type: 'string'
+							},
+							value: {
+								title: 'The value of this option (set to null for unset)',
+								description: 'The value of this option, changing it here will have the' + 
+									' same effect as changing it in the options dialog',
+								type: ['string', 'null']
+							}
+						}
+					}, {
+						type: 'object',
+						properties: {
+							type: {
+								title: 'A choice type option',
+								type: 'string',
+								enum: ['choice']
+							},
+							selected: {
+								title: 'The selected value\'s index',
+								type: 'number'
+							},
+							descr: {
+								title: 'A description for this option',
+								type: 'string'
+							},
+							values: {
+								title: 'The possible values of this option',
+								type: 'array',
+								items: {
+									type: ['string', 'number']
+								}
+							}
+						}
+					}, {
+						type: 'object',
+						properties: {
+							type: {
+								title: 'A boolean type option',
+								type: 'string',
+								enum: ['boolean']
+							},
+							descr: {
+								title: 'A description for this option',
+								type: 'string'
+							},
+							value: {
+								title: 'The value of this option (set to null for unset)',
+								description: 'The value of this option, changing it here will have the' + 
+									' same effect as changing it in the options dialog',
+								type: ['boolean', 'null']
+							}
+						}
+					}, {
+						type: 'object',
+						properties: {
+							type: {
+								title: 'An array type option',
+								type: 'string',
+								enum: ['array']
+							},
+							maxItems: {
+								title: 'The maximum number of array items',
+								type: 'number'
+							},
+							items: {
+								title: 'The type of items this array contains (array or string)',
+								type: 'string',
+								enum: ['string', 'number']
+							},
+							descr: {
+								title: 'A description for this option',
+								type: 'string'
+							},
+							value: {
+								title: 'The value of this option (set to null for unset)',
+								description: 'The value of this option, changing it here will have the' + 
+									' same effect as changing it in the options dialog',
+								type: ['boolean', 'null']
+							}
+						},
+						required: ['items']
+					}]
+				}
+			};
+			monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+				allowComments: false,
+				schemas: [{
+					uri: 'crm-settings.json',
+					schema: schema
+				}],
+				validate: true
+			})
+		}
+
+		static getSettings(): monaco.editor.IEditorOptions {
+			return { }
 		}
 	}
 
@@ -872,11 +1238,12 @@ namespace MonacoEditorElement {
 		JS,
 		TS,
 		JSON,
+		JSON_OPTIONS,
 		JS_META,
 		TS_META,
 		CSS_META,
-		JSON_OPTIONS,
-		PLAIN_TEXT
+		PLAIN_TEXT,
+		CUSTOM
 	}
 
 	class MOE {
@@ -939,9 +1306,8 @@ namespace MonacoEditorElement {
 				case EditorMode.CSS:
 				case EditorMode.CSS_META:
 					return true;
-				default:
-					return false;
 			}
+			return false;
 		}
 
 		private static _typeIsTS(editorType: EditorMode) {
@@ -949,9 +1315,8 @@ namespace MonacoEditorElement {
 				case EditorMode.TS:
 				case EditorMode.TS_META:
 					return true;
-				default:
-					return false;
 			}
+			return false;
 		}
 
 		private static _typeIsJS(editorType: EditorMode) {
@@ -959,19 +1324,16 @@ namespace MonacoEditorElement {
 				case EditorMode.JS:
 				case EditorMode.JS_META:
 					return true;
-				default:
-					return false;
 			}
+			return false;
 		}
 
 		private static _typeIsJSON(editorType: EditorMode) {
 			switch (editorType) {
 				case EditorMode.JSON:
-				case EditorMode.JSON_OPTIONS:
 					return true;
-				default:
-					return false;
 			}
+			return false;
 		}
 
 		private static _getSettings(editorType: EditorMode): monaco.editor.IEditorOptions {
@@ -980,9 +1342,10 @@ namespace MonacoEditorElement {
 					return MonacoEditorCSSMetaMods.getSettings();
 				case EditorMode.TS_META:
 					return MonacoEditorScriptMetaMods.getSettings();
-				default:
-					return {};
+				case EditorMode.JSON_OPTIONS:
+					return MonacoEditorJSONOptionsMods.getSettings();
 			}
+			return {};
 		}
 
 		private static _getTypeHandler(editorType: EditorMode, 
@@ -995,10 +1358,9 @@ namespace MonacoEditorElement {
 					case EditorMode.TS_META:
 						return new MonacoEditorScriptMetaMods(editor, model);
 					case EditorMode.JSON_OPTIONS:
-						return {} as any;
-					default:
-						return null;
+						return new MonacoEditorJSONOptionsMods(editor, model);
 				}
+				return null;
 			}
 
 		private static _getLanguage(editorType: EditorMode) {
@@ -1548,46 +1910,34 @@ namespace MonacoEditorElement {
 			});
 		}
 
-		private static readonly _metaKeyRegex = /@(\w*)/;
+		static Completion = class MonacoEditorCompletions {
+			private static _enabledCompletions: {
+				[language: string]: Array<{
+					completion: monaco.languages.CompletionItemProvider;
+					disposable: monaco.IDisposable
+				}>
+			} = {};
 
-		private static _setupCustomCompletion() {
-			const metaTagProvider: monaco.languages.CompletionItemProvider = {
-				provideCompletionItems: (model, position) => {
-					return (this as any)._metaTagCompletions as Array<monaco.languages.CompletionItem>;
+			static register(language: 'javascript'|'css'|'typescript'|'json', item: monaco.languages.CompletionItemProvider) {
+				this._enabledCompletions[language] = this._enabledCompletions[language] || [];
+				for (let completionData of this._enabledCompletions[language]) {
+					if (completionData.completion === item) {
+						return;
+					}
+				}
+				this._enabledCompletions[language].push({
+					completion: item,
+					disposable: monaco.languages.registerCompletionItemProvider(language, item)
+				});
+			}
+
+			static clearAll() {
+				for (let lang in this._enabledCompletions) {
+					for (let completion of this._enabledCompletions[lang]) {
+						completion.disposable.dispose();
+					}
 				}
 			}
-			const metaKeyProvider: monaco.languages.CompletionItemProvider = {
-				provideCompletionItems: (model, position) => {
-					const lineRange = new monaco.Range(position.lineNumber, 0, position.lineNumber, position.column);
-					const currentLineText = model.getValueInRange(lineRange);
-					const metaBlock = (model as any)._metaBlock as MetaBlock;
-					if (!metaBlock || new monaco.Range(metaBlock.start.lineNumber, metaBlock.start.column,
-						metaBlock.end.lineNumber, metaBlock.end.column).containsPosition(position)) {
-							let keyParts = currentLineText.split('@');
-							let length = keyParts[0].length;
-							keyParts = keyParts.slice(1);
-							for (let keyPart of keyParts) {
-								const partialStr = `@${keyPart}`;
-								let match: RegExpExecArray = null;
-								if ((match = this._metaKeyRegex.exec(partialStr))) {
-									const matchIndex = length + partialStr.indexOf(match[0]) + 1;
-									const matchRange = new monaco.Range(position.lineNumber, matchIndex, 
-										position.lineNumber, matchIndex + match[0].length);
-									if (matchRange.containsPosition(position)) {
-										return (this as any)._metaKeyCompletions as monaco.languages.CompletionList;
-									}
-								}
-								length += partialStr.length;
-							}
-						}
-	
-					return [];
-				}
-			}
-			monaco.languages.registerCompletionItemProvider('javascript', metaTagProvider);
-			monaco.languages.registerCompletionItemProvider('css', metaTagProvider);
-			monaco.languages.registerCompletionItemProvider('javascript', metaKeyProvider);
-			monaco.languages.registerCompletionItemProvider('css', metaKeyProvider);
 		}
 
 		static Libraries = class MonacoEditorLibraries {
@@ -1635,9 +1985,9 @@ namespace MonacoEditorElement {
 			}
 			this._setup = true;
 			this._setupRequire();
+			MonacoEditorJSONOptionsMods.enableSchema();
 			window.onExists('monaco').then(() => {
 				this._defineProperties();
-				this._setupCustomCompletion();
 			});
 		}
 	};

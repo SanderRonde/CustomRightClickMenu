@@ -442,11 +442,14 @@ namespace CRMAppElement {
 				return [];
 			}
 			return Object.getOwnPropertyNames(settings).map((key: keyof T) => {
+				if (key === '$schema') {
+					return null;
+				}
 				return {
 					key: key,
 					value: JSON.parse(JSON.stringify(settings[key]))
 				};
-			});
+			}).filter(item => item !== null);
 		}
 
 		static _isOnlyGlobalExclude(this: CrmApp): boolean {
@@ -778,11 +781,6 @@ namespace CRMAppElement {
 				this.$.codeSettingsDialog.open();
 			}, 100);
 		}
-
-		static tryEditorLoaded(this: CrmApp, cm: CodeMirrorInstance) {
-			cm.display.wrapper.classList.add('try-editor-codemirror');
-			cm.refresh();
-		};
 
 		static async versionUpdateChanged(this: CrmApp) {
 			if (this._isVersionUpdateTabX(this.versionUpdateTab, 1)) {
