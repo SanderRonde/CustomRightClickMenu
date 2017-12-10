@@ -307,9 +307,10 @@ namespace InstallConfirmElement {
 
 			//Show info about the script, if available
 			const interval = window.setInterval( () => {
-				if (editor.getTypeHandler()[0].getMetaBlock) {
+				const typeHandler = (editor.getTypeHandler()[0] as MonacoEditorElement.MonacoEditorScriptMetaMods);
+				if (typeHandler.getMetaBlock) {
 					window.clearInterval(interval);
-					const metaBlock = editor.getTypeHandler()[0].getMetaBlock();
+					const metaBlock = typeHandler.getMetaBlock();
 					if (metaBlock && metaBlock.content) {
 						this.setMetaInformation(metaBlock.content);
 					}
@@ -328,7 +329,7 @@ namespace InstallConfirmElement {
 				cssUnderlineDisabled: false,
 				disabledMetaDataHighlight: false
 			});
-			const editor = await this.$.editorCont.create('script', {
+			const editor = await this.$.editorCont.create(this.$.editorCont.EditorMode.JS_META, {
 				value: this.script,
 				language: 'javascript',
 				theme: window.app.settings.editor.theme === 'dark' ? 'vs-dark' : 'vs',

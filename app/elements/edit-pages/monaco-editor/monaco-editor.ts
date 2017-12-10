@@ -639,7 +639,7 @@ namespace MonacoEditorElement {
 		}
 	}
 
-	class MonacoEditorScriptMetaMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
+	export class MonacoEditorScriptMetaMods<PubL extends string = '_', PriL extends string = '_'> extends MonacoEditorMetaBlockMods<PubL, PriL> {
 		metaBlockChanged: boolean = true;
 
 		constructor(editor: monaco.editor.IStandaloneCodeEditor|monaco.editor.IDiffEditor, model: monaco.editor.IModel) {
