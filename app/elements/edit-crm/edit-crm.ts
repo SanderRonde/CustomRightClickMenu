@@ -1121,13 +1121,7 @@ namespace EditCrmElement {
 			}
 
 			const cols = this.$.CRMEditColumnsContainer.children;
-			let row = cols[path.length - 1].children;
-			for (i = 0; i < row.length; i++) {
-				if (row[i].tagName === 'PAPER-MATERIAL') {
-					row = row[i].children[0].children;
-					break;
-				}
-			}
+			let row = cols[path.length - 1].querySelector('.CRMEditColumn').children;
 
 			for (i = 0; i < row.length; i++) {
 				if (window.app.util.compareArray((row[i] as EditCrmItem).item.path, path)) {
