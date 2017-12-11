@@ -943,9 +943,7 @@ namespace CRMAppElement {
 
 				//Reset regedit part
 				window.doc.URISchemeFilePath.value = 'C:\\files\\my_file.exe';
-				window.doc.URISchemeFilePath.shadowRoot.querySelector('input').value = 'C:\\files\\my_file.exe';
 				window.doc.URISchemeSchemeName.value = 'myscheme';
-				window.doc.URISchemeSchemeName.shadowRoot.querySelector('input').value = 'myscheme';
 
 				//Hide all open dialogs
 				Array.prototype.slice.apply(this.shadowRoot.querySelectorAll('paper-dialog')).forEach((dialog: HTMLPaperDialogElement) => {
