@@ -287,12 +287,12 @@
 							This is possible, but requires a bit of extra effort because of chrome's security restrictions.
 							Directly linking to files on your computer to open them is not possible (at least not for executable programs),
 							this is why you'll need to set up a custom (local only) URI that launches the program you want to launch.
-							If you want to read up about it some more check out <a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" target="_blank">this</a> page.
+							If you want to read up about it some more check out <a href="https://msdn.microsoft.com/en-us/library/aa767914(VS.85).aspx" rel="noopener" target="_blank">this</a> page.
 							To make this possible you'll need to add a key/value pair in your registry. After doing this, instead of http:// use yourscheme:// as a link.<br>
 							If you are on a mac you can use
-							<a href="https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX" target="_blank">this</a>
+							<a rel="noopener" href="https://support.shotgunsoftware.com/hc/en-us/community/posts/209485898-Launching-External-Applications-using-Custom-Protocols-under-OSX" target="_blank">this</a>
 							method. If you are on a windows computer you can do this yourself if you
-							want to (follow <a href="https://support.microsoft.com/nl-nl/kb/310516" target="_blank">these</a> instructions),
+							want to (follow <a href="https://support.microsoft.com/nl-nl/kb/310516" rel="noopener" target="_blank">these</a> instructions),
 							or you can generate a file you can download that will write the key/value pair for you by hitting the button below.
 							The second method is a lot easier and faster but it's understandable if you don't trust this extension in which case you can do it manually.
 						</div>
@@ -308,7 +308,7 @@
 							Global Excludes
 						</div>
 						<div class="globalExcludesDescr">
-							There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
+							There are some sites on which you don't want any script to run on such as paypal and your bank's website, below you can enter these sites to make sure that no CRM script is ever ran on that page unless you specifically clicked on it. URLs must be specified as follows <a href="https://developer.chrome.com/extensions/match_patterns" rel="noopener" target="_blank">https://developer.chrome.com/extensions/match_patterns</a>
 						</div>
 						<div class="globalExcludesItems">
 							<template is="dom-repeat" items="{{globalExcludes}}" as="globalExclude">
@@ -384,7 +384,7 @@
 						</div>
 						<div class="privacyPolicyDescr">
 							This extension does not store personally identifiable information. It also doesn't store your data on any servers except google's.
-							This extension uses google's <a href="https://developer.chrome.com/extensions/storage" target="_blank">chrome.storage.sync</a> to sync your
+							This extension uses google's <a href="https://developer.chrome.com/extensions/storage" rel="noopener" target="_blank">chrome.storage.sync</a> to sync your
 							data across devices. This data only consists of your custom right-click menu and its settings. To turn off this feature, disable the
 							"use storage sync" checkbox at the top of this page.
 						</div>
@@ -408,7 +408,7 @@
 							Contact
 						</div>
 						<div class="contactDescr">
-							If you have found any bugs, thought of any suggestions or have any other reason to contact me you can do so at <a href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To find out more about me, check out <a href="https://careers.stackoverflow.com/sanderronde" target="_blank">this page</a>. You can also check out the github repository over <a href="https://github.com/SanderRonde/CustomRightClickMenu" target="_blank">here</a> if you want to report an issue, do a pull request, or just want to check out the code. You can also find the code for the external editor app over <a href="https://github.com/SanderRonde/CRM-External-Editor-App" target="_blank">here</a>.
+							If you have found any bugs, thought of any suggestions or have any other reason to contact me you can do so at <a rel="noopener" href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>. To find out more about me, check out <a href="https://careers.stackoverflow.com/sanderronde" rel="noopener" target="_blank">this page</a>. You can also check out the github repository over <a href="https://github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">here</a> if you want to report an issue, do a pull request, or just want to check out the code. You can also find the code for the external editor app over <a href="https://github.com/SanderRonde/CRM-External-Editor-App" rel="noopener" target="_blank">here</a>.
 						</div>
 					</div>
 					<br /><br />
@@ -428,7 +428,7 @@
 							Maybe you don't like this version of the extension and would like to go back.
 							Fortunately this is possible. Simply click the export button below, copy the
 							resulting settings and paste them into the import box of the 
-							<a href="https://chrome.google.com/webstore/detail/bdoncblefnjcmbdfnidnhcjglnpbngbb" target="_blank">legacy extension</a>.
+							<a href="https://chrome.google.com/webstore/detail/bdoncblefnjcmbdfnidnhcjglnpbngbb" rel="noopener" target="_blank">legacy extension</a>.
 							<br><br>
 							<textarea rows="10" id="exportToLegacyOutput" class="textarea" spellcheck="false" autocomplete="off"></textarea>
 							<br>
@@ -454,11 +454,11 @@
 					<span id="menuSwitchUndoButton" role="button">UNDO</span>
 				</paper-toast>
 				<paper-toast id="externalEditorErrorToast" text="Something went wrong connecting to the CRM App, make sure you have the app installed" duration="10000">
-					<a class="toastLink" href="https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn" target="_blank">INSTALL</a>
+					<a class="toastLink" href="https://chrome.google.com/webstore/detail/crm-external-editor-app/hkjjmhkhhlmkflpihbikfpcojeofbjgn" rel="noopener" target="_blank">INSTALL</a>
 					<span id="externalEditorTryAgainButton" role="button">RETRY</span>
 				</paper-toast>
 				<paper-toast id="externalEditorLocationToast" text="The file is located at...." duration="10000">
-					<a href="file:///C:/" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
+					<a href="file:///C:/" rel="noopener" target="_blank" id="externalEditoOpenLocationInBrowser" role="button">OPEN IN BROWSER</a>
 				</paper-toast>
 				<paper-toast id="storageExceededToast" text="Chrome storage sync has ran out of space, switched to local storage for the moment, remove CRM nodes or code and switch back to sync later" duration="10000"></paper-toast>
 				<paper-toast id="noErrorsFound" text="No more errors found" duration="3500"></paper-toast>
@@ -589,7 +589,7 @@
 						<paper-input pattern="$a" id="addLibraryUrlInput" label="url" error-message="url does not host anything"></paper-input>
 						<paper-textarea id="addLibraryManualInput" label="code"></paper-textarea>
 						<br><br>
-						<paper-checkbox id="addLibraryIsTS">Library language is <a href="https://www.typescriptlang.org/" target="_blank">typescript</a> (if true, allows for better completions)</paper-checkbox>
+						<paper-checkbox id="addLibraryIsTS">Library language is <a rel="noopener" href="https://www.typescriptlang.org/" target="_blank">typescript</a> (if true, allows for better completions)</paper-checkbox>
 						<div class="buttons">
 							<paper-button id="addLibraryButton">Add</paper-button>
 							<paper-button dialog-dismiss>Cancel</paper-button>
@@ -809,8 +809,8 @@
 										extensions such as TamperMonkey and GreaseMonkey. These extensions work great but a lot of
 										features are simply missing. That is why it's now possible to install any userscript in this
 										extension as well. Simply go to a page where you can find a userscript
-										(such as <a href="https://greasyfork.org/" target="_blank">greasyfork</a> or
-										<a href="http://userscripts-mirror.org/" target="_blank">userscripts-mirror</a>), click the install button
+										(such as <a href="https://greasyfork.org/" rel="noopener" target="_blank">greasyfork</a> or
+										<a href="http://userscripts-mirror.org/" rel="noopener" target="_blank">userscripts-mirror</a>), click the install button
 										and the script will be installed for you. <br />
 										You can also export scripts from CRM as userscripts. Keep in mind that while all features
 										that userscripts include are included in CRM, the opposite is NOT true. This means that CRM-only features
@@ -823,11 +823,11 @@
 									<div class="versionUpdateTabTxt">
 										While the source of chrome extensions can be looked at by anyone, the extension wasn't
 										completely open source before. With this new version the entire project is online over
-										at <a href="https://www.github.com/SanderRonde/CustomRightClickMenu" target="_blank">Github</a>.
+										at <a href="https://www.github.com/SanderRonde/CustomRightClickMenu" rel="noopener" target="_blank">Github</a>.
 										If you feel like helping out, reporting some issues, or just checking out the code and learning
 										please check it out. <br />
 										If you have any questions or suggestions, please don't hesitate to contact me by email over at
-										<a href="mailto:awsdfgvhbjn@gmail.com" target="_blank">awsdfgvhbjn@gmail.com</a>.
+										<a href="mailto:awsdfgvhbjn@gmail.com" target="_blank" rel="noopener">awsdfgvhbjn@gmail.com</a>.
 										<br /><br />
 										<div class="finalMessage">Have fun using this extension!</div>
 										<br />

@@ -33,7 +33,7 @@ namespace ChangeLogElement {
 		static properties = changeLogProperties;
 
 		private static makeLink(name: string, url: string): string {
-			return `<a target="_blank" href="${url}" title="${name}">${name}</a>`;
+			return `<a target="_blank" rel="noopener" href="${url}" title="${name}">${name}</a>`;
 		}
 
 		private static stringSplice(str: string, startIndex: number, endIndex: number, 
