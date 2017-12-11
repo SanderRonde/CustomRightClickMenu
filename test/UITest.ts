@@ -262,7 +262,12 @@ const templates = {
 			script: [].join('\n'),
 			backgroundScript: '',
 			options: {},
-			metaTags: {}
+			metaTags: {},
+			ts: {
+				enabled: false,
+				script: {},
+				backgroundScript: {}
+			}
 		};
 
 		return templates.mergeObjects(value, options);
@@ -1056,7 +1061,7 @@ function subtractStrings(biggest: string, smallest: string): string {
 function getEditorValue(driver: webdriver.WebDriver, type: DialogType): webdriver.promise.Promise<string> {
 	return new webdriver.promise.Promise<string>((resolve) => {
 		driver.executeScript(inlineFn((REPLACE) => {
-			return window[(REPLACE.editor) as 'scriptEdit'|'stylesheetEdit'].editor.getValue();
+			return window[(REPLACE.editor) as 'scriptEdit'|'stylesheetEdit'].editorManager.editor.getValue();
 		}, {
 			editor: quote(type === 'script' ? 'scriptEdit' : 'stylesheetEdit'),
 		})).then((value: string) => {
@@ -2254,9 +2259,9 @@ describe('Options Page', function() {
 											newZoom);
 								}).then(() => {
 									return driver.executeScript(inlineFn(() => {
-										(window.app.item.type === 'stylesheet' ?
-											window.stylesheetEdit : 
-											window.scriptEdit)._updateZoomEl();
+										// (window.app.item.type === 'stylesheet' ?
+										// 	window.stylesheetEdit : 
+										// 	window.scriptEdit)._updateZoomEl();
 									}));
 								}).then(() => {
 									return wait(driver, 10000, dialog);
@@ -2349,9 +2354,9 @@ describe('Options Page', function() {
 									InputKeys.BACK_SPACE, newTabSize)
 								.then(() => {
 									return driver.executeScript(inlineFn(() => {
-										(window.app.item.type === 'stylesheet' ?
-											window.stylesheetEdit : 
-											window.scriptEdit)._updateTabSizeEl();
+										// (window.app.item.type === 'stylesheet' ?
+										// 	window.stylesheetEdit : 
+										// 	window.scriptEdit)._updateTabSizeEl();
 									}));
 								});
 						});
