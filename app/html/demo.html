@@ -4,15 +4,8 @@
 		<title>
 			CRM Demo
 		</title>
-		<!-- build:[href] ./../test/UI/ -->
-		<base href="./../app/" />
-		<!-- /build -->
 		<link rel="shortcut icon" href="../../test/UI/favicon.ico"/>
 		<style>
-			html {
-				overflow: hidden;
-			}
-
 			body {
 				margin: 0;
 			}
@@ -140,17 +133,21 @@
 			}
 			/*#endregion*/
 		</style>
-		<script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
-		<link rel="import" href="bower_components/polymer/polymer.html" />
-		<link async rel="import" href="elements/crm-app/crm-app.html" />
-		<link async rel="import" href="elements/error-reporting-tool/error-reporting-tool.html" />
+		<!-- build:remove -->
+		<link rel="import" href="../bower_components/polymer/polymer.html">
+		<!-- /build -->
+		<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+		<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
+		<link rel="import" href="../bower_components/paper-input/paper-input.html" />
+		<link async rel="import" href="../elements/crm-app/crm-app.html" />
+		<link async rel="import" href="../elements/error-reporting-tool/error-reporting-tool.html" />
 	</head>
 	<body>
-		<script src="../test/UI/chrome-api-dummy.js"></script>
-		<script src="js/libraries/jsonfn.js"></script>
-		<script src="js/libraries/md5.js"></script>
-		<script src="js/libraries/jquery/jquery-2.0.3.js"></script>
-		<script src="js/background.js"></script>
+		<script src="../../test/UI/chrome-api-dummy.js"></script>
+		<script src="../js/libraries/jsonfn.js"></script>
+		<script src="../js/libraries/md5.js"></script>
+		<script src="../js/libraries/jquery/jquery-2.0.3.js"></script>
+		<script src="../js/background.js"></script>
 		<div id="splashScreen">
 			<div id="splashScreenHorizontalCenterer">
 				<div id="splashScreenVerticalCenterer">
@@ -167,10 +164,12 @@
 		</div>
 		<error-reporting-tool class="elementLoading"></error-reporting-tool>
 		<crm-app class="elementLoading"></crm-app>
-		<script src="js/libraries/jquery/jquery-ui.min.js"></script>
-		<script src="js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
-		<script src="js/libraries/jquery/jquery.contextMenu.js"></script>
-		<script src="js/libraries/jquery/jquery.bez.js"></script>
-		<script src="js/calcPolyfill.js" defer async></script>
+		<script src="../elements/edit-pages/monaco-editor/src/min/vs/loader.js"></script>
+		<script src="../js/libraries/jquery/jquery-2.0.3.js"></script>
+		<script src="../js/libraries/jquery/jquery-ui.min.js"></script>
+		<script src="../js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+		<script src="../js/libraries/jquery/jquery.contextMenu.js"></script>
+		<script src="../js/libraries/jquery/jquery.bez.js"></script>
+		<script src="../js/calcPolyfill.js" defer async></script>
 	</body>
 </html>
