@@ -37,7 +37,7 @@ namespace TypeSwitcherElement {
 		/**
 		 * All types other than this one
 		 */
-		static remainingTypes: Array<CRM.NodeType> = [];
+		static remainingTypes: Array<CRM.NodeType>;
 
 		/**
 		 * Whether the choices container is toggled open
@@ -50,6 +50,7 @@ namespace TypeSwitcherElement {
 		static colored: boolean = false;
 
 		static ready(this: TypeSwitcher) {
+			this.remainingTypes = [];
 			this.onReady();
 		}
 

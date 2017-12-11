@@ -52,7 +52,7 @@ namespace PaperDropdownBehaviorNamespace {
 			listener: PaperDropdownListener;
 			id: string;
 			thisArg: any;
-		}> = [];
+		}>;
 
 		/**
 		 * Whether the menu is expanded
@@ -370,6 +370,10 @@ namespace PaperDropdownBehaviorNamespace {
 		static enable(this: PaperDropdownInstance) {
 			this.disabled = false;
 			this.$.dropdownSelected.style.color = 'rgb(38, 153, 244)';
+		}
+
+		static ready(this: PaperDropdownInstance) {
+			this._listeners = [];
 		}
 	}
 

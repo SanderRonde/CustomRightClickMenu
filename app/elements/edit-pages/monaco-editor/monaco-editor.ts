@@ -1404,12 +1404,12 @@ namespace MonacoEditorElement {
 				state: monaco.editor.ICodeEditorViewState|monaco.editor.IDiffEditorViewState;
 				editorType: EditorConfig;
 			}
-		} = {};
+		};
 
 		/**
 		 * An array of all elements created from this one
 		 */
-		private static _children: Array<MonacoEditor> = [];
+		private static _children: Array<MonacoEditor>;
 
 		private static _createInfo: {
 			method: 'create';
@@ -1617,7 +1617,7 @@ namespace MonacoEditorElement {
 				this._createInfo.from.removeChild(this);
 			}
 
-			
+
 			const { editor } = from;
 			const editorType = from.getCurrentModel().editorType;
 			
@@ -1890,6 +1890,8 @@ namespace MonacoEditorElement {
 
 		static ready(this: MonacoEditor) {
 			this._showSpinner();
+			this._models = {};
+			this._children = [];
 			MonacoEditorHookManager.setup();
 		}
 	}
