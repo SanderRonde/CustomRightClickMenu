@@ -171,11 +171,6 @@ namespace UseExternalEditorElement {
 				});
 			} catch (e) {
 			}
-			if (window.scriptEdit && window.scriptEdit.active) {
-				window.scriptEdit.reloadEditor();
-			} else if (window.stylesheetEdit && window.stylesheetEdit.active) {
-				window.stylesheetEdit.reloadEditor();
-			}
 		};
 
 		private static EditingOverlay =  class EditingOverlay {

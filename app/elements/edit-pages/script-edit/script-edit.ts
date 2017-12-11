@@ -207,6 +207,9 @@ namespace ScriptEditElement {
 			window.setTimeout(() => {
 				this.finishEditing();
 				window.externalEditor.cancelOpenFiles();
+				this.editorManager.destroy();
+				this.fullscreenEditorManager && 
+					this.fullscreenEditorManager.destroy();
 				this.active = false;
 			}, this.fullscreen ? 500 : 0);
 		};
@@ -215,14 +218,18 @@ namespace ScriptEditElement {
 		 * Gets the values of the metatag block
 		 */
 		private static _getMetaTagValues(this: NodeEditBehaviorScriptInstance) {
-			return (this.editorManager.getTypeHandler() as any).getMetaBlock().content;
+			const typeHandler = this.editorManager.getTypeHandler()[0] as MonacoEditorElement.MonacoEditorScriptMetaMods;
+			return typeHandler.getMetaBlock() && typeHandler.getMetaBlock().content;
 		};
 
 
 		static saveChanges(this: NodeEditBehaviorScriptInstance, resultStorage: Partial<CRM.ScriptNode>) {
-			resultStorage.value.metaTags = this._getMetaTagValues();
+			resultStorage.value.metaTags = this._getMetaTagValues() || {};
 			this.finishEditing();
 			window.externalEditor.cancelOpenFiles();
+			this.editorManager.destroy();
+			this.fullscreenEditorManager && 
+				this.fullscreenEditorManager.destroy();
 			this.changeTab('main');
 			this.active = false;
 		};

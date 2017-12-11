@@ -1658,11 +1658,12 @@ namespace MonacoEditorElement {
 			}
 		}
 
-		static async reset(this: MonacoEditor) {
-			this.destroy();
-			
+		static async reset(this: MonacoEditor) {			
 			const createInfo = this._createInfo;
 			const editorType = this.getCurrentModel().editorType;
+
+			this.destroy();
+
 			if (createInfo.method === 'create') {
 				return await this.create(editorType, createInfo.options, 
 					createInfo.override);
