@@ -1406,6 +1406,11 @@ namespace MonacoEditorElement {
 			}
 		} = {};
 
+		/**
+		 * An array of all elements created from this one
+		 */
+		private static _children: Array<MonacoEditor> = [];
+
 		private static _createInfo: {
 			method: 'create';
 			options: monaco.editor.IEditorConstructionOptions;
@@ -1413,6 +1418,7 @@ namespace MonacoEditorElement {
 		}|{
 			method: 'from';
 			from: MonacoEditor;
+			modelId: string;
 		}|{
 			method: 'diff';
 			values: [string, string];
@@ -1607,14 +1613,19 @@ namespace MonacoEditorElement {
 			}
 
 		static createFrom(this: MonacoEditor, from: MonacoEditor) {
-			this._createInfo = {
-				method: 'from',
-				from
+			if (this._createInfo && this._createInfo.method === 'from') {
+				this._createInfo.from.removeChild(this);
 			}
 
+			
 			const { editor } = from;
 			const editorType = from.getCurrentModel().editorType;
-
+			
+			this._createInfo = {
+				method: 'from',
+				from,
+				modelId: from.getCurrentModelId()
+			}
 			this._isTypescript = this._typeIsTS(editorType);
 			this.editor = window.monaco.editor.create(this.$.editorElement, window.app.templates.mergeObjects({
 				model: editor.getModel()
@@ -1632,6 +1643,8 @@ namespace MonacoEditorElement {
 				state: null,
 				editorType
 			}
+
+			from.addChild(this);
 			return this;
 		}
 
@@ -1661,8 +1674,21 @@ namespace MonacoEditorElement {
 			}
 		}
 
+		static addChild(this: MonacoEditor, child: MonacoEditor) {
+			this._children.push(child);
+		}
+
+		static removeChild(this: MonacoEditor, child: MonacoEditor) {
+			this._children.splice(this._children.indexOf(child), 1);
+		}
+
 		static setTypescript(this: MonacoEditor, enabled: boolean) {
 			if (this._isTypescript === enabled) {
+				return;
+			}
+
+			if (this._createInfo.method === 'from') {
+				this._createInfo.from.setTypescript(enabled);
 				return;
 			}
 
@@ -1701,6 +1727,15 @@ namespace MonacoEditorElement {
 			}
 
 			this._isTypescript = enabled;
+			this._children.forEach((child) => {
+				child._isTypescript = enabled;
+
+				const copiedModelName: string = (child._createInfo as any).modelId;
+				const model = this.getModel(copiedModelName);
+				if (!this.isDiff(child.editor)) {
+					child.editor.setModel(model.models[0]);
+				}
+			})
 		}
 
 		static addModel(this: MonacoEditor, identifier: string, value: string, editorType: EditorConfig) {
