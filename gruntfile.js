@@ -10,44 +10,6 @@ var jqueryContextMenuLicense = '/*!\n * jQuery contextMenu - Plugin for simple c
 module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
-		extractCrmDefs: {
-			updateCRMDefs: {
-				options: {
-					type: 'tern'
-				},
-				files: [
-					{
-						src: ['app/js/crmapi.ts'],
-						dest: 'app/js/crmAPIDefs.js',
-						expand: false
-					}
-				]
-			},
-			updateCRMDefsWebsite: {
-				options: {
-					type: 'tern',
-				},
-				files: [
-					{
-						src: ['app/js/crmapi.ts'],
-						dest: 'buildBeforePolymer/crmAPIDefs.js',
-						expand: false
-					}
-				]
-			},
-			updateJSONDocsWebsite: {
-				options: {
-					type: 'json',
-				},
-				files: [
-					{
-						src: ['app/js/crmapi.ts'],
-						dest: 'buildBeforePolymer/crmAPIDefs.json',
-						expand: false
-					}
-				]
-			}
-		},
 		processhtml: {
 			build: {
 				options: {
@@ -88,6 +50,17 @@ module.exports = function(grunt) {
 					cwd: 'app/elements',
 					src: ['**/*.html'],
 					dest: 'buildBeforePolymer/elements'
+				}]
+			},
+			buildUITest: {
+				options: {
+					strip: false
+				},
+				files: [{
+					expand: true,
+					cwd: 'test/UI',
+					src: ['UITest.html'],
+					dest: 'test/UI/built/'
 				}]
 			}
 		},
@@ -176,21 +149,6 @@ module.exports = function(grunt) {
 					{ expand: true, cwd: 'app/', src: ['icon-large.png', 'icon-small.png', 'icon-supersmall.png', 'LICENSE.txt', 'manifest.json', 'elements/change-log/changelog.js'], dest: 'buildBeforePolymer/' } //Misc files
 				]
 			},
-			elements: {
-				expand: true,
-				cwd: 'app/',
-				src: [
-					'elements/crm-app/crm-app.js',
-					'elements/crm-app/crm-app.css',
-					'!elements/crm-app/crm-app.ts',
-					'elements/error-reporting-tool/*',
-					'!elements/error-reporting-tool/error-reporting-tool.ts',
-					'elements/installing/*',
-					'bower_components/polymer/*',
-					'bower_components/webcomponentsjs/webcomponents.min.js'
-				],
-				dest: 'buildBeforePolymer/'
-			}, //Elements
 			moveDocumentationWebsite: {
 				files: [{
 					expand: true,
@@ -738,13 +696,6 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-zip');
 	grunt.loadNpmTasks('html-typings');
 
-	/* Alias only tasks, not meant for running */
-	grunt.registerTask('_extractDefs', ['extractCrmDefs:updateCRMDefs']);
-	grunt.registerTask('_extractWebsite', ['extractCrmDefs:updateCRMDefsWebsite',
-		'extractCrmDefs:updateJSONDocsWebsite']);
-	grunt.registerTask('_defsNoClean', ['processhtml:updateCRMDefs']);
-
-
 
 	/* Convenience tasks */
 
@@ -759,17 +710,6 @@ module.exports = function(grunt) {
 
 	//Disables hot reloading, required for proper build
 	grunt.registerTask('disableHotReload', ['exec:yarn']);
-
-
-
-	/* Defs related tasks */
-
-	//Extracts the definitions from crmapi.js and creates documentation and a tern defs file
-	grunt.registerTask('defs', ['compile', '_extractDefs', 'processhtml:updateCRMDefs']);
-
-	//Extracts the external editor definitions and places them in build/
-	grunt.registerTask('externalEditorDefs', ['compile', 'extractCrmDefs:updateCRMDefsWebsite',
-		'extractCrmDefs:updateJSONDocsWebsite']);
 
 
 
@@ -805,11 +745,11 @@ module.exports = function(grunt) {
 	/* Building the app */
 
 	//Runs all of the build steps before polymerBuild is invoked
-	grunt.registerTask('_buildPrePolymer', ['cleanBuild', '_extractDefs',
+	grunt.registerTask('_buildPrePolymer', ['cleanBuild',
 		'copy:build', 'copy:installing', 'string-replace', 'copy:monacoPre', 
-		'copy:monacoTemp', 'processhtml:build', 'processhtml:updateCRMDefs', 
+		'copy:monacoTemp', 'processhtml:build', 
 		'processhtml:inlineElementImports', 'string-replace:removeCharacter',
-		'copy:elements', 'copy:tsEmbed', 'copy:jsFiles', 'copy:html', 
+		'copy:jsFiles', 'copy:html', 
 		'copy:tsEmbedBuild', 'copy:crmapiLibBuild', 'clean:tempMonaco']);
 
 	//Runs all of the build steps after polymerBuild is invoked
@@ -836,11 +776,11 @@ module.exports = function(grunt) {
 	grunt.registerTask('buildZip', ['build', 'clean:unzipped']);
 
 	//Tests whether the extension can be built properly without errors
-	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild', '_extractDefs',
+	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild',
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
-	grunt.registerTask('test', ['testBuild', 'build', 'compile', 'mochaTest']);
+	grunt.registerTask('test', ['testBuild', 'build', 'processhtml:buildUITest', 'compile', 'mochaTest']);
 
 	//Crisps all HTML files for CSP compliance
 	grunt.registerTask('crispify', ['crisper:optionsPage', 'crisper:background']);

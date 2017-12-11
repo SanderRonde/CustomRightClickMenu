@@ -4,9 +4,7 @@
 		<title>
 			Test
 		</title>
-		<!-- build:[href] ./../test/UI/ -->
-		<base href="./../../build/" />
-		<!-- /build -->
+		<base href="./../../../build/" />
 		<link rel="shortcut icon" href="../../test/UI/favicon.ico"/>
 		<style>
 			html {
@@ -140,7 +138,10 @@
 			}
 			/*#endregion*/
 		</style>
+		<script src="../bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></script>
 		<script src="bower_components/webcomponentsjs/webcomponents.min.js"></script>
+		<script src="../bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+		<link rel="import" href="../bower_components/polymer/lib/legacy/class.html" />
 		<link rel="import" href="bower_components/polymer/polymer.html" />
 		<link async rel="import" href="elements/crm-app/crm-app.html" />
 		<link async rel="import" href="elements/error-reporting-tool/error-reporting-tool.html" />
@@ -168,6 +169,14 @@
 		</div>
 		<error-reporting-tool class="elementLoading"></error-reporting-tool>
 		<crm-app class="elementLoading"></crm-app>
-		<script src="js/calcPolyfill.js" defer async></script>
+		<!-- build:js inline -->
+		<script src="../../node_modules/monaco-editor/min/vs/loader.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery-2.0.3.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery-ui.min.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery.requestAnimationFrame.min.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery.contextMenu.js"></script>
+		<script src="../../app/js/libraries/jquery/jquery.bez.js"></script>
+		<script src="../../app/js/calcPolyfill.js" defer async></script>
+		<!-- /build -->
 	</body>
 </html>
