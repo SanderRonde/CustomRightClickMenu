@@ -305,86 +305,70 @@ namespace CodeEditBehaviorNamespace {
 		 */
 		static popOutRibbons(this: CodeEditBehaviorInstance) {
 			const scriptTitle = window.app.$.editorCurrentScriptTitle;
-			const toolsRibbon = window.app.$.editorToolsRibbonContainer;
-
-			const toolsVisible = !!(!window.app.storageLocal.hideToolsRibbon &&
-				toolsRibbon);
-
-			const titleExpanded = scriptTitle.getBoundingClientRect().height > 20;
-
-			const titleAnimation: [{
-				marginTop: number|string;
-				marginLeft: number|string;
-			}, {
-				marginTop: number|string;
-				marginLeft: number|string;
-			}] = [{
-				marginTop: 0,
-				marginLeft: 0
-			}, {
-				marginTop: titleExpanded ? '-51px' : '-18px',
-				marginLeft: (toolsVisible ? '-200px' : 0)
-			}];
-
-			const horizontalCenterer = window.crmEditPage.$.horizontalCenterer;
-			const bcr = horizontalCenterer.getBoundingClientRect();
-			const viewportWidth = bcr.width + 20;
-
-			if (toolsVisible) {
-				scriptTitle.animate(titleAnimation, {
-					duration: 800,
-					easing: 'bez'
-				}).onfinish = function() {
-					scriptTitle.style.marginTop = titleAnimation[1].marginTop + '';
-					scriptTitle.style.marginLeft = titleAnimation[1].marginLeft + '';
-				};
-				$(toolsRibbon).animate({
-					marginLeft: '-200px'
-				}, {
-					duration: 800,
-					easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
-					step: (now: number) => {
-						window.doc.fullscreenEditorEditor.style.width = 
-							`${viewportWidth - 200 - now}px`;
-						window.doc.fullscreenEditorEditor.style.marginLeft = 
-							`${now + 200}px`;
-						this.fullscreenEditorManager.editor.layout();
-					},
-					complete() {
-						scriptTitle.style.display = 'none';
-						toolsRibbon.style.display = 'none';
-						toolsRibbon.style.marginLeft = '-200px';	
-					}
-				});
+			let titleRibbonSize: string;
+			if (window.app.storageLocal.shrinkTitleRibbon) {
+				window.doc.editorTitleRibbon.style.fontSize = '40%';
+				scriptTitle.style.padding = '0';
+				titleRibbonSize = '-18px';
 			} else {
-				window.doc.dummy.style.height = (titleExpanded ? '50px' : '18px');
-				$(window.doc.dummy).animate({
-					height: 0
+				titleRibbonSize = '-51px';
+			}
+			scriptTitle.style.display = 'flex';
+			scriptTitle.style.marginTop = '0';
+			const scriptTitleAnimation: [{
+				[key: string]: string | number;
+			}, {
+				[key: string]: string | number;
+			}] = [
+				{
+					marginTop: 0
 				}, {
-					duration: 800,
+					marginTop: titleRibbonSize
+				}
+			];
+			scriptTitle.style.marginLeft = '-200px';
+
+			setTimeout(() => {
+				window.doc.editorToolsRibbonContainer.style.display = 'flex';
+				if (!window.app.storageLocal.hideToolsRibbon) {
+					$(window.doc.editorToolsRibbonContainer).animate({
+						marginLeft: '-200px'
+					}, {
+						duration: 500,
+						easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
+						step: (now: number) => {
+							window.doc.fullscreenEditorEditor.style.width = `calc(100vw - 200px - ${now}px)`;
+							window.doc.fullscreenEditorEditor.style.marginLeft = `calc(${now}px + 200px)`;
+							this.fullscreenEditorManager.editor.layout();
+						}
+					});
+				} else {
+					window.doc.editorToolsRibbonContainer.classList.add('visible');
+				}
+			}, 200);
+			setTimeout(() => {
+				window.doc.dummy.style.height = '0';
+				$(window.doc.dummy).animate({
+					height: '0'
+				}, {
+					duration: 500,
 					easing: ($ as CodeEditBehaviorNamespace.JQueryContextMenu).bez([0.215, 0.610, 0.355, 1.000]),
 					step: (now: number) => {
-						window.doc.fullscreenEditorEditor.style.width = 
-							`${viewportWidth - 200 - now}px`;
-						window.doc.fullscreenEditorEditor.style.marginLeft = 
-							`${now + 200}px`;
+						window.doc.fullscreenEditorEditor.style.height = `calc(100vh - ${now}px)`;
+						window.doc.fullscreenEditorHorizontal.style.height = `calc(100vh - ${now}px)`;
+						this.fullscreenEditorManager.editor.layout();
 					}
 				});
-				scriptTitle.animate([
-					{
-						marginTop: 0
-					}, {
-						marginTop: titleExpanded ? '-51px' : '-18px'
-					}
-				], {
-					duration: 800,
+				scriptTitle.animate(scriptTitleAnimation, {
+					duration: 500,
 					easing: 'bez'
 				}).onfinish = function() {
-					scriptTitle.style.display = 'none';
-					toolsRibbon.style.display = 'none';
-					scriptTitle.style.marginTop = (titleExpanded ? '-51px' : '-18px');
+					scriptTitle.style.marginTop = titleRibbonSize;
+					if (scriptTitleAnimation[0]['marginLeft'] !== undefined) {
+						scriptTitle.style.marginLeft = titleRibbonSize;
+					}
 				};
-			}
+			}, 200);
 		};
 
 		/**
@@ -417,7 +401,7 @@ namespace CodeEditBehaviorNamespace {
 						window.doc.fullscreenEditor.style.display = 'none';					
 					}
 				});
-			}, 800);
+			}, 5000);
 		};
 
 		/**
