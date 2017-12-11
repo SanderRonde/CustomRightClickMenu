@@ -2,7 +2,6 @@
 /// <reference path="../tools/definitions/chrome.d.ts" />
 /// <reference path="../tools/definitions/crm.d.ts" />
 /// <reference path="../app/js/background.ts" />
-/// <reference path="../tools/definitions/codemirror.d.ts" />
 /// <reference path="../app/elements/edit-crm-item/edit-crm-item.ts" />
 
 interface AnyObj {
