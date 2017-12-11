@@ -49,7 +49,7 @@ namespace ScriptEditElement {
 		}
 
 		private static _toggleTypescriptButton(this: NodeEditBehaviorScriptInstance) {
-			const isEnabled = !!this.$.editorTypescript.getAttribute('active');
+			const isEnabled = !!(this.$.editorTypescript.getAttribute('active') !== null);
 			if (isEnabled) {
 				this.$.editorTypescript.removeAttribute('active');
 			} else {
@@ -58,7 +58,7 @@ namespace ScriptEditElement {
 		}
 
 		static toggleTypescript(this: NodeEditBehaviorScriptInstance) {
-			const shouldBeEnabled = !this.$.editorTypescript.getAttribute('active');
+			const shouldBeEnabled = !(this.$.editorTypescript.getAttribute('active') !== null);
 			this._toggleTypescriptButton();
 			
 			if (this.newSettings.value.ts) {
