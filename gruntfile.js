@@ -779,8 +779,11 @@ module.exports = function(grunt) {
 	grunt.registerTask('testBuild', ['cleanBuild', 'build', 'cleanBuild',
 		'cleanBuild', 'documentationWebsite', 'cleanBuild']);
 
+	//Builds the test page
+	grunt.registerTask('buildTest', ['processhtml:buildUITest']);
+
 	//Runs mocha and then tries to build the extension to see if any errors occur while building
-	grunt.registerTask('test', ['testBuild', 'build', 'processhtml:buildUITest', 'compile', 'mochaTest']);
+	grunt.registerTask('test', ['testBuild', 'build', 'buildTest', 'compile', 'mochaTest']);
 
 	//Crisps all HTML files for CSP compliance
 	grunt.registerTask('crispify', ['crisper:optionsPage', 'crisper:background']);
