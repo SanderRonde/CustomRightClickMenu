@@ -9428,7 +9428,7 @@ if (typeof module === 'undefined') {
 					isTransfer: true
 				});
 
-				if (!window.CodeMirror.TernServer) {
+				if (!window.CodeMirror || !window.CodeMirror.TernServer) {
 					//Wait until TernServer is loaded
 					await new Promise((resolveTernLoader) => {
 						this._loadTernFiles().then(() => {
@@ -10154,6 +10154,10 @@ if (typeof module === 'undefined') {
 				}
 
 				window.log('Done!');
+
+				const event = document.createEvent('Event');
+				event.initEvent('CRMLoaded', true, true);
+				window.dispatchEvent(event);
 			} catch (e) {
 				for (let i = 0; i < 10; i++) {
 					window.console.groupEnd();
